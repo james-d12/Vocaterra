@@ -53,6 +53,9 @@ The dependency direction is `Core` <- stage libraries <- `Content` <- `Pipeline`
 `Response` reference a sibling (see [ADR 0003](docs/adr/0003-engine-agnostic-core.md)). For what each stage does with a real
 utterance, read [docs/PIPELINE.md](docs/PIPELINE.md).
 
+The same system is also drawn as a one-page draw.io diagram in
+[docs/diagrams/system-overview.drawio](docs/diagrams/system-overview.drawio); [docs/diagrams/README.md](docs/diagrams/README.md) explains how to open it.
+
 ## Prerequisites
 
 - **.NET SDK 10.0.402**, pinned in `global.json` (`rollForward: latestPatch` allows later patch releases). Projects target `net10.0`.
@@ -84,6 +87,33 @@ dotnet format --verify-no-changes   # what CI checks
 
 Tests that need a real model are skipped, not failed, unless `SLG_MODELS_DIR` points at a directory holding the verified model
 (see below).
+
+### Fuzz tests
+
+`tests/Slg.Fuzzing.Tests` generates inputs from the lexicon, the intent grammars and `content/v1`, and checks sixteen oracles against the
+real stages. It needs no model, and it runs at full depth as part of the normal test run:
+
+```bash
+dotnet test tests/Slg.Fuzzing.Tests
+```
+
+To soak it, raise the iteration count of the oracle groups with environment variables. The `fuzz-soak` job in the CI workflow runs the
+same settings weekly; that workflow is parked (see Known gaps):
+
+```bash
+SLGFUZZ_ITERATIONS=50000 SLGFUZZ_ITERATIONS_GRAMMAR=50000 SLGFUZZ_ITERATIONS_SIGNAL=10000 \
+SLGFUZZ_ITERATIONS_PIPELINE=3000 SLGFUZZ_ITERATIONS_CONTENT=5000 dotnet test tests/Slg.Fuzzing.Tests
+```
+
+A failing run prints a CsCheck seed. Replay that exact case with the same project:
+
+```bash
+CsCheck_Seed=<seed> dotnet test tests/Slg.Fuzzing.Tests
+```
+
+The failure message also carries the generated input, which is what a regression test needs. The design is in
+[docs/FUZZING_PLAN.md](docs/FUZZING_PLAN.md); the oracles, the bounds and the bugs found so far are in
+[tests/Slg.Fuzzing.Tests/README.md](tests/Slg.Fuzzing.Tests/README.md).
 
 ## Running the demo CLI
 
@@ -199,12 +229,14 @@ consent rules and manifest schema are in [golden/README.md](golden/README.md).
 | `tools/Slg.ContentBuilder` | `validate`, `hash`, `cefr-check`, `import-lexicon` |
 | `tests/Slg.<Project>.Tests` | One xUnit project per source project |
 | `tests/Slg.Golden.Tests` | G2P golden set, end-to-end worked example, golden manifest layout |
+| `tests/Slg.Fuzzing.Tests` | Combinatorial fuzz tests: CsCheck oracles over generators driven by the content catalogs ([README](tests/Slg.Fuzzing.Tests/README.md)) |
 | `content/v1` | The versioned, hashed content bundle (JSON) and its `ATTRIBUTION.md` |
 | `golden/` | Golden learner audio manifest and recording protocol; the audio itself is gitignored |
 | `models/` | `manifest.json` and a README are committed; the model files are fetched and gitignored |
 | `scripts/` | `fetch-models.sh`, `license-scan.sh` and its allowlist and overrides ([scripts/README.md](scripts/README.md)) |
 | `.github/workflows-pending/` | The CI workflow, parked until the push token has the `workflow` scope |
 | `docs/` | [PIPELINE.md](docs/PIPELINE.md), [REPLAY.md](docs/REPLAY.md) and the architecture decision records in `docs/adr/` |
+| `docs/diagrams/` | The draw.io system overview and how to open it ([README](docs/diagrams/README.md)) |
 | `HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md`, `SPECIFICATION.md` | The design, the milestone plan and the original brief |
 
 ## Determinism rules in brief
@@ -259,6 +291,7 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 | M13b | Integration fixes from the demo: answer-match communication, spell grammars, blacksmith idle transitions | done |
 | M14 | CI matrix (x64/ARM64/Windows/macOS), golden tests, license scan, format check (workflow parked in `.github/workflows-pending`) | done |
 | M15 | README, ADRs, CONTRIBUTING, determinism checklist, replay and pipeline docs | done |
+| M16 | Combinatorial fuzz testing: CsCheck, 16 oracles over catalog-driven generators | done |
 
 ## Known gaps and next steps
 
@@ -292,12 +325,26 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 - **Open decisions.** The license of the repository, whether the player can choose the NPC dialect, and whether a free
   conversation mode (Phase 3 in the design) ships at all.
 - **Build size.** A full build writes about 3 GB per checkout; trimming the runtime packs is a follow-up.
+- **Part of speech.** The analyzer reads each word as every part of speech it can be, so verb and noun homographs such as `ayudas`, `lanza`
+  and `vino` trip the tense and person checks. A fix needs disambiguation by part of speech ([fuzz suite findings](tests/Slg.Fuzzing.Tests/README.md)).
+- **Pronunciation cost.** Scoring grows with the cube of the phone count, because `PredictedErrorMatcher.Match` aligns against the reference once
+  per predicted-error variant. Spoken utterances are far below the sizes where this matters ([fuzz suite findings](tests/Slg.Fuzzing.Tests/README.md)).
+- **Content defaults.** The content loader silently defaults missing number, flag and enumeration fields to 0, false or the first member. The
+  places where this is accepted are listed in [`KnownTolerances.cs`](tests/Slg.Fuzzing.Tests/Oracles/KnownTolerances.cs) (`AcceptedContentField`).
+- **WAV sample rate.** `WavFile.Read` does not validate the sample-rate range, and the resampler rebuilds its kernel bank on every call, so a
+  damaged header can inflate one clip's output or make it slow ([fuzz suite findings](tests/Slg.Fuzzing.Tests/README.md)).
+- **Replay envelope copies.** The replayer does not cross-check the envelope's duplicate `result/verdict` and `result/replay` copies against the
+  core record, so an edited log can replay clean ([fuzz suite findings](tests/Slg.Fuzzing.Tests/README.md)).
 
 ## Documentation
 
 - [docs/PIPELINE.md](docs/PIPELINE.md): the pipeline stage by stage, with the worked example and the CLI's verdict
 - [docs/REPLAY.md](docs/REPLAY.md): replay log and envelope format, with a real example
+- [docs/FUZZING_PLAN.md](docs/FUZZING_PLAN.md): the fuzz testing design, its generators, oracles O1 to O16 and iteration budgets
+- [tests/Slg.Fuzzing.Tests/README.md](tests/Slg.Fuzzing.Tests/README.md): the fuzz suite, how to run and soak it, its oracles, the bugs it found and the known findings
 - [docs/adr/](docs/adr/): architecture decision records 0001 to 0007 (language, determinism, engine-agnostic core, model pinning, dialect, ICU, Kokoro phonemizer licensing)
+- [docs/diagrams/README.md](docs/diagrams/README.md): the system diagram in draw.io, and how to open it
+- [TOOLS.md](TOOLS.md): the inventory of third-party tools, libraries, models and data sources, with their licenses
 - [CONTRIBUTING.md](CONTRIBUTING.md): development setup, conventions, the determinism checklist, and how to add error tags, content, golden clips and model adapters
 - [HIGH_LEVEL_DOCS.md](HIGH_LEVEL_DOCS.md): the high-level design
 - [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md): milestones, repository layout, determinism rules, findings log
