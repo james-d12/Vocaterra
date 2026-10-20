@@ -22,7 +22,7 @@ No flags are needed: every fuzz `[Fact]` runs its full default depth on a plain 
 development machine (4 cores), with the project already built: **about 17 s wall time** for the whole project at default depth (16 to 19 s over
 25 runs; stage 1 alone was about 5 s), against the plan's budget of about 60 s. With the imported lexicon of M17a (3 000 lemmas, 41 000 entries) the
 same project takes **18.7 to 20.3 s** on a 16-logical-core machine (three runs; the previous tree timed interleaved with it: 17.1 to 18.2 s), and the whole
-solution's `dotnet test --no-build` takes 24.6 to 25.5 s (previous tree: 20.5 to 21.0 s). xUnit runs the test classes in parallel, so the wall time is that
+solution's `dotnet test --no-build` takes 24.6 to 25.5 s (previous tree: 20.5 to 21.0 s). After M18 (the part-of-speech resolver, below) the same project takes **19.4 to 22.3 s (11 runs)** on the same machine (before it, measured the same day: **18.7 to 24.1 s (7 runs; four of them interleaved with the new tree, which was 20.1 to 22.3 s in the same interleaving)**), and the whole solution's `dotnet test --no-build` takes **24.6 to 25.4 s (three runs; the M17a figure was 24.6 to 25.5 s)**. xUnit runs the test classes in parallel, so the wall time is that
 of the slowest chain, not the sum (about 70 s of test time in all). The slowest facts in that parallel run are O13's valid clips (about 13 s), O8
 (9 s), the NPC fact of O11 (6 s), O14 (6 s and 4 s) and O15; alone each takes between a third and a half of that.
 
@@ -57,6 +57,29 @@ helpers (failure messages, first-difference path, tolerances, the WAV builder, t
 Nothing was weakened to make a test pass. Where the plan's one-line property is not true as written, the oracle states the true property in
 code comments and here, with the reason:
 
+- **O3, O4 and O5 with the homographs of the lexicon (M18).** The generators now draw nouns that are also verb forms and nouns of both genders, and the analyzer resolves
+  their part of speech. A sentence that is *correct under one reading and a mistake under another* cannot be told from either by anything in it, so the oracles stay
+  strict about the properties they check and step around exactly these places. Each is a restriction in a generator (the sentence or the mutation is not made), except the first
+  and the last, which relax one comparison and say so:
+  - *O3 slots.* The names of the slots are compared as before; when a generated noun is also a verb form or an adjective and the grammar has an optional `[VERB]`, `[NOUN]` or
+    `[ADJ]` that could take the word (`van` for `[VERB]` or `[NOUN:item]`), the matcher may bind it either way, and only the values of the slots are checked (the same
+    relaxation as for two optional tokens of one class).
+  - *The realizer* re-rolls a sentence (a retry, not a skip; the counters below count a recipe only when every retry failed) when a verb form that is also a noun or an adjective
+    stands right behind an article, numeral, determiner, preposition or an adjective that belongs to no noun (`la baño`, `al adivinas`, `arruinado diseño`; a reader takes
+    the article for a clitic or the word for a noun), when a pronoun is followed by a noun that is also a verb form (`ella libro` is `libro` the verb), and when a verb form that is
+    a copula by homograph (`fue`, `fueron`: `ir` and `ser`) is followed by an adjective. The last one is a homograph between two verbs, which the resolver does not resolve.
+  - *O4 and O5, `conj.tense`.* A generated verb whose present or preterite form is also a noun or an adjective (`parte`, `busca`, `oculto`, `traje`) gets the mistake only
+    when a subject pronoun forces it to be the verb; elsewhere (`ayer ... intenciones parte`) a reading without the mistake exists. No literal word of the grammar may be a finite
+    verb form, because the oracle names only the generated verbs.
+  - *O4 and O5, `gender.agree`.* Nouns that read as both genders (`estudiante`) are not given a gender mistake; the new form of an adjective must be an adjective and nothing else
+    (`alguno` is also a pronoun), and must not agree with the word before it (`lata buena`: the adjective is read as that noun's).
+  - *O4 and O5, `ser_estar`.* A copula form that is also a noun (`son`) is the mutation only right behind a subject pronoun.
+  - *O4 and O5, `word_order`.* An adjective is not moved in front of a noun when the word before it, or before the adjectives before it, can be a noun (`estrella grande violenta
+    pieza`: the adjectives belong to `estrella`); when its spelling is an adverb that goes before nouns (`incluso resultado`); or when it is also a pronoun or adverb and the
+    noun can be a verb (`suyo peso`).
+  - *O4 and O5, tied parses.* When the analyzer's answer differs from the mutation's and the grammar itself reads a word of the sentence in two ways (`duchas complicados`: `[VERB]` or
+    `[NOUN:item]`, and the word keeps both readings), the case is excused and counted (`KnownTolerances.IsTiedParse`, `excused:tied-parse:<kind>`); the oracles assert that the
+    excused cases stay under one in a hundred. In the runs made it did not occur at default depth.
 - **O8.** The dialect sites are `θ s z h ʎ ʝ ʃ ʒ` (the plan lists `θ s ʎ ʝ h`; the shipped dialects also produce the voiced `z` and the rioplatense `ʃ ʒ`).
   `Tokenize(ToIpaString())` is exact except for the pair `t` + `ʃ`, whose concatenation is the affricate token `tʃ` (the inventory documents that
   sequences are lists for this reason); a result with that pair skips the split.
@@ -131,8 +154,9 @@ content oracle writes each mutated bundle to its own directory under the system 
 - `Generation/`
   - `AdversarialCorpus` - fixed edge values: strings (empty, 10 000 characters, emoji, combining marks, lone surrogates, number words, `{slot}`, `null`, `al`, `del`), audio shapes (zero and one sample, exactly one VAD frame and one sample either side, out-of-phase stereo, DC offset, a long clip at 96 kHz), phone sequences (one phone, twenty equal phones, every vowel, the learner phones), JSON values for a changed kind.
   - `LexiconCatalog` - the lexicon through the generators' eyes: nouns with both numbers, verbs with full paradigms, descriptive adjectives, the closed classes. With
-    thousands of lemmas it also decides which words are unusable because of homographs (a noun that is also an article, numeral or determiner, whose form two noun lemmas
-    share, that has a reading of the other gender, or that the normalizer rewrites, like the noun `cero`), indexes the lexicon for the generators, and prints the counts as
+    thousands of lemmas it also decides which words the generators cannot spell correctly (a noun that is also an article, numeral or determiner, whose form two noun lemmas
+    share, that has no noun reading of the generated form, or that the normalizer rewrites, like the noun `cero`), flags the nouns that are also a verb form or a noun of the other
+    gender (they are drawn like any other; the flags say which mistakes cannot be built on them), indexes the lexicon for the generators, and prints the counts as
     `nouns:`, `verbs:`, `adjectives:` ... diagnostics of O3.
   - `SpanishTextGen` / `TextNoise` - lexicon-driven phrases (word salad and loosely structured phrases) with casing, accent, NFD, `¿¡?!,.`, spacing, number-word and adversarial-token noise. The adversarial token goes in last and verbatim, so a lone surrogate reaches the stage under test unrepaired.
   - `GrammarPattern`, `PatternGen` - slot grammar patterns as a tree: every catalog grammar, structural skeletons, and random DSL strings built from the token kinds.
@@ -160,6 +184,12 @@ kind stays reachable. `CorrectSentenceFuzzTests` also asserts that every grammar
 word of any grammar is missing from the lexicon (the old `cuál` gap would fail it). If a mirrored table in `LexiconCatalog` (the ser/estar
 adjective lists, the prenominal adjectives, the past-time adverbs, ...) drifts from `AnalysisTables` in `Slg.Nlp`, the mutation oracles fail and
 name the kind.
+
+Homographs are generated, not avoided (M18): `SentenceGen` counts the sentences that hold a noun that is also a verb form, a verb form that is also a noun and a noun of both genders
+(`homograph:sentence-with-...`), and O3 asserts that each is at least one sentence in fifty (about 17 %, 6 % and 6 % of the sentences in a default run), so a generator that quietly went back to the
+plain words would fail. The few placements the analyzer reads differently on purpose are re-rolled (see the list above); a recipe that fails every retry is counted as
+`skip:verb-form-homograph` or `skip:function-word-homograph`, and O3, O4 and O5 assert that these are at most one recipe in two hundred (a default run has 0 to 1, against 1, 6
+and 3 before M18).
 
 Slots are compared strictly unless the pattern is ambiguous (two optional tokens that can match the same word, `[DET]` against `[ART]` or
 `[ADJ]`, `un` and `una` as article or numeral, a literal word that is also a noun): then the matcher may legitimately bind the words in more
@@ -242,6 +272,37 @@ Found when the imported lexicon was added (M17a). The seeds belong to the lexico
 - **`Utf8JsonReader.GetString` throws `InvalidOperationException` for invalid UTF-8**; the new lexicon reader turns it into a `JsonException` (caught by the
   tests `LexiconFileReaderTests.InvalidUtf8IsAJsonException`).
 
+Found and fixed in M18 (the seeds belong to the code of that moment and do not reproduce with the final resolver; the regression tests do):
+
+- **The analyzer's checks read every word as every part of speech it can be** (`Slg.Nlp`, the M16a and M17a findings: 21 % of the usable nouns are also a verb form). `ayer compré un libro`
+  was `conj.tense` (`libro` is `librar` in the first person), `yo lanza` passed or failed by the order of the readings, `cuánto cuesta la espada` was `gender.agree` (`cuánto` the adjective
+  agreeing with `cuesta` the noun), `tú ayudas` and `las ayudas` could not both be right. `ReadingResolver` now narrows each word to one reading from local syntax, the slot grammar and, last,
+  the reading with the fewest errors, and every check runs on that reading (design in [docs/PIPELINE.md](../../docs/PIPELINE.md#4-linguistic-analysis-d0)). Regression:
+  `HomographSentencesTests` (47 correct sentences, 20 more under the grammars of the bundle, 26 incorrect ones that keep their mistake, the `cuánto cuesta` family) and `ReadingResolverTests` in `tests/Slg.Nlp.Tests/Analysis`, and the
+  matcher bindings in `SlotGrammarTests`. With the CLI (`eval --transcript ... --prompt buy-item-open`) `ayer compré un libro` went from correctness 0.75 and `conj.tense` (`libro` -> `libré`) to
+  correctness 1 and no errors, and so do the 19 homograph sentences checked on both `buy-item-open` and `offer-items-open` (`quiero comprar una lanza`, `ayer compré una lanza`,
+  `el vino es bueno`, `él vino ayer`, `tú ayudas`, `nosotros comemos como siempre`, ...); `cuánto cuesta la espada`, `el escudo`, `la poción` and `la lanza` on `ask-price-open` are correctness 1
+  again (they were 0.85 with `gender.agree` `cuánto` -> `cuánta` after M17a), `cuánto cuesta el espada` is still `gender.agree` on `el`, and `yo tiene dos espada` is still exactly `conj.person`
+  and `noun.number`. **Numbers**, from the counters of O3, O4 and O5 and `lexicon-report` (the M17a column is the table that stood in "Known, deliberately not fixed"):
+
+  | | Before the lexicon | M17a | M18 |
+  | --- | --- | --- | --- |
+  | Forms of the merged lexicon with more than one reading | 89 of 1 179 | 7 216 of 32 494 | same |
+  | Forms read under more than one lemma | 19 | 1 035 | same |
+  | Nouns the generators can use / also a verb form | 154 / 3 | 1 583 / 339 (21 %) | 1 880 / 379 (20 %) |
+  | ... also a noun of the other gender | left out (3) | left out (347) | used (136) |
+  | Nouns left out: form shared with another noun lemma / no distinct plural / reads as article, numeral or determiner / no noun reading of the generated form | 0 / 5 / 0 / n/a | 61 / 16 / 2 / n/a | 94 / 16 / 2 / 17 |
+  | Sentences skipped as `verb-form-homograph` in one run of O3, O4, O5 | none | 1, 6, 3 | 0, 1, 0 |
+  | Sentences skipped as `function-word-homograph` | none | none | none |
+  | Sentences of an O3 run with a noun that is also a verb form / a verb form that is also a noun / a noun of both genders (of about 1 980) | n/a | not counted (a verb-form noun was drawn in 15 % of the positions after a determiner, never elsewhere) | 330 / 121 / 117 |
+  | Verbs / descriptive adjectives / adverbs the generators can use | 34 / 62 / 30 | 677 / 250 / 105 | same |
+- Found by the oracles while the resolver was built, each now a rule or a test: a slot grammar accepts a modifier where a noun is needed (`falso aliado dije` matches `[ADJ] [NOUN]` as `[ADJ] [ADJ]`),
+  so the neighbouring words take precedence over a grammar binding; the lexicon lists `sus` as an adjective of its own and as an interjection next to the possessive `su`, which made `alquileres sus
+  dispuestos extraños` a list of adjuncts of `alquileres`; `mucho espada` and `temprano pasillo` were read with the adverb, which does not modify a noun, and the mistake disappeared; a past-time
+  adverb with no verb must cost more than a tense mistake (`ayer canto una canción`) but a sentence of nouns and adjectives with no adverb of the past must cost nothing (`temperaturas relacionadas
+  saque logrado colega` was read with `saque` as a verb); a literal spelled like the word (`muestra`, `lanza`) says nothing about its reading; two optional elements that tie for a word leave it both
+  readings. The first draft that applied grammar bindings first hid word-order mistakes in O5 and was reversed.
+
 Generator fixes (not analyzer bugs, found by the same runs): the generators now skip words the normalizer rewrites (`cero`, `mil`, `diez` are nouns in the imported lexicon and
 become digits), nouns that are articles, numerals or determiners (`poca`), forms two noun lemmas share (`ratos`), nouns that are also an infinitive (`proceder`), and
 a function word that is also a verb form or a noun (counted as `skip:function-word-homograph`; none occurred in the final runs).
@@ -256,25 +317,12 @@ synthetic), and O3 now realises the `ask_price` grammar (about 30 sentences per 
 Findings that are content gaps or design limits rather than defects of one stage. None changes behaviour here; the generators step around
 them explicitly (each is a skip or a restriction in the generator, counted in the diagnostics) and the oracles stay strict.
 
-- **The analyzer's checks read every word as every part of speech it can be.** A noun that is also a verb form (`ayudas`, `lanza`, `vino`)
-  is reported as `conj.tense` in a sentence with `ayer`, and as `conj.person` right after a subject pronoun; `como` (conjunction) after
-  `nosotros` is read as the verb `comer`; `sé` (saber) is also the imperative of `ser`, so `sé preocupado` is a `ser_estar` mistake;
-  `fueron` is both `ir` and `ser`, so a recast `fueron vacío` trips `ser_estar`. A fix needs part-of-speech disambiguation (design). The
-  generators avoid these homographs (`LexiconCatalog` drops them from the closed classes; the mutation generator skips the sentences).
-  **Numbers with the imported lexicon (M17a)**, from the counters of O3 and `lexicon-report`:
-
-  | | Before | After |
-  | --- | --- | --- |
-  | Forms of the merged lexicon with more than one reading | 89 of 1 179 | 7 216 of 32 494 |
-  | Forms read under more than one lemma | 19 | 1 035 |
-  | Nouns the generators can use / also a verb form | 154 / 3 | 1 583 / 339 (21 %) |
-  | Nouns left out: also the other gender / form shared with another noun lemma / no distinct plural / reads as article, numeral or determiner | 3 / 0 / 5 / 0 | 347 / 61 / 16 / 2 |
-  | Sentences skipped as `verb-form-homograph` in one run of O3, O4, O5 | none | 1, 6, 3 |
-  | Sentences skipped as `function-word-homograph` | none | none |
-  | Verbs / descriptive adjectives / adverbs the generators can use | 34 / 62 / 30 | 677 / 250 / 105 |
-
-  The skips per run are small because the catalogs already leave the homograph words out of the pools; the cost of the homographs shows in the catalog rows (a fifth of
-  the nouns is also a verb form) and in the analyzer fixes above. Whether the analyzer should choose the reading from the grammar slot and the neighbouring determiners is M18.
+- **What the part-of-speech resolver does not do (M18).** Two verbs that share a form are one class: `fue` and `fueron` are `ir` and `ser`, so a copula check still sees the copula, and
+  the generators re-roll `ir` forms followed by an adjective (`ella fue alta`). A sentence that is a mistake under one reading and correct under another, with nothing in the neighbouring
+  words or the grammar to prefer either, is read the charitable way (`ayer ... intenciones parte`, where `parte` is a noun or a verb).
+  The closed classes of the generators (adverbs, prepositions, conjunctions, interjections) still leave out words that are also a verb form or a noun (`como`, `para`); the resolver reads
+  `nosotros como` as the verb and `nosotros comemos como siempre` as the conjunction, and both are covered by `HomographSentencesTests`, not by the generators. Nouns whose form two noun
+  lemmas share (`ratos`: `rato`, `rata`) stay out of the pools (94 lemmas), because the correction the analyzer names depends on which lemma it takes.
 - **`CanonicalJson` writes a lone surrogate as an escaped U+FFFD**, and a real U+FFFD as the character itself, so a transcript with a lone
   surrogate does not survive serialize, deserialize, serialize byte for byte, and a replay envelope for it does not round-trip. Recognizers return
   well-formed text. O16 and O14 make transcripts well-formed before the JSON round trip (O14 still runs the pipeline and replays the in-memory

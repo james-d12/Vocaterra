@@ -177,6 +177,19 @@ public sealed class FuzzDiagnostics
         return _counts.Where(pair => pair.Key.StartsWith(prefix, StringComparison.Ordinal)).Sum(static pair => pair.Value);
     }
 
+    /// <summary>
+    /// How many recipes the sentence generator gave up on because of a homograph it could not spell correctly (a verb form that is a copula by homograph or right behind
+    /// a determiner, a function word that is also a verb form or a noun) after every attempt. Since the analyzer resolves the part of speech of each word (M18) these are
+    /// rare, and the oracles assert that they stay so.
+    /// </summary>
+    public int HomographSkips => Get("skip:verb-form-homograph") + Get("skip:function-word-homograph");
+
+    /// <summary>How many recipes the sentence generator was given: the realised sentences and every skip.</summary>
+    public int Recipes => Sum("sentence:") + Sum("skip:");
+
+    /// <summary>True when the homograph skips are at most one recipe in two hundred.</summary>
+    public bool HomographSkipsAreRare => HomographSkips * 200 <= Recipes;
+
     /// <summary>Renders every counter, one per line, in ordinal key order.</summary>
     public string Report()
     {

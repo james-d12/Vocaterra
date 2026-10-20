@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="../../content/v1/lexicon/seed.json" Link="content/lexicon/seed.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../content/v1/lexicon/*.json" Exclude="../../content/v1/lexicon/*.source.json" Link="content/lexicon/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

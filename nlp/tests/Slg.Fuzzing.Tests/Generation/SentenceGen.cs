@@ -1,6 +1,7 @@
 using CsCheck;
 using Slg.Core.Determinism;
 using Slg.Fuzzing.Tests.Oracles;
+using Slg.Nlp.Lexicon;
 using SlotGrammarType = Slg.Nlp.SlotGrammar.SlotGrammar;
 
 namespace Slg.Fuzzing.Tests.Generation;
@@ -94,12 +95,54 @@ public static class SentenceGen
         }
 
         diagnostics?.Count($"sentence:{sentence.PatternSource}");
+        CountHomographs(harness, sentence, diagnostics);
         if (recipe.Source == "catalog")
         {
             diagnostics?.Count($"catalog:{rendered}");
         }
 
         return sentence;
+    }
+
+    // Counts the sentences that hold a generated word the lexicon reads in more than one way, so a report shows that the homographs are generated and not only allowed:
+    // a noun that is also a verb form, a verb form that is also a noun, a noun that is also a noun of the other gender.
+    private static void CountHomographs(PipelineHarness harness, GeneratedSentence sentence, FuzzDiagnostics? diagnostics)
+    {
+        if (diagnostics is null)
+        {
+            return;
+        }
+
+        var nounAlsoVerb = false;
+        var verbAlsoNoun = false;
+        var nounBothGenders = false;
+        foreach (var token in sentence.Tokens.Where(static t => t.Generated))
+        {
+            if (token.Role == TokenRole.Noun && harness.Words.NounOf(token.Lemma) is { } noun)
+            {
+                nounAlsoVerb |= noun.AlsoVerb;
+                nounBothGenders |= noun.AlsoOtherGender;
+            }
+            else if (token.Role == TokenRole.Verb)
+            {
+                verbAlsoNoun |= harness.Lexicon.Lookup(token.Norm).Any(static r => r.Pos == LexiconSchema.Noun);
+            }
+        }
+
+        if (nounAlsoVerb)
+        {
+            diagnostics.Count("homograph:sentence-with-a-noun-that-is-also-a-verb-form");
+        }
+
+        if (verbAlsoNoun)
+        {
+            diagnostics.Count("homograph:sentence-with-a-verb-form-that-is-also-a-noun");
+        }
+
+        if (nounBothGenders)
+        {
+            diagnostics.Count("homograph:sentence-with-a-noun-of-both-genders");
+        }
     }
 
     /// <summary>

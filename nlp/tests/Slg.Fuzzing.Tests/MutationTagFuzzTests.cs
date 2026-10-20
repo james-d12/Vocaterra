@@ -40,6 +40,12 @@ public sealed class MutationTagFuzzTests(ITestOutputHelper output)
                 var context = $"{mutation.Describe()} noisy=\"{noisy}\" case={input.Case}";
 
                 var difference = Compare(mutation.Errors, analysis.Errors);
+                if (difference is not null && KnownTolerances.IsTiedParse(analysis, grammar))
+                {
+                    diagnostics.Count($"excused:tied-parse:{mutation.Kind}");
+                    return;
+                }
+
                 if (difference is not null)
                 {
                     throw Determinism.Fail(Oracle, $"The analyzer's errors differ from the mutation's: {difference}.", context);
@@ -57,6 +63,8 @@ public sealed class MutationTagFuzzTests(ITestOutputHelper output)
             threads: 1);
 
         output.WriteLine("Mutation generator diagnostics:\n" + diagnostics.Report());
+        Assert.True(diagnostics.Sum("excused:") * 100 <= diagnostics.Sum("tag:") + diagnostics.Sum("excused:"), $"More than one case in a hundred was excused as a tied parse.\n{diagnostics.Report()}");
+        Assert.True(diagnostics.HomographSkipsAreRare, $"{diagnostics.HomographSkips} of {diagnostics.Recipes} recipes were skipped as homographs.\n{diagnostics.Report()}");
         foreach (var kind in Enum.GetValues<MutationKind>())
         {
             var applied = diagnostics.Get($"mutation:{kind}:applied");

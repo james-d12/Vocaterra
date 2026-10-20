@@ -300,13 +300,20 @@ public static class MutationGen
             return null;
         }
 
+        // A noun that also reads as a noun of the other gender (el estudiante, la estudiante) agrees with both articles and adjectives, so no gender mistake can be built
+        // on it; the mutation looks for another noun.
+        private bool ReadsAsBothGenders(SentenceToken noun)
+        {
+            return _words.NounOf(noun.Lemma) is { AlsoOtherGender: true };
+        }
+
         public MutatedSentence? GenderArticle()
         {
             foreach (var a in Shuffled(Indexes(static t => t is { Role: TokenRole.Article, Generated: true, Head: >= 0 })))
             {
                 var article = _tokens[a];
                 var head = _tokens[article.Head];
-                if (head.Role != TokenRole.Noun || !head.Generated || LexiconCatalog.FeminineNounsTakingEl.Contains(head.Lemma!))
+                if (head.Role != TokenRole.Noun || !head.Generated || LexiconCatalog.FeminineNounsTakingEl.Contains(head.Lemma!) || ReadsAsBothGenders(head))
                 {
                     continue;
                 }
@@ -332,7 +339,7 @@ public static class MutationGen
             {
                 var adjective = _tokens[j];
                 var head = _tokens[adjective.Head];
-                if (head.Role != TokenRole.Noun || !head.Generated)
+                if (head.Role != TokenRole.Noun || !head.Generated || ReadsAsBothGenders(head))
                 {
                     continue;
                 }
@@ -344,7 +351,19 @@ public static class MutationGen
                     continue;
                 }
 
-                // Every adjective reading of the new form must name the other gender, or the analyzer finds it compatible.
+                // The new form must be an adjective and nothing else (alguno is also a pronoun, which a grammar with [PRON] beside [ADJ] can take it for, and which
+                // agrees with nothing), and every adjective reading of it must name the other gender, or the analyzer finds it compatible.
+                if (_words.Lexicon.Lookup(form).Any(static r => r.Pos != LexiconSchema.Adjective))
+                {
+                    continue;
+                }
+
+                // The word before the adjective may be a noun the new form agrees with (lata buena): the adjective is then read as that noun's, and there is no mistake.
+                if (j > 0 && _words.Lexicon.Lookup(_tokens[j - 1].Norm).Any(r => r.Pos == LexiconSchema.Noun && (r.Gender is null || r.Gender == flipped)))
+                {
+                    continue;
+                }
+
                 var readings = _words.Lexicon.Lookup(form).Where(static r => r.Pos == LexiconSchema.Adjective).ToArray();
                 if (readings.Length == 0 || readings.Any(r => r.Gender is null || r.Gender == head.Gender) || readings[0].Lemma != adjective.Lemma)
                 {
@@ -391,6 +410,13 @@ public static class MutationGen
                     continue;
                 }
 
+                // A form that is also a noun (son) is the copula only where the context forces it, right behind a subject pronoun: behind an adjective it is the noun of
+                // the adjective (callado son), which is a word-order mistake and not a ser/estar one.
+                if (SubjectOf(i) < 0 && _words.Lexicon.Lookup(form).Any(static r => r.Pos != LexiconSchema.Verb))
+                {
+                    continue;
+                }
+
                 var mutated = Replace(i, copula with { Written = form, Norm = form, Lemma = target });
 
                 // The lemma changes, so a grammar that names ser or estar (such as [VERB:estar]) no longer matches; that is the lexical swap itself.
@@ -419,10 +445,33 @@ public static class MutationGen
                     continue;
                 }
 
+                // Right behind a word that can be a noun (a verb form such as asesinas, saludes), or behind adjectives that follow one, the adjective could belong to that word instead, and a pronoun or adverb
+                // that is spelled like the adjective (suyo, temprano) in front of a noun that can be a verb could be read as that pronoun or adverb and the verb, and
+                // an adverb that goes before nouns (incluso resultado) is no mistake at all: either way the sentence has a reading without the mistake, so the
+                // mutation looks for another sentence.
+                var before = h - 1;
+                while (before >= 0 && _words.Lexicon.Lookup(_tokens[before].Norm) is { Count: > 0 } readingsBefore && readingsBefore.All(static r => r.Pos == LexiconSchema.Adjective))
+                {
+                    before--;
+                }
+
+                if (before >= 0 && _words.Lexicon.Lookup(_tokens[before].Norm).Any(static r => r.Pos == LexiconSchema.Noun))
+                {
+                    continue;
+                }
+
+                var adjectiveReadings = _words.Lexicon.Lookup(adjective.Norm);
+                if ((_words.Lexicon.Lookup(_tokens[h].Norm).Any(static r => r.Pos == LexiconSchema.Verb && r.Person is not null)
+                        && adjectiveReadings.Any(static r => r.Pos != LexiconSchema.Adjective))
+                    || adjectiveReadings.Any(static r => r.Pos == LexiconSchema.Adverb && LexiconCatalog.NounModifyingAdverbs.Contains(r.Lemma)))
+                {
+                    continue;
+                }
+
                 // In front of the noun the adjective may come to stand right behind a copula, where a ser or estar adjective is a different mistake.
-                var before = PreviousContent(h);
-                if (before >= 0
-                    && _tokens[before] is { Role: TokenRole.Verb, Generated: true, Infinitive: false, Lemma: "ser" or "estar" }
+                var copulaBefore = PreviousContent(h);
+                if (copulaBefore >= 0
+                    && _tokens[copulaBefore] is { Role: TokenRole.Verb, Generated: true, Infinitive: false, Lemma: "ser" or "estar" }
                     && (LexiconCatalog.SerAdjectives.Contains(adjective.Lemma!) || LexiconCatalog.EstarAdjectives.Contains(adjective.Lemma!)))
                 {
                     continue;
@@ -476,13 +525,23 @@ public static class MutationGen
 
         public MutatedSentence? ConjTense()
         {
-            // The analyzer flags every word that has a present-tense finite reading, whether it is used as a verb or not (a noun such as ayudas
-            // is also a form of ayudar), so a sentence is only used when its generated verbs are the only such words.
+            // Only the generated verbs are flagged: a noun that is also a verb form (ayudas, lanza) is read as the noun, because the analyzer resolves the part of
+            // speech of each word. The sentence must still hold a generated finite verb, and no literal word of the grammar may be a finite verb form (falta, after a
+            // subject pronoun, is the verb), because the oracle names only the generated verbs.
             var finite = Indexes(static t => t is { Role: TokenRole.Verb, Infinitive: false }).Where(IsFiniteAt).ToList();
-            var wordsWithTenseReading = Indexes(static _ => true)
+            var literalVerbForms = Indexes(static t => t.Role == TokenRole.Literal)
                 .Where(i => _words.Lexicon.Lookup(_tokens[i].Norm).Any(static r => r.Pos == LexiconSchema.Verb && r.Person is not null && r.Tense is not null))
                 .ToList();
-            if (finite.Count == 0 || wordsWithTenseReading.Count != finite.Count || wordsWithTenseReading.Any(i => !finite.Contains(i)))
+            if (finite.Count == 0 || literalVerbForms.Count > 0)
+            {
+                return null;
+            }
+
+            // A generated verb whose form is also a noun or an adjective (parte, busca, oculto, despierto) is read as the verb only where the context forces it, right
+            // behind a subject pronoun; anywhere else (intenciones parte) the sentence has a reading without the mistake, which is the charitable one, so the
+            // mutation looks for another sentence. A sentence whose only finite verb is such a form still gets the mistake (ayer despierto temprano), because a sentence
+            // without a verb costs the analyzer more than one with a tense mistake; the generator cannot know that, so it does not rely on it.
+            if (finite.Any(i => SubjectOf(i) < 0 && _words.Lexicon.Lookup(_tokens[i].Norm).Any(static r => r.Pos != LexiconSchema.Verb)))
             {
                 return null;
             }
@@ -505,12 +564,17 @@ public static class MutationGen
                 }
 
                 // ir and ser share their preterite (fueron), so the corrected sentence would read as a copula and could trip the ser/estar check.
-                // The preterite must also be a verb and nothing else: vino is a noun too, and next to a numeral the corrected sentence would trip
-                // the noun phrase check.
+                // That is a homograph between two verbs, which the analyzer does not resolve.
                 var preteriteReadings = _words.Lexicon.Lookup(preterite);
                 var copulaByHomograph = verb.Lemma is not ("ser" or "estar")
                     && preteriteReadings.Any(static r => r.Pos == LexiconSchema.Verb && r.Person is not null && r.Lemma is "ser" or "estar");
-                if (copulaByHomograph || preteriteReadings.Any(static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective or LexiconSchema.Article or LexiconSchema.Numeral))
+                if (copulaByHomograph)
+                {
+                    return null;
+                }
+
+                // The same goes for the corrected form (traje: the preterite of traer, and a noun): the recast must re-analyze clean, and only a subject pronoun forces the verb.
+                if (SubjectOf(i) < 0 && preteriteReadings.Any(static r => r.Pos != LexiconSchema.Verb))
                 {
                     return null;
                 }

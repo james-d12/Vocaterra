@@ -14,7 +14,8 @@ namespace Slg.Fuzzing.Tests.Generation;
 /// <param name="Singular">The singular surface form.</param>
 /// <param name="Plural">The plural surface form (differs from the singular).</param>
 /// <param name="AlsoVerb">True when a form of this noun also reads as a verb, finite (<c>lanza</c>) or the infinitive (<c>proceder</c>, <c>deber</c>).</param>
-public sealed record NounLexeme(string Lemma, string Gender, string Singular, string Plural, bool AlsoVerb);
+/// <param name="AlsoOtherGender">True when a form of this noun also reads as a noun of the other gender (<c>el</c> and <c>la estudiante</c>), so either article agrees with it and no gender mistake can be built on it.</param>
+public sealed record NounLexeme(string Lemma, string Gender, string Singular, string Plural, bool AlsoVerb, bool AlsoOtherGender);
 
 /// <summary>A verb whose six present cells (and optionally the six preterite cells) are all in the lexicon.</summary>
 /// <param name="Lemma">The infinitive, which is also the lemma.</param>
@@ -42,6 +43,10 @@ public sealed class LexiconCatalog
     /// <summary>Adjectives that take <c>ser</c> (mirror of <c>AnalysisTables.SerAdjectives</c>).</summary>
     public static readonly IReadOnlyList<string> SerAdjectives =
         ["alto", "bajo", "inteligente", "simpático", "amable", "guapo", "feo", "importante", "fácil", "difícil", "trabajador"];
+
+    /// <summary>Adverbs that may stand directly before a noun (mirror of <c>AnalysisTables.NounModifyingAdverbs</c>).</summary>
+    public static readonly IReadOnlyList<string> NounModifyingAdverbs =
+        ["solo", "sólo", "también", "tampoco", "incluso", "casi", "apenas", "aun", "aún", "más", "menos", "hasta", "ni"];
 
     /// <summary>Adverbs that put a sentence in the past (mirror of <c>AnalysisTables.PastTimeAdverbs</c>).</summary>
     public static readonly IReadOnlyList<string> PastTimeAdverbs = ["ayer", "anoche", "anteayer"];
@@ -418,38 +423,67 @@ public sealed class LexiconCatalog
 
     private IReadOnlyList<NounLexeme> BuildNouns()
     {
-        var result = new List<NounLexeme>();
-        var seen = new HashSet<string>(StringComparer.Ordinal);
+        // The singular entries of each noun lemma, in the order the lemmas first appear. A lemma can have an entry per gender (abogada, abogado), so the gender of
+        // the lexeme is the one of the entry whose form is the singular the generator will write; only when no entry has that form does the first entry decide.
+        var order = new List<string>();
+        var entriesByLemma = new Dictionary<string, List<LexiconEntry>>(StringComparer.Ordinal);
         foreach (var entry in Lexicon.Entries)
         {
             if (entry.Pos != LexiconSchema.Noun
                 || entry.Features.Number != LexiconSchema.Singular
                 || entry.Features.Gender is null
-                || entry.Form.Contains(' ', StringComparison.Ordinal)
-                || !seen.Add(entry.Lemma))
+                || entry.Form.Contains(' ', StringComparison.Ordinal))
             {
                 continue;
             }
 
-            var plural = Morphology.InflectNoun(entry.Lemma, LexiconSchema.Plural);
-            var singular = Morphology.InflectNoun(entry.Lemma, LexiconSchema.Singular);
+            if (!entriesByLemma.TryGetValue(entry.Lemma, out var forLemma))
+            {
+                forLemma = [];
+                entriesByLemma.Add(entry.Lemma, forLemma);
+                order.Add(entry.Lemma);
+            }
+
+            forLemma.Add(entry);
+        }
+
+        var result = new List<NounLexeme>();
+        foreach (var lemma in order)
+        {
+            var plural = Morphology.InflectNoun(lemma, LexiconSchema.Plural);
+            var singular = Morphology.InflectNoun(lemma, LexiconSchema.Singular);
+            var candidates = entriesByLemma[lemma];
+            var entry = candidates.Find(e => string.Equals(e.Form, singular, StringComparison.Ordinal)) ?? candidates[0];
             var excluded = NounExclusion(entry, singular, plural);
             if (excluded is not null)
             {
-                _diagnostics[excluded] = _diagnostics.GetValueOrDefault(excluded) + 1;
+                Count(excluded);
                 continue;
             }
 
             var alsoVerb = HasVerbReading(singular) || HasVerbReading(plural);
-            _diagnostics[alsoVerb ? "nouns:usable-homograph-with-a-verb" : "nouns:usable-plain"] = _diagnostics.GetValueOrDefault(alsoVerb ? "nouns:usable-homograph-with-a-verb" : "nouns:usable-plain") + 1;
-            result.Add(new NounLexeme(entry.Lemma, entry.Features.Gender!, singular, plural, alsoVerb));
+            var alsoOtherGender = HasNounOfOtherGender(singular, entry.Features.Gender!) || HasNounOfOtherGender(plural, entry.Features.Gender!);
+            Count(alsoVerb ? "nouns:usable-homograph-with-a-verb" : "nouns:usable-plain");
+            if (alsoOtherGender)
+            {
+                Count("nouns:usable-homograph-with-the-other-gender");
+            }
+
+            result.Add(new NounLexeme(lemma, entry.Features.Gender!, singular, plural, alsoVerb, alsoOtherGender));
         }
 
         return result;
     }
 
-    // The first reason a noun lemma cannot be used to build a sentence, or null. The reasons are all homograph effects the analyzer does not resolve (it reads a
-    // word as everything it can be), counted in the diagnostics so the cost of a larger lexicon is visible.
+    private void Count(string key)
+    {
+        _diagnostics[key] = _diagnostics.GetValueOrDefault(key) + 1;
+    }
+
+    // The first reason a noun lemma cannot be used to build a sentence, or null. A noun that is also a verb form, or also a noun of the other gender, is not among
+    // them: the analyzer resolves the part of speech of each word (M18), so those nouns are used, and the two flags of NounLexeme tell the mutation generator which
+    // mistakes it cannot build on them. What remains are words the sentence generator cannot spell correctly: no distinct plural, a form the normalizer rewrites,
+    // a spelling that two noun lemmas share, and one that reads as an article, numeral or determiner. Each reason is counted in the diagnostics.
     private string? NounExclusion(LexiconEntry entry, string singular, string plural)
     {
         if (string.Equals(plural, singular, StringComparison.Ordinal))
@@ -469,7 +503,7 @@ public sealed class LexiconCatalog
 
         if (!HasNounReading(singular, LexiconSchema.Singular, entry.Features.Gender!) || !HasNounReading(plural, LexiconSchema.Plural, entry.Features.Gender!))
         {
-            return "nouns:excluded-also-the-other-gender";
+            return "nouns:excluded-no-reading-for-the-form";
         }
 
         if (!OneNounLemma(singular, entry.Lemma) || !OneNounLemma(plural, entry.Lemma))
@@ -511,26 +545,33 @@ public sealed class LexiconCatalog
         return true;
     }
 
-    // A noun with a reading of the other gender (el estudiante, la estudiante) agrees with both articles, so it cannot be used to build a gender mistake.
+    // True when the form has a noun reading of this number and gender. A noun that also has readings of the other gender (el estudiante, la estudiante) still counts:
+    // the generator spells the form for the gender of its lexeme and the analyzer finds the article compatible either way.
     private bool HasNounReading(string form, string number, string gender)
     {
-        var found = false;
         foreach (var reading in Lexicon.Lookup(form))
         {
-            if (reading.Pos != LexiconSchema.Noun)
+            if (reading.Pos == LexiconSchema.Noun && reading.Number == number && reading.Gender == gender)
             {
-                continue;
+                return true;
             }
-
-            if (reading.Gender != gender)
-            {
-                return false;
-            }
-
-            found |= reading.Number == number;
         }
 
-        return found;
+        return false;
+    }
+
+    // A noun with a reading of the other gender (el estudiante, la estudiante) agrees with both articles, so it cannot be used to build a gender mistake.
+    private bool HasNounOfOtherGender(string form, string gender)
+    {
+        foreach (var reading in Lexicon.Lookup(form))
+        {
+            if (reading.Pos == LexiconSchema.Noun && reading.Gender is not null && reading.Gender != gender)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private IReadOnlyList<VerbLexeme> BuildVerbs()

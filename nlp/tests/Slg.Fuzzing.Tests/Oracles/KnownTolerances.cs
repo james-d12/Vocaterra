@@ -1,5 +1,7 @@
 using Slg.Content;
+using Slg.Core.Stages;
 using Slg.Core.Verdicts;
+using Slg.Nlp.SlotGrammar;
 using Slg.Response.Templates;
 
 namespace Slg.Fuzzing.Tests.Oracles;
@@ -7,8 +9,8 @@ namespace Slg.Fuzzing.Tests.Oracles;
 /// <summary>
 /// The only place an exception may be waved through. Every entry names the oracle that relies on it and says why the rejection is the
 /// designed outcome rather than a bug; any other exception from the stage under test is a finding. The entries are the template engine's
-/// missing slot (O12), the WAV reader's rejection of corrupted or unsupported files (O13) and the content loader's validation failure on a
-/// mutated bundle (O15).
+/// missing slot (O12), the WAV reader's rejection of corrupted or unsupported files (O13), the content loader's validation failure on a
+/// mutated bundle (O15) and a grammar that reads a word of the mutated sentence in two ways (O4, O5).
 /// </summary>
 public static class KnownTolerances
 {
@@ -26,6 +28,22 @@ public static class KnownTolerances
         return exception.Placeholder.Length > 0
             && exception.Placeholder[0] != '{'
             && !slots.ContainsKey(exception.Placeholder);
+    }
+
+    /// <summary>
+    /// O4 and O5: a mutated sentence on which the analyzer's answer differs from the mutation's is excused when the grammar itself reads a word of the sentence in two
+    /// ways. Two elements that compete for a word that is both a noun and a verb form (<c>[NOUN:item]</c> or <c>[VERB]</c> over <c>duchas</c>, or <c>[ADJ]</c> or
+    /// <c>[PRON]</c> over <c>alguno</c>) tie as parses, the word keeps both readings, and the charitable one may hold no mistake: <c>duchas complicados</c> is a verb and
+    /// an adjective as well as a noun with its adjective of the wrong gender. The excuse needs a tie that touches a word of the sentence the analyzer read
+    /// in more than one class; the oracles count the excused cases and assert that they stay rare.
+    /// </summary>
+    public static bool IsTiedParse(AnalysisResult analysis, SlotGrammar grammar)
+    {
+        ArgumentNullException.ThrowIfNull(analysis);
+        ArgumentNullException.ThrowIfNull(grammar);
+        var match = SlotGrammarMatcher.Match(analysis.Tokens, grammar);
+        return match is not null
+            && match.AmbiguousTokens.Any(index => analysis.Tokens[index].Readings.Select(static r => r.Pos).Distinct(StringComparer.Ordinal).Count() > 1);
     }
 
     /// <summary>
