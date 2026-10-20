@@ -17,6 +17,9 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
 {
     private const string Oracle = "O3";
 
+    // Below this many iterations the chance that a particular catalog grammar is drawn is too small to assert coverage.
+    private const int MinimumIterationsForCoverage = 1000;
+
     private static readonly PipelineHarness Harness = PipelineHarness.Shared;
 
     [Fact]
@@ -84,6 +87,17 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
         var realized = diagnostics.Sum("sentence:");
         var skipped = diagnostics.Sum("skip:");
         Assert.True(realized * 10 >= (realized + skipped) * 6, $"Only {realized} of {realized + skipped} recipes could be realised; the generator is no longer honest enough.\n{diagnostics.Report()}");
+
+        // Every grammar word must be in the lexicon: a catalog grammar with an unknown literal (the old `cuál` gap) would be skipped here, and the
+        // utterance a learner says for it would be reported as vocab.unknown.
+        Assert.True(diagnostics.Sum("skip:unknown-literal") == 0, $"A literal word of a catalog or generated grammar is missing from the lexicon.\n{diagnostics.Report()}");
+        if (iterations >= MinimumIterationsForCoverage)
+        {
+            foreach (var grammar in Harness.Grammars.Grammars)
+            {
+                Assert.True(diagnostics.Get("catalog:" + grammar.Pattern.Render()) > 0, $"The catalog grammar '{grammar.Pattern.Render()}' was never realised.\n{diagnostics.Report()}");
+            }
+        }
     }
 
     // With an ambiguous pattern the matcher may bind the same tokens to the slots in a different but equally valid way, so only the values count.

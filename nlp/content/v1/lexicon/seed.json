@@ -459,6 +459,7 @@
     {"form":"les","lemma":"les","pos":"pron","features":{"person":"3","number":"pl"}},
     {"form":"qué","lemma":"qué","pos":"pron","features":{"person":"3","number":"sg"}},
     {"form":"quién","lemma":"quién","pos":"pron","features":{"person":"3","number":"sg"}},
+    {"form":"cuál","lemma":"cuál","pos":"pron","features":{"person":"3","number":"sg"}},
     {"form":"algo","lemma":"algo","pos":"pron","features":{"person":"3","number":"sg"}},
     {"form":"nada","lemma":"nada","pos":"pron","features":{"person":"3","number":"sg"}},
     {"form":"esto","lemma":"esto","pos":"pron","features":{"person":"3","number":"sg"}},

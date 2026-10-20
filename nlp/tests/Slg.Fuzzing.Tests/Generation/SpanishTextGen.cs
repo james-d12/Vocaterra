@@ -25,7 +25,10 @@ public sealed record TextNoise(int CaseMode, int AccentMode, bool Nfd, int Punct
     /// <summary>No noise at all.</summary>
     public static TextNoise None { get; } = new(0, 0, false, 0, 0, 0, -1, 0);
 
-    /// <summary>Applies the transforms in a fixed order: numbers, adversarial token, accents, case, punctuation, spaces, decomposition.</summary>
+    /// <summary>
+    /// Applies the transforms in a fixed order: numbers, accents, case, punctuation, spaces, decomposition, and last the adversarial token.
+    /// The token goes in verbatim and last, so a lone surrogate in it reaches the stage under test as it is (the stages must cope with it).
+    /// </summary>
     public string Apply(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -36,29 +39,18 @@ public sealed record TextNoise(int CaseMode, int AccentMode, bool Nfd, int Punct
             result = SwapNumbers(result, NumberMode);
         }
 
-        if (AdversarialIndex >= 0)
-        {
-            result = Splice(result, AdversarialCorpus.Strings[AdversarialIndex % AdversarialCorpus.Strings.Count], rng);
-        }
-
         result = ApplyAccent(result, AccentMode, rng);
         result = ApplyCase(result, CaseMode);
         result = ApplyPunctuation(result, Punctuation, rng);
         result = ApplySpaces(result, Spaces, rng);
-        return Nfd ? Decompose(result) : result;
-    }
+        if (Nfd)
+        {
+            result = result.Normalize(NormalizationForm.FormD);
+        }
 
-    // string.Normalize rejects lone surrogates, which a spliced-in adversarial token may carry; such a text is left as it is.
-    private static string Decompose(string text)
-    {
-        try
-        {
-            return text.Normalize(NormalizationForm.FormD);
-        }
-        catch (ArgumentException)
-        {
-            return text;
-        }
+        return AdversarialIndex >= 0
+            ? Splice(result, AdversarialCorpus.Strings[AdversarialIndex % AdversarialCorpus.Strings.Count], rng)
+            : result;
     }
 
     private static string SwapNumbers(string text, int mode)
@@ -95,15 +87,7 @@ public sealed record TextNoise(int CaseMode, int AccentMode, bool Nfd, int Punct
 
         if (mode == 1)
         {
-            try
-            {
-                return Accents.Strip(text);
-            }
-            catch (ArgumentException)
-            {
-                // Accents.Strip, like string.Normalize, rejects lone surrogates; the pipeline only ever hands it normalized text.
-                return text;
-            }
+            return Accents.Strip(text);
         }
 
         var vowels = new List<int>();

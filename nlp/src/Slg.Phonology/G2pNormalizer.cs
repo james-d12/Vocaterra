@@ -16,11 +16,12 @@ internal static class G2pNormalizer
     /// <summary>
     /// Normalizes text into words. Letters outside the Spanish alphabet are reduced to their base Latin letter
     /// when they have one (<c>ç</c> to <c>c</c>) and otherwise act as separators; digits and punctuation are separators.
+    /// A lone surrogate (ill-formed UTF-16, which <c>string.Normalize</c> rejects) is a separator too.
     /// </summary>
     public static NormalizedText Normalize(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
-        var composed = text.Normalize(NormalizationForm.FormC);
+        var composed = ReplaceLoneSurrogates(text).Normalize(NormalizationForm.FormC);
 
         var words = new List<(string Word, string Original)>();
         var word = new StringBuilder();
@@ -60,6 +61,30 @@ internal static class G2pNormalizer
         }
 
         return new NormalizedText(normalized.ToString(), tokens);
+    }
+
+    // Each unpaired surrogate becomes U+FFFD, which is not a letter and so separates words; valid pairs are left alone.
+    private static string ReplaceLoneSurrogates(string text)
+    {
+        var chars = (char[]?)null;
+        for (var i = 0; i < text.Length; i++)
+        {
+            if (!char.IsSurrogate(text[i]))
+            {
+                continue;
+            }
+
+            if (char.IsHighSurrogate(text[i]) && i + 1 < text.Length && char.IsLowSurrogate(text[i + 1]))
+            {
+                i++;
+                continue;
+            }
+
+            chars ??= text.ToCharArray();
+            chars[i] = (char)0xFFFD;
+        }
+
+        return chars is null ? text : new string(chars);
     }
 
     private static void Flush(List<(string Word, string Original)> words, StringBuilder word, StringBuilder original)
