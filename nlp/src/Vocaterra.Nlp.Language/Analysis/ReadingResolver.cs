@@ -29,7 +29,8 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 /// <b>Grammar bindings.</b> When a slot grammar matched the whole utterance, every token was consumed by a grammar element, and that element names the reading:
 /// <c>[NOUN:item]</c> keeps the noun readings, <c>[VERB:comprar]</c> the readings of that verb, the implicit leading subject its pronoun readings, a literal that matched
 /// through a lemma (<c>querer</c> for <c>quiero</c>) the readings of that lemma, and a literal spelled like the word (<c>lanza</c>, <c>tardes</c>) nothing, because the
-/// author wrote a form and not a reading. A word that tied parses read in different ways (two optional elements that compete for it) keeps what any of them accepts.
+/// author wrote a form and not a reading. A word bound only to <c>[WORD]</c> elements is a name: it is a proper noun, which is no class the checks know, so it keeps
+/// no reading at all and takes part in no agreement check, whatever the lexicon says about its spelling. A word that tied parses read in different ways (two optional elements that compete for it) keeps what any of them accepts.
 /// The bindings come after the local rules, which then run once more: a slot grammar ignores agreement and accepts a modifier where a noun is needed, so where the
 /// two disagree the neighbouring words win (<c>yo lanza</c> matches <c>[VERB:lanzar]? [ART]? [NOUN:spell]</c> with the noun, and is still a mistake of person).
 /// </description></item>
@@ -71,6 +72,12 @@ internal static class ReadingResolver
         ArgumentNullException.ThrowIfNull(tokens);
         ArgumentNullException.ThrowIfNull(cost);
         var state = new State(tokens);
+        if (match is not null)
+        {
+            // Names keep no reading before any rule looks at them, so a name's lexicon readings cannot narrow its neighbours.
+            state.ClearNames(match);
+        }
+
         state.ApplyLocalSyntax();
         if (match is not null)
         {
@@ -100,6 +107,17 @@ internal static class ReadingResolver
 
         // ---- Step 1: grammar bindings ----------------------------------------------------------------------------------------------
 
+        public void ClearNames(SlotGrammarMatch match)
+        {
+            foreach (var index in match.WordTokens)
+            {
+                if (index >= 0 && index < Count)
+                {
+                    _candidates[index].Clear();
+                }
+            }
+        }
+
         public void ApplyGrammar(SlotGrammarMatch match)
         {
             foreach (var binding in match.Bindings)
@@ -111,6 +129,11 @@ internal static class ReadingResolver
 
                 // A word the best parses read in different ways (two optional elements that compete for it) keeps every reading that one of them accepts.
                 var nodes = binding.Nodes;
+                if (nodes.All(static node => node is WordNode))
+                {
+                    continue;
+                }
+
                 var surface = TextFolding.StripAccents(_tokens[binding.TokenIndex].Token.Text);
                 Narrow(binding.TokenIndex, r => nodes.Any(node => Accepts(node, r, surface)));
             }
@@ -121,6 +144,9 @@ internal static class ReadingResolver
             return node switch
             {
                 TypedNode typed => TypedMatching.MatchesTyped(reading, typed),
+
+                // A name in a tied parse: the word may be the name whatever its readings are, so the other tied elements decide.
+                WordNode => true,
 
                 // A literal spelled like the word (lanza, muestra, tardes) says nothing about its part of speech: the author wrote a form, not a reading. A literal that
                 // matched through a lemma (querer for quiero) keeps the readings of that lemma.

@@ -163,8 +163,9 @@ content oracle writes each mutated bundle to its own directory under the system 
     gender (they are drawn like any other; the flags say which mistakes cannot be built on them), indexes the lexicon for the generators, and prints the counts as
     `nouns:`, `verbs:`, `adjectives:` ... diagnostics of O3.
   - `SpanishTextGen` / `TextNoise` - lexicon-driven phrases (word salad and loosely structured phrases) with casing, accent, NFD, `¿¡?!,.`, spacing, number-word and adversarial-token noise. The adversarial token goes in last and verbatim, so a lone surrogate reaches the stage under test unrepaired.
-  - `GrammarPattern`, `PatternGen` - slot grammar patterns as a tree: every catalog grammar, structural skeletons, and random DSL strings built from the token kinds.
-  - `SentenceGen`, `SentenceRealizer`, `SentenceModel` - correct sentences from a pattern, agreement right by construction (see below).
+  - `GrammarPattern`, `PatternGen` - slot grammar patterns as a tree: every catalog grammar, structural skeletons, and random DSL strings built from the token kinds, including the name token `[WORD:slot]` (M17b).
+  - `SentenceGen`, `SentenceRealizer`, `SentenceModel` - correct sentences from a pattern, agreement right by construction (see below). A name (`[WORD]`) is two or three invented syllables drawn from the seeded generator, written with a capital and normalized in lower case (`TokenRole.Name`).
+  - `UnboundNames` (in `Oracles/`) - the `vocab.unknown` errors that the names of a sentence must get when its grammar does not bind them (see below).
   - `MutationGen` - exactly one mutation of a correct sentence, with the errors the analyzer must report and the sentence the recast must restore.
   - `SlotMapGen` - slot maps derived from the placeholders and filters of the real templates.
   - `VerdictGen` - random stage results within the contract ranges, including exact-threshold confidences.
@@ -194,6 +195,13 @@ Homographs are generated, not avoided (M18): `SentenceGen` counts the sentences 
 plain words would fail. The few placements the analyzer reads differently on purpose are re-rolled (see the list above); a recipe that fails every retry is counted as
 `skip:verb-form-homograph` or `skip:function-word-homograph`, and O3, O4 and O5 assert that these are at most one recipe in two hundred (a default run has 0 to 1, against 1, 6
 and 3 before M18).
+
+A name (M17b) has no reading the checks use: the realiser treats it like an unknown word, so it breaks every phrase and every subject-verb link around it, and
+the analyzer does the same (a bound name keeps no reading at all). `CorrectSentenceFuzzTests` and `SerializationRoundTripFuzzTests` (`NameSentences_SurviveCanonicalJson`)
+realise the catalog grammars that carry a name. O4 and O5 analyze a mutated sentence with its own grammar, and a mutation such as a leading `ayer` breaks that match: the
+name is then a word the lexicon lacks, which the analyzer reports as `vocab.unknown`. `UnboundNames.Expect` predicts exactly those errors, and O4 and O5 require them
+(missing or extra is a failure). A case in which the unbound name is a word the lexicon knows is not compared at all, because its checks would then apply to it; the
+counter `unpredicted:name-known-to-lexicon` says how many, and a default run has none.
 
 Slots are compared strictly unless the pattern is ambiguous (two optional tokens that can match the same word, `[DET]` against `[ART]` or
 `[ADJ]`, `un` and `una` as article or numeral, a literal word that is also a noun): then the matcher may legitimately bind the words in more
@@ -238,6 +246,12 @@ step). The minimums scale down when a smaller iteration count is requested.
 
 ## Bugs found and fixed while building this suite
 
+- **A name spelled like an irregular verb form was reported as `conj.irregular`** (`Vocaterra.Nlp.Language`, M17b). The regularization of an irregular
+  form ran before the grammar matched, so a `[WORD]` name such as `sona` (the regularized form of `suena`) was a verb mistake. A name now carries no
+  reading and no error. The same finding showed a second defect, which O5 found with seed `bum3moYdGVI1`: a name that is a lexicon verb form (`vivá`)
+  kept its readings and was conjugated by a recast. Names carry no reading any more; the gap clamp of the embedding rung is the O7 finding (seed
+  `5lSWF-U_rpTa`, a raw gap of 1.005 between `farewell` and `sell_item`). Found by O3 (CsCheck seed `1_BGsh0nh9k4`). Regression: `WordTokenAnalysisTests.ANameSpelledLikeAnIrregularVerbFormIsNotAnIrregularVerb`
+  (`soy sabo`, the seed's irregular spelling of `sé`).
 - **`RecastBuilder` picked the gender of `un`/`una` from the word after the numeral, not from the noun** (`Vocaterra.Nlp.Response`, stage 1). `1 grande queso`
   was recast as `una grande queso`, because the invariant adjective `grande` has a feminine reading that came first. The builder now looks
   through the adjectives to the noun the numeral quantifies and falls back to the next word only when there is no noun. Found by O5

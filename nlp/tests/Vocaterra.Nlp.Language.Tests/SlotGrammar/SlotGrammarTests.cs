@@ -97,6 +97,21 @@ public class SlotGrammarTests
     }
 
     [Fact]
+    public void ALiteralWordBreaksATieBetweenGrammarsWithTheSameExplicitTokens()
+    {
+        // "gracias" is an interjection, so [INTERJ] and the literal both consume it explicitly; the literal is the more specific phrase and wins whatever the order.
+        var typed = Match("gracias", "[INTERJ]");
+        var literal = Match("gracias", "gracias");
+
+        Assert.NotNull(typed);
+        Assert.NotNull(literal);
+        Assert.True(SlotGrammarMatch.Beats(literal, typed));
+        Assert.False(SlotGrammarMatch.Beats(typed, literal));
+        Assert.Equal("gracias", Fixtures.Analyze("gracias", "[INTERJ]", "gracias").MatchedGrammarId);
+        Assert.Equal("gracias", Fixtures.Analyze("gracias", "gracias", "[INTERJ]").MatchedGrammarId);
+    }
+
+    [Fact]
     public void WholeSequenceMustBeConsumed()
     {
         Assert.Null(Match("tengo dos espadas rojas", "tengo [NUM:qty] [NOUN:item]"));

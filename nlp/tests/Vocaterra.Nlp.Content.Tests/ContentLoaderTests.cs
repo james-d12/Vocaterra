@@ -282,7 +282,7 @@ public class ContentLoaderTests
     [InlineData("dialogue/dialogue.json", "Por {item:article(def)} pido", "Por {item:article(def} pido", "does not render")]
     [InlineData("dialogue/dialogue.json", "{ \"lineId\": \"greet_again.2\", \"text\": \"Hola de nuevo. ¿Qué quieres hoy?\" }", "{ \"lineId\": \"greet_again.2\", \"text\": \"Hola {nobody:words}.\" }", "line 'greet_again.2' of 'greet_again' does not render")]
     [InlineData("agents/blacksmith.json", "{ \"id\": \"trade_done\", \"count\": 2 }", "{ \"id\": \"trade_done\", \"count\": 9 }", "variant pool 'trade_done' has 9 variants but dialogue intent 'trade_done' only has 2")]
-    [InlineData("agents/blacksmith.json", "\"to\": \"done\"", "\"to\": \"nowhere\"", "undefined state 'nowhere'")]
+    [InlineData("agents/blacksmith.json", "\"offer_item\", \"communicated\": true },\n          \"to\": \"done\"", "\"offer_item\", \"communicated\": true },\n          \"to\": \"nowhere\"", "undefined state 'nowhere'")]
     [InlineData("effects/effects.json", "\"intent\": \"buy_item\"", "\"intent\": \"buy_gone\"", "effect 'buy_item_price' references unknown intent 'buy_gone'")]
     [InlineData("intents/intents.json", "\"hola [NOUN]?\"", "\"hola [NOUN\"", "intents/intents.json: Invalid slot grammar")]
     [InlineData("evaluation/evaluation-config.json", "\"epsilon\": 0.02,\n    \"unknownTagWeight\": 0.3\n  },\n  \"intermediate\"", "\"epsilon\": -1,\n    \"unknownTagWeight\": 0.3\n  },\n  \"intermediate\"", "evaluation/evaluation-config.json: ")]

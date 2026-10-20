@@ -12,6 +12,7 @@ using Vocaterra.Nlp.Response.Effects;
 using Vocaterra.Nlp.Response.Templates;
 using Xunit.Abstractions;
 using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
+using SlotGrammarType = Vocaterra.Nlp.Language.SlotGrammar.SlotGrammar;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests;
 
@@ -64,6 +65,41 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
             writeLine: output.WriteLine,
             iter: iterations,
             threads: 1);
+    }
+
+    // Sentences of the grammars with a name ([WORD]): the analysis, the resolution and the slot map they bind carry the name as written, and round-trip.
+    [Fact]
+    public void NameSentences_SurviveCanonicalJson()
+    {
+        var names = Harness.Grammars.Grammars.Where(static g => g.Id.Contains("[WORD", StringComparison.Ordinal)).Select(static g => g.Pattern).ToArray();
+        var gen = Gen.Select(Gen.OneOfConst(names), Gen.ULong, static (pattern, seed) => new SentenceRecipe("catalog", pattern, seed));
+        var iterations = FuzzOptions.Iterations(FuzzOptions.GeneralVar, FuzzOptions.GeneralDefault) / 3;
+        var realised = 0;
+
+        gen.Sample(
+            (SentenceRecipe recipe) =>
+            {
+                var sentence = SentenceGen.Realize(Harness, recipe);
+                if (sentence is null)
+                {
+                    return;
+                }
+
+                realised++;
+                var normalized = PipelineHarness.Normalize(sentence.Text);
+                var grammar = SlotGrammarType.Parse(recipe.Pattern.Render());
+                var analysis = Harness.Analyzer.Analyze(normalized, [grammar]);
+                RoundTrip(normalized, "NormalizedText (with a name)", sentence.Text);
+                RoundTrip(analysis, "AnalysisResult (with a name)", sentence.Text);
+                var resolution = Harness.NewResolver(embeddings: false).Resolve(normalized, analysis, Harness.Bundle.Prompts.Values.First());
+                RoundTrip(resolution, "IntentResolution (with a name)", sentence.Text);
+                RoundTrip(resolution.Slots, "SlotMap (with a name)", sentence.Text);
+            },
+            writeLine: output.WriteLine,
+            iter: iterations,
+            threads: 1);
+
+        Assert.True(realised * 4 >= iterations, $"Only {realised} of {iterations} name sentences could be realised.");
     }
 
     [Fact]

@@ -20,6 +20,25 @@ public sealed record SlotGrammarMatch(SlotGrammar Grammar, IReadOnlyList<SlotVal
     /// </summary>
     public IReadOnlyList<int> AmbiguousTokens => [.. Bindings.Where(static b => b.Nodes.Count > 1).Select(static b => b.TokenIndex)];
 
+    /// <summary>
+    /// The positions of the tokens that every best parse binds only to <c>[WORD]</c> elements: names. The analyzer does not call them unknown words and the
+    /// reading resolver gives them no word class for the agreement checks.
+    /// </summary>
+    internal IReadOnlySet<int> WordTokens => new HashSet<int>(Bindings.Where(static b => b.Nodes.All(static n => n is WordNode)).Select(static b => b.TokenIndex));
+
+    /// <summary>How many of the consumed tokens the best parses bind to a literal word (a phrase of the grammar, not a class of word).</summary>
+    internal int LiteralTokenCount => Bindings.Count(static b => b.Nodes.Any(static n => n is LiteralNode));
+
+    /// <summary>
+    /// True when <paramref name="candidate"/> beats <paramref name="best"/> among grammars: more tokens consumed by explicit elements, or on a tie more tokens
+    /// bound to literal words (a phrase such as <c>gracias</c> is more specific than a bare noun, which the spell grammar would also take), and otherwise not.
+    /// </summary>
+    internal static bool Beats(SlotGrammarMatch candidate, SlotGrammarMatch best)
+    {
+        return candidate.ExplicitTokenCount > best.ExplicitTokenCount
+            || (candidate.ExplicitTokenCount == best.ExplicitTokenCount && candidate.LiteralTokenCount > best.LiteralTokenCount);
+    }
+
     /// <summary>The slots as an ordinal-sorted map; the first occurrence of a slot name wins.</summary>
     public SlotMap ToSlotMap()
     {
@@ -40,7 +59,7 @@ public static class SlotGrammarMatcher
 
     /// <summary>
     /// Matches the whole token sequence against the grammar, allowing a leading subject pronoun and a trailing <c>por favor</c>.
-    /// Among all complete parses the one with the most tokens consumed by explicit grammar elements wins; ties go to the first parse found.
+    /// Among all complete parses the one with the most tokens consumed by explicit grammar elements wins; ties go to the parse with more literal words, then to the first found.
     /// </summary>
     public static SlotGrammarMatch? Match(IReadOnlyList<AnalyzedToken> tokens, SlotGrammar grammar)
     {
@@ -121,6 +140,15 @@ public static class SlotGrammarMatcher
                     {
                         var slot = typed.Slot is null ? null : new SlotValue(typed.Slot, value, _tokens[position].Token.Span);
                         Step(rest, position + 1, new Capture(position, typed, slot, captures), score + 1);
+                    }
+
+                    break;
+                case WordNode word:
+                    if (position < _tokens.Count && TypedMatching.IsWord(_tokens[position]))
+                    {
+                        // A name binds the token as written in the normalized text, not a lemma: there is no lexicon reading to take one from.
+                        var slot = word.Slot is null ? null : new SlotValue(word.Slot, _tokens[position].Token.Text, _tokens[position].Token.Span);
+                        Step(rest, position + 1, new Capture(position, word, slot, captures), score + 1);
                     }
 
                     break;
@@ -234,6 +262,13 @@ internal static class TypedMatching
         }
 
         return false;
+    }
+
+    /// <summary>True when the token is made of letters only (<c>ñ</c> and accented vowels included): not a number, not punctuation, not empty.</summary>
+    public static bool IsWord(AnalyzedToken token)
+    {
+        var text = token.Token.Text;
+        return text.Length > 0 && text.All(static c => char.IsLetter(c));
     }
 
     public static bool TryMatch(AnalyzedToken token, TypedNode node, out string value)

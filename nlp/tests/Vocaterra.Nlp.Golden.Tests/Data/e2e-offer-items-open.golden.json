@@ -177,7 +177,7 @@
     "confidence": 1,
     "resolvedBy": "Grammar",
     "versions": {
-      "contentHash": "d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f",
+      "contentHash": "3b1d1f02dff448c830d0cfdbaf1f5e330fc66922a7b7507abc4b56d78afbc657",
       "modelHashes": {
         "asr": "scripted-golden",
         "phoneme": "fake-phoneme-recognizer"
@@ -266,7 +266,7 @@
     "promptId": "offer-items-open",
     "hostStateHash": "4cc8395bd279ab4eacc66fe07a3db69c0121c38457a2275c3aab0363d18ffa81",
     "versions": {
-      "contentHash": "d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f",
+      "contentHash": "3b1d1f02dff448c830d0cfdbaf1f5e330fc66922a7b7507abc4b56d78afbc657",
       "modelHashes": {
         "asr": "scripted-golden",
         "phoneme": "fake-phoneme-recognizer"
@@ -450,7 +450,7 @@
       "confidence": 1,
       "resolvedBy": "Grammar",
       "versions": {
-        "contentHash": "d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f",
+        "contentHash": "3b1d1f02dff448c830d0cfdbaf1f5e330fc66922a7b7507abc4b56d78afbc657",
         "modelHashes": {
           "asr": "scripted-golden",
           "phoneme": "fake-phoneme-recognizer"

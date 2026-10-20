@@ -12,7 +12,7 @@ public sealed record SourcedPattern(string Source, GrammarPattern Pattern);
 /// <summary>
 /// Slot grammar patterns: every grammar of the bundle's intent catalog, a handful of structural skeletons that guarantee the shapes the
 /// mutation oracle needs (subject plus verb, copula plus adjective, article plus noun plus adjective, numeral plus noun), and random DSL
-/// strings built from the token kinds <c>[ART] [DET] [PRON] [NUM:x] [NOUN:x] [ADJ:x] [VERB] [VERB:lemma] [VERB:lemma:slot]</c>, <c>?</c> and
+/// strings built from the token kinds <c>[ART] [DET] [PRON] [NUM:x] [NOUN:x] [ADJ:x] [VERB] [VERB:lemma] [VERB:lemma:slot] [WORD:x]</c>, <c>?</c> and
 /// <c>(a|b)</c>.
 /// </summary>
 public static class PatternGen
@@ -148,6 +148,10 @@ public static class PatternGen
         else if (roll < 0.98)
         {
             node = new TypedPattern(rng.Pick(new[] { "ADV", "PREP", "CONJ", "INTERJ" }), null, null);
+        }
+        else if (roll < 0.99)
+        {
+            node = new WordPattern(NextSlot(rng, ref slots, 0.8));
         }
         else
         {

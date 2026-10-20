@@ -1,4 +1,5 @@
 using CsCheck;
+using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Normalization;
@@ -74,18 +75,36 @@ public sealed class RecastLoopFuzzTests(ITestOutputHelper output)
                     return;
                 }
 
+                // A name the grammar no longer binds is an unknown word for the analyzer, and that is the only error the recast may keep for it (see UnboundNames).
                 var again = Harness.Analyzer.Analyze(PipelineHarness.Normalize(recast), [grammar]);
-                if (again.Errors.Count > 0 && KnownTolerances.IsTiedParse(again, grammar))
+                var names = UnboundNames.Expect(mutation.Mutated.Tokens, PipelineHarness.Normalize(recast), Harness.Words, again.MatchedGrammarId is not null);
+                if (names is null)
+                {
+                    diagnostics.Count("unpredicted:name-known-to-lexicon");
+                    return;
+                }
+
+                var unexpected = again.Errors.Where(e => !names.Any(n => SameError(n, e))).ToList();
+                var unreported = names.Where(n => !again.Errors.Any(e => SameError(n, e))).ToList();
+                if ((unexpected.Count > 0 || unreported.Count > 0) && KnownTolerances.IsTiedParse(again, grammar))
                 {
                     diagnostics.Count($"excused:tied-parse:{mutation.Kind}");
                     return;
                 }
 
-                if (again.Errors.Count > 0)
+                if (unexpected.Count > 0)
                 {
                     throw Determinism.Fail(
                         Oracle,
-                        $"The recast '{recast}' still has errors: {string.Join("; ", again.Errors.Select(static e => $"{e.Tag}@{e.Span.Start}+{e.Span.Length} expected '{e.Expected}' actual '{e.Actual}'"))}.",
+                        $"The recast '{recast}' still has errors: {string.Join("; ", unexpected.Select(static e => $"{e.Tag}@{e.Span.Start}+{e.Span.Length} expected '{e.Expected}' actual '{e.Actual}'"))}.",
+                        context);
+                }
+
+                if (unreported.Count > 0)
+                {
+                    throw Determinism.Fail(
+                        Oracle,
+                        $"The recast '{recast}' does not report its unbound name(s): {string.Join("; ", unreported.Select(static e => $"{e.Tag}@{e.Span.Start}+{e.Span.Length} actual '{e.Actual}'"))}.",
                         context);
                 }
 
@@ -102,5 +121,11 @@ public sealed class RecastLoopFuzzTests(ITestOutputHelper output)
         {
             Assert.True(diagnostics.Get($"recast:{kind}:closed") >= 20, $"The loop was closed fewer than 20 times for {kind}.\n{diagnostics.Report()}");
         }
+    }
+
+    // The same tag, span, expected form and actual form.
+    private static bool SameError(ExpectedError expected, ErrorTag actual)
+    {
+        return expected.Tag == actual.Tag && expected.Span == actual.Span && expected.Expected == actual.Expected && expected.Actual == actual.Actual;
     }
 }

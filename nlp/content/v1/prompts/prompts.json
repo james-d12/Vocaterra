@@ -133,5 +133,57 @@
     "allowedIntentIds": ["ask_price", "buy_item", "offer_item", "sell_item"],
     "agentId": "blacksmith",
     "slotGrammarIds": []
+  },
+  {
+    "promptId": "confirm-open",
+    "mode": "Open",
+    "difficulty": "Beginner",
+    "answerSetId": "yes-no",
+    "allowedIntentIds": ["confirm", "deny"],
+    "agentId": "blacksmith",
+    "slotGrammarIds": [
+      "(sí|claro|vale)",
+      "[VERB:estar]? de acuerdo",
+      "(no|ahora no)",
+      "no gracias",
+      "no [VERB:querer]"
+    ]
+  },
+  {
+    "promptId": "farewell-open",
+    "mode": "Open",
+    "difficulty": "Beginner",
+    "answerSetId": "farewells",
+    "allowedIntentIds": ["farewell"],
+    "agentId": "blacksmith",
+    "slotGrammarIds": [
+      "(adiós|hasta (luego|mañana))",
+      "nos [VERB:ver]"
+    ]
+  },
+  {
+    "promptId": "thank-open",
+    "mode": "Open",
+    "difficulty": "Beginner",
+    "answerSetId": "thanks",
+    "allowedIntentIds": ["thank"],
+    "agentId": "blacksmith",
+    "slotGrammarIds": [
+      "gracias [NOUN]?",
+      "muchas gracias"
+    ]
+  },
+  {
+    "promptId": "introduce-open",
+    "mode": "Open",
+    "difficulty": "Beginner",
+    "answerSetId": "introductions",
+    "allowedIntentIds": ["introduce_self"],
+    "agentId": "blacksmith",
+    "slotGrammarIds": [
+      "me [VERB:llamar] [WORD:name]",
+      "[VERB:ser] [WORD:name]",
+      "mi nombre es [WORD:name]"
+    ]
   }
 ]

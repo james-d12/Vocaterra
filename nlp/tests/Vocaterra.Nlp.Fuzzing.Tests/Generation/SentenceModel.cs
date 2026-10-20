@@ -42,6 +42,9 @@ public enum TokenRole
 
     /// <summary>An interjection.</summary>
     Interjection,
+
+    /// <summary>A name: a word of letters that the lexicon need not know. It has no part of speech for the checks, so no agreement applies to it (M17b).</summary>
+    Name,
 }
 
 /// <summary>One word of a generated sentence with the features it was generated with; indices refer to <see cref="GeneratedSentence.Tokens"/>.</summary>

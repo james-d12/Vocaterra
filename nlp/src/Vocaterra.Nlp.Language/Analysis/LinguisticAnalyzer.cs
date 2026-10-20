@@ -45,6 +45,8 @@ public sealed class LinguisticAnalyzer
     /// plus the slots of the best matching grammar. Errors are ordered by span start and then by taxonomy order.
     /// </summary>
     /// <remarks>
+    /// A word that the best grammar binds to a <c>[WORD]</c> element is a name: it is not reported as <c>vocab.unknown</c>, it does not lower the confidence, and it takes
+    /// part in no agreement check (see <see cref="ReadingResolver"/>).
     /// The grammar is matched first, on every reading of every word, because the words it binds tell the resolver which part of speech each ambiguous word is.
     /// The checks then run on the resolved readings only; the returned tokens still list every reading of the lexicon, which the intent stage matches lemmas on.
     /// </remarks>
@@ -54,20 +56,37 @@ public sealed class LinguisticAnalyzer
         ArgumentNullException.ThrowIfNull(grammars);
         var errors = new List<ErrorTag>();
         var analyzed = new List<AnalyzedToken>(text.Tokens.Count);
-        var allKnown = true;
-        foreach (var token in text.Tokens)
+        var irregular = new ErrorTag?[text.Tokens.Count];
+        for (var i = 0; i < text.Tokens.Count; i++)
         {
-            var readings = ReadingsFor(token, errors);
-            if (readings.Count == 0)
-            {
-                allKnown = false;
-                errors.Add(new ErrorTag(ErrorTags.VocabUnknown, token.Span, string.Empty, token.Text));
-            }
-
-            analyzed.Add(new AnalyzedToken(token, readings));
+            analyzed.Add(new AnalyzedToken(text.Tokens[i], ReadingsFor(text.Tokens[i], out irregular[i])));
         }
 
+        // The grammar decides first which words are names ([WORD] elements). A name is not an unknown word, and it is no irregular verb form either, even when
+        // its spelling is one. It carries no reading at all, so no rule, check or recast treats it as a word (a lexicon verb form would be conjugated by a recast).
         var match = BestMatch(analyzed, grammars);
+        var names = match?.WordTokens ?? new HashSet<int>();
+        var allKnown = true;
+        for (var i = 0; i < analyzed.Count; i++)
+        {
+            if (names.Contains(i))
+            {
+                analyzed[i] = new AnalyzedToken(analyzed[i].Token, []);
+                continue;
+            }
+
+            if (irregular[i] is { } error)
+            {
+                errors.Add(error);
+            }
+
+            if (analyzed[i].Readings.Count == 0)
+            {
+                allKnown = false;
+                errors.Add(new ErrorTag(ErrorTags.VocabUnknown, analyzed[i].Token.Span, string.Empty, analyzed[i].Token.Text));
+            }
+        }
+
         var resolved = ReadingResolver.Resolve(analyzed, match, Cost);
         new AgreementChecker(resolved, _morphology, errors).Run();
         return new AnalysisResult(
@@ -96,7 +115,7 @@ public sealed class LinguisticAnalyzer
         foreach (var grammar in grammars)
         {
             var match = SlotGrammarMatcher.Match(tokens, grammar);
-            if (match is not null && (best is null || match.ExplicitTokenCount > best.ExplicitTokenCount))
+            if (match is not null && (best is null || SlotGrammarMatch.Beats(match, best)))
             {
                 best = match;
             }
@@ -173,11 +192,13 @@ public sealed class LinguisticAnalyzer
         return true;
     }
 
-    private IReadOnlyList<LexicalFeatures> ReadingsFor(Token token, List<ErrorTag> errors)
+    // The readings of one token; an irregular verb form also yields the conj.irregular error it stands for, which the caller drops for a name.
+    private IReadOnlyList<LexicalFeatures> ReadingsFor(Token token, out ErrorTag? irregular)
     {
+        irregular = null;
         if (_morphology.TryGetRegularization(token.Text, out var regularized))
         {
-            errors.Add(new ErrorTag(ErrorTags.ConjIrregular, token.Span, regularized.Expected, token.Text));
+            irregular = new ErrorTag(ErrorTags.ConjIrregular, token.Span, regularized.Expected, token.Text);
             return
             [
                 new LexicalFeatures(

@@ -9,6 +9,12 @@ internal sealed record LiteralNode(string Word) : GrammarNode;
 /// <summary>A typed token such as <c>[NOUN:item]</c>: a part-of-speech tag, an optional verb lemma and an optional slot name.</summary>
 internal sealed record TypedNode(string Tag, string Pos, string? Lemma, string? Slot) : GrammarNode;
 
+/// <summary>
+/// A <c>[WORD]</c> or <c>[WORD:slot]</c> token: exactly one token made of letters, whatever its lexicon readings (a name). The slot, when named, takes the token
+/// as written in the normalized text. The analyzer does not report such a token as unknown, and the reading resolver gives it no word class for the checks.
+/// </summary>
+internal sealed record WordNode(string? Slot) : GrammarNode;
+
 /// <summary>A parenthesized choice between sequences, such as <c>(quiero|necesito)</c>.</summary>
 internal sealed record GroupNode(IReadOnlyList<IReadOnlyList<GrammarNode>> Alternatives) : GrammarNode;
 

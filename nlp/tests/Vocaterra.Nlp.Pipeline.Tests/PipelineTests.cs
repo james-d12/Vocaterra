@@ -154,7 +154,7 @@ public class PipelineTests
             Assert.Empty(result.Verdict.Errors);
             var line = Assert.Single(result.Response.Lines);
             var variant = Assert.Single(result.Decision.Agent!.Actions).VariantIndex;
-            Assert.Equal($"buy_item_reply.{variant + 1}", line.LineId);
+            Assert.Equal($"confirm_prompt.{variant + 1}", line.LineId);
             lineIds.Add(line.LineId);
         }
 
