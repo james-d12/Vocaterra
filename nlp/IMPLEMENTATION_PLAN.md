@@ -530,6 +530,11 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   counts is used and no counts or text ship. kaikki.org marks the per-language file as deprecated; the
   SHA-256 pin and the committed output cover it, and the raw all-languages extract (24 GB) is the
   fallback, untested.
+- **Second M17a false positive (CLI-examples re-verification):** `cuánto cuesta la espada` now yields
+  `gender.agree` (`cuánto` → `cuánta`, correctness 0.85) on every `ask_price` input, because the
+  imported lexicon carries gendered readings under the lemma `cuanto` and the agreement checker ties
+  the interrogative to the following noun. Forwarded to M18 as a required case; the `ask_price`
+  example was removed from `docs/CLI_EXAMPLES.md` until M18 lands and is to be restored then.
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 
