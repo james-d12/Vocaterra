@@ -1,5 +1,5 @@
 {
-  "npcId": "blacksmith",
+  "agentId": "blacksmith",
   "initialState": "idle",
   "variantPools": [
     { "id": "ask_price_reply", "count": 3 },
@@ -19,12 +19,12 @@
         {
           "on": { "intent": "greet", "communicated": true },
           "to": "trading",
-          "actions": [ { "dialogueIntent": "greet_reply", "gameEvent": "npc.greet", "variantPoolId": "greet_reply" } ]
+          "actions": [ { "dialogueIntent": "greet_reply", "hostEvent": "agent.greet", "variantPoolId": "greet_reply" } ]
         },
         {
           "on": { "intent": "buy_item", "communicated": true },
           "to": "trading",
-          "actions": [ { "dialogueIntent": "buy_item_reply", "gameEvent": "shop.open", "variantPoolId": "buy_item_reply" } ]
+          "actions": [ { "dialogueIntent": "buy_item_reply", "hostEvent": "shop.open", "variantPoolId": "buy_item_reply" } ]
         },
         {
           "on": { "intent": "ask_price", "communicated": true },
@@ -34,17 +34,17 @@
         {
           "on": { "intent": "sell_item", "communicated": true },
           "to": "trading",
-          "actions": [ { "dialogueIntent": "sell_item_reply", "gameEvent": "trade.sell", "variantPoolId": "sell_item_reply" } ]
+          "actions": [ { "dialogueIntent": "sell_item_reply", "hostEvent": "trade.sell", "variantPoolId": "sell_item_reply" } ]
         },
         {
           "on": { "intent": "offer_item", "communicated": true },
           "to": "trading",
-          "actions": [ { "dialogueIntent": "offer_item_reply", "gameEvent": "trade.offer", "variantPoolId": "offer_item_reply" } ]
+          "actions": [ { "dialogueIntent": "offer_item_reply", "hostEvent": "trade.offer", "variantPoolId": "offer_item_reply" } ]
         },
         {
           "on": { "intent": "cast_spell", "communicated": true },
           "to": "idle",
-          "actions": [ { "dialogueIntent": "cast_spell_reply", "gameEvent": "spell.cast", "variantPoolId": "cast_spell_reply" } ]
+          "actions": [ { "dialogueIntent": "cast_spell_reply", "hostEvent": "spell.cast", "variantPoolId": "cast_spell_reply" } ]
         },
         {
           "on": { "communicated": false },
@@ -62,17 +62,17 @@
         {
           "on": { "intent": "buy_item", "communicated": true },
           "to": "trading",
-          "actions": [ { "dialogueIntent": "buy_item_reply", "gameEvent": "trade.buy", "variantPoolId": "buy_item_reply" } ]
+          "actions": [ { "dialogueIntent": "buy_item_reply", "hostEvent": "trade.buy", "variantPoolId": "buy_item_reply" } ]
         },
         {
           "on": { "intent": "sell_item", "communicated": true },
           "to": "trading",
-          "actions": [ { "dialogueIntent": "sell_item_reply", "gameEvent": "trade.sell", "variantPoolId": "sell_item_reply" } ]
+          "actions": [ { "dialogueIntent": "sell_item_reply", "hostEvent": "trade.sell", "variantPoolId": "sell_item_reply" } ]
         },
         {
           "on": { "intent": "offer_item", "communicated": true },
           "to": "done",
-          "actions": [ { "dialogueIntent": "offer_item_reply", "gameEvent": "trade.offer", "variantPoolId": "offer_item_reply" } ]
+          "actions": [ { "dialogueIntent": "offer_item_reply", "hostEvent": "trade.offer", "variantPoolId": "offer_item_reply" } ]
         },
         {
           "on": { "intent": "ask_price", "communicated": true },
@@ -82,7 +82,7 @@
         {
           "on": { "intent": "cast_spell", "communicated": true },
           "to": "trading",
-          "actions": [ { "dialogueIntent": "cast_spell_reply", "gameEvent": "spell.cast", "variantPoolId": "cast_spell_reply" } ]
+          "actions": [ { "dialogueIntent": "cast_spell_reply", "hostEvent": "spell.cast", "variantPoolId": "cast_spell_reply" } ]
         },
         {
           "on": { "intent": "greet", "communicated": true },

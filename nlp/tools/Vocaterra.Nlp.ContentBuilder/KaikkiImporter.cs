@@ -95,7 +95,7 @@ public sealed record KaikkiImportOptions
     /// <summary>
     /// The words that hand-authored lexicons define. The import emits nothing for a lemma they define except forms of verbs: a hand-authored noun,
     /// adjective or function word keeps the gender, number and part of speech its author gave it, so a second Wiktionary reading (the matador
-    /// <c>el espada</c> next to <c>la espada</c>) cannot hide a gender mistake on a word the game teaches. The import also emits nothing under the
+    /// <c>el espada</c> next to <c>la espada</c>) cannot hide a gender mistake on a word the lessons teach. The import also emits nothing under the
     /// spelling of a function word they define, neither a head word (the musical note <c>la</c>, the noun <c>si</c>) nor an inflected form (<c>una</c>
     /// and <c>uno</c> of <c>unir</c>, <c>para</c> of <c>parar</c>): the analyzer reads every reading of a word, so a rare noun or verb form hiding behind
     /// an article, a pronoun, a numeral, a preposition, a conjunction or an adverb would turn common sentences into false mistakes.

@@ -8,8 +8,8 @@ using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
-using Vocaterra.Nlp.Decision.Npc;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Pronunciation;
 
@@ -37,9 +37,9 @@ public static class Program
         Usage:
           eval --prompt <id> --content <dir> (--transcript "<text>" | --wav <file> --models <dir>)
                [--wav <file>] [--models <dir>] [--replay-out <file>]
-               [--seed <n>] [--now <unixSeconds>] [--npc-state <id>] [--counter <n>] [--repeat <tag>=<n>]...
+               [--seed <n>] [--now <unixSeconds>] [--agent-state <id>] [--counter <n>] [--repeat <tag>=<n>]...
               Evaluates one utterance. Without --models the word recognizer is scripted from --transcript, so no model is needed.
-              Prints the verdict JSON on the first line, then the NPC lines, game effects and repair step.
+              Prints the verdict JSON on the first line, then the agent lines, effects and repair step.
           replay <envelope.jsonl> --content <dir>
               Re-evaluates every logged utterance from its recorded recognizer output; prints OK, or the differing JSON paths and exits 1.
 
@@ -104,7 +104,7 @@ public static class Program
 
     private static readonly string[] EvalOptions =
     [
-        "--wav", "--transcript", "--prompt", "--content", "--models", "--replay-out", "--seed", "--now", "--npc-state", "--counter", "--repeat",
+        "--wav", "--transcript", "--prompt", "--content", "--models", "--replay-out", "--seed", "--now", "--agent-state", "--counter", "--repeat",
     ];
 
     private static int Eval(CommandLine line, TextWriter output, TextWriter error)
@@ -151,12 +151,12 @@ public static class Program
             phonemes = models.Phonemes;
         }
 
-        var npcId = prompt.NpcId ?? "player";
-        var machine = bundle.Npcs.GetValueOrDefault(npcId);
-        var npcState = line.Value("--npc-state") is { } stateId
-            ? new NpcState(npcId, stateId, counter)
-            : machine is null ? new NpcState(npcId, "none", counter) : machine.InitialState() with { InteractionCounter = counter };
-        var context = GameContext.Create(seed, npcId, npcState, new StoredTimestamp(now), LearnerModel.New(), repeats);
+        var agentId = prompt.AgentId ?? "player";
+        var machine = bundle.Agents.GetValueOrDefault(agentId);
+        var agentState = line.Value("--agent-state") is { } stateId
+            ? new AgentState(agentId, stateId, counter)
+            : machine is null ? new AgentState(agentId, "none", counter) : machine.InitialState() with { InteractionCounter = counter };
+        var context = ConversationContext.Create(seed, agentId, agentState, new StoredTimestamp(now), LearnerModel.New(), repeats);
 
         var pipeline = new UtterancePipeline(new PipelineServices(words, phonemes, null, null, bundle));
         var trace = pipeline.Trace(clip, prompt, context);
@@ -215,7 +215,7 @@ public static class Program
         output.WriteLine(CanonicalJson.Serialize(result.Verdict));
         foreach (var line in result.Response.Lines)
         {
-            output.WriteLine($"npc: {line.Text}");
+            output.WriteLine($"agent: {line.Text}");
         }
 
         foreach (var effect in result.Effects)
@@ -225,7 +225,7 @@ public static class Program
 
         if (result.Repair is { } repair)
         {
-            output.WriteLine($"repair: {repair.Kind} {repair.NpcLine}");
+            output.WriteLine($"repair: {repair.Kind} {repair.AgentLine}");
         }
 
         output.WriteLine($"decision: rating {result.Decision.Rating}, learner skills {result.Decision.Learner.Skills.Count}, feedback items {result.Decision.Feedback.Items.Count}");

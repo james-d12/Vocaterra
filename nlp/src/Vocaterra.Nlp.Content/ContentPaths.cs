@@ -24,8 +24,8 @@ public static class ContentPaths
     /// <summary>The prompt list.</summary>
     public const string Prompts = "prompts/prompts.json";
 
-    /// <summary>Folder of NPC definitions (one <c>&lt;npcId&gt;.json</c> per NPC).</summary>
-    public const string NpcFolder = "npcs/";
+    /// <summary>Folder of agent definitions (one <c>&lt;agentId&gt;.json</c> per agent).</summary>
+    public const string AgentFolder = "agents/";
 
     /// <summary>The dialogue catalog.</summary>
     public const string Dialogue = "dialogue/dialogue.json";
@@ -36,7 +36,7 @@ public static class ContentPaths
     /// <summary>The evaluation configuration.</summary>
     public const string EvaluationConfig = "evaluation/evaluation-config.json";
 
-    /// <summary>The game-effect table.</summary>
+    /// <summary>The effect table.</summary>
     public const string Effects = "effects/effects.json";
 
     /// <summary>Folder of CEFR lemma lists (<c>a1.txt</c>, <c>a2.txt</c>: one lemma per line).</summary>

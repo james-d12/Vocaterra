@@ -115,7 +115,7 @@ public class GeneratedLexiconTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void TheMergedLexiconKeepsTheHandAuthoredGendersOfTheItemsTheGameSells()
+    public void TheMergedLexiconKeepsTheHandAuthoredGendersOfTheSampleNouns()
     {
         var lexicon = TestSupport.Bundle.Lexicon;
 

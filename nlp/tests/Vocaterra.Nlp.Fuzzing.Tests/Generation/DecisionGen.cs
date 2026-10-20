@@ -3,9 +3,9 @@ using CsCheck;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Taxonomy;
+using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Feedback;
 using Vocaterra.Nlp.Decision.Learning;
-using Vocaterra.Nlp.Decision.Npc;
 using Vocaterra.Nlp.Decision.Scheduling;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 
@@ -28,7 +28,7 @@ public sealed record ReviewScript(long Start, double DesiredRetention, int Maxim
 }
 
 /// <summary>
-/// Generators for the decision layer: NPC state machines (the bundle's, random valid ones, and valid ones with one structural defect), BKT parameters,
+/// Generators for the decision layer: agent state machines (the bundle's, random valid ones, and valid ones with one structural defect), BKT parameters,
 /// spaced-repetition review scripts and feedback policies. Everything is built from a <see cref="SeededRng"/> seed, so a CsCheck seed replays it.
 /// </summary>
 public static class DecisionGen
@@ -38,56 +38,56 @@ public static class DecisionGen
     private static readonly string[] Events = ["trade.offer", "trade.done", "quest.start", "shop.open"];
     private static readonly string[] Patterns = ["*", "conj.*", "gender.*", "noun.*", "pron.*", "vocab.*", "ser_estar", "word_order", "conj.person", "pron.r", "vocab.unknown", "zzz.*", "zzz"];
 
-    /// <summary>Verdict-independent NPC cases: the machine, a state it declares, a counter and a world seed.</summary>
-    public static Gen<NpcCase> Npc(PipelineHarness harness)
+    /// <summary>Verdict-independent agent cases: the machine, a state it declares, a counter and a world seed.</summary>
+    public static Gen<AgentCase> Agent(PipelineHarness harness)
     {
-        return Gen.ULong.Select(seed => BuildNpc(harness, new SeededRng(seed)));
+        return Gen.ULong.Select(seed => BuildAgent(harness, new SeededRng(seed)));
     }
 
-    /// <summary>Builds an NPC case from a random stream: the bundle's NPCs one time in three, otherwise a random valid definition.</summary>
-    public static NpcCase BuildNpc(PipelineHarness harness, SeededRng rng)
+    /// <summary>Builds an agent case from a random stream: the bundle's agents one time in three, otherwise a random valid definition.</summary>
+    public static AgentCase BuildAgent(PipelineHarness harness, SeededRng rng)
     {
         var definition = rng.NextInt(3) == 0
-            ? rng.Pick(harness.Bundle.Npcs.Values.Select(static m => m.Definition).ToArray())
+            ? rng.Pick(harness.Bundle.Agents.Values.Select(static m => m.Definition).ToArray())
             : RandomDefinition(rng);
         var stateIds = definition.States.Select(static s => s.Id).ToArray();
         var counter = rng.NextInt(5) == 0 ? (long)rng.NextInt(1_000_000) * 1000 : rng.NextInt(20);
-        return new NpcCase(definition, rng.Pick(stateIds), counter, rng.NextUInt64(), rng.NextUInt64());
+        return new AgentCase(definition, rng.Pick(stateIds), counter, rng.NextUInt64(), rng.NextUInt64());
     }
 
-    /// <summary>A valid random NPC definition: up to five states, up to three variant pools, conditions over intents, error-tag patterns and the communicated flag.</summary>
-    public static NpcDefinition RandomDefinition(SeededRng rng)
+    /// <summary>A valid random agent definition: up to five states, up to three variant pools, conditions over intents, error-tag patterns and the communicated flag.</summary>
+    public static AgentDefinition RandomDefinition(SeededRng rng)
     {
         var stateCount = 1 + rng.NextInt(5);
         var stateIds = Enumerable.Range(0, stateCount).Select(static i => "s" + i).ToArray();
         var pools = Enumerable.Range(0, rng.NextInt(4)).Select(i => new VariantPoolDefinition("pool" + i, 1 + rng.NextInt(5))).ToArray();
 
-        NpcActionDefinition Action()
+        AgentActionDefinition Action()
         {
             var pool = pools.Length > 0 && rng.NextInt(2) == 0 ? rng.Pick(pools).Id : null;
-            return new NpcActionDefinition(rng.Pick(Dialogue), rng.NextInt(3) == 0 ? rng.Pick(Events) : null, pool);
+            return new AgentActionDefinition(rng.Pick(Dialogue), rng.NextInt(3) == 0 ? rng.Pick(Events) : null, pool);
         }
 
-        IReadOnlyList<NpcActionDefinition> Actions() => [.. Enumerable.Range(0, rng.NextInt(4)).Select(_ => Action())];
+        IReadOnlyList<AgentActionDefinition> Actions() => [.. Enumerable.Range(0, rng.NextInt(4)).Select(_ => Action())];
 
-        NpcCondition Condition()
+        AgentCondition Condition()
         {
-            return new NpcCondition(
+            return new AgentCondition(
                 rng.NextInt(2) == 0 ? rng.Pick(Intents) : null,
                 rng.NextInt(3) == 0 ? [.. Enumerable.Range(0, 1 + rng.NextInt(3)).Select(_ => rng.Pick(Patterns))] : null,
                 rng.NextInt(4) == 0 ? [.. Enumerable.Range(0, 1 + rng.NextInt(2)).Select(_ => rng.Pick(Patterns))] : null,
                 rng.NextInt(3) == 0 ? rng.NextInt(2) == 0 : null);
         }
 
-        var states = stateIds.Select(id => new NpcStateDefinition(
+        var states = stateIds.Select(id => new AgentStateDefinition(
             id,
-            [.. Enumerable.Range(0, rng.NextInt(5)).Select(_ => new NpcTransition(Condition(), rng.Pick(stateIds), Actions()))],
-            rng.NextInt(3) == 0 ? null : new NpcFallback(Actions(), rng.NextInt(2) == 0 ? null : rng.Pick(stateIds)))).ToArray();
-        return new NpcDefinition("npc" + rng.NextInt(100), rng.Pick(stateIds), states, pools.Length == 0 && rng.NextInt(2) == 0 ? null : pools);
+            [.. Enumerable.Range(0, rng.NextInt(5)).Select(_ => new AgentTransition(Condition(), rng.Pick(stateIds), Actions()))],
+            rng.NextInt(3) == 0 ? null : new AgentFallback(Actions(), rng.NextInt(2) == 0 ? null : rng.Pick(stateIds)))).ToArray();
+        return new AgentDefinition("agent" + rng.NextInt(100), rng.Pick(stateIds), states, pools.Length == 0 && rng.NextInt(2) == 0 ? null : pools);
     }
 
-    /// <summary>A valid definition with exactly one structural defect that <c>NpcStateMachine</c> must reject with an <see cref="InvalidDataException"/>.</summary>
-    public static Gen<BrokenNpc> BrokenNpc()
+    /// <summary>A valid definition with exactly one structural defect that <c>AgentStateMachine</c> must reject with an <see cref="InvalidDataException"/>.</summary>
+    public static Gen<BrokenAgent> BrokenAgent()
     {
         return Gen.ULong.Select(seed =>
         {
@@ -103,7 +103,7 @@ public static class DecisionGen
                     {
                         Transitions =
                         [
-                            new NpcTransition(new NpcCondition(), definition.States[0].Id, [new NpcActionDefinition("greet_reply", null, null)]),
+                            new AgentTransition(new AgentCondition(), definition.States[0].Id, [new AgentActionDefinition("greet_reply", null, null)]),
                             .. definition.States[0].Transitions,
                         ],
                     },
@@ -116,18 +116,18 @@ public static class DecisionGen
             var first = definition.States[0];
             var broken = kind switch
             {
-                0 => (definition with { NpcId = string.Empty }, "empty npcId"),
+                0 => (definition with { AgentId = string.Empty }, "empty agentId"),
                 1 => (definition with { States = [] }, "no states"),
                 2 => (definition with { InitialState = "nowhere" }, "undefined initial state"),
                 3 => (definition with { States = [.. definition.States, first] }, "duplicate state id"),
-                4 => (definition with { States = [first with { Transitions = [new NpcTransition(new NpcCondition(), "nowhere", []), .. first.Transitions] }, .. definition.States.Skip(1)] }, "transition to an undefined state"),
+                4 => (definition with { States = [first with { Transitions = [new AgentTransition(new AgentCondition(), "nowhere", []), .. first.Transitions] }, .. definition.States.Skip(1)] }, "transition to an undefined state"),
                 5 => (definition with { VariantPools = [new VariantPoolDefinition("poolx", 0), .. definition.VariantPools ?? []] }, "variant pool of size 0"),
                 6 => (definition with { VariantPools = [new VariantPoolDefinition("poolx", 2), new VariantPoolDefinition("poolx", 3), .. definition.VariantPools ?? []] }, "duplicate variant pool"),
-                7 => (definition with { States = [first with { Transitions = [new NpcTransition(new NpcCondition(), first.Id, [new NpcActionDefinition("greet_reply", null, "missing-pool")]), .. first.Transitions] }, .. definition.States.Skip(1)] }, "undefined variant pool"),
-                8 => (definition with { States = [first with { Transitions = [new NpcTransition(new NpcCondition(AnyErrorTag: ["a*b"]), first.Id, []), .. first.Transitions] }, .. definition.States.Skip(1)] }, "malformed error-tag pattern"),
-                _ => (definition with { States = [first with { Transitions = [new NpcTransition(new NpcCondition(NoErrorTag: []), first.Id, []), .. first.Transitions] }, .. definition.States.Skip(1)] }, "empty noErrorTag list"),
+                7 => (definition with { States = [first with { Transitions = [new AgentTransition(new AgentCondition(), first.Id, [new AgentActionDefinition("greet_reply", null, "missing-pool")]), .. first.Transitions] }, .. definition.States.Skip(1)] }, "undefined variant pool"),
+                8 => (definition with { States = [first with { Transitions = [new AgentTransition(new AgentCondition(AnyErrorTag: ["a*b"]), first.Id, []), .. first.Transitions] }, .. definition.States.Skip(1)] }, "malformed error-tag pattern"),
+                _ => (definition with { States = [first with { Transitions = [new AgentTransition(new AgentCondition(NoErrorTag: []), first.Id, []), .. first.Transitions] }, .. definition.States.Skip(1)] }, "empty noErrorTag list"),
             };
-            return new BrokenNpc(broken.Item1, broken.Item2);
+            return new BrokenAgent(broken.Item1, broken.Item2);
         });
     }
 
@@ -210,29 +210,29 @@ public static class DecisionGen
     }
 }
 
-/// <summary>An NPC definition, one of its states, the interaction counter and two seeds (the world seed, and a seed for the verdict).</summary>
+/// <summary>An agent definition, one of its states, the interaction counter and two seeds (the world seed, and a seed for the verdict).</summary>
 /// <param name="Definition">The state machine definition.</param>
-/// <param name="StateId">The state the NPC is in.</param>
+/// <param name="StateId">The state the agent is in.</param>
 /// <param name="Counter">The interaction counter.</param>
 /// <param name="WorldSeed">The world seed.</param>
 /// <param name="VerdictSeed">Seeds the verdict generator.</param>
-public sealed record NpcCase(NpcDefinition Definition, string StateId, long Counter, ulong WorldSeed, ulong VerdictSeed)
+public sealed record AgentCase(AgentDefinition Definition, string StateId, long Counter, ulong WorldSeed, ulong VerdictSeed)
 {
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"npc={CanonicalJson.Serialize(Definition)} state={StateId} counter={Counter} worldSeed={WorldSeed} verdictSeed={VerdictSeed}";
+        return $"agent={CanonicalJson.Serialize(Definition)} state={StateId} counter={Counter} worldSeed={WorldSeed} verdictSeed={VerdictSeed}";
     }
 }
 
-/// <summary>An NPC definition with one defect and a description of it.</summary>
+/// <summary>An agent definition with one defect and a description of it.</summary>
 /// <param name="Definition">The defective definition.</param>
 /// <param name="Defect">What was broken.</param>
-public sealed record BrokenNpc(NpcDefinition Definition, string Defect)
+public sealed record BrokenAgent(AgentDefinition Definition, string Defect)
 {
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"defect={Defect} npc={CanonicalJson.Serialize(Definition)}";
+        return $"defect={Defect} agent={CanonicalJson.Serialize(Definition)}";
     }
 }

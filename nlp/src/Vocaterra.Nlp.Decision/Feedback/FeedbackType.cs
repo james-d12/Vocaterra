@@ -1,9 +1,9 @@
 namespace Vocaterra.Nlp.Decision.Feedback;
 
-/// <summary>The kind of corrective feedback an NPC gives for one error.</summary>
+/// <summary>The kind of corrective feedback an agent gives for one error.</summary>
 public enum FeedbackType
 {
-    /// <summary>Repeat the correct form naturally inside the NPC's reply.</summary>
+    /// <summary>Repeat the correct form naturally inside the agent's reply.</summary>
     Recast,
 
     /// <summary>Point at the problem without giving the answer.</summary>

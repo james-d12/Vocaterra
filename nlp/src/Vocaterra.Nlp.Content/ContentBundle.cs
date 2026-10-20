@@ -1,6 +1,6 @@
 using Vocaterra.Nlp.Core.Prompts;
+using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Feedback;
-using Vocaterra.Nlp.Decision.Npc;
 using Vocaterra.Nlp.Evaluation;
 using Vocaterra.Nlp.Nlp.Intent;
 using Vocaterra.Nlp.Nlp.Matching;
@@ -22,7 +22,7 @@ public sealed class ContentBundle
         IReadOnlyDictionary<string, AnswerSet> answerSets,
         IntentCatalog intents,
         IReadOnlyDictionary<string, PromptSpec> prompts,
-        IReadOnlyDictionary<string, NpcStateMachine> npcs,
+        IReadOnlyDictionary<string, AgentStateMachine> agents,
         DialogueCatalog dialogue,
         FeedbackPolicy feedbackPolicy,
         EvaluationConfig evaluationConfig,
@@ -38,7 +38,7 @@ public sealed class ContentBundle
         AnswerSets = answerSets;
         Intents = intents;
         Prompts = prompts;
-        Npcs = npcs;
+        Agents = agents;
         Dialogue = dialogue;
         FeedbackPolicy = feedbackPolicy;
         EvaluationConfig = evaluationConfig;
@@ -76,8 +76,8 @@ public sealed class ContentBundle
     /// <summary>The prompts by id, enumerating in ordinal id order.</summary>
     public IReadOnlyDictionary<string, PromptSpec> Prompts { get; }
 
-    /// <summary>The NPC state machines by NPC id, enumerating in ordinal id order.</summary>
-    public IReadOnlyDictionary<string, NpcStateMachine> Npcs { get; }
+    /// <summary>The agent state machines by agent id, enumerating in ordinal id order.</summary>
+    public IReadOnlyDictionary<string, AgentStateMachine> Agents { get; }
 
     /// <summary>The dialogue catalog (dialogue intent to variant pool).</summary>
     public DialogueCatalog Dialogue { get; }
@@ -88,7 +88,7 @@ public sealed class ContentBundle
     /// <summary>The evaluation weights and thresholds per difficulty.</summary>
     public EvaluationConfig EvaluationConfig { get; }
 
-    /// <summary>The game-effect table.</summary>
+    /// <summary>The effect table.</summary>
     public EffectTable Effects { get; }
 
     /// <summary>The CEFR lemma lists by lower-case level (<c>a1</c>, <c>a2</c>); each set enumerates in ordinal order and lists only that level's own lemmas.</summary>

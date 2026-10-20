@@ -2,25 +2,6 @@ using Vocaterra.Nlp.Core.Determinism;
 
 namespace Vocaterra.Nlp.Response.Effects;
 
-/// <summary>The effect kinds a table can define.</summary>
-public static class EffectKinds
-{
-    /// <summary>Spell power as a fraction of full power.</summary>
-    public const string SpellPower = "spell_power";
-
-    /// <summary>Trade price as a factor of the base price.</summary>
-    public const string TradePrice = "trade_price";
-
-    /// <summary>A quest flag value, for example 0 or 1.</summary>
-    public const string QuestFlag = "quest_flag";
-
-    /// <summary>A marker effect that changes nothing in the game.</summary>
-    public const string None = "none";
-
-    /// <summary>All kinds, in declaration order.</summary>
-    public static IReadOnlyList<string> All { get; } = [SpellPower, TradePrice, QuestFlag, None];
-}
-
 /// <summary>One point of a piecewise-linear effect curve: the effect value at a correctness.</summary>
 public sealed record CurvePoint(double Correctness, double Value)
 {
@@ -48,10 +29,10 @@ public sealed record EffectDefinition(string EffectId, string Intent, string Kin
         ? Intent
         : throw new ArgumentException("An intent is required.", nameof(Intent));
 
-    /// <summary>One of <see cref="EffectKinds"/>.</summary>
-    public string Kind { get; init; } = Kind is not null && EffectKinds.All.Contains(Kind)
+    /// <summary>The outcome kind: an opaque string the host interprets (the sample bundle uses <c>trade_price</c> and <c>spell_power</c>); never empty.</summary>
+    public string Kind { get; init; } = !string.IsNullOrWhiteSpace(Kind)
         ? Kind
-        : throw new ArgumentException($"Unknown effect kind '{Kind}'.", nameof(Kind));
+        : throw new ArgumentException("An outcome kind is required.", nameof(Kind));
 
     /// <summary>The curve points, strictly ascending in correctness; never empty.</summary>
     public IReadOnlyList<CurvePoint> Curve { get; init; } = ValidateCurve(Curve);
@@ -103,7 +84,7 @@ public sealed record EffectDefinition(string EffectId, string Intent, string Kin
     }
 }
 
-/// <summary>The game-effect table: effects are kept in ordinal <c>EffectId</c> order; serialized as canonical JSON <c>{"effects":[...]}</c>.</summary>
+/// <summary>The effect table: effects are kept in ordinal <c>EffectId</c> order; serialized as canonical JSON <c>{"effects":[...]}</c>.</summary>
 public sealed record EffectTable(IReadOnlyList<EffectDefinition> Effects)
 {
     /// <summary>The effects sorted by ordinal effect id; ids are unique.</summary>

@@ -2,13 +2,13 @@
 
 This notice ships with content bundle `v1`. It lists the licenses of the data derived from third parties and of the
 machine-learning models the game loads at run time. The hand-authored content in this bundle (sample intents, prompts,
-dialogue, NPCs, answer sets, CEFR lemma lists and the hand-authored lexicons `lexicon/seed.json`, `lexicon/game.json` and
+dialogue, agents, answer sets, CEFR lemma lists and the hand-authored lexicons `lexicon/seed.json`, `lexicon/game.json` and
 `lexicon/supplement.json`) has no third-party text in it; the repository owner still has to choose its license.
 
 ## Wiktionary data (CC BY-SA)
 
 `lexicon/wiktionary-es.json` is derived from Wiktionary (https://en.wiktionary.org). It was generated with
-`Slg.ContentBuilder import-lexicon` from the Spanish extract of English Wiktionary (wiktextract data of 2026-10-03, from the
+`Vocaterra.Nlp.ContentBuilder import-lexicon` from the Spanish extract of English Wiktionary (wiktextract data of 2026-10-03, from the
 dump of 2026-09-02) that kaikki.org publishes at https://kaikki.org/dictionary/Spanish/. It holds the lemmas, the inflected
 forms and the gender and number tags of the 3 000 most frequent Spanish lemmas, filtered as `docs/LEXICON.md` describes. The
 extraction tool, wiktextract (https://github.com/tatuylonen/wiktextract, Tatu Ylonen), is licensed under the MIT license; the

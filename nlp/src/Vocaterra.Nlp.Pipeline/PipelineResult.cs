@@ -1,9 +1,9 @@
 using Vocaterra.Nlp.Core.Replay;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Feedback;
 using Vocaterra.Nlp.Decision.Learning;
-using Vocaterra.Nlp.Decision.Npc;
 using Vocaterra.Nlp.Decision.Scheduling;
 using Vocaterra.Nlp.Nlp.Intent;
 using Vocaterra.Nlp.Response.Effects;
@@ -11,25 +11,25 @@ using Vocaterra.Nlp.Response.Templates;
 
 namespace Vocaterra.Nlp.Pipeline;
 
-/// <summary>What the decision layer made of a verdict: the NPC's step, the updated learner, the FSRS rating and the feedback plan.</summary>
-/// <param name="Npc">The NPC state machine step, or null when the bundle has no state machine for the context's NPC.</param>
+/// <summary>What the decision layer made of a verdict: the agent's step, the updated learner, the FSRS rating and the feedback plan.</summary>
+/// <param name="Agent">The agent state machine step, or null when the bundle has no state machine for the context's agent.</param>
 /// <param name="Learner">The learner model after this utterance.</param>
 /// <param name="Rating">The spaced-repetition rating of the utterance.</param>
 /// <param name="Feedback">The feedback policy's plan for the verdict's errors.</param>
-public sealed record DecisionOutcome(NpcStepResult? Npc, LearnerModel Learner, Rating Rating, FeedbackPlan Feedback);
+public sealed record DecisionOutcome(AgentStepResult? Agent, LearnerModel Learner, Rating Rating, FeedbackPlan Feedback);
 
-/// <summary>Everything one utterance produced: verdict, decision, spoken response, game effects, optional repair step and the replay record.</summary>
+/// <summary>Everything one utterance produced: verdict, decision, spoken response, effects, optional repair step and the replay record.</summary>
 /// <param name="Verdict">The graded verdict.</param>
 /// <param name="Decision">The decision layer's outcome.</param>
-/// <param name="Response">The lines the NPC says.</param>
-/// <param name="Effects">The game effects the verdict triggers, in ordinal effect id order.</param>
+/// <param name="Response">The lines the agent says.</param>
+/// <param name="Effects">The effects the verdict triggers, in ordinal effect id order.</param>
 /// <param name="Repair">The repair step when the player was not understood; otherwise null.</param>
 /// <param name="Replay">The record that lets this evaluation be replayed.</param>
 public sealed record PipelineResult(
     Verdict Verdict,
     DecisionOutcome Decision,
     ResponsePlan Response,
-    IReadOnlyList<GameEffect> Effects,
+    IReadOnlyList<ResolvedEffect> Effects,
     RepairStep? Repair,
     ReplayRecord Replay)
 {

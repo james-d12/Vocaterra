@@ -109,10 +109,10 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
         RoundTrip(bundle.Effects, "EffectTable", "bundle effects");
         RoundTrip(bundle.Provenance, "ContentProvenance", "bundle provenance");
         RoundTrip(bundle.Manifest, "ContentManifest", "bundle manifest");
-        foreach (var npc in bundle.Npcs.Values)
+        foreach (var agent in bundle.Agents.Values)
         {
-            // NpcDefinition is a plain record over lists, so it has reference equality for its members; only the JSON can be compared.
-            RoundTrip(npc.Definition, "NpcDefinition", npc.NpcId, compareValues: false);
+            // AgentDefinition is a plain record over lists, so it has reference equality for its members; only the JSON can be compared.
+            RoundTrip(agent.Definition, "AgentDefinition", agent.AgentId, compareValues: false);
         }
 
         foreach (var prompt in bundle.Prompts.Values)
@@ -124,7 +124,7 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
     [Fact]
     public void ReplayEnvelopes_SurviveCanonicalJson_ForRealPipelineRuns()
     {
-        var blacksmith = Harness.Bundle.Npcs["blacksmith"].Definition;
+        var blacksmith = Harness.Bundle.Agents["blacksmith"].Definition;
         var prompts = Harness.Bundle.Prompts.Values.ToArray();
         var states = blacksmith.States.Select(static s => s.Id).ToArray();
         var gen = Gen.Select(
@@ -164,7 +164,7 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
 
                 RoundTrip(ReplayEnvelope.From(trace, context), "ReplayEnvelope", info);
                 RoundTrip(trace.Result, "PipelineResult", info);
-                RoundTrip(context, "GameContext", info);
+                RoundTrip(context, "ConversationContext", info);
             },
             writeLine: output.WriteLine,
             iter: iterations,

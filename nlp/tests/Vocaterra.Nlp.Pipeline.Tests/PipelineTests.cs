@@ -52,7 +52,7 @@ public class PipelineTests
         Assert.Equal(2, result.Response.Lines.Count);
         Assert.StartsWith("offer_item_reply.", result.Response.Lines[1].LineId, StringComparison.Ordinal);
         Assert.Equal(Rating.Hard, result.Decision.Rating);
-        Assert.Equal("done", result.Decision.Npc!.Next.StateId);
+        Assert.Equal("done", result.Decision.Agent!.Next.StateId);
         Assert.Equal(FeedbackType.Recast, result.Decision.Feedback.Items[0].Type);
     }
 
@@ -66,7 +66,7 @@ public class PipelineTests
 
         Assert.Equal(clip.ClipHash, result.Replay.ClipHash);
         Assert.Equal(TestSupport.OfferPrompt, result.Replay.PromptId);
-        Assert.Equal(context.GameStateHash, result.Replay.GameStateHash);
+        Assert.Equal(context.HostStateHash, result.Replay.HostStateHash);
         Assert.Equal(result.Verdict, result.Replay.Verdict);
         Assert.Equal(TestSupport.Bundle.ContentHash, result.Replay.Versions.ContentHash);
     }
@@ -153,7 +153,7 @@ public class PipelineTests
             Assert.True(result.Verdict.Communicated);
             Assert.Empty(result.Verdict.Errors);
             var line = Assert.Single(result.Response.Lines);
-            var variant = Assert.Single(result.Decision.Npc!.Actions).VariantIndex;
+            var variant = Assert.Single(result.Decision.Agent!.Actions).VariantIndex;
             Assert.Equal($"buy_item_reply.{variant + 1}", line.LineId);
             lineIds.Add(line.LineId);
         }
@@ -296,7 +296,7 @@ public class PipelineTests
     }
 
     [Fact]
-    public void AnUnrelatedUtteranceIsNotCommunicatedAndTheNpcAsksAgain()
+    public void AnUnrelatedUtteranceIsNotCommunicatedAndTheAgentAsksAgain()
     {
         var pipeline = TestSupport.Pipeline("xyzzy plugh");
 
@@ -364,14 +364,14 @@ public class PipelineTests
     }
 
     [Fact]
-    public void WithoutAnNpcAPerfectUtteranceIsAcknowledgedFromTheAnswerAcceptedPool()
+    public void WithoutAnAgentAPerfectUtteranceIsAcknowledgedFromTheAnswerAcceptedPool()
     {
         var prompt = Prompt("spell-cast-open");
-        var context = TestSupport.Context(state: "none", npcId: "player");
+        var context = TestSupport.Context(state: "none", agentId: "player");
 
         var result = TestSupport.Pipeline("lanzo fuego").Evaluate(TestSupport.Clip(), prompt, context);
 
-        Assert.Null(result.Decision.Npc);
+        Assert.Null(result.Decision.Agent);
         Assert.True(result.Verdict.Communicated);
         Assert.Empty(result.Verdict.Errors);
         var line = Assert.Single(result.Response.Lines);
@@ -383,11 +383,11 @@ public class PipelineTests
     }
 
     [Fact]
-    public void WithoutAnNpcAPerfectUtteranceHasNoLinesWhenTheBundleHasNoAnswerAcceptedPool()
+    public void WithoutAnAgentAPerfectUtteranceHasNoLinesWhenTheBundleHasNoAnswerAcceptedPool()
     {
         using var directory = new BundleWithoutAnswerAccepted();
         var services = new PipelineServices(new ScriptedWordRecognizer(TestSupport.Asr("lanzo fuego")), null, null, null, directory.Bundle);
-        var context = TestSupport.Context(state: "none", npcId: "player");
+        var context = TestSupport.Context(state: "none", agentId: "player");
 
         var result = new UtterancePipeline(services).Evaluate(TestSupport.Clip(), directory.Bundle.Prompts["spell-cast-open"], context);
 
@@ -398,7 +398,7 @@ public class PipelineTests
     [Fact]
     public void AnExactQuizAnswerIsCommunicatedWithoutAnIntentAndAcknowledged()
     {
-        var context = TestSupport.Context(state: "none", npcId: "player");
+        var context = TestSupport.Context(state: "none", agentId: "player");
 
         var result = TestSupport.Pipeline("espada", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), context);
 
@@ -424,7 +424,7 @@ public class PipelineTests
     [InlineData("quiz-greeting-name", "hola", ResolvedBy.Exact)]
     public void QuizPromptsResolveThroughTheAnswerMatchAlone(string promptId, string transcript, ResolvedBy expected)
     {
-        var context = TestSupport.Context(state: "none", npcId: "player");
+        var context = TestSupport.Context(state: "none", agentId: "player");
 
         var result = TestSupport.Pipeline(transcript, RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt(promptId), context);
 
@@ -437,7 +437,7 @@ public class PipelineTests
     }
 
     [Fact]
-    public void AQuizAnswerIsAcknowledgedEvenWhenTheContextStillNamesTheBlacksmith()
+    public void AQuizAnswerIsAcknowledgedEvenWhenTheContextStillNamesTheSampleAgent()
     {
         var result = TestSupport.Pipeline("espada", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), TestSupport.Context());
 
@@ -448,7 +448,7 @@ public class PipelineTests
     [Fact]
     public void AQuizAnswerWithAGrammarErrorGetsFeedbackInsteadOfTheAcknowledgement()
     {
-        var context = TestSupport.Context(state: "none", npcId: "player");
+        var context = TestSupport.Context(state: "none", agentId: "player");
 
         var result = TestSupport.Pipeline("una espadas", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), context);
 
@@ -462,7 +462,7 @@ public class PipelineTests
     [Fact]
     public void AWrongQuizAnswerIsNotCommunicatedAndKeepsTheRepair()
     {
-        var context = TestSupport.Context(state: "none", npcId: "player");
+        var context = TestSupport.Context(state: "none", agentId: "player");
 
         var result = TestSupport.Pipeline("perro", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), context);
 
@@ -476,7 +476,7 @@ public class PipelineTests
     public void AFuzzyQuizAnswerAtTheBudgetsEdgeIsCommunicatedLikeEveryOtherNearMiss()
     {
         // espado is one edit from espada, the whole Beginner budget for a six-letter answer. M17c: an edge match is communicated (ezpada is too).
-        var context = TestSupport.Context(state: "none", npcId: "player");
+        var context = TestSupport.Context(state: "none", agentId: "player");
 
         var result = TestSupport.Pipeline("espado", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), context);
 
@@ -487,9 +487,9 @@ public class PipelineTests
     }
 
     [Fact]
-    public void ABareSpellNameOnTheConstrainedSpellPromptCastsTheSpell()
+    public void ABareSampleNameOnTheConstrainedSamplePromptFillsTheSlot()
     {
-        var context = TestSupport.Context(state: "none", npcId: "player");
+        var context = TestSupport.Context(state: "none", agentId: "player");
 
         var result = TestSupport.Pipeline("fuego", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("spell-cast-constrained"), context);
 
@@ -521,9 +521,9 @@ public class PipelineTests
     [InlineData("el escudo mágico", "escudo")]
     [InlineData("un escudo mágico", "escudo")]
     [InlineData("escudo de magia", "escudo")]
-    public void EveryPhraseOfTheSpellAnswerSetSatisfiesTheCastSpellGrammar(string transcript, string spell)
+    public void EveryPhraseOfTheSampleAnswerSetSatisfiesTheCastGrammar(string transcript, string spell)
     {
-        var context = TestSupport.Context(state: "none", npcId: "player");
+        var context = TestSupport.Context(state: "none", agentId: "player");
 
         var result = TestSupport.Pipeline(transcript, RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("spell-cast-constrained"), context);
 
@@ -541,9 +541,9 @@ public class PipelineTests
     [InlineData("quiero lanzar hielo", "hielo")]
     [InlineData("fuego", "fuego")]
     [InlineData("el escudo mágico", "escudo")]
-    public void TheOpenSpellPromptAcceptsTheSpellNameWithOrWithoutTheVerb(string transcript, string spell)
+    public void TheOpenSamplePromptAcceptsTheSampleNameWithOrWithoutTheVerb(string transcript, string spell)
     {
-        var context = TestSupport.Context(state: "none", npcId: "player");
+        var context = TestSupport.Context(state: "none", agentId: "player");
 
         var result = TestSupport.Pipeline(transcript).Evaluate(TestSupport.Clip(), Prompt("spell-cast-open"), context);
 
@@ -555,7 +555,7 @@ public class PipelineTests
     }
 
     [Fact]
-    public void TheSpellAnswerSetPhrasesAreCoveredByTheTheory()
+    public void TheSampleAnswerSetPhrasesAreCoveredByTheTheory()
     {
         var phrases = TestSupport.Bundle.AnswerSets["spells-basic"].GrammarPhrases();
 
@@ -569,29 +569,29 @@ public class PipelineTests
     [InlineData("quiero vender una espada", "sell-item-open", "sell_item_reply.")]
     [InlineData("quiero comprar una espada", "buy-item-open", "buy_item_reply.")]
     [InlineData("cuánto cuesta la espada", "ask-price-open", "ask_price_reply.")]
-    public void TheBlacksmithAnswersTradeIntentsFromItsInitialIdleState(string transcript, string promptId, string replyPool)
+    public void TheSampleAgentAnswersExchangeIntentsFromItsInitialIdleState(string transcript, string promptId, string replyPool)
     {
-        var machine = TestSupport.Bundle.Npcs["blacksmith"];
+        var machine = TestSupport.Bundle.Agents["blacksmith"];
         var context = TestSupport.Context(state: machine.InitialState().StateId);
 
         var result = TestSupport.Pipeline(transcript).Evaluate(TestSupport.Clip(), Prompt(promptId), context);
 
-        Assert.Equal("idle", context.NpcState.StateId);
+        Assert.Equal("idle", context.AgentState.StateId);
         Assert.True(result.Verdict.Communicated);
-        Assert.Equal("trading", result.Decision.Npc!.Next.StateId);
+        Assert.Equal("trading", result.Decision.Agent!.Next.StateId);
         Assert.DoesNotContain(result.Response.Lines, static line => line.LineId.StartsWith("not_understood.", StringComparison.Ordinal));
         Assert.Contains(result.Response.Lines, line => line.LineId.StartsWith(replyPool, StringComparison.Ordinal));
     }
 
     [Fact]
-    public void WithoutAnNpcOnlyFeedbackIsVoiced()
+    public void WithoutAnAgentOnlyFeedbackIsVoiced()
     {
         var prompt = Prompt("spell-cast-open");
-        var context = TestSupport.Context(state: "none", npcId: "player");
+        var context = TestSupport.Context(state: "none", agentId: "player");
 
         var result = TestSupport.Pipeline("lanzo el fuegos").Evaluate(TestSupport.Clip(), prompt, context);
 
-        Assert.Null(result.Decision.Npc);
+        Assert.Null(result.Decision.Agent);
         Assert.NotEmpty(result.Verdict.Errors);
         var line = Assert.Single(result.Response.Lines);
         Assert.StartsWith("feedback.", line.LineId, StringComparison.Ordinal);
@@ -605,7 +605,7 @@ public class PipelineTests
         var prompt = Prompt("spell-cast-constrained");
 
         var result = TestSupport.Pipeline("lanzo fuego", RecognitionMode.Constrained)
-            .Evaluate(TestSupport.Clip(), prompt, TestSupport.Context(state: "none", npcId: "player", repeats: counts));
+            .Evaluate(TestSupport.Clip(), prompt, TestSupport.Context(state: "none", agentId: "player", repeats: counts));
 
         Assert.Contains(result.Verdict.Errors, static error => error.Tag == ErrorTags.VocabWrong);
         Assert.Equal(FeedbackType.ExplicitCorrection, result.Decision.Feedback.Items[0].Type);
@@ -696,7 +696,7 @@ public class PipelineTests
         var pipeline = new UtterancePipeline(TestSupport.Services(TestSupport.WorkedExample, synthesizer: true));
         var result = pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context());
 
-        var audio = pipeline.Synthesize(result.Response, "npc-1");
+        var audio = pipeline.Synthesize(result.Response, "agent-1");
 
         Assert.Equal(result.Response.Lines.Count, audio.Count);
         Assert.All(audio, static buffer => Assert.NotEmpty(buffer.Samples));
@@ -708,7 +708,7 @@ public class PipelineTests
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
         var result = pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context());
 
-        Assert.Throws<InvalidOperationException>(() => pipeline.Synthesize(result.Response, "npc-1"));
+        Assert.Throws<InvalidOperationException>(() => pipeline.Synthesize(result.Response, "agent-1"));
     }
 
     [Fact]
@@ -722,9 +722,9 @@ public class PipelineTests
     }
 
     [Fact]
-    public void AStateOfAnotherNpcIsRejected()
+    public void AStateOfAnotherAgentIsRejected()
     {
-        var context = TestSupport.Context() with { NpcState = new Vocaterra.Nlp.Decision.Npc.NpcState("wizard", "idle", 0) };
+        var context = TestSupport.Context() with { AgentState = new Vocaterra.Nlp.Decision.ConversationAgents.AgentState("wizard", "idle", 0) };
 
         Assert.Throws<ArgumentException>(() =>
             TestSupport.Pipeline(TestSupport.WorkedExample).Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), context));

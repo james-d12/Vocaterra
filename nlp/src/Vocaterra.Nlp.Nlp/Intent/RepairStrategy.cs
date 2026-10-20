@@ -4,27 +4,27 @@ using Vocaterra.Nlp.Core.Stages;
 
 namespace Vocaterra.Nlp.Nlp.Intent;
 
-/// <summary>What the NPC does after an utterance could not be resolved.</summary>
+/// <summary>What the agent does after an utterance could not be resolved.</summary>
 public enum RepairKind
 {
-    /// <summary>The NPC asks the player to say it again ("¿Cómo?").</summary>
+    /// <summary>The agent asks the player to say it again ("¿Cómo?").</summary>
     AskAgain,
 
-    /// <summary>The NPC repeats its line more slowly and the player tries again.</summary>
+    /// <summary>The agent repeats its line more slowly and the player tries again.</summary>
     SlowRepeat,
 
-    /// <summary>The NPC offers a few spoken choices and the retry is limited to them.</summary>
+    /// <summary>The agent offers a few spoken choices and the retry is limited to them.</summary>
     OfferChoices,
 
-    /// <summary>The NPC stops asking; the conversation moves on.</summary>
+    /// <summary>The agent stops asking; the conversation moves on.</summary>
     GiveUp,
 }
 
-/// <summary>One repair step: what to do, the NPC line to speak and the recognition request for the retry (null when giving up).</summary>
+/// <summary>One repair step: what to do, the agent line to speak and the recognition request for the retry (null when giving up).</summary>
 /// <param name="Kind">The kind of repair step.</param>
-/// <param name="NpcLine">The Spanish line for the NPC; for <see cref="RepairKind.SlowRepeat"/> it introduces the slow repetition of the original line.</param>
+/// <param name="AgentLine">The Spanish line for the agent; for <see cref="RepairKind.SlowRepeat"/> it introduces the slow repetition of the original line.</param>
 /// <param name="RetryRequest">The request to recognize the player's next attempt with, or null when giving up.</param>
-public sealed record RepairStep(RepairKind Kind, string NpcLine, RecognitionRequest? RetryRequest);
+public sealed record RepairStep(RepairKind Kind, string AgentLine, RecognitionRequest? RetryRequest);
 
 /// <summary>
 /// The deterministic repair ladder for an unresolved utterance: attempt 1 asks again, attempt 2 repeats slowly, attempt 3 offers up to
@@ -35,13 +35,13 @@ public static class RepairStrategy
     /// <summary>The most choices offered at once.</summary>
     public const int MaxChoices = 3;
 
-    /// <summary>The NPC line for <see cref="RepairKind.AskAgain"/>.</summary>
+    /// <summary>The agent line for <see cref="RepairKind.AskAgain"/>.</summary>
     public const string AskAgainLine = "¿Cómo?";
 
-    /// <summary>The NPC line for <see cref="RepairKind.SlowRepeat"/>.</summary>
+    /// <summary>The agent line for <see cref="RepairKind.SlowRepeat"/>.</summary>
     public const string SlowRepeatLine = "Perdón, te lo repito más despacio.";
 
-    /// <summary>The NPC line for <see cref="RepairKind.GiveUp"/>.</summary>
+    /// <summary>The agent line for <see cref="RepairKind.GiveUp"/>.</summary>
     public const string GiveUpLine = "Bueno, no importa.";
 
     /// <summary>

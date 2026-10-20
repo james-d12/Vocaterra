@@ -11,8 +11,8 @@ editing its status; the plan (`IMPLEMENTATION_PLAN.md`) and ADRs follow.
 | D3 | A LICENSE file for the repository | open |
 | D4 | OpenSubtitles terms behind the frequency list | open |
 | D5 | Package feed for the `Vocaterra.Nlp.*` packages | open |
-| D6 | Conversation state-machine engine: core or game | open |
-| D7 | Blacksmith sample content stays as the core's demo | open |
+| D6 | Conversation state-machine engine: core or game | decided (M19a): core, as a generic conversation agent |
+| D7 | Blacksmith sample content stays as the core's demo | decided (M19a): kept as the sample and demo |
 | D8 | Online or offline | open |
 | D9 | Determinism strictness (ADR 0010) | open |
 | D10 | Licence stance on MPL-2.0 and on GPL/LGPL dev-time processes | open |
@@ -58,15 +58,15 @@ as release artifacts (simplest, no token change), or nuget.org (public only). **
 publish step; M19c consumes from whichever feed is chosen.
 
 ## D6. Conversation state-machine engine
-The verdict-driven state machine (`Vocaterra.Nlp.Decision/Npc`, renamed to a conversation agent in M19a) is
+The verdict-driven state machine (`Vocaterra.Nlp.Decision/ConversationAgents`, renamed from `Agent` in M19a) is
 content-driven interaction logic. **Recommendation:** keep the engine in the core, move the definitions
 (blacksmith, innkeeper, captain) to the game bundle. **Alternative:** move the engine to the game and
-have the core stop at the verdict and feedback plan. **Waiting on it:** M19a's boundary ADR.
+have the core stop at the verdict and feedback plan. **Decided (M19a, owner):** the engine stays in the core; see ADR 0009.
 
 ## D7. Sample content
 The blacksmith bundle is exercised by the goldens, docs and fuzz suite. **Recommendation:** keep it
 as the core's sample and demo; the game repository holds the real bundle. **Alternative:** replace it
-with a neutral bundle (market stall) in M19c. **Waiting on it:** M19c.
+with a neutral bundle (market stall) in M19c. **Decided (M19a, owner):** the sample stays; the game repository holds the real bundle.
 
 ## D8. Online or offline
 From the research report. **Recommendation:** an offline-capable core (closed prompts, tagger,

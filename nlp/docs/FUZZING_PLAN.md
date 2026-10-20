@@ -9,7 +9,7 @@ catalog-driven generators, explicit oracles, full soak by default, seed replay f
 The voice pipeline is a chain of twelve deterministic stages whose inputs are open-ended (speech,
 learner text, content data) and whose central promise is *same input, same verdict, on every
 machine*. Hand-written unit tests pin the worked examples; they cannot explore the combinatorial
-space of lexicon × grammar × mutation × dialect × difficulty × NPC state. Fuzzing closes that gap:
+space of lexicon × grammar × mutation × dialect × difficulty × agent state. Fuzzing closes that gap:
 
 - **Crash oracles** find the unhandled `IndexOutOfRange`, `KeyNotFound`, `ArgumentException`,
   infinite loop, or `NaN` that an unusual-but-valid input triggers.
@@ -25,7 +25,7 @@ space of lexicon × grammar × mutation × dialect × difficulty × NPC state. F
 | CodeGuard practice | Here |
 | --- | --- |
 | `CsCheck` generators (`Gen<T>`), `Sample(..., iter:, threads: 1)` | Same library (4.9.1), same call shape, `threads: 1` so determinism oracles compare like with like |
-| Generation walks the engine's own capability catalog | Generation walks **our catalogs**: `Lexicon.Seed`, `ErrorTags.All`, the `SlotGrammar` DSL, `IntentCatalog`, `DialogueCatalog`, `PhoneInventory`, `DialectConfig.AllShipped`, `NpcDefinition`, `AnswerSet`s from `content/v1` — new content widens coverage with no test edits |
+| Generation walks the engine's own capability catalog | Generation walks **our catalogs**: `Lexicon.Seed`, `ErrorTags.All`, the `SlotGrammar` DSL, `IntentCatalog`, `DialogueCatalog`, `PhoneInventory`, `DialectConfig.AllShipped`, `AgentDefinition`, `AnswerSet`s from `content/v1` — new content widens coverage with no test edits |
 | Benign + adversarial corpus mixed by weight | `AdversarialCorpus` of strings, audio, phones, JSON mutations; 1-in-4 adversarial |
 | `KnownParameterConstraints` allow-list of expected rejections | `KnownTolerances`: an auditable list of *expected* exceptions (e.g. `TemplateException` for a missing slot, `InvalidDataException` for a malformed WAV) |
 | One `*FuzzTests.cs` per oracle | Same |
@@ -54,7 +54,7 @@ tests/Vocaterra.Nlp.Fuzzing.Tests/
     SlotMapGen.cs                   slot maps from lexicon nouns, verbs, numbers
     ContentMutationGen.cs           structural mutations of content/v1 JSON (drop field, wrong type, dangling id)
   Oracles/
-    PipelineHarness.cs              content/v1 + fakes wired once; builders for GameContext and PromptSpec
+    PipelineHarness.cs              content/v1 + fakes wired once; builders for ConversationContext and PromptSpec
     KnownTolerances.cs              expected exception allow-list, one documented entry per case
     Determinism.cs                  helper: run twice, compare CanonicalJson, report first differing path
   *FuzzTests.cs                     one per oracle below
@@ -113,10 +113,10 @@ byte-identical, and on failure report the first differing JSON path plus the gen
 | O8 | G2P invariants | SpanishTextGen (letters only) × dialects | phones ⊆ inventory; syllable spans partition the normalized text in order; exactly one stressed syllable per word; deterministic; `Tokenize(ToIpaString())` round-trips; dialect variants differ only in `{θ,s,ʎ,ʝ,h}` sites; each predicted-error variant differs from the base at exactly one site and names a `pron.*` tag |
 | O9 | Pronunciation scoring | PhoneGen (+confusions) | perfect posteriors ⇒ all scores 1, no tags (both modes); one predicted confusion ⇒ exactly that tag at that grapheme span; all scores and confidence ∈ [0,1], never NaN; deterministic; Viterbi segments partition frames in label order |
 | O10 | Verdict assembly | VerdictGen | correctness ∈ [0,1] and equals `1 − Σ weights` to 1e-9; confidence = min of inputs; errors sorted/deduped; `Communicated` rule holds exactly as documented; `ResolvedBy` consistent with match type/rung; permuting input error order gives an identical verdict; `CanonicalJson` round trip byte-identical |
-| O11 | Decision layer | VerdictGen × NPC × seeds × timestamps | NPC step never throws and lands in a declared state, variant index < pool count, same seed ⇒ same path; BKT P(known) ∈ [0,1], non-decreasing on correct, non-increasing on incorrect; FSRS stability > 0, due ≥ now, Hard < Good < Easy intervals, deterministic; feedback plan ≤ 2 items, every tag from the verdict |
+| O11 | Decision layer | VerdictGen × agent × seeds × timestamps | agent step never throws and lands in a declared state, variant index < pool count, same seed ⇒ same path; BKT P(known) ∈ [0,1], non-decreasing on correct, non-increasing on incorrect; FSRS stability > 0, due ≥ now, Hard < Good < Easy intervals, deterministic; feedback plan ≤ 2 items, every tag from the verdict |
 | O12 | Templates and dialogue | DialogueCatalog × SlotMapGen | every content template renders for slot maps containing its placeholders; the only tolerated exception is `TemplateException` for a missing slot; output has no `{`/`}`, balanced `¿?`/`¡!`; `plural-if(qty)` agrees with the numeral; seeded variant selection is stable |
 | O13 | Audio front-end | AudioGen | `WavFile.Read` throws only `InvalidDataException`/`NotSupportedException` on corrupted bytes, never anything else; valid input ⇒ 16 kHz mono clip, length = `floor(n·up/down)`, samples finite; VAD output is a contiguous sub-range of the input; gain never exceeds the target peak; hash stable across two runs; `WavFile` write→read round-trips |
-| O14 | Pipeline end to end | SentenceGen/MutationGen × prompts × GameContext | never throws with `ScriptedWordRecognizer`; `PipelineResult` deterministic; verdict is the same as calling the stages by hand (agreement); replay envelope round-trips (`Replayer` reports no diff); mutating any envelope field ⇒ a diff naming that path (replay sensitivity) |
+| O14 | Pipeline end to end | SentenceGen/MutationGen × prompts × ConversationContext | never throws with `ScriptedWordRecognizer`; `PipelineResult` deterministic; verdict is the same as calling the stages by hand (agreement); replay envelope round-trips (`Replayer` reports no diff); mutating any envelope field ⇒ a diff naming that path (replay sensitivity) |
 | O15 | Content schema violations | ContentMutationGen | every mutation makes `ContentLoader.Load` throw `ContentValidationException` (never another type) naming the mutated path; byte flips change the bundle hash (hash sensitivity); the unmutated bundle always loads |
 | O16 | Serialization round trips | all generators | every public record that flows through `CanonicalJson` (`Verdict`, `AnalysisResult`, `IntentResolution`, `PronunciationResult`, `ReplayEnvelope`, catalogs) survives serialize→deserialize→serialize byte-identically |
 

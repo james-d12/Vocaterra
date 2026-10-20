@@ -4,8 +4,8 @@ using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Feedback;
-using Vocaterra.Nlp.Decision.Npc;
 using Vocaterra.Nlp.Evaluation;
 using Vocaterra.Nlp.Nlp.Analysis;
 using Vocaterra.Nlp.Nlp.Intent;
@@ -111,7 +111,7 @@ public class SampleContentTests
     }
 
     [Fact]
-    public void TheAnswerSetsListTheSampleItemsSpellsAndGreetings()
+    public void TheAnswerSetsListTheSampleItemsSetsAndGreetings()
     {
         Assert.Equal(["greetings", "items-basic", "spells-basic"], Bundle.AnswerSets.Keys);
         Assert.Equal(["arrow", "bow", "potion", "shield", "sword"], Bundle.AnswerSets["items-basic"].Answers.Select(a => a.AnswerId).Order(StringComparer.Ordinal));
@@ -150,8 +150,8 @@ public class SampleContentTests
             }
         }
 
-        Assert.Contains(Bundle.Prompts.Values, prompt => prompt.NpcId is null);
-        Assert.Contains(Bundle.Prompts.Values, prompt => prompt.NpcId == "blacksmith");
+        Assert.Contains(Bundle.Prompts.Values, prompt => prompt.AgentId is null);
+        Assert.Contains(Bundle.Prompts.Values, prompt => prompt.AgentId == "blacksmith");
         Assert.Contains(Bundle.Prompts.Values, prompt => prompt.AllowedIntentIds.Contains("cast_spell"));
         Assert.Contains(Bundle.Prompts.Values, prompt => prompt.AllowedIntentIds.Count == 0);
     }
@@ -169,29 +169,29 @@ public class SampleContentTests
     }
 
     [Fact]
-    public void TheBlacksmithHasTheThreeStatesAndWalksThroughATrade()
+    public void TheSampleAgentHasTheThreeStatesAndWalksThroughAnExchange()
     {
-        var smith = Bundle.Npcs["blacksmith"];
-        Assert.Equal(["idle", "trading", "done"], smith.Definition.States.Select(state => state.Id));
-        Assert.Equal("idle", smith.Definition.InitialState);
+        var agent = Bundle.Agents["blacksmith"];
+        Assert.Equal(["idle", "trading", "done"], agent.Definition.States.Select(state => state.Id));
+        Assert.Equal("idle", agent.Definition.InitialState);
 
-        var state = smith.InitialState();
-        state = Step(smith, state, "greet", out var greeting);
+        var state = agent.InitialState();
+        state = Step(agent, state, "greet", out var greeting);
         Assert.Equal("trading", state.StateId);
         Assert.Equal("greet_reply", Assert.Single(greeting.Actions).DialogueIntent);
 
-        state = Step(smith, state, "buy_item", out var buying);
+        state = Step(agent, state, "buy_item", out var buying);
         Assert.Equal("trading", state.StateId);
-        Assert.Equal(new[] { "trade.buy" }, buying.Actions.Select(a => a.GameEvent!));
+        Assert.Equal(new[] { "trade.buy" }, buying.Actions.Select(a => a.HostEvent!));
 
-        state = Step(smith, state, "offer_item", out _);
+        state = Step(agent, state, "offer_item", out _);
         Assert.Equal("done", state.StateId);
 
-        state = Step(smith, state, "ask_price", out var closing);
+        state = Step(agent, state, "ask_price", out var closing);
         Assert.Equal("done", state.StateId);
         Assert.Equal("trade_done", Assert.Single(closing.Actions).DialogueIntent);
 
-        state = Step(smith, state, "greet", out _);
+        state = Step(agent, state, "greet", out _);
         Assert.Equal("trading", state.StateId);
         Assert.Equal(5L, state.InteractionCounter);
     }
@@ -202,13 +202,13 @@ public class SampleContentTests
     [InlineData("sell_item", "sell_item_reply")]
     [InlineData("offer_item", "offer_item_reply")]
     [InlineData("ask_price", "ask_price_reply")]
-    public void TheBlacksmithHandlesEveryTradeIntentInTheIdleStateAndMovesToTrading(string intent, string dialogueIntent)
+    public void TheSampleAgentHandlesEveryExchangeIntentInTheIdleStateAndMovesToTrading(string intent, string dialogueIntent)
     {
-        var smith = Bundle.Npcs["blacksmith"];
-        var idle = smith.InitialState();
+        var agent = Bundle.Agents["blacksmith"];
+        var idle = agent.InitialState();
         Assert.Equal("idle", idle.StateId);
 
-        var next = Step(smith, idle, intent, out var result);
+        var next = Step(agent, idle, intent, out var result);
 
         Assert.Equal("trading", next.StateId);
         Assert.Equal(dialogueIntent, result.Actions[0].DialogueIntent);
@@ -218,11 +218,11 @@ public class SampleContentTests
     [Theory]
     [InlineData("sell_item")]
     [InlineData("offer_item")]
-    public void TheIdleStateRepliesToATradeLikeTheTradingState(string intent)
+    public void TheIdleStateRepliesToAnExchangeLikeTheTradingState(string intent)
     {
-        var smith = Bundle.Npcs["blacksmith"];
-        var fromIdle = smith.Step(smith.InitialState(), TestSupport.MakeVerdict(intent), 11UL);
-        var fromTrading = smith.Step(new NpcState("blacksmith", "trading", 0), TestSupport.MakeVerdict(intent), 11UL);
+        var agent = Bundle.Agents["blacksmith"];
+        var fromIdle = agent.Step(agent.InitialState(), TestSupport.MakeVerdict(intent), 11UL);
+        var fromTrading = agent.Step(new AgentState("blacksmith", "trading", 0), TestSupport.MakeVerdict(intent), 11UL);
 
         Assert.Equal(fromTrading.Actions, fromIdle.Actions);
     }
@@ -236,12 +236,12 @@ public class SampleContentTests
     }
 
     [Fact]
-    public void ANpcThatDoesNotUnderstandStaysWhereItIs()
+    public void AAgentThatDoesNotUnderstandStaysWhereItIs()
     {
-        var smith = Bundle.Npcs["blacksmith"];
+        var agent = Bundle.Agents["blacksmith"];
         var verdict = TestSupport.MakeVerdict("unknown", communicated: false, correctness: 0);
 
-        var result = smith.Step(smith.InitialState(), verdict, 7UL);
+        var result = agent.Step(agent.InitialState(), verdict, 7UL);
 
         Assert.Equal("idle", result.Next.StateId);
         Assert.Equal("not_understood", Assert.Single(result.Actions).DialogueIntent);
@@ -250,23 +250,23 @@ public class SampleContentTests
     [Fact]
     public void ChosenVariantsAreStableForTheSameWorldSeed()
     {
-        var smith = Bundle.Npcs["blacksmith"];
+        var agent = Bundle.Agents["blacksmith"];
         var verdict = TestSupport.MakeVerdict("greet");
 
-        var first = smith.Step(smith.InitialState(), verdict, 42UL);
-        var second = smith.Step(smith.InitialState(), verdict, 42UL);
+        var first = agent.Step(agent.InitialState(), verdict, 42UL);
+        var second = agent.Step(agent.InitialState(), verdict, 42UL);
 
         Assert.Equal(first, second);
         Assert.InRange(first.Actions[0].VariantIndex!.Value, 0, 2);
     }
 
     [Fact]
-    public void EveryNpcDialogueIntentHasAtLeastTwoVariantsAndAMatchingPool()
+    public void EveryAgentDialogueIntentHasAtLeastTwoVariantsAndAMatchingPool()
     {
-        foreach (var smith in Bundle.Npcs.Values)
+        foreach (var agent in Bundle.Agents.Values)
         {
-            var pools = smith.Definition.VariantPools!.ToDictionary(pool => pool.Id, pool => pool.Count, StringComparer.Ordinal);
-            foreach (var action in smith.Definition.States.SelectMany(Actions))
+            var pools = agent.Definition.VariantPools!.ToDictionary(pool => pool.Id, pool => pool.Count, StringComparer.Ordinal);
+            foreach (var action in agent.Definition.States.SelectMany(Actions))
             {
                 Assert.True(Bundle.Dialogue.TryGetPool(action.DialogueIntent, out var pool), action.DialogueIntent);
                 Assert.True(pool.Variants.Count >= 2, $"{action.DialogueIntent} has {pool.Variants.Count} variants");
@@ -333,13 +333,13 @@ public class SampleContentTests
     }
 
     [Fact]
-    public void TheEffectTableMapsSpellsAndPurchasesToCurves()
+    public void TheEffectTableMapsEachIntentToItsCurve()
     {
         var spell = Bundle.Effects.Effects.Single(effect => effect.Intent == "cast_spell");
-        Assert.Equal(EffectKinds.SpellPower, spell.Kind);
+        Assert.Equal("spell_power", spell.Kind);
         Assert.Equal([new CurvePoint(0, 0), new CurvePoint(0.5, 0.5), new CurvePoint(1, 1)], spell.Curve);
         var purchase = Bundle.Effects.Effects.Single(effect => effect.Intent == "buy_item");
-        Assert.Equal(EffectKinds.TradePrice, purchase.Kind);
+        Assert.Equal("trade_price", purchase.Kind);
         Assert.Equal([new CurvePoint(0, 1.3), new CurvePoint(1, 1.0)], purchase.Curve);
 
         var cast = EffectResolver.Resolve(TestSupport.MakeVerdict("cast_spell", correctness: 0.25), Bundle.Effects);
@@ -350,7 +350,7 @@ public class SampleContentTests
     }
 
     [Fact]
-    public void TheLexiconIsTheSeedPlusTheGameWords()
+    public void TheLexiconIsTheSeedPlusTheSampleWords()
     {
         Assert.True(Bundle.Lexicon.Entries.Count > Vocaterra.Nlp.Nlp.Lexicon.Lexicon.Seed.Entries.Count);
         foreach (var lemma in new[] { "espada", "lanzar", "ofrecer", "hielo", "rayo", "pócima" })
@@ -408,12 +408,12 @@ public class SampleContentTests
         Assert.Contains("4.0", notice, StringComparison.Ordinal);
     }
 
-    private static IEnumerable<NpcActionDefinition> Actions(NpcStateDefinition state)
+    private static IEnumerable<AgentActionDefinition> Actions(AgentStateDefinition state)
     {
         return state.Transitions.SelectMany(transition => transition.Actions).Concat(state.Fallback?.Actions ?? []);
     }
 
-    private static NpcState Step(NpcStateMachine machine, NpcState state, string intent, out NpcStepResult result)
+    private static AgentState Step(AgentStateMachine machine, AgentState state, string intent, out AgentStepResult result)
     {
         result = machine.Step(state, TestSupport.MakeVerdict(intent), 11UL);
         return result.Next;

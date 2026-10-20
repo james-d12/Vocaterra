@@ -25,7 +25,7 @@ public class RepairStrategyTests
         var step = RepairStrategy.Next(1, PromptOf(RecognitionMode.Open), Phrases);
 
         Assert.Equal(RepairKind.AskAgain, step.Kind);
-        Assert.Equal("¿Cómo?", step.NpcLine);
+        Assert.Equal("¿Cómo?", step.AgentLine);
         Assert.Equal(RecognitionRequest.Open(), step.RetryRequest);
     }
 
@@ -45,7 +45,7 @@ public class RepairStrategyTests
         var constrained = RepairStrategy.Next(2, PromptOf(RecognitionMode.Constrained), Phrases);
 
         Assert.Equal(RepairKind.SlowRepeat, open.Kind);
-        Assert.Equal(RepairStrategy.SlowRepeatLine, open.NpcLine);
+        Assert.Equal(RepairStrategy.SlowRepeatLine, open.AgentLine);
         Assert.Equal(RecognitionMode.Open, open.RetryRequest!.Mode);
         Assert.Equal(RepairKind.SlowRepeat, constrained.Kind);
         Assert.Equal(RecognitionMode.Constrained, constrained.RetryRequest!.Mode);
@@ -61,7 +61,7 @@ public class RepairStrategyTests
         Assert.Equal(RepairKind.OfferChoices, step.Kind);
         string[] firstThree = ["quiero comprar una espada", "tengo dos espadas", "hola buenos días"];
         Assert.Equal(RecognitionRequest.Constrained(firstThree), step.RetryRequest);
-        Assert.Equal("¿Quieres decir «quiero comprar una espada», «tengo dos espadas» o «hola buenos días»?", step.NpcLine);
+        Assert.Equal("¿Quieres decir «quiero comprar una espada», «tengo dos espadas» o «hola buenos días»?", step.AgentLine);
     }
 
     [Fact]
@@ -71,10 +71,10 @@ public class RepairStrategyTests
 
         Assert.Equal(RepairKind.OfferChoices, step.Kind);
         Assert.Equal(["hola", "adiós"], step.RetryRequest!.GrammarPhrases);
-        Assert.Equal("¿Quieres decir «hola» o «adiós»?", step.NpcLine);
+        Assert.Equal("¿Quieres decir «hola» o «adiós»?", step.AgentLine);
 
         var single = RepairStrategy.Next(3, PromptOf(RecognitionMode.Open), ["hola"]);
-        Assert.Equal("¿Quieres decir «hola»?", single.NpcLine);
+        Assert.Equal("¿Quieres decir «hola»?", single.AgentLine);
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class RepairStrategyTests
         var step = RepairStrategy.Next(attempt, PromptOf(RecognitionMode.Constrained), Phrases);
 
         Assert.Equal(RepairKind.GiveUp, step.Kind);
-        Assert.Equal(RepairStrategy.GiveUpLine, step.NpcLine);
+        Assert.Equal(RepairStrategy.GiveUpLine, step.AgentLine);
         Assert.Null(step.RetryRequest);
     }
 

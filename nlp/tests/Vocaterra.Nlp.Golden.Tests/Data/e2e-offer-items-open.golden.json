@@ -177,7 +177,7 @@
     "confidence": 1,
     "resolvedBy": "Grammar",
     "versions": {
-      "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
+      "contentHash": "d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f",
       "modelHashes": {
         "asr": "scripted-golden",
         "phoneme": "fake-phoneme-recognizer"
@@ -185,16 +185,16 @@
     }
   },
   "decision": {
-    "npc": {
+    "agent": {
       "next": {
-        "npcId": "blacksmith",
+        "agentId": "blacksmith",
         "stateId": "done",
         "interactionCounter": 8
       },
       "actions": [
         {
           "dialogueIntent": "offer_item_reply",
-          "gameEvent": "trade.offer",
+          "hostEvent": "trade.offer",
           "variantIndex": 1
         }
       ]
@@ -264,9 +264,9 @@
   "replay": {
     "clipHash": "6c745422b842acff0e81cf27cc255fcc508a67ac1a0837c2480c62646b7d5100",
     "promptId": "offer-items-open",
-    "gameStateHash": "a0c35205e919f3b45ddc1f4213a263909cdd12252d261695eb18fe2b23e9b70d",
+    "hostStateHash": "4cc8395bd279ab4eacc66fe07a3db69c0121c38457a2275c3aab0363d18ffa81",
     "versions": {
-      "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
+      "contentHash": "d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f",
       "modelHashes": {
         "asr": "scripted-golden",
         "phoneme": "fake-phoneme-recognizer"
@@ -450,7 +450,7 @@
       "confidence": 1,
       "resolvedBy": "Grammar",
       "versions": {
-        "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
+        "contentHash": "d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f",
         "modelHashes": {
           "asr": "scripted-golden",
           "phoneme": "fake-phoneme-recognizer"

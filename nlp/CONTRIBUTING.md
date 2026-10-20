@@ -88,7 +88,7 @@ item that does apply is not.
 
 ```markdown
 ### Determinism checklist
-- [ ] No `System.Random`, `Random.Shared` or other unseeded randomness; random choices use `SeededRng.ForInteraction(worldSeed, npcId, counter)`.
+- [ ] No `System.Random`, `Random.Shared` or other unseeded randomness; random choices use `SeededRng.ForInteraction(worldSeed, agentId, counter)`.
 - [ ] No `DateTime.Now`, `DateTime.UtcNow`, `Stopwatch`, `Environment.TickCount` or any clock in `src/`; time arrives as a `StoredTimestamp`. (Latency measurement is allowed only in `tools/Vocaterra.Nlp.Bench`.)
 - [ ] Hashing uses `DeterministicHash` (SHA-256). No `string.GetHashCode()` or `HashCode` for anything persisted, logged or compared across runs.
 - [ ] No output depends on `Dictionary` or `HashSet` enumeration order; collections are sorted with `StringComparer.Ordinal`; maps serialize with sorted keys (`CanonicalJson`, `SlotMap`).
@@ -159,7 +159,7 @@ the dialogue and the learner model. Add it in this order:
    `{verb:conj(2,sg,pres)}`); a template that needs a slot the verdict may not have falls back to the generic pool, so prefer slots the
    matching grammars always provide. Run `cefr-check` for the words you added.
 6. **Content hash.** Re-hash and update the pinned values (next recipe), then add or extend a pipeline test that shows the tag
-   all the way from a transcript to the NPC's reply.
+   all the way from a transcript to the agent's reply.
 
 ## Recipe: add a prompt, answer set or intent to content/v1
 
@@ -172,8 +172,8 @@ Where things go:
 | --- | --- | --- |
 | An answer set | `answer-sets/<answerSetId>.json` | `{ "answerSetId", "answers": [{ "answerId", "canonical", "aliases": [], "dialects": [] }] }`. The file name is the id. Aliases carry synonyms and regional variants (`coche`, `carro`, `auto`); they also become the phrase list of constrained recognition. |
 | An intent | `intents/intents.json` | `intentId`, `requiredSlots`, `slotGrammars` (the DSL: `[ART]`, `[NUM:qty]`, `[NOUN:item]`, `[VERB:lemma:slot]`, `?` for optional, `(a\|b)`), `keywordRules` (all lemmas must be present) and `examples` for the embedding rung. |
-| A prompt | `prompts/prompts.json` | `promptId`, `mode` (`Constrained` or `Open`), `difficulty`, `answerSetId`, `allowedIntentIds` (empty means an answer-only prompt such as a quiz), `npcId` or `null`, `slotGrammarIds` (each must be a grammar defined in `intents.json`). |
-| NPC behaviour | `npcs/<npcId>.json` and `dialogue/dialogue.json` | Transitions keyed on intent and error tags; `variantPools` must have matching dialogue pools. |
+| A prompt | `prompts/prompts.json` | `promptId`, `mode` (`Constrained` or `Open`), `difficulty`, `answerSetId`, `allowedIntentIds` (empty means an answer-only prompt such as a quiz), `agentId` or `null`, `slotGrammarIds` (each must be a grammar defined in `intents.json`). |
+| agent behaviour | `agents/<agentId>.json` and `dialogue/dialogue.json` | Transitions keyed on intent and error tags; `variantPools` must have matching dialogue pools. |
 | Effects | `effects/effects.json` | Verdict to effect with a correctness curve (spell power, trade price). |
 | Lexicon | `lexicon/*.json` | Every `*.json` file in the folder is merged (identical readings stored once, different readings of a form all kept; see [docs/LEXICON.md](docs/LEXICON.md)). `lexicon/*.source.json` are sidecars of generated files, not lexicons. A Wiktionary import is regenerated with `import-lexicon`, never edited by hand, and stays marked `wiktionary-import` with its sidecar. A word the content uses but the lexicon lacks goes into a hand-authored file; `LexiconCoverageTests` names the word and where it is used. |
 

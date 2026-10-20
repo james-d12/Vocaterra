@@ -65,10 +65,10 @@ public static class ReplayReader
     // A missing property arrives as null even though the members are declared non-nullable, so check explicitly.
     private static ReplayRecord Check(ReplayRecord record)
     {
-        if ((object?)record.ClipHash is null || (object?)record.PromptId is null || (object?)record.GameStateHash is null
+        if ((object?)record.ClipHash is null || (object?)record.PromptId is null || (object?)record.HostStateHash is null
             || (object?)record.Versions is null || (object?)record.Verdict is null)
         {
-            throw new JsonException("The entry is not a replay record (it needs clipHash, promptId, gameStateHash, versions and verdict).");
+            throw new JsonException("The entry is not a replay record (it needs clipHash, promptId, hostStateHash, versions and verdict).");
         }
 
         return record;

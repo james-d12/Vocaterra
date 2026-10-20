@@ -3,8 +3,8 @@ using Vocaterra.Nlp.Core.Verdicts;
 
 namespace Vocaterra.Nlp.Core.Replay;
 
-/// <summary>Everything needed to replay one graded utterance: clip, prompt, game state, versions and the verdict produced.</summary>
-public sealed record ReplayRecord(string ClipHash, string PromptId, string GameStateHash, VersionStamp Versions, Verdict Verdict)
+/// <summary>Everything needed to replay one graded utterance: clip, prompt, host state, versions and the verdict produced.</summary>
+public sealed record ReplayRecord(string ClipHash, string PromptId, string HostStateHash, VersionStamp Versions, Verdict Verdict)
 {
     /// <summary>Serializes the record as canonical JSON.</summary>
     public string Serialize()

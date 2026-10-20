@@ -9,8 +9,8 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
+using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
-using Vocaterra.Nlp.Decision.Npc;
 using Vocaterra.Nlp.Pipeline;
 
 namespace Vocaterra.Nlp.Golden.Tests;
@@ -142,7 +142,7 @@ public partial class ManifestGoldenTests
                 "scripted-manifest",
                 prompt.Mode));
             var pipeline = new UtterancePipeline(new PipelineServices(recognizer, null, null, null, Bundle));
-            var context = GameContext.Create(1, "blacksmith", new NpcState("blacksmith", "idle", 0), new StoredTimestamp(0), LearnerModel.New());
+            var context = ConversationContext.Create(1, "blacksmith", new AgentState("blacksmith", "idle", 0), new StoredTimestamp(0), LearnerModel.New());
 
             var verdict = pipeline.Evaluate(PcmClip.FromSamples([]), prompt, context).Verdict;
 

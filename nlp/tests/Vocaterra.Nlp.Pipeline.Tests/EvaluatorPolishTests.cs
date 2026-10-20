@@ -19,7 +19,7 @@ public class EvaluatorPolishTests
     private static PipelineResult Quiz(string transcript, string promptId)
     {
         return TestSupport.Pipeline(transcript, RecognitionMode.Constrained)
-            .Evaluate(TestSupport.Clip(), Prompt(promptId), TestSupport.Context(state: "none", npcId: "player"));
+            .Evaluate(TestSupport.Clip(), Prompt(promptId), TestSupport.Context(state: "none", agentId: "player"));
     }
 
     [Theory]

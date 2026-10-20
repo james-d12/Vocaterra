@@ -21,13 +21,13 @@ public sealed class SeededRng
         _s3 = mix.Next();
     }
 
-    /// <summary>Creates the generator for one NPC interaction from the world seed, NPC id and interaction counter.</summary>
-    public static SeededRng ForInteraction(ulong worldSeed, string npcId, long counter)
+    /// <summary>Creates the generator for one agent interaction from the world seed, agent id and interaction counter.</summary>
+    public static SeededRng ForInteraction(ulong worldSeed, string agentId, long counter)
     {
-        ArgumentNullException.ThrowIfNull(npcId);
+        ArgumentNullException.ThrowIfNull(agentId);
         return new SeededRng(DeterministicHash.Seed64(
             worldSeed.ToString(CultureInfo.InvariantCulture),
-            npcId,
+            agentId,
             counter.ToString(CultureInfo.InvariantCulture)));
     }
 

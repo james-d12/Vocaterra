@@ -9,8 +9,8 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
+using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
-using Vocaterra.Nlp.Decision.Npc;
 using Vocaterra.Nlp.Phonology;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Pronunciation;
@@ -46,12 +46,12 @@ public class EndToEndGoldenTests
         return PcmClip.FromSamples(samples);
     }
 
-    private static GameContext Context()
+    private static ConversationContext Context()
     {
-        return GameContext.Create(
+        return ConversationContext.Create(
             20_261_018UL,
             "blacksmith",
-            new NpcState("blacksmith", "trading", 7),
+            new AgentState("blacksmith", "trading", 7),
             new StoredTimestamp(1_792_000_000),
             LearnerModel.New(),
             new Dictionary<string, int>());
@@ -86,15 +86,15 @@ public class EndToEndGoldenTests
     }
 
     [Fact]
-    public void TheBlacksmithRecastsFromThePlayersOwnSlots()
+    public void TheSampleAgentRecastsFromThePlayersOwnSlots()
     {
         var result = Run();
 
         var recast = Assert.Single(result.Response.Lines, static line => line.IsRecast);
         Assert.Contains("dos espadas", recast.Text, StringComparison.Ordinal);
         Assert.Equal("¿Tienes dos espadas? ¡Perfecto!", recast.Text);
-        Assert.Equal("done", result.Decision.Npc!.Next.StateId);
-        Assert.Contains(result.Decision.Npc.Actions, static action => action.GameEvent == "trade.offer");
+        Assert.Equal("done", result.Decision.Agent!.Next.StateId);
+        Assert.Contains(result.Decision.Agent.Actions, static action => action.HostEvent == "trade.offer");
     }
 
     [Fact]

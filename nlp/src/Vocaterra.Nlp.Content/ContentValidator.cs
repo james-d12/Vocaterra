@@ -14,7 +14,7 @@ internal static class ContentValidator
         ValidateProvenance(parts, files, problems);
         ValidateAttribution(parts, files, problems);
         ValidatePrompts(parts, problems);
-        ValidateNpcs(parts, problems);
+        ValidateAgents(parts, problems);
         ValidateEffects(parts, problems);
         ValidateDialogue(parts, problems);
     }
@@ -178,20 +178,20 @@ internal static class ContentValidator
                 }
             }
 
-            if (prompt.NpcId is { } npcId && !parts.Npcs.ContainsKey(npcId))
+            if (prompt.AgentId is { } agentId && !parts.Agents.ContainsKey(agentId))
             {
-                problems.Add($"{where} references unknown NPC '{npcId}'.");
+                problems.Add($"{where} references unknown agent '{agentId}'.");
             }
         }
     }
 
-    private static void ValidateNpcs(LoadedParts parts, List<string> problems)
+    private static void ValidateAgents(LoadedParts parts, List<string> problems)
     {
         var intentIds = IntentIds(parts);
-        foreach (var machine in parts.Npcs.Values)
+        foreach (var machine in parts.Agents.Values)
         {
             var definition = machine.Definition;
-            var where = $"{ContentPaths.NpcFolder}{definition.NpcId}.json";
+            var where = $"{ContentPaths.AgentFolder}{definition.AgentId}.json";
             var poolSizes = new Dictionary<string, int>(StringComparer.Ordinal);
             foreach (var pool in definition.VariantPools ?? [])
             {
@@ -225,7 +225,7 @@ internal static class ContentValidator
         LoadedParts parts,
         string where,
         string stateId,
-        IReadOnlyList<Vocaterra.Nlp.Decision.Npc.NpcActionDefinition> actions,
+        IReadOnlyList<Vocaterra.Nlp.Decision.ConversationAgents.AgentActionDefinition> actions,
         Dictionary<string, int> poolSizes,
         List<string> problems)
     {

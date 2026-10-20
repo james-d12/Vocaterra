@@ -61,13 +61,13 @@ public class SeededRngTests
     }
 
     [Fact]
-    public void ForInteractionDiffersByCounterNpcAndWorldSeed()
+    public void ForInteractionDiffersByCounterAgentAndWorldSeed()
     {
-        var baseline = SeededRng.ForInteraction(1, "npc", 0).NextUInt64();
-        Assert.NotEqual(baseline, SeededRng.ForInteraction(1, "npc", 1).NextUInt64());
+        var baseline = SeededRng.ForInteraction(1, "agent", 0).NextUInt64();
+        Assert.NotEqual(baseline, SeededRng.ForInteraction(1, "agent", 1).NextUInt64());
         Assert.NotEqual(baseline, SeededRng.ForInteraction(1, "other", 0).NextUInt64());
-        Assert.NotEqual(baseline, SeededRng.ForInteraction(2, "npc", 0).NextUInt64());
-        Assert.Equal(baseline, SeededRng.ForInteraction(1, "npc", 0).NextUInt64());
+        Assert.NotEqual(baseline, SeededRng.ForInteraction(2, "agent", 0).NextUInt64());
+        Assert.Equal(baseline, SeededRng.ForInteraction(1, "agent", 0).NextUInt64());
     }
 
     [Fact]

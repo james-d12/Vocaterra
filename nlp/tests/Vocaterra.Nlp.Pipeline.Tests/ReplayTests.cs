@@ -270,26 +270,26 @@ public class ReplayTests
     }
 
     [Fact]
-    public void TheGameContextHashDependsOnEveryValueAndSortsCounts()
+    public void TheConversationContextHashDependsOnEveryValueAndSortsCounts()
     {
         var baseline = TestSupport.Context(repeats: new Dictionary<string, int> { ["b"] = 1, ["a"] = 2 });
         var reordered = TestSupport.Context(repeats: new Dictionary<string, int> { ["a"] = 2, ["b"] = 1 });
 
-        Assert.Equal(baseline.GameStateHash, reordered.GameStateHash);
+        Assert.Equal(baseline.HostStateHash, reordered.HostStateHash);
         Assert.Equal(baseline, reordered);
         Assert.Equal(["a", "b"], baseline.RepeatCountsByTag.Keys.ToArray());
-        Assert.NotEqual(baseline.GameStateHash, TestSupport.Context(repeats: new Dictionary<string, int> { ["a"] = 3, ["b"] = 1 }).GameStateHash);
-        Assert.NotEqual(baseline.GameStateHash, TestSupport.Context(seed: 7, repeats: new Dictionary<string, int> { ["b"] = 1, ["a"] = 2 }).GameStateHash);
-        Assert.NotEqual(baseline.GameStateHash, TestSupport.Context(counter: 1, repeats: new Dictionary<string, int> { ["b"] = 1, ["a"] = 2 }).GameStateHash);
+        Assert.NotEqual(baseline.HostStateHash, TestSupport.Context(repeats: new Dictionary<string, int> { ["a"] = 3, ["b"] = 1 }).HostStateHash);
+        Assert.NotEqual(baseline.HostStateHash, TestSupport.Context(seed: 7, repeats: new Dictionary<string, int> { ["b"] = 1, ["a"] = 2 }).HostStateHash);
+        Assert.NotEqual(baseline.HostStateHash, TestSupport.Context(counter: 1, repeats: new Dictionary<string, int> { ["b"] = 1, ["a"] = 2 }).HostStateHash);
     }
 
     [Fact]
-    public void TheGameContextRoundTripsThroughCanonicalJson()
+    public void TheConversationContextRoundTripsThroughCanonicalJson()
     {
         var context = TestSupport.Context(repeats: new Dictionary<string, int> { ["noun.number"] = 2, ["conj.person"] = 1 });
 
         var json = CanonicalJson.Serialize(context);
-        var back = CanonicalJson.Deserialize<GameContext>(json);
+        var back = CanonicalJson.Deserialize<ConversationContext>(json);
 
         Assert.Equal(json, CanonicalJson.Serialize(back));
         Assert.Equal(context, back);

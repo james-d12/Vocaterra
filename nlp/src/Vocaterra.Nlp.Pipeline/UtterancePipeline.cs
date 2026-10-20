@@ -66,14 +66,14 @@ public sealed partial class UtterancePipeline
     public PipelineOptions Options => _options;
 
     /// <summary>Evaluates one utterance; see <see cref="Trace"/> for the variant that also returns the recognizer outputs.</summary>
-    public PipelineResult Evaluate(PcmClip clip, PromptSpec prompt, GameContext context)
+    public PipelineResult Evaluate(PcmClip clip, PromptSpec prompt, ConversationContext context)
     {
         return Trace(clip, prompt, context).Result;
     }
 
     /// <summary>Evaluates one utterance and also returns the recognizer outputs, which is what a replay log needs.</summary>
-    /// <exception cref="ArgumentException">The prompt names an answer set the bundle does not have, or the NPC state belongs to another NPC.</exception>
-    public PipelineTrace Trace(PcmClip clip, PromptSpec prompt, GameContext context)
+    /// <exception cref="ArgumentException">The prompt names an answer set the bundle does not have, or the agent state belongs to another agent.</exception>
+    public PipelineTrace Trace(PcmClip clip, PromptSpec prompt, ConversationContext context)
     {
         ArgumentNullException.ThrowIfNull(clip);
         ArgumentNullException.ThrowIfNull(prompt);
@@ -112,7 +112,7 @@ public sealed partial class UtterancePipeline
         var response = Respond(verdict, prompt, decision, normalized, analysis, match, context);
         var effects = EffectResolver.Resolve(verdict, content.Effects);
         var repair = RepairFor(verdict, prompt, answerSet, context);
-        var replay = new ReplayRecord(clip.ClipHash, prompt.PromptId, context.GameStateHash, _services.Versions, verdict);
+        var replay = new ReplayRecord(clip.ClipHash, prompt.PromptId, context.HostStateHash, _services.Versions, verdict);
         return new PipelineTrace(new PipelineResult(verdict, decision, response, effects, repair, replay), asr, posteriors);
     }
 

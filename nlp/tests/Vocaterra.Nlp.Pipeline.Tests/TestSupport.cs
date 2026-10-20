@@ -4,8 +4,8 @@ using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
-using Vocaterra.Nlp.Decision.Npc;
 using Vocaterra.Nlp.Nlp.Embeddings;
 using Vocaterra.Nlp.Phonology;
 using Vocaterra.Nlp.Pronunciation;
@@ -49,15 +49,15 @@ internal static class TestSupport
         return new AsrResult(transcript, [new AsrHypothesis(transcript, 1.0)], [], 1.0, modelHash, mode);
     }
 
-    /// <summary>A fixed game context for the blacksmith; the default state <c>trading</c> is the one that handles offers.</summary>
-    public static GameContext Context(
+    /// <summary>A fixed conversation context for the blacksmith; the default state <c>trading</c> is the one that handles offers.</summary>
+    public static ConversationContext Context(
         string state = "trading",
         long counter = 0,
         ulong seed = 42,
-        string npcId = "blacksmith",
+        string agentId = "blacksmith",
         IReadOnlyDictionary<string, int>? repeats = null)
     {
-        return GameContext.Create(seed, npcId, new NpcState(npcId, state, counter), new StoredTimestamp(1_700_000_000), LearnerModel.New(), repeats);
+        return ConversationContext.Create(seed, agentId, new AgentState(agentId, state, counter), new StoredTimestamp(1_700_000_000), LearnerModel.New(), repeats);
     }
 
     /// <summary>A fake phoneme recognizer that hears exactly the phones of the text (every pronunciation correct).</summary>

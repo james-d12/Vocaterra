@@ -79,7 +79,7 @@ public sealed class DialogueCatalog : IEquatable<DialogueCatalog>
         return _pools.TryGetValue(dialogueIntent, out pool);
     }
 
-    /// <summary>Looks up a pool by its own id (the id an NPC action names); linear in the number of pools.</summary>
+    /// <summary>Looks up a pool by its own id (the id an agent action names); linear in the number of pools.</summary>
     public bool TryGetPoolById(string poolId, [MaybeNullWhen(false)] out VariantPool pool)
     {
         ArgumentNullException.ThrowIfNull(poolId);

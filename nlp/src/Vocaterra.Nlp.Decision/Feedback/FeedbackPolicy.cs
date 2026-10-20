@@ -12,7 +12,7 @@ namespace Vocaterra.Nlp.Decision.Feedback;
 /// </summary>
 public sealed record FeedbackPolicy(IReadOnlyList<FeedbackRule> Rules, FeedbackType NotCommunicatedType = FeedbackType.SlowRepeat)
 {
-    /// <summary>The most items a single plan contains, so the NPC never lectures.</summary>
+    /// <summary>The most items a single plan contains, so the agent never lectures.</summary>
     public const int MaxItems = 2;
 
     /// <summary>The tag of the single item produced when the player was not understood and the verdict carries no error to quote.</summary>

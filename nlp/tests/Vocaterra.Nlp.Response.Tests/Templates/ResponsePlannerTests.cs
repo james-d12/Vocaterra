@@ -49,7 +49,7 @@ public class ResponsePlannerTests
     {
         var verdict = TestSupport.MakeVerdict("buy_item", slots: BuySlots());
         var lines = Enumerable.Range(0, 30)
-            .Select(i => Planner.Plan(verdict, null, Catalog(), SeededRng.ForInteraction(5, "smith", i)).Lines[0])
+            .Select(i => Planner.Plan(verdict, null, Catalog(), SeededRng.ForInteraction(5, "agent", i)).Lines[0])
             .ToList();
         Assert.Contains(new ResponseLine("buy.1", "¡Perfecto!", false), lines);
         Assert.Contains(new ResponseLine("buy.2", "Claro, dos espadas.", false), lines);
@@ -154,10 +154,10 @@ public class ResponsePlannerTests
         var verdict = TestSupport.MakeVerdict("buy_item", slots: BuySlots());
         var feedback = new FeedbackRequest("noun.number", "espadas", "espada", FeedbackKinds.Recast);
         var first = Enumerable.Range(0, 20)
-            .Select(i => Planner.Plan(verdict, feedback, Catalog(), SeededRng.ForInteraction(9, "smith", i), recastText: "dos espadas"))
+            .Select(i => Planner.Plan(verdict, feedback, Catalog(), SeededRng.ForInteraction(9, "agent", i), recastText: "dos espadas"))
             .ToList();
         var second = Enumerable.Range(0, 20)
-            .Select(i => Planner.Plan(verdict, feedback, Catalog(), SeededRng.ForInteraction(9, "smith", i), recastText: "dos espadas"))
+            .Select(i => Planner.Plan(verdict, feedback, Catalog(), SeededRng.ForInteraction(9, "agent", i), recastText: "dos espadas"))
             .ToList();
         Assert.Equal(first, second);
         Assert.Equal(first[0].GetHashCode(), second[0].GetHashCode());
@@ -170,8 +170,8 @@ public class ResponsePlannerTests
         var feedback = new FeedbackRequest("conj.person", "tengo", "tiene", FeedbackKinds.Hint);
         for (long counter = 0; counter < 10; counter++)
         {
-            var rng = SeededRng.ForInteraction(3, "smith", counter);
-            var expectedReply = DialogueSelector.Select(Catalog(), "buy_item", SeededRng.ForInteraction(3, "smith", counter));
+            var rng = SeededRng.ForInteraction(3, "agent", counter);
+            var expectedReply = DialogueSelector.Select(Catalog(), "buy_item", SeededRng.ForInteraction(3, "agent", counter));
             var plan = Planner.Plan(verdict, feedback, Catalog(), rng);
             Assert.Equal(expectedReply.LineId, plan.Lines[0].LineId);
         }

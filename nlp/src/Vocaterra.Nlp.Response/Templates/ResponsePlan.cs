@@ -22,10 +22,10 @@ public static class FeedbackKinds
 /// <summary>One piece of feedback to voice, mapped by the pipeline from the decision layer's feedback plan; <c>Kind</c> is one of <see cref="FeedbackKinds"/>.</summary>
 public sealed record FeedbackRequest(string Tag, string Expected, string Actual, string Kind);
 
-/// <summary>One line of the NPC's response: the dialogue line id, the rendered text and whether it is a recast of the player's sentence.</summary>
+/// <summary>One line of the agent's response: the dialogue line id, the rendered text and whether it is a recast of the player's sentence.</summary>
 public sealed record ResponseLine(string LineId, string Text, bool IsRecast);
 
-/// <summary>The ordered lines an NPC says in response to one player utterance.</summary>
+/// <summary>The ordered lines an agent says in response to one player utterance.</summary>
 public sealed record ResponsePlan(IReadOnlyList<ResponseLine> Lines)
 {
     /// <summary>Structural equality including the line list.</summary>

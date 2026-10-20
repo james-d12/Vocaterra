@@ -142,8 +142,8 @@ public class DialogueCatalogTests
     public void SelectionConsumesExactlyOneDrawEvenForASingleVariant()
     {
         var catalog = SampleCatalog();
-        var used = SeededRng.ForInteraction(1, "npc", 1);
-        var reference = SeededRng.ForInteraction(1, "npc", 1);
+        var used = SeededRng.ForInteraction(1, "agent", 1);
+        var reference = SeededRng.ForInteraction(1, "agent", 1);
         Assert.Equal("buy_item.1", DialogueSelector.Select(catalog, "buy_item", used).LineId);
         reference.NextInt(1);
         Assert.Equal(reference.NextUInt64(), used.NextUInt64());

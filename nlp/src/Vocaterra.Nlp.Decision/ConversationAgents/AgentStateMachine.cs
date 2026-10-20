@@ -1,18 +1,18 @@
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Verdicts;
 
-namespace Vocaterra.Nlp.Decision.Npc;
+namespace Vocaterra.Nlp.Decision.ConversationAgents;
 
-/// <summary>A validated NPC state machine: first matching transition wins, variant choices come from the supplied <see cref="SeededRng"/>.</summary>
-public sealed class NpcStateMachine
+/// <summary>A validated agent state machine: first matching transition wins, variant choices come from the supplied <see cref="SeededRng"/>.</summary>
+public sealed class AgentStateMachine
 {
     // Lookup tables only: they are never enumerated, so hash order cannot influence any output.
-    private readonly Dictionary<string, NpcStateDefinition> _states = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, AgentStateDefinition> _states = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int> _poolSizes = new(StringComparer.Ordinal);
 
     /// <summary>Validates the definition (unique states, known targets, known variant pools, well-formed predicates) and wraps it.</summary>
     /// <exception cref="InvalidDataException">The definition is structurally invalid.</exception>
-    public NpcStateMachine(NpcDefinition definition)
+    public AgentStateMachine(AgentDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
         Definition = definition;
@@ -20,28 +20,28 @@ public sealed class NpcStateMachine
     }
 
     /// <summary>The definition this machine runs.</summary>
-    public NpcDefinition Definition { get; }
+    public AgentDefinition Definition { get; }
 
-    /// <summary>The id of the NPC this machine drives.</summary>
-    public string NpcId => Definition.NpcId;
+    /// <summary>The id of the agent this machine drives.</summary>
+    public string AgentId => Definition.AgentId;
 
     /// <summary>Loads a machine from canonical JSON.</summary>
-    public static NpcStateMachine FromJson(string json)
+    public static AgentStateMachine FromJson(string json)
     {
-        return new NpcStateMachine(CanonicalJson.Deserialize<NpcDefinition>(json));
+        return new AgentStateMachine(CanonicalJson.Deserialize<AgentDefinition>(json));
     }
 
-    /// <summary>The state a new game starts this NPC in: the initial state with interaction counter 0.</summary>
-    public NpcState InitialState()
+    /// <summary>The state a new conversation starts this agent in: the initial state with interaction counter 0.</summary>
+    public AgentState InitialState()
     {
-        return new NpcState(Definition.NpcId, Definition.InitialState, 0);
+        return new AgentState(Definition.AgentId, Definition.InitialState, 0);
     }
 
-    /// <summary>Steps with the generator for this interaction: <see cref="SeededRng.ForInteraction(ulong, string, long)"/> over the NPC id and current counter.</summary>
-    public NpcStepResult Step(NpcState current, Verdict verdict, ulong worldSeed)
+    /// <summary>Steps with the generator for this interaction: <see cref="SeededRng.ForInteraction(ulong, string, long)"/> over the agent id and current counter.</summary>
+    public AgentStepResult Step(AgentState current, Verdict verdict, ulong worldSeed)
     {
         ArgumentNullException.ThrowIfNull(current);
-        return Step(current, verdict, SeededRng.ForInteraction(worldSeed, current.NpcId, current.InteractionCounter));
+        return Step(current, verdict, SeededRng.ForInteraction(worldSeed, current.AgentId, current.InteractionCounter));
     }
 
     /// <summary>
@@ -49,24 +49,24 @@ public sealed class NpcStateMachine
     /// otherwise the fallback applies (and a fallback without a target stays in the current state).
     /// Every action with a variant pool draws <c>rng.NextInt(poolSize)</c> in action order. The interaction counter always advances by one.
     /// </summary>
-    public NpcStepResult Step(NpcState current, Verdict verdict, SeededRng rng)
+    public AgentStepResult Step(AgentState current, Verdict verdict, SeededRng rng)
     {
         ArgumentNullException.ThrowIfNull(current);
         ArgumentNullException.ThrowIfNull(verdict);
         ArgumentNullException.ThrowIfNull(rng);
 
-        if (!string.Equals(current.NpcId, Definition.NpcId, StringComparison.Ordinal))
+        if (!string.Equals(current.AgentId, Definition.AgentId, StringComparison.Ordinal))
         {
-            throw new ArgumentException($"State belongs to NPC '{current.NpcId}', not '{Definition.NpcId}'.", nameof(current));
+            throw new ArgumentException($"State belongs to agent '{current.AgentId}', not '{Definition.AgentId}'.", nameof(current));
         }
 
         if (!_states.TryGetValue(current.StateId, out var state))
         {
-            throw new ArgumentException($"NPC '{Definition.NpcId}' has no state '{current.StateId}'.", nameof(current));
+            throw new ArgumentException($"agent '{Definition.AgentId}' has no state '{current.StateId}'.", nameof(current));
         }
 
         string target = current.StateId;
-        IReadOnlyList<NpcActionDefinition> chosen = [];
+        IReadOnlyList<AgentActionDefinition> chosen = [];
         var matched = false;
         foreach (var transition in state.Transitions)
         {
@@ -85,19 +85,19 @@ public sealed class NpcStateMachine
             chosen = fallback.Actions;
         }
 
-        var actions = new NpcAction[chosen.Count];
+        var actions = new AgentAction[chosen.Count];
         for (var i = 0; i < chosen.Count; i++)
         {
             var action = chosen[i];
             int? variant = action.VariantPoolId is { } poolId ? rng.NextInt(_poolSizes[poolId]) : null;
-            actions[i] = new NpcAction(action.DialogueIntent, action.GameEvent, variant);
+            actions[i] = new AgentAction(action.DialogueIntent, action.HostEvent, variant);
         }
 
-        var next = new NpcState(current.NpcId, target, checked(current.InteractionCounter + 1));
-        return new NpcStepResult(next, actions);
+        var next = new AgentState(current.AgentId, target, checked(current.InteractionCounter + 1));
+        return new AgentStepResult(next, actions);
     }
 
-    private static bool Matches(NpcCondition condition, Verdict verdict)
+    private static bool Matches(AgentCondition condition, Verdict verdict)
     {
         if (condition.Intent is { } intent
             && !string.Equals(intent, verdict.Intent.ToString(), StringComparison.Ordinal))
@@ -138,14 +138,14 @@ public sealed class NpcStateMachine
 
     private static InvalidDataException Invalid(string message)
     {
-        return new InvalidDataException($"Invalid NPC definition: {message}");
+        return new InvalidDataException($"Invalid agent definition: {message}");
     }
 
     private void Validate()
     {
-        if (string.IsNullOrEmpty(Definition.NpcId))
+        if (string.IsNullOrEmpty(Definition.AgentId))
         {
-            throw Invalid("npcId is required.");
+            throw Invalid("agentId is required.");
         }
 
         if (Definition.States is null || Definition.States.Count == 0)
@@ -223,7 +223,7 @@ public sealed class NpcStateMachine
         }
     }
 
-    private void ValidateActions(string stateId, IReadOnlyList<NpcActionDefinition>? actions)
+    private void ValidateActions(string stateId, IReadOnlyList<AgentActionDefinition>? actions)
     {
         if (actions is null)
         {
@@ -244,7 +244,7 @@ public sealed class NpcStateMachine
         }
     }
 
-    private static void ValidateCondition(string stateId, NpcCondition condition)
+    private static void ValidateCondition(string stateId, AgentCondition condition)
     {
         ValidatePatterns(stateId, "anyErrorTag", condition.AnyErrorTag);
         ValidatePatterns(stateId, "noErrorTag", condition.NoErrorTag);

@@ -12,11 +12,11 @@ public class EffectTests
     {
         return new EffectTable(
         [
-            new EffectDefinition("trade.price", "buy_item", EffectKinds.TradePrice, [new CurvePoint(0, 1.3), new CurvePoint(1, 1.0)]),
-            new EffectDefinition("spell.fireball", "cast_spell", EffectKinds.SpellPower, [new CurvePoint(0, 0), new CurvePoint(1, 1)]),
-            new EffectDefinition("spell.heal", "cast_spell", EffectKinds.SpellPower, [new CurvePoint(0, 0), new CurvePoint(0.5, 0.2), new CurvePoint(0.8, 1), new CurvePoint(1, 1)]),
-            new EffectDefinition("quest.greeted", "greet", EffectKinds.QuestFlag, [new CurvePoint(0, 0), new CurvePoint(0.7, 1)], RequiresCommunicated: false),
-            new EffectDefinition("a.marker", "cast_spell", EffectKinds.None, [new CurvePoint(0, 0)]),
+            new EffectDefinition("trade.price", "buy_item", "trade_price", [new CurvePoint(0, 1.3), new CurvePoint(1, 1.0)]),
+            new EffectDefinition("spell.fireball", "cast_spell", "spell_power", [new CurvePoint(0, 0), new CurvePoint(1, 1)]),
+            new EffectDefinition("spell.heal", "cast_spell", "spell_power", [new CurvePoint(0, 0), new CurvePoint(0.5, 0.2), new CurvePoint(0.8, 1), new CurvePoint(1, 1)]),
+            new EffectDefinition("quest.greeted", "greet", "flag", [new CurvePoint(0, 0), new CurvePoint(0.7, 1)], RequiresCommunicated: false),
+            new EffectDefinition("a.marker", "cast_spell", "none", [new CurvePoint(0, 0)]),
         ]);
     }
 
@@ -26,16 +26,16 @@ public class EffectTests
     }
 
     [Fact]
-    public void SpellPowerFollowsTheLinearCurve()
+    public void TheOutcomeKindIsCarriedThroughAndTheValueFollowsTheLinearCurve()
     {
         var effects = EffectResolver.Resolve(MakeVerdict("cast_spell", 0.6), Table());
         var fireball = Assert.Single(effects, static e => e.EffectId == "spell.fireball");
-        Assert.Equal(EffectKinds.SpellPower, fireball.Kind);
+        Assert.Equal("spell_power", fireball.Kind);
         Assert.Equal(0.6, fireball.Value, Tolerance);
     }
 
     [Fact]
-    public void TradePriceFactorInterpolatesDownward()
+    public void AFactorCurveInterpolatesDownward()
     {
         var effects = EffectResolver.Resolve(MakeVerdict("buy_item", 0.5), Table());
         var price = Assert.Single(effects);
@@ -135,7 +135,7 @@ public class EffectTests
     }
 
     [Theory]
-    [InlineData("{\"effects\":[{\"effectId\":\"a\",\"intent\":\"i\",\"kind\":\"bogus\",\"curve\":[{\"correctness\":0,\"value\":0}]}]}")]
+    [InlineData("{\"effects\":[{\"effectId\":\"a\",\"intent\":\"i\",\"kind\":\"\",\"curve\":[{\"correctness\":0,\"value\":0}]}]}")]
     [InlineData("{\"effects\":[{\"effectId\":\"a\",\"intent\":\"i\",\"kind\":\"none\",\"curve\":[]}]}")]
     [InlineData("{\"effects\":[{\"effectId\":\"a\",\"intent\":\"i\",\"kind\":\"none\",\"curve\":[{\"correctness\":1,\"value\":0},{\"correctness\":0,\"value\":1}]}]}")]
     [InlineData("{\"effects\":[{\"effectId\":\"a\",\"intent\":\"i\",\"kind\":\"none\",\"curve\":[{\"correctness\":0,\"value\":0},{\"correctness\":0,\"value\":1}]}]}")]
@@ -146,6 +146,13 @@ public class EffectTests
     public void InvalidTablesAreRejected(string json)
     {
         Assert.ThrowsAny<Exception>(() => EffectTable.FromJson(json));
+    }
+
+    [Fact]
+    public void AnyNonEmptyKindIsAnOpaqueOutcomeKind()
+    {
+        var table = EffectTable.FromJson("{\"effects\":[{\"effectId\":\"a\",\"intent\":\"i\",\"kind\":\"bogus\",\"curve\":[{\"correctness\":0,\"value\":0}]}]}");
+        Assert.Equal("bogus", Assert.Single(table.Effects).Kind);
     }
 
     [Fact]

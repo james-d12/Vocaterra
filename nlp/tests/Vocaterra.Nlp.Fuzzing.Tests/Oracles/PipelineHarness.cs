@@ -4,8 +4,8 @@ using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
-using Vocaterra.Nlp.Decision.Npc;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Nlp.Analysis;
 using Vocaterra.Nlp.Nlp.Embeddings;
@@ -30,7 +30,7 @@ namespace Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 /// </summary>
 public sealed class PipelineHarness
 {
-    /// <summary>The fixed instant every generated game context uses; nothing in the suite reads a clock.</summary>
+    /// <summary>The fixed instant every generated conversation context uses; nothing in the suite reads a clock.</summary>
     public const long FixedNow = 1_700_000_000;
 
     private PipelineHarness()
@@ -54,7 +54,7 @@ public sealed class PipelineHarness
     /// <summary>The loaded, hash-verified content bundle.</summary>
     public ContentBundle Bundle { get; }
 
-    /// <summary>The bundle lexicon (the embedded seed plus the game words).</summary>
+    /// <summary>The bundle lexicon (the embedded seed plus the sample words).</summary>
     public NlpLexicon Lexicon => Bundle.Lexicon;
 
     /// <summary>The bundle's morphology generator.</summary>
@@ -127,13 +127,13 @@ public sealed class PipelineHarness
         return new UtterancePipeline(NewServices(transcript, mode, phonemes), options);
     }
 
-    /// <summary>Creates a game context for an NPC of the bundle in one of its states.</summary>
-    public GameContext NewContext(string npcId, string stateId, long counter = 0, ulong worldSeed = 42, IReadOnlyDictionary<string, int>? repeats = null)
+    /// <summary>Creates a conversation context for an agent of the bundle in one of its states.</summary>
+    public ConversationContext NewContext(string agentId, string stateId, long counter = 0, ulong worldSeed = 42, IReadOnlyDictionary<string, int>? repeats = null)
     {
-        return GameContext.Create(
+        return ConversationContext.Create(
             worldSeed,
-            npcId,
-            new NpcState(npcId, stateId, counter),
+            agentId,
+            new AgentState(agentId, stateId, counter),
             new StoredTimestamp(FixedNow),
             LearnerModel.New(),
             repeats);

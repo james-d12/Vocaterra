@@ -23,7 +23,7 @@ public enum LlSound
 /// <param name="SAspiration">True when syllable-final <c>s</c> is realized as <c>h</c>.</param>
 public sealed record DialectConfig(bool Seseo, bool Yeismo, LlSound LlSound, bool SAspiration)
 {
-    /// <summary>Latin American neutral: seseo and yeísmo. The default for NPC speech.</summary>
+    /// <summary>Latin American neutral: seseo and yeísmo. The default for agent speech.</summary>
     public static readonly DialectConfig LatinAmericanNeutral = new(Seseo: true, Yeismo: true, LlSound: LlSound.Fricative, SAspiration: false);
 
     /// <summary>Castilian standard: distinción and yeísmo.</summary>

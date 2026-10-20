@@ -9,15 +9,15 @@ using Vocaterra.Nlp.Pronunciation;
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 
 /// <summary>
-/// Everything that decides one pipeline run: the transcript the scripted recognizer returns (and where it came from), the prompt, the game
-/// context and the pipeline options. These are what a failure message prints.
+/// Everything that decides one pipeline run: the transcript the scripted recognizer returns (and where it came from), the prompt, the
+/// conversation context and the pipeline options. These are what a failure message prints.
 /// </summary>
 /// <param name="Transcript">What the scripted word recognizer returns.</param>
 /// <param name="Source">Where the transcript came from: <c>correct</c>, <c>mutated:tag</c>, <c>answer</c> or <c>text</c>.</param>
 /// <param name="PromptId">A prompt of the bundle.</param>
-/// <param name="NpcId">The NPC id of the context (the bundle's blacksmith, or one the bundle does not know).</param>
-/// <param name="StateId">The NPC's state.</param>
-/// <param name="Counter">The NPC's interaction counter.</param>
+/// <param name="AgentId">The agent id of the context (the bundle's blacksmith, or one the bundle does not know).</param>
+/// <param name="StateId">The agent's state.</param>
+/// <param name="Counter">The agent's interaction counter.</param>
 /// <param name="WorldSeed">The world seed.</param>
 /// <param name="Phonemes">Whether a phoneme recognizer takes part (only for transcripts short enough to score).</param>
 /// <param name="PronunciationMode">The pronunciation scorer.</param>
@@ -29,7 +29,7 @@ public sealed record PipelineCase(
     string Transcript,
     string Source,
     string PromptId,
-    string NpcId,
+    string AgentId,
     string StateId,
     long Counter,
     ulong WorldSeed,
@@ -76,9 +76,9 @@ public static class PipelineGen
             source += ":truncated";
         }
 
-        var blacksmith = harness.Bundle.Npcs["blacksmith"].Definition;
+        var blacksmith = harness.Bundle.Agents["blacksmith"].Definition;
         var known = rng.NextInt(5) != 0;
-        var npcId = known ? blacksmith.NpcId : "nobody";
+        var agentId = known ? blacksmith.AgentId : "nobody";
         var state = known ? rng.Pick(blacksmith.States.Select(static s => s.Id).ToArray()) : "idle";
         var skills = SkillPool.Where(_ => rng.NextInt(3) == 0)
             .Select(skill => new SkillMastery(skill, Math.Round(rng.NextDouble(), 6), 1 + rng.NextInt(9), rng.NextInt(5)))
@@ -88,7 +88,7 @@ public static class PipelineGen
             transcript,
             source,
             prompt.PromptId,
-            npcId,
+            agentId,
             state,
             rng.NextInt(4) == 0 ? rng.NextInt(100_000) : rng.NextInt(6),
             rng.NextUInt64(),

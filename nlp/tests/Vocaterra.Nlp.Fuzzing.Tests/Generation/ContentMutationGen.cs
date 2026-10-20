@@ -18,7 +18,7 @@ public enum ContentMutationKind
     /// <summary>Replace one value with a value of another JSON kind (null, empty string, number, boolean, array, object).</summary>
     ChangeKind,
 
-    /// <summary>Replace a reference to an id (answer set, intent, NPC, state, pool, grammar) with an id that does not exist.</summary>
+    /// <summary>Replace a reference to an id (answer set, intent, agent, state, pool, grammar) with an id that does not exist.</summary>
     DanglingReference,
 
     /// <summary>Replace the value of an enumerated field with a value its enumeration does not have.</summary>
@@ -60,14 +60,15 @@ public sealed class ContentMutationGen
     // Properties whose string value is a reference to an id defined elsewhere in the bundle.
     private static readonly HashSet<string> ReferenceProperties = new(StringComparer.Ordinal)
     {
-        "answerSetId", "allowedIntentIds", "npcId", "slotGrammarIds", "intent", "dialogueIntent", "to", "initialState", "variantPoolId",
+        "answerSetId", "allowedIntentIds", "agentId", "slotGrammarIds", "intent", "dialogueIntent", "to", "initialState", "variantPoolId",
     };
 
     // Properties whose string value is a member of an enumeration. (The lexicon file's own generated_by is free text, not an enumeration; the
-    // enumerated generatedBy is the provenance item's.)
+    // enumerated generatedBy is the provenance item's.) An effect's kind is not listed: since M19a it is an opaque outcome kind, so no
+    // unknown value is a defect (an empty kind is refused by the effect table itself).
     private static readonly HashSet<string> EnumProperties = new(StringComparer.Ordinal)
     {
-        "mode", "difficulty", "type", "notCommunicatedType", "generatedBy", "pos", "kind", "person", "number", "tense", "mood", "gender",
+        "mode", "difficulty", "type", "notCommunicatedType", "generatedBy", "pos", "person", "number", "tense", "mood", "gender",
     };
 
     // Object properties that carry an id; an array of such objects can have an element duplicated.
@@ -339,11 +340,11 @@ public sealed class ContentMutationGen
         }
     }
 
-    // The same property name defines an id in some files (answer-set files carry their own answerSetId, NPC files their own npcId).
+    // The same property name defines an id in some files (answer-set files carry their own answerSetId, agent files their own agentId).
     private static bool IsDefinition(string file, string name)
     {
         return (name == "answerSetId" && file.StartsWith("answer-sets/", StringComparison.Ordinal))
-            || (name == "npcId" && file.StartsWith("npcs/", StringComparison.Ordinal));
+            || (name == "agentId" && file.StartsWith("agents/", StringComparison.Ordinal));
     }
 
     private static string[] Append(string[] path, string segment)

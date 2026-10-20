@@ -4,7 +4,7 @@ using Vocaterra.Nlp.Core.Verdicts;
 namespace Vocaterra.Nlp.Response.Templates;
 
 /// <summary>
-/// Turns a verdict and optional feedback into the lines an NPC says. The reply line comes from the pool of the dialogue intent; feedback comes from
+/// Turns a verdict and optional feedback into the lines an agent says. The reply line comes from the pool of the dialogue intent; feedback comes from
 /// the optional pools <c>feedback.&lt;kind&gt;.&lt;tag&gt;</c> then <c>feedback.&lt;kind&gt;</c>. Feedback templates may read the verdict's slots plus
 /// <c>{tag}</c>, <c>{expected}</c>, <c>{actual}</c> and, for recasts, <c>{recast}</c>; these reserved names override verdict slots of the same name.
 /// </summary>

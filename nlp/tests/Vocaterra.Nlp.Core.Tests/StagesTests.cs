@@ -84,7 +84,7 @@ public class StagesTests
         var spec = new PromptSpec("p1", RecognitionMode.Constrained, Difficulty.Beginner, "answers-1", ["greet", "offer_item"], null, ["qty"]);
         var json = CanonicalJson.Serialize(spec);
         Assert.Equal(
-            "{\"promptId\":\"p1\",\"mode\":\"Constrained\",\"difficulty\":\"Beginner\",\"answerSetId\":\"answers-1\",\"allowedIntentIds\":[\"greet\",\"offer_item\"],\"npcId\":null,\"slotGrammarIds\":[\"qty\"]}",
+            "{\"promptId\":\"p1\",\"mode\":\"Constrained\",\"difficulty\":\"Beginner\",\"answerSetId\":\"answers-1\",\"allowedIntentIds\":[\"greet\",\"offer_item\"],\"agentId\":null,\"slotGrammarIds\":[\"qty\"]}",
             json);
         var parsed = CanonicalJson.Deserialize<PromptSpec>(json);
         Assert.Equal(spec, parsed);

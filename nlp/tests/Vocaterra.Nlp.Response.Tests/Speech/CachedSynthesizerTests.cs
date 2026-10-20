@@ -22,7 +22,7 @@ public sealed class CachedSynthesizerTests : IDisposable
     {
         var inner = new SilentSynthesizer();
         var cached = new CachedSynthesizer(inner, new InMemorySynthesisCache());
-        var request = new SynthesisRequest("¿Tienes dos espadas?", "npc-1", null);
+        var request = new SynthesisRequest("¿Tienes dos espadas?", "agent-1", null);
 
         var first = cached.Synthesize(request);
         var second = cached.Synthesize(request);
@@ -80,7 +80,7 @@ public sealed class CachedSynthesizerTests : IDisposable
     [Fact]
     public void DirectoryCacheWritesWavFilesNamedByKeyAndServesThemToANewInstance()
     {
-        var request = new SynthesisRequest("¿Tienes dos espadas?", "npc-1", null);
+        var request = new SynthesisRequest("¿Tienes dos espadas?", "agent-1", null);
         var firstInner = new SilentSynthesizer();
         var produced = new CachedSynthesizer(firstInner, new DirectorySynthesisCache(_directory)).Synthesize(request);
 

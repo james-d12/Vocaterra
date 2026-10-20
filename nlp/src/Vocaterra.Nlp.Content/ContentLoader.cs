@@ -3,8 +3,8 @@ using System.Text;
 using System.Text.Json;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
+using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Feedback;
-using Vocaterra.Nlp.Decision.Npc;
 using Vocaterra.Nlp.Evaluation;
 using Vocaterra.Nlp.Nlp.Intent;
 using Vocaterra.Nlp.Nlp.Lexicon;
@@ -21,7 +21,7 @@ namespace Vocaterra.Nlp.Content;
 /// </summary>
 /// <remarks>
 /// Problems are collected, not thrown one at a time: a <see cref="ContentValidationException"/> lists everything wrong with the bundle.
-/// Cross-reference checks: every prompt's answer set, allowed intents, NPC and slot grammar ids exist; every NPC condition intent and dialogue
+/// Cross-reference checks: every prompt's answer set, allowed intents, agent and slot grammar ids exist; every agent condition intent and dialogue
 /// intent exists, and each variant pool is no larger than the dialogue pool it draws from; every effect intent exists; the dialogue catalog
 /// has a <c>not_understood</c> pool; every dialogue template renders against a sample slot map (see <c>SampleSlots</c>) using the
 /// bundle's own lexicon; provenance covers every file and a language-model draft is approved by a person.
@@ -66,7 +66,7 @@ public static class ContentLoader
             parts.AnswerSets,
             parts.Intents!,
             parts.Prompts,
-            parts.Npcs,
+            parts.Agents,
             parts.Dialogue!,
             parts.FeedbackPolicy!,
             parts.EvaluationConfig!,
@@ -168,7 +168,7 @@ public static class ContentLoader
         parts.Lexicon = ParseLexicon(files, parts, options, problems);
         parts.Prompts = ParseRequired(files, ContentPaths.Prompts, ParsePrompts, problems) ?? LoadedParts.EmptyMap<PromptSpec>();
         parts.AnswerSets = ParseFolder(files, ContentPaths.AnswerSetFolder, ".json", AnswerSet.FromJson, static set => set.AnswerSetId, "answerSetId", problems);
-        parts.Npcs = ParseFolder(files, ContentPaths.NpcFolder, ".json", NpcStateMachine.FromJson, static machine => machine.NpcId, "npcId", problems);
+        parts.Agents = ParseFolder(files, ContentPaths.AgentFolder, ".json", AgentStateMachine.FromJson, static machine => machine.AgentId, "agentId", problems);
         parts.Cefr = ParseCefr(files, problems);
         return parts;
     }
@@ -504,7 +504,7 @@ internal sealed class LoadedParts
 
     public IReadOnlyDictionary<string, AnswerSet> AnswerSets { get; set; } = EmptyMap<AnswerSet>();
 
-    public IReadOnlyDictionary<string, NpcStateMachine> Npcs { get; set; } = EmptyMap<NpcStateMachine>();
+    public IReadOnlyDictionary<string, AgentStateMachine> Agents { get; set; } = EmptyMap<AgentStateMachine>();
 
     public IReadOnlyDictionary<string, IReadOnlySet<string>> Cefr { get; set; } = EmptyMap<IReadOnlySet<string>>();
 

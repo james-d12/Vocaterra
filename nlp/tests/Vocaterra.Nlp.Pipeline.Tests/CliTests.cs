@@ -39,21 +39,21 @@ public class CliTests
         Assert.True(verdict.RootElement.GetProperty("communicated").GetBoolean());
         var tags = verdict.RootElement.GetProperty("errors").EnumerateArray().Select(static e => e.GetProperty("tag").GetString()!).ToArray();
         Assert.Equal(["conj.person", "noun.number"], tags);
-        Assert.Contains(lines, static line => line.StartsWith("npc: ", StringComparison.Ordinal) && line.Contains("tienes dos espadas", StringComparison.Ordinal));
+        Assert.Contains(lines, static line => line.StartsWith("agent: ", StringComparison.Ordinal) && line.Contains("tienes dos espadas", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void EvalStartsTheNpcInItsInitialStateAndAnswersTheTradeWithoutAnNpcStateOption()
+    public void EvalStartsTheAgentInItsInitialStateAndAnswersTheExchangeWithoutAnAgentStateOption()
     {
         var (code, output, _) = Run(Eval());
 
         Assert.Equal(CliProgram.ExitOk, code);
-        var replies = output.Split('\n').Where(static line => line.StartsWith("npc: ", StringComparison.Ordinal)).ToArray();
+        var replies = output.Split('\n').Where(static line => line.StartsWith("agent: ", StringComparison.Ordinal)).ToArray();
         Assert.Equal(2, replies.Length);
-        Assert.Equal("npc: Ah, ¿tienes dos espadas? ¡Muy bien!", replies[0]);
+        Assert.Equal("agent: Ah, ¿tienes dos espadas? ¡Muy bien!", replies[0]);
         Assert.Contains(
             replies[1],
-            new[] { "npc: ¡Dos espadas! Trato hecho.", "npc: Vale, dos espadas. Gracias, amigo.", "npc: Muy bien: dos espadas. Aquí tienes tu dinero." });
+            new[] { "agent: ¡Dos espadas! Trato hecho.", "agent: Vale, dos espadas. Gracias, amigo.", "agent: Muy bien: dos espadas. Aquí tienes tu dinero." });
         Assert.DoesNotContain("qué dices", output, StringComparison.Ordinal);
     }
 
@@ -68,12 +68,12 @@ public class CliTests
         Assert.True(verdict.RootElement.GetProperty("communicated").GetBoolean());
         Assert.Equal("unknown", verdict.RootElement.GetProperty("intent").GetString());
         Assert.Equal("Exact", verdict.RootElement.GetProperty("resolvedBy").GetString());
-        Assert.Contains(lines, static line => line is "npc: ¡Correcto!" or "npc: ¡Muy bien!" or "npc: ¡Exacto!");
+        Assert.Contains(lines, static line => line is "agent: ¡Correcto!" or "agent: ¡Muy bien!" or "agent: ¡Exacto!");
         Assert.DoesNotContain(lines, static line => line.StartsWith("repair:", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void EvalOfABareSpellNameCastsTheSpellAtFullPower()
+    public void EvalOfABareSampleNameFillsTheSlotAtFullPower()
     {
         var (code, output, _) = Run("eval", "--transcript", "fuego", "--prompt", "spell-cast-constrained", "--content", TestSupport.BundleDir);
 
@@ -96,12 +96,12 @@ public class CliTests
     }
 
     [Fact]
-    public void EvalHonoursTheNpcStateAndRepeatCounts()
+    public void EvalHonoursTheAgentStateAndRepeatCounts()
     {
-        var (code, output, _) = Run(Eval("--npc-state", "trading", "--repeat", "conj.person=2"));
+        var (code, output, _) = Run(Eval("--agent-state", "trading", "--repeat", "conj.person=2"));
 
         Assert.Equal(CliProgram.ExitOk, code);
-        Assert.Contains("npc: Mmm, ¿seguro?", output, StringComparison.Ordinal);
+        Assert.Contains("agent: Mmm, ¿seguro?", output, StringComparison.Ordinal);
         Assert.DoesNotContain("tienes dos espadas", output, StringComparison.Ordinal);
     }
 
@@ -116,7 +116,7 @@ public class CliTests
     }
 
     [Fact]
-    public void EvalPrintsGameEffects()
+    public void EvalPrintsResolvedEffects()
     {
         var (_, output, _) = Run("eval", "--transcript", "quiero comprar una espada", "--prompt", "buy-item-open", "--content", TestSupport.BundleDir);
 
@@ -196,7 +196,7 @@ public class CliTests
         using var temp = new TempFile();
 
         var eval = Run(Eval("--replay-out", temp.Path, "--seed", "9", "--counter", "4"));
-        var evalAgain = Run(Eval("--replay-out", temp.Path, "--npc-state", "idle"));
+        var evalAgain = Run(Eval("--replay-out", temp.Path, "--agent-state", "idle"));
         var replay = Run("replay", temp.Path, "--content", TestSupport.BundleDir);
 
         Assert.Equal(CliProgram.ExitOk, eval.Code);

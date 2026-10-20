@@ -8,7 +8,7 @@ using Vocaterra.Nlp.Nlp.Lexicon;
 using Vocaterra.Nlp.Nlp.SlotGrammar;
 
 /// <summary>
-/// The set of intents a game knows, loaded from canonical JSON:
+/// The set of intents the content defines, loaded from canonical JSON:
 /// <c>{ "schemaVersion": 1, "intents": [ { "intentId", "requiredSlots", "slotGrammars", "keywordRules", "examples" } ] }</c>.
 /// </summary>
 /// <remarks>

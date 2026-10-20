@@ -161,7 +161,7 @@ public class CanonicalJsonTests
         var record = new ReplayRecord("clip", "prompt-1", "state", new VersionStamp("c", new Dictionary<string, string> { ["m"] = "1" }), SampleVerdict());
         var json = record.Serialize();
         Assert.Equal(CanonicalJson.Serialize(record), json);
-        Assert.StartsWith("{\"clipHash\":\"clip\",\"promptId\":\"prompt-1\",\"gameStateHash\":\"state\",\"versions\":", json, StringComparison.Ordinal);
+        Assert.StartsWith("{\"clipHash\":\"clip\",\"promptId\":\"prompt-1\",\"hostStateHash\":\"state\",\"versions\":", json, StringComparison.Ordinal);
         var parsed = ReplayRecord.Deserialize(json);
         Assert.Equal(record, parsed);
         Assert.Equal(json, parsed.Serialize());

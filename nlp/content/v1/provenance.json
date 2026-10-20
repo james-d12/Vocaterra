@@ -16,7 +16,7 @@
     { "path": "lexicon/supplement.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "lexicon/wiktionary-es.json", "generatedBy": "wiktionary-import", "approvedBy": null, "approvedOn": null },
     { "path": "lexicon/wiktionary-es.source.json", "generatedBy": "wiktionary-import", "approvedBy": null, "approvedOn": null },
-    { "path": "npcs/blacksmith.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "agents/blacksmith.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "prompts/prompts.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null }
   ]
 }

@@ -3,7 +3,7 @@
 Combinatorial, property-based fuzz testing for the voice pipeline, modelled on `CodeGuard.RuleFuzzing.Tests`. The design is
 `docs/FUZZING_PLAN.md` (generators, oracles O1 to O16, tolerances, iteration budgets). In short: every generator walks **our own
 catalogs** (the lexicon, the `IntentCatalog` grammars, `ErrorTags.All`, the `DialogueCatalog` templates, the `AnswerSet`s and the JSON files
-of `content/v1`, `PhoneInventory`, `DialectConfig.AllShipped`, the NPC definitions), mixes benign and adversarial inputs 3 to 1, and runs them
+of `content/v1`, `PhoneInventory`, `DialectConfig.AllShipped`, the agent definitions), mixes benign and adversarial inputs 3 to 1, and runs them
 through the real stages looking for crashes, drift between components that must agree, and broken determinism. Because the generators read the
 catalogs, new content widens the coverage with no test edits. Everything runs in process with fakes for the model-backed stages
 (`ScriptedWordRecognizer`, `FakePhonemeRecognizer`, `FakeEmbeddingModel`, `SilentSynthesizer`); no model file is needed.
@@ -24,7 +24,7 @@ development machine (4 cores), with the project already built: **about 17 s wall
 same project takes **18.7 to 20.3 s** on a 16-logical-core machine (three runs; the previous tree timed interleaved with it: 17.1 to 18.2 s), and the whole
 solution's `dotnet test --no-build` takes 24.6 to 25.5 s (previous tree: 20.5 to 21.0 s). After M18 (the part-of-speech resolver, below) the same project takes **19.4 to 22.3 s (11 runs)** on the same machine (before it, measured the same day: **18.7 to 24.1 s (7 runs; four of them interleaved with the new tree, which was 20.1 to 22.3 s in the same interleaving)**), and the whole solution's `dotnet test --no-build` takes **24.6 to 25.4 s (three runs; the M17a figure was 24.6 to 25.5 s)**. xUnit runs the test classes in parallel, so the wall time is that
 of the slowest chain, not the sum (about 70 s of test time in all). The slowest facts in that parallel run are O13's valid clips (about 13 s), O8
-(9 s), the NPC fact of O11 (6 s), O14 (6 s and 4 s) and O15; alone each takes between a third and a half of that.
+(9 s), the agent fact of O11 (6 s), O14 (6 s and 4 s) and O15; alone each takes between a third and a half of that.
 
 | Oracle | What it checks | File | Default iterations | Env var |
 | --- | --- | --- | --- | --- |
@@ -38,7 +38,7 @@ of the slowest chain, not the sum (about 70 s of test time in all). The slowest 
 | O8 | G2P: phones in the inventory, syllables partition each word and own the phones, one stressed syllable per word, deterministic, IPA string splits back, dialects differ only at dialect sites, predicted errors are one edit away | `G2pFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
 | O9 | Pronunciation scoring: perfect posteriors score 1 and tag nothing, one injected predicted error gives exactly that tag at that grapheme span, scores and confidence in [0, 1], deterministic, CTC segments ordered and disjoint | `PronunciationFuzzTests` | 1 000 (two facts) | `VOCATERRA_FUZZ_ITERATIONS_SIGNAL` |
 | O10 | Verdict assembly follows its documented rules; order of unordered inputs does not matter; JSON round trip | `VerdictAssemblyFuzzTests` | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
-| O11 | Decision layer: NPC step agrees with the documented rules, lands in a declared state, draws variants in range, same seed same path, defective definitions rejected with `InvalidDataException`; BKT follows its formula; FSRS stays positive, schedules ahead and orders the ratings; feedback plans follow the rule precedence | `DecisionFuzzTests` | 3 000 (six facts) | `VOCATERRA_FUZZ_ITERATIONS` |
+| O11 | Decision layer: agent step agrees with the documented rules, lands in a declared state, draws variants in range, same seed same path, defective definitions rejected with `InvalidDataException`; BKT follows its formula; FSRS stays positive, schedules ahead and orders the ratings; feedback plans follow the rule precedence | `DecisionFuzzTests` | 3 000 (six facts) | `VOCATERRA_FUZZ_ITERATIONS` |
 | O12 | Every template renders clean text; only the missing-slot `TemplateException`; stable seeded selection; planner | `TemplateFuzzTests` | 2 000 (three facts) | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O13 | Audio front-end: `WavFile.Read` throws only `InvalidDataException` / `NotSupportedException` on damaged bytes; a valid clip reads back exactly and survives write and read; `Process` agrees with the stages composed by hand (downmix, resampled length, gain, VAD slice, hash) | `AudioFrontEndFuzzTests` | 1 000 (two facts) | `VOCATERRA_FUZZ_ITERATIONS_SIGNAL` |
 | O14 | Pipeline end to end: never throws, deterministic on fresh instances (and under the other recognizer scheduling), verdict and decision agree with the stages called by hand, the envelope round-trips and replays clean, changing one recorded output gives exactly that replay diff | `PipelineFuzzTests` | 300 (two facts) | `VOCATERRA_FUZZ_ITERATIONS_PIPELINE` |
@@ -99,12 +99,14 @@ code comments and here, with the reason:
   header says a sample rate outside 1 kHz to 192 kHz is read (the reader's contract holds) but not run through the front-end (see the resampler
   finding below).
 - **O14.** "Mutating any envelope field gives a diff naming that path" holds for the fields the replayer compares: the record (`/clipHash`,
-  `/versions/...`, `/verdict/...`, `/gameStateHash`) and the downstream parts of the result (`/decision`, `/response`, `/effects`, `/repair`); one
-  changed value gives exactly one reported pointer. The fields it reads back as inputs (the asr and phoneme recordings, the game context, the prompt
+  `/versions/...`, `/verdict/...`, `/hostStateHash`) and the downstream parts of the result (`/decision`, `/response`, `/effects`, `/repair`); one
+  changed value gives exactly one reported pointer. The fields it reads back as inputs (the asr and phoneme recordings, the conversation context, the prompt
   id and the phoneme model hash of the record) change the replayed result instead of being compared with it, and the copies `result/verdict` and
   `result/replay` are not compared at all (known findings below).
 - **O15.** "Every mutation makes the loader throw" holds for every mutation of a value the loader must read: a dangling reference, an unknown
-  enumeration value, a duplicated id and a flipped byte are never accepted. Dropping or retyping a field the loader does not require may leave a
+  enumeration value, a duplicated id and a flipped byte are never accepted. (Since M19a an effect's `kind` is an opaque outcome kind, not an
+  enumeration, so it is no longer among the enumerated fields: an unknown kind is a valid kind. An empty kind is refused by the effect table.)
+  Dropping or retyping a field the loader does not require may leave a
   loadable bundle; `KnownTolerances.AcceptedContentField` lists those places (optional by design, or a silent default; known findings below) and an
   accepted mutation anywhere else fails. "Naming the mutated path" holds for those four kinds; removing or retyping a definition (an intent's
   grammars, an answer set's id) is reported in the file that uses it, so for those kinds any bundle file may be named.
@@ -166,10 +168,10 @@ content oracle writes each mutated bundle to its own directory under the system 
   - `VerdictGen` - random stage results within the contract ranges, including exact-threshold confidences.
   - `AudioGen` - `WavData` at 8 000 to 96 000 Hz, mono and stereo, PCM16 and float32, three header layouts (canonical, odd-sized extra chunks, `WAVE_FORMAT_EXTENSIBLE`), 0 ms to 5 s, from silence to clipped noise; white noise is drawn from the CsCheck generator; byte damage (truncate, corrupt a header byte, wrong chunk size) of valid files. `WavBuilder` writes the files independently of `WavFile.Write`.
   - `PhoneGen` - phone sequences of one to twenty inventory phones and phrases from the lexicon, posteriors through `FakePhonemeRecognizer.FromPhones` and `FromMumbled`, confusions from the predicted-error table (`ɾ→ɹ`, `r→ɹ`, `a→ə`, `e→eɪ`, `o→oʊ`, an inserted `h`), frame layouts, mumbled frames, dialects.
-  - `DecisionGen` - NPC definitions (the bundle's, random valid ones, valid ones with one defect), BKT parameters, FSRS review scripts, feedback policies, repeat counts.
+  - `DecisionGen` - agent definitions (the bundle's, random valid ones, valid ones with one defect), BKT parameters, FSRS review scripts, feedback policies, repeat counts.
   - `ContentMutationGen` - walks the JSON files of `content/v1` and applies exactly one mutation: remove a property, change a value's JSON kind, point a reference at a fresh id, give an enumerated field an unknown value, duplicate an element that has an id, flip a byte without touching the manifest. The manifest is recomputed for every kind but the byte flip (the committed manifest with the entry of the one mutated file replaced), so the loader's schema and reference checks run and not only its hash check. Files over 1 MB (the imported lexicon) are not walked for structural mutations, because they have the schema of the small lexicon files and writing them back costs more than everything else; a flipped byte still reaches them.
-  - `PipelineGen` - one pipeline run: a transcript from a correct sentence of the prompt's own grammars, a mutated sentence, an answer, free text or an adversarial string, plus prompt, NPC, state, counter, seeds, learner, repeat counts and options.
-- `Oracles/` - `PipelineHarness` (bundle plus fakes wired once, with builders for services, pipeline, `GameContext`, prompts), `KnownTolerances`, `Determinism`.
+  - `PipelineGen` - one pipeline run: a transcript from a correct sentence of the prompt's own grammars, a mutated sentence, an answer, free text or an adversarial string, plus prompt, agent, state, counter, seeds, learner, repeat counts and options.
+- `Oracles/` - `PipelineHarness` (bundle plus fakes wired once, with builders for services, pipeline, `ConversationContext`, prompts), `KnownTolerances`, `Determinism`.
 - `*FuzzTests.cs` - one file per oracle.
 
 ### How the sentence generator stays honest
@@ -198,8 +200,8 @@ than one way and only the extracted values are checked against the words of the 
 ### How the stage-2 generators stay honest
 
 Every stage-2 oracle prints diagnostics and asserts a minimum of each situation it claims to cover (every signal kind and sample rate, both VAD
-outcomes, both reader outcomes for every kind of byte damage, every kind of injected pronunciation error, NPC steps that draw a variant and that
-do not, plans of every size, every mutation kind, the pipeline with and without phonemes, with and without an NPC step, with and without a repair
+outcomes, both reader outcomes for every kind of byte damage, every kind of injected pronunciation error, agent steps that draw a variant and that
+do not, plans of every size, every mutation kind, the pipeline with and without phonemes, with and without an agent step, with and without a repair
 step). The minimums scale down when a smaller iteration count is requested.
 
 ## Bounds the suite needs
@@ -356,13 +358,13 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   right behaviour, and why O14's replay pipeline is built with the recording's embedder setting). A tampered log is outside the threat model;
   checking that `result/replay` equals `record` when the log is read would close the first gap.
 - **Optional pieces of content are optional by design:** the `answer_accepted` and `feedback.*` dialogue pools (the pipeline falls back to the
-  generic pool or to no feedback line), answer aliases and dialects, lexicon features, intent examples and keyword rules, NPC `fallback`,
-  `gameEvent`, `variantPoolId` and the `communicated`/`intent` conditions, the per-tag error weights, provenance approvals. Removing one loads
+  generic pool or to no feedback line), answer aliases and dialects, lexicon features, intent examples and keyword rules, agent `fallback`,
+  `hostEvent`, `variantPoolId` and the `communicated`/`intent` conditions, the per-tag error weights, provenance approvals. Removing one loads
   (`Optional` rows of the same list).
 - **A numeral next to `un`/`una`/`uno` is one number when spoken** (`cuatrocientos una` is 401, `una mil` is 1000), and two numerals in
   a row recast as `un una`. These are properties of the language, so the sentence generator does not produce them (`skip:numeral-next-to-article`,
   `skip:adjacent-numerals`).
-- `NpcDefinition` is a plain record over lists, so it has no value equality; O16 compares its JSON only.
+- `AgentDefinition` is a plain record over lists, so it has no value equality; O16 compares its JSON only.
 
 ## Adding to the suite
 

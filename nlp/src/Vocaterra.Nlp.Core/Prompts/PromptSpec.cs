@@ -9,7 +9,7 @@ public sealed record PromptSpec(
     Difficulty Difficulty,
     string AnswerSetId,
     IReadOnlyList<string> AllowedIntentIds,
-    string? NpcId,
+    string? AgentId,
     IReadOnlyList<string> SlotGrammarIds)
 {
     /// <summary>Structural equality including list contents.</summary>
@@ -21,7 +21,7 @@ public sealed record PromptSpec(
             && Difficulty == other.Difficulty
             && string.Equals(AnswerSetId, other.AnswerSetId, StringComparison.Ordinal)
             && ValueEquality.ListEquals(AllowedIntentIds, other.AllowedIntentIds)
-            && string.Equals(NpcId, other.NpcId, StringComparison.Ordinal)
+            && string.Equals(AgentId, other.AgentId, StringComparison.Ordinal)
             && ValueEquality.ListEquals(SlotGrammarIds, other.SlotGrammarIds);
     }
 
@@ -34,7 +34,7 @@ public sealed record PromptSpec(
         hash.Add(Difficulty);
         hash.Add(AnswerSetId);
         ValueEquality.AddList(ref hash, AllowedIntentIds);
-        hash.Add(NpcId);
+        hash.Add(AgentId);
         ValueEquality.AddList(ref hash, SlotGrammarIds);
         return hash.ToHashCode();
     }

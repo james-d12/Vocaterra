@@ -47,11 +47,11 @@ public static class Replayer
 
     /// <summary>
     /// Replays a bare core record through the pipeline's own recognizers (so real models re-run on the clip returned by
-    /// <paramref name="clipByHash"/>) in the given game context, and compares the new core record with the recorded one.
+    /// <paramref name="clipByHash"/>) in the given conversation context, and compares the new core record with the recorded one.
     /// </summary>
     /// <returns>Null when the records are identical; otherwise the JSON pointer paths that differ.</returns>
     /// <exception cref="InvalidDataException">The recorded prompt id is not in the pipeline's content bundle.</exception>
-    public static ReplayDiff? Replay(ReplayRecord record, GameContext context, UtterancePipeline pipeline, Func<string, PcmClip> clipByHash)
+    public static ReplayDiff? Replay(ReplayRecord record, ConversationContext context, UtterancePipeline pipeline, Func<string, PcmClip> clipByHash)
     {
         ArgumentNullException.ThrowIfNull(record);
         ArgumentNullException.ThrowIfNull(context);
@@ -74,7 +74,7 @@ public static class Replayer
     private sealed record Downstream(
         DecisionOutcome Decision,
         ResponsePlan Response,
-        IReadOnlyList<GameEffect> Effects,
+        IReadOnlyList<ResolvedEffect> Effects,
         RepairStep? Repair)
     {
         public static Downstream Of(PipelineResult result)

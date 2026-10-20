@@ -2,8 +2,8 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Feedback;
-using Vocaterra.Nlp.Decision.Npc;
 using Vocaterra.Nlp.Decision.Scheduling;
 using Vocaterra.Nlp.Nlp.Intent;
 using Vocaterra.Nlp.Nlp.Matching;
@@ -17,17 +17,17 @@ public sealed partial class UtterancePipeline
     private const string SilentLineId = "__silent__.1";
     private const string PronunciationTagPrefix = "pron.";
 
-    /// <summary>Dialogue pool voiced when a prompt without an NPC is answered acceptably (an answer-only prompt such as a quiz).</summary>
+    /// <summary>Dialogue pool voiced when a prompt without an agent is answered acceptably (an answer-only prompt such as a quiz).</summary>
     public const string AnswerAcceptedPool = "answer_accepted";
 
-    // Decision layer: NPC step, learner update, FSRS rating and feedback plan. Pure; the only randomness is the seeded NPC stream.
-    private DecisionOutcome Decide(Verdict verdict, PromptSpec prompt, GameContext context)
+    // Decision layer: agent step, learner update, FSRS rating and feedback plan. Pure; the only randomness is the seeded agent stream.
+    private DecisionOutcome Decide(Verdict verdict, PromptSpec prompt, ConversationContext context)
     {
         var content = _services.Content;
-        NpcStepResult? step = null;
-        if (content.Npcs.TryGetValue(context.NpcId, out var machine))
+        AgentStepResult? step = null;
+        if (content.Agents.TryGetValue(context.AgentId, out var machine))
         {
-            step = machine.Step(context.NpcState, verdict, NewRng(context));
+            step = machine.Step(context.AgentState, verdict, NewRng(context));
         }
 
         IReadOnlyList<string> skills = verdict.Intent.IsUnknown ? [] : [$"intent.{verdict.Intent.Value}"];
@@ -37,9 +37,9 @@ public sealed partial class UtterancePipeline
         return new DecisionOutcome(step, learner, rating, feedback);
     }
 
-    // Response realization: the reply comes from the NPC's actions (honouring their variant draws); the first feedback item is voiced as well.
-    // Without an NPC step (a prompt that is not a conversation, such as casting a spell) nobody replies, so only feedback is voiced.
-    // The exception is an acceptable answer to a prompt that has no NPC (a quiz): it is acknowledged from the answer_accepted pool when the bundle has one.
+    // Response realization: the reply comes from the agent's actions (honouring their variant draws); the first feedback item is voiced as well.
+    // Without an agent step (a prompt that is not a conversation, such as casting a spell) nobody replies, so only feedback is voiced.
+    // The exception is an acceptable answer to a prompt that has no agent (a quiz): it is acknowledged from the answer_accepted pool when the bundle has one.
     private ResponsePlan Respond(
         Verdict verdict,
         PromptSpec prompt,
@@ -47,22 +47,22 @@ public sealed partial class UtterancePipeline
         NormalizedText normalized,
         AnalysisResult analysis,
         MatchResult match,
-        GameContext context)
+        ConversationContext context)
     {
         var content = _services.Content;
         var (request, recast) = BuildFeedback(decision.Feedback, normalized, analysis, match, content.AnswerSets, content.Lexicon);
-        if (prompt.NpcId is null && IsAcceptedAnswer(verdict) && content.Dialogue.TryGetPool(AnswerAcceptedPool, out _))
+        if (prompt.AgentId is null && IsAcceptedAnswer(verdict) && content.Dialogue.TryGetPool(AnswerAcceptedPool, out _))
         {
             return PlanWithFallback(verdict, request, recast, AnswerAcceptedPool, content.Dialogue, context);
         }
 
-        if (decision.Npc is null)
+        if (decision.Agent is null)
         {
             var feedbackOnly = PlanWithFallback(verdict, request, recast, SilentIntent, _catalogWithSilence, context);
             return new ResponsePlan(feedbackOnly.Lines.Where(static line => !string.Equals(line.LineId, SilentLineId, StringComparison.Ordinal)).ToArray());
         }
 
-        var actions = decision.Npc.Actions;
+        var actions = decision.Agent.Actions;
         var dialogueIntent = actions.Count > 0 ? actions[0].DialogueIntent : null;
         var plan = PlanWithFallback(verdict, request, recast, dialogueIntent, content.Dialogue, context);
         return actions.Count == 0 ? plan : ApplyActions(plan, actions, verdict, context);
@@ -83,14 +83,14 @@ public sealed partial class UtterancePipeline
     }
 
     // A feedback template may need a slot the verdict does not have (a recast that conjugates {verb}). Try the specific pool first, then the
-    // generic pool of the same kind, then no feedback at all, so a content gap never takes the NPC's reply away.
+    // generic pool of the same kind, then no feedback at all, so a content gap never takes the agent's reply away.
     private ResponsePlan PlanWithFallback(
         Verdict verdict,
         FeedbackRequest? request,
         string? recast,
         string? dialogueIntent,
         DialogueCatalog dialogue,
-        GameContext context)
+        ConversationContext context)
     {
         try
         {
@@ -109,8 +109,8 @@ public sealed partial class UtterancePipeline
         }
     }
 
-    // Replaces the planner's own variant draw with the NPC's draw (NpcAction.VariantIndex) and voices any further actions after the reply.
-    private ResponsePlan ApplyActions(ResponsePlan plan, IReadOnlyList<NpcAction> actions, Verdict verdict, GameContext context)
+    // Replaces the planner's own variant draw with the agent's draw (AgentAction.VariantIndex) and voices any further actions after the reply.
+    private ResponsePlan ApplyActions(ResponsePlan plan, IReadOnlyList<AgentAction> actions, Verdict verdict, ConversationContext context)
     {
         var lines = new List<ResponseLine>(plan.Lines);
         var replyIndex = lines.Count > 1 && lines[0].IsRecast ? 1 : 0;
@@ -170,7 +170,7 @@ public sealed partial class UtterancePipeline
 
         if (expected.Length == 0 && needsExpected)
         {
-            // Nothing to model or correct: the repair step carries the NPC's reaction instead.
+            // Nothing to model or correct: the repair step carries the agent's reaction instead.
             return (null, null);
         }
 
@@ -207,7 +207,7 @@ public sealed partial class UtterancePipeline
         };
     }
 
-    private static RepairStep? RepairFor(Verdict verdict, PromptSpec prompt, AnswerSet answerSet, GameContext context)
+    private static RepairStep? RepairFor(Verdict verdict, PromptSpec prompt, AnswerSet answerSet, ConversationContext context)
     {
         if (verdict.Communicated)
         {
@@ -218,8 +218,8 @@ public sealed partial class UtterancePipeline
         return RepairStrategy.Next(Math.Max(1, seen), prompt, answerSet.GrammarPhrases());
     }
 
-    private static SeededRng NewRng(GameContext context)
+    private static SeededRng NewRng(ConversationContext context)
     {
-        return SeededRng.ForInteraction(context.WorldSeed, context.NpcId, context.NpcState.InteractionCounter);
+        return SeededRng.ForInteraction(context.WorldSeed, context.AgentId, context.AgentState.InteractionCounter);
     }
 }

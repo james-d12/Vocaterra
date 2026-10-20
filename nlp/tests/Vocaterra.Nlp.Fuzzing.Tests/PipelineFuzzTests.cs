@@ -8,8 +8,8 @@ using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Replay;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Feedback;
-using Vocaterra.Nlp.Decision.Npc;
 using Vocaterra.Nlp.Decision.Scheduling;
 using Vocaterra.Nlp.Evaluation;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
@@ -34,7 +34,7 @@ namespace Vocaterra.Nlp.Fuzzing.Tests;
 /// </summary>
 /// <remarks>
 /// Not every envelope field can be named by the replayer, and the oracle says so instead of pretending: fields it reads back as inputs (the asr and
-/// phoneme recordings, the game context except its hash, the prompt id and the phoneme model hash of the record) change the replayed result rather than
+/// phoneme recordings, the conversation context except its hash, the prompt id and the phoneme model hash of the record) change the replayed result rather than
 /// being compared with it, and the duplicate copies <c>result/verdict</c> and <c>result/replay</c> of the record are never compared (README, known findings).
 /// </remarks>
 public sealed class PipelineFuzzTests(ITestOutputHelper output)
@@ -81,7 +81,7 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
                 diagnostics.Count($"source:{c.Source.Split(':')[0]}");
                 diagnostics.Count(trace.Result.Verdict.Communicated ? "verdict:communicated" : "verdict:not-communicated");
                 diagnostics.Count(c.Phonemes ? "phonemes:on" : "phonemes:off");
-                diagnostics.Count(trace.Result.Decision.Npc is null ? "npc:none" : "npc:step");
+                diagnostics.Count(trace.Result.Decision.Agent is null ? "agent:none" : "agent:step");
                 diagnostics.Count(trace.Result.Repair is null ? "repair:none" : "repair:step");
                 diagnostics.Count(trace.Result.Verdict.Errors.Count > 0 ? "verdict:errors" : "verdict:clean");
             },
@@ -91,7 +91,7 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
 
         output.WriteLine("Pipeline diagnostics:\n" + diagnostics.Report());
         var minimum = Math.Max(1, Math.Min(10, iterations / 30));
-        foreach (var key in new[] { "source:correct", "source:mutated", "source:answer", "source:text", "verdict:communicated", "verdict:not-communicated", "phonemes:on", "npc:none", "npc:step", "repair:step", "verdict:errors", "verdict:clean" })
+        foreach (var key in new[] { "source:correct", "source:mutated", "source:answer", "source:text", "verdict:communicated", "verdict:not-communicated", "phonemes:on", "agent:none", "agent:step", "repair:step", "verdict:errors", "verdict:clean" })
         {
             Assert.True(diagnostics.Get(key) >= minimum, $"The generator no longer reaches {key}.\n{diagnostics.Report()}");
         }
@@ -140,24 +140,24 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
 
     // ---- Running ----------------------------------------------------------------------------------------------------------------
 
-    private static (UtterancePipeline Pipeline, PromptSpec Prompt, GameContext Context, PcmClip Clip) Prepare(PipelineCase c)
+    private static (UtterancePipeline Pipeline, PromptSpec Prompt, ConversationContext Context, PcmClip Clip) Prepare(PipelineCase c)
     {
         var prompt = Harness.Prompt(c.PromptId);
         var services = Harness.NewServices(c.Transcript, prompt.Mode, c.Phonemes, c.Embeddings);
         var options = new PipelineOptions { PronunciationMode = c.PronunciationMode, RunRecognizersConcurrently = c.Concurrent };
-        var context = GameContext.Create(c.WorldSeed, c.NpcId, new NpcState(c.NpcId, c.StateId, c.Counter), new StoredTimestamp(PipelineHarness.FixedNow), c.Learner, c.Repeats);
+        var context = ConversationContext.Create(c.WorldSeed, c.AgentId, new AgentState(c.AgentId, c.StateId, c.Counter), new StoredTimestamp(PipelineHarness.FixedNow), c.Learner, c.Repeats);
         return (new UtterancePipeline(services, options), prompt, context, PipelineHarness.Clip());
     }
 
     // ---- Structure and decision ------------------------------------------------------------------------------------------------
 
-    private static void CheckStructure(PipelineCase c, PipelineTrace trace, PcmClip clip, PromptSpec prompt, GameContext context)
+    private static void CheckStructure(PipelineCase c, PipelineTrace trace, PcmClip clip, PromptSpec prompt, ConversationContext context)
     {
         var result = trace.Result;
         var replay = result.Replay;
-        if (replay.ClipHash != clip.ClipHash || replay.PromptId != prompt.PromptId || replay.GameStateHash != context.GameStateHash || !replay.Verdict.Equals(result.Verdict))
+        if (replay.ClipHash != clip.ClipHash || replay.PromptId != prompt.PromptId || replay.HostStateHash != context.HostStateHash || !replay.Verdict.Equals(result.Verdict))
         {
-            throw Determinism.Fail(Oracle, "The replay record does not carry the clip hash, prompt id, game state hash and verdict of the run.", c);
+            throw Determinism.Fail(Oracle, "The replay record does not carry the clip hash, prompt id, host state hash and verdict of the run.", c);
         }
 
         var effectIds = result.Effects.Select(static e => e.EffectId).ToArray();
@@ -184,23 +184,23 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
         }
     }
 
-    // The decision layer's pieces restated: the NPC step for the context's seed, the learner update, the rating and the feedback plan.
-    private static void CheckDecision(PipelineCase c, PipelineTrace trace, UtterancePipeline pipeline, PromptSpec prompt, GameContext context)
+    // The decision layer's pieces restated: the agent step for the context's seed, the learner update, the rating and the feedback plan.
+    private static void CheckDecision(PipelineCase c, PipelineTrace trace, UtterancePipeline pipeline, PromptSpec prompt, ConversationContext context)
     {
         var verdict = trace.Result.Verdict;
         var decision = trace.Result.Decision;
         var bundle = pipeline.Services.Content;
-        if (bundle.Npcs.TryGetValue(context.NpcId, out var machine))
+        if (bundle.Agents.TryGetValue(context.AgentId, out var machine))
         {
-            var expectedStep = machine.Step(context.NpcState, verdict, SeededRng.ForInteraction(context.WorldSeed, context.NpcId, context.NpcState.InteractionCounter));
-            if (decision.Npc is null || !decision.Npc.Equals(expectedStep))
+            var expectedStep = machine.Step(context.AgentState, verdict, SeededRng.ForInteraction(context.WorldSeed, context.AgentId, context.AgentState.InteractionCounter));
+            if (decision.Agent is null || !decision.Agent.Equals(expectedStep))
             {
-                throw Determinism.Fail(Oracle, $"The NPC step {CanonicalJson.Serialize(decision.Npc)} differs from the state machine's {CanonicalJson.Serialize(expectedStep)}.", c);
+                throw Determinism.Fail(Oracle, $"The agent step {CanonicalJson.Serialize(decision.Agent)} differs from the state machine's {CanonicalJson.Serialize(expectedStep)}.", c);
             }
         }
-        else if (decision.Npc is not null)
+        else if (decision.Agent is not null)
         {
-            throw Determinism.Fail(Oracle, $"An NPC step was taken for '{context.NpcId}', which the bundle has no machine for.", c);
+            throw Determinism.Fail(Oracle, $"An agent step was taken for '{context.AgentId}', which the bundle has no machine for.", c);
         }
 
         var skills = verdict.Intent.IsUnknown ? Array.Empty<string>() : [$"intent.{verdict.Intent.Value}"];
@@ -299,7 +299,7 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
 
     // ---- Replay ------------------------------------------------------------------------------------------------------------------
 
-    private static void CheckReplay(PipelineCase c, PipelineTrace trace, UtterancePipeline pipeline, PcmClip clip, GameContext context)
+    private static void CheckReplay(PipelineCase c, PipelineTrace trace, UtterancePipeline pipeline, PcmClip clip, ConversationContext context)
     {
         var envelope = ReplayEnvelope.From(trace, context);
         var candidates = new List<ReplayEnvelope> { envelope };
@@ -425,7 +425,7 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
     // ---- JSON helpers -------------------------------------------------------------------------------------------------------------
 
     // The leaves the replayer compares with the replay: the record (but not the prompt id and the phoneme model hash it reads back as inputs),
-    // the downstream parts of the result, and the game state hash of the context (copied into the record).
+    // the downstream parts of the result, and the host state hash of the context (copied into the record).
     private static bool IsComparedOutput(string[] path)
     {
         if (path.Length == 0)
@@ -441,13 +441,13 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
             case "result":
                 return path.Length > 1 && path[1] is "decision" or "response" or "effects" or "repair";
             case "context":
-                return path.Length == 2 && path[1] == "gameStateHash";
+                return path.Length == 2 && path[1] == "hostStateHash";
             default:
                 return false;
         }
     }
 
-    // The pointer the replayer reports: record paths and context.gameStateHash are compared with the replayed record, result paths with the
+    // The pointer the replayer reports: record paths and context.hostStateHash are compared with the replayed record, result paths with the
     // replayed downstream parts, both without their top-level segment (RFC 6901 escapes for ~ and /).
     private static string ExpectedPointer(string[] path)
     {

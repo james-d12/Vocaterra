@@ -3,9 +3,9 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Feedback;
 using Vocaterra.Nlp.Decision.Learning;
-using Vocaterra.Nlp.Decision.Npc;
 using Vocaterra.Nlp.Decision.Scheduling;
 using Vocaterra.Nlp.Evaluation;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Nlp.Fuzzing.Tests;
 
 /// <summary>
-/// O11: the decision layer. An NPC step never throws, lands in a declared state, advances the counter by one, draws variants below the pool size
+/// O11: the decision layer. An agent step never throws, lands in a declared state, advances the counter by one, draws variants below the pool size
 /// and agrees with an independent model of the documented rules; the same seed gives the same path; a defective definition is rejected with
 /// <see cref="InvalidDataException"/> and nothing else. BKT mastery stays in [0, 1] and follows the formula; FSRS keeps stability positive,
 /// schedules at least a day ahead and orders Hard before Good before Easy; the feedback plan has at most two items, all from the verdict, and the
@@ -28,19 +28,19 @@ public sealed class DecisionFuzzTests(ITestOutputHelper output)
     private static readonly PipelineHarness Harness = PipelineHarness.Shared;
 
     [Fact]
-    public void NpcSteps_LandInDeclaredStates_DrawVariantsInRange_AndAgreeWithTheDocumentedRules()
+    public void AgentSteps_LandInDeclaredStates_DrawVariantsInRange_AndAgreeWithTheDocumentedRules()
     {
         var diagnostics = new FuzzDiagnostics();
         var iterations = FuzzOptions.Iterations(FuzzOptions.GeneralVar, FuzzOptions.GeneralDefault);
 
-        DecisionGen.Npc(Harness).Sample(
+        DecisionGen.Agent(Harness).Sample(
             c =>
             {
                 var machine = Create(c.Definition, c);
-                var state = new NpcState(c.Definition.NpcId, c.StateId, c.Counter);
+                var state = new AgentState(c.Definition.AgentId, c.StateId, c.Counter);
                 var verdict = VerdictAssembler.Assemble(VerdictGen.Build(Harness, new SeededRng(c.VerdictSeed)));
 
-                NpcStepResult step;
+                AgentStepResult step;
                 try
                 {
                     step = machine.Step(state, verdict, c.WorldSeed);
@@ -51,12 +51,12 @@ public sealed class DecisionFuzzTests(ITestOutputHelper output)
                 }
 
                 var declared = c.Definition.States.Select(static s => s.Id).ToHashSet(StringComparer.Ordinal);
-                if (step.Next.NpcId != state.NpcId || !declared.Contains(step.Next.StateId) || step.Next.InteractionCounter != state.InteractionCounter + 1)
+                if (step.Next.AgentId != state.AgentId || !declared.Contains(step.Next.StateId) || step.Next.InteractionCounter != state.InteractionCounter + 1)
                 {
                     throw Determinism.Fail(Oracle, $"The step went to {step.Next} from {state}.", new { c, verdict });
                 }
 
-                var expected = ExpectedStep(c.Definition, state, verdict, SeededRng.ForInteraction(c.WorldSeed, state.NpcId, state.InteractionCounter));
+                var expected = ExpectedStep(c.Definition, state, verdict, SeededRng.ForInteraction(c.WorldSeed, state.AgentId, state.InteractionCounter));
                 if (!step.Equals(expected))
                 {
                     throw Determinism.Fail(Oracle, $"The step {CanonicalJson.Serialize(step)} differs from the documented rules {CanonicalJson.Serialize(expected)}.", new { c, verdict });
@@ -74,10 +74,10 @@ public sealed class DecisionFuzzTests(ITestOutputHelper output)
                 // The same seed gives the same step, from a machine rebuilt from the definition's own JSON and from an explicit generator.
                 Determinism.AssertSame(
                     Oracle,
-                    "NpcStateMachine.Step",
+                    "AgentStateMachine.Step",
                     new { c, verdict },
                     () => step,
-                    () => NpcStateMachine.FromJson(CanonicalJson.Serialize(c.Definition)).Step(state, verdict, SeededRng.ForInteraction(c.WorldSeed, state.NpcId, state.InteractionCounter)));
+                    () => AgentStateMachine.FromJson(CanonicalJson.Serialize(c.Definition)).Step(state, verdict, SeededRng.ForInteraction(c.WorldSeed, state.AgentId, state.InteractionCounter)));
 
                 // A whole conversation: eight steps with eight verdicts, replayed, give the same path.
                 var path = Walk(machine, state, c);
@@ -98,7 +98,7 @@ public sealed class DecisionFuzzTests(ITestOutputHelper output)
             iter: iterations,
             threads: 1);
 
-        output.WriteLine("NPC diagnostics:\n" + diagnostics.Report());
+        output.WriteLine("agent diagnostics:\n" + diagnostics.Report());
         foreach (var key in new[] { "step:drew-variant", "step:no-variant", "step:stayed", "step:moved" })
         {
             Assert.True(diagnostics.Get(key) > iterations / 100, $"The generator no longer reaches {key}.\n{diagnostics.Report()}");
@@ -106,16 +106,16 @@ public sealed class DecisionFuzzTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void DefectiveNpcDefinitions_AreRejectedWithInvalidDataException_AndNothingElse()
+    public void DefectiveAgentDefinitions_AreRejectedWithInvalidDataException_AndNothingElse()
     {
         var iterations = FuzzOptions.Iterations(FuzzOptions.GeneralVar, FuzzOptions.GeneralDefault);
 
-        DecisionGen.BrokenNpc().Sample(
+        DecisionGen.BrokenAgent().Sample(
             broken =>
             {
                 try
                 {
-                    _ = new NpcStateMachine(broken.Definition);
+                    _ = new AgentStateMachine(broken.Definition);
                 }
                 catch (InvalidDataException)
                 {
@@ -302,13 +302,13 @@ public sealed class DecisionFuzzTests(ITestOutputHelper output)
         Assert.True(diagnostics.Get("plan:items:2") > 0 && diagnostics.Get("plan:items:0") > 0 && diagnostics.Get("plan:not-communicated") > 0, $"The generator must reach plans of every size.\n{diagnostics.Report()}");
     }
 
-    // ---- NPC ------------------------------------------------------------------------------------------------------------------------
+    // ---- agent ------------------------------------------------------------------------------------------------------------------------
 
-    private static NpcStateMachine Create(NpcDefinition definition, object input)
+    private static AgentStateMachine Create(AgentDefinition definition, object input)
     {
         try
         {
-            return new NpcStateMachine(definition);
+            return new AgentStateMachine(definition);
         }
         catch (Exception ex)
         {
@@ -317,11 +317,11 @@ public sealed class DecisionFuzzTests(ITestOutputHelper output)
     }
 
     // Eight verdicts in a row, stepping the machine each time with the world seed; returns the state after each step.
-    private static List<NpcState> Walk(NpcStateMachine machine, NpcState start, NpcCase c)
+    private static List<AgentState> Walk(AgentStateMachine machine, AgentState start, AgentCase c)
     {
         var rng = new SeededRng(c.VerdictSeed);
         var state = start;
-        var path = new List<NpcState>();
+        var path = new List<AgentState>();
         for (var i = 0; i < 8; i++)
         {
             var verdict = VerdictAssembler.Assemble(VerdictGen.Build(Harness, rng));
@@ -332,13 +332,13 @@ public sealed class DecisionFuzzTests(ITestOutputHelper output)
         return path;
     }
 
-    // The rules of NpcStateMachine.Step restated: the first transition whose conditions all hold, else the fallback, else stay; one draw per
+    // The rules of AgentStateMachine.Step restated: the first transition whose conditions all hold, else the fallback, else stay; one draw per
     // pooled action, in action order.
-    private static NpcStepResult ExpectedStep(NpcDefinition definition, NpcState state, Verdict verdict, SeededRng rng)
+    private static AgentStepResult ExpectedStep(AgentDefinition definition, AgentState state, Verdict verdict, SeededRng rng)
     {
         var current = definition.States.Single(s => s.Id == state.StateId);
         var target = state.StateId;
-        IReadOnlyList<NpcActionDefinition> actions = [];
+        IReadOnlyList<AgentActionDefinition> actions = [];
         var matched = false;
         foreach (var transition in current.Transitions)
         {
@@ -358,11 +358,11 @@ public sealed class DecisionFuzzTests(ITestOutputHelper output)
         }
 
         var pools = (definition.VariantPools ?? []).ToDictionary(static p => p.Id, static p => p.Count, StringComparer.Ordinal);
-        var steps = actions.Select(a => new NpcAction(a.DialogueIntent, a.GameEvent, a.VariantPoolId is { } id ? rng.NextInt(pools[id]) : null)).ToArray();
-        return new NpcStepResult(new NpcState(state.NpcId, target, state.InteractionCounter + 1), steps);
+        var steps = actions.Select(a => new AgentAction(a.DialogueIntent, a.HostEvent, a.VariantPoolId is { } id ? rng.NextInt(pools[id]) : null)).ToArray();
+        return new AgentStepResult(new AgentState(state.AgentId, target, state.InteractionCounter + 1), steps);
     }
 
-    private static bool ConditionHolds(NpcCondition condition, Verdict verdict)
+    private static bool ConditionHolds(AgentCondition condition, Verdict verdict)
     {
         if (condition.Intent is { } intent && intent != verdict.Intent.ToString())
         {

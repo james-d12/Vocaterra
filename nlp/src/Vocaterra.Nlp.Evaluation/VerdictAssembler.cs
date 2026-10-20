@@ -35,7 +35,7 @@ public static class VerdictAssembler
     /// or (b) the answer set matched (<see cref="MatchType.Exact"/>, <see cref="MatchType.Alias"/> or <see cref="MatchType.Fuzzy"/>) and the match confidence is not rejected by the same margin.
     /// Rule (b) is the answer-match rule: a prompt that only asks for a word (a quiz) has no intent, yet a matched answer is a resolution in its own right (<see cref="ResolvedBy.Exact"/>, <see cref="ResolvedBy.Alias"/>
     /// or <see cref="ResolvedBy.Fuzzy"/>), and it leaves <see cref="Verdict.Intent"/> as the intent stage reported it (usually <see cref="IntentId.Unknown"/>).
-    /// An <see cref="MarginDecision.Uncertain"/> confidence counts as communicated in both rules: the game rewards communication.</description></item>
+    /// An <see cref="MarginDecision.Uncertain"/> confidence counts as communicated in both rules: the host rewards communication.</description></item>
     /// <item><description><b>Errors</b> merge analysis, pronunciation and the derived <c>vocab.wrong</c> error, deduplicated by (tag, span) and sorted by span start, tag order, then expected text.</description></item>
     /// <item><description><b>Correctness</b> is 1 minus the sum of the difficulty's error weights in sorted error order, clamped to [0, 1] and rounded to 9 decimals.</description></item>
     /// <item><description><b>Confidence</b> is the minimum of the stage confidences (match confidence only counts when something matched, and an unresolved intent only counts when nothing matched); NaN counts as 0 and values are clamped to [0, 1].</description></item>

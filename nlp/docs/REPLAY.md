@@ -1,7 +1,7 @@
 # Replay logs
 
 Every graded interaction can be written to a replay log and checked again later, on any machine, without the speech models.
-This is how the determinism promise ("same clip, game state and content version give the same verdict") is tested instead of
+This is how the determinism promise ("same clip, host state and content version give the same verdict") is tested instead of
 assumed. A replay that differs from its recording fails and says which values changed.
 
 - [What a log is](#what-a-log-is)
@@ -20,19 +20,19 @@ A replay log is a text file with one JSON object per line (JSON Lines). There ar
 
 | Kind | Type | Contents | Replayable by `Vocaterra.Nlp.Cli replay` |
 | --- | --- | --- | --- |
-| **Envelope** | `Vocaterra.Nlp.Pipeline.ReplayEnvelope` | the core record, the recognizers' outputs, the game context and the full pipeline result | yes |
-| **Bare record** | `Vocaterra.Nlp.Core.Replay.ReplayRecord` | clip hash, prompt id, game state hash, version stamp and verdict only | no (see [Bare records](#bare-records)) |
+| **Envelope** | `Vocaterra.Nlp.Pipeline.ReplayEnvelope` | the core record, the recognizers' outputs, the conversation context and the full pipeline result | yes |
+| **Bare record** | `Vocaterra.Nlp.Core.Replay.ReplayRecord` | clip hash, prompt id, host state hash, version stamp and verdict only | no (see [Bare records](#bare-records)) |
 
 The CLI writes envelopes. The core record inside an envelope is the contract from `IMPLEMENTATION_PLAN.md` section 4:
 
 ```csharp
-public sealed record ReplayRecord(string ClipHash, string PromptId, string GameStateHash, VersionStamp Versions, Verdict Verdict);
+public sealed record ReplayRecord(string ClipHash, string PromptId, string HostStateHash, VersionStamp Versions, Verdict Verdict);
 ```
 
 The envelope adds what is needed to re-run the evaluation with no model and no recording:
 
 ```csharp
-public sealed record ReplayEnvelope(ReplayRecord Record, AsrResult Asr, PhonePosteriors? Posteriors, GameContext Context, PipelineResult Result);
+public sealed record ReplayEnvelope(ReplayRecord Record, AsrResult Asr, PhonePosteriors? Posteriors, ConversationContext Context, PipelineResult Result);
 ```
 
 ## File format
@@ -52,14 +52,14 @@ public sealed record ReplayEnvelope(ReplayRecord Record, AsrResult Asr, PhonePos
 | --- | --- | --- |
 | `record.clipHash` | string | SHA-256 (hex) of the 16 kHz mono 16-bit samples of the clip, little-endian. Identifies the audio without storing it. A run with `--transcript` and no `--wav` has an empty clip, whose hash is the SHA-256 of zero bytes (`e3b0c442...b855`). |
 | `record.promptId` | string | The prompt that was asked (an id from `content/v1/prompts/prompts.json`). The replayer looks it up in the content bundle it is given. |
-| `record.gameStateHash` | string | `CanonicalJson` hash of the game context (seed, NPC, state, time, learner, repeat counts). Equals `context.gameStateHash`. |
+| `record.hostStateHash` | string | `CanonicalJson` hash of the conversation context (seed, agent, state, time, learner, repeat counts). Equals `context.hostStateHash`. |
 | `record.versions.contentHash` | string | The content bundle hash (`content/v1/manifest.json`, `bundleHash`). |
 | `record.versions.modelHashes` | map | One entry per model that took part, sorted: `asr`, `phoneme`, `embedding`, `tts`. A scripted recognizer reports its own label (`scripted-transcript`). |
 | `record.verdict` | object | The `Verdict`: intent, slots, communicated, correctness, errors, pronunciation, confidence, resolvedBy, versions. |
 | `asr` | object | What the word recognizer returned: transcript, n-best list, word timings, confidence, model hash, recognition mode. During a replay it is served back by a `ReplayWordRecognizer` keyed by the clip hash. |
 | `posteriors` | object or null | What the phoneme recognizer returned (`vocabulary`, `logProbs`, `frameCount`, `frameSeconds`), or `null` when pronunciation scoring did not run. Served back by a `RecordedPhonemeRecognizer`. |
-| `context` | object | The `GameContext` the utterance was evaluated in: world seed, stored time (`now.unixSeconds`), NPC id and state (its `interactionCounter` selects the random stream), the learner model before the utterance, the repeat counts per error tag, and the game state hash. |
-| `result` | object | The full `PipelineResult`: `verdict`, `decision` (NPC step, updated learner, FSRS rating, feedback plan), `response` (the lines the NPC says), `effects`, `repair` and `replay` (the same record as `record`). |
+| `context` | object | The `ConversationContext` the utterance was evaluated in: world seed, stored time (`now.unixSeconds`), agent id and state (its `interactionCounter` selects the random stream), the learner model before the utterance, the repeat counts per error tag, and the host state hash. |
+| `result` | object | The full `PipelineResult`: `verdict`, `decision` (agent step, updated learner, FSRS rating, feedback plan), `response` (the lines the agent says), `effects`, `repair` and `replay` (the same record as `record`). |
 
 ## A real example
 
@@ -71,16 +71,16 @@ blacksmith). No model is involved: the word recognizer is scripted from `--trans
 dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1 --seed 42 --now 1760000000 --replay-out replay.jsonl
 ```
 
-The command prints the verdict JSON, then the NPC lines, then a decision summary:
+The command prints the verdict JSON, then the agent lines, then a decision summary:
 
 ```text
-{"intent":"offer_item","slots":{"item":"espada","qty":"2","verb":"tener"},"communicated":true,"correctness":0.5,"errors":[{"tag":"conj.person","span":{"start":3,"length":5},"expected":"tengo","actual":"tiene"},{"tag":"noun.number","span":{"start":11,"length":6},"expected":"espadas","actual":"espada"}],"pronunciation":[],"confidence":1,"resolvedBy":"Grammar","versions":{"contentHash":"1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294","modelHashes":{"asr":"scripted-transcript"}}}
-npc: Ah, ¿tienes dos espadas? ¡Muy bien!
-npc: ¡Dos espadas! Trato hecho.
+{"intent":"offer_item","slots":{"item":"espada","qty":"2","verb":"tener"},"communicated":true,"correctness":0.5,"errors":[{"tag":"conj.person","span":{"start":3,"length":5},"expected":"tengo","actual":"tiene"},{"tag":"noun.number","span":{"start":11,"length":6},"expected":"espadas","actual":"espada"}],"pronunciation":[],"confidence":1,"resolvedBy":"Grammar","versions":{"contentHash":"d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f","modelHashes":{"asr":"scripted-transcript"}}}
+agent: Ah, ¿tienes dos espadas? ¡Muy bien!
+agent: ¡Dos espadas! Trato hecho.
 decision: rating Hard, learner skills 3, feedback items 2
 ```
 
-`replay.jsonl` now holds one line of 3,695 bytes. Here it is, pretty-printed for reading (the file itself has no
+`replay.jsonl` now holds one line of 3,705 bytes. Here it is, pretty-printed for reading (the file itself has no
 whitespace between tokens):
 
 <details>
@@ -91,9 +91,9 @@ whitespace between tokens):
   "record": {
     "clipHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "promptId": "offer-items-open",
-    "gameStateHash": "86f966746d30a29b73567cd9dafc951c73e3a47a833d08dbf52276327e658ac5",
+    "hostStateHash": "6b9e4914018ba5c025378256d2bc473fbab48e4db7cbf773baae073e42d76b21",
     "versions": {
-      "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
+      "contentHash": "d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f",
       "modelHashes": {
         "asr": "scripted-transcript"
       }
@@ -131,7 +131,7 @@ whitespace between tokens):
       "confidence": 1,
       "resolvedBy": "Grammar",
       "versions": {
-        "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
+        "contentHash": "d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f",
         "modelHashes": {
           "asr": "scripted-transcript"
         }
@@ -157,9 +157,9 @@ whitespace between tokens):
     "now": {
       "unixSeconds": 1760000000
     },
-    "npcId": "blacksmith",
-    "npcState": {
-      "npcId": "blacksmith",
+    "agentId": "blacksmith",
+    "agentState": {
+      "agentId": "blacksmith",
       "stateId": "idle",
       "interactionCounter": 0
     },
@@ -173,7 +173,7 @@ whitespace between tokens):
       "skills": []
     },
     "repeatCountsByTag": {},
-    "gameStateHash": "86f966746d30a29b73567cd9dafc951c73e3a47a833d08dbf52276327e658ac5"
+    "hostStateHash": "6b9e4914018ba5c025378256d2bc473fbab48e4db7cbf773baae073e42d76b21"
   },
   "result": {
     "verdict": {
@@ -209,23 +209,23 @@ whitespace between tokens):
       "confidence": 1,
       "resolvedBy": "Grammar",
       "versions": {
-        "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
+        "contentHash": "d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f",
         "modelHashes": {
           "asr": "scripted-transcript"
         }
       }
     },
     "decision": {
-      "npc": {
+      "agent": {
         "next": {
-          "npcId": "blacksmith",
+          "agentId": "blacksmith",
           "stateId": "trading",
           "interactionCounter": 1
         },
         "actions": [
           {
             "dialogueIntent": "offer_item_reply",
-            "gameEvent": "trade.offer",
+            "hostEvent": "trade.offer",
             "variantIndex": 0
           }
         ]
@@ -295,9 +295,9 @@ whitespace between tokens):
     "replay": {
       "clipHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "promptId": "offer-items-open",
-      "gameStateHash": "86f966746d30a29b73567cd9dafc951c73e3a47a833d08dbf52276327e658ac5",
+      "hostStateHash": "6b9e4914018ba5c025378256d2bc473fbab48e4db7cbf773baae073e42d76b21",
       "versions": {
-        "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
+        "contentHash": "d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f",
         "modelHashes": {
           "asr": "scripted-transcript"
         }
@@ -335,7 +335,7 @@ whitespace between tokens):
         "confidence": 1,
         "resolvedBy": "Grammar",
         "versions": {
-          "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
+          "contentHash": "d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f",
           "modelHashes": {
             "asr": "scripted-transcript"
           }
@@ -353,10 +353,10 @@ What to notice:
 - `record.verdict`, `result.verdict` and `result.replay.verdict` are the same verdict. The envelope carries it three times on
   purpose: `record` is the contract that is also valid on its own, `result` is everything the pipeline produced.
 - `record.verdict.versions` and `record.versions` are identical; both carry the content hash.
-- `context.worldSeed` is 42 and `context.npcState.interactionCounter` is 0. Together with the NPC id they seed the random
-  draw that chose the second NPC line (`offer_item_reply.1`, "¡Dos espadas! Trato hecho."). Without `--seed`, the seed is 0 and the
+- `context.worldSeed` is 42 and `context.agentState.interactionCounter` is 0. Together with the agent id they seed the random
+  draw that chose the second agent line (`offer_item_reply.1`, "¡Dos espadas! Trato hecho."). Without `--seed`, the seed is 0 and the
   same utterance gets a different variant ("Vale, dos espadas. Gracias, amigo."), which is why the seed is part of the log.
-- `decision.npc.next` moves the blacksmith from `idle` to `trading` and `decision.npc.actions` carries the game event
+- `decision.agent.next` moves the blacksmith from `idle` to `trading` and `decision.agent.actions` carries the host event
   `trade.offer`. `decision.learner` is the learner model after this utterance (three skills touched: `conj`, `noun`,
   `intent.offer_item`).
 - `response.lines[0]` is the recast ("Ah, ¿tienes dos espadas? ¡Muy bien!"), built from the player's own slots; `isRecast` is `true`.
@@ -364,8 +364,8 @@ What to notice:
 
 ## Writing a log
 
-Pass `--replay-out <file>` to `eval`, as in the example above. `--seed`, `--now`, `--npc-state`, `--counter` and `--repeat <tag>=<n>`
-set the parts of the game context that a command line can express; they all end up in the log's `context`.
+Pass `--replay-out <file>` to `eval`, as in the example above. `--seed`, `--now`, `--agent-state`, `--counter` and `--repeat <tag>=<n>`
+set the parts of the conversation context that a command line can express; they all end up in the log's `context`.
 Nothing is written unless you ask for it, and the file is only ever appended to. In code, `ReplayLog` wraps a `TextWriter`:
 `new ReplayLog(writer).Append(ReplayEnvelope.From(trace, context))`, where `trace` comes from `UtterancePipeline.Trace(clip, prompt, context)`
 (`Evaluate` returns only the result; `Trace` also returns the recognizer outputs that an envelope needs).
@@ -489,7 +489,7 @@ envelope contributes its `record`), and `ReplayReader.ReadEnvelopes` insists on 
 verdicts across builds when the caller can re-run the real recognizers on the audio:
 
 ```csharp
-Replayer.Replay(ReplayRecord record, GameContext context, UtterancePipeline pipeline, Func<string, PcmClip> clipByHash)
+Replayer.Replay(ReplayRecord record, ConversationContext context, UtterancePipeline pipeline, Func<string, PcmClip> clipByHash)
 ```
 
 This overload re-evaluates through the pipeline's own recognizers, using the clip returned by `clipByHash` for the recorded
@@ -502,7 +502,7 @@ clip hash, and compares only the core record. The CLI does not use it.
 - **Logs are opt-in and local.** The pipeline writes nothing by itself (`IMPLEMENTATION_PLAN.md` section 1, "Mic privacy"), and
   nothing in the repository uploads a log.
 - **Logs can still be personal.** They contain what the recognizer heard (the transcript, which includes the player's
-  mistakes), the game state, and, for pronunciation scoring, the phone posteriors. Treat them like the recordings in
+  mistakes), the host state, and, for pronunciation scoring, the phone posteriors. Treat them like the recordings in
   `golden/README.md`: do not attach a log from a real person to a public issue without their consent.
 - A replay log is the thing to attach to a bug report about a wrong verdict: it reproduces the verdict on the maintainer's
   machine without any model.

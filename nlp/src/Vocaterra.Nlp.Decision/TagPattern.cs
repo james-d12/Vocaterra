@@ -2,7 +2,7 @@ using Vocaterra.Nlp.Core.Taxonomy;
 
 namespace Vocaterra.Nlp.Decision;
 
-/// <summary>Error tag patterns shared by the NPC conditions and the feedback rules: an exact tag, a family wildcard such as <c>pron.*</c>, or <c>*</c>.</summary>
+/// <summary>Error tag patterns shared by the agent conditions and the feedback rules: an exact tag, a family wildcard such as <c>pron.*</c>, or <c>*</c>.</summary>
 internal static class TagPattern
 {
     /// <summary>The pattern that matches every tag.</summary>
