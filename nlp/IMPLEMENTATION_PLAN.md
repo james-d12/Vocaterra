@@ -192,8 +192,8 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M16a | Combinatorial fuzz testing, stage 1: project, CsCheck, generators, harness, language oracles (see `docs/FUZZING_PLAN.md`) | M13b | S | done |
 | M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | done |
 | M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | done |
-| M17b | Intent expansion: ten new intents, two new scenes (innkeeper, quest giver), prompts, dialogue, effects, goldens (see §7; after the split in §8 the scenes are game content and move to the game repo) | M19c | L | todo |
-| M17b-core | The core part of M17b: `[WORD:slot]` grammar token, generic sample intents (confirm, deny, farewell, thank, introduce_self), blacksmith confirming state, fuzz support | M19a | M | in-progress |
+| M17b | Intent expansion, game part: the innkeeper and quest-giver scenes, now content of the Vocaterra repository; waits on the drafting decision (M21) or is hand-authored there (see §7.4, §9) | M17b-core, M19c | M | todo (Vocaterra) |
+| M17b-core | The core part of M17b: `[WORD:slot]` grammar token, generic sample intents (confirm, deny, farewell, thank, introduce_self), blacksmith confirming state, fuzz support | M19a | M | done |
 | M18 | Part-of-speech disambiguation in the analyzer (triggered: `ayer compré un libro` yields a false `conj.tense` on main after M17a) | M17a | M | done |
 | M19a | Standalone core, step 1: boundary ADR, rename `Slg.*` → `Vocaterra.Nlp.*` (solution, projects, namespaces, packages), game-agnostic context and agent naming, opaque outcome kinds, `docs/API.md`, README reframed as a library (see §8) | M18 | M | done |
 | M19b | Standalone core, step 2: NuGet packaging of `Slg.*`, content bundle packaging, `samples/HostConsole` consuming the packages (see §8) | M19a | S | done |
@@ -596,6 +596,21 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   builtin words `eval` and `hash`, which are also the CLI and ContentBuilder subcommands; briefs must
   say to use a wrapper script outside the repo, and the orchestrator runs the ContentBuilder `hash`
   step itself when an agent is blocked.
+- **M17b-core results:** `[WORD:slot]` matches one all-letter token (accents and ñ included; no
+  digits, punctuation or hyphens), binds the normalized text, and the bound word carries no reading:
+  never `vocab.unknown`, no agreement check, no recast. Intents `confirm`, `deny`, `farewell`, `thank`,
+  `introduce_self` with grammars, examples and four answer sets; prompts `confirm-open`,
+  `farewell-open`, `thank-open`, `introduce-open`; blacksmith `confirming` state (`trading` →
+  `buy_item` → `confirming`; `confirm` → `done` with host event `trade.confirmed`; `deny` → `trading`).
+  Bundle hash `3b1d1f02dff448c830d0cfdbaf1f5e330fc66922a7b7507abc4b56d78afbc657` (23 files),
+  reproduced by the orchestrator on main; golden `e2e-confirm-open` added. Two core behaviour changes:
+  among grammars with equal explicit-token counts the one binding more literal words now wins (before,
+  `gracias`, also a noun, resolved to `cast_spell`), and the embedding rung's reported gap is clamped
+  at 1. Fuzz found three more bugs (a name spelled like an irregular verb got `conj.irregular`; a
+  recast conjugated a name that is a verb form; gap above 1), all fixed with seeds in the fuzz README.
+  Known limits: recasts print names in lower case; hyphenated names do not match; `nos veo` carries
+  no tag (no clitic-person check). `cefr-check` now lists `moneda` and `nada` (A2 words in A1
+  templates) and `herrería`; reword or accept. Suite: 2663 passed, 5 skipped.
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 
