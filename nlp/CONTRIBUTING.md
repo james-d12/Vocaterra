@@ -12,6 +12,7 @@ happens to one utterance, [docs/adr/](docs/adr/) for why the rules exist, and `I
 - [Code conventions](#code-conventions)
 - [The determinism checklist](#the-determinism-checklist)
 - [Definition of done](#definition-of-done)
+- [Fuzz tests](#fuzz-tests)
 - [Recipe: add an error tag](#recipe-add-an-error-tag)
 - [Recipe: add a prompt, answer set or intent to content/v1](#recipe-add-a-prompt-answer-set-or-intent-to-contentv1)
 - [Recipe: add a golden audio clip](#recipe-add-a-golden-audio-clip)
@@ -111,6 +112,19 @@ Before you ask for review, in this order, from a clean tree:
 4. New public types have summaries; no rule in the checklist is broken; no package outside `Directory.Packages.props` is used.
 5. Every command you wrote in a document was run and works. If you changed behaviour that [docs/PIPELINE.md](docs/PIPELINE.md),
    [docs/REPLAY.md](docs/REPLAY.md) or the README describe, update them with fresh output.
+
+## Fuzz tests
+
+`tests/Slg.Fuzzing.Tests` generates inputs from the project's own catalogs and checks sixteen oracles against the real stages. The design is
+in [docs/FUZZING_PLAN.md](docs/FUZZING_PLAN.md); the oracles, the bugs found so far and the known findings are in
+[tests/Slg.Fuzzing.Tests/README.md](tests/Slg.Fuzzing.Tests/README.md).
+
+- Before you open a pull request that touches `Slg.Nlp`, `Slg.Evaluation`, `Slg.Response`, `Slg.Audio`, `Slg.Phonology`,
+  `Slg.Pronunciation`, `Slg.Decision`, `Slg.Content` or `Slg.Pipeline`, run `dotnet test tests/Slg.Fuzzing.Tests`.
+- A bug the fuzzer finds is fixed in the owning module, with a regression test in that module's test project. List the bug with its
+  CsCheck seed in the "Bugs found and fixed" section of the fuzz README.
+- A documented exception may be waved through only in `tests/Slg.Fuzzing.Tests/Oracles/KnownTolerances.cs`, and it needs a reason.
+- Never weaken an oracle to make a failure go away.
 
 ## Recipe: add an error tag
 
