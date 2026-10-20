@@ -21,8 +21,10 @@ golden/audio/
 .DS_Store
 Thumbs.db
 
-# Claude Code agent worktrees
-.claude/
+# Claude Code: agent worktrees and gate logs are local; agents/ is committed
+.claude/worktrees/
+.claude/gate-logs/
+.claude/settings.local.json
 
 # Lexicon source data (kaikki.org Wiktionary extract, FrequencyWords) is fetched, not committed; see docs/LEXICON.md
 lexicon-sources/
