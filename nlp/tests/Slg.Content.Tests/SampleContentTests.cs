@@ -196,6 +196,45 @@ public class SampleContentTests
         Assert.Equal(5L, state.InteractionCounter);
     }
 
+    [Theory]
+    [InlineData("greet", "greet_reply")]
+    [InlineData("buy_item", "buy_item_reply")]
+    [InlineData("sell_item", "sell_item_reply")]
+    [InlineData("offer_item", "offer_item_reply")]
+    [InlineData("ask_price", "ask_price_reply")]
+    public void TheBlacksmithHandlesEveryTradeIntentInTheIdleStateAndMovesToTrading(string intent, string dialogueIntent)
+    {
+        var smith = Bundle.Npcs["blacksmith"];
+        var idle = smith.InitialState();
+        Assert.Equal("idle", idle.StateId);
+
+        var next = Step(smith, idle, intent, out var result);
+
+        Assert.Equal("trading", next.StateId);
+        Assert.Equal(dialogueIntent, result.Actions[0].DialogueIntent);
+        Assert.DoesNotContain(result.Actions, static action => action.DialogueIntent == "not_understood");
+    }
+
+    [Theory]
+    [InlineData("sell_item")]
+    [InlineData("offer_item")]
+    public void TheIdleStateRepliesToATradeLikeTheTradingState(string intent)
+    {
+        var smith = Bundle.Npcs["blacksmith"];
+        var fromIdle = smith.Step(smith.InitialState(), TestSupport.MakeVerdict(intent), 11UL);
+        var fromTrading = smith.Step(new NpcState("blacksmith", "trading", 0), TestSupport.MakeVerdict(intent), 11UL);
+
+        Assert.Equal(fromTrading.Actions, fromIdle.Actions);
+    }
+
+    [Fact]
+    public void TheDialogueHasAnAnswerAcceptedPoolForAnswerOnlyPrompts()
+    {
+        Assert.True(Bundle.Dialogue.TryGetPool("answer_accepted", out var pool));
+        Assert.InRange(pool.Variants.Count, 2, 3);
+        Assert.Contains("¡Correcto!", pool.Variants.Select(static variant => variant.Text));
+    }
+
     [Fact]
     public void ANpcThatDoesNotUnderstandStaysWhereItIs()
     {

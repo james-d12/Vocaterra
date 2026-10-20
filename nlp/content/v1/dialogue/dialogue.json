@@ -1,5 +1,13 @@
 {
   "pools": {
+    "answer_accepted": {
+      "poolId": "answer_accepted",
+      "variants": [
+        { "lineId": "answer_accepted.1", "text": "¡Correcto!" },
+        { "lineId": "answer_accepted.2", "text": "¡Muy bien!" },
+        { "lineId": "answer_accepted.3", "text": "¡Exacto!" }
+      ]
+    },
     "ask_price_reply": {
       "poolId": "ask_price_reply",
       "variants": [

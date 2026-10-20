@@ -47,9 +47,11 @@
       "intentId": "cast_spell",
       "requiredSlots": ["spell"],
       "slotGrammars": [
-        "[VERB:lanzar] [ART]? [NOUN:spell] [ADJ]?",
+        "[VERB:lanzar]? [ART]? [NOUN:spell] [ADJ]?",
         "[VERB:querer] [VERB:lanzar] [ART]? [NOUN:spell] [ADJ]?",
-        "[VERB:lanzar] [ART]? hechizo de [NOUN:spell]"
+        "[VERB:lanzar] [ART]? hechizo de [NOUN:spell]",
+        "[ART]? (bola|lanza) de [NOUN:spell]",
+        "[ART]? [NOUN:spell] de magia"
       ],
       "keywordRules": [
         { "lemmas": ["lanzar"], "requiresSlots": ["spell"], "slotFromNoun": "spell" }

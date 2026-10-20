@@ -31,11 +31,14 @@ public static class VerdictAssembler
     /// Assembles the verdict.
     /// <list type="bullet">
     /// <item><description><b>Intent</b> comes from the intent stage; <b>Slots</b> are the analysis slots overlaid by the intent slots (the intent wins on a name clash).</description></item>
-    /// <item><description><b>Communicated</b> needs a known intent, every required slot filled with a non-empty value, and a confidence that the communicated margin does not reject.
-    /// An <see cref="MarginDecision.Uncertain"/> confidence counts as communicated: the game rewards communication.</description></item>
+    /// <item><description><b>Communicated</b> is true when either (a) the intent is known, every required slot is filled with a non-empty value and the overall confidence is not rejected by the communicated margin,
+    /// or (b) the answer set matched (<see cref="MatchType.Exact"/>, <see cref="MatchType.Alias"/> or <see cref="MatchType.Fuzzy"/>) and the match confidence is not rejected by the same margin.
+    /// Rule (b) is the answer-match rule: a prompt that only asks for a word (a quiz) has no intent, yet a matched answer is a resolution in its own right (<see cref="ResolvedBy.Exact"/>, <see cref="ResolvedBy.Alias"/>
+    /// or <see cref="ResolvedBy.Fuzzy"/>), and it leaves <see cref="Verdict.Intent"/> as the intent stage reported it (usually <see cref="IntentId.Unknown"/>).
+    /// An <see cref="MarginDecision.Uncertain"/> confidence counts as communicated in both rules: the game rewards communication.</description></item>
     /// <item><description><b>Errors</b> merge analysis, pronunciation and the derived <c>vocab.wrong</c> error, deduplicated by (tag, span) and sorted by span start, tag order, then expected text.</description></item>
     /// <item><description><b>Correctness</b> is 1 minus the sum of the difficulty's error weights in sorted error order, clamped to [0, 1] and rounded to 9 decimals.</description></item>
-    /// <item><description><b>Confidence</b> is the minimum of the stage confidences (match confidence only counts when something matched); NaN counts as 0 and values are clamped to [0, 1].</description></item>
+    /// <item><description><b>Confidence</b> is the minimum of the stage confidences (match confidence only counts when something matched, and an unresolved intent only counts when nothing matched); NaN counts as 0 and values are clamped to [0, 1].</description></item>
     /// </list>
     /// </summary>
     /// <remarks>
@@ -69,6 +72,13 @@ public static class VerdictAssembler
 
     private static bool IsCommunicated(VerdictInputs inputs, SlotMap slots, double confidence, DifficultyEvaluationConfig settings)
     {
+        var margin = settings.CommunicatedMargin();
+        return IntentCommunicated(inputs, slots, confidence, margin) || AnswerMatchCommunicated(inputs, margin);
+    }
+
+    // Rule (a): the intent stage understood the player and every slot it needs is filled.
+    private static bool IntentCommunicated(VerdictInputs inputs, SlotMap slots, double confidence, Margin margin)
+    {
         if (inputs.Intent.Intent.IsUnknown)
         {
             return false;
@@ -82,7 +92,14 @@ public static class VerdictAssembler
             }
         }
 
-        return settings.CommunicatedMargin().Evaluate(confidence) != MarginDecision.Reject;
+        return margin.Evaluate(confidence) != MarginDecision.Reject;
+    }
+
+    // Rule (b): the transcript matched an answer of the prompt's answer set, which needs no intent.
+    private static bool AnswerMatchCommunicated(VerdictInputs inputs, Margin margin)
+    {
+        return inputs.Match.Type != MatchType.None
+            && margin.Evaluate(SanitizeConfidence(inputs.Match.Confidence)) != MarginDecision.Reject;
     }
 
     private static SlotMap MergeSlots(IReadOnlyList<SlotValue> analysisSlots, SlotMap intentSlots)
@@ -309,7 +326,13 @@ public static class VerdictAssembler
         }
 
         confidence = Math.Min(confidence, SanitizeConfidence(inputs.Analysis.Confidence));
-        confidence = Math.Min(confidence, SanitizeConfidence(inputs.Intent.Confidence));
+
+        // An unresolved intent has confidence 0, but when an answer matched there was no intent to find (a quiz prompt), so it says nothing about the verdict.
+        if (!inputs.Intent.Intent.IsUnknown || inputs.Match.Type == MatchType.None)
+        {
+            confidence = Math.Min(confidence, SanitizeConfidence(inputs.Intent.Confidence));
+        }
+
         if (inputs.Pronunciation is not null)
         {
             confidence = Math.Min(confidence, SanitizeConfidence(inputs.Pronunciation.Confidence));
