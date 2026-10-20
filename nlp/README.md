@@ -1,5 +1,8 @@
 # Vocaterra.NLP
 
+> The game built on this core is [Vocaterra](https://github.com/james-d12/Vocaterra). Its design (`SPECIFICATION.md`, moved there in M19c)
+> and its [architecture notes](https://github.com/james-d12/Vocaterra/blob/main/docs/ARCHITECTURE.md) live in that repository.
+
 Vocaterra.NLP is a standalone Spanish voice-and-language evaluation core, written in C# on .NET. Given an utterance (audio, or a transcript
 for development), it works out what the learner meant and how well they said it, and returns one deterministic **verdict**, with tagged
 errors such as `conj.person` or `pron.r`, a feedback plan, a conversation step and the response text. It is a library first: a host loads a
@@ -418,7 +421,7 @@ consent rules and manifest schema are in [golden/README.md](golden/README.md).
 | `.github/workflows-pending/` | The CI workflow, parked until the push token has the `workflow` scope |
 | `docs/` | [API.md](docs/API.md), [PIPELINE.md](docs/PIPELINE.md), [REPLAY.md](docs/REPLAY.md), [LEXICON.md](docs/LEXICON.md), [CLI_EXAMPLES.md](docs/CLI_EXAMPLES.md) and the architecture decision records in `docs/adr/` |
 | `docs/diagrams/` | The draw.io system overview and how to open it ([README](docs/diagrams/README.md)) |
-| `HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md`, `SPECIFICATION.md` | The design, the milestone plan and the original brief |
+| `HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md` | The design, the milestone plan and the original brief. The game design (`SPECIFICATION.md`) is in the [Vocaterra](https://github.com/james-d12/Vocaterra) repository since M19c |
 
 ## Determinism rules in brief
 
@@ -439,7 +442,7 @@ dependencies and data:
 
 - **Code dependencies** are checked by `scripts/license-scan.sh [--offline]`, which reads every NuGet package (direct and
   transitive) of the solution and fails on GPL, LGPL, AGPL and SSPL or on any license that is not in `scripts/license-allowlist.txt`.
-  `scripts/license-overrides.txt` holds reviewed exceptions for packages whose metadata names no license. Today 27 packages pass.
+  `scripts/license-overrides.txt` holds reviewed exceptions for packages whose metadata names no license. Today 28 packages pass.
 - **Wiktionary-derived data** (`content/v1/lexicon/wiktionary-es.json`, made with `import-lexicon` and selected with a word frequency list) is
   CC BY-SA and must keep its attribution; the sample bundle's other files are hand-authored. See
   [content/v1/ATTRIBUTION.md](content/v1/ATTRIBUTION.md) and [docs/LEXICON.md](docs/LEXICON.md).
@@ -478,6 +481,7 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 | M18 | Part-of-speech disambiguation: the analyzer resolves each word to one reading before its checks (see [docs/PIPELINE.md](docs/PIPELINE.md#4-linguistic-analysis-d0)) | done |
 | M19a | Standalone core, step 1: the solution, projects and namespaces are `Vocaterra.Nlp.*`; the conversation engine is a generic agent; the boundary is in [ADR 0009](docs/adr/0009-core-and-game-boundary.md) and the host API in [docs/API.md](docs/API.md) | done |
 | M19b | Standalone core, step 2: NuGet packaging of the eleven libraries (version 0.1.0, symbols, a shared readme), a local feed from `scripts/pack.sh`, content bundle archives (`ContentBuilder pack` and `verify-pack`), and `samples/HostConsole` consuming the packages; nothing is published (see [docs/PACKAGING.md](docs/PACKAGING.md)) | done |
+| M19c | Standalone core, step 3: the game repository [Vocaterra](https://github.com/james-d12/Vocaterra) is scaffolded on the packages (a console host, smoke tests, its content bundle, a parked CI job); the game design moved there from `SPECIFICATION.md`, and its [docs/ARCHITECTURE.md](https://github.com/james-d12/Vocaterra/blob/main/docs/ARCHITECTURE.md) says how it consumes this core | done |
 
 ## Known gaps and next steps
 
@@ -527,6 +531,7 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 
 ## Documentation
 
+- [Vocaterra](https://github.com/james-d12/Vocaterra), the game repository: its [docs/SPECIFICATION.md](https://github.com/james-d12/Vocaterra/blob/main/docs/SPECIFICATION.md) (the game design, moved here from this repository in M19c) and [docs/ARCHITECTURE.md](https://github.com/james-d12/Vocaterra/blob/main/docs/ARCHITECTURE.md) (how the game consumes this core and what it owns)
 - [docs/PIPELINE.md](docs/PIPELINE.md): the pipeline stage by stage, with the worked example and the CLI's verdict
 - [docs/REPLAY.md](docs/REPLAY.md): replay log and envelope format, with a real example
 - [docs/CLI_EXAMPLES.md](docs/CLI_EXAMPLES.md): more worked runs of the demo CLI: the other intents and error tags, the repair ladder and a replay log
