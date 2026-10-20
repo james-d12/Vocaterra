@@ -18,6 +18,14 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Slg.Pipeline/Slg.Pipeline.csproj" />
+    <ProjectReference Include="../../tools/Slg.Cli/Slg.Cli.csproj" />
+    <ProjectReference Include="../../tools/Slg.Bench/Slg.Bench.csproj" />
+  </ItemGroup>
+
+  <!-- The committed bundle and the model manifest are copied next to the test assembly. -->
+  <ItemGroup>
+    <None Include="../../content/v1/**/*" Link="content/v1/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../models/manifest.json" Link="models/manifest.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
