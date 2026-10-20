@@ -181,7 +181,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M7 | Verdict assembly (pure D0) incl. worked example | M1 | S | done |
 | M10 | Decision layer: NPC state machine, learner model (BKT + FSRS), feedback policy | M1 | S | done |
 | M6 | Intent resolution (grammar → rules → embedding w/ margins) + repair strategy | M5 | S | done |
-| M8 | Pronunciation scoring: v1 greedy+edit distance, v2 CTC Viterbi + GOP, wav2vec2 adapter | M3 | S | in-progress |
+| M8 | Pronunciation scoring: v1 greedy+edit distance, v2 CTC Viterbi + GOP, wav2vec2 adapter | M3 | S | done |
 | M9 | ASR adapters: Vosk constrained, sherpa-onnx Parakeet open, fakes, model manifest + fetch script | M2 | S | done |
 | M11 | Response realization: templates + morphology, recasts, TTS adapters + cache, effect tables | M5, M3 | S | done |
 | M12 | Content bundle: schema, loader, hashing, ContentBuilder CLI (kaikki import), sample content v1 | M4, M5, M6, M10, M11 | S | in-progress |
