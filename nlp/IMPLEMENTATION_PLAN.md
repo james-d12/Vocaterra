@@ -190,7 +190,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M14 | CI matrix (x64/ARM64/Windows/macOS), golden tests, license scan, format check (workflow parked in `.github/workflows-pending` until the push token has `workflow` scope) | M13 | H | done |
 | M15 | README, ADRs, CONTRIBUTING, determinism checklist | M13 | S | done |
 | M16a | Combinatorial fuzz testing, stage 1: project, CsCheck, generators, harness, language oracles (see `docs/FUZZING_PLAN.md`) | M13b | S | done |
-| M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | in-progress |
+| M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | done |
 
 ### Delegation waves
 
@@ -450,6 +450,36 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
 - **Intermittent gate failure (M16a merge):** one unidentified test failed in the first full
   `dotnet test` run after the merge build; four later full runs and twelve fuzz-project runs were
   green. The merge gate now keeps its test log so a recurrence can be identified.
+- **Fuzzing found (M16b):** three more source bugs, each fixed with a regression test in the owning
+  project and its CsCheck seed in `tests/Slg.Fuzzing.Tests/README.md`: `Accents.Strip` and
+  `SpanishPhoneticKey.Compute` (Slg.Nlp) and `G2pNormalizer` (Slg.Phonology) threw on a lone surrogate
+  and now replace it with U+FFFD like `TextNormalizer`; the content loader threw
+  `NullReferenceException` on a lexicon entry without `features` or a file without `entries`, now a
+  `FormatException` reported as a validation problem. This closes the M16a UTF-16 finding.
+- **Pronunciation scorer cost, root cause (M16b):** `PredictedErrorMatcher.Match` runs a full
+  `PhoneAligner.Align` per predicted variant, cubic in phone count (`PredictedErrorsFor` likewise with a
+  smaller constant). The fuzz oracles cap inputs at 20/40 phones and 150 characters. Follow-up: a
+  single alignment shared across variants.
+- **Content loader silent defaults (M16b):** missing number, flag or enum fields (prompt `mode` and
+  `difficulty`, evaluation thresholds, feedback `type`, effect curve points) default silently instead
+  of failing validation. Listed in `KnownTolerances.AcceptedContentField`. Follow-up: require them or
+  make the defaults explicit in the schema.
+- **Replayer coverage (M16b):** the replayer does not compare `result/verdict` or `result/replay`, and
+  reads `promptId` and the phoneme model hash back as inputs; O14 replay sensitivity covers only the
+  compared outputs. Follow-up: compare the verdict, since that is the determinism guarantee users rely on.
+- **Resampler (M16b):** kernels are rebuilt on every call; a WAV header claiming 1 Hz makes the
+  front-end throw `OverflowException` on a large clip and a header claiming 2 GHz costs about 2 s.
+  Follow-up: validate the sample-rate range in `WavFile.Read`.
+- **`cuál` added (M16b):** `content/v1/lexicon/seed.json` now has 1217 entries; bundle hash is
+  `b076558f7d1280b20ae84844d6aa377467fae8d3e8a86fc9d924c89d535d4efb`; the end-to-end golden was
+  re-recorded; `golden/manifest.jsonl` is unchanged. O3 now realises every catalog grammar.
+- **Fuzz CI (M16b, parked):** `fuzz` job on push and pull request, `fuzz-soak` weekly (Sunday 03:17
+  UTC) and on demand at 50 000/50 000/10 000/3 000/5 000 iterations (176 s measured locally); the
+  existing jobs are guarded to push and pull request. Whole fuzz project: 49 tests, about 17 s at
+  default depth.
+- **Fuzz flake (M16b):** O9's injected `pron.silent_h` coverage minimum failed in 2 of 25 runs; the
+  generator now produces about 76 such cases per run. The M16a-merge intermittent failure never recurred
+  in twelve further full runs.
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 
