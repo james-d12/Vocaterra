@@ -188,7 +188,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M13 | Pipeline orchestration, replay log + replayer, CLI demo, bench harness, golden layout | M2–M12 | S | done |
 | M13b | Integration fixes from the demo: answer-match communication, spell grammars, blacksmith idle transitions | M13 | S | done |
 | M14 | CI matrix (x64/ARM64/Windows/macOS), golden tests, license scan, format check (workflow parked in `.github/workflows-pending` until the push token has `workflow` scope) | M13 | H | done |
-| M15 | README, ADRs, CONTRIBUTING, determinism checklist | M13 | S | in-progress |
+| M15 | README, ADRs, CONTRIBUTING, determinism checklist | M13 | S | done |
 | M16a | Combinatorial fuzz testing, stage 1: project, CsCheck, generators, harness, language oracles (see `docs/FUZZING_PLAN.md`) | M13b | S | in-progress |
 | M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | todo |
 
