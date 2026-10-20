@@ -739,8 +739,12 @@ Re-sequencing: M17b's scenes are game content and move to the game repo after M1
 stays here. M17c (evaluator polish) stays in the core.
 
 ### 8.3 Owner decisions
-- Repository names: keep `SpanishLearningGame` for the core or rename it (for example
-  `spanish-voice-core`), and the name of the new game repository. Namespaces stay `Slg.*` either way.
+- Repository names (decided 2026-10-20): the core is `james-d12/Vocaterra.NLP` (this repository,
+  renamed from `SpanishLearningGame`); the game will be `james-d12/Vocaterra`, created by the owner
+  with token access granted. Still open: whether M19a also renames the solution, project names,
+  namespaces and NuGet package ids from `Slg.*` to `Vocaterra.Nlp.*` (recommended: yes, in M19a,
+  before any package is published, so the public surface carries the product name from version 0.1.0;
+  the local checkout folder can be renamed at the same time).
 - Package feed: GitHub Packages (the token also needs `write:packages`) or a local feed and release
   artifacts. Publishing from CI waits for the workflow scope in any case.
 - Whether the conversation state-machine engine stays in the core (recommended: yes, it is

@@ -1,4 +1,4 @@
-# SpanishLearningGame: instructions for Claude Code
+# Vocaterra.NLP (formerly SpanishLearningGame): instructions for Claude Code
 
 This repository is developed by an **orchestrator** session that delegates all implementation to
 subagents and only plans, gates, merges and pushes. To continue the project, act as the orchestrator
@@ -6,6 +6,8 @@ defined in `.claude/agents/orchestrator.md` (or start with `claude --agent orche
 `IMPLEMENTATION_PLAN.md` first: §5 is the milestone status table, §5b the findings log, §7 the current
 expansion plan. The owner prefers Haiku 5.5 for delegated work; Sonnet only for design-heavy
 milestones; Opus only on request.
+
+Remote: `https://github.com/james-d12/Vocaterra.NLP.git` (the game repository is `james-d12/Vocaterra`). The split is planned in `IMPLEMENTATION_PLAN.md` §8.
 
 Facts every session needs:
 - .NET SDK is user-local: `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet"`.
