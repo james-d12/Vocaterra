@@ -189,6 +189,8 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M13b | Integration fixes from the demo: answer-match communication, spell grammars, blacksmith idle transitions | M13 | S | done |
 | M14 | CI matrix (x64/ARM64/Windows/macOS), golden tests, license scan, format check (workflow parked in `.github/workflows-pending` until the push token has `workflow` scope) | M13 | H | done |
 | M15 | README, ADRs, CONTRIBUTING, determinism checklist | M13 | S | in-progress |
+| M16a | Combinatorial fuzz testing, stage 1: project, CsCheck, generators, harness, language oracles (see `docs/FUZZING_PLAN.md`) | M13b | S | in-progress |
+| M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | todo |
 
 ### Delegation waves
 
@@ -197,6 +199,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 - **Wave 2 (parallel):** M6, M8, M9, M11.
 - **Wave 3 (sequential):** M12 → M13.
 - **Wave 4 (parallel):** M14, M15.
+- **Wave 5 (sequential):** M16a → M16b (fuzzing; added 2026-10-20 at the owner's request, modelled on CodeGuard's rule-fuzzing suite).
 
 Each parallel agent touches only its own `src/<project>` and `tests/<project>.Tests` directories
 (plus `content/` or `golden/` where the milestone says so). The orchestrator merges branches to
@@ -387,6 +390,16 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   with entries for synthetic test clips.
 - Tests: end-to-end worked example with fakes reproduces the HLD verdict; replay of the same record
   is byte-identical.
+
+#### M16 — Combinatorial fuzz testing (S)
+- Full design in `docs/FUZZING_PLAN.md`: CsCheck generators driven by the project's own catalogs
+  (lexicon, taxonomy, slot-grammar DSL, intent/dialogue catalogs, phone inventory, content bundle),
+  sixteen oracles (crash, determinism, mutation↔tag agreement, recast closed loop, metamorphic
+  matching, replay sensitivity, schema violations), explicit tolerances, full soak by default with
+  env-var deepening and `CsCheck_Seed` replay.
+- M16a: `tests/Slg.Fuzzing.Tests` with options, corpus, text/sentence/mutation/slot-map generators,
+  harness, tolerances, oracles O1–O7, O10, O12, O16. M16b: audio/phone/content generators and oracles
+  O8, O9, O11, O13, O14, O15, CI job, README findings.
 
 #### M14 — CI and determinism verification (H)
 - Matrix: `ubuntu-latest`, `ubuntu-24.04-arm`, `windows-latest`, `macos-latest`; build, test,
