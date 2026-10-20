@@ -136,26 +136,31 @@ the opt-in `LexiconCache` and four threads, derives each copy's manifest from th
 (the 4.7 MB generated file has the same schema; a flipped byte still reaches it); `TempBundle` in the content tests is the light copy unless a test is
 about the imported lexicon.
 
-### Homographs: the cost of the vocabulary, and the input for M18
+### Homographs: the cost of the vocabulary, and what M18 did about it
 
-The analyzer reads each word as everything it can be. The fuzz generators leave out the words that would be misread and count them; the counts are printed by
-`CorrectSentenceFuzzTests` (`dotnet test tests/Slg.Fuzzing.Tests --logger "console;verbosity=detailed"`):
+Before M18 the analyzer read each word as everything it can be. The fuzz generators left out the words that would be misread and counted them; the counts are
+printed by `CorrectSentenceFuzzTests` (`dotnet test tests/Slg.Fuzzing.Tests --logger "console;verbosity=detailed"`). M18 added the part-of-speech resolver
+(`ReadingResolver`, described in [PIPELINE.md](PIPELINE.md#4-linguistic-analysis-d0)) and took the generators' exclusions out, so the last column is the same table
+after it:
 
-| | Before | After |
-| --- | --- | --- |
-| Forms of the merged lexicon with more than one reading | 89 of 1 179 (7.5 %) | 7 216 of 32 494 (22.2 %) |
-| Forms read under more than one lemma | 19 | 1 035 |
-| Nouns the generators can use | 154 | 1 583 |
-| ... of which also a verb form (finite or infinitive) | 3 (2 %) | 339 (21 %) |
-| Nouns left out: the form is also the other gender | 3 | 347 |
-| Nouns left out: a form shared with another noun lemma | 0 | 61 |
-| Nouns left out: no distinct plural | 5 | 16 |
-| Nouns left out: spelled like an article, numeral or determiner | 0 | 2 |
-| Sentences skipped as `verb-form-homograph` (per 2 000 recipes) | 0 | 1 to 7 |
-| Sentences skipped as `function-word-homograph` | n/a | see the fuzz README |
+| | Before the lexicon | With the lexicon (M17a) | With the resolver (M18) |
+| --- | --- | --- | --- |
+| Forms of the merged lexicon with more than one reading | 89 of 1 179 (7.5 %) | 7 216 of 32 494 (22.2 %) | same |
+| Forms read under more than one lemma | 19 | 1 035 | same |
+| Nouns the generators can use | 154 | 1 583 | 1 880 |
+| ... of which also a verb form (finite or infinitive) | 3 (2 %) | 339 (21 %) | 379 (20 %), drawn like any other noun |
+| ... of which also a noun of the other gender | left out | left out | 136, drawn; no gender mistake is built on them |
+| Nouns left out: the form is also the other gender | 3 | 347 | 0 |
+| Nouns left out: no noun reading of the generated form (the lemma has an entry for each gender, the form only one) | n/a | n/a | 17 |
+| Nouns left out: a form shared with another noun lemma | 0 | 61 | 94 |
+| Nouns left out: no distinct plural | 5 | 16 | 16 |
+| Nouns left out: spelled like an article, numeral or determiner | 0 | 2 | 2 |
+| Sentences skipped as `verb-form-homograph` (per 2 000 recipes of one oracle) | 0 | 1 to 7 | 0 to 1 (after every re-roll) |
+| Sentences skipped as `function-word-homograph` | n/a | none | none |
 
-A fifth of the usable nouns is also a verb form (`cuenta`, `trabajo`, `canto`), and one form in five has several readings. Making the analyzer choose between
-them from the grammar slot and the neighbouring determiners is M18.
+A fifth of the usable nouns is also a verb form (`cuenta`, `trabajo`, `canto`), and one form in five has several readings. The numbers in the last column
+count a lexeme once per lemma, and the 94 nouns left out for a shared form are ones where two noun lemmas have the same spelling (`ratos`), which is a homograph
+between two nouns and not between parts of speech.
 
 ## Analyzer fixes found by the fuzz oracles
 
@@ -164,7 +169,7 @@ with regression tests in `tests/Slg.Nlp.Tests/Analysis/AmbiguousReadingTests.cs`
 `hablar`, so a subject pronoun is now checked against the declarative readings; (2) `ella está alta` was corrected to `eres` because the first reading of
 `está` is the imperative; (3) `ella es ocupada` passed because `ocupada` is a lemma of its own that sorts before `ocupado`, so the ser/estar class and the
 prenominal check consider every adjective reading; (4) `malos corazones` was a number mistake because `corazones` also reads as a singular noun, so an
-adjective agrees with a noun that has readings of both numbers unless a determiner fixes the number. The homograph limit itself is not fixed.
+adjective agrees with a noun that has readings of both numbers unless a determiner fixes the number. The homograph limit itself was fixed in M18.
 
 ## Words the content uses and the lexicon lacked
 

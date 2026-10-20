@@ -17,12 +17,29 @@ internal static class AnalysisTables
 
     private static readonly FrozenSet<string> PrenominalAdjectives = new[] { "grande", "bueno", "malo" }.ToFrozenSet(StringComparer.Ordinal);
 
+    private static readonly FrozenSet<string> NounModifyingAdverbs = new[]
+    {
+        "solo", "sólo", "también", "tampoco", "incluso", "casi", "apenas", "aun", "aún", "más", "menos", "hasta", "ni",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
     private static readonly FrozenSet<string> PastTimeAdverbs = new[] { "ayer", "anoche", "anteayer" }.ToFrozenSet(StringComparer.Ordinal);
 
     private static readonly FrozenSet<string> TimeNouns = new[]
     {
         "semana", "mes", "año", "día", "noche", "vez", "hora", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo",
     }.ToFrozenSet(StringComparer.Ordinal);
+
+    /// <summary>True for adverbs that may stand directly before a noun (solo agua, también espadas, más agua), unlike manner and time adverbs (temprano, bien, ahora).</summary>
+    public static bool IsNounModifyingAdverb(string lemma)
+    {
+        return NounModifyingAdverbs.Contains(lemma);
+    }
+
+    /// <summary>True for the interrogative quantifier <c>cuánto</c>, which is an adverb before a verb (cuánto cuesta) and a determiner before a noun (cuántas espadas).</summary>
+    public static bool IsInterrogativeQuantifier(string lemma)
+    {
+        return string.Equals(lemma, "cuánto", StringComparison.Ordinal);
+    }
 
     /// <summary>True for adjectives that describe a temporary state and take estar.</summary>
     public static bool TakesEstar(string adjectiveLemma)

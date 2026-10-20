@@ -345,7 +345,7 @@ internal sealed class SentenceRealizer
             IReadOnlyList<string> pool = subject ? _words.SubjectPronouns : _words.Clitics;
             if (literalVerb && subject)
             {
-                var cells = next!.Readings.Where(IsFiniteVerbReading).Select(static r => (r.Person, r.Number)).ToHashSet();
+                var cells = next!.Readings.Where(r => IsFiniteVerbReading(r) && r.Mood != LexiconSchema.Imperative).Select(static r => (r.Person, r.Number)).ToHashSet();
                 var matching = _words.SubjectPronouns.Where(p => cells.Contains(PersonNumber(p))).ToArray();
                 if (matching.Length == 0)
                 {
@@ -358,12 +358,13 @@ internal sealed class SentenceRealizer
                 }
             }
 
-            if (subject && !generatedVerb && !literalVerb && next is { Kind: Kind.Noun })
+            // The word after a subject pronoun or a clitic is the verb, for a reader and for the analyzer alike, so a noun there is not one that can also be a verb.
+            if (!generatedVerb && !literalVerb && next is { Kind: Kind.Noun })
             {
                 next.ForbidHomograph = true;
             }
 
-            if (subject && !generatedVerb && !literalVerb && next is { Kind: Kind.Literal } && next.Readings.Any(IsFiniteVerbReading))
+            if (subject && !generatedVerb && !literalVerb && next is { Kind: Kind.Literal } && next.Readings.Any(static r => r.Pos == LexiconSchema.Verb))
             {
                 subject = false;
                 pool = _words.Clitics;
@@ -429,7 +430,6 @@ internal sealed class SentenceRealizer
     private bool ChooseNouns(out string skip)
     {
         skip = "none";
-        var plain = _words.PlainNouns;
         for (var i = 0; i < _items.Count; i++)
         {
             var item = _items[i];
@@ -438,9 +438,9 @@ internal sealed class SentenceRealizer
                 continue;
             }
 
-            var hasContext = i > 0 && IsDeterminer(_items[i - 1]);
-            var allowHomograph = hasContext && !item.ForbidHomograph && _rng.NextDouble() < 0.15;
-            item.Noun = allowHomograph ? _rng.Pick(_words.Nouns) : _rng.Pick(plain);
+            // Every noun may be drawn, whether or not it is also a verb form or a noun of the other gender: the analyzer resolves the part of speech of each word
+            // (M18). The one place a verb form is not wanted is right behind a subject pronoun, where a noun is not what a reader (or the analyzer) expects.
+            item.Noun = _rng.Pick(item.ForbidHomograph ? _words.PlainNouns : _words.Nouns);
         }
 
         return true;
@@ -852,16 +852,18 @@ internal sealed class SentenceRealizer
         return false;
     }
 
-    // A finite verb form that also reads as a noun, adjective, article or numeral could be taken for part of a noun phrase by the analyzer,
-    // which is a property of the lexicon rather than of the sentence; such a form is re-rolled by retrying the whole sentence.
+    // A function word that is also a finite verb form or a noun is re-rolled by retrying the whole sentence. So is a verb form that is a copula only by homograph
+    // and is followed by an adjective, and one that stands right behind a determiner or a preposition. Verb forms that are also nouns, adjectives, articles or numerals elsewhere
+    // are not: the analyzer resolves them.
     private bool CheckVerbForms(out string skip)
     {
         skip = "none";
-        foreach (var item in _items)
+        for (var i = 0; i < _items.Count; i++)
         {
-            // The same goes for a function word that is also a finite verb form or a noun (the imported lexicon has few left, because the import leaves
-            // the spelling of hand-authored function words alone; poco and pocos are determiners that also read as the noun poca): the analyzer would
-            // check the word's person and tense, or build a noun phrase around it, as if it were the verb or the noun.
+            var item = _items[i];
+            // A function word that is also a finite verb form or a noun is re-rolled (the imported lexicon has few left, because the import leaves the spelling
+            // of hand-authored function words alone; poco and pocos are determiners that also read as the noun poca): its place in the sentence is the one the
+            // pattern gives it, and the checks should not mistake it for the verb or the noun.
             if (item.Kind is Kind.Article or Kind.Determiner or Kind.Pronoun or Kind.Numeral or Kind.Adverb or Kind.Preposition or Kind.Conjunction or Kind.Interjection
                 && item.Readings.Any(r => IsFiniteVerbReading(r) || r.Pos == LexiconSchema.Noun))
             {
@@ -875,11 +877,25 @@ internal sealed class SentenceRealizer
                 continue;
             }
 
-            // The copula check looks at every finite reading, so sé (saber, and the imperative of ser) followed by an adjective would be
-            // read as a ser/estar mistake; a form that is a copula by homograph only is re-rolled as well.
+            // A verb form that is also a copula (fue, fueron: ir and ser) followed by an adjective is a copula by every reading the analyzer can choose among, since
+            // all of them are finite verbs, so a ser/estar mistake could be reported for an ir that happens to be followed by an adjective. That is a homograph between
+            // two verbs, not between parts of speech, and the sentence is re-rolled.
             var copulaByHomograph = item.Lemma is not ("ser" or "estar")
                 && item.Readings.Any(r => r.Pos == LexiconSchema.Verb && r.Person is not null && r.Lemma is "ser" or "estar");
-            if (copulaByHomograph || item.Readings.Any(static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective or LexiconSchema.Article or LexiconSchema.Numeral))
+            if (copulaByHomograph && NextContent(i) is var next and >= 0 && _items[next].Kind == Kind.Adjective)
+            {
+                skip = "verb-form-homograph";
+                _detail = item.Surface!;
+                return false;
+            }
+
+            // A verb right behind an article, numeral, determiner or preposition, or behind an adjective that belongs to no noun (a skeleton pattern such as [ART] [VERB],
+            // [PREP] [VERB] or [ADJ] [VERB]), is read by the analyzer as the noun or adjective that the determiner or the prenominal adjective asks for, and a preposition
+            // does not govern a finite verb, whenever the form can be a noun or an adjective (la baño, 633540 ocultas, arruinado diseño, al adivinas); a reader could take
+            // the article for a clitic, so the sentence is re-rolled rather than called correct.
+            if (PreviousContent(i) is { } previous
+                && (previous is { Kind: Kind.Article or Kind.Determiner or Kind.Numeral or Kind.Preposition } or { Kind: Kind.Adjective, Head: null } || IsOpeningLiteral(previous))
+                && item.Readings.Any(static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective or LexiconSchema.Article or LexiconSchema.Numeral))
             {
                 skip = "verb-form-homograph";
                 _detail = item.Surface!;
@@ -888,6 +904,16 @@ internal sealed class SentenceRealizer
         }
 
         return true;
+    }
+
+    // A literal word of the grammar that the analyzer takes for a preposition, an article, a numeral, a determiner or an adjective (tras, la, mi, grande), so that the word
+    // after it is read as a noun (or at least not as a finite verb).
+    private static bool IsOpeningLiteral(Item item)
+    {
+        return item.Kind == Kind.Literal
+            && item.Readings.Count > 0
+            && (item.Readings.All(static r => r.Pos == LexiconSchema.Preposition)
+                || item.Readings.All(static r => r.Pos is LexiconSchema.Article or LexiconSchema.Numeral or LexiconSchema.Adjective));
     }
 
     // ---- Output ---------------------------------------------------------------------------------------------------------------------

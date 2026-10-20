@@ -76,10 +76,37 @@ public sealed record GrammarPattern(IReadOnlyList<PatternNode> Nodes)
         return false;
     }
 
+    /// <summary>True when a typed token with this tag (<c>VERB</c>, <c>NOUN</c>, ...) is optional or inside a group, so the matcher may or may not give it a word.</summary>
+    public bool HasFlexibleTag(string tag)
+    {
+        ArgumentNullException.ThrowIfNull(tag);
+        return ContainsFlexibleTag(Nodes, tag, flexible: false);
+    }
+
     /// <inheritdoc />
     public override string ToString()
     {
         return Render();
+    }
+
+    private static bool ContainsFlexibleTag(IReadOnlyList<PatternNode> nodes, string tag, bool flexible)
+    {
+        foreach (var node in nodes)
+        {
+            switch (node)
+            {
+                case TypedPattern typed when flexible && string.Equals(typed.Tag, tag, StringComparison.Ordinal):
+                    return true;
+                case OptionalPattern optional when ContainsFlexibleTag([optional.Inner], tag, flexible: true):
+                    return true;
+                case GroupPattern group when group.Alternatives.Any(alternative => ContainsFlexibleTag(alternative, tag, flexible: true)):
+                    return true;
+                default:
+                    break;
+            }
+        }
+
+        return false;
     }
 
     private static void Collect(

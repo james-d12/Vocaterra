@@ -451,6 +451,7 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 | M15 | README, ADRs, CONTRIBUTING, determinism checklist, replay and pipeline docs | done |
 | M16 | Combinatorial fuzz testing: CsCheck, 16 oracles over catalog-driven generators | done |
 | M17a | Vocabulary: 3 000 Wiktionary lemmas (about 40 000 entries) selected by a frequency list, with sources, hashes and coverage tests (see [docs/LEXICON.md](docs/LEXICON.md)) | done |
+| M18 | Part-of-speech disambiguation: the analyzer resolves each word to one reading before its checks (see [docs/PIPELINE.md](docs/PIPELINE.md#4-linguistic-analysis-d0)) | done |
 
 ## Known gaps and next steps
 
@@ -484,9 +485,11 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 - **Open decisions.** The license of the repository, whether the player can choose the NPC dialect, and whether a free
   conversation mode (Phase 3 in the design) ships at all.
 - **Build size.** A full build writes about 3 GB per checkout; trimming the runtime packs is a follow-up.
-- **Part of speech.** The analyzer reads each word as every part of speech it can be, so verb and noun homographs such as `ayudas`, `lanza`
-  and `vino` trip the tense and person checks; with the imported lexicon 21 % of the usable nouns are also a verb form. A fix needs disambiguation by
-  part of speech (M18; [numbers](docs/LEXICON.md), [fuzz suite findings](tests/Slg.Fuzzing.Tests/README.md)).
+- **Part of speech.** Since M18 the analyzer resolves each word to one part of speech before it checks anything, from the neighbouring words, the
+  slot grammar that matched and, last, the reading with the fewest errors ([how](docs/PIPELINE.md#4-linguistic-analysis-d0)), so correct sentences
+  with `libro`, `lanza`, `vino` or `ayudas` analyze clean and the mistakes in sentences with them are still found. Two verbs that share a form (`fue` is `ir`
+  and `ser`) are not told apart, and a sentence that is a mistake under one reading and correct under another, with nothing around the word to
+  prefer either, is read the charitable way ([fuzz suite findings](tests/Slg.Fuzzing.Tests/README.md)).
 - **Pronunciation cost.** Scoring grows with the cube of the phone count, because `PredictedErrorMatcher.Match` aligns against the reference once
   per predicted-error variant. Spoken utterances are far below the sizes where this matters ([fuzz suite findings](tests/Slg.Fuzzing.Tests/README.md)).
 - **Content defaults.** The content loader silently defaults missing number, flag and enumeration fields to 0, false or the first member. The

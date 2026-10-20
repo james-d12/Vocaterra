@@ -231,4 +231,54 @@ public class SlotGrammarTests
         Assert.Equal(first.Slots, second.Slots);
         Assert.Equal("action=comprar,qty=2,item=espada", Slots(first));
     }
+
+    // What the matcher says about each token: "index:Node,Node" for every token it consumed, in token order.
+    private static string Bindings(SlotGrammarMatch? match)
+    {
+        Assert.NotNull(match);
+        return string.Join(" ", match.Bindings.Select(b => $"{b.TokenIndex}:{string.Join("/", b.Nodes.Select(Describe))}"));
+    }
+
+    private static string Describe(GrammarNode node)
+    {
+        return node switch
+        {
+            TypedNode typed => typed.Tag,
+            LiteralNode literal => literal.Word,
+            DefaultSubjectNode => "subject",
+            _ => node.GetType().Name,
+        };
+    }
+
+    [Fact]
+    public void AMatchBindsEveryTokenItConsumedToTheElementThatTookIt()
+    {
+        var match = Match("yo tengo dos espadas por favor", "[VERB:tener] [NUM:qty] [NOUN:item]");
+
+        Assert.Equal("0:subject 1:VERB 2:NUM 3:NOUN 4:por 5:favor", Bindings(match));
+    }
+
+    [Fact]
+    public void AMatchBindsALiteralToItsWord()
+    {
+        Assert.Equal("0:cuánto 1:VERB 2:ART 3:NOUN", Bindings(Match("cuánto cuesta la espada", "cuánto [VERB:costar] [ART]? [NOUN:item]")));
+    }
+
+    [Fact]
+    public void ElementsThatTieForAWordAreAllBoundToIt()
+    {
+        // Both [NOUN]? and [VERB]? can take "vino" (a noun, and a form of venir) and the parses consume as many tokens either way, so the word is bound to both.
+        var match = Match("quiero vino", "[VERB:querer] [NOUN]? [VERB]?");
+
+        Assert.Equal("0:VERB 1:NOUN/VERB", Bindings(match));
+    }
+
+    [Fact]
+    public void ABetterParseReplacesTheBindingsOfAWorseOne()
+    {
+        // [ADJ]? could take "espada" only if it is an adjective; the parse that gives it to [NOUN:item] consumes more explicit tokens and is the only one bound.
+        var match = Match("compro dos espadas", "[VERB:comprar] [NUM:qty]? [NOUN:item]");
+
+        Assert.Equal("0:VERB 1:NUM 2:NOUN", Bindings(match));
+    }
 }

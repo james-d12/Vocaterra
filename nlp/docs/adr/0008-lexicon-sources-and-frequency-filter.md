@@ -119,7 +119,8 @@ and four threads; the generators index the lexicon instead of scanning it.
 - The lexicon grows from 404 to 3 372 lemmas and from 1 268 to 41 078 entries. A noun is also a verb form in 21 % of the usable nouns
   (339 of 1 583; before: 3 of 154), and 7 216 of 32 494 forms of the merged lexicon have more than one reading (before: 89 of 1 179). The analyzer is not part-of-speech aware, so
   such words trip the person, tense and number checks on correct sentences. The fuzz generators leave those words out of the sentences they build
-  and count them; making the analyzer choose is M18. This is the cost of the milestone, and the numbers that decide M18 are in LEXICON.md.
+  and count them; making the analyzer choose is M18. This is the cost of the milestone, and the numbers that decide M18 are in LEXICON.md. *Update:* M18 did it
+  (`ReadingResolver`, [PIPELINE.md](../PIPELINE.md#4-linguistic-analysis-d0)), and the generators now draw these words.
 - Analyzer fixes that the new words forced (regression tests in `Slg.Nlp.Tests/Analysis/AmbiguousReadingTests.cs`): a subject pronoun is checked
   against the declarative readings of its verb, because an imperative is spelled like the third person (`tú habla` is a person mistake); the copula
   check uses the declarative reading (`está` is also the imperative of `estar`, so the correction of `ella está alta` is `es`, not `eres`); a form

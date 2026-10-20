@@ -57,6 +57,12 @@ public sealed class RecastLoopFuzzTests(ITestOutputHelper output)
                 var target = mutation.CorrectedNormalized ?? mutation.Mutated.NormalizedText;
                 var wanted = TextNormalizer.Normalize(target, Permissive).Text;
                 var actual = TextNormalizer.Normalize(recast, Permissive).Text;
+                if (!string.Equals(wanted, actual, StringComparison.Ordinal) && KnownTolerances.IsTiedParse(analysis, grammar))
+                {
+                    diagnostics.Count($"excused:tied-parse:{mutation.Kind}");
+                    return;
+                }
+
                 if (!string.Equals(wanted, actual, StringComparison.Ordinal))
                 {
                     throw Determinism.Fail(Oracle, $"The recast '{recast}' normalizes to '{actual}' instead of the corrected sentence '{wanted}'.", context);
@@ -69,6 +75,12 @@ public sealed class RecastLoopFuzzTests(ITestOutputHelper output)
                 }
 
                 var again = Harness.Analyzer.Analyze(PipelineHarness.Normalize(recast), [grammar]);
+                if (again.Errors.Count > 0 && KnownTolerances.IsTiedParse(again, grammar))
+                {
+                    diagnostics.Count($"excused:tied-parse:{mutation.Kind}");
+                    return;
+                }
+
                 if (again.Errors.Count > 0)
                 {
                     throw Determinism.Fail(
@@ -84,6 +96,8 @@ public sealed class RecastLoopFuzzTests(ITestOutputHelper output)
             threads: 1);
 
         output.WriteLine("Recast loop diagnostics:\n" + diagnostics.Report());
+        Assert.True(diagnostics.Sum("excused:") * 100 <= diagnostics.Sum("recast:"), $"More than one case in a hundred was excused as a tied parse.\n{diagnostics.Report()}");
+        Assert.True(diagnostics.HomographSkipsAreRare, $"{diagnostics.HomographSkips} of {diagnostics.Recipes} recipes were skipped as homographs.\n{diagnostics.Report()}");
         foreach (var kind in Enum.GetValues<MutationKind>().Where(static k => k != MutationKind.VocabUnknown))
         {
             Assert.True(diagnostics.Get($"recast:{kind}:closed") >= 20, $"The loop was closed fewer than 20 times for {kind}.\n{diagnostics.Report()}");

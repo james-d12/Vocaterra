@@ -7,9 +7,15 @@ using Slg.Nlp.Lexicon;
 using Slg.Nlp.Morphology;
 using Slg.Nlp.SlotGrammar;
 
-/// <summary>Looks up every token, checks agreement and word order, and extracts slots with slot grammars; pure and deterministic.</summary>
+/// <summary>
+/// Looks up every token, resolves each word to one part of speech (see <see cref="ReadingResolver"/>), checks agreement and word order on that reading, and
+/// extracts slots with slot grammars; pure and deterministic.
+/// </summary>
 public sealed class LinguisticAnalyzer
 {
+    // More than one error, so that a tense mistake is not explained away by reading the verb form as a noun; see Cost.
+    private const int PastMarkerWithoutVerbCost = 2;
+
     private readonly Lexicon _lexicon;
     private readonly MorphologyGenerator _morphology;
 
@@ -38,6 +44,10 @@ public sealed class LinguisticAnalyzer
     /// Analyzes the text: unknown words, regularized irregular verbs, agreement, tense, ser/estar and word-order errors,
     /// plus the slots of the best matching grammar. Errors are ordered by span start and then by taxonomy order.
     /// </summary>
+    /// <remarks>
+    /// The grammar is matched first, on every reading of every word, because the words it binds tell the resolver which part of speech each ambiguous word is.
+    /// The checks then run on the resolved readings only; the returned tokens still list every reading of the lexicon, which the intent stage matches lemmas on.
+    /// </remarks>
     public AnalysisResult Analyze(NormalizedText text, IReadOnlyList<SlotGrammar> grammars)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -57,14 +67,27 @@ public sealed class LinguisticAnalyzer
             analyzed.Add(new AnalyzedToken(token, readings));
         }
 
-        new AgreementChecker(analyzed, _morphology, errors).Run();
         var match = BestMatch(analyzed, grammars);
+        var resolved = ReadingResolver.Resolve(analyzed, match, Cost);
+        new AgreementChecker(resolved, _morphology, errors).Run();
         return new AnalysisResult(
             analyzed,
             match?.Slots ?? [],
             OrderErrors(errors),
             match?.Grammar.Id,
             allKnown ? 1.0 : 0.5);
+    }
+
+    // What the resolver minimizes: the number of distinct errors the checks find in one resolved reading of the sentence. A sentence that has a past-time adverb and
+    // no finite verb at all costs two more, which is more than one tense mistake: ayer canto is not a noun and an adverb, it is a present verb after ayer. Without a
+    // past-time adverb no such charge is made, because a sentence of nouns and adjectives (a list, a name, a greeting) has no verb and is fine.
+    private int Cost(IReadOnlyList<AnalyzedToken> resolved)
+    {
+        var found = new List<ErrorTag>();
+        var checker = new AgreementChecker(resolved, _morphology, found);
+        checker.Run();
+        var cost = found.Distinct().Count();
+        return cost + (checker.HasPastTimeMarker() && !resolved.Any(static t => t.Readings.Any(ReadingClasses.IsFiniteVerb)) ? PastMarkerWithoutVerbCost : 0);
     }
 
     private static SlotGrammarMatch? BestMatch(IReadOnlyList<AnalyzedToken> tokens, IReadOnlyList<SlotGrammar> grammars)

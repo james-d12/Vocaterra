@@ -7,6 +7,19 @@ using Slg.Nlp.Lexicon;
 /// <summary>A successful grammar match: the grammar, the extracted slots and how many tokens the explicit grammar elements consumed.</summary>
 public sealed record SlotGrammarMatch(SlotGrammar Grammar, IReadOnlyList<SlotValue> Slots, int ExplicitTokenCount)
 {
+    /// <summary>
+    /// What the grammar says about each token it consumed, in token order: the typed elements or literals that matched it in the parses that tie for the best score
+    /// (usually one; two optional elements that compete for a word give two). The linguistic analyzer uses this to read a word that has several parts of speech as
+    /// the one the grammar needs (<c>[NOUN:item]</c> binds <c>libro</c> as a noun, not as a form of <c>librar</c>).
+    /// </summary>
+    internal IReadOnlyList<TokenBinding> Bindings { get; init; } = [];
+
+    /// <summary>
+    /// The positions of the tokens that the best parses read in different ways, because two elements of the grammar compete for the word (<c>[NOUN:item]?</c> beside
+    /// <c>[VERB]?</c> over a word that is both). Empty for a grammar that reads every word one way. The slots are those of the first of the tied parses.
+    /// </summary>
+    public IReadOnlyList<int> AmbiguousTokens => [.. Bindings.Where(static b => b.Nodes.Count > 1).Select(static b => b.TokenIndex)];
+
     /// <summary>The slots as an ordinal-sorted map; the first occurrence of a slot name wins.</summary>
     public SlotMap ToSlotMap()
     {
@@ -14,10 +27,16 @@ public sealed record SlotGrammarMatch(SlotGrammar Grammar, IReadOnlyList<SlotVal
     }
 }
 
+/// <summary>The grammar elements that consumed one token in the best parses: a typed element (<c>[NOUN:item]</c>), a literal word, or the implicit subject pronoun or <c>por favor</c>.</summary>
+internal sealed record TokenBinding(int TokenIndex, IReadOnlyList<GrammarNode> Nodes);
+
 /// <summary>Deterministic backtracking matcher of slot grammars against analyzed tokens, using lemmas and ignoring agreement.</summary>
 public static class SlotGrammarMatcher
 {
     private const int MaxSteps = 200_000;
+
+    private static readonly LiteralNode PorLiteral = new("por");
+    private static readonly LiteralNode FavorLiteral = new("favor");
 
     /// <summary>
     /// Matches the whole token sequence against the grammar, allowing a leading subject pronoun and a trailing <c>por favor</c>.
@@ -32,7 +51,7 @@ public static class SlotGrammarMatcher
             [new OptionalNode(new DefaultSubjectNode()), .. grammar.Nodes, new OptionalNode(new DefaultPoliteNode())],
             null);
         search.Step(frame, 0, null, 0);
-        return search.Best is { } best ? new SlotGrammarMatch(grammar, best.Slots, best.Score) : null;
+        return search.Best is { } best ? new SlotGrammarMatch(grammar, best.Slots, best.Score) { Bindings = search.Bindings } : null;
     }
 
     private sealed record Frame(GrammarNode Node, Frame? Next)
@@ -49,13 +68,15 @@ public static class SlotGrammarMatcher
         }
     }
 
-    private sealed record Capture(SlotValue Value, Capture? Previous);
+    // One consumed token: the element that matched it and, for a typed element with a slot name, the slot value it filled.
+    private sealed record Capture(int Position, GrammarNode Node, SlotValue? Value, Capture? Previous);
 
     private sealed record ParseResult(IReadOnlyList<SlotValue> Slots, int Score);
 
     private sealed class Search
     {
         private readonly IReadOnlyList<AnalyzedToken> _tokens;
+        private readonly Dictionary<int, List<GrammarNode>> _alternatives = [];
         private int _steps;
 
         public Search(IReadOnlyList<AnalyzedToken> tokens)
@@ -64,6 +85,9 @@ public static class SlotGrammarMatcher
         }
 
         public ParseResult? Best { get; private set; }
+
+        // The elements that matched each token position, over every complete parse that ties for the best score.
+        public IReadOnlyList<TokenBinding> Bindings => [.. _alternatives.OrderBy(static pair => pair.Key).Select(static pair => new TokenBinding(pair.Key, pair.Value))];
 
         public void Step(Frame? frame, int position, Capture? captures, int score)
         {
@@ -88,17 +112,15 @@ public static class SlotGrammarMatcher
                 case LiteralNode literal:
                     if (position < _tokens.Count && TypedMatching.MatchesLiteral(_tokens[position], literal.Word))
                     {
-                        Step(rest, position + 1, captures, score + 1);
+                        Step(rest, position + 1, new Capture(position, literal, null, captures), score + 1);
                     }
 
                     break;
                 case TypedNode typed:
                     if (position < _tokens.Count && TypedMatching.TryMatch(_tokens[position], typed, out var value))
                     {
-                        var next = typed.Slot is null
-                            ? captures
-                            : new Capture(new SlotValue(typed.Slot, value, _tokens[position].Token.Span), captures);
-                        Step(rest, position + 1, next, score + 1);
+                        var slot = typed.Slot is null ? null : new SlotValue(typed.Slot, value, _tokens[position].Token.Span);
+                        Step(rest, position + 1, new Capture(position, typed, slot, captures), score + 1);
                     }
 
                     break;
@@ -116,7 +138,7 @@ public static class SlotGrammarMatcher
                 case DefaultSubjectNode:
                     if (position < _tokens.Count && TypedMatching.IsSubjectPronoun(_tokens[position]))
                     {
-                        Step(rest, position + 1, captures, score);
+                        Step(rest, position + 1, new Capture(position, frame.Node, null, captures), score);
                     }
 
                     break;
@@ -125,7 +147,7 @@ public static class SlotGrammarMatcher
                         && TypedMatching.MatchesLiteral(_tokens[position], "por")
                         && TypedMatching.MatchesLiteral(_tokens[position + 1], "favor"))
                     {
-                        Step(rest, position + 2, captures, score);
+                        Step(rest, position + 2, new Capture(position + 1, FavorLiteral, null, new Capture(position, PorLiteral, null, captures)), score);
                     }
 
                     break;
@@ -136,29 +158,55 @@ public static class SlotGrammarMatcher
 
         private void Offer(Capture? captures, int score)
         {
-            if (Best is not null && Best.Score >= score)
+            if (Best is not null && Best.Score > score)
             {
                 return;
             }
 
-            var reversed = new List<SlotValue>();
+            if (Best is not null && Best.Score == score)
+            {
+                // A tie keeps the first parse's slots, and adds what this parse says about each token.
+                AddAlternatives(captures);
+                return;
+            }
+
+            var reversed = new List<Capture>();
             for (var capture = captures; capture is not null; capture = capture.Previous)
             {
-                reversed.Add(capture.Value);
+                reversed.Add(capture);
             }
 
             reversed.Reverse();
             var slots = new List<SlotValue>(reversed.Count);
             var names = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var slot in reversed)
+            foreach (var capture in reversed)
             {
-                if (names.Add(slot.Name))
+                if (capture.Value is { } slot && names.Add(slot.Name))
                 {
                     slots.Add(slot);
                 }
             }
 
             Best = new ParseResult(slots, score);
+            _alternatives.Clear();
+            AddAlternatives(captures);
+        }
+
+        private void AddAlternatives(Capture? captures)
+        {
+            for (var capture = captures; capture is not null; capture = capture.Previous)
+            {
+                if (!_alternatives.TryGetValue(capture.Position, out var nodes))
+                {
+                    nodes = [];
+                    _alternatives.Add(capture.Position, nodes);
+                }
+
+                if (!nodes.Contains(capture.Node))
+                {
+                    nodes.Add(capture.Node);
+                }
+            }
         }
     }
 }
@@ -192,23 +240,33 @@ internal static class TypedMatching
     {
         foreach (var reading in token.Readings)
         {
-            if (!MatchesPos(reading, node.Pos))
+            if (MatchesTyped(reading, node))
             {
-                continue;
+                value = reading.Lemma;
+                return true;
             }
-
-            if (node.Lemma is not null
-                && !string.Equals(TextFolding.StripAccents(reading.Lemma), TextFolding.StripAccents(node.Lemma), StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            value = reading.Lemma;
-            return true;
         }
 
         value = string.Empty;
         return false;
+    }
+
+    /// <summary>True when the reading has the part of speech of the typed element and, for <c>[VERB:lemma]</c>, that lemma (accents ignored).</summary>
+    public static bool MatchesTyped(LexicalFeatures reading, TypedNode node)
+    {
+        if (!MatchesPos(reading, node.Pos))
+        {
+            return false;
+        }
+
+        return node.Lemma is null
+            || string.Equals(TextFolding.StripAccents(reading.Lemma), TextFolding.StripAccents(node.Lemma), StringComparison.Ordinal);
+    }
+
+    /// <summary>True when the reading's lemma is the literal word, accents ignored.</summary>
+    public static bool HasLemma(LexicalFeatures reading, string literal)
+    {
+        return string.Equals(TextFolding.StripAccents(reading.Lemma), TextFolding.StripAccents(literal), StringComparison.Ordinal);
     }
 
     public static bool IsSubjectPronoun(AnalyzedToken token)

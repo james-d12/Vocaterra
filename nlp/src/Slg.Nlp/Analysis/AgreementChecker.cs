@@ -9,8 +9,6 @@ using Slg.Nlp.Morphology;
 /// <summary>Runs the grammar checks (subject-verb, tense, ser/estar, noun phrase agreement, word order) over analyzed tokens.</summary>
 internal sealed class AgreementChecker
 {
-    private const int MaxSkippedBetween = 2;
-
     private readonly IReadOnlyList<AnalyzedToken> _tokens;
     private readonly MorphologyGenerator _morphology;
     private readonly List<ErrorTag> _errors;
@@ -32,7 +30,7 @@ internal sealed class AgreementChecker
 
     private static bool IsFiniteVerb(LexicalFeatures reading)
     {
-        return reading.Pos == LexiconSchema.Verb && reading.Person is not null;
+        return ReadingClasses.IsFiniteVerb(reading);
     }
 
     // A finite form that can follow an explicit subject: the imperative is left out, because imperatives share their spelling with the third person
@@ -49,8 +47,7 @@ internal sealed class AgreementChecker
 
     private static bool IsDeterminerReading(LexicalFeatures reading)
     {
-        return reading.Pos is LexiconSchema.Article or LexiconSchema.Numeral
-            || (reading.Pos == LexiconSchema.Adjective && WordClasses.IsDeterminerAdjective(reading.Lemma));
+        return ReadingClasses.IsDeterminerReading(reading);
     }
 
     private static bool GenderCompatible(LexicalFeatures modifier, LexicalFeatures noun)
@@ -129,21 +126,14 @@ internal sealed class AgreementChecker
 
     private bool IsSkippable(int index)
     {
-        var readings = _tokens[index].Readings;
-        if (readings.Count == 0)
-        {
-            return false;
-        }
-
-        return readings.All(static r => r.Pos is LexiconSchema.Adverb or LexiconSchema.Interjection)
-            || readings.All(static r => r.Pos == LexiconSchema.Pronoun && WordClasses.IsClitic(r.Lemma));
+        return ReadingClasses.IsSkippable(_tokens[index].Readings);
     }
 
     private int NextContentIndex(int from)
     {
         var index = from;
         var skipped = 0;
-        while (index < _tokens.Count && skipped < MaxSkippedBetween && IsSkippable(index))
+        while (index < _tokens.Count && skipped < ReadingClasses.MaxSkippedBetween && IsSkippable(index))
         {
             index++;
             skipped++;
@@ -224,7 +214,8 @@ internal sealed class AgreementChecker
         }
     }
 
-    private bool HasPastTimeMarker()
+    /// <summary>True when the sentence has a past-time adverb (ayer, anoche, anteayer) or a time noun with <c>pasado</c> (la semana pasada).</summary>
+    public bool HasPastTimeMarker()
     {
         for (var i = 0; i < _tokens.Count; i++)
         {

@@ -154,6 +154,39 @@ empty reading list means an unknown word and yields `vocab.unknown`), runs the a
 noun, noun and adjective, quantity and noun, `ser`/`estar`, adjective position), and matches the slot grammars. The grammars
 tried are the prompt's own `slotGrammarIds` first (they win ties), then every other grammar of the allowed intents.
 
+**One reading per word.** A word the lexicon reads as several parts of speech is resolved to one before the rules run, so that
+`libro` (a noun, and a form of `librar`) is not checked as both. `ReadingResolver` does it in three steps, and every rule then runs
+on the resolved readings only. The returned tokens still list all readings, because the intent stage matches lemmas on them.
+
+1. **Local syntax** (hard constraints, repeated until nothing changes). After an article, numeral or possessive come further
+   determiners and adjectives and then a noun (`un libro`, `dos libro`, `una buena lanza`); an adjective that does not follow a noun
+   is prenominal, so a noun follows it (`correcto paseo`); a quantifier that is also an adverb (`mucho`) before a noun is the
+   determiner, and so is an adjective-and-adverb word before a noun that cannot be a verb (`temprano pasillo`; `solo agua` is the
+   exception, `solo` is an adverb that goes before nouns); the word after a subject pronoun or a clitic (skipping adverbs and
+   clitics) is a verb (`yo lanza`, `tú ayudas`); the word after a preposition, and the complement of `ser`/`estar`, is not a finite
+   verb (`a casa`, `la casa es grande`); an interjection reading is the last resort (the lexicon lists `sus` and `sé` as
+   interjections too). A rule fires on a word only when every reading it has is of the kind that triggers it (an article, not
+   the clitic `la`), and only when a reading of its neighbour fits. `ayer`, `anoche` and `anteayer` change nothing here: a word
+   after an article is a noun with or without them (`ayer compré un libro`).
+2. **Grammar bindings.** When a slot grammar matched the whole utterance, each word was consumed by a grammar element, and the
+   words local syntax left open take its reading: `[NOUN:item]` keeps the noun readings, `[VERB:comprar]` the readings of that verb,
+   a literal that matched through a lemma (`querer` for `quiero`) the readings of that lemma. A literal spelled like the word
+   (`lanza`, `tardes`) constrains nothing, because the author wrote a form and not a reading; a word that tied parses read in
+   different ways keeps what any of them accepts. The bindings come after the local rules: a grammar ignores agreement and accepts a
+   modifier where a noun is needed, so where the two disagree the neighbouring words win (`yo lanza` matches
+   `[VERB:lanzar]? [ART]? [NOUN:spell]` with `lanza` as the noun, and is still a `conj.person` mistake). The grammar is matched first
+   for this reason, on all readings; the slots come from that match.
+3. **Charitable fallback.** The words that are still ambiguous take the class combination for which the rules report the fewest
+   errors (finite verb, infinitive or participle, noun, adjective, determiner, pronoun, adverb, ...). A sentence without any
+   finite verb counts as two errors when it has a past-time adverb, so a verb form next to `ayer` is not read as a noun to
+   make its tense mistake disappear (`ayer canto una canción`); a sentence of nouns and adjectives with no adverb of the past is not
+   charged, because it has no verb and is fine. Ties go to the earlier class in the lexicon's reading order. Up to 256 combinations are tried
+   exhaustively; a longer sentence is settled word by word (at most four passes). The two hard steps are what keep this from
+   swallowing an injected error, and the mutation oracle O4 of the fuzz suite is the guard.
+
+Not resolved: two verbs that share a form (`fue` is `ir` and `ser`) are one class, and a sentence that is a mistake under one
+reading and correct under another, with nothing to prefer either, is read the charitable way (`ayer … intenciones parte`).
+
 Grammar matching works on lemmas and ignores agreement (agreement is what the rules check), and it allows a leading subject
 pronoun. So for the example the first grammar `[VERB:tener:verb] [NUM:qty] [NOUN:item]` fits `yo tiene 2 espada`, and the analysis is
 (readings abbreviated):
