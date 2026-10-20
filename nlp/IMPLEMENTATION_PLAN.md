@@ -71,7 +71,10 @@ Dependency direction (no cycles): `Core` <- `Audio`, `Phonology`, `Nlp`, `Pronun
 4. **Ordered collections.** Never let `Dictionary`/`HashSet` enumeration order affect output.
    Sort with `StringComparer.Ordinal`; serialize maps with sorted keys.
 5. **Invariant culture everywhere.** `CultureInfo.InvariantCulture`, `StringComparison.Ordinal`,
-   Unicode NFC. `InvariantGlobalization` is on.
+   Unicode NFC. `InvariantGlobalization` is **off** (decided after M0: invariant mode leaves
+   decomposed accents un-composed, which breaks NFC). ICU-backed normalization is used; culture
+   behaviour must never leak in because every comparison is ordinal. Pinning an app-local ICU for
+   shipped builds is an open ADR item (M15).
 6. **Margins on every threshold.** `Margin(threshold, epsilon).Evaluate(score)` returns
    `Accept | Reject | Uncertain`; every caller handles all three. Fixed summation order; no
    parallel reductions in grading paths.
@@ -169,8 +172,8 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 
 | ID | Milestone | Depends on | Tier | Status |
 | --- | --- | --- | --- | --- |
-| M0 | Solution scaffold: SDK pin, props, all project stubs, CI skeleton | — | H | todo |
-| M1 | Core contracts + determinism primitives + taxonomy | M0 | S | todo |
+| M0 | Solution scaffold: SDK pin, props, all project stubs, CI skeleton | — | H | done |
+| M1 | Core contracts + determinism primitives + taxonomy | M0 | S | in-progress |
 | M2 | Audio front-end (WAV IO, resample, gain, energy VAD, clip hash, push-to-talk session) | M1 | S | todo |
 | M3 | Spanish G2P with dialect config, alignment, predicted-error variants, golden set | M1 | S | todo |
 | M4 | Text normalization + answer matching (exact/alias/fuzzy + phonetic key) | M1 | S | todo |
@@ -183,7 +186,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M11 | Response realization: templates + morphology, recasts, TTS adapters + cache, effect tables | M5, M3 | S | todo |
 | M12 | Content bundle: schema, loader, hashing, ContentBuilder CLI (kaikki import), sample content v1 | M4, M5, M6, M10, M11 | S | todo |
 | M13 | Pipeline orchestration, replay log + replayer, CLI demo, bench harness, golden layout | M2–M12 | S | todo |
-| M14 | CI matrix (x64/ARM64/Windows/macOS), golden tests, license scan, format check | M13 | H | todo |
+| M14 | CI matrix (x64/ARM64/Windows/macOS), golden tests, license scan, format check (workflow parked in `.github/workflows-pending` until the push token has `workflow` scope) | M13 | H | todo |
 | M15 | README, ADRs, CONTRIBUTING, determinism checklist | M13 | H | todo |
 
 ### Delegation waves
@@ -204,7 +207,7 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
 - `global.json` pinning the installed LTS SDK (`rollForward: latestPatch`).
 - `Directory.Build.props`: TFM = installed LTS (`net10.0`), `Nullable`, `ImplicitUsings`,
   `TreatWarningsAsErrors`, `Deterministic`, `ContinuousIntegrationBuild` when `CI` is set,
-  `InvariantGlobalization`, `GenerateDocumentationFile` for `src/`, `LangVersion latest`.
+  `InvariantGlobalization=false` (see §3.5), `GenerateDocumentationFile` for `src/`, `LangVersion latest`.
 - `Directory.Packages.props` with exact latest stable versions (query nuget.org, do not guess):
   `xunit` 2.9.x, `xunit.runner.visualstudio`, `Microsoft.NET.Test.Sdk`, `coverlet.collector`,
   `Vosk`, `org.k2fsa.sherpa.onnx`, `Microsoft.ML.OnnxRuntime`.
