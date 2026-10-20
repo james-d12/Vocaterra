@@ -194,7 +194,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | done |
 | M17b | Intent expansion: ten new intents, two new scenes (innkeeper, quest giver), prompts, dialogue, effects, goldens (see §7; after the split in §8 the scenes are game content and move to the game repo) | M19c | L | todo |
 | M18 | Part-of-speech disambiguation in the analyzer (triggered: `ayer compré un libro` yields a false `conj.tense` on main after M17a) | M17a | M | in-progress |
-| M19a | Standalone core, step 1: boundary ADR, game-agnostic context and agent naming, opaque outcome kinds, `docs/API.md`, README reframed as a library (see §8) | M18 | M | todo |
+| M19a | Standalone core, step 1: boundary ADR, rename `Slg.*` → `Vocaterra.Nlp.*` (solution, projects, namespaces, packages), game-agnostic context and agent naming, opaque outcome kinds, `docs/API.md`, README reframed as a library (see §8) | M18 | M | todo |
 | M19b | Standalone core, step 2: NuGet packaging of `Slg.*`, content bundle packaging, `samples/HostConsole` consuming the packages (see §8) | M19a | S | todo |
 | M19c | Standalone core, step 3: new game repository scaffold with the game spec, game content bundle and a host project on the packages (see §8) | M19b | S | todo |
 | M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | todo |
@@ -713,7 +713,10 @@ whatever the research report in `docs/research/SCALING_APPROACHES.md` changes in
 
 ### 8.2 Milestones
 
-- **M19a, boundary and API (Haiku, M).** ADR 0009 "core and game boundary". Rename `GameContext` to
+- **M19a, boundary and API (Haiku, M).** ADR 0009 "core and game boundary". Rename the solution to
+  `Vocaterra.Nlp.sln`, every project, namespace, assembly and future package id from `Slg.*` to
+  `Vocaterra.Nlp.*` (folders too; `git mv` so history follows), the test and tool projects alike, and
+  every doc reference; the `Slg.Cli` demo becomes `Vocaterra.Nlp.Cli`. Rename `GameContext` to
   `ConversationContext` (`NpcId` → `AgentId`, `NpcState` → `AgentState`, `GameStateHash` →
   `HostStateHash`); `NpcStateMachine`/`NpcDefinition`/`NpcState` to `ConversationAgent*`, content
   folder `npcs/` → `agents/`; `EffectTable` constants removed, outcome kinds become opaque strings
@@ -741,10 +744,10 @@ stays here. M17c (evaluator polish) stays in the core.
 ### 8.3 Owner decisions
 - Repository names (decided 2026-10-20): the core is `james-d12/Vocaterra.NLP` (this repository,
   renamed from `SpanishLearningGame`); the game will be `james-d12/Vocaterra`, created by the owner
-  with token access granted. Still open: whether M19a also renames the solution, project names,
-  namespaces and NuGet package ids from `Slg.*` to `Vocaterra.Nlp.*` (recommended: yes, in M19a,
-  before any package is published, so the public surface carries the product name from version 0.1.0;
-  the local checkout folder can be renamed at the same time).
+  with token access granted. Decided (owner, 2026-10-20): M19a also renames the solution, project names,
+  namespaces, assembly names and NuGet package ids from `Slg.*` to `Vocaterra.Nlp.*` before any package
+  is published; environment variables keep the `SLG_` prefix only if renaming them would break the
+  parked CI, otherwise they become `VOCATERRA_` with the old names accepted for one release.
 - Package feed: GitHub Packages (the token also needs `write:packages`) or a local feed and release
   artifacts. Publishing from CI waits for the workflow scope in any case.
 - Whether the conversation state-machine engine stays in the core (recommended: yes, it is
