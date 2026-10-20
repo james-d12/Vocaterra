@@ -61,6 +61,8 @@ public class RecastBuilderTests
     [Theory]
     [InlineData("tengo 1 espada", "tengo una espada")]
     [InlineData("tengo 1 libro", "tengo un libro")]
+    [InlineData("tengo 1 grande queso", "tengo un grande queso")]
+    [InlineData("tengo 1 buena espada", "tengo una buena espada")]
     [InlineData("tengo 21 espadas", "tengo veintiuna espadas")]
     [InlineData("tengo 3 libros", "tengo tres libros")]
     [InlineData("tengo 1", "tengo uno")]

@@ -115,7 +115,7 @@ public static class RecastBuilder
             var words = SpanishNumbers.ToWords(value);
             if (i + 1 < playerText.Tokens.Count)
             {
-                words = NumberAgreement.Agree(words, GenderOf(analysis, playerText.Tokens[i + 1]));
+                words = NumberAgreement.Agree(words, GenderAfter(analysis, playerText, i));
             }
 
             edits.Add(new Edit(span.Start, span.Length, words));
@@ -140,6 +140,31 @@ public static class RecastBuilder
 
         value = int.Parse(text, NumberStyles.None, CultureInfo.InvariantCulture);
         return true;
+    }
+
+    // The numeral agrees with the noun it quantifies, which can stand behind adjectives (1 grande queso gives un grande queso, not una), so the
+    // adjectives are looked through first; without a noun the gender of the next word decides.
+    private static string GenderAfter(AnalysisResult analysis, NormalizedText playerText, int numberIndex)
+    {
+        for (var j = numberIndex + 1; j < playerText.Tokens.Count; j++)
+        {
+            var readings = analysis.Tokens
+                .Where(t => t.Token.Span.Start == playerText.Tokens[j].Span.Start)
+                .SelectMany(static t => t.Readings)
+                .ToList();
+            var noun = readings.Find(static r => string.Equals(r.Pos, "noun", StringComparison.Ordinal) && r.Gender is not null);
+            if (noun is not null)
+            {
+                return noun.Gender!;
+            }
+
+            if (!readings.Exists(static r => string.Equals(r.Pos, "adj", StringComparison.Ordinal)))
+            {
+                break;
+            }
+        }
+
+        return GenderOf(analysis, playerText.Tokens[numberIndex + 1]);
     }
 
     private static string GenderOf(AnalysisResult analysis, Token next)
