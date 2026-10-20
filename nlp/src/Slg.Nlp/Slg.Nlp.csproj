@@ -8,4 +8,8 @@
     <PackageReference Include="Microsoft.ML.OnnxRuntime" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="../../content/v1/lexicon/seed.json" LogicalName="Slg.Nlp.Lexicon.seed.json" />
+  </ItemGroup>
+
 </Project>
