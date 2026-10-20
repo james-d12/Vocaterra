@@ -8,6 +8,7 @@
     <PackageVersion Include="Vosk" Version="0.3.38" />
     <PackageVersion Include="org.k2fsa.sherpa.onnx" Version="1.13.8" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="1.31.0" />
+    <PackageVersion Include="CsCheck" Version="4.9.1" />
   </ItemGroup>
 
 </Project>
