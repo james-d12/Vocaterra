@@ -192,8 +192,11 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M16a | Combinatorial fuzz testing, stage 1: project, CsCheck, generators, harness, language oracles (see `docs/FUZZING_PLAN.md`) | M13b | S | done |
 | M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | done |
 | M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | done |
-| M17b | Intent expansion: ten new intents, two new NPC scenes (innkeeper, quest giver), prompts, dialogue, effects, goldens (see §7) | M17a | L | todo |
+| M17b | Intent expansion: ten new intents, two new scenes (innkeeper, quest giver), prompts, dialogue, effects, goldens (see §7; after the split in §8 the scenes are game content and move to the game repo) | M19c | L | todo |
 | M18 | Part-of-speech disambiguation in the analyzer (triggered: `ayer compré un libro` yields a false `conj.tense` on main after M17a) | M17a | M | in-progress |
+| M19a | Standalone core, step 1: boundary ADR, game-agnostic context and agent naming, opaque outcome kinds, `docs/API.md`, README reframed as a library (see §8) | M18 | M | todo |
+| M19b | Standalone core, step 2: NuGet packaging of `Slg.*`, content bundle packaging, `samples/HostConsole` consuming the packages (see §8) | M19a | S | todo |
+| M19c | Standalone core, step 3: new game repository scaffold with the game spec, game content bundle and a host project on the packages (see §8) | M19b | S | todo |
 | M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | todo |
 
 ### Delegation waves
@@ -679,4 +682,69 @@ and O3 staying green with the skips removed.
 M17a then M17b, sequential (M17b's grammars rely on M17a's vocabulary and coverage tests). Both on
 Sonnet in worktrees, the usual merge gate, bundle re-hash and golden re-record after each. M18 is
 scheduled after M17a's report.
+
+## 8. Standalone language core: splitting the game out (roadmap)
+
+### 8.1 Goal and boundary
+
+This repository becomes the language-processing core, consumed by a separate game repository. The
+core owns everything from audio in to verdict, feedback, learner model and response text out, plus
+the content formats and the tools. The game owns scenes, characters, items, spells, quests, prices,
+rewards, rendering and its own content bundle.
+
+The split is cheap. Game vocabulary in code is confined to `GameContext` (`NpcId`, `NpcState`,
+`GameStateHash`), `Slg.Decision/Npc` (a verdict-driven state-machine engine plus its definitions,
+about 400 lines) and `Slg.Response/Effects` (two named outcome kinds, `spell_power` and
+`trade_price`). The remaining ~21 000 lines are language processing. `content/v1` is game-flavoured
+(blacksmith, spells, items) but every loader and schema is generic.
+
+| Stays in the core | Moves to the game repository |
+| --- | --- |
+| `Slg.Core` contracts: verdict, prompt spec, error tags, replay envelope | `SPECIFICATION.md`, the game design |
+| Audio, Asr, Phonology, Pronunciation, Nlp, Evaluation | Character definitions (blacksmith, innkeeper, captain) and their dialogue pools |
+| Decision: learner model (BKT), scheduling (FSRS), feedback policy, and the conversation state-machine *engine* (renamed from Npc to a generic conversation agent) | Items, spells, quests, prices and rewards: the effect tables and game-event names |
+| Response: templates, recast, speech synthesis, and the effect *resolver* with opaque outcome names | The game's content bundles, built with the core's ContentBuilder |
+| Content: bundle format, loader, validator, provenance, lexicon import, CEFR lists | Engine integration (Unity, Godot or MonoGame), rendering, device audio capture |
+| Pipeline with a game-agnostic `ConversationContext` | Game-side glue mapping outcomes to prices, spell power and quest state |
+| Tools (Cli, Bench, ContentBuilder), fuzz and golden suites, a sample bundle | |
+
+The boundary is defined on the contracts (verdict, prompt spec, content formats), which stay stable
+whatever the research report in `docs/research/SCALING_APPROACHES.md` changes inside the core.
+
+### 8.2 Milestones
+
+- **M19a, boundary and API (Haiku, M).** ADR 0009 "core and game boundary". Rename `GameContext` to
+  `ConversationContext` (`NpcId` → `AgentId`, `NpcState` → `AgentState`, `GameStateHash` →
+  `HostStateHash`); `NpcStateMachine`/`NpcDefinition`/`NpcState` to `ConversationAgent*`, content
+  folder `npcs/` → `agents/`; `EffectTable` constants removed, outcome kinds become opaque strings
+  validated for uniqueness only (the sample content defines `trade_price` and `spell_power`). Game
+  words scrubbed from identifiers and doc comments (Spanish example words may stay). `docs/API.md`
+  documents what a host calls: load a bundle, build services, evaluate an utterance, plan a response,
+  replay a log. README reframed as a standalone library with the CLI as the demo host. Fuzz harness,
+  goldens and replay docs follow the renames; the bundle hash changes (content keys renamed) and the
+  goldens are re-recorded. Gate: every suite green, demo verdicts unchanged apart from names.
+- **M19b, packaging (Haiku, S).** NuGet packaging of every `Slg.*` project (package metadata in
+  `Directory.Build.props`, version 0.1.0, symbols, a README per package), a `dotnet pack` job in the
+  parked workflow on tags, `ContentBuilder pack` producing a zip plus manifest hash, and a local-feed
+  recipe. `samples/HostConsole` consumes the packages from the local feed, not project references, and
+  evaluates the demo utterances; this proves the public surface is complete.
+- **M19c, game repository scaffold (Haiku, S).** A new repository (name: owner decision) with
+  `SPECIFICATION.md`, the game content bundle (blacksmith scenes, spells, items, effects; later the
+  M17b scenes), a host project on the core packages, a smoke test running the demo utterances through
+  the packages, and a CI job. The core keeps the blacksmith bundle as its sample and demo unless the
+  owner prefers a neutral one (see 8.3).
+
+Re-sequencing: M17b's scenes are game content and move to the game repo after M19c; its core part
+(the `[WORD:slot]` grammar token and generic `confirm`, `deny`, `farewell` and `thank` sample intents)
+stays here. M17c (evaluator polish) stays in the core.
+
+### 8.3 Owner decisions
+- Repository names: keep `SpanishLearningGame` for the core or rename it (for example
+  `spanish-voice-core`), and the name of the new game repository. Namespaces stay `Slg.*` either way.
+- Package feed: GitHub Packages (the token also needs `write:packages`) or a local feed and release
+  artifacts. Publishing from CI waits for the workflow scope in any case.
+- Whether the conversation state-machine engine stays in the core (recommended: yes, it is
+  content-driven interaction logic) or moves to the game.
+- Whether the blacksmith sample content stays as the core's demo (recommended: yes; the goldens,
+  docs and fuzz suite exercise it) or is replaced by a neutral one.
 
