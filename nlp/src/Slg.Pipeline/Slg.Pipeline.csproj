@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../Slg.Core/Slg.Core.csproj" />
+    <ProjectReference Include="../Slg.Content/Slg.Content.csproj" />
+    <ProjectReference Include="../Slg.Audio/Slg.Audio.csproj" />
+    <ProjectReference Include="../Slg.Phonology/Slg.Phonology.csproj" />
+    <ProjectReference Include="../Slg.Nlp/Slg.Nlp.csproj" />
+    <ProjectReference Include="../Slg.Pronunciation/Slg.Pronunciation.csproj" />
+    <ProjectReference Include="../Slg.Asr/Slg.Asr.csproj" />
+    <ProjectReference Include="../Slg.Evaluation/Slg.Evaluation.csproj" />
+    <ProjectReference Include="../Slg.Decision/Slg.Decision.csproj" />
+    <ProjectReference Include="../Slg.Response/Slg.Response.csproj" />
+  </ItemGroup>
+
+</Project>

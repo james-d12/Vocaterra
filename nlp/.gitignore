@@ -1,0 +1,22 @@
+# Build output
+bin/
+obj/
+TestResults/
+
+# IDE / user-specific
+.vs/
+*.user
+.idea/
+.vscode/
+
+# Models are fetched, not committed (manifest.json and this README are the exceptions)
+models/*
+!models/manifest.json
+!models/README.md
+
+# Golden learner audio is local-only
+golden/audio/
+
+# OS
+.DS_Store
+Thumbs.db
