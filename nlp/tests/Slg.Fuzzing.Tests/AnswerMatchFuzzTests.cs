@@ -171,8 +171,9 @@ public sealed class AnswerMatchFuzzTests(ITestOutputHelper output)
     }
 
     // The documented rules, written independently of the matcher: exact on a canonical phrase, then on an alias (ties by ordinal answer id),
-    // else the smallest of the spelling and phonetic Damerau-Levenshtein distance within floor(length / divisor), with equal distances going to
-    // the first candidate in (answer id, canonical before alias, phrase) order. A distance equal to the budget is uncertain (confidence 0.5).
+    // else the smallest of the spelling and phonetic Damerau-Levenshtein distance within the budget floor(length / divisor), with equal distances
+    // going to the first candidate in (answer id, canonical before alias, phrase) order. The budget is inclusive: a distance equal to it is still
+    // a match, and every fuzzy match has confidence 1 - distance / length (an edit at the budget's edge is communicated like any other).
     private static MatchResult Model(string input, List<Candidate> candidates, Difficulty difficulty)
     {
         if (input.Length > 0)
@@ -221,8 +222,7 @@ public sealed class AnswerMatchFuzzTests(ITestOutputHelper output)
             return new MatchResult(null, MatchType.None, smallest == int.MaxValue ? 0 : smallest, false, 0.0);
         }
 
-        var uncertain = bestDistance == AnswerMatcher.MaxDistance(winner.Phrase.Length, difficulty);
-        var confidence = uncertain ? AnswerMatcher.UncertainConfidence : 1.0 - ((double)bestDistance / winner.Phrase.Length);
+        var confidence = 1.0 - ((double)bestDistance / winner.Phrase.Length);
         return new MatchResult(winner.AnswerId, MatchType.Fuzzy, bestDistance, bestPhonetic == 0 && bestSpelling > 0, confidence);
     }
 

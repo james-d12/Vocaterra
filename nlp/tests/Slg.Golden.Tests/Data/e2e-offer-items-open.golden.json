@@ -177,7 +177,7 @@
     "confidence": 1,
     "resolvedBy": "Grammar",
     "versions": {
-      "contentHash": "8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78",
+      "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
       "modelHashes": {
         "asr": "scripted-golden",
         "phoneme": "fake-phoneme-recognizer"
@@ -266,7 +266,7 @@
     "promptId": "offer-items-open",
     "gameStateHash": "a0c35205e919f3b45ddc1f4213a263909cdd12252d261695eb18fe2b23e9b70d",
     "versions": {
-      "contentHash": "8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78",
+      "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
       "modelHashes": {
         "asr": "scripted-golden",
         "phoneme": "fake-phoneme-recognizer"
@@ -450,7 +450,7 @@
       "confidence": 1,
       "resolvedBy": "Grammar",
       "versions": {
-        "contentHash": "8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78",
+        "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
         "modelHashes": {
           "asr": "scripted-golden",
           "phoneme": "fake-phoneme-recognizer"

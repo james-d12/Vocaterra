@@ -74,7 +74,7 @@ dotnet run --project tools/Slg.Cli -- eval --transcript "yo tiene dos espada" --
 The command prints the verdict JSON, then the NPC lines, then a decision summary:
 
 ```text
-{"intent":"offer_item","slots":{"item":"espada","qty":"2","verb":"tener"},"communicated":true,"correctness":0.5,"errors":[{"tag":"conj.person","span":{"start":3,"length":5},"expected":"tengo","actual":"tiene"},{"tag":"noun.number","span":{"start":11,"length":6},"expected":"espadas","actual":"espada"}],"pronunciation":[],"confidence":1,"resolvedBy":"Grammar","versions":{"contentHash":"8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78","modelHashes":{"asr":"scripted-transcript"}}}
+{"intent":"offer_item","slots":{"item":"espada","qty":"2","verb":"tener"},"communicated":true,"correctness":0.5,"errors":[{"tag":"conj.person","span":{"start":3,"length":5},"expected":"tengo","actual":"tiene"},{"tag":"noun.number","span":{"start":11,"length":6},"expected":"espadas","actual":"espada"}],"pronunciation":[],"confidence":1,"resolvedBy":"Grammar","versions":{"contentHash":"1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294","modelHashes":{"asr":"scripted-transcript"}}}
 npc: Ah, ¿tienes dos espadas? ¡Muy bien!
 npc: ¡Dos espadas! Trato hecho.
 decision: rating Hard, learner skills 3, feedback items 2
@@ -93,7 +93,7 @@ whitespace between tokens):
     "promptId": "offer-items-open",
     "gameStateHash": "86f966746d30a29b73567cd9dafc951c73e3a47a833d08dbf52276327e658ac5",
     "versions": {
-      "contentHash": "8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78",
+      "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
       "modelHashes": {
         "asr": "scripted-transcript"
       }
@@ -131,7 +131,7 @@ whitespace between tokens):
       "confidence": 1,
       "resolvedBy": "Grammar",
       "versions": {
-        "contentHash": "8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78",
+        "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
         "modelHashes": {
           "asr": "scripted-transcript"
         }
@@ -209,7 +209,7 @@ whitespace between tokens):
       "confidence": 1,
       "resolvedBy": "Grammar",
       "versions": {
-        "contentHash": "8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78",
+        "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
         "modelHashes": {
           "asr": "scripted-transcript"
         }
@@ -297,7 +297,7 @@ whitespace between tokens):
       "promptId": "offer-items-open",
       "gameStateHash": "86f966746d30a29b73567cd9dafc951c73e3a47a833d08dbf52276327e658ac5",
       "versions": {
-        "contentHash": "8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78",
+        "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
         "modelHashes": {
           "asr": "scripted-transcript"
         }
@@ -335,7 +335,7 @@ whitespace between tokens):
         "confidence": 1,
         "resolvedBy": "Grammar",
         "versions": {
-          "contentHash": "8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78",
+          "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
           "modelHashes": {
             "asr": "scripted-transcript"
           }

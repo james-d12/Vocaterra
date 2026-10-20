@@ -16,6 +16,7 @@ namespace Slg.Evaluation;
 /// <param name="KnownLexiconWords">Normalized words the lexicon knows; used to tell a wrong word from an unknown one.</param>
 /// <param name="Config">Evaluation weights and thresholds.</param>
 /// <param name="Versions">Content and model hashes copied into the verdict.</param>
+/// <param name="CanonicalAnswers">The canonical answers of the prompt's answer set; a derived <c>vocab.wrong</c> names its word only when there is exactly one. Null when unknown.</param>
 public sealed record VerdictInputs(
     PromptSpec Prompt,
     AsrResult Asr,
@@ -26,4 +27,5 @@ public sealed record VerdictInputs(
     IReadOnlyList<string> RequiredSlots,
     IReadOnlyList<string> KnownLexiconWords,
     EvaluationConfig Config,
-    VersionStamp Versions);
+    VersionStamp Versions,
+    IReadOnlyList<string>? CanonicalAnswers = null);

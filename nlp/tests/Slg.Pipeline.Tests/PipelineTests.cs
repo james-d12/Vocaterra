@@ -473,16 +473,17 @@ public class PipelineTests
     }
 
     [Fact]
-    public void AFuzzyQuizAnswerInTheRejectBandIsNotCommunicated()
+    public void AFuzzyQuizAnswerAtTheBudgetsEdgeIsCommunicatedLikeEveryOtherNearMiss()
     {
+        // espado is one edit from espada, the whole Beginner budget for a six-letter answer. M17c: an edge match is communicated (ezpada is too).
         var context = TestSupport.Context(state: "none", npcId: "player");
 
         var result = TestSupport.Pipeline("espado", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), context);
 
-        Assert.False(result.Verdict.Communicated);
+        Assert.True(result.Verdict.Communicated);
         Assert.Equal(ResolvedBy.Fuzzy, result.Verdict.ResolvedBy);
-        Assert.NotNull(result.Repair);
-        Assert.DoesNotContain(result.Response.Lines, static line => line.LineId.StartsWith("answer_accepted.", StringComparison.Ordinal));
+        Assert.Null(result.Repair);
+        Assert.Contains("Ah, espada.", Assert.Single(result.Response.Lines, static line => line.IsRecast).Text, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -93,25 +93,37 @@ public class AnswerMatcherTests
     [InlineData(Difficulty.Beginner)]
     [InlineData(Difficulty.Intermediate)]
     [InlineData(Difficulty.Advanced)]
-    public void EspadoMatchesEspadaFuzzyAtDistanceOneWhichIsExactlyTheLimit(Difficulty difficulty)
+    public void EspadoMatchesEspadaFuzzyAtDistanceOneWhichIsExactlyTheBudget(Difficulty difficulty)
     {
+        // Six characters allow one edit at every difficulty, so the match sits on the budget's edge and is still a match.
         var result = AnswerMatcher.Match(Norm("espado"), CarAndSword, difficulty);
 
-        Assert.Equal(new MatchResult("sword", MatchType.Fuzzy, 1, false, 0.5), result);
+        Assert.Equal(new MatchResult("sword", MatchType.Fuzzy, 1, false, 1.0 - (1.0 / 6.0)), result);
     }
 
     [Fact]
-    public void DistanceInsideTheLimitIsConfidentAndAtTheLimitIsUncertain()
+    public void DistanceInsideAndAtTheBudgetAreBothMatchesWithTheConfidenceOfTheirDistance()
     {
         var set = Single("caballero");
 
         var inside = AnswerMatcher.Match(Norm("cabalero"), set, Difficulty.Beginner);
-        var atLimit = AnswerMatcher.Match(Norm("cabalero"), set, Difficulty.Advanced);
+        var atBudget = AnswerMatcher.Match(Norm("cabalero"), set, Difficulty.Advanced);
 
         Assert.Equal(MatchType.Fuzzy, inside.Type);
         Assert.Equal(1, inside.Distance);
         Assert.Equal(1.0 - (1.0 / 9.0), inside.Confidence);
-        Assert.Equal(new MatchResult("only", MatchType.Fuzzy, 1, false, AnswerMatcher.UncertainConfidence), atLimit);
+        Assert.Equal(new MatchResult("only", MatchType.Fuzzy, 1, false, 1.0 - (1.0 / 9.0)), atBudget);
+    }
+
+    [Fact]
+    public void ASoundAlikeOfAThreeLetterPhraseAtABudgetOfZeroIsConfident()
+    {
+        // Three characters at Beginner allow no edit, so a distance of 0 is exactly the budget's edge; the sound-alike is still a full-confidence match.
+        var set = new AnswerSet("sayings", [new Answer("today", "hoy", [], [])]);
+
+        var result = AnswerMatcher.Match(Norm("oy"), set, Difficulty.Beginner);
+
+        Assert.Equal(new MatchResult("today", MatchType.Fuzzy, 0, true, 1.0), result);
     }
 
     [Fact]
@@ -122,7 +134,7 @@ public class AnswerMatcherTests
         var beginner = AnswerMatcher.Match(Norm("caballo"), set, Difficulty.Beginner);
         var intermediate = AnswerMatcher.Match(Norm("caballo"), set, Difficulty.Intermediate);
 
-        Assert.Equal(new MatchResult("only", MatchType.Fuzzy, 2, false, 0.5), beginner);
+        Assert.Equal(new MatchResult("only", MatchType.Fuzzy, 2, false, 1.0 - (2.0 / 9.0)), beginner);
         Assert.Equal(new MatchResult(null, MatchType.None, 2, false, 0.0), intermediate);
     }
 
@@ -147,7 +159,8 @@ public class AnswerMatcherTests
         var intermediate = AnswerMatcher.Match(Norm("baca"), vaca, Difficulty.Intermediate);
 
         Assert.Equal(new MatchResult("only", MatchType.Fuzzy, 0, true, 1.0), beginner);
-        Assert.Equal(new MatchResult("only", MatchType.Fuzzy, 0, true, 0.5), intermediate);
+        // Four characters at Intermediate allow no edit, so the sound-alike sits on the budget's edge and keeps full confidence.
+        Assert.Equal(new MatchResult("only", MatchType.Fuzzy, 0, true, 1.0), intermediate);
     }
 
     [Fact]
@@ -186,7 +199,8 @@ public class AnswerMatcherTests
     {
         var result = AnswerMatcher.Match(Norm("carra"), CarAndSword, Difficulty.Beginner);
 
-        Assert.Equal(new MatchResult("car", MatchType.Fuzzy, 1, false, 0.5), result);
+        // carro has five characters: one edit is the whole budget at Beginner, and the confidence is the distance's 1 - 1/5.
+        Assert.Equal(new MatchResult("car", MatchType.Fuzzy, 1, false, 1.0 - (1.0 / 5.0)), result);
     }
 
     [Fact]

@@ -142,10 +142,41 @@ and `espada` (11, 6). The spans in the verdict's errors refer to this normalized
 `AnswerMatcher.Match` compares the normalized text with the prompt's answer set, cheapest first: exact (canonical answers),
 alias, then fuzzy (Damerau-Levenshtein on a Spanish phonetic key, with a maximum distance that grows with the phrase length and
 the difficulty). A near miss with a distance of 0 on the phonetic key is flagged `likelyPronunciation`: the player knew the word.
+The rule for near misses (budget, confidence, communication and the expected word of an unknown word) is in [Near misses](#near-misses).
+
 
 For the example: `{"answerId":null,"type":"None","distance":9,"likelyPronunciation":false,"confidence":0}`. The sentence is
 not one of the five items on its own, which is expected for a sentence prompt. For a quiz answer such as `espada` on
 `quiz-item-name` the match is `Exact` with confidence 1.
+
+### Near misses
+
+A near miss is a spelling close to an answer phrase, on any prompt whose answer set can match. One rule decides it (M17c; the
+fuzzy stage of `AnswerMatcher` and `AnswerCorrections` implement it, and the fuzz oracle O6 checks it against an independent model):
+
+- **Budget.** The distance `d` is the smaller of the spelling and the phonetic Damerau-Levenshtein distance to a canonical or alias
+  phrase. The budget is `floor(length / divisor)`, with the phrase's length in characters after stripping accents and the divisor
+  4, 5 or 6 for Beginner, Intermediate and Advanced. The budget is **inclusive**: `d <= budget` is a fuzzy match and `d > budget` is
+  not. At Beginner a phrase of 4 to 7 characters allows one edit, so `espado` (one letter off `espada`) is a match on its edge.
+- **Confidence.** A fuzzy match has confidence `1 - d/length`, the same at the budget's edge as inside it: one slip in a six-letter
+  answer gives 0.83. (Before M17c the edge had a fixed confidence of 0.5, which the communicated margin rejects; that was the bug.)
+- **Communication.** A fuzzy match is communicated with `resolvedBy: Fuzzy`, and its confidence is the verdict's confidence (the
+  minimum of the stage confidences). With the shipped thresholds (0.6 with epsilon 0.02) no fuzzy match within budget is rejected,
+  because its confidence is at least 0.75.
+- **Vocabulary.** An unknown word of a near miss (a `vocab.unknown` error) takes the canonical word of the matched answer as its
+  `expected`, so the recast says the answer. Its spelling is the canonical one, with accents (`pocion` gives `poción`). A one-word
+  input takes the whole canonical phrase (`buenosdias` gives `buenos días`). Otherwise the unknown word takes the canonical word it is
+  nearest to (accent-insensitive distance, the earlier word on a tie), so `una ezpada` gives `espada` and the recast reads `una espada`. Words the lexicon knows are never changed.
+- **Inflected forms.** The matcher compares spelled phrases, so an inflection that is a lexicon form (`espadas` for `espada`) is a
+  near miss by spelling: it is communicated at confidence 0.83 with no error tag, and `correctness` stays 1. The alternative, an
+  `Exact` match with `noun.number`, would need the matcher to read the lexicon, and an answer-only prompt has no grammar to check
+  the number with. This is a known limit, to revisit with the analyzer work.
+
+Why `ezpada`, `espado` and `yelo` behaved differently (M17c investigation): a six-letter answer at Beginner has a budget of one edit.
+`ezpada` is one letter from `espada`, but the phonetic key maps `z` to `s` (seseo), so its distance is 0 and it is a full-confidence
+match. `espado` is one edit from `espada` and `yelo` is one phonetic step from `hielo` (`hielo` keys to `ielo`); both sit exactly on the
+budget's edge. The edge was reported with confidence 0.5, which the communicated margin rejected. The budget itself was right; the
+fixed confidence at its edge was not.
 
 ### 4. Linguistic analysis (D0)
 
@@ -200,6 +231,10 @@ for an answer; its answer match is its resolution, and no intent grammar may cla
 For the example the grammar rung resolves it: `{"intent":"offer_item","slots":{"item":"espada","qty":"2","verb":"tener"},"rung":"Grammar","margin":1,"confidence":1}`.
 The catalog says `offer_item` needs the slots `item` and `qty`, both filled.
 
+A leading adverb defeats the grammars: they allow a leading subject pronoun only, so `ayer tengo dos espadas` matches no grammar. The
+`offer_item` intent therefore has a keyword rule for `ofrecer` and one for `tener`, each requiring `item` and `qty`. Such an utterance
+resolves on the `Rules` rung, and the analysis still reports the tense (`conj.tense`, `tengo` to `tuve`).
+
 ### 6. Pronunciation scoring (D1 model, D0 scoring)
 
 Only when a phoneme recognizer produced frames. The normalized text has its digits spelled out (the G2P drops digits:
@@ -219,9 +254,12 @@ evaluation configuration and the version stamp:
 - **intent** and **slots**: the intent stage's, with the analysis slots underneath (the intent wins a name clash).
 - **communicated**: the intent is known, every required slot is filled and the confidence is not rejected by the communicated
   margin; or the answer set matched (exact, alias or fuzzy) with a confidence that is not rejected. An *uncertain* confidence
-  counts as communicated: the game rewards being understood.
+  counts as communicated: the game rewards being understood. A fuzzy match at the edge of its budget has the confidence of its
+  distance, so it is communicated like any other near miss (see [Near misses](#near-misses)).
 - **errors**: analysis errors, pronunciation errors and the derived `vocab.wrong`, de-duplicated by (tag, span) and sorted by
-  span start, then tag order in the taxonomy, then expected text.
+  span start, then tag order in the taxonomy, then expected text. The derived `vocab.wrong` (a word the lexicon knows but the answer
+  set does not contain) has as `expected` the answer set's canonical answer when the set has exactly one answer, and an empty
+  `expected` otherwise; its `actual` is the word. A `vocab.unknown` of a fuzzy answer match already carries the canonical word.
 - **correctness**: 1 minus the sum of the error weights for the prompt's difficulty (`content/v1/evaluation/evaluation-config.json`),
   clamped to [0, 1], rounded to 9 decimals. For the intermediate difficulty `conj.person` costs 0.3 and `noun.number` 0.2, so
   1 - 0.3 - 0.2 = 0.5.
@@ -255,7 +293,10 @@ feedback item is voiced; for a recast the pool is `feedback.recast.<tag>`, falli
 `Ah, ¿{verb:conj(2,sg,pres)} {qty:words(item)} {item:plural-if(qty)}? ¡Muy bien!`) take the player's own slots and inflect
 them with the morphology generator: the verb is conjugated for the second person and the noun is pluralized according to the
 quantity. Generic recast templates can instead use `{recast}`, the corrected sentence that `RecastBuilder` rebuilds from the
-player's tokens and the expected forms in the analysis. For the example the draw gives "Ah, ¿tienes dos espadas? ¡Muy bien!" with
+player's tokens and the expected forms in the analysis. The recast also restores accents: a word the lexicon knows only once its
+accents are ignored takes the lexicon's accented spelling (`dias` becomes `días`, so `buenas dias` is recast as `buenos días`). When
+several accented spellings fold alike the first in ordinal order is used. A word that is a lexicon form as spelled is kept, so `se`
+stays `se` (it is not `sé`), and `mas` stays `mas`. For the example the draw gives "Ah, ¿tienes dos espadas? ¡Muy bien!" with
 world seed 0 and with seed 42. If a feedback template needs a slot the verdict does not have, the pipeline falls back from the
 specific pool to the generic pool of the same kind, and then to no feedback, so a content gap never silences the NPC.
 
@@ -270,6 +311,9 @@ prompt (a quiz) gets a line from the `answer_accepted` pool.
 `EffectResolver.Resolve` looks up the verdict's intent in the effect table (`content/v1/effects/effects.json`) and interpolates
 a value from the correctness curve: a spell's power, a trade's price factor. Partial credit gives a partial effect. The worked
 example has none (`offer_item` has no effect in the sample table), so `effects` is `[]`. Casting a spell does: see below.
+
+Effects depend on the verdict alone, not on the NPC's state: a purchase in the blacksmith's `done` state still emits `buy_item_price`,
+so the host gates effects by state (the game layer decides whether a trade is allowed at that point).
 
 ### 11. Repair (D0)
 
@@ -319,7 +363,7 @@ dotnet run --project tools/Slg.Cli -- eval --transcript "yo tiene dos espada" --
   "confidence": 1,
   "resolvedBy": "Grammar",
   "versions": {
-    "contentHash": "8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78",
+    "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
     "modelHashes": {
       "asr": "scripted-transcript"
     }
@@ -352,6 +396,7 @@ Each of these is a real run of the CLI on `content/v1` (verdict line shortened).
 | --- | --- | --- |
 | `--transcript "espada" --prompt quiz-item-name` | intent `unknown`, communicated, correctness 1, `resolvedBy: Exact`, no errors (answer-only prompt) | `npc: ¡Muy bien!` and `decision: rating Easy, learner skills 0, feedback items 0` |
 | `--transcript "fuego" --prompt spell-cast-constrained` | intent `cast_spell`, slot `spell=fuego`, communicated, correctness 1, `resolvedBy: Exact` | `npc: ¡Muy bien!`, `effect: cast_spell_power spell_power 1`, `decision: rating Easy, learner skills 1, feedback items 0` |
+| `--transcript "ezpada" --prompt quiz-item-name` | intent `unknown`, communicated, correctness 0.6, one `vocab.unknown` with expected `espada`, `resolvedBy: Fuzzy`, confidence 0.5 (a near miss, see [Near misses](#near-misses)) | `npc: Ah, espada. ¡Perfecto!` and `decision: rating Good, learner skills 1, feedback items 1` |
 | `--transcript "bla bla" --prompt offer-items-open` | intent `unknown`, not communicated, correctness 0.2, two `vocab.unknown` errors, `resolvedBy: Unresolved`, confidence 0 | `npc: Perdón, ¿qué dices?`, `repair: AskAgain ¿Cómo?`, `decision: rating Again, learner skills 1, feedback items 1` |
 | the same with `--repeat not_communicated=2` | as above | `repair: SlowRepeat Perdón, te lo repito más despacio.` |
 | the same with `--repeat not_communicated=3` | as above | `repair: OfferChoices ¿Quieres decir «arco», «brebaje» o «el arco»?` |

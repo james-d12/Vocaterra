@@ -85,7 +85,12 @@ public sealed partial class UtterancePipeline
 
         var normalized = TextNormalizer.Normalize(CleanTranscript(asr.Transcript), Normalization);
         var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, Normalization);
-        var analysis = _analyzer.Analyze(normalized, GrammarsFor(prompt));
+        var analysis = AnswerCorrections.WithCanonicalWords(
+            _analyzer.Analyze(normalized, GrammarsFor(prompt)),
+            normalized,
+            match,
+            answerSet,
+            Normalization);
         var intent = IsAnswerOnly(prompt) ? NoIntent : _resolver.Resolve(normalized, analysis, prompt);
         var pronunciation = ScorePronunciation(normalized, posteriors, prompt);
 
@@ -100,7 +105,8 @@ public sealed partial class UtterancePipeline
             content.Intents.RequiredSlots(intent.Intent),
             KnownWords(analysis),
             content.EvaluationConfig,
-            _services.Versions));
+            _services.Versions,
+            CanonicalAnswersOf(answerSet)));
 
         var decision = Decide(verdict, prompt, context);
         var response = Respond(verdict, prompt, decision, normalized, analysis, match, context);
@@ -143,6 +149,12 @@ public sealed partial class UtterancePipeline
         }
 
         return [.. words];
+    }
+
+    // The answer set's canonical answers; a derived vocab.wrong names its word only when there is exactly one.
+    private static IReadOnlyList<string> CanonicalAnswersOf(AnswerSet answerSet)
+    {
+        return [.. answerSet.Answers.Select(static answer => answer.Canonical)];
     }
 
     private AnswerSet AnswerSetFor(PromptSpec prompt)
