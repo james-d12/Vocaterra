@@ -1,4 +1,207 @@
 {
   "schemaVersion": 1,
-  "models": []
+  "models": [
+    {
+      "id": "vosk-model-small-es-0.42",
+      "role": "asr-constrained",
+      "name": "Vosk small Spanish",
+      "version": "0.42",
+      "license": "Apache-2.0",
+      "source": "https://alphacephei.com/vosk/models/vosk-model-small-es-0.42.zip",
+      "archive": {
+        "format": "zip",
+        "sha256": "09b239888f633ef2f0b4e09736e3d9936acfd810bc65d53fad45261762c6511f",
+        "bytes": 39817833
+      },
+      "files": [
+        {
+          "path": "README",
+          "sha256": "94132a6f5334701d8c0b4d25ef6890f74972909d8824c6c5974c41bca0542d88",
+          "bytes": 483
+        },
+        {
+          "path": "am/final.mdl",
+          "sha256": "ff9508e4db01d2e2375da3887973f94ef8057ee85411f4cb10a5c174ce7a4425",
+          "bytes": 16098256
+        },
+        {
+          "path": "conf/mfcc.conf",
+          "sha256": "e3c6cae9faa5da8a5a952cede8729af15166f325bb512789ec1ad6c0fd99e97f",
+          "bytes": 155
+        },
+        {
+          "path": "conf/model.conf",
+          "sha256": "330c1b50575d0c1c0402276c9cdc7a589ebd04de5d3de17695dd7e6db701da54",
+          "bytes": 289
+        },
+        {
+          "path": "graph/Gr.fst",
+          "sha256": "0ddc8aacbc80b2e8d470060a429eb26706b2ae1d32615a499befd60cc86a0304",
+          "bytes": 21818215
+        },
+        {
+          "path": "graph/HCLr.fst",
+          "sha256": "ce42fba42b99076f16bfe2892c3cab0936fb7409edba95c545be81c74f2f59e5",
+          "bytes": 12226498
+        },
+        {
+          "path": "graph/disambig_tid.int",
+          "sha256": "de29a2e1ae927c7207d93e93687e25242f7dcdcc9d7246b092364427aca54c24",
+          "bytes": 50
+        },
+        {
+          "path": "graph/phones/word_boundary.int",
+          "sha256": "581390c44961af08d79afc2b36ac41289b219810c85c049ddf5c6de0442ea92a",
+          "bytes": 1131
+        },
+        {
+          "path": "ivector/final.dubm",
+          "sha256": "71b6830ae8cbef8764ccc9a6c65943a0e80f28b32982ae4e32f2d1ff15fadf14",
+          "bytes": 168048
+        },
+        {
+          "path": "ivector/final.ie",
+          "sha256": "601057024fc8292ed8c8bd82686f254c390868024b20c4978dfc37d82529ba05",
+          "bytes": 9927287
+        },
+        {
+          "path": "ivector/final.mat",
+          "sha256": "81a445f1589de2251562879efd0ca55d2954d937d4ae5f653aa3f11e6fdea5ef",
+          "bytes": 44975
+        },
+        {
+          "path": "ivector/global_cmvn.stats",
+          "sha256": "489e52a6f34fdf3dac2293784e6e096803c5b5387fe8ad9fbdcd03a65be8917c",
+          "bytes": 1081
+        },
+        {
+          "path": "ivector/online_cmvn.conf",
+          "sha256": "a2f3571754b64297cb7efb2e7ca3df61995c5a45fcbb97188f90613552bb2dfe",
+          "bytes": 95
+        },
+        {
+          "path": "ivector/splice.conf",
+          "sha256": "9f0c5f7c82d18eaf25d8bce470efa9f7741f88411fe428774bc0a9bb69a24756",
+          "bytes": 35
+        }
+      ],
+      "notes": "Pinned from a real download on 2026-10-20: archive and all 14 extracted files were hashed locally. Supports grammar-constrained and open decoding."
+    },
+    {
+      "id": "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8",
+      "role": "asr-open",
+      "name": "NVIDIA Parakeet TDT 0.6B v3 (sherpa-onnx int8)",
+      "version": "v3-int8",
+      "license": "CC-BY-4.0",
+      "source": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8.tar.bz2",
+      "archive": {
+        "format": "tar.bz2",
+        "sha256": "5793d0fd397c5778d2cf2126994d58e9d56b1be7c04d13c7a15bb1b4eafb16bf",
+        "bytes": 487170055
+      },
+      "files": [
+        {
+          "path": "decoder.int8.onnx",
+          "sha256": null,
+          "bytes": null
+        },
+        {
+          "path": "encoder.int8.onnx",
+          "sha256": null,
+          "bytes": null
+        },
+        {
+          "path": "joiner.int8.onnx",
+          "sha256": null,
+          "bytes": null
+        },
+        {
+          "path": "tokens.txt",
+          "sha256": null,
+          "bytes": null
+        }
+      ],
+      "notes": "TODO: archive sha256 and size are the GitHub release asset digest and were not recomputed locally; file hashes are null until the first fetch, then run sha256sum on the extracted files and pin them here."
+    },
+    {
+      "id": "wav2vec2-xlsr-53-espeak-cv-ft",
+      "role": "phoneme",
+      "name": "wav2vec2 XLSR-53 espeak CV fine-tuned (phoneme recognizer)",
+      "version": "hf-rev-2c733782da56",
+      "license": "Apache-2.0",
+      "source": "https://huggingface.co/facebook/wav2vec2-xlsr-53-espeak-cv-ft",
+      "archive": null,
+      "files": [
+        {
+          "path": "model.onnx",
+          "sha256": null,
+          "bytes": null
+        },
+        {
+          "path": "vocab.json",
+          "sha256": null,
+          "bytes": null
+        }
+      ],
+      "notes": "TODO: the upstream repository ships PyTorch weights only (pytorch_model.bin); export to ONNX, then list the exported files here with their hashes. The file list is provisional."
+    },
+    {
+      "id": "multilingual-e5-small",
+      "role": "embedding",
+      "name": "multilingual-e5-small (sentence embeddings)",
+      "version": "hf-rev-614241f622f5",
+      "license": "MIT",
+      "source": "https://huggingface.co/intfloat/multilingual-e5-small",
+      "archive": null,
+      "files": [
+        {
+          "path": "model.onnx",
+          "sha256": null,
+          "bytes": null
+        },
+        {
+          "path": "sentencepiece.bpe.model",
+          "sha256": null,
+          "bytes": null
+        },
+        {
+          "path": "tokenizer.json",
+          "sha256": null,
+          "bytes": null
+        }
+      ],
+      "notes": "TODO: export or copy the ONNX model (the upstream repository has onnx/model.onnx) into models/multilingual-e5-small and pin the files here. The file list is provisional."
+    },
+    {
+      "id": "kokoro-multi-lang-v1_0",
+      "role": "tts",
+      "name": "Kokoro multi-lang v1.0 (sherpa-onnx)",
+      "version": "v1_0",
+      "license": "Apache-2.0",
+      "source": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-multi-lang-v1_0.tar.bz2",
+      "archive": {
+        "format": "tar.bz2",
+        "sha256": "c5f7e2d2caf082bc1d20fb70334a61d99d20b484500aad32e7cf84c128ea3298",
+        "bytes": 349906910
+      },
+      "files": [
+        {
+          "path": "model.onnx",
+          "sha256": null,
+          "bytes": null
+        },
+        {
+          "path": "tokens.txt",
+          "sha256": null,
+          "bytes": null
+        },
+        {
+          "path": "voices.bin",
+          "sha256": null,
+          "bytes": null
+        }
+      ],
+      "notes": "TODO: archive sha256 and size are the GitHub release asset digest and were not recomputed locally; file hashes are null until the first fetch. The archive also holds espeak-ng-data/ and lexicon files; list and pin every file the synthesizer loads."
+    }
+  ]
 }
