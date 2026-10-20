@@ -83,6 +83,11 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
             iter: iterations,
             threads: 1);
 
+        foreach (var pair in Harness.Words.Diagnostics)
+        {
+            diagnostics.Add(pair.Key, pair.Value);
+        }
+
         output.WriteLine("Sentence generator diagnostics:\n" + diagnostics.Report());
         var realized = diagnostics.Sum("sentence:");
         var skipped = diagnostics.Sum("skip:");

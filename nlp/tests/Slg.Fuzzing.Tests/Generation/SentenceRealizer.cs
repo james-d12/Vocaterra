@@ -405,7 +405,7 @@ internal sealed class SentenceRealizer
             if (item.PatternLemma is { } wanted)
             {
                 var folded = Accents.Strip(wanted);
-                lexeme = _words.Verbs.FirstOrDefault(v => string.Equals(Accents.Strip(v.Lemma), folded, StringComparison.Ordinal));
+                lexeme = _words.VerbOfIgnoringAccents(folded);
                 if (lexeme is null)
                 {
                     skip = "verb-lemma-not-in-catalog";
@@ -429,7 +429,7 @@ internal sealed class SentenceRealizer
     private bool ChooseNouns(out string skip)
     {
         skip = "none";
-        var plain = _words.Nouns.Where(static n => !n.AlsoFiniteVerb).ToArray();
+        var plain = _words.PlainNouns;
         for (var i = 0; i < _items.Count; i++)
         {
             var item = _items[i];
@@ -682,7 +682,7 @@ internal sealed class SentenceRealizer
     private bool SetAdjective(Item item, IReadOnlyList<string> lemmas, string gender, string number, out string skip)
     {
         skip = "none";
-        var candidates = lemmas.Where(l => _words.DescriptiveAdjectives.Contains(l) || LexiconCatalog.PrenominalLemmas.Contains(l)).ToArray();
+        var candidates = lemmas.Where(l => _words.DescriptiveAdjectiveSet.Contains(l) || LexiconCatalog.PrenominalLemmas.Contains(l)).ToArray();
         for (var attempt = 0; attempt < 6; attempt++)
         {
             var lemma = _rng.Pick(candidates);
@@ -738,7 +738,7 @@ internal sealed class SentenceRealizer
                 number = _rng.NextDouble() < 0.6 ? LexiconSchema.Singular : LexiconSchema.Plural;
             }
 
-            var lexeme = _words.Verbs.First(v => v.Lemma == item.Lemma);
+            var lexeme = _words.VerbOf(item.Lemma!)!;
             var tense = lexeme.HasPreterite ? _tense : LexiconSchema.Present;
             var form = _words.Morphology.Conjugate(item.Lemma!, person, number, tense);
             if (form is null)
@@ -813,11 +813,11 @@ internal sealed class SentenceRealizer
         skip = "none";
         var previous = PreviousContent(index);
         var copula = previous is { Kind: Kind.Verb, Infinitive: false } && previous.Lemma is "ser" or "estar" ? previous : null;
-        var serClass = LexiconCatalog.SerAdjectives.Where(_words.DescriptiveAdjectives.Contains).ToArray();
-        var estarClass = LexiconCatalog.EstarAdjectives.Where(_words.DescriptiveAdjectives.Contains).ToArray();
-        var neutral = _words.DescriptiveAdjectives.Where(l => !serClass.Contains(l) && !estarClass.Contains(l)).ToArray();
+        var serClass = _words.SerClassAdjectives;
+        var estarClass = _words.EstarClassAdjectives;
+        var neutral = _words.NeutralAdjectives;
 
-        string[] pool;
+        IReadOnlyList<string> pool;
         if (copula is not null && _rng.NextDouble() < 0.7)
         {
             pool = copula.Lemma == "ser" ? serClass : estarClass;
@@ -859,6 +859,17 @@ internal sealed class SentenceRealizer
         skip = "none";
         foreach (var item in _items)
         {
+            // The same goes for a function word that is also a finite verb form or a noun (the imported lexicon has few left, because the import leaves
+            // the spelling of hand-authored function words alone; poco and pocos are determiners that also read as the noun poca): the analyzer would
+            // check the word's person and tense, or build a noun phrase around it, as if it were the verb or the noun.
+            if (item.Kind is Kind.Article or Kind.Determiner or Kind.Pronoun or Kind.Numeral or Kind.Adverb or Kind.Preposition or Kind.Conjunction or Kind.Interjection
+                && item.Readings.Any(r => IsFiniteVerbReading(r) || r.Pos == LexiconSchema.Noun))
+            {
+                skip = "function-word-homograph";
+                _detail = item.Surface!;
+                return false;
+            }
+
             if (item.Kind != Kind.Verb)
             {
                 continue;

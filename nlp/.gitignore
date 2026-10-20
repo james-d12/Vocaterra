@@ -23,3 +23,6 @@ Thumbs.db
 
 # Claude Code agent worktrees
 .claude/
+
+# Lexicon source data (kaikki.org Wiktionary extract, FrequencyWords) is fetched, not committed; see docs/LEXICON.md
+lexicon-sources/

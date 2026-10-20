@@ -175,7 +175,7 @@ Where things go:
 | A prompt | `prompts/prompts.json` | `promptId`, `mode` (`Constrained` or `Open`), `difficulty`, `answerSetId`, `allowedIntentIds` (empty means an answer-only prompt such as a quiz), `npcId` or `null`, `slotGrammarIds` (each must be a grammar defined in `intents.json`). |
 | NPC behaviour | `npcs/<npcId>.json` and `dialogue/dialogue.json` | Transitions keyed on intent and error tags; `variantPools` must have matching dialogue pools. |
 | Effects | `effects/effects.json` | Verdict to effect with a correctness curve (spell power, trade price). |
-| Lexicon | `lexicon/*.json` | Every `*.json` file in the folder is merged. Wiktionary imports must stay marked `wiktionary-import`. |
+| Lexicon | `lexicon/*.json` | Every `*.json` file in the folder is merged (identical readings stored once, different readings of a form all kept; see [docs/LEXICON.md](docs/LEXICON.md)). `lexicon/*.source.json` are sidecars of generated files, not lexicons. A Wiktionary import is regenerated with `import-lexicon`, never edited by hand, and stays marked `wiktionary-import` with its sidecar. A word the content uses but the lexicon lacks goes into a hand-authored file; `LexiconCoverageTests` names the word and where it is used. |
 
 Steps:
 

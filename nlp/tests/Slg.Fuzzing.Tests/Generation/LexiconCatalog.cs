@@ -1,5 +1,7 @@
 using Slg.Core.Stages;
+using Slg.Fuzzing.Tests.Oracles;
 using Slg.Nlp.Lexicon;
+using Slg.Nlp.Matching;
 using Slg.Nlp.Morphology;
 using Slg.Nlp.Normalization;
 using NlpLexicon = Slg.Nlp.Lexicon.Lexicon;
@@ -11,8 +13,8 @@ namespace Slg.Fuzzing.Tests.Generation;
 /// <param name="Gender">The lexicon gender, <c>m</c> or <c>f</c>.</param>
 /// <param name="Singular">The singular surface form.</param>
 /// <param name="Plural">The plural surface form (differs from the singular).</param>
-/// <param name="AlsoFiniteVerb">True when a form of this noun also reads as a finite verb (for example <c>lanza</c>).</param>
-public sealed record NounLexeme(string Lemma, string Gender, string Singular, string Plural, bool AlsoFiniteVerb);
+/// <param name="AlsoVerb">True when a form of this noun also reads as a verb, finite (<c>lanza</c>) or the infinitive (<c>proceder</c>, <c>deber</c>).</param>
+public sealed record NounLexeme(string Lemma, string Gender, string Singular, string Plural, bool AlsoVerb);
 
 /// <summary>A verb whose six present cells (and optionally the six preterite cells) are all in the lexicon.</summary>
 /// <param name="Lemma">The infinitive, which is also the lemma.</param>
@@ -82,15 +84,114 @@ public sealed class LexiconCatalog
         Verbs = BuildVerbs();
         DescriptiveAdjectives = BuildAdjectives();
         Adverbs = FormsOf(LexiconSchema.Adverb)
-            .Where(f => !PastTimeAdverbs.Contains(f) && !f.Contains(' ', StringComparison.Ordinal) && OnlyReadings(f, LexiconSchema.Adverb, LexiconSchema.Interjection))
+            .Where(f => !PastTimeAdverbs.Contains(f) && !f.Contains(' ', StringComparison.Ordinal) && Stable(f) && OnlyReadings(f, LexiconSchema.Adverb, LexiconSchema.Interjection))
             .ToArray();
-        Prepositions = FormsOf(LexiconSchema.Preposition).Where(f => OnlyReadings(f, LexiconSchema.Preposition)).ToArray();
-        Conjunctions = FormsOf(LexiconSchema.Conjunction).Where(f => OnlyReadings(f, LexiconSchema.Conjunction)).ToArray();
+        Prepositions = FormsOf(LexiconSchema.Preposition).Where(f => Stable(f) && OnlyReadings(f, LexiconSchema.Preposition)).ToArray();
+        Conjunctions = FormsOf(LexiconSchema.Conjunction).Where(f => Stable(f) && OnlyReadings(f, LexiconSchema.Conjunction)).ToArray();
         Interjections = FormsOf(LexiconSchema.Interjection)
-            .Where(f => !f.Contains(' ', StringComparison.Ordinal) && OnlyReadings(f, LexiconSchema.Adverb, LexiconSchema.Interjection))
+            .Where(f => !f.Contains(' ', StringComparison.Ordinal) && Stable(f) && OnlyReadings(f, LexiconSchema.Adverb, LexiconSchema.Interjection))
             .ToArray();
         SubjectPronouns = SubjectPronounLemmas.Where(p => lexicon.Lookup(p).Count > 0).ToArray();
         Clitics = CliticLemmas.Where(p => lexicon.Lookup(p).Count > 0 && OnlyReadings(p, LexiconSchema.Pronoun)).ToArray();
+
+        // Indexes for the generators' lookups; with thousands of lemmas a linear scan per sentence is what the suite would spend its time on.
+        DescriptiveAdjectiveSet = new HashSet<string>(DescriptiveAdjectives, StringComparer.Ordinal);
+        PlainNouns = Nouns.Where(static n => !n.AlsoVerb).ToArray();
+        _nounByLemma = Nouns.ToDictionary(static n => n.Lemma, StringComparer.Ordinal);
+        _verbByLemma = Verbs.ToDictionary(static v => v.Lemma, StringComparer.Ordinal);
+        _verbByFoldedLemma = new Dictionary<string, VerbLexeme>(StringComparer.Ordinal);
+        foreach (var verb in Verbs)
+        {
+            _verbByFoldedLemma.TryAdd(Accents.Strip(verb.Lemma), verb);
+        }
+
+        SerClassAdjectives = SerAdjectives.Where(DescriptiveAdjectiveSet.Contains).ToArray();
+        EstarClassAdjectives = EstarAdjectives.Where(DescriptiveAdjectiveSet.Contains).ToArray();
+        NeutralAdjectives = DescriptiveAdjectives.Where(l => !SerClassAdjectives.Contains(l) && !EstarClassAdjectives.Contains(l)).ToArray();
+        _strippedByLength = forms.Select(Accents.Strip).Distinct(StringComparer.Ordinal).GroupBy(static f => f.Length)
+            .ToDictionary(static g => g.Key, static g => g.Select(static f => (f, Histogram(f))).ToArray());
+
+        _diagnostics["catalog:lexicon-entries"] = lexicon.Entries.Count;
+        _diagnostics["catalog:lexicon-lemmas"] = lexicon.Lemmas.Count;
+        _diagnostics["catalog:forms"] = AllForms.Count;
+        _diagnostics["verbs:usable-with-a-full-present-paradigm"] = Verbs.Count;
+        _diagnostics["verbs:usable-with-a-full-preterite-paradigm"] = Verbs.Count(static v => v.HasPreterite);
+        _diagnostics["adjectives:usable-descriptive"] = DescriptiveAdjectives.Count;
+        _diagnostics["adverbs:usable"] = Adverbs.Count;
+        _diagnostics["prepositions:usable"] = Prepositions.Count;
+        _diagnostics["conjunctions:usable"] = Conjunctions.Count;
+        _diagnostics["interjections:usable"] = Interjections.Count;
+    }
+
+    /// <summary>
+    /// What the generators can use of the lexicon, and what they leave out because of homographs: counts by reason, in ordinal key order. The words that do
+    /// not make it into the closed lists above are exactly the ones the analyzer would misread (nouns that are also articles, verbs, other nouns).
+    /// </summary>
+    public IReadOnlyDictionary<string, int> Diagnostics => _diagnostics;
+
+    private readonly SortedDictionary<string, int> _diagnostics = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, NounLexeme> _nounByLemma;
+    private readonly Dictionary<string, VerbLexeme> _verbByLemma;
+    private readonly Dictionary<string, VerbLexeme> _verbByFoldedLemma;
+    private readonly Dictionary<int, (string Form, byte[] Histogram)[]> _strippedByLength;
+
+    /// <summary>The descriptive adjective lemmas as a set.</summary>
+    public IReadOnlySet<string> DescriptiveAdjectiveSet { get; }
+
+    /// <summary>The nouns that are not also finite verb forms.</summary>
+    public IReadOnlyList<NounLexeme> PlainNouns { get; }
+
+    /// <summary>The descriptive adjectives that take <c>ser</c>.</summary>
+    public IReadOnlyList<string> SerClassAdjectives { get; }
+
+    /// <summary>The descriptive adjectives that take <c>estar</c>.</summary>
+    public IReadOnlyList<string> EstarClassAdjectives { get; }
+
+    /// <summary>The descriptive adjectives that are in neither class.</summary>
+    public IReadOnlyList<string> NeutralAdjectives { get; }
+
+    /// <summary>Returns the noun with this lemma, or null.</summary>
+    public NounLexeme? NounOf(string? lemma)
+    {
+        return lemma is null ? null : _nounByLemma.GetValueOrDefault(lemma);
+    }
+
+    /// <summary>Returns the verb with this lemma, or null.</summary>
+    public VerbLexeme? VerbOf(string lemma)
+    {
+        return _verbByLemma.GetValueOrDefault(lemma);
+    }
+
+    /// <summary>Returns the verb whose lemma equals the given one once accents are ignored, or null.</summary>
+    public VerbLexeme? VerbOfIgnoringAccents(string lemma)
+    {
+        return _verbByFoldedLemma.GetValueOrDefault(Accents.Strip(lemma));
+    }
+
+    /// <summary>True when every lexicon form, accents ignored, is at least <paramref name="minDistance"/> Damerau-Levenshtein edits from the word.</summary>
+    public bool IsFarFromEveryForm(string word, int minDistance)
+    {
+        var wordHistogram = Histogram(word);
+        // The distance is at least the difference in length, so only forms of a similar length need to be compared.
+        for (var length = word.Length - (minDistance - 1); length <= word.Length + (minDistance - 1); length++)
+        {
+            if (!_strippedByLength.TryGetValue(length, out var candidates))
+            {
+                continue;
+            }
+
+            foreach (var (form, histogram) in candidates)
+            {
+                // One edit changes the letter counts by at most two in total (a transposition by none), so words whose counts differ by
+                // 2 * minDistance or more cannot be closer than minDistance: the full comparison is only needed for the few similar words.
+                if (HistogramDistance(histogram, wordHistogram) < 2 * minDistance && DamerauLevenshtein.Distance(form, word) < minDistance)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /// <summary>The lexicon the catalog was built from.</summary>
@@ -152,7 +253,7 @@ public sealed class LexiconCatalog
                 && (reading.Number is null || reading.Number == number);
         }
 
-        return compatible ? form : null;
+        return compatible && Stable(form) ? form : null;
     }
 
     /// <summary>True when the form has at least one reading and every reading has one of the given parts of speech.</summary>
@@ -160,6 +261,43 @@ public sealed class LexiconCatalog
     {
         var readings = Lexicon.Lookup(form);
         return readings.Count > 0 && readings.All(r => partsOfSpeech.Contains(r.Pos));
+    }
+
+    /// <summary>
+    /// True when the normalizer leaves the word as it is. The normalizer turns number words into digits (<c>cero</c>, <c>mil</c>, <c>diez</c>, <c>doce</c> are
+    /// nouns in the imported lexicon too), so a sentence built from such a word would not normalize back to the words that were realised; the generators
+    /// leave those words to the numeral slots.
+    /// </summary>
+    public static bool Stable(string form)
+    {
+        var tokens = PipelineHarness.Normalize(form).Tokens;
+        return tokens.Count == 1 && string.Equals(tokens[0].Text, form, StringComparison.Ordinal);
+    }
+
+    private static byte[] Histogram(string word)
+    {
+        var counts = new byte[28];
+        foreach (var c in word)
+        {
+            var index = c is >= 'a' and <= 'z' ? c - 'a' : c == 'ñ' ? 26 : 27;
+            if (counts[index] < byte.MaxValue)
+            {
+                counts[index]++;
+            }
+        }
+
+        return counts;
+    }
+
+    private static int HistogramDistance(byte[] left, byte[] right)
+    {
+        var total = 0;
+        for (var i = 0; i < left.Length; i++)
+        {
+            total += Math.Abs(left[i] - right[i]);
+        }
+
+        return total;
     }
 
     /// <summary>Returns the lexicon forms of the determiner adjectives that agree with a gender and number (mi, este, otros, ...).</summary>
@@ -245,6 +383,20 @@ public sealed class LexiconCatalog
         return false;
     }
 
+    /// <summary>True when the surface form has at least one verb reading, finite or not (the infinitive of <c>proceder</c> is also a noun).</summary>
+    public bool HasVerbReading(string form)
+    {
+        foreach (var reading in Lexicon.Lookup(form))
+        {
+            if (reading.Pos == LexiconSchema.Verb)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /// <summary>Returns the first reading of a surface form that has the given part of speech, or null.</summary>
     public LexicalFeatures? FirstReading(string form, string pos)
     {
@@ -281,17 +433,82 @@ public sealed class LexiconCatalog
 
             var plural = Morphology.InflectNoun(entry.Lemma, LexiconSchema.Plural);
             var singular = Morphology.InflectNoun(entry.Lemma, LexiconSchema.Singular);
-            if (string.Equals(plural, singular, StringComparison.Ordinal)
-                || !HasNounReading(singular, LexiconSchema.Singular, entry.Features.Gender)
-                || !HasNounReading(plural, LexiconSchema.Plural, entry.Features.Gender))
+            var excluded = NounExclusion(entry, singular, plural);
+            if (excluded is not null)
             {
+                _diagnostics[excluded] = _diagnostics.GetValueOrDefault(excluded) + 1;
                 continue;
             }
 
-            result.Add(new NounLexeme(entry.Lemma, entry.Features.Gender, singular, plural, HasFiniteVerbReading(singular) || HasFiniteVerbReading(plural)));
+            var alsoVerb = HasVerbReading(singular) || HasVerbReading(plural);
+            _diagnostics[alsoVerb ? "nouns:usable-homograph-with-a-verb" : "nouns:usable-plain"] = _diagnostics.GetValueOrDefault(alsoVerb ? "nouns:usable-homograph-with-a-verb" : "nouns:usable-plain") + 1;
+            result.Add(new NounLexeme(entry.Lemma, entry.Features.Gender!, singular, plural, alsoVerb));
         }
 
         return result;
+    }
+
+    // The first reason a noun lemma cannot be used to build a sentence, or null. The reasons are all homograph effects the analyzer does not resolve (it reads a
+    // word as everything it can be), counted in the diagnostics so the cost of a larger lexicon is visible.
+    private string? NounExclusion(LexiconEntry entry, string singular, string plural)
+    {
+        if (string.Equals(plural, singular, StringComparison.Ordinal))
+        {
+            return "nouns:excluded-no-distinct-plural";
+        }
+
+        if (ReadsAsDeterminer(singular) || ReadsAsDeterminer(plural))
+        {
+            return "nouns:excluded-reads-as-article-numeral-or-determiner";
+        }
+
+        if (!Stable(singular) || !Stable(plural))
+        {
+            return "nouns:excluded-rewritten-by-the-normalizer";
+        }
+
+        if (!HasNounReading(singular, LexiconSchema.Singular, entry.Features.Gender!) || !HasNounReading(plural, LexiconSchema.Plural, entry.Features.Gender!))
+        {
+            return "nouns:excluded-also-the-other-gender";
+        }
+
+        if (!OneNounLemma(singular, entry.Lemma) || !OneNounLemma(plural, entry.Lemma))
+        {
+            return "nouns:excluded-form-shared-with-another-noun-lemma";
+        }
+
+        return null;
+    }
+
+    // A noun spelled like an article, a numeral or a determiner adjective (poca, "a bit", next to poco) is read as the determiner by the analyzer, which is a
+    // property of the lexicon (the word is a homograph), so the generators never build a noun phrase around it.
+    private bool ReadsAsDeterminer(string form)
+    {
+        foreach (var reading in Lexicon.Lookup(form))
+        {
+            if (reading.Pos is LexiconSchema.Article or LexiconSchema.Numeral
+                || (reading.Pos == LexiconSchema.Adjective && DeterminerAdjectiveLemmas.Contains(reading.Lemma)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // A form that two noun lemmas share (ratos: rato, and rata in its masculine sense) has no single correction, so the analyzer's expected form depends on which
+    // reading it takes first; the generators leave those nouns to the homograph report.
+    private bool OneNounLemma(string form, string lemma)
+    {
+        foreach (var reading in Lexicon.Lookup(form))
+        {
+            if (reading.Pos == LexiconSchema.Noun && !string.Equals(reading.Lemma, lemma, StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // A noun with a reading of the other gender (el estudiante, la estudiante) agrees with both articles, so it cannot be used to build a gender mistake.
@@ -340,7 +557,7 @@ public sealed class LexiconCatalog
             foreach (var person in new[] { "1", "2", "3" })
             {
                 var form = Morphology.Conjugate(lemma, person, number, tense);
-                if (form is null || !HasVerbReading(form, lemma, person, number, tense))
+                if (form is null || !Stable(form) || !HasVerbReading(form, lemma, person, number, tense))
                 {
                     return false;
                 }

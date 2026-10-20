@@ -1,9 +1,9 @@
 {"schemaVersion":1,"bundleId":"v1","contentVersion":"1.0.0","files":[
-{"path":"ATTRIBUTION.md","sha256":"c52f18e1a6ee19519b51ca959b2c46e36d36792275a1f2b12646b9f6c9b2033a","bytes":2557},
+{"path":"ATTRIBUTION.md","sha256":"72cdc6cd502d28b6046172b17716a7bb20ecaccbf89d889f2ec46c6f438004c1","bytes":4514},
 {"path":"answer-sets/greetings.json","sha256":"c0f99e77d0edfd9435aa0aab4a17360faebb763f5de0e7b59eec9e57e3613e5a","bytes":948},
 {"path":"answer-sets/items-basic.json","sha256":"58392cf522da6699835b6e11baaab56c273ea56d087ee52881e2360abb8df905","bytes":914},
 {"path":"answer-sets/spells-basic.json","sha256":"edccad2fb3a5eb9e1d6ce5551d492afe501e22da90166f9133dca1ba0ea359ba","bytes":819},
-{"path":"cefr/a1.txt","sha256":"4f158dea6df2237036eb82cad2750bb466d04df278100cdec719a19f61dd2451","bytes":2108},
+{"path":"cefr/a1.txt","sha256":"bc9a413e93a56e32ed870bdd27ddeeb168928ba67c7cede2e2490fc280f1d9ee","bytes":2111},
 {"path":"cefr/a2.txt","sha256":"ca2bd4e709130d68b0375bf9df23cae7a9f31911776f7cf0500419a51516d44c","bytes":5010},
 {"path":"dialogue/dialogue.json","sha256":"715fc897e2c6a0b7f74cceb79ba8123a126fa2ce2bad1490bac98cc9211e5ff7","bytes":5882},
 {"path":"effects/effects.json","sha256":"31777ade0667b1a20142e9e9e610cfa196d0537e54e0097b1246ddcb5324b928","bytes":828},
@@ -12,7 +12,10 @@
 {"path":"intents/intents.json","sha256":"78088c38491036e668ee569e3b0416d75ea7d58d5704f8407dcd2bed027e4d4a","bytes":3812},
 {"path":"lexicon/game.json","sha256":"16c4dcbc4f190f6dc7ca68aa4b42a435f8517f71699668f439a37a7f17243eb7","bytes":5802},
 {"path":"lexicon/seed.json","sha256":"c6d3c0348339015ab9693cfcb9089935fddd997f5cf2d1d64237e4ae8ed11eb0","bytes":119541},
+{"path":"lexicon/supplement.json","sha256":"d0f3b4ad878990cb56d766430b6a088b4299e220ff0da9c72ba4787eaaf6bc38","bytes":697},
+{"path":"lexicon/wiktionary-es.json","sha256":"83da218f083f8b8f73262dc4c275e6418a1a8e7aa53c1de72dcb62bf16372f2f","bytes":4718227},
+{"path":"lexicon/wiktionary-es.source.json","sha256":"9cecd4bd49f21bfb153b69aeaaa1118740e8649ba5dce61a9dc925e557134b70","bytes":3640},
 {"path":"npcs/blacksmith.json","sha256":"e087cd58b72cf6418b141df78c6ffe0f25508f7c2d3cba10fb07030c1a7b81cc","bytes":4415},
 {"path":"prompts/prompts.json","sha256":"f0dcff7799436b957172f9b53580de68e989e0aabafb7634555432274583519f","bytes":3579},
-{"path":"provenance.json","sha256":"6cc8ce64dda2d887c6e6bbe24268263465e41d6712478f7b98ca5a1556e052a8","bytes":1717}
-],"bundleHash":"b076558f7d1280b20ae84844d6aa377467fae8d3e8a86fc9d924c89d535d4efb"}
+{"path":"provenance.json","sha256":"61eb0e2132974201f8a7ddd89fbab0beaa73880c0570892f823dd73ea40edbce","bytes":2083}
+],"bundleHash":"8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78"}

@@ -28,11 +28,12 @@ public class KaikkiImporterTests
     {
         Assert.Equal(20, Result.LinesRead);
         Assert.Equal(19, Result.SpanishEntries);
-        Assert.Equal(14, Result.ImportedEntries);
-        Assert.Equal(5, Result.SkippedEntries);
-        Assert.Equal(45, Result.Entries.Count);
+        Assert.Equal(13, Result.ImportedEntries);
+        Assert.Equal(6, Result.SkippedEntries);
+        Assert.Equal(41, Result.Entries.Count);
         Assert.Equal(
             [
+                KaikkiImporter.ArticleReason,
                 "multi-word or affix head word",
                 "numeral (lemma is a digit string in the lexicon schema)",
                 "unsupported part of speech 'contraction'",
@@ -129,11 +130,13 @@ public class KaikkiImporterTests
     }
 
     [Fact]
-    public void ArticlesAndDeterminersUseTheLexiconPartsOfSpeech()
+    public void ArticlesStayHandAuthoredAndDeterminersBecomeAdjectives()
     {
-        Assert.Equal(new LexicalFeatures("el", "art", null, "sg", null, null, "m"), Only("el"));
-        Assert.Equal(new LexicalFeatures("el", "art", null, "sg", null, null, "f"), Only("la"));
-        Assert.Equal(new LexicalFeatures("el", "art", null, "pl", null, null, "m"), Only("los"));
+        // The analyzer reads the lemmas el and un and the gender and number of each article form; Wiktionary also has entries such as la and unx
+        // under lemmas of their own, so no article is imported.
+        Assert.Empty(Imported.Lookup("el"));
+        Assert.Empty(Imported.Lookup("la"));
+        Assert.Empty(Imported.Lookup("los"));
         Assert.Equal(new LexicalFeatures("este", "adj", null, "sg", null, null, "f"), Only("esta"));
     }
 
@@ -286,7 +289,7 @@ public class KaikkiImporterTests
     {
         var summary = Result.Summary();
 
-        Assert.StartsWith("read 20 lines, 19 Spanish entries: 14 imported into 45 lexicon entries, 5 skipped\n", summary, StringComparison.Ordinal);
+        Assert.StartsWith("read 20 lines, 19 Spanish entries: 13 imported into 41 lexicon entries, 6 skipped\n", summary, StringComparison.Ordinal);
         Assert.Contains("  skipped 1: unsupported part of speech 'phrase'\n", summary, StringComparison.Ordinal);
     }
 

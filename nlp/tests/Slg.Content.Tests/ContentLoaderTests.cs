@@ -48,7 +48,7 @@ public class ContentLoaderTests
     [Fact]
     public void ACrlfCheckoutStillVerifies()
     {
-        using var bundle = new TempBundle();
+        using var bundle = new TempBundle(full: true);
         foreach (var path in new[] { "intents/intents.json", "dialogue/dialogue.json", "cefr/a1.txt", "ATTRIBUTION.md" })
         {
             bundle.Write(path, bundle.Read(path).Replace("\n", "\r\n", StringComparison.Ordinal));
@@ -129,7 +129,7 @@ public class ContentLoaderTests
     [Fact]
     public void DotFilesAreIgnored()
     {
-        using var bundle = new TempBundle();
+        using var bundle = new TempBundle(full: true);
         bundle.Write(".DS_Store", "junk");
 
         Assert.Equal(TestSupport.Bundle.ContentHash, ContentLoader.Load(bundle.Directory).ContentHash);
@@ -138,7 +138,7 @@ public class ContentLoaderTests
     [Fact]
     public void ABundleHashThatDoesNotMatchTheFilesIsReported()
     {
-        using var bundle = new TempBundle();
+        using var bundle = new TempBundle(full: true);
         var manifest = bundle.Read("manifest.json");
         bundle.Write("manifest.json", manifest.Replace(TestSupport.Bundle.ContentHash, new string('0', 64), StringComparison.Ordinal));
 

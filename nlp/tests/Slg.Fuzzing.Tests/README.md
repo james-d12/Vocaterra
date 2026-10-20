@@ -20,7 +20,9 @@ dotnet test tests/Slg.Fuzzing.Tests
 
 No flags are needed: every fuzz `[Fact]` runs its full default depth on a plain run (there is no "fast" tier to opt out of). Measured on a
 development machine (4 cores), with the project already built: **about 17 s wall time** for the whole project at default depth (16 to 19 s over
-25 runs; stage 1 alone was about 5 s), against the plan's budget of about 60 s. xUnit runs the test classes in parallel, so the wall time is that
+25 runs; stage 1 alone was about 5 s), against the plan's budget of about 60 s. With the imported lexicon of M17a (3 000 lemmas, 41 000 entries) the
+same project takes **18.7 to 20.3 s** on a 16-logical-core machine (three runs; the previous tree timed interleaved with it: 17.1 to 18.2 s), and the whole
+solution's `dotnet test --no-build` takes 24.6 to 25.5 s (previous tree: 20.5 to 21.0 s). xUnit runs the test classes in parallel, so the wall time is that
 of the slowest chain, not the sum (about 70 s of test time in all). The slowest facts in that parallel run are O13's valid clips (about 13 s), O8
 (9 s), the NPC fact of O11 (6 s), O14 (6 s and 4 s) and O15; alone each takes between a third and a half of that.
 
@@ -128,7 +130,10 @@ content oracle writes each mutated bundle to its own directory under the system 
 - `FuzzOptions.cs` - iteration defaults and env-var overrides; the 3-in-4 benign, 1-in-4 adversarial weights.
 - `Generation/`
   - `AdversarialCorpus` - fixed edge values: strings (empty, 10 000 characters, emoji, combining marks, lone surrogates, number words, `{slot}`, `null`, `al`, `del`), audio shapes (zero and one sample, exactly one VAD frame and one sample either side, out-of-phase stereo, DC offset, a long clip at 96 kHz), phone sequences (one phone, twenty equal phones, every vowel, the learner phones), JSON values for a changed kind.
-  - `LexiconCatalog` - the lexicon through the generators' eyes: nouns with both numbers, verbs with full paradigms, descriptive adjectives, the closed classes.
+  - `LexiconCatalog` - the lexicon through the generators' eyes: nouns with both numbers, verbs with full paradigms, descriptive adjectives, the closed classes. With
+    thousands of lemmas it also decides which words are unusable because of homographs (a noun that is also an article, numeral or determiner, whose form two noun lemmas
+    share, that has a reading of the other gender, or that the normalizer rewrites, like the noun `cero`), indexes the lexicon for the generators, and prints the counts as
+    `nouns:`, `verbs:`, `adjectives:` ... diagnostics of O3.
   - `SpanishTextGen` / `TextNoise` - lexicon-driven phrases (word salad and loosely structured phrases) with casing, accent, NFD, `¿¡?!,.`, spacing, number-word and adversarial-token noise. The adversarial token goes in last and verbatim, so a lone surrogate reaches the stage under test unrepaired.
   - `GrammarPattern`, `PatternGen` - slot grammar patterns as a tree: every catalog grammar, structural skeletons, and random DSL strings built from the token kinds.
   - `SentenceGen`, `SentenceRealizer`, `SentenceModel` - correct sentences from a pattern, agreement right by construction (see below).
@@ -138,7 +143,7 @@ content oracle writes each mutated bundle to its own directory under the system 
   - `AudioGen` - `WavData` at 8 000 to 96 000 Hz, mono and stereo, PCM16 and float32, three header layouts (canonical, odd-sized extra chunks, `WAVE_FORMAT_EXTENSIBLE`), 0 ms to 5 s, from silence to clipped noise; white noise is drawn from the CsCheck generator; byte damage (truncate, corrupt a header byte, wrong chunk size) of valid files. `WavBuilder` writes the files independently of `WavFile.Write`.
   - `PhoneGen` - phone sequences of one to twenty inventory phones and phrases from the lexicon, posteriors through `FakePhonemeRecognizer.FromPhones` and `FromMumbled`, confusions from the predicted-error table (`ɾ→ɹ`, `r→ɹ`, `a→ə`, `e→eɪ`, `o→oʊ`, an inserted `h`), frame layouts, mumbled frames, dialects.
   - `DecisionGen` - NPC definitions (the bundle's, random valid ones, valid ones with one defect), BKT parameters, FSRS review scripts, feedback policies, repeat counts.
-  - `ContentMutationGen` - walks the JSON files of `content/v1` and applies exactly one mutation: remove a property, change a value's JSON kind, point a reference at a fresh id, give an enumerated field an unknown value, duplicate an element that has an id, flip a byte without touching the manifest. The manifest is recomputed (`ContentManifest.Compute`) for every kind but the byte flip, so the loader's schema and reference checks run and not only its hash check.
+  - `ContentMutationGen` - walks the JSON files of `content/v1` and applies exactly one mutation: remove a property, change a value's JSON kind, point a reference at a fresh id, give an enumerated field an unknown value, duplicate an element that has an id, flip a byte without touching the manifest. The manifest is recomputed for every kind but the byte flip (the committed manifest with the entry of the one mutated file replaced), so the loader's schema and reference checks run and not only its hash check. Files over 1 MB (the imported lexicon) are not walked for structural mutations, because they have the schema of the small lexicon files and writing them back costs more than everything else; a flipped byte still reaches them.
   - `PipelineGen` - one pipeline run: a transcript from a correct sentence of the prompt's own grammars, a mutated sentence, an answer, free text or an adversarial string, plus prompt, NPC, state, counter, seeds, learner, repeat counts and options.
 - `Oracles/` - `PipelineHarness` (bundle plus fakes wired once, with builders for services, pipeline, `GameContext`, prompts), `KnownTolerances`, `Determinism`.
 - `*FuzzTests.cs` - one file per oracle.
@@ -192,7 +197,10 @@ step). The minimums scale down when a smaller iteration count is requested.
 - **Audio.** `AudioFrontEnd.Process` costs 8 to 12 ms for 100 ms of audio at 11 025, 22 050 and 44 100 Hz (the resampler rebuilds its kernel bank
   on every call) and 0.4 to 1.8 ms at the other rates, about 150 ns per input sample on top, so the clip durations are weighted towards short clips
   (most under 60 ms, a tail up to 5 s) and the 96 kHz edge shape is 2 s.
-- **Content.** A load of the bundle takes about 12 ms, so 500 mutations cost about 6 s.
+- **Content.** A load of the bundle took about 12 ms, so 500 mutations cost about 6 s; with the imported lexicon a load takes 110 to 270 ms (4.7 MB, 41 000 entries), which
+  would be a minute and a half for O15. The oracle therefore loads with an opt-in `LexiconCache` (a copy whose lexicon files are byte for byte those of an earlier valid copy
+  reuses the parsed and merged lexicon; any other lexicon file is parsed in full), derives each copy's manifest from the committed one, and runs on up to four threads; it
+  takes 10 to 17 s alone.
 
 ## Bugs found and fixed while building this suite
 
@@ -217,6 +225,27 @@ step). The minimums scale down when a smaller iteration count is requested.
   problem naming the file. Found by O15 (seed `0003TzidR6n1`, a flipped bit in a key of `lexicon/seed.json`). Regression: four new cases of
   `LexiconTests.InvalidDocumentsAreRejected` in `tests/Slg.Nlp.Tests`.
 
+Found when the imported lexicon was added (M17a). The seeds belong to the lexicon of that moment and do not reproduce with the final one; the regression tests do.
+
+- **A subject pronoun was checked against the imperative readings of its verb** (`Slg.Nlp`, O4/O5). Imperatives are spelled like the third person
+  (`habla`, `come`, `está`), so `tú habla` agreed with `tú`, and the correction of `ella está alta` was `eres` (the first reading of `está` is the imperative
+  of `estar`, second person). The person check and the copula check now use the declarative readings. Found by O4 (seed `dU3ctY0Mvpx9`, a ser/estar mutation) and
+  O5 (seed `4ybQyIqiaD61`). Regression: `AmbiguousReadingTests.AnImperativeThatIsSpelledLikeTheThirdPersonDoesNotExcuseAPersonMistake` and
+  `TheExpectedCopulaFormComesFromTheDeclarativeReadingNotFromTheImperative` in `tests/Slg.Nlp.Tests/Analysis`.
+- **A form that is an adjective under two lemmas was classified by whichever sorts first** (`Slg.Nlp`, O5). `ocupada` is a lemma of its own ("pregnant") next to
+  `ocupado`; `ella es ocupada` passed the ser/estar check because the first reading's lemma is not in the estar class. The ser/estar class and the prenominal
+  check now look at every adjective reading. Found by O5 (seed `8Wkp2ivvMDP1`). Regression: `AFormThatIsAnAdjectiveUnderTwoLemmasIsClassifiedByAllOfThem`.
+- **A noun form that reads as singular and as plural made a correct adjective a number mistake** (`Slg.Nlp`, O3). `corazones` is the plural of `corazón` and the card
+  suit; `malos corazones` was tagged `noun.number` because the first noun reading is the singular. Without a determiner that fixes the number, an adjective now
+  agrees with either reading. Found by O3 (seed `dYkkd05aEvg7`). Regression: `ANounFormThatIsSingularAndPluralAgreesWithAnAdjectiveOfEitherNumber` and
+  `ADeterminerStillFixesTheNumberOfAnAmbiguousNounPhrase`.
+- **`Utf8JsonReader.GetString` throws `InvalidOperationException` for invalid UTF-8**; the new lexicon reader turns it into a `JsonException` (caught by the
+  tests `LexiconFileReaderTests.InvalidUtf8IsAJsonException`).
+
+Generator fixes (not analyzer bugs, found by the same runs): the generators now skip words the normalizer rewrites (`cero`, `mil`, `diez` are nouns in the imported lexicon and
+become digits), nouns that are articles, numerals or determiners (`poca`), forms two noun lemmas share (`ratos`), nouns that are also an infinitive (`proceder`), and
+a function word that is also a verb form or a noun (counted as `skip:function-word-homograph`; none occurred in the final runs).
+
 Content fix (stage 1 follow-up): **`cuál` is now in `content/v1/lexicon/seed.json`** (a pronoun, like `qué` and `quién`), so the correct
 `ask_price` utterance `cuál es el precio de ...` no longer gets `vocab.unknown`. The bundle was re-hashed (`b076558f...efb`), the pinned hash in
 `ManifestTests` and the three `contentHash` lines of the end-to-end golden file were updated (the committed golden manifest is untouched and stays
@@ -232,10 +261,29 @@ them explicitly (each is a skip or a restriction in the generator, counted in th
   `nosotros` is read as the verb `comer`; `sé` (saber) is also the imperative of `ser`, so `sé preocupado` is a `ser_estar` mistake;
   `fueron` is both `ir` and `ser`, so a recast `fueron vacío` trips `ser_estar`. A fix needs part-of-speech disambiguation (design). The
   generators avoid these homographs (`LexiconCatalog` drops them from the closed classes; the mutation generator skips the sentences).
+  **Numbers with the imported lexicon (M17a)**, from the counters of O3 and `lexicon-report`:
+
+  | | Before | After |
+  | --- | --- | --- |
+  | Forms of the merged lexicon with more than one reading | 89 of 1 179 | 7 216 of 32 494 |
+  | Forms read under more than one lemma | 19 | 1 035 |
+  | Nouns the generators can use / also a verb form | 154 / 3 | 1 583 / 339 (21 %) |
+  | Nouns left out: also the other gender / form shared with another noun lemma / no distinct plural / reads as article, numeral or determiner | 3 / 0 / 5 / 0 | 347 / 61 / 16 / 2 |
+  | Sentences skipped as `verb-form-homograph` in one run of O3, O4, O5 | none | 1, 6, 3 |
+  | Sentences skipped as `function-word-homograph` | none | none |
+  | Verbs / descriptive adjectives / adverbs the generators can use | 34 / 62 / 30 | 677 / 250 / 105 |
+
+  The skips per run are small because the catalogs already leave the homograph words out of the pools; the cost of the homographs shows in the catalog rows (a fifth of
+  the nouns is also a verb form) and in the analyzer fixes above. Whether the analyzer should choose the reading from the grammar slot and the neighbouring determiners is M18.
 - **`CanonicalJson` writes a lone surrogate as an escaped U+FFFD**, and a real U+FFFD as the character itself, so a transcript with a lone
   surrogate does not survive serialize, deserialize, serialize byte for byte, and a replay envelope for it does not round-trip. Recognizers return
   well-formed text. O16 and O14 make transcripts well-formed before the JSON round trip (O14 still runs the pipeline and replays the in-memory
   envelope for the raw text). `Slg.Core` is final, so the fix (write U+FFFD as an escape, or reject at serialization) is a maintainers' decision.
+- **Measurements with the imported lexicon (M17a).** Lexicon file `wiktionary-es.json`: 4 718 227 bytes (limit 15 MB); first load of the bundle with hash verification in a
+  fresh process 217 to 267 ms, repeated in one process 114 to 213 ms (before: 8 ms); fuzz project alone 18.7 to 20.3 s (before 17.1 to 18.2 s); whole solution 24.6 to 25.5 s
+  (before 20.5 to 21.0 s). The same numbers at 5 000 lemmas (6.6 MB, first load 333 to 373 ms) are in [docs/LEXICON.md](../../docs/LEXICON.md); 5 000 fails the 300 ms load gate.
+  Scaling traps found on the way: building a fresh `MorphologyGenerator` costs 7 ms with this lexicon (it indexes every irregular verb), which is now done once per lexicon;
+  the non-word generator compared each candidate with 10 000 forms; a linear scan per sentence in the realizer.
 - **Pronunciation scoring grows with the cube of the phone count** (table above). Follow-up: make `PredictedErrorMatcher.Match` compare a predicted
   variant with the reference in linear time (they are at most one edit apart) and make `PronunciationScorer.PredictedErrorsFor` deduplicate with a
   hash set. A spoken utterance is far below the sizes where it matters (110 phones cost 15 ms), so nothing user-visible is affected.

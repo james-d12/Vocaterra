@@ -5,7 +5,7 @@ using Slg.Content;
 namespace Slg.ContentBuilder;
 
 /// <summary>
-/// Entry point of the build-time content tool. Commands: <c>validate</c>, <c>hash</c>, <c>cefr-check</c>, <c>import-lexicon</c>.
+/// Entry point of the build-time content tool. Commands: <c>validate</c>, <c>hash</c>, <c>cefr-check</c>, <c>import-lexicon</c>, <c>lexicon-report</c>.
 /// Exit codes: 0 success, 1 the content or input is invalid, 2 the command line is wrong.
 /// </summary>
 public static class Program
@@ -28,7 +28,16 @@ public static class Program
           hash <bundleDir> [--bundle-id ID] [--content-version V]
                                                              rewrite manifest.json from the files on disk
           cefr-check <bundleDir> --level a1|a2               list dialogue-template lemmas missing from the CEFR list
-          import-lexicon <kaikki.jsonl> <out.json> [--max N] convert wiktextract Spanish JSONL into a lexicon file
+          import-lexicon <kaikki.jsonl> <out.json> [--max N] [--frequency <es_50k.txt> [--top N]] [--hand-authored <dir|a.json,b.json>]
+                                                             [--sidecar <out.source.json> [--sources <sources.json>]]
+                                                             convert wiktextract Spanish JSONL into a lexicon file; with a frequency
+                                                             list and --top, keep the N most frequent lemmas (lemma frequency = summed
+                                                             counts of its forms in the list); --hand-authored names lexicon files (or a
+                                                             folder, minus imported files) whose lemmas the import leaves alone, verbs
+                                                             excepted; the sidecar records URLs, retrieval date,
+                                                             SHA-256, line counts, parameters and the importer version
+          lexicon-report <bundleDir>                         list each lexicon file of the bundle, how the files overlap and what the
+                                                             merged lexicon holds
         """;
 
     /// <summary>Process entry point.</summary>
@@ -69,7 +78,8 @@ public static class Program
                 "validate" => Validate(new ArgumentList(args, 1, []), output, error),
                 "hash" => Hash(new ArgumentList(args, 1, ["--bundle-id", "--content-version"]), output),
                 "cefr-check" => CefrCheck(new ArgumentList(args, 1, ["--level"]), output, error),
-                "import-lexicon" => ImportLexicon(new ArgumentList(args, 1, ["--max"]), output, error),
+                "import-lexicon" => ImportLexicon(new ArgumentList(args, 1, ["--max", "--frequency", "--top", "--sidecar", "--sources", "--hand-authored"]), output, error),
+                "lexicon-report" => LexiconReportCommand(new ArgumentList(args, 1, []), output, error),
                 _ => throw new UsageException($"Unknown command '{command}'."),
             };
         }
@@ -155,16 +165,78 @@ public static class Program
             max = parsed;
         }
 
+        int? top = null;
+        if (arguments.Option("--top") is { } rawTop)
+        {
+            if (!int.TryParse(rawTop, NumberStyles.None, CultureInfo.InvariantCulture, out var parsed) || parsed < 1)
+            {
+                throw new UsageException("--top needs a positive whole number.");
+            }
+
+            top = parsed;
+        }
+
+        var frequencyPath = arguments.Option("--frequency");
+        var sidecarPath = arguments.Option("--sidecar");
+        if (top is not null && frequencyPath is null)
+        {
+            throw new UsageException("--top needs --frequency <es_50k.txt>.");
+        }
+
+        if (arguments.Option("--sources") is not null && sidecarPath is null)
+        {
+            throw new UsageException("--sources only makes sense with --sidecar.");
+        }
+
         if (!File.Exists(input))
         {
             error.WriteLine($"Input file not found: {input}");
             return ExitInvalid;
         }
 
-        var result = KaikkiImporter.ImportFile(input, max);
+        if (frequencyPath is not null && !File.Exists(frequencyPath))
+        {
+            error.WriteLine($"Frequency list not found: {frequencyPath}");
+            return ExitInvalid;
+        }
+
+        var frequency = frequencyPath is null ? null : FrequencyList.ReadFile(frequencyPath);
+        var handAuthored = arguments.Option("--hand-authored") is { } rawHand ? HandAuthoredLemmas.Read(rawHand) : null;
+        var options = new KaikkiImportOptions { MaxEntries = max, Frequency = frequency, Top = top, HandAuthored = handAuthored };
+        var result = KaikkiImporter.ImportFile(input, options);
+
+        // The sidecar is built before anything is written, so a source file that differs from sources.json leaves no half-finished pair behind.
+        string? sidecarJson = null;
+        if (sidecarPath is not null)
+        {
+            var sourcesPath = arguments.Option("--sources") ?? Path.Combine(Path.GetDirectoryName(Path.GetFullPath(input))!, SourcesFile.FileName);
+            var records = SourcesFile.Read(sourcesPath);
+            (FrequencyList, string)? withPath = frequency is null ? null : (frequency, frequencyPath!);
+            sidecarJson = LexiconSidecarBuilder.Build(result, options, input, withPath, records, Path.GetFileName(outputPath), handAuthored?.FileNames).ToJson();
+        }
+
         File.WriteAllText(outputPath, KaikkiImporter.ToJson(result.Entries), new UTF8Encoding(false));
         output.Write(result.Summary());
         output.WriteLine(string.Create(CultureInfo.InvariantCulture, $"wrote {outputPath}"));
+        if (sidecarPath is not null)
+        {
+            File.WriteAllText(sidecarPath, sidecarJson!, new UTF8Encoding(false));
+            output.WriteLine(string.Create(CultureInfo.InvariantCulture, $"wrote {sidecarPath}"));
+        }
+
+        return ExitOk;
+    }
+
+    private static int LexiconReportCommand(ArgumentList arguments, TextWriter output, TextWriter error)
+    {
+        var dir = arguments.Positional(0, "bundleDir", exactly: 1);
+        if (!Directory.Exists(dir))
+        {
+            error.WriteLine($"Bundle directory not found: {dir}");
+            return ExitInvalid;
+        }
+
+        output.Write(LexiconReport.Format(LexiconReport.Build(dir)));
         return ExitOk;
     }
 }

@@ -19,6 +19,28 @@ internal static class TestSupport
     /// <summary>The sample bundle, loaded once with hash verification.</summary>
     public static ContentBundle Bundle { get; } = ContentLoader.Load(BundleDir, new ContentLoadOptions { VerifyHashes = true });
 
+    /// <summary>
+    /// Writes a <c>sources.json</c> for the given files into the directory, with their real size and SHA-256 (so the importer's check against the file
+    /// passes) and a made-up URL and date, and returns its path.
+    /// </summary>
+    public static string WriteSources(string directory, params (string Id, string Path)[] files)
+    {
+        System.IO.Directory.CreateDirectory(directory);
+        var sources = files.Select(file => new
+        {
+            id = file.Id,
+            file = Path.GetFileName(file.Path),
+            url = "https://example.org/data/" + Path.GetFileName(file.Path),
+            sha256 = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(file.Path))),
+            bytes = new FileInfo(file.Path).Length,
+            retrievedOn = "2026-10-20",
+            license = "CC-BY-SA-4.0 (test data)",
+        }).ToArray();
+        var path = Path.Combine(directory, "sources.json");
+        File.WriteAllText(path, System.Text.Json.JsonSerializer.Serialize(new { schemaVersion = 1, sources }), new UTF8Encoding(false));
+        return path;
+    }
+
     public static Verdict MakeVerdict(string intent, bool communicated = true, double correctness = 1.0, SlotMap? slots = null)
     {
         return new Verdict(
@@ -39,13 +61,26 @@ internal static class TestSupport
     }
 }
 
-/// <summary>A writable copy of the sample bundle in a temporary directory; deleted on dispose.</summary>
+/// <summary>
+/// A writable copy of the sample bundle in a temporary directory; deleted on dispose. By default it is the light copy: without the imported lexicon and its
+/// sidecar (and their provenance items), so that a test which damages some other file loads a bundle of a few thousand lexicon entries in about ten
+/// milliseconds instead of parsing the 40 000 imported entries each time. A test about the imported lexicon asks for the full copy.
+/// </summary>
 internal sealed class TempBundle : IDisposable
 {
-    public TempBundle()
+    private static readonly string[] ImportedFiles = ["lexicon/wiktionary-es.json", "lexicon/wiktionary-es.source.json"];
+
+    public TempBundle(bool full = false)
     {
         Directory = Path.Combine(Path.GetTempPath(), "slg-content-tests-" + Guid.NewGuid().ToString("N"));
-        CopyDirectory(TestSupport.BundleDir, Directory);
+        CopyDirectory(TestSupport.BundleDir, Directory, full ? [] : ImportedFiles);
+        if (!full)
+        {
+            var provenance = PathOf("provenance.json");
+            var kept = File.ReadAllLines(provenance).Where(line => !ImportedFiles.Any(file => line.Contains("\"" + file + "\"", StringComparison.Ordinal)));
+            File.WriteAllText(provenance, string.Join('\n', kept) + "\n", new UTF8Encoding(false));
+            Rehash();
+        }
     }
 
     public string Directory { get; }
@@ -102,17 +137,50 @@ internal sealed class TempBundle : IDisposable
         }
     }
 
-    private static void CopyDirectory(string source, string target)
+    private static void CopyDirectory(string source, string target, string[] skip, string relative = "")
     {
         System.IO.Directory.CreateDirectory(target);
         foreach (var file in System.IO.Directory.EnumerateFiles(source))
         {
-            File.Copy(file, Path.Combine(target, Path.GetFileName(file)));
+            if (!skip.Contains(relative + Path.GetFileName(file), StringComparer.Ordinal))
+            {
+                File.Copy(file, Path.Combine(target, Path.GetFileName(file)));
+            }
         }
 
         foreach (var directory in System.IO.Directory.EnumerateDirectories(source))
         {
-            CopyDirectory(directory, Path.Combine(target, Path.GetFileName(directory)));
+            var name = Path.GetFileName(directory);
+            CopyDirectory(directory, Path.Combine(target, name), skip, relative + name + "/");
+        }
+    }
+}
+
+/// <summary>An empty temporary directory; deleted on dispose.</summary>
+internal sealed class TempDirectory : IDisposable
+{
+    public TempDirectory()
+    {
+        Directory = Path.Combine(Path.GetTempPath(), "slg-content-tests-" + Guid.NewGuid().ToString("N"));
+        System.IO.Directory.CreateDirectory(Directory);
+    }
+
+    public string Directory { get; }
+
+    public string PathOf(string name)
+    {
+        return Path.Combine(Directory, name);
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            System.IO.Directory.Delete(Directory, recursive: true);
+        }
+        catch (IOException)
+        {
+            // A leftover temporary directory must not fail a test.
         }
     }
 }

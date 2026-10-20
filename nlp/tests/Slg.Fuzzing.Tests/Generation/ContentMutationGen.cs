@@ -76,11 +76,17 @@ public sealed class ContentMutationGen
         "id", "intentId", "promptId", "answerId", "effectId", "lineId", "path",
     };
 
+    /// <summary>Files larger than this are not walked for structural mutations (see the constructor).</summary>
+    private const int MaxStructuralBytes = 1_000_000;
+
     private static int _counter;
 
     private readonly Dictionary<string, byte[]> _files = new(StringComparer.Ordinal);
     private readonly Dictionary<ContentMutationKind, List<(string File, string[] Path)>> _candidates = [];
     private readonly Dictionary<string, JsonNode> _parsed = new(StringComparer.Ordinal);
+    private readonly ContentManifest _original;
+    private readonly Dictionary<ContentMutationKind, (string File, string[] Path)[][]> _byFile = [];
+    private readonly ContentMutationKind[] _kinds;
 
     private ContentMutationGen(string directory)
     {
@@ -96,9 +102,13 @@ public sealed class ContentMutationGen
             _candidates[kind] = [];
         }
 
+        _original = ContentManifest.FromJson(Encoding.UTF8.GetString(_files["manifest.json"]));
         foreach (var (relative, bytes) in _files)
         {
-            if (!relative.EndsWith(".json", StringComparison.Ordinal))
+            // The imported lexicon (megabytes, tens of thousands of entries) has the schema of the small hand-authored lexicon files, so structural damage
+            // is drawn from those; parsing and writing it back for every mutation would cost more than all the other files together. A flipped byte
+            // still reaches it (the flip kind needs no parsing).
+            if (!relative.EndsWith(".json", StringComparison.Ordinal) || bytes.Length > MaxStructuralBytes)
             {
                 continue;
             }
@@ -112,6 +122,18 @@ public sealed class ContentMutationGen
         {
             _candidates[ContentMutationKind.FlipByte].Add((file, []));
         }
+
+        // The candidates are grouped by file once: the imported lexicon alone has hundreds of thousands of places, and a mutation is drawn hundreds of times.
+        foreach (var kind in Enum.GetValues<ContentMutationKind>())
+        {
+            _byFile[kind] = _candidates[kind]
+                .GroupBy(static c => c.File, StringComparer.Ordinal)
+                .OrderBy(static g => g.Key, StringComparer.Ordinal)
+                .Select(static g => g.ToArray())
+                .ToArray();
+        }
+
+        _kinds = Enum.GetValues<ContentMutationKind>().Where(kind => _candidates[kind].Count > 0).ToArray();
     }
 
     /// <summary>The committed bundle copied next to the test assembly.</summary>
@@ -129,13 +151,11 @@ public sealed class ContentMutationGen
     /// <summary>Draws the mutation a random stream decides on.</summary>
     public ContentMutation Build(SeededRng rng)
     {
-        var kinds = Enum.GetValues<ContentMutationKind>().Where(kind => _candidates[kind].Count > 0).ToArray();
-        var kind = rng.Pick(kinds);
+        var kind = rng.Pick(_kinds);
 
-        // Choose the file first, so the 1 200 lexicon entries do not drown out the dozen structural files.
-        var byFile = _candidates[kind].GroupBy(static c => c.File, StringComparer.Ordinal).OrderBy(static g => g.Key, StringComparer.Ordinal).ToArray();
-        var group = rng.Pick(byFile);
-        var (file, path) = rng.Pick(group.ToArray());
+        // Choose the file first, so the thousands of lexicon entries do not drown out the dozen structural files.
+        var group = rng.Pick(_byFile[kind]);
+        var (file, path) = rng.Pick(group);
 
         switch (kind)
         {
@@ -190,10 +210,30 @@ public sealed class ContentMutationGen
         File.WriteAllText(file, root.ToJsonString(options) + "\n", new UTF8Encoding(false));
         if (mutation.File != "manifest.json")
         {
-            File.WriteAllText(Path.Combine(directory, "manifest.json"), ContentManifest.Compute(directory).ToJson(), new UTF8Encoding(false));
+            File.WriteAllText(Path.Combine(directory, "manifest.json"), ManifestAfterMutating(mutation.File, directory).ToJson(), new UTF8Encoding(false));
         }
 
         return directory;
+    }
+
+    // The manifest of the mutated copy: the committed manifest with the entry of the one file that changed recomputed from the file as written (the other
+    // entries are those of byte-identical files), so the megabytes of the unchanged lexicon are not read and hashed again for every mutation.
+    private ContentManifest ManifestAfterMutating(string relative, string directory)
+    {
+        var scratch = directory + "-digest";
+        var target = Path.Combine(scratch, relative);
+        System.IO.Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+        try
+        {
+            File.Copy(Path.Combine(directory, relative), target);
+            var digest = ContentManifest.Compute(scratch).Files.Single();
+            var files = _original.Files.Select(file => file.Path == relative ? digest : file).ToList();
+            return _original with { Files = files, BundleHash = ContentManifest.ComputeBundleHash(files) };
+        }
+        finally
+        {
+            System.IO.Directory.Delete(scratch, recursive: true);
+        }
     }
 
     private static void Apply(ref JsonNode root, ContentMutation mutation)

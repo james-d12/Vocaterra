@@ -91,6 +91,14 @@ public static class KnownTolerances
         ("intents/intents.json", "intents/*/keywordRules/*/slotFromNumber", ContentFieldReason.Optional),
         ("lexicon/", "generated_by", ContentFieldReason.Optional),
         ("lexicon/", "entries/*/features/*", ContentFieldReason.Optional),
+
+        // The sidecar of a generated lexicon (lexicon/*.source.json): the loader checks the schema version, the importer version, the generated file and
+        // its entry and lemma counts, and every source record. The import parameters and the report are information for people; the loader reads them
+        // for shape only (a missing count is 0, a missing reason row is a row less).
+        ("lexicon/", "parameters/*", ContentFieldReason.Optional),
+        ("lexicon/", "parameters/handAuthoredFiles/*", ContentFieldReason.Optional),
+        ("lexicon/", "report/*", ContentFieldReason.SilentDefault),
+        ("lexicon/", "report/*/*", ContentFieldReason.Optional),
         ("npcs/", "states/*/fallback", ContentFieldReason.Optional),
         ("npcs/", "states/*/fallback/actions/*/variantPoolId", ContentFieldReason.Optional),
         ("npcs/", "states/*/transitions/*/actions/*/gameEvent", ContentFieldReason.Optional),

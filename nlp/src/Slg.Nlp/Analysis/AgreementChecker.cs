@@ -35,6 +35,13 @@ internal sealed class AgreementChecker
         return reading.Pos == LexiconSchema.Verb && reading.Person is not null;
     }
 
+    // A finite form that can follow an explicit subject: the imperative is left out, because imperatives share their spelling with the third person
+    // of the present (habla, come, está) and would otherwise make "tú habla" agree with tú and "ella está feliz" a mistake about the form eres.
+    private static bool IsDeclarativeFiniteVerb(LexicalFeatures reading)
+    {
+        return IsFiniteVerb(reading) && reading.Mood != LexiconSchema.Imperative;
+    }
+
     private static bool Compatible(string? left, string? right)
     {
         return left is null || right is null || string.Equals(left, right, StringComparison.Ordinal);
@@ -161,7 +168,7 @@ internal sealed class AgreementChecker
                 continue;
             }
 
-            var finite = Readings(verbIndex, IsFiniteVerb);
+            var finite = Readings(verbIndex, IsDeclarativeFiniteVerb);
             if (finite.Count == 0)
             {
                 // A bare infinitive after a subject pronoun ("yo comprar") is a person error as well.
@@ -241,7 +248,7 @@ internal sealed class AgreementChecker
     {
         for (var i = 0; i < _tokens.Count; i++)
         {
-            var copula = FirstReading(i, static r => IsFiniteVerb(r) && r.Lemma is "ser" or "estar");
+            var copula = FirstReading(i, static r => IsDeclarativeFiniteVerb(r) && r.Lemma is "ser" or "estar");
             if (copula is null)
             {
                 continue;
@@ -253,14 +260,18 @@ internal sealed class AgreementChecker
                 continue;
             }
 
-            var adjective = FirstReading(adjectiveIndex, static r => r.Pos == LexiconSchema.Adjective);
-            if (adjective is null)
+            // A form can be an adjective under two lemmas (ocupada, a lemma of its own with the sense "pregnant", and a form of ocupado); the class of the
+            // word is decided by all of them, not by whichever lemma sorts first.
+            var adjectives = Readings(adjectiveIndex, static r => r.Pos == LexiconSchema.Adjective);
+            if (adjectives.Count == 0)
             {
                 continue;
             }
 
-            var wrongCopula = copula.Lemma == "ser" && AnalysisTables.TakesEstar(adjective.Lemma);
-            var wrongEstar = copula.Lemma == "estar" && AnalysisTables.TakesSer(adjective.Lemma);
+            var takesEstar = adjectives.Exists(static a => AnalysisTables.TakesEstar(a.Lemma));
+            var takesSer = adjectives.Exists(static a => AnalysisTables.TakesSer(a.Lemma));
+            var wrongCopula = copula.Lemma == "ser" && takesEstar && !takesSer;
+            var wrongEstar = copula.Lemma == "estar" && takesSer && !takesEstar;
             if (!wrongCopula && !wrongEstar)
             {
                 continue;
@@ -354,19 +365,21 @@ internal sealed class AgreementChecker
         }
 
         var effectiveNumber = noun.Number;
+        var numberFromDeterminer = false;
         foreach (var determiner in phrase.Determiners)
         {
             var numbered = FirstReading(determiner, static r => IsDeterminerReading(r) && r.Number is not null);
             if (numbered is not null)
             {
                 effectiveNumber = numbered.Number;
+                numberFromDeterminer = true;
                 break;
             }
         }
 
         foreach (var adjective in phrase.Before.Concat(phrase.After))
         {
-            CheckAdjective(adjective, nounReadings, noun, effectiveNumber);
+            CheckAdjective(adjective, nounReadings, noun, effectiveNumber, numberFromDeterminer);
         }
 
         CheckWordOrder(phrase);
@@ -402,11 +415,15 @@ internal sealed class AgreementChecker
         }
     }
 
-    private void CheckAdjective(int adjectiveIndex, List<LexicalFeatures> nounReadings, LexicalFeatures noun, string? effectiveNumber)
+    private void CheckAdjective(int adjectiveIndex, List<LexicalFeatures> nounReadings, LexicalFeatures noun, string? effectiveNumber, bool numberFromDeterminer)
     {
         var readings = Readings(adjectiveIndex, static r => r.Pos == LexiconSchema.Adjective);
         var genderOk = readings.Any(a => nounReadings.Any(n => GenderCompatible(a, n)));
-        var numberOk = readings.Any(a => Compatible(a.Number, effectiveNumber));
+
+        // A determiner that carries a number fixes the number of the phrase. Without one, a noun form that reads as singular and as plural
+        // (corazones, the card suit, next to the plural of corazón) agrees with an adjective of either number.
+        var numberOk = readings.Any(a => Compatible(a.Number, effectiveNumber)
+            || (!numberFromDeterminer && nounReadings.Any(n => Compatible(a.Number, n.Number))));
         if (genderOk && numberOk)
         {
             return;
@@ -440,8 +457,8 @@ internal sealed class AgreementChecker
         }
 
         var adjectiveIndex = phrase.Before[^1];
-        var adjective = FirstReading(adjectiveIndex, static r => r.Pos == LexiconSchema.Adjective);
-        if (adjective is null || AnalysisTables.IsPrenominal(adjective.Lemma))
+        var adjectives = Readings(adjectiveIndex, static r => r.Pos == LexiconSchema.Adjective);
+        if (adjectives.Count == 0 || adjectives.Exists(static a => AnalysisTables.IsPrenominal(a.Lemma)))
         {
             return;
         }

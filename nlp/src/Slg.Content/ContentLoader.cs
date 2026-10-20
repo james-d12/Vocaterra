@@ -51,7 +51,7 @@ public static class ContentLoader
             VerifyHashes(manifest, files, problems);
         }
 
-        var parts = Parse(files, problems);
+        var parts = Parse(files, options, problems);
         ContentValidator.Validate(parts, files, problems);
         if (problems.Count > 0)
         {
@@ -62,6 +62,7 @@ public static class ContentLoader
             manifest,
             parts.Provenance!,
             parts.Lexicon!,
+            parts.LexiconSources,
             parts.AnswerSets,
             parts.Intents!,
             parts.Prompts,
@@ -152,7 +153,7 @@ public static class ContentLoader
         }
     }
 
-    private static LoadedParts Parse(BundleFiles files, List<string> problems)
+    private static LoadedParts Parse(BundleFiles files, ContentLoadOptions options, List<string> problems)
     {
         var parts = new LoadedParts
         {
@@ -162,9 +163,9 @@ public static class ContentLoader
             FeedbackPolicy = ParseRequired(files, ContentPaths.FeedbackPolicy, FeedbackPolicy.FromJson, problems),
             EvaluationConfig = ParseRequired(files, ContentPaths.EvaluationConfig, ParseEvaluationConfig, problems),
             Effects = ParseRequired(files, ContentPaths.Effects, EffectTable.FromJson, problems),
-            Lexicon = ParseLexicon(files, problems),
         };
 
+        parts.Lexicon = ParseLexicon(files, parts, options, problems);
         parts.Prompts = ParseRequired(files, ContentPaths.Prompts, ParsePrompts, problems) ?? LoadedParts.EmptyMap<PromptSpec>();
         parts.AnswerSets = ParseFolder(files, ContentPaths.AnswerSetFolder, ".json", AnswerSet.FromJson, static set => set.AnswerSetId, "answerSetId", problems);
         parts.Npcs = ParseFolder(files, ContentPaths.NpcFolder, ".json", NpcStateMachine.FromJson, static machine => machine.NpcId, "npcId", problems);
@@ -172,23 +173,40 @@ public static class ContentLoader
         return parts;
     }
 
-    private static NlpLexicon? ParseLexicon(BundleFiles files, List<string> problems)
+    /// <summary>
+    /// Builds the bundle lexicon from every <c>lexicon/*.json</c> file except the sidecars (<c>*.source.json</c>, which describe a generated file and hold
+    /// no entries). The merge policy: the files are unioned; entries with the same form, lemma, part of speech and features are one reading and are
+    /// stored once, so a word the hand-authored seed and an import both list is not duplicated; entries that differ in any of those four members are
+    /// different readings of the form, they coexist, and the analyzer reads a token as all of them. File order does not matter: the merged entries are
+    /// sorted ordinally. A file that fails to parse is reported with its path and left out.
+    /// </summary>
+    private static NlpLexicon? ParseLexicon(BundleFiles files, LoadedParts parts, ContentLoadOptions options, List<string> problems)
     {
-        var entries = new List<LexiconEntry>();
-        var any = false;
-        foreach (var path in files.InFolder(ContentPaths.LexiconFolder, ".json"))
+        var paths = files.InFolder(ContentPaths.LexiconFolder, ".json").Where(static path => !LexiconSourceInfo.IsSidecarPath(path)).ToList();
+        string? key = null;
+        LoadedLexicons? loaded = null;
+        Dictionary<string, string>? hashes = null;
+        if (options.LexiconCache is { } cache && paths.Count > 0)
         {
-            var lexicon = ParseText(files, path, NlpLexicon.Load, problems);
-            if (lexicon is null)
-            {
-                continue;
-            }
-
-            any = true;
-            entries.AddRange(lexicon.Entries);
+            hashes = paths.ToDictionary(static path => path, path => DeterministicHash.Sha256Hex(files.Bytes(path)), StringComparer.Ordinal);
+            key = DeterministicHash.Combine([.. paths.SelectMany(path => new[] { path, hashes[path] })]);
+            loaded = cache.Find(key);
         }
 
-        if (!any)
+        if (loaded is null)
+        {
+            var before = problems.Count;
+            loaded = ReadLexicons(files, paths, options.LexiconCache, hashes, problems);
+            if (loaded?.Lexicon is not null && key is not null && problems.Count == before)
+            {
+                options.LexiconCache!.Add(key, loaded);
+            }
+        }
+
+        parts.LexiconGeneratedBy = (loaded?.Files ?? new Dictionary<string, LexiconFileSummary>())
+            .ToImmutableSortedDictionary(static pair => pair.Key, static pair => pair.Value.GeneratedBy, StringComparer.Ordinal);
+        ParseLexiconSidecars(files, loaded?.Files ?? new Dictionary<string, LexiconFileSummary>(), parts, problems);
+        if (loaded is null)
         {
             if (!problems.Exists(static problem => problem.StartsWith(ContentPaths.LexiconFolder, StringComparison.Ordinal)))
             {
@@ -198,7 +216,92 @@ public static class ContentLoader
             return null;
         }
 
-        return NlpLexicon.FromEntries(entries);
+        return loaded.Lexicon;
+    }
+
+    private static LoadedLexicons? ReadLexicons(BundleFiles files, List<string> paths, LexiconCache? cache, Dictionary<string, string>? hashes, List<string> problems)
+    {
+        var before = problems.Count;
+        var entries = new List<LexiconEntry>();
+        var summaries = new SortedDictionary<string, LexiconFileSummary>(StringComparer.Ordinal);
+        foreach (var path in paths)
+        {
+            var sha = hashes?[path];
+            var file = sha is null ? null : cache!.FindFile(sha);
+            if (file is null)
+            {
+                file = ParseBytes(files, path, NlpLexicon.ReadFile, problems);
+                if (file is null)
+                {
+                    continue;
+                }
+
+                if (sha is not null)
+                {
+                    cache!.AddFile(sha, file);
+                }
+            }
+
+            summaries.Add(path, new LexiconFileSummary(file.GeneratedBy, file.Entries.Count, DistinctLemmas(file)));
+            entries.AddRange(file.Entries);
+        }
+
+        // A damaged file is already reported with its path; merging and indexing the rest would only cost time and invite follow-on problems about a lexicon that is incomplete.
+        return summaries.Count == 0 ? null : new LoadedLexicons(problems.Count > before ? null : NlpLexicon.FromEntries(entries), summaries);
+    }
+
+    // A sidecar belongs to exactly one generated lexicon file in the same folder, and its entry and lemma counts must match that file.
+    private static void ParseLexiconSidecars(BundleFiles files, IReadOnlyDictionary<string, LexiconFileSummary> parsed, LoadedParts parts, List<string> problems)
+    {
+        var sidecars = ImmutableSortedDictionary.CreateBuilder<string, LexiconSourceInfo>(StringComparer.Ordinal);
+        foreach (var path in files.InFolder(ContentPaths.LexiconFolder, ".json").Where(LexiconSourceInfo.IsSidecarPath))
+        {
+            var info = ParseText(files, path, LexiconSourceInfo.FromJson, problems);
+            if (info is null)
+            {
+                continue;
+            }
+
+            sidecars.Add(path, info);
+            var folder = path[..(path.LastIndexOf('/') + 1)];
+            long? actualEntries = null;
+            long? actualLemmas = null;
+            if (info.GeneratedFile is { Length: > 0 } name)
+            {
+                if (name.Contains('/', StringComparison.Ordinal) || name.Contains('\\', StringComparison.Ordinal)
+                    || !parsed.TryGetValue(folder + name, out var lexicon))
+                {
+                    problems.Add($"{path}: generatedFile '{name}' is not a lexicon file next to the sidecar.");
+                }
+                else
+                {
+                    actualEntries = lexicon.Entries;
+                    actualLemmas = lexicon.Lemmas;
+                    if (!string.Equals(Path.GetFileName(path), LexiconSourceInfo.SidecarNameFor(name), StringComparison.Ordinal))
+                    {
+                        problems.Add($"{path}: a sidecar must be named '{LexiconSourceInfo.SidecarNameFor(name)}' after the file it describes.");
+                    }
+                }
+            }
+
+            foreach (var problem in info.Problems(actualEntries, actualLemmas))
+            {
+                problems.Add($"{path}: {problem}");
+            }
+        }
+
+        parts.LexiconSources = sidecars.ToImmutable();
+    }
+
+    private static int DistinctLemmas(LexiconFile file)
+    {
+        var lemmas = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var entry in file.Entries)
+        {
+            lemmas.Add(entry.Lemma.Normalize(NormalizationForm.FormC).ToLowerInvariant());
+        }
+
+        return lemmas.Count;
     }
 
     private static ImmutableSortedDictionary<string, PromptSpec> ParsePrompts(string json)
@@ -344,6 +447,23 @@ public static class ContentLoader
         }
     }
 
+    private delegate T BytesParser<out T>(ReadOnlySpan<byte> utf8);
+
+    // Like ParseText for a parser that reads UTF-8 bytes directly, which saves decoding and encoding a multi-megabyte file; invalid UTF-8 is the parser's JsonException.
+    private static T? ParseBytes<T>(BundleFiles files, string path, BytesParser<T> parse, List<string> problems)
+        where T : class
+    {
+        try
+        {
+            return parse(files.Bytes(path));
+        }
+        catch (Exception ex) when (IsContentError(ex))
+        {
+            problems.Add($"{path}: {FirstLine(ex.Message)}");
+            return null;
+        }
+    }
+
     internal static bool IsContentError(Exception ex)
     {
         return ex is JsonException or FormatException or ArgumentException or InvalidDataException
@@ -363,6 +483,12 @@ internal sealed class LoadedParts
     public ContentProvenance? Provenance { get; set; }
 
     public NlpLexicon? Lexicon { get; set; }
+
+    /// <summary>The <c>generated_by</c> marker of each lexicon file by bundle-relative path (null when the file has none); sidecars are not listed.</summary>
+    public IReadOnlyDictionary<string, string?> LexiconGeneratedBy { get; set; } = EmptyMap<string?>();
+
+    /// <summary>The parsed sidecars by bundle-relative path.</summary>
+    public IReadOnlyDictionary<string, LexiconSourceInfo> LexiconSources { get; set; } = EmptyMap<LexiconSourceInfo>();
 
     public IntentCatalog? Intents { get; set; }
 
