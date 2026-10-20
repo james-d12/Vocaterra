@@ -191,7 +191,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M15 | README, ADRs, CONTRIBUTING, determinism checklist | M13 | S | done |
 | M16a | Combinatorial fuzz testing, stage 1: project, CsCheck, generators, harness, language oracles (see `docs/FUZZING_PLAN.md`) | M13b | S | done |
 | M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | done |
-| M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | todo |
+| M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | in-progress |
 | M17b | Intent expansion: ten new intents, two new NPC scenes (innkeeper, quest giver), prompts, dialogue, effects, goldens (see §7) | M17a | L | todo |
 | M18 | Part-of-speech disambiguation in the analyzer (candidate; decided on M17a's homograph numbers) | M17a | M | todo |
 
