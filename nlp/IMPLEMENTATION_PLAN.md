@@ -195,8 +195,8 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M17b | Intent expansion: ten new intents, two new scenes (innkeeper, quest giver), prompts, dialogue, effects, goldens (see §7; after the split in §8 the scenes are game content and move to the game repo) | M19c | L | todo |
 | M18 | Part-of-speech disambiguation in the analyzer (triggered: `ayer compré un libro` yields a false `conj.tense` on main after M17a) | M17a | M | done |
 | M19a | Standalone core, step 1: boundary ADR, rename `Slg.*` → `Vocaterra.Nlp.*` (solution, projects, namespaces, packages), game-agnostic context and agent naming, opaque outcome kinds, `docs/API.md`, README reframed as a library (see §8) | M18 | M | done |
-| M19b | Standalone core, step 2: NuGet packaging of `Slg.*`, content bundle packaging, `samples/HostConsole` consuming the packages (see §8) | M19a | S | in-progress |
-| M19c | Standalone core, step 3: new game repository scaffold with the game spec, game content bundle and a host project on the packages (see §8) | M19b | S | todo |
+| M19b | Standalone core, step 2: NuGet packaging of `Slg.*`, content bundle packaging, `samples/HostConsole` consuming the packages (see §8) | M19a | S | done |
+| M19c | Standalone core, step 3: new game repository scaffold with the game spec, game content bundle and a host project on the packages (see §8) | M19b | S | in-progress |
 | M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | done |
 
 ### Delegation waves
@@ -574,6 +574,15 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   literal rename produced `Vocaterra.Nlp.Nlp` (to become `Vocaterra.Nlp.Language`); O15 lost its
   `kind` enum mutation and needs an empty-kind mutation instead; the parked workflow now reads the
   repository variable `VOCATERRA_RUN_MODEL_TESTS` (rename it on GitHub if `SLG_RUN_MODEL_TESTS` was set).
+- **M19b results:** 11 packages `Vocaterra.Nlp.*` 0.1.0 (nupkg + snupkg, deterministic, no licence
+  expression while D3 is open) via `scripts/pack.sh` into the local feed `artifacts/feed`;
+  `samples/HostConsole` restores from that feed with package references only and passes its two
+  checks (`scripts/sample-host.sh`, verified on main). `ContentBuilder pack`/`verify-pack` produce and
+  check a deterministic bundle zip with its hash. Project `Vocaterra.Nlp.Nlp` renamed to
+  `Vocaterra.Nlp.Language`. O15 gained an empty-required-string mutation (effect id, intent, kind;
+  prompt id). Parked workflow has a `pack` job with the GitHub Packages publish step commented out
+  (D5). The Asr and Response packages carry the sherpa-onnx dependency with GPL espeak-ng inside
+  (D2): do not distribute them until that is settled. Suite: 2603 passed, 5 skipped.
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 
