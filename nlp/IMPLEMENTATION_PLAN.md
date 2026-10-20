@@ -193,6 +193,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | done |
 | M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | done |
 | M17b | Intent expansion: ten new intents, two new scenes (innkeeper, quest giver), prompts, dialogue, effects, goldens (see §7; after the split in §8 the scenes are game content and move to the game repo) | M19c | L | todo |
+| M17b-core | The core part of M17b: `[WORD:slot]` grammar token, generic sample intents (confirm, deny, farewell, thank, introduce_self), blacksmith confirming state, fuzz support | M19a | M | in-progress |
 | M18 | Part-of-speech disambiguation in the analyzer (triggered: `ayer compré un libro` yields a false `conj.tense` on main after M17a) | M17a | M | done |
 | M19a | Standalone core, step 1: boundary ADR, rename `Slg.*` → `Vocaterra.Nlp.*` (solution, projects, namespaces, packages), game-agnostic context and agent naming, opaque outcome kinds, `docs/API.md`, README reframed as a library (see §8) | M18 | M | done |
 | M19b | Standalone core, step 2: NuGet packaging of `Slg.*`, content bundle packaging, `samples/HostConsole` consuming the packages (see §8) | M19a | S | done |
