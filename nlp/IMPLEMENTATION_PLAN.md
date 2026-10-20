@@ -189,8 +189,8 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M13b | Integration fixes from the demo: answer-match communication, spell grammars, blacksmith idle transitions | M13 | S | done |
 | M14 | CI matrix (x64/ARM64/Windows/macOS), golden tests, license scan, format check (workflow parked in `.github/workflows-pending` until the push token has `workflow` scope) | M13 | H | done |
 | M15 | README, ADRs, CONTRIBUTING, determinism checklist | M13 | S | done |
-| M16a | Combinatorial fuzz testing, stage 1: project, CsCheck, generators, harness, language oracles (see `docs/FUZZING_PLAN.md`) | M13b | S | in-progress |
-| M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | todo |
+| M16a | Combinatorial fuzz testing, stage 1: project, CsCheck, generators, harness, language oracles (see `docs/FUZZING_PLAN.md`) | M13b | S | done |
+| M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | in-progress |
 
 ### Delegation waves
 
@@ -432,6 +432,24 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   tests are skipped there).
 - **e5 ONNX export (TOOLS.md audit):** `intfloat/multilingual-e5-small` already publishes
   `onnx/model.onnx` upstream, so `scripts/fetch-models.sh` can fetch it instead of requiring an export.
+- **Fuzzing found (M16a, oracle O5):** `RecastBuilder` took the gender of un/una from the word after
+  the numeral instead of the noun (`1 grande queso` → `una grande queso`). Fixed to look through
+  adjectives to the noun; regression cases added to `RecastBuilderTests`.
+- **Lexicon gap (M16a):** `cuál` is missing from `content/v1/lexicon/seed.json`, so the correct
+  `ask_price` utterance `cuál es el precio de …` is tagged `vocab.unknown`. Fixing it means a content
+  edit, bundle re-hash and golden re-record; assigned to M16b.
+- **Analyzer is not part-of-speech aware (M16a):** verb/noun homographs (ayudas, lanza, vino, como, sé,
+  ir/ser preterite) trip `conj.tense`, `conj.person` or `ser_estar` on correct sentences. The fuzz
+  generators skip these words and count the skips. Design limit; candidate follow-up after M16.
+- **Pronunciation scoring cost (M16a):** scoring grows roughly with the cube of transcript length
+  (about 0.4 s at 400 characters, over 20 s at 1600). M16b bounds generator lengths and records the
+  budget; a linear-time alignment is a follow-up.
+- **Ill-formed UTF-16 (M16a):** `Accents.Strip` throws on a lone surrogate and `CanonicalJson`
+  writes one as U+FFFD, so such strings do not round-trip. Input should be rejected or repaired at
+  the normalizer boundary; M16b adds the rule or a tolerance.
+- **Intermittent gate failure (M16a merge):** one unidentified test failed in the first full
+  `dotnet test` run after the merge build; four later full runs and twelve fuzz-project runs were
+  green. The merge gate now keeps its test log so a recurrence can be identified.
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 
