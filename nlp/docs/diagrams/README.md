@@ -1,0 +1,2 @@
+`system-overview.drawio` is a one-page draw.io diagram of the voice pipeline (capture, recognition, evaluation, verdict, decision, response, build-time content, orchestration), with the D0 / D1 / N determinism classes colour-coded; it is stored as uncompressed XML so it diffs in git.
+Open it with [app.diagrams.net](https://app.diagrams.net) (File > Open from > Device) or the VS Code "Draw.io Integration" extension, and keep it in step with `HIGH_LEVEL_DOCS.md` and `IMPLEMENTATION_PLAN.md` section 2.
