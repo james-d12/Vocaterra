@@ -169,6 +169,161 @@ downloaded, never committed; `models/manifest.json` pins every file, and [models
 pronunciation scoring when `wav2vec2-xlsr-53-espeak-cv-ft` is present. The last two do not have an ONNX export in the repository yet
 (see Known gaps). With `SLG_MODELS_DIR` set, `dotnet test` also runs the model-gated tests.
 
+### More examples
+
+These are real runs against `content/v1`. Each verdict is abbreviated: `…` marks the cut fields (`pronunciation`, `confidence`,
+`resolvedBy` and `versions`, unless an example keeps them), and the closing `decision:` line is left out. Error spans count characters of the
+normalized text. Thirteen more examples are in [docs/CLI_EXAMPLES.md](docs/CLI_EXAMPLES.md): the other five intents, five more
+error tags, an exact quiz answer, the repair ladder and a replay log.
+
+A correct utterance is understood in full: the slots are filled, there are no errors and the trade price factor is 1.
+
+```bash
+dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar dos pociones" --prompt buy-item-open --content content/v1
+```
+
+```text
+{"intent":"buy_item","slots":{"item":"poción","qty":"2"},"communicated":true,"correctness":1,"errors":[],…}
+npc: La poción es una buena elección.
+effect: buy_item_price trade_price 1
+```
+
+A slip does not stop the trade. `un espada` is a `gender.agree` error, so the NPC recasts the sentence correctly and the price factor
+rises to 1.045, because the curve in `content/v1/effects/effects.json` runs from 1.3 at correctness 0 to 1 at correctness 1:
+
+```bash
+dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1
+```
+
+```text
+{"intent":"buy_item","slots":{"item":"espada"},"communicated":true,"correctness":0.85,
+ "errors":[{"tag":"gender.agree","span":{"start":15,"length":2},"expected":"una","actual":"un"}],…}
+npc: Ah, quiero comprar una espada. ¡Perfecto!
+npc: La espada es una buena elección.
+effect: buy_item_price trade_price 1.045
+```
+
+An answer-only quiz prompt has no intent (its `allowedIntentIds` is empty), so the answer set decides. A near miss still counts when the
+fuzzy match is close: "fuegos" for "fuego" is accepted, and `resolvedBy` and `confidence` show how:
+
+```bash
+dotnet run --project tools/Slg.Cli -- eval --transcript "una bola de fuegos" --prompt quiz-spell-name --content content/v1
+```
+
+```text
+{"intent":"unknown","slots":{},"communicated":true,"correctness":1,"errors":[],"confidence":0.9411764705882353,"resolvedBy":"Fuzzy",…}
+npc: ¡Muy bien!
+```
+
+A word the lexicon does not know is a `vocab.unknown` error, and when no intent can be resolved the player is not understood. The NPC
+asks again, and the first repair step is `AskAgain`:
+
+```bash
+dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1
+```
+
+```text
+{"intent":"unknown","slots":{},"communicated":false,"correctness":0.6,
+ "errors":[{"tag":"vocab.unknown","span":{"start":19,"length":9},"expected":"","actual":"zanahoria"}],…}
+npc: Perdón, ¿qué dices?
+repair: AskAgain ¿Cómo?
+```
+
+`--repeat <tag>=<n>` says how many times in a row the learner has made that error, counting this utterance. A game keeps that count
+between utterances; the CLI takes it from the command line. The feedback policy (`content/v1/feedback/feedback-policy.json`) answers
+the first offence with a recast, the second and third with a hint and the fourth and later with an explicit correction. The same
+`un espada`, as the second and as the fourth offence:
+
+```bash
+dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1 --repeat gender.agree=2
+```
+
+```text
+{"intent":"buy_item","slots":{"item":"espada"},"communicated":true,"correctness":0.85,
+ "errors":[{"tag":"gender.agree","span":{"start":15,"length":2},"expected":"una","actual":"un"}],…}
+npc: La espada es una buena elección.
+npc: Piensa en el género: ¿un?
+effect: buy_item_price trade_price 1.045
+```
+
+```bash
+dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1 --repeat gender.agree=4
+```
+
+```text
+{"intent":"buy_item","slots":{"item":"espada"},"communicated":true,"correctness":0.85,
+ "errors":[{"tag":"gender.agree","span":{"start":15,"length":2},"expected":"una","actual":"un"}],…}
+npc: La espada es una buena elección.
+npc: Mejor así: «una».
+effect: buy_item_price trade_price 1.045
+```
+
+`--npc-state <id>` starts the NPC in another state of its machine (the blacksmith in `content/v1/npcs/blacksmith.json` has `idle`, the
+default, `trading` and `done`; an unknown id is an error). The open `trade-free-conversation` prompt accepts any of the four trade
+intents. In the default state the blacksmith answers a purchase like this:
+
+```bash
+dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar dos pociones" --prompt trade-free-conversation --content content/v1
+```
+
+```text
+{"intent":"buy_item","slots":{"item":"poción","qty":"2"},"communicated":true,"correctness":1,"errors":[],…}
+npc: La poción es una buena elección.
+effect: buy_item_price trade_price 1
+```
+
+Once the trade is `done` the same sentence is understood just as well, but the NPC is already saying goodbye. The effect line does not
+change, because effects depend only on the verdict:
+
+```bash
+dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar dos pociones" --prompt trade-free-conversation --content content/v1 --npc-state done
+```
+
+```text
+{"intent":"buy_item","slots":{"item":"poción","qty":"2"},"communicated":true,"correctness":1,"errors":[],…}
+npc: Gracias por venir. ¡Vuelve pronto!
+effect: buy_item_price trade_price 1
+```
+
+`--seed <n>` is the world seed. Together with the NPC id and `--counter` (the interaction counter) it seeds the draw that picks one of the
+NPC's variant lines, so the same inputs always give the same line and another seed can give another one. The `greet_reply` pool has
+three variants; the default seed 0 says "¡Hola, amigo! ¿Qué necesitas hoy?", and seeds 2 and 42 pick the other two (running seed 42 again
+prints the identical line):
+
+```bash
+dotnet run --project tools/Slg.Cli -- eval --transcript "hola" --prompt greet-blacksmith --content content/v1 --seed 2
+```
+
+```text
+{"intent":"greet","slots":{},"communicated":true,"correctness":1,"errors":[],…}
+npc: Buenos días. ¿En qué puedo ayudarte?
+```
+
+```bash
+dotnet run --project tools/Slg.Cli -- eval --transcript "hola" --prompt greet-blacksmith --content content/v1 --seed 42
+```
+
+```text
+{"intent":"greet","slots":{},"communicated":true,"correctness":1,"errors":[],…}
+npc: ¡Bienvenido a la herrería!
+```
+
+With the Vosk model fetched, `--wav` runs the same pipeline on audio. Here `fuego.wav` is the word "fuego" synthesized with the
+Spanish voice of espeak-ng for this example; any recording of the word works. The constrained spell prompt recognizes it. The verdict now
+carries the recognizer's own confidence, and `versions.modelHashes.asr` holds the SHA-256 of the Vosk model instead of `scripted-transcript`:
+
+```bash
+dotnet run --project tools/Slg.Cli -- eval --wav fuego.wav --prompt spell-cast-constrained --content content/v1 --models models
+```
+
+```text
+{"intent":"cast_spell","slots":{"spell":"fuego"},"communicated":true,"correctness":1,"errors":[],"confidence":0.6071389421064182,"resolvedBy":"Exact",…}
+npc: ¡Muy bien!
+effect: cast_spell_power spell_power 1
+```
+
+The pronunciation tags (`pron.*`) need the phoneme model, which has no ONNX export in the repository yet, so none of these commands can trigger them.
+
 ## Replay logs
 
 `--replay-out <file>` appends one JSON line per utterance with everything needed to re-evaluate it without models or audio:
@@ -235,7 +390,7 @@ consent rules and manifest schema are in [golden/README.md](golden/README.md).
 | `models/` | `manifest.json` and a README are committed; the model files are fetched and gitignored |
 | `scripts/` | `fetch-models.sh`, `license-scan.sh` and its allowlist and overrides ([scripts/README.md](scripts/README.md)) |
 | `.github/workflows-pending/` | The CI workflow, parked until the push token has the `workflow` scope |
-| `docs/` | [PIPELINE.md](docs/PIPELINE.md), [REPLAY.md](docs/REPLAY.md) and the architecture decision records in `docs/adr/` |
+| `docs/` | [PIPELINE.md](docs/PIPELINE.md), [REPLAY.md](docs/REPLAY.md), [CLI_EXAMPLES.md](docs/CLI_EXAMPLES.md) and the architecture decision records in `docs/adr/` |
 | `docs/diagrams/` | The draw.io system overview and how to open it ([README](docs/diagrams/README.md)) |
 | `HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md`, `SPECIFICATION.md` | The design, the milestone plan and the original brief |
 
@@ -340,6 +495,7 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 
 - [docs/PIPELINE.md](docs/PIPELINE.md): the pipeline stage by stage, with the worked example and the CLI's verdict
 - [docs/REPLAY.md](docs/REPLAY.md): replay log and envelope format, with a real example
+- [docs/CLI_EXAMPLES.md](docs/CLI_EXAMPLES.md): more worked runs of the demo CLI: the other intents and error tags, the repair ladder and a replay log
 - [docs/FUZZING_PLAN.md](docs/FUZZING_PLAN.md): the fuzz testing design, its generators, oracles O1 to O16 and iteration budgets
 - [tests/Slg.Fuzzing.Tests/README.md](tests/Slg.Fuzzing.Tests/README.md): the fuzz suite, how to run and soak it, its oracles, the bugs it found and the known findings
 - [docs/adr/](docs/adr/): architecture decision records 0001 to 0007 (language, determinism, engine-agnostic core, model pinning, dialect, ICU, Kokoro phonemizer licensing)
