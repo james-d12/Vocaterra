@@ -5,11 +5,17 @@
     { "id": "ask_price_reply", "count": 3 },
     { "id": "buy_item_reply", "count": 3 },
     { "id": "cast_spell_reply", "count": 3 },
+    { "id": "confirm_prompt", "count": 3 },
+    { "id": "confirm_reply", "count": 3 },
+    { "id": "deny_reply", "count": 3 },
+    { "id": "farewell_reply", "count": 3 },
     { "id": "greet_again", "count": 2 },
     { "id": "greet_reply", "count": 3 },
+    { "id": "introduce_reply", "count": 3 },
     { "id": "not_understood", "count": 3 },
     { "id": "offer_item_reply", "count": 3 },
     { "id": "sell_item_reply", "count": 3 },
+    { "id": "thank_reply", "count": 3 },
     { "id": "trade_done", "count": 2 }
   ],
   "states": [
@@ -47,6 +53,21 @@
           "actions": [ { "dialogueIntent": "cast_spell_reply", "hostEvent": "spell.cast", "variantPoolId": "cast_spell_reply" } ]
         },
         {
+          "on": { "intent": "introduce_self", "communicated": true },
+          "to": "trading",
+          "actions": [ { "dialogueIntent": "introduce_reply", "variantPoolId": "introduce_reply" } ]
+        },
+        {
+          "on": { "intent": "farewell", "communicated": true },
+          "to": "done",
+          "actions": [ { "dialogueIntent": "farewell_reply", "variantPoolId": "farewell_reply" } ]
+        },
+        {
+          "on": { "intent": "thank", "communicated": true },
+          "to": "idle",
+          "actions": [ { "dialogueIntent": "thank_reply", "variantPoolId": "thank_reply" } ]
+        },
+        {
           "on": { "communicated": false },
           "to": "idle",
           "actions": [ { "dialogueIntent": "not_understood", "variantPoolId": "not_understood" } ]
@@ -61,8 +82,8 @@
       "transitions": [
         {
           "on": { "intent": "buy_item", "communicated": true },
-          "to": "trading",
-          "actions": [ { "dialogueIntent": "buy_item_reply", "hostEvent": "trade.buy", "variantPoolId": "buy_item_reply" } ]
+          "to": "confirming",
+          "actions": [ { "dialogueIntent": "confirm_prompt", "hostEvent": "trade.buy", "variantPoolId": "confirm_prompt" } ]
         },
         {
           "on": { "intent": "sell_item", "communicated": true },
@@ -90,8 +111,51 @@
           "actions": [ { "dialogueIntent": "greet_again", "variantPoolId": "greet_again" } ]
         },
         {
+          "on": { "intent": "farewell", "communicated": true },
+          "to": "done",
+          "actions": [ { "dialogueIntent": "farewell_reply", "variantPoolId": "farewell_reply" } ]
+        },
+        {
+          "on": { "intent": "thank", "communicated": true },
+          "to": "trading",
+          "actions": [ { "dialogueIntent": "thank_reply", "variantPoolId": "thank_reply" } ]
+        },
+        {
           "on": { "communicated": false },
           "to": "trading",
+          "actions": [ { "dialogueIntent": "not_understood", "variantPoolId": "not_understood" } ]
+        }
+      ],
+      "fallback": {
+        "actions": [ { "dialogueIntent": "not_understood", "variantPoolId": "not_understood" } ]
+      }
+    },
+    {
+      "id": "confirming",
+      "transitions": [
+        {
+          "on": { "intent": "confirm", "communicated": true },
+          "to": "done",
+          "actions": [ { "dialogueIntent": "confirm_reply", "hostEvent": "trade.confirmed", "variantPoolId": "confirm_reply" } ]
+        },
+        {
+          "on": { "intent": "deny", "communicated": true },
+          "to": "trading",
+          "actions": [ { "dialogueIntent": "deny_reply", "variantPoolId": "deny_reply" } ]
+        },
+        {
+          "on": { "intent": "farewell", "communicated": true },
+          "to": "done",
+          "actions": [ { "dialogueIntent": "farewell_reply", "variantPoolId": "farewell_reply" } ]
+        },
+        {
+          "on": { "intent": "thank", "communicated": true },
+          "to": "confirming",
+          "actions": [ { "dialogueIntent": "thank_reply", "variantPoolId": "thank_reply" } ]
+        },
+        {
+          "on": { "communicated": false },
+          "to": "confirming",
           "actions": [ { "dialogueIntent": "not_understood", "variantPoolId": "not_understood" } ]
         }
       ],
@@ -106,6 +170,16 @@
           "on": { "intent": "greet", "communicated": true },
           "to": "trading",
           "actions": [ { "dialogueIntent": "greet_again", "variantPoolId": "greet_again" } ]
+        },
+        {
+          "on": { "intent": "farewell", "communicated": true },
+          "to": "done",
+          "actions": [ { "dialogueIntent": "farewell_reply", "variantPoolId": "farewell_reply" } ]
+        },
+        {
+          "on": { "intent": "thank", "communicated": true },
+          "to": "done",
+          "actions": [ { "dialogueIntent": "thank_reply", "variantPoolId": "thank_reply" } ]
         }
       ],
       "fallback": {

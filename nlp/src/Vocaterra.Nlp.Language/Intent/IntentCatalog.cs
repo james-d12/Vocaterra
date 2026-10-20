@@ -318,6 +318,10 @@ public sealed class IntentCatalog
                     }
 
                     break;
+                case WordNode { Slot: not null } word:
+                    // A name is filled by the embedding rung from the first noun, which is the name when the lexicon has it as one.
+                    AddKind(kinds, word.Slot, SlotKind.Noun);
+                    break;
                 case OptionalNode optional:
                     CollectGrammarSlots([optional.Inner], kinds);
                     break;

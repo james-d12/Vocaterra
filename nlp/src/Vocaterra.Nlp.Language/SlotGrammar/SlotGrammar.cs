@@ -25,7 +25,8 @@ public sealed class SlotGrammar
     /// <summary>
     /// Parses a pattern. Tokens: literal words; <c>[ART]</c>, <c>[PRON]</c>, <c>[DET]</c>, <c>[NUM:slot]</c>, <c>[NOUN:slot]</c>,
     /// <c>[ADJ:slot]</c>, <c>[ADV]</c>, <c>[PREP]</c>, <c>[CONJ]</c>, <c>[INTERJ]</c> (each with an optional slot), <c>[VERB]</c>,
-    /// <c>[VERB:lemma]</c> and <c>[VERB:lemma:slot]</c>; a <c>?</c> suffix makes an element optional; <c>(a|b c)</c> lists alternatives.
+    /// <c>[VERB:lemma]</c> and <c>[VERB:lemma:slot]</c>, <c>[WORD]</c> and <c>[WORD:slot]</c> (one token of letters whatever its readings: a name); a <c>?</c>
+    /// suffix makes an element optional; <c>(a|b c)</c> lists alternatives.
     /// </summary>
     public static SlotGrammar Parse(string pattern, string? id = null)
     {
@@ -74,6 +75,15 @@ public sealed class SlotGrammar
                 if (typed.Slot is not null)
                 {
                     builder.Append(':').Append(typed.Slot);
+                }
+
+                builder.Append(']');
+                break;
+            case WordNode word:
+                builder.Append("[WORD");
+                if (word.Slot is not null)
+                {
+                    builder.Append(':').Append(word.Slot);
                 }
 
                 builder.Append(']');
@@ -247,7 +257,7 @@ internal sealed class SlotGrammarParser
         }
     }
 
-    private TypedNode ParseTyped()
+    private GrammarNode ParseTyped()
     {
         var close = _text.IndexOf(']', _index);
         if (close < 0)
@@ -259,12 +269,28 @@ internal sealed class SlotGrammarParser
         _index = close + 1;
         var parts = content.Split(':');
         var tag = parts[0].Trim().ToUpperInvariant();
+        var args = parts.Skip(1).Select(static part => part.Trim()).ToArray();
+        if (tag == "WORD")
+        {
+            if (args.Length > 1)
+            {
+                throw Error($"too many arguments in '[{content}]'");
+            }
+
+            var wordSlot = args.Length > 0 ? args[0] : null;
+            if (wordSlot is not null && !IsSlotName(wordSlot))
+            {
+                throw Error($"invalid slot name '{wordSlot}' in '[{content}]'");
+            }
+
+            return new WordNode(wordSlot);
+        }
+
         if (!TagToPos.TryGetValue(tag, out var pos))
         {
             throw Error($"unknown tag '[{content}]'");
         }
 
-        var args = parts.Skip(1).Select(static part => part.Trim()).ToArray();
         string? lemma = null;
         string? slot = null;
         if (tag == "VERB")

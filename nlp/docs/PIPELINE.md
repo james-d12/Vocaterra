@@ -183,7 +183,28 @@ fixed confidence at its edge was not.
 `LinguisticAnalyzer` looks every token up in the lexicon (lemma, part of speech, person, number, tense, mood, gender; an
 empty reading list means an unknown word and yields `vocab.unknown`), runs the agreement rules (subject and verb, article and
 noun, noun and adjective, quantity and noun, `ser`/`estar`, adjective position), and matches the slot grammars. The grammars
-tried are the prompt's own `slotGrammarIds` first (they win ties), then every other grammar of the allowed intents.
+tried are the prompt's own `slotGrammarIds` first, then every other grammar of the allowed intents. Between grammars the one that consumes more
+tokens with explicit elements wins; on a tie, the one that binds more tokens to literal words wins (`gracias` beats a bare noun, which the spell
+grammar `[NOUN:spell]` would also take, so `gracias` is a thank and not a spell); and on a further tie the prompt's own grammar, then the first found.
+
+**The slot-grammar DSL.** A grammar is a sequence of these elements, matched against the whole utterance. Every grammar also allows a leading subject pronoun and a trailing `por favor`, both optional.
+
+| Element | Matches | Slot value |
+| --- | --- | --- |
+| a literal word, `quiero` | a token whose text or lemma is that word, accents ignored | none |
+| `[ART]`, `[PRON]`, `[NUM]`, `[NOUN]`, `[ADJ]`, `[ADV]`, `[PREP]`, `[CONJ]`, `[INTERJ]`, `[DET]` | one token with a reading of that part of speech (`[DET]` is an article or a determiner adjective); an optional `:slot` names it | the lemma of that reading (the digits of a numeral) |
+| `[VERB]`, `[VERB:lemma]`, `[VERB:lemma:slot]` | one verb form of the lemma, in any person, number or tense | the lemma |
+| `[WORD]`, `[WORD:slot]` (M17b) | one token made only of letters (never a number, never punctuation); its lexicon readings do not matter, so a name the lexicon lacks matches | the token as written in the normalized text (lower case, accents kept) |
+| `X?` | the element may be absent | none |
+| `(a b\|c)` | one of the alternatives, each a sequence; an empty alternative makes the group optional | none |
+
+**Names (`[WORD]`).** A word that the best grammar binds to a `[WORD]` element is a name, and the analyzer treats it as one. It is not reported
+as `vocab.unknown` even when the lexicon lacks it, so the analysis keeps its confidence of 1. It carries no reading at all, so a name spelled like
+an irregular verb form (`sabo`, the regularized `sé`) is no `conj.irregular` mistake, and a recast does not conjugate a lexicon verb form that is a
+name. The reading resolver gives it no word class, so it takes part in no agreement check: `tengo dos espada` with
+`tengo [NUM:qty] [WORD:thing]` reports no `noun.number`, and the name breaks the phrases and links around it, as an unknown word does. A word
+that the grammar does not bind is an ordinary word again, so an unbound name is reported as unknown. The verdict and `AnalysisResult` are
+unchanged. One limit: a name is one token of letters, so a hyphenated name such as `ana-maría` does not match.
 
 **One reading per word.** A word the lexicon reads as several parts of speech is resolved to one before the rules run, so that
 `libro` (a noun, and a form of `librar`) is not checked as both. `ReadingResolver` does it in three steps, and every rule then runs
@@ -396,7 +417,7 @@ dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos 
   "confidence": 1,
   "resolvedBy": "Grammar",
   "versions": {
-    "contentHash": "d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f",
+    "contentHash": "3b1d1f02dff448c830d0cfdbaf1f5e330fc66922a7b7507abc4b56d78afbc657",
     "modelHashes": {
       "asr": "scripted-transcript"
     }

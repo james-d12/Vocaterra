@@ -7,11 +7,13 @@ internal sealed class ScriptedEmbeddingModel : IEmbeddingModel
 {
     private readonly string _query;
     private readonly Dictionary<string, double> _similarities;
+    private readonly double _default;
 
-    public ScriptedEmbeddingModel(string query, IReadOnlyDictionary<string, double> similarityByExample)
+    public ScriptedEmbeddingModel(string query, IReadOnlyDictionary<string, double> similarityByExample, double defaultSimilarity = 0.0)
     {
         _query = query;
         _similarities = new Dictionary<string, double>(similarityByExample, StringComparer.Ordinal);
+        _default = defaultSimilarity;
     }
 
     public int Dimension => 3;
@@ -25,7 +27,7 @@ internal sealed class ScriptedEmbeddingModel : IEmbeddingModel
             return [1f, 0f, 0f];
         }
 
-        var c = _similarities.TryGetValue(text, out var value) ? value : 0.0;
+        var c = _similarities.TryGetValue(text, out var value) ? value : _default;
         return [(float)c, (float)Math.Sqrt(1.0 - (c * c)), 0f];
     }
 }

@@ -39,7 +39,15 @@ public sealed class MutationTagFuzzTests(ITestOutputHelper output)
                 var analysis = Harness.Analyzer.Analyze(normalized, [grammar]);
                 var context = $"{mutation.Describe()} noisy=\"{noisy}\" case={input.Case}";
 
-                var difference = Compare(mutation.Errors, analysis.Errors);
+                // A name the grammar no longer binds is an unknown word for the analyzer (see UnboundNames).
+                var names = UnboundNames.Expect(mutation.Mutated.Tokens, normalized, Harness.Words, analysis.MatchedGrammarId is not null);
+                if (names is null)
+                {
+                    diagnostics.Count("unpredicted:name-known-to-lexicon");
+                    return;
+                }
+
+                var difference = Compare([.. mutation.Errors, .. names], analysis.Errors);
                 if (difference is not null && KnownTolerances.IsTiedParse(analysis, grammar))
                 {
                     diagnostics.Count($"excused:tied-parse:{mutation.Kind}");

@@ -297,6 +297,22 @@ public class IntentResolverTests
     }
 
     [Fact]
+    public void TheEmbeddingMarginIsAtMostOneWhenTheCosineGapIsLarger()
+    {
+        // A best score of 0.97 against a runner-up of -0.2 is a raw gap of 1.17 (found by O7, seed 5lSWF-U_rpTa); the margin is clamped to 1 and the rung still accepts.
+        // Every other example scores -0.5, so the runner-up intent is greet at -0.2 and the raw gap is 1.17.
+        var model = new ScriptedEmbeddingModel(
+            "mm",
+            new Dictionary<string, double> { ["compro una espada"] = 0.97, ["hola amigo"] = -0.2 },
+            defaultSimilarity: -0.5);
+
+        var resolution = Resolve("mm", model);
+
+        Assert.Equal(new IntentId("buy_item"), resolution.Intent);
+        Assert.Equal(1.0, resolution.Margin, 5);
+    }
+
+    [Fact]
     public void IntentScoreIsTheBestExampleSoSiblingExamplesDoNotCompeteWithEachOther()
     {
         var model = new ScriptedEmbeddingModel(

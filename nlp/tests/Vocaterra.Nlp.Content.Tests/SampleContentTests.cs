@@ -57,10 +57,10 @@ public class SampleContentTests
     }
 
     [Fact]
-    public void TheBundleHasTheSixSampleIntentsWithEnoughExamples()
+    public void TheBundleHasTheSampleIntentsWithEnoughExamples()
     {
         Assert.Equal(
-            ["ask_price", "buy_item", "cast_spell", "greet", "offer_item", "sell_item"],
+            ["ask_price", "buy_item", "cast_spell", "confirm", "deny", "farewell", "greet", "introduce_self", "offer_item", "sell_item", "thank"],
             Bundle.Intents.Intents.Select(intent => intent.Id.Value));
         foreach (var intent in Bundle.Intents.Intents)
         {
@@ -72,6 +72,7 @@ public class SampleContentTests
         Assert.Equal(["spell"], Bundle.Intents.RequiredSlots("cast_spell"));
         Assert.Empty(Bundle.Intents.RequiredSlots("greet"));
         Assert.Equal(["item"], Bundle.Intents.RequiredSlots("buy_item"));
+        Assert.Equal(["name"], Bundle.Intents.RequiredSlots("introduce_self"));
     }
 
     [Theory]
@@ -111,9 +112,9 @@ public class SampleContentTests
     }
 
     [Fact]
-    public void TheAnswerSetsListTheSampleItemsSetsAndGreetings()
+    public void TheAnswerSetsListTheSampleSetsOfTheIntents()
     {
-        Assert.Equal(["greetings", "items-basic", "spells-basic"], Bundle.AnswerSets.Keys);
+        Assert.Equal(["farewells", "greetings", "introductions", "items-basic", "spells-basic", "thanks", "yes-no"], Bundle.AnswerSets.Keys);
         Assert.Equal(["arrow", "bow", "potion", "shield", "sword"], Bundle.AnswerSets["items-basic"].Answers.Select(a => a.AnswerId).Order(StringComparer.Ordinal));
         Assert.Equal(["fire", "ice", "lightning", "magic-shield"], Bundle.AnswerSets["spells-basic"].Answers.Select(a => a.AnswerId).Order(StringComparer.Ordinal));
         Assert.Contains("brebaje", Bundle.AnswerSets["items-basic"].GrammarPhrases());
@@ -169,10 +170,10 @@ public class SampleContentTests
     }
 
     [Fact]
-    public void TheSampleAgentHasTheThreeStatesAndWalksThroughAnExchange()
+    public void TheSampleAgentHasItsFourStatesAndWalksThroughAnExchange()
     {
         var agent = Bundle.Agents["blacksmith"];
-        Assert.Equal(["idle", "trading", "done"], agent.Definition.States.Select(state => state.Id));
+        Assert.Equal(["idle", "trading", "confirming", "done"], agent.Definition.States.Select(state => state.Id));
         Assert.Equal("idle", agent.Definition.InitialState);
 
         var state = agent.InitialState();
@@ -181,11 +182,12 @@ public class SampleContentTests
         Assert.Equal("greet_reply", Assert.Single(greeting.Actions).DialogueIntent);
 
         state = Step(agent, state, "buy_item", out var buying);
-        Assert.Equal("trading", state.StateId);
+        Assert.Equal("confirming", state.StateId);
         Assert.Equal(new[] { "trade.buy" }, buying.Actions.Select(a => a.HostEvent!));
 
-        state = Step(agent, state, "offer_item", out _);
+        state = Step(agent, state, "confirm", out var confirmation);
         Assert.Equal("done", state.StateId);
+        Assert.Equal(new[] { "trade.confirmed" }, confirmation.Actions.Select(a => a.HostEvent!));
 
         state = Step(agent, state, "ask_price", out var closing);
         Assert.Equal("done", state.StateId);

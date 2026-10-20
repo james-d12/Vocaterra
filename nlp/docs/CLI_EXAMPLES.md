@@ -1,7 +1,7 @@
 # More CLI examples
 
 Worked runs of the demo CLI (`tools/Vocaterra.Nlp.Cli`) against the sample bundle `content/v1`, continuing the examples in the README
-section [More examples](../README.md#more-examples). Together they show all six intents, every error tag the CLI can trigger and the
+section [More examples](../README.md#more-examples). Together they show the trade intents, the conversation intents (M17b), every error tag the CLI can trigger and the
 main command-line options. All commands run from the repository root; the output is what the CLI printed.
 
 Each verdict is abbreviated: `…` marks the cut fields (`pronunciation`, `confidence`, `resolvedBy` and `versions`, unless an example
@@ -10,6 +10,7 @@ listed in `content/v1/prompts/prompts.json`, and [PIPELINE.md](PIPELINE.md) expl
 
 - [Each intent, said correctly](#each-intent-said-correctly)
 - [Each error tag](#each-error-tag)
+- [A name and a confirmation](#a-name-and-a-confirmation)
 - [Quiz prompts](#quiz-prompts)
 - [The repair ladder](#the-repair-ladder)
 - [A replay log](#a-replay-log)
@@ -157,6 +158,30 @@ dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "fuego" --prom
 {"intent":"unknown","slots":{},"communicated":false,"correctness":0.4,
  "errors":[{"tag":"vocab.wrong","span":{"start":0,"length":5},"expected":"","actual":"fuego"}],…}
 repair: AskAgain ¿Cómo?
+```
+
+## A name and a confirmation
+
+The conversation intents of M17b. `introduce_self` binds the name the learner says with the `[WORD:name]` token, so the slot is the name
+as written (lower case, as the normalizer writes every token), and the name needs no lexicon entry. The second example is the
+blacksmith's `confirming` state, reached after a `buy_item` in `trading`: the learner says yes and the trade is confirmed.
+
+```bash
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "me llamo Ana" --prompt introduce-open --content content/v1
+```
+
+```text
+{"intent":"introduce_self","slots":{"name":"ana"},"communicated":true,"correctness":1,"errors":[],…}
+agent: Hola, Ana. ¿Qué necesitas hoy?
+```
+
+```bash
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "sí" --prompt confirm-open --agent-state confirming --content content/v1
+```
+
+```text
+{"intent":"confirm","slots":{},"communicated":true,"correctness":1,"errors":[],…,"resolvedBy":"Exact",…}
+agent: ¡Muy bien, amigo!
 ```
 
 ## Quiz prompts

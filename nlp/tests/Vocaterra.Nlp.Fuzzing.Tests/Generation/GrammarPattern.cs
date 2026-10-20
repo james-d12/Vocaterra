@@ -17,6 +17,10 @@ public sealed record LiteralPattern(string Word) : PatternNode;
 /// <param name="Slot">The slot the token fills, or null.</param>
 public sealed record TypedPattern(string Tag, string? Lemma, string? Slot) : PatternNode;
 
+/// <summary>A name: <c>[WORD]</c> or <c>[WORD:slot]</c>, one token of letters whatever its lexicon readings (M17b).</summary>
+/// <param name="Slot">The slot the name fills, or null.</param>
+public sealed record WordPattern(string? Slot) : PatternNode;
+
 /// <summary>A node followed by <c>?</c>.</summary>
 /// <param name="Inner">The optional node.</param>
 public sealed record OptionalPattern(PatternNode Inner) : PatternNode;
@@ -109,6 +113,9 @@ public sealed record GrammarPattern(IReadOnlyList<PatternNode> Nodes)
         return false;
     }
 
+    // Every class a typed token or a name can take a word of: a name (WORD) matches any token of letters.
+    private static readonly string[] AllClasses = ["ART", "ADJ", "NUM", "NOUN", "PRON", "VERB", "ADV", "PREP", "CONJ", "INTERJ", "WORD"];
+
     private static void Collect(
         IReadOnlyList<PatternNode> nodes,
         bool flexible,
@@ -129,9 +136,13 @@ public sealed record GrammarPattern(IReadOnlyList<PatternNode> Nodes)
                     };
                     found.Add((classes, typed.Slot is not null, flexible));
                     break;
+                case WordPattern word:
+                    // A name is any word of letters, so it can compete with every class.
+                    found.Add(([.. AllClasses], word.Slot is not null, flexible));
+                    break;
                 case LiteralPattern literal:
-                    // A literal word also matches the typed tokens of the parts of speech its readings have.
-                    found.Add(([.. literalClasses(literal.Word)], false, flexible));
+                    // A literal word also matches the typed tokens of the parts of speech its readings have, and a name.
+                    found.Add(([.. literalClasses(literal.Word).Append("WORD")], false, flexible));
                     break;
                 case OptionalPattern optional:
                     Collect([optional.Inner], flexible: true, literalClasses, found);
@@ -179,6 +190,15 @@ public sealed record GrammarPattern(IReadOnlyList<PatternNode> Nodes)
                 if (typed.Slot is not null)
                 {
                     builder.Append(':').Append(typed.Slot);
+                }
+
+                builder.Append(']');
+                break;
+            case WordPattern word:
+                builder.Append("[WORD");
+                if (word.Slot is not null)
+                {
+                    builder.Append(':').Append(word.Slot);
                 }
 
                 builder.Append(']');
@@ -264,9 +284,12 @@ public sealed record GrammarPattern(IReadOnlyList<PatternNode> Nodes)
                 var parts = text[(_index + 1)..close].Split(':');
                 _index = close + 1;
                 var tag = parts[0];
-                node = tag == "VERB"
-                    ? new TypedPattern(tag, parts.Length > 1 ? parts[1] : null, parts.Length > 2 ? parts[2] : null)
-                    : new TypedPattern(tag, null, parts.Length > 1 ? parts[1] : null);
+                node = tag switch
+                {
+                    "WORD" => new WordPattern(parts.Length > 1 ? parts[1] : null),
+                    "VERB" => new TypedPattern(tag, parts.Length > 1 ? parts[1] : null, parts.Length > 2 ? parts[2] : null),
+                    _ => new TypedPattern(tag, null, parts.Length > 1 ? parts[1] : null),
+                };
             }
             else
             {

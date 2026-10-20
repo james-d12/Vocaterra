@@ -25,12 +25,13 @@ namespace Vocaterra.Nlp.Golden.Tests;
 public class EndToEndGoldenTests
 {
     private const string GoldenName = "e2e-offer-items-open.golden.json";
+    private const string ConfirmGoldenName = "e2e-confirm-open.golden.json";
     private const string RecordVariable = "VOCATERRA_RECORD_GOLDEN";
     private const string LegacyRecordVariable = "SLG_RECORD_GOLDEN";
     private const string Transcript = "yo tiene dos espada";
+    private const string ConfirmTranscript = "sí";
 
     private static readonly string BundleDir = Path.Combine(AppContext.BaseDirectory, "content", "v1");
-    private static readonly string GoldenPath = Path.Combine(AppContext.BaseDirectory, "Data", GoldenName);
 
     private static ContentBundle Bundle { get; } = ContentLoader.Load(BundleDir);
 
@@ -103,19 +104,57 @@ public class EndToEndGoldenTests
         Assert.Equal(CanonicalJson.Serialize(Run()), CanonicalJson.Serialize(Run()));
     }
 
+    // The confirm flow of the sample agent (M17b): the agent is in its confirming state and the learner says "sí", so the trade is confirmed and the agent is done.
+    private static PipelineResult RunConfirm()
+    {
+        var asr = new AsrResult(ConfirmTranscript, [new AsrHypothesis(ConfirmTranscript, 1.0)], [], 1.0, "scripted-golden", RecognitionMode.Open);
+        var context = ConversationContext.Create(
+            20_261_021UL,
+            "blacksmith",
+            new AgentState("blacksmith", "confirming", 3),
+            new StoredTimestamp(1_792_000_000),
+            LearnerModel.New(),
+            new Dictionary<string, int>());
+        var pipeline = new UtterancePipeline(new PipelineServices(new ScriptedWordRecognizer(asr), null, null, null, Bundle));
+        return pipeline.Evaluate(Clip(), Bundle.Prompts["confirm-open"], context);
+    }
+
+    [Fact]
+    public void TheConfirmFlowFromConfirmingEndsTheTradeWithItsHostEvent()
+    {
+        var result = RunConfirm();
+
+        Assert.Equal("confirm", result.Verdict.Intent.Value);
+        Assert.True(result.Verdict.Communicated);
+        Assert.Empty(result.Verdict.Errors);
+        Assert.Equal("done", result.Decision.Agent!.Next.StateId);
+        Assert.Contains(result.Decision.Agent.Actions, static action => action.HostEvent == "trade.confirmed");
+        Assert.Single(result.Response.Lines);
+    }
+
     [Fact]
     public void TheResultMatchesTheCommittedGolden()
     {
-        var actual = CanonicalJson.Serialize(Run());
+        AssertGolden(CanonicalJson.Serialize(Run()), GoldenName);
+    }
 
+    [Fact]
+    public void TheConfirmFlowMatchesItsCommittedGolden()
+    {
+        AssertGolden(CanonicalJson.Serialize(RunConfirm()), ConfirmGoldenName);
+    }
+
+    private static void AssertGolden(string actual, string goldenName)
+    {
         if (string.Equals(EnvironmentSettings.Get(RecordVariable, LegacyRecordVariable), "1", StringComparison.Ordinal))
         {
-            File.WriteAllText(SourceGoldenPath(), Format(actual, indented: true) + "\n", new UTF8Encoding(false));
+            File.WriteAllText(SourceGoldenPath(goldenName), Format(actual, indented: true) + "\n", new UTF8Encoding(false));
             return;
         }
 
-        Assert.True(File.Exists(GoldenPath), $"Golden file '{GoldenName}' is missing; run the tests once with {RecordVariable}=1 to record it.");
-        var expected = Format(File.ReadAllText(GoldenPath, Encoding.UTF8), indented: false);
+        var goldenPath = Path.Combine(AppContext.BaseDirectory, "Data", goldenName);
+        Assert.True(File.Exists(goldenPath), $"Golden file '{goldenName}' is missing; run the tests once with {RecordVariable}=1 to record it.");
+        var expected = Format(File.ReadAllText(goldenPath, Encoding.UTF8), indented: false);
         Assert.Equal(expected, actual);
     }
 
@@ -137,14 +176,14 @@ public class EndToEndGoldenTests
         return Encoding.UTF8.GetString(stream.ToArray());
     }
 
-    private static string SourceGoldenPath()
+    private static string SourceGoldenPath(string goldenName)
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
         {
             var data = Path.Combine(directory.FullName, "tests", "Vocaterra.Nlp.Golden.Tests", "Data");
             if (Directory.Exists(data))
             {
-                return Path.Combine(data, GoldenName);
+                return Path.Combine(data, goldenName);
             }
         }
 

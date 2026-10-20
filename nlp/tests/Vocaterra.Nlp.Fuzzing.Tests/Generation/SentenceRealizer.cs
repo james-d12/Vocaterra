@@ -48,6 +48,9 @@ internal sealed class SentenceRealizer
         Preposition,
         Conjunction,
         Interjection,
+
+        // A name ([WORD]): a word of letters with no readings the checks use, so it breaks the phrases and links around it as an unknown word does.
+        Word,
     }
 
     /// <summary>Tries up to a handful of times to realise the pattern; returns null with the reason of the last failure when none works.</summary>
@@ -133,6 +136,9 @@ internal sealed class SentenceRealizer
             case TypedPattern typed:
                 _items.Add(FromTyped(typed));
                 break;
+            case WordPattern word:
+                _items.Add(FromWord(word));
+                break;
             case OptionalPattern optional:
                 if (_rng.NextDouble() < _options.OptionalProbability)
                 {
@@ -193,6 +199,26 @@ internal sealed class SentenceRealizer
 
         return item;
     }
+
+    // A name is drawn from the seeded generator: two or three invented syllables, written with a capital and normalized in lower case.
+    private Item FromWord(WordPattern word)
+    {
+        var syllables = 2 + _rng.NextInt(2);
+        var parts = new List<string>(syllables * 2);
+        for (var i = 0; i < syllables; i++)
+        {
+            parts.Add(_rng.Pick(NameOnsets));
+            parts.Add(_rng.Pick(NameNuclei));
+        }
+
+        var norm = string.Concat(parts);
+        var surface = char.ToUpperInvariant(norm[0]) + norm[1..];
+        return new Item(Kind.Word) { Slot = word.Slot, PatternTag = "WORD", Surface = surface, Norm = norm };
+    }
+
+    private static readonly string[] NameOnsets = ["b", "d", "j", "l", "m", "n", "r", "s", "t", "v", "z", "ñ"];
+
+    private static readonly string[] NameNuclei = ["a", "e", "i", "o", "u", "á", "é"];
 
     private void SetWord(Item item, string word)
     {
@@ -968,6 +994,7 @@ internal sealed class SentenceRealizer
             Kind.Adverb => TokenRole.Adverb,
             Kind.Preposition => TokenRole.Preposition,
             Kind.Conjunction => TokenRole.Conjunction,
+            Kind.Word => TokenRole.Name,
             _ => TokenRole.Interjection,
         };
     }
@@ -975,8 +1002,9 @@ internal sealed class SentenceRealizer
     // The matcher stores the lemma of the first reading with the wanted part of speech; digits for numerals.
     private string ExpectedSlotValue(Item item)
     {
-        if (item.Kind == Kind.Numeral)
+        if (item.Kind is Kind.Numeral or Kind.Word)
         {
+            // A name is the token as written in the normalized text: there is no reading to take a lemma from.
             return item.Norm!;
         }
 

@@ -19,7 +19,7 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 /// selects the grammars the analyzer was given, while this resolver also matches the candidates' own grammars.
 /// <para>
 /// Rung 1 (grammar): the grammar named by <see cref="AnalysisResult.MatchedGrammarId"/> when a candidate owns it, otherwise the candidate
-/// grammar that matches the analyzed tokens with the most explicitly consumed tokens (first intent and first grammar win ties).
+/// grammar that matches the analyzed tokens with the most explicitly consumed tokens, then the most tokens bound to literal words (first intent and first grammar win a further tie).
 /// Margin is 1 and confidence is the analysis confidence.
 /// </para>
 /// <para>
@@ -154,7 +154,7 @@ public sealed class IntentResolver
             foreach (var grammar in candidate.Grammars)
             {
                 var match = SlotGrammarMatcher.Match(analysis.Tokens, grammar);
-                if (match is not null && (best is null || match.ExplicitTokenCount > best.ExplicitTokenCount))
+                if (match is not null && (best is null || SlotGrammarMatch.Beats(match, best)))
                 {
                     best = match;
                     bestIntent = candidate;
@@ -295,7 +295,8 @@ public sealed class IntentResolver
         });
 
         var top1 = scored[0].Score;
-        var gap = scored.Count > 1 ? top1 - scored[1].Score : 1.0;
+        // Cosines run from -1 to 1, so the raw gap can exceed 1; the margin is reported in [0, 1]. The clamp changes no decision, because every gap threshold is below 1.
+        var gap = scored.Count > 1 ? Math.Min(1.0, top1 - scored[1].Score) : 1.0;
         if (_options.EmbeddingTop1.Evaluate(top1) != MarginDecision.Accept || _options.EmbeddingGap.Evaluate(gap) != MarginDecision.Accept)
         {
             return null;

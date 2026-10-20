@@ -643,6 +643,12 @@ public static class MutationGen
 
         private bool IsSkippable(SentenceToken token)
         {
+            // A name has no reading the analyzer uses (M17b), so it is never skipped, whatever its spelling is in the lexicon.
+            if (token.Role == TokenRole.Name)
+            {
+                return false;
+            }
+
             var readings = _words.Lexicon.Lookup(token.Norm);
             return readings.Count > 0
                 && (readings.All(static r => r.Pos is LexiconSchema.Adverb or LexiconSchema.Interjection)
