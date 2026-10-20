@@ -176,7 +176,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M1 | Core contracts + determinism primitives + taxonomy | M0 | S | done |
 | M2 | Audio front-end (WAV IO, resample, gain, energy VAD, clip hash, push-to-talk session) | M1 | S | done |
 | M3 | Spanish G2P with dialect config, alignment, predicted-error variants, golden set | M1 | S | in-progress |
-| M4 | Text normalization + answer matching (exact/alias/fuzzy + phonetic key) | M1 | S | in-progress |
+| M4 | Text normalization + answer matching (exact/alias/fuzzy + phonetic key) | M1 | S | done |
 | M5 | Lexicon schema + seed lexicon + morphology generator + linguistic analysis + slot grammar | M1 | S | in-progress |
 | M7 | Verdict assembly (pure D0) incl. worked example | M1 | S | done |
 | M10 | Decision layer: NPC state machine, learner model (BKT + FSRS), feedback policy | M1 | S | done |
