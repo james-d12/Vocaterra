@@ -129,7 +129,7 @@ dotnet run --project tools/Slg.Cli -- eval --transcript "yo tiene dos espada" --
 ```
 
 ```text
-{"intent":"offer_item","slots":{"item":"espada","qty":"2","verb":"tener"},"communicated":true,"correctness":0.5,"errors":[{"tag":"conj.person","span":{"start":3,"length":5},"expected":"tengo","actual":"tiene"},{"tag":"noun.number","span":{"start":11,"length":6},"expected":"espadas","actual":"espada"}],"pronunciation":[],"confidence":1,"resolvedBy":"Grammar","versions":{"contentHash":"b076558f7d1280b20ae84844d6aa377467fae8d3e8a86fc9d924c89d535d4efb","modelHashes":{"asr":"scripted-transcript"}}}
+{"intent":"offer_item","slots":{"item":"espada","qty":"2","verb":"tener"},"communicated":true,"correctness":0.5,"errors":[{"tag":"conj.person","span":{"start":3,"length":5},"expected":"tengo","actual":"tiene"},{"tag":"noun.number","span":{"start":11,"length":6},"expected":"espadas","actual":"espada"}],"pronunciation":[],"confidence":1,"resolvedBy":"Grammar","versions":{"contentHash":"8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78","modelHashes":{"asr":"scripted-transcript"}}}
 npc: Ah, ¿tienes dos espadas? ¡Muy bien!
 npc: Vale, dos espadas. Gracias, amigo.
 decision: rating Hard, learner skills 3, feedback items 2
@@ -173,7 +173,7 @@ pronunciation scoring when `wav2vec2-xlsr-53-espeak-cv-ft` is present. The last 
 
 These are real runs against `content/v1`. Each verdict is abbreviated: `…` marks the cut fields (`pronunciation`, `confidence`,
 `resolvedBy` and `versions`, unless an example keeps them), and the closing `decision:` line is left out. Error spans count characters of the
-normalized text. Thirteen more examples are in [docs/CLI_EXAMPLES.md](docs/CLI_EXAMPLES.md): the other five intents, five more
+normalized text. Twelve more examples are in [docs/CLI_EXAMPLES.md](docs/CLI_EXAMPLES.md): the other four intents, five more
 error tags, an exact quiz answer, the repair ladder and a replay log.
 
 A correct utterance is understood in full: the slots are filled, there are no errors and the trade price factor is 1.

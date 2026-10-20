@@ -1,7 +1,7 @@
 # More CLI examples
 
-Worked runs of the demo CLI (`tools/Slg.Cli`) against the sample bundle `content/v1`, continuing the eight examples in the README
-section [More examples](../README.md#more-examples). Together they show every intent, every error tag the CLI can trigger and the
+Worked runs of the demo CLI (`tools/Slg.Cli`) against the sample bundle `content/v1`, continuing the eleven examples in the README
+section [More examples](../README.md#more-examples). Together they show five of the six intents, every error tag the CLI can trigger and the
 main command-line options. All commands run from the repository root; the output is what the CLI printed.
 
 Each verdict is abbreviated: `…` marks the cut fields (`pronunciation`, `confidence`, `resolvedBy` and `versions`, unless an example
@@ -16,7 +16,7 @@ listed in `content/v1/prompts/prompts.json`, and [PIPELINE.md](PIPELINE.md) expl
 
 ## Each intent, said correctly
 
-Six intents exist; `buy_item` is the first example in the README, the other five follow. Each is a fully correct utterance with
+Six intents exist; `buy_item` is the first example in the README, the other four follow. Each is a fully correct utterance with
 correctness 1.
 
 A greeting on a constrained prompt resolves by answer match (`resolvedBy` is `Exact`) and the blacksmith greets back:
@@ -28,17 +28,6 @@ dotnet run --project tools/Slg.Cli -- eval --transcript "buenos días" --prompt 
 ```text
 {"intent":"greet","slots":{},"communicated":true,"correctness":1,"errors":[],"resolvedBy":"Exact",…}
 npc: ¡Hola, amigo! ¿Qué necesitas hoy?
-```
-
-Asking a price fills the `item` slot. Asking has no game effect; the NPC just quotes a price:
-
-```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "cuánto cuesta la espada" --prompt ask-price-open --content content/v1
-```
-
-```text
-{"intent":"ask_price","slots":{"item":"espada"},"communicated":true,"correctness":1,"errors":[],…}
-npc: Por la espada pido diez monedas.
 ```
 
 Selling is the mirror of buying, with its own price factor (`sell_item_price` runs from 0.7 at correctness 0 to 1 at correctness 1):
