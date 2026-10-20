@@ -194,8 +194,8 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | done |
 | M17b | Intent expansion: ten new intents, two new scenes (innkeeper, quest giver), prompts, dialogue, effects, goldens (see §7; after the split in §8 the scenes are game content and move to the game repo) | M19c | L | todo |
 | M18 | Part-of-speech disambiguation in the analyzer (triggered: `ayer compré un libro` yields a false `conj.tense` on main after M17a) | M17a | M | done |
-| M19a | Standalone core, step 1: boundary ADR, rename `Slg.*` → `Vocaterra.Nlp.*` (solution, projects, namespaces, packages), game-agnostic context and agent naming, opaque outcome kinds, `docs/API.md`, README reframed as a library (see §8) | M18 | M | in-progress |
-| M19b | Standalone core, step 2: NuGet packaging of `Slg.*`, content bundle packaging, `samples/HostConsole` consuming the packages (see §8) | M19a | S | todo |
+| M19a | Standalone core, step 1: boundary ADR, rename `Slg.*` → `Vocaterra.Nlp.*` (solution, projects, namespaces, packages), game-agnostic context and agent naming, opaque outcome kinds, `docs/API.md`, README reframed as a library (see §8) | M18 | M | done |
+| M19b | Standalone core, step 2: NuGet packaging of `Slg.*`, content bundle packaging, `samples/HostConsole` consuming the packages (see §8) | M19a | S | in-progress |
 | M19c | Standalone core, step 3: new game repository scaffold with the game spec, game content bundle and a host project on the packages (see §8) | M19b | S | todo |
 | M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | done |
 
@@ -561,6 +561,19 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   for `espada` on an answer-only prompt is a Fuzzy match with no `noun.number` tag (no grammar to
   check number). The `docs/CLI_EXAMPLES.md` prose for the `fuego` example (expected now empty) is
   fixed in M19a's docs pass.
+- **M19a results:** 516 files renamed or edited; solution `Vocaterra.Nlp.sln`, 27 projects under
+  `Vocaterra.Nlp.*`; env vars `VOCATERRA_MODELS_DIR` and `VOCATERRA_FUZZ_ITERATIONS*` with the `SLG_`
+  names read as a deprecated fallback; `ConversationContext` (AgentId, AgentState, HostStateHash),
+  `AgentStateMachine` and friends in `Decision.ConversationAgents`, `ResolvedEffect`, effect kinds as
+  opaque non-empty strings with unique effect ids; content `npcs/` → `agents/` and JSON keys `npcId` →
+  `agentId`, `gameEvent` → `hostEvent`, `gameStateHash` → `hostStateHash`; replay logs recorded before
+  M19a no longer replay (accepted: pre-release developer artefacts; the golden was re-recorded).
+  Bundle hash `d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f`. Kept as data:
+  `slg-vosk-runtime` cache folder, `vosk-runtime-1` hash input, bundle id `v1`, sample ids. New
+  `docs/API.md` (snippets compiled in a scratch host) and ADR 0009. Follow-ups taken into M19b: the
+  literal rename produced `Vocaterra.Nlp.Nlp` (to become `Vocaterra.Nlp.Language`); O15 lost its
+  `kind` enum mutation and needs an empty-kind mutation instead; the parked workflow now reads the
+  repository variable `VOCATERRA_RUN_MODEL_TESTS` (rename it on GitHub if `SLG_RUN_MODEL_TESTS` was set).
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 
@@ -741,7 +754,7 @@ whatever the research report in `docs/research/SCALING_APPROACHES.md` changes in
   `Vocaterra.Nlp.*` (folders too; `git mv` so history follows), the test and tool projects alike, and
   every doc reference; the `Slg.Cli` demo becomes `Vocaterra.Nlp.Cli`. Rename `GameContext` to
   `ConversationContext` (`NpcId` → `AgentId`, `NpcState` → `AgentState`, `GameStateHash` →
-  `HostStateHash`); `NpcStateMachine`/`NpcDefinition`/`NpcState` to `ConversationAgent*`, content
+  `HostStateHash`); `NpcStateMachine`/`NpcDefinition`/`NpcState` to `AgentStateMachine`/`AgentDefinition`/`AgentState` (namespace `Decision.ConversationAgents`), content
   folder `npcs/` → `agents/`; `EffectTable` constants removed, outcome kinds become opaque strings
   validated for uniqueness only (the sample content defines `trade_price` and `spell_power`). Game
   words scrubbed from identifiers and doc comments (Spanish example words may stay). `docs/API.md`

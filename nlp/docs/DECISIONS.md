@@ -25,7 +25,8 @@ The GitHub token lacks the `workflow` scope, so nothing under `.github/workflows
 The full CI (build and test on three platforms, golden, license scan, model-backed tests, fuzz, weekly
 fuzz soak) is parked in `.github/workflows-pending/`. **To resolve:** `gh auth refresh -h github.com
 -s workflow`, then `git mv .github/workflows-pending/ci.yml .github/workflows/ci.yml` and push. The
-same scope is needed on `Vocaterra` if it gets CI. **Waiting on it:** CI for both repositories, and
+same scope is needed on `Vocaterra` if it gets CI. Since M19a the workflow reads the repository variable
+`VOCATERRA_RUN_MODEL_TESTS` (rename it if `SLG_RUN_MODEL_TESTS` was ever set). **Waiting on it:** CI for both repositories, and
 package publishing (D5).
 
 ## D2. espeak-ng GPL code inside sherpa-onnx
