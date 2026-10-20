@@ -9,4 +9,8 @@
     <PackageReference Include="Microsoft.ML.OnnxRuntime" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Data/espeak-to-slg.json" LogicalName="Slg.Pronunciation.Data.espeak-to-slg.json" />
+  </ItemGroup>
+
 </Project>
