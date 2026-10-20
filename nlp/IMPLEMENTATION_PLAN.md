@@ -422,6 +422,16 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   even when no intent resolves (`Intent = unknown`, `ResolvedBy` = match type). A prompt whose
   `AllowedIntentIds` is empty skips the intent stage entirely (it is an answer-only prompt); the
   earlier resolver rule "empty allows every intent" no longer applies at the pipeline level.
+- **espeak-ng inside sherpa-onnx (TOOLS.md audit):** the Apache-2.0 `org.k2fsa.sherpa.onnx` native
+  library statically contains espeak-ng (GPL-3.0) symbols, and the Kokoro archive ships
+  `espeak-ng-data/`. Any build that links sherpa-onnx (ASR *or* TTS) therefore carries GPL code,
+  contrary to the HLD licensing table. Options for an ADR: build sherpa-onnx without TTS/espeak,
+  run Parakeet through ONNX Runtime directly, or isolate TTS in a separate GPL-licensed process.
+- **ARM64 natives (TOOLS.md audit):** the Vosk NuGet package ships no linux-arm64/win-arm64 native
+  library, so ARM64 targets need a separate Vosk build (CI ARM jobs pass only because model-gated
+  tests are skipped there).
+- **e5 ONNX export (TOOLS.md audit):** `intfloat/multilingual-e5-small` already publishes
+  `onnx/model.onnx` upstream, so `scripts/fetch-models.sh` can fetch it instead of requiring an export.
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 
