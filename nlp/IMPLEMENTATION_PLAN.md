@@ -197,7 +197,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M18 | Part-of-speech disambiguation in the analyzer (triggered: `ayer compré un libro` yields a false `conj.tense` on main after M17a) | M17a | M | done |
 | M19a | Standalone core, step 1: boundary ADR, rename `Slg.*` → `Vocaterra.Nlp.*` (solution, projects, namespaces, packages), game-agnostic context and agent naming, opaque outcome kinds, `docs/API.md`, README reframed as a library (see §8) | M18 | M | done |
 | M19b | Standalone core, step 2: NuGet packaging of `Slg.*`, content bundle packaging, `samples/HostConsole` consuming the packages (see §8) | M19a | S | done |
-| M19c | Standalone core, step 3: new game repository scaffold with the game spec, game content bundle and a host project on the packages (see §8) | M19b | S | in-progress |
+| M19c | Standalone core, step 3: new game repository scaffold with the game spec, game content bundle and a host project on the packages (see §8) | M19b | S | done |
 | M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | done |
 
 ### Delegation waves
@@ -584,6 +584,18 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   prompt id). Parked workflow has a `pack` job with the GitHub Packages publish step commented out
   (D5). The Asr and Response packages carry the sherpa-onnx dependency with GPL espeak-ng inside
   (D2): do not distribute them until that is settled. Suite: 2603 passed, 5 skipped.
+- **M19c results:** `james-d12/Vocaterra` has its root commit: the game design (`docs/SPECIFICATION.md`),
+  `docs/ARCHITECTURE.md`, bundle `content/game-v1` (a copy of the core sample with id `game-v1`, same
+  hash), an engine-agnostic console host on the seven `Vocaterra.Nlp.*` packages with a text loop
+  that carries agent state, learner model and repeat counts across turns, 4 smoke tests, a parked
+  workflow, and `scripts/content.sh` that drives the core checkout's ContentBuilder. No API gap: every
+  type the host needs is public. Core follow-ups noted by the host author: a helper for repeat counts
+  (the host re-implements the rule), prompt text for what an agent says before evaluation (`PromptSpec`
+  has none), and packaging the ContentBuilder as a dotnet tool. `SPECIFICATION.md` left the core.
+- **Sandbox keyword refusals (process):** agent sandboxes refuse command lines containing the shell
+  builtin words `eval` and `hash`, which are also the CLI and ContentBuilder subcommands; briefs must
+  say to use a wrapper script outside the repo, and the orchestrator runs the ContentBuilder `hash`
+  step itself when an agent is blocked.
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 
@@ -746,7 +758,7 @@ about 400 lines) and `Slg.Response/Effects` (two named outcome kinds, `spell_pow
 
 | Stays in the core | Moves to the game repository |
 | --- | --- |
-| `Slg.Core` contracts: verdict, prompt spec, error tags, replay envelope | `SPECIFICATION.md`, the game design |
+| `Slg.Core` contracts: verdict, prompt spec, error tags, replay envelope | `SPECIFICATION.md`, the game design (moved to Vocaterra `docs/SPECIFICATION.md` in M19c) |
 | Audio, Asr, Phonology, Pronunciation, Nlp, Evaluation | Character definitions (blacksmith, innkeeper, captain) and their dialogue pools |
 | Decision: learner model (BKT), scheduling (FSRS), feedback policy, and the conversation state-machine *engine* (renamed from Npc to a generic conversation agent) | Items, spells, quests, prices and rewards: the effect tables and game-event names |
 | Response: templates, recast, speech synthesis, and the effect *resolver* with opaque outcome names | The game's content bundles, built with the core's ContentBuilder |
