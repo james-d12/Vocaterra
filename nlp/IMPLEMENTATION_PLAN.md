@@ -193,7 +193,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | done |
 | M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | done |
 | M17b | Intent expansion: ten new intents, two new NPC scenes (innkeeper, quest giver), prompts, dialogue, effects, goldens (see §7) | M17a | L | todo |
-| M18 | Part-of-speech disambiguation in the analyzer (candidate; decided on M17a's homograph numbers) | M17a | M | todo |
+| M18 | Part-of-speech disambiguation in the analyzer (triggered: `ayer compré un libro` yields a false `conj.tense` on main after M17a) | M17a | M | in-progress |
 | M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | todo |
 
 ### Delegation waves
