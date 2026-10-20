@@ -1,0 +1,22 @@
+# Build output
+bin/
+obj/
+TestResults/
+
+# Packages from the core's local feed are restored, never committed; the core's artifacts/ folder is not part of this repository
+artifacts/
+
+# IDE / user-specific
+.vs/
+*.user
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code: agent worktrees and gate logs are local
+.claude/worktrees/
+.claude/gate-logs/
+.claude/settings.local.json

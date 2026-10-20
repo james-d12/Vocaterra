@@ -1,0 +1,56 @@
+# Parked: this file belongs at .github/workflows/ci.yml. The push token has no workflow scope, so it cannot be pushed there yet (core
+# DECISIONS.md D1: `gh auth refresh -h github.com -s workflow`, then `git mv` it into place).
+#
+# It also needs a feed the runner can read for the Vocaterra.Nlp.* packages (core DECISIONS.md D5). nuget.config points at the core's local
+# folder feed, which does not exist on a GitHub runner, so the restore step fails until GitHub Packages (the runner's token needs read access
+# to the packages) or another published feed replaces that source. Until then this job cannot pass.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+
+jobs:
+  build-format-test:
+    name: build, format and test (ubuntu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore Vocaterra.sln
+
+      - name: Build
+        run: dotnet build Vocaterra.sln --no-restore -warnaserror
+
+      - name: Format check
+        run: dotnet format Vocaterra.sln --verify-no-changes --no-restore
+
+      - name: Test
+        run: dotnet test Vocaterra.sln --no-build --logger trx --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trx-ubuntu
+          path: TestResults/**/*.trx
+          if-no-files-found: warn
