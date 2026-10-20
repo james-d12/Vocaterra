@@ -202,18 +202,27 @@ internal static class ContentFiles
     /// <summary>Computes the manifest entry of a file from its raw bytes.</summary>
     public static ManifestFile Digest(string path, byte[] data)
     {
-        if (IsText(path) && TryCanonicalText(data, out var canonical))
+        if (IsText(path) && DecodeText(data) is { } text)
         {
+            // A file that is already canonical (no byte order mark, no carriage return, composed Unicode) is its own canonical form: hash its bytes
+            // without encoding a multi-megabyte copy of the text.
+            var alreadyCanonical = !HasByteOrderMark(data) && data.AsSpan().IndexOf((byte)'\r') < 0 && text.IsNormalized(NormalizationForm.FormC);
+            var canonical = alreadyCanonical ? data : Encoding.UTF8.GetBytes(text.Normalize(NormalizationForm.FormC).Replace("\r\n", "\n", StringComparison.Ordinal));
             return new ManifestFile(path, DeterministicHash.Sha256Hex(canonical), canonical.Length);
         }
 
         return new ManifestFile(path, DeterministicHash.Sha256Hex(data), data.Length);
     }
 
+    private static bool HasByteOrderMark(byte[] data)
+    {
+        return data.Length >= 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF;
+    }
+
     /// <summary>Decodes UTF-8 (skipping a byte order mark); returns null when the bytes are not valid UTF-8.</summary>
     public static string? DecodeText(byte[] data)
     {
-        var start = data.Length >= 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF ? 3 : 0;
+        var start = HasByteOrderMark(data) ? 3 : 0;
         try
         {
             return new UTF8Encoding(false, true).GetString(data, start, data.Length - start);
@@ -222,18 +231,5 @@ internal static class ContentFiles
         {
             return null;
         }
-    }
-
-    private static bool TryCanonicalText(byte[] data, out byte[] canonical)
-    {
-        var text = DecodeText(data);
-        if (text is null)
-        {
-            canonical = [];
-            return false;
-        }
-
-        canonical = Encoding.UTF8.GetBytes(text.Normalize(NormalizationForm.FormC).Replace("\r\n", "\n", StringComparison.Ordinal));
-        return true;
     }
 }

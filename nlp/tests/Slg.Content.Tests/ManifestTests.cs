@@ -11,7 +11,7 @@ public class ManifestTests
     /// Self-recorded golden value of the committed bundle. When bundle content changes on purpose, run the ContentBuilder
     /// <c>hash</c> command on <c>content/v1</c> and copy the new bundle hash here.
     /// </summary>
-    private const string GoldenBundleHash = "b076558f7d1280b20ae84844d6aa377467fae8d3e8a86fc9d924c89d535d4efb";
+    private const string GoldenBundleHash = "8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78";
 
     [Fact]
     public void TheCommittedBundleHashMatchesTheGoldenValue()
@@ -96,7 +96,7 @@ public class ManifestTests
     [Fact]
     public void ComputeIsDeterministicAndKeepsTheExistingIdentity()
     {
-        using var bundle = new TempBundle();
+        using var bundle = new TempBundle(full: true);
         bundle.Edit("manifest.json", "\"contentVersion\":\"1.0.0\"", "\"contentVersion\":\"1.4.2\"");
 
         var first = ContentManifest.Compute(bundle.Directory);

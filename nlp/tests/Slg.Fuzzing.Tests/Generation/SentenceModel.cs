@@ -159,6 +159,12 @@ public sealed class FuzzDiagnostics
         _counts.AddOrUpdate(key, 1, static (_, value) => value + 1);
     }
 
+    /// <summary>Adds an amount to the named counter.</summary>
+    public void Add(string key, int amount)
+    {
+        _counts.AddOrUpdate(key, amount, (_, value) => value + amount);
+    }
+
     /// <summary>Returns the value of a counter (0 when it was never counted).</summary>
     public int Get(string key)
     {

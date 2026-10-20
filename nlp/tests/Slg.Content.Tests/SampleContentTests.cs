@@ -380,7 +380,13 @@ public class SampleContentTests
         var files = Bundle.Manifest.Files.Select(file => file.Path).Where(path => path != ContentPaths.Provenance).Order(StringComparer.Ordinal).ToArray();
 
         Assert.Equal(files, listed);
-        Assert.All(Bundle.Provenance.Items, item => Assert.Equal(GeneratedByKinds.HandAuthored, item.GeneratedBy));
+
+        // Everything is hand-authored except the generated lexicon and its sidecar, which are marked as imported.
+        Assert.All(
+            Bundle.Provenance.Items,
+            item => Assert.Equal(
+                item.Path.StartsWith("lexicon/wiktionary-es", StringComparison.Ordinal) ? GeneratedByKinds.WiktionaryImport : GeneratedByKinds.HandAuthored,
+                item.GeneratedBy));
     }
 
     [Fact]

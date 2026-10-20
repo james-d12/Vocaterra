@@ -18,6 +18,7 @@ public sealed class ContentBundle
         ContentManifest manifest,
         ContentProvenance provenance,
         NlpLexicon lexicon,
+        IReadOnlyDictionary<string, LexiconSourceInfo> lexiconSources,
         IReadOnlyDictionary<string, AnswerSet> answerSets,
         IntentCatalog intents,
         IReadOnlyDictionary<string, PromptSpec> prompts,
@@ -31,6 +32,7 @@ public sealed class ContentBundle
         Manifest = manifest;
         Provenance = provenance;
         Lexicon = lexicon;
+        LexiconSources = lexiconSources;
         Morphology = new MorphologyGenerator(lexicon);
         TemplateEngine = new TemplateEngine(lexicon, Morphology);
         AnswerSets = answerSets;
@@ -53,8 +55,11 @@ public sealed class ContentBundle
     /// <summary>The bundle hash from the manifest; goes into every <c>VersionStamp.ContentHash</c>.</summary>
     public string ContentHash => Manifest.BundleHash;
 
-    /// <summary>All <c>lexicon/*.json</c> files merged into one lexicon.</summary>
+    /// <summary>All <c>lexicon/*.json</c> files merged into one lexicon (see <see cref="ContentLoader"/> for the merge policy).</summary>
     public NlpLexicon Lexicon { get; }
+
+    /// <summary>The sidecars (<c>lexicon/*.source.json</c>) of generated lexicon files by bundle-relative path, in ordinal path order.</summary>
+    public IReadOnlyDictionary<string, LexiconSourceInfo> LexiconSources { get; }
 
     /// <summary>A morphology generator over <see cref="Lexicon"/>.</summary>
     public MorphologyGenerator Morphology { get; }

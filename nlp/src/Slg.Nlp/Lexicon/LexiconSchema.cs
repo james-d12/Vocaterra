@@ -72,24 +72,36 @@ public static class LexiconSchema
     /// <summary>Imperative mood.</summary>
     public const string Imperative = "imp";
 
+    // The closed vocabularies as arrays: the lexicon reader compares each value of tens of thousands of entries against them.
+    internal static readonly string[] PartsOfSpeechArray = ["noun", "verb", "adj", "art", "pron", "num", "prep", "conj", "adv", "interj"];
+
+    internal static readonly string[] PersonsArray = ["1", "2", "3"];
+
+    internal static readonly string[] NumbersArray = ["sg", "pl"];
+
+    internal static readonly string[] TensesArray = ["pres", "pret", "impf", "fut", "cond"];
+
+    internal static readonly string[] MoodsArray = ["ind", "subj", "imp"];
+
+    internal static readonly string[] GendersArray = ["m", "f"];
+
     /// <summary>All part-of-speech values, in schema order.</summary>
-    public static IReadOnlyList<string> PartsOfSpeech { get; } =
-        ["noun", "verb", "adj", "art", "pron", "num", "prep", "conj", "adv", "interj"];
+    public static IReadOnlyList<string> PartsOfSpeech { get; } = Array.AsReadOnly(PartsOfSpeechArray);
 
     /// <summary>All person values.</summary>
-    public static IReadOnlyList<string> Persons { get; } = ["1", "2", "3"];
+    public static IReadOnlyList<string> Persons { get; } = Array.AsReadOnly(PersonsArray);
 
     /// <summary>All number values.</summary>
-    public static IReadOnlyList<string> Numbers { get; } = ["sg", "pl"];
+    public static IReadOnlyList<string> Numbers { get; } = Array.AsReadOnly(NumbersArray);
 
     /// <summary>All tense values.</summary>
-    public static IReadOnlyList<string> Tenses { get; } = ["pres", "pret", "impf", "fut", "cond"];
+    public static IReadOnlyList<string> Tenses { get; } = Array.AsReadOnly(TensesArray);
 
     /// <summary>All mood values.</summary>
-    public static IReadOnlyList<string> Moods { get; } = ["ind", "subj", "imp"];
+    public static IReadOnlyList<string> Moods { get; } = Array.AsReadOnly(MoodsArray);
 
     /// <summary>All gender values.</summary>
-    public static IReadOnlyList<string> Genders { get; } = ["m", "f"];
+    public static IReadOnlyList<string> Genders { get; } = Array.AsReadOnly(GendersArray);
 
     /// <summary>Throws <see cref="FormatException"/> when the entry violates the schema.</summary>
     public static void Validate(LexiconEntry entry)

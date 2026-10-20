@@ -267,7 +267,7 @@ public static class MutationGen
                 var noun = _tokens[h];
                 var plural = _tokens.Where((t, j) => j != h && t.Head == h && t.Generated && t.Role is TokenRole.Article or TokenRole.Determiner or TokenRole.Numeral
                     && t.Number == LexiconSchema.Plural).Any();
-                var lexeme = _words.Nouns.FirstOrDefault(n => n.Lemma == noun.Lemma);
+                var lexeme = _words.NounOf(noun.Lemma);
                 if (!plural || lexeme is null || lexeme.Singular == lexeme.Plural)
                 {
                     continue;
@@ -287,7 +287,7 @@ public static class MutationGen
                 var noun = _tokens[h];
                 var singular = _tokens.Where((t, j) => j != h && t.Head == h && t.Generated && t.Role is TokenRole.Article or TokenRole.Determiner or TokenRole.Numeral
                     && t.Number == LexiconSchema.Singular).Any();
-                var lexeme = _words.Nouns.FirstOrDefault(n => n.Lemma == noun.Lemma);
+                var lexeme = _words.NounOf(noun.Lemma);
                 if (!singular || lexeme is null || lexeme.Singular == lexeme.Plural)
                 {
                     continue;
@@ -668,7 +668,7 @@ public static class MutationGen
                     continue;
                 }
 
-                if (_words.AllForms.All(form => DamerauLevenshtein.Distance(Accents.Strip(form), word) >= 3))
+                if (_words.IsFarFromEveryForm(word, 3))
                 {
                     return word;
                 }

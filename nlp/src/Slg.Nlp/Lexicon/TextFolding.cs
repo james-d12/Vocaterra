@@ -9,7 +9,19 @@ internal static class TextFolding
     public static string Normalize(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
-        return text.Normalize(NormalizationForm.FormC).ToLowerInvariant();
+
+        // Most lexicon words are plain lower-case ASCII letters; they are already normalized, so the common case allocates nothing.
+        var plain = true;
+        foreach (var c in text)
+        {
+            if (c is < 'a' or > 'z')
+            {
+                plain = false;
+                break;
+            }
+        }
+
+        return plain ? text : text.Normalize(NormalizationForm.FormC).ToLowerInvariant();
     }
 
     /// <summary>Normalizes and then maps acute-accented vowels and u-diaeresis to the plain vowel; n-tilde is kept.</summary>

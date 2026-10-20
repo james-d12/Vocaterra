@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text;
 using Slg.Core.Determinism;
 using Slg.Core.Stages;
@@ -17,22 +18,43 @@ public sealed class Lexicon
     private readonly Dictionary<string, LexicalFeatures[]> _byForm;
     private readonly Dictionary<string, LexicalFeatures[]> _byFoldedForm;
     private readonly Dictionary<string, LexiconEntry[]> _byLemma;
+    private readonly ConcurrentDictionary<string, Lazy<object>> _derived = new(StringComparer.Ordinal);
 
     private Lexicon(LexiconEntry[] sortedEntries, string? generatedBy)
     {
         _entries = sortedEntries;
         GeneratedBy = generatedBy;
-        _byForm = new Dictionary<string, LexicalFeatures[]>(StringComparer.Ordinal);
-        _byFoldedForm = new Dictionary<string, LexicalFeatures[]>(StringComparer.Ordinal);
-        _byLemma = new Dictionary<string, LexiconEntry[]>(StringComparer.Ordinal);
+        var count = sortedEntries.Length;
+        var features = new LexicalFeatures[count];
+        for (var i = 0; i < count; i++)
+        {
+            features[i] = sortedEntries[i].ToFeatures();
+        }
 
-        var byForm = new Dictionary<string, List<LexicalFeatures>>(StringComparer.Ordinal);
-        var byFolded = new Dictionary<string, List<LexicalFeatures>>(StringComparer.Ordinal);
+        // The entries are sorted by form, so the readings of one form are one run. The accent-insensitive index takes the runs in the same order and
+        // joins the runs whose forms fold to the same key (esta, está); a form without accents shares its array with the exact index.
+        _byForm = new Dictionary<string, LexicalFeatures[]>(count, StringComparer.Ordinal);
+        _byFoldedForm = new Dictionary<string, LexicalFeatures[]>(count, StringComparer.Ordinal);
+        var start = 0;
+        while (start < count)
+        {
+            var form = sortedEntries[start].Form;
+            var end = start + 1;
+            while (end < count && string.Equals(sortedEntries[end].Form, form, StringComparison.Ordinal))
+            {
+                end++;
+            }
+
+            var run = features[start..end];
+            _byForm.Add(form, run);
+            var key = TextFolding.StripAccents(form);
+            _byFoldedForm[key] = _byFoldedForm.TryGetValue(key, out var earlier) ? [.. earlier, .. run] : run;
+            start = end;
+        }
+
         var byLemma = new Dictionary<string, List<LexiconEntry>>(StringComparer.Ordinal);
         foreach (var entry in sortedEntries)
         {
-            Append(byForm, entry.Form, entry.ToFeatures());
-            Append(byFolded, TextFolding.StripAccents(entry.Form), entry.ToFeatures());
             if (!byLemma.TryGetValue(entry.Lemma, out var forLemma))
             {
                 forLemma = [];
@@ -42,16 +64,7 @@ public sealed class Lexicon
             forLemma.Add(entry);
         }
 
-        foreach (var pair in byForm)
-        {
-            _byForm.Add(pair.Key, [.. pair.Value]);
-        }
-
-        foreach (var pair in byFolded)
-        {
-            _byFoldedForm.Add(pair.Key, [.. pair.Value]);
-        }
-
+        _byLemma = new Dictionary<string, LexiconEntry[]>(byLemma.Count, StringComparer.Ordinal);
         foreach (var pair in byLemma)
         {
             _byLemma.Add(pair.Key, [.. pair.Value]);
@@ -80,8 +93,29 @@ public sealed class Lexicon
     /// <summary>Parses and validates a lexicon JSON document (schema version 1).</summary>
     public static Lexicon Load(string json)
     {
+        var file = ReadFile(json);
+        return Create(file.Entries, file.GeneratedBy);
+    }
+
+    /// <summary>
+    /// Parses a lexicon JSON document and checks its schema version, its <c>entries</c> array and every entry against the schema, without building the
+    /// indexes. The content loader reads each <c>lexicon/*.json</c> file this way and builds one lexicon from all of them with <see cref="FromEntries"/>.
+    /// </summary>
+    /// <exception cref="FormatException">The schema version is not supported, <c>entries</c> is missing, or an entry breaks the schema.</exception>
+    public static LexiconFile ReadFile(string json)
+    {
         ArgumentNullException.ThrowIfNull(json);
-        var file = CanonicalJson.Deserialize<LexiconFile>(json);
+        return Validate(LexiconFileReader.Read(json));
+    }
+
+    /// <summary>The same as <see cref="ReadFile(string)"/> for UTF-8 bytes (a byte order mark is skipped); invalid UTF-8 is a <see cref="System.Text.Json.JsonException"/>.</summary>
+    public static LexiconFile ReadFile(ReadOnlySpan<byte> utf8)
+    {
+        return Validate(LexiconFileReader.Read(utf8));
+    }
+
+    private static LexiconFile Validate(LexiconFile file)
+    {
         if (file.SchemaVersion != LexiconSchema.CurrentVersion)
         {
             throw new FormatException($"Unsupported lexicon schemaVersion {file.SchemaVersion}; expected {LexiconSchema.CurrentVersion}.");
@@ -93,10 +127,25 @@ public sealed class Lexicon
             throw new FormatException("The lexicon needs an entries array.");
         }
 
-        return Create(file.Entries, file.GeneratedBy);
+        foreach (var entry in file.Entries)
+        {
+            if ((object?)entry is null)
+            {
+                throw new FormatException("The lexicon contains a null entry.");
+            }
+
+            LexiconSchema.Validate(entry);
+        }
+
+        return file;
     }
 
-    /// <summary>Builds a lexicon from entries, normalizing forms and lemmas (NFC, lowercase), validating and sorting them.</summary>
+    /// <summary>
+    /// Builds a lexicon from entries, normalizing forms and lemmas (NFC, lowercase), validating and sorting them.
+    /// This is also the merge policy for several lexicon files: pass the entries of all of them. Entries are unioned; two entries with the same
+    /// form, lemma, part of speech and features are one reading and appear once, and different readings of one form (another lemma, another
+    /// part of speech, other features) all stay and are all returned by <see cref="Lookup"/>.
+    /// </summary>
     public static Lexicon FromEntries(IEnumerable<LexiconEntry> entries)
     {
         ArgumentNullException.ThrowIfNull(entries);
@@ -135,6 +184,17 @@ public sealed class Lexicon
         return new LexiconLookupResult(key, NoReadings, accentInsensitive: false);
     }
 
+    /// <summary>
+    /// Returns a read-only structure derived from this lexicon alone (for example the index of regularized irregular forms), built on first use and
+    /// shared by everything that uses this lexicon. The lexicon is immutable, so the structure is a pure function of it and every caller would build
+    /// the same one; building it once keeps a second morphology generator over the same lexicon from repeating the work.
+    /// </summary>
+    internal T Derive<T>(string key, Func<Lexicon, T> build)
+        where T : class
+    {
+        return (T)_derived.GetOrAdd(key, _ => new Lazy<object>(() => build(this), LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+    }
+
     /// <summary>Returns the entries of a lemma in entry order; empty when the lemma is unknown.</summary>
     public IReadOnlyList<LexiconEntry> EntriesForLemma(string lemma)
     {
@@ -162,7 +222,9 @@ public sealed class Lexicon
         {
             ArgumentNullException.ThrowIfNull(raw);
             LexiconSchema.Validate(raw);
-            list.Add(raw with { Form = TextFolding.Normalize(raw.Form), Lemma = TextFolding.Normalize(raw.Lemma) });
+            var form = TextFolding.Normalize(raw.Form);
+            var lemma = TextFolding.Normalize(raw.Lemma);
+            list.Add(ReferenceEquals(form, raw.Form) && ReferenceEquals(lemma, raw.Lemma) ? raw : raw with { Form = form, Lemma = lemma });
         }
 
         list.Sort(CompareEntries);
@@ -228,17 +290,6 @@ public sealed class Lexicon
         }
 
         return b is null ? 1 : string.CompareOrdinal(a, b);
-    }
-
-    private static void Append(Dictionary<string, List<LexicalFeatures>> map, string key, LexicalFeatures value)
-    {
-        if (!map.TryGetValue(key, out var list))
-        {
-            list = [];
-            map.Add(key, list);
-        }
-
-        list.Add(value);
     }
 
     private static class SeedHolder

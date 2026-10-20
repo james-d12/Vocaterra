@@ -13,7 +13,7 @@ flowchart TD
     subgraph TOOLS[tools]
         CLI[Slg.Cli<br/>eval, replay]
         BENCH[Slg.Bench<br/>ASR benchmark]
-        BUILDER[Slg.ContentBuilder<br/>validate, hash, cefr-check, import-lexicon]
+        BUILDER[Slg.ContentBuilder<br/>validate, hash, cefr-check,<br/>import-lexicon, lexicon-report]
     end
     PIPE[Slg.Pipeline<br/>UtterancePipeline, replay log and replayer]
     CONTENT[Slg.Content<br/>bundle loader, hashing, versioning]
@@ -190,11 +190,13 @@ bundle. `tools/Slg.ContentBuilder` is the build-time tool:
 dotnet run --project tools/Slg.ContentBuilder -- validate content/v1                      # verify hashes and cross-references
 dotnet run --project tools/Slg.ContentBuilder -- hash content/v1                          # rewrite content/v1/manifest.json after an edit
 dotnet run --project tools/Slg.ContentBuilder -- cefr-check content/v1 --level a1         # list dialogue lemmas missing from the CEFR list (a1 or a2)
-dotnet run --project tools/Slg.ContentBuilder -- import-lexicon kaikki.jsonl lexicon.json # wiktextract Spanish JSONL to a lexicon file (--max N limits it)
+dotnet run --project tools/Slg.ContentBuilder -- import-lexicon kaikki.jsonl lexicon.json # wiktextract Spanish JSONL to a lexicon file (--max N limits it;
+#   --frequency es_50k.txt --top N keeps the N most frequent lemmas; --sidecar writes the source record; see docs/LEXICON.md)
+dotnet run --project tools/Slg.ContentBuilder -- lexicon-report content/v1                # each lexicon file, how they overlap, the merged lexicon
 ```
 
 Any edit to a file in `content/v1` changes the bundle hash, so run `hash` afterwards and update the pinned value in the tests
-(see [CONTRIBUTING.md](CONTRIBUTING.md)). `validate` prints `OK: bundle 'v1' 1.0.0, 16 files, hash <sha256>`.
+(see [CONTRIBUTING.md](CONTRIBUTING.md)). `validate` prints `OK: bundle 'v1' 1.0.0, 19 files, hash <sha256>`.
 
 ## Benchmark and golden audio
 
@@ -226,16 +228,16 @@ consent rules and manifest schema are in [golden/README.md](golden/README.md).
 | `src/Slg.Pipeline` | `UtterancePipeline`, `GameContext`, replay log and replayer |
 | `tools/Slg.Cli` | Demo host: `eval` and `replay` |
 | `tools/Slg.Bench` | ASR benchmark over the golden manifest |
-| `tools/Slg.ContentBuilder` | `validate`, `hash`, `cefr-check`, `import-lexicon` |
+| `tools/Slg.ContentBuilder` | `validate`, `hash`, `cefr-check`, `import-lexicon`, `lexicon-report` |
 | `tests/Slg.<Project>.Tests` | One xUnit project per source project |
 | `tests/Slg.Golden.Tests` | G2P golden set, end-to-end worked example, golden manifest layout |
 | `tests/Slg.Fuzzing.Tests` | Combinatorial fuzz tests: CsCheck oracles over generators driven by the content catalogs ([README](tests/Slg.Fuzzing.Tests/README.md)) |
 | `content/v1` | The versioned, hashed content bundle (JSON) and its `ATTRIBUTION.md` |
 | `golden/` | Golden learner audio manifest and recording protocol; the audio itself is gitignored |
 | `models/` | `manifest.json` and a README are committed; the model files are fetched and gitignored |
-| `scripts/` | `fetch-models.sh`, `license-scan.sh` and its allowlist and overrides ([scripts/README.md](scripts/README.md)) |
+| `scripts/` | `fetch-models.sh`, `fetch-lexicon-sources.sh`, `license-scan.sh` and its allowlist and overrides ([scripts/README.md](scripts/README.md)) |
 | `.github/workflows-pending/` | The CI workflow, parked until the push token has the `workflow` scope |
-| `docs/` | [PIPELINE.md](docs/PIPELINE.md), [REPLAY.md](docs/REPLAY.md) and the architecture decision records in `docs/adr/` |
+| `docs/` | [PIPELINE.md](docs/PIPELINE.md), [REPLAY.md](docs/REPLAY.md), [LEXICON.md](docs/LEXICON.md) and the architecture decision records in `docs/adr/` |
 | `docs/diagrams/` | The draw.io system overview and how to open it ([README](docs/diagrams/README.md)) |
 | `HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md`, `SPECIFICATION.md` | The design, the milestone plan and the original brief |
 
@@ -259,8 +261,9 @@ dependencies and data:
 - **Code dependencies** are checked by `scripts/license-scan.sh [--offline]`, which reads every NuGet package (direct and
   transitive) of the solution and fails on GPL, LGPL, AGPL and SSPL or on any license that is not in `scripts/license-allowlist.txt`.
   `scripts/license-overrides.txt` holds reviewed exceptions for packages whose metadata names no license. Today 27 packages pass.
-- **Wiktionary-derived data** (lexicon files made with `import-lexicon`) is CC BY-SA and must keep its attribution; the sample
-  bundle's own files are hand-authored. See [content/v1/ATTRIBUTION.md](content/v1/ATTRIBUTION.md).
+- **Wiktionary-derived data** (`content/v1/lexicon/wiktionary-es.json`, made with `import-lexicon` and selected with a word frequency list) is
+  CC BY-SA and must keep its attribution; the sample bundle's other files are hand-authored. See
+  [content/v1/ATTRIBUTION.md](content/v1/ATTRIBUTION.md) and [docs/LEXICON.md](docs/LEXICON.md).
 - **Models** and their licenses are recorded in [models/manifest.json](models/manifest.json): Vosk small Spanish (Apache-2.0),
   Parakeet TDT 0.6B v3 (CC-BY-4.0, attribution to NVIDIA required), wav2vec2-xlsr-53-espeak-cv-ft (Apache-2.0),
   multilingual-e5-small (MIT), Kokoro (Apache-2.0).
@@ -292,6 +295,7 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 | M14 | CI matrix (x64/ARM64/Windows/macOS), golden tests, license scan, format check (workflow parked in `.github/workflows-pending`) | done |
 | M15 | README, ADRs, CONTRIBUTING, determinism checklist, replay and pipeline docs | done |
 | M16 | Combinatorial fuzz testing: CsCheck, 16 oracles over catalog-driven generators | done |
+| M17a | Vocabulary: 3 000 Wiktionary lemmas (about 40 000 entries) selected by a frequency list, with sources, hashes and coverage tests (see [docs/LEXICON.md](docs/LEXICON.md)) | done |
 
 ## Known gaps and next steps
 
@@ -320,13 +324,14 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
   ```
 
   Until then the cross-platform determinism check has not run anywhere but the development machine.
-- **Content.** The sample bundle is hand-authored and small (one NPC, 14 prompts, six intents). Its dialogue uses lemmas that are
+- **Content.** The vocabulary is large (3 372 lemmas) but the game is small: one NPC, 14 prompts, six intents. Its dialogue uses lemmas that are
   not in the A1 list (`cefr-check` prints them; it is advisory). `pron.stress` is recognized by the taxonomy but is not scored in v1.
 - **Open decisions.** The license of the repository, whether the player can choose the NPC dialect, and whether a free
   conversation mode (Phase 3 in the design) ships at all.
 - **Build size.** A full build writes about 3 GB per checkout; trimming the runtime packs is a follow-up.
 - **Part of speech.** The analyzer reads each word as every part of speech it can be, so verb and noun homographs such as `ayudas`, `lanza`
-  and `vino` trip the tense and person checks. A fix needs disambiguation by part of speech ([fuzz suite findings](tests/Slg.Fuzzing.Tests/README.md)).
+  and `vino` trip the tense and person checks; with the imported lexicon 21 % of the usable nouns are also a verb form. A fix needs disambiguation by
+  part of speech (M18; [numbers](docs/LEXICON.md), [fuzz suite findings](tests/Slg.Fuzzing.Tests/README.md)).
 - **Pronunciation cost.** Scoring grows with the cube of the phone count, because `PredictedErrorMatcher.Match` aligns against the reference once
   per predicted-error variant. Spoken utterances are far below the sizes where this matters ([fuzz suite findings](tests/Slg.Fuzzing.Tests/README.md)).
 - **Content defaults.** The content loader silently defaults missing number, flag and enumeration fields to 0, false or the first member. The
@@ -342,7 +347,8 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 - [docs/REPLAY.md](docs/REPLAY.md): replay log and envelope format, with a real example
 - [docs/FUZZING_PLAN.md](docs/FUZZING_PLAN.md): the fuzz testing design, its generators, oracles O1 to O16 and iteration budgets
 - [tests/Slg.Fuzzing.Tests/README.md](tests/Slg.Fuzzing.Tests/README.md): the fuzz suite, how to run and soak it, its oracles, the bugs it found and the known findings
-- [docs/adr/](docs/adr/): architecture decision records 0001 to 0007 (language, determinism, engine-agnostic core, model pinning, dialect, ICU, Kokoro phonemizer licensing)
+- [docs/LEXICON.md](docs/LEXICON.md): the lexicon files, the Wiktionary and frequency-list sources with hashes and licences, how to fetch and regenerate, the merge policy, measurements
+- [docs/adr/](docs/adr/): architecture decision records 0001 to 0008 (language, determinism, engine-agnostic core, model pinning, dialect, ICU, Kokoro phonemizer licensing, lexicon sources and frequency filter)
 - [docs/diagrams/README.md](docs/diagrams/README.md): the system diagram in draw.io, and how to open it
 - [TOOLS.md](TOOLS.md): the inventory of third-party tools, libraries, models and data sources, with their licenses
 - [CONTRIBUTING.md](CONTRIBUTING.md): development setup, conventions, the determinism checklist, and how to add error tags, content, golden clips and model adapters

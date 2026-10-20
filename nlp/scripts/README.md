@@ -1,10 +1,14 @@
 # Scripts
 
-Helper scripts for the repository. Both are bash and can be run from any directory.
+Helper scripts for the repository. All are bash and can be run from any directory.
 
 ## fetch-models.sh
 
 Downloads the models listed in `models/manifest.json` into `${SLG_MODELS_DIR:-models}/<id>/`, checks the archive SHA-256, extracts it and verifies every listed file against its pinned hash. `--list` reports which models are present, missing, mismatching or unpinned without downloading anything, and model ids on the command line limit the work to those models. Entries without an archive are skipped with a warning because their ONNX export is manual. Needs bash, python3, curl, sha256sum (or shasum) and unzip or tar with bzip2. The optional `models` job in `.github/workflows-pending/ci.yml` runs it for the Vosk model only.
+
+## fetch-lexicon-sources.sh
+
+Downloads the two data sets the lexicon import reads into `${SLG_LEXICON_SOURCES_DIR:-lexicon-sources}/` (git-ignored): the kaikki.org Spanish extract of English Wiktionary (about 1 GB of JSONL) and `es_50k.txt` of hermitdave/FrequencyWords at a pinned commit. The URLs, byte sizes and SHA-256 hashes are pinned in the script; a file that is already there and matches is kept, a download that does not match is deleted and the script stops (the kaikki.org URL is not versioned, so a mismatch means upstream replaced the file; re-pinning is described in [docs/LEXICON.md](../docs/LEXICON.md)). It then writes `sources.json` next to the files with URL, hash, size, licence and retrieval date, which `Slg.ContentBuilder import-lexicon --sidecar` copies into the sidecar of the generated lexicon. `--check` verifies the files that are present and downloads nothing. Needs bash, python3, curl and sha256sum (or shasum). Downloaded files are data: nothing in them is ever executed.
 
 ## license-scan.sh
 

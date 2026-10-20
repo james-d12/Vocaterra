@@ -27,7 +27,7 @@ public sealed class MorphologyGenerator
     {
         ArgumentNullException.ThrowIfNull(lexicon);
         _lexicon = lexicon;
-        _regularized = new Lazy<Dictionary<string, RegularizedForm>>(BuildRegularizedIndex);
+        _regularized = new Lazy<Dictionary<string, RegularizedForm>>(() => lexicon.Derive("regularized-forms", BuildRegularizedIndex));
     }
 
     /// <summary>Returns the plural of a noun: the lexicon plural when known, else vowel adds s, consonant adds es, z becomes ces, unstressed final s is unchanged.</summary>
@@ -522,34 +522,68 @@ public sealed class MorphologyGenerator
         return null;
     }
 
-    private Dictionary<string, RegularizedForm> BuildRegularizedIndex()
+    private static Dictionary<string, RegularizedForm> BuildRegularizedIndex(Lexicon lexicon)
     {
         var index = new Dictionary<string, RegularizedForm>(StringComparer.Ordinal);
         string[] persons = ["1", "2", "3"];
         string[] numbers = [LexiconSchema.Singular, LexiconSchema.Plural];
         string[] tenses = [LexiconSchema.Present, LexiconSchema.Preterite];
-        foreach (var lemma in _lexicon.Lemmas)
+        var cells = new string?[tenses.Length * numbers.Length * persons.Length];
+        foreach (var lemma in lexicon.Lemmas)
         {
-            if (lemma.Length < 4 || !IsVerbLemma(lemma))
+            // Stems shorter than two letters (ser, ir, dar, ver) have no plausible regularized forms, and only -ar, -er and -ir verbs have a regular paradigm.
+            if (lemma.Length < 4 || !(lemma.EndsWith("ar", StringComparison.Ordinal) || lemma.EndsWith("er", StringComparison.Ordinal) || lemma.EndsWith("ir", StringComparison.Ordinal)))
             {
-                // Stems shorter than two letters (ser, ir, dar, ver) have no plausible regularized forms.
                 continue;
             }
 
-            foreach (var tense in tenses)
+            // One pass over the entries of the lemma fills the present and preterite cells (the first entry of a cell wins, as LexiconConjugate would find it).
+            Array.Clear(cells);
+            var hasTense = false;
+            foreach (var entry in lexicon.EntriesForLemma(lemma))
             {
-                foreach (var number in numbers)
+                if (entry.Pos != LexiconSchema.Verb || entry.Features.Tense is null)
                 {
-                    foreach (var person in persons)
+                    continue;
+                }
+
+                hasTense = true;
+                if (entry.Features.Mood is not (null or LexiconSchema.Indicative))
+                {
+                    continue;
+                }
+
+                var cell = CellIndex(tenses, numbers, persons, entry.Features.Tense, entry.Features.Number, entry.Features.Person);
+                if (cell >= 0 && cells[cell] is null)
+                {
+                    cells[cell] = entry.Form;
+                }
+            }
+
+            if (!hasTense)
+            {
+                continue;
+            }
+
+            for (var t = 0; t < tenses.Length; t++)
+            {
+                for (var n = 0; n < numbers.Length; n++)
+                {
+                    for (var p = 0; p < persons.Length; p++)
                     {
-                        var actual = LexiconConjugate(lemma, person, number, tense);
-                        var regular = ConjugateRegular(lemma, person, number, tense);
-                        if (actual is null || regular is null || string.Equals(actual, regular, StringComparison.Ordinal))
+                        var actual = cells[(t * numbers.Length * persons.Length) + (n * persons.Length) + p];
+                        if (actual is null)
                         {
                             continue;
                         }
 
-                        index.TryAdd(regular, new RegularizedForm(lemma, actual, person, number, tense));
+                        var regular = ConjugateRegular(lemma, persons[p], numbers[n], tenses[t]);
+                        if (regular is null || string.Equals(actual, regular, StringComparison.Ordinal))
+                        {
+                            continue;
+                        }
+
+                        index.TryAdd(regular, new RegularizedForm(lemma, actual, persons[p], numbers[n], tenses[t]));
                     }
                 }
             }
@@ -558,16 +592,11 @@ public sealed class MorphologyGenerator
         return index;
     }
 
-    private bool IsVerbLemma(string lemma)
+    private static int CellIndex(string[] tenses, string[] numbers, string[] persons, string? tense, string? number, string? person)
     {
-        foreach (var entry in _lexicon.EntriesForLemma(lemma))
-        {
-            if (entry.Pos == LexiconSchema.Verb && entry.Features.Tense is not null)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        var t = Array.IndexOf(tenses, tense);
+        var n = Array.IndexOf(numbers, number);
+        var p = Array.IndexOf(persons, person);
+        return t < 0 || n < 0 || p < 0 ? -1 : (t * numbers.Length * persons.Length) + (n * persons.Length) + p;
     }
 }

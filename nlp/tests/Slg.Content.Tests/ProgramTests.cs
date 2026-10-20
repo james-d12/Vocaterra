@@ -140,7 +140,7 @@ public class ProgramTests
     [Fact]
     public void HashAcceptsAnIdentityOnTheCommandLine()
     {
-        using var bundle = new TempBundle();
+        using var bundle = new TempBundle(full: true);
 
         var (code, _, _) = Run("hash", bundle.Directory, "--bundle-id", "spanish", "--content-version=3.1.4");
 
@@ -211,11 +211,11 @@ public class ProgramTests
 
         Assert.Equal(Program.ExitOk, code);
         Assert.Equal(string.Empty, error);
-        Assert.StartsWith("read 20 lines, 19 Spanish entries: 14 imported into 45 lexicon entries, 5 skipped\n", output, StringComparison.Ordinal);
+        Assert.StartsWith("read 20 lines, 19 Spanish entries: 13 imported into 41 lexicon entries, 6 skipped\n", output, StringComparison.Ordinal);
         Assert.EndsWith($"wrote {outPath}\n", output, StringComparison.Ordinal);
         var lexicon = NlpLexicon.Load(File.ReadAllText(outPath));
         Assert.Equal("wiktionary-import", lexicon.GeneratedBy);
-        Assert.Equal(45, lexicon.Entries.Count);
+        Assert.Equal(41, lexicon.Entries.Count);
         Assert.True(lexicon.ContainsLemma("espada"));
         Assert.Equal(KaikkiImporter.ToJson(lexicon.Entries), File.ReadAllText(outPath).Replace("\r\n", "\n", StringComparison.Ordinal));
     }
@@ -260,12 +260,23 @@ public class ProgramTests
     [Fact]
     public void AnImportedLexiconCanJoinTheBundleAfterHashing()
     {
-        using var bundle = new TempBundle();
-        Assert.Equal(Program.ExitOk, Run("import-lexicon", TestSupport.KaikkiFixture, bundle.PathOf("lexicon/wiktionary.json")).Code);
+        using var bundle = new TempBundle(full: true);
+        var sourcesDirectory = Path.Combine(Path.GetTempPath(), "slg-sources-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var sources = TestSupport.WriteSources(sourcesDirectory, ("kaikki-es", TestSupport.KaikkiFixture));
+            var imported = Run("import-lexicon", TestSupport.KaikkiFixture, bundle.PathOf("lexicon/wiktionary.json"), "--sidecar", bundle.PathOf("lexicon/wiktionary.source.json"), "--sources", sources);
+            Assert.Equal(Program.ExitOk, imported.Code);
+        }
+        finally
+        {
+            Directory.Delete(sourcesDirectory, recursive: true);
+        }
+
         bundle.Edit(
             "provenance.json",
             "{ \"path\": \"lexicon/seed.json\", ",
-            "{ \"path\": \"lexicon/wiktionary.json\", \"generatedBy\": \"wiktionary-import\", \"approvedBy\": null, \"approvedOn\": null },\n    { \"path\": \"lexicon/seed.json\", ");
+            "{ \"path\": \"lexicon/wiktionary.json\", \"generatedBy\": \"wiktionary-import\", \"approvedBy\": null, \"approvedOn\": null },\n    { \"path\": \"lexicon/wiktionary.source.json\", \"generatedBy\": \"wiktionary-import\", \"approvedBy\": null, \"approvedOn\": null },\n    { \"path\": \"lexicon/seed.json\", ");
 
         Assert.Equal(Program.ExitOk, Run("hash", bundle.Directory).Code);
         var (code, _, error) = Run("validate", bundle.Directory);
@@ -275,6 +286,7 @@ public class ProgramTests
         var loaded = ContentLoader.Load(bundle.Directory);
         Assert.True(loaded.Lexicon.Entries.Count >= TestSupport.Bundle.Lexicon.Entries.Count);
         Assert.Contains(loaded.Provenance.Items, item => item.GeneratedBy == GeneratedByKinds.WiktionaryImport && item.Path == "lexicon/wiktionary.json");
+        Assert.Contains("lexicon/wiktionary.source.json", loaded.LexiconSources.Keys);
     }
 
     [Fact]

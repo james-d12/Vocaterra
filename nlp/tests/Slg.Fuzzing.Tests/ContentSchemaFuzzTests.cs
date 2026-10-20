@@ -19,6 +19,14 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
 
     private static readonly PipelineHarness Harness = PipelineHarness.Shared;
 
+    // Every iteration writes, hashes and loads a whole copy of the bundle in a directory of its own, and the imported lexicon makes that a few
+    // hundred milliseconds; the iterations share nothing, so a few of them run at the same time.
+    private static readonly int Threads = Math.Clamp(Environment.ProcessorCount / 2, 1, 4);
+
+    // Almost every damaged copy has the lexicon files of the committed bundle byte for byte (the damage is elsewhere), so the merged lexicon is parsed once.
+    // A copy whose lexicon file is damaged has other bytes and is parsed and checked in full; nothing is served from the cache for it.
+    private static readonly ContentLoadOptions LoadOptions = new() { LexiconCache = new LexiconCache() };
+
     [Fact]
     public void MutatedBundles_AreRejectedWithContentValidationExceptions_NamingTheMutatedFile()
     {
@@ -41,7 +49,7 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
             },
             writeLine: output.WriteLine,
             iter: iterations,
-            threads: 1);
+            threads: Threads);
 
         output.WriteLine("Content mutation diagnostics:\n" + diagnostics.Report());
         var minimum = Math.Max(1, Math.Min(15, iterations / 30));
@@ -63,7 +71,7 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
         var directory = catalog.Materialize(null);
         try
         {
-            var bundle = ContentLoader.Load(directory);
+            var bundle = ContentLoader.Load(directory, LoadOptions);
             Assert.Equal(Harness.Bundle.ContentHash, bundle.ContentHash);
             Assert.Equal(Harness.Bundle.Manifest.BundleHash, ContentManifest.Compute(directory).BundleHash);
             Assert.Equal(catalog.Files.Count(static f => f != "manifest.json"), bundle.Manifest.Files.Count);
@@ -83,7 +91,7 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
 
         try
         {
-            _ = ContentLoader.Load(directory);
+            _ = ContentLoader.Load(directory, LoadOptions);
         }
         catch (ContentValidationException ex)
         {

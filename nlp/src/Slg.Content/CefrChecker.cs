@@ -152,7 +152,9 @@ public static class CefrChecker
                     }
                     else
                     {
-                        Note(missing, readings[0].Lemma, true, variant.LineId);
+                        // A word with several readings is listed under the lemma that is spelled like the word when there is one (oro, not orar), else under the first.
+                        var label = readings.FirstOrDefault(reading => string.Equals(reading.Lemma, token.Token.Text, StringComparison.Ordinal)) ?? readings[0];
+                        Note(missing, label.Lemma, true, variant.LineId);
                     }
                 }
             }

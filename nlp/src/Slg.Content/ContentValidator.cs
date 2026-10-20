@@ -84,6 +84,31 @@ internal static class ContentValidator
                 problems.Add($"{ContentPaths.Provenance}: no provenance item for '{path}'.");
             }
         }
+
+        ValidateLexiconProvenance(parts, files, provenance, problems);
+    }
+
+    // A lexicon file marks its own origin with "generated_by"; the mark and provenance.json must tell the same story, and every imported file
+    // carries the sidecar that makes the import reproducible.
+    private static void ValidateLexiconProvenance(LoadedParts parts, BundleFiles files, ContentProvenance provenance, List<string> problems)
+    {
+        var declared = provenance.Items
+            .GroupBy(static item => item.Path, StringComparer.Ordinal)
+            .ToDictionary(static group => group.Key, static group => group.First().GeneratedBy, StringComparer.Ordinal);
+        foreach (var (path, marker) in parts.LexiconGeneratedBy)
+        {
+            var imported = string.Equals(marker, GeneratedByKinds.WiktionaryImport, StringComparison.Ordinal);
+            var declaredImport = declared.TryGetValue(path, out var kind) && string.Equals(kind, GeneratedByKinds.WiktionaryImport, StringComparison.Ordinal);
+            if (imported != declaredImport)
+            {
+                problems.Add($"{path}: generated_by is '{marker ?? "(none)"}' but {ContentPaths.Provenance} says '{(declared.TryGetValue(path, out var said) ? said : "(no item)")}'; an imported lexicon must be marked '{GeneratedByKinds.WiktionaryImport}' in both places.");
+            }
+
+            if (imported && !files.Contains(path[..^".json".Length] + LexiconSourceInfo.FileSuffix))
+            {
+                problems.Add($"{path}: an imported lexicon needs its sidecar '{LexiconSourceInfo.SidecarNameFor(Path.GetFileName(path))}' (source URLs, hashes, importer version).");
+            }
+        }
     }
 
     private static void ValidateAttribution(LoadedParts parts, BundleFiles files, List<string> problems)
