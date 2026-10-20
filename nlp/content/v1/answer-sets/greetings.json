@@ -1,0 +1,35 @@
+{
+  "answerSetId": "greetings",
+  "answers": [
+    {
+      "answerId": "hello",
+      "canonical": "hola",
+      "aliases": ["hola amigo", "hola buenas", "buenas"],
+      "dialects": ["es-ES", "es-MX", "es-AR"]
+    },
+    {
+      "answerId": "good-morning",
+      "canonical": "buenos días",
+      "aliases": ["muy buenos días", "buen día"],
+      "dialects": ["es-ES", "es-MX", "es-AR"]
+    },
+    {
+      "answerId": "good-afternoon",
+      "canonical": "buenas tardes",
+      "aliases": ["muy buenas tardes"],
+      "dialects": ["es-ES", "es-MX", "es-AR"]
+    },
+    {
+      "answerId": "good-evening",
+      "canonical": "buenas noches",
+      "aliases": ["muy buenas noches"],
+      "dialects": ["es-ES", "es-MX", "es-AR"]
+    },
+    {
+      "answerId": "how-are-you",
+      "canonical": "qué tal",
+      "aliases": ["cómo estás", "cómo está usted", "qué onda", "qué hubo"],
+      "dialects": ["es-ES", "es-MX", "es-CO"]
+    }
+  ]
+}
