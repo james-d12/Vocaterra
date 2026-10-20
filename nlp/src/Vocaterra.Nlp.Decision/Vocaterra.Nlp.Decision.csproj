@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <Description>Learner model (BKT and FSRS scheduling), feedback policy and the conversation agent state machine of the Vocaterra.NLP language core.</Description>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="../Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
   </ItemGroup>

@@ -24,7 +24,7 @@
     <ProjectReference Include="../../src/Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
     <ProjectReference Include="../../src/Vocaterra.Nlp.Decision/Vocaterra.Nlp.Decision.csproj" />
     <ProjectReference Include="../../src/Vocaterra.Nlp.Evaluation/Vocaterra.Nlp.Evaluation.csproj" />
-    <ProjectReference Include="../../src/Vocaterra.Nlp.Nlp/Vocaterra.Nlp.Nlp.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Language/Vocaterra.Nlp.Language.csproj" />
     <ProjectReference Include="../../src/Vocaterra.Nlp.Phonology/Vocaterra.Nlp.Phonology.csproj" />
     <ProjectReference Include="../../src/Vocaterra.Nlp.Pipeline/Vocaterra.Nlp.Pipeline.csproj" />
     <ProjectReference Include="../../src/Vocaterra.Nlp.Pronunciation/Vocaterra.Nlp.Pronunciation.csproj" />

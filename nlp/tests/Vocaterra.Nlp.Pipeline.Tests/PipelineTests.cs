@@ -9,7 +9,7 @@ using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.Feedback;
 using Vocaterra.Nlp.Decision.Scheduling;
-using Vocaterra.Nlp.Nlp.Intent;
+using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Pronunciation;
 
 namespace Vocaterra.Nlp.Pipeline.Tests;

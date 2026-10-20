@@ -1,10 +1,10 @@
 using System.Globalization;
 using System.Text;
-using Vocaterra.Nlp.Nlp.Analysis;
-using Vocaterra.Nlp.Nlp.Lexicon;
-using Vocaterra.Nlp.Nlp.Normalization;
+using Vocaterra.Nlp.Language.Analysis;
+using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Response.Templates;
-using NlpLexicon = Vocaterra.Nlp.Nlp.Lexicon.Lexicon;
+using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Content;
 

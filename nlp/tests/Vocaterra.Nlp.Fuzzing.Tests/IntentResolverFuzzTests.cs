@@ -5,8 +5,8 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
-using Vocaterra.Nlp.Nlp.Intent;
-using Vocaterra.Nlp.Nlp.SlotGrammar;
+using Vocaterra.Nlp.Language.Intent;
+using Vocaterra.Nlp.Language.SlotGrammar;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests;

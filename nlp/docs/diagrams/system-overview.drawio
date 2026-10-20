@@ -94,7 +94,7 @@
         <mxCell id="pron-gop" value="&lt;b&gt;CTC forced alignment and GOP&lt;/b&gt;&lt;br&gt;per-phone scores, pron.* error tags (D0)" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#eaf1fb;strokeColor=#6c8ebf;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="grp-pron">
           <mxGeometry x="10" y="92" width="270" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="lane-eval" value="3 · Evaluation · Vocaterra.Nlp.Nlp · D0 rules, cheapest first, one D1 rung" style="swimlane;startSize=28;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#eef0f3;strokeColor=#9aa3ad;swimlaneFillColor=#fbfcfd;strokeWidth=1.5;rounded=0;" vertex="1" parent="1">
+        <mxCell id="lane-eval" value="3 · Evaluation · Vocaterra.Nlp.Language · D0 rules, cheapest first, one D1 rung" style="swimlane;startSize=28;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#eef0f3;strokeColor=#9aa3ad;swimlaneFillColor=#fbfcfd;strokeWidth=1.5;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="460" y="485" width="1000" height="145" as="geometry" />
         </mxCell>
         <mxCell id="ev-norm" value="&lt;b&gt;Text normalizer&lt;/b&gt;&lt;br&gt;NFC, lowercase, number words, punctuation" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#eaf1fb;strokeColor=#6c8ebf;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-eval">

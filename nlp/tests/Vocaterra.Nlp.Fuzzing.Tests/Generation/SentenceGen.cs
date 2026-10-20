@@ -1,8 +1,8 @@
 using CsCheck;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
-using Vocaterra.Nlp.Nlp.Lexicon;
-using SlotGrammarType = Vocaterra.Nlp.Nlp.SlotGrammar.SlotGrammar;
+using Vocaterra.Nlp.Language.Lexicon;
+using SlotGrammarType = Vocaterra.Nlp.Language.SlotGrammar.SlotGrammar;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 

@@ -14,15 +14,15 @@ using Vocaterra.Nlp.Decision.Scheduling;
 using Vocaterra.Nlp.Evaluation;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
-using Vocaterra.Nlp.Nlp.Analysis;
-using Vocaterra.Nlp.Nlp.Intent;
-using Vocaterra.Nlp.Nlp.Matching;
-using Vocaterra.Nlp.Nlp.Normalization;
+using Vocaterra.Nlp.Language.Analysis;
+using Vocaterra.Nlp.Language.Intent;
+using Vocaterra.Nlp.Language.Matching;
+using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Phonology;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Pronunciation;
 using Xunit.Abstractions;
-using SlotGrammarType = Vocaterra.Nlp.Nlp.SlotGrammar.SlotGrammar;
+using SlotGrammarType = Vocaterra.Nlp.Language.SlotGrammar.SlotGrammar;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests;
 

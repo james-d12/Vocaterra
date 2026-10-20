@@ -7,19 +7,19 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
-using Vocaterra.Nlp.Nlp.Analysis;
-using Vocaterra.Nlp.Nlp.Embeddings;
-using Vocaterra.Nlp.Nlp.Intent;
-using Vocaterra.Nlp.Nlp.Matching;
-using Vocaterra.Nlp.Nlp.Morphology;
-using Vocaterra.Nlp.Nlp.Normalization;
-using Vocaterra.Nlp.Nlp.SlotGrammar;
+using Vocaterra.Nlp.Language.Analysis;
+using Vocaterra.Nlp.Language.Embeddings;
+using Vocaterra.Nlp.Language.Intent;
+using Vocaterra.Nlp.Language.Matching;
+using Vocaterra.Nlp.Language.Morphology;
+using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Phonology;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Pronunciation;
 using Vocaterra.Nlp.Response.Speech;
 using Vocaterra.Nlp.Response.Templates;
-using NlpLexicon = Vocaterra.Nlp.Nlp.Lexicon.Lexicon;
+using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 

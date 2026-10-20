@@ -4,7 +4,7 @@ using CsCheck;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
-using Vocaterra.Nlp.Nlp.Normalization;
+using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Response.Templates;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;

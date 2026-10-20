@@ -1,5 +1,5 @@
-using Vocaterra.Nlp.Nlp.Lexicon;
-using NlpLexicon = Vocaterra.Nlp.Nlp.Lexicon.Lexicon;
+using Vocaterra.Nlp.Language.Lexicon;
+using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Content.Tests;
 

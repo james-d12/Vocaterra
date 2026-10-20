@@ -4,14 +4,14 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Evaluation;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
-using Vocaterra.Nlp.Nlp.Intent;
-using Vocaterra.Nlp.Nlp.Lexicon;
-using Vocaterra.Nlp.Nlp.Matching;
+using Vocaterra.Nlp.Language.Intent;
+using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Response.Effects;
 using Vocaterra.Nlp.Response.Templates;
 using Xunit.Abstractions;
-using NlpLexicon = Vocaterra.Nlp.Nlp.Lexicon.Lexicon;
+using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests;
 

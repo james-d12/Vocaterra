@@ -1,10 +1,10 @@
 using System.Text;
-using Vocaterra.Nlp.Nlp.Intent;
-using SlotGrammarType = Vocaterra.Nlp.Nlp.SlotGrammar.SlotGrammar;
+using Vocaterra.Nlp.Language.Intent;
+using SlotGrammarType = Vocaterra.Nlp.Language.SlotGrammar.SlotGrammar;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 
-/// <summary>A node of a slot grammar pattern as the generators see it; the compiled form in <c>Vocaterra.Nlp.Nlp</c> is internal.</summary>
+/// <summary>A node of a slot grammar pattern as the generators see it; the compiled form in <c>Vocaterra.Nlp.Language</c> is internal.</summary>
 public abstract record PatternNode;
 
 /// <summary>A literal word.</summary>

@@ -13,20 +13,41 @@
     <RootNamespace Condition="'$(RootNamespace)' == ''">$(MSBuildProjectName)</RootNamespace>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Only the library projects under src/ are packed (see the src group below); tests, tools and samples are never packages. -->
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <!-- Package metadata shared by the libraries. The version is 0.1.0 until the first publish (docs/PACKAGING.md). No licence is named: the
+       licence is not chosen yet (docs/DECISIONS.md D3), so do not add PackageLicenseExpression or PackageLicenseFile without the owner's decision. -->
+  <PropertyGroup>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <Authors>james-d12</Authors>
+    <PackageProjectUrl>https://github.com/james-d12/Vocaterra.NLP</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/james-d12/Vocaterra.NLP</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>spanish;language-learning;speech;pronunciation;nlp;vocaterra</PackageTags>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <!-- Deterministic (above) and, in CI, ContinuousIntegrationBuild make the packages reproducible from the same commit. -->
   <PropertyGroup Condition="'$(CI)' != ''">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
-  <!-- Library projects under src/ ship XML docs and expose internals to their test project. -->
+  <!-- Library projects under src/ ship XML docs, expose internals to their test project and are the packages. The package id is the project name. -->
   <PropertyGroup Condition="$(MSBuildProjectDirectory.StartsWith('$(MSBuildThisFileDirectory)src$(MSBuildDirectorySeparatorChar)'))">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <PackageId>$(MSBuildProjectName)</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <!-- MSBuildProjectName, not AssemblyName: AssemblyName is not yet defined while this file is evaluated. -->
   <ItemGroup Condition="$(MSBuildProjectDirectory.StartsWith('$(MSBuildThisFileDirectory)src$(MSBuildDirectorySeparatorChar)'))">
     <InternalsVisibleTo Include="$(MSBuildProjectName).Tests" />
+    <!-- One README for every package, shipped at the root of each as README.md. -->
+    <None Include="$(MSBuildThisFileDirectory)docs/PACKAGE_README.md" Pack="true" PackagePath="README.md" />
   </ItemGroup>
 
 </Project>

@@ -38,7 +38,7 @@ happens to one utterance, [docs/adr/](docs/adr/) for why the rules exist, and `I
    dotnet format --verify-no-changes
    ```
 
-   `dotnet test tests/Vocaterra.Nlp.Nlp.Tests` runs one project; add `--filter "FullyQualifiedName~LinguisticAnalyzer"` for one class.
+   `dotnet test tests/Vocaterra.Nlp.Language.Tests` runs one project; add `--filter "FullyQualifiedName~LinguisticAnalyzer"` for one class.
    `dotnet format` (without `--verify-no-changes`) fixes formatting.
 
 3. Models are optional. Without them the real-model tests are skipped, not failed. To run them:
@@ -119,7 +119,7 @@ Before you ask for review, in this order, from a clean tree:
 in [docs/FUZZING_PLAN.md](docs/FUZZING_PLAN.md); the oracles, the bugs found so far and the known findings are in
 [tests/Vocaterra.Nlp.Fuzzing.Tests/README.md](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md).
 
-- Before you open a pull request that touches `Vocaterra.Nlp.Nlp`, `Vocaterra.Nlp.Evaluation`, `Vocaterra.Nlp.Response`, `Vocaterra.Nlp.Audio`, `Vocaterra.Nlp.Phonology`,
+- Before you open a pull request that touches `Vocaterra.Nlp.Language`, `Vocaterra.Nlp.Evaluation`, `Vocaterra.Nlp.Response`, `Vocaterra.Nlp.Audio`, `Vocaterra.Nlp.Phonology`,
   `Vocaterra.Nlp.Pronunciation`, `Vocaterra.Nlp.Decision`, `Vocaterra.Nlp.Content` or `Vocaterra.Nlp.Pipeline`, run `dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests`.
 - A bug the fuzzer finds is fixed in the owning module, with a regression test in that module's test project. List the bug with its
   CsCheck seed in the "Bugs found and fixed" section of the fuzz README.
@@ -138,12 +138,12 @@ the dialogue and the learner model. Add it in this order:
    Update `tests/Vocaterra.Nlp.Core.Tests/ErrorTagsTests.cs` (it pins the count and the order) and the taxonomy table in `HIGH_LEVEL_DOCS.md`.
    This is a change to `Vocaterra.Nlp.Core`: agree it with a maintainer first.
 2. **Analyzer.** Produce the tag where the error is detected, with the span in the normalized text and the expected form:
-   - grammar and vocabulary tags: `src/Vocaterra.Nlp.Nlp/Analysis/AgreementChecker.cs` (agreement rules) or `LinguisticAnalyzer.cs`; the
+   - grammar and vocabulary tags: `src/Vocaterra.Nlp.Language/Analysis/AgreementChecker.cs` (agreement rules) or `LinguisticAnalyzer.cs`; the
      expected form comes from `MorphologyGenerator`, never a hard-coded string;
    - pronunciation tags: a predicted variant in `src/Vocaterra.Nlp.Phonology/PredictedErrorVariants.cs` and its matching in
      `src/Vocaterra.Nlp.Pronunciation/PredictedErrorMatcher.cs`.
 
-   Add one positive and one negative test (`tests/Vocaterra.Nlp.Nlp.Tests/Analysis`, `tests/Vocaterra.Nlp.Phonology.Tests`, `tests/Vocaterra.Nlp.Pronunciation.Tests`).
+   Add one positive and one negative test (`tests/Vocaterra.Nlp.Language.Tests/Analysis`, `tests/Vocaterra.Nlp.Phonology.Tests`, `tests/Vocaterra.Nlp.Pronunciation.Tests`).
 3. **Evaluation weights.** Add the tag to `errorWeights` for `beginner`, `intermediate` and `advanced` in
    `content/v1/evaluation/evaluation-config.json` (pronunciation tags are 0 today, so they do not reduce `correctness`), and to the
    built-in defaults in `src/Vocaterra.Nlp.Evaluation/EvaluationConfig.cs`. A grammar tag missing from the map costs `unknownTagWeight` (0.3);
@@ -248,7 +248,7 @@ hash and gated in tests ([ADR 0004](docs/adr/0004-model-pinning-and-gating.md)).
    `ISpeechSynthesizer`. Configure it for determinism: one intra-op thread, CPU execution provider, greedy decoding or a fixed
    voice and speed, no sampling, no clock. Expose `ModelHash`. If the runtime has its own sources of variation, remove them as
    `VoskWordRecognizer` does for dithering, and write the finding down (`IMPLEMENTATION_PLAN.md` section 5b). Put the adapter in the
-   project that owns the role (`Vocaterra.Nlp.Asr`, `Vocaterra.Nlp.Pronunciation`, `Vocaterra.Nlp.Nlp`, `Vocaterra.Nlp.Response`).
+   project that owns the role (`Vocaterra.Nlp.Asr`, `Vocaterra.Nlp.Pronunciation`, `Vocaterra.Nlp.Language`, `Vocaterra.Nlp.Response`).
 2. **Fake.** Add or extend a deterministic fake for the same interface (`ScriptedWordRecognizer`, `FakePhonemeRecognizer`,
    `FakeEmbeddingModel`, `SilentSynthesizer` are the patterns). Everything else in the test suite uses the fake.
 3. **Manifest entry** in `models/manifest.json`: `id` (also the directory name under `VOCATERRA_MODELS_DIR`), `role`, `name`, `version`,
@@ -278,7 +278,7 @@ hash and gated in tests ([ADR 0004](docs/adr/0004-model-pinning-and-gating.md)).
   normalize text for agreement checks, `[ART]` grammar tokens or answer matching, pass `new NormalizationOptions(ConvertIndefiniteArticles: false)`.
 - `System.IO.MatchType` collides with `Vocaterra.Nlp.Core.Stages.MatchType` under implicit usings: add
   `using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;`.
-- Inside `Vocaterra.Nlp.Nlp.*` the namespaces `Vocaterra.Nlp.Nlp.Lexicon` and `Vocaterra.Nlp.Nlp.SlotGrammar` share names with the types `Lexicon` and `SlotGrammar`;
+- Inside `Vocaterra.Nlp.Language.*` the namespaces `Vocaterra.Nlp.Language.Lexicon` and `Vocaterra.Nlp.Language.SlotGrammar` share names with the types `Lexicon` and `SlotGrammar`;
   put `using` lines after the file-scoped namespace line or use aliases.
 - The G2P drops digits. Spell numbers out before phonemizing (`SpanishNumbers.DigitsToWords`).
 - `CanonicalJson` rejects `null` for non-nullable members when reading (`RespectNullableAnnotations`); design JSON models with that in mind.

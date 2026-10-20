@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 using Vocaterra.Nlp.Response.Templates;
-using NlpLexicon = Vocaterra.Nlp.Nlp.Lexicon.Lexicon;
+using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Content.Tests;
 

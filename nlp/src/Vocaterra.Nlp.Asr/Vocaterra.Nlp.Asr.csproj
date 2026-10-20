@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <Description>Speech recognizer adapters for the Vocaterra.NLP language core: constrained Vosk, open sherpa-onnx, and scripted and replay recognizers for hosts without models.</Description>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="../Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
   </ItemGroup>

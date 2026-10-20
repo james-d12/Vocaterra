@@ -1,8 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <Description>Response templates, recasts, speech synthesis adapters and the effect resolver of the Vocaterra.NLP language core.</Description>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="../Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
-    <ProjectReference Include="../Vocaterra.Nlp.Nlp/Vocaterra.Nlp.Nlp.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Language/Vocaterra.Nlp.Language.csproj" />
     <ProjectReference Include="../Vocaterra.Nlp.Phonology/Vocaterra.Nlp.Phonology.csproj" />
   </ItemGroup>
 

@@ -4,7 +4,7 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Replay;
 using Vocaterra.Nlp.Core.Stages;
-using Vocaterra.Nlp.Nlp.Intent;
+using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Response.Effects;
 using Vocaterra.Nlp.Response.Templates;
 

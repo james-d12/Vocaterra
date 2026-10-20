@@ -1,8 +1,8 @@
 using System.Globalization;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
-using Vocaterra.Nlp.Nlp.Normalization;
-using NlpLexicon = Vocaterra.Nlp.Nlp.Lexicon.Lexicon;
+using Vocaterra.Nlp.Language.Normalization;
+using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Response.Templates;
 

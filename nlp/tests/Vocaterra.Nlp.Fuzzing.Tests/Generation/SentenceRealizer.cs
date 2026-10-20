@@ -1,9 +1,9 @@
 using System.Globalization;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Stages;
-using Vocaterra.Nlp.Nlp.Lexicon;
-using Vocaterra.Nlp.Nlp.Morphology;
-using Vocaterra.Nlp.Nlp.Normalization;
+using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Morphology;
+using Vocaterra.Nlp.Language.Normalization;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 

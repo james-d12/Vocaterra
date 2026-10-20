@@ -9,7 +9,7 @@ using Vocaterra.Nlp.Phonology;
 using Vocaterra.Nlp.Pronunciation;
 using Vocaterra.Nlp.Response.Templates;
 using Xunit.Sdk;
-using SlotGrammarType = Vocaterra.Nlp.Nlp.SlotGrammar.SlotGrammar;
+using SlotGrammarType = Vocaterra.Nlp.Language.SlotGrammar.SlotGrammar;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests;
 

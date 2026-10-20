@@ -5,7 +5,8 @@ using Vocaterra.Nlp.Content;
 namespace Vocaterra.Nlp.ContentBuilder;
 
 /// <summary>
-/// Entry point of the build-time content tool. Commands: <c>validate</c>, <c>hash</c>, <c>cefr-check</c>, <c>import-lexicon</c>, <c>lexicon-report</c>.
+/// Entry point of the build-time content tool. Commands: <c>validate</c>, <c>hash</c>, <c>pack</c>, <c>verify-pack</c>, <c>cefr-check</c>,
+/// <c>import-lexicon</c>, <c>lexicon-report</c>.
 /// Exit codes: 0 success, 1 the content or input is invalid, 2 the command line is wrong.
 /// </summary>
 public static class Program
@@ -27,6 +28,10 @@ public static class Program
           validate <bundleDir>                               verify hashes and cross-references; exit 1 with the problem list
           hash <bundleDir> [--bundle-id ID] [--content-version V]
                                                              rewrite manifest.json from the files on disk
+          pack <bundleDir> <out.zip>                         validate the bundle, then write it as a zip and <out.zip>.sha256 holding the
+                                                             bundle hash; nothing is written for an invalid bundle
+          verify-pack <zip>                                  extract the archive to a temporary folder, validate it there and compare its
+                                                             bundle hash with <zip>.sha256
           cefr-check <bundleDir> --level a1|a2               list dialogue-template lemmas missing from the CEFR list
           import-lexicon <kaikki.jsonl> <out.json> [--max N] [--frequency <es_50k.txt> [--top N]] [--hand-authored <dir|a.json,b.json>]
                                                              [--sidecar <out.source.json> [--sources <sources.json>]]
@@ -77,6 +82,8 @@ public static class Program
             {
                 "validate" => Validate(new ArgumentList(args, 1, []), output, error),
                 "hash" => Hash(new ArgumentList(args, 1, ["--bundle-id", "--content-version"]), output),
+                "pack" => Pack(new ArgumentList(args, 1, []), output, error),
+                "verify-pack" => VerifyPack(new ArgumentList(args, 1, []), output, error),
                 "cefr-check" => CefrCheck(new ArgumentList(args, 1, ["--level"]), output, error),
                 "import-lexicon" => ImportLexicon(new ArgumentList(args, 1, ["--max", "--frequency", "--top", "--sidecar", "--sources", "--hand-authored"]), output, error),
                 "lexicon-report" => LexiconReportCommand(new ArgumentList(args, 1, []), output, error),
@@ -123,6 +130,40 @@ public static class Program
             CultureInfo.InvariantCulture,
             $"wrote {ContentPaths.Manifest}: {manifest.Files.Count} files, hash {manifest.BundleHash}"));
         return ExitOk;
+    }
+
+    private static int Pack(ArgumentList arguments, TextWriter output, TextWriter error)
+    {
+        var dir = arguments.Positional(0, "bundleDir", exactly: 2);
+        var archive = arguments.Positional(1, "out.zip", exactly: 2);
+        try
+        {
+            var (hash, files) = BundlePack.Pack(dir, archive);
+            output.WriteLine(string.Create(CultureInfo.InvariantCulture, $"packed {files} files into {archive}, bundle hash {hash}"));
+            output.WriteLine(string.Create(CultureInfo.InvariantCulture, $"wrote {archive}{BundlePack.SidecarSuffix}"));
+            return ExitOk;
+        }
+        catch (ContentValidationException ex)
+        {
+            error.WriteLine(ex.Message);
+            return ExitInvalid;
+        }
+    }
+
+    private static int VerifyPack(ArgumentList arguments, TextWriter output, TextWriter error)
+    {
+        var archive = arguments.Positional(0, "zip", exactly: 1);
+        try
+        {
+            var (hash, files) = BundlePack.Verify(archive);
+            output.WriteLine(string.Create(CultureInfo.InvariantCulture, $"OK: {archive} holds {files} entries, bundle hash {hash}"));
+            return ExitOk;
+        }
+        catch (Exception ex) when (ex is ContentValidationException or BundlePackException)
+        {
+            error.WriteLine(ex.Message);
+            return ExitInvalid;
+        }
     }
 
     private static int CefrCheck(ArgumentList arguments, TextWriter output, TextWriter error)

@@ -3,7 +3,8 @@
 This is what a host calls, in order, to evaluate a learner's utterance and act on the result: load a content bundle, build the services,
 build a pipeline, build a conversation context, evaluate an utterance, plan the response, and record and replay a log. The snippets compile
 against the renamed projects (`Vocaterra.Nlp.*`); they are the shape of the calls, not a complete program. The boundary they respect is in
-[ADR 0009](adr/0009-core-and-game-boundary.md).
+[ADR 0009](adr/0009-core-and-game-boundary.md). The sample host (`samples/HostConsole`, run by `scripts/sample-host.sh`) makes the calls of
+sections 1 to 5 against the packages and checks their results; [PACKAGING.md](PACKAGING.md) describes it.
 
 Every step is tagged with its determinism tier. **D0** is plain code with fixed-order math: rules, matching, verdict assembly, the agent
 state machine, the feedback policy and the response templates. **D1** is a frozen model behind a core interface (speech recognition,
@@ -31,7 +32,7 @@ Console.WriteLine(bundle.ContentHash);                      // the bundle hash, 
 using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
-using Vocaterra.Nlp.Nlp.Embeddings;
+using Vocaterra.Nlp.Language.Embeddings;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Response.Speech;
 
@@ -52,7 +53,7 @@ each file against `models/manifest.json`; an adapter that is not pinned is refus
 ```csharp
 using Vocaterra.Nlp.Asr.Models;
 using Vocaterra.Nlp.Core.Stages;
-using Vocaterra.Nlp.Nlp.Embeddings;
+using Vocaterra.Nlp.Language.Embeddings;
 using Vocaterra.Nlp.Pronunciation;
 using Vocaterra.Nlp.Response.Speech;
 
@@ -121,7 +122,7 @@ normalized text, the expected form and what was heard. A host gates its own reac
 `Evaluate` also plans the response: the agent's lines, the effects the verdict triggers and an optional repair step.
 
 ```csharp
-using Vocaterra.Nlp.Nlp.Intent;
+using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Response.Effects;
 
 foreach (var line in result.Response.Lines)
