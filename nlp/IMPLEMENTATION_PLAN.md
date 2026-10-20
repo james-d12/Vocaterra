@@ -788,7 +788,7 @@ the split's M19a–c):
 M18 (in progress) is kept: its resolver seam and regression tests are what M20 plugs into, and it
 removes the two false positives from `main` now.
 
-### 9.1 Owner decisions raised by the report (with its recommendations)
+### 9.1 Owner decisions raised by the report (with its recommendations; tracked in `docs/DECISIONS.md`)
 - Online or offline: offline-capable core with the online tutor optional.
 - Determinism: relax "N forbidden in core" and bit-identical cross-platform goldens to
   "replay-exact" (seeded RNG, stored time and hashing stay); write it up as ADR 0010.

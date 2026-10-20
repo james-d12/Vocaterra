@@ -501,6 +501,8 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 - [docs/PIPELINE.md](docs/PIPELINE.md): the pipeline stage by stage, with the worked example and the CLI's verdict
 - [docs/REPLAY.md](docs/REPLAY.md): replay log and envelope format, with a real example
 - [docs/CLI_EXAMPLES.md](docs/CLI_EXAMPLES.md): more worked runs of the demo CLI: the other intents and error tags, the repair ladder and a replay log
+- [docs/DECISIONS.md](docs/DECISIONS.md): the register of open owner decisions, with context and recommendations
+- [docs/research/SCALING_APPROACHES.md](docs/research/SCALING_APPROACHES.md): research on scaling the core with existing NLP, speech and model components
 - [docs/FUZZING_PLAN.md](docs/FUZZING_PLAN.md): the fuzz testing design, its generators, oracles O1 to O16 and iteration budgets
 - [tests/Slg.Fuzzing.Tests/README.md](tests/Slg.Fuzzing.Tests/README.md): the fuzz suite, how to run and soak it, its oracles, the bugs it found and the known findings
 - [docs/LEXICON.md](docs/LEXICON.md): the lexicon files, the Wiktionary and frequency-list sources with hashes and licences, how to fetch and regenerate, the merge policy, measurements
