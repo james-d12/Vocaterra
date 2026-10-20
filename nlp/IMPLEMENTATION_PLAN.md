@@ -464,9 +464,11 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   `difficulty`, evaluation thresholds, feedback `type`, effect curve points) default silently instead
   of failing validation. Listed in `KnownTolerances.AcceptedContentField`. Follow-up: require them or
   make the defaults explicit in the schema.
-- **Replayer coverage (M16b):** the replayer does not compare `result/verdict` or `result/replay`, and
-  reads `promptId` and the phoneme model hash back as inputs; O14 replay sensitivity covers only the
-  compared outputs. Follow-up: compare the verdict, since that is the determinism guarantee users rely on.
+- **Replayer coverage (M16b):** the replayer compares the core record (including `/verdict`) and the
+  downstream decision and response, but not the envelope's duplicate `result/verdict` and `result/replay`
+  copies, and it reads `promptId` and the phoneme model hash back as inputs rather than checking them.
+  O14 replay sensitivity covers the compared paths only. Minor; a consistency check on the copies is a
+  follow-up.
 - **Resampler (M16b):** kernels are rebuilt on every call; a WAV header claiming 1 Hz makes the
   front-end throw `OverflowException` on a large clip and a header claiming 2 GHz costs about 2 s.
   Follow-up: validate the sample-rate range in `WavFile.Read`.
