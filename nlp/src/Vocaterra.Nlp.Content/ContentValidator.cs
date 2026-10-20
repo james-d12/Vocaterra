@@ -286,7 +286,7 @@ internal static class ContentValidator
             return;
         }
 
-        var engine = new TemplateEngine(parts.Lexicon, new Vocaterra.Nlp.Nlp.Morphology.MorphologyGenerator(parts.Lexicon));
+        var engine = new TemplateEngine(parts.Lexicon, new Vocaterra.Nlp.Language.Morphology.MorphologyGenerator(parts.Lexicon));
         foreach (var pair in dialogue.Pools)
         {
             foreach (var variant in pair.Value.Variants)

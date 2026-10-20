@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Vocaterra.Nlp.Content;
-using Vocaterra.Nlp.Nlp.Lexicon;
+using Vocaterra.Nlp.Language.Lexicon;
 
 namespace Vocaterra.Nlp.ContentBuilder;
 

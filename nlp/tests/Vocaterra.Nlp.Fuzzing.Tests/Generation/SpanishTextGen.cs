@@ -2,8 +2,8 @@ using System.Globalization;
 using System.Text;
 using CsCheck;
 using Vocaterra.Nlp.Core.Determinism;
-using Vocaterra.Nlp.Nlp.Lexicon;
-using Vocaterra.Nlp.Nlp.Normalization;
+using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Normalization;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 

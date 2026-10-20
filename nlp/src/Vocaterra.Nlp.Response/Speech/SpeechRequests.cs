@@ -1,5 +1,5 @@
 using Vocaterra.Nlp.Core.Stages;
-using Vocaterra.Nlp.Nlp.Normalization;
+using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Phonology;
 
 namespace Vocaterra.Nlp.Response.Speech;

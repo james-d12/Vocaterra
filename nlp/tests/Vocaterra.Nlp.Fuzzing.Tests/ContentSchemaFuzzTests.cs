@@ -8,10 +8,11 @@ namespace Vocaterra.Nlp.Fuzzing.Tests;
 
 /// <summary>
 /// O15: content schema violations. A structurally damaged copy of <c>content/v1</c> (a property removed, a value of another JSON kind, a reference to
-/// an id that does not exist, an unknown enumeration value, a duplicated id, a flipped byte) makes <c>ContentLoader.Load</c> throw a
-/// <see cref="ContentValidationException"/> and nothing else, and the exception names the file that was damaged. Damage to a value the loader must
-/// read (a dangling reference, an unknown enumeration value, a duplicated id, a flipped byte) is never accepted; dropping or retyping a field the
-/// loader does not require may be, and is counted. A flipped byte changes the bundle hash. The unmutated bundle always loads.
+/// an id that does not exist, an unknown enumeration value, an emptied required string, a duplicated id, a flipped byte) makes
+/// <c>ContentLoader.Load</c> throw a <see cref="ContentValidationException"/> and nothing else, and the exception names the file that was damaged.
+/// Damage to a value the loader must read (a dangling reference, an unknown enumeration value, an empty required string, a duplicated id, a flipped
+/// byte) is never accepted; dropping or retyping a field the loader does not require may be, and is counted. A flipped byte changes the bundle hash.
+/// The unmutated bundle always loads.
 /// </summary>
 public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
 {
@@ -58,9 +59,37 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
             Assert.True(diagnostics.Sum($"{kind}:") >= minimum, $"The generator no longer reaches {kind}.\n{diagnostics.Report()}");
         }
 
-        foreach (var kind in new[] { ContentMutationKind.DanglingReference, ContentMutationKind.UnknownEnum, ContentMutationKind.DuplicateId, ContentMutationKind.FlipByte })
+        foreach (var kind in new[] { ContentMutationKind.DanglingReference, ContentMutationKind.UnknownEnum, ContentMutationKind.EmptyRequiredString, ContentMutationKind.DuplicateId, ContentMutationKind.FlipByte })
         {
             Assert.Equal(0, diagnostics.Get($"{kind}:accepted"));
+        }
+    }
+
+    // The empty-string mutation drawn at random above reaches these places only by chance; each required non-empty field is also checked on its own.
+    public static TheoryData<ContentMutation> EmptyRequiredFields()
+    {
+        return new TheoryData<ContentMutation>
+        {
+            new(ContentMutationKind.EmptyRequiredString, ContentPaths.Effects, ["effects", "0", "kind"], "\"\""),
+            new(ContentMutationKind.EmptyRequiredString, ContentPaths.Effects, ["effects", "0", "effectId"], "\"\""),
+            new(ContentMutationKind.EmptyRequiredString, ContentPaths.Effects, ["effects", "0", "intent"], "\"\""),
+            new(ContentMutationKind.EmptyRequiredString, ContentPaths.Prompts, ["0", "promptId"], "\"\""),
+        };
+    }
+
+    [Theory]
+    [MemberData(nameof(EmptyRequiredFields))]
+    public void AnEmptyRequiredString_IsRefused_NamingTheDamagedFile(ContentMutation mutation)
+    {
+        var directory = ContentMutationGen.Shared.Materialize(mutation);
+        try
+        {
+            var ex = Assert.Throws<ContentValidationException>(() => ContentLoader.Load(directory, LoadOptions));
+            Assert.Contains(ex.Problems, problem => problem.StartsWith(mutation.File + ":", StringComparison.Ordinal));
+        }
+        finally
+        {
+            DeleteQuietly(directory);
         }
     }
 

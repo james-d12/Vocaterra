@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.Audio", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.Phonology", "src\Vocaterra.Nlp.Phonology\Vocaterra.Nlp.Phonology.csproj", "{1CCD931A-A00D-4E9A-8203-0777DC0ECC42}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.Nlp", "src\Vocaterra.Nlp.Nlp\Vocaterra.Nlp.Nlp.csproj", "{E053BDCC-A850-4EEB-BF49-64ABA6F30953}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.Language", "src\Vocaterra.Nlp.Language\Vocaterra.Nlp.Language.csproj", "{E053BDCC-A850-4EEB-BF49-64ABA6F30953}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.Pronunciation", "src\Vocaterra.Nlp.Pronunciation\Vocaterra.Nlp.Pronunciation.csproj", "{6F9B23C7-A27A-4F92-B72A-5A3952F132DB}"
 EndProject
@@ -43,7 +43,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.Audio.Tests",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.Phonology.Tests", "tests\Vocaterra.Nlp.Phonology.Tests\Vocaterra.Nlp.Phonology.Tests.csproj", "{D359D6C5-3729-40DA-AE98-4ED9D7E4ED30}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.Nlp.Tests", "tests\Vocaterra.Nlp.Nlp.Tests\Vocaterra.Nlp.Nlp.Tests.csproj", "{45E04E44-745A-4272-A647-414A9CDE9AFF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.Language.Tests", "tests\Vocaterra.Nlp.Language.Tests\Vocaterra.Nlp.Language.Tests.csproj", "{45E04E44-745A-4272-A647-414A9CDE9AFF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.Pronunciation.Tests", "tests\Vocaterra.Nlp.Pronunciation.Tests\Vocaterra.Nlp.Pronunciation.Tests.csproj", "{212EB090-D2C2-41CF-A37C-F1B66D943E1E}"
 EndProject

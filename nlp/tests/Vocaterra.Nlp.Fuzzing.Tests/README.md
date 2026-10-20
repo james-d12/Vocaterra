@@ -104,8 +104,10 @@ code comments and here, with the reason:
   id and the phoneme model hash of the record) change the replayed result instead of being compared with it, and the copies `result/verdict` and
   `result/replay` are not compared at all (known findings below).
 - **O15.** "Every mutation makes the loader throw" holds for every mutation of a value the loader must read: a dangling reference, an unknown
-  enumeration value, a duplicated id and a flipped byte are never accepted. (Since M19a an effect's `kind` is an opaque outcome kind, not an
-  enumeration, so it is no longer among the enumerated fields: an unknown kind is a valid kind. An empty kind is refused by the effect table.)
+  enumeration value, an empty required string, a duplicated id and a flipped byte are never accepted. (Since M19a an effect's `kind` is an opaque
+  outcome kind, not an enumeration, so it is no longer among the enumerated fields: an unknown kind is a valid kind. An empty kind is refused by
+  the effect table, and M19b added that case to O15: `EmptyRequiredString` empties an effect's `effectId`, `intent` or `kind` and a prompt's
+  `promptId`, and `AnEmptyRequiredString_IsRefused_NamingTheDamagedFile` checks each of the four fields by name as well.)
   Dropping or retyping a field the loader does not require may leave a
   loadable bundle; `KnownTolerances.AcceptedContentField` lists those places (optional by design, or a silent default; known findings below) and an
   accepted mutation anywhere else fails. "Naming the mutated path" holds for those four kinds; removing or retyping a definition (an intent's
@@ -169,7 +171,7 @@ content oracle writes each mutated bundle to its own directory under the system 
   - `AudioGen` - `WavData` at 8 000 to 96 000 Hz, mono and stereo, PCM16 and float32, three header layouts (canonical, odd-sized extra chunks, `WAVE_FORMAT_EXTENSIBLE`), 0 ms to 5 s, from silence to clipped noise; white noise is drawn from the CsCheck generator; byte damage (truncate, corrupt a header byte, wrong chunk size) of valid files. `WavBuilder` writes the files independently of `WavFile.Write`.
   - `PhoneGen` - phone sequences of one to twenty inventory phones and phrases from the lexicon, posteriors through `FakePhonemeRecognizer.FromPhones` and `FromMumbled`, confusions from the predicted-error table (`ɾ→ɹ`, `r→ɹ`, `a→ə`, `e→eɪ`, `o→oʊ`, an inserted `h`), frame layouts, mumbled frames, dialects.
   - `DecisionGen` - agent definitions (the bundle's, random valid ones, valid ones with one defect), BKT parameters, FSRS review scripts, feedback policies, repeat counts.
-  - `ContentMutationGen` - walks the JSON files of `content/v1` and applies exactly one mutation: remove a property, change a value's JSON kind, point a reference at a fresh id, give an enumerated field an unknown value, duplicate an element that has an id, flip a byte without touching the manifest. The manifest is recomputed for every kind but the byte flip (the committed manifest with the entry of the one mutated file replaced), so the loader's schema and reference checks run and not only its hash check. Files over 1 MB (the imported lexicon) are not walked for structural mutations, because they have the schema of the small lexicon files and writing them back costs more than everything else; a flipped byte still reaches them.
+  - `ContentMutationGen` - walks the JSON files of `content/v1` and applies exactly one mutation: remove a property, change a value's JSON kind, point a reference at a fresh id, give an enumerated field an unknown value, empty a required non-empty string (`EmptyRequiredString`: an effect's `effectId`, `intent` or `kind`, a prompt's `promptId`), duplicate an element that has an id, flip a byte without touching the manifest. The manifest is recomputed for every kind but the byte flip (the committed manifest with the entry of the one mutated file replaced), so the loader's schema and reference checks run and not only its hash check. Files over 1 MB (the imported lexicon) are not walked for structural mutations, because they have the schema of the small lexicon files and writing them back costs more than everything else; a flipped byte still reaches them.
   - `PipelineGen` - one pipeline run: a transcript from a correct sentence of the prompt's own grammars, a mutated sentence, an answer, free text or an adversarial string, plus prompt, agent, state, counter, seeds, learner, repeat counts and options.
 - `Oracles/` - `PipelineHarness` (bundle plus fakes wired once, with builders for services, pipeline, `ConversationContext`, prompts), `KnownTolerances`, `Determinism`.
 - `*FuzzTests.cs` - one file per oracle.
@@ -184,7 +186,7 @@ pattern that cannot be realised correctly is **skipped and counted**, never sile
 diagnostics and asserts a minimum of realised sentences, and `MutationTagFuzzTests` and `RecastLoopFuzzTests` assert that every mutation
 kind stays reachable. `CorrectSentenceFuzzTests` also asserts that every grammar of the catalog is realised at least once and that no literal
 word of any grammar is missing from the lexicon (the old `cuál` gap would fail it). If a mirrored table in `LexiconCatalog` (the ser/estar
-adjective lists, the prenominal adjectives, the past-time adverbs, ...) drifts from `AnalysisTables` in `Vocaterra.Nlp.Nlp`, the mutation oracles fail and
+adjective lists, the prenominal adjectives, the past-time adverbs, ...) drifts from `AnalysisTables` in `Vocaterra.Nlp.Language`, the mutation oracles fail and
 name the kind.
 
 Homographs are generated, not avoided (M18): `SentenceGen` counts the sentences that hold a noun that is also a verb form, a verb form that is also a noun and a noun of both genders
@@ -241,33 +243,33 @@ step). The minimums scale down when a smaller iteration count is requested.
   through the adjectives to the noun the numeral quantifies and falls back to the next word only when there is no noun. Found by O5
   (CsCheck seed `2PhTP0PVr4W1`, input `ellos compran taberna 1 grande queso`). Regression: `RecastBuilderTests.DigitsAreSpelledOutBeforeSpeaking`
   (`tengo 1 grande queso`, `tengo 1 buena espada`) in `tests/Vocaterra.Nlp.Response.Tests`.
-- **`Accents.Strip` and `SpanishPhoneticKey.Compute` threw `ArgumentException` on a lone surrogate** (`Vocaterra.Nlp.Nlp`; the stage-1 known finding about
+- **`Accents.Strip` and `SpanishPhoneticKey.Compute` threw `ArgumentException` on a lone surrogate** (`Vocaterra.Nlp.Language`; the stage-1 known finding about
   ill-formed UTF-16). Both reached `string.Normalize`, which rejects ill-formed UTF-16, and a recognizer or a keyboard can deliver one. An internal
   `Utf16.ReplaceLoneSurrogates` now replaces each lone surrogate with U+FFFD at the entry of `TextNormalizer.Normalize` (which already treated it as
   a separator), `Accents.Strip` and `SpanishPhoneticKey.Compute`; valid pairs are untouched. The stage-1 generator guard is gone: the noise
   generator now splices the adversarial token in last and verbatim, and O1 feeds the raw text to all three entry points. Found by O1 (seed
-  `cA-a9vcyA8R1`). Regression: `IllFormedUtf16Tests` in `tests/Vocaterra.Nlp.Nlp.Tests/Normalization`.
+  `cA-a9vcyA8R1`). Regression: `IllFormedUtf16Tests` in `tests/Vocaterra.Nlp.Language.Tests/Normalization`.
 - **`SpanishG2p.Phonemize` threw `ArgumentException` on a lone surrogate** (`Vocaterra.Nlp.Phonology`). `G2pNormalizer` handed the text to `string.Normalize`
   as well; it now reads a lone surrogate as a word separator, like any other non-letter. Found by O8 (seed `4Y4ZiHH2bn31`). Regression:
   `IllFormedUtf16Tests` in `tests/Vocaterra.Nlp.Phonology.Tests`.
 - **A lexicon entry without a `features` property, and a lexicon file without `entries`, made the content loader throw `NullReferenceException`**
-  (`Vocaterra.Nlp.Nlp`). A missing property arrives as null although the records are non-nullable (`RespectNullableAnnotations` only rejects an explicit
+  (`Vocaterra.Nlp.Language`). A missing property arrives as null although the records are non-nullable (`RespectNullableAnnotations` only rejects an explicit
   null); `LexiconSchema.Validate` dereferenced `Features` and `Lexicon.Load` enumerated `Entries`, so a damaged `lexicon/*.json` escaped the loader's
   `ContentValidationException` as an unhandled `NullReferenceException`. Both now fail with a `FormatException` that the loader reports as a
   problem naming the file. Found by O15 (seed `0003TzidR6n1`, a flipped bit in a key of `lexicon/seed.json`). Regression: four new cases of
-  `LexiconTests.InvalidDocumentsAreRejected` in `tests/Vocaterra.Nlp.Nlp.Tests`.
+  `LexiconTests.InvalidDocumentsAreRejected` in `tests/Vocaterra.Nlp.Language.Tests`.
 
 Found when the imported lexicon was added (M17a). The seeds belong to the lexicon of that moment and do not reproduce with the final one; the regression tests do.
 
-- **A subject pronoun was checked against the imperative readings of its verb** (`Vocaterra.Nlp.Nlp`, O4/O5). Imperatives are spelled like the third person
+- **A subject pronoun was checked against the imperative readings of its verb** (`Vocaterra.Nlp.Language`, O4/O5). Imperatives are spelled like the third person
   (`habla`, `come`, `está`), so `tú habla` agreed with `tú`, and the correction of `ella está alta` was `eres` (the first reading of `está` is the imperative
   of `estar`, second person). The person check and the copula check now use the declarative readings. Found by O4 (seed `dU3ctY0Mvpx9`, a ser/estar mutation) and
   O5 (seed `4ybQyIqiaD61`). Regression: `AmbiguousReadingTests.AnImperativeThatIsSpelledLikeTheThirdPersonDoesNotExcuseAPersonMistake` and
-  `TheExpectedCopulaFormComesFromTheDeclarativeReadingNotFromTheImperative` in `tests/Vocaterra.Nlp.Nlp.Tests/Analysis`.
-- **A form that is an adjective under two lemmas was classified by whichever sorts first** (`Vocaterra.Nlp.Nlp`, O5). `ocupada` is a lemma of its own ("pregnant") next to
+  `TheExpectedCopulaFormComesFromTheDeclarativeReadingNotFromTheImperative` in `tests/Vocaterra.Nlp.Language.Tests/Analysis`.
+- **A form that is an adjective under two lemmas was classified by whichever sorts first** (`Vocaterra.Nlp.Language`, O5). `ocupada` is a lemma of its own ("pregnant") next to
   `ocupado`; `ella es ocupada` passed the ser/estar check because the first reading's lemma is not in the estar class. The ser/estar class and the prenominal
   check now look at every adjective reading. Found by O5 (seed `8Wkp2ivvMDP1`). Regression: `AFormThatIsAnAdjectiveUnderTwoLemmasIsClassifiedByAllOfThem`.
-- **A noun form that reads as singular and as plural made a correct adjective a number mistake** (`Vocaterra.Nlp.Nlp`, O3). `corazones` is the plural of `corazón` and the card
+- **A noun form that reads as singular and as plural made a correct adjective a number mistake** (`Vocaterra.Nlp.Language`, O3). `corazones` is the plural of `corazón` and the card
   suit; `malos corazones` was tagged `noun.number` because the first noun reading is the singular. Without a determiner that fixes the number, an adjective now
   agrees with either reading. Found by O3 (seed `dYkkd05aEvg7`). Regression: `ANounFormThatIsSingularAndPluralAgreesWithAnAdjectiveOfEitherNumber` and
   `ADeterminerStillFixesTheNumberOfAnAmbiguousNounPhrase`.
@@ -276,11 +278,11 @@ Found when the imported lexicon was added (M17a). The seeds belong to the lexico
 
 Found and fixed in M18 (the seeds belong to the code of that moment and do not reproduce with the final resolver; the regression tests do):
 
-- **The analyzer's checks read every word as every part of speech it can be** (`Vocaterra.Nlp.Nlp`, the M16a and M17a findings: 21 % of the usable nouns are also a verb form). `ayer compré un libro`
+- **The analyzer's checks read every word as every part of speech it can be** (`Vocaterra.Nlp.Language`, the M16a and M17a findings: 21 % of the usable nouns are also a verb form). `ayer compré un libro`
   was `conj.tense` (`libro` is `librar` in the first person), `yo lanza` passed or failed by the order of the readings, `cuánto cuesta la espada` was `gender.agree` (`cuánto` the adjective
   agreeing with `cuesta` the noun), `tú ayudas` and `las ayudas` could not both be right. `ReadingResolver` now narrows each word to one reading from local syntax, the slot grammar and, last,
   the reading with the fewest errors, and every check runs on that reading (design in [docs/PIPELINE.md](../../docs/PIPELINE.md#4-linguistic-analysis-d0)). Regression:
-  `HomographSentencesTests` (47 correct sentences, 20 more under the grammars of the bundle, 26 incorrect ones that keep their mistake, the `cuánto cuesta` family) and `ReadingResolverTests` in `tests/Vocaterra.Nlp.Nlp.Tests/Analysis`, and the
+  `HomographSentencesTests` (47 correct sentences, 20 more under the grammars of the bundle, 26 incorrect ones that keep their mistake, the `cuánto cuesta` family) and `ReadingResolverTests` in `tests/Vocaterra.Nlp.Language.Tests/Analysis`, and the
   matcher bindings in `SlotGrammarTests`. With the CLI (`eval --transcript ... --prompt buy-item-open`) `ayer compré un libro` went from correctness 0.75 and `conj.tense` (`libro` -> `libré`) to
   correctness 1 and no errors, and so do the 19 homograph sentences checked on both `buy-item-open` and `offer-items-open` (`quiero comprar una lanza`, `ayer compré una lanza`,
   `el vino es bueno`, `él vino ayer`, `tú ayudas`, `nosotros comemos como siempre`, ...); `cuánto cuesta la espada`, `el escudo`, `la poción` and `la lanza` on `ask-price-open` are correctness 1

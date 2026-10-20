@@ -7,10 +7,10 @@ using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Feedback;
 using Vocaterra.Nlp.Evaluation;
-using Vocaterra.Nlp.Nlp.Analysis;
-using Vocaterra.Nlp.Nlp.Intent;
-using Vocaterra.Nlp.Nlp.Matching;
-using Vocaterra.Nlp.Nlp.Normalization;
+using Vocaterra.Nlp.Language.Analysis;
+using Vocaterra.Nlp.Language.Intent;
+using Vocaterra.Nlp.Language.Matching;
+using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Response.Effects;
 using Vocaterra.Nlp.Response.Templates;
 using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
@@ -352,7 +352,7 @@ public class SampleContentTests
     [Fact]
     public void TheLexiconIsTheSeedPlusTheSampleWords()
     {
-        Assert.True(Bundle.Lexicon.Entries.Count > Vocaterra.Nlp.Nlp.Lexicon.Lexicon.Seed.Entries.Count);
+        Assert.True(Bundle.Lexicon.Entries.Count > Vocaterra.Nlp.Language.Lexicon.Lexicon.Seed.Entries.Count);
         foreach (var lemma in new[] { "espada", "lanzar", "ofrecer", "hielo", "rayo", "pócima" })
         {
             Assert.True(Bundle.Lexicon.ContainsLemma(lemma), lemma);

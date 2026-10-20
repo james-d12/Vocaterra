@@ -1,10 +1,10 @@
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
-using Vocaterra.Nlp.Nlp.Lexicon;
-using Vocaterra.Nlp.Nlp.Matching;
-using Vocaterra.Nlp.Nlp.Morphology;
-using Vocaterra.Nlp.Nlp.Normalization;
-using NlpLexicon = Vocaterra.Nlp.Nlp.Lexicon.Lexicon;
+using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Matching;
+using Vocaterra.Nlp.Language.Morphology;
+using Vocaterra.Nlp.Language.Normalization;
+using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 
@@ -25,7 +25,7 @@ public sealed record VerbLexeme(string Lemma, bool HasPreterite);
 /// <summary>
 /// The lexicon seen through the generators' eyes: forms by part of speech, nouns with both numbers, verbs with full paradigms and the
 /// small closed classes the analyzer special-cases. The closed classes in this file mirror <c>WordClasses</c> and <c>AnalysisTables</c> of
-/// <c>Vocaterra.Nlp.Nlp</c>, which are internal; if the analyzer's tables change, the sentence and mutation oracles fail and say which list drifted.
+/// <c>Vocaterra.Nlp.Language</c>, which are internal; if the analyzer's tables change, the sentence and mutation oracles fail and say which list drifted.
 /// </summary>
 public sealed class LexiconCatalog
 {

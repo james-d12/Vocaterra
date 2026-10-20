@@ -28,7 +28,7 @@ flowchart TD
     subgraph STAGES[stage libraries, all built on Vocaterra.Nlp.Core]
         AUDIO[Vocaterra.Nlp.Audio<br/>WAV IO, resampler, VAD, clip hash]
         PHON[Vocaterra.Nlp.Phonology<br/>Spanish G2P, dialects]
-        NLP[Vocaterra.Nlp.Nlp<br/>normalization, matching, lexicon,<br/>analysis, intent]
+        NLP[Vocaterra.Nlp.Language<br/>normalization, matching, lexicon,<br/>analysis, intent]
         PRON[Vocaterra.Nlp.Pronunciation<br/>alignment, GOP scoring]
         ASR[Vocaterra.Nlp.Asr<br/>Vosk, sherpa-onnx, fakes, model store]
         EVAL[Vocaterra.Nlp.Evaluation<br/>verdict assembly]
@@ -361,6 +361,22 @@ dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lexicon-report conten
 Any edit to a file in `content/v1` changes the bundle hash, so run `hash` afterwards and update the pinned value in the tests
 (see [CONTRIBUTING.md](CONTRIBUTING.md)). `validate` prints `OK: bundle 'v1' 1.0.0, 19 files, hash <sha256>`.
 
+## Using the packages
+
+The core is eleven NuGet libraries, `Vocaterra.Nlp.*` at version 0.1.0. Packing them into a local feed and running the sample host, which
+consumes them the way a game would, is the proof that the public surface is complete:
+
+```bash
+scripts/pack.sh          # dotnet pack into artifacts/packages; the .nupkg files are also copied to the folder feed artifacts/feed
+scripts/sample-host.sh   # restores samples/HostConsole from artifacts/feed, builds it and runs it on content/v1
+```
+
+The sample loads the bundle, evaluates the two demo utterances with the scripted recognizer and exits 1 unless the verdicts match. The calls
+it makes are the ones in [docs/API.md](docs/API.md). `ContentBuilder pack <bundleDir> <out.zip>` archives a bundle with a `.sha256` sidecar
+holding its bundle hash, and `verify-pack <zip>` checks the archive; hosts ship the extracted folder, since the loader reads a directory.
+Nothing is published, and no licence is chosen yet. [docs/PACKAGING.md](docs/PACKAGING.md) has the versions, the feed, the open decisions and
+the commands.
+
 ## Benchmark and golden audio
 
 `tools/Vocaterra.Nlp.Bench` runs a recognizer over the golden learner manifest and reports word error rate, learner-error preservation (does the
@@ -381,7 +397,7 @@ consent rules and manifest schema are in [golden/README.md](golden/README.md).
 | `src/Vocaterra.Nlp.Core` | Contracts between stages (`Verdict`, stage records, interfaces), determinism primitives (`SeededRng`, `DeterministicHash`, `CanonicalJson`, `Margin`), error taxonomy |
 | `src/Vocaterra.Nlp.Audio` | WAV reading and writing, resampler, downmix, gain, energy VAD, push-to-talk session, clip hash |
 | `src/Vocaterra.Nlp.Phonology` | Spanish grapheme-to-phoneme converter, dialect presets, predicted learner-error variants |
-| `src/Vocaterra.Nlp.Nlp` | Text normalization, answer matching, lexicon and morphology, linguistic analysis, slot grammars, intent resolution, repair strategy |
+| `src/Vocaterra.Nlp.Language` | Text normalization, answer matching, lexicon and morphology, linguistic analysis, slot grammars, intent resolution, repair strategy |
 | `src/Vocaterra.Nlp.Pronunciation` | Phoneme alignment and scoring (greedy edit distance and CTC/GOP), wav2vec2 adapter |
 | `src/Vocaterra.Nlp.Asr` | Vosk and sherpa-onnx recognizer adapters, scripted and replay recognizers, model manifest and store |
 | `src/Vocaterra.Nlp.Evaluation` | Verdict assembly (pure) and evaluation configuration |
@@ -461,6 +477,7 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 | M17a | Vocabulary: 3 000 Wiktionary lemmas (about 40 000 entries) selected by a frequency list, with sources, hashes and coverage tests (see [docs/LEXICON.md](docs/LEXICON.md)) | done |
 | M18 | Part-of-speech disambiguation: the analyzer resolves each word to one reading before its checks (see [docs/PIPELINE.md](docs/PIPELINE.md#4-linguistic-analysis-d0)) | done |
 | M19a | Standalone core, step 1: the solution, projects and namespaces are `Vocaterra.Nlp.*`; the conversation engine is a generic agent; the boundary is in [ADR 0009](docs/adr/0009-core-and-game-boundary.md) and the host API in [docs/API.md](docs/API.md) | done |
+| M19b | Standalone core, step 2: NuGet packaging of the eleven libraries (version 0.1.0, symbols, a shared readme), a local feed from `scripts/pack.sh`, content bundle archives (`ContentBuilder pack` and `verify-pack`), and `samples/HostConsole` consuming the packages; nothing is published (see [docs/PACKAGING.md](docs/PACKAGING.md)) | done |
 
 ## Known gaps and next steps
 
@@ -519,6 +536,7 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 - [tests/Vocaterra.Nlp.Fuzzing.Tests/README.md](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md): the fuzz suite, how to run and soak it, its oracles, the bugs it found and the known findings
 - [docs/LEXICON.md](docs/LEXICON.md): the lexicon files, the Wiktionary and frequency-list sources with hashes and licences, how to fetch and regenerate, the merge policy, measurements
 - [docs/API.md](docs/API.md): what a host calls, in order: load a bundle, build the services, evaluate an utterance, plan a response, record and replay
+- [docs/PACKAGING.md](docs/PACKAGING.md): the NuGet packages and their versions, the local feed, the sample host, content bundle archives, and what is still undecided
 - [docs/adr/](docs/adr/): architecture decision records 0001 to 0009 (language, determinism, engine-agnostic core, model pinning, dialect, ICU, Kokoro phonemizer licensing, lexicon sources and frequency filter, core and game boundary)
 - [docs/diagrams/README.md](docs/diagrams/README.md): the system diagram in draw.io, and how to open it
 - [TOOLS.md](TOOLS.md): the inventory of third-party tools, libraries, models and data sources, with their licenses

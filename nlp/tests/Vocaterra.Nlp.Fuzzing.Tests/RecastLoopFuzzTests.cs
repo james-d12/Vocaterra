@@ -1,10 +1,10 @@
 using CsCheck;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
-using Vocaterra.Nlp.Nlp.Normalization;
+using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Response.Templates;
 using Xunit.Abstractions;
-using SlotGrammarType = Vocaterra.Nlp.Nlp.SlotGrammar.SlotGrammar;
+using SlotGrammarType = Vocaterra.Nlp.Language.SlotGrammar.SlotGrammar;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests;
 

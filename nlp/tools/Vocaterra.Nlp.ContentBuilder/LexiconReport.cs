@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text;
 using Vocaterra.Nlp.Content;
-using Vocaterra.Nlp.Nlp.Lexicon;
+using Vocaterra.Nlp.Language.Lexicon;
 
 namespace Vocaterra.Nlp.ContentBuilder;
 

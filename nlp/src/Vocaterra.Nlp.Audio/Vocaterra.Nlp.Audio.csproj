@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <Description>Audio front end for the Vocaterra.NLP language core: WAV files, resampling, gain, energy voice-activity detection and push-to-talk sessions.</Description>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="../Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
   </ItemGroup>

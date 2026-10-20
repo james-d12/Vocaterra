@@ -1,8 +1,8 @@
 using Vocaterra.Nlp.ContentBuilder;
 using Vocaterra.Nlp.Core.Stages;
-using Vocaterra.Nlp.Nlp.Lexicon;
-using Vocaterra.Nlp.Nlp.Morphology;
-using NlpLexicon = Vocaterra.Nlp.Nlp.Lexicon.Lexicon;
+using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Morphology;
+using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Content.Tests;
 

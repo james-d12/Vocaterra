@@ -1,7 +1,7 @@
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
-using Vocaterra.Nlp.Nlp.SlotGrammar;
+using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Response.Templates;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Oracles;

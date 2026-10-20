@@ -29,6 +29,12 @@ public enum ContentMutationKind
 
     /// <summary>Flip one bit of one byte of a file and leave the manifest as it was.</summary>
     FlipByte,
+
+    /// <summary>
+    /// Replace the value of a required non-empty string with the empty string: an effect's <c>effectId</c>, <c>intent</c> or <c>kind</c>, and a prompt's
+    /// <c>promptId</c>. The loader refuses each of them when empty.
+    /// </summary>
+    EmptyRequiredString,
 }
 
 /// <summary>One mutation: what kind, which file, which place in it (a path of property names and array indexes), and a detail (the new value or the byte).</summary>
@@ -39,7 +45,8 @@ public enum ContentMutationKind
 public sealed record ContentMutation(ContentMutationKind Kind, string File, IReadOnlyList<string> Path, string Detail)
 {
     /// <summary>Whether the mutation changes a value the loader must read, so the loader has to reject the bundle (everything except dropping or retyping an optional field).</summary>
-    public bool MustBeRejected => Kind is ContentMutationKind.DanglingReference or ContentMutationKind.UnknownEnum or ContentMutationKind.DuplicateId or ContentMutationKind.FlipByte;
+    public bool MustBeRejected => Kind is ContentMutationKind.DanglingReference or ContentMutationKind.UnknownEnum or ContentMutationKind.DuplicateId or ContentMutationKind.FlipByte
+        or ContentMutationKind.EmptyRequiredString;
 
     /// <inheritdoc />
     public override string ToString()
@@ -51,7 +58,8 @@ public sealed record ContentMutation(ContentMutationKind Kind, string File, IRea
 /// <summary>
 /// Structural mutations of the <c>content/v1</c> JSON files, found by walking the files themselves (so a new file or a new field widens the
 /// coverage): remove a property, change a value's JSON kind, point a reference at an id that does not exist, give an enumerated field an unknown
-/// value, duplicate an element that has an id, and flip a byte without touching the manifest. Every mutated bundle is written to a unique temporary
+/// value, empty a required non-empty string (an effect's id, intent or kind, a prompt's id), duplicate an element that has an id, and flip a byte
+/// without touching the manifest. Every mutated bundle is written to a unique temporary
 /// directory, with the manifest recomputed from the mutated files (so the loader's schema and reference checks run, not just its hash check),
 /// except for the byte flip, which leaves the manifest alone on purpose.
 /// </summary>
@@ -65,10 +73,19 @@ public sealed class ContentMutationGen
 
     // Properties whose string value is a member of an enumeration. (The lexicon file's own generated_by is free text, not an enumeration; the
     // enumerated generatedBy is the provenance item's.) An effect's kind is not listed: since M19a it is an opaque outcome kind, so no
-    // unknown value is a defect (an empty kind is refused by the effect table itself).
+    // unknown value is a defect. Its empty value is a defect instead (RequiredNonEmptyProperties).
     private static readonly HashSet<string> EnumProperties = new(StringComparer.Ordinal)
     {
         "mode", "difficulty", "type", "notCommunicatedType", "generatedBy", "pos", "person", "number", "tense", "mood", "gender",
+    };
+
+    // The string fields that the loader refuses when empty, per file: the effect table's constructors (an id, an intent and an outcome kind are
+    // required) and the prompt parser (a promptId is required). Only these places are candidates for EmptyRequiredString, so an empty string the
+    // loader accepts elsewhere is never reported as a defect.
+    private static readonly Dictionary<string, HashSet<string>> RequiredNonEmptyProperties = new(StringComparer.Ordinal)
+    {
+        [ContentPaths.Effects] = new(StringComparer.Ordinal) { "effectId", "intent", "kind" },
+        [ContentPaths.Prompts] = new(StringComparer.Ordinal) { "promptId" },
     };
 
     // Object properties that carry an id; an array of such objects can have an element duplicated.
@@ -170,6 +187,8 @@ public sealed class ContentMutationGen
                 return new ContentMutation(kind, file, path, JsonSerializer.Serialize(Navigate(_parsed[file], path)!.GetValue<string>() + "-unknown"));
             case ContentMutationKind.FlipByte:
                 return new ContentMutation(kind, file, [], $"{rng.NextInt(_files[file].Length)}:{rng.NextInt(8)}");
+            case ContentMutationKind.EmptyRequiredString:
+                return new ContentMutation(kind, file, path, JsonSerializer.Serialize(string.Empty));
             default:
                 return new ContentMutation(kind, file, path, string.Empty);
         }
@@ -336,6 +355,11 @@ public sealed class ContentMutationGen
             if (EnumProperties.Contains(name) && text.Length > 0)
             {
                 _candidates[ContentMutationKind.UnknownEnum].Add((file, path));
+            }
+
+            if (text.Length > 0 && RequiredNonEmptyProperties.TryGetValue(file, out var required) && required.Contains(name))
+            {
+                _candidates[ContentMutationKind.EmptyRequiredString].Add((file, path));
             }
         }
     }

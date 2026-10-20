@@ -1,7 +1,7 @@
 using System.Text;
 using Vocaterra.Nlp.Core.Taxonomy;
-using Vocaterra.Nlp.Nlp.Analysis;
-using Vocaterra.Nlp.Nlp.Normalization;
+using Vocaterra.Nlp.Language.Analysis;
+using Vocaterra.Nlp.Language.Normalization;
 
 namespace Vocaterra.Nlp.Content.Tests;
 

@@ -5,8 +5,8 @@ using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Feedback;
 using Vocaterra.Nlp.Decision.Scheduling;
-using Vocaterra.Nlp.Nlp.Intent;
-using Vocaterra.Nlp.Nlp.Matching;
+using Vocaterra.Nlp.Language.Intent;
+using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Response.Templates;
 
 namespace Vocaterra.Nlp.Pipeline;
@@ -153,7 +153,7 @@ public sealed partial class UtterancePipeline
         AnalysisResult analysis,
         MatchResult match,
         IReadOnlyDictionary<string, AnswerSet> answerSets,
-        Vocaterra.Nlp.Nlp.Lexicon.Lexicon lexicon)
+        Vocaterra.Nlp.Language.Lexicon.Lexicon lexicon)
     {
         if (plan.Items.Count == 0)
         {

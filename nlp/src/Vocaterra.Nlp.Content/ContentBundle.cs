@@ -2,12 +2,12 @@ using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Feedback;
 using Vocaterra.Nlp.Evaluation;
-using Vocaterra.Nlp.Nlp.Intent;
-using Vocaterra.Nlp.Nlp.Matching;
-using Vocaterra.Nlp.Nlp.Morphology;
+using Vocaterra.Nlp.Language.Intent;
+using Vocaterra.Nlp.Language.Matching;
+using Vocaterra.Nlp.Language.Morphology;
 using Vocaterra.Nlp.Response.Effects;
 using Vocaterra.Nlp.Response.Templates;
-using NlpLexicon = Vocaterra.Nlp.Nlp.Lexicon.Lexicon;
+using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Content;
 

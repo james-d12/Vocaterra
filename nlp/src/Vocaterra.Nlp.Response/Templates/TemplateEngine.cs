@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Text;
 using Vocaterra.Nlp.Core.Verdicts;
-using Vocaterra.Nlp.Nlp.Lexicon;
-using Vocaterra.Nlp.Nlp.Morphology;
-using Vocaterra.Nlp.Nlp.Normalization;
+using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Morphology;
+using Vocaterra.Nlp.Language.Normalization;
 
 namespace Vocaterra.Nlp.Response.Templates;
 

@@ -48,7 +48,7 @@ stack**. The first part is good and cheap to keep:
 | A lexicon used as the analyzer costs run time too | 3 000 lemmas became 41 078 entries; bundle load went from 8 ms to 217–267 ms; 5 000 lemmas failed the 300 ms gate (`LEXICON.md`) |
 | The model-backed half mostly does not run yet | The phoneme model has no ONNX export, so no `pron.*` tag can fire outside tests; Parakeet is unbenchmarked; Kokoro is blocked by GPL espeak-ng inside sherpa-onnx (ADR 0007); the golden learner set holds three synthetic entries; there is no microphone adapter and no engine (README, Known gaps) |
 
-Code size makes the split visible. Of about 21 400 lines in `src/`, the language-understanding code in `Vocaterra.Nlp.Nlp` is about 5 900
+Code size makes the split visible. Of about 21 400 lines in `src/`, the language-understanding code in `Vocaterra.Nlp.Language` is about 5 900
 (analysis 716, morphology 743, slot grammar 573, intent 1 010, lexicon 883, matching 449, normalization 856, embeddings 672), with
 4 700 lines of unit tests and a large share of the 10 900-line fuzz project behind it. The mechanism in that code (lexicon loading,
 grammar matching, margins) is sound; the knowledge (which words take *estar*, which adverbs mark the past, which phrasings mean
@@ -383,7 +383,7 @@ or a prompt is gated on that report.
 | --- | --- |
 | `Vocaterra.Nlp.Core` contracts and determinism primitives | **Stay.** Additive changes only: a morphosyntax result type, an error `source`, recorded tutor output in the envelope |
 | `Vocaterra.Nlp.Audio`, `Vocaterra.Nlp.Phonology` (G2P) | **Stay.** G2P also feeds Kokoro |
-| `Vocaterra.Nlp.Nlp` normalization, matching, lexicon loading, `MorphologyGenerator`, slot-grammar matcher | **Stay.** The lexicon's role shifts from analyzer to candidate generator and source of expected forms |
+| `Vocaterra.Nlp.Language` normalization, matching, lexicon loading, `MorphologyGenerator`, slot-grammar matcher | **Stay.** The lexicon's role shifts from analyzer to candidate generator and source of expected forms |
 | `LinguisticAnalyzer` reading choice | **Replaced** by the UD tagger |
 | `AgreementChecker` linear scans | **Rewritten** as checks over dependency arcs (`det`, `amod`, `nummod`, `nsubj`, `cop`); smaller |
 | `AnalysisTables` (23 ser/estar adjectives, 3 past adverbs) | **Shrinks**: generated, approved lists for D0, and the tutor for context-dependent cases |

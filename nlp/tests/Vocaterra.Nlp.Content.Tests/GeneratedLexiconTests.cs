@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Globalization;
 using Vocaterra.Nlp.ContentBuilder;
-using Vocaterra.Nlp.Nlp.Lexicon;
+using Vocaterra.Nlp.Language.Lexicon;
 using Xunit.Abstractions;
-using NlpLexicon = Vocaterra.Nlp.Nlp.Lexicon.Lexicon;
+using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Content.Tests;
 

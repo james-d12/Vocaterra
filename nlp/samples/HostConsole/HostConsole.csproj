@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- A consumer, not part of the repository's central package versions: the versions are the ones named here. -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <!-- The packages come from ../../artifacts/feed (nuget.config), built by scripts/pack.sh, never from project references. -->
+  <ItemGroup>
+    <PackageReference Include="Vocaterra.Nlp.Asr" Version="0.1.0" />
+    <PackageReference Include="Vocaterra.Nlp.Content" Version="0.1.0" />
+    <PackageReference Include="Vocaterra.Nlp.Core" Version="0.1.0" />
+    <PackageReference Include="Vocaterra.Nlp.Decision" Version="0.1.0" />
+    <PackageReference Include="Vocaterra.Nlp.Language" Version="0.1.0" />
+    <PackageReference Include="Vocaterra.Nlp.Pipeline" Version="0.1.0" />
+    <PackageReference Include="Vocaterra.Nlp.Response" Version="0.1.0" />
+  </ItemGroup>
+
+</Project>

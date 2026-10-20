@@ -3,7 +3,7 @@ using CsCheck;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
-using Vocaterra.Nlp.Nlp.Normalization;
+using Vocaterra.Nlp.Language.Normalization;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests;

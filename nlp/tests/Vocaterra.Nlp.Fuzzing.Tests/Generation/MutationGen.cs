@@ -4,10 +4,10 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
-using Vocaterra.Nlp.Nlp.Lexicon;
-using Vocaterra.Nlp.Nlp.Matching;
-using Vocaterra.Nlp.Nlp.Morphology;
-using Vocaterra.Nlp.Nlp.Normalization;
+using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Matching;
+using Vocaterra.Nlp.Language.Morphology;
+using Vocaterra.Nlp.Language.Normalization;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 

@@ -5,7 +5,7 @@ using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Feedback;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Decision.Scheduling;
-using Vocaterra.Nlp.Nlp.Intent;
+using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Response.Effects;
 using Vocaterra.Nlp.Response.Templates;
 

@@ -6,7 +6,7 @@ using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
-using Vocaterra.Nlp.Nlp.Embeddings;
+using Vocaterra.Nlp.Language.Embeddings;
 using Vocaterra.Nlp.Phonology;
 using Vocaterra.Nlp.Pronunciation;
 using Vocaterra.Nlp.Response.Speech;
