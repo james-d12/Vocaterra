@@ -123,7 +123,7 @@
     "answerSetId": "spells-basic",
     "allowedIntentIds": ["cast_spell"],
     "npcId": null,
-    "slotGrammarIds": ["[VERB:lanzar] [ART]? [NOUN:spell] [ADJ]?"]
+    "slotGrammarIds": ["[VERB:lanzar]? [ART]? [NOUN:spell] [ADJ]?"]
   },
   {
     "promptId": "trade-free-conversation",

@@ -1,4 +1,7 @@
+using System.Text;
+using System.Text.Json.Nodes;
 using Slg.Asr;
+using Slg.Content;
 using Slg.Core.Audio;
 using Slg.Core.Prompts;
 using Slg.Core.Stages;
@@ -361,7 +364,7 @@ public class PipelineTests
     }
 
     [Fact]
-    public void WithoutAnNpcNobodyRepliesAndAPerfectUtteranceHasNoLines()
+    public void WithoutAnNpcAPerfectUtteranceIsAcknowledgedFromTheAnswerAcceptedPool()
     {
         var prompt = Prompt("spell-cast-open");
         var context = TestSupport.Context(state: "none", npcId: "player");
@@ -371,10 +374,212 @@ public class PipelineTests
         Assert.Null(result.Decision.Npc);
         Assert.True(result.Verdict.Communicated);
         Assert.Empty(result.Verdict.Errors);
-        Assert.Empty(result.Response.Lines);
+        var line = Assert.Single(result.Response.Lines);
+        Assert.StartsWith("answer_accepted.", line.LineId, StringComparison.Ordinal);
+        Assert.False(line.IsRecast);
         var effect = Assert.Single(result.Effects);
         Assert.Equal("spell_power", effect.Kind);
         Assert.Equal(1.0, effect.Value, 6);
+    }
+
+    [Fact]
+    public void WithoutAnNpcAPerfectUtteranceHasNoLinesWhenTheBundleHasNoAnswerAcceptedPool()
+    {
+        using var directory = new BundleWithoutAnswerAccepted();
+        var services = new PipelineServices(new ScriptedWordRecognizer(TestSupport.Asr("lanzo fuego")), null, null, null, directory.Bundle);
+        var context = TestSupport.Context(state: "none", npcId: "player");
+
+        var result = new UtterancePipeline(services).Evaluate(TestSupport.Clip(), directory.Bundle.Prompts["spell-cast-open"], context);
+
+        Assert.True(result.Verdict.Communicated);
+        Assert.Empty(result.Response.Lines);
+    }
+
+    [Fact]
+    public void AnExactQuizAnswerIsCommunicatedWithoutAnIntentAndAcknowledged()
+    {
+        var context = TestSupport.Context(state: "none", npcId: "player");
+
+        var result = TestSupport.Pipeline("espada", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), context);
+
+        var verdict = result.Verdict;
+        Assert.True(verdict.Communicated);
+        Assert.True(verdict.Intent.IsUnknown);
+        Assert.Empty(verdict.Slots);
+        Assert.Equal(ResolvedBy.Exact, verdict.ResolvedBy);
+        Assert.Equal(1.0, verdict.Correctness, 6);
+        Assert.Equal(1.0, verdict.Confidence, 6);
+        Assert.Empty(verdict.Errors);
+        Assert.Null(result.Repair);
+        Assert.Empty(result.Effects);
+        var line = Assert.Single(result.Response.Lines);
+        Assert.StartsWith("answer_accepted.", line.LineId, StringComparison.Ordinal);
+        Assert.Contains(line.Text, new[] { "¡Correcto!", "¡Muy bien!", "¡Exacto!" });
+        Assert.Equal(Rating.Easy, result.Decision.Rating);
+    }
+
+    [Theory]
+    [InlineData("quiz-item-name", "la espada", ResolvedBy.Alias)]
+    [InlineData("quiz-spell-name", "fuego", ResolvedBy.Exact)]
+    [InlineData("quiz-greeting-name", "hola", ResolvedBy.Exact)]
+    public void QuizPromptsResolveThroughTheAnswerMatchAlone(string promptId, string transcript, ResolvedBy expected)
+    {
+        var context = TestSupport.Context(state: "none", npcId: "player");
+
+        var result = TestSupport.Pipeline(transcript, RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt(promptId), context);
+
+        Assert.True(result.Verdict.Communicated);
+        Assert.True(result.Verdict.Intent.IsUnknown);
+        Assert.Empty(result.Verdict.Slots);
+        Assert.Equal(expected, result.Verdict.ResolvedBy);
+        Assert.Empty(result.Effects);
+        Assert.StartsWith("answer_accepted.", Assert.Single(result.Response.Lines).LineId, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AQuizAnswerIsAcknowledgedEvenWhenTheContextStillNamesTheBlacksmith()
+    {
+        var result = TestSupport.Pipeline("espada", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), TestSupport.Context());
+
+        Assert.True(result.Verdict.Communicated);
+        Assert.StartsWith("answer_accepted.", Assert.Single(result.Response.Lines).LineId, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AQuizAnswerWithAGrammarErrorGetsFeedbackInsteadOfTheAcknowledgement()
+    {
+        var context = TestSupport.Context(state: "none", npcId: "player");
+
+        var result = TestSupport.Pipeline("una espadas", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), context);
+
+        Assert.True(result.Verdict.Communicated);
+        Assert.Equal(ResolvedBy.Fuzzy, result.Verdict.ResolvedBy);
+        Assert.Contains(result.Verdict.Errors, static error => error.Tag == ErrorTags.NounNumber);
+        Assert.DoesNotContain(result.Response.Lines, static line => line.LineId.StartsWith("answer_accepted.", StringComparison.Ordinal));
+        Assert.NotEmpty(result.Response.Lines);
+    }
+
+    [Fact]
+    public void AWrongQuizAnswerIsNotCommunicatedAndKeepsTheRepair()
+    {
+        var context = TestSupport.Context(state: "none", npcId: "player");
+
+        var result = TestSupport.Pipeline("perro", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), context);
+
+        Assert.False(result.Verdict.Communicated);
+        Assert.Equal(ResolvedBy.Unresolved, result.Verdict.ResolvedBy);
+        Assert.Equal(RepairKind.AskAgain, result.Repair!.Kind);
+        Assert.DoesNotContain(result.Response.Lines, static line => line.LineId.StartsWith("answer_accepted.", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void AFuzzyQuizAnswerInTheRejectBandIsNotCommunicated()
+    {
+        var context = TestSupport.Context(state: "none", npcId: "player");
+
+        var result = TestSupport.Pipeline("espado", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), context);
+
+        Assert.False(result.Verdict.Communicated);
+        Assert.Equal(ResolvedBy.Fuzzy, result.Verdict.ResolvedBy);
+        Assert.NotNull(result.Repair);
+        Assert.DoesNotContain(result.Response.Lines, static line => line.LineId.StartsWith("answer_accepted.", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ABareSpellNameOnTheConstrainedSpellPromptCastsTheSpell()
+    {
+        var context = TestSupport.Context(state: "none", npcId: "player");
+
+        var result = TestSupport.Pipeline("fuego", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("spell-cast-constrained"), context);
+
+        Assert.Equal("cast_spell", result.Verdict.Intent.Value);
+        Assert.Equal("fuego", result.Verdict.Slots["spell"]);
+        Assert.True(result.Verdict.Communicated);
+        Assert.Equal(1.0, result.Verdict.Correctness, 6);
+        Assert.Empty(result.Verdict.Errors);
+        var effect = Assert.Single(result.Effects);
+        Assert.Equal("spell_power", effect.Kind);
+        Assert.Equal(1.0, effect.Value, 6);
+    }
+
+    [Theory]
+    [InlineData("fuego", "fuego")]
+    [InlineData("el fuego", "fuego")]
+    [InlineData("bola de fuego", "fuego")]
+    [InlineData("una bola de fuego", "fuego")]
+    [InlineData("hielo", "hielo")]
+    [InlineData("el hielo", "hielo")]
+    [InlineData("lanza de hielo", "hielo")]
+    [InlineData("una lanza de hielo", "hielo")]
+    [InlineData("rayo", "rayo")]
+    [InlineData("el rayo", "rayo")]
+    [InlineData("un rayo", "rayo")]
+    [InlineData("relámpago", "relámpago")]
+    [InlineData("un relámpago", "relámpago")]
+    [InlineData("escudo mágico", "escudo")]
+    [InlineData("el escudo mágico", "escudo")]
+    [InlineData("un escudo mágico", "escudo")]
+    [InlineData("escudo de magia", "escudo")]
+    public void EveryPhraseOfTheSpellAnswerSetSatisfiesTheCastSpellGrammar(string transcript, string spell)
+    {
+        var context = TestSupport.Context(state: "none", npcId: "player");
+
+        var result = TestSupport.Pipeline(transcript, RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("spell-cast-constrained"), context);
+
+        Assert.Equal("cast_spell", result.Verdict.Intent.Value);
+        Assert.Equal(spell, result.Verdict.Slots["spell"]);
+        Assert.True(result.Verdict.Communicated);
+        Assert.Empty(result.Verdict.Errors);
+        Assert.Equal(1.0, result.Verdict.Correctness, 6);
+        Assert.Equal(1.0, Assert.Single(result.Effects).Value, 6);
+    }
+
+    [Theory]
+    [InlineData("lanzo fuego", "fuego")]
+    [InlineData("lanzo el fuego", "fuego")]
+    [InlineData("quiero lanzar hielo", "hielo")]
+    [InlineData("fuego", "fuego")]
+    [InlineData("el escudo mágico", "escudo")]
+    public void TheOpenSpellPromptAcceptsTheSpellNameWithOrWithoutTheVerb(string transcript, string spell)
+    {
+        var context = TestSupport.Context(state: "none", npcId: "player");
+
+        var result = TestSupport.Pipeline(transcript).Evaluate(TestSupport.Clip(), Prompt("spell-cast-open"), context);
+
+        Assert.Equal("cast_spell", result.Verdict.Intent.Value);
+        Assert.Equal(spell, result.Verdict.Slots["spell"]);
+        Assert.True(result.Verdict.Communicated);
+        Assert.Empty(result.Verdict.Errors);
+        Assert.Equal(1.0, Assert.Single(result.Effects).Value, 6);
+    }
+
+    [Fact]
+    public void TheSpellAnswerSetPhrasesAreCoveredByTheTheory()
+    {
+        var phrases = TestSupport.Bundle.AnswerSets["spells-basic"].GrammarPhrases();
+
+        Assert.Equal(
+            ["bola de fuego", "el escudo mágico", "el fuego", "el hielo", "el rayo", "escudo de magia", "escudo mágico", "fuego", "hielo", "lanza de hielo", "rayo", "relámpago", "un escudo mágico", "un rayo", "un relámpago", "una bola de fuego", "una lanza de hielo"],
+            phrases.Order(StringComparer.Ordinal).ToArray());
+    }
+
+    [Theory]
+    [InlineData("yo tiene dos espada", "offer-items-open", "offer_item_reply.")]
+    [InlineData("quiero vender una espada", "sell-item-open", "sell_item_reply.")]
+    [InlineData("quiero comprar una espada", "buy-item-open", "buy_item_reply.")]
+    [InlineData("cuánto cuesta la espada", "ask-price-open", "ask_price_reply.")]
+    public void TheBlacksmithAnswersTradeIntentsFromItsInitialIdleState(string transcript, string promptId, string replyPool)
+    {
+        var machine = TestSupport.Bundle.Npcs["blacksmith"];
+        var context = TestSupport.Context(state: machine.InitialState().StateId);
+
+        var result = TestSupport.Pipeline(transcript).Evaluate(TestSupport.Clip(), Prompt(promptId), context);
+
+        Assert.Equal("idle", context.NpcState.StateId);
+        Assert.True(result.Verdict.Communicated);
+        Assert.Equal("trading", result.Decision.Npc!.Next.StateId);
+        Assert.DoesNotContain(result.Response.Lines, static line => line.LineId.StartsWith("not_understood.", StringComparison.Ordinal));
+        Assert.Contains(result.Response.Lines, line => line.LineId.StartsWith(replyPool, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -522,6 +727,35 @@ public class PipelineTests
 
         Assert.Throws<ArgumentException>(() =>
             TestSupport.Pipeline(TestSupport.WorkedExample).Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), context));
+    }
+
+    /// <summary>A copy of the committed bundle whose dialogue has no <c>answer_accepted</c> pool; hashes are not verified because the copy was edited.</summary>
+    private sealed class BundleWithoutAnswerAccepted : IDisposable
+    {
+        private readonly DirectoryInfo _directory = Directory.CreateTempSubdirectory("slg-bundle-");
+
+        public BundleWithoutAnswerAccepted()
+        {
+            foreach (var source in Directory.EnumerateFiles(TestSupport.BundleDir, "*", SearchOption.AllDirectories))
+            {
+                var target = Path.Combine(_directory.FullName, Path.GetRelativePath(TestSupport.BundleDir, source));
+                Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+                File.Copy(source, target);
+            }
+
+            var dialoguePath = Path.Combine(_directory.FullName, "dialogue", "dialogue.json");
+            var root = JsonNode.Parse(File.ReadAllText(dialoguePath, Encoding.UTF8))!.AsObject();
+            Assert.True(root["pools"]!.AsObject().Remove(UtterancePipeline.AnswerAcceptedPool));
+            File.WriteAllText(dialoguePath, root.ToJsonString(), new UTF8Encoding(false));
+            Bundle = ContentLoader.Load(_directory.FullName, new ContentLoadOptions { VerifyHashes = false });
+        }
+
+        public ContentBundle Bundle { get; }
+
+        public void Dispose()
+        {
+            _directory.Delete(recursive: true);
+        }
     }
 
     private sealed class LoggingWordRecognizer(List<string> log, AsrResult result) : IWordRecognizer

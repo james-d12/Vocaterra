@@ -15,6 +15,10 @@ public sealed partial class UtterancePipeline
 {
     private const string SilentIntent = "__silent__";
     private const string SilentLineId = "__silent__.1";
+    private const string PronunciationTagPrefix = "pron.";
+
+    /// <summary>Dialogue pool voiced when a prompt without an NPC is answered acceptably (an answer-only prompt such as a quiz).</summary>
+    public const string AnswerAcceptedPool = "answer_accepted";
 
     // Decision layer: NPC step, learner update, FSRS rating and feedback plan. Pure; the only randomness is the seeded NPC stream.
     private DecisionOutcome Decide(Verdict verdict, PromptSpec prompt, GameContext context)
@@ -35,6 +39,7 @@ public sealed partial class UtterancePipeline
 
     // Response realization: the reply comes from the NPC's actions (honouring their variant draws); the first feedback item is voiced as well.
     // Without an NPC step (a prompt that is not a conversation, such as casting a spell) nobody replies, so only feedback is voiced.
+    // The exception is an acceptable answer to a prompt that has no NPC (a quiz): it is acknowledged from the answer_accepted pool when the bundle has one.
     private ResponsePlan Respond(
         Verdict verdict,
         PromptSpec prompt,
@@ -46,6 +51,11 @@ public sealed partial class UtterancePipeline
     {
         var content = _services.Content;
         var (request, recast) = BuildFeedback(decision.Feedback, normalized, analysis, match, content.AnswerSets, prompt.AnswerSetId);
+        if (prompt.NpcId is null && IsAcceptedAnswer(verdict) && content.Dialogue.TryGetPool(AnswerAcceptedPool, out _))
+        {
+            return PlanWithFallback(verdict, request, recast, AnswerAcceptedPool, content.Dialogue, context);
+        }
+
         if (decision.Npc is null)
         {
             var feedbackOnly = PlanWithFallback(verdict, request, recast, SilentIntent, _catalogWithSilence, context);
@@ -56,6 +66,13 @@ public sealed partial class UtterancePipeline
         var dialogueIntent = actions.Count > 0 ? actions[0].DialogueIntent : null;
         var plan = PlanWithFallback(verdict, request, recast, dialogueIntent, content.Dialogue, context);
         return actions.Count == 0 ? plan : ApplyActions(plan, actions, verdict, context);
+    }
+
+    // Communicated and free of grammar or vocabulary errors; pronunciation errors do not count against the answer itself.
+    private static bool IsAcceptedAnswer(Verdict verdict)
+    {
+        return verdict.Communicated
+            && verdict.Errors.All(static error => error.Tag.StartsWith(PronunciationTagPrefix, StringComparison.Ordinal));
     }
 
     // The planner always renders a reply, so a placeholder pool stands in for it when nobody replies and its line is dropped afterwards.

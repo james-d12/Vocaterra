@@ -43,6 +43,50 @@ public class CliTests
     }
 
     [Fact]
+    public void EvalStartsTheNpcInItsInitialStateAndAnswersTheTradeWithoutAnNpcStateOption()
+    {
+        var (code, output, _) = Run(Eval());
+
+        Assert.Equal(CliProgram.ExitOk, code);
+        var replies = output.Split('\n').Where(static line => line.StartsWith("npc: ", StringComparison.Ordinal)).ToArray();
+        Assert.Equal(2, replies.Length);
+        Assert.Equal("npc: Ah, ¿tienes dos espadas? ¡Muy bien!", replies[0]);
+        Assert.Contains(
+            replies[1],
+            new[] { "npc: ¡Dos espadas! Trato hecho.", "npc: Vale, dos espadas. Gracias, amigo.", "npc: Muy bien: dos espadas. Aquí tienes tu dinero." });
+        Assert.DoesNotContain("qué dices", output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EvalOfAnExactQuizAnswerIsCommunicatedAndAcknowledged()
+    {
+        var (code, output, _) = Run("eval", "--transcript", "espada", "--prompt", "quiz-item-name", "--content", TestSupport.BundleDir);
+
+        Assert.Equal(CliProgram.ExitOk, code);
+        var lines = output.TrimEnd('\n').Split('\n');
+        using var verdict = JsonDocument.Parse(lines[0]);
+        Assert.True(verdict.RootElement.GetProperty("communicated").GetBoolean());
+        Assert.Equal("unknown", verdict.RootElement.GetProperty("intent").GetString());
+        Assert.Equal("Exact", verdict.RootElement.GetProperty("resolvedBy").GetString());
+        Assert.Contains(lines, static line => line is "npc: ¡Correcto!" or "npc: ¡Muy bien!" or "npc: ¡Exacto!");
+        Assert.DoesNotContain(lines, static line => line.StartsWith("repair:", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void EvalOfABareSpellNameCastsTheSpellAtFullPower()
+    {
+        var (code, output, _) = Run("eval", "--transcript", "fuego", "--prompt", "spell-cast-constrained", "--content", TestSupport.BundleDir);
+
+        Assert.Equal(CliProgram.ExitOk, code);
+        var lines = output.TrimEnd('\n').Split('\n');
+        using var verdict = JsonDocument.Parse(lines[0]);
+        Assert.Equal("cast_spell", verdict.RootElement.GetProperty("intent").GetString());
+        Assert.Equal("fuego", verdict.RootElement.GetProperty("slots").GetProperty("spell").GetString());
+        Assert.True(verdict.RootElement.GetProperty("communicated").GetBoolean());
+        Assert.Contains("effect: cast_spell_power spell_power 1", lines);
+    }
+
+    [Fact]
     public void EvalIsDeterministicAcrossRuns()
     {
         var first = Run(Eval("--seed", "7", "--counter", "2"));

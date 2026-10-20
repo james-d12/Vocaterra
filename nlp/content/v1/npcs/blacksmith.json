@@ -32,6 +32,16 @@
           "actions": [ { "dialogueIntent": "ask_price_reply", "variantPoolId": "ask_price_reply" } ]
         },
         {
+          "on": { "intent": "sell_item", "communicated": true },
+          "to": "trading",
+          "actions": [ { "dialogueIntent": "sell_item_reply", "gameEvent": "trade.sell", "variantPoolId": "sell_item_reply" } ]
+        },
+        {
+          "on": { "intent": "offer_item", "communicated": true },
+          "to": "trading",
+          "actions": [ { "dialogueIntent": "offer_item_reply", "gameEvent": "trade.offer", "variantPoolId": "offer_item_reply" } ]
+        },
+        {
           "on": { "intent": "cast_spell", "communicated": true },
           "to": "idle",
           "actions": [ { "dialogueIntent": "cast_spell_reply", "gameEvent": "spell.cast", "variantPoolId": "cast_spell_reply" } ]

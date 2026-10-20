@@ -34,6 +34,9 @@ public sealed partial class UtterancePipeline
 {
     private static readonly NormalizationOptions Normalization = new(ConvertIndefiniteArticles: false);
 
+    // What the intent stage reports for a prompt that does not ask for an intent.
+    private static readonly IntentResolution NoIntent = new(IntentId.Unknown, SlotMap.Empty, IntentRung.Unresolved, 0.0, 0.0);
+
     private readonly PipelineServices _services;
     private readonly PipelineOptions _options;
     private readonly LinguisticAnalyzer _analyzer;
@@ -83,7 +86,7 @@ public sealed partial class UtterancePipeline
         var normalized = TextNormalizer.Normalize(CleanTranscript(asr.Transcript), Normalization);
         var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, Normalization);
         var analysis = _analyzer.Analyze(normalized, GrammarsFor(prompt));
-        var intent = _resolver.Resolve(normalized, analysis, prompt);
+        var intent = IsAnswerOnly(prompt) ? NoIntent : _resolver.Resolve(normalized, analysis, prompt);
         var pronunciation = ScorePronunciation(normalized, posteriors, prompt);
 
         var content = _services.Content;
@@ -156,6 +159,13 @@ public sealed partial class UtterancePipeline
             : RecognitionRequest.Open(_options.MaxAlternatives);
     }
 
+    // A prompt that allows no intent (a quiz) only asks for an answer: the answer match is its resolution, so no intent grammar may claim the
+    // utterance (a bare noun would otherwise fit a verb-optional grammar such as cast_spell) and the intent stage is skipped.
+    private static bool IsAnswerOnly(PromptSpec prompt)
+    {
+        return prompt.AllowedIntentIds.Count == 0;
+    }
+
     // The prompt's own grammars come first (they win ties), followed by every other grammar of the allowed intents.
     private List<SlotGrammar> GrammarsFor(PromptSpec prompt)
     {
@@ -177,7 +187,7 @@ public sealed partial class UtterancePipeline
         var allowed = new HashSet<string>(prompt.AllowedIntentIds, StringComparer.Ordinal);
         foreach (var intent in catalog.Intents)
         {
-            if (allowed.Count > 0 && !allowed.Contains(intent.Id.Value))
+            if (!allowed.Contains(intent.Id.Value))
             {
                 continue;
             }

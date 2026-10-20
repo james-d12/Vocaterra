@@ -114,6 +114,75 @@ public class VerdictAssemblerTests
     }
 
     [Theory]
+    [InlineData(MatchType.Exact, ResolvedBy.Exact)]
+    [InlineData(MatchType.Alias, ResolvedBy.Alias)]
+    [InlineData(MatchType.Fuzzy, ResolvedBy.Fuzzy)]
+    public void AnAnswerMatchWithAnUnknownIntentIsCommunicated(MatchType matchType, ResolvedBy expected)
+    {
+        var verdict = VerdictAssembler.Assemble(QuizInputs(Fixtures.Matched(matchType)));
+
+        Assert.True(verdict.Communicated);
+        Assert.True(verdict.Intent.IsUnknown);
+        Assert.Empty(verdict.Slots);
+        Assert.Equal(expected, verdict.ResolvedBy);
+        Assert.Equal(1.0, verdict.Correctness);
+        Assert.Empty(verdict.Errors);
+    }
+
+    [Fact]
+    public void AnAnswerMatchIsNotHeldBackByTheUnresolvedIntentsZeroConfidence()
+    {
+        var verdict = VerdictAssembler.Assemble(QuizInputs(Fixtures.Matched(MatchType.Exact, 0.8)));
+
+        Assert.Equal(0.8, verdict.Confidence);
+        Assert.Equal(OutcomeBandKind.Correct, OutcomeBand.Classify(verdict, EvaluationConfig.Default.Beginner).Kind);
+    }
+
+    [Fact]
+    public void NoAnswerMatchWithAnUnknownIntentIsNotCommunicated()
+    {
+        var verdict = VerdictAssembler.Assemble(QuizInputs(Fixtures.NoMatch()));
+
+        Assert.False(verdict.Communicated);
+        Assert.True(verdict.Intent.IsUnknown);
+        Assert.Equal(ResolvedBy.Unresolved, verdict.ResolvedBy);
+        Assert.Equal(0.0, verdict.Confidence);
+    }
+
+    [Fact]
+    public void AnAnswerMatchFollowsTheCommunicatedMarginOnTheMatchConfidence()
+    {
+        var settings = EvaluationConfig.Default.Beginner;
+        var threshold = settings.CommunicatedConfidenceThreshold;
+        var epsilon = settings.Epsilon;
+        var margin = settings.CommunicatedMargin();
+
+        var accept = threshold + epsilon;
+        var uncertain = threshold;
+        var reject = threshold - epsilon;
+        Assert.Equal(MarginDecision.Accept, margin.Evaluate(accept));
+        Assert.Equal(MarginDecision.Uncertain, margin.Evaluate(uncertain));
+        Assert.Equal(MarginDecision.Reject, margin.Evaluate(reject));
+
+        Assert.True(VerdictAssembler.Assemble(QuizInputs(Fixtures.Matched(MatchType.Fuzzy, accept))).Communicated);
+        Assert.True(VerdictAssembler.Assemble(QuizInputs(Fixtures.Matched(MatchType.Fuzzy, uncertain))).Communicated);
+        Assert.False(VerdictAssembler.Assemble(QuizInputs(Fixtures.Matched(MatchType.Fuzzy, reject))).Communicated);
+        Assert.False(VerdictAssembler.Assemble(QuizInputs(Fixtures.Matched(MatchType.Fuzzy, 0.0))).Communicated);
+    }
+
+    [Fact]
+    public void AnAnswerMatchWithAKnownIntentStillReportsThatIntent()
+    {
+        var inputs = Fixtures.WorkedExample() with { Match = Fixtures.Matched(MatchType.Exact) };
+
+        var verdict = VerdictAssembler.Assemble(inputs);
+
+        Assert.True(verdict.Communicated);
+        Assert.Equal(new IntentId("offer_item"), verdict.Intent);
+        Assert.Equal(ResolvedBy.Exact, verdict.ResolvedBy);
+    }
+
+    [Theory]
     [InlineData(MatchType.Exact, IntentRung.Grammar, ResolvedBy.Exact)]
     [InlineData(MatchType.Alias, IntentRung.Rules, ResolvedBy.Alias)]
     [InlineData(MatchType.Fuzzy, IntentRung.Embedding, ResolvedBy.Fuzzy)]
@@ -464,6 +533,22 @@ public class VerdictAssemblerTests
     public void AssembleRejectsNullInputs()
     {
         Assert.Throws<ArgumentNullException>(() => VerdictAssembler.Assemble(null!));
+    }
+
+    // A quiz prompt: constrained, no allowed intents, so the intent stage finds nothing and only the answer match can resolve the utterance.
+    private static VerdictInputs QuizInputs(MatchResult match)
+    {
+        return new VerdictInputs(
+            Fixtures.Prompt(RecognitionMode.Constrained, answerSetId: "items"),
+            Fixtures.Asr(mode: RecognitionMode.Constrained),
+            match,
+            Fixtures.Analysis([Fixtures.Token("espada", 0, "noun")]),
+            Fixtures.UnknownIntent(),
+            null,
+            [],
+            ["espada"],
+            EvaluationConfig.Default,
+            Fixtures.Versions());
     }
 
     private static VerdictInputs VocabInputs(IReadOnlyList<AnalyzedToken> tokens)
