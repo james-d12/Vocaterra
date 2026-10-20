@@ -1,0 +1,16 @@
+# Licenses accepted by scripts/license-scan.sh, one per line.
+# Each line is an SPDX identifier matched as a whole token (case-insensitive), or a complete SPDX expression if it contains spaces.
+# Substrings are not matched, so MIT does not accept a license that merely contains "MIT".
+# Copyleft families (GPL, LGPL, AGPL, SSPL) are refused even when listed here.
+MIT
+Apache-2.0
+BSD-2-Clause
+BSD-3-Clause
+MS-PL
+MS-.NET-Library
+CC-BY-4.0
+Unlicense
+0BSD
+PostgreSQL
+ISC
+CC0-1.0

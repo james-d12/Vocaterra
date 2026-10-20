@@ -6,9 +6,26 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    name: build and test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
 
@@ -26,4 +43,94 @@ jobs:
         run: dotnet format --verify-no-changes --no-restore
 
       - name: Test
-        run: dotnet test --no-build
+        run: dotnet test --no-build --logger trx --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trx-${{ matrix.os }}
+          path: TestResults/**/*.trx
+          if-no-files-found: warn
+
+  golden:
+    name: golden tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Golden tests
+        run: dotnet test tests/Slg.Golden.Tests --no-restore --logger trx --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trx-golden
+          path: TestResults/**/*.trx
+          if-no-files-found: warn
+
+  license:
+    name: license scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: License scan
+        run: scripts/license-scan.sh
+
+  models:
+    name: model-backed tests
+    if: vars.SLG_RUN_MODEL_TESTS == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      SLG_MODELS_DIR: ${{ github.workspace }}/models
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Cache Vosk model
+        uses: actions/cache@v4
+        with:
+          path: models/vosk-model-small-es-0.42
+          key: models-vosk-small-es-${{ hashFiles('models/manifest.json') }}
+
+      - name: Fetch Vosk model
+        run: scripts/fetch-models.sh vosk-model-small-es-0.42
+
+      - name: Build
+        run: dotnet build --no-restore -warnaserror
+
+      - name: Test with models
+        run: dotnet test --no-build --logger trx --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trx-models
+          path: TestResults/**/*.trx
+          if-no-files-found: warn
