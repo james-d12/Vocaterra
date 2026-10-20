@@ -2,6 +2,7 @@ using System.Globalization;
 using Slg.Core.Stages;
 using Slg.Core.Taxonomy;
 using Slg.Nlp.Normalization;
+using NlpLexicon = Slg.Nlp.Lexicon.Lexicon;
 
 namespace Slg.Response.Templates;
 
@@ -12,16 +13,29 @@ namespace Slg.Response.Templates;
 public static class RecastBuilder
 {
     /// <summary>
-    /// Applies every error tag that has a non-empty <c>Expected</c> to the normalized text by span, from the last span to the first.
-    /// Pronunciation tags are skipped. Where spans overlap, the wider edit wins and narrower edits inside it are merged into its replacement;
-    /// partially overlapping edits are dropped. Digit tokens such as <c>2</c> are replaced with words (<c>dos</c>, and <c>un</c>/<c>una</c> before a noun).
+    /// Builds the recast without a lexicon, so no accent is restored; see the overload that takes one.
     /// </summary>
     public static string Build(NormalizedText playerText, AnalysisResult analysis)
     {
+        return Build(playerText, analysis, NlpLexicon.Empty);
+    }
+
+    /// <summary>
+    /// Applies every error tag that has a non-empty <c>Expected</c> to the normalized text by span, from the last span to the first.
+    /// Pronunciation tags are skipped. Where spans overlap, the wider edit wins and narrower edits inside it are merged into its replacement;
+    /// partially overlapping edits are dropped. Digit tokens such as <c>2</c> are replaced with words (<c>dos</c>, and <c>un</c>/<c>una</c> before a noun).
+    /// A word that the lexicon knows only once its accents are ignored (<c>dias</c>) takes the lexicon's accented spelling (<c>días</c>), the first in
+    /// ordinal order when several accented spellings fold alike. A word that is a lexicon form as spelled is kept, so an accent-less word that is
+    /// another word (<c>se</c>, <c>si</c>, <c>mas</c>) is never corrected.
+    /// </summary>
+    public static string Build(NormalizedText playerText, AnalysisResult analysis, NlpLexicon lexicon)
+    {
         ArgumentNullException.ThrowIfNull(playerText);
         ArgumentNullException.ThrowIfNull(analysis);
+        ArgumentNullException.ThrowIfNull(lexicon);
         var text = playerText.Text;
         var edits = ResolveErrorEdits(text, analysis);
+        AddAccentEdits(playerText, lexicon, edits);
         AddNumberEdits(playerText, analysis, edits);
 
         edits.Sort(static (a, b) => b.Start.CompareTo(a.Start));
@@ -81,6 +95,34 @@ public static class RecastBuilder
         }
 
         return accepted;
+    }
+
+    private static void AddAccentEdits(NormalizedText playerText, NlpLexicon lexicon, List<Edit> edits)
+    {
+        foreach (var token in playerText.Tokens)
+        {
+            var span = token.Span;
+            if (span.Start < 0
+                || span.Length <= 0
+                || span.End > playerText.Text.Length
+                || !string.Equals(playerText.Text.Substring(span.Start, span.Length), token.Text, StringComparison.Ordinal)
+                || edits.Exists(e => e.Start < span.End && span.Start < e.End))
+            {
+                continue;
+            }
+
+            var lookup = lexicon.Lookup(token.Text);
+            if (lookup.Count == 0 || !lookup.IsAccentInsensitive)
+            {
+                continue;
+            }
+
+            var spellings = lexicon.SpellingsIgnoringAccents(token.Text);
+            if (spellings.Count > 0 && !string.Equals(spellings[0], token.Text, StringComparison.Ordinal))
+            {
+                edits.Add(new Edit(span.Start, span.Length, spellings[0]));
+            }
+        }
     }
 
     private static string SubstituteWords(string replacement, string original, string corrected)

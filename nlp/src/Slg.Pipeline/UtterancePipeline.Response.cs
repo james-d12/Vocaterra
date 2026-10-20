@@ -50,7 +50,7 @@ public sealed partial class UtterancePipeline
         GameContext context)
     {
         var content = _services.Content;
-        var (request, recast) = BuildFeedback(decision.Feedback, normalized, analysis, match, content.AnswerSets, prompt.AnswerSetId);
+        var (request, recast) = BuildFeedback(decision.Feedback, normalized, analysis, match, content.AnswerSets, content.Lexicon);
         if (prompt.NpcId is null && IsAcceptedAnswer(verdict) && content.Dialogue.TryGetPool(AnswerAcceptedPool, out _))
         {
             return PlanWithFallback(verdict, request, recast, AnswerAcceptedPool, content.Dialogue, context);
@@ -153,7 +153,7 @@ public sealed partial class UtterancePipeline
         AnalysisResult analysis,
         MatchResult match,
         IReadOnlyDictionary<string, AnswerSet> answerSets,
-        string answerSetId)
+        Slg.Nlp.Lexicon.Lexicon lexicon)
     {
         if (plan.Items.Count == 0)
         {
@@ -161,9 +161,7 @@ public sealed partial class UtterancePipeline
         }
 
         var item = plan.Items[0];
-
-        // The verdict assembler cannot name the right answer for vocab.wrong, so it puts the answer set id there; that is not text to say.
-        var expected = string.Equals(item.Expected, answerSetId, StringComparison.Ordinal) ? string.Empty : item.Expected;
+        var expected = item.Expected;
         var needsExpected = item.Type is FeedbackType.ExplicitCorrection or FeedbackType.ModelPronunciation or FeedbackType.SlowRepeat;
         if (expected.Length == 0 && needsExpected && match.AnswerId is { } answerId)
         {
@@ -176,7 +174,7 @@ public sealed partial class UtterancePipeline
             return (null, null);
         }
 
-        var recast = item.Type == FeedbackType.Recast ? RecastBuilder.Build(normalized, analysis) : null;
+        var recast = item.Type == FeedbackType.Recast ? RecastBuilder.Build(normalized, analysis, lexicon) : null;
         return (new FeedbackRequest(item.Tag, expected, item.Actual, KindOf(item.Type)), recast);
     }
 

@@ -185,6 +185,18 @@ public sealed class Lexicon
     }
 
     /// <summary>
+    /// Returns the distinct surface forms that are the same word as <paramref name="form"/> once accents are ignored, in ordinal order, so
+    /// the accented spellings of an accent-less form (<c>dias</c> gives <c>días</c>). Empty when no form folds to the same key; the form
+    /// itself is one of them when it is a lexicon form.
+    /// </summary>
+    public IReadOnlyList<string> SpellingsIgnoringAccents(string form)
+    {
+        ArgumentNullException.ThrowIfNull(form);
+        var index = Derive("spellings-by-folded-key", static lexicon => lexicon.BuildSpellingsByFoldedKey());
+        return index.TryGetValue(TextFolding.StripAccents(form), out var spellings) ? spellings : [];
+    }
+
+    /// <summary>
     /// Returns a read-only structure derived from this lexicon alone (for example the index of regularized irregular forms), built on first use and
     /// shared by everything that uses this lexicon. The lexicon is immutable, so the structure is a pure function of it and every caller would build
     /// the same one; building it once keeps a second morphology generator over the same lexicon from repeating the work.
@@ -213,6 +225,40 @@ public sealed class Lexicon
     public string ToJson()
     {
         return CanonicalJson.Serialize(new LexiconFile(LexiconSchema.CurrentVersion, GeneratedBy, _entries));
+    }
+
+    // The entries are sorted by form, so the forms are adjacent and each is seen once.
+    private Dictionary<string, string[]> BuildSpellingsByFoldedKey()
+    {
+        var groups = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        string? previous = null;
+        foreach (var entry in _entries)
+        {
+            if (string.Equals(entry.Form, previous, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            previous = entry.Form;
+            var key = TextFolding.StripAccents(entry.Form);
+            if (!groups.TryGetValue(key, out var forms))
+            {
+                forms = [];
+                groups.Add(key, forms);
+            }
+
+            forms.Add(entry.Form);
+        }
+
+        var index = new Dictionary<string, string[]>(groups.Count, StringComparer.Ordinal);
+        foreach (var pair in groups)
+        {
+            var forms = pair.Value.ToArray();
+            Array.Sort(forms, StringComparer.Ordinal);
+            index.Add(pair.Key, forms);
+        }
+
+        return index;
     }
 
     private static Lexicon Create(IEnumerable<LexiconEntry> entries, string? generatedBy)

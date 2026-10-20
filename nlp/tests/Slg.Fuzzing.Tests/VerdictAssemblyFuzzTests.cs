@@ -167,7 +167,8 @@ public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
         return "[" + string.Join("; ", keys.OrderBy(static k => k.Start).ThenBy(static k => k.Tag, StringComparer.Ordinal).Select(static k => $"{k.Tag}@{k.Start}+{k.Length}")) + "]";
     }
 
-    // The derived error exists when nothing matched, the prompt is constrained, and the first content token is a word the lexicon knows.
+    // The derived error exists when nothing matched, the prompt is constrained, and the first content token is a word the lexicon knows. Its
+    // expected text is the answer set's single canonical answer, or empty when the set has no single answer (VerdictGen supplies none).
     private static ErrorTag? DerivedVocabWrong(VerdictInputs inputs)
     {
         if (inputs.Match.Type != MatchType.None || inputs.Prompt.Mode != RecognitionMode.Constrained)
@@ -192,7 +193,7 @@ public sealed class VerdictAssemblyFuzzTests(ITestOutputHelper output)
         }
 
         return first is not null && inputs.KnownLexiconWords.Contains(first.Text)
-            ? new ErrorTag(ErrorTags.VocabWrong, first.Span, inputs.Prompt.AnswerSetId, first.Text)
+            ? new ErrorTag(ErrorTags.VocabWrong, first.Span, inputs.CanonicalAnswers is { Count: 1 } answers ? answers[0] : string.Empty, first.Text)
             : null;
     }
 

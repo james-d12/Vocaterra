@@ -231,7 +231,12 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
 
         var normalized = TextNormalizer.Normalize(asr.Transcript.Replace(GrammarBuilder.UnknownToken, " ", StringComparison.Ordinal), PipelineHarness.Normalization);
         var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, PipelineHarness.Normalization);
-        var analysis = new LinguisticAnalyzer(bundle.Lexicon, bundle.Morphology).Analyze(normalized, GrammarsFor(bundle, prompt));
+        var analysis = AnswerCorrections.WithCanonicalWords(
+            new LinguisticAnalyzer(bundle.Lexicon, bundle.Morphology).Analyze(normalized, GrammarsFor(bundle, prompt)),
+            normalized,
+            match,
+            answerSet,
+            PipelineHarness.Normalization);
         var intent = prompt.AllowedIntentIds.Count == 0 ? NoIntent : new IntentResolver(bundle.Intents, services.Embeddings).Resolve(normalized, analysis, prompt);
 
         PronunciationResult? pronunciation = null;
@@ -262,7 +267,8 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
             bundle.Intents.RequiredSlots(intent.Intent),
             [.. known],
             bundle.EvaluationConfig,
-            services.Versions));
+            services.Versions,
+            [.. answerSet.Answers.Select(static answer => answer.Canonical)]));
 
         Determinism.AssertSame(Oracle, "The verdict (pipeline against the stages called by hand)", c, () => trace.Result.Verdict, () => byHand);
     }

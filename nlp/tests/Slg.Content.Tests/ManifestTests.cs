@@ -11,7 +11,7 @@ public class ManifestTests
     /// Self-recorded golden value of the committed bundle. When bundle content changes on purpose, run the ContentBuilder
     /// <c>hash</c> command on <c>content/v1</c> and copy the new bundle hash here.
     /// </summary>
-    private const string GoldenBundleHash = "8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78";
+    private const string GoldenBundleHash = "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294";
 
     [Fact]
     public void TheCommittedBundleHashMatchesTheGoldenValue()

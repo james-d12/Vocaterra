@@ -14,18 +14,16 @@ namespace Slg.Nlp.Matching;
 /// <remarks>
 /// All comparisons ignore accents on both sides. The fuzzy stage compares against every canonical and alias phrase twice, once
 /// as spelled and once as phonetic keys (see <see cref="SpanishPhoneticKey"/>), and takes the smaller Damerau-Levenshtein distance
-/// <c>d</c>. The allowed distance is <c>floor(length / divisor)</c> with the phrase's length in characters and divisor 4, 5 or 6
-/// for Beginner, Intermediate and Advanced. The decision runs through a <see cref="Margin"/>: <c>d</c> below the limit is a
-/// confident fuzzy match (confidence <c>1 - d/length</c>), <c>d</c> exactly at the limit is uncertain (confidence 0.5), and
-/// <c>d</c> above it is no match. Both fuzzy outcomes have type <see cref="MatchType.Fuzzy"/>; callers tell them apart by confidence.
-/// The lowest distance wins; equal distances go to the ordinally smallest answer id.
+/// <c>d</c>. The budget is inclusive: the allowed distance is <c>floor(length / divisor)</c> with the phrase's length in characters and
+/// divisor 4, 5 or 6 for Beginner, Intermediate and Advanced, so a phrase of 4 to 7 characters allows one edit at Beginner. The decision
+/// runs through a <see cref="Margin"/> on the distance: <c>d</c> below the budget is an accepted fuzzy match, <c>d</c> exactly at the budget
+/// is uncertain and still a match, and <c>d</c> above it is no match. Every fuzzy match has type <see cref="MatchType.Fuzzy"/> and
+/// confidence <c>1 - d/length</c>; the budget's edge is not reported as a low confidence of its own, so a near miss at the edge is
+/// communicated like any other match. The lowest distance wins; equal distances go to the ordinally smallest answer id.
 /// </remarks>
 public static class AnswerMatcher
 {
-    /// <summary>Confidence reported for a fuzzy match whose distance is exactly at the limit.</summary>
-    public const double UncertainConfidence = 0.5;
-
-    // Half a character: integer distances then land strictly Accept below the limit, Uncertain on it and Reject above it.
+    // Half a character: integer distances then land strictly Accept below the budget, Uncertain on it and Reject above it.
     private const double LimitEpsilon = 0.5;
 
     /// <summary>
@@ -116,10 +114,7 @@ public static class AnswerMatcher
             return new MatchResult(null, MatchType.None, smallest == int.MaxValue ? 0 : smallest, false, 0.0);
         }
 
-        var decision = Decide(bestDistance, winner.Phrase.Length / divisor);
-        var confidence = decision == MarginDecision.Uncertain
-            ? UncertainConfidence
-            : 1.0 - ((double)bestDistance / winner.Phrase.Length);
+        var confidence = 1.0 - ((double)bestDistance / winner.Phrase.Length);
         var likelyPronunciation = bestPhonetic == 0 && bestSpelling > 0;
         return new MatchResult(winner.AnswerId, MatchType.Fuzzy, bestDistance, likelyPronunciation, confidence);
     }

@@ -415,7 +415,7 @@ public class VerdictAssemblerTests
         var verdict = VerdictAssembler.Assemble(inputs);
 
         var error = Assert.Single(verdict.Errors);
-        Assert.Equal(new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 5), "animals", "perro"), error);
+        Assert.Equal(new ErrorTag(ErrorTags.VocabWrong, new TextSpan(0, 5), string.Empty, "perro"), error);
         Assert.Equal(0.4, verdict.Correctness);
     }
 
@@ -426,7 +426,7 @@ public class VerdictAssemblerTests
 
         var error = Assert.Single(VerdictAssembler.Assemble(inputs).Errors);
 
-        Assert.Equal(new ErrorTag(ErrorTags.VocabWrong, new TextSpan(3, 5), "animals", "perro"), error);
+        Assert.Equal(new ErrorTag(ErrorTags.VocabWrong, new TextSpan(3, 5), string.Empty, "perro"), error);
     }
 
     [Fact]

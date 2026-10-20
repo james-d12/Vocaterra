@@ -91,7 +91,8 @@
         "[VERB:querer] [VERB:ofrecer:verb] [NUM:qty] [NOUN:item]"
       ],
       "keywordRules": [
-        { "lemmas": ["ofrecer"], "requiresSlots": ["item", "qty"], "slotFromNoun": "item", "slotFromNumber": "qty" }
+        { "lemmas": ["ofrecer"], "requiresSlots": ["item", "qty"], "slotFromNoun": "item", "slotFromNumber": "qty" },
+        { "lemmas": ["tener"], "requiresSlots": ["item", "qty"], "slotFromNoun": "item", "slotFromNumber": "qty" }
       ],
       "examples": [
         "tengo dos espadas",

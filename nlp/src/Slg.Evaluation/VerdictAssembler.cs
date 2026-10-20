@@ -45,8 +45,8 @@ public static class VerdictAssembler
     /// The derived <c>vocab.wrong</c> error is raised when the answer-set match is <see cref="MatchType.None"/>, the prompt is
     /// <see cref="RecognitionMode.Constrained"/> and the first content token (the first token that is not purely an article,
     /// pronoun, preposition or conjunction; unknown words count as content) is in <see cref="VerdictInputs.KnownLexiconWords"/>.
-    /// The canonical answer is not available to this stage, so <c>Expected</c> carries <see cref="PromptSpec.AnswerSetId"/> and
-    /// <c>Actual</c> carries the token text; later stages that know the answer set may replace the expected text.
+    /// <c>Expected</c> is the answer set's canonical answer when the set has exactly one answer (a prompt that asks for one word), and empty
+    /// otherwise: a set of several answers has no single word to name. <c>Actual</c> is the token text.
     /// </remarks>
     public static Verdict Assemble(VerdictInputs inputs)
     {
@@ -243,7 +243,8 @@ public static class VerdictAssembler
             return null;
         }
 
-        return new ErrorTag(ErrorTags.VocabWrong, token.Span, inputs.Prompt.AnswerSetId, token.Text);
+        var expected = inputs.CanonicalAnswers is { Count: 1 } answers ? answers[0] : string.Empty;
+        return new ErrorTag(ErrorTags.VocabWrong, token.Span, expected, token.Text);
     }
 
     private static Token? FirstContentToken(IReadOnlyList<AnalyzedToken> tokens)
