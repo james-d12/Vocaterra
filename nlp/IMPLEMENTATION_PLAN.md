@@ -814,6 +814,11 @@ Re-sequencing: M17b's scenes are game content and move to the game repo after M1
 (the `[WORD:slot]` grammar token and generic `confirm`, `deny`, `farewell` and `thank` sample intents)
 stays here. M17c (evaluator polish) stays in the core.
 
+Follow-ups after M19c: `content/game-v1` in Vocaterra is a copy of the core sample taken before
+M17b-core, so it lacks the generic intents and the `confirming` state; the game decides whether to
+re-sync from the core sample or diverge (its first content milestone). Core follow-ups from the host
+author: a repeat-count helper, prompt text in `PromptSpec`, the ContentBuilder as a dotnet tool.
+
 ### 8.3 Owner decisions
 - Repository names (decided 2026-10-20): the core is `james-d12/Vocaterra.NLP` (this repository,
   renamed from `SpanishLearningGame`); the game is `james-d12/Vocaterra` (created empty on 2026-10-20, cloned
