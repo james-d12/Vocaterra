@@ -11,10 +11,12 @@ public static class Accents
     /// <summary>
     /// Removes combining accents (acute, grave, diaeresis, cedilla and so on) and returns the result in NFC.
     /// The tilde of <c>ñ</c> is kept because <c>ñ</c> is a letter of its own: <c>año</c> and <c>ano</c> are different words.
+    /// A lone surrogate in the text is replaced by U+FFFD first instead of making the normalization throw.
     /// </summary>
     public static string Strip(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
+        text = Utf16.ReplaceLoneSurrogates(text);
         if (IsPlainAscii(text))
         {
             return text;

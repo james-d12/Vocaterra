@@ -14,10 +14,11 @@ namespace Slg.Nlp.Normalization;
 /// </remarks>
 public static class SpanishPhoneticKey
 {
-    /// <summary>Computes the phonetic key of a word or phrase.</summary>
+    /// <summary>Computes the phonetic key of a word or phrase; a lone surrogate counts as U+FFFD, which separates words.</summary>
     public static string Compute(string word)
     {
         ArgumentNullException.ThrowIfNull(word);
+        word = Utf16.ReplaceLoneSurrogates(word);
 
         // The diaeresis must be read before accents are stripped: "gü" sounds /gw/, plain "gu" before e/i does not.
         var lowered = word.Normalize(NormalizationForm.FormC).ToLowerInvariant().Replace("gü", "gw", StringComparison.Ordinal);

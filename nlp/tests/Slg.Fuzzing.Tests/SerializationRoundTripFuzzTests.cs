@@ -136,7 +136,7 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
             Gen.ULong,
             Gen.Bool,
             static (recipe, text, prompt, state, mode, seed, phonemes) => (recipe, text, prompt, state, mode, seed, phonemes));
-        var iterations = FuzzOptions.Iterations(FuzzOptions.PipelineVar, 300);
+        var iterations = FuzzOptions.Iterations(FuzzOptions.PipelineVar, FuzzOptions.PipelineDefault);
 
         gen.Sample(
             ((SentenceRecipe Recipe, string Text, Slg.Core.Prompts.PromptSpec Prompt, string State, int Mode, ulong Seed, bool Phonemes) input) =>
@@ -147,7 +147,7 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
 
                 // Pronunciation scoring grows roughly with the cube of the transcript length (0.4 s at 400 characters, over 20 s at 1 600; see the
                 // README, known findings), so only a spoken-length transcript is paired with the phoneme recognizer.
-                var phonemes = input.Phonemes && transcript.Length <= 150;
+                var phonemes = input.Phonemes && transcript.Length <= PipelineCase.MaxScoredTranscriptCharacters;
                 var pipeline = Harness.NewPipeline(transcript, input.Prompt.Mode, phonemes);
                 var context = Harness.NewContext("blacksmith", input.State, counter: (long)(input.Seed % 7), worldSeed: input.Seed);
                 var info = new { transcript, prompt = input.Prompt.PromptId, input.State, input.Seed, phonemes };

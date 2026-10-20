@@ -10,7 +10,9 @@ namespace Slg.Fuzzing.Tests;
 
 /// <summary>
 /// O1: the normalizer never crashes, is idempotent, and returns well-formed tokens whose spans index into the text and whose
-/// <c>Original</c> strings come from the input, in order.
+/// <c>Original</c> strings come from the input, in order. The generators feed raw ill-formed UTF-16 (lone surrogates) on purpose: the
+/// normalization entry points (<c>TextNormalizer.Normalize</c>, <c>Accents.Strip</c>, <c>SpanishPhoneticKey.Compute</c>) must read them as
+/// U+FFFD instead of throwing.
 /// </summary>
 public sealed class NormalizerFuzzTests(ITestOutputHelper output)
 {
@@ -28,11 +30,18 @@ public sealed class NormalizerFuzzTests(ITestOutputHelper output)
             Gen.Bool,
             static (text, contractions, numbers, articles) => (text, new NormalizationOptions(contractions, numbers, articles)));
         var iterations = FuzzOptions.Iterations(FuzzOptions.GeneralVar, FuzzOptions.GeneralDefault);
+        var diagnostics = new FuzzDiagnostics();
 
         gen.Sample(
             ((string Text, NormalizationOptions Options) input) =>
             {
                 var (text, options) = input;
+                if (HasLoneSurrogate(text))
+                {
+                    diagnostics.Count("input:lone-surrogate");
+                }
+
+                CheckEntryPointsAreTotal(text);
                 var first = Normalize(text, options);
 
                 CheckWellFormed(first, text, options);
@@ -48,12 +57,55 @@ public sealed class NormalizerFuzzTests(ITestOutputHelper output)
             writeLine: output.WriteLine,
             iter: iterations,
             threads: 1);
+
+        output.WriteLine("Normalizer diagnostics:\n" + diagnostics.Report());
+        Assert.True(diagnostics.Get("input:lone-surrogate") > 0, "The generators must feed raw lone surrogates.\n" + diagnostics.Report());
     }
 
     [Fact]
     public void Normalize_RejectsNull_WithArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() => TextNormalizer.Normalize(null!));
+    }
+
+    private static bool HasLoneSurrogate(string text)
+    {
+        for (var i = 0; i < text.Length; i++)
+        {
+            if (char.IsHighSurrogate(text[i]) && i + 1 < text.Length && char.IsLowSurrogate(text[i + 1]))
+            {
+                i++;
+            }
+            else if (char.IsSurrogate(text[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // The raw text, lone surrogates included, goes straight to the public entry points that call string.Normalize underneath.
+    private static void CheckEntryPointsAreTotal(string text)
+    {
+        try
+        {
+            var stripped = Accents.Strip(text);
+            var key = SpanishPhoneticKey.Compute(text);
+            if (HasLoneSurrogate(stripped))
+            {
+                throw Determinism.Fail(Oracle, "Accents.Strip left a lone surrogate in its result.", text);
+            }
+
+            if (key.Any(static c => !(c is >= 'a' and <= 'z' or >= '0' and <= '9' or ' ')))
+            {
+                throw Determinism.Fail(Oracle, $"The phonetic key '{key}' has a character outside a-z, 0-9 and space.", text);
+            }
+        }
+        catch (ArgumentException ex)
+        {
+            throw Determinism.Fail(Oracle, $"Accents.Strip or SpanishPhoneticKey.Compute threw {ex.GetType().Name}: {ex.Message}", text);
+        }
     }
 
     private static NormalizedText Normalize(string text, NormalizationOptions options)
@@ -118,8 +170,8 @@ public sealed class NormalizerFuzzTests(ITestOutputHelper output)
         CheckOriginals(result, input, options);
     }
 
-    // string.Normalize rejects lone surrogates, which the adversarial corpus contains on purpose; the normalizer never puts one inside a word,
-    // so replacing them in this oracle's own copy of the input does not change any Original it looks for.
+    // The oracle's own model of the documented repair (a lone surrogate reads as U+FFFD); the normalizer never puts one inside a word,
+    // so replacing them in this copy of the input does not change any Original it looks for.
     private static string ReplaceLoneSurrogates(string text)
     {
         var builder = new StringBuilder(text.Length);
@@ -132,7 +184,7 @@ public sealed class NormalizerFuzzTests(ITestOutputHelper output)
             }
             else
             {
-                builder.Append(char.IsSurrogate(text[i]) ? '�' : text[i]);
+                builder.Append(char.IsSurrogate(text[i]) ? (char)0xFFFD : text[i]);
             }
         }
 

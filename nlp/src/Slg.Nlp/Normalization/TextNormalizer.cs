@@ -13,6 +13,7 @@ namespace Slg.Nlp.Normalization;
 /// Letters (including <c>ñ</c>, accented vowels and <c>ü</c>) and digits are kept; hyphens between two word characters are kept;
 /// every other character, including <c>¿ ¡ ? ! , . ; : " ' ( ) …</c>, separates tokens. Decimal and thousands separators are not
 /// interpreted, so <c>1.000</c> becomes the two tokens <c>1</c> and <c>000</c>. Accents are never removed here; use <see cref="Accents.Strip"/> for matching.
+/// Ill-formed UTF-16 never throws: each lone surrogate is read as U+FFFD, which separates tokens.
 /// <see cref="Token.Original"/> is the NFC form of the source substring the token came from, so canonically equivalent inputs give equal results.
 /// </remarks>
 public static class TextNormalizer
@@ -23,7 +24,7 @@ public static class TextNormalizer
         ArgumentNullException.ThrowIfNull(input);
         options ??= NormalizationOptions.Default;
 
-        var words = Split(input);
+        var words = Split(Utf16.ReplaceLoneSurrogates(input));
         if (options.NumbersToDigits)
         {
             words = ConvertNumbers(words, options);

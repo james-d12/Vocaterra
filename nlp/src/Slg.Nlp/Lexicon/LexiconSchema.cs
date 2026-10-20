@@ -98,6 +98,13 @@ public static class LexiconSchema
         Require(!string.IsNullOrWhiteSpace(entry.Form), entry, "form must not be empty");
         Require(!string.IsNullOrWhiteSpace(entry.Lemma), entry, "lemma must not be empty");
         Require(Contains(PartsOfSpeech, entry.Pos), entry, $"unknown pos '{entry.Pos}'");
+
+        // A missing "features" property arrives as null although the record declares it non-nullable; an entry without features writes "features": {}.
+        if ((object?)entry.Features is null)
+        {
+            throw new FormatException($"Invalid lexicon entry '{entry.Form}' ({entry.Lemma}/{entry.Pos}): features must be present (use {{}} for none).");
+        }
+
         RequireValue(entry, "person", entry.Features.Person, Persons);
         RequireValue(entry, "number", entry.Features.Number, Numbers);
         RequireValue(entry, "tense", entry.Features.Tense, Tenses);

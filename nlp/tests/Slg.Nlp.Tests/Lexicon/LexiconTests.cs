@@ -142,6 +142,11 @@ public class LexiconTests
     [InlineData("""{"schemaVersion":1,"entries":[{"form":"x","lemma":"x","pos":"noun","features":{"gender":"n"}}]}""")]
     [InlineData("""{"schemaVersion":1,"entries":[{"form":"","lemma":"x","pos":"noun","features":{}}]}""")]
     [InlineData("""{"schemaVersion":1,"entries":[{"form":"x","lemma":"x","pos":"verb","features":{"tense":"past"}}]}""")]
+    [InlineData("""{"schemaVersion":1,"entries":[{"form":"x","lemma":"x","pos":"noun"}]}""")]
+    [InlineData("""{"schemaVersion":1,"entries":[{"lemma":"x","pos":"noun","features":{}}]}""")]
+    [InlineData("""{"schemaVersion":1,"entries":[{"form":"x","pos":"noun","features":{}}]}""")]
+    [InlineData("""{"schemaVersion":1,"entries":[{"form":"x","lemma":"x","features":{}}]}""")]
+    [InlineData("""{"schemaVersion":1}""")]
     public void InvalidDocumentsAreRejected(string json)
     {
         Assert.Throws<FormatException>(() => Lexicon.Load(json));

@@ -11,8 +11,8 @@
 {"path":"feedback/feedback-policy.json","sha256":"63e3ac7e5a4e7c95ca2d26212ae2536622e606be07cc2117f89cdb34f4da9dcf","bytes":492},
 {"path":"intents/intents.json","sha256":"78088c38491036e668ee569e3b0416d75ea7d58d5704f8407dcd2bed027e4d4a","bytes":3812},
 {"path":"lexicon/game.json","sha256":"16c4dcbc4f190f6dc7ca68aa4b42a435f8517f71699668f439a37a7f17243eb7","bytes":5802},
-{"path":"lexicon/seed.json","sha256":"8d4f50c0eee3950625d21ce2171437b461452236d37d2e1724ba033f5cd60b07","bytes":119450},
+{"path":"lexicon/seed.json","sha256":"c6d3c0348339015ab9693cfcb9089935fddd997f5cf2d1d64237e4ae8ed11eb0","bytes":119541},
 {"path":"npcs/blacksmith.json","sha256":"e087cd58b72cf6418b141df78c6ffe0f25508f7c2d3cba10fb07030c1a7b81cc","bytes":4415},
 {"path":"prompts/prompts.json","sha256":"f0dcff7799436b957172f9b53580de68e989e0aabafb7634555432274583519f","bytes":3579},
 {"path":"provenance.json","sha256":"6cc8ce64dda2d887c6e6bbe24268263465e41d6712478f7b98ca5a1556e052a8","bytes":1717}
-],"bundleHash":"8fa59fe5eba91f0f6f01a385bb3d6c956877f3c1f84144f53f783f74ce36e5cc"}
+],"bundleHash":"b076558f7d1280b20ae84844d6aa377467fae8d3e8a86fc9d924c89d535d4efb"}

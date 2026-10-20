@@ -1,3 +1,4 @@
+using Slg.Content;
 using Slg.Core.Verdicts;
 using Slg.Response.Templates;
 
@@ -5,8 +6,9 @@ namespace Slg.Fuzzing.Tests.Oracles;
 
 /// <summary>
 /// The only place an exception may be waved through. Every entry names the oracle that relies on it and says why the rejection is the
-/// designed outcome rather than a bug; any other exception from the stage under test is a finding. Stage 2 adds the WAV reader and
-/// content-loader entries next to the template entry.
+/// designed outcome rather than a bug; any other exception from the stage under test is a finding. The entries are the template engine's
+/// missing slot (O12), the WAV reader's rejection of corrupted or unsupported files (O13) and the content loader's validation failure on a
+/// mutated bundle (O15).
 /// </summary>
 public static class KnownTolerances
 {
@@ -24,5 +26,123 @@ public static class KnownTolerances
         return exception.Placeholder.Length > 0
             && exception.Placeholder[0] != '{'
             && !slots.ContainsKey(exception.Placeholder);
+    }
+
+    /// <summary>
+    /// O13: <see cref="InvalidDataException"/> (the bytes are not a well-formed WAV file) and <see cref="NotSupportedException"/> (a well-formed
+    /// file with an encoding or channel layout the reader does not decode) are the only exceptions <c>WavFile.Read</c> documents for bad input.
+    /// A corrupted header or a truncated file is expected to produce one of them, or a shorter clip; nothing else may escape.
+    /// </summary>
+    public static bool IsWavRejection(Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+        return exception is InvalidDataException or NotSupportedException;
+    }
+
+    /// <summary>
+    /// O15: the content loader reports a bundle that breaks the schema, a hash or a cross-reference as a <see cref="ContentValidationException"/>
+    /// listing every problem. It is the designed outcome for a mutated bundle, but only when at least one problem starts with the bundle-relative
+    /// path of the file the mutation touched (the message must tell an author where to look); any other exception type is a bug.
+    /// </summary>
+    public static bool NamesPath(ContentValidationException exception, string relativePath)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+        ArgumentException.ThrowIfNullOrEmpty(relativePath);
+        return exception.Problems.Any(problem => problem.StartsWith(relativePath, StringComparison.Ordinal));
+    }
+
+    /// <summary>Why the loader may accept a bundle with a field removed or retyped.</summary>
+    public enum ContentFieldReason
+    {
+        /// <summary>The field is optional by design: it is nullable, a list that may be empty, or has a documented fallback.</summary>
+        Optional,
+
+        /// <summary>
+        /// The field is a number, a flag or an enumeration the loader does not require: a missing value binds to zero, false or the first enumeration member
+        /// without a message. This is a gap in the loader (README, known findings), tolerated here so the oracle stays strict about everything else.
+        /// </summary>
+        SilentDefault,
+    }
+
+    // File prefix, then a path pattern: '/' separates segments, '*' matches any one segment (array indexes included), 'name*' matches a prefix.
+    private static readonly (string File, string Path, ContentFieldReason Reason)[] ContentFields =
+    [
+        ("answer-sets/", "answers/*/aliases", ContentFieldReason.Optional),
+        ("answer-sets/", "answers/*/dialects", ContentFieldReason.Optional),
+        ("answer-sets/", "answers/*/dialects/*", ContentFieldReason.Optional),
+        ("dialogue/dialogue.json", "pools/answer_accepted", ContentFieldReason.Optional),
+        ("dialogue/dialogue.json", "pools/feedback.*", ContentFieldReason.Optional),
+        ("effects/effects.json", "effects/*/requiresCommunicated", ContentFieldReason.Optional),
+        ("effects/effects.json", "effects/*/curve/*/correctness", ContentFieldReason.SilentDefault),
+        ("effects/effects.json", "effects/*/curve/*/value", ContentFieldReason.SilentDefault),
+        ("evaluation/evaluation-config.json", "*/errorWeights/*", ContentFieldReason.Optional),
+        ("evaluation/evaluation-config.json", "*/communicatedConfidenceThreshold", ContentFieldReason.SilentDefault),
+        ("evaluation/evaluation-config.json", "*/correctnessThreshold", ContentFieldReason.SilentDefault),
+        ("evaluation/evaluation-config.json", "*/pronunciationThreshold", ContentFieldReason.SilentDefault),
+        ("evaluation/evaluation-config.json", "*/epsilon", ContentFieldReason.SilentDefault),
+        ("evaluation/evaluation-config.json", "*/unknownTagWeight", ContentFieldReason.SilentDefault),
+        ("feedback/feedback-policy.json", "notCommunicatedType", ContentFieldReason.Optional),
+        ("feedback/feedback-policy.json", "rules/*/difficulty", ContentFieldReason.Optional),
+        ("feedback/feedback-policy.json", "rules/*/type", ContentFieldReason.SilentDefault),
+        ("intents/intents.json", "intents/*/examples", ContentFieldReason.Optional),
+        ("intents/intents.json", "intents/*/keywordRules", ContentFieldReason.Optional),
+        ("intents/intents.json", "intents/*/requiredSlots", ContentFieldReason.Optional),
+        ("intents/intents.json", "intents/*/keywordRules/*/requiresSlots", ContentFieldReason.Optional),
+        ("intents/intents.json", "intents/*/keywordRules/*/slotFromNumber", ContentFieldReason.Optional),
+        ("lexicon/", "generated_by", ContentFieldReason.Optional),
+        ("lexicon/", "entries/*/features/*", ContentFieldReason.Optional),
+        ("npcs/", "states/*/fallback", ContentFieldReason.Optional),
+        ("npcs/", "states/*/fallback/actions/*/variantPoolId", ContentFieldReason.Optional),
+        ("npcs/", "states/*/transitions/*/actions/*/gameEvent", ContentFieldReason.Optional),
+        ("npcs/", "states/*/transitions/*/actions/*/variantPoolId", ContentFieldReason.Optional),
+        ("npcs/", "states/*/transitions/*/on/communicated", ContentFieldReason.Optional),
+        ("npcs/", "states/*/transitions/*/on/intent", ContentFieldReason.Optional),
+        ("prompts/prompts.json", "*/mode", ContentFieldReason.SilentDefault),
+        ("prompts/prompts.json", "*/difficulty", ContentFieldReason.SilentDefault),
+        ("prompts/prompts.json", "*/npcId", ContentFieldReason.Optional),
+        ("provenance.json", "items/*/approvedBy", ContentFieldReason.Optional),
+        ("provenance.json", "items/*/approvedOn", ContentFieldReason.Optional),
+    ];
+
+    /// <summary>
+    /// O15: dropping or retyping a field the loader does not require may leave a loadable bundle. Returns why, or null when the place is not on the
+    /// documented list, in which case an accepted mutation there is a finding (a field that should have been validated, or a new optional field that
+    /// should be added to the list with its reason).
+    /// </summary>
+    public static ContentFieldReason? AcceptedContentField(string file, IReadOnlyList<string> path)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(file);
+        ArgumentNullException.ThrowIfNull(path);
+        foreach (var (prefix, pattern, reason) in ContentFields)
+        {
+            if (file.StartsWith(prefix, StringComparison.Ordinal) && PathMatches(pattern.Split('/'), path))
+            {
+                return reason;
+            }
+        }
+
+        return null;
+    }
+
+    private static bool PathMatches(string[] pattern, IReadOnlyList<string> path)
+    {
+        if (pattern.Length != path.Count)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < pattern.Length; i++)
+        {
+            var segment = pattern[i];
+            var matches = segment == "*"
+                || segment == path[i]
+                || (segment.EndsWith('*') && path[i].StartsWith(segment[..^1], StringComparison.Ordinal));
+            if (!matches)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

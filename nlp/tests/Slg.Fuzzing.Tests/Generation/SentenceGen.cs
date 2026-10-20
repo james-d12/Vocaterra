@@ -94,6 +94,11 @@ public static class SentenceGen
         }
 
         diagnostics?.Count($"sentence:{sentence.PatternSource}");
+        if (recipe.Source == "catalog")
+        {
+            diagnostics?.Count($"catalog:{rendered}");
+        }
+
         return sentence;
     }
 

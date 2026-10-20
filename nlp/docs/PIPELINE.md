@@ -319,7 +319,7 @@ dotnet run --project tools/Slg.Cli -- eval --transcript "yo tiene dos espada" --
   "confidence": 1,
   "resolvedBy": "Grammar",
   "versions": {
-    "contentHash": "8fa59fe5eba91f0f6f01a385bb3d6c956877f3c1f84144f53f783f74ce36e5cc",
+    "contentHash": "b076558f7d1280b20ae84844d6aa377467fae8d3e8a86fc9d924c89d535d4efb",
     "modelHashes": {
       "asr": "scripted-transcript"
     }

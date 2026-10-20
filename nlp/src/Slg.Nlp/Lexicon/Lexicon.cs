@@ -87,6 +87,12 @@ public sealed class Lexicon
             throw new FormatException($"Unsupported lexicon schemaVersion {file.SchemaVersion}; expected {LexiconSchema.CurrentVersion}.");
         }
 
+        // A missing "entries" property arrives as null although the record declares it non-nullable.
+        if ((object?)file.Entries is null)
+        {
+            throw new FormatException("The lexicon needs an entries array.");
+        }
+
         return Create(file.Entries, file.GeneratedBy);
     }
 
