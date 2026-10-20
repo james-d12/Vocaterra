@@ -31,6 +31,10 @@ is not in this repository. That needs a boundary the code can be checked against
 The sample bundle in `content/v1` (a blacksmith's dialogue, spells and items) stays in the core as its demo and as the fixture the goldens,
 the fuzz suite and the docs run against (decision D7). The game keeps its own bundle.
 
+> Note (M19c, 2026-10-20): the game design moved out of this repository. The `SPECIFICATION.md` row in the table above now refers to
+> `docs/SPECIFICATION.md` in the game repository ([Vocaterra](https://github.com/james-d12/Vocaterra)), and the game's bundle is its
+> `content/game-v1`. The table records the boundary as it was decided.
+
 ### 2. What the core knows, and what it does not
 
 The core knows nothing about prices, rewards, items, spells or quests. Outcome kinds and host events are opaque to it:
