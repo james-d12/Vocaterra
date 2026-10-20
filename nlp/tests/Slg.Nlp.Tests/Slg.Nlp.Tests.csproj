@@ -20,4 +20,8 @@
     <ProjectReference Include="../../src/Slg.Nlp/Slg.Nlp.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="../../content/v1/lexicon/seed.json" Link="content/lexicon/seed.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
