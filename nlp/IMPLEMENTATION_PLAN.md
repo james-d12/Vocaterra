@@ -193,7 +193,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | done |
 | M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | done |
 | M17b | Intent expansion: ten new intents, two new scenes (innkeeper, quest giver), prompts, dialogue, effects, goldens (see §7; after the split in §8 the scenes are game content and move to the game repo) | M19c | L | todo |
-| M18 | Part-of-speech disambiguation in the analyzer (triggered: `ayer compré un libro` yields a false `conj.tense` on main after M17a) | M17a | M | in-progress |
+| M18 | Part-of-speech disambiguation in the analyzer (triggered: `ayer compré un libro` yields a false `conj.tense` on main after M17a) | M17a | M | done |
 | M19a | Standalone core, step 1: boundary ADR, rename `Slg.*` → `Vocaterra.Nlp.*` (solution, projects, namespaces, packages), game-agnostic context and agent naming, opaque outcome kinds, `docs/API.md`, README reframed as a library (see §8) | M18 | M | todo |
 | M19b | Standalone core, step 2: NuGet packaging of `Slg.*`, content bundle packaging, `samples/HostConsole` consuming the packages (see §8) | M19a | S | todo |
 | M19c | Standalone core, step 3: new game repository scaffold with the game spec, game content bundle and a host project on the packages (see §8) | M19b | S | todo |
@@ -538,6 +538,17 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   imported lexicon carries gendered readings under the lemma `cuanto` and the agreement checker ties
   the interrogative to the following noun. Forwarded to M18 as a required case; the `ask_price`
   example was removed from `docs/CLI_EXAMPLES.md` until M18 lands and is to be restored then.
+- **M18 results:** `ReadingResolver` (new) picks one reading per token before the checks run: local
+  syntax first (hard constraints on words whose every reading is of the triggering kind), then the
+  slot-grammar bindings (`SlotGrammarMatch.Bindings`, with tied parses keeping either reading), then
+  local syntax again, then a fewest-errors fallback (exhaustive up to 256 combinations, coordinate
+  descent beyond). Bindings before syntax hid real mistakes (`yo lanza` read as `[NOUN:spell]`), hence
+  the order. 121 new tests, 96 of them real-lexicon homograph sentences; `ayer compré un libro` and
+  `cuánto cuesta la espada` score 1 again and `cuánto cuesta el espada` still gives `gender.agree`.
+  Fuzz generators now draw homographs (gender-homograph exclusions 347 → 0; verb-form skips 1–7 → ≤1
+  per 200), suite time unchanged, O4/O5 green at 200 000 iterations. Unresolved: verbs sharing a form
+  (`fue` is `ir` and `ser`) and sentences correct under one reading and wrong under another with
+  nothing to prefer. The resolver is the seam a trained tagger (M20) would replace.
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 
