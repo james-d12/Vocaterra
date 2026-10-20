@@ -755,3 +755,48 @@ stays here. M17c (evaluator polish) stays in the core.
 - Whether the blacksmith sample content stays as the core's demo (recommended: yes; the goldens,
   docs and fuzz suite exercise it) or is replaced by a neutral one.
 
+## 9. Research outcome (2026-10-20) and proposed re-plan
+
+`docs/research/SCALING_APPROACHES.md` (Opus 5.5, 120 sources, two experiments run) concludes that
+the hand-written grammar checks are worth keeping and that what breaks them is not knowing each
+word's part of speech. A stock Universal Dependencies tagger tagged all four M17a false positives
+correctly (`libro`, `cuánto`, `lanza`, `ayudas`), while LanguageTool caught only 9 of 20 learner
+errors the current analyzer catches 16 of. Its target architecture keeps the verdict contract,
+replay, content bundle and provenance, decision, learner model, response, G2P, the morphology
+generator and the fuzz suite; replaces the analyzer's reading choice with a trained UD tagger (train
+UDPipe 1 on UD Spanish AnCora, CC BY 4.0; stock spaCy and UDPipe Spanish models are GPL or
+non-commercial); rewrites agreement checks over dependency arcs; generates intents, examples and
+dialogue with an LLM at build time under the existing provenance approval fields; trains a small
+classifier to ONNX for open prompts and retires keyword rules; benchmarks Vosk, Parakeet and
+Whisper on the owner's own recordings; swaps the phoneme model for ZIPA (ONNX, MIT code, CC BY 4.0
+weights); pins a GPL-free sherpa-onnx (upstream PR #4055, merged 2026-10-20) to unblock ADR 0007; and
+adds an optional runtime LLM tutor whose output is recorded in the replay envelope and validated in D0.
+
+Candidate milestones (not scheduled until the owner decides the items in 9.1; ids chosen to avoid
+the split's M19a–c):
+
+| Id | Milestone | Replaces / depends | Size |
+| --- | --- | --- | --- |
+| M20 | UD tagger behind the resolver seam: spike UDPipe 1 (AnCora-trained), Stanza sidecar and Catalyst on the homograph sentences; adapter interface; tagger filters lexicon readings; `HomographSentencesTests` from M18 become the first evaluation set | M18 (keeps its tests and seam, replaces its heuristics) | M |
+| M21 | Build-time LLM drafting: `ContentBuilder draft`/`approve`, `llm-draft` provenance, loader refuses unapproved drafts | M19a | M |
+| M22 | Tree-based agreement checks and an evaluation set with independent oracles (tagger, LanguageTool as a dev-time process, COWS-L2H sample, O4 mutations) | M20 | M |
+| M23 | Open-prompt intent classifier (SetFit or e5 fine-tune, ONNX, pinned); keyword rules retired | M21 | M |
+| M24 | Speech reality check: 100–200 owner recordings with deliberate errors; benchmark Vosk, Parakeet, Whisper small on error preservation; ZIPA phoneme adapter; GPL-free sherpa-onnx pin | none (owner records first) | L |
+| M25 | Optional tutor: Claude Haiku over HTTP with a local fallback, D0 validator, envelope and save recording, asynchronous feedback, false-correction report | M24 | M |
+| M17b | Re-scoped to drafting-then-review under M21 | M21, M19c | M (was L) |
+
+M18 (in progress) is kept: its resolver seam and regression tests are what M20 plugs into, and it
+removes the two false positives from `main` now.
+
+### 9.1 Owner decisions raised by the report (with its recommendations)
+- Online or offline: offline-capable core with the online tutor optional.
+- Determinism: relax "N forbidden in core" and bit-identical cross-platform goldens to
+  "replay-exact" (seeded RNG, stored time and hashing stay); write it up as ADR 0010.
+- Licence stance: accept MPL-2.0 for unmodified libraries (UDPipe's C# binding); LGPL/GPL only as
+  separate development-time processes (LanguageTool).
+- A cloud cost cap for the tutor (about $0.30 per 1 000 utterances on Haiku-class models, estimated).
+- Game engine: pick one now; the report suggests Godot .NET.
+- Pronunciation ambition: decide after M24's speech check.
+- Also noted: the design doc's GOP citation (arXiv 2309.07739) points at a different method; the
+  matching CTC-GOP work is arXiv 2507.16838.
+
