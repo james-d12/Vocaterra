@@ -179,7 +179,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M4 | Text normalization + answer matching (exact/alias/fuzzy + phonetic key) | M1 | S | in-progress |
 | M5 | Lexicon schema + seed lexicon + morphology generator + linguistic analysis + slot grammar | M1 | S | in-progress |
 | M7 | Verdict assembly (pure D0) incl. worked example | M1 | S | done |
-| M10 | Decision layer: NPC state machine, learner model (BKT + FSRS), feedback policy | M1 | S | in-progress |
+| M10 | Decision layer: NPC state machine, learner model (BKT + FSRS), feedback policy | M1 | S | done |
 | M6 | Intent resolution (grammar → rules → embedding w/ margins) + repair strategy | M5 | S | todo |
 | M8 | Pronunciation scoring: v1 greedy+edit distance, v2 CTC Viterbi + GOP, wav2vec2 adapter | M3 | S | todo |
 | M9 | ASR adapters: Vosk constrained, sherpa-onnx Parakeet open, fakes, model manifest + fetch script | M2 | S | todo |
