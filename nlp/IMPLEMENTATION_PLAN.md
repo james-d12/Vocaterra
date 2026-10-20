@@ -194,6 +194,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | in-progress |
 | M17b | Intent expansion: ten new intents, two new NPC scenes (innkeeper, quest giver), prompts, dialogue, effects, goldens (see §7) | M17a | L | todo |
 | M18 | Part-of-speech disambiguation in the analyzer (candidate; decided on M17a's homograph numbers) | M17a | M | todo |
+| M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | todo |
 
 ### Delegation waves
 
@@ -485,6 +486,18 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
 - **Fuzz flake (M16b):** O9's injected `pron.silent_h` coverage minimum failed in 2 of 25 runs; the
   generator now produces about 76 such cases per run. The M16a-merge intermittent failure never recurred
   in twelve further full runs.
+- **CLI-examples review (docs, after M16):** writing verified README examples exposed evaluator quirks,
+  none fixed yet (candidate M17c): (1) `offer_item` has no keyword rule for `tener` and its grammars allow
+  a leading pronoun but not an adverb, so `ayer tengo dos espadas` is not understood while `yo tengo dos
+  espadas` is; (2) a fuzzy near miss tagged `vocab.unknown` is recast with the player's own wrong word
+  (`ezpada` → "Ah, ezpada. ¡Perfecto!"), and near misses are inconsistently communicated (`ezpada` yes,
+  `espado` no; `espadas` not communicated with no error and confidence 0.5); (3) `buenas tarde` is
+  corrected to `buena` (adjective) rather than `tardes` (noun), and the recast keeps the player's missing
+  accents (`buenas dias` → `buenos dias`); (4) `vocab.wrong` puts the answer-set id in `expected`
+  instead of a word; (5) the `ser_estar` recast replays the whole sentence; (6) effects depend on the
+  verdict only, so a purchase in the NPC's `done` state still emits `buy_item_price` (by design; the
+  game layer gates it). Also confirmed: the four `pron.*` tags need the phoneme model, which has no
+  ONNX export yet.
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 
