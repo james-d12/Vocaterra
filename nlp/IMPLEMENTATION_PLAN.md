@@ -182,7 +182,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M10 | Decision layer: NPC state machine, learner model (BKT + FSRS), feedback policy | M1 | S | done |
 | M6 | Intent resolution (grammar → rules → embedding w/ margins) + repair strategy | M5 | S | in-progress |
 | M8 | Pronunciation scoring: v1 greedy+edit distance, v2 CTC Viterbi + GOP, wav2vec2 adapter | M3 | S | in-progress |
-| M9 | ASR adapters: Vosk constrained, sherpa-onnx Parakeet open, fakes, model manifest + fetch script | M2 | S | in-progress |
+| M9 | ASR adapters: Vosk constrained, sherpa-onnx Parakeet open, fakes, model manifest + fetch script | M2 | S | done |
 | M11 | Response realization: templates + morphology, recasts, TTS adapters + cache, effect tables | M5, M3 | S | in-progress |
 | M12 | Content bundle: schema, loader, hashing, ContentBuilder CLI (kaikki import), sample content v1 | M4, M5, M6, M10, M11 | S | todo |
 | M13 | Pipeline orchestration, replay log + replayer, CLI demo, bench harness, golden layout | M2–M12 | S | todo |
@@ -395,6 +395,17 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
 #### M15 — Documentation (H)
 - README (build, run, fetch models, replay), ADRs 0001–0005 (language, determinism rules,
   engine-agnostic core, model pinning, dialect default), CONTRIBUTING with the §3 checklist.
+
+## 5b. Findings log (decisions made during implementation)
+
+- **Vosk dither (M9):** stock Vosk models apply time-seeded dither, so identical clips decoded
+  differently run to run. `VoskWordRecognizer` loads a temp copy of the model with
+  `--dither=0.0` in `conf/mfcc.conf`; results are now identical across runs and processes.
+- **Invariant globalization (M0/M1):** off; see §3.5.
+- **Normalizer articles (M4):** `NormalizationOptions.ConvertIndefiniteArticles` defaults to true;
+  the pipeline must pass `false` so article–noun agreement and `[ART]` grammar tokens work.
+- **Build output size:** each full build writes ~3 GB of native-package output per checkout;
+  worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 
 ## 6. Definition of done (every milestone)
 
