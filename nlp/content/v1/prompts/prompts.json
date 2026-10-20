@@ -5,7 +5,7 @@
     "difficulty": "Beginner",
     "answerSetId": "items-basic",
     "allowedIntentIds": ["ask_price"],
-    "npcId": "blacksmith",
+    "agentId": "blacksmith",
     "slotGrammarIds": ["cuánto [VERB:costar] [ART]? [NOUN:item]"]
   },
   {
@@ -14,7 +14,7 @@
     "difficulty": "Beginner",
     "answerSetId": "items-basic",
     "allowedIntentIds": ["buy_item"],
-    "npcId": "blacksmith",
+    "agentId": "blacksmith",
     "slotGrammarIds": []
   },
   {
@@ -23,7 +23,7 @@
     "difficulty": "Beginner",
     "answerSetId": "items-basic",
     "allowedIntentIds": ["buy_item"],
-    "npcId": "blacksmith",
+    "agentId": "blacksmith",
     "slotGrammarIds": [
       "[VERB:querer] [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item]",
       "[VERB:comprar] [ART]? [NUM:qty]? [NOUN:item]"
@@ -35,7 +35,7 @@
     "difficulty": "Beginner",
     "answerSetId": "greetings",
     "allowedIntentIds": ["greet"],
-    "npcId": "blacksmith",
+    "agentId": "blacksmith",
     "slotGrammarIds": []
   },
   {
@@ -44,7 +44,7 @@
     "difficulty": "Beginner",
     "answerSetId": "greetings",
     "allowedIntentIds": ["greet"],
-    "npcId": "blacksmith",
+    "agentId": "blacksmith",
     "slotGrammarIds": ["hola [NOUN]?"]
   },
   {
@@ -53,7 +53,7 @@
     "difficulty": "Intermediate",
     "answerSetId": "items-basic",
     "allowedIntentIds": ["offer_item"],
-    "npcId": "blacksmith",
+    "agentId": "blacksmith",
     "slotGrammarIds": []
   },
   {
@@ -62,7 +62,7 @@
     "difficulty": "Intermediate",
     "answerSetId": "items-basic",
     "allowedIntentIds": ["offer_item"],
-    "npcId": "blacksmith",
+    "agentId": "blacksmith",
     "slotGrammarIds": [
       "[VERB:tener:verb] [NUM:qty] [NOUN:item]",
       "[PRON]? [VERB:ofrecer:verb] [NUM:qty] [NOUN:item]"
@@ -74,7 +74,7 @@
     "difficulty": "Beginner",
     "answerSetId": "greetings",
     "allowedIntentIds": [],
-    "npcId": null,
+    "agentId": null,
     "slotGrammarIds": []
   },
   {
@@ -83,7 +83,7 @@
     "difficulty": "Beginner",
     "answerSetId": "items-basic",
     "allowedIntentIds": [],
-    "npcId": null,
+    "agentId": null,
     "slotGrammarIds": []
   },
   {
@@ -92,7 +92,7 @@
     "difficulty": "Beginner",
     "answerSetId": "spells-basic",
     "allowedIntentIds": [],
-    "npcId": null,
+    "agentId": null,
     "slotGrammarIds": []
   },
   {
@@ -101,7 +101,7 @@
     "difficulty": "Intermediate",
     "answerSetId": "items-basic",
     "allowedIntentIds": ["sell_item"],
-    "npcId": "blacksmith",
+    "agentId": "blacksmith",
     "slotGrammarIds": [
       "[VERB:querer] [VERB:vender] [ART]? [NUM:qty]? [NOUN:item]",
       "[VERB:vender] [ART]? [NUM:qty]? [NOUN:item]"
@@ -113,7 +113,7 @@
     "difficulty": "Beginner",
     "answerSetId": "spells-basic",
     "allowedIntentIds": ["cast_spell"],
-    "npcId": null,
+    "agentId": null,
     "slotGrammarIds": []
   },
   {
@@ -122,7 +122,7 @@
     "difficulty": "Intermediate",
     "answerSetId": "spells-basic",
     "allowedIntentIds": ["cast_spell"],
-    "npcId": null,
+    "agentId": null,
     "slotGrammarIds": ["[VERB:lanzar]? [ART]? [NOUN:spell] [ADJ]?"]
   },
   {
@@ -131,7 +131,7 @@
     "difficulty": "Intermediate",
     "answerSetId": "items-basic",
     "allowedIntentIds": ["ask_price", "buy_item", "offer_item", "sell_item"],
-    "npcId": "blacksmith",
+    "agentId": "blacksmith",
     "slotGrammarIds": []
   }
 ]

@@ -4,10 +4,10 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="&lt;b&gt;Spanish Learning Game · voice recognition and feedback system · system overview&lt;/b&gt;" style="text;html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=15;fontColor=#2b2f36;align=left;verticalAlign=middle;spacing=2;" vertex="1" parent="1">
+        <mxCell id="title" value="&lt;b&gt;Vocaterra.NLP · voice recognition and feedback system · system overview&lt;/b&gt;" style="text;html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=15;fontColor=#2b2f36;align=left;verticalAlign=middle;spacing=2;" vertex="1" parent="1">
           <mxGeometry x="30" y="6" width="1100" height="26" as="geometry" />
         </mxCell>
-        <mxCell id="subtitle" value="Same audio + game state + content version = same verdict, feedback and outcome" style="text;html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=10;fontColor=#6b7480;align=right;verticalAlign=middle;spacing=2;" vertex="1" parent="1">
+        <mxCell id="subtitle" value="Same audio + host state + content version = same verdict, feedback and outcome" style="text;html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=10;fontColor=#6b7480;align=right;verticalAlign=middle;spacing=2;" vertex="1" parent="1">
           <mxGeometry x="1000" y="10" width="530" height="22" as="geometry" />
         </mxCell>
         <mxCell id="legend" value="&lt;b&gt;Legend&lt;/b&gt;" style="swimlane;startSize=26;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#f3f4f6;strokeColor=#9aa3ad;swimlaneFillColor=#ffffff;strokeWidth=1.5;" vertex="1" parent="1">
@@ -28,7 +28,7 @@
         <mxCell id="legend-sw-n" value="N" style="rounded=1;arcSize=12;html=1;fontFamily=Helvetica;fontSize=10;fontStyle=1;fontColor=#c0392b;fillColor=#ffffff;strokeColor=#c0392b;strokeWidth=1.5;dashed=1;dashPattern=4 3;" vertex="1" parent="legend">
           <mxGeometry x="12" y="132" width="44" height="24" as="geometry" />
         </mxCell>
-        <mxCell id="legend-tx-n" value="&lt;b&gt;N · non-deterministic&lt;/b&gt; (runtime LLM, sampled TTS). &lt;b&gt;Forbidden&lt;/b&gt; in the core: never changes the verdict, learner model or game state. Nothing drawn here is class N." style="text;html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;align=left;verticalAlign=top;spacing=2;" vertex="1" parent="legend">
+        <mxCell id="legend-tx-n" value="&lt;b&gt;N · non-deterministic&lt;/b&gt; (runtime LLM, sampled TTS). &lt;b&gt;Forbidden&lt;/b&gt; in the core: never changes the verdict, learner model or host state. Nothing drawn here is class N." style="text;html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;align=left;verticalAlign=top;spacing=2;" vertex="1" parent="legend">
           <mxGeometry x="64" y="128" width="256" height="56" as="geometry" />
         </mxCell>
         <mxCell id="legend-sw-hex" value="" style="shape=hexagon;perimeter=hexagonPerimeter2;size=0.2;html=1;fillColor=#e6dcef;strokeColor=#8a62a6;strokeWidth=1.5;" vertex="1" parent="legend">
@@ -43,10 +43,10 @@
         <mxCell id="legend-tx-dot" value="&lt;b&gt;Dotted arrow.&lt;/b&gt; Build-time data, shipped as versioned, hashed files." style="text;html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;align=left;verticalAlign=top;spacing=2;" vertex="1" parent="legend">
           <mxGeometry x="64" y="270" width="256" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="note-models" value="&lt;b&gt;Models are not in git.&lt;/b&gt; scripts/fetch-models.sh downloads them and checks SHA-256 against models/manifest.json; D1 adapters run only when SLG_MODELS_DIR is set, otherwise tests use deterministic fakes.&lt;br&gt;&lt;b&gt;Hard rules.&lt;/b&gt; Seeded RNG only · no wall clock · ordinal comparisons and invariant culture · margin on every threshold · model and content hashes go into saves and replay logs." style="text;html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;align=left;verticalAlign=top;spacing=2;" vertex="1" parent="1">
+        <mxCell id="note-models" value="&lt;b&gt;Models are not in git.&lt;/b&gt; scripts/fetch-models.sh downloads them and checks SHA-256 against models/manifest.json; D1 adapters run only when VOCATERRA_MODELS_DIR is set, otherwise tests use deterministic fakes.&lt;br&gt;&lt;b&gt;Hard rules.&lt;/b&gt; Seeded RNG only · no wall clock · ordinal comparisons and invariant culture · margin on every threshold · model and content hashes go into saves and replay logs." style="text;html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;align=left;verticalAlign=top;spacing=2;" vertex="1" parent="1">
           <mxGeometry x="30" y="356" width="330" height="122" as="geometry" />
         </mxCell>
-        <mxCell id="lane-capture" value="1 · Capture · Slg.Audio · D0" style="swimlane;startSize=28;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#eef0f3;strokeColor=#9aa3ad;swimlaneFillColor=#fbfcfd;strokeWidth=1.5;rounded=0;" vertex="1" parent="1">
+        <mxCell id="lane-capture" value="1 · Capture · Vocaterra.Nlp.Audio · D0" style="swimlane;startSize=28;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#eef0f3;strokeColor=#9aa3ad;swimlaneFillColor=#fbfcfd;strokeWidth=1.5;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="460" y="40" width="1000" height="140" as="geometry" />
         </mxCell>
         <mxCell id="cap-src" value="&lt;b&gt;Microphone or WAV file&lt;/b&gt;&lt;br&gt;ICaptureSource, WavFileCaptureSource" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#8c95a1;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-capture">
@@ -67,7 +67,7 @@
         <mxCell id="lane-recog" value="2 · Recognition · what was said, and how it was said" style="swimlane;startSize=28;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#eef0f3;strokeColor=#9aa3ad;swimlaneFillColor=#fbfcfd;strokeWidth=1.5;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="460" y="230" width="1000" height="205" as="geometry" />
         </mxCell>
-        <mxCell id="grp-asr" value="Slg.Asr · word recognition" style="rounded=1;arcSize=5;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#aab2bd;dashed=1;verticalAlign=top;align=center;spacingTop=3;" vertex="1" parent="lane-recog">
+        <mxCell id="grp-asr" value="Vocaterra.Nlp.Asr · word recognition" style="rounded=1;arcSize=5;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#aab2bd;dashed=1;verticalAlign=top;align=center;spacingTop=3;" vertex="1" parent="lane-recog">
           <mxGeometry x="15" y="38" width="290" height="152" as="geometry" />
         </mxCell>
         <mxCell id="asr-vosk" value="&lt;b&gt;Vosk small Spanish 0.42 (Kaldi)&lt;/b&gt;&lt;br&gt;constrained: phrase grammar + [unk], n-best" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#fde8e1;strokeColor=#e8673a;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="grp-asr">
@@ -76,7 +76,7 @@
         <mxCell id="asr-parakeet" value="&lt;b&gt;Parakeet TDT 0.6B v3 int8&lt;/b&gt;&lt;br&gt;open vocabulary through sherpa-onnx, greedy" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#fde8e1;strokeColor=#e8673a;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="grp-asr">
           <mxGeometry x="10" y="92" width="270" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="grp-phon" value="Slg.Phonology · reference phones · D0" style="rounded=1;arcSize=5;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#aab2bd;dashed=1;verticalAlign=top;align=center;spacingTop=3;" vertex="1" parent="lane-recog">
+        <mxCell id="grp-phon" value="Vocaterra.Nlp.Phonology · reference phones · D0" style="rounded=1;arcSize=5;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#aab2bd;dashed=1;verticalAlign=top;align=center;spacingTop=3;" vertex="1" parent="lane-recog">
           <mxGeometry x="355" y="38" width="290" height="152" as="geometry" />
         </mxCell>
         <mxCell id="phon-g2p" value="&lt;b&gt;Spanish G2P, rule based&lt;/b&gt;&lt;br&gt;digraphs, syllables, stress, allophones, exceptions" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#eaf1fb;strokeColor=#6c8ebf;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="grp-phon">
@@ -85,7 +85,7 @@
         <mxCell id="phon-var" value="&lt;b&gt;Dialects and error variants&lt;/b&gt;&lt;br&gt;all accepted dialects; predicted English-speaker errors" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#eaf1fb;strokeColor=#6c8ebf;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="grp-phon">
           <mxGeometry x="10" y="92" width="270" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="grp-pron" value="Slg.Pronunciation · scoring" style="rounded=1;arcSize=5;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#aab2bd;dashed=1;verticalAlign=top;align=center;spacingTop=3;" vertex="1" parent="lane-recog">
+        <mxCell id="grp-pron" value="Vocaterra.Nlp.Pronunciation · scoring" style="rounded=1;arcSize=5;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#aab2bd;dashed=1;verticalAlign=top;align=center;spacingTop=3;" vertex="1" parent="lane-recog">
           <mxGeometry x="695" y="38" width="290" height="152" as="geometry" />
         </mxCell>
         <mxCell id="pron-w2v" value="&lt;b&gt;wav2vec2-xlsr-53 phoneme model&lt;/b&gt;&lt;br&gt;ONNX Runtime, CPU: frame posteriors" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#fde8e1;strokeColor=#e8673a;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="grp-pron">
@@ -94,7 +94,7 @@
         <mxCell id="pron-gop" value="&lt;b&gt;CTC forced alignment and GOP&lt;/b&gt;&lt;br&gt;per-phone scores, pron.* error tags (D0)" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#eaf1fb;strokeColor=#6c8ebf;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="grp-pron">
           <mxGeometry x="10" y="92" width="270" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="lane-eval" value="3 · Evaluation · Slg.Nlp · D0 rules, cheapest first, one D1 rung" style="swimlane;startSize=28;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#eef0f3;strokeColor=#9aa3ad;swimlaneFillColor=#fbfcfd;strokeWidth=1.5;rounded=0;" vertex="1" parent="1">
+        <mxCell id="lane-eval" value="3 · Evaluation · Vocaterra.Nlp.Nlp · D0 rules, cheapest first, one D1 rung" style="swimlane;startSize=28;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#eef0f3;strokeColor=#9aa3ad;swimlaneFillColor=#fbfcfd;strokeWidth=1.5;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="460" y="485" width="1000" height="145" as="geometry" />
         </mxCell>
         <mxCell id="ev-norm" value="&lt;b&gt;Text normalizer&lt;/b&gt;&lt;br&gt;NFC, lowercase, number words, punctuation" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#eaf1fb;strokeColor=#6c8ebf;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-eval">
@@ -115,7 +115,7 @@
         <mxCell id="ev-repair" value="&lt;b&gt;Repair strategy&lt;/b&gt;&lt;br&gt;no match: Como?, slow repeat, 2-3 spoken choices" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#eaf1fb;strokeColor=#6c8ebf;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-eval">
           <mxGeometry x="834" y="40" width="140" height="92" as="geometry" />
         </mxCell>
-        <mxCell id="lane-verdict" value="4 · Verdict · Slg.Evaluation · the waist of the hourglass · D0" style="swimlane;startSize=28;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#e6dcef;strokeColor=#8a62a6;swimlaneFillColor=#fbfcfd;strokeWidth=1.5;rounded=0;" vertex="1" parent="1">
+        <mxCell id="lane-verdict" value="4 · Verdict · Vocaterra.Nlp.Evaluation · the waist of the hourglass · D0" style="swimlane;startSize=28;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#e6dcef;strokeColor=#8a62a6;swimlaneFillColor=#fbfcfd;strokeWidth=1.5;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="460" y="675" width="1000" height="135" as="geometry" />
         </mxCell>
         <mxCell id="verdict-fields" value="&lt;b&gt;Verdict&lt;/b&gt; {&lt;br&gt;&amp;nbsp;&amp;nbsp;intent, slots, communicated, correctness 0..1,&lt;br&gt;&amp;nbsp;&amp;nbsp;errors[ {tag, span, expected, actual} ],&lt;br&gt;&amp;nbsp;&amp;nbsp;pronunciation[ {grapheme_span, expected, actual, score} ],&lt;br&gt;&amp;nbsp;&amp;nbsp;confidence 0..1,&lt;br&gt;&amp;nbsp;&amp;nbsp;resolved_by: Exact | Alias | Fuzzy | Grammar | Rules | Embedding | Unresolved,&lt;br&gt;&amp;nbsp;&amp;nbsp;versions: {content_hash, model_hashes} }" style="text;html=1;whiteSpace=wrap;fontFamily=Courier New;fontSize=10;fontColor=#2b2f36;align=left;verticalAlign=top;spacing=2;" vertex="1" parent="lane-verdict">
@@ -124,10 +124,10 @@
         <mxCell id="verdict-hex" value="&lt;b&gt;Verdict assembly&lt;/b&gt;&lt;br&gt;communicated · correctness · confidence&lt;br&gt;weights and thresholds from content;&lt;br&gt;no N-class input reaches this step" style="shape=hexagon;perimeter=hexagonPerimeter2;size=0.1;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#e6dcef;strokeColor=#8a62a6;strokeWidth=2;align=center;verticalAlign=middle;" vertex="1" parent="lane-verdict">
           <mxGeometry x="600" y="38" width="380" height="84" as="geometry" />
         </mxCell>
-        <mxCell id="lane-decision" value="5 · Decision · Slg.Decision · D0" style="swimlane;startSize=28;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#eef0f3;strokeColor=#9aa3ad;swimlaneFillColor=#fbfcfd;strokeWidth=1.5;rounded=0;" vertex="1" parent="1">
+        <mxCell id="lane-decision" value="5 · Decision · Vocaterra.Nlp.Decision · D0" style="swimlane;startSize=28;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#eef0f3;strokeColor=#9aa3ad;swimlaneFillColor=#fbfcfd;strokeWidth=1.5;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="460" y="855" width="1000" height="145" as="geometry" />
         </mxCell>
-        <mxCell id="dec-npc" value="&lt;b&gt;NPC state machine&lt;/b&gt;&lt;br&gt;state x (intent, error-tag predicate) gives dialogue intent and game event; variants chosen with the seeded RNG" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#eaf1fb;strokeColor=#6c8ebf;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-decision">
+        <mxCell id="dec-agent" value="&lt;b&gt;agent state machine&lt;/b&gt;&lt;br&gt;state x (intent, error-tag predicate) gives dialogue intent and host event; variants chosen with the seeded RNG" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#eaf1fb;strokeColor=#6c8ebf;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-decision">
           <mxGeometry x="25" y="40" width="300" height="92" as="geometry" />
         </mxCell>
         <mxCell id="dec-learn" value="&lt;b&gt;Learner model&lt;/b&gt;&lt;br&gt;Bayesian Knowledge Tracing mastery per skill; FSRS-4.5 review schedule from stored timestamps; weakest skill first" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#eaf1fb;strokeColor=#6c8ebf;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-decision">
@@ -136,7 +136,7 @@
         <mxCell id="dec-fb" value="&lt;b&gt;Feedback policy&lt;/b&gt;&lt;br&gt;(error tag, repeat count, difficulty) gives recast, hint, explicit correction, model pronunciation or slow repeat" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#eaf1fb;strokeColor=#6c8ebf;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-decision">
           <mxGeometry x="665" y="40" width="300" height="92" as="geometry" />
         </mxCell>
-        <mxCell id="lane-response" value="6 · Response · Slg.Response · D0, speech synthesis is D1" style="swimlane;startSize=28;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#eef0f3;strokeColor=#9aa3ad;swimlaneFillColor=#fbfcfd;strokeWidth=1.5;rounded=0;" vertex="1" parent="1">
+        <mxCell id="lane-response" value="6 · Response · Vocaterra.Nlp.Response · D0, speech synthesis is D1" style="swimlane;startSize=28;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#eef0f3;strokeColor=#9aa3ad;swimlaneFillColor=#fbfcfd;strokeWidth=1.5;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="460" y="1045" width="1000" height="145" as="geometry" />
         </mxCell>
         <mxCell id="res-recast" value="&lt;b&gt;Recast builder&lt;/b&gt;&lt;br&gt;rebuilds the corrected sentence from the player's own slots" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#eaf1fb;strokeColor=#6c8ebf;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-response">
@@ -148,25 +148,25 @@
         <mxCell id="res-tts" value="&lt;b&gt;Kokoro TTS (sherpa-onnx)&lt;/b&gt;&lt;br&gt;fixed speaker and speed; cache keyed by text, voice, model hash" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#fde8e1;strokeColor=#e8673a;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-response">
           <mxGeometry x="525" y="40" width="225" height="92" as="geometry" />
         </mxCell>
-        <mxCell id="res-fx" value="&lt;b&gt;Game effects&lt;/b&gt;&lt;br&gt;table from verdict to effect: spell power %, trade price factor" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#eaf1fb;strokeColor=#6c8ebf;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-response">
+        <mxCell id="res-fx" value="&lt;b&gt;Effects&lt;/b&gt;&lt;br&gt;table from verdict to effect: spell power %, trade price factor" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#eaf1fb;strokeColor=#6c8ebf;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-response">
           <mxGeometry x="775" y="40" width="225" height="92" as="geometry" />
         </mxCell>
-        <mxCell id="lane-orch" value="Orchestration and tooling · Slg.Pipeline · Slg.Cli · Slg.Bench · Slg.Core" style="swimlane;startSize=28;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#e6e8ec;strokeColor=#9aa3ad;swimlaneFillColor=#fbfcfd;strokeWidth=1.5;rounded=0;" vertex="1" parent="1">
+        <mxCell id="lane-orch" value="Orchestration and tooling · Vocaterra.Nlp.Pipeline · Vocaterra.Nlp.Cli · Vocaterra.Nlp.Bench · Vocaterra.Nlp.Core" style="swimlane;startSize=28;whiteSpace=wrap;html=1;collapsible=0;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#2b2f36;fillColor=#e6e8ec;strokeColor=#9aa3ad;swimlaneFillColor=#fbfcfd;strokeWidth=1.5;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="30" y="1235" width="1430" height="125" as="geometry" />
         </mxCell>
-        <mxCell id="orc-core" value="&lt;b&gt;Slg.Core&lt;/b&gt;&lt;br&gt;contracts shared by every stage, SeededRng, CanonicalJson, DeterministicHash, Margin" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#8c95a1;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-orch">
+        <mxCell id="orc-core" value="&lt;b&gt;Vocaterra.Nlp.Core&lt;/b&gt;&lt;br&gt;contracts shared by every stage, SeededRng, CanonicalJson, DeterministicHash, Margin" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#8c95a1;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-orch">
           <mxGeometry x="24" y="40" width="214" height="76" as="geometry" />
         </mxCell>
-        <mxCell id="orc-pipe" value="&lt;b&gt;Slg.Pipeline&lt;/b&gt;&lt;br&gt;UtterancePipeline runs the stages in a fixed order; same input gives byte-identical JSON" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#8c95a1;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-orch">
+        <mxCell id="orc-pipe" value="&lt;b&gt;Vocaterra.Nlp.Pipeline&lt;/b&gt;&lt;br&gt;UtterancePipeline runs the stages in a fixed order; same input gives byte-identical JSON" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#8c95a1;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-orch">
           <mxGeometry x="256" y="40" width="214" height="76" as="geometry" />
         </mxCell>
         <mxCell id="orc-replay" value="&lt;b&gt;Replay log and replayer&lt;/b&gt;&lt;br&gt;each graded utterance is logged as JSONL; replay re-evaluates and reports any differing path" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#8c95a1;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-orch">
           <mxGeometry x="488" y="40" width="214" height="76" as="geometry" />
         </mxCell>
-        <mxCell id="orc-cli" value="&lt;b&gt;Slg.Cli (demo host)&lt;/b&gt;&lt;br&gt;eval: wav or transcript, prompt, content to verdict, NPC lines and effects; replay" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#8c95a1;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-orch">
+        <mxCell id="orc-cli" value="&lt;b&gt;Vocaterra.Nlp.Cli (demo host)&lt;/b&gt;&lt;br&gt;eval: wav or transcript, prompt, content to verdict, agent lines and effects; replay" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#8c95a1;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-orch">
           <mxGeometry x="720" y="40" width="214" height="76" as="geometry" />
         </mxCell>
-        <mxCell id="orc-bench" value="&lt;b&gt;Slg.Bench&lt;/b&gt;&lt;br&gt;word error rate, learner-error preservation and latency p50/p95 on the golden set" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#8c95a1;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-orch">
+        <mxCell id="orc-bench" value="&lt;b&gt;Vocaterra.Nlp.Bench&lt;/b&gt;&lt;br&gt;word error rate, learner-error preservation and latency p50/p95 on the golden set" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#8c95a1;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-orch">
           <mxGeometry x="952" y="40" width="214" height="76" as="geometry" />
         </mxCell>
         <mxCell id="orc-models" value="&lt;b&gt;Model manifest and fetch script&lt;/b&gt;&lt;br&gt;SHA-256 pinned models; ModelStore.Verify; hashes flow into VersionStamp" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#ffffff;strokeColor=#8c95a1;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-orch">
@@ -184,7 +184,7 @@
         <mxCell id="bld-int" value="&lt;b&gt;Intents and slot grammars&lt;/b&gt;&lt;br&gt;example utterances, keyword rules, required slots" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#fff6dc;strokeColor=#c9a227;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-build">
           <mxGeometry x="20" y="196" width="290" height="62" as="geometry" />
         </mxCell>
-        <mxCell id="bld-dlg" value="&lt;b&gt;Dialogue, NPCs, prompts&lt;/b&gt;&lt;br&gt;templates, variant pools, NPC state machines, prompt specs" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#fff6dc;strokeColor=#c9a227;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-build">
+        <mxCell id="bld-dlg" value="&lt;b&gt;Dialogue, agents, prompts&lt;/b&gt;&lt;br&gt;templates, variant pools, agent state machines, prompt specs" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#fff6dc;strokeColor=#c9a227;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-build">
           <mxGeometry x="20" y="266" width="290" height="62" as="geometry" />
         </mxCell>
         <mxCell id="bld-fb" value="&lt;b&gt;Feedback, effects, evaluation config&lt;/b&gt;&lt;br&gt;feedback rule table, verdict-to-effect curves, per-difficulty weights and margins" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#fff6dc;strokeColor=#c9a227;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-build">
@@ -196,7 +196,7 @@
         <mxCell id="bld-bundle" value="&lt;b&gt;Hashed content bundle (content/v1)&lt;/b&gt;&lt;br&gt;manifest.json with SHA-256 per file gives the ContentHash; provenance.json records generated_by and approved_by" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;fillColor=#fff6dc;strokeColor=#c9a227;strokeWidth=1.5;align=center;verticalAlign=middle;spacing=4;" vertex="1" parent="lane-build">
           <mxGeometry x="20" y="480" width="290" height="92" as="geometry" />
         </mxCell>
-        <mxCell id="build-note" value="&lt;b&gt;Slg.Content + Slg.ContentBuilder.&lt;/b&gt; Commands: validate, hash, cefr-check, import-lexicon. Freeze pattern: any LLM drafting would happen here, offline, with human approval; none is implemented. The runtime sees only frozen, hashed data." style="text;html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;align=left;verticalAlign=top;spacing=2;" vertex="1" parent="lane-build">
+        <mxCell id="build-note" value="&lt;b&gt;Vocaterra.Nlp.Content + Vocaterra.Nlp.ContentBuilder.&lt;/b&gt; Commands: validate, hash, cefr-check, import-lexicon. Freeze pattern: any LLM drafting would happen here, offline, with human approval; none is implemented. The runtime sees only frozen, hashed data." style="text;html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;align=left;verticalAlign=top;spacing=2;" vertex="1" parent="lane-build">
           <mxGeometry x="16" y="584" width="298" height="108" as="geometry" />
         </mxCell>
         <mxCell id="route-label" value="PronunciationResult: phone scores + pron.* tags" style="text;html=1;whiteSpace=wrap;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;align=center;verticalAlign=middle;spacing=2;rotation=270;" vertex="1" parent="1">
@@ -271,7 +271,7 @@
             <mxPoint x="0" y="-20" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="e-build-dec" value="NPCs,&lt;br&gt;feedback" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;endSize=7;strokeWidth=2;dashed=1;dashPattern=2 4;strokeColor=#b8860b;fontFamily=Helvetica;fontSize=10;fontColor=#b8860b;labelBackgroundColor=#ffffff;exitX=1.0000;exitY=0.6277;exitDx=0;exitDy=0;entryX=0.0000;entryY=0.5000;entryDx=0;entryDy=0;" edge="1" parent="1" source="lane-build" target="lane-decision">
+        <mxCell id="e-build-dec" value="agents,&lt;br&gt;feedback" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;endSize=7;strokeWidth=2;dashed=1;dashPattern=2 4;strokeColor=#b8860b;fontFamily=Helvetica;fontSize=10;fontColor=#b8860b;labelBackgroundColor=#ffffff;exitX=1.0000;exitY=0.6277;exitDx=0;exitDy=0;entryX=0.0000;entryY=0.5000;entryDx=0;entryDy=0;" edge="1" parent="1" source="lane-build" target="lane-decision">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="0" y="-20" as="offset" />
           </mxGeometry>
@@ -309,12 +309,12 @@
             <mxPoint x="32.2" y="0" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="e-dec-res" value="DecisionOutcome: dialogue intent, game event, feedback plan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=7;strokeWidth=2;strokeColor=#2b2f36;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;labelBackgroundColor=#ffffff;exitX=0.5000;exitY=1.0000;exitDx=0;exitDy=0;entryX=0.5000;entryY=0.0000;entryDx=0;entryDy=0;" edge="1" parent="1" source="lane-decision" target="lane-response">
+        <mxCell id="e-dec-res" value="DecisionOutcome: dialogue intent, host event, feedback plan" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=7;strokeWidth=2;strokeColor=#2b2f36;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;labelBackgroundColor=#ffffff;exitX=0.5000;exitY=1.0000;exitDx=0;exitDy=0;entryX=0.5000;entryY=0.0000;entryDx=0;entryDy=0;" edge="1" parent="1" source="lane-decision" target="lane-response">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="167.4" y="0" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="e-res-orch" value="ResponsePlan: text, audio, game effects (PipelineResult)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=7;strokeWidth=2;strokeColor=#2b2f36;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;labelBackgroundColor=#ffffff;exitX=0.5000;exitY=1.0000;exitDx=0;exitDy=0;entryX=0.5000;entryY=0.0000;entryDx=0;entryDy=0;" edge="1" parent="1" source="lane-response" target="lane-orch">
+        <mxCell id="e-res-orch" value="ResponsePlan: text, audio, effects (PipelineResult)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=7;strokeWidth=2;strokeColor=#2b2f36;fontFamily=Helvetica;fontSize=10;fontColor=#2b2f36;labelBackgroundColor=#ffffff;exitX=0.5000;exitY=1.0000;exitDx=0;exitDy=0;entryX=0.5000;entryY=0.0000;entryDx=0;entryDy=0;" edge="1" parent="1" source="lane-response" target="lane-orch">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="159.6" y="0" as="offset" />
           </mxGeometry>

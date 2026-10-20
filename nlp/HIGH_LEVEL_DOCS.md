@@ -4,18 +4,18 @@ Oct 18, 2026 · @James
 
 ## Overview
 
-The game hears the player speak Spanish, judges what they meant and how well they said it, and reacts in-world. **Every runtime step is deterministic**: the same audio clip, game state and content version always produce the same verdict, feedback and game outcome. Non-deterministic capabilities (LLMs, sampled models) are documented per step as optional extensions with strict rules for adding them.
+The host hears the player speak Spanish, judges what they meant and how well they said it, and reacts in-world. **Every runtime step is deterministic**: the same audio clip, host state and content version always produce the same verdict, feedback and game outcome. Non-deterministic capabilities (LLMs, sampled models) are documented per step as optional extensions with strict rules for adding them.
 
-**Purpose:** core gameplay loop for a Terraria-inspired game where speaking Spanish is a mechanic (spells, trade, quests, NPC dialogue).
+**Purpose:** core gameplay loop for a Terraria-inspired game where speaking Spanish is a mechanic (spells, trade, quests, agent dialogue).
 
-**In scope:** speech capture, word recognition, pronunciation scoring, language evaluation, verdict, decisions, learner model, NPC responses (text and speech), game effects, and the build-time content pipeline.
+**In scope:** speech capture, word recognition, pronunciation scoring, language evaluation, verdict, decisions, learner model, agent responses (text and speech), effects, and the build-time content pipeline.
 
 **Constraints:**
 
 - No paid or hosted AI services. Everything runs locally and offline.
 - Implementation language: Rust, C# or Go (see Technology choices).
 - Deterministic runtime, as defined in the determinism model below.
-- Runs alongside the game on consumer hardware.
+- Runs alongside the host on consumer hardware.
 
 ## Determinism model
 
@@ -29,8 +29,8 @@ Every component belongs to one of three classes; the runtime core uses only D0 a
 
 **Hard rules**
 
-1. No N-class output may change the verdict, the learner model, or game state.
-2. All randomness (dialogue variant choice, loot rolls) uses a seeded RNG: `seed = hash(world_seed, npc_id, interaction_counter)`.
+1. No N-class output may change the verdict, the learner model, or host state.
+2. All randomness (dialogue variant choice, loot rolls) uses a seeded RNG: `seed = hash(world_seed, agent_id, interaction_counter)`.
 3. Time-dependent logic uses timestamps stored in the save, never live wall-clock reads during evaluation.
 4. Model files, runtime versions and content data are pinned and hashed; hashes go into saves and replay logs.
 5. Every threshold uses a margin: accept only if `score ≥ t + ε`, reject only if `score ≤ t − ε`, otherwise take the defined "uncertain" branch.
@@ -66,14 +66,14 @@ flowchart TD
     end
     V{{Verdict<br/>intent, slots, errors, confidence}}
     subgraph DEC[Decision]
-        D1[NPC logic<br/>state machine on error tags]
+        D1[agent logic<br/>state machine on error tags]
         D2[Learner model<br/>mastery + FSRS]
         D3[Feedback policy<br/>recast or correct]
     end
     subgraph RES[Response]
         E1[Dialogue lines<br/>templates + pre-generated]
         E2[TTS Kokoro<br/>Spanish voices]
-        E3[Game effects<br/>spell power, trade price]
+        E3[Effects<br/>spell power, trade price]
     end
     subgraph BLD[Build-time data, feeds evaluation and response]
         F1[Lexicon<br/>Wiktionary inflections]
@@ -114,7 +114,7 @@ Greedy or fixed-width beam, no temperature, no sampling, fixed threads, CPU, pin
 
 **Output:** transcript, n-best with scores, word timestamps and confidences. **Class:** D1.
 
-**Non-deterministic considerations:** Whisper's temperature fallback is stochastic; disable it if Whisper is ever used. LLM-based ASR decoders (Qwen3-ASR) are D1 with greedy decoding but tend to rewrite speech fluently; benchmark on learner errors first. LLM transcript correction is rejected: it hides the mistakes the game must detect.
+**Non-deterministic considerations:** Whisper's temperature fallback is stochastic; disable it if Whisper is ever used. LLM-based ASR decoders (Qwen3-ASR) are D1 with greedy decoding but tend to rewrite speech fluently; benchmark on learner errors first. LLM transcript correction is rejected: it hides the mistakes the host must detect.
 
 ### 3. Pronunciation reference (Spanish G2P)
 
@@ -156,7 +156,7 @@ Greedy or fixed-width beam, no temperature, no sampling, fixed threads, CPU, pin
 
 ### 8. Meaning and intent
 
-**Deterministic design:** fixed order — slot grammar match in current NPC/quest context → lemma keyword rules (lemma `comprar` + item → `buy_item`) → embedding nearest neighbor (multilingual-e5-small, ONNX) against authored examples per intent, accepted only if `top1 ≥ t` and `top1 − top2 ≥ m`. Unresolved → deterministic repair: NPC says "¿Cómo?", repeats slower, then offers 2–3 spoken choices and switches to constrained ASR for the retry.
+**Deterministic design:** fixed order — slot grammar match in current agent/quest context → lemma keyword rules (lemma `comprar` + item → `buy_item`) → embedding nearest neighbor (multilingual-e5-small, ONNX) against authored examples per intent, accepted only if `top1 ≥ t` and `top1 − top2 ≥ m`. Unresolved → deterministic repair: agent says "¿Cómo?", repeats slower, then offers 2–3 spoken choices and switches to constrained ASR for the retry.
 
 **Output:** intent ID or `Unknown`, slots, resolving rung, margin. **Class:** D0 + one D1 rung.
 
@@ -170,13 +170,13 @@ Greedy or fixed-width beam, no temperature, no sampling, fixed threads, CPU, pin
 
 **Non-deterministic considerations:** none. **Hard rule: no N-class input reaches this step.**
 
-### 10. NPC logic
+### 10. agent logic
 
 **Deterministic design:** state machines or behavior trees keyed on intent and error tags; variation only through the seeded RNG.
 
-**Output:** NPC action, dialogue intent, game event. **Class:** D0.
+**Output:** agent action, dialogue intent, host event. **Class:** D0.
 
-**Non-deterministic considerations:** Advisory — LLM flavor lines in free conversation mode; never changes NPC state, prices, quests or rewards.
+**Non-deterministic considerations:** Advisory — LLM flavor lines in free conversation mode; never changes agent state, prices, quests or rewards.
 
 ### 11. Learner model and scheduling
 
@@ -210,11 +210,11 @@ Greedy or fixed-width beam, no temperature, no sampling, fixed threads, CPU, pin
 
 **Non-deterministic considerations:** sampled TTS (e.g. Piper with non-zero noise scale) varies per run; set noise to zero or seed it. Voice cloning out of scope.
 
-### 15. Game effects
+### 15. Effects
 
 **Deterministic design:** fixed mapping tables from verdict to effect; partial credit → partial effect (spell at 60% power, reduced trade price).
 
-**Output:** game state changes. **Class:** D0. **Non-deterministic considerations:** none permitted.
+**Output:** host state changes. **Class:** D0. **Non-deterministic considerations:** none permitted.
 
 ### 16. Build-time content pipeline
 
@@ -237,7 +237,7 @@ Greedy or fixed-width beam, no temperature, no sampling, fixed threads, CPU, pin
 | 7 Linguistics | Lexicon, agreement, slot grammar | D0 | Parse open speech; rules confirm | Advisory/Cache |
 | 8 Intent | Grammar, rules, embeddings + margin | D0+D1 | Classify open speech; more examples | Cache / Freeze |
 | 9 Verdict | Fixed combination rules | D0 | **Forbidden** | — |
-| 10 NPC logic | State machines, seeded RNG | D0 | Flavor lines | Advisory |
+| 10 agent logic | State machines, seeded RNG | D0 | Flavor lines | Advisory |
 | 11 Learner model | BKT/Elo + FSRS | D0 | Summary templates | Freeze |
 | 12 Feedback | Rule table | D0 | Hint/exercise pools | Freeze |
 | 13 Realization | Templates + morph generation | D0 | Dialogue variants; free conversation | Freeze / Cache+Advisory |
@@ -317,7 +317,7 @@ Determinism is proven, not assumed: every graded interaction is replayable, and 
 
 **Verification and testing**
 
-- **Replay logs:** each graded interaction can be logged as `(clip, game state, content hash, model hashes) → verdict`. Replay must reproduce the verdict exactly. Bug reports attach replay logs.
+- **Replay logs:** each graded interaction can be logged as `(clip, host state, content hash, model hashes) → verdict`. Replay must reproduce the verdict exactly. Bug reports attach replay logs.
 - **Golden audio set:** recorded learner utterances (non-native speakers, varied accents and mics) with expected verdicts; runs in CI.
 - **Cross-platform matrix:** golden set runs on every shipped OS/CPU target (x86-64, ARM64). Divergence beyond margins fails the build.
 - **G2P golden set:** thousands of Spanish words with IPA from Wiktionary; espeak-ng as dev-only diff oracle.
@@ -371,7 +371,7 @@ The biggest risk is recognition quality on real learner speech, which benchmarks
 
 - [ ] Min-spec hardware target (RAM, CPU generation, GPU optional or not)?
 - [ ] Final language and engine: C# + Godot/MonoGame, or Rust + Bevy?
-- [ ] Default dialect for NPC speech, and is it player-selectable?
+- [ ] Default dialect for agent speech, and is it player-selectable?
 - [ ] Does free conversation mode (Phase 3, Cache + Advisory) ship at all?
 - [ ] Microphone privacy: is audio ever stored (e.g. opt-in to improve the golden set)?
 

@@ -48,7 +48,7 @@ stack**. The first part is good and cheap to keep:
 | A lexicon used as the analyzer costs run time too | 3 000 lemmas became 41 078 entries; bundle load went from 8 ms to 217–267 ms; 5 000 lemmas failed the 300 ms gate (`LEXICON.md`) |
 | The model-backed half mostly does not run yet | The phoneme model has no ONNX export, so no `pron.*` tag can fire outside tests; Parakeet is unbenchmarked; Kokoro is blocked by GPL espeak-ng inside sherpa-onnx (ADR 0007); the golden learner set holds three synthetic entries; there is no microphone adapter and no engine (README, Known gaps) |
 
-Code size makes the split visible. Of about 21 400 lines in `src/`, the language-understanding code in `Slg.Nlp` is about 5 900
+Code size makes the split visible. Of about 21 400 lines in `src/`, the language-understanding code in `Vocaterra.Nlp.Nlp` is about 5 900
 (analysis 716, morphology 743, slot grammar 573, intent 1 010, lexicon 883, matching 449, normalization 856, embeddings 672), with
 4 700 lines of unit tests and a large share of the 10 900-line fuzz project behind it. The mechanism in that code (lexicon loading,
 grammar matching, margins) is sound; the knowledge (which words take *estar*, which adverbs mark the past, which phrasings mean
@@ -204,7 +204,7 @@ only the uncertain queries to the LLM came within 2 % of its accuracy at half th
 better middle rung. Two pitfalls: generated examples drift into neighbouring intents [49], and gains flatten as generated data grows
 [51]. Hence near-miss negatives and human review, with mixed relabelling as in PromptMix [50] and LINGUIST [48].
 
-**Build-time generation under Freeze.** A `Slg.ContentBuilder draft` command sends an intent's definition, slot catalog, CEFR list and
+**Build-time generation under Freeze.** A `Vocaterra.Nlp.ContentBuilder draft` command sends an intent's definition, slot catalog, CEFR list and
 existing examples to an LLM. It writes a draft file marked `llm-draft:<model>@<prompt-hash>` with 30–50 paraphrases, error-injected
 variants labelled with their tags (which double as analyzer test cases), near-miss negatives, slot-grammar drafts for closed prompts,
 dialogue variants (run through `cefr-check`) and hint text. The owner approves in a review command that fills `approvedBy` and
@@ -227,7 +227,7 @@ Evidence on learner Spanish is thin. In the one study found, Whisper large-v3 tr
 12 % WER and SeamlessM4T at 11 % [66], against about 3 % on native FLEURS. More important for this game, strong recognizers smooth
 learner errors away. Error-preserving recognition of learner speech needed fine-tuning [67]. Of a vanilla Whisper's errors on learner
 English, 54.2 % were attributable to learner-speech features [68]. Without a prompt, Whisper large-v3 removed disfluencies and made
-grammatical changes ("there is the uh stars" → "there are stars") [69]. The repository's `Slg.Bench` already measures exactly this
+grammatical changes ("there is the uh stars" → "there are stars") [69]. The repository's `Vocaterra.Nlp.Bench` already measures exactly this
 ("learner-error preservation"), but only on three synthetic entries.
 
 **Recommendation.** Keep Vosk's grammar mode for closed prompts. Constrained decoding is the error-preserving path, and adding the
@@ -269,7 +269,7 @@ espeak-ng [82], so pin the first release after the merge. Kokoro still needs pho
 | Supertonic 2 | code MIT, weights OpenRAIL-M [91] | yes | no | C# sample [91]; the weights carry use restrictions |
 | XTTS-v2 | CPML, non-commercial [92] | yes | – | excluded |
 
-Keep Kokoro, feed it phones from `Slg.Phonology` (ADR 0007's plan, now without the native-library problem), and pre-render static lines.
+Keep Kokoro, feed it phones from `Vocaterra.Nlp.Phonology` (ADR 0007's plan, now without the native-library problem), and pre-render static lines.
 
 ### 3.7 Whole-stack alternatives
 
@@ -355,7 +355,7 @@ or a prompt is gated on that report.
 ```text
  BUILD TIME (developer machine)                                         RUN TIME (player machine)
  ────────────────────────────────                                       ─────────────────────────
- LLM drafts (Freeze) ──► owner approves ──► content/v1 (hashed)         mic ─► Slg.Audio (keep) ─► PcmClip
+ LLM drafts (Freeze) ──► owner approves ──► content/v1 (hashed)         mic ─► Vocaterra.Nlp.Audio (keep) ─► PcmClip
    paraphrases, near-miss negatives,          provenance: llm-draft,              │
    error variants with tags, grammars,        approvedBy/approvedOn              ▼
    dialogue variants, hints, tips                  │                    ASR [D1, recorded]: Vosk grammar (closed)
@@ -381,17 +381,17 @@ or a prompt is gated on that report.
 
 | Module | Fate |
 | --- | --- |
-| `Slg.Core` contracts and determinism primitives | **Stay.** Additive changes only: a morphosyntax result type, an error `source`, recorded tutor output in the envelope |
-| `Slg.Audio`, `Slg.Phonology` (G2P) | **Stay.** G2P also feeds Kokoro |
-| `Slg.Nlp` normalization, matching, lexicon loading, `MorphologyGenerator`, slot-grammar matcher | **Stay.** The lexicon's role shifts from analyzer to candidate generator and source of expected forms |
+| `Vocaterra.Nlp.Core` contracts and determinism primitives | **Stay.** Additive changes only: a morphosyntax result type, an error `source`, recorded tutor output in the envelope |
+| `Vocaterra.Nlp.Audio`, `Vocaterra.Nlp.Phonology` (G2P) | **Stay.** G2P also feeds Kokoro |
+| `Vocaterra.Nlp.Nlp` normalization, matching, lexicon loading, `MorphologyGenerator`, slot-grammar matcher | **Stay.** The lexicon's role shifts from analyzer to candidate generator and source of expected forms |
 | `LinguisticAnalyzer` reading choice | **Replaced** by the UD tagger |
 | `AgreementChecker` linear scans | **Rewritten** as checks over dependency arcs (`det`, `amod`, `nummod`, `nsubj`, `cop`); smaller |
 | `AnalysisTables` (23 ser/estar adjectives, 3 past adverbs) | **Shrinks**: generated, approved lists for D0, and the tutor for context-dependent cases |
 | Keyword rules | **Replaced** by the trained classifier |
 | Hand-authored intent examples, grammars, dialogue | **Generated, then approved** (Freeze) |
-| `Slg.Evaluation`, `Slg.Decision`, `Slg.Response`, `Slg.Content`, `Slg.Pipeline` | **Stay** |
-| `Slg.Pronunciation` | **Stays**; the phoneme model changes to ZIPA via ONNX |
-| `Slg.Asr` | **Stays**; the open-prompt model is chosen by benchmark |
+| `Vocaterra.Nlp.Evaluation`, `Vocaterra.Nlp.Decision`, `Vocaterra.Nlp.Response`, `Vocaterra.Nlp.Content`, `Vocaterra.Nlp.Pipeline` | **Stay** |
+| `Vocaterra.Nlp.Pronunciation` | **Stays**; the phoneme model changes to ZIPA via ONNX |
+| `Vocaterra.Nlp.Asr` | **Stays**; the open-prompt model is chosen by benchmark |
 | Fuzz and golden suites | **Stay**, plus an evaluation suite with independent oracles (tagger, LanguageTool, COWS-L2H) that ends the "two models of the analyzer" blind spot |
 
 ## 5. Migration plan

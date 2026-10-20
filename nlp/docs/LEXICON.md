@@ -5,9 +5,9 @@ The analyzer knows only the words in the lexicon (every other word is `vocab.unk
 | File | Origin | Entries | Lemmas |
 | --- | --- | --- | --- |
 | `seed.json` | hand-authored: 32 verbs with the present and preterite, articles, pronouns, numerals 1 to 20, about 150 nouns and 80 adjectives | 1 217 | 395 |
-| `game.json` | hand-authored: the words the game itself uses (spells, items) | 51 | 9 |
+| `game.json` | hand-authored: the words the host itself uses (spells, items) | 51 | 9 |
 | `supplement.json` | hand-authored: seven words that existing content uses and the other files lack (found by the coverage tests) | 7 | 5 |
-| `wiktionary-es.json` | **generated** from Wiktionary by `Slg.ContentBuilder import-lexicon`, marked `"generated_by": "wiktionary-import"` | 40 263 | 3 000 |
+| `wiktionary-es.json` | **generated** from Wiktionary by `Vocaterra.Nlp.ContentBuilder import-lexicon`, marked `"generated_by": "wiktionary-import"` | 40 263 | 3 000 |
 | `wiktionary-es.source.json` | the **sidecar** of the generated file: sources, hashes, parameters, importer version, counts | - | - |
 
 Merged: 41 078 entries, 32 494 distinct forms, 3 372 lemmas (before: 1 268 entries, 404 lemmas). The generated file has, by part of speech
@@ -35,15 +35,15 @@ cannot change.
 scripts/fetch-lexicon-sources.sh            # downloads into lexicon-sources/, verifies size and SHA-256, writes lexicon-sources/sources.json
 scripts/fetch-lexicon-sources.sh --check    # verifies what is there, downloads nothing
 
-dotnet run --project tools/Slg.ContentBuilder -- import-lexicon \
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- import-lexicon \
   lexicon-sources/kaikki.org-dictionary-Spanish.jsonl content/v1/lexicon/wiktionary-es.json \
   --frequency lexicon-sources/es_50k.txt --top 3000 \
   --hand-authored content/v1/lexicon \
   --sidecar content/v1/lexicon/wiktionary-es.source.json
 
-dotnet run --project tools/Slg.ContentBuilder -- hash content/v1       # then the steps of "Recipe: add a prompt..." in CONTRIBUTING.md
-dotnet run --project tools/Slg.ContentBuilder -- validate content/v1
-dotnet run --project tools/Slg.ContentBuilder -- lexicon-report content/v1
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- hash content/v1       # then the steps of "Recipe: add a prompt..." in CONTRIBUTING.md
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- validate content/v1
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lexicon-report content/v1
 ```
 
 The import reads 1 GB in about ten seconds and needs about 300 MB of memory (500 MB without `--top`, where it writes 585 151 entries, a 68 MB file). Two runs write byte-identical files (and the 5 000-lemma variant had the
@@ -139,7 +139,7 @@ about the imported lexicon.
 ### Homographs: the cost of the vocabulary, and what M18 did about it
 
 Before M18 the analyzer read each word as everything it can be. The fuzz generators left out the words that would be misread and counted them; the counts are
-printed by `CorrectSentenceFuzzTests` (`dotnet test tests/Slg.Fuzzing.Tests --logger "console;verbosity=detailed"`). M18 added the part-of-speech resolver
+printed by `CorrectSentenceFuzzTests` (`dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests --logger "console;verbosity=detailed"`). M18 added the part-of-speech resolver
 (`ReadingResolver`, described in [PIPELINE.md](PIPELINE.md#4-linguistic-analysis-d0)) and took the generators' exclusions out, so the last column is the same table
 after it:
 
@@ -164,8 +164,8 @@ between two nouns and not between parts of speech.
 
 ## Analyzer fixes found by the fuzz oracles
 
-The oracles drew thousands of lemmas for the first time and found four weaknesses of the analyzer's first-reading logic, fixed in `src/Slg.Nlp`
-with regression tests in `tests/Slg.Nlp.Tests/Analysis/AmbiguousReadingTests.cs`: (1) `tú habla` passed the person check because `habla` is also the imperative of
+The oracles drew thousands of lemmas for the first time and found four weaknesses of the analyzer's first-reading logic, fixed in `src/Vocaterra.Nlp.Nlp`
+with regression tests in `tests/Vocaterra.Nlp.Nlp.Tests/Analysis/AmbiguousReadingTests.cs`: (1) `tú habla` passed the person check because `habla` is also the imperative of
 `hablar`, so a subject pronoun is now checked against the declarative readings; (2) `ella está alta` was corrected to `eres` because the first reading of
 `está` is the imperative; (3) `ella es ocupada` passed because `ocupada` is a lemma of its own that sorts before `ocupado`, so the ser/estar class and the
 prenominal check consider every adjective reading; (4) `malos corazones` was a number mistake because `corazones` also reads as a singular noun, so an

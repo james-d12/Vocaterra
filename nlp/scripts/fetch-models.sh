@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Downloads the models listed in models/manifest.json, extracts them below ${SLG_MODELS_DIR:-<repo>/models}/<id>/ and verifies the
+# Downloads the models listed in models/manifest.json, extracts them below ${VOCATERRA_MODELS_DIR:-<repo>/models}/<id>/ and verifies the
 # SHA-256 of the archive and of every listed file.
 #
 # Usage: scripts/fetch-models.sh [--list] [model-id ...]
@@ -13,7 +13,7 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
 manifest="$repo_root/models/manifest.json"
-dest="${SLG_MODELS_DIR:-$repo_root/models}"
+dest="${VOCATERRA_MODELS_DIR:-${SLG_MODELS_DIR:-$repo_root/models}}"
 
 warn() { printf 'warning: %s\n' "$*" >&2; }
 fail() { printf 'error: %s\n' "$*" >&2; exit 1; }

@@ -1,5 +1,7 @@
 # ADR 0003: Keep the core engine-agnostic
 
+> **Note (M19a, 2026-10-20):** this record names the project `Slg.*` (and the `SLG_*` variables). Those names are now `Vocaterra.Nlp.*` and `VOCATERRA_*` (the old variable names are read for one release); see [ADR 0009](0009-core-and-game-boundary.md). The text below is unchanged.
+
 - Status: accepted
 - Date: 2026-10-20
 - Deciders: repository owner and the implementation plan (`IMPLEMENTATION_PLAN.md` section 1, "Engine")

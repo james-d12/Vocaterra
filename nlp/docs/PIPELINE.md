@@ -1,7 +1,7 @@
 # The utterance pipeline
 
-`Slg.Pipeline.UtterancePipeline` turns one recorded utterance into everything the game needs to react: a graded **verdict**, the
-NPC's and learner model's **decision**, the **lines** the NPC says, the **game effects**, an optional **repair** step and a
+`Vocaterra.Nlp.Pipeline.UtterancePipeline` turns one recorded utterance into everything the host needs to react: a graded **verdict**, the
+agent's and learner model's **decision**, the **lines** the agent says, the **effects**, an optional **repair** step and a
 **replay record**. This page walks through `Evaluate` stage by stage, using the worked example from the high-level design
 (`HIGH_LEVEL_DOCS.md`, "Verdict contract and error taxonomy"), and shows the actual output of the CLI for it.
 
@@ -25,8 +25,8 @@ PipelineResult result = pipeline.Evaluate(clip, prompt, context);     // or pipe
 | Input | Type | What it is |
 | --- | --- | --- |
 | `clip` | `PcmClip` | 16 kHz mono 16-bit samples plus their SHA-256 `ClipHash`. Produced by `AudioFrontEnd` (resample, downmix, gain, energy VAD) from a push-to-talk capture or a WAV file. |
-| `prompt` | `PromptSpec` | What the game asked: prompt id, recognition mode (`Constrained` or `Open`), difficulty, answer set id, allowed intent ids, NPC id and slot grammar ids. Prompts are data (`content/v1/prompts/prompts.json`). |
-| `context` | `GameContext` | The game state it is evaluated in: world seed, NPC id and state, stored time, the learner model, repeat counts per error tag. Nothing in it comes from a clock. |
+| `prompt` | `PromptSpec` | What the host asked: prompt id, recognition mode (`Constrained` or `Open`), difficulty, answer set id, allowed intent ids, agent id and slot grammar ids. Prompts are data (`content/v1/prompts/prompts.json`). |
+| `context` | `ConversationContext` | The host state it is evaluated in: world seed, agent id and state, stored time, the learner model, repeat counts per error tag. Nothing in it comes from a clock. |
 
 `PipelineResult` has six members: `Verdict`, `Decision`, `Response`, `Effects`, `Repair` and `Replay`. `Trace` returns a
 `PipelineTrace` that adds the word recognizer's `AsrResult` and the phoneme recognizer's `PhonePosteriors`, which is what a
@@ -53,9 +53,9 @@ flowchart TD
     INT --> VER
     PRON --> VER
     ASR --> VER
-    VER --> DEC[8 Decision<br/>NPC step, learner, rating, feedback]
-    DEC --> RESP[9 Response<br/>recast and NPC lines]
-    VER --> EFF[10 Game effects]
+    VER --> DEC[8 Decision<br/>agent step, learner, rating, feedback]
+    DEC --> RESP[9 Response<br/>recast and agent lines]
+    VER --> EFF[10 Effects]
     VER --> REP[11 Repair step<br/>only if not communicated]
     VER --> REC[12 Replay record]
 ```
@@ -70,9 +70,9 @@ flowchart TD
 | 5 | Intent resolution | D0, plus one D1 rung | `IntentResolver.Resolve` | the prompt allows no intent (answer-only prompt) |
 | 6 | Pronunciation scoring | D1 model, D0 scoring | `PronunciationScorer.Score` | no phoneme recognizer, or no frames |
 | 7 | Verdict assembly | D0 | `VerdictAssembler.Assemble` | never |
-| 8 | Decision | D0 | `Decide` in `UtterancePipeline.Response.cs` | NPC step skipped when the bundle has no state machine for the NPC |
+| 8 | Decision | D0 | `Decide` in `UtterancePipeline.Response.cs` | agent step skipped when the bundle has no state machine for the agent |
 | 9 | Response realization | D0 | `ResponsePlanner`, `RecastBuilder` | never (may be empty) |
-| 10 | Game effects | D0 | `EffectResolver.Resolve` | never (may be empty) |
+| 10 | Effects | D0 | `EffectResolver.Resolve` | never (may be empty) |
 | 11 | Repair | D0 | `RepairStrategy.Next` | the player was understood |
 | 12 | Replay record | D0 | `ReplayRecord` | never |
 
@@ -92,7 +92,7 @@ The inputs, as the CLI builds them for `--prompt offer-items-open` with no other
   "difficulty": "Intermediate",
   "answerSetId": "items-basic",
   "allowedIntentIds": ["offer_item"],
-  "npcId": "blacksmith",
+  "agentId": "blacksmith",
   "slotGrammarIds": [
     "[VERB:tener:verb] [NUM:qty] [NOUN:item]",
     "[PRON]? [VERB:ofrecer:verb] [NUM:qty] [NOUN:item]"
@@ -100,7 +100,7 @@ The inputs, as the CLI builds them for `--prompt offer-items-open` with no other
 }
 ```
 
-The game context is: world seed 0, NPC `blacksmith` in state `idle` with interaction counter 0, stored time 0, a fresh learner
+The conversation context is: world seed 0, agent `blacksmith` in state `idle` with interaction counter 0, stored time 0, a fresh learner
 model, no repeat counts. The word recognizer is a `ScriptedWordRecognizer` that returns the text given with `--transcript`;
 the clip is empty, so there is no phoneme recognizer and no pronunciation scoring.
 
@@ -276,7 +276,7 @@ predicted English-speaker error variants are generated from them, and `Pronuncia
 pronunciation by default) scores each phone of the best-matching variant and turns low scores into `pron.*` errors with margins.
 
 In the CLI example there is no phoneme recognizer, so `pronunciation` is `[]`. The end-to-end golden test
-(`tests/Slg.Golden.Tests/Data/e2e-offer-items-open.golden.json`) runs the same utterance with a fake phoneme recognizer that
+(`tests/Vocaterra.Nlp.Golden.Tests/Data/e2e-offer-items-open.golden.json`) runs the same utterance with a fake phoneme recognizer that
 hears the correct phones: the verdict then lists one `PhoneScore` per content phone, each with score 1.
 
 ### 7. Verdict assembly (D0)
@@ -287,7 +287,7 @@ evaluation configuration and the version stamp:
 - **intent** and **slots**: the intent stage's, with the analysis slots underneath (the intent wins a name clash).
 - **communicated**: the intent is known, every required slot is filled and the confidence is not rejected by the communicated
   margin; or the answer set matched (exact, alias or fuzzy) with a confidence that is not rejected. An *uncertain* confidence
-  counts as communicated: the game rewards being understood. A fuzzy match at the edge of its budget has the confidence of its
+  counts as communicated: the host rewards being understood. A fuzzy match at the edge of its budget has the confidence of its
   distance, so it is communicated like any other near miss (see [Near misses](#near-misses)).
 - **errors**: analysis errors, pronunciation errors and the derived `vocab.wrong`, de-duplicated by (tag, span) and sorted by
   span start, then tag order in the taxonomy, then expected text. The derived `vocab.wrong` (a word the lexicon knows but the answer
@@ -304,10 +304,10 @@ evaluation configuration and the version stamp:
 
 `Decide` produces a `DecisionOutcome` with four parts:
 
-1. **NPC step.** The NPC's state machine (`content/v1/npcs/blacksmith.json`) reads the verdict and the NPC's current state and
-   returns the next state and a list of actions (dialogue intent, game event, variant index). The only randomness is the draw for
-   the variant, from `SeededRng.ForInteraction(worldSeed, npcId, interactionCounter)`. For the example: `idle` goes to `trading`,
-   with the action `offer_item_reply` and the game event `trade.offer`.
+1. **agent step.** The agent's state machine (`content/v1/agents/blacksmith.json`) reads the verdict and the agent's current state and
+   returns the next state and a list of actions (dialogue intent, host event, variant index). The only randomness is the draw for
+   the variant, from `SeededRng.ForInteraction(worldSeed, agentId, interactionCounter)`. For the example: `idle` goes to `trading`,
+   with the action `offer_item_reply` and the host event `trade.offer`.
 2. **Learner model.** One Bayesian knowledge tracing step per skill: the skill `intent.<intent>` and the family of each error tag
    (`conj`, `noun`). Here `conj` and `noun` drop to a probability known of about 0.146 and `intent.offer_item` rises to about 0.693.
 3. **FSRS rating.** `RatingMapper.FromVerdict`: not communicated is `Again`; otherwise correctness is compared with the 0.5 and
@@ -320,7 +320,7 @@ evaluation configuration and the version stamp:
 
 ### 9. Response realization (D0)
 
-`ResponsePlanner` renders the lines the NPC says from the dialogue catalog (`content/v1/dialogue/dialogue.json`). The first
+`ResponsePlanner` renders the lines the agent says from the dialogue catalog (`content/v1/dialogue/dialogue.json`). The first
 feedback item is voiced; for a recast the pool is `feedback.recast.<tag>`, falling back to `feedback.recast`. The
 `feedback.recast.conj.person` templates (`¿{verb:conj(2,sg,pres):cap} {qty:words(item)} {item:plural-if(qty)}? ¡Perfecto!` and
 `Ah, ¿{verb:conj(2,sg,pres)} {qty:words(item)} {item:plural-if(qty)}? ¡Muy bien!`) take the player's own slots and inflect
@@ -331,33 +331,33 @@ accents are ignored takes the lexicon's accented spelling (`dias` becomes `días
 several accented spellings fold alike the first in ordinal order is used. A word that is a lexicon form as spelled is kept, so `se`
 stays `se` (it is not `sé`), and `mas` stays `mas`. For the example the draw gives "Ah, ¿tienes dos espadas? ¡Muy bien!" with
 world seed 0 and with seed 42. If a feedback template needs a slot the verdict does not have, the pipeline falls back from the
-specific pool to the generic pool of the same kind, and then to no feedback, so a content gap never silences the NPC.
+specific pool to the generic pool of the same kind, and then to no feedback, so a content gap never silences the agent.
 
-The NPC's own reply comes from the action's pool (`offer_item_reply`), using the variant index drawn in stage 8: "Vale, dos
+The agent's own reply comes from the action's pool (`offer_item_reply`), using the variant index drawn in stage 8: "Vale, dos
 espadas. Gracias, amigo." with world seed 0 and "¡Dos espadas! Trato hecho." with seed 42.
 
-A prompt without an NPC is not a conversation: nobody replies, only feedback is voiced, except that an acceptable answer to such a
+A prompt without an agent is not a conversation: nobody replies, only feedback is voiced, except that an acceptable answer to such a
 prompt (a quiz) gets a line from the `answer_accepted` pool.
 
-### 10. Game effects (D0)
+### 10. Effects (D0)
 
 `EffectResolver.Resolve` looks up the verdict's intent in the effect table (`content/v1/effects/effects.json`) and interpolates
 a value from the correctness curve: a spell's power, a trade's price factor. Partial credit gives a partial effect. The worked
 example has none (`offer_item` has no effect in the sample table), so `effects` is `[]`. Casting a spell does: see below.
 
-Effects depend on the verdict alone, not on the NPC's state: a purchase in the blacksmith's `done` state still emits `buy_item_price`,
-so the host gates effects by state (the game layer decides whether a trade is allowed at that point).
+Effects depend on the verdict alone, not on the agent's state: a purchase in the blacksmith's `done` state still emits `buy_item_price`,
+so the host gates effects by state (the host decides whether a trade is allowed at that point).
 
 ### 11. Repair (D0)
 
 If the player was not understood, `RepairStrategy.Next(attempt, prompt, phrases)` returns the deterministic repair ladder step.
-The attempt number is the repeat count of the pseudo-tag `not_communicated` from the game context (at least 1): attempt 1 is
+The attempt number is the repeat count of the pseudo-tag `not_communicated` from the conversation context (at least 1): attempt 1 is
 `AskAgain` ("¿Cómo?"), attempt 2 `SlowRepeat`, attempt 3 `OfferChoices` (the first three distinct phrases of the answer set in
 ordinal order, with a constrained retry request), later attempts `GiveUp`. For understood utterances `repair` is `null`.
 
 ### 12. Replay record (D0)
 
-`ReplayRecord(clip.ClipHash, prompt.PromptId, context.GameStateHash, versions, verdict)` is attached to the result. With
+`ReplayRecord(clip.ClipHash, prompt.PromptId, context.HostStateHash, versions, verdict)` is attached to the result. With
 `Trace`, the recognizer outputs and the context are what [`docs/REPLAY.md`](REPLAY.md) calls an envelope.
 
 ## The verdict the CLI prints
@@ -365,7 +365,7 @@ ordinal order, with a constrained retry request), later attempts `GiveUp`. For u
 This is the first line the CLI prints for the worked example, pretty-printed here (the CLI prints it on one line):
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1
 ```
 
 ```json
@@ -396,7 +396,7 @@ dotnet run --project tools/Slg.Cli -- eval --transcript "yo tiene dos espada" --
   "confidence": 1,
   "resolvedBy": "Grammar",
   "versions": {
-    "contentHash": "1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294",
+    "contentHash": "d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f",
     "modelHashes": {
       "asr": "scripted-transcript"
     }
@@ -404,11 +404,11 @@ dotnet run --project tools/Slg.Cli -- eval --transcript "yo tiene dos espada" --
 }
 ```
 
-After the verdict the CLI prints the NPC lines and a decision summary:
+After the verdict the CLI prints the agent lines and a decision summary:
 
 ```text
-npc: Ah, ¿tienes dos espadas? ¡Muy bien!
-npc: Vale, dos espadas. Gracias, amigo.
+agent: Ah, ¿tienes dos espadas? ¡Muy bien!
+agent: Vale, dos espadas. Gracias, amigo.
 decision: rating Hard, learner skills 3, feedback items 2
 ```
 
@@ -419,7 +419,7 @@ variants, "¿Tienes dos espadas? ¡Perfecto!" (the design document's line, which
 and interaction counter) or "Ah, ¿tienes dos espadas? ¡Muy bien!" (the draw for the CLI's default context).
 
 The content hash is the hash of the `content/v1` bundle. It changes with any edit to the bundle (see `CONTRIBUTING.md`); the
-tests pin it in `tests/Slg.Content.Tests/ManifestTests.cs`.
+tests pin it in `tests/Vocaterra.Nlp.Content.Tests/ManifestTests.cs`.
 
 ## Other branches
 
@@ -427,15 +427,15 @@ Each of these is a real run of the CLI on `content/v1` (verdict line shortened).
 
 | Command (after `eval`) | Verdict | Printed after the verdict |
 | --- | --- | --- |
-| `--transcript "espada" --prompt quiz-item-name` | intent `unknown`, communicated, correctness 1, `resolvedBy: Exact`, no errors (answer-only prompt) | `npc: ¡Muy bien!` and `decision: rating Easy, learner skills 0, feedback items 0` |
-| `--transcript "fuego" --prompt spell-cast-constrained` | intent `cast_spell`, slot `spell=fuego`, communicated, correctness 1, `resolvedBy: Exact` | `npc: ¡Muy bien!`, `effect: cast_spell_power spell_power 1`, `decision: rating Easy, learner skills 1, feedback items 0` |
-| `--transcript "ezpada" --prompt quiz-item-name` | intent `unknown`, communicated, correctness 0.6, one `vocab.unknown` with expected `espada`, `resolvedBy: Fuzzy`, confidence 0.5 (a near miss, see [Near misses](#near-misses)) | `npc: Ah, espada. ¡Perfecto!` and `decision: rating Good, learner skills 1, feedback items 1` |
-| `--transcript "bla bla" --prompt offer-items-open` | intent `unknown`, not communicated, correctness 0.2, two `vocab.unknown` errors, `resolvedBy: Unresolved`, confidence 0 | `npc: Perdón, ¿qué dices?`, `repair: AskAgain ¿Cómo?`, `decision: rating Again, learner skills 1, feedback items 1` |
+| `--transcript "espada" --prompt quiz-item-name` | intent `unknown`, communicated, correctness 1, `resolvedBy: Exact`, no errors (answer-only prompt) | `agent: ¡Muy bien!` and `decision: rating Easy, learner skills 0, feedback items 0` |
+| `--transcript "fuego" --prompt spell-cast-constrained` | intent `cast_spell`, slot `spell=fuego`, communicated, correctness 1, `resolvedBy: Exact` | `agent: ¡Muy bien!`, `effect: cast_spell_power spell_power 1`, `decision: rating Easy, learner skills 1, feedback items 0` |
+| `--transcript "ezpada" --prompt quiz-item-name` | intent `unknown`, communicated, correctness 0.6, one `vocab.unknown` with expected `espada`, `resolvedBy: Fuzzy`, confidence 0.5 (a near miss, see [Near misses](#near-misses)) | `agent: Ah, espada. ¡Perfecto!` and `decision: rating Good, learner skills 1, feedback items 1` |
+| `--transcript "bla bla" --prompt offer-items-open` | intent `unknown`, not communicated, correctness 0.2, two `vocab.unknown` errors, `resolvedBy: Unresolved`, confidence 0 | `agent: Perdón, ¿qué dices?`, `repair: AskAgain ¿Cómo?`, `decision: rating Again, learner skills 1, feedback items 1` |
 | the same with `--repeat not_communicated=2` | as above | `repair: SlowRepeat Perdón, te lo repito más despacio.` |
 | the same with `--repeat not_communicated=3` | as above | `repair: OfferChoices ¿Quieres decir «arco», «brebaje» o «el arco»?` |
 
 The first row shows the answer-only rule: a quiz answer with no intent is still `communicated`, because the answer set matched.
-The second shows a game effect, a spell cast at full power because correctness is 1 (the curve in `effects.json` gives 0.5 power at
+The second shows a host effect, a spell cast at full power because correctness is 1 (the curve in `effects.json` gives 0.5 power at
 correctness 0.5).
 
 ## Guarantees
@@ -453,12 +453,12 @@ correctness 0.5).
 ## Run it yourself
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1
 ```
 
-Add `--seed <n>` (world seed), `--now <unixSeconds>`, `--npc-state <id>` (start the NPC in a given state), `--counter <n>`
-(interaction counter), `--repeat <tag>=<n>` (repeat counts) and `--replay-out <file>` to control the game context and record the
-run. `dotnet run --project tools/Slg.Cli -- --help` prints the full usage. The prompt ids in the sample bundle are `ask-price-open`,
+Add `--seed <n>` (world seed), `--now <unixSeconds>`, `--agent-state <id>` (start the agent in a given state), `--counter <n>`
+(interaction counter), `--repeat <tag>=<n>` (repeat counts) and `--replay-out <file>` to control the conversation context and record the
+run. `dotnet run --project tools/Vocaterra.Nlp.Cli -- --help` prints the full usage. The prompt ids in the sample bundle are `ask-price-open`,
 `buy-item-constrained`, `buy-item-open`, `greet-blacksmith`, `greet-open`, `offer-items-constrained`, `offer-items-open`,
 `quiz-greeting-name`, `quiz-item-name`, `quiz-spell-name`, `sell-item-open`, `spell-cast-constrained`, `spell-cast-open` and
 `trade-free-conversation`.

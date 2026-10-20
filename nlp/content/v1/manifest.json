@@ -1,5 +1,6 @@
 {"schemaVersion":1,"bundleId":"v1","contentVersion":"1.0.0","files":[
-{"path":"ATTRIBUTION.md","sha256":"72cdc6cd502d28b6046172b17716a7bb20ecaccbf89d889f2ec46c6f438004c1","bytes":4514},
+{"path":"ATTRIBUTION.md","sha256":"1b40bc28d99f7aadfde51992cee5a7af6b7a074252ffedb4f9ea4f3aa8a76b90","bytes":4526},
+{"path":"agents/blacksmith.json","sha256":"96d749f99da25eac074a1c28c16ea20ebf98b301c14c959d33df7f249756683d","bytes":4419},
 {"path":"answer-sets/greetings.json","sha256":"c0f99e77d0edfd9435aa0aab4a17360faebb763f5de0e7b59eec9e57e3613e5a","bytes":948},
 {"path":"answer-sets/items-basic.json","sha256":"58392cf522da6699835b6e11baaab56c273ea56d087ee52881e2360abb8df905","bytes":914},
 {"path":"answer-sets/spells-basic.json","sha256":"edccad2fb3a5eb9e1d6ce5551d492afe501e22da90166f9133dca1ba0ea359ba","bytes":819},
@@ -15,7 +16,6 @@
 {"path":"lexicon/supplement.json","sha256":"d0f3b4ad878990cb56d766430b6a088b4299e220ff0da9c72ba4787eaaf6bc38","bytes":697},
 {"path":"lexicon/wiktionary-es.json","sha256":"83da218f083f8b8f73262dc4c275e6418a1a8e7aa53c1de72dcb62bf16372f2f","bytes":4718227},
 {"path":"lexicon/wiktionary-es.source.json","sha256":"9cecd4bd49f21bfb153b69aeaaa1118740e8649ba5dce61a9dc925e557134b70","bytes":3640},
-{"path":"npcs/blacksmith.json","sha256":"e087cd58b72cf6418b141df78c6ffe0f25508f7c2d3cba10fb07030c1a7b81cc","bytes":4415},
-{"path":"prompts/prompts.json","sha256":"f0dcff7799436b957172f9b53580de68e989e0aabafb7634555432274583519f","bytes":3579},
-{"path":"provenance.json","sha256":"61eb0e2132974201f8a7ddd89fbab0beaa73880c0570892f823dd73ea40edbce","bytes":2083}
-],"bundleHash":"1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294"}
+{"path":"prompts/prompts.json","sha256":"a5207a9440d136328f995ce0338809d588f10606d66be33b40b642a0c915b662","bytes":3607},
+{"path":"provenance.json","sha256":"273b88fa7f4d9d9a27ab8a618eb40bd7d522a791c49e8d7c8ccf2e985b449ceb","bytes":2085}
+],"bundleHash":"d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f"}

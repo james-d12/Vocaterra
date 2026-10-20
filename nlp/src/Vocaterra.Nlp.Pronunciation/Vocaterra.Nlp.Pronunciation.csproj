@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Phonology/Vocaterra.Nlp.Phonology.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data/espeak-to-vocaterra.json" LogicalName="Vocaterra.Nlp.Pronunciation.Data.espeak-to-vocaterra.json" />
+  </ItemGroup>
+
+</Project>

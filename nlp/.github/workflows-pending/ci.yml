@@ -74,7 +74,7 @@ jobs:
         run: dotnet restore
 
       - name: Golden tests
-        run: dotnet test tests/Slg.Golden.Tests --no-restore --logger trx --results-directory TestResults
+        run: dotnet test tests/Vocaterra.Nlp.Golden.Tests --no-restore --logger trx --results-directory TestResults
 
       - name: Upload test results
         if: always()
@@ -104,11 +104,11 @@ jobs:
 
   models:
     name: model-backed tests
-    if: (github.event_name == 'push' || github.event_name == 'pull_request') && vars.SLG_RUN_MODEL_TESTS == 'true'
+    if: (github.event_name == 'push' || github.event_name == 'pull_request') && vars.VOCATERRA_RUN_MODEL_TESTS == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      SLG_MODELS_DIR: ${{ github.workspace }}/models
+      VOCATERRA_MODELS_DIR: ${{ github.workspace }}/models
     steps:
       - uses: actions/checkout@v4
 
@@ -155,14 +155,14 @@ jobs:
           global-json-file: global.json
 
       - name: Restore
-        run: dotnet restore tests/Slg.Fuzzing.Tests
+        run: dotnet restore tests/Vocaterra.Nlp.Fuzzing.Tests
 
       - name: Build
-        run: dotnet build tests/Slg.Fuzzing.Tests --no-restore -warnaserror
+        run: dotnet build tests/Vocaterra.Nlp.Fuzzing.Tests --no-restore -warnaserror
 
       # Every oracle runs its full default depth (about a minute in all); no model files are needed.
       - name: Fuzz tests
-        run: dotnet test tests/Slg.Fuzzing.Tests --no-build --logger trx --results-directory TestResults
+        run: dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests --no-build --logger trx --results-directory TestResults
 
       - name: Upload test results
         if: always()
@@ -172,18 +172,18 @@ jobs:
           path: TestResults/**/*.trx
           if-no-files-found: warn
 
-  # The weekly (or on-demand) deep run. A failure prints the CsCheck seed; reproduce it locally with `CsCheck_Seed=<seed> dotnet test tests/Slg.Fuzzing.Tests`.
+  # The weekly (or on-demand) deep run. A failure prints the CsCheck seed; reproduce it locally with `CsCheck_Seed=<seed> dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests`.
   fuzz-soak:
     name: fuzz soak
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      SLGFUZZ_ITERATIONS: "50000"
-      SLGFUZZ_ITERATIONS_GRAMMAR: "50000"
-      SLGFUZZ_ITERATIONS_SIGNAL: "10000"
-      SLGFUZZ_ITERATIONS_PIPELINE: "3000"
-      SLGFUZZ_ITERATIONS_CONTENT: "5000"
+      VOCATERRA_FUZZ_ITERATIONS: "50000"
+      VOCATERRA_FUZZ_ITERATIONS_GRAMMAR: "50000"
+      VOCATERRA_FUZZ_ITERATIONS_SIGNAL: "10000"
+      VOCATERRA_FUZZ_ITERATIONS_PIPELINE: "3000"
+      VOCATERRA_FUZZ_ITERATIONS_CONTENT: "5000"
     steps:
       - uses: actions/checkout@v4
 
@@ -192,13 +192,13 @@ jobs:
           global-json-file: global.json
 
       - name: Restore
-        run: dotnet restore tests/Slg.Fuzzing.Tests
+        run: dotnet restore tests/Vocaterra.Nlp.Fuzzing.Tests
 
       - name: Build
-        run: dotnet build tests/Slg.Fuzzing.Tests --no-restore -warnaserror
+        run: dotnet build tests/Vocaterra.Nlp.Fuzzing.Tests --no-restore -warnaserror
 
       - name: Fuzz soak
-        run: dotnet test tests/Slg.Fuzzing.Tests --no-build --logger trx --results-directory TestResults
+        run: dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests --no-build --logger trx --results-directory TestResults
 
       - name: Upload test results
         if: always()
