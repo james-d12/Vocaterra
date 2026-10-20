@@ -1,0 +1,26 @@
+{
+  "entries": [
+    { "word": "email", "ipa": "i.ˈmejl" },
+    { "word": "hobby", "ipa": "ˈxo.bi" },
+    { "word": "hámster", "ipa": "ˈxams.teɾ" },
+    { "word": "internet", "ipa": "ˈin.teɾ.net" },
+    { "word": "jazz", "ipa": "ˈʝaθ" },
+    { "word": "jeans", "ipa": "ˈʝins" },
+    { "word": "ketchup", "ipa": "ˈke.tʃup" },
+    { "word": "marketing", "ipa": "ˈmaɾ.ke.tiŋ" },
+    { "word": "mexicano", "ipa": "me.xi.ˈka.no", "inflect": true },
+    { "word": "méxico", "ipa": "ˈme.xi.ko" },
+    { "word": "oaxaca", "ipa": "wa.ˈxa.ka" },
+    { "word": "pizza", "ipa": "ˈpit.sa", "inflect": true },
+    { "word": "rugby", "ipa": "ˈrag.bi" },
+    { "word": "show", "ipa": "ˈtʃow" },
+    { "word": "stop", "ipa": "es.ˈtop" },
+    { "word": "subrayar", "ipa": "sub.ra.ˈʝaɾ" },
+    { "word": "sushi", "ipa": "ˈsu.ʃi" },
+    { "word": "sándwich", "ipa": "ˈsand.witʃ" },
+    { "word": "texas", "ipa": "ˈte.xas" },
+    { "word": "web", "ipa": "ˈweb" },
+    { "word": "whisky", "ipa": "ˈwis.ki" },
+    { "word": "wifi", "ipa": "ˈwi.fi" }
+  ]
+}

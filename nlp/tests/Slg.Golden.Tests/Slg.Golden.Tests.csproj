@@ -22,4 +22,8 @@
     <ProjectReference Include="../../src/Slg.Core/Slg.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Data/g2p-golden.jsonl" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
