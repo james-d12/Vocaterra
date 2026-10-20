@@ -186,8 +186,9 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M11 | Response realization: templates + morphology, recasts, TTS adapters + cache, effect tables | M5, M3 | S | done |
 | M12 | Content bundle: schema, loader, hashing, ContentBuilder CLI (kaikki import), sample content v1 | M4, M5, M6, M10, M11 | S | done |
 | M13 | Pipeline orchestration, replay log + replayer, CLI demo, bench harness, golden layout | M2–M12 | S | done |
+| M13b | Integration fixes from the demo: answer-match communication, spell grammars, blacksmith idle transitions | M13 | S | done |
 | M14 | CI matrix (x64/ARM64/Windows/macOS), golden tests, license scan, format check (workflow parked in `.github/workflows-pending` until the push token has `workflow` scope) | M13 | H | done |
-| M15 | README, ADRs, CONTRIBUTING, determinism checklist | M13 | H | todo |
+| M15 | README, ADRs, CONTRIBUTING, determinism checklist | M13 | S | in-progress |
 
 ### Delegation waves
 
@@ -404,6 +405,10 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
 - **Invariant globalization (M0/M1):** off; see §3.5.
 - **Normalizer articles (M4):** `NormalizationOptions.ConvertIndefiniteArticles` defaults to true;
   the pipeline must pass `false` so article–noun agreement and `[ART]` grammar tokens work.
+- **Answer-only prompts (M13b):** an Exact/Alias/Fuzzy answer match counts as `communicated`
+  even when no intent resolves (`Intent = unknown`, `ResolvedBy` = match type). A prompt whose
+  `AllowedIntentIds` is empty skips the intent stage entirely (it is an answer-only prompt); the
+  earlier resolver rule "empty allows every intent" no longer applies at the pipeline level.
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 
