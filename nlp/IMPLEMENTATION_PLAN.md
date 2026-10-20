@@ -191,7 +191,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M15 | README, ADRs, CONTRIBUTING, determinism checklist | M13 | S | done |
 | M16a | Combinatorial fuzz testing, stage 1: project, CsCheck, generators, harness, language oracles (see `docs/FUZZING_PLAN.md`) | M13b | S | done |
 | M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | done |
-| M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | in-progress |
+| M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | done |
 | M17b | Intent expansion: ten new intents, two new NPC scenes (innkeeper, quest giver), prompts, dialogue, effects, goldens (see §7) | M17a | L | todo |
 | M18 | Part-of-speech disambiguation in the analyzer (candidate; decided on M17a's homograph numbers) | M17a | M | todo |
 | M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | todo |
@@ -498,6 +498,38 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   verdict only, so a purchase in the NPC's `done` state still emits `buy_item_price` (by design; the
   game layer gates it). Also confirmed: the four `pron.*` tags need the phoneme model, which has no
   ONNX export yet.
+- **M17a results:** `content/v1/lexicon/wiktionary-es.json` (4.7 MB) holds the 3 000 most frequent
+  lemmas from the kaikki.org Spanish extract (enwiktionary dump 2026-09-02, pinned by SHA-256) ranked by
+  the OpenSubtitles-based `es_50k` list: 40 263 entries (1 847 nouns, 680 verbs, 701 adjectives); the
+  merged lexicon is 41 078 entries, 32 494 forms, 3 372 lemmas (was 1 268 entries, 404 lemmas). 5 000
+  lemmas failed the bundle-load gate (333–373 ms against 300 ms) and left no margin on suite time, so
+  3 000 ships. Measured: bundle load 246–267 ms debug, full suite +21 %, fuzz suite 20 s. Bundle hash
+  `8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78`. Sources live in git-ignored
+  `lexicon-sources/` (fetched by `scripts/fetch-lexicon-sources.sh`); `docs/LEXICON.md` has the
+  regeneration command.
+- **Hand-authored deference (M17a):** the importer's `--hand-authored` option drops imported readings
+  that would override hand-authored ones (Wiktionary's masculine `espada`, the matador, would otherwise
+  make `un espada` correct) and words spelled like hand-authored function words (`la` the note, `si`
+  the noun). Curated readings win; the policy is in `docs/LEXICON.md` and ADR 0008.
+- **Analyzer bugs fixed by the fuzz oracles on the new words (M17a):** an imperative spelled like the
+  third person excused `tú habla`; the copula correction picked an imperative (`ella está alta` →
+  `eres`); adjective lemmas sorted before their masculine form broke the ser/estar class check
+  (`ocupada`); nouns readable as both numbers (`corazones`) tripped `noun.number`. All in
+  `AgreementChecker`, regression tests in `AmbiguousReadingTests`.
+- **Homographs after M17a (input to the M18 decision):** forms with more than one reading rose from
+  89 to 7 216; 339 of the 1 583 generator-usable nouns (21 %) are also verb forms; 347 nouns are left
+  out of the generators for gender homographs; 1–7 sentences per fuzz run skip as verb-form homographs.
+  A lemma can also inherit a frequent word's count through a shared form (`casar` ranks 21st via
+  `casa`), which part-of-speech data would fix.
+- **Fuzz narrowing accepted (M17a):** O15 no longer walks files over 1 MB for structural mutations (a
+  byte flip still reaches them, and the small lexicon files exercise the same parser), loads through an
+  opt-in `LexiconCache`, and samples on several threads because its iterations are independent. Each is
+  documented in the fuzz README's "narrower than the plan" list.
+- **Licensing to confirm before release (M17a):** the frequency list's counts are CC BY-SA 4.0, but
+  the terms of the underlying OpenSubtitles corpus were not confirmed; only a ranking derived from the
+  counts is used and no counts or text ship. kaikki.org marks the per-language file as deprecated; the
+  SHA-256 pin and the committed output cover it, and the raw all-languages extract (24 GB) is the
+  fallback, untested.
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 
