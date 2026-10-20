@@ -229,12 +229,14 @@ consent rules and manifest schema are in [golden/README.md](golden/README.md).
 | `tools/Slg.ContentBuilder` | `validate`, `hash`, `cefr-check`, `import-lexicon` |
 | `tests/Slg.<Project>.Tests` | One xUnit project per source project |
 | `tests/Slg.Golden.Tests` | G2P golden set, end-to-end worked example, golden manifest layout |
+| `tests/Slg.Fuzzing.Tests` | Combinatorial fuzz tests: CsCheck oracles over generators driven by the content catalogs ([README](tests/Slg.Fuzzing.Tests/README.md)) |
 | `content/v1` | The versioned, hashed content bundle (JSON) and its `ATTRIBUTION.md` |
 | `golden/` | Golden learner audio manifest and recording protocol; the audio itself is gitignored |
 | `models/` | `manifest.json` and a README are committed; the model files are fetched and gitignored |
 | `scripts/` | `fetch-models.sh`, `license-scan.sh` and its allowlist and overrides ([scripts/README.md](scripts/README.md)) |
 | `.github/workflows-pending/` | The CI workflow, parked until the push token has the `workflow` scope |
 | `docs/` | [PIPELINE.md](docs/PIPELINE.md), [REPLAY.md](docs/REPLAY.md) and the architecture decision records in `docs/adr/` |
+| `docs/diagrams/` | The draw.io system overview and how to open it ([README](docs/diagrams/README.md)) |
 | `HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md`, `SPECIFICATION.md` | The design, the milestone plan and the original brief |
 
 ## Determinism rules in brief
