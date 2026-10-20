@@ -1,4 +1,4 @@
-{"schemaVersion":1,"bundleId":"v1","contentVersion":"1.0.0","files":[
+{"schemaVersion":1,"bundleId":"game-v1","contentVersion":"1.0.0","files":[
 {"path":"ATTRIBUTION.md","sha256":"1b40bc28d99f7aadfde51992cee5a7af6b7a074252ffedb4f9ea4f3aa8a76b90","bytes":4526},
 {"path":"agents/blacksmith.json","sha256":"96d749f99da25eac074a1c28c16ea20ebf98b301c14c959d33df7f249756683d","bytes":4419},
 {"path":"answer-sets/greetings.json","sha256":"c0f99e77d0edfd9435aa0aab4a17360faebb763f5de0e7b59eec9e57e3613e5a","bytes":948},
