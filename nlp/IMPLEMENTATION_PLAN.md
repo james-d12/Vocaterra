@@ -194,10 +194,10 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | done |
 | M17b | Intent expansion: ten new intents, two new scenes (innkeeper, quest giver), prompts, dialogue, effects, goldens (see §7; after the split in §8 the scenes are game content and move to the game repo) | M19c | L | todo |
 | M18 | Part-of-speech disambiguation in the analyzer (triggered: `ayer compré un libro` yields a false `conj.tense` on main after M17a) | M17a | M | done |
-| M19a | Standalone core, step 1: boundary ADR, rename `Slg.*` → `Vocaterra.Nlp.*` (solution, projects, namespaces, packages), game-agnostic context and agent naming, opaque outcome kinds, `docs/API.md`, README reframed as a library (see §8) | M18 | M | todo |
+| M19a | Standalone core, step 1: boundary ADR, rename `Slg.*` → `Vocaterra.Nlp.*` (solution, projects, namespaces, packages), game-agnostic context and agent naming, opaque outcome kinds, `docs/API.md`, README reframed as a library (see §8) | M18 | M | in-progress |
 | M19b | Standalone core, step 2: NuGet packaging of `Slg.*`, content bundle packaging, `samples/HostConsole` consuming the packages (see §8) | M19a | S | todo |
 | M19c | Standalone core, step 3: new game repository scaffold with the game spec, game content bundle and a host project on the packages (see §8) | M19b | S | todo |
-| M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | in-progress |
+| M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | done |
 
 ### Delegation waves
 
@@ -549,6 +549,18 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   per 200), suite time unchanged, O4/O5 green at 200 000 iterations. Unresolved: verbs sharing a form
   (`fue` is `ir` and `ser`) and sentences correct under one reading and wrong under another with
   nothing to prefer. The resolver is the seam a trained tagger (M20) would replace.
+- **M17c results:** the near-miss inconsistency was a sentinel, not the edit budget: a fuzzy match
+  exactly at the budget edge reported confidence 0.5, which the communicated margin (0.6 ± 0.02)
+  rejected, so `espado` and `yelo` failed while `ezpada` (phonetic distance 0) passed. Confidence is
+  now 1 − d/length and all three are communicated; a fuzzy match's unknown word carries the canonical
+  word in `expected` and the recast uses it ("Ah, espada"). `vocab.wrong.expected` is the answer
+  set's single canonical answer or empty. Recasts restore lexicon accents (`buenas dias` → "buenos
+  días") without touching accentless spellings that are words themselves. `offer_item` gained a
+  `tener` keyword rule, so `ayer tengo dos espadas` resolves by Rules and keeps `conj.tense`. Bundle
+  hash `1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294`. Known limit: `espadas`
+  for `espada` on an answer-only prompt is a Fuzzy match with no `noun.number` tag (no grammar to
+  check number). The `docs/CLI_EXAMPLES.md` prose for the `fuego` example (expected now empty) is
+  fixed in M19a's docs pass.
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 
