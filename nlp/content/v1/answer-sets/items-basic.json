@@ -1,0 +1,35 @@
+{
+  "answerSetId": "items-basic",
+  "answers": [
+    {
+      "answerId": "sword",
+      "canonical": "espada",
+      "aliases": ["la espada", "una espada"],
+      "dialects": ["es-ES", "es-MX", "es-AR"]
+    },
+    {
+      "answerId": "shield",
+      "canonical": "escudo",
+      "aliases": ["el escudo", "un escudo"],
+      "dialects": ["es-ES", "es-MX", "es-AR"]
+    },
+    {
+      "answerId": "bow",
+      "canonical": "arco",
+      "aliases": ["el arco", "un arco"],
+      "dialects": ["es-ES", "es-MX", "es-AR"]
+    },
+    {
+      "answerId": "arrow",
+      "canonical": "flecha",
+      "aliases": ["la flecha", "una flecha", "saeta"],
+      "dialects": ["es-ES", "es-MX", "es-AR"]
+    },
+    {
+      "answerId": "potion",
+      "canonical": "poción",
+      "aliases": ["la poción", "una poción", "pócima", "una pócima", "brebaje", "un brebaje"],
+      "dialects": ["es-ES", "es-MX", "es-AR"]
+    }
+  ]
+}

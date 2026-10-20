@@ -1,0 +1,19 @@
+{
+  "items": [
+    { "path": "ATTRIBUTION.md", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "answer-sets/greetings.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "answer-sets/items-basic.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "answer-sets/spells-basic.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "cefr/a1.txt", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "cefr/a2.txt", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "dialogue/dialogue.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "effects/effects.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "evaluation/evaluation-config.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "feedback/feedback-policy.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "intents/intents.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "lexicon/game.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "lexicon/seed.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "npcs/blacksmith.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "prompts/prompts.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null }
+  ]
+}

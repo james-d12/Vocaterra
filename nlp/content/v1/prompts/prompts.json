@@ -1,0 +1,137 @@
+[
+  {
+    "promptId": "ask-price-open",
+    "mode": "Open",
+    "difficulty": "Beginner",
+    "answerSetId": "items-basic",
+    "allowedIntentIds": ["ask_price"],
+    "npcId": "blacksmith",
+    "slotGrammarIds": ["cuánto [VERB:costar] [ART]? [NOUN:item]"]
+  },
+  {
+    "promptId": "buy-item-constrained",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "items-basic",
+    "allowedIntentIds": ["buy_item"],
+    "npcId": "blacksmith",
+    "slotGrammarIds": []
+  },
+  {
+    "promptId": "buy-item-open",
+    "mode": "Open",
+    "difficulty": "Beginner",
+    "answerSetId": "items-basic",
+    "allowedIntentIds": ["buy_item"],
+    "npcId": "blacksmith",
+    "slotGrammarIds": [
+      "[VERB:querer] [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item]",
+      "[VERB:comprar] [ART]? [NUM:qty]? [NOUN:item]"
+    ]
+  },
+  {
+    "promptId": "greet-blacksmith",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "greetings",
+    "allowedIntentIds": ["greet"],
+    "npcId": "blacksmith",
+    "slotGrammarIds": []
+  },
+  {
+    "promptId": "greet-open",
+    "mode": "Open",
+    "difficulty": "Beginner",
+    "answerSetId": "greetings",
+    "allowedIntentIds": ["greet"],
+    "npcId": "blacksmith",
+    "slotGrammarIds": ["hola [NOUN]?"]
+  },
+  {
+    "promptId": "offer-items-constrained",
+    "mode": "Constrained",
+    "difficulty": "Intermediate",
+    "answerSetId": "items-basic",
+    "allowedIntentIds": ["offer_item"],
+    "npcId": "blacksmith",
+    "slotGrammarIds": []
+  },
+  {
+    "promptId": "offer-items-open",
+    "mode": "Open",
+    "difficulty": "Intermediate",
+    "answerSetId": "items-basic",
+    "allowedIntentIds": ["offer_item"],
+    "npcId": "blacksmith",
+    "slotGrammarIds": [
+      "[VERB:tener:verb] [NUM:qty] [NOUN:item]",
+      "[PRON]? [VERB:ofrecer:verb] [NUM:qty] [NOUN:item]"
+    ]
+  },
+  {
+    "promptId": "quiz-greeting-name",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "greetings",
+    "allowedIntentIds": [],
+    "npcId": null,
+    "slotGrammarIds": []
+  },
+  {
+    "promptId": "quiz-item-name",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "items-basic",
+    "allowedIntentIds": [],
+    "npcId": null,
+    "slotGrammarIds": []
+  },
+  {
+    "promptId": "quiz-spell-name",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "spells-basic",
+    "allowedIntentIds": [],
+    "npcId": null,
+    "slotGrammarIds": []
+  },
+  {
+    "promptId": "sell-item-open",
+    "mode": "Open",
+    "difficulty": "Intermediate",
+    "answerSetId": "items-basic",
+    "allowedIntentIds": ["sell_item"],
+    "npcId": "blacksmith",
+    "slotGrammarIds": [
+      "[VERB:querer] [VERB:vender] [ART]? [NUM:qty]? [NOUN:item]",
+      "[VERB:vender] [ART]? [NUM:qty]? [NOUN:item]"
+    ]
+  },
+  {
+    "promptId": "spell-cast-constrained",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "spells-basic",
+    "allowedIntentIds": ["cast_spell"],
+    "npcId": null,
+    "slotGrammarIds": []
+  },
+  {
+    "promptId": "spell-cast-open",
+    "mode": "Open",
+    "difficulty": "Intermediate",
+    "answerSetId": "spells-basic",
+    "allowedIntentIds": ["cast_spell"],
+    "npcId": null,
+    "slotGrammarIds": ["[VERB:lanzar] [ART]? [NOUN:spell] [ADJ]?"]
+  },
+  {
+    "promptId": "trade-free-conversation",
+    "mode": "Open",
+    "difficulty": "Intermediate",
+    "answerSetId": "items-basic",
+    "allowedIntentIds": ["ask_price", "buy_item", "offer_item", "sell_item"],
+    "npcId": "blacksmith",
+    "slotGrammarIds": []
+  }
+]
