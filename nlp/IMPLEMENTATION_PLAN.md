@@ -743,8 +743,8 @@ stays here. M17c (evaluator polish) stays in the core.
 
 ### 8.3 Owner decisions
 - Repository names (decided 2026-10-20): the core is `james-d12/Vocaterra.NLP` (this repository,
-  renamed from `SpanishLearningGame`); the game will be `james-d12/Vocaterra`, created by the owner
-  with token access granted. Decided (owner, 2026-10-20): M19a also renames the solution, project names,
+  renamed from `SpanishLearningGame`); the game is `james-d12/Vocaterra` (created empty on 2026-10-20, cloned
+  at `/home/user/Dev/Vocaterra`, token access confirmed). Decided (owner, 2026-10-20): M19a also renames the solution, project names,
   namespaces, assembly names and NuGet package ids from `Slg.*` to `Vocaterra.Nlp.*` before any package
   is published; environment variables keep the `SLG_` prefix only if renaming them would break the
   parked CI, otherwise they become `VOCATERRA_` with the old names accepted for one release.
