@@ -7,18 +7,22 @@
 #
 # Per package, the cached .nuspec is read first (<license type="expression">, then a licenseUrl that names an SPDX id). Unless
 # --offline is given, packages still without a license are looked up in the NuGet registration API (licenseExpression, then a
-# recognised licenseUrl). The solution must be restored first, because the package list comes from 'dotnet list package'.
+# recognised licenseUrl). Packages still without a license then take a reviewed entry from scripts/license-overrides.txt when one
+# exists for the exact id and version; the override's license is checked against the allowlist like any other. The solution must
+# be restored first, because the package list comes from 'dotnet list package'.
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
 solution="$repo_root/SpanishLearningGame.sln"
 allowlist="$script_dir/license-allowlist.txt"
+overrides="$script_dir/license-overrides.txt"
 
 usage() {
   cat <<'EOF'
 Usage: scripts/license-scan.sh [--offline] [-h|--help]
   --offline   read license metadata only from the local NuGet cache (${NUGET_PACKAGES:-~/.nuget/packages}); no network calls
+  Reviewed per-version entries in scripts/license-overrides.txt apply only when the metadata names no license.
 
 Exit status: 0 when every package passes, 1 when any package fails or has an unknown license, 2 on usage or tool errors.
 EOF
@@ -46,6 +50,7 @@ command -v dotnet >/dev/null 2>&1 || fail "dotnet not found on PATH"
 command -v python3 >/dev/null 2>&1 || fail "python3 not found on PATH"
 [ -f "$solution" ] || fail "solution not found: $solution"
 [ -f "$allowlist" ] || fail "allowlist not found: $allowlist"
+[ -f "$overrides" ] || fail "overrides file not found: $overrides"
 
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
@@ -54,7 +59,8 @@ if ! dotnet list "$solution" package --include-transitive --format json >"$work/
   fail "'dotnet list package' failed; restore the solution first (dotnet restore)"
 fi
 
-python3 -I - "$work/packages.json" "$allowlist" "$offline" <<'PY'
+python3 -I - "$work/packages.json" "$allowlist" "$offline" "$overrides" <<'PY'
+import datetime
 import gzip
 import json
 import os
@@ -65,7 +71,7 @@ import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 
-packages_path, allowlist_path, offline = sys.argv[1], sys.argv[2], sys.argv[3] == "1"
+packages_path, allowlist_path, offline, overrides_path = sys.argv[1], sys.argv[2], sys.argv[3] == "1", sys.argv[4]
 cache_root = os.environ.get("NUGET_PACKAGES") or os.path.join(os.path.expanduser("~"), ".nuget", "packages")
 registration_url = "https://api.nuget.org/v3/registration5-gz-semver2/{id}/{version}.json"
 denied_markers = ("GPL", "SSPL")  # checked on every identifier, so LGPL and AGPL are covered too
@@ -95,6 +101,35 @@ with open(allowlist_path, encoding="utf-8") as handle:
         if not entry:
             continue
         (allowed_expressions if " " in entry or "(" in entry else allowed_ids).add(entry)
+
+
+def config_error(message):
+    """Reports a malformed input file and stops the scan."""
+    print("error: " + message, file=sys.stderr)
+    sys.exit(2)
+
+
+# Reviewed overrides: <package-id>|<version>|<spdx>|<evidence-url>|<reviewed-on YYYY-MM-DD>, keyed by lowercase id and exact version.
+overrides = {}
+with open(overrides_path, encoding="utf-8") as handle:
+    for number, raw in enumerate(handle, 1):
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        fields = [field.strip() for field in line.split("|")]
+        where = "license-overrides.txt:%d" % number
+        if len(fields) != 5 or not all(fields):
+            config_error(where + ": expected 5 non-empty '|' separated fields")
+        if not fields[3].startswith("https://"):
+            config_error(where + ": evidence must be an https URL")
+        try:
+            datetime.date.fromisoformat(fields[4])
+        except ValueError:
+            config_error(where + ": reviewed-on must be a YYYY-MM-DD date")
+        key = (fields[0].lower(), fields[1])
+        if key in overrides:
+            config_error(where + ": duplicate entry for %s %s" % (fields[0], fields[1]))
+        overrides[key] = {"spdx": fields[2], "url": fields[3], "reviewed": fields[4]}
 
 
 def is_allowed(identifier):
@@ -261,8 +296,8 @@ def registration_license(package_id, version):
     return {"expression": entry.get("licenseExpression") or None, "url": entry.get("licenseUrl") or None}
 
 
-def resolve_license(package_id, version):
-    """Returns (license, source, note); the license is None when it cannot be determined."""
+def automatic_license(package_id, version):
+    """Returns (license, source, note) from the nuspec or the NuGet API; the license is None when neither names one."""
     local = nuspec_license(package_id, version)
     if local and local.get("expression"):
         return local["expression"], "nuspec", ""
@@ -294,6 +329,15 @@ def resolve_license(package_id, version):
     return None, "api", local_note + "; " + remote_note
 
 
+def resolve_license(package_id, version):
+    """Returns (license, source, note); a reviewed override is used only when the automatic lookup names no license."""
+    license_text, source, note = automatic_license(package_id, version)
+    override = overrides.get((package_id.lower(), version))
+    if license_text is None and override is not None:
+        return override["spdx"], "override", "reviewed " + override["reviewed"] + " " + override["url"]
+    return license_text, source, note
+
+
 with open(packages_path, encoding="utf-8") as handle:
     listing = json.load(handle)
 packages = {}
@@ -310,8 +354,10 @@ for (_, version), package_id in sorted(packages.items()):
     if license_text is None:
         verdict = "UNKNOWN"
     else:
-        verdict, note = evaluate(license_text)
-    rows.append((package_id, version, license_text or "-", source, verdict, note))
+        verdict, check_note = evaluate(license_text)
+        if verdict != "PASS":
+            note = check_note
+    rows.append((package_id, version, license_text or "-", source, verdict, note or "-"))
 
 headers = ("PACKAGE", "VERSION", "LICENSE", "SOURCE", "STATUS", "NOTE")
 widths = [max([len(headers[i])] + [len(row[i]) for row in rows]) for i in range(len(headers))]
@@ -332,6 +378,6 @@ mode = "offline" if offline else "online"
 print()
 print(f"packages: {len(rows)}  pass: {counts['PASS']}  fail: {counts['FAIL']}  unknown: {counts['UNKNOWN']}  mode: {mode}")
 failing = counts["FAIL"] + counts["UNKNOWN"]
-print("license scan: FAILED" if failing else "license scan: OK")
+print("Result: FAILED" if failing else "Result: PASSED")
 sys.exit(1 if failing else 0)
 PY

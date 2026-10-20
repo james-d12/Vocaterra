@@ -1,0 +1,11 @@
+# Reviewed license overrides for scripts/license-scan.sh, one package version per line:
+#   <package-id>|<version>|<spdx>|<evidence-url>|<reviewed-on YYYY-MM-DD>
+#
+# An override is used only when the package's own metadata (nuspec, then NuGet registration API) names no usable license, and it
+# applies only to the exact package id (case-insensitive) and version on the line. A newer or older version is never covered.
+# Every line must cite evidence: an https URL to the license text the reviewer read. The <spdx> value is still checked against
+# license-allowlist.txt, so an override cannot accept a license that the allowlist refuses.
+# Lines starting with '#' and blank lines are ignored. Malformed lines make the scan fail.
+Microsoft.ML.OnnxRuntime|1.31.0|MIT|https://github.com/microsoft/onnxruntime/blob/main/LICENSE|2026-10-20
+Microsoft.ML.OnnxRuntime.Managed|1.31.0|MIT|https://github.com/microsoft/onnxruntime/blob/main/LICENSE|2026-10-20
+xunit.abstractions|2.0.3|Apache-2.0|https://raw.githubusercontent.com/xunit/xunit/master/license.txt|2026-10-20
