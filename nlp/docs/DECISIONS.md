@@ -58,7 +58,7 @@ as release artifacts (simplest, no token change), or nuget.org (public only). **
 publish step; M19c consumes from whichever feed is chosen.
 
 ## D6. Conversation state-machine engine
-The verdict-driven state machine (`Slg.Decision/Npc`, renamed to a conversation agent in M19a) is
+The verdict-driven state machine (`Vocaterra.Nlp.Decision/Npc`, renamed to a conversation agent in M19a) is
 content-driven interaction logic. **Recommendation:** keep the engine in the core, move the definitions
 (blacksmith, innkeeper, captain) to the game bundle. **Alternative:** move the engine to the game and
 have the core stop at the verdict and feedback plan. **Waiting on it:** M19a's boundary ADR.
@@ -104,5 +104,5 @@ errors; until then the phoneme stage stays optional. **Waiting on it:** M24 resu
 
 ## Already decided (for the record)
 - 2026-10-20: core repository renamed `Vocaterra.NLP`; game repository `Vocaterra` created; M19a
-  renames `Slg.*` to `Vocaterra.Nlp.*`; Haiku 5.5 is the default model for delegated work; the
+  renames `Vocaterra.Nlp.*` to `Vocaterra.Nlp.*`; Haiku 5.5 is the default model for delegated work; the
   research report's M18 stays as the seam the tagger plugs into.

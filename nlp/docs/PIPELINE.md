@@ -1,6 +1,6 @@
 # The utterance pipeline
 
-`Slg.Pipeline.UtterancePipeline` turns one recorded utterance into everything the game needs to react: a graded **verdict**, the
+`Vocaterra.Nlp.Pipeline.UtterancePipeline` turns one recorded utterance into everything the game needs to react: a graded **verdict**, the
 NPC's and learner model's **decision**, the **lines** the NPC says, the **game effects**, an optional **repair** step and a
 **replay record**. This page walks through `Evaluate` stage by stage, using the worked example from the high-level design
 (`HIGH_LEVEL_DOCS.md`, "Verdict contract and error taxonomy"), and shows the actual output of the CLI for it.
@@ -276,7 +276,7 @@ predicted English-speaker error variants are generated from them, and `Pronuncia
 pronunciation by default) scores each phone of the best-matching variant and turns low scores into `pron.*` errors with margins.
 
 In the CLI example there is no phoneme recognizer, so `pronunciation` is `[]`. The end-to-end golden test
-(`tests/Slg.Golden.Tests/Data/e2e-offer-items-open.golden.json`) runs the same utterance with a fake phoneme recognizer that
+(`tests/Vocaterra.Nlp.Golden.Tests/Data/e2e-offer-items-open.golden.json`) runs the same utterance with a fake phoneme recognizer that
 hears the correct phones: the verdict then lists one `PhoneScore` per content phone, each with score 1.
 
 ### 7. Verdict assembly (D0)
@@ -365,7 +365,7 @@ ordinal order, with a constrained retry request), later attempts `GiveUp`. For u
 This is the first line the CLI prints for the worked example, pretty-printed here (the CLI prints it on one line):
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1
 ```
 
 ```json
@@ -419,7 +419,7 @@ variants, "¿Tienes dos espadas? ¡Perfecto!" (the design document's line, which
 and interaction counter) or "Ah, ¿tienes dos espadas? ¡Muy bien!" (the draw for the CLI's default context).
 
 The content hash is the hash of the `content/v1` bundle. It changes with any edit to the bundle (see `CONTRIBUTING.md`); the
-tests pin it in `tests/Slg.Content.Tests/ManifestTests.cs`.
+tests pin it in `tests/Vocaterra.Nlp.Content.Tests/ManifestTests.cs`.
 
 ## Other branches
 
@@ -453,12 +453,12 @@ correctness 0.5).
 ## Run it yourself
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1
 ```
 
 Add `--seed <n>` (world seed), `--now <unixSeconds>`, `--npc-state <id>` (start the NPC in a given state), `--counter <n>`
 (interaction counter), `--repeat <tag>=<n>` (repeat counts) and `--replay-out <file>` to control the game context and record the
-run. `dotnet run --project tools/Slg.Cli -- --help` prints the full usage. The prompt ids in the sample bundle are `ask-price-open`,
+run. `dotnet run --project tools/Vocaterra.Nlp.Cli -- --help` prints the full usage. The prompt ids in the sample bundle are `ask-price-open`,
 `buy-item-constrained`, `buy-item-open`, `greet-blacksmith`, `greet-open`, `offer-items-constrained`, `offer-items-open`,
 `quiz-greeting-name`, `quiz-item-name`, `quiz-spell-name`, `sell-item-open`, `spell-cast-constrained`, `spell-cast-open` and
 `trade-free-conversation`.

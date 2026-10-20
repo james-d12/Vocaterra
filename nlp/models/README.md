@@ -1,13 +1,13 @@
-Model files (ASR, phoneme recognizer, embedding and TTS models) are not committed to this repository; they are fetched by a script and verified against the SHA-256 hashes listed in `manifest.json`, which is the only model metadata under version control. Set `SLG_MODELS_DIR` to a directory containing the fetched files to run the real-model tests; without it those tests are skipped.
+Model files (ASR, phoneme recognizer, embedding and TTS models) are not committed to this repository; they are fetched by a script and verified against the SHA-256 hashes listed in `manifest.json`, which is the only model metadata under version control. Set `VOCATERRA_MODELS_DIR` to a directory containing the fetched files to run the real-model tests; without it those tests are skipped.
 
 ## Fetching
 
 ```
 scripts/fetch-models.sh --list                      # what is present, missing or mismatching
-SLG_MODELS_DIR=$PWD/models scripts/fetch-models.sh vosk-model-small-es-0.42
+VOCATERRA_MODELS_DIR=$PWD/models scripts/fetch-models.sh vosk-model-small-es-0.42
 ```
 
-The script (bash, python3, curl, sha256sum, unzip or tar) downloads each requested model into `${SLG_MODELS_DIR:-<repo>/models}/<id>/`, checks the archive hash, extracts it, and verifies every listed file. Without ids it fetches every model that has an archive; entries without one (the ONNX models that still need a manual export) are skipped with a warning. The top-level directory of each archive must be named like the model id.
+The script (bash, python3, curl, sha256sum, unzip or tar) downloads each requested model into `${VOCATERRA_MODELS_DIR:-<repo>/models}/<id>/`, checks the archive hash, extracts it, and verifies every listed file. Without ids it fetches every model that has an archive; entries without one (the ONNX models that still need a manual export) are skipped with a warning. The top-level directory of each archive must be named like the model id.
 
 ## Manifest
 

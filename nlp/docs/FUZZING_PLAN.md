@@ -29,7 +29,7 @@ space of lexicon × grammar × mutation × dialect × difficulty × NPC state. F
 | Benign + adversarial corpus mixed by weight | `AdversarialCorpus` of strings, audio, phones, JSON mutations; 1-in-4 adversarial |
 | `KnownParameterConstraints` allow-list of expected rejections | `KnownTolerances`: an auditable list of *expected* exceptions (e.g. `TemplateException` for a missing slot, `InvalidDataException` for a malformed WAV) |
 | One `*FuzzTests.cs` per oracle | Same |
-| Full soak by default, env var to go deeper, `CsCheck_Seed` replay | `SLGFUZZ_ITERATIONS*` env vars; failures print the seed and the full generated input as canonical JSON so it can be pasted into a regression `[Fact]` |
+| Full soak by default, env var to go deeper, `CsCheck_Seed` replay | `VOCATERRA_FUZZ_ITERATIONS*` env vars; failures print the seed and the full generated input as canonical JSON so it can be pasted into a regression `[Fact]` |
 | README lists bugs found and known-not-fixed findings | Same, maintained with the suite |
 
 Everything runs in process with fakes for the D1 models (`ScriptedWordRecognizer`,
@@ -39,8 +39,8 @@ Target: the whole suite adds under 60 s to `dotnet test` on a laptop.
 ## 3. Project layout
 
 ```
-tests/Slg.Fuzzing.Tests/
-  Slg.Fuzzing.Tests.csproj          references every src project + Slg.Content; CsCheck via central versions
+tests/Vocaterra.Nlp.Fuzzing.Tests/
+  Vocaterra.Nlp.Fuzzing.Tests.csproj          references every src project + Vocaterra.Nlp.Content; CsCheck via central versions
   README.md                         how to run, deepen, reproduce; bugs found; known-not-fixed
   FuzzOptions.cs                    iteration defaults + env-var overrides; corpus weights
   Generation/
@@ -136,11 +136,11 @@ byte-identical, and on failure report the first differing JSON path plus the gen
 
 | Oracle | Default iterations | Env var |
 | --- | --- | --- |
-| O1, O2, O6, O8, O10, O11, O16 | 3 000 | `SLGFUZZ_ITERATIONS` |
-| O3, O4, O5, O7, O12 | 2 000 | `SLGFUZZ_ITERATIONS_GRAMMAR` |
-| O9, O13 | 1 000 | `SLGFUZZ_ITERATIONS_SIGNAL` |
-| O14 | 300 | `SLGFUZZ_ITERATIONS_PIPELINE` |
-| O15 | 500 | `SLGFUZZ_ITERATIONS_CONTENT` |
+| O1, O2, O6, O8, O10, O11, O16 | 3 000 | `VOCATERRA_FUZZ_ITERATIONS` |
+| O3, O4, O5, O7, O12 | 2 000 | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
+| O9, O13 | 1 000 | `VOCATERRA_FUZZ_ITERATIONS_SIGNAL` |
+| O14 | 300 | `VOCATERRA_FUZZ_ITERATIONS_PIPELINE` |
+| O15 | 500 | `VOCATERRA_FUZZ_ITERATIONS_CONTENT` |
 
 Budgets are tuned so the whole project stays under about 60 s; `README.md` records the measured time.
 A failure prints CsCheck's seed; rerunning with `CsCheck_Seed=<seed>` replays the shrunk case. The
@@ -159,7 +159,7 @@ into the owning module's test project as a permanent regression `[Fact]` once fi
 
 ## 9. Success criteria
 
-1. `dotnet test tests/Slg.Fuzzing.Tests` runs every oracle at full default depth, green, under ~60 s.
+1. `dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests` runs every oracle at full default depth, green, under ~60 s.
 2. Each oracle in §5 exists, is catalog-driven where the table says so, and reports the generated
    input on failure.
 3. At least the O4/O5 closed loop (generate → mutate → analyze → recast → re-analyze) is in place; it

@@ -11,23 +11,23 @@ The game hears the player speak, works out what they meant and how well they sai
 ```mermaid
 flowchart TD
     subgraph TOOLS[tools]
-        CLI[Slg.Cli<br/>eval, replay]
-        BENCH[Slg.Bench<br/>ASR benchmark]
-        BUILDER[Slg.ContentBuilder<br/>validate, hash, cefr-check,<br/>import-lexicon, lexicon-report]
+        CLI[Vocaterra.Nlp.Cli<br/>eval, replay]
+        BENCH[Vocaterra.Nlp.Bench<br/>ASR benchmark]
+        BUILDER[Vocaterra.Nlp.ContentBuilder<br/>validate, hash, cefr-check,<br/>import-lexicon, lexicon-report]
     end
-    PIPE[Slg.Pipeline<br/>UtterancePipeline, replay log and replayer]
-    CONTENT[Slg.Content<br/>bundle loader, hashing, versioning]
-    subgraph STAGES[stage libraries, all built on Slg.Core]
-        AUDIO[Slg.Audio<br/>WAV IO, resampler, VAD, clip hash]
-        PHON[Slg.Phonology<br/>Spanish G2P, dialects]
-        NLP[Slg.Nlp<br/>normalization, matching, lexicon,<br/>analysis, intent]
-        PRON[Slg.Pronunciation<br/>alignment, GOP scoring]
-        ASR[Slg.Asr<br/>Vosk, sherpa-onnx, fakes, model store]
-        EVAL[Slg.Evaluation<br/>verdict assembly]
-        DEC[Slg.Decision<br/>NPC state machines, learner model, feedback policy]
-        RESP[Slg.Response<br/>templates, TTS, game effects]
+    PIPE[Vocaterra.Nlp.Pipeline<br/>UtterancePipeline, replay log and replayer]
+    CONTENT[Vocaterra.Nlp.Content<br/>bundle loader, hashing, versioning]
+    subgraph STAGES[stage libraries, all built on Vocaterra.Nlp.Core]
+        AUDIO[Vocaterra.Nlp.Audio<br/>WAV IO, resampler, VAD, clip hash]
+        PHON[Vocaterra.Nlp.Phonology<br/>Spanish G2P, dialects]
+        NLP[Vocaterra.Nlp.Nlp<br/>normalization, matching, lexicon,<br/>analysis, intent]
+        PRON[Vocaterra.Nlp.Pronunciation<br/>alignment, GOP scoring]
+        ASR[Vocaterra.Nlp.Asr<br/>Vosk, sherpa-onnx, fakes, model store]
+        EVAL[Vocaterra.Nlp.Evaluation<br/>verdict assembly]
+        DEC[Vocaterra.Nlp.Decision<br/>NPC state machines, learner model, feedback policy]
+        RESP[Vocaterra.Nlp.Response<br/>templates, TTS, game effects]
     end
-    CORE[Slg.Core<br/>contracts, determinism primitives, error taxonomy]
+    CORE[Vocaterra.Nlp.Core<br/>contracts, determinism primitives, error taxonomy]
     BUNDLE[(content/v1<br/>hashed JSON bundle)]
     MODELS[(models/<br/>fetched, pinned by SHA-256)]
 
@@ -85,39 +85,39 @@ dotnet format                       # apply the formatting rules
 dotnet format --verify-no-changes   # what CI checks
 ```
 
-Tests that need a real model are skipped, not failed, unless `SLG_MODELS_DIR` points at a directory holding the verified model
+Tests that need a real model are skipped, not failed, unless `VOCATERRA_MODELS_DIR` points at a directory holding the verified model
 (see below).
 
 ### Fuzz tests
 
-`tests/Slg.Fuzzing.Tests` generates inputs from the lexicon, the intent grammars and `content/v1`, and checks sixteen oracles against the
+`tests/Vocaterra.Nlp.Fuzzing.Tests` generates inputs from the lexicon, the intent grammars and `content/v1`, and checks sixteen oracles against the
 real stages. It needs no model, and it runs at full depth as part of the normal test run:
 
 ```bash
-dotnet test tests/Slg.Fuzzing.Tests
+dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests
 ```
 
 To soak it, raise the iteration count of the oracle groups with environment variables. The `fuzz-soak` job in the CI workflow runs the
 same settings weekly; that workflow is parked (see Known gaps):
 
 ```bash
-SLGFUZZ_ITERATIONS=50000 SLGFUZZ_ITERATIONS_GRAMMAR=50000 SLGFUZZ_ITERATIONS_SIGNAL=10000 \
-SLGFUZZ_ITERATIONS_PIPELINE=3000 SLGFUZZ_ITERATIONS_CONTENT=5000 dotnet test tests/Slg.Fuzzing.Tests
+VOCATERRA_FUZZ_ITERATIONS=50000 VOCATERRA_FUZZ_ITERATIONS_GRAMMAR=50000 VOCATERRA_FUZZ_ITERATIONS_SIGNAL=10000 \
+VOCATERRA_FUZZ_ITERATIONS_PIPELINE=3000 VOCATERRA_FUZZ_ITERATIONS_CONTENT=5000 dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests
 ```
 
 A failing run prints a CsCheck seed. Replay that exact case with the same project:
 
 ```bash
-CsCheck_Seed=<seed> dotnet test tests/Slg.Fuzzing.Tests
+CsCheck_Seed=<seed> dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests
 ```
 
 The failure message also carries the generated input, which is what a regression test needs. The design is in
 [docs/FUZZING_PLAN.md](docs/FUZZING_PLAN.md); the oracles, the bounds and the bugs found so far are in
-[tests/Slg.Fuzzing.Tests/README.md](tests/Slg.Fuzzing.Tests/README.md).
+[tests/Vocaterra.Nlp.Fuzzing.Tests/README.md](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md).
 
 ## Running the demo CLI
 
-`tools/Slg.Cli` runs one utterance through the whole pipeline and prints the verdict, the NPC's lines, game effects and the repair step.
+`tools/Vocaterra.Nlp.Cli` runs one utterance through the whole pipeline and prints the verdict, the NPC's lines, game effects and the repair step.
 
 ### Without models: `--transcript`
 
@@ -125,7 +125,7 @@ Without `--models` the word recognizer is scripted from the text you give it, so
 worked example from the design: at the blacksmith, the player says "yo tiene dos espada".
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1
 ```
 
 ```text
@@ -141,13 +141,13 @@ what the game does with it. [docs/PIPELINE.md](docs/PIPELINE.md) explains every 
 Other prompts to try (the sample bundle has 14, listed in `content/v1/prompts/prompts.json`):
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "espada" --prompt quiz-item-name --content content/v1
-dotnet run --project tools/Slg.Cli -- eval --transcript "fuego" --prompt spell-cast-constrained --content content/v1
-dotnet run --project tools/Slg.Cli -- eval --transcript "bla bla" --prompt offer-items-open --content content/v1 --repeat not_communicated=2
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "espada" --prompt quiz-item-name --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "fuego" --prompt spell-cast-constrained --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "bla bla" --prompt offer-items-open --content content/v1 --repeat not_communicated=2
 ```
 
 The game context can be set from the command line: `--seed <n>` (world seed), `--now <unixSeconds>`, `--npc-state <id>`, `--counter <n>`
-(interaction counter) and `--repeat <tag>=<n>` (how often an error was repeated). `dotnet run --project tools/Slg.Cli -- --help` prints the
+(interaction counter) and `--repeat <tag>=<n>` (how often an error was repeated). `dotnet run --project tools/Vocaterra.Nlp.Cli -- --help` prints the
 usage. Exit codes: 0 success, 1 failed evaluation or a replay that differs, 2 a malformed command line.
 
 ### With models: `--wav`
@@ -158,8 +158,8 @@ names, quizzes):
 ```bash
 scripts/fetch-models.sh --list                              # which models are present, missing or mismatching
 scripts/fetch-models.sh vosk-model-small-es-0.42            # download, verify the SHA-256 of the archive and of every file
-export SLG_MODELS_DIR="$PWD/models"                         # where the tests and tools look for models
-dotnet run --project tools/Slg.Cli -- eval --wav clip.wav --prompt spell-cast-constrained --content content/v1 --models models
+export VOCATERRA_MODELS_DIR="$PWD/models"                         # where the tests and tools look for models
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --wav clip.wav --prompt spell-cast-constrained --content content/v1 --models models
 ```
 
 `clip.wav` is any WAV file (16-bit PCM or 32-bit float, mono or stereo, any sample rate; the audio front end converts it to 16 kHz mono). Models are
@@ -167,7 +167,7 @@ downloaded, never committed; `models/manifest.json` pins every file, and [models
 `--models` needs `--wav`. The CLI picks Vosk for constrained prompts; for open prompts it uses Parakeet when
 `sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8` is present in the models directory and falls back to Vosk otherwise; it adds
 pronunciation scoring when `wav2vec2-xlsr-53-espeak-cv-ft` is present. The last two do not have an ONNX export in the repository yet
-(see Known gaps). With `SLG_MODELS_DIR` set, `dotnet test` also runs the model-gated tests.
+(see Known gaps). With `VOCATERRA_MODELS_DIR` set, `dotnet test` also runs the model-gated tests.
 
 ### More examples
 
@@ -179,7 +179,7 @@ error tags, an exact quiz answer, the repair ladder and a replay log.
 A correct utterance is understood in full: the slots are filled, there are no errors and the trade price factor is 1.
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar dos pociones" --prompt buy-item-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar dos pociones" --prompt buy-item-open --content content/v1
 ```
 
 ```text
@@ -192,7 +192,7 @@ A slip does not stop the trade. `un espada` is a `gender.agree` error, so the NP
 rises to 1.045, because the curve in `content/v1/effects/effects.json` runs from 1.3 at correctness 0 to 1 at correctness 1:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1
 ```
 
 ```text
@@ -207,7 +207,7 @@ An answer-only quiz prompt has no intent (its `allowedIntentIds` is empty), so t
 fuzzy match is close: "fuegos" for "fuego" is accepted, and `resolvedBy` and `confidence` show how:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "una bola de fuegos" --prompt quiz-spell-name --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "una bola de fuegos" --prompt quiz-spell-name --content content/v1
 ```
 
 ```text
@@ -219,7 +219,7 @@ A word the lexicon does not know is a `vocab.unknown` error, and when no intent 
 asks again, and the first repair step is `AskAgain`:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1
 ```
 
 ```text
@@ -235,7 +235,7 @@ the first offence with a recast, the second and third with a hint and the fourth
 `un espada`, as the second and as the fourth offence:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1 --repeat gender.agree=2
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1 --repeat gender.agree=2
 ```
 
 ```text
@@ -247,7 +247,7 @@ effect: buy_item_price trade_price 1.045
 ```
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1 --repeat gender.agree=4
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1 --repeat gender.agree=4
 ```
 
 ```text
@@ -263,7 +263,7 @@ default, `trading` and `done`; an unknown id is an error). The open `trade-free-
 intents. In the default state the blacksmith answers a purchase like this:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar dos pociones" --prompt trade-free-conversation --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar dos pociones" --prompt trade-free-conversation --content content/v1
 ```
 
 ```text
@@ -276,7 +276,7 @@ Once the trade is `done` the same sentence is understood just as well, but the N
 change, because effects depend only on the verdict:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar dos pociones" --prompt trade-free-conversation --content content/v1 --npc-state done
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar dos pociones" --prompt trade-free-conversation --content content/v1 --npc-state done
 ```
 
 ```text
@@ -291,7 +291,7 @@ three variants; the default seed 0 says "¡Hola, amigo! ¿Qué necesitas hoy?", 
 prints the identical line):
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "hola" --prompt greet-blacksmith --content content/v1 --seed 2
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "hola" --prompt greet-blacksmith --content content/v1 --seed 2
 ```
 
 ```text
@@ -300,7 +300,7 @@ npc: Buenos días. ¿En qué puedo ayudarte?
 ```
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "hola" --prompt greet-blacksmith --content content/v1 --seed 42
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "hola" --prompt greet-blacksmith --content content/v1 --seed 42
 ```
 
 ```text
@@ -313,7 +313,7 @@ Spanish voice of espeak-ng for this example; any recording of the word works. Th
 carries the recognizer's own confidence, and `versions.modelHashes.asr` holds the SHA-256 of the Vosk model instead of `scripted-transcript`:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --wav fuego.wav --prompt spell-cast-constrained --content content/v1 --models models
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --wav fuego.wav --prompt spell-cast-constrained --content content/v1 --models models
 ```
 
 ```text
@@ -329,8 +329,8 @@ The pronunciation tags (`pron.*`) need the phoneme model, which has no ONNX expo
 `--replay-out <file>` appends one JSON line per utterance with everything needed to re-evaluate it without models or audio:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1 --replay-out replay.jsonl
-dotnet run --project tools/Slg.Cli -- replay replay.jsonl --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1 --replay-out replay.jsonl
+dotnet run --project tools/Vocaterra.Nlp.Cli -- replay replay.jsonl --content content/v1
 ```
 
 The second command prints `OK`, or the JSON paths that differ (for example `DIFF entry 1: /verdict/correctness`) and exits 1.
@@ -339,15 +339,15 @@ Audio is never stored and logs are opt-in. The format, a real example and what a
 ## Content builder
 
 Content (answer sets, intents, prompts, NPCs, dialogue, lexicon, evaluation weights, effects) lives in `content/v1` as a hashed
-bundle. `tools/Slg.ContentBuilder` is the build-time tool:
+bundle. `tools/Vocaterra.Nlp.ContentBuilder` is the build-time tool:
 
 ```bash
-dotnet run --project tools/Slg.ContentBuilder -- validate content/v1                      # verify hashes and cross-references
-dotnet run --project tools/Slg.ContentBuilder -- hash content/v1                          # rewrite content/v1/manifest.json after an edit
-dotnet run --project tools/Slg.ContentBuilder -- cefr-check content/v1 --level a1         # list dialogue lemmas missing from the CEFR list (a1 or a2)
-dotnet run --project tools/Slg.ContentBuilder -- import-lexicon kaikki.jsonl lexicon.json # wiktextract Spanish JSONL to a lexicon file (--max N limits it;
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- validate content/v1                      # verify hashes and cross-references
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- hash content/v1                          # rewrite content/v1/manifest.json after an edit
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- cefr-check content/v1 --level a1         # list dialogue lemmas missing from the CEFR list (a1 or a2)
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- import-lexicon kaikki.jsonl lexicon.json # wiktextract Spanish JSONL to a lexicon file (--max N limits it;
 #   --frequency es_50k.txt --top N keeps the N most frequent lemmas; --sidecar writes the source record; see docs/LEXICON.md)
-dotnet run --project tools/Slg.ContentBuilder -- lexicon-report content/v1                # each lexicon file, how they overlap, the merged lexicon
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lexicon-report content/v1                # each lexicon file, how they overlap, the merged lexicon
 ```
 
 Any edit to a file in `content/v1` changes the bundle hash, so run `hash` afterwards and update the pinned value in the tests
@@ -355,11 +355,11 @@ Any edit to a file in `content/v1` changes the bundle hash, so run `hash` afterw
 
 ## Benchmark and golden audio
 
-`tools/Slg.Bench` runs a recognizer over the golden learner manifest and reports word error rate, learner-error preservation (does the
+`tools/Vocaterra.Nlp.Bench` runs a recognizer over the golden learner manifest and reports word error rate, learner-error preservation (does the
 transcript keep the mistake the learner made?) and latency:
 
 ```bash
-dotnet run --project tools/Slg.Bench -- --manifest golden/manifest.jsonl --content content/v1 --models models
+dotnet run --project tools/Vocaterra.Nlp.Bench -- --manifest golden/manifest.jsonl --content content/v1 --models models
 ```
 
 The three committed entries are synthetic, so the clips are reported as `missing-clip` on a plain checkout. The recording protocol,
@@ -370,23 +370,23 @@ consent rules and manifest schema are in [golden/README.md](golden/README.md).
 | Path | Contents |
 | --- | --- |
 | `global.json`, `Directory.Build.props`, `Directory.Packages.props` | Pinned SDK, shared build rules, the only place package versions live |
-| `src/Slg.Core` | Contracts between stages (`Verdict`, stage records, interfaces), determinism primitives (`SeededRng`, `DeterministicHash`, `CanonicalJson`, `Margin`), error taxonomy |
-| `src/Slg.Audio` | WAV reading and writing, resampler, downmix, gain, energy VAD, push-to-talk session, clip hash |
-| `src/Slg.Phonology` | Spanish grapheme-to-phoneme converter, dialect presets, predicted learner-error variants |
-| `src/Slg.Nlp` | Text normalization, answer matching, lexicon and morphology, linguistic analysis, slot grammars, intent resolution, repair strategy |
-| `src/Slg.Pronunciation` | Phoneme alignment and scoring (greedy edit distance and CTC/GOP), wav2vec2 adapter |
-| `src/Slg.Asr` | Vosk and sherpa-onnx recognizer adapters, scripted and replay recognizers, model manifest and store |
-| `src/Slg.Evaluation` | Verdict assembly (pure) and evaluation configuration |
-| `src/Slg.Decision` | NPC state machines, learner model (BKT), FSRS scheduling, feedback policy |
-| `src/Slg.Response` | Template engine with morphology, recasts, speech synthesis adapters and cache, game-effect tables |
-| `src/Slg.Content` | Content bundle schema, loader, validation, hashing |
-| `src/Slg.Pipeline` | `UtterancePipeline`, `GameContext`, replay log and replayer |
-| `tools/Slg.Cli` | Demo host: `eval` and `replay` |
-| `tools/Slg.Bench` | ASR benchmark over the golden manifest |
-| `tools/Slg.ContentBuilder` | `validate`, `hash`, `cefr-check`, `import-lexicon`, `lexicon-report` |
-| `tests/Slg.<Project>.Tests` | One xUnit project per source project |
-| `tests/Slg.Golden.Tests` | G2P golden set, end-to-end worked example, golden manifest layout |
-| `tests/Slg.Fuzzing.Tests` | Combinatorial fuzz tests: CsCheck oracles over generators driven by the content catalogs ([README](tests/Slg.Fuzzing.Tests/README.md)) |
+| `src/Vocaterra.Nlp.Core` | Contracts between stages (`Verdict`, stage records, interfaces), determinism primitives (`SeededRng`, `DeterministicHash`, `CanonicalJson`, `Margin`), error taxonomy |
+| `src/Vocaterra.Nlp.Audio` | WAV reading and writing, resampler, downmix, gain, energy VAD, push-to-talk session, clip hash |
+| `src/Vocaterra.Nlp.Phonology` | Spanish grapheme-to-phoneme converter, dialect presets, predicted learner-error variants |
+| `src/Vocaterra.Nlp.Nlp` | Text normalization, answer matching, lexicon and morphology, linguistic analysis, slot grammars, intent resolution, repair strategy |
+| `src/Vocaterra.Nlp.Pronunciation` | Phoneme alignment and scoring (greedy edit distance and CTC/GOP), wav2vec2 adapter |
+| `src/Vocaterra.Nlp.Asr` | Vosk and sherpa-onnx recognizer adapters, scripted and replay recognizers, model manifest and store |
+| `src/Vocaterra.Nlp.Evaluation` | Verdict assembly (pure) and evaluation configuration |
+| `src/Vocaterra.Nlp.Decision` | NPC state machines, learner model (BKT), FSRS scheduling, feedback policy |
+| `src/Vocaterra.Nlp.Response` | Template engine with morphology, recasts, speech synthesis adapters and cache, game-effect tables |
+| `src/Vocaterra.Nlp.Content` | Content bundle schema, loader, validation, hashing |
+| `src/Vocaterra.Nlp.Pipeline` | `UtterancePipeline`, `GameContext`, replay log and replayer |
+| `tools/Vocaterra.Nlp.Cli` | Demo host: `eval` and `replay` |
+| `tools/Vocaterra.Nlp.Bench` | ASR benchmark over the golden manifest |
+| `tools/Vocaterra.Nlp.ContentBuilder` | `validate`, `hash`, `cefr-check`, `import-lexicon`, `lexicon-report` |
+| `tests/Vocaterra.Nlp.<Project>.Tests` | One xUnit project per source project |
+| `tests/Vocaterra.Nlp.Golden.Tests` | G2P golden set, end-to-end worked example, golden manifest layout |
+| `tests/Vocaterra.Nlp.Fuzzing.Tests` | Combinatorial fuzz tests: CsCheck oracles over generators driven by the content catalogs ([README](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)) |
 | `content/v1` | The versioned, hashed content bundle (JSON) and its `ATTRIBUTION.md` |
 | `golden/` | Golden learner audio manifest and recording protocol; the audio itself is gitignored |
 | `models/` | `manifest.json` and a README are committed; the model files are fetched and gitignored |
@@ -405,7 +405,7 @@ The full rules, with where each is enforced, are in [ADR 0002](docs/adr/0002-det
 - hash with `DeterministicHash` (SHA-256) only, and never let `Dictionary` or `HashSet` order reach any output;
 - compare ordinally, use the invariant culture and Unicode NFC everywhere;
 - put a `Margin` on every threshold and handle all three outcomes (accept, reject, uncertain);
-- keep models behind `Slg.Core` interfaces, run them on one thread on the CPU, and gate real-model tests on `SLG_MODELS_DIR`;
+- keep models behind `Vocaterra.Nlp.Core` interfaces, run them on one thread on the CPU, and gate real-model tests on `VOCATERRA_MODELS_DIR`;
 - contain no LLM or other non-deterministic code, and pin every model and content version by hash.
 
 ## Licensing
@@ -489,15 +489,15 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
   slot grammar that matched and, last, the reading with the fewest errors ([how](docs/PIPELINE.md#4-linguistic-analysis-d0)), so correct sentences
   with `libro`, `lanza`, `vino` or `ayudas` analyze clean and the mistakes in sentences with them are still found. Two verbs that share a form (`fue` is `ir`
   and `ser`) are not told apart, and a sentence that is a mistake under one reading and correct under another, with nothing around the word to
-  prefer either, is read the charitable way ([fuzz suite findings](tests/Slg.Fuzzing.Tests/README.md)).
+  prefer either, is read the charitable way ([fuzz suite findings](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)).
 - **Pronunciation cost.** Scoring grows with the cube of the phone count, because `PredictedErrorMatcher.Match` aligns against the reference once
-  per predicted-error variant. Spoken utterances are far below the sizes where this matters ([fuzz suite findings](tests/Slg.Fuzzing.Tests/README.md)).
+  per predicted-error variant. Spoken utterances are far below the sizes where this matters ([fuzz suite findings](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)).
 - **Content defaults.** The content loader silently defaults missing number, flag and enumeration fields to 0, false or the first member. The
-  places where this is accepted are listed in [`KnownTolerances.cs`](tests/Slg.Fuzzing.Tests/Oracles/KnownTolerances.cs) (`AcceptedContentField`).
+  places where this is accepted are listed in [`KnownTolerances.cs`](tests/Vocaterra.Nlp.Fuzzing.Tests/Oracles/KnownTolerances.cs) (`AcceptedContentField`).
 - **WAV sample rate.** `WavFile.Read` does not validate the sample-rate range, and the resampler rebuilds its kernel bank on every call, so a
-  damaged header can inflate one clip's output or make it slow ([fuzz suite findings](tests/Slg.Fuzzing.Tests/README.md)).
+  damaged header can inflate one clip's output or make it slow ([fuzz suite findings](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)).
 - **Replay envelope copies.** The replayer does not cross-check the envelope's duplicate `result/verdict` and `result/replay` copies against the
-  core record, so an edited log can replay clean ([fuzz suite findings](tests/Slg.Fuzzing.Tests/README.md)).
+  core record, so an edited log can replay clean ([fuzz suite findings](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)).
 
 ## Documentation
 
@@ -507,7 +507,7 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 - [docs/DECISIONS.md](docs/DECISIONS.md): the register of open owner decisions, with context and recommendations
 - [docs/research/SCALING_APPROACHES.md](docs/research/SCALING_APPROACHES.md): research on scaling the core with existing NLP, speech and model components
 - [docs/FUZZING_PLAN.md](docs/FUZZING_PLAN.md): the fuzz testing design, its generators, oracles O1 to O16 and iteration budgets
-- [tests/Slg.Fuzzing.Tests/README.md](tests/Slg.Fuzzing.Tests/README.md): the fuzz suite, how to run and soak it, its oracles, the bugs it found and the known findings
+- [tests/Vocaterra.Nlp.Fuzzing.Tests/README.md](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md): the fuzz suite, how to run and soak it, its oracles, the bugs it found and the known findings
 - [docs/LEXICON.md](docs/LEXICON.md): the lexicon files, the Wiktionary and frequency-list sources with hashes and licences, how to fetch and regenerate, the merge policy, measurements
 - [docs/adr/](docs/adr/): architecture decision records 0001 to 0008 (language, determinism, engine-agnostic core, model pinning, dialect, ICU, Kokoro phonemizer licensing, lexicon sources and frequency filter)
 - [docs/diagrams/README.md](docs/diagrams/README.md): the system diagram in draw.io, and how to open it

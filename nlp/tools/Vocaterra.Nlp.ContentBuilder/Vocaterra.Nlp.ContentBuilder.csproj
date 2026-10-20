@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Pipeline/Vocaterra.Nlp.Pipeline.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Content/Vocaterra.Nlp.Content.csproj" />
+  </ItemGroup>
+
+</Project>

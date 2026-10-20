@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="../Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Content/Vocaterra.Nlp.Content.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Audio/Vocaterra.Nlp.Audio.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Phonology/Vocaterra.Nlp.Phonology.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Nlp/Vocaterra.Nlp.Nlp.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Pronunciation/Vocaterra.Nlp.Pronunciation.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Asr/Vocaterra.Nlp.Asr.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Evaluation/Vocaterra.Nlp.Evaluation.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Decision/Vocaterra.Nlp.Decision.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Response/Vocaterra.Nlp.Response.csproj" />
+  </ItemGroup>
+
+</Project>

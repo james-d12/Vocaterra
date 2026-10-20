@@ -8,7 +8,7 @@ set -uo pipefail
 export DOTNET_ROOT="$HOME/.dotnet"; export PATH="$HOME/.dotnet:$PATH"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1; export DOTNET_NOLOGO=1
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-export SLG_MODELS_DIR="${SLG_MODELS_DIR:-$ROOT/models}"
+export VOCATERRA_MODELS_DIR="${VOCATERRA_MODELS_DIR:-${SLG_MODELS_DIR:-$ROOT/models}}"
 cd "$ROOT" || exit 1
 [ "$(git branch --show-current)" = "main" ] || { echo "not on main"; exit 1; }
 [ -z "$(git status --short)" ] || { echo "main is dirty"; git status --short; exit 1; }

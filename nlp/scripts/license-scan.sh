@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Checks the license of every NuGet package in SpanishLearningGame.sln (direct and transitive). Prints a table and exits 1 when a
+# Checks the license of every NuGet package in Vocaterra.Nlp.sln (direct and transitive). Prints a table and exits 1 when a
 # package is GPL/LGPL/AGPL/SSPL, is not on scripts/license-allowlist.txt, or has no license that can be determined.
 #
 # Usage: scripts/license-scan.sh [--offline] [-h|--help]
@@ -14,7 +14,7 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
-solution="$repo_root/SpanishLearningGame.sln"
+solution="$repo_root/Vocaterra.Nlp.sln"
 allowlist="$script_dir/license-allowlist.txt"
 overrides="$script_dir/license-overrides.txt"
 
@@ -270,7 +270,7 @@ def fetch_json(url):
     last_error = None
     for attempt in range(3):
         try:
-            request = urllib.request.Request(url, headers={"User-Agent": "SpanishLearningGame-license-scan"})
+            request = urllib.request.Request(url, headers={"User-Agent": "Vocaterra.Nlp-license-scan"})
             with urllib.request.urlopen(request, timeout=30) as response:
                 body = response.read()
             if body[:2] == b"\x1f\x8b":

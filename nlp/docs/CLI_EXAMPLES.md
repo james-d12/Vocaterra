@@ -1,6 +1,6 @@
 # More CLI examples
 
-Worked runs of the demo CLI (`tools/Slg.Cli`) against the sample bundle `content/v1`, continuing the eleven examples in the README
+Worked runs of the demo CLI (`tools/Vocaterra.Nlp.Cli`) against the sample bundle `content/v1`, continuing the eleven examples in the README
 section [More examples](../README.md#more-examples). Together they show five of the six intents, every error tag the CLI can trigger and the
 main command-line options. All commands run from the repository root; the output is what the CLI printed.
 
@@ -22,7 +22,7 @@ correctness 1.
 A greeting on a constrained prompt resolves by answer match (`resolvedBy` is `Exact`) and the blacksmith greets back:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "buenos días" --prompt greet-blacksmith --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "buenos días" --prompt greet-blacksmith --content content/v1
 ```
 
 ```text
@@ -33,7 +33,7 @@ npc: ¡Hola, amigo! ¿Qué necesitas hoy?
 Selling is the mirror of buying, with its own price factor (`sell_item_price` runs from 0.7 at correctness 0 to 1 at correctness 1):
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "quiero vender un escudo" --prompt sell-item-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero vender un escudo" --prompt sell-item-open --content content/v1
 ```
 
 ```text
@@ -45,7 +45,7 @@ effect: sell_item_price trade_price 1
 Offering needs two slots, `item` and `qty`. The matched grammar also names the verb, so the slots carry `verb`:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "tengo dos espadas" --prompt offer-items-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "tengo dos espadas" --prompt offer-items-open --content content/v1
 ```
 
 ```text
@@ -57,7 +57,7 @@ Casting a spell is the one intent whose effect is a power rather than a price. T
 an accepted answer, and the power is 1 at full correctness:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "lanzo un rayo" --prompt spell-cast-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "lanzo un rayo" --prompt spell-cast-open --content content/v1
 ```
 
 ```text
@@ -81,7 +81,7 @@ Where each tag is shown:
 sentence:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "hola estoy alto" --prompt greet-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "hola estoy alto" --prompt greet-open --content content/v1
 ```
 
 ```text
@@ -94,7 +94,7 @@ npc: ¡Hola, amigo! ¿Qué necesitas hoy?
 `word_order`: `mágica` normally follows its noun, so `mágica espada` is flagged and the expected order is given:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar una mágica espada" --prompt buy-item-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar una mágica espada" --prompt buy-item-open --content content/v1
 ```
 
 ```text
@@ -108,7 +108,7 @@ effect: buy_item_price trade_price 1.03
 `conj.irregular`: `teno` is the regularized form that learners make of `tengo`, which is the expected form:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "yo teno dos espadas" --prompt offer-items-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo teno dos espadas" --prompt offer-items-open --content content/v1
 ```
 
 ```text
@@ -121,7 +121,7 @@ npc: Vale, dos espadas. Gracias, amigo.
 `conj.tense`: a present verb after a past-time word such as `ayer` should be in the preterite, and the recast uses it:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "ayer compro una espada" --prompt buy-item-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "ayer compro una espada" --prompt buy-item-open --content content/v1
 ```
 
 ```text
@@ -137,7 +137,7 @@ contain (here a spell name given to the item quiz) is wrong, not unknown. Its `e
 not count, and with no NPC on the prompt only the repair step is printed:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "fuego" --prompt quiz-item-name --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "fuego" --prompt quiz-item-name --content content/v1
 ```
 
 ```text
@@ -152,7 +152,7 @@ An exact answer on an answer-only prompt is `communicated` with correctness 1, n
 prompt, the praise comes from the `answer_accepted` pool. The near-miss case is in the README.
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "espada" --prompt quiz-item-name --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "espada" --prompt quiz-item-name --content content/v1
 ```
 
 ```text
@@ -167,7 +167,7 @@ the third `OfferChoices` and the fourth and later `GiveUp`. The sentence is the 
 change, so only the repair line is shown:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1 --repeat not_communicated=2
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1 --repeat not_communicated=2
 ```
 
 ```text
@@ -178,7 +178,7 @@ repair: SlowRepeat Perdón, te lo repito más despacio.
 `el arco` can appear together:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1 --repeat not_communicated=3
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1 --repeat not_communicated=3
 ```
 
 ```text
@@ -186,7 +186,7 @@ repair: OfferChoices ¿Quieres decir «arco», «brebaje» o «el arco»?
 ```
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1 --repeat not_communicated=4
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1 --repeat not_communicated=4
 ```
 
 ```text
@@ -200,9 +200,9 @@ recognizer output, without models or audio, and prints `OK` when every result is
 commands print the output shown above and are not repeated here.
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1 --replay-out replay.jsonl
-dotnet run --project tools/Slg.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1 --replay-out replay.jsonl
-dotnet run --project tools/Slg.Cli -- replay replay.jsonl --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1 --replay-out replay.jsonl
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1 --replay-out replay.jsonl
+dotnet run --project tools/Vocaterra.Nlp.Cli -- replay replay.jsonl --content content/v1
 ```
 
 ```text

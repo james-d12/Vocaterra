@@ -1,5 +1,7 @@
 # ADR 0007: Keep espeak-ng (GPL-3.0) out of the shipped game; replace the Kokoro phonemizer with the in-house G2P
 
+> **Note (M19a, 2026-10-20):** this record names the project `Slg.*` (and the `SLG_*` variables). Those names are now `Vocaterra.Nlp.*` and `VOCATERRA_*` (the old variable names are read for one release); see [ADR 0009](0009-core-and-game-boundary.md). The text below is unchanged.
+
 - Status: accepted
 - Date: 2026-10-20
 - Deciders: repository owner; raised by the implementation plan (M11, `// TODO(ADR)` in `KokoroSynthesizer`)

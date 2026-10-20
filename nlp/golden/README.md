@@ -1,6 +1,6 @@
 # Golden learner audio
 
-The golden set is a small collection of recorded learner utterances with hand-written annotations. `tools/Slg.Bench` runs a speech
+The golden set is a small collection of recorded learner utterances with hand-written annotations. `tools/Vocaterra.Nlp.Bench` runs a speech
 recognizer over it and reports word error rate, learner-error preservation and latency. It exists to answer one question with real
 data: does the recognizer keep the mistakes a learner makes, so the grader can see them?
 
@@ -12,7 +12,7 @@ data: does the recognizer keep the mistakes a learner makes, so the grader can s
 | `golden/manifest.jsonl` | yes | one JSON object per clip: the annotations, never the audio |
 | `golden/audio/*.wav` | **no** (gitignored) | the recordings; they stay on the machine that made them |
 
-The three entries committed today are **synthetic**. Their `synth` clips are one-second tones that `tests/Slg.Golden.Tests` writes into
+The three entries committed today are **synthetic**. Their `synth` clips are one-second tones that `tests/Vocaterra.Nlp.Golden.Tests` writes into
 its own test output directory so the manifest and the benchmark plumbing can be tested; no file is written to `golden/audio/`, and a
 tone does not recognize as words. Replace or extend them with real recordings only on your own machine.
 
@@ -65,7 +65,7 @@ One JSON object per line (JSON Lines, UTF-8, LF). Property names are camelCase a
 ## Running the benchmark
 
 ```
-dotnet run --project tools/Slg.Bench -- --manifest golden/manifest.jsonl --content content/v1 --models models [--mode constrained|open]
+dotnet run --project tools/Vocaterra.Nlp.Bench -- --manifest golden/manifest.jsonl --content content/v1 --models models [--mode constrained|open]
 ```
 
 For every entry the benchmark runs the recognizer in the prompt's mode (or the forced `--mode`) and reports:

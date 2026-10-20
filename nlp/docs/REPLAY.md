@@ -18,10 +18,10 @@ assumed. A replay that differs from its recording fails and says which values ch
 
 A replay log is a text file with one JSON object per line (JSON Lines). There are two kinds of line:
 
-| Kind | Type | Contents | Replayable by `Slg.Cli replay` |
+| Kind | Type | Contents | Replayable by `Vocaterra.Nlp.Cli replay` |
 | --- | --- | --- | --- |
-| **Envelope** | `Slg.Pipeline.ReplayEnvelope` | the core record, the recognizers' outputs, the game context and the full pipeline result | yes |
-| **Bare record** | `Slg.Core.Replay.ReplayRecord` | clip hash, prompt id, game state hash, version stamp and verdict only | no (see [Bare records](#bare-records)) |
+| **Envelope** | `Vocaterra.Nlp.Pipeline.ReplayEnvelope` | the core record, the recognizers' outputs, the game context and the full pipeline result | yes |
+| **Bare record** | `Vocaterra.Nlp.Core.Replay.ReplayRecord` | clip hash, prompt id, game state hash, version stamp and verdict only | no (see [Bare records](#bare-records)) |
 
 The CLI writes envelopes. The core record inside an envelope is the contract from `IMPLEMENTATION_PLAN.md` section 4:
 
@@ -38,7 +38,7 @@ public sealed record ReplayEnvelope(ReplayRecord Record, AsrResult Asr, PhonePos
 ## File format
 
 - UTF-8 without a byte-order mark, one entry per line, every line (including the last) ends in a single LF.
-- Each line is `CanonicalJson` (`Slg.Core.Determinism.CanonicalJson`): property names in camelCase, properties in declaration order,
+- Each line is `CanonicalJson` (`Vocaterra.Nlp.Core.Determinism.CanonicalJson`): property names in camelCase, properties in declaration order,
   every dictionary with its keys sorted ordinally, enums as strings, numbers in their shortest round-trip form (`1`, `0.5`),
   no whitespace. Non-ASCII text such as `¿` is written as is, not as `\u00bf`.
 - Equal inputs therefore give byte-identical lines. A log written twice from the same run can be compared with `cmp`.
@@ -68,7 +68,7 @@ blacksmith). No model is involved: the word recognizer is scripted from `--trans
 `scripted-transcript`.
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1 --seed 42 --now 1760000000 --replay-out replay.jsonl
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1 --seed 42 --now 1760000000 --replay-out replay.jsonl
 ```
 
 The command prints the verdict JSON, then the NPC lines, then a decision summary:
@@ -373,14 +373,14 @@ Nothing is written unless you ask for it, and the file is only ever appended to.
 ## Replaying a log
 
 ```bash
-dotnet run --project tools/Slg.Cli -- replay replay.jsonl --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- replay replay.jsonl --content content/v1
 ```
 
 ```text
 OK
 ```
 
-For every entry the replayer (`Slg.Pipeline.Replayer.Replay`):
+For every entry the replayer (`Vocaterra.Nlp.Pipeline.Replayer.Replay`):
 
 1. looks up the recorded prompt id in the content bundle given with `--content`;
 2. builds a pipeline over the same content with the recorded recognizer outputs in place of the models;
@@ -424,7 +424,7 @@ prompt. The clip (`Front_Center.wav` from the `alsa-utils` sample sounds) is not
 nothing from the spell grammar and answers `[unk]`:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- eval --wav /usr/share/sounds/alsa/Front_Center.wav --prompt spell-cast-constrained --content content/v1 --models models --replay-out vosk-replay.jsonl
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --wav /usr/share/sounds/alsa/Front_Center.wav --prompt spell-cast-constrained --content content/v1 --models models --replay-out vosk-replay.jsonl
 ```
 
 ```json
@@ -471,7 +471,7 @@ Here `modelHash` is the model hash from `models/manifest.json` (the combined has
 and the pipeline's repair step asked "¿Cómo?". This log replays with no model present:
 
 ```bash
-dotnet run --project tools/Slg.Cli -- replay vosk-replay.jsonl --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- replay vosk-replay.jsonl --content content/v1
 ```
 
 ```text

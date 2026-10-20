@@ -38,14 +38,14 @@ happens to one utterance, [docs/adr/](docs/adr/) for why the rules exist, and `I
    dotnet format --verify-no-changes
    ```
 
-   `dotnet test tests/Slg.Nlp.Tests` runs one project; add `--filter "FullyQualifiedName~LinguisticAnalyzer"` for one class.
+   `dotnet test tests/Vocaterra.Nlp.Nlp.Tests` runs one project; add `--filter "FullyQualifiedName~LinguisticAnalyzer"` for one class.
    `dotnet format` (without `--verify-no-changes`) fixes formatting.
 
 3. Models are optional. Without them the real-model tests are skipped, not failed. To run them:
 
    ```bash
    scripts/fetch-models.sh vosk-model-small-es-0.42
-   export SLG_MODELS_DIR="$PWD/models"
+   export VOCATERRA_MODELS_DIR="$PWD/models"
    dotnet test
    ```
 
@@ -69,7 +69,7 @@ happens to one utterance, [docs/adr/](docs/adr/) for why the rules exist, and `I
 - One logical change per commit. Do not mix reformatting of untouched code with a feature.
 - Milestone work touches its own `src/<Project>` and `tests/<Project>.Tests` folders, plus the extra paths the milestone names.
   Cross-cutting files (`Directory.Build.props`, `Directory.Packages.props`, the `.sln`, CI, `IMPLEMENTATION_PLAN.md`) and
-  `src/Slg.Core` change only with the maintainers' agreement, because everything else compiles against them.
+  `src/Vocaterra.Nlp.Core` change only with the maintainers' agreement, because everything else compiles against them.
 - Do not push to `main`. Do not commit models, recordings or replay logs from real people (all gitignored or local, see below).
 
 ## Code conventions
@@ -89,13 +89,13 @@ item that does apply is not.
 ```markdown
 ### Determinism checklist
 - [ ] No `System.Random`, `Random.Shared` or other unseeded randomness; random choices use `SeededRng.ForInteraction(worldSeed, npcId, counter)`.
-- [ ] No `DateTime.Now`, `DateTime.UtcNow`, `Stopwatch`, `Environment.TickCount` or any clock in `src/`; time arrives as a `StoredTimestamp`. (Latency measurement is allowed only in `tools/Slg.Bench`.)
+- [ ] No `DateTime.Now`, `DateTime.UtcNow`, `Stopwatch`, `Environment.TickCount` or any clock in `src/`; time arrives as a `StoredTimestamp`. (Latency measurement is allowed only in `tools/Vocaterra.Nlp.Bench`.)
 - [ ] Hashing uses `DeterministicHash` (SHA-256). No `string.GetHashCode()` or `HashCode` for anything persisted, logged or compared across runs.
 - [ ] No output depends on `Dictionary` or `HashSet` enumeration order; collections are sorted with `StringComparer.Ordinal`; maps serialize with sorted keys (`CanonicalJson`, `SlotMap`).
 - [ ] Culture-free: `CultureInfo.InvariantCulture` for formatting and parsing, `StringComparison.Ordinal` for comparison, Unicode NFC text; no culture-sensitive `ToLower()`, `ToUpper()`, `Compare` or `IndexOf(string)`. `InvariantGlobalization` stays off.
 - [ ] Every threshold uses `Margin(threshold, epsilon)` and every caller handles Accept, Reject and Uncertain. Summation order is fixed; no parallel reduction in a grading path.
-- [ ] Any model sits behind a `Slg.Core` interface; tests use a deterministic fake; real-model tests are skipped unless `SLG_MODELS_DIR` is set and the files verify; one thread, CPU provider, greedy decoding.
-- [ ] No non-deterministic (N-class) code, and no LLM package, in `src/`. Build-time LLM work stays in `tools/Slg.ContentBuilder` (Freeze pattern) and every generated content file is marked and approved in `provenance.json`.
+- [ ] Any model sits behind a `Vocaterra.Nlp.Core` interface; tests use a deterministic fake; real-model tests are skipped unless `VOCATERRA_MODELS_DIR` is set and the files verify; one thread, CPU provider, greedy decoding.
+- [ ] No non-deterministic (N-class) code, and no LLM package, in `src/`. Build-time LLM work stays in `tools/Vocaterra.Nlp.ContentBuilder` (Freeze pattern) and every generated content file is marked and approved in `provenance.json`.
 - [ ] Every model file has a SHA-256 in `models/manifest.json`; version stamps carry the content hash and the sorted model hashes; I recorded the license of every native binary I added, not only of its package.
 - [ ] Build hygiene: nullable on, warnings as errors, `dotnet format --verify-no-changes` clean, a one-line `///` summary on every new public type.
 - [ ] If I changed `content/v1`: I re-ran `hash`, updated the pinned hash in the tests and re-recorded the end-to-end golden (see the recipe below).
@@ -115,15 +115,15 @@ Before you ask for review, in this order, from a clean tree:
 
 ## Fuzz tests
 
-`tests/Slg.Fuzzing.Tests` generates inputs from the project's own catalogs and checks sixteen oracles against the real stages. The design is
+`tests/Vocaterra.Nlp.Fuzzing.Tests` generates inputs from the project's own catalogs and checks sixteen oracles against the real stages. The design is
 in [docs/FUZZING_PLAN.md](docs/FUZZING_PLAN.md); the oracles, the bugs found so far and the known findings are in
-[tests/Slg.Fuzzing.Tests/README.md](tests/Slg.Fuzzing.Tests/README.md).
+[tests/Vocaterra.Nlp.Fuzzing.Tests/README.md](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md).
 
-- Before you open a pull request that touches `Slg.Nlp`, `Slg.Evaluation`, `Slg.Response`, `Slg.Audio`, `Slg.Phonology`,
-  `Slg.Pronunciation`, `Slg.Decision`, `Slg.Content` or `Slg.Pipeline`, run `dotnet test tests/Slg.Fuzzing.Tests`.
+- Before you open a pull request that touches `Vocaterra.Nlp.Nlp`, `Vocaterra.Nlp.Evaluation`, `Vocaterra.Nlp.Response`, `Vocaterra.Nlp.Audio`, `Vocaterra.Nlp.Phonology`,
+  `Vocaterra.Nlp.Pronunciation`, `Vocaterra.Nlp.Decision`, `Vocaterra.Nlp.Content` or `Vocaterra.Nlp.Pipeline`, run `dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests`.
 - A bug the fuzzer finds is fixed in the owning module, with a regression test in that module's test project. List the bug with its
   CsCheck seed in the "Bugs found and fixed" section of the fuzz README.
-- A documented exception may be waved through only in `tests/Slg.Fuzzing.Tests/Oracles/KnownTolerances.cs`, and it needs a reason.
+- A documented exception may be waved through only in `tests/Vocaterra.Nlp.Fuzzing.Tests/Oracles/KnownTolerances.cs`, and it needs a reason.
 - Never weaken an oracle to make a failure go away.
 
 ## Recipe: add an error tag
@@ -131,23 +131,23 @@ in [docs/FUZZING_PLAN.md](docs/FUZZING_PLAN.md); the oracles, the bugs found so 
 An error tag is a stable id (`conj.person`, `pron.r`, ...) that flows through the analyzer, the verdict weights, the feedback policy,
 the dialogue and the learner model. Add it in this order:
 
-1. **Taxonomy** (`src/Slg.Core/Taxonomy/ErrorTags.cs`). Add a constant, document it with a summary, and append it to the `AllTags`
+1. **Taxonomy** (`src/Vocaterra.Nlp.Core/Taxonomy/ErrorTags.cs`). Add a constant, document it with a summary, and append it to the `AllTags`
    array. Append at the end: errors in a verdict are sorted by position and then by the tag's index in `ErrorTags.All`, so inserting
    in the middle changes the order of existing verdicts and breaks golden files. Tags are `family.name`; the family (the text before
    the first dot) is also the learner-model skill id, so `conj.person` and `conj.tense` train the same skill `conj`.
-   Update `tests/Slg.Core.Tests/ErrorTagsTests.cs` (it pins the count and the order) and the taxonomy table in `HIGH_LEVEL_DOCS.md`.
-   This is a change to `Slg.Core`: agree it with a maintainer first.
+   Update `tests/Vocaterra.Nlp.Core.Tests/ErrorTagsTests.cs` (it pins the count and the order) and the taxonomy table in `HIGH_LEVEL_DOCS.md`.
+   This is a change to `Vocaterra.Nlp.Core`: agree it with a maintainer first.
 2. **Analyzer.** Produce the tag where the error is detected, with the span in the normalized text and the expected form:
-   - grammar and vocabulary tags: `src/Slg.Nlp/Analysis/AgreementChecker.cs` (agreement rules) or `LinguisticAnalyzer.cs`; the
+   - grammar and vocabulary tags: `src/Vocaterra.Nlp.Nlp/Analysis/AgreementChecker.cs` (agreement rules) or `LinguisticAnalyzer.cs`; the
      expected form comes from `MorphologyGenerator`, never a hard-coded string;
-   - pronunciation tags: a predicted variant in `src/Slg.Phonology/PredictedErrorVariants.cs` and its matching in
-     `src/Slg.Pronunciation/PredictedErrorMatcher.cs`.
+   - pronunciation tags: a predicted variant in `src/Vocaterra.Nlp.Phonology/PredictedErrorVariants.cs` and its matching in
+     `src/Vocaterra.Nlp.Pronunciation/PredictedErrorMatcher.cs`.
 
-   Add one positive and one negative test (`tests/Slg.Nlp.Tests/Analysis`, `tests/Slg.Phonology.Tests`, `tests/Slg.Pronunciation.Tests`).
+   Add one positive and one negative test (`tests/Vocaterra.Nlp.Nlp.Tests/Analysis`, `tests/Vocaterra.Nlp.Phonology.Tests`, `tests/Vocaterra.Nlp.Pronunciation.Tests`).
 3. **Evaluation weights.** Add the tag to `errorWeights` for `beginner`, `intermediate` and `advanced` in
    `content/v1/evaluation/evaluation-config.json` (pronunciation tags are 0 today, so they do not reduce `correctness`), and to the
-   built-in defaults in `src/Slg.Evaluation/EvaluationConfig.cs`. A grammar tag missing from the map costs `unknownTagWeight` (0.3);
-   a missing `pron.*` tag costs 0. Extend `tests/Slg.Evaluation.Tests`.
+   built-in defaults in `src/Vocaterra.Nlp.Evaluation/EvaluationConfig.cs`. A grammar tag missing from the map costs `unknownTagWeight` (0.3);
+   a missing `pron.*` tag costs 0. Extend `tests/Vocaterra.Nlp.Evaluation.Tests`.
 4. **Feedback rule.** The default rules in `content/v1/feedback/feedback-policy.json` match every tag with `*`: a recast on the first
    offence, a hint on the second and third, an explicit correction from the fourth (`pron.*` gets a model pronunciation from the
    second). Add a rule with the exact tag (`"tagPattern": "ser_estar"`) only if the new tag should be treated differently. The most
@@ -187,22 +187,22 @@ Steps:
 3. Re-hash. This rewrites `content/v1/manifest.json` from the files on disk and prints the new bundle hash:
 
    ```bash
-   dotnet run --project tools/Slg.ContentBuilder -- hash content/v1
-   dotnet run --project tools/Slg.ContentBuilder -- validate content/v1
-   dotnet run --project tools/Slg.ContentBuilder -- cefr-check content/v1 --level a1
+   dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- hash content/v1
+   dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- validate content/v1
+   dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- cefr-check content/v1 --level a1
    ```
 
    Before `hash`, `validate` reports exactly what is out of date (`hash mismatch`, `file is not listed in manifest.json`,
    `no provenance item for ...`). `validate` also checks references: a prompt that names an unknown answer set, intent or grammar fails.
    `cefr-check` is advisory; it lists template lemmas that are not in `cefr/a1.txt` or `cefr/a2.txt`.
-4. Try it: `dotnet run --project tools/Slg.Cli -- eval --transcript "..." --prompt <your-prompt> --content content/v1`.
+4. Try it: `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "..." --prompt <your-prompt> --content content/v1`.
 5. Update what pins the hash. After any content edit these tests fail until you do:
-   - in `tests/Slg.Content.Tests/ManifestTests.cs`, change `GoldenBundleHash` to the new bundle hash;
+   - in `tests/Vocaterra.Nlp.Content.Tests/ManifestTests.cs`, change `GoldenBundleHash` to the new bundle hash;
    - re-record the end-to-end golden file and check that only the three `contentHash` lines changed (unless your change was meant to
      alter the example):
 
      ```bash
-     SLG_RECORD_GOLDEN=1 dotnet test tests/Slg.Golden.Tests
+     VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests
      ```
 6. Run the whole suite. Replay logs recorded earlier report `/versions/contentHash` as different after a content change; that is expected.
 
@@ -226,7 +226,7 @@ protocol, consent text and manifest schema are in [golden/README.md](golden/READ
   Then run the benchmark with your own manifest (clips are looked up relative to the manifest, or in `--audio-dir`):
 
   ```bash
-  dotnet run --project tools/Slg.Bench -- --manifest ~/slg-golden/manifest.jsonl --content content/v1 --models models
+  dotnet run --project tools/Vocaterra.Nlp.Bench -- --manifest ~/vocaterra-golden/manifest.jsonl --content content/v1 --models models
   ```
 
   It prints WER, learner-error preservation (the share of annotated wrong words that survive in the transcript) and p50/p95 latency per model and mode.
@@ -235,23 +235,23 @@ protocol, consent text and manifest schema are in [golden/README.md](golden/READ
   their own output folder, and `ThePipelineAgreesWithEveryAnnotation` fails unless the pipeline produces the annotated intent and
   errors for `expectedTranscript`. Use a `promptId` that exists in `content/v1/prompts/prompts.json`.
 - **G2P golden lines** are separate: add `{"text": "...", "dialect": "la" | "es", "ipa": "..."}` to
-  `tests/Slg.Golden.Tests/Data/g2p-golden.jsonl` (Latin American neutral or Castilian). The IPA is written by hand from a pronunciation
+  `tests/Vocaterra.Nlp.Golden.Tests/Data/g2p-golden.jsonl` (Latin American neutral or Castilian). The IPA is written by hand from a pronunciation
   source, not copied from the converter's own output; espeak-ng may be used as a development-time cross-check only.
 - When a model changes, run the benchmark on the same clips before and after and put the numbers in the pull request.
 
 ## Recipe: add a D1 model adapter
 
-A D1 model is a neural model with frozen weights. It enters the system only as an adapter behind a `Slg.Core` interface, pinned by
+A D1 model is a neural model with frozen weights. It enters the system only as an adapter behind a `Vocaterra.Nlp.Core` interface, pinned by
 hash and gated in tests ([ADR 0004](docs/adr/0004-model-pinning-and-gating.md)).
 
 1. **Interface.** Implement the interface for the role: `IWordRecognizer` (ASR), `IPhonemeRecognizer`, `IEmbeddingModel` or
    `ISpeechSynthesizer`. Configure it for determinism: one intra-op thread, CPU execution provider, greedy decoding or a fixed
    voice and speed, no sampling, no clock. Expose `ModelHash`. If the runtime has its own sources of variation, remove them as
    `VoskWordRecognizer` does for dithering, and write the finding down (`IMPLEMENTATION_PLAN.md` section 5b). Put the adapter in the
-   project that owns the role (`Slg.Asr`, `Slg.Pronunciation`, `Slg.Nlp`, `Slg.Response`).
+   project that owns the role (`Vocaterra.Nlp.Asr`, `Vocaterra.Nlp.Pronunciation`, `Vocaterra.Nlp.Nlp`, `Vocaterra.Nlp.Response`).
 2. **Fake.** Add or extend a deterministic fake for the same interface (`ScriptedWordRecognizer`, `FakePhonemeRecognizer`,
    `FakeEmbeddingModel`, `SilentSynthesizer` are the patterns). Everything else in the test suite uses the fake.
-3. **Manifest entry** in `models/manifest.json`: `id` (also the directory name under `SLG_MODELS_DIR`), `role`, `name`, `version`,
+3. **Manifest entry** in `models/manifest.json`: `id` (also the directory name under `VOCATERRA_MODELS_DIR`), `role`, `name`, `version`,
    `license`, `source`, an `archive` (`format` `zip` or `tar.bz2`, `sha256`, `bytes`) when it can be downloaded, the `files` the adapter loads
    (`path`, `sha256`, `bytes`) and `notes`. Fetch the model once, hash the files you load with `sha256sum`, and pin them; a `null` hash
    means "not pinned", and `ModelStore.ModelHash` refuses to produce a hash for it. Add a `FromStore(store, id)` factory that uses
@@ -263,26 +263,26 @@ hash and gated in tests ([ADR 0004](docs/adr/0004-model-pinning-and-gating.md)).
 5. **Pipeline wiring.** Add the model to `PipelineServices` (or reuse its slot) so its hash appears in `VersionStamp.ModelHashes`
    (`asr`, `phoneme`, `embedding`, `tts`), and to the CLI's `ModelSet` if it should be selectable with `--models`.
 6. **Gating.** Real-model tests must be skipped, not failed, when the model is absent. Follow `ModelGate` and `VoskModelFactAttribute`
-   in `tests/Slg.Pipeline.Tests/VoskPipelineTests.cs` (and `tests/Slg.Asr.Tests/TestSupport.cs`): skip unless `SLG_MODELS_DIR` is set and
+   in `tests/Vocaterra.Nlp.Pipeline.Tests/VoskPipelineTests.cs` (and `tests/Vocaterra.Nlp.Asr.Tests/TestSupport.cs`): skip unless `VOCATERRA_MODELS_DIR` is set and
    `ModelStore.Verify(id)` reports the files as ok.
 7. **Golden test.** With the model present, a gated test must show: the same clip decoded twice (in one process, and ideally in two)
    gives identical output; the result equals the recorded expectation for a small committed clip or a synthetic signal; a record
    made with the real model replays without the model (`ReplayEnvelope`; see [docs/REPLAY.md](docs/REPLAY.md)); thresholds that use
    the model's scores have a `Margin`. Once real learner audio exists, add the model to the benchmark runs.
 8. **CI.** Extend the `models` job in `.github/workflows-pending/ci.yml` so that it fetches the model (it runs only when the
-   repository variable `SLG_RUN_MODEL_TESTS` is `true`).
+   repository variable `VOCATERRA_RUN_MODEL_TESTS` is `true`).
 
 ## Gotchas
 
 - The normalizer's `ConvertIndefiniteArticles` defaults to `true` (`una espada` becomes `1 espada`). The pipeline passes `false`; when you
   normalize text for agreement checks, `[ART]` grammar tokens or answer matching, pass `new NormalizationOptions(ConvertIndefiniteArticles: false)`.
-- `System.IO.MatchType` collides with `Slg.Core.Stages.MatchType` under implicit usings: add
-  `using MatchType = Slg.Core.Stages.MatchType;`.
-- Inside `Slg.Nlp.*` the namespaces `Slg.Nlp.Lexicon` and `Slg.Nlp.SlotGrammar` share names with the types `Lexicon` and `SlotGrammar`;
+- `System.IO.MatchType` collides with `Vocaterra.Nlp.Core.Stages.MatchType` under implicit usings: add
+  `using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;`.
+- Inside `Vocaterra.Nlp.Nlp.*` the namespaces `Vocaterra.Nlp.Nlp.Lexicon` and `Vocaterra.Nlp.Nlp.SlotGrammar` share names with the types `Lexicon` and `SlotGrammar`;
   put `using` lines after the file-scoped namespace line or use aliases.
 - The G2P drops digits. Spell numbers out before phonemizing (`SpanishNumbers.DigitsToWords`).
 - `CanonicalJson` rejects `null` for non-nullable members when reading (`RespectNullableAnnotations`); design JSON models with that in mind.
 - A prompt whose `allowedIntentIds` is empty is answer-only: the pipeline skips intent resolution, and an exact, alias or fuzzy answer match
   counts as `communicated`.
-- Tests that need the Vosk model look for it through `SLG_MODELS_DIR` and the committed manifest; if the files do not verify they are
+- Tests that need the Vosk model look for it through `VOCATERRA_MODELS_DIR` and the committed manifest; if the files do not verify they are
   skipped, which looks like a pass. Check the skipped count when you expect them to run.

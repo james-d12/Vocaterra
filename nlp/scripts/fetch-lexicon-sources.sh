@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Downloads the two data sets the lexicon import reads into ${SLG_LEXICON_SOURCES_DIR:-<repo>/lexicon-sources}/ (git-ignored), checks
+# Downloads the two data sets the lexicon import reads into ${VOCATERRA_LEXICON_SOURCES_DIR:-<repo>/lexicon-sources}/ (git-ignored), checks
 # their SHA-256 and byte size against the values pinned below, and records them with the retrieval date in sources.json next to them.
 #
 #   kaikki-es          the kaikki.org Spanish extract of English Wiktionary (wiktextract JSONL), CC BY-SA 4.0
@@ -17,7 +17,7 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
-dest="${SLG_LEXICON_SOURCES_DIR:-$repo_root/lexicon-sources}"
+dest="${VOCATERRA_LEXICON_SOURCES_DIR:-${SLG_LEXICON_SOURCES_DIR:-$repo_root/lexicon-sources}}"
 
 # ---- Pins -------------------------------------------------------------------------------------------------------------------------------
 # id|file name|url|sha256|bytes|licence

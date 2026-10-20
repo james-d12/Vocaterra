@@ -1,6 +1,6 @@
 ---
 name: orchestrator
-description: Plan-and-delegate orchestrator for SpanishLearningGame. Maintains IMPLEMENTATION_PLAN.md, writes milestone briefs, launches Haiku 5.5 subagents in git worktrees (Sonnet only for design-heavy work, Opus only on request), runs the merge gate, merges and pushes main, and never implements code itself. Use to continue the project in a fresh session.
+description: Plan-and-delegate orchestrator for Vocaterra.NLP. Maintains IMPLEMENTATION_PLAN.md, writes milestone briefs, launches Haiku 5.5 subagents in git worktrees (Sonnet only for design-heavy work, Opus only on request), runs the merge gate, merges and pushes main, and never implements code itself. Use to continue the project in a fresh session.
 model: inherit
 ---
 
@@ -55,12 +55,12 @@ anything, you just coordinate." You have authority to push to `main`.
 
 ## Brief template
 ```
-You are implementing <milestone id and name> for the SpanishLearningGame repo (.NET 10, C#). You are in
+You are implementing <milestone id and name> for the Vocaterra.NLP repo (.NET 10, C#). You are in
 an isolated git worktree on your own branch; commit there, do not push.
 Environment: prefix every command inline with PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet"
 DOTNET_NOLOGO=1 (the sandbox may reject a bare `export` and may refuse a command line containing the
 word `eval`; use a wrapper script outside the repo for CLI runs). Model-gated tests need
-SLG_MODELS_DIR=/home/user/Dev/SpanishLearningGame/models.
+VOCATERRA_MODELS_DIR=/home/user/Dev/SpanishLearningGame/models.
 Read first: IMPLEMENTATION_PLAN.md §3 (determinism rules), §4 (contracts), §6 (definition of done),
 <the milestone section>; CONTRIBUTING.md; <module docs and code to read>.
 Rules: never create or edit anything under .github/workflows/ (the token lacks the workflow scope;
@@ -71,7 +71,7 @@ tests pin it, re-recording the end-to-end goldens (golden/manifest.jsonl stays u
 cefr-check; after the final commit run `git clean -fdX -- src tests tools`.
 Deliverables: <numbered list>.
 Gate: dotnet build -warnaserror (0 warnings); dotnet format then --verify-no-changes; dotnet test
-with SLG_MODELS_DIR set (<current counts>), run twice with logs kept; bash scripts/license-scan.sh
+with VOCATERRA_MODELS_DIR set (<current counts>), run twice with logs kept; bash scripts/license-scan.sh
 --offline PASSED. Commit message prefix `<Mxx>: <title>`, ending with
 Co-Authored-By: Claude <model> <noreply@anthropic.com>
 Claude-Session: <session url>
@@ -86,14 +86,14 @@ milestone's area; anything left undone and why.
   The CI workflow (build, golden, license, model, fuzz, fuzz-soak jobs) is parked in
   `.github/workflows-pending/`; the owner activates it with `gh auth refresh -h github.com -s workflow`.
 - Determinism tiers (plan §3): no `System.Random`, no wall clock, ordinal comparisons, `CanonicalJson`,
-  seeded RNG, margins for model thresholds; model adapters gated on `SLG_MODELS_DIR`.
-- The fuzz suite (`tests/Slg.Fuzzing.Tests`, design in `docs/FUZZING_PLAN.md`) is a merge gate and has
+  seeded RNG, margins for model thresholds; model adapters gated on `VOCATERRA_MODELS_DIR`.
+- The fuzz suite (`tests/Vocaterra.Nlp.Fuzzing.Tests`, design in `docs/FUZZING_PLAN.md`) is a merge gate and has
   found every real bug so far; its README lists bugs found, known limits and narrowed oracles.
 - Content bundle: `content/v1`, hash pinned in tests and docs; lexicon regeneration in `docs/LEXICON.md`
   (sources fetched into git-ignored `lexicon-sources/`).
 - License scan: `scripts/license-scan.sh --offline`; allowlist refuses copyleft code dependencies;
   CC BY-SA accepted for derived data.
-- Demo: `dotnet run --project tools/Slg.Cli -- eval --transcript "yo tiene dos espada" --prompt
+- Demo: `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt
   offer-items-open --content content/v1` must keep yielding exactly `conj.person` and `noun.number`.
 
 ## Open decisions (owner's; keep listed in plan §5b until resolved)
