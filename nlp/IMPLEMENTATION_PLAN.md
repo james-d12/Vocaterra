@@ -175,15 +175,15 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M0 | Solution scaffold: SDK pin, props, all project stubs, CI skeleton | — | H | done |
 | M1 | Core contracts + determinism primitives + taxonomy | M0 | S | done |
 | M2 | Audio front-end (WAV IO, resample, gain, energy VAD, clip hash, push-to-talk session) | M1 | S | done |
-| M3 | Spanish G2P with dialect config, alignment, predicted-error variants, golden set | M1 | S | in-progress |
+| M3 | Spanish G2P with dialect config, alignment, predicted-error variants, golden set | M1 | S | done |
 | M4 | Text normalization + answer matching (exact/alias/fuzzy + phonetic key) | M1 | S | done |
 | M5 | Lexicon schema + seed lexicon + morphology generator + linguistic analysis + slot grammar | M1 | S | done |
 | M7 | Verdict assembly (pure D0) incl. worked example | M1 | S | done |
 | M10 | Decision layer: NPC state machine, learner model (BKT + FSRS), feedback policy | M1 | S | done |
-| M6 | Intent resolution (grammar → rules → embedding w/ margins) + repair strategy | M5 | S | todo |
-| M8 | Pronunciation scoring: v1 greedy+edit distance, v2 CTC Viterbi + GOP, wav2vec2 adapter | M3 | S | todo |
-| M9 | ASR adapters: Vosk constrained, sherpa-onnx Parakeet open, fakes, model manifest + fetch script | M2 | S | todo |
-| M11 | Response realization: templates + morphology, recasts, TTS adapters + cache, effect tables | M5, M3 | S | todo |
+| M6 | Intent resolution (grammar → rules → embedding w/ margins) + repair strategy | M5 | S | in-progress |
+| M8 | Pronunciation scoring: v1 greedy+edit distance, v2 CTC Viterbi + GOP, wav2vec2 adapter | M3 | S | in-progress |
+| M9 | ASR adapters: Vosk constrained, sherpa-onnx Parakeet open, fakes, model manifest + fetch script | M2 | S | in-progress |
+| M11 | Response realization: templates + morphology, recasts, TTS adapters + cache, effect tables | M5, M3 | S | in-progress |
 | M12 | Content bundle: schema, loader, hashing, ContentBuilder CLI (kaikki import), sample content v1 | M4, M5, M6, M10, M11 | S | todo |
 | M13 | Pipeline orchestration, replay log + replayer, CLI demo, bench harness, golden layout | M2–M12 | S | todo |
 | M14 | CI matrix (x64/ARM64/Windows/macOS), golden tests, license scan, format check (workflow parked in `.github/workflows-pending` until the push token has `workflow` scope) | M13 | H | todo |
