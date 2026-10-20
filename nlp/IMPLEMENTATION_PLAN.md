@@ -191,6 +191,9 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M15 | README, ADRs, CONTRIBUTING, determinism checklist | M13 | S | done |
 | M16a | Combinatorial fuzz testing, stage 1: project, CsCheck, generators, harness, language oracles (see `docs/FUZZING_PLAN.md`) | M13b | S | done |
 | M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | done |
+| M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | todo |
+| M17b | Intent expansion: ten new intents, two new NPC scenes (innkeeper, quest giver), prompts, dialogue, effects, goldens (see §7) | M17a | L | todo |
+| M18 | Part-of-speech disambiguation in the analyzer (candidate; decided on M17a's homograph numbers) | M17a | M | todo |
 
 ### Delegation waves
 
@@ -493,3 +496,137 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
 4. No violations of §3; no new packages outside `Directory.Packages.props`.
 5. Committed on the milestone branch with a message starting `M<id>:`; the agent reports
    branch name, commit SHA, test counts, and any contract gaps found in `Slg.Core`.
+
+## 7. M17: vocabulary and intent expansion (plan)
+
+### 7.1 Why
+
+The bundle understands a scripted slice of Spanish: 1 217 lexicon *forms* but only about 400 lemmas
+(32 verbs, 156 nouns, 77 adjectives), six intents, one NPC. Any word outside the lexicon is tagged
+`vocab.unknown` and skipped by every grammar check, and any utterance outside the six intents is "not
+understood". Both limits are content, not code: the lexicon loader, the Kaikki importer
+(`Slg.ContentBuilder import-lexicon`), the slot-grammar DSL, the NPC state machines and the fuzz
+generators are all catalog-driven, so widening the catalogs widens the system without touching the
+pipeline. M17 is therefore mostly content work with two small, contained tool changes.
+
+### 7.2 Data sources and licensing (decided)
+
+| Source | Use | Licence | Status |
+| --- | --- | --- | --- |
+| kaikki.org Spanish extract of English Wiktionary (wiktextract JSONL) | lemmas, gender, number, full inflection tables | CC BY-SA 4.0 (older revisions 3.0) + GFDL | named in the HLD (§Content, licensing table); `ATTRIBUTION.md` already carries the notice; importer and tests exist |
+| hermitdave/FrequencyWords, `es_50k.txt` (OpenSubtitles 2018) | frequency ranking to select which lemmas ship | content CC BY-SA 4.0, code MIT; OpenSubtitles attribution | new; same share-alike terms as the Wiktionary data |
+
+The HLD licensing table accepts share-alike on derived data files, so no new decision is needed:
+the generated lexicon file is CC BY-SA and `ATTRIBUTION.md` says so. Source files are never
+committed; they are fetched into a git-ignored `lexicon-sources/` directory like `models/`, and the
+committed lexicon carries a sidecar with the source URL, retrieval date, SHA-256, size and importer
+parameters so the import is reproducible byte for byte.
+
+### 7.3 M17a: Wiktionary lexicon import (Sonnet, size M)
+
+Deliverables
+
+1. `scripts/fetch-lexicon-sources.sh`: downloads the Kaikki Spanish JSONL and `es_50k.txt` into
+   `lexicon-sources/` (git-ignored), verifies or records SHA-256, prints sizes. Pinned URLs.
+2. `import-lexicon` gains `--frequency <es_50k.txt> --top N`: lemma frequency is the sum of its forms'
+   counts; the top N lemmas are kept (ties broken ordinally); output is sorted and canonical so the file
+   is reproducible. Also `--sidecar <path>` writing `lexicon/wiktionary-es.source.json` (URL, date,
+   hash, line counts, skipped-by-reason table, parameters, importer version).
+3. `content/v1/lexicon/wiktionary-es.json` generated at `--top 3000`, `"generated_by":
+   "wiktionary-import"`, listed in `provenance.json`; `seed.json` and `game.json` stay hand-authored.
+   Numerals stay hand-authored (the importer skips them by design).
+4. Merge policy made explicit and tested in `ContentLoader`: all `lexicon/*.json` are unioned; identical
+   readings (form, lemma, pos, features) de-duplicate; different readings of one form coexist. The
+   import report prints the overlap with the hand-authored files.
+5. Coverage tests (new, cheap, permanent): every lemma used in intent grammars, keyword rules,
+   examples, answer sets and dialogue templates resolves in the merged lexicon; every authored intent
+   example analyses with no `vocab.unknown`; a hand-written list of about 50 common A1/A2 words is
+   known. These tests are what keep M17b and later content honest.
+6. Measurements recorded in the fuzz README and TOOLS.md: lexicon file size, bundle load time, full
+   test-suite and fuzz-suite wall time, homograph skip counts of the fuzz generators before and after.
+   If all gates below hold at 3 000 lemmas, regenerate at 5 000 and keep whichever is the largest
+   that still passes.
+7. Docs: README vocabulary section and regeneration recipe; TOOLS.md rows for kaikki.org,
+   wiktextract, FrequencyWords and OpenSubtitles; `ATTRIBUTION.md` (frequency list);
+   `docs/adr/0008-lexicon-sources-and-frequency-filter.md`.
+
+Gates (all of §6 plus): fuzz suite green at default depth with the new lexicon, no oracle weakened
+(O3, O4 and O5 now draw from thousands of lemmas, so any analyzer bug they expose is fixed at the
+source); fuzz suite under 60 s; full suite not more than 25 % slower; bundle load under 300 ms;
+lexicon file under 15 MB; `validate`, `hash`, golden re-record, CLI demo re-verified.
+
+Non-goals: CEFR level per entry (the schema has none; the CEFR lists stay lemma lists for
+`cefr-check`); proper names and multiword expressions; part-of-speech disambiguation (M18);
+profanity filtering of the *recognised* vocabulary (recognition only; a blocklist is a one-line
+follow-up if the owner wants it).
+
+Risks: the Kaikki file is several GB and changes with every extraction (pin and hash it; stream it;
+never commit it); Wiktionary gender and number tags are uneven (the importer already skips odd forms;
+the spot-check test catches gross errors); verb and noun homographs multiply with the lexicon, so
+the analyzer's not-POS-aware checks will produce more false tags on correct sentences. M17a must
+report that rate (the fuzz generators count the skips); fixing it is M18, not M17a.
+
+### 7.4 M17b: new intents and scenes (Sonnet, size L)
+
+Two new NPC scenes chosen from the HLD's loop (spells, trade, quests, NPC dialogue): trade and
+spells exist, quests and everyday dialogue are the gaps.
+
+| Scene / NPC | New intents | Example utterances | Slots |
+| --- | --- | --- | --- |
+| Innkeeper (`innkeeper`) | `order_item` | quiero una cerveza; dos panes, por favor | item, qty |
+| | `ask_directions` | ¿dónde está la herrería? | place |
+| | `ask_name` | ¿cómo te llamas? | |
+| | `introduce_self` | me llamo Ana; soy Ana | name (needs `[WORD:name]`, see below) |
+| | `farewell` | adiós; hasta luego; hasta mañana | |
+| | `thank` | gracias; muchas gracias | |
+| Quest giver (`captain`) | `ask_quest` | ¿tienes trabajo para mí?; ¿hay una misión? | |
+| | `report_quest` | he matado tres arañas; maté tres arañas | target, qty |
+| Cross-cutting (every NPC) | `confirm` | sí; claro; vale, acepto | |
+| | `deny` | no; no, gracias; ahora no | |
+
+`confirm` and `deny` also drive the existing blacksmith: a new `confirming` state asks "¿quieres
+comprar la espada por diez monedas?" and `confirm` leads to `trade_done`. The quest giver's machine
+is idle → offering_quest (`confirm`/`deny`) → quest_active (`report_quest` with the right target and
+qty) → quest_done.
+
+Per-intent content checklist: intent definition with required slots, at least two slot grammars, a
+keyword rule and at least five examples (one with a typical learner error); answer sets where a
+constrained prompt needs them (`food-drink`, `places`, `yes-no`, `quest-targets`); open and
+constrained prompts per scene (about twelve new prompts, with difficulty); dialogue pool
+`<intent>_reply` with at least three variants using template filters, plus `greet_reply`,
+`not_understood` and scene-specific pools for the new NPCs, all passing `cefr-check` at A1 and A2
+(extend `cefr/a1.txt` and `cefr/a2.txt` by hand where a template needs it); NPC definitions
+`npcs/innkeeper.json` and `npcs/captain.json` with variant pools; effects entries (`order_item` →
+tavern price curve, `report_quest` → quest reward curve); no change to the feedback policy or the
+evaluation config.
+
+The one allowed code change: a `[WORD:slot]` token in the slot-grammar DSL that matches any single
+token (for names), with tests in `Slg.Nlp.Tests`, support in the fuzz `PatternGen` and `SentenceRealizer`,
+and a line in `docs/PIPELINE.md`. If it turns out larger than a day's work, `introduce_self` is dropped
+and the rest of M17b ships.
+
+Gates (all of §6 plus): coverage tests from M17a green (every new grammar, example and template word is
+in the lexicon); fuzz suite green at default depth, every catalog grammar realised by the sentence
+generator (O3 asserts it) or its skip documented; `cefr-check` clean at A1 and A2; `validate`, `hash`,
+golden re-record, two new end-to-end goldens (`e2e-order-item-open`, `e2e-report-quest-open`); CLI
+demo commands for both scenes verified and added to the README; prompt and intent count assertions
+updated; README status row.
+
+Known limitation to document: the DSL has no tense constraint, so `report_quest` accepts any form of
+the verb; person agreement is still checked. Tense-aware grammars join the subjunctive/por-para
+question the HLD leaves open.
+
+### 7.5 M18 (candidate): part-of-speech disambiguation
+
+Only if M17a's numbers say so. The analyzer reads each word as every part of speech it can be; with a
+large lexicon, verb/noun homographs (`lanza`, `vino`, `ayudas`) make correct sentences fail the tense
+and person checks. The fix is to prefer the reading consistent with the matched grammar slot and the
+neighbouring determiners, measured by the fuzz generators' homograph skip count falling to near zero
+and O3 staying green with the skips removed.
+
+### 7.6 Order and effort
+
+M17a then M17b, sequential (M17b's grammars rely on M17a's vocabulary and coverage tests). Both on
+Sonnet in worktrees, the usual merge gate, bundle re-hash and golden re-record after each. M18 is
+scheduled after M17a's report.
+
