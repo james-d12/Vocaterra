@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Slg.Asr/Slg.Asr.csproj" />
+    <ProjectReference Include="../../src/Slg.Audio/Slg.Audio.csproj" />
   </ItemGroup>
 
 </Project>
