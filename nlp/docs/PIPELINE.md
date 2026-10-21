@@ -213,6 +213,16 @@ name. The reading resolver gives it no word class, so it takes part in no agreem
 that the grammar does not bind is an ordinary word again, so an unbound name is reported as unknown. The verdict and `AnalysisResult` are
 unchanged. One limit: a name is one token of letters, so a hyphenated name such as `ana-maría` does not match.
 
+**Which side of an agreement pair is corrected (M29c).** In a noun phrase the generic rule is: an article, numeral or determiner adjective fixes the
+number of the noun (`dos espada` gives `noun.number` on `espada`, `las casa` on `casa`), a determiner of the wrong gender is corrected to the noun's gender
+(`la río` gives `el`), and an adjective agrees with the noun and the determiner. One exception is a closed table of fixed expressions that are plural as a whole:
+`bueno` with `día`, `tarde`, `noche` and `mucho` with `gracia` (`AnalysisTables.IsFixedPluralExpression`). When no other determiner is present and either word is
+already plural, the plural is kept, because it is the learner's explicit choice and the lexicalised form, and the singular side is corrected: `mucho gracias` gives
+`gender.agree` and `noun.number` on `mucho` with expected `muchas` (the recast is `muchas gracias`, never `mucha gracia`), `buenos día` gives `noun.number`
+on `día` with expected `días`, and `buenos noches` gives `gender.agree` on `buenos` with expected `buenas`. A singular expression (`mucha gracia`, `buena noche`) is
+ordinary Spanish and keeps the generic checks. A new fixed expression is one more row in the table, with a regression test in
+`FixedPluralExpressionTests` and `RecastAgreementModifierTests`.
+
 **One reading per word.** A word the lexicon reads as several parts of speech is resolved to one before the rules run, so that
 `libro` (a noun, and a form of `librar`) is not checked as both. `ReadingResolver` does it in three steps, and every rule then runs
 on the resolved readings only. The returned tokens still list all readings, because the intent stage matches lemmas on them.
