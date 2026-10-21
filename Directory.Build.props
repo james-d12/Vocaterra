@@ -16,4 +16,15 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <!-- Native-asset trim (G7). The speech packages and MonoGame ship native libraries for every platform (sherpa-onnx, ONNX Runtime, Vosk,
+       SDL, about 400 MB in one project's bin/). On a Linux x64 build host the build targets linux-x64 only, so NuGet copies just that
+       runtime's natives (runtimes/linux-x64) and the output stays framework-dependent. AppendRuntimeIdentifierToOutputPath=false keeps the
+       output at bin/Debug/net10.0/, so every path in the README, the scripts and the screenshots is unchanged. Other build hosts, and a
+       release build that must carry every platform, set -p:VocaterraAllRuntimes=true to restore the full copy. -->
+  <PropertyGroup Condition="'$(VocaterraAllRuntimes)' != 'true' And '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X64' And '$([MSBuild]::IsOSPlatform(Linux))'">
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
 </Project>

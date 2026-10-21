@@ -85,6 +85,13 @@ The core cannot know these, so the host supplies them (API document, "The host o
 - The core's sherpa-onnx dependency carries GPL-3.0 code in its native build (core D2). Nothing here ships the native libraries, and the
   game does not distribute a build that includes them until D2 is settled in the core.
 
+**Native-asset trim (G7).** The speech packages and MonoGame ship native libraries for every platform, and a plain build copied all of them
+(about 400 MB in `src/Vocaterra.MonoGame/bin` alone). `Directory.Build.props` therefore sets `RuntimeIdentifier=linux-x64` (with
+`SelfContained=false` and `AppendRuntimeIdentifierToOutputPath=false`, so the output stays at `bin/Debug/net10.0/`) when the build host is
+Linux x64. NuGet then copies only that runtime's natives, and the same `dotnet build`, `dotnet test` and `dotnet run` commands work. The
+property `VocaterraAllRuntimes=true` turns the condition off, so a release build that must carry every platform restores the full copy; other
+build hosts never get the trim. Restore again after changing the property, because the assets file records the runtimes restored.
+
 ## The engine
 
 The engine is MonoGame for the prototype and the final engine is open (D-game-1 in [DECISIONS.md](DECISIONS.md)); a Godot .NET front-end is a
