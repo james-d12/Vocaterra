@@ -33,6 +33,15 @@ public sealed class FrameView
     /// <summary>The world seed.</summary>
     public required ulong Seed { get; init; }
 
+    /// <summary>The tile atlas (colour and grey), for the journal's icons.</summary>
+    public required TileAtlas Atlas { get; init; }
+
+    /// <summary>The journal screen's state.</summary>
+    public required JournalModel Journal { get; init; }
+
+    /// <summary>The toasts waiting to be shown ("new word").</summary>
+    public required ToastQueue Toasts { get; init; }
+
     /// <summary>The player box between the previous and the latest tick (see <see cref="TickAccumulator.Alpha"/>), in simulation units.</summary>
     public Rectangle PlayerUnits { get; set; }
 
@@ -50,7 +59,7 @@ public sealed class FrameView
 }
 
 /// <summary>
-/// A piece of the screen drawn after the world, in order: the guide, the arrow, the debug overlay and the dialogue panel (P3); the word and inventory UI (P4, P6) later.
+/// A piece of the screen drawn after the world, in order: the guide, the arrow, the debug overlay, the dialogue panel (P3), the toast and the journal (P4); the inventory UI (P6) later.
 /// A layer reads <see cref="FrameView"/> and draws with the <see cref="SpriteBatch"/> the game has already begun (point sampling, alpha blend).
 /// </summary>
 public interface IFrameLayer

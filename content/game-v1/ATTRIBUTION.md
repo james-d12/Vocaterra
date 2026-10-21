@@ -11,8 +11,8 @@ places reworded to pass this bundle's A1 check, and stay credited to that sample
 (`docs/DECISIONS.md`, decided 2026-10-21) this bundle diverges from the sample: the game owns every file, nothing is re-synced when the
 core's sample changes, and a milestone that wants another piece of the sample copies only that piece and records it in `provenance.json`.
 Everything added since is written for the game and has no third-party text in it: the guide (`agents/guide.json`, the intents
-`ask_directions`, `ask_what` and `ask_help`, the prompt `guide-open` and the guide's dialogue pools), `answer-sets/places-basic.json` and
-`lexicon/world.json`.
+`ask_directions`, `ask_what` and `ask_help`, the prompt `guide-open` and the guide's dialogue pools), `answer-sets/places-basic.json`,
+`lexicon/world.json`, the noun catalogue `game/nouns.json`, the intent `name_object` and the guide's name pools (P4).
 
 The licence of this repository is not chosen yet (decision D-game-2 in `docs/DECISIONS.md`). Until it is, the repository grants no
 permission to use, copy or modify its files. The language core is a separate work under its own licence.

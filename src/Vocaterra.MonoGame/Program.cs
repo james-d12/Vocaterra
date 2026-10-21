@@ -19,10 +19,12 @@ if (!LaunchOptions.TryParse(args, out var options, out var error))
 GameSession session;
 try
 {
-    session = new GameSession(GameBundle.Load(options.ContentDirectory), options.Seed);
+    var directory = GameBundle.ResolveDirectory(options.ContentDirectory);
+    var bundle = GameBundle.Load(directory);
+    session = new GameSession(bundle, options.Seed, GameSession.DefaultStartedAt, NounCatalog.Load(bundle, directory));
     session.Conversation.WarmUp(); // the first typed line should not stall a frame
 }
-catch (Exception ex) when (ex is DirectoryNotFoundException or IOException or UnauthorizedAccessException or ContentValidationException or JsonException)
+catch (Exception ex) when (ex is DirectoryNotFoundException or IOException or UnauthorizedAccessException or ContentValidationException or JsonException or InvalidDataException)
 {
     Console.Error.WriteLine(ex.Message);
     return 1;

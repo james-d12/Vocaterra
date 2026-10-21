@@ -12,12 +12,16 @@ internal static class TestGame
     public const ulong Seed = 42;
 
     private static readonly Lazy<ContentBundle> LoadedBundle = new(() => GameBundle.Load());
+    private static readonly Lazy<NounCatalog> LoadedNouns = new(() => NounCatalog.Load(Bundle, GameBundle.ResolveDirectory()));
 
     /// <summary>The bundle, loaded and validated by the core's loader.</summary>
     public static ContentBundle Bundle => LoadedBundle.Value;
 
+    /// <summary>The noun catalogue of the bundle.</summary>
+    public static NounCatalog Nouns => LoadedNouns.Value;
+
     /// <summary>A new session on the fixed seed, with the fixed start time.</summary>
-    public static GameSession NewSession(ulong seed = Seed) => new(Bundle, seed, GameSession.DefaultStartedAt);
+    public static GameSession NewSession(ulong seed = Seed) => new(Bundle, seed, GameSession.DefaultStartedAt, Nouns);
 
     /// <summary>
     /// The nearest tile of a kind by brute force over the whole grid, with the guide's rule written out again: the smallest squared distance,

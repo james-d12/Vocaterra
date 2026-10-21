@@ -7,6 +7,7 @@
     { "id": "guide_greet_again", "count": 2 },
     { "id": "guide_help", "count": 3 },
     { "id": "guide_look", "count": 3 },
+    { "id": "guide_name", "count": 3 },
     { "id": "guide_point", "count": 3 },
     { "id": "guide_thank", "count": 3 },
     { "id": "not_understood", "count": 3 }
@@ -19,6 +20,7 @@
         { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_point", "hostEvent": "guide.point", "variantPoolId": "guide_point"}] },
         { "on": {"intent": "ask_what", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_look", "hostEvent": "guide.identify", "variantPoolId": "guide_look"}] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_help", "hostEvent": "guide.help", "variantPoolId": "guide_help"}] },
+        { "on": {"intent": "name_object", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_name", "hostEvent": "guide.name", "variantPoolId": "guide_name"}] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "farewell_reply", "hostEvent": "agent.farewell", "variantPoolId": "farewell_reply"}] },
         { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "guide_thank", "variantPoolId": "guide_thank"}] },
         { "on": {"communicated": false}, "to": "idle", "actions": [{"dialogueIntent": "not_understood", "variantPoolId": "not_understood"}] }
@@ -34,6 +36,7 @@
         { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_point", "hostEvent": "guide.point", "variantPoolId": "guide_point"}] },
         { "on": {"intent": "ask_what", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_look", "hostEvent": "guide.identify", "variantPoolId": "guide_look"}] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_help", "hostEvent": "guide.help", "variantPoolId": "guide_help"}] },
+        { "on": {"intent": "name_object", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_name", "hostEvent": "guide.name", "variantPoolId": "guide_name"}] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "farewell_reply", "hostEvent": "agent.farewell", "variantPoolId": "farewell_reply"}] },
         { "on": {"intent": "thank", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_thank", "variantPoolId": "guide_thank"}] },
         { "on": {"communicated": false}, "to": "talking", "actions": [{"dialogueIntent": "not_understood", "variantPoolId": "not_understood"}] }
@@ -49,6 +52,7 @@
         { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_point", "hostEvent": "guide.point", "variantPoolId": "guide_point"}] },
         { "on": {"intent": "ask_what", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_look", "hostEvent": "guide.identify", "variantPoolId": "guide_look"}] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_help", "hostEvent": "guide.help", "variantPoolId": "guide_help"}] },
+        { "on": {"intent": "name_object", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_name", "hostEvent": "guide.name", "variantPoolId": "guide_name"}] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "farewell_reply", "hostEvent": "agent.farewell", "variantPoolId": "farewell_reply"}] },
         { "on": {"intent": "thank", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_thank", "variantPoolId": "guide_thank"}] },
         { "on": {"communicated": false}, "to": "pointing", "actions": [{"dialogueIntent": "not_understood", "variantPoolId": "not_understood"}] }

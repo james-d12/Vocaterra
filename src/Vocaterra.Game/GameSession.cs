@@ -29,6 +29,10 @@ public sealed record PointerMarker(string Place, TilePoint Target);
 /// (<see cref="GuideService.GuideState"/>). Putting it in the simulation would add a record to the state digest and the saves for nothing
 /// that ticks. When NPCs walk, they move into the simulation.
 /// </para>
+/// <para>
+/// <b>Words.</b> Every turn is counted in <see cref="Words"/> (the learner's progress with the catalogue nouns, D-game-6) with the
+/// <see cref="CreditRules.Default"/> credit for typed input.
+/// </para>
 /// <para>Evaluation is synchronous in P3 and never runs inside <see cref="Step"/>; P5 moves it to a worker thread.</para>
 /// </remarks>
 public sealed class GameSession
@@ -47,20 +51,33 @@ public sealed class GameSession
     /// <param name="bundle">The content bundle (<c>content/game-v1</c>).</param>
     /// <param name="worldSeed">The world seed: it generates the world and seeds the conversation's random draws.</param>
     /// <param name="startedAt">The stored time at tick 0, in Unix seconds.</param>
-    public GameSession(ContentBundle bundle, ulong worldSeed, long startedAt = DefaultStartedAt)
+    /// <param name="nouns">The noun catalogue of the same bundle (<see cref="NounCatalog.Load"/>).</param>
+    public GameSession(ContentBundle bundle, ulong worldSeed, long startedAt, NounCatalog nouns)
     {
         ArgumentNullException.ThrowIfNull(bundle);
+        ArgumentNullException.ThrowIfNull(nouns);
         Bundle = bundle;
+        Nouns = nouns;
         WorldSeed = worldSeed;
         StartedAt = startedAt;
         Simulation = GameSimulation.Create(worldSeed);
         Facts = new WorldFacts(Simulation.World);
         Guide = GuideNpc.Place(Simulation.World);
+        Words = new WordProgress(nouns);
         _guideService = new GuideService(bundle, Facts, worldSeed, new StoredTimestamp(startedAt));
     }
 
     /// <summary>The content bundle.</summary>
     public ContentBundle Bundle { get; }
+
+    /// <summary>The noun catalogue: which tile is which noun, and each noun's article and gender.</summary>
+    public NounCatalog Nouns { get; }
+
+    /// <summary>The learner's progress with the catalogue nouns, fed from every turn.</summary>
+    public WordProgress Words { get; }
+
+    /// <summary>What the last turn changed in the word counts: the nouns it credited and the nouns it made known (null before the first turn).</summary>
+    public WordTurnResult? LastWordTurn { get; private set; }
 
     /// <summary>The world seed.</summary>
     public ulong WorldSeed { get; }
@@ -128,6 +145,7 @@ public sealed class GameSession
             Pointer = new PointerMarker(pointer.Place, pointer.Target);
         }
 
+        LastWordTurn = Words.RecordTurn(turn, InputKind.Typed, CreditRules.Default);
         return turn;
     }
 

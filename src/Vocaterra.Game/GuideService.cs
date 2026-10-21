@@ -47,6 +47,9 @@ public sealed class GuideService
     private const string IdentifyNone = "guide.identify.none";
     private const string HelpAsk = "guide.help.ask";
     private const string HelpWalk = "guide.help.walk";
+    private const string NameRight = "guide.name.correct";
+    private const string NameWrong = "guide.name.wrong";
+    private const string NameNone = "guide.name.none";
 
     private readonly ContentBundle _bundle;
     private readonly TypedUtteranceEvaluator _evaluator;
@@ -148,6 +151,9 @@ public sealed class GuideService
                     case GuideEvents.Help:
                         worldLine = Render(scene.PointerActive ? HelpWalk : HelpAsk, SlotMap.Empty, rng);
                         break;
+                    case GuideEvents.Name:
+                        worldLine = Name(verdict, scene, rng);
+                        break;
                     default:
                         break;
                 }
@@ -159,7 +165,7 @@ public sealed class GuideService
             verdict.Intent.Value,
             verdict.Communicated,
             verdict.Correctness,
-            verdict.Errors.Select(static e => new GuideError(e.Tag, e.Expected, e.Actual)).ToList(),
+            verdict.Errors.Select(static e => new GuideError(e.Tag, e.Expected, e.Actual, e.Span)).ToList(),
             feedback,
             replies,
             result.Repair?.AgentLine,
@@ -168,7 +174,8 @@ public sealed class GuideService
             worldLine,
             pointer,
             identified,
-            result.Replay.HostStateHash);
+            result.Replay.HostStateHash,
+            verdict.Slots);
     }
 
     private (string Line, GuidePointer? Pointer) Point(Verdict verdict, GuideScene scene, SeededRng rng)
@@ -202,6 +209,21 @@ public sealed class GuideService
         }
 
         return (Render(IdentifyFound, SlotMap.Empty.With("target", noun), rng), noun);
+    }
+
+    // The guide's check of a name: the cursor's tile is the expected noun. A name is right when it is that noun and no error was found on it;
+    // the core cannot grade against a host value (CR-014), so the game does. The word counts do not depend on this (WordProgress).
+    private string Name(Verdict verdict, GuideScene scene, SeededRng rng)
+    {
+        var target = scene.Cursor is { } cursor ? NounAt(cursor) : null;
+        if (target is null)
+        {
+            return Render(NameNone, SlotMap.Empty, rng);
+        }
+
+        var named = verdict.Slots.TryGetValue("object", out var lemma) ? lemma : string.Empty;
+        var right = named == target && verdict.Errors.Count == 0;
+        return Render(right ? NameRight : NameWrong, SlotMap.Empty.With("target", target), rng);
     }
 
     private string? NounAt(TilePoint tile) => WorldFacts.NounOfTile(_facts.TileAt(tile));

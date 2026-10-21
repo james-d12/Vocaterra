@@ -22,7 +22,8 @@ public sealed class DialogueTests
         world,
         null,
         null,
-        "digest");
+        "digest",
+        Vocaterra.Nlp.Core.Verdicts.SlotMap.Empty);
 
     private static DialogueModel Model(out InputFocus focus)
     {

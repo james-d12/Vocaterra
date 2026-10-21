@@ -253,6 +253,22 @@
       ]
     },
     {
+      "intentId": "name_object",
+      "requiredSlots": ["object"],
+      "slotGrammars": [
+        "[VERB:ser] [ART] [NOUN:object]",
+        "(eso|esto) [VERB:ser] [ART] [NOUN:object]"
+      ],
+      "examples": [
+        "es un árbol",
+        "es una piedra",
+        "eso es un árbol",
+        "esto es una piedra",
+        "es una hierba",
+        "es la tierra"
+      ]
+    },
+    {
       "intentId": "ask_help",
       "requiredSlots": [],
       "slotGrammars": [

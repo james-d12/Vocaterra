@@ -4,7 +4,10 @@ using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.MonoGame;
 
-/// <summary>Draws the visible tiles and the player. Reads the simulation; owns no game state.</summary>
+/// <summary>
+/// Draws the visible tiles and the player. Reads the simulation and the word counts; owns no game state. A tile is drawn at the saturation of
+/// the noun that names it (grey until the learner has used the word, then in colour in thirds; colourless tiles always in colour).
+/// </summary>
 public sealed class WorldRenderer
 {
     /// <summary>The sky colour behind the tiles.</summary>
@@ -38,7 +41,7 @@ public sealed class WorldRenderer
                 }
 
                 var (sx, sy) = camera.TileToScreen(tx, ty);
-                spriteBatch.Draw(_atlas.Texture, new Rectangle(sx, sy, size, size), TileAtlas.Source(id), Color.White);
+                _atlas.DrawTile(spriteBatch, id, new Rectangle(sx, sy, size, size), view.Session.Words.SaturationOf(id));
             }
         }
 

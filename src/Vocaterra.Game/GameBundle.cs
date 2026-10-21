@@ -26,16 +26,16 @@ public static class GameBundle
         return Search(AppContext.BaseDirectory) ?? Search(Directory.GetCurrentDirectory());
     }
 
+    /// <summary>The bundle folder that <paramref name="directory"/> names, or the one <see cref="Locate"/> finds when it is <see langword="null"/>.</summary>
+    /// <exception cref="DirectoryNotFoundException">No bundle folder was found.</exception>
+    public static string ResolveDirectory(string? directory = null) => directory ?? Locate()
+        ?? throw new DirectoryNotFoundException(
+            $"The content bundle {RelativeDirectory} was not found. Run from inside the repository or set {DirectoryVariable}.");
+
     /// <summary>Loads the bundle from <paramref name="directory"/>, or from <see cref="Locate"/> when it is <see langword="null"/>.</summary>
     /// <exception cref="DirectoryNotFoundException">No bundle folder was found.</exception>
     /// <exception cref="ContentValidationException">The bundle fails the core's validation.</exception>
-    public static ContentBundle Load(string? directory = null)
-    {
-        var path = directory ?? Locate()
-            ?? throw new DirectoryNotFoundException(
-                $"The content bundle {RelativeDirectory} was not found. Run from inside the repository or set {DirectoryVariable}.");
-        return ContentLoader.Load(path);
-    }
+    public static ContentBundle Load(string? directory = null) => ContentLoader.Load(ResolveDirectory(directory));
 
     private static string? Search(string start)
     {

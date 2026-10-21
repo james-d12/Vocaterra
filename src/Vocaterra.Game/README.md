@@ -27,7 +27,29 @@ var arrow = session.Pointer;                             // where the guide poin
 | `GuideNpc` | `Place(world)`: a grass column 8 to 28 columns from the spawn with headroom, clear of trees if it can; `IsNear(player)` |
 | `TypedUtteranceEvaluator` | the call sequence over the packages for one typed line (scripted recognizer, fake embeddings, silent synthesizer); the console host uses it too. `EvaluateCountingThisUtterance` is the CR-012 workaround |
 | `GameBundle` | `Locate()` and `Load()` for `content/game-v1` (`VOCATERRA_CONTENT_DIR` overrides) |
-| `GuideEvents` | the host event names the guide's state machine raises: `guide.point`, `guide.identify`, `guide.help`, `agent.greet`, `agent.farewell` |
+| `GuideEvents` | the host event names the guide's state machine raises: `guide.point`, `guide.identify`, `guide.help`, `guide.name`, `agent.greet`, `agent.farewell` |
+| `NounCatalog` | the noun catalogue, `game/nouns.json` in the bundle (read after the load, CR-007): `ForLemma`, `ForTile`, `IsColourless`, `Nouns` (lemma, gender, `el`/`un`, plural, tiles, items), `CatalogueNounsOf(surface)` (the readings that are catalogue nouns, CR-002) |
+| `WordProgress` | the learner's counts per catalogue noun (`Records`, `RecordOf`, `SaturationOf(lemma)` and `SaturationOf(TileId)`, `KnownLemmas`, `MarkRead`) and `RecordTurn(turn, kind, rules)`, which counts one guide turn: heard, spoken, spoken correctly, credit (at most one per noun per turn), known |
+| `WordRecord`, `WordStage` | one noun's counts (`Known`, `Saturation` in thirds, `Stage`: Unseen, Encountered, Learning, Known) |
+| `CreditRules` | the credit per kind of input (`Typed`, `Spoken`): the one place P5 changes (typed full credit, D-game-6) |
+
+## Words (P4): the noun catalogue and the D-game-6 rule
+
+- `content/game-v1/game/nouns.json` names the noun of each tile kind (`trunk` and `leaves` are `árbol`, `dirt` is `tierra`, `grass` is `hierba`,
+  `stone` is `piedra`) and lists `air` as colourless; items come with P6. A test checks that every tile is a noun or colourless and every noun has
+  a noun reading and a gender in the bundle's lexicon. The core supplies the article and the plural (`Morphology.Article`, `Pluralize`).
+- A catalogue noun is **known** after three correct uses in three separate turns (`WordProgress.UsesToKnow`). Each correct use adds credit in
+  units (`UnitsPerUse` = 6, so `UnitsToKnow` = 18); saturation is units over 18, so a typed noun is 1/3, 2/3, then 1. Nothing decays.
+- A use is **correct** when no verdict error's span overlaps the word or the article right before it. The uses of a turn are the catalogue nouns in
+  the verdict's slot values and in the turn's normalized tokens (`CatalogueNounsOf`, the CR-002 workaround). A turn that was not communicated
+  counts nothing for use (it still counts as heard, when the guide's lines say the word).
+- `name_object` (`es un árbol`, `eso es una piedra`) names the cursor's tile: the guide says `¡Eso es! Es un árbol.` when the name is that tile's
+  noun and no error was found, and `No, es un árbol.` otherwise (the game checks it, CR-014). The word counts do not depend on the check: a correct
+  word for the wrong object still counts as a correct use of that word (research section 7.5).
+- `GameSession.Say` counts every turn (`Words`, with `CreditRules.Default` for typed input) and keeps what the last turn did (`LastWordTurn`:
+  the nouns credited and the nouns that became known, for the toast).
+- Known gaps: `arbol` without the accent is read by the core as the noun with no error, so it counts (checked by a test); a bare noun with no
+  article (`arbol`) is not a sentence and no intent takes it.
 
 ## One turn, step by step
 
@@ -57,4 +79,6 @@ nothing that ticks. When characters move, collide or are saved (the innkeeper, G
 Packages only; no engine type; no `System.Random`, clock, `Stopwatch` or `DateTime` (a test scans the sources); the stored time and the world seed
 come from the game; dictionaries that reach output are ordinal. The tests are in `tests/Vocaterra.Game.Tests`: guide turns on seed 42 with the
 fixed stored time (verdict, state, host event, target tile, world line, accent-less input, the repair path, determinism), `WorldFacts` tie-breaks,
-the guide's bundle content and the architecture rules.
+the guide's bundle content and the architecture rules. P4: `NounCatalog` (coverage of every tile, genders, articles and plurals, the
+readings of an unaccented form, the parse errors), `WordProgress` (three uses in three turns, thirds, one credit per turn, the article rule,
+the not-communicated turn, heard, read, the credit setting, determinism) and the real core on `es un árbol`, `la árbol` and `es un arbol`.
