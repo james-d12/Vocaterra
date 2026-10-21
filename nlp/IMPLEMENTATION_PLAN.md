@@ -199,7 +199,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M19b | Standalone core, step 2: NuGet packaging of `Slg.*`, content bundle packaging, `samples/HostConsole` consuming the packages (see §8) | M19a | S | done |
 | M19c | Standalone core, step 3: new game repository scaffold with the game spec, game content bundle and a host project on the packages (see §8) | M19b | S | done |
 | M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | done |
-| M19d | Post-split core follow-ups from the game host author: repeat-count helper and next-turn context, prompt `text` in `PromptSpec`, ContentBuilder as a dotnet tool `vocaterra-content` | M19c, M17b-core | H | in-progress |
+| M19d | Post-split core follow-ups from the game host author: repeat-count helper and next-turn context, prompt `text` in `PromptSpec`, ContentBuilder as a dotnet tool `vocaterra-content` | M19c, M17b-core | H | done |
 
 ### Delegation waves
 
@@ -612,6 +612,29 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   Known limits: recasts print names in lower case; hyphenated names do not match; `nos veo` carries
   no tag (no clitic-person check). `cefr-check` now lists `moneda` and `nada` (A2 words in A1
   templates) and `herrería`; reword or accept. Suite: 2663 passed, 5 skipped.
+- **M19d results:** `RepeatCounts.Next(before, verdict)` in `Vocaterra.Nlp.Pipeline` (ordinal-sorted
+  immutable result; verdict tags and `not_communicated` count `before+1`, everything else is dropped,
+  counts below 1 are treated as absent, saturates at `int.MaxValue`) and
+  `ConversationContext.Next(PipelineResult, StoredTimestamp)` (keeps world seed and agent id, takes
+  the decision's next agent state and learner model, the new counts and the given time; a host with
+  its own state digest must recompute it). `PromptSpec.Text` (optional, JSON `text`, omitted when
+  null; validator refuses empty, whitespace-only or untrimmed text; O15 mutates it) and a line for all
+  18 sample prompts. ContentBuilder packs as the dotnet tool `vocaterra-content`
+  (`Vocaterra.Nlp.ContentBuilder` 0.1.0, 12 packages from `scripts/pack.sh`); the tool nupkg is
+  218 MB because `PackAsTool` bundles every native runtime (onnxruntime for all platforms, libvosk,
+  sherpa-onnx with espeak-ng, D2) through `Content` → `Asr`/`Response`/`Pronunciation`; it is for
+  local installation from the feed only. Bundle hash
+  `cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1` (23 files), reproduced by the
+  orchestrator on main; goldens changed only in their `contentHash` lines (`PromptSpec` is not in the
+  replay record). Bug found by the rename: `VoskRuntimeModel.IsComplete` accepted a cache directory
+  whose symlinks dangled into the old `SpanishLearningGame` path (`File.Exists` is true for a dangling
+  link); fixed to resolve links, with a regression test. `cefr-check` scans dialogue templates only,
+  not prompt text (follow-up if prompt text should be level-checked). Suite: 2682 passed, 5 skipped.
+  Follow-ups: README still says 14 prompts (there are 18); the tool has no package readme; trimming
+  the tool's natives means splitting content loading from the model adapters. For the game repo:
+  switch `scripts/content.sh` to the installed tool, update the `../SpanishLearningGame` defaults in
+  `nuget.config`, `content.sh` and docs to `../Vocaterra.NLP`, replace `NextRepeatCounts` with
+  `RepeatCounts.Next` (the host copy can overflow), show `PromptSpec.Text`, re-sync `game-v1`.
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 
@@ -815,7 +838,7 @@ Re-sequencing: M17b's scenes are game content and move to the game repo after M1
 (the `[WORD:slot]` grammar token and generic `confirm`, `deny`, `farewell` and `thank` sample intents)
 stays here. M17c (evaluator polish) stays in the core.
 
-Follow-ups after M19c: `content/game-v1` in Vocaterra is a copy of the core sample taken before
+Follow-ups after M19c (core part done in M19d, see §5b): `content/game-v1` in Vocaterra is a copy of the core sample taken before
 M17b-core, so it lacks the generic intents and the `confirming` state; the game decides whether to
 re-sync from the core sample or diverge (its first content milestone). Core follow-ups from the host
 author: a repeat-count helper, prompt text in `PromptSpec`, the ContentBuilder as a dotnet tool.
