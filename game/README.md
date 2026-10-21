@@ -8,10 +8,24 @@ The Spanish language processing is the language core **Vocaterra.NLP**, the sibl
 agent's response text. The game references the core's projects directly and copies nothing of its source.
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) says what the game takes from the core and what the game owns.
 
-The prototype is a small Terraria-like slice. The engine for it is MonoGame (decision D-game-1 in [docs/DECISIONS.md](docs/DECISIONS.md); the
-final engine is open), and all engine code lives in `src/Vocaterra.MonoGame`. The console host stays as the cheapest way to exercise the core's
-calls and the content. So far you can walk through a generated forest, meet the guide, type Spanish to her (`¿dónde está el árbol?`) and follow
-the arrow she puts out; see "The guide, typed" below.
+The prototype is the 3D scenario in the next section. The engine for it is MonoGame (decision D-game-1 in [docs/DECISIONS.md](docs/DECISIONS.md);
+the final engine is open), and all engine code lives in `src/Vocaterra.MonoGame`. The console host stays as the cheapest way to exercise the
+core's calls and the content. The 2D slice (P1 to P7), retired at S4, was a small Terraria-like slice: you could walk through a generated
+forest, meet the guide, type Spanish to her (`¿dónde está el árbol?`) and follow the arrow she puts out; see "The guide, typed" below.
+
+## The prototype scenario
+
+The prototype is the Minecraft-inspired first-person voxel slice in [docs/PROTOTYPE_BRIEF.md](docs/PROTOTYPE_BRIEF.md) (the owner's Prototype
+Design Brief, v1.2); its plan, milestone by milestone, is [docs/SCENARIO_PLAN.md](docs/SCENARIO_PLAN.md). The scenario takes 10 to 15 minutes:
+
+- **Forest camp.** Gather wood and berries from the trees and bushes, then craft a torch at the workbench.
+- **The stall.** The shopkeeper asks `¿Qué necesitas?`; the player answers `Quiero agua, por favor.` The shopkeeper offers `¿Quieres pan?`, answered
+  with `Sí, por favor.` or `No, gracias.`
+- **The villager and the river.** The player asks `¿Dónde está el río?`, follows the directions to the river and fills a bottle.
+- **The transfer moment.** After the objective, one phrase is revisited without the original prompt, or with a different NPC or context.
+
+These are the brief's five target phrases. Nothing in the scenario ends by a language mistake: no death, no timers, no language gate. The run
+lines for the 3D build will be added to this README as S2 onward land; the 2D run lines below are the 2D slice (P1 to P7), retired at S4.
 
 ## Layout
 
@@ -72,6 +86,8 @@ the learner model and the repeat counts.
 
 ## The guide, typed
 
+> **The 2D slice (P1 to P7), retired at S4.** The run lines in this section are for the 2D slice.
+
 The smallest vertical slice that proves the core inside the game loop (milestone P3). From the repository root, with a display:
 
 ```bash
@@ -93,6 +109,8 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --say "¿dónde es
 ```
 
 ## The guide, spoken (P5)
+
+> **The 2D slice (P1 to P7), retired at S4.** The run lines in this section are for the 2D slice.
 
 Hold **Tab** while the dialogue is open, or hold **V** next to the guide (it opens the panel and listens), say the line, and let go: the clip is
 trimmed, converted to 16 kHz, recognized by Vosk and evaluated like a typed line, on a worker thread, so the game never stalls ("Escuchando…",
