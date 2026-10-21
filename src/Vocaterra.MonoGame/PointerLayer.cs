@@ -51,7 +51,7 @@ public sealed class PointerLayer : IFrameLayer
             DrawHelpers.Border(spriteBatch, pixel, frame, 2, Gold);
             var bounce = (int)((tick / 10) % 2) * 4;
             DrawMarker(spriteBatch, pixel, new Vector2(target.X, tileTop - 18 - bounce));
-            DrawLabel(spriteBatch, pixel, font, pointer.Place, new Vector2(target.X, tileTop - 56 - bounce));
+            DrawLabel(spriteBatch, pixel, font, LabelOf(pointer), new Vector2(target.X, tileTop - 56 - bounce));
         }
         else
         {
@@ -63,7 +63,7 @@ public sealed class PointerLayer : IFrameLayer
                 direction.Y == 0 ? float.MaxValue : MathF.Abs((inner.Height / 2f) / direction.Y));
             var edge = center + (direction * scale);
             DrawArrow(spriteBatch, pixel, edge - (Vector2.Normalize(direction) * (ArrowLength * 0.5f)), MathF.Atan2(direction.Y, direction.X), ArrowLength, Gold);
-            DrawLabel(spriteBatch, pixel, font, pointer.Place, edge + new Vector2(0, -34));
+            DrawLabel(spriteBatch, pixel, font, LabelOf(pointer), edge + new Vector2(0, -34));
         }
 
         if (!view.Dialogue.IsOpen)
@@ -73,6 +73,11 @@ public sealed class PointerLayer : IFrameLayer
             DrawHelpers.Text(spriteBatch, font, Dismiss, new Vector2(viewport.Width - width - 12, 12), new Color(255, 236, 160));
         }
     }
+
+    /// <summary>The label of the marker over the target: the noun, or <c>¿?</c> for the review question (the noun is the answer).</summary>
+    public const string QuizLabel = "¿?";
+
+    private static string LabelOf(PointerMarker pointer) => pointer.Quiz ? QuizLabel : pointer.Place;
 
     private static void DrawLabel(SpriteBatch spriteBatch, Texture2D pixel, FontStashSharp.SpriteFontBase font, string label, Vector2 center)
     {

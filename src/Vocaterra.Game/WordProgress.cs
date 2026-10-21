@@ -33,20 +33,71 @@ public enum InputKind
 }
 
 /// <summary>
-/// The credit a correct use earns, per kind of input: <b>the one place</b> where the typed and spoken weights are set. Credit is counted in
-/// units of a use: a full use is <see cref="WordProgress.UnitsPerUse"/> units, so a half-credit use is half of it. D-game-6: typed input earns
-/// full credit; from P5 spoken input earns half by default, as a setting, which is the <see cref="SpokenUnits"/> value P5 changes.
+/// The credit a correct use earns, per kind of input, and the gaps between credited uses: <b>the one place</b> where both are set. Credit is
+/// counted in units of a use: a full use is <see cref="WordProgress.UnitsPerUse"/> units, so a half-credit use is half of it. D-game-6: typed
+/// input earns full credit; from P5 spoken input earns half by default, as a setting, which is the <see cref="SpokenUnits"/> value P5 changes.
+/// Spaced repetition (D-game-6 as amended): after the first credited use the next needs the first of <see cref="DefaultGapSeconds"/> in
+/// stored time (10 minutes), after the second the next gap (1 hour); later credited uses keep the last gap. A different play session lifts
+/// the gap.
 /// </summary>
 /// <param name="TypedUnits">The units a correct typed use earns.</param>
 /// <param name="SpokenUnits">The units a correct spoken use earns (no spoken input exists before P5, so P4 gives it the full value).</param>
-public sealed record CreditRules(int TypedUnits, int SpokenUnits)
+/// <param name="GapSeconds">The gaps in seconds of stored time, in order, or <see langword="null"/> for <see cref="DefaultGapSeconds"/>.</param>
+public sealed record CreditRules(int TypedUnits, int SpokenUnits, IReadOnlyList<long>? GapSeconds = null)
 {
+    /// <summary>The gaps the owner set: 10 minutes after the first credited use, 1 hour after the second.</summary>
+    public static IReadOnlyList<long> DefaultGapSeconds { get; } = [10 * 60, 60 * 60];
+
     /// <summary>The rules the game uses: full credit for typed input (D-game-6), and full credit for spoken input until P5 sets it to half.</summary>
     public static CreditRules Default { get; } = new(WordProgress.UnitsPerUse, WordProgress.UnitsPerUse);
 
+    /// <summary>The gaps in force, in seconds.</summary>
+    public IReadOnlyList<long> Gaps => GapSeconds ?? DefaultGapSeconds;
+
     /// <summary>The units a correct use of the given kind earns.</summary>
     public int For(InputKind kind) => kind == InputKind.Typed ? TypedUnits : SpokenUnits;
+
+    /// <summary>
+    /// The seconds of stored time that must pass after the <paramref name="creditedUses"/>-th credited use before the next one earns credit:
+    /// zero before any credited use, then the gaps in order, the last one repeating.
+    /// </summary>
+    public long GapAfter(int creditedUses)
+    {
+        if (creditedUses <= 0 || Gaps.Count == 0)
+        {
+            return 0;
+        }
+
+        return Gaps[Math.Min(creditedUses, Gaps.Count) - 1];
+    }
 }
+
+/// <summary>Why a correct-looking use of a noun did or did not move its colour (see <see cref="WordCredit"/>).</summary>
+public enum CreditOutcome
+{
+    /// <summary>The use earned credit: the colour moved.</summary>
+    Credited,
+
+    /// <summary>Correct, but before its gap: it counts in the journal, the colour does not move.</summary>
+    TooEarly,
+
+    /// <summary>The verdict found an error on the noun or its article.</summary>
+    Wrong,
+
+    /// <summary>The line was well written but the guide marked the name wrong: it is not the noun of the tile.</summary>
+    NamedWrong,
+}
+
+/// <summary>What one turn did to one noun.</summary>
+/// <param name="Lemma">The noun.</param>
+/// <param name="Outcome">Why the colour did or did not move.</param>
+/// <param name="SecondsRemaining">For <see cref="CreditOutcome.TooEarly"/>, the stored seconds still to wait; otherwise zero.</param>
+public sealed record WordCredit(string Lemma, CreditOutcome Outcome, long SecondsRemaining = 0);
+
+/// <summary>A word that is due for review: started, not known, and its gap has passed (or the play session changed).</summary>
+/// <param name="Lemma">The noun.</param>
+/// <param name="OverdueSeconds">How long it has been due, in stored seconds (since the last credited use when only the session made it due).</param>
+public sealed record DueWord(string Lemma, long OverdueSeconds);
 
 /// <summary>
 /// The counts of one catalogue noun. Saturation is the colour: <see cref="CreditUnits"/> over <see cref="WordProgress.UnitsToKnow"/>, so
@@ -58,7 +109,9 @@ public sealed record CreditRules(int TypedUnits, int SpokenUnits)
 /// <param name="Spoken">Communicated turns in which the learner used it.</param>
 /// <param name="SpokenCorrect">Of those, the ones with no verdict error on the word or its article.</param>
 /// <param name="CreditUnits">The credit earned so far, in units of a use (see <see cref="CreditRules"/>).</param>
-/// <param name="CorrectTurns">The turns that earned credit (at most one per turn).</param>
+/// <param name="CorrectTurns">The turns that earned credit (at most one per turn): the credited uses.</param>
+/// <param name="LastCreditedAt">The stored time (Unix seconds) of the last credited use, or 0 when there is none.</param>
+/// <param name="LastCreditedSession">The play session of the last credited use, or 0 when there is none.</param>
 public sealed record WordRecord(
     string Lemma,
     int Heard = 0,
@@ -66,7 +119,9 @@ public sealed record WordRecord(
     int Spoken = 0,
     int SpokenCorrect = 0,
     int CreditUnits = 0,
-    int CorrectTurns = 0)
+    int CorrectTurns = 0,
+    long LastCreditedAt = 0,
+    int LastCreditedSession = 0)
 {
     /// <summary>Whether the learner has used it correctly in three turns.</summary>
     public bool Known => CreditUnits >= WordProgress.UnitsToKnow;
@@ -84,7 +139,12 @@ public sealed record WordRecord(
 /// <summary>What one turn changed: the nouns that earned credit and the nouns that became known in it, both in ordinal order.</summary>
 /// <param name="Credited">The catalogue nouns that earned credit this turn.</param>
 /// <param name="NewlyKnown">The nouns that reached three uses this turn.</param>
-public sealed record WordTurnResult(IReadOnlyList<string> Credited, IReadOnlyList<string> NewlyKnown);
+/// <param name="Outcomes">What happened to every noun used in the turn, in ordinal order of the noun (empty when the turn was not understood).</param>
+public sealed record WordTurnResult(IReadOnlyList<string> Credited, IReadOnlyList<string> NewlyKnown, IReadOnlyList<WordCredit> Outcomes)
+{
+    /// <summary>The nouns used correctly but too early: logged, no colour.</summary>
+    public IReadOnlyList<WordCredit> TooEarly => Outcomes.Where(static o => o.Outcome == CreditOutcome.TooEarly).ToList();
+}
 
 /// <summary>
 /// The learner's progress with the catalogue nouns (research section 6.2, D-game-6), fed from each guide turn. A noun is <i>known</i> after three
@@ -99,6 +159,12 @@ public sealed record WordTurnResult(IReadOnlyList<string> Credited, IReadOnlyLis
 /// </para>
 /// <para>
 /// <b>One credit per turn.</b> A lemma earns at most one credit in a turn, however often it is used in it.
+/// </para>
+/// <para>
+/// <b>Spaced credit (D-game-6 as amended).</b> A correct use earns colour only when its gap has passed since the last credited use (see
+/// <see cref="CreditRules.GapAfter"/>) or the play session (<see cref="Session"/>) differs from the one of that use. An early correct use is
+/// counted (said, correct) but earns nothing; <see cref="WordTurnResult.Outcomes"/> says which. A <c>name_object</c> that the guide marked wrong
+/// earns nothing for the noun named. A saved game restores the records and sets <see cref="Session"/> to a new number: a plain value change.
 /// </para>
 /// </remarks>
 public sealed class WordProgress
@@ -122,10 +188,15 @@ public sealed class WordProgress
 
     /// <summary>Starts with no word seen.</summary>
     /// <param name="catalog">The noun catalogue whose nouns are counted.</param>
-    public WordProgress(NounCatalog catalog)
+    /// <param name="session">The number of this play session; each credited use records it.</param>
+    public WordProgress(NounCatalog catalog, int session = 1)
     {
         _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
+        Session = session;
     }
+
+    /// <summary>The number of the current play session (1 for a new game; the saves of P9 will bump it on each load).</summary>
+    public int Session { get; set; }
 
     /// <summary>The catalogue the counts are kept for.</summary>
     public NounCatalog Catalogue => _catalog;
@@ -170,8 +241,9 @@ public sealed class WordProgress
     /// </summary>
     /// <param name="turn">The turn, with its line, its verdict's slots and errors, and the guide's lines.</param>
     /// <param name="kind">How the line arrived; it selects the credit in <paramref name="rules"/>.</param>
-    /// <param name="rules">The credit per kind of input.</param>
-    public WordTurnResult RecordTurn(GuideTurn turn, InputKind kind, CreditRules rules)
+    /// <param name="rules">The credit per kind of input and the gaps.</param>
+    /// <param name="now">The stored time of the turn, in Unix seconds (the host's time, never the clock).</param>
+    public WordTurnResult RecordTurn(GuideTurn turn, InputKind kind, CreditRules rules, long now)
     {
         ArgumentNullException.ThrowIfNull(turn);
         ArgumentNullException.ThrowIfNull(rules);
@@ -193,10 +265,13 @@ public sealed class WordProgress
 
         var credited = new List<string>();
         var newlyKnown = new List<string>();
+        var outcomes = new List<WordCredit>();
         if (!turn.Communicated)
         {
-            return new WordTurnResult(credited, newlyKnown);
+            return new WordTurnResult(credited, newlyKnown, outcomes);
         }
+
+        var named = turn.Slots.TryGetValue("object", out var objectLemma) ? objectLemma : null;
 
         var normalized = TextNormalizer.Normalize(turn.Line);
         var tokens = normalized.Tokens;
@@ -227,18 +302,33 @@ public sealed class WordProgress
             var correct = positions.Count == 0
                 ? turn.Errors.Count == 0
                 : positions.Any(i => !OverlapsError(tokens, i, turn.Errors));
+            var namedWrong = turn.Naming == NameCheck.Wrong && lemma == named;
+            correct &= !namedWrong;
             var wasKnown = RecordOf(lemma).Known;
             var units = correct ? rules.For(kind) : 0;
+            var remaining = correct && units > 0 ? SecondsUntilCredit(RecordOf(lemma), now, Session, rules) : 0;
+            var earns = correct && units > 0 && remaining == 0;
             Update(lemma, record => record with
             {
                 Spoken = record.Spoken + 1,
                 SpokenCorrect = record.SpokenCorrect + (correct ? 1 : 0),
-                CreditUnits = record.CreditUnits + units,
-                CorrectTurns = record.CorrectTurns + (units > 0 ? 1 : 0),
+                CreditUnits = record.CreditUnits + (earns ? units : 0),
+                CorrectTurns = record.CorrectTurns + (earns ? 1 : 0),
+                LastCreditedAt = earns ? now : record.LastCreditedAt,
+                LastCreditedSession = earns ? Session : record.LastCreditedSession,
             });
-            if (units > 0)
+            if (earns)
             {
                 credited.Add(lemma);
+                outcomes.Add(new WordCredit(lemma, CreditOutcome.Credited));
+            }
+            else if (correct)
+            {
+                outcomes.Add(new WordCredit(lemma, CreditOutcome.TooEarly, remaining));
+            }
+            else
+            {
+                outcomes.Add(new WordCredit(lemma, namedWrong ? CreditOutcome.NamedWrong : CreditOutcome.Wrong));
             }
 
             if (!wasKnown && RecordOf(lemma).Known)
@@ -247,7 +337,50 @@ public sealed class WordProgress
             }
         }
 
-        return new WordTurnResult(credited, newlyKnown);
+        return new WordTurnResult(credited, newlyKnown, outcomes);
+    }
+
+    /// <summary>
+    /// The stored seconds a learner must still wait before a correct use of <paramref name="lemma"/> earns colour: <see langword="null"/> when
+    /// the word has no credited use yet or is known (nothing to wait for), 0 when a use would earn colour now, otherwise the seconds left.
+    /// </summary>
+    public long? SecondsUntilNextCredit(string lemma, long now, CreditRules rules)
+    {
+        ArgumentNullException.ThrowIfNull(rules);
+        var record = RecordOf(lemma);
+        return record.CorrectTurns == 0 || record.Known ? null : SecondsUntilCredit(record, now, Session, rules);
+    }
+
+    /// <summary>
+    /// The words due for review at <paramref name="now"/>: started (at least one credited use), not known, with their gap passed or the play
+    /// session changed. The most overdue comes first, then the lemma in ordinal order, so the choice is deterministic.
+    /// </summary>
+    public IReadOnlyList<DueWord> DueWords(long now, CreditRules rules)
+    {
+        ArgumentNullException.ThrowIfNull(rules);
+        var due = new List<DueWord>();
+        foreach (var record in _records.Values)
+        {
+            if (record.CorrectTurns == 0 || record.Known || SecondsUntilCredit(record, now, Session, rules) > 0)
+            {
+                continue;
+            }
+
+            var dueAt = record.LastCreditedSession != Session ? record.LastCreditedAt : record.LastCreditedAt + rules.GapAfter(record.CorrectTurns);
+            due.Add(new DueWord(record.Lemma, now - dueAt));
+        }
+
+        return due.OrderByDescending(static d => d.OverdueSeconds).ThenBy(static d => d.Lemma, StringComparer.Ordinal).ToList();
+    }
+
+    private static long SecondsUntilCredit(WordRecord record, long now, int session, CreditRules rules)
+    {
+        if (record.CorrectTurns == 0 || record.LastCreditedSession != session)
+        {
+            return 0;
+        }
+
+        return Math.Max(0, record.LastCreditedAt + rules.GapAfter(record.CorrectTurns) - now);
     }
 
     /// <summary>The catalogue nouns in a line of text, by its tokens' readings (ordinal, once each).</summary>

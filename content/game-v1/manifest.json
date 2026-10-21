@@ -10,9 +10,9 @@
 {"path":"answer-sets/spells-basic.json","sha256":"edccad2fb3a5eb9e1d6ce5551d492afe501e22da90166f9133dca1ba0ea359ba","bytes":819},
 {"path":"answer-sets/thanks.json","sha256":"5c1ab33fa0a5517e2d506ddb40b06e7a229d2a2218523e112492ced720fdb963","bytes":254},
 {"path":"answer-sets/yes-no.json","sha256":"4ed58272cd230304adc69cc0e33eb926e7427c5f19345d45d61f9b07d10d39c4","bytes":393},
-{"path":"cefr/a1.txt","sha256":"3c7256be6416f28fb1233b4e58239a32fa29ff5eb7002758092af14749553555","bytes":2159},
+{"path":"cefr/a1.txt","sha256":"c4f69ef5f9af0ea37a3d2aa4697ad31bdf82a94ca19d91104b9f9679e5ccf60c","bytes":2164},
 {"path":"cefr/a2.txt","sha256":"ca2bd4e709130d68b0375bf9df23cae7a9f31911776f7cf0500419a51516d44c","bytes":5010},
-{"path":"dialogue/dialogue.json","sha256":"08e5d0d624742836abaa764f2d92788e30631d766bcf4ff956d8a1c74a85bdc5","bytes":13116},
+{"path":"dialogue/dialogue.json","sha256":"1bf28d808ca09302160cf7df8e348141c7ed051fe1a86db18180e66964ce983e","bytes":13449},
 {"path":"effects/effects.json","sha256":"31777ade0667b1a20142e9e9e610cfa196d0537e54e0097b1246ddcb5324b928","bytes":828},
 {"path":"evaluation/evaluation-config.json","sha256":"fc7d6d2567808648dd6615e4c2ea60556b50eba487ee381e74d5d0769003867d","bytes":1632},
 {"path":"feedback/feedback-policy.json","sha256":"63e3ac7e5a4e7c95ca2d26212ae2536622e606be07cc2117f89cdb34f4da9dcf","bytes":492},
@@ -24,6 +24,6 @@
 {"path":"lexicon/wiktionary-es.json","sha256":"83da218f083f8b8f73262dc4c275e6418a1a8e7aa53c1de72dcb62bf16372f2f","bytes":4718227},
 {"path":"lexicon/wiktionary-es.source.json","sha256":"9cecd4bd49f21bfb153b69aeaaa1118740e8649ba5dce61a9dc925e557134b70","bytes":3640},
 {"path":"lexicon/world.json","sha256":"a9fc7bd719955b19bfda5e96ac07dcd57c48413a4cd76ed4dcc75357d51cbd80","bytes":266},
-{"path":"prompts/prompts.json","sha256":"2d97c7927522ac65522a2d838de752b5d118f92241218656e25bacb7f819786c","bytes":5973},
+{"path":"prompts/prompts.json","sha256":"5b64bd87bdc5ed167631a2bc3dfd0232eed95cd744afd6fa0b4ba683bfc98a92","bytes":6292},
 {"path":"provenance.json","sha256":"816de52d2d9569b5127b5a81d04147760a8d9a78c4a8ddfbc2977871f729b719","bytes":3002}
-],"bundleHash":"b4c5c67400ad9bff85398c82081ef941a78b198b45df38a024f49647f75460b7"}
+],"bundleHash":"6a3750bc216353c67e4ec02cc9b41f082843e7177890c87832bec6cd20701e64"}

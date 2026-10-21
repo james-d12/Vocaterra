@@ -21,6 +21,8 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--say "<line>"` | with `--screenshot`, repeatable: walk the player to the guide, open the dialogue panel, type the line and send it, so nobody has to type; each turn is printed to the console with its time, and the words it counted (`word:`, `known:`) |
 | `--point <col>,<row>` | with `--screenshot`: the mouse cursor sits on that tile for the `--say` lines (the guide's name check reads it) |
 | `--point-nearest <noun>` | with `--screenshot`: the cursor sits on the tile of that noun nearest the player when each line is sent (`arbol`, `árbol`, `piedra`, `hierba`, `tierra`; an accent is optional). Not with `--point` |
+| `--skip <minutes>` | with `--screenshot`, between `--say` lines: move the **stored time** on by that many minutes without stepping the world (nothing else changes). Order matters: `--say A --skip 11 --say B` sends B eleven minutes after A. Printed as `skip: ...` |
+| `--talk` | with `--screenshot`, between `--say` lines: close the dialogue and talk to the guide again, which is when she may ask a review question (`review: "..." pointing at col,row`, or `talk: no review`). The first opening (before the first `--say`) asks one too when a word is due, but nothing is due yet in a new game |
 | `--journal` | with `--screenshot`: open the journal once the `--say` lines are sent (at the start without `--say`) |
 
 Examples, as the orchestrator verifies rendering: `... -- --seed 42 --screenshot /tmp/p2.png --frames 120 --walk-right 60`, and the guide:
@@ -28,9 +30,15 @@ Examples, as the orchestrator verifies rendering: `... -- --seed 42 --screenshot
 the arrow; add a second `--say` for a second turn, and raise `--frames` so the script has time to finish: about 40 ticks to walk and settle, then
 about 12 per line). They still open a window (they need a display, `DISPLAY` or `xvfb-run`), but nobody has to look at it.
 
-The P4 demo (words): the nearest tree, named three times, then the journal:
+The P4b demos (spaced colour, seed 42, cursor on the nearest tree; add `--screenshot /tmp/x.png --frames 100`, the script ends at about tick 100):
+(a) `--point-nearest árbol --say "es un árbol" --say "es un árbol" --say "es un árbol"`: one credit and two `early:` outcomes, the trees a third coloured,
+the hint `Bien. Repasa más tarde.` in the panel and as a toast; (b) `--say "es un árbol" --skip 11 --say "es un árbol" --skip 61 --say "es un árbol"`:
+`known: el árbol`, the trees in full colour; (c) `--say "es un árbol" --skip 11 --talk` (the guide asks `¿Qué es esto?` with the arrow and the `¿?` marker on
+a tree; add `--say "es un árbol"` for the answer, which earns the second third, and `--journal` with a `--skip 2` instead to see `otra vez en 8 min`).
+
+The P4 demo (words), as it was before spacing (three uses in a row no longer make a word known; see the P4b demo (b)):
 `... -- --seed 42 --point-nearest árbol --say "es un árbol" --say "es un árbol" --say "es un árbol" --journal --screenshot /tmp/p4-journal.png --frames 600`
-(the trees are in full colour and the journal shows `el árbol` known with three pips). With one `--say` and `--frames 400` the trees are a third
+(now a third of the colour, and the journal shows `otra vez en 10 min`). With one `--say` and `--frames 400` the trees are a third
 coloured and the rest of the world grey.
 
 Controls: **A / D** or **Left / Right** walk, **Space / W / Up** jump (hold for a higher jump), **J** opens the journal (the words, see below; **J** or
@@ -42,10 +50,19 @@ guide's arrow away. For Spanish on a keyboard that cannot type it: **Alt + a vow
 seed, the tile under the player's feet, the tile under the mouse, and a Spanish line that proves the font draws `¿ ¡ á é í ó ú ü ñ`.
 
 **Words (P4).** The world is grey until the learner has used its word. Say `es un árbol` to the guide with the mouse on a tree (or `es una
-piedra` on a stone): three correct uses in three turns make the noun known, and its objects go from grey to full colour in thirds (one third
-per use). A correct use earns the same credit typed or spoken (see `CreditRules` in `Vocaterra.Game`). When a noun becomes known a toast
+piedra` on a stone): three correct uses make the noun known, and its objects go from grey to full colour in thirds (one third per credited
+use). A correct use earns the same credit typed or spoken (see `CreditRules` in `Vocaterra.Game`). When a noun becomes known a toast
 shows `¡Nueva palabra: el árbol!`. The journal (J) lists every catalogue noun: `el árbol` once seen (`¿?` before), its icon in its current
-colour, the counts (heard, read, said, said correctly) and three pips.
+colour, the counts (heard, read, said, said correctly), three pips, and when a started word can earn colour again (`otra vez en 8 min`, or
+`lista para repasar`).
+
+**Spaced colour and the guide's review (P4b).** The uses must be spaced (D-game-6 as amended): the first correct use earns a third at once, the
+second only 10 minutes of play time later, the third an hour after the second (a new play session lifts the gaps; the gaps are in `CreditRules`).
+A correct use that comes too early is still said and answered, but the colour does not move: the game says `Bien. Repasa más tarde.` (a toast
+and a line in the panel, in yellow). When a word is due and the player opens the dialogue with **T**, the guide points at the nearest example
+(the arrow and a marker that shows `¿?`, not the noun) and asks `¿Qué es esto?`; the answer is graded against that tile, whatever the mouse
+touches, and a correct one earns the next third. Closing the panel (Esc) drops the question and its arrow. Press **Esc** with the panel closed to
+take any other arrow away.
 
 ## Architecture
 
@@ -59,13 +76,13 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   TileArt           placeholder tile pixels (RGBA bytes, deterministic speckle, no System.Random)
   DebugText, FrameStats, LaunchOptions   (--say, --content, --point, --point-nearest and --journal too)
   Greyscale         the grey copy of an RGBA atlas: integer luma (299, 587, 114 over 1000), alpha kept; the tile atlas calls it once at load
-  Journal           JournalRows (every catalogue noun: label, counts, pips, saturation; known first) and JournalModel (open or closed; opening counts a read)
+  Journal           JournalRows (every catalogue noun: label, counts, pips, saturation, when the next credited use is possible; known first) and JournalModel (open or closed; opening counts a read)
   Toasts            ToastQueue: lines shown one after another for 240 ticks each, by the simulation's tick (no clock)
   ScriptedCursor    the --point and --point-nearest cursor for the scripted run (accent-insensitive noun lookup)
   TextEntry         the dialogue panel's text box: insert (Spanish letters and marks included), backspace, delete, caret, limits; AccentShortcuts
   InputFocus        who has the keyboard; FocusGatedInput returns no actions while the panel is open; KeyRepeater counts auto-repeat in frames
   DialogueModel     the panel as state: open or closed, the text box, the lines, a request to send; Submit shows the turn's lines; TextWrap
-  ScriptedDialogue  the --say script: walk to the guide, settle, open, type, ask the game to send, one line at a time
+  ScriptedDialogue  the --say script: walk to the guide, settle, open, then each step in order: type and send a line, --skip (stored time), --talk (reopen)
   TurnTimer         times one guide turn for the panel's note (display only; the only other timer than the real clock)
 (root)       the MonoGame wiring
   Program           parses the command line, runs VocaterraGame, returns its ExitCode
@@ -122,7 +139,7 @@ MonoGame's own fixed-step timer is off (`IsFixedTimeStep = false`) and MonoGame'
 player while the panel is open, on a real simulation), the dialogue model's turn flow, key repeat, text wrapping, the `--say` script driven
 headless against a real session and bundle (walk, open, type, send, the arrow, determinism), the accumulator (exact ticks, uneven frames, the cap and dropped ticks, bad input),
 the greyscale copy (luma on a small buffer, alpha kept, a partial pixel refused), the journal rows and its read counts, the toast queue (order,
-duration by tick), the scripted cursor (accent-insensitive nouns, nearest tree), the P4 command-line rules, the camera (centring, clamping at every edge, small worlds, visible tiles and chunks, screen/tile round trips), the command mapping and
+duration by tick), the scripted cursor (accent-insensitive nouns, nearest tree), the P4 command-line rules, the P4b `--skip` and `--talk` steps, the journal's due text and the scripted review (a skip, a talk, the question, the answer; determinism), the camera (centring, clamping at every edge, small worlds, visible tiles and chunks, screen/tile round trips), the command mapping and
 scripted input driving a real simulation (and a determinism check over uneven frames), the command line, the overlay text, placeholder
 art, FPS, the font (an own TrueType `cmap` reader checks `á é í ó ú ü ñ Á É Í Ó Ú Ü Ñ ¿ ¡` and the overlay's line; the file is copied to the
 output; every character of the panel's texts and of the bundle's dialogue pools and prompts is in the font; the CC0 record exists) and

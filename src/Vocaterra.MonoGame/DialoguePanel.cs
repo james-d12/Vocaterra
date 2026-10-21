@@ -30,6 +30,7 @@ public sealed class DialoguePanel : IFrameLayer
     private static readonly Color CorrectionColor = new(255, 190, 110);
     private static readonly Color GuideColor = new(255, 242, 180);
     private static readonly Color WorldColor = new(170, 255, 190);
+    private static readonly Color HintColor = new(255, 214, 64);
 
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
@@ -106,6 +107,7 @@ public sealed class DialoguePanel : IFrameLayer
                 DialogueSpeaker.Note => NoteColor,
                 DialogueSpeaker.Correction => CorrectionColor,
                 DialogueSpeaker.World => WorldColor,
+                DialogueSpeaker.Hint => HintColor,
                 _ => GuideColor,
             };
             var wrapped = TextWrap.Wrap(prefix + line.Text, width, t => DrawHelpers.Width(font, t));
