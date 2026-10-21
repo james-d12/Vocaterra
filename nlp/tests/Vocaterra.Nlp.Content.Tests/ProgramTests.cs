@@ -189,6 +189,22 @@ public class ProgramTests
     }
 
     [Fact]
+    public void CefrCheckReportsPromptTextWithItsPromptId()
+    {
+        using var bundle = new TempBundle();
+        bundle.Edit("prompts/prompts.json", "\"text\": \"¿Qué quieres comprar?\"", "\"text\": \"¿Qué quieres comprar? Tengo una zzxq.\"");
+
+        var (code, output, error) = Run("cefr-check", bundle.Directory, "--level", "a1");
+
+        Assert.Equal(Program.ExitOk, code);
+        Assert.Equal(string.Empty, error);
+        Assert.Contains("lemmas in prompt text, ", output, StringComparison.Ordinal);
+        Assert.Contains("  zzxq (not in lexicon): buy-item-constrained\n", output, StringComparison.Ordinal);
+        var loaded = ContentLoader.Load(bundle.Directory, new ContentLoadOptions { VerifyHashes = false });
+        Assert.Equal(CefrChecker.Format(CefrChecker.Check(loaded, "a1")), output);
+    }
+
+    [Fact]
     public void CefrCheckExitsWithOneWhenTheBundleCannotBeLoaded()
     {
         using var bundle = new TempBundle();

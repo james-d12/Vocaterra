@@ -1,5 +1,5 @@
 {"schemaVersion":1,"bundleId":"v1","contentVersion":"1.0.0","files":[
-{"path":"ATTRIBUTION.md","sha256":"1b40bc28d99f7aadfde51992cee5a7af6b7a074252ffedb4f9ea4f3aa8a76b90","bytes":4526},
+{"path":"ATTRIBUTION.md","sha256":"cb5a082250b73895e25d0fcaffde1a99101f07173658995ec36e7b2c98373fdb","bytes":6243},
 {"path":"agents/blacksmith.json","sha256":"c3b43ab6ea06e93d4564c6aea7891c52c674ac74ccd5ee6d4322bd71a788c3da","bytes":7359},
 {"path":"answer-sets/farewells.json","sha256":"193708e558c9b8eef76873f29aba49d2373e08fe205a73e519bab503902fe15e","bytes":297},
 {"path":"answer-sets/greetings.json","sha256":"c0f99e77d0edfd9435aa0aab4a17360faebb763f5de0e7b59eec9e57e3613e5a","bytes":948},
@@ -8,7 +8,7 @@
 {"path":"answer-sets/spells-basic.json","sha256":"edccad2fb3a5eb9e1d6ce5551d492afe501e22da90166f9133dca1ba0ea359ba","bytes":819},
 {"path":"answer-sets/thanks.json","sha256":"5c1ab33fa0a5517e2d506ddb40b06e7a229d2a2218523e112492ced720fdb963","bytes":254},
 {"path":"answer-sets/yes-no.json","sha256":"4ed58272cd230304adc69cc0e33eb926e7427c5f19345d45d61f9b07d10d39c4","bytes":393},
-{"path":"cefr/a1.txt","sha256":"bc9a413e93a56e32ed870bdd27ddeeb168928ba67c7cede2e2490fc280f1d9ee","bytes":2111},
+{"path":"cefr/a1.txt","sha256":"2b73a797396a1239bb1dd3e4b1e31df3438926072d06f713852f5c407fe6d601","bytes":2124},
 {"path":"cefr/a2.txt","sha256":"ca2bd4e709130d68b0375bf9df23cae7a9f31911776f7cf0500419a51516d44c","bytes":5010},
 {"path":"dialogue/dialogue.json","sha256":"e2a520badd109beac79e1034e9a4bafe0103c570a441bc7b929b0b32556b166f","bytes":7966},
 {"path":"effects/effects.json","sha256":"31777ade0667b1a20142e9e9e610cfa196d0537e54e0097b1246ddcb5324b928","bytes":828},
@@ -22,4 +22,4 @@
 {"path":"lexicon/wiktionary-es.source.json","sha256":"9cecd4bd49f21bfb153b69aeaaa1118740e8649ba5dce61a9dc925e557134b70","bytes":3640},
 {"path":"prompts/prompts.json","sha256":"d37a2cd698c412d04a3f11bdc761305b49d5c3b1185cb22e655de7248dbb0d20","bytes":5630},
 {"path":"provenance.json","sha256":"07a7acf50412068df29c7cdcb9aa7900b885e9acfcd2862ffa964cef4d46d4a9","bytes":2555}
-],"bundleHash":"cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1"}
+],"bundleHash":"1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2"}

@@ -355,7 +355,7 @@ bundle. `tools/Vocaterra.Nlp.ContentBuilder` is the build-time tool:
 ```bash
 dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- validate content/v1                      # verify hashes and cross-references
 dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- hash content/v1                          # rewrite content/v1/manifest.json after an edit
-dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- cefr-check content/v1 --level a1         # list dialogue lemmas missing from the CEFR list (a1 or a2)
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- cefr-check content/v1 --level a1         # list lemmas of dialogue templates and of prompt text missing from the CEFR list (a1 or a2)
 dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- import-lexicon kaikki.jsonl lexicon.json # wiktextract Spanish JSONL to a lexicon file (--max N limits it;
 #   --frequency es_50k.txt --top N keeps the N most frequent lemmas; --sidecar writes the source record; see docs/LEXICON.md)
 dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lexicon-report content/v1                # each lexicon file, how they overlap, the merged lexicon
