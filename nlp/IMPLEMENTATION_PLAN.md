@@ -209,8 +209,9 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M26d | CR-003 host slot values (`SlotMap` on the context, template access, replay record and `HostStateHash`), CR-005 host-named skills in the learner update | M26c | S | todo |
 | M26e | CR-006 speech-out readiness: Kokoro and Parakeet file hashes pinned from real downloads, `KokoroSynthesizer.FromStore`, Spanish speaker ids documented (D2: private builds only) | M19f | H | done |
 | M26f | CR-010 `cefr-check` reads prompt text; CR-011 sample `ATTRIBUTION.md` describes the sample only (content procedure: hash re-pin, goldens) | M26d | H | todo (next) |
-| M27a | Content layering and a standard library bundle: a bundle names a base bundle and adds or overrides by id; the generic intents, answer sets, replies, feedback and evaluation settings move from the sample into `content/std-v1`; the sample becomes an overlay (see §10) | M26f | S | proposed |
-| M27b | Pattern suggestion from example sentences: `vocaterra-content suggest` writes candidate slot grammars and keyword rules for review, with a coverage and confusion report (see §10) | M27a | S | proposed |
+| M27a | Content lint (owner chose lint first, 2026-10-21): `vocaterra-content lint` — example coverage per intent, confusion within each prompt's allow-list, grammar hazards, reachability, CEFR incl. prompt text; examples may carry expected error tags; `validate` warns, `--strict` fails; per-intent waivers (see §10) | M26f | S | todo (next) |
+| M27b | Content layering and `std-v1`: manifest `base` pinned by id, hash and path; whole-item replacement with explicit `replaces`/`removes`; lexicon and CEFR unioned; one level; `content/v1` becomes `std-v1` plus a blacksmith overlay (see §10) | M27a | S | todo |
+| M27c | Format de-duplication: defaulted redundant fields, any-state transitions, `<np:x>` macros, generated article aliases; old files load identically (see §10) | M27b | H | todo |
 
 ### Delegation waves
 
@@ -773,6 +774,13 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   `CachedSynthesizer`); supersedes M26c's "loads on first Synthesize" for Kokoro. Response now references
   Asr (for `ModelStore`), so the Response package pulls the ASR package; moving `ModelStore` to Core is a
   follow-up. Suite after M26d+M26e: 2823 passed, 3 skipped (wav2vec2 ×2, e5 ×1, both need an ONNX export).
+- **Content-authoring research (Opus, 2026-10-21):** the owner named content authoring (intents and the
+  content folder) as the main cost. Report `docs/research/2026-10-21-content-authoring.md`; outcome in §10.
+  It corrected the orchestrator's first proposal: the game's copies are unchanged rather than edited, and
+  pattern suggestion generalises poorly, so a lint (coverage, confusion, reachability, CEFR, examples
+  with expected errors) goes first, then layering with `std-v1`, then format de-duplication. Owner chose
+  lint first. Side finding: the hand grammars hold 4 real cross-intent matches, one the `gracias` →
+  `cast_spell` class hidden only by the tie-break (M27a will report them).
 - **Two orchestrators (owner, 2026-10-21):** this repository is run by the core orchestrator only; the
   Vocaterra repository has its own orchestrator and plan. Protocol: the game writes requests for core
   changes to `docs/CORE_REQUESTS.md` in its repository; the core orchestrator reads that file at the
@@ -1002,47 +1010,67 @@ removes the two false positives from `main` now.
 - Also noted: the design doc's GOP citation (arXiv 2309.07739) points at a different method; the
   matching CTC-GOP work is arXiv 2507.16838.
 
-## 10. M27: cheaper content authoring (proposed 2026-10-21, awaiting the owner's go)
+## 10. M27: cheaper content authoring (owner: lint first, 2026-10-21)
 
 ### 10.1 Why
-The owner: writing the intents and the content folder is expensive. Measured on 2026-10-21: apart from
-the imported lexicon, the sample bundle is ~1,100 hand-written JSON lines and the game's bundle ~1,500.
-The game carries all 11 sample intents as edited copies and adds only 4 of its own; 7 answer-set files
-and the feedback, evaluation and effects files are byte-identical copies, re-synced by hand (game G2).
-Every new intent needs hand-written slot grammars, keyword rules and examples, and the grammars are
-where authoring errors live (M17c, M19f, CR-013 were all found in grammar behaviour).
+The owner: writing the intents and the content folder is expensive. Research report:
+`docs/research/2026-10-21-content-authoring.md` (Opus, 2026-10-21). Measured: one new intent costs 70–100
+lines across six files (the intent entry is 20–30 % of it); much is mechanical (all 107 dialogue line ids are
+`<pool>.<n>`, all 58 agent actions repeat the pool name twice, the guide's 24 transitions hold 12 distinct
+ones, 31 of 57 answer aliases are article + word). The game carries all 11 sample intents unchanged plus 4
+of its own; 15 of 27 files are byte-identical; its only edits are 5 dialogue lines re-worded for A1 and the
+notice; of its 1,606 hand-maintained lines about 357 are its own work (~445 copied lines are generic,
+~680 blacksmith material its code does not use). The costly mistakes in the history are behavioural
+(grammars too narrow, too broad, homographs; CEFR rewording), which the validator, checking only
+references, does not catch. Pattern suggestion from examples was prototyped and rejected as a milestone:
+held out one at a time it generalises to 23–28 of 79 examples and mis-tags at least 12 of 59 suggestions.
+No reusable Spanish intent data exists (Home Assistant's 38 Spanish intents are smart-home, CC BY 4.0).
 
-### 10.2 M27a: content layering and a standard library bundle (Sonnet, size M)
-- The manifest may name one base bundle (`base`: id plus content hash). Loading merges by id in a fixed
-  order: base first, then the overlay; an overlay item with the same id replaces the base item whole
-  (no deep merge); an overlay can remove a base item by id. The merged bundle's content hash covers the
-  base hash and the overlay's files, so replays still name the exact content.
-- `content/std-v1`: the generic material (greet, farewell, thank, confirm, deny, introduce_self,
-  ask_price, buy/sell/offer item patterns where they are not world-specific; yes/no, greetings,
-  farewells and introductions answer sets; feedback policy, evaluation settings; generic reply pools).
-  `content/v1` becomes an overlay on it with byte-identical evaluation results (goldens unchanged).
-- Shipped as part of the content package so a host references it instead of copying it; validator,
-  `vocaterra-content validate/hash/cefr-check` understand layered bundles; provenance lists both.
-- The game adopts it in its own repository (its decision); the core only documents the route in
-  `docs/API.md` and answers through `CORE_REQUESTS.md`.
+### 10.2 M27a: content lint (Sonnet, size S/M)
+`vocaterra-content lint <bundle> [--strict]`, also run by `validate` as warnings; it runs the real analyzer
+and `IntentResolver`:
+1. Coverage: each example resolves to its own intent, reporting the rung (grammar or keyword rule).
+2. Confusion per prompt, within the prompt's intent allow-list (what the resolver sees).
+3. Grammar hazards: optional `[WORD]` next to an optional element; a literal or lemma the lexicon lacks;
+   a `[VERB:x]` lemma whose forms are also noun forms.
+4. Reachability: pools no agent uses, intents no prompt allows, answer sets no prompt names, agent states
+   with no way in.
+5. CEFR: dialogue, prompt text (M26f's `cefr-check`) and answer-set canonicals; `--fail-on-level`.
+6. Optional example expectations: an example may be `{"text": "...", "errors": ["conj.person"]}` and the
+   lint checks the verdict's tags (additive schema; string examples keep working).
+Per-intent waiver (`"lint": {"allowOverlap": [...]}`); `validate` never fails on lint by default. For
+uncovered examples the report may print a suggested grammar skeleton (the useful half of the rejected
+suggestion idea). Success: on the sample it reports the `cast_spell`/`thank` overlap and nothing judged
+false (or waived with a reason); on a fixture copy of the game bundle it reproduces the research's 4
+confusions filtered by prompt allow-lists and lists the blacksmith pools as unreachable from the guide's
+prompts; under 5 s on the sample; bundle hash unchanged unless examples gain expectations. Not a hard
+merge gate until one round of waivers has been done; after that "never weaken an oracle" applies to it.
 
-### 10.3 M27b: pattern suggestion from examples (Sonnet, size M)
-- `vocaterra-content suggest --intent <id>`: runs each example sentence through the analyzer, keeps
-  closed-class words literal, abstracts open-class words to `[POS]` or `[POS:lemma]` and the nouns
-  that vary across examples to `[NOUN:slot]`, merges examples that share a skeleton (optional
-  elements become `?`), and writes candidate `slotGrammars` and `keywordRules` to a suggestions file
-  for review. It never edits content in place. Deterministic (ordinal order, no randomness).
-- The same tool reports coverage: which examples each candidate matches, examples of other intents it
-  also matches (confusion), and examples no grammar covers. The coverage check also runs in
-  `validate` as a warning, so a hand-edited grammar that stops matching its own examples is caught.
-- Success measure: on the sample's 11 intents, suggestions from the existing examples alone cover
-  every example with no cross-intent confusion, and reviewing them takes less effort than writing
-  them (judged by the owner on one new intent).
+### 10.3 M27b: layering and `std-v1` (Sonnet, size M)
+- Manifest `"base": {"bundleId": "std-v1", "bundleHash": "<sha256>", "path": "<relative dir>"}`; a host may
+  also supply base directories through `ContentLoadOptions` (packaged `std`). Hash mismatch is a hard error.
+- Merged hash `Combine("layered", baseHash, overlayBundleHash)`; `VersionStamp` records it; provenance and
+  the replay header list both.
+- Whole-item replacement by id (intent, prompt, dialogue pool, answer set, agent, effect); singleton
+  replacement (feedback policy, evaluation config); union (lexicon, CEFR lists); `ATTRIBUTION.md` per layer.
+- Explicit `replaces`/`removes` per kind in the overlay manifest; an undeclared collision or a declared id
+  that does not exist is a validation error; `validate` prints the effective override table.
+- `intents/`, `prompts/`, `dialogue/` accept several `*.json` files (ordinal path order, duplicate ids an
+  error). One level only. `std-v1` passes A1 with zero unlisted lemmas.
+- Success: `content/v1` = `std-v1` + blacksmith overlay with every golden verdict unchanged apart from
+  `contentHash`; lint finds no new issue; a layered bundle packs, verifies and hashes; `docs/API.md` shows
+  the route; the game is told through `CORE_REQUESTS.md`/its notes, never by editing its repository.
+- Not to do: deep merge, array patches, multi-level bases, silent override, reading the game's host files.
 
-### 10.4 Later candidates (not scheduled)
-- Answer sets and item replies generated from a noun catalogue plus the lexicon (plurals, articles).
-- Reusable character templates (shopkeeper, guide) as parameterised state machines.
-- Intents from examples alone via the embedding tier (blocked on the embedding model export; D9).
-- Drafting reply variants and examples with an LLM at authoring time, reviewed and committed (touches
-  D8 and D11 only for authoring).
+### 10.4 M27c: format de-duplication (Haiku, size S)
+Additive shorthand that loads to the same objects: line ids default to `<pool>.<n>`, an action's
+`variantPoolId` defaults to its `dialogueIntent`, keyword rules' `requiresSlots` default to the intent's,
+`anyState` transitions, named grammar fragments / `<np:x>` macros, answer sets with `"articles": true`
+generating article aliases from the lexicon. Success: the sample rewritten in the shorthand gives
+identical catalogs and goldens apart from the hash.
 
+### 10.5 Later (not scheduled)
+LLM drafting at authoring time = M21, with `lint --strict` and `cefr-check --fail-on-level` as its
+acceptance gate; intents from examples via embeddings after D9 and the e5 export (lint data gives the
+calibration sets); character templates when a third agent of an existing shape is planned; pattern
+suggestion revisited after M20. Do not import Home Assistant or MASSIVE sentences into content.
