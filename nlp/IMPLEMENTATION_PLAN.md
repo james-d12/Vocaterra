@@ -204,7 +204,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M19f | Recast bug from the fuzz suite (O5, seed `1diyRPH9lxJ1`): a `conj.tense` error after a leading `ayer` on an irregular verb (`ayer tengo sufrir`) is detected but the recast repeats the wrong form instead of `tuve` | M19e | H | done |
 | M26 | Game requests, batch 1 (CR-002…CR-013, triaged 2026-10-21 into M26a–f below; rows marked `accepted` in the game's `docs/CORE_REQUESTS.md`) | M19f | — | in-progress |
 | M26a | CR-012: repeat counts mean "before this utterance" on `ConversationContext`; the pipeline applies `RepeatCounts.Next` itself before `FeedbackPolicy.Plan` and `RepairFor`; docs and sample host follow | M19f | H | done |
-| M26b | CR-013: accent-insensitive lookup also offers the accented readings of a form the lexicon has (`esta`/`está`, `si`/`sí`, `mas`/`más`, `el`/`él`, `tu`/`tú`…) and the reading resolver chooses | M19f | S | in-progress |
+| M26b | CR-013: accent-insensitive lookup also offers the accented readings of a form the lexicon has (`esta`/`está`, `si`/`sí`, `mas`/`más`, `el`/`él`, `tu`/`tú`…) and the reading resolver chooses | M19f | S | done |
 | M26c | CR-002 analysis on the result, CR-004 answer match on the result, CR-007 host-owned bundle files (`ContentBundle.TryReadHostFile`), CR-008 threading and load-cost contract in `docs/API.md` | M26a | H | todo |
 | M26d | CR-003 host slot values (`SlotMap` on the context, template access, replay record and `HostStateHash`), CR-005 host-named skills in the learner update | M26c | S | todo |
 | M26e | CR-006 speech-out readiness: Kokoro and Parakeet file hashes pinned from real downloads, `KokoroSynthesizer.FromStore`, Spanish speaker ids documented (D2: private builds only) | M19f | H | todo |
@@ -704,6 +704,29 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   different feedback (none is committed). Suite: 2685 passed, 5 skipped (one duplicate theory row
   removed, three facts added). The agent cleared the shared `~/.nuget/packages/vocaterra.nlp.*` 0.1.0
   cache while testing the sample; checkouts re-extract from their own feeds.
+- **M26b results (CR-013):** `Lexicon.LookupWithAccentVariants` (exact readings plus the readings of
+  accented forms that fold to an unaccented lexicon form; `Lookup` unchanged for its other callers) and a
+  resolver step 0, `AccentVariantChoice` (rule tables in `AnalysisTables`): the typed reading is the
+  default and an accented reading wins only when no typed reading fits its neighbours (an article,
+  demonstrative or possessive with no noun phrase after it, a pre-verbal pronoun with no verb, a
+  conjunction or preposition with nothing after it; a determiner after `dónde/donde/cómo` becomes the
+  verb; `como` + pronoun + verb or + a finite verb becomes `cómo`); grammar-bound words and names keep
+  their reading; up to 3 passes. Accent policy: nothing is reported to the learner (no accent tag, as
+  for `arbol`); a recast made for another reason restores the accent (`AccentRestoration.SpellingsFor`
+  in `RecastBuilder`). Corpus of 1102 sentences: 4 false positives removed (`donde esta el arbol`,
+  `como esta el herrero`, `aqui esta el herrero`…), 10 real mistakes now found that the old reading hid
+  (`el esta simpatico` → `ser_estar`, `tu tengo` → `conj.person`…). The first hand-back added a false
+  `conj.person` on `soy el herrero y tu como te llamas`; sent back and fixed (`ed5cde8`) before the gate.
+  Fuzz: new O3 fact drops accents where the neighbours leave no doubt; realiser re-rolls
+  determiner/preposition/pronoun patterns that a reader can take either way
+  (`skip:accent-variant-homograph`, within the homograph budget); five seeds that already failed on
+  main were narrowed with reasons in the fuzz README (`2to272FZCXD3`, `belmI3pADeia`, `fApfampI1fQ3`,
+  `8OeIOEx_Hfm3`, `1RTZdjQ2tFb2`). Suite: 2749 passed, 5 skipped; fuzz 57 facts. Known, not fixed:
+  `tu hablas`/`tu ayudas` still read as possessive + noun (`noun.number`); `esta hecho` gives
+  `gender.agree`; the slot-grammar matcher still sees typed readings, so `[VERB:estar]` does not bind
+  `esta` (the game keeps its supplement entry); **follow-up:** in a grammar with an alternation and a
+  `[WORD]` name, a mis-conjugated verb can bind as the name and its error is lost (seed `1RTZdjQ2tFb2`,
+  fuzz narrowed, source not fixed).
 - **Two orchestrators (owner, 2026-10-21):** this repository is run by the core orchestrator only; the
   Vocaterra repository has its own orchestrator and plan. Protocol: the game writes requests for core
   changes to `docs/CORE_REQUESTS.md` in its repository; the core orchestrator reads that file at the
