@@ -119,6 +119,8 @@ recorded in docs/CORE_REQUESTS.md (row ids); known-not-fixed with reasoning; any
 - Package cache: NuGet caches by id and version only, and the core's own worktrees pack 0.1.0 into the shared `~/.nuget/packages`. Every
   brief sets `NUGET_PACKAGES=$HOME/.nuget/vocaterra-game-packages` on each dotnet command; the gate uses that folder and clears the core
   packages in it each run, and its build log names the package source (P4 finding).
+- Native assets: on Linux x64 the build targets linux-x64 only (G7, `Directory.Build.props`); `-p:VocaterraAllRuntimes=true` on restore and
+  build gives every platform. A plain restore is enough for the trimmed build.
 
 ## Never
 - Write code under `src/` or `tests/` yourself; the plan, decisions, requests file, briefs, gate script, CLAUDE.md and this file are the

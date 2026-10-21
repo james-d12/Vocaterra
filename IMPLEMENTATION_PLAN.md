@@ -63,8 +63,8 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 ### Handover (2026-10-21, after P4)
 
 Where things stand, for the next orchestrator session:
-- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4, P4b, P6, G6, P6b. Core pin `53c52b7` (M26a to M26e). Tests on `main`: 518.
-- **Next:** G7 (Linux-only native assets, LICENSE), then P5; earlier queue: P6b (crafting; owner 2026-10-21: crafting before caves, with stations), then P5 (spoken input; Sonnet 5.5) and P7; previously P5 or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
+- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4, P4b, P6, G6, P6b, G7. Core pin `53c52b7` (M26a to M26e). Tests on `main`: 518. Licence MIT (D-game-2).
+- **Next:** P5 (spoken input; Sonnet 5.5), then P7 and P8; earlier queue: P6b (crafting; owner 2026-10-21: crafting before caves, with stations), then P5 (spoken input; Sonnet 5.5) and P7; previously P5 or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
   the other. Then P7, P9; P8 waits on CR-006; P10 optional; G3 and G4 after P9.
 - **Core requests:** the core accepted CR-002 to CR-008 and CR-010 to CR-013 into its M26a to M26f (2026-10-21); CR-014 (P4) and CR-015 (P4b) are `open`.
   When rows turn `done`, bump the submodule; CR-012's fix (M26a) lets the guide drop `EvaluateCountingThisUtterance`, which is a
@@ -102,7 +102,7 @@ Where things stand, for the next orchestrator session:
 | G3 | Innkeeper scene (section 4.1) | planned, after P9 | Sonnet 5.5 for the scene design, Haiku 5.5 for the content checklist | G2, P9 |
 | G4 | Quest-giver scene (section 4.2) | planned, after G3 | Haiku 5.5 | G3 |
 | G6 | Core bump to `53c52b7` (M26a to M26e) and adoption: drop the CR-012 double evaluation, the CR-013 `esta` lexicon entry if no longer needed, read `nouns.json` with `TryReadHostFile` (CR-007), word lists from `PipelineResult.Words` (CR-002), the guide's world line through host slots (CR-003), the named answer through `PipelineResult.Answer` where it fits (CR-004), `word.<lemma>` extra skills (CR-005) | done (merged 2026-10-21; core pin `53c52b7`) | Haiku 5.5 | P6 |
-| G7 | Build trim and licence: Linux-only native assets (owner, 2026-10-21; about 1.5 GB less per build), `LICENSE` (MIT, D-game-2) and README licence lines | in progress (2026-10-21) | Haiku 5.5 | P6b |
+| G7 | Build trim and licence: Linux-only native assets (owner, 2026-10-21; about 1.5 GB less per build), `LICENSE` (MIT, D-game-2) and README licence lines | done (merged 2026-10-21) | Haiku 5.5 | P6b |
 | R1 | Research: Terraria-inspired prototype (guide NPC by text and speech, mining, building, movement, forest biome, map and cave generation, language progress tracking, known nouns in colour and unknown in greyscale, inventory) on MonoGame; findings in `docs/research/` | done (merged 2026-10-21, `0e8d601`); proposals await the owner | Opus 5.5 (owner's request) | G0 |
 
 Each milestone ends with the gate in section 6 and a line in section 5.
@@ -410,6 +410,18 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - Content pass items: "¿de dónde sale la madera?" while carrying wood answers only "Tienes cuatro bloques de madera." (it should say the
     source too); the panel reads "Usa mesa" (no article); `falta`, `faltar`, `nada` are A2, not in the A1 list (owner's call);
     `ask_directions` for `madera` points at placed planks, only `ask_find` goes to trees.
+
+- **G7 (2026-10-21, merged, Haiku 5.5).** Native-asset trim and licence. `Directory.Build.props` sets `RuntimeIdentifier=linux-x64`,
+  `SelfContained=false` and `AppendRuntimeIdentifierToOutputPath=false` on a Linux x64 host unless `-p:VocaterraAllRuntimes=true` (pass it
+  to restore too; toggling needs a restore). Output paths are unchanged (`bin/Debug/net10.0/`), the linux-x64 natives land flat next to the
+  executable. bin+obj of the solution: 2.0 GB to 217 MB; the MonoGame project's bin 405 MB to 42 MB. `LICENSE` (MIT), README licence
+  section (MIT; Wiktionary lexicon CC BY-SA 4.0; core Apache-2.0; MonoGame Ms-PL; CC0 assets; no distributed build with sherpa-onnx
+  natives while core D2 is open). Rejected: stripping `runtimes/*` from the copy-local items after `ResolvePackageAssets` (relies on NuGet
+  internals).
+  - **For P5:** Vosk 0.3.38 copies `libvosk.so` through `build/Vosk.targets` (`build/lib/linux-x64`), which NuGet imports only into a
+    project that references `Vosk` directly (`build/` assets do not flow transitively). No game project does, so `libvosk.so` is not in any
+    output (not a G7 regression: it was never there). P5 must make the speech project carry it (a direct `Vosk` package reference in
+    `Directory.Packages.props`, or ask the core for `buildTransitive` in CR form) and test that the recognizer loads.
 
 ## 6. Definition of done (every milestone)
 
