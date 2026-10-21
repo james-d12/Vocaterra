@@ -102,10 +102,10 @@ scripts/sample-host.sh              # packs, restores and builds the sample agai
 scripts/sample-host.sh <bundleDir>  # the same on another bundle directory
 ```
 
-The output on the committed bundle (hash `cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1`):
+The output on the committed bundle (hash `1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2`):
 
 ```
-bundle v1 1.0.0, hash cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1
+bundle v1 1.0.0, hash 1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2
 offer-items-open: "yo tiene dos espada"
   intent=offer_item communicated=true correctness=0.5
   error conj.person: expected 'tengo', heard 'tiene'

@@ -418,7 +418,7 @@ dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos 
   "confidence": 1,
   "resolvedBy": "Grammar",
   "versions": {
-    "contentHash": "cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1",
+    "contentHash": "1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2",
     "modelHashes": {
       "asr": "scripted-transcript"
     }

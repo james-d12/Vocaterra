@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Response.Templates;
 using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
@@ -148,6 +149,111 @@ public class CefrCheckerTests
         Assert.Equal(
             "cefr a1: 4 lemmas in dialogue templates, 2 covered, 2 not in the list\n  espada: a.1, b.1\n  zzxq (not in lexicon): c.1\n",
             CefrChecker.Format(report));
+    }
+
+    private static PromptSpec Prompt(string id, string? text)
+    {
+        return new PromptSpec(id, RecognitionMode.Open, Difficulty.Beginner, "items-basic", [], null, [], text);
+    }
+
+    private static Dictionary<string, PromptSpec> Prompts(params PromptSpec[] prompts)
+    {
+        return prompts.ToDictionary(prompt => prompt.PromptId, StringComparer.Ordinal);
+    }
+
+    [Fact]
+    public void PromptTextIsCheckedAndReportedWithItsPromptId()
+    {
+        var prompts = Prompts(
+            Prompt("zeta", "Tengo una espada."),
+            Prompt("alpha", "Hola, amigo. ¿Quieres una espada?"),
+            Prompt("silent", null));
+
+        var report = CefrChecker.Check(DialogueCatalog.Empty, NlpLexicon.Seed, Set("hola", "amigo"), "a1", prompts);
+
+        Assert.NotNull(report.Prompts);
+        Assert.Equal(["espada", "querer", "tener", "un"], report.Prompts.Missing.Select(missing => missing.Lemma));
+        Assert.All(report.Prompts.Missing, missing => Assert.Equal(missing.LineIds.Count, missing.LineIds.Distinct().Count()));
+        Assert.Equal(["alpha", "zeta"], report.Prompts.Missing.Single(missing => missing.Lemma == "espada").LineIds);
+        Assert.Equal(["alpha"], report.Prompts.Missing.Single(missing => missing.Lemma == "querer").LineIds);
+        Assert.Equal(["zeta"], report.Prompts.Missing.Single(missing => missing.Lemma == "tener").LineIds);
+        Assert.Equal(2, report.Prompts.CoveredLemmas);
+        Assert.Equal(report.Prompts.CoveredLemmas + report.Prompts.Missing.Count, report.Prompts.TotalLemmas);
+        Assert.Empty(report.Missing);
+    }
+
+    [Fact]
+    public void PromptFindingsDoNotChangeTheDialogueCounts()
+    {
+        var catalog = Catalog(("offer", "Hola, ¿quieres una espada?"));
+
+        var without = CefrChecker.Check(catalog, NlpLexicon.Seed, Set("hola"), "a1");
+        var with = CefrChecker.Check(catalog, NlpLexicon.Seed, Set("hola"), "a1", Prompts(Prompt("p", "Adiós.")));
+
+        Assert.Null(without.Prompts);
+        Assert.Equal(without.TotalLemmas, with.TotalLemmas);
+        Assert.Equal(without.Missing, with.Missing);
+        Assert.Equal(["adiós"], with.Prompts!.Missing.Select(missing => missing.Lemma));
+    }
+
+    [Fact]
+    public void ANullPromptListLeavesThePromptFindingsOut()
+    {
+        var report = CefrChecker.Check(DialogueCatalog.Empty, NlpLexicon.Seed, Set("hola"), "a1", null);
+
+        Assert.Null(report.Prompts);
+        Assert.Equal(report, CefrChecker.Check(DialogueCatalog.Empty, NlpLexicon.Seed, Set("hola"), "a1"));
+    }
+
+    [Fact]
+    public void PromptTextIsAnalyzedAsWrittenAndIndefiniteArticlesAreKept()
+    {
+        var prompts = Prompts(Prompt("p", "Vendo un oro."));
+
+        var report = CefrChecker.Check(DialogueCatalog.Empty, NlpLexicon.Seed, Set("vender", "oro"), "a1", prompts);
+
+        Assert.Equal(["un"], report.Prompts!.Missing.Select(missing => missing.Lemma));
+        Assert.Equal(["p"], report.Prompts.Missing[0].LineIds);
+    }
+
+    [Fact]
+    public void TheFormatListsPromptFindingsAfterTheDialogueFindings()
+    {
+        var report = new CefrReport(
+            "a1",
+            1,
+            0,
+            [new CefrMissingLemma("espada", true, ["a.1"])],
+            new CefrPromptReport(2, 1, [new CefrMissingLemma("tienda", true, ["offer-items-open"])]));
+
+        Assert.Equal(
+            "cefr a1: 1 lemmas in dialogue templates, 0 covered, 1 not in the list\n  espada: a.1\n"
+            + "cefr a1: 2 lemmas in prompt text, 1 covered, 1 not in the list\n  tienda: offer-items-open\n",
+            CefrChecker.Format(report));
+    }
+
+    [Fact]
+    public void ReportsWithPromptFindingsCompareByValue()
+    {
+        var one = new CefrReport("a1", 0, 0, [], new CefrPromptReport(1, 0, [new CefrMissingLemma("x", true, ["p"])]));
+        var two = new CefrReport("a1", 0, 0, [], new CefrPromptReport(1, 0, [new CefrMissingLemma("x", true, ["p"])]));
+
+        Assert.Equal(one, two);
+        Assert.Equal(one.GetHashCode(), two.GetHashCode());
+        Assert.NotEqual(one, new CefrReport("a1", 0, 0, []));
+        Assert.NotEqual(one, new CefrReport("a1", 0, 0, [], new CefrPromptReport(1, 0, [new CefrMissingLemma("y", true, ["p"])])));
+    }
+
+    [Fact]
+    public void TheSampleBundlesPromptTextIsCheckedWithTheDialogueTemplates()
+    {
+        var a1 = CefrChecker.Check(TestSupport.Bundle, "a1");
+
+        Assert.NotNull(a1.Prompts);
+        Assert.True(a1.Prompts.TotalLemmas > 0);
+        Assert.Equal(a1.Prompts.TotalLemmas, a1.Prompts.CoveredLemmas + a1.Prompts.Missing.Count);
+        Assert.All(a1.Prompts.Missing, missing => Assert.All(missing.LineIds, id => Assert.Contains(id, TestSupport.Bundle.Prompts.Keys)));
+        Assert.Equal(a1, CefrChecker.Check(TestSupport.Bundle, "a1"));
     }
 
     [Fact]

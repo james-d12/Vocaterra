@@ -79,7 +79,7 @@ dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos 
 The command prints the verdict JSON, then the agent lines, then a decision summary:
 
 ```text
-{"intent":"offer_item","slots":{"item":"espada","qty":"2","verb":"tener"},"communicated":true,"correctness":0.5,"errors":[{"tag":"conj.person","span":{"start":3,"length":5},"expected":"tengo","actual":"tiene"},{"tag":"noun.number","span":{"start":11,"length":6},"expected":"espadas","actual":"espada"}],"pronunciation":[],"confidence":1,"resolvedBy":"Grammar","versions":{"contentHash":"cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1","modelHashes":{"asr":"scripted-transcript"}}}
+{"intent":"offer_item","slots":{"item":"espada","qty":"2","verb":"tener"},"communicated":true,"correctness":0.5,"errors":[{"tag":"conj.person","span":{"start":3,"length":5},"expected":"tengo","actual":"tiene"},{"tag":"noun.number","span":{"start":11,"length":6},"expected":"espadas","actual":"espada"}],"pronunciation":[],"confidence":1,"resolvedBy":"Grammar","versions":{"contentHash":"1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2","modelHashes":{"asr":"scripted-transcript"}}}
 agent: Ah, ¿tienes dos espadas? ¡Muy bien!
 agent: ¡Dos espadas! Trato hecho.
 decision: rating Hard, learner skills 3, feedback items 2
@@ -98,7 +98,7 @@ whitespace between tokens):
     "promptId": "offer-items-open",
     "hostStateHash": "6b9e4914018ba5c025378256d2bc473fbab48e4db7cbf773baae073e42d76b21",
     "versions": {
-      "contentHash": "cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1",
+      "contentHash": "1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2",
       "modelHashes": {
         "asr": "scripted-transcript"
       }
@@ -136,7 +136,7 @@ whitespace between tokens):
       "confidence": 1,
       "resolvedBy": "Grammar",
       "versions": {
-        "contentHash": "cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1",
+        "contentHash": "1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2",
         "modelHashes": {
           "asr": "scripted-transcript"
         }
@@ -214,7 +214,7 @@ whitespace between tokens):
       "confidence": 1,
       "resolvedBy": "Grammar",
       "versions": {
-        "contentHash": "cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1",
+        "contentHash": "1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2",
         "modelHashes": {
           "asr": "scripted-transcript"
         }
@@ -302,7 +302,7 @@ whitespace between tokens):
       "promptId": "offer-items-open",
       "hostStateHash": "6b9e4914018ba5c025378256d2bc473fbab48e4db7cbf773baae073e42d76b21",
       "versions": {
-        "contentHash": "cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1",
+        "contentHash": "1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2",
         "modelHashes": {
           "asr": "scripted-transcript"
         }
@@ -340,7 +340,7 @@ whitespace between tokens):
         "confidence": 1,
         "resolvedBy": "Grammar",
         "versions": {
-          "contentHash": "cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1",
+          "contentHash": "1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2",
           "modelHashes": {
             "asr": "scripted-transcript"
           }
