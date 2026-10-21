@@ -151,6 +151,7 @@ public sealed class GuideService
         GuidePointer? pointer = null;
         string? identified = null;
         var naming = NameCheck.None;
+        string? nameTarget = null;
         if (verdict.Communicated)
         {
             var rng = SeededRng.ForInteraction(utterance.WorldSeed, HostLineStream, utterance.AgentState.InteractionCounter);
@@ -168,7 +169,7 @@ public sealed class GuideService
                         worldLine = Render(scene.PointerActive ? HelpWalk : HelpAsk, SlotMap.Empty, rng);
                         break;
                     case GuideEvents.Name:
-                        (worldLine, naming) = Name(verdict, scene, rng);
+                        (worldLine, naming, nameTarget) = Name(verdict, scene, rng);
                         break;
                     default:
                         break;
@@ -192,7 +193,8 @@ public sealed class GuideService
             identified,
             result.Replay.HostStateHash,
             verdict.Slots,
-            naming);
+            naming,
+            nameTarget);
     }
 
     private (string Line, GuidePointer? Pointer) Point(Verdict verdict, GuideScene scene, SeededRng rng)
@@ -231,17 +233,17 @@ public sealed class GuideService
     // The guide's check of a name: the cursor's tile is the expected noun. A name is right when it is that noun and no error was found on it;
     // the core cannot grade against a host value (CR-014), so the game does. The word counts use the check: a name that is not the tile's noun
     // earns no colour (D-game-6 as amended).
-    private (string Line, NameCheck Check) Name(Verdict verdict, GuideScene scene, SeededRng rng)
+    private (string Line, NameCheck Check, string? Target) Name(Verdict verdict, GuideScene scene, SeededRng rng)
     {
         var target = scene.Cursor is { } cursor ? NounAt(cursor) : null;
         if (target is null)
         {
-            return (Render(NameNone, SlotMap.Empty, rng), NameCheck.NoTarget);
+            return (Render(NameNone, SlotMap.Empty, rng), NameCheck.NoTarget, null);
         }
 
         var named = verdict.Slots.TryGetValue("object", out var lemma) ? lemma : string.Empty;
         var right = named == target && verdict.Errors.Count == 0;
-        return (Render(right ? NameRight : NameWrong, SlotMap.Empty.With("target", target), rng), right ? NameCheck.Right : NameCheck.Wrong);
+        return (Render(right ? NameRight : NameWrong, SlotMap.Empty.With("target", target), rng), right ? NameCheck.Right : NameCheck.Wrong, target);
     }
 
     private string? NounAt(TilePoint tile) => WorldFacts.NounOfTile(_facts.TileAt(tile));
