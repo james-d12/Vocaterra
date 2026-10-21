@@ -1,0 +1,33 @@
+# Build output
+bin/
+obj/
+TestResults/
+
+# Packages, the local feed and the content bundle archives (scripts/pack.sh, scripts/sample-host.sh); rebuilt, never committed
+artifacts/
+
+# IDE / user-specific
+.vs/
+*.user
+.idea/
+.vscode/
+
+# Models are fetched, not committed (manifest.json and this README are the exceptions)
+models/*
+!models/manifest.json
+!models/README.md
+
+# Golden learner audio is local-only
+golden/audio/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code: agent worktrees and gate logs are local; agents/ is committed
+.claude/worktrees/
+.claude/gate-logs/
+.claude/settings.local.json
+
+# Lexicon source data (kaikki.org Wiktionary extract, FrequencyWords) is fetched, not committed; see docs/LEXICON.md
+lexicon-sources/

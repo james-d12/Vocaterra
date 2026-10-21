@@ -1,0 +1,62 @@
+<Project>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <RootNamespace Condition="'$(RootNamespace)' == ''">$(MSBuildProjectName)</RootNamespace>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Only the library projects under src/ are packed (see the src group below), and the ContentBuilder tool, which sets IsPackable itself
+         in its project file. Tests and samples are never packages. -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- Package metadata shared by the libraries. The version is 0.1.0 until the first publish (docs/PACKAGING.md). The licence is Apache-2.0
+       (LICENSE and NOTICE at the repository root; docs/DECISIONS.md D3). The Wiktionary-derived lexicon data is CC BY-SA 4.0 and is not in the packages. -->
+  <PropertyGroup>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <Authors>james-d12</Authors>
+    <PackageProjectUrl>https://github.com/james-d12/Vocaterra.NLP</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/james-d12/Vocaterra.NLP</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageTags>spanish;language-learning;speech;pronunciation;nlp;vocaterra</PackageTags>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <!-- Deterministic (above) and, in CI, ContinuousIntegrationBuild make the packages reproducible from the same commit. -->
+  <PropertyGroup Condition="'$(CI)' != ''">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!-- Library projects under src/ ship XML docs, expose internals to their test project and are the packages. The package id is the project name. -->
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.StartsWith('$(MSBuildThisFileDirectory)src$(MSBuildDirectorySeparatorChar)'))">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <PackageId>$(MSBuildProjectName)</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <!-- MSBuildProjectName, not AssemblyName: AssemblyName is not yet defined while this file is evaluated. -->
+  <ItemGroup Condition="$(MSBuildProjectDirectory.StartsWith('$(MSBuildThisFileDirectory)src$(MSBuildDirectorySeparatorChar)'))">
+    <InternalsVisibleTo Include="$(MSBuildProjectName).Tests" />
+    <!-- One README for every package, shipped at the root of each as README.md. -->
+    <None Include="$(MSBuildThisFileDirectory)docs/PACKAGE_README.md" Pack="true" PackagePath="README.md" />
+  </ItemGroup>
+
+  <!-- The licence and the notice travel with every package that redistributes this code, the content tool's included (Apache-2.0,
+       section 4). Projects that are not packable ignore these items. -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="\" />
+    <None Include="$(MSBuildThisFileDirectory)NOTICE" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

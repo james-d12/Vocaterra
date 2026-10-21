@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Content bundle format, loader, validator, provenance, lexicon import and CEFR lists of the Vocaterra.NLP language core.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Audio/Vocaterra.Nlp.Audio.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Phonology/Vocaterra.Nlp.Phonology.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Language/Vocaterra.Nlp.Language.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Pronunciation/Vocaterra.Nlp.Pronunciation.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Asr/Vocaterra.Nlp.Asr.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Evaluation/Vocaterra.Nlp.Evaluation.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Decision/Vocaterra.Nlp.Decision.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Response/Vocaterra.Nlp.Response.csproj" />
+  </ItemGroup>
+
+</Project>

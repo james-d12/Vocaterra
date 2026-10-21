@@ -1,0 +1,68 @@
+{
+  "beginner": {
+    "errorWeights": {
+      "conj.irregular": 0.2,
+      "conj.person": 0.25,
+      "conj.tense": 0.25,
+      "gender.agree": 0.15,
+      "noun.number": 0.15,
+      "pron.r": 0,
+      "pron.silent_h": 0,
+      "pron.stress": 0,
+      "pron.vowel": 0,
+      "ser_estar": 0.2,
+      "vocab.unknown": 0.4,
+      "vocab.wrong": 0.6,
+      "word_order": 0.1
+    },
+    "communicatedConfidenceThreshold": 0.6,
+    "correctnessThreshold": 0.7,
+    "pronunciationThreshold": 0.5,
+    "epsilon": 0.02,
+    "unknownTagWeight": 0.3
+  },
+  "intermediate": {
+    "errorWeights": {
+      "conj.irregular": 0.25,
+      "conj.person": 0.3,
+      "conj.tense": 0.3,
+      "gender.agree": 0.2,
+      "noun.number": 0.2,
+      "pron.r": 0,
+      "pron.silent_h": 0,
+      "pron.stress": 0,
+      "pron.vowel": 0,
+      "ser_estar": 0.25,
+      "vocab.unknown": 0.4,
+      "vocab.wrong": 0.6,
+      "word_order": 0.15
+    },
+    "communicatedConfidenceThreshold": 0.6,
+    "correctnessThreshold": 0.8,
+    "pronunciationThreshold": 0.6,
+    "epsilon": 0.02,
+    "unknownTagWeight": 0.3
+  },
+  "advanced": {
+    "errorWeights": {
+      "conj.irregular": 0.3,
+      "conj.person": 0.35,
+      "conj.tense": 0.35,
+      "gender.agree": 0.25,
+      "noun.number": 0.25,
+      "pron.r": 0,
+      "pron.silent_h": 0,
+      "pron.stress": 0,
+      "pron.vowel": 0,
+      "ser_estar": 0.3,
+      "vocab.unknown": 0.4,
+      "vocab.wrong": 0.6,
+      "word_order": 0.2
+    },
+    "communicatedConfidenceThreshold": 0.6,
+    "correctnessThreshold": 0.9,
+    "pronunciationThreshold": 0.7,
+    "epsilon": 0.02,
+    "unknownTagWeight": 0.3
+  }
+}

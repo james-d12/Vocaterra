@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "intents": [
+    {
+      "intentId": "ask_price",
+      "requiredSlots": ["item"],
+      "slotGrammars": [
+        "cuánto [VERB:costar] [ART]? [NOUN:item]",
+        "cuál es el precio de [ART]? [NOUN:item]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["costar"], "requiresSlots": ["item"], "slotFromNoun": "item" },
+        { "lemmas": ["precio"], "requiresSlots": ["item"], "slotFromNoun": "item" }
+      ],
+      "examples": [
+        "cuánto cuesta la espada",
+        "cuánto cuestan las flechas",
+        "cuánto cuesta el escudo",
+        "cuánto cuesta un arco",
+        "cuál es el precio de la poción"
+      ]
+    },
+    {
+      "intentId": "buy_item",
+      "requiredSlots": ["item"],
+      "slotGrammars": [
+        "[VERB:querer] [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item]",
+        "[VERB:comprar] [ART]? [NUM:qty]? [NOUN:item]",
+        "[VERB:querer] [ART]? [NUM:qty]? [NOUN:item]",
+        "[VERB:necesitar] [ART]? [NUM:qty]? [NOUN:item]",
+        "me [VERB:dar] [ART]? [NUM:qty]? [NOUN:item]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["comprar"], "requiresSlots": ["item"], "slotFromNoun": "item" },
+        { "lemmas": ["necesitar"], "requiresSlots": ["item"], "slotFromNoun": "item" }
+      ],
+      "examples": [
+        "quiero comprar una espada",
+        "quiero comprar dos pociones",
+        "compro un escudo",
+        "necesito una flecha",
+        "quiero un arco",
+        "me das una poción"
+      ]
+    },
+    {
+      "intentId": "cast_spell",
+      "requiredSlots": ["spell"],
+      "slotGrammars": [
+        "[VERB:lanzar]? [ART]? [NOUN:spell] [ADJ]?",
+        "[VERB:querer] [VERB:lanzar] [ART]? [NOUN:spell] [ADJ]?",
+        "[VERB:lanzar] [ART]? hechizo de [NOUN:spell]",
+        "[ART]? (bola|lanza) de [NOUN:spell]",
+        "[ART]? [NOUN:spell] de magia"
+      ],
+      "keywordRules": [
+        { "lemmas": ["lanzar"], "requiresSlots": ["spell"], "slotFromNoun": "spell" }
+      ],
+      "examples": [
+        "lanzo fuego",
+        "quiero lanzar hielo",
+        "lanzo un rayo",
+        "lanzo un hechizo de fuego",
+        "lanzo el escudo mágico"
+      ]
+    },
+    {
+      "intentId": "greet",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "hola [NOUN]?",
+        "(buenos|buenas) (días|tardes|noches)"
+      ],
+      "keywordRules": [
+        { "lemmas": ["hola"], "requiresSlots": [] }
+      ],
+      "examples": [
+        "hola",
+        "hola amigo",
+        "buenos días",
+        "buenas tardes",
+        "buenas noches"
+      ]
+    },
+    {
+      "intentId": "offer_item",
+      "requiredSlots": ["item", "qty"],
+      "slotGrammars": [
+        "[VERB:tener:verb] [NUM:qty] [NOUN:item]",
+        "[PRON]? [VERB:ofrecer:verb] [NUM:qty] [NOUN:item]",
+        "[VERB:querer] [VERB:ofrecer:verb] [NUM:qty] [NOUN:item]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["ofrecer"], "requiresSlots": ["item", "qty"], "slotFromNoun": "item", "slotFromNumber": "qty" },
+        { "lemmas": ["tener"], "requiresSlots": ["item", "qty"], "slotFromNoun": "item", "slotFromNumber": "qty" }
+      ],
+      "examples": [
+        "tengo dos espadas",
+        "tengo tres escudos",
+        "te ofrezco cinco flechas",
+        "ofrezco dos arcos",
+        "quiero ofrecer diez pociones"
+      ]
+    },
+    {
+      "intentId": "sell_item",
+      "requiredSlots": ["item"],
+      "slotGrammars": [
+        "[VERB:querer] [VERB:vender] [ART]? [NUM:qty]? [NOUN:item]",
+        "[VERB:poder] [VERB:vender] [ART]? [NUM:qty]? [NOUN:item]",
+        "[VERB:vender] [ART]? [NUM:qty]? [NOUN:item]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["vender"], "requiresSlots": ["item"], "slotFromNoun": "item" }
+      ],
+      "examples": [
+        "quiero vender una espada",
+        "quiero vender tres pociones",
+        "vendo un escudo",
+        "vendo dos flechas",
+        "puedo vender un arco"
+      ]
+    },
+    {
+      "intentId": "confirm",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(sí|claro|vale)",
+        "[VERB:estar]? de acuerdo"
+      ],
+      "keywordRules": [
+        { "lemmas": ["sí"], "requiresSlots": [] }
+      ],
+      "examples": [
+        "sí",
+        "sí, por favor",
+        "claro",
+        "vale",
+        "de acuerdo",
+        "yo estás de acuerdo"
+      ]
+    },
+    {
+      "intentId": "deny",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(no|ahora no)",
+        "no gracias",
+        "no [VERB:querer]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["no"], "requiresSlots": [] }
+      ],
+      "examples": [
+        "no",
+        "no, gracias",
+        "ahora no",
+        "no quiero",
+        "yo no quieres"
+      ]
+    },
+    {
+      "intentId": "farewell",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(adiós|hasta (luego|mañana))",
+        "nos [VERB:ver]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["adiós"], "requiresSlots": [] }
+      ],
+      "examples": [
+        "adiós",
+        "hasta luego",
+        "hasta mañana",
+        "nos vemos",
+        "nos veo"
+      ]
+    },
+    {
+      "intentId": "introduce_self",
+      "requiredSlots": ["name"],
+      "slotGrammars": [
+        "me [VERB:llamar] [WORD:name]",
+        "[VERB:ser] [WORD:name]",
+        "mi nombre es [WORD:name]"
+      ],
+      "examples": [
+        "me llamo Rosa",
+        "soy Sol",
+        "mi nombre es Luz",
+        "yo soy Mar",
+        "yo es Rosa"
+      ]
+    },
+    {
+      "intentId": "thank",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "gracias [NOUN]?",
+        "muchas gracias"
+      ],
+      "keywordRules": [
+        { "lemmas": ["gracias"], "requiresSlots": [] }
+      ],
+      "examples": [
+        "gracias",
+        "muchas gracias",
+        "gracias, amigo",
+        "muchas gracias por todo",
+        "mucho gracias"
+      ]
+    }
+  ]
+}

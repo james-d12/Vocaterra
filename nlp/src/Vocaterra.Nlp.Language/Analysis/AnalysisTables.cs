@@ -1,0 +1,94 @@
+using System.Collections.Frozen;
+
+namespace Vocaterra.Nlp.Language.Analysis;
+
+/// <summary>Small hand-written word tables used by the linguistic analyzer.</summary>
+internal static class AnalysisTables
+{
+    private static readonly FrozenSet<string> EstarAdjectives = new[]
+    {
+        "cansado", "enfermo", "contento", "triste", "ocupado", "preocupado", "enojado", "listo", "lleno", "vacío", "cerrado", "abierto",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    private static readonly FrozenSet<string> SerAdjectives = new[]
+    {
+        "alto", "bajo", "inteligente", "simpático", "amable", "guapo", "feo", "importante", "fácil", "difícil", "trabajador",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    private static readonly FrozenSet<string> PrenominalAdjectives = new[] { "grande", "bueno", "malo" }.ToFrozenSet(StringComparer.Ordinal);
+
+    private static readonly FrozenSet<string> NounModifyingAdverbs = new[]
+    {
+        "solo", "sólo", "también", "tampoco", "incluso", "casi", "apenas", "aun", "aún", "más", "menos", "hasta", "ni",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    private static readonly FrozenSet<string> PastTimeAdverbs = new[] { "ayer", "anoche", "anteayer" }.ToFrozenSet(StringComparer.Ordinal);
+
+    private static readonly FrozenSet<string> TimeNouns = new[]
+    {
+        "semana", "mes", "año", "día", "noche", "vez", "hora", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    // The question words that take a verb right after them (dónde está, cómo está), spelled with and without the accent, folded to lower case.
+    private static readonly FrozenSet<string> VerbSeekingQuestionWords = new[] { "dónde", "donde", "cómo" }.ToFrozenSet(StringComparer.Ordinal);
+
+    // Pronouns that stand before a verb or before another such pronoun (te lo doy); a word spelled like one that has no verb after it is not one of them.
+    private static readonly FrozenSet<string> PreverbalPronouns = new[]
+    {
+        "me", "te", "se", "lo", "la", "los", "las", "le", "les", "nos", "os",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
+    /// <summary>True for the question words that are followed by a verb (<c>dónde</c>, <c>donde</c>, <c>cómo</c>), so a word that is a determiner or a verb form after one is the verb.</summary>
+    public static bool IsVerbSeekingQuestionWord(string word)
+    {
+        return VerbSeekingQuestionWords.Contains(word);
+    }
+
+    /// <summary>True for the pronouns that stand before a verb (<c>me</c>, <c>te</c>, <c>se</c>, <c>lo</c>, <c>la</c>...), which may be followed by another one.</summary>
+    public static bool IsPreverbalPronoun(string lemma)
+    {
+        return PreverbalPronouns.Contains(lemma);
+    }
+
+    /// <summary>True for adverbs that may stand directly before a noun (solo agua, también espadas, más agua), unlike manner and time adverbs (temprano, bien, ahora).</summary>
+    public static bool IsNounModifyingAdverb(string lemma)
+    {
+        return NounModifyingAdverbs.Contains(lemma);
+    }
+
+    /// <summary>True for the interrogative quantifier <c>cuánto</c>, which is an adverb before a verb (cuánto cuesta) and a determiner before a noun (cuántas espadas).</summary>
+    public static bool IsInterrogativeQuantifier(string lemma)
+    {
+        return string.Equals(lemma, "cuánto", StringComparison.Ordinal);
+    }
+
+    /// <summary>True for adjectives that describe a temporary state and take estar.</summary>
+    public static bool TakesEstar(string adjectiveLemma)
+    {
+        return EstarAdjectives.Contains(adjectiveLemma);
+    }
+
+    /// <summary>True for adjectives that describe an inherent quality and take ser.</summary>
+    public static bool TakesSer(string adjectiveLemma)
+    {
+        return SerAdjectives.Contains(adjectiveLemma);
+    }
+
+    /// <summary>True for adjectives that normally precede their noun (grande, bueno, malo; determiner adjectives are handled elsewhere).</summary>
+    public static bool IsPrenominal(string adjectiveLemma)
+    {
+        return PrenominalAdjectives.Contains(adjectiveLemma) || Lexicon.WordClasses.IsDeterminerAdjective(adjectiveLemma);
+    }
+
+    /// <summary>True for adverbs that put the sentence in the past (ayer, anoche, anteayer).</summary>
+    public static bool IsPastTimeAdverb(string lemma)
+    {
+        return PastTimeAdverbs.Contains(lemma);
+    }
+
+    /// <summary>True for nouns that combine with <c>pasado</c> to mark past time (la semana pasada).</summary>
+    public static bool IsTimeNoun(string lemma)
+    {
+        return TimeNouns.Contains(lemma);
+    }
+}

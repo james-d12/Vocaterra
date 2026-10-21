@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Response/Vocaterra.Nlp.Response.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Kokoro (sherpa-onnx) needs the libonnxruntime.so that sherpa ships. Microsoft.ML.OnnxRuntime (via Vocaterra.Nlp.Language) copies a
+         different libonnxruntime.so into the same folder, and the sherpa library then fails with "version VERS_1.28.2 not found". No test in this
+         project creates an ONNX Runtime session through Microsoft's package, so its native copy is left out here. -->
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" ExcludeAssets="native" />
+  </ItemGroup>
+
+</Project>
