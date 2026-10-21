@@ -17,6 +17,7 @@
         {"text": "buenos días", "errors": [], "prompt": "villager-open"},
         {"text": "buenas tardes", "errors": [], "prompt": "villager-open"},
         {"text": "buenas noches", "errors": [], "prompt": "villager-open"},
+        {"text": "buen día", "errors": [], "prompt": "villager-open"},
         {"text": "buenos día", "errors": ["noun.number"], "prompt": "villager-open"},
         "hola amigo"
       ]
@@ -25,20 +26,26 @@
       "intentId": "confirm",
       "requiredSlots": [],
       "slotGrammars": [
-        "(sí|claro|vale)",
-        "[VERB:estar]? de acuerdo",
-        "(sí|claro|vale) gracias"
+        "(sí|claro) (por favor|gracias)?",
+        "de acuerdo",
+        "claro que sí",
+        "(sí|claro) [VERB:querer]",
+        "por favor (sí|claro)"
       ],
       "keywordRules": [
         { "lemmas": ["sí"], "requiresSlots": [] }
       ],
-      "lint": {"allowRuleOnly": ["por favor, sí"]},
+      "lint": {"allowRuleOnly": ["sí, por favo"]},
       "examples": [
         {"text": "sí, por favor", "errors": [], "prompt": "stall-offer"},
         {"text": "sí", "errors": [], "prompt": "stall-offer"},
         {"text": "claro", "errors": [], "prompt": "stall-offer"},
         {"text": "sí, gracias", "errors": [], "prompt": "stall-offer"},
-        {"text": "por favor, sí", "errors": ["vocab.wrong"], "prompt": "stall-offer"}
+        {"text": "sí, quiero", "errors": [], "prompt": "stall-offer"},
+        {"text": "por favor, sí", "errors": [], "prompt": "stall-offer"},
+        {"text": "claro que sí", "errors": [], "prompt": "stall-offer"},
+        {"text": "sí, por favo", "errors": ["vocab.unknown"], "prompt": "stall-offer"},
+        "de acuerdo"
       ]
     },
     {
@@ -46,17 +53,20 @@
       "requiredSlots": [],
       "slotGrammars": [
         "(no|ahora no)",
-        "no gracias",
+        "no (muchas)? gracias",
+        "gracias no",
         "no [VERB:querer]"
       ],
       "keywordRules": [
         { "lemmas": ["no"], "requiresSlots": [] }
       ],
-      "lint": {"allowRuleOnly": ["gracias, no"]},
+      "lint": {"allowRuleOnly": ["no, mucho gracias"]},
       "examples": [
         {"text": "no, gracias", "errors": [], "prompt": "stall-offer"},
         {"text": "no", "errors": [], "prompt": "stall-offer"},
-        {"text": "gracias, no", "errors": ["vocab.wrong"], "prompt": "stall-offer"},
+        {"text": "no, muchas gracias", "errors": [], "prompt": "stall-offer"},
+        {"text": "gracias, no", "errors": [], "prompt": "stall-offer"},
+        {"text": "no, mucho gracias", "errors": ["gender.agree", "noun.number"], "prompt": "stall-offer"},
         "ahora no",
         "no quiero"
       ]
@@ -104,7 +114,7 @@
         "[VERB:querer] [ART]? [NUM:qty]? [NOUN:item] (por favor)?",
         "[VERB:necesitar] [ART]? [NUM:qty]? [NOUN:item] (por favor)?",
         "me [VERB:dar] [ART]? [NUM:qty]? [NOUN:item] (por favor)?",
-        "[NUM:qty]? [NOUN:item] por favor"
+        "[ART]? [NUM:qty]? [NOUN:item] por favor"
       ],
       "lint": {"allowOverlap": ["ask_help"]},
       "examples": [
@@ -112,8 +122,12 @@
         {"text": "agua, por favor", "errors": [], "prompt": "stall-need"},
         {"text": "quiero agua", "errors": [], "prompt": "stall-need"},
         {"text": "necesito agua", "errors": [], "prompt": "stall-need"},
+        {"text": "necesito agua, por favor", "errors": [], "prompt": "stall-need"},
         {"text": "me da agua", "errors": [], "prompt": "stall-need"},
+        {"text": "me da agua, por favor", "errors": [], "prompt": "stall-need"},
         {"text": "me das agua", "errors": [], "prompt": "stall-need"},
+        {"text": "me das agua, por favor", "errors": [], "prompt": "stall-need"},
+        {"text": "un agua, por favor", "errors": [], "prompt": "stall-need"},
         {"text": "yo quieres agua, por favor", "errors": ["conj.person"], "prompt": "stall-need"},
         {"text": "quiero dos agua, por favor", "errors": ["noun.number"], "prompt": "stall-need"},
         {"text": "quiero pan, por favor", "errors": [], "prompt": "stall-need"},
@@ -130,22 +144,25 @@
         "no [VERB:saber]",
         "no lo [VERB:saber]",
         "no sé",
-        "no lo sé"
+        "no lo sé",
+        "no [VERB:entender]"
       ],
       "examples": [
         {"text": "no sé", "errors": [], "prompt": "villager-open"},
         {"text": "no lo sé", "errors": [], "prompt": "villager-open"},
-        {"text": "yo no sabes", "errors": ["conj.person"], "prompt": "villager-open"}
+        {"text": "yo no sé", "errors": [], "prompt": "villager-open"},
+        {"text": "no entiendo", "errors": [], "prompt": "villager-open"},
+        {"text": "no sabo", "errors": ["conj.irregular"], "prompt": "villager-open"}
       ]
     },
     {
       "intentId": "ask_directions",
       "requiredSlots": ["place"],
       "slotGrammars": [
-        "dónde [VERB:estar] [ART]? [NOUN:place]",
-        "[VERB:buscar] [ART]? [NOUN:place]",
-        "[VERB:querer] [VERB:encontrar] [ART]? [NOUN:place]",
-        "dónde [VERB:quedar] [ART]? [NOUN:place]"
+        "dónde [VERB:estar] [ART]? [NOUN:place] (por favor)?",
+        "[VERB:buscar] [ART]? [NOUN:place] (por favor)?",
+        "[VERB:querer] [VERB:encontrar] [ART]? [NOUN:place] (por favor)?",
+        "dónde [VERB:quedar] [ART]? [NOUN:place] (por favor)?"
       ],
       "keywordRules": [
         { "lemmas": ["dónde"], "requiresSlots": ["place"], "slotFromNoun": "place" },
@@ -153,6 +170,7 @@
       ],
       "examples": [
         {"text": "dónde está el río", "errors": [], "prompt": "villager-open"},
+        {"text": "dónde está el río, por favor", "errors": [], "prompt": "villager-open"},
         {"text": "dónde queda el río", "errors": [], "prompt": "villager-open"},
         {"text": "busco el río", "errors": [], "prompt": "villager-open"},
         {"text": "dónde está la río", "errors": ["gender.agree"], "prompt": "villager-open"},
@@ -243,8 +261,9 @@
       "intentId": "ask_help",
       "requiredSlots": [],
       "slotGrammars": [
-        "ayuda",
+        "ayuda (por favor)?",
         "me [VERB:ayudar]",
+        "me [VERB:poder] [VERB:ayudar]",
         "[VERB:necesitar] ayuda",
         "qué [VERB:hacer]"
       ],
@@ -253,8 +272,10 @@
       ],
       "examples": [
         {"text": "ayuda", "errors": [], "prompt": "villager-open"},
+        {"text": "ayuda, por favor", "errors": [], "prompt": "villager-open"},
         {"text": "necesito ayuda", "errors": [], "prompt": "villager-open"},
         {"text": "me ayudas", "errors": [], "prompt": "villager-open"},
+        {"text": "me puedes ayudar", "errors": [], "prompt": "villager-open"},
         {"text": "yo necesitas ayuda", "errors": ["conj.person"], "prompt": "villager-open"},
         "qué hago"
       ]

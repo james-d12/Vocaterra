@@ -112,7 +112,7 @@ public sealed class NpcAgentTests
         Assert.False(result.Verdict.Communicated);
         Assert.Equal("idle", context.AgentState.StateId);
         Assert.Equal("not_understood.1", result.Response.Lines[0].LineId);
-        Assert.Equal("No te entendí. ¿Lo dices otra vez?", result.Response.Lines[0].Text);
+        Assert.Equal("No te entendí. ¿Me lo dices otra vez?", result.Response.Lines[0].Text);
         Assert.Contains(result.Response.Lines, static l => l.LineId.StartsWith("feedback.hint.not_communicated", StringComparison.Ordinal));
     }
 
@@ -208,11 +208,36 @@ public sealed class NpcAgentTests
     {
         var bundle = TestGame.Bundle;
 
-        Assert.Equal("No te entendí. ¿Lo dices otra vez?", bundle.Dialogue.Pools["not_understood"].Variants[0].Text);
+        Assert.Equal("No te entendí. ¿Me lo dices otra vez?", bundle.Dialogue.Pools["not_understood"].Variants[0].Text);
         Assert.Contains("feedback.hint.not_communicated", bundle.Dialogue.Pools.Keys);
         Assert.All(bundle.Dialogue.Pools["feedback.hint.not_communicated"].Variants, static v => Assert.Contains("ayuda", v.Text, StringComparison.Ordinal));
         var path = Path.Combine(GameBundle.ResolveDirectory(), "feedback", "feedback-policy.json");
         Assert.Contains("\"notCommunicatedType\": \"Hint\"", File.ReadAllText(path), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ARecastOfAQuestionKeepsItsWordsInQuotesAndShowsTheCorrectForm()
+    {
+        var context = Context("villager", "idle");
+        var gender = Say("dónde está la río", "villager-open", ref context);
+        Assert.Equal("¡Eso es! «Dónde está el río».", gender.Response.Lines.Single(static l => l.IsRecast).Text);
+
+        context = Context("villager", "idle");
+        var person = Say("yo quieres agua por favor", "villager-open", ref context);
+        var recast = person.Response.Lines.Single(static l => l.IsRecast).Text;
+        Assert.Contains("quiero", recast, StringComparison.Ordinal);
+        Assert.DoesNotContain("quieres", recast, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheConjugationRecastPoolShowsTheFirstPersonWhenTheVerbSlotsAreGiven()
+    {
+        var bundle = TestGame.Bundle;
+        var slots = Vocaterra.Nlp.Core.Verdicts.SlotMap.From(new Dictionary<string, string> { ["verb"] = "querer", ["qty"] = "2", ["item"] = "agua" });
+        var pool = bundle.Dialogue.Pools["feedback.recast.conj.person"];
+
+        Assert.Equal("Sí: «Quiero dos aguas». ¡Muy bien!", bundle.TemplateEngine.Render(pool.Variants[0], slots));
+        Assert.Equal("Mira, ¿quieres dos aguas? Se dice «quiero dos aguas».", bundle.TemplateEngine.Render(pool.Variants[1], slots));
     }
 
     private static void AssertPrompt(PromptSpec prompt, RecognitionMode mode, string agent, string text, params string[] intents)

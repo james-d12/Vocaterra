@@ -4,25 +4,25 @@
     {
       "answerId": "yes",
       "canonical": "sí por favor",
-      "aliases": ["sí", "si", "si por favor", "sí gracias", "si gracias", "claro", "claro que sí"],
+      "aliases": ["sí", "si", "si por favor", "sí gracias", "si gracias", "sí quiero", "si quiero", "por favor sí", "claro", "claro que sí"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
       "answerId": "no",
       "canonical": "no gracias",
-      "aliases": ["no"],
+      "aliases": ["no", "no muchas gracias", "gracias no"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
       "answerId": "help",
       "canonical": "ayuda",
-      "aliases": ["necesito ayuda", "me ayudas"],
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
       "answerId": "dont-know",
       "canonical": "no sé",
-      "aliases": ["no lo sé"],
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     }
   ]

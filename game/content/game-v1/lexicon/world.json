@@ -16,6 +16,7 @@
     {"form":"cubos","lemma":"cubo","pos":"noun","features":{"number":"pl","gender":"m"}},
     {"form":"lámpara","lemma":"lámpara","pos":"noun","features":{"number":"sg","gender":"f"}},
     {"form":"lámparas","lemma":"lámpara","pos":"noun","features":{"number":"pl","gender":"f"}},
-    {"form":"rio","lemma":"río","pos":"noun","features":{"number":"sg","gender":"m"}}
+    {"form":"rio","lemma":"río","pos":"noun","features":{"number":"sg","gender":"m"}},
+    {"form":"dilo","lemma":"decir","pos":"verb","features":{"person":"2","number":"sg","mood":"imp"}}
   ]
 }

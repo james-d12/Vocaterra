@@ -19,7 +19,7 @@
       "poolId": "feedback.hint",
       "variants": [
         { "lineId": "feedback.hint.1", "text": "Casi. Piensa otra vez." },
-        { "lineId": "feedback.hint.2", "text": "¿Seguro? Mira bien." }
+        { "lineId": "feedback.hint.2", "text": "¿Seguro? Dilo otra vez." }
       ]
     },
     "feedback.hint.gender.agree": {
@@ -33,22 +33,22 @@
       "poolId": "feedback.model_pronunciation",
       "variants": [
         { "lineId": "feedback.model_pronunciation.1", "text": "Escucha: {expected}. Ahora tú." },
-        { "lineId": "feedback.model_pronunciation.2", "text": "Escucha bien: {expected}." }
+        { "lineId": "feedback.model_pronunciation.2", "text": "Escucha y dilo: {expected}." }
       ]
     },
     "feedback.recast": {
       "poolId": "feedback.recast",
       "variants": [
-        { "lineId": "feedback.recast.1", "text": "Sí, {recast}. ¡Muy bien!" },
-        { "lineId": "feedback.recast.2", "text": "Claro, {recast}. Muy bien." },
-        { "lineId": "feedback.recast.3", "text": "¡Eso es! {recast:cap}." }
+        { "lineId": "feedback.recast.1", "text": "Sí, «{recast}». ¡Muy bien!" },
+        { "lineId": "feedback.recast.2", "text": "Claro, «{recast}». Muy bien." },
+        { "lineId": "feedback.recast.3", "text": "¡Eso es! «{recast:cap}»." }
       ]
     },
     "feedback.recast.conj.person": {
       "poolId": "feedback.recast.conj.person",
       "variants": [
-        { "lineId": "feedback.recast.conj.person.1", "text": "¿{verb:conj(2,sg,pres):cap} {qty:words(item)} {item:plural-if(qty)}? ¡Muy bien!" },
-        { "lineId": "feedback.recast.conj.person.2", "text": "Sí, ¿{verb:conj(2,sg,pres)} {qty:words(item)} {item:plural-if(qty)}? ¡Muy bien!" }
+        { "lineId": "feedback.recast.conj.person.1", "text": "Sí: «{verb:conj(1,sg,pres):cap} {qty:words(item)} {item:plural-if(qty)}». ¡Muy bien!" },
+        { "lineId": "feedback.recast.conj.person.2", "text": "Mira, ¿{verb:conj(2,sg,pres)} {qty:words(item)} {item:plural-if(qty)}? Se dice «{verb:conj(1,sg,pres)} {qty:words(item)} {item:plural-if(qty)}»." }
       ]
     },
     "feedback.slow_repeat": {
@@ -77,8 +77,8 @@
       "poolId": "guide_thank",
       "variants": [
         { "lineId": "guide_thank.1", "text": "¡Con gusto, amigo!" },
-        { "lineId": "guide_thank.2", "text": "¡Qué bien!" },
-        { "lineId": "guide_thank.3", "text": "¡Buen día, amigo!" }
+        { "lineId": "guide_thank.2", "text": "¡De nada!" },
+        { "lineId": "guide_thank.3", "text": "¡De nada, amigo!" }
       ]
     },
     "guide_point": {
@@ -196,7 +196,7 @@
     "guide.help.walk": {
       "poolId": "guide.help.walk",
       "variants": [
-        { "lineId": "guide.help.walk.1", "text": "Camina a la flecha." },
+        { "lineId": "guide.help.walk.1", "text": "Camina hasta la flecha." },
         { "lineId": "guide.help.walk.2", "text": "Ve hasta la flecha." }
       ]
     },
@@ -267,7 +267,7 @@
     "guide.craft.none": {
       "poolId": "guide.craft.none",
       "variants": [
-        { "lineId": "guide.craft.none.1", "text": "Eso no se hace." }
+        { "lineId": "guide.craft.none.1", "text": "Eso no se puede hacer." }
       ]
     },
     "guide.find.source": {
@@ -305,7 +305,7 @@
     "not_understood": {
       "poolId": "not_understood",
       "variants": [
-        { "lineId": "not_understood.1", "text": "No te entendí. ¿Lo dices otra vez?" },
+        { "lineId": "not_understood.1", "text": "No te entendí. ¿Me lo dices otra vez?" },
         { "lineId": "not_understood.2", "text": "Perdón, ¿qué dices?" }
       ]
     },
@@ -379,7 +379,7 @@
       "poolId": "shop_done",
       "variants": [
         { "lineId": "shop_done.1", "text": "¡Hasta luego!" },
-        { "lineId": "shop_done.2", "text": "Buen día." }
+        { "lineId": "shop_done.2", "text": "¡Nos vemos!" }
       ]
     },
     "villager_hello": {
