@@ -54,6 +54,8 @@ public sealed record LaunchOptions
         + "  --speak <text>          synthesize the text with Kokoro (cached in ~/.cache/vocaterra/tts), then recognize and evaluate it as spoken input; a step like --say (needs --screenshot)\n"
         + "  --typed-credit <full|half> the credit a correct typed use earns (default half; spoken input always earns full)\n"
         + "  --listen <seconds>      record from the real microphone for 1 to 8 seconds as if the push-to-talk key were held, then send it; a step like --say (needs --screenshot)\n"
+        + "  --teleport <col,row>    debug: put the player's feet on that tile (a world step; no walking; needs --screenshot)\n"
+        + "  --grant <noun>:<n>      debug: give the player n of a noun's item, e.g. carbón:20 or madera:10 (a step; needs --screenshot)\n"
         + "  --no-speech             do not load the speech models (typing only)\n"
         + "  --status <listening|thinking> show that status line of the dialogue panel once the script is done, for the screenshot (needs --screenshot)\n"
         + "Push-to-talk: hold Tab while the dialogue is open, or hold V next to the guide to open it and listen.\n";
@@ -84,7 +86,6 @@ public sealed record LaunchOptions
 
     /// <summary>The tile the scripted mouse cursor sits on for the <c>--say</c> lines, or <see langword="null"/>.</summary>
     public TilePoint? Point { get; init; }
-
     /// <summary>The noun whose nearest tile the scripted cursor sits on for each <c>--say</c> line, or <see langword="null"/>.</summary>
     public string? PointNearest { get; init; }
 
@@ -167,7 +168,8 @@ public sealed record LaunchOptions
             }
 
             if (arg is not ("--seed" or "--screenshot" or "--frames" or "--walk-right" or "--say" or "--content" or "--point" or "--point-nearest" or "--skip"
-                or "--walk" or "--mine" or "--place" or "--select" or "--craft" or "--wav" or "--speak" or "--typed-credit" or "--status" or "--listen"))
+                or "--walk" or "--mine" or "--place" or "--select" or "--craft" or "--wav" or "--speak" or "--typed-credit" or "--status" or "--listen"
+                or "--teleport" or "--grant"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -281,6 +283,25 @@ public sealed record LaunchOptions
                     }
 
                     steps.Add(ScriptStep.Mine(mineTile));
+                    break;
+                case "--teleport":
+                    if (!TryParseTile(value, out var teleportTile))
+                    {
+                        error = $"--teleport needs a column and a row, like 503,211; got '{value}'.";
+                        return false;
+                    }
+
+                    steps.Add(ScriptStep.Teleport(teleportTile));
+                    break;
+                case "--grant":
+                    var colon = value.LastIndexOf(':');
+                    if (colon <= 0 || !int.TryParse(value[(colon + 1)..], NumberStyles.None, CultureInfo.InvariantCulture, out var grantCount) || grantCount < 1)
+                    {
+                        error = $"--grant needs a noun and a count, like carbón:20; got '{value}'.";
+                        return false;
+                    }
+
+                    steps.Add(ScriptStep.Grant(value[..colon].Trim(), grantCount));
                     break;
                 case "--place":
                     var at = value.IndexOf('@', StringComparison.Ordinal);

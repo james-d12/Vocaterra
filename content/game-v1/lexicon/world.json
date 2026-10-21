@@ -7,6 +7,14 @@
     {"form":"ladrillo","lemma":"ladrillo","pos":"noun","features":{"number":"sg","gender":"m"}},
     {"form":"ladrillos","lemma":"ladrillo","pos":"noun","features":{"number":"pl","gender":"m"}},
     {"form":"seta","lemma":"seta","pos":"noun","features":{"number":"sg","gender":"f"}},
-    {"form":"setas","lemma":"seta","pos":"noun","features":{"number":"pl","gender":"f"}}
+    {"form":"setas","lemma":"seta","pos":"noun","features":{"number":"pl","gender":"f"}},
+    {"form":"carbón","lemma":"carbón","pos":"noun","features":{"number":"sg","gender":"m"}},
+    {"form":"carbones","lemma":"carbón","pos":"noun","features":{"number":"pl","gender":"m"}},
+    {"form":"cobre","lemma":"cobre","pos":"noun","features":{"number":"sg","gender":"m"}},
+    {"form":"cobres","lemma":"cobre","pos":"noun","features":{"number":"pl","gender":"m"}},
+    {"form":"cubo","lemma":"cubo","pos":"noun","features":{"number":"sg","gender":"m"}},
+    {"form":"cubos","lemma":"cubo","pos":"noun","features":{"number":"pl","gender":"m"}},
+    {"form":"lámpara","lemma":"lámpara","pos":"noun","features":{"number":"sg","gender":"f"}},
+    {"form":"lámparas","lemma":"lámpara","pos":"noun","features":{"number":"pl","gender":"f"}}
   ]
 }

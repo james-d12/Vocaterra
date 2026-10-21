@@ -10,6 +10,10 @@
     { "output": "espada", "count": 1, "ingredients": [{ "item": "madera", "count": 2 }, { "item": "piedra", "count": 6 }], "station": "mesa" },
     { "output": "horno", "count": 1, "ingredients": [{ "item": "piedra", "count": 20 }, { "item": "madera", "count": 4 }], "station": "mesa" },
     { "output": "cristal", "count": 1, "ingredients": [{ "item": "arena", "count": 2 }], "station": "horno" },
-    { "output": "ladrillo", "count": 1, "ingredients": [{ "item": "piedra", "count": 2 }], "station": "horno" }
+    { "output": "ladrillo", "count": 1, "ingredients": [{ "item": "piedra", "count": 2 }], "station": "horno" },
+    { "output": "antorcha", "count": 4, "ingredients": [{ "item": "madera", "count": 1 }, { "item": "carbón", "count": 1 }], "station": null },
+    { "output": "lámpara", "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }, { "item": "cristal", "count": 1 }], "station": "mesa" },
+    { "output": "cubo", "count": 1, "ingredients": [{ "item": "hierro", "count": 3 }], "station": "horno" },
+    { "output": "anillo", "count": 1, "ingredients": [{ "item": "oro", "count": 2 }], "station": "horno" }
   ]
 }

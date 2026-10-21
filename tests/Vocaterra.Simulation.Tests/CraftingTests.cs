@@ -218,6 +218,6 @@ public sealed class CraftingTests
 
         Assert.Equal(ItemDefinition.ToolStackLimit, ItemDefinition.Get(ItemId.Sword).MaxStack);
         Assert.Null(ItemDefinition.Get(ItemId.Sword).PlacesTile);
-        Assert.Equal(18, TileDefinition.All.Count);
+        Assert.Equal(24, TileDefinition.All.Count);
     }
 }

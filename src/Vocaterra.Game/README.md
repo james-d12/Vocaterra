@@ -149,6 +149,29 @@ nothing that ticks. When characters move, collide or are saved (the innkeeper, G
 - Words added to the CEFR lists: none. Words in the new lines that `cefr-check --level a1` does not find in the A1 list: `faltar`/`falta` and
   `nada` (both are in the A2 list; `cefr-check --level a2` is clean for the new lines). They are in the brief's wording; the owner may want them in the A1 list.
 
+## Caves, ores and the torch (P7)
+
+- **Catalogue** (`game/nouns.json`, hand-authored, in the content hash): `carbón`, `cobre`, `hierro`, `oro` (mass; tiles `coal-ore`, `copper-ore`,
+  `iron-ore`, `gold-ore`; items `coal`, `copper`, `iron`, `gold`; `sources` are themselves, so `ask_find` answers "¿dónde hay hierro?" with the
+  nearest ore), `antorcha` (tile `torch`, item `torch`), `lámpara`, `cubo`, `anillo` (items `lamp`, `bucket`, `ring`, no tile). `hierba` now also
+  names `tall-grass`. A new `"deep": true` flag marks the ores: when the guide's search finds none, it says "Está muy abajo." (pool
+  `guide.point.deep`) instead of "No veo …". `NounEntry.Deep` carries it.
+- **World facts** (`WorldFacts`): `carbón`, `cobre`, `hierro`, `oro` name the ore tiles, `antorcha` the torch, `hierba` the grass and tall grass;
+  `NounOfTile` is the inverse. The guide's search reads the turn's snapshot (radius 96) out to `WorldFacts.DefaultRadius` (64) on each axis, so
+  an ore that is not within 64 tiles of the player counts as "muy abajo".
+- **Recipes** (`game/recipes.json`, data only): `antorcha` by hand from `madera` 1 and `carbón` 1, four per craft; `lámpara` at the `mesa` from
+  `hierro` 1 and `cristal` 1; `cubo` at the `horno` from `hierro` 3; `anillo` at the `horno` from `oro` 2. The guide's `ask_craft` answers them like
+  any other recipe ("Para un cubo necesitas tres bloques de hierro. Usa el horno.").
+- **Single-word nouns**: the new ones are `carbón`, `cobre`, `hierro`, `oro`, `antorcha`, `lámpara`, `cubo`, `anillo`. `lexicon/world.json` gained the
+  noun readings with gender and plural that the bundle lacked: `carbón` (m, carbones), `cobre` (m, cobres), `cubo` (m, cubos), `lámpara` (f,
+  lámparas); `hierro`, `oro`, `antorcha`, `anillo` were already in `seed.json`.
+- **CEFR**: `abajo` added to `cefr/a1.txt`, because the new line "Está muy abajo." is template text and `cefr-check --level a1` reads it (`abajo`
+  is in the A2 list already, so this is the one A1 addition, and the owner may want to review it). `lámpara` and `anillo` are in the A2 list
+  already; `carbón`, `cobre`, `cubo` are in no CEFR list. They appear only in slots, recipes and catalogue entries, which the check does not read,
+  so no list was changed for them.
+- **Out of scope in P7**: metal tool tiers ("pico de hierro", "hacha de hierro"). A multi-word noun would need the `[NOUN]` slot to bind two tokens,
+  and the tool is one item kind per tier; both belong to a later milestone. The metals get a use through the three recipes above.
+
 ## Rules this layer keeps
 
 Packages only; no engine type; no `System.Random`, clock, `Stopwatch` or `DateTime` (a test scans the sources); the stored time and the world seed
@@ -157,4 +180,6 @@ fixed stored time (verdict, state, host event, target tile, world line, accent-l
 the guide's bundle content and the architecture rules. P4: `NounCatalog` (coverage of every tile, genders, articles and plurals, the
 readings of an unaccented form, the parse errors), `WordProgress` (three uses in three turns, thirds, one credit per turn, the article rule,
 the not-communicated turn, heard, read, the credit setting, determinism) and the real core on `es un árbol`, `la árbol` and `es un arbol`. P6b: `RecipeBookTests` (the table, catalogue coverage, stations, malformed files) and
-`CraftingGuideTests` (the intents, every answer branch through the real core, the carried line, determinism, the new pools).
+`CraftingGuideTests` (the intents, every answer branch through the real core, the carried line, determinism, the new pools). P7: `OresAndTorchTests`
+(each ore is a mass catalogue noun with its tile, item and source; the torch and the metal recipes and their stations; "¿dónde hay carbón?" points,
+"¿dónde hay oro?" says "Está muy abajo.", the carried coal is "Tienes dos bloques de carbón.").

@@ -66,6 +66,7 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     private readonly TurnPump _pump;
     private readonly BusyFrameStats _busyFrames = new();
     private readonly BusyFrameStats _loadingFrames = new();
+    private readonly BusyFrameStats _sceneDraws = new();
     private readonly KeyRepeater _backspace = new();
     private readonly KeyRepeater _delete = new();
     private readonly KeyRepeater _left = new();
@@ -170,6 +171,7 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         _pixel.SetData([Color.White]);
         _atlas = new TileAtlas(GraphicsDevice);
         _worldRenderer = new WorldRenderer(_atlas);
+        _ = _session.Simulation.Light; // the whole light map is computed here, once (about 65 ms), not on the first frame
         _view = new FrameView
         {
             Simulation = _session.Simulation,
@@ -320,6 +322,7 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         view.Mouse = !_options.IsScreenshotRun && GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? mouse.Position : null;
         _camera.Follow(x + (PhysicsConstants.PlayerWidth / 2), y + (PhysicsConstants.PlayerHeight / 2));
 
+        var drawStart = MonotonicClock.Milliseconds();
         GraphicsDevice.Clear(WorldRenderer.Sky);
         spriteBatch.Begin(samplerState: SamplerState.PointClamp);
         _worldRenderer!.Draw(spriteBatch, view);
@@ -329,12 +332,18 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         }
 
         spriteBatch.End();
+        _sceneDraws.Record(MonotonicClock.Milliseconds() - drawStart);
         base.Draw(gameTime);
 
         // --frames n: run until n ticks have been simulated (one per frame on the fixed clock), then save this frame.
         if (_options.ScreenshotPath is { } path && _session.Simulation.Tick >= _options.Frames && _session.Worker!.IsReady && _session.PendingTurns == 0)
         {
             ExitCode = ScreenshotWriter.TrySave(GraphicsDevice, path) ? 0 : 1;
+            if (_sceneDraws.Count > 0)
+            {
+                Console.WriteLine($"scene draw (world with lighting, layers, flush): {_sceneDraws.Summary()}");
+            }
+
             if (_loadingFrames.Count > 0)
             {
                 Console.WriteLine($"frames while loading: {_loadingFrames.Summary()}");

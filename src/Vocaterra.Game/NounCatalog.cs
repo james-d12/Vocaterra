@@ -20,6 +20,7 @@ namespace Vocaterra.Game;
 /// <param name="Plural">The plural form (<c>árboles</c>).</param>
 /// <param name="Mass">Whether the noun is a mass noun, counted as <c>bloques de</c> (<c>madera</c>, <c>arena</c>).</param>
 /// <param name="Sources">The catalogue nouns this one comes from (<c>madera</c> from <c>árbol</c>), for the guide's "where is it" answers.</param>
+/// <param name="Deep">Whether the noun lies underground (the ores): when the guide finds none in its search, it says so as "Está muy abajo."</param>
 public sealed record NounEntry(
     string Lemma,
     string Gender,
@@ -29,7 +30,8 @@ public sealed record NounEntry(
     string Indefinite,
     string Plural,
     bool Mass,
-    IReadOnlyList<string> Sources)
+    IReadOnlyList<string> Sources,
+    bool Deep = false)
 {
     /// <summary>The noun with its definite article: <c>el árbol</c>.</summary>
     public string WithDefinite => $"{Definite} {Lemma}";
@@ -143,10 +145,11 @@ public sealed class NounCatalog
             }
 
             var mass = item.TryGetProperty("mass", out var massValue) && massValue.GetBoolean();
+            var deep = item.TryGetProperty("deep", out var deepValue) && deepValue.GetBoolean();
             var sources = item.TryGetProperty("sources", out var sourceValues)
                 ? sourceValues.EnumerateArray().Select(s => s.GetString() ?? string.Empty).ToList()
                 : new List<string>();
-            nouns.Add(Describe(bundle, lemma, tiles, items, mass, sources));
+            nouns.Add(Describe(bundle, lemma, tiles, items, mass, sources, deep));
         }
 
         var colourless = root.GetProperty("colourless").EnumerateArray().Select(t => TileNamed(t.GetString())).ToList();
@@ -230,7 +233,8 @@ public sealed class NounCatalog
         IReadOnlyList<TileId> tiles,
         IReadOnlyList<ItemId> items,
         bool mass,
-        IReadOnlyList<string> sources)
+        IReadOnlyList<string> sources,
+        bool deep)
     {
         var gender = bundle.Lexicon.EntriesForLemma(lemma)
             .Select(static e => e.ToFeatures())
@@ -246,6 +250,7 @@ public sealed class NounCatalog
             morphology.Article(Definiteness.Indefinite, gender, "sg", lemma),
             morphology.Pluralize(lemma),
             mass,
-            sources);
+            sources,
+            deep);
     }
 }

@@ -48,6 +48,12 @@ public enum ScriptStepKind
 
     /// <summary>Record from the real microphone for a number of seconds and say what was recorded (<c>--listen</c>).</summary>
     Listen,
+
+    /// <summary>Put the player's feet on a tile, at rest, without walking (debug; <c>--teleport</c>).</summary>
+    Teleport,
+
+    /// <summary>Give the player some of a noun's item, outside the game's rules (debug; <c>--grant</c>).</summary>
+    Grant,
 }
 
 /// <summary>One step of the scripted run, in the order the command line gave it.</summary>
@@ -58,8 +64,13 @@ public enum ScriptStepKind
 /// <param name="Item">For <see cref="ScriptStepKind.Place"/> and <see cref="ScriptStepKind.Craft"/>, the item's noun (<c>madera</c>, <c>mesa</c>).</param>
 /// <param name="Slot">For <see cref="ScriptStepKind.Select"/>, the hotbar slot as the number keys give it (1 to 10).</param>
 /// <param name="Seconds">For <see cref="ScriptStepKind.Listen"/>, how long to record.</param>
-public sealed record ScriptStep(ScriptStepKind Kind, string Line = "", int Minutes = 0, TilePoint? Tile = null, string Item = "", int Slot = 0, int Seconds = 0)
+/// <param name="Count">For <see cref="ScriptStepKind.Grant"/>, how many of the item.</param>
+public sealed record ScriptStep(ScriptStepKind Kind, string Line = "", int Minutes = 0, TilePoint? Tile = null, string Item = "", int Slot = 0, int Seconds = 0, int Count = 0)
 {
+    /// <summary>A step that puts the player's feet on a tile (debug).</summary>
+    public static ScriptStep Teleport(TilePoint tile) => new(ScriptStepKind.Teleport, Tile: tile);
+    /// <summary>A step that gives the player items of a noun (debug).</summary>
+    public static ScriptStep Grant(string noun, int count) => new(ScriptStepKind.Grant, Item: noun, Count: count);
     /// <summary>A step that says a line.</summary>
     public static ScriptStep Say(string line) => new(ScriptStepKind.Say, line);
 
@@ -370,6 +381,20 @@ public sealed class ScriptedDialogue : IInputSource
             case ScriptStepKind.Craft:
                 CloseForWorld();
                 StartCraft(step);
+                break;
+            case ScriptStepKind.Teleport:
+                CloseForWorld();
+                _session.Simulation.TeleportTo(step.Tile!.Value);
+                Console.WriteLine($"teleport: {step.Tile!.Value.X},{step.Tile!.Value.Y}");
+                Advance();
+                break;
+            case ScriptStepKind.Grant:
+                CloseForWorld();
+                var granted = _session.Nouns.ForLemma(step.Item)?.Items.FirstOrDefault()
+                    ?? throw new InvalidOperationException($"--grant: '{step.Item}' is not a catalogue noun with an item.");
+                var notFit = _session.Simulation.GrantItems(granted, step.Count);
+                Console.WriteLine($"grant: {step.Count} {step.Item}{(notFit > 0 ? $" ({notFit} did not fit)" : string.Empty)}");
+                Advance();
                 break;
             case ScriptStepKind.CraftingPanel:
                 CloseForWorld();

@@ -16,7 +16,7 @@ public static class TileArt
     public static int TileCount => TileDefinition.All.Count;
 
     /// <summary>The number of tool icons after the tiles in the atlas: the axe, the pickaxe, then the sword.</summary>
-    public const int ToolCount = 3;
+    public const int ToolCount = 6;
 
     private static readonly (byte R, byte G, byte B, byte A) Transparent = (0, 0, 0, 0);
     private static readonly (byte R, byte G, byte B, byte A) Metal = (168, 170, 180, 255);
@@ -38,18 +38,26 @@ public static class TileArt
         ItemId.Furnace => TileId.Furnace,
         ItemId.Glass => TileId.Glass,
         ItemId.Brick => TileId.Brick,
+        ItemId.Coal => TileId.CoalOre,
+        ItemId.Copper => TileId.CopperOre,
+        ItemId.Iron => TileId.IronOre,
+        ItemId.Gold => TileId.GoldOre,
+        ItemId.Torch => TileId.Torch,
         _ => null,
     };
 
-    /// <summary>The index of an item's icon among the tool icons (<see cref="ToolPixels"/>): the axe 0, the pickaxe 1, the sword 2.</summary>
+    /// <summary>The index of an item's icon among the tool icons (<see cref="ToolPixels"/>): the axe 0, the pickaxe 1, the sword 2, the lamp 3, the bucket 4, the ring 5.</summary>
     public static int ToolIndexOf(ItemId item) => item switch
     {
         ItemId.Axe => 0,
         ItemId.Pickaxe => 1,
+        ItemId.Lamp => 3,
+        ItemId.Bucket => 4,
+        ItemId.Ring => 5,
         _ => 2,
     };
 
-    /// <summary>The RGBA bytes of a tool icon: <c>0</c> is the axe, <c>1</c> the pickaxe, <c>2</c> the sword.</summary>
+    /// <summary>The RGBA bytes of a tool icon: <c>0</c> is the axe, <c>1</c> the pickaxe, <c>2</c> the sword, <c>3</c> the lamp, <c>4</c> the bucket, <c>5</c> the ring.</summary>
     public static byte[] ToolPixels(int tool)
     {
         var data = new byte[Size * Size * 4];
@@ -61,7 +69,10 @@ public static class TileArt
                 {
                     0 => AxePixel(x, y),
                     1 => PickaxePixel(x, y),
-                    _ => SwordPixel(x, y),
+                    2 => SwordPixel(x, y),
+                    3 => LampPixel(x, y),
+                    4 => BucketPixel(x, y),
+                    _ => RingPixel(x, y),
                 };
                 var i = ((y * Size) + x) * 4;
                 data[i] = r;
@@ -115,6 +126,56 @@ public static class TileArt
 
         return x + y == 15 && y is >= 12 and <= 14 ? Shade(120, 80, 40, 0) : Transparent;
     }
+
+    private static (byte R, byte G, byte B, byte A) LampPixel(int x, int y)
+    {
+        // A round lamp: a dark frame, a yellow glass and a handle on top.
+        if (y == 1 && x is >= 6 and <= 9)
+        {
+            return Shade(80, 82, 90, 0);
+        }
+
+        var dx = (2 * x) - 15;
+        var dy = (2 * y) - 17;
+        var distance = (dx * dx) + (dy * dy);
+        if (distance <= 13 * 13)
+        {
+            return distance >= 10 * 10 ? Shade(80, 82, 90, 0) : Shade(250, 220, 90, 0);
+        }
+
+        return Transparent;
+    }
+
+    private static (byte R, byte G, byte B, byte A) BucketPixel(int x, int y)
+    {
+        // An open bucket: a rim on top, a tapering body and a handle arc.
+        if (y == 3 && x is >= 2 and <= 13)
+        {
+            return Metal;
+        }
+
+        if (y is >= 4 and <= 13 && x >= 3 + ((y - 4) / 3) && x <= 12 - ((y - 4) / 3))
+        {
+            return Shade(168, 170, 180, 0);
+        }
+
+        return y == 1 && x is >= 4 and <= 11 ? Shade(168, 170, 180, 0) : Transparent;
+    }
+
+    private static (byte R, byte G, byte B, byte A) RingPixel(int x, int y)
+    {
+        // A gold ring seen from the front: a thick circle with a hole in the middle.
+        var dx = (2 * x) - 15;
+        var dy = (2 * y) - 15;
+        var distance = (dx * dx) + (dy * dy);
+        return distance is <= 14 * 14 and >= 8 * 8 ? Shade(240, 190, 50, 0) : Transparent;
+    }
+
+    /// <summary>
+    /// Whether a cell is part of an ore nugget: the cells group into 2 x 2 blocks, and about 45 % of the blocks are nuggets (a hash of the block,
+    /// so the pattern is the same every run).
+    /// </summary>
+    private static bool Speck(int x, int y) => Mix(0x51, (uint)(x >> 1), (uint)(y >> 1)) % 100 < 45;
 
     private static (byte R, byte G, byte B, byte A) FlowerPixel(int x, int y, uint noise)
     {
@@ -266,6 +327,28 @@ public static class TileArt
             case TileId.Brick:
                 var mortar = y % 4 == 3 || ((y / 4 % 2 == 0 ? x : x + 4) % 8 == 7);
                 return mortar ? Shade(200, 196, 190, noise) : Shade(170, 70, 50, noise);
+            case TileId.CoalOre:
+                return Speck(x, y) ? Shade(44, 44, 50, 0) : Shade(120, 124, 132, noise);
+            case TileId.CopperOre:
+                return Speck(x, y) ? Shade(214, 120, 62, 0) : Shade(120, 124, 132, noise);
+            case TileId.IronOre:
+                return Speck(x, y) ? Shade(232, 200, 170, 0) : Shade(120, 124, 132, noise);
+            case TileId.GoldOre:
+                return Speck(x, y) ? Shade(255, 214, 70, 0) : Shade(120, 124, 132, noise);
+            case TileId.Torch:
+                if (x is >= 6 and <= 9 && y is >= 2 and <= 5)
+                {
+                    return x is 7 or 8 && y is 3 or 4 ? Shade(255, 240, 130, 0) : Shade(250, 160, 40, 0);
+                }
+
+                return x is 7 or 8 && y is >= 6 and <= 15 ? Shade(120, 80, 40, noise) : Transparent;
+            case TileId.TallGrass:
+                if (x is 3 or 6 or 9 or 12 && y >= 8 + (x % 3))
+                {
+                    return Shade(70, 150, 50, noise);
+                }
+
+                return x is 4 or 7 or 10 or 13 && y >= 11 ? Shade(60, 130, 44, noise) : Transparent;
             default:
                 return Transparent;
         }

@@ -4,7 +4,7 @@
   "nouns": [
     { "lemma": "árbol", "tiles": ["trunk", "leaves"], "items": [] },
     { "lemma": "tierra", "tiles": ["dirt"], "items": ["dirt"], "mass": true, "sources": ["tierra"] },
-    { "lemma": "hierba", "tiles": ["grass"], "items": [] },
+    { "lemma": "hierba", "tiles": ["grass", "tall-grass"], "items": [] },
     { "lemma": "piedra", "tiles": ["stone"], "items": ["stone"], "mass": true, "sources": ["piedra"] },
     { "lemma": "madera", "tiles": ["planks"], "items": ["wood"], "mass": true, "sources": ["árbol"] },
     { "lemma": "arena", "tiles": ["sand"], "items": ["sand"], "mass": true, "sources": ["arena"] },
@@ -20,7 +20,15 @@
     { "lemma": "horno", "tiles": ["furnace"], "items": ["furnace"] },
     { "lemma": "cristal", "tiles": ["glass"], "items": ["glass"], "mass": true },
     { "lemma": "ladrillo", "tiles": ["brick"], "items": ["brick"] },
-    { "lemma": "espada", "tiles": [], "items": ["sword"] }
+    { "lemma": "espada", "tiles": [], "items": ["sword"] },
+    { "lemma": "carbón", "tiles": ["coal-ore"], "items": ["coal"], "mass": true, "sources": ["carbón"], "deep": true },
+    { "lemma": "cobre", "tiles": ["copper-ore"], "items": ["copper"], "mass": true, "sources": ["cobre"], "deep": true },
+    { "lemma": "hierro", "tiles": ["iron-ore"], "items": ["iron"], "mass": true, "sources": ["hierro"], "deep": true },
+    { "lemma": "oro", "tiles": ["gold-ore"], "items": ["gold"], "mass": true, "sources": ["oro"], "deep": true },
+    { "lemma": "antorcha", "tiles": ["torch"], "items": ["torch"] },
+    { "lemma": "lámpara", "tiles": [], "items": ["lamp"] },
+    { "lemma": "cubo", "tiles": [], "items": ["bucket"] },
+    { "lemma": "anillo", "tiles": [], "items": ["ring"] }
   ],
   "colourless": ["air"]
 }

@@ -31,8 +31,10 @@ while (running)
 | `SimulationEvent` | `PlayerJumped`, `PlayerLanded`, `TileMined`, `TilePlaced`, `ItemCrafted` for the last step (more kinds are appended) |
 | `World` | read-only queries: `GetTile`, `IsSolid`, `Spawn`, `Tiles`, `Info` (seed, size, generator version), `Record`, `ComputeDigestHex()` |
 | `TileGrid`, `Chunk`, `ChunkCoord`, `TilePoint` | 32 x 32 chunks, `GetChunk`, dirty flags (a save stores dirty chunks), `ComputeDigest()` |
-| `TileId`, `TileDefinition` | `Air`, `Dirt`, `Grass`, `Stone`, `Trunk`, `Leaves`, then P6's `Sand`, `Flower`, `Mushroom`, and the placed `Planks`, `Door`, `Table`, `Chair`, `Bed`, `Chest`, then P6b's `Furnace`, `Glass`, `Brick`; values are stable (they are hashed and saved); each definition has its solidity, mining ticks, required tool and drop |
-| `WorldGenerator` | `Generate(seed[, size])`, `Version` (3), surface bounds for a height |
+| `TileId`, `TileDefinition` | `Air`, `Dirt`, `Grass`, `Stone`, `Trunk`, `Leaves`, then P6's `Sand`, `Flower`, `Mushroom`, and the placed `Planks`, `Door`, `Table`, `Chair`, `Bed`, `Chest`, then P6b's `Furnace`, `Glass`, `Brick`, then P7's ores, `Torch` and `TallGrass`; values are stable (they are hashed and saved); each definition has its solidity, mining ticks, required tool and drop |
+| `WorldGenerator` | `Generate(seed[, size])`, `Version` (4), surface bounds for a height |
+| `LightMap` (P7) | the light of every tile, 0 to 16: `Level`, `Brightness` (rock is never below 6), `EmissionOf`; derived, not in the digest (see below) |
+| `GameSimulation.Light`, `TeleportTo(tile)` (P7) | the light map (computed on first use, kept up to date by mining and placing); `TeleportTo` puts the player's feet on a tile, a debug action for the front-end's `--teleport` step |
 | `WorldRng`, `ValueNoise` | SplitMix64 and integer value noise |
 | `AsciiMap` | `Render(world, cx, cy, w, h, player)` for test output and bug reports |
 
@@ -65,9 +67,8 @@ Y against the solid tiles. Everything is integer arithmetic. Outside the world c
 A pass is a class implementing `IGenerationPass` (`Name`, `Run(GenerationContext)`) and an entry in `WorldGenerator.DefaultPasses`; the order
 there is the order they run. A pass reads and writes `context.Tiles` (`SetTile` is internal to the assembly), uses
 `context.Rng(Name, chunkX, chunkY)` or `context.NoiseSeed(...)`, and may record facts in `GenerationRecord` (add members there: cave
-entrances, ore counts). The current order is `terrain`, `layers`, `grass`, `forest`, `spawn`, `spawn-tree`, `sand`, `flora`. Caves and ores go
-between `layers` and `grass` (so cave mouths in dirt get grass), vegetation after `forest`; the spawn passes come before the surface dressing
-because they need the final trees and terrain.
+entrances, ore counts). The current order is `terrain`, `layers`, `grass`, `forest`, `spawn`, `spawn-tree`, `sand`, `flora`, `caves`, `ores` (the last two since
+generator version 4, see P7 below). The spawn passes come before the surface dressing because they need the final trees and terrain.
 `spawn-tree` (generator version 2, P3) guarantees a tree base within 20 columns of the spawn: if the forest left none it plants one 10 to 20
 columns away (left before right, nearest first) that suits a tree as the forest pass requires and keeps three columns from every other trunk. It
 changed 2 of the first 150 seeds on the 512 x 256 test world; seed 42 already had a tree near the spawn.
@@ -113,6 +114,37 @@ as `GenerationTests` does.
 
 Mining and placing change tiles through the internal `TileGrid.SetTile`, which marks the chunk dirty (saves store dirty chunks).
 
+## Caves, ores, vegetation and light (P7, generator version 4)
+
+- **Caves** (`CavePass`, runs last): per chunk, a worm (a seeded random walk of 30 to 70 steps, heading drifting by a third of the time, a disc of
+  radius 1 or 2 per step) with a 20 % chance, and a cavern (a 20 x 14 box, 45 % rock to start, four steps of the 4-5 rule: a cell becomes rock when five
+  or more of its eight neighbours are rock; the box edge counts as rock) with a 12 % chance. **The rule that keeps the surface sealed:** a cave only
+  carves dirt or stone whose depth below the surface column is at least 7 (`CavePass.MinDepth`). So no cave opens within six tiles of the surface
+  anywhere, the spawn area included, and the grass pass (which runs earlier) never meets a cave. Caves are closed: light reaches them only from torches.
+- **Ores** (`OrePass`, runs last): a vein is a seeded random walk of 4 to 9 cells that turns stone (never dirt) into ore, only inside the ore's depth band
+  below the surface column. Per chunk and ore: coal 8 to 60 tiles deep (35 % of chunks), copper 20 to 90 (30 %), iron 40 to 150 (25 %), gold 110 to 260
+  (15 %). Seed 42 has 71 coal, 124 copper, 142 iron and 120 gold tiles, each inside its band (`CavesAndOresTests`).
+- **Tiles** (appended, ids stable): `CoalOre` 18, `CopperOre` 19, `IronOre` 20, `GoldOre` 21 (solid; pickaxe; drop `Coal`, `Copper`, `Iron`, `Gold`;
+  mining 60, 75, 90 and 105 ticks against 75 for stone), `Torch` 22 (not solid, 6 ticks, drops `Torch`, placed from `Torch`), `TallGrass` 23 (not solid,
+  6 ticks, drops nothing). **Items** (appended): `Coal` 17, `Copper` 18, `Iron` 19, `Gold` 20, `Torch` 21 (placeable), and `Lamp` 22, `Bucket` 23,
+  `Ring` 24 (crafted, one per slot, not placeable yet). Metal tools (a pickaxe of iron) are not in the prototype: the tool tiers would need multi-word
+  nouns such as "pico de hierro", which the `[NOUN]` slot cannot bind (one token), so they are out of scope for P7.
+- **Vegetation**: the flora pass puts tall grass (`TallGrass`) on about 30 % of the free grass columns (the flower, mushroom and tall grass thresholds
+  are 7, 10 and 40 of 100). Trees are unchanged: the forest and spawn-tree passes draw exactly as before, so the tree bases and the spawn of seed 42
+  are the same, and the nearest tree is still eight blocks from the spawn.
+- **Golden**: seed 42 at version 4 is `d96279bf…e69ae1` (was `6d148dca…4f5`); the tree bases and the spawn did not move.
+- **Light** (`LightMap`, a pure integer function of the tiles): the light of a tile is the maximum of three sources, each losing `Falloff` = 2 per
+  step through tiles that do not block light (a solid tile takes light from its neighbours but does not pass it on). **Sky:** each column is full
+  light (16) down to and including its first solid tile, so an open column is lit and a closed one is dark below its roof. **Torches:** a torch is a
+  source at 16, so it lights a disc of radius 8 (`TorchRadius`). **Spread:** the light under an overhang falls off sideways. `Brightness` gives
+  solid rock at least `RockFloor` (6), so an unlit cave wall stays readable while the open air of a dark cave is black.
+- **Incremental update:** a change in column x recomputes the columns x-9 to x+9 over the full height, reading the unchanged columns on either side as
+  the boundary (`TilesChanged`). Light moves at most eight steps, so the result is the same as a full recompute (a test compares the two after
+  mining). Mining and placing call it; a host that never reads `Light` pays nothing (it is computed on first use). Timing on seed 42, measured in a
+  debug test build on the development machine: a full map about 65 ms (once, at load), an incremental change a median of 0.9 ms, the longest 6.5 ms.
+- **Debug:** `GameSimulation.TeleportTo(tile)` puts the body's feet on a tile at rest. It is not a command and not a game rule; the front-end's
+  `--teleport` step calls it (see the MonoGame README).
+
 ## Tests
 
 `tests/Vocaterra.Simulation.Tests`: the seed-42 golden, same-seed and other-seed digests, properties over twelve seeds (spawn on the surface
@@ -120,3 +152,8 @@ with air above, no floating trees, terrain within bounds, a tree within 20 colum
 world edge) and on generated terrain, P6's `InventoryTests` (stacks, limits, the hotbar, removals), `MiningAndPlacingTests` (time, tools, drops,
 reach, the full inventory, placing rules, determinism) and `SurfaceDressingTests` (sand, flowers, mushrooms, the trees and the spawn unchanged), P6b's `CraftingTests` (ingredients, stations and their reach, the full inventory, the command, determinism) and `FellingTests` (base, middle, neighbour, full inventory), and an ASCII dump of the area around the spawn in the test output
 (`dotnet test --logger "console;verbosity=detailed" --filter AsciiMap`).
+P7: `CavesAndOresTests` (ore bands for seed 42 and over seeds, no cave within six tiles of the surface, the spawn area intact, every seed has a
+cave, the same seed gives the same world at version 4) and `OresAndLightTests` (the pickaxe drops each ore's item, the axe cannot mine ore, the
+harder ores take longer, the torch is placed and mined back, the sky lights open air and not rock below, a sealed cave is dark, a torch falls off by
+two per tile and reaches eight, mining a roof to the sky opens the cave and the light falls off sideways, an incremental change equals a full
+recompute, the light map is a pure function of the tiles). `GenerationTests` and `SurfaceDressingTests` carry the version-4 golden and pass list.

@@ -65,6 +65,7 @@ public sealed class GuideService
     private const string PointFound = "guide.point.found";
     private const string PointHere = "guide.point.here";
     private const string PointNone = "guide.point.none";
+    private const string PointDeep = "guide.point.deep";
     private const string IdentifyFound = "guide.identify.found";
     private const string IdentifyNone = "guide.identify.none";
     private const string CraftRecipe = "guide.craft.recipe";
@@ -378,7 +379,10 @@ public sealed class GuideService
         if (found is null)
         {
             Merge(facts, values);
-            return (Render(PointNone, SlotMap.From(values), rng), null);
+
+            // An ore is underground: none in the snapshot means it lies far below, not that it is absent.
+            var pool = _nouns.ForLemma(place) is { Deep: true } ? PointDeep : PointNone;
+            return (Render(pool, SlotMap.From(values), rng), null);
         }
 
         if (found.Blocks == 0)

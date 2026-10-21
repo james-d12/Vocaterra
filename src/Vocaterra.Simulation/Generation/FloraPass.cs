@@ -12,6 +12,7 @@ internal sealed class FloraPass : IGenerationPass
 {
     private const int FlowerBelow = 7;
     private const int MushroomBelow = 10;
+    private const int TallGrassBelow = 40;
     private const int TreeClearance = 2;
     private const int SpawnClearance = 3;
 
@@ -50,6 +51,10 @@ internal sealed class FloraPass : IGenerationPass
                 else if (roll < MushroomBelow)
                 {
                     tiles.SetTile(x, ground - 1, TileId.Mushroom);
+                }
+                else if (roll < TallGrassBelow)
+                {
+                    tiles.SetTile(x, ground - 1, TileId.TallGrass);
                 }
             }
         }
