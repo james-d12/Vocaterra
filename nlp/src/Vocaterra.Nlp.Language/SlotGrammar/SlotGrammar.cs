@@ -36,6 +36,106 @@ public sealed class SlotGrammar
         return new SlotGrammar(id ?? canonical, canonical, nodes);
     }
 
+    /// <summary>The literal words of the pattern (including those inside alternatives), accent-folded and lower-case, distinct, in ordinal order.</summary>
+    public IReadOnlyList<string> LiteralWords()
+    {
+        var words = new SortedSet<string>(StringComparer.Ordinal);
+        Walk(Nodes, node =>
+        {
+            if (node is LiteralNode literal)
+            {
+                words.Add(literal.Word);
+            }
+        });
+        return [.. words];
+    }
+
+    /// <summary>The lemmas named by <c>[VERB:lemma]</c> elements, distinct, in ordinal order.</summary>
+    public IReadOnlyList<string> VerbLemmas()
+    {
+        var lemmas = new SortedSet<string>(StringComparer.Ordinal);
+        Walk(Nodes, node =>
+        {
+            if (node is TypedNode { Lemma: { } lemma })
+            {
+                lemmas.Add(lemma);
+            }
+        });
+        return [.. lemmas];
+    }
+
+    /// <summary>
+    /// Describes every optional <c>[WORD]</c> element that sits next to another optional element in the same sequence (before or after it), as text such as
+    /// <c>[WORD:item]? next to [ART]?</c>; empty when there is none. An optional name beside an optional word can absorb a word the author meant for the
+    /// other element or for no element at all (<c>ayer</c> read as the item), so the content lint reports it.
+    /// </summary>
+    public IReadOnlyList<string> OptionalWordNeighbours()
+    {
+        var found = new List<string>();
+        FindOptionalWordNeighbours(Nodes, found);
+        return found;
+    }
+
+    private static void FindOptionalWordNeighbours(IReadOnlyList<GrammarNode> sequence, List<string> found)
+    {
+        for (var i = 0; i < sequence.Count; i++)
+        {
+            if (sequence[i] is OptionalNode { Inner: WordNode })
+            {
+                foreach (var j in new[] { i - 1, i + 1 })
+                {
+                    if (j >= 0 && j < sequence.Count && sequence[j] is OptionalNode)
+                    {
+                        found.Add($"{Render([sequence[i]])} next to {Render([sequence[j]])}");
+                    }
+                }
+            }
+
+            switch (sequence[i])
+            {
+                case OptionalNode { Inner: GroupNode inner }:
+                    foreach (var alternative in inner.Alternatives)
+                    {
+                        FindOptionalWordNeighbours(alternative, found);
+                    }
+
+                    break;
+                case GroupNode group:
+                    foreach (var alternative in group.Alternatives)
+                    {
+                        FindOptionalWordNeighbours(alternative, found);
+                    }
+
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private static void Walk(IReadOnlyList<GrammarNode> nodes, Action<GrammarNode> visit)
+    {
+        foreach (var node in nodes)
+        {
+            visit(node);
+            switch (node)
+            {
+                case OptionalNode optional:
+                    Walk([optional.Inner], visit);
+                    break;
+                case GroupNode group:
+                    foreach (var alternative in group.Alternatives)
+                    {
+                        Walk(alternative, visit);
+                    }
+
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     /// <summary>Returns the canonical pattern text.</summary>
     public override string ToString()
     {

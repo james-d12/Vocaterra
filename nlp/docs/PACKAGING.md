@@ -143,7 +143,7 @@ into its own content folder with any zip tool and loads that folder. The archive
 ## The content tool
 
 `Vocaterra.Nlp.ContentBuilder` is packed as a dotnet tool, package `Vocaterra.Nlp.ContentBuilder` 0.1.0, with the command `vocaterra-content`. It
-runs the same commands as the project (`validate`, `hash`, `pack`, `verify-pack`, `cefr-check`, `import-lexicon`, `lexicon-report`). A consuming
+runs the same commands as the project (`validate`, `hash`, `pack`, `verify-pack`, `lint`, `cefr-check`, `import-lexicon`, `lexicon-report`). A consuming
 repository installs it from the local feed into a folder of its own, so it stays out of the global tool list:
 
 ```bash

@@ -173,7 +173,64 @@ The hand-authored content has no third-party text in it, and it is licensed Apac
 
 **Network endpoints the repository's scripts contact:** `alphacephei.com` (Vosk model zip), `github.com` release downloads from `k2-fsa/sherpa-onnx` (Parakeet, Kokoro), `api.nuget.org` and the NuGet feed (restore, license lookup). `huggingface.co` (wav2vec2, multilingual-e5-small) is referenced but no script downloads from it yet.
 
-**In-repository tools** (first-party, not third-party): `tools/Vocaterra.Nlp.ContentBuilder` (validate, hash, cefr-check, import-lexicon), `tools/Vocaterra.Nlp.Cli` (eval, replay), `tools/Vocaterra.Nlp.Bench` (WER, learner-error preservation, latency).
+**In-repository tools** (first-party, not third-party): `tools/Vocaterra.Nlp.ContentBuilder` (validate, hash, lint, cefr-check, import-lexicon, lexicon-report), `tools/Vocaterra.Nlp.Cli` (eval, replay), `tools/Vocaterra.Nlp.Bench` (WER, learner-error preservation, latency).
+
+### Content lint
+
+`vocaterra-content lint <bundleDir> [--strict] [--level a1|a2] [--fail-on-level] [--json] [--prompts a,b] [--host-pools p*,q]` (library:
+`ContentLinter.Lint(bundle, options)` in `Vocaterra.Nlp.Content`, see [docs/API.md](docs/API.md)). No new dependency: it runs the real
+`LinguisticAnalyzer`, `IntentResolver` (no embedding model, so the grammar and rule rungs only) and `TextGrader` on the bundle's own content.
+It does not verify hashes. Output is deterministic: one finding per line, ordinal-sorted by path, check id, ids and message, as
+`severity check path [ids] message`, then `lint: N errors, N warnings, N info, N waived`. A waived finding starts with `waived` and ends with
+`(was <severity>; waiver: ...)`. `--json` prints `{"summary":{...},"findings":[...]}` instead.
+
+**Exit codes.** `lint`: 0 no errors (and, with `--strict`, no warnings); 1 errors found, or warnings with `--strict`, or the bundle does not load,
+or `--prompts` names an unknown prompt, or the level has no CEFR list; 2 the command line is wrong. Info and waived findings never fail.
+`validate` keeps its codes (0 valid, 1 invalid, 2 usage), prints the lint's errors and warnings after its `OK:` line, and returns 1 for them only
+with `--strict`.
+
+| Check id | Severity | What it finds |
+| --- | --- | --- |
+| `coverage.uncovered` | error | An intent example that neither a grammar nor a keyword rule of its own intent resolves; prints a suggested grammar (closed-class words literal, open-class words as `[POS]` or `[VERB:lemma]`, a noun that varies between the intent's examples as `[NOUN:slot]`), a hint only |
+| `coverage.rule-only` | warning | An example only a keyword rule covers (rung `rules`, no grammar matches) |
+| `coverage.unknown-word` | warning | An example with a word the lexicon lacks (unless the example expects `vocab.unknown`, or a `[WORD]` element binds it as a name) |
+| `confusion.prompt` | warning, error | An example of intent A that intent B's grammar also matches, or the resolver would give to B, where some prompt allows both. Warning when A still wins (by the specificity tie-break); error when the resolver gives the example to B, or when a prompt's whole allow-list gives it to another intent. Names the grammar that matched and the prompts |
+| `confusion.catalog` | info | The same overlap when no prompt allows both intents (harmless today, a trap if a prompt ever allows both). The sample reports `cast_spell` taking `gracias` |
+| `hazard.optional-word` | warning | An optional `[WORD]` next to an optional element in a grammar |
+| `hazard.lexicon-gap` | error | A grammar literal, a `[VERB:lemma]` lemma or a keyword-rule lemma the lexicon does not know |
+| `hazard.homograph` | info | A `[VERB:x]` lemma some of whose forms are also noun forms (`cuesta`). Info, because inside the grammar the typed element binds the verb reading; the noun reading only matters outside it |
+| `reach.pool` | warning | A dialogue pool no agent action uses and the pipeline does not reach by itself (reserved: `not_understood`, `answer_accepted`, `feedback.<kind>[.<tag>]`), or used only by agents no prompt names; a `feedback.` pool whose kind is not a feedback kind |
+| `reach.intent` / `reach.answer-set` / `reach.agent` | warning | An intent no prompt allows, an answer set or an agent no prompt names |
+| `reach.state` | warning | An agent state that cannot be reached from the initial state |
+| `cefr.dialogue` / `cefr.prompt` / `cefr.answer` | warning, error with `--fail-on-level` | A lemma of dialogue templates, prompt text or answer-set canonicals (aliases are not held to the level) not in the CEFR list of `--level` or below |
+| `expect.mismatch` | error | An example with `errors` whose verdict's tag set differs |
+| `expect.no-prompt` / `expect.unknown-prompt` / `expect.prompt-intent` | warning, error, error | An expectation with no prompt to grade against; one naming a prompt the bundle lacks; one naming a prompt that does not allow the intent |
+
+**Reachability** is measured from the prompts: a host starts a conversation with a prompt, and a prompt names its agent. `--prompts a,b` limits the
+roots to those prompts (a game that uses two of the sample's prompts sees everything else listed), and `--host-pools` names pools the host voices
+itself without an agent action (exact ids, or a prefix ending in `*`). A pool named like an intent (`greet`) is not treated as reachable: the
+planner only falls back to it when an agent transition has no actions.
+
+**Example expectations.** An intent example is a string, or an object `{ "text": "yo es Rosa", "errors": ["conj.person"], "prompt": "introduce-open" }`.
+`errors` is the exact set of error tags the grader gives the text (an empty list asserts a clean verdict); string examples state no expectation
+and are not graded. The lint grades the text with `TextGrader`, which is the text path of `UtterancePipeline` (a test compares the two):
+normalization, answer matching against the prompt's answer set, analysis with the prompt's grammars, intent resolution, verdict assembly, without
+pronunciation. The prompt is the example's `prompt` when given (it must allow the intent), otherwise the first **open-mode** prompt (ordinal id) that
+allows the intent, or the first of any mode when none is open: an open prompt grades a sentence, while a constrained prompt expects one of its
+answer set's phrases and would add `vocab.wrong`. The tags can depend on the prompt's difficulty and answer set, which is why an example may name its
+prompt.
+
+**Waivers.** Per intent, `"lint": { "allowOverlap": [...], "allowRuleOnly": [...], "allowHomograph": [...] }`. A waived finding is still printed (as
+`waived`, with the waiver) and counted separately; it never fails. There are three kinds, only what the findings needed:
+
+| Waiver | Where | Waives |
+| --- | --- | --- |
+| `allowOverlap`: intent ids | on either intent of the pair | `confusion.prompt` warnings and `confusion.catalog` info between the two intents, in both directions (`cast_spell` may take `thank`'s examples, or `thank` may declare it); an error (the resolver gives the example to the other intent) is a defect and stays |
+| `allowRuleOnly`: example texts | on the example's intent | `coverage.rule-only` for exactly that example |
+| `allowHomograph`: verb lemmas | on the intent whose grammar uses the lemma | `hazard.homograph` for that lemma |
+
+Errors cannot be waived: fix the content. The waivers and the example objects are additive schema (schema version stays 1); a catalog that uses
+neither serializes byte for byte as before.
 
 ## 8. Planned or referenced but not used
 

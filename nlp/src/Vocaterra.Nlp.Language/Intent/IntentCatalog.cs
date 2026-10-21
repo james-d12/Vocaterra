@@ -9,12 +9,17 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 
 /// <summary>
 /// The set of intents the content defines, loaded from canonical JSON:
-/// <c>{ "schemaVersion": 1, "intents": [ { "intentId", "requiredSlots", "slotGrammars", "keywordRules", "examples" } ] }</c>.
+/// <c>{ "schemaVersion": 1, "intents": [ { "intentId", "requiredSlots", "slotGrammars", "keywordRules", "examples", "lint" } ] }</c>.
 /// </summary>
 /// <remarks>
 /// A keyword rule is <c>{ "lemmas": [..], "requiresSlots": [..], "slotFromNoun": "item", "slotFromNumber": "qty" }</c>; when a rule lists
 /// <c>qty</c> in <c>requiresSlots</c> without naming <c>slotFromNumber</c>, the numeral slot defaults to <c>qty</c>. Slot grammars are patterns
 /// in the <see cref="SlotGrammar"/> DSL and are identified by their canonical pattern text. Intents are sorted by ordinal id.
+/// <para>
+/// An example is a string or an object <c>{ "text": "yo es Rosa", "errors": ["conj.person"], "prompt": "introduce-open" }</c> (see <see cref="IntentExample"/>);
+/// <c>lint</c> optionally holds the waivers of the content lint (see <see cref="IntentLintWaivers"/>). Neither changes how an utterance is resolved, and a catalog
+/// that uses neither serializes as before.
+/// </para>
 /// </remarks>
 public sealed class IntentCatalog
 {
@@ -128,7 +133,8 @@ public sealed class IntentCatalog
                 intent.KeywordRules
                     .Select(static rule => new KeywordRuleEntry(rule.Lemmas, rule.RequiresSlots, rule.SlotFromNoun, rule.SlotFromNumber))
                     .ToArray(),
-                intent.Examples));
+                intent.ExampleSpecs,
+                intent.Lint.IsEmpty ? null : intent.Lint));
         }
 
         return CanonicalJson.Serialize(new IntentCatalogFile(CurrentSchemaVersion, entries));
@@ -162,7 +168,7 @@ public sealed class IntentCatalog
         var grammars = BuildGrammars(entry.SlotGrammars, id);
         var rules = BuildRules(entry.KeywordRules, id);
         var examples = BuildExamples(entry.Examples, id);
-        return new IntentDefinition(new IntentId(id), required, grammars, rules, examples, DeclareSlots(required, grammars, rules));
+        return new IntentDefinition(new IntentId(id), required, grammars, rules, examples, DeclareSlots(required, grammars, rules), BuildLint(entry.Lint, id));
     }
 
     private static string[] SlotNames(IReadOnlyList<string>? names, string intentId, string member)
@@ -251,24 +257,64 @@ public sealed class IntentCatalog
         return rules;
     }
 
-    private static List<string> BuildExamples(IReadOnlyList<string>? examples, string intentId)
+    private static List<IntentExample> BuildExamples(IReadOnlyList<IntentExample>? examples, string intentId)
     {
-        var result = new List<string>();
+        var result = new List<IntentExample>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var example in examples ?? [])
         {
-            if (string.IsNullOrWhiteSpace(example))
+            if ((object?)example is null || string.IsNullOrWhiteSpace(example.Text))
             {
                 throw new FormatException($"Intent '{intentId}' has an empty example.");
             }
 
-            if (seen.Add(example))
+            if (example.ExpectedErrors?.Any(string.IsNullOrWhiteSpace) == true)
             {
-                result.Add(example);
+                throw new FormatException($"Intent '{intentId}' example \"{example.Text}\" has an empty error tag.");
+            }
+
+            if (example.Prompt is { } prompt && string.IsNullOrWhiteSpace(prompt))
+            {
+                throw new FormatException($"Intent '{intentId}' example \"{example.Text}\" has an empty prompt id.");
+            }
+
+            if (seen.Add(example.Text))
+            {
+                result.Add(example.ExpectedErrors is null
+                    ? example
+                    : example with { ExpectedErrors = [.. example.ExpectedErrors.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)] });
             }
         }
 
         return result;
+    }
+
+    private static IntentLintWaivers? BuildLint(IntentLintWaivers? lint, string intentId)
+    {
+        if ((object?)lint is null)
+        {
+            return null;
+        }
+
+        return new IntentLintWaivers(
+            SortedWaivers(lint.AllowOverlap, intentId, "allowOverlap"),
+            SortedWaivers(lint.AllowRuleOnly, intentId, "allowRuleOnly"),
+            SortedWaivers(lint.AllowHomograph, intentId, "allowHomograph"));
+    }
+
+    private static string[]? SortedWaivers(IReadOnlyList<string>? values, string intentId, string member)
+    {
+        if (values is null)
+        {
+            return null;
+        }
+
+        if (values.Any(string.IsNullOrWhiteSpace))
+        {
+            throw new FormatException($"Intent '{intentId}' has an empty entry in lint.{member}.");
+        }
+
+        return [.. values.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)];
     }
 
     private static DeclaredSlot[] DeclareSlots(string[] required, List<SlotGrammar> grammars, List<KeywordRule> rules)

@@ -128,6 +128,29 @@ public static class CefrChecker
         return Check(bundle.Dialogue, bundle.Lexicon, AllowedLemmas(bundle.Cefr, level), level, bundle.Prompts);
     }
 
+    /// <summary>
+    /// Checks the canonical phrase of every answer of every answer set against the level (aliases are alternatives the learner may say, so they are not held to it).
+    /// The result reuses the prompt report shape: <see cref="CefrMissingLemma.LineIds"/> holds answer set ids. Throws <see cref="ArgumentException"/> when the bundle has no list for the level.
+    /// </summary>
+    public static CefrPromptReport CheckAnswerSets(ContentBundle bundle, string level)
+    {
+        ArgumentNullException.ThrowIfNull(bundle);
+        var allowed = AllowedLemmas(bundle.Cefr, level);
+        var analyzer = new LinguisticAnalyzer(bundle.Lexicon);
+        var covered = new SortedSet<string>(StringComparer.Ordinal);
+        var missing = new SortedDictionary<string, (bool InLexicon, SortedSet<string> Lines)>(StringComparer.Ordinal);
+        foreach (var set in bundle.AnswerSets.Values.OrderBy(static set => set.AnswerSetId, StringComparer.Ordinal))
+        {
+            foreach (var answer in set.Answers)
+            {
+                Tally(analyzer, answer.Canonical, set.AnswerSetId, allowed, covered, missing);
+            }
+        }
+
+        var lemmas = ToMissing(missing);
+        return new CefrPromptReport(covered.Count + lemmas.Length, covered.Count, lemmas);
+    }
+
     /// <summary>Returns the lemmas allowed at the level: its own list and all lower levels' lists, in ordinal order.</summary>
     public static IReadOnlySet<string> AllowedLemmas(IReadOnlyDictionary<string, IReadOnlySet<string>> cefr, string level)
     {

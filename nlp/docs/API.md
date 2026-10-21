@@ -49,6 +49,37 @@ path, an absolute path, a path with `..`, a backslash or a drive letter, and for
 `ATTRIBUTION.md`, `lexicon/`, `answer-sets/`, `agents/`, `cefr/`, `intents/`, `prompts/`, `dialogue/`, `feedback/`, `evaluation/`,
 `effects/`). A bundle loaded with `VerifyHashes = false` has no host files.
 
+### Lint a bundle (M27a)
+
+The loader checks references; `ContentLinter` checks behaviour: it runs the real analyzer, intent resolver and grader on the bundle's own
+examples and finds examples nothing resolves, intents that take each other's sentences, hazardous grammar constructs, content nothing reaches, words
+above a CEFR level and example expectations that no longer hold. A host or a build step can call it on a loaded bundle; the command line is
+`vocaterra-content lint` (checks, waivers and exit codes: [TOOLS.md](../TOOLS.md#content-lint)).
+
+```csharp
+using Vocaterra.Nlp.Content;
+
+ContentBundle bundle = ContentLoader.Load("content/v1", new ContentLoadOptions { VerifyHashes = false });   // lint before hashing
+LintReport report = ContentLinter.Lint(bundle, new LintOptions { Level = "a1", FailOnLevel = false });
+Console.Write(report.Format());                  // one finding per line, then "lint: 0 errors, 2 warnings, 8 info, 0 waived"
+string json = report.ToJson();                   // the same report as canonical JSON
+bool ok = report.Passes(strict: false);          // false when there is an error (or, strict, a warning); info and waived never fail
+foreach (LintFinding finding in report.Active(LintSeverity.Warning)) { /* Severity, CheckId, Path, Ids, Message, Suggestion */ }
+```
+
+`LintOptions`: `Level` (`a1` or `a2`; null skips the CEFR check and an unknown level throws `ArgumentException`), `FailOnLevel`, `RootPrompts`
+(measure reachability from these prompts only; an unknown id throws `ArgumentException`) and `HostPools` (pools the host voices itself).
+The report is deterministic: the same bundle and options give the same findings in the same order. `TextGrader` is the piece the example
+expectations use and a host can use it too: `new TextGrader(bundle).Grade("yo tiene dos espada", prompt)` returns the `Verdict` the pipeline gives for
+a typed answer (no recognizer, no pronunciation score), so a host can grade text input without a pipeline.
+
+The intent catalog gained two additive members. An example is a string or `{ "text": ..., "errors": [...], "prompt": ... }`
+(`IntentDefinition.ExampleSpecs` holds `IntentExample` records; `IntentDefinition.Examples` still lists the texts, so the resolver and the
+embedding anchors are unchanged), and an intent may carry `"lint": { "allowOverlap": [...], "allowRuleOnly": [...], "allowHomograph": [...] }`
+(`IntentDefinition.Lint`). `IntentCatalog.ToJson()` writes a string example as a string and omits `lint` when it is empty, so a catalog that uses neither
+serializes as before. `ReservedPools` (in `Vocaterra.Nlp.Response.Templates`) names the dialogue pools the pipeline uses without an agent action
+(`not_understood`, `answer_accepted`, `feedback.<kind>[.<tag>]`).
+
 ## 2. Build the services (D0, with optional D1)
 
 ```csharp

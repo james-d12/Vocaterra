@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Vocaterra.Nlp.Language.Intent;
 
 /// <summary>Wire format of the intent catalog JSON document.</summary>
@@ -9,7 +11,8 @@ internal sealed record IntentEntry(
     IReadOnlyList<string>? RequiredSlots,
     IReadOnlyList<string>? SlotGrammars,
     IReadOnlyList<KeywordRuleEntry>? KeywordRules,
-    IReadOnlyList<string>? Examples);
+    IReadOnlyList<IntentExample>? Examples,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IntentLintWaivers? Lint = null);
 
 /// <summary>Wire format of one keyword rule.</summary>
 internal sealed record KeywordRuleEntry(
