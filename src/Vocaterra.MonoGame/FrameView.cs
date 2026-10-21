@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game;
 using Vocaterra.MonoGame.Frontend;
 using Vocaterra.Simulation;
 
@@ -13,6 +14,12 @@ public sealed class FrameView
 {
     /// <summary>The simulation being shown.</summary>
     public required GameSimulation Simulation { get; init; }
+
+    /// <summary>The running game: the guide, the arrow and the conversation (read only for layers).</summary>
+    public required GameSession Session { get; init; }
+
+    /// <summary>The dialogue panel's state.</summary>
+    public required DialogueModel Dialogue { get; init; }
 
     /// <summary>The camera, already following the player for this frame.</summary>
     public required Camera Camera { get; init; }
@@ -43,7 +50,7 @@ public sealed class FrameView
 }
 
 /// <summary>
-/// A piece of the screen drawn after the world, in order: the debug overlay now, the dialogue panel (P3), the word/inventory UI (P4, P6) later.
+/// A piece of the screen drawn after the world, in order: the guide, the arrow, the debug overlay and the dialogue panel (P3); the word and inventory UI (P4, P6) later.
 /// A layer reads <see cref="FrameView"/> and draws with the <see cref="SpriteBatch"/> the game has already begun (point sampling, alpha blend).
 /// </summary>
 public interface IFrameLayer

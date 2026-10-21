@@ -210,6 +210,67 @@
         "muchas gracias por todo",
         "mucho gracias"
       ]
+    },
+    {
+      "intentId": "ask_directions",
+      "requiredSlots": ["place"],
+      "slotGrammars": [
+        "dónde [VERB:estar] [ART]? [NOUN:place]",
+        "dónde [VERB:haber] [ART]? [NOUN:place]",
+        "[VERB:buscar] [ART]? [NOUN:place]",
+        "[VERB:querer] [VERB:encontrar] [ART]? [NOUN:place]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["dónde"], "requiresSlots": ["place"], "slotFromNoun": "place" },
+        { "lemmas": ["buscar"], "requiresSlots": ["place"], "slotFromNoun": "place" }
+      ],
+      "examples": [
+        "dónde está el árbol",
+        "dónde hay piedra",
+        "dónde está la cueva",
+        "busco la hierba",
+        "quiero encontrar tierra",
+        "dónde está la árbol"
+      ]
+    },
+    {
+      "intentId": "ask_what",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "qué [VERB:ser] (esto|eso)",
+        "cómo se [VERB:llamar] (esto|eso)"
+      ],
+      "keywordRules": [
+        { "lemmas": ["esto"], "requiresSlots": [] },
+        { "lemmas": ["eso"], "requiresSlots": [] }
+      ],
+      "examples": [
+        "qué es esto",
+        "qué es eso",
+        "cómo se llama esto",
+        "cómo se llama eso",
+        "qué son esto"
+      ]
+    },
+    {
+      "intentId": "ask_help",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "ayuda",
+        "me [VERB:ayudar]",
+        "[VERB:necesitar] ayuda",
+        "qué [VERB:hacer]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["ayudar"], "requiresSlots": [] }
+      ],
+      "examples": [
+        "ayuda",
+        "me ayudas",
+        "necesito ayuda",
+        "qué hago",
+        "yo necesitas ayuda"
+      ]
     }
   ]
 }

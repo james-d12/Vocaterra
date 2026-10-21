@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!-- The only engine code (plan section 3 rule 3, D-game-1): MonoGame DesktopGL, no content pipeline. Textures are made in code, the font
-       is a TTF read at run time through FontStashSharp. It references the simulation by project and no language-core package yet. -->
+       is a TTF read at run time through FontStashSharp. It references the engine-free game layer by project (which brings the simulation and
+       the language core's packages) and names no language-core package itself. -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace>Vocaterra.MonoGame</RootNamespace>
@@ -15,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../Vocaterra.Game/Vocaterra.Game.csproj" />
     <ProjectReference Include="../Vocaterra.Simulation/Vocaterra.Simulation.csproj" />
   </ItemGroup>
 

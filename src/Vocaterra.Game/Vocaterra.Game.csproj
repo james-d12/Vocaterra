@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The engine-agnostic game layer (plan section 3 rule 3, D-game-1): the game session, the guide's turns and the facts about the world the
+       guide speaks of. It references the simulation by project and the language core only as packages. No engine type belongs here. -->
+  <PropertyGroup>
+    <RootNamespace>Vocaterra.Game</RootNamespace>
+    <AssemblyName>Vocaterra.Game</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Vocaterra.Nlp.Asr" />
+    <PackageReference Include="Vocaterra.Nlp.Content" />
+    <PackageReference Include="Vocaterra.Nlp.Core" />
+    <PackageReference Include="Vocaterra.Nlp.Decision" />
+    <PackageReference Include="Vocaterra.Nlp.Language" />
+    <PackageReference Include="Vocaterra.Nlp.Pipeline" />
+    <PackageReference Include="Vocaterra.Nlp.Response" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Vocaterra.Simulation/Vocaterra.Simulation.csproj" />
+  </ItemGroup>
+
+</Project>

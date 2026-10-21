@@ -57,7 +57,7 @@ internal sealed class ForestPass : IGenerationPass
         }
     }
 
-    private static bool TrunkSpaceIsFree(TileGrid tiles, int x, int ground, int trunkHeight)
+    internal static bool TrunkSpaceIsFree(TileGrid tiles, int x, int ground, int trunkHeight)
     {
         if (ground - trunkHeight - 2 < 0)
         {
@@ -75,7 +75,7 @@ internal sealed class ForestPass : IGenerationPass
         return true;
     }
 
-    private static void PlantTree(TileGrid tiles, int x, int ground, int trunkHeight)
+    internal static void PlantTree(TileGrid tiles, int x, int ground, int trunkHeight)
     {
         var top = ground - trunkHeight;
 

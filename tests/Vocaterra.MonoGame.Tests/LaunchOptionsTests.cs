@@ -52,10 +52,38 @@ public sealed class LaunchOptionsTests
     }
 
     [Fact]
-    public void FramesAndWalkingNeedAScreenshot()
+    public void FramesWalkingAndSayingNeedAScreenshot()
     {
         Assert.Contains("--screenshot", Fail("--frames", "10"), StringComparison.Ordinal);
         Assert.Contains("--screenshot", Fail("--walk-right", "10"), StringComparison.Ordinal);
+        Assert.Contains("--screenshot", Fail("--say", "hola"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SayIsRepeatableAndKeepsTheLinesVerbatimInOrder()
+    {
+        var options = Parse("--seed", "42", "--say", "¿dónde está el árbol?", "--say", "gracias", "--screenshot", "p3.png", "--frames", "300");
+
+        Assert.Equal(["¿dónde está el árbol?", "gracias"], options.Says);
+        Assert.Equal(300, options.Frames);
+        Assert.True(options.IsScreenshotRun);
+    }
+
+    [Fact]
+    public void SayingRaisesTheDefaultFrameCountForTheWalkAndTheTyping()
+    {
+        Assert.Equal(LaunchOptions.DefaultSayFrames, Parse("--say", "hola", "--screenshot", "x.png").Frames);
+        Assert.Equal(LaunchOptions.DefaultScreenshotFrames, Parse("--screenshot", "x.png").Frames);
+        Assert.Empty(Parse("--screenshot", "x.png").Says);
+    }
+
+    [Fact]
+    public void ABlankSayAndAnEmptyContentFolderAreRejected()
+    {
+        Assert.Contains("--say", Fail("--screenshot", "x.png", "--say", "   "), StringComparison.Ordinal);
+        Assert.Contains("--content", Fail("--content", string.Empty), StringComparison.Ordinal);
+        Assert.Equal("content/game-v1", Parse("--content", "content/game-v1").ContentDirectory);
+        Assert.Null(Parse().ContentDirectory);
     }
 
     [Fact]

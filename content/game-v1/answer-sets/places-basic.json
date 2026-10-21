@@ -1,0 +1,35 @@
+{
+  "answerSetId": "places-basic",
+  "answers": [
+    {
+      "answerId": "tree",
+      "canonical": "árbol",
+      "aliases": ["el árbol", "un árbol"],
+      "dialects": ["es-ES", "es-MX", "es-AR"]
+    },
+    {
+      "answerId": "stone",
+      "canonical": "piedra",
+      "aliases": ["la piedra", "una piedra", "roca", "la roca"],
+      "dialects": ["es-ES", "es-MX", "es-AR"]
+    },
+    {
+      "answerId": "grass",
+      "canonical": "hierba",
+      "aliases": ["la hierba", "una hierba"],
+      "dialects": ["es-ES", "es-MX", "es-AR"]
+    },
+    {
+      "answerId": "earth",
+      "canonical": "tierra",
+      "aliases": ["la tierra"],
+      "dialects": ["es-ES", "es-MX", "es-AR"]
+    },
+    {
+      "answerId": "cave",
+      "canonical": "cueva",
+      "aliases": ["la cueva", "una cueva"],
+      "dialects": ["es-ES", "es-MX", "es-AR"]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "generated_by": "hand-authored",
+  "entries": [
+    {"form":"bloque","lemma":"bloque","pos":"noun","features":{"number":"sg","gender":"m"}},
+    {"form":"bloques","lemma":"bloque","pos":"noun","features":{"number":"pl","gender":"m"}}
+  ]
+}

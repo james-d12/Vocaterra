@@ -87,14 +87,45 @@ The core cannot know these, so the host supplies them (API document, "The host o
 
 ## The engine
 
-The engine is not chosen (D-game-1 in [DECISIONS.md](DECISIONS.md)). The host is a console program so that the core's calls can be exercised
-without one. The research report's suggestion was Godot .NET. A game engine would reference the same packages, call the same sequence and
-render the outcome itself. Audio capture and playback belong to the engine and stay out of the core.
+The engine is MonoGame for the prototype and the final engine is open (D-game-1 in [DECISIONS.md](DECISIONS.md)); a Godot .NET front-end is a
+later spike. The console host stays as the cheapest way to exercise the core's calls and the content. A front-end references the same packages
+(through `Vocaterra.Game`), calls the same sequence and renders the outcome itself. Audio capture and playback belong to the front-end and stay
+out of the core.
+
+## The game layer (P3)
+
+The prototype is three libraries and a front-end, so that the engine can change without rewriting the game:
+
+- `src/Vocaterra.Simulation`: the world and the player body, generation and a fixed 60 Hz tick. No packages, no engine.
+- `src/Vocaterra.Game`: `GameSession` (the simulation, the bundle, the world seed, the stored time, the guide and the conversation),
+  `GuideService` (one typed turn over the packages), `WorldFacts` (the nearest tile, the direction and the distance in Spanish) and
+  `TypedUtteranceEvaluator`, the call sequence of the steps above, which the console host shares. No engine type.
+- `src/Vocaterra.MonoGame`: the only engine code: window, drawing, input, the dialogue panel. It names no `Vocaterra.Nlp.*` package.
+
+How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md` for the steps):
+
+- **The stored time** is a fixed start plus `Tick / 60` seconds of game time (`GameSession.StoredTime`); nothing reads the clock, so a scripted
+  run gives the same turns everywhere. The save file will own the start time.
+- **`HostStateHash`** is the simulation's state digest (`GameSimulation.ComputeStateDigest()`), given to the context's constructor instead of the
+  core's default digest and set again before each turn, because `ConversationContext.Next` recomputes the default.
+- **Repeat counts.** The pipeline reads the counts in the context as including the utterance being evaluated, while `Next` carries them as they
+  were before the next one (CR-012, open). The guide's evaluator therefore evaluates twice, adding the verdict with `RepeatCounts.Next` in
+  between, so the recast, hint and correction ladder and the repair ladder start at the right step. The console host keeps the old, lagging
+  behaviour so that its demo output does not change.
+- **Host facts in replies** (CR-003, open). The core's reply templates cannot name world facts, so the game renders its own line ("El árbol
+  está a la derecha, a doce bloques.") with the bundle's template engine from the bundle's dialogue pools, outside the core's replay record. The
+  agent's reply and the correction come from the core.
+- **Host events.** The guide's state machine raises `guide.point`, `guide.identify` and `guide.help` (opaque strings to the core); the game maps
+  them to the nearest tile, the cursor tile and a hint, and the front-end draws the arrow.
+- **Evaluation** is synchronous in P3, between ticks and never inside `GameSession.Step`; P5 moves it to a worker thread.
 
 ## Where the rules are checked
 
 - `tests/Vocaterra.Host.Tests` runs the two demo utterances through the host's evaluation path on `content/game-v1`, checks the bundle hash in
   the manifest against the loader's, and checks that the conversation carries its counts and learner from one utterance to the next. It
   checks that a count at `int.MaxValue` stays there, and that the prompt's line is written under its header (`PromptReportTests`).
+- `tests/Vocaterra.Game.Tests` runs the guide's turns on a fixed seed and a fixed stored time with the scripted recognizer (the verdict, the
+  guide's state, the host event, the target tile and the world line; an unaccented line; the repair path; determinism), `WorldFacts` on small
+  grids, the guide's content in the bundle, and the layering rules of `Vocaterra.Game` (no clock, no `System.Random`, no engine type, packages only).
 - The core's own suites (fuzzing, goldens, replay) test the packages; this repository tests only what the game does with them.
 - The continuous integration job is parked in `.github/workflows-pending/ci.yml` (D-game-3, deferred by the owner).

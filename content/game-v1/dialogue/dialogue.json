@@ -175,6 +175,105 @@
         { "lineId": "trade_done.1", "text": "El trato está hecho. ¡Hasta luego!" },
         { "lineId": "trade_done.2", "text": "Gracias por venir. ¡Vuelve pronto!" }
       ]
+    },
+    "guide_greet": {
+      "poolId": "guide_greet",
+      "variants": [
+        { "lineId": "guide_greet.1", "text": "¡Hola! Soy la guía." },
+        { "lineId": "guide_greet.2", "text": "¡Hola, amigo! ¿Qué buscas?" },
+        { "lineId": "guide_greet.3", "text": "Buenos días. ¿En qué te ayudo?" }
+      ]
+    },
+    "guide_greet_again": {
+      "poolId": "guide_greet_again",
+      "variants": [
+        { "lineId": "guide_greet_again.1", "text": "Hola otra vez. ¿Qué buscas?" },
+        { "lineId": "guide_greet_again.2", "text": "¡Hola! ¿Qué necesitas?" }
+      ]
+    },
+    "guide_thank": {
+      "poolId": "guide_thank",
+      "variants": [
+        { "lineId": "guide_thank.1", "text": "¡Con gusto, amigo!" },
+        { "lineId": "guide_thank.2", "text": "¡Qué bien!" },
+        { "lineId": "guide_thank.3", "text": "¡Buen día, amigo!" }
+      ]
+    },
+    "guide_point": {
+      "poolId": "guide_point",
+      "variants": [
+        { "lineId": "guide_point.1", "text": "A ver, miro." },
+        { "lineId": "guide_point.2", "text": "Un minuto, miro." },
+        { "lineId": "guide_point.3", "text": "¡Claro! Miro." }
+      ]
+    },
+    "guide_look": {
+      "poolId": "guide_look",
+      "variants": [
+        { "lineId": "guide_look.1", "text": "Miro bien." },
+        { "lineId": "guide_look.2", "text": "A ver qué es." },
+        { "lineId": "guide_look.3", "text": "¡Mira, mira!" }
+      ]
+    },
+    "guide_help": {
+      "poolId": "guide_help",
+      "variants": [
+        { "lineId": "guide_help.1", "text": "¡Claro, te ayudo!" },
+        { "lineId": "guide_help.2", "text": "Sí, te ayudo." },
+        { "lineId": "guide_help.3", "text": "Con gusto, te ayudo." }
+      ]
+    },
+    "guide.point.found": {
+      "poolId": "guide.point.found",
+      "variants": [
+        { "lineId": "guide.point.found.1", "text": "{place:article(def):cap} está {direction}, a {count:words(m)} {unit:plural-if(count)}." },
+        { "lineId": "guide.point.found.2", "text": "Mira: {place:article(def)} está {direction}, a {count:words(m)} {unit:plural-if(count)}." },
+        { "lineId": "guide.point.found.3", "text": "{place:article(def):cap} está allí, {direction}, a {count:words(m)} {unit:plural-if(count)}." }
+      ]
+    },
+    "guide.point.here": {
+      "poolId": "guide.point.here",
+      "variants": [
+        { "lineId": "guide.point.here.1", "text": "{place:article(def):cap} está aquí." },
+        { "lineId": "guide.point.here.2", "text": "¡Mira! {place:article(def):cap} está aquí." }
+      ]
+    },
+    "guide.point.none": {
+      "poolId": "guide.point.none",
+      "variants": [
+        { "lineId": "guide.point.none.1", "text": "No veo {place:article(indef)} cerca." },
+        { "lineId": "guide.point.none.2", "text": "Aquí no hay {place:article(indef)}." },
+        { "lineId": "guide.point.none.3", "text": "No hay {place:article(indef)} cerca." }
+      ]
+    },
+    "guide.identify.found": {
+      "poolId": "guide.identify.found",
+      "variants": [
+        { "lineId": "guide.identify.found.1", "text": "Es {target:article(indef)}." },
+        { "lineId": "guide.identify.found.2", "text": "Mira, es {target:article(indef)}." },
+        { "lineId": "guide.identify.found.3", "text": "Aquí hay {target:article(indef)}." }
+      ]
+    },
+    "guide.identify.none": {
+      "poolId": "guide.identify.none",
+      "variants": [
+        { "lineId": "guide.identify.none.1", "text": "No sé qué es." },
+        { "lineId": "guide.identify.none.2", "text": "Busca una cosa y pregunta otra vez." }
+      ]
+    },
+    "guide.help.ask": {
+      "poolId": "guide.help.ask",
+      "variants": [
+        { "lineId": "guide.help.ask.1", "text": "Pregunta: ¿dónde está el árbol?" },
+        { "lineId": "guide.help.ask.2", "text": "Pregunta por una cosa. ¿Dónde está la piedra?" }
+      ]
+    },
+    "guide.help.walk": {
+      "poolId": "guide.help.walk",
+      "variants": [
+        { "lineId": "guide.help.walk.1", "text": "Camina a la flecha." },
+        { "lineId": "guide.help.walk.2", "text": "Ve hasta la flecha." }
+      ]
     }
   }
 }

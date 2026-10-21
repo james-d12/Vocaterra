@@ -18,4 +18,9 @@
     <PackageReference Include="Vocaterra.Nlp.Response" />
   </ItemGroup>
 
+  <!-- The typed-line call sequence is shared with the guide: Vocaterra.Game (which brings the simulation along, unused by the host). -->
+  <ItemGroup>
+    <ProjectReference Include="../Vocaterra.Game/Vocaterra.Game.csproj" />
+  </ItemGroup>
+
 </Project>

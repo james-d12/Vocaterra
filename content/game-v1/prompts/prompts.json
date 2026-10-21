@@ -191,6 +191,16 @@
     "text": "Aquí tienes. ¿Qué dices?"
   },
   {
+    "promptId": "guide-open",
+    "mode": "Open",
+    "difficulty": "Beginner",
+    "answerSetId": "places-basic",
+    "allowedIntentIds": ["ask_directions", "ask_what", "ask_help", "greet", "thank", "farewell"],
+    "agentId": "guide",
+    "slotGrammarIds": [],
+    "text": "¡Hola! Soy la guía. ¿En qué te ayudo?"
+  },
+  {
     "promptId": "introduce-open",
     "mode": "Open",
     "difficulty": "Beginner",
