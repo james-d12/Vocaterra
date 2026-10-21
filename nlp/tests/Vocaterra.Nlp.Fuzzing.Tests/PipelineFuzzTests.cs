@@ -214,7 +214,9 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
             throw Determinism.Fail(Oracle, $"The rating {decision.Rating} is not the mapper's.", c);
         }
 
-        if (!decision.Feedback.Equals(bundle.FeedbackPolicy.Plan(verdict, context.RepeatCountsByTag, prompt.Difficulty)))
+        // The context holds the counts before this utterance; the policy reads the counts after it (RepeatCounts.Next), as the pipeline passes them.
+        var counts = RepeatCounts.Next(context.RepeatCountsByTag, verdict);
+        if (!decision.Feedback.Equals(bundle.FeedbackPolicy.Plan(verdict, counts, prompt.Difficulty)))
         {
             throw Determinism.Fail(Oracle, "The feedback plan is not the policy's plan for the verdict.", c);
         }

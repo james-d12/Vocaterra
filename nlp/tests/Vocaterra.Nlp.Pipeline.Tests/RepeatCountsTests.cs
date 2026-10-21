@@ -1,8 +1,11 @@
 using System.Collections.Immutable;
 using Vocaterra.Nlp.Core.Determinism;
+using Vocaterra.Nlp.Core.Prompts;
+using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.Feedback;
 using Vocaterra.Nlp.Decision.Learning;
+using Vocaterra.Nlp.Language.Intent;
 
 namespace Vocaterra.Nlp.Pipeline.Tests;
 
@@ -148,5 +151,59 @@ public class RepeatCountsTests
         Assert.Null(result.Decision.Agent);
         Assert.Equal(context.AgentState, next.AgentState);
         Assert.Equal("player", next.AgentId);
+    }
+
+    [Fact]
+    public void ThreeRepetitionsOfTheSameMistakeEscalateAsThePolicyDefines()
+    {
+        var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
+        var prompt = TestSupport.Bundle.Prompts[TestSupport.OfferPrompt];
+        var context = TestSupport.Context();
+        var types = new List<FeedbackType>();
+        var countsBefore = new List<int>();
+
+        for (var turn = 1; turn <= 3; turn++)
+        {
+            var result = pipeline.Evaluate(TestSupport.Clip(), prompt, context);
+            countsBefore.Add(context.RepeatCountsByTag.GetValueOrDefault(ErrorTags.ConjPerson));
+            types.Add(Assert.Single(result.Decision.Feedback.Items, static item => item.Tag == ErrorTags.ConjPerson).Type);
+            context = context.Next(result, new StoredTimestamp(1_700_000_000 + turn));
+        }
+
+        // The context carries the counts before each utterance: 0, 1, 2. The pipeline counts the utterance itself, so the policy sees 1, 2, 3.
+        Assert.Equal([0, 1, 2], countsBefore);
+        Assert.Equal([FeedbackType.Recast, FeedbackType.Hint, FeedbackType.Hint], types);
+    }
+
+    [Fact]
+    public void TheRepairLadderAdvancesOnTheSecondFailure()
+    {
+        var pipeline = TestSupport.Pipeline("xyzzy plugh", RecognitionMode.Constrained);
+        var prompt = TestSupport.Bundle.Prompts["quiz-item-name"];
+        var context = TestSupport.Context();
+        var kinds = new List<RepairKind>();
+
+        for (var turn = 1; turn <= 3; turn++)
+        {
+            var result = pipeline.Evaluate(TestSupport.Clip(), prompt, context);
+            kinds.Add(result.Repair!.Kind);
+            context = context.Next(result, new StoredTimestamp(1_700_000_000 + turn));
+        }
+
+        Assert.Equal([RepairKind.AskAgain, RepairKind.SlowRepeat, RepairKind.OfferChoices], kinds);
+    }
+
+    [Fact]
+    public void AFreshContextGivesTheFirstOfferFeedbackForASingleUtterance()
+    {
+        var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
+        var prompt = TestSupport.Bundle.Prompts[TestSupport.OfferPrompt];
+        var fresh = ConversationContext.Create(42, "blacksmith", TestSupport.Context().AgentState, new StoredTimestamp(1_700_000_000), LearnerModel.New());
+
+        var result = pipeline.Evaluate(TestSupport.Clip(), prompt, fresh);
+
+        Assert.Empty(fresh.RepeatCountsByTag);
+        Assert.Equal(["conj.person", "noun.number"], result.Verdict.Errors.Select(static error => error.Tag).Order(StringComparer.Ordinal).ToArray());
+        Assert.All(result.Decision.Feedback.Items, static item => Assert.Equal(FeedbackType.Recast, item.Type));
     }
 }

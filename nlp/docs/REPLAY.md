@@ -58,7 +58,7 @@ public sealed record ReplayEnvelope(ReplayRecord Record, AsrResult Asr, PhonePos
 | `record.verdict` | object | The `Verdict`: intent, slots, communicated, correctness, errors, pronunciation, confidence, resolvedBy, versions. |
 | `asr` | object | What the word recognizer returned: transcript, n-best list, word timings, confidence, model hash, recognition mode. During a replay it is served back by a `ReplayWordRecognizer` keyed by the clip hash. |
 | `posteriors` | object or null | What the phoneme recognizer returned (`vocabulary`, `logProbs`, `frameCount`, `frameSeconds`), or `null` when pronunciation scoring did not run. Served back by a `RecordedPhonemeRecognizer`. |
-| `context` | object | The `ConversationContext` the utterance was evaluated in: world seed, stored time (`now.unixSeconds`), agent id and state (its `interactionCounter` selects the random stream), the learner model before the utterance, the repeat counts per error tag, and the host state hash. |
+| `context` | object | The `ConversationContext` the utterance was evaluated in: world seed, stored time (`now.unixSeconds`), agent id and state (its `interactionCounter` selects the random stream), the learner model before the utterance, the repeat counts per error tag before the utterance (the pipeline adds this utterance's tags itself), and the host state hash. |
 | `result` | object | The full `PipelineResult`: `verdict`, `decision` (agent step, updated learner, FSRS rating, feedback plan), `response` (the lines the agent says), `effects`, `repair` and `replay` (the same record as `record`). |
 
 ## A real example

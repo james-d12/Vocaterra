@@ -153,11 +153,11 @@ Other prompts to try (the sample bundle has 14, listed in `content/v1/prompts/pr
 ```bash
 dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "espada" --prompt quiz-item-name --content content/v1
 dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "fuego" --prompt spell-cast-constrained --content content/v1
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "bla bla" --prompt offer-items-open --content content/v1 --repeat not_communicated=2
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "bla bla" --prompt offer-items-open --content content/v1 --repeat not_communicated=1
 ```
 
 The conversation context can be set from the command line: `--seed <n>` (world seed), `--now <unixSeconds>`, `--agent-state <id>`, `--counter <n>`
-(interaction counter) and `--repeat <tag>=<n>` (how often an error was repeated). `dotnet run --project tools/Vocaterra.Nlp.Cli -- --help` prints the
+(interaction counter) and `--repeat <tag>=<n>` (how often an error was repeated in a row before this utterance). `dotnet run --project tools/Vocaterra.Nlp.Cli -- --help` prints the
 usage. Exit codes: 0 success, 1 failed evaluation or a replay that differs, 2 a malformed command line.
 
 ### With models: `--wav`
@@ -239,13 +239,14 @@ agent: Perdón, ¿qué dices?
 repair: AskAgain ¿Cómo?
 ```
 
-`--repeat <tag>=<n>` says how many times in a row the learner has made that error, counting this utterance. A host keeps that count
-between utterances; the CLI takes it from the command line. The feedback policy (`content/v1/feedback/feedback-policy.json`) answers
-the first offence with a recast, the second and third with a hint and the fourth and later with an explicit correction. The same
-`un espada`, as the second and as the fourth offence:
+`--repeat <tag>=<n>` says how many times in a row the learner had made that error before this utterance (the counts a host carries
+from `ConversationContext.Next`; the pipeline counts this utterance itself). A host keeps that count between utterances; the CLI takes it
+from the command line. The feedback policy (`content/v1/feedback/feedback-policy.json`) answers the first offence with a recast, the second
+and third with a hint and the fourth and later with an explicit correction. The same `un espada`, as the second and as the fourth offence
+(so `--repeat gender.agree=1` and `=3`):
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1 --repeat gender.agree=2
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1 --repeat gender.agree=1
 ```
 
 ```text
@@ -257,7 +258,7 @@ effect: buy_item_price trade_price 1.045
 ```
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1 --repeat gender.agree=4
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1 --repeat gender.agree=3
 ```
 
 ```text

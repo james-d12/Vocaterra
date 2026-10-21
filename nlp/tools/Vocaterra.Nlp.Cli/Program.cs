@@ -127,6 +127,7 @@ public static class Program
         var seed = line.Number("--seed", 0UL, ulong.Parse);
         var now = line.Number("--now", 0L, long.Parse);
         var counter = line.Number("--counter", 0L, long.Parse);
+        // The counts the learner had before this utterance, as a host carries them from the previous ConversationContext.Next.
         var repeats = ParseRepeats(line.Values("--repeat"));
 
         var bundle = ContentLoader.Load(contentDir);

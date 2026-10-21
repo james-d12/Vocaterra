@@ -90,7 +90,7 @@ ConversationContext context = ConversationContext.Create(
     agentState: agentState,
     now: new StoredTimestamp(1_760_000_000),                    // the host's clock, passed in; nothing in the core reads one
     learner: LearnerModel.New(),                                // the host persists this and passes it back next time
-    repeatCountsByTag: null);                                   // how often each error tag was repeated in a row (see RepeatCounts.Next)
+    repeatCountsByTag: null);                                   // the counts before this utterance: none at the start, then the previous Next's (see below)
 ```
 
 `ConversationContext.Create` computes `HostStateHash` over the values it was given. A host with its own state digest uses the constructor
@@ -120,15 +120,20 @@ normalized text, the expected form and what was heard. A host gates its own reac
 
 ### Carry the context to the next utterance
 
-The host does not compute the repeat counts itself. `ConversationContext.Next` builds the context of the next utterance from this one and the
-result: the agent the utterance spoke to in the state the decision moved it to, the learner model after the update, the repeat counts after
-the verdict (`RepeatCounts.Next`, which counts each error tag and `not_communicated` one more in a row and drops every other tag), and the
-world seed.
+The host passes the repeat counts it carried from the previous `Next`; the first utterance of a conversation starts with none (`Create` with
+`repeatCountsByTag: null`). `RepeatCountsByTag` holds how many times in a row each error tag, and `not_communicated`, was seen before this
+utterance. The pipeline counts this utterance itself: after the verdict it applies `RepeatCounts.Next` and gives the result to the feedback
+policy and the repair ladder, so the host never adds the current tags and never sends counts that already include them.
+
+`ConversationContext.Next` builds the context of the next utterance from this one and the result: the agent the utterance spoke to in the
+state the decision moved it to, the learner model after the update, the repeat counts before the next utterance (`RepeatCounts.Next` of
+this context's counts and the verdict, which counts each error tag and `not_communicated` one more in a row and drops every other tag), and
+the world seed.
 
 ```csharp
 using Vocaterra.Nlp.Pipeline;
 
-IReadOnlyDictionary<string, int> counts = RepeatCounts.Next(context.RepeatCountsByTag, result.Verdict);   // the counts alone, ordinal keys
+IReadOnlyDictionary<string, int> counts = RepeatCounts.Next(context.RepeatCountsByTag, result.Verdict);   // the counts before the next utterance, ordinal keys
 context = context.Next(result, new StoredTimestamp(now));          // the context of the next utterance
 ```
 

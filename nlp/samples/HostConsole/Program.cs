@@ -1,5 +1,5 @@
 // A host on the Vocaterra.NLP packages: loads a content bundle, builds the services with the scripted recognizer (no model files),
-// evaluates the two demo utterances and checks their verdicts. The calls are the ones in docs/API.md. Exit 0 when both checks pass.
+// evaluates the two demo utterances, then repeats the first one three times with the context carried by ConversationContext.Next. The calls are the ones in docs/API.md. Exit 0 when all checks pass.
 using System.Globalization;
 using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Content;
@@ -44,28 +44,57 @@ var priceOk = price.Verdict.Correctness == 1.0;
 
 Console.WriteLine(string.Create(CultureInfo.InvariantCulture, $"check offer-items-open: errors [{string.Join(", ", offerTags)}]: {(offerOk ? "PASS" : "FAIL")}"));
 Console.WriteLine(string.Create(CultureInfo.InvariantCulture, $"check ask-price-open: correctness {Format(price.Verdict.Correctness)}: {(priceOk ? "PASS" : "FAIL")}"));
-return offerOk && priceOk ? ExitOk : ExitFailed;
+
+// 3. Repeat the same mistake three times, carrying the context from one utterance to the next with ConversationContext.Next. The counts in
+//    the context are the ones before each utterance, so the policy escalates from the first offence: recast, then hint, then hint.
+var repeated = RepeatTheSameUtterance(bundle, "yo tiene dos espada", "offer-items-open", times: 3);
+string[] expectedFeedback = ["recast", "hint", "hint"];
+var repeatedOk = repeated.SequenceEqual(expectedFeedback, StringComparer.Ordinal);
+Console.WriteLine(string.Create(CultureInfo.InvariantCulture, $"check repeated offer: feedback [{string.Join(", ", repeated)}]: {(repeatedOk ? "PASS" : "FAIL")}"));
+return offerOk && priceOk && repeatedOk ? ExitOk : ExitFailed;
 
 // 2. Build the services, a pipeline and a conversation context, then evaluate one utterance. The scripted recognizer returns a fixed
 //    transcript, so no model and no audio are needed; the stand-ins for the embedding model and the synthesizer produce no output of their own.
-static PipelineResult Evaluate(ContentBundle bundle, string transcript, string promptId)
+static UtterancePipeline PipelineFor(ContentBundle bundle, string transcript)
 {
     IWordRecognizer words = new ScriptedWordRecognizer(
         new AsrResult(transcript, [new AsrHypothesis(transcript, 1.0)], [], 1.0, "scripted-transcript", RecognitionMode.Open));
     IPhonemeRecognizer? phonemes = null;
     IEmbeddingModel embeddings = new FakeEmbeddingModel();
     ISpeechSynthesizer synthesizer = new SilentSynthesizer();
-    var pipeline = new UtterancePipeline(new PipelineServices(words, phonemes, embeddings, synthesizer, bundle));
+    return new UtterancePipeline(new PipelineServices(words, phonemes, embeddings, synthesizer, bundle));
+}
 
-    var context = ConversationContext.Create(
+static ConversationContext FreshContext(ContentBundle bundle)
+{
+    return ConversationContext.Create(
         worldSeed: 42,
         agentId: "blacksmith",
         agentState: bundle.Agents["blacksmith"].InitialState(),
         now: new StoredTimestamp(1_760_000_000),
         learner: LearnerModel.New());
+}
 
-    PromptSpec prompt = bundle.Prompts[promptId];
-    return pipeline.Evaluate(PcmClip.FromSamples([]), prompt, context);
+static PipelineResult Evaluate(ContentBundle bundle, string transcript, string promptId)
+{
+    return PipelineFor(bundle, transcript).Evaluate(PcmClip.FromSamples([]), bundle.Prompts[promptId], FreshContext(bundle));
+}
+
+// Evaluates the same utterance several times in a row and returns the feedback type of each evaluation's first item, in order.
+static string[] RepeatTheSameUtterance(ContentBundle bundle, string transcript, string promptId, int times)
+{
+    var pipeline = PipelineFor(bundle, transcript);
+    var prompt = bundle.Prompts[promptId];
+    var context = FreshContext(bundle);
+    var feedback = new string[times];
+    for (var turn = 0; turn < times; turn++)
+    {
+        var result = pipeline.Evaluate(PcmClip.FromSamples([]), prompt, context);
+        feedback[turn] = result.Decision.Feedback.Items[0].Type.ToString().ToLowerInvariant();
+        context = context.Next(result, new StoredTimestamp(1_760_000_000 + turn + 1));
+    }
+
+    return feedback;
 }
 
 // 5. Read the verdict, the effects and the agent's lines.
