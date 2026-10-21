@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The only engine code (plan section 3 rule 3, D-game-1): MonoGame DesktopGL, no content pipeline. Textures are made in code, the font
+       is a TTF read at run time through FontStashSharp. It references the simulation by project and no language-core package yet. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Vocaterra.MonoGame</RootNamespace>
+    <AssemblyName>Vocaterra.MonoGame</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MonoGame.Framework.DesktopGL" />
+    <PackageReference Include="FontStashSharp.MonoGame" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Vocaterra.Simulation/Vocaterra.Simulation.csproj" />
+  </ItemGroup>
+
+  <!-- Assets live at the repository root (assets/ATTRIBUTION.md records each file) and are copied next to the executable. -->
+  <ItemGroup>
+    <None Include="../../assets/fonts/pixel-operator/PixelOperator.ttf" Link="assets/fonts/PixelOperator.ttf" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
