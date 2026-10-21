@@ -7,16 +7,19 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 
 | ID | Decision | Status | Blocks |
 | --- | --- | --- | --- |
-| D-game-1 | Game engine | open | G5 (the first engine host) |
+| D-game-1 | Game engine | prototype: MonoGame (owner, 2026-10-21); final engine open, Godot .NET the candidate | G5 (the first engine host) |
 | D-game-2 | Licence of this repository | open | any public release or distribution |
 | D-game-3 | Continuous integration | deferred by the owner, 2026-10-21; do not raise | nothing in this plan |
 | D-game-4 | Whether `content/game-v1` tracks the core's sample bundle or diverges from it | open; G2 proposes | the shape of G2 to G4 |
 
-## D-game-1: the game engine (open)
+## D-game-1: the game engine (prototype decided; final engine open)
 
 **Question.** Which engine renders the game and plays its audio. The core's research report (core `docs/research`) suggested Godot .NET;
 the core's high-level design also listed MonoGame, Bevy and macroquad, and Ebitengine. The core's language is C# (core ADR 0001), which
 Godot .NET and MonoGame share.
+
+**Owner, 2026-10-21.** The Terraria-inspired prototype uses MonoGame, with a plan to perhaps move to Godot (.NET) later. The prototype
+keeps its simulation in an engine-agnostic library so the move is cheap; research milestone R1 proposes the layout. The final engine stays open.
 
 **Until it is decided.** The host (`src/Vocaterra.Host`) stays an engine-agnostic console program. No engine packages, no engine types and no
 rendering code go into it, and the packages are the only dependency. A decision starts a milestone (G5) that builds the first engine host

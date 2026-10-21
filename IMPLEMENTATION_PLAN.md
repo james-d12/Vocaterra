@@ -66,6 +66,7 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 | G3 | Innkeeper scene (section 4.1) | planned | Sonnet 5.5 for the scene design, Haiku 5.5 for the content checklist | G2 |
 | G4 | Quest-giver scene (section 4.2) | planned | Haiku 5.5 | G3 |
 | G5 | Engine decision (D-game-1), then the first engine host on the same call sequence | blocked: owner decision D-game-1 | Sonnet 5.5 | owner |
+| R1 | Research: Terraria-inspired prototype (guide NPC by text and speech, mining, building, movement, forest biome, map and cave generation, language progress tracking, known nouns in colour and unknown in greyscale, inventory) on MonoGame; findings in `docs/research/` | in progress | Opus 5.5 (owner's request) | G0 |
 
 Each milestone ends with the gate in section 6 and a line in section 5.
 
