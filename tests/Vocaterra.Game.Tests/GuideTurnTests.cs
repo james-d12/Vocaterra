@@ -298,6 +298,21 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void ATurnWithHostFactsOrSkillsHashesThemWithTheSimulationDigest()
+    {
+        // The second evaluation's digest covers the host slots and the word skills (HostDigest); a turn with neither keeps the bare digest.
+        var session = TestGame.NewSession();
+        var digest = session.Simulation.ComputeStateDigest();
+
+        var greeting = session.Say("hola");
+        Assert.Equal(digest, greeting.HostStateHash);
+
+        var point = session.Say("¿dónde está el árbol?");
+        Assert.NotEqual(digest, point.HostStateHash);
+        Assert.Equal(64, point.HostStateHash.Length);
+    }
+
+    [Fact]
     public void TheStoredTimeIsTheStartPlusTheTicksAndNeverTheClock()
     {
         var session = TestGame.NewSession();

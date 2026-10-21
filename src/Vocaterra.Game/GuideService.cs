@@ -173,7 +173,10 @@ public sealed class GuideService
             }
         }
 
-        // The second evaluation carries the host's facts and the word skills in its context; the learner is updated once, in it.
+        // The second evaluation carries the host's facts and the word skills in its context; the learner is updated once, in it. It is needed
+        // because the core takes host slots only before an evaluation, and the facts depend on the nouns the first one found in the line.
+        // Its digest covers those slots and skills (HostDigest, the core's contract); without them the context keeps the bare digest, as the
+        // core does when no slots are given.
         var skills = first.Verdict.Communicated ? WordSkillsOf(GuideWord.From(first)) : [];
         var created = ConversationContext.Create(
             utterance.WorldSeed,
@@ -184,7 +187,8 @@ public sealed class GuideService
             utterance.RepeatCountsByTag,
             SlotMap.From(facts),
             skills);
-        var carried = created with { HostStateHash = hostStateHash };
+        var digest = facts.Count == 0 && skills.Count == 0 ? hostStateHash : HostDigest.Of(hostStateHash, facts, skills);
+        var carried = created with { HostStateHash = digest };
         var result = _evaluator.Evaluate(line, prompt, carried);
         _context = carried.Next(result, now);
 

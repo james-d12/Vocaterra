@@ -90,7 +90,8 @@ var arrow = session.Pointer;                             // where the guide poin
 2. `GuideService.Say` evaluates the line twice, both purely. The first evaluation gives the verdict, the words (`PipelineResult.Words`) and the
    host events. The host's facts for the line (`place`, `direction`, `count`, `unit`, `target`) and the learner skills of the catalogue nouns the
    words are read as (`word.<lemma>`, CR-005) are then passed in `ConversationContext.Create(..., hostSlots, extraSkills)`, so the replay record
-   holds them and the learner is updated once. Only the second result is used; `carried.Next(result, now)` carries the guide's state, the learner
+   holds them and the learner is updated once. Their digest is `HostDigest.Of` (the simulation digest with the slots and skills, the core's
+   contract); with neither, the context keeps the bare simulation digest. Only the second result is used; `carried.Next(result, now)` carries the guide's state, the learner
    model and the repeat counts. The repeat counts are the carried ones: the core adds this utterance's repeats itself (CR-012, core M26a).
 3. The response lines split into the correction (`IsRecast` or a `feedback.*` pool) and the guide's reply (the agent's pool). The host events come
    from `Decision.Agent.Actions`.
