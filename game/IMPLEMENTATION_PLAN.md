@@ -151,7 +151,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | G6 | Core bump to `53c52b7` (M26a to M26e) and adoption: drop the CR-012 double evaluation, the CR-013 `esta` lexicon entry if no longer needed, read `nouns.json` with `TryReadHostFile` (CR-007), word lists from `PipelineResult.Words` (CR-002), the guide's world line through host slots (CR-003), the named answer through `PipelineResult.Answer` where it fits (CR-004), `word.<lemma>` extra skills (CR-005) | done (merged 2026-10-21; core pin `53c52b7`) | Haiku 5.5 | P6 |
 | G7 | Build trim and licence: Linux-only native assets (owner, 2026-10-21; about 1.5 GB less per build), `LICENSE` (MIT, D-game-2) and README licence lines | done (merged 2026-10-21) | Haiku 5.5 | P6b |
 | R1 | Research: Terraria-inspired prototype (guide NPC by text and speech, mining, building, movement, forest biome, map and cave generation, language progress tracking, known nouns in colour and unknown in greyscale, inventory) on MonoGame; findings in `docs/research/` | done (merged 2026-10-21, `0e8d601`); proposals await the owner | Opus 5.5 (owner's request) | G0 |
-| S0 | Plan and docs for the prototype brief: D-game-8 to D-game-12, D-game-6 amended, this section, the brief as Markdown, READMEs, Noun Town research moved | in progress (orchestrator; docs part delegated) | Haiku 5.5 (docs) | `docs/SCENARIO_PLAN.md` |
+| S0 | Plan and docs for the prototype brief: D-game-8 to D-game-12, D-game-6 amended, this section, the brief as Markdown, READMEs, Noun Town research moved | done (merged to `feature/prototype` 2026-10-21, `0a60928`) | Haiku 5.5 (docs) | `docs/SCENARIO_PLAN.md` |
 | S1 | 3D voxel simulation, headless (`Vocaterra.Simulation.Voxel`, `scene.json`, `PlayerBody3D`, `BlockRay`) | planned | Sonnet 5.5 | S0 |
 | S2 | First-person voxel front-end (mesher, renderer, camera, figures, beacon; 2D UI over the scene) | planned | Sonnet 5.5 | S1 |
 | S3 | The scenario world and the guide in 3D (`WorldFacts3D`, the route layout, new nouns) | planned | Haiku 5.5 | S2 |
@@ -558,7 +558,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
 
 - **The prototype brief (2026-10-21, S0, orchestrator).** The owner's brief v1.2 replaces the Terraria design (D-game-8). Plan:
   `docs/SCENARIO_PLAN.md`, folded into section 4 (table and 4.4); decisions D-game-8 to D-game-12 recorded, D-game-6 amended; core M29a and
-  M29b proposed, conditional; the merge gate takes `GATE_TARGET` so the S series lands on `feature/prototype`. The orchestrator's status
+  M29b proposed, conditional; the merge gate takes `GATE_TARGET` so the S series lands on `feature/prototype`. The
+  docs part (Haiku 5.5): `docs/PROTOTYPE_BRIEF.md` extracted from the docx by a standard-library script (every paragraph and table
+  cell present, headings set by hand; the docx has no heading styles), `SPECIFICATION.md` a pointer, Noun Town research moved, R1 notes,
+  READMEs. Gate: 3,605 passed, 5 skipped (models set), lint 0 errors, licence scan passed. Agent worktrees branch from `main`: every
+  S brief starts with a fast-forward to `feature/prototype`. The orchestrator's status
   line saves the plan's usage (`~/.claude/usage-snapshot.json`): 25 % of the session window and 57 % of the week at the start of the run.
 
 ## 6. Definition of done (every milestone)
