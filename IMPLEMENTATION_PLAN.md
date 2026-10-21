@@ -60,7 +60,7 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 
 | ID | Milestone | Status | Model | Depends on |
 | --- | --- | --- | --- | --- |
-| G0 | Repository setup: submodule at `db39999`, local feed, content tool, role file, requests file, gate, this plan | in review (`setup/orchestrator`) | Haiku 5.5 | core M19e |
+| G0 | Repository setup: submodule at `db39999`, local feed, content tool, role file, requests file, gate, this plan | done (merged 2026-10-21) | Haiku 5.5 | core M19e |
 | G1 | Adopt the core's M19d API: `RepeatCounts.Next` and `ConversationContext.Next` replace `NextRepeatCounts`; show `PromptSpec.Text` before each turn; README and ARCHITECTURE for the submodule route | planned | Haiku 5.5 | G0 |
 | G2 | Re-sync `content/game-v1` with the core sample (prompt `text`, the generic intents, the blacksmith's `confirming` state, the stale `ATTRIBUTION.md` wording); decide D-game-4 | planned | Haiku 5.5 | G1 |
 | G3 | Innkeeper scene (section 4.1) | planned | Sonnet 5.5 for the scene design, Haiku 5.5 for the content checklist | G2 |
