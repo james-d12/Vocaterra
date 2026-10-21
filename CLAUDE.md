@@ -26,8 +26,10 @@ Facts every session needs:
 - **Merge gate:** `scripts/merge-gate.sh "<label>:<branch>"`, run from main only; logs land in `.claude/gate-logs/`.
 - **Never write under `.github/workflows/`.** The token lacks the workflow scope. CI is parked in `.github/workflows-pending/ci.yml` and
   deferred by the owner (D-game-3); do not raise it.
-- **Open decisions** (`docs/DECISIONS.md`): the engine (D-game-1; the host stays a console program and engine code stays out of
-  `src/Vocaterra.Host`), this repository's licence (D-game-2; no licence is granted until chosen; the core is Apache-2.0), and whether the
+- **Engine (D-game-1, owner 2026-10-21):** MonoGame for the Terraria-inspired prototype (plan P1 to P10); the final engine is open, Godot .NET
+  the candidate. Engine code lives only in `src/Vocaterra.MonoGame`, never in `src/Vocaterra.Host`, `src/Vocaterra.Simulation` or
+  `src/Vocaterra.Game`. Assets are CC0 only (D-game-5).
+- **Open decisions** (`docs/DECISIONS.md`): this repository's licence (D-game-2; no licence is granted until chosen; the core is Apache-2.0), and whether the
   bundle tracks the core's sample (D-game-4).
 - **Game words live here:** scenes, characters, items, spells, prices, rewards, dialogue and the meaning of each effect kind. The core needs
   only opaque effect kinds and host event names.

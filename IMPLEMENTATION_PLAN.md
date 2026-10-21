@@ -192,6 +192,6 @@ Facts that shape the plan. Each one names its source; the core's own findings st
 4. The host demo runs: `dotnet run --project src/Vocaterra.Host -- --transcript "yo tiene dos espada" --prompt offer-items-open` prints the
    two errors `conj.person` and `noun.number`; the README demo for the milestone's scene runs as written.
 5. No violation of section 3: no project reference or copied source from the core, no edit under `external/`, nothing under
-   `.github/workflows/`, no engine code before G5.
+   `.github/workflows/`, no engine code outside `src/Vocaterra.MonoGame`.
 6. `git status` is clean after the commit: no `.tools/`, `bin/`, `obj/` or submodule build output is staged.
 7. The milestone's line in section 5 and its row in section 4 are updated by the orchestrator, not by the agent.

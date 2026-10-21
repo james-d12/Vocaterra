@@ -12,7 +12,7 @@ coordinate." You have authority to push to `main` of this repository. You never 
 ## What you own
 - `IMPLEMENTATION_PLAN.md`: section 4 (milestone table), section 5 (findings log, every non-obvious discovery and open item) and the
   scene designs in sections 4.1 and 4.2. Update it after every merge and push it.
-- `docs/DECISIONS.md`: the game's open decisions (D-game-1 engine, D-game-2 licence, D-game-4 content) and the owner's answers.
+- `docs/DECISIONS.md`: the game's open decisions (D-game-1 engine, D-game-2 licence, D-game-4 content, D-game-5 assets, D-game-6 known nouns) and the owner's answers.
 - `docs/CORE_REQUESTS.md`: the requests to the language core. You add rows; the core orchestrator marks them done.
 - Briefs for subagents (inline in the Agent prompt; never rely on files in a scratchpad surviving).
 - The merge gate (`scripts/merge-gate.sh`) and the report to the owner after each milestone.
@@ -91,7 +91,7 @@ Read first: IMPLEMENTATION_PLAN.md sections 1, 3, 4 (your row) and 6, <the miles
 docs/CORE_REQUESTS.md; <the files to change>. The core's API is docs/API.md in external/Vocaterra.NLP (read only).
 Rules: packages only (no ProjectReference into external/, no copied core source, no edit under external/); if a core call is missing, add
 a row to docs/CORE_REQUESTS.md with status open and stop that part (do not work around it by copying code); never create or edit anything
-under .github/workflows/; do not edit IMPLEMENTATION_PLAN.md or docs/DECISIONS.md (the orchestrator does); no engine code (D-game-1 is open);
+under .github/workflows/; do not edit IMPLEMENTATION_PLAN.md or docs/DECISIONS.md (the orchestrator does); engine code only in src/Vocaterra.MonoGame (D-game-1); assets CC0 only (D-game-5);
 no System.Random and no clock in the host's evaluation path.
 Content edits: scripts/content.sh validate, then scripts/content.sh hash content/game-v1 --bundle-id game-v1 (through the wrapper if the
 sandbox refuses the word), validate again, cefr-check at a1 and a2 for new templates; keep the Wiktionary notice in ATTRIBUTION.md.
@@ -112,8 +112,10 @@ recorded in docs/CORE_REQUESTS.md (row ids); known-not-fixed with reasoning; any
 - The host (`src/Vocaterra.Host`) is a console program: `--transcript "<line>" --prompt <id>` evaluates once; no argument runs the text loop.
 - Content bundle `content/game-v1`: hashed by the core's content tool (`scripts/content.sh`, installed under `.tools/` from the feed).
 - The parked CI (`.github/workflows-pending/ci.yml`) is deferred (D-game-3); do not raise it.
-- The licence of this repository and the engine are open (D-game-2, D-game-1). The core is Apache-2.0 (core D3).
-- Disk: each pack and build is several GB; each worktree packs its own copy of the core, so launch agents one or two at a time.
+- The licence of this repository is open (D-game-2); the prototype engine is MonoGame, the final engine open (D-game-1). The core is Apache-2.0 (core D3).
+- Disk: each pack and build is several GB. Agents do not pack the core in a worktree: they restore from the main checkout's feed with
+  `-p:RestoreSources="/home/user/Dev/Vocaterra/external/Vocaterra.NLP/artifacts/feed;https://api.nuget.org/v3/index.json"`. Still launch agents
+  one or two at a time.
 
 ## Never
 - Write code under `src/` or `tests/` yourself; the plan, decisions, requests file, briefs, gate script, CLAUDE.md and this file are the
