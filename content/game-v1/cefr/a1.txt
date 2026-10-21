@@ -338,3 +338,6 @@ algo
 casi
 eso
 esto
+falta
+faltar
+nada

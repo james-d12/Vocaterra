@@ -90,6 +90,39 @@ public sealed class WorldFacts
         _tileAt = tileAt;
     }
 
+    /// <summary>How far from the centre <see cref="Snapshot"/> copies, in tiles on each axis (more than the guide's search radius and the cursor's reach).</summary>
+    public const int SnapshotRadius = 96;
+
+    /// <summary>
+    /// A copy of the tiles within <paramref name="radius"/> of <paramref name="center"/> (air beyond it), as facts that no later change to the
+    /// world can reach. A turn that is evaluated on another thread takes one when the player submits the line, so it answers about the world
+    /// the player spoke in, whatever the simulation does meanwhile. It costs one pass over about 37 000 tiles.
+    /// </summary>
+    public static WorldFacts Snapshot(World world, TilePoint center, int radius = SnapshotRadius)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+        ArgumentOutOfRangeException.ThrowIfNegative(radius);
+        var left = Math.Max(0, center.X - radius);
+        var top = Math.Max(0, center.Y - radius);
+        var right = Math.Min(world.Width - 1, center.X + radius);
+        var bottom = Math.Min(world.Height - 1, center.Y + radius);
+        var columns = Math.Max(0, right - left + 1);
+        var rows = Math.Max(0, bottom - top + 1);
+        var copy = new TileId[columns * rows];
+        for (var y = 0; y < rows; y++)
+        {
+            for (var x = 0; x < columns; x++)
+            {
+                copy[(y * columns) + x] = world.GetTile(left + x, top + y);
+            }
+        }
+
+        return new WorldFacts(
+            world.Width,
+            world.Height,
+            (x, y) => x >= left && x <= right && y >= top && y <= bottom ? copy[((y - top) * columns) + (x - left)] : TileId.Air);
+    }
+
     /// <summary>
     /// The tile kinds a Spanish noun (a lemma such as <c>árbol</c>, <c>piedra</c> or <c>hierba</c>) names. A noun the world does not have yet
     /// (<c>cueva</c> waits for P7) gives an empty list.

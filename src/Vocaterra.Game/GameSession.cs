@@ -1,4 +1,5 @@
 using Vocaterra.Nlp.Content;
+using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Simulation;
 using Vocaterra.Simulation.Tiles;
@@ -22,6 +23,15 @@ public sealed record PointerMarker(string Place, TilePoint Target, bool Quiz = f
 /// <param name="Question">What she asks (<c>¿Qué es esto?</c>).</param>
 public sealed record GuideReview(string Lemma, TilePoint Target, string Question);
 
+/// <summary>A turn the worker finished and <see cref="GameSession.Collect"/> applied.</summary>
+/// <param name="Outcome">The request, the turn (or why there is none) and the timings.</param>
+/// <param name="Words">What the turn did to the learner's word counts, or <see langword="null"/> when there was no turn.</param>
+public sealed record AppliedTurn(TurnOutcome Outcome, WordTurnResult? Words)
+{
+    /// <summary>The turn, or <see langword="null"/> when the request failed.</summary>
+    public GuideTurn? Turn => Outcome.Turn;
+}
+
 /// <summary>
 /// One running game, engine-free: the simulation (the world and the player's body), the content bundle, the guide and the conversation with
 /// it, the world seed and the stored time. A front-end calls <see cref="Step"/> once per tick with the player's commands and
@@ -41,7 +51,8 @@ public sealed record GuideReview(string Lemma, TilePoint Target, string Question
 /// </para>
 /// <para>
 /// <b>Words.</b> Every turn is counted in <see cref="Words"/> (the learner's progress with the catalogue nouns, D-game-6) with the
-/// <see cref="CreditRules.Default"/> credit for typed input, with the stored time of the turn (spaced uses, D-game-6 as amended).
+/// <see cref="Credit"/> rules for the kind of input of the turn (typed input earns half by default, spoken input full: D-game-6) and the stored
+/// time of the turn (spaced uses, D-game-6 as amended).
 /// </para>
 /// <para>
 /// <b>Skipped time.</b> <see cref="SkipTime"/> moves the stored time on without stepping the world (the scripted <c>--skip</c> and the
@@ -49,9 +60,15 @@ public sealed record GuideReview(string Lemma, TilePoint Target, string Question
 /// due and an example of it is in range, the guide points at the nearest one and asks what it is (<see cref="Review"/>), and the next
 /// understood answer is graded against that tile.
 /// </para>
-/// <para>Evaluation is synchronous in P3 and never runs inside <see cref="Step"/>; P5 moves it to a worker thread.</para>
+/// <para>
+/// <b>Turns on a worker (P5).</b> After <see cref="StartWorker"/> a turn is <i>submitted</i> (<see cref="SubmitTyped"/>,
+/// <see cref="SubmitClip"/>, <see cref="SubmitWav"/>, <see cref="SubmitSpeak"/>) and the frame goes on: the stored time, the state digest, a
+/// copy of the world around the player and a copy of the inventory are captured at the submission, a dedicated thread (<see cref="TurnWorker"/>)
+/// evaluates, and <see cref="Collect"/> applies the finished turns on the caller's thread, in the order they were submitted. Nothing here
+/// blocks. <see cref="Say"/> is the synchronous path (tests and the console host's sibling): do not mix it with the worker.
+/// </para>
 /// </remarks>
-public sealed class GameSession
+public sealed class GameSession : IDisposable
 {
     /// <summary>The start time used when a caller gives none: 2025-10-09 08:53:20 UTC, the time the console host's one-shot runs use.</summary>
     public const long DefaultStartedAt = 1_760_000_000;
@@ -60,6 +77,8 @@ public sealed class GameSession
     public const int ReachTiles = 2;
 
     private readonly GuideService _guideService;
+    private TurnWorker? _worker;
+    private long _nextTurnId = 1;
 
     /// <summary>
     /// Starts a game on an already loaded bundle.
@@ -69,12 +88,14 @@ public sealed class GameSession
     /// <param name="startedAt">The stored time at tick 0, in Unix seconds.</param>
     /// <param name="nouns">The noun catalogue of the same bundle (<see cref="NounCatalog.Load"/>).</param>
     /// <param name="playSession">The number of this play session (1 for a new game; the saves of P9 will bump it on each load).</param>
-    public GameSession(ContentBundle bundle, ulong worldSeed, long startedAt, NounCatalog nouns, int playSession = 1)
+    /// <param name="credit">The credit per kind of input and the gaps; <see cref="CreditRules.Default"/> (typed half, spoken full) when <see langword="null"/>.</param>
+    public GameSession(ContentBundle bundle, ulong worldSeed, long startedAt, NounCatalog nouns, int playSession = 1, CreditRules? credit = null)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         ArgumentNullException.ThrowIfNull(nouns);
         Bundle = bundle;
         Nouns = nouns;
+        Credit = credit ?? CreditRules.Default;
         WorldSeed = worldSeed;
         StartedAt = startedAt;
         Recipes = RecipeBook.Load(bundle, nouns);
@@ -88,6 +109,15 @@ public sealed class GameSession
 
     /// <summary>The content bundle.</summary>
     public ContentBundle Bundle { get; }
+
+    /// <summary>The credit a correct use earns per kind of input, and the gaps between credited uses (D-game-6).</summary>
+    public CreditRules Credit { get; }
+
+    /// <summary>The worker that evaluates submitted turns, or <see langword="null"/> before <see cref="StartWorker"/>.</summary>
+    public TurnWorker? Worker => _worker;
+
+    /// <summary>Submitted turns not yet applied by <see cref="Collect"/> (the guide is thinking).</summary>
+    public int PendingTurns => _worker?.Pending ?? 0;
 
     /// <summary>The noun catalogue: which tile is which noun, and each noun's article and gender.</summary>
     public NounCatalog Nouns { get; }
@@ -150,7 +180,12 @@ public sealed class GameSession
     public GuideReview? BeginTalk()
     {
         EndReview();
-        foreach (var due in Words.DueWords(StoredTime.UnixSeconds, CreditRules.Default))
+        if (PendingTurns > 0)
+        {
+            return null; // the words and the guide's state are about to change: no review question until the pending turns are in
+        }
+
+        foreach (var due in Words.DueWords(StoredTime.UnixSeconds, Credit))
         {
             var found = Facts.NearestOfNoun(PlayerTile, due.Lemma);
             if (found is null)
@@ -227,8 +262,130 @@ public sealed class GameSession
             Pointer = new PointerMarker(pointer.Place, pointer.Target);
         }
 
-        LastWordTurn = Words.RecordTurn(turn, InputKind.Typed, CreditRules.Default, StoredTime.UnixSeconds);
+        LastWordTurn = Words.RecordTurn(turn, turn.Input, Credit, StoredTime.UnixSeconds);
         return turn;
+    }
+
+    /// <summary>
+    /// Starts the turn worker: a dedicated thread that loads the bundle's pipeline and the speech models (the loading screen shows until
+    /// <see cref="TurnWorker.IsReady"/>) and then evaluates the submitted turns. From here on use the <c>Submit</c> methods and
+    /// <see cref="Collect"/>, not <see cref="Say"/>.
+    /// </summary>
+    /// <param name="clockMilliseconds">A clock for the timings only (the front-end's); <see langword="null"/> gives zeros.</param>
+    /// <param name="loadSpeech">Whether to load Vosk (false: typed turns only, nothing is read from the models folder).</param>
+    public TurnWorker StartWorker(Func<double>? clockMilliseconds = null, bool loadSpeech = true)
+    {
+        if (_worker is not null)
+        {
+            throw new InvalidOperationException("The turn worker is already started.");
+        }
+
+        _worker = new TurnWorker(_guideService, Bundle, clockMilliseconds, loadSpeech);
+        _worker.Start();
+        return _worker;
+    }
+
+    /// <summary>Stops the worker (after the turn it is on) and waits for its thread; the recognizer is disposed on that thread.</summary>
+    public void StopWorker()
+    {
+        _worker?.Dispose();
+        _worker = null;
+    }
+
+    /// <summary>Stops the worker, if one is running (see <see cref="StopWorker"/>).</summary>
+    public void Dispose() => StopWorker();
+
+    /// <summary>Submits a typed line. Returns at once; the turn is applied by a later <see cref="Collect"/>.</summary>
+    /// <param name="line">The line.</param>
+    /// <param name="cursor">The tile under the mouse pointer (ignored while a review is open: the pointed tile counts).</param>
+    public TurnRequest SubmitTyped(string line, TilePoint? cursor = null)
+    {
+        ArgumentNullException.ThrowIfNull(line);
+        return Submit(TurnSource.Typed, line, null, null, cursor);
+    }
+
+    /// <summary>Submits a recorded clip (16 kHz, from <see cref="AudioClips.Prepare"/>). Returns at once.</summary>
+    public TurnRequest SubmitClip(PcmClip clip, TilePoint? cursor = null)
+    {
+        ArgumentNullException.ThrowIfNull(clip);
+        return Submit(TurnSource.Clip, null, clip, null, cursor);
+    }
+
+    /// <summary>Submits a WAV file for the worker to read, convert and recognize (<c>--wav</c>). Returns at once.</summary>
+    public TurnRequest SubmitWav(string path, TilePoint? cursor = null)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(path);
+        return Submit(TurnSource.Wav, null, null, path, cursor);
+    }
+
+    /// <summary>Submits a line for the worker to synthesize with Kokoro and then recognize as spoken input (<c>--speak</c>). Returns at once.</summary>
+    public TurnRequest SubmitSpeak(string text, TilePoint? cursor = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(text);
+        return Submit(TurnSource.Speak, text, null, null, cursor);
+    }
+
+    /// <summary>
+    /// Applies the turns the worker has finished, in the order they were submitted, and returns them (empty when none). The arrow, the
+    /// review question and the word counts change here, on the caller's thread, never on the worker's; <see cref="LastWordTurn"/> is the
+    /// last applied turn's. A request that failed (no microphone model, an unreadable file) is returned with its problem and changes nothing.
+    /// </summary>
+    public IReadOnlyList<AppliedTurn> Collect()
+    {
+        var applied = new List<AppliedTurn>();
+        while (_worker is { } worker && worker.TryTake(out var outcome))
+        {
+            WordTurnResult? words = null;
+            if (outcome!.Turn is { } turn)
+            {
+                if (outcome.Request.Review is { } review && turn.Communicated && ReferenceEquals(review, Review))
+                {
+                    EndReview();
+                }
+
+                if (turn.Pointer is { Blocks: > 0 } pointer)
+                {
+                    Pointer = new PointerMarker(pointer.Place, pointer.Target);
+                }
+
+                words = Words.RecordTurn(turn, turn.Input, Credit, outcome.Request.Now.UnixSeconds);
+                LastWordTurn = words;
+            }
+
+            applied.Add(new AppliedTurn(outcome, words));
+        }
+
+        return applied;
+    }
+
+    private TurnRequest Submit(TurnSource source, string? text, PcmClip? clip, string? wavPath, TilePoint? cursor)
+    {
+        var worker = _worker ?? throw new InvalidOperationException("The turn worker is not started (StartWorker).");
+        var review = Review;
+        var request = new TurnRequest(
+            _nextTurnId++,
+            source,
+            text,
+            clip,
+            wavPath,
+            Scene(cursor, review),
+            StoredTime,
+            Simulation.ComputeStateDigest(),
+            review,
+            Simulation.Tick);
+        worker.Submit(request);
+        return request;
+    }
+
+    // The moment of a turn as plain values: copies of the world around the player and of the inventory, so the worker never reads what the
+    // simulation keeps changing.
+    private GuideScene Scene(TilePoint? cursor, GuideReview? review)
+    {
+        var facts = WorldFacts.Snapshot(Simulation.World, PlayerTile);
+        var inventory = Simulation.Inventory.Copy();
+        return review is null
+            ? new GuideScene(PlayerTile, cursor, Pointer is not null, Inventory: inventory, Facts: facts)
+            : new GuideScene(PlayerTile, review.Target, Pointer is not null, Review: true, Inventory: inventory, Facts: facts);
     }
 
     /// <summary>Takes the arrow off the screen (the player closed the dialogue or asked for it to go).</summary>

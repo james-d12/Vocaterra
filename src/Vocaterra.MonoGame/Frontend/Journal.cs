@@ -75,7 +75,7 @@ public static class JournalRows
                 record.Seen ? noun.WithDefinite : UnseenLabel,
                 record.Seen,
                 record,
-                Math.Min(WordProgress.UsesToKnow, record.CreditUnits / WordProgress.UnitsPerUse),
+                record.Pips,
                 record.Saturation,
                 wait is { } seconds ? DueText(seconds) : null,
                 wait == 0));

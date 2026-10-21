@@ -20,8 +20,16 @@ namespace Vocaterra.MonoGame;
 /// <para>
 /// <b>The dialogue.</b> T next to the guide opens the panel and gives it the keyboard (<see cref="InputFocus"/>), so the movement keys type
 /// letters instead of walking. The window's text events feed the box; the editing keys, Enter and Esc are read from the keyboard state once
-/// per frame. Enter only <i>asks</i> to send: the turn is evaluated at the end of <c>Update</c>, after the tick loop and never inside a step.
-/// Evaluation is synchronous in P3 and its time is measured and shown; P5 moves it to a worker.
+/// per frame. Enter only <i>asks</i> to send: at the end of <c>Update</c>, after the tick loop and never inside a step, the line is
+/// <i>submitted</i> to the turn worker (<see cref="GameSession.StartWorker"/>), a thread that owns the Vosk recognizer and evaluates the turns
+/// one at a time. The frame never waits for it: "Pensando…" shows while a turn is out, and the start of the next <c>Update</c> applies the
+/// finished turns in the order they were submitted. A loading screen covers the worker's start (the models load there) and nothing in the
+/// world is interactive until it is ready.
+/// </para>
+/// <para>
+/// <b>Speaking.</b> Holding Tab while the panel is open, or V next to the guide (which opens the panel), records from the microphone
+/// (<see cref="MicrophoneCapture"/>); letting go sends the clip, trimmed and converted to 16 kHz, as a spoken turn. Without a microphone the
+/// panel says so and typing goes on. The scripted run feeds spoken turns without one (<c>--wav</c>, <c>--speak</c>).
 /// </para>
 /// <para>
 /// The base class is written out in full (<c>Microsoft.Xna.Framework.Game</c>) because the namespace <c>Vocaterra.Game</c> would otherwise
@@ -54,6 +62,10 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     private readonly CraftingScreen _crafting = new();
     private readonly LiveWorldInput _live = new();
     private readonly ScriptedCursor? _cursor;
+    private readonly PushToTalk _talk;
+    private readonly TurnPump _pump;
+    private readonly BusyFrameStats _busyFrames = new();
+    private readonly BusyFrameStats _loadingFrames = new();
     private readonly KeyRepeater _backspace = new();
     private readonly KeyRepeater _delete = new();
     private readonly KeyRepeater _left = new();
@@ -69,6 +81,13 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     private PlayerState _previousPlayer;
     private bool _firstUpdateSeen;
     private bool _swallowTypedT;
+    private Keys _listenKey;
+    private double _lastUpdateMilliseconds = -1;
+    private bool _loadReported;
+    private bool _wasBusy;
+    private bool _wasLoading;
+    private bool _statusShown;
+    private int _listenSeconds;
     private bool _journalShown;
     private int _previousScroll;
     private bool _previousRightDown;
@@ -84,6 +103,15 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         _camera = new Camera(session.Simulation.World.Width, session.Simulation.World.Height, TileArt.Size * Zoom);
         _previousPlayer = session.Simulation.Player;
         _dialogue = new DialogueModel(_focus, session.OpeningLine);
+        _pump = new TurnPump(session, _dialogue, CursorTile);
+        var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
+        if (options.UsesMicrophone)
+        {
+            Console.WriteLine(microphone is null ? "microphone: none" : $"microphone: {microphone.Name}, {microphone.SampleRate} Hz (converted to 16 kHz)");
+        }
+
+        _talk = new PushToTalk(microphone);
+        _session.StartWorker(MonotonicClock.Milliseconds, options.NeedsSpeech);
         _cursor = options.IsScreenshotRun && (options.Point is not null || options.PointNearest is not null)
             ? new ScriptedCursor(options.Point, options.PointNearest)
             : null;
@@ -123,6 +151,17 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     public int ExitCode { get; private set; }
 
     /// <inheritdoc />
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _session.StopWorker(); // the worker disposes the recognizer on its own thread
+        }
+
+        base.Dispose(disposing);
+    }
+
+    /// <inheritdoc />
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -155,6 +194,7 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         _layers.Add(new JournalLayer());
         _layers.Add(new InventoryLayer());
         _layers.Add(new CraftingLayer());
+        _layers.Add(new LoadingLayer());
     }
 
     /// <inheritdoc />
@@ -171,12 +211,29 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
 
         var seconds = _clock.NextFrameSeconds();
         _stats.Record(seconds);
+        var worker = _session.Worker!;
+        TrackFrame(worker);
+        ApplyFinishedTurns();
+        if (!worker.IsReady)
+        {
+            // The loading screen: the worker is loading the pipeline and the speech models. The world does not step and no key is read.
+            base.Update(gameTime);
+            return;
+        }
+
+        ReportLoad(worker);
         if (!_options.IsScreenshotRun && IsActive)
         {
             ReadKeyboard();
         }
 
+        PumpTalk();
         var steps = _accumulator.Advance(seconds);
+        if (_options.IsScreenshotRun && (_session.PendingTurns > 0 || _talk.Listening))
+        {
+            steps = 0; // a scripted run waits for the answer with the world frozen, so its ticks (and its output) do not depend on how fast the worker is
+        }
+
         for (var i = 0; i < steps; i++)
         {
             _previousPlayer = _session.Simulation.Player;
@@ -204,10 +261,30 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
             _session.Step(_commands);
         }
 
-        // A typed line is evaluated here, between frames' ticks, never inside a step (P5 moves this to a worker).
-        if (_dialogue.SubmitRequested)
+        // A typed or scripted spoken line is handed to the worker here, between frames' ticks, never inside a step; the frame goes on.
+        _pump.Submit();
+        if (_dialogue.TakeListenRequest() is { } listenFor)
         {
-            SendTypedLine();
+            BeginListening(Keys.None); // the scripted recording: it ends by its length, not by a key going up
+            _listenSeconds = _talk.Listening ? listenFor : 0;
+            if (!_talk.Listening)
+            {
+                Console.WriteLine($"listen: {_dialogue.SpeechNotice}");
+            }
+        }
+
+        // --status: show "Escuchando…" or "Pensando…" once the script is done (the screenshot of a state that is too short to catch).
+        if (_options.Status is { } status && !_statusShown && _dialogue.IsOpen && (_script is null || _script.IsDone))
+        {
+            _statusShown = true;
+            if (status == "listening")
+            {
+                _dialogue.Listening = true;
+            }
+            else
+            {
+                _dialogue.BeginSpoken();
+            }
         }
 
         // --journal: open the journal once the scripted lines are sent (at the start when there are none).
@@ -236,6 +313,8 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         view.PlayerUnits = new Rectangle(x, y, PhysicsConstants.PlayerWidth, PhysicsConstants.PlayerHeight);
         view.Facing = player.Facing;
         view.Fps = _stats.Fps;
+        view.Loading = _session.Worker!.IsReady ? null : LoadingLayer.Text;
+        view.LoadingFrame++;
         view.DroppedTicks = _accumulator.DroppedTicks;
         var mouse = Mouse.GetState();
         view.Mouse = !_options.IsScreenshotRun && GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? mouse.Position : null;
@@ -253,9 +332,19 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         base.Draw(gameTime);
 
         // --frames n: run until n ticks have been simulated (one per frame on the fixed clock), then save this frame.
-        if (_options.ScreenshotPath is { } path && _session.Simulation.Tick >= _options.Frames)
+        if (_options.ScreenshotPath is { } path && _session.Simulation.Tick >= _options.Frames && _session.Worker!.IsReady && _session.PendingTurns == 0)
         {
             ExitCode = ScreenshotWriter.TrySave(GraphicsDevice, path) ? 0 : 1;
+            if (_loadingFrames.Count > 0)
+            {
+                Console.WriteLine($"frames while loading: {_loadingFrames.Summary()}");
+            }
+
+            if (_busyFrames.Count > 0)
+            {
+                Console.WriteLine($"frames while listening or thinking: {_busyFrames.Summary()}");
+            }
+
             Exit();
         }
     }
@@ -283,9 +372,9 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     // below, and Alt combinations to the accent shortcuts, so neither is typed twice.
     private void OnTextInput(object? sender, TextInputEventArgs args)
     {
-        if (!_dialogue.IsOpen || char.IsControl(args.Character))
+        if (!_dialogue.IsOpen || char.IsControl(args.Character) || _talk.Listening)
         {
-            return;
+            return; // while the push-to-talk key is held, a letter key's repeats are not typed
         }
 
         var keys = Keyboard.GetState();
@@ -335,12 +424,24 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
             var shift = keys.IsKeyDown(Keys.LeftShift) || keys.IsKeyDown(Keys.RightShift);
             if (pressed(Keys.Escape))
             {
+                CancelListening();
                 _dialogue.Close();
                 _session.EndReview();
             }
             else if (pressed(Keys.Enter))
             {
                 _dialogue.RequestSubmit();
+            }
+
+            // Push-to-talk: hold Tab; the clip is sent when the key goes up.
+            if (pressed(Keys.Tab) && !alt)
+            {
+                BeginListening(Keys.Tab);
+            }
+
+            if (_talk.Listening && !keys.IsKeyDown(_listenKey))
+            {
+                EndListening();
             }
 
             var entry = _dialogue.Entry;
@@ -389,6 +490,13 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         {
             _dialogue.Open(_session.BeginTalk()?.Question);
             _swallowTypedT = true;
+        }
+        else if (pressed(Keys.V) && _session.IsNearGuide)
+        {
+            // V next to the guide opens the panel and starts listening; the repeats of the letter are not typed (see OnTextInput).
+            _dialogue.Open(_session.BeginTalk()?.Question);
+            _swallowTypedT = false;
+            BeginListening(Keys.V);
         }
         else if (pressed(Keys.J))
         {
@@ -542,27 +650,138 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         }
     }
 
-    private void SendTypedLine()
+    // The tile under the mouse for "¿qué es esto?" (the scripted cursor in a screenshot run).
+    private TilePoint? CursorTile()
     {
-        TilePoint? cursor = null;
-        if (!_options.IsScreenshotRun)
+        if (_options.IsScreenshotRun)
         {
-            var mouse = Mouse.GetState();
-            if (GraphicsDevice.Viewport.Bounds.Contains(mouse.Position))
-            {
-                cursor = _camera.ScreenToTile(mouse.X, mouse.Y);
-            }
+            return _cursor?.Resolve(_session);
+        }
+
+        var mouse = Mouse.GetState();
+        return GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? _camera.ScreenToTile(mouse.X, mouse.Y) : null;
+    }
+
+    // The microphone: the key went down. The worker must have the recognizer, the machine a microphone; otherwise the panel says why.
+    private void BeginListening(Keys key)
+    {
+        var worker = _session.Worker!;
+        if (!worker.CanHear)
+        {
+            _dialogue.SpeechNotice = worker.Load?.Problem ?? "La voz no está disponible: escribe tu frase.";
+            return;
+        }
+
+        if (_talk.Begin())
+        {
+            _listenKey = key;
+            _dialogue.Listening = true;
+            _dialogue.SpeechNotice = null;
         }
         else
         {
-            cursor = _cursor?.Resolve(_session);
+            _dialogue.SpeechNotice = _talk.Problem;
+        }
+    }
+
+    // The key went up (or the recording reached its cap): the clip goes to the worker as a spoken turn.
+    private void EndListening()
+    {
+        _dialogue.Listening = false;
+        var clip = _talk.End();
+        if (clip is null)
+        {
+            _dialogue.SpeechNotice = _talk.Problem;
+            if (_options.IsScreenshotRun)
+            {
+                Console.WriteLine($"listened: {_talk.Problem}");
+            }
+
+            return;
         }
 
-        var timer = TurnTimer.Start();
-        var turn = _dialogue.Submit(line => _session.Say(line, cursor), () => timer.ElapsedMilliseconds);
-        if (turn is not null)
+        _session.SubmitClip(clip, CursorTile());
+        _dialogue.BeginSpoken();
+        Console.WriteLine($"listened: {clip.DurationSeconds:0.00} s of speech sent to the guide");
+    }
+
+    // The panel closed while recording: the clip is dropped.
+    private void CancelListening()
+    {
+        if (_talk.Listening)
         {
-            Console.WriteLine($"turn {_dialogue.TurnCount}: \"{turn.Line}\" -> {turn.Summary}, {_dialogue.LastTurnMilliseconds:0.0} ms, state {turn.AgentState}");
+            _ = _talk.End();
+        }
+
+        _dialogue.Listening = false;
+    }
+
+    // Once per frame while the key is held: collect the samples, and send the clip when the recording hits its length cap.
+    private void PumpTalk()
+    {
+        if (!_talk.Listening)
+        {
+            return;
+        }
+
+        _talk.Pump();
+        if (_talk.ReachedLimit && !_talk.Listening)
+        {
+            _listenSeconds = 0;
+            EndListening();
+        }
+        else if (_listenSeconds > 0 && _talk.SecondsRecorded >= _listenSeconds)
+        {
+            _listenSeconds = 0;
+            EndListening();
+        }
+    }
+
+    // The frame times while the worker is busy (loading or thinking) or the microphone records: the proof that the frame does not block.
+    private void TrackFrame(TurnWorker worker)
+    {
+        var now = MonotonicClock.Milliseconds();
+        if (_lastUpdateMilliseconds >= 0 && _wasBusy)
+        {
+            (_wasLoading ? _loadingFrames : _busyFrames).Record(now - _lastUpdateMilliseconds);
+        }
+
+        _lastUpdateMilliseconds = now;
+        _wasLoading = !worker.IsReady;
+        _wasBusy = _wasLoading || _session.PendingTurns > 0 || _talk.Listening;
+    }
+
+    private void ReportLoad(TurnWorker worker)
+    {
+        if (_loadReported || worker.Load is not { } load)
+        {
+            return;
+        }
+
+        _loadReported = true;
+        Console.WriteLine(
+            $"loaded: guide warm-up {load.GuideMilliseconds:0} ms, vosk {load.SpeechMilliseconds:0} ms, spoken warm-up {load.WarmUpMilliseconds:0} ms, {load.TotalMilliseconds:0} ms in all"
+            + (load.Problem is { } problem ? $"; no speech: {problem}" : string.Empty));
+    }
+
+    // Applies the turns the worker finished, in the order they were submitted: the panel, the log and the word counts.
+    private void ApplyFinishedTurns()
+    {
+        foreach (var applied in _pump.Apply())
+        {
+            var turn = applied.Turn;
+            if (turn is null)
+            {
+                Console.WriteLine($"turn failed: {applied.Outcome.Problem}");
+                continue;
+            }
+
+            var timings = applied.Outcome.Timings;
+            var detail = turn.Input == InputKind.Spoken
+                ? $"heard \"{turn.Line}\" (confidence {(int)Math.Round((turn.Confidence ?? 0) * 100)} %) -> {turn.Summary}, {timings.TotalMilliseconds:0} ms"
+                    + $" (kokoro {timings.SynthesizeMilliseconds:0} ms{(timings.Cached ? ", cached" : string.Empty)}, vosk {timings.RecognizeMilliseconds:0} ms)"
+                : $"\"{turn.Line}\" -> {turn.Summary}, {timings.TotalMilliseconds:0.0} ms";
+            Console.WriteLine($"turn {_dialogue.TurnCount}: {(turn.Input == InputKind.Spoken ? "spoken " : string.Empty)}{detail}, state {turn.AgentState}");
             foreach (var line in turn.GuideLines)
             {
                 Console.WriteLine($"  guide: {line}");
@@ -573,19 +792,16 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
                 Console.WriteLine($"  arrow: {arrow.Place} at {arrow.Target.X},{arrow.Target.Y} ({arrow.Blocks} blocks)");
             }
 
-            ReportWords();
+            if (applied.Words is { } words)
+            {
+                ReportWords(words, turn.Input);
+            }
         }
     }
 
     // What the turn did to the learner's words: each credited noun with its uses so far, and each newly known one as a toast.
-    private void ReportWords()
+    private void ReportWords(WordTurnResult result, InputKind input)
     {
-        var result = _session.LastWordTurn;
-        if (result is null)
-        {
-            return;
-        }
-
         foreach (var early in result.TooEarly)
         {
             var label = _session.Nouns.ForLemma(early.Lemma)?.WithDefinite ?? early.Lemma;
@@ -604,11 +820,12 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
             _dialogue.AddHint(EarlyHint);
         }
 
+        var half = _session.Credit.For(input) < WordProgress.UnitsPerUse;
         foreach (var lemma in result.Credited)
         {
             var noun = _session.Nouns.ForLemma(lemma);
-            var uses = Math.Min(WordProgress.UsesToKnow, _session.Words.RecordOf(lemma).CreditUnits / WordProgress.UnitsPerUse);
-            Console.WriteLine($"  word: {noun?.WithDefinite ?? lemma}, {uses} de {WordProgress.UsesToKnow}");
+            var uses = _session.Words.RecordOf(lemma).Uses.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+            Console.WriteLine($"  word: {noun?.WithDefinite ?? lemma}, {uses} de {WordProgress.UsesToKnow} ({(input == InputKind.Spoken ? "spoken" : "typed")}{(half ? ", half credit" : string.Empty)})");
         }
 
         foreach (var lemma in result.NewlyKnown)

@@ -31,6 +31,12 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--inventory` | with `--screenshot`, a world step: open the inventory screen and keep it open for the screenshot (the next dialogue step closes it) |
 | `--craft <item>` | with `--screenshot`, a world step (P6b): make one of the item (its Spanish noun, `mesa`, `puerta`, `horno`) from the inventory, with the stations in reach; prints `craft: mesa made (mesa 0 -> 1)`, or why it was refused (`MissingStation`, `MissingIngredients`, ...) |
 | `--crafting` | with `--screenshot`, a world step: open the crafting panel and keep it open for the screenshot (the next step closes it) |
+| `--speak "<text>"` | with `--screenshot`, an ordered step like `--say` (P5): Kokoro (speaker 28, `ef_dora`, through the core's `CachedSynthesizer`, cache `~/.cache/vocaterra/tts`) speaks the text, it is converted from 24 kHz to 16 kHz, Vosk recognizes it and it is evaluated as **spoken** input. The turn line prints `heard "..."`, the confidence (the mean of Vosk's word confidences) and the stage times. Needs the models (`VOCATERRA_MODELS_DIR`) |
+| `--wav <file>` | with `--screenshot`, an ordered step (P5): feed a 16-bit PCM WAV (16 kHz mono, or any rate and several channels: it is converted and mixed down) as spoken input |
+| `--listen <seconds>` | with `--screenshot`, an ordered step (P5): record the real microphone for 1 to 8 seconds as if the key were held, then send it (`microphone: ...` and `listened: ...` lines). With no microphone it says so |
+| `--typed-credit <full\|half>` | the credit a correct typed use earns: `half` by default (six credited uses make a word known), `full` as before P5 (D-game-6); spoken input always earns full |
+| `--no-speech` | do not load Vosk (typing only). A scripted run without `--speak`, `--wav` or `--listen` does not load it either |
+| `--status <listening\|thinking>` | with `--screenshot`: show that status line of the panel (`Escuchando…`, `Pensando…`) once the script is done, for a screenshot of a state that is too short to catch |
 
 The world steps run in the same order as `--say`, `--skip` and `--talk`, so `--select 1 --mine 517,182 --select 2 --walk 490 --mine 491,184 --place
 madera@488,185 --say "¿dónde está la arena?" --inventory` works as one script. Each world step closes the dialogue first when it is open. A script
@@ -71,6 +77,13 @@ The P4 demo (words), as it was before spacing (three uses in a row no longer mak
 (now a third of the colour, and the journal shows `otra vez en 10 min`). With one `--say` and `--frames 400` the trees are a third
 coloured and the rest of the world grey.
 
+**Speaking (P5).** Hold **Tab** while the panel is open, or hold **V** next to the guide (it opens the panel and starts listening), and let go to
+send. The panel shows `Escuchando…` while the key is held and `Pensando…` while the turn is on the worker; the line you said appears as
+`Tú (voz): ...` with the confidence ("oído con 96 %"). A clip is trimmed of silence at both ends, converted from the microphone's 44.1 kHz to 16 kHz
+and cut at 8 seconds (recording stops by itself there). Spoken turns earn full credit and typed turns half (see `CreditRules`); the turn line printed
+to the console says which. With no microphone, no models or no manifest the panel gives a short Spanish message and typing is unaffected. While the
+models load a loading screen (`Cargando la voz…`) covers the world and nothing in it is interactive.
+
 Controls: **A / D** or **Left / Right** walk, **Space / W / Up** jump (hold for a higher jump), **J** opens the journal (the words, see below; **J** or
 **Esc** closes it, and the player does not walk while it is open). Next to the guide (within 5 columns), the hint
 "Pulsa T para hablar" shows; **T** opens the dialogue panel, which takes the keyboard: the movement keys then type letters (input focus), **Enter**
@@ -81,7 +94,8 @@ seed, the tile under the player's feet, the tile under the mouse, and a Spanish 
 
 **Words (P4).** The world is grey until the learner has used its word. Say `es un árbol` to the guide with the mouse on a tree (or `es una
 piedra` on a stone): three correct uses make the noun known, and its objects go from grey to full colour in thirds (one third per credited
-use). A correct use earns the same credit typed or spoken (see `CreditRules` in `Vocaterra.Game`). When a noun becomes known a toast
+use). A correct spoken use earns a full use and a correct typed use half a use (D-game-6 from P5; `--typed-credit full` restores full credit for typed input),
+so a word takes three spoken uses or six typed ones. A word's pips light for any credit (half a use lights one) and all three only when it is known. When a noun becomes known a toast
 shows `¡Nueva palabra: el árbol!`. The journal (J) lists every catalogue noun: `el árbol` once seen (`¿?` before), its icon in its current
 colour, the counts (heard, read, said, said correctly), three pips, and when a started word can earn colour again (`otra vez en 8 min`, or
 `lista para repasar`).
@@ -141,7 +155,11 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   ScriptedCursor    the --point and --point-nearest cursor for the scripted run (accent-insensitive noun lookup)
   TextEntry         the dialogue panel's text box: insert (Spanish letters and marks included), backspace, delete, caret, limits; AccentShortcuts
   InputFocus        who has the keyboard; FocusGatedInput returns no actions while the panel is open; KeyRepeater counts auto-repeat in frames
-  DialogueModel     the panel as state: open or closed, the text box, the lines, a request to send; Submit shows the turn's lines; TextWrap
+  DialogueModel     the panel as state: open or closed, the text box, the lines, a request to send; Submit shows the turn's lines; TextWrap.
+                    P5: Pending (Pensando…), Listening (Escuchando…), SpeechNotice, a scripted spoken request, TakeLine and Complete for the worker's turns
+  PushToTalk        the push-to-talk state over an ISpeechCapture (the device): Begin, Pump (collects, caps at 8 s), End (a trimmed 16 kHz clip or null)
+  TurnPump          Submit (the typed line and the scripted speech to the worker) and Apply (the finished turns, in order, to the session and the panel)
+  BusyFrameStats    the frame lengths while loading, listening or thinking: the printed proof that the frame does not block
   ScriptedDialogue  the --say script: walk to the guide, settle, open, then each step in order: type and send a line, --skip (stored time), --talk (reopen)
   TurnTimer         times one guide turn for the panel's note (display only; the only other timer than the real clock)
 (root)       the MonoGame wiring
@@ -151,7 +169,9 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   IFrameLayer       "draw after the world": GuideLayer, PointerLayer, DebugOverlay, DialoguePanel, ToastLayer and JournalLayer, in that order; the hotbar later
   GuideLayer        the guide as a placeholder figure, her name and the "Pulsa T para hablar" hint
   PointerLayer      the arrow: a frame and a marker on the target tile, an arrow beside the player, an edge arrow when the target is off screen
-  DialoguePanel     draws the DialogueModel: the lines (colour per speaker), the text box with its caret, the key hints
+  DialoguePanel     draws the DialogueModel: the lines (colour per speaker), the text box with its caret, the status (Escuchando…, Pensando…), the key hints
+  LoadingLayer      the loading screen while the turn worker loads the speech models
+  MicrophoneCapture MonoGame's Microphone as an ISpeechCapture (the only capture code; DesktopGL/OpenAL, 44.1 kHz mono, converted by AudioClips)
   DrawHelpers       rectangles, borders, rotated bars and shadowed text over the 1 px texture and the font
   WorldRenderer     visible tiles, each at its noun's saturation (`GameSession.Words`), the player rectangle
   JournalLayer      the journal screen: the list, icons in colour, the counts, the pips, the key hints
@@ -165,8 +185,10 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
 
 The frame is: `Update` reads the clock, reads the keyboard once (the panel's keys), the accumulator returns 0 to 5 ticks, and for each tick the
 input source is polled once, mapped to `PlayerCommand`s and given to `GameSession.Step` (the simulation's step plus the arrow's reach check). A
-line the player sent (Enter, or the script) is evaluated at the end of `Update`, after the tick loop and never inside a step; evaluation is
-synchronous in P3 (about 4 ms warm, 18 ms for the first line after the warm-up) and P5 moves it to a worker. `Draw` interpolates the player box between the last two ticks (`Alpha`), moves the camera,
+line the player sent (Enter, a released push-to-talk key, or the script) is handed to the turn worker at the end of `Update`, after the tick loop
+and never inside a step; the frame goes on, and the start of a later `Update` applies the finished turns in the order they were submitted
+(P5: evaluation runs on one dedicated thread that owns Vosk; before it was synchronous). While the models load the loading screen shows and the world
+does not step. `Draw` interpolates the player box between the last two ticks (`Alpha`), moves the camera,
 clears to sky, draws the visible tiles and the player, then every layer. The clock never reaches the simulation: it sees only `Step`.
 MonoGame's own fixed-step timer is off (`IsFixedTimeStep = false`) and MonoGame's initial extra `Update` is skipped, so a frame is one
 `Update` plus one `Draw`. The world is drawn at 2x (32 px tiles from 16 px art) with point sampling.
@@ -184,9 +206,10 @@ MonoGame's own fixed-step timer is off (`IsFixedTimeStep = false`) and MonoGame'
   section 7.3); `WorldRenderer` draws each tile at its noun's saturation; the journal and the toast read the same counts. The art is still the
   code-drawn placeholders (D-game-5 allows them); a real PNG atlas loads with `Texture2D.FromStream` and is recorded in `assets/ATTRIBUTION.md`
   (CC0 only).
-- **P5, the microphone.** Add an audio-capture class (MonoGame `Microphone`, or PortAudio if its audio is bad) behind an interface in a new
-  folder; poll it from `Update`, and feed samples to `Vocaterra.Game`. Push-to-talk is another `IInputSource`-style flag read in `Update`;
-  it does not go through `PlayerCommand`. Playback uses `DynamicSoundEffectInstance`.
+- **P5, spoken input (done).** `MicrophoneCapture` (MonoGame `Microphone`, which works here; PortAudio was not needed) sits behind
+  `ISpeechCapture`; `PushToTalk` and `TurnPump` are plain classes in `Frontend/`. Push-to-talk is a key read in `Update` (Tab in the panel, V next to
+  the guide), not a `PlayerCommand`. MonoGame 3.8.6 returns nothing from `Microphone.GetData` unless something subscribes to `BufferReady`, so the
+  capture subscribes an empty handler. Playback (P8) will use `DynamicSoundEffectInstance`.
 - **P6, mining and building.** The mouse becomes a `PlayerCommand` with the tile as its two arguments: `view.Camera.ScreenToTile(mouse.X,
   mouse.Y)` is already there (the overlay shows it). Extend `InputActions`/`CommandMapper` or add a second mapper for the targeted
   commands (mouse buttons, hotbar digits), send them in the same per-tick loop, and check `World.Tiles.InBounds`. Tile changes come back
@@ -195,7 +218,9 @@ MonoGame's own fixed-step timer is off (`IsFixedTimeStep = false`) and MonoGame'
 
 ## Tests
 
-`tests/Vocaterra.MonoGame.Tests` (no GPU, no window): the text box and the accent shortcuts, input focus (the movement keys do not walk the
+`tests/Vocaterra.MonoGame.Tests` (no GPU, no window, no microphone; P5: the push-to-talk state over a fake device, the panel's pending and
+listening states, the turn pump against a real worker, the new launch options, the scripted `--speak` step with the real models when
+`VOCATERRA_MODELS_DIR` has them and skipped with a reason otherwise): the text box and the accent shortcuts, input focus (the movement keys do not walk the
 player while the panel is open, on a real simulation), the dialogue model's turn flow, key repeat, text wrapping, the `--say` script driven
 headless against a real session and bundle (walk, open, type, send, the arrow, determinism), the accumulator (exact ticks, uneven frames, the cap and dropped ticks, bad input),
 the greyscale copy (luma on a small buffer, alpha kept, a partial pixel refused), the journal rows and its read counts, the toast queue (order,

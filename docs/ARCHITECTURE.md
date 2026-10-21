@@ -50,7 +50,7 @@ to the core). Each step below names the call in the host.
 5. **Read the outcome.** The verdict's errors and correctness, the lines of the response plan and the effects are what the game maps to its
    own rules. The host prints them; the game does the mapping.
 
-Speech, replay and the save of a log are the core's other calls (API document sections 6 and 7). The game does not use them yet.
+Speech, replay and the save of a log are the core's other calls (API document sections 6 and 7). Since P5 the game recognizes speech (Vosk) and, for the scripted `--speak` lines, synthesizes it (Kokoro behind `CachedSynthesizer`); it does not use replay logs yet, and the guide does not speak until P8.
 
 ## What the host owns
 
@@ -126,7 +126,57 @@ How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md`
   resolved words, and gives each one its `word.<lemma>` skill in the same learner update, through `extraSkills`.
 - **Host events.** The guide's state machine raises `guide.point`, `guide.identify` and `guide.help` (opaque strings to the core); the game maps
   them to the nearest tile, the cursor tile and a hint, and the front-end draws the arrow.
-- **Evaluation** is synchronous in P3, between ticks and never inside `GameSession.Step`; P5 moves it to a worker thread.
+- **Evaluation** never runs inside `GameSession.Step`. Since P5 it runs on the turn worker (next section); `GameSession.Say` is the synchronous
+  path that the tests and any headless caller still use.
+
+## Spoken input, the worker thread and the models folder (P5)
+
+A turn is either typed (the line is the transcript, the core's scripted recognizer) or spoken (a 16 kHz clip decoded by Vosk). Both go through
+the same `GuideService` turn, and each turn records how it arrived (`GuideTurn.Input`) so that word progress applies the credit of that kind
+(`CreditRules`: typed input half, spoken full, D-game-6; `--typed-credit full` switches typed back to full).
+
+- **One worker thread owns the recognizer.** `TurnWorker` (in `Vocaterra.Game`, no engine type) is the only thread that loads the Vosk model
+  (`VoskWordRecognizer`, one instance), decodes with it, runs the guide's evaluations and disposes it, as the core's thread rules require
+  (API document section 8: Vosk is not safe for concurrent calls and must not be disposed while a call may run). The pipeline is built with
+  `RunRecognizersConcurrently = false`, so Vosk is never called from a pool thread. The game thread never calls the recognizer or the guide.
+- **Submit, then apply.** The frame calls `GameSession.SubmitTyped / SubmitClip / SubmitWav / SubmitSpeak` between ticks and goes on. Every
+  input of the evaluation is fixed at that moment: the stored time, the simulation's state digest, a copy of the inventory and a copy of the
+  tiles around the player (`WorldFacts.Snapshot`), so the worker never reads a world that keeps changing and a turn does not depend on when
+  the worker gets to it. `GameSession.Collect` (called at the start of each frame through `TurnPump`) takes the finished turns in submission
+  order and applies them on the game thread: the arrow, the review question, the word counts and the panel. The panel shows "Pensando…"
+  while a turn is out and "Escuchando…" while the key is held. A scripted (`--screenshot`) run freezes the world while a turn is out, so its
+  ticks and output do not depend on how fast the worker is.
+- **The double evaluation recognizes once** (CR-017). The guide evaluates a line twice (the first finds the verdict, the words and the host
+  events; the facts and skills they give go into the second, whose result is the one kept). For a spoken line the first evaluation is
+  `UtterancePipeline.Trace` with Vosk, whose `PipelineTrace.Asr` is kept; the second is `TypedUtteranceEvaluator.EvaluateRecognized`, the core's
+  scripted recognizer over that `AsrResult` with the real clip (so the replay record names the audio), so both verdicts see the same transcript,
+  hypotheses and confidence and the clip is decoded once.
+- **Vosk runs single-best.** With the pipeline's default of five n-best hypotheses `AsrResult.Confidence` is a softmax over near-identical
+  hypotheses and measured 0.34 to 0.66 for clean, correct speech, under the verdict's communicated threshold of 0.6 (CR-022). The spoken
+  pipeline asks for one hypothesis (`SpokenUtteranceEvaluator.SingleBest`), the result's confidence is then 1.0, and the turn line shows the mean
+  of Vosk's per-word confidences instead (`GuideTurn.Confidence`). The intent stage decides whether the words were understood.
+- **Loading screen.** The bundle loads before the window opens (about 0.6 s). The worker then warms up the guide with a typed evaluation, loads
+  Vosk (about 0.25 s) and runs one spoken evaluation of half a second of silence, while the window shows "Cargando la voz…" and the world does
+  not step and reads no key. Kokoro is not loaded at start: it loads an engine for every line it speaks (about 1.5 to 2.5 s), so it is only
+  used for the scripted `--speak` lines, through the core's `CachedSynthesizer` over a directory cache (`~/.cache/vocaterra/tts`).
+- **The models folder.** `VOCATERRA_MODELS_DIR` names a folder with `vosk-model-small-es-0.42` and `kokoro-multi-lang-v1_0` (fetched outside the
+  repository with the core's `scripts/fetch-models.sh`, never committed). The core's `ModelStore` reads `manifest.json` from that folder, and
+  the fetch script does not copy it there (CR-019), so `SpeechEngine` falls back to `VOCATERRA_MODELS_MANIFEST` and then to the submodule's
+  `external/Vocaterra.NLP/models/manifest.json`. With no folder, no model or no manifest the game says so in Spanish ("Sin voz...") and typing
+  works as before; the model tests are skipped with the reason.
+- **Native libraries.** `libvosk.so` is copied by Vosk's `build/Vosk.targets`, which NuGet imports only into a project that references `Vosk`
+  directly, so the executable and the test projects that run the recognizer name `Vosk` 0.3.38 (the core's own version, Apache-2.0) in
+  `Directory.Packages.props`. The same projects name `Microsoft.ML.OnnxRuntime` 1.31.0 with `ExcludeAssets="native"` because its
+  `libonnxruntime.so` would overwrite sherpa-onnx's in the same folder and Kokoro would fail to load (CR-021); the game uses the core's fake
+  embeddings, so it never needs that copy.
+- **Push-to-talk and the microphone** (`src/Vocaterra.MonoGame` only). MonoGame's `Microphone` (OpenAL capture) records at the device's own rate
+  (44.1 kHz mono on the development machine) and `AudioClips.Prepare` converts to 16 kHz, trims the silence at both ends and cuts at 8 seconds.
+  Hold **Tab** while the dialogue is open, or hold **V** next to the guide to open it and listen; letting go sends the clip. No PortAudio was
+  needed. MonoGame 3.8.6 only fills the buffer `GetData` reads while something subscribes to `BufferReady`, so `MicrophoneCapture` subscribes an
+  empty handler. With no microphone the panel says "No hay micrófono: escribe tu frase." and the keyboard keeps working.
+- **Scripted speech for demos and tests.** `--wav <file>` feeds a 16-bit PCM WAV (any rate), `--speak "<text>"` synthesizes the line with
+  Kokoro speaker 28 (`ef_dora`), converts 24 kHz to 16 kHz and recognizes it, and `--listen <seconds>` records the real microphone; all are
+  ordered script steps like `--say`, and the turn line prints the transcript, the confidence and the stage timings.
 
 ## Where the rules are checked
 
@@ -135,6 +185,9 @@ How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md`
   checks that a count at `int.MaxValue` stays there, and that the prompt's line is written under its header (`PromptReportTests`).
 - `tests/Vocaterra.Game.Tests` runs the guide's turns on a fixed seed and a fixed stored time with the scripted recognizer (the verdict, the
   guide's state, the host event, the target tile and the world line; an unaccented line; the repair path; determinism), `WorldFacts` on small
-  grids, the guide's content in the bundle, and the layering rules of `Vocaterra.Game` (no clock, no `System.Random`, no engine type, packages only).
+  grids, the guide's content in the bundle, the layering rules of `Vocaterra.Game` (no clock, no `System.Random`, no engine type, packages only),
+  the audio handling (`AudioClips`), the turn worker (order, fixed inputs, the snapshot), and the model tests: Kokoro speaks a line, Vosk
+  recognizes it once, the guide answers it like the typed line. Those are skipped with a reason when `VOCATERRA_MODELS_DIR` is unset or a model
+  is missing.
 - The core's own suites (fuzzing, goldens, replay) test the packages; this repository tests only what the game does with them.
 - The continuous integration job is parked in `.github/workflows-pending/ci.yml` (D-game-3, deferred by the owner).

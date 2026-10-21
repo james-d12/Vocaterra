@@ -39,19 +39,38 @@ public enum ScriptStepKind
 
     /// <summary>Open the crafting panel and keep it open for the screenshot (<c>--crafting</c>).</summary>
     CraftingPanel,
+
+    /// <summary>Say a WAV file as spoken input (<c>--wav</c>).</summary>
+    Wav,
+
+    /// <summary>Synthesize a line with Kokoro and say it as spoken input (<c>--speak</c>).</summary>
+    Speak,
+
+    /// <summary>Record from the real microphone for a number of seconds and say what was recorded (<c>--listen</c>).</summary>
+    Listen,
 }
 
 /// <summary>One step of the scripted run, in the order the command line gave it.</summary>
 /// <param name="Kind">What the step does.</param>
-/// <param name="Line">For <see cref="ScriptStepKind.Say"/>, the line.</param>
+/// <param name="Line">For <see cref="ScriptStepKind.Say"/> and <see cref="ScriptStepKind.Speak"/>, the line; for <see cref="ScriptStepKind.Wav"/>, the file.</param>
 /// <param name="Minutes">For <see cref="ScriptStepKind.Skip"/>, the minutes of stored time to skip.</param>
 /// <param name="Tile">For <see cref="ScriptStepKind.Walk"/> (the column is used), <see cref="ScriptStepKind.Mine"/> and <see cref="ScriptStepKind.Place"/>, the tile.</param>
 /// <param name="Item">For <see cref="ScriptStepKind.Place"/> and <see cref="ScriptStepKind.Craft"/>, the item's noun (<c>madera</c>, <c>mesa</c>).</param>
 /// <param name="Slot">For <see cref="ScriptStepKind.Select"/>, the hotbar slot as the number keys give it (1 to 10).</param>
-public sealed record ScriptStep(ScriptStepKind Kind, string Line = "", int Minutes = 0, TilePoint? Tile = null, string Item = "", int Slot = 0)
+/// <param name="Seconds">For <see cref="ScriptStepKind.Listen"/>, how long to record.</param>
+public sealed record ScriptStep(ScriptStepKind Kind, string Line = "", int Minutes = 0, TilePoint? Tile = null, string Item = "", int Slot = 0, int Seconds = 0)
 {
     /// <summary>A step that says a line.</summary>
     public static ScriptStep Say(string line) => new(ScriptStepKind.Say, line);
+
+    /// <summary>A step that says a WAV file as spoken input.</summary>
+    public static ScriptStep Wav(string path) => new(ScriptStepKind.Wav, path);
+
+    /// <summary>A step that synthesizes a line and says it as spoken input.</summary>
+    public static ScriptStep Speak(string text) => new(ScriptStepKind.Speak, text);
+
+    /// <summary>A step that records from the microphone for a number of seconds and says it.</summary>
+    public static ScriptStep Listen(int seconds) => new(ScriptStepKind.Listen, Seconds: seconds);
 
     /// <summary>A step that skips stored time.</summary>
     public static ScriptStep Skip(int minutes) => new(ScriptStepKind.Skip, Minutes: minutes);
@@ -162,7 +181,7 @@ public sealed class ScriptedDialogue : IInputSource
         _settleTicks = settleTicks;
         _gapTicks = gapTicks;
         _wait = gapTicks;
-        if (steps.Count == 0 || steps[0].Kind is ScriptStepKind.Say or ScriptStepKind.Talk)
+        if (steps.Count == 0 || steps[0].Kind is ScriptStepKind.Say or ScriptStepKind.Talk or ScriptStepKind.Wav or ScriptStepKind.Speak or ScriptStepKind.Listen)
         {
             // A dialogue script (and an empty one) first walks to the guide and opens the panel, as it always has; a world script starts
             // where the player stands.
@@ -237,7 +256,9 @@ public sealed class ScriptedDialogue : IInputSource
 
                 break;
             case Phase.Sending:
-                if (!_dialogue.SubmitRequested)
+                // Done when the game has taken the request and the worker's answer has been applied (the world is frozen until then).
+                if (!_dialogue.SubmitRequested && _dialogue.PendingSpeech is null && _dialogue.PendingListenSeconds is null && !_dialogue.Listening
+                    && _session.PendingTurns == 0)
                 {
                     Advance();
                 }
@@ -287,6 +308,24 @@ public sealed class ScriptedDialogue : IInputSource
 
                 _dialogue.Entry.Insert(step.Line);
                 _dialogue.RequestSubmit();
+                _phase = Phase.Sending;
+                break;
+            case ScriptStepKind.Wav or ScriptStepKind.Speak:
+                if (!_dialogue.IsOpen)
+                {
+                    _dialogue.Open(_session.BeginTalk()?.Question);
+                }
+
+                _dialogue.RequestSpeech(step.Kind == ScriptStepKind.Wav ? TurnSource.Wav : TurnSource.Speak, step.Line);
+                _phase = Phase.Sending;
+                break;
+            case ScriptStepKind.Listen:
+                if (!_dialogue.IsOpen)
+                {
+                    _dialogue.Open(_session.BeginTalk()?.Question);
+                }
+
+                _dialogue.RequestListen(step.Seconds);
                 _phase = Phase.Sending;
                 break;
             case ScriptStepKind.Skip:

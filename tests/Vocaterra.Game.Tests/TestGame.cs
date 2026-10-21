@@ -21,7 +21,7 @@ internal static class TestGame
     public static NounCatalog Nouns => LoadedNouns.Value;
 
     /// <summary>A new session on the fixed seed, with the fixed start time.</summary>
-    public static GameSession NewSession(ulong seed = Seed) => new(Bundle, seed, GameSession.DefaultStartedAt, Nouns);
+    public static GameSession NewSession(ulong seed = Seed, CreditRules? credit = null) => new(Bundle, seed, GameSession.DefaultStartedAt, Nouns, credit: credit ?? CreditRules.FullTyped);
 
     /// <summary>
     /// The nearest tile of a kind by brute force over the whole grid, with the guide's rule written out again: the smallest squared distance,
