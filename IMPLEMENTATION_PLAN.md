@@ -60,33 +60,28 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 
 ## 4. Milestones
 
-### Handover (2026-10-21, end of session)
+### Handover (2026-10-21, after P4)
 
 Where things stand, for the next orchestrator session:
-- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3. `main` matches `origin/main`; no worktrees or agent branches are left. The core pin is
-  still `db39999` (no bump needed: no request is `done` that the pin lacks). Tests on `main`: 290.
-- **The prototype's first goal is met:** P3 shows the language core working inside the game (section 5, P3 entry; demo in section 6).
-- **Next:** P4 (nouns, word progress, greyscale; Haiku 5.5). After it: P5 (spoken input; Sonnet 5.5) and P6 (mining, building, inventory;
-  Haiku 5.5). Both touch `src/Vocaterra.MonoGame`, so run them one after the other, not in parallel. Then P7, P9; P8 waits on CR-006; P10 is
-  optional; G3 and G4 come after P9.
-- **Disk:** the session stopped because free space fell to 8.8 GB (floor 10 GB). The owner is enlarging the disk. Check `df -h /home` first.
-  Each build output (`bin/`) is about 375 MB, because every build copies the native speech libraries of every platform (sherpa-onnx, ONNX
-  Runtime, Vosk for Linux, macOS and ARM). The orchestrator proposed a small Haiku task that builds only `linux-x64` native assets, saving
-  about 1.5 GB in `main` and in every worktree; the owner has not answered it. Offer it again if space is still short.
-- **Open core requests:** CR-002 to CR-008 and CR-010 to CR-013, all `open`; none is `done`. P8 is blocked on CR-006. The rest have
-  workarounds in place or planned (CR-003: the game renders its own world line; CR-012: the guide evaluates twice; CR-013: a lexicon entry
-  for `esta`).
-- **Owner items not yet asked or answered:** (1) nothing in the prototype is gated behind language: the research's recommendation, recorded
-  as the orchestrator's default; (2) the game's `cefr/a1.txt` gained `flecha`, `guía` and `bloque` in P3, which are not standard A1: review
-  in a content pass; (3) the native-asset trim above; (4) D-game-2 (licence) stays open.
-- **How agents work now** (put this in every brief): no `git submodule update` and no core pack in a worktree; restore with
-  `-p:RestoreSources="/home/user/Dev/Vocaterra/external/Vocaterra.NLP/artifacts/feed;https://api.nuget.org/v3/index.json"` and build with
-  `--no-restore`; `VOCATERRA_CONTENT_TOOL_DIR=/home/user/Dev/Vocaterra/.tools`; `scripts/content.sh hash` through a wrapper script outside the
-  repository; screenshots need `DISPLAY=:0`. The P4 brief should point at: `docs/research/PROTOTYPE_PLAN.md` row P4 and research sections 6 and
-  7; D-game-6 (three correct uses in three turns, colour by thirds, typed input full credit until P5, then half); the P3 entry in section 5
-  (`GameSession`, `GuideService`, `WorldFacts.NounOfTile`, `lexicon/world.json` is accepted by the loader, which suits `game/nouns.json` until
-  CR-007); P2's `IFrameLayer`; Kenney Pixel Platformer is CC0 (D-game-5, record each file in `assets/ATTRIBUTION.md`).
-
+- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4. Core pin `db39999` (no request is `done`). Tests on `main`: 329.
+- **Next:** P5 (spoken input; Sonnet 5.5) or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
+  the other. Then P7, P9; P8 waits on CR-006; P10 optional; G3 and G4 after P9.
+- **Core requests:** the core accepted CR-002 to CR-008 and CR-010 to CR-013 into its M26a to M26f (2026-10-21); CR-014 (P4) is `open`.
+  When rows turn `done`, bump the submodule; CR-012's fix (M26a) lets the guide drop `EvaluateCountingThisUtterance`, which is a
+  G-milestone (it changes the calls the game makes).
+- **Package cache (P4 finding):** NuGet caches by id and version, and the core's worktrees pack 0.1.0 into the shared `~/.nuget/packages`,
+  so a game restore can silently use the core's unmerged work. The gate restores into `~/.nuget/vocaterra-game-packages` and clears the core
+  packages there each run (`scripts/merge-gate.sh`); every brief sets `NUGET_PACKAGES` to that folder.
+- **Owner items not yet answered:** (1) nothing in the prototype is gated behind language (orchestrator default); (2) `flecha`, `guía`,
+  `bloque` (P3) and `algo`, `casi`, `eso` (P4) were added to the game's `cefr/a1.txt`: review in a content pass; (3) the linux-x64-only
+  native-asset trim (saves about 1.5 GB per build); (4) D-game-2 (licence); (5) P4 credits the noun the player names even when it names the
+  wrong thing (`es una piedra` with the cursor on a tree earns `piedra` a third, and the guide says "Casi. Mira: es un árbol."): keep or
+  withhold.
+- **How agents work now** (put this in every brief): no `git submodule update` and no core pack in a worktree; set
+  `NUGET_PACKAGES=$HOME/.nuget/vocaterra-game-packages` and restore with
+  `-p:RestoreSources="/home/user/Dev/Vocaterra/external/Vocaterra.NLP/artifacts/feed;https://api.nuget.org/v3/index.json"`, then build with
+  `--no-restore`; `VOCATERRA_CONTENT_TOOL_DIR=/home/user/Dev/Vocaterra/.tools`; `scripts/content.sh hash` through a wrapper script outside
+  the repository; screenshots need `DISPLAY=:0`.
 
 | ID | Milestone | Status | Model | Depends on |
 | --- | --- | --- | --- | --- |
@@ -96,7 +91,7 @@ Where things stand, for the next orchestrator session:
 | P1 | Simulation skeleton and surface world: `Vocaterra.Simulation` (no packages, no engine, `net8.0;net10.0`), seeded `WorldRng` (SplitMix64), noise, 32 x 32 chunks, heightmap terrain, grass and trees, spawn, fixed 60 Hz `Step(commands)`, player gravity, walking, jumping, tile collision | done (merged 2026-10-21, `9e40db9`) | Sonnet 5.5 | D-game-1 |
 | P2 | MonoGame front-end skeleton: `Vocaterra.MonoGame` (3.8.6 DesktopGL), no content pipeline, placeholder tiles drawn in code, camera, input to commands, CC0 font with the Spanish letters | done (merged 2026-10-21) | Sonnet 5.5 | P1 |
 | P3 | **The guide, typed (smallest slice proving the core in game):** `Vocaterra.Game` (`GameSession`, `GuideService`, `WorldFacts`), the guide in the bundle (`ask_directions`, `ask_what`, `ask_help`), dialogue panel; `¿dónde está el árbol?` gets a reply and an arrow | done (merged 2026-10-21) | Sonnet 5.5 (scene and session API), Haiku 5.5 (content) | G1, G2, P2 |
-| P4 | Nouns, word progress, greyscale: `game/nouns.json`, `lexicon/world.json`, `NounCatalog`, `WordProgress`, the D-game-6 rule, CPU-made grey atlas, `name_object` intent, journal | in progress (2026-10-21) | Haiku 5.5 | P3 |
+| P4 | Nouns, word progress, greyscale: `game/nouns.json`, `lexicon/world.json`, `NounCatalog`, `WordProgress`, the D-game-6 rule, CPU-made grey atlas, `name_object` intent, journal | done (merged 2026-10-21, `00c6c44`) | Haiku 5.5 | P3 |
 | P5 | Spoken input: push-to-talk, microphone (MonoGame `Microphone`, PortAudioSharp2 fallback), Vosk small, evaluation on a worker thread | planned | Sonnet 5.5 | P3 |
 | P6 | Mining, building, inventory (durability, drops, hotbar placement, 40 slots with a 10-slot hotbar, axe and pickaxe) | planned | Haiku 5.5 | P1, P2 |
 | P7 | Caves (worms, cellular automata), ores, full forest vegetation, flood-fill lighting | planned | Haiku 5.5 | P1, P6 |
@@ -280,6 +275,30 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - Not done: evaluation is synchronous (P5 moves it to a worker); only árbol, hoja, hierba, tierra, piedra and roca map to tiles; `¿qué es
     esto?` with the mouse is tested but not run live; a real Spanish keyboard layout was not tried. Tests: 290.
 
+- **P4 (2026-10-21, merged `00c6c44`, Haiku 5.5).** Catalogue nouns gain colour as the player uses them. `game/nouns.json` (hand-authored,
+  in the content hash: trunk and leaves `árbol`, dirt `tierra`, grass `hierba`, stone `piedra`, air colourless; items empty until P6, a test
+  enforces it); `NounCatalog` (articles, gender, plural from the bundle; reads the file after `ContentLoader.Load`, the CR-007 workaround;
+  `CatalogueNounsOf` is the CR-002 workaround); `WordProgress` (heard, read, spoken, correct, known; credit in units, 6 per use and 18 to
+  know, input kind credit in `CreditRules`, one credit per lemma per turn); `name_object` intent graded in the game against the cursor's
+  tile (core gap **CR-014**). Front-end: grey atlas made on the CPU (`Greyscale.ToLuma`, integer), drawn under colour at alpha =
+  saturation; journal (J), "¡Nueva palabra!" toast; `--point`, `--point-nearest <noun>`, `--journal`. Bundle `b4c5c674…`, 27 files.
+  Verified by the orchestrator: three `es un árbol` turns at a tree make trees fully coloured and `el árbol` known ("conocida", three
+  pips); one turn gives a third. Facts later briefs must carry:
+  - `WorldFacts.NounOfTile(Leaves)` is now `árbol` (was `hoja`), so colour and the guide's identify agree.
+  - `GameSession` takes a `NounCatalog` (fourth argument); `GuideTurn` has `Slots`, `GuideError` has `Span`.
+  - Any communicated turn credits the catalogue nouns it uses correctly, so the P3 demo line `¿dónde está el árbol?` also prints
+    `word: el árbol, 1 de 3`. `es un arbol` (no accent) is `name_object` with no error and earns credit; `la árbol` is an unknown intent with
+    `gender.agree` on `la` and earns nothing.
+  - For P5: D-game-6 gives spoken input full credit (three turns to know) and typed input half credit from P5 (six turns); change
+    `CreditRules.Default` for typed input only.
+  - Deviations: "read" counts once per journal opening (no clock in the front-end); unseen nouns are listed as `¿?`; "heard" includes
+    feedback lines; art is still the code-drawn placeholders (no Kenney files fetched).
+  - Content pass item: the core sample's recast pool praises after a recast ("Ah, el árbol. ¡Perfecto!"), and a bare noun phrase (`la
+    árbol`) gets that praise followed by "No te entiendo"; reword `feedback.recast` and consider an intent for a bare noun.
+  - Environment bug (found by the agent): the shared `~/.nuget/packages` held a core worktree's 0.1.0 (source
+    `Vocaterra.NLP/.claude/worktrees/agent-a70557e8…`), which turned three P3 recasts into hints. Fixed in the gate (game-only package
+    folder, core packages cleared each run; the build log names the package source). Tests: 290 to 329.
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.
@@ -291,7 +310,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
    From P3 on, also the game demo (needs a display, `DISPLAY=:0`): `dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --say
    "¿dónde está el árbol?" --screenshot <scratch>/demo.png --frames 240` prints `ask_directions, entendido, 100 %` and the guide's line
    `El árbol está allí, a la derecha, a ocho bloques.`, and the PNG shows the dialogue panel, the arrow and the marker on the trunk. Look at
-   the PNG.
+   the PNG. From P4 on, also `--seed 42 --point-nearest árbol --say "es un árbol"` three times with `--screenshot <scratch>/known.png
+   --frames 300` prints `known: el árbol`, and the PNG shows the trees in full colour, the rest grey, and the "¡Nueva palabra: el árbol!"
+   toast; one `--say` gives trees a third coloured.
 5. No violation of section 3: no project reference or copied source from the core, no edit under `external/`, nothing under
    `.github/workflows/`, no engine code outside `src/Vocaterra.MonoGame`.
 6. `git status` is clean after the commit: no `.tools/`, `bin/`, `obj/` or submodule build output is staged.

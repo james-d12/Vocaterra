@@ -66,7 +66,7 @@ Do this when a `done` row names a core commit the game needs, or when the owner 
 ```bash
 git -C external/Vocaterra.NLP fetch origin
 git -C external/Vocaterra.NLP checkout <commit>        # a commit on the core's main, not a branch name
-rm -rf ~/.nuget/packages/vocaterra.nlp.*               # NuGet keeps 0.1.0 by version; a rebuilt 0.1.0 would be ignored otherwise
+rm -rf ~/.nuget/packages/vocaterra.nlp.* ~/.nuget/vocaterra-game-packages/vocaterra.nlp.*   # NuGet keeps 0.1.0 by version only
 bash external/Vocaterra.NLP/scripts/pack.sh            # refills external/Vocaterra.NLP/artifacts/feed
 scripts/content.sh validate                            # the bundle still validates against the new tool
 dotnet restore Vocaterra.sln && dotnet build Vocaterra.sln -warnaserror && dotnet test Vocaterra.sln
@@ -116,6 +116,9 @@ recorded in docs/CORE_REQUESTS.md (row ids); known-not-fixed with reasoning; any
 - Disk: each pack and build is several GB. Agents do not pack the core in a worktree: they restore from the main checkout's feed with
   `-p:RestoreSources="/home/user/Dev/Vocaterra/external/Vocaterra.NLP/artifacts/feed;https://api.nuget.org/v3/index.json"`. Still launch agents
   one or two at a time.
+- Package cache: NuGet caches by id and version only, and the core's own worktrees pack 0.1.0 into the shared `~/.nuget/packages`. Every
+  brief sets `NUGET_PACKAGES=$HOME/.nuget/vocaterra-game-packages` on each dotnet command; the gate uses that folder and clears the core
+  packages in it each run, and its build log names the package source (P4 finding).
 
 ## Never
 - Write code under `src/` or `tests/` yourself; the plan, decisions, requests file, briefs, gate script, CLAUDE.md and this file are the
