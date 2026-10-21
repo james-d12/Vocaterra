@@ -222,7 +222,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M29b | Game request (prototype S7, conditional): evaluate with an explicit `RecognitionRequest` (the repair ladder's `RetryRequest`) instead of the prompt's request; filed only if S7 finds no `PipelineOptions` route | M28a | S | proposed, conditional |
 | M29c | Game request (prototype S5, bug): number and gender agreement blames the noun when the modifier is wrong. "no, mucho gracias" gives `noun.number` expected 'gracia' (and `gender.agree` expected 'mucha'), recast «no mucha gracia»; "buenos día" recasts «Bueno día». The expected forms and the recast must agree with the noun as said when the noun is a valid word ("muchas gracias", "buenos días"), at the source in `AgreementChecker` / `RecastBuilder`, with regression tests and the fuzz oracles unchanged. Waiting: the game's S6/S7 feedback (on-screen recasts) | M28a | S | done (merged to `feature/prototype` 2026-10-22, `27808db`) |
 | M29d | Fuzz finding (found during M29c at 30,000 grammar iterations, seed `6QxmQKiJ7Ip8`, oracle O3): "conejos Movo una cuestiono por favor" flags `conj.irregular` expected 'muevo' on a `[WORD]` name slot ('Movo'); a name slot must not be graded as a verb. Not blocking the game | M29c | H | proposed |
-| M29e | Fuzz suite flake (found by the S2 gate, 2026-10-22): `PipelineFuzzTests` asserts at least 10 `hostturn:none` cases in 300 random-seed iterations, but the generator produces about 11 to 20 (P(host turn) 1/3 x P(unknown agent) 1/5); five runs gave 8, 11, 15, 17, 20, so roughly one gate in seven fails. Fix the generator so every covered situation's expected count is several standard deviations above its minimum; the minimums stay | M28a | H | in-progress |
+| M29e | Fuzz suite flake (found by the S2 gate, 2026-10-22): `PipelineFuzzTests` asserts at least 10 `hostturn:none` cases in 300 random-seed iterations, but the generator produces about 11 to 20 (P(host turn) 1/3 x P(unknown agent) 1/5); five runs gave 8, 11, 15, 17, 20, so roughly one gate in seven fails. Fix the generator so every covered situation's expected count is several standard deviations above its minimum; the minimums stay | M28a | H | done (merged to `feature/prototype` 2026-10-22) |
 
 ### Delegation waves
 
@@ -890,6 +890,10 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   requires `noun.number` on the noun next to a singular determiner). Now: «no muchas gracias», "buenos día" → 'días'. `RecastBuilder`
   unchanged. 53 new tests; goldens unchanged; core demo unchanged. A longer fuzz run found M29d (unrelated). Recasts still lose ¿ ? (built
   from normalised text; a design question, not done).
+- **M29e results (2026-10-22, Haiku 5.5; found by the game's S2 gate).** The pipeline fuzz generator now draws a host turn's agent after
+  the host-turn flag (1/2 the blacksmith, 1/2 an unknown agent), so `hostturn:none` averages 54 per 300 iterations (minimum 43 in 20 runs;
+  before 19, minimum 8) against the unchanged minimum of 10; every other asserted key was already more than 4 standard deviations clear.
+  Coverage flake, not a pipeline bug; logged in the fuzzing README.
 
 ## 6. Definition of done (every milestone)
 

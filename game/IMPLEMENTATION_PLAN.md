@@ -153,8 +153,8 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | R1 | Research: Terraria-inspired prototype (guide NPC by text and speech, mining, building, movement, forest biome, map and cave generation, language progress tracking, known nouns in colour and unknown in greyscale, inventory) on MonoGame; findings in `docs/research/` | done (merged 2026-10-21, `0e8d601`); proposals await the owner | Opus 5.5 (owner's request) | G0 |
 | S0 | Plan and docs for the prototype brief: D-game-8 to D-game-12, D-game-6 amended, this section, the brief as Markdown, READMEs, Noun Town research moved | done (merged to `feature/prototype` 2026-10-21, `0a60928`) | Haiku 5.5 (docs) | `docs/SCENARIO_PLAN.md` |
 | S1 | 3D voxel simulation, headless (`Vocaterra.Simulation.Voxel`, `scene.json`, `PlayerBody3D`, `BlockRay`) | done (merged to `feature/prototype` 2026-10-21, `d2329cb`) | Sonnet 5.5 | S0 |
-| S2 | First-person voxel front-end (mesher, renderer, camera, figures, beacon; 2D UI over the scene) | planned | Sonnet 5.5 | S1 |
-| S3 | The scenario world and the guide in 3D (`WorldFacts3D`, the route layout, new nouns) | planned | Haiku 5.5 | S2 |
+| S2 | First-person voxel front-end (mesher, renderer, camera, figures, beacon; 2D UI over the scene) | done (merged to `feature/prototype` 2026-10-22, `c5af3d6`) | Sonnet 5.5 | S1 |
+| S3 | The scenario world and the guide in 3D (`WorldFacts3D`, the route layout, new nouns) | in progress | Haiku 5.5 | S2 |
 | S4 | Gather, craft, the camp objective; retire the 2D slice (tag `2d-slice-p7`) | planned | Haiku 5.5 | S3 |
 | S5 | Content: `content/PHRASES.md`, the stall and the villager, `request_item`, constrained prompts; Opus review pass (D-game-12) | done (merged to `feature/prototype` 2026-10-22, bundle `c3cac003…`) | Sonnet 5.5 (design), Haiku 5.5 (content) | S0 |
 | S6 | NPC exchanges in the world (`NpcService`), filling the bottle, the transfer moment | planned | Sonnet 5.5 | S3, S5 |
@@ -594,6 +594,17 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   number/gender error the core blames the noun: "no, mucho gracias" gives `noun.number` expected 'gracia' and the recast «no mucha gracia»
   ("buenos día" recasts «Bueno día») — wrong Spanish on screen; filed as core **M29c**. The gate now runs lint `--strict --level a1
   --host-pools 'guide.*'` and `cefr-check` at A1 and A2. Tests 3,701 passed.
+- **S2, the first-person front-end (2026-10-22, Sonnet 5.5).** Spike passed: MonoGame 3.8.6 DesktopGL 3D on this machine (llvmpipe software
+  GL, Depth24): depth, point-sampled atlas, alpha water and back-buffer read-back work. `--voxel` runs the 3D scene (the 2D slice stays the
+  default until S4). `ChunkMesher` (culled faces, per-face shade, water in its own mesh), a code-drawn 31-cell atlas, `VoxelRenderer`
+  (`BasicEffect`, fog 48 to 110 blocks, per-chunk frustum culling, re-mesh on chunk `Version` and touching neighbour layers),
+  `FirstPersonCamera` (relative mouse through SDL; 3.8.6 lacks the API; live mouse untested), crosshair, gather bar, highlight, held item,
+  cube-assembly NPC figures with labels, the beacon column and edge arrow; script steps `--look`, `--walk-to`, `--interact`, `--place
+  item@x,y,z`, `--beacon`. Hotbar, inventory, toasts and journal draw over the scene; the guide's dialogue is not wired (S3). Scene 33,118
+  faces, 132,472 vertices; 72 chunks meshed in about 0.1 s; scene draw median 3 to 6 ms on software GL. Screenshots checked by the
+  orchestrator: the camp (guide, workbench, berry bush, fire ring, beacon "río 78 m") and the village (stall with awning, timber houses);
+  the shopkeeper stood in front of the counter facing away and the debug overlay carried a stale 2D line (both passed to S3). The first S2
+  gate failed on a fuzz coverage flake (core M29e), not on S2; the merge stayed unpushed until the M29e gate passed (3,849 tests).
 
 ## 6. Definition of done (every milestone)
 
