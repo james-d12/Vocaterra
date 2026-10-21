@@ -213,6 +213,9 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M27a | Content lint (owner chose lint first, 2026-10-21): `vocaterra-content lint` — example coverage per intent, confusion within each prompt's allow-list, grammar hazards, reachability, CEFR incl. prompt text; examples may carry expected error tags; `validate` warns, `--strict` fails; per-intent waivers (see §10) | M26f | S | in-progress |
 | M27b | Content layering and `std-v1`: manifest `base` pinned by id, hash and path; whole-item replacement with explicit `replaces`/`removes`; lexicon and CEFR unioned; one level; `content/v1` becomes `std-v1` plus a blacksmith overlay (see §10) | M27a | S | todo |
 | M27c | Format de-duplication: defaulted redundant fields, any-state transitions, `<np:x>` macros, generated article aliases; old files load identically (see §10) | M27b | H | todo |
+| M28a | Game requests, batch 2: CR-017 two-phase evaluation (analyse, then plan the response with host slots and skills computed from the analysis; one evaluation per turn) and CR-015 host-initiated agent turns (the agent speaks and moves on a host event, in the replay record and the interaction counter) | M26 | S | proposed |
+| M28b | Game requests, batch 2: CR-016 replies that depend on a host fact (variant or pool chosen by a host slot, or a conditional that renders only when a slot is supplied) and CR-018 lists in templates (`join` with per-part count agreement) | M26 | S | proposed |
+| M28c | Game requests, batch 2: CR-014 host-supplied expected slot values graded like an answer set (`vocab.wrong` on the span, correctness and `communicated` follow) | M26 | S | proposed |
 
 ### Delegation waves
 
@@ -802,6 +805,11 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   change: `AsrWord.EndSeconds` includes trailing silence). Range assertions added; 30/30 isolated runs
   pass; Vosk and Kokoro checked, unaffected. Durations can return after an upstream upgrade.
 - **M26 complete (2026-10-21):** all 11 game requests done; suite 2831 passed, 3 skipped.
+- **Game requests, batch 2 (read 2026-10-21, late):** the game filed CR-014…CR-018 during the session
+  (its G6/P4/P4b/P6b work). Accepted as M28a–c, split by module: M28a (Pipeline and Decision API,
+  CR-017 "should" and CR-015), M28b (Response templates, CR-016 and CR-018), M28c (grading, CR-014). All
+  three are disjoint from M27a (Content, ContentBuilder, the intent file schema), so M28a can run beside
+  M27a once the owner agrees; M28a first because CR-017 costs the game a second evaluation per turn today.
 - **Two orchestrators (owner, 2026-10-21):** this repository is run by the core orchestrator only; the
   Vocaterra repository has its own orchestrator and plan. Protocol: the game writes requests for core
   changes to `docs/CORE_REQUESTS.md` in its repository; the core orchestrator reads that file at the
