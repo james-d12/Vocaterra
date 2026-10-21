@@ -57,9 +57,10 @@ public sealed class LinguisticAnalyzer
         var errors = new List<ErrorTag>();
         var analyzed = new List<AnalyzedToken>(text.Tokens.Count);
         var irregular = new ErrorTag?[text.Tokens.Count];
+        var variants = new IReadOnlyList<LexicalFeatures>[text.Tokens.Count];
         for (var i = 0; i < text.Tokens.Count; i++)
         {
-            analyzed.Add(new AnalyzedToken(text.Tokens[i], ReadingsFor(text.Tokens[i], out irregular[i])));
+            analyzed.Add(new AnalyzedToken(text.Tokens[i], ReadingsFor(text.Tokens[i], out irregular[i], out variants[i])));
         }
 
         // The grammar decides first which words are names ([WORD] elements). A name is not an unknown word, and it is no irregular verb form either, even when
@@ -87,7 +88,7 @@ public sealed class LinguisticAnalyzer
             }
         }
 
-        var resolved = ReadingResolver.Resolve(analyzed, match, Cost);
+        var resolved = ReadingResolver.Resolve(analyzed, variants, match, Cost);
         new AgreementChecker(resolved, _morphology, errors).Run();
         return new AnalysisResult(
             analyzed,
@@ -192,10 +193,13 @@ public sealed class LinguisticAnalyzer
         return true;
     }
 
-    // The readings of one token; an irregular verb form also yields the conj.irregular error it stands for, which the caller drops for a name.
-    private IReadOnlyList<LexicalFeatures> ReadingsFor(Token token, out ErrorTag? irregular)
+    // The readings of one token; an irregular verb form also yields the conj.irregular error it stands for, which the caller drops for a name. The accent
+    // variants are the readings of the accented spellings of a plain lexicon form (esta, está); only the resolver reads them, and it keeps them only where the
+    // neighbouring words call for them, so the returned tokens, the grammar matching and the intent stage see the readings of the spelling as typed.
+    private IReadOnlyList<LexicalFeatures> ReadingsFor(Token token, out ErrorTag? irregular, out IReadOnlyList<LexicalFeatures> accentVariants)
     {
         irregular = null;
+        accentVariants = [];
         if (_morphology.TryGetRegularization(token.Text, out var regularized))
         {
             irregular = new ErrorTag(ErrorTags.ConjIrregular, token.Span, regularized.Expected, token.Text);
@@ -212,10 +216,11 @@ public sealed class LinguisticAnalyzer
             ];
         }
 
-        var found = _lexicon.Lookup(token.Text);
-        if (found.Count > 0)
+        var found = _lexicon.LookupWithAccentVariants(token.Text);
+        if (found.Exact.Count > 0)
         {
-            return [.. found];
+            accentVariants = [.. found.Variants.Select(static v => v.Reading)];
+            return [.. found.Exact];
         }
 
         if (IsDigits(token.Text))

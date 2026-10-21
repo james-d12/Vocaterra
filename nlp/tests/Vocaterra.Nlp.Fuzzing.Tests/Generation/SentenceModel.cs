@@ -185,7 +185,7 @@ public sealed class FuzzDiagnostics
     /// a determiner, a function word that is also a verb form or a noun) after every attempt. Since the analyzer resolves the part of speech of each word (M18) these are
     /// rare, and the oracles assert that they stay so.
     /// </summary>
-    public int HomographSkips => Get("skip:verb-form-homograph") + Get("skip:function-word-homograph");
+    public int HomographSkips => Get("skip:verb-form-homograph") + Get("skip:function-word-homograph") + Get("skip:accent-variant-homograph");
 
     /// <summary>How many recipes the sentence generator was given: the realised sentences and every skip.</summary>
     public int Recipes => Sum("sentence:") + Sum("skip:");

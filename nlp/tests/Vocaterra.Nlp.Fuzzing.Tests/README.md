@@ -77,6 +77,20 @@ code comments and here, with the reason:
   - *O4 and O5, `word_order`.* An adjective is not moved in front of a noun when the word before it, or before the adjectives before it, can be a noun (`estrella grande violenta
     pieza`: the adjectives belong to `estrella`); when its spelling is an adverb that goes before nouns (`incluso resultado`); or when it is also a pronoun or adverb and the
     noun can be a verb (`suyo peso`).
+  - *O4 and O5, `vocab.unknown` (M26b).* The mutation is not made on a sentence whose grammar has a name (`[WORD]`): the name binds any word of letters, so the non-word becomes the name, the
+    grammar still matches and nothing is unknown (seed `2to272FZCXD3`, `religioso nosotros focatudil` against `[ADJ:item] [PRON] [NOUN:qty]? [WORD:spell]?`; it failed on main before M26b).
+  - *The realiser and the accent variants (M26b).* A word that is another word once its accent is written (`el`/`él`, `tu`/`tú`, `esta`/`está`, `te`/`té`, `se`/`sé`) is read as the
+    accented word when the neighbours leave no reading of the word as typed (an article, demonstrative or possessive with no noun phrase after it; an object pronoun with no verb after it).
+    The realiser re-rolls a pattern that puts a verb, adverb, preposition, conjunction, pronoun or interjection right behind a determiner (`[DET] [VERB]`), and an object pronoun with no
+    verb after it (a pattern ending in `[PRON]`); the skips count as `skip:accent-variant-homograph`, inside the homograph budget. `CorrectSentences_WithAnAccentDropped...` (O3) writes
+    the correct sentences without the accent of `él`, `tú`, `está` and `estás` where the neighbours leave no doubt (an independent model of the rule) and requires the same errors.
+  - *Invented names (M26b).* A name is drawn again when its spelling is a closed-class word of the lexicon once accents are ignored (`nadá` folds to `nada`), which `[WORD]` cannot bind (M19f;
+    seed `fApfampI1fQ3` failed O3 on main before M26b). O5 does not compare a case whose unbound name the lexicon knows (`Mirá` is the voseo imperative `mirá`), as O4 never did (seed `belmI3pADeia`
+    failed on main before M26b).
+  - *O4 and O5, `conj.person` with a name in an alternative (M26b).* The mutation is not made on a grammar that has both an alternation and a name: the mutated verb can be bound as the name
+    (`nosotras freís` against `([VERB:freír]|...|[PRON] [WORD])`), which has no reading to check (seed `1RTZdjQ2tFb2` failed O4 on main before M26b).
+  - *The realiser and a literal behind a preposition (M26b).* A literal that is a noun and a verb form right behind a preposition (`de meta`) is a noun head, as the analyzer reads it, so the adjective after it
+    agrees with it (seed `8OeIOEx_Hfm3` failed O3 on main before M26b).
   - *O4 and O5, tied parses.* When the analyzer's answer differs from the mutation's and the grammar itself reads a word of the sentence in two ways (`duchas complicados`: `[VERB]` or
     `[NOUN:item]`, and the word keeps both readings), the case is excused and counted (`KnownTolerances.IsTiedParse`, `excused:tied-parse:<kind>`); the oracles assert that the
     excused cases stay under one in a hundred. In the runs made it did not occur at default depth.

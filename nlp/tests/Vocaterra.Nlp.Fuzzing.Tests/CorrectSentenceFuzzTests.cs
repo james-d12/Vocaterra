@@ -5,6 +5,7 @@ using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Normalization;
 using Xunit.Abstractions;
 using SlotGrammarType = Vocaterra.Nlp.Language.SlotGrammar.SlotGrammar;
 
@@ -118,6 +119,130 @@ public sealed class CorrectSentenceFuzzTests(ITestOutputHelper output)
                 Assert.True(diagnostics.Get("catalog:" + grammar.Pattern.Render()) > 0, $"The catalog grammar '{grammar.Pattern.Render()}' was never realised.\n{diagnostics.Report()}");
             }
         }
+    }
+
+    /// <summary>
+    /// A learner who types without accents writes <c>el</c> for <c>él</c> and <c>esta</c> for <c>está</c>, and both spellings are lexicon words (M26b, CR-013). When a correct sentence has
+    /// an accented word whose plain spelling is also a lexicon form, and the words next to it leave no doubt which one is meant (an independent model of the rule below), the same sentence
+    /// written without that accent must analyze exactly as the accented one does: the same errors at the same places. The cases the neighbours leave open are counted and not asserted,
+    /// because a reader cannot tell them apart either (<c>él compra</c> and <c>el compra</c>, where <c>compra</c> is a noun as well).
+    /// </summary>
+    [Fact]
+    public void CorrectSentences_WithAnAccentDroppedWhereTheNeighboursLeaveNoDoubt_AnalyzeAsTheAccentedSentenceDoes()
+    {
+        var diagnostics = new FuzzDiagnostics();
+        var gen = SentenceGen.Recipe(Harness);
+        var iterations = FuzzOptions.Iterations(FuzzOptions.GrammarVar, FuzzOptions.GrammarDefault);
+
+        gen.Sample(
+            (SentenceRecipe recipe) =>
+            {
+                var sentence = SentenceGen.Realize(Harness, recipe, diagnostics: diagnostics);
+                if (sentence is null)
+                {
+                    return;
+                }
+
+                var tokens = sentence.Tokens.Select(static t => t.Norm).ToArray();
+                var plain = tokens.ToArray();
+                var changed = new List<string>();
+                for (var i = 0; i < tokens.Length; i++)
+                {
+                    var spelling = tokens[i];
+                    var folded = Harness.Lexicon.LookupWithAccentVariants(Accents.Strip(spelling));
+                    if (spelling == Accents.Strip(spelling) || folded.Exact.Count == 0 || !folded.Variants.Any(v => v.Form == spelling))
+                    {
+                        continue;
+                    }
+
+                    if (!UnaccentedReadingIsContradicted(tokens, i, sentence.Tokens[i].Role))
+                    {
+                        diagnostics.Count("accent:open-" + Accents.Strip(spelling));
+                        continue;
+                    }
+
+                    diagnostics.Count("accent:dropped-" + Accents.Strip(spelling));
+                    plain[i] = Accents.Strip(spelling);
+                    changed.Add(spelling);
+                }
+
+                if (changed.Count == 0)
+                {
+                    return;
+                }
+
+                var accented = Harness.Analyzer.Analyze(PipelineHarness.Normalize(string.Join(' ', tokens)), []);
+                var dropped = Harness.Analyzer.Analyze(PipelineHarness.Normalize(string.Join(' ', plain)), []);
+                var context = $"{sentence.Describe()} dropped=[{string.Join(", ", changed)}] unaccented=\"{string.Join(' ', plain)}\" seed={recipe.Seed}";
+                var expected = accented.Errors.Where(static e => !ErrorTags.IsPronunciation(e.Tag)).Select(Describe).ToArray();
+                var actual = dropped.Errors.Where(static e => !ErrorTags.IsPronunciation(e.Tag)).Select(Describe).ToArray();
+                if (!expected.SequenceEqual(actual, StringComparer.Ordinal))
+                {
+                    throw Determinism.Fail(
+                        Oracle,
+                        $"Dropping the accent changed the errors: with it [{string.Join("; ", expected)}], without it [{string.Join("; ", actual)}].",
+                        context);
+                }
+            },
+            writeLine: output.WriteLine,
+            iter: iterations,
+            threads: 1);
+
+        output.WriteLine("Unaccented function word diagnostics:\n" + diagnostics.Report());
+        if (iterations >= MinimumIterationsForCoverage)
+        {
+            // The accented function words must really be drawn and unaccented, or the oracle above would hold for a generator that stopped producing them.
+            Assert.True(diagnostics.Sum("accent:dropped-") > 0, $"No accent was ever dropped from a function word.\n{diagnostics.Report()}");
+        }
+    }
+
+    // The independent model of the resolver's rule for the words the generators draw: a subject pronoun (él, tú) written without its accent is read as the pronoun when the next word
+    // cannot go on a noun phrase (no noun, adjective or determiner reading); está and estás written without the accent are the verb when the words after them are not a noun phrase
+    // (an article right after, or no noun at the end of the adjectives that follow). Anything else leaves the reader in doubt.
+    private static bool UnaccentedReadingIsContradicted(string[] tokens, int index, TokenRole role)
+    {
+        var spelling = tokens[index];
+        if (role == TokenRole.Pronoun && spelling is "él" or "tú")
+        {
+            return index + 1 < tokens.Length && !CanGoOnANounPhrase(tokens[index + 1]);
+        }
+
+        if (role == TokenRole.Verb && spelling is "está" or "estás")
+        {
+            var next = index + 1;
+            if (next >= tokens.Length)
+            {
+                return true;
+            }
+
+            var readings = PartsOfSpeech(tokens[next]);
+            if (readings.Count > 0 && readings.All(static pos => pos == LexiconSchema.Article))
+            {
+                return true;
+            }
+
+            // The adjectives, articles and numerals (digits are numerals) after the word belong to the noun phrase that a demonstrative would open.
+            var head = next;
+            while (head < tokens.Length && PartsOfSpeech(tokens[head]) is { Count: > 0 } found && found.All(static pos => pos is LexiconSchema.Adjective or LexiconSchema.Article or LexiconSchema.Numeral))
+            {
+                head++;
+            }
+
+            return head >= tokens.Length || (PartsOfSpeech(tokens[head]) is { Count: > 0 } headParts && headParts.All(static pos => pos != LexiconSchema.Noun));
+        }
+
+        return false;
+    }
+
+    private static List<string> PartsOfSpeech(string token)
+    {
+        return token.Length > 0 && token.All(char.IsAsciiDigit) ? [LexiconSchema.Numeral] : [.. Harness.Lexicon.Lookup(token).Select(static r => r.Pos)];
+    }
+
+    private static bool CanGoOnANounPhrase(string token)
+    {
+        var parts = PartsOfSpeech(token);
+        return parts.Count == 0 || parts.Any(static pos => pos is LexiconSchema.Noun or LexiconSchema.Adjective or LexiconSchema.Article or LexiconSchema.Numeral);
     }
 
     // A word that is a noun and also a verb form (van, busca) or an adjective (adolescente) can be given to an optional [VERB] or [ADJ] token as well as to a [NOUN]
