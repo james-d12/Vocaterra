@@ -10,7 +10,7 @@
 {"path":"answer-sets/spells-basic.json","sha256":"edccad2fb3a5eb9e1d6ce5551d492afe501e22da90166f9133dca1ba0ea359ba","bytes":819},
 {"path":"answer-sets/thanks.json","sha256":"5c1ab33fa0a5517e2d506ddb40b06e7a229d2a2218523e112492ced720fdb963","bytes":254},
 {"path":"answer-sets/yes-no.json","sha256":"4ed58272cd230304adc69cc0e33eb926e7427c5f19345d45d61f9b07d10d39c4","bytes":393},
-{"path":"cefr/a1.txt","sha256":"c4f69ef5f9af0ea37a3d2aa4697ad31bdf82a94ca19d91104b9f9679e5ccf60c","bytes":2164},
+{"path":"cefr/a1.txt","sha256":"2d93f6cf878da4d19af7cf7ad89215b0931565f0a6382bfcc3084b494baebd0a","bytes":2182},
 {"path":"cefr/a2.txt","sha256":"ca2bd4e709130d68b0375bf9df23cae7a9f31911776f7cf0500419a51516d44c","bytes":5010},
 {"path":"dialogue/dialogue.json","sha256":"ed9a40e026475a70b67d270777513e52fe8499c97b17294c2d49473cc47d9542","bytes":16608},
 {"path":"effects/effects.json","sha256":"31777ade0667b1a20142e9e9e610cfa196d0537e54e0097b1246ddcb5324b928","bytes":828},
@@ -27,4 +27,4 @@
 {"path":"lexicon/world.json","sha256":"ed224971b52d33a83c2c134c3b93ee00ea372393a4abcd5b623e9a5d104b0597","bytes":640},
 {"path":"prompts/prompts.json","sha256":"13014520b5667c4fe810e556da1167970f49b7b95ff3bf4f7021f7014bc9d1b6","bytes":6342},
 {"path":"provenance.json","sha256":"9af63a6e9f68e395cfe66661b10e1a2e5bc61526061c00e5daabd057213ef427","bytes":3111}
-],"bundleHash":"2993138867e5a2879c9623fbe2c0c034c20785411fb811ddd109ee22f53b45e5"}
+],"bundleHash":"0bd4c8ceda24fc775722b8e3cc54e8f8b5202dff5565679eb4a88fe1471cb3f3"}

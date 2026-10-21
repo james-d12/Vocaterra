@@ -60,15 +60,16 @@ public enum NameCheck
 /// <param name="Cursor">The tile under the mouse pointer, or <see langword="null"/> when there is none.</param>
 /// <param name="PointerActive">Whether an arrow from an earlier question is still on screen (the help line then says to follow it).</param>
 /// <param name="Review">Whether the line answers the guide's review question: it is evaluated on the <c>guide-review</c> prompt and <paramref name="Cursor"/> is the tile she pointed at.</param>
+/// <param name="Facts">The world as the guide sees it for this turn: a copy of the tiles around the player taken when the line was submitted (<see cref="WorldFacts.Snapshot"/>), so the turn does not read a world that keeps changing under the worker thread; <see langword="null"/> uses the facts the guide was built with.</param>
 /// <param name="Inventory">What the player carries, for the crafting and finding answers ("te faltan dos bloques de madera", "tienes un hacha"); <see langword="null"/> is read as nothing carried and nothing said about it.</param>
-public sealed record GuideScene(TilePoint Player, TilePoint? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null);
+public sealed record GuideScene(TilePoint Player, TilePoint? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null, WorldFacts? Facts = null);
 
 /// <summary>
 /// The outcome of one typed turn with the guide: the core's verdict in plain values, the lines to show (the correction first, then the
 /// guide's reply, then the game's own line with the world facts) and what the host events mean in the world. It has no time in it, so the same
 /// inputs give an equal turn.
 /// </summary>
-/// <param name="Line">What the player typed, as sent.</param>
+/// <param name="Line">What the player typed, as sent; for a spoken line, the transcript the recognizer heard.</param>
 /// <param name="Intent">The intent the core resolved (<c>ask_directions</c>, or <c>unknown</c>).</param>
 /// <param name="Communicated">Whether the guide understood.</param>
 /// <param name="Correctness">0 to 1, how well the line was written.</param>
@@ -86,6 +87,8 @@ public sealed record GuideScene(TilePoint Player, TilePoint? Cursor = null, bool
 /// <param name="Naming">For a <c>name_object</c> turn, the guide's check of the name against the tile (the word counts withhold colour from a wrong name and from a name with no tile to check).</param>
 /// <param name="NameTarget">For a <see cref="NameCheck.Wrong"/> or <see cref="NameCheck.Right"/> check, the noun of the tile (the word the guide revealed when the name was wrong).</param>
 /// <param name="Words">The line's normalized words with the resolver's readings (<see cref="GuideWord.From"/>), or <see langword="null"/> for a turn built by hand.</param>
+/// <param name="Input">How the line arrived; the word counts apply the credit of this kind (<see cref="CreditRules"/>).</param>
+/// <param name="Confidence">For a spoken line, how sure Vosk was of the words (0 to 1, the mean of its per-word confidences); <see langword="null"/> for a typed line.</param>
 public sealed record GuideTurn(
     string Line,
     string Intent,
@@ -104,7 +107,9 @@ public sealed record GuideTurn(
     SlotMap Slots,
     NameCheck Naming = NameCheck.None,
     string? NameTarget = null,
-    IReadOnlyList<GuideWord>? Words = null)
+    IReadOnlyList<GuideWord>? Words = null,
+    InputKind Input = InputKind.Typed,
+    double? Confidence = null)
 {
     /// <summary>A one-line summary of the verdict for the panel, for example <c>ask_directions, entendido, 100 %</c>.</summary>
     public string Summary => string.Create(

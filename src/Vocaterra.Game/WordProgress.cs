@@ -35,22 +35,26 @@ public enum InputKind
 
 /// <summary>
 /// The credit a correct use earns, per kind of input, and the gaps between credited uses: <b>the one place</b> where both are set. Credit is
-/// counted in units of a use: a full use is <see cref="WordProgress.UnitsPerUse"/> units, so a half-credit use is half of it. D-game-6: typed
-/// input earns full credit; from P5 spoken input earns half by default, as a setting, which is the <see cref="SpokenUnits"/> value P5 changes.
+/// counted in units of a use: a full use is <see cref="WordProgress.UnitsPerUse"/> units, so a half-credit use is half of it. D-game-6: spoken
+/// input earns full credit (three uses to know a word); from P5 typed input earns half by default (six uses), as a setting:
+/// <see cref="Default"/> is half for typed input, <see cref="FullTyped"/> gives typed input full credit (<c>--typed-credit full</c>).
 /// Spaced repetition (D-game-6 as amended): after the first credited use the next needs the first of <see cref="DefaultGapSeconds"/> in
 /// stored time (10 minutes), after the second the next gap (1 hour); later credited uses keep the last gap. A different play session lifts
 /// the gap.
 /// </summary>
 /// <param name="TypedUnits">The units a correct typed use earns.</param>
-/// <param name="SpokenUnits">The units a correct spoken use earns (no spoken input exists before P5, so P4 gives it the full value).</param>
+/// <param name="SpokenUnits">The units a correct spoken use earns.</param>
 /// <param name="GapSeconds">The gaps in seconds of stored time, in order, or <see langword="null"/> for <see cref="DefaultGapSeconds"/>.</param>
 public sealed record CreditRules(int TypedUnits, int SpokenUnits, IReadOnlyList<long>? GapSeconds = null)
 {
     /// <summary>The gaps the owner set: 10 minutes after the first credited use, 1 hour after the second.</summary>
     public static IReadOnlyList<long> DefaultGapSeconds { get; } = [10 * 60, 60 * 60];
 
-    /// <summary>The rules the game uses: full credit for typed input (D-game-6), and full credit for spoken input until P5 sets it to half.</summary>
-    public static CreditRules Default { get; } = new(WordProgress.UnitsPerUse, WordProgress.UnitsPerUse);
+    /// <summary>The rules the game uses (D-game-6, from P5): half credit for typed input, full credit for spoken input.</summary>
+    public static CreditRules Default { get; } = new(WordProgress.UnitsPerUse / 2, WordProgress.UnitsPerUse);
+
+    /// <summary>The setting that gives typed input full credit as well (the launch option <c>--typed-credit full</c>): both kinds earn a full use.</summary>
+    public static CreditRules FullTyped { get; } = new(WordProgress.UnitsPerUse, WordProgress.UnitsPerUse);
 
     /// <summary>The gaps in force, in seconds.</summary>
     public IReadOnlyList<long> Gaps => GapSeconds ?? DefaultGapSeconds;
@@ -132,7 +136,16 @@ public sealed record WordRecord(
     /// <summary>Whether the learner has used it correctly in three turns.</summary>
     public bool Known => CreditUnits >= WordProgress.UnitsToKnow;
 
-    /// <summary>The colour of the noun's objects: 0 to 1, in thirds for typed input.</summary>
+    /// <summary>The credit in full uses: 1 for a spoken use, 0.5 for a typed use at half credit (D-game-6), at most <see cref="WordProgress.UsesToKnow"/>.</summary>
+    public double Uses => Math.Min(WordProgress.UsesToKnow, CreditUnits / (double)WordProgress.UnitsPerUse);
+
+    /// <summary>
+    /// How many of the three progress pips are lit (0 to <see cref="WordProgress.UsesToKnow"/>): a started word shows at least one, and only a
+    /// known word shows all three, so half-credit uses do not leave the pips at zero.
+    /// </summary>
+    public int Pips => Known ? WordProgress.UsesToKnow : Math.Min(WordProgress.UsesToKnow - 1, (CreditUnits + WordProgress.UnitsPerUse - 1) / WordProgress.UnitsPerUse);
+
+    /// <summary>The colour of the noun's objects: 0 to 1, in sixths at half credit and thirds at full credit.</summary>
     public double Saturation => Math.Min(1.0, CreditUnits / (double)WordProgress.UnitsToKnow);
 
     /// <summary>Whether the learner has seen the word at all (heard, read, said).</summary>

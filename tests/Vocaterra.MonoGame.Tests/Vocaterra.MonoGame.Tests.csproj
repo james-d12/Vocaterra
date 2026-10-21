@@ -9,6 +9,10 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <!-- Direct, so that Vosk.targets copies libvosk.so into the test output (the scripted speech tests run the recognizer). -->
+    <PackageReference Include="Vosk" />
+    <!-- Kokoro (sherpa-onnx) needs its own libonnxruntime.so; this package's native copy would overwrite it (CR-021). -->
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" ExcludeAssets="native" />
   </ItemGroup>
 
   <ItemGroup>

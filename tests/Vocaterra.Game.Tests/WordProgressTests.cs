@@ -73,7 +73,7 @@ public sealed class WordProgressTests
     public void ThreeCorrectUsesSpacedByTheGapsMakeTheNounKnownInThirds()
     {
         var words = new WordProgress(TestGame.Nouns);
-        var rules = CreditRules.Default;
+        var rules = CreditRules.FullTyped;
 
         var first = words.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Typed, rules, At(0));
         Assert.Equal(["árbol"], first.Credited);
@@ -100,10 +100,10 @@ public sealed class WordProgressTests
         var words = new WordProgress(TestGame.Nouns);
         for (var i = 0; i < 3; i++)
         {
-            words.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Typed, CreditRules.Default, At(i * 70));
+            words.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Typed, CreditRules.FullTyped, At(i * 70));
         }
 
-        var fourth = words.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Typed, CreditRules.Default, At(300));
+        var fourth = words.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Typed, CreditRules.FullTyped, At(300));
 
         Assert.Empty(fourth.NewlyKnown);
         Assert.Equal(1.0, words.SaturationOf("árbol"));
@@ -114,7 +114,7 @@ public sealed class WordProgressTests
     {
         var words = new WordProgress(TestGame.Nouns);
 
-        var result = words.RecordTurn(Turn("es un árbol, el árbol", slots: Object("árbol")), InputKind.Typed, CreditRules.Default, At(0));
+        var result = words.RecordTurn(Turn("es un árbol, el árbol", slots: Object("árbol")), InputKind.Typed, CreditRules.FullTyped, At(0));
 
         Assert.Equal(["árbol"], result.Credited);
         Assert.Equal(1, words.RecordOf("árbol").CorrectTurns);
@@ -129,7 +129,7 @@ public sealed class WordProgressTests
         const string Line = "la árbol";
         var error = new GuideError("gender.agree", "el", "la", SpanOf(Line, "la"));
 
-        var result = words.RecordTurn(Turn(Line, errors: [error], slots: Object("árbol")), InputKind.Typed, CreditRules.Default, At(0));
+        var result = words.RecordTurn(Turn(Line, errors: [error], slots: Object("árbol")), InputKind.Typed, CreditRules.FullTyped, At(0));
 
         Assert.Empty(result.Credited);
         Assert.Equal(0, words.RecordOf("árbol").CreditUnits);
@@ -144,7 +144,7 @@ public sealed class WordProgressTests
         const string Line = "es un árbol";
         var error = new GuideError("vocab.unknown", "árbol", "arbul", SpanOf(Line, "árbol"));
 
-        var result = words.RecordTurn(Turn(Line, errors: [error], slots: Object("árbol")), InputKind.Typed, CreditRules.Default, At(0));
+        var result = words.RecordTurn(Turn(Line, errors: [error], slots: Object("árbol")), InputKind.Typed, CreditRules.FullTyped, At(0));
 
         Assert.Empty(result.Credited);
         Assert.Equal(0, words.RecordOf("árbol").CreditUnits);
@@ -157,7 +157,7 @@ public sealed class WordProgressTests
         const string Line = "es un árbol";
         var error = new GuideError("ser_estar", "es", "es", SpanOf(Line, "es"));
 
-        var result = words.RecordTurn(Turn(Line, errors: [error], slots: Object("árbol")), InputKind.Typed, CreditRules.Default, At(0));
+        var result = words.RecordTurn(Turn(Line, errors: [error], slots: Object("árbol")), InputKind.Typed, CreditRules.FullTyped, At(0));
 
         Assert.Equal(["árbol"], result.Credited);
         Assert.Equal(1, words.RecordOf("árbol").SpokenCorrect);
@@ -168,7 +168,7 @@ public sealed class WordProgressTests
     {
         var words = new WordProgress(TestGame.Nouns);
 
-        words.RecordTurn(Turn("es un árbol", communicated: false, slots: Object("árbol")), InputKind.Typed, CreditRules.Default, At(0));
+        words.RecordTurn(Turn("es un árbol", communicated: false, slots: Object("árbol")), InputKind.Typed, CreditRules.FullTyped, At(0));
 
         Assert.Equal(0, words.RecordOf("árbol").Spoken);
         Assert.Equal(0, words.RecordOf("árbol").CreditUnits);
@@ -179,7 +179,7 @@ public sealed class WordProgressTests
     {
         var words = new WordProgress(TestGame.Nouns);
 
-        words.RecordTurn(Turn("hola", communicated: false, worldLine: "El árbol está allí."), InputKind.Typed, CreditRules.Default, At(0));
+        words.RecordTurn(Turn("hola", communicated: false, worldLine: "El árbol está allí."), InputKind.Typed, CreditRules.FullTyped, At(0));
 
         var record = words.RecordOf("árbol");
         Assert.Equal(1, record.Heard);
@@ -205,7 +205,7 @@ public sealed class WordProgressTests
     public void ColourFollowsTheLemmaAndTheTileTakesTheColourOfItsNoun()
     {
         var words = new WordProgress(TestGame.Nouns);
-        words.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Typed, CreditRules.Default, At(0));
+        words.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Typed, CreditRules.FullTyped, At(0));
 
         Assert.Equal(1.0 / 3, words.SaturationOf(TileId.Trunk), 9);
         Assert.Equal(1.0 / 3, words.SaturationOf(TileId.Leaves), 9);
@@ -220,8 +220,8 @@ public sealed class WordProgressTests
         var half = new CreditRules(TypedUnits: WordProgress.UnitsPerUse, SpokenUnits: WordProgress.UnitsPerUse / 2);
         var words = new WordProgress(TestGame.Nouns);
 
-        Assert.Equal(WordProgress.UnitsPerUse, CreditRules.Default.For(InputKind.Typed));
-        Assert.Equal(WordProgress.UnitsPerUse, CreditRules.Default.For(InputKind.Spoken));
+        Assert.Equal(WordProgress.UnitsPerUse, CreditRules.FullTyped.For(InputKind.Typed));
+        Assert.Equal(WordProgress.UnitsPerUse, CreditRules.FullTyped.For(InputKind.Spoken));
         Assert.Equal(WordProgress.UnitsPerUse / 2, half.For(InputKind.Spoken));
 
         for (var i = 0; i < WordProgress.UsesToKnow; i++)
@@ -231,6 +231,87 @@ public sealed class WordProgressTests
 
         Assert.False(words.RecordOf("árbol").Known);
         Assert.Equal(0.5, words.SaturationOf("árbol"), 9);
+    }
+
+    [Fact]
+    public void TheDefaultRulesGiveTypedInputHalfCreditAndSpokenInputFullCredit()
+    {
+        // D-game-6, from P5: spoken input earns a full use, typed input half a use; the launch option --typed-credit full is FullTyped.
+        Assert.Equal(WordProgress.UnitsPerUse / 2, CreditRules.Default.For(InputKind.Typed));
+        Assert.Equal(WordProgress.UnitsPerUse, CreditRules.Default.For(InputKind.Spoken));
+        Assert.Equal(WordProgress.UnitsPerUse, CreditRules.FullTyped.For(InputKind.Typed));
+        Assert.Equal(WordProgress.UnitsPerUse, CreditRules.FullTyped.For(InputKind.Spoken));
+    }
+
+    [Fact]
+    public void ThreeSpokenUsesKnowAWordAndSixTypedUsesAtHalfCreditDoTheSame()
+    {
+        var rules = CreditRules.Default;
+        var spoken = new WordProgress(TestGame.Nouns);
+        var typed = new WordProgress(TestGame.Nouns);
+
+        // Spoken: 10 minutes after the first, 1 hour after the second (the gaps), three uses.
+        long[] spokenAt = [0, 10 * 60, (10 * 60) + (60 * 60)];
+        foreach (var second in spokenAt)
+        {
+            spoken.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Spoken, rules, GameSession.DefaultStartedAt + second);
+        }
+
+        Assert.True(spoken.RecordOf("árbol").Known);
+        Assert.Equal(3.0, spoken.RecordOf("árbol").Uses, 9);
+
+        // Typed at half credit: the same gaps, the last one (1 hour) repeating, so a word needs six credited uses and 4 h 10 min.
+        long time = 0;
+        var gaps = new long[] { 0, 10 * 60, 60 * 60, 60 * 60, 60 * 60, 60 * 60 };
+        for (var i = 0; i < gaps.Length; i++)
+        {
+            time += gaps[i];
+            typed.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Typed, rules, GameSession.DefaultStartedAt + time);
+            Assert.Equal(i < gaps.Length - 1, !typed.RecordOf("árbol").Known);
+            Assert.Equal((i + 1) / 2.0, typed.RecordOf("árbol").Uses, 9);
+        }
+
+        Assert.Equal(6, typed.RecordOf("árbol").CorrectTurns);
+        Assert.Equal(1.0, typed.SaturationOf("árbol"), 9);
+    }
+
+    [Fact]
+    public void TheProgressPipsLightAtLeastOneForAStartedWordAndAllThreeOnlyWhenKnown()
+    {
+        var rules = CreditRules.Default;
+        var words = new WordProgress(TestGame.Nouns);
+        Assert.Equal(0, words.RecordOf("árbol").Pips);
+
+        words.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Typed, rules, At(0));
+        Assert.Equal(1, words.RecordOf("árbol").Pips); // half a use still shows a pip
+        words.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Spoken, rules, At(11));
+        Assert.Equal(2, words.RecordOf("árbol").Pips); // 1.5 uses
+        words.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Spoken, rules, At(80));
+        Assert.False(words.RecordOf("árbol").Known); // 2.5 uses
+        Assert.Equal(2, words.RecordOf("árbol").Pips); // never all three before it is known
+        words.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Spoken, rules, At(150));
+        Assert.True(words.RecordOf("árbol").Known);
+        Assert.Equal(WordProgress.UsesToKnow, words.RecordOf("árbol").Pips);
+    }
+
+    [Fact]
+    public void ATurnRecordsHowItArrivedAndTheSessionCreditsThatKind()
+    {
+        Assert.Equal(InputKind.Typed, Turn("es un árbol").Input);
+        Assert.Null(Turn("es un árbol").Confidence);
+
+        var typed = TestGame.NewSession(credit: CreditRules.Default);
+        var player = typed.PlayerTile;
+        var cursor = TestGame.BruteForceNearest(typed.Simulation.World, player, TileId.Trunk);
+        var turn = typed.Say("es un árbol", cursor);
+
+        Assert.Equal(InputKind.Typed, turn.Input);
+        Assert.Equal(WordProgress.UnitsPerUse / 2, typed.Words.RecordOf("árbol").CreditUnits);
+        Assert.Equal(0.5, typed.Words.RecordOf("árbol").Uses, 9);
+
+        var full = TestGame.NewSession(credit: CreditRules.FullTyped);
+        _ = full.Say("es un árbol", cursor);
+        Assert.Equal(WordProgress.UnitsPerUse, full.Words.RecordOf("árbol").CreditUnits);
     }
 
     [Fact]
@@ -246,8 +327,8 @@ public sealed class WordProgressTests
         };
         foreach (var turn in turns)
         {
-            first.RecordTurn(turn, InputKind.Typed, CreditRules.Default, At(0));
-            second.RecordTurn(turn, InputKind.Typed, CreditRules.Default, At(0));
+            first.RecordTurn(turn, InputKind.Typed, CreditRules.FullTyped, At(0));
+            second.RecordTurn(turn, InputKind.Typed, CreditRules.FullTyped, At(0));
         }
 
         Assert.Equal(first.Records.Values.ToList(), second.Records.Values.ToList());

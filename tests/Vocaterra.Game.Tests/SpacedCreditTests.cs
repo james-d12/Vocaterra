@@ -35,12 +35,12 @@ public sealed class SpacedCreditTests
         target);
 
     private static WordTurnResult Use(WordProgress words, string lemma, long now, NameCheck naming = NameCheck.Right)
-        => words.RecordTurn(Name(lemma, naming), InputKind.Typed, CreditRules.Default, now);
+        => words.RecordTurn(Name(lemma, naming), InputKind.Typed, CreditRules.FullTyped, now);
 
     [Fact]
     public void TheGapsAreOneListInTheCreditRules()
     {
-        var rules = CreditRules.Default;
+        var rules = CreditRules.FullTyped;
 
         Assert.Equal([600L, 3600L], rules.Gaps);
         Assert.Equal(0, rules.GapAfter(0));
@@ -141,7 +141,7 @@ public sealed class SpacedCreditTests
     [Fact]
     public void AGameSessionStartedInAnEarlierSessionCreditsTheWordsOfALaterOne()
     {
-        var session = new GameSession(TestGame.Bundle, TestGame.Seed, GameSession.DefaultStartedAt, TestGame.Nouns, playSession: 1);
+        var session = new GameSession(TestGame.Bundle, TestGame.Seed, GameSession.DefaultStartedAt, TestGame.Nouns, playSession: 1, credit: CreditRules.FullTyped);
         var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
         session.Say("es un árbol", tree);
         session.Words.Session = 2;
@@ -228,7 +228,7 @@ public sealed class SpacedCreditTests
         var words = new WordProgress(TestGame.Nouns);
         Use(words, "árbol", At(0));
 
-        words.RecordTurn(Name("piedra", NameCheck.Wrong, target: "árbol"), InputKind.Typed, CreditRules.Default, At(12));
+        words.RecordTurn(Name("piedra", NameCheck.Wrong, target: "árbol"), InputKind.Typed, CreditRules.FullTyped, At(12));
         var copy = Use(words, "árbol", At(12, 5));
 
         Assert.Equal(CreditOutcome.TooEarly, copy.Outcomes.Single().Outcome);
@@ -242,7 +242,7 @@ public sealed class SpacedCreditTests
     {
         var words = new WordProgress(TestGame.Nouns);
 
-        words.RecordTurn(Name("piedra", NameCheck.Wrong, target: "árbol"), InputKind.Typed, CreditRules.Default, At(0));
+        words.RecordTurn(Name("piedra", NameCheck.Wrong, target: "árbol"), InputKind.Typed, CreditRules.FullTyped, At(0));
 
         Assert.False(words.Records.ContainsKey("árbol") && words.RecordOf("árbol").Lapses > 0);
         Assert.Equal(0, words.RecordOf("árbol").Lapses);
@@ -259,7 +259,7 @@ public sealed class SpacedCreditTests
         Use(words, "árbol", At(70));
         Assert.True(words.RecordOf("árbol").Known);
 
-        words.RecordTurn(Name("piedra", NameCheck.Wrong, target: "árbol"), InputKind.Typed, CreditRules.Default, At(80));
+        words.RecordTurn(Name("piedra", NameCheck.Wrong, target: "árbol"), InputKind.Typed, CreditRules.FullTyped, At(80));
 
         Assert.Equal(0, words.RecordOf("árbol").Lapses);
         Assert.True(words.RecordOf("árbol").Known);
@@ -273,24 +273,24 @@ public sealed class SpacedCreditTests
         Use(words, "hierba", At(0, 60));
         Use(words, "árbol", At(0));
         Use(words, "tierra", At(5)); // not due yet at 11 minutes' mark below? due at minute 15
-        Assert.Empty(words.DueWords(At(0, 599), CreditRules.Default));
-        Assert.Null(words.SecondsUntilNextCredit("lámpara", At(0), CreditRules.Default)); // never credited: nothing to wait for
+        Assert.Empty(words.DueWords(At(0, 599), CreditRules.FullTyped));
+        Assert.Null(words.SecondsUntilNextCredit("lámpara", At(0), CreditRules.FullTyped)); // never credited: nothing to wait for
 
-        var due = words.DueWords(At(11), CreditRules.Default);
+        var due = words.DueWords(At(11), CreditRules.FullTyped);
 
         // piedra and árbol are 60 s overdue; hierba is 0 s overdue; ties by ordinal lemma (p before á).
         Assert.Equal(["piedra", "árbol", "hierba"], due.Select(static d => d.Lemma));
         Assert.Equal(60, due[0].OverdueSeconds);
         Assert.Equal(0, due[2].OverdueSeconds);
-        Assert.Equal(240, words.SecondsUntilNextCredit("tierra", At(11), CreditRules.Default));
-        Assert.Equal(0, words.SecondsUntilNextCredit("piedra", At(11), CreditRules.Default));
+        Assert.Equal(240, words.SecondsUntilNextCredit("tierra", At(11), CreditRules.FullTyped));
+        Assert.Equal(0, words.SecondsUntilNextCredit("piedra", At(11), CreditRules.FullTyped));
 
         // A known word is never due.
         Use(words, "piedra", At(11));
         Use(words, "piedra", At(72));
         Assert.True(words.RecordOf("piedra").Known);
-        Assert.DoesNotContain(words.DueWords(At(500), CreditRules.Default), static d => d.Lemma == "piedra");
-        Assert.Null(words.SecondsUntilNextCredit("piedra", At(500), CreditRules.Default));
+        Assert.DoesNotContain(words.DueWords(At(500), CreditRules.FullTyped), static d => d.Lemma == "piedra");
+        Assert.Null(words.SecondsUntilNextCredit("piedra", At(500), CreditRules.FullTyped));
     }
 
     [Fact]
@@ -298,11 +298,11 @@ public sealed class SpacedCreditTests
     {
         var words = new WordProgress(TestGame.Nouns);
         Use(words, "árbol", At(0));
-        Assert.Empty(words.DueWords(At(1), CreditRules.Default));
+        Assert.Empty(words.DueWords(At(1), CreditRules.FullTyped));
 
         words.Session = 2;
 
-        Assert.Equal(["árbol"], words.DueWords(At(1), CreditRules.Default).Select(static d => d.Lemma));
+        Assert.Equal(["árbol"], words.DueWords(At(1), CreditRules.FullTyped).Select(static d => d.Lemma));
     }
 
     [Fact]

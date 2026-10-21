@@ -11,6 +11,15 @@
     <PackageVersion Include="Vocaterra.Nlp.Language" Version="0.1.0" />
     <PackageVersion Include="Vocaterra.Nlp.Pipeline" Version="0.1.0" />
     <PackageVersion Include="Vocaterra.Nlp.Response" Version="0.1.0" />
+    <!-- Vosk 0.3.38 is the core's own dependency (Vocaterra.Nlp.Asr). It is named here, at the same version, only so that the executables and test
+         projects that run the recognizer can reference it directly: its build/Vosk.targets (the one that copies libvosk.so next to the output)
+         is imported only into a project that references the package itself, never through Vocaterra.Nlp.Asr. License: Apache-2.0. -->
+    <PackageVersion Include="Vosk" Version="0.3.38" />
+    <!-- Microsoft.ML.OnnxRuntime 1.31.0 is also the core's own dependency (its embedding model). The game never loads that model (it uses the
+         core's fake embeddings), but the package ships a libonnxruntime.so that overwrites the one sherpa-onnx (Kokoro) needs in the same output
+         folder, and sherpa's library then fails to load (VERS_1.28.2 not found). The executables and test projects that speak name it with
+         ExcludeAssets="native" so that sherpa's runtime is the one next to the executable (CR-021). License: MIT. -->
+    <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="1.31.0" />
     <PackageVersion Include="MonoGame.Framework.DesktopGL" Version="3.8.6" />
     <PackageVersion Include="FontStashSharp.MonoGame" Version="1.6.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />

@@ -13,6 +13,8 @@ namespace Vocaterra.Game;
 /// The call sequence of the core's API document for one typed line: the line is the transcript (the core's scripted recognizer), the clip is
 /// empty, and the embedding model and the synthesizer are the core's stand-ins, so no model file and no audio take part. The console host
 /// (<c>ConversationSession</c>) and the guide (<see cref="GuideService"/>) both evaluate through this class, so the two cannot drift apart.
+/// <see cref="EvaluateRecognized"/> does the same from a recognition that already exists, which is how the guide's second evaluation of a
+/// spoken line reuses the first one's transcript instead of running the recognizer again.
 /// </summary>
 public sealed class TypedUtteranceEvaluator
 {
@@ -41,7 +43,21 @@ public sealed class TypedUtteranceEvaluator
         ArgumentNullException.ThrowIfNull(prompt);
         ArgumentNullException.ThrowIfNull(context);
         var asr = new AsrResult(transcript, [new AsrHypothesis(transcript, 1.0)], [], 1.0, ScriptedModelHash, prompt.Mode);
-        var services = new PipelineServices(new ScriptedWordRecognizer(asr), null, _embeddings, _synthesizer, _bundle);
-        return new UtterancePipeline(services).Evaluate(PcmClip.FromSamples([]), prompt, context);
+        return EvaluateRecognized(asr, PcmClip.FromSamples([]), prompt, context);
+    }
+
+    /// <summary>
+    /// Evaluates a recognition that has already been made: the recognizer is the core's scripted one over <paramref name="recognition"/>, so the
+    /// transcript, the hypotheses and the confidence are exactly those of the first recognition and nothing is decoded again. The
+    /// <paramref name="clip"/> goes into the replay record as it is (its hash), so a spoken turn's record names the audio it came from.
+    /// </summary>
+    public PipelineResult EvaluateRecognized(AsrResult recognition, PcmClip clip, PromptSpec prompt, ConversationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(recognition);
+        ArgumentNullException.ThrowIfNull(clip);
+        ArgumentNullException.ThrowIfNull(prompt);
+        ArgumentNullException.ThrowIfNull(context);
+        var services = new PipelineServices(new ScriptedWordRecognizer(recognition), null, _embeddings, _synthesizer, _bundle);
+        return new UtterancePipeline(services).Evaluate(clip, prompt, context);
     }
 }

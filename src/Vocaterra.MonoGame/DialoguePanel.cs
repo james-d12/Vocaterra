@@ -12,7 +12,16 @@ namespace Vocaterra.MonoGame;
 public sealed class DialoguePanel : IFrameLayer
 {
     /// <summary>The key hints under the text box.</summary>
-    public const string KeyHints = "Enter: enviar   Esc: cerrar   Alt+vocal: á é í ó ú   Alt+N: ñ   Alt+/: ¿   Alt+1: ¡";
+    public const string KeyHints = "Enter: enviar  Tab (mantener): hablar  Esc: cerrar  Alt+vocal: á é í ó ú  Alt+N: ñ  Alt+/: ¿  Alt+1: ¡";
+
+    /// <summary>The status while the push-to-talk key is held and the microphone records.</summary>
+    public const string ListeningText = "Escuchando…";
+
+    /// <summary>The status while a turn is on the worker (recognizing and evaluating).</summary>
+    public const string ThinkingText = "Pensando…";
+
+    /// <summary>The prefix of a line the player said, as the recognizer heard it.</summary>
+    public const string SpokenPrefix = "Tú (voz): ";
 
     /// <summary>The guide's name in the panel's title bar.</summary>
     public const string Title = "Guía";
@@ -31,6 +40,8 @@ public sealed class DialoguePanel : IFrameLayer
     private static readonly Color GuideColor = new(255, 242, 180);
     private static readonly Color WorldColor = new(170, 255, 190);
     private static readonly Color HintColor = new(255, 214, 64);
+    private static readonly Color ListeningColor = new(120, 255, 150);
+    private static readonly Color NoticeColor = new(255, 150, 120);
 
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
@@ -79,6 +90,29 @@ public sealed class DialoguePanel : IFrameLayer
         }
 
         DrawHelpers.Text(spriteBatch, font, KeyHints, new Vector2(textLeft, hintsY), NoteColor);
+        DrawStatus(spriteBatch, view, font, dialogue, inputBox);
+    }
+
+    // "Escuchando…" while the key is held, "Pensando…" while a turn is on the worker, else the last microphone message; right-aligned in the box.
+    private static void DrawStatus(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, DialogueModel dialogue, Rectangle box)
+    {
+        var (text, color) = dialogue.Listening
+            ? (ListeningText, ListeningColor)
+            : dialogue.Pending > 0
+                ? (ThinkingText, HintColor)
+                : dialogue.SpeechNotice is { } notice ? (notice, NoticeColor) : (string.Empty, Color.White);
+        if (text.Length == 0)
+        {
+            return;
+        }
+
+        var x = box.Right - 10 - DrawHelpers.Width(font, text);
+        if (dialogue.Listening && (view.Simulation.Tick / 15) % 2 == 0)
+        {
+            spriteBatch.Draw(view.Pixel, new Rectangle((int)x - 16, box.Top + 10, 8, 8), new Color(255, 70, 70));
+        }
+
+        DrawHelpers.Text(spriteBatch, font, text, new Vector2(x, box.Top + 5), color);
     }
 
     private static void DrawLines(
@@ -98,12 +132,13 @@ public sealed class DialoguePanel : IFrameLayer
             var prefix = line.Speaker switch
             {
                 DialogueSpeaker.Player => "Tú: ",
+                DialogueSpeaker.PlayerSpoken => SpokenPrefix,
                 DialogueSpeaker.Guide or DialogueSpeaker.World or DialogueSpeaker.Correction => "Guía: ",
                 _ => string.Empty,
             };
             var color = line.Speaker switch
             {
-                DialogueSpeaker.Player => PlayerColor,
+                DialogueSpeaker.Player or DialogueSpeaker.PlayerSpoken => PlayerColor,
                 DialogueSpeaker.Note => NoteColor,
                 DialogueSpeaker.Correction => CorrectionColor,
                 DialogueSpeaker.World => WorldColor,

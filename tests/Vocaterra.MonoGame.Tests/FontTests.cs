@@ -41,6 +41,8 @@ public sealed class FontTests
         var strings = new List<string>
         {
             GuideLayer.Hint, GuideLayer.Name, DialoguePanel.KeyHints, DialoguePanel.Title, "Tú: ", "Guía: ", "Esc: quitar la flecha", "entendido, no entendido",
+            DialoguePanel.ListeningText, DialoguePanel.ThinkingText, DialoguePanel.SpokenPrefix, LoadingLayer.Text, PushToTalk.NoMicrophone, PushToTalk.Silence,
+            "oído con 96 %, No se pudo abrir el micrófono: ", "Falta el modelo vosk-model-small-es-0.42 en /ruta.", "Sin voz: el reconocedor no se ha cargado.", "No se oyó nada.",
         };
 
         // Every template and prompt of the bundle, as written (the slot words are plain nouns the font covers as letters).

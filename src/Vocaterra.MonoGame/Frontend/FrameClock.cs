@@ -41,6 +41,16 @@ public readonly struct TurnTimer
     public double ElapsedMilliseconds => Stopwatch.GetElapsedTime(_start).TotalMilliseconds;
 }
 
+/// <summary>
+/// A monotonic millisecond reading for the timings the run reports (how long Vosk, Kokoro and a turn took, how long a frame was). It is a
+/// diagnostic only: nothing the simulation or the language core sees comes from it.
+/// </summary>
+public static class MonotonicClock
+{
+    /// <summary>Milliseconds since an arbitrary start; only differences mean anything.</summary>
+    public static double Milliseconds() => Stopwatch.GetTimestamp() * 1000.0 / Stopwatch.Frequency;
+}
+
 /// <summary>A clock that reports exactly one tick of time per frame, for the scripted screenshot run (the same code path, no real time).</summary>
 public sealed class FixedFrameClock : IFrameClock
 {

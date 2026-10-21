@@ -40,6 +40,26 @@ public sealed class ArchitectureRulesTests
     }
 
     [Fact]
+    public void TheProjectsThatRunTheRecognizerReferenceVoskDirectlyAndKeepSherpasRuntime()
+    {
+        // build/Vosk.targets (which copies libvosk.so) is imported only into a project that references Vosk itself, and the ONNX Runtime package's
+        // native library would overwrite the one sherpa-onnx (Kokoro) needs, so the same projects exclude its native assets.
+        var props = File.ReadAllText(Path.Combine(RepoRoot(), "Directory.Packages.props"));
+        Assert.Contains("<PackageVersion Include=\"Vosk\" Version=\"0.3.38\" />", props, StringComparison.Ordinal);
+        foreach (var project in new[]
+        {
+            Path.Combine("src", "Vocaterra.MonoGame", "Vocaterra.MonoGame.csproj"),
+            Path.Combine("tests", "Vocaterra.Game.Tests", "Vocaterra.Game.Tests.csproj"),
+            Path.Combine("tests", "Vocaterra.MonoGame.Tests", "Vocaterra.MonoGame.Tests.csproj"),
+        })
+        {
+            var text = File.ReadAllText(Path.Combine(RepoRoot(), project));
+            Assert.Contains("<PackageReference Include=\"Vosk\" />", text, StringComparison.Ordinal);
+            Assert.Contains("<PackageReference Include=\"Microsoft.ML.OnnxRuntime\" ExcludeAssets=\"native\" />", text, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
     public void TheSimulationStillTakesNoPackages()
     {
         var project = File.ReadAllText(Path.Combine(RepoRoot(), "src", "Vocaterra.Simulation", "Vocaterra.Simulation.csproj"));

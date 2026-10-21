@@ -104,6 +104,33 @@ To check it without typing, the front-end can script the whole thing and save a 
 dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --say "¿dónde está el árbol?" --screenshot /tmp/p3.png --frames 240
 ```
 
+## The guide, spoken (P5)
+
+Hold **Tab** while the dialogue is open, or hold **V** next to the guide (it opens the panel and listens), say the line, and let go: the clip is
+trimmed, converted to 16 kHz, recognized by Vosk and evaluated like a typed line, on a worker thread, so the game never stalls ("Escuchando…",
+then "Pensando…" in the panel). A spoken correct use earns full credit (three uses make a word known); a typed one earns half (six),
+`--typed-credit full` gives typed input full credit again. Without a microphone the panel says so and typing works.
+
+It needs the speech models, fetched outside the repository (`VOCATERRA_MODELS_DIR` names the folder; the core's `scripts/fetch-models.sh`
+fills it with `vosk-model-small-es-0.42` and `kokoro-multi-lang-v1_0`). Without them the game starts and runs, typed only, and says why:
+
+```bash
+export VOCATERRA_MODELS_DIR="$HOME/.local/share/vocaterra/models"
+dotnet run --project src/Vocaterra.MonoGame -- --seed 42
+```
+
+Spoken input without a microphone, for demos and tests (each is an ordered script step like `--say`; they print the transcript, the
+confidence and the timings in the turn line):
+
+```bash
+dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --speak "¿dónde está el árbol?" --screenshot /tmp/p5.png   # Kokoro speaks it, Vosk hears it
+dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --wav line.wav --screenshot /tmp/p5-wav.png               # a 16-bit PCM WAV, any rate
+dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --listen 3 --screenshot /tmp/p5-mic.png                   # the real microphone for 3 s
+```
+
+Kokoro's audio is cached under `~/.cache/vocaterra/tts` (nothing of it is in the repository). See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+for the worker thread, the models folder and the native libraries.
+
 ## Content
 
 `content/game-v1` is the game's bundle, under the bundle id `game-v1`. **The game owns it** (decision D-game-4, decided 2026-10-21: the bundle

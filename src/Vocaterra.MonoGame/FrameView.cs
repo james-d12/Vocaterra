@@ -60,6 +60,12 @@ public sealed class FrameView
     /// <summary>The ticks dropped so far because a frame fell too far behind.</summary>
     public long DroppedTicks { get; set; }
 
+    /// <summary>The text of the loading screen while the models load (the world is drawn behind it and nothing in it is interactive), or <see langword="null"/> when the game is running.</summary>
+    public string? Loading { get; set; }
+
+    /// <summary>The frames drawn so far while loading (animates the bar of the loading screen).</summary>
+    public int LoadingFrame { get; set; }
+
     /// <summary>The mouse pointer in window pixels, or <see langword="null"/> when it is outside the window.</summary>
     public Point? Mouse { get; set; }
 }

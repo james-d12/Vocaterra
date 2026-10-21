@@ -1,6 +1,8 @@
 using Vocaterra.Nlp.Content;
+using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
+using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
@@ -12,9 +14,10 @@ using Vocaterra.Simulation.Tiles;
 namespace Vocaterra.Game;
 
 /// <summary>
-/// The conversation with the guide, one typed line at a time. A turn evaluates the line on the bundle's <c>guide-open</c> prompt with the
-/// core's scripted recognizer (the typed text is the transcript), carries the conversation with <c>ConversationContext.Next</c> (the guide's
-/// state, the learner model and the repeat counts), and turns the guide's host events into facts about the world.
+/// The conversation with the guide, one typed or spoken line at a time. A turn evaluates the line on the bundle's <c>guide-open</c> prompt:
+/// a typed line with the core's scripted recognizer (the typed text is the transcript), a spoken line with Vosk (the clip is decoded once).
+/// It carries the conversation with <c>ConversationContext.Next</c> (the guide's state, the learner model and the repeat counts), and turns
+/// the guide's host events into facts about the world.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -22,6 +25,13 @@ namespace Vocaterra.Game;
 /// host events. The host's facts about the world (the place, the direction and distance, the target) and the word skills of the nouns the turn
 /// exercises (CR-005) depend on those, so the second evaluation carries them in its context (<c>ConversationContext.Create</c> with
 /// <c>hostSlots</c> and <c>extraSkills</c>): they are in the replay record, and the learner is updated once. Only the second result is used.
+/// For a spoken line the second evaluation runs over the first one's recognition (<see cref="TypedUtteranceEvaluator.EvaluateRecognized"/>), so
+/// Vosk decodes the clip once and both verdicts see the same transcript and confidence.
+/// </para>
+/// <para>
+/// <b>Threads (P5).</b> A turn is a pure function of its inputs (the line or clip, the scene, the stored time and the host state hash, all
+/// fixed when the player submits). The game runs turns one at a time on its worker thread, which is the only thread that calls
+/// <see cref="Say"/> and <see cref="SaySpoken"/>; the properties that report the conversation may be read from the game thread between turns.
 /// </para>
 /// <para>
 /// The guide's world line ("El árbol está a la derecha, a doce bloques.") is still rendered by the game from the bundle's dialogue pools with
@@ -81,10 +91,12 @@ public sealed class GuideService
 
     private readonly ContentBundle _bundle;
     private readonly TypedUtteranceEvaluator _evaluator;
-    private readonly WorldFacts _facts;
+    private readonly WorldFacts _worldFacts;
     private readonly NounCatalog _nouns;
     private readonly RecipeBook _recipes;
-    private ConversationContext _context;
+    private volatile ConversationContext _context;
+    private volatile SpokenUtteranceEvaluator? _spoken;
+    private WorldFacts _facts;
 
     /// <summary>Starts the conversation: the guide in its initial state, a learner model with no evidence and no repeat counts.</summary>
     /// <param name="bundle">The content bundle; it must hold the <c>guide</c> agent and the <c>guide-open</c> prompt.</param>
@@ -105,11 +117,26 @@ public sealed class GuideService
         }
 
         _bundle = bundle;
+        _worldFacts = facts;
         _facts = facts;
         _nouns = nouns;
         _recipes = recipes ?? RecipeBook.Load(bundle, nouns);
         _evaluator = new TypedUtteranceEvaluator(bundle);
         _context = ConversationContext.Create(worldSeed, AgentId, machine.InitialState(), start, LearnerModel.New(), new Dictionary<string, int>(StringComparer.Ordinal), SlotMap.Empty, []);
+    }
+
+    /// <summary>Whether spoken lines can be evaluated (<see cref="AttachSpeech"/> was called).</summary>
+    public bool CanHear => _spoken is not null;
+
+    /// <summary>
+    /// Gives the guide the means to evaluate spoken lines. Call it once, from the thread that will call <see cref="SaySpoken"/>, after the
+    /// recognizer has loaded.
+    /// </summary>
+    /// <param name="evaluator">The spoken-line evaluator over the loaded recognizer.</param>
+    public void AttachSpeech(SpokenUtteranceEvaluator evaluator)
+    {
+        ArgumentNullException.ThrowIfNull(evaluator);
+        _spoken = evaluator;
     }
 
     /// <summary>The context the next turn starts from (the guide's state, the learner model, the repeat counts and the time of the last turn).</summary>
@@ -143,6 +170,16 @@ public sealed class GuideService
     }
 
     /// <summary>
+    /// Runs one throwaway spoken evaluation of half a second of silence, so that the first real clip does not pay for Vosk's first decode and
+    /// the pipeline's first spoken call. It changes no state. Call it from the speech thread, after <see cref="AttachSpeech"/>.
+    /// </summary>
+    public void WarmUpSpeech()
+    {
+        var spoken = _spoken ?? throw new InvalidOperationException("No speech is attached.");
+        spoken.Trace(PcmClip.FromSamples(new short[AudioClips.SampleRate / 2]), _bundle.Prompts[PromptId], _context);
+    }
+
+    /// <summary>
     /// Evaluates one typed line and returns the turn. The conversation moves on whatever the verdict: an unclear line also counts, as a
     /// repeated mistake or a not-communicated attempt.
     /// </summary>
@@ -153,13 +190,51 @@ public sealed class GuideService
     public GuideTurn Say(string line, GuideScene scene, StoredTimestamp now, string hostStateHash)
     {
         ArgumentNullException.ThrowIfNull(line);
+        return Take(line, null, scene, now, hostStateHash);
+    }
+
+    /// <summary>
+    /// Recognizes and evaluates one spoken line and returns the turn, whose <see cref="GuideTurn.Line"/> is what the recognizer heard. The
+    /// recognizer decodes the clip once; the second evaluation reuses its output. The conversation moves on whatever the verdict.
+    /// </summary>
+    /// <param name="clip">The recorded or synthesized clip, 16 kHz mono (see <see cref="AudioClips.Prepare"/>).</param>
+    /// <param name="scene">Where the player is and what the cursor is on.</param>
+    /// <param name="now">The stored time of this turn.</param>
+    /// <param name="hostStateHash">The game's digest of the rest of its state.</param>
+    /// <exception cref="InvalidOperationException">No speech is attached (<see cref="AttachSpeech"/>).</exception>
+    public GuideTurn SaySpoken(PcmClip clip, GuideScene scene, StoredTimestamp now, string hostStateHash)
+    {
+        ArgumentNullException.ThrowIfNull(clip);
+        return Take(null, clip, scene, now, hostStateHash);
+    }
+
+    private GuideTurn Take(string? typed, PcmClip? clip, GuideScene scene, StoredTimestamp now, string hostStateHash)
+    {
         ArgumentNullException.ThrowIfNull(scene);
         ArgumentNullException.ThrowIfNull(hostStateHash);
         var prompt = _bundle.Prompts[scene.Review ? ReviewPromptId : PromptId];
         var utterance = _context with { Now = now, HostStateHash = hostStateHash };
+        _facts = scene.Facts ?? _worldFacts; // the world as it was when the player spoke, not as it is when the worker gets to the turn
 
-        // The first evaluation finds the verdict, the words and the host events; the facts and the skills come from them.
-        var first = _evaluator.Evaluate(line, prompt, utterance);
+        // The first evaluation finds the verdict, the words and the host events; the facts and the skills come from them. A spoken line is
+        // decoded here, once: the recognition is kept for the second evaluation.
+        AsrResult? recognition = null;
+        PipelineResult first;
+        string line;
+        if (clip is null)
+        {
+            line = typed!;
+            first = _evaluator.Evaluate(line, prompt, utterance);
+        }
+        else
+        {
+            var spoken = _spoken ?? throw new InvalidOperationException("No speech is attached to the guide.");
+            var trace = spoken.Trace(clip, prompt, utterance);
+            first = trace.Result;
+            recognition = trace.Asr;
+            line = recognition.Transcript;
+        }
+
         var facts = new Dictionary<string, string>(StringComparer.Ordinal);
         string? worldLine = null;
         GuidePointer? pointer = null;
@@ -213,7 +288,9 @@ public sealed class GuideService
             skills);
         var digest = facts.Count == 0 && skills.Count == 0 ? hostStateHash : HostDigest.Of(hostStateHash, facts, skills);
         var carried = created with { HostStateHash = digest };
-        var result = _evaluator.Evaluate(line, prompt, carried);
+        var result = recognition is null
+            ? _evaluator.Evaluate(line, prompt, carried)
+            : _evaluator.EvaluateRecognized(recognition, clip!, prompt, carried);
         _context = carried.Next(result, now);
 
         var verdict = result.Verdict;
@@ -249,8 +326,14 @@ public sealed class GuideService
             verdict.Slots,
             naming,
             nameTarget,
-            GuideWord.From(result));
+            GuideWord.From(result),
+            clip is null ? InputKind.Typed : InputKind.Spoken,
+            recognition is null ? null : RecognitionConfidence(recognition));
     }
+
+    // How sure the recognizer was of the words: the mean of Vosk's per-word confidences (the result's own confidence is 1.0 for a single-best decode).
+    private static double RecognitionConfidence(AsrResult recognition) =>
+        recognition.Words.Count == 0 ? recognition.Confidence : recognition.Words.Average(static w => w.Confidence);
 
     private static List<string> HostEventsOf(PipelineResult result)
     {

@@ -14,7 +14,7 @@ public sealed class CraftingFrontendTests
     private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
     private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
 
-    private static GameSession NewSession() => new(Bundle.Value, 42, GameSession.DefaultStartedAt, Nouns.Value);
+    private static GameSession NewSession() => new(Bundle.Value, 42, GameSession.DefaultStartedAt, Nouns.Value, credit: CreditRules.FullTyped);
 
     [Fact]
     public void TheCraftFlagsParseAsStepsInOrder()
