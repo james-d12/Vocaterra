@@ -7,10 +7,12 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 
 | ID | Decision | Status | Blocks |
 | --- | --- | --- | --- |
-| D-game-1 | Game engine | prototype: MonoGame (owner, 2026-10-21); final engine open, Godot .NET the candidate | G5 (the first engine host) |
+| D-game-1 | Game engine | decided for the prototype: MonoGame 3.8 DesktopGL (owner, 2026-10-21); final engine open, Godot .NET re-assessed after P10 | nothing in the prototype |
 | D-game-2 | Licence of this repository | open | any public release or distribution |
 | D-game-3 | Continuous integration | deferred by the owner, 2026-10-21; do not raise | nothing in this plan |
 | D-game-4 | Whether `content/game-v1` tracks the core's sample bundle or diverges from it | open; G2 proposes | the shape of G2 to G4 |
+| D-game-5 | Art, font and sound sources while D-game-2 is open | decided: CC0 only (owner, 2026-10-21) | nothing |
+| D-game-6 | When a noun counts as known (drawn in colour), and what typed input earns | decided (owner, 2026-10-21) | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -18,12 +20,11 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 the core's high-level design also listed MonoGame, Bevy and macroquad, and Ebitengine. The core's language is C# (core ADR 0001), which
 Godot .NET and MonoGame share.
 
-**Owner, 2026-10-21.** The Terraria-inspired prototype uses MonoGame, with a plan to perhaps move to Godot (.NET) later. The prototype
-keeps its simulation in an engine-agnostic library so the move is cheap; research milestone R1 proposes the layout. The final engine stays open.
-
-**Until it is decided.** The host (`src/Vocaterra.Host`) stays an engine-agnostic console program. No engine packages, no engine types and no
-rendering code go into it, and the packages are the only dependency. A decision starts a milestone (G5) that builds the first engine host
-on the same call sequence, in its own project.
+**Owner, 2026-10-21.** The Terraria-inspired prototype uses MonoGame (3.8 DesktopGL), with a plan to perhaps move to Godot (.NET) later. The
+layout from research R1 (`docs/research/PROTOTYPE_PLAN.md`), adopted by the owner the same day: `src/Vocaterra.Simulation` (no packages, no
+engine), `src/Vocaterra.Game` (the `Vocaterra.Nlp.*` packages, no engine) and `src/Vocaterra.MonoGame` (the only engine code). Engine code never
+goes into `src/Vocaterra.Host`, `src/Vocaterra.Simulation` or `src/Vocaterra.Game`. The final engine stays open; P10 (an optional Godot spike)
+measures the cost of the move. G5 is replaced by P2.
 
 ## D-game-2: the licence of this repository (open)
 
@@ -48,6 +49,18 @@ sample's integration test; (b) diverge now, with the game's own scenes and words
 
 **G2 proposes (a) for the generic intents and the blacksmith, now, and (b) for everything scene-specific from G3 on.** The owner has not
 accepted this yet; G2 records the decision here when it is made.
+
+## D-game-5: asset sources (decided, CC0 only)
+
+**Owner, 2026-10-21.** While D-game-2 is open, every art, font and sound file committed to this repository is CC0 (for example the Kenney
+packs and CC0 OpenGameArt sets); placeholders drawn in code come first. Each file is recorded in `assets/ATTRIBUTION.md` with its source URL
+and licence. Research section 8 lists the candidates.
+
+## D-game-6: when a noun is known (decided)
+
+**Owner, 2026-10-21.** A noun counts as known after **three correct spoken uses in three separate turns**. Its colour grows by a third per
+correct use; nothing decays in the prototype. Only nouns in the game's noun catalogue are counted. **Typed input** earns full credit until
+P5 (spoken input) lands; from P5 it earns half credit by default, as a setting.
 
 ## Already decided
 

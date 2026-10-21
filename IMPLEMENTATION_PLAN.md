@@ -40,9 +40,11 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
    orchestrator bumps the pin). A missing call or a bug in the core goes to `docs/CORE_REQUESTS.md` with a row and a reason.
 2. **Determinism is the host's job.** The core is deterministic when the host supplies its inputs: the world seed, the stored time (Unix
    seconds, passed in), the learner model and the repeat counts (`RepeatCounts.Next`, core M19d). The host never draws its own random
-   numbers. Only the interactive text loop reads the clock; a `--transcript` run uses a fixed time. Dictionaries that reach output are
+   numbers, except world generation in `Vocaterra.Simulation`, which is a pure function of the world seed through its own seeded generator
+   (`WorldRng`); never `System.Random`, never the clock, and no `Math.Sin` or `Math.Pow` in generation. Only the interactive text loop reads the clock; a `--transcript` run uses a fixed time. Dictionaries that reach output are
    ordered with `StringComparer.Ordinal`. Culture is invariant.
-3. **No engine code yet.** No engine packages, types or rendering in `src/`. Engine work starts only at G5 after D-game-1.
+3. **Engine code only in `src/Vocaterra.MonoGame`** (D-game-1, later a Godot front-end of its own). Never in `src/Vocaterra.Host`,
+   `src/Vocaterra.Simulation` or `src/Vocaterra.Game`. `Vocaterra.Simulation` takes no packages at all.
 4. **Content procedure.** Every edit to `content/game-v1`: `scripts/content.sh validate`, then
    `scripts/content.sh hash content/game-v1 --bundle-id game-v1` (rewrites `manifest.json`), then `scripts/content.sh validate` and the tests.
    Files that come from the Wiktionary import keep `generatedBy: wiktionary-import` in `provenance.json` and their CC BY-SA notice in
@@ -53,7 +55,7 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
    bundle. The host maps the core's host events and effect kinds to game state; the core does not learn game words.
 6. **Build hygiene.** `dotnet build Vocaterra.sln -warnaserror` and `dotnet format Vocaterra.sln --verify-no-changes` stay clean. Public
    types have `///` summaries. No new package outside `Directory.Packages.props`.
-7. **Branches and commits.** One branch per milestone (`G<nn>-<name>` or the orchestrator's name), commit prefix `G<nn>: <title>`, trailers
+7. **Branches and commits.** One branch per milestone (`G<nn>-<name>`, `P<nn>-<name>` or the orchestrator's name), commit prefix `G<nn>: <title>` or `P<nn>: <title>`, trailers
    as the orchestrator's brief says. Agents do not push.
 
 ## 4. Milestones
@@ -63,12 +65,25 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 | G0 | Repository setup: submodule at `db39999`, local feed, content tool, role file, requests file, gate, this plan | done (merged 2026-10-21) | Haiku 5.5 | core M19e |
 | G1 | Adopt the core's M19d API: `RepeatCounts.Next` and `ConversationContext.Next` replace `NextRepeatCounts`; show `PromptSpec.Text` before each turn; README and ARCHITECTURE for the submodule route | planned | Haiku 5.5 | G0 |
 | G2 | Re-sync `content/game-v1` with the core sample (prompt `text`, the generic intents, the blacksmith's `confirming` state, the stale `ATTRIBUTION.md` wording); decide D-game-4 | planned | Haiku 5.5 | G1 |
-| G3 | Innkeeper scene (section 4.1) | planned | Sonnet 5.5 for the scene design, Haiku 5.5 for the content checklist | G2 |
-| G4 | Quest-giver scene (section 4.2) | planned | Haiku 5.5 | G3 |
-| G5 | Engine decision (D-game-1), then the first engine host on the same call sequence | blocked: owner decision D-game-1 | Sonnet 5.5 | owner |
+| P1 | Simulation skeleton and surface world: `Vocaterra.Simulation` (no packages, no engine, `net8.0;net10.0`), seeded `WorldRng` (SplitMix64), noise, 32 x 32 chunks, heightmap terrain, grass and trees, spawn, fixed 60 Hz `Step(commands)`, player gravity, walking, jumping, tile collision | planned | Sonnet 5.5 | D-game-1 |
+| P2 | MonoGame front-end skeleton: `Vocaterra.MonoGame` (3.8.6 DesktopGL), no content pipeline, placeholder tiles drawn in code, camera, input to commands, CC0 font with the Spanish letters | planned | Sonnet 5.5 | P1 |
+| P3 | **The guide, typed (smallest slice proving the core in game):** `Vocaterra.Game` (`GameSession`, `GuideService`, `WorldFacts`), the guide in the bundle (`ask_directions`, `ask_what`, `ask_help`), dialogue panel; `¿dónde está el árbol?` gets a reply and an arrow | planned | Sonnet 5.5 (scene and session API), Haiku 5.5 (content) | G1, G2, P2 |
+| P4 | Nouns, word progress, greyscale: `game/nouns.json`, `lexicon/world.json`, `NounCatalog`, `WordProgress`, the D-game-6 rule, CPU-made grey atlas, `name_object` intent, journal | planned | Haiku 5.5 | P3 |
+| P5 | Spoken input: push-to-talk, microphone (MonoGame `Microphone`, PortAudioSharp2 fallback), Vosk small, evaluation on a worker thread | planned | Sonnet 5.5 | P3 |
+| P6 | Mining, building, inventory (durability, drops, hotbar placement, 40 slots with a 10-slot hotbar, axe and pickaxe) | planned | Haiku 5.5 | P1, P2 |
+| P7 | Caves (worms, cellular automata), ores, full forest vegetation, flood-fill lighting | planned | Haiku 5.5 | P1, P6 |
+| P8 | The guide speaks (Kokoro through the core) | blocked: CR-006 | Haiku 5.5 | P5, CR-006 |
+| P9 | Save and load, playtest build and checklist | planned | Haiku 5.5 | P4, P6, P7 |
+| P10 | Godot spike (optional): the same seed and guide turn in Godot 4 .NET; a note on the cost of the move | planned (optional) | Sonnet 5.5 | P4 |
+| G3 | Innkeeper scene (section 4.1) | planned, after P9 | Sonnet 5.5 for the scene design, Haiku 5.5 for the content checklist | G2, P9 |
+| G4 | Quest-giver scene (section 4.2) | planned, after G3 | Haiku 5.5 | G3 |
 | R1 | Research: Terraria-inspired prototype (guide NPC by text and speech, mining, building, movement, forest biome, map and cave generation, language progress tracking, known nouns in colour and unknown in greyscale, inventory) on MonoGame; findings in `docs/research/` | done (merged 2026-10-21, `0e8d601`); proposals await the owner | Opus 5.5 (owner's request) | G0 |
 
 Each milestone ends with the gate in section 6 and a line in section 5.
+
+Prototype order (owner, 2026-10-21): G1 and G2 run alongside P1 and P2 (P1 and P2 do not use the packages); then P3, the smallest vertical
+slice; then P4 to P9; P10 is optional. Details, demos and test approaches per milestone: `docs/research/PROTOTYPE_PLAN.md`; reasons and
+sources: `docs/research/PROTOTYPE_RESEARCH.md`. G5 is replaced by D-game-1 and P2.
 
 ### 4.1 G3: the innkeeper (design, moved from the core's plan section 7.4)
 
@@ -158,6 +173,15 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   it is adopted until the owner answers. Not verified by running: MonoGame 3.8.6 DesktopGL on SDK 10.0.402, MonoGame's `Microphone` on Linux,
   the Spanish glyphs in the candidate fonts, Kokoro's Spanish speaker ids. Greyscale is planned as a CPU-made grey atlas, because MonoGame
   shader compilation on Linux still needs Wine.
+
+- **Prototype adopted (owner, 2026-10-21).** P1 to P10 and the three-project layout are in section 4; D-game-1 (MonoGame for the prototype),
+  D-game-5 (CC0 only) and D-game-6 (three correct spoken uses in three turns; typed input full credit until P5, then half) are decided. Core
+  requests CR-002 to CR-008 are open; CR-009 (`net8.0` target) is filed only if the P10 spike fails on `net10.0`. Voice in: Vosk small first,
+  Parakeet after the core's M24 speech check. Nothing in the prototype is gated behind language (research recommendation, the orchestrator's
+  default until the owner says otherwise).
+- **Worktrees and the feed.** A worktree's submodule is empty, so agents restore from the main checkout's feed with
+  `-p:RestoreSources="/home/user/Dev/Vocaterra/external/Vocaterra.NLP/artifacts/feed;https://api.nuget.org/v3/index.json"` instead of packing
+  the core again (about 3 GB each).
 
 ## 6. Definition of done (every milestone)
 
