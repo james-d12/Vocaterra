@@ -9,8 +9,10 @@ namespace Vocaterra.MonoGame.Frontend;
 /// which runs n frames on a fixed clock, saves the back buffer and exits. <c>--say</c> walks the player to the guide, opens the dialogue panel
 /// and sends the line (repeat it for several lines), so nobody has to type. <c>--point</c> puts the mouse cursor on a tile for those lines
 /// (<c>--point-nearest</c> on the tile of that noun nearest the player when each line is sent), so <c>es un árbol</c> names something.
-/// <c>--journal</c> opens the journal once the lines are sent (at the start without <c>--say</c>). <c>--content &lt;dir&gt;</c> names a content
-/// bundle folder instead of searching for <c>content/game-v1</c>.
+/// <c>--journal</c> opens the journal once the lines are sent (at the start without <c>--say</c>). <c>--skip &lt;minutes&gt;</c> moves the stored
+/// time on without stepping the world and <c>--talk</c> closes and reopens the dialogue (the guide may then ask a review question); both are
+/// steps of the script in the order given with the <c>--say</c> lines (<c>--say A --skip 11 --say B</c>). <c>--content &lt;dir&gt;</c> names a
+/// content bundle folder instead of searching for <c>content/game-v1</c>.
 /// </summary>
 public sealed record LaunchOptions
 {
@@ -34,6 +36,8 @@ public sealed record LaunchOptions
         + "  --say <line>            walk to the guide, open the dialogue, type and send the line; repeat for more (needs --screenshot)\n"
         + "  --point <col,row>       put the mouse cursor on that tile for the --say lines (needs --screenshot)\n"
         + "  --point-nearest <lemma> put the cursor on the nearest tile of that noun (arbol, piedra, hierba, tierra) for each --say line (needs --screenshot)\n"
+        + "  --skip <minutes>        move the stored time on (no world steps) at this point of the --say lines; order matters (needs --screenshot)\n"
+        + "  --talk                  close and reopen the dialogue at this point, so the guide may ask a review question (needs --screenshot)\n"
         + "  --journal               open the journal once the lines are sent (needs --screenshot)\n";
 
     /// <summary>The world seed.</summary>
@@ -44,6 +48,12 @@ public sealed record LaunchOptions
 
     /// <summary>The lines the scripted run says to the guide, in order (empty for no dialogue).</summary>
     public IReadOnlyList<string> Says { get; init; } = [];
+
+    /// <summary>
+    /// The scripted run in the order given: the <c>--say</c> lines with the <c>--skip</c> and <c>--talk</c> steps between them (empty for no
+    /// dialogue). <see cref="Says"/> holds the lines alone.
+    /// </summary>
+    public IReadOnlyList<ScriptStep> Steps { get; init; } = [];
 
     /// <summary>Where to save the screenshot, or <see langword="null"/> for an interactive run.</summary>
     public string? ScreenshotPath { get; init; }
@@ -76,6 +86,7 @@ public sealed record LaunchOptions
         var framesGiven = false;
         var walkGiven = false;
         var says = new List<string>();
+        var steps = new List<ScriptStep>();
         TilePoint? point = null;
         string? pointNearest = null;
         var journal = false;
@@ -94,7 +105,13 @@ public sealed record LaunchOptions
                 continue;
             }
 
-            if (arg is not ("--seed" or "--screenshot" or "--frames" or "--walk-right" or "--say" or "--content" or "--point" or "--point-nearest"))
+            if (arg == "--talk")
+            {
+                steps.Add(ScriptStep.Talk());
+                continue;
+            }
+
+            if (arg is not ("--seed" or "--screenshot" or "--frames" or "--walk-right" or "--say" or "--content" or "--point" or "--point-nearest" or "--skip"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -135,6 +152,16 @@ public sealed record LaunchOptions
                     }
 
                     says.Add(value);
+                    steps.Add(ScriptStep.Say(value));
+                    break;
+                case "--skip":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var minutes) || minutes < 1)
+                    {
+                        error = $"--skip needs a positive number of minutes, got '{value}'.";
+                        return false;
+                    }
+
+                    steps.Add(ScriptStep.Skip(minutes));
                     break;
                 case "--point":
                     if (!TryParseTile(value, out var tile))
@@ -186,9 +213,9 @@ public sealed record LaunchOptions
             }
         }
 
-        if (screenshot is null && (framesGiven || walkGiven || says.Count > 0 || point is not null || pointNearest is not null || journal))
+        if (screenshot is null && (framesGiven || walkGiven || steps.Count > 0 || point is not null || pointNearest is not null || journal))
         {
-            error = "--frames, --walk-right, --say, --point, --point-nearest and --journal need --screenshot.";
+            error = "--frames, --walk-right, --say, --skip, --talk, --point, --point-nearest and --journal need --screenshot.";
             return false;
         }
 
@@ -202,7 +229,8 @@ public sealed record LaunchOptions
         {
             ScreenshotPath = screenshot,
             Says = says,
-            Frames = says.Count > 0 && !framesGiven ? DefaultSayFrames : result.Frames,
+            Steps = steps,
+            Frames = steps.Count > 0 && !framesGiven ? DefaultSayFrames : result.Frames,
             Point = point,
             PointNearest = pointNearest,
             Journal = journal,

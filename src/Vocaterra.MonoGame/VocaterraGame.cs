@@ -33,6 +33,9 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     private const int StartWidth = 1280;
     private const int StartHeight = 720;
 
+    /// <summary>The hint when a correct use came before its gap: it counted, but the colour did not move.</summary>
+    public const string EarlyHint = "Bien. Repasa más tarde.";
+
     private readonly LaunchOptions _options;
     private readonly GraphicsDeviceManager _graphics;
     private readonly GameSession _session;
@@ -78,9 +81,9 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         if (options.IsScreenshotRun)
         {
             _clock = new FixedFrameClock(GameSimulation.TicksPerSecond);
-            if (options.Says.Count > 0)
+            if (options.Steps.Count > 0)
             {
-                _script = new ScriptedDialogue(session, _dialogue, options.Says);
+                _script = new ScriptedDialogue(session, _dialogue, options.Steps);
                 _input = new FocusGatedInput(_script, _focus);
             }
             else
@@ -284,6 +287,7 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
             if (pressed(Keys.Escape))
             {
                 _dialogue.Close();
+                _session.EndReview();
             }
             else if (pressed(Keys.Enter))
             {
@@ -334,7 +338,7 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         }
         else if (pressed(Keys.T) && _session.IsNearGuide)
         {
-            _dialogue.Open();
+            _dialogue.Open(_session.BeginTalk()?.Question);
             _swallowTypedT = true;
         }
         else if (pressed(Keys.J))
@@ -398,6 +402,18 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         if (result is null)
         {
             return;
+        }
+
+        foreach (var early in result.TooEarly)
+        {
+            var label = _session.Nouns.ForLemma(early.Lemma)?.WithDefinite ?? early.Lemma;
+            Console.WriteLine($"  early: {label}, no colour yet, {JournalRows.DueText(early.SecondsRemaining)}");
+        }
+
+        if (result.TooEarly.Count > 0)
+        {
+            _toasts.Show(EarlyHint);
+            _dialogue.AddHint(EarlyHint);
         }
 
         foreach (var lemma in result.Credited)

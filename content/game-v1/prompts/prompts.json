@@ -201,6 +201,16 @@
     "text": "¡Hola! Soy la guía. ¿En qué te ayudo?"
   },
   {
+    "promptId": "guide-review",
+    "mode": "Open",
+    "difficulty": "Beginner",
+    "answerSetId": "places-basic",
+    "allowedIntentIds": ["ask_directions", "ask_what", "ask_help", "name_object", "greet", "thank", "farewell"],
+    "agentId": "guide",
+    "slotGrammarIds": [],
+    "text": "¿Qué es esto?"
+  },
+  {
     "promptId": "introduce-open",
     "mode": "Open",
     "difficulty": "Beginner",

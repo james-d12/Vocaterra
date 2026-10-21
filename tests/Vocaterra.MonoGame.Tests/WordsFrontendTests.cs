@@ -88,6 +88,7 @@ public sealed class WordsFrontendTests
         var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
         for (var i = 0; i < WordProgress.UsesToKnow; i++)
         {
+            session.SkipTime(i == 0 ? 0 : 61 * 60); // the gaps of D-game-6 as amended
             session.Say("es un árbol", tree);
         }
 

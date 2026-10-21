@@ -33,6 +33,9 @@ public sealed class GuideService
     /// <summary>The bundle's prompt for talking to the guide.</summary>
     public const string PromptId = "guide-open";
 
+    /// <summary>The bundle's prompt for the review question ("¿Qué es esto?"): the answer to a review is evaluated on it.</summary>
+    public const string ReviewPromptId = "guide-review";
+
     /// <summary>The guide's agent id in the bundle.</summary>
     public const string AgentId = "guide";
 
@@ -50,6 +53,8 @@ public sealed class GuideService
     private const string NameRight = "guide.name.correct";
     private const string NameWrong = "guide.name.wrong";
     private const string NameNone = "guide.name.none";
+    private const string ReviewAsk = "guide.review.ask";
+    private const string ReviewStream = "guide.review";
 
     private readonly ContentBundle _bundle;
     private readonly TypedUtteranceEvaluator _evaluator;
@@ -66,9 +71,9 @@ public sealed class GuideService
     {
         ArgumentNullException.ThrowIfNull(bundle);
         ArgumentNullException.ThrowIfNull(facts);
-        if (!bundle.Agents.TryGetValue(AgentId, out var machine) || !bundle.Prompts.ContainsKey(PromptId))
+        if (!bundle.Agents.TryGetValue(AgentId, out var machine) || !bundle.Prompts.ContainsKey(PromptId) || !bundle.Prompts.ContainsKey(ReviewPromptId))
         {
-            throw new ArgumentException($"The bundle has no agent '{AgentId}' or no prompt '{PromptId}'.", nameof(bundle));
+            throw new ArgumentException($"The bundle has no agent '{AgentId}' or no prompt '{PromptId}' or '{ReviewPromptId}'.", nameof(bundle));
         }
 
         _bundle = bundle;
@@ -85,6 +90,16 @@ public sealed class GuideService
 
     /// <summary>The line the guide says when the dialogue opens (<c>PromptSpec.Text</c> of the prompt).</summary>
     public string OpeningLine => _bundle.Prompts[PromptId].Text ?? string.Empty;
+
+    /// <summary>
+    /// The guide's review question, drawn from the bundle's <c>guide.review.ask</c> pool: the variant depends on the world seed and the
+    /// interaction counter, so the same conversation gives the same question. It is a host line outside the core's replay record (CR-003).
+    /// </summary>
+    public string ReviewQuestion()
+    {
+        var rng = SeededRng.ForInteraction(_context.WorldSeed, ReviewStream, _context.AgentState.InteractionCounter);
+        return Render(ReviewAsk, SlotMap.Empty, rng);
+    }
 
     /// <summary>
     /// Runs one throwaway evaluation so that the first real turn does not pay for the pipeline's first-call costs (JIT, lazy tables) in the
@@ -109,7 +124,7 @@ public sealed class GuideService
         ArgumentNullException.ThrowIfNull(line);
         ArgumentNullException.ThrowIfNull(scene);
         ArgumentNullException.ThrowIfNull(hostStateHash);
-        var prompt = _bundle.Prompts[PromptId];
+        var prompt = _bundle.Prompts[scene.Review ? ReviewPromptId : PromptId];
         var utterance = _context with { Now = now, HostStateHash = hostStateHash };
         var result = _evaluator.EvaluateCountingThisUtterance(line, prompt, utterance);
         _context = utterance.Next(result, now);
@@ -135,6 +150,7 @@ public sealed class GuideService
         string? worldLine = null;
         GuidePointer? pointer = null;
         string? identified = null;
+        var naming = NameCheck.None;
         if (verdict.Communicated)
         {
             var rng = SeededRng.ForInteraction(utterance.WorldSeed, HostLineStream, utterance.AgentState.InteractionCounter);
@@ -152,7 +168,7 @@ public sealed class GuideService
                         worldLine = Render(scene.PointerActive ? HelpWalk : HelpAsk, SlotMap.Empty, rng);
                         break;
                     case GuideEvents.Name:
-                        worldLine = Name(verdict, scene, rng);
+                        (worldLine, naming) = Name(verdict, scene, rng);
                         break;
                     default:
                         break;
@@ -175,7 +191,8 @@ public sealed class GuideService
             pointer,
             identified,
             result.Replay.HostStateHash,
-            verdict.Slots);
+            verdict.Slots,
+            naming);
     }
 
     private (string Line, GuidePointer? Pointer) Point(Verdict verdict, GuideScene scene, SeededRng rng)
@@ -212,18 +229,19 @@ public sealed class GuideService
     }
 
     // The guide's check of a name: the cursor's tile is the expected noun. A name is right when it is that noun and no error was found on it;
-    // the core cannot grade against a host value (CR-014), so the game does. The word counts do not depend on this (WordProgress).
-    private string Name(Verdict verdict, GuideScene scene, SeededRng rng)
+    // the core cannot grade against a host value (CR-014), so the game does. The word counts use the check: a name that is not the tile's noun
+    // earns no colour (D-game-6 as amended).
+    private (string Line, NameCheck Check) Name(Verdict verdict, GuideScene scene, SeededRng rng)
     {
         var target = scene.Cursor is { } cursor ? NounAt(cursor) : null;
         if (target is null)
         {
-            return Render(NameNone, SlotMap.Empty, rng);
+            return (Render(NameNone, SlotMap.Empty, rng), NameCheck.NoTarget);
         }
 
         var named = verdict.Slots.TryGetValue("object", out var lemma) ? lemma : string.Empty;
         var right = named == target && verdict.Errors.Count == 0;
-        return Render(right ? NameRight : NameWrong, SlotMap.Empty.With("target", target), rng);
+        return (Render(right ? NameRight : NameWrong, SlotMap.Empty.With("target", target), rng), right ? NameCheck.Right : NameCheck.Wrong);
     }
 
     private string? NounAt(TilePoint tile) => WorldFacts.NounOfTile(_facts.TileAt(tile));

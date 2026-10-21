@@ -20,6 +20,9 @@ public enum DialogueSpeaker
 
     /// <summary>The game's line with the world facts.</summary>
     World,
+
+    /// <summary>A hint from the game about the player's progress (for example why a word did not gain colour).</summary>
+    Hint,
 }
 
 /// <summary>One line of the dialogue panel.</summary>
@@ -74,8 +77,12 @@ public sealed class DialogueModel
     /// <summary>Whether Enter was pressed on a line: the game then evaluates it, between ticks, and calls <see cref="Submit"/>.</summary>
     public bool SubmitRequested { get; private set; }
 
-    /// <summary>Opens the panel and gives it the keyboard. The first time, the guide's opening line is added.</summary>
-    public void Open()
+    /// <summary>
+    /// Opens the panel and gives it the keyboard. The first time, the guide's opening line is added; when the guide opens with a review
+    /// question, that is added as her line (every time the panel opens with one).
+    /// </summary>
+    /// <param name="reviewQuestion">The review question ("¿Qué es esto?"), or <see langword="null"/> when no word is due.</param>
+    public void Open(string? reviewQuestion = null)
     {
         if (IsOpen)
         {
@@ -89,6 +96,18 @@ public sealed class DialogueModel
             _opened = true;
             Add(DialogueSpeaker.Guide, _openingLine);
         }
+
+        if (reviewQuestion is not null)
+        {
+            Add(DialogueSpeaker.Guide, reviewQuestion);
+        }
+    }
+
+    /// <summary>Adds a hint line from the game to the panel (for example <c>Bien. Repasa más tarde.</c>).</summary>
+    public void AddHint(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        Add(DialogueSpeaker.Hint, text);
     }
 
     /// <summary>Closes the panel, gives the keyboard back to the player and drops a pending send. The lines and the half-typed text stay.</summary>

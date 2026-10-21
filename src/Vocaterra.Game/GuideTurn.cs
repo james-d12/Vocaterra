@@ -18,11 +18,28 @@ public sealed record GuideError(string Tag, string Expected, string Actual, Text
 /// <param name="Direction">The direction as a Spanish phrase.</param>
 public sealed record GuidePointer(string Place, TilePoint Target, int Blocks, string Direction);
 
+/// <summary>The guide's check of a name the player gave an object (<c>name_object</c>) against the tile it is about.</summary>
+public enum NameCheck
+{
+    /// <summary>The turn was not a naming, or was not understood.</summary>
+    None,
+
+    /// <summary>The noun is the tile's noun and the core found no error.</summary>
+    Right,
+
+    /// <summary>The noun is not the tile's noun (or the line had an error): the guide corrects it.</summary>
+    Wrong,
+
+    /// <summary>There was no tile to check against (the cursor was on nothing).</summary>
+    NoTarget,
+}
+
 /// <summary>What the front-end tells the guide about the moment of a turn: where the player is, what the cursor is on and whether an arrow is out.</summary>
 /// <param name="Player">The tile under the middle of the player's body (the origin of every direction the guide gives).</param>
 /// <param name="Cursor">The tile under the mouse pointer, or <see langword="null"/> when there is none.</param>
 /// <param name="PointerActive">Whether an arrow from an earlier question is still on screen (the help line then says to follow it).</param>
-public sealed record GuideScene(TilePoint Player, TilePoint? Cursor = null, bool PointerActive = false);
+/// <param name="Review">Whether the line answers the guide's review question: it is evaluated on the <c>guide-review</c> prompt and <paramref name="Cursor"/> is the tile she pointed at.</param>
+public sealed record GuideScene(TilePoint Player, TilePoint? Cursor = null, bool PointerActive = false, bool Review = false);
 
 /// <summary>
 /// The outcome of one typed turn with the guide: the core's verdict in plain values, the lines to show (the correction first, then the
@@ -44,6 +61,7 @@ public sealed record GuideScene(TilePoint Player, TilePoint? Cursor = null, bool
 /// <param name="IdentifiedNoun">Set when the guide named what the cursor is on (<c>árbol</c>).</param>
 /// <param name="HostStateHash">The host state hash the core copied into this turn's replay record: the simulation's state digest when the line was sent.</param>
 /// <param name="Slots">The slot values the core filled from the line (<c>place</c>, <c>object</c>), for the word counts.</param>
+/// <param name="Naming">For a <c>name_object</c> turn, the guide's check of the name against the tile (the word counts withhold colour from a wrong name).</param>
 public sealed record GuideTurn(
     string Line,
     string Intent,
@@ -59,7 +77,8 @@ public sealed record GuideTurn(
     GuidePointer? Pointer,
     string? IdentifiedNoun,
     string HostStateHash,
-    SlotMap Slots)
+    SlotMap Slots,
+    NameCheck Naming = NameCheck.None)
 {
     /// <summary>A one-line summary of the verdict for the panel, for example <c>ask_directions, entendido, 100 %</c>.</summary>
     public string Summary => string.Create(

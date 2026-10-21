@@ -51,7 +51,8 @@ public sealed class JournalLayer : IFrameLayer
         DrawHelpers.Border(spriteBatch, pixel, panel, 2, Gold);
 
         var words = view.Session.Words;
-        var rows = JournalRows.Build(words);
+        var now = view.Session.StoredTime.UnixSeconds;
+        var rows = JournalRows.Build(words, now);
         var known = rows.Count(static r => r.Known);
         var left = panel.Left + Padding;
         var textWidth = panel.Width - (Padding * 2);
@@ -102,7 +103,7 @@ public sealed class JournalLayer : IFrameLayer
         var pipLeft = left + width - ((WordPips * Pip) + ((WordPips - 1) * 6));
         for (var i = 0; i < WordPips; i++)
         {
-            var box = new Rectangle(pipLeft + (i * (Pip + 6)), top + 12, Pip, Pip);
+            var box = new Rectangle(pipLeft + (i * (Pip + 6)), top + 5, Pip, Pip);
             if (i < row.Pips)
             {
                 spriteBatch.Draw(pixel, box, Gold);
@@ -116,7 +117,13 @@ public sealed class JournalLayer : IFrameLayer
         if (row.Known)
         {
             const string Tag = "conocida";
-            DrawHelpers.Text(spriteBatch, font, Tag, new Vector2(pipLeft - DrawHelpers.Width(font, Tag) - 14, top + 9), Gold);
+            DrawHelpers.Text(spriteBatch, font, Tag, new Vector2(pipLeft - DrawHelpers.Width(font, Tag) - 14, top + 2), Gold);
+        }
+
+        if (row.DueText is { } due)
+        {
+            var dueWidth = DrawHelpers.Width(font, due);
+            DrawHelpers.Text(spriteBatch, font, due, new Vector2(left + width - dueWidth, top + 20), row.IsDue ? Gold : Hints);
         }
     }
 }

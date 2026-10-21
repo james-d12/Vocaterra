@@ -276,6 +276,14 @@
         { "lineId": "guide.name.wrong.2", "text": "Casi. Mira: es {target:article(indef)}." }
       ]
     },
+    "guide.review.ask": {
+      "poolId": "guide.review.ask",
+      "variants": [
+        { "lineId": "guide.review.ask.1", "text": "Mira. ¿Qué es esto?" },
+        { "lineId": "guide.review.ask.2", "text": "A ver, ¿qué es esto?" },
+        { "lineId": "guide.review.ask.3", "text": "¿Qué es esto? Mira bien." }
+      ]
+    },
     "guide.name.none": {
       "poolId": "guide.name.none",
       "variants": [
