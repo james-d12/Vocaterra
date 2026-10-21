@@ -1,11 +1,10 @@
 # Architecture: how the game consumes the language core
 
-Vocaterra is the game. The language core, Vocaterra.NLP (`https://github.com/james-d12/Vocaterra.NLP`, Apache-2.0), is a separate repository.
-This repository includes it as the git submodule `external/Vocaterra.NLP` and consumes its libraries as the packages `Vocaterra.Nlp.*`
-version 0.1.0, from the submodule's local feed. This document says what the game takes from the core, what the game owns, and how the two
-meet. The core's contract is [docs/API.md](https://github.com/james-d12/Vocaterra.NLP/blob/main/docs/API.md) there, and the boundary is that
-repository's [ADR 0009](https://github.com/james-d12/Vocaterra.NLP/blob/main/docs/adr/0009-core-and-game-boundary.md). The game design is
-[SPECIFICATION.md](SPECIFICATION.md).
+Vocaterra is the game, the folder `game/` of the repository. The language core, Vocaterra.NLP (`nlp/`, Apache-2.0), is the sibling folder;
+the two were separate repositories until 2026-10-21 (D-game-7). The game references the core's library projects under `nlp/src` directly
+(`Vocaterra.Game` and `Vocaterra.Host` list them as `ProjectReference`s) and copies nothing of its source. This document says what the game
+takes from the core, what the game owns, and how the two meet. The core's contract is [nlp/docs/API.md](../../nlp/docs/API.md), and the
+boundary is [ADR 0009](../../nlp/docs/adr/0009-core-and-game-boundary.md). The game design is [SPECIFICATION.md](SPECIFICATION.md).
 
 ## The boundary
 
@@ -66,22 +65,16 @@ The core cannot know these, so the host supplies them (API document, "The host o
 - **`HostStateHash`.** `ConversationContext.Create` computes it over the values above. A game with its own state digest uses the
   constructor instead, and recomputes it after `Next`.
 
-## Versions, the submodule and the feed
+## Versions and the build
 
-- The packages are `Vocaterra.Nlp.*` 0.1.0, set in `Directory.Packages.props`. A version change is made there, with the code that depends on it.
-- The core is the submodule `external/Vocaterra.NLP`, pinned by its commit in this repository's history (the gitlink). The pin moves only
-  by the bump procedure in `.claude/agents/orchestrator.md`, which also clears the NuGet cache of the old packages.
-- A fresh clone takes the core in two steps: `git submodule update --init` checks out the pinned commit, then
-  `bash external/Vocaterra.NLP/scripts/pack.sh` fills the submodule's local feed `external/Vocaterra.NLP/artifacts/feed`. The pack takes
-  minutes and writes about 3 GB, all git-ignored in the submodule.
-- `nuget.config` reads `external/Vocaterra.NLP/artifacts/feed`, which the core's `scripts/pack.sh` fills. Nothing is published to a hosted
-  feed (core D5, decided 2026-10-21).
-- A git worktree has an empty submodule and does not pack the core again (about 3 GB each). It restores from the main checkout's feed:
-  `dotnet restore Vocaterra.sln -p:RestoreSources="<main checkout>/external/Vocaterra.NLP/artifacts/feed;https://api.nuget.org/v3/index.json"`,
-  then builds and tests with `--no-restore`.
-- The content tool, `vocaterra-content`, comes from the same feed and is installed under `.tools/` by `scripts/content.sh`.
-- The core is Apache-2.0 (core D3). This repository's own licence is not chosen (D-game-2 in [DECISIONS.md](DECISIONS.md)). Until it is,
-  the code grants no permission to use it.
+- The game and the core are built from the same commit by the root `Vocaterra.sln`: `Vocaterra.Game` and `Vocaterra.Host` reference the
+  core's projects (`../../../nlp/src/Vocaterra.Nlp.<X>/...csproj`), so a core change is visible to the game in the same build. There is no
+  package version to bump, no feed and no pack step; the root `nuget.config` lists nuget.org only. The core still packs
+  (`nlp/scripts/pack.sh`) for its sample host and for a consumer outside this repository (core D5).
+- Third-party package versions for both halves are in the root `Directory.Packages.props`.
+- A core change the game needs is a core milestone in `nlp/IMPLEMENTATION_PLAN.md`; a game milestone never edits `nlp/`.
+- The content tool is the core's `nlp/tools/Vocaterra.Nlp.ContentBuilder`, run from source by `scripts/content.sh`.
+- The core is Apache-2.0 (core D3); the game is MIT (D-game-2 in [DECISIONS.md](DECISIONS.md)).
 - The core's sherpa-onnx dependency carries GPL-3.0 code in its native build (core D2). Nothing here ships the native libraries, and the
   game does not distribute a build that includes them until D2 is settled in the core.
 
@@ -161,8 +154,8 @@ the same `GuideService` turn, and each turn records how it arrived (`GuideTurn.I
   used for the scripted `--speak` lines, through the core's `CachedSynthesizer` over a directory cache (`~/.cache/vocaterra/tts`).
 - **The models folder.** `VOCATERRA_MODELS_DIR` names a folder with `vosk-model-small-es-0.42` and `kokoro-multi-lang-v1_0` (fetched outside the
   repository with the core's `scripts/fetch-models.sh`, never committed). The core's `ModelStore` reads `manifest.json` from that folder, and
-  the fetch script does not copy it there (CR-019), so `SpeechEngine` falls back to `VOCATERRA_MODELS_MANIFEST` and then to the submodule's
-  `external/Vocaterra.NLP/models/manifest.json`. With no folder, no model or no manifest the game says so in Spanish ("Sin voz...") and typing
+  the fetch script does not copy it there (CR-019), so `SpeechEngine` falls back to `VOCATERRA_MODELS_MANIFEST` and then to the core's
+  `nlp/models/manifest.json` found above the executable. With no folder, no model or no manifest the game says so in Spanish ("Sin voz...") and typing
   works as before; the model tests are skipped with the reason.
 - **Native libraries.** `libvosk.so` is copied by Vosk's `build/Vosk.targets`, which NuGet imports only into a project that references `Vosk`
   directly, so the executable and the test projects that run the recognizer name `Vosk` 0.3.38 (the core's own version, Apache-2.0) in
@@ -189,5 +182,5 @@ the same `GuideService` turn, and each turn records how it arrived (`GuideTurn.I
   the audio handling (`AudioClips`), the turn worker (order, fixed inputs, the snapshot), and the model tests: Kokoro speaks a line, Vosk
   recognizes it once, the guide answers it like the typed line. Those are skipped with a reason when `VOCATERRA_MODELS_DIR` is unset or a model
   is missing.
-- The core's own suites (fuzzing, goldens, replay) test the packages; this repository tests only what the game does with them.
+- The core's own suites (fuzzing, goldens, replay) test the core; the game's tests cover only what the game does with it.
 - The continuous integration job is parked in `.github/workflows-pending/ci.yml` (D-game-3, deferred by the owner).

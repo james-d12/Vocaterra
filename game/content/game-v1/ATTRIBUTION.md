@@ -51,7 +51,7 @@ the Wiktionary data.
 
 ## Models
 
-The models are downloaded, not committed. The core's `models/manifest.json` (in the core checkout, `external/Vocaterra.NLP`) pins
+The models are downloaded, not committed. The core's `nlp/models/manifest.json` (the sibling folder of `game/` in the repository) pins
 the exact files and hashes; the licenses below are the ones recorded there. The prototype loads none of these files yet: its text
 loop runs on the core's scripted recognizer and stand-in models. The table is the licence record for the models the game will load
 when speech and the guide's voice land (milestones P5 and P8 in `IMPLEMENTATION_PLAN.md`).

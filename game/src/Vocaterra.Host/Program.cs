@@ -4,6 +4,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using Vocaterra.Game;
 using Vocaterra.Host;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
@@ -39,7 +40,15 @@ if (options.ShowHelp)
 ContentBundle bundle;
 try
 {
-    bundle = ContentLoader.Load(options.ContentDirectory);
+    // The default is relative to the current directory; when it is not there (the host is run from the repository root, say), the game's
+    // bundle is searched for above the executable and the current directory, as the front-end does.
+    var contentDirectory = options.ContentDirectory;
+    if (contentDirectory == HostOptions.DefaultContentDirectory && !Directory.Exists(contentDirectory))
+    {
+        contentDirectory = GameBundle.ResolveDirectory();
+    }
+
+    bundle = ContentLoader.Load(contentDirectory);
 }
 catch (Exception ex) when (ex is ContentValidationException or IOException or UnauthorizedAccessException or JsonException)
 {

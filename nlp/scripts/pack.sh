@@ -5,8 +5,10 @@
 #
 # Usage: scripts/pack.sh
 #   Only the projects under src/ and the ContentBuilder tool are packable (Directory.Build.props and its project file); tests and samples are not.
-#   Packages are built in Release from the current tree. Nothing is published to a hosted feed: a consuming repository takes the core as a
-#   submodule and uses either its projects or this folder (docs/PACKAGING.md, D5). The packages are Apache-2.0 (LICENSE, D3). The tool's package depends on the sherpa-onnx native build, so it is for local installation only until D2 is settled.
+#   Packages are built in Release from the current tree. Nothing is published to a hosted feed, and nothing in this repository needs the
+#   feed to build: the game (game/) references the core's projects directly. The feed exists for samples/HostConsole and for a consumer
+#   outside this repository (docs/PACKAGING.md, D5). The packages are Apache-2.0 (LICENSE, D3). The tool's package depends on the
+#   sherpa-onnx native build, so it is for local installation only until D2 is settled.
 set -euo pipefail
 # A user-local SDK (~/.dotnet, as on the development machine) is preferred when present; CI uses the SDK that setup-dotnet installed.
 if [ -d "$HOME/.dotnet" ]; then export DOTNET_ROOT="$HOME/.dotnet"; export PATH="$HOME/.dotnet:$PATH"; fi

@@ -10,7 +10,7 @@ editing its status; the plan (`IMPLEMENTATION_PLAN.md`) and ADRs follow.
 | D2 | espeak-ng GPL code inside sherpa-onnx (ADR 0007) | decided (owner, 2026-10-21): accepted for private development builds; the GPL-free sherpa-onnx pin is a blocker on any distribution |
 | D3 | A LICENSE file for the repository | decided (owner, 2026-10-21): Apache-2.0; repository stays private for now (M19e) |
 | D4 | OpenSubtitles terms behind the frequency list | deferred (owner, 2026-10-21): keep the entry, do not raise it until a public release is planned |
-| D5 | Package feed for the `Vocaterra.Nlp.*` packages | decided (owner, 2026-10-21): no hosted feed; the game includes this repository as a git submodule (M19e docs) |
+| D5 | Package feed for the `Vocaterra.Nlp.*` packages | decided (owner, 2026-10-21): no hosted feed; superseded the same day for the game, which now lives in this repository (`game/`) and references the core's projects (game D-game-7) |
 | D6 | Conversation state-machine engine: core or game | decided (M19a): core, as a generic conversation agent |
 | D7 | Blacksmith sample content stays as the core's demo | decided (M19a): kept as the sample and demo |
 | D8 | Online or offline | open |
@@ -24,8 +24,8 @@ editing its status; the plan (`IMPLEMENTATION_PLAN.md`) and ADRs follow.
 **Status (2026-10-21):** deferred by the owner. CI is not a requirement at the moment; the workflow stays parked and the orchestrator does not raise this item until the owner reopens it.
 The GitHub token lacks the `workflow` scope, so nothing under `.github/workflows/` can be pushed.
 The full CI (build and test on three platforms, golden, license scan, model-backed tests, fuzz, weekly
-fuzz soak) is parked in `.github/workflows-pending/`. **To resolve:** `gh auth refresh -h github.com
--s workflow`, then `git mv .github/workflows-pending/ci.yml .github/workflows/ci.yml` and push. The
+fuzz soak) is parked in `../.github/workflows-pending/` (repository root). **To resolve:** `gh auth refresh -h github.com
+-s workflow`, then, from the repository root, `git mv .github/workflows-pending/ci.yml .github/workflows/ci.yml` and push. The
 same scope is needed on `Vocaterra` if it gets CI. Since M19a the workflow reads the repository variable
 `VOCATERRA_RUN_MODEL_TESTS` (rename it if `SLG_RUN_MODEL_TESTS` was ever set). **Waiting on it:** CI for both repositories, and
 package publishing (D5).
@@ -57,7 +57,7 @@ project; before any public release, either confirm the terms or swap the ranking
 Corpora or wordfreq-based list and regenerate (`docs/LEXICON.md`). **Waiting on it:** public release only.
 
 ## D5. Package feed
-**Decided (2026-10-21, owner):** no hosted feed. The Vocaterra repository includes this repository as a git submodule and consumes it through project references or the local feed that `scripts/pack.sh` builds. Documented in M19e (`docs/PACKAGING.md`).
+**Decided (2026-10-21, owner):** no hosted feed. At first the Vocaterra game repository included this repository as a git submodule and consumed the local feed that `scripts/pack.sh` builds (M19e, `docs/PACKAGING.md`). Later the same day the two repositories became one (game decision D-game-7): the game is `game/`, this folder is `nlp/`, and the game references the core's projects directly. The feed remains for `samples/HostConsole` and for a consumer outside the repository; still no hosted feed.
 `Vocaterra.Nlp.*` packages (M19b) need a feed. **Options:** GitHub Packages (token also needs
 `write:packages`; private, fits two private repositories; recommended), a local folder feed committed
 as release artifacts (simplest, no token change), or nuget.org (public only). **Waiting on it:** M19b's
@@ -114,4 +114,5 @@ errors; until then the phoneme stage stays optional. **Waiting on it:** M24 resu
   renames `Vocaterra.Nlp.*` to `Vocaterra.Nlp.*`; Haiku 5.5 is the default model for delegated work; the
   research report's M18 stays as the seam the tagger plugs into.
 - 2026-10-21: D1 and D4 deferred; D3 Apache-2.0; D5 git submodule; D12 moved to the Vocaterra repository; the core repository documents only the language core (M19e isolation audit).
+- 2026-10-21 (later): the core and the game merged into one repository (game D-game-7); this folder is `nlp/`. D5's submodule route is superseded for the game; the ids here are unchanged.
 - 2026-10-21: D2 accepted for private builds; the GPL-free sherpa-onnx pin blocks distribution (scheduled with M24).

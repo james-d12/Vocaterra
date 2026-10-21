@@ -1,42 +1,43 @@
-# Vocaterra (the game): instructions for Claude Code
+# Vocaterra: instructions for Claude Code
 
-This repository is the game, `james-d12/Vocaterra`, locally `/home/user/Dev/Vocaterra`. It is developed by an **orchestrator** session
-that plans and delegates all implementation to subagents and only plans, gates, merges and pushes. To continue the project, act as the
-orchestrator defined in `.claude/agents/orchestrator.md` (or start with `claude --agent orchestrator`). Read `IMPLEMENTATION_PLAN.md`
-(section 4 for status, section 5 for findings) and `docs/DECISIONS.md` first. The owner prefers Haiku 5.5 for delegated work; Sonnet only
-for design-heavy milestones; Opus only on request.
+This repository, `james-d12/Vocaterra` (locally `/home/james/Dev/Vocaterra`), holds both halves of the project as sibling folders:
 
-The Spanish language processing is a separate repository, the language core **Vocaterra.NLP** (`james-d12/Vocaterra.NLP`, locally
-`/home/user/Dev/Vocaterra.NLP`). It has its own orchestrator and plan, and runs only the core. This repository includes the core as the git
-submodule `external/Vocaterra.NLP` and consumes it only as the NuGet packages `Vocaterra.Nlp.*` 0.1.0. The core never plans game content;
-this repository never plans core internals.
+- **`nlp/`**: the language core, `Vocaterra.Nlp.*` (Spanish utterance to verdict, feedback, conversation step, response text, speech).
+  Its plan is `nlp/IMPLEMENTATION_PLAN.md` (section 5 the milestone table, 5b the findings log, 7 and 10 the expansion plans), its owner
+  decisions `nlp/docs/DECISIONS.md` (D1 to D13), its boundary `nlp/docs/adr/0009-core-and-game-boundary.md`, its API `nlp/docs/API.md`.
+  Licence Apache-2.0 (`nlp/LICENSE`, `nlp/NOTICE`).
+- **`game/`**: the game (`Vocaterra.Simulation`, `Vocaterra.Game`, `Vocaterra.MonoGame`, `Vocaterra.Host`). Its plan is
+  `game/IMPLEMENTATION_PLAN.md` (section 4 status, section 5 findings), its decisions `game/docs/DECISIONS.md` (D-game-1 to D-game-7).
+  Licence MIT (`game/LICENSE`).
+
+The two were separate repositories until 2026-10-21 (game D-game-7); the core's history is under `nlp/` and both sets of ids (M-numbers,
+D-numbers, G- and P-numbers) stay as they were. The game references the core's projects directly; it never copies core source. The core
+never plans game content, scenes or engines; the game plan never plans core internals. A core change the game needs is a core milestone.
+
+The repository is developed by one **orchestrator** session that plans and delegates all implementation to subagents and only plans,
+gates, merges and pushes. To continue, act as the orchestrator defined in `.claude/agents/orchestrator.md` (or start with
+`claude --agent orchestrator`). The owner prefers Haiku 5.5 for delegated work; Sonnet only for design-heavy milestones; Opus only on request.
 
 Facts every session needs:
-- **Packages only.** Never add a project reference to the core, never copy its source, never edit inside `external/Vocaterra.NLP` except
-  to bump its pinned commit (procedure in the role file). A call the packages do not expose goes to `docs/CORE_REQUESTS.md` as a row.
-- **Fresh checkout, the pack fails without this (CR-024):** before the first pack, create the uncommitted file
-  `external/Vocaterra.NLP/nuget.config` with `<configuration><packageSources><clear /><add key="nuget.org" value="https://api.nuget.org/v3/index.json" /></packageSources></configuration>`;
-  otherwise the core's restore finds this repository's `nuget.config`, whose local feed does not exist yet (NU1301). After any `git pull`
-  that moves the submodule, run `git submodule update --init`, delete `~/.nuget/packages/vocaterra.nlp.*` (the version stays 0.1.0, so a
-  cached copy hides the new core) and pack again.
-- **Fresh checkout:** `git submodule update --init`, then `bash external/Vocaterra.NLP/scripts/pack.sh` fills the local feed that
-  `nuget.config` reads (`external/Vocaterra.NLP/artifacts/feed`). The pack takes minutes and writes about 3 GB, all git-ignored in the
-  submodule.
 - **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.
-- **Build, test, format:** `dotnet build Vocaterra.sln -warnaserror`, `dotnet test Vocaterra.sln`, `dotnet format Vocaterra.sln --verify-no-changes`.
-- **Content bundle `content/game-v1`:** `scripts/content.sh validate`. After any edit, `scripts/content.sh hash content/game-v1 --bundle-id game-v1`
-  (rewrites `manifest.json`), then validate and test again. The tool is the core's `vocaterra-content` 0.1.0, installed under `.tools/`
-  from the feed on first use. `cefr-check`, `pack` and `verify-pack` pass through the same script. The sandbox refuses command lines that
-  contain the words `eval` or `hash`; run such a command from a wrapper script outside the repository.
-- **Merge gate:** `scripts/merge-gate.sh "<label>:<branch>"`, run from main only; logs land in `.claude/gate-logs/`.
+- **Build, test, format (from the root):** `dotnet build Vocaterra.sln -warnaserror`, `dotnet test Vocaterra.sln`,
+  `dotnet format Vocaterra.sln --verify-no-changes`. `nlp/Vocaterra.Nlp.sln` builds the core alone (its pack and licence scan use it).
+  No pack step, no local feed: `nuget.config` lists nuget.org only.
+- **Models:** model-gated tests and the game's speech read `VOCATERRA_MODELS_DIR` (the shared folder `~/.local/share/vocaterra/models`,
+  filled by `nlp/scripts/fetch-models.sh`); the pinned manifest is `nlp/models/manifest.json`.
+- **Game content bundle `game/content/game-v1`:** `scripts/content.sh validate`. After any edit,
+  `scripts/content.sh hash game/content/game-v1 --bundle-id game-v1` (rewrites `manifest.json`), then validate and test again. The tool is
+  the core's ContentBuilder run from source. The sandbox refuses command lines that contain the words `eval` or `hash`; run such a
+  command from a wrapper script outside the repository. Core content edits (`nlp/content/v1`) follow `nlp/CONTRIBUTING.md` (validate,
+  hash, re-pin, re-record goldens).
+- **Merge gate:** `scripts/merge-gate.sh "<label>:<branch>"`, run from main only; logs land in `.claude/gate-logs/`. The fuzz suite is a
+  gate; never weaken an oracle to make it pass.
 - **Never write under `.github/workflows/`.** The token lacks the workflow scope. CI is parked in `.github/workflows-pending/ci.yml` and
-  deferred by the owner (D-game-3); do not raise it.
-- **Engine (D-game-1, owner 2026-10-21):** MonoGame for the Terraria-inspired prototype (plan P1 to P10); the final engine is open, Godot .NET
-  the candidate. Engine code lives only in `src/Vocaterra.MonoGame`, never in `src/Vocaterra.Host`, `src/Vocaterra.Simulation` or
-  `src/Vocaterra.Game`. Assets are CC0 only (D-game-5).
-- **Open decisions** (`docs/DECISIONS.md`): this repository's licence (D-game-2; no licence is granted until chosen; the core is Apache-2.0). The bundle diverges from the core's sample (D-game-4, decided):
-  no re-sync on core releases.
-- **Game words live here:** scenes, characters, items, spells, prices, rewards, dialogue and the meaning of each effect kind. The core needs
-  only opaque effect kinds and host event names.
+  deferred by the owner (core D1, game D-game-3); do not raise it.
+- **Engine (D-game-1):** MonoGame for the prototype; engine code lives only in `game/src/Vocaterra.MonoGame`, never in `Vocaterra.Host`,
+  `Vocaterra.Simulation` or `Vocaterra.Game`. Assets are CC0 only (D-game-5).
+- **Game words live in `game/`:** scenes, characters, items, spells, prices, rewards, dialogue and the meaning of each effect kind. The core
+  needs only opaque effect kinds and host event names.
 - **Determinism:** the host owns the world seed, the stored time, the learner model and the repeat counts. Nothing in the evaluation path
   reads the clock or draws random numbers; a `--transcript` run uses a fixed time.
+- **Open owner decisions:** core D8 to D11 and D13 (`nlp/docs/DECISIONS.md`); D1 and D4 deferred, do not raise them.

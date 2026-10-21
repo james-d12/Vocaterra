@@ -378,7 +378,7 @@ scripts/sample-host.sh   # restores samples/HostConsole from artifacts/feed, bui
 The sample loads the bundle, evaluates the two demo utterances with the scripted recognizer and exits 1 unless the verdicts match. The calls
 it makes are the ones in [docs/API.md](docs/API.md). `ContentBuilder pack <bundleDir> <out.zip>` archives a bundle with a `.sha256` sidecar
 holding its bundle hash, and `verify-pack <zip>` checks the archive; hosts ship the extracted folder, since the loader reads a directory.
-Nothing is published to a feed; a consuming repository takes the packages from a submodule. [docs/PACKAGING.md](docs/PACKAGING.md) has the
+Nothing is published to a feed; the game in this repository (`game/`) references the core's projects directly. [docs/PACKAGING.md](docs/PACKAGING.md) has the
 versions, the two ways to consume them, the open decisions and the commands.
 
 ## Benchmark and golden audio
@@ -397,7 +397,7 @@ consent rules and manifest schema are in [golden/README.md](golden/README.md).
 
 | Path | Contents |
 | --- | --- |
-| `global.json`, `Directory.Build.props`, `Directory.Packages.props` | Pinned SDK, shared build rules, the only place package versions live |
+| `Directory.Build.props` | The core's build rules (package metadata, packing); the pinned SDK (`global.json`) and the package versions (`Directory.Packages.props`) are at the repository root |
 | `src/Vocaterra.Nlp.Core` | Contracts between stages (`Verdict`, stage records, interfaces), determinism primitives (`SeededRng`, `DeterministicHash`, `CanonicalJson`, `Margin`), error taxonomy |
 | `src/Vocaterra.Nlp.Audio` | WAV reading and writing, resampler, downmix, gain, energy VAD, push-to-talk session, clip hash |
 | `src/Vocaterra.Nlp.Phonology` | Spanish grapheme-to-phoneme converter, dialect presets, predicted learner-error variants |
@@ -419,7 +419,7 @@ consent rules and manifest schema are in [golden/README.md](golden/README.md).
 | `golden/` | Golden learner audio manifest and recording protocol; the audio itself is gitignored |
 | `models/` | `manifest.json` and a README are committed; the model files are fetched and gitignored |
 | `scripts/` | `fetch-models.sh`, `fetch-lexicon-sources.sh`, `license-scan.sh` and its allowlist and overrides ([scripts/README.md](scripts/README.md)) |
-| `.github/workflows-pending/` | The CI workflow, parked until the push token has the `workflow` scope |
+| `../.github/workflows-pending/` | The CI workflow (repository root), parked until the push token has the `workflow` scope |
 | `docs/` | [API.md](docs/API.md), [PIPELINE.md](docs/PIPELINE.md), [REPLAY.md](docs/REPLAY.md), [LEXICON.md](docs/LEXICON.md), [CLI_EXAMPLES.md](docs/CLI_EXAMPLES.md) and the architecture decision records in `docs/adr/` |
 | `docs/diagrams/` | The draw.io system overview and how to open it ([README](docs/diagrams/README.md)) |
 | `HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md` | The design of the core, the milestone plan and the original brief. Host designs, such as the game's, are not in this repository |
@@ -502,13 +502,13 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
   library appears to link it statically. The plan is to feed Kokoro phones from the in-house G2P and to settle the native
   binaries before release ([ADR 0007](docs/adr/0007-kokoro-phonemizer-licensing.md)). Dynamic TTS must not ship until then.
 - **App-local ICU.** Shipped builds should carry a pinned ICU instead of using the machine's ([ADR 0006](docs/adr/0006-globalization-icu.md)).
-- **CI workflow activation.** `.github/workflows-pending/ci.yml` (build, format check, tests on Linux x64 and ARM64, Windows and
+- **CI workflow activation.** `../.github/workflows-pending/ci.yml` (at the repository root) (build, format check, tests on Linux x64 and ARM64, Windows and
   macOS, golden tests, license scan, optional model-backed tests) is parked because the push token lacks the `workflow` scope. To
   activate it:
 
   ```bash
   gh auth refresh -h github.com -s workflow
-  git mv .github/workflows-pending/ci.yml .github/workflows/ci.yml
+  git mv .github/workflows-pending/ci.yml .github/workflows/ci.yml   # from the repository root
   ```
 
   Until then the cross-platform determinism check has not run anywhere but the development machine.

@@ -21,7 +21,7 @@ happens to one utterance, [docs/adr/](docs/adr/) for why the rules exist, and `I
 
 ## Development setup
 
-1. Install the .NET SDK pinned in `global.json` (10.0.402; later patch releases are accepted). A user-local install is fine
+1. Install the .NET SDK pinned in `global.json` (at the repository root) (10.0.402; later patch releases are accepted). A user-local install is fine
    (see the README, "Prerequisites"). In every shell that builds the project, `DOTNET_ROOT` and `PATH` must point at it:
 
    ```bash
@@ -53,7 +53,7 @@ happens to one utterance, [docs/adr/](docs/adr/) for why the rules exist, and `I
    output you no longer need with `git clean -fdX -- src tests tools` (it deletes only ignored files in those folders, such as `bin/` and `obj/`).
 
 5. The editor settings are in `.editorconfig` (UTF-8, LF, final newline, 4 spaces in C#, 2 elsewhere). Only the packages in
-   `Directory.Packages.props` may be used. If you need another package, open an issue or say so in the pull request instead of
+   `Directory.Packages.props` (at the repository root) may be used. If you need another package, open an issue or say so in the pull request instead of
    adding it: every package passes the license scan (`scripts/license-scan.sh [--offline]`), and the scan only means something if
    the list is curated.
 
@@ -300,7 +300,7 @@ hash and gated in tests ([ADR 0004](docs/adr/0004-model-pinning-and-gating.md)).
    gives identical output; the result equals the recorded expectation for a small committed clip or a synthetic signal; a record
    made with the real model replays without the model (`ReplayEnvelope`; see [docs/REPLAY.md](docs/REPLAY.md)); thresholds that use
    the model's scores have a `Margin`. Once real learner audio exists, add the model to the benchmark runs.
-8. **CI.** Extend the `models` job in `.github/workflows-pending/ci.yml` so that it fetches the model (it runs only when the
+8. **CI.** Extend the `models` job in `../.github/workflows-pending/ci.yml` so that it fetches the model (it runs only when the
    repository variable `VOCATERRA_RUN_MODEL_TESTS` is `true`).
 
 ## Gotchas

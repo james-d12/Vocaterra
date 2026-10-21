@@ -1,6 +1,8 @@
 # ADR 0009: The core and the game boundary
 
 > **Note (M19e, 2026-10-21):** game-side matters in this record, such as the engine choice and the game's scenes, are now decided in the Vocaterra game repository, not in this one. The text below is unchanged.
+>
+> **Note (2026-10-21, later; game decision D-game-7):** the two repositories are one again, as sibling folders: this record's "core" is `nlp/`, the "game" is `game/`. The boundary is unchanged and is now a folder boundary: the game references the core's projects (no packages), never copies core source, and a core change the game needs is a core milestone. The text below is unchanged.
 
 - Status: accepted
 - Date: 2026-10-20

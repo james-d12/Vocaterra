@@ -1,5 +1,5 @@
 {"schemaVersion":1,"bundleId":"game-v1","contentVersion":"1.0.0","files":[
-{"path":"ATTRIBUTION.md","sha256":"50870d0c1cb55f845ee57f123c8fd9b0ce37ae3ff9eb5d73e7b51eba434758f2","bytes":6243},
+{"path":"ATTRIBUTION.md","sha256":"f073b9cd47df9b3775f44305885248c43a25ef9a870771ddf1b41b605bee33e8","bytes":6248},
 {"path":"agents/blacksmith.json","sha256":"c3b43ab6ea06e93d4564c6aea7891c52c674ac74ccd5ee6d4322bd71a788c3da","bytes":7359},
 {"path":"agents/guide.json","sha256":"187a0d5ba1ee18cd3b6e6f284ce7c3c3283a781f68cbac26b3ce7535a08650e4","bytes":6602},
 {"path":"answer-sets/farewells.json","sha256":"193708e558c9b8eef76873f29aba49d2373e08fe205a73e519bab503902fe15e","bytes":297},
@@ -27,4 +27,4 @@
 {"path":"lexicon/world.json","sha256":"6350fe0dac955ef36348f68ee4b0a945578aeae6edee2ec94ec3b79b67e8199b","bytes":1388},
 {"path":"prompts/prompts.json","sha256":"13014520b5667c4fe810e556da1167970f49b7b95ff3bf4f7021f7014bc9d1b6","bytes":6342},
 {"path":"provenance.json","sha256":"9af63a6e9f68e395cfe66661b10e1a2e5bc61526061c00e5daabd057213ef427","bytes":3111}
-],"bundleHash":"17ae6d14ef8cd7ed95ab6014f10a2cf59b9d04c1a01336cd946f41636979527d"}
+],"bundleHash":"fa8fb0305b26cbf3d37aaf169eb6d6155b52ae787118eef07f1cc0d784dc2e28"}

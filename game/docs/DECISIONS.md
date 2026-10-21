@@ -1,7 +1,6 @@
 # Decisions for the game (Vocaterra)
 
-The owner's decisions for this repository. The language core's decisions are in its own `docs/DECISIONS.md`
-(`external/Vocaterra.NLP/docs/DECISIONS.md` in this checkout, pinned by the submodule): D1 CI, D2 the GPL-3.0 native libraries, D3 the
+The owner's decisions for the game (`game/`). The language core's decisions are in its own file, `nlp/docs/DECISIONS.md`: D1 CI, D2 the GPL-3.0 native libraries, D3 the
 core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open core items, and D12 (the engine), which moved here on
 2026-10-21. Status values: **open** (the owner has not decided), **decided**, **deferred** (the owner has set it aside; do not raise it).
 
@@ -12,7 +11,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-3 | Continuous integration | deferred by the owner, 2026-10-21; do not raise | nothing in this plan |
 | D-game-4 | Whether `content/game-v1` tracks the core's sample bundle or diverges from it | decided: diverge fully (owner, 2026-10-21) | nothing |
 | D-game-5 | Art, font and sound sources while D-game-2 is open | decided: CC0 only (owner, 2026-10-21) | nothing |
-| D-game-7 | One repository for the game and the core | owner's plan (2026-10-21): merge them; the owner does the merge; notes in the plan's handover | P8 to P10, G3, G4 wait for it |
+| D-game-7 | One repository for the game and the core | done (owner, 2026-10-21): `nlp/` and `game/` as sibling folders of `james-d12/Vocaterra`, project references, one orchestrator and one gate | nothing |
 | D-game-6 | When a noun counts as known (drawn in colour), and what typed input earns | decided (owner, 2026-10-21); amended the same day: spaced uses with growing gaps, the guide prompts due words | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
@@ -80,21 +79,25 @@ P5 (spoken input) lands; from P5 it earns half credit by default, as a setting.
   player starts also count when they are due.
 - Typed input's half credit from P5 still applies per credited use.
 
-## D-game-7: one repository for the game and the core (owner's plan)
+## D-game-7: one repository for the game and the core (done)
 
 **Owner, 2026-10-21.** "My plan is to actually merge the game and the NLP back together, for simplicity and as they both update they can
-update together." The orchestrator stopped after P7 at the owner's request; P8 and later wait for the merged repository. The parts of this
-repository that exist only because the two are separate (packages only, the submodule and its feed, `docs/CORE_REQUESTS.md`, two
+update together." The orchestrator stopped after P7 at the owner's request; P8 and later waited for the merged repository. The parts of the
+game that existed only because the two were separate (packages only, the submodule and its feed, `docs/CORE_REQUESTS.md`, two
 orchestrators, two gates) are listed in `IMPLEMENTATION_PLAN.md`, section 4, the handover.
+
+**Done, 2026-10-21 (the owner, with Claude).** Layout: `nlp/` (the core, with its own plan, decisions, docs and Apache-2.0 licence) and
+`game/` (this half, MIT) as sibling folders of `james-d12/Vocaterra`; the shared solution, build settings, package versions, `nuget.config`,
+`CLAUDE.md`, orchestrator and gate at the root. The core's history was rewritten under `nlp/` and merged, so `git log` follows its files.
+Consumption: project references (no feed, no pack step). Ids on both sides are unchanged. Licences stay per folder; a single licence for the
+repository is open only if the owner wants one. The old `james-d12/Vocaterra.NLP` repository is to be archived by the owner.
 
 ## Already decided
 
-- **Packages only.** The game references the core's `Vocaterra.Nlp.*` packages, never its projects, and never copies its source (core ADR 0009).
-  A missing call is a row in `docs/CORE_REQUESTS.md`.
-- **The core is a git submodule** at `external/Vocaterra.NLP`, consumed through its local feed `artifacts/feed` (core D5, 2026-10-21). No
-  hosted feed. The pinned commit is the gitlink; bumps follow the orchestrator's procedure.
+- **The core by project reference** (D-game-7; until 2026-10-21 "packages only" from a submodule's local feed). The game never copies core
+  source (core ADR 0009); a missing call is a core milestone in `nlp/IMPLEMENTATION_PLAN.md`.
 - **Console host until D-game-1 is decided.**
 - **Game words live here:** scenes, characters, items, spells, prices, rewards, dialogue and the meaning of each effect kind.
-- **The content tool** is the core's `vocaterra-content` 0.1.0 from the feed, through `scripts/content.sh`.
+- **The content tool** is the core's ContentBuilder run from source, through the root `scripts/content.sh`.
 - **Model policy:** Haiku 5.5 for delegated work by default; Sonnet 5.5 for design-heavy milestones; Opus only when the owner asks.
-- **Two orchestrators:** this repository is run by its own orchestrator; the core orchestrator runs only the core.
+- **One orchestrator** for both halves since D-game-7 (before it, one per repository); it never lets a game milestone edit `nlp/`.

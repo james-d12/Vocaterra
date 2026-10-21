@@ -3,11 +3,10 @@
 Vocaterra is a Terraria-like game in which learning Spanish is one of the main pillars: exploring, progression and looting, with speech and
 dynamic conversation in Spanish. The game design is in [docs/SPECIFICATION.md](docs/SPECIFICATION.md).
 
-The Spanish language processing is a separate repository, the language core **Vocaterra.NLP**
-(`https://github.com/james-d12/Vocaterra.NLP`, Apache-2.0). It takes a learner's utterance to a verdict (what they meant, how well they said
-it), feedback, a conversation step and the agent's response text. This repository includes the core as the git submodule
-`external/Vocaterra.NLP` and consumes it as the NuGet packages `Vocaterra.Nlp.*` version 0.1.0 from the submodule's local feed; nothing of the
-core's source is copied here. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) says what the game takes from the core and what the game owns.
+The Spanish language processing is the language core **Vocaterra.NLP**, the sibling folder [`nlp/`](../nlp/README.md) of this repository
+(Apache-2.0). It takes a learner's utterance to a verdict (what they meant, how well they said it), feedback, a conversation step and the
+agent's response text. The game references the core's projects directly and copies nothing of its source.
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) says what the game takes from the core and what the game owns.
 
 The prototype is a small Terraria-like slice. The engine for it is MonoGame (decision D-game-1 in [docs/DECISIONS.md](docs/DECISIONS.md); the
 final engine is open), and all engine code lives in `src/Vocaterra.MonoGame`. The console host stays as the cheapest way to exercise the core's
@@ -16,64 +15,53 @@ the arrow she puts out; see "The guide, typed" below.
 
 ## Layout
 
+This folder, `game/`, is one half of the repository; the shared solution, build settings, package versions and scripts are at the root
+(see the [root README](../README.md)).
+
 ```
-Vocaterra.sln                    the solution: the libraries, the front-end, the host and their tests
-Directory.Build.props            the build settings (net10.0, nullable, warnings as errors, deterministic)
-Directory.Packages.props         central package versions: the Vocaterra.Nlp.* packages and the test packages
-nuget.config                     the submodule's local feed, then nuget.org
-global.json                      the .NET SDK pin
-external/Vocaterra.NLP/          the language core, a git submodule (pinned; its build output is git-ignored there)
+Directory.Build.props            the game's additions to the shared build settings (the Linux-only native trim)
 src/Vocaterra.Simulation/        the world and the player body: seeded generation, tiles in chunks, a fixed 60 Hz tick (no packages, no engine)
-src/Vocaterra.Game/              the game session, the guide's typed turns and the facts about the world (the core's packages, no engine)
+src/Vocaterra.Game/              the game session, the guide's typed turns and the facts about the world (the core's projects, no engine)
 src/Vocaterra.MonoGame/          the MonoGame DesktopGL front-end: window, drawing, input, the dialogue panel (the only engine code)
 src/Vocaterra.Host/              the console host: loads the bundle, evaluates lines, runs the text loop
 tests/                           one test project per source project (Simulation, Game, MonoGame, Host)
 content/game-v1/                 the game's content bundle (see below)
-scripts/content.sh               validate, hash and check a bundle with the core's content tool
-scripts/merge-gate.sh            the orchestrator's merge gate
-docs/                            SPECIFICATION (design), ARCHITECTURE (boundary), DECISIONS, CORE_REQUESTS (requests to the core)
+assets/                          CC0 art, fonts and sounds, each listed in assets/ATTRIBUTION.md
+docs/                            SPECIFICATION (design), ARCHITECTURE (boundary), DECISIONS
 IMPLEMENTATION_PLAN.md           the milestones and the findings log
-.claude/agents/orchestrator.md   the orchestrator's role file (how the repository is developed)
-.github/workflows-pending/       the parked CI job (see below)
+../scripts/content.sh            validate, hash and check a bundle with the core's content tool
+../scripts/merge-gate.sh         the orchestrator's merge gate (the whole repository)
+../.claude/agents/orchestrator.md   the orchestrator's role file (how the repository is developed)
 ```
 
 ## Clone, build and run
 
+All commands below run from the repository root (the parent of this folder).
+
 ```bash
 git clone https://github.com/james-d12/Vocaterra.git
 cd Vocaterra
-git submodule update --init                          # the language core, external/Vocaterra.NLP
-bash external/Vocaterra.NLP/scripts/pack.sh          # packs the core's packages into external/Vocaterra.NLP/artifacts/feed
-
-dotnet restore Vocaterra.sln
-dotnet build Vocaterra.sln -warnaserror
+dotnet build Vocaterra.sln -warnaserror     # the core (nlp/) and the game (game/) in one solution
 dotnet test Vocaterra.sln
 ```
 
-The .NET SDK is pinned in `global.json` (10.0.402, `latestPatch`). A user-local install is enough. `nuget.config` reads the submodule's feed
-by a relative path; the packing step is needed after a clone and after each change to the pinned core commit.
+The .NET SDK is pinned in `global.json` (10.0.402, `latestPatch`). A user-local install is enough. The core's projects are built from the
+same commit; there is no pack step and no local feed.
 
 On a Linux x64 build host the build copies only the linux-x64 native libraries (about 400 MB less per build); the commands and the output
 paths are the same. `dotnet build -p:VocaterraAllRuntimes=true` copies every platform's natives again (for a release build). See
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-A git worktree has an empty submodule, so it does not pack the core again (about 3 GB). It restores from the main checkout's feed instead:
-
-```bash
-dotnet restore Vocaterra.sln -p:RestoreSources="/path/to/main/checkout/external/Vocaterra.NLP/artifacts/feed;https://api.nuget.org/v3/index.json"
-dotnet build Vocaterra.sln -warnaserror --no-restore
-```
-
-Run the host (from the repository root, because the default bundle is `content/game-v1` relative to the current directory; `--content <dir>`
+Run the host (the default bundle is `content/game-v1` in the current directory, else the game's bundle found above the executable; `--content <dir>`
 names another):
 
 ```bash
 # one line, evaluated once and printed (the form the tests and scripts use)
-dotnet run --project src/Vocaterra.Host -- --transcript "yo tiene dos espada" --prompt offer-items-open
+dotnet run --project game/src/Vocaterra.Host -- --transcript "yo tiene dos espada" --prompt offer-items-open
 
 # the text loop: shows each prompt (and the agent's line, when the prompt has one), then reads a line;
 # /prompt <id> switches prompt, /quit leaves
-dotnet run --project src/Vocaterra.Host
+dotnet run --project game/src/Vocaterra.Host
 ```
 
 The host makes these calls of the core's API, in order, on the packages (the details are in
@@ -87,7 +75,7 @@ the learner model and the repeat counts.
 The smallest vertical slice that proves the core inside the game loop (milestone P3). From the repository root, with a display:
 
 ```bash
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42
 ```
 
 Walk with A and D (Space jumps) to the guide, the figure in the purple robe. When "Pulsa T para hablar" shows, press **T**: the dialogue panel
@@ -101,7 +89,7 @@ doce bloques.`) while an arrow points at the tile until you reach it or press **
 To check it without typing, the front-end can script the whole thing and save a screenshot (see `src/Vocaterra.MonoGame/README.md`):
 
 ```bash
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --say "¿dónde está el árbol?" --screenshot /tmp/p3.png --frames 240
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --say "¿dónde está el árbol?" --screenshot /tmp/p3.png --frames 240
 ```
 
 ## The guide, spoken (P5)
@@ -116,16 +104,16 @@ fills it with `vosk-model-small-es-0.42` and `kokoro-multi-lang-v1_0`). Without 
 
 ```bash
 export VOCATERRA_MODELS_DIR="$HOME/.local/share/vocaterra/models"
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42
 ```
 
 Spoken input without a microphone, for demos and tests (each is an ordered script step like `--say`; they print the transcript, the
 confidence and the timings in the turn line):
 
 ```bash
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --speak "¿dónde está el árbol?" --screenshot /tmp/p5.png   # Kokoro speaks it, Vosk hears it
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --wav line.wav --screenshot /tmp/p5-wav.png               # a 16-bit PCM WAV, any rate
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --listen 3 --screenshot /tmp/p5-mic.png                   # the real microphone for 3 s
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --speak "¿dónde está el árbol?" --screenshot /tmp/p5.png   # Kokoro speaks it, Vosk hears it
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --wav line.wav --screenshot /tmp/p5-wav.png               # a 16-bit PCM WAV, any rate
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --listen 3 --screenshot /tmp/p5-mic.png                   # the real microphone for 3 s
 ```
 
 Kokoro's audio is cached under `~/.cache/vocaterra/tts` (nothing of it is in the repository). See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
@@ -145,32 +133,30 @@ manifest:
 
 ```bash
 scripts/content.sh validate                                  # every file's hash and the cross-references
-scripts/content.sh hash content/game-v1 --bundle-id game-v1  # rewrite manifest.json (keep the bundle id once it is set)
-scripts/content.sh cefr-check content/game-v1 --level a1     # and --level a2: the lemmas the templates use that the level list lacks
+scripts/content.sh hash game/content/game-v1 --bundle-id game-v1  # rewrite manifest.json (keep the bundle id once it is set)
+scripts/content.sh cefr-check game/content/game-v1 --level a1     # and --level a2: the lemmas the templates use that the level list lacks
 ```
 
-The script runs the core's content tool, `vocaterra-content` 0.1.0, installed under `.tools/` from the submodule's feed on first use (see
-[scripts/README.md](scripts/README.md)). `ATTRIBUTION.md` and `provenance.json` describe this bundle; the Wiktionary lexicon in it is CC BY-SA
+The script runs the core's content tool (`nlp/tools/Vocaterra.Nlp.ContentBuilder`, from source; see
+[scripts/README.md](../scripts/README.md)). `ATTRIBUTION.md` and `provenance.json` describe this bundle; the Wiktionary lexicon in it is CC BY-SA
 and keeps its notice.
 
 ## Continuous integration
 
-`.github/workflows-pending/ci.yml` is parked. It needs the workflow scope on the token (core DECISIONS.md D1), and it still names the core's
-own test projects and feed path, so it has to be rewritten before it is activated (deferred by the owner, see D-game-3 in
-[docs/DECISIONS.md](docs/DECISIONS.md)). Until then nothing runs in CI.
+The repository's `.github/workflows-pending/ci.yml` is parked: it needs the workflow scope on the token (core D1), and the owner deferred CI
+(D-game-3 in [docs/DECISIONS.md](docs/DECISIONS.md)). Until then nothing runs in CI.
 
-## Packages and the feed
+## The core's native libraries
 
-The core is consumed through its submodule, and its packages are never published: the core chose no hosted feed (core D5, decided
-2026-10-21). The packages depend on third-party native libraries, and one of them carries GPL-3.0 code (core D2); the game does not distribute
-a build that includes them until D2 is settled in the core.
+The core depends on third-party native libraries, and one of them carries GPL-3.0 code (core D2); the game does not distribute a build that
+includes them until D2 is settled in the core.
 
 ## Licence
 
 - **This repository:** MIT (see [LICENSE](LICENSE); decision D-game-2 in [docs/DECISIONS.md](docs/DECISIONS.md)).
 - **Content bundle:** the Wiktionary lexicon in `content/game-v1` stays CC BY-SA 4.0; its notices are in
   [content/game-v1/ATTRIBUTION.md](content/game-v1/ATTRIBUTION.md).
-- **Language core:** the `Vocaterra.Nlp.*` packages are Apache-2.0 (core D3). **MonoGame** is Ms-PL.
+- **Language core:** `nlp/` is Apache-2.0 (core D3, [nlp/LICENSE](../nlp/LICENSE)). **MonoGame** is Ms-PL.
 - **Art, font and sound:** CC0 only (D-game-5), each file listed in [assets/ATTRIBUTION.md](assets/ATTRIBUTION.md).
 - **Native libraries:** a build that includes the sherpa-onnx native libraries (GPL-3.0 code, core D2) is not distributed while D2 is open.
 
@@ -179,9 +165,7 @@ a build that includes them until D2 is settled in the core.
 - [docs/SPECIFICATION.md](docs/SPECIFICATION.md): the game design
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how the game consumes the core, the host's calls, what the host owns and what the game owns
 - [docs/DECISIONS.md](docs/DECISIONS.md): the game's open and decided questions
-- [docs/CORE_REQUESTS.md](docs/CORE_REQUESTS.md): what the game has asked the core for, and the answers
 - [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md): the milestones, the scene designs and the findings log
-- [Vocaterra.NLP's docs/API.md](https://github.com/james-d12/Vocaterra.NLP/blob/main/docs/API.md): the calls a host makes, in order
-- [Vocaterra.NLP's docs/PACKAGING.md](https://github.com/james-d12/Vocaterra.NLP/blob/main/docs/PACKAGING.md): the packages, the local feed and the content tool
-- [Vocaterra.NLP's ADR 0009](https://github.com/james-d12/Vocaterra.NLP/blob/main/docs/adr/0009-core-and-game-boundary.md): what the core and the game each own
-- [CLAUDE.md](CLAUDE.md): working notes for the agents and the owner
+- [nlp/docs/API.md](../nlp/docs/API.md): the calls a host makes, in order
+- [nlp/docs/adr/0009-core-and-game-boundary.md](../nlp/docs/adr/0009-core-and-game-boundary.md): what the core and the game each own
+- [CLAUDE.md](../CLAUDE.md): working notes for the agents and the owner

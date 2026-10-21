@@ -16,7 +16,7 @@ public sealed record HostOptions(string ContentDirectory, string? PromptId, stri
         Vocaterra host: a console host on the Vocaterra.Nlp packages.
 
         Usage:
-          dotnet run --project src/Vocaterra.Host -- [options]
+          dotnet run --project game/src/Vocaterra.Host -- [options]
 
         Without --transcript the host runs a text loop: type a Spanish line and press Enter. /prompt <id> switches prompt, /quit leaves.
         With --transcript it evaluates that one line on --prompt, prints the outcome and exits (the form tests and scripts use).
@@ -24,7 +24,7 @@ public sealed record HostOptions(string ContentDirectory, string? PromptId, stri
         Options:
           --transcript "<text>"   evaluate one line and exit (needs --prompt)
           --prompt <id>           the prompt to evaluate on, or the prompt the loop starts on
-          --content <dir>         the content bundle (default content/game-v1, relative to the current directory)
+          --content <dir>         the content bundle (default content/game-v1 in the current directory, else the game's bundle found above the executable)
           --help                  print this text
         """;
 

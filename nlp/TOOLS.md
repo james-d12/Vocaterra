@@ -2,7 +2,7 @@
 
 An inventory of everything external that the Vocaterra.NLP repository builds on, runs, downloads or plans to use: runtimes, NuGet packages, native binaries, machine-learning models, data sources and developer tooling, with versions, licenses and sources. It is a hand-checked snapshot of the repository at commit `4a91cad` (2026-10-20); regenerate the numbers when a dependency changes.
 
-**How this was compiled.** From `global.json`, `Directory.Build.props`, `Directory.Packages.props`, every `*.csproj`, the output of `scripts/license-scan.sh --offline` (27 packages, 27 pass, run on the authoring machine after `dotnet restore`), the cached `.nuspec` files and native binaries of the restored packages, `models/manifest.json`, `scripts/*.sh`, `.github/workflows-pending/ci.yml`, `content/v1/ATTRIBUTION.md` and `provenance.json`, `HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md` and `docs/FUZZING_PLAN.md`.
+**How this was compiled.** From the repository root's `global.json` and `Directory.Packages.props`, this folder's `Directory.Build.props`, every `*.csproj`, the output of `scripts/license-scan.sh --offline` (27 packages, 27 pass, run on the authoring machine after `dotnet restore`), the cached `.nuspec` files and native binaries of the restored packages, `models/manifest.json`, `scripts/*.sh`, `.github/workflows-pending/ci.yml`, `content/v1/ATTRIBUTION.md` and `provenance.json`, `HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md` and `docs/FUZZING_PLAN.md`.
 
 **Conventions.** A license is the SPDX identifier the package metadata or the manifest declares, unless a cell says otherwise. Anything this inventory could not confirm from files in the repository or from the restored packages is marked **unverified**. Items that are only planned are in section 8 and are not dependencies of the code.
 
@@ -23,16 +23,16 @@ An inventory of everything external that the Vocaterra.NLP repository builds on,
 
 | Item | Value | Defined in | License / note |
 | --- | --- | --- | --- |
-| .NET SDK | `10.0.402`, `rollForward: latestPatch` | [`global.json`](global.json) | MIT (`LICENSE.txt` of the SDK install). Source: https://github.com/dotnet/sdk |
+| .NET SDK | `10.0.402`, `rollForward: latestPatch` | [`global.json`](../global.json) (repository root) | MIT (`LICENSE.txt` of the SDK install). Source: https://github.com/dotnet/sdk |
 | Target framework | `net10.0` for every project | [`Directory.Build.props`](Directory.Build.props) | .NET runtime is MIT: https://github.com/dotnet/runtime |
 | .NET runtime on the authoring machine | `Microsoft.NETCore.App 10.0.13` (not pinned by the repository; only the SDK is) | `dotnet --list-runtimes` | MIT |
 | C# language version | `latest` | `Directory.Build.props` | - |
 | Compiler policy | `Nullable` enable, `ImplicitUsings` enable, `TreatWarningsAsErrors` true, `Deterministic` true, `EnableNETAnalyzers` true, `AnalysisLevel` latest, XML docs generated for `src/`, `ContinuousIntegrationBuild` when `CI` is set | `Directory.Build.props` | .NET analyzers ship with the SDK |
-| Package versions | central: `ManagePackageVersionsCentrally` true | [`Directory.Packages.props`](Directory.Packages.props) | agents may not add packages (plan section 1) |
+| Package versions | central: `ManagePackageVersionsCentrally` true | [`Directory.Packages.props`](../Directory.Packages.props) (repository root) | agents may not add packages (plan section 1) |
 | Globalization / ICU | `InvariantGlobalization` is **false**, so .NET uses the operating system's ICU for Unicode normalization (NFC, NFKC). On Linux the `libicu` shared library must be installed (the authoring machine has ICU 74). Pinning an app-local ICU is an open item for an ADR | `Directory.Build.props`; [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) section 3.5 | ICU license for the system version: **unverified** (Unicode License family); not shipped by the repository |
 | Base class library features used | `System.Text.Json` (canonical JSON, content files, `Utf8JsonReader` for the lexicon), `System.Security.Cryptography` SHA-256 (hashing), `System.Text.RegularExpressions` (kaikki importer), `string.Normalize` (NFC / NFKC) | `src/Vocaterra.Nlp.Core` (`CanonicalJson`, `DeterministicHash`), `src/Vocaterra.Nlp.Language`, `src/Vocaterra.Nlp.Phonology`, `src/Vocaterra.Nlp.Content`, `tools/Vocaterra.Nlp.ContentBuilder` | part of the runtime, MIT |
 | Source languages | C#, plus bash and embedded python3 in `scripts/`, YAML for CI, JSON / JSONL for content | - | - |
-| OS / CPU targets | `ubuntu-latest`, `ubuntu-24.04-arm`, `windows-latest`, `macos-latest` (CI matrix, currently parked, see section 7) | [`.github/workflows-pending/ci.yml`](.github/workflows-pending/ci.yml) | - |
+| OS / CPU targets | `ubuntu-latest`, `ubuntu-24.04-arm`, `windows-latest`, `macos-latest` (CI matrix, currently parked, see section 7) | [`.github/workflows-pending/ci.yml`](../.github/workflows-pending/ci.yml) | - |
 | Minimum hardware | 8 GB RAM, 4-core x86-64, no GPU; CPU-only inference, 1 intra-op and 1 inter-op thread for ONNX Runtime sessions | `IMPLEMENTATION_PLAN.md` section 1; `OnnxEmbeddingModel`, `Wav2Vec2PhonemeRecognizer`, `KokoroSynthesizer` | - |
 
 ## 2. NuGet packages: direct
@@ -147,8 +147,8 @@ The hand-authored content has no third-party text in it, and it is licensed Apac
 | `dotnet` CLI | 10.0.402 | `restore`, `build -warnaserror`, `test` (`--logger trx`), `format` / `format --verify-no-changes`, `list package --include-transitive --format json` | [`README.md`](README.md), `ci.yml`, `scripts/license-scan.sh` | MIT |
 | NuGet | bundled in the SDK | package restore from nuget.org; license scan reads `~/.nuget/packages` or `NUGET_PACKAGES` | `scripts/license-scan.sh` | Apache-2.0 / MIT |
 | NuGet registration API | `https://api.nuget.org/v3/registration5-gz-semver2/{id}/{version}.json` | online license lookup when a nuspec names no license (skipped with `--offline`) | `scripts/license-scan.sh` | service |
-| `git` | 2.43.0 | version control; LF normalization via [`.gitattributes`](.gitattributes) (`* text=auto eol=lf`, `*.wav` and `*.onnx` binary); worktrees for parallel agents | repository | GPL-2.0 |
-| `gh` (GitHub CLI) | 2.102.0 | `gh auth refresh -h github.com -s workflow` to activate the parked workflow | [`.github/workflows-pending/README.md`](.github/workflows-pending/README.md) | MIT |
+| `git` | 2.43.0 | version control; LF normalization via [`.gitattributes`](../.gitattributes) (`* text=auto eol=lf`, `*.wav` and `*.onnx` binary); worktrees for parallel agents | repository | GPL-2.0 |
+| `gh` (GitHub CLI) | 2.102.0 | `gh auth refresh -h github.com -s workflow` to activate the parked workflow | [`.github/workflows-pending/README.md`](../.github/workflows-pending/README.md) | MIT |
 | `bash` | not recorded | `scripts/fetch-models.sh`, `scripts/fetch-lexicon-sources.sh`, `scripts/license-scan.sh` (`set -euo pipefail`) | [`scripts/`](scripts/README.md) | GPL-3.0-or-later |
 | `python3` | 3.12.3, standard library only, run as `python3 -I` | parses `models/manifest.json` in the fetch script and writes `lexicon-sources/sources.json` in the lexicon fetch script; evaluates SPDX expressions, reads nuspecs and calls the NuGet API in the license scan (`json`, `re`, `gzip`, `urllib`, `xml.etree`, `datetime`, `os`, `time`) | both scripts | PSF-2.0 |
 | `python3` with `yaml` (YAML syntax check of `ci.yml`) | **unverified**: named in the task brief, not referenced anywhere in the repository | validating the parked workflow file | - | - |
@@ -156,7 +156,7 @@ The hand-authored content has no third-party text in it, and it is licensed Apac
 | `sha256sum` or `shasum -a 256` | coreutils 9.4 | archive and file hashes | `scripts/fetch-models.sh`, `scripts/fetch-lexicon-sources.sh` | GPL-3.0-or-later (coreutils) |
 | `unzip`, `tar` with bzip2 | UnZip 6.00, GNU tar 1.35 | extracting `.zip` and `.tar.bz2` model archives | `scripts/fetch-models.sh` | Info-ZIP / GPL-3.0-or-later |
 | coreutils (`mktemp`, `cut`, `wc`, `tr`, `basename`) | coreutils 9.4 | fetch script housekeeping | `scripts/fetch-models.sh` | GPL-3.0-or-later |
-| `.editorconfig` | - | 4-space C#, 2-space JSON/YAML/XML, LF, file-scoped namespaces as a warning; enforced by `dotnet format` | [`.editorconfig`](.editorconfig) | - |
+| `.editorconfig` | - | 4-space C#, 2-space JSON/YAML/XML, LF, file-scoped namespaces as a warning; enforced by `dotnet format` | [`.editorconfig`](../.editorconfig) | - |
 | Mermaid | rendered by GitHub | flowcharts in `HIGH_LEVEL_DOCS.md` | `HIGH_LEVEL_DOCS.md` | MIT |
 | draw.io (diagrams.net) | file format only | the hand-written overview diagram | [`docs/diagrams/system-overview.drawio`](docs/diagrams/system-overview.drawio) | Apache-2.0 |
 

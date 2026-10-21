@@ -57,25 +57,20 @@ ignored in favour of the cached one.
 
 ## Consuming the core
 
-No package is published to a hosted feed, and none is planned: the decision is D5 (decided 2026-10-21). A consuming repository, such as the
-Vocaterra game, adds this repository as a submodule and uses it in one of two ways:
+No package is published to a hosted feed, and none is planned: the decision is D5 (decided 2026-10-21). The Vocaterra game lives in the
+same repository (`game/`, since 2026-10-21) and references the core's projects directly, for example
+`<ProjectReference Include="../../../nlp/src/Vocaterra.Nlp.Pipeline/Vocaterra.Nlp.Pipeline.csproj" />`; it needs no pack step. A consumer
+outside this repository has the same two ways:
 
-```bash
-git submodule add https://github.com/james-d12/Vocaterra.NLP.git external/Vocaterra.NLP
-git submodule update --init
-```
-
-1. **Project references.** Reference the projects directly, for example
-   `<ProjectReference Include="external/Vocaterra.NLP/src/Vocaterra.Nlp.Pipeline/Vocaterra.Nlp.Pipeline.csproj" />`. The consumer then builds the
-   core from the commit its submodule pins, and no pack step is needed.
-2. **A local feed.** Run `bash external/Vocaterra.NLP/scripts/pack.sh`, then add a `nuget.config` beside the consumer's solution. It reads the
-   packed folder and nuget.org, which the core lists for its third-party dependencies, in the same shape as `samples/HostConsole/nuget.config`:
+1. **Project references** into a checkout (a git submodule, say): the consumer builds the core from the commit it pins.
+2. **A local feed.** Run `bash nlp/scripts/pack.sh`, then add a `nuget.config` beside the consumer's solution that reads the packed folder
+   and nuget.org (which the core lists for its third-party dependencies), in the same shape as `samples/HostConsole/nuget.config`:
 
    ```xml
    <configuration>
      <packageSources>
        <clear />
-       <add key="vocaterra-local" value="external/Vocaterra.NLP/artifacts/feed" />
+       <add key="vocaterra-local" value="<path to>/nlp/artifacts/feed" />
        <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
      </packageSources>
    </configuration>
@@ -83,9 +78,8 @@ git submodule update --init
 
    The consumer then references the `Vocaterra.Nlp.*` packages at version `0.1.0`.
 
-Project references always build from the pinned commit, but they compile the core's sources into the consumer and never exercise the packaged
-surface. The local feed does exercise the packaged surface, which is what `samples/HostConsole` tests, at the cost of running `scripts/pack.sh`
-after each change to the core.
+Project references compile the core's sources into the consumer and never exercise the packaged surface. The local feed does exercise the
+packaged surface, which is what `samples/HostConsole` tests, at the cost of running `scripts/pack.sh` after each change to the core.
 
 GitHub Packages and nuget.org are not planned as publishing targets. No `Vocaterra.Nlp.*` package goes to either.
 
@@ -154,9 +148,9 @@ dotnet tool install --tool-path <dir> --add-source <core>/artifacts/feed Vocater
 <dir>/vocaterra-content verify-pack out/bundle-v1.zip
 ```
 
-`<core>` is the language core checkout, after `scripts/pack.sh` has filled its `artifacts/feed`. On a machine with a user-local SDK the
-launcher needs `DOTNET_ROOT` set to that SDK, as the other commands in this document do. A consuming repository's content script calls
-this command instead of `dotnet run` on the project.
+`<core>` is the language core folder, after `scripts/pack.sh` has filled its `artifacts/feed`. On a machine with a user-local SDK the
+launcher needs `DOTNET_ROOT` set to that SDK, as the other commands in this document do. The game in this repository does not install the
+tool: its `scripts/content.sh` runs the project with `dotnet run`, so it is always the core at the current commit.
 
 Size and dependencies, measured on 2026-10-21 with `scripts/pack.sh`:
 
@@ -173,10 +167,10 @@ The tool package is for local installation from the feed. It is not for distribu
 
 ## Continuous integration
 
-The parked workflow (`.github/workflows-pending/ci.yml`) has a `pack` job on Ubuntu: restore, `scripts/pack.sh`, `scripts/sample-host.sh`, and
+The parked workflow (`../.github/workflows-pending/ci.yml`, at the repository root) has a `pack` job on Ubuntu: restore, `scripts/pack.sh`, `scripts/sample-host.sh`, and
 an upload of `artifacts/packages/*` as the `packages` artifact. It runs on pushes to `main`, on `v*` tags and on pull requests. Tag pushes also run
 the other push jobs, because their `if:` matches every push. The workflow can be pushed only once the token has the `workflow` scope (D1, and
-`.github/workflows-pending/README.md`).
+`../.github/workflows-pending/README.md`).
 
 The publish step is commented out in that job and stays so: no hosted feed is planned (D5, decided 2026-10-21). The step is kept only as a
 record of what a GitHub Packages publish would need (the token would also need `write:packages`).

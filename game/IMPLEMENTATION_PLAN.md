@@ -1,43 +1,48 @@
 # Implementation plan: Vocaterra (the game)
 
-This is the plan for the game repository. The language core (`Vocaterra.NLP`, submodule `external/Vocaterra.NLP`) has its own plan and
-orchestrator; this file never plans core internals. Owner decisions are in `docs/DECISIONS.md`. Status values: `planned`, `in progress`,
+This is the plan for the game, the folder `game/` of the repository. The language core is the sibling folder `nlp/` with its own plan
+(`nlp/IMPLEMENTATION_PLAN.md`) and decisions; this file never plans core internals. Since 2026-10-21 (D-game-7) one orchestrator runs both. Owner decisions are in `docs/DECISIONS.md`. Status values: `planned`, `in progress`,
 `in review` (on its branch, not yet merged), `done` (merged to main and gated), `blocked` (names the blocker).
 
 ## 1. Decisions taken
 
-- **Packages only.** The game references the core's `Vocaterra.Nlp.*` 0.1.0 packages, never its projects, and never copies its source
-  (core ADR 0009). A call the packages do not expose is a row in `docs/CORE_REQUESTS.md`.
-- **The core is a git submodule** (`external/Vocaterra.NLP`, core D5). Its `scripts/pack.sh` fills `external/Vocaterra.NLP/artifacts/feed`,
-  which `nuget.config` reads. No hosted feed. The pinned commit is `db39999` at setup (G0).
+- **The core by project reference** (D-game-7, 2026-10-21; before it: packages from a submodule's local feed). `Vocaterra.Game` and
+  `Vocaterra.Host` reference the projects under `nlp/src`; the game never copies core source (core ADR 0009). A call the core does not
+  expose is a core milestone in `nlp/IMPLEMENTATION_PLAN.md`, never a workaround in the game. (`docs/CORE_REQUESTS.md`, the request file of
+  the two-repository era, was closed when the repositories merged; its open rows became M28b to M28d in the core's plan.)
 - **Console host until the engine is decided** (D-game-1). The host is engine-agnostic: no engine code under `src/Vocaterra.Host`.
 - **Game words live here**, not in the core. The core knows effect kinds and host event names only as opaque strings.
-- **Content tool:** the core's `vocaterra-content` 0.1.0 installed from the feed under `.tools/` by `scripts/content.sh`.
+- **Content tool:** the core's ContentBuilder (`nlp/tools/Vocaterra.Nlp.ContentBuilder`), run from source by the root `scripts/content.sh`.
 - **Model policy:** Haiku 5.5 by default, Sonnet 5.5 for design-heavy milestones, Opus only on the owner's request.
 
 ## 2. Repository layout
 
 ```
-Vocaterra.sln                    the solution: the host and its tests (no core project is in it)
-Directory.Build.props            build settings: net10.0, nullable, warnings as errors, deterministic
-Directory.Packages.props         central versions: Vocaterra.Nlp.* 0.1.0 and the test packages
-nuget.config                     the submodule's local feed, then nuget.org
-global.json                      the .NET SDK pin (10.0.402, latestPatch)
-external/Vocaterra.NLP/          the core, pinned; its artifacts/ and build output are git-ignored there
+../Vocaterra.sln                 the solution for the whole repository: the core's projects (nlp/) and the game's (game/)
+../Directory.Build.props         shared build settings: net10.0, nullable, warnings as errors, deterministic
+../Directory.Packages.props      central versions for both halves (third-party packages only)
+../nuget.config                  nuget.org only
+../global.json                   the .NET SDK pin (10.0.402, latestPatch)
+../nlp/                          the language core: its own plan, decisions, docs, content/v1, models manifest, scripts
+Directory.Build.props            the game's additions: the Linux-only native trim (G7)
+src/Vocaterra.Simulation/        the world and physics (no packages, no engine; net8.0 and net10.0)
+src/Vocaterra.Game/              the engine-free game layer (references the core's projects and the simulation)
+src/Vocaterra.MonoGame/          the MonoGame front-end (the only engine code)
 src/Vocaterra.Host/              the console host: loads a bundle, evaluates lines, runs the text loop
-tests/Vocaterra.Host.Tests/      smoke tests: the demo utterances, the bundle hash, the carried conversation
-content/game-v1/                 the game's content bundle (the core's sample for now; G2 and later replace it)
-scripts/content.sh               validate, hash, cefr-check, pack, verify-pack through the core's content tool
-scripts/merge-gate.sh            the orchestrator's merge gate
-docs/                            SPECIFICATION (design), ARCHITECTURE (boundary), DECISIONS, CORE_REQUESTS
-.claude/agents/orchestrator.md   the orchestrator's role file (the entry point for a session)
-.github/workflows-pending/       the parked CI job (D-game-3, deferred)
+tests/                           one test project per source project
+content/game-v1/                 the game's content bundle (diverged from the core's sample, D-game-4)
+assets/                          CC0 art, fonts and sounds (assets/ATTRIBUTION.md)
+docs/                            SPECIFICATION (design), ARCHITECTURE (boundary), DECISIONS, research/
+../scripts/content.sh            validate, hash, cefr-check, lint, pack, verify-pack through the core's content tool
+../scripts/merge-gate.sh         the orchestrator's merge gate (both halves)
+../.claude/agents/orchestrator.md   the orchestrator's role file (the entry point for a session)
+../.github/workflows-pending/    the parked CI job (D-game-3, deferred)
 ```
 
 ## 3. Rules every agent follows
 
-1. **Packages only.** No `ProjectReference` into `external/`, no copied core source, no edits inside `external/Vocaterra.NLP` (the
-   orchestrator bumps the pin). A missing call or a bug in the core goes to `docs/CORE_REQUESTS.md` with a row and a reason.
+1. **The core as it is.** A game milestone edits `game/` only: no copied core source, no edit under `nlp/`. A missing call or a bug in
+   the core is reported in the milestone's report with the call and the reason, and the orchestrator plans it as a core milestone.
 2. **Determinism is the host's job.** The core is deterministic when the host supplies its inputs: the world seed, the stored time (Unix
    seconds, passed in), the learner model and the repeat counts (`RepeatCounts.Next`, core M19d). The host never draws its own random
    numbers, except world generation in `Vocaterra.Simulation`, which is a pure function of the world seed through its own seeded generator
@@ -45,16 +50,16 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
    ordered with `StringComparer.Ordinal`. Culture is invariant.
 3. **Engine code only in `src/Vocaterra.MonoGame`** (D-game-1, later a Godot front-end of its own). Never in `src/Vocaterra.Host`,
    `src/Vocaterra.Simulation` or `src/Vocaterra.Game`. `Vocaterra.Simulation` takes no packages at all.
-4. **Content procedure.** Every edit to `content/game-v1`: `scripts/content.sh validate`, then
-   `scripts/content.sh hash content/game-v1 --bundle-id game-v1` (rewrites `manifest.json`), then `scripts/content.sh validate` and the tests.
+4. **Content procedure.** Every edit to `content/game-v1` (from the repository root): `scripts/content.sh validate`, then
+   `scripts/content.sh hash game/content/game-v1 --bundle-id game-v1` (rewrites `manifest.json`), then `scripts/content.sh validate` and the tests.
    Files that come from the Wiktionary import keep `generatedBy: wiktionary-import` in `provenance.json` and their CC BY-SA notice in
    `ATTRIBUTION.md`. New hand-authored files are listed in `provenance.json` with `generatedBy: hand-authored`.
-   A content milestone also runs `scripts/content.sh cefr-check content/game-v1 --level a1` and `--level a2`; the tool checks dialogue
+   A content milestone also runs `scripts/content.sh cefr-check game/content/game-v1 --level a1` and `--level a2`; the tool checks dialogue
    templates only (core finding), so prompt text is checked by hand.
 5. **Scenes are design, not code.** A scene is intents, slot grammars, prompts, dialogue pools, agent state machines and effects, all in the
    bundle. The host maps the core's host events and effect kinds to game state; the core does not learn game words.
-6. **Build hygiene.** `dotnet build Vocaterra.sln -warnaserror` and `dotnet format Vocaterra.sln --verify-no-changes` stay clean. Public
-   types have `///` summaries. No new package outside `Directory.Packages.props`.
+6. **Build hygiene.** `dotnet build Vocaterra.sln -warnaserror` and `dotnet format Vocaterra.sln --verify-no-changes` (from the root) stay
+   clean. Public types have `///` summaries. No new package outside the root `Directory.Packages.props`.
 7. **Branches and commits.** One branch per milestone (`G<nn>-<name>`, `P<nn>-<name>` or the orchestrator's name), commit prefix `G<nn>: <title>` or `P<nn>: <title>`, trailers
    as the orchestrator's brief says. Agents do not push.
 
@@ -62,7 +67,10 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 
 ### Handover (2026-10-21, end of session; the owner plans to merge the game and the core into one repository)
 
-Where things stand:
+**Done, 2026-10-21 (later the same day):** the repositories are one (D-game-7). The core is `nlp/`, the game is `game/`; the notes below
+were followed as listed (see the section 5 entry "One repository"). P8 and later are unblocked.
+
+Where things stand (as written before the merge):
 - **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4, P4b, P6, G6, P6b, G7, P5, P7. Core pin `53c52b7` (M26a to M26e). Tests on `main`:
   625 (8 need the speech models in `VOCATERRA_MODELS_DIR`). Bundle `game-v1` `17ae6d14…`, 28 files. Licence MIT (D-game-2). No worktrees,
   no agent branches, no agent running.
@@ -488,7 +496,20 @@ Facts that shape the plan. Each one names its source; the core's own findings st
 - **Fresh-clone check (2026-10-21, Haiku 5.5, owner's request).** A clean clone with an empty package cache fails at the core's pack
   (`NU1301`: the core restores with the game's `nuget.config`, whose local feed does not exist yet); with an uncommitted
   `external/Vocaterra.NLP/nuget.config` (`<clear/>` + nuget.org) it packs, builds with 0 warnings and passes 558 tests (8 skipped
-  without models). Core packs of the same commit are not byte-identical. **CR-024**; workaround in `CLAUDE.md`.
+  without models). Core packs of the same commit are not byte-identical. **CR-024**; workaround in `CLAUDE.md`. Closed by the merge below.
+- **One repository (2026-10-21, D-game-7, the owner with Claude).** The core's history was rewritten under `nlp/` (`git filter-repo`) and
+  merged; the game moved under `game/`. One `Vocaterra.sln` at the root (35 projects), shared `Directory.Build.props` and
+  `Directory.Packages.props`, `nuget.config` with nuget.org only; `Vocaterra.Game` and `Vocaterra.Host` reference the core's projects, so
+  the feed, the pack step, the submodule bump, the package-cache isolation and CR-024 are gone. The game's rule tests find `game/` by
+  `content/game-v1` instead of `Vocaterra.sln` and check for project references into `nlp/src`. `SpeechEngine` looks for
+  `nlp/models/manifest.json`. One orchestrator role file, one gate (`scripts/merge-gate.sh`, now also the core's licence scan), one parked
+  CI file. `docs/CORE_REQUESTS.md` closed: CR-014, CR-016, CR-018 were already M28b and M28c; CR-019 to CR-022 became M28d; CR-010, CR-011,
+  CR-015 and CR-017 (done in the core after the last pin) are now available to the game without a bump. Licences stay per folder (MIT
+  here, Apache-2.0 in `nlp/`). `content/game-v1/ATTRIBUTION.md` reworded (the manifest's path) and the bundle re-hashed to `fa8fb030…`;
+  the core's sample attribution keeps its old repository links because its hash is pinned in the goldens. After the merge: build 0
+  warnings, 3,585 tests pass (25 skipped, with the models folder set), format clean, licence scan 28 of 28, the sherpa
+  `libonnxruntime.so` still wins next to the executable (CR-021 holds through project references), the host and the content tool run
+  from the root. The host now falls back to the bundle found above the executable when `content/game-v1` is not in the current directory.
 
 ## 6. Definition of done (every milestone)
 
@@ -506,7 +527,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
    toast; one `--say` gives trees a third coloured. From P5 on, typed input earns half credit: the P4/P4b demos add `--typed-credit full` (or use six spaced
    uses), and the spoken demo (models in `VOCATERRA_MODELS_DIR`) `--speak "¿dónde está el árbol?"` prints `spoken heard "dónde está el
    árbol"`, `ask_directions, entendido` and the "a ocho bloques" line with the arrow.
-5. No violation of section 3: no project reference or copied source from the core, no edit under `external/`, nothing under
-   `.github/workflows/`, no engine code outside `src/Vocaterra.MonoGame`.
-6. `git status` is clean after the commit: no `.tools/`, `bin/`, `obj/` or submodule build output is staged.
+5. No violation of section 3: no copied core source, no edit under `nlp/` in a game milestone, nothing under `.github/workflows/`, no
+   engine code outside `src/Vocaterra.MonoGame`.
+6. `git status` is clean after the commit: no `bin/`, `obj/` or `nlp/artifacts/` output is staged.
 7. The milestone's line in section 5 and its row in section 4 are updated by the orchestrator, not by the agent.

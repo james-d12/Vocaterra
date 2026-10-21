@@ -217,6 +217,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M28a | Game requests, batch 2: CR-017 two-phase evaluation (analyse, then plan the response with host slots and skills computed from the analysis; one evaluation per turn) and CR-015 host-initiated agent turns (the agent speaks and moves on a host event, in the replay record and the interaction counter) | M26 | S | done |
 | M28b | Game requests, batch 2: CR-016 replies that depend on a host fact (variant or pool chosen by a host slot, or a conditional that renders only when a slot is supplied) and CR-018 lists in templates (`join` with per-part count agreement) | M26 | S | proposed |
 | M28c | Game requests, batch 2: CR-014 host-supplied expected slot values graded like an answer set (`vocab.wrong` on the span, correctness and `communicated` follow) | M26 | S | proposed |
+| M28d | Game requests, batch 3 (the last rows of the game's former `docs/CORE_REQUESTS.md`, closed when the repositories merged on 2026-10-21): CR-019 `scripts/fetch-models.sh` copies `models/manifest.json` into the destination (or `ModelStore` takes a manifest path), so a shared models folder is self-describing; CR-020 a public WAV reader and writer (mono or multi-channel 16-bit PCM to `AudioBuffer`); CR-021 the two `libonnxruntime.so` (Microsoft.ML.OnnxRuntime and sherpa-onnx) coexisting without the consumer's `ExcludeAssets="native"` workaround; CR-022 an ASR confidence that tracks the audio (for example the mean or minimum of Vosk's per-word `conf`) as `AsrResult.Confidence`, or a recognizer option for it | M26 | S | proposed |
 
 ### Delegation waves
 
@@ -865,6 +866,17 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   the game never reaches into core source (packages only, API gaps go in the requests file).
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
+- **One repository (owner, 2026-10-21; game decision D-game-7):** the core now lives under `nlp/` of
+  `james-d12/Vocaterra`, the game under `game/`; this history was rewritten under `nlp/` and merged.
+  One orchestrator (`.claude/agents/orchestrator.md` at the root), one gate (`scripts/merge-gate.sh`,
+  which runs this folder's licence scan too), one solution (`Vocaterra.sln` at the root; this folder's
+  `Vocaterra.Nlp.sln` stays for core-only work, `scripts/pack.sh` and `scripts/license-scan.sh`). The
+  game references the core's projects directly; the feed exists only for `samples/HostConsole` and a
+  consumer outside the repository (D5 superseded in that sense). The game's request file is closed:
+  its open rows are M28b, M28c and M28d; CR-024 (the pack picked up the game's `nuget.config`) is
+  closed by the root `nuget.config` (nuget.org only). A game milestone never edits `nlp/`; a core
+  change the game needs is a milestone here that names the game milestone waiting on it. Paths in this
+  plan, the docs and the tests stay relative to `nlp/`.
 
 ## 6. Definition of done (every milestone)
 
