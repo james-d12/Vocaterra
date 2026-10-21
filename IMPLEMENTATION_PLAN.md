@@ -64,7 +64,7 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 
 Where things stand, for the next orchestrator session:
 - **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4. Core pin `db39999` (no request is `done`). Tests on `main`: 329.
-- **Next:** P4b (spaced colour and the guide's review, owner's amendment of D-game-6; Sonnet 5.5), then P5 (spoken input; Sonnet 5.5) or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
+- **Next:** P4b (spaced colour and the guide's review, owner's amendment of D-game-6; Sonnet 5.5), then P6 (with the wider word list), P6b (crafting; owner 2026-10-21: crafting before caves, with stations), then P5 (spoken input; Sonnet 5.5) and P7; previously P5 or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
   the other. Then P7, P9; P8 waits on CR-006; P10 optional; G3 and G4 after P9.
 - **Core requests:** the core accepted CR-002 to CR-008 and CR-010 to CR-013 into its M26a to M26f (2026-10-21); CR-014 (P4) is `open`.
   When rows turn `done`, bump the submodule; CR-012's fix (M26a) lets the guide drop `EvaluateCountingThisUtterance`, which is a
@@ -94,8 +94,9 @@ Where things stand, for the next orchestrator session:
 | P4 | Nouns, word progress, greyscale: `game/nouns.json`, `lexicon/world.json`, `NounCatalog`, `WordProgress`, the D-game-6 rule, CPU-made grey atlas, `name_object` intent, journal | done (merged 2026-10-21, `00c6c44`) | Haiku 5.5 | P3 |
 | P4b | Spaced colour and the guide's review (D-game-6 amended): growing gaps (10 min, then 1 h, or a new session), early uses logged without colour, the guide asks "¿Qué es esto?" about a due word with the pointer on its nearest example; scripted time skip for the demo | in progress (2026-10-21) | Sonnet 5.5 | P4 |
 | P5 | Spoken input: push-to-talk, microphone (MonoGame `Microphone`, PortAudioSharp2 fallback), Vosk small, evaluation on a worker thread | planned | Sonnet 5.5 | P3 |
-| P6 | Mining, building, inventory (durability, drops, hotbar placement, 40 slots with a 10-slot hotbar, axe and pickaxe) | planned | Haiku 5.5 | P1, P2 |
-| P7 | Caves (worms, cellular automata), ores, full forest vegetation, flood-fill lighting | planned | Haiku 5.5 | P1, P6 |
+| P6 | Mining, building, inventory (durability, drops, hotbar placement, 40 slots with a 10-slot hotbar; the player starts with `hacha` and `pico`) and the **wider world of things** (section 4.3: new surface tiles and items, each in `game/nouns.json` with the colour rule) | planned, after P4b | Haiku 5.5 | P1, P2, P4b |
+| P6b | **Crafting and the guide's crafting answers** (owner, 2026-10-21; section 4.3): recipes in `game/recipes.json`, stations (`mesa`, `horno`), crafting panel; the guide answers "¿cómo hago una mesa?" (recipe, station, what is missing) and "¿dónde hay arena?" (where a material comes from and the nearest source) | planned, after P6 | Sonnet 5.5 (design), Haiku 5.5 (content) | P6 |
+| P7 | Caves (worms, cellular automata), ores, full forest vegetation, flood-fill lighting; ores `carbón`, `cobre`, `hierro`, `oro` join the catalogue and the recipes (`antorcha` from `madera` and `carbón`, metal tools at the `horno`) | planned | Haiku 5.5 | P1, P6, P6b |
 | P8 | The guide speaks (Kokoro through the core) | blocked: CR-006 | Haiku 5.5 | P5, CR-006 |
 | P9 | Save and load, playtest build and checklist | planned | Haiku 5.5 | P4, P6, P7 |
 | P10 | Godot spike (optional): the same seed and guide turn in Godot 4 .NET; a note on the cost of the move | planned (optional) | Sonnet 5.5 | P4 |
@@ -153,6 +154,42 @@ The quest giver's state machine: idle, then offering_quest (`confirm` or `deny`)
 quantity), then quest_done. Quest rewards are a game curve (`effects`); the host decides what a finished quest changes. The per-intent
 checklist of G3 applies. Answer set `quest-targets` is new. Its `report_quest` example needs at least one wrong-tense learner error to show
 the known limit above.
+
+### 4.3 The wider world of things and crafting (owner, 2026-10-21; design for P6, P6b and P7)
+
+The owner asked for more things to name and for crafting, with the guide answering how to make things and where to find materials.
+Decided: crafting comes after P6 and before P7 (surface materials first; caves add ores), and some recipes need a station (Terraria style).
+Every tile and item below is a catalogue noun in `game/nouns.json` and follows D-game-6 (spaced colour); the word list stays single-word
+nouns at A1 or A2 so the slot grammars stay simple. The agents check each lemma's noun reading and gender in the bundle's lexicon and add
+missing ones to `lexicon/world.json`; words outside A1 go to the A1 or A2 list with a note for the owner's content review.
+
+| Milestone | Tiles (in the world) | Items (in the inventory) |
+| --- | --- | --- |
+| P6 | `tierra`, `hierba`, `piedra`, `árbol`, `arena`, `flor`, `seta`; placed: `madera` (planks), `puerta`, `mesa`, `silla`, `cama`, `caja` | `madera`, `piedra`, `tierra`, `arena`, `flor`, `seta`, `hacha`, `pico` |
+| P6b | placed: `horno`, `cristal`, `ladrillo` | `espada`, `puerta`, `mesa`, `silla`, `cama`, `caja`, `horno`, `cristal`, `ladrillo` |
+| P7 | ores `carbón`, `cobre`, `hierro`, `oro` (caves) | the same, plus `antorcha` |
+
+Recipes (P6b; numbers are a first pass for the playtest, kept in `game/recipes.json`, never in code):
+
+| Station | Recipe |
+| --- | --- |
+| by hand | `mesa` ← 10 `madera` |
+| `mesa` | `puerta` ← 6 `madera`; `silla` ← 4 `madera`; `cama` ← 15 `madera`; `caja` ← 8 `madera`; `espada` ← 2 `madera` + 6 `piedra`; `horno` ← 20 `piedra` + 4 `madera` |
+| `horno` | `cristal` ← 2 `arena`; `ladrillo` ← 2 `piedra` |
+| P7 adds | `antorcha` ← 1 `madera` + 1 `carbón` (by hand); metal tools at the `horno` |
+
+The guide's crafting answers (P6b, Sonnet for the design, the content by Haiku):
+- `ask_craft`: "¿cómo hago una mesa?", "¿qué necesito para una puerta?", "¿cómo se hace un horno?". Slot `item` (a catalogue noun).
+  The answer names the ingredients with their numbers, the station, and what the player is missing from the inventory: "Para una puerta
+  necesitas seis bloques de madera. Usa la mesa." / "Te faltan dos." Mass nouns (`madera`, `piedra`, `arena`, `tierra`) are marked
+  `mass` in `nouns.json` and counted with `bloques de`.
+- `ask_find`: "¿dónde hay arena?", "¿dónde encuentro madera?", "¿de dónde sale la madera?". Slot `material`. The answer says where the
+  material comes from (`sources` in `nouns.json`: `madera` from `árbol`) and the nearest source, with the P3 arrow: "La madera sale de los
+  árboles. Hay un árbol allí, a la izquierda, a cinco bloques." The world line uses the CR-003 workaround (the game renders it).
+- An item the game does not know or has no recipe gets a pool line ("Eso no se hace.").
+- Crafting panel: recipes the player can make here, with Spanish labels drawn by the colour rule (a grey icon until the word is coloured);
+  seeing a label counts as "read", never as a spoken credit. Crafting itself is plain game logic in `Vocaterra.Simulation` (inventory
+  arithmetic, deterministic), the recipe data in the bundle, the panel in `Vocaterra.MonoGame`.
 
 ## 5. Findings log
 
