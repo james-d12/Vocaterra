@@ -9,8 +9,11 @@ public sealed class DeterminismRulesTests
     [
         "System.Random", "new Random", "Random.Shared", "Guid.NewGuid", "DateTime", "DateTimeOffset", "Stopwatch", "Environment.TickCount",
         "Math.Sin", "Math.Cos", "Math.Tan", "Math.Pow", "Math.Exp", "Math.Log", "Math.Sqrt", "MathF.", "Math.Atan", "Math.Floor", "Math.Round",
-        "using Microsoft.Xna", "using Godot",
+        "using Microsoft.Xna", "using Godot", "RandomNumberGenerator", "Math.Asin", "Math.Acos", "Math.Ceiling", "Math.Truncate",
     ];
+
+    // The 3D code (S1) is integer-only: no floating point type at all, so there is nothing for a platform to round differently.
+    private static readonly string[] FloatingPointTokens = ["double", "float", "decimal", "Single", "Double", "Half"];
 
     [Fact]
     public void SourcesUseNoClockNoSystemRandomAndNoPlatformDependentMath()
@@ -23,6 +26,21 @@ public sealed class DeterminismRulesTests
             foreach (var token in BannedTokens)
             {
                 Assert.False(code.Contains(token, StringComparison.Ordinal), $"{Path.GetFileName(file)} uses {token}.");
+            }
+        }
+    }
+
+    [Fact]
+    public void VoxelSourcesAreScannedAndUseIntegersOnly()
+    {
+        var voxel = SimulationSources().Where(f => f.Contains($"{Path.DirectorySeparatorChar}Voxel{Path.DirectorySeparatorChar}", StringComparison.Ordinal)).ToList();
+        Assert.True(voxel.Count >= 15, $"only {voxel.Count} files under Voxel/ were found");
+        foreach (var file in voxel)
+        {
+            var code = string.Join('\n', File.ReadAllLines(file).Select(StripComment));
+            foreach (var token in FloatingPointTokens)
+            {
+                Assert.False(Regex.IsMatch(code, $@"\b{token}\b"), $"{Path.GetFileName(file)} uses {token}.");
             }
         }
     }

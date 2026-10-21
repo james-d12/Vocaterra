@@ -82,6 +82,13 @@ public enum ItemId : ushort
 
     /// <summary>A ring (crafted from gold at a furnace; not placeable yet).</summary>
     Ring = 24,
+
+    /// <summary>
+    /// A berry gathered from a berry bush in the 3D voxel world (S1). Listed in <see cref="ItemDefinition.VoxelOnly"/>, not in
+    /// <see cref="ItemDefinition.All"/>: the 2D game has no berries and its noun catalogue does not name this kind (the voxel milestones that
+    /// retire the 2D slice fold the two lists together).
+    /// </summary>
+    Berry = 25,
 }
 
 /// <summary>The tools a tile can require. <see cref="None"/> is the hand.</summary>
@@ -143,20 +150,34 @@ public sealed record ItemDefinition(ItemId Id, string Name, int MaxStack, ToolKi
         new(ItemId.Ring, "ring", ToolStackLimit, ToolKind.None, null),
     ];
 
-    /// <summary>Every item kind, ordered by id.</summary>
+    private static readonly ItemDefinition[] VoxelTable =
+    [
+        new(ItemId.Berry, "berry", DefaultStackLimit, ToolKind.None, null),
+    ];
+
+    /// <summary>Every item kind of the 2D game, ordered by id (the 3D-only kinds are in <see cref="VoxelOnly"/>).</summary>
     public static IReadOnlyList<ItemDefinition> All => Table;
+
+    /// <summary>The item kinds only the 3D voxel world uses (S1), ordered by id; they follow the last id of <see cref="All"/>.</summary>
+    public static IReadOnlyList<ItemDefinition> VoxelOnly => VoxelTable;
 
     /// <summary>The definition of <paramref name="id"/>.</summary>
     /// <exception cref="ArgumentOutOfRangeException">The id has no definition.</exception>
     public static ItemDefinition Get(ItemId id)
     {
         var index = (int)id;
-        if ((uint)index >= (uint)Table.Length)
+        if ((uint)index < (uint)Table.Length)
         {
-            throw new ArgumentOutOfRangeException(nameof(id), id, "No item definition for this id.");
+            return Table[index];
         }
 
-        return Table[index];
+        var voxelIndex = index - Table.Length;
+        if ((uint)voxelIndex < (uint)VoxelTable.Length)
+        {
+            return VoxelTable[voxelIndex];
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(id), id, "No item definition for this id.");
     }
 }
 
