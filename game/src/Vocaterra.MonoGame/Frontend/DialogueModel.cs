@@ -210,7 +210,7 @@ public sealed class DialogueModel
     /// Shows a finished turn: for a spoken one the transcript, then the verdict note and the guide's lines. A request that failed shows its
     /// problem as a hint. Returns the turn, or <see langword="null"/> when there was none.
     /// </summary>
-    /// <param name="applied">What <c>GameSession.Collect</c> returned for the request.</param>
+    /// <param name="applied">What <c>GuideSession.Collect</c> returned for the request.</param>
     public GuideTurn? Complete(AppliedTurn applied)
     {
         ArgumentNullException.ThrowIfNull(applied);

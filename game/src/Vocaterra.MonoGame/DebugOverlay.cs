@@ -15,7 +15,7 @@ public sealed class DebugOverlay : IFrameLayer
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
     {
-        var sim = view.Simulation;
+        var sim = view.Simulation!; // the 2D debug overlay: a 3D run draws VoxelDebugOverlay instead
         var mouseTile = view.Mouse is { } m ? view.Camera.ScreenToTile(m.X, m.Y) : (TilePoint?)null;
         var lines = DebugText.Lines(view.Fps, sim.Tick, sim.Player.FeetTile, view.Seed, mouseTile);
         var font = view.Fonts.Get(FontProvider.NativeSize);

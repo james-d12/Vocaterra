@@ -4,6 +4,7 @@ using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Language.Morphology;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Tiles;
+using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game;
 
@@ -21,6 +22,7 @@ namespace Vocaterra.Game;
 /// <param name="Mass">Whether the noun is a mass noun, counted as <c>bloques de</c> (<c>madera</c>, <c>arena</c>).</param>
 /// <param name="Sources">The catalogue nouns this one comes from (<c>madera</c> from <c>árbol</c>), for the guide's "where is it" answers.</param>
 /// <param name="Deep">Whether the noun lies underground (the ores): when the guide finds none in its search, it says so as "Está muy abajo."</param>
+/// <param name="Blocks">The 3D block kinds it names (<c>agua</c> and <c>río</c> both name the water). Several nouns may name one block; the first one by lemma is its noun.</param>
 public sealed record NounEntry(
     string Lemma,
     string Gender,
@@ -31,7 +33,8 @@ public sealed record NounEntry(
     string Plural,
     bool Mass,
     IReadOnlyList<string> Sources,
-    bool Deep = false)
+    bool Deep,
+    IReadOnlyList<BlockId> Blocks)
 {
     /// <summary>The noun with its definite article: <c>el árbol</c>.</summary>
     public string WithDefinite => $"{Definite} {Lemma}";
@@ -57,6 +60,7 @@ public sealed class NounCatalog
     private readonly Dictionary<string, NounEntry> _byLemma;
     private readonly Dictionary<TileId, NounEntry> _byTile;
     private readonly Dictionary<ItemId, NounEntry> _byItem;
+    private readonly Dictionary<BlockId, List<NounEntry>> _byBlock;
     private readonly HashSet<TileId> _colourless;
 
     private NounCatalog(IReadOnlyList<NounEntry> nouns, IReadOnlyList<TileId> colourless)
@@ -64,6 +68,7 @@ public sealed class NounCatalog
         _byLemma = new Dictionary<string, NounEntry>(StringComparer.Ordinal);
         _byTile = [];
         _byItem = [];
+        _byBlock = [];
         foreach (var noun in nouns)
         {
             _byLemma.Add(noun.Lemma, noun);
@@ -75,6 +80,20 @@ public sealed class NounCatalog
             foreach (var item in noun.Items)
             {
                 _byItem.Add(item, noun);
+            }
+        }
+
+        // Ordinal by lemma, so the first noun of a block is the same on every machine (agua before río, casa before tienda).
+        foreach (var noun in nouns.OrderBy(static n => n.Lemma, StringComparer.Ordinal))
+        {
+            foreach (var block in noun.Blocks)
+            {
+                if (!_byBlock.TryGetValue(block, out var named))
+                {
+                    _byBlock[block] = named = [];
+                }
+
+                named.Add(noun);
             }
         }
 
@@ -149,7 +168,10 @@ public sealed class NounCatalog
             var sources = item.TryGetProperty("sources", out var sourceValues)
                 ? sourceValues.EnumerateArray().Select(s => s.GetString() ?? string.Empty).ToList()
                 : new List<string>();
-            nouns.Add(Describe(bundle, lemma, tiles, items, mass, sources, deep));
+            var blocks = item.TryGetProperty("blocks", out var blockValues)
+                ? blockValues.EnumerateArray().Select(b => BlockNamed(b.GetString())).ToList()
+                : new List<BlockId>();
+            nouns.Add(Describe(bundle, lemma, tiles, items, blocks, mass, sources, deep));
         }
 
         var colourless = root.GetProperty("colourless").EnumerateArray().Select(t => TileNamed(t.GetString())).ToList();
@@ -192,6 +214,15 @@ public sealed class NounCatalog
     /// <summary>Whether a tile kind is listed as colourless (always in colour).</summary>
     public bool IsColourless(TileId tile) => _colourless.Contains(tile);
 
+    /// <summary>The first catalogue noun that names a 3D block kind (by lemma order), or <see langword="null"/> when none does.</summary>
+    public NounEntry? ForBlock(BlockId block) => _byBlock.TryGetValue(block, out var named) ? named[0] : null;
+
+    /// <summary>Every catalogue noun that names a 3D block kind, in lemma order (empty when none does).</summary>
+    public IReadOnlyList<NounEntry> NounsOfBlock(BlockId block) => _byBlock.TryGetValue(block, out var named) ? named : [];
+
+    /// <summary>The 3D block kinds a catalogue noun names (empty for a noun with no block, or an unknown lemma).</summary>
+    public IReadOnlyList<BlockId> BlocksOf(string lemma) => ForLemma(lemma)?.Blocks ?? [];
+
     /// <summary>
     /// The catalogue noun a word reading names, or <see langword="null"/> when the reading is not a noun of the catalogue. The reading is the
     /// one the core's resolver chose (<see cref="GuideWord"/>), so the word counts follow the verdict's analysis (CR-002).
@@ -214,9 +245,10 @@ public sealed class NounCatalog
         throw new InvalidDataException($"{RelativePath} names an unknown tile '{name}'.");
     }
 
+    // The 2D items, then the 3D-only ones (the berry, S1): a noun names either kind.
     private static ItemId ItemNamed(string? name)
     {
-        foreach (var definition in ItemDefinition.All)
+        foreach (var definition in ItemDefinition.All.Concat(ItemDefinition.VoxelOnly))
         {
             if (string.Equals(definition.Name, name, StringComparison.Ordinal))
             {
@@ -227,11 +259,15 @@ public sealed class NounCatalog
         throw new InvalidDataException($"{RelativePath} names an unknown item '{name}'.");
     }
 
+    private static BlockId BlockNamed(string? name) =>
+        BlockDefinition.FromName(name)?.Id ?? throw new InvalidDataException($"{RelativePath} names an unknown block '{name}'.");
+
     private static NounEntry Describe(
         ContentBundle bundle,
         string lemma,
         IReadOnlyList<TileId> tiles,
         IReadOnlyList<ItemId> items,
+        IReadOnlyList<BlockId> blocks,
         bool mass,
         IReadOnlyList<string> sources,
         bool deep)
@@ -251,6 +287,7 @@ public sealed class NounCatalog
             morphology.Pluralize(lemma),
             mass,
             sources,
-            deep);
+            deep,
+            blocks);
     }
 }

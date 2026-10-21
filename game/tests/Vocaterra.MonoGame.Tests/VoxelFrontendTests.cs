@@ -9,7 +9,7 @@ public sealed class VoxelFrontendTests
     // A pitch in angle steps, signed (Angles.FromDegrees wraps into [0, 4096), which the simulation would clamp to straight up).
     private static int Pitch(double degrees) => (int)Math.Round(LookControl.DegreesToSteps(degrees));
 
-    private static Scene RouteScene(ulong seed = 42) => SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "scenes", "route-draft.json")), seed);
+    private static Scene RouteScene(ulong seed = 42) => SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), seed);
 
     // ---- the look ----
 
@@ -413,23 +413,22 @@ public sealed class VoxelFrontendTests
         sim.TeleportTo(new BlockPos(11, 11, 17));
         sim.Step([VoxelCommand.Look(Angles.FromDegrees(270), Pitch(-24))]);
         var lines = VoxelDebugText.Lines(60, sim, 42, sim.Player.Yaw, sim.Player.Pitch);
-        Assert.Equal(4, lines.Count);
+        Assert.Equal(3, lines.Count); // the 2D test line is not part of the 3D overlay (S3)
         Assert.StartsWith("3D", lines[0], StringComparison.Ordinal);
         Assert.Contains("seed 42", lines[0], StringComparison.Ordinal);
         Assert.Contains("pos (11.5, 11.0, 17.5)", lines[1], StringComparison.Ordinal);
         Assert.Contains("yaw 270", lines[1], StringComparison.Ordinal);
         Assert.StartsWith("target: trunk (9, 11, 17)", lines[2], StringComparison.Ordinal);
-        Assert.Equal(DebugText.SpanishTestLine, lines[3]);
     }
 
     [Fact]
-    public void TheSceneLocatorPrefersTheNamedFileThenTheBundlesThenTheDraftRoute()
+    public void TheSceneLocatorPrefersTheNamedFileThenTheBundlesOwnScene()
     {
         var bundle = Repo.Path("content", "game-v1");
         var resolved = SceneLocator.Resolve(null, bundle);
         Assert.True(File.Exists(resolved));
-        Assert.EndsWith("route-draft.json", resolved, StringComparison.Ordinal); // until S3 moves the scene into the bundle
-        var explicitFile = Repo.Path("content", "scenes", "route-draft.json");
+        Assert.EndsWith("game/scene.json", resolved.Replace('\\', '/'), StringComparison.Ordinal); // the bundle's own scene (S3)
+        var explicitFile = Repo.Path("content", "game-v1", "game", "scene.json");
         Assert.Equal(explicitFile, SceneLocator.Resolve(explicitFile, bundle));
         Assert.Throws<FileNotFoundException>(() => SceneLocator.Resolve(Repo.Path("content", "no-such-scene.json"), bundle));
         Assert.Throws<FileNotFoundException>(() => SceneLocator.Resolve(null, Path.Combine(Path.GetTempPath(), "vocaterra-no-bundle")));
@@ -445,6 +444,6 @@ public sealed class VoxelFrontendTests
         _ = tracker.Due();
         _ = ChunkMesher.Build(new GridBlockSource(scene.Grid), 1, 0, 1);
         Assert.Equal(before, scene.Grid.ComputeDigestHex());
-        Assert.StartsWith("dc14aa93", before, StringComparison.Ordinal);
+        Assert.StartsWith("d27347a6", before, StringComparison.Ordinal);
     }
 }

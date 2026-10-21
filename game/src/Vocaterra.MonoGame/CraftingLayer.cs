@@ -44,7 +44,7 @@ public sealed class CraftingLayer : IFrameLayer
         var viewport = new Rectangle(0, 0, view.Camera.ViewportWidth, view.Camera.ViewportHeight);
         spriteBatch.Draw(pixel, viewport, new Color(6, 6, 14, 150));
 
-        var rows = CraftingScreen.Rows(view.Simulation, view.Session.Recipes);
+        var rows = CraftingScreen.Rows(view.Simulation!, view.Session.Recipes);
         var layout = new CraftingLayout(viewport.Width, viewport.Height, rows.Count);
         var panel = new Rectangle(layout.X, layout.Y, layout.Width, layout.Height);
         spriteBatch.Draw(pixel, panel, new Color(18, 18, 34, 250));

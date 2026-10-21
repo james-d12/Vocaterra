@@ -1,9 +1,10 @@
 {
   // The first draft of the prototype route (SCENARIO_PLAN S1 and S3): a forest clearing with the camp, a path south-east, the
-  // village (stall, three houses, a signpost), the riverbank (water, a bridge). Hand-authored; S3 moves it into the content bundle.
+  // village (stall, three houses, a signpost), the riverbank (water, a bridge). Hand-authored; it lives in the bundle (S3). The stall's
+  // counter faces north, the shopkeeper stands behind it, the villager stands on the square, facing south towards the path to the river.
   // x runs east, z runs south, y is up. One string per row (north first), one character per column (west first).
   "schemaVersion": 1,
-  "name": "route-draft",
+  "name": "prototype-route",
   "size": { "x": 96, "y": 32, "z": 96 },
   "waterLevel": 7,
 
@@ -229,7 +230,7 @@
     {"type": "bush", "x": 29, "z": 20},
     {"type": "bush", "x": 14, "z": 16},
     {"type": "signpost", "x": 58, "z": 55, "name": "signpost"},
-    {"type": "stall", "x": 60, "z": 58, "width": 5, "depth": 2, "facing": "south", "name": "stall"},
+    {"type": "stall", "x": 60, "z": 58, "width": 5, "depth": 2, "facing": "north", "name": "stall"},
     {"type": "house", "x": 71, "z": 55, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "house1"},
     {"type": "house", "x": 71, "z": 62, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "house2"},
     {"type": "house", "x": 51, "z": 61, "width": 5, "depth": 5, "height": 3, "facing": "east", "name": "house3"},
@@ -238,8 +239,8 @@
 
   "npcs": [
     {"name": "guide", "x": 25, "z": 21, "facing": "west"},
-    {"name": "shopkeeper", "x": 62, "z": 58, "facing": "south"},
-    {"name": "villager", "x": 66, "z": 64, "facing": "north"}
+    {"name": "shopkeeper", "x": 62, "z": 59, "facing": "north"},
+    {"name": "villager", "x": 63, "z": 66, "facing": "south"}
   ],
 
   "spawn": { "x": 17, "z": 17, "facing": 120 },

@@ -30,7 +30,7 @@ public sealed record NearestTile(TilePoint Tile, TileId Kind, int Dx, int Dy)
 /// machine. The words are the pointing map (<c>árbol</c> is a trunk, <c>piedra</c> is stone); which tile is which noun for the colour of the
 /// world is the bundle's <c>game/nouns.json</c> (<see cref="NounCatalog"/>), and the two agree on every noun the guide can point at.
 /// </summary>
-public sealed class WorldFacts
+public sealed class WorldFacts : IGuideFacts
 {
     /// <summary>How far from the start the search looks, in tiles on each axis.</summary>
     public const int DefaultRadius = 64;
@@ -255,6 +255,22 @@ public sealed class WorldFacts
 
     /// <summary>The nearest tile that a Spanish noun names (see <see cref="TilesOfNoun"/>), or <see langword="null"/>.</summary>
     public NearestTile? NearestOfNoun(TilePoint from, string lemma, int radius = DefaultRadius) => Nearest(from, TilesOfNoun(lemma), radius);
+
+    /// <summary>The nearest tile of a noun from a viewpoint, as the guide's facts (the 2D slice reads the viewpoint's cell only).</summary>
+    GuideNearest? IGuideFacts.NearestOfNoun(GuideViewpoint from, string lemma)
+    {
+        var found = NearestOfNoun(from.Cell.ToTile(), lemma);
+        return found is null
+            ? null
+            : new GuideNearest(new GuideCell(found.Tile.X, found.Tile.Y, 0), found.Blocks, found.Direction, ((long)found.Dx * found.Dx) + ((long)found.Dy * found.Dy));
+    }
+
+    /// <summary>The noun of the tile at a cell, as a list (empty for air and for a tile no noun names).</summary>
+    IReadOnlyList<string> IGuideFacts.NounsAt(GuideCell cell)
+    {
+        var noun = NounOfTile(TileAt(cell.ToTile()));
+        return noun is null ? [] : [noun];
+    }
 
     private static bool Contains(IReadOnlyCollection<TileId> kinds, TileId tile)
     {

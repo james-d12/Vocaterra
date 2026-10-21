@@ -30,7 +30,7 @@ public sealed class PointerLayer : IFrameLayer
         var target = new Vector2(tileLeft + (size / 2f), tileTop + (size / 2f));
         var viewport = new Rectangle(0, 0, camera.ViewportWidth, camera.ViewportHeight);
         var pixel = view.Pixel;
-        var tick = view.Simulation.Tick;
+        var tick = view.Simulation!.Tick;
         var font = view.Fonts.Get(FontProvider.NativeSize);
 
         var playerBox = view.PlayerUnits;

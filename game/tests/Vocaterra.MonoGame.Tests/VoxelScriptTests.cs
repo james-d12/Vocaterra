@@ -12,7 +12,7 @@ public sealed class VoxelScriptTests
     {
         public Run(params VoxelStep[] steps)
         {
-            Scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "scenes", "route-draft.json")), 42);
+            Scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), 42);
             Sim = VoxelSimulation.Create(Scene);
             Look = new LookControl();
             Look.Set(Scene.Spawn.Yaw, 0);

@@ -92,12 +92,12 @@ public sealed class GuideService
 
     private readonly ContentBundle _bundle;
     private readonly TypedUtteranceEvaluator _evaluator;
-    private readonly WorldFacts _worldFacts;
+    private readonly IGuideFacts _worldFacts;
     private readonly NounCatalog _nouns;
     private readonly RecipeBook _recipes;
     private volatile ConversationContext _context;
     private volatile SpokenUtteranceEvaluator? _spoken;
-    private WorldFacts _facts;
+    private IGuideFacts _facts;
 
     /// <summary>Starts the conversation: the guide in its initial state, a learner model with no evidence and no repeat counts.</summary>
     /// <param name="bundle">The content bundle; it must hold the <c>guide</c> agent and the <c>guide-open</c> prompt.</param>
@@ -107,7 +107,7 @@ public sealed class GuideService
     /// <param name="start">The stored time before the first turn.</param>
     /// <param name="recipes">The bundle's recipes, for the crafting answers; read from the bundle when <see langword="null"/>.</param>
     /// <exception cref="ArgumentException">The bundle has no guide.</exception>
-    public GuideService(ContentBundle bundle, WorldFacts facts, NounCatalog nouns, ulong worldSeed, StoredTimestamp start, RecipeBook? recipes = null)
+    public GuideService(ContentBundle bundle, IGuideFacts facts, NounCatalog nouns, ulong worldSeed, StoredTimestamp start, RecipeBook? recipes = null)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         ArgumentNullException.ThrowIfNull(facts);
@@ -373,7 +373,7 @@ public sealed class GuideService
     }
 
     // The point-at line for the nearest tile of a noun (or the here / none line), with the arrow.
-    private (string Line, GuidePointer? Pointer) PointAt(string place, NearestTile? found, SeededRng rng, Dictionary<string, string> facts)
+    private (string Line, GuidePointer? Pointer) PointAt(string place, GuideNearest? found, SeededRng rng, Dictionary<string, string> facts)
     {
         var values = new Dictionary<string, string>(StringComparer.Ordinal) { ["place"] = place };
         if (found is null)
@@ -388,14 +388,14 @@ public sealed class GuideService
         if (found.Blocks == 0)
         {
             Merge(facts, values);
-            return (Render(PointHere, SlotMap.From(values), rng), new GuidePointer(place, found.Tile, 0, string.Empty));
+            return (Render(PointHere, SlotMap.From(values), rng), new GuidePointer(place, found.Cell, 0, string.Empty));
         }
 
         values["direction"] = found.Direction;
         values["count"] = found.Blocks.ToString(System.Globalization.CultureInfo.InvariantCulture);
         values["unit"] = BlockUnit;
         Merge(facts, values);
-        return (Render(PointFound, SlotMap.From(values), rng), new GuidePointer(place, found.Tile, found.Blocks, found.Direction));
+        return (Render(PointFound, SlotMap.From(values), rng), new GuidePointer(place, found.Cell, found.Blocks, found.Direction));
     }
 
     // How many of a catalogue noun's items the player carries (zero when the noun is unknown or the scene has no inventory).
@@ -437,11 +437,11 @@ public sealed class GuideService
         var noun = _nouns.ForLemma(material);
         IReadOnlyList<string> sources = noun is { Sources.Count: > 0 } ? noun.Sources : [material];
         var bestSource = sources[0];
-        NearestTile? best = null;
+        GuideNearest? best = null;
         foreach (var source in sources)
         {
             var near = _facts.NearestOfNoun(scene.Player, source);
-            if (near is not null && (best is null || SquaredDistance(near) < SquaredDistance(best)))
+            if (near is not null && (best is null || near.Distance2 < best.Distance2))
             {
                 best = near;
                 bestSource = source;
@@ -462,7 +462,6 @@ public sealed class GuideService
         return (string.Join(' ', lines), pointer);
     }
 
-    private static long SquaredDistance(NearestTile tile) => ((long)tile.Dx * tile.Dx) + ((long)tile.Dy * tile.Dy);
 
     // How to make something: the ingredients with their numbers, the station, and what the player still lacks.
     private string Craft(Verdict verdict, GuideScene scene, SeededRng rng, Dictionary<string, string> facts)
@@ -545,7 +544,9 @@ public sealed class GuideService
     // earns no colour (D-game-6 as amended).
     private (string Line, NameCheck Check, string? Target) Name(Verdict verdict, GuideScene scene, SeededRng rng, Dictionary<string, string> facts)
     {
-        var target = scene.Cursor is { } cursor ? NounAt(cursor) : null;
+        // A thing may have several nouns (the water is agua and río): the name is right when it is any of them; the guide says the first.
+        var names = scene.Cursor is { } cursor ? _facts.NounsAt(cursor) : [];
+        var target = names.FirstOrDefault();
         if (target is null)
         {
             return (Render(NameNone, SlotMap.Empty, rng), NameCheck.NoTarget, null);
@@ -553,7 +554,7 @@ public sealed class GuideService
 
         facts["target"] = target;
         var named = verdict.Slots.TryGetValue("object", out var lemma) ? lemma : string.Empty;
-        var right = named == target && verdict.Errors.Count == 0;
+        var right = names.Contains(named, StringComparer.Ordinal) && verdict.Errors.Count == 0;
         return (Render(right ? NameRight : NameWrong, SlotMap.Empty.With("target", target), rng), right ? NameCheck.Right : NameCheck.Wrong, target);
     }
 
@@ -565,7 +566,7 @@ public sealed class GuideService
         }
     }
 
-    private string? NounAt(TilePoint tile) => WorldFacts.NounOfTile(_facts.TileAt(tile));
+    private string? NounAt(GuideCell cell) => _facts.NounsAt(cell).FirstOrDefault();
 
     private string Render(string poolId, SlotMap slots, SeededRng rng)
     {

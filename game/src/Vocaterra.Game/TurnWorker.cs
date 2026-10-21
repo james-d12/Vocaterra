@@ -79,7 +79,7 @@ public sealed record SpeechLoad(double GuideMilliseconds, double SpeechMilliseco
 /// The one thread that evaluates turns. It owns the Vosk recognizer (one instance, loaded and used and disposed on this thread only: core
 /// API section 8) and the conversation (<see cref="GuideService"/>), so the frame never waits for a decode or an evaluation. The game thread
 /// <see cref="Submit"/>s requests with their inputs fixed, the worker runs them in order, and the game thread <see cref="TryTake"/>s the
-/// outcomes in the same order and applies them (<see cref="GameSession.Collect"/>). Starting it loads the models (the loading screen waits
+/// outcomes in the same order and applies them (<see cref="GuideSession.Collect"/>). Starting it loads the models (the loading screen waits
 /// for <see cref="IsReady"/>).
 /// </summary>
 /// <remarks>

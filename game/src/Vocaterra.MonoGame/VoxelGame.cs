@@ -11,23 +11,23 @@ using Vocaterra.Simulation.Voxel;
 namespace Vocaterra.MonoGame;
 
 /// <summary>
-/// The engine host of the 3D first-person scene (<c>--voxel</c>, S2). Each frame it turns the real clock into whole ticks, reads the keyboard and
-/// the mouse (or the scripted run) into <see cref="VoxelCommand"/>s and steps the <see cref="VoxelSimulation"/>; then it places the
-/// <see cref="FirstPersonCamera"/> at the interpolated eye, draws the voxel world with <see cref="VoxelRenderer"/> and the 2D layers over it.
-/// All rules live in <c>Vocaterra.Simulation</c> and the plain classes under <c>Frontend/</c>.
+/// The engine host of the 3D first-person scene (<c>--voxel</c>, S2 and S3). Each frame it turns the real clock into whole ticks, reads the
+/// keyboard and the mouse (or the scripted run) into <see cref="VoxelCommand"/>s and steps the <see cref="VoxelSession"/>'s simulation; then it
+/// places the <see cref="FirstPersonCamera"/> at the interpolated eye, draws the voxel world with <see cref="VoxelRenderer"/> and the 2D layers
+/// over it. All rules live in <c>Vocaterra.Simulation</c>, <c>Vocaterra.Game</c> and the plain classes under <c>Frontend/</c>.
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>What works in 3D (S2):</b> walking (WASD or the arrows, Space to jump), mouse look in relative mode (Esc lets the mouse go, a click takes
-/// it again), gathering by holding the left button on a trunk or a berry bush, placing the selected item with the right button, the hotbar (number
-/// keys and the wheel), the inventory (I or E), the journal (J), the debug overlay (F3), toasts for what was picked up, the NPC figures with their
-/// names, the beacon column and its edge arrow, and the scripted run (<c>--look</c>, <c>--walk-to</c>, <c>--interact</c>, <c>--place</c>,
-/// <c>--select</c>, <c>--beacon</c>, <c>--screenshot</c>).
+/// <b>What works in 3D.</b> Walking (WASD or the arrows, Space to jump), mouse look in relative mode (Esc lets the mouse go, a click takes it
+/// again), gathering by holding the left button on a trunk or a berry bush, placing with the right button, the hotbar, the inventory (I, or E
+/// when the crosshair is not on the guide), the journal (J), the debug overlay (F3), toasts, the NPC figures with their names, the beacon column
+/// and its edge arrow, and the guide: aim the crosshair at her figure and press E (or T to type, V to talk) to open the panel. Her answers
+/// point the beacon at the named noun's nearest block; "¿qué es esto?" names the block under the crosshair. The panel takes the keyboard and
+/// frees the mouse while it is open. The sign reads <c>Tienda / Río</c>.
 /// </para>
 /// <para>
-/// <b>What does not work yet:</b> the guide. T and V do nothing, no turn worker is started (so no Vosk, no Kokoro, no loading screen), and the
-/// dialogue panel and the crafting panel are not shown; S3 wires the guide to the 3D world, S4 the crafting. The session still exists (the word
-/// counts, the journal, the nouns), and its 2D world is created but never stepped.
+/// <b>Script steps.</b> <c>--look</c>, <c>--walk-to</c>, <c>--interact</c>, <c>--place</c>, <c>--select</c>, <c>--beacon</c>, <c>--journal</c>,
+/// <c>--inventory</c>, and <c>--say</c> (walk to the guide, open the panel, type and send each line; the scripted run waits for each reply).
 /// </para>
 /// </remarks>
 public sealed class VoxelGame : Microsoft.Xna.Framework.Game
@@ -36,11 +36,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private const int StartHeight = 720;
     private const int SettleTicks = 30;
     private const int RunawayTicks = 60 * 60 * 5;
+    private const string GuideName = "guide";
 
     private static readonly Keys[] SlotKeys = [Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9, Keys.D0];
 
     private readonly LaunchOptions _options;
-    private readonly GameSession _session;
+    private readonly VoxelSession _session;
     private readonly Scene _scene;
     private readonly VoxelSimulation _sim;
     private readonly GraphicsDeviceManager _graphics;
@@ -53,12 +54,18 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly MouseLook _mouseLook = new();
     private readonly LiveVoxelInput _live = new();
     private readonly VoxelScript? _script;
+    private readonly VoxelSayScript? _say;
     private readonly InputFocus _focus = new();
     private readonly DialogueModel _dialogue;
+    private readonly TurnPump _pump;
+    private readonly PushToTalk _talk;
+    private readonly KeyRepeater _backspace = new();
+    private readonly KeyRepeater _delete = new();
+    private readonly KeyRepeater _left = new();
+    private readonly KeyRepeater _right = new();
     private readonly JournalModel _journal = new();
     private readonly ToastQueue _toasts = new();
     private readonly InventoryScreen _inventory = new();
-    private readonly CraftingScreen _crafting = new();
     private readonly Camera _screenCamera = new(1, 1, 1);
     private readonly BusyFrameStats _draws = new();
     private readonly BusyFrameStats _frames = new();
@@ -86,15 +93,23 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private int _settled;
     private bool _shown;
     private double _lastDrawEnd = -1;
+    private Keys _listenKey = Keys.None;
+    private char? _swallowedOpenKey;
+    private int _swallowFrames;
+    private NpcFigure? _aimed;
+    private PointerMarker? _shownPointer;
 
-    /// <summary>Creates the 3D game for a started session and a built scene.</summary>
-    public VoxelGame(LaunchOptions options, GameSession session, Scene scene)
+    /// <summary>Creates the 3D game for a started session (its simulation is the scene's) and the built scene.</summary>
+    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene)
     {
         _options = options;
         _session = session;
         _scene = scene;
-        _sim = VoxelSimulation.Create(scene);
+        _sim = session.Simulation;
         _dialogue = new DialogueModel(_focus, session.OpeningLine);
+        var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
+        _talk = new PushToTalk(microphone);
+        _pump = new TurnPump(session, _dialogue, CursorCell);
         _look.Set(scene.Spawn.Yaw, 0);
         _currentEye = _previousEye = EyeBlocks();
         if (options.IsScreenshotRun)
@@ -103,6 +118,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             if (options.VoxelSteps.Count > 0)
             {
                 _script = new VoxelScript(_sim, _look, options.VoxelSteps, ResolveItem, Console.WriteLine);
+            }
+
+            if (options.Says.Count > 0)
+            {
+                _say = new VoxelSayScript(session, _look, _dialogue, options.Says, Console.WriteLine);
             }
         }
         else
@@ -121,6 +141,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
         Window.Title = $"Vocaterra 3D (seed {options.Seed})";
+        Window.TextInput += OnTextInput;
+        _session.StartWorker(MonotonicClock.Milliseconds, options.NeedsSpeech);
     }
 
     /// <summary>The process exit code: 0 unless the screenshot could not be saved.</summary>
@@ -131,6 +153,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
     /// <summary>The 3D simulation (read it; commands go through the game's input).</summary>
     public VoxelSimulation Simulation => _sim;
+
+    /// <summary>The 3D game's session: the guide, the words and the arrow.</summary>
+    public VoxelSession Session => _session;
 
     /// <inheritdoc />
     protected override void LoadContent()
@@ -162,7 +187,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         _view = new FrameView
         {
-            Simulation = _session.Simulation,
             Session = _session,
             Dialogue = _dialogue,
             Camera = _screenCamera,
@@ -173,7 +197,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Journal = _journal,
             Toasts = _toasts,
             Inventory = _inventory,
-            Crafting = _crafting,
+            Crafting = new CraftingScreen(),
             Voxel = _sim,
             Camera3D = _camera,
             Beacon = Beacon,
@@ -183,12 +207,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _layers.Add(new HeldItemLayer());
         _layers.Add(new CrosshairLayer());
         _layers.Add(new NpcLabelLayer());
+        _layers.Add(new WorldLabelLayer([new WorldLabel("Tienda / Río", _scene.Point("signpost").X + 0.5f, _scene.Point("signpost").Y + 4.2f, _scene.Point("signpost").Z + 0.5f)]));
         _layers.Add(new BeaconArrowLayer());
+        _layers.Add(new TalkHintLayer());
         _layers.Add(_debug);
         _layers.Add(new HotbarLayer());
+        _layers.Add(new DialoguePanel());
         _layers.Add(new ToastLayer());
         _layers.Add(new JournalLayer());
         _layers.Add(new InventoryLayer());
+        _layers.Add(new LoadingLayer());
     }
 
     /// <inheritdoc />
@@ -210,13 +238,19 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             ReadInput();
         }
 
+        ApplyFinishedTurns();
         var steps = _accumulator.Advance(seconds);
         for (var i = 0; i < steps; i++)
         {
             StepOnce();
         }
 
-        if (_script is null || _script.IsDone)
+        PumpTalk();
+        _pump.Submit();
+        SyncBeacon();
+        _aimed = AimedFigure();
+
+        if ((_script is null || _script.IsDone) && (_say is null || _say.IsDone))
         {
             _settled++;
             if (!_shown)
@@ -260,6 +294,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.Eye = eye;
         view.Look = (_look.YawSteps, _look.PitchSteps);
         view.Fps = _stats.Fps;
+        view.Aimed = _aimed;
+        view.Loading = _session.Worker!.IsReady ? null : LoadingLayer.Text;
         var mouse = Mouse.GetState();
         view.Mouse = !_options.IsScreenshotRun && GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? mouse.Position : null;
 
@@ -286,7 +322,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         base.Draw(gameTime);
 
         if (_options.ScreenshotPath is { } path
-            && ((_sim.Tick >= _options.Frames && _settled >= SettleTicks && (_script?.IsDone ?? true)) || _sim.Tick > RunawayTicks))
+            && ((_sim.Tick >= _options.Frames && _settled >= SettleTicks && _session.Worker!.IsReady && _session.PendingTurns == 0 && !_dialogue.SubmitRequested)
+                || _sim.Tick > RunawayTicks))
         {
             ExitCode = ScreenshotWriter.TrySave(GraphicsDevice, path) ? 0 : 1;
             Console.WriteLine($"scene draw (voxel world, layers, flush): {_draws.Summary()}");
@@ -301,6 +338,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <inheritdoc />
     protected override void UnloadContent()
     {
+        Window.TextInput -= OnTextInput;
+        _session.StopWorker(); // the worker disposes the recognizer on its own thread
         _renderer?.Dispose();
         _blockAtlas?.Dispose();
         _tileAtlas?.Dispose();
@@ -339,19 +378,23 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private void StepOnce()
     {
         _commands.Clear();
-        if (_script is not null)
+        if (_script is { IsDone: false })
         {
             _script.Fill(_scripted);
             _commands.AddRange(_scripted);
         }
-        else
+        else if (_say is { IsDone: false })
+        {
+            _say.Fill(_commands);
+        }
+        else if (!_dialogue.IsOpen)
         {
             _live.Fill(_commands);
         }
 
         // The look goes first: it is absolute and every other command of the tick uses the facing it sets.
         _commands.Insert(0, VoxelCommand.Look(_look.Yaw, _look.Pitch));
-        _sim.Step(_commands);
+        _session.Step(_commands);
         _ease.Tick(_sim.Player.SteppedUp);
         _previousEye = _currentEye;
         _currentEye = EyeBlocks();
@@ -371,12 +414,21 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // Keys and mouse, once per frame, for the interactive run. The device state becomes this frame's commands (LiveVoxelInput) and the look.
     private void ReadInput()
     {
+        if (_swallowFrames > 0 && --_swallowFrames == 0)
+        {
+            _swallowedOpenKey = null;
+        }
+
         var keys = Keyboard.GetState();
         var mouse = Mouse.GetState();
         bool Pressed(Keys key) => keys.IsKeyDown(key) && !_previousKeys.IsKeyDown(key);
         if (IsActive)
         {
-            if (_journal.IsOpen)
+            if (_dialogue.IsOpen)
+            {
+                ReadDialogueKeys(keys, Pressed);
+            }
+            else if (_journal.IsOpen)
             {
                 if (Pressed(Keys.Escape) || Pressed(Keys.J))
                 {
@@ -388,6 +440,19 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 if (Pressed(Keys.Escape) || Pressed(Keys.I) || Pressed(Keys.E))
                 {
                     CloseInventory();
+                }
+            }
+            else if (_aimed is not null && (Pressed(Keys.E) || Pressed(Keys.T) || Pressed(Keys.V)))
+            {
+                // The crosshair is on the guide: E or T opens the panel; V opens it and starts listening (as in the 2D slice).
+                if (Pressed(Keys.V))
+                {
+                    OpenDialogue(null);
+                    BeginListening(Keys.V);
+                }
+                else
+                {
+                    OpenDialogue(Pressed(Keys.T) ? 't' : 'e');
                 }
             }
             else if (Pressed(Keys.J))
@@ -409,7 +474,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
         }
 
-        var uiOpen = _journal.IsOpen || _inventory.IsOpen;
+        var uiOpen = _journal.IsOpen || _inventory.IsOpen || _dialogue.IsOpen;
         var leftDown = mouse.LeftButton == ButtonState.Pressed;
         var rightDown = mouse.RightButton == ButtonState.Pressed;
         var swallowClick = false;
@@ -468,6 +533,232 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _previousRightDown = rightDown;
         _previousScroll = mouse.ScrollWheelValue;
         _previousKeys = keys;
+    }
+
+    // The panel's keys while it is open: Enter sends, Esc closes, Tab holds push-to-talk, the editing keys repeat as the 2D panel's do.
+    private void ReadDialogueKeys(KeyboardState keys, Func<Keys, bool> pressed)
+    {
+        if (pressed(Keys.Escape))
+        {
+            CancelListening();
+            _dialogue.Close();
+            _session.EndReview();
+            return;
+        }
+
+        if (pressed(Keys.Enter))
+        {
+            _dialogue.RequestSubmit();
+        }
+
+        if (pressed(Keys.Tab))
+        {
+            BeginListening(Keys.Tab);
+        }
+
+        if (_talk.Listening && !keys.IsKeyDown(_listenKey))
+        {
+            EndListening();
+        }
+
+        var entry = _dialogue.Entry;
+        if (_backspace.Step(keys.IsKeyDown(Keys.Back)))
+        {
+            _ = entry.Backspace();
+        }
+
+        if (_delete.Step(keys.IsKeyDown(Keys.Delete)))
+        {
+            _ = entry.Delete();
+        }
+
+        if (_left.Step(keys.IsKeyDown(Keys.Left)))
+        {
+            entry.MoveLeft();
+        }
+
+        if (_right.Step(keys.IsKeyDown(Keys.Right)))
+        {
+            entry.MoveRight();
+        }
+    }
+
+    // The window's text event: the letters of the panel's text box. The key that opened the panel (T or E) is typed by the platform too, once.
+    private void OnTextInput(object? sender, TextInputEventArgs args)
+    {
+        if (!_dialogue.IsOpen || char.IsControl(args.Character) || _talk.Listening)
+        {
+            return;
+        }
+
+        if (_swallowedOpenKey is { } opener && char.ToLowerInvariant(args.Character) == opener)
+        {
+            _swallowedOpenKey = null;
+            return;
+        }
+
+        _ = _dialogue.Entry.Insert(args.Character);
+    }
+
+    // Opens the panel with the guide's review question when one is due; the key that opened it is swallowed by the text event.
+    private void OpenDialogue(char? openedBy)
+    {
+        _dialogue.Open(_session.BeginTalk()?.Question);
+        _swallowedOpenKey = openedBy;
+        _swallowFrames = 2; // the platform types the key once, in the next frame at the latest
+    }
+
+    // The tile for "¿qué es esto?": the block under the crosshair (the scripted run has the same crosshair).
+    private GuideCell? CursorCell() => _session.AimedCell;
+
+    // The guide's figure under the crosshair, when it is within reach and no block is in the way; the other figures cannot be talked to yet (S6).
+    private NpcFigure? AimedFigure()
+    {
+        if (_dialogue.IsOpen)
+        {
+            return null;
+        }
+
+        var eye = (x: (double)_currentEye.X, y: (double)_currentEye.Y, z: (double)_currentEye.Z);
+        foreach (var figure in _figures)
+        {
+            if (figure.Name != GuideName)
+            {
+                continue;
+            }
+
+            var point = FigureAim.BodyOf(figure);
+            if (FigureAim.Hits(eye, _look.Yaw, _look.Pitch, point)
+                && !NpcLabelLayer.Occluded(_sim, _currentEye, ((float)point.X, (float)point.Y, (float)point.Z), FigureAim.Distance(eye, point)))
+            {
+                return figure;
+            }
+        }
+
+        return null;
+    }
+
+    // The microphone: the key went down. The worker must have the recognizer, the machine a microphone; otherwise the panel says why.
+    private void BeginListening(Keys key)
+    {
+        var worker = _session.Worker!;
+        if (!_dialogue.IsOpen)
+        {
+            _dialogue.Open(_session.BeginTalk()?.Question);
+        }
+
+        if (!worker.CanHear)
+        {
+            _dialogue.SpeechNotice = worker.Load?.Problem ?? "La voz no está disponible: escribe tu frase.";
+            return;
+        }
+
+        if (_talk.Begin())
+        {
+            _listenKey = key;
+            _dialogue.Listening = true;
+            _dialogue.SpeechNotice = null;
+        }
+        else
+        {
+            _dialogue.SpeechNotice = _talk.Problem;
+        }
+    }
+
+    // The key went up (or the recording reached its cap): the clip goes to the worker as a spoken turn.
+    private void EndListening()
+    {
+        _dialogue.Listening = false;
+        var clip = _talk.End();
+        if (clip is null)
+        {
+            _dialogue.SpeechNotice = _talk.Problem;
+            return;
+        }
+
+        _ = _session.SubmitClip(clip, CursorCell());
+        _dialogue.BeginSpoken();
+        Console.WriteLine($"listened: {clip.DurationSeconds:0.00} s of speech sent to the guide");
+    }
+
+    // The panel closed while recording: the clip is dropped.
+    private void CancelListening()
+    {
+        if (_talk.Listening)
+        {
+            _ = _talk.End();
+        }
+
+        _dialogue.Listening = false;
+    }
+
+    // Once per frame while a key is held: collect the samples, and send the clip when the recording hits its length cap.
+    private void PumpTalk()
+    {
+        if (!_talk.Listening)
+        {
+            return;
+        }
+
+        _talk.Pump();
+        if (_talk.ReachedLimit && !_talk.Listening)
+        {
+            EndListening();
+        }
+    }
+
+    // Applies the turns the worker finished, in order: the panel, the console, the arrow.
+    private void ApplyFinishedTurns()
+    {
+        foreach (var applied in _pump.Apply())
+        {
+            var turn = applied.Turn;
+            if (turn is null)
+            {
+                Console.WriteLine($"turn failed: {applied.Outcome.Problem}");
+                continue;
+            }
+
+            var timings = applied.Outcome.Timings;
+            var detail = turn.Input == InputKind.Spoken
+                ? $"heard \"{turn.Line}\" (confidence {(int)Math.Round((turn.Confidence ?? 0) * 100)} %) -> {turn.Summary}, {timings.TotalMilliseconds:0} ms"
+                : $"\"{turn.Line}\" -> {turn.Summary}, {timings.TotalMilliseconds:0.0} ms";
+            Console.WriteLine($"turn {_dialogue.TurnCount}: {(turn.Input == InputKind.Spoken ? "spoken " : string.Empty)}{detail}, state {turn.AgentState}");
+            foreach (var line in turn.GuideLines)
+            {
+                Console.WriteLine($"  guide: {line}");
+            }
+
+            if (turn.Pointer is { } arrow)
+            {
+                Console.WriteLine($"  arrow: {arrow.Place} at {arrow.Target.X},{arrow.Target.Y},{arrow.Target.Z} ({arrow.Blocks} blocks, {arrow.Direction})");
+            }
+        }
+    }
+
+    // The arrow of the session is the beacon: a new arrow stands the column on its block (a review question shows no name), and when the
+    // beacon's own reach takes it down, the arrow goes too.
+    private void SyncBeacon()
+    {
+        var pointer = _session.Pointer;
+        if (!ReferenceEquals(pointer, _shownPointer))
+        {
+            _shownPointer = pointer;
+            if (pointer is { } arrow)
+            {
+                Beacon.Set(arrow.Target.ToBlock(), arrow.Quiz ? "¿?" : arrow.Place);
+            }
+            else
+            {
+                Beacon.Clear();
+            }
+        }
+
+        if (pointer is not null && !Beacon.IsSet)
+        {
+            _session.DismissPointer();
+            _shownPointer = null;
+        }
     }
 
     private void OpenJournal()

@@ -160,14 +160,14 @@ harder ores take longer, the torch is placed and mined back, the sky lights open
 two per tile and reaches eight, mining a roof to the sky opens the cave and the light falls off sideways, an incremental change equals a full
 recompute, the light map is a pure function of the tiles). `GenerationTests` and `SurfaceDressingTests` carry the version-4 golden and pass list.
 
-## The 3D voxel world (S1, `Vocaterra.Simulation.Voxel`)
+## The 3D voxel world (S1, `Vocaterra.Simulation.Voxel`; the route in S3)
 
 The prototype's world (docs/SCENARIO_PLAN.md): a hand-authored 96 x 32 x 96 block scene, a first-person body, gathering and placing, all
-headless and integer-only (the 2D code above is untouched). The folder is `src/Vocaterra.Simulation/Voxel/`; the draft route is
-`content/scenes/route-draft.json` (S3 moves it into the content bundle).
+headless and integer-only (the 2D code above is untouched). The folder is `src/Vocaterra.Simulation/Voxel/`; the prototype route is
+`content/game-v1/game/scene.json` in the bundle (S3).
 
 ```csharp
-var layout = SceneLayout.Load("game/content/scenes/route-draft.json");     // or SceneLayout.Parse(json)
+var layout = SceneLayout.Load("game/content/game-v1/game/scene.json");     // or SceneLayout.Parse(json)
 var scene = SceneBuilder.Build(layout, seed: 42);                          // a pure function of (layout, seed)
 var sim = VoxelSimulation.Create(scene);                                   // the player stands at scene.Spawn
 sim.Step([VoxelCommand.Look(Angles.FromDegrees(90), 0), VoxelCommand.MoveRelative(0, 1)]);   // one 1/60 s tick

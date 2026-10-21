@@ -166,7 +166,7 @@ public sealed class BeaconArrowTests
     [Fact]
     public void TheBeaconCanBeSetOnANamedPointOfTheScene()
     {
-        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "scenes", "route-draft.json")), 42);
+        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), 42);
         var beacon = new VoxelBeacon();
         Assert.True(beacon.SetPoint(scene, "river", PointLabels.For("river")));
         Assert.Equal(scene.Point("river"), beacon.Target);
