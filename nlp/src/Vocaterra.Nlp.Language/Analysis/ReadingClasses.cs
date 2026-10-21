@@ -73,6 +73,16 @@ internal static class ReadingClasses
             || (reading.Pos == LexiconSchema.Adjective && WordClasses.IsDeterminerAdjective(reading.Lemma));
     }
 
+    /// <summary>
+    /// True for a reading of a closed class: an article, numeral, determiner adjective, pronoun, preposition, conjunction, adverb or interjection. A word
+    /// whose readings are all closed cannot be a <c>[WORD]</c> name (see <see cref="SlotGrammar.TypedMatching.CanBeName"/>).
+    /// </summary>
+    public static bool IsClosedClassReading(LexicalFeatures reading)
+    {
+        return IsDeterminerReading(reading)
+            || reading.Pos is LexiconSchema.Pronoun or LexiconSchema.Preposition or LexiconSchema.Conjunction or LexiconSchema.Adverb or LexiconSchema.Interjection;
+    }
+
     /// <summary>True when a word with these readings can sit between a subject and its verb without being checked: every reading is an adverb or interjection, or every reading is a clitic.</summary>
     public static bool IsSkippable(IReadOnlyList<LexicalFeatures> readings)
     {

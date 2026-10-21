@@ -10,7 +10,7 @@ internal sealed record LiteralNode(string Word) : GrammarNode;
 internal sealed record TypedNode(string Tag, string Pos, string? Lemma, string? Slot) : GrammarNode;
 
 /// <summary>
-/// A <c>[WORD]</c> or <c>[WORD:slot]</c> token: exactly one token made of letters, whatever its lexicon readings (a name). The slot, when named, takes the token
+/// A <c>[WORD]</c> or <c>[WORD:slot]</c> token: exactly one token made of letters that is not only closed-class words (a name; an adverb or pronoun is not one). The slot, when named, takes the token
 /// as written in the normalized text. The analyzer does not report such a token as unknown, and the reading resolver gives it no word class for the checks.
 /// </summary>
 internal sealed record WordNode(string? Slot) : GrammarNode;

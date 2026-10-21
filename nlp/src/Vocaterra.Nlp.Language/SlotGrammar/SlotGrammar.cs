@@ -25,7 +25,7 @@ public sealed class SlotGrammar
     /// <summary>
     /// Parses a pattern. Tokens: literal words; <c>[ART]</c>, <c>[PRON]</c>, <c>[DET]</c>, <c>[NUM:slot]</c>, <c>[NOUN:slot]</c>,
     /// <c>[ADJ:slot]</c>, <c>[ADV]</c>, <c>[PREP]</c>, <c>[CONJ]</c>, <c>[INTERJ]</c> (each with an optional slot), <c>[VERB]</c>,
-    /// <c>[VERB:lemma]</c> and <c>[VERB:lemma:slot]</c>, <c>[WORD]</c> and <c>[WORD:slot]</c> (one token of letters whatever its readings: a name); a <c>?</c>
+    /// <c>[VERB:lemma]</c> and <c>[VERB:lemma:slot]</c>, <c>[WORD]</c> and <c>[WORD:slot]</c> (one token of letters that is not only closed-class words; a name); a <c>?</c>
     /// suffix makes an element optional; <c>(a|b c)</c> lists alternatives.
     /// </summary>
     public static SlotGrammar Parse(string pattern, string? id = null)

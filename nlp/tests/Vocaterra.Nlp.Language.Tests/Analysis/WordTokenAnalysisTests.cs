@@ -71,6 +71,23 @@ public class WordTokenAnalysisTests
     }
 
     [Fact]
+    public void AnOptionalNameDoesNotAbsorbAPastTimeAdverbAndItsTenseMistake()
+    {
+        // Found by O5 (CsCheck seed 1diyRPH9lxJ1): the optional [WORD] in front took "ayer", whose readings are all adverbs, so the sentence matched with
+        // a name and the tense mistake "ayer tengo" (tuve) was lost; the recast repeated "tengo". An adverb is no name: the sentence matches no grammar
+        // and the mistake is reported on the verb, so the recast can correct it.
+        var analysis = Fixtures.Analyze("ayer tengo sufrir", "[WORD:item]? [VERB] [ADJ]? [VERB:sufrir]");
+
+        Assert.Null(analysis.MatchedGrammarId);
+        Assert.Contains(analysis.Errors, static e => e.Tag == ErrorTags.ConjTense && e.Span.Start == 5 && e.Span.Length == 5 && e.Expected == "tuve" && e.Actual == "tengo");
+        Assert.Equal("ayer", analysis.Tokens[0].Token.Text);
+        Assert.Equal(["adv"], analysis.Tokens[0].Readings.Select(static r => r.Pos).Distinct().ToArray());
+
+        // The seed lexicon has no "sufrir" (an unknown word here, not a grammar error); the corrected sentence has no tense mistake.
+        Assert.DoesNotContain(Fixtures.Analyze("ayer tuve sufrir", "[WORD:item]? [VERB] [ADJ]? [VERB:sufrir]").Errors, static e => e.Tag == ErrorTags.ConjTense);
+    }
+
+    [Fact]
     public void ANameCarriesNoReadingSoNoRuleOrRecastTakesItForAWord()
     {
         // "espada" is a noun of the lexicon, but as a name it has no reading: the token stays, its readings do not.
