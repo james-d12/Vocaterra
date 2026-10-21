@@ -354,6 +354,15 @@ Content fix (stage 1 follow-up): **`cuál` is now in `content/v1/lexicon/seed.js
 `ManifestTests` and the three `contentHash` lines of the end-to-end golden file were updated (the committed golden manifest is untouched and stays
 synthetic), and O3 now realises the `ask_price` grammar (about 30 sentences per run).
 
+- **O14's `hostturn:none` coverage was a flake, not a pipeline bug** (M29e; the generator, `Generation/PipelineGen.cs`). A host turn was drawn
+  with probability 1/3 and an unknown agent with 1/5, so `hostturn:none` (a host turn for an agent id the bundle does not know) was 1 case in 15:
+  a mean of 20 in 300 iterations with a standard deviation of 4.3, against a minimum of 10 (about 2.3 standard deviations). Five measured runs
+  gave 8, 11, 15, 17 and 20, and the merge gate of the S2 work failed on 8. The oracle is unchanged and the minimum is unchanged. The generator now
+  draws the agent after the host-turn flag: a host turn goes to the blacksmith or to an unknown agent, one in two each (expected 50 in 300, standard
+  deviation 6.5, so the minimum is about 6 standard deviations below the mean). The other draws keep their values. Measured over 20 runs after the
+  change: `hostturn:none` mean 53.6, minimum 43; before (15 runs): mean 18.9, minimum 12. Every other asserted key was checked with the same
+  arithmetic and sits at least 4 standard deviations above its minimum (`agent:none` now counts the unknown agents of host turns too: about 90).
+
 ## Known, deliberately not fixed
 
 Findings that are content gaps or design limits rather than defects of one stage. None changes behaviour here; the generators step around
