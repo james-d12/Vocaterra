@@ -14,6 +14,11 @@ this repository never plans core internals.
 Facts every session needs:
 - **Packages only.** Never add a project reference to the core, never copy its source, never edit inside `external/Vocaterra.NLP` except
   to bump its pinned commit (procedure in the role file). A call the packages do not expose goes to `docs/CORE_REQUESTS.md` as a row.
+- **Fresh checkout, the pack fails without this (CR-024):** before the first pack, create the uncommitted file
+  `external/Vocaterra.NLP/nuget.config` with `<configuration><packageSources><clear /><add key="nuget.org" value="https://api.nuget.org/v3/index.json" /></packageSources></configuration>`;
+  otherwise the core's restore finds this repository's `nuget.config`, whose local feed does not exist yet (NU1301). After any `git pull`
+  that moves the submodule, run `git submodule update --init`, delete `~/.nuget/packages/vocaterra.nlp.*` (the version stays 0.1.0, so a
+  cached copy hides the new core) and pack again.
 - **Fresh checkout:** `git submodule update --init`, then `bash external/Vocaterra.NLP/scripts/pack.sh` fills the local feed that
   `nuget.config` reads (`external/Vocaterra.NLP/artifacts/feed`). The pack takes minutes and writes about 3 GB, all git-ignored in the
   submodule.
