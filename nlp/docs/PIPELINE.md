@@ -28,6 +28,13 @@ PipelineResult result = pipeline.Evaluate(clip, prompt, context);     // or pipe
 | `prompt` | `PromptSpec` | What the host asked: prompt id, recognition mode (`Constrained` or `Open`), difficulty, answer set id, allowed intent ids, agent id, slot grammar ids and the optional text (the line the agent says before the answer). Prompts are data (`content/v1/prompts/prompts.json`). |
 | `context` | `ConversationContext` | The host state it is evaluated in: world seed, agent id and state, stored time, the learner model, and the repeat counts per error tag before this utterance (empty at the start; the host carries them from the previous `ConversationContext.Next`). Optionally also `HostSlots` (host facts for the reply and feedback templates; the verdict's slot wins on a name clash) and `ExtraSkills` (host-named skills merged with the pipeline's own `intent.<id>` skill in the single learner update); both are per utterance and `Next` does not carry them (API.md section 4). Nothing in it comes from a clock. |
 
+`Evaluate` is `Complete(Analyze(clip, prompt), context)`. A host whose facts depend on the utterance (the nearest sand, once the core has read
+`arena`) calls the two phases itself: `Analyze` runs stages 0 to 7 (recognition through verdict assembly, no conversation state) and returns an
+immutable `UtteranceAnalysis`; `Complete(analysis, context[, hostSlots, extraSkills])` runs stages 8 to 12. The result is byte-identical to
+`Evaluate`, and the recognizers run once (API.md, "Two-phase evaluation"). A host-initiated agent turn without an utterance is
+`pipeline.Advance(hostEvent, context)` (API.md, "Host-initiated agent turns"): it runs only the agent step and the reply planning of stages 8 and 9, with
+no verdict, learner update or repeat counts.
+
 `PipelineResult` has six members: `Verdict`, `Decision`, `Response`, `Effects`, `Repair` and `Replay`. `Trace` returns a
 `PipelineTrace` that adds the word recognizer's `AsrResult` and the phoneme recognizer's `PhonePosteriors`, which is what a
 [replay log](REPLAY.md) stores.
@@ -340,6 +347,9 @@ evaluation configuration and the version stamp:
    error from the second offence on a model pronunciation. At most two items are kept. Here: a recast for `conj.person` and
    a recast for `noun.number`.
 
+**Host events.** The same machine also has host-event transitions (`onHostEvent`), which only `Advance` takes and which an utterance never does. A host
+turn runs this stage's step alone: it advances the interaction counter and returns the actions, and the learner, rating and feedback parts do not exist.
+
 ### 9. Response realization (D0)
 
 `ResponsePlanner` renders the lines the agent says from the dialogue catalog (`content/v1/dialogue/dialogue.json`). The first
@@ -468,7 +478,9 @@ correctness 0.5).
   content bundle. The only randomness is the seeded draw in stages 8 and 9, seeded from the context.
 - **Same inputs, same bytes.** Two evaluations with the same clip, prompt, context and services give results whose
   `CanonicalJson` is identical; `UtterancePipeline` keeps no state between utterances, so one instance can serve many.
-- **Replayable.** The recognizer outputs plus the context are enough to reproduce the result without the models.
+- **Replayable.** The recognizer outputs plus the context are enough to reproduce the result without the models. A host turn needs only the context.
+- **Two phases equal one.** `Complete(Analyze(clip, prompt), context)` and `Evaluate(clip, prompt, context)` are the same computation (the fuzz suite compares
+  them across two pipeline instances, with the host facts given to phase 2).
 - **Margins, not knife edges.** Intent acceptance, communication, pronunciation and the FSRS rating all use `Margin` bands with
   an explicit uncertain branch (ADR 0002).
 

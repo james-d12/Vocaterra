@@ -29,6 +29,16 @@ public sealed class ReplayLog
         WriteLine(CanonicalJson.Serialize(envelope));
     }
 
+    /// <summary>
+    /// Appends a host-initiated turn entry. Readers that predate the entry kind do not understand it (see <c>docs/REPLAY.md</c>), so a log that must stay
+    /// readable by them should not contain host turns; <see cref="ReplayReader.ReadEntries"/> reads both kinds.
+    /// </summary>
+    public void Append(HostTurnEnvelope envelope)
+    {
+        ArgumentNullException.ThrowIfNull(envelope);
+        WriteLine(CanonicalJson.Serialize(envelope));
+    }
+
     /// <summary>Flushes the underlying writer.</summary>
     public void Flush()
     {

@@ -100,8 +100,20 @@ public sealed class PipelineHarness
         return Bundle.Prompts[promptId];
     }
 
+    /// <summary>The host event every state of the blacksmith in <see cref="HostTurnBundle"/> handles.</summary>
+    public const string HostTurnEvent = "fuzz.ask";
+
+    private static readonly Lazy<ContentBundle> HostTurnBundleLazy = new(BuildHostTurnBundle);
+
+    /// <summary>
+    /// A copy of <see cref="Bundle"/> (same bundle hash; hash verification is off because the copy is edited) whose blacksmith has, in every state, a
+    /// host-event transition on <see cref="HostTurnEvent"/> to the next state in declaration order, voicing two plain dialogue pools. Utterances behave
+    /// exactly as in <see cref="Bundle"/>, because a verdict never takes a host-event transition.
+    /// </summary>
+    public static ContentBundle HostTurnBundle => HostTurnBundleLazy.Value;
+
     /// <summary>Creates a scripted pipeline service set: the recognizers return the transcript, the other models are the fakes.</summary>
-    public PipelineServices NewServices(string transcript, RecognitionMode mode = RecognitionMode.Open, bool phonemes = false, bool embeddings = true)
+    public PipelineServices NewServices(string transcript, RecognitionMode mode = RecognitionMode.Open, bool phonemes = false, bool embeddings = true, ContentBundle? bundle = null)
     {
         var asr = new AsrResult(transcript, [new AsrHypothesis(transcript, 1.0)], [], 1.0, "scripted-fuzz", mode);
         IPhonemeRecognizer? phoneRecognizer = null;
@@ -119,7 +131,7 @@ public sealed class PipelineHarness
             phoneRecognizer,
             embeddings ? new FakeEmbeddingModel() : null,
             new SilentSynthesizer(),
-            Bundle);
+            bundle ?? Bundle);
     }
 
     /// <summary>Creates a pipeline over <see cref="NewServices"/>.</summary>
@@ -156,4 +168,42 @@ public sealed class PipelineHarness
 
     /// <summary>The answer sets of the bundle in ordinal id order.</summary>
     public IReadOnlyList<AnswerSet> AnswerSets => [.. Bundle.AnswerSets.Values];
+
+    private static ContentBundle BuildHostTurnBundle()
+    {
+        var directory = Directory.CreateTempSubdirectory("vocaterra-fuzz-hostturn-");
+        AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+        {
+            try
+            {
+                directory.Delete(recursive: true);
+            }
+            catch (IOException)
+            {
+            }
+        };
+        var source = Path.Combine(AppContext.BaseDirectory, "content", "v1");
+        foreach (var file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
+        {
+            var target = Path.Combine(directory.FullName, Path.GetRelativePath(source, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(file, target);
+        }
+
+        var path = Path.Combine(directory.FullName, "agents", "blacksmith.json");
+        var root = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+        var states = root["states"]!.AsArray();
+        var ids = states.Select(static state => state!["id"]!.GetValue<string>()).ToArray();
+        for (var i = 0; i < states.Count; i++)
+        {
+            var transition = System.Text.Json.Nodes.JsonNode.Parse(
+                "{\"onHostEvent\":\"" + HostTurnEvent + "\",\"to\":\"" + ids[(i + 1) % ids.Length] + "\",\"actions\":["
+                + "{\"dialogueIntent\":\"greet_reply\",\"hostEvent\":\"fuzz.said\",\"variantPoolId\":\"greet_reply\"},"
+                + "{\"dialogueIntent\":\"thank_reply\"}]}");
+            states[i]!["transitions"]!.AsArray().Insert(0, transition);
+        }
+
+        File.WriteAllText(path, root.ToJsonString());
+        return ContentLoader.Load(directory.FullName, new ContentLoadOptions { VerifyHashes = false });
+    }
 }

@@ -188,19 +188,22 @@ public static class Program
 
         var path = line.Positionals[0];
         var bundle = ContentLoader.Load(line.Required("--content"));
-        IReadOnlyList<ReplayEnvelope> envelopes;
+        IReadOnlyList<ReplayEntry> entries;
         using (var reader = new StreamReader(path, Encoding.UTF8))
         {
-            envelopes = ReplayReader.ReadEnvelopes(reader);
+            entries = ReplayReader.ReadEntries(reader);
         }
 
         // The recognizers are placeholders: the replayer swaps in the recorded outputs, and the clip's audio is never needed.
         var placeholder = new ReplayWordRecognizer(new Dictionary<string, AsrResult>(StringComparer.Ordinal));
         var pipeline = new UtterancePipeline(new PipelineServices(placeholder, null, null, null, bundle));
         var failed = false;
-        for (var i = 0; i < envelopes.Count; i++)
+        for (var i = 0; i < entries.Count; i++)
         {
-            var diff = Replayer.Replay(envelopes[i], pipeline, static hash => new PcmClip([], PcmClip.DefaultSampleRate, hash));
+            var entry = entries[i];
+            var diff = entry.HostTurn is { } turn
+                ? Replayer.Replay(turn, pipeline)
+                : Replayer.Replay(entry.Utterance!, pipeline, static hash => new PcmClip([], PcmClip.DefaultSampleRate, hash));
             if (diff is not null)
             {
                 failed = true;

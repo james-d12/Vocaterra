@@ -28,6 +28,8 @@ namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 /// <param name="Repeats">The repeat counts per error tag.</param>
 /// <param name="ExtraSkills">Host-named skills for the learner update (null or empty for none); may repeat the pipeline's own skill or an error family.</param>
 /// <param name="HostSlots">Host facts for the response templates (null or empty for none); may share names with verdict slots.</param>
+/// <param name="TwoPhase">Whether the equivalence oracle also runs the case as phase 1 on one pipeline and phase 2 on another, with the host facts given to phase 2.</param>
+/// <param name="HostTurn">Whether the agent first takes a host-initiated turn (<see cref="Oracles.PipelineHarness.HostTurnEvent"/>) in the host-turn bundle, and the utterance is evaluated in the context after it.</param>
 public sealed record PipelineCase(
     string Transcript,
     string Source,
@@ -43,7 +45,9 @@ public sealed record PipelineCase(
     LearnerModel Learner,
     ImmutableSortedDictionary<string, int> Repeats,
     IReadOnlyList<string>? ExtraSkills = null,
-    SlotMap? HostSlots = null)
+    SlotMap? HostSlots = null,
+    bool TwoPhase = false,
+    bool HostTurn = false)
 {
     /// <summary>The longest transcript, in characters, that is paired with the phoneme recognizer (scoring grows with the cube of the phone count).</summary>
     public const int MaxScoredTranscriptCharacters = 150;
@@ -98,7 +102,7 @@ public static class PipelineGen
             .Select(skill => new SkillMastery(skill, Math.Round(rng.NextDouble(), 6), 1 + rng.NextInt(9), rng.NextInt(5)))
             .ToArray();
         var learner = new LearnerModel(BktParameters.Default, skills);
-        return new PipelineCase(
+        var plan = new PipelineCase(
             transcript,
             source,
             prompt.PromptId,
@@ -114,6 +118,9 @@ public static class PipelineGen
             DecisionGen.RandomRepeats(rng),
             rng.NextInt(3) == 0 ? [.. HostSkillPool.Where(_ => rng.NextInt(3) == 0)] : null,
             rng.NextInt(3) == 0 ? SlotMap.From(HostSlotPool.Where(_ => rng.NextInt(2) == 0).Select(static p => new KeyValuePair<string, string>(p.Name, p.Value))) : null);
+
+        // Drawn last so the draws above keep the values they had before these flags existed.
+        return plan with { TwoPhase = rng.NextInt(2) == 0, HostTurn = rng.NextInt(3) == 0 };
     }
 
     private static (string Transcript, string Source) Transcript(PipelineHarness harness, SeededRng rng, PromptSpec prompt)
