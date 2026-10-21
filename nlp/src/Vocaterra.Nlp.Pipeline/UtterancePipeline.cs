@@ -1,6 +1,7 @@
 using System.Runtime.ExceptionServices;
 using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Core.Audio;
+using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Replay;
 using Vocaterra.Nlp.Core.Stages;
@@ -75,9 +76,21 @@ public sealed partial class UtterancePipeline
     /// <exception cref="ArgumentException">The prompt names an answer set the bundle does not have, or the agent state belongs to another agent.</exception>
     public PipelineTrace Trace(PcmClip clip, PromptSpec prompt, ConversationContext context)
     {
+        ArgumentNullException.ThrowIfNull(context);
+        return CompleteTrace(Analyze(clip, prompt), context);
+    }
+
+    /// <summary>
+    /// Phase 1 of a two-phase evaluation: recognition, normalization, linguistic analysis, intent and slot resolution, answer matching,
+    /// pronunciation scoring and verdict assembly. It reads no conversation state, so the host can inspect <see cref="UtteranceAnalysis.Words"/>
+    /// (the noun the player named, say) to compute host slots and extra skills before phase 2 (<see cref="Complete(UtteranceAnalysis, ConversationContext)"/>).
+    /// The recognizers run here, once; completing the analysis never runs them again.
+    /// </summary>
+    /// <exception cref="ArgumentException">The prompt names an answer set the bundle does not have.</exception>
+    public UtteranceAnalysis Analyze(PcmClip clip, PromptSpec prompt)
+    {
         ArgumentNullException.ThrowIfNull(clip);
         ArgumentNullException.ThrowIfNull(prompt);
-        ArgumentNullException.ThrowIfNull(context);
 
         var answerSet = AnswerSetFor(prompt);
         var request = BuildRequest(prompt, answerSet);
@@ -107,15 +120,56 @@ public sealed partial class UtterancePipeline
             content.EvaluationConfig,
             _services.Versions,
             CanonicalAnswersOf(answerSet)));
+        return new UtteranceAnalysis(clip.ClipHash, prompt, asr, posteriors, normalized, analysis, match, answerSet, verdict);
+    }
+
+    /// <summary>
+    /// Phase 2 of a two-phase evaluation: decision, response planning, effects, repair and the replay record, in the conversation context.
+    /// <c>Evaluate(clip, prompt, context)</c> is exactly <c>Complete(Analyze(clip, prompt), context)</c>: the same result, replay record and hashes.
+    /// Host slots and extra skills come from the context (<see cref="ConversationContext.HostSlots"/>, <see cref="ConversationContext.ExtraSkills"/>;
+    /// see <see cref="Complete(UtteranceAnalysis, ConversationContext, SlotMap?, IReadOnlyList{string}?)"/> to set them here).
+    /// </summary>
+    /// <exception cref="ArgumentException">The agent state belongs to another agent, or the analysis came from a pipeline over other content or models.</exception>
+    public PipelineResult Complete(UtteranceAnalysis analysis, ConversationContext context)
+    {
+        return CompleteTrace(analysis, context).Result;
+    }
+
+    /// <summary>
+    /// Phase 2 with the host facts computed from phase 1: the context is rebuilt with <paramref name="hostSlots"/> and <paramref name="extraSkills"/>
+    /// (<see cref="ConversationContext.WithHost"/>, so the host state hash covers them) and then completed. Per utterance, as in M26d: a verdict slot
+    /// wins over a host slot of the same name, and the skills join the one learner update.
+    /// </summary>
+    public PipelineResult Complete(UtteranceAnalysis analysis, ConversationContext context, SlotMap? hostSlots, IReadOnlyList<string>? extraSkills = null)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        return Complete(analysis, context.WithHost(hostSlots, extraSkills));
+    }
+
+    /// <summary>Phase 2 that also returns the recognizer outputs of phase 1, which is what a replay log needs (<see cref="ReplayEnvelope.From"/>).</summary>
+    /// <exception cref="ArgumentException">The agent state belongs to another agent, or the analysis came from a pipeline over other content or models.</exception>
+    public PipelineTrace CompleteTrace(UtteranceAnalysis analysis, ConversationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(analysis);
+        ArgumentNullException.ThrowIfNull(context);
+        var verdict = analysis.Verdict;
+        if (!string.Equals(CanonicalJson.Serialize(verdict.Versions), CanonicalJson.Serialize(_services.Versions), StringComparison.Ordinal))
+        {
+            throw new ArgumentException("The analysis was made by a pipeline over other content or models.", nameof(analysis));
+        }
+
+        var prompt = analysis.Prompt;
+        var content = _services.Content;
 
         // The context carries the counts before this utterance; the counts after it are what the feedback policy and the repair ladder read.
         var counts = RepeatCounts.Next(context.RepeatCountsByTag, verdict);
         var decision = Decide(verdict, prompt, context, counts);
-        var response = Respond(verdict, prompt, decision, normalized, analysis, match, context);
+        var response = Respond(verdict, prompt, decision, analysis.Normalized, analysis.Analysis, analysis.Match, context);
         var effects = EffectResolver.Resolve(verdict, content.Effects);
-        var repair = RepairFor(verdict, prompt, answerSet, counts);
-        var replay = new ReplayRecord(clip.ClipHash, prompt.PromptId, context.HostStateHash, _services.Versions, verdict);
-        return new PipelineTrace(new PipelineResult(verdict, decision, response, effects, repair, replay, analysis.Words, match), asr, posteriors);
+        var repair = RepairFor(verdict, prompt, analysis.AnswerSet, counts);
+        var replay = new ReplayRecord(analysis.ClipHash, prompt.PromptId, context.HostStateHash, _services.Versions, verdict);
+        var result = new PipelineResult(verdict, decision, response, effects, repair, replay, analysis.Words, analysis.Match);
+        return new PipelineTrace(result, analysis.Asr, analysis.Posteriors);
     }
 
     /// <summary>Synthesizes every line of a response with the pipeline's speech synthesizer, in line order.</summary>

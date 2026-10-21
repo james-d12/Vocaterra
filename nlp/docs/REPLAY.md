@@ -12,16 +12,19 @@ assumed. A replay that differs from its recording fails and says which values ch
 - [Replaying a log](#replaying-a-log)
 - [A model-backed log](#a-model-backed-log)
 - [Bare records](#bare-records)
+- [Host-turn entries](#host-turn-entries-m28a-cr-015)
 - [What is and is not stored](#what-is-and-is-not-stored)
 
 ## What a log is
 
-A replay log is a text file with one JSON object per line (JSON Lines). There are two kinds of line:
+A replay log is a text file with one JSON object per line (JSON Lines). There are three kinds of line (the third, a host-initiated turn, is described in
+[Host-turn entries](#host-turn-entries-m28a-cr-015)):
 
 | Kind | Type | Contents | Replayable by `Vocaterra.Nlp.Cli replay` |
 | --- | --- | --- | --- |
 | **Envelope** | `Vocaterra.Nlp.Pipeline.ReplayEnvelope` | the core record, the recognizers' outputs, the conversation context and the full pipeline result | yes |
 | **Bare record** | `Vocaterra.Nlp.Core.Replay.ReplayRecord` | clip hash, prompt id, host state hash, version stamp and verdict only | no (see [Bare records](#bare-records)) |
+| **Host turn** | `Vocaterra.Nlp.Pipeline.HostTurnEnvelope` | the event, the context and the agent step with its lines (no clip, no verdict) | yes |
 
 The CLI writes envelopes. The core record inside an envelope is the contract from `IMPLEMENTATION_PLAN.md` section 4:
 
@@ -503,6 +506,41 @@ Replayer.Replay(ReplayRecord record, ConversationContext context, UtterancePipel
 
 This overload re-evaluates through the pipeline's own recognizers, using the clip returned by `clipByHash` for the recorded
 clip hash, and compares only the core record. The CLI does not use it.
+
+## Host-turn entries (M28a, CR-015)
+
+A host-initiated agent turn (`UtterancePipeline.Advance`) has no clip, no recognizer output and no verdict, so it is not an envelope. It is a second
+kind of line, `Vocaterra.Nlp.Pipeline.HostTurnEnvelope`:
+
+```csharp
+public sealed record HostTurnEnvelope(string Kind, string HostEvent, ConversationContext Context, HostTurnResult Result);
+public sealed record HostTurnResult(string HostEvent, AgentStepResult Agent, ResponsePlan Response, string HostStateHash, string ContentHash);
+```
+
+| Path | Meaning |
+| --- | --- |
+| `kind` | Always `"hostTurn"`. The discriminator: an utterance envelope has no `kind` property (its first property is `record`). |
+| `hostEvent` | The event name the host raised. |
+| `context` | The context `Advance` ran in (the same `ConversationContext` JSON as in an envelope, host slots included when set). |
+| `result.hostEvent`, `result.agent`, `result.response` | The event, the agent step (next state with the advanced `interactionCounter`, and the actions with their host events and variant indexes) and the rendered lines. |
+| `result.hostStateHash` | `context.hostStateHash`. |
+| `result.contentHash` | The content bundle hash. No model takes part in a host turn, so no model hashes are stored and replaying needs no recognizer. |
+
+A turn that did nothing (`Advance` returned null) is not written.
+
+**Replaying.** `Replayer.Replay(HostTurnEnvelope, pipeline)` runs `Advance` again in the recorded context and compares the recorded and the new `result`;
+the paths it reports are relative to `result` (`/agent/next/stateId`, `/response/lines/0/text`, `/contentHash`). A turn that no longer happens (the
+state or the event is no longer handled) is reported as `/result`. The CLI `replay` command replays both kinds in file order.
+
+**Reading and compatibility rules.**
+
+- The log format has no version number; it changes only by adding entry kinds and members, and a reader tells the kinds apart by property. Old logs contain
+  only envelopes and bare records and read exactly as before: nothing in `ReplayEnvelope`, `ReplayRecord` or the context changed, and the goldens do not move.
+- `ReplayReader.ReadEntries` returns every line as a `ReplayEntry` with exactly one of `Utterance` (an envelope) or `HostTurn`. A bare record is still an error there.
+- `ReplayReader.Read` and `ReplayReader.ReadEnvelopes` keep their contracts (core records, utterance envelopes) and **skip** host-turn lines, which have neither.
+  A host that records host turns and reads the log with an older build of the core gets an error (the older reader does not know `kind` and rejects the
+  line as not an envelope); use one log file per kind, or read with `ReadEntries`.
+- A line is a host turn when it is a JSON object whose `kind` is `"hostTurn"`; every other line is read as before.
 
 ## What is and is not stored
 

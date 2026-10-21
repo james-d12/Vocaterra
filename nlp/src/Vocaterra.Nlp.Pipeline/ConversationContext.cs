@@ -21,7 +21,7 @@ namespace Vocaterra.Nlp.Pipeline;
 /// <remarks>
 /// Two further inputs are properties rather than constructor parameters, so existing positional constructions keep compiling:
 /// <see cref="HostSlots"/> (host facts for response templates) and <see cref="ExtraSkills"/> (host-named skills for the learner update).
-/// Both belong to one utterance: <see cref="Next"/> does not carry them over. Both are written into the replay envelope (omitted when empty),
+/// Both belong to one utterance: <see cref="Next(PipelineResult, StoredTimestamp)"/> does not carry them over. Both are written into the replay envelope (omitted when empty),
 /// and <see cref="Create"/> folds them into <see cref="HostStateHash"/> only when present, so a context without them hashes as it always did.
 /// </remarks>
 public sealed record ConversationContext(
@@ -131,6 +131,29 @@ public sealed record ConversationContext(
             now,
             result.Decision.Learner,
             RepeatCounts.Next(RepeatCountsByTag, result.Verdict));
+    }
+
+    /// <summary>
+    /// The context the next step starts from after a host-initiated turn (<see cref="UtterancePipeline.Advance"/>): the agent in the state the
+    /// turn moved it to (interaction counter advanced), everything else unchanged. The learner model and the repeat counts are deliberately
+    /// carried over untouched, because a turn the agent started is not an attempt by the player. <see cref="HostSlots"/> and
+    /// <see cref="ExtraSkills"/> belong to one step and are not carried over, as with <see cref="Next(PipelineResult, StoredTimestamp)"/>.
+    /// </summary>
+    /// <param name="result">The result of the host turn in this context.</param>
+    /// <param name="now">The stored timestamp of the next step (the host's clock, passed in).</param>
+    public ConversationContext Next(HostTurnResult result, StoredTimestamp now)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        return Create(WorldSeed, AgentId, result.Agent.Next, now, Learner, RepeatCountsByTag);
+    }
+
+    /// <summary>
+    /// The same context with its host slots and extra skills replaced (null or empty removes them) and <see cref="HostStateHash"/> recomputed, as
+    /// <see cref="Create"/> does. Use it to add facts computed from a phase-1 analysis to a context built without them.
+    /// </summary>
+    public ConversationContext WithHost(SlotMap? hostSlots, IReadOnlyList<string>? extraSkills = null)
+    {
+        return Create(WorldSeed, AgentId, AgentState, Now, Learner, RepeatCountsByTag, hostSlots, extraSkills);
     }
 
     /// <summary>Compares every member; the repeat counts are compared as sorted maps.</summary>

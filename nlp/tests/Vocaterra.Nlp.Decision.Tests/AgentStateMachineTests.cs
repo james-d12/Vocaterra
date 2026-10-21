@@ -304,4 +304,93 @@ public class AgentStateMachineTests
         Assert.Equal(new AgentState("n", "a", 1), result.Next);
         Assert.Empty(result.Actions);
     }
+
+    private const string AskerJson = """
+        {
+          "agentId": "asker",
+          "initialState": "a",
+          "variantPools": [ { "id": "q", "count": 3 } ],
+          "states": [
+            {
+              "id": "a",
+              "transitions": [
+                { "onHostEvent": "ask", "to": "b", "actions": [ { "dialogueIntent": "question", "hostEvent": "ui.ask", "variantPoolId": "q" }, { "dialogueIntent": "hint" } ] },
+                { "on": {}, "to": "a", "actions": [ { "dialogueIntent": "any" } ] }
+              ]
+            },
+            { "id": "b", "transitions": [], "fallback": { "actions": [ { "dialogueIntent": "fallback" } ] } }
+          ]
+        }
+        """;
+
+    [Fact]
+    public void AHostEventTransitionMovesTheStateAndAdvancesTheCounter()
+    {
+        var machine = AgentStateMachine.FromJson(AskerJson);
+
+        var step = machine.StepHostEvent(new AgentState("asker", "a", 7), "ask", new SeededRng(1));
+
+        Assert.NotNull(step);
+        Assert.Equal(new AgentState("asker", "b", 8), step.Next);
+        Assert.Equal(["question", "hint"], step.Actions.Select(static a => a.DialogueIntent).ToArray());
+        Assert.Equal("ui.ask", step.Actions[0].HostEvent);
+        Assert.InRange(step.Actions[0].VariantIndex!.Value, 0, 2);
+        Assert.Null(step.Actions[1].VariantIndex);
+        Assert.Equal(step, machine.StepHostEvent(new AgentState("asker", "a", 7), "ask", new SeededRng(1)));
+    }
+
+    [Fact]
+    public void AnUnhandledHostEventGivesNoStepAndNeverUsesTheFallback()
+    {
+        var machine = AgentStateMachine.FromJson(AskerJson);
+
+        Assert.Null(machine.StepHostEvent(new AgentState("asker", "a", 0), "other", new SeededRng(1)));
+        Assert.Null(machine.StepHostEvent(new AgentState("asker", "b", 0), "ask", new SeededRng(1)));
+    }
+
+    [Fact]
+    public void AVerdictNeverTakesAHostEventTransitionEvenWhenItsConditionIsEmpty()
+    {
+        var machine = AgentStateMachine.FromJson(AskerJson);
+
+        var step = machine.Step(new AgentState("asker", "a", 0), TestVerdicts.Clean("greet"), new SeededRng(1));
+
+        Assert.Equal("a", step.Next.StateId);
+        Assert.Equal("any", Assert.Single(step.Actions).DialogueIntent);
+    }
+
+    [Fact]
+    public void HostEventStepsRejectAForeignOrUnknownState()
+    {
+        var machine = AgentStateMachine.FromJson(AskerJson);
+
+        Assert.Throws<ArgumentException>(() => machine.StepHostEvent(new AgentState("other", "a", 0), "ask", new SeededRng(1)));
+        Assert.Throws<ArgumentException>(() => machine.StepHostEvent(new AgentState("asker", "zzz", 0), "ask", new SeededRng(1)));
+    }
+
+    [Fact]
+    public void AHostEventTransitionMayOmitOnAndReadsAsTheEmptyCondition()
+    {
+        var machine = AgentStateMachine.FromJson(AskerJson);
+        var transition = machine.Definition.States[0].Transitions[0];
+
+        Assert.Equal("ask", transition.OnHostEvent);
+        Assert.Equal(new AgentCondition(), transition.On);
+        Assert.Null(machine.Definition.States[0].Transitions[1].OnHostEvent);
+    }
+
+    [Fact]
+    public void ExistingDefinitionsHaveNoHostEventTransitionsAndASerializedMachineReloads()
+    {
+        Assert.All(Innkeeper.Definition.States.SelectMany(static s => s.Transitions), static t => Assert.Null(t.OnHostEvent));
+        var reloaded = AgentStateMachine.FromJson(CanonicalJson.Serialize(AgentStateMachine.FromJson(AskerJson).Definition));
+
+        Assert.Equal("ask", reloaded.Definition.States[0].Transitions[0].OnHostEvent);
+    }
+
+    [Fact]
+    public void AnEmptyHostEventNameIsRejected()
+    {
+        Assert.Throws<InvalidDataException>(() => AgentStateMachine.FromJson("""{ "agentId": "n", "initialState": "a", "states": [ { "id": "a", "transitions": [ { "onHostEvent": "", "to": "a", "actions": [] } ] } ] }"""));
+    }
 }

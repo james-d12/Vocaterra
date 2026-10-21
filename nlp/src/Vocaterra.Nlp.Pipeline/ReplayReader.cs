@@ -7,7 +7,10 @@ namespace Vocaterra.Nlp.Pipeline;
 /// <summary>Reads the JSON Lines files written by <see cref="ReplayLog"/>.</summary>
 public static class ReplayReader
 {
-    /// <summary>Reads the core record of every line; envelope lines contribute their <see cref="ReplayEnvelope.Record"/>.</summary>
+    /// <summary>
+    /// Reads the core record of every line; envelope lines contribute their <see cref="ReplayEnvelope.Record"/>. Host-turn entries
+    /// (<see cref="HostTurnEnvelope"/>) have no core record and are skipped; use <see cref="ReadEntries"/> to see them.
+    /// </summary>
     /// <exception cref="InvalidDataException">A line is not valid JSON or is neither a record nor an envelope; the message names the line number.</exception>
     public static IReadOnlyList<ReplayRecord> Read(TextReader reader)
     {
@@ -15,6 +18,11 @@ public static class ReplayReader
         var records = new List<ReplayRecord>();
         foreach (var (number, line) in Lines(reader))
         {
+            if (Parse(number, line, static json => IsHostTurn(json)))
+            {
+                continue;
+            }
+
             records.Add(Parse(number, line, static json => IsEnvelope(json)
                 ? Check(CanonicalJson.Deserialize<ReplayEnvelope>(json)).Record
                 : Check(CanonicalJson.Deserialize<ReplayRecord>(json))));
@@ -23,7 +31,7 @@ public static class ReplayReader
         return records;
     }
 
-    /// <summary>Reads every line as an envelope.</summary>
+    /// <summary>Reads every line as an utterance envelope; host-turn entries are skipped (use <see cref="ReadEntries"/> to see them).</summary>
     /// <exception cref="InvalidDataException">A line is not valid JSON or is a bare record; the message names the line number.</exception>
     public static IReadOnlyList<ReplayEnvelope> ReadEnvelopes(TextReader reader)
     {
@@ -31,10 +39,31 @@ public static class ReplayReader
         var envelopes = new List<ReplayEnvelope>();
         foreach (var (number, line) in Lines(reader))
         {
+            if (Parse(number, line, static json => IsHostTurn(json)))
+            {
+                continue;
+            }
+
             envelopes.Add(Parse(number, line, static json => Check(CanonicalJson.Deserialize<ReplayEnvelope>(json))));
         }
 
         return envelopes;
+    }
+
+    /// <summary>Reads every line as an utterance envelope or a host-turn entry, in file order.</summary>
+    /// <exception cref="InvalidDataException">A line is not valid JSON, is a bare record, or lacks required members; the message names the line number.</exception>
+    public static IReadOnlyList<ReplayEntry> ReadEntries(TextReader reader)
+    {
+        ArgumentNullException.ThrowIfNull(reader);
+        var entries = new List<ReplayEntry>();
+        foreach (var (number, line) in Lines(reader))
+        {
+            entries.Add(Parse(number, line, static json => IsHostTurn(json)
+                ? new ReplayEntry(null, Check(CanonicalJson.Deserialize<HostTurnEnvelope>(json)))
+                : new ReplayEntry(Check(CanonicalJson.Deserialize<ReplayEnvelope>(json)), null)));
+        }
+
+        return entries;
     }
 
     private static IEnumerable<(int Number, string Line)> Lines(TextReader reader)
@@ -83,6 +112,25 @@ public static class ReplayReader
 
         Check(envelope.Record);
         return envelope;
+    }
+
+    private static HostTurnEnvelope Check(HostTurnEnvelope envelope)
+    {
+        if ((object?)envelope.HostEvent is null || (object?)envelope.Context is null || (object?)envelope.Result is null)
+        {
+            throw new JsonException("The entry is not a host-turn entry (it needs hostEvent, context and result).");
+        }
+
+        return envelope;
+    }
+
+    private static bool IsHostTurn(string json)
+    {
+        using var document = JsonDocument.Parse(json);
+        return document.RootElement.ValueKind == JsonValueKind.Object
+            && document.RootElement.TryGetProperty("kind", out var kind)
+            && kind.ValueKind == JsonValueKind.String
+            && string.Equals(kind.GetString(), HostTurnEnvelope.KindName, StringComparison.Ordinal);
     }
 
     private static bool IsEnvelope(string json)

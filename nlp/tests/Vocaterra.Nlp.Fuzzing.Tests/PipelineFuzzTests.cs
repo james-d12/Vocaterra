@@ -77,7 +77,18 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
                 CheckAgreementWithTheStagesByHand(c, trace, pipeline, clip, prompt);
                 CheckDecision(c, trace, pipeline, prompt, context);
                 CheckReplay(c, trace, pipeline, clip, context);
+                if (c.TwoPhase)
+                {
+                    CheckTwoPhase(c, trace, clip, prompt, context);
+                }
 
+                if (c.HostTurn)
+                {
+                    CheckHostTurn(c, pipeline, context);
+                }
+
+                diagnostics.Count(c.TwoPhase ? "twophase:on" : "twophase:off");
+                diagnostics.Count(c.HostTurn ? (pipeline.Services.Content.Agents.ContainsKey(c.AgentId) ? "hostturn:step" : "hostturn:none") : "hostturn:off");
                 diagnostics.Count($"source:{c.Source.Split(':')[0]}");
                 diagnostics.Count(trace.Result.Verdict.Communicated ? "verdict:communicated" : "verdict:not-communicated");
                 diagnostics.Count(c.Phonemes ? "phonemes:on" : "phonemes:off");
@@ -91,7 +102,7 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
 
         output.WriteLine("Pipeline diagnostics:\n" + diagnostics.Report());
         var minimum = Math.Max(1, Math.Min(10, iterations / 30));
-        foreach (var key in new[] { "source:correct", "source:mutated", "source:answer", "source:text", "verdict:communicated", "verdict:not-communicated", "phonemes:on", "agent:none", "agent:step", "repair:step", "verdict:errors", "verdict:clean" })
+        foreach (var key in new[] { "source:correct", "source:mutated", "source:answer", "source:text", "verdict:communicated", "verdict:not-communicated", "phonemes:on", "twophase:on", "twophase:off", "hostturn:step", "hostturn:none", "agent:none", "agent:step", "repair:step", "verdict:errors", "verdict:clean" })
         {
             Assert.True(diagnostics.Get(key) >= minimum, $"The generator no longer reaches {key}.\n{diagnostics.Report()}");
         }
@@ -143,10 +154,135 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
     private static (UtterancePipeline Pipeline, PromptSpec Prompt, ConversationContext Context, PcmClip Clip) Prepare(PipelineCase c)
     {
         var prompt = Harness.Prompt(c.PromptId);
-        var services = Harness.NewServices(c.Transcript, prompt.Mode, c.Phonemes, c.Embeddings);
+        var services = Harness.NewServices(c.Transcript, prompt.Mode, c.Phonemes, c.Embeddings, c.HostTurn ? PipelineHarness.HostTurnBundle : null);
         var options = new PipelineOptions { PronunciationMode = c.PronunciationMode, RunRecognizersConcurrently = c.Concurrent };
-        var context = ConversationContext.Create(c.WorldSeed, c.AgentId, new AgentState(c.AgentId, c.StateId, c.Counter), new StoredTimestamp(PipelineHarness.FixedNow), c.Learner, c.Repeats, c.HostSlots, c.ExtraSkills);
-        return (new UtterancePipeline(services, options), prompt, context, PipelineHarness.Clip());
+        var pipeline = new UtterancePipeline(services, options);
+
+        // A case with a host turn evaluates its utterance in the context the turn left: the agent moved and its counter advanced, with the
+        // learner and the repeat counts as before; the host facts belong to the utterance, so they are set again.
+        var context = BaseContext(c);
+        if (c.HostTurn && pipeline.Advance(PipelineHarness.HostTurnEvent, context) is { } turn)
+        {
+            context = context.Next(turn, context.Now).WithHost(c.HostSlots, c.ExtraSkills);
+        }
+
+        return (pipeline, prompt, context, PipelineHarness.Clip());
+    }
+
+    // The context before any host turn.
+    private static ConversationContext BaseContext(PipelineCase c)
+    {
+        return ConversationContext.Create(c.WorldSeed, c.AgentId, new AgentState(c.AgentId, c.StateId, c.Counter), new StoredTimestamp(PipelineHarness.FixedNow), c.Learner, c.Repeats, c.HostSlots, c.ExtraSkills);
+    }
+
+    // CR-017: phase 1 on one pipeline, phase 2 on another one (whose recognizer must never be called), with the host facts given to phase 2, equals Evaluate.
+    private static void CheckTwoPhase(PipelineCase c, PipelineTrace trace, PcmClip clip, PromptSpec prompt, ConversationContext context)
+    {
+        var first = Prepare(c).Pipeline;
+        var second = Prepare(c).Pipeline;
+        var bare = context.WithHost(null, null);
+        UtteranceAnalysis analysis;
+        PipelineTrace completed;
+        PipelineResult viaOverload;
+        try
+        {
+            analysis = first.Analyze(clip, prompt);
+            completed = second.CompleteTrace(analysis, bare.WithHost(c.HostSlots, c.ExtraSkills));
+            viaOverload = second.Complete(analysis, bare, c.HostSlots, c.ExtraSkills);
+        }
+        catch (Exception ex)
+        {
+            throw Determinism.Fail(Oracle, $"The two-phase evaluation threw {ex.GetType().Name}: {ex.Message}", c);
+        }
+
+        Determinism.AssertSame(Oracle, "Evaluate against Analyze then Complete on another instance", c, () => trace.Result, () => completed.Result);
+        Determinism.AssertSame(Oracle, "Complete(analysis, context, hostSlots, extraSkills) against Evaluate", c, () => trace.Result, () => viaOverload);
+        Determinism.AssertSame(Oracle, "The recognizer outputs carried by phase 1", c, () => (trace.Asr, trace.Posteriors), () => (completed.Asr, completed.Posteriors));
+        Determinism.AssertSame(Oracle, "The phase-1 verdict, words and answer", c, () => (trace.Result.Verdict, trace.Result.Words, trace.Result.Answer), () => (analysis.Verdict, analysis.Words, analysis.Answer));
+
+        if (((ScriptedWordRecognizer)second.Services.WordRecognizer).CallCount != 0 || ((ScriptedWordRecognizer)first.Services.WordRecognizer).CallCount != 1)
+        {
+            throw Determinism.Fail(Oracle, "Phase 1 must run the recognizer once and phase 2 never.", c);
+        }
+    }
+
+    // CR-015: the host turn the case took before its utterance. The bundle's blacksmith handles the event in every state; any other agent does nothing.
+    private static void CheckHostTurn(PipelineCase c, UtterancePipeline pipeline, ConversationContext context)
+    {
+        var before = BaseContext(c);
+        var known = pipeline.Services.Content.Agents.TryGetValue(c.AgentId, out var machine);
+        HostTurnResult? turn;
+        try
+        {
+            turn = pipeline.Advance(PipelineHarness.HostTurnEvent, before);
+        }
+        catch (Exception ex)
+        {
+            throw Determinism.Fail(Oracle, $"The host turn threw {ex.GetType().Name}: {ex.Message}", c);
+        }
+
+        if (!known)
+        {
+            if (turn is not null || !context.AgentState.Equals(before.AgentState))
+            {
+                throw Determinism.Fail(Oracle, "An agent the bundle has no machine for must report no host turn and stay where it was.", c);
+            }
+
+            return;
+        }
+
+        if (turn is null)
+        {
+            throw Determinism.Fail(Oracle, "The host-turn bundle's blacksmith handles the event in every state, but no turn happened.", c);
+        }
+
+        var expected = machine!.StepHostEvent(before.AgentState, PipelineHarness.HostTurnEvent, SeededRng.ForInteraction(before.WorldSeed, before.AgentId, before.AgentState.InteractionCounter));
+        if (expected is null || !turn.Agent.Equals(expected) || turn.Agent.Next.InteractionCounter != c.Counter + 1 || turn.Response.Lines.Count == 0)
+        {
+            throw Determinism.Fail(Oracle, $"The host turn {CanonicalJson.Serialize(turn)} is not the machine's step {CanonicalJson.Serialize(expected)} with the counter advanced.", c);
+        }
+
+        var after = before.Next(turn, before.Now);
+        var countsKept = after.RepeatCountsByTag.OrderBy(static p => p.Key, StringComparer.Ordinal).SequenceEqual(before.RepeatCountsByTag.OrderBy(static p => p.Key, StringComparer.Ordinal));
+        if (!after.Learner.Equals(before.Learner) || !countsKept || !after.AgentState.Equals(turn.Agent.Next) || after.HostSlots is not null)
+        {
+            throw Determinism.Fail(Oracle, "A host turn must move only the agent: the learner and the repeat counts stay, and the host facts are not carried over.", c);
+        }
+
+        if (!context.AgentState.Equals(turn.Agent.Next))
+        {
+            throw Determinism.Fail(Oracle, "The utterance was not evaluated in the context after the host turn.", c);
+        }
+
+        var fresh = Prepare(c).Pipeline;
+        Determinism.AssertSame(Oracle, "UtterancePipeline.Advance", c, () => turn, () => fresh.Advance(PipelineHarness.HostTurnEvent, before));
+
+        // The log entry round-trips through canonical JSON and the replayer reproduces it; readers of utterance entries skip it.
+        var entry = HostTurnEnvelope.From(turn, before);
+        using var writer = new StringWriter();
+        new ReplayLog(writer).Append(entry);
+        var text = writer.ToString();
+        var back = ReplayReader.ReadEntries(new StringReader(text)).Single().HostTurn;
+        if (back is null || !string.Equals(CanonicalJson.Serialize(back), text.TrimEnd('\n'), StringComparison.Ordinal))
+        {
+            throw Determinism.Fail(Oracle, "The host-turn entry does not round-trip through canonical JSON.", c);
+        }
+
+        if (ReplayReader.Read(new StringReader(text)).Count != 0 || ReplayReader.ReadEnvelopes(new StringReader(text)).Count != 0)
+        {
+            throw Determinism.Fail(Oracle, "Readers of utterance entries must skip a host-turn entry.", c);
+        }
+
+        if (Replayer.Replay(back, LivePipelineFor(c, pipeline)) is { } diff)
+        {
+            throw Determinism.Fail(Oracle, $"The replay of an unmodified host turn differs from the recording at {diff}.", c);
+        }
+
+        var moved = back with { Context = back.Context with { AgentState = back.Context.AgentState with { InteractionCounter = back.Context.AgentState.InteractionCounter + 1 } } };
+        if (Replayer.Replay(moved, LivePipelineFor(c, pipeline)) is null)
+        {
+            throw Determinism.Fail(Oracle, "A host turn replayed in another interaction counter must differ from the recording.", c);
+        }
     }
 
     // ---- Structure and decision ------------------------------------------------------------------------------------------------
@@ -369,7 +505,7 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
     // live pipeline's, so a replay with another embedder reports the changed model id in the version stamp instead of replaying silently.)
     private static UtterancePipeline LivePipelineFor(PipelineCase c, UtterancePipeline pipeline)
     {
-        var other = Harness.NewServices("una transcripcion que nadie dijo", RecognitionMode.Open, phonemes: false, embeddings: c.Embeddings);
+        var other = Harness.NewServices("una transcripcion que nadie dijo", RecognitionMode.Open, phonemes: false, embeddings: c.Embeddings, bundle: c.HostTurn ? PipelineHarness.HostTurnBundle : null);
         return new UtterancePipeline(other, pipeline.Options);
     }
 

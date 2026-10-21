@@ -55,22 +55,13 @@ public sealed class AgentStateMachine
         ArgumentNullException.ThrowIfNull(verdict);
         ArgumentNullException.ThrowIfNull(rng);
 
-        if (!string.Equals(current.AgentId, Definition.AgentId, StringComparison.Ordinal))
-        {
-            throw new ArgumentException($"State belongs to agent '{current.AgentId}', not '{Definition.AgentId}'.", nameof(current));
-        }
-
-        if (!_states.TryGetValue(current.StateId, out var state))
-        {
-            throw new ArgumentException($"agent '{Definition.AgentId}' has no state '{current.StateId}'.", nameof(current));
-        }
-
+        var state = StateOf(current);
         string target = current.StateId;
         IReadOnlyList<AgentActionDefinition> chosen = [];
         var matched = false;
         foreach (var transition in state.Transitions)
         {
-            if (Matches(transition.On, verdict))
+            if (transition.OnHostEvent is null && Matches(transition.On, verdict))
             {
                 target = transition.To;
                 chosen = transition.Actions;
@@ -85,6 +76,35 @@ public sealed class AgentStateMachine
             chosen = fallback.Actions;
         }
 
+        return Finish(current, target, chosen, rng);
+    }
+
+    /// <summary>
+    /// A host-initiated step: takes the first transition of the current state whose <see cref="AgentTransition.OnHostEvent"/> equals
+    /// <paramref name="hostEvent"/> (declaration order, ordinal comparison). There is no fallback for host events. Variant draws and the interaction
+    /// counter behave as in <see cref="Step(AgentState, Verdict, SeededRng)"/>.
+    /// </summary>
+    /// <returns>The step, or null when the current state has no transition for the event (nothing moved, the counter is not advanced).</returns>
+    /// <exception cref="ArgumentException">The state belongs to another agent or is not a state of this machine.</exception>
+    public AgentStepResult? StepHostEvent(AgentState current, string hostEvent, SeededRng rng)
+    {
+        ArgumentNullException.ThrowIfNull(current);
+        ArgumentNullException.ThrowIfNull(hostEvent);
+        ArgumentNullException.ThrowIfNull(rng);
+        var state = StateOf(current);
+        foreach (var transition in state.Transitions)
+        {
+            if (string.Equals(transition.OnHostEvent, hostEvent, StringComparison.Ordinal))
+            {
+                return Finish(current, transition.To, transition.Actions, rng);
+            }
+        }
+
+        return null;
+    }
+
+    private AgentStepResult Finish(AgentState current, string target, IReadOnlyList<AgentActionDefinition> chosen, SeededRng rng)
+    {
         var actions = new AgentAction[chosen.Count];
         for (var i = 0; i < chosen.Count; i++)
         {
@@ -95,6 +115,18 @@ public sealed class AgentStateMachine
 
         var next = new AgentState(current.AgentId, target, checked(current.InteractionCounter + 1));
         return new AgentStepResult(next, actions);
+    }
+
+    private AgentStateDefinition StateOf(AgentState current)
+    {
+        if (!string.Equals(current.AgentId, Definition.AgentId, StringComparison.Ordinal))
+        {
+            throw new ArgumentException($"State belongs to agent '{current.AgentId}', not '{Definition.AgentId}'.", nameof(current));
+        }
+
+        return _states.TryGetValue(current.StateId, out var state)
+            ? state
+            : throw new ArgumentException($"agent '{Definition.AgentId}' has no state '{current.StateId}'.", nameof(current));
     }
 
     private static bool Matches(AgentCondition condition, Verdict verdict)
@@ -196,6 +228,11 @@ public sealed class AgentStateMachine
                 if (transition?.On is null)
                 {
                     throw Invalid($"a transition of state '{state.Id}' has no 'on' condition (use {{}} to match everything).");
+                }
+
+                if (transition.OnHostEvent is { Length: 0 })
+                {
+                    throw Invalid($"a transition of state '{state.Id}' has an empty onHostEvent; omit the field instead.");
                 }
 
                 ValidateCondition(state.Id, transition.On);

@@ -266,6 +266,85 @@ The host still supplies the stored time, and it keeps the states of the other ag
 utterance. `Next` recomputes `HostStateHash` from the values it carries, as `Create` does, so a host that gave its own digest to the constructor
 computes that digest again after `Next`.
 
+### Two-phase evaluation: host facts that depend on the utterance (CR-017)
+
+Host slots are taken before `Evaluate`, but some facts exist only after the core has read the line: the answer to "¿dónde está la arena?" needs
+the nearest sand, and the host can look that up only once it knows the noun is `arena`. Split the evaluation instead of evaluating twice.
+`Evaluate(clip, prompt, context)` is exactly `Complete(Analyze(clip, prompt), context)`: the same result, the same replay record and the same hashes.
+
+```csharp
+// Phase 1: recognition, normalization, analysis, intent and slots, answer match, pronunciation, verdict. Reads no conversation state.
+UtteranceAnalysis analysis = pipeline.Analyze(clip, prompt);
+
+// The host reads what phase 1 found (analysis.Verdict, analysis.Words, analysis.Answer, analysis.Asr) and computes its facts.
+string noun = analysis.Words!.First(w => w.Reading?.Pos == "noun").Token.Text;          // "arena"
+SlotMap near = SlotMap.From([new("target", noun), new("direction", Nearest(noun)), new("distance", "12")]);
+
+// Phase 2: decision, response, effects, repair and the replay record, with the facts as host slots and extra skills (M26d semantics:
+// per utterance, the verdict wins on a slot clash, the skills join the single learner update).
+PipelineResult result = pipeline.Complete(analysis, context, near, extraSkills: [$"word.{noun}"]);
+```
+
+- **What phase 1 hands over.** `UtteranceAnalysis` exposes `Verdict`, `Words`, `Answer` (the values the final `PipelineResult` will carry),
+  `Asr` and `Posteriors` (the recognizer outputs), `ClipHash` and `Prompt`. Everything else phase 2 needs is kept internally. The recognizers run
+  once, in `Analyze`; completing the analysis never calls them again (a speech host recognizes once).
+- **Three ways to give the host facts.** `Complete(analysis, context)` takes them from the context (`HostSlots`, `ExtraSkills`);
+  `Complete(analysis, context, hostSlots, extraSkills)` replaces them with the arguments, through `context.WithHost(...)`, which recomputes
+  `HostStateHash` as `Create` does, so the replay record covers the facts; `CompleteTrace` is `Complete` that returns the `PipelineTrace` a replay log needs
+  (`ReplayEnvelope.From(trace, context)` with the context passed to phase 2, after `WithHost`).
+- **Why two phases and not a callback.** A callback inside `Evaluate` would run host code in the middle of the pipeline: it can throw, block or
+  read the clock there, it cannot be tested apart from the pipeline, and what it saw is not in any record. With two phases the intermediate is a plain
+  value: the host's computation sits between two ordinary calls, nothing in the pipeline waits on it, the host can complete the same analysis
+  in several contexts, and a replay needs nothing new, because the envelope already holds the recognizer output and the final context.
+  `Evaluate` stays the single call for hosts that have no utterance-dependent facts.
+- **Mismatch.** `Complete` throws `ArgumentException` when the analysis came from a pipeline over other content or models (the version stamps differ).
+- **Threads.** An `UtteranceAnalysis` is immutable and safe to pass to another thread, and to complete more than once, from several threads at the same
+  time (section 8). Its posterior matrix is a shared array: read-only for the host.
+
+### Host-initiated agent turns (CR-015)
+
+The guide opens a review with a question ("¿Qué es esto?") before the player says anything. The state machine used to move only on an utterance
+verdict; an agent file can now also name a host event as a transition trigger, and the host raises it with `Advance`.
+
+```json
+{ "id": "idle", "transitions": [
+  { "onHostEvent": "guide.ask", "to": "asking",
+    "actions": [ { "dialogueIntent": "guide.review.ask", "hostEvent": "ui.show_question", "variantPoolId": "guide_ask" } ] },
+  { "on": { "intent": "greet" }, "to": "trading", "actions": [ { "dialogueIntent": "greet_reply" } ] } ] }
+```
+
+```csharp
+HostTurnResult? turn = pipeline.Advance("guide.ask", context);          // context.HostSlots feed the line, as for an utterance
+if (turn is not null)
+{
+    foreach (ResponseLine line in turn.Response.Lines) Say(line.Text);
+    foreach (AgentAction action in turn.Agent.Actions) Raise(action.HostEvent);   // the host events to act on
+    context = context.Next(turn, new StoredTimestamp(now));              // the agent is in its new state, the counter advanced
+    using var w = new StreamWriter("session.jsonl", append: true, new UTF8Encoding(false));
+    new ReplayLog(w).Append(HostTurnEnvelope.From(turn, before));        // `before` is the context passed to Advance
+}
+```
+
+- **Schema.** `AgentTransition` has one new optional member, `onHostEvent` (a non-empty event name). A transition with it is a host-event
+  transition: only `Advance` takes it (the first one of the current state with that name, declaration order, ordinal comparison), and an utterance
+  verdict never does, so an `"on": {}` that matched every verdict does not change meaning. `on` may then be omitted (it reads as the empty
+  condition, ignored). Agent files without `onHostEvent` load and behave exactly as before.
+- **The turn.** The matched transition's actions are voiced from their dialogue pools: an action with a variant pool uses the variant the step drew
+  (`SeededRng.ForInteraction(worldSeed, agentId, counter)`, one draw per such action), any other action draws from the same interaction stream, as an
+  utterance reply does. Lines render with `context.HostSlots` only; there is no verdict, so there are no verdict slots and no feedback. A line that names a host slot
+  the context lacks throws `TemplateException`; an action naming a pool the bundle lacks is skipped, as for utterance actions.
+- **The counter.** The step advances the interaction counter by one, exactly as an utterance step does, so a later utterance draws from the next
+  stream and the host's record of how often the agent spoke stays aligned with the core's.
+- **No step.** `Advance` returns `null` (and changes nothing, the counter is not advanced, there is nothing to record) when the bundle has no state
+  machine for the context's agent or the agent's current state has no transition for the event. It is a null rather than an exception because a host
+  raises events from game state it does not fully control; an agent state that belongs to another agent still throws `ArgumentException`.
+- **Learner and repeat counts: untouched.** `context.Next(turn, now)` carries the learner model and the repeat counts over unchanged and moves only the
+  agent. Reason: nothing the player did was observed. A skill update would be evidence out of nothing, and a repeat count is "the same error in a
+  row", which a question in between should neither extend nor reset. A host that wants the question to count (for example "the player was shown
+  this word") says so with `learner.StepSkills(...)`. Host slots are per step and are not carried over.
+- **Replay.** A host turn is a second kind of replay log entry (`HostTurnEnvelope`, see [REPLAY.md](REPLAY.md)); `Replayer.Replay(HostTurnEnvelope, pipeline)`
+  runs `Advance` again in the recorded context and compares the whole result. It needs no recognizer.
+
 ## 6. Plan the response (D0, with D1 for speech)
 
 `Evaluate` also plans the response: the agent's lines, the effects the verdict triggers and an optional repair step.
@@ -333,7 +412,7 @@ using (var writer = new StreamWriter("session.jsonl", append: true, new UTF8Enco
 
 // Later: every entry is re-evaluated from its recorded recognizer output, so no audio is needed. The replay pipeline keeps the
 // recording's services (the replayer swaps in only the recognizers), so the model hashes in `versions` match the recording.
-var envelopes = ReplayReader.ReadEnvelopes(new StreamReader("session.jsonl", Encoding.UTF8));
+var envelopes = ReplayReader.ReadEnvelopes(new StreamReader("session.jsonl", Encoding.UTF8));   // utterance entries only; ReadEntries also returns host turns
 var recorded = new ReplayWordRecognizer(new Dictionary<string, AsrResult>(StringComparer.Ordinal));
 var replayPipeline = new UtterancePipeline(new PipelineServices(recorded, phonemes, embeddings, synthesizer, bundle));
 foreach (ReplayEnvelope envelope in envelopes)
@@ -342,6 +421,9 @@ foreach (ReplayEnvelope envelope in envelopes)
     Console.WriteLine(diff is null ? "OK" : $"DIFF {diff}");
 }
 ```
+
+A log that also holds host-initiated turns (`HostTurnEnvelope`, section 4) is read with `ReplayReader.ReadEntries`, which returns each entry as an
+utterance envelope or a host turn; `ReadEnvelopes` and `Read` skip the host turns.
 
 A replay that prints `DIFF` means the stages, the content or the versions changed since the entry was recorded. A replay needs the same
 embedder and synthesizer that produced the log, because those stages run again; with the fakes and the silent synthesizer that needs no model
@@ -371,6 +453,11 @@ The guarantee stops at the injected adapters, which the pipeline does not make t
 The rule for a host that runs evaluation and speech on different threads: one pipeline (or one set of services) per process is fine; give
 each Vosk, ONNX recognizer and each cached synthesis key one thread of its own, or serialize their calls, and do not dispose a recognizer
 while another thread can call it.
+
+**Two-phase evaluation and host turns.** `Analyze`, `Complete`, `CompleteTrace` and `Advance` follow the same rule as `Evaluate`: they keep no state
+in the pipeline. An `UtteranceAnalysis` is immutable (its members are get-only and the pipeline never mutates what it holds), so it may be handed
+to another thread, completed there, and completed more than once or concurrently, in any contexts. The only shared mutable object reachable from
+it is the phoneme recognizer's posterior array, which every consumer treats as read-only. `HostTurnResult` is an immutable record.
 
 **Load cost.** `ContentLoader.Load` reads every file once into memory, checks every hash, parses the catalogs and validates the
 cross-references; the imported Wiktionary lexicon (tens of thousands of entries) dominates. Load once per process and share the bundle;
@@ -402,4 +489,5 @@ and `PipelineOptions` (init-only), `PipelineServices` (read-only properties; the
 | Services with real recognizers, phonemes, embeddings, synthesis | D1 | Frozen models, one CPU thread, greedy decoding; their hashes are in `versions` |
 | Pipeline, context | D0 | No clock: the stored timestamp, the seed and the counter are inputs |
 | Evaluate, verdict, decision, response plan | D0 over the recognizer output | Same input, byte-identical `CanonicalJson` output |
+| `Analyze` then `Complete`; `Advance` | D0 over the recognizer output | `Evaluate` equals `Complete(Analyze(...))` byte for byte; a host turn is a pure function of the context and the content |
 | Record and replay | D0 | Replays need the recorded recognizer output and the recording's embedder and synthesizer (fakes need no model file); they compare the recorded verdict field by field |

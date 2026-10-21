@@ -47,6 +47,25 @@ public static class Replayer
     }
 
     /// <summary>
+    /// Replays a host-initiated turn: runs <see cref="UtterancePipeline.Advance"/> again in the recorded context and compares the whole result
+    /// (<c>/agent</c>, <c>/response</c>, <c>/contentHash</c>, <c>/hostStateHash</c>) with the recording. Needs no recognizer and no clip.
+    /// </summary>
+    /// <returns>Null when identical; otherwise the JSON pointer paths that differ (a turn that no longer happens reports <c>/result</c>).</returns>
+    public static ReplayDiff? Replay(HostTurnEnvelope envelope, UtterancePipeline pipeline)
+    {
+        ArgumentNullException.ThrowIfNull(envelope);
+        ArgumentNullException.ThrowIfNull(pipeline);
+        var replayed = pipeline.Advance(envelope.HostEvent, envelope.Context);
+        if (replayed is null)
+        {
+            return new ReplayDiff(["/result"]);
+        }
+
+        var paths = JsonDiff.Paths(CanonicalJson.Serialize(envelope.Result), CanonicalJson.Serialize(replayed));
+        return paths.Count == 0 ? null : new ReplayDiff(paths);
+    }
+
+    /// <summary>
     /// Replays a bare core record through the pipeline's own recognizers (so real models re-run on the clip returned by
     /// <paramref name="clipByHash"/>) in the given conversation context, and compares the new core record with the recorded one.
     /// </summary>
