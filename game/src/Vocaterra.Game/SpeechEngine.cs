@@ -122,8 +122,8 @@ public sealed class SpeechEngine : IDisposable
 
     /// <summary>
     /// The manifest to read, when it is not <c>manifest.json</c> in the models folder (where the core's <see cref="ModelStore"/> looks, and
-    /// where the core's fetch script does not put it: CR-019): the file named by <see cref="ManifestVariable"/>, else the core submodule's
-    /// <c>models/manifest.json</c> found by walking up from the executable's folder and the current directory. <see langword="null"/> means
+    /// where the core's fetch script does not put it: CR-019): the file named by <see cref="ManifestVariable"/>, else the core's
+    /// <c>nlp/models/manifest.json</c> found by walking up from the executable's folder and the current directory. <see langword="null"/> means
     /// the store reads the folder's own manifest.
     /// </summary>
     public static string? ManifestPath(string modelsRoot)
@@ -143,7 +143,7 @@ public sealed class SpeechEngine : IDisposable
         {
             for (var directory = new DirectoryInfo(start); directory is not null; directory = directory.Parent)
             {
-                var candidate = Path.Combine(directory.FullName, "external", "Vocaterra.NLP", "models", ModelStore.ManifestFileName);
+                var candidate = Path.Combine(directory.FullName, "nlp", "models", ModelStore.ManifestFileName);
                 if (File.Exists(candidate))
                 {
                     return candidate;

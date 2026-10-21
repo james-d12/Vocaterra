@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!-- The engine-agnostic game layer (plan section 3 rule 3, D-game-1): the game session, the guide's turns and the facts about the world the
-       guide speaks of. It references the simulation by project and the language core only as packages. No engine type belongs here. -->
+       guide speaks of. It references the simulation and the language core's projects (nlp/src). No engine type belongs here. -->
   <PropertyGroup>
     <RootNamespace>Vocaterra.Game</RootNamespace>
     <AssemblyName>Vocaterra.Game</AssemblyName>
@@ -9,13 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Vocaterra.Nlp.Asr" />
-    <PackageReference Include="Vocaterra.Nlp.Content" />
-    <PackageReference Include="Vocaterra.Nlp.Core" />
-    <PackageReference Include="Vocaterra.Nlp.Decision" />
-    <PackageReference Include="Vocaterra.Nlp.Language" />
-    <PackageReference Include="Vocaterra.Nlp.Pipeline" />
-    <PackageReference Include="Vocaterra.Nlp.Response" />
+    <ProjectReference Include="../../../nlp/src/Vocaterra.Nlp.Asr/Vocaterra.Nlp.Asr.csproj" />
+    <ProjectReference Include="../../../nlp/src/Vocaterra.Nlp.Content/Vocaterra.Nlp.Content.csproj" />
+    <ProjectReference Include="../../../nlp/src/Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
+    <ProjectReference Include="../../../nlp/src/Vocaterra.Nlp.Decision/Vocaterra.Nlp.Decision.csproj" />
+    <ProjectReference Include="../../../nlp/src/Vocaterra.Nlp.Language/Vocaterra.Nlp.Language.csproj" />
+    <ProjectReference Include="../../../nlp/src/Vocaterra.Nlp.Pipeline/Vocaterra.Nlp.Pipeline.csproj" />
+    <ProjectReference Include="../../../nlp/src/Vocaterra.Nlp.Response/Vocaterra.Nlp.Response.csproj" />
   </ItemGroup>
 
   <ItemGroup>

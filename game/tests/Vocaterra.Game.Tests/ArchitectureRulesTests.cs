@@ -27,15 +27,18 @@ public sealed class ArchitectureRulesTests
     }
 
     [Fact]
-    public void TheProjectReferencesTheSimulationAndOnlyCorePackages()
+    public void TheProjectReferencesTheSimulationAndTheCoreProjectsOnly()
     {
-        var project = File.ReadAllText(Path.Combine(RepoRoot(), "src", "Vocaterra.Game", "Vocaterra.Game.csproj"));
+        // The language core is the sibling folder nlp/ of this repository, referenced by project (D-game-7); the game layer takes no package
+        // of its own and never copies core source.
+        var project = File.ReadAllText(Path.Combine(GameRoot(), "src", "Vocaterra.Game", "Vocaterra.Game.csproj"));
 
         var projects = Regex.Matches(project, "<ProjectReference Include=\"([^\"]+)\"").Select(m => m.Groups[1].Value).ToList();
-        Assert.Equal(["../Vocaterra.Simulation/Vocaterra.Simulation.csproj"], projects);
-        var packages = Regex.Matches(project, "<PackageReference Include=\"([^\"]+)\"").Select(m => m.Groups[1].Value).ToList();
-        Assert.NotEmpty(packages);
-        Assert.All(packages, name => Assert.StartsWith("Vocaterra.Nlp.", name, StringComparison.Ordinal));
+        Assert.Contains("../Vocaterra.Simulation/Vocaterra.Simulation.csproj", projects);
+        var core = projects.Where(path => path != "../Vocaterra.Simulation/Vocaterra.Simulation.csproj").ToList();
+        Assert.NotEmpty(core);
+        Assert.All(core, path => Assert.Matches("^\\.\\./\\.\\./\\.\\./nlp/src/Vocaterra\\.Nlp\\.[A-Za-z]+/Vocaterra\\.Nlp\\.[A-Za-z]+\\.csproj$", path));
+        Assert.DoesNotContain("<PackageReference", project, StringComparison.Ordinal);
         Assert.DoesNotContain("external", project, StringComparison.Ordinal);
     }
 
@@ -44,7 +47,7 @@ public sealed class ArchitectureRulesTests
     {
         // build/Vosk.targets (which copies libvosk.so) is imported only into a project that references Vosk itself, and the ONNX Runtime package's
         // native library would overwrite the one sherpa-onnx (Kokoro) needs, so the same projects exclude its native assets.
-        var props = File.ReadAllText(Path.Combine(RepoRoot(), "Directory.Packages.props"));
+        var props = File.ReadAllText(Path.Combine(Path.GetDirectoryName(GameRoot())!, "Directory.Packages.props"));
         Assert.Contains("<PackageVersion Include=\"Vosk\" Version=\"0.3.38\" />", props, StringComparison.Ordinal);
         foreach (var project in new[]
         {
@@ -53,7 +56,7 @@ public sealed class ArchitectureRulesTests
             Path.Combine("tests", "Vocaterra.MonoGame.Tests", "Vocaterra.MonoGame.Tests.csproj"),
         })
         {
-            var text = File.ReadAllText(Path.Combine(RepoRoot(), project));
+            var text = File.ReadAllText(Path.Combine(GameRoot(), project));
             Assert.Contains("<PackageReference Include=\"Vosk\" />", text, StringComparison.Ordinal);
             Assert.Contains("<PackageReference Include=\"Microsoft.ML.OnnxRuntime\" ExcludeAssets=\"native\" />", text, StringComparison.Ordinal);
         }
@@ -62,14 +65,14 @@ public sealed class ArchitectureRulesTests
     [Fact]
     public void TheSimulationStillTakesNoPackages()
     {
-        var project = File.ReadAllText(Path.Combine(RepoRoot(), "src", "Vocaterra.Simulation", "Vocaterra.Simulation.csproj"));
+        var project = File.ReadAllText(Path.Combine(GameRoot(), "src", "Vocaterra.Simulation", "Vocaterra.Simulation.csproj"));
 
         Assert.DoesNotContain("PackageReference", project, StringComparison.Ordinal);
         Assert.DoesNotContain("ProjectReference", project, StringComparison.Ordinal);
     }
 
     private static IEnumerable<string> Sources() =>
-        Directory.EnumerateFiles(Path.Combine(RepoRoot(), "src", "Vocaterra.Game"), "*.cs", SearchOption.AllDirectories)
+        Directory.EnumerateFiles(Path.Combine(GameRoot(), "src", "Vocaterra.Game"), "*.cs", SearchOption.AllDirectories)
             .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
                 && !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal));
 
@@ -79,14 +82,18 @@ public sealed class ArchitectureRulesTests
         return index < 0 ? line : line[..index];
     }
 
-    private static string RepoRoot()
+    /// <summary>The game's folder (<c>game/</c> in the repository; <c>Directory.Packages.props</c> is in its parent): the first ancestor of the test
+    /// output that holds <c>content/game-v1</c>.</summary>
+    private static string GameRoot()
     {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Vocaterra.sln")))
+        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
         {
-            directory = directory.Parent;
+            if (File.Exists(Path.Combine(directory.FullName, "content", "game-v1", "manifest.json")))
+            {
+                return directory.FullName;
+            }
         }
 
-        return directory?.FullName ?? throw new DirectoryNotFoundException("Vocaterra.sln was not found above the test output folder.");
+        throw new DirectoryNotFoundException("content/game-v1 was not found above the test output folder.");
     }
 }

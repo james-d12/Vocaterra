@@ -1,30 +1,28 @@
 <Project>
 
-  <!-- The language core's packages (Vocaterra.Nlp.*, version 0.1.0 as published to the local feed by the core's scripts/pack.sh) and the test
-       packages, at the versions the core uses. Bump a core version here in the same commit that changes the code that depends on it.
-       MonoGame DesktopGL and FontStashSharp are the front-end's packages (src/Vocaterra.MonoGame only). -->
+  <!-- One version list for both halves. The language core (nlp/) references the core's projects by ProjectReference, never as packages,
+       so no Vocaterra.Nlp.* version is listed. MonoGame DesktopGL and FontStashSharp are the game front-end's (game/src/Vocaterra.MonoGame only).
+       The speech and test packages are shared. -->
   <ItemGroup>
-    <PackageVersion Include="Vocaterra.Nlp.Asr" Version="0.1.0" />
-    <PackageVersion Include="Vocaterra.Nlp.Content" Version="0.1.0" />
-    <PackageVersion Include="Vocaterra.Nlp.Core" Version="0.1.0" />
-    <PackageVersion Include="Vocaterra.Nlp.Decision" Version="0.1.0" />
-    <PackageVersion Include="Vocaterra.Nlp.Language" Version="0.1.0" />
-    <PackageVersion Include="Vocaterra.Nlp.Pipeline" Version="0.1.0" />
-    <PackageVersion Include="Vocaterra.Nlp.Response" Version="0.1.0" />
-    <!-- Vosk 0.3.38 is the core's own dependency (Vocaterra.Nlp.Asr). It is named here, at the same version, only so that the executables and test
-         projects that run the recognizer can reference it directly: its build/Vosk.targets (the one that copies libvosk.so next to the output)
-         is imported only into a project that references the package itself, never through Vocaterra.Nlp.Asr. License: Apache-2.0. -->
-    <PackageVersion Include="Vosk" Version="0.3.38" />
-    <!-- Microsoft.ML.OnnxRuntime 1.31.0 is also the core's own dependency (its embedding model). The game never loads that model (it uses the
-         core's fake embeddings), but the package ships a libonnxruntime.so that overwrites the one sherpa-onnx (Kokoro) needs in the same output
-         folder, and sherpa's library then fails to load (VERS_1.28.2 not found). The executables and test projects that speak name it with
-         ExcludeAssets="native" so that sherpa's runtime is the one next to the executable (CR-021). License: MIT. -->
-    <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="1.31.0" />
-    <PackageVersion Include="MonoGame.Framework.DesktopGL" Version="3.8.6" />
-    <PackageVersion Include="FontStashSharp.MonoGame" Version="1.6.2" />
+    <!-- Test packages -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="coverlet.collector" Version="10.1.0" />
+    <PackageVersion Include="CsCheck" Version="4.9.1" />
+    <!-- Speech (the core's dependencies). Vosk is also referenced directly by the game's executables and test projects that run the
+         recognizer: its build/Vosk.targets (the one that copies libvosk.so next to the output) is imported only into a project that references
+         the package itself, never through a project reference. License: Apache-2.0. -->
+    <PackageVersion Include="Vosk" Version="0.3.38" />
+    <PackageVersion Include="org.k2fsa.sherpa.onnx" Version="1.13.8" />
+    <!-- Microsoft.ML.OnnxRuntime 1.31.0 is the core's embedding-model dependency. The game never loads that model (it uses the core's fake
+         embeddings), but the package ships a libonnxruntime.so that overwrites the one sherpa-onnx (Kokoro) needs in the same output folder,
+         and sherpa's library then fails to load (VERS_1.28.2 not found). The game's executables and test projects that speak name it with
+         ExcludeAssets="native" so that sherpa's runtime is the one next to the executable (CR-021). License: MIT. -->
+    <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="1.31.0" />
+    <!-- Game front-end -->
+    <PackageVersion Include="MonoGame.Framework.DesktopGL" Version="3.8.6" />
+    <PackageVersion Include="FontStashSharp.MonoGame" Version="1.6.2" />
   </ItemGroup>
 
 </Project>

@@ -52,16 +52,17 @@ public sealed class DeterminismRulesTests
 
     private static string StripComment(string line) => Regex.Replace(line, @"//.*$", string.Empty);
 
+    /// <summary>The project folder, found by walking up from the test output to the game's folder (the one that holds <c>content/game-v1</c>).</summary>
     private static string SimulationDirectory()
     {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Vocaterra.sln")))
+        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
         {
-            directory = directory.Parent;
+            if (File.Exists(Path.Combine(directory.FullName, "content", "game-v1", "manifest.json")))
+            {
+                return Path.Combine(directory.FullName, "src", "Vocaterra.Simulation");
+            }
         }
 
-        return directory is null
-            ? throw new InvalidOperationException("Vocaterra.sln was not found above the test assembly.")
-            : Path.Combine(directory.FullName, "src", "Vocaterra.Simulation");
+        throw new InvalidOperationException("content/game-v1 was not found above the test assembly.");
     }
 }

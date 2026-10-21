@@ -6,16 +6,15 @@
     <AssemblyName>Vocaterra.Host</AssemblyName>
   </PropertyGroup>
 
-  <!-- The language core, consumed as NuGet packages from the local feed (nuget.config). No project references to the core: this is the
-       check that the packages expose everything a host needs (docs/API.md). -->
+  <!-- The language core, referenced by project (nlp/src). The host uses only the core's public API (nlp/docs/API.md). -->
   <ItemGroup>
-    <PackageReference Include="Vocaterra.Nlp.Asr" />
-    <PackageReference Include="Vocaterra.Nlp.Content" />
-    <PackageReference Include="Vocaterra.Nlp.Core" />
-    <PackageReference Include="Vocaterra.Nlp.Decision" />
-    <PackageReference Include="Vocaterra.Nlp.Language" />
-    <PackageReference Include="Vocaterra.Nlp.Pipeline" />
-    <PackageReference Include="Vocaterra.Nlp.Response" />
+    <ProjectReference Include="../../../nlp/src/Vocaterra.Nlp.Asr/Vocaterra.Nlp.Asr.csproj" />
+    <ProjectReference Include="../../../nlp/src/Vocaterra.Nlp.Content/Vocaterra.Nlp.Content.csproj" />
+    <ProjectReference Include="../../../nlp/src/Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
+    <ProjectReference Include="../../../nlp/src/Vocaterra.Nlp.Decision/Vocaterra.Nlp.Decision.csproj" />
+    <ProjectReference Include="../../../nlp/src/Vocaterra.Nlp.Language/Vocaterra.Nlp.Language.csproj" />
+    <ProjectReference Include="../../../nlp/src/Vocaterra.Nlp.Pipeline/Vocaterra.Nlp.Pipeline.csproj" />
+    <ProjectReference Include="../../../nlp/src/Vocaterra.Nlp.Response/Vocaterra.Nlp.Response.csproj" />
   </ItemGroup>
 
   <!-- The typed-line call sequence is shared with the guide: Vocaterra.Game (which brings the simulation along, unused by the host). -->
