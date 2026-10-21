@@ -4,9 +4,9 @@ Oct 18, 2026 · @James
 
 ## Overview
 
-The host hears the player speak Spanish, judges what they meant and how well they said it, and reacts in-world. **Every runtime step is deterministic**: the same audio clip, host state and content version always produce the same verdict, feedback and game outcome. Non-deterministic capabilities (LLMs, sampled models) are documented per step as optional extensions with strict rules for adding them.
+The host hears the player speak Spanish, judges what they meant and how well they said it, and reacts. **Every runtime step is deterministic**: the same audio clip, host state and content version always produce the same verdict, feedback and host outcome. Non-deterministic capabilities (LLMs, sampled models) are documented per step as optional extensions with strict rules for adding them.
 
-**Purpose:** core gameplay loop for a Terraria-inspired game where speaking Spanish is a mechanic (spells, trade, quests, agent dialogue).
+**Purpose:** the language core of a host application in which speaking Spanish is part of the interaction (agent dialogue, answers and feedback). The host's own design is outside this document.
 
 **In scope:** speech capture, word recognition, pronunciation scoring, language evaluation, verdict, decisions, learner model, agent responses (text and speech), effects, and the build-time content pipeline.
 
@@ -30,7 +30,7 @@ Every component belongs to one of three classes; the runtime core uses only D0 a
 **Hard rules**
 
 1. No N-class output may change the verdict, the learner model, or host state.
-2. All randomness (dialogue variant choice, loot rolls) uses a seeded RNG: `seed = hash(world_seed, agent_id, interaction_counter)`.
+2. All randomness (dialogue variant choice and any other host draw) uses a seeded RNG: `seed = hash(world_seed, agent_id, interaction_counter)`.
 3. Time-dependent logic uses timestamps stored in the save, never live wall-clock reads during evaluation.
 4. Model files, runtime versions and content data are pinned and hashed; hashes go into saves and replay logs.
 5. Every threshold uses a margin: accept only if `score ≥ t + ε`, reject only if `score ≤ t − ε`, otherwise take the defined "uncertain" branch.
@@ -43,7 +43,7 @@ Every component belongs to one of three classes; the runtime core uses only D0 a
 | **Cache** | Runs once at runtime; output stored in the save, keyed by `hash(input, context, model_version)`; identical inputs replay it | Deterministic per save after first occurrence |
 | **Advisory** | Cosmetic only (flavor text); validated by D0 rules; deterministic fallback on failure; never touches verdict or state | Gameplay deterministic; presentation may vary |
 
-Cache and Advisory are reserved for an optional, clearly labeled free conversation mode (Roadmap, Phase 3).
+Cache and Advisory are reserved for an optional, clearly labeled conversation mode (Roadmap, Phase 3).
 
 Guiding principle carried over from gameplay: **reward communication, coach correctness.** If the player was understood, the world responds; correction rides on the response.
 
@@ -73,7 +73,7 @@ flowchart TD
     subgraph RES[Response]
         E1[Dialogue lines<br/>templates + pre-generated]
         E2[TTS Kokoro<br/>Spanish voices]
-        E3[Effects<br/>spell power, trade price]
+        E3[Effects<br/>host-defined outcome kinds]
     end
     subgraph BLD[Build-time data, feeds evaluation and response]
         F1[Lexicon<br/>Wiktionary inflections]
@@ -152,15 +152,15 @@ Greedy or fixed-width beam, no temperature, no sampling, fixed threads, CPU, pin
 
 **Output:** parse, slot values, grammar error tags with spans and expected forms. **Class:** D0.
 
-**Non-deterministic considerations:** a statistical tagger (UDPipe, D1) could widen coverage; check model licenses. Advisory/Cache — in free conversation mode an LLM may parse sentences outside the slot grammar; its suggested tags count only if D0 rules confirm them. Error explanations come from authored templates per tag.
+**Non-deterministic considerations:** a statistical tagger (UDPipe, D1) could widen coverage; check model licenses. Advisory/Cache — in optional conversation mode an LLM may parse sentences outside the slot grammar; its suggested tags count only if D0 rules confirm them. Error explanations come from authored templates per tag.
 
 ### 8. Meaning and intent
 
-**Deterministic design:** fixed order — slot grammar match in current agent/quest context → lemma keyword rules (lemma `comprar` + item → `buy_item`) → embedding nearest neighbor (multilingual-e5-small, ONNX) against authored examples per intent, accepted only if `top1 ≥ t` and `top1 − top2 ≥ m`. Unresolved → deterministic repair: agent says "¿Cómo?", repeats slower, then offers 2–3 spoken choices and switches to constrained ASR for the retry.
+**Deterministic design:** fixed order — slot grammar match in current agent context → lemma keyword rules (lemma `comprar` + item → `buy_item`) → embedding nearest neighbor (multilingual-e5-small, ONNX) against authored examples per intent, accepted only if `top1 ≥ t` and `top1 − top2 ≥ m`. Unresolved → deterministic repair: agent says "¿Cómo?", repeats slower, then offers 2–3 spoken choices and switches to constrained ASR for the retry.
 
 **Output:** intent ID or `Unknown`, slots, resolving rung, margin. **Class:** D0 + one D1 rung.
 
-**Non-deterministic considerations:** Cache/Advisory — in free conversation mode an LLM may classify intent, grammar-constrained (GBNF/JSON schema) to known intent IDs, must pass slot validation, cached per input hash, never on graded prompts. Freeze — LLM generates extra example utterances per intent at build time.
+**Non-deterministic considerations:** Cache/Advisory — in optional conversation mode an LLM may classify intent, grammar-constrained (GBNF/JSON schema) to known intent IDs, must pass slot validation, cached per input hash, never on graded prompts. Freeze — LLM generates extra example utterances per intent at build time.
 
 ### 9. Verdict assembly
 
@@ -176,7 +176,7 @@ Greedy or fixed-width beam, no temperature, no sampling, fixed threads, CPU, pin
 
 **Output:** agent action, dialogue intent, host event. **Class:** D0.
 
-**Non-deterministic considerations:** Advisory — LLM flavor lines in free conversation mode; never changes agent state, prices, quests or rewards.
+**Non-deterministic considerations:** Advisory — LLM flavor lines in optional conversation mode; never changes agent state or host state.
 
 ### 11. Learner model and scheduling
 
@@ -200,7 +200,7 @@ Greedy or fixed-width beam, no temperature, no sampling, fixed threads, CPU, pin
 
 **Output:** response text + phone data for TTS. **Class:** D0.
 
-**Non-deterministic considerations:** Freeze (preferred) — LLM drafts dialogue variants at build time. Cache + Advisory — runtime LLM dialogue in free conversation mode only, filtered by CEFR list and banned-content rules, template fallback.
+**Non-deterministic considerations:** Freeze (preferred) — LLM drafts dialogue variants at build time. Cache + Advisory — runtime LLM dialogue in optional conversation mode only, filtered by CEFR list and banned-content rules, template fallback.
 
 ### 14. Speech output (TTS)
 
@@ -212,7 +212,7 @@ Greedy or fixed-width beam, no temperature, no sampling, fixed threads, CPU, pin
 
 ### 15. Effects
 
-**Deterministic design:** fixed mapping tables from verdict to effect; partial credit → partial effect (spell at 60% power, reduced trade price).
+**Deterministic design:** fixed mapping tables from verdict to effect; partial credit → partial effect (for example 60% of the full effect).
 
 **Output:** host state changes. **Class:** D0. **Non-deterministic considerations:** none permitted.
 
@@ -287,14 +287,13 @@ Open question: whether to add subjunctive, por/para and pronoun-placement tags i
 
 ## Technology choices
 
-Recommendation: **C#**, with Rust as a strong alternative. C# has the widest local-AI tooling, an official ONNX Runtime package, and the Terraria lineage (XNA → MonoGame). Go is workable but has the thinnest ecosystem.
+Recommendation: **C#**, with Rust as a strong alternative. C# has the widest local-AI tooling and an official ONNX Runtime package. Go is workable but has the thinnest ecosystem.
 
 | Need | Tool | C# | Rust | Go |
 | --- | --- | --- | --- | --- |
 | ASR runtime, TTS host | [sherpa-onnx](https://docsearch.algolia.com/mcp/docs/repo/k2-fsa/sherpa) | NuGet | [crate](https://docs.rs/sherpa-onnx) | module |
 | Constrained ASR | [Vosk](https://pkg.go.dev/github.com/alphacep/vosk-api/go) | NuGet | `vosk` crate | official (cgo) |
 | Phoneme model, embeddings | ONNX Runtime | official | `ort` | community |
-| Game engine | — | Godot .NET, MonoGame | Bevy, macroquad | Ebitengine |
 | *Extension only:* local LLM | llama.cpp | [LLamaSharp](https://summary.ecosyste.ms/projects/124668) | `llama-cpp-2`, mistral.rs | yzma, [gollama.cpp](https://github.com/dianlight/gollama.cpp) |
 | *Extension only:* Whisper | whisper.cpp | Whisper.net | whisper-rs | [bucky](https://pkg.go.dev/github.com/ardanlabs/bucky) |
 
@@ -370,24 +369,22 @@ The biggest risk is recognition quality on real learner speech, which benchmarks
 **Open questions**
 
 - [ ] Min-spec hardware target (RAM, CPU generation, GPU optional or not)?
-- [ ] Final language and engine: C# + Godot/MonoGame, or Rust + Bevy?
-- [ ] Default dialect for agent speech, and is it player-selectable?
-- [ ] Does free conversation mode (Phase 3, Cache + Advisory) ship at all?
+- [x] Default dialect for agent speech: Latin American neutral (ADR 0005). Whether a host lets its learner choose another is the host's decision.
 - [ ] Microphone privacy: is audio ever stored (e.g. opt-in to improve the golden set)?
 
 ## Roadmap
 
-The first playable target is Phase 1: closed-answer prompts with pronunciation feedback, fully deterministic, no LLM. Each phase starts only after the gate before it passes.
+The first target a host can use is Phase 1: closed-answer prompts with pronunciation feedback, fully deterministic, no LLM. Each phase starts only after the gate before it passes.
 
 ```mermaid
 flowchart LR
-    P0[0 · Foundations<br/>golden learner audio<br/>ASR benchmark harness<br/>verdict struct locked<br/>error taxonomy v1<br/>language, engine pick]
+    P0[0 · Foundations<br/>golden learner audio<br/>ASR benchmark harness<br/>verdict struct locked<br/>error taxonomy v1<br/>language (ADR 0001)]
     G1{{Gate: models chosen<br/>WER, latency measured}}
     P1[1 · Core loop v0<br/>push-to-talk + VAD<br/>Vosk grammar ASR<br/>G2P + phone distance<br/>rules ladder steps 1-5<br/>templates + Kokoro]
     G2{{Gate: golden set passes<br/>replay reproduces verdict}}
     P2[2 · Open answers<br/>Parakeet open ASR<br/>embeddings rung<br/>GOP phone scoring<br/>learner model + FSRS<br/>feedback policy]
     G3{{Gate: min-spec budget<br/>cross-platform CI green}}
-    P3[3 · Extensions<br/>build-time LLM Freeze<br/>free conversation mode<br/>Cache + Advisory only<br/>CEFR output filter]
+    P3[3 · Extensions<br/>build-time LLM Freeze<br/>optional conversation mode<br/>Cache + Advisory only<br/>CEFR output filter]
     P0 --> G1 --> P1 --> G2 --> P2 --> G3 --> P3
 ```
 

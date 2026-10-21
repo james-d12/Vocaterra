@@ -5,7 +5,7 @@ The analyzer knows only the words in the lexicon (every other word is `vocab.unk
 | File | Origin | Entries | Lemmas |
 | --- | --- | --- | --- |
 | `seed.json` | hand-authored: 32 verbs with the present and preterite, articles, pronouns, numerals 1 to 20, about 150 nouns and 80 adjectives | 1 217 | 395 |
-| `game.json` | hand-authored: the words the host itself uses (spells, items) | 51 | 9 |
+| `game.json` | hand-authored: the sample bundle's own words (its spells and items) | 51 | 9 |
 | `supplement.json` | hand-authored: seven words that existing content uses and the other files lack (found by the coverage tests) | 7 | 5 |
 | `wiktionary-es.json` | **generated** from Wiktionary by `Vocaterra.Nlp.ContentBuilder import-lexicon`, marked `"generated_by": "wiktionary-import"` | 40 263 | 3 000 |
 | `wiktionary-es.source.json` | the **sidecar** of the generated file: sources, hashes, parameters, importer version, counts | - | - |

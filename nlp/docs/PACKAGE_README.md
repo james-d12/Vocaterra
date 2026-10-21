@@ -1,8 +1,8 @@
 # Vocaterra.NLP packages
 
-Vocaterra.NLP is the language core of a Spanish learning game: a learner speaks, the core returns a verdict (what was said, whether it was
+Vocaterra.NLP is the language core of a Spanish learning application: a learner speaks, the core returns a verdict (what was said, whether it was
 understood, how well it was said), the learner model and the feedback plan, and the agent's response text. The core knows nothing about the
-host's game; effects are opaque outcome kinds the host maps to its own rules.
+host application; effects are opaque outcome kinds the host maps to its own rules.
 
 Every package is version 0.1.0 and references the others at that exact version. The packages are:
 
@@ -24,6 +24,6 @@ A host loads a content bundle (`ContentLoader.Load(directory)`), builds the serv
 files every stage runs with the scripted recognizer and the fakes, so a host needs no model to start. The host API, call by call, is in
 `docs/API.md` of the repository.
 
-Licence: none is chosen yet. The packages carry no licence expression, so no licence is granted by them until the owner names one. The
+Licence: Apache-2.0. Each package sets the licence expression `Apache-2.0` and ships the repository's `LICENSE` and `NOTICE`. The
 `Vocaterra.Nlp.Asr` and `Vocaterra.Nlp.Response` packages depend on sherpa-onnx, whose native build contains GPL code unless a GPL-free release
 is pinned (see `docs/DECISIONS.md`, D2).

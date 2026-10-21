@@ -1,5 +1,7 @@
 # ADR 0005: Latin American neutral by default, accept every dialect when scoring
 
+> **Note (M19e, 2026-10-21):** game-side matters in this record, such as the engine choice and the game's scenes, are now decided in the Vocaterra game repository, not in this one. The text below is unchanged.
+
 - Status: accepted
 - Date: 2026-10-20
 - Deciders: repository owner and the implementation plan (`IMPLEMENTATION_PLAN.md` section 1, "Default dialect")
