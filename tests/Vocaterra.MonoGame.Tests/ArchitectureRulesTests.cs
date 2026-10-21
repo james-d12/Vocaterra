@@ -50,11 +50,11 @@ public sealed class ArchitectureRulesTests
     }
 
     [Fact]
-    public void TheProjectReferencesOnlyTheSimulationAndNoLanguageCorePackage()
+    public void TheProjectReferencesOnlyTheGameLayerAndTheSimulationAndNoLanguageCorePackage()
     {
         var project = File.ReadAllText(Repo.Path("src", "Vocaterra.MonoGame", "Vocaterra.MonoGame.csproj"));
         var references = Regex.Matches(project, "<ProjectReference Include=\"([^\"]+)\"").Select(m => m.Groups[1].Value).ToList();
-        Assert.Equal(["../Vocaterra.Simulation/Vocaterra.Simulation.csproj"], references);
+        Assert.Equal(["../Vocaterra.Game/Vocaterra.Game.csproj", "../Vocaterra.Simulation/Vocaterra.Simulation.csproj"], references);
         Assert.DoesNotContain("Vocaterra.Nlp", project, StringComparison.Ordinal);
         Assert.DoesNotContain("Content Include", project, StringComparison.Ordinal); // no MGCB content pipeline
         Assert.DoesNotContain("MonoGameContentReference", project, StringComparison.Ordinal);
@@ -63,7 +63,7 @@ public sealed class ArchitectureRulesTests
     [Fact]
     public void NoEngineCodeLivesOutsideTheMonoGameProject()
     {
-        foreach (var project in new[] { "Vocaterra.Simulation", "Vocaterra.Host" })
+        foreach (var project in new[] { "Vocaterra.Simulation", "Vocaterra.Game", "Vocaterra.Host" })
         {
             foreach (var file in Directory.EnumerateFiles(Repo.Path("src", project), "*.cs", SearchOption.AllDirectories).Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)))
             {

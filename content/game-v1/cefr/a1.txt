@@ -36,6 +36,7 @@ bicicleta
 bien
 bienvenido
 blanco
+bloque
 boca
 bolsa
 bonito
@@ -122,6 +123,7 @@ familia
 favor
 feliz
 feo
+flecha
 fruta
 frío
 fácil
@@ -131,6 +133,7 @@ gracias
 grande
 guapo
 gustar
+guía
 haber
 habitación
 hablar
@@ -237,6 +240,7 @@ perro
 persona
 pescado
 pie
+piedra
 plaza
 pobre
 poco
@@ -327,5 +331,6 @@ y
 ya
 yo
 zapato
+árbol
 él
 último

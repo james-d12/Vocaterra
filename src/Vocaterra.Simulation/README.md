@@ -29,7 +29,7 @@ while (running)
 | `World` | read-only queries: `GetTile`, `IsSolid`, `Spawn`, `Tiles`, `Info` (seed, size, generator version), `Record`, `ComputeDigestHex()` |
 | `TileGrid`, `Chunk`, `ChunkCoord`, `TilePoint` | 32 x 32 chunks, `GetChunk`, dirty flags (a save stores dirty chunks), `ComputeDigest()` |
 | `TileId`, `TileDefinition` | `Air`, `Dirt`, `Grass`, `Stone`, `Trunk`, `Leaves`; values are stable (they are hashed and saved) |
-| `WorldGenerator` | `Generate(seed[, size])`, `Version`, surface bounds for a height |
+| `WorldGenerator` | `Generate(seed[, size])`, `Version` (2), surface bounds for a height |
 | `WorldRng`, `ValueNoise` | SplitMix64 and integer value noise |
 | `AsciiMap` | `Render(world, cx, cy, w, h, player)` for test output and bug reports |
 
@@ -62,8 +62,12 @@ Y against the solid tiles. Everything is integer arithmetic. Outside the world c
 A pass is a class implementing `IGenerationPass` (`Name`, `Run(GenerationContext)`) and an entry in `WorldGenerator.DefaultPasses`; the order
 there is the order they run. A pass reads and writes `context.Tiles` (`SetTile` is internal to the assembly), uses
 `context.Rng(Name, chunkX, chunkY)` or `context.NoiseSeed(...)`, and may record facts in `GenerationRecord` (add members there: cave
-entrances, ore counts). The current order is `terrain`, `layers`, `grass`, `forest`, `spawn`. Caves and ores go between `layers` and `grass`
-(so cave mouths in dirt get grass), vegetation after `forest`; the `spawn` pass stays last because it needs the final tiles. Give a new pass a
+entrances, ore counts). The current order is `terrain`, `layers`, `grass`, `forest`, `spawn`, `spawn-tree`. Caves and ores go between `layers`
+and `grass` (so cave mouths in dirt get grass), vegetation after `forest`; the two spawn passes stay last because they need the final tiles.
+`spawn-tree` (generator version 2, P3) guarantees a tree base within 20 columns of the spawn: if the forest left none it plants one 10 to 20
+columns away (left before right, nearest first) that suits a tree as the forest pass requires and keeps three columns from every other trunk. It
+changed 2 of the first 150 seeds on the 512 x 256 test world; seed 42 already had a tree near the spawn, so its golden is unchanged
+(`0505865b...58a2`). Give a new pass a
 test with a golden and properties, as `GenerationTests` does.
 
 Mining and building (P6) add commands and events and mutate tiles through an internal `TileGrid.SetTile` called from `GameSimulation`; the dirty
@@ -72,6 +76,6 @@ flag per chunk is already maintained. Tiles other than the foreground layer (wal
 ## Tests
 
 `tests/Vocaterra.Simulation.Tests`: the seed-42 golden, same-seed and other-seed digests, properties over twelve seeds (spawn on the surface
-with air above, no floating trees, terrain within bounds), physics on hand-built worlds (landing, walls, ledges, jumps, coyote time, the
+with air above, no floating trees, terrain within bounds, a tree within 20 columns of the spawn for 150 seeds), physics on hand-built worlds (landing, walls, ledges, jumps, coyote time, the
 world edge) and on generated terrain, and an ASCII dump of the area around the spawn in the test output
 (`dotnet test --logger "console;verbosity=detailed" --filter AsciiMap`).

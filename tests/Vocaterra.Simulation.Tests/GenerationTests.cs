@@ -8,7 +8,7 @@ namespace Vocaterra.Simulation.Tests;
 /// <summary>Goldens and properties of world generation.</summary>
 public sealed class GenerationTests(ITestOutputHelper output)
 {
-    /// <summary>The SHA-256 of the tile arrays of seed 42 at <see cref="WorldSize.Small"/>, generator version 1. Any change to a pass changes it on purpose, with <see cref="WorldGenerator.Version"/>.</summary>
+    /// <summary>The SHA-256 of the tile arrays of seed 42 at <see cref="WorldSize.Small"/>, generator version 2. Any change to a pass changes it on purpose, with <see cref="WorldGenerator.Version"/>.</summary>
     private const string Seed42Golden = "0505865bc11189d2e8f8e67edb1bf91f80cf1d7bc05b7cfd718f647b296d58a2";
 
     private static readonly WorldSize MediumSize = new(512, 256);
@@ -48,7 +48,7 @@ public sealed class GenerationTests(ITestOutputHelper output)
     {
         var world = WorldGenerator.Generate(42, MediumSize);
         Assert.All(world.Tiles.Chunks, chunk => Assert.False(chunk.Dirty));
-        Assert.Equal(["terrain", "layers", "grass", "forest", "spawn"], world.Record.Passes);
+        Assert.Equal(["terrain", "layers", "grass", "forest", "spawn", "spawn-tree"], world.Record.Passes);
         Assert.Equal(16 * 8, world.Tiles.Chunks.Count);
     }
 
@@ -67,6 +67,69 @@ public sealed class GenerationTests(ITestOutputHelper output)
         }
 
         Assert.InRange(Math.Abs(spawn.X - (world.Width / 2)), 0, 40);
+    }
+
+    [Theory]
+    [MemberData(nameof(Seeds))]
+    public void ATreeStandsWithinTwentyTilesOfTheSpawn(ulong seed)
+    {
+        var world = WorldGenerator.Generate(seed, MediumSize);
+        var near = world.Record.TreeBases.Where(b => Math.Abs(b.X - world.Spawn.X) <= 20).ToList();
+        Assert.NotEmpty(near);
+        foreach (var treeBase in near)
+        {
+            Assert.Equal(TileId.Grass, world.GetTile(treeBase.X, treeBase.Y));
+            Assert.Equal(TileId.Trunk, world.GetTile(treeBase.X, treeBase.Y - 1));
+        }
+    }
+
+    [Fact]
+    public void TheSpawnTreePassFillsInWhereTheForestAloneLeavesNoTreeNearTheSpawn()
+    {
+        var withoutPass = WorldGenerator.DefaultPasses.Where(pass => pass.Name != "spawn-tree").ToList();
+        var needed = 0;
+        for (ulong seed = 1; seed <= 150; seed++)
+        {
+            var plain = WorldGenerator.Generate(seed, MediumSize, withoutPass);
+            var full = WorldGenerator.Generate(seed, MediumSize);
+            Assert.Contains(full.Record.TreeBases, b => Math.Abs(b.X - full.Spawn.X) <= 20);
+            if (!plain.Record.TreeBases.Any(b => Math.Abs(b.X - plain.Spawn.X) <= 20))
+            {
+                needed++;
+                var added = Assert.Single(full.Record.TreeBases.Except(plain.Record.TreeBases));
+                Assert.InRange(Math.Abs(added.X - full.Spawn.X), 10, 20);
+            }
+            else
+            {
+                Assert.Equal(plain.ComputeDigestHex(), full.ComputeDigestHex());
+            }
+        }
+
+        output.WriteLine($"{needed} of 150 seeds had no tree within 20 tiles of the spawn before the spawn-tree pass");
+        Assert.True(needed > 0, "The test no longer exercises the pass: pick a range of seeds that needs it.");
+    }
+
+    [Fact]
+    public void ThePlantedTreeKeepsTheSpawnHeadroomAndDoesNotCrowdOtherTrunks()
+    {
+        for (ulong seed = 1; seed <= 150; seed++)
+        {
+            var world = WorldGenerator.Generate(seed, MediumSize);
+            var spawn = world.Spawn;
+            for (var dx = -1; dx <= 1; dx++)
+            {
+                for (var dy = 1; dy <= 4; dy++)
+                {
+                    Assert.Equal(TileId.Air, world.GetTile(spawn.X + dx, spawn.Y + 1 - dy));
+                }
+            }
+
+            var xs = world.Record.TreeBases.Select(b => b.X).Order().ToList();
+            for (var i = 1; i < xs.Count; i++)
+            {
+                Assert.True(xs[i] - xs[i - 1] >= 3, $"Trunks at {xs[i - 1]} and {xs[i]} are closer than 3 columns (seed {seed}).");
+            }
+        }
     }
 
     [Theory]

@@ -1,0 +1,61 @@
+{
+  "agentId": "guide",
+  "initialState": "idle",
+  "variantPools": [
+    { "id": "farewell_reply", "count": 3 },
+    { "id": "guide_greet", "count": 3 },
+    { "id": "guide_greet_again", "count": 2 },
+    { "id": "guide_help", "count": 3 },
+    { "id": "guide_look", "count": 3 },
+    { "id": "guide_point", "count": 3 },
+    { "id": "guide_thank", "count": 3 },
+    { "id": "not_understood", "count": 3 }
+  ],
+  "states": [
+    {
+      "id": "idle",
+      "transitions": [
+        { "on": {"intent": "greet", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_greet", "hostEvent": "agent.greet", "variantPoolId": "guide_greet"}] },
+        { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_point", "hostEvent": "guide.point", "variantPoolId": "guide_point"}] },
+        { "on": {"intent": "ask_what", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_look", "hostEvent": "guide.identify", "variantPoolId": "guide_look"}] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_help", "hostEvent": "guide.help", "variantPoolId": "guide_help"}] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "farewell_reply", "hostEvent": "agent.farewell", "variantPoolId": "farewell_reply"}] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "guide_thank", "variantPoolId": "guide_thank"}] },
+        { "on": {"communicated": false}, "to": "idle", "actions": [{"dialogueIntent": "not_understood", "variantPoolId": "not_understood"}] }
+      ],
+      "fallback": {
+        "actions": [{"dialogueIntent": "not_understood", "variantPoolId": "not_understood"}]
+      }
+    },
+    {
+      "id": "talking",
+      "transitions": [
+        { "on": {"intent": "greet", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_greet_again", "hostEvent": "agent.greet", "variantPoolId": "guide_greet_again"}] },
+        { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_point", "hostEvent": "guide.point", "variantPoolId": "guide_point"}] },
+        { "on": {"intent": "ask_what", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_look", "hostEvent": "guide.identify", "variantPoolId": "guide_look"}] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_help", "hostEvent": "guide.help", "variantPoolId": "guide_help"}] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "farewell_reply", "hostEvent": "agent.farewell", "variantPoolId": "farewell_reply"}] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_thank", "variantPoolId": "guide_thank"}] },
+        { "on": {"communicated": false}, "to": "talking", "actions": [{"dialogueIntent": "not_understood", "variantPoolId": "not_understood"}] }
+      ],
+      "fallback": {
+        "actions": [{"dialogueIntent": "not_understood", "variantPoolId": "not_understood"}]
+      }
+    },
+    {
+      "id": "pointing",
+      "transitions": [
+        { "on": {"intent": "greet", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_greet_again", "hostEvent": "agent.greet", "variantPoolId": "guide_greet_again"}] },
+        { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_point", "hostEvent": "guide.point", "variantPoolId": "guide_point"}] },
+        { "on": {"intent": "ask_what", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_look", "hostEvent": "guide.identify", "variantPoolId": "guide_look"}] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_help", "hostEvent": "guide.help", "variantPoolId": "guide_help"}] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "farewell_reply", "hostEvent": "agent.farewell", "variantPoolId": "farewell_reply"}] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_thank", "variantPoolId": "guide_thank"}] },
+        { "on": {"communicated": false}, "to": "pointing", "actions": [{"dialogueIntent": "not_understood", "variantPoolId": "not_understood"}] }
+      ],
+      "fallback": {
+        "actions": [{"dialogueIntent": "not_understood", "variantPoolId": "not_understood"}]
+      }
+    }
+  ]
+}

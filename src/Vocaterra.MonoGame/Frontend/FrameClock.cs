@@ -24,6 +24,23 @@ public sealed class RealFrameClock : IFrameClock
     }
 }
 
+/// <summary>
+/// Times one guide turn for the panel's note line and the run's log. It reads a monotonic timer for display only: the measured time never
+/// reaches the simulation or the language core, whose stored time comes from the tick count.
+/// </summary>
+public readonly struct TurnTimer
+{
+    private readonly long _start;
+
+    private TurnTimer(long start) => _start = start;
+
+    /// <summary>Starts timing.</summary>
+    public static TurnTimer Start() => new(Stopwatch.GetTimestamp());
+
+    /// <summary>The milliseconds since <see cref="Start"/>.</summary>
+    public double ElapsedMilliseconds => Stopwatch.GetElapsedTime(_start).TotalMilliseconds;
+}
+
 /// <summary>A clock that reports exactly one tick of time per frame, for the scripted screenshot run (the same code path, no real time).</summary>
 public sealed class FixedFrameClock : IFrameClock
 {

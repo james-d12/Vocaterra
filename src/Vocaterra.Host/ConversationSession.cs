@@ -1,14 +1,10 @@
-using Vocaterra.Nlp.Asr;
+using Vocaterra.Game;
 using Vocaterra.Nlp.Content;
-using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
-using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
-using Vocaterra.Nlp.Language.Embeddings;
 using Vocaterra.Nlp.Pipeline;
-using Vocaterra.Nlp.Response.Speech;
 
 namespace Vocaterra.Host;
 
@@ -17,9 +13,9 @@ namespace Vocaterra.Host;
 /// learner model and the repeat counts are carried from one utterance to the next in a <see cref="ConversationContext"/>.
 /// </summary>
 /// <remarks>
-/// The word recognizer is the core's scripted one: the typed line is the transcript, so no model and no audio take part. The embedding
-/// model and the synthesizer are the core's stand-ins. The host owns the state the core cannot know (the world seed, the stored time, the
-/// learner model and the repeat counts), as docs/API.md describes.
+/// The word recognizer is the core's scripted one: the typed line is the transcript, so no model and no audio take part (the call
+/// sequence is <see cref="TypedUtteranceEvaluator"/> in <c>Vocaterra.Game</c>, shared with the guide). The host owns the state the core
+/// cannot know (the world seed, the stored time, the learner model and the repeat counts), as docs/API.md describes.
 /// </remarks>
 public sealed class ConversationSession
 {
@@ -29,10 +25,7 @@ public sealed class ConversationSession
     /// <summary>The world seed of a new conversation. The host uses it until the game has save files.</summary>
     public const ulong DefaultWorldSeed = 42;
 
-    private const string ScriptedModelHash = "scripted-transcript";
-
-    private readonly IEmbeddingModel _embeddings = new FakeEmbeddingModel();
-    private readonly ISpeechSynthesizer _synthesizer = new SilentSynthesizer();
+    private readonly TypedUtteranceEvaluator _evaluator;
     private readonly Dictionary<string, AgentState> _agentStates = new(StringComparer.Ordinal);
     private ConversationContext _context;
 
@@ -47,6 +40,7 @@ public sealed class ConversationSession
     {
         ArgumentNullException.ThrowIfNull(bundle);
         Bundle = bundle;
+        _evaluator = new TypedUtteranceEvaluator(bundle);
         _context = ConversationContext.Create(
             worldSeed,
             NoAgentId,
@@ -99,9 +93,7 @@ public sealed class ConversationSession
         var utterance = ConversationContext.Create(
             _context.WorldSeed, agentId, agentState, now, _context.Learner, _context.RepeatCountsByTag);
 
-        var asr = new AsrResult(transcript, [new AsrHypothesis(transcript, 1.0)], [], 1.0, ScriptedModelHash, prompt.Mode);
-        var services = new PipelineServices(new ScriptedWordRecognizer(asr), null, _embeddings, _synthesizer, Bundle);
-        var result = new UtterancePipeline(services).Evaluate(PcmClip.FromSamples([]), prompt, utterance);
+        var result = _evaluator.Evaluate(transcript, prompt, utterance);
 
         _agentStates[agentId] = result.Decision.Agent?.Next ?? agentState;
         _context = utterance.Next(result, now);

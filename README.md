@@ -9,20 +9,25 @@ it), feedback, a conversation step and the agent's response text. This repositor
 `external/Vocaterra.NLP` and consumes it as the NuGet packages `Vocaterra.Nlp.*` version 0.1.0 from the submodule's local feed; nothing of the
 core's source is copied here. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) says what the game takes from the core and what the game owns.
 
-This repository is the scaffold. The engine is not chosen yet (decision D-game-1 in [docs/DECISIONS.md](docs/DECISIONS.md)), so the host is a
-console program that exercises the core's calls. It has no rendering, audio capture or game world yet.
+The prototype is a small Terraria-like slice. The engine for it is MonoGame (decision D-game-1 in [docs/DECISIONS.md](docs/DECISIONS.md); the
+final engine is open), and all engine code lives in `src/Vocaterra.MonoGame`. The console host stays as the cheapest way to exercise the core's
+calls and the content. So far you can walk through a generated forest, meet the guide, type Spanish to her (`¿dónde está el árbol?`) and follow
+the arrow she puts out; see "The guide, typed" below.
 
 ## Layout
 
 ```
-Vocaterra.sln                    the solution: the host and its tests
+Vocaterra.sln                    the solution: the libraries, the front-end, the host and their tests
 Directory.Build.props            the build settings (net10.0, nullable, warnings as errors, deterministic)
 Directory.Packages.props         central package versions: the Vocaterra.Nlp.* packages and the test packages
 nuget.config                     the submodule's local feed, then nuget.org
 global.json                      the .NET SDK pin
 external/Vocaterra.NLP/          the language core, a git submodule (pinned; its build output is git-ignored there)
+src/Vocaterra.Simulation/        the world and the player body: seeded generation, tiles in chunks, a fixed 60 Hz tick (no packages, no engine)
+src/Vocaterra.Game/              the game session, the guide's typed turns and the facts about the world (the core's packages, no engine)
+src/Vocaterra.MonoGame/          the MonoGame DesktopGL front-end: window, drawing, input, the dialogue panel (the only engine code)
 src/Vocaterra.Host/              the console host: loads the bundle, evaluates lines, runs the text loop
-tests/Vocaterra.Host.Tests/      smoke tests: the two demo utterances, the bundle hash, the carried conversation, the repeat counts, the prompt text
+tests/                           one test project per source project (Simulation, Game, MonoGame, Host)
 content/game-v1/                 the game's content bundle (see below)
 scripts/content.sh               validate, hash and check a bundle with the core's content tool
 scripts/merge-gate.sh            the orchestrator's merge gate
@@ -73,17 +78,44 @@ for each typed line; `ConversationContext.Create` for the utterance's context an
 `RepeatCounts.Next` to the error tags. The host owns the world seed, the stored time (fixed for `--transcript`, the clock in the loop),
 the learner model and the repeat counts.
 
+## The guide, typed
+
+The smallest vertical slice that proves the core inside the game loop (milestone P3). From the repository root, with a display:
+
+```bash
+dotnet run --project src/Vocaterra.MonoGame -- --seed 42
+```
+
+Walk with A and D (Space jumps) to the guide, the figure in the purple robe. When "Pulsa T para hablar" shows, press **T**: the dialogue panel
+opens and takes the keyboard, so the movement keys type letters. Type a Spanish line and press **Enter**; **Esc** closes the panel. Without
+an accent key, hold **Alt** with a vowel for `á é í ó ú`, **Alt+N** for `ñ`, **Alt+/** for `¿` and **Alt+1** for `¡` (accents are optional:
+`dónde esta el arbol` is understood too). Try `¿dónde está el árbol?`, `¿dónde hay piedra?`, `¿qué es esto?` (with the mouse on something),
+`ayuda`, `hola`, `gracias`, `adiós`. The panel shows your line, a note with the core's verdict, the guide's correction when you made a mistake,
+her reply and, for a question about where something is, the game's own line with the direction and distance (`El árbol está a la derecha, a
+doce bloques.`) while an arrow points at the tile until you reach it or press **Esc** with the panel closed.
+
+To check it without typing, the front-end can script the whole thing and save a screenshot (see `src/Vocaterra.MonoGame/README.md`):
+
+```bash
+dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --say "¿dónde está el árbol?" --screenshot /tmp/p3.png --frames 240
+```
+
 ## Content
 
-`content/game-v1` is the game's bundle, under the bundle id `game-v1`. It tracks the core's sample bundle (`content/v1` in the core, a
-blacksmith with spells and items) for the generic intents (`confirm`, `deny`, `farewell`, `thank`, `introduce_self`), their answer sets and
-dialogue, and the blacksmith's `confirming` state, with the prompt text of every prompt (decision D-game-4). The game's own scenes replace the
-sample's content as they are written (from G3 on). The bundle has its own hash, which the loader checks against `manifest.json`. After any
-edit, rewrite the manifest:
+`content/game-v1` is the game's bundle, under the bundle id `game-v1`. **The game owns it** (decision D-game-4, decided 2026-10-21: the bundle
+diverges from the core's sample and is not re-synced). The core's sample bundle (`content/v1` in the core, a blacksmith with spells and items)
+was the starting point: the generic intents (`confirm`, `deny`, `farewell`, `thank`, `introduce_self`), their answer sets and dialogue pools,
+the blacksmith agent and the first prompt texts were copied from it, reworded where they failed the game's A1 check, and stay credited to the
+sample (Apache-2.0) in `ATTRIBUTION.md`. Everything added since is the game's own, hand-authored: the guide (agent `guide`, intents
+`ask_directions`, `ask_what` and `ask_help`, prompt `guide-open`, the reply pools and the host-line pools the game renders itself),
+`answer-sets/places-basic.json` and `lexicon/world.json`. A milestone that wants something else from the sample copies only that piece and
+records it in `provenance.json`. The bundle has its own hash, which the loader checks against `manifest.json`. After any edit, rewrite the
+manifest:
 
 ```bash
 scripts/content.sh validate                                  # every file's hash and the cross-references
 scripts/content.sh hash content/game-v1 --bundle-id game-v1  # rewrite manifest.json (keep the bundle id once it is set)
+scripts/content.sh cefr-check content/game-v1 --level a1     # and --level a2: the lemmas the templates use that the level list lacks
 ```
 
 The script runs the core's content tool, `vocaterra-content` 0.1.0, installed under `.tools/` from the submodule's feed on first use (see
