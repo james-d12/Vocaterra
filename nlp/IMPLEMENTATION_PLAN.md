@@ -200,7 +200,8 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M19c | Standalone core, step 3: new game repository scaffold with the game spec, game content bundle and a host project on the packages (see §8) | M19b | S | done |
 | M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | done |
 | M19d | Post-split core follow-ups from the game host author: repeat-count helper and next-turn context, prompt `text` in `PromptSpec`, ContentBuilder as a dotnet tool `vocaterra-content` | M19c, M17b-core | H | done |
-| M19e | Apache-2.0 licence (D3), submodule consumption route (D5), core/game documentation isolation (D12) | M19d | H | in-progress |
+| M19e | Apache-2.0 licence (D3), submodule consumption route (D5), core/game documentation isolation (D12) | M19d | H | done |
+| M19f | Recast bug from the fuzz suite (O5, seed `1diyRPH9lxJ1`): a `conj.tense` error after a leading `ayer` on an irregular verb (`ayer tengo sufrir`) is detected but the recast repeats the wrong form instead of `tuve` | M19e | H | in-progress |
 
 ### Delegation waves
 
@@ -636,6 +637,27 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   switch `scripts/content.sh` to the installed tool, update the `../SpanishLearningGame` defaults in
   `nuget.config`, `content.sh` and docs to `../Vocaterra.NLP`, replace `NextRepeatCounts` with
   `RepeatCounts.Next` (the host copy can overflow), show `PromptSpec.Text`, re-sync `game-v1`.
+- **M19e results:** `LICENSE` (Apache-2.0, byte-identical to the Debian copy of the apache.org text,
+  sha256 `cfc7749b…523d30`) and `NOTICE` (copyright 2026 james-d12; the Wiktionary lexicon stays CC BY-SA
+  4.0); `PackageLicenseExpression` Apache-2.0 and both files shipped in all 12 packages;
+  `docs/PACKAGING.md` documents the decided consumption route (the game includes this repository as a
+  git submodule and uses the local feed from `scripts/pack.sh`; hosted feeds are not planned).
+  Isolation audit: README, `HIGH_LEVEL_DOCS.md`, `TOOLS.md`, `docs/PACKAGING.md`, `docs/PACKAGE_README.md`
+  and `docs/LEXICON.md` now describe the core only; ADRs 0001–0009 and the research report keep their
+  bodies with a note that game matters are decided in the Vocaterra repository; text not already in
+  the game's docs went to Vocaterra `docs/NOTES_FROM_CORE.md`. No code or content changed (bundle hash
+  unchanged). Found by the agent's second test run: fuzz oracle O5 fails with seed `1diyRPH9lxJ1`
+  (`ayer tengo sufrir`: `conj.tense` expected `tuve`, recast repeats `tengo`); reproduced by the
+  orchestrator on main before the merge, so it predates M19e; scheduled as M19f. Follow-ups:
+  `content/v1/ATTRIBUTION.md` still says "the game loads at run time" and "licence not chosen" (a
+  content edit, needs the bundle procedure; fold into the next content milestone); the game's
+  `docs/ARCHITECTURE.md` and `nuget.config` still name the old feed path (game side).
+- **Two orchestrators (owner, 2026-10-21):** this repository is run by the core orchestrator only; the
+  Vocaterra repository has its own orchestrator and plan. Protocol: the game writes requests for core
+  changes to `docs/CORE_REQUESTS.md` in its repository; the core orchestrator reads that file at the
+  start of every session, implements accepted requests as core milestones, and marks the row done with
+  the core commit; the game orchestrator then bumps its submodule. The core never plans game content;
+  the game never reaches into core source (packages only, API gaps go in the requests file).
 - **Build output size:** each full build writes ~3 GB of native-package output per checkout;
   worktrees are cleaned after merge. Trimming runtime packs is a follow-up.
 

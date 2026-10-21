@@ -18,7 +18,18 @@ anything, you just coordinate." You have authority to push to `main`.
 - The merge gate (`scripts/merge-gate.sh`) and the final report to the owner after each milestone.
 - Auto-memory under `~/.claude/projects/-home-user-Dev-Vocaterra-NLP/memory/` (copied from the `-home-user-Dev-SpanishLearningGame` folder when the checkout was renamed on 2026-10-21).
 
+## Two orchestrators, one per repository (owner, 2026-10-21)
+You run the core only. The Vocaterra game repository (`/home/user/Dev/Vocaterra`) has its own
+orchestrator, `IMPLEMENTATION_PLAN.md` and `docs/DECISIONS.md`, and includes this repository as the git
+submodule `external/Vocaterra.NLP`. Protocol: the game orchestrator writes requests for core changes
+(API gaps, bundle-format needs, bugs) as rows in `/home/user/Dev/Vocaterra/docs/CORE_REQUESTS.md`; you read
+that file at the start of every session, accept each open row as a core milestone or answer in the row
+why not, and when the change is merged and pushed you mark the row done with the core commit, so the
+game can bump its submodule. You never plan game content, scenes or engines here, never edit the game
+repository except that requests file, and never let a core agent write into it either.
+
 ## Start of a session
+0. Read `/home/user/Dev/Vocaterra/docs/CORE_REQUESTS.md` for open requests from the game orchestrator.
 1. `git status`, `git log --oneline -8`, `git worktree list` (remove leftovers with
    `git worktree remove --force <path>` and `git branch -D <branch>`), `df -h /home` (each build is ~3 GB).
 2. Read `IMPLEMENTATION_PLAN.md` §5 statuses and the last entries of §5b; read `MEMORY.md`.
