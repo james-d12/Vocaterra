@@ -63,8 +63,8 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 ### Handover (2026-10-21, after P4)
 
 Where things stand, for the next orchestrator session:
-- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4, P4b, P6, G6, P6b, G7. Core pin `53c52b7` (M26a to M26e). Tests on `main`: 518. Licence MIT (D-game-2).
-- **Next:** P5 (spoken input; Sonnet 5.5), then P7 and P8; earlier queue: P6b (crafting; owner 2026-10-21: crafting before caves, with stations), then P5 (spoken input; Sonnet 5.5) and P7; previously P5 or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
+- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4, P4b, P6, G6, P6b, G7, P5. Core pin `53c52b7` (M26a to M26e). Tests on `main`: 566 (8 need the speech models). Licence MIT (D-game-2).
+- **Next:** P7 (caves, ores, lighting; Haiku 5.5) or P8 (the guide speaks; Kokoro fetched); earlier queue: P5, P6b (crafting; owner 2026-10-21: crafting before caves, with stations), then P5 (spoken input; Sonnet 5.5) and P7; previously P5 or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
   the other. Then P7, P9; P8 waits on CR-006; P10 optional; G3 and G4 after P9.
 - **Core requests:** the core accepted CR-002 to CR-008 and CR-010 to CR-013 into its M26a to M26f (2026-10-21); CR-014 (P4) and CR-015 (P4b) are `open`.
   When rows turn `done`, bump the submodule; CR-012's fix (M26a) lets the guide drop `EvaluateCountingThisUtterance`, which is a
@@ -91,7 +91,7 @@ Where things stand, for the next orchestrator session:
 | P3 | **The guide, typed (smallest slice proving the core in game):** `Vocaterra.Game` (`GameSession`, `GuideService`, `WorldFacts`), the guide in the bundle (`ask_directions`, `ask_what`, `ask_help`), dialogue panel; `¿dónde está el árbol?` gets a reply and an arrow | done (merged 2026-10-21) | Sonnet 5.5 (scene and session API), Haiku 5.5 (content) | G1, G2, P2 |
 | P4 | Nouns, word progress, greyscale: `game/nouns.json`, `lexicon/world.json`, `NounCatalog`, `WordProgress`, the D-game-6 rule, CPU-made grey atlas, `name_object` intent, journal | done (merged 2026-10-21, `00c6c44`) | Haiku 5.5 | P3 |
 | P4b | Spaced colour and the guide's review (D-game-6 amended): growing gaps (10 min, then 1 h, or a new session), early uses logged without colour, the guide asks "¿Qué es esto?" about a due word with the pointer on its nearest example; scripted time skip for the demo | done (merged 2026-10-21, `b433647`, fix `9ce62ef`) | Sonnet 5.5 | P4 |
-| P5 | Spoken input: push-to-talk, microphone (MonoGame `Microphone`, PortAudioSharp2 fallback), Vosk small, evaluation on a worker thread | in progress (2026-10-21) | Sonnet 5.5 | P3 |
+| P5 | Spoken input: push-to-talk, microphone (MonoGame `Microphone`, PortAudioSharp2 fallback), Vosk small, evaluation on a worker thread | done (merged 2026-10-21, `96d4907`) | Sonnet 5.5 | P3 |
 | P6 | Mining, building, inventory (durability, drops, hotbar placement, 40 slots with a 10-slot hotbar; the player starts with `hacha` and `pico`) and the **wider world of things** (section 4.3: new surface tiles and items, each in `game/nouns.json` with the colour rule) | done (merged 2026-10-21, `57244dd`) | Haiku 5.5 | P1, P2, P4b |
 | P6b | **Crafting and the guide's crafting answers** (owner, 2026-10-21; section 4.3): recipes in `game/recipes.json`, stations (`mesa`, `horno`), crafting panel; the guide answers "¿cómo hago una mesa?" (recipe, station, what is missing) and "¿dónde hay arena?" (where a material comes from and the nearest source) | done (merged 2026-10-21) | Sonnet 5.5 (design), Haiku 5.5 (content) | P6, G6 |
 | P7 | Caves (worms, cellular automata), ores, full forest vegetation, flood-fill lighting; ores `carbón`, `cobre`, `hierro`, `oro` join the catalogue and the recipes (`antorcha` from `madera` and `carbón`, metal tools at the `horno`) | planned | Haiku 5.5 | P1, P6, P6b |
@@ -427,6 +427,33 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   `VOCATERRA_MODELS_DIR` to that folder when it exists. Owner, the same day: the words added to the game's A1 list are fine (including
   `falta`, `faltar`, `nada`, which P5 adds).
 
+- **P5 (2026-10-21, merged `96d4907`, Sonnet 5.5).** Spoken input. `TurnWorker` (Vocaterra.Game) is the one thread that owns the Vosk
+  recognizer and the conversation; `GameSession.SubmitTyped/SubmitClip/SubmitWav/SubmitSpeak` fix every input at submission (stored time,
+  digest, inventory copy, `WorldFacts.Snapshot` radius 96) and `Collect` applies turns in order on the game thread. A spoken guide line is
+  `Trace` with Vosk, then `EvaluateRecognized` (the core's `ScriptedWordRecognizer` over the first `AsrResult`): Vosk decodes once (CR-017
+  handled). `CreditRules.Default` typed half, spoken full (`--typed-credit full|half`); journal pips show a started word. Microphone:
+  MonoGame `Microphone` works (44.1 kHz, `AudioClips.Prepare` to 16 kHz, trimmed, 8 s cap; it needs a `BufferReady` subscriber); hold Tab
+  in the panel or V near the guide; "Escuchando…", "Pensando…", loading screen "Cargando la voz…". Script steps `--wav`, `--speak` (Kokoro
+  speaker 28 through `CachedSynthesizer`, cache `~/.cache/vocaterra/tts`), `--listen`, `--no-speech`, `--status`. Packages: `Vosk` 0.3.38
+  (Apache-2.0) referenced directly so `libvosk.so` is copied; `Microsoft.ML.OnnxRuntime` 1.31.0 (MIT) named with `ExcludeAssets="native"`
+  so sherpa-onnx's `libonnxruntime.so` is the one in the output (Kokoro failed with "VERS_1.28.2 not found"). `cefr/a1.txt` gained
+  `falta`, `faltar`, `nada`. Bundle `0bd4c8ce…`. Tests 518 to 566 (8 model tests; skipped with a reason without models).
+  - Timings: Vosk load 0.25 to 0.39 s; recognition 0.16 to 0.37 s a clip; Kokoro 1.9 to 3.4 s a line cold, under 0.1 s cached; evaluation
+    15 to 20 ms; frames keep running (median 2.2 ms, longest 30 ms) during a 2.9 s spoken turn.
+  - Orchestrator spot-check: spoken "¿dónde hay arena?" → `ask_find` and the arrow; "¿cómo hago una puerta?" → the recipe (Vosk heard "y
+    cómo hago una puerta"); six spaced typed uses make the tree known in half steps; `libvosk.so` in the output.
+  - **Choices the owner may want to revisit:** Vosk is asked for one hypothesis, so `AsrResult.Confidence` is 1.0 and the core's ASR
+    confidence gate is effectively off (with five n-best, clean Kokoro speech scored 0.34 to 0.66, under the 0.6 threshold; per-word
+    confidences were 0.85 to 1.0): garbage is stopped only by the intent stage (**CR-022**). The models folder has no `manifest.json`
+    (`fetch-models.sh` does not copy it), so `SpeechEngine` falls back to `VOCATERRA_MODELS_MANIFEST`, then the submodule's
+    `models/manifest.json` (**CR-019**). Also **CR-020** (`WavCodec` internal; the game has a 60-line WAV reader), **CR-021** (the two
+    `libonnxruntime.so` copies).
+  - Not done: the bundle still loads before the window (the loading screen covers the pipeline and Vosk); live Tab/V and real speech were not
+    tried (the microphone recorded room noise, heard as ""); a spoken line shows the raw Vosk transcript (no punctuation); content pass:
+    an unknown intent at the guide ("quiero una espada") gets "Habla más despacio, por favor", which suggests a speed problem.
+- **Core requests (2026-10-21):** the core delivered CR-010 and CR-011 (M26f, `27747ea`), not yet in the pin (content tool only; take in at
+  the next bump), and accepted CR-014 to CR-018 into M28a to M28c.
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.
@@ -440,7 +467,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
    `El árbol está allí, a la derecha, a ocho bloques.`, and the PNG shows the dialogue panel, the arrow and the marker on the trunk. Look at
    the PNG. From P4 on, also `--seed 42 --point-nearest árbol --say "es un árbol"` three times with `--screenshot <scratch>/known.png
    --frames 300` prints `known: el árbol`, and the PNG shows the trees in full colour, the rest grey, and the "¡Nueva palabra: el árbol!"
-   toast; one `--say` gives trees a third coloured.
+   toast; one `--say` gives trees a third coloured. From P5 on, typed input earns half credit: the P4/P4b demos add `--typed-credit full` (or use six spaced
+   uses), and the spoken demo (models in `VOCATERRA_MODELS_DIR`) `--speak "¿dónde está el árbol?"` prints `spoken heard "dónde está el
+   árbol"`, `ask_directions, entendido` and the "a ocho bloques" line with the arrow.
 5. No violation of section 3: no project reference or copied source from the core, no edit under `external/`, nothing under
    `.github/workflows/`, no engine code outside `src/Vocaterra.MonoGame`.
 6. `git status` is clean after the commit: no `.tools/`, `bin/`, `obj/` or submodule build output is staged.
