@@ -325,6 +325,16 @@ Generator fixes (not analyzer bugs, found by the same runs): the generators now 
 become digits), nouns that are articles, numerals or determiners (`poca`), forms two noun lemmas share (`ratos`), nouns that are also an infinitive (`proceder`), and
 a function word that is also a verb form or a noun (counted as `skip:function-word-homograph`; none occurred in the final runs).
 
+Found and fixed in M19f:
+
+- **A leading adverb was taken for an optional `[WORD]` name, and its tense mistake was lost** (`Vocaterra.Nlp.Language`, O5, CsCheck seed `1diyRPH9lxJ1`).
+  The pattern `[WORD:item]? [VERB] [ADJ]? [VERB:sufrir]` matched the mutated `ayer tengo sufrir` with `ayer` as the name, because a name took any word of
+  letters. A name carries no reading, so the past-time marker of `ayer` vanished, the analyzer reported no `conj.tense`, and the recast had nothing to
+  correct (it repeated `tengo`; the recast builder and the morphology were right, `tuve` is generated). A word whose readings are all closed-class
+  (article, numeral, determiner adjective, pronoun, preposition, conjunction, adverb, interjection) is no name now, so the sentence matches no grammar and
+  the mistake is reported on `tengo` (`tengo` -> `tuve`). Regression: `WordTokenAnalysisTests.AnOptionalNameDoesNotAbsorbAPastTimeAdverbAndItsTenseMistake`
+  (`ayer tengo sufrir`); `WordTokenTests.WordDoesNotTakeNumbersOrPunctuation` no longer takes a spelled numeral (`dos`) as a name.
+
 Content fix (stage 1 follow-up): **`cuál` is now in `content/v1/lexicon/seed.json`** (a pronoun, like `qué` and `quién`), so the correct
 `ask_price` utterance `cuál es el precio de ...` no longer gets `vocab.unknown`. The bundle was re-hashed (`b076558f...efb`), the pinned hash in
 `ManifestTests` and the three `contentHash` lines of the end-to-end golden file were updated (the committed golden manifest is untouched and stays

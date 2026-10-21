@@ -84,7 +84,8 @@ public class WordTokenTests
         Assert.Null(Match("tengo 2 espadas", "tengo [WORD:x] [NOUN:item]"));
         Assert.Null(Match("tengo 12 espadas", "tengo [WORD:x] [NOUN:item]"));
         Assert.Null(Match("soy ana-maria", "soy [WORD:name]"));
-        Assert.Equal("x=dos,item=espada", Slots(Match("tengo dos espadas", "tengo [WORD:x] [NOUN:item]")));
+        // A spelled numeral is a closed-class word (it agrees with its noun), so it is no name either.
+        Assert.Null(Match("tengo dos espadas", "tengo [WORD:x] [NOUN:item]"));
     }
 
     [Fact]

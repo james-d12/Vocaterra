@@ -2,6 +2,7 @@ namespace Vocaterra.Nlp.Language.SlotGrammar;
 
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 
 /// <summary>A successful grammar match: the grammar, the extracted slots and how many tokens the explicit grammar elements consumed.</summary>
@@ -144,7 +145,7 @@ public static class SlotGrammarMatcher
 
                     break;
                 case WordNode word:
-                    if (position < _tokens.Count && TypedMatching.IsWord(_tokens[position]))
+                    if (position < _tokens.Count && TypedMatching.CanBeName(_tokens[position]))
                     {
                         // A name binds the token as written in the normalized text, not a lemma: there is no lexicon reading to take one from.
                         var slot = word.Slot is null ? null : new SlotValue(word.Slot, _tokens[position].Token.Text, _tokens[position].Token.Span);
@@ -269,6 +270,16 @@ internal static class TypedMatching
     {
         var text = token.Token.Text;
         return text.Length > 0 && text.All(static c => char.IsLetter(c));
+    }
+
+    /// <summary>
+    /// True when the token can be a <c>[WORD]</c> name: a word of letters that has no reading at all (a word the lexicon lacks) or at least one reading that is not
+    /// of a closed class. A name carries no reading, so a word whose every reading is closed (<c>ayer</c>, <c>yo</c>, <c>su</c>) cannot be one: an optional name in
+    /// front of a sentence would otherwise absorb a tense marker or a possessive and hide the mistake that it carries.
+    /// </summary>
+    public static bool CanBeName(AnalyzedToken token)
+    {
+        return IsWord(token) && (token.Readings.Count == 0 || token.Readings.Any(static r => !ReadingClasses.IsClosedClassReading(r)));
     }
 
     public static bool TryMatch(AnalyzedToken token, TypedNode node, out string value)
