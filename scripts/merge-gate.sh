@@ -22,6 +22,13 @@ if [ ! -f external/Vocaterra.NLP/artifacts/feed/Vocaterra.Nlp.Core.0.1.0.nupkg ]
   bash external/Vocaterra.NLP/scripts/pack.sh > /dev/null || exit 1
 fi
 
+# NuGet caches a package by id and version only. The core's own worktrees pack 0.1.0 too and can land in the shared ~/.nuget/packages
+# (found in P4: a core worktree's build replaced the pinned one there and changed the guide's recasts). The gate therefore restores into a
+# package folder only the game uses, and clears the core's packages from it on every run, so they always come from the pinned feed.
+export NUGET_PACKAGES="${VOCATERRA_NUGET_PACKAGES:-$HOME/.nuget/vocaterra-game-packages}"
+mkdir -p "$NUGET_PACKAGES"
+rm -rf "$NUGET_PACKAGES"/vocaterra.nlp.*
+
 mkdir -p .claude/gate-logs
 STAMP="$(date +%Y%m%d-%H%M%S)"
 failed=()
@@ -37,8 +44,12 @@ done
 
 echo "=== gate ==="
 BUILDLOG=".claude/gate-logs/build-$STAMP.log"
-dotnet build Vocaterra.sln -warnaserror > "$BUILDLOG" 2>&1
+{ dotnet restore Vocaterra.sln --force-evaluate && dotnet build Vocaterra.sln -warnaserror --no-restore; } > "$BUILDLOG" 2>&1
 build_rc=$?
+# Record which core build was restored, so a log names it.
+for f in "$NUGET_PACKAGES"/vocaterra.nlp.core/0.1.0/.nupkg.metadata; do
+  [ -f "$f" ] && echo "core package source: $(grep -o '"source": "[^"]*"' "$f")" | tee -a "$BUILDLOG"
+done
 grep -E "Warning\(s\)|Error\(s\)" "$BUILDLOG" | sort | uniq -c
 grep -E ": error " "$BUILDLOG" | head -10
 
