@@ -159,9 +159,10 @@ public sealed record WordTurnResult(IReadOnlyList<string> Credited, IReadOnlyLis
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Which words a turn uses.</b> The lemmas of a turn are the catalogue nouns in its verdict's slot values plus the catalogue nouns that the
-/// turn's normalized tokens can be (<see cref="NounCatalog.CatalogueNounsOf"/>, the CR-002 workaround). A token counts as correct when no verdict
-/// error's span overlaps the token or the article before it. A turn that was not communicated counts nothing for use, only for hearing.
+/// <b>Which words a turn uses.</b> The lemmas of a turn are the catalogue nouns that the core's resolver chose for the line's words
+/// (<see cref="GuideTurn.Words"/>, CR-002) plus the catalogue nouns in its verdict's slot values. A word counts as correct when no verdict
+/// error's span overlaps the word or the article before it. A turn that was not communicated counts nothing for use, only for hearing.
+/// What the guide says is heard when a word of its line is a catalogue noun's singular or plural form.
 /// </para>
 /// <para>
 /// <b>One credit per turn.</b> A lemma earns at most one credit in a turn, however often it is used in it.
@@ -190,6 +191,7 @@ public sealed class WordProgress
     };
 
     private readonly NounCatalog _catalog;
+    private readonly Dictionary<string, string> _formToLemma = new(StringComparer.Ordinal);
     private ImmutableSortedDictionary<string, WordRecord> _records = ImmutableSortedDictionary.Create<string, WordRecord>(StringComparer.Ordinal);
 
     /// <summary>Starts with no word seen.</summary>
@@ -199,6 +201,16 @@ public sealed class WordProgress
     {
         _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
         Session = session;
+        foreach (var noun in catalog.Nouns)
+        {
+            foreach (var form in new[] { noun.Lemma, noun.Plural })
+            {
+                foreach (var token in TextNormalizer.Normalize(form).Tokens)
+                {
+                    _formToLemma.TryAdd(token.Text, noun.Lemma);
+                }
+            }
+        }
     }
 
     /// <summary>The number of the current play session (1 for a new game; the saves of P9 will bump it on each load).</summary>
@@ -289,20 +301,22 @@ public sealed class WordProgress
 
         var named = turn.Slots.TryGetValue("object", out var objectLemma) ? objectLemma : null;
 
-        var normalized = TextNormalizer.Normalize(turn.Line);
-        var tokens = normalized.Tokens;
+        var words = turn.Words ?? [];
         var uses = new SortedDictionary<string, List<int>>(StringComparer.Ordinal);
-        for (var i = 0; i < tokens.Count; i++)
+        for (var i = 0; i < words.Count; i++)
         {
-            foreach (var lemma in _catalog.CatalogueNounsOf(tokens[i].Text))
+            var noun = _catalog.ForReading(words[i].Lemma, words[i].Pos);
+            if (noun is null)
             {
-                if (!uses.ContainsKey(lemma))
-                {
-                    uses.Add(lemma, []);
-                }
-
-                uses[lemma].Add(i);
+                continue;
             }
+
+            if (!uses.ContainsKey(noun.Lemma))
+            {
+                uses.Add(noun.Lemma, []);
+            }
+
+            uses[noun.Lemma].Add(i);
         }
 
         foreach (var value in turn.Slots.Values)
@@ -317,7 +331,7 @@ public sealed class WordProgress
         {
             var correct = positions.Count == 0
                 ? turn.Errors.Count == 0
-                : positions.Any(i => !OverlapsError(tokens, i, turn.Errors));
+                : positions.Any(i => !OverlapsError(words, i, turn.Errors));
             var namedWrong = turn.Naming == NameCheck.Wrong && lemma == named;
             var noTarget = turn.Naming == NameCheck.NoTarget && lemma == named;
             correct &= !namedWrong && !noTarget;
@@ -412,13 +426,13 @@ public sealed class WordProgress
         return Math.Max(0, record.LastCreditedAt + rules.GapAfter(record.CorrectTurns) - now);
     }
 
-    /// <summary>The catalogue nouns in a line of text, by its tokens' readings (ordinal, once each).</summary>
+    /// <summary>The catalogue nouns a line of the guide's speech names: a word whose form is a noun's singular or plural (ordinal, once each).</summary>
     private IEnumerable<string> NounsIn(string text)
     {
         var lemmas = new SortedSet<string>(StringComparer.Ordinal);
         foreach (var token in TextNormalizer.Normalize(text).Tokens)
         {
-            foreach (var lemma in _catalog.CatalogueNounsOf(token.Text))
+            if (_formToLemma.TryGetValue(token.Text, out var lemma))
             {
                 lemmas.Add(lemma);
             }
@@ -427,14 +441,14 @@ public sealed class WordProgress
         return lemmas;
     }
 
-    // A token is wrong when an error's span overlaps the token, or the article right before it (research section 7.5).
-    private static bool OverlapsError(IReadOnlyList<Token> tokens, int index, IReadOnlyList<GuideError> errors)
+    // A word is wrong when an error's span overlaps the word, or the article right before it (research section 7.5).
+    private static bool OverlapsError(IReadOnlyList<GuideWord> words, int index, IReadOnlyList<GuideError> errors)
     {
-        var start = tokens[index].Span.Start;
-        var end = tokens[index].Span.End;
-        if (index > 0 && Articles.Contains(tokens[index - 1].Text))
+        var start = words[index].Span.Start;
+        var end = words[index].Span.End;
+        if (index > 0 && Articles.Contains(words[index - 1].Text))
         {
-            start = tokens[index - 1].Span.Start;
+            start = words[index - 1].Span.Start;
         }
 
         foreach (var error in errors)

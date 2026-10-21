@@ -81,7 +81,7 @@ public sealed class GameSession
         Facts = new WorldFacts(Simulation.World);
         Guide = GuideNpc.Place(Simulation.World);
         Words = new WordProgress(nouns, playSession);
-        _guideService = new GuideService(bundle, Facts, worldSeed, new StoredTimestamp(startedAt));
+        _guideService = new GuideService(bundle, Facts, nouns, worldSeed, new StoredTimestamp(startedAt));
     }
 
     /// <summary>The content bundle.</summary>

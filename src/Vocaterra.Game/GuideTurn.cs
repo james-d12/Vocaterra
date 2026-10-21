@@ -1,5 +1,6 @@
 using System.Globalization;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.Game;
@@ -17,6 +18,25 @@ public sealed record GuideError(string Tag, string Expected, string Actual, Text
 /// <param name="Blocks">The distance in blocks.</param>
 /// <param name="Direction">The direction as a Spanish phrase.</param>
 public sealed record GuidePointer(string Place, TilePoint Target, int Blocks, string Direction);
+
+/// <summary>
+/// One normalized word of the typed line with the reading the core's resolver chose for it (<c>PipelineResult.Words</c>, CR-002). The word
+/// counts read the catalogue nouns from these, so they follow the verdict's own analysis.
+/// </summary>
+/// <param name="Text">The normalized token.</param>
+/// <param name="Span">Its span in the normalized line, the one the verdict's errors use.</param>
+/// <param name="Lemma">The chosen reading's lemma, or <see langword="null"/> for a name or an unknown word.</param>
+/// <param name="Pos">The chosen reading's part of speech, or <see langword="null"/>.</param>
+public sealed record GuideWord(string Text, TextSpan Span, string? Lemma, string? Pos)
+{
+    /// <summary>The words of a pipeline result, in order: every token with its role and the reading the resolver chose.</summary>
+    /// <param name="result">The result of one evaluated line.</param>
+    public static IReadOnlyList<GuideWord> From(PipelineResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        return (result.Words ?? []).Select(static w => new GuideWord(w.Token.Text, w.Token.Span, w.Reading?.Lemma, w.Reading?.Pos)).ToList();
+    }
+}
 
 /// <summary>The guide's check of a name the player gave an object (<c>name_object</c>) against the tile it is about.</summary>
 public enum NameCheck
@@ -63,6 +83,7 @@ public sealed record GuideScene(TilePoint Player, TilePoint? Cursor = null, bool
 /// <param name="Slots">The slot values the core filled from the line (<c>place</c>, <c>object</c>), for the word counts.</param>
 /// <param name="Naming">For a <c>name_object</c> turn, the guide's check of the name against the tile (the word counts withhold colour from a wrong name and from a name with no tile to check).</param>
 /// <param name="NameTarget">For a <see cref="NameCheck.Wrong"/> or <see cref="NameCheck.Right"/> check, the noun of the tile (the word the guide revealed when the name was wrong).</param>
+/// <param name="Words">The line's normalized words with the resolver's readings (<see cref="GuideWord.From"/>), or <see langword="null"/> for a turn built by hand.</param>
 public sealed record GuideTurn(
     string Line,
     string Intent,
@@ -80,7 +101,8 @@ public sealed record GuideTurn(
     string HostStateHash,
     SlotMap Slots,
     NameCheck Naming = NameCheck.None,
-    string? NameTarget = null)
+    string? NameTarget = null,
+    IReadOnlyList<GuideWord>? Words = null)
 {
     /// <summary>A one-line summary of the verdict for the panel, for example <c>ask_directions, entendido, 100 %</c>.</summary>
     public string Summary => string.Create(

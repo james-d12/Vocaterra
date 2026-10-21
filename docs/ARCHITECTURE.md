@@ -108,13 +108,15 @@ How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md`
   run gives the same turns everywhere. The save file will own the start time.
 - **`HostStateHash`** is the simulation's state digest (`GameSimulation.ComputeStateDigest()`), given to the context's constructor instead of the
   core's default digest and set again before each turn, because `ConversationContext.Next` recomputes the default.
-- **Repeat counts.** The pipeline reads the counts in the context as including the utterance being evaluated, while `Next` carries them as they
-  were before the next one (CR-012, open). The guide's evaluator therefore evaluates twice, adding the verdict with `RepeatCounts.Next` in
-  between, so the recast, hint and correction ladder and the repair ladder start at the right step. The console host keeps the old, lagging
-  behaviour so that its demo output does not change.
-- **Host facts in replies** (CR-003, open). The core's reply templates cannot name world facts, so the game renders its own line ("El árbol
-  está a la derecha, a doce bloques.") with the bundle's template engine from the bundle's dialogue pools, outside the core's replay record. The
-  agent's reply and the correction come from the core.
+- **Repeat counts.** The pipeline adds the utterance's own repeats to the counts in the context and `Next` carries them to the next utterance
+  (CR-012, core M26a). The guide and the console host both evaluate once with the carried counts, so the recast, hint and correction ladder and
+  the repair ladder move one step per repeat: a repeated mistake is recast once, then hinted.
+- **Host facts in replies** (CR-003 in part, core M26d). The facts of the guide's line go in `hostSlots` of the second evaluation, so the replay
+  record holds them. The line itself ("El árbol está a la derecha, a doce bloques.") is still rendered by the game from the bundle's dialogue
+  pools with the bundle's template engine, because the core cannot pick one of three templates from a host fact (CR-016, open). The agent's
+  reply and the correction come from the core.
+- **Words and learner skills** (CR-002, CR-005, core M26c and M26d). The guide's evaluation reads the catalogue nouns of a turn from the core's
+  resolved words, and gives each one its `word.<lemma>` skill in the same learner update, through `extraSkills`.
 - **Host events.** The guide's state machine raises `guide.point`, `guide.identify` and `guide.help` (opaque strings to the core); the game maps
   them to the nearest tile, the cursor tile and a hint, and the front-end draws the arrow.
 - **Evaluation** is synchronous in P3, between ticks and never inside `GameSession.Step`; P5 moves it to a worker thread.

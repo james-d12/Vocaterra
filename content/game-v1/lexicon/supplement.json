@@ -8,7 +8,6 @@
     {"form":"géneros","lemma":"género","pos":"noun","features":{"number":"pl","gender":"m"}},
     {"form":"ayudarte","lemma":"ayudar","pos":"verb","features":{}},
     {"form":"inténtalo","lemma":"intentar","pos":"verb","features":{"person":"2","number":"sg","mood":"imp"}},
-    {"form":"mmm","lemma":"mmm","pos":"interj","features":{}},
-    {"form":"esta","lemma":"estar","pos":"verb","features":{"person":"3","number":"sg","tense":"pres","mood":"ind"}}
+    {"form":"mmm","lemma":"mmm","pos":"interj","features":{}}
   ]
 }

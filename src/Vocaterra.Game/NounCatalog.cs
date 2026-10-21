@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Language.Morphology;
@@ -43,33 +44,21 @@ public sealed record NounEntry(
 /// bundle; it is the only place where a tile or an item gets a word.
 /// </summary>
 /// <remarks>
-/// <para>
-/// <b>CR-007 workaround.</b> The 0.1.0 loader does not parse <c>game/nouns.json</c>; it is hashed by the bundle's manifest (the content tool
-/// lists it), but the load's hash check does not cover it, and the bytes are read from the bundle folder after <c>ContentLoader.Load</c>.
-/// </para>
-/// <para>
-/// <b>CR-002 workaround.</b> The verdict does not carry the normalized tokens with their readings, so
-/// <see cref="CatalogueNounsOf"/> looks a surface form up in the bundle's lexicon itself (accent-insensitively, as the core does) and keeps the
-/// readings that are catalogue nouns. The counts of <see cref="WordProgress"/> depend on it until the core exposes the analysis.
-/// </para>
+/// The file is a host-owned bundle file (CR-007, core M26c): the loader does not parse it, but the manifest hashes it, so the catalogue is part
+/// of the content hash and <see cref="Load"/> reads its verified bytes with <see cref="ContentBundle.TryReadHostFile"/>.
 /// </remarks>
 public sealed class NounCatalog
 {
     /// <summary>The catalogue's path inside the bundle folder.</summary>
     public const string RelativePath = "game/nouns.json";
 
-    private readonly ContentBundle _bundle;
     private readonly Dictionary<string, NounEntry> _byLemma;
     private readonly Dictionary<TileId, NounEntry> _byTile;
     private readonly Dictionary<ItemId, NounEntry> _byItem;
     private readonly HashSet<TileId> _colourless;
 
-    private NounCatalog(
-        ContentBundle bundle,
-        IReadOnlyList<NounEntry> nouns,
-        IReadOnlyList<TileId> colourless)
+    private NounCatalog(IReadOnlyList<NounEntry> nouns, IReadOnlyList<TileId> colourless)
     {
-        _bundle = bundle;
         _byLemma = new Dictionary<string, NounEntry>(StringComparer.Ordinal);
         _byTile = [];
         _byItem = [];
@@ -98,21 +87,22 @@ public sealed class NounCatalog
     /// <summary>The tile kinds that have no noun and are always drawn in colour (air, and anything else the file lists).</summary>
     public IReadOnlyList<TileId> Colourless { get; }
 
-    /// <summary>Reads <see cref="RelativePath"/> from the bundle folder and builds the catalogue over the loaded bundle.</summary>
-    /// <param name="bundle">The bundle loaded from <paramref name="bundleDirectory"/>.</param>
-    /// <param name="bundleDirectory">The bundle folder (<c>content/game-v1</c>).</param>
-    /// <exception cref="InvalidDataException">The file is missing, malformed, names an unknown tile, or names a lemma with no noun reading.</exception>
-    public static NounCatalog Load(ContentBundle bundle, string bundleDirectory)
+    /// <summary>
+    /// Builds the catalogue from the bundle's host file <see cref="RelativePath"/>, whose bytes are the ones the load hashed against the
+    /// manifest.
+    /// </summary>
+    /// <param name="bundle">The bundle, loaded with hash verification (the file must be a host file of it).</param>
+    /// <exception cref="InvalidDataException">The bundle has no such host file, or the file is malformed, names an unknown tile, or names a lemma with no noun reading.</exception>
+    public static NounCatalog Load(ContentBundle bundle)
     {
         ArgumentNullException.ThrowIfNull(bundle);
-        ArgumentNullException.ThrowIfNull(bundleDirectory);
-        var path = Path.Combine(bundleDirectory, RelativePath);
-        if (!File.Exists(path))
+        if (!bundle.TryReadHostFile(RelativePath, out var bytes))
         {
-            throw new InvalidDataException($"The noun catalogue {RelativePath} is missing from {bundleDirectory}.");
+            throw new InvalidDataException(
+                $"The bundle has no host file {RelativePath}: it is missing from the manifest, or the bundle was loaded without hash verification.");
         }
 
-        return Parse(bundle, File.ReadAllText(path));
+        return Parse(bundle, Encoding.UTF8.GetString(bytes.Span));
     }
 
     /// <summary>Builds the catalogue from the file's text (the same format as <see cref="RelativePath"/>).</summary>
@@ -180,7 +170,7 @@ public sealed class NounCatalog
             }
         }
 
-        return new NounCatalog(bundle, nouns, colourless);
+        return new NounCatalog(nouns, colourless);
     }
 
     /// <summary>The catalogue entry for a lemma, or <see langword="null"/> when the lemma is not a catalogue noun.</summary>
@@ -200,28 +190,13 @@ public sealed class NounCatalog
     public bool IsColourless(TileId tile) => _colourless.Contains(tile);
 
     /// <summary>
-    /// The catalogue lemmas that a surface form can be, by its lexicon readings (accent-insensitive, as the core looks words up), in ordinal
-    /// order. Empty for a word that is not a catalogue noun. This is the CR-002 workaround: see the type's remarks.
+    /// The catalogue noun a word reading names, or <see langword="null"/> when the reading is not a noun of the catalogue. The reading is the
+    /// one the core's resolver chose (<see cref="GuideWord"/>), so the word counts follow the verdict's analysis (CR-002).
     /// </summary>
-    public IReadOnlyList<string> CatalogueNounsOf(string surface)
-    {
-        ArgumentNullException.ThrowIfNull(surface);
-        if (surface.Length == 0)
-        {
-            return [];
-        }
-
-        var lemmas = new SortedSet<string>(StringComparer.Ordinal);
-        foreach (var reading in _bundle.Lexicon.Lookup(surface))
-        {
-            if (reading.Pos == "noun" && _byLemma.ContainsKey(reading.Lemma))
-            {
-                lemmas.Add(reading.Lemma);
-            }
-        }
-
-        return [.. lemmas];
-    }
+    /// <param name="lemma">The reading's lemma.</param>
+    /// <param name="pos">The reading's part of speech.</param>
+    public NounEntry? ForReading(string? lemma, string? pos) =>
+        lemma is not null && pos == "noun" ? ForLemma(lemma) : null;
 
     private static TileId TileNamed(string? name)
     {

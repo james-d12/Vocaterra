@@ -1,6 +1,9 @@
 using Vocaterra.Game;
+using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.Game.Tests;
@@ -8,6 +11,7 @@ namespace Vocaterra.Game.Tests;
 /// <summary>The learner's word counts (D-game-6): from scripted turns and from the core's verdicts on typed lines.</summary>
 public sealed class WordProgressTests
 {
+    // A turn built by hand carries the words the core's resolver reads the line as, so the counts see the same words as in play.
     private static GuideTurn Turn(
         string line,
         bool communicated = true,
@@ -28,7 +32,23 @@ public sealed class WordProgressTests
             null,
             null,
             "digest",
-            slots ?? SlotMap.Empty);
+            slots ?? SlotMap.Empty,
+            Words: WordsOf(line));
+
+    private static IReadOnlyList<GuideWord> WordsOf(string line)
+    {
+        var context = ConversationContext.Create(
+            TestGame.Seed,
+            GuideService.AgentId,
+            TestGame.Bundle.Agents[GuideService.AgentId].InitialState(),
+            new StoredTimestamp(GameSession.DefaultStartedAt),
+            LearnerModel.New(),
+            new Dictionary<string, int>(StringComparer.Ordinal),
+            SlotMap.Empty,
+            []);
+        var result = new TypedUtteranceEvaluator(TestGame.Bundle).Evaluate(line, TestGame.Bundle.Prompts[GuideService.PromptId], context);
+        return GuideWord.From(result);
+    }
 
     // Stored time in the tests: the session's default start plus minutes and seconds.
     private static long At(int minutes, int seconds = 0) => GameSession.DefaultStartedAt + (minutes * 60L) + seconds;

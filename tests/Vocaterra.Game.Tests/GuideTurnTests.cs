@@ -62,6 +62,7 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
     }
 
     [Theory]
+    // The unaccented lines read "esta" as estar (CR-013, core M26b): the game's bundle has no entry for it.
     [InlineData("dónde esta el arbol")]
     [InlineData("donde esta el arbol")]
     [InlineData("DÓNDE ESTÁ EL ÁRBOL")]
@@ -97,7 +98,7 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
         Assert.Single(first.Replies);
         Assert.NotEmpty(first.Errors);
 
-        // The repeat counts are carried from turn to turn, so the repair ladder moves on (CR-012's workaround): ask again, say it slowly,
+        // The repeat counts are carried from turn to turn, so the repair ladder moves on (CR-012, core M26a): ask again, say it slowly,
         // then offer choices.
         var second = session.Say("blah blah");
         Assert.NotEqual(first.Repair, second.Repair);
@@ -117,13 +118,16 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
     {
         var session = TestGame.NewSession();
 
+        // The guide's ladder (the core counts each utterance once, M26a): recast, then a hint, then a hint again.
         var first = session.Say("dónde está la árbol");
         var second = session.Say("dónde está la árbol");
+        var third = session.Say("dónde está la árbol");
 
         Assert.Contains("Dónde está el árbol", first.Feedback, StringComparison.Ordinal);
         Assert.NotEqual(first.Feedback, second.Feedback);
         Assert.DoesNotContain("el árbol", second.Feedback, StringComparison.Ordinal); // a hint points at the word, it does not give the form
-        Assert.Equal(2, session.Conversation.Context.RepeatCountsByTag["gender.agree"]);
+        Assert.DoesNotContain("el árbol", third.Feedback, StringComparison.Ordinal);
+        Assert.Equal(3, session.Conversation.Context.RepeatCountsByTag["gender.agree"]);
     }
 
     [Fact]
@@ -224,6 +228,20 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
         Assert.Equal("ask_what", onNothing.Intent);
         Assert.Null(onNothing.IdentifiedNoun);
         Assert.NotNull(onNothing.WorldLine);
+    }
+
+    [Fact]
+    public void AUsedNounIsExercisedAsAWordSkillInTheSingleLearnerUpdate()
+    {
+        // CR-005 (core M26d): the nouns a turn uses join the one learner update as word.<lemma> skills; nothing else is stepped for them.
+        var session = TestGame.NewSession();
+
+        session.Say("hola");
+        Assert.Null(session.Conversation.Context.Learner.Find("word.árbol"));
+
+        session.Say("¿dónde está el árbol?");
+        Assert.NotNull(session.Conversation.Context.Learner.Find("word.árbol"));
+        Assert.NotNull(session.Conversation.Context.Learner.Find("intent.ask_directions"));
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using Vocaterra.Game;
+using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Tiles;
@@ -160,13 +161,12 @@ public sealed class NounCatalogTests
     }
 
     [Fact]
-    public void AnAccentlessOrPluralFormReadsAsTheCatalogueNoun()
+    public void AReadingCountsAsACatalogueNounOnlyWhenItIsANoun()
     {
-        Assert.Contains("árbol", TestGame.Nouns.CatalogueNounsOf("arbol"));
-        Assert.Contains("árbol", TestGame.Nouns.CatalogueNounsOf("árboles"));
-        Assert.Empty(TestGame.Nouns.CatalogueNounsOf("es"));
-        Assert.Empty(TestGame.Nouns.CatalogueNounsOf("la"));
-        Assert.Empty(TestGame.Nouns.CatalogueNounsOf(string.Empty));
+        Assert.Same(TestGame.Nouns.ForLemma("árbol"), TestGame.Nouns.ForReading("árbol", "noun"));
+        Assert.Null(TestGame.Nouns.ForReading("árbol", "verb"));
+        Assert.Null(TestGame.Nouns.ForReading("es", "verb"));
+        Assert.Null(TestGame.Nouns.ForReading(null, "noun"));
     }
 
     [Fact]
@@ -194,13 +194,13 @@ public sealed class NounCatalogTests
     }
 
     [Fact]
-    public void TheCatalogueIsReadFromTheBundleFolderAfterTheLoad()
+    public void TheCatalogueIsTheBundlesHostFileWhoseBytesTheLoadHashed()
     {
-        // CR-007 workaround: the 0.1.0 loader does not parse game/nouns.json, so the game reads it beside the loaded bundle.
-        var directory = GameBundle.ResolveDirectory();
-        var catalogue = NounCatalog.Load(TestGame.Bundle, directory);
-
+        // CR-007: game/nouns.json is a host file of the bundle, read through TryReadHostFile, so the catalogue needs the hash check.
+        var catalogue = NounCatalog.Load(TestGame.Bundle);
         Assert.Equal(TestGame.Nouns.Nouns.Select(static n => n.Lemma), catalogue.Nouns.Select(static n => n.Lemma));
-        Assert.True(File.Exists(Path.Combine(directory, NounCatalog.RelativePath)));
+
+        var unverified = ContentLoader.Load(GameBundle.ResolveDirectory(), new ContentLoadOptions { VerifyHashes = false });
+        Assert.Throws<InvalidDataException>(() => NounCatalog.Load(unverified));
     }
 }
