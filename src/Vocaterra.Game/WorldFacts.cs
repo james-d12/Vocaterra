@@ -55,6 +55,15 @@ public sealed class WorldFacts
         ["tierra"] = [TileId.Dirt],
         ["piedra"] = [TileId.Stone],
         ["roca"] = [TileId.Stone],
+        ["arena"] = [TileId.Sand],
+        ["flor"] = [TileId.Flower],
+        ["seta"] = [TileId.Mushroom],
+        ["madera"] = [TileId.Planks],
+        ["puerta"] = [TileId.Door],
+        ["mesa"] = [TileId.Table],
+        ["silla"] = [TileId.Chair],
+        ["cama"] = [TileId.Bed],
+        ["caja"] = [TileId.Chest],
     };
 
     private readonly int _width;
@@ -102,6 +111,15 @@ public sealed class WorldFacts
         TileId.Grass => "hierba",
         TileId.Dirt => "tierra",
         TileId.Stone => "piedra",
+        TileId.Sand => "arena",
+        TileId.Flower => "flor",
+        TileId.Mushroom => "seta",
+        TileId.Planks => "madera",
+        TileId.Door => "puerta",
+        TileId.Table => "mesa",
+        TileId.Chair => "silla",
+        TileId.Bed => "cama",
+        TileId.Chest => "caja",
         _ => null,
     };
 

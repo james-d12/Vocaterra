@@ -23,13 +23,15 @@ while (running)
 | Type | Role |
 | --- | --- |
 | `GameSimulation` | `Create(seed[, size])` / `Create(World)`, `Step(commands)`, `Tick`, `Player`, `Events`, `World`, `ComputeStateDigest()` |
-| `PlayerCommand`, `PlayerCommandKind` | the only input: `MoveLeft`, `MoveRight`, `Jump`, each a level for one tick (send the held ones every tick); two integer arguments are reserved for targeted commands (mine or place at a tile, hotbar slot) added in P6; unknown kinds are ignored |
+| `PlayerCommand`, `PlayerCommandKind` | the only input: `MoveLeft`, `MoveRight`, `Jump` (levels, send the held ones every tick); `SelectSlot(slot)`, `Mine(x, y)` (held) and `Place(x, y)` (a press), added in P6; unknown kinds are ignored |
 | `PlayerState` | position and velocity of the player box, `Grounded`, `Facing`, `FeetTile`, drawing helpers in tiles |
-| `SimulationEvent` | `PlayerJumped`, `PlayerLanded` for the last step (more kinds are appended) |
+| `GameSimulation` (P6) | also `Inventory`, `SelectedSlot`, `SelectedStack`, `MiningTarget`, `MiningProgress`, `GrantItems(item, count)`, `ReachInTiles` (5) |
+| `Inventory`, `ItemStack`, `ItemDefinition`, `ItemId`, `ToolKind` | 40 slots (`SlotCount`), the hotbar is the first 10 (`HotbarSize`), stacks with one stack limit per kind (`ItemDefinition.MaxStack`, 99; tools 1); `Add` returns what did not fit |
+| `SimulationEvent` | `PlayerJumped`, `PlayerLanded`, `TileMined`, `TilePlaced` for the last step (more kinds are appended) |
 | `World` | read-only queries: `GetTile`, `IsSolid`, `Spawn`, `Tiles`, `Info` (seed, size, generator version), `Record`, `ComputeDigestHex()` |
 | `TileGrid`, `Chunk`, `ChunkCoord`, `TilePoint` | 32 x 32 chunks, `GetChunk`, dirty flags (a save stores dirty chunks), `ComputeDigest()` |
-| `TileId`, `TileDefinition` | `Air`, `Dirt`, `Grass`, `Stone`, `Trunk`, `Leaves`; values are stable (they are hashed and saved) |
-| `WorldGenerator` | `Generate(seed[, size])`, `Version` (2), surface bounds for a height |
+| `TileId`, `TileDefinition` | `Air`, `Dirt`, `Grass`, `Stone`, `Trunk`, `Leaves`, then P6's `Sand`, `Flower`, `Mushroom`, and the placed `Planks`, `Door`, `Table`, `Chair`, `Bed`, `Chest`; values are stable (they are hashed and saved); each definition has its solidity, mining ticks, required tool and drop |
+| `WorldGenerator` | `Generate(seed[, size])`, `Version` (3), surface bounds for a height |
 | `WorldRng`, `ValueNoise` | SplitMix64 and integer value noise |
 | `AsciiMap` | `Render(world, cx, cy, w, h, player)` for test output and bug reports |
 
@@ -62,20 +64,41 @@ Y against the solid tiles. Everything is integer arithmetic. Outside the world c
 A pass is a class implementing `IGenerationPass` (`Name`, `Run(GenerationContext)`) and an entry in `WorldGenerator.DefaultPasses`; the order
 there is the order they run. A pass reads and writes `context.Tiles` (`SetTile` is internal to the assembly), uses
 `context.Rng(Name, chunkX, chunkY)` or `context.NoiseSeed(...)`, and may record facts in `GenerationRecord` (add members there: cave
-entrances, ore counts). The current order is `terrain`, `layers`, `grass`, `forest`, `spawn`, `spawn-tree`. Caves and ores go between `layers`
-and `grass` (so cave mouths in dirt get grass), vegetation after `forest`; the two spawn passes stay last because they need the final tiles.
+entrances, ore counts). The current order is `terrain`, `layers`, `grass`, `forest`, `spawn`, `spawn-tree`, `sand`, `flora`. Caves and ores go
+between `layers` and `grass` (so cave mouths in dirt get grass), vegetation after `forest`; the spawn passes come before the surface dressing
+because they need the final trees and terrain.
 `spawn-tree` (generator version 2, P3) guarantees a tree base within 20 columns of the spawn: if the forest left none it plants one 10 to 20
 columns away (left before right, nearest first) that suits a tree as the forest pass requires and keeps three columns from every other trunk. It
-changed 2 of the first 150 seeds on the 512 x 256 test world; seed 42 already had a tree near the spawn, so its golden is unchanged
-(`0505865b...58a2`). Give a new pass a
-test with a golden and properties, as `GenerationTests` does.
+changed 2 of the first 150 seeds on the 512 x 256 test world; seed 42 already had a tree near the spawn.
+`sand` and `flora` (generator version 3, P6) are the surface dressing: sand patches (grass and two tiles of dirt become sand where a noise
+threshold holds, never within two columns of a tree base or four of the spawn) and flowers and mushrooms on the grass (one number per column
+from the chunk's stream). They change the golden (seed 42: `6d148dca...4f5`, was `0505865b...58a2`) and nothing else: the tree bases and the
+spawn of seed 42 are the same as in version 2 (`SurfaceDressingTests` checks them by hash). Give a new pass a test with a golden and properties,
+as `GenerationTests` does.
 
-Mining and building (P6) add commands and events and mutate tiles through an internal `TileGrid.SetTile` called from `GameSimulation`; the dirty
-flag per chunk is already maintained. Tiles other than the foreground layer (walls, light) become further arrays in `Chunk`.
+## Mining, placing and the inventory (P6)
+
+- **Mine**: `Mine(x, y)` is held: each tick the button is down it adds one tick of progress to the tile, while the target and the selected item
+  stay the same (a tick without the command, a new target or a new selected item resets the progress). The tile goes when the progress reaches
+  its `MiningTicks` (trunk 90 with the axe, stone 75, dirt and grass 30, sand 20, planks and placed blocks 45 to 60, leaves 12 and flowers and
+  mushrooms 6 by hand). The tile needs its tool (`RequiredTool`): the **selected** hotbar slot must hold it (the axe for trunks, the pickaxe for
+  stone and the rest, the hand for leaves, flowers and mushrooms). The drop goes to the inventory (trunk and planks give `Wood`, grass gives
+  `Dirt`, leaves give nothing); a full inventory holds the mining back and keeps the tile.
+- **Reach**: five tiles from the middle of the body to the middle of the tile (squared integer distance). A target out of reach or outside the
+  world does nothing.
+- **Place**: `Place(x, y)` places the block of the selected item (`ItemDefinition.PlacesTile`: `Wood` makes `Planks`) in an air tile in reach,
+  using one item. A solid block may not overlap the player's box (touching an edge is fine); a plant may. Several place commands in one tick
+  apply in list order; the selection and the mining come first.
+- The order inside a tick: the hotbar selection, the mining, the placements, then the movement and the physics.
+- `ComputeStateDigest()` includes the selection, the mining progress and the inventory.
+- Doors, tables, chairs, beds and chests are placeable items in the data model; crafting (P6b) makes them.
+
+Mining and placing change tiles through the internal `TileGrid.SetTile`, which marks the chunk dirty (saves store dirty chunks).
 
 ## Tests
 
 `tests/Vocaterra.Simulation.Tests`: the seed-42 golden, same-seed and other-seed digests, properties over twelve seeds (spawn on the surface
 with air above, no floating trees, terrain within bounds, a tree within 20 columns of the spawn for 150 seeds), physics on hand-built worlds (landing, walls, ledges, jumps, coyote time, the
-world edge) and on generated terrain, and an ASCII dump of the area around the spawn in the test output
+world edge) and on generated terrain, P6's `InventoryTests` (stacks, limits, the hotbar, removals), `MiningAndPlacingTests` (time, tools, drops,
+reach, the full inventory, placing rules, determinism) and `SurfaceDressingTests` (sand, flowers, mushrooms, the trees and the spawn unchanged), and an ASCII dump of the area around the spawn in the test output
 (`dotnet test --logger "console;verbosity=detailed" --filter AsciiMap`).

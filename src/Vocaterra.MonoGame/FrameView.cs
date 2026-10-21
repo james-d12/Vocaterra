@@ -42,6 +42,9 @@ public sealed class FrameView
     /// <summary>The toasts waiting to be shown ("new word").</summary>
     public required ToastQueue Toasts { get; init; }
 
+    /// <summary>The inventory screen's state (I or E).</summary>
+    public required InventoryScreen Inventory { get; init; }
+
     /// <summary>The player box between the previous and the latest tick (see <see cref="TickAccumulator.Alpha"/>), in simulation units.</summary>
     public Rectangle PlayerUnits { get; set; }
 

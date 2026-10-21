@@ -8,8 +8,8 @@ namespace Vocaterra.Simulation.Tests;
 /// <summary>Goldens and properties of world generation.</summary>
 public sealed class GenerationTests(ITestOutputHelper output)
 {
-    /// <summary>The SHA-256 of the tile arrays of seed 42 at <see cref="WorldSize.Small"/>, generator version 2. Any change to a pass changes it on purpose, with <see cref="WorldGenerator.Version"/>.</summary>
-    private const string Seed42Golden = "0505865bc11189d2e8f8e67edb1bf91f80cf1d7bc05b7cfd718f647b296d58a2";
+    /// <summary>The SHA-256 of the tile arrays of seed 42 at <see cref="WorldSize.Small"/>, generator version 3. Any change to a pass changes it on purpose, with <see cref="WorldGenerator.Version"/>.</summary>
+    private const string Seed42Golden = "6d148dcac0d72b92564dfa6413f1c40f60d843a445df748875b1ee02d84a4f5f";
 
     private static readonly WorldSize MediumSize = new(512, 256);
 
@@ -48,7 +48,7 @@ public sealed class GenerationTests(ITestOutputHelper output)
     {
         var world = WorldGenerator.Generate(42, MediumSize);
         Assert.All(world.Tiles.Chunks, chunk => Assert.False(chunk.Dirty));
-        Assert.Equal(["terrain", "layers", "grass", "forest", "spawn", "spawn-tree"], world.Record.Passes);
+        Assert.Equal(["terrain", "layers", "grass", "forest", "spawn", "spawn-tree", "sand", "flora"], world.Record.Passes);
         Assert.Equal(16 * 8, world.Tiles.Chunks.Count);
     }
 
@@ -179,8 +179,8 @@ public sealed class GenerationTests(ITestOutputHelper output)
             Assert.InRange(surface, min, max);
 
             // Ground: grass on the surface, the first solid tile from the top is that tile, and the bottom row is solid.
-            Assert.Equal(TileId.Grass, world.GetTile(x, surface));
-            Assert.Equal(TileId.Dirt, world.GetTile(x, surface + 1));
+            Assert.Contains(world.GetTile(x, surface), new[] { TileId.Grass, TileId.Sand });
+            Assert.Contains(world.GetTile(x, surface + 1), new[] { TileId.Dirt, TileId.Sand });
             Assert.True(world.IsSolid(x, world.Height - 1));
             for (var y = 0; y < surface; y++)
             {
@@ -213,7 +213,8 @@ public sealed class GenerationTests(ITestOutputHelper output)
             Assert.True(counts.GetValueOrDefault(tile) > 0, $"{tile} never appears.");
         }
 
-        Assert.Equal(world.Width, counts[TileId.Grass]);
+        // Every column's surface is grass, or sand where a sand patch lies (P6).
+        Assert.Equal(world.Width, Enumerable.Range(0, world.Width).Count(x => world.GetTile(x, world.Record.SurfaceHeights[x]) is TileId.Grass or TileId.Sand));
     }
 
     [Fact]

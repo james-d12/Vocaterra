@@ -1,5 +1,6 @@
 using Vocaterra.Game;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.Game.Tests;
@@ -28,10 +29,53 @@ public sealed class NounCatalogTests
     }
 
     [Fact]
-    public void EveryItemIdIsNamedByTheCatalogueOrColourlessAndNoneExistsBeforeP6()
+    public void EveryItemKindIsNamedByANounWithAGenderAndANounReading()
     {
-        // The simulation has no item ids yet (P6 adds them): the catalogue lists none, and the test fails when one appears without a noun.
-        Assert.All(TestGame.Nouns.Nouns, noun => Assert.Empty(noun.Items));
+        foreach (var definition in ItemDefinition.All)
+        {
+            var noun = TestGame.Nouns.ForItem(definition.Id);
+            Assert.True(noun is not null, $"Item {definition.Name} has no catalogue noun.");
+            Assert.Contains(noun.Gender, new[] { "m", "f" });
+            Assert.Contains(TestGame.Bundle.Lexicon.EntriesForLemma(noun.Lemma), e => e.Pos == "noun");
+        }
+
+        Assert.All(TestGame.Nouns.Nouns.SelectMany(static n => n.Items), item => Assert.NotNull(TestGame.Nouns.ForItem(item)));
+    }
+
+    [Theory]
+    [InlineData("madera", true)]
+    [InlineData("piedra", true)]
+    [InlineData("tierra", true)]
+    [InlineData("arena", true)]
+    [InlineData("flor", false)]
+    [InlineData("árbol", false)]
+    public void MassNounsAreMarkedAsSuch(string lemma, bool mass)
+    {
+        Assert.Equal(mass, TestGame.Nouns.ForLemma(lemma)!.Mass);
+    }
+
+    [Fact]
+    public void WoodComesFromTrees()
+    {
+        Assert.Equal(["árbol"], TestGame.Nouns.ForLemma("madera")!.Sources);
+        Assert.Empty(TestGame.Nouns.ForLemma("piedra")!.Sources);
+    }
+
+    [Fact]
+    public void AnItemNamedTwiceOrUnknownIsRefused()
+    {
+        var twice = """{"schemaVersion":1,"nouns":[{"lemma":"piedra","tiles":["stone"],"items":["stone"]},{"lemma":"madera","tiles":["planks"],"items":["stone"]}],"colourless":["air"]}""";
+        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, twice));
+
+        var unknown = """{"schemaVersion":1,"nouns":[{"lemma":"piedra","tiles":["stone"],"items":["rock"]}],"colourless":["air"]}""";
+        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, unknown));
+    }
+
+    [Fact]
+    public void ASourceThatIsNotACatalogueNounIsRefused()
+    {
+        var json = """{"schemaVersion":1,"nouns":[{"lemma":"madera","tiles":["planks"],"items":["wood"],"sources":["cueva"]}],"colourless":["air"]}""";
+        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, json));
     }
 
     [Fact]
@@ -46,6 +90,43 @@ public sealed class NounCatalogTests
         }
 
         Assert.Equal([TileId.Air], TestGame.Nouns.Colourless);
+    }
+
+    [Theory]
+    [InlineData(ItemId.Wood, "madera")]
+    [InlineData(ItemId.Sand, "arena")]
+    [InlineData(ItemId.Mushroom, "seta")]
+    [InlineData(ItemId.Axe, "hacha")]
+    [InlineData(ItemId.Pickaxe, "pico")]
+    [InlineData(ItemId.Chest, "caja")]
+    public void EachItemIsNamedByItsNoun(ItemId item, string lemma)
+    {
+        Assert.Equal(lemma, TestGame.Nouns.ForItem(item)?.Lemma);
+    }
+
+    [Theory]
+    [InlineData("arena", TileId.Sand)]
+    [InlineData("flor", TileId.Flower)]
+    [InlineData("seta", TileId.Mushroom)]
+    [InlineData("madera", TileId.Planks)]
+    [InlineData("puerta", TileId.Door)]
+    [InlineData("mesa", TileId.Table)]
+    [InlineData("silla", TileId.Chair)]
+    [InlineData("cama", TileId.Bed)]
+    [InlineData("caja", TileId.Chest)]
+    public void TheNewNounsAndTheirTilesAgreeInBothDirections(string lemma, TileId tile)
+    {
+        Assert.Equal([tile], WorldFacts.TilesOfNoun(lemma));
+        Assert.Equal(lemma, WorldFacts.NounOfTile(tile));
+    }
+
+    [Fact]
+    public void MaderaComesFromTheTreesAndTheMassNounsAreCountedInBlocks()
+    {
+        Assert.True(TestGame.Nouns.ForLemma("arena")!.Mass);
+        Assert.True(TestGame.Nouns.ForLemma("madera")!.Mass);
+        Assert.False(TestGame.Nouns.ForLemma("flor")!.Mass);
+        Assert.Equal(["árbol"], TestGame.Nouns.ForLemma("madera")!.Sources);
     }
 
     [Theory]

@@ -3,6 +3,8 @@
   "generated_by": "hand-authored",
   "entries": [
     {"form":"bloque","lemma":"bloque","pos":"noun","features":{"number":"sg","gender":"m"}},
-    {"form":"bloques","lemma":"bloque","pos":"noun","features":{"number":"pl","gender":"m"}}
+    {"form":"bloques","lemma":"bloque","pos":"noun","features":{"number":"pl","gender":"m"}},
+    {"form":"seta","lemma":"seta","pos":"noun","features":{"number":"sg","gender":"f"}},
+    {"form":"setas","lemma":"seta","pos":"noun","features":{"number":"pl","gender":"f"}}
   ]
 }

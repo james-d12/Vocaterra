@@ -24,6 +24,25 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--skip <minutes>` | with `--screenshot`, between `--say` lines: move the **stored time** on by that many minutes without stepping the world (nothing else changes). Order matters: `--say A --skip 11 --say B` sends B eleven minutes after A. Printed as `skip: ...` |
 | `--talk` | with `--screenshot`, between `--say` lines: close the dialogue and talk to the guide again, which is when she may ask a review question (`review: "..." pointing at col,row`, or `talk: no review`). The first opening (before the first `--say`) asks one too when a word is due, but nothing is due yet in a new game |
 | `--journal` | with `--screenshot`: open the journal once the `--say` lines are sent (at the start without `--say`) |
+| `--walk <col>` | with `--screenshot`, a world step: walk until the player's middle is in that column (a ledge is jumped) |
+| `--mine <col,row>` | with `--screenshot`, a world step: walk until the tile is in reach, then hold the mine command until it is gone (gives up after 1 200 ticks and says why) |
+| `--place <item>@<col,row>` | with `--screenshot`, a world step: select the hotbar slot that holds the item (its Spanish noun, `madera`) and place it on the tile |
+| `--select <slot>` | with `--screenshot`, a world step: select a hotbar slot, 1 to 10 as the number keys give them |
+| `--inventory` | with `--screenshot`, a world step: open the inventory screen and keep it open for the screenshot (the next dialogue step closes it) |
+
+The world steps run in the same order as `--say`, `--skip` and `--talk`, so `--select 1 --mine 517,182 --select 2 --walk 490 --mine 491,184 --place
+madera@488,185 --say "¿dónde está la arena?" --inventory` works as one script. Each world step closes the dialogue first when it is open. A script
+that starts with a world step does not walk to the guide; one that starts with `--say` or `--talk` does, as before.
+
+The P6 demo (seed 42): the axe is slot 1 and the pickaxe slot 2 at the start, so the trunk at `517,182` (the tree next to the spawn) is cut with
+the axe, the stone at `491,188` is reached through a two-tile hole at `491,184` and `492,184` (dug with the pickaxe, which makes the player fall
+to the stone's level) and a plank is placed at `488,185`:
+
+```
+dotnet run --project src/Vocaterra.MonoGame --no-build -- --seed 42 --select 1 --mine 517,182 --mine 517,181 --select 2 --walk 490 \
+  --mine 491,184 --mine 492,184 --mine 491,188 --place madera@488,185 --walk 524 --inventory \
+  --screenshot p6.png --frames 1800
+```
 
 Examples, as the orchestrator verifies rendering: `... -- --seed 42 --screenshot /tmp/p2.png --frames 120 --walk-right 60`, and the guide:
 `... -- --seed 42 --say "¿dónde está el árbol?" --screenshot /tmp/p3.png --frames 240` (the PNG shows the dialogue panel with the guide's answer and
@@ -63,6 +82,20 @@ and a line in the panel, in yellow). When a word is due and the player opens the
 (the arrow and a marker that shows `¿?`, not the noun) and asks `¿Qué es esto?`; the answer is graded against that tile, whatever the mouse
 touches, and a correct one earns the next third. Closing the panel (Esc) drops the question and its arrow. Press **Esc** with the panel closed to
 take any other arrow away.
+
+## Mining, placing and the inventory (P6)
+
+- **Mouse**: the left button mines the tile under the pointer while it is held (the tile must be in reach, five tiles, and the selected
+  item must be the right tool); the right button places the selected item on the tile under the pointer, once per press. Both do nothing while
+  the dialogue, the journal or the inventory has the screen.
+- **Hotbar**: the number keys 1 to 9 and 0 select slots 1 to 10, the mouse wheel moves the selection one slot. The strip at the bottom shows
+  the first ten slots with their icons, counts and keys; the selected slot is outlined in gold. The player starts with the axe (slot 1) and the
+  pickaxe (slot 2).
+- **Inventory**: **I** or **E** opens the 40 slots (the top row is the hotbar); Esc, I or E close it. Each item shows its icon and its Spanish word
+  (`madera`, `piedra`) coloured by the word's saturation, and its count. Opening the screen counts each shown word as read once (never as a
+  spoken credit). The player does not walk while it is open.
+- Placeable blocks and tools have their icons in the atlas (`TileArt`, drawn in code); the colour and grey rule is the one the tiles use. No
+  art file was added, so `assets/ATTRIBUTION.md` is unchanged.
 
 ## Architecture
 

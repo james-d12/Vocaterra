@@ -23,4 +23,22 @@ public enum TileId : ushort
 
     /// <summary>The canopy of a tree (not solid).</summary>
     Leaves = 5,
+    /// <summary>Sand, a surface patch (solid).</summary>
+    Sand = 6,
+    /// <summary>A flower on the surface (not solid).</summary>
+    Flower = 7,
+    /// <summary>A mushroom on the surface (not solid).</summary>
+    Mushroom = 8,
+    /// <summary>Planks: wood the player placed (solid).</summary>
+    Planks = 9,
+    /// <summary>A placed door (solid).</summary>
+    Door = 10,
+    /// <summary>A placed table (solid).</summary>
+    Table = 11,
+    /// <summary>A placed chair (solid).</summary>
+    Chair = 12,
+    /// <summary>A placed bed (solid).</summary>
+    Bed = 13,
+    /// <summary>A placed chest (solid).</summary>
+    Chest = 14,
 }

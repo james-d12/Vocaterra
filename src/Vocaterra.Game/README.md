@@ -38,8 +38,10 @@ var arrow = session.Pointer;                             // where the guide poin
 ## Words (P4): the noun catalogue and the D-game-6 rule
 
 - `content/game-v1/game/nouns.json` names the noun of each tile kind (`trunk` and `leaves` are `árbol`, `dirt` is `tierra`, `grass` is `hierba`,
-  `stone` is `piedra`) and lists `air` as colourless; items come with P6. A test checks that every tile is a noun or colourless and every noun has
-  a noun reading and a gender in the bundle's lexicon. The core supplies the article and the plural (`Morphology.Article`, `Pluralize`).
+  `stone` is `piedra`) and lists `air` as colourless. Each noun also names its item kinds (`items`, P6: `madera` is `wood`, `hacha` is `axe`),
+  and may carry `"mass": true` (counted in `bloques de`) and `"sources"` (`madera` comes from `árbol`, for P6b's "where is it" answers). A test
+  checks that every tile and every item is a noun or colourless and every noun has a noun reading and a gender in the bundle's lexicon. The
+  core supplies the article and the plural (`Morphology.Article`, `Pluralize`).
 - A catalogue noun is **known** after three credited correct uses in three separate turns, spaced in time (below) (`WordProgress.UsesToKnow`). Each correct use adds credit in
   units (`UnitsPerUse` = 6, so `UnitsToKnow` = 18); saturation is units over 18, so a typed noun is 1/3, 2/3, then 1. Nothing decays.
 - A use is **correct** when no verdict error's span overlaps the word or the article right before it. The uses of a turn are the catalogue nouns in
@@ -101,6 +103,17 @@ the line itself with `bundle.TemplateEngine` from the bundle's dialogue pools af
 The guide's position is a pure function of the generated world (`GuideNpc.Place`); she does not move or collide yet; and her conversation state
 belongs to the agent state machine in the context. Putting her in the simulation would add a record to its state digest and to the saves for
 nothing that ticks. When characters move, collide or are saved (the innkeeper, G3), they become entities of the simulation.
+
+## The wider world of things (P6)
+
+- The catalogue now names the surface materials and the placed blocks: `arena` (sand), `flor`, `seta`, `madera` (planks; the item is wood), `puerta`,
+  `mesa`, `silla`, `cama`, `caja`, and the tools `hacha` and `pico` (items only). `tierra`, `piedra` and `hierba` are unchanged. `seta` is
+  new in `lexicon/world.json` (feminine, singular and plural).
+- `WorldFacts.NounOfTile` and `TilesOfNoun` cover every new tile, so the guide's "¿dónde está la arena?" points at sand and "¿qué es esto?" names
+  it. `WorldFacts` still says nothing about items: the guide's crafting and "where does it come from" answers are P6b.
+- `NounCatalog.ForItem(ItemId)` gives the noun of an item, `NounEntry.Mass` and `NounEntry.Sources` the two new fields;
+  `WordProgress.SaturationOf(ItemId)` colours an item by its noun, so the inventory and the hotbar use the same rule as the tiles.
+- Words added to the CEFR lists: none. `cefr-check` checks dialogue templates only, and no template uses the new nouns yet.
 
 ## Rules this layer keeps
 
