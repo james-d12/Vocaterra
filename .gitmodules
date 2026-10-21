@@ -1,0 +1,3 @@
+[submodule "external/Vocaterra.NLP"]
+	path = external/Vocaterra.NLP
+	url = https://github.com/james-d12/Vocaterra.NLP.git

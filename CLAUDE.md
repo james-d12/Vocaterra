@@ -1,25 +1,35 @@
 # Vocaterra (the game): instructions for Claude Code
 
-This repository is the game. The Spanish language processing is a separate repository, the core **Vocaterra.NLP**
-(`james-d12/Vocaterra.NLP`, locally `/home/user/Dev/SpanishLearningGame`), consumed here only as the NuGet packages `Vocaterra.Nlp.*` 0.1.0.
-Read `docs/ARCHITECTURE.md` for what the game takes from the core and what it owns (ADR 0009 in the core is the rule).
+This repository is the game, `james-d12/Vocaterra`, locally `/home/user/Dev/Vocaterra`. It is developed by an **orchestrator** session
+that plans and delegates all implementation to subagents and only plans, gates, merges and pushes. To continue the project, act as the
+orchestrator defined in `.claude/agents/orchestrator.md` (or start with `claude --agent orchestrator`). Read `IMPLEMENTATION_PLAN.md`
+(section 4 for status, section 5 for findings) and `docs/DECISIONS.md` first. The owner prefers Haiku 5.5 for delegated work; Sonnet only
+for design-heavy milestones; Opus only on request.
 
-The plan for this repository is the core's `IMPLEMENTATION_PLAN.md` section 8 (the standalone-core roadmap, milestone M19c) until the game
-has a plan of its own. The core's orchestrator conventions apply here too: plan and delegate, merge and push through the owner's gate, and
-never implement directly in the orchestrator's session. The owner prefers Haiku 5.5 for delegated work.
+The Spanish language processing is a separate repository, the language core **Vocaterra.NLP** (`james-d12/Vocaterra.NLP`, locally
+`/home/user/Dev/Vocaterra.NLP`). It has its own orchestrator and plan, and runs only the core. This repository includes the core as the git
+submodule `external/Vocaterra.NLP` and consumes it only as the NuGet packages `Vocaterra.Nlp.*` 0.1.0. The core never plans game content;
+this repository never plans core internals.
 
 Facts every session needs:
-- The game references only the packages. Never add a project reference to the core, and never copy its source into this repository. A
-  call the packages do not expose is an API gap to report to the core, not a reason to reach into its source.
-- The packages come from the core's local feed (`nuget.config` points at `../SpanishLearningGame/artifacts/feed`; run `scripts/pack.sh` in the
-  core checkout first). Versions live in `Directory.Packages.props`.
-- .NET SDK is user-local: `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet"`.
-- Build with `dotnet build Vocaterra.sln -warnaserror`; the format gate is `dotnet format Vocaterra.sln --verify-no-changes`.
-- The content bundle is `content/game-v1`. After an edit, `scripts/content.sh validate` and `scripts/content.sh hash content/game-v1
-  --bundle-id game-v1`; the ContentBuilder comes from the core checkout (`VOCATERRA_NLP_DIR`).
-- Never commit under `.github/workflows/` (the token lacks the workflow scope). CI is parked in `.github/workflows-pending/ci.yml` until the
-  scope and the feed (core D1 and D5) are settled.
-- No licence is chosen (core D3). Do not add a licence to the project metadata without the owner's decision.
-- The engine is not chosen (core D12). The host is a console program on purpose; keep engine-specific code out of `src/Vocaterra.Host`.
-- Game words (scenes, items, spells, prices) belong here, not in the core. A word the core needs for its own boundary (an opaque effect
-  kind or host event) is passed through as a string.
+- **Packages only.** Never add a project reference to the core, never copy its source, never edit inside `external/Vocaterra.NLP` except
+  to bump its pinned commit (procedure in the role file). A call the packages do not expose goes to `docs/CORE_REQUESTS.md` as a row.
+- **Fresh checkout:** `git submodule update --init`, then `bash external/Vocaterra.NLP/scripts/pack.sh` fills the local feed that
+  `nuget.config` reads (`external/Vocaterra.NLP/artifacts/feed`). The pack takes minutes and writes about 3 GB, all git-ignored in the
+  submodule.
+- **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.
+- **Build, test, format:** `dotnet build Vocaterra.sln -warnaserror`, `dotnet test Vocaterra.sln`, `dotnet format Vocaterra.sln --verify-no-changes`.
+- **Content bundle `content/game-v1`:** `scripts/content.sh validate`. After any edit, `scripts/content.sh hash content/game-v1 --bundle-id game-v1`
+  (rewrites `manifest.json`), then validate and test again. The tool is the core's `vocaterra-content` 0.1.0, installed under `.tools/`
+  from the feed on first use. `cefr-check`, `pack` and `verify-pack` pass through the same script. The sandbox refuses command lines that
+  contain the words `eval` or `hash`; run such a command from a wrapper script outside the repository.
+- **Merge gate:** `scripts/merge-gate.sh "<label>:<branch>"`, run from main only; logs land in `.claude/gate-logs/`.
+- **Never write under `.github/workflows/`.** The token lacks the workflow scope. CI is parked in `.github/workflows-pending/ci.yml` and
+  deferred by the owner (D-game-3); do not raise it.
+- **Open decisions** (`docs/DECISIONS.md`): the engine (D-game-1; the host stays a console program and engine code stays out of
+  `src/Vocaterra.Host`), this repository's licence (D-game-2; no licence is granted until chosen; the core is Apache-2.0), and whether the
+  bundle tracks the core's sample (D-game-4).
+- **Game words live here:** scenes, characters, items, spells, prices, rewards, dialogue and the meaning of each effect kind. The core needs
+  only opaque effect kinds and host event names.
+- **Determinism:** the host owns the world seed, the stored time, the learner model and the repeat counts. Nothing in the evaluation path
+  reads the clock or draws random numbers; a `--transcript` run uses a fixed time.
