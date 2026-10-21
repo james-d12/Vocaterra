@@ -7,7 +7,7 @@ editing its status; the plan (`IMPLEMENTATION_PLAN.md`) and ADRs follow.
 | # | Decision | Status |
 | --- | --- | --- |
 | D1 | Workflow token scope (activate CI) | deferred (owner, 2026-10-21): CI is not a requirement now; keep the entry, do not raise it again until the owner reopens it |
-| D2 | espeak-ng GPL code inside sherpa-onnx (ADR 0007) | open, path found |
+| D2 | espeak-ng GPL code inside sherpa-onnx (ADR 0007) | decided (owner, 2026-10-21): accepted for private development builds; the GPL-free sherpa-onnx pin is a blocker on any distribution |
 | D3 | A LICENSE file for the repository | decided (owner, 2026-10-21): Apache-2.0; repository stays private for now (M19e) |
 | D4 | OpenSubtitles terms behind the frequency list | deferred (owner, 2026-10-21): keep the entry, do not raise it until a public release is planned |
 | D5 | Package feed for the `Vocaterra.Nlp.*` packages | decided (owner, 2026-10-21): no hosted feed; the game includes this repository as a git submodule (M19e docs) |
@@ -31,6 +31,7 @@ same scope is needed on `Vocaterra` if it gets CI. Since M19a the workflow reads
 package publishing (D5).
 
 ## D2. espeak-ng GPL code inside sherpa-onnx
+**Decided (2026-10-21, owner):** option (c) now, option (a) before release. The current sherpa-onnx packages are accepted for private, non-distributed development builds (GPL obligations arise on distribution only). Before any build, package or the content tool is distributed, pin the first sherpa-onnx release that contains the GPL-free build (upstream PR #4055) and feed Kokoro phones from the in-house G2P, as ADR 0007 describes; that pin is scheduled with M24 and is a hard blocker on distribution. Unaffected adapters: Vosk, the wav2vec2 phoneme model and the e5 embedding model, which do not link sherpa-onnx.
 The Apache-2.0 `org.k2fsa.sherpa.onnx` native library statically contains espeak-ng (GPL-3.0), so any
 build linking it (ASR or TTS) carries GPL code, contrary to the design doc's licensing table (ADR 0007).
 **Path found by the research report:** sherpa-onnx upstream PR #4055 (merged 2026-10-20) makes a
@@ -113,3 +114,4 @@ errors; until then the phoneme stage stays optional. **Waiting on it:** M24 resu
   renames `Vocaterra.Nlp.*` to `Vocaterra.Nlp.*`; Haiku 5.5 is the default model for delegated work; the
   research report's M18 stays as the seam the tagger plugs into.
 - 2026-10-21: D1 and D4 deferred; D3 Apache-2.0; D5 git submodule; D12 moved to the Vocaterra repository; the core repository documents only the language core (M19e isolation audit).
+- 2026-10-21: D2 accepted for private builds; the GPL-free sherpa-onnx pin blocks distribution (scheduled with M24).

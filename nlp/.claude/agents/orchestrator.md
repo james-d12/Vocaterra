@@ -97,10 +97,10 @@ milestone's area; anything left undone and why.
   offer-items-open --content content/v1` must keep yielding exactly `conj.person` and `noun.number`.
 
 ## Open decisions (owner's; keep listed in plan §5b until resolved)
-espeak-ng GPL code inside the sherpa-onnx native library (ADR 0007, D2); online versus offline (D8);
+online versus offline (D8);
 determinism strictness (D9); MPL-2.0 stance (D10); tutor cost cap (D11); pronunciation ambition (D13).
 Deferred by the owner on 2026-10-21, do not raise: D1 (workflow scope, CI) and D4 (OpenSubtitles terms).
-Decided: D3 Apache-2.0, D5 git submodule, D6/D7 core keeps the engine and the sample, D12 moved to the
+Decided: D2 GPL accepted for private builds with the GPL-free sherpa-onnx pin blocking any distribution (M24), D3 Apache-2.0, D5 git submodule, D6/D7 core keeps the engine and the sample, D12 moved to the
 Vocaterra repository. The core repository documents only the language core: game planning, scenes and
 engine choices belong in the Vocaterra repository, never here.
 
