@@ -29,6 +29,14 @@ internal static class AnalysisTables
         "semana", "mes", "año", "día", "noche", "vez", "hora", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo",
     }.ToFrozenSet(StringComparer.Ordinal);
 
+    // Fixed expressions that are plural as a whole (buenos días, buenas tardes, buenas noches, muchas gracias): modifier lemma, then the noun lemmas it forms one with.
+    // "mucha gracia" (singular) is ordinary Spanish, so the table applies only once a plural shows up on either side (see AgreementChecker, rule M29c).
+    private static readonly FrozenDictionary<string, FrozenSet<string>> FixedPluralExpressions = new Dictionary<string, FrozenSet<string>>(StringComparer.Ordinal)
+    {
+        ["bueno"] = new[] { "día", "tarde", "noche" }.ToFrozenSet(StringComparer.Ordinal),
+        ["mucho"] = new[] { "gracia" }.ToFrozenSet(StringComparer.Ordinal),
+    }.ToFrozenDictionary(StringComparer.Ordinal);
+
     // The question words that take a verb right after them (dónde está, cómo está), spelled with and without the accent, folded to lower case.
     private static readonly FrozenSet<string> VerbSeekingQuestionWords = new[] { "dónde", "donde", "cómo" }.ToFrozenSet(StringComparer.Ordinal);
 
@@ -84,6 +92,12 @@ internal static class AnalysisTables
     public static bool IsPastTimeAdverb(string lemma)
     {
         return PastTimeAdverbs.Contains(lemma);
+    }
+
+    /// <summary>True when the adjective lemma and the noun lemma form a fixed expression that is plural as a whole (<c>bueno</c> + <c>día</c>, <c>mucho</c> + <c>gracia</c>).</summary>
+    public static bool IsFixedPluralExpression(string adjectiveLemma, string nounLemma)
+    {
+        return FixedPluralExpressions.TryGetValue(adjectiveLemma, out var nouns) && nouns.Contains(nounLemma);
     }
 
     /// <summary>True for nouns that combine with <c>pasado</c> to mark past time (la semana pasada).</summary>

@@ -350,6 +350,11 @@ internal sealed class AgreementChecker
     {
         var nounReadings = Readings(phrase.Head, static r => r.Pos == LexiconSchema.Noun);
         var noun = nounReadings.FirstOrDefault(static r => r.Gender is not null) ?? nounReadings[0];
+        if (TryEvaluateFixedPluralExpression(phrase, nounReadings))
+        {
+            return;
+        }
+
         foreach (var determiner in phrase.Determiners)
         {
             CheckDeterminer(determiner, phrase.Head, nounReadings, noun);
@@ -374,6 +379,82 @@ internal sealed class AgreementChecker
         }
 
         CheckWordOrder(phrase);
+    }
+
+    // Rule M29c, "a fixed plural expression keeps its plural and the noun's gender": in buenos días, buenas tardes, buenas noches and muchas gracias the phrase is
+    // plural as a whole. When either word is already plural (and no other determiner fixes the number), the modifier is corrected to the noun's gender and the plural
+    // ("mucho gracias" gives muchas, "buenos día" corrects the noun to días), never the plural noun back to the singular, which would turn muchas gracias into
+    // "mucha gracia". Everything else keeps the generic rule: a determiner fixes the number of the noun, an adjective agrees with the noun.
+    private bool TryEvaluateFixedPluralExpression(NounPhrase phrase, List<LexicalFeatures> nounReadings)
+    {
+        if (phrase.Determiners.Count > 1)
+        {
+            return false;
+        }
+
+        var modifier = -1;
+        LexicalFeatures? head = null;
+        foreach (var index in phrase.Determiners.Concat(phrase.Before))
+        {
+            foreach (var adjective in Readings(index, static r => r.Pos == LexiconSchema.Adjective))
+            {
+                head = nounReadings.Find(n => AnalysisTables.IsFixedPluralExpression(adjective.Lemma, n.Lemma));
+                if (head is not null)
+                {
+                    modifier = index;
+                    break;
+                }
+            }
+
+            if (modifier >= 0)
+            {
+                break;
+            }
+        }
+
+        if (modifier < 0 || head is null || (phrase.Determiners.Count == 1 && phrase.Determiners[0] != modifier))
+        {
+            return false;
+        }
+
+        var adjectives = Readings(modifier, static r => r.Pos == LexiconSchema.Adjective);
+        var headReadings = nounReadings.Where(n => string.Equals(n.Lemma, head.Lemma, StringComparison.Ordinal)).ToList();
+        if (!adjectives.Exists(static a => a.Number == LexiconSchema.Plural) && !headReadings.Exists(static n => n.Number == LexiconSchema.Plural))
+        {
+            return false;
+        }
+
+        var gender = head.Gender ?? adjectives[0].Gender ?? LexiconSchema.Masculine;
+        var expected = _morphology.AgreeAdjective(adjectives[0].Lemma, gender, LexiconSchema.Plural);
+        if (!string.Equals(expected, TextOf(modifier), StringComparison.Ordinal))
+        {
+            if (!adjectives.Any(a => headReadings.Any(n => GenderCompatible(a, n))))
+            {
+                Add(ErrorTags.GenderAgree, modifier, modifier, expected, TextOf(modifier));
+            }
+
+            if (!adjectives.Exists(static a => a.Number == LexiconSchema.Plural))
+            {
+                Add(ErrorTags.NounNumber, modifier, modifier, expected, TextOf(modifier));
+            }
+        }
+
+        if (!headReadings.Exists(static n => n.Number == LexiconSchema.Plural))
+        {
+            var plural = _morphology.InflectNoun(head.Lemma, LexiconSchema.Plural);
+            if (!string.Equals(plural, TextOf(phrase.Head), StringComparison.Ordinal))
+            {
+                Add(ErrorTags.NounNumber, phrase.Head, phrase.Head, plural, TextOf(phrase.Head));
+            }
+        }
+
+        foreach (var adjective in phrase.Before.Concat(phrase.After).Where(i => i != modifier))
+        {
+            CheckAdjective(adjective, headReadings, head, LexiconSchema.Plural, numberFromDeterminer: true);
+        }
+
+        CheckWordOrder(phrase);
+        return true;
     }
 
     private void CheckDeterminer(int determinerIndex, int headIndex, List<LexicalFeatures> nounReadings, LexicalFeatures noun)
