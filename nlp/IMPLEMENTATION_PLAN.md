@@ -205,7 +205,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M26 | Game requests, batch 1 (CR-002…CR-013, triaged 2026-10-21 into M26a–f below; rows marked `accepted` in the game's `docs/CORE_REQUESTS.md`) | M19f | — | in-progress |
 | M26a | CR-012: repeat counts mean "before this utterance" on `ConversationContext`; the pipeline applies `RepeatCounts.Next` itself before `FeedbackPolicy.Plan` and `RepairFor`; docs and sample host follow | M19f | H | done |
 | M26b | CR-013: accent-insensitive lookup also offers the accented readings of a form the lexicon has (`esta`/`está`, `si`/`sí`, `mas`/`más`, `el`/`él`, `tu`/`tú`…) and the reading resolver chooses | M19f | S | done |
-| M26c | CR-002 analysis on the result, CR-004 answer match on the result, CR-007 host-owned bundle files (`ContentBundle.TryReadHostFile`), CR-008 threading and load-cost contract in `docs/API.md` | M26a | H | todo |
+| M26c | CR-002 analysis on the result, CR-004 answer match on the result, CR-007 host-owned bundle files (`ContentBundle.TryReadHostFile`), CR-008 threading and load-cost contract in `docs/API.md` | M26a | H | done |
 | M26d | CR-003 host slot values (`SlotMap` on the context, template access, replay record and `HostStateHash`), CR-005 host-named skills in the learner update | M26c | S | todo |
 | M26e | CR-006 speech-out readiness: Kokoro and Parakeet file hashes pinned from real downloads, `KokoroSynthesizer.FromStore`, Spanish speaker ids documented (D2: private builds only) | M19f | H | todo |
 | M26f | CR-010 `cefr-check` reads prompt text; CR-011 sample `ATTRIBUTION.md` describes the sample only (content procedure: hash re-pin, goldens) | M26d | H | todo |
@@ -727,6 +727,22 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   `esta` (the game keeps its supplement entry); **follow-up:** in a grammar with an alternation and a
   `[WORD]` name, a mis-conjugated verb can bind as the name and its error is lost (seed `1RTZdjQ2tFb2`,
   fuzz narrowed, source not fixed).
+- **M26c results (CR-002/004/007/008):** `ResolvedWord(Token, WordRole {Word, Name, Unknown}, LexicalFeatures?
+  Reading)` in Core.Stages, carried as an optional trailing `Words` on `AnalysisResult` and on
+  `PipelineResult` together with `Answer` (`MatchResult?`); additive, existing constructions compile.
+  The core `ReplayRecord` is unchanged (both are derived from the recorded inputs); they travel in the
+  envelope's `result` and `Replayer` compares `/words` and `/answer`, so a resolver change that keeps the
+  verdict still shows on replay (logs recorded earlier report them as differing; none committed). The two
+  e2e goldens gained the new fields (additions only). Host files: any manifest-listed file the loader does
+  not own (`ContentPaths.IsLoaderOwned`), bytes kept from the load's hash check (never re-read from disk),
+  `ContentBundle.TryReadHostFile(path, out ReadOnlyMemory<byte>)` and `HostFilePaths`; strict relative
+  path rule; none exposed when loaded with `VerifyHashes=false`. `docs/API.md` §8 states the threading and
+  load-cost contract. Thread-safety findings, documented not fixed (follow-up candidates):
+  `VoskWordRecognizer.Recognize` checks `_disposed` without a lock (dispose racing a call can use a freed
+  model; rule: one instance per thread, no dispose in use); `DirectorySynthesisCache.Put` uses a fixed
+  `<key>.wav.tmp` (two concurrent misses on one key can throw); `VoskRuntimeModel.Prepare` is not
+  synchronized per model directory (construct recognizers of one model on one thread); Wav2Vec2 and ONNX
+  embedding adapters give no guarantee. Suite: 2776 passed, 5 skipped.
 - **Two orchestrators (owner, 2026-10-21):** this repository is run by the core orchestrator only; the
   Vocaterra repository has its own orchestrator and plan. Protocol: the game writes requests for core
   changes to `docs/CORE_REQUESTS.md` in its repository; the core orchestrator reads that file at the
