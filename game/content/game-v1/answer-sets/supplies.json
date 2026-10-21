@@ -1,0 +1,35 @@
+{
+  "answerSetId": "supplies",
+  "answers": [
+    {
+      "answerId": "water",
+      "canonical": "quiero agua por favor",
+      "aliases": ["quiero agua", "agua por favor", "necesito agua", "necesito agua por favor", "me da agua", "me da agua por favor", "me das agua", "me das agua por favor"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "bread",
+      "canonical": "quiero pan por favor",
+      "aliases": ["quiero pan", "pan por favor", "necesito pan", "necesito pan por favor", "me da pan", "me da pan por favor", "me das pan", "me das pan por favor"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "fruit",
+      "canonical": "quiero fruta por favor",
+      "aliases": ["quiero fruta", "fruta por favor", "necesito fruta", "necesito fruta por favor", "me da fruta", "me da fruta por favor", "me das fruta", "me das fruta por favor"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["necesito ayuda", "me ayudas"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

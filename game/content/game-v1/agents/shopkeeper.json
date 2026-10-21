@@ -1,0 +1,73 @@
+{
+  "agentId": "shopkeeper",
+  "initialState": "idle",
+  "variantPools": [
+    { "id": "not_understood", "count": 2 },
+    { "id": "shop_bye", "count": 2 },
+    { "id": "shop_deny", "count": 2 },
+    { "id": "shop_done", "count": 2 },
+    { "id": "shop_give", "count": 2 },
+    { "id": "shop_give_bread", "count": 2 },
+    { "id": "shop_help_ask", "count": 1 },
+    { "id": "shop_help_offer", "count": 1 },
+    { "id": "shop_need", "count": 1 },
+    { "id": "shop_offer", "count": 1 },
+    { "id": "shop_thank", "count": 2 }
+  ],
+  "states": [
+    {
+      "id": "idle",
+      "transitions": [
+        { "onHostEvent": "shopkeeper.ask", "to": "asking", "actions": [{ "dialogueIntent": "shop_need", "variantPoolId": "shop_need" }] },
+        { "on": {"intent": "request_item", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "shop_give", "hostEvent": "stall.give_water", "variantPoolId": "shop_give" }, { "dialogueIntent": "shop_offer", "variantPoolId": "shop_offer" }] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "shop_help_ask", "variantPoolId": "shop_help_ask" }] },
+        { "on": {"intent": "dont_know", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "shop_help_ask", "variantPoolId": "shop_help_ask" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "shop_thank", "variantPoolId": "shop_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_bye", "variantPoolId": "shop_bye" }] },
+        { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]
+      }
+    },
+    {
+      "id": "asking",
+      "transitions": [
+        { "on": {"intent": "request_item", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "shop_give", "hostEvent": "stall.give_water", "variantPoolId": "shop_give" }, { "dialogueIntent": "shop_offer", "variantPoolId": "shop_offer" }] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "asking", "actions": [{ "dialogueIntent": "shop_help_ask", "variantPoolId": "shop_help_ask" }] },
+        { "on": {"intent": "dont_know", "communicated": true}, "to": "asking", "actions": [{ "dialogueIntent": "shop_help_ask", "variantPoolId": "shop_help_ask" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "asking", "actions": [{ "dialogueIntent": "shop_thank", "variantPoolId": "shop_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_bye", "variantPoolId": "shop_bye" }] },
+        { "on": {"communicated": false}, "to": "asking", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]
+      }
+    },
+    {
+      "id": "offering",
+      "transitions": [
+        { "on": {"intent": "confirm", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_give_bread", "hostEvent": "stall.give_bread", "variantPoolId": "shop_give_bread" }] },
+        { "on": {"intent": "deny", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_deny", "variantPoolId": "shop_deny" }] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "shop_help_offer", "variantPoolId": "shop_help_offer" }] },
+        { "on": {"intent": "dont_know", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "shop_help_offer", "variantPoolId": "shop_help_offer" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "shop_thank", "variantPoolId": "shop_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_bye", "variantPoolId": "shop_bye" }] },
+        { "on": {"communicated": false}, "to": "offering", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]
+      }
+    },
+    {
+      "id": "done",
+      "transitions": [
+        { "on": {"intent": "thank", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_thank", "variantPoolId": "shop_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_bye", "variantPoolId": "shop_bye" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "shop_done", "variantPoolId": "shop_done" }]
+      }
+    }
+  ]
+}

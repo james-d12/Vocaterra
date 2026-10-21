@@ -3,25 +3,27 @@
   "answers": [
     {
       "answerId": "yes",
-      "canonical": "sí",
-      "aliases": [
-        "si"
-      ],
-      "dialects": [
-        "es-ES",
-        "es-MX",
-        "es-AR"
-      ]
+      "canonical": "sí por favor",
+      "aliases": ["sí", "si", "si por favor", "sí gracias", "si gracias", "claro", "claro que sí"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
       "answerId": "no",
-      "canonical": "no",
-      "aliases": [],
-      "dialects": [
-        "es-ES",
-        "es-MX",
-        "es-AR"
-      ]
+      "canonical": "no gracias",
+      "aliases": ["no"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["necesito ayuda", "me ayudas"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
     }
   ]
 }

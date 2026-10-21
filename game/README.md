@@ -71,7 +71,10 @@ names another):
 
 ```bash
 # one line, evaluated once and printed (the form the tests and scripts use)
-dotnet run --project game/src/Vocaterra.Host -- --transcript "yo tiene dos espada" --prompt offer-items-open
+dotnet run --project game/src/Vocaterra.Host -- --transcript "quiero agua, por favor" --prompt stall-need
+# a number mistake (noun.number), and the stall's other prompt: stall-offer, then the villager: villager-open
+dotnet run --project game/src/Vocaterra.Host -- --transcript "quiero dos agua por favor" --prompt stall-need
+dotnet run --project game/src/Vocaterra.Host -- --transcript "¿dónde está el río?" --prompt villager-open
 
 # the text loop: shows each prompt (and the agent's line, when the prompt has one), then reads a line;
 # /prompt <id> switches prompt, /quit leaves
@@ -141,19 +144,27 @@ for the worker thread, the models folder and the native libraries.
 
 `content/game-v1` is the game's bundle, under the bundle id `game-v1`. **The game owns it** (decision D-game-4, decided 2026-10-21: the bundle
 diverges from the core's sample and is not re-synced). The core's sample bundle (`content/v1` in the core, a blacksmith with spells and items)
-was the starting point: the generic intents (`confirm`, `deny`, `farewell`, `thank`, `introduce_self`), their answer sets and dialogue pools,
-the blacksmith agent and the first prompt texts were copied from it, reworded where they failed the game's A1 check, and stay credited to the
-sample (Apache-2.0) in `ATTRIBUTION.md`. Everything added since is the game's own, hand-authored: the guide (agent `guide`, intents
-`ask_directions`, `ask_what` and `ask_help`, prompt `guide-open`, the reply pools and the host-line pools the game renders itself),
-`answer-sets/places-basic.json` and `lexicon/world.json`. A milestone that wants something else from the sample copies only that piece and
-records it in `provenance.json`. The bundle has its own hash, which the loader checks against `manifest.json`. After any edit, rewrite the
-manifest:
+was the starting point: the generic intents (`confirm`, `deny`, `farewell`, `thank`), their dialogue pools and the first feedback pools were
+copied from it, reworded where they failed the game's A1 check, and stay credited to the sample (Apache-2.0) in `ATTRIBUTION.md`. Everything
+added since is the game's own, hand-authored: the guide (agent `guide`, intents `ask_directions`, `ask_what` and `ask_help`, prompt
+`guide-open`, the reply pools and the host-line pools the game renders itself), `answer-sets/places-basic.json` and `lexicon/world.json`, and
+since S5 the prototype's stall and village: the agents `shopkeeper` and `villager`, the intents `request_item` and `dont_know`, the answer set
+`supplies`, the prompts `stall-need`, `stall-offer`, `villager-open` and `guide-offer`. The blacksmith and the spells left the bundle in S5 (the
+core's sample keeps them). **The phrase sheet [content/PHRASES.md](content/PHRASES.md) is the source of truth for the Spanish the learner is
+taught** (decision D-game-10): every row is checked against the bundle by `tests/Vocaterra.Host.Tests/PhraseSheetTests.cs`. A milestone that
+wants something else from the sample copies only that piece and records it in `provenance.json`. The bundle has its own hash, which the loader
+checks against `manifest.json`. After any edit, rewrite the manifest:
 
 ```bash
 scripts/content.sh validate                                  # every file's hash and the cross-references
 scripts/content.sh hash game/content/game-v1 --bundle-id game-v1  # rewrite manifest.json (keep the bundle id once it is set)
 scripts/content.sh cefr-check game/content/game-v1 --level a1     # and --level a2: the lemmas the templates use that the level list lacks
+scripts/content.sh lint game/content/game-v1 --strict --level a1 --host-pools 'guide.*'   # 0 errors, 0 warnings (the guide's host-voiced pools are named)
 ```
+
+The content gate from S5 on: `lint --strict` at A1 clean (an example expectation for every phrase the learner says, in `intents/intents.json`),
+`cefr-check` clean at A1 and A2, and the phrase-sheet test green. `--host-pools 'guide.*'` tells the lint that the game voices the guide's
+templated world lines itself (they have no agent action); without it those pools are reported as unreachable.
 
 The script runs the core's content tool (`nlp/tools/Vocaterra.Nlp.ContentBuilder`, from source; see
 [scripts/README.md](../scripts/README.md)). `ATTRIBUTION.md` and `provenance.json` describe this bundle; the Wiktionary lexicon in it is CC BY-SA
