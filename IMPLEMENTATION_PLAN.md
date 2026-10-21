@@ -63,8 +63,8 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 ### Handover (2026-10-21, after P4)
 
 Where things stand, for the next orchestrator session:
-- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4, P4b, P6, G6. Core pin `53c52b7` (M26a to M26e). Tests on `main`: 446.
-- **Next:** P6b (crafting; owner 2026-10-21: crafting before caves, with stations), then P5 (spoken input; Sonnet 5.5) and P7; previously P5 or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
+- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4, P4b, P6, G6, P6b. Core pin `53c52b7` (M26a to M26e). Tests on `main`: 518.
+- **Next:** G7 (Linux-only native assets, LICENSE), then P5; earlier queue: P6b (crafting; owner 2026-10-21: crafting before caves, with stations), then P5 (spoken input; Sonnet 5.5) and P7; previously P5 or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
   the other. Then P7, P9; P8 waits on CR-006; P10 optional; G3 and G4 after P9.
 - **Core requests:** the core accepted CR-002 to CR-008 and CR-010 to CR-013 into its M26a to M26f (2026-10-21); CR-014 (P4) and CR-015 (P4b) are `open`.
   When rows turn `done`, bump the submodule; CR-012's fix (M26a) lets the guide drop `EvaluateCountingThisUtterance`, which is a
@@ -94,7 +94,7 @@ Where things stand, for the next orchestrator session:
 | P4b | Spaced colour and the guide's review (D-game-6 amended): growing gaps (10 min, then 1 h, or a new session), early uses logged without colour, the guide asks "¿Qué es esto?" about a due word with the pointer on its nearest example; scripted time skip for the demo | done (merged 2026-10-21, `b433647`, fix `9ce62ef`) | Sonnet 5.5 | P4 |
 | P5 | Spoken input: push-to-talk, microphone (MonoGame `Microphone`, PortAudioSharp2 fallback), Vosk small, evaluation on a worker thread | planned | Sonnet 5.5 | P3 |
 | P6 | Mining, building, inventory (durability, drops, hotbar placement, 40 slots with a 10-slot hotbar; the player starts with `hacha` and `pico`) and the **wider world of things** (section 4.3: new surface tiles and items, each in `game/nouns.json` with the colour rule) | done (merged 2026-10-21, `57244dd`) | Haiku 5.5 | P1, P2, P4b |
-| P6b | **Crafting and the guide's crafting answers** (owner, 2026-10-21; section 4.3): recipes in `game/recipes.json`, stations (`mesa`, `horno`), crafting panel; the guide answers "¿cómo hago una mesa?" (recipe, station, what is missing) and "¿dónde hay arena?" (where a material comes from and the nearest source) | in progress (2026-10-21) | Sonnet 5.5 (design), Haiku 5.5 (content) | P6, G6 |
+| P6b | **Crafting and the guide's crafting answers** (owner, 2026-10-21; section 4.3): recipes in `game/recipes.json`, stations (`mesa`, `horno`), crafting panel; the guide answers "¿cómo hago una mesa?" (recipe, station, what is missing) and "¿dónde hay arena?" (where a material comes from and the nearest source) | done (merged 2026-10-21) | Sonnet 5.5 (design), Haiku 5.5 (content) | P6, G6 |
 | P7 | Caves (worms, cellular automata), ores, full forest vegetation, flood-fill lighting; ores `carbón`, `cobre`, `hierro`, `oro` join the catalogue and the recipes (`antorcha` from `madera` and `carbón`, metal tools at the `horno`) | planned | Haiku 5.5 | P1, P6, P6b |
 | P8 | The guide speaks (Kokoro through the core) | planned (CR-006 delivered in core M26e; taken in by G6) | Haiku 5.5 | P5, CR-006 |
 | P9 | Save and load, playtest build and checklist | planned | Haiku 5.5 | P4, P6, P7 |
@@ -102,7 +102,7 @@ Where things stand, for the next orchestrator session:
 | G3 | Innkeeper scene (section 4.1) | planned, after P9 | Sonnet 5.5 for the scene design, Haiku 5.5 for the content checklist | G2, P9 |
 | G4 | Quest-giver scene (section 4.2) | planned, after G3 | Haiku 5.5 | G3 |
 | G6 | Core bump to `53c52b7` (M26a to M26e) and adoption: drop the CR-012 double evaluation, the CR-013 `esta` lexicon entry if no longer needed, read `nouns.json` with `TryReadHostFile` (CR-007), word lists from `PipelineResult.Words` (CR-002), the guide's world line through host slots (CR-003), the named answer through `PipelineResult.Answer` where it fits (CR-004), `word.<lemma>` extra skills (CR-005) | done (merged 2026-10-21; core pin `53c52b7`) | Haiku 5.5 | P6 |
-| G7 | Build trim and licence: Linux-only native assets (owner, 2026-10-21; about 1.5 GB less per build), `LICENSE` (MIT, D-game-2) and README licence lines | planned, after P6b | Haiku 5.5 | P6b |
+| G7 | Build trim and licence: Linux-only native assets (owner, 2026-10-21; about 1.5 GB less per build), `LICENSE` (MIT, D-game-2) and README licence lines | in progress (2026-10-21) | Haiku 5.5 | P6b |
 | R1 | Research: Terraria-inspired prototype (guide NPC by text and speech, mining, building, movement, forest biome, map and cave generation, language progress tracking, known nouns in colour and unknown in greyscale, inventory) on MonoGame; findings in `docs/research/` | done (merged 2026-10-21, `0e8d601`); proposals await the owner | Opus 5.5 (owner's request) | G0 |
 
 Each milestone ends with the gate in section 6 and a line in section 5.
@@ -392,6 +392,24 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   the recognizer twice for the double evaluation: evaluate the second time from the recognized transcript.
   - Content pass: the recast pool renders "Claro, dónde está el árbol. Muy bien." (no question marks, lower-case inside).
   - Agents in a worktree cannot run git against the core checkout (the worktree guard): briefs must paste the core API passages they need.
+
+- **P6b (2026-10-21, merged, Sonnet 5.5).** Crafting and the guide's crafting answers (section 4.3). Simulation: `Crafting/Recipe.cs`
+  (`Recipe`, `Ingredient`, plain values handed in with `GameSimulation.SetRecipes`, not in the digest), `CanCraft` (`Done`,
+  `NoSuchRecipe`, `MissingIngredients`, `MissingStation`, `InventoryFull`), `Craft`, `PlayerCommand.Craft`, event `ItemCrafted`; a
+  station counts within `CraftingRules.StationReachInTiles` (6); tiles `Furnace` 15, `Glass` 16, `Brick` 17, items `Sword` 13 to
+  `Brick` 16; felling (mining a trunk removes the trunk above and the canopy, one `Wood` per trunk tile). Game: `RecipeBook` reads
+  `game/recipes.json` through `TryReadHostFile`. Guide: `ask_craft` (ingredients with "bloques de" for mass nouns, station or "No
+  necesitas nada más.", shortfall or "¡Ya lo tienes todo!", "Eso no se hace.") and `ask_find` (carried: "Tienes …"; else the source
+  sentence and the nearest source with the arrow); `ask_directions` for a carried tool says "Tienes un hacha."; "dónde hay" moved from
+  `ask_directions` to `ask_find`. Front-end: crafting panel (C), counts on dark badges (contrast at least 7, tested), `--craft`,
+  `--crafting`, and an `arrow:` line in the turn output. Bundle `29931388…`, 28 files. Tests 446 to 518. Core gap **CR-018** (a template
+  cannot render a variable-length list; the game joins the ingredient parts).
+  - Orchestrator spot-check: three felled trees, `mesa` crafted and placed, then "Para una puerta necesitas seis bloques de madera. Usa la
+    mesa. ¡Ya lo tienes todo!" and the door crafted; "¿dónde encuentro piedra?" gives "abajo, a la izquierda, a seis bloques"; the panel
+    shows nine recipes with have/need, station and status.
+  - Content pass items: "¿de dónde sale la madera?" while carrying wood answers only "Tienes cuatro bloques de madera." (it should say the
+    source too); the panel reads "Usa mesa" (no article); `falta`, `faltar`, `nada` are A2, not in the A1 list (owner's call);
+    `ask_directions` for `madera` points at placed planks, only `ask_find` goes to trees.
 
 ## 6. Definition of done (every milestone)
 
