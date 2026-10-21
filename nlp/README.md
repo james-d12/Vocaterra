@@ -496,7 +496,7 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 - **ONNX exports for wav2vec2 and e5.** The upstream wav2vec2 phoneme model ships PyTorch weights only and multilingual-e5-small
   needs its ONNX file copied in; neither is pinned in `models/manifest.json`. Until they are, pronunciation scoring and the
   embedding rung of intent resolution run only with fakes in tests. The embedding tokenizer is unverified against the real
-  e5 files. The Parakeet and Kokoro file hashes are pending their first fetch.
+  e5 files. The Parakeet and Kokoro file hashes are pinned (M26e, 2026-10-21).
 - **Kokoro phonemizer licensing.** Kokoro through sherpa-onnx phonemizes with espeak-ng (GPL-3.0), and the sherpa-onnx native
   library appears to link it statically. The plan is to feed Kokoro phones from the in-house G2P and to settle the native
   binaries before release ([ADR 0007](docs/adr/0007-kokoro-phonemizer-licensing.md)). Dynamic TTS must not ship until then.

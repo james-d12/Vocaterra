@@ -84,7 +84,7 @@ ModelStore store = ModelStore.FromEnvironment() ?? throw new InvalidOperationExc
 IWordRecognizer words = VoskWordRecognizer.FromStore(store, "vosk-model-small-es-0.42");           // D1, constrained prompts
 IPhonemeRecognizer phonemes = new Wav2Vec2PhonemeRecognizer(store.ModelDirectory("wav2vec2-xlsr-53-espeak-cv-ft"));   // D1, optional
 IEmbeddingModel embeddings = new OnnxEmbeddingModel(store.ModelDirectory("multilingual-e5-small"));  // D1, open prompts
-ISpeechSynthesizer synthesizer = new KokoroSynthesizer(store.ModelDirectory("kokoro-multi-lang-v1_0"), speakerId: 0); // D1, optional
+ISpeechSynthesizer synthesizer = KokoroSynthesizer.FromStore(store, "kokoro-multi-lang-v1_0", speakerId: 28); // D1, optional (28 = ef_dora)
 ```
 
 The recognizers are chosen by the host: Vosk for constrained prompts, sherpa-onnx (`SherpaOnnxOfflineRecognizer.FromStore`) for open prompts;
@@ -228,6 +228,21 @@ the silent stand-in), `Synthesize` renders every line of the plan in order:
 IReadOnlyList<AudioBuffer> speech = pipeline.Synthesize(result.Response, "agent-voice");
 ```
 
+**Kokoro voices (CR-006).** `KokoroSynthesizer.FromStore(store, "kokoro-multi-lang-v1_0", speakerId, speed)` builds the adapter from the
+manifest entry, with the manifest's model hash; the manifest must pin `model.onnx`, `voices.bin`, `tokens.txt` and the `espeak-ng-data/`
+files, or the call throws. The adapter takes a numeric speaker id only (it does not look up names). The model has 54 speakers (ids 0 to 53),
+the audio is 24000 Hz. The Spanish voices, read from the `speaker2id` metadata of the model's `model.onnx` (the release's `README.md` agrees
+on `em_santa`):
+
+| Speaker id | Voice | Use |
+| --- | --- | --- |
+| `28` | `ef_dora` | Spanish, female |
+| `29` | `em_alex` | Spanish, male |
+| `53` | `em_santa` | Spanish, male |
+
+Speed defaults to `1.0`. The engine is loaded for every `Synthesize` call and disposed at its end (see section 8), so wrap the
+synthesizer in `CachedSynthesizer` when the same lines repeat.
+
 ## 7. Record and replay a log (D0, no models)
 
 ```csharp
@@ -273,7 +288,7 @@ The guarantee stops at the injected adapters, which the pipeline does not make t
 | `VoskWordRecognizer` | loads the model in the constructor (and a runtime copy on disk) | no lock: each `Recognize` makes its own native recognizer on a shared model, which the code does not guarantee; `Dispose` is not synchronized with `Recognize` | one instance per thread; do not dispose while another thread may recognize |
 | `SherpaOnnxOfflineRecognizer` | loads the model in the constructor | `Recognize` and `Dispose` take one lock: calls queue, `Dispose` is safe | yes, with calls serialized |
 | `Wav2Vec2PhonemeRecognizer`, `OnnxEmbeddingModel` | ONNX session in the constructor | no lock; the code gives no guarantee (ONNX Runtime documents concurrent `Run` as supported, which this code does not test) | one instance per thread, or serialize the calls |
-| `KokoroSynthesizer` | checks the files in the constructor; the engine loads on the first `Synthesize` | `Synthesize` takes one lock: calls queue | yes, with calls serialized |
+| `KokoroSynthesizer` | checks the files in the constructor; each `Synthesize` loads its own engine and disposes it (about 1.5 s per short line on the development machine) | `Synthesize` takes one lock: calls queue | yes, with calls serialized |
 | `CachedSynthesizer` over `DirectorySynthesisCache` | in code | documented as not safe for concurrent requests of the same key: a miss on both threads can make one `Put` throw (both write the same temporary file) | one thread per key |
 | `SilentSynthesizer` | in code | its counter is interlocked | yes |
 
@@ -286,7 +301,8 @@ cross-references; the imported Wiktionary lexicon (tens of thousands of entries)
 `ContentLoadOptions.LexiconCache` avoids re-parsing the same lexicon files when a host loads several bundles. Building the pipeline is cheap:
 the constructor creates the analyzer, the resolver and the response planner, and copies the dialogue pools. Models load where the adapter's
 constructor says so: a recognizer or an ONNX model when it is constructed (`FromStore` uses the manifest hash, so it hashes nothing), the
-Kokoro engine on its first `Synthesize`, and the intent resolver's example vectors on the first open-prompt call that embeds. `PipelineServices`
+Kokoro engine on every `Synthesize` (no engine is kept between calls: sherpa-onnx's Kokoro keeps state, so a reused engine changes its
+output for the same text), and the intent resolver's example vectors on the first open-prompt call that embeds. `PipelineServices`
 reads each adapter's `ModelHash` when it is constructed, so Kokoro hashes its files there. Load the models before the first utterance a
 player waits for.
 

@@ -1,10 +1,12 @@
+using System.Diagnostics;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
+using Xunit.Abstractions;
 
 namespace Vocaterra.Nlp.Asr.Tests;
 
 /// <summary>Tests for the sherpa-onnx adapter that need no model, plus the model-gated Parakeet run.</summary>
-public class SherpaTests
+public class SherpaTests(ITestOutputHelper output)
 {
     private const char Marker = SherpaWordAssembler.WordMarker;
 
@@ -112,5 +114,26 @@ public class SherpaTests
         Assert.Equal(RecognitionMode.Open, first.Mode);
         Assert.Equal(recognizer.ModelHash, first.ModelHash);
         Assert.Single(first.NBest);
+    }
+
+    [ParakeetModelFact]
+    public void ParakeetFromStoreTranscribesTheSpanishSampleClipDeterministically()
+    {
+        var store = ModelGate.Store!;
+        var loadWatch = Stopwatch.StartNew();
+        using var recognizer = SherpaOnnxOfflineRecognizer.FromStore(store, ModelGate.ParakeetId);
+        loadWatch.Stop();
+        var clip = TestData.FromWav(Path.Combine(store.ModelDirectory(ModelGate.ParakeetId), "test_wavs", "es.wav"));
+
+        var decodeWatch = Stopwatch.StartNew();
+        var first = recognizer.Recognize(clip, RecognitionRequest.Open());
+        decodeWatch.Stop();
+        var second = recognizer.Recognize(clip, RecognitionRequest.Open());
+
+        output.WriteLine($"Parakeet load {loadWatch.Elapsed.TotalMilliseconds:F0} ms; decode of {clip.DurationSeconds:F2} s of audio "
+            + $"{decodeWatch.Elapsed.TotalMilliseconds:F0} ms; transcript: \"{first.Transcript}\"");
+        Assert.Equal(first, second);
+        Assert.Equal(store.ModelHash(ModelGate.ParakeetId), recognizer.ModelHash);
+        Assert.Contains("país", first.Transcript, StringComparison.Ordinal);
     }
 }
