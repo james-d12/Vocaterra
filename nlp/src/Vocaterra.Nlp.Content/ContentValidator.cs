@@ -182,6 +182,13 @@ internal static class ContentValidator
             {
                 problems.Add($"{where} references unknown agent '{agentId}'.");
             }
+
+            // The prompt text is optional, but when it is present it is the line the agent says: it must not be empty, and it is written without
+            // leading or trailing whitespace so that every host shows the same text.
+            if (prompt.Text is { } text && (string.IsNullOrWhiteSpace(text) || !string.Equals(text, text.Trim(), StringComparison.Ordinal)))
+            {
+                problems.Add($"{where} has a text that is empty or has leading or trailing whitespace.");
+            }
         }
     }
 

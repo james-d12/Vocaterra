@@ -90,7 +90,7 @@ ConversationContext context = ConversationContext.Create(
     agentState: agentState,
     now: new StoredTimestamp(1_760_000_000),                    // the host's clock, passed in; nothing in the core reads one
     learner: LearnerModel.New(),                                // the host persists this and passes it back next time
-    repeatCountsByTag: null);                                   // how often each error tag was repeated in a row
+    repeatCountsByTag: null);                                   // how often each error tag was repeated in a row (see RepeatCounts.Next)
 ```
 
 `ConversationContext.Create` computes `HostStateHash` over the values it was given. A host with its own state digest uses the constructor
@@ -103,6 +103,7 @@ using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Verdicts;
 
 PromptSpec prompt = bundle.Prompts["offer-items-open"];
+string? agentLine = prompt.Text;                                // the line the agent says before the player answers (null when there is none)
 PcmClip clip = PcmClip.FromSamples([]);                         // a real host passes the captured clip (16 kHz mono)
 PipelineResult result = pipeline.Evaluate(clip, prompt, context);
 
@@ -116,6 +117,24 @@ foreach (ErrorTag error in verdict.Errors)
 
 `communicated` says whether the learner was understood; `correctness` says how well they spoke, from 0 to 1. The errors carry the span in the
 normalized text, the expected form and what was heard. A host gates its own reactions on `communicated` and uses `correctness` for scoring.
+
+### Carry the context to the next utterance
+
+The host does not compute the repeat counts itself. `ConversationContext.Next` builds the context of the next utterance from this one and the
+result: the agent the utterance spoke to in the state the decision moved it to, the learner model after the update, the repeat counts after
+the verdict (`RepeatCounts.Next`, which counts each error tag and `not_communicated` one more in a row and drops every other tag), and the
+world seed.
+
+```csharp
+using Vocaterra.Nlp.Pipeline;
+
+IReadOnlyDictionary<string, int> counts = RepeatCounts.Next(context.RepeatCountsByTag, result.Verdict);   // the counts alone, ordinal keys
+context = context.Next(result, new StoredTimestamp(now));          // the context of the next utterance
+```
+
+The host still supplies the stored time, and it keeps the states of the other agents it talks to: `Next` carries only the agent of this
+utterance. `Next` recomputes `HostStateHash` from the values it carries, as `Create` does, so a host that gave its own digest to the constructor
+computes that digest again after `Next`.
 
 ## 6. Plan the response (D0, with D1 for speech)
 

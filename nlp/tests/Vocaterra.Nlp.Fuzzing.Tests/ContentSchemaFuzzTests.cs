@@ -74,6 +74,7 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
             new(ContentMutationKind.EmptyRequiredString, ContentPaths.Effects, ["effects", "0", "effectId"], "\"\""),
             new(ContentMutationKind.EmptyRequiredString, ContentPaths.Effects, ["effects", "0", "intent"], "\"\""),
             new(ContentMutationKind.EmptyRequiredString, ContentPaths.Prompts, ["0", "promptId"], "\"\""),
+            new(ContentMutationKind.EmptyRequiredString, ContentPaths.Prompts, ["0", "text"], "\"\""),
         };
     }
 

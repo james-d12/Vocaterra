@@ -288,6 +288,9 @@ public class ContentLoaderTests
     [InlineData("evaluation/evaluation-config.json", "\"epsilon\": 0.02,\n    \"unknownTagWeight\": 0.3\n  },\n  \"intermediate\"", "\"epsilon\": -1,\n    \"unknownTagWeight\": 0.3\n  },\n  \"intermediate\"", "evaluation/evaluation-config.json: ")]
     [InlineData("feedback/feedback-policy.json", "\"minRepeat\": 4", "\"minRepeat\": 0", "feedback/feedback-policy.json: ")]
     [InlineData("answer-sets/items-basic.json", "\"answerId\": \"arrow\"", "\"answerId\": \"bow\"", "answer-sets/items-basic.json: Duplicate answerId 'bow'")]
+    [InlineData("prompts/prompts.json", "\"text\": \"¿Qué quieres comprar?\"", "\"text\": \"\"", "prompt 'buy-item-constrained' has a text that is empty or has leading or trailing whitespace")]
+    [InlineData("prompts/prompts.json", "\"text\": \"¿Qué quieres comprar?\"", "\"text\": \"   \"", "prompt 'buy-item-constrained' has a text that is empty or has leading or trailing whitespace")]
+    [InlineData("prompts/prompts.json", "\"text\": \"¿Qué quieres comprar?\"", "\"text\": \" ¿Qué quieres comprar?\"", "prompt 'buy-item-constrained' has a text that is empty or has leading or trailing whitespace")]
     public void CrossReferenceAndFormatProblemsAreReported(string file, string oldText, string newText, string expected)
     {
         using var bundle = new TempBundle();
@@ -297,6 +300,19 @@ public class ContentLoaderTests
         var problems = LoadFails(bundle.Directory).Problems;
 
         Assert.Contains(problems, problem => problem.Contains(expected, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void APromptTextIsOptionalAndIsLoaded()
+    {
+        using var bundle = new TempBundle();
+        bundle.Edit("prompts/prompts.json", "\"text\": \"¿Qué quieres comprar?\"", "\"text\": null");
+        bundle.Rehash();
+
+        var loaded = ContentLoader.Load(bundle.Directory);
+
+        Assert.Null(loaded.Prompts["buy-item-constrained"].Text);
+        Assert.Equal("¿Quieres comprar algo?", TestSupport.Bundle.Prompts["buy-item-open"].Text);
     }
 
     [Fact]

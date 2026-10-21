@@ -20,6 +20,6 @@
 {"path":"lexicon/supplement.json","sha256":"d0f3b4ad878990cb56d766430b6a088b4299e220ff0da9c72ba4787eaaf6bc38","bytes":697},
 {"path":"lexicon/wiktionary-es.json","sha256":"83da218f083f8b8f73262dc4c275e6418a1a8e7aa53c1de72dcb62bf16372f2f","bytes":4718227},
 {"path":"lexicon/wiktionary-es.source.json","sha256":"9cecd4bd49f21bfb153b69aeaaa1118740e8649ba5dce61a9dc925e557134b70","bytes":3640},
-{"path":"prompts/prompts.json","sha256":"099b11c08d631a4518e424c830c41c46bd08d83152c7c85e285037ce47492c4b","bytes":4838},
+{"path":"prompts/prompts.json","sha256":"d37a2cd698c412d04a3f11bdc761305b49d5c3b1185cb22e655de7248dbb0d20","bytes":5630},
 {"path":"provenance.json","sha256":"07a7acf50412068df29c7cdcb9aa7900b885e9acfcd2862ffa964cef4d46d4a9","bytes":2555}
-],"bundleHash":"3b1d1f02dff448c830d0cfdbaf1f5e330fc66922a7b7507abc4b56d78afbc657"}
+],"bundleHash":"cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1"}

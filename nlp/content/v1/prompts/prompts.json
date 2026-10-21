@@ -6,7 +6,8 @@
     "answerSetId": "items-basic",
     "allowedIntentIds": ["ask_price"],
     "agentId": "blacksmith",
-    "slotGrammarIds": ["cuánto [VERB:costar] [ART]? [NOUN:item]"]
+    "slotGrammarIds": ["cuánto [VERB:costar] [ART]? [NOUN:item]"],
+    "text": "Tengo una espada muy buena. ¿Te gusta?"
   },
   {
     "promptId": "buy-item-constrained",
@@ -15,7 +16,8 @@
     "answerSetId": "items-basic",
     "allowedIntentIds": ["buy_item"],
     "agentId": "blacksmith",
-    "slotGrammarIds": []
+    "slotGrammarIds": [],
+    "text": "¿Qué quieres comprar?"
   },
   {
     "promptId": "buy-item-open",
@@ -27,7 +29,8 @@
     "slotGrammarIds": [
       "[VERB:querer] [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item]",
       "[VERB:comprar] [ART]? [NUM:qty]? [NOUN:item]"
-    ]
+    ],
+    "text": "¿Quieres comprar algo?"
   },
   {
     "promptId": "greet-blacksmith",
@@ -36,7 +39,8 @@
     "answerSetId": "greetings",
     "allowedIntentIds": ["greet"],
     "agentId": "blacksmith",
-    "slotGrammarIds": []
+    "slotGrammarIds": [],
+    "text": "¡Hola! Bienvenido a mi tienda."
   },
   {
     "promptId": "greet-open",
@@ -45,7 +49,8 @@
     "answerSetId": "greetings",
     "allowedIntentIds": ["greet"],
     "agentId": "blacksmith",
-    "slotGrammarIds": ["hola [NOUN]?"]
+    "slotGrammarIds": ["hola [NOUN]?"],
+    "text": "Buenos días. ¿Cómo estás?"
   },
   {
     "promptId": "offer-items-constrained",
@@ -54,7 +59,8 @@
     "answerSetId": "items-basic",
     "allowedIntentIds": ["offer_item"],
     "agentId": "blacksmith",
-    "slotGrammarIds": []
+    "slotGrammarIds": [],
+    "text": "¿Qué tienes para vender?"
   },
   {
     "promptId": "offer-items-open",
@@ -66,7 +72,8 @@
     "slotGrammarIds": [
       "[VERB:tener:verb] [NUM:qty] [NOUN:item]",
       "[PRON]? [VERB:ofrecer:verb] [NUM:qty] [NOUN:item]"
-    ]
+    ],
+    "text": "Dime qué tienes para vender."
   },
   {
     "promptId": "quiz-greeting-name",
@@ -75,7 +82,8 @@
     "answerSetId": "greetings",
     "allowedIntentIds": [],
     "agentId": null,
-    "slotGrammarIds": []
+    "slotGrammarIds": [],
+    "text": "Di un saludo."
   },
   {
     "promptId": "quiz-item-name",
@@ -84,7 +92,8 @@
     "answerSetId": "items-basic",
     "allowedIntentIds": [],
     "agentId": null,
-    "slotGrammarIds": []
+    "slotGrammarIds": [],
+    "text": "Di el nombre de este objeto."
   },
   {
     "promptId": "quiz-spell-name",
@@ -93,7 +102,8 @@
     "answerSetId": "spells-basic",
     "allowedIntentIds": [],
     "agentId": null,
-    "slotGrammarIds": []
+    "slotGrammarIds": [],
+    "text": "Di el nombre de este hechizo."
   },
   {
     "promptId": "sell-item-open",
@@ -105,7 +115,8 @@
     "slotGrammarIds": [
       "[VERB:querer] [VERB:vender] [ART]? [NUM:qty]? [NOUN:item]",
       "[VERB:vender] [ART]? [NUM:qty]? [NOUN:item]"
-    ]
+    ],
+    "text": "Tengo monedas de oro. ¿Quieres vender algo?"
   },
   {
     "promptId": "spell-cast-constrained",
@@ -114,7 +125,8 @@
     "answerSetId": "spells-basic",
     "allowedIntentIds": ["cast_spell"],
     "agentId": null,
-    "slotGrammarIds": []
+    "slotGrammarIds": [],
+    "text": "Di el nombre del hechizo que quieres lanzar."
   },
   {
     "promptId": "spell-cast-open",
@@ -123,7 +135,8 @@
     "answerSetId": "spells-basic",
     "allowedIntentIds": ["cast_spell"],
     "agentId": null,
-    "slotGrammarIds": ["[VERB:lanzar]? [ART]? [NOUN:spell] [ADJ]?"]
+    "slotGrammarIds": ["[VERB:lanzar]? [ART]? [NOUN:spell] [ADJ]?"],
+    "text": "Di qué hechizo lanzas."
   },
   {
     "promptId": "trade-free-conversation",
@@ -132,7 +145,8 @@
     "answerSetId": "items-basic",
     "allowedIntentIds": ["ask_price", "buy_item", "offer_item", "sell_item"],
     "agentId": "blacksmith",
-    "slotGrammarIds": []
+    "slotGrammarIds": [],
+    "text": "¿Qué necesitas hoy?"
   },
   {
     "promptId": "confirm-open",
@@ -147,7 +161,8 @@
       "(no|ahora no)",
       "no gracias",
       "no [VERB:querer]"
-    ]
+    ],
+    "text": "¿Estás de acuerdo?"
   },
   {
     "promptId": "farewell-open",
@@ -159,7 +174,8 @@
     "slotGrammarIds": [
       "(adiós|hasta (luego|mañana))",
       "nos [VERB:ver]"
-    ]
+    ],
+    "text": "¿Te vas ya?"
   },
   {
     "promptId": "thank-open",
@@ -171,7 +187,8 @@
     "slotGrammarIds": [
       "gracias [NOUN]?",
       "muchas gracias"
-    ]
+    ],
+    "text": "Aquí tienes. ¿Qué dices?"
   },
   {
     "promptId": "introduce-open",
@@ -184,6 +201,7 @@
       "me [VERB:llamar] [WORD:name]",
       "[VERB:ser] [WORD:name]",
       "mi nombre es [WORD:name]"
-    ]
+    ],
+    "text": "Soy el herrero. ¿Y tú? ¿Cómo te llamas?"
   }
 ]
