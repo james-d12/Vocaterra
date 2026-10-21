@@ -60,6 +60,34 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 
 ## 4. Milestones
 
+### Handover (2026-10-21, end of session)
+
+Where things stand, for the next orchestrator session:
+- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3. `main` matches `origin/main`; no worktrees or agent branches are left. The core pin is
+  still `db39999` (no bump needed: no request is `done` that the pin lacks). Tests on `main`: 290.
+- **The prototype's first goal is met:** P3 shows the language core working inside the game (section 5, P3 entry; demo in section 6).
+- **Next:** P4 (nouns, word progress, greyscale; Haiku 5.5). After it: P5 (spoken input; Sonnet 5.5) and P6 (mining, building, inventory;
+  Haiku 5.5). Both touch `src/Vocaterra.MonoGame`, so run them one after the other, not in parallel. Then P7, P9; P8 waits on CR-006; P10 is
+  optional; G3 and G4 come after P9.
+- **Disk:** the session stopped because free space fell to 8.8 GB (floor 10 GB). The owner is enlarging the disk. Check `df -h /home` first.
+  Each build output (`bin/`) is about 375 MB, because every build copies the native speech libraries of every platform (sherpa-onnx, ONNX
+  Runtime, Vosk for Linux, macOS and ARM). The orchestrator proposed a small Haiku task that builds only `linux-x64` native assets, saving
+  about 1.5 GB in `main` and in every worktree; the owner has not answered it. Offer it again if space is still short.
+- **Open core requests:** CR-002 to CR-008 and CR-010 to CR-013, all `open`; none is `done`. P8 is blocked on CR-006. The rest have
+  workarounds in place or planned (CR-003: the game renders its own world line; CR-012: the guide evaluates twice; CR-013: a lexicon entry
+  for `esta`).
+- **Owner items not yet asked or answered:** (1) nothing in the prototype is gated behind language: the research's recommendation, recorded
+  as the orchestrator's default; (2) the game's `cefr/a1.txt` gained `flecha`, `guía` and `bloque` in P3, which are not standard A1: review
+  in a content pass; (3) the native-asset trim above; (4) D-game-2 (licence) stays open.
+- **How agents work now** (put this in every brief): no `git submodule update` and no core pack in a worktree; restore with
+  `-p:RestoreSources="/home/user/Dev/Vocaterra/external/Vocaterra.NLP/artifacts/feed;https://api.nuget.org/v3/index.json"` and build with
+  `--no-restore`; `VOCATERRA_CONTENT_TOOL_DIR=/home/user/Dev/Vocaterra/.tools`; `scripts/content.sh hash` through a wrapper script outside the
+  repository; screenshots need `DISPLAY=:0`. The P4 brief should point at: `docs/research/PROTOTYPE_PLAN.md` row P4 and research sections 6 and
+  7; D-game-6 (three correct uses in three turns, colour by thirds, typed input full credit until P5, then half); the P3 entry in section 5
+  (`GameSession`, `GuideService`, `WorldFacts.NounOfTile`, `lexicon/world.json` is accepted by the loader, which suits `game/nouns.json` until
+  CR-007); P2's `IFrameLayer`; Kenney Pixel Platformer is CC0 (D-game-5, record each file in `assets/ATTRIBUTION.md`).
+
+
 | ID | Milestone | Status | Model | Depends on |
 | --- | --- | --- | --- | --- |
 | G0 | Repository setup: submodule at `db39999`, local feed, content tool, role file, requests file, gate, this plan | done (merged 2026-10-21) | Haiku 5.5 | core M19e |
@@ -260,6 +288,10 @@ Facts that shape the plan. Each one names its source; the core's own findings st
    for any content that adds templates.
 4. The host demo runs: `dotnet run --project src/Vocaterra.Host -- --transcript "yo tiene dos espada" --prompt offer-items-open` prints the
    two errors `conj.person` and `noun.number`; the README demo for the milestone's scene runs as written.
+   From P3 on, also the game demo (needs a display, `DISPLAY=:0`): `dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --say
+   "¿dónde está el árbol?" --screenshot <scratch>/demo.png --frames 240` prints `ask_directions, entendido, 100 %` and the guide's line
+   `El árbol está allí, a la derecha, a ocho bloques.`, and the PNG shows the dialogue panel, the arrow and the marker on the trunk. Look at
+   the PNG.
 5. No violation of section 3: no project reference or copied source from the core, no edit under `external/`, nothing under
    `.github/workflows/`, no engine code outside `src/Vocaterra.MonoGame`.
 6. `git status` is clean after the commit: no `.tools/`, `bin/`, `obj/` or submodule build output is staged.
