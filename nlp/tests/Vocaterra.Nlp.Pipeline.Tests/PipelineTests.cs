@@ -311,10 +311,9 @@ public class PipelineTests
 
     [Theory]
     [InlineData(0, RepairKind.AskAgain)]
-    [InlineData(1, RepairKind.AskAgain)]
-    [InlineData(2, RepairKind.SlowRepeat)]
-    [InlineData(3, RepairKind.OfferChoices)]
-    [InlineData(4, RepairKind.GiveUp)]
+    [InlineData(1, RepairKind.SlowRepeat)]
+    [InlineData(2, RepairKind.OfferChoices)]
+    [InlineData(3, RepairKind.GiveUp)]
     public void TheRepairStepFollowsTheNotCommunicatedRepeatCount(int repeats, RepairKind expected)
     {
         var pipeline = TestSupport.Pipeline("xyzzy plugh", RecognitionMode.Constrained);
@@ -639,7 +638,8 @@ public class PipelineTests
     [Fact]
     public void RepeatedErrorsEscalateTheFeedbackFromRecastToHint()
     {
-        var counts = new Dictionary<string, int> { [ErrorTags.ConjPerson] = 2 };
+        // Seen once before: this utterance is the second offence, which is a hint.
+        var counts = new Dictionary<string, int> { [ErrorTags.ConjPerson] = 1 };
 
         var result = TestSupport.Pipeline(TestSupport.WorkedExample)
             .Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context(repeats: counts));

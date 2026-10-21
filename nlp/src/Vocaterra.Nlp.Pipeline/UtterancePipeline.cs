@@ -108,10 +108,12 @@ public sealed partial class UtterancePipeline
             _services.Versions,
             CanonicalAnswersOf(answerSet)));
 
-        var decision = Decide(verdict, prompt, context);
+        // The context carries the counts before this utterance; the counts after it are what the feedback policy and the repair ladder read.
+        var counts = RepeatCounts.Next(context.RepeatCountsByTag, verdict);
+        var decision = Decide(verdict, prompt, context, counts);
         var response = Respond(verdict, prompt, decision, normalized, analysis, match, context);
         var effects = EffectResolver.Resolve(verdict, content.Effects);
-        var repair = RepairFor(verdict, prompt, answerSet, context);
+        var repair = RepairFor(verdict, prompt, answerSet, counts);
         var replay = new ReplayRecord(clip.ClipHash, prompt.PromptId, context.HostStateHash, _services.Versions, verdict);
         return new PipelineTrace(new PipelineResult(verdict, decision, response, effects, repair, replay), asr, posteriors);
     }

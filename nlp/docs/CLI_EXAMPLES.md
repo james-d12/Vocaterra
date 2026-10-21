@@ -200,12 +200,13 @@ agent: ¡Muy bien!
 
 ## The repair ladder
 
-`--repeat not_communicated=<n>` counts failed attempts in a row. The first attempt is `AskAgain` (see the README), the second `SlowRepeat`,
-the third `OfferChoices` and the fourth and later `GiveUp`. The sentence is the unknown-word one from the README and its verdict does not
-change, so only the repair line is shown:
+`--repeat not_communicated=<n>` is the number of failed attempts in a row before this one (the host's count from the previous `Next`; the
+pipeline counts this attempt itself). The first attempt is `AskAgain` (see the README), the second `SlowRepeat`, the third `OfferChoices`
+and the fourth and later `GiveUp`, so `<n>` of 0, 1, 2 and 3 gives those four. The sentence is the unknown-word one from the README and its
+verdict does not change, so only the repair line is shown:
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1 --repeat not_communicated=2
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1 --repeat not_communicated=1
 ```
 
 ```text
@@ -216,7 +217,7 @@ repair: SlowRepeat Perdón, te lo repito más despacio.
 `el arco` can appear together:
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1 --repeat not_communicated=3
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1 --repeat not_communicated=2
 ```
 
 ```text
@@ -224,7 +225,7 @@ repair: OfferChoices ¿Quieres decir «arco», «brebaje» o «el arco»?
 ```
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1 --repeat not_communicated=4
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1 --repeat not_communicated=3
 ```
 
 ```text

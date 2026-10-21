@@ -21,7 +21,7 @@ public sealed partial class UtterancePipeline
     public const string AnswerAcceptedPool = "answer_accepted";
 
     // Decision layer: agent step, learner update, FSRS rating and feedback plan. Pure; the only randomness is the seeded agent stream.
-    private DecisionOutcome Decide(Verdict verdict, PromptSpec prompt, ConversationContext context)
+    private DecisionOutcome Decide(Verdict verdict, PromptSpec prompt, ConversationContext context, IReadOnlyDictionary<string, int> counts)
     {
         var content = _services.Content;
         AgentStepResult? step = null;
@@ -33,7 +33,7 @@ public sealed partial class UtterancePipeline
         IReadOnlyList<string> skills = verdict.Intent.IsUnknown ? [] : [$"intent.{verdict.Intent.Value}"];
         var learner = context.Learner.Update(verdict, skills);
         var rating = RatingMapper.FromVerdict(verdict, _options.RatingThresholds);
-        var feedback = content.FeedbackPolicy.Plan(verdict, context.RepeatCountsByTag, prompt.Difficulty);
+        var feedback = content.FeedbackPolicy.Plan(verdict, counts, prompt.Difficulty);
         return new DecisionOutcome(step, learner, rating, feedback);
     }
 
@@ -207,15 +207,15 @@ public sealed partial class UtterancePipeline
         };
     }
 
-    private static RepairStep? RepairFor(Verdict verdict, PromptSpec prompt, AnswerSet answerSet, ConversationContext context)
+    // The counts are the ones after this utterance: a verdict that was not communicated always carries the not_communicated count, at 1 or more.
+    private static RepairStep? RepairFor(Verdict verdict, PromptSpec prompt, AnswerSet answerSet, IReadOnlyDictionary<string, int> counts)
     {
         if (verdict.Communicated)
         {
             return null;
         }
 
-        context.RepeatCountsByTag.TryGetValue(FeedbackPolicy.NotCommunicatedTag, out var seen);
-        return RepairStrategy.Next(Math.Max(1, seen), prompt, answerSet.GrammarPhrases());
+        return RepairStrategy.Next(counts[FeedbackPolicy.NotCommunicatedTag], prompt, answerSet.GrammarPhrases());
     }
 
     private static SeededRng NewRng(ConversationContext context)

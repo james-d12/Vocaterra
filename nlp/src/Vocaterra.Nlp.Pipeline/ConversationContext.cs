@@ -14,7 +14,7 @@ namespace Vocaterra.Nlp.Pipeline;
 /// <param name="AgentState">The agent's persisted state; its interaction counter selects the random stream.</param>
 /// <param name="Now">The stored timestamp of the interaction.</param>
 /// <param name="Learner">The learner model before this utterance.</param>
-/// <param name="RepeatCountsByTag">How many times each error tag (and <c>not_communicated</c>) has been seen in a row, including this utterance.</param>
+/// <param name="RepeatCountsByTag">How many times in a row each error tag (and <c>not_communicated</c>) was seen before this utterance; empty at the start. The pipeline adds this utterance's tags itself (<see cref="RepeatCounts.Next"/>).</param>
 /// <param name="HostStateHash">A caller-supplied digest of the rest of the host state, copied into the replay record.</param>
 public sealed record ConversationContext(
     ulong WorldSeed,
@@ -34,7 +34,10 @@ public sealed record ConversationContext(
     /// <summary>The learner model before this utterance.</summary>
     public LearnerModel Learner { get; init; } = Learner ?? throw new ArgumentNullException(nameof(Learner));
 
-    /// <summary>Repeat counts, held in ordinal key order so serialization never depends on insertion order.</summary>
+    /// <summary>
+    /// Repeat counts before this utterance, held in ordinal key order so serialization never depends on insertion order. The pipeline adds
+    /// this utterance's tags itself.
+    /// </summary>
     public IReadOnlyDictionary<string, int> RepeatCountsByTag { get; init; } = SortCounts(RepeatCountsByTag);
 
     /// <summary>The caller-supplied host state digest.</summary>
@@ -57,8 +60,9 @@ public sealed record ConversationContext(
     /// <summary>
     /// The context the next utterance starts from, after this one was evaluated (the context passed to <c>Evaluate</c>). The agent is the one
     /// this context names, in the state the decision moved it to (or unchanged when the bundle has no state machine for it); the learner model
-    /// is the one after the update; the repeat counts are <see cref="RepeatCounts.Next"/> of this context's counts and the verdict; the world seed
-    /// is kept. The host supplies <paramref name="now"/>, and <see cref="HostStateHash"/> is recomputed from the values, as <see cref="Create"/> does.
+    /// is the one after the update; the repeat counts are <see cref="RepeatCounts.Next"/> of this context's counts (the counts before this utterance)
+    /// and its verdict, which are the counts before the next utterance; the world seed is kept. The host supplies <paramref name="now"/>, and
+    /// <see cref="HostStateHash"/> is recomputed from the values, as <see cref="Create"/> does.
     /// The host keeps the states of the other agents itself: this context carries only the agent it spoke to.
     /// </summary>
     /// <param name="result">The result of evaluating one utterance in this context.</param>

@@ -26,7 +26,7 @@ PipelineResult result = pipeline.Evaluate(clip, prompt, context);     // or pipe
 | --- | --- | --- |
 | `clip` | `PcmClip` | 16 kHz mono 16-bit samples plus their SHA-256 `ClipHash`. Produced by `AudioFrontEnd` (resample, downmix, gain, energy VAD) from a push-to-talk capture or a WAV file. |
 | `prompt` | `PromptSpec` | What the host asked: prompt id, recognition mode (`Constrained` or `Open`), difficulty, answer set id, allowed intent ids, agent id, slot grammar ids and the optional text (the line the agent says before the answer). Prompts are data (`content/v1/prompts/prompts.json`). |
-| `context` | `ConversationContext` | The host state it is evaluated in: world seed, agent id and state, stored time, the learner model, repeat counts per error tag. Nothing in it comes from a clock. |
+| `context` | `ConversationContext` | The host state it is evaluated in: world seed, agent id and state, stored time, the learner model, and the repeat counts per error tag before this utterance (empty at the start; the host carries them from the previous `ConversationContext.Next`). Nothing in it comes from a clock. |
 
 `PipelineResult` has six members: `Verdict`, `Decision`, `Response`, `Effects`, `Repair` and `Replay`. `Trace` returns a
 `PipelineTrace` that adds the word recognizer's `AsrResult` and the phoneme recognizer's `PhonePosteriors`, which is what a
@@ -334,7 +334,8 @@ evaluation configuration and the version stamp:
 3. **FSRS rating.** `RatingMapper.FromVerdict`: not communicated is `Again`; otherwise correctness is compared with the 0.5 and
    0.9 cut-offs (each with a 0.02 margin; an uncertain score rounds down). Correctness 0.5 is inside the band around 0.5, so the
    rating is `Hard`.
-4. **Feedback plan.** `FeedbackPolicy.Plan` gives each error the most specific rule for (tag, repeat count, difficulty). The first
+4. **Feedback plan.** The pipeline first counts this utterance into the context's counts (`RepeatCounts.Next` of the counts before it), then
+   `FeedbackPolicy.Plan` gives each error the most specific rule for (tag, repeat count after this utterance, difficulty). The first
    offence of anything is a recast, the second and third a hint, the fourth and later an explicit correction, and any `pron.*`
    error from the second offence on a model pronunciation. At most two items are kept. Here: a recast for `conj.person` and
    a recast for `noun.number`.
@@ -372,7 +373,7 @@ so the host gates effects by state (the host decides whether a trade is allowed 
 ### 11. Repair (D0)
 
 If the player was not understood, `RepairStrategy.Next(attempt, prompt, phrases)` returns the deterministic repair ladder step.
-The attempt number is the repeat count of the pseudo-tag `not_communicated` from the conversation context (at least 1): attempt 1 is
+The attempt number is the count of the pseudo-tag `not_communicated` after this utterance (the context's count before it, plus one, so at least 1): attempt 1 is
 `AskAgain` ("¿Cómo?"), attempt 2 `SlowRepeat`, attempt 3 `OfferChoices` (the first three distinct phrases of the answer set in
 ordinal order, with a constrained retry request), later attempts `GiveUp`. For understood utterances `repair` is `null`.
 
@@ -452,8 +453,8 @@ Each of these is a real run of the CLI on `content/v1` (verdict line shortened).
 | `--transcript "fuego" --prompt spell-cast-constrained` | intent `cast_spell`, slot `spell=fuego`, communicated, correctness 1, `resolvedBy: Exact` | `agent: ¡Muy bien!`, `effect: cast_spell_power spell_power 1`, `decision: rating Easy, learner skills 1, feedback items 0` |
 | `--transcript "ezpada" --prompt quiz-item-name` | intent `unknown`, communicated, correctness 0.6, one `vocab.unknown` with expected `espada`, `resolvedBy: Fuzzy`, confidence 0.5 (a near miss, see [Near misses](#near-misses)) | `agent: Ah, espada. ¡Perfecto!` and `decision: rating Good, learner skills 1, feedback items 1` |
 | `--transcript "bla bla" --prompt offer-items-open` | intent `unknown`, not communicated, correctness 0.2, two `vocab.unknown` errors, `resolvedBy: Unresolved`, confidence 0 | `agent: Perdón, ¿qué dices?`, `repair: AskAgain ¿Cómo?`, `decision: rating Again, learner skills 1, feedback items 1` |
-| the same with `--repeat not_communicated=2` | as above | `repair: SlowRepeat Perdón, te lo repito más despacio.` |
-| the same with `--repeat not_communicated=3` | as above | `repair: OfferChoices ¿Quieres decir «arco», «brebaje» o «el arco»?` |
+| the same with `--repeat not_communicated=1` (the second failure) | as above | `repair: SlowRepeat Perdón, te lo repito más despacio.` |
+| the same with `--repeat not_communicated=2` (the third failure) | as above | `repair: OfferChoices ¿Quieres decir «arco», «brebaje» o «el arco»?` |
 
 The first row shows the answer-only rule: a quiz answer with no intent is still `communicated`, because the answer set matched.
 The second shows a host effect, a spell cast at full power because correctness is 1 (the curve in `effects.json` gives 0.5 power at
@@ -478,7 +479,7 @@ dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos 
 ```
 
 Add `--seed <n>` (world seed), `--now <unixSeconds>`, `--agent-state <id>` (start the agent in a given state), `--counter <n>`
-(interaction counter), `--repeat <tag>=<n>` (repeat counts) and `--replay-out <file>` to control the conversation context and record the
+(interaction counter), `--repeat <tag>=<n>` (repeat counts before this utterance) and `--replay-out <file>` to control the conversation context and record the
 run. `dotnet run --project tools/Vocaterra.Nlp.Cli -- --help` prints the full usage. The prompt ids in the sample bundle are `ask-price-open`,
 `buy-item-constrained`, `buy-item-open`, `greet-blacksmith`, `greet-open`, `offer-items-constrained`, `offer-items-open`,
 `quiz-greeting-name`, `quiz-item-name`, `quiz-spell-name`, `sell-item-open`, `spell-cast-constrained`, `spell-cast-open` and
