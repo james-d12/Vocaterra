@@ -1,6 +1,7 @@
 using CsCheck;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Evaluation;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
@@ -185,7 +186,14 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
                 // README, known findings), so only a spoken-length transcript is paired with the phoneme recognizer.
                 var phonemes = input.Phonemes && transcript.Length <= PipelineCase.MaxScoredTranscriptCharacters;
                 var pipeline = Harness.NewPipeline(transcript, input.Prompt.Mode, phonemes);
-                var context = Harness.NewContext("blacksmith", input.State, counter: (long)(input.Seed % 7), worldSeed: input.Seed);
+                var withHost = input.Seed % 3 == 0;
+                var context = Harness.NewContext(
+                    "blacksmith",
+                    input.State,
+                    counter: (long)(input.Seed % 7),
+                    worldSeed: input.Seed,
+                    hostSlots: withHost ? SlotMap.From([new KeyValuePair<string, string>("target", "árbol"), new KeyValuePair<string, string>("distance", "3")]) : null,
+                    extraSkills: withHost ? ["word.árbol", "intent.offer_item"] : null);
                 var info = new { transcript, prompt = input.Prompt.PromptId, input.State, input.Seed, phonemes };
 
                 PipelineTrace trace;

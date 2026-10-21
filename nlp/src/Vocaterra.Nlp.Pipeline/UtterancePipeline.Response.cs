@@ -30,7 +30,15 @@ public sealed partial class UtterancePipeline
             step = machine.Step(context.AgentState, verdict, NewRng(context));
         }
 
-        IReadOnlyList<string> skills = verdict.Intent.IsUnknown ? [] : [$"intent.{verdict.Intent.Value}"];
+        // One Update call: the pipeline's own intent skill and the host-named skills are merged there (distinct, ordinal), so each error family
+        // and each skill is stepped once.
+        var skills = new List<string>();
+        if (!verdict.Intent.IsUnknown)
+        {
+            skills.Add($"intent.{verdict.Intent.Value}");
+        }
+
+        skills.AddRange(context.ExtraSkills ?? []);
         var learner = context.Learner.Update(verdict, skills);
         var rating = RatingMapper.FromVerdict(verdict, _options.RatingThresholds);
         var feedback = content.FeedbackPolicy.Plan(verdict, counts, prompt.Difficulty);
@@ -94,17 +102,17 @@ public sealed partial class UtterancePipeline
     {
         try
         {
-            return _planner.Plan(verdict, request, dialogue, NewRng(context), dialogueIntent, recast);
+            return _planner.Plan(verdict, request, dialogue, NewRng(context), dialogueIntent, recast, context.HostSlots);
         }
         catch (TemplateException) when (request is not null)
         {
             try
             {
-                return _planner.Plan(verdict, request with { Tag = string.Empty }, dialogue, NewRng(context), dialogueIntent, recast);
+                return _planner.Plan(verdict, request with { Tag = string.Empty }, dialogue, NewRng(context), dialogueIntent, recast, context.HostSlots);
             }
             catch (TemplateException)
             {
-                return _planner.Plan(verdict, null, dialogue, NewRng(context), dialogueIntent);
+                return _planner.Plan(verdict, null, dialogue, NewRng(context), dialogueIntent, null, context.HostSlots);
             }
         }
     }
@@ -133,7 +141,8 @@ public sealed partial class UtterancePipeline
             var template = action.VariantIndex is { } index
                 ? pool.Variants[index % pool.Variants.Count]
                 : DialogueSelector.Select(pool, rng);
-            var line = new ResponseLine(template.LineId, engine.Render(template, verdict.Slots), false);
+            var slots = context.HostSlots is null ? verdict.Slots : verdict.Slots.WithFallback(context.HostSlots);
+            var line = new ResponseLine(template.LineId, engine.Render(template, slots), false);
             if (i == 0)
             {
                 lines[replyIndex] = line;

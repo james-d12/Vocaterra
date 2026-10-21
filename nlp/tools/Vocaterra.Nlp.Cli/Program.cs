@@ -8,6 +8,7 @@ using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Pipeline;
@@ -38,6 +39,7 @@ public static class Program
           eval --prompt <id> --content <dir> (--transcript "<text>" | --wav <file> --models <dir>)
                [--wav <file>] [--models <dir>] [--replay-out <file>]
                [--seed <n>] [--now <unixSeconds>] [--agent-state <id>] [--counter <n>] [--repeat <tag>=<n>]...
+               [--host-slot <name>=<value>]... [--host-skill <id>]...
               Evaluates one utterance. Without --models the word recognizer is scripted from --transcript, so no model is needed.
               Prints the verdict JSON on the first line, then the agent lines, effects and repair step.
           replay <envelope.jsonl> --content <dir>
@@ -104,7 +106,7 @@ public static class Program
 
     private static readonly string[] EvalOptions =
     [
-        "--wav", "--transcript", "--prompt", "--content", "--models", "--replay-out", "--seed", "--now", "--agent-state", "--counter", "--repeat",
+        "--wav", "--transcript", "--prompt", "--content", "--models", "--replay-out", "--seed", "--now", "--agent-state", "--counter", "--repeat", "--host-slot", "--host-skill",
     ];
 
     private static int Eval(CommandLine line, TextWriter output, TextWriter error)
@@ -129,6 +131,10 @@ public static class Program
         var counter = line.Number("--counter", 0L, long.Parse);
         // The counts the learner had before this utterance, as a host carries them from the previous ConversationContext.Next.
         var repeats = ParseRepeats(line.Values("--repeat"));
+
+        // Host facts for the reply and feedback templates and host-named skills for the learner update (ConversationContext.HostSlots, ExtraSkills).
+        var hostSlots = ParseHostSlots(line.Values("--host-slot"));
+        var hostSkills = line.Values("--host-skill");
 
         var bundle = ContentLoader.Load(contentDir);
         if (!bundle.Prompts.TryGetValue(promptId, out var prompt))
@@ -157,7 +163,7 @@ public static class Program
         var agentState = line.Value("--agent-state") is { } stateId
             ? new AgentState(agentId, stateId, counter)
             : machine is null ? new AgentState(agentId, "none", counter) : machine.InitialState() with { InteractionCounter = counter };
-        var context = ConversationContext.Create(seed, agentId, agentState, new StoredTimestamp(now), LearnerModel.New(), repeats);
+        var context = ConversationContext.Create(seed, agentId, agentState, new StoredTimestamp(now), LearnerModel.New(), repeats, hostSlots, ValidSkills(hostSkills));
 
         var pipeline = new UtterancePipeline(new PipelineServices(words, phonemes, null, null, bundle));
         var trace = pipeline.Trace(clip, prompt, context);
@@ -235,6 +241,40 @@ public static class Program
     private static AsrResult ScriptedResult(string transcript, RecognitionMode mode)
     {
         return new AsrResult(transcript, [new AsrHypothesis(transcript, 1.0)], [], 1.0, "scripted-transcript", mode);
+    }
+
+    private static SlotMap ParseHostSlots(IReadOnlyList<string> values)
+    {
+        var pairs = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var value in values)
+        {
+            var split = value.IndexOf('=', StringComparison.Ordinal);
+            if (split <= 0)
+            {
+                throw new UsageException($"--host-slot expects <name>=<value>, got '{value}'.");
+            }
+
+            pairs[value[..split]] = value[(split + 1)..];
+        }
+
+        return SlotMap.From(pairs);
+    }
+
+    private static IReadOnlyList<string> ValidSkills(IReadOnlyList<string> skills)
+    {
+        foreach (var skill in skills)
+        {
+            try
+            {
+                LearnerModel.ValidateSkillId(skill);
+            }
+            catch (ArgumentException ex)
+            {
+                throw new UsageException($"--host-skill: {ex.Message}");
+            }
+        }
+
+        return skills;
     }
 
     private static Dictionary<string, int> ParseRepeats(IReadOnlyList<string> values)

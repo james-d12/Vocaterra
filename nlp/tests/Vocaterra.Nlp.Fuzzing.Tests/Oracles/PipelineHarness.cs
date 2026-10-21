@@ -4,6 +4,7 @@ using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
@@ -128,7 +129,7 @@ public sealed class PipelineHarness
     }
 
     /// <summary>Creates a conversation context for an agent of the bundle in one of its states.</summary>
-    public ConversationContext NewContext(string agentId, string stateId, long counter = 0, ulong worldSeed = 42, IReadOnlyDictionary<string, int>? repeats = null)
+    public ConversationContext NewContext(string agentId, string stateId, long counter = 0, ulong worldSeed = 42, IReadOnlyDictionary<string, int>? repeats = null, SlotMap? hostSlots = null, IReadOnlyList<string>? extraSkills = null)
     {
         return ConversationContext.Create(
             worldSeed,
@@ -136,7 +137,9 @@ public sealed class PipelineHarness
             new AgentState(agentId, stateId, counter),
             new StoredTimestamp(FixedNow),
             LearnerModel.New(),
-            repeats);
+            repeats,
+            hostSlots,
+            extraSkills);
     }
 
     /// <summary>A one-second tone; the scripted recognizers ignore the audio, only its hash matters.</summary>

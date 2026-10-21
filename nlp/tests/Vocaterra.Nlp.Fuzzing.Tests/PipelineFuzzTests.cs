@@ -145,7 +145,7 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
         var prompt = Harness.Prompt(c.PromptId);
         var services = Harness.NewServices(c.Transcript, prompt.Mode, c.Phonemes, c.Embeddings);
         var options = new PipelineOptions { PronunciationMode = c.PronunciationMode, RunRecognizersConcurrently = c.Concurrent };
-        var context = ConversationContext.Create(c.WorldSeed, c.AgentId, new AgentState(c.AgentId, c.StateId, c.Counter), new StoredTimestamp(PipelineHarness.FixedNow), c.Learner, c.Repeats);
+        var context = ConversationContext.Create(c.WorldSeed, c.AgentId, new AgentState(c.AgentId, c.StateId, c.Counter), new StoredTimestamp(PipelineHarness.FixedNow), c.Learner, c.Repeats, c.HostSlots, c.ExtraSkills);
         return (new UtterancePipeline(services, options), prompt, context, PipelineHarness.Clip());
     }
 
@@ -158,6 +158,17 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
         if (replay.ClipHash != clip.ClipHash || replay.PromptId != prompt.PromptId || replay.HostStateHash != context.HostStateHash || !replay.Verdict.Equals(result.Verdict))
         {
             throw Determinism.Fail(Oracle, "The replay record does not carry the clip hash, prompt id, host state hash and verdict of the run.", c);
+        }
+
+        // Host inputs are per utterance: they change the hash, and the next context starts without them.
+        if (context.HostSlots is not null || context.ExtraSkills is not null)
+        {
+            var bare = ConversationContext.Create(context.WorldSeed, context.AgentId, context.AgentState, context.Now, context.Learner, context.RepeatCountsByTag);
+            var next = context.Next(result, context.Now);
+            if (bare.HostStateHash == context.HostStateHash || next.HostSlots is not null || next.ExtraSkills is not null)
+            {
+                throw Determinism.Fail(Oracle, "Host slots and extra skills must change the host state hash and must not carry over to the next context.", c);
+            }
         }
 
         var effectIds = result.Effects.Select(static e => e.EffectId).ToArray();
@@ -203,10 +214,21 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
             throw Determinism.Fail(Oracle, $"An agent step was taken for '{context.AgentId}', which the bundle has no machine for.", c);
         }
 
-        var skills = verdict.Intent.IsUnknown ? Array.Empty<string>() : [$"intent.{verdict.Intent.Value}"];
+        // One update with the pipeline's own skill and the host-named skills together: a skill named twice, or an error family named as a skill,
+        // is stepped once.
+        var skills = (verdict.Intent.IsUnknown ? Array.Empty<string>() : [$"intent.{verdict.Intent.Value}"]).Concat(c.ExtraSkills ?? []).ToArray();
         if (!decision.Learner.Equals(context.Learner.Update(verdict, skills)))
         {
-            throw Determinism.Fail(Oracle, "The learner model is not the context's model updated with the verdict.", c);
+            throw Determinism.Fail(Oracle, "The learner model is not the context's model updated with the verdict and the host-named skills.", c);
+        }
+
+        foreach (var skill in c.ExtraSkills ?? [])
+        {
+            var before = context.Learner.Find(skill)?.Attempts ?? 0;
+            if ((decision.Learner.Find(skill)?.Attempts ?? 0) != before + 1)
+            {
+                throw Determinism.Fail(Oracle, $"The host-named skill '{skill}' was not stepped exactly once.", c);
+            }
         }
 
         if (decision.Rating != RatingMapper.FromVerdict(verdict, pipeline.Options.RatingThresholds))
