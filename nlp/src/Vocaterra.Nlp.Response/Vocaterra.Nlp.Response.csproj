@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../Vocaterra.Nlp.Asr/Vocaterra.Nlp.Asr.csproj" />
     <ProjectReference Include="../Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
     <ProjectReference Include="../Vocaterra.Nlp.Language/Vocaterra.Nlp.Language.csproj" />
     <ProjectReference Include="../Vocaterra.Nlp.Phonology/Vocaterra.Nlp.Phonology.csproj" />
