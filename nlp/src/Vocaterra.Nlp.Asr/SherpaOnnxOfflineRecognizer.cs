@@ -105,7 +105,6 @@ public sealed class SherpaOnnxOfflineRecognizer : IWordRecognizer, IDisposable
         string text;
         string[] tokens;
         float[] timestamps;
-        float[] durations;
         lock (_gate)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
@@ -116,11 +115,15 @@ public sealed class SherpaOnnxOfflineRecognizer : IWordRecognizer, IDisposable
             text = result.Text ?? string.Empty;
             tokens = result.Tokens ?? [];
             timestamps = result.Timestamps ?? [];
-            durations = result.Durations ?? [];
+
+            // Result.Durations is deliberately not read: for the Parakeet TDT greedy path the sherpa-onnx 1.13.8 result
+            // returns a buffer that is not float durations (it holds pointer-like bit patterns, different on every decode),
+            // so word ends came out as ~1e37 seconds and differed between identical decodes. Word ends are the next word's
+            // start (the clip end for the last word), which is deterministic.
         }
 
         var transcript = text.Trim();
-        var words = SherpaWordAssembler.Assemble(tokens, timestamps, durations, clip.DurationSeconds);
+        var words = SherpaWordAssembler.Assemble(tokens, timestamps, [], clip.DurationSeconds);
         return new AsrResult(transcript, [new AsrHypothesis(transcript, 1.0)], words, 1.0, ModelHash, RecognitionMode.Open);
     }
 
