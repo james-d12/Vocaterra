@@ -64,7 +64,7 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 
 Where things stand, for the next orchestrator session:
 - **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4, P4b, P6, G6, P6b, G7, P5. Core pin `53c52b7` (M26a to M26e). Tests on `main`: 566 (8 need the speech models). Licence MIT (D-game-2).
-- **Next:** P7 (caves, ores, lighting; Haiku 5.5) or P8 (the guide speaks; Kokoro fetched); earlier queue: P5, P6b (crafting; owner 2026-10-21: crafting before caves, with stations), then P5 (spoken input; Sonnet 5.5) and P7; previously P5 or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
+- **Next:** P7 (caves, ores, lighting; Haiku 5.5), then P8 (the guide speaks; owner's order); earlier queue: P5, P6b (crafting; owner 2026-10-21: crafting before caves, with stations), then P5 (spoken input; Sonnet 5.5) and P7; previously P5 or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
   the other. Then P7, P9; P8 waits on CR-006; P10 optional; G3 and G4 after P9.
 - **Core requests:** the core accepted CR-002 to CR-008 and CR-010 to CR-013 into its M26a to M26f (2026-10-21); CR-014 (P4) and CR-015 (P4b) are `open`.
   When rows turn `done`, bump the submodule; CR-012's fix (M26a) lets the guide drop `EvaluateCountingThisUtterance`, which is a
@@ -94,7 +94,7 @@ Where things stand, for the next orchestrator session:
 | P5 | Spoken input: push-to-talk, microphone (MonoGame `Microphone`, PortAudioSharp2 fallback), Vosk small, evaluation on a worker thread | done (merged 2026-10-21, `96d4907`) | Sonnet 5.5 | P3 |
 | P6 | Mining, building, inventory (durability, drops, hotbar placement, 40 slots with a 10-slot hotbar; the player starts with `hacha` and `pico`) and the **wider world of things** (section 4.3: new surface tiles and items, each in `game/nouns.json` with the colour rule) | done (merged 2026-10-21, `57244dd`) | Haiku 5.5 | P1, P2, P4b |
 | P6b | **Crafting and the guide's crafting answers** (owner, 2026-10-21; section 4.3): recipes in `game/recipes.json`, stations (`mesa`, `horno`), crafting panel; the guide answers "¿cómo hago una mesa?" (recipe, station, what is missing) and "¿dónde hay arena?" (where a material comes from and the nearest source) | done (merged 2026-10-21) | Sonnet 5.5 (design), Haiku 5.5 (content) | P6, G6 |
-| P7 | Caves (worms, cellular automata), ores, full forest vegetation, flood-fill lighting; ores `carbón`, `cobre`, `hierro`, `oro` join the catalogue and the recipes (`antorcha` from `madera` and `carbón`, metal tools at the `horno`) | planned | Haiku 5.5 | P1, P6, P6b |
+| P7 | Caves (worms, cellular automata), ores, full forest vegetation, flood-fill lighting; ores `carbón`, `cobre`, `hierro`, `oro` join the catalogue and the recipes (`antorcha` from `madera` and `carbón`, metal tools at the `horno`) | in progress (2026-10-21) | Haiku 5.5 | P1, P6, P6b |
 | P8 | The guide speaks (Kokoro through the core) | planned (CR-006 delivered in core M26e; taken in by G6) | Haiku 5.5 | P5, CR-006 |
 | P9 | Save and load, playtest build and checklist | planned | Haiku 5.5 | P4, P6, P7 |
 | P10 | Godot spike (optional): the same seed and guide turn in Godot 4 .NET; a note on the cost of the move | planned (optional) | Sonnet 5.5 | P4 |
