@@ -1,0 +1,18 @@
+{
+  "answerSetId": "introductions",
+  "answers": [
+    {
+      "answerId": "my-name-is",
+      "canonical": "me llamo",
+      "aliases": [
+        "soy",
+        "mi nombre es"
+      ],
+      "dialects": [
+        "es-ES",
+        "es-MX",
+        "es-AR"
+      ]
+    }
+  ]
+}

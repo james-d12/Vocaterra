@@ -32,6 +32,38 @@
         { "lineId": "cast_spell_reply.3", "text": "¡Ten cuidado, mago! No quiero problemas con {spell:article(def)}." }
       ]
     },
+    "confirm_prompt": {
+      "poolId": "confirm_prompt",
+      "variants": [
+        { "lineId": "confirm_prompt.1", "text": "¿Quieres comprar {item:article(def)}? Cuesta diez." },
+        { "lineId": "confirm_prompt.2", "text": "Cuesta diez. ¿Vale?" },
+        { "lineId": "confirm_prompt.3", "text": "{item:article(def):cap} cuesta diez. ¿Lo compras?" }
+      ]
+    },
+    "confirm_reply": {
+      "poolId": "confirm_reply",
+      "variants": [
+        { "lineId": "confirm_reply.1", "text": "¡Muy bien! Vale." },
+        { "lineId": "confirm_reply.2", "text": "¡Muy bien, amigo!" },
+        { "lineId": "confirm_reply.3", "text": "¡Vale, claro! Gracias." }
+      ]
+    },
+    "deny_reply": {
+      "poolId": "deny_reply",
+      "variants": [
+        { "lineId": "deny_reply.1", "text": "No hay problema. ¿Quieres otra cosa?" },
+        { "lineId": "deny_reply.2", "text": "Vale. ¿Quieres otra cosa?" },
+        { "lineId": "deny_reply.3", "text": "Está bien. ¡Hasta otra vez!" }
+      ]
+    },
+    "farewell_reply": {
+      "poolId": "farewell_reply",
+      "variants": [
+        { "lineId": "farewell_reply.1", "text": "¡Adiós, amigo! Hasta luego." },
+        { "lineId": "farewell_reply.2", "text": "Hasta luego. ¡Buen día!" },
+        { "lineId": "farewell_reply.3", "text": "¡Nos vemos, amigo!" }
+      ]
+    },
     "feedback.explicit_correction": {
       "poolId": "feedback.explicit_correction",
       "variants": [
@@ -97,6 +129,14 @@
         { "lineId": "greet_reply.3", "text": "Buenos días. ¿En qué puedo ayudarte?" }
       ]
     },
+    "introduce_reply": {
+      "poolId": "introduce_reply",
+      "variants": [
+        { "lineId": "introduce_reply.1", "text": "¡Hola, {name:cap}! Bienvenido a la tienda." },
+        { "lineId": "introduce_reply.2", "text": "Hola, {name:cap}. ¿Qué necesitas hoy?" },
+        { "lineId": "introduce_reply.3", "text": "Mucho gusto, {name:cap}. ¿En qué puedo ayudarte?" }
+      ]
+    },
     "not_understood": {
       "poolId": "not_understood",
       "variants": [
@@ -119,6 +159,14 @@
         { "lineId": "sell_item_reply.1", "text": "Veo {item:article(indef)}. Te doy un buen precio." },
         { "lineId": "sell_item_reply.2", "text": "Mmm, {item:article(def)}... Te doy diez monedas." },
         { "lineId": "sell_item_reply.3", "text": "Claro, compro {item:article(def)}. Aquí tienes tu dinero." }
+      ]
+    },
+    "thank_reply": {
+      "poolId": "thank_reply",
+      "variants": [
+        { "lineId": "thank_reply.1", "text": "¡Con gusto, amigo!" },
+        { "lineId": "thank_reply.2", "text": "¡Gracias, amigo! ¡Buen día!" },
+        { "lineId": "thank_reply.3", "text": "No hay de qué. ¡Hasta luego!" }
       ]
     },
     "trade_done": {

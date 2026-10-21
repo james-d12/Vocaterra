@@ -33,6 +33,33 @@ public sealed class HostSmokeTests
     }
 
     [Fact]
+    public void ThanksIsRecognisedAsTheGenericThankIntentThroughTheHost()
+    {
+        var session = new ConversationSession(GameContent.Bundle);
+
+        var result = session.Evaluate("gracias", "thank-open", Now);
+
+        Assert.Equal("thank", result.Verdict.Intent.Value);
+        Assert.True(result.Verdict.Communicated);
+        Assert.Empty(result.Verdict.Errors);
+    }
+
+    [Fact]
+    public void ASaleIsConfirmedOnlyAfterTheLearnerSaysYes()
+    {
+        // idle -> trading on the first purchase, trading -> confirming on the second (the blacksmith asks), confirming -> done on "sí".
+        var session = new ConversationSession(GameContent.Bundle);
+        session.Evaluate("quiero comprar una espada", "buy-item-open", Now);
+
+        var asked = session.Evaluate("quiero comprar una espada", "buy-item-open", Now.AddSeconds(10));
+        Assert.Equal("confirming", asked.Decision.Agent?.Next.StateId);
+
+        var confirmed = session.Evaluate("sí", "confirm-open", Now.AddSeconds(20));
+        Assert.Equal("confirm", confirmed.Verdict.Intent.Value);
+        Assert.Equal("done", confirmed.Decision.Agent?.Next.StateId);
+    }
+
+    [Fact]
     public void TheBundleHashInTheManifestIsTheHashTheLoaderComputes()
     {
         var manifestPath = Path.Combine(GameContent.BundleDirectory(), ContentPaths.Manifest);

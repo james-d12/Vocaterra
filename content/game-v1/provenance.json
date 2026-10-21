@@ -2,6 +2,10 @@
   "items": [
     { "path": "ATTRIBUTION.md", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "answer-sets/greetings.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "answer-sets/farewells.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "answer-sets/introductions.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "answer-sets/thanks.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "answer-sets/yes-no.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "answer-sets/items-basic.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "answer-sets/spells-basic.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "cefr/a1.txt", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
