@@ -3,8 +3,12 @@ bin/
 obj/
 TestResults/
 
-# Packages from the core's local feed are restored, never committed; the core's artifacts/ folder is not part of this repository
+# Packages from the core's local feed are restored, never committed. The core is the submodule external/Vocaterra.NLP, whose own
+# .gitignore ignores its artifacts/ (the local feed) and build output; this entry covers an artifacts/ folder at this repository's root.
 artifacts/
+
+# The core's content tool, installed from the feed by scripts/content.sh (never committed)
+.tools/
 
 # IDE / user-specific
 .vs/
