@@ -6,7 +6,7 @@ editing its status; the plan (`IMPLEMENTATION_PLAN.md`) and ADRs follow.
 
 | # | Decision | Status |
 | --- | --- | --- |
-| D1 | Workflow token scope (activate CI) | open |
+| D1 | Workflow token scope (activate CI) | deferred (owner, 2026-10-21): CI is not a requirement now; keep the entry, do not raise it again until the owner reopens it |
 | D2 | espeak-ng GPL code inside sherpa-onnx (ADR 0007) | open, path found |
 | D3 | A LICENSE file for the repository | open |
 | D4 | OpenSubtitles terms behind the frequency list | open |
@@ -21,6 +21,7 @@ editing its status; the plan (`IMPLEMENTATION_PLAN.md`) and ADRs follow.
 | D13 | Pronunciation ambition | open, after the speech check |
 
 ## D1. Workflow token scope
+**Status (2026-10-21):** deferred by the owner. CI is not a requirement at the moment; the workflow stays parked and the orchestrator does not raise this item until the owner reopens it.
 The GitHub token lacks the `workflow` scope, so nothing under `.github/workflows/` can be pushed.
 The full CI (build and test on three platforms, golden, license scan, model-backed tests, fuzz, weekly
 fuzz soak) is parked in `.github/workflows-pending/`. **To resolve:** `gh auth refresh -h github.com

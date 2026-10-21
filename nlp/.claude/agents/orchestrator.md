@@ -97,7 +97,7 @@ milestone's area; anything left undone and why.
   offer-items-open --content content/v1` must keep yielding exactly `conj.person` and `noun.number`.
 
 ## Open decisions (owner's; keep listed in plan §5b until resolved)
-Workflow token scope; espeak-ng GPL code inside the sherpa-onnx native library (ADR 0007); a LICENSE
+Workflow token scope (deferred by the owner on 2026-10-21; do not raise it); espeak-ng GPL code inside the sherpa-onnx native library (ADR 0007); a LICENSE
 file for the repo; the terms of the OpenSubtitles corpus behind the frequency list; online versus
 offline and determinism strictness (see `docs/research/SCALING_APPROACHES.md` once it exists).
 
