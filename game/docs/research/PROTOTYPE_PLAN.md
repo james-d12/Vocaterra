@@ -1,3 +1,5 @@
+> **Historical (R1, the 2D era).** This document describes the 2D Terraria-inspired slice (P1 to P7), retired by the prototype brief (D-game-8, 2026-10-21). The current design is `docs/PROTOTYPE_BRIEF.md`; its plan is `docs/SCENARIO_PLAN.md`.
+
 # Prototype plan: the Terraria-inspired slice (proposal from research milestone R1)
 
 This is the short form of [PROTOTYPE_RESEARCH.md](PROTOTYPE_RESEARCH.md), written so the orchestrator can paste it into

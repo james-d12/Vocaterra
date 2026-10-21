@@ -3,7 +3,7 @@
 Written 2026-10-21 from the owner's Prototype Design Brief v1.2 (`Vocaterra_Prototype_Design_Brief.docx`, this folder) and a review of the
 codebase as it stands after P7 and D-game-7 (one repository, 3,585 tests, bundle `game-v1` at `fa8fb030…`). It is the orchestrator's entry point
 for the next phase: **run S0 first** (it folds this document into `IMPLEMENTATION_PLAN.md` section 4 and records the decisions), then launch
-S1 and S5 in parallel. Until S0 is done this file is the plan of record for the scenario; the milestone and decision ids below are reserved.
+S1 and S5 in parallel. S0 is done (2026-10-21): the plan of record is `game/IMPLEMENTATION_PLAN.md` section 4, with this file as the per-milestone design; the milestone and decision ids below are reserved.
 
 ## 1. Why
 

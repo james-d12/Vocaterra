@@ -1,13 +1,14 @@
-> Moved from the language core repository (Vocaterra.NLP, where it was `SPECIFICATION.md`) on 2026-10-20; the text is unchanged and the core keeps no copy.
+# Specification
 
-# Overview
+Vocaterra is a Minecraft-inspired voxel survival slice for learning practical spoken Spanish. The player explores a short, handcrafted route
+from a forest camp to a village and a river, gathers wood and berries, crafts a torch at a workbench, and asks for supplies and directions in
+Spanish from a shopkeeper and a villager, in the first person and in 10 to 15 minutes. Language is a useful tool in the objective, not a
+quiz on every action: nothing is gated behind speech or language, and every failure has a recovery path. The prototype question is whether a
+short survival-and-exploration objective can make beginners meaningfully practise spoken Spanish while still feeling like playing a game.
 
-A terraria esque game, where one of the main pillars of the game is learning spanish. However the game is not focused just on language learning, so it sits inbetween something like duo lingo, which is the gamification of learning langauges, and between just playing a regular game with spanish voice over / subtitles. 
+- The design: [docs/PROTOTYPE_BRIEF.md](PROTOTYPE_BRIEF.md) (the owner's Prototype Design Brief v1.2, as Markdown; the docx stays as the source).
+- The plan: [docs/SCENARIO_PLAN.md](SCENARIO_PLAN.md) (the S series, one milestone per row).
+- The decision: [docs/DECISIONS.md](DECISIONS.md), D-game-8 (the brief adopted).
 
-The area this game tries to tackel is a genuinly fun game that focuses on terraria like exploring, character progression and looting, but also has elements of tracking language learning progress, and allowing speech / dynamic interaction, in spanish.
-
-## Core Systems
-
-One of the core systems needed in this game is the voice recognition, decision making, and feedback system. 
-
-This will need to built from a few main parts, and potentially use local LLM models to provide dynmaic feedback.
+The earlier Terraria-inspired design (the 2D slice and its design document, `Vocaterra_Design_Doc.odt`) is retired. The document was deleted
+from the repository; its history is in git, and the 2D slice's research is kept under `docs/research/` with a note at the top of each file.

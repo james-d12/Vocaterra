@@ -1,3 +1,5 @@
+> **Historical (R1, the 2D era).** This document describes the 2D Terraria-inspired slice (P1 to P7), retired by the prototype brief (D-game-8, 2026-10-21). The current design is `docs/PROTOTYPE_BRIEF.md`; its plan is `docs/SCENARIO_PLAN.md`.
+
 # Prototype research: a Terraria-inspired slice on the language core (R1)
 
 Research milestone R1, 2026-10-21. The question: how to build a small prototype that proves (1) the language core works inside a real game

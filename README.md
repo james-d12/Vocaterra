@@ -5,11 +5,15 @@ A Spanish-learning game and the language core that grades what the player says. 
 | Folder | What it is | Licence |
 | --- | --- | --- |
 | [`nlp/`](nlp/README.md) | The language core, the `Vocaterra.Nlp.*` libraries: audio, speech recognition, phonology, pronunciation, analysis, evaluation, decision, response, content tooling. Engine-agnostic, deterministic, fuzzed. | Apache-2.0 (`nlp/LICENSE`, `nlp/NOTICE`) |
-| [`game/`](game/README.md) | The game: a Terraria-inspired MonoGame prototype where a guide talks to the player in Spanish, plus the engine-free simulation, the game layer and a console host. | MIT (`game/LICENSE`) |
+| [`game/`](game/README.md) | The game: a Minecraft-inspired 3D voxel prototype, played in the first person, where the player talks to villagers in Spanish to get supplies and directions (MonoGame), plus the engine-free simulation, the game layer and a console host. | MIT (`game/LICENSE`) |
 
 The game references the core's projects directly. What the core owns and what the game owns is fixed in
 [`nlp/docs/adr/0009-core-and-game-boundary.md`](nlp/docs/adr/0009-core-and-game-boundary.md); the calls a host makes are in
 [`nlp/docs/API.md`](nlp/docs/API.md). Until 2026-10-21 the two were separate repositories; the core's history is under `nlp/`.
+
+The game's prototype is the Minecraft-inspired first-person voxel slice in [`game/docs/PROTOTYPE_BRIEF.md`](game/docs/PROTOTYPE_BRIEF.md)
+(the owner's Prototype Design Brief, v1.2), planned milestone by milestone in [`game/docs/SCENARIO_PLAN.md`](game/docs/SCENARIO_PLAN.md). The
+S series that builds it lands on the branch `feature/prototype`, not on `main`.
 
 ## Layout
 
