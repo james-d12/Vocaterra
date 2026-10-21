@@ -109,6 +109,12 @@ to do with each:
 8. *Licences*: the game is MIT, the core Apache-2.0 (core D3): the merged repository needs one decision (or per-directory licences).
 9. *CI*: still deferred (D-game-3, core D1).
 
+**Next (2026-10-21, evening): the Prototype Design Brief.** The owner's brief (`docs/Vocaterra_Prototype_Design_Brief.docx`, v1.2) replaces the
+Terraria design: a 3D first-person voxel slice on MonoGame (forest, path, village stall, river; two or three NPCs; five phrases; speech UX and
+learning checks). The plan for it is `docs/SCENARIO_PLAN.md` (milestones S0 to S12, decisions D-game-8 to D-game-12, D-game-6 amended). The
+orchestrator runs **S0** first: it folds that document into this section, records the decisions, and marks P8, P9, G3 and G4 superseded.
+Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario.
+
 | ID | Milestone | Status | Model | Depends on |
 | --- | --- | --- | --- | --- |
 | G0 | Repository setup: submodule at `db39999`, local feed, content tool, role file, requests file, gate, this plan | done (merged 2026-10-21) | Haiku 5.5 | core M19e |

@@ -24,3 +24,8 @@ Thumbs.db
 .claude/worktrees/
 .claude/gate-logs/
 .claude/settings.local.json
+
+# Noun Town research (D-game-11, owner 2026-10-21): the raw Steam review JSON is third-party text and is never committed;
+# the summaries and the fetch scripts are. Both the current and the planned folder are covered.
+scripts/noun_town/*.json
+game/docs/research/noun-town/*.json
