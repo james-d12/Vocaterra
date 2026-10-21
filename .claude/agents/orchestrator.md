@@ -28,7 +28,7 @@ is a change to the boundary and updates that record.
 ## Start of a session
 1. `git status`, `git log --oneline -8`, `git worktree list` (remove leftovers with `git worktree remove --force <path>` and
    `git branch -D <branch>`), `df -h /home` (each build is several GB).
-2. Read `game/IMPLEMENTATION_PLAN.md` section 4 and the last entries of section 5; `nlp/IMPLEMENTATION_PLAN.md` §5 statuses and the
+2. Read `game/IMPLEMENTATION_PLAN.md` section 4 (with `game/docs/SCENARIO_PLAN.md` and `game/docs/PROTOTYPE_BRIEF.md` for the S series) and the last entries of section 5; `nlp/IMPLEMENTATION_PLAN.md` §5 statuses and the
    last entries of §5b; both `docs/DECISIONS.md`.
 3. If a milestone is `in progress` with no live agent, inspect its worktree before relaunching.
 4. Tell the owner in a few lines where things stand and what is next.
@@ -43,12 +43,13 @@ is a change to the boundary and updates that record.
 
 ## Per-milestone loop
 1. **Brief.** Use the template below. Point at files to read rather than retyping them. State the gate and the report format. Name the
-   commit message prefix (`M<nn>:` for the core, `G<nn>:` or `P<nn>:` for the game).
+   commit message prefix (`M<nn>:` for the core, `G<nn>:`, `P<nn>:` or `S<nn>:` for the game).
 2. **Launch** with `subagent_type: general-purpose`, `isolation: worktree`, the chosen model.
 3. **Verify the report cheaply** before merging: the branch exists and is clean, `git diff --stat <merge-base>..<branch>` matches the
    report, no unexplained deletions, no files under `.github/workflows/`, no edits to either plan or decisions file, nothing under
    `bin/`, `obj/` or `nlp/artifacts/` staged, and a game milestone has not edited `nlp/` (or a core milestone `game/`) unless its brief said so.
-4. **Gate:** `scripts/merge-gate.sh "<label>:<branch>"` from the main checkout. It merges `--no-ff`, builds `Vocaterra.sln` with warnings
+4. **Gate:** `scripts/merge-gate.sh "<label>:<branch>"` from the main checkout (the S series: `GATE_TARGET=feature/prototype` from the
+   `feature/prototype` checkout, which is then what gets pushed). It merges `--no-ff`, builds `Vocaterra.sln` with warnings
    as errors, runs the whole test suite (core and game, with models when the shared folder exists), checks format, validates the game
    bundle and runs the core's offline licence scan, keeping every log under `.claude/gate-logs/`. It exits non-zero on any failure. An
    intermittent failure is investigated from the saved log, never waved through.

@@ -2,7 +2,7 @@
 
 This is the plan for the game, the folder `game/` of the repository. The language core is the sibling folder `nlp/` with its own plan
 (`nlp/IMPLEMENTATION_PLAN.md`) and decisions; this file never plans core internals. Since 2026-10-21 (D-game-7) one orchestrator runs both. Owner decisions are in `docs/DECISIONS.md`. Status values: `planned`, `in progress`,
-`in review` (on its branch, not yet merged), `done` (merged to main and gated), `blocked` (names the blocker).
+`in review` (on its branch, not yet merged), `done` (merged to main and gated; for the S series, merged to `feature/prototype` and gated), `blocked` (names the blocker).
 
 ## 1. Decisions taken
 
@@ -14,6 +14,9 @@ This is the plan for the game, the folder `game/` of the repository. The languag
 - **Game words live here**, not in the core. The core knows effect kinds and host event names only as opaque strings.
 - **Content tool:** the core's ContentBuilder (`nlp/tools/Vocaterra.Nlp.ContentBuilder`), run from source by the root `scripts/content.sh`.
 - **Model policy:** Haiku 5.5 by default, Sonnet 5.5 for design-heavy milestones, Opus only on the owner's request.
+- **The prototype brief** (D-game-8, owner, 2026-10-21): a 3D first-person voxel slice on MonoGame (forest, path, village stall, river; three
+  NPCs; five target phrases), speech rules D-game-9, learning measurement D-game-10, full colour (D-game-6 amended), the Spanish reviewer
+  deferred with a provisional workaround (D-game-12). The S series is built on the integration branch `feature/prototype`.
 
 ## 2. Repository layout
 
@@ -39,6 +42,10 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 ../.github/workflows-pending/    the parked CI job (D-game-3, deferred)
 ```
 
+The S series adds `src/Vocaterra.Simulation/Voxel/` (S1; the 2D simulation, generator and light map are removed at S4),
+`content/game-v1/game/scene.json` (the hand-authored route), `content/PHRASES.md` (the phrase sheet, S5), `content/game-v1/speech/` (pre-rendered
+lines, S9), `docs/PROTOTYPE_BRIEF.md` and `docs/SCENARIO_PLAN.md` (the brief and its plan) and `docs/research/noun-town/` (D-game-11).
+
 ## 3. Rules every agent follows
 
 1. **The core as it is.** A game milestone edits `game/` only: no copied core source, no edit under `nlp/`. A missing call or a bug in
@@ -60,8 +67,11 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
    bundle. The host maps the core's host events and effect kinds to game state; the core does not learn game words.
 6. **Build hygiene.** `dotnet build Vocaterra.sln -warnaserror` and `dotnet format Vocaterra.sln --verify-no-changes` (from the root) stay
    clean. Public types have `///` summaries. No new package outside the root `Directory.Packages.props`.
-7. **Branches and commits.** One branch per milestone (`G<nn>-<name>`, `P<nn>-<name>` or the orchestrator's name), commit prefix `G<nn>: <title>` or `P<nn>: <title>`, trailers
-   as the orchestrator's brief says. Agents do not push.
+7. **Branches and commits.** One branch per milestone (`G<nn>-<name>`, `P<nn>-<name>`, `S<nn>-<name>` or the orchestrator's name), commit
+   prefix `G<nn>: <title>`, `P<nn>: <title>` or `S<nn>: <title>`, trailers as the orchestrator's brief says. Agents do not push.
+8. **Nothing is gated behind language or voice** (D-game-8). Every failure (a wrong phrase, an uncertain recognition, a dead microphone, a
+   timeout) has a recovery path: retry with help, a choice, typing, "no sé", or simply walking on. Objectives complete by host events and the
+   inventory, never by a language score.
 
 ## 4. Milestones
 
@@ -109,7 +119,11 @@ to do with each:
 8. *Licences*: the game is MIT, the core Apache-2.0 (core D3): the merged repository needs one decision (or per-directory licences).
 9. *CI*: still deferred (D-game-3, core D1).
 
-**Next (2026-10-21, evening): the Prototype Design Brief.** The owner's brief (`docs/Vocaterra_Prototype_Design_Brief.docx`, v1.2) replaces the
+**Now (2026-10-21, night): the S series is running** on `feature/prototype` (owner: through S12 overnight, push after each merge; the Opus
+review of the phrase sheet and the content hash step approved; the owner's own steps, listening to the S9 WAVs and following the S12
+checklist, wait for the owner). Design per milestone: section 4.4 and `docs/SCENARIO_PLAN.md`.
+
+**Previously (2026-10-21, evening): the Prototype Design Brief.** The owner's brief (`docs/Vocaterra_Prototype_Design_Brief.docx`, v1.2) replaces the
 Terraria design: a 3D first-person voxel slice on MonoGame (forest, path, village stall, river; two or three NPCs; five phrases; speech UX and
 learning checks). The plan for it is `docs/SCENARIO_PLAN.md` (milestones S0 to S12, decisions D-game-8 to D-game-12, D-game-6 amended). The
 orchestrator runs **S0** first: it folds that document into this section, records the decisions, and marks P8, P9, G3 and G4 superseded.
@@ -129,16 +143,30 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | P6 | Mining, building, inventory (durability, drops, hotbar placement, 40 slots with a 10-slot hotbar; the player starts with `hacha` and `pico`) and the **wider world of things** (section 4.3: new surface tiles and items, each in `game/nouns.json` with the colour rule) | done (merged 2026-10-21, `57244dd`) | Haiku 5.5 | P1, P2, P4b |
 | P6b | **Crafting and the guide's crafting answers** (owner, 2026-10-21; section 4.3): recipes in `game/recipes.json`, stations (`mesa`, `horno`), crafting panel; the guide answers "¿cómo hago una mesa?" (recipe, station, what is missing) and "¿dónde hay arena?" (where a material comes from and the nearest source) | done (merged 2026-10-21) | Sonnet 5.5 (design), Haiku 5.5 (content) | P6, G6 |
 | P7 | Caves (worms, cellular automata), ores, full forest vegetation, flood-fill lighting; ores `carbón`, `cobre`, `hierro`, `oro` join the catalogue and the recipes (`antorcha` from `madera` and `carbón`, metal tools at the `horno`) | done (merged 2026-10-21) | Haiku 5.5 | P1, P6, P6b |
-| P8 | The guide speaks (Kokoro through the core) | planned; deferred by the owner until the repositories are merged (D-game-7) | Haiku 5.5 | P5, CR-006 |
-| P9 | Save and load, playtest build and checklist | planned | Haiku 5.5 | P4, P6, P7 |
-| P10 | Godot spike (optional): the same seed and guide turn in Godot 4 .NET; a note on the cost of the move | planned (optional) | Sonnet 5.5 | P4 |
-| G3 | Innkeeper scene (section 4.1) | planned, after P9 | Sonnet 5.5 for the scene design, Haiku 5.5 for the content checklist | G2, P9 |
-| G4 | Quest-giver scene (section 4.2) | planned, after G3 | Haiku 5.5 | G3 |
+| P8 | The guide speaks (Kokoro through the core) | superseded by S9 (2026-10-21, D-game-8) | Haiku 5.5 | P5, CR-006 |
+| P9 | Save and load, playtest build and checklist | superseded by S10 and S12 (2026-10-21, D-game-8) | Haiku 5.5 | P4, P6, P7 |
+| P10 | Godot spike (optional): the same seed and guide turn in Godot 4 .NET; a note on the cost of the move | planned (optional, after the S series) | Sonnet 5.5 | P4 |
+| G3 | Innkeeper scene (section 4.1) | superseded by S5 and S6 (2026-10-21, D-game-8) | Sonnet 5.5 for the scene design, Haiku 5.5 for the content checklist | G2, P9 |
+| G4 | Quest-giver scene (section 4.2) | superseded by S5 and S6 (2026-10-21, D-game-8) | Haiku 5.5 | G3 |
 | G6 | Core bump to `53c52b7` (M26a to M26e) and adoption: drop the CR-012 double evaluation, the CR-013 `esta` lexicon entry if no longer needed, read `nouns.json` with `TryReadHostFile` (CR-007), word lists from `PipelineResult.Words` (CR-002), the guide's world line through host slots (CR-003), the named answer through `PipelineResult.Answer` where it fits (CR-004), `word.<lemma>` extra skills (CR-005) | done (merged 2026-10-21; core pin `53c52b7`) | Haiku 5.5 | P6 |
 | G7 | Build trim and licence: Linux-only native assets (owner, 2026-10-21; about 1.5 GB less per build), `LICENSE` (MIT, D-game-2) and README licence lines | done (merged 2026-10-21) | Haiku 5.5 | P6b |
 | R1 | Research: Terraria-inspired prototype (guide NPC by text and speech, mining, building, movement, forest biome, map and cave generation, language progress tracking, known nouns in colour and unknown in greyscale, inventory) on MonoGame; findings in `docs/research/` | done (merged 2026-10-21, `0e8d601`); proposals await the owner | Opus 5.5 (owner's request) | G0 |
+| S0 | Plan and docs for the prototype brief: D-game-8 to D-game-12, D-game-6 amended, this section, the brief as Markdown, READMEs, Noun Town research moved | in progress (orchestrator; docs part delegated) | Haiku 5.5 (docs) | `docs/SCENARIO_PLAN.md` |
+| S1 | 3D voxel simulation, headless (`Vocaterra.Simulation.Voxel`, `scene.json`, `PlayerBody3D`, `BlockRay`) | planned | Sonnet 5.5 | S0 |
+| S2 | First-person voxel front-end (mesher, renderer, camera, figures, beacon; 2D UI over the scene) | planned | Sonnet 5.5 | S1 |
+| S3 | The scenario world and the guide in 3D (`WorldFacts3D`, the route layout, new nouns) | planned | Haiku 5.5 | S2 |
+| S4 | Gather, craft, the camp objective; retire the 2D slice (tag `2d-slice-p7`) | planned | Haiku 5.5 | S3 |
+| S5 | Content: `content/PHRASES.md`, the stall and the villager, `request_item`, constrained prompts; Opus review pass (D-game-12) | planned | Sonnet 5.5 (design), Haiku 5.5 (content) | S0 |
+| S6 | NPC exchanges in the world (`NpcService`), filling the bottle, the transfer moment | planned | Sonnet 5.5 | S3, S5 |
+| S7 | Speech UX: mic check, cancel, watchdog, heard-vs-expected, buttons, choices, uncertainty rule, constrained prompts | planned | Sonnet 5.5 | S6 |
+| S8 | Phrase progress and fading scaffolds; the review extended to phrases | planned | Sonnet 5.5 | S6 |
+| S9 | NPCs speak: pre-rendered Kokoro lines in the bundle | planned | Haiku 5.5 | S5, S6 |
+| S10 | Save, sessions, resume (P9 re-scoped) | planned | Haiku 5.5 | S4, S8 |
+| S11 | Checks (pre, post, recall), the session log and the report script | planned | Haiku 5.5 | S8, S10 |
+| S12 | Playtest build and facilitator checklist | planned | Haiku 5.5 | S7, S9, S11 |
 
-Each milestone ends with the gate in section 6 and a line in section 5.
+Each milestone ends with the gate in section 6 and a line in section 5. The S series is gated with `GATE_TARGET=feature/prototype
+scripts/merge-gate.sh "S<nn>:<branch>"` from the `feature/prototype` checkout.
 
 Prototype order (owner, 2026-10-21): G1 and G2 run alongside P1 and P2 (P1 and P2 do not use the packages); then P3, the smallest vertical
 slice; then P4 to P9; P10 is optional. Details, demos and test approaches per milestone: `docs/research/PROTOTYPE_PLAN.md`; reasons and
@@ -224,6 +252,17 @@ The guide's crafting answers (P6b, Sonnet for the design, the content by Haiku):
 - Crafting panel: recipes the player can make here, with Spanish labels drawn by the colour rule (a grey icon until the word is coloured);
   seeing a label counts as "read", never as a spoken credit. Crafting itself is plain game logic in `Vocaterra.Simulation` (inventory
   arithmetic, deterministic), the recipe data in the bundle, the panel in `Vocaterra.MonoGame`.
+
+### 4.4 The prototype scenario (the S series; owner's brief v1.2, D-game-8)
+
+The design of record is `docs/SCENARIO_PLAN.md`: section 2 maps the brief to the codebase, section 4 gives each milestone's deliverables and
+demo, section 5 the determinism and boundary rules that carry over, section 6 the possible core gaps (M29a, M29b), section 7 verification.
+The brief itself is `docs/PROTOTYPE_BRIEF.md`. Order: S0, then S1 beside S5 (disjoint folders), then S2, S3, S4, S6, then S7 beside S8 only if
+their files stay disjoint (otherwise one after the other), S9, S10, S11, S12. P8, P9, G3 and G4 are superseded (section 4 table); the
+blacksmith and spell material leaves `content/game-v1` in S5 (the core's sample keeps it). The route: spawn in a forest clearing with the camp
+(a `mesa`, an unlit fire ring, the guide), a path south-east to the village (a stall with an awning, three houses, a signpost `Tienda / Río`),
+the riverbank (water, a bridge). The five phrases: "¿Qué necesitas?", "Quiero agua, por favor.", "¿Quieres pan?", "Sí, por favor." /
+"No, gracias.", "¿Dónde está el río?".
 
 ## 5. Findings log
 
@@ -517,6 +556,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   `libonnxruntime.so` still wins next to the executable (CR-021 holds through project references), the host and the content tool run
   from the root. The host now falls back to the bundle found above the executable when `content/game-v1` is not in the current directory.
 
+- **The prototype brief (2026-10-21, S0, orchestrator).** The owner's brief v1.2 replaces the Terraria design (D-game-8). Plan:
+  `docs/SCENARIO_PLAN.md`, folded into section 4 (table and 4.4); decisions D-game-8 to D-game-12 recorded, D-game-6 amended; core M29a and
+  M29b proposed, conditional; the merge gate takes `GATE_TARGET` so the S series lands on `feature/prototype`. The orchestrator's status
+  line saves the plan's usage (`~/.claude/usage-snapshot.json`): 25 % of the session window and 57 % of the week at the start of the run.
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.
@@ -533,6 +577,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
    toast; one `--say` gives trees a third coloured. From P5 on, typed input earns half credit: the P4/P4b demos add `--typed-credit full` (or use six spaced
    uses), and the spoken demo (models in `VOCATERRA_MODELS_DIR`) `--speak "¿dónde está el árbol?"` prints `spoken heard "dónde está el
    árbol"`, `ask_directions, entendido` and the "a ocho bloques" line with the arrow.
+   From S2 on (S series, `feature/prototype`), the 3D demos replace the 2D ones as they land: S2 `--seed 42 --walk-to <x,z> --look 90,0
+   --screenshot <png>` shows the clearing in first person with the guide's label; S3 `--say "¿dónde está el río?" --screenshot <png>` prints
+   `ask_directions, entendido` and the guide's line with the direction and distance, and the beacon stands on the river; S5 the host
+   `--transcript "quiero agua, por favor" --prompt stall-need` prints `request_item`, communicated, no errors; S6 the scripted route run prints
+   each turn and the objective's steps. Each later milestone's demo is in `docs/SCENARIO_PLAN.md` section 4.
 5. No violation of section 3: no copied core source, no edit under `nlp/` in a game milestone, nothing under `.github/workflows/`, no
    engine code outside `src/Vocaterra.MonoGame`.
 6. `git status` is clean after the commit: no `bin/`, `obj/` or `nlp/artifacts/` output is staged.

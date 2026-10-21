@@ -12,7 +12,12 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-4 | Whether `content/game-v1` tracks the core's sample bundle or diverges from it | decided: diverge fully (owner, 2026-10-21) | nothing |
 | D-game-5 | Art, font and sound sources while D-game-2 is open | decided: CC0 only (owner, 2026-10-21) | nothing |
 | D-game-7 | One repository for the game and the core | done (owner, 2026-10-21): `nlp/` and `game/` as sibling folders of `james-d12/Vocaterra`, project references, one orchestrator and one gate | nothing |
-| D-game-6 | When a noun counts as known (drawn in colour), and what typed input earns | decided (owner, 2026-10-21); amended the same day: spaced uses with growing gaps, the guide prompts due words | nothing |
+| D-game-6 | When a noun counts as known (drawn in colour), and what typed input earns | decided (owner, 2026-10-21); amended the same day: spaced uses with growing gaps, the guide prompts due words; amended again for the prototype brief: the world in full colour, the grey atlas behind `--greyscale` | nothing |
+| D-game-8 | The prototype brief adopted | decided (owner, 2026-10-21): 3D voxel, first person, MonoGame; the 2D slice parked (tag `2d-slice-p7`, removed at S4); Latin American neutral Spanish; nothing gated behind language or voice | nothing |
+| D-game-9 | Speech rules for the prototype | decided (owner, 2026-10-21, from the brief) | nothing |
+| D-game-10 | Learning measurement for the prototype | decided (owner, 2026-10-21, from the brief) | nothing |
+| D-game-11 | The Noun Town review data | decided (owner, 2026-10-21): raw review JSON never committed; summaries and fetch scripts in `docs/research/noun-town/` | nothing |
+| D-game-12 | A competent Spanish reviewer for the phrase sheet and recordings | deferred by the owner (2026-10-21) with an interim workaround (provisional rows); the owner approved the LLM review pass (Opus) on 2026-10-21 | nothing; the playtest's content-trust gate stays provisional |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -78,6 +83,48 @@ P5 (spoken input) lands; from P5 it earns half credit by default, as a setting.
   points at the nearest example in the world and asks what it is ("¿Qué es esto?"); a correct answer earns the spaced credit. Uses the
   player starts also count when they are due.
 - Typed input's half credit from P5 still applies per credited use.
+
+**Amended for the prototype brief (owner, 2026-10-21, D-game-8).** The world is drawn in full colour. The counts (heard, read, said, said
+correctly), the journal, the typed-half and spoken-full credit and the spaced gaps stay and now also serve phrases (the delayed-recall check).
+The grey atlas stays behind `--greyscale` for an A/B in the playtest. Colour never fades.
+
+## D-game-8: the prototype brief adopted (decided)
+
+The owner's Prototype Design Brief v1.2 (`docs/Vocaterra_Prototype_Design_Brief.docx`, as Markdown in `docs/PROTOTYPE_BRIEF.md`) defines the
+prototype's scope, scenario, guardrails and gates; `docs/SCENARIO_PLAN.md` is its plan (the S series). World: 3D voxel, first person, MonoGame
+(D-game-1 unchanged; engine code only in `src/Vocaterra.MonoGame`). The 2D Terraria slice is parked: its code is tagged `2d-slice-p7` and removed
+once the 3D world reaches gathering and crafting (S4). Spanish variety: Latin American neutral (core ADR 0005). Nothing in the game is gated
+behind language or voice; every failure has a recovery path. Work on the S series lands on the integration branch `feature/prototype`
+(owner, 2026-10-21), not on `main`.
+
+## D-game-9: speech rules (decided, from the brief)
+
+ASR is used for intent in a constrained phrase set. An uncertain recognition (not communicated, or a per-word confidence mean under the
+threshold) asks for a retry with help and is logged as a voice event, never as a language failure. A one-time mic check; visible recording and
+thinking states; cancel and a timeout; a persistent "oí / esperaba" line; replay and slower audio; typed and button fallback; "no sé" always
+available and never shamed.
+
+## D-game-10: learning measurement (decided, from the brief)
+
+A hand-authored phrase sheet (`content/PHRASES.md`) is the source of truth. Each phrase is tracked through shown-card, supported, unaided,
+choice-only (a recognition signal) and "no sé" uses. No automated CEFR placement or global score. A pre-check, a post-check and a later recall
+check. Telemetry is local only (JSONL in the session folder).
+
+## D-game-11: the Noun Town review data (decided)
+
+The raw Steam review JSON (about 450 KB of third-party text) is never committed: `.gitignore` covers `scripts/noun_town/*.json` and
+`docs/research/noun-town/*.json`. The two summaries and the fetch scripts are committed and live in `docs/research/noun-town/` (moved in S0).
+
+## D-game-12: the Spanish reviewer (deferred, interim workaround)
+
+The brief wants every phrase, translation, accepted response and recording checked by a competent Spanish speaker before testing; none is
+available yet. Interim workaround until a speaker checks the sheet: (1) the phrase set stays at the brief's five phrases plus the five service
+words (`hola`, `gracias`, `adiós`, `no sé`, `ayuda`), all textbook A1, so a later one-hour check closes the gap; (2) every row passes the core's
+lint `--strict` and `cefr-check` at A1 (automated and supplementary, never approval); (3) an LLM review pass at authoring time (Opus, approved
+by the owner on 2026-10-21, run by the orchestrator in S5) checks naturalness, Latin American neutral usage and the English meaning of every row
+and accepted variant, recorded in `PHRASES.md` as `reviewer: llm-opus (provisional)` with the date; (4) the owner listens to every
+pre-rendered WAV in S9 for cut-offs and text-audio mismatches; (5) the playtest checklist marks the content-trust gate provisional and testers
+are told the Spanish has not been checked by a native speaker. Rows marked provisional are re-checked when a speaker is found.
 
 ## D-game-7: one repository for the game and the core (done)
 

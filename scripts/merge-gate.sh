@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Orchestrator merge gate for the whole repository (the language core under nlp/ and the game under game/).
 # Usage: scripts/merge-gate.sh "<label>:<branch>" ["<label>:<branch>" ...]
-# Merges each branch into main with --no-ff (aborting that merge on conflict), then runs the gate on Vocaterra.sln: build with warnings as
+# Merges each branch into the target branch (main, or $GATE_TARGET when set, e.g. GATE_TARGET=feature/prototype) with --no-ff (aborting that merge on conflict), then runs the gate on Vocaterra.sln: build with warnings as
 # errors, the whole test suite (the core's unit, golden and fuzz suites and the game's; model-backed tests run when VOCATERRA_MODELS_DIR is
 # set), the format check, the game bundle validation and the core's offline licence scan. Every check's log is kept under .claude/gate-logs/
 # so that an intermittent failure can be identified afterwards. Exit status is 0 only when every merge succeeded and every check passed.
@@ -16,8 +16,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
 
 [ "$#" -ge 1 ] || { echo "usage: scripts/merge-gate.sh \"<label>:<branch>\" [...]" >&2; exit 2; }
-[ "$(git branch --show-current)" = "main" ] || { echo "not on main"; exit 1; }
-[ -z "$(git status --short)" ] || { echo "main is dirty"; git status --short; exit 1; }
+TARGET="${GATE_TARGET:-main}"
+[ "$(git branch --show-current)" = "$TARGET" ] || { echo "not on $TARGET"; exit 1; }
+[ -z "$(git status --short)" ] || { echo "$TARGET is dirty"; git status --short; exit 1; }
 
 # Speech models: the core's ModelStore reads VOCATERRA_MODELS_DIR. The pinned models are fetched once into a shared folder outside the
 # repository (nlp/scripts/fetch-models.sh with VOCATERRA_MODELS_DIR set), so tests that need a model run in the gate instead of being skipped.
@@ -36,7 +37,7 @@ failed=()
 for spec in "$@"; do
   label="${spec%%:*}"; branch="${spec#*:}"
   echo "=== merging $label ($branch) ==="
-  if git merge --no-ff --no-edit -m "Merge $label ($branch) into main" "$branch" >/dev/null 2>&1; then
+  if git merge --no-ff --no-edit -m "Merge $label ($branch) into $TARGET" "$branch" >/dev/null 2>&1; then
     echo "merged: $(git log --oneline -1)"
   else
     echo "CONFLICT in $label:"; git diff --name-only --diff-filter=U; git merge --abort; failed+=("$label")
