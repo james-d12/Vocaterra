@@ -214,7 +214,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M27a2 | Lint follow-up on the sample content (needs `hash`): narrow `cast_spell`'s bare-noun grammar so it no longer takes `gracias` (or waive it), a `thank` grammar for `muchas gracias…`/`mucho gracias` (or `allowRuleOnly`), example expectations (`yo es Rosa`, `yo estás de acuerdo`, `yo no quieres`, `mucho gracias`, `yo tiene dos espada`); fold into M27b if that is sooner | M27a | H | proposed |
 | M27b | Content layering and `std-v1`: manifest `base` pinned by id, hash and path; whole-item replacement with explicit `replaces`/`removes`; lexicon and CEFR unioned; one level; `content/v1` becomes `std-v1` plus a blacksmith overlay (see §10) | M27a | S | todo |
 | M27c | Format de-duplication: defaulted redundant fields, any-state transitions, `<np:x>` macros, generated article aliases; old files load identically (see §10) | M27b | H | todo |
-| M28a | Game requests, batch 2: CR-017 two-phase evaluation (analyse, then plan the response with host slots and skills computed from the analysis; one evaluation per turn) and CR-015 host-initiated agent turns (the agent speaks and moves on a host event, in the replay record and the interaction counter) | M26 | S | in-progress |
+| M28a | Game requests, batch 2: CR-017 two-phase evaluation (analyse, then plan the response with host slots and skills computed from the analysis; one evaluation per turn) and CR-015 host-initiated agent turns (the agent speaks and moves on a host event, in the replay record and the interaction counter) | M26 | S | done |
 | M28b | Game requests, batch 2: CR-016 replies that depend on a host fact (variant or pool chosen by a host slot, or a conditional that renders only when a slot is supplied) and CR-018 lists in templates (`join` with per-part count agreement) | M26 | S | proposed |
 | M28c | Game requests, batch 2: CR-014 host-supplied expected slot values graded like an answer set (`vocab.wrong` on the span, correctness and `communicated` follow) | M26 | S | proposed |
 
@@ -829,6 +829,34 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   (meant as a learner error) grades clean (clitic `nos` gives no subject; analyzer gap); pool-level waivers
   do not exist; the lint has no embedding rung. Content edits it proposes are M27a2 (they need `hash`).
   Suite: 2948 passed, 3 skipped.
+- **M28a results (CR-017/015):** `UtterancePipeline.Analyze(clip, prompt)` returns an immutable
+  `UtteranceAnalysis` (recognizer output, verdict, words, answer; no conversation state) and
+  `Complete(analysis, context[, hostSlots, extraSkills])` runs decision, response, effects, repair and the
+  replay record; `Evaluate`/`Trace` are now `Complete(Analyze(...))`, equal by construction and by a test
+  over every example on every allowing prompt; the recognizer runs once; `Complete` refuses an analysis
+  from a pipeline with another version stamp; two-phase chosen over a host callback (no host code inside
+  the pipeline, testable, nothing unrecorded). Host turns: agent transitions gain optional
+  `onHostEvent`, taken only by `AgentStateMachine.StepHostEvent` (utterances never take them);
+  `UtterancePipeline.Advance(hostEvent, context)` returns `HostTurnResult?` (null when no transition or no
+  machine: nothing changes); lines from the actions' pools with host slots only; interaction counter +1;
+  learner and repeat counts untouched (nothing was observed; a host may call `StepSkills`);
+  `ConversationContext.Next(HostTurnResult, now)`, `WithHost(...)`. Replay: a third line kind
+  `"kind":"hostTurn"` (`HostTurnEnvelope`, `ReplayReader.ReadEntries`, `Replayer.Replay(HostTurnEnvelope,…)`,
+  CLI `replay` reads both); old logs, envelopes and goldens unchanged; older core builds reject host-turn
+  lines (documented). Fuzz O14: half the cases two-phase across two pipeline instances, a third take a
+  host turn first; one bug found in the new code by the oracle (host turn recorded the full version stamp,
+  replay differed at the phoneme model hash; seed `7CBlRsqnn4a1`; now records `ContentHash`). Side effect:
+  serialized `AgentDefinition` JSON emits `onHostEvent: null` (no hash covers it). Not done: no
+  two-phase example in `samples/HostConsole` (docs carry it). Suite: 2982 passed, 3 skipped.
+- **Session close (2026-10-21, evening):** M26 (all 11 requests), M26g, M27a and M28a merged; the
+  research report is in `docs/research/`. Next, each waiting for the owner's go: M27b layering and
+  `std-v1` (with M27a2's sample fixes folded in; content edits need `hash`, which the sandbox refuses inside
+  an isolated agent, so the owner runs it or tells the orchestrator to), M28b (CR-016/018 templates),
+  M28c (CR-014 expected answers). Follow-ups logged: ORT native collision between
+  Microsoft.ML.OnnxRuntime and sherpa-onnx in one host; Kokoro per-call engine cost (D9); `ModelStore`
+  to Core; Vosk dispose race and the synthesis-cache temp file; `nos veo` analyzer gap; pool-level lint
+  waivers; the `[WORD]`-absorbs-a-mis-conjugated-verb limit (seed `1RTZdjQ2tFb2`). The game's
+  `CORE_REQUESTS.md` edits (all rows' statuses) are uncommitted in the game checkout for its orchestrator.
 - **Two orchestrators (owner, 2026-10-21):** this repository is run by the core orchestrator only; the
   Vocaterra repository has its own orchestrator and plan. Protocol: the game writes requests for core
   changes to `docs/CORE_REQUESTS.md` in its repository; the core orchestrator reads that file at the
