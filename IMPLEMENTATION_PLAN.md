@@ -60,26 +60,46 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 
 ## 4. Milestones
 
-### Handover (2026-10-21, after P4)
+### Handover (2026-10-21, end of session; the owner plans to merge the game and the core into one repository)
 
-Where things stand, for the next orchestrator session:
-- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4, P4b, P6, G6, P6b, G7, P5. Core pin `53c52b7` (M26a to M26e). Tests on `main`: 566 (8 need the speech models). Licence MIT (D-game-2).
-- **Next:** P7 (caves, ores, lighting; Haiku 5.5), then P8 (the guide speaks; owner's order); earlier queue: P5, P6b (crafting; owner 2026-10-21: crafting before caves, with stations), then P5 (spoken input; Sonnet 5.5) and P7; previously P5 or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
-  the other. Then P7, P9; P8 waits on CR-006; P10 optional; G3 and G4 after P9.
-- **Core requests:** the core accepted CR-002 to CR-008 and CR-010 to CR-013 into its M26a to M26f (2026-10-21); CR-014 (P4) and CR-015 (P4b) are `open`.
-  When rows turn `done`, bump the submodule; CR-012's fix (M26a) lets the guide drop `EvaluateCountingThisUtterance`, which is a
-  G-milestone (it changes the calls the game makes).
-- **Package cache (P4 finding):** NuGet caches by id and version, and the core's worktrees pack 0.1.0 into the shared `~/.nuget/packages`,
-  so a game restore can silently use the core's unmerged work. The gate restores into `~/.nuget/vocaterra-game-packages` and clears the core
-  packages there each run (`scripts/merge-gate.sh`); every brief sets `NUGET_PACKAGES` to that folder.
-- **Owner items not yet answered:** (1) nothing in the prototype is gated behind language (orchestrator default); (2) A1 list: the owner approved the words added (`flecha`, `guía`, `bloque`, `algo`, `casi`, `eso`, `esto`) and `falta`, `faltar`, `nada` (added in P5); (3) the native-asset trim: approved, G7; (4) D-game-2: decided MIT; (5) P4 credits the noun the player names even when it names the
-  wrong thing (`es una piedra` with the cursor on a tree earns `piedra` a third, and the guide says "Casi. Mira: es un árbol."): keep or
-  withhold (P4b withholds it by default: a `name_object` the guide marks wrong earns no colour).
-- **How agents work now** (put this in every brief): no `git submodule update` and no core pack in a worktree; set
-  `NUGET_PACKAGES=$HOME/.nuget/vocaterra-game-packages` and restore with
-  `-p:RestoreSources="/home/user/Dev/Vocaterra/external/Vocaterra.NLP/artifacts/feed;https://api.nuget.org/v3/index.json"`, then build with
-  `--no-restore`; `VOCATERRA_CONTENT_TOOL_DIR=/home/user/Dev/Vocaterra/.tools`; `scripts/content.sh hash` through a wrapper script outside
-  the repository; screenshots need `DISPLAY=:0`.
+Where things stand:
+- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4, P4b, P6, G6, P6b, G7, P5, P7. Core pin `53c52b7` (M26a to M26e). Tests on `main`:
+  625 (8 need the speech models in `VOCATERRA_MODELS_DIR`). Bundle `game-v1` `17ae6d14…`, 28 files. Licence MIT (D-game-2). No worktrees,
+  no agent branches, no agent running.
+- **The owner stopped after P7** (2026-10-21): P8 (the guide speaks), P9 (save and load), P10, G3 and G4 wait for the merged repository
+  (D-game-7). The models P8 needs are fetched (`~/.local/share/vocaterra/models`: Vosk small es, Kokoro).
+- **Core requests:** done in the core but not in the pin: CR-010, CR-011 (M26f, content tool), CR-015 (`UtterancePipeline.Advance` with
+  `onHostEvent` transitions: the guide's review question can become a core turn), CR-017 (`Analyze` then `Complete`: the guide can evaluate
+  once and drop the double evaluation). Accepted, not done: CR-014, CR-016, CR-018 (M28). Open: CR-019 to CR-022 (P5), CR-024 (fresh-clone
+  pack). Each of these becomes ordinary work once the repositories are one.
+- **Fresh clone today:** see `CLAUDE.md` (CR-024): the core's pack fails on a clean machine unless `external/Vocaterra.NLP/nuget.config`
+  (uncommitted, `<clear/>` + nuget.org) exists first; after a pull that moves the submodule, `git submodule update --init`, delete
+  `~/.nuget/packages/vocaterra.nlp.*` and pack again. The README's build steps (line 46) still lack this note.
+- **Owner items still open:** the orchestrator defaults in the P4b entry (wrong names earn nothing; Esc ends a review); the ASR confidence
+  choice in P5 (CR-022: Vosk asked for one hypothesis, so the core's confidence gate is off); live push-to-talk with real speech is untried;
+  content pass items in the P4, P5, P6b and G6 entries (recast wording, "Habla más despacio" for an unknown intent, "¿de dónde sale la
+  madera?" while carrying wood, "Usa mesa" without the article).
+
+**Notes for merging the game and the core into one repository (D-game-7).** What exists only because they are two repositories, and what
+to do with each:
+1. *Packages only* (core ADR 0009, CLAUDE.md, section 3 rule 1): becomes project references inside one solution; `Directory.Packages.props`
+   drops the `Vocaterra.Nlp.*` entries; the direct `Vosk` and `Microsoft.ML.OnnxRuntime` (`ExcludeAssets="native"`) references (P5,
+   CR-021) are still needed in the executables and test projects that run Vosk and Kokoro.
+2. *The submodule, the local feed and `nuget.config`*: remove `external/`, `.gitmodules` and the local source; `scripts/content.sh` installs
+   the content tool from the feed (`.tools/`) and becomes a `dotnet run --project` of the core's ContentBuilder (or keep the tool, packed
+   in-tree). The stale 0.1.0 cache problem (P4, CR-024) and the pack-before-build step disappear.
+3. *The merge gate*: `scripts/merge-gate.sh` (game) and the core's `scripts/merge-gate.sh` become one; keep the game's package-folder
+   isolation only if packages remain, the `VOCATERRA_MODELS_DIR` export, the content validation, and the core's own checks (licence scan,
+   goldens).
+4. *Two orchestrators and their files*: `.claude/agents/orchestrator.md` (game) and the core's role file become one; `docs/CORE_REQUESTS.md`
+   rows that are still open become plan items; the two `IMPLEMENTATION_PLAN.md` files and the two `DECISIONS.md` files merge (the core's
+   D1 to D13 and the game's D-game-1 to D-game-7; ids stay as they are).
+5. *Determinism and replay*: unchanged; `HostDigest.Of` and the game's host slots stay as they are.
+6. *Bundles*: `content/game-v1` (the game's) and the core's sample `content/v1` both stay; D-game-4 (diverge) still holds.
+7. *Models*: `ModelStore` reads `manifest.json` from the models folder; in one repository the manifest path is fixed and CR-019's fallback
+   (`VOCATERRA_MODELS_MANIFEST`, the submodule path in `SpeechEngine`) changes to the in-repo path.
+8. *Licences*: the game is MIT, the core Apache-2.0 (core D3): the merged repository needs one decision (or per-directory licences).
+9. *CI*: still deferred (D-game-3, core D1).
 
 | ID | Milestone | Status | Model | Depends on |
 | --- | --- | --- | --- | --- |
@@ -94,8 +114,8 @@ Where things stand, for the next orchestrator session:
 | P5 | Spoken input: push-to-talk, microphone (MonoGame `Microphone`, PortAudioSharp2 fallback), Vosk small, evaluation on a worker thread | done (merged 2026-10-21, `96d4907`) | Sonnet 5.5 | P3 |
 | P6 | Mining, building, inventory (durability, drops, hotbar placement, 40 slots with a 10-slot hotbar; the player starts with `hacha` and `pico`) and the **wider world of things** (section 4.3: new surface tiles and items, each in `game/nouns.json` with the colour rule) | done (merged 2026-10-21, `57244dd`) | Haiku 5.5 | P1, P2, P4b |
 | P6b | **Crafting and the guide's crafting answers** (owner, 2026-10-21; section 4.3): recipes in `game/recipes.json`, stations (`mesa`, `horno`), crafting panel; the guide answers "¿cómo hago una mesa?" (recipe, station, what is missing) and "¿dónde hay arena?" (where a material comes from and the nearest source) | done (merged 2026-10-21) | Sonnet 5.5 (design), Haiku 5.5 (content) | P6, G6 |
-| P7 | Caves (worms, cellular automata), ores, full forest vegetation, flood-fill lighting; ores `carbón`, `cobre`, `hierro`, `oro` join the catalogue and the recipes (`antorcha` from `madera` and `carbón`, metal tools at the `horno`) | in progress (2026-10-21) | Haiku 5.5 | P1, P6, P6b |
-| P8 | The guide speaks (Kokoro through the core) | planned (CR-006 delivered in core M26e; taken in by G6) | Haiku 5.5 | P5, CR-006 |
+| P7 | Caves (worms, cellular automata), ores, full forest vegetation, flood-fill lighting; ores `carbón`, `cobre`, `hierro`, `oro` join the catalogue and the recipes (`antorcha` from `madera` and `carbón`, metal tools at the `horno`) | done (merged 2026-10-21) | Haiku 5.5 | P1, P6, P6b |
+| P8 | The guide speaks (Kokoro through the core) | planned; deferred by the owner until the repositories are merged (D-game-7) | Haiku 5.5 | P5, CR-006 |
 | P9 | Save and load, playtest build and checklist | planned | Haiku 5.5 | P4, P6, P7 |
 | P10 | Godot spike (optional): the same seed and guide turn in Godot 4 .NET; a note on the cost of the move | planned (optional) | Sonnet 5.5 | P4 |
 | G3 | Innkeeper scene (section 4.1) | planned, after P9 | Sonnet 5.5 for the scene design, Haiku 5.5 for the content checklist | G2, P9 |
@@ -453,6 +473,22 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     an unknown intent at the guide ("quiero una espada") gets "Habla más despacio, por favor", which suggests a speed problem.
 - **Core requests (2026-10-21):** the core delivered CR-010 and CR-011 (M26f, `27747ea`), not yet in the pin (content tool only; take in at
   the next bump), and accepted CR-014 to CR-018 into M28a to M28c.
+
+- **P7 (2026-10-21, merged, Haiku 5.5).** Caves, ores, vegetation, lighting. Generator version 4 (caves and ores run last; tree bases
+  and spawn unchanged), seed-42 golden `d96279bf…`. Caves: per chunk a worm (20 %) and a cellular-automata cavern (12 %), only at depth 7
+  or more below the surface column. Ores by random walks in stone within bands: coal 8–60, copper 20–90, iron 40–150, gold 110–260 (seed
+  42: 71, 124, 142, 120 tiles). Ore mining 60/75/90/105 ticks with the pickaxe. `Torch` (`antorcha` ← 1 madera + 1 carbón by hand, 4);
+  `lámpara` ← hierro + cristal (mesa), `cubo` ← 3 hierro (horno), `anillo` ← 2 oro (horno), not placeable; tall grass (`hierba`). Nouns
+  `deep` flag: "Está muy abajo." when none is within the search radius. `LightMap` (Simulation, integers, levels 0–16: sky columns, torch
+  16 losing 2 a step, rock at least 6), incremental recompute of 19 columns (median 0.9 ms), full map 65 ms at load; frame medians 1.1 to
+  2.3 ms. `--teleport`, `--grant`. `abajo` added to the A1 list (it is A2: owner review). Bundle `17ae6d14…`. Tests 566 to 625.
+  - Orchestrator spot-check: "¿dónde hay hierro?" → "abajo, a la derecha, a cuarenta y cinco bloques" with the arrow; gold → "Está muy
+    abajo."; a placed torch lights a warm disc in a dark cave. Cosmetic: a faint ghost label on the right of the cave screenshots.
+  - Not done: caves have no surface entrances; lamp, bucket and ring have no use yet; no day and night; metal tool tiers (multi-word nouns).
+- **Fresh-clone check (2026-10-21, Haiku 5.5, owner's request).** A clean clone with an empty package cache fails at the core's pack
+  (`NU1301`: the core restores with the game's `nuget.config`, whose local feed does not exist yet); with an uncommitted
+  `external/Vocaterra.NLP/nuget.config` (`<clear/>` + nuget.org) it packs, builds with 0 warnings and passes 558 tests (8 skipped
+  without models). Core packs of the same commit are not byte-identical. **CR-024**; workaround in `CLAUDE.md`.
 
 ## 6. Definition of done (every milestone)
 

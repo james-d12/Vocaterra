@@ -12,6 +12,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-3 | Continuous integration | deferred by the owner, 2026-10-21; do not raise | nothing in this plan |
 | D-game-4 | Whether `content/game-v1` tracks the core's sample bundle or diverges from it | decided: diverge fully (owner, 2026-10-21) | nothing |
 | D-game-5 | Art, font and sound sources while D-game-2 is open | decided: CC0 only (owner, 2026-10-21) | nothing |
+| D-game-7 | One repository for the game and the core | owner's plan (2026-10-21): merge them; the owner does the merge; notes in the plan's handover | P8 to P10, G3, G4 wait for it |
 | D-game-6 | When a noun counts as known (drawn in colour), and what typed input earns | decided (owner, 2026-10-21); amended the same day: spaced uses with growing gaps, the guide prompts due words | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
@@ -78,6 +79,13 @@ P5 (spoken input) lands; from P5 it earns half credit by default, as a setting.
   points at the nearest example in the world and asks what it is ("¿Qué es esto?"); a correct answer earns the spaced credit. Uses the
   player starts also count when they are due.
 - Typed input's half credit from P5 still applies per credited use.
+
+## D-game-7: one repository for the game and the core (owner's plan)
+
+**Owner, 2026-10-21.** "My plan is to actually merge the game and the NLP back together, for simplicity and as they both update they can
+update together." The orchestrator stopped after P7 at the owner's request; P8 and later wait for the merged repository. The parts of this
+repository that exist only because the two are separate (packages only, the submodule and its feed, `docs/CORE_REQUESTS.md`, two
+orchestrators, two gates) are listed in `IMPLEMENTATION_PLAN.md`, section 4, the handover.
 
 ## Already decided
 
