@@ -11,7 +11,7 @@ Remote: `https://github.com/james-d12/Vocaterra.NLP.git` (the game repository is
 
 Facts every session needs:
 - .NET SDK is user-local: `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet"`.
-- Model-gated tests: `VOCATERRA_MODELS_DIR=/home/user/Dev/SpanishLearningGame/models`.
+- Model-gated tests: `VOCATERRA_MODELS_DIR=/home/user/Dev/Vocaterra.NLP/models`.
 - Merge gate: `scripts/merge-gate.sh "<label>:<branch>"`; logs land in `.claude/gate-logs/`.
 - Never commit under `.github/workflows/` (token lacks the workflow scope; see `.github/workflows-pending/`).
 - Content edits need the procedure in `CONTRIBUTING.md` (validate, hash, re-pin, re-record goldens).

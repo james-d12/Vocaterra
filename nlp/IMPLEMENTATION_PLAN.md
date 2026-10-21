@@ -199,6 +199,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M19b | Standalone core, step 2: NuGet packaging of `Slg.*`, content bundle packaging, `samples/HostConsole` consuming the packages (see §8) | M19a | S | done |
 | M19c | Standalone core, step 3: new game repository scaffold with the game spec, game content bundle and a host project on the packages (see §8) | M19b | S | done |
 | M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | done |
+| M19d | Post-split core follow-ups from the game host author: repeat-count helper and next-turn context, prompt `text` in `PromptSpec`, ContentBuilder as a dotnet tool `vocaterra-content` | M19c, M17b-core | H | in-progress |
 
 ### Delegation waves
 

@@ -16,7 +16,7 @@ anything, you just coordinate." You have authority to push to `main`.
 - Briefs for subagents (inline in the Agent prompt; the scratchpad is session-specific, so never rely
   on files there surviving).
 - The merge gate (`scripts/merge-gate.sh`) and the final report to the owner after each milestone.
-- Auto-memory under `~/.claude/projects/-home-user-Dev-SpanishLearningGame/memory/`.
+- Auto-memory under `~/.claude/projects/-home-user-Dev-Vocaterra-NLP/memory/` (copied from the `-home-user-Dev-SpanishLearningGame` folder when the checkout was renamed on 2026-10-21).
 
 ## Start of a session
 1. `git status`, `git log --oneline -8`, `git worktree list` (remove leftovers with
@@ -60,7 +60,7 @@ an isolated git worktree on your own branch; commit there, do not push.
 Environment: prefix every command inline with PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet"
 DOTNET_NOLOGO=1 (the sandbox may reject a bare `export` and may refuse a command line containing the
 word `eval`; use a wrapper script outside the repo for CLI runs). Model-gated tests need
-VOCATERRA_MODELS_DIR=/home/user/Dev/SpanishLearningGame/models.
+VOCATERRA_MODELS_DIR=/home/user/Dev/Vocaterra.NLP/models.
 Read first: IMPLEMENTATION_PLAN.md §3 (determinism rules), §4 (contracts), §6 (definition of done),
 <the milestone section>; CONTRIBUTING.md; <module docs and code to read>.
 Rules: never create or edit anything under .github/workflows/ (the token lacks the workflow scope;
