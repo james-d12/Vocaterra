@@ -1,5 +1,5 @@
 using Vocaterra.Game;
-using Vocaterra.Simulation.Tiles;
+
 
 namespace Vocaterra.MonoGame.Frontend;
 
@@ -9,10 +9,10 @@ namespace Vocaterra.MonoGame.Frontend;
 /// the worker has finished, in the order they were submitted, applies them to the session (the arrow, the words) and shows them in the panel.
 /// Neither waits for the worker.
 /// </summary>
-/// <param name="session">The game, with its worker started.</param>
+/// <param name="session">The game (the 2D slice or the 3D scene), with its worker started.</param>
 /// <param name="dialogue">The panel.</param>
-/// <param name="cursor">The tile under the mouse (or the scripted cursor) at the moment of the call, for "¿qué es esto?".</param>
-public sealed class TurnPump(GameSession session, DialogueModel dialogue, Func<TilePoint?> cursor)
+/// <param name="cursor">The cell under the mouse, the scripted cursor or the crosshair at the moment of the call, for "¿qué es esto?".</param>
+public sealed class TurnPump(GuideSession session, DialogueModel dialogue, Func<GuideCell?> cursor)
 {
     /// <summary>
     /// Hands the worker the typed line, and the scripted spoken line (<c>--wav</c>, <c>--speak</c>), that the panel has asked to send. Call it
@@ -37,7 +37,7 @@ public sealed class TurnPump(GameSession session, DialogueModel dialogue, Func<T
         }
     }
 
-    /// <summary>Applies the finished turns in submission order (see <see cref="GameSession.Collect"/>), shows each in the panel and returns them.</summary>
+    /// <summary>Applies the finished turns in submission order (see <see cref="GuideSession.Collect"/>), shows each in the panel and returns them.</summary>
     public IReadOnlyList<AppliedTurn> Apply()
     {
         var applied = session.Collect();

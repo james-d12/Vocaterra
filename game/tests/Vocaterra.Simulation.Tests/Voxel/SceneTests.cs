@@ -9,7 +9,7 @@ public sealed class SceneTests(ITestOutputHelper output)
 {
     private const ulong Seed = 42;
 
-    private const string GoldenDigest = "dc14aa93794873e37068c11a6e12c950ab5f7c9363a9893a3724318d0c095726";
+    private const string GoldenDigest = "d27347a6772ffa505dc062d0e9d27fd588f170f580c0a2fd577fba2a3319acf1";
 
     [Fact]
     public void Seed42SceneMatchesTheGoldenAndPrintsTheRoute()

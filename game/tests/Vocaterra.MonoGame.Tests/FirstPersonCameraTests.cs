@@ -138,7 +138,7 @@ public sealed class FirstPersonCameraTests
     [Fact]
     public void ThePlayersEyeIsWhereTheSimulationPutsIt()
     {
-        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "scenes", "route-draft.json")), 42);
+        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), 42);
         var sim = VoxelSimulation.Create(scene);
         sim.Step([VoxelCommand.Look(Angles.FromDegrees(90), (int)Math.Round(LookControl.DegreesToSteps(-30)))]);
         var body = sim.Player;

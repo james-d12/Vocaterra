@@ -174,21 +174,22 @@ take any other arrow away.
 
 ## The 3D first-person front-end (S2)
 
-`--voxel` runs `VoxelGame` instead of `VocaterraGame`: the first-person view of `VoxelSimulation` over the draft route (`content/scenes/route-draft.json`, or
-`game/scene.json` in the bundle once S3 moves it there, or `--scene <file>`) at `--seed`. The 2D slice is the default and every 2D option keeps working;
-the 2D options that need the guide or the 2D world (`--say`, `--wav`, `--speak`, `--listen`, `--skip`, `--talk`, `--walk`, `--mine`, `--craft`, `--crafting`,
-`--teleport`, `--grant`, `--walk-right`, `--point`, `--point-nearest`, `--status`) are refused with `--voxel` and the error names S3.
+`--voxel` runs `VoxelGame` instead of `VocaterraGame`: the first-person view of `VoxelSimulation` over the bundle's route (`content/game-v1/game/scene.json`,
+or `--scene <file>`) at `--seed`. The 2D slice is the default and every 2D option keeps working;
+`--say` talks to the guide in 3D (S3); the other 2D options that need the 2D world (`--wav`, `--speak`, `--listen`, `--skip`, `--talk`, `--walk`, `--mine`,
+`--craft`, `--crafting`, `--teleport`, `--grant`, `--walk-right`, `--point`, `--point-nearest`, `--status`) are refused with `--voxel` (S4 retires the 2D slice).
 
 | Option | Meaning |
 | --- | --- |
 | `--voxel` | run the 3D scene |
-| `--scene <file>` | the layout file (default: the bundle's `game/scene.json`, else `content/scenes/route-draft.json` beside the bundle) |
+| `--scene <file>` | the layout file (default: the bundle's `game/scene.json`) |
 | `--look <yaw>,<pitch>` | a scripted step: face this direction in degrees (yaw 0 north, 90 east, clockwise from above; pitch positive up, within 89) |
 | `--walk-to <x>,<z>` | a scripted step: walk with `Move` commands to the middle of that block column, within half a block, or give up after 3 600 ticks; sidesteps and jumps when stuck. Prints `walk-to 60,52: arrived at (60.02, 52.41) after 800 ticks` |
 | `--interact <x>,<y>,<z>` | a scripted step: aim at the block and hold `Interact` until it is gathered or 600 ticks pass. Prints `interact 9,11,17: gathered trunk in 60 ticks (now air, +1 wood)` (the player must be within 4 blocks) |
 | `--place <item>@<x>,<y>,<z>` | a scripted step: place one item (`madera`, `antorcha`, or the item key `wood`) in that empty cell next to a block, within reach. With two numbers it is still the 2D form |
 | `--select <n>` | a scripted step: hotbar slot 1 to 10 |
 | `--beacon <point>` | stand the beacon column on a named point of the scene (`camp`, `firering`, `workbench`, `stall`, `signpost`, `village`, `house1` to `house3`, `bridge`, `river`); it clears when the player comes within 3 blocks |
+| `--say <line>` | (S3) walk to the guide, face her, open the panel, type and send the line, and wait for her reply; repeat for more lines |
 | `--journal`, `--inventory` | open those screens once the steps are done |
 
 The steps run in the order given, one at a time, each at the simulation's fixed 60 Hz (one tick per frame on the fixed clock); the screenshot is saved
@@ -217,16 +218,25 @@ x east, y up, z south need no flip); `ScreenProjection` is the same camera as pl
 **The 2D layers over the 3D scene.** The hotbar, the toast, the inventory screen and the journal draw unchanged over the scene; `FrameView` gains `Voxel`, `Camera3D`, `Beacon`,
 `Figures`, `VoxelIcons` and the readers `Items`, `SelectedSlot`, `Tick` and `DrawIcon`, which follow the 3D simulation when it is set (the hotbar and the inventory show its inventory, with the
 block atlas's icons in full colour). New layers: the crosshair with a gather bar, the held item at the bottom right, the NPC labels, the beacon's label and edge arrow, and the 3D debug overlay.
-**Not wired until S3:** the guide. `T` and `V` do nothing, no turn worker is started (so no Vosk, no Kokoro and no loading screen), the dialogue panel is not in the layer list, and the crafting panel is
-not shown (crafting is S4). The session is still created (the nouns, the word counts and the journal come from it) and so is its 2D world, which is never stepped. A berry is labelled `berry` in the inventory
-because no noun names it yet.
+**The guide in 3D (S3).** `--voxel` starts the turn worker as `VocaterraGame` does (typed and spoken, the loading screen until Vosk is ready), with
+a `VoxelSession` (in `Vocaterra.Game`, the shared part of the 2D session is `GuideSession`) over the scene's blocks: `WorldFacts3D` answers
+"where is it" with the nearest block of a noun, its direction from the facing and its distance in blocks. The panel (`DialogueModel`,
+`DialoguePanel`) is in the layer list; **E** (or **T**; **V** talks) opens it when the crosshair is on the guide's figure (`FigureAim` on the
+figure's chest, reach 8 blocks, no block in between through `NpcLabelLayer.Occluded`; the hint `E: hablar` is `TalkHintLayer`). The panel
+takes the keyboard, the mouse is released and no walking happens while it is open; Enter sends, Esc closes, Tab holds push-to-talk. The
+arrow of the session is the beacon: `SyncBeacon` puts `Beacon.Set` on the pointer's block (a review question shows `¿?`), and the beacon's
+own reach takes the arrow down. "¿qué es esto?" uses `VoxelSession.AimedCell`, the block under the crosshair (`sim.Target`). `--say` walks the
+player to the guide (`VoxelSayScript`: a `VoxelScript` walk to two blocks east of her, then a look at her), opens the panel (asking the review
+question when one is due), types each line, sends it, waits for the turn to be applied, and goes on. The sign is a `WorldLabel` (`Tienda / Río`
+over the signpost's board, in `VoxelTalkLayers.cs`). The debug overlay has no 2D test line any more.
 
-**For S3.** To send the player somewhere call `Beacon.Set(blockPos, "río")` or `Beacon.SetPoint(scene, "river", "río")` on `VoxelGame.Beacon` (the guide's `PointerMarker` becomes this): the column
-stands on the block, a label shows the distance, an arrow points from the screen edge when it is off screen, and it clears within 3 blocks. NPC figures come from `NpcFigures.FromScene(scene)`
-(one `NpcFigure` per `scene.Npcs` entry: name, label, feet cell, yaw); a new NPC needs an entry in `NpcFigures.PartsOf` and `LabelOf`. To wire the dialogue panel: start the worker as `VocaterraGame` does
-(`_session.StartWorker(...)`), add `DialoguePanel` to the layers (it reads `view.Tick`), open it with a key when the crosshair is on an NPC (`NpcLabelLayer.Occluded` and `ScreenProjection` give the
-tools), give `InputFocus` the keyboard while it is open and count `_dialogue.IsOpen` in `uiOpen` in `VoxelGame.ReadInput` (so the mouse is released and no walking happens), and replace the cursor tile of
-"¿qué es esto?" by the block under the crosshair (`sim.Target`).
+**Not in 3D yet:** the other NPCs (S6), crafting (S4), the Alt-accent shortcuts of the panel (typed `é`, `ñ` and the others come through the
+platform's text input).
+
+**Where the S3 pieces are:** `VoxelGame.cs` (the host: the worker, the panel and its keys, the beacon, the script), `VoxelTalkLayers.cs`
+(`TalkHintLayer`, `WorldLabel`, `WorldLabelLayer`), `Frontend/FigureAim.cs` (the crosshair test, plain maths), `Frontend/VoxelSayScript.cs`
+(the `--say` state machine over ticks), `FrameView.Slice` (the 2D session for the layers that only the 2D world has) and `Frontend/SceneLocator.cs`
+(the bundle's `game/scene.json`, or `--scene`).
 
 ## Architecture
 
@@ -273,7 +283,8 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   ScreenshotWriter  back buffer -> PNG
   (S2, 3D)  VoxelGame (host), VoxelRenderer, FirstPersonCamera, BlockAtlas, MouseLook, VoxelLayers.cs (CrosshairLayer, HeldItemLayer, NpcLabelLayer, BeaconArrowLayer, VoxelDebugOverlay);
             Frontend/: ChunkMesher, MeshVertex and MeshBuffer, BlockAtlasLayout and BlockArt, NpcFigures, OverlayMeshes, ChunkVersionTracker and VoxelBeacon, ViewMath
-            (CameraBasis, ScreenProjection, EdgeArrow), LookControl and CameraEase, LiveVoxelInput, VoxelScript and VoxelStep, VoxelDebugText, SceneLocator, PointLabels
+            (CameraBasis, ScreenProjection, EdgeArrow), LookControl and CameraEase, LiveVoxelInput, VoxelScript and VoxelStep, VoxelDebugText, SceneLocator, PointLabels, FigureAim, VoxelSayScript;
+            root: VoxelTalkLayers (TalkHintLayer, WorldLabel, WorldLabelLayer)
 ```
 
 The frame is: `Update` reads the clock, reads the keyboard once (the panel's keys), the accumulator returns 0 to 5 ticks, and for each tick the

@@ -125,11 +125,19 @@ public sealed class VoxelLaunchOptionsTests
     }
 
     [Fact]
+    public void SayTalksToTheGuideInThreeDimensions()
+    {
+        var options = Parse("--voxel", "--screenshot", "a.png", "--say", "¿dónde está el río?", "--say", "Quiero agua, por favor.");
+        Assert.True(options.Voxel);
+        Assert.Equal(["¿dónde está el río?", "Quiero agua, por favor."], options.Says);
+    }
+
+    [Fact]
     public void TheGuideAndTheTwoDimensionalWorldDoNotApplyInThreeDimensions()
     {
         foreach (var args in new[]
         {
-            new[] { "--say", "hola" }, new[] { "--walk", "500" }, new[] { "--mine", "1,2" }, new[] { "--craft", "mesa" }, new[] { "--teleport", "1,2" },
+            new[] { "--wav", "a.wav" }, new[] { "--walk", "500" }, new[] { "--mine", "1,2" }, new[] { "--craft", "mesa" }, new[] { "--teleport", "1,2" },
             new[] { "--grant", "madera:3" }, new[] { "--walk-right", "10" }, new[] { "--point", "1,2" }, new[] { "--speak", "hola" },
         })
         {

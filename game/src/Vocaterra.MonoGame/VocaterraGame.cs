@@ -21,7 +21,7 @@ namespace Vocaterra.MonoGame;
 /// <b>The dialogue.</b> T next to the guide opens the panel and gives it the keyboard (<see cref="InputFocus"/>), so the movement keys type
 /// letters instead of walking. The window's text events feed the box; the editing keys, Enter and Esc are read from the keyboard state once
 /// per frame. Enter only <i>asks</i> to send: at the end of <c>Update</c>, after the tick loop and never inside a step, the line is
-/// <i>submitted</i> to the turn worker (<see cref="GameSession.StartWorker"/>), a thread that owns the Vosk recognizer and evaluates the turns
+/// <i>submitted</i> to the turn worker (<see cref="GuideSession.StartWorker"/>), a thread that owns the Vosk recognizer and evaluates the turns
 /// one at a time. The frame never waits for it: "Pensando…" shows while a turn is out, and the start of the next <c>Update</c> applies the
 /// finished turns in the order they were submitted. A loading screen covers the worker's start (the models load there) and nothing in the
 /// world is interactive until it is ready.
@@ -104,7 +104,7 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         _camera = new Camera(session.Simulation.World.Width, session.Simulation.World.Height, TileArt.Size * Zoom);
         _previousPlayer = session.Simulation.Player;
         _dialogue = new DialogueModel(_focus, session.OpeningLine);
-        _pump = new TurnPump(session, _dialogue, CursorTile);
+        _pump = new TurnPump(session, _dialogue, () => CursorTile());
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
         if (options.UsesMicrophone)
         {

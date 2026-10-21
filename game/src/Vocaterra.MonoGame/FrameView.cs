@@ -14,11 +14,17 @@ namespace Vocaterra.MonoGame;
 /// </summary>
 public sealed class FrameView
 {
-    /// <summary>The simulation being shown.</summary>
-    public required GameSimulation Simulation { get; init; }
+    /// <summary>The 2D simulation being shown, or <see langword="null"/> in a 3D run (<see cref="Voxel"/> is the world then).</summary>
+    public GameSimulation? Simulation { get; init; }
 
-    /// <summary>The running game: the guide, the arrow and the conversation (read only for layers).</summary>
-    public required GameSession Session { get; init; }
+    /// <summary>The running game: the guide, the arrow, the words and the conversation (read only for layers). Either the 2D slice or the 3D scene.</summary>
+    public required GuideSession Session { get; init; }
+
+    /// <summary>The 2D slice's game, for the layers that only the 2D world has (the guide's figure, the crafting panel, the tiles); <see langword="null"/> in 3D.</summary>
+    public GameSession? Slice => Session as GameSession;
+
+    /// <summary>The NPC figure the crosshair is on in a 3D run (the guide's, for the talk hint), or <see langword="null"/>.</summary>
+    public NpcFigure? Aimed { get; set; }
 
     /// <summary>The dialogue panel's state.</summary>
     public required DialogueModel Dialogue { get; init; }
@@ -97,13 +103,13 @@ public sealed class FrameView
     public (double Yaw, double Pitch) Look { get; set; }
 
     /// <summary>The inventory the hotbar and the inventory screen show: the 3D simulation's in a 3D run, the 2D one's otherwise.</summary>
-    public Inventory Items => Voxel?.Inventory ?? Simulation.Inventory;
+    public Inventory Items => Voxel?.Inventory ?? Simulation!.Inventory;
 
     /// <summary>The selected hotbar slot of whichever simulation is running.</summary>
-    public int SelectedSlot => Voxel?.SelectedSlot ?? Simulation.SelectedSlot;
+    public int SelectedSlot => Voxel?.SelectedSlot ?? Simulation!.SelectedSlot;
 
     /// <summary>The tick of whichever simulation is running (the toast and the cursor blink count it).</summary>
-    public long Tick => Voxel?.Tick ?? Simulation.Tick;
+    public long Tick => Voxel?.Tick ?? Simulation!.Tick;
 
     /// <summary>The saturation an item's icon is drawn at: the word's in the 2D slice, full colour in the 3D world (D-game-6 as amended).</summary>
     public double IconSaturation(ItemId item) => Voxel is null ? Session.Words.SaturationOf(item) : 1.0;

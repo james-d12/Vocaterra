@@ -87,34 +87,44 @@ for each typed line; `ConversationContext.Create` for the utterance's context an
 `RepeatCounts.Next` to the error tags. The host owns the world seed, the stored time (fixed for `--transcript`, the clock in the loop),
 the learner model and the repeat counts.
 
-## 3D (S2)
+## 3D (S2, S3)
 
-The first-person voxel front-end runs beside the 2D slice (which stays the default until S4): add `--voxel`. It builds the draft route
-(`content/scenes/route-draft.json`, a 96 x 32 x 96 block world: the camp clearing, the path, the village with its stall and houses, the river
-and the bridge) at `--seed` (default 42) and shows it from the player's eyes.
+The first-person voxel scene runs beside the 2D slice (which stays the default until S4): add `--voxel`. It loads the prototype route from the
+bundle (`content/game-v1/game/scene.json`, a 96 x 32 x 96 block world: the forest clearing with the camp, the path south-east, the village with
+the stall and its shopkeeper behind the counter, the villager on the square, three houses, the signpost `Tienda / Río`, the river and its bridge)
+at `--seed` (default 42) and shows it from the player's eyes.
 
 ```bash
 dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42
 ```
 
 WASD or the arrows walk, Space jumps, the mouse looks (Esc lets the mouse go, a click takes it back), **hold the left button** on a trunk or a
-berry bush to gather it (`madera`, a berry), the right button places the selected item, `1`..`0` or the wheel pick the hotbar slot, **I** or **E**
-the inventory, **J** the journal, **F3** the debug overlay. The guide's dialogue and the crafting panel are not wired in 3D yet (S3, S4); the
-2D options that need the guide (`--say`, `--speak`, `--walk`, `--mine`...) say so instead of running.
+berry bush to gather it (`madera`, `fruta`), the right button places the selected item, `1`..`0` or the wheel pick the hotbar slot, **I** the
+inventory, **J** the journal, **F3** the debug overlay. **Aim the crosshair at the guide's figure**: the hint `E: hablar` shows, and **E** (or
+**T** to type, or **V** to talk: hold it, the clip goes when it is let go) opens the dialogue panel, which takes the keyboard and frees the mouse.
+Enter sends, Esc closes, Tab holds push-to-talk. Her answers point the beacon at the named noun's nearest block (the arrow at the screen edge
+when it is off screen); "¿qué es esto?" names the block under the crosshair. Other NPCs cannot be talked to yet (S6), and crafting is S4.
 
 To check it without playing, script it and save a screenshot (needs a display; every line below also prints what the step did):
 
 ```bash
-# the clearing from the player's eyes at spawn: the camp, the guide's figure and label, the beacon on the river (an arrow at the edge when it is off screen)
+# the guide answers "where is the river?": the console prints the verdict, her two lines and the arrow; the PNG shows the panel and the arrow
+dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42 --look 120,-5 --say "¿dónde está el río?" --screenshot /tmp/s3-river.png --frames 300
+# the village: walk to the square's north side and look at the stall: the shopkeeper behind the counter facing the player, with his label
+dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42 --walk-to 62,52 --look 180,-12 --screenshot /tmp/s3-stall.png --frames 150
+# the signpost, from the east side of the path: the label "Tienda / Río" over the board
+dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42 --walk-to 64,53 --look 262,-8 --screenshot /tmp/s3-sign.png --frames 150
+# the camp from the player's eyes at spawn: the guide's figure and label, the beacon on the river (an arrow at the edge when it is off screen)
 dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42 --look 120,-5 --beacon river --screenshot /tmp/s2-camp.png --frames 240
-# walk to the village (60, 52) and look south: the stall and the shopkeeper's label
-dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42 --walk-to 60,52 --look 180,-10 --screenshot /tmp/s2-village.png --frames 240
 # walk to a tree, gather its four trunk blocks and look down: the trunk is gone and madera is in the hotbar
 dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42 --walk-to 11,17 --interact 9,11,17 --interact 9,12,17 --interact 9,13,17 --interact 9,14,17 --look 270,-45 --screenshot /tmp/s2-gather.png
+# the host's stall prompt (no display): the request is understood
+dotnet run --project game/src/Vocaterra.Host -- --transcript "quiero agua, por favor" --prompt stall-need
 ```
 
-The steps `--look yaw,pitch` (degrees, yaw 0 north and 90 east), `--walk-to x,z`, `--interact x,y,z`, `--place item@x,y,z` and `--select n` run in the
-order given; `--beacon <point>` stands the beacon column on a named point of the scene. Details are in `src/Vocaterra.MonoGame/README.md`.
+The steps `--look yaw,pitch` (degrees, yaw 0 north and 90 east), `--walk-to x,z`, `--interact x,y,z`, `--place item@x,y,z`, `--select n` and
+`--say <line>` (walk to the guide, face her, open the panel, type and send each line, and wait for her reply) run in the order given;
+`--beacon <point>` stands the beacon column on a named point of the scene. Details are in `src/Vocaterra.MonoGame/README.md`.
 
 ## The guide, typed
 

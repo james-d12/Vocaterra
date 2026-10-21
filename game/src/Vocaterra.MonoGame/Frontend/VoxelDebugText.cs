@@ -36,7 +36,6 @@ public static class VoxelDebugText
             string.Create(inv, $"3D   FPS {fps:0}   tick {sim.Tick}   seed {seed}"),
             string.Create(inv, $"pos ({body.CenterX / U:0.0}, {body.FeetY / U:0.0}, {body.CenterZ / U:0.0})   yaw {yaw:0}   pitch {pitch:0}"),
             "target: " + target,
-            DebugText.SpanishTestLine,
         ];
     }
 }

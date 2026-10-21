@@ -2,7 +2,7 @@ using System.Globalization;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Tiles;
+using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game;
 
@@ -18,7 +18,7 @@ public sealed record GuideError(string Tag, string Expected, string Actual, Text
 /// <param name="Target">The tile found.</param>
 /// <param name="Blocks">The distance in blocks.</param>
 /// <param name="Direction">The direction as a Spanish phrase.</param>
-public sealed record GuidePointer(string Place, TilePoint Target, int Blocks, string Direction);
+public sealed record GuidePointer(string Place, GuideCell Target, int Blocks, string Direction);
 
 /// <summary>
 /// One normalized word of the typed line with the reading the core's resolver chose for it (<c>PipelineResult.Words</c>, CR-002). The word
@@ -60,9 +60,9 @@ public enum NameCheck
 /// <param name="Cursor">The tile under the mouse pointer, or <see langword="null"/> when there is none.</param>
 /// <param name="PointerActive">Whether an arrow from an earlier question is still on screen (the help line then says to follow it).</param>
 /// <param name="Review">Whether the line answers the guide's review question: it is evaluated on the <c>guide-review</c> prompt and <paramref name="Cursor"/> is the tile she pointed at.</param>
-/// <param name="Facts">The world as the guide sees it for this turn: a copy of the tiles around the player taken when the line was submitted (<see cref="WorldFacts.Snapshot"/>), so the turn does not read a world that keeps changing under the worker thread; <see langword="null"/> uses the facts the guide was built with.</param>
+/// <param name="Facts">The world as the guide sees it for this turn: a copy of the tiles around the player taken when the line was submitted (<see cref="WorldFacts.Snapshot"/> or <see cref="WorldFacts3D.Snapshot"/>), so the turn does not read a world that keeps changing under the worker thread; <see langword="null"/> uses the facts the guide was built with.</param>
 /// <param name="Inventory">What the player carries, for the crafting and finding answers ("te faltan dos bloques de madera", "tienes un hacha"); <see langword="null"/> is read as nothing carried and nothing said about it.</param>
-public sealed record GuideScene(TilePoint Player, TilePoint? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null, WorldFacts? Facts = null);
+public sealed record GuideScene(GuideViewpoint Player, GuideCell? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null, IGuideFacts? Facts = null);
 
 /// <summary>
 /// The outcome of one typed turn with the guide: the core's verdict in plain values, the lines to show (the correction first, then the

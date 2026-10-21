@@ -30,7 +30,7 @@ public sealed class GuideLayer : IFrameLayer
     {
         var camera = view.Camera;
         var size = camera.PixelsPerTile;
-        var feet = view.Session.Guide.Feet;
+        var feet = view.Slice!.Guide.Feet;
         var (left, top) = camera.TileToScreen(feet.X, feet.Y);
         var centerX = left + (size / 2);
         var bottom = top + size;
@@ -69,7 +69,7 @@ public sealed class GuideLayer : IFrameLayer
         var nameY = head.Top - 22 - 22;
         DrawHelpers.Text(spriteBatch, font, Name, new Vector2(centerX - (DrawHelpers.Width(font, Name) / 2), nameY), Color.White);
 
-        if (view.Session.IsNearGuide && !view.Dialogue.IsOpen)
+        if (view.Slice!.IsNearGuide && !view.Dialogue.IsOpen)
         {
             var textWidth = DrawHelpers.Width(font, Hint);
             var box = new Rectangle((int)(centerX - (textWidth / 2)) - 8, nameY - 30, (int)textWidth + 16, 24);

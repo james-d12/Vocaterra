@@ -64,8 +64,8 @@ public sealed record LaunchOptions
         + "  --grant <noun>:<n>      debug: give the player n of a noun's item, e.g. carbón:20 or madera:10 (a step; needs --screenshot)\n"
         + "  --no-speech             do not load the speech models (typing only)\n"
         + "  --status <listening|thinking> show that status line of the dialogue panel once the script is done, for the screenshot (needs --screenshot)\n"
-        + "  --voxel                 run the 3D first-person scene (S2) instead of the 2D slice; the 2D options that need the guide (--say, --wav, --speak, --listen, --walk, --mine...) do not apply\n"
-        + "  --scene <file>          the scene layout for --voxel (default: game/scene.json in the bundle, else content/scenes/route-draft.json)\n"
+        + "  --voxel                 run the 3D first-person scene (S2, S3) instead of the 2D slice; --say talks to the guide, the 2D-only options (--wav, --speak, --listen, --walk, --mine...) do not apply\n"
+        + "  --scene <file>          the scene layout for --voxel (default: game/scene.json in the bundle)\n"
         + "  --look <yaw,pitch>      3D: face this direction in degrees (yaw 0 north, 90 east; pitch positive up); a step (needs --voxel and --screenshot)\n"
         + "  --walk-to <x,z>         3D: walk to this block column with Move commands, within half a block or until the tick limit (a step)\n"
         + "  --interact <x,y,z>      3D: hold the gather command on this block until it is gathered or the tick limit (a step; aims the view at it)\n"
@@ -491,17 +491,16 @@ public sealed record LaunchOptions
         var showInventory = false;
         if (voxel)
         {
-            // The guide, the 2D world and the 2D tools are not part of the 3D scene yet (S3 and S4); say so instead of ignoring the option.
-            var unsupported = steps.Where(static s => s.Kind is not (ScriptStepKind.Select or ScriptStepKind.Inventory)).Select(static s => s.Kind.ToString()).Distinct().ToList();
+            // The 2D world and its tools are not part of the 3D scene (S4 retires them); --say is the guide in 3D (S3). Say so instead of ignoring an option.
+            var unsupported = steps.Where(static s => s.Kind is not (ScriptStepKind.Select or ScriptStepKind.Inventory or ScriptStepKind.Say)).Select(static s => s.Kind.ToString()).Distinct().ToList();
             if (unsupported.Count > 0 || walkGiven || point is not null || pointNearest is not null || status is not null)
             {
-                error = "With --voxel the guide, the dialogue and the 2D world are not available yet (S3): --say, --wav, --speak, --listen, --skip, --talk, --walk, --mine, --craft, --crafting, --teleport, --grant, --walk-right, --point, --point-nearest and --status do not apply.";
+                error = "With --voxel only --say talks to the guide (S3); --wav, --speak, --listen, --skip, --talk, --walk, --mine, --craft, --crafting, --teleport, --grant, --walk-right, --point, --point-nearest and --status belong to the 2D slice (S4 retires it).";
                 return false;
             }
 
             showInventory = steps.Any(static s => s.Kind == ScriptStepKind.Inventory);
             steps = [];
-            says = [];
         }
 
         if (point is not null && pointNearest is not null)

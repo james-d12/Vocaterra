@@ -179,7 +179,7 @@ public sealed class BeaconArrowLayer : IFrameLayer
         var point = camera.Screen.Project(target.X + 0.5, target.Y + 4.0, target.Z + 0.5);
         var arrow = EdgeArrow.For(point, width, height, EdgeMargin);
         var distance = Math.Sqrt(Math.Pow(target.X + 0.5 - eye.X, 2) + Math.Pow(target.Z + 0.5 - eye.Z, 2));
-        var text = string.Create(CultureInfo.InvariantCulture, $"{beacon.Label ?? string.Empty}  {distance:0} m").Trim();
+        var text = string.Create(CultureInfo.InvariantCulture, $"{beacon.Label ?? string.Empty}  {distance:0} bloques").Trim();
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var pixel = view.Pixel;
         if (arrow.OnScreen)

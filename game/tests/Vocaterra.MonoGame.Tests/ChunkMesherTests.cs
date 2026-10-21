@@ -272,7 +272,7 @@ public sealed class ChunkMesherTests
     [Fact]
     public void TheMesherOnTheRealRouteBuildsEveryChunkWithinTheSixteenBitLimit()
     {
-        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "scenes", "route-draft.json")), 42);
+        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), 42);
         var source = new GridBlockSource(scene.Grid);
         var faces = 0;
         var vertices = 0;
@@ -298,7 +298,7 @@ public sealed class ChunkMesherTests
     [Fact]
     public void WaterOfTheRiverGoesIntoTheTranslucentMeshAndNothingElseDoes()
     {
-        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "scenes", "route-draft.json")), 42);
+        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), 42);
         var source = new GridBlockSource(scene.Grid);
         var river = scene.Point("river");
         var chunk = VoxelChunkCoord.FromBlock(river.X, river.Y, river.Z);

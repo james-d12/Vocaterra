@@ -42,7 +42,7 @@ public sealed class WorldRenderer
     public void Draw(SpriteBatch spriteBatch, FrameView view)
     {
         var camera = view.Camera;
-        var world = view.Simulation.World;
+        var world = view.Simulation!.World;
         var light = view.Simulation.Light;
         var surface = world.Record.SurfaceHeights;
         var range = camera.VisibleTiles();
@@ -95,7 +95,7 @@ public sealed class WorldRenderer
         var (left, top) = view.Camera.UnitsToScreen(box.Left, box.Top);
         var (right, bottom) = view.Camera.UnitsToScreen(box.Right, box.Bottom);
         var body = new Rectangle(left, top, Math.Max(1, right - left), Math.Max(1, bottom - top));
-        var centre = WorldFacts.CenterTile(view.Simulation.Player);
+        var centre = WorldFacts.CenterTile(view.Simulation!.Player);
         var lit = view.Simulation.Light.Brightness(centre.X, centre.Y) / (double)LightMap.MaxLevel;
         var brightness = Math.Max(PlayerMinimumBrightness, lit);
         var scale = (float)brightness;
