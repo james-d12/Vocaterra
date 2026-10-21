@@ -66,7 +66,7 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 | G3 | Innkeeper scene (section 4.1) | planned | Sonnet 5.5 for the scene design, Haiku 5.5 for the content checklist | G2 |
 | G4 | Quest-giver scene (section 4.2) | planned | Haiku 5.5 | G3 |
 | G5 | Engine decision (D-game-1), then the first engine host on the same call sequence | blocked: owner decision D-game-1 | Sonnet 5.5 | owner |
-| R1 | Research: Terraria-inspired prototype (guide NPC by text and speech, mining, building, movement, forest biome, map and cave generation, language progress tracking, known nouns in colour and unknown in greyscale, inventory) on MonoGame; findings in `docs/research/` | in progress | Opus 5.5 (owner's request) | G0 |
+| R1 | Research: Terraria-inspired prototype (guide NPC by text and speech, mining, building, movement, forest biome, map and cave generation, language progress tracking, known nouns in colour and unknown in greyscale, inventory) on MonoGame; findings in `docs/research/` | done (merged 2026-10-21, `0e8d601`); proposals await the owner | Opus 5.5 (owner's request) | G0 |
 
 Each milestone ends with the gate in section 6 and a line in section 5.
 
@@ -150,6 +150,14 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   core's feed. It is left as it is (D-game-3, deferred); rewrite it before anything is activated.
 - **Setup (G0).** The old `scripts/content.sh` refused any option after the bundle directory, so `hash --bundle-id` could not run; the new
   script passes options through. The old `nuget.config` pointed at a folder named `SpanishLearningGame`, which no longer exists.
+
+- **R1 (prototype research, 2026-10-21).** `docs/research/PROTOTYPE_RESEARCH.md` and `PROTOTYPE_PLAN.md` propose three new projects
+  (`Vocaterra.Simulation` with no packages and no engine, `Vocaterra.Game` on the packages, `Vocaterra.MonoGame` for the only engine code),
+  milestones P1 to P10 with P3 (the guide, typed) as the smallest slice that proves the language core in game, core requests CR-002 to CR-009 (only
+  P8, the guide speaking, is blocked, on CR-006), and decisions D-game-5 (CC0-only assets) and D-game-6 (when a noun counts as known). None of
+  it is adopted until the owner answers. Not verified by running: MonoGame 3.8.6 DesktopGL on SDK 10.0.402, MonoGame's `Microphone` on Linux,
+  the Spanish glyphs in the candidate fonts, Kokoro's Spanish speaker ids. Greyscale is planned as a CPU-made grey atlas, because MonoGame
+  shader compilation on Linux still needs Wine.
 
 ## 6. Definition of done (every milestone)
 
