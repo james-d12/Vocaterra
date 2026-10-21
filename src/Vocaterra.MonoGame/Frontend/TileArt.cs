@@ -1,3 +1,4 @@
+using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.MonoGame.Frontend;
@@ -14,7 +15,109 @@ public static class TileArt
     /// <summary>The number of tile ids the atlas holds (ids are consecutive from <see cref="TileId.Air"/>).</summary>
     public static int TileCount => TileDefinition.All.Count;
 
+    /// <summary>The number of tool icons after the tiles in the atlas: the axe, then the pickaxe.</summary>
+    public const int ToolCount = 2;
+
     private static readonly (byte R, byte G, byte B, byte A) Transparent = (0, 0, 0, 0);
+    private static readonly (byte R, byte G, byte B, byte A) Metal = (168, 170, 180, 255);
+
+    /// <summary>The tile whose art an item shows as its icon, or <see langword="null"/> for a tool (which has its own icon, <see cref="ToolPixels"/>).</summary>
+    public static TileId? TileOfItem(ItemId item) => item switch
+    {
+        ItemId.Wood => TileId.Planks,
+        ItemId.Stone => TileId.Stone,
+        ItemId.Dirt => TileId.Dirt,
+        ItemId.Sand => TileId.Sand,
+        ItemId.Flower => TileId.Flower,
+        ItemId.Mushroom => TileId.Mushroom,
+        ItemId.Door => TileId.Door,
+        ItemId.Table => TileId.Table,
+        ItemId.Chair => TileId.Chair,
+        ItemId.Bed => TileId.Bed,
+        ItemId.Chest => TileId.Chest,
+        _ => null,
+    };
+
+    /// <summary>The RGBA bytes of a tool icon: <c>0</c> is the axe, <c>1</c> the pickaxe.</summary>
+    public static byte[] ToolPixels(int tool)
+    {
+        var data = new byte[Size * Size * 4];
+        for (var y = 0; y < Size; y++)
+        {
+            for (var x = 0; x < Size; x++)
+            {
+                var (r, g, b, a) = tool == 0 ? AxePixel(x, y) : PickaxePixel(x, y);
+                var i = ((y * Size) + x) * 4;
+                data[i] = r;
+                data[i + 1] = g;
+                data[i + 2] = b;
+                data[i + 3] = a;
+            }
+        }
+
+        return data;
+    }
+
+    private static (byte R, byte G, byte B, byte A) AxePixel(int x, int y)
+    {
+        if (x + y == 16 && y is >= 4 and <= 14)
+        {
+            return (120, 80, 40, 255);
+        }
+
+        return x is >= 10 and <= 14 && y is >= 1 and <= 5 ? Metal : Transparent;
+    }
+
+    private static (byte R, byte G, byte B, byte A) PickaxePixel(int x, int y)
+    {
+        if (x is 7 or 8 && y is >= 4 and <= 14)
+        {
+            return (120, 80, 40, 255);
+        }
+
+        var head = (y is 3 or 4 && x is >= 2 and <= 13) || (x is 2 or 3 or 12 or 13 && y is >= 3 and <= 6);
+        return head ? Metal : Transparent;
+    }
+
+    private static (byte R, byte G, byte B, byte A) FlowerPixel(int x, int y, uint noise)
+    {
+        if (x is 7 or 8 && y is >= 7 and <= 15)
+        {
+            return Shade(60, 140, 60, noise);
+        }
+
+        if (y is 11 or 12 && x is >= 4 and <= 6)
+        {
+            return Shade(60, 140, 60, noise);
+        }
+
+        // Petals: a disc of radius 3 around (7.5, 4), in doubled coordinates so the centre is an integer.
+        var dx = (2 * x) - 15;
+        var dy = (2 * y) - 8;
+        var distance = (dx * dx) + (dy * dy);
+        if (distance <= 8)
+        {
+            return Shade(250, 210, 40, noise);
+        }
+
+        return distance <= 36 ? Shade(240, 80, 120, noise) : Transparent;
+    }
+
+    private static (byte R, byte G, byte B, byte A) MushroomPixel(int x, int y, uint noise)
+    {
+        if (x is >= 6 and <= 9 && y is >= 9 and <= 15)
+        {
+            return Shade(230, 222, 198, noise);
+        }
+
+        if (y is >= 3 and <= 8 && x is >= 2 and <= 13 && !(y == 3 && x is < 4 or > 11))
+        {
+            var spot = (x is 4 or 5 && y == 5) || (x is 10 or 11 && y == 6);
+            return spot ? Shade(230, 230, 230, noise) : Shade(200, 50, 50, noise);
+        }
+
+        return Transparent;
+    }
 
     /// <summary>The RGBA bytes (row by row, <see cref="Size"/> x <see cref="Size"/> x 4) of the art for <paramref name="id"/>.</summary>
     public static byte[] Pixels(TileId id)
@@ -51,6 +154,64 @@ public static class TileArt
                 return x is >= 5 and <= 10 ? Shade(102, 66, 34, noise) : Transparent;
             case TileId.Leaves:
                 return Mix(7, (uint)x, (uint)y) % 6 == 0 ? Transparent : Shade(46, 128, 52, noise);
+            case TileId.Sand:
+                return Shade(222, 196, 120, noise);
+            case TileId.Flower:
+                return FlowerPixel(x, y, noise);
+            case TileId.Mushroom:
+                return MushroomPixel(x, y, noise);
+            case TileId.Planks:
+                return y % 4 == 3 ? Shade(140, 96, 52, noise) : Shade(190, 140, 80, noise);
+            case TileId.Door:
+                if (x is 1 or 14 || y is 0 or 15)
+                {
+                    return Shade(96, 60, 30, noise);
+                }
+
+                return x is 11 && y is 8 or 9 ? Shade(230, 190, 60, 0) : Shade(150, 98, 46, noise);
+            case TileId.Table:
+                if (y is >= 4 and <= 6)
+                {
+                    return Shade(170, 120, 70, noise);
+                }
+
+                return x is 2 or 3 or 12 or 13 && y >= 7 ? Shade(110, 74, 40, noise) : Transparent;
+            case TileId.Chair:
+                if ((x is 4 or 5 && y is >= 2 and <= 8) || (y is 9 or 10 && x is >= 3 and <= 12) || (x is 3 or 4 or 11 or 12 && y >= 11))
+                {
+                    return Shade(150, 98, 46, noise);
+                }
+
+                return Transparent;
+            case TileId.Bed:
+                if (y >= 13)
+                {
+                    return x is 1 or 2 or 13 or 14 ? Shade(96, 60, 30, noise) : Transparent;
+                }
+
+                if (y is >= 9 and <= 12)
+                {
+                    return Shade(140, 90, 45, noise);
+                }
+
+                if (y is >= 5 and <= 8 && x >= 4)
+                {
+                    return Shade(200, 60, 60, noise);
+                }
+
+                return y is 4 or 5 && x is >= 1 and <= 4 ? Shade(230, 230, 230, noise) : Transparent;
+            case TileId.Chest:
+                if (y is >= 6 and <= 14 && x is >= 2 and <= 13)
+                {
+                    if (y == 6)
+                    {
+                        return Shade(100, 66, 30, noise);
+                    }
+
+                    return x is 7 or 8 && y is 8 or 9 ? Shade(230, 190, 60, 0) : Shade(150, 100, 50, noise);
+                }
+
+                return Transparent;
             default:
                 return Transparent;
         }

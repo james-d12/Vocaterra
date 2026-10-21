@@ -38,7 +38,12 @@ public sealed record LaunchOptions
         + "  --point-nearest <lemma> put the cursor on the nearest tile of that noun (arbol, piedra, hierba, tierra) for each --say line (needs --screenshot)\n"
         + "  --skip <minutes>        move the stored time on (no world steps) at this point of the --say lines; order matters (needs --screenshot)\n"
         + "  --talk                  close and reopen the dialogue at this point, so the guide may ask a review question (needs --screenshot)\n"
-        + "  --journal               open the journal once the lines are sent (needs --screenshot)\n";
+        + "  --journal               open the journal once the lines are sent (needs --screenshot)\n"
+        + "  --walk <col>            walk until the player stands in this column (a world step; needs --screenshot)\n"
+        + "  --mine <col,row>        hold the mine command on that tile until it is gone (a world step; needs --screenshot)\n"
+        + "  --place <item>@<col,row> select the hotbar slot holding the item and place it on that tile (needs --screenshot)\n"
+        + "  --select <slot>         select a hotbar slot, 1 to 10 as the number keys give them (needs --screenshot)\n"
+        + "  --inventory             open the inventory screen and keep it open (needs --screenshot)\n";
 
     /// <summary>The world seed.</summary>
     public ulong Seed { get; init; } = DefaultSeed;
@@ -111,7 +116,14 @@ public sealed record LaunchOptions
                 continue;
             }
 
-            if (arg is not ("--seed" or "--screenshot" or "--frames" or "--walk-right" or "--say" or "--content" or "--point" or "--point-nearest" or "--skip"))
+            if (arg == "--inventory")
+            {
+                steps.Add(ScriptStep.Inventory());
+                continue;
+            }
+
+            if (arg is not ("--seed" or "--screenshot" or "--frames" or "--walk-right" or "--say" or "--content" or "--point" or "--point-nearest" or "--skip"
+                or "--walk" or "--mine" or "--place" or "--select"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -162,6 +174,43 @@ public sealed record LaunchOptions
                     }
 
                     steps.Add(ScriptStep.Skip(minutes));
+                    break;
+                case "--walk":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var column))
+                    {
+                        error = $"--walk needs a column, like 517; got '{value}'.";
+                        return false;
+                    }
+
+                    steps.Add(ScriptStep.Walk(column));
+                    break;
+                case "--mine":
+                    if (!TryParseTile(value, out var mineTile))
+                    {
+                        error = $"--mine needs a column and a row, like 517,182; got '{value}'.";
+                        return false;
+                    }
+
+                    steps.Add(ScriptStep.Mine(mineTile));
+                    break;
+                case "--place":
+                    var at = value.IndexOf('@', StringComparison.Ordinal);
+                    if (at <= 0 || !TryParseTile(value[(at + 1)..], out var placeTile))
+                    {
+                        error = $"--place needs an item and a tile, like madera@517,182; got '{value}'.";
+                        return false;
+                    }
+
+                    steps.Add(ScriptStep.Place(value[..at].Trim(), placeTile));
+                    break;
+                case "--select":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var slot) || slot < 1 || slot > 10)
+                    {
+                        error = $"--select needs a hotbar slot from 1 to 10 (the number keys), got '{value}'.";
+                        return false;
+                    }
+
+                    steps.Add(ScriptStep.Select(slot));
                     break;
                 case "--point":
                     if (!TryParseTile(value, out var tile))

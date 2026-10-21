@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.MonoGame.Frontend;
+using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.MonoGame;
@@ -16,14 +17,14 @@ public sealed class TileAtlas : IDisposable
     public TileAtlas(GraphicsDevice device)
     {
         var count = TileArt.TileCount;
-        var width = count * TileArt.Size;
+        var width = (count + TileArt.ToolCount) * TileArt.Size;
         var data = new byte[width * TileArt.Size * 4];
-        for (var id = 0; id < count; id++)
+        for (var cell = 0; cell < count + TileArt.ToolCount; cell++)
         {
-            var art = TileArt.Pixels((TileId)id);
+            var art = cell < count ? TileArt.Pixels((TileId)cell) : TileArt.ToolPixels(cell - count);
             for (var y = 0; y < TileArt.Size; y++)
             {
-                Array.Copy(art, y * TileArt.Size * 4, data, ((y * width) + (id * TileArt.Size)) * 4, TileArt.Size * 4);
+                Array.Copy(art, y * TileArt.Size * 4, data, ((y * width) + (cell * TileArt.Size)) * 4, TileArt.Size * 4);
             }
         }
 
@@ -46,9 +47,23 @@ public sealed class TileAtlas : IDisposable
     /// Draws one tile at a saturation (0 to 1): the grey copy first (unless the tile is fully coloured), then the colour copy with alpha equal
     /// to the saturation (unless it is fully grey). Premultiplied alpha, so <c>Color.White * s</c> fades the colour copy to s.
     /// </summary>
-    public void DrawTile(SpriteBatch spriteBatch, TileId id, Rectangle destination, double saturation)
+    public void DrawTile(SpriteBatch spriteBatch, TileId id, Rectangle destination, double saturation) =>
+        DrawCell(spriteBatch, Source(id), destination, saturation);
+
+    /// <summary>
+    /// Draws an item's icon at a saturation (the colour of the noun that names it, see <c>WordProgress.SaturationOf</c>), with the same grey
+    /// then colour rule as a tile. A material or a placed block shows its tile's art; the axe and the pickaxe have their own icons.
+    /// </summary>
+    public void DrawIcon(SpriteBatch spriteBatch, ItemId item, Rectangle destination, double saturation)
     {
-        var source = Source(id);
+        var source = TileArt.TileOfItem(item) is { } tile
+            ? Source(tile)
+            : new Rectangle((TileArt.TileCount + (item == ItemId.Axe ? 0 : 1)) * TileArt.Size, 0, TileArt.Size, TileArt.Size);
+        DrawCell(spriteBatch, source, destination, saturation);
+    }
+
+    private void DrawCell(SpriteBatch spriteBatch, Rectangle source, Rectangle destination, double saturation)
+    {
         if (saturation < 1.0)
         {
             spriteBatch.Draw(Grey, destination, source, Color.White);

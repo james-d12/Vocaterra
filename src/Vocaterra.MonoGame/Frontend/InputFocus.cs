@@ -11,6 +11,9 @@ public sealed class InputFocus
 
     /// <summary>Whether the journal screen is open: the player does not walk while it is.</summary>
     public bool JournalOpen { get; set; }
+
+    /// <summary>Whether the inventory screen is open: the player does not walk while it is (the number keys and the mouse still work).</summary>
+    public bool InventoryOpen { get; set; }
 }
 
 /// <summary>
@@ -26,7 +29,7 @@ public sealed class FocusGatedInput(IInputSource Inner, InputFocus Focus) : IInp
     {
         // The inner source is polled either way, so a scripted source keeps its own clock.
         var held = Inner.Poll(tick);
-        return Focus.TextEntryActive || Focus.JournalOpen ? InputActions.None : held;
+        return Focus.TextEntryActive || Focus.JournalOpen || Focus.InventoryOpen ? InputActions.None : held;
     }
 }
 

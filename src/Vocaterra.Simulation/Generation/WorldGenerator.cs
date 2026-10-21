@@ -7,14 +7,14 @@ namespace Vocaterra.Simulation.Generation;
 public static class WorldGenerator
 {
     /// <summary>The generator version; saves store it next to the seed. Any change to a pass bumps it.</summary>
-    public const int Version = 2;
+    public const int Version = 3;
 
     /// <summary>The smallest world side the passes support, in tiles.</summary>
     public const int MinimumSide = 128;
 
     /// <summary>
-    /// The passes in the order they run. A later pass (caves, ores, vegetation) is inserted here; the two spawn passes stay last because they
-    /// need the final tiles.
+    /// The passes in the order they run. The spawn passes need the trees and the final terrain, so the surface dressing (sand, flowers and
+    /// mushrooms) runs after them and keeps clear of the spawn and of every tree base. A later pass (caves, ores) goes in the order it needs.
     /// </summary>
     internal static IReadOnlyList<IGenerationPass> DefaultPasses { get; } =
     [
@@ -24,6 +24,8 @@ public static class WorldGenerator
         new ForestPass(),
         new SpawnPass(),
         new SpawnTreePass(),
+        new SandPass(),
+        new FloraPass(),
     ];
 
     /// <summary>The first row the terrain pass may put the surface on for a world of the given height.</summary>

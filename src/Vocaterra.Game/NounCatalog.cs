@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Language.Morphology;
+using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.Game;
@@ -12,18 +13,22 @@ namespace Vocaterra.Game;
 /// <param name="Lemma">The dictionary form (<c>árbol</c>).</param>
 /// <param name="Gender">The lexicon's gender of the noun (<c>m</c> or <c>f</c>).</param>
 /// <param name="Tiles">The tile kinds it names.</param>
-/// <param name="Items">The item ids it names (none before P6).</param>
+/// <param name="Items">The item kinds it names.</param>
 /// <param name="Definite">The definite article in the singular (<c>el</c>, <c>la</c>).</param>
 /// <param name="Indefinite">The indefinite article in the singular (<c>un</c>, <c>una</c>).</param>
 /// <param name="Plural">The plural form (<c>árboles</c>).</param>
+/// <param name="Mass">Whether the noun is a mass noun, counted as <c>bloques de</c> (<c>madera</c>, <c>arena</c>).</param>
+/// <param name="Sources">The catalogue nouns this one comes from (<c>madera</c> from <c>árbol</c>), for the guide's "where is it" answers.</param>
 public sealed record NounEntry(
     string Lemma,
     string Gender,
     IReadOnlyList<TileId> Tiles,
-    IReadOnlyList<string> Items,
+    IReadOnlyList<ItemId> Items,
     string Definite,
     string Indefinite,
-    string Plural)
+    string Plural,
+    bool Mass,
+    IReadOnlyList<string> Sources)
 {
     /// <summary>The noun with its definite article: <c>el árbol</c>.</summary>
     public string WithDefinite => $"{Definite} {Lemma}";
@@ -56,6 +61,7 @@ public sealed class NounCatalog
     private readonly ContentBundle _bundle;
     private readonly Dictionary<string, NounEntry> _byLemma;
     private readonly Dictionary<TileId, NounEntry> _byTile;
+    private readonly Dictionary<ItemId, NounEntry> _byItem;
     private readonly HashSet<TileId> _colourless;
 
     private NounCatalog(
@@ -66,12 +72,18 @@ public sealed class NounCatalog
         _bundle = bundle;
         _byLemma = new Dictionary<string, NounEntry>(StringComparer.Ordinal);
         _byTile = [];
+        _byItem = [];
         foreach (var noun in nouns)
         {
             _byLemma.Add(noun.Lemma, noun);
             foreach (var tile in noun.Tiles)
             {
                 _byTile.Add(tile, noun);
+            }
+
+            foreach (var item in noun.Items)
+            {
+                _byItem.Add(item, noun);
             }
         }
 
@@ -118,11 +130,12 @@ public sealed class NounCatalog
 
         var nouns = new List<NounEntry>();
         var claimed = new HashSet<TileId>();
+        var claimedItems = new HashSet<ItemId>();
         foreach (var item in root.GetProperty("nouns").EnumerateArray())
         {
             var lemma = item.GetProperty("lemma").GetString() ?? throw new InvalidDataException("A catalogue noun has no lemma.");
             var tiles = item.GetProperty("tiles").EnumerateArray().Select(t => TileNamed(t.GetString())).ToList();
-            var items = item.GetProperty("items").EnumerateArray().Select(static i => i.GetString() ?? string.Empty).ToList();
+            var items = item.GetProperty("items").EnumerateArray().Select(i => ItemNamed(i.GetString())).ToList();
             foreach (var tile in tiles)
             {
                 if (!claimed.Add(tile))
@@ -131,7 +144,19 @@ public sealed class NounCatalog
                 }
             }
 
-            nouns.Add(Describe(bundle, lemma, tiles, items));
+            foreach (var kind in items)
+            {
+                if (!claimedItems.Add(kind))
+                {
+                    throw new InvalidDataException($"{RelativePath} names item {kind} more than once.");
+                }
+            }
+
+            var mass = item.TryGetProperty("mass", out var massValue) && massValue.GetBoolean();
+            var sources = item.TryGetProperty("sources", out var sourceValues)
+                ? sourceValues.EnumerateArray().Select(s => s.GetString() ?? string.Empty).ToList()
+                : new List<string>();
+            nouns.Add(Describe(bundle, lemma, tiles, items, mass, sources));
         }
 
         var colourless = root.GetProperty("colourless").EnumerateArray().Select(t => TileNamed(t.GetString())).ToList();
@@ -140,6 +165,18 @@ public sealed class NounCatalog
             if (!claimed.Add(tile))
             {
                 throw new InvalidDataException($"{RelativePath} lists tile {tile} both as a noun and as colourless.");
+            }
+        }
+
+        var lemmas = nouns.Select(static n => n.Lemma).ToHashSet(StringComparer.Ordinal);
+        foreach (var noun in nouns)
+        {
+            foreach (var source in noun.Sources)
+            {
+                if (!lemmas.Contains(source))
+                {
+                    throw new InvalidDataException($"{RelativePath}: '{noun.Lemma}' comes from '{source}', which is not a catalogue noun.");
+                }
             }
         }
 
@@ -155,6 +192,9 @@ public sealed class NounCatalog
 
     /// <summary>The catalogue entry that names a tile kind, or <see langword="null"/> for a colourless or unnamed tile.</summary>
     public NounEntry? ForTile(TileId tile) => _byTile.TryGetValue(tile, out var noun) ? noun : null;
+
+    /// <summary>The catalogue entry that names an item kind, or <see langword="null"/> when no noun names it.</summary>
+    public NounEntry? ForItem(ItemId item) => _byItem.TryGetValue(item, out var noun) ? noun : null;
 
     /// <summary>Whether a tile kind is listed as colourless (always in colour).</summary>
     public bool IsColourless(TileId tile) => _colourless.Contains(tile);
@@ -196,7 +236,26 @@ public sealed class NounCatalog
         throw new InvalidDataException($"{RelativePath} names an unknown tile '{name}'.");
     }
 
-    private static NounEntry Describe(ContentBundle bundle, string lemma, IReadOnlyList<TileId> tiles, IReadOnlyList<string> items)
+    private static ItemId ItemNamed(string? name)
+    {
+        foreach (var definition in ItemDefinition.All)
+        {
+            if (string.Equals(definition.Name, name, StringComparison.Ordinal))
+            {
+                return definition.Id;
+            }
+        }
+
+        throw new InvalidDataException($"{RelativePath} names an unknown item '{name}'.");
+    }
+
+    private static NounEntry Describe(
+        ContentBundle bundle,
+        string lemma,
+        IReadOnlyList<TileId> tiles,
+        IReadOnlyList<ItemId> items,
+        bool mass,
+        IReadOnlyList<string> sources)
     {
         var gender = bundle.Lexicon.EntriesForLemma(lemma)
             .Select(static e => e.ToFeatures())
@@ -210,6 +269,8 @@ public sealed class NounCatalog
             items,
             morphology.Article(Definiteness.Definite, gender, "sg", lemma),
             morphology.Article(Definiteness.Indefinite, gender, "sg", lemma),
-            morphology.Pluralize(lemma));
+            morphology.Pluralize(lemma),
+            mass,
+            sources);
     }
 }

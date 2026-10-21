@@ -16,14 +16,14 @@
 {"path":"effects/effects.json","sha256":"31777ade0667b1a20142e9e9e610cfa196d0537e54e0097b1246ddcb5324b928","bytes":828},
 {"path":"evaluation/evaluation-config.json","sha256":"fc7d6d2567808648dd6615e4c2ea60556b50eba487ee381e74d5d0769003867d","bytes":1632},
 {"path":"feedback/feedback-policy.json","sha256":"63e3ac7e5a4e7c95ca2d26212ae2536622e606be07cc2117f89cdb34f4da9dcf","bytes":492},
-{"path":"game/nouns.json","sha256":"6c2f888a08a9e800358e1a31dd501ecbf344141e01ce0a343647d19ff28ba68a","bytes":351},
+{"path":"game/nouns.json","sha256":"96b24b81f4fc5a7edb9cc2292e4a8b7ab3eca22a5cdf73b918ffca4904a400e8","bytes":1151},
 {"path":"intents/intents.json","sha256":"58b513e107e55e3576db11107fd03f849958317885399ae7b59c0a24f34a0d81","bytes":7934},
 {"path":"lexicon/game.json","sha256":"16c4dcbc4f190f6dc7ca68aa4b42a435f8517f71699668f439a37a7f17243eb7","bytes":5802},
 {"path":"lexicon/seed.json","sha256":"c6d3c0348339015ab9693cfcb9089935fddd997f5cf2d1d64237e4ae8ed11eb0","bytes":119541},
 {"path":"lexicon/supplement.json","sha256":"c2e4c4508560abdd1d29f86678b198059dcbab29adc096df9ea6be8bb3339fdf","bytes":815},
 {"path":"lexicon/wiktionary-es.json","sha256":"83da218f083f8b8f73262dc4c275e6418a1a8e7aa53c1de72dcb62bf16372f2f","bytes":4718227},
 {"path":"lexicon/wiktionary-es.source.json","sha256":"9cecd4bd49f21bfb153b69aeaaa1118740e8649ba5dce61a9dc925e557134b70","bytes":3640},
-{"path":"lexicon/world.json","sha256":"a9fc7bd719955b19bfda5e96ac07dcd57c48413a4cd76ed4dcc75357d51cbd80","bytes":266},
+{"path":"lexicon/world.json","sha256":"2817ed47c977fb3bc904e403e894fb0fc21c653eab890c25aee5e13f54e7f8a8","bytes":445},
 {"path":"prompts/prompts.json","sha256":"5b64bd87bdc5ed167631a2bc3dfd0232eed95cd744afd6fa0b4ba683bfc98a92","bytes":6292},
 {"path":"provenance.json","sha256":"816de52d2d9569b5127b5a81d04147760a8d9a78c4a8ddfbc2977871f729b719","bytes":3002}
-],"bundleHash":"6a3750bc216353c67e4ec02cc9b41f082843e7177890c87832bec6cd20701e64"}
+],"bundleHash":"9e2cd3be39b998e2cbc675f9ed56aa9a2405d9b7cc744ce551bacaa1400e720d"}

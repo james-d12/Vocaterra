@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game;
 using Vocaterra.MonoGame.Frontend;
 using Vocaterra.Simulation;
+using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Physics;
 using Vocaterra.Simulation.Tiles;
 
@@ -49,6 +50,8 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     private readonly ScriptedDialogue? _script;
     private readonly JournalModel _journal = new();
     private readonly ToastQueue _toasts = new();
+    private readonly InventoryScreen _inventory = new();
+    private readonly LiveWorldInput _live = new();
     private readonly ScriptedCursor? _cursor;
     private readonly KeyRepeater _backspace = new();
     private readonly KeyRepeater _delete = new();
@@ -66,6 +69,10 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     private bool _firstUpdateSeen;
     private bool _swallowTypedT;
     private bool _journalShown;
+    private int _previousScroll;
+    private bool _previousRightDown;
+
+    private static readonly Keys[] SlotKeys = [Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9, Keys.D0];
 
     /// <summary>Creates the game for a started session and options. The session already holds the generated world and the loaded bundle.</summary>
     public VocaterraGame(LaunchOptions options, GameSession session)
@@ -117,6 +124,7 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
+        _previousScroll = Mouse.GetState().ScrollWheelValue; // the wheel moves the hotbar by what it turns after the window opens
         _pixel = new Texture2D(GraphicsDevice, 1, 1);
         _pixel.SetData([Color.White]);
         _atlas = new TileAtlas(GraphicsDevice);
@@ -133,13 +141,16 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
             Atlas = _atlas,
             Journal = _journal,
             Toasts = _toasts,
+            Inventory = _inventory,
         };
         _layers.Add(new GuideLayer());
         _layers.Add(new PointerLayer());
         _layers.Add(new DebugOverlay());
+        _layers.Add(new HotbarLayer());
         _layers.Add(new DialoguePanel());
         _layers.Add(new ToastLayer());
         _layers.Add(new JournalLayer());
+        _layers.Add(new InventoryLayer());
     }
 
     /// <inheritdoc />
@@ -166,6 +177,21 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         {
             _previousPlayer = _session.Simulation.Player;
             CommandMapper.Fill(_input.Poll(_session.Simulation.Tick), _commands);
+            if (_script is not null)
+            {
+                // The scripted run's world steps (mine, place, select) and its inventory requests, read after its poll.
+                if (_script.TakeInventoryRequest() is { } wanted)
+                {
+                    SetInventory(wanted);
+                }
+
+                _commands.AddRange(_script.Commands);
+            }
+            else
+            {
+                _live.Fill(_commands);
+            }
+
             _session.Step(_commands);
         }
 
@@ -280,6 +306,13 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
                 CloseJournal();
             }
         }
+        else if (_inventory.IsOpen)
+        {
+            if (pressed(Keys.Escape) || pressed(Keys.I) || pressed(Keys.E))
+            {
+                CloseInventory();
+            }
+        }
         else if (_dialogue.IsOpen)
         {
             var alt = keys.IsKeyDown(Keys.LeftAlt) || keys.IsKeyDown(Keys.RightAlt);
@@ -345,12 +378,54 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         {
             OpenJournal();
         }
+        else if (pressed(Keys.I) || pressed(Keys.E))
+        {
+            OpenInventory();
+        }
         else if (pressed(Keys.Escape) && _session.Pointer is not null)
         {
             _session.DismissPointer();
         }
 
+        ReadWorldInput(keys);
         _previousKeys = keys;
+    }
+
+    // The number keys and the wheel pick the hotbar slot; the mouse mines (held) and places (pressed) on the tile under it. Nothing acts
+    // while the dialogue or the journal has the screen, and the mouse does nothing while the inventory is shown.
+    private void ReadWorldInput(KeyboardState keys)
+    {
+        var mouse = Mouse.GetState();
+        var inside = GraphicsDevice.Viewport.Bounds.Contains(mouse.Position);
+        var textOrJournal = _dialogue.IsOpen || _journal.IsOpen;
+        int? slot = null;
+        if (!textOrJournal)
+        {
+            for (var i = 0; i < SlotKeys.Length; i++)
+            {
+                if (keys.IsKeyDown(SlotKeys[i]) && !_previousKeys.IsKeyDown(SlotKeys[i]))
+                {
+                    slot = i;
+                }
+            }
+
+            var wheel = mouse.ScrollWheelValue - _previousScroll;
+            if (wheel != 0)
+            {
+                slot = ((_session.Simulation.SelectedSlot - Math.Sign(wheel)) % Inventory.HotbarSize + Inventory.HotbarSize) % Inventory.HotbarSize;
+            }
+        }
+
+        var rightDown = mouse.RightButton == ButtonState.Pressed;
+        var worldOpen = textOrJournal || _inventory.IsOpen;
+        var hovered = inside ? _camera.ScreenToTile(mouse.X, mouse.Y) : (TilePoint?)null;
+        _live.SetFrame(
+            hovered,
+            !worldOpen && inside && mouse.LeftButton == ButtonState.Pressed,
+            !worldOpen && inside && rightDown && !_previousRightDown,
+            slot);
+        _previousRightDown = rightDown;
+        _previousScroll = mouse.ScrollWheelValue;
     }
 
     private void OpenJournal()
@@ -363,6 +438,44 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     {
         _journal.Close();
         _focus.JournalOpen = false;
+    }
+
+    private void OpenInventory()
+    {
+        if (_journal.IsOpen)
+        {
+            return;
+        }
+
+        var lemmas = _session.Simulation.Inventory.Slots
+            .Where(static s => !s.IsEmpty)
+            .Select(s => _session.Nouns.ForItem(s.Item)?.Lemma)
+            .OfType<string>()
+            .ToList();
+        _inventory.Open(_session.Words, lemmas);
+        _focus.InventoryOpen = true;
+    }
+
+    private void CloseInventory()
+    {
+        _inventory.Close();
+        _focus.InventoryOpen = false;
+    }
+
+    // The scripted run asks for the screen: open it (as a key would) or close it.
+    private void SetInventory(bool open)
+    {
+        if (open)
+        {
+            if (!_inventory.IsOpen)
+            {
+                OpenInventory();
+            }
+        }
+        else if (_inventory.IsOpen)
+        {
+            CloseInventory();
+        }
     }
 
     private void SendTypedLine()

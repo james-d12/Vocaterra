@@ -1,6 +1,6 @@
 namespace Vocaterra.Simulation;
 
-/// <summary>The kinds of command a front-end sends. New kinds (use a tool on a tile, place a block, select a hotbar slot) are appended.</summary>
+/// <summary>The kinds of command a front-end sends. New kinds are appended; an unknown kind is ignored by older builds.</summary>
 public enum PlayerCommandKind
 {
     /// <summary>Move left during this tick (a held key sends it every tick).</summary>
@@ -11,6 +11,20 @@ public enum PlayerCommandKind
 
     /// <summary>The jump button is down during this tick (a press, then a hold for a higher jump; send it every tick it is held).</summary>
     Jump = 2,
+
+    /// <summary>Select a hotbar slot: <see cref="PlayerCommand.X"/> is the slot (0 to 9). Applied before mining and placing in a tick.</summary>
+    SelectSlot = 3,
+
+    /// <summary>
+    /// Mine the tile at (<see cref="PlayerCommand.X"/>, <see cref="PlayerCommand.Y"/>). Held: send it every tick the button is down; progress
+    /// builds up while the target and the selected tool stay the same, and a tick without it resets the progress.
+    /// </summary>
+    Mine = 4,
+
+    /// <summary>
+    /// Place the selected hotbar item at the tile (<see cref="PlayerCommand.X"/>, <see cref="PlayerCommand.Y"/>). A press: one block per command.
+    /// </summary>
+    Place = 5,
 }
 
 /// <summary>
@@ -31,4 +45,13 @@ public readonly record struct PlayerCommand(PlayerCommandKind Kind, int X = 0, i
 
     /// <summary>Jump button down.</summary>
     public static PlayerCommand Jump { get; } = new(PlayerCommandKind.Jump);
+
+    /// <summary>Select the hotbar slot <paramref name="slot"/> (0 to 9).</summary>
+    public static PlayerCommand SelectSlot(int slot) => new(PlayerCommandKind.SelectSlot, slot);
+
+    /// <summary>Mine the tile at (<paramref name="x"/>, <paramref name="y"/>) this tick.</summary>
+    public static PlayerCommand Mine(int x, int y) => new(PlayerCommandKind.Mine, x, y);
+
+    /// <summary>Place the selected item at (<paramref name="x"/>, <paramref name="y"/>).</summary>
+    public static PlayerCommand Place(int x, int y) => new(PlayerCommandKind.Place, x, y);
 }

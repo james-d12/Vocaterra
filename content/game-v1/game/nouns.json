@@ -3,9 +3,20 @@
   "generated_by": "hand-authored",
   "nouns": [
     { "lemma": "árbol", "tiles": ["trunk", "leaves"], "items": [] },
-    { "lemma": "tierra", "tiles": ["dirt"], "items": [] },
+    { "lemma": "tierra", "tiles": ["dirt"], "items": ["dirt"], "mass": true },
     { "lemma": "hierba", "tiles": ["grass"], "items": [] },
-    { "lemma": "piedra", "tiles": ["stone"], "items": [] }
+    { "lemma": "piedra", "tiles": ["stone"], "items": ["stone"], "mass": true },
+    { "lemma": "madera", "tiles": ["planks"], "items": ["wood"], "mass": true, "sources": ["árbol"] },
+    { "lemma": "arena", "tiles": ["sand"], "items": ["sand"], "mass": true },
+    { "lemma": "flor", "tiles": ["flower"], "items": ["flower"] },
+    { "lemma": "seta", "tiles": ["mushroom"], "items": ["mushroom"] },
+    { "lemma": "hacha", "tiles": [], "items": ["axe"] },
+    { "lemma": "pico", "tiles": [], "items": ["pickaxe"] },
+    { "lemma": "puerta", "tiles": ["door"], "items": ["door"] },
+    { "lemma": "mesa", "tiles": ["table"], "items": ["table"] },
+    { "lemma": "silla", "tiles": ["chair"], "items": ["chair"] },
+    { "lemma": "cama", "tiles": ["bed"], "items": ["bed"] },
+    { "lemma": "caja", "tiles": ["chest"], "items": ["chest"] }
   ],
   "colourless": ["air"]
 }
