@@ -2,6 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <!-- The one tool that is packed: a dotnet tool (vocaterra-content) installed from the local feed (docs/PACKAGING.md). IsPackable is
+         switched on here only; Directory.Build.props leaves every project other than the libraries unpackable. -->
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>vocaterra-content</ToolCommandName>
+    <PackageId>Vocaterra.Nlp.ContentBuilder</PackageId>
+    <Description>Build-time content tool for Vocaterra.NLP bundles: validate, hash, pack, verify-pack, cefr-check, import-lexicon and lexicon-report.</Description>
   </PropertyGroup>
 
   <ItemGroup>

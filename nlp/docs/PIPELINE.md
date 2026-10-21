@@ -25,7 +25,7 @@ PipelineResult result = pipeline.Evaluate(clip, prompt, context);     // or pipe
 | Input | Type | What it is |
 | --- | --- | --- |
 | `clip` | `PcmClip` | 16 kHz mono 16-bit samples plus their SHA-256 `ClipHash`. Produced by `AudioFrontEnd` (resample, downmix, gain, energy VAD) from a push-to-talk capture or a WAV file. |
-| `prompt` | `PromptSpec` | What the host asked: prompt id, recognition mode (`Constrained` or `Open`), difficulty, answer set id, allowed intent ids, agent id and slot grammar ids. Prompts are data (`content/v1/prompts/prompts.json`). |
+| `prompt` | `PromptSpec` | What the host asked: prompt id, recognition mode (`Constrained` or `Open`), difficulty, answer set id, allowed intent ids, agent id, slot grammar ids and the optional text (the line the agent says before the answer). Prompts are data (`content/v1/prompts/prompts.json`). |
 | `context` | `ConversationContext` | The host state it is evaluated in: world seed, agent id and state, stored time, the learner model, repeat counts per error tag. Nothing in it comes from a clock. |
 
 `PipelineResult` has six members: `Verdict`, `Decision`, `Response`, `Effects`, `Repair` and `Replay`. `Trace` returns a
@@ -417,7 +417,7 @@ dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos 
   "confidence": 1,
   "resolvedBy": "Grammar",
   "versions": {
-    "contentHash": "3b1d1f02dff448c830d0cfdbaf1f5e330fc66922a7b7507abc4b56d78afbc657",
+    "contentHash": "cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1",
     "modelHashes": {
       "asr": "scripted-transcript"
     }

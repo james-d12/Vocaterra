@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# Packs the Vocaterra.Nlp.* libraries into artifacts/packages (a .nupkg and a .snupkg each) and copies the .nupkg files into
-# artifacts/feed, a folder that NuGet reads as a local feed (samples/HostConsole/nuget.config points there).
+# Packs the Vocaterra.Nlp.* libraries and the vocaterra-content dotnet tool (Vocaterra.Nlp.ContentBuilder) into artifacts/packages (a .nupkg
+# and a .snupkg each) and copies the .nupkg files into artifacts/feed, a folder that NuGet reads as a local feed (samples/HostConsole/nuget.config
+# points there, and `dotnet tool install --add-source artifacts/feed` reads it for the tool).
 #
 # Usage: scripts/pack.sh
-#   Only the projects under src/ are packable (Directory.Build.props); tests, tools and samples are not. Packages are built in Release
-#   from the current tree. Nothing is published: the package feed is undecided (docs/DECISIONS.md D5), and no licence is named (D3).
+#   Only the projects under src/ and the ContentBuilder tool are packable (Directory.Build.props and its project file); tests and samples are not.
+#   Packages are built in Release from the current tree. Nothing is published: the package feed is undecided (docs/DECISIONS.md D5), and no
+#   licence is named (D3). The tool's package depends on the sherpa-onnx native build, so it is for local installation only until D2 is settled.
 set -euo pipefail
 # A user-local SDK (~/.dotnet, as on the development machine) is preferred when present; CI uses the SDK that setup-dotnet installed.
 if [ -d "$HOME/.dotnet" ]; then export DOTNET_ROOT="$HOME/.dotnet"; export PATH="$HOME/.dotnet:$PATH"; fi

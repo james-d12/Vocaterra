@@ -9,9 +9,13 @@ proves the packages are complete, the content bundle archive, the parked CI job,
 - Every library under `src/` is one package, and its package id is its project name: `Vocaterra.Nlp.Core`, `Vocaterra.Nlp.Audio`,
   `Vocaterra.Nlp.Asr`, `Vocaterra.Nlp.Phonology`, `Vocaterra.Nlp.Pronunciation`, `Vocaterra.Nlp.Language`, `Vocaterra.Nlp.Evaluation`,
   `Vocaterra.Nlp.Decision`, `Vocaterra.Nlp.Response`, `Vocaterra.Nlp.Content` and `Vocaterra.Nlp.Pipeline`.
-- The version is `VersionPrefix` 0.1.0 in `Directory.Build.props`, the same for all eleven. A project reference becomes a package
+- The twelfth package is the content tool, `Vocaterra.Nlp.ContentBuilder`, a dotnet tool whose command is `vocaterra-content` (see
+  [The content tool](#the-content-tool)).
+- The version is `VersionPrefix` 0.1.0 in `Directory.Build.props`, the same for all twelve. A project reference becomes a package
   dependency at that version, so the packages depend on each other at 0.1.0.
-- Tests, tools and samples are never packed: `IsPackable` is false in `Directory.Build.props` and true only under `src/`.
+- Tests and samples are never packed: `IsPackable` is false in `Directory.Build.props` and true only under `src/`. The one tool that is packed
+  is `tools/Vocaterra.Nlp.ContentBuilder`, which sets `IsPackable`, `PackAsTool` and its package id in its own project file; the other tools are not
+  packages.
 - The content bundle has its own version, `contentVersion` 1.0.0 in `content/v1/manifest.json` (bundle id `v1`), and it is not in the packages.
   Models are not in the packages either; a host gives them a directory through `VOCATERRA_MODELS_DIR`.
 - Each package holds its assembly, its XML documentation, the shared readme (`docs/PACKAGE_README.md`, shipped as `README.md`) and a `.snupkg`
@@ -26,8 +30,8 @@ proves the packages are complete, the content bundle archive, the parked CI job,
 scripts/pack.sh
 ```
 
-The script runs `dotnet pack Vocaterra.Nlp.sln -c Release -o artifacts/packages`, which writes a `.nupkg` and a `.snupkg` for each of the eleven
-libraries, and then copies the `.nupkg` files into `artifacts/feed`. Both folders are emptied first, so a run leaves exactly the current tree's
+The script runs `dotnet pack Vocaterra.Nlp.sln -c Release -o artifacts/packages`, which writes a `.nupkg` and a `.snupkg` for each of the twelve
+packages (the eleven libraries and the tool), and then copies the `.nupkg` files into `artifacts/feed`. Both folders are emptied first, so a run leaves exactly the current tree's
 packages. `artifacts/` is git-ignored.
 
 ## The local feed
@@ -62,10 +66,10 @@ scripts/sample-host.sh              # packs, restores and builds the sample agai
 scripts/sample-host.sh <bundleDir>  # the same on another bundle directory
 ```
 
-The output on the committed bundle (hash `3b1d1f02dff448c830d0cfdbaf1f5e330fc66922a7b7507abc4b56d78afbc657`):
+The output on the committed bundle (hash `cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1`):
 
 ```
-bundle v1 1.0.0, hash 3b1d1f02dff448c830d0cfdbaf1f5e330fc66922a7b7507abc4b56d78afbc657
+bundle v1 1.0.0, hash cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1
 offer-items-open: "yo tiene dos espada"
   intent=offer_item communicated=true correctness=0.5
   error conj.person: expected 'tengo', heard 'tiene'
@@ -100,6 +104,37 @@ validates the extracted bundle and compares its hash with the sidecar. The folde
 **Hosts ship the extracted folder, not the zip.** The loader reads a directory (`ContentLoader.Load(directory)`), so a host extracts the archive
 into its own content folder with any zip tool and loads that folder. The archive and its sidecar are what the build keeps and checks.
 
+## The content tool
+
+`Vocaterra.Nlp.ContentBuilder` is packed as a dotnet tool, package `Vocaterra.Nlp.ContentBuilder` 0.1.0, with the command `vocaterra-content`. It
+runs the same commands as the project (`validate`, `hash`, `pack`, `verify-pack`, `cefr-check`, `import-lexicon`, `lexicon-report`). A consuming
+repository installs it from the local feed into a folder of its own, so it stays out of the global tool list:
+
+```bash
+dotnet tool install --tool-path <dir> --add-source <core>/artifacts/feed Vocaterra.Nlp.ContentBuilder --version 0.1.0
+<dir>/vocaterra-content validate content/v1
+<dir>/vocaterra-content hash content/v1
+<dir>/vocaterra-content pack content/v1 out/bundle-v1.zip
+<dir>/vocaterra-content verify-pack out/bundle-v1.zip
+```
+
+`<core>` is the language core checkout, after `scripts/pack.sh` has filled its `artifacts/feed`. On a machine with a user-local SDK the
+launcher needs `DOTNET_ROOT` set to that SDK, as the other commands in this document do. The game repository's `scripts/content.sh` is to call
+this command instead of `dotnet run` on the project.
+
+Size and dependencies, measured on 2026-10-21 with `scripts/pack.sh`:
+
+- The `.nupkg` is 218.5 MB, and it has no NuGet dependencies. `PackAsTool` copies every dependency's assemblies and native libraries into
+  `tools/net10.0/any`, for every runtime identifier, so the package is self-contained. Installed under `--tool-path` it takes about 0.8 GB.
+- The native libraries are about 210 MB of the package: `onnxruntime` (Microsoft.ML.OnnxRuntime, for every platform including iOS and Android),
+  `libvosk` (Vosk) and `libsherpa-onnx-c-api` (sherpa-onnx, whose build contains espeak-ng under GPL-3.0; D2). The `Vocaterra.Nlp.*` assemblies
+  are about 0.4 MB compressed.
+- The tool's own sources use `Vocaterra.Nlp.Content` and `Vocaterra.Nlp.Language`; they do not use `Vocaterra.Nlp.Pipeline`, so that project
+  reference could be dropped. It would not remove the natives: `Vocaterra.Nlp.Content` references `Asr`, `Response` and `Pronunciation`, and those
+  carry sherpa-onnx, Vosk and ONNX Runtime. Restructuring the references is a separate decision and is not made here.
+
+The tool package is for local installation from the feed. It is not for distribution until D2 is settled.
+
 ## Continuous integration
 
 The parked workflow (`.github/workflows-pending/ci.yml`) has a `pack` job on Ubuntu: restore, `scripts/pack.sh`, `scripts/sample-host.sh`, and
@@ -118,6 +153,9 @@ The publish step is commented out in that job. Publishing waits for the feed dec
 - **The sherpa-onnx native library (D2).** `Vocaterra.Nlp.Asr` and `Vocaterra.Nlp.Response` depend on `org.k2fsa.sherpa.onnx` 1.13.8, and its native
   build contains espeak-ng (GPL-3.0) unless a GPL-free release is pinned. Do not distribute those two packages, or anything that includes them,
   until D2 is settled. Packing and the sample are not affected.
+- **The content tool (D2).** `Vocaterra.Nlp.ContentBuilder` carries the same native libraries as the libraries that reference sherpa-onnx and
+  Vosk (see [The content tool](#the-content-tool)). It is for local installation from the feed only, and is not to be published or shared until
+  D2 is settled.
 - **Lexicon terms (D4).** The Wiktionary-derived lexicon in the content bundle is CC BY-SA and the frequency-list terms are unconfirmed; both
   matter only for a public release of a bundle.
 - **Stability.** 0.1.0 promises no API stability. The boundary in [ADR 0009](adr/0009-core-and-game-boundary.md) is exercised first by the game

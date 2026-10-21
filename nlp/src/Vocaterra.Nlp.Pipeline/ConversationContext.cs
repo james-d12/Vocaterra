@@ -54,6 +54,28 @@ public sealed record ConversationContext(
         return new ConversationContext(worldSeed, agentId, agentState, now, learner, counts, hash);
     }
 
+    /// <summary>
+    /// The context the next utterance starts from, after this one was evaluated (the context passed to <c>Evaluate</c>). The agent is the one
+    /// this context names, in the state the decision moved it to (or unchanged when the bundle has no state machine for it); the learner model
+    /// is the one after the update; the repeat counts are <see cref="RepeatCounts.Next"/> of this context's counts and the verdict; the world seed
+    /// is kept. The host supplies <paramref name="now"/>, and <see cref="HostStateHash"/> is recomputed from the values, as <see cref="Create"/> does.
+    /// The host keeps the states of the other agents itself: this context carries only the agent it spoke to.
+    /// </summary>
+    /// <param name="result">The result of evaluating one utterance in this context.</param>
+    /// <param name="now">The stored timestamp of the next utterance (the host's clock, passed in).</param>
+    public ConversationContext Next(PipelineResult result, StoredTimestamp now)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        var agentState = result.Decision.Agent?.Next ?? AgentState;
+        return Create(
+            WorldSeed,
+            AgentId,
+            agentState,
+            now,
+            result.Decision.Learner,
+            RepeatCounts.Next(RepeatCountsByTag, result.Verdict));
+    }
+
     /// <summary>Compares every member; the repeat counts are compared as sorted maps.</summary>
     public bool Equals(ConversationContext? other)
     {

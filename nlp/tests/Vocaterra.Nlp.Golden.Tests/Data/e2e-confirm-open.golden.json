@@ -9,7 +9,7 @@
     "confidence": 1,
     "resolvedBy": "Exact",
     "versions": {
-      "contentHash": "3b1d1f02dff448c830d0cfdbaf1f5e330fc66922a7b7507abc4b56d78afbc657",
+      "contentHash": "cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1",
       "modelHashes": {
         "asr": "scripted-golden"
       }
@@ -67,7 +67,7 @@
     "promptId": "confirm-open",
     "hostStateHash": "d2cc9474b40a15d5d761f0e1d82a6433a4e1e8dd5637de062fe237fc56323348",
     "versions": {
-      "contentHash": "3b1d1f02dff448c830d0cfdbaf1f5e330fc66922a7b7507abc4b56d78afbc657",
+      "contentHash": "cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1",
       "modelHashes": {
         "asr": "scripted-golden"
       }
@@ -82,7 +82,7 @@
       "confidence": 1,
       "resolvedBy": "Exact",
       "versions": {
-        "contentHash": "3b1d1f02dff448c830d0cfdbaf1f5e330fc66922a7b7507abc4b56d78afbc657",
+        "contentHash": "cedb97c4d068221c58b86c4a69dc23fa081d6eda8ecb96dc068361bc5c3afad1",
         "modelHashes": {
           "asr": "scripted-golden"
         }

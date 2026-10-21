@@ -71,6 +71,24 @@ public sealed class VoskRuntimeModelTests : IDisposable
     }
 
     [Fact]
+    public void PrepareRebuildsADirectoryWhoseLinksDangle()
+    {
+        // A runtime directory outlives the model folder it links to (the model was moved, or the checkout renamed): the links dangle, and
+        // Vosk cannot open them. A link whose target is gone counts as a missing file, so the directory is rebuilt from the model that is there.
+        var model = CreateFakeModel("--use-energy=false\n");
+        var root = Path.Combine(_work.FullName, "runtime");
+        VoskRuntimeModel.Prepare(model, "hash-a", root);
+        var moved = Path.Combine(_work.FullName, "moved-model");
+        Directory.Move(model, moved);
+
+        var again = VoskRuntimeModel.Prepare(moved, "hash-a", root);
+
+        Assert.Equal("graph-bytes", File.ReadAllText(Path.Combine(again, "graph", "Gr.fst")));
+        Assert.Equal("model-bytes", File.ReadAllText(Path.Combine(again, "am", "final.mdl")));
+        Assert.Equal(Path.GetFullPath(Path.Combine(moved, "am", "final.mdl")), new FileInfo(Path.Combine(again, "am", "final.mdl")).ResolveLinkTarget(returnFinalTarget: true)?.FullName);
+    }
+
+    [Fact]
     public void PrepareLeavesNoStagingDirectoriesBehind()
     {
         var model = CreateFakeModel("--use-energy=false\n");

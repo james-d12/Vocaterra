@@ -10,6 +10,7 @@ using Vocaterra.Nlp.Decision.Scheduling;
 using Vocaterra.Nlp.Evaluation;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
+using Vocaterra.Nlp.Pipeline;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests;
@@ -19,7 +20,8 @@ namespace Vocaterra.Nlp.Fuzzing.Tests;
 /// and agrees with an independent model of the documented rules; the same seed gives the same path; a defective definition is rejected with
 /// <see cref="InvalidDataException"/> and nothing else. BKT mastery stays in [0, 1] and follows the formula; FSRS keeps stability positive,
 /// schedules at least a day ahead and orders Hard before Good before Easy; the feedback plan has at most two items, all from the verdict, and the
-/// rule choice matches an independent model of the precedence rules.
+/// rule choice matches an independent model of the precedence rules. The repeat counts after a verdict follow the "in a row" rule and do not depend
+/// on the order of their input.
 /// </summary>
 public sealed class DecisionFuzzTests(ITestOutputHelper output)
 {
@@ -580,6 +582,58 @@ public sealed class DecisionFuzzTests(ITestOutputHelper output)
     }
 
     // ---- Feedback -------------------------------------------------------------------------------------------------------------------
+
+    [Fact]
+    public void RepeatCounts_AfterOneVerdict_AreTheInARowRule_AndDoNotDependOnOrder()
+    {
+        var iterations = FuzzOptions.Iterations(FuzzOptions.GeneralVar, FuzzOptions.GeneralDefault);
+
+        Gen.ULong.Sample(
+            seed =>
+            {
+                var rng = new SeededRng(seed);
+                var verdict = VerdictAssembler.Assemble(VerdictGen.Build(Harness, rng));
+                var before = DecisionGen.RandomRepeats(rng);
+                var info = new { seed, verdict, before };
+
+                var next = RepeatCounts.Next(before, verdict);
+
+                // The keys are exactly the verdict's tags (plus not_communicated when the player was not understood); each count is the one before
+                // plus one when the tag was seen (a count below 1 is not seen, and the count saturates at int.MaxValue), and 1 otherwise.
+                var tags = new SortedSet<string>(verdict.Errors.Select(static error => error.Tag), StringComparer.Ordinal);
+                if (!verdict.Communicated)
+                {
+                    tags.Add(FeedbackPolicy.NotCommunicatedTag);
+                }
+
+                if (!next.Keys.SequenceEqual(tags, StringComparer.Ordinal))
+                {
+                    throw Determinism.Fail(Oracle, $"The keys {string.Join(", ", next.Keys)} are not the verdict's tags {string.Join(", ", tags)}.", info);
+                }
+
+                foreach (var (tag, count) in next)
+                {
+                    var seen = before.TryGetValue(tag, out var previous) && previous >= 1 ? previous : 0;
+                    var expected = seen == int.MaxValue ? seen : seen + 1;
+                    if (count != expected)
+                    {
+                        throw Determinism.Fail(Oracle, $"The count of '{tag}' is {count}, the rule gives {expected}.", info);
+                    }
+                }
+
+                // The same counts from the same values given in the reverse insertion order: the result is ordinal and does not depend on the input.
+                var reversed = new Dictionary<string, int>(StringComparer.Ordinal);
+                foreach (var pair in before.Reverse())
+                {
+                    reversed.Add(pair.Key, pair.Value);
+                }
+
+                Determinism.AssertSame(Oracle, "RepeatCounts.Next", info, () => next, () => RepeatCounts.Next(reversed, verdict));
+            },
+            writeLine: output.WriteLine,
+            iter: iterations,
+            threads: 1);
+    }
 
     private static void CheckPlan(FeedbackPlan plan, FeedbackPolicy policy, Verdict verdict, IReadOnlyDictionary<string, int> repeats, Difficulty difficulty, object info)
     {

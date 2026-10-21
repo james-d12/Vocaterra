@@ -126,6 +126,7 @@ public static class KnownTolerances
         ("prompts/prompts.json", "*/mode", ContentFieldReason.SilentDefault),
         ("prompts/prompts.json", "*/difficulty", ContentFieldReason.SilentDefault),
         ("prompts/prompts.json", "*/agentId", ContentFieldReason.Optional),
+        ("prompts/prompts.json", "*/text", ContentFieldReason.Optional),
         ("provenance.json", "items/*/approvedBy", ContentFieldReason.Optional),
         ("provenance.json", "items/*/approvedOn", ContentFieldReason.Optional),
     ];

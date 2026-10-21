@@ -104,16 +104,25 @@ internal static class VoskRuntimeModel
             return false;
         }
 
-        // File.Exists follows links, so a link whose model file has gone away counts as missing.
         foreach (var file in files)
         {
-            if (!File.Exists(Path.Combine(target, file)))
+            if (!FileResolves(Path.Combine(target, file)))
             {
                 return false;
             }
         }
 
         return string.Equals(File.ReadAllText(Path.Combine(target, MfccRelativePath)), patched, StringComparison.Ordinal);
+    }
+
+    // File.Exists is true for a symbolic link whose target has gone (a runtime directory left behind by a moved model folder), so a link is
+    // resolved here and a dangling one counts as missing: Vosk cannot open it.
+    private static bool FileResolves(string path)
+    {
+        var info = new FileInfo(path);
+        return info.LinkTarget is null
+            ? info.Exists
+            : info.ResolveLinkTarget(returnFinalTarget: true) is { Exists: true };
     }
 
     private static void Populate(string staging, string modelDir, string[] files, string patched)

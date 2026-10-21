@@ -31,8 +31,8 @@ public enum ContentMutationKind
     FlipByte,
 
     /// <summary>
-    /// Replace the value of a required non-empty string with the empty string: an effect's <c>effectId</c>, <c>intent</c> or <c>kind</c>, and a prompt's
-    /// <c>promptId</c>. The loader refuses each of them when empty.
+    /// Replace the value of a required non-empty string with the empty string: an effect's <c>effectId</c>, <c>intent</c> or <c>kind</c>, a prompt's
+    /// <c>promptId</c>, and a prompt's <c>text</c> where it is present (optional, but never empty). The loader refuses each of them when empty.
     /// </summary>
     EmptyRequiredString,
 }
@@ -58,7 +58,7 @@ public sealed record ContentMutation(ContentMutationKind Kind, string File, IRea
 /// <summary>
 /// Structural mutations of the <c>content/v1</c> JSON files, found by walking the files themselves (so a new file or a new field widens the
 /// coverage): remove a property, change a value's JSON kind, point a reference at an id that does not exist, give an enumerated field an unknown
-/// value, empty a required non-empty string (an effect's id, intent or kind, a prompt's id), duplicate an element that has an id, and flip a byte
+/// value, empty a required non-empty string (an effect's id, intent or kind, a prompt's id or text), duplicate an element that has an id, and flip a byte
 /// without touching the manifest. Every mutated bundle is written to a unique temporary
 /// directory, with the manifest recomputed from the mutated files (so the loader's schema and reference checks run, not just its hash check),
 /// except for the byte flip, which leaves the manifest alone on purpose.
@@ -80,12 +80,12 @@ public sealed class ContentMutationGen
     };
 
     // The string fields that the loader refuses when empty, per file: the effect table's constructors (an id, an intent and an outcome kind are
-    // required) and the prompt parser (a promptId is required). Only these places are candidates for EmptyRequiredString, so an empty string the
-    // loader accepts elsewhere is never reported as a defect.
+    // required), the prompt parser (a promptId is required) and the prompt validator (a text that is present must not be empty). Only these places
+    // are candidates for EmptyRequiredString, so an empty string the loader accepts elsewhere is never reported as a defect.
     private static readonly Dictionary<string, HashSet<string>> RequiredNonEmptyProperties = new(StringComparer.Ordinal)
     {
         [ContentPaths.Effects] = new(StringComparer.Ordinal) { "effectId", "intent", "kind" },
-        [ContentPaths.Prompts] = new(StringComparer.Ordinal) { "promptId" },
+        [ContentPaths.Prompts] = new(StringComparer.Ordinal) { "promptId", "text" },
     };
 
     // Object properties that carry an id; an array of such objects can have an element duplicated.

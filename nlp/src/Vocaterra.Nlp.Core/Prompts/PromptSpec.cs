@@ -1,8 +1,12 @@
+using System.Text.Json.Serialization;
 using Vocaterra.Nlp.Core.Determinism;
 
 namespace Vocaterra.Nlp.Core.Prompts;
 
-/// <summary>Describes one prompt the player must answer: mode, difficulty, answer set and allowed intents.</summary>
+/// <summary>
+/// Describes one prompt the player must answer: mode, difficulty, answer set and allowed intents. <see cref="Text"/> is the line the agent says
+/// before the player answers, when the prompt has one. A prompt without text is written without the member, so its canonical JSON is unchanged.
+/// </summary>
 public sealed record PromptSpec(
     string PromptId,
     RecognitionMode Mode,
@@ -10,9 +14,10 @@ public sealed record PromptSpec(
     string AnswerSetId,
     IReadOnlyList<string> AllowedIntentIds,
     string? AgentId,
-    IReadOnlyList<string> SlotGrammarIds)
+    IReadOnlyList<string> SlotGrammarIds,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Text = null)
 {
-    /// <summary>Structural equality including list contents.</summary>
+    /// <summary>Structural equality including list contents and the prompt text.</summary>
     public bool Equals(PromptSpec? other)
     {
         return other is not null
@@ -22,7 +27,8 @@ public sealed record PromptSpec(
             && string.Equals(AnswerSetId, other.AnswerSetId, StringComparison.Ordinal)
             && ValueEquality.ListEquals(AllowedIntentIds, other.AllowedIntentIds)
             && string.Equals(AgentId, other.AgentId, StringComparison.Ordinal)
-            && ValueEquality.ListEquals(SlotGrammarIds, other.SlotGrammarIds);
+            && ValueEquality.ListEquals(SlotGrammarIds, other.SlotGrammarIds)
+            && string.Equals(Text, other.Text, StringComparison.Ordinal);
     }
 
     /// <summary>Hash consistent with <see cref="Equals(PromptSpec)"/>.</summary>
@@ -36,6 +42,7 @@ public sealed record PromptSpec(
         ValueEquality.AddList(ref hash, AllowedIntentIds);
         hash.Add(AgentId);
         ValueEquality.AddList(ref hash, SlotGrammarIds);
+        hash.Add(Text, StringComparer.Ordinal);
         return hash.ToHashCode();
     }
 }
