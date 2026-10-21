@@ -86,6 +86,9 @@ public enum CreditOutcome
 
     /// <summary>The line was well written but the guide marked the name wrong: it is not the noun of the tile.</summary>
     NamedWrong,
+
+    /// <summary>A naming with nothing to check it against (the cursor was on nothing): said, but no colour.</summary>
+    NoTarget,
 }
 
 /// <summary>What one turn did to one noun.</summary>
@@ -112,6 +115,7 @@ public sealed record DueWord(string Lemma, long OverdueSeconds);
 /// <param name="CorrectTurns">The turns that earned credit (at most one per turn): the credited uses.</param>
 /// <param name="LastCreditedAt">The stored time (Unix seconds) of the last credited use, or 0 when there is none.</param>
 /// <param name="LastCreditedSession">The play session of the last credited use, or 0 when there is none.</param>
+/// <param name="Lapses">How often the guide revealed the word to the learner after a wrong name (each restarts the gap, no credit is lost).</param>
 public sealed record WordRecord(
     string Lemma,
     int Heard = 0,
@@ -121,7 +125,8 @@ public sealed record WordRecord(
     int CreditUnits = 0,
     int CorrectTurns = 0,
     long LastCreditedAt = 0,
-    int LastCreditedSession = 0)
+    int LastCreditedSession = 0,
+    int Lapses = 0)
 {
     /// <summary>Whether the learner has used it correctly in three turns.</summary>
     public bool Known => CreditUnits >= WordProgress.UnitsToKnow;
@@ -303,7 +308,8 @@ public sealed class WordProgress
                 ? turn.Errors.Count == 0
                 : positions.Any(i => !OverlapsError(tokens, i, turn.Errors));
             var namedWrong = turn.Naming == NameCheck.Wrong && lemma == named;
-            correct &= !namedWrong;
+            var noTarget = turn.Naming == NameCheck.NoTarget && lemma == named;
+            correct &= !namedWrong && !noTarget;
             var wasKnown = RecordOf(lemma).Known;
             var units = correct ? rules.For(kind) : 0;
             var remaining = correct && units > 0 ? SecondsUntilCredit(RecordOf(lemma), now, Session, rules) : 0;
@@ -328,12 +334,24 @@ public sealed class WordProgress
             }
             else
             {
-                outcomes.Add(new WordCredit(lemma, namedWrong ? CreditOutcome.NamedWrong : CreditOutcome.Wrong));
+                outcomes.Add(new WordCredit(lemma, namedWrong ? CreditOutcome.NamedWrong : noTarget ? CreditOutcome.NoTarget : CreditOutcome.Wrong));
             }
 
             if (!wasKnown && RecordOf(lemma).Known)
             {
                 newlyKnown.Add(lemma);
+            }
+        }
+
+        // Lapse: the guide revealed the tile's word because the player named something else. A started word that is not known has its gap
+        // restarted from now, so copying her correction is too early; nothing is credited or taken away, and a word with no credited use is
+        // untouched (its first use may come at any time).
+        if (turn.Naming == NameCheck.Wrong && turn.NameTarget is { } revealed && revealed != named && _catalog.ForLemma(revealed) is not null)
+        {
+            var shown = RecordOf(revealed);
+            if (shown.CorrectTurns > 0 && !shown.Known)
+            {
+                Update(revealed, record => record with { LastCreditedAt = now, LastCreditedSession = Session, Lapses = record.Lapses + 1 });
             }
         }
 

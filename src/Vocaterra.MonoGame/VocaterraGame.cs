@@ -410,6 +410,12 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
             Console.WriteLine($"  early: {label}, no colour yet, {JournalRows.DueText(early.SecondsRemaining)}");
         }
 
+        foreach (var none in result.Outcomes.Where(static o => o.Outcome is CreditOutcome.NoTarget or CreditOutcome.NamedWrong))
+        {
+            var label = _session.Nouns.ForLemma(none.Lemma)?.WithDefinite ?? none.Lemma;
+            Console.WriteLine($"  no colour: {label}, {(none.Outcome == CreditOutcome.NoTarget ? "nothing to check it against" : "not the name of that tile")}");
+        }
+
         if (result.TooEarly.Count > 0)
         {
             _toasts.Show(EarlyHint);

@@ -15,7 +15,7 @@ public sealed class SpacedCreditTests
 
     private static SlotMap Object(string lemma) => SlotMap.From(new Dictionary<string, string> { ["object"] = lemma });
 
-    private static GuideTurn Name(string lemma, NameCheck naming = NameCheck.Right) => new(
+    private static GuideTurn Name(string lemma, NameCheck naming = NameCheck.Right, string? target = null) => new(
         "es un " + lemma,
         "name_object",
         true,
@@ -31,7 +31,8 @@ public sealed class SpacedCreditTests
         null,
         "digest",
         Object(lemma),
-        naming);
+        naming,
+        target);
 
     private static WordTurnResult Use(WordProgress words, string lemma, long now, NameCheck naming = NameCheck.Right)
         => words.RecordTurn(Name(lemma, naming), InputKind.Typed, CreditRules.Default, now);
@@ -168,7 +169,7 @@ public sealed class SpacedCreditTests
     }
 
     [Fact]
-    public void AWrongNameInTheCoreEarnsNoColourButARightNameWithNoCursorStillDoes()
+    public void AWrongNameOrANameWithNoTargetEarnsNoColourInTheCore()
     {
         var session = TestGame.NewSession();
         var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
@@ -179,7 +180,89 @@ public sealed class SpacedCreditTests
 
         var noCursor = session.Say("es una piedra");
         Assert.Equal(NameCheck.NoTarget, noCursor.Naming);
-        Assert.Equal(1.0 / 3, session.Words.SaturationOf("piedra"), 9);
+        Assert.Equal(0.0, session.Words.SaturationOf("piedra"));
+        Assert.Equal(CreditOutcome.NoTarget, session.LastWordTurn!.Outcomes.Single().Outcome);
+        Assert.Equal(2, session.Words.RecordOf("piedra").Spoken); // still logged as said
+    }
+
+    [Fact]
+    public void ANameWithNoTargetEarnsNothingButAQuestionAboutTheNounStillDoes()
+    {
+        var session = TestGame.NewSession();
+
+        session.Say("es un árbol");
+        Assert.Equal(0, session.Words.RecordOf("árbol").CreditUnits);
+        Assert.Equal(1, session.Words.RecordOf("árbol").Spoken);
+
+        var asked = session.Say("¿dónde está el árbol?");
+        Assert.Equal("ask_directions", asked.Intent);
+        Assert.Equal(CreditOutcome.Credited, session.LastWordTurn!.Outcomes.Single().Outcome);
+        Assert.Equal(WordProgress.UnitsPerUse, session.Words.RecordOf("árbol").CreditUnits);
+    }
+
+    [Fact]
+    public void CopyingTheGuidesCorrectionAfterAWrongReviewAnswerIsTooEarly()
+    {
+        var session = TestGame.NewSession();
+        var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
+        session.Say("es un árbol", tree);
+        session.SkipTime(11 * 60);
+        session.BeginTalk();
+
+        session.Say("es una piedra"); // wrong: she says "No, es un árbol."
+        Assert.Equal(1, session.Words.RecordOf("árbol").Lapses);
+        Assert.Equal(WordProgress.UnitsPerUse, session.Words.RecordOf("árbol").CreditUnits); // nothing is taken away
+
+        session.Say("es un árbol", tree);
+
+        Assert.Equal(CreditOutcome.TooEarly, session.LastWordTurn!.Outcomes.Single().Outcome);
+        Assert.Equal(WordProgress.UnitsPerUse, session.Words.RecordOf("árbol").CreditUnits);
+        session.SkipTime(10 * 60);
+        session.Say("es un árbol", tree);
+        Assert.Equal(2 * WordProgress.UnitsPerUse, session.Words.RecordOf("árbol").CreditUnits);
+    }
+
+    [Fact]
+    public void CopyingTheGuidesCorrectionAfterAWrongNamingOutsideAReviewIsTooEarly()
+    {
+        var words = new WordProgress(TestGame.Nouns);
+        Use(words, "árbol", At(0));
+
+        words.RecordTurn(Name("piedra", NameCheck.Wrong, target: "árbol"), InputKind.Typed, CreditRules.Default, At(12));
+        var copy = Use(words, "árbol", At(12, 5));
+
+        Assert.Equal(CreditOutcome.TooEarly, copy.Outcomes.Single().Outcome);
+        Assert.Equal(595, copy.Outcomes.Single().SecondsRemaining);
+        Assert.Equal(1, words.RecordOf("árbol").Lapses);
+        Assert.Equal(CreditOutcome.Credited, Use(words, "árbol", At(22)).Outcomes.Single().Outcome);
+    }
+
+    [Fact]
+    public void ALapseOnAWordWithNoCreditedUseChangesNothing()
+    {
+        var words = new WordProgress(TestGame.Nouns);
+
+        words.RecordTurn(Name("piedra", NameCheck.Wrong, target: "árbol"), InputKind.Typed, CreditRules.Default, At(0));
+
+        Assert.False(words.Records.ContainsKey("árbol") && words.RecordOf("árbol").Lapses > 0);
+        Assert.Equal(0, words.RecordOf("árbol").Lapses);
+        Assert.Equal(0, words.RecordOf("árbol").LastCreditedAt);
+        Assert.Equal(CreditOutcome.Credited, Use(words, "árbol", At(0, 1)).Outcomes.Single().Outcome); // its first use may come at any time
+    }
+
+    [Fact]
+    public void ALapseNeverTouchesAKnownWord()
+    {
+        var words = new WordProgress(TestGame.Nouns);
+        Use(words, "árbol", At(0));
+        Use(words, "árbol", At(10));
+        Use(words, "árbol", At(70));
+        Assert.True(words.RecordOf("árbol").Known);
+
+        words.RecordTurn(Name("piedra", NameCheck.Wrong, target: "árbol"), InputKind.Typed, CreditRules.Default, At(80));
+
+        Assert.Equal(0, words.RecordOf("árbol").Lapses);
+        Assert.True(words.RecordOf("árbol").Known);
     }
 
     [Fact]

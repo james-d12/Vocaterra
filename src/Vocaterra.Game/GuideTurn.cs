@@ -61,7 +61,8 @@ public sealed record GuideScene(TilePoint Player, TilePoint? Cursor = null, bool
 /// <param name="IdentifiedNoun">Set when the guide named what the cursor is on (<c>árbol</c>).</param>
 /// <param name="HostStateHash">The host state hash the core copied into this turn's replay record: the simulation's state digest when the line was sent.</param>
 /// <param name="Slots">The slot values the core filled from the line (<c>place</c>, <c>object</c>), for the word counts.</param>
-/// <param name="Naming">For a <c>name_object</c> turn, the guide's check of the name against the tile (the word counts withhold colour from a wrong name).</param>
+/// <param name="Naming">For a <c>name_object</c> turn, the guide's check of the name against the tile (the word counts withhold colour from a wrong name and from a name with no tile to check).</param>
+/// <param name="NameTarget">For a <see cref="NameCheck.Wrong"/> or <see cref="NameCheck.Right"/> check, the noun of the tile (the word the guide revealed when the name was wrong).</param>
 public sealed record GuideTurn(
     string Line,
     string Intent,
@@ -78,7 +79,8 @@ public sealed record GuideTurn(
     string? IdentifiedNoun,
     string HostStateHash,
     SlotMap Slots,
-    NameCheck Naming = NameCheck.None)
+    NameCheck Naming = NameCheck.None,
+    string? NameTarget = null)
 {
     /// <summary>A one-line summary of the verdict for the panel, for example <c>ask_directions, entendido, 100 %</c>.</summary>
     public string Summary => string.Create(

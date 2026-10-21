@@ -48,6 +48,10 @@ var arrow = session.Pointer;                             // where the guide poin
 - `name_object` (`es un árbol`, `eso es una piedra`) names the cursor's tile: the guide says `¡Eso es! Es un árbol.` when the name is that tile's
   noun and no error was found, and `No, es un árbol.` otherwise (the game checks it, CR-014; the result is `GuideTurn.Naming`: `NameCheck`). **A
   name the guide marks wrong earns no colour for the noun named** (P4b; the orchestrator's default, the owner to confirm); it still counts as said.
+  **A naming with no tile to check (`NameCheck.NoTarget`, the cursor on nothing) earns no colour either** (`CreditOutcome.NoTarget`); other intents
+  that use a noun correctly (`¿dónde está el árbol?`) earn as before. **Lapse:** when the guide reveals a word (a wrong name, in a review or not),
+  that word's gap restarts from now (`Lapses` + 1, last credited time set to now) so copying her correction is `TooEarly`; no credit is removed,
+  a word with no credited use or a known word is untouched.
 - `GameSession.Say` counts every turn (`Words`, with `CreditRules.Default` for typed input and the stored time of the turn) and keeps what the last
   turn did (`LastWordTurn`: the nouns credited, the nouns that became known and the outcome per noun, for the toast and the hint).
 
