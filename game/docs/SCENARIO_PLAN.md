@@ -155,7 +155,7 @@ In `src/Vocaterra.MonoGame`, the only engine code:
   unchanged.
 - `game/nouns.json` gains the new blocks (`agua`, `río`, `camino`, `casa`, `tienda`, `puente`, the berry bush) and loses the ores; `lexicon/world.json`
   gains what the lexicon lacks. Content note: `baya` is in neither the lexicon nor the A1/A2 lists; `fruta` and `manzana` are the A1
-  alternatives. The agent proposes, the reviewer decides in S5.
+  alternatives. The agent proposes, the reviewer decides in S5. Decided in S5 (provisional review, 2026-10-21): `la fruta` / `las frutas` for the berry item, no noun taught for the bush.
 - Demo: `--say "¿dónde está el río?" --screenshot <png>` prints `ask_directions, entendido` and the guide's line with the direction and distance,
   and the beacon stands on the river.
 
@@ -163,7 +163,7 @@ In `src/Vocaterra.MonoGame`, the only engine code:
 
 - Punch a trunk for `madera` (no tool), pick berries from a bush, `antorcha` ← 2 `madera` at the `mesa` (`recipes.json` trimmed to the
   prototype), place the torch at the camp (a flame quad; no light simulation, no night).
-- `Objective` in `Vocaterra.Game`: a checklist HUD (`Campamento: madera 5/5 · bayas 3/3 · antorcha 1/1 · agua 0/1`), completed by host events and
+- `Objective` in `Vocaterra.Game`: a checklist HUD (`Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1`), completed by host events and
   the inventory, never by language. A first pickup of a noun shows its word card (article, written form; audio from S9), counted as heard and
   read, never a quiz (the brief's step 2). Hotbar kept, the 40-slot screen kept as is.
 - Then the 2D slice retires: tag `2d-slice-p7` on the last commit that holds it, delete the 2D simulation, generator, light map, 2D renderer and
