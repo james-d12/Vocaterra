@@ -73,8 +73,7 @@ Where things stand, for the next orchestrator session:
   so a game restore can silently use the core's unmerged work. The gate restores into `~/.nuget/vocaterra-game-packages` and clears the core
   packages there each run (`scripts/merge-gate.sh`); every brief sets `NUGET_PACKAGES` to that folder.
 - **Owner items not yet answered:** (1) nothing in the prototype is gated behind language (orchestrator default); (2) `flecha`, `guía`,
-  `bloque` (P3) and `algo`, `casi`, `eso` (P4) were added to the game's `cefr/a1.txt`: review in a content pass; (3) the linux-x64-only
-  native-asset trim (saves about 1.5 GB per build); (4) D-game-2 (licence); (5) P4 credits the noun the player names even when it names the
+  `bloque` (P3) and `algo`, `casi`, `eso` (P4) were added to the game's `cefr/a1.txt`: review in a content pass; (3) the native-asset trim: approved, G7; (4) D-game-2: decided MIT; (5) P4 credits the noun the player names even when it names the
   wrong thing (`es una piedra` with the cursor on a tree earns `piedra` a third, and the guide says "Casi. Mira: es un árbol."): keep or
   withhold (P4b withholds it by default: a `name_object` the guide marks wrong earns no colour).
 - **How agents work now** (put this in every brief): no `git submodule update` and no core pack in a worktree; set
@@ -103,6 +102,7 @@ Where things stand, for the next orchestrator session:
 | G3 | Innkeeper scene (section 4.1) | planned, after P9 | Sonnet 5.5 for the scene design, Haiku 5.5 for the content checklist | G2, P9 |
 | G4 | Quest-giver scene (section 4.2) | planned, after G3 | Haiku 5.5 | G3 |
 | G6 | Core bump to `53c52b7` (M26a to M26e) and adoption: drop the CR-012 double evaluation, the CR-013 `esta` lexicon entry if no longer needed, read `nouns.json` with `TryReadHostFile` (CR-007), word lists from `PipelineResult.Words` (CR-002), the guide's world line through host slots (CR-003), the named answer through `PipelineResult.Answer` where it fits (CR-004), `word.<lemma>` extra skills (CR-005) | done (merged 2026-10-21; core pin `53c52b7`) | Haiku 5.5 | P6 |
+| G7 | Build trim and licence: Linux-only native assets (owner, 2026-10-21; about 1.5 GB less per build), `LICENSE` (MIT, D-game-2) and README licence lines | planned, after P6b | Haiku 5.5 | P6b |
 | R1 | Research: Terraria-inspired prototype (guide NPC by text and speech, mining, building, movement, forest biome, map and cave generation, language progress tracking, known nouns in colour and unknown in greyscale, inventory) on MonoGame; findings in `docs/research/` | done (merged 2026-10-21, `0e8d601`); proposals await the owner | Opus 5.5 (owner's request) | G0 |
 
 Each milestone ends with the gate in section 6 and a line in section 5.

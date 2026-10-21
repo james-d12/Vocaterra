@@ -8,7 +8,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | ID | Decision | Status | Blocks |
 | --- | --- | --- | --- |
 | D-game-1 | Game engine | decided for the prototype: MonoGame 3.8 DesktopGL (owner, 2026-10-21); final engine open, Godot .NET re-assessed after P10 | nothing in the prototype |
-| D-game-2 | Licence of this repository | open | any public release or distribution |
+| D-game-2 | Licence of this repository | decided: MIT (owner, 2026-10-21: "the most permissive for now"; the repository is private) | nothing |
 | D-game-3 | Continuous integration | deferred by the owner, 2026-10-21; do not raise | nothing in this plan |
 | D-game-4 | Whether `content/game-v1` tracks the core's sample bundle or diverges from it | decided: diverge fully (owner, 2026-10-21) | nothing |
 | D-game-5 | Art, font and sound sources while D-game-2 is open | decided: CC0 only (owner, 2026-10-21) | nothing |
@@ -26,14 +26,16 @@ engine), `src/Vocaterra.Game` (the `Vocaterra.Nlp.*` packages, no engine) and `s
 goes into `src/Vocaterra.Host`, `src/Vocaterra.Simulation` or `src/Vocaterra.Game`. The final engine stays open; P10 (an optional Godot spike)
 measures the cost of the move. G5 is replaced by P2.
 
-## D-game-2: the licence of this repository (open)
+## D-game-2: the licence of this repository (decided: MIT)
 
-**Question.** Under which licence this repository is published. The core is Apache-2.0 (core D3, decided 2026-10-21), and its packages carry
-that licence. The game's own licence is separate and is not chosen.
+**Owner, 2026-10-21.** "Just make it the most permissive for now, it's a private project so it doesn't matter much at the moment." The
+orchestrator chose **MIT** (the common permissive licence; 0BSD or MIT-0, which drop the notice requirement, are a one-file switch if the
+owner wants them). The repository is private on GitHub. The `LICENSE` file is added by the next infrastructure milestone (G7).
 
-**Until it is decided.** This repository grants no permission to use, copy or modify it. The content bundle's Wiktionary lexicon is
-CC BY-SA 4.0 and keeps its notice in `content/game-v1/ATTRIBUTION.md` whatever the game's licence is. The sherpa-onnx native libraries
-carry GPL-3.0 code (core D2): the game does not distribute a build that includes them until D2 is settled in the core.
+**What MIT does not change.** Third-party parts keep their own terms: the content bundle's Wiktionary lexicon is CC BY-SA 4.0 and keeps its
+notice in `content/game-v1/ATTRIBUTION.md`; the core's packages are Apache-2.0 (core D3); MonoGame is Ms-PL; the sherpa-onnx native
+libraries carry GPL-3.0 code (core D2), so a distributed build that includes them waits on core D2. D-game-5 (CC0 assets only) stays in
+force until the owner changes it.
 
 ## D-game-3: continuous integration (deferred)
 
