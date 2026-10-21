@@ -52,13 +52,13 @@ public sealed class TileAtlas : IDisposable
 
     /// <summary>
     /// Draws an item's icon at a saturation (the colour of the noun that names it, see <c>WordProgress.SaturationOf</c>), with the same grey
-    /// then colour rule as a tile. A material or a placed block shows its tile's art; the axe and the pickaxe have their own icons.
+    /// then colour rule as a tile. A material or a placed block shows its tile's art; the axe, the pickaxe and the sword have their own icons.
     /// </summary>
     public void DrawIcon(SpriteBatch spriteBatch, ItemId item, Rectangle destination, double saturation)
     {
         var source = TileArt.TileOfItem(item) is { } tile
             ? Source(tile)
-            : new Rectangle((TileArt.TileCount + (item == ItemId.Axe ? 0 : 1)) * TileArt.Size, 0, TileArt.Size, TileArt.Size);
+            : new Rectangle((TileArt.TileCount + TileArt.ToolIndexOf(item)) * TileArt.Size, 0, TileArt.Size, TileArt.Size);
         DrawCell(spriteBatch, source, destination, saturation);
     }
 

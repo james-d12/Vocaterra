@@ -31,6 +31,9 @@ public sealed record TileDefinition(TileId Id, string Name, bool Solid, int Mini
         new(TileId.Chair, "chair", true, 45, ToolKind.Pickaxe, ItemId.Chair),
         new(TileId.Bed, "bed", true, 60, ToolKind.Pickaxe, ItemId.Bed),
         new(TileId.Chest, "chest", true, 60, ToolKind.Pickaxe, ItemId.Chest),
+        new(TileId.Furnace, "furnace", true, 75, ToolKind.Pickaxe, ItemId.Furnace),
+        new(TileId.Glass, "glass", true, 30, ToolKind.Pickaxe, ItemId.Glass),
+        new(TileId.Brick, "brick", true, 60, ToolKind.Pickaxe, ItemId.Brick),
     ];
 
     /// <summary>Every defined tile kind, ordered by id.</summary>

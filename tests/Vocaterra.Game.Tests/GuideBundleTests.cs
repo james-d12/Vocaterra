@@ -12,7 +12,7 @@ namespace Vocaterra.Game.Tests;
 /// <summary>The guide's part of <c>content/game-v1</c>: its agent, intents, prompt and pools load, are consistent and say what the game relies on.</summary>
 public sealed class GuideBundleTests
 {
-    private static readonly string[] GuideIntents = ["ask_directions", "ask_what", "ask_help", "name_object", "greet", "thank", "farewell"];
+    private static readonly string[] GuideIntents = ["ask_directions", "ask_craft", "ask_find", "ask_what", "ask_help", "name_object", "greet", "thank", "farewell"];
 
     [Fact]
     public void TheGuidePromptAndAgentLoad()
@@ -33,7 +33,7 @@ public sealed class GuideBundleTests
     public void EveryGuideIntentHasGrammarsAndFiveExamples()
     {
         var intents = TestGame.Bundle.Intents;
-        foreach (var id in new[] { "ask_directions", "ask_what", "ask_help", "name_object" })
+        foreach (var id in new[] { "ask_directions", "ask_craft", "ask_find", "ask_what", "ask_help", "name_object" })
         {
             var intent = intents.Intents.Single(i => i.Id.Value == id);
             Assert.True(intent.Grammars.Count >= 2, $"{id} needs at least two slot grammars.");
@@ -42,6 +42,8 @@ public sealed class GuideBundleTests
 
         Assert.Equal(["place"], intents.Intents.Single(i => i.Id.Value == "ask_directions").RequiredSlots);
         Assert.Equal(["object"], intents.Intents.Single(i => i.Id.Value == "name_object").RequiredSlots);
+        Assert.Equal(["item"], intents.Intents.Single(i => i.Id.Value == "ask_craft").RequiredSlots);
+        Assert.Equal(["material"], intents.Intents.Single(i => i.Id.Value == "ask_find").RequiredSlots);
     }
 
     [Fact]
@@ -52,7 +54,7 @@ public sealed class GuideBundleTests
         var prompt = bundle.Prompts[GuideService.PromptId];
         var context = ConversationContext.Create(
             TestGame.Seed, GuideService.AgentId, bundle.Agents[GuideService.AgentId].InitialState(), new StoredTimestamp(GameSession.DefaultStartedAt), LearnerModel.New());
-        foreach (var id in new[] { "ask_directions", "ask_what", "ask_help", "name_object" })
+        foreach (var id in new[] { "ask_directions", "ask_craft", "ask_find", "ask_what", "ask_help", "name_object" })
         {
             foreach (var example in bundle.Intents.Intents.Single(i => i.Id.Value == id).Examples)
             {

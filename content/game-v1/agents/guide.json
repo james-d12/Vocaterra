@@ -3,6 +3,8 @@
   "initialState": "idle",
   "variantPools": [
     { "id": "farewell_reply", "count": 3 },
+    { "id": "guide_craft", "count": 3 },
+    { "id": "guide_find", "count": 3 },
     { "id": "guide_greet", "count": 3 },
     { "id": "guide_greet_again", "count": 2 },
     { "id": "guide_help", "count": 3 },
@@ -18,6 +20,8 @@
       "transitions": [
         { "on": {"intent": "greet", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_greet", "hostEvent": "agent.greet", "variantPoolId": "guide_greet"}] },
         { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_point", "hostEvent": "guide.point", "variantPoolId": "guide_point"}] },
+        { "on": {"intent": "ask_craft", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_craft", "hostEvent": "guide.craft", "variantPoolId": "guide_craft"}] },
+        { "on": {"intent": "ask_find", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_find", "hostEvent": "guide.find", "variantPoolId": "guide_find"}] },
         { "on": {"intent": "ask_what", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_look", "hostEvent": "guide.identify", "variantPoolId": "guide_look"}] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_help", "hostEvent": "guide.help", "variantPoolId": "guide_help"}] },
         { "on": {"intent": "name_object", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_name", "hostEvent": "guide.name", "variantPoolId": "guide_name"}] },
@@ -34,6 +38,8 @@
       "transitions": [
         { "on": {"intent": "greet", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_greet_again", "hostEvent": "agent.greet", "variantPoolId": "guide_greet_again"}] },
         { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_point", "hostEvent": "guide.point", "variantPoolId": "guide_point"}] },
+        { "on": {"intent": "ask_craft", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_craft", "hostEvent": "guide.craft", "variantPoolId": "guide_craft"}] },
+        { "on": {"intent": "ask_find", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_find", "hostEvent": "guide.find", "variantPoolId": "guide_find"}] },
         { "on": {"intent": "ask_what", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_look", "hostEvent": "guide.identify", "variantPoolId": "guide_look"}] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_help", "hostEvent": "guide.help", "variantPoolId": "guide_help"}] },
         { "on": {"intent": "name_object", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_name", "hostEvent": "guide.name", "variantPoolId": "guide_name"}] },
@@ -50,6 +56,8 @@
       "transitions": [
         { "on": {"intent": "greet", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_greet_again", "hostEvent": "agent.greet", "variantPoolId": "guide_greet_again"}] },
         { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_point", "hostEvent": "guide.point", "variantPoolId": "guide_point"}] },
+        { "on": {"intent": "ask_craft", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_craft", "hostEvent": "guide.craft", "variantPoolId": "guide_craft"}] },
+        { "on": {"intent": "ask_find", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_find", "hostEvent": "guide.find", "variantPoolId": "guide_find"}] },
         { "on": {"intent": "ask_what", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_look", "hostEvent": "guide.identify", "variantPoolId": "guide_look"}] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_help", "hostEvent": "guide.help", "variantPoolId": "guide_help"}] },
         { "on": {"intent": "name_object", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_name", "hostEvent": "guide.name", "variantPoolId": "guide_name"}] },

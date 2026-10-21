@@ -1,6 +1,7 @@
 using System.Globalization;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Pipeline;
+using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.Game;
@@ -59,7 +60,8 @@ public enum NameCheck
 /// <param name="Cursor">The tile under the mouse pointer, or <see langword="null"/> when there is none.</param>
 /// <param name="PointerActive">Whether an arrow from an earlier question is still on screen (the help line then says to follow it).</param>
 /// <param name="Review">Whether the line answers the guide's review question: it is evaluated on the <c>guide-review</c> prompt and <paramref name="Cursor"/> is the tile she pointed at.</param>
-public sealed record GuideScene(TilePoint Player, TilePoint? Cursor = null, bool PointerActive = false, bool Review = false);
+/// <param name="Inventory">What the player carries, for the crafting and finding answers ("te faltan dos bloques de madera", "tienes un hacha"); <see langword="null"/> is read as nothing carried and nothing said about it.</param>
+public sealed record GuideScene(TilePoint Player, TilePoint? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null);
 
 /// <summary>
 /// The outcome of one typed turn with the guide: the core's verdict in plain values, the lines to show (the correction first, then the
@@ -153,6 +155,12 @@ public static class GuideEvents
 
     /// <summary>The player said goodbye.</summary>
     public const string Farewell = "agent.farewell";
+
+    /// <summary>The player asked how to make something: the recipe, the station and what is missing.</summary>
+    public const string Craft = "guide.craft";
+
+    /// <summary>The player asked where a material is or comes from: its source and the nearest one.</summary>
+    public const string Find = "guide.find";
 
     /// <summary>The player named what they are looking at ("es un árbol"): the guide says whether the name fits the cursor's tile.</summary>
     public const string Name = "guide.name";

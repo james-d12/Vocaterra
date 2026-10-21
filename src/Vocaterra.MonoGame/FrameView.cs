@@ -45,6 +45,9 @@ public sealed class FrameView
     /// <summary>The inventory screen's state (I or E).</summary>
     public required InventoryScreen Inventory { get; init; }
 
+    /// <summary>The crafting panel's state (C).</summary>
+    public required CraftingScreen Crafting { get; init; }
+
     /// <summary>The player box between the previous and the latest tick (see <see cref="TickAccumulator.Alpha"/>), in simulation units.</summary>
     public Rectangle PlayerUnits { get; set; }
 

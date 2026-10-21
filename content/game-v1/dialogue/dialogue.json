@@ -311,6 +311,100 @@
         { "lineId": "guide.help.walk.1", "text": "Camina a la flecha." },
         { "lineId": "guide.help.walk.2", "text": "Ve hasta la flecha." }
       ]
+    },
+    "guide_craft": {
+      "poolId": "guide_craft",
+      "variants": [
+        { "lineId": "guide_craft.1", "text": "¡Claro! Mira." },
+        { "lineId": "guide_craft.2", "text": "A ver, te digo." },
+        { "lineId": "guide_craft.3", "text": "Sí, te ayudo." }
+      ]
+    },
+    "guide_find": {
+      "poolId": "guide_find",
+      "variants": [
+        { "lineId": "guide_find.1", "text": "A ver, busco." },
+        { "lineId": "guide_find.2", "text": "¡Claro! Busco." },
+        { "lineId": "guide_find.3", "text": "Un minuto, busco." }
+      ]
+    },
+    "guide.craft.part.mass": {
+      "poolId": "guide.craft.part.mass",
+      "variants": [
+        { "lineId": "guide.craft.part.mass.1", "text": "{count:words(m)} {unit:plural-if(count)} de {noun}" }
+      ]
+    },
+    "guide.craft.part.count": {
+      "poolId": "guide.craft.part.count",
+      "variants": [
+        { "lineId": "guide.craft.part.count.1", "text": "{count:words(noun)} {noun:plural-if(count)}" }
+      ]
+    },
+    "guide.craft.recipe": {
+      "poolId": "guide.craft.recipe",
+      "variants": [
+        { "lineId": "guide.craft.recipe.1", "text": "Para {thing:article(indef)} necesitas {need}." }
+      ]
+    },
+    "guide.craft.station.use": {
+      "poolId": "guide.craft.station.use",
+      "variants": [
+        { "lineId": "guide.craft.station.use.1", "text": "Usa {station:article(def)}." }
+      ]
+    },
+    "guide.craft.station.none": {
+      "poolId": "guide.craft.station.none",
+      "variants": [
+        { "lineId": "guide.craft.station.none.1", "text": "No necesitas nada más." }
+      ]
+    },
+    "guide.craft.lack.one": {
+      "poolId": "guide.craft.lack.one",
+      "variants": [
+        { "lineId": "guide.craft.lack.one.1", "text": "Te falta {lack}." }
+      ]
+    },
+    "guide.craft.lack.many": {
+      "poolId": "guide.craft.lack.many",
+      "variants": [
+        { "lineId": "guide.craft.lack.many.1", "text": "Te faltan {lack}." }
+      ]
+    },
+    "guide.craft.ready": {
+      "poolId": "guide.craft.ready",
+      "variants": [
+        { "lineId": "guide.craft.ready.1", "text": "¡Ya lo tienes todo!" }
+      ]
+    },
+    "guide.craft.none": {
+      "poolId": "guide.craft.none",
+      "variants": [
+        { "lineId": "guide.craft.none.1", "text": "Eso no se hace." }
+      ]
+    },
+    "guide.find.source": {
+      "poolId": "guide.find.source",
+      "variants": [
+        { "lineId": "guide.find.source.1", "text": "{material:article(def):cap} sale de {source:article(def):plural-if(many)}." }
+      ]
+    },
+    "guide.find.have.one": {
+      "poolId": "guide.find.have.one",
+      "variants": [
+        { "lineId": "guide.find.have.one.1", "text": "Tienes {thing:article(indef)}." }
+      ]
+    },
+    "guide.find.have.many": {
+      "poolId": "guide.find.have.many",
+      "variants": [
+        { "lineId": "guide.find.have.many.1", "text": "Tienes {count:words(thing)} {thing:plural-if(count)}." }
+      ]
+    },
+    "guide.find.have.mass": {
+      "poolId": "guide.find.have.mass",
+      "variants": [
+        { "lineId": "guide.find.have.mass.1", "text": "Tienes {count:words(m)} {unit:plural-if(count)} de {thing}." }
+      ]
     }
   }
 }

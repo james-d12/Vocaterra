@@ -14,6 +14,9 @@ public enum SimulationEventKind
 
     /// <summary>A block was placed from the selected hotbar slot.</summary>
     TilePlaced = 3,
+
+    /// <summary>A recipe was crafted: the ingredients left the inventory and the output went in.</summary>
+    ItemCrafted = 4,
 }
 
 /// <summary>An event a tick produced, for sounds, particles and the guide. </summary>

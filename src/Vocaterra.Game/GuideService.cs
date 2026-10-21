@@ -6,6 +6,7 @@ using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Response.Templates;
+using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.Game;
@@ -56,6 +57,20 @@ public sealed class GuideService
     private const string PointNone = "guide.point.none";
     private const string IdentifyFound = "guide.identify.found";
     private const string IdentifyNone = "guide.identify.none";
+    private const string CraftRecipe = "guide.craft.recipe";
+    private const string CraftStationUse = "guide.craft.station.use";
+    private const string CraftStationNone = "guide.craft.station.none";
+    private const string CraftLackOne = "guide.craft.lack.one";
+    private const string CraftLackMany = "guide.craft.lack.many";
+    private const string CraftReady = "guide.craft.ready";
+    private const string CraftNone = "guide.craft.none";
+    private const string CraftPartMass = "guide.craft.part.mass";
+    private const string CraftPartCount = "guide.craft.part.count";
+    private const string FindSource = "guide.find.source";
+    private const string HaveOne = "guide.find.have.one";
+    private const string HaveMany = "guide.find.have.many";
+    private const string HaveMass = "guide.find.have.mass";
+    private const string BlockUnit = "bloque";
     private const string HelpAsk = "guide.help.ask";
     private const string HelpWalk = "guide.help.walk";
     private const string NameRight = "guide.name.correct";
@@ -68,6 +83,7 @@ public sealed class GuideService
     private readonly TypedUtteranceEvaluator _evaluator;
     private readonly WorldFacts _facts;
     private readonly NounCatalog _nouns;
+    private readonly RecipeBook _recipes;
     private ConversationContext _context;
 
     /// <summary>Starts the conversation: the guide in its initial state, a learner model with no evidence and no repeat counts.</summary>
@@ -76,8 +92,9 @@ public sealed class GuideService
     /// <param name="nouns">The noun catalogue of the same bundle: the nouns a turn exercises get their learner skills.</param>
     /// <param name="worldSeed">The world seed, which seeds every random draw with the agent id and the interaction counter.</param>
     /// <param name="start">The stored time before the first turn.</param>
+    /// <param name="recipes">The bundle's recipes, for the crafting answers; read from the bundle when <see langword="null"/>.</param>
     /// <exception cref="ArgumentException">The bundle has no guide.</exception>
-    public GuideService(ContentBundle bundle, WorldFacts facts, NounCatalog nouns, ulong worldSeed, StoredTimestamp start)
+    public GuideService(ContentBundle bundle, WorldFacts facts, NounCatalog nouns, ulong worldSeed, StoredTimestamp start, RecipeBook? recipes = null)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         ArgumentNullException.ThrowIfNull(facts);
@@ -90,6 +107,7 @@ public sealed class GuideService
         _bundle = bundle;
         _facts = facts;
         _nouns = nouns;
+        _recipes = recipes ?? RecipeBook.Load(bundle, nouns);
         _evaluator = new TypedUtteranceEvaluator(bundle);
         _context = ConversationContext.Create(worldSeed, AgentId, machine.InitialState(), start, LearnerModel.New(), new Dictionary<string, int>(StringComparer.Ordinal), SlotMap.Empty, []);
     }
@@ -157,6 +175,12 @@ public sealed class GuideService
                 {
                     case GuideEvents.Point:
                         (worldLine, pointer) = Point(first.Verdict, scene, rng, facts);
+                        break;
+                    case GuideEvents.Craft:
+                        worldLine = Craft(first.Verdict, scene, rng, facts);
+                        break;
+                    case GuideEvents.Find:
+                        (worldLine, pointer) = Find(first.Verdict, scene, rng, facts);
                         break;
                     case GuideEvents.Identify:
                         (worldLine, identified) = Identify(scene, rng, facts);
@@ -254,6 +278,19 @@ public sealed class GuideService
     {
         var place = verdict.Slots.TryGetValue("place", out var lemma) ? lemma : string.Empty;
         var found = place.Length == 0 ? null : _facts.NearestOfNoun(scene.Player, place);
+
+        // A thing with no tile in the world (the axe) that the player carries: say so instead of "there is none here".
+        if (found is null && CountCarried(place, scene) > 0)
+        {
+            return (Have(place, scene, rng, facts), null);
+        }
+
+        return PointAt(place, found, rng, facts);
+    }
+
+    // The point-at line for the nearest tile of a noun (or the here / none line), with the arrow.
+    private (string Line, GuidePointer? Pointer) PointAt(string place, NearestTile? found, SeededRng rng, Dictionary<string, string> facts)
+    {
         var values = new Dictionary<string, string>(StringComparer.Ordinal) { ["place"] = place };
         if (found is null)
         {
@@ -269,9 +306,139 @@ public sealed class GuideService
 
         values["direction"] = found.Direction;
         values["count"] = found.Blocks.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        values["unit"] = "bloque";
+        values["unit"] = BlockUnit;
         Merge(facts, values);
         return (Render(PointFound, SlotMap.From(values), rng), new GuidePointer(place, found.Tile, found.Blocks, found.Direction));
+    }
+
+    // How many of a catalogue noun's items the player carries (zero when the noun is unknown or the scene has no inventory).
+    private int CountCarried(string lemma, GuideScene scene)
+    {
+        if (scene.Inventory is not { } inventory || _nouns.ForLemma(lemma) is not { } noun)
+        {
+            return 0;
+        }
+
+        return noun.Items.Sum(inventory.Count);
+    }
+
+    // "Tienes un hacha." / "Tienes dos hachas." / "Tienes tres bloques de madera.": what the player already carries.
+    private string Have(string lemma, GuideScene scene, SeededRng rng, Dictionary<string, string> facts)
+    {
+        var noun = _nouns.ForLemma(lemma)!;
+        var count = CountCarried(lemma, scene);
+        var values = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["thing"] = lemma,
+            ["count"] = count.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["unit"] = BlockUnit,
+        };
+        Merge(facts, values);
+        var pool = noun.Mass ? HaveMass : count == 1 ? HaveOne : HaveMany;
+        return Render(pool, SlotMap.From(values), rng);
+    }
+
+    // The player asks where a material is or where it comes from: what it comes from and the nearest of that (its own tile when it is one).
+    private (string Line, GuidePointer? Pointer) Find(Verdict verdict, GuideScene scene, SeededRng rng, Dictionary<string, string> facts)
+    {
+        var material = verdict.Slots.TryGetValue("material", out var lemma) ? lemma : string.Empty;
+        if (CountCarried(material, scene) > 0)
+        {
+            return (Have(material, scene, rng, facts), null);
+        }
+
+        var noun = _nouns.ForLemma(material);
+        IReadOnlyList<string> sources = noun is { Sources.Count: > 0 } ? noun.Sources : [material];
+        var bestSource = sources[0];
+        NearestTile? best = null;
+        foreach (var source in sources)
+        {
+            var near = _facts.NearestOfNoun(scene.Player, source);
+            if (near is not null && (best is null || SquaredDistance(near) < SquaredDistance(best)))
+            {
+                best = near;
+                bestSource = source;
+            }
+        }
+
+        var lines = new List<string>();
+        if (noun is not null && !string.Equals(bestSource, material, StringComparison.Ordinal))
+        {
+            var values = new Dictionary<string, string>(StringComparer.Ordinal) { ["material"] = material, ["source"] = bestSource, ["many"] = "2" };
+            facts["thing"] = material;
+            facts["source"] = bestSource;
+            lines.Add(Render(FindSource, SlotMap.From(values), rng));
+        }
+
+        var (pointLine, pointer) = PointAt(bestSource, best, rng, facts);
+        lines.Add(pointLine);
+        return (string.Join(' ', lines), pointer);
+    }
+
+    private static long SquaredDistance(NearestTile tile) => ((long)tile.Dx * tile.Dx) + ((long)tile.Dy * tile.Dy);
+
+    // How to make something: the ingredients with their numbers, the station, and what the player still lacks.
+    private string Craft(Verdict verdict, GuideScene scene, SeededRng rng, Dictionary<string, string> facts)
+    {
+        var lemma = verdict.Slots.TryGetValue("item", out var asked) ? asked : string.Empty;
+        facts["thing"] = lemma;
+        var recipe = lemma.Length == 0 ? null : _recipes.ForOutput(lemma);
+        if (recipe is null)
+        {
+            return Render(CraftNone, SlotMap.Empty, rng);
+        }
+
+        var need = Phrase(recipe.Ingredients.Select(static i => (i.Noun, i.Count)).ToList(), rng);
+        facts["need"] = need;
+        var lines = new List<string> { Render(CraftRecipe, SlotMap.Empty.With("thing", lemma).With("need", need), rng) };
+        if (recipe.Station is { } station)
+        {
+            facts["station"] = station.Lemma;
+            lines.Add(Render(CraftStationUse, SlotMap.Empty.With("station", station.Lemma), rng));
+        }
+        else
+        {
+            lines.Add(Render(CraftStationNone, SlotMap.Empty, rng));
+        }
+
+        if (scene.Inventory is { } inventory)
+        {
+            var missing = recipe.Ingredients
+                .Where(i => inventory.Count(i.Item) < i.Count)
+                .Select(i => (i.Noun, Count: i.Count - inventory.Count(i.Item)))
+                .ToList();
+            if (missing.Count == 0)
+            {
+                lines.Add(Render(CraftReady, SlotMap.Empty, rng));
+            }
+            else
+            {
+                var lack = Phrase(missing, rng);
+                facts["lack"] = lack;
+                var single = missing.Count == 1 && missing[0].Count == 1;
+                lines.Add(Render(single ? CraftLackOne : CraftLackMany, SlotMap.Empty.With("lack", lack), rng));
+            }
+        }
+
+        return string.Join(' ', lines);
+    }
+
+    // "seis bloques de madera", "dos bloques de madera y seis bloques de piedra": each part from the bundle's pools, joined with "y".
+    private string Phrase(IReadOnlyList<(NounEntry Noun, int Count)> parts, SeededRng rng)
+    {
+        var rendered = new List<string>();
+        foreach (var (noun, count) in parts)
+        {
+            var values = SlotMap.Empty
+                .With("count", count.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                .With("noun", noun.Lemma)
+                .With("unit", BlockUnit);
+            rendered.Add(Render(noun.Mass ? CraftPartMass : CraftPartCount, values, rng));
+        }
+
+        return rendered.Count == 1
+            ? rendered[0]
+            : string.Join(", ", rendered.Take(rendered.Count - 1)) + " y " + rendered[^1];
     }
 
     private (string Line, string? Noun) Identify(GuideScene scene, SeededRng rng, Dictionary<string, string> facts)

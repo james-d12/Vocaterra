@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Security.Cryptography;
+using Vocaterra.Simulation.Crafting;
 using Vocaterra.Simulation.Generation;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Physics;
@@ -34,6 +35,7 @@ public sealed class GameSimulation
     private TilePoint? _miningTarget;
     private ItemId? _miningItem;
     private int _miningProgress;
+    private IReadOnlyList<Recipe> _recipes = [];
 
     private GameSimulation(World world)
     {
@@ -70,6 +72,9 @@ public sealed class GameSimulation
     /// <summary>The stack in the selected slot (empty when the slot holds nothing).</summary>
     public ItemStack SelectedStack => Inventory.Slots[_selectedSlot];
 
+    /// <summary>The recipes the player can craft, in the order the front-end shows them; set by the host with <see cref="SetRecipes"/>.</summary>
+    public IReadOnlyList<Recipe> Recipes => _recipes;
+
     /// <summary>The tile being mined, or <see langword="null"/> when no mining is going on.</summary>
     public TilePoint? MiningTarget => _miningTarget;
 
@@ -96,7 +101,7 @@ public sealed class GameSimulation
     /// Advances one tick. The commands are what the player does during this tick; movement and jump commands are levels (send the held
     /// ones every tick), and a command kind the simulation does not know is ignored. Commands are applied in a fixed order whatever their
     /// order in the list: the hotbar selection, then mining (the last mine command of the tick), then placing (each place command in list
-    /// order), then movement, jump and physics.
+    /// order), then crafting (each craft command in list order), then movement, jump and physics.
     /// </summary>
     public void Step(IReadOnlyList<PlayerCommand> commands)
     {
@@ -144,6 +149,14 @@ public sealed class GameSimulation
             }
         }
 
+        for (var i = 0; i < commands.Count; i++)
+        {
+            if (commands[i].Kind == PlayerCommandKind.Craft)
+            {
+                Craft(commands[i].X);
+            }
+        }
+
         StepPlayer(left, right, jump);
     }
 
@@ -153,6 +166,63 @@ public sealed class GameSimulation
     /// </summary>
     /// <returns>How many did not fit.</returns>
     public int GrantItems(ItemId item, int count) => Inventory.Add(item, count);
+
+    /// <summary>
+    /// Sets the recipe list (plain values the game layer read from the bundle). Recipes are rules, not state: they are not part of
+    /// <see cref="ComputeStateDigest"/>.
+    /// </summary>
+    public void SetRecipes(IReadOnlyList<Recipe> recipes)
+    {
+        ArgumentNullException.ThrowIfNull(recipes);
+        _recipes = recipes.ToArray();
+    }
+
+    /// <summary>Whether a tile of kind <paramref name="station"/> lies within <see cref="CraftingRules.StationReachInTiles"/> of the player.</summary>
+    public bool StationInReach(TileId station)
+    {
+        var radius = CraftingRules.StationReachInTiles;
+        var centerX = TileCollider.FloorDiv(_x + (PhysicsConstants.PlayerWidth / 2), U);
+        var centerY = TileCollider.FloorDiv(_y + (PhysicsConstants.PlayerHeight / 2), U);
+        for (var y = centerY - radius; y <= centerY + radius; y++)
+        {
+            for (var x = centerX - radius; x <= centerX + radius; x++)
+            {
+                if (World.Tiles.GetTile(x, y) == station && WithinTiles(new TilePoint(x, y), radius))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>What crafting the recipe at <paramref name="recipeIndex"/> would do now (nothing is changed).</summary>
+    public CraftResult CanCraft(int recipeIndex)
+    {
+        if ((uint)recipeIndex >= (uint)_recipes.Count)
+        {
+            return CraftResult.NoSuchRecipe;
+        }
+
+        var recipe = _recipes[recipeIndex];
+        return CraftingRules.Check(recipe, Inventory, recipe.Station is { } station && StationInReach(station));
+    }
+
+    /// <summary>Crafts the recipe at <paramref name="recipeIndex"/> when <see cref="CanCraft"/> says so (the same as a <see cref="PlayerCommand.Craft"/> in a tick).</summary>
+    public CraftResult Craft(int recipeIndex)
+    {
+        var result = CanCraft(recipeIndex);
+        if (result != CraftResult.Done)
+        {
+            return result;
+        }
+
+        var recipe = _recipes[recipeIndex];
+        CraftingRules.Craft(recipe, Inventory, recipe.Station is null || StationInReach(recipe.Station.Value));
+        _events.Add(new SimulationEvent(SimulationEventKind.ItemCrafted, Tick));
+        return result;
+    }
 
     /// <summary>
     /// A SHA-256 of the whole simulation state (the world's tile digest, the tick, the player body, its input memory, the hotbar selection,
@@ -276,11 +346,13 @@ public sealed class GameSimulation
     private ItemDefinition? SelectedDefinition => SelectedStack.IsEmpty ? null : ItemDefinition.Get(SelectedStack.Item);
 
     /// <summary>Whether the tile lies within reach of the middle of the player's body.</summary>
-    private bool InReach(TilePoint tile)
+    private bool InReach(TilePoint tile) => WithinTiles(tile, ReachInTiles);
+
+    private bool WithinTiles(TilePoint tile, int radiusInTiles)
     {
         long dx = (tile.X * U) + (U / 2) - (_x + (PhysicsConstants.PlayerWidth / 2));
         long dy = (tile.Y * U) + (U / 2) - (_y + (PhysicsConstants.PlayerHeight / 2));
-        long reach = (long)ReachInTiles * U;
+        long reach = (long)radiusInTiles * U;
         return (dx * dx) + (dy * dy) <= reach * reach;
     }
 
@@ -320,7 +392,9 @@ public sealed class GameSimulation
             return;
         }
 
-        if (definition.Drop is { } expected && !Inventory.CanAdd(expected, 1))
+        var felled = kind == TileId.Trunk ? FellingOf(tile) : [];
+        var dropCount = 1 + felled.Count(t => t.Kind == TileId.Trunk);
+        if (definition.Drop is { } expected && !Inventory.CanAdd(expected, dropCount))
         {
             ResetMining();
             return;
@@ -341,13 +415,48 @@ public sealed class GameSimulation
         }
 
         World.Tiles.SetTile(tile.X, tile.Y, TileId.Air);
+        foreach (var (point, _) in felled)
+        {
+            World.Tiles.SetTile(point.X, point.Y, TileId.Air);
+        }
+
         if (definition.Drop is { } gained)
         {
-            Inventory.Add(gained, 1);
+            Inventory.Add(gained, dropCount);
         }
 
         ResetMining();
         _events.Add(new SimulationEvent(SimulationEventKind.TileMined, Tick));
+    }
+
+    /// <summary>
+    /// The tiles that fall with a mined trunk tile: the trunk tiles straight above it and the leaves of the canopy around the top (the
+    /// shape the forest pass plants: two columns either side, from two rows above the top trunk to one below it). The mined tile itself is
+    /// not in the list. Deterministic: it reads the tiles only.
+    /// </summary>
+    private List<(TilePoint Point, TileId Kind)> FellingOf(TilePoint mined)
+    {
+        var result = new List<(TilePoint, TileId)>();
+        var top = mined.Y;
+        while (World.Tiles.GetTile(mined.X, top - 1) == TileId.Trunk)
+        {
+            top--;
+            result.Add((new TilePoint(mined.X, top), TileId.Trunk));
+        }
+
+        for (var dy = -2; dy <= 1; dy++)
+        {
+            var reach = dy is -2 or 1 ? 1 : 2;
+            for (var dx = -reach; dx <= reach; dx++)
+            {
+                if (World.Tiles.GetTile(mined.X + dx, top + dy) == TileId.Leaves)
+                {
+                    result.Add((new TilePoint(mined.X + dx, top + dy), TileId.Leaves));
+                }
+            }
+        }
+
+        return result;
     }
 
     /// <summary>

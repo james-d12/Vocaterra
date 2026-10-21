@@ -59,7 +59,7 @@ public sealed class NounCatalogTests
     public void WoodComesFromTrees()
     {
         Assert.Equal(["árbol"], TestGame.Nouns.ForLemma("madera")!.Sources);
-        Assert.Empty(TestGame.Nouns.ForLemma("piedra")!.Sources);
+        Assert.Equal(["piedra"], TestGame.Nouns.ForLemma("piedra")!.Sources); // a material that is a tile of its own comes from itself
     }
 
     [Fact]
