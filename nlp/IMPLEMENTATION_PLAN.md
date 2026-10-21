@@ -210,7 +210,8 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M26e | CR-006 speech-out readiness: Kokoro and Parakeet file hashes pinned from real downloads, `KokoroSynthesizer.FromStore`, Spanish speaker ids documented (D2: private builds only) | M19f | H | done |
 | M26f | CR-010 `cefr-check` reads prompt text; CR-011 sample `ATTRIBUTION.md` describes the sample only (content procedure: hash re-pin, goldens) | M26d | H | done |
 | M26g | Intermittent failure from M26e: `ParakeetFromStoreTranscribesTheSpanishSampleClipDeterministically` failed 1 of 5 isolated runs (two decodes in one process differ in a field the assertion message hides; transcript equal); find the nondeterminism in the sherpa-onnx adapter or its configuration and fix it at the source | M26e | H | done |
-| M27a | Content lint (owner chose lint first, 2026-10-21): `vocaterra-content lint` — example coverage per intent, confusion within each prompt's allow-list, grammar hazards, reachability, CEFR incl. prompt text; examples may carry expected error tags; `validate` warns, `--strict` fails; per-intent waivers (see §10) | M26f | S | in-progress |
+| M27a | Content lint (owner chose lint first, 2026-10-21): `vocaterra-content lint` — example coverage per intent, confusion within each prompt's allow-list, grammar hazards, reachability, CEFR incl. prompt text; examples may carry expected error tags; `validate` warns, `--strict` fails; per-intent waivers (see §10) | M26f | S | done |
+| M27a2 | Lint follow-up on the sample content (needs `hash`): narrow `cast_spell`'s bare-noun grammar so it no longer takes `gracias` (or waive it), a `thank` grammar for `muchas gracias…`/`mucho gracias` (or `allowRuleOnly`), example expectations (`yo es Rosa`, `yo estás de acuerdo`, `yo no quieres`, `mucho gracias`, `yo tiene dos espada`); fold into M27b if that is sooner | M27a | H | proposed |
 | M27b | Content layering and `std-v1`: manifest `base` pinned by id, hash and path; whole-item replacement with explicit `replaces`/`removes`; lexicon and CEFR unioned; one level; `content/v1` becomes `std-v1` plus a blacksmith overlay (see §10) | M27a | S | todo |
 | M27c | Format de-duplication: defaulted redundant fields, any-state transitions, `<np:x>` macros, generated article aliases; old files load identically (see §10) | M27b | H | todo |
 | M28a | Game requests, batch 2: CR-017 two-phase evaluation (analyse, then plan the response with host slots and skills computed from the analysis; one evaluation per turn) and CR-015 host-initiated agent turns (the agent speaks and moves on a host event, in the replay record and the interaction counter) | M26 | S | proposed |
@@ -810,6 +811,24 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   CR-017 "should" and CR-015), M28b (Response templates, CR-016 and CR-018), M28c (grading, CR-014). All
   three are disjoint from M27a (Content, ContentBuilder, the intent file schema), so M28a can run beside
   M27a once the owner agrees; M28a first because CR-017 costs the game a second evaluation per turn today.
+- **M27a results:** `vocaterra-content lint <bundle> [--strict] [--level] [--fail-on-level] [--json]
+  [--prompts a,b] [--host-pools p*,q]` over `ContentLinter.Lint(bundle, LintOptions)` in Content; `validate`
+  prints lint errors/warnings and fails on them only with `--strict`. Checks: coverage (with rung;
+  rule-only and uncovered examples, a grammar skeleton as a hint), confusion per prompt (`confusion.prompt`
+  warning/error) and across the catalog (`confusion.catalog` info), grammar hazards (homographs as info:
+  as warnings they were 7 true but unactionable findings on the sample), reachability (from all or
+  chosen root prompts), CEFR (dialogue, prompt text, answer-set canonicals), example expectations.
+  Additive schema: an example is a string or `{"text","errors","prompt"}`; per-intent `"lint"` waivers
+  (`allowOverlap`, `allowRuleOnly`, `allowHomograph`; errors cannot be waived; waived findings still
+  print). `TextGrader` grades text in Content (Content cannot reference Pipeline), with a parity test
+  against `UtterancePipeline` on 99 example/prompt pairs; `ReservedPools` names the pipeline's reserved
+  pools. Sample: 0 errors, 2 warnings (`thank` rule-only ×2), 8 info (the `gracias`/`cast_spell` overlap
+  hidden by the tie-break, 7 homographs); 0.56 s. Game bundle (read-only): the research's 4 confusions
+  reproduce; the host-voiced `guide.*` pools need `--host-pools`; from the guide's prompts the blacksmith
+  material (12 pools, the agent, 7 answer sets, 8 intents) is unreachable. Reported, not fixed: `nos veo`
+  (meant as a learner error) grades clean (clitic `nos` gives no subject; analyzer gap); pool-level waivers
+  do not exist; the lint has no embedding rung. Content edits it proposes are M27a2 (they need `hash`).
+  Suite: 2948 passed, 3 skipped.
 - **Two orchestrators (owner, 2026-10-21):** this repository is run by the core orchestrator only; the
   Vocaterra repository has its own orchestrator and plan. Protocol: the game writes requests for core
   changes to `docs/CORE_REQUESTS.md` in its repository; the core orchestrator reads that file at the
