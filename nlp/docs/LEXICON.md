@@ -171,6 +171,23 @@ with regression tests in `tests/Vocaterra.Nlp.Language.Tests/Analysis/AmbiguousR
 prenominal check consider every adjective reading; (4) `malos corazones` was a number mistake because `corazones` also reads as a singular noun, so an
 adjective agrees with a noun that has readings of both numbers unless a determiner fixes the number. The homograph limit itself was fixed in M18.
 
+## Words written without their accent (M26b, CR-013)
+
+`Lexicon.Lookup` is exact first and accent-insensitive only for a form the lexicon lacks (`arbol` gives `árbol`). A plain spelling that is itself a lexicon form (`esta`, `el`,
+`tu`, `mi`, `se`, `te`, `si`, `que`, `mas`: 2 514 forms have an accented sibling in the bundle, a few dozen of them function words) therefore hid the accented word, and
+`dónde esta el arbol` read `esta` as the demonstrative and reported `gender.agree`. `Lexicon.LookupWithAccentVariants` returns what `Lookup` returns plus the readings of the accented
+spellings (`AccentVariant`: the spelling and its reading); `Lookup` itself is unchanged, and so are the grammar matcher, the intent stage and the returned tokens, which see the readings of the
+spelling as typed. `LinguisticAnalyzer` passes the variants to the reading resolver, whose step 0 (`AccentVariantChoice`) keeps the word as typed unless the neighbouring words contradict every
+reading it has: an article with no noun phrase after it (`el` at the end or before a verb is `él`), a demonstrative or possessive with no noun after its adjectives or with an article right after it
+(`esta` before `el`, an adverb, a preposition or the end is `está`; `tu` before a verb is `tú`; `mi` at the end is `mí`), a conjunction or preposition at the end (`si` alone is `sí`), an object
+pronoun with no verb after it (`no se` is `no sé`, `quiero te` is `quiero té`); and a determiner right after `dónde`, `donde` or `cómo` is the verb when it has one. Open classes (nouns,
+verbs, adjectives, adverbs, other pronouns) always fit, so `mas` and `como` stay as typed.
+
+Policy: nothing is reported to the learner. There is no accent error tag (the taxonomy has none, and a player without accents writes every word this way), the analysis only stops
+reporting the false errors, and starts reporting the true ones that the old reading hid (`el esta simpatico` is `él está simpático`: `ser_estar`). A recast that is built for another
+reason restores the accent on a word the analysis read as accented (`AccentRestoration`, used by `RecastBuilder`), as it already did for a word the lexicon lacks (`arbol` gives
+`árbol`); a word read as typed keeps its spelling.
+
 ## Words the content uses and the lexicon lacked
 
 The coverage tests (`LexiconCoverageTests`) found `saeta` (an alias in the `items-basic` answer set), `género`, `ayudarte`, `inténtalo` and `mmm` (dialogue lines).

@@ -217,6 +217,13 @@ public static class MutationGen
 
         public MutatedSentence? ConjPerson()
         {
+            // A grammar with an alternative that has a name ([PRON] [WORD] beside [VERB:freír]) binds the mutated verb as the name when the alternative fits, and a name has no
+            // reading to check (seed 1RTZdjQ2tFb2: nosotras freís against ([VERB:freír]|[ART] [NOUN:item]|[PRON] [WORD]) ...; it failed on main before M26b).
+            if (sentence.PatternText.Contains("[WORD", StringComparison.Ordinal) && sentence.PatternText.Contains('|', StringComparison.Ordinal))
+            {
+                return null;
+            }
+
             foreach (var i in Shuffled(Indexes(static t => t is { Role: TokenRole.Verb, Generated: true, Infinitive: false, Tense: not null })))
             {
                 var subject = SubjectOf(i);
@@ -596,6 +603,13 @@ public static class MutationGen
             // An adjective behind the noun would attach to the next noun phrase once the noun is gone, which is a different mistake.
             var heads = Indexes(static t => t is { Role: TokenRole.Noun, Generated: true }).Where(h => !_tokens.Where((t, j) => j > h && t.Head == h).Any()).ToList();
             if (heads.Count == 0)
+            {
+                return null;
+            }
+
+            // A name ([WORD]) binds any word of letters, so a grammar that has one takes the non-word for the name and the sentence is still matched, with nothing unknown in it
+            // (seed 2to272FZCXD3: religioso nosotros focatudil against [ADJ:item] [PRON] [NOUN:qty]? [WORD:spell]?).
+            if (sentence.PatternText.Contains("[WORD", StringComparison.Ordinal))
             {
                 return null;
             }

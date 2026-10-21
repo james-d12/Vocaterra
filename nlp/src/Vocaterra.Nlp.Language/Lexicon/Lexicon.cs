@@ -17,6 +17,7 @@ public sealed class Lexicon
     private readonly string[] _lemmas;
     private readonly Dictionary<string, LexicalFeatures[]> _byForm;
     private readonly Dictionary<string, LexicalFeatures[]> _byFoldedForm;
+    private readonly Dictionary<string, AccentVariant[]> _variantsByPlainForm;
     private readonly Dictionary<string, LexiconEntry[]> _byLemma;
     private readonly ConcurrentDictionary<string, Lazy<object>> _derived = new(StringComparer.Ordinal);
 
@@ -35,6 +36,7 @@ public sealed class Lexicon
         // joins the runs whose forms fold to the same key (esta, está); a form without accents shares its array with the exact index.
         _byForm = new Dictionary<string, LexicalFeatures[]>(count, StringComparer.Ordinal);
         _byFoldedForm = new Dictionary<string, LexicalFeatures[]>(count, StringComparer.Ordinal);
+        var variants = new Dictionary<string, List<AccentVariant>>(StringComparer.Ordinal);
         var start = 0;
         while (start < count)
         {
@@ -49,7 +51,28 @@ public sealed class Lexicon
             _byForm.Add(form, run);
             var key = TextFolding.StripAccents(form);
             _byFoldedForm[key] = _byFoldedForm.TryGetValue(key, out var earlier) ? [.. earlier, .. run] : run;
+            if (!string.Equals(key, form, StringComparison.Ordinal))
+            {
+                // An accented form: its readings are the accent variants of the plain spelling, in the order of the sorted entries.
+                if (!variants.TryGetValue(key, out var forKey))
+                {
+                    forKey = [];
+                    variants.Add(key, forKey);
+                }
+
+                foreach (var reading in run)
+                {
+                    forKey.Add(new AccentVariant(form, reading));
+                }
+            }
+
             start = end;
+        }
+
+        _variantsByPlainForm = new Dictionary<string, AccentVariant[]>(variants.Count, StringComparer.Ordinal);
+        foreach (var pair in variants)
+        {
+            _variantsByPlainForm.Add(pair.Key, [.. pair.Value]);
         }
 
         var byLemma = new Dictionary<string, List<LexiconEntry>>(StringComparer.Ordinal);
@@ -182,6 +205,23 @@ public sealed class Lexicon
         }
 
         return new LexiconLookupResult(key, NoReadings, accentInsensitive: false);
+    }
+
+    /// <summary>
+    /// Returns what <see cref="Lookup"/> returns plus the accent variants of the form: when the form has no accents and is itself a lexicon form (<c>esta</c>),
+    /// the readings of the accented forms that fold to it (<c>está</c>), each with its spelling, so that a caller can choose between the readings of the exact
+    /// form and the accented ones from context. The variants are empty for a form with an accent (the writer chose it), for a form the lexicon lacks (its
+    /// accented readings are already what <see cref="Lookup"/> returns, flagged accent-insensitive) and when no accented form folds to it.
+    /// </summary>
+    public LexiconAccentLookup LookupWithAccentVariants(string form)
+    {
+        var exact = Lookup(form);
+        if (!exact.IsAccentInsensitive && exact.Count > 0 && _variantsByPlainForm.TryGetValue(exact.Form, out var variants))
+        {
+            return new LexiconAccentLookup(exact, variants);
+        }
+
+        return new LexiconAccentLookup(exact, []);
     }
 
     /// <summary>

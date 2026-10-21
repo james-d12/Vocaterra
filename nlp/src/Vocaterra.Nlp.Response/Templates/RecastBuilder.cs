@@ -1,6 +1,7 @@
 using System.Globalization;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
+using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Normalization;
 using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
@@ -26,7 +27,8 @@ public static class RecastBuilder
     /// partially overlapping edits are dropped. Digit tokens such as <c>2</c> are replaced with words (<c>dos</c>, and <c>un</c>/<c>una</c> before a noun).
     /// A word that the lexicon knows only once its accents are ignored (<c>dias</c>) takes the lexicon's accented spelling (<c>días</c>), the first in
     /// ordinal order when several accented spellings fold alike. A word that is a lexicon form as spelled is kept, so an accent-less word that is
-    /// another word (<c>se</c>, <c>si</c>, <c>mas</c>) is never corrected.
+    /// another word (<c>se</c>, <c>si</c>, <c>mas</c>) is corrected only when the analysis read it as the accented word that the words around it call for
+    /// (<c>esta</c> in <c>dónde esta el árbol</c> is <c>está</c>; see <see cref="AccentRestoration"/>).
     /// </summary>
     public static string Build(NormalizedText playerText, AnalysisResult analysis, NlpLexicon lexicon)
     {
@@ -36,6 +38,7 @@ public static class RecastBuilder
         var text = playerText.Text;
         var edits = ResolveErrorEdits(text, analysis);
         AddAccentEdits(playerText, lexicon, edits);
+        AddReadAsAccentedEdits(playerText, analysis, lexicon, edits);
         AddNumberEdits(playerText, analysis, edits);
 
         edits.Sort(static (a, b) => b.Start.CompareTo(a.Start));
@@ -122,6 +125,27 @@ public static class RecastBuilder
             {
                 edits.Add(new Edit(span.Start, span.Length, spellings[0]));
             }
+        }
+    }
+
+    // A word that is a lexicon form as spelled but that the analysis read as an accented word takes that spelling, the same treatment as a word the lexicon lacks as spelled.
+    private static void AddReadAsAccentedEdits(NormalizedText playerText, AnalysisResult analysis, NlpLexicon lexicon, List<Edit> edits)
+    {
+        var spellings = AccentRestoration.SpellingsFor(lexicon, analysis);
+        foreach (var token in playerText.Tokens)
+        {
+            var span = token.Span;
+            if (span.Start < 0
+                || span.Length <= 0
+                || span.End > playerText.Text.Length
+                || !spellings.TryGetValue(span.Start, out var spelling)
+                || !string.Equals(playerText.Text.Substring(span.Start, span.Length), token.Text, StringComparison.Ordinal)
+                || edits.Exists(e => e.Start < span.End && span.Start < e.End))
+            {
+                continue;
+            }
+
+            edits.Add(new Edit(span.Start, span.Length, spelling));
         }
     }
 

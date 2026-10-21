@@ -125,7 +125,7 @@ public class ReadingResolverTests
             }
         }
 
-        return ReadingResolver.Resolve(tokens, best, CountErrors);
+        return ReadingResolver.Resolve(tokens, tokens.Select(static _ => (IReadOnlyList<LexicalFeatures>)[]).ToList(), best, CountErrors);
     }
 
     private static string PosOf(IReadOnlyList<AnalyzedToken> tokens, int index)
@@ -264,7 +264,7 @@ public class ReadingResolverTests
     public void ATokenWithOneClassIsReturnedAsItIsAndAnUnknownWordKeepsNoReadings()
     {
         var all = Analyzer.Analyze(TestTokens.From("un xyzzy")).Tokens;
-        var resolved = ReadingResolver.Resolve(all, null, CountErrors);
+        var resolved = ReadingResolver.Resolve(all, all.Select(static _ => (IReadOnlyList<LexicalFeatures>)[]).ToList(), null, CountErrors);
 
         Assert.Same(all[0], resolved[0]);
         Assert.Empty(resolved[1].Readings);

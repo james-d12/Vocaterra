@@ -10,8 +10,9 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A word class is the part of speech of a reading, with finite verbs apart from infinitives and participles (see <see cref="WordClass"/>). The resolver removes
-/// readings from each token in three steps. A step never removes the last reading of a token, so a rule that does not fit a word leaves it alone.
+/// A word class is the part of speech of a reading, with finite verbs apart from infinitives and participles (see <see cref="WordClass"/>). Before those steps, a
+/// word that is spelled without an accent and is a lexicon form (<c>esta</c>) may be read as an accented spelling of the same letters (<c>está</c>); see below.
+/// The resolver removes readings from each token in three steps. A step never removes the last reading of a token, so a rule that does not fit a word leaves it alone.
 /// </para>
 /// <list type="number">
 /// <item><description>
@@ -42,6 +43,13 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 /// </description></item>
 /// </list>
 /// <para>
+/// <b>Accent variants (step 0).</b> A learner who types without accents writes <c>esta</c> for <c>está</c>, <c>el</c> for <c>él</c>, <c>tu</c> for <c>tú</c>, <c>se</c>
+/// for <c>sé</c>, and the lexicon has both spellings as words. The analyzer hands the resolver the readings of the accented spellings next to those of the word as
+/// typed, and <see cref="AccentVariantChoice"/> decides first, from the neighbouring words, which of the two sets the word has; the word as typed is the default, so a word
+/// that the context does not contradict is read as spelled. A word that a slot grammar binds, and a name, keep the reading the grammar matched. Nothing is reported to the
+/// learner for the choice: there is no accent error tag, and a recast restores the accent (<see cref="AccentRestoration"/>) as it does for a word the lexicon lacks as spelled (<c>arbol</c>).
+/// </para>
+/// <para>
 /// What the resolver cannot do: two verbs that share a form (<c>fue</c> is <c>ir</c> and <c>ser</c>) are one class, so a copula check still sees the copula; and a
 /// sentence that is a mistake under one reading and correct under another, with nothing in the neighbouring words or in a grammar to prefer either
 /// (<c>ayer … intenciones parte</c>, where <c>parte</c> is a noun or a verb), is read the charitable way.
@@ -64,19 +72,24 @@ internal static class ReadingResolver
     /// <param name="tokens">The tokens with every lexicon reading.</param>
     /// <param name="match">The best slot grammar match over <paramref name="tokens"/>, or null when no grammar matched.</param>
     /// <param name="cost">The cost of a resolved reading of the whole sentence: the number of distinct errors the checks report for it, plus whatever the caller charges for a reading it finds implausible. The fallback takes the cheapest reading.</param>
+    /// <param name="accentVariants">For each token, the readings of the accented spellings of a plain lexicon form, or none; the resolver replaces the readings of the token by them when the context calls for it (see the remarks).</param>
     public static IReadOnlyList<AnalyzedToken> Resolve(
         IReadOnlyList<AnalyzedToken> tokens,
+        IReadOnlyList<IReadOnlyList<LexicalFeatures>> accentVariants,
         SlotGrammarMatch? match,
         Func<IReadOnlyList<AnalyzedToken>, int> cost)
     {
         ArgumentNullException.ThrowIfNull(tokens);
+        ArgumentNullException.ThrowIfNull(accentVariants);
         ArgumentNullException.ThrowIfNull(cost);
-        var state = new State(tokens);
+        var state = new State(tokens, accentVariants);
         if (match is not null)
         {
             // Names keep no reading before any rule looks at them, so a name's lexicon readings cannot narrow its neighbours.
             state.ClearNames(match);
         }
+
+        state.ChooseAccentVariants(match);
 
         state.ApplyLocalSyntax();
         if (match is not null)
@@ -91,11 +104,13 @@ internal static class ReadingResolver
     private sealed class State
     {
         private readonly IReadOnlyList<AnalyzedToken> _tokens;
+        private readonly IReadOnlyList<IReadOnlyList<LexicalFeatures>> _variants;
         private readonly List<LexicalFeatures>[] _candidates;
 
-        public State(IReadOnlyList<AnalyzedToken> tokens)
+        public State(IReadOnlyList<AnalyzedToken> tokens, IReadOnlyList<IReadOnlyList<LexicalFeatures>> variants)
         {
             _tokens = tokens;
+            _variants = variants;
             _candidates = new List<LexicalFeatures>[tokens.Count];
             for (var i = 0; i < tokens.Count; i++)
             {
@@ -104,6 +119,28 @@ internal static class ReadingResolver
         }
 
         private int Count => _candidates.Length;
+
+        // ---- Step 0: accent variants -----------------------------------------------------------------------------------------------
+
+        // Decides every token that has accent variants (see AccentVariantChoice) and gives it their readings in place of those as typed.
+        public void ChooseAccentVariants(SlotGrammarMatch? match)
+        {
+            var chosen = AccentVariantChoice.Choose(_tokens, _variants, index => GrammarBinds(match, index));
+            for (var i = 0; i < Count; i++)
+            {
+                if (chosen[i] is { Count: > 0 } readings)
+                {
+                    _candidates[i].Clear();
+                    _candidates[i].AddRange(readings);
+                }
+            }
+        }
+
+        // The slot grammar matched the word through one of its readings as typed, so its reading is decided.
+        private static bool GrammarBinds(SlotGrammarMatch? match, int index)
+        {
+            return match is not null && match.Bindings.Any(b => b.TokenIndex == index && !b.Nodes.All(static node => node is WordNode));
+        }
 
         // ---- Step 1: grammar bindings ----------------------------------------------------------------------------------------------
 
@@ -405,7 +442,7 @@ internal static class ReadingResolver
             var fixedTokens = new AnalyzedToken[Count];
             for (var i = 0; i < Count; i++)
             {
-                fixedTokens[i] = _candidates[i].Count == _tokens[i].Readings.Count ? _tokens[i] : new AnalyzedToken(_tokens[i].Token, [.. _candidates[i]]);
+                fixedTokens[i] = _candidates[i].SequenceEqual(_tokens[i].Readings) ? _tokens[i] : new AnalyzedToken(_tokens[i].Token, [.. _candidates[i]]);
             }
 
             if (ambiguous.Count == 0)

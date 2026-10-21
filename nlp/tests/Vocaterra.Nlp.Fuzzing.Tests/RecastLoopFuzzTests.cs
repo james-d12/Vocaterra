@@ -44,6 +44,14 @@ public sealed class RecastLoopFuzzTests(ITestOutputHelper output)
                 var analysis = Harness.Analyzer.Analyze(normalized, [grammar]);
                 var context = $"{mutation.Describe()} case={mutationCase}";
 
+                // A name the grammar no longer binds and the lexicon knows (the invented name Mirá is the voseo imperative mirá) is checked like any other word, and the recast
+                // corrects what those checks find; the case is not compared, as in O4 (see UnboundNames; seed belmI3pADeia failed on main before M26b).
+                if (UnboundNames.Expect(mutation.Mutated.Tokens, normalized, Harness.Words, analysis.MatchedGrammarId is not null) is null)
+                {
+                    diagnostics.Count("unpredicted:name-known-to-lexicon");
+                    return;
+                }
+
                 string recast;
                 try
                 {

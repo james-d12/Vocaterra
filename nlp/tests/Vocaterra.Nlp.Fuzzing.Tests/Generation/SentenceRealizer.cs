@@ -201,7 +201,22 @@ internal sealed class SentenceRealizer
     }
 
     // A name is drawn from the seeded generator: two or three invented syllables, written with a capital and normalized in lower case.
+    // A name whose spelling is a closed-class word of the lexicon once its accents are ignored (nadá folds to nada) cannot be bound by [WORD] (M19f), so another is drawn.
     private Item FromWord(WordPattern word)
+    {
+        string norm;
+        var attempts = 0;
+        do
+        {
+            norm = DrawName();
+        }
+        while (++attempts < MaxAttempts && IsClosedClassOnly(norm));
+
+        var surface = char.ToUpperInvariant(norm[0]) + norm[1..];
+        return new Item(Kind.Word) { Slot = word.Slot, PatternTag = "WORD", Surface = surface, Norm = norm };
+    }
+
+    private string DrawName()
     {
         var syllables = 2 + _rng.NextInt(2);
         var parts = new List<string>(syllables * 2);
@@ -211,9 +226,15 @@ internal sealed class SentenceRealizer
             parts.Add(_rng.Pick(NameNuclei));
         }
 
-        var norm = string.Concat(parts);
-        var surface = char.ToUpperInvariant(norm[0]) + norm[1..];
-        return new Item(Kind.Word) { Slot = word.Slot, PatternTag = "WORD", Surface = surface, Norm = norm };
+        return string.Concat(parts);
+    }
+
+    private bool IsClosedClassOnly(string form)
+    {
+        var readings = _words.Lexicon.Lookup(form);
+        return readings.Count > 0
+            && readings.All(static r => r.Pos is LexiconSchema.Article or LexiconSchema.Numeral or LexiconSchema.Pronoun or LexiconSchema.Preposition or LexiconSchema.Conjunction or LexiconSchema.Adverb or LexiconSchema.Interjection
+                || IsDeterminerAdjective(r));
     }
 
     private static readonly string[] NameOnsets = ["b", "d", "j", "l", "m", "n", "r", "s", "t", "v", "z", "ñ"];
@@ -514,7 +535,11 @@ internal sealed class SentenceRealizer
             cursor++;
         }
 
-        if (cursor >= _items.Count || !IsNounHead(_items[cursor], determiners.Count + before.Count > 0))
+        // A preposition does not govern a finite verb, so a literal that is a noun and a verb form right behind one is the noun (de meta; seed 8OeIOEx_Hfm3 failed O3 on main before M26b).
+        var behindPreposition = start > 0
+            && (_items[start - 1].Kind == Kind.Preposition
+                || (_items[start - 1].Kind == Kind.Literal && _items[start - 1].Readings.Count > 0 && _items[start - 1].Readings.All(static r => r.Pos == LexiconSchema.Preposition)));
+        if (cursor >= _items.Count || !IsNounHead(_items[cursor], determiners.Count + before.Count > 0 || behindPreposition))
         {
             phrase = default!;
             return false;
@@ -898,6 +923,45 @@ internal sealed class SentenceRealizer
                 return false;
             }
 
+            // A determiner or an article that is also another word once its accent is written (el and él, tu and tú, mi and mí, esta and está) is read as the
+            // pronoun or the verb when nothing that can go on a noun phrase follows it (M26b), so a pattern that puts a verb, an adverb, a preposition or a conjunction
+            // right behind one (a skeleton such as [DET] [VERB]), or leaves one at the end of the sentence (also a preposition or a conjunction: de and dé, que and qué),
+            // names a sentence that a reader can take either way and is re-rolled.
+            if ((item.Kind is Kind.Article or Kind.Determiner or Kind.Preposition or Kind.Conjunction || IsOpeningLiteral(item)) && i == _items.Count - 1 && HasAccentVariants(item.Norm))
+            {
+                skip = "accent-variant-homograph";
+                _detail = item.Surface!;
+                return false;
+            }
+
+            if (i > 0
+                && _items[i - 1].Kind is Kind.Article or Kind.Determiner
+                && item.Kind is Kind.Verb or Kind.Adverb or Kind.Preposition or Kind.Conjunction or Kind.Pronoun or Kind.Interjection or Kind.Article
+                && HasAccentVariants(_items[i - 1].Norm))
+            {
+                skip = "accent-variant-homograph";
+                _detail = _items[i - 1].Surface!;
+                return false;
+            }
+
+            // An object pronoun that is another word once its accent is written (te and té, se and sé) is read as the noun or the verb when no verb follows it (the other object
+            // pronouns right behind it do not count), so a skeleton that leaves one without a verb (a pattern ending in [PRON]) is re-rolled for the same reason.
+            if (item.Kind == Kind.Pronoun && !item.SubjectPronoun && HasAccentVariants(item.Norm) && !VerbFollowsObjectPronoun(i))
+            {
+                skip = "accent-variant-homograph";
+                _detail = item.Surface!;
+                return false;
+            }
+
+            // A demonstrative or possessive with an accented sibling (esta, tu, mi) is read as the verb or the pronoun when its adjectives and determiners do not end in a noun
+            // (a skeleton such as [DET] [DET], or [DET] [ADJ] at the end), and an article with one (el) when the next word cannot go on a noun phrase.
+            if (item.Kind is Kind.Article or Kind.Determiner && HasAccentVariants(item.Norm) && !NounPhraseFollows(i, strict: item.Kind == Kind.Determiner))
+            {
+                skip = "accent-variant-homograph";
+                _detail = item.Surface!;
+                return false;
+            }
+
             if (item.Kind != Kind.Verb)
             {
                 continue;
@@ -930,6 +994,58 @@ internal sealed class SentenceRealizer
         }
 
         return true;
+    }
+
+    private bool NounPhraseFollows(int index, bool strict)
+    {
+        var head = index + 1;
+        while (strict && head < _items.Count && IsAdjunctOnly(_items[head]))
+        {
+            head++;
+        }
+
+        if (head >= _items.Count)
+        {
+            return false;
+        }
+
+        var found = _items[head];
+        if (found.Kind is Kind.Noun or Kind.Word)
+        {
+            return true;
+        }
+
+        var readings = _words.Lexicon.Lookup(found.Norm ?? string.Empty);
+        return strict
+            ? readings.Any(static r => r.Pos == LexiconSchema.Noun)
+            : head == index + 1 && (found.Kind is Kind.Adjective or Kind.Article or Kind.Determiner or Kind.Numeral || readings.Any(static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective or LexiconSchema.Article or LexiconSchema.Numeral));
+    }
+
+    // An item the analyzer skips on the way from a demonstrative to its noun: a word whose readings are all adjectives, articles or numerals.
+    private bool IsAdjunctOnly(Item item)
+    {
+        var readings = _words.Lexicon.Lookup(item.Norm ?? string.Empty);
+        return readings.Count > 0
+            ? readings.All(static r => r.Pos is LexiconSchema.Adjective or LexiconSchema.Article or LexiconSchema.Numeral)
+            : item.Kind is Kind.Numeral;
+    }
+
+    private bool VerbFollowsObjectPronoun(int index)
+    {
+        var next = index + 1;
+        var skipped = 0;
+        while (next < _items.Count && skipped < MaxSkippedBetween && _items[next].Kind == Kind.Pronoun && !_items[next].SubjectPronoun)
+        {
+            next++;
+            skipped++;
+        }
+
+        return next < _items.Count && (_items[next].Kind == Kind.Verb || (_items[next].Kind == Kind.Literal && _items[next].Readings.Any(static r => r.Pos == LexiconSchema.Verb)));
+    }
+
+    private bool HasAccentVariants(string? form)
+    {
+        return form is not null && _words.Lexicon.LookupWithAccentVariants(form).Variants.Count > 0;
     }
 
     // A literal word of the grammar that the analyzer takes for a preposition, an article, a numeral, a determiner or an adjective (tras, la, mi, grande), so that the word
