@@ -152,7 +152,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | G7 | Build trim and licence: Linux-only native assets (owner, 2026-10-21; about 1.5 GB less per build), `LICENSE` (MIT, D-game-2) and README licence lines | done (merged 2026-10-21) | Haiku 5.5 | P6b |
 | R1 | Research: Terraria-inspired prototype (guide NPC by text and speech, mining, building, movement, forest biome, map and cave generation, language progress tracking, known nouns in colour and unknown in greyscale, inventory) on MonoGame; findings in `docs/research/` | done (merged 2026-10-21, `0e8d601`); proposals await the owner | Opus 5.5 (owner's request) | G0 |
 | S0 | Plan and docs for the prototype brief: D-game-8 to D-game-12, D-game-6 amended, this section, the brief as Markdown, READMEs, Noun Town research moved | done (merged to `feature/prototype` 2026-10-21, `0a60928`) | Haiku 5.5 (docs) | `docs/SCENARIO_PLAN.md` |
-| S1 | 3D voxel simulation, headless (`Vocaterra.Simulation.Voxel`, `scene.json`, `PlayerBody3D`, `BlockRay`) | planned | Sonnet 5.5 | S0 |
+| S1 | 3D voxel simulation, headless (`Vocaterra.Simulation.Voxel`, `scene.json`, `PlayerBody3D`, `BlockRay`) | done (merged to `feature/prototype` 2026-10-21, `d2329cb`) | Sonnet 5.5 | S0 |
 | S2 | First-person voxel front-end (mesher, renderer, camera, figures, beacon; 2D UI over the scene) | planned | Sonnet 5.5 | S1 |
 | S3 | The scenario world and the guide in 3D (`WorldFacts3D`, the route layout, new nouns) | planned | Haiku 5.5 | S2 |
 | S4 | Gather, craft, the camp objective; retire the 2D slice (tag `2d-slice-p7`) | planned | Haiku 5.5 | S3 |
@@ -564,6 +564,18 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   READMEs. Gate: 3,605 passed, 5 skipped (models set), lint 0 errors, licence scan passed. Agent worktrees branch from `main`: every
   S brief starts with a fast-forward to `feature/prototype`. The orchestrator's status
   line saves the plan's usage (`~/.claude/usage-snapshot.json`): 25 % of the session window and 57 % of the week at the start of the run.
+- **S1, the voxel simulation (2026-10-21, Sonnet 5.5).** `Vocaterra.Simulation.Voxel`: `BlockId` 0 to 21 (the brief's list plus `FireRing`,
+  `Sign`, `Bridge`), 16³ chunks with SHA-256 chunk and world digests (`Version` per chunk for re-meshing), a JSON layout (base-36 height rows,
+  a feature legend, props, NPCs, points, tree limits) and a pure `SceneBuilder` (trees from `WorldRng.For(seed, "trees")`, 3 columns clear of
+  the route), `PlayerBody3D` in 1/4096-block units (walk 4.3 blocks/s, one-block step-up, `SteppedUp` flag for the camera), `Angles` with
+  4,096 steps per turn from an integer sine table (yaw 0 north, clockwise; no `Math.Sin`), `MoveRelative` for mouse look, exact-integer
+  `BlockRay` (reach 4), `VoxelSimulation` (trunk 60 ticks gives `madera`, berry bush 45 ticks gives a berry and becomes a bush; a torch crafted
+  at the `mesa` and placed in the fire ring). The draft route is `content/scenes/route-draft.json` (96 x 32 x 96, 72 chunks, 160 trees; spawn
+  (17,11,17), guide (25,11,21), shopkeeper (62,9,58), villager (66,9,64), river z about 80 to 85 with a bridge at x 66); S3 moves it into the
+  bundle. Seed-42 golden `dc14aa93…`; build 5.5 ms. Tests 3,678 passed (93 new; physics property over 24 seeded worlds x 2,500 ticks).
+  Open for later rows: `ItemId.Berry` (25) sits in `ItemDefinition.VoxelOnly`, not in the noun catalogue (S3/S4 name it); water is wadable
+  (no swimming; the bridge is not enforced); `Interact` checks reach but not line of sight (the front-end picks with `BlockRay`).
+  Disk: each worktree build is about 4.4 GB; a leftover 3 GB P4 build copy in `/tmp/claude-1000/p4` was deleted.
 
 ## 6. Definition of done (every milestone)
 
