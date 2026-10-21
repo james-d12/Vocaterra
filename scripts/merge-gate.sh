@@ -67,6 +67,14 @@ CONTENTLOG=".claude/gate-logs/content-$STAMP.log"
 bash scripts/content.sh validate > "$CONTENTLOG" 2>&1
 content_rc=$?
 tail -1 "$CONTENTLOG"
+# The prototype's content gate (S5, D-game-10 and D-game-12): strict lint at A1 (the guide's host-voiced pools are rendered by the game) and
+# the CEFR check at A1 and A2.
+if [ -f game/content/PHRASES.md ]; then
+  { bash scripts/content.sh lint game/content/game-v1 --strict --level a1 --host-pools 'guide.*' &&
+    bash scripts/content.sh cefr-check game/content/game-v1 --level a1 &&
+    bash scripts/content.sh cefr-check game/content/game-v1 --level a2; } >> "$CONTENTLOG" 2>&1 || { content_rc=1; echo "content gate: FAIL (lint --strict or cefr-check)"; }
+  [ "$content_rc" -eq 0 ] && echo "content gate: lint --strict a1 and cefr-check a1/a2 clean"
+fi
 
 LICENSELOG=".claude/gate-logs/license-$STAMP.log"
 bash nlp/scripts/license-scan.sh --offline > "$LICENSELOG" 2>&1

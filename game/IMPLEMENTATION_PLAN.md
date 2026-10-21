@@ -156,7 +156,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S2 | First-person voxel front-end (mesher, renderer, camera, figures, beacon; 2D UI over the scene) | planned | Sonnet 5.5 | S1 |
 | S3 | The scenario world and the guide in 3D (`WorldFacts3D`, the route layout, new nouns) | planned | Haiku 5.5 | S2 |
 | S4 | Gather, craft, the camp objective; retire the 2D slice (tag `2d-slice-p7`) | planned | Haiku 5.5 | S3 |
-| S5 | Content: `content/PHRASES.md`, the stall and the villager, `request_item`, constrained prompts; Opus review pass (D-game-12) | planned | Sonnet 5.5 (design), Haiku 5.5 (content) | S0 |
+| S5 | Content: `content/PHRASES.md`, the stall and the villager, `request_item`, constrained prompts; Opus review pass (D-game-12) | done (merged to `feature/prototype` 2026-10-22, bundle `c3cac003…`) | Sonnet 5.5 (design), Haiku 5.5 (content) | S0 |
 | S6 | NPC exchanges in the world (`NpcService`), filling the bottle, the transfer moment | planned | Sonnet 5.5 | S3, S5 |
 | S7 | Speech UX: mic check, cancel, watchdog, heard-vs-expected, buttons, choices, uncertainty rule, constrained prompts | planned | Sonnet 5.5 | S6 |
 | S8 | Phrase progress and fading scaffolds; the review extended to phrases | planned | Sonnet 5.5 | S6 |
@@ -576,6 +576,24 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   Open for later rows: `ItemId.Berry` (25) sits in `ItemDefinition.VoxelOnly`, not in the noun catalogue (S3/S4 name it); water is wadable
   (no swimming; the bridge is not enforced); `Interact` checks reach but not line of sight (the front-end picks with `BlockRay`).
   Disk: each worktree build is about 4.4 GB; a leftover 3 GB P4 build copy in `/tmp/claude-1000/p4` was deleted.
+- **S5, the phrase sheet and the stall (2026-10-22, Sonnet 5.5; review Opus 5.5).** `content/PHRASES.md`: 11 rows (the brief's phrases plus
+  hola, gracias, adiós, no sé, ayuda), each with intent, prompt, accepted variants, a learner error with the code the pipeline gives, NPC and
+  situation, card, audio line ids; a test (`PhraseSheetTests`) runs every row through the pipeline. Prompts `stall-need` and `stall-offer`
+  (Constrained), `villager-open` (Open), `guide-offer` ("¿Quieres agua?"); agents `shopkeeper` (opening question on host event
+  `shopkeeper.ask`; `stall.give_water`, `stall.give_bread`), `villager` (`villager.greet`, `villager.point`, `villager.give`), the guide's
+  `offering` state; intents `request_item` and `dont_know` (with `no entiendo`); `ask_help` and `dont_know` on every prompt; the blacksmith and
+  spells removed (effects now empty). M29a is not a gap: `(por favor)?` parses (and the matcher already adds a trailing "por favor").
+  Provisional review (D-game-12 step 3, Opus, 2026-10-22): the Spanish correct and A1, tú consistent; applied: "Quiero agua, por favor" glossed
+  "I want water, please" (the brief said "I would like"; the reviewer: *quiero* is "I want" and polite in Spanish), realistic learner
+  errors (`no, mucho gracias`, `no sabo`), more variants (`un agua, por favor`, `sí, quiero`, `¿me ayudas?`), `de acuerdo` narrowed, seven NPC
+  lines reworded (e.g. "No te entendí. ¿Me lo dices otra vez?"), the berry item is `la fruta` (HUD `frutas 3/3`; `baya` is not A1).
+  Findings: a bare plural ("quiero aguas") is valid Spanish, so the demo is `quiero dos agua por favor` (`noun.number`, expected 'aguas'); a
+  bare noun as a `request_item` example makes `ayuda` and `gracias` resolve to it (lint `confusion.prompt`); Wiktionary's `rio` (reír)
+  shadows `río` typed without the accent (a hand noun reading in `lexicon/world.json`); recasts lose ¿ ? (the recast builder works on
+  normalised text); a one-shot `--transcript` starts each agent in its initial state. **Core bug found:** on a quantifier or determiner
+  number/gender error the core blames the noun: "no, mucho gracias" gives `noun.number` expected 'gracia' and the recast «no mucha gracia»
+  ("buenos día" recasts «Bueno día») — wrong Spanish on screen; filed as core **M29c**. The gate now runs lint `--strict --level a1
+  --host-pools 'guide.*'` and `cefr-check` at A1 and A2. Tests 3,701 passed.
 
 ## 6. Definition of done (every milestone)
 
