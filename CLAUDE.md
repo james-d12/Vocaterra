@@ -29,8 +29,8 @@ Facts every session needs:
 - **Engine (D-game-1, owner 2026-10-21):** MonoGame for the Terraria-inspired prototype (plan P1 to P10); the final engine is open, Godot .NET
   the candidate. Engine code lives only in `src/Vocaterra.MonoGame`, never in `src/Vocaterra.Host`, `src/Vocaterra.Simulation` or
   `src/Vocaterra.Game`. Assets are CC0 only (D-game-5).
-- **Open decisions** (`docs/DECISIONS.md`): this repository's licence (D-game-2; no licence is granted until chosen; the core is Apache-2.0), and whether the
-  bundle tracks the core's sample (D-game-4).
+- **Open decisions** (`docs/DECISIONS.md`): this repository's licence (D-game-2; no licence is granted until chosen; the core is Apache-2.0). The bundle diverges from the core's sample (D-game-4, decided):
+  no re-sync on core releases.
 - **Game words live here:** scenes, characters, items, spells, prices, rewards, dialogue and the meaning of each effect kind. The core needs
   only opaque effect kinds and host event names.
 - **Determinism:** the host owns the world seed, the stored time, the learner model and the repeat counts. Nothing in the evaluation path

@@ -10,7 +10,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-1 | Game engine | decided for the prototype: MonoGame 3.8 DesktopGL (owner, 2026-10-21); final engine open, Godot .NET re-assessed after P10 | nothing in the prototype |
 | D-game-2 | Licence of this repository | open | any public release or distribution |
 | D-game-3 | Continuous integration | deferred by the owner, 2026-10-21; do not raise | nothing in this plan |
-| D-game-4 | Whether `content/game-v1` tracks the core's sample bundle or diverges from it | open; G2 proposes | the shape of G2 to G4 |
+| D-game-4 | Whether `content/game-v1` tracks the core's sample bundle or diverges from it | decided: diverge fully (owner, 2026-10-21) | nothing |
 | D-game-5 | Art, font and sound sources while D-game-2 is open | decided: CC0 only (owner, 2026-10-21) | nothing |
 | D-game-6 | When a noun counts as known (drawn in colour), and what typed input earns | decided (owner, 2026-10-21) | nothing |
 
@@ -40,15 +40,18 @@ carry GPL-3.0 code (core D2): the game does not distribute a build that includes
 The owner deferred CI on 2026-10-21, with the core's D1. Do not raise it. The parked workflow stays in `.github/workflows-pending/ci.yml`;
 nothing under `.github/workflows/` is written, because the push token lacks the `workflow` scope.
 
-## D-game-4: does `content/game-v1` track the core's sample or diverge (open)
+## D-game-4: does `content/game-v1` track the core's sample or diverge (decided: diverge)
 
 **Question.** The bundle began as a copy of the core's sample (`content/v1` in the core, a blacksmith, spells and items). The core keeps
 changing that sample (M17b-core added the generic intents `confirm`, `deny`, `farewell`, `thank` and `introduce_self`, a blacksmith
 `confirming` state and prompt text in M19d). Options: (a) track the sample and re-sync on each core release, so the game is also the
 sample's integration test; (b) diverge now, with the game's own scenes and words replacing the sample's, and re-sync only what the game uses.
 
-**G2 proposes (a) for the generic intents and the blacksmith, now, and (b) for everything scene-specific from G3 on.** The owner has not
-accepted this yet; G2 records the decision here when it is made.
+**Owner, 2026-10-21: diverge fully (b), after G2.** G2 brought the bundle level with the core's sample at `db39999` (generic intents, the
+blacksmith's `confirming` state, prompt text). From now on the game owns all of `content/game-v1`: no re-sync on core releases. A milestone
+that wants something new from the sample copies only that piece, rewords it to pass the game's A1 check and records it in `provenance.json`.
+What G2 measured: copying was conflict-free, but each re-sync needed rewording (three templates failed A1), a rewrite of the sample's
+`ATTRIBUTION.md` and a reset of the bundle id.
 
 ## D-game-5: asset sources (decided, CC0 only)
 

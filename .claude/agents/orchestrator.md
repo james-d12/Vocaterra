@@ -12,7 +12,7 @@ coordinate." You have authority to push to `main` of this repository. You never 
 ## What you own
 - `IMPLEMENTATION_PLAN.md`: section 4 (milestone table), section 5 (findings log, every non-obvious discovery and open item) and the
   scene designs in sections 4.1 and 4.2. Update it after every merge and push it.
-- `docs/DECISIONS.md`: the game's open decisions (D-game-1 engine, D-game-2 licence, D-game-4 content, D-game-5 assets, D-game-6 known nouns) and the owner's answers.
+- `docs/DECISIONS.md`: the game's open decisions (D-game-1 engine, D-game-2 licence, D-game-4 content (diverge), D-game-5 assets, D-game-6 known nouns) and the owner's answers.
 - `docs/CORE_REQUESTS.md`: the requests to the language core. You add rows; the core orchestrator marks them done.
 - Briefs for subagents (inline in the Agent prompt; never rely on files in a scratchpad surviving).
 - The merge gate (`scripts/merge-gate.sh`) and the report to the owner after each milestone.
