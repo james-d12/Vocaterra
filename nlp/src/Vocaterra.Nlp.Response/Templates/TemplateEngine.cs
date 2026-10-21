@@ -89,6 +89,50 @@ public sealed class TemplateEngine
         return [.. names];
     }
 
+    /// <summary>
+    /// The slots a template reads as numbers (the slot of <c>words</c> and <c>words(m|f)</c>, and the quantity slot named by <c>plural-if(qty)</c> or
+    /// <c>words(qty)</c>) and as verb lemmas (the slot of <c>conj</c>), in ordinal order. Everything else the template reads is plain text or a noun.
+    /// Content validation uses it to pick sample values, so a template that reads a host slot such as <c>{distance:words(m)}</c> can be proven to
+    /// render without the validator knowing the host's slot names.
+    /// </summary>
+    public static IReadOnlyDictionary<string, TemplateSlotKind> SlotKinds(DialogueTemplate template)
+    {
+        ArgumentNullException.ThrowIfNull(template);
+        var kinds = new SortedDictionary<string, TemplateSlotKind>(StringComparer.Ordinal);
+        foreach (var part in TemplateParser.Parse(template.Text))
+        {
+            if (part is not PlaceholderPart placeholder)
+            {
+                continue;
+            }
+
+            foreach (var filter in placeholder.Filters)
+            {
+                switch (filter.Name)
+                {
+                    case "words":
+                        kinds[placeholder.SlotName] = TemplateSlotKind.Number;
+                        break;
+                    case "conj":
+                        kinds.TryAdd(placeholder.SlotName, TemplateSlotKind.Verb);
+                        break;
+                }
+
+                if (filter.Name == "plural-if" && filter.Args.Count == 1)
+                {
+                    kinds[filter.Args[0]] = TemplateSlotKind.Number;
+                }
+                else if (filter.Name == "words" && filter.Args.Count == 1 && filter.Args[0] is not ("m" or "f"))
+                {
+                    // The argument names the noun that decides the gender, not a number.
+                    kinds.TryAdd(filter.Args[0], TemplateSlotKind.Text);
+                }
+            }
+        }
+
+        return kinds;
+    }
+
     private static string Capitalize(string text)
     {
         return text.Length == 0 ? text : char.ToUpperInvariant(text[0]) + text[1..];

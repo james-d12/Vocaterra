@@ -58,6 +58,29 @@ public class CliTests
     }
 
     [Fact]
+    public void EvalAcceptsHostSlotsAndHostSkills_AndStillFindsTheWorkedExampleErrors()
+    {
+        var (code, output, error) = Run(Eval("--host-slot", "target=árbol", "--host-skill", "word.árbol"));
+
+        Assert.Equal(CliProgram.ExitOk, code);
+        Assert.Equal(string.Empty, error);
+        using var verdict = JsonDocument.Parse(output.TrimEnd('\n').Split('\n')[0]);
+        var tags = verdict.RootElement.GetProperty("errors").EnumerateArray().Select(static e => e.GetProperty("tag").GetString()!).ToArray();
+        Assert.Equal(["conj.person", "noun.number"], tags);
+    }
+
+    [Theory]
+    [InlineData("--host-slot", "novalue")]
+    [InlineData("--host-skill", "has space")]
+    public void EvalRejectsMalformedHostInputs(string option, string value)
+    {
+        var (code, _, error) = Run(Eval(option, value));
+
+        Assert.Equal(CliProgram.ExitUsage, code);
+        Assert.Contains(option, error, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void EvalOfAnExactQuizAnswerIsCommunicatedAndAcknowledged()
     {
         var (code, output, _) = Run("eval", "--transcript", "espada", "--prompt", "quiz-item-name", "--content", TestSupport.BundleDir);

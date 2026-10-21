@@ -76,6 +76,47 @@ public sealed record LearnerModel(BktParameters Parameters, IReadOnlyList<SkillM
             touched.Add(skill);
         }
 
+        return Apply(touched, errorFamilies);
+    }
+
+    /// <summary>
+    /// Applies one BKT step to each of the named skills and nothing else: no verdict, so no error families are involved. Use it for a host that
+    /// exercises skills without an utterance; for an utterance, pass the skills to <see cref="Update"/> instead so its error families are
+    /// stepped once together with them. Ids are validated with <see cref="ValidateSkillId"/>; duplicates step once.
+    /// </summary>
+    /// <param name="skills">The skills exercised.</param>
+    /// <param name="correct">True when the learner used them correctly, false when they got them wrong.</param>
+    public LearnerModel StepSkills(IReadOnlyList<string> skills, bool correct)
+    {
+        ArgumentNullException.ThrowIfNull(skills);
+        var touched = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (var skill in skills)
+        {
+            touched.Add(ValidateSkillId(skill, nameof(skills)));
+        }
+
+        return Apply(touched, correct ? new SortedSet<string>(StringComparer.Ordinal) : touched);
+    }
+
+    /// <summary>
+    /// Checks a host-supplied skill id: it must not be empty and must contain no whitespace (so it stays one token in logs and keys).
+    /// Anything else is allowed (<c>word.árbol</c>, <c>intent.greet</c>); ids are compared ordinally.
+    /// </summary>
+    /// <returns>The id, unchanged.</returns>
+    /// <exception cref="ArgumentException">The id is empty or contains whitespace.</exception>
+    public static string ValidateSkillId(string skillId, string? paramName = null)
+    {
+        ArgumentNullException.ThrowIfNull(skillId, paramName);
+        if (skillId.Length == 0 || skillId.Any(char.IsWhiteSpace))
+        {
+            throw new ArgumentException($"Skill id '{skillId}' must be non-empty and contain no whitespace.", paramName);
+        }
+
+        return skillId;
+    }
+
+    private LearnerModel Apply(SortedSet<string> touched, SortedSet<string> incorrectSkills)
+    {
         if (touched.Count == 0)
         {
             return this;
@@ -89,7 +130,7 @@ public sealed record LearnerModel(BktParameters Parameters, IReadOnlyList<SkillM
 
         foreach (var skillId in touched)
         {
-            var incorrect = errorFamilies.Contains(skillId);
+            var incorrect = incorrectSkills.Contains(skillId);
             var before = updated.TryGetValue(skillId, out var known)
                 ? known
                 : new SkillMastery(skillId, Parameters.PriorKnown, 0, 0);

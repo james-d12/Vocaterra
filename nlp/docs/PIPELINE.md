@@ -26,7 +26,7 @@ PipelineResult result = pipeline.Evaluate(clip, prompt, context);     // or pipe
 | --- | --- | --- |
 | `clip` | `PcmClip` | 16 kHz mono 16-bit samples plus their SHA-256 `ClipHash`. Produced by `AudioFrontEnd` (resample, downmix, gain, energy VAD) from a push-to-talk capture or a WAV file. |
 | `prompt` | `PromptSpec` | What the host asked: prompt id, recognition mode (`Constrained` or `Open`), difficulty, answer set id, allowed intent ids, agent id, slot grammar ids and the optional text (the line the agent says before the answer). Prompts are data (`content/v1/prompts/prompts.json`). |
-| `context` | `ConversationContext` | The host state it is evaluated in: world seed, agent id and state, stored time, the learner model, and the repeat counts per error tag before this utterance (empty at the start; the host carries them from the previous `ConversationContext.Next`). Nothing in it comes from a clock. |
+| `context` | `ConversationContext` | The host state it is evaluated in: world seed, agent id and state, stored time, the learner model, and the repeat counts per error tag before this utterance (empty at the start; the host carries them from the previous `ConversationContext.Next`). Optionally also `HostSlots` (host facts for the reply and feedback templates; the verdict's slot wins on a name clash) and `ExtraSkills` (host-named skills merged with the pipeline's own `intent.<id>` skill in the single learner update); both are per utterance and `Next` does not carry them (API.md section 4). Nothing in it comes from a clock. |
 
 `PipelineResult` has six members: `Verdict`, `Decision`, `Response`, `Effects`, `Repair` and `Replay`. `Trace` returns a
 `PipelineTrace` that adds the word recognizer's `AsrResult` and the phoneme recognizer's `PhonePosteriors`, which is what a
@@ -330,7 +330,7 @@ evaluation configuration and the version stamp:
    the variant, from `SeededRng.ForInteraction(worldSeed, agentId, interactionCounter)`. For the example: `idle` goes to `trading`,
    with the action `offer_item_reply` and the host event `trade.offer`.
 2. **Learner model.** One Bayesian knowledge tracing step per skill: the skill `intent.<intent>` and the family of each error tag
-   (`conj`, `noun`). Here `conj` and `noun` drop to a probability known of about 0.146 and `intent.offer_item` rises to about 0.693.
+   (`conj`, `noun`), plus any `ExtraSkills` the host named (all in the one update, so a skill named twice or equal to an error family is stepped once). Here `conj` and `noun` drop to a probability known of about 0.146 and `intent.offer_item` rises to about 0.693.
 3. **FSRS rating.** `RatingMapper.FromVerdict`: not communicated is `Again`; otherwise correctness is compared with the 0.5 and
    0.9 cut-offs (each with a 0.02 margin; an uncertain score rounds down). Correctness 0.5 is inside the band around 0.5, so the
    rating is `Hard`.

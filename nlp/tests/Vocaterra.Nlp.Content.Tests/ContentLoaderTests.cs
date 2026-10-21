@@ -280,7 +280,7 @@ public class ContentLoaderTests
     [InlineData("dialogue/dialogue.json", "\"not_understood\": {", "\"not_heard\": {", "needs a 'not_understood' pool")]
     [InlineData("dialogue/dialogue.json", "{item:article(def):cap} cuesta", "{item:bogus} cuesta", "line 'ask_price_reply.1' of 'ask_price_reply' does not render")]
     [InlineData("dialogue/dialogue.json", "Por {item:article(def)} pido", "Por {item:article(def} pido", "does not render")]
-    [InlineData("dialogue/dialogue.json", "{ \"lineId\": \"greet_again.2\", \"text\": \"Hola de nuevo. ¿Qué quieres hoy?\" }", "{ \"lineId\": \"greet_again.2\", \"text\": \"Hola {nobody:words}.\" }", "line 'greet_again.2' of 'greet_again' does not render")]
+    [InlineData("dialogue/dialogue.json", "{ \"lineId\": \"greet_again.2\", \"text\": \"Hola de nuevo. ¿Qué quieres hoy?\" }", "{ \"lineId\": \"greet_again.2\", \"text\": \"Hola {nobody:bogus}.\" }", "line 'greet_again.2' of 'greet_again' does not render")]
     [InlineData("agents/blacksmith.json", "{ \"id\": \"trade_done\", \"count\": 2 }", "{ \"id\": \"trade_done\", \"count\": 9 }", "variant pool 'trade_done' has 9 variants but dialogue intent 'trade_done' only has 2")]
     [InlineData("agents/blacksmith.json", "\"offer_item\", \"communicated\": true },\n          \"to\": \"done\"", "\"offer_item\", \"communicated\": true },\n          \"to\": \"nowhere\"", "undefined state 'nowhere'")]
     [InlineData("effects/effects.json", "\"intent\": \"buy_item\"", "\"intent\": \"buy_gone\"", "effect 'buy_item_price' references unknown intent 'buy_gone'")]

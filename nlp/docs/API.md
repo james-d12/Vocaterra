@@ -119,6 +119,47 @@ ConversationContext context = ConversationContext.Create(
 `ConversationContext.Create` computes `HostStateHash` over the values it was given. A host with its own state digest uses the constructor
 instead and passes that digest.
 
+### Host slots and host-named skills (CR-003, CR-005)
+
+Two more inputs belong to one utterance. They are optional trailing parameters of `Create` and init properties of the context, so existing
+`Create` calls and positional constructions compile unchanged.
+
+```csharp
+using Vocaterra.Nlp.Core.Verdicts;
+
+ConversationContext context = ConversationContext.Create(
+    worldSeed: 42, agentId: "blacksmith", agentState: agentState, now: new StoredTimestamp(1_760_000_000), learner: learner,
+    hostSlots: SlotMap.From([new("target", "árbol"), new("direction", "a la derecha"), new("distance", "12")]),
+    extraSkills: ["word.árbol"]);
+```
+
+- **`HostSlots`** (`SlotMap?`, strings only like verdict slots): facts only the host knows. Reply and feedback templates read them with the same
+  formatters verdict slots get, so `Mira {target:article(def)}, {direction}, a {distance:words(m)} metros.` renders as
+  `Mira el árbol, a la derecha, a doce metros.` A noun lemma works with `article(def)` and `plural-if(...)` exactly as a verdict slot does; a
+  number slot works with `words`. Keys are held in ordinal order, so insertion order never matters.
+  - *Precedence.* The name space is shared and **the verdict wins**: where a host slot and a verdict slot have the same name the verdict's
+    value is used, and the reserved feedback names `tag`, `expected`, `actual` and `recast` win over both. Reason: the verdict is what the
+    player said and the pipeline derived, a host fact must not silently rewrite it; and a bundle that already works keeps rendering the same
+    when the host adds a slot. Give host slots names the intents do not use (`target`, `direction`, `distance`).
+  - *Missing slot.* A template that reads a host slot the host did not supply fails exactly like one that reads a missing verdict slot: a
+    feedback template falls back to the generic pool of its kind (then to no feedback), while a reply template throws `TemplateException`
+    from `Evaluate`. The loader's template check does not know the host's names; it proves a template renders with sample values (a slot read
+    by `words`, `plural-if` or `conj` gets a number or a verb whatever its name, `TemplateEngine.SlotKinds`).
+  - *Empty map.* An empty `SlotMap` is stored as `null`.
+- **`ExtraSkills`** (`IReadOnlyList<string>?`): skill ids the utterance also exercised, such as `word.árbol`. The pipeline merges them with its
+  own `intent.<id>` skill before its single `LearnerModel.Update` call, so each skill and each error family is stepped once: naming
+  `intent.offer_item` again, or an error family such as `conj`, changes nothing; a new id is added as one correct (or, for a family the
+  verdict has errors in, incorrect) observation. The list is sorted ordinally and de-duplicated. An id must be non-empty and contain no
+  whitespace (`LearnerModel.ValidateSkillId`); the context throws `ArgumentException` otherwise, at `Create` or when the property is set.
+  A host that has no utterance (the learner met a word in the world) calls `learner.StepSkills(["word.árbol"], correct: true)`, which steps the
+  named skills only and involves no error families.
+- **Carry-over.** Both are per utterance: `Next` does **not** carry them over, the next context has none, and the host sets them again with
+  `Create` when the next utterance needs them. (`HostStateHash` is recomputed from the carried values, as before.)
+- **Hash.** `Create` folds the two inputs into `HostStateHash` only when at least one is present; a context without them hashes exactly as
+  it did before this feature, so earlier logs and goldens still match. A host that built its own digest with the constructor must include
+  them in it. Both are written into the replay envelope's `context` (omitted when absent), so `Replayer` reproduces the response and the
+  learner model (see [REPLAY.md](REPLAY.md)).
+
 ## 5. Evaluate an utterance and read the verdict (D0 over the recognizer's output)
 
 ```csharp
@@ -217,6 +258,10 @@ if (result.Repair is { } repair)
     Console.WriteLine($"repair: {repair.Kind} {repair.AgentLine}");
 }
 ```
+
+Host slots (section 4) are available to the reply and feedback templates of this response; the planner is called with them as
+`ResponsePlanner.Plan(..., hostSlots: context.HostSlots)`, and a host that renders a template of its own can use the same engine:
+`bundle.TemplateEngine.Render(template, result.Verdict.Slots.WithFallback(hostSlots))` (the verdict wins, as in the pipeline).
 
 The effect values come from the bundle's curves at the verdict's correctness; the core does not know what a value is worth. The host maps
 `trade_price` or `spell_power` (or any other kind) to its own rules.

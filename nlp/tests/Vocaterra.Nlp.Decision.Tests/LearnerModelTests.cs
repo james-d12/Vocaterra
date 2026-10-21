@@ -224,4 +224,44 @@ public class LearnerModelTests
         Assert.Equal(1.0, model.PKnown("x"), Tolerance);
         Assert.Equal(0.5, model.PKnown("unseen"), Tolerance);
     }
+
+    [Fact]
+    public void StepSkillsAppliesOneStepPerDistinctSkillAndNothingElse()
+    {
+        var model = LearnerModel.New().StepSkills(["word.árbol", "word.árbol", "word.pozo"], correct: true);
+
+        Assert.Equal(["word.pozo", "word.árbol"], model.Skills.Select(s => s.SkillId).Order(StringComparer.Ordinal));
+        Assert.All(model.Skills, s => Assert.Equal((1, 0), (s.Attempts, s.Errors)));
+        Assert.Equal(BktParameters.Default.Step(0.3, correct: true), model.PKnown("word.árbol"), Tolerance);
+    }
+
+    [Fact]
+    public void StepSkillsCanRecordAMiss_AndMatchesUpdateOnACleanVerdict()
+    {
+        var miss = LearnerModel.New().StepSkills(["x"], correct: false);
+        var viaUpdate = LearnerModel.New().Update(TestVerdicts.Clean(), ["x"]);
+        var viaStep = LearnerModel.New().StepSkills(["x"], correct: true);
+
+        Assert.Equal((1, 1), (miss.Find("x")!.Attempts, miss.Find("x")!.Errors));
+        Assert.Equal(viaUpdate, viaStep);
+        Assert.Same(miss, miss.StepSkills([], correct: true));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("a b")]
+    [InlineData("a\tb")]
+    public void SkillIdsWithoutContentOrWithWhitespaceAreRejected(string id)
+    {
+        Assert.Throws<ArgumentException>(() => LearnerModel.ValidateSkillId(id));
+        Assert.Throws<ArgumentException>(() => LearnerModel.New().StepSkills([id], correct: true));
+    }
+
+    [Fact]
+    public void ValidSkillIdsPassThroughUnchanged()
+    {
+        Assert.Equal("word.árbol", LearnerModel.ValidateSkillId("word.árbol"));
+        Assert.Throws<ArgumentNullException>(() => LearnerModel.ValidateSkillId(null!));
+    }
 }

@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using CsCheck;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
+using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Pronunciation;
@@ -25,6 +26,8 @@ namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 /// <param name="Embeddings">Whether the embedding rung of intent resolution is on.</param>
 /// <param name="Learner">The learner model before the utterance.</param>
 /// <param name="Repeats">The repeat counts per error tag.</param>
+/// <param name="ExtraSkills">Host-named skills for the learner update (null or empty for none); may repeat the pipeline's own skill or an error family.</param>
+/// <param name="HostSlots">Host facts for the response templates (null or empty for none); may share names with verdict slots.</param>
 public sealed record PipelineCase(
     string Transcript,
     string Source,
@@ -38,7 +41,9 @@ public sealed record PipelineCase(
     bool Concurrent,
     bool Embeddings,
     LearnerModel Learner,
-    ImmutableSortedDictionary<string, int> Repeats)
+    ImmutableSortedDictionary<string, int> Repeats,
+    IReadOnlyList<string>? ExtraSkills = null,
+    SlotMap? HostSlots = null)
 {
     /// <summary>The longest transcript, in characters, that is paired with the phoneme recognizer (scoring grows with the cube of the phone count).</summary>
     public const int MaxScoredTranscriptCharacters = 150;
@@ -56,6 +61,15 @@ public sealed record PipelineCase(
 /// <summary>Generator of pipeline runs: transcripts from correct and mutated sentences of the prompt's own grammars, answers, free text and the adversarial corpus.</summary>
 public static class PipelineGen
 {
+    // Host skills: ids that clash with the pipeline's own skill and with error families, and ids the pipeline never produces.
+    private static readonly string[] HostSkillPool = ["word.árbol", "word.espada", "intent.offer_item", "intent.buy_item", "conj", "noun", "grammar.custom"];
+
+    // Host slots whose values are valid for every formatter; the names include verdict slots (the verdict wins) and a reserved feedback name.
+    private static readonly (string Name, string Value)[] HostSlotPool =
+    [
+        ("target", "árbol"), ("direction", "al norte"), ("distance", "3"), ("item", "martillo"), ("qty", "4"), ("tag", "x"), ("landmark", "puente"),
+    ];
+
     private static readonly string[] SkillPool = ["conj", "noun", "gender", "vocab", "ser_estar", "word_order", "intent.buy_item", "intent.offer_item", "intent.ask_price"];
 
     /// <summary>Draws a run from a seed.</summary>
@@ -97,7 +111,9 @@ public static class PipelineGen
             rng.NextInt(2) == 0,
             rng.NextInt(4) != 0,
             learner,
-            DecisionGen.RandomRepeats(rng));
+            DecisionGen.RandomRepeats(rng),
+            rng.NextInt(3) == 0 ? [.. HostSkillPool.Where(_ => rng.NextInt(3) == 0)] : null,
+            rng.NextInt(3) == 0 ? SlotMap.From(HostSlotPool.Where(_ => rng.NextInt(2) == 0).Select(static p => new KeyValuePair<string, string>(p.Name, p.Value))) : null);
     }
 
     private static (string Transcript, string Source) Transcript(PipelineHarness harness, SeededRng rng, PromptSpec prompt)

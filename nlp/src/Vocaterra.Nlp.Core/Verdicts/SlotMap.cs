@@ -76,6 +76,23 @@ public sealed class SlotMap : IReadOnlyDictionary<string, string>, IEquatable<Sl
         return new SlotMap(result);
     }
 
+    /// <summary>
+    /// Returns this map plus every slot of <paramref name="fallback"/> whose name this map does not have; where both have a name, this map's
+    /// value stays.
+    /// </summary>
+    public SlotMap WithFallback(SlotMap fallback)
+    {
+        ArgumentNullException.ThrowIfNull(fallback);
+        if (fallback.Count == 0)
+        {
+            return this;
+        }
+
+        var merged = _pairs.ToList();
+        merged.AddRange(fallback._pairs.Where(pair => !ContainsKey(pair.Key)));
+        return From(merged);
+    }
+
     /// <summary>Returns true when the slot exists.</summary>
     public bool ContainsKey(string key)
     {
