@@ -510,7 +510,7 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
   ```
 
   Until then the cross-platform determinism check has not run anywhere but the development machine.
-- **Content.** The vocabulary is large (3 372 lemmas) but the sample is small: one agent, 14 prompts, six intents. Its dialogue uses lemmas that are
+- **Content.** The vocabulary is large (3 372 lemmas) but the sample is small: one agent, 18 prompts, eleven intents. Its dialogue uses lemmas that are
   not in the A1 list (`cefr-check` prints them; it is advisory). `pron.stress` is recognized by the taxonomy but is not scored in v1.
 - **Open decisions.** The sherpa-onnx native build (D2) and the terms of the frequency list (D4) decide what may be released publicly; the
   rest are in [docs/DECISIONS.md](docs/DECISIONS.md).

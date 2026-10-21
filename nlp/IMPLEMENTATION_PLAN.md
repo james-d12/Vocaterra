@@ -202,6 +202,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M19d | Post-split core follow-ups from the game host author: repeat-count helper and next-turn context, prompt `text` in `PromptSpec`, ContentBuilder as a dotnet tool `vocaterra-content` | M19c, M17b-core | H | done |
 | M19e | Apache-2.0 licence (D3), submodule consumption route (D5), core/game documentation isolation (D12) | M19d | H | done |
 | M19f | Recast bug from the fuzz suite (O5, seed `1diyRPH9lxJ1`): a `conj.tense` error after a leading `ayer` on an irregular verb (`ayer tengo sufrir`) is detected but the recast repeats the wrong form instead of `tuve` | M19e | H | done |
+| M26 | Game requests, batch 1 (see §5b, 2026-10-21): the two bugs first (CR-012 repeat-count semantics, CR-013 accent-fallback reading), then the result-surface requests (CR-002 analysis on the result, CR-004 answer match, CR-007 host-owned bundle files, CR-003 host slot values, CR-005 host-named skills), the docs request CR-008 (threading and load cost), CR-010 and CR-011 (cefr-check on prompt text, sample ATTRIBUTION.md), and CR-006 (Kokoro and Parakeet hashes pinned, `KokoroSynthesizer.FromStore`, D2 applies: private builds only) | M19f | H/M | todo (next) |
 
 ### Delegation waves
 
@@ -661,6 +662,18 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   `[WORD]`, so `mi nombre es dos` is now unresolved rather than a name. Regression fact in
   `Vocaterra.Nlp.Language.Tests`; seed `1diyRPH9lxJ1` passes on main; O5 passed on four more seeds;
   `me llamo Ana`, `soy Ana` and the README demo unchanged. Suite: 2683 passed, 5 skipped.
+- **Open requests from the game (read 2026-10-21, end of day):** the game orchestrator ran G1 and G2
+  (its main `59b8630`) and filed CR-002 to CR-013 in `~/Dev/Vocaterra/docs/CORE_REQUESTS.md` (CR-009 is
+  not listed there). All are `open`; none is accepted yet. Two are bugs in the core and go first:
+  CR-012, the repeat counts mean "including this utterance" to `FeedbackPolicy.Plan` and `RepairFor`
+  but `RepeatCounts.Next`/`ConversationContext.Next` (M19d) produce the counts before the next
+  utterance, so the host cannot supply the right value (decide one meaning, fix the pipeline side,
+  document it in `docs/API.md`); CR-013, accent-insensitive lookup is only a fallback, so `esta`
+  never reads as `está` and `dónde esta el arbol` gets a false `gender.agree` and a wrong recast.
+  CR-011 and CR-010 are the ATTRIBUTION.md and cefr-check follow-ups already listed under M19d/M19e.
+  CR-006 unblocks the game's speech milestone P8 and must respect D2 (private builds only). The next
+  core session triages them into M26 (and M27 if the result-surface work is large), marks each row
+  `accepted (M26)` or answers why not, and keeps one agent per batch of disjoint modules.
 - **Two orchestrators (owner, 2026-10-21):** this repository is run by the core orchestrator only; the
   Vocaterra repository has its own orchestrator and plan. Protocol: the game writes requests for core
   changes to `docs/CORE_REQUESTS.md` in its repository; the core orchestrator reads that file at the
