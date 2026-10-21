@@ -18,7 +18,7 @@ public sealed class ToastLayer : IFrameLayer
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
     {
-        var tick = view.Simulation.Tick;
+        var tick = view.Tick;
         if (view.Toasts.Current(tick) is not { } toast)
         {
             return;

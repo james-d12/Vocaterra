@@ -11,7 +11,7 @@ namespace Vocaterra.MonoGame;
 /// greyscale copy made on the CPU when the atlas is built (<see cref="Greyscale"/>; no shader, so no Wine on Linux). A tile is drawn from the
 /// grey copy first and then from the colour copy at its saturation (see <see cref="DrawTile"/>).
 /// </summary>
-public sealed class TileAtlas : IDisposable
+public sealed class TileAtlas : IItemIcons, IDisposable
 {
     /// <summary>Builds the atlas on the given device.</summary>
     public TileAtlas(GraphicsDevice device)

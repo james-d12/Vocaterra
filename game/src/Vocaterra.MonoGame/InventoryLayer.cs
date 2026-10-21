@@ -56,7 +56,7 @@ public sealed class InventoryLayer : IFrameLayer
         var left = panel.Left + Padding;
         var textWidth = panel.Width - (Padding * 2);
         DrawHelpers.Text(spriteBatch, font, Title, new Vector2(left, panel.Top + 10), Gold);
-        var used = view.Simulation.Inventory.Slots.Count(static s => !s.IsEmpty);
+        var used = view.Items.Slots.Count(static s => !s.IsEmpty);
         var summary = $"Ocupadas: {used} de {Inventory.SlotCount}";
         DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - Padding - DrawHelpers.Width(font, summary), panel.Top + 10), Known);
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + 36, textWidth, 1), new Color(255, 214, 64, 120));
@@ -68,7 +68,7 @@ public sealed class InventoryLayer : IFrameLayer
             var row = slot / Columns;
             var column = slot % Columns;
             var box = new Rectangle(gridLeft + (column * (Cell + Gap)), gridTop + (row * (CellHeight + Gap)), Cell, CellHeight);
-            DrawSlot(spriteBatch, view, font, box, view.Simulation.Inventory.Slots[slot]);
+            DrawSlot(spriteBatch, view, font, box, view.Items.Slots[slot]);
         }
 
         DrawHelpers.Text(spriteBatch, font, KeyHints, new Vector2(left, panel.Bottom - 26), Hints);
@@ -84,9 +84,9 @@ public sealed class InventoryLayer : IFrameLayer
             return;
         }
 
-        var saturation = view.Session.Words.SaturationOf(stack.Item);
+        var saturation = view.IconSaturation(stack.Item);
         var icon = new Rectangle(box.Center.X - (Icon / 2), box.Top + 4, Icon, Icon);
-        view.Atlas.DrawIcon(spriteBatch, stack.Item, icon, saturation);
+        view.DrawIcon(spriteBatch, stack.Item, icon);
 
         var noun = view.Session.Nouns.ForItem(stack.Item);
         var label = noun?.Lemma ?? ItemDefinition.Get(stack.Item).Name;

@@ -172,6 +172,62 @@ take any other arrow away.
      `place: 200,196 torch from Torch`. The torch lights a warm disc of radius eight, and the torch itself is grey until the word `antorcha` is known.
   4. Each run ends with `scene draw (world with lighting, layers, flush): … median …, longest …`.
 
+## The 3D first-person front-end (S2)
+
+`--voxel` runs `VoxelGame` instead of `VocaterraGame`: the first-person view of `VoxelSimulation` over the draft route (`content/scenes/route-draft.json`, or
+`game/scene.json` in the bundle once S3 moves it there, or `--scene <file>`) at `--seed`. The 2D slice is the default and every 2D option keeps working;
+the 2D options that need the guide or the 2D world (`--say`, `--wav`, `--speak`, `--listen`, `--skip`, `--talk`, `--walk`, `--mine`, `--craft`, `--crafting`,
+`--teleport`, `--grant`, `--walk-right`, `--point`, `--point-nearest`, `--status`) are refused with `--voxel` and the error names S3.
+
+| Option | Meaning |
+| --- | --- |
+| `--voxel` | run the 3D scene |
+| `--scene <file>` | the layout file (default: the bundle's `game/scene.json`, else `content/scenes/route-draft.json` beside the bundle) |
+| `--look <yaw>,<pitch>` | a scripted step: face this direction in degrees (yaw 0 north, 90 east, clockwise from above; pitch positive up, within 89) |
+| `--walk-to <x>,<z>` | a scripted step: walk with `Move` commands to the middle of that block column, within half a block, or give up after 3 600 ticks; sidesteps and jumps when stuck. Prints `walk-to 60,52: arrived at (60.02, 52.41) after 800 ticks` |
+| `--interact <x>,<y>,<z>` | a scripted step: aim at the block and hold `Interact` until it is gathered or 600 ticks pass. Prints `interact 9,11,17: gathered trunk in 60 ticks (now air, +1 wood)` (the player must be within 4 blocks) |
+| `--place <item>@<x>,<y>,<z>` | a scripted step: place one item (`madera`, `antorcha`, or the item key `wood`) in that empty cell next to a block, within reach. With two numbers it is still the 2D form |
+| `--select <n>` | a scripted step: hotbar slot 1 to 10 |
+| `--beacon <point>` | stand the beacon column on a named point of the scene (`camp`, `firering`, `workbench`, `stall`, `signpost`, `village`, `house1` to `house3`, `bridge`, `river`); it clears when the player comes within 3 blocks |
+| `--journal`, `--inventory` | open those screens once the steps are done |
+
+The steps run in the order given, one at a time, each at the simulation's fixed 60 Hz (one tick per frame on the fixed clock); the screenshot is saved
+after `--frames` ticks and once the last step finished and 30 ticks have settled. `LookControl`, `VoxelScript` and `LiveVoxelInput` hold the logic;
+`VoxelGame` only wires them to MonoGame.
+
+**Controls.** WASD or the arrows walk (`MoveRelative`), Space jumps, the mouse looks. The mouse is captured in SDL's relative mode (MonoGame 3.8 has no switch
+for it, so `MouseLook` calls `SDL_SetRelativeMouseMode` and `SDL_GetRelativeMouseState` in the SDL library MonoGame loaded, and warps the pointer to the middle of
+the window if that library cannot be reached); **Esc** frees the mouse and a click takes it back. Hold the **left button** on a gatherable block (a trunk,
+a berry bush) to gather it, the **right button** places the selected item in the cell in front of the face the crosshair is on, `1`..`0` and the wheel pick the
+hotbar slot, **I** or **E** the inventory, **J** the journal, **F3** the debug overlay. The camera eases over a step-up (`CameraEase`: the eye lifts a block in one
+tick; the camera holds the old height and lets it go over 8 ticks).
+
+**What is drawn.** `ChunkMesher` (Frontend, no engine type) turns each 16 x 16 x 16 chunk into quads: a cube face is emitted unless the block next to it is an opaque cube
+(or the same transparent kind: leaves against leaves, water against water), so a block shut in on all sides has no face; the shade of a face is in the vertex colour (top
+1.0, north and south 0.82, east and west 0.68, bottom 0.55). Water goes into a second mesh drawn after the opaque faces, chunk by chunk from the farthest to the nearest,
+reading but not writing depth, with its surface a sixteenth lower; bushes, the berry bush, the torch, the open door and the fence are small shapes of their own. The 16 x 16 block
+atlas (`BlockArt`, 8 x 5 cells) is drawn in code the way `TileArt` draws tiles (CC0 by construction); `VoxelRenderer` uploads one vertex buffer per chunk and mesh, draws with
+`BasicEffect` (texture times vertex colour, depth on, point sampling, fog in the sky colour from 48 to 110 blocks) and no custom shader, skips chunks outside the frustum, and meshes
+again a chunk whose version changed (`ChunkVersionTracker`: the chunk's own `Version`, plus a signature of the layer of each neighbour that touches it, so an edit in the middle of a chunk
+rebuilds one chunk and an edit on an edge rebuilds the neighbour across it). Triangles run counter-clockwise seen from outside and the renderer culls clockwise ones. The NPCs are cube assemblies
+(`NpcFigures`, drawn with the atlas's white cell) at the scene's NPC placements, facing their yaw, with their names over their heads (`NpcLabelLayer`, hidden when a solid block is in the way).
+`FirstPersonCamera` builds MonoGame's view and projection from `CameraBasis` (the same vectors as the simulation's look vector, and MonoGame is right-handed with a camera looking down -z, so
+x east, y up, z south need no flip); `ScreenProjection` is the same camera as plain maths for the labels and the beacon's arrow.
+
+**The 2D layers over the 3D scene.** The hotbar, the toast, the inventory screen and the journal draw unchanged over the scene; `FrameView` gains `Voxel`, `Camera3D`, `Beacon`,
+`Figures`, `VoxelIcons` and the readers `Items`, `SelectedSlot`, `Tick` and `DrawIcon`, which follow the 3D simulation when it is set (the hotbar and the inventory show its inventory, with the
+block atlas's icons in full colour). New layers: the crosshair with a gather bar, the held item at the bottom right, the NPC labels, the beacon's label and edge arrow, and the 3D debug overlay.
+**Not wired until S3:** the guide. `T` and `V` do nothing, no turn worker is started (so no Vosk, no Kokoro and no loading screen), the dialogue panel is not in the layer list, and the crafting panel is
+not shown (crafting is S4). The session is still created (the nouns, the word counts and the journal come from it) and so is its 2D world, which is never stepped. A berry is labelled `berry` in the inventory
+because no noun names it yet.
+
+**For S3.** To send the player somewhere call `Beacon.Set(blockPos, "río")` or `Beacon.SetPoint(scene, "river", "río")` on `VoxelGame.Beacon` (the guide's `PointerMarker` becomes this): the column
+stands on the block, a label shows the distance, an arrow points from the screen edge when it is off screen, and it clears within 3 blocks. NPC figures come from `NpcFigures.FromScene(scene)`
+(one `NpcFigure` per `scene.Npcs` entry: name, label, feet cell, yaw); a new NPC needs an entry in `NpcFigures.PartsOf` and `LabelOf`. To wire the dialogue panel: start the worker as `VocaterraGame` does
+(`_session.StartWorker(...)`), add `DialoguePanel` to the layers (it reads `view.Tick`), open it with a key when the crosshair is on an NPC (`NpcLabelLayer.Occluded` and `ScreenProjection` give the
+tools), give `InputFocus` the keyboard while it is open and count `_dialogue.IsOpen` in `uiOpen` in `VoxelGame.ReadInput` (so the mouse is released and no walking happens), and replace the cursor tile of
+"¿qué es esto?" by the block under the crosshair (`sim.Target`).
+
 ## Architecture
 
 ```
@@ -215,6 +271,9 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   FontProvider      FontStashSharp FontSystem over assets/fonts/PixelOperator.ttf
   KeyboardInput     the keyboard as an IInputSource (the only place that knows the key bindings)
   ScreenshotWriter  back buffer -> PNG
+  (S2, 3D)  VoxelGame (host), VoxelRenderer, FirstPersonCamera, BlockAtlas, MouseLook, VoxelLayers.cs (CrosshairLayer, HeldItemLayer, NpcLabelLayer, BeaconArrowLayer, VoxelDebugOverlay);
+            Frontend/: ChunkMesher, MeshVertex and MeshBuffer, BlockAtlasLayout and BlockArt, NpcFigures, OverlayMeshes, ChunkVersionTracker and VoxelBeacon, ViewMath
+            (CameraBasis, ScreenProjection, EdgeArrow), LookControl and CameraEase, LiveVoxelInput, VoxelScript and VoxelStep, VoxelDebugText, SceneLocator, PointLabels
 ```
 
 The frame is: `Update` reads the clock, reads the keyboard once (the panel's keys), the accumulator returns 0 to 5 ticks, and for each tick the
@@ -265,6 +324,7 @@ output; every character of the panel's texts and of the bundle's dialogue pools 
 architecture rules (no engine type in `Frontend/`, no `System.Random`, clock or `Stopwatch` outside `FrameClock.cs`, project references only the
 game layer and the simulation, no engine code in the simulation, the game layer or the host). P7: `LightingFrontendTests` (the premultiplied
 tint, the dark and the sky squares, the parsing of `--teleport` and `--grant` as steps that need a screenshot, the art of the new tiles and icons).
+S2 (3D): `ChunkMesherTests` (a block has 6 faces, two adjacent 10, a block shut in none, water against stone, leaves, plants, torch, fence, door, the winding, the shade order, the UVs inside their cell, every chunk of the real route within the 16-bit limit), `BlockAtlasTests` (a picture for every block face, the UV rectangle per cell, deterministic bright art), `FirstPersonCameraTests` (yaw and pitch against the simulation's look vector, MonoGame's view matrix, the plain projection against the matrices), `VoxelLaunchOptionsTests` (`--voxel`, `--look`, `--walk-to`, `--interact`, `--place item@x,y,z`, `--beacon`, `--scene`, the refusals), `BeaconArrowTests` (the edge arrow for every direction, behind the camera, always inside the margin; the beacon and the column and highlight meshes), `VoxelScriptTests` (the steps against a real simulation: walk-to, interact, place, select, the tick limits, determinism) and `VoxelFrontendTests` (mouse look, the camera ease against a real step-up, the live input, which chunks are due after an edit in the middle, on an edge, on the top layer, the NPC figures and their facing, the debug lines, the scene locator).
 
 ## Notes
 

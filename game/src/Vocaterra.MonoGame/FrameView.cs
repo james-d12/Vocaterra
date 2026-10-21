@@ -3,6 +3,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game;
 using Vocaterra.MonoGame.Frontend;
 using Vocaterra.Simulation;
+using Vocaterra.Simulation.Items;
+using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame;
 
@@ -68,6 +70,47 @@ public sealed class FrameView
 
     /// <summary>The mouse pointer in window pixels, or <see langword="null"/> when it is outside the window.</summary>
     public Point? Mouse { get; set; }
+
+    /// <summary>
+    /// The 3D simulation when the run is <c>--voxel</c>, or <see langword="null"/> for the 2D slice. Layers that do not depend on the 2D world
+    /// (the hotbar, the toast, the inventory) read the inventory and the tick through <see cref="Items"/>, <see cref="SelectedSlot"/> and
+    /// <see cref="Tick"/>, which follow it when it is set.
+    /// </summary>
+    public VoxelSimulation? Voxel { get; init; }
+
+    /// <summary>The first-person camera of a 3D run, or <see langword="null"/>.</summary>
+    public FirstPersonCamera? Camera3D { get; init; }
+
+    /// <summary>The beacon of a 3D run (where the player is being sent), or <see langword="null"/>.</summary>
+    public VoxelBeacon? Beacon { get; init; }
+
+    /// <summary>The NPC figures of a 3D run, whose names the label layer draws.</summary>
+    public IReadOnlyList<NpcFigure> Figures { get; init; } = [];
+
+    /// <summary>The icons of a 3D run's items (the block atlas), or <see langword="null"/> for the 2D tile atlas.</summary>
+    public IItemIcons? VoxelIcons { get; init; }
+
+    /// <summary>The 3D eye position in blocks for this frame (east, up, south), interpolated between ticks.</summary>
+    public Vector3 Eye { get; set; }
+
+    /// <summary>The look of the 3D run in angle steps for this frame: yaw 0 north, pitch positive up.</summary>
+    public (double Yaw, double Pitch) Look { get; set; }
+
+    /// <summary>The inventory the hotbar and the inventory screen show: the 3D simulation's in a 3D run, the 2D one's otherwise.</summary>
+    public Inventory Items => Voxel?.Inventory ?? Simulation.Inventory;
+
+    /// <summary>The selected hotbar slot of whichever simulation is running.</summary>
+    public int SelectedSlot => Voxel?.SelectedSlot ?? Simulation.SelectedSlot;
+
+    /// <summary>The tick of whichever simulation is running (the toast and the cursor blink count it).</summary>
+    public long Tick => Voxel?.Tick ?? Simulation.Tick;
+
+    /// <summary>The saturation an item's icon is drawn at: the word's in the 2D slice, full colour in the 3D world (D-game-6 as amended).</summary>
+    public double IconSaturation(ItemId item) => Voxel is null ? Session.Words.SaturationOf(item) : 1.0;
+
+    /// <summary>Draws an item's icon with the atlas of whichever world is running.</summary>
+    public void DrawIcon(SpriteBatch spriteBatch, ItemId item, Rectangle destination) =>
+        (VoxelIcons ?? Atlas).DrawIcon(spriteBatch, item, destination, IconSaturation(item));
 }
 
 /// <summary>
