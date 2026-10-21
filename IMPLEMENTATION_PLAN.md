@@ -63,10 +63,10 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 ### Handover (2026-10-21, after P4)
 
 Where things stand, for the next orchestrator session:
-- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4. Core pin `db39999` (no request is `done`). Tests on `main`: 329.
-- **Next:** P4b (spaced colour and the guide's review, owner's amendment of D-game-6; Sonnet 5.5), then P6 (with the wider word list), P6b (crafting; owner 2026-10-21: crafting before caves, with stations), then P5 (spoken input; Sonnet 5.5) and P7; previously P5 or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
+- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4, P4b. Core pin `db39999` (no request is `done`). Tests on `main`: 371.
+- **Next:** P6 (with the wider word list), P6b (crafting; owner 2026-10-21: crafting before caves, with stations), then P5 (spoken input; Sonnet 5.5) and P7; previously P5 or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
   the other. Then P7, P9; P8 waits on CR-006; P10 optional; G3 and G4 after P9.
-- **Core requests:** the core accepted CR-002 to CR-008 and CR-010 to CR-013 into its M26a to M26f (2026-10-21); CR-014 (P4) is `open`.
+- **Core requests:** the core accepted CR-002 to CR-008 and CR-010 to CR-013 into its M26a to M26f (2026-10-21); CR-014 (P4) and CR-015 (P4b) are `open`.
   When rows turn `done`, bump the submodule; CR-012's fix (M26a) lets the guide drop `EvaluateCountingThisUtterance`, which is a
   G-milestone (it changes the calls the game makes).
 - **Package cache (P4 finding):** NuGet caches by id and version, and the core's worktrees pack 0.1.0 into the shared `~/.nuget/packages`,
@@ -92,9 +92,9 @@ Where things stand, for the next orchestrator session:
 | P2 | MonoGame front-end skeleton: `Vocaterra.MonoGame` (3.8.6 DesktopGL), no content pipeline, placeholder tiles drawn in code, camera, input to commands, CC0 font with the Spanish letters | done (merged 2026-10-21) | Sonnet 5.5 | P1 |
 | P3 | **The guide, typed (smallest slice proving the core in game):** `Vocaterra.Game` (`GameSession`, `GuideService`, `WorldFacts`), the guide in the bundle (`ask_directions`, `ask_what`, `ask_help`), dialogue panel; `¿dónde está el árbol?` gets a reply and an arrow | done (merged 2026-10-21) | Sonnet 5.5 (scene and session API), Haiku 5.5 (content) | G1, G2, P2 |
 | P4 | Nouns, word progress, greyscale: `game/nouns.json`, `lexicon/world.json`, `NounCatalog`, `WordProgress`, the D-game-6 rule, CPU-made grey atlas, `name_object` intent, journal | done (merged 2026-10-21, `00c6c44`) | Haiku 5.5 | P3 |
-| P4b | Spaced colour and the guide's review (D-game-6 amended): growing gaps (10 min, then 1 h, or a new session), early uses logged without colour, the guide asks "¿Qué es esto?" about a due word with the pointer on its nearest example; scripted time skip for the demo | in progress (2026-10-21) | Sonnet 5.5 | P4 |
+| P4b | Spaced colour and the guide's review (D-game-6 amended): growing gaps (10 min, then 1 h, or a new session), early uses logged without colour, the guide asks "¿Qué es esto?" about a due word with the pointer on its nearest example; scripted time skip for the demo | done (merged 2026-10-21, `b433647`, fix `9ce62ef`) | Sonnet 5.5 | P4 |
 | P5 | Spoken input: push-to-talk, microphone (MonoGame `Microphone`, PortAudioSharp2 fallback), Vosk small, evaluation on a worker thread | planned | Sonnet 5.5 | P3 |
-| P6 | Mining, building, inventory (durability, drops, hotbar placement, 40 slots with a 10-slot hotbar; the player starts with `hacha` and `pico`) and the **wider world of things** (section 4.3: new surface tiles and items, each in `game/nouns.json` with the colour rule) | planned, after P4b | Haiku 5.5 | P1, P2, P4b |
+| P6 | Mining, building, inventory (durability, drops, hotbar placement, 40 slots with a 10-slot hotbar; the player starts with `hacha` and `pico`) and the **wider world of things** (section 4.3: new surface tiles and items, each in `game/nouns.json` with the colour rule) | in progress (2026-10-21) | Haiku 5.5 | P1, P2, P4b |
 | P6b | **Crafting and the guide's crafting answers** (owner, 2026-10-21; section 4.3): recipes in `game/recipes.json`, stations (`mesa`, `horno`), crafting panel; the guide answers "¿cómo hago una mesa?" (recipe, station, what is missing) and "¿dónde hay arena?" (where a material comes from and the nearest source) | planned, after P6 | Sonnet 5.5 (design), Haiku 5.5 (content) | P6 |
 | P7 | Caves (worms, cellular automata), ores, full forest vegetation, flood-fill lighting; ores `carbón`, `cobre`, `hierro`, `oro` join the catalogue and the recipes (`antorcha` from `madera` and `carbón`, metal tools at the `horno`) | planned | Haiku 5.5 | P1, P6, P6b |
 | P8 | The guide speaks (Kokoro through the core) | blocked: CR-006 | Haiku 5.5 | P5, CR-006 |
@@ -336,6 +336,22 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - Environment bug (found by the agent): the shared `~/.nuget/packages` held a core worktree's 0.1.0 (source
     `Vocaterra.NLP/.claude/worktrees/agent-a70557e8…`), which turned three P3 recasts into hints. Fixed in the gate (game-only package
     folder, core packages cleared each run; the build log names the package source). Tests: 290 to 329.
+
+- **P4b (2026-10-21, merged `b433647`, fix `9ce62ef`, Sonnet 5.5).** D-game-6 as amended by the owner: spaced colour. `CreditRules`
+  holds the gaps (`DefaultGapSeconds = [600, 3600]`, the last repeats); `WordRecord` has `LastCreditedAt`, `LastCreditedSession`,
+  `Lapses`; `WordProgress` takes a `Session` (1 for a new game; P9 bumps it on load) and returns a `CreditOutcome` per noun (`Credited`,
+  `TooEarly` with seconds remaining, `Wrong`, `NamedWrong`, `NoTarget`); `DueWords` orders most overdue first, then ordinal lemma.
+  `GameSession.SkipTime`, `BeginTalk` (the guide asks "¿Qué es esto?" about the first due word with an example in range, arrow and a `¿?`
+  marker; prompt `guide-review`, pool `guide.review.ask`; the answer is graded against the pointed tile), `EndReview` (Esc ends a review).
+  Front-end: "Bien. Repasa más tarde." toast and panel line; journal shows `otra vez en 8 min` / `lista para repasar`; launch options
+  `--skip <minutes>` and `--talk` (ordered script steps). `cefr/a1.txt` gained `esto`. Bundle `6a3750bc…`. Tests 329 to 371.
+  - Orchestrator spot-check found a loophole (fixed in `9ce62ef`): after a wrong review answer the guide says the word ("No, es un
+    árbol.") and copying it earned the spaced credit; and naming with no target earned colour while the guide said "No sé qué es". Now a
+    word the guide reveals has its gap restarted (a lapse, no credit lost; untouched if it has no credit or is known), and a name with no
+    target earns nothing (`NoTarget`). Verified: the copy is `TooEarly`, the same answer 11 minutes later is `2 de 3`.
+  - Orchestrator defaults the owner may overturn: a wrong name earns no colour and does not raise "bien"; uses after a word is known are not
+    spaced (only counts change); Esc during a review ends it.
+  - Core gap **CR-015**: the core has no host-initiated agent turn, so the review question is a host line outside the replay record.
 
 ## 6. Definition of done (every milestone)
 
