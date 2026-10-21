@@ -1,7 +1,8 @@
 <Project>
 
   <!-- The language core's packages (Vocaterra.Nlp.*, version 0.1.0 as published to the local feed by the core's scripts/pack.sh) and the test
-       packages, at the versions the core uses. Bump a core version here in the same commit that changes the code that depends on it. -->
+       packages, at the versions the core uses. Bump a core version here in the same commit that changes the code that depends on it.
+       MonoGame DesktopGL and FontStashSharp are the front-end's packages (src/Vocaterra.MonoGame only). -->
   <ItemGroup>
     <PackageVersion Include="Vocaterra.Nlp.Asr" Version="0.1.0" />
     <PackageVersion Include="Vocaterra.Nlp.Content" Version="0.1.0" />
@@ -10,6 +11,8 @@
     <PackageVersion Include="Vocaterra.Nlp.Language" Version="0.1.0" />
     <PackageVersion Include="Vocaterra.Nlp.Pipeline" Version="0.1.0" />
     <PackageVersion Include="Vocaterra.Nlp.Response" Version="0.1.0" />
+    <PackageVersion Include="MonoGame.Framework.DesktopGL" Version="3.8.6" />
+    <PackageVersion Include="FontStashSharp.MonoGame" Version="1.6.2" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
