@@ -202,7 +202,13 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M19d | Post-split core follow-ups from the game host author: repeat-count helper and next-turn context, prompt `text` in `PromptSpec`, ContentBuilder as a dotnet tool `vocaterra-content` | M19c, M17b-core | H | done |
 | M19e | Apache-2.0 licence (D3), submodule consumption route (D5), core/game documentation isolation (D12) | M19d | H | done |
 | M19f | Recast bug from the fuzz suite (O5, seed `1diyRPH9lxJ1`): a `conj.tense` error after a leading `ayer` on an irregular verb (`ayer tengo sufrir`) is detected but the recast repeats the wrong form instead of `tuve` | M19e | H | done |
-| M26 | Game requests, batch 1 (see §5b, 2026-10-21): the two bugs first (CR-012 repeat-count semantics, CR-013 accent-fallback reading), then the result-surface requests (CR-002 analysis on the result, CR-004 answer match, CR-007 host-owned bundle files, CR-003 host slot values, CR-005 host-named skills), the docs request CR-008 (threading and load cost), CR-010 and CR-011 (cefr-check on prompt text, sample ATTRIBUTION.md), and CR-006 (Kokoro and Parakeet hashes pinned, `KokoroSynthesizer.FromStore`, D2 applies: private builds only) | M19f | H/M | todo (next) |
+| M26 | Game requests, batch 1 (CR-002…CR-013, triaged 2026-10-21 into M26a–f below; rows marked `accepted` in the game's `docs/CORE_REQUESTS.md`) | M19f | — | in-progress |
+| M26a | CR-012: repeat counts mean "before this utterance" on `ConversationContext`; the pipeline applies `RepeatCounts.Next` itself before `FeedbackPolicy.Plan` and `RepairFor`; docs and sample host follow | M19f | H | in-progress |
+| M26b | CR-013: accent-insensitive lookup also offers the accented readings of a form the lexicon has (`esta`/`está`, `si`/`sí`, `mas`/`más`, `el`/`él`, `tu`/`tú`…) and the reading resolver chooses | M19f | S | in-progress |
+| M26c | CR-002 analysis on the result, CR-004 answer match on the result, CR-007 host-owned bundle files (`ContentBundle.TryReadHostFile`), CR-008 threading and load-cost contract in `docs/API.md` | M26a | H | todo |
+| M26d | CR-003 host slot values (`SlotMap` on the context, template access, replay record and `HostStateHash`), CR-005 host-named skills in the learner update | M26c | S | todo |
+| M26e | CR-006 speech-out readiness: Kokoro and Parakeet file hashes pinned from real downloads, `KokoroSynthesizer.FromStore`, Spanish speaker ids documented (D2: private builds only) | M19f | H | todo |
+| M26f | CR-010 `cefr-check` reads prompt text; CR-011 sample `ATTRIBUTION.md` describes the sample only (content procedure: hash re-pin, goldens) | M26d | H | todo |
 
 ### Delegation waves
 
@@ -674,6 +680,18 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   CR-006 unblocks the game's speech milestone P8 and must respect D2 (private builds only). The next
   core session triages them into M26 (and M27 if the result-surface work is large), marks each row
   `accepted (M26)` or answers why not, and keeps one agent per batch of disjoint modules.
+- **M26 triage (2026-10-21, second session):** CR-002…CR-013 accepted and split by module so batches
+  that touch disjoint directories can run in parallel: M26a (Pipeline, CR-012) and M26b (Language,
+  CR-013) first, in parallel; M26c (Pipeline result surface and Content, CR-002/004/007/008) after M26a;
+  M26d (CR-003/005, cross-module: context, templates, replay record, learner model; Sonnet) after M26c;
+  M26e (models manifest and Response/Speech, CR-006) when disk allows (two model downloads, ~1 GB);
+  M26f (CR-010/011, a content edit that re-pins the bundle hash) last so the re-pin happens once.
+  CR-012 decision: `ConversationContext.RepeatCountsByTag` means the counts before this utterance (what
+  `ConversationContext.Next` and `RepeatCounts.Next` already produce), and the pipeline computes the
+  counts including this utterance itself; the alternative (documenting that the host passes the
+  "including" counts) is impossible for a host, which cannot know the tags before it evaluates. The
+  rows in the game repository's requests file were edited in its working tree and left for the game
+  orchestrator to commit (its checkout had uncommitted plan work).
 - **Two orchestrators (owner, 2026-10-21):** this repository is run by the core orchestrator only; the
   Vocaterra repository has its own orchestrator and plan. Protocol: the game writes requests for core
   changes to `docs/CORE_REQUESTS.md` in its repository; the core orchestrator reads that file at the
