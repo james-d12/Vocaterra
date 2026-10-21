@@ -202,15 +202,15 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M19d | Post-split core follow-ups from the game host author: repeat-count helper and next-turn context, prompt `text` in `PromptSpec`, ContentBuilder as a dotnet tool `vocaterra-content` | M19c, M17b-core | H | done |
 | M19e | Apache-2.0 licence (D3), submodule consumption route (D5), core/game documentation isolation (D12) | M19d | H | done |
 | M19f | Recast bug from the fuzz suite (O5, seed `1diyRPH9lxJ1`): a `conj.tense` error after a leading `ayer` on an irregular verb (`ayer tengo sufrir`) is detected but the recast repeats the wrong form instead of `tuve` | M19e | H | done |
-| M26 | Game requests, batch 1 (CR-002…CR-013, triaged 2026-10-21 into M26a–f below; rows marked `accepted` in the game's `docs/CORE_REQUESTS.md`) | M19f | — | in-progress |
+| M26 | Game requests, batch 1 (CR-002…CR-013, triaged 2026-10-21 into M26a–f below; all rows `done` in the game's `docs/CORE_REQUESTS.md`) | M19f | — | done |
 | M26a | CR-012: repeat counts mean "before this utterance" on `ConversationContext`; the pipeline applies `RepeatCounts.Next` itself before `FeedbackPolicy.Plan` and `RepairFor`; docs and sample host follow | M19f | H | done |
 | M26b | CR-013: accent-insensitive lookup also offers the accented readings of a form the lexicon has (`esta`/`está`, `si`/`sí`, `mas`/`más`, `el`/`él`, `tu`/`tú`…) and the reading resolver chooses | M19f | S | done |
 | M26c | CR-002 analysis on the result, CR-004 answer match on the result, CR-007 host-owned bundle files (`ContentBundle.TryReadHostFile`), CR-008 threading and load-cost contract in `docs/API.md` | M26a | H | done |
 | M26d | CR-003 host slot values (`SlotMap` on the context, template access, replay record and `HostStateHash`), CR-005 host-named skills in the learner update | M26c | S | todo |
 | M26e | CR-006 speech-out readiness: Kokoro and Parakeet file hashes pinned from real downloads, `KokoroSynthesizer.FromStore`, Spanish speaker ids documented (D2: private builds only) | M19f | H | done |
-| M26f | CR-010 `cefr-check` reads prompt text; CR-011 sample `ATTRIBUTION.md` describes the sample only (content procedure: hash re-pin, goldens) | M26d | H | todo (next) |
-| M26g | Intermittent failure from M26e: `ParakeetFromStoreTranscribesTheSpanishSampleClipDeterministically` failed 1 of 5 isolated runs (two decodes in one process differ in a field the assertion message hides; transcript equal); find the nondeterminism in the sherpa-onnx adapter or its configuration and fix it at the source | M26e | H | todo (next) |
-| M27a | Content lint (owner chose lint first, 2026-10-21): `vocaterra-content lint` — example coverage per intent, confusion within each prompt's allow-list, grammar hazards, reachability, CEFR incl. prompt text; examples may carry expected error tags; `validate` warns, `--strict` fails; per-intent waivers (see §10) | M26f | S | todo (next) |
+| M26f | CR-010 `cefr-check` reads prompt text; CR-011 sample `ATTRIBUTION.md` describes the sample only (content procedure: hash re-pin, goldens) | M26d | H | done |
+| M26g | Intermittent failure from M26e: `ParakeetFromStoreTranscribesTheSpanishSampleClipDeterministically` failed 1 of 5 isolated runs (two decodes in one process differ in a field the assertion message hides; transcript equal); find the nondeterminism in the sherpa-onnx adapter or its configuration and fix it at the source | M26e | H | done |
+| M27a | Content lint (owner chose lint first, 2026-10-21): `vocaterra-content lint` — example coverage per intent, confusion within each prompt's allow-list, grammar hazards, reachability, CEFR incl. prompt text; examples may carry expected error tags; `validate` warns, `--strict` fails; per-intent waivers (see §10) | M26f | S | in-progress |
 | M27b | Content layering and `std-v1`: manifest `base` pinned by id, hash and path; whole-item replacement with explicit `replaces`/`removes`; lexicon and CEFR unioned; one level; `content/v1` becomes `std-v1` plus a blacksmith overlay (see §10) | M27a | S | todo |
 | M27c | Format de-duplication: defaulted redundant fields, any-state transitions, `<np:x>` macros, generated article aliases; old files load identically (see §10) | M27b | H | todo |
 
@@ -782,6 +782,26 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   with expected errors) goes first, then layering with `std-v1`, then format de-duplication. Owner chose
   lint first. Side finding: the hand grammars hold 4 real cross-intent matches, one the `gracias` →
   `cast_spell` class hidden only by the tie-break (M27a will report them).
+- **M26f results (CR-010/011):** `CefrChecker` also checks prompt text, reported in its own section with
+  prompt ids (`CefrPromptReport`); sample `ATTRIBUTION.md` rewritten for the sample only (hand-authored
+  content Apache-2.0 per D3; third-party notices kept; model licences as in the manifest; D2 note kept;
+  GitHub URLs instead of relative paths). Owner added `algo` and `acuerdo` to `cefr/a1.txt` (A1 and A2
+  lists are disjoint by design and A2 inherits A1, so A2 is unchanged; the orchestrator's first
+  instruction to add them to A2 broke `SampleContentTests` and was reverted). Bundle hash
+  `cedb97c4…3afad1` → `1c2240c7…c9d38f2`; goldens differ only in `contentHash`. cefr-check on the sample:
+  A1 prompt text 46 lemmas, 9 unlisted (game words: espada, hechizo, herrero, lanza, lanzar, moneda,
+  objeto, oro, saludo). Process finding: the sandbox's worktree guard refuses `ContentBuilder ... hash`
+  in an isolated agent (it reads the subcommand as the shell builtin `hash`), with no approval prompt;
+  the orchestrator ran `hash` in the agent's worktree three times on the owner's explicit instruction.
+  Every content milestone will hit this (M27b): either the owner runs or authorises the orchestrator to
+  run `hash`, or the tool gains an alias subcommand (owner's call).
+- **M26g results:** the intermittent Parakeet determinism failure was not threading (`NumThreads` is 1):
+  sherpa-onnx 1.13.8's C# `Result.Durations` returns a buffer that is not float data on the Parakeet TDT
+  path (pointer-like bit patterns, different on every decode), so the last word ended at ~2e37 s. The
+  adapter no longer reads it: a word ends where the next starts and the last at the clip end (consumer
+  change: `AsrWord.EndSeconds` includes trailing silence). Range assertions added; 30/30 isolated runs
+  pass; Vosk and Kokoro checked, unaffected. Durations can return after an upstream upgrade.
+- **M26 complete (2026-10-21):** all 11 game requests done; suite 2831 passed, 3 skipped.
 - **Two orchestrators (owner, 2026-10-21):** this repository is run by the core orchestrator only; the
   Vocaterra repository has its own orchestrator and plan. Protocol: the game writes requests for core
   changes to `docs/CORE_REQUESTS.md` in its repository; the core orchestrator reads that file at the
