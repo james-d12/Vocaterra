@@ -23,7 +23,7 @@ flowchart TD
     subgraph TOOLS[tools]
         CLI[Vocaterra.Nlp.Cli<br/>eval, replay]
         BENCH[Vocaterra.Nlp.Bench<br/>ASR benchmark]
-        BUILDER[Vocaterra.Nlp.ContentBuilder<br/>validate, hash, cefr-check,<br/>import-lexicon, lexicon-report]
+        BUILDER[Vocaterra.Nlp.ContentBuilder<br/>validate, hash, lint, cefr-check,<br/>import-lexicon, lexicon-report]
     end
     PIPE[Vocaterra.Nlp.Pipeline<br/>UtterancePipeline, replay log and replayer]
     CONTENT[Vocaterra.Nlp.Content<br/>bundle loader, hashing, versioning]
@@ -355,6 +355,7 @@ bundle. `tools/Vocaterra.Nlp.ContentBuilder` is the build-time tool:
 ```bash
 dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- validate content/v1                      # verify hashes and cross-references
 dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- hash content/v1                          # rewrite content/v1/manifest.json after an edit
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lint content/v1 --level a1               # check examples, overlaps, hazards, reachability, CEFR (run before hash; see TOOLS.md)
 dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- cefr-check content/v1 --level a1         # list lemmas of dialogue templates and of prompt text missing from the CEFR list (a1 or a2)
 dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- import-lexicon kaikki.jsonl lexicon.json # wiktextract Spanish JSONL to a lexicon file (--max N limits it;
 #   --frequency es_50k.txt --top N keeps the N most frequent lemmas; --sidecar writes the source record; see docs/LEXICON.md)
@@ -362,7 +363,7 @@ dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lexicon-report conten
 ```
 
 Any edit to a file in `content/v1` changes the bundle hash, so run `hash` afterwards and update the pinned value in the tests
-(see [CONTRIBUTING.md](CONTRIBUTING.md)). `validate` prints `OK: bundle 'v1' 1.0.0, 19 files, hash <sha256>`.
+(see [CONTRIBUTING.md](CONTRIBUTING.md)). `validate` prints `OK: bundle 'v1' 1.0.0, 19 files, hash <sha256>`, then the errors and warnings of the content lint.
 
 ## Using the packages
 
@@ -410,7 +411,7 @@ consent rules and manifest schema are in [golden/README.md](golden/README.md).
 | `src/Vocaterra.Nlp.Pipeline` | `UtterancePipeline`, `ConversationContext`, replay log and replayer |
 | `tools/Vocaterra.Nlp.Cli` | Demo host: `eval` and `replay` |
 | `tools/Vocaterra.Nlp.Bench` | ASR benchmark over the golden manifest |
-| `tools/Vocaterra.Nlp.ContentBuilder` | `validate`, `hash`, `cefr-check`, `import-lexicon`, `lexicon-report` |
+| `tools/Vocaterra.Nlp.ContentBuilder` | `validate`, `hash`, `lint`, `cefr-check`, `import-lexicon`, `lexicon-report` |
 | `tests/Vocaterra.Nlp.<Project>.Tests` | One xUnit project per source project |
 | `tests/Vocaterra.Nlp.Golden.Tests` | G2P golden set, end-to-end worked example, golden manifest layout |
 | `tests/Vocaterra.Nlp.Fuzzing.Tests` | Combinatorial fuzz tests: CsCheck oracles over generators driven by the content catalogs ([README](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)) |

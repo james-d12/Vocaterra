@@ -13,7 +13,7 @@ namespace Vocaterra.Nlp.Response.Templates;
 public sealed class ResponsePlanner
 {
     /// <summary>Dialogue intent used for the reply when the player was not understood and no explicit intent is given.</summary>
-    public const string NotUnderstoodIntent = "not_understood";
+    public const string NotUnderstoodIntent = ReservedPools.NotUnderstood;
 
     private readonly TemplateEngine _engine;
 
@@ -87,8 +87,8 @@ public sealed class ResponsePlanner
             slots = slots.With("recast", recast);
         }
 
-        if (catalog.TryGetPool($"feedback.{feedback.Kind}.{feedback.Tag}", out var pool)
-            || catalog.TryGetPool($"feedback.{feedback.Kind}", out pool))
+        if (catalog.TryGetPool($"{ReservedPools.FeedbackPrefix}{feedback.Kind}.{feedback.Tag}", out var pool)
+            || catalog.TryGetPool($"{ReservedPools.FeedbackPrefix}{feedback.Kind}", out pool))
         {
             var template = DialogueSelector.Select(pool, rng);
             return new ResponseLine(template.LineId, _engine.Render(template, slots), isRecast);

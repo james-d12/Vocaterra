@@ -171,7 +171,7 @@ Where things go:
 | You add | File | Notes |
 | --- | --- | --- |
 | An answer set | `answer-sets/<answerSetId>.json` | `{ "answerSetId", "answers": [{ "answerId", "canonical", "aliases": [], "dialects": [] }] }`. The file name is the id. Aliases carry synonyms and regional variants (`coche`, `carro`, `auto`); they also become the phrase list of constrained recognition. |
-| An intent | `intents/intents.json` | `intentId`, `requiredSlots`, `slotGrammars` (the DSL: `[ART]`, `[NUM:qty]`, `[NOUN:item]`, `[VERB:lemma:slot]`, `?` for optional, `(a\|b)`), `keywordRules` (all lemmas must be present) and `examples` for the embedding rung. |
+| An intent | `intents/intents.json` | `intentId`, `requiredSlots`, `slotGrammars` (the DSL: `[ART]`, `[NUM:qty]`, `[NOUN:item]`, `[VERB:lemma:slot]`, `?` for optional, `(a\|b)`), `keywordRules` (all lemmas must be present), `examples` for the embedding rung (each a string, or an object `{ "text": "yo es Rosa", "errors": ["conj.person"] }` that the lint grades; see [Lint your content before you hash it](#lint-your-content-before-you-hash-it)) and optionally `lint` (waivers). |
 | A prompt | `prompts/prompts.json` | `promptId`, `mode` (`Constrained` or `Open`), `difficulty`, `answerSetId`, `allowedIntentIds` (empty means an answer-only prompt such as a quiz), `agentId` or `null`, `slotGrammarIds` (each must be a grammar defined in `intents.json`), `text` (optional: the line the agent says before the player answers; not empty, no leading or trailing whitespace). |
 | agent behaviour | `agents/<agentId>.json` and `dialogue/dialogue.json` | Transitions keyed on intent and error tags; `variantPools` must have matching dialogue pools. |
 | Effects | `effects/effects.json` | Verdict to effect with a correctness curve (spell power, trade price). |
@@ -184,9 +184,11 @@ Steps:
 2. Add an item for every **new** file to `content/v1/provenance.json` (`generatedBy` is `hand-authored`, `llm-draft` or
    `wiktionary-import`; a language-model draft is refused until `approvedBy` and `approvedOn` are set). If you import Wiktionary data,
    `ATTRIBUTION.md` must keep its CC BY-SA notice.
-3. Re-hash. This rewrites `content/v1/manifest.json` from the files on disk and prints the new bundle hash:
+3. Lint, then re-hash. `lint` does not need current hashes, so run it first and fix what it reports (next section). Re-hashing rewrites
+   `content/v1/manifest.json` from the files on disk and prints the new bundle hash:
 
    ```bash
+   dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lint content/v1 --level a1
    dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- hash content/v1
    dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- validate content/v1
    dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- cefr-check content/v1 --level a1
@@ -206,6 +208,34 @@ Steps:
      VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests
      ```
 6. Run the whole suite. Replay logs recorded earlier report `/versions/contentHash` as different after a content change; that is expected.
+
+### Lint your content before you hash it
+
+`vocaterra-content lint <bundleDir>` runs the real analyzer, intent resolver and grader over the bundle's own examples and reports mistakes
+that `validate` cannot see (`validate` checks references only). Run it after every content edit and before `hash`; it does not verify hashes.
+Each finding is one line, `severity check path [ids] message`, and the last line is a summary. Errors are defects (exit 1), warnings are
+hazards (exit 1 only with `--strict`), info lines are facts. `validate` runs the lint too and prints its errors and warnings, but fails on them
+only with `--strict`. Options: `--level a1|a2` (CEFR check of dialogue, prompt text and answer-set canonicals), `--fail-on-level` (unlisted
+lemmas become errors), `--json`, `--prompts a,b` (measure reachability from those prompts only) and `--host-pools p*,q` (pools the host voices
+itself). The checks, the waivers and the exit codes are described in [TOOLS.md](TOOLS.md#content-lint).
+
+What to do with a finding:
+
+- `coverage.uncovered` (error): the example resolves to nothing. Add a grammar (the finding prints a skeleton as a hint) or fix the example.
+- `coverage.rule-only` (warning): only a keyword rule covers the example. Add a grammar, or waive it with `"lint": { "allowRuleOnly": ["..."] }`.
+- `confusion.prompt` (warning or error) and `confusion.catalog` (info): an example of one intent that another intent's grammar also matches.
+  Narrow the grammar that is too broad. If the overlap is intended and the resolver's tie-break decides it, waive it on either intent with
+  `"lint": { "allowOverlap": ["other_intent"] }`; the finding stays in the report, marked `waived`.
+- `hazard.*`: an optional `[WORD]` beside an optional element (the name can swallow a word meant for something else); a grammar word or
+  `[VERB:lemma]` the lexicon lacks (a correct sentence would get `vocab.unknown`; add the word to a hand-authored lexicon file); a verb whose
+  forms are also nouns (info).
+- `reach.*`: a pool, intent, answer set, agent or agent state that nothing reaches. Delete it or wire it in.
+- `cefr.*`: a lemma above the level you asked for.
+- `expect.*`: an example with expected error tags whose verdict differs. Write one learner-error example per new intent as
+  `{ "text": "yo es Rosa", "errors": ["conj.person"] }`; the lint grades it against the first open-mode prompt that allows the intent (or the
+  prompt named in `"prompt"`), and the tags must match exactly, so the example stays a regression test.
+
+Editing examples or adding `lint` waivers changes `intents/intents.json`, so re-hash afterwards like any content edit.
 
 ## Recipe: add a golden audio clip
 

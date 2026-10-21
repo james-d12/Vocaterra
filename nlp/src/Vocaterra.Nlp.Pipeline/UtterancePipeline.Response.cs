@@ -18,7 +18,7 @@ public sealed partial class UtterancePipeline
     private const string PronunciationTagPrefix = "pron.";
 
     /// <summary>Dialogue pool voiced when a prompt without an agent is answered acceptably (an answer-only prompt such as a quiz).</summary>
-    public const string AnswerAcceptedPool = "answer_accepted";
+    public const string AnswerAcceptedPool = ReservedPools.AnswerAccepted;
 
     // Decision layer: agent step, learner update, FSRS rating and feedback plan. Pure; the only randomness is the seeded agent stream.
     private DecisionOutcome Decide(Verdict verdict, PromptSpec prompt, ConversationContext context, IReadOnlyDictionary<string, int> counts)

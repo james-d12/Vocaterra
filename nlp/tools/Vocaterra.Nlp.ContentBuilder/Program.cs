@@ -5,9 +5,9 @@ using Vocaterra.Nlp.Content;
 namespace Vocaterra.Nlp.ContentBuilder;
 
 /// <summary>
-/// Entry point of the build-time content tool. Commands: <c>validate</c>, <c>hash</c>, <c>pack</c>, <c>verify-pack</c>, <c>cefr-check</c>,
+/// Entry point of the build-time content tool. Commands: <c>validate</c>, <c>hash</c>, <c>pack</c>, <c>verify-pack</c>, <c>cefr-check</c>, <c>lint</c>,
 /// <c>import-lexicon</c>, <c>lexicon-report</c>.
-/// Exit codes: 0 success, 1 the content or input is invalid, 2 the command line is wrong.
+/// Exit codes: 0 success, 1 the content or input is invalid (for <c>lint</c>: it found errors, or warnings with <c>--strict</c>), 2 the command line is wrong.
 /// </summary>
 public static class Program
 {
@@ -25,7 +25,9 @@ public static class Program
         Vocaterra.Nlp.ContentBuilder - build-time content pipeline
 
         Usage:
-          validate <bundleDir>                               verify hashes and cross-references; exit 1 with the problem list
+          validate <bundleDir> [--strict]                    verify hashes and cross-references; exit 1 with the problem list; then run
+                                                             the lint and print its errors and warnings (they fail the command only
+                                                             with --strict)
           hash <bundleDir> [--bundle-id ID] [--content-version V]
                                                              rewrite manifest.json from the files on disk
           pack <bundleDir> <out.zip>                         validate the bundle, then write it as a zip and <out.zip>.sha256 holding the
@@ -33,6 +35,15 @@ public static class Program
           verify-pack <zip>                                  extract the archive to a temporary folder, validate it there and compare its
                                                              bundle hash with <zip>.sha256
           cefr-check <bundleDir> --level a1|a2               list dialogue-template lemmas missing from the CEFR list
+          lint <bundleDir> [--strict] [--level a1|a2] [--fail-on-level] [--json] [--prompts a,b] [--host-pools p*,q]
+                                                             check the content for mistakes the validator cannot see: example coverage,
+                                                             confusion between intents, grammar hazards, unreachable content, CEFR level
+                                                             (with --level), example error expectations; one finding per line, then a
+                                                             summary; exit 1 on errors (and on warnings with --strict); --fail-on-level
+                                                             makes lemmas above --level errors; --json prints the report as JSON;
+                                                             --prompts measures reachability from those prompts only; --host-pools names
+                                                             pools the host voices itself (exact ids, or a prefix ending in *); hashes are
+                                                             not verified, so run it before hash
           import-lexicon <kaikki.jsonl> <out.json> [--max N] [--frequency <es_50k.txt> [--top N]] [--hand-authored <dir|a.json,b.json>]
                                                              [--sidecar <out.source.json> [--sources <sources.json>]]
                                                              convert wiktextract Spanish JSONL into a lexicon file; with a frequency
@@ -80,10 +91,11 @@ public static class Program
         {
             return command switch
             {
-                "validate" => Validate(new ArgumentList(args, 1, []), output, error),
+                "validate" => Validate(new ArgumentList(args, 1, [], ["--strict"]), output, error),
                 "hash" => Hash(new ArgumentList(args, 1, ["--bundle-id", "--content-version"]), output),
                 "pack" => Pack(new ArgumentList(args, 1, []), output, error),
                 "verify-pack" => VerifyPack(new ArgumentList(args, 1, []), output, error),
+                "lint" => Lint(new ArgumentList(args, 1, ["--level", "--prompts", "--host-pools"], ["--strict", "--fail-on-level", "--json"]), output, error),
                 "cefr-check" => CefrCheck(new ArgumentList(args, 1, ["--level"]), output, error),
                 "import-lexicon" => ImportLexicon(new ArgumentList(args, 1, ["--max", "--frequency", "--top", "--sidecar", "--sources", "--hand-authored"]), output, error),
                 "lexicon-report" => LexiconReportCommand(new ArgumentList(args, 1, []), output, error),
@@ -112,6 +124,15 @@ public static class Program
             output.WriteLine(string.Create(
                 CultureInfo.InvariantCulture,
                 $"OK: bundle '{bundle.Manifest.BundleId}' {bundle.Manifest.ContentVersion}, {bundle.Manifest.Files.Count} files, hash {bundle.ContentHash}"));
+            var strict = arguments.Flag("--strict");
+            var report = ContentLinter.Lint(bundle);
+            output.Write(report.Format(LintSeverity.Warning));
+            if (strict && !report.Passes(strict: true))
+            {
+                error.WriteLine("validate --strict: the lint found errors or warnings (run 'lint' for the full report).");
+                return ExitInvalid;
+            }
+
             return ExitOk;
         }
         catch (ContentValidationException ex)
@@ -119,6 +140,58 @@ public static class Program
             error.WriteLine(ex.Message);
             return ExitInvalid;
         }
+    }
+
+    private static int Lint(ArgumentList arguments, TextWriter output, TextWriter error)
+    {
+        var dir = arguments.Positional(0, "bundleDir", exactly: 1);
+        var level = arguments.Option("--level")?.ToLowerInvariant();
+        if (level is not (null or "a1" or "a2"))
+        {
+            throw new UsageException("lint takes --level a1 or --level a2.");
+        }
+
+        if (arguments.Flag("--fail-on-level") && level is null)
+        {
+            throw new UsageException("--fail-on-level needs --level a1|a2.");
+        }
+
+        ContentBundle bundle;
+        try
+        {
+            // Hashes are not verified so the lint can run while content is being edited, before hash; run validate before shipping.
+            bundle = ContentLoader.Load(dir, new ContentLoadOptions { VerifyHashes = false });
+        }
+        catch (ContentValidationException ex)
+        {
+            error.WriteLine(ex.Message);
+            return ExitInvalid;
+        }
+
+        LintReport report;
+        try
+        {
+            report = ContentLinter.Lint(bundle, new LintOptions
+            {
+                Level = level,
+                FailOnLevel = arguments.Flag("--fail-on-level"),
+                RootPrompts = SplitList(arguments.Option("--prompts")),
+                HostPools = SplitList(arguments.Option("--host-pools")),
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            error.WriteLine(ex.Message);
+            return ExitInvalid;
+        }
+
+        output.Write(arguments.Flag("--json") ? report.ToJson() + "\n" : report.Format());
+        return report.Passes(arguments.Flag("--strict")) ? ExitOk : ExitInvalid;
+    }
+
+    private static string[]? SplitList(string? value)
+    {
+        return value?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     }
 
     private static int Hash(ArgumentList arguments, TextWriter output)
@@ -296,8 +369,9 @@ internal sealed class ArgumentList
 {
     private readonly List<string> _positional = [];
     private readonly Dictionary<string, string> _options = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _flags = new(StringComparer.Ordinal);
 
-    public ArgumentList(string[] args, int start, string[] knownOptions)
+    public ArgumentList(string[] args, int start, string[] knownOptions, string[]? knownFlags = null)
     {
         for (var i = start; i < args.Length; i++)
         {
@@ -305,6 +379,16 @@ internal sealed class ArgumentList
             if (!arg.StartsWith("--", StringComparison.Ordinal))
             {
                 _positional.Add(arg);
+                continue;
+            }
+
+            if (knownFlags is not null && Array.IndexOf(knownFlags, arg) >= 0)
+            {
+                if (!_flags.Add(arg))
+                {
+                    throw new UsageException($"Option '{arg}' is given twice.");
+                }
+
                 continue;
             }
 
@@ -345,6 +429,11 @@ internal sealed class ArgumentList
         }
 
         return _positional[index].Length > 0 ? _positional[index] : throw new UsageException($"Argument <{name}> must not be empty.");
+    }
+
+    public bool Flag(string name)
+    {
+        return _flags.Contains(name);
     }
 
     public string? Option(string name)

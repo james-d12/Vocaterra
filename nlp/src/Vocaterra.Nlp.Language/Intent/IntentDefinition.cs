@@ -25,15 +25,18 @@ public sealed class IntentDefinition
         IReadOnlyList<string> requiredSlots,
         IReadOnlyList<SlotGrammar> grammars,
         IReadOnlyList<KeywordRule> keywordRules,
-        IReadOnlyList<string> examples,
-        IReadOnlyList<DeclaredSlot> declaredSlots)
+        IReadOnlyList<IntentExample> exampleSpecs,
+        IReadOnlyList<DeclaredSlot> declaredSlots,
+        IntentLintWaivers? lint = null)
     {
         Id = id;
         RequiredSlots = requiredSlots;
         Grammars = grammars;
         KeywordRules = keywordRules;
-        Examples = examples;
+        ExampleSpecs = exampleSpecs;
+        Examples = [.. exampleSpecs.Select(static example => example.Text)];
         DeclaredSlots = declaredSlots;
+        Lint = lint ?? IntentLintWaivers.None;
     }
 
     /// <summary>The intent identifier.</summary>
@@ -50,6 +53,12 @@ public sealed class IntentDefinition
 
     /// <summary>Example utterances used as embedding anchors, in authoring order.</summary>
     public IReadOnlyList<string> Examples { get; }
+
+    /// <summary>The examples with their optional expectations, in authoring order; <see cref="Examples"/> holds the same texts.</summary>
+    public IReadOnlyList<IntentExample> ExampleSpecs { get; }
+
+    /// <summary>The lint waivers the intent declares; <see cref="IntentLintWaivers.None"/> when it has none. The resolver ignores them.</summary>
+    public IntentLintWaivers Lint { get; }
 
     /// <summary>Every slot the intent declares (rules, grammars, required slots), ordinal-sorted, with the kind that fills it.</summary>
     internal IReadOnlyList<DeclaredSlot> DeclaredSlots { get; }

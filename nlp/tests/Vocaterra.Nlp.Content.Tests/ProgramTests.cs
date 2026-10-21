@@ -22,7 +22,8 @@ public class ProgramTests
 
         Assert.Equal(Program.ExitOk, code);
         Assert.Equal(string.Empty, error);
-        Assert.Equal($"OK: bundle 'v1' 1.0.0, {TestSupport.Bundle.Manifest.Files.Count} files, hash {TestSupport.Bundle.ContentHash}\n", output);
+        Assert.StartsWith($"OK: bundle 'v1' 1.0.0, {TestSupport.Bundle.Manifest.Files.Count} files, hash {TestSupport.Bundle.ContentHash}\n", output, StringComparison.Ordinal);
+        Assert.Contains("\nlint: 0 errors, ", output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -60,6 +61,7 @@ public class ProgramTests
             "validate",
             "validate a b",
             "validate a --verbose",
+            "validate a --strict --strict",
             "hash",
             "hash a --bundle-id",
             "hash a --bundle-id x --bundle-id y",
