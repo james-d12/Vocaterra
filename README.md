@@ -53,6 +53,10 @@ dotnet test Vocaterra.sln
 The .NET SDK is pinned in `global.json` (10.0.402, `latestPatch`). A user-local install is enough. `nuget.config` reads the submodule's feed
 by a relative path; the packing step is needed after a clone and after each change to the pinned core commit.
 
+On a Linux x64 build host the build copies only the linux-x64 native libraries (about 400 MB less per build); the commands and the output
+paths are the same. `dotnet build -p:VocaterraAllRuntimes=true` copies every platform's natives again (for a release build). See
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 A git worktree has an empty submodule, so it does not pack the core again (about 3 GB). It restores from the main checkout's feed instead:
 
 ```bash
@@ -136,8 +140,12 @@ a build that includes them until D2 is settled in the core.
 
 ## Licence
 
-The core, Vocaterra.NLP, is licensed under Apache-2.0 (core D3). **This repository's own licence is not chosen yet** (D-game-2 in
-[docs/DECISIONS.md](docs/DECISIONS.md)). Until a licence is chosen, this code grants no permission to use, copy or modify it.
+- **This repository:** MIT (see [LICENSE](LICENSE); decision D-game-2 in [docs/DECISIONS.md](docs/DECISIONS.md)).
+- **Content bundle:** the Wiktionary lexicon in `content/game-v1` stays CC BY-SA 4.0; its notices are in
+  [content/game-v1/ATTRIBUTION.md](content/game-v1/ATTRIBUTION.md).
+- **Language core:** the `Vocaterra.Nlp.*` packages are Apache-2.0 (core D3). **MonoGame** is Ms-PL.
+- **Art, font and sound:** CC0 only (D-game-5), each file listed in [assets/ATTRIBUTION.md](assets/ATTRIBUTION.md).
+- **Native libraries:** a build that includes the sherpa-onnx native libraries (GPL-3.0 code, core D2) is not distributed while D2 is open.
 
 ## Documentation
 

@@ -209,5 +209,6 @@ game layer and the simulation, no engine code in the simulation, the game layer 
 ## Notes
 
 - The sandbox or CI may have no display: `--screenshot` then needs `xvfb-run -a dotnet run ...`. The Linux runtime needs `libSDL2`
-  and `libopenal` (the DesktopGL package ships its own copies under `runtimes/`).
+  and `libopenal` (the DesktopGL package ships its own copies; on a Linux x64 build they are copied next to the executable, see
+  `docs/ARCHITECTURE.md` for the native-asset trim).
 - The back buffer is read after the frame is drawn and before the swap; on DesktopGL it comes back upright (checked), not flipped.
