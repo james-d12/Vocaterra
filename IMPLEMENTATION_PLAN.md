@@ -64,7 +64,7 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 
 Where things stand, for the next orchestrator session:
 - **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4. Core pin `db39999` (no request is `done`). Tests on `main`: 329.
-- **Next:** P5 (spoken input; Sonnet 5.5) or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
+- **Next:** P4b (spaced colour and the guide's review, owner's amendment of D-game-6; Sonnet 5.5), then P5 (spoken input; Sonnet 5.5) or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
   the other. Then P7, P9; P8 waits on CR-006; P10 optional; G3 and G4 after P9.
 - **Core requests:** the core accepted CR-002 to CR-008 and CR-010 to CR-013 into its M26a to M26f (2026-10-21); CR-014 (P4) is `open`.
   When rows turn `done`, bump the submodule; CR-012's fix (M26a) lets the guide drop `EvaluateCountingThisUtterance`, which is a
@@ -76,7 +76,7 @@ Where things stand, for the next orchestrator session:
   `bloque` (P3) and `algo`, `casi`, `eso` (P4) were added to the game's `cefr/a1.txt`: review in a content pass; (3) the linux-x64-only
   native-asset trim (saves about 1.5 GB per build); (4) D-game-2 (licence); (5) P4 credits the noun the player names even when it names the
   wrong thing (`es una piedra` with the cursor on a tree earns `piedra` a third, and the guide says "Casi. Mira: es un árbol."): keep or
-  withhold.
+  withhold (P4b withholds it by default: a `name_object` the guide marks wrong earns no colour).
 - **How agents work now** (put this in every brief): no `git submodule update` and no core pack in a worktree; set
   `NUGET_PACKAGES=$HOME/.nuget/vocaterra-game-packages` and restore with
   `-p:RestoreSources="/home/user/Dev/Vocaterra/external/Vocaterra.NLP/artifacts/feed;https://api.nuget.org/v3/index.json"`, then build with
@@ -92,6 +92,7 @@ Where things stand, for the next orchestrator session:
 | P2 | MonoGame front-end skeleton: `Vocaterra.MonoGame` (3.8.6 DesktopGL), no content pipeline, placeholder tiles drawn in code, camera, input to commands, CC0 font with the Spanish letters | done (merged 2026-10-21) | Sonnet 5.5 | P1 |
 | P3 | **The guide, typed (smallest slice proving the core in game):** `Vocaterra.Game` (`GameSession`, `GuideService`, `WorldFacts`), the guide in the bundle (`ask_directions`, `ask_what`, `ask_help`), dialogue panel; `¿dónde está el árbol?` gets a reply and an arrow | done (merged 2026-10-21) | Sonnet 5.5 (scene and session API), Haiku 5.5 (content) | G1, G2, P2 |
 | P4 | Nouns, word progress, greyscale: `game/nouns.json`, `lexicon/world.json`, `NounCatalog`, `WordProgress`, the D-game-6 rule, CPU-made grey atlas, `name_object` intent, journal | done (merged 2026-10-21, `00c6c44`) | Haiku 5.5 | P3 |
+| P4b | Spaced colour and the guide's review (D-game-6 amended): growing gaps (10 min, then 1 h, or a new session), early uses logged without colour, the guide asks "¿Qué es esto?" about a due word with the pointer on its nearest example; scripted time skip for the demo | in progress (2026-10-21) | Sonnet 5.5 | P4 |
 | P5 | Spoken input: push-to-talk, microphone (MonoGame `Microphone`, PortAudioSharp2 fallback), Vosk small, evaluation on a worker thread | planned | Sonnet 5.5 | P3 |
 | P6 | Mining, building, inventory (durability, drops, hotbar placement, 40 slots with a 10-slot hotbar, axe and pickaxe) | planned | Haiku 5.5 | P1, P2 |
 | P7 | Caves (worms, cellular automata), ores, full forest vegetation, flood-fill lighting | planned | Haiku 5.5 | P1, P6 |

@@ -12,7 +12,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-3 | Continuous integration | deferred by the owner, 2026-10-21; do not raise | nothing in this plan |
 | D-game-4 | Whether `content/game-v1` tracks the core's sample bundle or diverges from it | decided: diverge fully (owner, 2026-10-21) | nothing |
 | D-game-5 | Art, font and sound sources while D-game-2 is open | decided: CC0 only (owner, 2026-10-21) | nothing |
-| D-game-6 | When a noun counts as known (drawn in colour), and what typed input earns | decided (owner, 2026-10-21) | nothing |
+| D-game-6 | When a noun counts as known (drawn in colour), and what typed input earns | decided (owner, 2026-10-21); amended the same day: spaced uses with growing gaps, the guide prompts due words | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -64,6 +64,18 @@ and licence. Research section 8 lists the candidates.
 **Owner, 2026-10-21.** A noun counts as known after **three correct spoken uses in three separate turns**. Its colour grows by a third per
 correct use; nothing decays in the prototype. Only nouns in the game's noun catalogue are counted. **Typed input** earns full credit until
 P5 (spoken input) lands; from P5 it earns half credit by default, as a setting.
+
+**Amended by the owner, 2026-10-21 (after P4): spaced repetition.** Three correct uses in a row within seconds must not make a word known.
+- **Growing gaps.** A word's first correct use earns colour at any time. The second earns colour only if at least **10 minutes** have passed
+  since the first credited use, or it falls in a **different play session**. The third earns colour only if at least **1 hour** has passed
+  since the second credited use, or it falls in a different play session. Time is the host's stored time (play time, deterministic), never
+  the clock in the evaluation path; play sessions exist once saves do (P9), and the progress records the session of each credited use now.
+- **Early uses are logged, not coloured.** A correct use that comes before its gap still counts in the journal (said, correct) and the
+  guide still answers it, but the colour does not move.
+- **The guide prompts due words.** When the player talks to the guide and a word is due (started, not known, its gap has passed), she
+  points at the nearest example in the world and asks what it is ("¿Qué es esto?"); a correct answer earns the spaced credit. Uses the
+  player starts also count when they are due.
+- Typed input's half credit from P5 still applies per credited use.
 
 ## Already decided
 
