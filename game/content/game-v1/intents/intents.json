@@ -2,142 +2,50 @@
   "schemaVersion": 1,
   "intents": [
     {
-      "intentId": "ask_price",
-      "requiredSlots": ["item"],
-      "slotGrammars": [
-        "cuánto [VERB:costar] [ART]? [NOUN:item]",
-        "cuál es el precio de [ART]? [NOUN:item]"
-      ],
-      "keywordRules": [
-        { "lemmas": ["costar"], "requiresSlots": ["item"], "slotFromNoun": "item" },
-        { "lemmas": ["precio"], "requiresSlots": ["item"], "slotFromNoun": "item" }
-      ],
-      "examples": [
-        "cuánto cuesta la espada",
-        "cuánto cuestan las flechas",
-        "cuánto cuesta el escudo",
-        "cuánto cuesta un arco",
-        "cuál es el precio de la poción"
-      ]
-    },
-    {
-      "intentId": "buy_item",
-      "requiredSlots": ["item"],
-      "slotGrammars": [
-        "[VERB:querer] [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item]",
-        "[VERB:comprar] [ART]? [NUM:qty]? [NOUN:item]",
-        "[VERB:querer] [ART]? [NUM:qty]? [NOUN:item]",
-        "[VERB:necesitar] [ART]? [NUM:qty]? [NOUN:item]",
-        "me [VERB:dar] [ART]? [NUM:qty]? [NOUN:item]"
-      ],
-      "keywordRules": [
-        { "lemmas": ["comprar"], "requiresSlots": ["item"], "slotFromNoun": "item" },
-        { "lemmas": ["necesitar"], "requiresSlots": ["item"], "slotFromNoun": "item" }
-      ],
-      "examples": [
-        "quiero comprar una espada",
-        "quiero comprar dos pociones",
-        "compro un escudo",
-        "necesito una flecha",
-        "quiero un arco",
-        "me das una poción"
-      ]
-    },
-    {
-      "intentId": "cast_spell",
-      "requiredSlots": ["spell"],
-      "slotGrammars": [
-        "[VERB:lanzar]? [ART]? [NOUN:spell] [ADJ]?",
-        "[VERB:querer] [VERB:lanzar] [ART]? [NOUN:spell] [ADJ]?",
-        "[VERB:lanzar] [ART]? hechizo de [NOUN:spell]",
-        "[ART]? (bola|lanza) de [NOUN:spell]",
-        "[ART]? [NOUN:spell] de magia"
-      ],
-      "keywordRules": [
-        { "lemmas": ["lanzar"], "requiresSlots": ["spell"], "slotFromNoun": "spell" }
-      ],
-      "examples": [
-        "lanzo fuego",
-        "quiero lanzar hielo",
-        "lanzo un rayo",
-        "lanzo un hechizo de fuego",
-        "lanzo el escudo mágico"
-      ]
-    },
-    {
       "intentId": "greet",
       "requiredSlots": [],
       "slotGrammars": [
         "hola [NOUN]?",
-        "(buenos|buenas) (días|tardes|noches)"
+        "(buenos|buenas) (día|días|tardes|noches)",
+        "buen día"
       ],
       "keywordRules": [
         { "lemmas": ["hola"], "requiresSlots": [] }
       ],
       "examples": [
-        "hola",
-        "hola amigo",
-        "buenos días",
-        "buenas tardes",
-        "buenas noches"
-      ]
-    },
-    {
-      "intentId": "offer_item",
-      "requiredSlots": ["item", "qty"],
-      "slotGrammars": [
-        "[VERB:tener:verb] [NUM:qty] [NOUN:item]",
-        "[PRON]? [VERB:ofrecer:verb] [NUM:qty] [NOUN:item]",
-        "[VERB:querer] [VERB:ofrecer:verb] [NUM:qty] [NOUN:item]"
-      ],
-      "keywordRules": [
-        { "lemmas": ["ofrecer"], "requiresSlots": ["item", "qty"], "slotFromNoun": "item", "slotFromNumber": "qty" },
-        { "lemmas": ["tener"], "requiresSlots": ["item", "qty"], "slotFromNoun": "item", "slotFromNumber": "qty" }
-      ],
-      "examples": [
-        "tengo dos espadas",
-        "tengo tres escudos",
-        "te ofrezco cinco flechas",
-        "ofrezco dos arcos",
-        "quiero ofrecer diez pociones"
-      ]
-    },
-    {
-      "intentId": "sell_item",
-      "requiredSlots": ["item"],
-      "slotGrammars": [
-        "[VERB:querer] [VERB:vender] [ART]? [NUM:qty]? [NOUN:item]",
-        "[VERB:poder] [VERB:vender] [ART]? [NUM:qty]? [NOUN:item]",
-        "[VERB:vender] [ART]? [NUM:qty]? [NOUN:item]"
-      ],
-      "keywordRules": [
-        { "lemmas": ["vender"], "requiresSlots": ["item"], "slotFromNoun": "item" }
-      ],
-      "examples": [
-        "quiero vender una espada",
-        "quiero vender tres pociones",
-        "vendo un escudo",
-        "vendo dos flechas",
-        "puedo vender un arco"
+        {"text": "hola", "errors": [], "prompt": "villager-open"},
+        {"text": "buenos días", "errors": [], "prompt": "villager-open"},
+        {"text": "buenas tardes", "errors": [], "prompt": "villager-open"},
+        {"text": "buenas noches", "errors": [], "prompt": "villager-open"},
+        {"text": "buen día", "errors": [], "prompt": "villager-open"},
+        {"text": "buenos día", "errors": ["noun.number"], "prompt": "villager-open"},
+        "hola amigo"
       ]
     },
     {
       "intentId": "confirm",
       "requiredSlots": [],
       "slotGrammars": [
-        "(sí|claro|vale)",
-        "[VERB:estar]? de acuerdo"
+        "(sí|claro) (por favor|gracias)?",
+        "de acuerdo",
+        "claro que sí",
+        "(sí|claro) [VERB:querer]",
+        "por favor (sí|claro)"
       ],
       "keywordRules": [
         { "lemmas": ["sí"], "requiresSlots": [] }
       ],
+      "lint": {"allowRuleOnly": ["sí, por favo"]},
       "examples": [
-        "sí",
-        "sí, por favor",
-        "claro",
-        "vale",
-        "de acuerdo",
-        "yo estás de acuerdo"
+        {"text": "sí, por favor", "errors": [], "prompt": "stall-offer"},
+        {"text": "sí", "errors": [], "prompt": "stall-offer"},
+        {"text": "claro", "errors": [], "prompt": "stall-offer"},
+        {"text": "sí, gracias", "errors": [], "prompt": "stall-offer"},
+        {"text": "sí, quiero", "errors": [], "prompt": "stall-offer"},
+        {"text": "por favor, sí", "errors": [], "prompt": "stall-offer"},
+        {"text": "claro que sí", "errors": [], "prompt": "stall-offer"},
+        {"text": "sí, por favo", "errors": ["vocab.unknown"], "prompt": "stall-offer"},
+        "de acuerdo"
       ]
     },
     {
@@ -145,18 +53,22 @@
       "requiredSlots": [],
       "slotGrammars": [
         "(no|ahora no)",
-        "no gracias",
+        "no (muchas)? gracias",
+        "gracias no",
         "no [VERB:querer]"
       ],
       "keywordRules": [
         { "lemmas": ["no"], "requiresSlots": [] }
       ],
+      "lint": {"allowRuleOnly": ["no, mucho gracias"]},
       "examples": [
-        "no",
-        "no, gracias",
+        {"text": "no, gracias", "errors": [], "prompt": "stall-offer"},
+        {"text": "no", "errors": [], "prompt": "stall-offer"},
+        {"text": "no, muchas gracias", "errors": [], "prompt": "stall-offer"},
+        {"text": "gracias, no", "errors": [], "prompt": "stall-offer"},
+        {"text": "no, mucho gracias", "errors": ["gender.agree", "noun.number"], "prompt": "stall-offer"},
         "ahora no",
-        "no quiero",
-        "yo no quieres"
+        "no quiero"
       ]
     },
     {
@@ -170,27 +82,11 @@
         { "lemmas": ["adiós"], "requiresSlots": [] }
       ],
       "examples": [
-        "adiós",
-        "hasta luego",
-        "hasta mañana",
-        "nos vemos",
-        "nos veo"
-      ]
-    },
-    {
-      "intentId": "introduce_self",
-      "requiredSlots": ["name"],
-      "slotGrammars": [
-        "me [VERB:llamar] [WORD:name]",
-        "[VERB:ser] [WORD:name]",
-        "mi nombre es [WORD:name]"
-      ],
-      "examples": [
-        "me llamo Rosa",
-        "soy Sol",
-        "mi nombre es Luz",
-        "yo soy Mar",
-        "yo es Rosa"
+        {"text": "adiós", "errors": [], "prompt": "villager-open"},
+        {"text": "hasta luego", "errors": [], "prompt": "villager-open"},
+        {"text": "hasta mañana", "errors": [], "prompt": "villager-open"},
+        {"text": "nos vemos", "errors": [], "prompt": "villager-open"},
+        {"text": "yo nos vemos", "errors": ["conj.person"], "prompt": "villager-open"}
       ]
     },
     {
@@ -203,33 +99,85 @@
       "keywordRules": [
         { "lemmas": ["gracias"], "requiresSlots": [] }
       ],
+      "lint": {"allowRuleOnly": ["mucho gracias"]},
       "examples": [
-        "gracias",
-        "muchas gracias",
-        "gracias, amigo",
-        "muchas gracias por todo",
-        "mucho gracias"
+        {"text": "gracias", "errors": [], "prompt": "villager-open"},
+        {"text": "muchas gracias", "errors": [], "prompt": "villager-open"},
+        {"text": "mucho gracias", "errors": ["gender.agree", "noun.number"], "prompt": "villager-open"},
+        "gracias, amigo"
+      ]
+    },
+    {
+      "intentId": "request_item",
+      "requiredSlots": ["item"],
+      "slotGrammars": [
+        "[VERB:querer] [ART]? [NUM:qty]? [NOUN:item] (por favor)?",
+        "[VERB:necesitar] [ART]? [NUM:qty]? [NOUN:item] (por favor)?",
+        "me [VERB:dar] [ART]? [NUM:qty]? [NOUN:item] (por favor)?",
+        "[ART]? [NUM:qty]? [NOUN:item] por favor"
+      ],
+      "lint": {"allowOverlap": ["ask_help"]},
+      "examples": [
+        {"text": "quiero agua, por favor", "errors": [], "prompt": "stall-need"},
+        {"text": "agua, por favor", "errors": [], "prompt": "stall-need"},
+        {"text": "quiero agua", "errors": [], "prompt": "stall-need"},
+        {"text": "necesito agua", "errors": [], "prompt": "stall-need"},
+        {"text": "necesito agua, por favor", "errors": [], "prompt": "stall-need"},
+        {"text": "me da agua", "errors": [], "prompt": "stall-need"},
+        {"text": "me da agua, por favor", "errors": [], "prompt": "stall-need"},
+        {"text": "me das agua", "errors": [], "prompt": "stall-need"},
+        {"text": "me das agua, por favor", "errors": [], "prompt": "stall-need"},
+        {"text": "un agua, por favor", "errors": [], "prompt": "stall-need"},
+        {"text": "yo quieres agua, por favor", "errors": ["conj.person"], "prompt": "stall-need"},
+        {"text": "quiero dos agua, por favor", "errors": ["noun.number"], "prompt": "stall-need"},
+        {"text": "quiero pan, por favor", "errors": [], "prompt": "stall-need"},
+        {"text": "pan, por favor", "errors": [], "prompt": "stall-need"},
+        {"text": "necesito pan", "errors": [], "prompt": "stall-need"},
+        {"text": "me da pan", "errors": [], "prompt": "stall-need"},
+        {"text": "me das pan", "errors": [], "prompt": "stall-need"}
+      ]
+    },
+    {
+      "intentId": "dont_know",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "no [VERB:saber]",
+        "no lo [VERB:saber]",
+        "no sé",
+        "no lo sé",
+        "no [VERB:entender]"
+      ],
+      "examples": [
+        {"text": "no sé", "errors": [], "prompt": "villager-open"},
+        {"text": "no lo sé", "errors": [], "prompt": "villager-open"},
+        {"text": "yo no sé", "errors": [], "prompt": "villager-open"},
+        {"text": "no entiendo", "errors": [], "prompt": "villager-open"},
+        {"text": "no sabo", "errors": ["conj.irregular"], "prompt": "villager-open"}
       ]
     },
     {
       "intentId": "ask_directions",
       "requiredSlots": ["place"],
       "slotGrammars": [
-        "dónde [VERB:estar] [ART]? [NOUN:place]",
-        "[VERB:buscar] [ART]? [NOUN:place]",
-        "[VERB:querer] [VERB:encontrar] [ART]? [NOUN:place]"
+        "dónde [VERB:estar] [ART]? [NOUN:place] (por favor)?",
+        "[VERB:buscar] [ART]? [NOUN:place] (por favor)?",
+        "[VERB:querer] [VERB:encontrar] [ART]? [NOUN:place] (por favor)?",
+        "dónde [VERB:quedar] [ART]? [NOUN:place] (por favor)?"
       ],
       "keywordRules": [
         { "lemmas": ["dónde"], "requiresSlots": ["place"], "slotFromNoun": "place" },
         { "lemmas": ["buscar"], "requiresSlots": ["place"], "slotFromNoun": "place" }
       ],
       "examples": [
+        {"text": "dónde está el río", "errors": [], "prompt": "villager-open"},
+        {"text": "dónde está el río, por favor", "errors": [], "prompt": "villager-open"},
+        {"text": "dónde queda el río", "errors": [], "prompt": "villager-open"},
+        {"text": "busco el río", "errors": [], "prompt": "villager-open"},
+        {"text": "dónde está la río", "errors": ["gender.agree"], "prompt": "villager-open"},
         "dónde está el árbol",
         "dónde está la piedra",
-        "dónde está la cueva",
         "busco la hierba",
-        "quiero encontrar tierra",
-        "dónde está la árbol"
+        "quiero encontrar tierra"
       ]
     },
     {
@@ -250,8 +198,7 @@
         "qué necesito para una puerta",
         "cómo se hace un horno",
         "quiero hacer una silla",
-        "cómo hago la espada",
-        "cómo hago un mesa"
+        "cómo hago la espada"
       ]
     },
     {
@@ -314,8 +261,9 @@
       "intentId": "ask_help",
       "requiredSlots": [],
       "slotGrammars": [
-        "ayuda",
+        "ayuda (por favor)?",
         "me [VERB:ayudar]",
+        "me [VERB:poder] [VERB:ayudar]",
         "[VERB:necesitar] ayuda",
         "qué [VERB:hacer]"
       ],
@@ -323,11 +271,13 @@
         { "lemmas": ["ayudar"], "requiresSlots": [] }
       ],
       "examples": [
-        "ayuda",
-        "me ayudas",
-        "necesito ayuda",
-        "qué hago",
-        "yo necesitas ayuda"
+        {"text": "ayuda", "errors": [], "prompt": "villager-open"},
+        {"text": "ayuda, por favor", "errors": [], "prompt": "villager-open"},
+        {"text": "necesito ayuda", "errors": [], "prompt": "villager-open"},
+        {"text": "me ayudas", "errors": [], "prompt": "villager-open"},
+        {"text": "me puedes ayudar", "errors": [], "prompt": "villager-open"},
+        {"text": "yo necesitas ayuda", "errors": ["conj.person"], "prompt": "villager-open"},
+        "qué hago"
       ]
     }
   ]

@@ -94,14 +94,14 @@ public sealed class CraftingGuideTests
     {
         var tree = SessionWith().Say("¿cómo hago un árbol?");
         Assert.Equal("ask_craft", tree.Intent);
-        Assert.Equal("Eso no se hace.", tree.WorldLine);
+        Assert.Equal("Eso no se puede hacer.", tree.WorldLine);
 
         var cloud = SessionWith().Say("¿cómo hago una nube?");
         Assert.True(cloud.Communicated);
-        Assert.Equal("Eso no se hace.", cloud.WorldLine);
+        Assert.Equal("Eso no se puede hacer.", cloud.WorldLine);
 
         var axe = SessionWith().Say("¿cómo hago un hacha?");
-        Assert.Equal("Eso no se hace.", axe.WorldLine);
+        Assert.Equal("Eso no se puede hacer.", axe.WorldLine);
     }
 
     [Fact]

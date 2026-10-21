@@ -10,16 +10,19 @@ public sealed class HostSmokeTests
 {
     private static readonly StoredTimestamp Now = new(1_760_000_000);
 
+    // "yo quieres dos agua por favor": the wrong person of querer (conj.person) and a plural number with a singular noun (noun.number).
+    private const string DemoLine = "yo quieres dos agua por favor";
+
     [Fact]
-    public void OfferingTwoSwordsGivesTheTwoDemoErrors()
+    public void AskingForTwoWatersWrongGivesTheTwoDemoErrors()
     {
         var session = new ConversationSession(GameContent.Bundle);
 
-        var result = session.Evaluate("yo tiene dos espada", "offer-items-open", Now);
+        var result = session.Evaluate(DemoLine, "villager-open", Now);
 
         var tags = result.Verdict.Errors.Select(static error => error.Tag).Order(StringComparer.Ordinal).ToArray();
         Assert.Equal(new[] { "conj.person", "noun.number" }, tags);
-        Assert.Equal(0.5, result.Verdict.Correctness, 9);
+        Assert.Equal(0.6, result.Verdict.Correctness, 9);
     }
 
     [Fact]
@@ -32,7 +35,7 @@ public sealed class HostSmokeTests
         var kinds = new List<string>();
         for (var i = 0; i < 3; i++)
         {
-            kinds.Add(FeedbackKind(session.Evaluate("yo tiene dos espada", "offer-items-open", Now.AddSeconds(i * 10))));
+            kinds.Add(FeedbackKind(session.Evaluate(DemoLine, "villager-open", Now.AddSeconds(i * 10))));
         }
 
         Assert.Equal(new[] { "recast", "hint", "hint" }, kinds);
@@ -46,12 +49,13 @@ public sealed class HostSmokeTests
     }
 
     [Fact]
-    public void AskingThePriceOfTheSwordIsCorrect()
+    public void AskingWhereTheRiverIsIsCorrect()
     {
         var session = new ConversationSession(GameContent.Bundle);
 
-        var result = session.Evaluate("cuánto cuesta la espada", "ask-price-open", Now);
+        var result = session.Evaluate("¿dónde está el río?", "villager-open", Now);
 
+        Assert.Equal("ask_directions", result.Verdict.Intent.Value);
         Assert.Empty(result.Verdict.Errors);
         Assert.Equal(1.0, result.Verdict.Correctness, 9);
     }
@@ -61,7 +65,7 @@ public sealed class HostSmokeTests
     {
         var session = new ConversationSession(GameContent.Bundle);
 
-        var result = session.Evaluate("gracias", "thank-open", Now);
+        var result = session.Evaluate("gracias", "villager-open", Now);
 
         Assert.Equal("thank", result.Verdict.Intent.Value);
         Assert.True(result.Verdict.Communicated);
@@ -69,18 +73,25 @@ public sealed class HostSmokeTests
     }
 
     [Fact]
-    public void ASaleIsConfirmedOnlyAfterTheLearnerSaysYes()
+    public void TheBreadIsGivenOnlyAfterTheLearnerSaysYes()
     {
-        // idle -> trading on the first purchase, trading -> confirming on the second (the blacksmith asks), confirming -> done on "sí".
+        // The shopkeeper: a request gives the water and offers bread (offering), "sí, por favor" gives the bread (done).
         var session = new ConversationSession(GameContent.Bundle);
-        session.Evaluate("quiero comprar una espada", "buy-item-open", Now);
 
-        var asked = session.Evaluate("quiero comprar una espada", "buy-item-open", Now.AddSeconds(10));
-        Assert.Equal("confirming", asked.Decision.Agent?.Next.StateId);
+        var asked = session.Evaluate("quiero agua, por favor", "stall-need", Now);
+        Assert.Equal("request_item", asked.Verdict.Intent.Value);
+        Assert.Equal("offering", asked.Decision.Agent?.Next.StateId);
+        Assert.Equal(new[] { "stall.give_water" }, HostEventsOf(asked));
 
-        var confirmed = session.Evaluate("sí", "confirm-open", Now.AddSeconds(20));
+        var confirmed = session.Evaluate("sí, por favor", "stall-offer", Now.AddSeconds(20));
         Assert.Equal("confirm", confirmed.Verdict.Intent.Value);
         Assert.Equal("done", confirmed.Decision.Agent?.Next.StateId);
+        Assert.Equal(new[] { "stall.give_bread" }, HostEventsOf(confirmed));
+    }
+
+    private static string[] HostEventsOf(PipelineResult result)
+    {
+        return result.Decision.Agent!.Actions.Where(static a => a.HostEvent is not null).Select(static a => a.HostEvent!).ToArray();
     }
 
     [Fact]
@@ -105,7 +116,7 @@ public sealed class HostSmokeTests
         };
         var session = new ConversationSession(GameContent.Bundle, repeatCountsByTag: atLimit);
 
-        var result = session.Evaluate("yo tiene dos espada", "offer-items-open", Now);
+        var result = session.Evaluate(DemoLine, "villager-open", Now);
 
         Assert.Equal(new[] { "conj.person", "noun.number" }, result.Verdict.Errors.Select(static error => error.Tag).Order(StringComparer.Ordinal));
         Assert.Equal(int.MaxValue, session.Context.RepeatCountsByTag["conj.person"]);
@@ -116,16 +127,16 @@ public sealed class HostSmokeTests
     public void TheConversationCarriesRepeatCountsAndLearnerAcrossUtterances()
     {
         var session = new ConversationSession(GameContent.Bundle);
-        session.Evaluate("yo tiene dos espada", "offer-items-open", Now);
+        session.Evaluate(DemoLine, "villager-open", Now);
 
-        var second = session.Evaluate("yo tiene dos espada", "offer-items-open", Now.AddSeconds(60));
+        var second = session.Evaluate(DemoLine, "villager-open", Now.AddSeconds(60));
 
         Assert.Equal(2, session.Context.RepeatCountsByTag["conj.person"]);
         Assert.Equal(2, session.Context.RepeatCountsByTag["noun.number"]);
         Assert.Equal(second.Decision.Learner, session.Context.Learner);
 
         // A correct utterance carries no error tags, so the counts start again: they count errors in a row.
-        session.Evaluate("cuánto cuesta la espada", "ask-price-open", Now.AddSeconds(120));
+        session.Evaluate("¿dónde está el río?", "villager-open", Now.AddSeconds(120));
         Assert.Empty(session.Context.RepeatCountsByTag);
     }
 }

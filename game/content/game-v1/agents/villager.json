@@ -1,0 +1,49 @@
+{
+  "agentId": "villager",
+  "initialState": "idle",
+  "variantPools": [
+    { "id": "not_understood", "count": 2 },
+    { "id": "villager_bye", "count": 2 },
+    { "id": "villager_give", "count": 2 },
+    { "id": "villager_greet", "count": 1 },
+    { "id": "villager_hello", "count": 1 },
+    { "id": "villager_help", "count": 1 },
+    { "id": "villager_point", "count": 2 },
+    { "id": "villager_thank", "count": 2 }
+  ],
+  "states": [
+    {
+      "id": "idle",
+      "transitions": [
+        { "onHostEvent": "villager.greet", "to": "idle", "actions": [{ "dialogueIntent": "villager_hello", "variantPoolId": "villager_hello" }] },
+        { "on": {"intent": "greet", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_greet", "variantPoolId": "villager_greet" }] },
+        { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_point", "hostEvent": "villager.point", "variantPoolId": "villager_point" }] },
+        { "on": {"intent": "request_item", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_give", "hostEvent": "villager.give", "variantPoolId": "villager_give" }] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_help", "variantPoolId": "villager_help" }] },
+        { "on": {"intent": "dont_know", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_help", "variantPoolId": "villager_help" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_thank", "variantPoolId": "villager_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_bye", "variantPoolId": "villager_bye" }] },
+        { "on": {"communicated": false}, "to": "idle", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]
+      }
+    },
+    {
+      "id": "pointing",
+      "transitions": [
+        { "on": {"intent": "greet", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_greet", "variantPoolId": "villager_greet" }] },
+        { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_point", "hostEvent": "villager.point", "variantPoolId": "villager_point" }] },
+        { "on": {"intent": "request_item", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_give", "hostEvent": "villager.give", "variantPoolId": "villager_give" }] },
+        { "on": {"intent": "ask_help", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_help", "variantPoolId": "villager_help" }] },
+        { "on": {"intent": "dont_know", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_help", "variantPoolId": "villager_help" }] },
+        { "on": {"intent": "thank", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_thank", "variantPoolId": "villager_thank" }] },
+        { "on": {"intent": "farewell", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "villager_bye", "variantPoolId": "villager_bye" }] },
+        { "on": {"communicated": false}, "to": "pointing", "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }] }
+      ],
+      "fallback": {
+        "actions": [{ "dialogueIntent": "not_understood", "variantPoolId": "not_understood" }]
+      }
+    }
+  ]
+}

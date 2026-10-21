@@ -5,14 +5,19 @@ machine-learning models the game is built to load at run time. The hand-authored
 dialogue, agents, answer sets, CEFR lemma lists and the hand-authored lexicons `lexicon/seed.json`, `lexicon/game.json`,
 `lexicon/supplement.json` and `lexicon/world.json`) has no third-party text in it.
 
-The generic intents (`confirm`, `deny`, `farewell`, `thank`, `introduce_self`), their answer sets and dialogue pools, the prompt texts
-they use, and the blacksmith agent were copied from the sample bundle `content/v1` of the language core (Vocaterra.NLP, Apache-2.0), in
+The generic intents (`confirm`, `deny`, `farewell`, `thank`), the feedback and acknowledgement dialogue pools (`feedback.*`, `answer_accepted`,
+`farewell_reply`) and the feedback policy were copied from the sample bundle `content/v1` of the language core (Vocaterra.NLP, Apache-2.0), in
 places reworded to pass this bundle's A1 check, and stay credited to that sample under its Apache-2.0 licence. Since decision D-game-4
 (`docs/DECISIONS.md`, decided 2026-10-21) this bundle diverges from the sample: the game owns every file, nothing is re-synced when the
 core's sample changes, and a milestone that wants another piece of the sample copies only that piece and records it in `provenance.json`.
-Everything added since is written for the game and has no third-party text in it: the guide (`agents/guide.json`, the intents
-`ask_directions`, `ask_what` and `ask_help`, the prompt `guide-open` and the guide's dialogue pools), `answer-sets/places-basic.json`,
-`lexicon/world.json`, the noun catalogue `game/nouns.json`, the intent `name_object` and the guide's name pools (P4).
+The sample's blacksmith agent, its spells, items and trade intents, answer sets, prompts and effects were copied in the first milestones and
+left the bundle in S5 (they remain in the core's sample). Everything added since is written for the game and has no third-party text in it:
+the guide (`agents/guide.json`, the intents `ask_directions`, `ask_what` and `ask_help`, the prompts `guide-open` and `guide-review`, and the
+guide's dialogue pools), `answer-sets/places-basic.json`, `lexicon/world.json`, the noun catalogue `game/nouns.json`, the intent `name_object`
+and the guide's name pools (P4), and, from S5, the shopkeeper and the villager (`agents/shopkeeper.json`, `agents/villager.json`), the intents
+`request_item` and `dont_know`, the answer set `answer-sets/supplies.json`, the prompts `stall-need`, `stall-offer`, `villager-open` and
+`guide-offer`, and their dialogue pools. The Spanish of the phrases the learner is taught is listed in `content/PHRASES.md` (beside this
+bundle).
 
 The licence of this repository is not chosen yet (decision D-game-2 in `docs/DECISIONS.md`). Until it is, the repository grants no
 permission to use, copy or modify its files. The language core is a separate work under its own licence.
