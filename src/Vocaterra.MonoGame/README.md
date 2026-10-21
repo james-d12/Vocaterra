@@ -18,19 +18,34 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--screenshot <path.png>` | scripted run: fixed 60 Hz clock, scripted input, save the back buffer as a PNG, exit 0 (1 if the PNG cannot be written) |
 | `--frames <n>` | with `--screenshot`: run until `n` ticks have been simulated, one per frame (default 120, or 240 with `--say`) |
 | `--walk-right <ticks>` | with `--screenshot`: hold 'right' for the first `n` ticks |
-| `--say "<line>"` | with `--screenshot`, repeatable: walk the player to the guide, open the dialogue panel, type the line and send it, so nobody has to type; each turn is printed to the console with its time |
+| `--say "<line>"` | with `--screenshot`, repeatable: walk the player to the guide, open the dialogue panel, type the line and send it, so nobody has to type; each turn is printed to the console with its time, and the words it counted (`word:`, `known:`) |
+| `--point <col>,<row>` | with `--screenshot`: the mouse cursor sits on that tile for the `--say` lines (the guide's name check reads it) |
+| `--point-nearest <noun>` | with `--screenshot`: the cursor sits on the tile of that noun nearest the player when each line is sent (`arbol`, `árbol`, `piedra`, `hierba`, `tierra`; an accent is optional). Not with `--point` |
+| `--journal` | with `--screenshot`: open the journal once the `--say` lines are sent (at the start without `--say`) |
 
 Examples, as the orchestrator verifies rendering: `... -- --seed 42 --screenshot /tmp/p2.png --frames 120 --walk-right 60`, and the guide:
 `... -- --seed 42 --say "¿dónde está el árbol?" --screenshot /tmp/p3.png --frames 240` (the PNG shows the dialogue panel with the guide's answer and
 the arrow; add a second `--say` for a second turn, and raise `--frames` so the script has time to finish: about 40 ticks to walk and settle, then
 about 12 per line). They still open a window (they need a display, `DISPLAY` or `xvfb-run`), but nobody has to look at it.
 
-Controls: **A / D** or **Left / Right** walk, **Space / W / Up** jump (hold for a higher jump). Next to the guide (within 5 columns), the hint
+The P4 demo (words): the nearest tree, named three times, then the journal:
+`... -- --seed 42 --point-nearest árbol --say "es un árbol" --say "es un árbol" --say "es un árbol" --journal --screenshot /tmp/p4-journal.png --frames 600`
+(the trees are in full colour and the journal shows `el árbol` known with three pips). With one `--say` and `--frames 400` the trees are a third
+coloured and the rest of the world grey.
+
+Controls: **A / D** or **Left / Right** walk, **Space / W / Up** jump (hold for a higher jump), **J** opens the journal (the words, see below; **J** or
+**Esc** closes it, and the player does not walk while it is open). Next to the guide (within 5 columns), the hint
 "Pulsa T para hablar" shows; **T** opens the dialogue panel, which takes the keyboard: the movement keys then type letters (input focus), **Enter**
 sends the line, **Esc** closes the panel, **Left / Right / Home / End / Backspace / Delete** edit it. With the panel closed, **Esc** takes the
 guide's arrow away. For Spanish on a keyboard that cannot type it: **Alt + a vowel** gives `á é í ó ú` (with Shift, the capital), **Alt+N** `ñ`,
 **Alt+/** `¿`, **Alt+1** `¡`; the window's own text events (a Spanish layout, a compose key) work as well. The overlay (top left) shows FPS, tick,
 seed, the tile under the player's feet, the tile under the mouse, and a Spanish line that proves the font draws `¿ ¡ á é í ó ú ü ñ`.
+
+**Words (P4).** The world is grey until the learner has used its word. Say `es un árbol` to the guide with the mouse on a tree (or `es una
+piedra` on a stone): three correct uses in three turns make the noun known, and its objects go from grey to full colour in thirds (one third
+per use). A correct use earns the same credit typed or spoken (see `CreditRules` in `Vocaterra.Game`). When a noun becomes known a toast
+shows `¡Nueva palabra: el árbol!`. The journal (J) lists every catalogue noun: `el árbol` once seen (`¿?` before), its icon in its current
+colour, the counts (heard, read, said, said correctly) and three pips.
 
 ## Architecture
 
@@ -42,7 +57,11 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   Camera            follows a point in simulation units, clamps to the world, whole-pixel origin; VisibleTiles/VisibleChunks;
                     TileToScreen, UnitsToScreen and ScreenToTile (the mouse-to-tile conversion)
   TileArt           placeholder tile pixels (RGBA bytes, deterministic speckle, no System.Random)
-  DebugText, FrameStats, LaunchOptions   (--say and --content too)
+  DebugText, FrameStats, LaunchOptions   (--say, --content, --point, --point-nearest and --journal too)
+  Greyscale         the grey copy of an RGBA atlas: integer luma (299, 587, 114 over 1000), alpha kept; the tile atlas calls it once at load
+  Journal           JournalRows (every catalogue noun: label, counts, pips, saturation; known first) and JournalModel (open or closed; opening counts a read)
+  Toasts            ToastQueue: lines shown one after another for 240 ticks each, by the simulation's tick (no clock)
+  ScriptedCursor    the --point and --point-nearest cursor for the scripted run (accent-insensitive noun lookup)
   TextEntry         the dialogue panel's text box: insert (Spanish letters and marks included), backspace, delete, caret, limits; AccentShortcuts
   InputFocus        who has the keyboard; FocusGatedInput returns no actions while the panel is open; KeyRepeater counts auto-repeat in frames
   DialogueModel     the panel as state: open or closed, the text box, the lines, a request to send; Submit shows the turn's lines; TextWrap
@@ -52,13 +71,16 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   Program           parses the command line, runs VocaterraGame, returns its ExitCode
   VocaterraGame     Game subclass: clock -> accumulator -> poll input -> Step the simulation; follow; draw world then layers
   FrameView         what a layer may read for one frame (simulation, session, dialogue, camera, interpolated player box, fonts, a 1 px texture, mouse)
-  IFrameLayer       "draw after the world": GuideLayer, PointerLayer, DebugOverlay and DialoguePanel, in that order; the hotbar and so on later
+  IFrameLayer       "draw after the world": GuideLayer, PointerLayer, DebugOverlay, DialoguePanel, ToastLayer and JournalLayer, in that order; the hotbar later
   GuideLayer        the guide as a placeholder figure, her name and the "Pulsa T para hablar" hint
   PointerLayer      the arrow: a frame and a marker on the target tile, an arrow beside the player, an edge arrow when the target is off screen
   DialoguePanel     draws the DialogueModel: the lines (colour per speaker), the text box with its caret, the key hints
   DrawHelpers       rectangles, borders, rotated bars and shadowed text over the 1 px texture and the font
-  WorldRenderer     visible tiles from the atlas, the player rectangle
-  TileAtlas         one texture holding every tile id's art in a row (id n at x = 16 n)
+  WorldRenderer     visible tiles, each at its noun's saturation (`GameSession.Words`), the player rectangle
+  JournalLayer      the journal screen: the list, icons in colour, the counts, the pips, the key hints
+  ToastLayer        the "new word" line across the top, fading over its last half second
+  TileAtlas         two textures in one layout (id n at x = 16 n): the colour atlas and its grey copy, made by `Greyscale` at load;
+                    `DrawTile` draws the grey copy at (1 - s) and the colour copy with alpha s (premultiplied: `Color.White * s`), no shader
   FontProvider      FontStashSharp FontSystem over assets/fonts/PixelOperator.ttf
   KeyboardInput     the keyboard as an IInputSource (the only place that knows the key bindings)
   ScreenshotWriter  back buffer -> PNG
@@ -81,9 +103,10 @@ MonoGame's own fixed-step timer is off (`IsFixedTimeStep = false`) and MonoGame'
   panel is swallowed). `VocaterraGame` is declared `Microsoft.Xna.Framework.Game` in full, because the namespace `Vocaterra.Game` would hide the
   type from a lookup inside `Vocaterra.*`. The guide and the arrow are layers using `view.Camera.TileToScreen` and `UnitsToScreen`.
   Verified with real key events on a nested X server (Xephyr), not only by tests: walking with A, T, Alt+vowel accents, Backspace, Enter.
-- **P4, greyscale rendering.** `TileAtlas` is the one place that makes tile textures. Build a second atlas (the same ids, desaturated pixels
-  made on the CPU, no shader toolchain: research section 3.3) and let `WorldRenderer` choose per tile from word progress (saturation per
-  lemma). A real PNG atlas loads with `Texture2D.FromStream`; record each file in `assets/ATTRIBUTION.md` (CC0 only, D-game-5).
+- **P4, greyscale rendering (done).** `TileAtlas` makes the colour atlas and the grey copy (`Greyscale`, on the CPU, no shader: research
+  section 7.3); `WorldRenderer` draws each tile at its noun's saturation; the journal and the toast read the same counts. The art is still the
+  code-drawn placeholders (D-game-5 allows them); a real PNG atlas loads with `Texture2D.FromStream` and is recorded in `assets/ATTRIBUTION.md`
+  (CC0 only).
 - **P5, the microphone.** Add an audio-capture class (MonoGame `Microphone`, or PortAudio if its audio is bad) behind an interface in a new
   folder; poll it from `Update`, and feed samples to `Vocaterra.Game`. Push-to-talk is another `IInputSource`-style flag read in `Update`;
   it does not go through `PlayerCommand`. Playback uses `DynamicSoundEffectInstance`.
@@ -98,7 +121,8 @@ MonoGame's own fixed-step timer is off (`IsFixedTimeStep = false`) and MonoGame'
 `tests/Vocaterra.MonoGame.Tests` (no GPU, no window): the text box and the accent shortcuts, input focus (the movement keys do not walk the
 player while the panel is open, on a real simulation), the dialogue model's turn flow, key repeat, text wrapping, the `--say` script driven
 headless against a real session and bundle (walk, open, type, send, the arrow, determinism), the accumulator (exact ticks, uneven frames, the cap and dropped ticks, bad input),
-the camera (centring, clamping at every edge, small worlds, visible tiles and chunks, screen/tile round trips), the command mapping and
+the greyscale copy (luma on a small buffer, alpha kept, a partial pixel refused), the journal rows and its read counts, the toast queue (order,
+duration by tick), the scripted cursor (accent-insensitive nouns, nearest tree), the P4 command-line rules, the camera (centring, clamping at every edge, small worlds, visible tiles and chunks, screen/tile round trips), the command mapping and
 scripted input driving a real simulation (and a determinism check over uneven frames), the command line, the overlay text, placeholder
 art, FPS, the font (an own TrueType `cmap` reader checks `á é í ó ú ü ñ Á É Í Ó Ú Ü Ñ ¿ ¡` and the overlay's line; the file is copied to the
 output; every character of the panel's texts and of the bundle's dialogue pools and prompts is in the font; the CC0 record exists) and

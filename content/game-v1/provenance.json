@@ -24,6 +24,7 @@
     { "path": "agents/guide.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "answer-sets/places-basic.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "lexicon/world.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "game/nouns.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "prompts/prompts.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null }
   ]
 }

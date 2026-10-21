@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.Game;
@@ -7,7 +8,8 @@ namespace Vocaterra.Game;
 /// <param name="Tag">The error tag, for example <c>gender.agree</c>.</param>
 /// <param name="Expected">The form the core expected.</param>
 /// <param name="Actual">The form the player wrote.</param>
-public sealed record GuideError(string Tag, string Expected, string Actual);
+/// <param name="Span">Where in the normalized line the mistake is (the core's span).</param>
+public sealed record GuideError(string Tag, string Expected, string Actual, TextSpan Span);
 
 /// <summary>Where the guide points: the nearest tile of what the player asked for.</summary>
 /// <param name="Place">The noun the player asked about, as a lemma (<c>árbol</c>).</param>
@@ -41,6 +43,7 @@ public sealed record GuideScene(TilePoint Player, TilePoint? Cursor = null, bool
 /// <param name="Pointer">Set when the guide points at a tile (the point-at event with a target in range).</param>
 /// <param name="IdentifiedNoun">Set when the guide named what the cursor is on (<c>árbol</c>).</param>
 /// <param name="HostStateHash">The host state hash the core copied into this turn's replay record: the simulation's state digest when the line was sent.</param>
+/// <param name="Slots">The slot values the core filled from the line (<c>place</c>, <c>object</c>), for the word counts.</param>
 public sealed record GuideTurn(
     string Line,
     string Intent,
@@ -55,7 +58,8 @@ public sealed record GuideTurn(
     string? WorldLine,
     GuidePointer? Pointer,
     string? IdentifiedNoun,
-    string HostStateHash)
+    string HostStateHash,
+    SlotMap Slots)
 {
     /// <summary>A one-line summary of the verdict for the panel, for example <c>ask_directions, entendido, 100 %</c>.</summary>
     public string Summary => string.Create(
@@ -106,4 +110,7 @@ public static class GuideEvents
 
     /// <summary>The player said goodbye.</summary>
     public const string Farewell = "agent.farewell";
+
+    /// <summary>The player named what they are looking at ("es un árbol"): the guide says whether the name fits the cursor's tile.</summary>
+    public const string Name = "guide.name";
 }

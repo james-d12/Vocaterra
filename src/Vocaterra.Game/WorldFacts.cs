@@ -27,8 +27,8 @@ public sealed record NearestTile(TilePoint Tile, TileId Kind, int Dx, int Dy)
 /// <summary>
 /// What the guide can say about the world, as plain facts: the nearest tile of a kind, the direction to it in Spanish and its distance in
 /// blocks. Everything is integer arithmetic over the tile grid, so the same world and the same start tile give the same answer on every
-/// machine. The words (<c>árbol</c> is a trunk, <c>piedra</c> is stone) are a small catalogue in code until P4 moves them to
-/// <c>game/nouns.json</c> in the bundle.
+/// machine. The words are the pointing map (<c>árbol</c> is a trunk, <c>piedra</c> is stone); which tile is which noun for the colour of the
+/// world is the bundle's <c>game/nouns.json</c> (<see cref="NounCatalog"/>), and the two agree on every noun the guide can point at.
 /// </summary>
 public sealed class WorldFacts
 {
@@ -91,11 +91,14 @@ public sealed class WorldFacts
     /// <summary>The kind of the tile at a position; air outside the world.</summary>
     public TileId TileAt(TilePoint tile) => tile.X >= 0 && tile.Y >= 0 && tile.X < _width && tile.Y < _height ? _tileAt(tile.X, tile.Y) : TileId.Air;
 
-    /// <summary>The Spanish noun for a tile kind, or <see langword="null"/> for air.</summary>
+    /// <summary>
+    /// The Spanish noun for a tile kind, or <see langword="null"/> for air. The leaves are part of the tree, so they are <c>árbol</c> too (the
+    /// same noun as the catalogue's <c>game/nouns.json</c>, which colours the whole tree with it).
+    /// </summary>
     public static string? NounOfTile(TileId tile) => tile switch
     {
         TileId.Trunk => "árbol",
-        TileId.Leaves => "hoja",
+        TileId.Leaves => "árbol",
         TileId.Grass => "hierba",
         TileId.Dirt => "tierra",
         TileId.Stone => "piedra",

@@ -254,6 +254,35 @@
         { "lineId": "guide.identify.found.3", "text": "Aquí hay {target:article(indef)}." }
       ]
     },
+    "guide_name": {
+      "poolId": "guide_name",
+      "variants": [
+        { "lineId": "guide_name.1", "text": "A ver si es eso." },
+        { "lineId": "guide_name.2", "text": "Mira bien." },
+        { "lineId": "guide_name.3", "text": "Vamos a ver." }
+      ]
+    },
+    "guide.name.correct": {
+      "poolId": "guide.name.correct",
+      "variants": [
+        { "lineId": "guide.name.correct.1", "text": "¡Eso es! Es {target:article(indef)}." },
+        { "lineId": "guide.name.correct.2", "text": "¡Muy bien! Es {target:article(indef)}." }
+      ]
+    },
+    "guide.name.wrong": {
+      "poolId": "guide.name.wrong",
+      "variants": [
+        { "lineId": "guide.name.wrong.1", "text": "No, es {target:article(indef)}." },
+        { "lineId": "guide.name.wrong.2", "text": "Casi. Mira: es {target:article(indef)}." }
+      ]
+    },
+    "guide.name.none": {
+      "poolId": "guide.name.none",
+      "variants": [
+        { "lineId": "guide.name.none.1", "text": "Mira una cosa y dime qué es." },
+        { "lineId": "guide.name.none.2", "text": "No sé qué es. Mira algo." }
+      ]
+    },
     "guide.identify.none": {
       "poolId": "guide.identify.none",
       "variants": [

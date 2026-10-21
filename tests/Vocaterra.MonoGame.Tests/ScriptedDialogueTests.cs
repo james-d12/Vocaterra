@@ -12,10 +12,11 @@ namespace Vocaterra.MonoGame.Tests;
 public sealed class ScriptedDialogueTests
 {
     private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
+    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value, GameBundle.ResolveDirectory()));
 
     private static (GameSession Session, DialogueModel Dialogue, ScriptedDialogue Script, int Ticks) Run(IReadOnlyList<string> lines, int maxTicks = 600)
     {
-        var session = new GameSession(Bundle.Value, 42);
+        var session = new GameSession(Bundle.Value, 42, GameSession.DefaultStartedAt, Nouns.Value);
         var focus = new InputFocus();
         var dialogue = new DialogueModel(focus, session.OpeningLine);
         var script = new ScriptedDialogue(session, dialogue, lines);
@@ -66,7 +67,7 @@ public sealed class ScriptedDialogueTests
     [Fact]
     public void ThePlayerDoesNotWalkWhileTheScriptTypes()
     {
-        var session = new GameSession(Bundle.Value, 42);
+        var session = new GameSession(Bundle.Value, 42, GameSession.DefaultStartedAt, Nouns.Value);
         var focus = new InputFocus();
         var dialogue = new DialogueModel(focus, session.OpeningLine);
         var script = new ScriptedDialogue(session, dialogue, ["hola"]);

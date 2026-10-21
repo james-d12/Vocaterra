@@ -334,3 +334,6 @@ zapato
 árbol
 él
 último
+algo
+casi
+eso

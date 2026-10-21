@@ -8,6 +8,9 @@ public sealed class InputFocus
 {
     /// <summary>Whether a text box has the keyboard. The dialogue panel sets it when it opens and clears it when it closes.</summary>
     public bool TextEntryActive { get; set; }
+
+    /// <summary>Whether the journal screen is open: the player does not walk while it is.</summary>
+    public bool JournalOpen { get; set; }
 }
 
 /// <summary>
@@ -23,7 +26,7 @@ public sealed class FocusGatedInput(IInputSource Inner, InputFocus Focus) : IInp
     {
         // The inner source is polled either way, so a scripted source keeps its own clock.
         var held = Inner.Poll(tick);
-        return Focus.TextEntryActive ? InputActions.None : held;
+        return Focus.TextEntryActive || Focus.JournalOpen ? InputActions.None : held;
     }
 }
 

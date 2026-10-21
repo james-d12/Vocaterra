@@ -1,12 +1,16 @@
 using System.Globalization;
+using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.MonoGame.Frontend;
 
 /// <summary>
 /// The command line: <c>--seed &lt;ulong&gt;</c> (default 42), and for the orchestrator's rendering check
-/// <c>--screenshot &lt;path.png&gt; [--frames &lt;n&gt;] [--walk-right &lt;ticks&gt;] [--say &lt;line&gt;]...</c>, which runs n frames on a fixed clock, saves the
-/// back buffer and exits. <c>--say</c> walks the player to the guide, opens the dialogue panel and sends the line (repeat it for several
-/// lines), so nobody has to type. <c>--content &lt;dir&gt;</c> names a content bundle folder instead of searching for <c>content/game-v1</c>.
+/// <c>--screenshot &lt;path.png&gt; [--frames &lt;n&gt;] [--walk-right &lt;ticks&gt;] [--say &lt;line&gt;]... [--point &lt;col,row&gt; | --point-nearest &lt;lemma&gt;] [--journal]</c>,
+/// which runs n frames on a fixed clock, saves the back buffer and exits. <c>--say</c> walks the player to the guide, opens the dialogue panel
+/// and sends the line (repeat it for several lines), so nobody has to type. <c>--point</c> puts the mouse cursor on a tile for those lines
+/// (<c>--point-nearest</c> on the tile of that noun nearest the player when each line is sent), so <c>es un árbol</c> names something.
+/// <c>--journal</c> opens the journal once the lines are sent (at the start without <c>--say</c>). <c>--content &lt;dir&gt;</c> names a content
+/// bundle folder instead of searching for <c>content/game-v1</c>.
 /// </summary>
 public sealed record LaunchOptions
 {
@@ -27,7 +31,10 @@ public sealed record LaunchOptions
         + "  --screenshot <path>     run on a fixed clock, save the back buffer as a PNG and exit\n"
         + "  --frames <n>            frames to run before the screenshot, one tick each (default 120, or 240 with --say; needs --screenshot)\n"
         + "  --walk-right <ticks>    hold 'right' for the first n ticks (scripted input; needs --screenshot)\n"
-        + "  --say <line>            walk to the guide, open the dialogue, type and send the line; repeat for more (needs --screenshot)\n";
+        + "  --say <line>            walk to the guide, open the dialogue, type and send the line; repeat for more (needs --screenshot)\n"
+        + "  --point <col,row>       put the mouse cursor on that tile for the --say lines (needs --screenshot)\n"
+        + "  --point-nearest <lemma> put the cursor on the nearest tile of that noun (arbol, piedra, hierba, tierra) for each --say line (needs --screenshot)\n"
+        + "  --journal               open the journal once the lines are sent (needs --screenshot)\n";
 
     /// <summary>The world seed.</summary>
     public ulong Seed { get; init; } = DefaultSeed;
@@ -47,6 +54,15 @@ public sealed record LaunchOptions
     /// <summary>The number of leading ticks during which the scripted input holds 'right' (only used with <see cref="ScreenshotPath"/>).</summary>
     public int WalkRightTicks { get; init; }
 
+    /// <summary>The tile the scripted mouse cursor sits on for the <c>--say</c> lines, or <see langword="null"/>.</summary>
+    public TilePoint? Point { get; init; }
+
+    /// <summary>The noun whose nearest tile the scripted cursor sits on for each <c>--say</c> line, or <see langword="null"/>.</summary>
+    public string? PointNearest { get; init; }
+
+    /// <summary>Whether the journal is opened by the scripted run (once the lines are sent, or at the start without <c>--say</c>).</summary>
+    public bool Journal { get; init; }
+
     /// <summary>Whether the run is the scripted screenshot run.</summary>
     public bool IsScreenshotRun => ScreenshotPath is not null;
 
@@ -60,6 +76,9 @@ public sealed record LaunchOptions
         var framesGiven = false;
         var walkGiven = false;
         var says = new List<string>();
+        TilePoint? point = null;
+        string? pointNearest = null;
+        var journal = false;
         for (var i = 0; i < args.Count; i++)
         {
             var arg = args[i];
@@ -69,7 +88,13 @@ public sealed record LaunchOptions
                 return false;
             }
 
-            if (arg is not ("--seed" or "--screenshot" or "--frames" or "--walk-right" or "--say" or "--content"))
+            if (arg == "--journal")
+            {
+                journal = true;
+                continue;
+            }
+
+            if (arg is not ("--seed" or "--screenshot" or "--frames" or "--walk-right" or "--say" or "--content" or "--point" or "--point-nearest"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -111,6 +136,24 @@ public sealed record LaunchOptions
 
                     says.Add(value);
                     break;
+                case "--point":
+                    if (!TryParseTile(value, out var tile))
+                    {
+                        error = $"--point needs a column and a row, like 40,30; got '{value}'.";
+                        return false;
+                    }
+
+                    point = tile;
+                    break;
+                case "--point-nearest":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = "--point-nearest needs a noun, like arbol.";
+                        return false;
+                    }
+
+                    pointNearest = value.Trim();
+                    break;
                 case "--content":
                     if (value.Length == 0)
                     {
@@ -143,9 +186,15 @@ public sealed record LaunchOptions
             }
         }
 
-        if (screenshot is null && (framesGiven || walkGiven || says.Count > 0))
+        if (screenshot is null && (framesGiven || walkGiven || says.Count > 0 || point is not null || pointNearest is not null || journal))
         {
-            error = "--frames, --walk-right and --say need --screenshot.";
+            error = "--frames, --walk-right, --say, --point, --point-nearest and --journal need --screenshot.";
+            return false;
+        }
+
+        if (point is not null && pointNearest is not null)
+        {
+            error = "Give --point or --point-nearest, not both.";
             return false;
         }
 
@@ -154,8 +203,27 @@ public sealed record LaunchOptions
             ScreenshotPath = screenshot,
             Says = says,
             Frames = says.Count > 0 && !framesGiven ? DefaultSayFrames : result.Frames,
+            Point = point,
+            PointNearest = pointNearest,
+            Journal = journal,
         };
         error = string.Empty;
+        return true;
+    }
+
+    /// <summary>Parses <c>col,row</c> (two non-negative integers) into a tile.</summary>
+    private static bool TryParseTile(string value, out TilePoint tile)
+    {
+        tile = default;
+        var parts = value.Split(',');
+        if (parts.Length != 2
+            || !int.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out var column)
+            || !int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out var row))
+        {
+            return false;
+        }
+
+        tile = new TilePoint(column, row);
         return true;
     }
 }

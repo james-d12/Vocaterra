@@ -172,7 +172,7 @@ public sealed class GuideNpcAndSessionTests
         var bundle = TestGame.Bundle;
         var guide = new GuideService(bundle, new WorldFacts(WorldGenerator.Generate(42, MediumSize)), 42, new Vocaterra.Nlp.Core.Determinism.StoredTimestamp(0));
         Assert.Equal("idle", guide.GuideState.StateId);
-        Assert.Throws<ArgumentNullException>(() => new GameSession(null!, 42));
+        Assert.Throws<ArgumentNullException>(() => new GameSession(null!, 42, GameSession.DefaultStartedAt, null!));
     }
 
     [Fact]

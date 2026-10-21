@@ -44,6 +44,9 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     private readonly InputFocus _focus = new();
     private readonly DialogueModel _dialogue;
     private readonly ScriptedDialogue? _script;
+    private readonly JournalModel _journal = new();
+    private readonly ToastQueue _toasts = new();
+    private readonly ScriptedCursor? _cursor;
     private readonly KeyRepeater _backspace = new();
     private readonly KeyRepeater _delete = new();
     private readonly KeyRepeater _left = new();
@@ -59,6 +62,7 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     private PlayerState _previousPlayer;
     private bool _firstUpdateSeen;
     private bool _swallowTypedT;
+    private bool _journalShown;
 
     /// <summary>Creates the game for a started session and options. The session already holds the generated world and the loaded bundle.</summary>
     public VocaterraGame(LaunchOptions options, GameSession session)
@@ -68,6 +72,9 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         _camera = new Camera(session.Simulation.World.Width, session.Simulation.World.Height, TileArt.Size * Zoom);
         _previousPlayer = session.Simulation.Player;
         _dialogue = new DialogueModel(_focus, session.OpeningLine);
+        _cursor = options.IsScreenshotRun && (options.Point is not null || options.PointNearest is not null)
+            ? new ScriptedCursor(options.Point, options.PointNearest)
+            : null;
         if (options.IsScreenshotRun)
         {
             _clock = new FixedFrameClock(GameSimulation.TicksPerSecond);
@@ -120,11 +127,16 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
             Fonts = new FontProvider(AssetPaths.Font),
             Pixel = _pixel,
             Seed = _options.Seed,
+            Atlas = _atlas,
+            Journal = _journal,
+            Toasts = _toasts,
         };
         _layers.Add(new GuideLayer());
         _layers.Add(new PointerLayer());
         _layers.Add(new DebugOverlay());
         _layers.Add(new DialoguePanel());
+        _layers.Add(new ToastLayer());
+        _layers.Add(new JournalLayer());
     }
 
     /// <inheritdoc />
@@ -158,6 +170,13 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         if (_dialogue.SubmitRequested)
         {
             SendTypedLine();
+        }
+
+        // --journal: open the journal once the scripted lines are sent (at the start when there are none).
+        if (_options.Journal && !_journalShown && (_script is null || _script.IsDone))
+        {
+            _journalShown = true;
+            OpenJournal();
         }
 
         _swallowTypedT = false;
@@ -251,7 +270,14 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     {
         var keys = Keyboard.GetState();
         var pressed = (Keys key) => keys.IsKeyDown(key) && !_previousKeys.IsKeyDown(key);
-        if (_dialogue.IsOpen)
+        if (_journal.IsOpen)
+        {
+            if (pressed(Keys.Escape) || pressed(Keys.J))
+            {
+                CloseJournal();
+            }
+        }
+        else if (_dialogue.IsOpen)
         {
             var alt = keys.IsKeyDown(Keys.LeftAlt) || keys.IsKeyDown(Keys.RightAlt);
             var shift = keys.IsKeyDown(Keys.LeftShift) || keys.IsKeyDown(Keys.RightShift);
@@ -311,12 +337,28 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
             _dialogue.Open();
             _swallowTypedT = true;
         }
+        else if (pressed(Keys.J))
+        {
+            OpenJournal();
+        }
         else if (pressed(Keys.Escape) && _session.Pointer is not null)
         {
             _session.DismissPointer();
         }
 
         _previousKeys = keys;
+    }
+
+    private void OpenJournal()
+    {
+        _journal.Open(_session.Words);
+        _focus.JournalOpen = true;
+    }
+
+    private void CloseJournal()
+    {
+        _journal.Close();
+        _focus.JournalOpen = false;
     }
 
     private void SendTypedLine()
@@ -330,6 +372,10 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
                 cursor = _camera.ScreenToTile(mouse.X, mouse.Y);
             }
         }
+        else
+        {
+            cursor = _cursor?.Resolve(_session);
+        }
 
         var timer = TurnTimer.Start();
         var turn = _dialogue.Submit(line => _session.Say(line, cursor), () => timer.ElapsedMilliseconds);
@@ -340,6 +386,33 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
             {
                 Console.WriteLine($"  guide: {line}");
             }
+
+            ReportWords();
+        }
+    }
+
+    // What the turn did to the learner's words: each credited noun with its uses so far, and each newly known one as a toast.
+    private void ReportWords()
+    {
+        var result = _session.LastWordTurn;
+        if (result is null)
+        {
+            return;
+        }
+
+        foreach (var lemma in result.Credited)
+        {
+            var noun = _session.Nouns.ForLemma(lemma);
+            var uses = Math.Min(WordProgress.UsesToKnow, _session.Words.RecordOf(lemma).CreditUnits / WordProgress.UnitsPerUse);
+            Console.WriteLine($"  word: {noun?.WithDefinite ?? lemma}, {uses} de {WordProgress.UsesToKnow}");
+        }
+
+        foreach (var lemma in result.NewlyKnown)
+        {
+            var noun = _session.Nouns.ForLemma(lemma);
+            var label = noun?.WithDefinite ?? lemma;
+            _toasts.Show($"¡Nueva palabra: {label}!");
+            Console.WriteLine($"  known: {label} at tick {_session.Simulation.Tick}");
         }
     }
 }

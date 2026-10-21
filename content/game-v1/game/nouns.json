@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "generated_by": "hand-authored",
+  "nouns": [
+    { "lemma": "árbol", "tiles": ["trunk", "leaves"], "items": [] },
+    { "lemma": "tierra", "tiles": ["dirt"], "items": [] },
+    { "lemma": "hierba", "tiles": ["grass"], "items": [] },
+    { "lemma": "piedra", "tiles": ["stone"], "items": [] }
+  ],
+  "colourless": ["air"]
+}
