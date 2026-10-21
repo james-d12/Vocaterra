@@ -1,0 +1,19 @@
+{
+  "answerSetId": "farewells",
+  "answers": [
+    {
+      "answerId": "goodbye",
+      "canonical": "adiós",
+      "aliases": [
+        "hasta luego",
+        "hasta mañana",
+        "nos vemos"
+      ],
+      "dialects": [
+        "es-ES",
+        "es-MX",
+        "es-AR"
+      ]
+    }
+  ]
+}

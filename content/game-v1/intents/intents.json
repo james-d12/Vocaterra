@@ -120,6 +120,96 @@
         "vendo dos flechas",
         "puedo vender un arco"
       ]
+    },
+    {
+      "intentId": "confirm",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(sí|claro|vale)",
+        "[VERB:estar]? de acuerdo"
+      ],
+      "keywordRules": [
+        { "lemmas": ["sí"], "requiresSlots": [] }
+      ],
+      "examples": [
+        "sí",
+        "sí, por favor",
+        "claro",
+        "vale",
+        "de acuerdo",
+        "yo estás de acuerdo"
+      ]
+    },
+    {
+      "intentId": "deny",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(no|ahora no)",
+        "no gracias",
+        "no [VERB:querer]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["no"], "requiresSlots": [] }
+      ],
+      "examples": [
+        "no",
+        "no, gracias",
+        "ahora no",
+        "no quiero",
+        "yo no quieres"
+      ]
+    },
+    {
+      "intentId": "farewell",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(adiós|hasta (luego|mañana))",
+        "nos [VERB:ver]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["adiós"], "requiresSlots": [] }
+      ],
+      "examples": [
+        "adiós",
+        "hasta luego",
+        "hasta mañana",
+        "nos vemos",
+        "nos veo"
+      ]
+    },
+    {
+      "intentId": "introduce_self",
+      "requiredSlots": ["name"],
+      "slotGrammars": [
+        "me [VERB:llamar] [WORD:name]",
+        "[VERB:ser] [WORD:name]",
+        "mi nombre es [WORD:name]"
+      ],
+      "examples": [
+        "me llamo Rosa",
+        "soy Sol",
+        "mi nombre es Luz",
+        "yo soy Mar",
+        "yo es Rosa"
+      ]
+    },
+    {
+      "intentId": "thank",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "gracias [NOUN]?",
+        "muchas gracias"
+      ],
+      "keywordRules": [
+        { "lemmas": ["gracias"], "requiresSlots": [] }
+      ],
+      "examples": [
+        "gracias",
+        "muchas gracias",
+        "gracias, amigo",
+        "muchas gracias por todo",
+        "mucho gracias"
+      ]
     }
   ]
 }

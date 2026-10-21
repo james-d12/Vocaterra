@@ -75,9 +75,11 @@ the learner model and the repeat counts.
 
 ## Content
 
-`content/game-v1` is the game's bundle. For now it is a copy of the core's sample bundle (a blacksmith's dialogue, spells and items), with the
-manifest's bundle id set to `game-v1`; the game's own scenes and characters replace it as they are written. The bundle has its own hash, which
-the loader checks against `manifest.json`. After any edit, rewrite the manifest:
+`content/game-v1` is the game's bundle, under the bundle id `game-v1`. It tracks the core's sample bundle (`content/v1` in the core, a
+blacksmith with spells and items) for the generic intents (`confirm`, `deny`, `farewell`, `thank`, `introduce_self`), their answer sets and
+dialogue, and the blacksmith's `confirming` state, with the prompt text of every prompt (decision D-game-4). The game's own scenes replace the
+sample's content as they are written (from G3 on). The bundle has its own hash, which the loader checks against `manifest.json`. After any
+edit, rewrite the manifest:
 
 ```bash
 scripts/content.sh validate                                  # every file's hash and the cross-references
@@ -85,8 +87,8 @@ scripts/content.sh hash content/game-v1 --bundle-id game-v1  # rewrite manifest.
 ```
 
 The script runs the core's content tool, `vocaterra-content` 0.1.0, installed under `.tools/` from the submodule's feed on first use (see
-[scripts/README.md](scripts/README.md)). `ATTRIBUTION.md` and `provenance.json` in the bundle are the core sample's: the Wiktionary lexicon in
-it is CC BY-SA and keeps its notice.
+[scripts/README.md](scripts/README.md)). `ATTRIBUTION.md` and `provenance.json` describe this bundle; the Wiktionary lexicon in it is CC BY-SA
+and keeps its notice.
 
 ## Continuous integration
 

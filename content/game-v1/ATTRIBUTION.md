@@ -1,16 +1,23 @@
 # Attribution and licenses
 
-This notice ships with content bundle `v1`. It lists the licenses of the data derived from third parties and of the
-machine-learning models the game loads at run time. The hand-authored content in this bundle (sample intents, prompts,
+This notice ships with content bundle `game-v1`. It lists the licenses of the data derived from third parties and of the
+machine-learning models the game is built to load at run time. The hand-authored content in this bundle (intents, prompts,
 dialogue, agents, answer sets, CEFR lemma lists and the hand-authored lexicons `lexicon/seed.json`, `lexicon/game.json` and
-`lexicon/supplement.json`) has no third-party text in it; the repository owner still has to choose its license.
+`lexicon/supplement.json`) has no third-party text in it.
+
+The generic intents (`confirm`, `deny`, `farewell`, `thank`, `introduce_self`), their answer sets and dialogue pools, the prompt texts
+they use, and the blacksmith agent are copied from the sample bundle `content/v1` of the language core (Vocaterra.NLP, Apache-2.0),
+which this bundle tracks (decision D-game-4 in `docs/DECISIONS.md`).
+
+The licence of this repository is not chosen yet (decision D-game-2 in `docs/DECISIONS.md`). Until it is, the repository grants no
+permission to use, copy or modify its files. The language core is a separate work under its own licence.
 
 ## Wiktionary data (CC BY-SA)
 
 `lexicon/wiktionary-es.json` is derived from Wiktionary (https://en.wiktionary.org). It was generated with
 `Vocaterra.Nlp.ContentBuilder import-lexicon` from the Spanish extract of English Wiktionary (wiktextract data of 2026-10-03, from the
 dump of 2026-09-02) that kaikki.org publishes at https://kaikki.org/dictionary/Spanish/. It holds the lemmas, the inflected
-forms and the gender and number tags of the 3 000 most frequent Spanish lemmas, filtered as `docs/LEXICON.md` describes. The
+forms and the gender and number tags of the 3 000 most frequent Spanish lemmas, filtered as the core's `docs/LEXICON.md` describes. The
 extraction tool, wiktextract (https://github.com/tatuylonen/wiktextract, Tatu Ylonen), is licensed under the MIT license; the
 extracted data is Wiktionary text. The file `lexicon/wiktionary-es.source.json` beside it records the source URLs, the retrieval
 date, the SHA-256 and size of every input file, the import parameters and the importer version.
@@ -39,8 +46,10 @@ the Wiktionary data.
 
 ## Models
 
-The models are downloaded, not committed. `models/manifest.json` pins the exact files and hashes; the licenses below are
-the ones recorded there.
+The models are downloaded, not committed. The core's `models/manifest.json` (in the core checkout, `external/Vocaterra.NLP`) pins
+the exact files and hashes; the licenses below are the ones recorded there. The prototype loads none of these files yet: its text
+loop runs on the core's scripted recognizer and stand-in models. The table is the licence record for the models the game will load
+when speech and the guide's voice land (milestones P5 and P8 in `IMPLEMENTATION_PLAN.md`).
 
 | Model id | Role | License | Source |
 | --- | --- | --- | --- |
@@ -51,4 +60,5 @@ the ones recorded there.
 | `kokoro-multi-lang-v1_0` | speech synthesis | Apache-2.0 | https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-multi-lang-v1_0.tar.bz2 |
 
 The NVIDIA Parakeet model requires attribution to NVIDIA under CC-BY-4.0. The Kokoro archive also contains espeak-ng
-data; the licensing of that phonemizer is an open item for an architecture decision record.
+data; the licensing of that phonemizer is open with the GPL-3.0 native libraries (the core's decision D2), and the game does not
+distribute a build that includes them until D2 is settled.
