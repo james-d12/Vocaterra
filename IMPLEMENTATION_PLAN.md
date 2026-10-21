@@ -72,8 +72,7 @@ Where things stand, for the next orchestrator session:
 - **Package cache (P4 finding):** NuGet caches by id and version, and the core's worktrees pack 0.1.0 into the shared `~/.nuget/packages`,
   so a game restore can silently use the core's unmerged work. The gate restores into `~/.nuget/vocaterra-game-packages` and clears the core
   packages there each run (`scripts/merge-gate.sh`); every brief sets `NUGET_PACKAGES` to that folder.
-- **Owner items not yet answered:** (1) nothing in the prototype is gated behind language (orchestrator default); (2) `flecha`, `guía`,
-  `bloque` (P3) and `algo`, `casi`, `eso` (P4) were added to the game's `cefr/a1.txt`: review in a content pass; (3) the native-asset trim: approved, G7; (4) D-game-2: decided MIT; (5) P4 credits the noun the player names even when it names the
+- **Owner items not yet answered:** (1) nothing in the prototype is gated behind language (orchestrator default); (2) A1 list: the owner approved the words added (`flecha`, `guía`, `bloque`, `algo`, `casi`, `eso`, `esto`) and `falta`, `faltar`, `nada` (added in P5); (3) the native-asset trim: approved, G7; (4) D-game-2: decided MIT; (5) P4 credits the noun the player names even when it names the
   wrong thing (`es una piedra` with the cursor on a tree earns `piedra` a third, and the guide says "Casi. Mira: es un árbol."): keep or
   withhold (P4b withholds it by default: a `name_object` the guide marks wrong earns no colour).
 - **How agents work now** (put this in every brief): no `git submodule update` and no core pack in a worktree; set
@@ -92,7 +91,7 @@ Where things stand, for the next orchestrator session:
 | P3 | **The guide, typed (smallest slice proving the core in game):** `Vocaterra.Game` (`GameSession`, `GuideService`, `WorldFacts`), the guide in the bundle (`ask_directions`, `ask_what`, `ask_help`), dialogue panel; `¿dónde está el árbol?` gets a reply and an arrow | done (merged 2026-10-21) | Sonnet 5.5 (scene and session API), Haiku 5.5 (content) | G1, G2, P2 |
 | P4 | Nouns, word progress, greyscale: `game/nouns.json`, `lexicon/world.json`, `NounCatalog`, `WordProgress`, the D-game-6 rule, CPU-made grey atlas, `name_object` intent, journal | done (merged 2026-10-21, `00c6c44`) | Haiku 5.5 | P3 |
 | P4b | Spaced colour and the guide's review (D-game-6 amended): growing gaps (10 min, then 1 h, or a new session), early uses logged without colour, the guide asks "¿Qué es esto?" about a due word with the pointer on its nearest example; scripted time skip for the demo | done (merged 2026-10-21, `b433647`, fix `9ce62ef`) | Sonnet 5.5 | P4 |
-| P5 | Spoken input: push-to-talk, microphone (MonoGame `Microphone`, PortAudioSharp2 fallback), Vosk small, evaluation on a worker thread | planned | Sonnet 5.5 | P3 |
+| P5 | Spoken input: push-to-talk, microphone (MonoGame `Microphone`, PortAudioSharp2 fallback), Vosk small, evaluation on a worker thread | in progress (2026-10-21) | Sonnet 5.5 | P3 |
 | P6 | Mining, building, inventory (durability, drops, hotbar placement, 40 slots with a 10-slot hotbar; the player starts with `hacha` and `pico`) and the **wider world of things** (section 4.3: new surface tiles and items, each in `game/nouns.json` with the colour rule) | done (merged 2026-10-21, `57244dd`) | Haiku 5.5 | P1, P2, P4b |
 | P6b | **Crafting and the guide's crafting answers** (owner, 2026-10-21; section 4.3): recipes in `game/recipes.json`, stations (`mesa`, `horno`), crafting panel; the guide answers "¿cómo hago una mesa?" (recipe, station, what is missing) and "¿dónde hay arena?" (where a material comes from and the nearest source) | done (merged 2026-10-21) | Sonnet 5.5 (design), Haiku 5.5 (content) | P6, G6 |
 | P7 | Caves (worms, cellular automata), ores, full forest vegetation, flood-fill lighting; ores `carbón`, `cobre`, `hierro`, `oro` join the catalogue and the recipes (`antorcha` from `madera` and `carbón`, metal tools at the `horno`) | planned | Haiku 5.5 | P1, P6, P6b |
@@ -422,6 +421,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     project that references `Vosk` directly (`build/` assets do not flow transitively). No game project does, so `libvosk.so` is not in any
     output (not a G7 regression: it was never there). P5 must make the speech project carry it (a direct `Vosk` package reference in
     `Directory.Packages.props`, or ask the core for `buildTransitive` in CR form) and test that the recognizer loads.
+
+- **Speech models (2026-10-21, orchestrator).** `vosk-model-small-es-0.42` (58 MB) and `kokoro-multi-lang-v1_0` (387 MB) fetched with the
+  core's `scripts/fetch-models.sh` into `~/.local/share/vocaterra/models` (all files verified against the core's manifest); the gate exports
+  `VOCATERRA_MODELS_DIR` to that folder when it exists. Owner, the same day: the words added to the game's A1 list are fine (including
+  `falta`, `faltar`, `nada`, which P5 adds).
 
 ## 6. Definition of done (every milestone)
 

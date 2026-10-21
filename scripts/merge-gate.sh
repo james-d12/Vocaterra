@@ -27,6 +27,14 @@ fi
 # package folder only the game uses, and clears the core's packages from it on every run, so they always come from the pinned feed.
 export NUGET_PACKAGES="${VOCATERRA_NUGET_PACKAGES:-$HOME/.nuget/vocaterra-game-packages}"
 mkdir -p "$NUGET_PACKAGES"
+
+# Speech models (P5 on): the core's ModelStore reads VOCATERRA_MODELS_DIR. The orchestrator fetches the pinned models into a shared folder
+# outside both repositories (external/Vocaterra.NLP/scripts/fetch-models.sh with VOCATERRA_MODELS_DIR set), so tests that need a model run
+# in the gate instead of being skipped.
+if [ -z "${VOCATERRA_MODELS_DIR:-}" ] && [ -d "$HOME/.local/share/vocaterra/models" ]; then
+  export VOCATERRA_MODELS_DIR="$HOME/.local/share/vocaterra/models"
+fi
+echo "models: ${VOCATERRA_MODELS_DIR:-none}"
 rm -rf "$NUGET_PACKAGES"/vocaterra.nlp.*
 
 mkdir -p .claude/gate-logs
