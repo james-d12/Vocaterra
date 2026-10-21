@@ -209,6 +209,8 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M26d | CR-003 host slot values (`SlotMap` on the context, template access, replay record and `HostStateHash`), CR-005 host-named skills in the learner update | M26c | S | todo |
 | M26e | CR-006 speech-out readiness: Kokoro and Parakeet file hashes pinned from real downloads, `KokoroSynthesizer.FromStore`, Spanish speaker ids documented (D2: private builds only) | M19f | H | todo |
 | M26f | CR-010 `cefr-check` reads prompt text; CR-011 sample `ATTRIBUTION.md` describes the sample only (content procedure: hash re-pin, goldens) | M26d | H | todo |
+| M27a | Content layering and a standard library bundle: a bundle names a base bundle and adds or overrides by id; the generic intents, answer sets, replies, feedback and evaluation settings move from the sample into `content/std-v1`; the sample becomes an overlay (see §10) | M26f | S | proposed |
+| M27b | Pattern suggestion from example sentences: `vocaterra-content suggest` writes candidate slot grammars and keyword rules for review, with a coverage and confusion report (see §10) | M27a | S | proposed |
 
 ### Delegation waves
 
@@ -971,4 +973,48 @@ removes the two false positives from `main` now.
 - Pronunciation ambition: decide after M24's speech check.
 - Also noted: the design doc's GOP citation (arXiv 2309.07739) points at a different method; the
   matching CTC-GOP work is arXiv 2507.16838.
+
+## 10. M27: cheaper content authoring (proposed 2026-10-21, awaiting the owner's go)
+
+### 10.1 Why
+The owner: writing the intents and the content folder is expensive. Measured on 2026-10-21: apart from
+the imported lexicon, the sample bundle is ~1,100 hand-written JSON lines and the game's bundle ~1,500.
+The game carries all 11 sample intents as edited copies and adds only 4 of its own; 7 answer-set files
+and the feedback, evaluation and effects files are byte-identical copies, re-synced by hand (game G2).
+Every new intent needs hand-written slot grammars, keyword rules and examples, and the grammars are
+where authoring errors live (M17c, M19f, CR-013 were all found in grammar behaviour).
+
+### 10.2 M27a: content layering and a standard library bundle (Sonnet, size M)
+- The manifest may name one base bundle (`base`: id plus content hash). Loading merges by id in a fixed
+  order: base first, then the overlay; an overlay item with the same id replaces the base item whole
+  (no deep merge); an overlay can remove a base item by id. The merged bundle's content hash covers the
+  base hash and the overlay's files, so replays still name the exact content.
+- `content/std-v1`: the generic material (greet, farewell, thank, confirm, deny, introduce_self,
+  ask_price, buy/sell/offer item patterns where they are not world-specific; yes/no, greetings,
+  farewells and introductions answer sets; feedback policy, evaluation settings; generic reply pools).
+  `content/v1` becomes an overlay on it with byte-identical evaluation results (goldens unchanged).
+- Shipped as part of the content package so a host references it instead of copying it; validator,
+  `vocaterra-content validate/hash/cefr-check` understand layered bundles; provenance lists both.
+- The game adopts it in its own repository (its decision); the core only documents the route in
+  `docs/API.md` and answers through `CORE_REQUESTS.md`.
+
+### 10.3 M27b: pattern suggestion from examples (Sonnet, size M)
+- `vocaterra-content suggest --intent <id>`: runs each example sentence through the analyzer, keeps
+  closed-class words literal, abstracts open-class words to `[POS]` or `[POS:lemma]` and the nouns
+  that vary across examples to `[NOUN:slot]`, merges examples that share a skeleton (optional
+  elements become `?`), and writes candidate `slotGrammars` and `keywordRules` to a suggestions file
+  for review. It never edits content in place. Deterministic (ordinal order, no randomness).
+- The same tool reports coverage: which examples each candidate matches, examples of other intents it
+  also matches (confusion), and examples no grammar covers. The coverage check also runs in
+  `validate` as a warning, so a hand-edited grammar that stops matching its own examples is caught.
+- Success measure: on the sample's 11 intents, suggestions from the existing examples alone cover
+  every example with no cross-intent confusion, and reviewing them takes less effort than writing
+  them (judged by the owner on one new intent).
+
+### 10.4 Later candidates (not scheduled)
+- Answer sets and item replies generated from a noun catalogue plus the lexicon (plurals, articles).
+- Reusable character templates (shopkeeper, guide) as parameterised state machines.
+- Intents from examples alone via the embedding tier (blocked on the embedding model export; D9).
+- Drafting reply variants and examples with an LLM at authoring time, reviewed and committed (touches
+  D8 and D11 only for authoring).
 
