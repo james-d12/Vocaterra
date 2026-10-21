@@ -95,9 +95,10 @@ public static class PipelineGen
         }
 
         var blacksmith = harness.Bundle.Agents["blacksmith"].Definition;
+        var states = blacksmith.States.Select(static s => s.Id).ToArray();
         var known = rng.NextInt(5) != 0;
         var agentId = known ? blacksmith.AgentId : "nobody";
-        var state = known ? rng.Pick(blacksmith.States.Select(static s => s.Id).ToArray()) : "idle";
+        var state = known ? rng.Pick(states) : "idle";
         var skills = SkillPool.Where(_ => rng.NextInt(3) == 0)
             .Select(skill => new SkillMastery(skill, Math.Round(rng.NextDouble(), 6), 1 + rng.NextInt(9), rng.NextInt(5)))
             .ToArray();
@@ -119,8 +120,24 @@ public static class PipelineGen
             rng.NextInt(3) == 0 ? [.. HostSkillPool.Where(_ => rng.NextInt(3) == 0)] : null,
             rng.NextInt(3) == 0 ? SlotMap.From(HostSlotPool.Where(_ => rng.NextInt(2) == 0).Select(static p => new KeyValuePair<string, string>(p.Name, p.Value))) : null);
 
-        // Drawn last so the draws above keep the values they had before these flags existed.
-        return plan with { TwoPhase = rng.NextInt(2) == 0, HostTurn = rng.NextInt(3) == 0 };
+        // Drawn last so the draws above keep the values they had before these flags existed. A host turn goes to the bundle's blacksmith or to an
+        // agent the bundle does not know, one in two each: with the draw above alone, hostturn:none is one case in fifteen (a mean of 20 in 300 with
+        // a standard deviation of 4.3, so the minimum of 10 is only 2.3 standard deviations below it, which made the suite flaky; README, bugs found
+        // and fixed). The agent is drawn again only for a host turn, after the flags, so nothing drawn before a host turn changes.
+        var twoPhase = rng.NextInt(2) == 0;
+        if (rng.NextInt(3) != 0)
+        {
+            return plan with { TwoPhase = twoPhase };
+        }
+
+        var hostKnown = rng.NextInt(2) == 0;
+        return plan with
+        {
+            TwoPhase = twoPhase,
+            HostTurn = true,
+            AgentId = hostKnown ? blacksmith.AgentId : "nobody",
+            StateId = hostKnown ? rng.Pick(states) : "idle",
+        };
     }
 
     private static (string Transcript, string Source) Transcript(PipelineHarness harness, SeededRng rng, PromptSpec prompt)
