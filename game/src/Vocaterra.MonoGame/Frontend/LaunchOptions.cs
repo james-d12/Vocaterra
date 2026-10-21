@@ -17,6 +17,12 @@ namespace Vocaterra.MonoGame.Frontend;
 /// <c>--say</c> for spoken input without a microphone: the first feeds a WAV file, the second synthesizes the text with Kokoro, and both are
 /// recognized by Vosk and evaluated as spoken input. <c>--typed-credit full|half</c> sets the credit a correct typed use earns (default half,
 /// D-game-6) and <c>--no-speech</c> skips loading Vosk.
+/// <para>
+/// <c>--voxel</c> (S2) runs the 3D first-person scene instead of the 2D slice, on the draft route (or the file of <c>--scene</c>) at <c>--seed</c>.
+/// Its scripted run is <c>--look yaw,pitch</c>, <c>--walk-to x,z</c>, <c>--interact x,y,z</c>, <c>--place item@x,y,z</c> and <c>--select</c> in the
+/// order given, with <c>--beacon &lt;point&gt;</c> standing the beacon column on a named point; <c>--journal</c> and <c>--inventory</c> open those
+/// screens at the end. The guide's options do not apply in 3D until S3 and say so.
+/// </para>
 /// </summary>
 public sealed record LaunchOptions
 {
@@ -58,6 +64,13 @@ public sealed record LaunchOptions
         + "  --grant <noun>:<n>      debug: give the player n of a noun's item, e.g. carbón:20 or madera:10 (a step; needs --screenshot)\n"
         + "  --no-speech             do not load the speech models (typing only)\n"
         + "  --status <listening|thinking> show that status line of the dialogue panel once the script is done, for the screenshot (needs --screenshot)\n"
+        + "  --voxel                 run the 3D first-person scene (S2) instead of the 2D slice; the 2D options that need the guide (--say, --wav, --speak, --listen, --walk, --mine...) do not apply\n"
+        + "  --scene <file>          the scene layout for --voxel (default: game/scene.json in the bundle, else content/scenes/route-draft.json)\n"
+        + "  --look <yaw,pitch>      3D: face this direction in degrees (yaw 0 north, 90 east; pitch positive up); a step (needs --voxel and --screenshot)\n"
+        + "  --walk-to <x,z>         3D: walk to this block column with Move commands, within half a block or until the tick limit (a step)\n"
+        + "  --interact <x,y,z>      3D: hold the gather command on this block until it is gathered or the tick limit (a step; aims the view at it)\n"
+        + "  --place <item>@<x,y,z>  3D: place an item (madera, antorcha, wood...) in this empty cell (a step; with three numbers it is the 3D form)\n"
+        + "  --beacon <point>        3D: stand the beacon column on a named point of the scene (camp, firering, workbench, stall, signpost, village, house1, bridge, river...)\n"
         + "Push-to-talk: hold Tab while the dialogue is open, or hold V next to the guide to open it and listen.\n";
 
     /// <summary>The world seed.</summary>
@@ -113,6 +126,21 @@ public sealed record LaunchOptions
     /// <summary>Whether the run is the scripted screenshot run.</summary>
     public bool IsScreenshotRun => ScreenshotPath is not null;
 
+    /// <summary>Whether <c>--voxel</c> was given: the 3D first-person scene runs instead of the 2D slice.</summary>
+    public bool Voxel { get; init; }
+
+    /// <summary>The scene layout file named by <c>--scene</c>, or <see langword="null"/> to look for the bundle's scene and then the draft route.</summary>
+    public string? SceneFile { get; init; }
+
+    /// <summary>The 3D scripted steps (<c>--look</c>, <c>--walk-to</c>, <c>--interact</c>, <c>--place</c>, <c>--select</c>) in the order given.</summary>
+    public IReadOnlyList<VoxelStep> VoxelSteps { get; init; } = [];
+
+    /// <summary>The named point of the scene the beacon starts on (<c>--beacon</c>), or <see langword="null"/>.</summary>
+    public string? Beacon { get; init; }
+
+    /// <summary>Whether the 3D scripted run opens the inventory screen and keeps it open (<c>--inventory</c>).</summary>
+    public bool ShowInventory { get; init; }
+
     /// <summary>Parses the arguments. On failure <paramref name="error"/> says why (or is empty for <c>--help</c>) and the options are defaults.</summary>
     public static bool TryParse(IReadOnlyList<string> args, out LaunchOptions options, out string error)
     {
@@ -128,6 +156,9 @@ public sealed record LaunchOptions
         string? pointNearest = null;
         var journal = false;
         string? status = null;
+        var voxel = false;
+        var voxelSteps = new List<VoxelStep>();
+        var voxelOnly = new List<string>();
         for (var i = 0; i < args.Count; i++)
         {
             var arg = args[i];
@@ -140,6 +171,12 @@ public sealed record LaunchOptions
             if (arg == "--journal")
             {
                 journal = true;
+                continue;
+            }
+
+            if (arg == "--voxel")
+            {
+                voxel = true;
                 continue;
             }
 
@@ -169,7 +206,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--screenshot" or "--frames" or "--walk-right" or "--say" or "--content" or "--point" or "--point-nearest" or "--skip"
                 or "--walk" or "--mine" or "--place" or "--select" or "--craft" or "--wav" or "--speak" or "--typed-credit" or "--status" or "--listen"
-                or "--teleport" or "--grant"))
+                or "--teleport" or "--grant" or "--scene" or "--look" or "--walk-to" or "--interact" or "--beacon"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -305,13 +342,70 @@ public sealed record LaunchOptions
                     break;
                 case "--place":
                     var at = value.IndexOf('@', StringComparison.Ordinal);
+                    if (at > 0 && VoxelStep.TryParseBlock(value[(at + 1)..], out var placeX, out var placeY, out var placeZ))
+                    {
+                        voxelSteps.Add(VoxelStep.Place(value[..at].Trim(), placeX, placeY, placeZ));
+                        voxelOnly.Add(arg);
+                        break;
+                    }
+
                     if (at <= 0 || !TryParseTile(value[(at + 1)..], out var placeTile))
                     {
-                        error = $"--place needs an item and a tile, like madera@517,182; got '{value}'.";
+                        error = $"--place needs an item and a tile, like madera@517,182 (2D), or a block, like madera@20,11,19 (3D); got '{value}'.";
                         return false;
                     }
 
                     steps.Add(ScriptStep.Place(value[..at].Trim(), placeTile));
+                    break;
+                case "--scene":
+                    if (value.Length == 0)
+                    {
+                        error = "--scene needs a layout file.";
+                        return false;
+                    }
+
+                    result = result with { SceneFile = value };
+                    voxelOnly.Add(arg);
+                    break;
+                case "--beacon":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = "--beacon needs the name of a point of the scene, like river.";
+                        return false;
+                    }
+
+                    result = result with { Beacon = value.Trim() };
+                    voxelOnly.Add(arg);
+                    break;
+                case "--look":
+                    if (!LookControl.TryParseDegrees(value, out var lookYaw, out var lookPitch))
+                    {
+                        error = $"--look needs a yaw and a pitch in degrees, like 120,-5 (the pitch within 89); got '{value}'.";
+                        return false;
+                    }
+
+                    voxelSteps.Add(VoxelStep.Look(lookYaw, lookPitch));
+                    voxelOnly.Add(arg);
+                    break;
+                case "--walk-to":
+                    if (!VoxelStep.TryParseColumn(value, out var walkX, out var walkZ))
+                    {
+                        error = $"--walk-to needs a block column and row, like 60,52; got '{value}'.";
+                        return false;
+                    }
+
+                    voxelSteps.Add(VoxelStep.WalkTo(walkX, walkZ));
+                    voxelOnly.Add(arg);
+                    break;
+                case "--interact":
+                    if (!VoxelStep.TryParseBlock(value, out var interactX, out var interactY, out var interactZ))
+                    {
+                        error = $"--interact needs a block, like 20,11,19; got '{value}'.";
+                        return false;
+                    }
+
+                    voxelSteps.Add(VoxelStep.Interact(interactX, interactY, interactZ));
+                    voxelOnly.Add(arg);
                     break;
                 case "--craft":
                     if (value.Trim().Length == 0)
@@ -330,6 +424,7 @@ public sealed record LaunchOptions
                     }
 
                     steps.Add(ScriptStep.Select(slot));
+                    voxelSteps.Add(VoxelStep.Select(slot));
                     break;
                 case "--point":
                     if (!TryParseTile(value, out var tile))
@@ -381,10 +476,32 @@ public sealed record LaunchOptions
             }
         }
 
-        if (screenshot is null && (framesGiven || walkGiven || steps.Count > 0 || point is not null || pointNearest is not null || journal || status is not null))
+        if (screenshot is null && (framesGiven || walkGiven || steps.Count > 0 || voxelSteps.Count > 0 || point is not null || pointNearest is not null || journal || status is not null))
         {
-            error = "--frames, --walk-right, --say, --wav, --speak, --skip, --talk, --point, --point-nearest and --journal need --screenshot.";
+            error = "--frames, --walk-right, --say, --wav, --speak, --skip, --talk, --point, --point-nearest, --journal, --look, --walk-to, --interact and --place need --screenshot.";
             return false;
+        }
+
+        if (!voxel && voxelOnly.Count > 0)
+        {
+            error = $"{string.Join(", ", voxelOnly.Distinct())} work only with --voxel.";
+            return false;
+        }
+
+        var showInventory = false;
+        if (voxel)
+        {
+            // The guide, the 2D world and the 2D tools are not part of the 3D scene yet (S3 and S4); say so instead of ignoring the option.
+            var unsupported = steps.Where(static s => s.Kind is not (ScriptStepKind.Select or ScriptStepKind.Inventory)).Select(static s => s.Kind.ToString()).Distinct().ToList();
+            if (unsupported.Count > 0 || walkGiven || point is not null || pointNearest is not null || status is not null)
+            {
+                error = "With --voxel the guide, the dialogue and the 2D world are not available yet (S3): --say, --wav, --speak, --listen, --skip, --talk, --walk, --mine, --craft, --crafting, --teleport, --grant, --walk-right, --point, --point-nearest and --status do not apply.";
+                return false;
+            }
+
+            showInventory = steps.Any(static s => s.Kind == ScriptStepKind.Inventory);
+            steps = [];
+            says = [];
         }
 
         if (point is not null && pointNearest is not null)
@@ -399,6 +516,9 @@ public sealed record LaunchOptions
             Says = says,
             Steps = steps,
             Frames = steps.Count > 0 && !framesGiven ? DefaultSayFrames : result.Frames,
+            Voxel = voxel,
+            VoxelSteps = voxel ? voxelSteps : [],
+            ShowInventory = showInventory,
             Point = point,
             PointNearest = pointNearest,
             Journal = journal,

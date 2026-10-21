@@ -25,7 +25,7 @@ Design Brief, v1.2); its plan, milestone by milestone, is [docs/SCENARIO_PLAN.md
 - **The transfer moment.** After the objective, one phrase is revisited without the original prompt, or with a different NPC or context.
 
 These are the brief's five target phrases. Nothing in the scenario ends by a language mistake: no death, no timers, no language gate. The run
-lines for the 3D build will be added to this README as S2 onward land; the 2D run lines below are the 2D slice (P1 to P7), retired at S4.
+lines for the 3D build are in "3D (S2)" below and grow as S3 onward land; the 2D run lines after them are the 2D slice (P1 to P7), retired at S4.
 
 ## Layout
 
@@ -86,6 +86,35 @@ The host makes these calls of the core's API, in order, on the packages (the det
 for each typed line; `ConversationContext.Create` for the utterance's context and `ConversationContext.Next` after it, which applies the core's
 `RepeatCounts.Next` to the error tags. The host owns the world seed, the stored time (fixed for `--transcript`, the clock in the loop),
 the learner model and the repeat counts.
+
+## 3D (S2)
+
+The first-person voxel front-end runs beside the 2D slice (which stays the default until S4): add `--voxel`. It builds the draft route
+(`content/scenes/route-draft.json`, a 96 x 32 x 96 block world: the camp clearing, the path, the village with its stall and houses, the river
+and the bridge) at `--seed` (default 42) and shows it from the player's eyes.
+
+```bash
+dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42
+```
+
+WASD or the arrows walk, Space jumps, the mouse looks (Esc lets the mouse go, a click takes it back), **hold the left button** on a trunk or a
+berry bush to gather it (`madera`, a berry), the right button places the selected item, `1`..`0` or the wheel pick the hotbar slot, **I** or **E**
+the inventory, **J** the journal, **F3** the debug overlay. The guide's dialogue and the crafting panel are not wired in 3D yet (S3, S4); the
+2D options that need the guide (`--say`, `--speak`, `--walk`, `--mine`...) say so instead of running.
+
+To check it without playing, script it and save a screenshot (needs a display; every line below also prints what the step did):
+
+```bash
+# the clearing from the player's eyes at spawn: the camp, the guide's figure and label, the beacon on the river (an arrow at the edge when it is off screen)
+dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42 --look 120,-5 --beacon river --screenshot /tmp/s2-camp.png --frames 240
+# walk to the village (60, 52) and look south: the stall and the shopkeeper's label
+dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42 --walk-to 60,52 --look 180,-10 --screenshot /tmp/s2-village.png --frames 240
+# walk to a tree, gather its four trunk blocks and look down: the trunk is gone and madera is in the hotbar
+dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42 --walk-to 11,17 --interact 9,11,17 --interact 9,12,17 --interact 9,13,17 --interact 9,14,17 --look 270,-45 --screenshot /tmp/s2-gather.png
+```
+
+The steps `--look yaw,pitch` (degrees, yaw 0 north and 90 east), `--walk-to x,z`, `--interact x,y,z`, `--place item@x,y,z` and `--select n` run in the
+order given; `--beacon <point>` stands the beacon column on a named point of the scene. Details are in `src/Vocaterra.MonoGame/README.md`.
 
 ## The guide, typed
 

@@ -24,8 +24,7 @@ public sealed class HotbarLayer : IFrameLayer
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
     {
-        var inventory = view.Simulation.Inventory;
-        var words = view.Session.Words;
+        var inventory = view.Items;
         var pixel = view.Pixel;
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var viewport = new Rectangle(0, 0, view.Camera.ViewportWidth, view.Camera.ViewportHeight);
@@ -36,13 +35,13 @@ public sealed class HotbarLayer : IFrameLayer
         {
             var box = new Rectangle(left + (i * (SlotSize + Gap)), top, SlotSize, SlotSize);
             spriteBatch.Draw(pixel, box, Back);
-            var selected = i == view.Simulation.SelectedSlot;
+            var selected = i == view.SelectedSlot;
             DrawHelpers.Border(spriteBatch, pixel, box, selected ? 3 : 1, selected ? Gold : Frame);
             var stack = inventory.Slots[i];
             if (!stack.IsEmpty)
             {
                 var icon = new Rectangle(box.X + 6, box.Y + 6, SlotSize - 12, SlotSize - 12);
-                view.Atlas.DrawIcon(spriteBatch, stack.Item, icon, words.SaturationOf(stack.Item));
+                view.DrawIcon(spriteBatch, stack.Item, icon);
                 if (CountBadge.Text(stack.Count, showOne: false) is { } text)
                 {
                     DrawHelpers.Badge(spriteBatch, pixel, font, text, new Point(box.Right - 2, box.Bottom - 2));

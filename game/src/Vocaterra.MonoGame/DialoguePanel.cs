@@ -84,7 +84,7 @@ public sealed class DialoguePanel : IFrameLayer
         var caretX = DrawHelpers.Width(font, visible[..caretOffset]);
         DrawHelpers.Text(spriteBatch, font, prompt, origin, PlayerColor);
         DrawHelpers.Text(spriteBatch, font, visible, origin + new Vector2(promptWidth, 0), Color.White);
-        if ((view.Simulation.Tick / 30) % 2 == 0)
+        if ((view.Tick / 30) % 2 == 0)
         {
             spriteBatch.Draw(pixel, new Rectangle((int)(origin.X + promptWidth + caretX), inputBox.Top + 4, 2, 20), Color.White);
         }
@@ -107,7 +107,7 @@ public sealed class DialoguePanel : IFrameLayer
         }
 
         var x = box.Right - 10 - DrawHelpers.Width(font, text);
-        if (dialogue.Listening && (view.Simulation.Tick / 15) % 2 == 0)
+        if (dialogue.Listening && (view.Tick / 15) % 2 == 0)
         {
             spriteBatch.Draw(view.Pixel, new Rectangle((int)x - 16, box.Top + 10, 8, 8), new Color(255, 70, 70));
         }
