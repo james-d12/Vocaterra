@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Spanish grapheme-to-phoneme conversion, dialect configuration, syllabification and phone mapping for the Vocaterra.NLP language core.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data/exceptions.json" LogicalName="Vocaterra.Nlp.Phonology.Data.exceptions.json" />
+  </ItemGroup>
+
+</Project>

@@ -3,12 +3,9 @@ bin/
 obj/
 TestResults/
 
-# Packages from the core's local feed are restored, never committed. The core is the submodule external/Vocaterra.NLP, whose own
-# .gitignore ignores its artifacts/ (the local feed) and build output; this entry covers an artifacts/ folder at this repository's root.
+# Packages and bundle archives written by nlp/scripts/pack.sh and sample-host.sh are rebuilt, never committed (nlp/.gitignore covers
+# nlp/artifacts/); this entry covers an artifacts/ folder anywhere else.
 artifacts/
-
-# The core's content tool, installed from the feed by scripts/content.sh (never committed)
-.tools/
 
 # IDE / user-specific
 .vs/
@@ -20,7 +17,10 @@ artifacts/
 .DS_Store
 Thumbs.db
 
-# Claude Code: agent worktrees and gate logs are local
+# LibreOffice lock files
+.~lock.*#
+
+# Claude Code: agent worktrees and gate logs are local; agents/ is committed
 .claude/worktrees/
 .claude/gate-logs/
 .claude/settings.local.json

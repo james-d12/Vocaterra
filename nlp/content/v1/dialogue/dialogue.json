@@ -1,0 +1,180 @@
+{
+  "pools": {
+    "answer_accepted": {
+      "poolId": "answer_accepted",
+      "variants": [
+        { "lineId": "answer_accepted.1", "text": "¡Correcto!" },
+        { "lineId": "answer_accepted.2", "text": "¡Muy bien!" },
+        { "lineId": "answer_accepted.3", "text": "¡Exacto!" }
+      ]
+    },
+    "ask_price_reply": {
+      "poolId": "ask_price_reply",
+      "variants": [
+        { "lineId": "ask_price_reply.1", "text": "{item:article(def):cap} cuesta diez monedas de oro." },
+        { "lineId": "ask_price_reply.2", "text": "Por {item:article(def)} pido diez monedas." },
+        { "lineId": "ask_price_reply.3", "text": "Son diez monedas por {item:article(def)}." }
+      ]
+    },
+    "buy_item_reply": {
+      "poolId": "buy_item_reply",
+      "variants": [
+        { "lineId": "buy_item_reply.1", "text": "Claro, aquí tienes {item:article(indef)}." },
+        { "lineId": "buy_item_reply.2", "text": "{item:article(def):cap} es una buena elección." },
+        { "lineId": "buy_item_reply.3", "text": "Muy bien. Aquí tienes {item:article(indef)}, amigo." }
+      ]
+    },
+    "cast_spell_reply": {
+      "poolId": "cast_spell_reply",
+      "variants": [
+        { "lineId": "cast_spell_reply.1", "text": "¡Cuidado con {spell:article(def)} en mi herrería!" },
+        { "lineId": "cast_spell_reply.2", "text": "¡Qué poder! {spell:article(def):cap} es impresionante." },
+        { "lineId": "cast_spell_reply.3", "text": "¡Ten cuidado, mago! No quiero problemas con {spell:article(def)}." }
+      ]
+    },
+    "confirm_prompt": {
+      "poolId": "confirm_prompt",
+      "variants": [
+        { "lineId": "confirm_prompt.1", "text": "¿Quieres comprar {item:article(def)} por diez monedas?" },
+        { "lineId": "confirm_prompt.2", "text": "Son diez monedas por {item:article(def)}. ¿Vale?" },
+        { "lineId": "confirm_prompt.3", "text": "{item:article(def):cap} vale diez monedas. ¿Lo compras?" }
+      ]
+    },
+    "confirm_reply": {
+      "poolId": "confirm_reply",
+      "variants": [
+        { "lineId": "confirm_reply.1", "text": "¡Muy bien! Vale." },
+        { "lineId": "confirm_reply.2", "text": "¡Muy bien, amigo!" },
+        { "lineId": "confirm_reply.3", "text": "¡Vale, claro! Gracias." }
+      ]
+    },
+    "deny_reply": {
+      "poolId": "deny_reply",
+      "variants": [
+        { "lineId": "deny_reply.1", "text": "No hay problema. ¿Quieres otra cosa?" },
+        { "lineId": "deny_reply.2", "text": "Vale. ¿Quieres otra cosa?" },
+        { "lineId": "deny_reply.3", "text": "Está bien. ¡Hasta otra vez!" }
+      ]
+    },
+    "farewell_reply": {
+      "poolId": "farewell_reply",
+      "variants": [
+        { "lineId": "farewell_reply.1", "text": "¡Adiós, amigo! Hasta luego." },
+        { "lineId": "farewell_reply.2", "text": "Hasta luego. ¡Buen día!" },
+        { "lineId": "farewell_reply.3", "text": "¡Nos vemos, amigo!" }
+      ]
+    },
+    "feedback.explicit_correction": {
+      "poolId": "feedback.explicit_correction",
+      "variants": [
+        { "lineId": "feedback.explicit_correction.1", "text": "Se dice «{expected}», no «{actual}»." },
+        { "lineId": "feedback.explicit_correction.2", "text": "Mejor así: «{expected}»." }
+      ]
+    },
+    "feedback.hint": {
+      "poolId": "feedback.hint",
+      "variants": [
+        { "lineId": "feedback.hint.1", "text": "Casi. Piensa otra vez en esa palabra." },
+        { "lineId": "feedback.hint.2", "text": "Mmm, ¿seguro? Inténtalo de nuevo." }
+      ]
+    },
+    "feedback.hint.gender.agree": {
+      "poolId": "feedback.hint.gender.agree",
+      "variants": [
+        { "lineId": "feedback.hint.gender.agree.1", "text": "Cuidado con el género de la palabra." },
+        { "lineId": "feedback.hint.gender.agree.2", "text": "Piensa en el género: ¿{actual}?" }
+      ]
+    },
+    "feedback.model_pronunciation": {
+      "poolId": "feedback.model_pronunciation",
+      "variants": [
+        { "lineId": "feedback.model_pronunciation.1", "text": "Escucha: {expected}. Ahora tú." },
+        { "lineId": "feedback.model_pronunciation.2", "text": "Repite conmigo: {expected}." }
+      ]
+    },
+    "feedback.recast": {
+      "poolId": "feedback.recast",
+      "variants": [
+        { "lineId": "feedback.recast.1", "text": "Ah, {recast}. ¡Perfecto!" },
+        { "lineId": "feedback.recast.2", "text": "Claro, {recast}. Muy bien." },
+        { "lineId": "feedback.recast.3", "text": "¡Eso es! {recast:cap}." }
+      ]
+    },
+    "feedback.recast.conj.person": {
+      "poolId": "feedback.recast.conj.person",
+      "variants": [
+        { "lineId": "feedback.recast.conj.person.1", "text": "¿{verb:conj(2,sg,pres):cap} {qty:words(item)} {item:plural-if(qty)}? ¡Perfecto!" },
+        { "lineId": "feedback.recast.conj.person.2", "text": "Ah, ¿{verb:conj(2,sg,pres)} {qty:words(item)} {item:plural-if(qty)}? ¡Muy bien!" }
+      ]
+    },
+    "feedback.slow_repeat": {
+      "poolId": "feedback.slow_repeat",
+      "variants": [
+        { "lineId": "feedback.slow_repeat.1", "text": "Más despacio, por favor: {expected}." },
+        { "lineId": "feedback.slow_repeat.2", "text": "Otra vez, despacio: {expected}." }
+      ]
+    },
+    "greet_again": {
+      "poolId": "greet_again",
+      "variants": [
+        { "lineId": "greet_again.1", "text": "¡Otra vez por aquí! ¿Necesitas algo más?" },
+        { "lineId": "greet_again.2", "text": "Hola de nuevo. ¿Qué quieres hoy?" }
+      ]
+    },
+    "greet_reply": {
+      "poolId": "greet_reply",
+      "variants": [
+        { "lineId": "greet_reply.1", "text": "¡Bienvenido a la herrería!" },
+        { "lineId": "greet_reply.2", "text": "¡Hola, amigo! ¿Qué necesitas hoy?" },
+        { "lineId": "greet_reply.3", "text": "Buenos días. ¿En qué puedo ayudarte?" }
+      ]
+    },
+    "introduce_reply": {
+      "poolId": "introduce_reply",
+      "variants": [
+        { "lineId": "introduce_reply.1", "text": "¡Hola, {name:cap}! Bienvenido a la herrería." },
+        { "lineId": "introduce_reply.2", "text": "Hola, {name:cap}. ¿Qué necesitas hoy?" },
+        { "lineId": "introduce_reply.3", "text": "Mucho gusto, {name:cap}. ¿En qué puedo ayudarte?" }
+      ]
+    },
+    "not_understood": {
+      "poolId": "not_understood",
+      "variants": [
+        { "lineId": "not_understood.1", "text": "No te entiendo. ¿Puedes repetir?" },
+        { "lineId": "not_understood.2", "text": "Perdón, ¿qué dices?" },
+        { "lineId": "not_understood.3", "text": "¿Cómo? Habla más despacio, por favor." }
+      ]
+    },
+    "offer_item_reply": {
+      "poolId": "offer_item_reply",
+      "variants": [
+        { "lineId": "offer_item_reply.1", "text": "¡{qty:words(item):cap} {item:plural-if(qty)}! Trato hecho." },
+        { "lineId": "offer_item_reply.2", "text": "Vale, {qty:words(item)} {item:plural-if(qty)}. Gracias, amigo." },
+        { "lineId": "offer_item_reply.3", "text": "Muy bien: {qty:words(item)} {item:plural-if(qty)}. Aquí tienes tu dinero." }
+      ]
+    },
+    "sell_item_reply": {
+      "poolId": "sell_item_reply",
+      "variants": [
+        { "lineId": "sell_item_reply.1", "text": "Veo {item:article(indef)}. Te doy un buen precio." },
+        { "lineId": "sell_item_reply.2", "text": "Mmm, {item:article(def)}... Te doy diez monedas." },
+        { "lineId": "sell_item_reply.3", "text": "Claro, compro {item:article(def)}. Aquí tienes tu dinero." }
+      ]
+    },
+    "thank_reply": {
+      "poolId": "thank_reply",
+      "variants": [
+        { "lineId": "thank_reply.1", "text": "¡De nada, amigo!" },
+        { "lineId": "thank_reply.2", "text": "¡Gracias, amigo! ¡Buen día!" },
+        { "lineId": "thank_reply.3", "text": "No hay de qué. ¡Hasta luego!" }
+      ]
+    },
+    "trade_done": {
+      "poolId": "trade_done",
+      "variants": [
+        { "lineId": "trade_done.1", "text": "El trato está hecho. ¡Hasta luego!" },
+        { "lineId": "trade_done.2", "text": "Gracias por venir. ¡Vuelve pronto!" }
+      ]
+    }
+  }
+}

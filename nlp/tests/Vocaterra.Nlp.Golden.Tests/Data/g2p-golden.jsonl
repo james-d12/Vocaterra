@@ -1,0 +1,1788 @@
+{"text": "hola", "dialect": "la", "ipa": "ˈo.la"}
+{"text": "hola", "dialect": "es", "ipa": "ˈo.la"}
+{"text": "buenos días", "dialect": "la", "ipa": "ˈbwe.noz ˈði.as"}
+{"text": "buenos días", "dialect": "es", "ipa": "ˈbwe.noz ˈði.as"}
+{"text": "buenas tardes", "dialect": "la", "ipa": "ˈbwe.nas ˈtaɾ.ðes"}
+{"text": "buenas tardes", "dialect": "es", "ipa": "ˈbwe.nas ˈtaɾ.ðes"}
+{"text": "buenas noches", "dialect": "la", "ipa": "ˈbwe.naz ˈno.tʃes"}
+{"text": "buenas noches", "dialect": "es", "ipa": "ˈbwe.naz ˈno.tʃes"}
+{"text": "adiós", "dialect": "la", "ipa": "a.ˈðjos"}
+{"text": "adiós", "dialect": "es", "ipa": "a.ˈðjos"}
+{"text": "hasta luego", "dialect": "la", "ipa": "ˈas.ta ˈlwe.ɣo"}
+{"text": "hasta luego", "dialect": "es", "ipa": "ˈas.ta ˈlwe.ɣo"}
+{"text": "hasta mañana", "dialect": "la", "ipa": "ˈas.ta ma.ˈɲa.na"}
+{"text": "hasta mañana", "dialect": "es", "ipa": "ˈas.ta ma.ˈɲa.na"}
+{"text": "por favor", "dialect": "la", "ipa": "ˈpoɾ fa.ˈβoɾ"}
+{"text": "por favor", "dialect": "es", "ipa": "ˈpoɾ fa.ˈβoɾ"}
+{"text": "muchas gracias", "dialect": "la", "ipa": "ˈmu.tʃaz ˈɣɾa.sjas"}
+{"text": "muchas gracias", "dialect": "es", "ipa": "ˈmu.tʃaz ˈɣɾa.θjas"}
+{"text": "de nada", "dialect": "la", "ipa": "ˈde ˈna.ða"}
+{"text": "de nada", "dialect": "es", "ipa": "ˈde ˈna.ða"}
+{"text": "¿Cómo estás?", "dialect": "la", "ipa": "ˈko.mo es.ˈtas"}
+{"text": "¿Cómo estás?", "dialect": "es", "ipa": "ˈko.mo es.ˈtas"}
+{"text": "¿Cómo te llamas?", "dialect": "la", "ipa": "ˈko.mo ˈte ˈʝa.mas"}
+{"text": "¿Cómo te llamas?", "dialect": "es", "ipa": "ˈko.mo ˈte ˈʝa.mas"}
+{"text": "Me llamo Juan.", "dialect": "la", "ipa": "ˈme ˈʝa.mo ˈxwan"}
+{"text": "Me llamo Juan.", "dialect": "es", "ipa": "ˈme ˈʝa.mo ˈxwan"}
+{"text": "mucho gusto", "dialect": "la", "ipa": "ˈmu.tʃo ˈɣus.to"}
+{"text": "mucho gusto", "dialect": "es", "ipa": "ˈmu.tʃo ˈɣus.to"}
+{"text": "encantado", "dialect": "la", "ipa": "eŋ.kan.ˈta.ðo"}
+{"text": "encantado", "dialect": "es", "ipa": "eŋ.kan.ˈta.ðo"}
+{"text": "con permiso", "dialect": "la", "ipa": "ˈkom peɾ.ˈmi.so"}
+{"text": "con permiso", "dialect": "es", "ipa": "ˈkom peɾ.ˈmi.so"}
+{"text": "perdón", "dialect": "la", "ipa": "peɾ.ˈðon"}
+{"text": "perdón", "dialect": "es", "ipa": "peɾ.ˈðon"}
+{"text": "lo siento", "dialect": "la", "ipa": "ˈlo ˈsjen.to"}
+{"text": "lo siento", "dialect": "es", "ipa": "ˈlo ˈsjen.to"}
+{"text": "no entiendo", "dialect": "la", "ipa": "ˈno en.ˈtjen.do"}
+{"text": "no entiendo", "dialect": "es", "ipa": "ˈno en.ˈtjen.do"}
+{"text": "no sé", "dialect": "la", "ipa": "ˈno ˈse"}
+{"text": "no sé", "dialect": "es", "ipa": "ˈno ˈse"}
+{"text": "¿Qué hora es?", "dialect": "la", "ipa": "ˈke ˈo.ɾa ˈes"}
+{"text": "¿Qué hora es?", "dialect": "es", "ipa": "ˈke ˈo.ɾa ˈes"}
+{"text": "¿Dónde está el baño?", "dialect": "la", "ipa": "ˈdon.de es.ˈta ˈel ˈβa.ɲo"}
+{"text": "¿Dónde está el baño?", "dialect": "es", "ipa": "ˈdon.de es.ˈta ˈel ˈβa.ɲo"}
+{"text": "quiero agua", "dialect": "la", "ipa": "ˈkje.ɾo ˈa.ɣwa"}
+{"text": "quiero agua", "dialect": "es", "ipa": "ˈkje.ɾo ˈa.ɣwa"}
+{"text": "una cerveza por favor", "dialect": "la", "ipa": "ˈu.na seɾ.ˈβe.sa ˈpoɾ fa.ˈβoɾ"}
+{"text": "una cerveza por favor", "dialect": "es", "ipa": "ˈu.na θeɾ.ˈβe.θa ˈpoɾ fa.ˈβoɾ"}
+{"text": "dos cervezas", "dialect": "la", "ipa": "ˈdos seɾ.ˈβe.sas"}
+{"text": "dos cervezas", "dialect": "es", "ipa": "ˈdos θeɾ.ˈβe.θas"}
+{"text": "la cuenta por favor", "dialect": "la", "ipa": "ˈla ˈkwen.ta ˈpoɾ fa.ˈβoɾ"}
+{"text": "la cuenta por favor", "dialect": "es", "ipa": "ˈla ˈkwen.ta ˈpoɾ fa.ˈβoɾ"}
+{"text": "un café con leche", "dialect": "la", "ipa": "ˈuŋ ka.ˈfe ˈkon ˈle.tʃe"}
+{"text": "un café con leche", "dialect": "es", "ipa": "ˈuŋ ka.ˈfe ˈkon ˈle.tʃe"}
+{"text": "un momento", "dialect": "la", "ipa": "ˈum mo.ˈmen.to"}
+{"text": "un momento", "dialect": "es", "ipa": "ˈum mo.ˈmen.to"}
+{"text": "mi casa es tu casa", "dialect": "la", "ipa": "ˈmi ˈka.sa ˈes ˈtu ˈka.sa"}
+{"text": "mi casa es tu casa", "dialect": "es", "ipa": "ˈmi ˈka.sa ˈes ˈtu ˈka.sa"}
+{"text": "yo no hablo español", "dialect": "la", "ipa": "ˈʝo ˈno ˈa.βlo es.pa.ˈɲol"}
+{"text": "yo no hablo español", "dialect": "es", "ipa": "ˈʝo ˈno ˈa.βlo es.pa.ˈɲol"}
+{"text": "el perro come", "dialect": "la", "ipa": "ˈel ˈpe.ro ˈko.me"}
+{"text": "el perro come", "dialect": "es", "ipa": "ˈel ˈpe.ro ˈko.me"}
+{"text": "la casa grande", "dialect": "la", "ipa": "ˈla ˈka.sa ˈɣɾan.de"}
+{"text": "la casa grande", "dialect": "es", "ipa": "ˈla ˈka.sa ˈɣɾan.de"}
+{"text": "dame un vaso de agua", "dialect": "la", "ipa": "ˈda.me ˈum ˈba.so ˈðe ˈa.ɣwa"}
+{"text": "dame un vaso de agua", "dialect": "es", "ipa": "ˈda.me ˈum ˈba.so ˈðe ˈa.ɣwa"}
+{"text": "voy a la playa", "dialect": "la", "ipa": "ˈboj ˈa ˈla ˈpla.ʝa"}
+{"text": "voy a la playa", "dialect": "es", "ipa": "ˈboj ˈa ˈla ˈpla.ʝa"}
+{"text": "me gusta el café", "dialect": "la", "ipa": "ˈme ˈɣus.ta ˈel ka.ˈfe"}
+{"text": "me gusta el café", "dialect": "es", "ipa": "ˈme ˈɣus.ta ˈel ka.ˈfe"}
+{"text": "no tengo dinero", "dialect": "la", "ipa": "ˈno ˈteŋ.go ði.ˈne.ɾo"}
+{"text": "no tengo dinero", "dialect": "es", "ipa": "ˈno ˈteŋ.go ði.ˈne.ɾo"}
+{"text": "el hombre y la mujer", "dialect": "la", "ipa": "ˈel ˈom.bɾe ˈi ˈla mu.ˈxeɾ"}
+{"text": "el hombre y la mujer", "dialect": "es", "ipa": "ˈel ˈom.bɾe ˈi ˈla mu.ˈxeɾ"}
+{"text": "tengo hambre", "dialect": "la", "ipa": "ˈteŋ.go ˈam.bɾe"}
+{"text": "tengo hambre", "dialect": "es", "ipa": "ˈteŋ.go ˈam.bɾe"}
+{"text": "tengo sed", "dialect": "la", "ipa": "ˈteŋ.go ˈseð"}
+{"text": "tengo sed", "dialect": "es", "ipa": "ˈteŋ.go ˈseð"}
+{"text": "tengo sueño", "dialect": "la", "ipa": "ˈteŋ.go ˈswe.ɲo"}
+{"text": "tengo sueño", "dialect": "es", "ipa": "ˈteŋ.go ˈswe.ɲo"}
+{"text": "los dedos", "dialect": "la", "ipa": "ˈloz ˈðe.ðos"}
+{"text": "los dedos", "dialect": "es", "ipa": "ˈloz ˈðe.ðos"}
+{"text": "el dedo", "dialect": "la", "ipa": "ˈel ˈde.ðo"}
+{"text": "el dedo", "dialect": "es", "ipa": "ˈel ˈde.ðo"}
+{"text": "las niñas", "dialect": "la", "ipa": "ˈlaz ˈni.ɲas"}
+{"text": "las niñas", "dialect": "es", "ipa": "ˈlaz ˈni.ɲas"}
+{"text": "los vasos", "dialect": "la", "ipa": "ˈloz ˈβa.sos"}
+{"text": "los vasos", "dialect": "es", "ipa": "ˈloz ˈβa.sos"}
+{"text": "más bien", "dialect": "la", "ipa": "ˈmaz ˈβjen"}
+{"text": "más bien", "dialect": "es", "ipa": "ˈmaz ˈβjen"}
+{"text": "en bicicleta", "dialect": "la", "ipa": "ˈem bi.si.ˈkle.ta"}
+{"text": "en bicicleta", "dialect": "es", "ipa": "ˈem bi.θi.ˈkle.ta"}
+{"text": "con gusto", "dialect": "la", "ipa": "ˈkoŋ ˈgus.to"}
+{"text": "con gusto", "dialect": "es", "ipa": "ˈkoŋ ˈgus.to"}
+{"text": "un gato", "dialect": "la", "ipa": "ˈuŋ ˈga.to"}
+{"text": "un gato", "dialect": "es", "ipa": "ˈuŋ ˈga.to"}
+{"text": "sin ganas", "dialect": "la", "ipa": "ˈsiŋ ˈga.nas"}
+{"text": "sin ganas", "dialect": "es", "ipa": "ˈsiŋ ˈga.nas"}
+{"text": "en Japón", "dialect": "la", "ipa": "ˈeŋ xa.ˈpon"}
+{"text": "en Japón", "dialect": "es", "ipa": "ˈeŋ xa.ˈpon"}
+{"text": "un kilo", "dialect": "la", "ipa": "ˈuŋ ˈki.lo"}
+{"text": "un kilo", "dialect": "es", "ipa": "ˈuŋ ˈki.lo"}
+{"text": "la bodega", "dialect": "la", "ipa": "ˈla βo.ˈðe.ɣa"}
+{"text": "la bodega", "dialect": "es", "ipa": "ˈla βo.ˈðe.ɣa"}
+{"text": "un beso", "dialect": "la", "ipa": "ˈum ˈbe.so"}
+{"text": "un beso", "dialect": "es", "ipa": "ˈum ˈbe.so"}
+{"text": "la verdad", "dialect": "la", "ipa": "ˈla βeɾ.ˈðað"}
+{"text": "la verdad", "dialect": "es", "ipa": "ˈla βeɾ.ˈðað"}
+{"text": "una vez", "dialect": "la", "ipa": "ˈu.na ˈβes"}
+{"text": "una vez", "dialect": "es", "ipa": "ˈu.na ˈβeθ"}
+{"text": "en Bolivia", "dialect": "la", "ipa": "ˈem bo.ˈli.βja"}
+{"text": "en Bolivia", "dialect": "es", "ipa": "ˈem bo.ˈli.βja"}
+{"text": "el dinero", "dialect": "la", "ipa": "ˈel di.ˈne.ɾo"}
+{"text": "el dinero", "dialect": "es", "ipa": "ˈel di.ˈne.ɾo"}
+{"text": "Estados Unidos", "dialect": "la", "ipa": "es.ˈta.ðos u.ˈni.ðos"}
+{"text": "Estados Unidos", "dialect": "es", "ipa": "es.ˈta.ðos u.ˈni.ðos"}
+{"text": "¿Dónde está la biblioteca?", "dialect": "la", "ipa": "ˈdon.de es.ˈta ˈla βi.βljo.ˈte.ka"}
+{"text": "¿Dónde está la biblioteca?", "dialect": "es", "ipa": "ˈdon.de es.ˈta ˈla βi.βljo.ˈte.ka"}
+{"text": "nos vemos mañana", "dialect": "la", "ipa": "ˈnoz ˈβe.moz ma.ˈɲa.na"}
+{"text": "nos vemos mañana", "dialect": "es", "ipa": "ˈnoz ˈβe.moz ma.ˈɲa.na"}
+{"text": "hasta pronto", "dialect": "la", "ipa": "ˈas.ta ˈpɾon.to"}
+{"text": "hasta pronto", "dialect": "es", "ipa": "ˈas.ta ˈpɾon.to"}
+{"text": "que tengas un buen día", "dialect": "la", "ipa": "ˈke ˈteŋ.gas ˈum ˈbwen ˈdi.a"}
+{"text": "que tengas un buen día", "dialect": "es", "ipa": "ˈke ˈteŋ.gas ˈum ˈbwen ˈdi.a"}
+{"text": "cuánto cuesta", "dialect": "la", "ipa": "ˈkwan.to ˈkwes.ta"}
+{"text": "cuánto cuesta", "dialect": "es", "ipa": "ˈkwan.to ˈkwes.ta"}
+{"text": "tengo una pregunta", "dialect": "la", "ipa": "ˈteŋ.go ˈu.na pɾe.ˈɣun.ta"}
+{"text": "tengo una pregunta", "dialect": "es", "ipa": "ˈteŋ.go ˈu.na pɾe.ˈɣun.ta"}
+{"text": "habla más despacio", "dialect": "la", "ipa": "ˈa.βla ˈmaz ðes.ˈpa.sjo"}
+{"text": "habla más despacio", "dialect": "es", "ipa": "ˈa.βla ˈmaz ðes.ˈpa.θjo"}
+{"text": "repita por favor", "dialect": "la", "ipa": "re.ˈpi.ta ˈpoɾ fa.ˈβoɾ"}
+{"text": "repita por favor", "dialect": "es", "ipa": "re.ˈpi.ta ˈpoɾ fa.ˈβoɾ"}
+{"text": "no hay problema", "dialect": "la", "ipa": "ˈno ˈaj pɾo.ˈβle.ma"}
+{"text": "no hay problema", "dialect": "es", "ipa": "ˈno ˈaj pɾo.ˈβle.ma"}
+{"text": "me duele la cabeza", "dialect": "la", "ipa": "ˈme ˈðwe.le ˈla ka.ˈβe.sa"}
+{"text": "me duele la cabeza", "dialect": "es", "ipa": "ˈme ˈðwe.le ˈla ka.ˈβe.θa"}
+{"text": "vamos a la escuela", "dialect": "la", "ipa": "ˈba.mos ˈa ˈla es.ˈkwe.la"}
+{"text": "vamos a la escuela", "dialect": "es", "ipa": "ˈba.mos ˈa ˈla es.ˈkwe.la"}
+{"text": "los niños juegan", "dialect": "la", "ipa": "ˈloz ˈni.ɲos ˈxwe.ɣan"}
+{"text": "los niños juegan", "dialect": "es", "ipa": "ˈloz ˈni.ɲos ˈxwe.ɣan"}
+{"text": "Buenos Aires", "dialect": "la", "ipa": "ˈbwe.nos ˈaj.ɾes"}
+{"text": "Buenos Aires", "dialect": "es", "ipa": "ˈbwe.nos ˈaj.ɾes"}
+{"text": "casa", "dialect": "la", "ipa": "ˈka.sa"}
+{"text": "casa", "dialect": "es", "ipa": "ˈka.sa"}
+{"text": "mesa", "dialect": "la", "ipa": "ˈme.sa"}
+{"text": "mesa", "dialect": "es", "ipa": "ˈme.sa"}
+{"text": "perro", "dialect": "la", "ipa": "ˈpe.ro"}
+{"text": "perro", "dialect": "es", "ipa": "ˈpe.ro"}
+{"text": "gato", "dialect": "la", "ipa": "ˈga.to"}
+{"text": "gato", "dialect": "es", "ipa": "ˈga.to"}
+{"text": "libro", "dialect": "la", "ipa": "ˈli.βɾo"}
+{"text": "libro", "dialect": "es", "ipa": "ˈli.βɾo"}
+{"text": "silla", "dialect": "la", "ipa": "ˈsi.ʝa"}
+{"text": "silla", "dialect": "es", "ipa": "ˈsi.ʝa"}
+{"text": "puerta", "dialect": "la", "ipa": "ˈpweɾ.ta"}
+{"text": "puerta", "dialect": "es", "ipa": "ˈpweɾ.ta"}
+{"text": "ventana", "dialect": "la", "ipa": "ben.ˈta.na"}
+{"text": "ventana", "dialect": "es", "ipa": "ben.ˈta.na"}
+{"text": "calle", "dialect": "la", "ipa": "ˈka.ʝe"}
+{"text": "calle", "dialect": "es", "ipa": "ˈka.ʝe"}
+{"text": "ciudad", "dialect": "la", "ipa": "sju.ˈðað"}
+{"text": "ciudad", "dialect": "es", "ipa": "θju.ˈðað"}
+{"text": "país", "dialect": "la", "ipa": "pa.ˈis"}
+{"text": "país", "dialect": "es", "ipa": "pa.ˈis"}
+{"text": "mundo", "dialect": "la", "ipa": "ˈmun.do"}
+{"text": "mundo", "dialect": "es", "ipa": "ˈmun.do"}
+{"text": "tiempo", "dialect": "la", "ipa": "ˈtjem.po"}
+{"text": "tiempo", "dialect": "es", "ipa": "ˈtjem.po"}
+{"text": "día", "dialect": "la", "ipa": "ˈdi.a"}
+{"text": "día", "dialect": "es", "ipa": "ˈdi.a"}
+{"text": "noche", "dialect": "la", "ipa": "ˈno.tʃe"}
+{"text": "noche", "dialect": "es", "ipa": "ˈno.tʃe"}
+{"text": "semana", "dialect": "la", "ipa": "se.ˈma.na"}
+{"text": "semana", "dialect": "es", "ipa": "se.ˈma.na"}
+{"text": "año", "dialect": "la", "ipa": "ˈa.ɲo"}
+{"text": "año", "dialect": "es", "ipa": "ˈa.ɲo"}
+{"text": "mes", "dialect": "la", "ipa": "ˈmes"}
+{"text": "mes", "dialect": "es", "ipa": "ˈmes"}
+{"text": "hora", "dialect": "la", "ipa": "ˈo.ɾa"}
+{"text": "hora", "dialect": "es", "ipa": "ˈo.ɾa"}
+{"text": "minuto", "dialect": "la", "ipa": "mi.ˈnu.to"}
+{"text": "minuto", "dialect": "es", "ipa": "mi.ˈnu.to"}
+{"text": "trabajo", "dialect": "la", "ipa": "tɾa.ˈβa.xo"}
+{"text": "trabajo", "dialect": "es", "ipa": "tɾa.ˈβa.xo"}
+{"text": "escuela", "dialect": "la", "ipa": "es.ˈkwe.la"}
+{"text": "escuela", "dialect": "es", "ipa": "es.ˈkwe.la"}
+{"text": "universidad", "dialect": "la", "ipa": "u.ni.βeɾ.si.ˈðað"}
+{"text": "universidad", "dialect": "es", "ipa": "u.ni.βeɾ.si.ˈðað"}
+{"text": "teléfono", "dialect": "la", "ipa": "te.ˈle.fo.no"}
+{"text": "teléfono", "dialect": "es", "ipa": "te.ˈle.fo.no"}
+{"text": "computadora", "dialect": "la", "ipa": "kom.pu.ta.ˈðo.ɾa"}
+{"text": "computadora", "dialect": "es", "ipa": "kom.pu.ta.ˈðo.ɾa"}
+{"text": "coche", "dialect": "la", "ipa": "ˈko.tʃe"}
+{"text": "coche", "dialect": "es", "ipa": "ˈko.tʃe"}
+{"text": "carro", "dialect": "la", "ipa": "ˈka.ro"}
+{"text": "carro", "dialect": "es", "ipa": "ˈka.ro"}
+{"text": "autobús", "dialect": "la", "ipa": "aw.to.ˈβus"}
+{"text": "autobús", "dialect": "es", "ipa": "aw.to.ˈβus"}
+{"text": "tren", "dialect": "la", "ipa": "ˈtɾen"}
+{"text": "tren", "dialect": "es", "ipa": "ˈtɾen"}
+{"text": "avión", "dialect": "la", "ipa": "a.ˈβjon"}
+{"text": "avión", "dialect": "es", "ipa": "a.ˈβjon"}
+{"text": "aeropuerto", "dialect": "la", "ipa": "a.e.ɾo.ˈpweɾ.to"}
+{"text": "aeropuerto", "dialect": "es", "ipa": "a.e.ɾo.ˈpweɾ.to"}
+{"text": "estación", "dialect": "la", "ipa": "es.ta.ˈsjon"}
+{"text": "estación", "dialect": "es", "ipa": "es.ta.ˈθjon"}
+{"text": "hotel", "dialect": "la", "ipa": "o.ˈtel"}
+{"text": "hotel", "dialect": "es", "ipa": "o.ˈtel"}
+{"text": "restaurante", "dialect": "la", "ipa": "res.taw.ˈɾan.te"}
+{"text": "restaurante", "dialect": "es", "ipa": "res.taw.ˈɾan.te"}
+{"text": "tienda", "dialect": "la", "ipa": "ˈtjen.da"}
+{"text": "tienda", "dialect": "es", "ipa": "ˈtjen.da"}
+{"text": "mercado", "dialect": "la", "ipa": "meɾ.ˈka.ðo"}
+{"text": "mercado", "dialect": "es", "ipa": "meɾ.ˈka.ðo"}
+{"text": "banco", "dialect": "la", "ipa": "ˈbaŋ.ko"}
+{"text": "banco", "dialect": "es", "ipa": "ˈbaŋ.ko"}
+{"text": "dinero", "dialect": "la", "ipa": "di.ˈne.ɾo"}
+{"text": "dinero", "dialect": "es", "ipa": "di.ˈne.ɾo"}
+{"text": "precio", "dialect": "la", "ipa": "ˈpɾe.sjo"}
+{"text": "precio", "dialect": "es", "ipa": "ˈpɾe.θjo"}
+{"text": "médico", "dialect": "la", "ipa": "ˈme.ði.ko"}
+{"text": "médico", "dialect": "es", "ipa": "ˈme.ði.ko"}
+{"text": "hospital", "dialect": "la", "ipa": "os.pi.ˈtal"}
+{"text": "hospital", "dialect": "es", "ipa": "os.pi.ˈtal"}
+{"text": "farmacia", "dialect": "la", "ipa": "faɾ.ˈma.sja"}
+{"text": "farmacia", "dialect": "es", "ipa": "faɾ.ˈma.θja"}
+{"text": "playa", "dialect": "la", "ipa": "ˈpla.ʝa"}
+{"text": "playa", "dialect": "es", "ipa": "ˈpla.ʝa"}
+{"text": "montaña", "dialect": "la", "ipa": "mon.ˈta.ɲa"}
+{"text": "montaña", "dialect": "es", "ipa": "mon.ˈta.ɲa"}
+{"text": "río", "dialect": "la", "ipa": "ˈri.o"}
+{"text": "río", "dialect": "es", "ipa": "ˈri.o"}
+{"text": "mar", "dialect": "la", "ipa": "ˈmaɾ"}
+{"text": "mar", "dialect": "es", "ipa": "ˈmaɾ"}
+{"text": "sol", "dialect": "la", "ipa": "ˈsol"}
+{"text": "sol", "dialect": "es", "ipa": "ˈsol"}
+{"text": "luna", "dialect": "la", "ipa": "ˈlu.na"}
+{"text": "luna", "dialect": "es", "ipa": "ˈlu.na"}
+{"text": "estrella", "dialect": "la", "ipa": "es.ˈtɾe.ʝa"}
+{"text": "estrella", "dialect": "es", "ipa": "es.ˈtɾe.ʝa"}
+{"text": "cielo", "dialect": "la", "ipa": "ˈsje.lo"}
+{"text": "cielo", "dialect": "es", "ipa": "ˈθje.lo"}
+{"text": "árbol", "dialect": "la", "ipa": "ˈaɾ.βol"}
+{"text": "árbol", "dialect": "es", "ipa": "ˈaɾ.βol"}
+{"text": "flor", "dialect": "la", "ipa": "ˈfloɾ"}
+{"text": "flor", "dialect": "es", "ipa": "ˈfloɾ"}
+{"text": "tierra", "dialect": "la", "ipa": "ˈtje.ra"}
+{"text": "tierra", "dialect": "es", "ipa": "ˈtje.ra"}
+{"text": "fuego", "dialect": "la", "ipa": "ˈfwe.ɣo"}
+{"text": "fuego", "dialect": "es", "ipa": "ˈfwe.ɣo"}
+{"text": "viento", "dialect": "la", "ipa": "ˈbjen.to"}
+{"text": "viento", "dialect": "es", "ipa": "ˈbjen.to"}
+{"text": "lluvia", "dialect": "la", "ipa": "ˈʝu.βja"}
+{"text": "lluvia", "dialect": "es", "ipa": "ˈʝu.βja"}
+{"text": "nieve", "dialect": "la", "ipa": "ˈnje.βe"}
+{"text": "nieve", "dialect": "es", "ipa": "ˈnje.βe"}
+{"text": "ojo", "dialect": "la", "ipa": "ˈo.xo"}
+{"text": "ojo", "dialect": "es", "ipa": "ˈo.xo"}
+{"text": "mano", "dialect": "la", "ipa": "ˈma.no"}
+{"text": "mano", "dialect": "es", "ipa": "ˈma.no"}
+{"text": "cabeza", "dialect": "la", "ipa": "ka.ˈβe.sa"}
+{"text": "cabeza", "dialect": "es", "ipa": "ka.ˈβe.θa"}
+{"text": "cara", "dialect": "la", "ipa": "ˈka.ɾa"}
+{"text": "cara", "dialect": "es", "ipa": "ˈka.ɾa"}
+{"text": "boca", "dialect": "la", "ipa": "ˈbo.ka"}
+{"text": "boca", "dialect": "es", "ipa": "ˈbo.ka"}
+{"text": "nariz", "dialect": "la", "ipa": "na.ˈɾis"}
+{"text": "nariz", "dialect": "es", "ipa": "na.ˈɾiθ"}
+{"text": "oreja", "dialect": "la", "ipa": "o.ˈɾe.xa"}
+{"text": "oreja", "dialect": "es", "ipa": "o.ˈɾe.xa"}
+{"text": "pie", "dialect": "la", "ipa": "ˈpje"}
+{"text": "pie", "dialect": "es", "ipa": "ˈpje"}
+{"text": "brazo", "dialect": "la", "ipa": "ˈbɾa.so"}
+{"text": "brazo", "dialect": "es", "ipa": "ˈbɾa.θo"}
+{"text": "pierna", "dialect": "la", "ipa": "ˈpjeɾ.na"}
+{"text": "pierna", "dialect": "es", "ipa": "ˈpjeɾ.na"}
+{"text": "corazón", "dialect": "la", "ipa": "ko.ɾa.ˈson"}
+{"text": "corazón", "dialect": "es", "ipa": "ko.ɾa.ˈθon"}
+{"text": "cuerpo", "dialect": "la", "ipa": "ˈkweɾ.po"}
+{"text": "cuerpo", "dialect": "es", "ipa": "ˈkweɾ.po"}
+{"text": "pelo", "dialect": "la", "ipa": "ˈpe.lo"}
+{"text": "pelo", "dialect": "es", "ipa": "ˈpe.lo"}
+{"text": "dedo", "dialect": "la", "ipa": "ˈde.ðo"}
+{"text": "dedo", "dialect": "es", "ipa": "ˈde.ðo"}
+{"text": "diente", "dialect": "la", "ipa": "ˈdjen.te"}
+{"text": "diente", "dialect": "es", "ipa": "ˈdjen.te"}
+{"text": "lengua", "dialect": "la", "ipa": "ˈleŋ.gwa"}
+{"text": "lengua", "dialect": "es", "ipa": "ˈleŋ.gwa"}
+{"text": "camisa", "dialect": "la", "ipa": "ka.ˈmi.sa"}
+{"text": "camisa", "dialect": "es", "ipa": "ka.ˈmi.sa"}
+{"text": "pantalón", "dialect": "la", "ipa": "pan.ta.ˈlon"}
+{"text": "pantalón", "dialect": "es", "ipa": "pan.ta.ˈlon"}
+{"text": "zapato", "dialect": "la", "ipa": "sa.ˈpa.to"}
+{"text": "zapato", "dialect": "es", "ipa": "θa.ˈpa.to"}
+{"text": "sombrero", "dialect": "la", "ipa": "som.ˈbɾe.ɾo"}
+{"text": "sombrero", "dialect": "es", "ipa": "som.ˈbɾe.ɾo"}
+{"text": "vestido", "dialect": "la", "ipa": "bes.ˈti.ðo"}
+{"text": "vestido", "dialect": "es", "ipa": "bes.ˈti.ðo"}
+{"text": "ropa", "dialect": "la", "ipa": "ˈro.pa"}
+{"text": "ropa", "dialect": "es", "ipa": "ˈro.pa"}
+{"text": "regalo", "dialect": "la", "ipa": "re.ˈɣa.lo"}
+{"text": "regalo", "dialect": "es", "ipa": "re.ˈɣa.lo"}
+{"text": "música", "dialect": "la", "ipa": "ˈmu.si.ka"}
+{"text": "música", "dialect": "es", "ipa": "ˈmu.si.ka"}
+{"text": "canción", "dialect": "la", "ipa": "kan.ˈsjon"}
+{"text": "canción", "dialect": "es", "ipa": "kan.ˈθjon"}
+{"text": "fiesta", "dialect": "la", "ipa": "ˈfjes.ta"}
+{"text": "fiesta", "dialect": "es", "ipa": "ˈfjes.ta"}
+{"text": "juego", "dialect": "la", "ipa": "ˈxwe.ɣo"}
+{"text": "juego", "dialect": "es", "ipa": "ˈxwe.ɣo"}
+{"text": "película", "dialect": "la", "ipa": "pe.ˈli.ku.la"}
+{"text": "película", "dialect": "es", "ipa": "pe.ˈli.ku.la"}
+{"text": "foto", "dialect": "la", "ipa": "ˈfo.to"}
+{"text": "foto", "dialect": "es", "ipa": "ˈfo.to"}
+{"text": "idioma", "dialect": "la", "ipa": "i.ˈðjo.ma"}
+{"text": "idioma", "dialect": "es", "ipa": "i.ˈðjo.ma"}
+{"text": "palabra", "dialect": "la", "ipa": "pa.ˈla.βɾa"}
+{"text": "palabra", "dialect": "es", "ipa": "pa.ˈla.βɾa"}
+{"text": "pregunta", "dialect": "la", "ipa": "pɾe.ˈɣun.ta"}
+{"text": "pregunta", "dialect": "es", "ipa": "pɾe.ˈɣun.ta"}
+{"text": "respuesta", "dialect": "la", "ipa": "res.ˈpwes.ta"}
+{"text": "respuesta", "dialect": "es", "ipa": "res.ˈpwes.ta"}
+{"text": "problema", "dialect": "la", "ipa": "pɾo.ˈβle.ma"}
+{"text": "problema", "dialect": "es", "ipa": "pɾo.ˈβle.ma"}
+{"text": "solución", "dialect": "la", "ipa": "so.lu.ˈsjon"}
+{"text": "solución", "dialect": "es", "ipa": "so.lu.ˈθjon"}
+{"text": "ejemplo", "dialect": "la", "ipa": "e.ˈxem.plo"}
+{"text": "ejemplo", "dialect": "es", "ipa": "e.ˈxem.plo"}
+{"text": "nombre", "dialect": "la", "ipa": "ˈnom.bɾe"}
+{"text": "nombre", "dialect": "es", "ipa": "ˈnom.bɾe"}
+{"text": "apellido", "dialect": "la", "ipa": "a.pe.ˈʝi.ðo"}
+{"text": "apellido", "dialect": "es", "ipa": "a.pe.ˈʝi.ðo"}
+{"text": "edad", "dialect": "la", "ipa": "e.ˈðað"}
+{"text": "edad", "dialect": "es", "ipa": "e.ˈðað"}
+{"text": "cumpleaños", "dialect": "la", "ipa": "kum.ple.ˈa.ɲos"}
+{"text": "cumpleaños", "dialect": "es", "ipa": "kum.ple.ˈa.ɲos"}
+{"text": "uno", "dialect": "la", "ipa": "ˈu.no"}
+{"text": "uno", "dialect": "es", "ipa": "ˈu.no"}
+{"text": "dos", "dialect": "la", "ipa": "ˈdos"}
+{"text": "dos", "dialect": "es", "ipa": "ˈdos"}
+{"text": "tres", "dialect": "la", "ipa": "ˈtɾes"}
+{"text": "tres", "dialect": "es", "ipa": "ˈtɾes"}
+{"text": "cuatro", "dialect": "la", "ipa": "ˈkwa.tɾo"}
+{"text": "cuatro", "dialect": "es", "ipa": "ˈkwa.tɾo"}
+{"text": "cinco", "dialect": "la", "ipa": "ˈsiŋ.ko"}
+{"text": "cinco", "dialect": "es", "ipa": "ˈθiŋ.ko"}
+{"text": "seis", "dialect": "la", "ipa": "ˈsejs"}
+{"text": "seis", "dialect": "es", "ipa": "ˈsejs"}
+{"text": "siete", "dialect": "la", "ipa": "ˈsje.te"}
+{"text": "siete", "dialect": "es", "ipa": "ˈsje.te"}
+{"text": "ocho", "dialect": "la", "ipa": "ˈo.tʃo"}
+{"text": "ocho", "dialect": "es", "ipa": "ˈo.tʃo"}
+{"text": "nueve", "dialect": "la", "ipa": "ˈnwe.βe"}
+{"text": "nueve", "dialect": "es", "ipa": "ˈnwe.βe"}
+{"text": "diez", "dialect": "la", "ipa": "ˈdjes"}
+{"text": "diez", "dialect": "es", "ipa": "ˈdjeθ"}
+{"text": "once", "dialect": "la", "ipa": "ˈon.se"}
+{"text": "once", "dialect": "es", "ipa": "ˈon.θe"}
+{"text": "doce", "dialect": "la", "ipa": "ˈdo.se"}
+{"text": "doce", "dialect": "es", "ipa": "ˈdo.θe"}
+{"text": "trece", "dialect": "la", "ipa": "ˈtɾe.se"}
+{"text": "trece", "dialect": "es", "ipa": "ˈtɾe.θe"}
+{"text": "catorce", "dialect": "la", "ipa": "ka.ˈtoɾ.se"}
+{"text": "catorce", "dialect": "es", "ipa": "ka.ˈtoɾ.θe"}
+{"text": "quince", "dialect": "la", "ipa": "ˈkin.se"}
+{"text": "quince", "dialect": "es", "ipa": "ˈkin.θe"}
+{"text": "dieciséis", "dialect": "la", "ipa": "dje.si.ˈsejs"}
+{"text": "dieciséis", "dialect": "es", "ipa": "dje.θi.ˈsejs"}
+{"text": "diecisiete", "dialect": "la", "ipa": "dje.si.ˈsje.te"}
+{"text": "diecisiete", "dialect": "es", "ipa": "dje.θi.ˈsje.te"}
+{"text": "dieciocho", "dialect": "la", "ipa": "dje.ˈsjo.tʃo"}
+{"text": "dieciocho", "dialect": "es", "ipa": "dje.ˈθjo.tʃo"}
+{"text": "diecinueve", "dialect": "la", "ipa": "dje.si.ˈnwe.βe"}
+{"text": "diecinueve", "dialect": "es", "ipa": "dje.θi.ˈnwe.βe"}
+{"text": "veinte", "dialect": "la", "ipa": "ˈbejn.te"}
+{"text": "veinte", "dialect": "es", "ipa": "ˈbejn.te"}
+{"text": "veintiuno", "dialect": "la", "ipa": "bejn.ˈtju.no"}
+{"text": "veintiuno", "dialect": "es", "ipa": "bejn.ˈtju.no"}
+{"text": "veintidós", "dialect": "la", "ipa": "bejn.ti.ˈðos"}
+{"text": "veintidós", "dialect": "es", "ipa": "bejn.ti.ˈðos"}
+{"text": "treinta", "dialect": "la", "ipa": "ˈtɾejn.ta"}
+{"text": "treinta", "dialect": "es", "ipa": "ˈtɾejn.ta"}
+{"text": "cuarenta", "dialect": "la", "ipa": "kwa.ˈɾen.ta"}
+{"text": "cuarenta", "dialect": "es", "ipa": "kwa.ˈɾen.ta"}
+{"text": "cincuenta", "dialect": "la", "ipa": "siŋ.ˈkwen.ta"}
+{"text": "cincuenta", "dialect": "es", "ipa": "θiŋ.ˈkwen.ta"}
+{"text": "sesenta", "dialect": "la", "ipa": "se.ˈsen.ta"}
+{"text": "sesenta", "dialect": "es", "ipa": "se.ˈsen.ta"}
+{"text": "setenta", "dialect": "la", "ipa": "se.ˈten.ta"}
+{"text": "setenta", "dialect": "es", "ipa": "se.ˈten.ta"}
+{"text": "ochenta", "dialect": "la", "ipa": "o.ˈtʃen.ta"}
+{"text": "ochenta", "dialect": "es", "ipa": "o.ˈtʃen.ta"}
+{"text": "noventa", "dialect": "la", "ipa": "no.ˈβen.ta"}
+{"text": "noventa", "dialect": "es", "ipa": "no.ˈβen.ta"}
+{"text": "cien", "dialect": "la", "ipa": "ˈsjen"}
+{"text": "cien", "dialect": "es", "ipa": "ˈθjen"}
+{"text": "ciento", "dialect": "la", "ipa": "ˈsjen.to"}
+{"text": "ciento", "dialect": "es", "ipa": "ˈθjen.to"}
+{"text": "mil", "dialect": "la", "ipa": "ˈmil"}
+{"text": "mil", "dialect": "es", "ipa": "ˈmil"}
+{"text": "cero", "dialect": "la", "ipa": "ˈse.ɾo"}
+{"text": "cero", "dialect": "es", "ipa": "ˈθe.ɾo"}
+{"text": "primero", "dialect": "la", "ipa": "pɾi.ˈme.ɾo"}
+{"text": "primero", "dialect": "es", "ipa": "pɾi.ˈme.ɾo"}
+{"text": "segundo", "dialect": "la", "ipa": "se.ˈɣun.do"}
+{"text": "segundo", "dialect": "es", "ipa": "se.ˈɣun.do"}
+{"text": "tercero", "dialect": "la", "ipa": "teɾ.ˈse.ɾo"}
+{"text": "tercero", "dialect": "es", "ipa": "teɾ.ˈθe.ɾo"}
+{"text": "cuarto", "dialect": "la", "ipa": "ˈkwaɾ.to"}
+{"text": "cuarto", "dialect": "es", "ipa": "ˈkwaɾ.to"}
+{"text": "quinto", "dialect": "la", "ipa": "ˈkin.to"}
+{"text": "quinto", "dialect": "es", "ipa": "ˈkin.to"}
+{"text": "novecientos", "dialect": "la", "ipa": "no.βe.ˈsjen.tos"}
+{"text": "novecientos", "dialect": "es", "ipa": "no.βe.ˈθjen.tos"}
+{"text": "quinientos", "dialect": "la", "ipa": "ki.ˈnjen.tos"}
+{"text": "quinientos", "dialect": "es", "ipa": "ki.ˈnjen.tos"}
+{"text": "seiscientos", "dialect": "la", "ipa": "sejs.ˈsjen.tos"}
+{"text": "seiscientos", "dialect": "es", "ipa": "sejs.ˈθjen.tos"}
+{"text": "millón", "dialect": "la", "ipa": "mi.ˈʝon"}
+{"text": "millón", "dialect": "es", "ipa": "mi.ˈʝon"}
+{"text": "lunes", "dialect": "la", "ipa": "ˈlu.nes"}
+{"text": "lunes", "dialect": "es", "ipa": "ˈlu.nes"}
+{"text": "martes", "dialect": "la", "ipa": "ˈmaɾ.tes"}
+{"text": "martes", "dialect": "es", "ipa": "ˈmaɾ.tes"}
+{"text": "miércoles", "dialect": "la", "ipa": "ˈmjeɾ.ko.les"}
+{"text": "miércoles", "dialect": "es", "ipa": "ˈmjeɾ.ko.les"}
+{"text": "jueves", "dialect": "la", "ipa": "ˈxwe.βes"}
+{"text": "jueves", "dialect": "es", "ipa": "ˈxwe.βes"}
+{"text": "viernes", "dialect": "la", "ipa": "ˈbjeɾ.nes"}
+{"text": "viernes", "dialect": "es", "ipa": "ˈbjeɾ.nes"}
+{"text": "sábado", "dialect": "la", "ipa": "ˈsa.βa.ðo"}
+{"text": "sábado", "dialect": "es", "ipa": "ˈsa.βa.ðo"}
+{"text": "domingo", "dialect": "la", "ipa": "do.ˈmiŋ.go"}
+{"text": "domingo", "dialect": "es", "ipa": "do.ˈmiŋ.go"}
+{"text": "enero", "dialect": "la", "ipa": "e.ˈne.ɾo"}
+{"text": "enero", "dialect": "es", "ipa": "e.ˈne.ɾo"}
+{"text": "febrero", "dialect": "la", "ipa": "fe.ˈβɾe.ɾo"}
+{"text": "febrero", "dialect": "es", "ipa": "fe.ˈβɾe.ɾo"}
+{"text": "marzo", "dialect": "la", "ipa": "ˈmaɾ.so"}
+{"text": "marzo", "dialect": "es", "ipa": "ˈmaɾ.θo"}
+{"text": "abril", "dialect": "la", "ipa": "a.ˈβɾil"}
+{"text": "abril", "dialect": "es", "ipa": "a.ˈβɾil"}
+{"text": "mayo", "dialect": "la", "ipa": "ˈma.ʝo"}
+{"text": "mayo", "dialect": "es", "ipa": "ˈma.ʝo"}
+{"text": "junio", "dialect": "la", "ipa": "ˈxu.njo"}
+{"text": "junio", "dialect": "es", "ipa": "ˈxu.njo"}
+{"text": "julio", "dialect": "la", "ipa": "ˈxu.ljo"}
+{"text": "julio", "dialect": "es", "ipa": "ˈxu.ljo"}
+{"text": "agosto", "dialect": "la", "ipa": "a.ˈɣos.to"}
+{"text": "agosto", "dialect": "es", "ipa": "a.ˈɣos.to"}
+{"text": "septiembre", "dialect": "la", "ipa": "sep.ˈtjem.bɾe"}
+{"text": "septiembre", "dialect": "es", "ipa": "sep.ˈtjem.bɾe"}
+{"text": "octubre", "dialect": "la", "ipa": "ok.ˈtu.βɾe"}
+{"text": "octubre", "dialect": "es", "ipa": "ok.ˈtu.βɾe"}
+{"text": "noviembre", "dialect": "la", "ipa": "no.ˈβjem.bɾe"}
+{"text": "noviembre", "dialect": "es", "ipa": "no.ˈβjem.bɾe"}
+{"text": "diciembre", "dialect": "la", "ipa": "di.ˈsjem.bɾe"}
+{"text": "diciembre", "dialect": "es", "ipa": "di.ˈθjem.bɾe"}
+{"text": "madre", "dialect": "la", "ipa": "ˈma.ðɾe"}
+{"text": "madre", "dialect": "es", "ipa": "ˈma.ðɾe"}
+{"text": "padre", "dialect": "la", "ipa": "ˈpa.ðɾe"}
+{"text": "padre", "dialect": "es", "ipa": "ˈpa.ðɾe"}
+{"text": "hermano", "dialect": "la", "ipa": "eɾ.ˈma.no"}
+{"text": "hermano", "dialect": "es", "ipa": "eɾ.ˈma.no"}
+{"text": "hermana", "dialect": "la", "ipa": "eɾ.ˈma.na"}
+{"text": "hermana", "dialect": "es", "ipa": "eɾ.ˈma.na"}
+{"text": "abuelo", "dialect": "la", "ipa": "a.ˈβwe.lo"}
+{"text": "abuelo", "dialect": "es", "ipa": "a.ˈβwe.lo"}
+{"text": "abuela", "dialect": "la", "ipa": "a.ˈβwe.la"}
+{"text": "abuela", "dialect": "es", "ipa": "a.ˈβwe.la"}
+{"text": "tío", "dialect": "la", "ipa": "ˈti.o"}
+{"text": "tío", "dialect": "es", "ipa": "ˈti.o"}
+{"text": "tía", "dialect": "la", "ipa": "ˈti.a"}
+{"text": "tía", "dialect": "es", "ipa": "ˈti.a"}
+{"text": "primo", "dialect": "la", "ipa": "ˈpɾi.mo"}
+{"text": "primo", "dialect": "es", "ipa": "ˈpɾi.mo"}
+{"text": "hijo", "dialect": "la", "ipa": "ˈi.xo"}
+{"text": "hijo", "dialect": "es", "ipa": "ˈi.xo"}
+{"text": "hija", "dialect": "la", "ipa": "ˈi.xa"}
+{"text": "hija", "dialect": "es", "ipa": "ˈi.xa"}
+{"text": "esposo", "dialect": "la", "ipa": "es.ˈpo.so"}
+{"text": "esposo", "dialect": "es", "ipa": "es.ˈpo.so"}
+{"text": "familia", "dialect": "la", "ipa": "fa.ˈmi.lja"}
+{"text": "familia", "dialect": "es", "ipa": "fa.ˈmi.lja"}
+{"text": "niño", "dialect": "la", "ipa": "ˈni.ɲo"}
+{"text": "niño", "dialect": "es", "ipa": "ˈni.ɲo"}
+{"text": "niña", "dialect": "la", "ipa": "ˈni.ɲa"}
+{"text": "niña", "dialect": "es", "ipa": "ˈni.ɲa"}
+{"text": "amigo", "dialect": "la", "ipa": "a.ˈmi.ɣo"}
+{"text": "amigo", "dialect": "es", "ipa": "a.ˈmi.ɣo"}
+{"text": "amiga", "dialect": "la", "ipa": "a.ˈmi.ɣa"}
+{"text": "amiga", "dialect": "es", "ipa": "a.ˈmi.ɣa"}
+{"text": "señora", "dialect": "la", "ipa": "se.ˈɲo.ɾa"}
+{"text": "señora", "dialect": "es", "ipa": "se.ˈɲo.ɾa"}
+{"text": "señor", "dialect": "la", "ipa": "se.ˈɲoɾ"}
+{"text": "señor", "dialect": "es", "ipa": "se.ˈɲoɾ"}
+{"text": "profesor", "dialect": "la", "ipa": "pɾo.fe.ˈsoɾ"}
+{"text": "profesor", "dialect": "es", "ipa": "pɾo.fe.ˈsoɾ"}
+{"text": "maestra", "dialect": "la", "ipa": "ma.ˈes.tɾa"}
+{"text": "maestra", "dialect": "es", "ipa": "ma.ˈes.tɾa"}
+{"text": "doctor", "dialect": "la", "ipa": "dok.ˈtoɾ"}
+{"text": "doctor", "dialect": "es", "ipa": "dok.ˈtoɾ"}
+{"text": "mujer", "dialect": "la", "ipa": "mu.ˈxeɾ"}
+{"text": "mujer", "dialect": "es", "ipa": "mu.ˈxeɾ"}
+{"text": "hombre", "dialect": "la", "ipa": "ˈom.bɾe"}
+{"text": "hombre", "dialect": "es", "ipa": "ˈom.bɾe"}
+{"text": "persona", "dialect": "la", "ipa": "peɾ.ˈso.na"}
+{"text": "persona", "dialect": "es", "ipa": "peɾ.ˈso.na"}
+{"text": "gente", "dialect": "la", "ipa": "ˈxen.te"}
+{"text": "gente", "dialect": "es", "ipa": "ˈxen.te"}
+{"text": "vecino", "dialect": "la", "ipa": "be.ˈsi.no"}
+{"text": "vecino", "dialect": "es", "ipa": "be.ˈθi.no"}
+{"text": "pan", "dialect": "la", "ipa": "ˈpan"}
+{"text": "pan", "dialect": "es", "ipa": "ˈpan"}
+{"text": "agua", "dialect": "la", "ipa": "ˈa.ɣwa"}
+{"text": "agua", "dialect": "es", "ipa": "ˈa.ɣwa"}
+{"text": "leche", "dialect": "la", "ipa": "ˈle.tʃe"}
+{"text": "leche", "dialect": "es", "ipa": "ˈle.tʃe"}
+{"text": "café", "dialect": "la", "ipa": "ka.ˈfe"}
+{"text": "café", "dialect": "es", "ipa": "ka.ˈfe"}
+{"text": "té", "dialect": "la", "ipa": "ˈte"}
+{"text": "té", "dialect": "es", "ipa": "ˈte"}
+{"text": "jugo", "dialect": "la", "ipa": "ˈxu.ɣo"}
+{"text": "jugo", "dialect": "es", "ipa": "ˈxu.ɣo"}
+{"text": "vino", "dialect": "la", "ipa": "ˈbi.no"}
+{"text": "vino", "dialect": "es", "ipa": "ˈbi.no"}
+{"text": "cerveza", "dialect": "la", "ipa": "seɾ.ˈβe.sa"}
+{"text": "cerveza", "dialect": "es", "ipa": "θeɾ.ˈβe.θa"}
+{"text": "carne", "dialect": "la", "ipa": "ˈkaɾ.ne"}
+{"text": "carne", "dialect": "es", "ipa": "ˈkaɾ.ne"}
+{"text": "pollo", "dialect": "la", "ipa": "ˈpo.ʝo"}
+{"text": "pollo", "dialect": "es", "ipa": "ˈpo.ʝo"}
+{"text": "pescado", "dialect": "la", "ipa": "pes.ˈka.ðo"}
+{"text": "pescado", "dialect": "es", "ipa": "pes.ˈka.ðo"}
+{"text": "arroz", "dialect": "la", "ipa": "a.ˈros"}
+{"text": "arroz", "dialect": "es", "ipa": "a.ˈroθ"}
+{"text": "frijoles", "dialect": "la", "ipa": "fɾi.ˈxo.les"}
+{"text": "frijoles", "dialect": "es", "ipa": "fɾi.ˈxo.les"}
+{"text": "ensalada", "dialect": "la", "ipa": "en.sa.ˈla.ða"}
+{"text": "ensalada", "dialect": "es", "ipa": "en.sa.ˈla.ða"}
+{"text": "sopa", "dialect": "la", "ipa": "ˈso.pa"}
+{"text": "sopa", "dialect": "es", "ipa": "ˈso.pa"}
+{"text": "fruta", "dialect": "la", "ipa": "ˈfɾu.ta"}
+{"text": "fruta", "dialect": "es", "ipa": "ˈfɾu.ta"}
+{"text": "manzana", "dialect": "la", "ipa": "man.ˈsa.na"}
+{"text": "manzana", "dialect": "es", "ipa": "man.ˈθa.na"}
+{"text": "naranja", "dialect": "la", "ipa": "na.ˈɾaŋ.xa"}
+{"text": "naranja", "dialect": "es", "ipa": "na.ˈɾaŋ.xa"}
+{"text": "plátano", "dialect": "la", "ipa": "ˈpla.ta.no"}
+{"text": "plátano", "dialect": "es", "ipa": "ˈpla.ta.no"}
+{"text": "tomate", "dialect": "la", "ipa": "to.ˈma.te"}
+{"text": "tomate", "dialect": "es", "ipa": "to.ˈma.te"}
+{"text": "papa", "dialect": "la", "ipa": "ˈpa.pa"}
+{"text": "papa", "dialect": "es", "ipa": "ˈpa.pa"}
+{"text": "patata", "dialect": "la", "ipa": "pa.ˈta.ta"}
+{"text": "patata", "dialect": "es", "ipa": "pa.ˈta.ta"}
+{"text": "queso", "dialect": "la", "ipa": "ˈke.so"}
+{"text": "queso", "dialect": "es", "ipa": "ˈke.so"}
+{"text": "huevo", "dialect": "la", "ipa": "ˈwe.βo"}
+{"text": "huevo", "dialect": "es", "ipa": "ˈwe.βo"}
+{"text": "mantequilla", "dialect": "la", "ipa": "man.te.ˈki.ʝa"}
+{"text": "mantequilla", "dialect": "es", "ipa": "man.te.ˈki.ʝa"}
+{"text": "azúcar", "dialect": "la", "ipa": "a.ˈsu.kaɾ"}
+{"text": "azúcar", "dialect": "es", "ipa": "a.ˈθu.kaɾ"}
+{"text": "sal", "dialect": "la", "ipa": "ˈsal"}
+{"text": "sal", "dialect": "es", "ipa": "ˈsal"}
+{"text": "postre", "dialect": "la", "ipa": "ˈpos.tɾe"}
+{"text": "postre", "dialect": "es", "ipa": "ˈpos.tɾe"}
+{"text": "helado", "dialect": "la", "ipa": "e.ˈla.ðo"}
+{"text": "helado", "dialect": "es", "ipa": "e.ˈla.ðo"}
+{"text": "galleta", "dialect": "la", "ipa": "ga.ˈʝe.ta"}
+{"text": "galleta", "dialect": "es", "ipa": "ga.ˈʝe.ta"}
+{"text": "desayuno", "dialect": "la", "ipa": "de.sa.ˈʝu.no"}
+{"text": "desayuno", "dialect": "es", "ipa": "de.sa.ˈʝu.no"}
+{"text": "almuerzo", "dialect": "la", "ipa": "al.ˈmweɾ.so"}
+{"text": "almuerzo", "dialect": "es", "ipa": "al.ˈmweɾ.θo"}
+{"text": "cena", "dialect": "la", "ipa": "ˈse.na"}
+{"text": "cena", "dialect": "es", "ipa": "ˈθe.na"}
+{"text": "comida", "dialect": "la", "ipa": "ko.ˈmi.ða"}
+{"text": "comida", "dialect": "es", "ipa": "ko.ˈmi.ða"}
+{"text": "tortilla", "dialect": "la", "ipa": "toɾ.ˈti.ʝa"}
+{"text": "tortilla", "dialect": "es", "ipa": "toɾ.ˈti.ʝa"}
+{"text": "empanada", "dialect": "la", "ipa": "em.pa.ˈna.ða"}
+{"text": "empanada", "dialect": "es", "ipa": "em.pa.ˈna.ða"}
+{"text": "chocolate", "dialect": "la", "ipa": "tʃo.ko.ˈla.te"}
+{"text": "chocolate", "dialect": "es", "ipa": "tʃo.ko.ˈla.te"}
+{"text": "hamburguesa", "dialect": "la", "ipa": "am.buɾ.ˈɣe.sa"}
+{"text": "hamburguesa", "dialect": "es", "ipa": "am.buɾ.ˈɣe.sa"}
+{"text": "ser", "dialect": "la", "ipa": "ˈseɾ"}
+{"text": "ser", "dialect": "es", "ipa": "ˈseɾ"}
+{"text": "estar", "dialect": "la", "ipa": "es.ˈtaɾ"}
+{"text": "estar", "dialect": "es", "ipa": "es.ˈtaɾ"}
+{"text": "tener", "dialect": "la", "ipa": "te.ˈneɾ"}
+{"text": "tener", "dialect": "es", "ipa": "te.ˈneɾ"}
+{"text": "hacer", "dialect": "la", "ipa": "a.ˈseɾ"}
+{"text": "hacer", "dialect": "es", "ipa": "a.ˈθeɾ"}
+{"text": "ir", "dialect": "la", "ipa": "ˈiɾ"}
+{"text": "ir", "dialect": "es", "ipa": "ˈiɾ"}
+{"text": "ver", "dialect": "la", "ipa": "ˈbeɾ"}
+{"text": "ver", "dialect": "es", "ipa": "ˈbeɾ"}
+{"text": "dar", "dialect": "la", "ipa": "ˈdaɾ"}
+{"text": "dar", "dialect": "es", "ipa": "ˈdaɾ"}
+{"text": "saber", "dialect": "la", "ipa": "sa.ˈβeɾ"}
+{"text": "saber", "dialect": "es", "ipa": "sa.ˈβeɾ"}
+{"text": "querer", "dialect": "la", "ipa": "ke.ˈɾeɾ"}
+{"text": "querer", "dialect": "es", "ipa": "ke.ˈɾeɾ"}
+{"text": "poder", "dialect": "la", "ipa": "po.ˈðeɾ"}
+{"text": "poder", "dialect": "es", "ipa": "po.ˈðeɾ"}
+{"text": "decir", "dialect": "la", "ipa": "de.ˈsiɾ"}
+{"text": "decir", "dialect": "es", "ipa": "de.ˈθiɾ"}
+{"text": "venir", "dialect": "la", "ipa": "be.ˈniɾ"}
+{"text": "venir", "dialect": "es", "ipa": "be.ˈniɾ"}
+{"text": "hablar", "dialect": "la", "ipa": "a.ˈβlaɾ"}
+{"text": "hablar", "dialect": "es", "ipa": "a.ˈβlaɾ"}
+{"text": "comer", "dialect": "la", "ipa": "ko.ˈmeɾ"}
+{"text": "comer", "dialect": "es", "ipa": "ko.ˈmeɾ"}
+{"text": "vivir", "dialect": "la", "ipa": "bi.ˈβiɾ"}
+{"text": "vivir", "dialect": "es", "ipa": "bi.ˈβiɾ"}
+{"text": "beber", "dialect": "la", "ipa": "be.ˈβeɾ"}
+{"text": "beber", "dialect": "es", "ipa": "be.ˈβeɾ"}
+{"text": "trabajar", "dialect": "la", "ipa": "tɾa.βa.ˈxaɾ"}
+{"text": "trabajar", "dialect": "es", "ipa": "tɾa.βa.ˈxaɾ"}
+{"text": "estudiar", "dialect": "la", "ipa": "es.tu.ˈðjaɾ"}
+{"text": "estudiar", "dialect": "es", "ipa": "es.tu.ˈðjaɾ"}
+{"text": "escribir", "dialect": "la", "ipa": "es.kɾi.ˈβiɾ"}
+{"text": "escribir", "dialect": "es", "ipa": "es.kɾi.ˈβiɾ"}
+{"text": "leer", "dialect": "la", "ipa": "le.ˈeɾ"}
+{"text": "leer", "dialect": "es", "ipa": "le.ˈeɾ"}
+{"text": "abrir", "dialect": "la", "ipa": "a.ˈβɾiɾ"}
+{"text": "abrir", "dialect": "es", "ipa": "a.ˈβɾiɾ"}
+{"text": "cerrar", "dialect": "la", "ipa": "se.ˈraɾ"}
+{"text": "cerrar", "dialect": "es", "ipa": "θe.ˈraɾ"}
+{"text": "dormir", "dialect": "la", "ipa": "doɾ.ˈmiɾ"}
+{"text": "dormir", "dialect": "es", "ipa": "doɾ.ˈmiɾ"}
+{"text": "caminar", "dialect": "la", "ipa": "ka.mi.ˈnaɾ"}
+{"text": "caminar", "dialect": "es", "ipa": "ka.mi.ˈnaɾ"}
+{"text": "correr", "dialect": "la", "ipa": "ko.ˈreɾ"}
+{"text": "correr", "dialect": "es", "ipa": "ko.ˈreɾ"}
+{"text": "bailar", "dialect": "la", "ipa": "baj.ˈlaɾ"}
+{"text": "bailar", "dialect": "es", "ipa": "baj.ˈlaɾ"}
+{"text": "cantar", "dialect": "la", "ipa": "kan.ˈtaɾ"}
+{"text": "cantar", "dialect": "es", "ipa": "kan.ˈtaɾ"}
+{"text": "jugar", "dialect": "la", "ipa": "xu.ˈɣaɾ"}
+{"text": "jugar", "dialect": "es", "ipa": "xu.ˈɣaɾ"}
+{"text": "comprar", "dialect": "la", "ipa": "kom.ˈpɾaɾ"}
+{"text": "comprar", "dialect": "es", "ipa": "kom.ˈpɾaɾ"}
+{"text": "vender", "dialect": "la", "ipa": "ben.ˈdeɾ"}
+{"text": "vender", "dialect": "es", "ipa": "ben.ˈdeɾ"}
+{"text": "llamar", "dialect": "la", "ipa": "ʝa.ˈmaɾ"}
+{"text": "llamar", "dialect": "es", "ipa": "ʝa.ˈmaɾ"}
+{"text": "llegar", "dialect": "la", "ipa": "ʝe.ˈɣaɾ"}
+{"text": "llegar", "dialect": "es", "ipa": "ʝe.ˈɣaɾ"}
+{"text": "pensar", "dialect": "la", "ipa": "pen.ˈsaɾ"}
+{"text": "pensar", "dialect": "es", "ipa": "pen.ˈsaɾ"}
+{"text": "buscar", "dialect": "la", "ipa": "bus.ˈkaɾ"}
+{"text": "buscar", "dialect": "es", "ipa": "bus.ˈkaɾ"}
+{"text": "encontrar", "dialect": "la", "ipa": "eŋ.kon.ˈtɾaɾ"}
+{"text": "encontrar", "dialect": "es", "ipa": "eŋ.kon.ˈtɾaɾ"}
+{"text": "escuchar", "dialect": "la", "ipa": "es.ku.ˈtʃaɾ"}
+{"text": "escuchar", "dialect": "es", "ipa": "es.ku.ˈtʃaɾ"}
+{"text": "mirar", "dialect": "la", "ipa": "mi.ˈɾaɾ"}
+{"text": "mirar", "dialect": "es", "ipa": "mi.ˈɾaɾ"}
+{"text": "viajar", "dialect": "la", "ipa": "bja.ˈxaɾ"}
+{"text": "viajar", "dialect": "es", "ipa": "bja.ˈxaɾ"}
+{"text": "cocinar", "dialect": "la", "ipa": "ko.si.ˈnaɾ"}
+{"text": "cocinar", "dialect": "es", "ipa": "ko.θi.ˈnaɾ"}
+{"text": "creer", "dialect": "la", "ipa": "kɾe.ˈeɾ"}
+{"text": "creer", "dialect": "es", "ipa": "kɾe.ˈeɾ"}
+{"text": "caer", "dialect": "la", "ipa": "ka.ˈeɾ"}
+{"text": "caer", "dialect": "es", "ipa": "ka.ˈeɾ"}
+{"text": "reír", "dialect": "la", "ipa": "re.ˈiɾ"}
+{"text": "reír", "dialect": "es", "ipa": "re.ˈiɾ"}
+{"text": "sonreír", "dialect": "la", "ipa": "son.re.ˈiɾ"}
+{"text": "sonreír", "dialect": "es", "ipa": "son.re.ˈiɾ"}
+{"text": "oír", "dialect": "la", "ipa": "o.ˈiɾ"}
+{"text": "oír", "dialect": "es", "ipa": "o.ˈiɾ"}
+{"text": "construir", "dialect": "la", "ipa": "kons.ˈtɾwiɾ"}
+{"text": "construir", "dialect": "es", "ipa": "kons.ˈtɾwiɾ"}
+{"text": "seguir", "dialect": "la", "ipa": "se.ˈɣiɾ"}
+{"text": "seguir", "dialect": "es", "ipa": "se.ˈɣiɾ"}
+{"text": "conocer", "dialect": "la", "ipa": "ko.no.ˈseɾ"}
+{"text": "conocer", "dialect": "es", "ipa": "ko.no.ˈθeɾ"}
+{"text": "empezar", "dialect": "la", "ipa": "em.pe.ˈsaɾ"}
+{"text": "empezar", "dialect": "es", "ipa": "em.pe.ˈθaɾ"}
+{"text": "ayudar", "dialect": "la", "ipa": "a.ʝu.ˈðaɾ"}
+{"text": "ayudar", "dialect": "es", "ipa": "a.ʝu.ˈðaɾ"}
+{"text": "enseñar", "dialect": "la", "ipa": "en.se.ˈɲaɾ"}
+{"text": "enseñar", "dialect": "es", "ipa": "en.se.ˈɲaɾ"}
+{"text": "hablo", "dialect": "la", "ipa": "ˈa.βlo"}
+{"text": "hablo", "dialect": "es", "ipa": "ˈa.βlo"}
+{"text": "hablas", "dialect": "la", "ipa": "ˈa.βlas"}
+{"text": "hablas", "dialect": "es", "ipa": "ˈa.βlas"}
+{"text": "habla", "dialect": "la", "ipa": "ˈa.βla"}
+{"text": "habla", "dialect": "es", "ipa": "ˈa.βla"}
+{"text": "hablamos", "dialect": "la", "ipa": "a.ˈβla.mos"}
+{"text": "hablamos", "dialect": "es", "ipa": "a.ˈβla.mos"}
+{"text": "hablan", "dialect": "la", "ipa": "ˈa.βlan"}
+{"text": "hablan", "dialect": "es", "ipa": "ˈa.βlan"}
+{"text": "como", "dialect": "la", "ipa": "ˈko.mo"}
+{"text": "como", "dialect": "es", "ipa": "ˈko.mo"}
+{"text": "comes", "dialect": "la", "ipa": "ˈko.mes"}
+{"text": "comes", "dialect": "es", "ipa": "ˈko.mes"}
+{"text": "vivimos", "dialect": "la", "ipa": "bi.ˈβi.mos"}
+{"text": "vivimos", "dialect": "es", "ipa": "bi.ˈβi.mos"}
+{"text": "soy", "dialect": "la", "ipa": "ˈsoj"}
+{"text": "soy", "dialect": "es", "ipa": "ˈsoj"}
+{"text": "eres", "dialect": "la", "ipa": "ˈe.ɾes"}
+{"text": "eres", "dialect": "es", "ipa": "ˈe.ɾes"}
+{"text": "es", "dialect": "la", "ipa": "ˈes"}
+{"text": "es", "dialect": "es", "ipa": "ˈes"}
+{"text": "somos", "dialect": "la", "ipa": "ˈso.mos"}
+{"text": "somos", "dialect": "es", "ipa": "ˈso.mos"}
+{"text": "son", "dialect": "la", "ipa": "ˈson"}
+{"text": "son", "dialect": "es", "ipa": "ˈson"}
+{"text": "estoy", "dialect": "la", "ipa": "es.ˈtoj"}
+{"text": "estoy", "dialect": "es", "ipa": "es.ˈtoj"}
+{"text": "estás", "dialect": "la", "ipa": "es.ˈtas"}
+{"text": "estás", "dialect": "es", "ipa": "es.ˈtas"}
+{"text": "está", "dialect": "la", "ipa": "es.ˈta"}
+{"text": "está", "dialect": "es", "ipa": "es.ˈta"}
+{"text": "estamos", "dialect": "la", "ipa": "es.ˈta.mos"}
+{"text": "estamos", "dialect": "es", "ipa": "es.ˈta.mos"}
+{"text": "están", "dialect": "la", "ipa": "es.ˈtan"}
+{"text": "están", "dialect": "es", "ipa": "es.ˈtan"}
+{"text": "tengo", "dialect": "la", "ipa": "ˈteŋ.go"}
+{"text": "tengo", "dialect": "es", "ipa": "ˈteŋ.go"}
+{"text": "tienes", "dialect": "la", "ipa": "ˈtje.nes"}
+{"text": "tienes", "dialect": "es", "ipa": "ˈtje.nes"}
+{"text": "tiene", "dialect": "la", "ipa": "ˈtje.ne"}
+{"text": "tiene", "dialect": "es", "ipa": "ˈtje.ne"}
+{"text": "tenemos", "dialect": "la", "ipa": "te.ˈne.mos"}
+{"text": "tenemos", "dialect": "es", "ipa": "te.ˈne.mos"}
+{"text": "tienen", "dialect": "la", "ipa": "ˈtje.nen"}
+{"text": "tienen", "dialect": "es", "ipa": "ˈtje.nen"}
+{"text": "voy", "dialect": "la", "ipa": "ˈboj"}
+{"text": "voy", "dialect": "es", "ipa": "ˈboj"}
+{"text": "vas", "dialect": "la", "ipa": "ˈbas"}
+{"text": "vas", "dialect": "es", "ipa": "ˈbas"}
+{"text": "va", "dialect": "la", "ipa": "ˈba"}
+{"text": "va", "dialect": "es", "ipa": "ˈba"}
+{"text": "vamos", "dialect": "la", "ipa": "ˈba.mos"}
+{"text": "vamos", "dialect": "es", "ipa": "ˈba.mos"}
+{"text": "van", "dialect": "la", "ipa": "ˈban"}
+{"text": "van", "dialect": "es", "ipa": "ˈban"}
+{"text": "quiero", "dialect": "la", "ipa": "ˈkje.ɾo"}
+{"text": "quiero", "dialect": "es", "ipa": "ˈkje.ɾo"}
+{"text": "puedo", "dialect": "la", "ipa": "ˈpwe.ðo"}
+{"text": "puedo", "dialect": "es", "ipa": "ˈpwe.ðo"}
+{"text": "puede", "dialect": "la", "ipa": "ˈpwe.ðe"}
+{"text": "puede", "dialect": "es", "ipa": "ˈpwe.ðe"}
+{"text": "hago", "dialect": "la", "ipa": "ˈa.ɣo"}
+{"text": "hago", "dialect": "es", "ipa": "ˈa.ɣo"}
+{"text": "dice", "dialect": "la", "ipa": "ˈdi.se"}
+{"text": "dice", "dialect": "es", "ipa": "ˈdi.θe"}
+{"text": "digo", "dialect": "la", "ipa": "ˈdi.ɣo"}
+{"text": "digo", "dialect": "es", "ipa": "ˈdi.ɣo"}
+{"text": "fui", "dialect": "la", "ipa": "ˈfwi"}
+{"text": "fui", "dialect": "es", "ipa": "ˈfwi"}
+{"text": "fue", "dialect": "la", "ipa": "ˈfwe"}
+{"text": "fue", "dialect": "es", "ipa": "ˈfwe"}
+{"text": "hablé", "dialect": "la", "ipa": "a.ˈβle"}
+{"text": "hablé", "dialect": "es", "ipa": "a.ˈβle"}
+{"text": "habló", "dialect": "la", "ipa": "a.ˈβlo"}
+{"text": "habló", "dialect": "es", "ipa": "a.ˈβlo"}
+{"text": "comió", "dialect": "la", "ipa": "ko.ˈmjo"}
+{"text": "comió", "dialect": "es", "ipa": "ko.ˈmjo"}
+{"text": "vivió", "dialect": "la", "ipa": "bi.ˈβjo"}
+{"text": "vivió", "dialect": "es", "ipa": "bi.ˈβjo"}
+{"text": "escribió", "dialect": "la", "ipa": "es.kɾi.ˈβjo"}
+{"text": "escribió", "dialect": "es", "ipa": "es.kɾi.ˈβjo"}
+{"text": "cantaba", "dialect": "la", "ipa": "kan.ˈta.βa"}
+{"text": "cantaba", "dialect": "es", "ipa": "kan.ˈta.βa"}
+{"text": "comía", "dialect": "la", "ipa": "ko.ˈmi.a"}
+{"text": "comía", "dialect": "es", "ipa": "ko.ˈmi.a"}
+{"text": "vivía", "dialect": "la", "ipa": "bi.ˈβi.a"}
+{"text": "vivía", "dialect": "es", "ipa": "bi.ˈβi.a"}
+{"text": "hablaré", "dialect": "la", "ipa": "a.βla.ˈɾe"}
+{"text": "hablaré", "dialect": "es", "ipa": "a.βla.ˈɾe"}
+{"text": "hablarán", "dialect": "la", "ipa": "a.βla.ˈɾan"}
+{"text": "hablarán", "dialect": "es", "ipa": "a.βla.ˈɾan"}
+{"text": "hablaría", "dialect": "la", "ipa": "a.βla.ˈɾi.a"}
+{"text": "hablaría", "dialect": "es", "ipa": "a.βla.ˈɾi.a"}
+{"text": "hablando", "dialect": "la", "ipa": "a.ˈβlan.do"}
+{"text": "hablando", "dialect": "es", "ipa": "a.ˈβlan.do"}
+{"text": "hablado", "dialect": "la", "ipa": "a.ˈβla.ðo"}
+{"text": "hablado", "dialect": "es", "ipa": "a.ˈβla.ðo"}
+{"text": "comiendo", "dialect": "la", "ipa": "ko.ˈmjen.do"}
+{"text": "comiendo", "dialect": "es", "ipa": "ko.ˈmjen.do"}
+{"text": "hecho", "dialect": "la", "ipa": "ˈe.tʃo"}
+{"text": "hecho", "dialect": "es", "ipa": "ˈe.tʃo"}
+{"text": "dicho", "dialect": "la", "ipa": "ˈdi.tʃo"}
+{"text": "dicho", "dialect": "es", "ipa": "ˈdi.tʃo"}
+{"text": "puesto", "dialect": "la", "ipa": "ˈpwes.to"}
+{"text": "puesto", "dialect": "es", "ipa": "ˈpwes.to"}
+{"text": "visto", "dialect": "la", "ipa": "ˈbis.to"}
+{"text": "visto", "dialect": "es", "ipa": "ˈbis.to"}
+{"text": "escrito", "dialect": "la", "ipa": "es.ˈkɾi.to"}
+{"text": "escrito", "dialect": "es", "ipa": "es.ˈkɾi.to"}
+{"text": "abierto", "dialect": "la", "ipa": "a.ˈβjeɾ.to"}
+{"text": "abierto", "dialect": "es", "ipa": "a.ˈβjeɾ.to"}
+{"text": "roto", "dialect": "la", "ipa": "ˈro.to"}
+{"text": "roto", "dialect": "es", "ipa": "ˈro.to"}
+{"text": "vuelto", "dialect": "la", "ipa": "ˈbwel.to"}
+{"text": "vuelto", "dialect": "es", "ipa": "ˈbwel.to"}
+{"text": "grande", "dialect": "la", "ipa": "ˈgɾan.de"}
+{"text": "grande", "dialect": "es", "ipa": "ˈgɾan.de"}
+{"text": "pequeño", "dialect": "la", "ipa": "pe.ˈke.ɲo"}
+{"text": "pequeño", "dialect": "es", "ipa": "pe.ˈke.ɲo"}
+{"text": "bueno", "dialect": "la", "ipa": "ˈbwe.no"}
+{"text": "bueno", "dialect": "es", "ipa": "ˈbwe.no"}
+{"text": "malo", "dialect": "la", "ipa": "ˈma.lo"}
+{"text": "malo", "dialect": "es", "ipa": "ˈma.lo"}
+{"text": "bonito", "dialect": "la", "ipa": "bo.ˈni.to"}
+{"text": "bonito", "dialect": "es", "ipa": "bo.ˈni.to"}
+{"text": "feo", "dialect": "la", "ipa": "ˈfe.o"}
+{"text": "feo", "dialect": "es", "ipa": "ˈfe.o"}
+{"text": "nuevo", "dialect": "la", "ipa": "ˈnwe.βo"}
+{"text": "nuevo", "dialect": "es", "ipa": "ˈnwe.βo"}
+{"text": "viejo", "dialect": "la", "ipa": "ˈbje.xo"}
+{"text": "viejo", "dialect": "es", "ipa": "ˈbje.xo"}
+{"text": "joven", "dialect": "la", "ipa": "ˈxo.βen"}
+{"text": "joven", "dialect": "es", "ipa": "ˈxo.βen"}
+{"text": "alto", "dialect": "la", "ipa": "ˈal.to"}
+{"text": "alto", "dialect": "es", "ipa": "ˈal.to"}
+{"text": "bajo", "dialect": "la", "ipa": "ˈba.xo"}
+{"text": "bajo", "dialect": "es", "ipa": "ˈba.xo"}
+{"text": "largo", "dialect": "la", "ipa": "ˈlaɾ.ɣo"}
+{"text": "largo", "dialect": "es", "ipa": "ˈlaɾ.ɣo"}
+{"text": "corto", "dialect": "la", "ipa": "ˈkoɾ.to"}
+{"text": "corto", "dialect": "es", "ipa": "ˈkoɾ.to"}
+{"text": "caliente", "dialect": "la", "ipa": "ka.ˈljen.te"}
+{"text": "caliente", "dialect": "es", "ipa": "ka.ˈljen.te"}
+{"text": "frío", "dialect": "la", "ipa": "ˈfɾi.o"}
+{"text": "frío", "dialect": "es", "ipa": "ˈfɾi.o"}
+{"text": "rápido", "dialect": "la", "ipa": "ˈra.pi.ðo"}
+{"text": "rápido", "dialect": "es", "ipa": "ˈra.pi.ðo"}
+{"text": "lento", "dialect": "la", "ipa": "ˈlen.to"}
+{"text": "lento", "dialect": "es", "ipa": "ˈlen.to"}
+{"text": "fácil", "dialect": "la", "ipa": "ˈfa.sil"}
+{"text": "fácil", "dialect": "es", "ipa": "ˈfa.θil"}
+{"text": "difícil", "dialect": "la", "ipa": "di.ˈfi.sil"}
+{"text": "difícil", "dialect": "es", "ipa": "di.ˈfi.θil"}
+{"text": "importante", "dialect": "la", "ipa": "im.poɾ.ˈtan.te"}
+{"text": "importante", "dialect": "es", "ipa": "im.poɾ.ˈtan.te"}
+{"text": "interesante", "dialect": "la", "ipa": "in.te.ɾe.ˈsan.te"}
+{"text": "interesante", "dialect": "es", "ipa": "in.te.ɾe.ˈsan.te"}
+{"text": "feliz", "dialect": "la", "ipa": "fe.ˈlis"}
+{"text": "feliz", "dialect": "es", "ipa": "fe.ˈliθ"}
+{"text": "triste", "dialect": "la", "ipa": "ˈtɾis.te"}
+{"text": "triste", "dialect": "es", "ipa": "ˈtɾis.te"}
+{"text": "cansado", "dialect": "la", "ipa": "kan.ˈsa.ðo"}
+{"text": "cansado", "dialect": "es", "ipa": "kan.ˈsa.ðo"}
+{"text": "contento", "dialect": "la", "ipa": "kon.ˈten.to"}
+{"text": "contento", "dialect": "es", "ipa": "kon.ˈten.to"}
+{"text": "enfermo", "dialect": "la", "ipa": "en.ˈfeɾ.mo"}
+{"text": "enfermo", "dialect": "es", "ipa": "en.ˈfeɾ.mo"}
+{"text": "rico", "dialect": "la", "ipa": "ˈri.ko"}
+{"text": "rico", "dialect": "es", "ipa": "ˈri.ko"}
+{"text": "pobre", "dialect": "la", "ipa": "ˈpo.βɾe"}
+{"text": "pobre", "dialect": "es", "ipa": "ˈpo.βɾe"}
+{"text": "azul", "dialect": "la", "ipa": "a.ˈsul"}
+{"text": "azul", "dialect": "es", "ipa": "a.ˈθul"}
+{"text": "verde", "dialect": "la", "ipa": "ˈbeɾ.ðe"}
+{"text": "verde", "dialect": "es", "ipa": "ˈbeɾ.ðe"}
+{"text": "amarillo", "dialect": "la", "ipa": "a.ma.ˈɾi.ʝo"}
+{"text": "amarillo", "dialect": "es", "ipa": "a.ma.ˈɾi.ʝo"}
+{"text": "blanco", "dialect": "la", "ipa": "ˈblaŋ.ko"}
+{"text": "blanco", "dialect": "es", "ipa": "ˈblaŋ.ko"}
+{"text": "negro", "dialect": "la", "ipa": "ˈne.ɣɾo"}
+{"text": "negro", "dialect": "es", "ipa": "ˈne.ɣɾo"}
+{"text": "gris", "dialect": "la", "ipa": "ˈgɾis"}
+{"text": "gris", "dialect": "es", "ipa": "ˈgɾis"}
+{"text": "marrón", "dialect": "la", "ipa": "ma.ˈron"}
+{"text": "marrón", "dialect": "es", "ipa": "ma.ˈron"}
+{"text": "morado", "dialect": "la", "ipa": "mo.ˈɾa.ðo"}
+{"text": "morado", "dialect": "es", "ipa": "mo.ˈɾa.ðo"}
+{"text": "rosa", "dialect": "la", "ipa": "ˈro.sa"}
+{"text": "rosa", "dialect": "es", "ipa": "ˈro.sa"}
+{"text": "siempre", "dialect": "la", "ipa": "ˈsjem.pɾe"}
+{"text": "siempre", "dialect": "es", "ipa": "ˈsjem.pɾe"}
+{"text": "nunca", "dialect": "la", "ipa": "ˈnuŋ.ka"}
+{"text": "nunca", "dialect": "es", "ipa": "ˈnuŋ.ka"}
+{"text": "ahora", "dialect": "la", "ipa": "a.ˈo.ɾa"}
+{"text": "ahora", "dialect": "es", "ipa": "a.ˈo.ɾa"}
+{"text": "hoy", "dialect": "la", "ipa": "ˈoj"}
+{"text": "hoy", "dialect": "es", "ipa": "ˈoj"}
+{"text": "mañana", "dialect": "la", "ipa": "ma.ˈɲa.na"}
+{"text": "mañana", "dialect": "es", "ipa": "ma.ˈɲa.na"}
+{"text": "ayer", "dialect": "la", "ipa": "a.ˈʝeɾ"}
+{"text": "ayer", "dialect": "es", "ipa": "a.ˈʝeɾ"}
+{"text": "aquí", "dialect": "la", "ipa": "a.ˈki"}
+{"text": "aquí", "dialect": "es", "ipa": "a.ˈki"}
+{"text": "allí", "dialect": "la", "ipa": "a.ˈʝi"}
+{"text": "allí", "dialect": "es", "ipa": "a.ˈʝi"}
+{"text": "allá", "dialect": "la", "ipa": "a.ˈʝa"}
+{"text": "allá", "dialect": "es", "ipa": "a.ˈʝa"}
+{"text": "cerca", "dialect": "la", "ipa": "ˈseɾ.ka"}
+{"text": "cerca", "dialect": "es", "ipa": "ˈθeɾ.ka"}
+{"text": "lejos", "dialect": "la", "ipa": "ˈle.xos"}
+{"text": "lejos", "dialect": "es", "ipa": "ˈle.xos"}
+{"text": "muy", "dialect": "la", "ipa": "ˈmuj"}
+{"text": "muy", "dialect": "es", "ipa": "ˈmuj"}
+{"text": "mucho", "dialect": "la", "ipa": "ˈmu.tʃo"}
+{"text": "mucho", "dialect": "es", "ipa": "ˈmu.tʃo"}
+{"text": "poco", "dialect": "la", "ipa": "ˈpo.ko"}
+{"text": "poco", "dialect": "es", "ipa": "ˈpo.ko"}
+{"text": "más", "dialect": "la", "ipa": "ˈmas"}
+{"text": "más", "dialect": "es", "ipa": "ˈmas"}
+{"text": "menos", "dialect": "la", "ipa": "ˈme.nos"}
+{"text": "menos", "dialect": "es", "ipa": "ˈme.nos"}
+{"text": "también", "dialect": "la", "ipa": "tam.ˈbjen"}
+{"text": "también", "dialect": "es", "ipa": "tam.ˈbjen"}
+{"text": "tampoco", "dialect": "la", "ipa": "tam.ˈpo.ko"}
+{"text": "tampoco", "dialect": "es", "ipa": "tam.ˈpo.ko"}
+{"text": "pero", "dialect": "la", "ipa": "ˈpe.ɾo"}
+{"text": "pero", "dialect": "es", "ipa": "ˈpe.ɾo"}
+{"text": "porque", "dialect": "la", "ipa": "ˈpoɾ.ke"}
+{"text": "porque", "dialect": "es", "ipa": "ˈpoɾ.ke"}
+{"text": "cuando", "dialect": "la", "ipa": "ˈkwan.do"}
+{"text": "cuando", "dialect": "es", "ipa": "ˈkwan.do"}
+{"text": "donde", "dialect": "la", "ipa": "ˈdon.de"}
+{"text": "donde", "dialect": "es", "ipa": "ˈdon.de"}
+{"text": "quién", "dialect": "la", "ipa": "ˈkjen"}
+{"text": "quién", "dialect": "es", "ipa": "ˈkjen"}
+{"text": "qué", "dialect": "la", "ipa": "ˈke"}
+{"text": "qué", "dialect": "es", "ipa": "ˈke"}
+{"text": "cuál", "dialect": "la", "ipa": "ˈkwal"}
+{"text": "cuál", "dialect": "es", "ipa": "ˈkwal"}
+{"text": "cuánto", "dialect": "la", "ipa": "ˈkwan.to"}
+{"text": "cuánto", "dialect": "es", "ipa": "ˈkwan.to"}
+{"text": "dónde", "dialect": "la", "ipa": "ˈdon.de"}
+{"text": "dónde", "dialect": "es", "ipa": "ˈdon.de"}
+{"text": "cuándo", "dialect": "la", "ipa": "ˈkwan.do"}
+{"text": "cuándo", "dialect": "es", "ipa": "ˈkwan.do"}
+{"text": "último", "dialect": "la", "ipa": "ˈul.ti.mo"}
+{"text": "último", "dialect": "es", "ipa": "ˈul.ti.mo"}
+{"text": "página", "dialect": "la", "ipa": "ˈpa.xi.na"}
+{"text": "página", "dialect": "es", "ipa": "ˈpa.xi.na"}
+{"text": "público", "dialect": "la", "ipa": "ˈpu.βli.ko"}
+{"text": "público", "dialect": "es", "ipa": "ˈpu.βli.ko"}
+{"text": "pájaro", "dialect": "la", "ipa": "ˈpa.xa.ɾo"}
+{"text": "pájaro", "dialect": "es", "ipa": "ˈpa.xa.ɾo"}
+{"text": "lámpara", "dialect": "la", "ipa": "ˈlam.pa.ɾa"}
+{"text": "lámpara", "dialect": "es", "ipa": "ˈlam.pa.ɾa"}
+{"text": "números", "dialect": "la", "ipa": "ˈnu.me.ɾos"}
+{"text": "números", "dialect": "es", "ipa": "ˈnu.me.ɾos"}
+{"text": "árboles", "dialect": "la", "ipa": "ˈaɾ.βo.les"}
+{"text": "árboles", "dialect": "es", "ipa": "ˈaɾ.βo.les"}
+{"text": "lápiz", "dialect": "la", "ipa": "ˈla.pis"}
+{"text": "lápiz", "dialect": "es", "ipa": "ˈla.piθ"}
+{"text": "cárcel", "dialect": "la", "ipa": "ˈkaɾ.sel"}
+{"text": "cárcel", "dialect": "es", "ipa": "ˈkaɾ.θel"}
+{"text": "fútbol", "dialect": "la", "ipa": "ˈfut.βol"}
+{"text": "fútbol", "dialect": "es", "ipa": "ˈfut.βol"}
+{"text": "béisbol", "dialect": "la", "ipa": "ˈbejz.βol"}
+{"text": "béisbol", "dialect": "es", "ipa": "ˈbejz.βol"}
+{"text": "sofá", "dialect": "la", "ipa": "so.ˈfa"}
+{"text": "sofá", "dialect": "es", "ipa": "so.ˈfa"}
+{"text": "papá", "dialect": "la", "ipa": "pa.ˈpa"}
+{"text": "papá", "dialect": "es", "ipa": "pa.ˈpa"}
+{"text": "mamá", "dialect": "la", "ipa": "ma.ˈma"}
+{"text": "mamá", "dialect": "es", "ipa": "ma.ˈma"}
+{"text": "además", "dialect": "la", "ipa": "a.ðe.ˈmas"}
+{"text": "además", "dialect": "es", "ipa": "a.ðe.ˈmas"}
+{"text": "inglés", "dialect": "la", "ipa": "iŋ.ˈgles"}
+{"text": "inglés", "dialect": "es", "ipa": "iŋ.ˈgles"}
+{"text": "francés", "dialect": "la", "ipa": "fɾan.ˈses"}
+{"text": "francés", "dialect": "es", "ipa": "fɾan.ˈθes"}
+{"text": "japonés", "dialect": "la", "ipa": "xa.po.ˈnes"}
+{"text": "japonés", "dialect": "es", "ipa": "xa.po.ˈnes"}
+{"text": "alemán", "dialect": "la", "ipa": "a.le.ˈman"}
+{"text": "alemán", "dialect": "es", "ipa": "a.le.ˈman"}
+{"text": "italiano", "dialect": "la", "ipa": "i.ta.ˈlja.no"}
+{"text": "italiano", "dialect": "es", "ipa": "i.ta.ˈlja.no"}
+{"text": "chino", "dialect": "la", "ipa": "ˈtʃi.no"}
+{"text": "chino", "dialect": "es", "ipa": "ˈtʃi.no"}
+{"text": "español", "dialect": "la", "ipa": "es.pa.ˈɲol"}
+{"text": "español", "dialect": "es", "ipa": "es.pa.ˈɲol"}
+{"text": "razón", "dialect": "la", "ipa": "ra.ˈson"}
+{"text": "razón", "dialect": "es", "ipa": "ra.ˈθon"}
+{"text": "lección", "dialect": "la", "ipa": "lek.ˈsjon"}
+{"text": "lección", "dialect": "es", "ipa": "lek.ˈθjon"}
+{"text": "acción", "dialect": "la", "ipa": "ak.ˈsjon"}
+{"text": "acción", "dialect": "es", "ipa": "ak.ˈθjon"}
+{"text": "dirección", "dialect": "la", "ipa": "di.ɾek.ˈsjon"}
+{"text": "dirección", "dialect": "es", "ipa": "di.ɾek.ˈθjon"}
+{"text": "información", "dialect": "la", "ipa": "in.foɾ.ma.ˈsjon"}
+{"text": "información", "dialect": "es", "ipa": "in.foɾ.ma.ˈθjon"}
+{"text": "televisión", "dialect": "la", "ipa": "te.le.βi.ˈsjon"}
+{"text": "televisión", "dialect": "es", "ipa": "te.le.βi.ˈsjon"}
+{"text": "decisión", "dialect": "la", "ipa": "de.si.ˈsjon"}
+{"text": "decisión", "dialect": "es", "ipa": "de.θi.ˈsjon"}
+{"text": "estudiáis", "dialect": "la", "ipa": "es.tu.ˈðjajs"}
+{"text": "estudiáis", "dialect": "es", "ipa": "es.tu.ˈðjajs"}
+{"text": "averiguáis", "dialect": "la", "ipa": "a.βe.ɾi.ˈɣwajs"}
+{"text": "averiguáis", "dialect": "es", "ipa": "a.βe.ɾi.ˈɣwajs"}
+{"text": "limpiéis", "dialect": "la", "ipa": "lim.ˈpjejs"}
+{"text": "limpiéis", "dialect": "es", "ipa": "lim.ˈpjejs"}
+{"text": "buey", "dialect": "la", "ipa": "ˈbwej"}
+{"text": "buey", "dialect": "es", "ipa": "ˈbwej"}
+{"text": "ley", "dialect": "la", "ipa": "ˈlej"}
+{"text": "ley", "dialect": "es", "ipa": "ˈlej"}
+{"text": "rey", "dialect": "la", "ipa": "ˈrej"}
+{"text": "rey", "dialect": "es", "ipa": "ˈrej"}
+{"text": "hay", "dialect": "la", "ipa": "ˈaj"}
+{"text": "hay", "dialect": "es", "ipa": "ˈaj"}
+{"text": "Uruguay", "dialect": "la", "ipa": "u.ɾu.ˈɣwaj"}
+{"text": "Uruguay", "dialect": "es", "ipa": "u.ɾu.ˈɣwaj"}
+{"text": "Paraguay", "dialect": "la", "ipa": "pa.ɾa.ˈɣwaj"}
+{"text": "Paraguay", "dialect": "es", "ipa": "pa.ɾa.ˈɣwaj"}
+{"text": "virrey", "dialect": "la", "ipa": "bi.ˈrej"}
+{"text": "virrey", "dialect": "es", "ipa": "bi.ˈrej"}
+{"text": "convoy", "dialect": "la", "ipa": "kom.ˈboj"}
+{"text": "convoy", "dialect": "es", "ipa": "kom.ˈboj"}
+{"text": "maíz", "dialect": "la", "ipa": "ma.ˈis"}
+{"text": "maíz", "dialect": "es", "ipa": "ma.ˈiθ"}
+{"text": "baúl", "dialect": "la", "ipa": "ba.ˈul"}
+{"text": "baúl", "dialect": "es", "ipa": "ba.ˈul"}
+{"text": "teatro", "dialect": "la", "ipa": "te.ˈa.tɾo"}
+{"text": "teatro", "dialect": "es", "ipa": "te.ˈa.tɾo"}
+{"text": "poeta", "dialect": "la", "ipa": "po.ˈe.ta"}
+{"text": "poeta", "dialect": "es", "ipa": "po.ˈe.ta"}
+{"text": "paella", "dialect": "la", "ipa": "pa.ˈe.ʝa"}
+{"text": "paella", "dialect": "es", "ipa": "pa.ˈe.ʝa"}
+{"text": "real", "dialect": "la", "ipa": "re.ˈal"}
+{"text": "real", "dialect": "es", "ipa": "re.ˈal"}
+{"text": "área", "dialect": "la", "ipa": "ˈa.ɾe.a"}
+{"text": "área", "dialect": "es", "ipa": "ˈa.ɾe.a"}
+{"text": "océano", "dialect": "la", "ipa": "o.ˈse.a.no"}
+{"text": "océano", "dialect": "es", "ipa": "o.ˈθe.a.no"}
+{"text": "zoológico", "dialect": "la", "ipa": "so.o.ˈlo.xi.ko"}
+{"text": "zoológico", "dialect": "es", "ipa": "θo.o.ˈlo.xi.ko"}
+{"text": "aéreo", "dialect": "la", "ipa": "a.ˈe.ɾe.o"}
+{"text": "aéreo", "dialect": "es", "ipa": "a.ˈe.ɾe.o"}
+{"text": "cohete", "dialect": "la", "ipa": "ko.ˈe.te"}
+{"text": "cohete", "dialect": "es", "ipa": "ko.ˈe.te"}
+{"text": "ahí", "dialect": "la", "ipa": "a.ˈi"}
+{"text": "ahí", "dialect": "es", "ipa": "a.ˈi"}
+{"text": "búho", "dialect": "la", "ipa": "ˈbu.o"}
+{"text": "búho", "dialect": "es", "ipa": "ˈbu.o"}
+{"text": "prohibir", "dialect": "la", "ipa": "pɾo.i.ˈβiɾ"}
+{"text": "prohibir", "dialect": "es", "ipa": "pɾo.i.ˈβiɾ"}
+{"text": "alcohol", "dialect": "la", "ipa": "al.ko.ˈol"}
+{"text": "alcohol", "dialect": "es", "ipa": "al.ko.ˈol"}
+{"text": "zanahoria", "dialect": "la", "ipa": "sa.na.ˈo.ɾja"}
+{"text": "zanahoria", "dialect": "es", "ipa": "θa.na.ˈo.ɾja"}
+{"text": "rehén", "dialect": "la", "ipa": "re.ˈen"}
+{"text": "rehén", "dialect": "es", "ipa": "re.ˈen"}
+{"text": "ahijado", "dialect": "la", "ipa": "a.i.ˈxa.ðo"}
+{"text": "ahijado", "dialect": "es", "ipa": "a.i.ˈxa.ðo"}
+{"text": "inhumano", "dialect": "la", "ipa": "i.nu.ˈma.no"}
+{"text": "inhumano", "dialect": "es", "ipa": "i.nu.ˈma.no"}
+{"text": "exhibir", "dialect": "la", "ipa": "ek.si.ˈβiɾ"}
+{"text": "exhibir", "dialect": "es", "ipa": "ek.si.ˈβiɾ"}
+{"text": "cuidado", "dialect": "la", "ipa": "kwi.ˈða.ðo"}
+{"text": "cuidado", "dialect": "es", "ipa": "kwi.ˈða.ðo"}
+{"text": "ruido", "dialect": "la", "ipa": "ˈrwi.ðo"}
+{"text": "ruido", "dialect": "es", "ipa": "ˈrwi.ðo"}
+{"text": "huir", "dialect": "la", "ipa": "ˈwiɾ"}
+{"text": "huir", "dialect": "es", "ipa": "ˈwiɾ"}
+{"text": "Luis", "dialect": "la", "ipa": "ˈlwis"}
+{"text": "Luis", "dialect": "es", "ipa": "ˈlwis"}
+{"text": "cuota", "dialect": "la", "ipa": "ˈkwo.ta"}
+{"text": "cuota", "dialect": "es", "ipa": "ˈkwo.ta"}
+{"text": "viuda", "dialect": "la", "ipa": "ˈbju.ða"}
+{"text": "viuda", "dialect": "es", "ipa": "ˈbju.ða"}
+{"text": "fuimos", "dialect": "la", "ipa": "ˈfwi.mos"}
+{"text": "fuimos", "dialect": "es", "ipa": "ˈfwi.mos"}
+{"text": "diurno", "dialect": "la", "ipa": "ˈdjuɾ.no"}
+{"text": "diurno", "dialect": "es", "ipa": "ˈdjuɾ.no"}
+{"text": "cuídate", "dialect": "la", "ipa": "ˈkwi.ða.te"}
+{"text": "cuídate", "dialect": "es", "ipa": "ˈkwi.ða.te"}
+{"text": "construí", "dialect": "la", "ipa": "kons.ˈtɾwi"}
+{"text": "construí", "dialect": "es", "ipa": "kons.ˈtɾwi"}
+{"text": "continúo", "dialect": "la", "ipa": "kon.ti.ˈnu.o"}
+{"text": "continúo", "dialect": "es", "ipa": "kon.ti.ˈnu.o"}
+{"text": "actúa", "dialect": "la", "ipa": "ak.ˈtu.a"}
+{"text": "actúa", "dialect": "es", "ipa": "ak.ˈtu.a"}
+{"text": "graduó", "dialect": "la", "ipa": "gɾa.ˈðwo"}
+{"text": "graduó", "dialect": "es", "ipa": "gɾa.ˈðwo"}
+{"text": "dúo", "dialect": "la", "ipa": "ˈdu.o"}
+{"text": "dúo", "dialect": "es", "ipa": "ˈdu.o"}
+{"text": "oído", "dialect": "la", "ipa": "o.ˈi.ðo"}
+{"text": "oído", "dialect": "es", "ipa": "o.ˈi.ðo"}
+{"text": "leí", "dialect": "la", "ipa": "le.ˈi"}
+{"text": "leí", "dialect": "es", "ipa": "le.ˈi"}
+{"text": "caída", "dialect": "la", "ipa": "ka.ˈi.ða"}
+{"text": "caída", "dialect": "es", "ipa": "ka.ˈi.ða"}
+{"text": "reina", "dialect": "la", "ipa": "ˈrej.na"}
+{"text": "reina", "dialect": "es", "ipa": "ˈrej.na"}
+{"text": "peine", "dialect": "la", "ipa": "ˈpej.ne"}
+{"text": "peine", "dialect": "es", "ipa": "ˈpej.ne"}
+{"text": "baile", "dialect": "la", "ipa": "ˈbaj.le"}
+{"text": "baile", "dialect": "es", "ipa": "ˈbaj.le"}
+{"text": "aire", "dialect": "la", "ipa": "ˈaj.ɾe"}
+{"text": "aire", "dialect": "es", "ipa": "ˈaj.ɾe"}
+{"text": "causa", "dialect": "la", "ipa": "ˈkaw.sa"}
+{"text": "causa", "dialect": "es", "ipa": "ˈkaw.sa"}
+{"text": "euro", "dialect": "la", "ipa": "ˈew.ɾo"}
+{"text": "euro", "dialect": "es", "ipa": "ˈew.ɾo"}
+{"text": "Europa", "dialect": "la", "ipa": "ew.ˈɾo.pa"}
+{"text": "Europa", "dialect": "es", "ipa": "ew.ˈɾo.pa"}
+{"text": "oigo", "dialect": "la", "ipa": "ˈoj.ɣo"}
+{"text": "oigo", "dialect": "es", "ipa": "ˈoj.ɣo"}
+{"text": "agüero", "dialect": "la", "ipa": "a.ˈɣwe.ɾo"}
+{"text": "agüero", "dialect": "es", "ipa": "a.ˈɣwe.ɾo"}
+{"text": "pingüino", "dialect": "la", "ipa": "piŋ.ˈgwi.no"}
+{"text": "pingüino", "dialect": "es", "ipa": "piŋ.ˈgwi.no"}
+{"text": "vergüenza", "dialect": "la", "ipa": "beɾ.ˈɣwen.sa"}
+{"text": "vergüenza", "dialect": "es", "ipa": "beɾ.ˈɣwen.θa"}
+{"text": "lingüista", "dialect": "la", "ipa": "liŋ.ˈgwis.ta"}
+{"text": "lingüista", "dialect": "es", "ipa": "liŋ.ˈgwis.ta"}
+{"text": "bilingüe", "dialect": "la", "ipa": "bi.ˈliŋ.gwe"}
+{"text": "bilingüe", "dialect": "es", "ipa": "bi.ˈliŋ.gwe"}
+{"text": "antigüedad", "dialect": "la", "ipa": "an.ti.ɣwe.ˈðað"}
+{"text": "antigüedad", "dialect": "es", "ipa": "an.ti.ɣwe.ˈðað"}
+{"text": "cigüeña", "dialect": "la", "ipa": "si.ˈɣwe.ɲa"}
+{"text": "cigüeña", "dialect": "es", "ipa": "θi.ˈɣwe.ɲa"}
+{"text": "guapo", "dialect": "la", "ipa": "ˈgwa.po"}
+{"text": "guapo", "dialect": "es", "ipa": "ˈgwa.po"}
+{"text": "guerra", "dialect": "la", "ipa": "ˈge.ra"}
+{"text": "guerra", "dialect": "es", "ipa": "ˈge.ra"}
+{"text": "guitarra", "dialect": "la", "ipa": "gi.ˈta.ra"}
+{"text": "guitarra", "dialect": "es", "ipa": "gi.ˈta.ra"}
+{"text": "guisante", "dialect": "la", "ipa": "gi.ˈsan.te"}
+{"text": "guisante", "dialect": "es", "ipa": "gi.ˈsan.te"}
+{"text": "guía", "dialect": "la", "ipa": "ˈgi.a"}
+{"text": "guía", "dialect": "es", "ipa": "ˈgi.a"}
+{"text": "gusto", "dialect": "la", "ipa": "ˈgus.to"}
+{"text": "gusto", "dialect": "es", "ipa": "ˈgus.to"}
+{"text": "guante", "dialect": "la", "ipa": "ˈgwan.te"}
+{"text": "guante", "dialect": "es", "ipa": "ˈgwan.te"}
+{"text": "siguiente", "dialect": "la", "ipa": "si.ˈɣjen.te"}
+{"text": "siguiente", "dialect": "es", "ipa": "si.ˈɣjen.te"}
+{"text": "águila", "dialect": "la", "ipa": "ˈa.ɣi.la"}
+{"text": "águila", "dialect": "es", "ipa": "ˈa.ɣi.la"}
+{"text": "Miguel", "dialect": "la", "ipa": "mi.ˈɣel"}
+{"text": "Miguel", "dialect": "es", "ipa": "mi.ˈɣel"}
+{"text": "juguete", "dialect": "la", "ipa": "xu.ˈɣe.te"}
+{"text": "juguete", "dialect": "es", "ipa": "xu.ˈɣe.te"}
+{"text": "hoguera", "dialect": "la", "ipa": "o.ˈɣe.ɾa"}
+{"text": "hoguera", "dialect": "es", "ipa": "o.ˈɣe.ɾa"}
+{"text": "paraguas", "dialect": "la", "ipa": "pa.ˈɾa.ɣwas"}
+{"text": "paraguas", "dialect": "es", "ipa": "pa.ˈɾa.ɣwas"}
+{"text": "ruego", "dialect": "la", "ipa": "ˈrwe.ɣo"}
+{"text": "ruego", "dialect": "es", "ipa": "ˈrwe.ɣo"}
+{"text": "gallo", "dialect": "la", "ipa": "ˈga.ʝo"}
+{"text": "gallo", "dialect": "es", "ipa": "ˈga.ʝo"}
+{"text": "gafas", "dialect": "la", "ipa": "ˈga.fas"}
+{"text": "gafas", "dialect": "es", "ipa": "ˈga.fas"}
+{"text": "gol", "dialect": "la", "ipa": "ˈgol"}
+{"text": "gol", "dialect": "es", "ipa": "ˈgol"}
+{"text": "goma", "dialect": "la", "ipa": "ˈgo.ma"}
+{"text": "goma", "dialect": "es", "ipa": "ˈgo.ma"}
+{"text": "gracias", "dialect": "la", "ipa": "ˈgɾa.sjas"}
+{"text": "gracias", "dialect": "es", "ipa": "ˈgɾa.θjas"}
+{"text": "gigante", "dialect": "la", "ipa": "xi.ˈɣan.te"}
+{"text": "gigante", "dialect": "es", "ipa": "xi.ˈɣan.te"}
+{"text": "mágico", "dialect": "la", "ipa": "ˈma.xi.ko"}
+{"text": "mágico", "dialect": "es", "ipa": "ˈma.xi.ko"}
+{"text": "ángel", "dialect": "la", "ipa": "ˈaŋ.xel"}
+{"text": "ángel", "dialect": "es", "ipa": "ˈaŋ.xel"}
+{"text": "general", "dialect": "la", "ipa": "xe.ne.ˈɾal"}
+{"text": "general", "dialect": "es", "ipa": "xe.ne.ˈɾal"}
+{"text": "gimnasio", "dialect": "la", "ipa": "xim.ˈna.sjo"}
+{"text": "gimnasio", "dialect": "es", "ipa": "xim.ˈna.sjo"}
+{"text": "genial", "dialect": "la", "ipa": "xe.ˈnjal"}
+{"text": "genial", "dialect": "es", "ipa": "xe.ˈnjal"}
+{"text": "ingeniero", "dialect": "la", "ipa": "iŋ.xe.ˈnje.ɾo"}
+{"text": "ingeniero", "dialect": "es", "ipa": "iŋ.xe.ˈnje.ɾo"}
+{"text": "mensaje", "dialect": "la", "ipa": "men.ˈsa.xe"}
+{"text": "mensaje", "dialect": "es", "ipa": "men.ˈsa.xe"}
+{"text": "equipaje", "dialect": "la", "ipa": "e.ki.ˈpa.xe"}
+{"text": "equipaje", "dialect": "es", "ipa": "e.ki.ˈpa.xe"}
+{"text": "lenguaje", "dialect": "la", "ipa": "leŋ.ˈgwa.xe"}
+{"text": "lenguaje", "dialect": "es", "ipa": "leŋ.ˈgwa.xe"}
+{"text": "viaje", "dialect": "la", "ipa": "ˈbja.xe"}
+{"text": "viaje", "dialect": "es", "ipa": "ˈbja.xe"}
+{"text": "jefe", "dialect": "la", "ipa": "ˈxe.fe"}
+{"text": "jefe", "dialect": "es", "ipa": "ˈxe.fe"}
+{"text": "jabón", "dialect": "la", "ipa": "xa.ˈβon"}
+{"text": "jabón", "dialect": "es", "ipa": "xa.ˈβon"}
+{"text": "japón", "dialect": "la", "ipa": "xa.ˈpon"}
+{"text": "japón", "dialect": "es", "ipa": "xa.ˈpon"}
+{"text": "jirafa", "dialect": "la", "ipa": "xi.ˈɾa.fa"}
+{"text": "jirafa", "dialect": "es", "ipa": "xi.ˈɾa.fa"}
+{"text": "jardín", "dialect": "la", "ipa": "xaɾ.ˈðin"}
+{"text": "jardín", "dialect": "es", "ipa": "xaɾ.ˈðin"}
+{"text": "reloj", "dialect": "la", "ipa": "re.ˈlox"}
+{"text": "reloj", "dialect": "es", "ipa": "re.ˈlox"}
+{"text": "ajo", "dialect": "la", "ipa": "ˈa.xo"}
+{"text": "ajo", "dialect": "es", "ipa": "ˈa.xo"}
+{"text": "rojo", "dialect": "la", "ipa": "ˈro.xo"}
+{"text": "rojo", "dialect": "es", "ipa": "ˈro.xo"}
+{"text": "ojalá", "dialect": "la", "ipa": "o.xa.ˈla"}
+{"text": "ojalá", "dialect": "es", "ipa": "o.xa.ˈla"}
+{"text": "dejar", "dialect": "la", "ipa": "de.ˈxaɾ"}
+{"text": "dejar", "dialect": "es", "ipa": "de.ˈxaɾ"}
+{"text": "llave", "dialect": "la", "ipa": "ˈʝa.βe"}
+{"text": "llave", "dialect": "es", "ipa": "ˈʝa.βe"}
+{"text": "caballo", "dialect": "la", "ipa": "ka.ˈβa.ʝo"}
+{"text": "caballo", "dialect": "es", "ipa": "ka.ˈβa.ʝo"}
+{"text": "ella", "dialect": "la", "ipa": "ˈe.ʝa"}
+{"text": "ella", "dialect": "es", "ipa": "ˈe.ʝa"}
+{"text": "bella", "dialect": "la", "ipa": "ˈbe.ʝa"}
+{"text": "bella", "dialect": "es", "ipa": "ˈbe.ʝa"}
+{"text": "botella", "dialect": "la", "ipa": "bo.ˈte.ʝa"}
+{"text": "botella", "dialect": "es", "ipa": "bo.ˈte.ʝa"}
+{"text": "mejilla", "dialect": "la", "ipa": "me.ˈxi.ʝa"}
+{"text": "mejilla", "dialect": "es", "ipa": "me.ˈxi.ʝa"}
+{"text": "llevar", "dialect": "la", "ipa": "ʝe.ˈβaɾ"}
+{"text": "llevar", "dialect": "es", "ipa": "ʝe.ˈβaɾ"}
+{"text": "llorar", "dialect": "la", "ipa": "ʝo.ˈɾaɾ"}
+{"text": "llorar", "dialect": "es", "ipa": "ʝo.ˈɾaɾ"}
+{"text": "lleno", "dialect": "la", "ipa": "ˈʝe.no"}
+{"text": "lleno", "dialect": "es", "ipa": "ˈʝe.no"}
+{"text": "yo", "dialect": "la", "ipa": "ˈʝo"}
+{"text": "yo", "dialect": "es", "ipa": "ˈʝo"}
+{"text": "ya", "dialect": "la", "ipa": "ˈʝa"}
+{"text": "ya", "dialect": "es", "ipa": "ˈʝa"}
+{"text": "yate", "dialect": "la", "ipa": "ˈʝa.te"}
+{"text": "yate", "dialect": "es", "ipa": "ˈʝa.te"}
+{"text": "yema", "dialect": "la", "ipa": "ˈʝe.ma"}
+{"text": "yema", "dialect": "es", "ipa": "ˈʝe.ma"}
+{"text": "yerba", "dialect": "la", "ipa": "ˈʝeɾ.βa"}
+{"text": "yerba", "dialect": "es", "ipa": "ˈʝeɾ.βa"}
+{"text": "mayor", "dialect": "la", "ipa": "ma.ˈʝoɾ"}
+{"text": "mayor", "dialect": "es", "ipa": "ma.ˈʝoɾ"}
+{"text": "rayo", "dialect": "la", "ipa": "ˈra.ʝo"}
+{"text": "rayo", "dialect": "es", "ipa": "ˈra.ʝo"}
+{"text": "leyes", "dialect": "la", "ipa": "ˈle.ʝes"}
+{"text": "leyes", "dialect": "es", "ipa": "ˈle.ʝes"}
+{"text": "vaya", "dialect": "la", "ipa": "ˈba.ʝa"}
+{"text": "vaya", "dialect": "es", "ipa": "ˈba.ʝa"}
+{"text": "haya", "dialect": "la", "ipa": "ˈa.ʝa"}
+{"text": "haya", "dialect": "es", "ipa": "ˈa.ʝa"}
+{"text": "inyección", "dialect": "la", "ipa": "in.ʝek.ˈsjon"}
+{"text": "inyección", "dialect": "es", "ipa": "in.ʝek.ˈθjon"}
+{"text": "y", "dialect": "la", "ipa": "ˈi"}
+{"text": "y", "dialect": "es", "ipa": "ˈi"}
+{"text": "yo y tú", "dialect": "la", "ipa": "ˈʝo ˈi ˈtu"}
+{"text": "yo y tú", "dialect": "es", "ipa": "ˈʝo ˈi ˈtu"}
+{"text": "pizarra", "dialect": "la", "ipa": "pi.ˈsa.ra"}
+{"text": "pizarra", "dialect": "es", "ipa": "pi.ˈθa.ra"}
+{"text": "carretera", "dialect": "la", "ipa": "ka.re.ˈte.ɾa"}
+{"text": "carretera", "dialect": "es", "ipa": "ka.re.ˈte.ɾa"}
+{"text": "correo", "dialect": "la", "ipa": "ko.ˈre.o"}
+{"text": "correo", "dialect": "es", "ipa": "ko.ˈre.o"}
+{"text": "ratón", "dialect": "la", "ipa": "ra.ˈton"}
+{"text": "ratón", "dialect": "es", "ipa": "ra.ˈton"}
+{"text": "terror", "dialect": "la", "ipa": "te.ˈroɾ"}
+{"text": "terror", "dialect": "es", "ipa": "te.ˈroɾ"}
+{"text": "ferrocarril", "dialect": "la", "ipa": "fe.ro.ka.ˈril"}
+{"text": "ferrocarril", "dialect": "es", "ipa": "fe.ro.ka.ˈril"}
+{"text": "alrededor", "dialect": "la", "ipa": "al.re.ðe.ˈðoɾ"}
+{"text": "alrededor", "dialect": "es", "ipa": "al.re.ðe.ˈðoɾ"}
+{"text": "Israel", "dialect": "la", "ipa": "iz.ra.ˈel"}
+{"text": "Israel", "dialect": "es", "ipa": "iz.ra.ˈel"}
+{"text": "enredo", "dialect": "la", "ipa": "en.ˈre.ðo"}
+{"text": "enredo", "dialect": "es", "ipa": "en.ˈre.ðo"}
+{"text": "honra", "dialect": "la", "ipa": "ˈon.ra"}
+{"text": "honra", "dialect": "es", "ipa": "ˈon.ra"}
+{"text": "aburrido", "dialect": "la", "ipa": "a.βu.ˈri.ðo"}
+{"text": "aburrido", "dialect": "es", "ipa": "a.βu.ˈri.ðo"}
+{"text": "barrio", "dialect": "la", "ipa": "ˈba.rjo"}
+{"text": "barrio", "dialect": "es", "ipa": "ˈba.rjo"}
+{"text": "error", "dialect": "la", "ipa": "e.ˈroɾ"}
+{"text": "error", "dialect": "es", "ipa": "e.ˈroɾ"}
+{"text": "arte", "dialect": "la", "ipa": "ˈaɾ.te"}
+{"text": "arte", "dialect": "es", "ipa": "ˈaɾ.te"}
+{"text": "parque", "dialect": "la", "ipa": "ˈpaɾ.ke"}
+{"text": "parque", "dialect": "es", "ipa": "ˈpaɾ.ke"}
+{"text": "para", "dialect": "la", "ipa": "ˈpa.ɾa"}
+{"text": "para", "dialect": "es", "ipa": "ˈpa.ɾa"}
+{"text": "caro", "dialect": "la", "ipa": "ˈka.ɾo"}
+{"text": "caro", "dialect": "es", "ipa": "ˈka.ɾo"}
+{"text": "mira", "dialect": "la", "ipa": "ˈmi.ɾa"}
+{"text": "mira", "dialect": "es", "ipa": "ˈmi.ɾa"}
+{"text": "fuerte", "dialect": "la", "ipa": "ˈfweɾ.te"}
+{"text": "fuerte", "dialect": "es", "ipa": "ˈfweɾ.te"}
+{"text": "sueño", "dialect": "la", "ipa": "ˈswe.ɲo"}
+{"text": "sueño", "dialect": "es", "ipa": "ˈswe.ɲo"}
+{"text": "compañero", "dialect": "la", "ipa": "kom.pa.ˈɲe.ɾo"}
+{"text": "compañero", "dialect": "es", "ipa": "kom.pa.ˈɲe.ɾo"}
+{"text": "baño", "dialect": "la", "ipa": "ˈba.ɲo"}
+{"text": "baño", "dialect": "es", "ipa": "ˈba.ɲo"}
+{"text": "otoño", "dialect": "la", "ipa": "o.ˈto.ɲo"}
+{"text": "otoño", "dialect": "es", "ipa": "o.ˈto.ɲo"}
+{"text": "uña", "dialect": "la", "ipa": "ˈu.ɲa"}
+{"text": "uña", "dialect": "es", "ipa": "ˈu.ɲa"}
+{"text": "araña", "dialect": "la", "ipa": "a.ˈɾa.ɲa"}
+{"text": "araña", "dialect": "es", "ipa": "a.ˈɾa.ɲa"}
+{"text": "cabaña", "dialect": "la", "ipa": "ka.ˈβa.ɲa"}
+{"text": "cabaña", "dialect": "es", "ipa": "ka.ˈβa.ɲa"}
+{"text": "que", "dialect": "la", "ipa": "ˈke"}
+{"text": "que", "dialect": "es", "ipa": "ˈke"}
+{"text": "quien", "dialect": "la", "ipa": "ˈkjen"}
+{"text": "quien", "dialect": "es", "ipa": "ˈkjen"}
+{"text": "máquina", "dialect": "la", "ipa": "ˈma.ki.na"}
+{"text": "máquina", "dialect": "es", "ipa": "ˈma.ki.na"}
+{"text": "química", "dialect": "la", "ipa": "ˈki.mi.ka"}
+{"text": "química", "dialect": "es", "ipa": "ˈki.mi.ka"}
+{"text": "esquina", "dialect": "la", "ipa": "es.ˈki.na"}
+{"text": "esquina", "dialect": "es", "ipa": "es.ˈki.na"}
+{"text": "bosque", "dialect": "la", "ipa": "ˈbos.ke"}
+{"text": "bosque", "dialect": "es", "ipa": "ˈbos.ke"}
+{"text": "tranquilo", "dialect": "la", "ipa": "tɾaŋ.ˈki.lo"}
+{"text": "tranquilo", "dialect": "es", "ipa": "tɾaŋ.ˈki.lo"}
+{"text": "arquitecto", "dialect": "la", "ipa": "aɾ.ki.ˈtek.to"}
+{"text": "arquitecto", "dialect": "es", "ipa": "aɾ.ki.ˈtek.to"}
+{"text": "izquierda", "dialect": "la", "ipa": "is.ˈkjeɾ.ða"}
+{"text": "izquierda", "dialect": "es", "ipa": "iθ.ˈkjeɾ.ða"}
+{"text": "chico", "dialect": "la", "ipa": "ˈtʃi.ko"}
+{"text": "chico", "dialect": "es", "ipa": "ˈtʃi.ko"}
+{"text": "muchacho", "dialect": "la", "ipa": "mu.ˈtʃa.tʃo"}
+{"text": "muchacho", "dialect": "es", "ipa": "mu.ˈtʃa.tʃo"}
+{"text": "chile", "dialect": "la", "ipa": "ˈtʃi.le"}
+{"text": "chile", "dialect": "es", "ipa": "ˈtʃi.le"}
+{"text": "ancho", "dialect": "la", "ipa": "ˈan.tʃo"}
+{"text": "ancho", "dialect": "es", "ipa": "ˈan.tʃo"}
+{"text": "derecha", "dialect": "la", "ipa": "de.ˈɾe.tʃa"}
+{"text": "derecha", "dialect": "es", "ipa": "de.ˈɾe.tʃa"}
+{"text": "techo", "dialect": "la", "ipa": "ˈte.tʃo"}
+{"text": "techo", "dialect": "es", "ipa": "ˈte.tʃo"}
+{"text": "mochila", "dialect": "la", "ipa": "mo.ˈtʃi.la"}
+{"text": "mochila", "dialect": "es", "ipa": "mo.ˈtʃi.la"}
+{"text": "chiste", "dialect": "la", "ipa": "ˈtʃis.te"}
+{"text": "chiste", "dialect": "es", "ipa": "ˈtʃis.te"}
+{"text": "churros", "dialect": "la", "ipa": "ˈtʃu.ros"}
+{"text": "churros", "dialect": "es", "ipa": "ˈtʃu.ros"}
+{"text": "chaqueta", "dialect": "la", "ipa": "tʃa.ˈke.ta"}
+{"text": "chaqueta", "dialect": "es", "ipa": "tʃa.ˈke.ta"}
+{"text": "cuchara", "dialect": "la", "ipa": "ku.ˈtʃa.ɾa"}
+{"text": "cuchara", "dialect": "es", "ipa": "ku.ˈtʃa.ɾa"}
+{"text": "bicicleta", "dialect": "la", "ipa": "bi.si.ˈkle.ta"}
+{"text": "bicicleta", "dialect": "es", "ipa": "bi.θi.ˈkle.ta"}
+{"text": "ducha", "dialect": "la", "ipa": "ˈdu.tʃa"}
+{"text": "ducha", "dialect": "es", "ipa": "ˈdu.tʃa"}
+{"text": "examen", "dialect": "la", "ipa": "ek.ˈsa.men"}
+{"text": "examen", "dialect": "es", "ipa": "ek.ˈsa.men"}
+{"text": "taxi", "dialect": "la", "ipa": "ˈtak.si"}
+{"text": "taxi", "dialect": "es", "ipa": "ˈtak.si"}
+{"text": "exacto", "dialect": "la", "ipa": "ek.ˈsak.to"}
+{"text": "exacto", "dialect": "es", "ipa": "ek.ˈsak.to"}
+{"text": "extranjero", "dialect": "la", "ipa": "eks.tɾaŋ.ˈxe.ɾo"}
+{"text": "extranjero", "dialect": "es", "ipa": "eks.tɾaŋ.ˈxe.ɾo"}
+{"text": "texto", "dialect": "la", "ipa": "ˈteks.to"}
+{"text": "texto", "dialect": "es", "ipa": "ˈteks.to"}
+{"text": "máximo", "dialect": "la", "ipa": "ˈmak.si.mo"}
+{"text": "máximo", "dialect": "es", "ipa": "ˈmak.si.mo"}
+{"text": "éxito", "dialect": "la", "ipa": "ˈek.si.to"}
+{"text": "éxito", "dialect": "es", "ipa": "ˈek.si.to"}
+{"text": "oxígeno", "dialect": "la", "ipa": "ok.ˈsi.xe.no"}
+{"text": "oxígeno", "dialect": "es", "ipa": "ok.ˈsi.xe.no"}
+{"text": "explicar", "dialect": "la", "ipa": "eks.pli.ˈkaɾ"}
+{"text": "explicar", "dialect": "es", "ipa": "eks.pli.ˈkaɾ"}
+{"text": "experiencia", "dialect": "la", "ipa": "eks.pe.ˈɾjen.sja"}
+{"text": "experiencia", "dialect": "es", "ipa": "eks.pe.ˈɾjen.θja"}
+{"text": "exámenes", "dialect": "la", "ipa": "ek.ˈsa.me.nes"}
+{"text": "exámenes", "dialect": "es", "ipa": "ek.ˈsa.me.nes"}
+{"text": "xilófono", "dialect": "la", "ipa": "si.ˈlo.fo.no"}
+{"text": "xilófono", "dialect": "es", "ipa": "si.ˈlo.fo.no"}
+{"text": "extra", "dialect": "la", "ipa": "ˈeks.tɾa"}
+{"text": "extra", "dialect": "es", "ipa": "ˈeks.tɾa"}
+{"text": "sexo", "dialect": "la", "ipa": "ˈsek.so"}
+{"text": "sexo", "dialect": "es", "ipa": "ˈsek.so"}
+{"text": "excelente", "dialect": "la", "ipa": "eks.se.ˈlen.te"}
+{"text": "excelente", "dialect": "es", "ipa": "eks.θe.ˈlen.te"}
+{"text": "hielo", "dialect": "la", "ipa": "ˈje.lo"}
+{"text": "hielo", "dialect": "es", "ipa": "ˈje.lo"}
+{"text": "historia", "dialect": "la", "ipa": "is.ˈto.ɾja"}
+{"text": "historia", "dialect": "es", "ipa": "is.ˈto.ɾja"}
+{"text": "hace", "dialect": "la", "ipa": "ˈa.se"}
+{"text": "hace", "dialect": "es", "ipa": "ˈa.θe"}
+{"text": "haber", "dialect": "la", "ipa": "a.ˈβeɾ"}
+{"text": "haber", "dialect": "es", "ipa": "a.ˈβeɾ"}
+{"text": "hacia", "dialect": "la", "ipa": "ˈa.sja"}
+{"text": "hacia", "dialect": "es", "ipa": "ˈa.θja"}
+{"text": "humano", "dialect": "la", "ipa": "u.ˈma.no"}
+{"text": "humano", "dialect": "es", "ipa": "u.ˈma.no"}
+{"text": "hermoso", "dialect": "la", "ipa": "eɾ.ˈmo.so"}
+{"text": "hermoso", "dialect": "es", "ipa": "eɾ.ˈmo.so"}
+{"text": "habitación", "dialect": "la", "ipa": "a.βi.ta.ˈsjon"}
+{"text": "habitación", "dialect": "es", "ipa": "a.βi.ta.ˈθjon"}
+{"text": "huésped", "dialect": "la", "ipa": "ˈwes.peð"}
+{"text": "huésped", "dialect": "es", "ipa": "ˈwes.peð"}
+{"text": "hueso", "dialect": "la", "ipa": "ˈwe.so"}
+{"text": "hueso", "dialect": "es", "ipa": "ˈwe.so"}
+{"text": "huerta", "dialect": "la", "ipa": "ˈweɾ.ta"}
+{"text": "huerta", "dialect": "es", "ipa": "ˈweɾ.ta"}
+{"text": "hígado", "dialect": "la", "ipa": "ˈi.ɣa.ðo"}
+{"text": "hígado", "dialect": "es", "ipa": "ˈi.ɣa.ðo"}
+{"text": "hoja", "dialect": "la", "ipa": "ˈo.xa"}
+{"text": "hoja", "dialect": "es", "ipa": "ˈo.xa"}
+{"text": "hambre", "dialect": "la", "ipa": "ˈam.bɾe"}
+{"text": "hambre", "dialect": "es", "ipa": "ˈam.bɾe"}
+{"text": "harina", "dialect": "la", "ipa": "a.ˈɾi.na"}
+{"text": "harina", "dialect": "es", "ipa": "a.ˈɾi.na"}
+{"text": "hierba", "dialect": "la", "ipa": "ˈjeɾ.βa"}
+{"text": "hierba", "dialect": "es", "ipa": "ˈjeɾ.βa"}
+{"text": "humo", "dialect": "la", "ipa": "ˈu.mo"}
+{"text": "humo", "dialect": "es", "ipa": "ˈu.mo"}
+{"text": "España", "dialect": "la", "ipa": "es.ˈpa.ɲa"}
+{"text": "España", "dialect": "es", "ipa": "es.ˈpa.ɲa"}
+{"text": "Colombia", "dialect": "la", "ipa": "ko.ˈlom.bja"}
+{"text": "Colombia", "dialect": "es", "ipa": "ko.ˈlom.bja"}
+{"text": "Argentina", "dialect": "la", "ipa": "aɾ.xen.ˈti.na"}
+{"text": "Argentina", "dialect": "es", "ipa": "aɾ.xen.ˈti.na"}
+{"text": "Perú", "dialect": "la", "ipa": "pe.ˈɾu"}
+{"text": "Perú", "dialect": "es", "ipa": "pe.ˈɾu"}
+{"text": "Cuba", "dialect": "la", "ipa": "ˈku.βa"}
+{"text": "Cuba", "dialect": "es", "ipa": "ˈku.βa"}
+{"text": "Bolivia", "dialect": "la", "ipa": "bo.ˈli.βja"}
+{"text": "Bolivia", "dialect": "es", "ipa": "bo.ˈli.βja"}
+{"text": "Venezuela", "dialect": "la", "ipa": "be.ne.ˈswe.la"}
+{"text": "Venezuela", "dialect": "es", "ipa": "be.ne.ˈθwe.la"}
+{"text": "Ecuador", "dialect": "la", "ipa": "e.kwa.ˈðoɾ"}
+{"text": "Ecuador", "dialect": "es", "ipa": "e.kwa.ˈðoɾ"}
+{"text": "Guatemala", "dialect": "la", "ipa": "gwa.te.ˈma.la"}
+{"text": "Guatemala", "dialect": "es", "ipa": "gwa.te.ˈma.la"}
+{"text": "Honduras", "dialect": "la", "ipa": "on.ˈdu.ɾas"}
+{"text": "Honduras", "dialect": "es", "ipa": "on.ˈdu.ɾas"}
+{"text": "Nicaragua", "dialect": "la", "ipa": "ni.ka.ˈɾa.ɣwa"}
+{"text": "Nicaragua", "dialect": "es", "ipa": "ni.ka.ˈɾa.ɣwa"}
+{"text": "Panamá", "dialect": "la", "ipa": "pa.na.ˈma"}
+{"text": "Panamá", "dialect": "es", "ipa": "pa.na.ˈma"}
+{"text": "Brasil", "dialect": "la", "ipa": "bɾa.ˈsil"}
+{"text": "Brasil", "dialect": "es", "ipa": "bɾa.ˈsil"}
+{"text": "Madrid", "dialect": "la", "ipa": "ma.ˈðɾið"}
+{"text": "Madrid", "dialect": "es", "ipa": "ma.ˈðɾið"}
+{"text": "Barcelona", "dialect": "la", "ipa": "baɾ.se.ˈlo.na"}
+{"text": "Barcelona", "dialect": "es", "ipa": "baɾ.θe.ˈlo.na"}
+{"text": "Sevilla", "dialect": "la", "ipa": "se.ˈβi.ʝa"}
+{"text": "Sevilla", "dialect": "es", "ipa": "se.ˈβi.ʝa"}
+{"text": "Bogotá", "dialect": "la", "ipa": "bo.ɣo.ˈta"}
+{"text": "Bogotá", "dialect": "es", "ipa": "bo.ɣo.ˈta"}
+{"text": "Lima", "dialect": "la", "ipa": "ˈli.ma"}
+{"text": "Lima", "dialect": "es", "ipa": "ˈli.ma"}
+{"text": "méxico", "dialect": "la", "ipa": "ˈme.xi.ko"}
+{"text": "méxico", "dialect": "es", "ipa": "ˈme.xi.ko"}
+{"text": "México", "dialect": "la", "ipa": "ˈme.xi.ko"}
+{"text": "México", "dialect": "es", "ipa": "ˈme.xi.ko"}
+{"text": "mexico", "dialect": "la", "ipa": "ˈme.xi.ko"}
+{"text": "mexico", "dialect": "es", "ipa": "ˈme.xi.ko"}
+{"text": "mexicano", "dialect": "la", "ipa": "me.xi.ˈka.no"}
+{"text": "mexicano", "dialect": "es", "ipa": "me.xi.ˈka.no"}
+{"text": "mexicana", "dialect": "la", "ipa": "me.xi.ˈka.na"}
+{"text": "mexicana", "dialect": "es", "ipa": "me.xi.ˈka.na"}
+{"text": "mexicanos", "dialect": "la", "ipa": "me.xi.ˈka.nos"}
+{"text": "mexicanos", "dialect": "es", "ipa": "me.xi.ˈka.nos"}
+{"text": "oaxaca", "dialect": "la", "ipa": "wa.ˈxa.ka"}
+{"text": "oaxaca", "dialect": "es", "ipa": "wa.ˈxa.ka"}
+{"text": "texas", "dialect": "la", "ipa": "ˈte.xas"}
+{"text": "texas", "dialect": "es", "ipa": "ˈte.xas"}
+{"text": "subrayar", "dialect": "la", "ipa": "suβ.ra.ˈʝaɾ"}
+{"text": "subrayar", "dialect": "es", "ipa": "suβ.ra.ˈʝaɾ"}
+{"text": "wifi", "dialect": "la", "ipa": "ˈwi.fi"}
+{"text": "wifi", "dialect": "es", "ipa": "ˈwi.fi"}
+{"text": "whisky", "dialect": "la", "ipa": "ˈwis.ki"}
+{"text": "whisky", "dialect": "es", "ipa": "ˈwis.ki"}
+{"text": "pizza", "dialect": "la", "ipa": "ˈpit.sa"}
+{"text": "pizza", "dialect": "es", "ipa": "ˈpit.sa"}
+{"text": "pizzas", "dialect": "la", "ipa": "ˈpit.sas"}
+{"text": "pizzas", "dialect": "es", "ipa": "ˈpit.sas"}
+{"text": "hámster", "dialect": "la", "ipa": "ˈxams.teɾ"}
+{"text": "hámster", "dialect": "es", "ipa": "ˈxams.teɾ"}
+{"text": "jazz", "dialect": "la", "ipa": "ˈʝas"}
+{"text": "jazz", "dialect": "es", "ipa": "ˈʝaθ"}
+{"text": "sándwich", "dialect": "la", "ipa": "ˈsand.witʃ"}
+{"text": "sándwich", "dialect": "es", "ipa": "ˈsand.witʃ"}
+{"text": "show", "dialect": "la", "ipa": "ˈtʃow"}
+{"text": "show", "dialect": "es", "ipa": "ˈtʃow"}
+{"text": "hobby", "dialect": "la", "ipa": "ˈxo.βi"}
+{"text": "hobby", "dialect": "es", "ipa": "ˈxo.βi"}
+{"text": "marketing", "dialect": "la", "ipa": "ˈmaɾ.ke.tiŋ"}
+{"text": "marketing", "dialect": "es", "ipa": "ˈmaɾ.ke.tiŋ"}
+{"text": "internet", "dialect": "la", "ipa": "ˈin.teɾ.net"}
+{"text": "internet", "dialect": "es", "ipa": "ˈin.teɾ.net"}
+{"text": "email", "dialect": "la", "ipa": "i.ˈmejl"}
+{"text": "email", "dialect": "es", "ipa": "i.ˈmejl"}
+{"text": "stop", "dialect": "la", "ipa": "es.ˈtop"}
+{"text": "stop", "dialect": "es", "ipa": "es.ˈtop"}
+{"text": "jeans", "dialect": "la", "ipa": "ˈʝins"}
+{"text": "jeans", "dialect": "es", "ipa": "ˈʝins"}
+{"text": "web", "dialect": "la", "ipa": "ˈweβ"}
+{"text": "web", "dialect": "es", "ipa": "ˈweβ"}
+{"text": "ketchup", "dialect": "la", "ipa": "ˈke.tʃup"}
+{"text": "ketchup", "dialect": "es", "ipa": "ˈke.tʃup"}
+{"text": "rugby", "dialect": "la", "ipa": "ˈraɣ.βi"}
+{"text": "rugby", "dialect": "es", "ipa": "ˈraɣ.βi"}
+{"text": "sushi", "dialect": "la", "ipa": "ˈsu.ʃi"}
+{"text": "sushi", "dialect": "es", "ipa": "ˈsu.ʃi"}
+{"text": "los libros de la biblioteca", "dialect": "la", "ipa": "ˈloz ˈli.βɾoz ˈðe ˈla βi.βljo.ˈte.ka"}
+{"text": "los libros de la biblioteca", "dialect": "es", "ipa": "ˈloz ˈli.βɾoz ˈðe ˈla βi.βljo.ˈte.ka"}
+{"text": "el gato negro", "dialect": "la", "ipa": "ˈel ˈɣa.to ˈne.ɣɾo"}
+{"text": "el gato negro", "dialect": "es", "ipa": "ˈel ˈɣa.to ˈne.ɣɾo"}
+{"text": "las bolsas grandes", "dialect": "la", "ipa": "ˈlaz ˈβol.saz ˈɣɾan.des"}
+{"text": "las bolsas grandes", "dialect": "es", "ipa": "ˈlaz ˈβol.saz ˈɣɾan.des"}
+{"text": "mis amigos", "dialect": "la", "ipa": "ˈmis a.ˈmi.ɣos"}
+{"text": "mis amigos", "dialect": "es", "ipa": "ˈmis a.ˈmi.ɣos"}
+{"text": "tus hermanos", "dialect": "la", "ipa": "ˈtus eɾ.ˈma.nos"}
+{"text": "tus hermanos", "dialect": "es", "ipa": "ˈtus eɾ.ˈma.nos"}
+{"text": "dos días", "dialect": "la", "ipa": "ˈdoz ˈði.as"}
+{"text": "dos días", "dialect": "es", "ipa": "ˈdoz ˈði.as"}
+{"text": "tres gatos", "dialect": "la", "ipa": "ˈtɾez ˈɣa.tos"}
+{"text": "tres gatos", "dialect": "es", "ipa": "ˈtɾez ˈɣa.tos"}
+{"text": "seis meses", "dialect": "la", "ipa": "ˈsejz ˈme.ses"}
+{"text": "seis meses", "dialect": "es", "ipa": "ˈsejz ˈme.ses"}
+{"text": "diez libros", "dialect": "la", "ipa": "ˈdjez ˈli.βɾos"}
+{"text": "diez libros", "dialect": "es", "ipa": "ˈdjeθ ˈli.βɾos"}
+{"text": "veinte nombres", "dialect": "la", "ipa": "ˈbejn.te ˈnom.bɾes"}
+{"text": "veinte nombres", "dialect": "es", "ipa": "ˈbejn.te ˈnom.bɾes"}
+{"text": "un amigo", "dialect": "la", "ipa": "ˈun a.ˈmi.ɣo"}
+{"text": "un amigo", "dialect": "es", "ipa": "ˈun a.ˈmi.ɣo"}
+{"text": "en la casa", "dialect": "la", "ipa": "ˈen ˈla ˈka.sa"}
+{"text": "en la casa", "dialect": "es", "ipa": "ˈen ˈla ˈka.sa"}
+{"text": "con tu hermano", "dialect": "la", "ipa": "ˈkon ˈtu eɾ.ˈma.no"}
+{"text": "con tu hermano", "dialect": "es", "ipa": "ˈkon ˈtu eɾ.ˈma.no"}
+{"text": "un poco de agua", "dialect": "la", "ipa": "ˈum ˈpo.ko ˈðe ˈa.ɣwa"}
+{"text": "un poco de agua", "dialect": "es", "ipa": "ˈum ˈpo.ko ˈðe ˈa.ɣwa"}
+{"text": "con Pablo", "dialect": "la", "ipa": "ˈkom ˈpa.βlo"}
+{"text": "con Pablo", "dialect": "es", "ipa": "ˈkom ˈpa.βlo"}
+{"text": "en vez de", "dialect": "la", "ipa": "ˈem ˈbez ˈðe"}
+{"text": "en vez de", "dialect": "es", "ipa": "ˈem ˈbeθ ˈðe"}
+{"text": "sin dinero", "dialect": "la", "ipa": "ˈsin di.ˈne.ɾo"}
+{"text": "sin dinero", "dialect": "es", "ipa": "ˈsin di.ˈne.ɾo"}
+{"text": "por qué", "dialect": "la", "ipa": "ˈpoɾ ˈke"}
+{"text": "por qué", "dialect": "es", "ipa": "ˈpoɾ ˈke"}
+{"text": "ven conmigo", "dialect": "la", "ipa": "ˈbeŋ kom.ˈmi.ɣo"}
+{"text": "ven conmigo", "dialect": "es", "ipa": "ˈbeŋ kom.ˈmi.ɣo"}
+{"text": "tengo que ir", "dialect": "la", "ipa": "ˈteŋ.go ˈke ˈiɾ"}
+{"text": "tengo que ir", "dialect": "es", "ipa": "ˈteŋ.go ˈke ˈiɾ"}
+{"text": "quiero un taco", "dialect": "la", "ipa": "ˈkje.ɾo ˈun ˈta.ko"}
+{"text": "quiero un taco", "dialect": "es", "ipa": "ˈkje.ɾo ˈun ˈta.ko"}
+{"text": "el señor López", "dialect": "la", "ipa": "ˈel se.ˈɲoɾ ˈlo.pes"}
+{"text": "el señor López", "dialect": "es", "ipa": "ˈel se.ˈɲoɾ ˈlo.peθ"}
+{"text": "hace frío", "dialect": "la", "ipa": "ˈa.se ˈfɾi.o"}
+{"text": "hace frío", "dialect": "es", "ipa": "ˈa.θe ˈfɾi.o"}
+{"text": "hace calor", "dialect": "la", "ipa": "ˈa.se ka.ˈloɾ"}
+{"text": "hace calor", "dialect": "es", "ipa": "ˈa.θe ka.ˈloɾ"}
+{"text": "está lloviendo", "dialect": "la", "ipa": "es.ˈta ʝo.ˈβjen.do"}
+{"text": "está lloviendo", "dialect": "es", "ipa": "es.ˈta ʝo.ˈβjen.do"}
+{"text": "me gustan los perros", "dialect": "la", "ipa": "ˈme ˈɣus.tan ˈlos ˈpe.ros"}
+{"text": "me gustan los perros", "dialect": "es", "ipa": "ˈme ˈɣus.tan ˈlos ˈpe.ros"}
+{"text": "los gatos", "dialect": "la", "ipa": "ˈloz ˈɣa.tos"}
+{"text": "los gatos", "dialect": "es", "ipa": "ˈloz ˈɣa.tos"}
+{"text": "las llaves", "dialect": "la", "ipa": "ˈlaz ˈʝa.βes"}
+{"text": "las llaves", "dialect": "es", "ipa": "ˈlaz ˈʝa.βes"}
+{"text": "tus llaves", "dialect": "la", "ipa": "ˈtuz ˈʝa.βes"}
+{"text": "tus llaves", "dialect": "es", "ipa": "ˈtuz ˈʝa.βes"}
+{"text": "mis zapatos", "dialect": "la", "ipa": "ˈmis sa.ˈpa.tos"}
+{"text": "mis zapatos", "dialect": "es", "ipa": "ˈmis θa.ˈpa.tos"}
+{"text": "buenas ideas", "dialect": "la", "ipa": "ˈbwe.nas i.ˈðe.as"}
+{"text": "buenas ideas", "dialect": "es", "ipa": "ˈbwe.nas i.ˈðe.as"}
+{"text": "otra vez", "dialect": "la", "ipa": "ˈo.tɾa ˈβes"}
+{"text": "otra vez", "dialect": "es", "ipa": "ˈo.tɾa ˈβeθ"}
+{"text": "de verdad", "dialect": "la", "ipa": "ˈde βeɾ.ˈðað"}
+{"text": "de verdad", "dialect": "es", "ipa": "ˈde βeɾ.ˈðað"}
+{"text": "el viernes", "dialect": "la", "ipa": "ˈel ˈβjeɾ.nes"}
+{"text": "el viernes", "dialect": "es", "ipa": "ˈel ˈβjeɾ.nes"}
+{"text": "el lunes y el martes", "dialect": "la", "ipa": "ˈel ˈlu.nes ˈi ˈel ˈmaɾ.tes"}
+{"text": "el lunes y el martes", "dialect": "es", "ipa": "ˈel ˈlu.nes ˈi ˈel ˈmaɾ.tes"}
+{"text": "mi hermano mayor", "dialect": "la", "ipa": "ˈmi eɾ.ˈma.no ma.ˈʝoɾ"}
+{"text": "mi hermano mayor", "dialect": "es", "ipa": "ˈmi eɾ.ˈma.no ma.ˈʝoɾ"}
+{"text": "buen viaje", "dialect": "la", "ipa": "ˈbwem ˈbja.xe"}
+{"text": "buen viaje", "dialect": "es", "ipa": "ˈbwem ˈbja.xe"}
+{"text": "buen provecho", "dialect": "la", "ipa": "ˈbwem pɾo.ˈβe.tʃo"}
+{"text": "buen provecho", "dialect": "es", "ipa": "ˈbwem pɾo.ˈβe.tʃo"}
+{"text": "gran día", "dialect": "la", "ipa": "ˈgɾan ˈdi.a"}
+{"text": "gran día", "dialect": "es", "ipa": "ˈgɾan ˈdi.a"}
+{"text": "gran casa", "dialect": "la", "ipa": "ˈgɾaŋ ˈka.sa"}
+{"text": "gran casa", "dialect": "es", "ipa": "ˈgɾaŋ ˈka.sa"}
+{"text": "muy bien", "dialect": "la", "ipa": "ˈmuj ˈβjen"}
+{"text": "muy bien", "dialect": "es", "ipa": "ˈmuj ˈβjen"}
+{"text": "hoy no", "dialect": "la", "ipa": "ˈoj ˈno"}
+{"text": "hoy no", "dialect": "es", "ipa": "ˈoj ˈno"}
+{"text": "ya voy", "dialect": "la", "ipa": "ˈʝa ˈβoj"}
+{"text": "ya voy", "dialect": "es", "ipa": "ˈʝa ˈβoj"}
+{"text": "yo vivo en Madrid", "dialect": "la", "ipa": "ˈʝo ˈβi.βo ˈem ma.ˈðɾið"}
+{"text": "yo vivo en Madrid", "dialect": "es", "ipa": "ˈʝo ˈβi.βo ˈem ma.ˈðɾið"}
+{"text": "ella es mi hermana", "dialect": "la", "ipa": "ˈe.ʝa ˈez ˈmi eɾ.ˈma.na"}
+{"text": "ella es mi hermana", "dialect": "es", "ipa": "ˈe.ʝa ˈez ˈmi eɾ.ˈma.na"}
+{"text": "nosotros somos amigos", "dialect": "la", "ipa": "no.ˈso.tɾos ˈso.mos a.ˈmi.ɣos"}
+{"text": "nosotros somos amigos", "dialect": "es", "ipa": "no.ˈso.tɾos ˈso.mos a.ˈmi.ɣos"}
+{"text": "ellos son de México", "dialect": "la", "ipa": "ˈe.ʝos ˈson ˈde ˈme.xi.ko"}
+{"text": "ellos son de México", "dialect": "es", "ipa": "ˈe.ʝos ˈson ˈde ˈme.xi.ko"}
+{"text": "soy de España", "dialect": "la", "ipa": "ˈsoj ˈðe es.ˈpa.ɲa"}
+{"text": "soy de España", "dialect": "es", "ipa": "ˈsoj ˈðe es.ˈpa.ɲa"}
+{"text": "somos de Colombia", "dialect": "la", "ipa": "ˈso.moz ˈðe ko.ˈlom.bja"}
+{"text": "somos de Colombia", "dialect": "es", "ipa": "ˈso.moz ˈðe ko.ˈlom.bja"}
+{"text": "Buenas tardes, señor.", "dialect": "la", "ipa": "ˈbwe.nas ˈtaɾ.ðes se.ˈɲoɾ"}
+{"text": "Buenas tardes, señor.", "dialect": "es", "ipa": "ˈbwe.nas ˈtaɾ.ðes se.ˈɲoɾ"}
+{"text": "¡Hola! ¿Qué tal?", "dialect": "la", "ipa": "ˈo.la ˈke ˈtal"}
+{"text": "¡Hola! ¿Qué tal?", "dialect": "es", "ipa": "ˈo.la ˈke ˈtal"}
+{"text": "¿Cuántos años tienes?", "dialect": "la", "ipa": "ˈkwan.tos ˈa.ɲos ˈtje.nes"}
+{"text": "¿Cuántos años tienes?", "dialect": "es", "ipa": "ˈkwan.tos ˈa.ɲos ˈtje.nes"}
+{"text": "tengo veinte años", "dialect": "la", "ipa": "ˈteŋ.go ˈβejn.te ˈa.ɲos"}
+{"text": "tengo veinte años", "dialect": "es", "ipa": "ˈteŋ.go ˈβejn.te ˈa.ɲos"}
+{"text": "me gusta el fútbol", "dialect": "la", "ipa": "ˈme ˈɣus.ta ˈel ˈfut.βol"}
+{"text": "me gusta el fútbol", "dialect": "es", "ipa": "ˈme ˈɣus.ta ˈel ˈfut.βol"}
+{"text": "quiero ir al baño", "dialect": "la", "ipa": "ˈkje.ɾo ˈiɾ ˈal ˈβa.ɲo"}
+{"text": "quiero ir al baño", "dialect": "es", "ipa": "ˈkje.ɾo ˈiɾ ˈal ˈβa.ɲo"}
+{"text": "no me gusta", "dialect": "la", "ipa": "ˈno ˈme ˈɣus.ta"}
+{"text": "no me gusta", "dialect": "es", "ipa": "ˈno ˈme ˈɣus.ta"}
+{"text": "no lo sé", "dialect": "la", "ipa": "ˈno ˈlo ˈse"}
+{"text": "no lo sé", "dialect": "es", "ipa": "ˈno ˈlo ˈse"}
+{"text": "dime la verdad", "dialect": "la", "ipa": "ˈdi.me ˈla βeɾ.ˈðað"}
+{"text": "dime la verdad", "dialect": "es", "ipa": "ˈdi.me ˈla βeɾ.ˈðað"}
+{"text": "dile que no", "dialect": "la", "ipa": "ˈdi.le ˈke ˈno"}
+{"text": "dile que no", "dialect": "es", "ipa": "ˈdi.le ˈke ˈno"}
+{"text": "dame agua", "dialect": "la", "ipa": "ˈda.me ˈa.ɣwa"}
+{"text": "dame agua", "dialect": "es", "ipa": "ˈda.me ˈa.ɣwa"}
+{"text": "sabes", "dialect": "la", "ipa": "ˈsa.βes"}
+{"text": "sabes", "dialect": "es", "ipa": "ˈsa.βes"}
+{"text": "ahorrar", "dialect": "la", "ipa": "a.o.ˈraɾ"}
+{"text": "ahorrar", "dialect": "es", "ipa": "a.o.ˈraɾ"}
+{"text": "alcohólico", "dialect": "la", "ipa": "al.ko.ˈo.li.ko"}
+{"text": "alcohólico", "dialect": "es", "ipa": "al.ko.ˈo.li.ko"}
+{"text": "huevos", "dialect": "la", "ipa": "ˈwe.βos"}
+{"text": "huevos", "dialect": "es", "ipa": "ˈwe.βos"}
+{"text": "zumo", "dialect": "la", "ipa": "ˈsu.mo"}
+{"text": "zumo", "dialect": "es", "ipa": "ˈθu.mo"}
+{"text": "plaza", "dialect": "la", "ipa": "ˈpla.sa"}
+{"text": "plaza", "dialect": "es", "ipa": "ˈpla.θa"}
+{"text": "lazo", "dialect": "la", "ipa": "ˈla.so"}
+{"text": "lazo", "dialect": "es", "ipa": "ˈla.θo"}
+{"text": "cruz", "dialect": "la", "ipa": "ˈkɾus"}
+{"text": "cruz", "dialect": "es", "ipa": "ˈkɾuθ"}
+{"text": "paz", "dialect": "la", "ipa": "ˈpas"}
+{"text": "paz", "dialect": "es", "ipa": "ˈpaθ"}
+{"text": "voz", "dialect": "la", "ipa": "ˈbos"}
+{"text": "voz", "dialect": "es", "ipa": "ˈboθ"}
+{"text": "juez", "dialect": "la", "ipa": "ˈxwes"}
+{"text": "juez", "dialect": "es", "ipa": "ˈxweθ"}
+{"text": "veces", "dialect": "la", "ipa": "ˈbe.ses"}
+{"text": "veces", "dialect": "es", "ipa": "ˈbe.θes"}
+{"text": "lápices", "dialect": "la", "ipa": "ˈla.pi.ses"}
+{"text": "lápices", "dialect": "es", "ipa": "ˈla.pi.θes"}
+{"text": "capaz", "dialect": "la", "ipa": "ka.ˈpas"}
+{"text": "capaz", "dialect": "es", "ipa": "ka.ˈpaθ"}
+{"text": "actriz", "dialect": "la", "ipa": "ak.ˈtɾis"}
+{"text": "actriz", "dialect": "es", "ipa": "ak.ˈtɾiθ"}
+{"text": "feroz", "dialect": "la", "ipa": "fe.ˈɾos"}
+{"text": "feroz", "dialect": "es", "ipa": "fe.ˈɾoθ"}
+{"text": "vez", "dialect": "la", "ipa": "ˈbes"}
+{"text": "vez", "dialect": "es", "ipa": "ˈbeθ"}
+{"text": "pez", "dialect": "la", "ipa": "ˈpes"}
+{"text": "pez", "dialect": "es", "ipa": "ˈpeθ"}
+{"text": "luz", "dialect": "la", "ipa": "ˈlus"}
+{"text": "luz", "dialect": "es", "ipa": "ˈluθ"}
+{"text": "luces", "dialect": "la", "ipa": "ˈlu.ses"}
+{"text": "luces", "dialect": "es", "ipa": "ˈlu.θes"}
+{"text": "perseguir", "dialect": "la", "ipa": "peɾ.se.ˈɣiɾ"}
+{"text": "perseguir", "dialect": "es", "ipa": "peɾ.se.ˈɣiɾ"}
+{"text": "obstáculo", "dialect": "la", "ipa": "oβs.ˈta.ku.lo"}
+{"text": "obstáculo", "dialect": "es", "ipa": "oβs.ˈta.ku.lo"}
+{"text": "construcción", "dialect": "la", "ipa": "kons.tɾuk.ˈsjon"}
+{"text": "construcción", "dialect": "es", "ipa": "kons.tɾuk.ˈθjon"}
+{"text": "instrumento", "dialect": "la", "ipa": "ins.tɾu.ˈmen.to"}
+{"text": "instrumento", "dialect": "es", "ipa": "ins.tɾu.ˈmen.to"}
+{"text": "transporte", "dialect": "la", "ipa": "tɾans.ˈpoɾ.te"}
+{"text": "transporte", "dialect": "es", "ipa": "tɾans.ˈpoɾ.te"}
+{"text": "perspectiva", "dialect": "la", "ipa": "peɾs.pek.ˈti.βa"}
+{"text": "perspectiva", "dialect": "es", "ipa": "peɾs.pek.ˈti.βa"}
+{"text": "abstracto", "dialect": "la", "ipa": "aβs.ˈtɾak.to"}
+{"text": "abstracto", "dialect": "es", "ipa": "aβs.ˈtɾak.to"}
+{"text": "monstruo", "dialect": "la", "ipa": "ˈmons.tɾwo"}
+{"text": "monstruo", "dialect": "es", "ipa": "ˈmons.tɾwo"}
+{"text": "siglo", "dialect": "la", "ipa": "ˈsi.ɣlo"}
+{"text": "siglo", "dialect": "es", "ipa": "ˈsi.ɣlo"}
+{"text": "regla", "dialect": "la", "ipa": "ˈre.ɣla"}
+{"text": "regla", "dialect": "es", "ipa": "ˈre.ɣla"}
+{"text": "atlas", "dialect": "la", "ipa": "ˈat.las"}
+{"text": "atlas", "dialect": "es", "ipa": "ˈat.las"}
+{"text": "atleta", "dialect": "la", "ipa": "at.ˈle.ta"}
+{"text": "atleta", "dialect": "es", "ipa": "at.ˈle.ta"}
+{"text": "aplicar", "dialect": "la", "ipa": "a.pli.ˈkaɾ"}
+{"text": "aplicar", "dialect": "es", "ipa": "a.pli.ˈkaɾ"}
+{"text": "tigre", "dialect": "la", "ipa": "ˈti.ɣɾe"}
+{"text": "tigre", "dialect": "es", "ipa": "ˈti.ɣɾe"}
+{"text": "cable", "dialect": "la", "ipa": "ˈka.βle"}
+{"text": "cable", "dialect": "es", "ipa": "ˈka.βle"}
+{"text": "libre", "dialect": "la", "ipa": "ˈli.βɾe"}
+{"text": "libre", "dialect": "es", "ipa": "ˈli.βɾe"}
+{"text": "sobre", "dialect": "la", "ipa": "ˈso.βɾe"}
+{"text": "sobre", "dialect": "es", "ipa": "ˈso.βɾe"}
+{"text": "cobre", "dialect": "la", "ipa": "ˈko.βɾe"}
+{"text": "cobre", "dialect": "es", "ipa": "ˈko.βɾe"}
+{"text": "pluma", "dialect": "la", "ipa": "ˈplu.ma"}
+{"text": "pluma", "dialect": "es", "ipa": "ˈplu.ma"}
+{"text": "blusa", "dialect": "la", "ipa": "ˈblu.sa"}
+{"text": "blusa", "dialect": "es", "ipa": "ˈblu.sa"}
+{"text": "flaco", "dialect": "la", "ipa": "ˈfla.ko"}
+{"text": "flaco", "dialect": "es", "ipa": "ˈfla.ko"}
+{"text": "clase", "dialect": "la", "ipa": "ˈkla.se"}
+{"text": "clase", "dialect": "es", "ipa": "ˈkla.se"}
+{"text": "crema", "dialect": "la", "ipa": "ˈkɾe.ma"}
+{"text": "crema", "dialect": "es", "ipa": "ˈkɾe.ma"}
+{"text": "cruzar", "dialect": "la", "ipa": "kɾu.ˈsaɾ"}
+{"text": "cruzar", "dialect": "es", "ipa": "kɾu.ˈθaɾ"}
+{"text": "drama", "dialect": "la", "ipa": "ˈdɾa.ma"}
+{"text": "drama", "dialect": "es", "ipa": "ˈdɾa.ma"}
+{"text": "gloria", "dialect": "la", "ipa": "ˈglo.ɾja"}
+{"text": "gloria", "dialect": "es", "ipa": "ˈglo.ɾja"}
+{"text": "grupo", "dialect": "la", "ipa": "ˈgɾu.po"}
+{"text": "grupo", "dialect": "es", "ipa": "ˈgɾu.po"}
+{"text": "fresa", "dialect": "la", "ipa": "ˈfɾe.sa"}
+{"text": "fresa", "dialect": "es", "ipa": "ˈfɾe.sa"}
+{"text": "frase", "dialect": "la", "ipa": "ˈfɾa.se"}
+{"text": "frase", "dialect": "es", "ipa": "ˈfɾa.se"}
+{"text": "frente", "dialect": "la", "ipa": "ˈfɾen.te"}
+{"text": "frente", "dialect": "es", "ipa": "ˈfɾen.te"}
+{"text": "premio", "dialect": "la", "ipa": "ˈpɾe.mjo"}
+{"text": "premio", "dialect": "es", "ipa": "ˈpɾe.mjo"}
+{"text": "primavera", "dialect": "la", "ipa": "pɾi.ma.ˈβe.ɾa"}
+{"text": "primavera", "dialect": "es", "ipa": "pɾi.ma.ˈβe.ɾa"}
+{"text": "profesión", "dialect": "la", "ipa": "pɾo.fe.ˈsjon"}
+{"text": "profesión", "dialect": "es", "ipa": "pɾo.fe.ˈsjon"}
+{"text": "dragón", "dialect": "la", "ipa": "dɾa.ˈɣon"}
+{"text": "dragón", "dialect": "es", "ipa": "dɾa.ˈɣon"}
+{"text": "cuadro", "dialect": "la", "ipa": "ˈkwa.ðɾo"}
+{"text": "cuadro", "dialect": "es", "ipa": "ˈkwa.ðɾo"}
+{"text": "ladrón", "dialect": "la", "ipa": "la.ˈðɾon"}
+{"text": "ladrón", "dialect": "es", "ipa": "la.ˈðɾon"}
+{"text": "madera", "dialect": "la", "ipa": "ma.ˈðe.ɾa"}
+{"text": "madera", "dialect": "es", "ipa": "ma.ˈðe.ɾa"}
+{"text": "mundial", "dialect": "la", "ipa": "mun.ˈdjal"}
+{"text": "mundial", "dialect": "es", "ipa": "mun.ˈdjal"}
+{"text": "tarde", "dialect": "la", "ipa": "ˈtaɾ.ðe"}
+{"text": "tarde", "dialect": "es", "ipa": "ˈtaɾ.ðe"}
+{"text": "ciudades", "dialect": "la", "ipa": "sju.ˈða.ðes"}
+{"text": "ciudades", "dialect": "es", "ipa": "θju.ˈða.ðes"}
+{"text": "cantáis", "dialect": "la", "ipa": "kan.ˈtajs"}
+{"text": "cantáis", "dialect": "es", "ipa": "kan.ˈtajs"}
+{"text": "habláis", "dialect": "la", "ipa": "a.ˈβlajs"}
+{"text": "habláis", "dialect": "es", "ipa": "a.ˈβlajs"}
+{"text": "coméis", "dialect": "la", "ipa": "ko.ˈmejs"}
+{"text": "coméis", "dialect": "es", "ipa": "ko.ˈmejs"}
+{"text": "sois", "dialect": "la", "ipa": "ˈsojs"}
+{"text": "sois", "dialect": "es", "ipa": "ˈsojs"}
+{"text": "vais", "dialect": "la", "ipa": "ˈbajs"}
+{"text": "vais", "dialect": "es", "ipa": "ˈbajs"}
+{"text": "veis", "dialect": "la", "ipa": "ˈbejs"}
+{"text": "veis", "dialect": "es", "ipa": "ˈbejs"}
+{"text": "dais", "dialect": "la", "ipa": "ˈdajs"}
+{"text": "dais", "dialect": "es", "ipa": "ˈdajs"}
+{"text": "estáis", "dialect": "la", "ipa": "es.ˈtajs"}
+{"text": "estáis", "dialect": "es", "ipa": "es.ˈtajs"}
+{"text": "tenéis", "dialect": "la", "ipa": "te.ˈnejs"}
+{"text": "tenéis", "dialect": "es", "ipa": "te.ˈnejs"}
+{"text": "hacéis", "dialect": "la", "ipa": "a.ˈsejs"}
+{"text": "hacéis", "dialect": "es", "ipa": "a.ˈθejs"}
+{"text": "después", "dialect": "la", "ipa": "des.ˈpwes"}
+{"text": "después", "dialect": "es", "ipa": "des.ˈpwes"}
+{"text": "jamás", "dialect": "la", "ipa": "xa.ˈmas"}
+{"text": "jamás", "dialect": "es", "ipa": "xa.ˈmas"}
+{"text": "quizás", "dialect": "la", "ipa": "ki.ˈsas"}
+{"text": "quizás", "dialect": "es", "ipa": "ki.ˈθas"}
+{"text": "acá", "dialect": "la", "ipa": "a.ˈka"}
+{"text": "acá", "dialect": "es", "ipa": "a.ˈka"}
+{"text": "así", "dialect": "la", "ipa": "a.ˈsi"}
+{"text": "así", "dialect": "es", "ipa": "a.ˈsi"}
+{"text": "aún", "dialect": "la", "ipa": "a.ˈun"}
+{"text": "aún", "dialect": "es", "ipa": "a.ˈun"}
+{"text": "aun", "dialect": "la", "ipa": "ˈawn"}
+{"text": "aun", "dialect": "es", "ipa": "ˈawn"}
+{"text": "raíz", "dialect": "la", "ipa": "ra.ˈis"}
+{"text": "raíz", "dialect": "es", "ipa": "ra.ˈiθ"}
+{"text": "Raúl", "dialect": "la", "ipa": "ra.ˈul"}
+{"text": "Raúl", "dialect": "es", "ipa": "ra.ˈul"}
+{"text": "heroico", "dialect": "la", "ipa": "e.ˈɾoj.ko"}
+{"text": "heroico", "dialect": "es", "ipa": "e.ˈɾoj.ko"}
+{"text": "oiga", "dialect": "la", "ipa": "ˈoj.ɣa"}
+{"text": "oiga", "dialect": "es", "ipa": "ˈoj.ɣa"}
+{"text": "huérfano", "dialect": "la", "ipa": "ˈweɾ.fa.no"}
+{"text": "huérfano", "dialect": "es", "ipa": "ˈweɾ.fa.no"}
+{"text": "bien", "dialect": "la", "ipa": "ˈbjen"}
+{"text": "bien", "dialect": "es", "ipa": "ˈbjen"}
+{"text": "pausa", "dialect": "la", "ipa": "ˈpaw.sa"}
+{"text": "pausa", "dialect": "es", "ipa": "ˈpaw.sa"}
+{"text": "deuda", "dialect": "la", "ipa": "ˈdew.ða"}
+{"text": "deuda", "dialect": "es", "ipa": "ˈdew.ða"}
+{"text": "jaula", "dialect": "la", "ipa": "ˈxaw.la"}
+{"text": "jaula", "dialect": "es", "ipa": "ˈxaw.la"}
+{"text": "neutro", "dialect": "la", "ipa": "ˈnew.tɾo"}
+{"text": "neutro", "dialect": "es", "ipa": "ˈnew.tɾo"}
+{"text": "ciudadano", "dialect": "la", "ipa": "sju.ða.ˈða.no"}
+{"text": "ciudadano", "dialect": "es", "ipa": "θju.ða.ˈða.no"}

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Verdict assembly and outcome bands for the Vocaterra.NLP language core: pure, fixed-order scoring of an utterance from its stage results.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
+  </ItemGroup>
+
+</Project>

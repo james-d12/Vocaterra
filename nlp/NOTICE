@@ -1,0 +1,13 @@
+Vocaterra.NLP
+Copyright 2026 james-d12
+
+The code, the hand-authored content and the documentation of this project are licensed under the Apache License,
+Version 2.0 (see the LICENSE file).
+
+Third-party data
+
+content/v1/lexicon/wiktionary-es.json is derived from Wiktionary (https://en.wiktionary.org) through the Spanish extract
+that kaikki.org publishes. It is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License
+(CC BY-SA 4.0), not under the Apache License 2.0, and it keeps that licence wherever it is copied. The attribution it
+requires, the source of its word frequency list and the licences of the models the project downloads are listed in
+content/v1/ATTRIBUTION.md and models/manifest.json.

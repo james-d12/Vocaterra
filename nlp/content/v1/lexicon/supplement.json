@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "generated_by": "hand-authored",
+  "entries": [
+    {"form":"saeta","lemma":"saeta","pos":"noun","features":{"number":"sg","gender":"f"}},
+    {"form":"saetas","lemma":"saeta","pos":"noun","features":{"number":"pl","gender":"f"}},
+    {"form":"género","lemma":"género","pos":"noun","features":{"number":"sg","gender":"m"}},
+    {"form":"géneros","lemma":"género","pos":"noun","features":{"number":"pl","gender":"m"}},
+    {"form":"ayudarte","lemma":"ayudar","pos":"verb","features":{}},
+    {"form":"inténtalo","lemma":"intentar","pos":"verb","features":{"person":"2","number":"sg","mood":"imp"}},
+    {"form":"mmm","lemma":"mmm","pos":"interj","features":{}}
+  ]
+}

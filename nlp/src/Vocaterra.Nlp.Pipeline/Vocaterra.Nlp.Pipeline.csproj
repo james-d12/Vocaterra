@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Utterance pipeline, conversation context and replay log that run the Vocaterra.NLP language core stages in a fixed order.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Content/Vocaterra.Nlp.Content.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Audio/Vocaterra.Nlp.Audio.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Phonology/Vocaterra.Nlp.Phonology.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Language/Vocaterra.Nlp.Language.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Pronunciation/Vocaterra.Nlp.Pronunciation.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Asr/Vocaterra.Nlp.Asr.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Evaluation/Vocaterra.Nlp.Evaluation.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Decision/Vocaterra.Nlp.Decision.csproj" />
+    <ProjectReference Include="../Vocaterra.Nlp.Response/Vocaterra.Nlp.Response.csproj" />
+  </ItemGroup>
+
+</Project>

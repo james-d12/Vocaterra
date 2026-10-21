@@ -1,0 +1,19 @@
+<Project>
+
+  <!-- The shared settings (net10.0, nullable, warnings as errors, deterministic, central package versions) come from the repository root.
+       The game references the language core's projects under nlp/ directly (see CLAUDE.md and docs/ARCHITECTURE.md). -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <!-- Native-asset trim (G7). The speech packages and MonoGame ship native libraries for every platform (sherpa-onnx, ONNX Runtime, Vosk,
+       SDL, about 400 MB in one project's bin/). On a Linux x64 build host the build targets linux-x64 only, so NuGet copies just that
+       runtime's natives (runtimes/linux-x64) and the output stays framework-dependent. AppendRuntimeIdentifierToOutputPath=false keeps the
+       output at bin/Debug/net10.0/, so every path in the README, the scripts and the screenshots is unchanged. Other build hosts, and a
+       release build that must carry every platform, set -p:VocaterraAllRuntimes=true to restore the full copy. This block lives here, not
+       at the root, so the core's packable libraries are never built for one runtime. -->
+  <PropertyGroup Condition="'$(VocaterraAllRuntimes)' != 'true' And '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X64' And '$([MSBuild]::IsOSPlatform(Linux))'">
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
+</Project>
