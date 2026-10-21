@@ -7,7 +7,6 @@ using System.Text.Json;
 using Vocaterra.Host;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
-using Vocaterra.Nlp.Core.Prompts;
 
 const int ExitOk = 0;
 const int ExitInvalidContent = 1;
@@ -82,7 +81,7 @@ static int RunLoop(ConversationSession session, string promptId)
 
     while (true)
     {
-        Console.WriteLine(Describe(session.Prompt(promptId)));
+        VerdictReport.WritePrompt(Console.Out, session.Prompt(promptId));
         Console.Write("> ");
         var line = Console.In.ReadLine();
         if (line is null)
@@ -123,12 +122,6 @@ static int RunLoop(ConversationSession session, string promptId)
         VerdictReport.Write(Console.Out, promptId, text, session.Evaluate(text, promptId, Now()));
         Console.WriteLine();
     }
-}
-
-static string Describe(PromptSpec prompt)
-{
-    return $"[{prompt.PromptId}] {prompt.Mode}, agent {prompt.AgentId ?? ConversationSession.NoAgentId}, "
-        + $"intents {string.Join(", ", prompt.AllowedIntentIds)}";
 }
 
 static StoredTimestamp Now()
