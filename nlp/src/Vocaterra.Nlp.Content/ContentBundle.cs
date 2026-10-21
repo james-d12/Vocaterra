@@ -27,7 +27,8 @@ public sealed class ContentBundle
         FeedbackPolicy feedbackPolicy,
         EvaluationConfig evaluationConfig,
         EffectTable effects,
-        IReadOnlyDictionary<string, IReadOnlySet<string>> cefr)
+        IReadOnlyDictionary<string, IReadOnlySet<string>> cefr,
+        IReadOnlyDictionary<string, ReadOnlyMemory<byte>> hostFiles)
     {
         Manifest = manifest;
         Provenance = provenance;
@@ -44,7 +45,12 @@ public sealed class ContentBundle
         EvaluationConfig = evaluationConfig;
         Effects = effects;
         Cefr = cefr;
+        _hostFiles = hostFiles;
+        HostFilePaths = [.. hostFiles.Keys.Order(StringComparer.Ordinal)];
     }
+
+    // The verified bytes of every host-owned file, kept from the load: the load read each file once and checked it against the manifest, and nothing is read from disk again.
+    private readonly IReadOnlyDictionary<string, ReadOnlyMemory<byte>> _hostFiles;
 
     /// <summary>The manifest the bundle was verified against.</summary>
     public ContentManifest Manifest { get; }
@@ -93,4 +99,33 @@ public sealed class ContentBundle
 
     /// <summary>The CEFR lemma lists by lower-case level (<c>a1</c>, <c>a2</c>); each set enumerates in ordinal order and lists only that level's own lemmas.</summary>
     public IReadOnlyDictionary<string, IReadOnlySet<string>> Cefr { get; }
+
+    /// <summary>
+    /// The bundle-relative paths of the host-owned files: every manifest-listed file the loader does not parse or validate (for example
+    /// <c>game/nouns.json</c>), in ordinal order. Empty when the bundle was loaded with <see cref="ContentLoadOptions.VerifyHashes"/> off.
+    /// </summary>
+    public IReadOnlyList<string> HostFilePaths { get; }
+
+    /// <summary>
+    /// Returns the bytes of a host-owned file. The path must be relative with '/' separators and no empty, '.' or '..' segment, and it must name a host-owned file
+    /// of this bundle; any other path (unlisted, loader-owned such as <c>lexicon/game.json</c>, absolute, or with <c>..</c>) returns false.
+    /// </summary>
+    /// <remarks>
+    /// The bytes are the ones the load hashed against the manifest: they are kept in memory from the load, so the read does not touch the disk and cannot
+    /// return bytes that changed after the load. A bundle loaded with hash verification off returns false for every path.
+    /// </remarks>
+    /// <param name="path">The bundle-relative path, for example <c>game/nouns.json</c>.</param>
+    /// <param name="bytes">The file's verified bytes when the method returns true; otherwise empty.</param>
+    /// <returns>True when the path names a host-owned file of this bundle.</returns>
+    public bool TryReadHostFile(string path, out ReadOnlyMemory<byte> bytes)
+    {
+        if (ContentPaths.IsWellFormedHostPath(path) && _hostFiles.TryGetValue(path, out var found))
+        {
+            bytes = found;
+            return true;
+        }
+
+        bytes = default;
+        return false;
+    }
 }

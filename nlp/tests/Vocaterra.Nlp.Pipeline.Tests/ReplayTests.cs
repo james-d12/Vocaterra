@@ -220,6 +220,19 @@ public class ReplayTests
     }
 
     [Fact]
+    public void ADriftInTheResolvedWordsIsReportedWithItsPath()
+    {
+        var envelope = Record();
+        var words = envelope.Result.Words!.ToList();
+        words[1] = words[1] with { Reading = words[1].Reading! with { Lemma = "tomar" } };
+        var mutated = envelope with { Result = envelope.Result with { Words = words } };
+
+        var diff = Replayer.Replay(mutated, LivePipeline(), ClipByHash);
+
+        Assert.Equal(["/words/1/reading/lemma"], diff!.Paths);
+    }
+
+    [Fact]
     public void ARecordedPromptThatTheBundleLacksIsRejected()
     {
         var envelope = Record();

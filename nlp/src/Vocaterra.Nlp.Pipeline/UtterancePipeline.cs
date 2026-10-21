@@ -115,7 +115,7 @@ public sealed partial class UtterancePipeline
         var effects = EffectResolver.Resolve(verdict, content.Effects);
         var repair = RepairFor(verdict, prompt, answerSet, counts);
         var replay = new ReplayRecord(clip.ClipHash, prompt.PromptId, context.HostStateHash, _services.Versions, verdict);
-        return new PipelineTrace(new PipelineResult(verdict, decision, response, effects, repair, replay), asr, posteriors);
+        return new PipelineTrace(new PipelineResult(verdict, decision, response, effects, repair, replay, analysis.Words, match), asr, posteriors);
     }
 
     /// <summary>Synthesizes every line of a response with the pipeline's speech synthesizer, in line order.</summary>

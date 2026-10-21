@@ -95,7 +95,32 @@ public sealed class LinguisticAnalyzer
             match?.Slots ?? [],
             OrderErrors(errors),
             match?.Grammar.Id,
-            allKnown ? 1.0 : 0.5);
+            allKnown ? 1.0 : 0.5,
+            ResolvedWords(text, analyzed, resolved, names));
+    }
+
+    // One resolved word per token: a name keeps no reading, an unknown word has none, and a word gets the reading the resolver left first.
+    private static List<ResolvedWord> ResolvedWords(NormalizedText text, IReadOnlyList<AnalyzedToken> analyzed, IReadOnlyList<AnalyzedToken> resolved, IReadOnlySet<int> names)
+    {
+        var words = new List<ResolvedWord>(text.Tokens.Count);
+        for (var i = 0; i < text.Tokens.Count; i++)
+        {
+            if (names.Contains(i))
+            {
+                words.Add(new ResolvedWord(text.Tokens[i], WordRole.Name, null));
+            }
+            else if (analyzed[i].Readings.Count == 0)
+            {
+                words.Add(new ResolvedWord(text.Tokens[i], WordRole.Unknown, null));
+            }
+            else
+            {
+                var readings = resolved[i].Readings;
+                words.Add(new ResolvedWord(text.Tokens[i], WordRole.Word, readings.Count > 0 ? readings[0] : analyzed[i].Readings[0]));
+            }
+        }
+
+        return words;
     }
 
     // What the resolver minimizes: the number of distinct errors the checks find in one resolved reading of the sentence. A sentence that has a past-time adverb and
