@@ -154,7 +154,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S0 | Plan and docs for the prototype brief: D-game-8 to D-game-12, D-game-6 amended, this section, the brief as Markdown, READMEs, Noun Town research moved | done (merged to `feature/prototype` 2026-10-21, `0a60928`) | Haiku 5.5 (docs) | `docs/SCENARIO_PLAN.md` |
 | S1 | 3D voxel simulation, headless (`Vocaterra.Simulation.Voxel`, `scene.json`, `PlayerBody3D`, `BlockRay`) | done (merged to `feature/prototype` 2026-10-21, `d2329cb`) | Sonnet 5.5 | S0 |
 | S2 | First-person voxel front-end (mesher, renderer, camera, figures, beacon; 2D UI over the scene) | done (merged to `feature/prototype` 2026-10-22, `c5af3d6`) | Sonnet 5.5 | S1 |
-| S3 | The scenario world and the guide in 3D (`WorldFacts3D`, the route layout, new nouns) | in progress | Haiku 5.5 | S2 |
+| S3 | The scenario world and the guide in 3D (`WorldFacts3D`, the route layout, new nouns) | done (merged to `feature/prototype` 2026-10-22, bundle `5b9d0dab…`) | Haiku 5.5 | S2 |
 | S4 | Gather, craft, the camp objective; retire the 2D slice (tag `2d-slice-p7`) | planned | Haiku 5.5 | S3 |
 | S5 | Content: `content/PHRASES.md`, the stall and the villager, `request_item`, constrained prompts; Opus review pass (D-game-12) | done (merged to `feature/prototype` 2026-10-22, bundle `c3cac003…`) | Sonnet 5.5 (design), Haiku 5.5 (content) | S0 |
 | S6 | NPC exchanges in the world (`NpcService`), filling the bottle, the transfer moment | planned | Sonnet 5.5 | S3, S5 |
@@ -605,6 +605,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   orchestrator: the camp (guide, workbench, berry bush, fire ring, beacon "río 78 m") and the village (stall with awning, timber houses);
   the shopkeeper stood in front of the counter facing away and the debug overlay carried a stale 2D line (both passed to S3). The first S2
   gate failed on a fuzz coverage flake (core M29e), not on S2; the merge stayed unpushed until the M29e gate passed (3,849 tests).
+- **S3, the world and the guide in 3D (2026-10-22, Haiku 5.5).** The route is `content/game-v1/game/scene.json` (hashed; seed-42 golden
+  `d27347a6…`); the shopkeeper stands behind the counter facing north (62,59), the villager in the plaza (63,66), the signpost label
+  "Tienda / Río". `IGuideFacts` with `WorldFacts` (2D) and `WorldFacts3D` (nearest block by horizontal distance, reading-order ties,
+  relative direction from integer `Angles` math, distance in words); `GuideSession` base with `GameSession` (2D) and `VoxelSession` (3D).
+  Nouns `agua`, `río` (share the water block; `agua` identifies it, either name is right), `camino`, `casa`, `tienda`, `puente`, `fruta` (the
+  berry bush and item); ores stay until S4 (a 2D test needs a noun per 2D item). In `--voxel` the turn worker runs (typed and spoken), E/T/V
+  on the guide opens the panel ("E: hablar"), the reply sets the beacon, "¿qué es esto?" uses the crosshair block. Demo checked by the
+  orchestrator: "El río está allí, a la izquierda, a sesenta bloques." (the `--say` script walks the player to the guide, facing west; the
+  river is due south, so left is right). Real key events are untested (no X automation here); the camera ends inside the guide's figure
+  when `--say` walks up to it (S6: a stand-off distance). Tests 3,887.
 
 ## 6. Definition of done (every milestone)
 
