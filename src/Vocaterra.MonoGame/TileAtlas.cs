@@ -45,10 +45,22 @@ public sealed class TileAtlas : IDisposable
 
     /// <summary>
     /// Draws one tile at a saturation (0 to 1): the grey copy first (unless the tile is fully coloured), then the colour copy with alpha equal
-    /// to the saturation (unless it is fully grey). Premultiplied alpha, so <c>Color.White * s</c> fades the colour copy to s.
+    /// to the saturation (unless it is fully grey). Premultiplied alpha, so <c>Color.White * s</c> fades the colour copy to s. The
+    /// <paramref name="brightness"/> (0 to 1, the tile's light) multiplies what the colour rule draws, so a dark tile is dark in grey and in colour.
     /// </summary>
-    public void DrawTile(SpriteBatch spriteBatch, TileId id, Rectangle destination, double saturation) =>
-        DrawCell(spriteBatch, Source(id), destination, saturation);
+    public void DrawTile(SpriteBatch spriteBatch, TileId id, Rectangle destination, double saturation, double brightness = 1.0) =>
+        DrawCell(spriteBatch, Source(id), destination, saturation, brightness);
+
+    /// <summary>
+    /// The tint of one draw in premultiplied alpha: the colour is <paramref name="alpha"/> times <paramref name="brightness"/> and the alpha is
+    /// <paramref name="alpha"/>, so a tile drawn at alpha s and brightness b comes out at b times its colour, blended at s.
+    /// </summary>
+    public static Color Tint(double alpha, double brightness)
+    {
+        var a = Math.Clamp(alpha, 0.0, 1.0);
+        var rgb = a * Math.Clamp(brightness, 0.0, 1.0);
+        return new Color((float)rgb, (float)rgb, (float)rgb, (float)a);
+    }
 
     /// <summary>
     /// Draws an item's icon at a saturation (the colour of the noun that names it, see <c>WordProgress.SaturationOf</c>), with the same grey
@@ -59,19 +71,19 @@ public sealed class TileAtlas : IDisposable
         var source = TileArt.TileOfItem(item) is { } tile
             ? Source(tile)
             : new Rectangle((TileArt.TileCount + TileArt.ToolIndexOf(item)) * TileArt.Size, 0, TileArt.Size, TileArt.Size);
-        DrawCell(spriteBatch, source, destination, saturation);
+        DrawCell(spriteBatch, source, destination, saturation, 1.0);
     }
 
-    private void DrawCell(SpriteBatch spriteBatch, Rectangle source, Rectangle destination, double saturation)
+    private void DrawCell(SpriteBatch spriteBatch, Rectangle source, Rectangle destination, double saturation, double brightness)
     {
         if (saturation < 1.0)
         {
-            spriteBatch.Draw(Grey, destination, source, Color.White);
+            spriteBatch.Draw(Grey, destination, source, Tint(1.0, brightness));
         }
 
         if (saturation > 0.0)
         {
-            spriteBatch.Draw(Texture, destination, source, Color.White * (float)Math.Clamp(saturation, 0.0, 1.0));
+            spriteBatch.Draw(Texture, destination, source, Tint(saturation, brightness));
         }
     }
 

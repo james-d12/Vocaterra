@@ -58,6 +58,30 @@ public enum ItemId : ushort
 
     /// <summary>A brick, placeable.</summary>
     Brick = 16,
+
+    /// <summary>Coal, mined from coal ore (P7).</summary>
+    Coal = 17,
+
+    /// <summary>Copper, mined from copper ore.</summary>
+    Copper = 18,
+
+    /// <summary>Iron, mined from iron ore.</summary>
+    Iron = 19,
+
+    /// <summary>Gold, mined from gold ore.</summary>
+    Gold = 20,
+
+    /// <summary>A torch, placeable: it lights the cells around it.</summary>
+    Torch = 21,
+
+    /// <summary>A lamp (crafted from iron and glass at a table; not placeable yet).</summary>
+    Lamp = 22,
+
+    /// <summary>A bucket (crafted from iron at a furnace; not placeable yet).</summary>
+    Bucket = 23,
+
+    /// <summary>A ring (crafted from gold at a furnace; not placeable yet).</summary>
+    Ring = 24,
 }
 
 /// <summary>The tools a tile can require. <see cref="None"/> is the hand.</summary>
@@ -109,6 +133,14 @@ public sealed record ItemDefinition(ItemId Id, string Name, int MaxStack, ToolKi
         new(ItemId.Furnace, "furnace", DefaultStackLimit, ToolKind.None, TileId.Furnace),
         new(ItemId.Glass, "glass", DefaultStackLimit, ToolKind.None, TileId.Glass),
         new(ItemId.Brick, "brick", DefaultStackLimit, ToolKind.None, TileId.Brick),
+        new(ItemId.Coal, "coal", DefaultStackLimit, ToolKind.None, null),
+        new(ItemId.Copper, "copper", DefaultStackLimit, ToolKind.None, null),
+        new(ItemId.Iron, "iron", DefaultStackLimit, ToolKind.None, null),
+        new(ItemId.Gold, "gold", DefaultStackLimit, ToolKind.None, null),
+        new(ItemId.Torch, "torch", DefaultStackLimit, ToolKind.None, TileId.Torch),
+        new(ItemId.Lamp, "lamp", ToolStackLimit, ToolKind.None, null),
+        new(ItemId.Bucket, "bucket", ToolStackLimit, ToolKind.None, null),
+        new(ItemId.Ring, "ring", ToolStackLimit, ToolKind.None, null),
     ];
 
     /// <summary>Every item kind, ordered by id.</summary>

@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using Vocaterra.Simulation.Crafting;
 using Vocaterra.Simulation.Generation;
 using Vocaterra.Simulation.Items;
+using Vocaterra.Simulation.Lighting;
 using Vocaterra.Simulation.Physics;
 using Vocaterra.Simulation.Tiles;
 
@@ -36,6 +37,7 @@ public sealed class GameSimulation
     private ItemId? _miningItem;
     private int _miningProgress;
     private IReadOnlyList<Recipe> _recipes = [];
+    private LightMap? _light;
 
     private GameSimulation(World world)
     {
@@ -71,6 +73,12 @@ public sealed class GameSimulation
 
     /// <summary>The stack in the selected slot (empty when the slot holds nothing).</summary>
     public ItemStack SelectedStack => Inventory.Slots[_selectedSlot];
+
+    /// <summary>
+    /// The light of the world (see <see cref="LightMap"/>). It is computed on first use and then kept up to date as tiles are mined and
+    /// placed, so a host that never reads it pays nothing for it.
+    /// </summary>
+    public LightMap Light => _light ??= new LightMap(World.Tiles);
 
     /// <summary>The recipes the player can craft, in the order the front-end shows them; set by the host with <see cref="SetRecipes"/>.</summary>
     public IReadOnlyList<Recipe> Recipes => _recipes;
@@ -166,6 +174,20 @@ public sealed class GameSimulation
     /// </summary>
     /// <returns>How many did not fit.</returns>
     public int GrantItems(ItemId item, int count) => Inventory.Add(item, count);
+
+    /// <summary>
+    /// Puts the player's body where it stands on the tile (its feet on the tile's bottom edge, as on the spawn), at rest. A debug action for a
+    /// front-end's launch options (a look at a cave); it is not a game rule, and it is not a command.
+    /// </summary>
+    public void TeleportTo(TilePoint tile)
+    {
+        if (!World.Tiles.InBounds(tile.X, tile.Y))
+        {
+            throw new ArgumentOutOfRangeException(nameof(tile), tile, "The tile lies outside the world.");
+        }
+
+        PlacePlayer((tile.X * U) + (U / 2) - (PhysicsConstants.PlayerWidth / 2), ((tile.Y + 1) * U) - PhysicsConstants.PlayerHeight);
+    }
 
     /// <summary>
     /// Sets the recipe list (plain values the game layer read from the bundle). Recipes are rules, not state: they are not part of
@@ -420,6 +442,7 @@ public sealed class GameSimulation
             World.Tiles.SetTile(point.X, point.Y, TileId.Air);
         }
 
+        _light?.TilesChanged(felled.Count > 0 ? tile.X - 2 : tile.X, felled.Count > 0 ? tile.X + 2 : tile.X);
         if (definition.Drop is { } gained)
         {
             Inventory.Add(gained, dropCount);
@@ -480,6 +503,7 @@ public sealed class GameSimulation
         }
 
         World.Tiles.SetTile(tile.X, tile.Y, placed);
+        _light?.TilesChanged(tile.X, tile.X);
         Inventory.RemoveFromSlot(_selectedSlot, 1);
         _events.Add(new SimulationEvent(SimulationEventKind.TilePlaced, Tick));
     }

@@ -51,7 +51,7 @@ public sealed class WorldFacts
     {
         ["árbol"] = [TileId.Trunk],
         ["hoja"] = [TileId.Leaves],
-        ["hierba"] = [TileId.Grass],
+        ["hierba"] = [TileId.Grass, TileId.TallGrass],
         ["tierra"] = [TileId.Dirt],
         ["piedra"] = [TileId.Stone],
         ["roca"] = [TileId.Stone],
@@ -67,6 +67,11 @@ public sealed class WorldFacts
         ["horno"] = [TileId.Furnace],
         ["cristal"] = [TileId.Glass],
         ["ladrillo"] = [TileId.Brick],
+        ["carbón"] = [TileId.CoalOre],
+        ["cobre"] = [TileId.CopperOre],
+        ["hierro"] = [TileId.IronOre],
+        ["oro"] = [TileId.GoldOre],
+        ["antorcha"] = [TileId.Torch],
     };
 
     private readonly int _width;
@@ -125,7 +130,7 @@ public sealed class WorldFacts
 
     /// <summary>
     /// The tile kinds a Spanish noun (a lemma such as <c>árbol</c>, <c>piedra</c> or <c>hierba</c>) names. A noun the world does not have yet
-    /// (<c>cueva</c> waits for P7) gives an empty list.
+    /// (<c>cueva</c> is not a catalogue noun yet) gives an empty list.
     /// </summary>
     public static IReadOnlyList<TileId> TilesOfNoun(string lemma)
     {
@@ -145,6 +150,12 @@ public sealed class WorldFacts
         TileId.Trunk => "árbol",
         TileId.Leaves => "árbol",
         TileId.Grass => "hierba",
+        TileId.TallGrass => "hierba",
+        TileId.CoalOre => "carbón",
+        TileId.CopperOre => "cobre",
+        TileId.IronOre => "hierro",
+        TileId.GoldOre => "oro",
+        TileId.Torch => "antorcha",
         TileId.Dirt => "tierra",
         TileId.Stone => "piedra",
         TileId.Sand => "arena",

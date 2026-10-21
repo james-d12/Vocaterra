@@ -91,7 +91,7 @@ public sealed class SurfaceDressingTests
     public void TheSurfacePassesRunAfterTheSpawnAndNeverMoveTheTerrain()
     {
         var passes = WorldGenerator.DefaultPasses.Select(p => p.Name).ToList();
-        Assert.Equal(["terrain", "layers", "grass", "forest", "spawn", "spawn-tree", "sand", "flora"], passes);
+        Assert.Equal(["terrain", "layers", "grass", "forest", "spawn", "spawn-tree", "sand", "flora", "caves", "ores"], passes);
 
         var withoutDressing = WorldGenerator.DefaultPasses.Where(p => p.Name is not ("sand" or "flora")).ToList();
         var plain = WorldGenerator.Generate(42, MediumSize, withoutDressing);
@@ -107,7 +107,7 @@ public sealed class SurfaceDressingTests
                 var after = dressed.GetTile(x, y);
                 if (before != after)
                 {
-                    Assert.Contains(after, new[] { TileId.Sand, TileId.Flower, TileId.Mushroom });
+                    Assert.Contains(after, new[] { TileId.Sand, TileId.Flower, TileId.Mushroom, TileId.TallGrass });
                 }
             }
         }

@@ -28,6 +28,8 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--mine <col,row>` | with `--screenshot`, a world step: walk until the tile is in reach, then hold the mine command until it is gone (gives up after 1 200 ticks and says why) |
 | `--place <item>@<col,row>` | with `--screenshot`, a world step: select the hotbar slot that holds the item (its Spanish noun, `madera`) and place it on the tile |
 | `--select <slot>` | with `--screenshot`, a world step: select a hotbar slot, 1 to 10 as the number keys give them |
+| `--teleport <col,row>` | with `--screenshot`, a **debug** world step (P7): put the player's feet on that tile at rest, with no walking (a cave to look at). Not a game rule |
+| `--grant <noun>:<n>` | with `--screenshot`, a **debug** world step (P7): give the player `n` of the noun's item (`carbón:20`), outside the game's rules. Printed as `grant: ...` |
 | `--inventory` | with `--screenshot`, a world step: open the inventory screen and keep it open for the screenshot (the next dialogue step closes it) |
 | `--craft <item>` | with `--screenshot`, a world step (P6b): make one of the item (its Spanish noun, `mesa`, `puerta`, `horno`) from the inventory, with the stations in reach; prints `craft: mesa made (mesa 0 -> 1)`, or why it was refused (`MissingStation`, `MissingIngredients`, ...) |
 | `--crafting` | with `--screenshot`, a world step: open the crafting panel and keep it open for the screenshot (the next step closes it) |
@@ -138,6 +140,38 @@ take any other arrow away.
   `CountBadge` are plain values, so tests click a row and check the counts without a window. `CraftingLayer` only draws.
 - **Art**: the furnace, glass, brick and the sword are drawn in code like the other placeholders; no file was added, so `assets/ATTRIBUTION.md` is unchanged.
 
+## Caves, ores and the light (P7)
+
+- **Light**: the world is drawn with the simulation's light map (`GameSimulation.Light`, see `Vocaterra.Simulation`). A tile's colour is
+  multiplied by its brightness (`TileAtlas.DrawTile(…, brightness)`), in grey and in colour alike, so the colour rule and the light compose
+  (`TileAtlas.Tint`: premultiplied, the colour is the saturation times the brightness). Open sky is the clear colour at full brightness. Air under
+  the ground is cave air (`WorldRenderer.CaveAir`, a warm dark colour that is black where no light reaches); a non-solid tile underground (a torch,
+  a flower) is drawn over that background. Rock is never below 6/16, so an unlit wall stays readable. The player is drawn at no less than 0.3 of
+  full brightness (`WorldRenderer.PlayerMinimumBrightness`), so a body in a dark cave stays visible.
+- **Frame time**: the scene draw (world with light, layers and the batch flush) is timed and printed at the end of a screenshot run, as
+  `scene draw (…): N frames, median …, longest …`. The light map is computed while the content loads (about 65 ms on seed 42, once), so it is not
+  on the first frame. An incremental change (a mined or placed tile) recomputes the nine columns either side of it: a median of 0.9 ms in the
+  simulation's timing. At 1 280 x 720 on the development machine the scene draw (with the light) had a median of 1.1 ms over the spoken-guide run
+  (241 frames), 2.3 ms in the dark cave (90 frames) and 1.8 ms in the lit cave (900 frames) in the final runs; earlier runs of the same demos
+  measured 3 to 10 ms medians, so the figure varies by run. The longest frame of each run was 55 to 100 ms; it was not traced to a cause.
+  The frame counter read 60 FPS, the vsync cap.
+- **Ore art**: ores are the stone with dark, copper, iron or gold nuggets (2 x 2 blocks, a fixed hash); the torch is a stick with a flame; tall grass is
+  green blades. Items show the ore art (`coal`, `copper`, `iron`, `gold`) or the torch art; the lamp, the bucket and the ring have icons of their own
+  (`TileArt.ToolIndexOf` 3 to 5, `ToolCount` 6). All drawn in code (CC0 by construction, no file); `assets/ATTRIBUTION.md` is unchanged.
+- **Demo** (seed 42, `DISPLAY=:0`, the outputs below are from the run on this machine):
+
+  1. `--say "¿dónde hay carbón?" --screenshot say-coal.png --frames 240`
+     prints `turn 1: "¿dónde hay carbón?" -> ask_find, entendido, 100 %, 19.6 ms, state pointing`, `guide: El carbón está allí, abajo, a la izquierda,
+     a veintisiete bloques.` and `arrow: carbón at 482,208 (27 blocks)`. The arrow points down and left.
+  2. A cave with ore and dark around it (the spot is far from the spawn: teleport anywhere):
+     `--teleport 202,196 --screenshot cave-dark.png --frames 90`. The cave air is black, the rock is dim, and the coal nuggets (about 204 to 206,
+     198 to 202) show as dark dots in the wall.
+  3. The same place with torches: `--walk 517 --mine 517,180 --teleport 202,196 --select 2 --mine 206,198 --craft antorcha --place antorcha@200,196
+     --screenshot cave-lit.png --frames 900`, printing `walk: column 516 (wanted 517) after 29 ticks`, `mine: 517,180 (trunk) gone after 90
+     ticks`, `teleport: 202,196`, `select: slot 2`, `mine: 206,198 (coal-ore) gone after 60 ticks`, `craft: antorcha made (antorcha 0 -> 4)` and
+     `place: 200,196 torch from Torch`. The torch lights a warm disc of radius eight, and the torch itself is grey until the word `antorcha` is known.
+  4. Each run ends with `scene draw (world with lighting, layers, flush): … median …, longest …`.
+
 ## Architecture
 
 ```
@@ -229,7 +263,8 @@ scripted input driving a real simulation (and a determinism check over uneven fr
 art, FPS, the font (an own TrueType `cmap` reader checks `á é í ó ú ü ñ Á É Í Ó Ú Ü Ñ ¿ ¡` and the overlay's line; the file is copied to the
 output; every character of the panel's texts and of the bundle's dialogue pools and prompts is in the font; the CC0 record exists) and
 architecture rules (no engine type in `Frontend/`, no `System.Random`, clock or `Stopwatch` outside `FrameClock.cs`, project references only the
-game layer and the simulation, no engine code in the simulation, the game layer or the host).
+game layer and the simulation, no engine code in the simulation, the game layer or the host). P7: `LightingFrontendTests` (the premultiplied
+tint, the dark and the sky squares, the parsing of `--teleport` and `--grant` as steps that need a screenshot, the art of the new tiles and icons).
 
 ## Notes
 

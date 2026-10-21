@@ -203,14 +203,18 @@ public sealed class CraftingFrontendTests
             {
                 Assert.Equal(placed, tile);
             }
+            else if (tile is { } ore)
+            {
+                // A mined material (P7) shows the art of the ore it comes from.
+                Assert.Contains(ore, new[] { TileId.CoalOre, TileId.CopperOre, TileId.IronOre, TileId.GoldOre });
+            }
             else
             {
-                Assert.Null(tile);
                 Assert.InRange(TileArt.ToolIndexOf(definition.Id), 0, TileArt.ToolCount - 1);
             }
         }
 
-        Assert.Equal(3, TileArt.ToolCount);
+        Assert.Equal(6, TileArt.ToolCount);
         Assert.Equal(2, TileArt.ToolIndexOf(ItemId.Sword));
     }
 

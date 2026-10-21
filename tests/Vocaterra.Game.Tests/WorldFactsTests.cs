@@ -128,7 +128,8 @@ public sealed class WorldFactsTests
         Assert.Equal([TileId.Trunk], WorldFacts.TilesOfNoun("árbol"));
         Assert.Equal([TileId.Stone], WorldFacts.TilesOfNoun("piedra"));
         Assert.Equal([TileId.Stone], WorldFacts.TilesOfNoun("roca"));
-        Assert.Equal([TileId.Grass], WorldFacts.TilesOfNoun("hierba"));
+        Assert.Equal([TileId.Grass, TileId.TallGrass], WorldFacts.TilesOfNoun("hierba"));
+        Assert.Equal([TileId.CoalOre], WorldFacts.TilesOfNoun("carbón"));
         Assert.Equal([TileId.Dirt], WorldFacts.TilesOfNoun("tierra"));
         Assert.Empty(WorldFacts.TilesOfNoun("cueva"));
         Assert.Equal("árbol", WorldFacts.NounOfTile(TileId.Trunk));

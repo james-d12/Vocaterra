@@ -8,8 +8,8 @@ namespace Vocaterra.Simulation.Tests;
 /// <summary>Goldens and properties of world generation.</summary>
 public sealed class GenerationTests(ITestOutputHelper output)
 {
-    /// <summary>The SHA-256 of the tile arrays of seed 42 at <see cref="WorldSize.Small"/>, generator version 3. Any change to a pass changes it on purpose, with <see cref="WorldGenerator.Version"/>.</summary>
-    private const string Seed42Golden = "6d148dcac0d72b92564dfa6413f1c40f60d843a445df748875b1ee02d84a4f5f";
+    /// <summary>The SHA-256 of the tile arrays of seed 42 at <see cref="WorldSize.Small"/>, generator version 4. Any change to a pass changes it on purpose, with <see cref="WorldGenerator.Version"/>.</summary>
+    private const string Seed42Golden = "d96279bf62b5f1d1f4028d9c15cf63590a31c35641b84e3235c5720468e69ae1";
 
     private static readonly WorldSize MediumSize = new(512, 256);
 
@@ -48,7 +48,7 @@ public sealed class GenerationTests(ITestOutputHelper output)
     {
         var world = WorldGenerator.Generate(42, MediumSize);
         Assert.All(world.Tiles.Chunks, chunk => Assert.False(chunk.Dirty));
-        Assert.Equal(["terrain", "layers", "grass", "forest", "spawn", "spawn-tree", "sand", "flora"], world.Record.Passes);
+        Assert.Equal(["terrain", "layers", "grass", "forest", "spawn", "spawn-tree", "sand", "flora", "caves", "ores"], world.Record.Passes);
         Assert.Equal(16 * 8, world.Tiles.Chunks.Count);
     }
 

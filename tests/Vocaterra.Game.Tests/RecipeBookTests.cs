@@ -14,7 +14,7 @@ public sealed class RecipeBookTests
     {
         Assert.True(TestGame.Bundle.TryReadHostFile(RecipeBook.RelativePath, out var bytes));
         Assert.True(bytes.Length > 0);
-        Assert.Equal(9, Book.Entries.Count);
+        Assert.Equal(13, Book.Entries.Count);
     }
 
     [Fact]

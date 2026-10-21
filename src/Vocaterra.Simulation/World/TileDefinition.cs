@@ -34,6 +34,12 @@ public sealed record TileDefinition(TileId Id, string Name, bool Solid, int Mini
         new(TileId.Furnace, "furnace", true, 75, ToolKind.Pickaxe, ItemId.Furnace),
         new(TileId.Glass, "glass", true, 30, ToolKind.Pickaxe, ItemId.Glass),
         new(TileId.Brick, "brick", true, 60, ToolKind.Pickaxe, ItemId.Brick),
+        new(TileId.CoalOre, "coal-ore", true, 60, ToolKind.Pickaxe, ItemId.Coal),
+        new(TileId.CopperOre, "copper-ore", true, 75, ToolKind.Pickaxe, ItemId.Copper),
+        new(TileId.IronOre, "iron-ore", true, 90, ToolKind.Pickaxe, ItemId.Iron),
+        new(TileId.GoldOre, "gold-ore", true, 105, ToolKind.Pickaxe, ItemId.Gold),
+        new(TileId.Torch, "torch", false, 6, ToolKind.None, ItemId.Torch),
+        new(TileId.TallGrass, "tall-grass", false, 6, ToolKind.None, null),
     ];
 
     /// <summary>Every defined tile kind, ordered by id.</summary>

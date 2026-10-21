@@ -47,4 +47,22 @@ public enum TileId : ushort
     Glass = 16,
     /// <summary>A placed brick block (solid).</summary>
     Brick = 17,
+
+    /// <summary>Stone with coal in it (solid; mined with the pickaxe into coal). Appended in P7.</summary>
+    CoalOre = 18,
+
+    /// <summary>Stone with copper in it (solid; mined with the pickaxe into copper).</summary>
+    CopperOre = 19,
+
+    /// <summary>Stone with iron in it (solid; mined with the pickaxe into iron).</summary>
+    IronOre = 20,
+
+    /// <summary>Stone with gold in it (solid; mined with the pickaxe into gold; the deepest ore).</summary>
+    GoldOre = 21,
+
+    /// <summary>A placed torch: light from its tile, not solid (the player walks through it).</summary>
+    Torch = 22,
+
+    /// <summary>Tall grass on the surface (not solid; drops nothing). Its noun is <c>hierba</c>, the same as the grass.</summary>
+    TallGrass = 23,
 }
