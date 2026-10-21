@@ -351,6 +351,12 @@ output for the same text), and the intent resolver's example vectors on the firs
 reads each adapter's `ModelHash` when it is constructed, so Kokoro hashes its files there. Load the models before the first utterance a
 player waits for.
 
+**Parakeet word timing (M26g).** `SherpaOnnxOfflineRecognizer` reads the transcript, the tokens and their start times from the native
+result, and never the per-token durations: sherpa-onnx 1.13.8 returns a buffer for them on the Parakeet TDT greedy path that is not
+float data (it changes on every decode), which made the last word's end time differ between identical decodes. Each word therefore ends
+where the next one starts, and the last word ends at the clip end. Recognition results are deterministic for the same clip and model
+(the whole `AsrResult` is compared by `ParakeetFromStoreTranscribesTheSpanishSampleClipDeterministically`). The thread count stays 1.
+
 **Immutable after construction.** The `ContentBundle` and all it exposes (catalogs, lexicon, prompts, host file bytes), `UtterancePipeline`
 and `PipelineOptions` (init-only), `PipelineServices` (read-only properties; the recognizers it holds are not immutable), `ConversationContext`,
 `AgentState` and `LearnerModel` (updates return new values). The adapters are not immutable: they own native handles and counters, and

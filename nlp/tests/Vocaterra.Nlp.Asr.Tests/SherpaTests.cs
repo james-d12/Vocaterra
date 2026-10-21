@@ -135,5 +135,10 @@ public class SherpaTests(ITestOutputHelper output)
         Assert.Equal(first, second);
         Assert.Equal(store.ModelHash(ModelGate.ParakeetId), recognizer.ModelHash);
         Assert.Contains("país", first.Transcript, StringComparison.Ordinal);
+
+        // Regression for the unread native durations: every word lies inside the clip and ends after it starts.
+        Assert.NotEmpty(first.Words);
+        Assert.All(first.Words, w => Assert.InRange(w.StartSeconds, 0.0, clip.DurationSeconds));
+        Assert.All(first.Words, w => Assert.InRange(w.EndSeconds, w.StartSeconds, clip.DurationSeconds));
     }
 }
