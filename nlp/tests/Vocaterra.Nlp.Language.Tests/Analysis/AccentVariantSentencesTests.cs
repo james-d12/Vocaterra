@@ -259,6 +259,40 @@ public class AccentVariantSentencesTests
         Assert.Equal("pron", Assert.Single(Resolve("que")[0].Readings).Pos);
     }
 
+    // ---- como and cómo ---------------------------------------------------------------------------------------------------------------
+
+    [Theory]
+    [InlineData("tu como te llamas")]
+    [InlineData("y tu como estas")]
+    [InlineData("como te llamas")]
+    [InlineData("como estas")]
+    [InlineData("soy el herrero y tu como te llamas")]
+    [InlineData("yo como pan")]
+    [InlineData("como pan")]
+    [InlineData("como manzanas todos los dias")]
+    public void ComoIsTheQuestionWordBeforeAClauseAndTheVerbBeforeAnObject(string sentence)
+    {
+        AssertNoErrors(sentence);
+    }
+
+    [Fact]
+    public void TheResolverReadsComoByWhatFollowsIt()
+    {
+        Assert.Equal("adv", Assert.Single(Resolve("como te llamas")[0].Readings).Pos);
+        Assert.Equal("adv", Assert.Single(Resolve("tu como te llamas")[1].Readings).Pos);
+        Assert.Equal("adv", Assert.Single(Resolve("como estas")[0].Readings).Pos);
+        Assert.Equal("verb", Assert.Single(Resolve("yo como pan")[1].Readings).Pos);
+        Assert.Equal("verb", Assert.Single(Resolve("como pan")[0].Readings).Pos);
+        Assert.Equal("verb", Assert.Single(Resolve("como manzanas todos los dias")[0].Readings).Pos);
+    }
+
+    [Fact]
+    public void PersonMistakesNextToComoAreStillFound()
+    {
+        AssertTags("tu tengo una espada", ErrorTags.ConjPerson);
+        AssertTags("tu como pan", ErrorTags.ConjPerson);
+    }
+
     // ---- mistakes stay mistakes ------------------------------------------------------------------------------------------------------
 
     [Fact]

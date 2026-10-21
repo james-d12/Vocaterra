@@ -101,7 +101,37 @@ internal static class AccentVariantChoice
             }
         }
 
+        if (typed.Any(ReadingClasses.IsFiniteVerb) && variants.Any(static r => r.Pos is LexiconSchema.Adverb or LexiconSchema.Pronoun) && AsksAQuestion(current, index))
+        {
+            return variants;
+        }
+
         return typed.Any(r => FitsContext(current, index, r)) ? null : variants;
+    }
+
+    // A word that is a finite verb form as typed and has an interrogative sibling (como, cómo) is the question word when the next word starts a clause of its own and nothing
+    // makes it the verb: a pronoun that stands before a verb and then the verb (como te llamas), or a finite verb that cannot be an object (como estás). It stays the verb right
+    // after yo (yo como pan) and before a noun (como manzanas).
+    private static bool AsksAQuestion(IReadOnlyList<LexicalFeatures>[] current, int index)
+    {
+        if (index > 0 && current[index - 1].Any(static r => r.Pos == LexiconSchema.Pronoun && r.Person == "1" && r.Number == LexiconSchema.Singular && WordClasses.IsSubjectPronoun(r.Lemma)))
+        {
+            return false;
+        }
+
+        var next = index + 1;
+        if (next >= current.Length || current[next].Count == 0)
+        {
+            return false;
+        }
+
+        if (current[next].All(static r => r.Pos == LexiconSchema.Pronoun && AnalysisTables.IsPreverbalPronoun(r.Lemma)))
+        {
+            return VerbFollows(current, next);
+        }
+
+        return current[next].Any(ReadingClasses.IsFiniteVerb)
+            && !current[next].Any(static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective || ReadingClasses.IsDeterminerReading(r));
     }
 
     // Whether a reading of the word as typed fits the words around it. Open classes always do; the closed classes below need a neighbour.

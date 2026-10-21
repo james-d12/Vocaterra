@@ -927,7 +927,7 @@ internal sealed class SentenceRealizer
             // pronoun or the verb when nothing that can go on a noun phrase follows it (M26b), so a pattern that puts a verb, an adverb, a preposition or a conjunction
             // right behind one (a skeleton such as [DET] [VERB]), or leaves one at the end of the sentence (also a preposition or a conjunction: de and dé, que and qué),
             // names a sentence that a reader can take either way and is re-rolled.
-            if (item.Kind is Kind.Article or Kind.Determiner or Kind.Preposition or Kind.Conjunction && i == _items.Count - 1 && HasAccentVariants(item.Norm))
+            if ((item.Kind is Kind.Article or Kind.Determiner or Kind.Preposition or Kind.Conjunction || IsOpeningLiteral(item)) && i == _items.Count - 1 && HasAccentVariants(item.Norm))
             {
                 skip = "accent-variant-homograph";
                 _detail = item.Surface!;
