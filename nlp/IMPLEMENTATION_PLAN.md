@@ -207,8 +207,8 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M26b | CR-013: accent-insensitive lookup also offers the accented readings of a form the lexicon has (`esta`/`está`, `si`/`sí`, `mas`/`más`, `el`/`él`, `tu`/`tú`…) and the reading resolver chooses | M19f | S | done |
 | M26c | CR-002 analysis on the result, CR-004 answer match on the result, CR-007 host-owned bundle files (`ContentBundle.TryReadHostFile`), CR-008 threading and load-cost contract in `docs/API.md` | M26a | H | done |
 | M26d | CR-003 host slot values (`SlotMap` on the context, template access, replay record and `HostStateHash`), CR-005 host-named skills in the learner update | M26c | S | todo |
-| M26e | CR-006 speech-out readiness: Kokoro and Parakeet file hashes pinned from real downloads, `KokoroSynthesizer.FromStore`, Spanish speaker ids documented (D2: private builds only) | M19f | H | todo |
-| M26f | CR-010 `cefr-check` reads prompt text; CR-011 sample `ATTRIBUTION.md` describes the sample only (content procedure: hash re-pin, goldens) | M26d | H | todo |
+| M26e | CR-006 speech-out readiness: Kokoro and Parakeet file hashes pinned from real downloads, `KokoroSynthesizer.FromStore`, Spanish speaker ids documented (D2: private builds only) | M19f | H | done |
+| M26f | CR-010 `cefr-check` reads prompt text; CR-011 sample `ATTRIBUTION.md` describes the sample only (content procedure: hash re-pin, goldens) | M26d | H | todo (next) |
 | M27a | Content layering and a standard library bundle: a bundle names a base bundle and adds or overrides by id; the generic intents, answer sets, replies, feedback and evaluation settings move from the sample into `content/std-v1`; the sample becomes an overlay (see §10) | M26f | S | proposed |
 | M27b | Pattern suggestion from example sentences: `vocaterra-content suggest` writes candidate slot grammars and keyword rules for review, with a coverage and confusion report (see §10) | M27a | S | proposed |
 
@@ -745,6 +745,34 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   `<key>.wav.tmp` (two concurrent misses on one key can throw); `VoskRuntimeModel.Prepare` is not
   synchronized per model directory (construct recognizers of one model on one thread); Wav2Vec2 and ONNX
   embedding adapters give no guarantee. Suite: 2776 passed, 5 skipped.
+- **M26d results (CR-003/005):** `ConversationContext.HostSlots` (`SlotMap?`) and `ExtraSkills`
+  (sorted, distinct; ids non-empty without whitespace), set through `Create`; both per utterance (`Next`
+  does not carry them), omitted from JSON and from the old snapshot hash when empty (existing hashes,
+  envelopes and goldens unchanged), included in `HostStateHash` and the envelope's context when present.
+  Host slots share the verdict's namespace and lose on a clash (the reserved feedback names win over
+  both), so adding a host fact never changes a line that rendered before; formatters (`article(def)`,
+  `words(m)`) work on them; a missing one behaves as a missing verdict slot. Extra skills join the
+  pipeline's `intent.<id>` in the single `LearnerModel.Update`; `LearnerModel.StepSkills` steps named
+  skills alone (shares one private `Apply`). CLI `--host-slot`, `--host-skill`. Bug fixed: the loader's
+  render check gave every unknown slot the sample `espada`, so `{distance:words(m)}` failed to load;
+  `TemplateEngine.SlotKinds` now infers number/verb slots from their filters (the "a `words` slot named
+  like a noun" check is gone as a consequence). Fuzz O14 and the replay/serialization oracles cover host
+  inputs. Caveat: a host that builds its own digest with the constructor and then sets `HostSlots` with
+  `with` gets a stale hash (documented: use `Create`).
+- **M26e results (CR-006):** both release archive digests matched; all extracted files pinned (Kokoro 377
+  files, 401 MB; Parakeet 8 files, 671 MB; downloaded into the git-ignored `models/`).
+  `KokoroSynthesizer.FromStore(store, id, speakerId, speed)`. Spanish voices from the model's
+  `speaker2id` metadata: `ef_dora` 28 (female), `em_alex` 29 and `em_santa` 53 (male). Parakeet
+  transcribes the bundled `es.wav` correctly (load 1.6 s, decode 0.67 s). Two bugs found: (1) native
+  collision: `Microsoft.ML.OnnxRuntime` 1.31 (via Language) and sherpa-onnx ship different
+  `libonnxruntime.so` into one output folder and sherpa fails (`VERS_1.28.2 not found`); fixed in
+  Response.Tests with `ExcludeAssets="native"`, but **a host that loads both the embedding model and
+  Kokoro will hit it** (needs one ORT version both packages accept; follow-up, package decision);
+  (2) a reused sherpa-onnx Kokoro engine does not repeat its output for the same text; the synthesizer
+  now creates and disposes the engine per call, deterministic but 1.5–3.7 s per line (use
+  `CachedSynthesizer`); supersedes M26c's "loads on first Synthesize" for Kokoro. Response now references
+  Asr (for `ModelStore`), so the Response package pulls the ASR package; moving `ModelStore` to Core is a
+  follow-up. Suite after M26d+M26e: 2823 passed, 3 skipped (wav2vec2 ×2, e5 ×1, both need an ONNX export).
 - **Two orchestrators (owner, 2026-10-21):** this repository is run by the core orchestrator only; the
   Vocaterra repository has its own orchestrator and plan. Protocol: the game writes requests for core
   changes to `docs/CORE_REQUESTS.md` in its repository; the core orchestrator reads that file at the
