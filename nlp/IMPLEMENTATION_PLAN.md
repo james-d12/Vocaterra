@@ -201,7 +201,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | done |
 | M19d | Post-split core follow-ups from the game host author: repeat-count helper and next-turn context, prompt `text` in `PromptSpec`, ContentBuilder as a dotnet tool `vocaterra-content` | M19c, M17b-core | H | done |
 | M19e | Apache-2.0 licence (D3), submodule consumption route (D5), core/game documentation isolation (D12) | M19d | H | done |
-| M19f | Recast bug from the fuzz suite (O5, seed `1diyRPH9lxJ1`): a `conj.tense` error after a leading `ayer` on an irregular verb (`ayer tengo sufrir`) is detected but the recast repeats the wrong form instead of `tuve` | M19e | H | in-progress |
+| M19f | Recast bug from the fuzz suite (O5, seed `1diyRPH9lxJ1`): a `conj.tense` error after a leading `ayer` on an irregular verb (`ayer tengo sufrir`) is detected but the recast repeats the wrong form instead of `tuve` | M19e | H | done |
 
 ### Delegation waves
 
@@ -652,6 +652,15 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   `content/v1/ATTRIBUTION.md` still says "the game loads at run time" and "licence not chosen" (a
   content edit, needs the bundle procedure; fold into the next content milestone); the game's
   `docs/ARCHITECTURE.md` and `nuget.config` still name the old feed path (game side).
+- **M19f results:** the O5 failure was not a recast bug. The pattern `[WORD:item]? [VERB] [ADJ]?
+  [VERB:sufrir]` bound `ayer` as the optional name; a name carries no reading, so the past-time marker
+  vanished, no `conj.tense` was raised and the recast had nothing to apply. Fix in the matcher:
+  `[WORD]` binds only a letter word with no reading or with at least one open-class reading
+  (`ReadingClasses.IsClosedClassReading`: article, numeral, determiner, pronoun, preposition,
+  conjunction, adverb, interjection). Contract change: a spelled numeral (`dos`) no longer binds
+  `[WORD]`, so `mi nombre es dos` is now unresolved rather than a name. Regression fact in
+  `Vocaterra.Nlp.Language.Tests`; seed `1diyRPH9lxJ1` passes on main; O5 passed on four more seeds;
+  `me llamo Ana`, `soy Ana` and the README demo unchanged. Suite: 2683 passed, 5 skipped.
 - **Two orchestrators (owner, 2026-10-21):** this repository is run by the core orchestrator only; the
   Vocaterra repository has its own orchestrator and plan. Protocol: the game writes requests for core
   changes to `docs/CORE_REQUESTS.md` in its repository; the core orchestrator reads that file at the
