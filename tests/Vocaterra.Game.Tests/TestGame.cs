@@ -12,7 +12,7 @@ internal static class TestGame
     public const ulong Seed = 42;
 
     private static readonly Lazy<ContentBundle> LoadedBundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> LoadedNouns = new(() => NounCatalog.Load(Bundle, GameBundle.ResolveDirectory()));
+    private static readonly Lazy<NounCatalog> LoadedNouns = new(() => NounCatalog.Load(Bundle));
 
     /// <summary>The bundle, loaded and validated by the core's loader.</summary>
     public static ContentBundle Bundle => LoadedBundle.Value;

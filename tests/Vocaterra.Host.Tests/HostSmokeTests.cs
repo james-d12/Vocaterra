@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
+using Vocaterra.Nlp.Pipeline;
 
 namespace Vocaterra.Host.Tests;
 
@@ -19,6 +20,29 @@ public sealed class HostSmokeTests
         var tags = result.Verdict.Errors.Select(static error => error.Tag).Order(StringComparer.Ordinal).ToArray();
         Assert.Equal(new[] { "conj.person", "noun.number" }, tags);
         Assert.Equal(0.5, result.Verdict.Correctness, 9);
+    }
+
+    [Fact]
+    public void TheHostsRepeatLadderCountsEachUtteranceOnce()
+    {
+        // The core adds an utterance's own repeats (M26a, CR-012) and the host carries the counts with RepeatCounts.Next, so the same
+        // mistake is recast once, then hinted, and the hint stays a hint: the ladder is one step ahead of the old core's.
+        var session = new ConversationSession(GameContent.Bundle);
+
+        var kinds = new List<string>();
+        for (var i = 0; i < 3; i++)
+        {
+            kinds.Add(FeedbackKind(session.Evaluate("yo tiene dos espada", "offer-items-open", Now.AddSeconds(i * 10))));
+        }
+
+        Assert.Equal(new[] { "recast", "hint", "hint" }, kinds);
+        Assert.Equal(3, session.Context.RepeatCountsByTag["conj.person"]);
+    }
+
+    private static string FeedbackKind(PipelineResult result)
+    {
+        var line = result.Response.Lines.FirstOrDefault(static l => l.IsRecast || l.LineId.StartsWith("feedback.", StringComparison.Ordinal));
+        return line is null ? "none" : line.IsRecast ? "recast" : line.LineId.StartsWith("feedback.hint", StringComparison.Ordinal) ? "hint" : line.LineId;
     }
 
     [Fact]

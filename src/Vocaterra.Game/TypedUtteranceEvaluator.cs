@@ -44,19 +44,4 @@ public sealed class TypedUtteranceEvaluator
         var services = new PipelineServices(new ScriptedWordRecognizer(asr), null, _embeddings, _synthesizer, _bundle);
         return new UtterancePipeline(services).Evaluate(PcmClip.FromSamples([]), prompt, context);
     }
-
-    /// <summary>
-    /// Evaluates the line so that the core's feedback and repair ladders count this utterance (CR-012). The core reads
-    /// <c>ConversationContext.RepeatCountsByTag</c> as "seen in a row, <i>including</i> this utterance" when it plans feedback and repair, but
-    /// <c>ConversationContext.Next</c> carries the counts <i>before</i> the next utterance, so evaluating with the carried counts makes the
-    /// second mistake in a row a recast again and the second failure to be understood "ask again" again. The workaround, which the public
-    /// API allows because the pipeline is pure: evaluate once to get the verdict, add it to the counts with <c>RepeatCounts.Next</c>, and
-    /// evaluate again with those counts. The caller still carries the context with <c>Next</c> from the context it passed in.
-    /// </summary>
-    public PipelineResult EvaluateCountingThisUtterance(string transcript, PromptSpec prompt, ConversationContext context)
-    {
-        var first = Evaluate(transcript, prompt, context);
-        var counted = context with { RepeatCountsByTag = RepeatCounts.Next(context.RepeatCountsByTag, first.Verdict) };
-        return Evaluate(transcript, prompt, counted);
-    }
 }

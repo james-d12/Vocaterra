@@ -21,7 +21,7 @@ try
 {
     var directory = GameBundle.ResolveDirectory(options.ContentDirectory);
     var bundle = GameBundle.Load(directory);
-    session = new GameSession(bundle, options.Seed, GameSession.DefaultStartedAt, NounCatalog.Load(bundle, directory));
+    session = new GameSession(bundle, options.Seed, GameSession.DefaultStartedAt, NounCatalog.Load(bundle));
     session.Conversation.WarmUp(); // the first typed line should not stall a frame
 }
 catch (Exception ex) when (ex is DirectoryNotFoundException or IOException or UnauthorizedAccessException or ContentValidationException or JsonException or InvalidDataException)

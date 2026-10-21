@@ -12,7 +12,7 @@ namespace Vocaterra.MonoGame.Tests;
 public sealed class ScriptedDialogueTests
 {
     private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value, GameBundle.ResolveDirectory()));
+    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
 
     private static (GameSession Session, DialogueModel Dialogue, ScriptedDialogue Script, int Ticks) Run(IReadOnlyList<string> lines, int maxTicks = 600)
     {
