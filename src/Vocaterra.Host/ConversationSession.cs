@@ -4,9 +4,7 @@ using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
-using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
-using Vocaterra.Nlp.Decision.Feedback;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Language.Embeddings;
 using Vocaterra.Nlp.Pipeline;
@@ -38,8 +36,14 @@ public sealed class ConversationSession
     private readonly Dictionary<string, AgentState> _agentStates = new(StringComparer.Ordinal);
     private ConversationContext _context;
 
-    /// <summary>Starts a conversation over the bundle: every agent in its initial state and a learner model with no evidence yet.</summary>
-    public ConversationSession(ContentBundle bundle, ulong worldSeed = DefaultWorldSeed)
+    /// <summary>
+    /// Starts a conversation over the bundle: every agent in its initial state and a learner model with no evidence yet. A restored
+    /// conversation passes the repeat counts it saved; a new one passes none.
+    /// </summary>
+    public ConversationSession(
+        ContentBundle bundle,
+        ulong worldSeed = DefaultWorldSeed,
+        IReadOnlyDictionary<string, int>? repeatCountsByTag = null)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         Bundle = bundle;
@@ -48,7 +52,8 @@ public sealed class ConversationSession
             NoAgentId,
             new AgentState(NoAgentId, "none", 0),
             new StoredTimestamp(0),
-            LearnerModel.New());
+            LearnerModel.New(),
+            repeatCountsByTag);
     }
 
     /// <summary>The content bundle the conversation runs on.</summary>
@@ -81,8 +86,8 @@ public sealed class ConversationSession
     }
 
     /// <summary>
-    /// Evaluates one typed line on a prompt and carries the outcome into <see cref="Context"/>: the agent's new state, the learner model after
-    /// this utterance and the repeat counts including it.
+    /// Evaluates one typed line on a prompt and carries the outcome into <see cref="Context"/> with <c>ConversationContext.Next</c>: the
+    /// agent's new state, the learner model after this utterance and the repeat counts including it (<c>RepeatCounts.Next</c>).
     /// </summary>
     /// <exception cref="ArgumentException">The prompt is not in the bundle.</exception>
     public PipelineResult Evaluate(string transcript, string promptId, StoredTimestamp now)
@@ -98,44 +103,9 @@ public sealed class ConversationSession
         var services = new PipelineServices(new ScriptedWordRecognizer(asr), null, _embeddings, _synthesizer, Bundle);
         var result = new UtterancePipeline(services).Evaluate(PcmClip.FromSamples([]), prompt, utterance);
 
-        var nextState = result.Decision.Agent?.Next ?? agentState;
-        _agentStates[agentId] = nextState;
-        _context = ConversationContext.Create(
-            _context.WorldSeed,
-            agentId,
-            nextState,
-            now,
-            result.Decision.Learner,
-            NextRepeatCounts(_context.RepeatCountsByTag, result.Verdict));
+        _agentStates[agentId] = result.Decision.Agent?.Next ?? agentState;
+        _context = utterance.Next(result, now);
         return result;
-    }
-
-    /// <summary>
-    /// The repeat counts after one verdict. Each error tag in the verdict, and <c>not_communicated</c> when the player was not understood,
-    /// counts one more than before; a tag the verdict does not carry starts again from zero, because the counts are "in a row".
-    /// </summary>
-    public static IReadOnlyDictionary<string, int> NextRepeatCounts(IReadOnlyDictionary<string, int> before, Verdict verdict)
-    {
-        ArgumentNullException.ThrowIfNull(before);
-        ArgumentNullException.ThrowIfNull(verdict);
-        var tags = new SortedSet<string>(StringComparer.Ordinal);
-        foreach (var error in verdict.Errors)
-        {
-            tags.Add(error.Tag);
-        }
-
-        if (!verdict.Communicated)
-        {
-            tags.Add(FeedbackPolicy.NotCommunicatedTag);
-        }
-
-        var counts = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (var tag in tags)
-        {
-            counts[tag] = (before.TryGetValue(tag, out var seen) ? seen : 0) + 1;
-        }
-
-        return counts;
     }
 
     private AgentState StateOf(string agentId)

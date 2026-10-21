@@ -43,6 +43,25 @@ public sealed class HostSmokeTests
     }
 
     [Fact]
+    public void RepeatCountsStopAtIntMaxValueInsteadOfWrapping()
+    {
+        // The counts are "in a row" and an int: a count at int.MaxValue must stay there. The host's old rule added one with wrap-around and
+        // turned it into a negative number.
+        var atLimit = new Dictionary<string, int>(StringComparer.Ordinal)
+        {
+            ["conj.person"] = int.MaxValue,
+            ["noun.number"] = int.MaxValue,
+        };
+        var session = new ConversationSession(GameContent.Bundle, repeatCountsByTag: atLimit);
+
+        var result = session.Evaluate("yo tiene dos espada", "offer-items-open", Now);
+
+        Assert.Equal(new[] { "conj.person", "noun.number" }, result.Verdict.Errors.Select(static error => error.Tag).Order(StringComparer.Ordinal));
+        Assert.Equal(int.MaxValue, session.Context.RepeatCountsByTag["conj.person"]);
+        Assert.Equal(int.MaxValue, session.Context.RepeatCountsByTag["noun.number"]);
+    }
+
+    [Fact]
     public void TheConversationCarriesRepeatCountsAndLearnerAcrossUtterances()
     {
         var session = new ConversationSession(GameContent.Bundle);

@@ -22,7 +22,7 @@ nuget.config                     the submodule's local feed, then nuget.org
 global.json                      the .NET SDK pin
 external/Vocaterra.NLP/          the language core, a git submodule (pinned; its build output is git-ignored there)
 src/Vocaterra.Host/              the console host: loads the bundle, evaluates lines, runs the text loop
-tests/Vocaterra.Host.Tests/      smoke tests: the two demo utterances, the bundle hash, the carried conversation
+tests/Vocaterra.Host.Tests/      smoke tests: the two demo utterances, the bundle hash, the carried conversation, the repeat counts, the prompt text
 content/game-v1/                 the game's content bundle (see below)
 scripts/content.sh               validate, hash and check a bundle with the core's content tool
 scripts/merge-gate.sh            the orchestrator's merge gate
@@ -48,6 +48,13 @@ dotnet test Vocaterra.sln
 The .NET SDK is pinned in `global.json` (10.0.402, `latestPatch`). A user-local install is enough. `nuget.config` reads the submodule's feed
 by a relative path; the packing step is needed after a clone and after each change to the pinned core commit.
 
+A git worktree has an empty submodule, so it does not pack the core again (about 3 GB). It restores from the main checkout's feed instead:
+
+```bash
+dotnet restore Vocaterra.sln -p:RestoreSources="/path/to/main/checkout/external/Vocaterra.NLP/artifacts/feed;https://api.nuget.org/v3/index.json"
+dotnet build Vocaterra.sln -warnaserror --no-restore
+```
+
 Run the host (from the repository root, because the default bundle is `content/game-v1` relative to the current directory; `--content <dir>`
 names another):
 
@@ -55,9 +62,16 @@ names another):
 # one line, evaluated once and printed (the form the tests and scripts use)
 dotnet run --project src/Vocaterra.Host -- --transcript "yo tiene dos espada" --prompt offer-items-open
 
-# the text loop: type a Spanish line; /prompt <id> switches prompt, /quit leaves
+# the text loop: shows each prompt (and the agent's line, when the prompt has one), then reads a line;
+# /prompt <id> switches prompt, /quit leaves
 dotnet run --project src/Vocaterra.Host
 ```
+
+The host makes these calls of the core's API, in order, on the packages (the details are in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)): `ContentLoader.Load` for the bundle; `PipelineServices` and `UtterancePipeline.Evaluate`
+for each typed line; `ConversationContext.Create` for the utterance's context and `ConversationContext.Next` after it, which applies the core's
+`RepeatCounts.Next` to the error tags. The host owns the world seed, the stored time (fixed for `--transcript`, the clock in the loop),
+the learner model and the repeat counts.
 
 ## Content
 
