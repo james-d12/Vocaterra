@@ -457,5 +457,94 @@
         }
       }
     }
+  },
+  "words": [
+    {
+      "token": {
+        "text": "yo",
+        "span": {
+          "start": 0,
+          "length": 2
+        },
+        "original": "yo"
+      },
+      "role": "Word",
+      "reading": {
+        "lemma": "yo",
+        "pos": "pron",
+        "person": "1",
+        "number": "sg",
+        "tense": null,
+        "mood": null,
+        "gender": null
+      }
+    },
+    {
+      "token": {
+        "text": "tiene",
+        "span": {
+          "start": 3,
+          "length": 5
+        },
+        "original": "tiene"
+      },
+      "role": "Word",
+      "reading": {
+        "lemma": "tener",
+        "pos": "verb",
+        "person": "3",
+        "number": "sg",
+        "tense": "pres",
+        "mood": "ind",
+        "gender": null
+      }
+    },
+    {
+      "token": {
+        "text": "2",
+        "span": {
+          "start": 9,
+          "length": 1
+        },
+        "original": "dos"
+      },
+      "role": "Word",
+      "reading": {
+        "lemma": "2",
+        "pos": "num",
+        "person": null,
+        "number": "pl",
+        "tense": null,
+        "mood": null,
+        "gender": null
+      }
+    },
+    {
+      "token": {
+        "text": "espada",
+        "span": {
+          "start": 11,
+          "length": 6
+        },
+        "original": "espada"
+      },
+      "role": "Word",
+      "reading": {
+        "lemma": "espada",
+        "pos": "noun",
+        "person": null,
+        "number": "sg",
+        "tense": null,
+        "mood": null,
+        "gender": "f"
+      }
+    }
+  ],
+  "answer": {
+    "answerId": null,
+    "type": "None",
+    "distance": 9,
+    "likelyPronunciation": false,
+    "confidence": 0
   }
 }

@@ -88,5 +88,34 @@
         }
       }
     }
+  },
+  "words": [
+    {
+      "token": {
+        "text": "sí",
+        "span": {
+          "start": 0,
+          "length": 2
+        },
+        "original": "sí"
+      },
+      "role": "Word",
+      "reading": {
+        "lemma": "sí",
+        "pos": "interj",
+        "person": null,
+        "number": null,
+        "tense": null,
+        "mood": null,
+        "gender": null
+      }
+    }
+  ],
+  "answer": {
+    "answerId": "yes",
+    "type": "Exact",
+    "distance": 0,
+    "likelyPronunciation": false,
+    "confidence": 1
   }
 }

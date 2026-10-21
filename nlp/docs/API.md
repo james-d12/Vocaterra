@@ -26,6 +26,29 @@ Console.WriteLine(bundle.ContentHash);                      // the bundle hash, 
 `ContentLoader.Load` throws `ContentValidationException` for a bundle that fails validation. The bundle carries the prompts
 (`bundle.Prompts`), the agents (`bundle.Agents`), the effect table (`bundle.Effects`) and the lexicon; nothing is read again after loading.
 
+### Host-owned files
+
+A bundle may hold files that the loader does not parse, such as the host's own data (`game/nouns.json`). Such a file is hashed in
+`manifest.json` like every other file, has an item in `provenance.json` like every other file, and is ignored by the loader: validation
+accepts an unknown file that is listed in both, and it does not check the file's contents. The host reads it back with
+`TryReadHostFile`:
+
+```csharp
+if (bundle.TryReadHostFile("game/nouns.json", out ReadOnlyMemory<byte> nouns))
+{
+    string json = System.Text.Encoding.UTF8.GetString(nouns.Span);   // the bytes the load hashed against the manifest
+}
+
+IReadOnlyList<string> hostFiles = bundle.HostFilePaths;               // the host-owned paths, in ordinal order
+```
+
+The bytes are the ones the load read and checked: the bundle keeps them from the load, so a read never touches the disk and cannot return
+bytes that changed after the load (a changed file fails the next load, not this read). A path is accepted only when it is relative, uses `/`
+separators, has no empty, `.` or `..` segment, and names a host-owned file of this bundle. `TryReadHostFile` returns false for an unlisted
+path, an absolute path, a path with `..`, a backslash or a drive letter, and for a file the loader owns (`provenance.json`,
+`ATTRIBUTION.md`, `lexicon/`, `answer-sets/`, `agents/`, `cefr/`, `intents/`, `prompts/`, `dialogue/`, `feedback/`, `evaluation/`,
+`effects/`). A bundle loaded with `VerifyHashes = false` has no host files.
+
 ## 2. Build the services (D0, with optional D1)
 
 ```csharp
@@ -118,6 +141,36 @@ foreach (ErrorTag error in verdict.Errors)
 `communicated` says whether the learner was understood; `correctness` says how well they spoke, from 0 to 1. The errors carry the span in the
 normalized text, the expected form and what was heard. A host gates its own reactions on `communicated` and uses `correctness` for scoring.
 
+### The words and the answer match (CR-002, CR-004)
+
+`result.Words` has one entry per normalized token, in order. Each entry has the token (`Text`, the normalized text; `Span`, its offsets in
+that text; `Original`, the surface as typed), a `Role` and the `Reading` the resolver chose. The role is `Word` (the lexicon knows it),
+`Name` (the best slot grammar binds it to a `[WORD]` element; it has no reading) or `Unknown` (no reading, no grammar). A reading is the
+`LexicalFeatures` record (`Lemma`, `Pos`, `Person`, `Number`, `Tense`, `Mood`, `Gender`; null where a feature does not apply). It is the
+reading the agreement checks used, so its lemma agrees with the error spans; a host need not run `TextNormalizer` or `LinguisticAnalyzer`
+again. Where the resolver left several readings of one word, the first in lexicon order is reported. `Text` keeps accents and writes number
+words as digits (`dos` is `2`); `Original` is the typed text. A word typed without its accent is reported with the reading the resolver
+chose, so `esta` is `estar` after `donde`, and its `Original` stays `esta`.
+
+`result.Answer` is the answer match of the prompt's answer set: `AnswerId` (null when nothing matched), `Type` (`Exact`, `Alias`, `Fuzzy` or
+`None`), `Distance` (the edit distance, or the phonetic distance when that is smaller, so `ezpada` for `espada` is 0), `LikelyPronunciation`
+(the spelling differs but the phonetic key matches) and `Confidence`.
+
+```csharp
+foreach (ResolvedWord word in result.Words!)
+{
+    Console.WriteLine($"{word.Token.Original} {word.Role} lemma={word.Reading?.Lemma} pos={word.Reading?.Pos} gender={word.Reading?.Gender}");
+}
+
+if (result.Answer is { AnswerId: not null } answer)
+{
+    Console.WriteLine($"{answer.AnswerId} {answer.Type} distance={answer.Distance} likelyPronunciation={answer.LikelyPronunciation}");
+}
+```
+
+The pipeline always sets both members; they are nullable only so that a result built by hand (in a test) needs no analysis. Both are part of
+the result's `CanonicalJson`, but not of the replay record (see [REPLAY.md](REPLAY.md)).
+
 ### Carry the context to the next utterance
 
 The host passes the repeat counts it carried from the previous `Next`; the first utterance of a conversation starts with none (`Create` with
@@ -202,6 +255,45 @@ foreach (ReplayEnvelope envelope in envelopes)
 A replay that prints `DIFF` means the stages, the content or the versions changed since the entry was recorded. A replay needs the same
 embedder and synthesizer that produced the log, because those stages run again; with the fakes and the silent synthesizer that needs no model
 file. [REPLAY.md](REPLAY.md) lists the envelope fields and what a diff points at.
+
+## 8. Threads and load cost (CR-008)
+
+What the code guarantees, as of this section. Where it gives no guarantee, the safe rule is given.
+
+**Threads.** One `UtterancePipeline` may be called from several threads at once, including one thread in `Evaluate` or `Trace` while
+another runs `Synthesize` on the same pipeline. The pipeline has no mutable state: its fields are read-only, the bundle and the lexicon are
+immutable after the load, and the parts built on first use (the lexicon's derived indexes, the intent resolver's example vectors) are
+published through `Lazy` or `ConcurrentDictionary`, so two first calls build them once. `Evaluate` also runs the word and phoneme
+recognizers on thread-pool tasks when `RunRecognizersConcurrently` is set, so a recognizer sees calls on a pool thread, not on the caller's.
+The guarantee stops at the injected adapters, which the pipeline does not make thread-safe:
+
+| Adapter | Constructed | Concurrent calls on one instance | Shared across pipelines or threads |
+| --- | --- | --- | --- |
+| `ScriptedWordRecognizer` (test double) | in code | serialized by a lock | yes |
+| `VoskWordRecognizer` | loads the model in the constructor (and a runtime copy on disk) | no lock: each `Recognize` makes its own native recognizer on a shared model, which the code does not guarantee; `Dispose` is not synchronized with `Recognize` | one instance per thread; do not dispose while another thread may recognize |
+| `SherpaOnnxOfflineRecognizer` | loads the model in the constructor | `Recognize` and `Dispose` take one lock: calls queue, `Dispose` is safe | yes, with calls serialized |
+| `Wav2Vec2PhonemeRecognizer`, `OnnxEmbeddingModel` | ONNX session in the constructor | no lock; the code gives no guarantee (ONNX Runtime documents concurrent `Run` as supported, which this code does not test) | one instance per thread, or serialize the calls |
+| `KokoroSynthesizer` | checks the files in the constructor; the engine loads on the first `Synthesize` | `Synthesize` takes one lock: calls queue | yes, with calls serialized |
+| `CachedSynthesizer` over `DirectorySynthesisCache` | in code | documented as not safe for concurrent requests of the same key: a miss on both threads can make one `Put` throw (both write the same temporary file) | one thread per key |
+| `SilentSynthesizer` | in code | its counter is interlocked | yes |
+
+The rule for a host that runs evaluation and speech on different threads: one pipeline (or one set of services) per process is fine; give
+each Vosk, ONNX recognizer and each cached synthesis key one thread of its own, or serialize their calls, and do not dispose a recognizer
+while another thread can call it.
+
+**Load cost.** `ContentLoader.Load` reads every file once into memory, checks every hash, parses the catalogs and validates the
+cross-references; the imported Wiktionary lexicon (tens of thousands of entries) dominates. Load once per process and share the bundle;
+`ContentLoadOptions.LexiconCache` avoids re-parsing the same lexicon files when a host loads several bundles. Building the pipeline is cheap:
+the constructor creates the analyzer, the resolver and the response planner, and copies the dialogue pools. Models load where the adapter's
+constructor says so: a recognizer or an ONNX model when it is constructed (`FromStore` uses the manifest hash, so it hashes nothing), the
+Kokoro engine on its first `Synthesize`, and the intent resolver's example vectors on the first open-prompt call that embeds. `PipelineServices`
+reads each adapter's `ModelHash` when it is constructed, so Kokoro hashes its files there. Load the models before the first utterance a
+player waits for.
+
+**Immutable after construction.** The `ContentBundle` and all it exposes (catalogs, lexicon, prompts, host file bytes), `UtterancePipeline`
+and `PipelineOptions` (init-only), `PipelineServices` (read-only properties; the recognizers it holds are not immutable), `ConversationContext`,
+`AgentState` and `LearnerModel` (updates return new values). The adapters are not immutable: they own native handles and counters, and
+`Dispose` ends them.
 
 ## What is deterministic
 

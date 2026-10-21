@@ -71,7 +71,28 @@ public static class ContentLoader
             parts.FeedbackPolicy!,
             parts.EvaluationConfig!,
             parts.Effects!,
-            parts.Cefr);
+            parts.Cefr,
+            HostFiles(files, options));
+    }
+
+    // The host-owned files: every file the loader does not parse, with the bytes the hash check read. Only a verified load exposes them.
+    private static Dictionary<string, ReadOnlyMemory<byte>> HostFiles(BundleFiles files, ContentLoadOptions options)
+    {
+        var hostFiles = new Dictionary<string, ReadOnlyMemory<byte>>(StringComparer.Ordinal);
+        if (!options.VerifyHashes)
+        {
+            return hostFiles;
+        }
+
+        foreach (var path in files.Paths)
+        {
+            if (!ContentPaths.IsLoaderOwned(path))
+            {
+                hostFiles.Add(path, files.Bytes(path));
+            }
+        }
+
+        return hostFiles;
     }
 
     private static ContentManifest? ReadManifest(string bundleDir, List<string> problems)

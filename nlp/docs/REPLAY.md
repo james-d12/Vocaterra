@@ -59,7 +59,12 @@ public sealed record ReplayEnvelope(ReplayRecord Record, AsrResult Asr, PhonePos
 | `asr` | object | What the word recognizer returned: transcript, n-best list, word timings, confidence, model hash, recognition mode. During a replay it is served back by a `ReplayWordRecognizer` keyed by the clip hash. |
 | `posteriors` | object or null | What the phoneme recognizer returned (`vocabulary`, `logProbs`, `frameCount`, `frameSeconds`), or `null` when pronunciation scoring did not run. Served back by a `RecordedPhonemeRecognizer`. |
 | `context` | object | The `ConversationContext` the utterance was evaluated in: world seed, stored time (`now.unixSeconds`), agent id and state (its `interactionCounter` selects the random stream), the learner model before the utterance, the repeat counts per error tag before the utterance (the pipeline adds this utterance's tags itself), and the host state hash. |
-| `result` | object | The full `PipelineResult`: `verdict`, `decision` (agent step, updated learner, FSRS rating, feedback plan), `response` (the lines the agent says), `effects`, `repair` and `replay` (the same record as `record`). |
+| `result` | object | The full `PipelineResult`: `verdict`, `decision` (agent step, updated learner, FSRS rating, feedback plan), `response` (the lines the agent says), `effects`, `repair`, `replay` (the same record as `record`), `words` (each token with its role and the reading the resolver chose; CR-002) and `answer` (the answer match; CR-004). `words` and `answer` are derived, not recorded: they are recomputed on replay and compared. |
+
+The core record (`clipHash`, `promptId`, `hostStateHash`, `versions`, `verdict`) is unchanged by M26c and stays the contract of
+`IMPLEMENTATION_PLAN.md` section 4. The words and the answer match are not in it: they are views of the same inputs that the verdict is
+built from, and the replayer recomputes and compares them through the envelope's `result`, so a change in how a lemma is resolved shows
+up as a `/words` difference even when the verdict does not change.
 
 ## A real example
 
@@ -386,7 +391,7 @@ For every entry the replayer (`Vocaterra.Nlp.Pipeline.Replayer.Replay`):
 2. builds a pipeline over the same content with the recorded recognizer outputs in place of the models;
 3. evaluates the clip again in the recorded `context`;
 4. serializes the recorded and the new core record, and the recorded and the new downstream parts (`decision`, `response`,
-   `effects`, `repair`), and compares the two JSON documents.
+   `effects`, `repair`, `words`, `answer`), and compares the two JSON documents.
 
 It prints `OK` and exits 0 when every entry is identical. Otherwise it prints one line per differing entry with the JSON
 Pointer paths (RFC 6901) of the values that differ, and exits 1:
@@ -396,6 +401,10 @@ DIFF entry 1: /verdict/correctness
 ```
 
 (That output comes from editing `record.verdict.correctness` in the file from 0.5 to 0.9.)
+
+**Logs recorded before M26c** carry no `words` or `answer` in `result`. Replaying one reports `/words` and `/answer` as differing
+(the recorded value is absent, the new one is not); the verdict and the other downstream parts still compare as before. Re-record such a
+log to get a clean replay. No log is committed in the repository.
 
 The same thing happens when the content bundle is not the one the log was recorded with, because the content hash is part of the
 version stamp:

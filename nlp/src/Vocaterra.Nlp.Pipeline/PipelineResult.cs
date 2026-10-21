@@ -25,15 +25,22 @@ public sealed record DecisionOutcome(AgentStepResult? Agent, LearnerModel Learne
 /// <param name="Effects">The effects the verdict triggers, in ordinal effect id order.</param>
 /// <param name="Repair">The repair step when the player was not understood; otherwise null.</param>
 /// <param name="Replay">The record that lets this evaluation be replayed.</param>
+/// <param name="Words">
+/// The normalized tokens in order, each with its role (word, name or unknown) and the reading the resolver chose for it; the pipeline always sets it.
+/// Null only for a result built by hand.
+/// </param>
+/// <param name="Answer">The answer match the pipeline computed for the prompt's answer set (answer id, match type, distance, likely pronunciation); the pipeline always sets it.</param>
 public sealed record PipelineResult(
     Verdict Verdict,
     DecisionOutcome Decision,
     ResponsePlan Response,
     IReadOnlyList<ResolvedEffect> Effects,
     RepairStep? Repair,
-    ReplayRecord Replay)
+    ReplayRecord Replay,
+    IReadOnlyList<ResolvedWord>? Words = null,
+    MatchResult? Answer = null)
 {
-    /// <summary>Compares every member, including the effect list.</summary>
+    /// <summary>Compares every member, including the effect list, the resolved words and the answer match.</summary>
     public bool Equals(PipelineResult? other)
     {
         return other is not null
@@ -42,7 +49,9 @@ public sealed record PipelineResult(
             && Response.Equals(other.Response)
             && ListEquality.Equal(Effects, other.Effects)
             && EqualityComparer<RepairStep?>.Default.Equals(Repair, other.Repair)
-            && Replay.Equals(other.Replay);
+            && Replay.Equals(other.Replay)
+            && ListEquality.Equal(Words, other.Words)
+            && EqualityComparer<MatchResult?>.Default.Equals(Answer, other.Answer);
     }
 
     /// <summary>Hash consistent with <see cref="Equals(PipelineResult)"/>.</summary>
@@ -55,6 +64,8 @@ public sealed record PipelineResult(
         ListEquality.Add(ref hash, Effects);
         hash.Add(Repair);
         hash.Add(Replay);
+        ListEquality.Add(ref hash, Words);
+        hash.Add(Answer);
         return hash.ToHashCode();
     }
 }
