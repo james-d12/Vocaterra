@@ -1,14 +1,13 @@
 # Vocaterra.NLP
 
-> The game built on this core is [Vocaterra](https://github.com/james-d12/Vocaterra). Its design (`SPECIFICATION.md`, moved there in M19c)
-> and its [architecture notes](https://github.com/james-d12/Vocaterra/blob/main/docs/ARCHITECTURE.md) live in that repository.
+> The first host built on this core is the [Vocaterra](https://github.com/james-d12/Vocaterra) game, in its own repository.
+> This repository documents the language core only.
 
 Vocaterra.NLP is a standalone Spanish voice-and-language evaluation core, written in C# on .NET. Given an utterance (audio, or a transcript
 for development), it works out what the learner meant and how well they said it, and returns one deterministic **verdict**, with tagged
 errors such as `conj.person` or `pron.r`, a feedback plan, a conversation step and the response text. It is a library first: a host loads a
 content bundle, builds the services, evaluates utterances and plans responses; [docs/API.md](docs/API.md) lists the calls in order. The
-`Vocaterra.Nlp.Cli` tool is a demo host that drives the same API from the command line. The host that uses the core lives in the separate
-`Vocaterra` repository; nothing game-specific (scenes, items, prices, rewards) is in this one. The Spanish sample content, a blacksmith's
+`Vocaterra.Nlp.Cli` tool is a demo host that drives the same API from the command line. Hosts live in their own repositories; nothing host-specific (scenes, items, prices, rewards) is in this one. The Spanish sample content, a blacksmith's
 dialogue, stays here as the demo and the test fixture.
 
 The verdict separates whether the learner *communicated* (the agent understood) from whether they were *correct* (grammar, vocabulary,
@@ -367,7 +366,7 @@ Any edit to a file in `content/v1` changes the bundle hash, so run `hash` afterw
 ## Using the packages
 
 The core is eleven NuGet libraries, `Vocaterra.Nlp.*` at version 0.1.0. Packing them into a local feed and running the sample host, which
-consumes them the way a game would, is the proof that the public surface is complete:
+consumes them the way a host application would, is the proof that the public surface is complete:
 
 ```bash
 scripts/pack.sh          # dotnet pack into artifacts/packages; the .nupkg files are also copied to the folder feed artifacts/feed
@@ -377,8 +376,8 @@ scripts/sample-host.sh   # restores samples/HostConsole from artifacts/feed, bui
 The sample loads the bundle, evaluates the two demo utterances with the scripted recognizer and exits 1 unless the verdicts match. The calls
 it makes are the ones in [docs/API.md](docs/API.md). `ContentBuilder pack <bundleDir> <out.zip>` archives a bundle with a `.sha256` sidecar
 holding its bundle hash, and `verify-pack <zip>` checks the archive; hosts ship the extracted folder, since the loader reads a directory.
-Nothing is published, and no licence is chosen yet. [docs/PACKAGING.md](docs/PACKAGING.md) has the versions, the feed, the open decisions and
-the commands.
+Nothing is published to a feed; a consuming repository takes the packages from a submodule. [docs/PACKAGING.md](docs/PACKAGING.md) has the
+versions, the two ways to consume them, the open decisions and the commands.
 
 ## Benchmark and golden audio
 
@@ -421,7 +420,7 @@ consent rules and manifest schema are in [golden/README.md](golden/README.md).
 | `.github/workflows-pending/` | The CI workflow, parked until the push token has the `workflow` scope |
 | `docs/` | [API.md](docs/API.md), [PIPELINE.md](docs/PIPELINE.md), [REPLAY.md](docs/REPLAY.md), [LEXICON.md](docs/LEXICON.md), [CLI_EXAMPLES.md](docs/CLI_EXAMPLES.md) and the architecture decision records in `docs/adr/` |
 | `docs/diagrams/` | The draw.io system overview and how to open it ([README](docs/diagrams/README.md)) |
-| `HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md` | The design, the milestone plan and the original brief. The game design (`SPECIFICATION.md`) is in the [Vocaterra](https://github.com/james-d12/Vocaterra) repository since M19c |
+| `HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md` | The design of the core, the milestone plan and the original brief. Host designs, such as the game's, are not in this repository |
 
 ## Determinism rules in brief
 
@@ -435,20 +434,20 @@ The full rules, with where each is enforced, are in [ADR 0002](docs/adr/0002-det
 - keep models behind `Vocaterra.Nlp.Core` interfaces, run them on one thread on the CPU, and gate real-model tests on `VOCATERRA_MODELS_DIR`;
 - contain no LLM or other non-deterministic code, and pin every model and content version by hash.
 
-## Licensing
+## Licence
 
-This repository does not have a license file yet; choosing one is up to the repository owner. What is known about the
-dependencies and data:
-
-- **Code dependencies** are checked by `scripts/license-scan.sh [--offline]`, which reads every NuGet package (direct and
-  transitive) of the solution and fails on GPL, LGPL, AGPL and SSPL or on any license that is not in `scripts/license-allowlist.txt`.
-  `scripts/license-overrides.txt` holds reviewed exceptions for packages whose metadata names no license. Today 28 packages pass.
-- **Wiktionary-derived data** (`content/v1/lexicon/wiktionary-es.json`, made with `import-lexicon` and selected with a word frequency list) is
-  CC BY-SA and must keep its attribution; the sample bundle's other files are hand-authored. See
+- **Code and hand-authored content** are licensed under the [Apache License 2.0](LICENSE). The copyright line and the statement about the
+  third-party data are in [NOTICE](NOTICE).
+- **The Wiktionary-derived lexicon** `content/v1/lexicon/wiktionary-es.json` is derived from Wiktionary and is licensed under CC BY-SA 4.0, not
+  under Apache-2.0. Its attribution, and the terms of the frequency list it was selected with, are in
   [content/v1/ATTRIBUTION.md](content/v1/ATTRIBUTION.md) and [docs/LEXICON.md](docs/LEXICON.md).
-- **Models** and their licenses are recorded in [models/manifest.json](models/manifest.json): Vosk small Spanish (Apache-2.0),
-  Parakeet TDT 0.6B v3 (CC-BY-4.0, attribution to NVIDIA required), wav2vec2-xlsr-53-espeak-cv-ft (Apache-2.0),
-  multilingual-e5-small (MIT), Kokoro (Apache-2.0).
+- **Models** are downloaded, not committed. Each model's licence is recorded in [models/manifest.json](models/manifest.json).
+
+Third-party checks:
+
+- **Code dependencies** are checked by `scripts/license-scan.sh [--offline]`, which reads every NuGet package (direct and transitive) of the
+  solution and fails on GPL, LGPL, AGPL and SSPL or on any license that is not in `scripts/license-allowlist.txt`.
+  `scripts/license-overrides.txt` holds reviewed exceptions for packages whose metadata names no license.
 - **Two GPL components must stay out of anything shipped**: espeak-ng (GPL-3.0) and the current Piper runtime. espeak-ng is
   only a development-time oracle. Kokoro's bundled phonemizer is espeak-ng, and the sherpa-onnx native library appears to
   contain it too; see [ADR 0007](docs/adr/0007-kokoro-phonemizer-licensing.md) and Known gaps. This is an engineering note, not legal advice.
@@ -481,7 +480,7 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 | M18 | Part-of-speech disambiguation: the analyzer resolves each word to one reading before its checks (see [docs/PIPELINE.md](docs/PIPELINE.md#4-linguistic-analysis-d0)) | done |
 | M19a | Standalone core, step 1: the solution, projects and namespaces are `Vocaterra.Nlp.*`; the conversation engine is a generic agent; the boundary is in [ADR 0009](docs/adr/0009-core-and-game-boundary.md) and the host API in [docs/API.md](docs/API.md) | done |
 | M19b | Standalone core, step 2: NuGet packaging of the eleven libraries (version 0.1.0, symbols, a shared readme), a local feed from `scripts/pack.sh`, content bundle archives (`ContentBuilder pack` and `verify-pack`), and `samples/HostConsole` consuming the packages; nothing is published (see [docs/PACKAGING.md](docs/PACKAGING.md)) | done |
-| M19c | Standalone core, step 3: the game repository [Vocaterra](https://github.com/james-d12/Vocaterra) is scaffolded on the packages (a console host, smoke tests, its content bundle, a parked CI job); the game design moved there from `SPECIFICATION.md`, and its [docs/ARCHITECTURE.md](https://github.com/james-d12/Vocaterra/blob/main/docs/ARCHITECTURE.md) says how it consumes this core | done |
+| M19c | Standalone core, step 3: the first consumer, the [Vocaterra](https://github.com/james-d12/Vocaterra) game repository, is built on the packages (its own console host, smoke tests, content bundle and parked CI job); its design lives in that repository | done |
 | M17b-core | Generic conversation intents (`confirm`, `deny`, `farewell`, `thank`, `introduce_self`), the `[WORD:slot]` name token of the slot-grammar DSL, the blacksmith's `confirming` state and their dialogue (see [docs/PIPELINE.md](docs/PIPELINE.md#4-linguistic-analysis-d0)) | done |
 
 ## Known gaps and next steps
@@ -489,7 +488,7 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 - **Engine integration.** This repository is the core, not a host. A host still has to capture the microphone (v1 has no
   operating-system capture adapter, only WAV files and `PushToTalkSession`), play the synthesized audio, map its saves to
   `ConversationContext` and back, apply the resolved effects and the agent's host events, and ship the native speech libraries. The
-  engine is not chosen ([ADR 0003](docs/adr/0003-engine-agnostic-core.md)); the boundary is in [ADR 0009](docs/adr/0009-core-and-game-boundary.md).
+  engine is the host's own choice ([ADR 0003](docs/adr/0003-engine-agnostic-core.md)); the boundary is in [ADR 0009](docs/adr/0009-core-and-game-boundary.md).
 - **Real golden learner audio.** `golden/manifest.jsonl` has three synthetic entries and `golden/audio/` is empty. Until
   recordings of real non-native speakers exist, word error rate, learner-error preservation, the pronunciation thresholds
   (initial, uncalibrated guesses) and the latency budget of the design document are unmeasured.
@@ -513,8 +512,8 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
   Until then the cross-platform determinism check has not run anywhere but the development machine.
 - **Content.** The vocabulary is large (3 372 lemmas) but the sample is small: one agent, 14 prompts, six intents. Its dialogue uses lemmas that are
   not in the A1 list (`cefr-check` prints them; it is advisory). `pron.stress` is recognized by the taxonomy but is not scored in v1.
-- **Open decisions.** The license of the repository, whether the player can choose the agent dialect, and whether a free
-  conversation mode (Phase 3 in the design) ships at all.
+- **Open decisions.** The sherpa-onnx native build (D2) and the terms of the frequency list (D4) decide what may be released publicly; the
+  rest are in [docs/DECISIONS.md](docs/DECISIONS.md).
 - **Build size.** A full build writes about 3 GB per checkout; trimming the runtime packs is a follow-up.
 - **Part of speech.** Since M18 the analyzer resolves each word to one part of speech before it checks anything, from the neighbouring words, the
   slot grammar that matched and, last, the reading with the fewest errors ([how](docs/PIPELINE.md#4-linguistic-analysis-d0)), so correct sentences
@@ -532,7 +531,6 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 
 ## Documentation
 
-- [Vocaterra](https://github.com/james-d12/Vocaterra), the game repository: its [docs/SPECIFICATION.md](https://github.com/james-d12/Vocaterra/blob/main/docs/SPECIFICATION.md) (the game design, moved here from this repository in M19c) and [docs/ARCHITECTURE.md](https://github.com/james-d12/Vocaterra/blob/main/docs/ARCHITECTURE.md) (how the game consumes this core and what it owns)
 - [docs/PIPELINE.md](docs/PIPELINE.md): the pipeline stage by stage, with the worked example and the CLI's verdict
 - [docs/REPLAY.md](docs/REPLAY.md): replay log and envelope format, with a real example
 - [docs/CLI_EXAMPLES.md](docs/CLI_EXAMPLES.md): more worked runs of the demo CLI: the other intents and error tags, the repair ladder and a replay log

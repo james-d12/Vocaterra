@@ -1,5 +1,7 @@
 # ADR 0006: Leave invariant globalization off; pin an app-local ICU later
 
+> **Note (M19e, 2026-10-21):** game-side matters in this record, such as the engine choice and the game's scenes, are now decided in the Vocaterra game repository, not in this one. The text below is unchanged.
+
 - Status: accepted
 - Date: 2026-10-20
 - Deciders: repository owner and the implementation plan (`IMPLEMENTATION_PLAN.md` section 3, rule 5, and the M0/M1 finding in section 5b)

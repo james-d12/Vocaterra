@@ -1,5 +1,7 @@
 # Scaling the Spanish processing core: research and recommendation
 
+> **Note (M19e, 2026-10-21):** game-side matters in this record, such as the engine choice and the game's scenes, are now decided in the Vocaterra game repository, not in this one. The text below is unchanged.
+
 Research report, 2026-10-20, written against `main` at `5f816de` (M17a done, M18 in progress). It answers the owner's request to
 "find better methods that scale up, so we don't need to build an entire processing application for Spanish". Every external claim
 carries a link in [section 7](#7-sources); claims marked **unverified** could not be confirmed from a primary source, and numbers marked

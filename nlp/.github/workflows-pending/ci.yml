@@ -175,7 +175,7 @@ jobs:
           if-no-files-found: warn
 
   # Packs the libraries, builds samples/HostConsole against the packed local feed and keeps the packages as a workflow artifact. Runs on push
-  # (branches and version tags) and pull request. Nothing is published: the package feed is undecided (docs/DECISIONS.md D5).
+  # (branches and version tags) and pull request. Nothing is published to a hosted feed; consumers take the core as a submodule (docs/PACKAGING.md, D5).
   pack:
     name: pack and sample host
     if: github.event_name == 'push' || github.event_name == 'pull_request'
@@ -204,7 +204,7 @@ jobs:
           path: artifacts/packages/*
           if-no-files-found: error
 
-      # Publishing is commented out until the feed is decided (docs/DECISIONS.md D5). Choosing GitHub Packages needs
+      # Publishing stays commented out: no hosted feed is planned (docs/PACKAGING.md, D5, decided 2026-10-21). Enabling GitHub Packages needs
       # `permissions: packages: write` on this job, and the workflow scope for this file.
       # - name: Publish to GitHub Packages
       #   if: startsWith(github.ref, 'refs/tags/v')

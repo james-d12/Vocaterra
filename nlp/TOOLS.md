@@ -15,7 +15,7 @@ An inventory of everything external that the Vocaterra.NLP repository builds on,
 | [5](#5-models) | The 5 models in `models/manifest.json` |
 | [6](#6-data-sources) | Wiktionary and its extraction tool, the word frequency list and its corpus, CEFR lists, hand-authored content |
 | [7](#7-developer-tooling) | git, shell tools, GitHub Actions, scripts |
-| [8](#8-planned-or-referenced-but-not-used) | espeak-ng, Qwen3, Godot, CsCheck and other future items |
+| [8](#8-planned-or-referenced-but-not-used) | espeak-ng, Qwen3, CsCheck and other future items |
 | [9](#9-license-summary) | Counts by license and the GPL components |
 | [10](#10-findings-to-follow-up) | Things noticed while inventorying |
 
@@ -129,7 +129,7 @@ Counts: 5 models; 1 fully pinned, 2 archive-pinned, 2 without archive (1 needs a
 | **wiktextract** (Tatu Ylonen), https://github.com/tatuylonen/wiktextract | the extraction tool that produced the kaikki.org data; **not used by this repository** | MIT (its README: "licensed under the MIT license"; `LICENSE` is the MIT text, with certain files under `tests/` under the Wiktionary licence). The data it extracts is Wiktionary text (row above) | the paper to cite if the data is used in research is in the attribution notice | tool only; nothing of it is built, run or shipped |
 | **hermitdave/FrequencyWords** `content/2018/es/es_50k.txt`, https://github.com/hermitdave/FrequencyWords | the 50 000 most frequent Spanish words with counts; ranks the lemmas that `import-lexicon --frequency --top` keeps | MIT for code, CC-BY-SA-4.0 for content (README at the pinned commit; an older commit of the same repository says CC-BY-SA-3.0 for the content, which is why the commit `525f9b560de45753a5ea01069454e72e9aa541c6` is pinned) | Pinned by commit URL and SHA-256 in `scripts/fetch-lexicon-sources.sh` (658 626 bytes, `dcff3ad4...56c0`); recorded in the sidecar; attribution in `ATTRIBUTION.md`. **Not committed** | **in use** as a ranking only: no count ships |
 | **OpenSubtitles 2018** (OPUS), http://opus.nlpl.eu/OpenSubtitles2018.php , subtitles from https://www.opensubtitles.org | the corpus the frequency list counts (P. Lison and J. Tiedemann, LREC 2016; P. Lison, J. Tiedemann and M. Kouylekov, LREC 2018) | the list's author licenses his counts under CC-BY-SA-4.0; the terms of the subtitles themselves are **unverified**. Only a ranking derived from the counts is used, and no subtitle text or count ships | cited in `ATTRIBUTION.md` | indirect; the owner should confirm the terms before release ([ADR 0008](docs/adr/0008-lexicon-sources-and-frequency-filter.md)) |
-| **CEFR word lists** `content/v1/cefr/a1.txt` (330 lemmas), `a2.txt` (663 lemmas) | Vocabulary limit for dialogue templates, checked by `cefr-check` | not stated (repository license not chosen yet) | `provenance.json`: `hand-authored`, `approvedBy` null. No external list is cited anywhere in the repository, so whether the lemmas were derived from a published CEFR vocabulary list is **unverified** | in use |
+| **CEFR word lists** `content/v1/cefr/a1.txt` (330 lemmas), `a2.txt` (663 lemmas) | Vocabulary limit for dialogue templates, checked by `cefr-check` | Apache-2.0 with the repository (hand-authored; `LICENSE`) | `provenance.json`: `hand-authored`, `approvedBy` null. No external list is cited anywhere in the repository, so whether the lemmas were derived from a published CEFR vocabulary list is **unverified** | in use |
 | **Hand-authored lexicons** `content/v1/lexicon/seed.json` (1217 entries), `game.json` (51) and `supplement.json` (7) | Forms, lemmas, features for analysis and morphology; the seed is also embedded in `Vocaterra.Nlp.Language`. They win over the import where both define a word | not stated | `hand-authored` | in use |
 | **Content bundle** `answer-sets/`, `intents/`, `prompts/`, `agents/blacksmith.json`, `dialogue/`, `feedback/`, `effects/`, `evaluation/` | Sample blacksmith agent, prompts, answer sets, dialogue, policy tables | not stated | all `hand-authored`, `approvedBy` null; hashed by [`content/v1/manifest.json`](content/v1/manifest.json) | in use |
 | **G2P golden set** `tests/Vocaterra.Nlp.Golden.Tests/Data/g2p-golden.jsonl` (1,788 lines) | Expected IPA for the Spanish G2P tests | not stated | hand-authored; the plan intends to regenerate it from Wiktionary later (not done) | in use |
@@ -138,7 +138,7 @@ Counts: 5 models; 1 fully pinned, 2 archive-pinned, 2 without archive (1 needs a
 | **FSRS-4.5 default weights** | Review scheduling constants in `Vocaterra.Nlp.Decision` | published reference constants, license **unverified** | copied from the open-spaced-repetition reference implementation (`ts-fsrs` 3.5.7 `default_w`, per `FsrsParameters.cs`) | in use |
 | **Model training data** | Common Voice (wav2vec2 model card); Parakeet and Kokoro training data not inspected | **unverified** | none; only the pretrained weights are used | not used directly |
 
-The hand-authored content has no third-party text in it, but the repository owner has not chosen a license for it or for the code (there is no `LICENSE` file).
+The hand-authored content has no third-party text in it, and it is licensed Apache-2.0 with the code (see `LICENSE` and `NOTICE`).
 
 ## 7. Developer tooling
 
@@ -193,7 +193,6 @@ The hand-authored content has no third-party text in it, but the repository owne
 | **UDPipe** | statistical tagger (D1) to widen linguistic coverage | model licenses to be checked | not used | HLD step 7 |
 | **paraphrase-multilingual-MiniLM** | alternative embedding model | not stated | alternative only | HLD Technology choices |
 | **NAudio**, `cpal`, `malgo`, engine capture API | microphone capture | not stated | not used: v1 has no OS capture adapter, only `ICaptureSource` and `WavFileCaptureSource` | HLD step 1; plan M2 |
-| **Godot .NET**, **MonoGame** (C#); Bevy, macroquad (Rust); Ebitengine (Go) | game engine | not stated | engine choice deferred; the core is engine-agnostic class libraries | HLD Technology choices; plan section 1 |
 | **CsCheck 4.9.1** | generators for the combinatorial fuzz suite `tests/Vocaterra.Nlp.Fuzzing.Tests` (milestone M16a) | MIT (per the fuzzing plan) | planned; not yet in `Directory.Packages.props` and must pass the license scan | [`docs/FUZZING_PLAN.md`](docs/FUZZING_PLAN.md) |
 | **CodeGuard.RuleFuzzing.Tests** | design reference for the fuzz suite, not a dependency | not stated | reference only | https://github.com/james-d12/CodeGuard/tree/main/tests/CodeGuard.RuleFuzzing.Tests |
 | **OpenPronounce**, GOP paper (arXiv 2309.07739) | references for pronunciation scoring | not stated | reference only | https://github.com/Halleck45/OpenPronounce , https://arxiv.org/pdf/2309.07739 |

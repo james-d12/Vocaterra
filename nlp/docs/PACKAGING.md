@@ -1,8 +1,9 @@
 # Packaging
 
-This is how the language core ships as NuGet packages: the versions, `scripts/pack.sh` and the local feed it fills, the sample host that
-proves the packages are complete, the content bundle archive, the parked CI job, and what is deliberately left undecided. The plan is
-`IMPLEMENTATION_PLAN.md` section 8.2 (M19b); the owner decisions are in [DECISIONS.md](DECISIONS.md) (D2, D3, D4, D5).
+This is how the language core ships as NuGet packages and how a consuming repository takes them: the versions, `scripts/pack.sh` and the
+local feed it fills, the two ways to consume the core, the sample host that proves the packages are complete, the content bundle archive, the
+parked CI job, and what is still undecided. The plan is `IMPLEMENTATION_PLAN.md` section 8.2 (M19b); the owner decisions are in
+[DECISIONS.md](DECISIONS.md). D3 (licence) and D5 (feed) were decided on 2026-10-21; D2 and D4 are open.
 
 ## Versions and identity
 
@@ -22,7 +23,8 @@ proves the packages are complete, the content bundle archive, the parked CI job,
   with the symbols. The nuspec names the repository and the commit it was built from.
 - Builds are deterministic (`Deterministic` is on in `Directory.Build.props`), and `ContinuousIntegrationBuild` is set when the `CI` environment
   variable is present.
-- No licence is named. `PackageLicenseExpression` and `PackageLicenseFile` are not set, because the licence is not chosen (D3). See below.
+- The licence is Apache-2.0 (D3). Every package sets `PackageLicenseExpression` to `Apache-2.0` and carries the repository's `LICENSE` and
+  `NOTICE` at its root. The Wiktionary-derived lexicon in the content bundle is CC BY-SA 4.0 and is not in any package.
 
 ## Pack
 
@@ -53,9 +55,43 @@ The NuGet global packages folder (`~/.nuget/packages`, or `NUGET_PACKAGES`) keep
 version number, so `scripts/sample-host.sh` removes the `vocaterra.nlp.*` folders there before it restores; without that a rebuilt 0.1.0 could be
 ignored in favour of the cached one.
 
+## Consuming the core
+
+No package is published to a hosted feed, and none is planned: the decision is D5 (decided 2026-10-21). A consuming repository, such as the
+Vocaterra game, adds this repository as a submodule and uses it in one of two ways:
+
+```bash
+git submodule add https://github.com/james-d12/Vocaterra.NLP.git external/Vocaterra.NLP
+git submodule update --init
+```
+
+1. **Project references.** Reference the projects directly, for example
+   `<ProjectReference Include="external/Vocaterra.NLP/src/Vocaterra.Nlp.Pipeline/Vocaterra.Nlp.Pipeline.csproj" />`. The consumer then builds the
+   core from the commit its submodule pins, and no pack step is needed.
+2. **A local feed.** Run `bash external/Vocaterra.NLP/scripts/pack.sh`, then add a `nuget.config` beside the consumer's solution. It reads the
+   packed folder and nuget.org, which the core lists for its third-party dependencies, in the same shape as `samples/HostConsole/nuget.config`:
+
+   ```xml
+   <configuration>
+     <packageSources>
+       <clear />
+       <add key="vocaterra-local" value="external/Vocaterra.NLP/artifacts/feed" />
+       <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+     </packageSources>
+   </configuration>
+   ```
+
+   The consumer then references the `Vocaterra.Nlp.*` packages at version `0.1.0`.
+
+Project references always build from the pinned commit, but they compile the core's sources into the consumer and never exercise the packaged
+surface. The local feed does exercise the packaged surface, which is what `samples/HostConsole` tests, at the cost of running `scripts/pack.sh`
+after each change to the core.
+
+GitHub Packages and nuget.org are not planned as publishing targets. No `Vocaterra.Nlp.*` package goes to either.
+
 ## The sample host
 
-`samples/HostConsole` is a console host written against the packages, the way a game would consume them. It is not in `Vocaterra.Nlp.sln`,
+`samples/HostConsole` is a console host written against the packages, the way a host application would consume them. It is not in `Vocaterra.Nlp.sln`,
 it references the packages at version 0.1.0 and not the projects, and its `nuget.config` is the one above. It does what the document
 [API.md](API.md) describes, in order: loads `content/v1`, builds the services with the scripted recognizer (no model files), builds the
 pipeline and a conversation context, evaluates `yo tiene dos espada` on `offer-items-open` and `cuánto cuesta la espada` on `ask-price-open`,
@@ -119,7 +155,7 @@ dotnet tool install --tool-path <dir> --add-source <core>/artifacts/feed Vocater
 ```
 
 `<core>` is the language core checkout, after `scripts/pack.sh` has filled its `artifacts/feed`. On a machine with a user-local SDK the
-launcher needs `DOTNET_ROOT` set to that SDK, as the other commands in this document do. The game repository's `scripts/content.sh` is to call
+launcher needs `DOTNET_ROOT` set to that SDK, as the other commands in this document do. A consuming repository's content script calls
 this command instead of `dotnet run` on the project.
 
 Size and dependencies, measured on 2026-10-21 with `scripts/pack.sh`:
@@ -142,14 +178,11 @@ an upload of `artifacts/packages/*` as the `packages` artifact. It runs on pushe
 the other push jobs, because their `if:` matches every push. The workflow can be pushed only once the token has the `workflow` scope (D1, and
 `.github/workflows-pending/README.md`).
 
-The publish step is commented out in that job. Publishing waits for the feed decision (D5).
+The publish step is commented out in that job and stays so: no hosted feed is planned (D5, decided 2026-10-21). The step is kept only as a
+record of what a GitHub Packages publish would need (the token would also need `write:packages`).
 
-## Deliberately undecided
+## Still undecided
 
-- **The feed (D5).** Nothing is published. The options are GitHub Packages (the token also needs `write:packages`), release artifacts only, or
-  nuget.org. The commented step in the `pack` job is ready for GitHub Packages once that is chosen.
-- **The licence (D3).** The repository has no LICENSE and the packages name no licence. Until the owner chooses one, the packages grant no
-  permission to use, copy or modify them. Do not add a licence expression to the metadata in `Directory.Build.props` without that decision.
 - **The sherpa-onnx native library (D2).** `Vocaterra.Nlp.Asr` and `Vocaterra.Nlp.Response` depend on `org.k2fsa.sherpa.onnx` 1.13.8, and its native
   build contains espeak-ng (GPL-3.0) unless a GPL-free release is pinned. Do not distribute those two packages, or anything that includes them,
   until D2 is settled. Packing and the sample are not affected.
@@ -158,5 +191,5 @@ The publish step is commented out in that job. Publishing waits for the feed dec
   D2 is settled.
 - **Lexicon terms (D4).** The Wiktionary-derived lexicon in the content bundle is CC BY-SA and the frequency-list terms are unconfirmed; both
   matter only for a public release of a bundle.
-- **Stability.** 0.1.0 promises no API stability. The boundary in [ADR 0009](adr/0009-core-and-game-boundary.md) is exercised first by the game
-  repository (M19c).
+- **Stability.** 0.1.0 promises no API stability. The boundary in [ADR 0009](adr/0009-core-and-game-boundary.md) is exercised first by a
+  consuming host, the Vocaterra game (M19c).

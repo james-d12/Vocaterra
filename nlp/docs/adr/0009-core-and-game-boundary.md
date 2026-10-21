@@ -1,5 +1,7 @@
 # ADR 0009: The core and the game boundary
 
+> **Note (M19e, 2026-10-21):** game-side matters in this record, such as the engine choice and the game's scenes, are now decided in the Vocaterra game repository, not in this one. The text below is unchanged.
+
 - Status: accepted
 - Date: 2026-10-20
 - Deciders: the repository owner (repository names, the rename to `Vocaterra.Nlp.*`, and decisions D6 and D7 in [docs/DECISIONS.md](../DECISIONS.md)); the implementation plan (`IMPLEMENTATION_PLAN.md` section 8, milestone M19a)
