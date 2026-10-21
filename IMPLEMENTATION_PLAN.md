@@ -63,8 +63,8 @@ docs/                            SPECIFICATION (design), ARCHITECTURE (boundary)
 ### Handover (2026-10-21, after P4)
 
 Where things stand, for the next orchestrator session:
-- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4, P4b, P6. Core pin `db39999`; G6 bumps it to `53c52b7` (branch `G6-core-bump` holds the gitlink commit; the local feed is already packed from `53c52b7`, and the submodule checkout stays at `db39999` until G6 merges). Tests on `main`: 437.
-- **Next:** G6 (core bump and adoption), P6b (crafting; owner 2026-10-21: crafting before caves, with stations), then P5 (spoken input; Sonnet 5.5) and P7; previously P5 or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
+- **Done and pushed:** G0, G1, G2, R1, P1, P2, P3, P4, P4b, P6, G6. Core pin `53c52b7` (M26a to M26e). Tests on `main`: 446.
+- **Next:** P6b (crafting; owner 2026-10-21: crafting before caves, with stations), then P5 (spoken input; Sonnet 5.5) and P7; previously P5 or P6 (mining, building, inventory; Haiku 5.5). Both touch `src/Vocaterra.MonoGame`: one after
   the other. Then P7, P9; P8 waits on CR-006; P10 optional; G3 and G4 after P9.
 - **Core requests:** the core accepted CR-002 to CR-008 and CR-010 to CR-013 into its M26a to M26f (2026-10-21); CR-014 (P4) and CR-015 (P4b) are `open`.
   When rows turn `done`, bump the submodule; CR-012's fix (M26a) lets the guide drop `EvaluateCountingThisUtterance`, which is a
@@ -95,14 +95,14 @@ Where things stand, for the next orchestrator session:
 | P4b | Spaced colour and the guide's review (D-game-6 amended): growing gaps (10 min, then 1 h, or a new session), early uses logged without colour, the guide asks "¿Qué es esto?" about a due word with the pointer on its nearest example; scripted time skip for the demo | done (merged 2026-10-21, `b433647`, fix `9ce62ef`) | Sonnet 5.5 | P4 |
 | P5 | Spoken input: push-to-talk, microphone (MonoGame `Microphone`, PortAudioSharp2 fallback), Vosk small, evaluation on a worker thread | planned | Sonnet 5.5 | P3 |
 | P6 | Mining, building, inventory (durability, drops, hotbar placement, 40 slots with a 10-slot hotbar; the player starts with `hacha` and `pico`) and the **wider world of things** (section 4.3: new surface tiles and items, each in `game/nouns.json` with the colour rule) | done (merged 2026-10-21, `57244dd`) | Haiku 5.5 | P1, P2, P4b |
-| P6b | **Crafting and the guide's crafting answers** (owner, 2026-10-21; section 4.3): recipes in `game/recipes.json`, stations (`mesa`, `horno`), crafting panel; the guide answers "¿cómo hago una mesa?" (recipe, station, what is missing) and "¿dónde hay arena?" (where a material comes from and the nearest source) | planned, after G6 | Sonnet 5.5 (design), Haiku 5.5 (content) | P6, G6 |
+| P6b | **Crafting and the guide's crafting answers** (owner, 2026-10-21; section 4.3): recipes in `game/recipes.json`, stations (`mesa`, `horno`), crafting panel; the guide answers "¿cómo hago una mesa?" (recipe, station, what is missing) and "¿dónde hay arena?" (where a material comes from and the nearest source) | in progress (2026-10-21) | Sonnet 5.5 (design), Haiku 5.5 (content) | P6, G6 |
 | P7 | Caves (worms, cellular automata), ores, full forest vegetation, flood-fill lighting; ores `carbón`, `cobre`, `hierro`, `oro` join the catalogue and the recipes (`antorcha` from `madera` and `carbón`, metal tools at the `horno`) | planned | Haiku 5.5 | P1, P6, P6b |
 | P8 | The guide speaks (Kokoro through the core) | planned (CR-006 delivered in core M26e; taken in by G6) | Haiku 5.5 | P5, CR-006 |
 | P9 | Save and load, playtest build and checklist | planned | Haiku 5.5 | P4, P6, P7 |
 | P10 | Godot spike (optional): the same seed and guide turn in Godot 4 .NET; a note on the cost of the move | planned (optional) | Sonnet 5.5 | P4 |
 | G3 | Innkeeper scene (section 4.1) | planned, after P9 | Sonnet 5.5 for the scene design, Haiku 5.5 for the content checklist | G2, P9 |
 | G4 | Quest-giver scene (section 4.2) | planned, after G3 | Haiku 5.5 | G3 |
-| G6 | Core bump to `53c52b7` (M26a to M26e) and adoption: drop the CR-012 double evaluation, the CR-013 `esta` lexicon entry if no longer needed, read `nouns.json` with `TryReadHostFile` (CR-007), word lists from `PipelineResult.Words` (CR-002), the guide's world line through host slots (CR-003), the named answer through `PipelineResult.Answer` where it fits (CR-004), `word.<lemma>` extra skills (CR-005) | in progress (2026-10-21) | Haiku 5.5 | P6 |
+| G6 | Core bump to `53c52b7` (M26a to M26e) and adoption: drop the CR-012 double evaluation, the CR-013 `esta` lexicon entry if no longer needed, read `nouns.json` with `TryReadHostFile` (CR-007), word lists from `PipelineResult.Words` (CR-002), the guide's world line through host slots (CR-003), the named answer through `PipelineResult.Answer` where it fits (CR-004), `word.<lemma>` extra skills (CR-005) | done (merged 2026-10-21; core pin `53c52b7`) | Haiku 5.5 | P6 |
 | R1 | Research: Terraria-inspired prototype (guide NPC by text and speech, mining, building, movement, forest biome, map and cave generation, language progress tracking, known nouns in colour and unknown in greyscale, inventory) on MonoGame; findings in `docs/research/` | done (merged 2026-10-21, `0e8d601`); proposals await the owner | Opus 5.5 (owner's request) | G0 |
 
 Each milestone ends with the gate in section 6 and a line in section 5.
@@ -373,6 +373,25 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   (CR-012) and M26b (CR-013). M26a changes the repeat counts' meaning, so the guide's double evaluation would count one turn ahead: the
   bump goes through G6, not a bare bump. Disk: the core pack and its build output took about 7 GB; the submodule's `bin`/`obj` (0.9 GB) and
   main's `bin`/`obj` (2 GB) were removed after it (free 13 GB).
+
+- **G6 (2026-10-21, merged, Haiku 5.5): core bump `db39999` → `53c52b7` (M26a to M26e) and adoption.** The bump alone failed three
+  `GuideTurnTests`: the CR-012 workaround now counted one turn ahead. Adopted: CR-012 (`EvaluateCountingThisUtterance` removed; the
+  ladder for the same mistake is now recast, hint, hint, for the host and the guide), CR-013 (the `esta` entry left `supplement.json`;
+  `dónde esta el arbol` is clean), CR-007 (`NounCatalog.Load(bundle)` through `TryReadHostFile`; a missing file throws), CR-002
+  (`GuideTurn.Words` from `PipelineResult.Words`; `CatalogueNounsOf` removed), CR-005 (`word.<lemma>` through `extraSkills`, one learner
+  update). Partly: CR-003 (the guide's facts are host slots in the replay record, but the line is still the game's render: the core
+  cannot pick the found / here / none sentence from a host fact, **CR-016**). Not adopted: CR-004 (the right answer is the cursor's
+  tile, which no static answer set expresses). The guide evaluates each line twice, because the facts depend on the noun the core reads
+  and host slots are taken only before `Evaluate` (pure; only the second result kept): **CR-017**. Orchestrator review: the agent first
+  overrode `HostStateHash` with the bare simulation digest, against the core's contract (API.md section 4: a host's own digest must cover
+  the host slots and skills); fixed with `HostDigest.Of` (SHA-256 over the simulation digest, ordinal slots, distinct ordinal skills).
+  Bundle `8e2913da…`. Tests 437 to 446. For P5 and P8 (from the CR-006 and CR-008 answers): one pipeline may evaluate on one thread while
+  `Synthesize` runs on another; Vosk, wav2vec2 and the embedding model need one instance per thread; recognizers and ONNX sessions load in
+  their constructors (preload behind a loading screen); Kokoro loads on the first `Synthesize`, 1.5 to 3.7 s a line, so wrap it in
+  `CachedSynthesizer`; a build with both the ONNX embedding model and sherpa-onnx carries two clashing `libonnxruntime.so`. P5 must not run
+  the recognizer twice for the double evaluation: evaluate the second time from the recognized transcript.
+  - Content pass: the recast pool renders "Claro, dónde está el árbol. Muy bien." (no question marks, lower-case inside).
+  - Agents in a worktree cannot run git against the core checkout (the worktree guard): briefs must paste the core API passages they need.
 
 ## 6. Definition of done (every milestone)
 
