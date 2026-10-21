@@ -8,16 +8,16 @@ editing its status; the plan (`IMPLEMENTATION_PLAN.md`) and ADRs follow.
 | --- | --- | --- |
 | D1 | Workflow token scope (activate CI) | deferred (owner, 2026-10-21): CI is not a requirement now; keep the entry, do not raise it again until the owner reopens it |
 | D2 | espeak-ng GPL code inside sherpa-onnx (ADR 0007) | open, path found |
-| D3 | A LICENSE file for the repository | open |
-| D4 | OpenSubtitles terms behind the frequency list | open |
-| D5 | Package feed for the `Vocaterra.Nlp.*` packages | open |
+| D3 | A LICENSE file for the repository | decided (owner, 2026-10-21): Apache-2.0; repository stays private for now (M19e) |
+| D4 | OpenSubtitles terms behind the frequency list | deferred (owner, 2026-10-21): keep the entry, do not raise it until a public release is planned |
+| D5 | Package feed for the `Vocaterra.Nlp.*` packages | decided (owner, 2026-10-21): no hosted feed; the game includes this repository as a git submodule (M19e docs) |
 | D6 | Conversation state-machine engine: core or game | decided (M19a): core, as a generic conversation agent |
 | D7 | Blacksmith sample content stays as the core's demo | decided (M19a): kept as the sample and demo |
 | D8 | Online or offline | open |
 | D9 | Determinism strictness (ADR 0010) | open |
 | D10 | Licence stance on MPL-2.0 and on GPL/LGPL dev-time processes | open |
 | D11 | Cloud cost cap for an optional tutor | open |
-| D12 | Game engine | open |
+| D12 | Game engine | moved (owner, 2026-10-21): a Vocaterra repository decision; not tracked here |
 | D13 | Pronunciation ambition | open, after the speech check |
 
 ## D1. Workflow token scope
@@ -40,6 +40,7 @@ isolate TTS in a separate GPL process; (c) accept GPL for a personal, non-distri
 **Waiting on it:** TTS milestone (M24's TTS part), any distribution of the game.
 
 ## D3. LICENSE file
+**Decided (2026-10-21, owner):** Apache-2.0 for the code and hand-authored content; the Wiktionary-derived lexicon stays CC BY-SA 4.0. The repository stays private for now. Implemented in M19e (`LICENSE`, `NOTICE`, `PackageLicenseExpression`).
 The repository has no LICENSE. The hand-authored content and code are the owner's; the generated
 lexicon is CC BY-SA (Wiktionary) and must stay so. **Options:** MIT or Apache-2.0 for the code with a
 separate CC BY-SA notice for `content/v1/lexicon/wiktionary-es.json` (recommended: Apache-2.0, for
@@ -47,6 +48,7 @@ its patent clause, matching most dependencies); or keep the repository private w
 **Waiting on it:** publishing packages (M19b), making either repository public.
 
 ## D4. OpenSubtitles terms
+**Status (2026-10-21):** deferred by the owner; keep the entry, do not raise it until a public release is planned.
 The frequency list (`hermitdave/FrequencyWords`, `es_50k`) is CC BY-SA 4.0 for the counts, but the
 terms of the underlying OpenSubtitles corpus were not confirmed. Only a ranking derived from the
 counts is used; no counts or subtitle text ship. **Recommendation:** accept as is for a personal
@@ -54,6 +56,7 @@ project; before any public release, either confirm the terms or swap the ranking
 Corpora or wordfreq-based list and regenerate (`docs/LEXICON.md`). **Waiting on it:** public release only.
 
 ## D5. Package feed
+**Decided (2026-10-21, owner):** no hosted feed. The Vocaterra repository includes this repository as a git submodule and consumes it through project references or the local feed that `scripts/pack.sh` builds. Documented in M19e (`docs/PACKAGING.md`).
 `Vocaterra.Nlp.*` packages (M19b) need a feed. **Options:** GitHub Packages (token also needs
 `write:packages`; private, fits two private repositories; recommended), a local folder feed committed
 as release artifacts (simplest, no token change), or nuget.org (public only). **Waiting on it:** M19b's
@@ -95,6 +98,7 @@ utterances on Haiku-class models; an hour of play is a few hundred utterances. *
 hard cap in the tutor adapter with a local fallback. **Waiting on it:** M25.
 
 ## D12. Game engine
+**Moved (2026-10-21, owner):** the game's planning, including the engine, lives only in the Vocaterra repository. This repository documents the language core and does not track the decision.
 Not chosen. It affects audio capture, threading, and how the core is consumed (NuGet works for
 Godot .NET and MonoGame; Unity needs netstandard-compatible builds or source). **Recommendation from
 the report:** Godot .NET. **Waiting on it:** M19c's host project shape, M24's capture path.
@@ -108,3 +112,4 @@ errors; until then the phoneme stage stays optional. **Waiting on it:** M24 resu
 - 2026-10-20: core repository renamed `Vocaterra.NLP`; game repository `Vocaterra` created; M19a
   renames `Vocaterra.Nlp.*` to `Vocaterra.Nlp.*`; Haiku 5.5 is the default model for delegated work; the
   research report's M18 stays as the seam the tagger plugs into.
+- 2026-10-21: D1 and D4 deferred; D3 Apache-2.0; D5 git submodule; D12 moved to the Vocaterra repository; the core repository documents only the language core (M19e isolation audit).

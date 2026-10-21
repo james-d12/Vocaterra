@@ -97,9 +97,12 @@ milestone's area; anything left undone and why.
   offer-items-open --content content/v1` must keep yielding exactly `conj.person` and `noun.number`.
 
 ## Open decisions (owner's; keep listed in plan §5b until resolved)
-Workflow token scope (deferred by the owner on 2026-10-21; do not raise it); espeak-ng GPL code inside the sherpa-onnx native library (ADR 0007); a LICENSE
-file for the repo; the terms of the OpenSubtitles corpus behind the frequency list; online versus
-offline and determinism strictness (see `docs/research/SCALING_APPROACHES.md` once it exists).
+espeak-ng GPL code inside the sherpa-onnx native library (ADR 0007, D2); online versus offline (D8);
+determinism strictness (D9); MPL-2.0 stance (D10); tutor cost cap (D11); pronunciation ambition (D13).
+Deferred by the owner on 2026-10-21, do not raise: D1 (workflow scope, CI) and D4 (OpenSubtitles terms).
+Decided: D3 Apache-2.0, D5 git submodule, D6/D7 core keeps the engine and the sample, D12 moved to the
+Vocaterra repository. The core repository documents only the language core: game planning, scenes and
+engine choices belong in the Vocaterra repository, never here.
 
 ## Never
 - Write code under `src/`, `tests/` or `tools/` yourself; the plan, briefs, gate script, CLAUDE.md and

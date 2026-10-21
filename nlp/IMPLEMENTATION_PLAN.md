@@ -9,7 +9,7 @@ orchestrator; milestone agents update only the **Status** column of their own mi
 | Question (from HLD) | Decision | Rationale |
 | --- | --- | --- |
 | Language | **C# on the current .NET LTS SDK**, pinned in `global.json` | HLD recommendation; official ONNX Runtime, Vosk and sherpa-onnx NuGet packages |
-| Engine | **Deferred.** Everything is engine-agnostic class libraries + a console host | Godot .NET and MonoGame both consume plain .NET libraries; no engine code in this plan |
+| Engine | **Not a core concern.** The core is engine-agnostic class libraries plus a console sample; the game engine is chosen and documented in the Vocaterra repository (owner, 2026-10-21) | The core must stay consumable from any .NET host |
 | Min-spec | 8 GB RAM, 4-core x86-64, no GPU, **CPU-only inference** | HLD performance table; grading paths must be CPU-only anyway |
 | Default dialect | Latin American neutral (seseo, yeísmo) for NPC speech; scoring accepts **all** dialect variants | HLD "Dialect bias" risk |
 | Free conversation (Phase 3) | Out of scope for this plan | Optional per HLD |
@@ -192,7 +192,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M16a | Combinatorial fuzz testing, stage 1: project, CsCheck, generators, harness, language oracles (see `docs/FUZZING_PLAN.md`) | M13b | S | done |
 | M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | done |
 | M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | done |
-| M17b | Intent expansion, game part: the innkeeper and quest-giver scenes, now content of the Vocaterra repository; waits on the drafting decision (M21) or is hand-authored there (see §7.4, §9) | M17b-core, M19c | M | todo (Vocaterra) |
+| M17b | Intent expansion, game part: planned and built in the Vocaterra repository (not tracked here since 2026-10-21) | M17b-core | — | moved (Vocaterra) |
 | M17b-core | The core part of M17b: `[WORD:slot]` grammar token, generic sample intents (confirm, deny, farewell, thank, introduce_self), blacksmith confirming state, fuzz support | M19a | M | done |
 | M18 | Part-of-speech disambiguation in the analyzer (triggered: `ayer compré un libro` yields a false `conj.tense` on main after M17a) | M17a | M | done |
 | M19a | Standalone core, step 1: boundary ADR, rename `Slg.*` → `Vocaterra.Nlp.*` (solution, projects, namespaces, packages), game-agnostic context and agent naming, opaque outcome kinds, `docs/API.md`, README reframed as a library (see §8) | M18 | M | done |
@@ -200,6 +200,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M19c | Standalone core, step 3: new game repository scaffold with the game spec, game content bundle and a host project on the packages (see §8) | M19b | S | done |
 | M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | done |
 | M19d | Post-split core follow-ups from the game host author: repeat-count helper and next-turn context, prompt `text` in `PromptSpec`, ContentBuilder as a dotnet tool `vocaterra-content` | M19c, M17b-core | H | done |
+| M19e | Apache-2.0 licence (D3), submodule consumption route (D5), core/game documentation isolation (D12) | M19d | H | in-progress |
 
 ### Delegation waves
 
@@ -716,55 +717,13 @@ the spot-check test catches gross errors); verb and noun homographs multiply wit
 the analyzer's not-POS-aware checks will produce more false tags on correct sentences. M17a must
 report that rate (the fuzz generators count the skips); fixing it is M18, not M17a.
 
-### 7.4 M17b: new intents and scenes (Sonnet, size L)
+### 7.4 M17b: new intents and scenes (moved to the Vocaterra repository)
 
-Two new NPC scenes chosen from the HLD's loop (spells, trade, quests, NPC dialogue): trade and
-spells exist, quests and everyday dialogue are the gaps.
-
-| Scene / NPC | New intents | Example utterances | Slots |
-| --- | --- | --- | --- |
-| Innkeeper (`innkeeper`) | `order_item` | quiero una cerveza; dos panes, por favor | item, qty |
-| | `ask_directions` | ¿dónde está la herrería? | place |
-| | `ask_name` | ¿cómo te llamas? | |
-| | `introduce_self` | me llamo Ana; soy Ana | name (needs `[WORD:name]`, see below) |
-| | `farewell` | adiós; hasta luego; hasta mañana | |
-| | `thank` | gracias; muchas gracias | |
-| Quest giver (`captain`) | `ask_quest` | ¿tienes trabajo para mí?; ¿hay una misión? | |
-| | `report_quest` | he matado tres arañas; maté tres arañas | target, qty |
-| Cross-cutting (every NPC) | `confirm` | sí; claro; vale, acepto | |
-| | `deny` | no; no, gracias; ahora no | |
-
-`confirm` and `deny` also drive the existing blacksmith: a new `confirming` state asks "¿quieres
-comprar la espada por diez monedas?" and `confirm` leads to `trade_done`. The quest giver's machine
-is idle → offering_quest (`confirm`/`deny`) → quest_active (`report_quest` with the right target and
-qty) → quest_done.
-
-Per-intent content checklist: intent definition with required slots, at least two slot grammars, a
-keyword rule and at least five examples (one with a typical learner error); answer sets where a
-constrained prompt needs them (`food-drink`, `places`, `yes-no`, `quest-targets`); open and
-constrained prompts per scene (about twelve new prompts, with difficulty); dialogue pool
-`<intent>_reply` with at least three variants using template filters, plus `greet_reply`,
-`not_understood` and scene-specific pools for the new NPCs, all passing `cefr-check` at A1 and A2
-(extend `cefr/a1.txt` and `cefr/a2.txt` by hand where a template needs it); NPC definitions
-`npcs/innkeeper.json` and `npcs/captain.json` with variant pools; effects entries (`order_item` →
-tavern price curve, `report_quest` → quest reward curve); no change to the feedback policy or the
-evaluation config.
-
-The one allowed code change: a `[WORD:slot]` token in the slot-grammar DSL that matches any single
-token (for names), with tests in `Slg.Nlp.Tests`, support in the fuzz `PatternGen` and `SentenceRealizer`,
-and a line in `docs/PIPELINE.md`. If it turns out larger than a day's work, `introduce_self` is dropped
-and the rest of M17b ships.
-
-Gates (all of §6 plus): coverage tests from M17a green (every new grammar, example and template word is
-in the lexicon); fuzz suite green at default depth, every catalog grammar realised by the sentence
-generator (O3 asserts it) or its skip documented; `cefr-check` clean at A1 and A2; `validate`, `hash`,
-golden re-record, two new end-to-end goldens (`e2e-order-item-open`, `e2e-report-quest-open`); CLI
-demo commands for both scenes verified and added to the README; prompt and intent count assertions
-updated; README status row.
-
-Known limitation to document: the DSL has no tense constraint, so `report_quest` accepts any form of
-the verb; person agreement is still checked. Tense-aware grammars join the subjunctive/por-para
-question the HLD leaves open.
+The scene planning that stood here (innkeeper and quest-giver characters, their intents, prompts,
+dialogue pools and state machines) is game content and moved to the Vocaterra repository on
+2026-10-21 (owner decision: the core repository documents only the language core). The core part,
+the `[WORD:slot]` token, the generic intents `confirm`, `deny`, `farewell`, `thank`, `introduce_self`
+and the blacksmith `confirming` state, shipped as M17b-core (§5b).
 
 ### 7.5 M18 (candidate): part-of-speech disambiguation
 
@@ -850,12 +809,10 @@ author: a repeat-count helper, prompt text in `PromptSpec`, the ContentBuilder a
   namespaces, assembly names and NuGet package ids from `Slg.*` to `Vocaterra.Nlp.*` before any package
   is published; environment variables keep the `SLG_` prefix only if renaming them would break the
   parked CI, otherwise they become `VOCATERRA_` with the old names accepted for one release.
-- Package feed: GitHub Packages (the token also needs `write:packages`) or a local feed and release
-  artifacts. Publishing from CI waits for the workflow scope in any case.
-- Whether the conversation state-machine engine stays in the core (recommended: yes, it is
-  content-driven interaction logic) or moves to the game.
-- Whether the blacksmith sample content stays as the core's demo (recommended: yes; the goldens,
-  docs and fuzz suite exercise it) or is replaced by a neutral one.
+- Package feed: decided (owner, 2026-10-21): no hosted feed; the game repository includes this one as a
+  git submodule and uses project references or the local feed from `scripts/pack.sh` (D5).
+- Conversation state-machine engine: decided (owner, M19a): stays in the core (D6).
+- Blacksmith sample content: decided (owner, M19a): stays as the core's sample and demo (D7).
 
 ## 9. Research outcome (2026-10-20) and proposed re-plan
 
@@ -885,7 +842,7 @@ the split's M19a–c):
 | M23 | Open-prompt intent classifier (SetFit or e5 fine-tune, ONNX, pinned); keyword rules retired | M21 | M |
 | M24 | Speech reality check: 100–200 owner recordings with deliberate errors; benchmark Vosk, Parakeet, Whisper small on error preservation; ZIPA phoneme adapter; GPL-free sherpa-onnx pin | none (owner records first) | L |
 | M25 | Optional tutor: Claude Haiku over HTTP with a local fallback, D0 validator, envelope and save recording, asynchronous feedback, false-correction report | M24 | M |
-| M17b | Re-scoped to drafting-then-review under M21 | M21, M19c | M (was L) |
+| M17b | Game scenes, planned in the Vocaterra repository; if M21 ships, drafting runs there against the game bundle | M21 | — |
 
 M18 (in progress) is kept: its resolver seam and regression tests are what M20 plugs into, and it
 removes the two false positives from `main` now.
@@ -897,7 +854,7 @@ removes the two false positives from `main` now.
 - Licence stance: accept MPL-2.0 for unmodified libraries (UDPipe's C# binding); LGPL/GPL only as
   separate development-time processes (LanguageTool).
 - A cloud cost cap for the tutor (about $0.30 per 1 000 utterances on Haiku-class models, estimated).
-- Game engine: pick one now; the report suggests Godot .NET.
+- Game engine: not a core decision; moved to the Vocaterra repository (owner, 2026-10-21).
 - Pronunciation ambition: decide after M24's speech check.
 - Also noted: the design doc's GOP citation (arXiv 2309.07739) points at a different method; the
   matching CTC-GOP work is arXiv 2507.16838.
