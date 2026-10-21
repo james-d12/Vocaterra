@@ -14,6 +14,7 @@ public sealed class LiveWorldInput
     private TilePoint? _mine;
     private TilePoint? _place;
     private int? _slot;
+    private int? _craft;
 
     /// <summary>Sets the frame's device state.</summary>
     /// <param name="hoveredTile">The tile under the mouse, or <see langword="null"/> when the mouse is outside the world view.</param>
@@ -34,6 +35,9 @@ public sealed class LiveWorldInput
         }
     }
 
+    /// <summary>Asks for one craft of the recipe at <paramref name="recipeIndex"/> (a click on a row of the crafting panel); taken once by the next tick.</summary>
+    public void QueueCraft(int recipeIndex) => _craft = recipeIndex;
+
     /// <summary>Adds this tick's world commands to <paramref name="commands"/> (after the movement commands).</summary>
     public void Fill(List<PlayerCommand> commands)
     {
@@ -53,6 +57,12 @@ public sealed class LiveWorldInput
         {
             commands.Add(PlayerCommand.Place(place.X, place.Y));
             _place = null;
+        }
+
+        if (_craft is { } craft)
+        {
+            commands.Add(PlayerCommand.Craft(craft));
+            _craft = null;
         }
     }
 }

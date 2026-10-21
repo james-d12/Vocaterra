@@ -43,7 +43,9 @@ public sealed record LaunchOptions
         + "  --mine <col,row>        hold the mine command on that tile until it is gone (a world step; needs --screenshot)\n"
         + "  --place <item>@<col,row> select the hotbar slot holding the item and place it on that tile (needs --screenshot)\n"
         + "  --select <slot>         select a hotbar slot, 1 to 10 as the number keys give them (needs --screenshot)\n"
-        + "  --inventory             open the inventory screen and keep it open (needs --screenshot)\n";
+        + "  --inventory             open the inventory screen and keep it open (needs --screenshot)\n"
+        + "  --craft <item>          make one item (mesa, puerta, horno...) from the inventory and the stations in reach (needs --screenshot)\n"
+        + "  --crafting              open the crafting panel and keep it open (needs --screenshot)\n";
 
     /// <summary>The world seed.</summary>
     public ulong Seed { get; init; } = DefaultSeed;
@@ -122,8 +124,14 @@ public sealed record LaunchOptions
                 continue;
             }
 
+            if (arg == "--crafting")
+            {
+                steps.Add(ScriptStep.CraftingPanel());
+                continue;
+            }
+
             if (arg is not ("--seed" or "--screenshot" or "--frames" or "--walk-right" or "--say" or "--content" or "--point" or "--point-nearest" or "--skip"
-                or "--walk" or "--mine" or "--place" or "--select"))
+                or "--walk" or "--mine" or "--place" or "--select" or "--craft"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -202,6 +210,15 @@ public sealed record LaunchOptions
                     }
 
                     steps.Add(ScriptStep.Place(value[..at].Trim(), placeTile));
+                    break;
+                case "--craft":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = "--craft needs an item, like mesa.";
+                        return false;
+                    }
+
+                    steps.Add(ScriptStep.Craft(value.Trim()));
                     break;
                 case "--select":
                     if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var slot) || slot < 1 || slot > 10)

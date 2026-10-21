@@ -51,6 +51,7 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     private readonly JournalModel _journal = new();
     private readonly ToastQueue _toasts = new();
     private readonly InventoryScreen _inventory = new();
+    private readonly CraftingScreen _crafting = new();
     private readonly LiveWorldInput _live = new();
     private readonly ScriptedCursor? _cursor;
     private readonly KeyRepeater _backspace = new();
@@ -71,6 +72,7 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     private bool _journalShown;
     private int _previousScroll;
     private bool _previousRightDown;
+    private bool _previousLeftDown;
 
     private static readonly Keys[] SlotKeys = [Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9, Keys.D0];
 
@@ -142,6 +144,7 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
             Journal = _journal,
             Toasts = _toasts,
             Inventory = _inventory,
+            Crafting = _crafting,
         };
         _layers.Add(new GuideLayer());
         _layers.Add(new PointerLayer());
@@ -151,6 +154,7 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         _layers.Add(new ToastLayer());
         _layers.Add(new JournalLayer());
         _layers.Add(new InventoryLayer());
+        _layers.Add(new CraftingLayer());
     }
 
     /// <inheritdoc />
@@ -183,6 +187,11 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
                 if (_script.TakeInventoryRequest() is { } wanted)
                 {
                     SetInventory(wanted);
+                }
+
+                if (_script.TakeCraftingRequest() is { } craftingWanted)
+                {
+                    SetCrafting(craftingWanted);
                 }
 
                 _commands.AddRange(_script.Commands);
@@ -313,6 +322,13 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
                 CloseInventory();
             }
         }
+        else if (_crafting.IsOpen)
+        {
+            if (pressed(Keys.Escape) || pressed(Keys.C))
+            {
+                CloseCrafting();
+            }
+        }
         else if (_dialogue.IsOpen)
         {
             var alt = keys.IsKeyDown(Keys.LeftAlt) || keys.IsKeyDown(Keys.RightAlt);
@@ -382,6 +398,10 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         {
             OpenInventory();
         }
+        else if (pressed(Keys.C))
+        {
+            OpenCrafting();
+        }
         else if (pressed(Keys.Escape) && _session.Pointer is not null)
         {
             _session.DismissPointer();
@@ -417,13 +437,24 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
         }
 
         var rightDown = mouse.RightButton == ButtonState.Pressed;
-        var worldOpen = textOrJournal || _inventory.IsOpen;
+        var worldOpen = textOrJournal || _inventory.IsOpen || _crafting.IsOpen;
         var hovered = inside ? _camera.ScreenToTile(mouse.X, mouse.Y) : (TilePoint?)null;
         _live.SetFrame(
             hovered,
             !worldOpen && inside && mouse.LeftButton == ButtonState.Pressed,
             !worldOpen && inside && rightDown && !_previousRightDown,
             slot);
+        var leftDown = mouse.LeftButton == ButtonState.Pressed;
+        if (_crafting.IsOpen && inside && leftDown && !_previousLeftDown)
+        {
+            var layout = new CraftingLayout(GraphicsDevice.PresentationParameters.BackBufferWidth, GraphicsDevice.PresentationParameters.BackBufferHeight, _session.Recipes.Entries.Count);
+            if (layout.RowAt(mouse.X, mouse.Y) is { } row)
+            {
+                _live.QueueCraft(row);
+            }
+        }
+
+        _previousLeftDown = leftDown;
         _previousRightDown = rightDown;
         _previousScroll = mouse.ScrollWheelValue;
     }
@@ -460,6 +491,39 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
     {
         _inventory.Close();
         _focus.InventoryOpen = false;
+    }
+
+    private void OpenCrafting()
+    {
+        if (_journal.IsOpen || _inventory.IsOpen)
+        {
+            return;
+        }
+
+        _crafting.Open(_session.Words, CraftingScreen.LemmasShown(_session.Recipes));
+        _focus.CraftingOpen = true;
+    }
+
+    private void CloseCrafting()
+    {
+        _crafting.Close();
+        _focus.CraftingOpen = false;
+    }
+
+    // The scripted run asks for the panel: open it (as the C key would) or close it.
+    private void SetCrafting(bool open)
+    {
+        if (open)
+        {
+            if (!_crafting.IsOpen)
+            {
+                OpenCrafting();
+            }
+        }
+        else if (_crafting.IsOpen)
+        {
+            CloseCrafting();
+        }
     }
 
     // The scripted run asks for the screen: open it (as a key would) or close it.
@@ -502,6 +566,11 @@ public sealed class VocaterraGame : Microsoft.Xna.Framework.Game
             foreach (var line in turn.GuideLines)
             {
                 Console.WriteLine($"  guide: {line}");
+            }
+
+            if (turn.Pointer is { } arrow)
+            {
+                Console.WriteLine($"  arrow: {arrow.Place} at {arrow.Target.X},{arrow.Target.Y} ({arrow.Blocks} blocks)");
             }
 
             ReportWords();

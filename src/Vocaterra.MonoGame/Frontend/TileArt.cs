@@ -15,8 +15,8 @@ public static class TileArt
     /// <summary>The number of tile ids the atlas holds (ids are consecutive from <see cref="TileId.Air"/>).</summary>
     public static int TileCount => TileDefinition.All.Count;
 
-    /// <summary>The number of tool icons after the tiles in the atlas: the axe, then the pickaxe.</summary>
-    public const int ToolCount = 2;
+    /// <summary>The number of tool icons after the tiles in the atlas: the axe, the pickaxe, then the sword.</summary>
+    public const int ToolCount = 3;
 
     private static readonly (byte R, byte G, byte B, byte A) Transparent = (0, 0, 0, 0);
     private static readonly (byte R, byte G, byte B, byte A) Metal = (168, 170, 180, 255);
@@ -35,10 +35,21 @@ public static class TileArt
         ItemId.Chair => TileId.Chair,
         ItemId.Bed => TileId.Bed,
         ItemId.Chest => TileId.Chest,
+        ItemId.Furnace => TileId.Furnace,
+        ItemId.Glass => TileId.Glass,
+        ItemId.Brick => TileId.Brick,
         _ => null,
     };
 
-    /// <summary>The RGBA bytes of a tool icon: <c>0</c> is the axe, <c>1</c> the pickaxe.</summary>
+    /// <summary>The index of an item's icon among the tool icons (<see cref="ToolPixels"/>): the axe 0, the pickaxe 1, the sword 2.</summary>
+    public static int ToolIndexOf(ItemId item) => item switch
+    {
+        ItemId.Axe => 0,
+        ItemId.Pickaxe => 1,
+        _ => 2,
+    };
+
+    /// <summary>The RGBA bytes of a tool icon: <c>0</c> is the axe, <c>1</c> the pickaxe, <c>2</c> the sword.</summary>
     public static byte[] ToolPixels(int tool)
     {
         var data = new byte[Size * Size * 4];
@@ -46,7 +57,12 @@ public static class TileArt
         {
             for (var x = 0; x < Size; x++)
             {
-                var (r, g, b, a) = tool == 0 ? AxePixel(x, y) : PickaxePixel(x, y);
+                var (r, g, b, a) = tool switch
+                {
+                    0 => AxePixel(x, y),
+                    1 => PickaxePixel(x, y),
+                    _ => SwordPixel(x, y),
+                };
                 var i = ((y * Size) + x) * 4;
                 data[i] = r;
                 data[i + 1] = g;
@@ -77,6 +93,27 @@ public static class TileArt
 
         var head = (y is 3 or 4 && x is >= 2 and <= 13) || (x is 2 or 3 or 12 or 13 && y is >= 3 and <= 6);
         return head ? Metal : Transparent;
+    }
+
+    private static (byte R, byte G, byte B, byte A) SwordPixel(int x, int y)
+    {
+        // A blade along the diagonal from the top right, a cross guard and a hilt at the bottom left.
+        if (x + y == 15 && y is >= 1 and <= 10)
+        {
+            return Metal;
+        }
+
+        if (x + y is 14 or 16 && y is >= 2 and <= 9)
+        {
+            return Shade(205, 207, 216, 0);
+        }
+
+        if (x + y is >= 14 and <= 16 && y is >= 10 and <= 11)
+        {
+            return Shade(200, 160, 50, 0);
+        }
+
+        return x + y == 15 && y is >= 12 and <= 14 ? Shade(120, 80, 40, 0) : Transparent;
     }
 
     private static (byte R, byte G, byte B, byte A) FlowerPixel(int x, int y, uint noise)
@@ -212,6 +249,23 @@ public static class TileArt
                 }
 
                 return Transparent;
+            case TileId.Furnace:
+                if (x is >= 6 and <= 9 && y is >= 7 and <= 12)
+                {
+                    return y >= 10 ? Shade(250, 190, 40, 0) : Shade(235, 110, 30, 0);
+                }
+
+                return y == 0 || y == 15 || x == 0 || x == 15 ? Shade(80, 82, 90, noise) : Shade(130, 134, 142, noise);
+            case TileId.Glass:
+                if (x is 0 or 15 || y is 0 or 15)
+                {
+                    return Shade(150, 205, 225, noise);
+                }
+
+                return x + y is 6 or 7 or 8 or 20 ? Shade(235, 248, 255, 0) : Shade(175, 220, 240, noise);
+            case TileId.Brick:
+                var mortar = y % 4 == 3 || ((y / 4 % 2 == 0 ? x : x + 4) % 8 == 7);
+                return mortar ? Shade(200, 196, 190, noise) : Shade(170, 70, 50, noise);
             default:
                 return Transparent;
         }

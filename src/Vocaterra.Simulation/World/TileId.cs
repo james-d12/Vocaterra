@@ -41,4 +41,10 @@ public enum TileId : ushort
     Bed = 13,
     /// <summary>A placed chest (solid).</summary>
     Chest = 14,
+    /// <summary>A placed furnace, a crafting station (solid).</summary>
+    Furnace = 15,
+    /// <summary>A placed glass block (solid).</summary>
+    Glass = 16,
+    /// <summary>A placed brick block (solid).</summary>
+    Brick = 17,
 }

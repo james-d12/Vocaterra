@@ -155,7 +155,8 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
 
         var turn = session.Say("dónde hay piedra");
 
-        Assert.Equal("ask_directions", turn.Intent);
+        Assert.Equal("ask_find", turn.Intent); // "dónde hay" is the material question since P6b; stone is its own source
+        Assert.Equal("piedra", turn.Pointer!.Place);
         Assert.NotNull(turn.Pointer);
         var expected = TestGame.BruteForceNearest(session.Simulation.World, session.PlayerTile, TileId.Stone);
         Assert.Equal(expected, turn.Pointer.Target);

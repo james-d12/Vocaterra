@@ -29,6 +29,8 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--place <item>@<col,row>` | with `--screenshot`, a world step: select the hotbar slot that holds the item (its Spanish noun, `madera`) and place it on the tile |
 | `--select <slot>` | with `--screenshot`, a world step: select a hotbar slot, 1 to 10 as the number keys give them |
 | `--inventory` | with `--screenshot`, a world step: open the inventory screen and keep it open for the screenshot (the next dialogue step closes it) |
+| `--craft <item>` | with `--screenshot`, a world step (P6b): make one of the item (its Spanish noun, `mesa`, `puerta`, `horno`) from the inventory, with the stations in reach; prints `craft: mesa made (mesa 0 -> 1)`, or why it was refused (`MissingStation`, `MissingIngredients`, ...) |
+| `--crafting` | with `--screenshot`, a world step: open the crafting panel and keep it open for the screenshot (the next step closes it) |
 
 The world steps run in the same order as `--say`, `--skip` and `--talk`, so `--select 1 --mine 517,182 --select 2 --walk 490 --mine 491,184 --place
 madera@488,185 --say "¿dónde está la arena?" --inventory` works as one script. Each world step closes the dialogue first when it is open. A script
@@ -42,6 +44,15 @@ to the stone's level) and a plank is placed at `488,185`:
 dotnet run --project src/Vocaterra.MonoGame --no-build -- --seed 42 --select 1 --mine 517,182 --mine 517,181 --select 2 --walk 490 \
   --mine 491,184 --mine 492,184 --mine 491,188 --place madera@488,185 --walk 524 --inventory \
   --screenshot p6.png --frames 1800
+```
+
+The P6b demo (seed 42): fell a tree, ask how a table is made while short of wood, gather more, craft and place the table, craft a door, ask
+where sand is and where the axe is, and open the panel:
+
+```
+dotnet run --project src/Vocaterra.MonoGame --no-build -- --seed 42 --frames 6000 --mine 517,182 --say "¿cómo hago una mesa?" \
+  --mine 497,182 --mine 494,182 --craft mesa --place mesa@496,182 --say "¿cómo hago una puerta?" --craft puerta \
+  --say "¿dónde hay arena?" --say "¿dónde está el hacha?" --crafting --screenshot p6b.png
 ```
 
 Examples, as the orchestrator verifies rendering: `... -- --seed 42 --screenshot /tmp/p2.png --frames 120 --walk-right 60`, and the guide:
@@ -94,8 +105,24 @@ take any other arrow away.
 - **Inventory**: **I** or **E** opens the 40 slots (the top row is the hotbar); Esc, I or E close it. Each item shows its icon and its Spanish word
   (`madera`, `piedra`) coloured by the word's saturation, and its count. Opening the screen counts each shown word as read once (never as a
   spoken credit). The player does not walk while it is open.
+- Stack counts are drawn white on an opaque dark plate (`CountBadge`, `DrawHelpers.Badge`) in the hotbar and the inventory, so they read on every
+  icon (the plank icon is pale; P6 drew the count straight on it). A test checks the colour contrast. Inventory labels show the lemma
+  (`madera`), not the article: the slot is 64 pixels wide, and the guide, the journal and the panel's rows give the article.
 - Placeable blocks and tools have their icons in the atlas (`TileArt`, drawn in code); the colour and grey rule is the one the tiles use. No
   art file was added, so `assets/ATTRIBUTION.md` is unchanged.
+
+## Crafting (P6b)
+
+- **Panel**: **C** opens it (Esc or C closes it; it does not open over the journal or the inventory). It lists every recipe of the bundle
+  (`Session.Recipes`): the output's icon and Spanish word, each ingredient as `have/need word` (green when the inventory has enough, red when it
+  does not), the station (`Usa mesa`, or `A mano`) and a status at the right: `Hacer` when it can be made here, else `Sin material`, `Sin mesa` / `Sin horno`
+  (the station is not within 6 tiles) or `Inventario lleno`. A click on a row sends one `PlayerCommand.Craft`; nothing mines or places while the panel is
+  open and the player does not walk. There is no tab in the inventory: the panel is its own key.
+- **Colour rule**: every noun (output, ingredient, station) is drawn grey until its word is used, then in colour, like the inventory's labels.
+  Opening the panel counts each shown noun as read once (`CraftingScreen.Open`, once per opening, never per frame); a read never credits a spoken use.
+- **Model**: `Frontend/CraftingScreen` (open state, `Rows`, `LemmasShown`), `CraftingLayout` (the geometry, shared by drawing and the mouse hit test) and
+  `CountBadge` are plain values, so tests click a row and check the counts without a window. `CraftingLayer` only draws.
+- **Art**: the furnace, glass, brick and the sword are drawn in code like the other placeholders; no file was added, so `assets/ATTRIBUTION.md` is unchanged.
 
 ## Architecture
 
@@ -172,7 +199,7 @@ MonoGame's own fixed-step timer is off (`IsFixedTimeStep = false`) and MonoGame'
 player while the panel is open, on a real simulation), the dialogue model's turn flow, key repeat, text wrapping, the `--say` script driven
 headless against a real session and bundle (walk, open, type, send, the arrow, determinism), the accumulator (exact ticks, uneven frames, the cap and dropped ticks, bad input),
 the greyscale copy (luma on a small buffer, alpha kept, a partial pixel refused), the journal rows and its read counts, the toast queue (order,
-duration by tick), the scripted cursor (accent-insensitive nouns, nearest tree), the P4 command-line rules, the P4b `--skip` and `--talk` steps, the journal's due text and the scripted review (a skip, a talk, the question, the answer; determinism), the camera (centring, clamping at every edge, small worlds, visible tiles and chunks, screen/tile round trips), the command mapping and
+duration by tick), the scripted cursor (accent-insensitive nouns, nearest tree), the P4 command-line rules, the P4b `--skip` and `--talk` steps, P6b's crafting panel (rows, layout hits, one click one craft, reads once per opening), the `--craft` and `--crafting` steps, the count badge's contrast and the new art, the journal's due text and the scripted review (a skip, a talk, the question, the answer; determinism), the camera (centring, clamping at every edge, small worlds, visible tiles and chunks, screen/tile round trips), the command mapping and
 scripted input driving a real simulation (and a determinism check over uneven frames), the command line, the overlay text, placeholder
 art, FPS, the font (an own TrueType `cmap` reader checks `á é í ó ú ü ñ Á É Í Ó Ú Ü Ñ ¿ ¡` and the overlay's line; the file is copied to the
 output; every character of the panel's texts and of the bundle's dialogue pools and prompts is in the font; the CC0 record exists) and

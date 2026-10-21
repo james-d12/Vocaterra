@@ -27,7 +27,7 @@ public sealed class InventoryLayer : IFrameLayer
     private const int Icon = 32;
 
     private static readonly Color Gold = new(255, 214, 64);
-    private static readonly Color Unseen = new(110, 110, 120);
+    private static readonly Color Unseen = new(150, 150, 165);
     private static readonly Color Known = new(255, 240, 190);
     private static readonly Color Hints = new(140, 140, 150);
     private static readonly Color Empty = new(30, 30, 44, 230);
@@ -94,8 +94,9 @@ public sealed class InventoryLayer : IFrameLayer
         var labelWidth = DrawHelpers.Width(font, label);
         DrawHelpers.Text(spriteBatch, font, label, new Vector2(box.Center.X - (labelWidth / 2), box.Top + 40), colour);
 
-        var count = stack.Count.ToString(CultureInfo.InvariantCulture);
-        var countWidth = DrawHelpers.Width(font, count);
-        DrawHelpers.Text(spriteBatch, font, count, new Vector2(box.Center.X - (countWidth / 2), box.Top + 58), Gold);
+        if (CountBadge.Text(stack.Count, showOne: true) is { } count)
+        {
+            DrawHelpers.Badge(spriteBatch, pixel, font, count, new Point(box.Right - 3, box.Bottom - 3));
+        }
     }
 }

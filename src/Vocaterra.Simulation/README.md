@@ -23,14 +23,15 @@ while (running)
 | Type | Role |
 | --- | --- |
 | `GameSimulation` | `Create(seed[, size])` / `Create(World)`, `Step(commands)`, `Tick`, `Player`, `Events`, `World`, `ComputeStateDigest()` |
-| `PlayerCommand`, `PlayerCommandKind` | the only input: `MoveLeft`, `MoveRight`, `Jump` (levels, send the held ones every tick); `SelectSlot(slot)`, `Mine(x, y)` (held) and `Place(x, y)` (a press), added in P6; unknown kinds are ignored |
+| `PlayerCommand`, `PlayerCommandKind` | the only input: `MoveLeft`, `MoveRight`, `Jump` (levels, send the held ones every tick); `SelectSlot(slot)`, `Mine(x, y)` (held) and `Place(x, y)` (a press), added in P6; `Craft(recipeIndex)` (a press), added in P6b; unknown kinds are ignored |
+| `Recipe`, `Ingredient`, `CraftResult`, `CraftingRules` (P6b) | a recipe as plain values (output item and count, ingredients, the station tile or none); `CraftingRules.Check` and `Craft` are the pure rule over an inventory; `StationReachInTiles` (6) is the one place the station distance lives |
 | `PlayerState` | position and velocity of the player box, `Grounded`, `Facing`, `FeetTile`, drawing helpers in tiles |
 | `GameSimulation` (P6) | also `Inventory`, `SelectedSlot`, `SelectedStack`, `MiningTarget`, `MiningProgress`, `GrantItems(item, count)`, `ReachInTiles` (5) |
 | `Inventory`, `ItemStack`, `ItemDefinition`, `ItemId`, `ToolKind` | 40 slots (`SlotCount`), the hotbar is the first 10 (`HotbarSize`), stacks with one stack limit per kind (`ItemDefinition.MaxStack`, 99; tools 1); `Add` returns what did not fit |
-| `SimulationEvent` | `PlayerJumped`, `PlayerLanded`, `TileMined`, `TilePlaced` for the last step (more kinds are appended) |
+| `SimulationEvent` | `PlayerJumped`, `PlayerLanded`, `TileMined`, `TilePlaced`, `ItemCrafted` for the last step (more kinds are appended) |
 | `World` | read-only queries: `GetTile`, `IsSolid`, `Spawn`, `Tiles`, `Info` (seed, size, generator version), `Record`, `ComputeDigestHex()` |
 | `TileGrid`, `Chunk`, `ChunkCoord`, `TilePoint` | 32 x 32 chunks, `GetChunk`, dirty flags (a save stores dirty chunks), `ComputeDigest()` |
-| `TileId`, `TileDefinition` | `Air`, `Dirt`, `Grass`, `Stone`, `Trunk`, `Leaves`, then P6's `Sand`, `Flower`, `Mushroom`, and the placed `Planks`, `Door`, `Table`, `Chair`, `Bed`, `Chest`; values are stable (they are hashed and saved); each definition has its solidity, mining ticks, required tool and drop |
+| `TileId`, `TileDefinition` | `Air`, `Dirt`, `Grass`, `Stone`, `Trunk`, `Leaves`, then P6's `Sand`, `Flower`, `Mushroom`, and the placed `Planks`, `Door`, `Table`, `Chair`, `Bed`, `Chest`, then P6b's `Furnace`, `Glass`, `Brick`; values are stable (they are hashed and saved); each definition has its solidity, mining ticks, required tool and drop |
 | `WorldGenerator` | `Generate(seed[, size])`, `Version` (3), surface bounds for a height |
 | `WorldRng`, `ValueNoise` | SplitMix64 and integer value noise |
 | `AsciiMap` | `Render(world, cx, cy, w, h, player)` for test output and bug reports |
@@ -91,7 +92,24 @@ as `GenerationTests` does.
   apply in list order; the selection and the mining come first.
 - The order inside a tick: the hotbar selection, the mining, the placements, then the movement and the physics.
 - `ComputeStateDigest()` includes the selection, the mining progress and the inventory.
-- Doors, tables, chairs, beds and chests are placeable items in the data model; crafting (P6b) makes them.
+- Doors, tables, chairs, beds and chests are placeable items in the data model; crafting (P6b, below) makes them.
+
+## Crafting and felling (P6b)
+
+- **Recipes are data the host passes in.** `GameSimulation.SetRecipes(IReadOnlyList<Recipe>)` takes plain values; the game layer reads
+  `game/recipes.json` from the bundle and has no JSON or package in this project. Recipes are rules, not state: they are not in
+  `ComputeStateDigest()`. `Recipes` is the list, and the index in it is the argument of `PlayerCommand.Craft(index)`.
+- **The rule** (`CraftingRules`): every ingredient must be in the inventory (summed over the slots); a recipe with a station needs a tile of
+  that kind within `StationReachInTiles` (6) tiles of the middle of the body (squared integer distance, the same measure as the mining reach);
+  the output must fit once the ingredients are taken out (a full inventory still crafts when the ingredients free a slot). `CanCraft(index)`
+  says what a craft would do (`Done`, `NoSuchRecipe`, `MissingIngredients`, `MissingStation`, `InventoryFull`) and changes nothing; `Craft(index)`
+  and the `Craft` command do it and add an `ItemCrafted` event. In a tick the crafts come after the mining and the placements, in list order.
+- **New kinds**: tiles `Furnace` (15), `Glass` (16), `Brick` (17) and items `Sword` (13, one per slot, no tile), `Furnace`, `Glass`, `Brick`; every placeable
+  is mined with the pickaxe and drops itself. The stations are the placed `Table` and `Furnace`.
+- **Felling**: mining a `Trunk` tile removes the trunk tiles straight above it and the leaves of the canopy the forest pass plants around the
+  top (two columns each side, from two rows above the top trunk tile to one below it), and gives one `Wood` per trunk tile, the mined one
+  included. Mining a middle tile leaves the stump below. The drop must fit as a whole or the mining is held back (the tree stays). It reads tiles only,
+  so it is deterministic and leaves the generated world (the golden) alone.
 
 Mining and placing change tiles through the internal `TileGrid.SetTile`, which marks the chunk dirty (saves store dirty chunks).
 
@@ -100,5 +118,5 @@ Mining and placing change tiles through the internal `TileGrid.SetTile`, which m
 `tests/Vocaterra.Simulation.Tests`: the seed-42 golden, same-seed and other-seed digests, properties over twelve seeds (spawn on the surface
 with air above, no floating trees, terrain within bounds, a tree within 20 columns of the spawn for 150 seeds), physics on hand-built worlds (landing, walls, ledges, jumps, coyote time, the
 world edge) and on generated terrain, P6's `InventoryTests` (stacks, limits, the hotbar, removals), `MiningAndPlacingTests` (time, tools, drops,
-reach, the full inventory, placing rules, determinism) and `SurfaceDressingTests` (sand, flowers, mushrooms, the trees and the spawn unchanged), and an ASCII dump of the area around the spawn in the test output
+reach, the full inventory, placing rules, determinism) and `SurfaceDressingTests` (sand, flowers, mushrooms, the trees and the spawn unchanged), P6b's `CraftingTests` (ingredients, stations and their reach, the full inventory, the command, determinism) and `FellingTests` (base, middle, neighbour, full inventory), and an ASCII dump of the area around the spawn in the test output
 (`dotnet test --logger "console;verbosity=detailed" --filter AsciiMap`).

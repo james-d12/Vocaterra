@@ -46,6 +46,18 @@ public enum ItemId : ushort
 
     /// <summary>A chest, placeable (crafted in P6b).</summary>
     Chest = 12,
+
+    /// <summary>A sword (crafted; a weapon for later milestones, one per slot).</summary>
+    Sword = 13,
+
+    /// <summary>A furnace, placeable; a crafting station.</summary>
+    Furnace = 14,
+
+    /// <summary>Glass, placeable.</summary>
+    Glass = 15,
+
+    /// <summary>A brick, placeable.</summary>
+    Brick = 16,
 }
 
 /// <summary>The tools a tile can require. <see cref="None"/> is the hand.</summary>
@@ -93,6 +105,10 @@ public sealed record ItemDefinition(ItemId Id, string Name, int MaxStack, ToolKi
         new(ItemId.Chair, "chair", DefaultStackLimit, ToolKind.None, TileId.Chair),
         new(ItemId.Bed, "bed", DefaultStackLimit, ToolKind.None, TileId.Bed),
         new(ItemId.Chest, "chest", DefaultStackLimit, ToolKind.None, TileId.Chest),
+        new(ItemId.Sword, "sword", ToolStackLimit, ToolKind.None, null),
+        new(ItemId.Furnace, "furnace", DefaultStackLimit, ToolKind.None, TileId.Furnace),
+        new(ItemId.Glass, "glass", DefaultStackLimit, ToolKind.None, TileId.Glass),
+        new(ItemId.Brick, "brick", DefaultStackLimit, ToolKind.None, TileId.Brick),
     ];
 
     /// <summary>Every item kind, ordered by id.</summary>

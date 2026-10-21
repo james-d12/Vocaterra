@@ -133,7 +133,7 @@ public sealed class InventoryTests
             Assert.Equal(ItemDefinition.All[i], ItemDefinition.Get((ItemId)i));
         }
 
-        Assert.Equal(13, ItemDefinition.All.Count);
+        Assert.Equal(17, ItemDefinition.All.Count);
         Assert.Equal(ToolKind.Axe, ItemDefinition.Get(ItemId.Axe).Tool);
         Assert.Equal(ToolKind.Pickaxe, ItemDefinition.Get(ItemId.Pickaxe).Tool);
         Assert.Null(ItemDefinition.Get(ItemId.Axe).PlacesTile);

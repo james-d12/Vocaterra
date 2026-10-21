@@ -20,7 +20,6 @@ public sealed class HotbarLayer : IFrameLayer
     private static readonly Color Gold = new(255, 214, 64);
     private static readonly Color Frame = new(90, 90, 110);
     private static readonly Color Back = new(10, 10, 20, 200);
-    private static readonly Color CountColour = new(255, 255, 255);
 
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
@@ -44,11 +43,9 @@ public sealed class HotbarLayer : IFrameLayer
             {
                 var icon = new Rectangle(box.X + 6, box.Y + 6, SlotSize - 12, SlotSize - 12);
                 view.Atlas.DrawIcon(spriteBatch, stack.Item, icon, words.SaturationOf(stack.Item));
-                if (stack.Count > 1)
+                if (CountBadge.Text(stack.Count, showOne: false) is { } text)
                 {
-                    var text = stack.Count.ToString(CultureInfo.InvariantCulture);
-                    var textWidth = DrawHelpers.Width(font, text);
-                    DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.Right - textWidth - 3, box.Bottom - 17), CountColour);
+                    DrawHelpers.Badge(spriteBatch, pixel, font, text, new Point(box.Right - 2, box.Bottom - 2));
                 }
             }
 

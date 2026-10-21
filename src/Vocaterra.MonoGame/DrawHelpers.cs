@@ -1,6 +1,7 @@
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.MonoGame.Frontend;
 
 namespace Vocaterra.MonoGame;
 
@@ -30,6 +31,20 @@ public static class DrawHelpers
     {
         spriteBatch.DrawString(font, text, position + new Vector2(1, 1), new Color(0, 0, 0, 200));
         spriteBatch.DrawString(font, text, position, color);
+    }
+
+    /// <summary>
+    /// Draws a stack count on its plate (<see cref="CountBadge"/>: white on an opaque dark plate, so it reads on any icon), with the plate's
+    /// bottom-right corner at <paramref name="corner"/>.
+    /// </summary>
+    public static void Badge(SpriteBatch spriteBatch, Texture2D pixel, SpriteFontBase font, string text, Point corner)
+    {
+        var width = (int)Width(font, text) + 6;
+        var plate = new Rectangle(corner.X - width, corner.Y - 17, width, 17);
+        var back = CountBadge.PlateColour;
+        var front = CountBadge.TextColour;
+        spriteBatch.Draw(pixel, plate, new Color(back.R, back.G, back.B));
+        spriteBatch.DrawString(font, text, new Vector2(plate.X + 3, plate.Y + 1), new Color(front.R, front.G, front.B));
     }
 
     /// <summary>The width of a text in pixels.</summary>

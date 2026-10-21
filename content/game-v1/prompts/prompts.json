@@ -195,7 +195,7 @@
     "mode": "Open",
     "difficulty": "Beginner",
     "answerSetId": "places-basic",
-    "allowedIntentIds": ["ask_directions", "ask_what", "ask_help", "name_object", "greet", "thank", "farewell"],
+    "allowedIntentIds": ["ask_directions", "ask_craft", "ask_find", "ask_what", "ask_help", "name_object", "greet", "thank", "farewell"],
     "agentId": "guide",
     "slotGrammarIds": [],
     "text": "¡Hola! Soy la guía. ¿En qué te ayudo?"
@@ -205,7 +205,7 @@
     "mode": "Open",
     "difficulty": "Beginner",
     "answerSetId": "places-basic",
-    "allowedIntentIds": ["ask_directions", "ask_what", "ask_help", "name_object", "greet", "thank", "farewell"],
+    "allowedIntentIds": ["ask_directions", "ask_craft", "ask_find", "ask_what", "ask_help", "name_object", "greet", "thank", "farewell"],
     "agentId": "guide",
     "slotGrammarIds": [],
     "text": "¿Qué es esto?"

@@ -27,7 +27,8 @@ var arrow = session.Pointer;                             // where the guide poin
 | `GuideNpc` | `Place(world)`: a grass column 8 to 28 columns from the spawn with headroom, clear of trees if it can; `IsNear(player)` |
 | `TypedUtteranceEvaluator` | the call sequence over the packages for one typed line (scripted recognizer, fake embeddings, silent synthesizer); the console host uses it too. The pipeline counts each utterance's repeats itself (core M26a, CR-012), so the evaluation takes the carried context as it is |
 | `GameBundle` | `Locate()` and `Load()` for `content/game-v1` (`VOCATERRA_CONTENT_DIR` overrides) |
-| `GuideEvents` | the host event names the guide's state machine raises: `guide.point`, `guide.identify`, `guide.help`, `guide.name`, `agent.greet`, `agent.farewell` |
+| `GuideEvents` | the host event names the guide's state machine raises: `guide.point`, `guide.identify`, `guide.help`, `guide.name`, `guide.craft`, `guide.find`, `agent.greet`, `agent.farewell` |
+| `RecipeBook`, `RecipeEntry`, `RecipeIngredient` | the crafting recipes, `game/recipes.json`, read with `Load(bundle, nouns)` through `TryReadHostFile`: `Entries` (the nouns, for the guide and the panel), `Rules` (the plain `Recipe` values the simulation crafts with, same order), `ForOutput(lemma)`, `IndexOf(lemma)`. A lemma that is not a catalogue noun with an item, or a station that is not a placeable tile, is an `InvalidDataException` |
 | `NounCatalog` | the noun catalogue, `game/nouns.json` in the bundle, read with `Load(bundle)` through `ContentBundle.TryReadHostFile` (its bytes are the ones the load hashed, CR-007): `ForLemma`, `ForReading(lemma, pos)` (the catalogue noun a resolved reading names, CR-002), `ForTile`, `ForItem`, `IsColourless`, `Nouns` (lemma, gender, `el`/`un`, plural, tiles, items) |
 | `WordProgress` | the learner's counts per catalogue noun (`Records`, `RecordOf`, `SaturationOf(lemma)` and `SaturationOf(TileId)`, `KnownLemmas`, `MarkRead`), the play `Session`, and `RecordTurn(turn, kind, rules, now)`, which counts one guide turn: heard, spoken, spoken correctly, credit (at most one per noun per turn, and only when its gap has passed), known. Also `DueWords(now, rules)` and `SecondsUntilNextCredit(lemma, now, rules)` |
 | `WordRecord`, `WordStage` | one noun's counts (`Known`, `Saturation` in thirds, `Stage`: Unseen, Encountered, Learning, Known) and the time and play session of its last credited use (`LastCreditedAt`, `LastCreditedSession`) |
@@ -122,6 +123,28 @@ nothing that ticks. When characters move, collide or are saved (the innkeeper, G
   `WordProgress.SaturationOf(ItemId)` colours an item by its noun, so the inventory and the hotbar use the same rule as the tiles.
 - Words added to the CEFR lists: none. `cefr-check` checks dialogue templates only, and no template uses the new nouns yet.
 
+## Crafting and the guide's crafting answers (P6b)
+
+- `game/recipes.json` holds the recipe table of plan section 4.3 (numbers in the file only); `GameSession.Recipes` loads it and hands `Rules` to the
+  simulation. `game/nouns.json` gained `horno`, `cristal` (mass), `ladrillo`, `espada`, and a `sources` entry for every material: `madera` from
+  `árbol`, `piedra`, `arena`, `tierra`, `flor`, `seta` from themselves. `lexicon/world.json` gained `ladrillo`.
+- **`ask_craft`** ("¿cómo hago una mesa?", "¿qué necesito para una puerta?", "¿cómo se hace un horno?", "quiero hacer una silla"; slot `item`): host
+  event `guide.craft`, state `talking`. The world line is up to three sentences from the bundle's `guide.craft.*` pools: the ingredients with
+  their numbers (a mass noun counted with "bloques de"), the station ("Usa la mesa.") or "No necesitas nada más.", and what the inventory lacks
+  ("Te faltan cinco bloques de madera." / "Te falta un bloque de madera." / "¡Ya lo tienes todo!"). An item with no recipe, or a noun that is not in the
+  catalogue, gets "Eso no se hace."
+- **`ask_find`** ("¿dónde hay arena?", "¿dónde encuentro madera?", "¿de dónde sale la madera?"; slot `material`): host event `guide.find`, state
+  `pointing`. When the player carries the material the line says so ("Tienes tres bloques de madera.", no arrow). Otherwise, for a material
+  that comes from something else (`madera` from `árbol`) it says where it comes from ("La madera sale de los árboles.") and then the nearest source
+  with the P3 line and arrow; a material that is its own tile (`arena`) gets just the nearest tile. **"Dónde hay" moved here from `ask_directions`**
+  (the two grammars cannot share it): `¿dónde hay piedra?` is `ask_find` now, with the same arrow.
+- **`ask_directions` for a thing the player carries** with no tile in the world ("¿dónde está el hacha?") says "Tienes un hacha." (P6 said "Aquí no hay un hacha").
+- The scene carries the inventory (`GuideScene.Inventory`); `GameSession.Say` fills it from the simulation. The facts of the answers are host slots of the
+  second evaluation (`thing`, `need`, `station`, `lack`, `source`, plus the P3 ones), so they are in the digest and the replay record. The line is the
+  game's render from the bundle's pools (CR-016) and each ingredient part is rendered and joined by the game (CR-018: a template cannot list).
+- Words added to the CEFR lists: none. Words in the new lines that `cefr-check --level a1` does not find in the A1 list: `faltar`/`falta` and
+  `nada` (both are in the A2 list; `cefr-check --level a2` is clean for the new lines). They are in the brief's wording; the owner may want them in the A1 list.
+
 ## Rules this layer keeps
 
 Packages only; no engine type; no `System.Random`, clock, `Stopwatch` or `DateTime` (a test scans the sources); the stored time and the world seed
@@ -129,4 +152,5 @@ come from the game; dictionaries that reach output are ordinal. The tests are in
 fixed stored time (verdict, state, host event, target tile, world line, accent-less input, the repair path, determinism), `WorldFacts` tie-breaks,
 the guide's bundle content and the architecture rules. P4: `NounCatalog` (coverage of every tile, genders, articles and plurals, the
 readings of an unaccented form, the parse errors), `WordProgress` (three uses in three turns, thirds, one credit per turn, the article rule,
-the not-communicated turn, heard, read, the credit setting, determinism) and the real core on `es un árbol`, `la árbol` and `es un arbol`.
+the not-communicated turn, heard, read, the credit setting, determinism) and the real core on `es un árbol`, `la árbol` and `es un arbol`. P6b: `RecipeBookTests` (the table, catalogue coverage, stations, malformed files) and
+`CraftingGuideTests` (the intents, every answer branch through the real core, the carried line, determinism, the new pools).

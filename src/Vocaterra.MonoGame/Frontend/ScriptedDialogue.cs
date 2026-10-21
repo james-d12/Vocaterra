@@ -1,5 +1,6 @@
 using Vocaterra.Game;
 using Vocaterra.Simulation;
+using Vocaterra.Simulation.Crafting;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Physics;
 using Vocaterra.Simulation.Tiles;
@@ -32,6 +33,12 @@ public enum ScriptStepKind
 
     /// <summary>Open the inventory screen and keep it open for the screenshot (<c>--inventory</c>).</summary>
     Inventory,
+
+    /// <summary>Craft one item from the inventory and the stations in reach (<c>--craft</c>).</summary>
+    Craft,
+
+    /// <summary>Open the crafting panel and keep it open for the screenshot (<c>--crafting</c>).</summary>
+    CraftingPanel,
 }
 
 /// <summary>One step of the scripted run, in the order the command line gave it.</summary>
@@ -39,7 +46,7 @@ public enum ScriptStepKind
 /// <param name="Line">For <see cref="ScriptStepKind.Say"/>, the line.</param>
 /// <param name="Minutes">For <see cref="ScriptStepKind.Skip"/>, the minutes of stored time to skip.</param>
 /// <param name="Tile">For <see cref="ScriptStepKind.Walk"/> (the column is used), <see cref="ScriptStepKind.Mine"/> and <see cref="ScriptStepKind.Place"/>, the tile.</param>
-/// <param name="Item">For <see cref="ScriptStepKind.Place"/>, the item's noun (<c>madera</c>).</param>
+/// <param name="Item">For <see cref="ScriptStepKind.Place"/> and <see cref="ScriptStepKind.Craft"/>, the item's noun (<c>madera</c>, <c>mesa</c>).</param>
 /// <param name="Slot">For <see cref="ScriptStepKind.Select"/>, the hotbar slot as the number keys give it (1 to 10).</param>
 public sealed record ScriptStep(ScriptStepKind Kind, string Line = "", int Minutes = 0, TilePoint? Tile = null, string Item = "", int Slot = 0)
 {
@@ -66,6 +73,12 @@ public sealed record ScriptStep(ScriptStepKind Kind, string Line = "", int Minut
 
     /// <summary>A step that opens the inventory screen.</summary>
     public static ScriptStep Inventory() => new(ScriptStepKind.Inventory);
+
+    /// <summary>A step that crafts one item (by its noun).</summary>
+    public static ScriptStep Craft(string item) => new(ScriptStepKind.Craft, Item: item);
+
+    /// <summary>A step that opens the crafting panel.</summary>
+    public static ScriptStep CraftingPanel() => new(ScriptStepKind.CraftingPanel);
 }
 
 /// <summary>
@@ -112,6 +125,10 @@ public sealed class ScriptedDialogue : IInputSource
     private int _placedBefore;
     private bool? _inventoryRequest;
     private bool _inventoryShown;
+    private bool? _craftingRequest;
+    private bool _craftingShown;
+    private int _craftIndex;
+    private int _craftBefore;
 
     private enum Phase
     {
@@ -124,6 +141,7 @@ public sealed class ScriptedDialogue : IInputSource
         Approaching,
         Mining,
         Placing,
+        Crafting,
         Done,
     }
 
@@ -172,6 +190,17 @@ public sealed class ScriptedDialogue : IInputSource
     {
         var request = _inventoryRequest;
         _inventoryRequest = null;
+        return request;
+    }
+
+    /// <summary>
+    /// The crafting panel the script wants since the last call: <see langword="true"/> to open it, <see langword="false"/> to close it, or
+    /// <see langword="null"/> for no change. Reading it clears it.
+    /// </summary>
+    public bool? TakeCraftingRequest()
+    {
+        var request = _craftingRequest;
+        _craftingRequest = null;
         return request;
     }
 
@@ -224,6 +253,9 @@ public sealed class ScriptedDialogue : IInputSource
             case Phase.Placing:
                 FinishPlace();
                 break;
+            case Phase.Crafting:
+                FinishCraft();
+                break;
             default:
                 break;
         }
@@ -237,6 +269,12 @@ public sealed class ScriptedDialogue : IInputSource
         {
             _inventoryShown = false;
             _inventoryRequest = false;
+        }
+
+        if (step.Kind is not ScriptStepKind.CraftingPanel && _craftingShown)
+        {
+            _craftingShown = false;
+            _craftingRequest = false;
         }
 
         switch (step.Kind)
@@ -288,6 +326,17 @@ public sealed class ScriptedDialogue : IInputSource
             case ScriptStepKind.Select:
                 _commands.Add(PlayerCommand.SelectSlot(step.Slot - 1));
                 Console.WriteLine($"select: slot {step.Slot}");
+                Advance();
+                break;
+            case ScriptStepKind.Craft:
+                CloseForWorld();
+                StartCraft(step);
+                break;
+            case ScriptStepKind.CraftingPanel:
+                CloseForWorld();
+                _craftingShown = true;
+                _craftingRequest = true;
+                Console.WriteLine("crafting: open");
                 Advance();
                 break;
             default:
@@ -434,6 +483,40 @@ public sealed class ScriptedDialogue : IInputSource
         Console.WriteLine(ok
             ? $"place: {_tile.X},{_tile.Y} {TileDefinition.Get(kind).Name} from {item}"
             : $"place: refused at {_tile.X},{_tile.Y} (the tile is {TileDefinition.Get(kind).Name})");
+        Advance();
+    }
+
+    // A craft step sends the craft command and reports on the next tick what the inventory shows.
+    private void StartCraft(ScriptStep step)
+    {
+        _craftIndex = _session.Recipes.IndexOf(step.Item);
+        if (_craftIndex < 0)
+        {
+            Console.WriteLine($"craft: no recipe for {step.Item}");
+            Advance();
+            return;
+        }
+
+        var item = _session.Recipes.Entries[_craftIndex].Rule.Output;
+        _craftBefore = _session.Simulation.Inventory.Count(item);
+        var result = _session.Simulation.CanCraft(_craftIndex);
+        if (result != CraftResult.Done)
+        {
+            Console.WriteLine($"craft: {step.Item} refused ({result})");
+            Advance();
+            return;
+        }
+
+        _commands.Add(PlayerCommand.Craft(_craftIndex));
+        _phase = Phase.Crafting;
+    }
+
+    // The tick after the craft command: the inventory says whether it went in.
+    private void FinishCraft()
+    {
+        var entry = _session.Recipes.Entries[_craftIndex];
+        var after = _session.Simulation.Inventory.Count(entry.Rule.Output);
+        Console.WriteLine($"craft: {entry.Output.Lemma} made ({entry.Output.Lemma} {_craftBefore} -> {after})");
         Advance();
     }
 

@@ -216,7 +216,6 @@
       "requiredSlots": ["place"],
       "slotGrammars": [
         "dónde [VERB:estar] [ART]? [NOUN:place]",
-        "dónde [VERB:haber] [ART]? [NOUN:place]",
         "[VERB:buscar] [ART]? [NOUN:place]",
         "[VERB:querer] [VERB:encontrar] [ART]? [NOUN:place]"
       ],
@@ -226,11 +225,54 @@
       ],
       "examples": [
         "dónde está el árbol",
-        "dónde hay piedra",
+        "dónde está la piedra",
         "dónde está la cueva",
         "busco la hierba",
         "quiero encontrar tierra",
         "dónde está la árbol"
+      ]
+    },
+    {
+      "intentId": "ask_craft",
+      "requiredSlots": ["item"],
+      "slotGrammars": [
+        "cómo [VERB:hacer] [ART]? [NOUN:item]",
+        "cómo se [VERB:hacer] [ART]? [NOUN:item]",
+        "qué [VERB:necesitar] para [ART]? [NOUN:item]",
+        "qué [VERB:necesitar] para [VERB:hacer] [ART]? [NOUN:item]",
+        "[VERB:querer] [VERB:hacer] [ART]? [NOUN:item]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["hacer"], "requiresSlots": ["item"], "slotFromNoun": "item" }
+      ],
+      "examples": [
+        "cómo hago una mesa",
+        "qué necesito para una puerta",
+        "cómo se hace un horno",
+        "quiero hacer una silla",
+        "cómo hago la espada",
+        "cómo hago un mesa"
+      ]
+    },
+    {
+      "intentId": "ask_find",
+      "requiredSlots": ["material"],
+      "slotGrammars": [
+        "dónde [VERB:haber] [ART]? [NOUN:material]",
+        "dónde [VERB:encontrar] [ART]? [NOUN:material]",
+        "de dónde [VERB:salir] [ART]? [NOUN:material]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["encontrar"], "requiresSlots": ["material"], "slotFromNoun": "material" },
+        { "lemmas": ["salir"], "requiresSlots": ["material"], "slotFromNoun": "material" }
+      ],
+      "examples": [
+        "dónde hay arena",
+        "dónde encuentro madera",
+        "de dónde sale la madera",
+        "dónde hay piedra",
+        "dónde hay un árbol",
+        "dónde encuentro la arena"
       ]
     },
     {

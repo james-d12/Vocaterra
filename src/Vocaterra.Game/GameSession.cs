@@ -77,11 +77,13 @@ public sealed class GameSession
         Nouns = nouns;
         WorldSeed = worldSeed;
         StartedAt = startedAt;
+        Recipes = RecipeBook.Load(bundle, nouns);
         Simulation = GameSimulation.Create(worldSeed);
+        Simulation.SetRecipes(Recipes.Rules);
         Facts = new WorldFacts(Simulation.World);
         Guide = GuideNpc.Place(Simulation.World);
         Words = new WordProgress(nouns, playSession);
-        _guideService = new GuideService(bundle, Facts, nouns, worldSeed, new StoredTimestamp(startedAt));
+        _guideService = new GuideService(bundle, Facts, nouns, worldSeed, new StoredTimestamp(startedAt), Recipes);
     }
 
     /// <summary>The content bundle.</summary>
@@ -89,6 +91,9 @@ public sealed class GameSession
 
     /// <summary>The noun catalogue: which tile is which noun, and each noun's article and gender.</summary>
     public NounCatalog Nouns { get; }
+
+    /// <summary>The crafting recipes of the bundle (the simulation holds the same recipes as plain values, in the same order).</summary>
+    public RecipeBook Recipes { get; }
 
     /// <summary>The learner's progress with the catalogue nouns, fed from every turn.</summary>
     public WordProgress Words { get; }
@@ -209,8 +214,8 @@ public sealed class GameSession
         ArgumentNullException.ThrowIfNull(line);
         var review = Review;
         var scene = review is null
-            ? new GuideScene(PlayerTile, cursor, Pointer is not null)
-            : new GuideScene(PlayerTile, review.Target, Pointer is not null, Review: true);
+            ? new GuideScene(PlayerTile, cursor, Pointer is not null, Inventory: Simulation.Inventory)
+            : new GuideScene(PlayerTile, review.Target, Pointer is not null, Review: true, Inventory: Simulation.Inventory);
         var turn = _guideService.Say(line, scene, StoredTime, Simulation.ComputeStateDigest());
         if (review is not null && turn.Communicated)
         {

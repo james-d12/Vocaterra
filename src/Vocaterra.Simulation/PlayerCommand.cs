@@ -25,6 +25,12 @@ public enum PlayerCommandKind
     /// Place the selected hotbar item at the tile (<see cref="PlayerCommand.X"/>, <see cref="PlayerCommand.Y"/>). A press: one block per command.
     /// </summary>
     Place = 5,
+
+    /// <summary>
+    /// Craft the recipe at index <see cref="PlayerCommand.X"/> of <see cref="GameSimulation.Recipes"/>. A press: one craft per command,
+    /// applied after the placements in a tick.
+    /// </summary>
+    Craft = 6,
 }
 
 /// <summary>
@@ -54,4 +60,7 @@ public readonly record struct PlayerCommand(PlayerCommandKind Kind, int X = 0, i
 
     /// <summary>Place the selected item at (<paramref name="x"/>, <paramref name="y"/>).</summary>
     public static PlayerCommand Place(int x, int y) => new(PlayerCommandKind.Place, x, y);
+
+    /// <summary>Craft the recipe at <paramref name="recipeIndex"/> of the simulation's recipe list.</summary>
+    public static PlayerCommand Craft(int recipeIndex) => new(PlayerCommandKind.Craft, recipeIndex);
 }

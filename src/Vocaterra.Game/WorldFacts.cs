@@ -64,6 +64,9 @@ public sealed class WorldFacts
         ["silla"] = [TileId.Chair],
         ["cama"] = [TileId.Bed],
         ["caja"] = [TileId.Chest],
+        ["horno"] = [TileId.Furnace],
+        ["cristal"] = [TileId.Glass],
+        ["ladrillo"] = [TileId.Brick],
     };
 
     private readonly int _width;
@@ -120,6 +123,9 @@ public sealed class WorldFacts
         TileId.Chair => "silla",
         TileId.Bed => "cama",
         TileId.Chest => "caja",
+        TileId.Furnace => "horno",
+        TileId.Glass => "cristal",
+        TileId.Brick => "ladrillo",
         _ => null,
     };
 

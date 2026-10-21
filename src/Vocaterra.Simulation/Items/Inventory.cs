@@ -29,6 +29,18 @@ public sealed class Inventory
     /// <summary>The slots, in order (the hotbar is the first <see cref="HotbarSize"/>).</summary>
     public IReadOnlyList<ItemStack> Slots => new ReadOnlyCollection<ItemStack>(_slots);
 
+    /// <summary>An independent copy of this inventory (for what-if checks).</summary>
+    public Inventory Copy()
+    {
+        var copy = new Inventory();
+        for (var i = 0; i < SlotCount; i++)
+        {
+            copy._slots[i] = _slots[i];
+        }
+
+        return copy;
+    }
+
     /// <summary>Whether a slot index is one of the hotbar's.</summary>
     public static bool IsHotbarSlot(int slot) => (uint)slot < (uint)HotbarSize;
 
