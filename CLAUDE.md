@@ -20,6 +20,10 @@ gates, merges and pushes. To continue, act as the orchestrator defined in `.clau
 
 Facts every session needs:
 - **.NET SDK is user-local:** prefix commands with `PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1`.
+- **Machine resources (the desktop crashed twice from overload, 2026-10-22):** one agent at a time; every heavy command (dotnet
+  restore/build/test/format/run, `scripts/content.sh`, prerender, screenshots) runs through `scripts/limited.sh`, which serialises them
+  machine-wide and caps each at 6 GB of RAM, no swap and 10 of 16 cores. Builds use `-m:4`, tests `-m:2`. Details in the orchestrator's
+  "Machine resources" section.
 - **Build, test, format (from the root):** `dotnet build Vocaterra.sln -warnaserror`, `dotnet test Vocaterra.sln`,
   `dotnet format Vocaterra.sln --verify-no-changes`. `nlp/Vocaterra.Nlp.sln` builds the core alone (its pack and licence scan use it).
   No pack step, no local feed: `nuget.config` lists nuget.org only.

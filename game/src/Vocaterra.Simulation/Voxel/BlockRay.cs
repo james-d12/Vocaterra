@@ -11,7 +11,9 @@ public readonly record struct BlockRayHit(BlockPos Block, BlockId Id, BlockFace 
 /// <summary>
 /// Picking: a 3D digital differential analyser (an Amanatides and Woo grid walk) from a point along a direction, in exact integer
 /// arithmetic. It returns the first block that is not air within the reach: solid blocks, and also the walk-through ones a player can
-/// interact with (a berry bush, a torch, a door, the surface of water). The block the origin is inside is skipped.
+/// interact with (a berry bush, a torch, a door, the surface of water). The block the origin is inside is skipped. Undergrowth
+/// (<see cref="BlockDefinition.Decor"/>: tall grass, ferns, reeds, flowers, S14) is skipped like air, so it never hides a berry bush or a trunk
+/// behind it and never becomes the target of a gather or a placement.
 /// </summary>
 public static class BlockRay
 {
@@ -116,9 +118,9 @@ public static class BlockRay
             }
 
             var id = grid.GetBlock(cx, cy, cz);
-            if (id == BlockId.Air)
+            if (id == BlockId.Air || BlockDefinition.IsDecor(id))
             {
-                continue;
+                continue; // air, and undergrowth (S14): the crosshair looks through the grass at what stands behind it
             }
 
             var face = axis switch

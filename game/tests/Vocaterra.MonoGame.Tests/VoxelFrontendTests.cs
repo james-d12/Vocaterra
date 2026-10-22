@@ -303,14 +303,15 @@ public sealed class VoxelFrontendTests
         }
 
         // Block y = 15 is the top layer of the chunks of the lowest level: put a plank on top of the trunk's column (9, 14) is not possible
-        // (the trunk is four blocks high), so ask the simulation for a cell on that layer next to a block: the leaves at (8, 15, 17).
+        // (the trunk is four blocks high), so ask the simulation for a cell on that layer next to a block: the leaves at (8, 15, 17) and (11, 15, 17).
         Assert.Equal(BlockId.Leaves, sim.Grid.GetBlock(8, 15, 17));
         sim.TeleportTo(new BlockPos(11, 11, 17));
         _ = sim.GrantItems(ItemId.Wood, 1);
         sim.Step([VoxelCommand.Look(Angles.FromDegrees(270), Pitch(30))]);
-        Assert.Equal(BlockId.Air, sim.Grid.GetBlock(11, 15, 17)); // the cell beside the leaves, on the top layer of chunk (0, 0, 1)
-        sim.Step([VoxelCommand.Place(ItemId.Wood, 11, 15, 17)]);
-        Assert.Equal(BlockId.Planks, sim.Grid.GetBlock(11, 15, 17));
+        Assert.Equal(BlockId.Leaves, sim.Grid.GetBlock(11, 15, 17)); // S14's oak has a crown three columns wide: its east edge on this layer
+        Assert.Equal(BlockId.Air, sim.Grid.GetBlock(12, 15, 17)); // the cell beside the leaves, on the top layer of chunk (0, 0, 1)
+        sim.Step([VoxelCommand.Place(ItemId.Wood, 12, 15, 17)]);
+        Assert.Equal(BlockId.Planks, sim.Grid.GetBlock(12, 15, 17));
         var due = tracker.Due().Select(static c => (c.X, c.Y, c.Z)).ToList();
         Assert.Equal([(0, 0, 1), (0, 1, 1)], due); // the chunk above looks down across the edge
     }

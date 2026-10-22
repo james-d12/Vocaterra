@@ -15,6 +15,7 @@ namespace Vocaterra.Simulation.Voxel;
 /// <param name="Drop">The item gathering gives, or <see langword="null"/> when gathering gives nothing (then the block is not gatherable).</param>
 /// <param name="DropCount">How many of <paramref name="Drop"/> one gather gives.</param>
 /// <param name="BecomesWhenGathered">The block that is left in the cell after a gather: <see cref="BlockId.Air"/> for a trunk, a plain bush for a berry bush.</param>
+/// <param name="Decor">Whether the block is undergrowth (S14): not solid, never gathered, and invisible to the block ray, so the crosshair looks through it at whatever stands behind it; a block may be placed into its cell.</param>
 public sealed record BlockDefinition(
     BlockId Id,
     string Name,
@@ -24,7 +25,8 @@ public sealed record BlockDefinition(
     int GatherTicks,
     ItemId? Drop,
     int DropCount,
-    BlockId BecomesWhenGathered)
+    BlockId BecomesWhenGathered,
+    bool Decor = false)
 {
     /// <summary>The ticks a trunk takes to gather by hand (one second).</summary>
     public const int TrunkGatherTicks = 60;
@@ -57,6 +59,17 @@ public sealed record BlockDefinition(
         new(BlockId.Sign, "sign", true, false, false, 0, null, 0, BlockId.Air),
         new(BlockId.Bridge, "bridge", true, false, false, 0, null, 0, BlockId.Air),
         new(BlockId.Snow, "snow", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.SpruceTrunk, "spruce-trunk", true, false, false, TrunkGatherTicks, ItemId.Wood, 1, BlockId.Air),
+        new(BlockId.BirchTrunk, "birch-trunk", true, false, false, TrunkGatherTicks, ItemId.Wood, 1, BlockId.Air),
+        new(BlockId.SpruceLeaves, "spruce-leaves", true, true, false, 0, null, 0, BlockId.Air),
+        new(BlockId.BirchLeaves, "birch-leaves", true, true, false, 0, null, 0, BlockId.Air),
+        new(BlockId.TallGrass, "tall-grass", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
+        new(BlockId.Fern, "fern", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
+        new(BlockId.Reeds, "reeds", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
+        new(BlockId.YellowFlower, "yellow-flower", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
+        new(BlockId.WhiteFlower, "white-flower", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
+        new(BlockId.MossyStone, "mossy-stone", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Cobble, "cobble", true, false, false, 0, null, 0, BlockId.Air),
     ];
 
     /// <summary>Every block kind, ordered by id.</summary>
@@ -83,6 +96,19 @@ public sealed record BlockDefinition(
     {
         var index = (int)id;
         return (uint)index >= (uint)Table.Length || Table[index].Solid;
+    }
+
+    /// <summary>Whether the block is a trunk of any species (oak, spruce or birch): the wood a player gathers.</summary>
+    public static bool IsTrunk(BlockId id) => id is BlockId.Trunk or BlockId.SpruceTrunk or BlockId.BirchTrunk;
+
+    /// <summary>Whether the block is the leaves of a tree of any species.</summary>
+    public static bool IsLeaves(BlockId id) => id is BlockId.Leaves or BlockId.SpruceLeaves or BlockId.BirchLeaves;
+
+    /// <summary>Whether the block is undergrowth (<see cref="Decor"/>): the block ray passes through it and a placed block replaces it. An id without a definition is not.</summary>
+    public static bool IsDecor(BlockId id)
+    {
+        var index = (int)id;
+        return (uint)index < (uint)Table.Length && Table[index].Decor;
     }
 
     /// <summary>The block whose <see cref="Name"/> is <paramref name="name"/> (ordinal), or <see langword="null"/> when there is none.</summary>

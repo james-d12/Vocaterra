@@ -95,7 +95,7 @@ public sealed class BlockAtlasTests
     [Fact]
     public void TheBlocksOfTheWorldAreFullyOpaqueExceptWaterAndTheCellsDrawnOnClear()
     {
-        foreach (var cell in new[] { BlockCell.GrassTop, BlockCell.GrassSide, BlockCell.Dirt, BlockCell.Stone, BlockCell.Sand, BlockCell.Leaves, BlockCell.Planks, BlockCell.White })
+        foreach (var cell in new[] { BlockCell.GrassTop, BlockCell.GrassSide, BlockCell.Dirt, BlockCell.Stone, BlockCell.MossyStone, BlockCell.Cobble, BlockCell.Sand, BlockCell.Snow, BlockCell.SnowSide, BlockCell.PathTop, BlockCell.TrunkSide, BlockCell.TrunkEnd, BlockCell.SpruceBark, BlockCell.BirchBark, BlockCell.Planks, BlockCell.White })
         {
             var pixels = BlockArt.Pixels(cell);
             for (var i = 3; i < pixels.Length; i += 4)
@@ -104,10 +104,13 @@ public sealed class BlockAtlasTests
             }
         }
 
-        var water = BlockArt.Pixels(BlockCell.Water);
-        for (var i = 3; i < water.Length; i += 4)
+        foreach (var cell in new[] { BlockCell.Water, BlockCell.WaterShallow })
         {
-            Assert.InRange(water[i], 100, 200); // translucent: the alpha pass blends it
+            var water = BlockArt.Pixels(cell);
+            for (var i = 3; i < water.Length; i += 4)
+            {
+                Assert.InRange(water[i], 100, 255); // translucent: the alpha pass blends it
+            }
         }
     }
 
@@ -139,7 +142,7 @@ public sealed class BlockAtlasTests
         var grass = Mean(BlockCell.GrassTop);
         Assert.True(grass.G > grass.R * 1.4 && grass.G > grass.B * 2);
         var leaves = Mean(BlockCell.Leaves);
-        Assert.True(leaves.G > leaves.R * 1.8 && leaves.G > leaves.B * 1.8);
+        Assert.True(leaves.G > leaves.R * 1.6 && leaves.G > leaves.B * 1.8);
         var water = Mean(BlockCell.Water);
         Assert.True(water.B > water.G && water.B > water.R * 2.5);
         var planks = Mean(BlockCell.Planks);

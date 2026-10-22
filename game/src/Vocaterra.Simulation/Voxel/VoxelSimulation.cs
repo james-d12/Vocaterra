@@ -493,7 +493,7 @@ public sealed class VoxelSimulation
     private void TryPlace(ItemId item, BlockPos cell)
     {
         if (!Grid.InBounds(cell.X, cell.Y, cell.Z)
-            || Grid.GetBlock(cell.X, cell.Y, cell.Z) != BlockId.Air
+            || !IsEmptyOrDecor(Grid.GetBlock(cell.X, cell.Y, cell.Z))
             || !InReach(cell)
             || BlockDefinition.PlacedBy(item) is not { } placed
             || Inventory.Count(item) < 1
@@ -512,12 +512,15 @@ public sealed class VoxelSimulation
         _events.Add(new SimulationEvent(SimulationEventKind.BlockPlaced, Tick, cell.X, cell.Y, cell.Z, (int)placed, (int)item));
     }
 
+    // Air, or undergrowth (a placed block takes the place of the grass).
+    private static bool IsEmptyOrDecor(BlockId id) => id == BlockId.Air || BlockDefinition.IsDecor(id);
+
     private bool HasNeighbour(BlockPos cell)
     {
         foreach (var face in Enum.GetValues<BlockFace>())
         {
             var next = cell.Offset(face);
-            if (Grid.GetBlock(next.X, next.Y, next.Z) != BlockId.Air)
+            if (!IsEmptyOrDecor(Grid.GetBlock(next.X, next.Y, next.Z)))
             {
                 return true;
             }

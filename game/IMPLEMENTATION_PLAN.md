@@ -180,11 +180,12 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S11 | Checks (pre, post, recall), the session log and the report script | done (merged to `feature/prototype` 2026-10-22, bundle `cd63077b…`) | Haiku 5.5 | S8, S10 |
 | S12 | Playtest build and facilitator checklist | done (merged to `feature/prototype` 2026-10-22); **the owner's pre-flight** (`docs/PLAYTEST.md` section 12) | Haiku 5.5 | S7, S9, S11 |
 | S13 | The large world: 384 x 384 x 128 generated terrain, mountains, cliffs, the river and waterfall, sites, the player's cliff camp and trail, view-distance rendering (`docs/SCENARIO_PLAN.md` section 8) | done (merged to `feature/prototype` 2026-10-22) | Sonnet 5.5 | S12, D-game-14 |
-| S14 | The look: code-drawn pixel-art textures, tree species, undergrowth, sun shading, AO, sky, clouds, haze, water, `--quality` presets | in progress | Sonnet 5.5 | S13 |
-| S15 | The village, props, humanoid characters, the reference-B dialogue panel, the HUD icons and recipe panel, the F5 view | planned | Sonnet 5.5 | S14 |
+| S14 | The look: code-drawn pixel-art textures, tree species, undergrowth, sun shading, AO, sky, clouds, haze, water, `--quality` presets | done (merged to `feature/prototype` 2026-10-22, `849fd52`) | Sonnet 5.5 | S13 |
+| S15 | The village, props, humanoid characters, the reference-B dialogue panel, the HUD icons and recipe panel, the F5 view, the first-person arm without its outline | planned | Sonnet 5.5 | S14 |
 | S16 | The English guidance layer (D-game-13) and the data-driven lesson runner | done (merged to `feature/prototype` 2026-10-22, bundle `4be20d61…`) | Sonnet 5.5 | S12, D-game-13 |
 | S17 | The opening at the cliff camp, the guide's 5 to 10 minute lesson, the ending; new phrases, checks, Opus pass, speech | in progress | Sonnet 5.5 | S13, S16, D-game-15 |
-| S18 | The playtest refresh (build, checklist, report, launcher message) | planned | Haiku 5.5 | S15, S17 |
+| S17b | The talk key (V) shown in the dialogue in every state; the microphone check, the game's own errors and key hints in English (owner's playtest notes) | planned | Haiku 5.5 | S17 |
+| S18 | The playtest refresh (build, checklist, report, launcher message) | planned | Haiku 5.5 | S15, S17, S17b |
 
 Each milestone ends with the gate in section 6 and a line in section 5. The S series is gated with `GATE_TARGET=feature/prototype
 scripts/merge-gate.sh "S<nn>:<branch>"` from the `feature/prototype` checkout.
@@ -811,6 +812,22 @@ Facts that shape the plan. Each one names its source; the core's own findings st
       The village and lake are not visible.
     - Carried into S14: a clear sightline from `camp.player` to the valley, village, river and lake (reference A); the fog and haze; the
       boxy valley outline.
+- **S14, the look (2026-10-22, Sonnet 5.5; merged `849fd52`).**
+  - **History.** The first agent finished the work, but the desktop crashed twice from CPU and RAM overload (S14 and S17 built and tested at
+    once). The orchestrator snapshotted the worktree as a WIP commit. A resumed agent, run alone under `scripts/limited.sh`, found every
+    deliverable present, added nothing and took the screenshots. From now on there is one agent at a time and every heavy command is capped
+    (orchestrator "Machine resources").
+  - **Built.** A code-drawn 16 x 16 atlas (`BlockArt`, `BlockArtNature`, `BlockAtlasLayout`); oaks, spruces and birches; crossed-quad
+    undergrowth from `WorldRng`, in the digests and thinned near paths and sites; per-face sun shading and per-vertex AO in `ChunkMesher`;
+    `SkyModel`/`SkyRenderer` (gradient, square sun, flat clouds, bluish fog); translucent water and a waterfall face; `QualityPreset` low,
+    medium and high (view 224, 304 and 400; plants 64, 112 and 192).
+  - **Measured** (software GL, 1280 x 720, high): 1762 chunk meshes in about 2.0 s; draw median 47.5 ms at the camp; 47,168 plant quads
+    drawn from the camp. Gate: 4,108 passed, 5 skipped.
+  - **Checked by the orchestrator:** three screenshots. The camp view now has the sightline S13 lacked: the valley, village, river, lake
+    and waterfall, with clouds and flowers. The valley view and the forest floor (trunks, ferns, a birch) read as reference A: textured,
+    bright and dense. Host demo `quiero dos agua por favor` gives `noun.number`.
+  - **Not checked:** dusk and the low and medium presets by eye; the valley standpoint is near, not identical to, S13's.
+  - **Seen for S15 and S17b:** the beacon label reads `campamento 74 bloques` (the unit is the game's own text: S17b makes it `blocks`).
 
 ## 6. Definition of done (every milestone)
 

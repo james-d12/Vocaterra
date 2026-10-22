@@ -19,7 +19,7 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--seed <ulong>` | the world seed (default 42) |
 | `--content <dir>` | the content bundle folder (default: `content/game-v1` found by walking up from the executable, then from the current directory; `VOCATERRA_CONTENT_DIR` also works) |
 | `--scene <file>` | the layout file (default: the bundle's `game/scene.json`) |
-| `--quality <low\|medium\|high>` | S13: how far the world is drawn: the view distance in blocks (low 224, medium 304, high 400, the default; a real GPU). Only the chunks within it are meshed and drawn, the fog is complete just inside it and the camera's far plane stops past it. S14 adds plants, light and clouds to the presets |
+| `--quality <low\|medium\|high>` | S13 and S14: the view distance in blocks (low 224, medium 304, high 400, the default; a real GPU), and what is drawn: **plant distance and share** (the undergrowth is drawn within 64, 112 or 192 blocks of the eye, 80, 100 or 100 percent of it built), **ambient occlusion** (on at all three; the preset says, so a slower machine can turn it off) and **clouds**. Only the chunks within the view distance are meshed and drawn, the fog is complete just inside it and the camera's far plane stops past it. Medians on this VM (software GL), 1280 x 720: low 42 ms from the camp and 32 ms in the forest, medium 52 ms, high 49 ms (see the S14 line of the plan's findings) |
 | `--view-distance <blocks>` | draw this far instead of the quality's distance (at least 48) |
 | `--screenshot <path.png>` | scripted run: fixed 60 Hz clock, the steps below in order, save the back buffer as a PNG, exit 0 (1 if the PNG cannot be written) |
 | `--frames <n>` | with `--screenshot`: run at least `n` ticks before the screenshot (default 120) |
@@ -58,21 +58,39 @@ one tick; the camera holds the old height and lets it go over 8 ticks).
 ## What is drawn
 
 `ChunkMesher` (Frontend, no engine type) turns each 16 x 16 x 16 chunk into quads: a cube face is emitted unless the block next to it is an opaque
-cube (or the same transparent kind: leaves against leaves, water against water), so a block shut in on all sides has no face; the shade of a face
-is in the vertex colour (top 1.0, north and south 0.82, east and west 0.68, bottom 0.55). Water goes into a second mesh drawn after the opaque
-faces, chunk by chunk from the farthest to the nearest, reading but not writing depth, with its surface a sixteenth lower; bushes, the berry bush,
-the torch (a stick with a flame, the flame is the prototype's light), the open door and the fence are small shapes of their own. The 16 x 16 block
-atlas (`BlockArt`, 8 x 10 cells: the colour cells in the top five rows, a grey copy of each cell below them, the luma from `Greyscale`) is drawn in code (CC0 by construction, no picture file). `VoxelRenderer` uploads one vertex buffer per chunk and mesh,
-draws with `BasicEffect` (texture times vertex colour, depth on, point sampling, fog in the sky colour closing in at the view distance) and no custom shader. At the scale of the 384 x 384 x 128 world (S13) the renderer meshes and draws only
+cube (or the same kind of transparent block: leaves against leaves, of any tree; water against water), so a block shut in on all sides has no face. **The light (S14)
+is in the vertex colours**: each face is shaded by the sun, which stands high in the north-west (`ChunkMesher.SunDirection`; the sky's square sun is drawn there),
+so the top is full and warm (a tint of 1.0, 0.98, 0.92), the west and north faces about two thirds of the way to it, and the east, south and bottom faces dark and
+blue (the shade fills with sky); and every cube vertex is darkened by its **ambient occlusion** (0 to 3 of the three blocks that touch the corner: a vertex keeps 1.0, 0.82,
+0.66 or 0.5 of its light), the quad's diagonal turned to follow the darker corners. Stone is also tinted by height (`RockTint`: warm and earthy at the foot of the
+mountains, grey in the middle, cool on the peaks). The mesher reads the chunk and a border of one block once into an array, so the occlusion costs no more than a block lookup.
+Each chunk gives three meshes: the **opaque** one (cubes, leaves and bushes: their pictures have cut-out pixels), the **plants** (the undergrowth as two crossed quads, a stable
+pick by position when the preset builds only a share) and the **water**, which goes into a second mesh drawn after the opaque faces, chunk by chunk from the farthest
+to the nearest, reading but not writing depth, with its surface a sixteenth lower. The water's top face takes its picture by depth (a lighter, clearer one over the shallow bed, a
+deeper blue over deep water) and its transparency per corner (clearer where a solid block touches it), so the sand shows through at the shore; a column of water that falls
+(water above it, air beside it: the waterfall) shows the streaky foam picture, unshaded. The bush, the berry bush, the torch (a stick with a flame; the flame is the prototype's light),
+the open door and the fence are small shapes of their own. **The atlas** is `BlockArt` plus `BlockArtNature` (S14): 16 x 16 pixel art per cell (8 columns, 7 rows of colour cells, and below
+them a grey copy of each cell, the luma from `Greyscale`), drawn in code from a fixed integer hash and fixed palettes (CC0 by construction, no picture file): grass top and
+side (the green bleeding over the dirt), dirt, stone, mossy stone, cobble, snow top and side, sand, the gravel path, the bark and the rings of the oak, the spruce and the birch,
+planks, three kinds of leaves with cut-out holes, the bush, tall grass, ferns, reeds with cattails, a yellow and a white flower, shallow and deep water and the waterfall. The village's
+cells (the stall, the houses, the signpost, the workbench) and the item icons are as they were: they are S15's. The texture is made with its mip chain (`BlockArt.MipLevel`, each
+level averaged cell by cell so no level ever mixes one cell with the next, and with the colours weighted by alpha so the leaves do not darken) and sampled with `PointMipLinear`: crisp
+pixels close up, smooth and in the right colours far away, no shimmer. `VoxelRenderer` uploads one vertex buffer per chunk and mesh and draws with MonoGame's own effects (no custom shader:
+`mgfxc` needs Wine on Linux): `AlphaTestEffect` for the opaque faces and the plants (texture times vertex colour, the cut-out pixels dropped at alpha 110, fog in the haze colour) and `BasicEffect`
+for the water and the small overlays. The order is the sky (`SkyRenderer`: a dome with a gradient from deep blue overhead to the pale haze at the horizon, which is the fog's colour, so the far mountains
+fade into haze instead of ending in a wall; a square sun with a stepped glow; and a layer of flat blocky clouds from `CloudField`, a hash of the grid cell, drifting east with the tick, melting into the haze
+with distance), then the opaque chunks, the plants of the chunks near the eye with no back-face culling, the figures and the highlight, the water and the beacon. At the scale of the 384 x 384 x 128 world (S13) the renderer meshes and draws only
 the chunks within the quality preset's view distance of the eye (`ChunkViewSet`, nearest first, rebuilt when the eye changes chunk or a block is edited): a chunk of air is never in the set,
 a chunk full of opaque blocks all round is skipped without meshing (`ChunkMesher.IsBuried`), the meshes are built on the main thread to a time budget a frame (in-frustum chunks first, so the view fills nearest and visible first; a scripted run builds everything it needs before the picture),
 and a mesh is let go when its chunk is more than two chunks beyond the view. The chunks drawn are culled against the camera's frustum. It meshes again a chunk whose version changed (`ChunkVersionTracker`: the chunk's own `Version`, plus a signature
 of the layer of each neighbour that touches it, so an edit in the middle of a chunk rebuilds one chunk and an edit on an edge rebuilds the
-neighbour across it). Triangles run counter-clockwise seen from outside and the renderer culls clockwise ones. The NPCs are cube assemblies
+neighbour across it; the occlusion at a chunk's corner looks at the diagonal neighbour too, which the signature does not track, so a corner vertex can keep a stale shade until its chunk is meshed again). Triangles run counter-clockwise seen from outside and the renderer culls clockwise ones. The NPCs are cube assemblies
 (`NpcFigures`, drawn with the atlas's white cell) at the scene's NPC placements, facing their yaw, with their names over their heads
 (`NpcLabelLayer`, hidden when a solid block is in the way). `FirstPersonCamera` builds MonoGame's view and projection from `CameraBasis` (the same
 vectors as the simulation's look vector, and MonoGame is right-handed with a camera looking down -z, so x east, y up, z south need no flip);
-`ScreenProjection` is the same camera as plain maths for the labels and the beacon's arrow.
+`ScreenProjection` is the same camera as plain maths for the labels and the beacon's arrow. **`--greyscale` (D-game-6)** keeps its meaning: a block whose noun is not known is drawn
+from the grey copy of its cell, a block no noun names stays in colour. The new trees are named by `árbol` and the new rock by `piedra` in `nouns.json`, so they go grey and regain colour with their words;
+the undergrowth, the snow and the bushes are named by no noun and stay in colour, as the bush always did.
 
 **The camp objective and the word cards (S4).** The checklist (`ObjectiveLayer`, top right) reads `Campamento: madera 5/5 · frutas 3/3 · antorcha
 1/1 · agua 0/1`: a done step in green, an open one in white. Each step that completes shows a toast (`Hecho: frutas 3/3`), and the whole checklist
@@ -135,7 +153,9 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   LiveVoxelInput    the device state of a tick as VoxelCommands (walk, jump, gather, place, the hotbar)
   VoxelScript       the --look, --walk-to, --interact, --place, --select and --craft steps over ticks
   ScenarioScript    the scripted run: the body's steps, --talk (walk to the stand-off, settle, open the panel), --say (type, send, wait for the reply), --leave, --shot
-  ChunkMesher, MeshVertex, BlockAtlasLayout, BlockArt, ChunkVersionTracker, NpcFigures, OverlayMeshes, ViewMath, PointLabels, FigureAim
+  ChunkMesher, MeshVertex, BlockAtlasLayout, BlockArt, BlockArtNature, ChunkVersionTracker, NpcFigures, OverlayMeshes, ViewMath, PointLabels, FigureAim
+  SkyPalette, CloudField, CloudBox   the sky's colours (and the fog's) and the flat clouds as plain maths (S14)
+  QualityPreset     the view distance, the plant distance and share, the occlusion and the clouds of low, medium and high
   CountBadge        the stack count on an opaque dark plate (contrast tested)
   CraftingScreen    the panel's open state, its rows (CraftingRow) and the layout that drawing and clicks share (CraftingLayout)
   DialogueModel     the panel as state: open or closed, the text box, the lines, a request to send; Submit shows the turn's lines
@@ -161,7 +181,8 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   HudLayers         ObjectiveLayer (the checklist) and WordCardLayer (the word card)
   CraftingLayer     the crafting panel (C, or E at the workbench)
   HotbarLayer, InventoryLayer, JournalLayer, ToastLayer, DialoguePanel, LoadingLayer
-  VoxelRenderer     the chunks: one vertex buffer per chunk and mesh, BasicEffect, the frustum, the re-mesh on a changed version
+  VoxelRenderer     the chunks: one vertex buffer per chunk and mesh, AlphaTestEffect and BasicEffect, the frustum, the re-mesh on a changed version
+  SkyRenderer       the sky dome, the sun and the clouds (S14)
   VoxelLayers       the crosshair (with the gather bar), the held item, the NPC labels, the beacon's arrow, the 3D debug overlay
   VoxelTalkLayers   the talk hint, the world labels (the signpost)
   FirstPersonCamera the eye, the look and the projection (MonoGame's matrices from the simulation's vectors)
@@ -199,7 +220,7 @@ dotnet run --project src/Vocaterra.MonoGame --no-build -- --seed 42 --interact 1
 ## Tests
 
 `tests/Vocaterra.MonoGame.Tests` (no GPU, no window, no microphone): the first-person camera (the look vector, MonoGame's view matrix, the plain
-projection), the mesher and the block atlas (faces, winding, shade, UVs, every chunk of the route within the 16-bit limit), the beacon's arrow, the
+projection), the mesher and the block atlas (faces, winding, shade, UVs, every chunk of the route within the 16-bit limit), the look of S14 (`LookTests`: the code-drawn atlas and its mips, the sun and the ambient occlusion in the vertex colours, the crossed-quad plants and their share, the water's shore and the waterfall, the sky, the clouds, the quality presets and the greyscale switch with the new trees and plants), the beacon's arrow, the
 figure aim, the voxel script steps against a real simulation (walk-to, interact, place, select, craft, the tick limits, determinism), the
 `--talk` / `--say` / `--leave` / `--shot` script (`ScenarioScriptTests`: walk to the stand-off, open, type, send, close, determinism) and the NPC panel (`NpcFrontendTests`), the launch options (`VoxelLaunchOptionsTests`: the steps in order, the screen
 flags, the refusals, `--voxel` accepted and ignored), the word card queue (one at a time, by ticks), the crafting panel's rows, layout and reads,

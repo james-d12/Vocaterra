@@ -108,8 +108,56 @@ public enum BlockCell
     /// <summary>The icon of a loaf of bread (the item, S6).</summary>
     IconBread,
 
-    /// <summary>Snow: the cap of the high peaks (S13; S14 draws it again with the rest of the textures).</summary>
+    /// <summary>Snow: the top of the high peaks.</summary>
     Snow,
+
+    /// <summary>The side of a snow block (white cap over stone, S14).</summary>
+    SnowSide,
+
+    /// <summary>Mossy stone: low rock in the forest (S14).</summary>
+    MossyStone,
+
+    /// <summary>Cobblestone (S14).</summary>
+    Cobble,
+
+    /// <summary>The bark of a spruce (S14).</summary>
+    SpruceBark,
+
+    /// <summary>The cut end of a spruce (S14).</summary>
+    SpruceEnd,
+
+    /// <summary>The bark of a birch (S14).</summary>
+    BirchBark,
+
+    /// <summary>The cut end of a birch (S14).</summary>
+    BirchEnd,
+
+    /// <summary>Spruce needles, with cut-out holes (S14).</summary>
+    SpruceLeaves,
+
+    /// <summary>Birch leaves, with cut-out holes (S14).</summary>
+    BirchLeaves,
+
+    /// <summary>Tall grass, a crossed-quad plant (S14).</summary>
+    TallGrass,
+
+    /// <summary>A fern, a crossed-quad plant (S14).</summary>
+    Fern,
+
+    /// <summary>Reeds with cattails, a crossed-quad plant (S14).</summary>
+    Reeds,
+
+    /// <summary>A yellow flower, a crossed-quad plant (S14).</summary>
+    YellowFlower,
+
+    /// <summary>A white flower, a crossed-quad plant (S14).</summary>
+    WhiteFlower,
+
+    /// <summary>Falling water: the face of the waterfall (S14).</summary>
+    Waterfall,
+
+    /// <summary>Shallow water, lighter than <see cref="Water"/> (S14).</summary>
+    WaterShallow,
 }
 
 /// <summary>
@@ -126,7 +174,7 @@ public static class BlockAtlasLayout
     public const int Columns = 8;
 
     /// <summary>The rows of colour cells, at the top of the atlas.</summary>
-    public const int ColourRows = 5;
+    public const int ColourRows = 7;
 
     /// <summary>The rows of the atlas: the colour cells, then their grey copies.</summary>
     public const int Rows = 2 * ColourRows;
@@ -156,9 +204,20 @@ public static class BlockAtlasLayout
             BlockId.Grass => up ? BlockCell.GrassTop : down ? BlockCell.Dirt : BlockCell.GrassSide,
             BlockId.Dirt => BlockCell.Dirt,
             BlockId.Stone => BlockCell.Stone,
+            BlockId.MossyStone => BlockCell.MossyStone,
+            BlockId.Cobble => BlockCell.Cobble,
             BlockId.Sand => BlockCell.Sand,
             BlockId.Trunk => up || down ? BlockCell.TrunkEnd : BlockCell.TrunkSide,
+            BlockId.SpruceTrunk => up || down ? BlockCell.SpruceEnd : BlockCell.SpruceBark,
+            BlockId.BirchTrunk => up || down ? BlockCell.BirchEnd : BlockCell.BirchBark,
             BlockId.Leaves => BlockCell.Leaves,
+            BlockId.SpruceLeaves => BlockCell.SpruceLeaves,
+            BlockId.BirchLeaves => BlockCell.BirchLeaves,
+            BlockId.TallGrass => BlockCell.TallGrass,
+            BlockId.Fern => BlockCell.Fern,
+            BlockId.Reeds => BlockCell.Reeds,
+            BlockId.YellowFlower => BlockCell.YellowFlower,
+            BlockId.WhiteFlower => BlockCell.WhiteFlower,
             BlockId.Bush => BlockCell.Bush,
             BlockId.BerryBush => BlockCell.BerryBush,
             BlockId.Water => BlockCell.Water,
@@ -174,7 +233,7 @@ public static class BlockAtlasLayout
             BlockId.FireRing => BlockCell.FireRing,
             BlockId.Sign => up || down ? BlockCell.Planks : BlockCell.SignBoard,
             BlockId.Bridge => up ? BlockCell.BridgeTop : BlockCell.BridgeSide,
-            BlockId.Snow => BlockCell.Snow,
+            BlockId.Snow => up ? BlockCell.Snow : down ? BlockCell.Stone : BlockCell.SnowSide,
             _ => BlockCell.White,
         };
     }

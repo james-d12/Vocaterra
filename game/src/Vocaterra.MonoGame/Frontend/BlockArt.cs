@@ -27,6 +27,77 @@ public static class BlockArt
         return data;
     }
 
+    /// <summary>The number of mip levels of the atlas texture: halving down to one texel, as the graphics card counts them.</summary>
+    public static int MipLevelCount
+    {
+        get
+        {
+            var levels = 1;
+            for (var size = Math.Max(BlockAtlasLayout.Width, BlockAtlasLayout.Height); size > 1; size >>= 1)
+            {
+                levels++;
+            }
+
+            return levels;
+        }
+    }
+
+    /// <summary>The width and height of mip <paramref name="level"/> of the atlas.</summary>
+    public static (int Width, int Height) MipSize(int level) => (Math.Max(1, BlockAtlasLayout.Width >> level), Math.Max(1, BlockAtlasLayout.Height >> level));
+
+    /// <summary>
+    /// One mip level of the atlas, made by averaging the 2^level x 2^level texels of the base picture under each texel (colours weighted by alpha, so the
+    /// cut-out leaves do not darken at the edges). A cell is 16 texels wide, so up to level 4 an average never reaches into the next cell: far faces
+    /// turn smooth and keep their own colours, and the picture does not shimmer.
+    /// </summary>
+    /// <param name="level0">The base atlas (<see cref="AtlasPixels"/>).</param>
+    /// <param name="level">The level, 0 for the base picture.</param>
+    public static byte[] MipLevel(byte[] level0, int level)
+    {
+        ArgumentNullException.ThrowIfNull(level0);
+        if (level == 0)
+        {
+            return level0;
+        }
+
+        var (w, h) = MipSize(level);
+        var step = 1 << level;
+        var result = new byte[w * h * 4];
+        for (var y = 0; y < h; y++)
+        {
+            for (var x = 0; x < w; x++)
+            {
+                long r = 0, g = 0, b = 0, a = 0;
+                var n = 0;
+                for (var sy = y * step; sy < Math.Min(BlockAtlasLayout.Height, (y + 1) * step); sy++)
+                {
+                    for (var sx = x * step; sx < Math.Min(BlockAtlasLayout.Width, (x + 1) * step); sx++)
+                    {
+                        var i = ((sy * BlockAtlasLayout.Width) + sx) * 4;
+                        var alpha = level0[i + 3];
+                        r += level0[i] * alpha;
+                        g += level0[i + 1] * alpha;
+                        b += level0[i + 2] * alpha;
+                        a += alpha;
+                        n++;
+                    }
+                }
+
+                var o = ((y * w) + x) * 4;
+                if (a > 0)
+                {
+                    result[o] = (byte)(r / a);
+                    result[o + 1] = (byte)(g / a);
+                    result[o + 2] = (byte)(b / a);
+                }
+
+                result[o + 3] = (byte)(n == 0 ? 0 : a / n);
+            }
+        }
+
+        return result;
+    }
+
     /// <summary>The RGBA bytes of one cell's grey copy (row by row, 16 x 16 x 4): the luma of <see cref="Pixels"/>, alpha kept.</summary>
     public static byte[] GreyPixels(BlockCell cell) => Greyscale.ToLuma(Pixels(cell));
 
@@ -41,6 +112,11 @@ public static class BlockArt
     /// <summary>The RGBA bytes (row by row, 16 x 16 x 4) of one cell.</summary>
     public static byte[] Pixels(BlockCell cell)
     {
+        if (BlockArtNature.Draws(cell))
+        {
+            return (byte[])BlockArtNature.Pixels(cell).Clone();
+        }
+
         const int Size = BlockAtlasLayout.CellSize;
         var data = new byte[Size * Size * 4];
         for (var y = 0; y < Size; y++)
@@ -66,57 +142,6 @@ public static class BlockArt
         var rare = (noise >> 8) % 11 == 0;
         switch (cell)
         {
-            case BlockCell.GrassTop:
-                return rare ? Shade(112, 214, 78, 0) : Shade(84, 182, 58, speckle);
-            case BlockCell.GrassSide:
-                {
-                    // A ragged fringe: the grass hangs 3 to 5 pixels down depending on the column.
-                    var hang = 3 + (int)(Mix(1, (uint)x, 0) % 3);
-                    return y < hang ? Shade(84, 182, 58, speckle) : y == hang ? Shade(70, 150, 48, 0) : Shade(140, 98, 60, speckle);
-                }
-
-            case BlockCell.Dirt:
-                return rare ? Shade(108, 74, 44, 0) : Shade(142, 100, 62, speckle);
-            case BlockCell.Stone:
-                {
-                    var crack = ((x + (y * 3)) % 11 == 0) || (y == 8 && x is > 2 and < 12);
-                    return crack ? Shade(100, 104, 116, 0) : Shade(138, 142, 152, speckle);
-                }
-
-            case BlockCell.Snow:
-                return rare ? Shade(214, 226, 246, 0) : Shade(244, 248, 255, speckle);
-            case BlockCell.Sand:
-                return rare ? Shade(206, 180, 110, 0) : Shade(238, 214, 136, speckle);
-            case BlockCell.TrunkSide:
-                return x % 4 == 1 ? Shade(86, 54, 28, speckle) : Shade(122, 80, 42, speckle);
-            case BlockCell.TrunkEnd:
-                {
-                    var dx = (2 * x) - 15;
-                    var dy = (2 * y) - 15;
-                    var d2 = (dx * dx) + (dy * dy);
-                    return d2 > 196 ? Shade(104, 68, 36, speckle) : d2 % 56 < 14 ? Shade(150, 104, 54, 0) : Shade(196, 150, 86, speckle);
-                }
-
-            case BlockCell.Leaves:
-                return rare ? Shade(96, 214, 84, 0) : (noise >> 4) % 4 == 0 ? Shade(34, 124, 44, speckle) : Shade(50, 164, 58, speckle);
-            case BlockCell.Bush:
-                return rare ? Shade(120, 206, 70, 0) : (noise >> 4) % 3 == 0 ? Shade(44, 130, 40, speckle) : Shade(70, 168, 48, speckle);
-            case BlockCell.BerryBush:
-                {
-                    var berry = (x is 3 or 4 && y is 3 or 4) || (x is 10 or 11 && y is 2 or 3) || (x is 7 or 8 && y is 8 or 9) || (x is 2 or 3 && y is 11 or 12) || (x is 12 or 13 && y is 10 or 11);
-                    return berry ? Shade(226, 36, 52, 0) : (noise >> 4) % 3 == 0 ? Shade(44, 130, 40, speckle) : Shade(70, 168, 48, speckle);
-                }
-
-            case BlockCell.Water:
-                {
-                    var ripple = (x + (y * 2)) % 9 == 0 || ((x * 3) + y) % 13 == 0;
-                    return ripple ? ((byte)120, (byte)190, (byte)255, (byte)170) : ((byte)(36 + (speckle * 3)), (byte)(120 + (speckle * 3)), (byte)(228 + speckle), (byte)150);
-                }
-
-            case BlockCell.PathTop:
-                return rare ? Shade(176, 138, 86, 0) : (noise >> 4) % 7 == 0 ? Shade(226, 196, 140, 0) : Shade(206, 168, 106, speckle);
-            case BlockCell.Planks:
-                return PlankPixel(x, y, speckle);
             case BlockCell.DoorLeaf:
                 if (x is 0 or 15 || y is 0 or 15)
                 {
@@ -209,17 +234,6 @@ public static class BlockArt
             default:
                 return Clear;
         }
-    }
-
-    private static (byte R, byte G, byte B, byte A) PlankPixel(int x, int y, uint speckle)
-    {
-        if (y % 4 == 3)
-        {
-            return Shade(140, 94, 48, 0);
-        }
-
-        var joint = (y / 4 % 2 == 0 ? x : x + 8) % 16 == 15;
-        return joint ? Shade(150, 102, 52, 0) : Shade(210, 154, 86, speckle);
     }
 
     private static (byte R, byte G, byte B, byte A) WoodIconPixel(int x, int y, uint speckle)

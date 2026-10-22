@@ -125,7 +125,7 @@ public sealed class VoxelGridTests
         }
 
         Assert.Equal(Enum.GetValues<BlockId>().Length, BlockDefinition.All.Count);
-        Assert.Equal(23, BlockDefinition.All.Count);
+        Assert.Equal(34, BlockDefinition.All.Count);
 
         // The values are hashed into every golden: pinned here so a reorder cannot go unnoticed.
         Assert.Equal(0, (int)BlockId.Air);
@@ -137,6 +137,10 @@ public sealed class VoxelGridTests
         Assert.Equal(18, (int)BlockId.Wall);
         Assert.Equal(21, (int)BlockId.Bridge);
         Assert.Equal(22, (int)BlockId.Snow);
+        Assert.Equal(23, (int)BlockId.SpruceTrunk); // S14 appended its kinds after the snow, in this order
+        Assert.Equal(27, (int)BlockId.TallGrass);
+        Assert.Equal(31, (int)BlockId.WhiteFlower);
+        Assert.Equal(33, (int)BlockId.Cobble);
         Assert.Equal(BlockDefinition.Get(BlockId.FireRing), BlockDefinition.FromName("fire-ring"));
         Assert.Null(BlockDefinition.FromName("lava"));
         Assert.Equal(BlockDefinition.All.Count, BlockDefinition.All.Select(d => d.Name).Distinct(StringComparer.Ordinal).Count());

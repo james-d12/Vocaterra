@@ -188,7 +188,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _micCheck = options.ShowsMicCheck ? new MicCheckModel(session.LogMicCheck) : null;
         _playtest = options.Playtest;
         _debug.Visible = !_playtest; // the playtest has no debug overlay (F3 is off there too)
-        _look.Set(scene.Spawn.Yaw, 0);
+        _look.Set(scene.Spawn.Yaw, scene.Spawn.Pitch);
         _currentEye = _previousEye = EyeBlocks();
         if (options.IsScreenshotRun)
         {
@@ -610,7 +610,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             ExitCode = ScreenshotWriter.TrySave(GraphicsDevice, path) ? 0 : 1;
             Console.WriteLine($"scene draw (voxel world, layers, flush): {_draws.Summary()}");
             Console.WriteLine($"frame time (end of one draw to the next, no vsync): {_frames.Summary()}");
-            Console.WriteLine($"voxel: {_renderer.Stats.Summary()}; {_renderer.DrawnChunks} chunks drawn this frame");
+            Console.WriteLine($"voxel: {_renderer.Stats.Summary()}; {_renderer.DrawnChunks} chunks drawn this frame, {_renderer.DrawnPlantQuads} plant quads (within {_preset.PlantDistance} blocks, {_preset.PlantKeepPercent}% built), occlusion {(_preset.AmbientOcclusion ? "on" : "off")}, clouds {(_preset.Clouds ? "on" : "off")}");
             var body = _sim.Player;
             Console.WriteLine(string.Create(CultureInfo.InvariantCulture, $"player: ({body.CenterX / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.FeetY / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.CenterZ / (double)VoxelPhysics.UnitsPerBlock:0.00}), tick {_sim.Tick}, wood {_sim.Inventory.Count(ItemId.Wood)}, berries {_sim.Inventory.Count(ItemId.Berry)}, bottle {_sim.Inventory.Count(ItemId.Bottle)}, water {_sim.Inventory.Count(ItemId.WaterBottle)}, bread {_sim.Inventory.Count(ItemId.Bread)}"));
             Console.WriteLine($"objective: {_session.Objective.Summary}");

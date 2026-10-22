@@ -331,7 +331,7 @@ Order:
 - Track B, the learning: S16 runs beside S13, because its folders stay apart (the game layer and a UI layer, not the renderer or the
   scene).
 - S17 needs S13 (the cliff camp and the new route) and S16 (the lesson runner). It may run beside S14 or S15.
-- S18 runs last.
+- S17b runs after S17 (it edits the dialogue panel and model that S17 changes). S18 runs last.
 
 Every milestone keeps the whole scenario playable end to end and updates the scripted routes and tests that the new geography moves. The rules
 of section 5 carry over.
@@ -414,6 +414,9 @@ of section 5 carry over.
 - **Characters.** Humanoid figures with head, body, arms and legs, pixel-art faces and distinct clothes: the guide, the shopkeeper (apron and
   hat) and the villager. They have an idle animation and turn to face the player when spoken to. The player has a figure with a backpack for the
   behind-the-shoulder view, toggled with F5. First person stays the default.
+- **The first-person arm** (owner, 2026-10-22: "it looks odd with its black outline"). It loses the black outline and becomes a
+  blocky arm in the player's skin and sleeve colours, textured and shaded like the figures and lit by the scene. It holds the selected item
+  (a log, the torch with its flame, the bottle) and has a small swing when the player gathers or places.
 - **The dialogue panel** is restyled like reference B: a dark rounded panel with the speaker's name in a warm colour over the line, anchored
   near the speaker when on screen.
 - **The HUD** gets a hotbar with pixel-art item icons and counts, and the workbench's recipe panel shows the inputs and the output as icons
@@ -482,6 +485,32 @@ of section 5 carry over.
   new lines are pre-rendered (`scripts/prerender-speech.sh`), and `SPEECH_CHECKLIST.md` lists the new WAVs for the owner to listen to.
 - **Measure.** One scripted run of the lesson; report its length at a learner's pace. The target is 5 to 10 minutes; the estimate counts the
   audio lengths and a typical answer time.
+
+### S17b: the talk key on screen and the game's own messages in English (Haiku 5.5, S)
+
+The owner's playtest notes (2026-10-22): "we don't have the hotkey for speaking (V) present in the UI when talking with someone", and "when
+the models haven't been loaded, the error appears in Spanish. It should appear in English as it's an error." D-game-13 already puts the
+controls in English.
+- **The talk key is always shown in the dialogue.** `DialoguePanel` shows `Hold V or Space: speak` only while the buttons have focus
+  (`ButtonHints`); the typing state (`KeyHints`) never names V. Both states name it, and when speech is unavailable the hint says so in
+  English instead (for example `Speech off: type your answer`).
+- **The game's own messages are English.** Errors, problems and status lines the game writes about itself, not about the language:
+  the speech-model checks in `SpeechEngine` (missing `VOCATERRA_MODELS_DIR`, a missing Vosk or Kokoro model, an unlisted manifest entry,
+  a recogniser that fails to load), `TurnWorker`'s synthesis failures, `PushToTalk`'s microphone failure and `DialogueModel`'s fallback
+  "could not evaluate". Each says what to do in plain English (for example `Speech models not found: set VOCATERRA_MODELS_DIR (see
+  nlp/scripts/fetch-models.sh)`). A sweep of `game/src` finds any other Spanish system text.
+- **The panel key hints are English** (dialogue, journal, inventory, crafting), following the place S16 gave the English controls.
+- **The microphone check at the start is English** (owner: "a new player, and a new person to Spanish, has no idea what this means").
+  `MicCheckModel`'s title, talk hint, pass and fail lines and `PushToTalk.NoMicrophone` become English (for example `Microphone check`,
+  `Hold V or Space and say "hola"`, `Got it, I can hear you.`, `I didn't catch that. Try again?`, `No microphone: type your answer.`).
+  The word the player says, `hola`, stays Spanish and is shown as the thing to say.
+- **The beacon's distance unit is English** (`campamento 74 blocks`): the label is a taught noun, the unit is the game's.
+- **What stays Spanish:** everything the learner learns or hears: NPC lines, prompts, Spanish labels of taught nouns, the Spanish half of
+  bilingual objectives, and the core's feedback codes (their English text is S16's).
+- **Tests:** the hint text in both dialogue states, with and without speech; each model problem's English message (the cheap check runs
+  without models: point `VOCATERRA_MODELS_DIR` at an empty temporary folder).
+- **Demo:** `--playtest` with `VOCATERRA_MODELS_DIR` unset shows the English model message and the typing hint; with models set, the
+  dialogue shows the V hint in both states.
 
 ### S18: the playtest refresh (Haiku 5.5, S)
 
