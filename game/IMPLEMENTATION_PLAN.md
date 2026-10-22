@@ -157,7 +157,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S3 | The scenario world and the guide in 3D (`WorldFacts3D`, the route layout, new nouns) | done (merged to `feature/prototype` 2026-10-22, bundle `5b9d0dab…`) | Haiku 5.5 | S2 |
 | S4 | Gather, craft, the camp objective; retire the 2D slice (tag `2d-slice-p7`) | done (merged to `feature/prototype` 2026-10-22, bundle `1e13e231…`) | Haiku 5.5 | S3 |
 | S5 | Content: `content/PHRASES.md`, the stall and the villager, `request_item`, constrained prompts; Opus review pass (D-game-12) | done (merged to `feature/prototype` 2026-10-22, bundle `c3cac003…`) | Sonnet 5.5 (design), Haiku 5.5 (content) | S0 |
-| S6 | NPC exchanges in the world (`NpcService`), filling the bottle, the transfer moment | planned | Sonnet 5.5 | S3, S5 |
+| S6 | NPC exchanges in the world (`NpcService`), filling the bottle, the transfer moment | done (merged to `feature/prototype` 2026-10-22, bundle `eb4f0951…`) | Sonnet 5.5 | S3, S5 |
 | S7 | Speech UX: mic check, cancel, watchdog, heard-vs-expected, buttons, choices, uncertainty rule, constrained prompts | planned | Sonnet 5.5 | S6 |
 | S8 | Phrase progress and fading scaffolds; the review extended to phrases | planned | Sonnet 5.5 | S6 |
 | S9 | NPCs speak: pre-rendered Kokoro lines in the bundle | planned | Haiku 5.5 | S5, S6 |
@@ -625,6 +625,21 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   grey A/B of D-game-6 needs per-block saturation in the mesher; due before the playtest, S12); the guide's `ask_craft` lines still name
   2D recipes (`mesa`, `puerta`, `espada`: "Eso no se puede hacer."; content pass with S6); "La piedra está aquí" for stone under the feet
   (horizontal distance); toast queue lags; crafting clicks and E at the mesa untested with real input; `JournalRows` lost its direct test.
+- **S6, NPC exchanges, the bottle, the transfer (2026-10-22, Sonnet 5.5).** Design (orchestrator): the stall has no water; on
+  `stall.give_water` the shopkeeper hands an empty bottle with "Toma la botella. El agua está en el río.", which sends the player to the
+  villager and the river; the bottle filled at the river (Interact 30 ticks) raises `objective.water`; fail-forward: the bottle is handed
+  over as a core host turn (`shopkeeper.give`) after the repair ladder gives up, after "no sé"/"ayuda" plus one more non-request, after four
+  non-requests, or on a second visit, logged `fail_forward`. `NpcService` replaces `GuideService` (one `ConversationContext` per agent,
+  openings through `Advance`, `Analyze` then `Complete`, `Records` of utterance and host-turn envelopes); `NpcHostEvents` is the one table
+  from host events to the world; `GuideSession.Events` holds `PhraseUse` (supported, unaided, choice, dont_know, transfer, fail_forward),
+  `VoiceEvent` and `WorldEvent` for S8 and S11; `NpcStandOff` keeps the camera about 2 blocks from an NPC; `--talk`, `--say`, `--leave`,
+  `--shot` script steps. The end-to-end run reaches `Campamento ... agua 1/1` and logs the guide's transfer offer and the villager's bread.
+  Provisional review (orchestrator, llm-opus, 2026-10-22): the two new shopkeeper lines and the hint "Necesitas una botella." are correct
+  A1; `botella` was added by hand to the game's `cefr/a1.txt` (it was only in the A2 list): accepted as provisional (a concrete, everyday
+  item word that A1 syllabuses commonly include, "una botella de agua"), to be re-checked with D-game-12. Open: transitions are chosen by
+  intent only, so "quiero pan" at the stall also hands the bottle with the bottle line, and every request is logged as `pedir-agua` (core
+  M28b, CR-016 host-fact replies, would allow item-dependent replies); the word card is drawn under the dialogue panel (S8); real input
+  for E and push-to-talk at the stall untested. Tests 3,620.
 
 ## 6. Definition of done (every milestone)
 
