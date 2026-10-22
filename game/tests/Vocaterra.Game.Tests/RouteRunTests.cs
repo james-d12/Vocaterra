@@ -119,7 +119,7 @@ public sealed class RouteRunTests(ITestOutputHelper output)
             [
                 "pedir-agua/supported/shopkeeper",
                 "si-por-favor/supported/shopkeeper",
-                "donde-esta-el-rio/unaided/villager",
+                "donde-esta-el-rio/supported/villager",
                 "si-por-favor/transfer/guide",
                 "pedir-agua/transfer/villager",
             ],

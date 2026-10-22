@@ -216,6 +216,25 @@ public sealed class DialogueModel
         }
     }
 
+    /// <summary>
+    /// Adds the lines of an opening that came after the panel was opened (S8: the shopkeeper's first question follows the key-word cards by itself).
+    /// Does nothing when the panel is closed.
+    /// </summary>
+    /// <param name="opening">What the NPC says now.</param>
+    public void AddOpening(NpcOpening opening)
+    {
+        ArgumentNullException.ThrowIfNull(opening);
+        if (!IsOpen)
+        {
+            return;
+        }
+
+        foreach (var line in opening.Lines)
+        {
+            Add(DialogueSpeaker.Guide, line);
+        }
+    }
+
     // A talk with another NPC than the last one starts on a clean page.
     private void SwitchTo(string npc, string displayName)
     {

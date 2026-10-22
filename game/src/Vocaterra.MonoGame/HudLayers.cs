@@ -78,13 +78,14 @@ public sealed class WordCardLayer : IFrameLayer
     /// <param name="viewportWidth">The window's width.</param>
     /// <param name="viewportHeight">The window's height.</param>
     /// <param name="dialogueOpen">Whether the dialogue panel is open.</param>
-    public static Rectangle BoxFor(int viewportWidth, int viewportHeight, bool dialogueOpen)
+    /// <param name="supportTop">While the dialogue panel is open, the top of the support cards above it (<see cref="SupportLayout.Top"/>, S8) so the card stays clear of them; <see langword="null"/> when there are none.</param>
+    public static Rectangle BoxFor(int viewportWidth, int viewportHeight, bool dialogueOpen, int? supportTop = null)
     {
         var box = new Rectangle((viewportWidth - Width) / 2, viewportHeight - Bottom - Height, Width, Height);
         if (dialogueOpen)
         {
             var panel = DialogueLayout.PanelBox(viewportWidth, viewportHeight);
-            box.Y = Math.Max(4, panel.Y - 8 - Height);
+            box.Y = Math.Max(4, Math.Min(panel.Y, supportTop ?? panel.Y) - 8 - Height);
         }
 
         return box;
@@ -100,7 +101,8 @@ public sealed class WordCardLayer : IFrameLayer
 
         var age = view.Tick - shown.StartTick;
         var alpha = (float)Math.Clamp((WordCardQueue.Duration - age) / (double)FadeTicks, 0.0, 1.0);
-        var box = BoxFor(view.ViewportWidth, view.ViewportHeight, view.Dialogue.IsOpen);
+        var supportTop = view.Dialogue.IsOpen ? SupportLayout.For(view.Session, view.ViewportWidth, view.ViewportHeight).Top : (int?)null;
+        var box = BoxFor(view.ViewportWidth, view.ViewportHeight, view.Dialogue.IsOpen, supportTop);
 
         spriteBatch.Draw(view.Pixel, box, Back * alpha);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, Gold * alpha);

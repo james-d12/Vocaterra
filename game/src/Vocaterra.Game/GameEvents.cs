@@ -68,7 +68,23 @@ public abstract record GameEvent(long Tick, long Time)
 /// <param name="Prompt">The prompt the turn answered (<c>stall-need</c>); empty for a fail-forward with no turn.</param>
 /// <param name="Line">What the player said, as sent or heard; empty for a fail-forward with no line.</param>
 /// <param name="Detail">The slot that matters (the item asked for, the place), or <see langword="null"/>.</param>
-public sealed record PhraseUse(long Tick, long Time, string PhraseId, PhraseUseKind Kind, string Npc, string Prompt, string Line, string? Detail = null)
+/// <param name="Input">How the line arrived (typed, spoken or a button); the phrase progress applies the credit of this kind (<see cref="CreditRules"/>, S8).</param>
+/// <param name="Correct">Whether the line was said without a mistake (the core's verdict had no error); a communicated line with a mistake is a slip, never a success (S8).</param>
+/// <param name="Support">The support level the phrase had when it was used, before the use moved it (S8; the session log of S11 reads it).</param>
+/// <param name="InPlay">For a <see cref="PhraseUseKind.DontKnow"/> use, the phrases the player did not know: the ones the NPC's prompt was asking for (S8); otherwise <see langword="null"/>.</param>
+public sealed record PhraseUse(
+    long Tick,
+    long Time,
+    string PhraseId,
+    PhraseUseKind Kind,
+    string Npc,
+    string Prompt,
+    string Line,
+    string? Detail = null,
+    InputKind Input = InputKind.Typed,
+    bool Correct = true,
+    SupportLevel Support = SupportLevel.None,
+    IReadOnlyList<string>? InPlay = null)
     : GameEvent(Tick, Time)
 {
     /// <inheritdoc />
@@ -211,4 +227,13 @@ public static class WorldEvents
 
     /// <summary>The guide made the transfer offer ("¿Quieres agua?") after the objective was complete.</summary>
     public const string TransferOffered = "transfer_offered";
+
+    /// <summary>The key words of the stall (<c>agua</c>, <c>pan</c>) were shown as word cards before the shopkeeper's first question (the detail lists them).</summary>
+    public const string KeyWordsShown = "key_words_shown";
+
+    /// <summary>The guide's review asked a due phrase in context (the detail is the phrase id).</summary>
+    public const string PhraseReviewAsked = "phrase_review_asked";
+
+    /// <summary>A phrase's support card appeared (the detail is the phrase id and how: <c>level</c> or <c>help</c>).</summary>
+    public const string SupportCardShown = "support_card_shown";
 }

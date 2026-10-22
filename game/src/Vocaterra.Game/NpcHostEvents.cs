@@ -164,6 +164,29 @@ public static class PhraseIds
     }
 
     /// <summary>
+    /// The learner phrases an NPC prompt is waiting for and shows support for (S8): the stall's question is answered with <see cref="RequestWater"/>, its
+    /// bread offer with <see cref="YesPlease"/> or <see cref="NoThanks"/>, and at the villager the taught phrase is <see cref="WhereIsTheRiver"/>.
+    /// The guide's transfer offer has none: the transfer is meant to be unaided, with a different NPC. The pleasantries (<c>hola</c>, <c>gracias</c>,
+    /// <c>adios</c>) and the service words have no scaffold.
+    /// </summary>
+    /// <param name="prompt">The prompt id (<c>stall-need</c>).</param>
+    public static IReadOnlyList<string> FocusAt(string prompt)
+    {
+        ArgumentNullException.ThrowIfNull(prompt);
+        return prompt switch
+        {
+            NpcService.StallNeedPrompt => [RequestWater],
+            NpcService.StallOfferPrompt => [YesPlease, NoThanks],
+            NpcService.VillagerPrompt => [WhereIsTheRiver],
+            _ => [],
+        };
+    }
+
+    /// <summary>Whether a phrase has a support scaffold to fade: a phrase some prompt shows a card for (<see cref="FocusAt"/>). Every other phrase stays at <see cref="SupportLevel.None"/>.</summary>
+    /// <param name="phraseId">The sheet's id.</param>
+    public static bool HasScaffold(string phraseId) => phraseId is RequestWater or YesPlease or NoThanks or WhereIsTheRiver;
+
+    /// <summary>
     /// The NPC a phrase was taught with, or <see langword="null"/> when it has no home (the service words, which are used with anyone). Using a
     /// phrase with another NPC after the objective is a transfer.
     /// </summary>

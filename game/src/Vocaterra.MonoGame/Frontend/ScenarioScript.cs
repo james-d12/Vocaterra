@@ -102,6 +102,11 @@ public sealed class ScenarioScript
                         return;
                     }
 
+                    if (_session.KeyWordsPending && _steps[_index].Kind is ScriptStepKind.Say or ScriptStepKind.Speak or ScriptStepKind.Wav)
+                    {
+                        return; // the stall's key-word cards stand alone first (S8): the line waits for the shopkeeper's question
+                    }
+
                     Begin();
                     continue;
                 case Phase.Moving:
@@ -201,6 +206,17 @@ public sealed class ScenarioScript
                 break;
             case ScriptStepKind.Leave:
                 CloseIfOpen();
+                _index++;
+                break;
+            case ScriptStepKind.Wait:
+                _wait = int.Parse(step.Value, System.Globalization.CultureInfo.InvariantCulture) * Vocaterra.Simulation.Voxel.VoxelSimulation.TicksPerSecond;
+                _index++;
+                _phase = Phase.Gap;
+                break;
+            case ScriptStepKind.Skip:
+                var skipped = int.Parse(step.Value, System.Globalization.CultureInfo.InvariantCulture);
+                _session.SkipTime(skipped);
+                _log($"skip: the stored time moves on {skipped} s (now {_session.StoredTime.UnixSeconds})");
                 _index++;
                 break;
             default: // Shot

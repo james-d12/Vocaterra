@@ -41,6 +41,9 @@ public sealed class SpeechActionRunner(GuideSession session, DialogueModel dialo
     /// <summary>How long a re-shown line stays highlighted, in ticks of the simulation (two seconds).</summary>
     public const long HighlightTicks = 120;
 
+    /// <summary>The hook that plays an NPC's line (S9); the support cards' sounds go through it too (S8).</summary>
+    public ILinePlayer Player => player;
+
     /// <summary>Presses a button or a choice. Does nothing (and returns <see langword="false"/>) when the panel is closed or a choice is not on offer.</summary>
     /// <param name="action">What was pressed.</param>
     /// <returns>Whether the press did something.</returns>
@@ -105,6 +108,11 @@ public sealed class SpeechActionRunner(GuideSession session, DialogueModel dialo
         session.LogVoice(slow ? VoiceEventKind.Slower : VoiceEventKind.Replay, line);
         _ = dialogue.HighlightLastNpcLine(session.CurrentTick + HighlightTicks);
         player.Play(session.CurrentNpc, line, slow);
+        if (session.Support.ReplayCue is { } cue)
+        {
+            player.Play(cue.Npc, cue.Text, slow); // a phrase's help is on offer (S8, the audio-only level's replay hook): the model answer follows the question
+        }
+
         return true;
     }
 
