@@ -76,6 +76,9 @@ public sealed class FrameView
     /// <summary>Whether the first-time tips are drawn (S16): an interactive run shows them, a scripted run only when asked.</summary>
     public bool ShowTips { get; set; }
 
+    /// <summary>Whether <c>--greyscale</c> is on (S22): the book draws the icon of a noun that is not known yet in grey, as the world draws its block.</summary>
+    public bool Greyscale { get; init; }
+
     /// <summary>Whether the run is the playtest profile (S22): the facilitator's label has a reserved place and the bubble keeps below it.</summary>
     public bool Playtest { get; init; }
 

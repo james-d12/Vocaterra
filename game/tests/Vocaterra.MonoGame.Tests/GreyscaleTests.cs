@@ -68,6 +68,32 @@ public sealed class GreyscaleTests
     }
 
     [Fact]
+    public void TheBooksNounIconIsGreyUntilTheWordIsKnownAndOnlyInGreyscale()
+    {
+        Assert.Equal(0.0, NounIcons.Saturation(greyscale: true, known: false)); // the grey copy
+        Assert.Equal(1.0, NounIcons.Saturation(greyscale: true, known: true));
+        Assert.Equal(1.0, NounIcons.Saturation(greyscale: false, known: false)); // arm A: every icon in colour
+        Assert.Equal(1.0, NounIcons.Saturation(greyscale: false, known: true));
+
+        // Every noun that has an item has an icon cell whose grey copy is a different picture from its colour cell (the berry, the torch, the bottle ...).
+        var atlas = BlockArt.AtlasPixels();
+        var coloured = 0;
+        foreach (var noun in Nouns.Value.Nouns.Where(static n => n.Items.Count > 0))
+        {
+            var cell = BlockAtlasLayout.IconFor(noun.Items[0]);
+            Assert.NotNull(cell);
+            var colour = Crop(atlas, BlockAtlasLayout.PixelRectangle(cell.Value));
+            var grey = Crop(atlas, BlockAtlasLayout.GreyPixelRectangle(cell.Value));
+            if (!colour.SequenceEqual(grey))
+            {
+                coloured++;
+            }
+        }
+
+        Assert.True(coloured >= 5, $"only {coloured} noun icons differ between colour and grey");
+    }
+
+    [Fact]
     public void EveryBlockFaceHasAGreyCopyBelowItsColourCellInTheSameColumn()
     {
         foreach (var definition in BlockDefinition.All.Where(static d => d.Id != BlockId.Air))
