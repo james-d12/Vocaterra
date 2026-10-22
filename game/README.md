@@ -97,14 +97,29 @@ the learner model and the repeat counts.
 
 ## The 3D world (S2 to S4)
 
-The prototype's world is the first-person voxel scene: it loads the prototype route from the bundle
-(`content/game-v1/game/scene.json`, a 96 x 32 x 96 block world: the forest clearing with the camp, the workbench, the fire ring and the guide, the
-path south-east, the village with the stall and its shopkeeper behind the counter, the villager on the square, three houses, the signpost
-`Tienda / Río`, the river and its bridge) at `--seed` (default 42), and shows it from the player's eyes. (`--voxel`, which selected it until S4, is
-accepted and ignored.)
+The prototype's world is the first-person voxel scene: it loads the world from the bundle (`content/game-v1/game/scene.json`, S13: generator
+parameters and named sites, not blocks, a 384 x 384 x 128 block valley with high snow-capped mountains along the north and the west, a waterfall off
+the northern cliffs, a river through a dense forest to a lake, the guide's camp in a clearing, the village on the meadow across the river with the stall,
+three houses and the signpost `Tienda / Río`, and the player's own camp on a cliff ledge at the top of a switchback trail) at `--seed` (default 42; the
+seed changes the land between the sites and the forest, never a site), and shows it from the player's eyes. A new game starts at the player's camp
+(facing south-east, a tent and a cold fire ring beside it) with the beacon on the guide's camp: the first thing to do is the walk down the trail.
+`--quality low|medium|high` sets how far the world is drawn (see `src/Vocaterra.MonoGame/README.md`); the default, high, is for a real graphics card, and
+**on a machine with software GL (this VM) pass `--quality low`**. (`--voxel`, which selected the 3D world until S4, is accepted and ignored.)
 
 ```bash
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42
+```
+
+**S13 demos** (the large world; `--quality low`, 1280 x 720; each prints the frame times and the mesh counts; `--teleport` and `--look` only set the
+camera for a picture):
+
+```bash
+# from the player's camp (the spawn) looking south-east over the valley
+DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --look 128,-13 --screenshot /tmp/s13-camp.png --frames 3
+# from the valley (the guide's clearing) looking north at the peaks, the cliffs and the waterfall
+DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --teleport 176,200 --look 25,8 --screenshot /tmp/s13-peaks.png --frames 3
+# the village, from the road: the stall, the signpost, a house and the villager
+DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --teleport 272,224 --look 75,-4 --screenshot /tmp/s13-village.png --frames 3
 ```
 
 `--greyscale` is the playtest A/B switch (D-game-6 as amended): a block whose noun is not known yet is drawn grey, a known one in full colour, and
@@ -136,16 +151,13 @@ To check it without playing, script it and save a screenshot (needs a display; e
 
 ```bash
 # the camp (S4): gather, craft at the workbench, place the torch on the fire ring's rim, look at it: the checklist reads 3/4
-dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --interact 17,11,15 --interact 15,11,19 \
-  --walk-to 17,20 --interact 16,11,23 --walk-to 11,17 --interact 9,11,17 --interact 9,12,17 --interact 9,13,17 --interact 9,14,17 \
-  --walk-to 11,11 --interact 11,11,9 --walk-to 20,17 --craft antorcha \
-  --walk-to 20,19 --place antorcha@21,12,21 --walk-to 22,19 --look 180,-15 --screenshot /tmp/s4-camp.png
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --walk-to 176,186 --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 --walk-to 176,184 --look 180,-15 --screenshot /tmp/s4-camp.png
 # the guide answers "where is the river?": the console prints the verdict, her line and the arrow; the PNG shows the panel and the arrow
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --say "¿dónde está el río?" --screenshot /tmp/s3-river.png --frames 300
 # the village: walk to the square's north side and look at the stall: the shopkeeper behind the counter facing the player, with his label
-dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --walk-to 62,52 --look 180,-12 --screenshot /tmp/s3-stall.png --frames 150
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --beacon none --teleport 282,211 --look 90,-8 --screenshot /tmp/s3-stall.png --frames 150
 # the signpost, from the east side of the path: the label "Tienda / Río" over the board
-dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --walk-to 64,53 --look 262,-8 --screenshot /tmp/s3-sign.png --frames 150
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --beacon none --teleport 283,221 --look 270,-6 --screenshot /tmp/s3-sign.png --frames 150
 # the camp from the player's eyes at spawn: the guide's figure and label, the beacon on the river (an arrow at the edge when it is off screen)
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --beacon river --screenshot /tmp/s2-camp.png --frames 240
 # S6, the whole route in one run: the camp, the stall (the shopkeeper's "¿Qué necesitas?" is a core host turn, the bottle comes with his answer),
@@ -153,12 +165,10 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --be
 # guide for her transfer offer "¿Quieres agua?" and to the villager for bread. The console prints each turn, each game event (phrase uses,
 # world events) and the objective's steps; the PNGs show the stall exchange and the river after the fill
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 \
-  --interact 17,11,15 --interact 15,11,19 --walk-to 17,20 --interact 16,11,23 \
-  --walk-to 11,17 --interact 9,11,17 --interact 9,12,17 --interact 9,13,17 --interact 9,14,17 --walk-to 11,11 --interact 11,11,9 \
-  --walk-to 20,17 --craft antorcha --walk-to 20,19 --place antorcha@21,12,21 \
+  --walk-to 176,186 --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
   --talk shopkeeper --say "quiero agua, por favor" --shot /tmp/s6-stall.png --say "sí, por favor" \
   --talk villager --say "¿dónde está el río?" \
-  --walk-to 62,79 --interact 62,7,80 --look 180,-14 --shot /tmp/s6-river.png \
+  --walk-to 234,222 --interact 233,34,222 --look 180,-14 --shot /tmp/s6-river.png \
   --talk guide --say "sí, por favor" --talk villager --say "quiero pan, por favor" \
   --screenshot /tmp/s6-end.png --frames 60
 # the host's stall prompt (no display): the request is understood
@@ -211,12 +221,10 @@ the review question, the word cards not yet shown, the replay records of the con
 ```bash
 # S6's whole route, then the game saved at its end: the console prints the file, the session, the tick, the stored time and the world digest
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 \
-  --interact 17,11,15 --interact 15,11,19 --walk-to 17,20 --interact 16,11,23 \
-  --walk-to 11,17 --interact 9,11,17 --interact 9,12,17 --interact 9,13,17 --interact 9,14,17 --walk-to 11,11 --interact 11,11,9 \
-  --walk-to 20,17 --craft antorcha --walk-to 20,19 --place antorcha@21,12,21 \
+  --walk-to 176,186 --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
   --talk shopkeeper --say "quiero agua, por favor" --say "sí, por favor" \
   --talk villager --say "¿dónde está el río?" \
-  --walk-to 62,79 --interact 62,7,80 --look 180,-14 \
+  --walk-to 234,222 --interact 233,34,222 --look 180,-14 \
   --talk guide --say "sí, por favor" --talk villager --say "quiero pan, por favor" \
   --screenshot /tmp/s10-end.png --frames 60 --save /tmp/s10.save
 # the same world in the next session: "load:" prints the saved and the next session and the digest check; the journal's phrase page reads "Sesión 2"
@@ -274,10 +282,9 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --playtest --load ~/.local/s
 # transfer's --leave, in the order the console prints as "check order:"; see the S11 lines above for the shape of a check's answers)
 DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --playtest --seed 42 --session-dir /tmp/playtest1 \
   --pick 3 --pick 2 --pick 2 --say "¿Dónde está el río?" --pick 1 --say "No, gracias." --pick 3 --say "Quiero agua, por favor." --say "Sí, por favor." --pick 3 \
-  --interact 17,11,15 --interact 15,11,19 --walk-to 17,20 --interact 16,11,23 --walk-to 11,17 --interact 9,11,17 --interact 9,12,17 \
-  --interact 9,13,17 --interact 9,14,17 --walk-to 11,11 --interact 11,11,9 --walk-to 20,17 --craft antorcha --walk-to 20,19 --place antorcha@21,12,21 \
+  --walk-to 176,186 --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
   --talk shopkeeper --say "quiero agua, por favor" --say "sí, por favor" --talk villager --say "¿dónde está el río?" \
-  --walk-to 62,79 --interact 62,7,80 --look 180,-14 --talk guide --say "sí, por favor" --leave \
+  --walk-to 234,222 --interact 233,34,222 --look 180,-14 --talk guide --say "sí, por favor" --leave \
   --say "Sí, por favor." --say "No, gracias." --pick 1 --pick 2 --pick 2 --say "¿Dónde está el río?" --say "Quiero agua, por favor." --pick 1 --pick 3 --pick 1 \
   --screenshot /tmp/playtest1-thanks.png --frames 60
 ```

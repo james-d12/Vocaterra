@@ -27,9 +27,9 @@ while (running)
 
 ## The 3D voxel world (S1, `Vocaterra.Simulation.Voxel`; the route in S3)
 
-The prototype's world (docs/SCENARIO_PLAN.md): a hand-authored 96 x 32 x 96 block scene, a first-person body, gathering and placing, all
+The prototype's world (docs/SCENARIO_PLAN.md): a generated 384 x 384 x 128 block valley (S13), a first-person body, gathering and placing, all
 headless and integer-only (the 2D code above is untouched). The folder is `src/Vocaterra.Simulation/Voxel/`; the prototype route is
-`content/game-v1/game/scene.json` in the bundle (S3).
+`content/game-v1/game/scene.json` in the bundle (S3, rewritten as generator parameters in S13).
 
 ```csharp
 var layout = SceneLayout.Load("game/content/game-v1/game/scene.json");     // or SceneLayout.Parse(json)
@@ -78,22 +78,42 @@ Shared with the rest of the game: `WorldRng` (`Vocaterra.Simulation`, the scene'
   not check line of sight: a front-end picks its target with `BlockRay` (`sim.Target`), and everything that ray can hit passes the reach check.
 - **Order inside a tick:** selection and look, gathering, placing, crafting, then the walk with the jump and the physics.
 
-### The layout file
+### The layout file (S13: parameters, not blocks)
 
-JSON (comments and trailing commas allowed); `SceneLayout.Parse` documents the shape: `size` {x, y, z} (multiples of 16), `waterLevel`, a
-`legend` (a feature character to a `top` block, a `sub` block for the three layers under it with stone below, `water`, `plantable`,
-`reserved`), `heights` and `features` (one string per row, north first, one character per column, west first; a height is a base-36 digit,
-the y of the column's top block), `props`, `npcs`, `spawn`, `points` and `trees`. Props: `workbench` {length, axis}, `fire_ring` (x, z the
-centre), `stall` {x, z the north-west corner, width, depth, facing = the counter side}, `house` {x, z north-west, width, depth, height,
-facing = the door side}, `signpost`, `bridge` {x, z the first block of the centre line, facing, length, width}, `bush`, `berry_bush`, `tree`; a
-`name` on a prop registers a named point. A prop on uneven or wet ground is rejected with a message (`SceneLayoutException`), so the layout
-cannot silently build a floating house. A *named point* is the block on top of the terrain at that column (the water surface over the
-river); NPCs and the spawn are given as a column and stand in the cell above the ground. `facing` is a compass word or whole degrees.
+JSON (comments and trailing commas allowed, `schemaVersion` 2); `SceneLayout.Parse` documents the shape. The file lists no block. It holds the
+generator's parameters and the named places:
 
-The tree scatter is the only use of the seed: `WorldRng.For(seed, "trees")` draws `attempts` positions, and a tree is planted when the
-column is `plantable`, at least `margin` columns (Chebyshev) from every route column (the legend's `reserved` columns, prop footprints, the
-spawn, the NPCs and the points) and at least `spacing` from another trunk, up to `max` trees. The canopy reaches two columns, so a margin of
-3 keeps leaves off the path. Another seed changes the trees and nothing else (a test checks block by block).
+- `size` {x, y, z} (multiples of 16: 384 x 128 x 384 is 24 x 8 x 24 chunks), `waterLevel` (the lake's surface).
+- `terrain`: `relief`, a coarse grid with one base-32 digit per chunk corner (the height divided by 4; the macro shape: the mountains along the
+  north and the west, the foothills, the valley floor at 36), and `valley`, `rockLine` (bare stone above 85), `snowLine` (snow above 100 on
+  gentle ground), `terrace` (the step of the cliff faces) and `ceiling`.
+- `sites`: named places at **fixed** positions (`camp.player`, `camp.guide`, `village`, `bridge.west`, `river`, `waterfall`, `lake`, `trail`...). A
+  site with a `radius` levels the ground to `y` (or the height the land has there) and slopes it into the land over `blend`; every site is also a named
+  point. `waterfall` {site = the lip, top, width, plateau, pool}, `lake` {site, rx, rz, depth} and `river` {halfWidth, depth, bank, path: waypoints from the
+  pool to the lake}. `paths` carve a trail between two sites: `mode: grade` changes the height evenly from the first site's to the last's (a switchback
+  down the mountainside), `mode: follow` follows the valley floor, smoothed so it never steps more than a block.
+- `stamps` (small block drawings, layers of rows with a legend, turned to face a side) and `props` placed at a site plus an offset (`dx`, `dz`):
+  `workbench`, `fire_ring`, `stall` (the counter side is `facing`), `house`, `signpost`, `bridge`, `paving`, `stamp`, `bush`, `berry_bush`, `tree`; a
+  `name` on a prop registers a named point. A prop on uneven or wet ground is rejected with a message (`SceneLayoutException`), so the layout
+  cannot silently build a floating house. `npcs`, `spawn` (a site and an offset, and a facing in degrees: 135 is south-east), `points` and `trees`.
+
+`TerrainGenerator` (integers only: no floating point, no `Math.Sqrt`) makes the ground in this order: the macro relief (Catmull-Rom between the
+corners, clamped) plus the seed's value noise (`TerrainNoise`, four octaves, damped to a few percent near the river, the paths and the sites, and
+scaled up on the mountains) and stepped terraces; the waterfall's plateau; the river (a smooth curve; its surface is the lowest the ground has been, less
+two blocks, from the source to each point, so the water never runs uphill) and the pool; the lake; the graded trail and the road; and last the sites'
+level ground. `SceneBuilder` fills the grid column by column (stone, three layers of dirt or sand, the top block by height and slope: sand by the water,
+stone above the rock line or on a cliff, snow above the snow line), lays the water, builds the props, and plants the forest.
+
+The forest is the only random draw besides the noise: one tree is tried in every `cell` x `cell` square, at a jittered place from
+`WorldRng.For(seed, "trees")` (the draws are made for every square, so the stream stays in step), kept with a `chance` percent (less with height, none
+above `treeLine`, a few clearings where the slow noise is low) unless it is on a cliff, on sand or water, within `margin` columns of the route (path
+surface, a site's level ground, a prop, the spawn, an NPC, a point) or within `spacing` of another trunk. **A different seed changes the terrain
+between the sites, the river's surface and the forest, and never moves a site, a point, an NPC or the spawn**; the ground of each site is the same
+block for block (a test checks it for two seeds).
+
+Cost: the 384 x 384 x 128 world builds in about 0.4 s and its first digest takes about 0.1 s on the development machine (a test holds the two
+under three seconds). `VoxelChunk` keeps a count of its non-air blocks and a mask of the block kinds it holds, so a search or a renderer passes
+empty chunks by (`VoxelGrid.BlocksOfKind`, `VoxelGrid.HighestBlock`).
 
 ### Digests (for the renderer and for saves)
 
@@ -106,8 +126,8 @@ selection, the gather progress and the inventory.
 
 ### Tests
 
-`tests/Vocaterra.Simulation.Tests/Voxel/`: `SceneTests` (the seed-42 golden and the printed top-down map of the route, identical builds, another
-seed differing only in trees, trees never on or over the route for three seeds, trunk spacing, the named points and NPCs, a pathfinder plus the
+`tests/Vocaterra.Simulation.Tests/Voxel/`: `SceneTests` (the seed-42 golden, the load cost, identical builds, another seed moving no site, the mountain heights, the
+river running downhill, the walking times, trees never on or over the route for three seeds, trunk spacing, the named points and NPCs, a pathfinder plus the
 real body walking from the camp over the bridge to the far bank, rejected layouts), `VoxelGridTests` (chunks, bounds, the digest changing on
 every edit and only in the edited chunk), `AnglesTests`, `PlayerBody3DTests` (landing, walls, the one-block step and the two-block wall, jumps,
 edges, diagonal speed, relative movement, and the never-inside-a-solid property over 24 random worlds and 6 route seeds), `BlockRayTests`

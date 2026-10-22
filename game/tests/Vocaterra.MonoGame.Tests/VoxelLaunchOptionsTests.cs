@@ -119,7 +119,34 @@ public sealed class VoxelLaunchOptionsTests
     public void TheTwoDimensionalOptionsAreGone()
     {
         Assert.Contains("Unknown argument '--mine'", Refuse("--screenshot", "a.png", "--mine", "517,182"), StringComparison.Ordinal);
-        Assert.Contains("Unknown argument '--teleport'", Refuse("--screenshot", "a.png", "--teleport", "1,2"), StringComparison.Ordinal);
+        Assert.Contains("Unknown argument '--dig'", Refuse("--screenshot", "a.png", "--dig", "1,2"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheQualityAndTheViewDistanceAreRead()
+    {
+        Assert.Equal(QualityLevel.High, Parse("--screenshot", "x.png").Quality); // the default is for a real graphics card
+        Assert.Null(Parse("--screenshot", "x.png").ViewDistance);
+        Assert.Equal(224, Parse("--quality", "low").QualityPreset.ViewDistance);
+        Assert.Equal(304, Parse("--quality", "medium").QualityPreset.ViewDistance);
+        Assert.Equal(400, Parse("--quality", "high").QualityPreset.ViewDistance);
+        var distance = Parse("--quality", "low", "--view-distance", "96");
+        Assert.Equal(96, distance.QualityPreset.ViewDistance);
+        Assert.Equal(QualityLevel.Low, distance.QualityPreset.Level);
+        Assert.Contains("--quality needs low, medium or high", Refuse("--quality", "ultra"), StringComparison.Ordinal);
+        Assert.Contains("--view-distance needs a number of blocks, at least 48", Refuse("--view-distance", "10"), StringComparison.Ordinal);
+        Assert.Contains("--view-distance needs a number", Refuse("--view-distance", "far"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheTeleportStepIsOneOfTheScriptsStepsInTheOrderGiven()
+    {
+        var options = Parse("--screenshot", "x.png", "--teleport", "230,222", "--look", "10,5", "--walk-to", "1,2");
+        Assert.Equal([VoxelStepKind.Teleport, VoxelStepKind.Look, VoxelStepKind.WalkTo], options.VoxelSteps.Select(static s => s.Kind));
+        Assert.Equal((230, 222), (options.VoxelSteps[0].X, options.VoxelSteps[0].Z));
+        Assert.Contains("--teleport needs a block column and row", Refuse("--screenshot", "x.png", "--teleport", "230"), StringComparison.Ordinal);
+        Assert.Contains("need --screenshot", Refuse("--teleport", "1,2"), StringComparison.Ordinal);
+        Assert.Equal("none", Parse("--screenshot", "x.png", "--beacon", "none").Beacon); // no beacon at the start
     }
 
     [Fact]

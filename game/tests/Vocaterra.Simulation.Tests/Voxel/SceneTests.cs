@@ -9,7 +9,7 @@ public sealed class SceneTests(ITestOutputHelper output)
 {
     private const ulong Seed = 42;
 
-    private const string GoldenDigest = "GOLDEN";
+    private const string GoldenDigest = "4a8ad02d9db6abc20e282693f7bf3ea1bacb9e8fa8ef57fd509d5c40b7b61674";
 
     private const int Units = VoxelTestSupport.Units;
 
@@ -78,7 +78,7 @@ public sealed class SceneTests(ITestOutputHelper output)
         Assert.Equal(a.Points.Select(p => (p.Key, p.Value)), b.Points.Select(p => (p.Key, p.Value)));
 
         // The level ground of the camps and the village, and everything built on it, is the same block for block.
-        foreach (var name in new[] { "camp.player", "camp.guide", "village" })
+        foreach (var name in new[] { "camp.player", "camp.ledge", "camp.guide", "village" })
         {
             var site = VoxelTestSupport.RouteDraft.Site(name)!;
             for (var z = site.Z - site.Radius; z <= site.Z + site.Radius; z++)
@@ -189,7 +189,7 @@ public sealed class SceneTests(ITestOutputHelper output)
     {
         var scene = VoxelTestSupport.BuildRoute(Seed);
         var grid = scene.Grid;
-        foreach (var name in new[] { "camp.player", "camp.guide", "village", "stall", "river", "bridge", "lake", "waterfall", "trail", "workbench", "firering", "firering.player", "signpost", "house1", "house2", "house3", "camp", "tent" })
+        foreach (var name in new[] { "camp.player", "camp.ledge", "camp.guide", "village", "stall", "river", "bridge", "lake", "waterfall", "trail", "workbench", "firering", "firering.player", "signpost", "house1", "house2", "house3", "camp", "tent" })
         {
             Assert.True(scene.Points.ContainsKey(name), $"missing point {name}");
         }
@@ -212,8 +212,9 @@ public sealed class SceneTests(ITestOutputHelper output)
         }
 
         // The cold fire ring and the tent are at the player's camp, the workbench and the guide at the guide's.
-        Assert.InRange(Distance(scene.Point("firering.player"), scene.Point("camp.player")), 1, 10);
-        Assert.InRange(Distance(scene.Point("tent"), scene.Point("camp.player")), 1, 12);
+        Assert.InRange(Distance(scene.Point("firering.player"), scene.Point("camp.player")), 1, 12);
+        Assert.InRange(Distance(scene.Point("tent"), scene.Point("camp.ledge")), 1, 10);
+        Assert.InRange(Distance(scene.Point("tent"), scene.Point("camp.player")), 1, 18);
         Assert.InRange(Distance(scene.Point("workbench"), scene.Point("camp.guide")), 1, 12);
         Assert.InRange(Distance(scene.Point("stall"), scene.Point("village")), 1, 20);
         Assert.Equal(BlockId.Roof, grid.GetBlock(scene.Point("tent").X, scene.Point("tent").Y + 3, scene.Point("tent").Z));

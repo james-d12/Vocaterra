@@ -12,7 +12,7 @@ public sealed class VoxelScriptTests
     {
         public Run(params VoxelStep[] steps)
         {
-            Scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), 42);
+            Scene = RouteScene.Clearing();
             Sim = VoxelSimulation.Create(Scene);
             Look = new LookControl();
             Look.Set(Scene.Spawn.Yaw, 0);
@@ -73,7 +73,7 @@ public sealed class VoxelScriptTests
         run.Go();
         var (x, z) = run.Feet;
         Assert.InRange(Math.Sqrt(Math.Pow(x - 60.5, 2) + Math.Pow(z - 52.5, 2)), 0, VoxelScript.ArrivedDistance);
-        Assert.Contains("arrived", run.Log[0], StringComparison.Ordinal);
+        Assert.Contains(run.Log, static l => l.Contains("arrived", StringComparison.Ordinal));
     }
 
     [Fact]

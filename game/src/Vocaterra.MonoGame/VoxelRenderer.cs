@@ -57,7 +57,7 @@ public sealed class VoxelRenderer : IDisposable
     public static readonly Color Sky = new(135, 190, 235);
 
     /// <summary>Where the fog starts, as a fraction of where it is complete (<see cref="FogEndFor"/>): the middle distance stays clear and the far end goes blue.</summary>
-    public const float FogStartFraction = 0.55f;
+    public const float FogStartFraction = 0.7f;
 
     // A chunk mesh is drawn with 16-bit indices, so it holds at most 65 532 vertices (16 383 quads). A full chunk of cubes tops out at 12 288 quads.
     private const int MaxQuadsPerMesh = 16383;

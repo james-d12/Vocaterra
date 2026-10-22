@@ -80,8 +80,13 @@ public static class WalkPlanner
                     continue; // no cutting a corner through a block
                 }
 
+                if (Pinched(grid, nx, ny, nz) && !(nx == targetX && nz == targetZ))
+                {
+                    continue; // a one-block gap between trees: a body does not follow it
+                }
+
                 var next = Key(grid, nx, ny, nz);
-                var total = known + (dx != 0 && dz != 0 ? Diagonal : Straight) + (ny != cy ? VerticalPenalty : 0);
+                var total = known + (dx != 0 && dz != 0 ? Diagonal : Straight) + (ny != cy ? VerticalPenalty : 0) + Tightness(grid, nx, ny, nz);
                 if (cost.TryGetValue(next, out var old) && old <= total)
                 {
                     continue;
@@ -130,8 +135,8 @@ public static class WalkPlanner
 
             if (Standable(grid, x, y, z))
             {
-                // Dropping more than one block needs the cells above the landing free all the way down (the body falls straight).
-                if (dy < -1)
+                // A drop needs the cells above the landing free all the way down, up to the head's height now: the body moves into the column first and falls there.
+                if (dy < 0)
                 {
                     var clear = true;
                     for (var above = y + 1; above <= fromY + 1 && clear; above++)
@@ -160,6 +165,29 @@ public static class WalkPlanner
         && grid.IsSolid(x, y - 1, z)
         && grid.GetBlock(x, y, z) != BlockId.Water
         && grid.GetBlock(x, y - 1, z) != BlockId.Water;
+
+    // A cell with a tree (trunk or leaves) on both sides of it, west and east or north and south, is a one-block gap in the forest: a walk avoids it.
+    private static bool Pinched(VoxelGrid grid, int x, int y, int z)
+    {
+        bool Tree(int tx, int tz) => grid.GetBlock(tx, y, tz) is BlockId.Trunk or BlockId.Leaves || grid.GetBlock(tx, y + 1, tz) is BlockId.Trunk or BlockId.Leaves;
+        return (Tree(x - 1, z) && Tree(x + 1, z)) || (Tree(x, z - 1) && Tree(x, z + 1));
+    }
+
+    // A cell between trunks or against a wall is dearer than one in the open, by 4 for each of the four sides that has a solid block at the feet or the head:
+    // a walk keeps to the trail, the road and the clearings, and does not squeeze through a one-block gap in the forest that a body can hardly follow.
+    private static int Tightness(VoxelGrid grid, int x, int y, int z)
+    {
+        var sides = 0;
+        foreach (var (dx, dz) in Moves.AsSpan(0, 4))
+        {
+            if (grid.IsSolid(x + dx, y, z + dz) || grid.IsSolid(x + dx, y + 1, z + dz))
+            {
+                sides++;
+            }
+        }
+
+        return sides * 4;
+    }
 
     // The turning points of a run of cells: the cell where the direction changes, and the last one (cells one apart along one of the eight directions).
     private static List<(int X, int Z)> TurningPoints(List<(int X, int Z)> cells)

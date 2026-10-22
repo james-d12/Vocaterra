@@ -175,4 +175,97 @@ public sealed class WorldFacts3DTests
         Assert.Equal(north.Distance2, east.Distance2);
         Assert.NotEqual(north.Direction, east.Direction);
     }
+
+    // ------------------------------------------------------------------ the large world (S13)
+
+    // The guide's rule written out again over every block of the kinds: the least horizontal distance from the viewpoint's centre, then z, then x, then y.
+    private static (long Distance, BlockPos Cell) Brute(VoxelGrid grid, GuideViewpoint from, params BlockId[] kinds)
+    {
+        (long Distance, BlockPos Cell)? best = null;
+        foreach (var kind in kinds)
+        {
+            foreach (var p in grid.BlocksOfKind(kind))
+            {
+                var dx = ((long)p.X * Unit) + (Unit / 2) - from.CentreX;
+                var dz = ((long)p.Z * Unit) + (Unit / 2) - from.CentreZ;
+                var distance = (dx * dx) + (dz * dz);
+                if (best is null || distance < best.Value.Distance
+                    || (distance == best.Value.Distance && (p.Z, p.X, p.Y).CompareTo((best.Value.Cell.Z, best.Value.Cell.X, best.Value.Cell.Y)) < 0))
+                {
+                    best = (distance, p);
+                }
+            }
+        }
+
+        return best!.Value;
+    }
+
+    [Theory]
+    [InlineData("camp.player", "río")]
+    [InlineData("camp.guide", "árbol")]
+    [InlineData("village", "río")]
+    [InlineData("village", "puente")]
+    [InlineData("camp.guide", "fruta")]
+    [InlineData("lake", "piedra")]
+    public void TheChunkSearchAnswersLikeTheRuleOverEveryBlockOfTheLargeWorld(string site, string noun)
+    {
+        var scene = TestGame.Route();
+        var point = scene.Point(site);
+        var kinds = TestGame.Nouns.BlocksOf(noun).ToArray();
+        var from = new GuideViewpoint(new GuideCell(point.X, point.Y + 1, point.Z), (point.X * (long)Unit) + (Unit / 2) + 1234, (point.Z * (long)Unit) + (Unit / 2) - 777, Angles.FromDegrees(135));
+        var expected = Brute(scene.Grid, from, kinds);
+        var live = WorldFacts3D.Live(scene.Grid, TestGame.Nouns).NearestOfNoun(from, noun);
+        var snapshot = WorldFacts3D.Snapshot(scene.Grid, TestGame.Nouns).NearestOfNoun(from, noun);
+
+        Assert.NotNull(live);
+        Assert.Equal(expected.Cell, live.Cell.ToBlock());
+        Assert.Equal(expected.Distance, live.Distance2);
+        Assert.Equal(live, snapshot); // the copy answers the same
+    }
+
+    [Fact]
+    public void ADistanceOfHundredsOfBlocksIsRightInNumbersWordsAndDirection()
+    {
+        // From the player's camp the nearest water is the falls, the pool or the river, a hundred blocks and more away.
+        var scene = TestGame.Route();
+        var spawn = scene.Spawn.Feet;
+        var facts = WorldFacts3D.Live(scene.Grid, TestGame.Nouns);
+        var viewpoint = new GuideViewpoint(spawn, (spawn.X * (long)Unit) + (Unit / 2), (spawn.Z * (long)Unit) + (Unit / 2), scene.Spawn.Yaw);
+        var river = facts.NearestOfNoun(viewpoint, "río");
+
+        Assert.NotNull(river);
+        Assert.InRange(river.Blocks, 80, 400);
+        Assert.Equal(Vocaterra.Nlp.Language.Normalization.SpanishNumbers.ToWords(river.Blocks), river.BlocksInWords);
+        Assert.Contains(river.Direction, new[] { "adelante", "a la izquierda", "adelante, a la izquierda", "a la derecha", "adelante, a la derecha", "detrás", "detrás, a la izquierda", "detrás, a la derecha" });
+
+        // The direction words and the rounding hold at any distance: 250 blocks ahead and 130 to the right (the other side reaches half the lead), and the number in words.
+        Assert.Equal("adelante, a la derecha", WorldFacts3D.DirectionPhrase(250L * Unit, 130L * Unit));
+        Assert.Equal("detrás, a la izquierda", WorldFacts3D.DirectionPhrase(-300L * Unit, -200L * Unit));
+        Assert.Equal("a la derecha", WorldFacts3D.DirectionPhrase(10L * Unit, 300L * Unit));
+        Assert.Equal(250, WorldFacts3D.BlocksOf(250L * Unit * 250L * Unit));
+        Assert.Equal(361, WorldFacts3D.BlocksOf(((255L * Unit) * (255L * Unit)) * 2));
+        Assert.Equal("doscientos cincuenta", Vocaterra.Nlp.Language.Normalization.SpanishNumbers.ToWords(250));
+    }
+
+    [Fact]
+    public void ASnapshotOfTheLargeWorldIsQuickAndAnswersEveryNounOfTheRoute()
+    {
+        var scene = TestGame.Route();
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        var snapshot = WorldFacts3D.Snapshot(scene.Grid, TestGame.Nouns);
+        var copied = watch.Elapsed.TotalMilliseconds;
+        var spawn = scene.Spawn.Feet;
+        var viewpoint = new GuideViewpoint(spawn, (spawn.X * (long)Unit) + (Unit / 2), (spawn.Z * (long)Unit) + (Unit / 2), 0);
+        watch.Restart();
+        foreach (var noun in new[] { "árbol", "río", "fruta", "mesa", "piedra", "camino" })
+        {
+            Assert.NotNull(snapshot.NearestOfNoun(viewpoint, noun));
+        }
+
+        // Taking the copy for a turn, and six searches over it, are a small part of a second even on a slow machine.
+        Assert.True(copied < 1500, $"the snapshot took {copied:F0} ms");
+        Assert.True(watch.Elapsed.TotalMilliseconds < 3000, $"six searches took {watch.Elapsed.TotalMilliseconds:F0} ms");
+        Assert.Equal(BlockId.Air, snapshot.BlockAt(new GuideCell(5, 127, 5)));
+        Assert.Equal(BlockId.Water, snapshot.BlockAt(new GuideCell(scene.Point("lake").X, scene.Point("lake").Y, scene.Point("lake").Z)));
+    }
 }

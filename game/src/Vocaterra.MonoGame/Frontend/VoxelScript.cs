@@ -96,6 +96,12 @@ public sealed class VoxelScript
     /// <summary>The distance in blocks at which a walk counts as arrived.</summary>
     public const double ArrivedDistance = 0.5;
 
+    /// <summary>
+    /// How near a turning point of a planned route the body must come before it turns for the next one: closer than <see cref="ArrivedDistance"/>, so a
+    /// hop between two trunks starts from the middle of its corridor and not half a block to one side.
+    /// </summary>
+    public const double TurnTolerance = 0.2;
+
     /// <summary>The most ticks a walk may take (four minutes: the trail from the player's camp to the village is about a minute and a half).</summary>
     public const int WalkTickLimit = 14400;
 
@@ -322,7 +328,7 @@ public sealed class VoxelScript
             ex = waypointX + 0.5 - x;
             ez = waypointZ + 0.5 - z;
             distance = Math.Sqrt((ex * ex) + (ez * ez));
-            if (distance > ArrivedDistance || _routeIndex == _route.Count - 1)
+            if (distance > TurnTolerance || _routeIndex == _route.Count - 1)
             {
                 break;
             }
@@ -330,7 +336,7 @@ public sealed class VoxelScript
             _routeIndex++; // a turning point reached: on to the next
         }
 
-        if (distance <= ArrivedDistance)
+        if (distance <= ArrivedDistance && _routeIndex == _route.Count - 1)
         {
             _log(string.Create(CultureInfo.InvariantCulture, $"walk-to {step.X},{step.Z}: arrived at ({x:0.00}, {z:0.00}) after {_stepTicks} ticks"));
             return true;

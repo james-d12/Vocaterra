@@ -136,13 +136,26 @@ internal static class VoxelWalker
 
             foreach (var (dx, dz) in Directions)
             {
-                for (var dy = -1; dy <= 1; dy++)
+                // One block up, level, or down by up to three (a fall is free in this game), with the shaft of the move free.
+                for (var dy = 1; dy >= -3; dy--)
                 {
                     var next = new BlockPos(current.X + dx, current.Y + dy, current.Z + dz);
-                    if (!previous.ContainsKey(next) && Standable(grid, next))
+                    if (previous.ContainsKey(next) || !Standable(grid, next))
+                    {
+                        continue;
+                    }
+
+                    var clear = true;
+                    for (var y = next.Y; y <= Math.Max(next.Y + 1, current.Y + 1) && clear; y++)
+                    {
+                        clear = !grid.IsSolid(next.X, y, next.Z);
+                    }
+
+                    if (clear && (dy <= 0 || !grid.IsSolid(current.X, current.Y + 2, current.Z)))
                     {
                         previous[next] = current;
                         queue.Enqueue(next);
+                        break;
                     }
                 }
             }

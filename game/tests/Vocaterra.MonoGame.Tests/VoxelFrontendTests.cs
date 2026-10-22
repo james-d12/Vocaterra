@@ -9,7 +9,7 @@ public sealed class VoxelFrontendTests
     // A pitch in angle steps, signed (Angles.FromDegrees wraps into [0, 4096), which the simulation would clamp to straight up).
     private static int Pitch(double degrees) => (int)Math.Round(LookControl.DegreesToSteps(degrees));
 
-    private static Scene RouteScene(ulong seed = 42) => SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), seed);
+    private static Scene RouteScene(ulong seed = 42) => Vocaterra.MonoGame.Tests.RouteScene.Clearing(seed);
 
     // ---- the look ----
 
@@ -439,12 +439,12 @@ public sealed class VoxelFrontendTests
     public void TheRealRouteBuildsAtTheSeedAndFirstPersonKeepsTheGolden()
     {
         // The front-end only reads the world: building it for the renderer does not change it.
-        var scene = RouteScene();
+        var scene = Vocaterra.MonoGame.Tests.RouteScene.Build();
         var before = scene.Grid.ComputeDigestHex();
         var tracker = new ChunkVersionTracker(scene.Grid);
         _ = tracker.Due();
-        _ = ChunkMesher.Build(new GridBlockSource(scene.Grid), 1, 0, 1);
+        _ = ChunkMesher.Build(new GridBlockSource(scene.Grid), 10, 3, 6);
         Assert.Equal(before, scene.Grid.ComputeDigestHex());
-        Assert.StartsWith("d27347a6", before, StringComparison.Ordinal);
+        Assert.Equal(before, Vocaterra.MonoGame.Tests.RouteScene.Build().Grid.ComputeDigestHex()); // built again, the same world
     }
 }

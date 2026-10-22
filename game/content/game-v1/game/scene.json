@@ -49,7 +49,10 @@
   // Named places at fixed positions. A site with a radius levels the ground (to y, or to the height the land has there) out to that radius and
   // slopes it into the land over the blend; every site is also a named point of the scene.
   "sites": {
-    "camp.player": { "x": 151, "z": 111, "y": 72, "radius": 9, "blend": 5 },
+    // The player's camp: the brink of a ledge on the mountainside (where the player wakes, with the valley falling away to the south-east) and the
+    // wider ledge behind it, where the tent and the fire ring stand.
+    "camp.player": { "x": 155, "z": 115, "y": 72, "radius": 5, "blend": 4 },
+    "camp.ledge": { "x": 149, "z": 109, "y": 72, "radius": 9, "blend": 4 },
     "trail": { "x": 150, "z": 118 },
     "camp.guide": { "x": 176, "z": 186, "y": 42, "radius": 12, "blend": 8 },
     "bridge.west": { "x": 226, "z": 205, "y": 37, "radius": 3, "blend": 3 },
@@ -100,8 +103,8 @@
 
   "props": [
     // The player's camp: a tent behind the spawn and a cold fire ring in front of it (lit at the end of the session).
-    {"type": "stamp", "stamp": "tent", "site": "camp.player", "dx": -7, "dz": -5, "facing": "south", "name": "tent"},
-    {"type": "fire_ring", "site": "camp.player", "dx": 4, "dz": -4, "name": "firering.player"},
+    {"type": "stamp", "stamp": "tent", "site": "camp.ledge", "dx": -7, "dz": -5, "facing": "south", "name": "tent"},
+    {"type": "fire_ring", "site": "camp.ledge", "dx": 5, "dz": -3, "name": "firering.player"},
 
     // The guide's camp: the workbench, the fire ring for the torch, the berry bushes and the bushes.
     {"type": "workbench", "site": "camp.guide", "dx": 2, "dz": -3, "length": 2, "axis": "x", "name": "workbench"},

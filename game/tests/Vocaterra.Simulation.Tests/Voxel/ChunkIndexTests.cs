@@ -103,5 +103,11 @@ public sealed class ChunkIndexTests
         Assert.NotEqual(first, grid.ComputeDigestHex());
         grid.SetBlock(5, 5, 5, BlockId.Air);
         Assert.Equal(first, grid.ComputeDigestHex());
+
+        // After one edit the digest rehashes one chunk and the 32-byte digests of the rest: far from the cost of hashing the world again.
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        grid.SetBlock(200, 60, 200, BlockId.Stone);
+        _ = grid.ComputeDigest();
+        Assert.True(watch.Elapsed.TotalMilliseconds < 100, $"a digest after one edit took {watch.Elapsed.TotalMilliseconds:F1} ms");
     }
 }
