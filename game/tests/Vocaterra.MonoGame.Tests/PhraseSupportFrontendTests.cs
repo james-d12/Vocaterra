@@ -65,41 +65,41 @@ public sealed class PhraseSupportFrontendTests
     }
 
     [Fact]
-    public void TheJournalOpensOnTheWordsPageAndTurnsToThePhrasesWithoutLosingTheWordsRead()
+    public void TheBookOpensOnTheNounsPageAndTurnsToThePhrasesWithoutLosingTheWordsRead()
     {
         var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
         session.Words.MarkHeard("madera");
-        var journal = new JournalModel();
+        var journal = new BookModel();
 
         journal.Open(session.Words);
 
-        Assert.Equal(JournalPage.Words, journal.Page);
+        Assert.Equal(BookPage.Nouns, journal.Page);
         Assert.Equal(1, session.Words.RecordOf("madera").Read); // the label was shown
-        journal.TogglePage();
-        Assert.Equal(JournalPage.Phrases, journal.Page);
-        journal.TogglePage();
-        Assert.Equal(JournalPage.Words, journal.Page);
+        journal.Turn(forward: true);
+        Assert.Equal(BookPage.Verbs, journal.Page);
+        journal.Turn(forward: false);
+        Assert.Equal(BookPage.Nouns, journal.Page);
         Assert.Equal(1, session.Words.RecordOf("madera").Read); // once per opening, not per page turn
         journal.Close();
-        journal.Show(JournalPage.Phrases);
-        Assert.Equal(JournalPage.Words, journal.Page); // a closed journal has no page to turn
+        journal.Show(BookPage.Phrases);
+        Assert.Equal(BookPage.Nouns, journal.Page); // a closed book has no page to turn
     }
 
     [Fact]
-    public void AJournalOpenedOnThePhrasesPageDoesNotCountTheWordsAsReadUntilTheyAreShown()
+    public void ABookOpenedOnThePhrasesPageDoesNotCountTheWordsAsReadUntilTheyAreShown()
     {
         var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
         session.Words.MarkHeard("madera");
-        var journal = new JournalModel();
+        var journal = new BookModel();
 
         journal.Open(session.Words);
         journal.Close();
         var before = session.Words.RecordOf("madera").Read;
-        var other = new JournalModel();
+        var other = new BookModel();
         other.Open(session.Words); // reads once
         Assert.Equal(before + 1, session.Words.RecordOf("madera").Read);
-        other.Show(JournalPage.Phrases);
-        other.Show(JournalPage.Words);
+        other.Show(BookPage.Phrases);
+        other.Show(BookPage.Nouns);
         Assert.Equal(before + 1, session.Words.RecordOf("madera").Read);
     }
 
@@ -414,7 +414,7 @@ public sealed class PhraseSupportFrontendTests
         var cmap = TrueTypeCmap.Load(Repo.Path("assets", "fonts", "pixel-operator", "PixelOperator.ttf"));
         var strings = new List<string>
         {
-            SupportLayer.CardTag, SupportLayer.ChipText, SupportLayer.KeyWordsHeading, JournalLayer.PhrasesTitle, JournalLayer.WordsTab, JournalLayer.PhrasesTab, JournalLayer.KeyHints,
+            SupportLayer.CardTag, SupportLayer.ChipText, SupportLayer.KeyWordsHeading, BookTabs.Title, BookTabs.KeyHints, BookTabs.LabelOf(BookPage.Phrases),
             PhraseJournalRows.HearsText, PhraseJournalRows.CardAndAudioText, PhraseJournalRows.AudioOnlyText, PhraseJournalRows.NoneText,
             "with help 1   without help 0.5   choices 0   don't know 0   other situation 0", "heard 1   answered 1", "Without help: 1 of 4", "and 3 more", "audio",
         };

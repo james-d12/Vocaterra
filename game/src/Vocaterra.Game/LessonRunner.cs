@@ -82,6 +82,8 @@ public sealed record LessonUnitRow(string StepId, StepOutcome Outcome);
 /// <param name="DontKnowUses">The times "no sé" was said or pressed in the lesson.</param>
 /// <param name="RepeatUses">The times the learner asked the guide to say the lesson's line again ("Otra vez, por favor", "Más despacio, por favor").</param>
 /// <param name="Phrases">The phrases the lesson teaches, in order.</param>
+/// <param name="Summary">The lesson's English summary for a completed lesson (what the learner can say now), or <see langword="null"/>.</param>
+/// <param name="StepIds">The lesson's step ids in order (the book groups them into units), or <see langword="null"/> for a version 1 load.</param>
 public sealed record LessonRecordRow(
     string LessonId,
     string Title,
@@ -94,7 +96,9 @@ public sealed record LessonRecordRow(
     int HelpUses,
     int DontKnowUses,
     int RepeatUses,
-    IReadOnlyList<string> Phrases);
+    IReadOnlyList<string> Phrases,
+    string? Summary = null,
+    IReadOnlyList<string>? StepIds = null);
 
 /// <summary>
 /// Runs the lessons of <c>game/lessons.json</c> (S16): a data-driven sequence of steps attached to an NPC. One lesson runs at a time; each step has a skip and a
@@ -199,7 +203,9 @@ public sealed class LessonRunner
             state.HelpUses,
             state.DontKnowUses,
             state.RepeatUses,
-            lesson.TaughtPhrases);
+            lesson.TaughtPhrases,
+            lesson.Summary,
+            lesson.Steps.Select(static step => step.Id).ToArray());
     }).ToArray();
 
     /// <summary>The lesson that has begun and not finished, or <see langword="null"/>.</summary>

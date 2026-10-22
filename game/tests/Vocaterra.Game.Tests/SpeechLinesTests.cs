@@ -53,7 +53,7 @@ public sealed class SpeechLinesTests
     {
         var cards = Lines.Where(static l => l.Kind == SpeechKind.Word).ToDictionary(static l => l.LineId, static l => l.Text, StringComparer.Ordinal);
         Assert.Equal(
-            ["card.agua", "card.antorcha", "card.botella", "card.fruta", "card.madera", "card.pan"],
+            ["card.agua", "card.antorcha", "card.botella", "card.fruta", "card.libro", "card.madera", "card.pan"],
             cards.Keys.Order(StringComparer.Ordinal));
         Assert.Equal("la madera", cards["card.madera"]);
         Assert.Equal("la fruta", cards["card.fruta"]);
@@ -61,6 +61,7 @@ public sealed class SpeechLinesTests
         Assert.Equal("la botella", cards["card.botella"]);
         Assert.Equal("el agua", cards["card.agua"]);
         Assert.Equal("el pan", cards["card.pan"]);
+        Assert.Equal("el libro", cards["card.libro"]); // the learner's book (S20)
         Assert.All(cards.Values, static text => Assert.Equal(SpeechSpeakers.Guide, Lines.Single(l => l.Text == text && l.Kind == SpeechKind.Word).Speaker));
     }
 

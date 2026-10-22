@@ -38,8 +38,7 @@
     "btnSlower": "slower",
     "btnHelp": "help",
     "btnDontKnow": "I don't know",
-    "btnType": "type",
-    "btnHold": "hold to speak; Esc cancels or closes"
+    "btnType": "type"
   },
   "npcNames": {
     "guide": "The guide",

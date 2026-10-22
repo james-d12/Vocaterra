@@ -19,9 +19,10 @@
 {"path":"evaluation/evaluation-config.json","sha256":"fc7d6d2567808648dd6615e4c2ea60556b50eba487ee381e74d5d0769003867d","bytes":1632},
 {"path":"feedback/feedback-policy.json","sha256":"63e3ac7e5a4e7c95ca2d26212ae2536622e606be07cc2117f89cdb34f4da9dcf","bytes":492},
 {"path":"game/checks.json","sha256":"2e77e10770c12d43c1579db6903c044d5940871f5490236996c88d144ad413ae","bytes":8593},
-{"path":"game/english.json","sha256":"2f790b3ff4646de5077ffb44fe2c9fae6b7cca75ac116bb99d1ecef302a4662d","bytes":19128},
-{"path":"game/lessons.json","sha256":"5c85f9ee26a953be951a694bfd3b13ef1c5e96d27739525049740ce2c7f41c1e","bytes":12516},
-{"path":"game/nouns.json","sha256":"e615eae632592aac081bc0dac835742f55394aa7470a41bb8d3b74b8df17b0dd","bytes":1464},
+{"path":"game/english.json","sha256":"5e879452986df60c6a36a671b8fff046cce61b44907311fb6194a27d51f990c6","bytes":19073},
+{"path":"game/glosses.json","sha256":"1dec0333191dfee6325cf50bce1e4dd7beee4c8b028a821f277937d48cb8b984","bytes":2510},
+{"path":"game/lessons.json","sha256":"d5fc1165aa9490b3cfa27f83fe4dd3ed0e9a642260d531fa3803bfd582d2ebc2","bytes":12645},
+{"path":"game/nouns.json","sha256":"b13fe2ed1cf0c1c79cc7417c7e67420ee0e68e4bdcce175fc3a89cedeb0c32f4","bytes":1523},
 {"path":"game/phrases.json","sha256":"667d418b9a14317ff4cd87780d41ebdcde174fad4fad687af1b16b17454167d9","bytes":6464},
 {"path":"game/recipes.json","sha256":"e369e410429aa82e34b85fabad23550b71a551086d69dc365fd892a57b2247ed","bytes":191},
 {"path":"game/scene.json","sha256":"4e589b91eb29b4c0082377edb5015bb7d992034f7f82a16daf12c30d8be06fd4","bytes":11795},
@@ -33,7 +34,7 @@
 {"path":"lexicon/wiktionary-es.source.json","sha256":"9cecd4bd49f21bfb153b69aeaaa1118740e8649ba5dce61a9dc925e557134b70","bytes":3640},
 {"path":"lexicon/world.json","sha256":"5f4621688b17027f1925fb9c6504753a7abc8d2a4d9f6ef114150085b22e11d5","bytes":1579},
 {"path":"prompts/prompts.json","sha256":"d095afb89519854f0451869fee878b5be3e8e485a0525355b18413001020785f","bytes":4376},
-{"path":"provenance.json","sha256":"b9ef926d72a941bd7a53d92bb88f47e679aad91380234f65268bf8cee7fa4eaa","bytes":73996},
+{"path":"provenance.json","sha256":"4f2cb1d387ab63a2bf252160ef64b9639af0cd0c17e035b2b7ce49da9c9004b4","bytes":74550},
 {"path":"speech/answer_accepted.1.slow.wav","sha256":"51451a86215f94bde2697ddfa526b537a85838d7ebf0a45d585b04cb6a5cf546","bytes":58844},
 {"path":"speech/answer_accepted.1.wav","sha256":"db65f6b943a2968a335da25fcef1199971ed172c65a393d461a8a47b525fa6fe","bytes":46844},
 {"path":"speech/answer_accepted.2.slow.wav","sha256":"f1e6aad21a2bfcd911e843c8e6b634e5853df1544b1b1ddefb52cfb23b5554d7","bytes":43244},
@@ -48,6 +49,8 @@
 {"path":"speech/card.botella.wav","sha256":"fb2b616bafd8083cb51d60a307b77160eacb4cb6230e78e90f24f70060ca0ff7","bytes":50444},
 {"path":"speech/card.fruta.slow.wav","sha256":"b38bec0abce54b2dfa61a3122f1d6086bfbee486f9d2374218ff47b55bdb5b0b","bytes":55244},
 {"path":"speech/card.fruta.wav","sha256":"031775cd2405e445e3b18f64091134b52e5badbebac5a950a7eb049bcfefb755","bytes":44444},
+{"path":"speech/card.libro.slow.wav","sha256":"bcdac602ea3807185e8544bf4a1917ed34fe5050ffb81eed6d2b6060aadfd88a","bytes":55244},
+{"path":"speech/card.libro.wav","sha256":"87a1bfc9a1f6ade74571fcde4d844640a334adbe7bda06de05f7b69711a3f870","bytes":44444},
 {"path":"speech/card.madera.slow.wav","sha256":"43dc378bc9b25e532f7bde4c04e15a15dedc70d5540dfa0b1eef96dc4ac66aa4","bytes":58844},
 {"path":"speech/card.madera.wav","sha256":"6510d4de85fa3f8615d66c263db49008dbdef1596b7e47aaf6ca8897637f5558","bytes":46844},
 {"path":"speech/card.pan.slow.wav","sha256":"7d0749afc9c4e00b6c1b5bfbef8a5de78421bd806e83e3d21bba724e4d9a87fd","bytes":46844},
@@ -332,4 +335,4 @@
 {"path":"speech/villager_thank.1.wav","sha256":"264a8166023475d7d7842d08050d562924cb4212881ad755cc67afd728d5f7bb","bytes":45644},
 {"path":"speech/villager_thank.2.slow.wav","sha256":"791dd1d9ba9a64ba04d5b734f0e8c91b4ab25fa869ec85a6e2a6937a5b794ea0","bytes":70844},
 {"path":"speech/villager_thank.2.wav","sha256":"0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3","bytes":54044}
-],"bundleHash":"49ef3ba386c38e7e3ea77f7125a83d18b598d49e2dd89920a3c052a2a253733e"}
+],"bundleHash":"145152e60f7c1bb58a709ac2717cf8850963e71be129e1084ca0ef9b52ecab10"}

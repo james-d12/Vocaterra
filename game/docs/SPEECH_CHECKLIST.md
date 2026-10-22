@@ -22,6 +22,8 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | card.botella | speech/card.botella.wav | guide | 1.0 | la botella |  |
 | card.fruta | speech/card.fruta.slow.wav | guide | 0.8 | la fruta |  |
 | card.fruta | speech/card.fruta.wav | guide | 1.0 | la fruta |  |
+| card.libro | speech/card.libro.slow.wav | guide | 0.8 | el libro |  |
+| card.libro | speech/card.libro.wav | guide | 1.0 | el libro |  |
 | card.madera | speech/card.madera.slow.wav | guide | 0.8 | la madera |  |
 | card.madera | speech/card.madera.wav | guide | 1.0 | la madera |  |
 | card.pan | speech/card.pan.slow.wav | guide | 0.8 | el pan |  |

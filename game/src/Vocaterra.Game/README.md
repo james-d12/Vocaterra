@@ -319,4 +319,14 @@ the session log; nothing is sent. Everything is plain values, with no clock and 
 - `session.Lessons.Record`: one `LessonRecordRow` per lesson in the bundle's `lessons.json` order: `LessonId`, `Title`, `English`, `Status`, `StepCount`,
   `Units`, `CompletedSession`, `Turns`, `HelpUses`, `DontKnowUses`, `RepeatUses`, `Phrases`.
 - `LearnerSummary.Lines(learner, lessons, session, storedTime)`: the console summary the front-end prints at exit (`book: summary at exit`), as text.
+- **What the book (S20) adds to the record.** `FormRow.Question` (a form used in a question is a form of its own: `¿quieres?`) and `FormRow.Last` (the
+  form's last use, a `WordUse`); a version 2 save keeps both. `LessonDefinition.Summary` and `LessonRecordRow.Summary` (the English line of a completed lesson,
+  from the optional `summary` in `game/lessons.json`), `LessonRecordRow.StepIds` (the steps in order; the book groups them into units by their prefix).
+- **`game/glosses.json` (S20)**, `VerbGlosses` (`Load(bundle)`, `ForLemma`, `All`; `session.Glosses`): the English of a verb (`to want`), with optional
+  `third` and `past` for the irregular ones. The lexicon has no gloss, so a verb not in the file is shown by its infinitive alone. Read by the file's
+  manifest entry; a verb whose gloss does not start with `to` is a load error.
+- **`EnglishText.FeedbackFor(InputEntry)`** (S20): the feedback lines for a history entry (understood, understood with a mistake, not understood, uncertain,
+  "no sé", help), the same lines as `FeedbackFor(GuideTurn)`. `GuideSession.DefiniteArticle(gender, lemma)` gives a noun's article from the bundle's morphology.
+- **The book item (S20).** `ItemId.Book` (29, stack 1) is given by `VoxelSession` at a new game (`Simulation.GrantItems`); a loaded save puts its own slots back.
+  `btnHold` is gone from `english.json` and `EnglishText.UiKeys`.
 

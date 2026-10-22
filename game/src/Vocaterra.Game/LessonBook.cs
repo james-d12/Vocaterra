@@ -118,7 +118,8 @@ public sealed record LessonStep(
 /// <param name="AutoStart">Whether the lesson starts by itself the first time the player talks to its NPC (otherwise it is offered, and L starts it).</param>
 /// <param name="After">The id of a lesson that must be completed first, or <see langword="null"/>.</param>
 /// <param name="Steps">The steps, in order.</param>
-public sealed record LessonDefinition(string Id, string Npc, string Title, string English, bool AutoStart, string? After, IReadOnlyList<LessonStep> Steps)
+/// <param name="Summary">What the learner can say once the lesson is done, in English (the book's line for a completed lesson, S20), or <see langword="null"/>.</param>
+public sealed record LessonDefinition(string Id, string Npc, string Title, string English, bool AutoStart, string? After, IReadOnlyList<LessonStep> Steps, string? Summary = null)
 {
     /// <summary>The phrases the lesson teaches: those of its <c>repeat</c> and <c>answer</c> steps, in order, each once.</summary>
     public IReadOnlyList<string> TaughtPhrases =>
@@ -255,7 +256,7 @@ public sealed class LessonBook
         }
 
         var autoStart = element.TryGetProperty("autoStart", out var auto) && auto.ValueKind == JsonValueKind.True;
-        var lesson = new LessonDefinition(id, npc, Text(element, "title"), Text(element, "english"), autoStart, after, steps);
+        var lesson = new LessonDefinition(id, npc, Text(element, "title"), Text(element, "english"), autoStart, after, steps, Optional(element, "summary"));
         foreach (var recap in steps.Where(static s => s.Type == LessonStepType.Recap))
         {
             foreach (var phrase in recap.Phrases)

@@ -109,7 +109,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly KeyRepeater _delete = new();
     private readonly KeyRepeater _left = new();
     private readonly KeyRepeater _right = new();
-    private readonly JournalModel _journal = new();
+    private readonly BookModel _book = new();
     private readonly ToastQueue _toasts = new();
     private readonly InventoryScreen _inventory = new();
     private readonly BusyFrameStats _draws = new();
@@ -128,6 +128,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private KeyboardState _previousKeys;
     private int _previousScroll;
     private bool _previousLeftDown;
+    private int _previousWheel;
     private bool _previousRightDown;
     private bool _captureWanted = true;
     private bool _firstUpdateSeen;
@@ -189,7 +190,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _actions = new SpeechActionRunner(session, _dialogue, voice, CursorCell);
         _support = new SupportFrontend(session, _dialogue, _actions, Console.WriteLine);
         _lesson = new LessonFrontend(session, _dialogue, Console.WriteLine);
-        _lesson.OnRecapDone = ShowPhrasesJournal; // the lesson's recap ends on the journal's phrases page (S17)
+        _lesson.OnRecapDone = ShowPhrasesBook; // the lesson's recap ends on the journal's phrases page (S17)
         _ending.MarkSeen(session); // a game loaded after its ending does not play it again
         _micCheck = options.ShowsMicCheck ? new MicCheckModel(session.LogMicCheck) : null;
         _playtest = options.Playtest;
@@ -297,9 +298,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             CloseDialogue();
         }
 
-        if (_journal.IsOpen)
+        if (_book.IsOpen)
         {
-            CloseJournal();
+            CloseBook();
         }
 
         if (_inventory.IsOpen)
@@ -382,7 +383,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Fonts = new FontProvider(AssetPaths.Font),
             Pixel = _pixel,
             Seed = _options.Seed,
-            Journal = _journal,
+            Book = _book,
             Toasts = _toasts,
             Inventory = _inventory,
             Crafting = _crafting,
@@ -413,7 +414,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _layers.Add(new DialoguePanel());
         _layers.Add(new ToastLayer());
         _layers.Add(new EndingLayer());
-        _layers.Add(new JournalLayer());
+        _layers.Add(new BookLayer());
         _layers.Add(new InventoryLayer());
         _layers.Add(new CraftingLayer());
         _layers.Add(new ControlsLayer());
@@ -486,7 +487,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         PumpTalk(seconds);
         _pump.Submit();
         SyncBeacon();
-        var free = _scenario is null && WorldRunning && !_dialogue.IsOpen && !_journal.IsOpen && !_inventory.IsOpen && !_crafting.IsOpen && !_controlsOpen && _session.PendingTurns == 0;
+        var free = _scenario is null && WorldRunning && !_dialogue.IsOpen && !_book.IsOpen && !_inventory.IsOpen && !_crafting.IsOpen && !_controlsOpen && _session.PendingTurns == 0;
         if (GuideApproach.ShouldGreet(_session, ref _greetArmed, free))
         {
             Console.WriteLine("approach: the guide greets the player and her lesson begins");
@@ -516,7 +517,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 _shown = true;
                 if (_options.Journal)
                 {
-                    OpenJournal();
+                    OpenBook();
                 }
 
                 if (_options.ShowInventory)
@@ -779,7 +780,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
     private void OpenCrafting()
     {
-        if (_journal.IsOpen || _inventory.IsOpen || _dialogue.IsOpen)
+        if (_book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen)
         {
             return;
         }
@@ -847,16 +848,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     _controlsOpen = false; // the controls help (F1, S16)
                 }
             }
-            else if (_journal.IsOpen)
+            else if (_book.IsOpen)
             {
-                if (Pressed(Keys.Escape) || Pressed(Keys.J))
-                {
-                    CloseJournal();
-                }
-                else if (Pressed(Keys.Tab) || Pressed(Keys.Left) || Pressed(Keys.Right))
-                {
-                    _journal.TogglePage(); // the words page and the phrases page
-                }
+                ReadBookKeys(keys, Pressed);
             }
             else if (_inventory.IsOpen)
             {
@@ -895,7 +889,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
             else if (Pressed(Keys.J))
             {
-                OpenJournal();
+                OpenBook();
             }
             else if (Pressed(Keys.C) || (Pressed(Keys.E) && AimedAtWorkbench()))
             {
@@ -917,9 +911,25 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
         }
 
-        var uiOpen = _journal.IsOpen || _inventory.IsOpen || _dialogue.IsOpen || _crafting.IsOpen || _controlsOpen || _micCheck is { IsActive: true };
+        var uiOpen = _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen || _crafting.IsOpen || _controlsOpen || _micCheck is { IsActive: true };
         var leftDown = mouse.LeftButton == ButtonState.Pressed;
         var rightDown = mouse.RightButton == ButtonState.Pressed;
+        // The wheel scrolls the book (three lines a notch, up for a turn up); a click on a tab turns to that page (S20).
+        var bookWheel = mouse.ScrollWheelValue;
+        if (IsActive && _book.IsOpen && bookWheel != _previousWheel)
+        {
+            _book.Scroll(-(int)Math.Round((bookWheel - _previousWheel) / 40.0));
+        }
+
+        _previousWheel = bookWheel;
+        if (IsActive && _book.IsOpen && leftDown && !_previousLeftDown)
+        {
+            if (new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height).TabAt(mouse.X, mouse.Y) is { } tab)
+            {
+                _book.Show(tab);
+            }
+        }
+
         if (IsActive && _crafting.IsOpen && leftDown && !_previousLeftDown)
         {
             // A click on a row of the panel asks for one craft in the next tick (the same command a script sends).
@@ -980,6 +990,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         var target = _sim.Target;
+        // Using the book item (selected, right-click) opens the book, as J does (S20). The item is not placeable, so the press places nothing.
+        if (IsActive && captured && rightDown && !_previousRightDown && !_book.IsOpen && _sim.SelectedStack is { Item: ItemId.Book, Count: > 0 })
+        {
+            OpenBook();
+        }
+
         _live.SetFrame(
             strafe,
             forward,
@@ -2080,19 +2096,60 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
     }
 
-    private void OpenJournal()
+    // The book's keys (S20): Escape or J closes it; Tab (Shift and Tab turns back), Left and Right turn the page; Page Up and Page Down, Up and Down scroll.
+    private void ReadBookKeys(KeyboardState keys, Func<Keys, bool> pressed)
     {
-        _journal.Open(_session.Words);
-        if (_options.JournalPhrases)
+        if (pressed(Keys.Escape) || pressed(Keys.J))
         {
-            _journal.Show(JournalPage.Phrases);
+            CloseBook();
+            return;
         }
 
-        _focus.JournalOpen = true;
+        if (pressed(Keys.Tab))
+        {
+            _book.Turn(forward: !(keys.IsKeyDown(Keys.LeftShift) || keys.IsKeyDown(Keys.RightShift)));
+        }
+        else if (pressed(Keys.Left))
+        {
+            _book.Turn(forward: false);
+        }
+        else if (pressed(Keys.Right))
+        {
+            _book.Turn(forward: true);
+        }
+
+        var lines = new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height).LinesVisible;
+        if (pressed(Keys.PageDown))
+        {
+            _book.Scroll(lines);
+        }
+        else if (pressed(Keys.PageUp))
+        {
+            _book.Scroll(-lines);
+        }
+        else if (pressed(Keys.Down))
+        {
+            _book.Scroll(1);
+        }
+        else if (pressed(Keys.Up))
+        {
+            _book.Scroll(-1);
+        }
+    }
+
+    private void OpenBook()
+    {
+        _book.Open(_session.Words);
+        if (_options.BookStart is { } start)
+        {
+            _book.Show(start);
+        }
+
+        _focus.BookOpen = true;
     }
 
     // The end of the lesson's recap (S17): the panel closes and the journal opens on its phrases page, where each phrase the lesson taught is listed with the help it has now.
-    private void ShowPhrasesJournal()
+    private void ShowPhrasesBook()
     {
         if (_scenario is not null)
         {
@@ -2104,20 +2161,20 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             CloseDialogue();
         }
 
-        _journal.Open(_session.Words);
-        _journal.Show(JournalPage.Phrases);
-        _focus.JournalOpen = true;
+        _book.Open(_session.Words);
+        _book.Show(BookPage.Phrases);
+        _focus.BookOpen = true;
     }
 
-    private void CloseJournal()
+    private void CloseBook()
     {
-        _journal.Close();
-        _focus.JournalOpen = false;
+        _book.Close();
+        _focus.BookOpen = false;
     }
 
     private void OpenInventory()
     {
-        if (_journal.IsOpen)
+        if (_book.IsOpen)
         {
             return;
         }

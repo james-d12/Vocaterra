@@ -236,6 +236,8 @@ public static class BlockArt
                 return BottleIconPixel(x, y, filled: true);
             case BlockCell.IconBread:
                 return BreadIconPixel(x, y);
+            case BlockCell.IconBook:
+                return BookIconPixel(x, y);
             default:
                 return Clear;
         }
@@ -317,6 +319,27 @@ public static class BlockArt
         }
 
         return x == 6 && y is >= 8 and <= 11 ? Shade(250, 253, 255, 0) : Shade(206, 232, 246, 0);
+    }
+
+    private static (byte R, byte G, byte B, byte A) BookIconPixel(int x, int y)
+    {
+        // A closed book, seen from the front: a brown cover with a gold band across it, and cream page edges along the right and bottom.
+        if (x < 2 || x > 13 || y < 3 || y > 14)
+        {
+            return Clear;
+        }
+
+        if (x >= 12 || y >= 13)
+        {
+            return Shade(236, 226, 196, 0);
+        }
+
+        if (y is 7 or 8)
+        {
+            return Shade(214, 180, 70, 0);
+        }
+
+        return x == 2 ? Shade(70, 40, 20, 0) : Shade(128, 74, 40, 0);
     }
 
     private static (byte R, byte G, byte B, byte A) BreadIconPixel(int x, int y)

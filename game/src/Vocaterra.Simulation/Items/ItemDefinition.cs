@@ -25,6 +25,9 @@ public enum ItemId : ushort
 
     /// <summary>A bread (<c>pan</c>), handed over at the stall or by the villager (S6).</summary>
     Bread = 28,
+
+    /// <summary>The learner's book (S20, D-game-16): given at the start; using it (selected, right-click) opens the book.</summary>
+    Book = 29,
 }
 
 /// <summary>
@@ -46,6 +49,7 @@ public sealed record ItemDefinition(ItemId Id, string Name, int MaxStack)
         new(ItemId.Bottle, "bottle", DefaultStackLimit),
         new(ItemId.WaterBottle, "water-bottle", DefaultStackLimit),
         new(ItemId.Bread, "bread", DefaultStackLimit),
+        new(ItemId.Book, "book", 1),
     ];
 
     /// <summary>Every item kind, ordered by id.</summary>
