@@ -291,7 +291,7 @@ In `src/Vocaterra.MonoGame`, the only engine code:
   bottle, completes the objective and the transfer step, and writes a session log; the report script reads it back.
 - Playtest (S12): a fresh clone builds and runs the scripted scenario; the facilitator checklist is followed once by the owner before any tester.
 
-## 8. Second pass: the owner's playtest feedback (2026-10-22), milestones S13 to S22
+## 8. Second pass: the owner's playtest feedback (2026-10-22), milestones S13 to S23
 
 The owner played the S12 build: "it's ok", with five changes asked for:
 
@@ -639,6 +639,23 @@ S18, S20) and left open.
 7. **Saves from before S20 have no book item** (S20). Loading a save without the book grants it once, and a test covers it.
 - **Demo:** screenshots of a conversation with cards (before and after), a playtest dialogue with the F10 label, the workbench, and the
   book in greyscale; the report script's durations from a scripted session; the route's Vosk step with its transcript.
+
+### S23: the LanguageTool check over the game's Spanish (Haiku 5.5, S)
+
+After core M30 (D10's dev-time half, owner 2026-10-22; research in `nlp/docs/research/2026-10-22-languagetool.md`).
+- **The game's strings.** A `--strings` JSONL extractor for the game's Spanish: dialogue lines, prompts, answer sets, PHRASES.md rows
+  (Spanish, variants and learner-error examples), lessons, checks, and the Spanish sides of english.json. Slot templates are rendered by the
+  core. Spanish only; the owner chose to leave the English support text out.
+- **The first run over game-v1**, with waivers for each accepted match and a reason for each, and the cache committed.
+- **Findings to settle:**
+  - `si quiero` without its accent in `answer-sets/yes-no.json` and `lesson-yes-no.json`: a fix, or a waiver if the unaccented form is
+    there on purpose for speech recognition (check how answers match);
+  - `traveller`, which should be `traveler`, in `checks.json` (en-US).
+- **The gate.** An advisory step in `scripts/merge-gate.sh`, run offline from the cache, that prints matches and never fails. The step
+  becomes required after this first waiver round (owner); the orchestrator flips it.
+- **Review chain.** The D-game-12 chain becomes lint, cefr-check, grammar, then the Opus pass. PLAYTEST.md and CONTRIBUTING notes follow.
+- **Logged, not live:** the template `guide.find.source` would render `de el` in the singular. The guide always passes `many = 2`, so it
+  renders `de los …`. A singular caller would need `del` (the core has no contraction).
 
 ### S18: the playtest refresh (Haiku 5.5, S)
 

@@ -15,7 +15,7 @@ editing its status; the plan (`IMPLEMENTATION_PLAN.md`) and ADRs follow.
 | D7 | Blacksmith sample content stays as the core's demo | decided (M19a): kept as the sample and demo |
 | D8 | Online or offline | open |
 | D9 | Determinism strictness (ADR 0010) | open |
-| D10 | Licence stance on MPL-2.0 and on GPL/LGPL dev-time processes | open |
+| D10 | Licence stance on MPL-2.0 and on GPL/LGPL dev-time processes | partly decided (owner, 2026-10-22): GPL/LGPL tools allowed as separate, local, development-time processes (LanguageTool, M30); MPL-2.0 still open |
 | D11 | Cloud cost cap for an optional tutor | open |
 | D12 | Game engine | moved (owner, 2026-10-21): a Vocaterra repository decision; not tracked here |
 | D13 | Pronunciation ambition | open, after the speech check |
@@ -92,6 +92,12 @@ C# binding) is MPL-2.0; LanguageTool (LGPL) is useful only as a separate develop
 **Recommendation:** accept MPL-2.0 for unmodified libraries (add it to `scripts/license-allowlist.txt`
 with a note), allow GPL/LGPL tools only as separate processes used at development time, never linked
 or shipped. **Waiting on it:** M20 (tagger choice), M22 (evaluation oracles).
+
+**Owner, 2026-10-22 (the dev-time half).** After the LanguageTool research (`docs/research/2026-10-22-languagetool.md`), the owner accepted
+LanguageTool as a separate, local, development-time grammar check called over HTTP: no LanguageTool code is linked, nothing is shipped,
+and no content is sent to the public API. The check covers the Spanish content of both bundles, with plain `es` as the stand-in for
+neutral Latin American Spanish. It is advisory in the merge gate until one round of waivers is done, then required. The MPL-2.0 half
+(UDPipe for M20) stays open.
 
 ## D11. Cloud cost cap
 If the tutor uses a hosted model, set a monthly cap. The report estimates about $0.30 per 1 000
