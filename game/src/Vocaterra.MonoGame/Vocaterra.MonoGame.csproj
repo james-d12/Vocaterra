@@ -55,6 +55,8 @@
   <!-- Assets live at the repository root (assets/ATTRIBUTION.md records each file) and are copied next to the executable. -->
   <ItemGroup>
     <None Include="../../assets/fonts/pixel-operator/PixelOperator.ttf" Link="assets/fonts/PixelOperator.ttf" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The sounds (S24): 16-bit PCM WAV files, all CC0, each listed in assets/audio/SOURCES.md. -->
+    <None Include="../../assets/audio/*.wav" Link="assets/audio/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

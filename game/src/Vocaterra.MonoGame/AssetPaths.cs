@@ -8,4 +8,10 @@ public static class AssetPaths
 
     /// <summary>The full path of the font file.</summary>
     public static string Font => Path.Combine(AppContext.BaseDirectory, FontRelative);
+
+    /// <summary>The folder of the sound files relative to the executable (see <c>assets/audio/SOURCES.md</c> for each file's source and licence, S24).</summary>
+    public const string AudioRelative = "assets/audio";
+
+    /// <summary>The full path of the sound files' folder.</summary>
+    public static string Audio => Path.Combine(AppContext.BaseDirectory, AudioRelative);
 }
