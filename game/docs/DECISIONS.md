@@ -24,6 +24,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-16 | The learner's book: words used and lessons completed | decided (owner, 2026-10-22): record every spoken and typed input; a book shows the nouns and verbs used and the lessons completed | nothing |
 | D-game-17 | In-game bug and feature reports | decided (owner, 2026-10-22): F8 saves a Markdown report with a screenshot, game state, recent turns and the session log tail; local files only, no upload | nothing |
 | D-game-18 | Sound | decided (owner, 2026-10-22): ambient, interaction and progress sounds; CC0 packs plus code-synthesized sounds; no music; ambient and effects duck under the voices and are silent while the microphone records | nothing |
+| D-game-19 | Verbs in the lessons | decided (owner, 2026-10-22): verbs early but gradual, across sessions (yo/tú in session 1, the other persons in session 2, ir a + infinitive and a few past forms in session 3), lessons replayable from the book; conjugation tables in the book | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -194,6 +195,20 @@ synthesized in code where no good CC0 file exists, and no music.
   - they are silent while the microphone records, so no game sound reaches speech recognition.
 - Sounds never touch the evaluation path or the replay.
 Plan: section 8, S24 (the system, interaction and progress) and S25 (ambient and footsteps).
+
+## D-game-19: verbs in the lessons (decided)
+
+**Owner, 2026-10-22.** "We also need to include verbs more in the lessons, verbs are important, with spanish we have various forms of the
+verb for we, i, you, etc. Also past, present future. so its important to introduce them early, but of course not overwhelm the user." Asked
+how, the owner chose:
+- **Across sessions:**
+  - session 1: a yo/tú unit in the guide's lesson;
+  - session 2: the other persons;
+  - session 3: ir a + infinitive and a few past forms.
+- **Replay:** each lesson can be replayed from the book.
+- **Tables:** conjugation tables in the book (S28) show used forms highlighted, taught forms plain, and untaught tenses hidden.
+- **Scope:** vosotros is not taught (Latin American neutral). The simple future waits for A2.
+Plan: section 8, S26, S27 and S28; core M49 for the future-tense checks.
 
 ## D-game-7: one repository for the game and the core (done)
 

@@ -291,7 +291,7 @@ In `src/Vocaterra.MonoGame`, the only engine code:
   bottle, completes the objective and the transfer step, and writes a session log; the report script reads it back.
 - Playtest (S12): a fresh clone builds and runs the scripted scenario; the facilitator checklist is followed once by the owner before any tester.
 
-## 8. Second pass: the owner's playtest feedback (2026-10-22), milestones S13 to S25
+## 8. Second pass: the owner's playtest feedback (2026-10-22), milestones S13 to S28
 
 The owner played the S12 build: "it's ok", with five changes asked for:
 
@@ -768,6 +768,67 @@ The owner (2026-10-22): "the ability to replay the soundclip for any of the noun
   - click and Enter play, Shift plays slow;
   - `--mute` keeps the voices off;
   - `--sound-log` shows the plays.
+
+### S26: verbs in the lessons, sessions 1 and 2 (Sonnet 5.5, M)
+
+The owner (2026-10-22, D-game-19): "We also need to include verbs more in the lessons, verbs are important, with spanish we have various
+forms of the verb for we, i, you, etc. Also past, present future. so its important to introduce them early, but of course not overwhelm
+the user." The owner chose to spread verbs across sessions, with each lesson replayable from the book.
+
+The persons taught are yo, tú, usted, él/ella, nosotros and ustedes/ellos. vosotros is not taught (Latin American neutral). The core already
+grades the wrong person (`conj.person`) and irregular forms (`conj.irregular`); its lexicon holds every tense.
+
+- **Session 1: a short verb unit in the guide's lesson**, after "please and thank you":
+  - the present tense yo and tú of `querer`, `tener` and `necesitar` (quiero, quieres; tengo, tienes; necesito, necesitas);
+  - the guide asks "¿Qué quieres?" and "¿Tienes madera?", and the learner answers with yo forms;
+  - the English names the pattern once ("-o is I, -as/-es is you") and then thins as S16 does;
+  - the lesson must stay within 5 to 10 minutes: measure it again, and drop or shorten a unit if it grows past 10.
+- **Sessions.** The lesson runner unlocks lessons by session, stored in the save (S10). A lesson can be replayed from the book's Lessons
+  page: "Practise again" starts it at its NPC. Session 2 opens at the player's camp with an English objective that names the new lesson.
+- **Session 2: the lesson "Personas"** with the villagers and the shopkeeper:
+  - él/ella/usted and nosotros, ustedes/ellos of the same three verbs plus `ser`, `estar` and `ir` (present);
+  - the shopkeeper uses usted, and the learner answers about themself, a villager and "we";
+  - the same explain, model, repeat, answer, do units (S16), 5 to 10 minutes.
+- **Content.**
+  - New PHRASES.md rows, intents, examples (with learner-error examples carrying `conj.person` and `conj.irregular`), prompts, answer
+    sets, dialogue, support-card English, and check items (D-game-10).
+  - lint `--strict` and cefr-check clean; the game-v1 grammar step (required) refreshed against the local server.
+  - The orchestrator runs the Opus pass on the new rows (D-game-12); then the lines are pre-rendered and added to SPEECH_CHECKLIST.md.
+- **The record and the book.** S19's verb rows already record person and tense. The lessons declare which verb forms they teach
+  (lessons.json), so that S28's conjugation tables can show taught forms.
+- **A core gap stops that part** and is reported.
+
+### S27: verbs in the lessons, session 3, "Ayer y mañana" (Sonnet 5.5, M)
+
+After S26 and core M49.
+- **The near future** with ir a + infinitive (voy a comer, vas a ir, vamos a…): the A1 way to talk about tomorrow. The simple future comes
+  later, at A2.
+- **A few past forms** of high-frequency verbs in the preterite, yo and tú first (fui, tuve, comí; fuiste, tuviste), with time words
+  (ayer, mañana, hoy).
+- **The core's tense checks:**
+  - `conj.tense` after a past-time word already works;
+  - M49 adds a future-time word with a past form, and a conjugated verb after `ir a` (expected: the infinitive).
+- **Content, review, speech, checks and the replayable lesson** as in S26. The lesson is 5 to 10 minutes. Session 3 opens with an English
+  objective.
+
+### S28: the book remade as a book, with conjugation tables (Sonnet 5.5, M)
+
+The owner (2026-10-22): "a remake of the UI for the book, it should look like a book." The owner chose conjugation tables for verbs.
+- **It looks like a book.** A two-page spread on paper, drawn in code (CC0, D-game-5): a spine and binding, page edges, and a cover colour.
+  The page tabs become ribbon bookmarks at the top edge (Nouns, Verbs, Phrases, Lessons, What I said). Turning pages shows a short
+  page-turn animation, and S24 plays the page-turn cue. Ink-coloured text on paper stays readable at 1280 x 720 and 800 x 600. The left
+  page lists; the right page shows the selected item's detail.
+- **Verbs: a conjugation table per verb met.**
+  - Rows: yo, tú, él/ella/usted, nosotros, ustedes/ellos.
+  - Columns: present, past (preterite), future (ir a + infinitive).
+  - The forms the learner has used are highlighted with their counts. Forms taught but not used are shown plainly. Tenses not yet taught
+    (from lessons.json, S26 and S27) are hidden until their lesson, so nothing overwhelms.
+  - The forms come from the core's morphology (`ContentBundle.Morphology`), never typed by hand.
+- **Keeps** S20's pages and data, S20b's speaker buttons, `--greyscale`, scrolling, J and the book item, the English labels, the
+  engine-free page models (Frontend/), and the flags for screenshots.
+- **Tests:** the table model for a fixed record (highlighted, shown, hidden), the spread geometry at both sizes, the ribbon hit-testing, the
+  page-turn state, and readability (no text outside its page).
+- **Demo:** screenshots of each spread, compared before and after.
 
 ### S18: the playtest refresh (Haiku 5.5, S)
 
