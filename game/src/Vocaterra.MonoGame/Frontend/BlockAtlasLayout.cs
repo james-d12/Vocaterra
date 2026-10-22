@@ -245,6 +245,9 @@ public enum BlockCell
 
     /// <summary>The icon of a torch (the item).</summary>
     IconTorch,
+
+    /// <summary>A signpost board with no word: the sides of a board that are not meant to be read (S15).</summary>
+    SignBlank,
 }
 
 /// <summary>
@@ -333,14 +336,20 @@ public static class BlockAtlasLayout
             BlockId.Loaves => BlockCell.Loaves,
             BlockId.Apples => BlockCell.Apples,
             BlockId.Bottles => BlockCell.Bottles,
-            BlockId.SignTiendaA => BlockCell.SignTiendaA,
-            BlockId.SignTiendaB => BlockCell.SignTiendaB,
-            BlockId.SignRio => BlockCell.SignRio,
-            BlockId.SignMontanaA => BlockCell.SignMontanaA,
-            BlockId.SignMontanaB => BlockCell.SignMontanaB,
+            BlockId.SignTiendaA => Reads(face, BlockCell.SignTiendaA),
+            BlockId.SignTiendaB => Reads(face, BlockCell.SignTiendaB),
+            BlockId.SignRio => Reads(face, BlockCell.SignRio),
+            BlockId.SignMontanaA => Reads(face, BlockCell.SignMontanaA),
+            BlockId.SignMontanaB => Reads(face, BlockCell.SignMontanaB),
             _ => BlockCell.White,
         };
     }
+
+    /// <summary>
+    /// The picture of a signboard's face: the word on the south and west faces, which read left to right for someone standing on that side (the boards of the layout
+    /// extend to the reader's right, and the textures run along the face that way), and a blank plank on the other four, where the word would read backwards.
+    /// </summary>
+    public static BlockCell Reads(BlockFace face, BlockCell word) => face is BlockFace.South or BlockFace.West ? word : BlockCell.SignBlank;
 
     /// <summary>The cell that draws an item as an icon (the hotbar and the held item), or <see langword="null"/> when the item has no 3D picture.</summary>
     public static BlockCell? IconFor(ItemId item) => item switch

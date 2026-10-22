@@ -70,6 +70,25 @@ public sealed class VillageArtTests
     }
 
     [Fact]
+    public void TheWordsAreOnTheFacesThatReadLeftToRightAndTheOtherFacesAreBlankPlank()
+    {
+        foreach (var id in new[] { BlockId.SignTiendaA, BlockId.SignTiendaB, BlockId.SignRio, BlockId.SignMontanaA, BlockId.SignMontanaB })
+        {
+            var word = BlockAtlasLayout.CellFor(id, BlockFace.West);
+            Assert.NotEqual(BlockCell.SignBlank, word);
+            Assert.Equal(word, BlockAtlasLayout.CellFor(id, BlockFace.South));
+            foreach (var other in new[] { BlockFace.North, BlockFace.East, BlockFace.Up, BlockFace.Down })
+            {
+                Assert.Equal(BlockCell.SignBlank, BlockAtlasLayout.CellFor(id, other));
+            }
+        }
+
+        Assert.Equal(0, Enumerable.Range(0, 256).Count(i => Ink(BlockCell.SignBlank, i % 16, i / 16))); // no letter on the blank
+        Assert.Equal(255, Alpha(BlockCell.SignBlank, 3, 8));
+        Assert.Equal(0, Alpha(BlockCell.SignBlank, 3, 0));
+    }
+
+    [Fact]
     public void TheSignsWordsAreInThePixelFontIncludingTheAccentsOfRioAndMontana()
     {
         // The font: three letters wide, five high, and the glyphs the three names need.

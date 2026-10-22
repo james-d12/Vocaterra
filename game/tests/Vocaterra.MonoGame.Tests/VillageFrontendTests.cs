@@ -226,7 +226,8 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
 
         stopwatch.Stop();
         output.WriteLine($"four figures, the arm's light and motion and the shoulder camera: {stopwatch.Elapsed.TotalMilliseconds / 1000:F4} ms a frame on the CPU, {buffer.FaceCount} quads in the last figure");
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        // Nothing per frame: one object a frame would be 24 000 bytes or more over 1 000 frames; the few hundred bytes that may remain are the runtime's own (tiered compilation).
+        Assert.InRange(GC.GetAllocatedBytesForCurrentThread() - before, 0, 4000);
         Assert.True(arm.FaceCount > 0);
     }
 

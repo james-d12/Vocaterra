@@ -552,13 +552,12 @@ public static class SceneBuilder
         private void BuildSignpost(PropSpec prop, string where)
         {
             var reader = prop.Facing ?? Direction.South;
-            var (ax, az) = reader switch
+            if (reader is not (Direction.South or Direction.West))
             {
-                Direction.South => (1, 0),
-                Direction.North => (-1, 0),
-                Direction.East => (0, -1),
-                _ => (0, 1),
-            };
+                throw new SceneLayoutException($"{where}: a signpost is read from its south or its west side (the words are drawn on those faces).");
+            }
+
+            var (ax, az) = reader == Direction.South ? (1, 0) : (0, 1);
             var boards = (prop.Stamp ?? "tienda,rio,montana").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             var x0 = Math.Min(prop.X, prop.X + (2 * ax));
             var z0 = Math.Min(prop.Z, prop.Z + (2 * az));

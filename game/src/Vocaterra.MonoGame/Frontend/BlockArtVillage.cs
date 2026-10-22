@@ -25,7 +25,7 @@ public static class BlockArtVillage
             or BlockCell.Loaves or BlockCell.Apples or BlockCell.Bottles or BlockCell.SignTiendaA or BlockCell.SignTiendaB or BlockCell.SignRio
             or BlockCell.SignMontanaA or BlockCell.SignMontanaB or BlockCell.SignBoard or BlockCell.FaceGuide or BlockCell.FaceShopkeeper
             or BlockCell.FaceVillager or BlockCell.FacePlayer or BlockCell.Cloth or BlockCell.Skin or BlockCell.Hair or BlockCell.Backpack
-            or BlockCell.IconTorch => true,
+            or BlockCell.IconTorch or BlockCell.SignBlank => true,
         _ => false,
     };
 
@@ -206,6 +206,8 @@ public static class BlockArtVillage
                     return BoardPixel(x, y, n);
                 }
 
+            case BlockCell.SignBlank:
+                return BoardPixel(x, y, n);
             case BlockCell.SignTiendaA:
                 return SignPixel("<TIE", x, y, n);
             case BlockCell.SignTiendaB:
