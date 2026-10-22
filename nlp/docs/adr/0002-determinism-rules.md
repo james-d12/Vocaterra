@@ -11,7 +11,7 @@
 ## Context
 
 The core promise of the system is that the same audio clip, game state and content version always produce the same verdict,
-the same feedback and the same game outcome. `HIGH_LEVEL_DOCS.md` ("Determinism model") sorts every component into one of
+the same feedback and the same game outcome. `docs/history/HIGH_LEVEL_DOCS.md` ("Determinism model") sorts every component into one of
 three classes:
 
 - **D0, algorithmic:** plain code with fixed-order math. Identical output on every machine.

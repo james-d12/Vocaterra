@@ -9,7 +9,7 @@
 - Deciders: the implementation plan (`IMPLEMENTATION_PLAN.md` section 7, milestone M17a); the repository owner confirms the licensing conclusion
 
 This ADR records engineering decisions and the evidence behind them. It is not legal advice; the repository owner has to get the licensing
-conclusion confirmed before release, as `HIGH_LEVEL_DOCS.md` ("Licensing") already says. The practical recipe is in [docs/LEXICON.md](../LEXICON.md).
+conclusion confirmed before release, as `docs/history/HIGH_LEVEL_DOCS.md` ("Licensing") already says. The practical recipe is in [docs/LEXICON.md](../LEXICON.md).
 
 ## Context
 

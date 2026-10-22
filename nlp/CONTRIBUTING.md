@@ -57,6 +57,8 @@ happens to one utterance, [docs/adr/](docs/adr/) for why the rules exist, and `I
    adding it: every package passes the license scan (`scripts/license-scan.sh [--offline]`), and the scan only means something if
    the list is curated.
 
+6. Documents: after you change a Markdown file under `nlp/`, `bash nlp/scripts/check-links.sh` must report no broken relative links.
+
 ## Branches and commits
 
 - Work on a branch, never directly on `main`. A branch carries one milestone or one self-contained change. Maintainers merge
@@ -135,7 +137,7 @@ the dialogue and the learner model. Add it in this order:
    array. Append at the end: errors in a verdict are sorted by position and then by the tag's index in `ErrorTags.All`, so inserting
    in the middle changes the order of existing verdicts and breaks golden files. Tags are `family.name`; the family (the text before
    the first dot) is also the learner-model skill id, so `conj.person` and `conj.tense` train the same skill `conj`.
-   Update `tests/Vocaterra.Nlp.Core.Tests/ErrorTagsTests.cs` (it pins the count and the order) and the taxonomy table in `HIGH_LEVEL_DOCS.md`.
+   Update `tests/Vocaterra.Nlp.Core.Tests/ErrorTagsTests.cs` (it pins the count and the order) and the taxonomy table in `docs/history/HIGH_LEVEL_DOCS.md`.
    This is a change to `Vocaterra.Nlp.Core`: agree it with a maintainer first.
 2. **Analyzer.** Produce the tag where the error is detected, with the span in the normalized text and the expected form:
    - grammar and vocabulary tags: `src/Vocaterra.Nlp.Language/Analysis/AgreementChecker.cs` (agreement rules) or `LinguisticAnalyzer.cs`; the

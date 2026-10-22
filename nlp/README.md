@@ -1,13 +1,13 @@
 # Vocaterra.NLP
 
-> The first host built on this core is the [Vocaterra](https://github.com/james-d12/Vocaterra) game, in its own repository.
-> This repository documents the language core only.
+> This folder (`nlp/`) is the language core. It sits in the Vocaterra repository beside the game (`game/`), which references the
+> core's projects directly; this document covers the core only.
 
 Vocaterra.NLP is a standalone Spanish voice-and-language evaluation core, written in C# on .NET. Given an utterance (audio, or a transcript
 for development), it works out what the learner meant and how well they said it, and returns one deterministic **verdict**, with tagged
 errors such as `conj.person` or `pron.r`, a feedback plan, a conversation step and the response text. It is a library first: a host loads a
 content bundle, builds the services, evaluates utterances and plans responses; [docs/API.md](docs/API.md) lists the calls in order. The
-`Vocaterra.Nlp.Cli` tool is a demo host that drives the same API from the command line. Hosts live in their own repositories; nothing host-specific (scenes, items, prices, rewards) is in this one. The Spanish sample content, a blacksmith's
+`Vocaterra.Nlp.Cli` tool is a demo host that drives the same API from the command line. Hosts live outside the core; nothing host-specific (scenes, items, prices, rewards) is in this folder. The Spanish sample content, a blacksmith's
 dialogue, stays here as the demo and the test fixture.
 
 The verdict separates whether the learner *communicated* (the agent understood) from whether they were *correct* (grammar, vocabulary,
@@ -365,21 +365,12 @@ dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lexicon-report conten
 Any edit to a file in `content/v1` changes the bundle hash, so run `hash` afterwards and update the pinned value in the tests
 (see [CONTRIBUTING.md](CONTRIBUTING.md)). `validate` prints `OK: bundle 'v1' 1.0.0, 19 files, hash <sha256>`, then the errors and warnings of the content lint.
 
-## Using the packages
+## Using the core from a host
 
-The core is eleven NuGet libraries, `Vocaterra.Nlp.*` at version 0.1.0. Packing them into a local feed and running the sample host, which
-consumes them the way a host application would, is the proof that the public surface is complete:
-
-```bash
-scripts/pack.sh          # dotnet pack into artifacts/packages; the .nupkg files are also copied to the folder feed artifacts/feed
-scripts/sample-host.sh   # restores samples/HostConsole from artifacts/feed, builds it and runs it on content/v1
-```
-
-The sample loads the bundle, evaluates the two demo utterances with the scripted recognizer and exits 1 unless the verdicts match. The calls
-it makes are the ones in [docs/API.md](docs/API.md). `ContentBuilder pack <bundleDir> <out.zip>` archives a bundle with a `.sha256` sidecar
-holding its bundle hash, and `verify-pack <zip>` checks the archive; hosts ship the extracted folder, since the loader reads a directory.
-Nothing is published to a feed; the game in this repository (`game/`) references the core's projects directly. [docs/PACKAGING.md](docs/PACKAGING.md) has the
-versions, the two ways to consume them, the open decisions and the commands.
+A host calls the core as [docs/API.md](docs/API.md) lists: load a bundle, build the services, evaluate an utterance, plan a response, replay
+a log. The game in this repository (`game/`) is a host: it references the core's projects directly, so there is no pack step and no feed.
+Nothing is published. `ContentBuilder pack <bundleDir> <out.zip>` archives a bundle with a `.sha256` sidecar holding its bundle hash, and
+`verify-pack <zip>` checks the archive; hosts ship the extracted folder, since the loader reads a directory.
 
 ## Benchmark and golden audio
 
@@ -418,11 +409,12 @@ consent rules and manifest schema are in [golden/README.md](golden/README.md).
 | `content/v1` | The versioned, hashed content bundle (JSON) and its `ATTRIBUTION.md` |
 | `golden/` | Golden learner audio manifest and recording protocol; the audio itself is gitignored |
 | `models/` | `manifest.json` and a README are committed; the model files are fetched and gitignored |
-| `scripts/` | `fetch-models.sh`, `fetch-lexicon-sources.sh`, `license-scan.sh` and its allowlist and overrides ([scripts/README.md](scripts/README.md)) |
-| `../.github/workflows-pending/` | The CI workflow (repository root), parked until the push token has the `workflow` scope |
+| `scripts/` | `fetch-models.sh`, `fetch-lexicon-sources.sh`, `license-scan.sh` and its allowlist and overrides, `check-links.sh` ([scripts/README.md](scripts/README.md)) |
+| `../.github/workflows-pending/ci.yml` | The CI workflow (repository root), parked until the push token has the `workflow` scope |
 | `docs/` | [API.md](docs/API.md), [PIPELINE.md](docs/PIPELINE.md), [REPLAY.md](docs/REPLAY.md), [LEXICON.md](docs/LEXICON.md), [CLI_EXAMPLES.md](docs/CLI_EXAMPLES.md) and the architecture decision records in `docs/adr/` |
 | `docs/diagrams/` | The draw.io system overview and how to open it ([README](docs/diagrams/README.md)) |
-| `HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md` | The design of the core, the milestone plan and the original brief. Host designs, such as the game's, are not in this repository |
+| `docs/history/` | [HIGH_LEVEL_DOCS.md](docs/history/HIGH_LEVEL_DOCS.md), the original design note (2026-10-18), kept for history |
+| `IMPLEMENTATION_PLAN.md` | The milestone plan, the findings log and the split roadmap. Host designs, such as the game's, are not in this folder |
 
 ## Determinism rules in brief
 
@@ -481,13 +473,14 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 | M17a | Vocabulary: 3 000 Wiktionary lemmas (about 40 000 entries) selected by a frequency list, with sources, hashes and coverage tests (see [docs/LEXICON.md](docs/LEXICON.md)) | done |
 | M18 | Part-of-speech disambiguation: the analyzer resolves each word to one reading before its checks (see [docs/PIPELINE.md](docs/PIPELINE.md#4-linguistic-analysis-d0)) | done |
 | M19a | Standalone core, step 1: the solution, projects and namespaces are `Vocaterra.Nlp.*`; the conversation engine is a generic agent; the boundary is in [ADR 0009](docs/adr/0009-core-and-game-boundary.md) and the host API in [docs/API.md](docs/API.md) | done |
-| M19b | Standalone core, step 2: NuGet packaging of the eleven libraries (version 0.1.0, symbols, a shared readme), a local feed from `scripts/pack.sh`, content bundle archives (`ContentBuilder pack` and `verify-pack`), and `samples/HostConsole` consuming the packages; nothing is published (see [docs/PACKAGING.md](docs/PACKAGING.md)) | done |
+| M19b | Standalone core, step 2: NuGet packaging of the eleven libraries (version 0.1.0, symbols, a shared readme), a local feed from `scripts/pack.sh`, content bundle archives (`ContentBuilder pack` and `verify-pack`), and `samples/HostConsole` consuming the packages; nothing is published (`docs/PACKAGING.md` was retired in M50) | done |
+| M50 | Folder cleanup after the two-repository era: the packaging scripts, the sample host and `docs/PACKAGING.md` retired (D5 superseded; no pack step or feed), `HIGH_LEVEL_DOCS.md` moved to `docs/history/`, `TOOLS.md` refreshed, link check in `scripts/check-links.sh`; no behaviour change | done |
 | M19c | Standalone core, step 3: the first consumer, the [Vocaterra](https://github.com/james-d12/Vocaterra) game repository, is built on the packages (its own console host, smoke tests, content bundle and parked CI job); its design lives in that repository | done |
 | M17b-core | Generic conversation intents (`confirm`, `deny`, `farewell`, `thank`, `introduce_self`), the `[WORD:slot]` name token of the slot-grammar DSL, the blacksmith's `confirming` state and their dialogue (see [docs/PIPELINE.md](docs/PIPELINE.md#4-linguistic-analysis-d0)) | done |
 
 ## Known gaps and next steps
 
-- **Engine integration.** This repository is the core, not a host. A host still has to capture the microphone (v1 has no
+- **Engine integration.** This folder is the core, not a host. A host still has to capture the microphone (v1 has no
   operating-system capture adapter, only WAV files and `PushToTalkSession`), play the synthesized audio, map its saves to
   `ConversationContext` and back, apply the resolved effects and the agent's host events, and ship the native speech libraries. The
   engine is the host's own choice ([ADR 0003](docs/adr/0003-engine-agnostic-core.md)); the boundary is in [ADR 0009](docs/adr/0009-core-and-game-boundary.md).
@@ -542,11 +535,10 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 - [tests/Vocaterra.Nlp.Fuzzing.Tests/README.md](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md): the fuzz suite, how to run and soak it, its oracles, the bugs it found and the known findings
 - [docs/LEXICON.md](docs/LEXICON.md): the lexicon files, the Wiktionary and frequency-list sources with hashes and licences, how to fetch and regenerate, the merge policy, measurements
 - [docs/API.md](docs/API.md): what a host calls, in order: load a bundle, build the services, evaluate an utterance, plan a response, record and replay
-- [docs/PACKAGING.md](docs/PACKAGING.md): the NuGet packages and their versions, the local feed, the sample host, content bundle archives, and what is still undecided
 - [docs/adr/](docs/adr/): architecture decision records 0001 to 0009 (language, determinism, engine-agnostic core, model pinning, dialect, ICU, Kokoro phonemizer licensing, lexicon sources and frequency filter, core and game boundary)
 - [docs/diagrams/README.md](docs/diagrams/README.md): the system diagram in draw.io, and how to open it
 - [TOOLS.md](TOOLS.md): the inventory of third-party tools, libraries, models and data sources, with their licenses
 - [CONTRIBUTING.md](CONTRIBUTING.md): development setup, conventions, the determinism checklist, and how to add error tags, content, golden clips and model adapters
-- [HIGH_LEVEL_DOCS.md](HIGH_LEVEL_DOCS.md): the high-level design
+- [docs/history/HIGH_LEVEL_DOCS.md](docs/history/HIGH_LEVEL_DOCS.md): the original design note (2026-10-18), kept for history
 - [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md): milestones, repository layout, determinism rules, findings log
 - [models/README.md](models/README.md), [golden/README.md](golden/README.md), [scripts/README.md](scripts/README.md): the model manifest, the recording protocol and the helper scripts
