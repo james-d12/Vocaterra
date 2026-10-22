@@ -11,7 +11,7 @@ namespace Vocaterra.MonoGame;
 public sealed class LoadingLayer : IFrameLayer
 {
     /// <summary>The line shown while the models load.</summary>
-    public const string Text = "Cargando la voz…";
+    public const string Text = "Loading speech…";
 
     private static readonly Color Gold = new(255, 214, 64);
 

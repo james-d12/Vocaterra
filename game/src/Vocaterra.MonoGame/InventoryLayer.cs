@@ -17,7 +17,7 @@ public sealed class InventoryLayer : IFrameLayer
     public const string Title = "Inventario";
 
     /// <summary>The key hints under the slots.</summary>
-    public const string KeyHints = "I o Esc: cerrar   1 a 0 o rueda: elegir   clic izq.: minar   clic der.: colocar";
+    public const string KeyHints = "I or Esc: close   1 to 0 or wheel: choose   left click: mine   right click: place";
 
     private const int Columns = Inventory.HotbarSize;
     private const int Cell = 64;

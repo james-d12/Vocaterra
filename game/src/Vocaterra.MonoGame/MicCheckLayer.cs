@@ -84,7 +84,7 @@ public sealed class MicCheckLayer : IFrameLayer
             DrawHelpers.Text(spriteBatch, small, MicCheckModel.LabelOf(button), new Vector2(rect.Left + 14, rect.Top + 8), Ink);
         }
 
-        DrawHelpers.Text(spriteBatch, small, "Esc: saltar", new Vector2(panel.Right - 40 - DrawHelpers.Width(small, "Esc: saltar"), panel.Bottom - 44), Dim);
+        DrawHelpers.Text(spriteBatch, small, "Esc: skip", new Vector2(panel.Right - 40 - DrawHelpers.Width(small, "Esc: skip"), panel.Bottom - 44), Dim);
     }
 
     // A row of segments that light up to the level: green, then yellow, then red for a very loud input.

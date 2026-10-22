@@ -169,7 +169,6 @@ public sealed class OpeningFrontendTests
         Assert.Equal(
             ["[R] Repetir (repeat)", "[S] Más despacio (slower)", "[H] Ayuda (help)", "[N] No sé (I don't know)", "[W] Escribir (type)"],
             SpeechButtons.All.Select(button => SpeechButtons.TextFor(button, session)));
-        Assert.Equal("Mantén V o Espacio: hablar  Esc: cancelar o cerrar (hold to speak; Esc cancels or closes)", SpeechButtons.HintsFor(DialoguePanel.ButtonHints, session));
         Assert.Equal(["[R] Repetir", "[S] Más despacio", "[H] Ayuda", "[N] No sé", "[W] Escribir"], SpeechButtons.All.Select(button => SpeechButtons.TextFor(button, null))); // no game: Spanish alone
     }
 

@@ -31,10 +31,10 @@ public interface ISpeechCapture
 public sealed class PushToTalk
 {
     /// <summary>The message when the machine has no microphone.</summary>
-    public const string NoMicrophone = "No hay micrófono: escribe tu frase.";
+    public const string NoMicrophone = "No microphone: type your answer.";
 
     /// <summary>The message when the recording held nothing but silence.</summary>
-    public const string Silence = "No se oyó nada.";
+    public const string Silence = "I didn't hear anything.";
 
     private readonly ISpeechCapture? _capture;
     private readonly List<short> _samples = [];
@@ -90,7 +90,7 @@ public sealed class PushToTalk
         }
         catch (InvalidOperationException ex)
         {
-            Problem = $"No se pudo abrir el micrófono: {ex.Message}";
+            Problem = $"Could not open the microphone: {ex.Message}. Type your answer.";
             return false;
         }
 

@@ -551,6 +551,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.Check = _check;
         view.ControlsOpen = _controlsOpen;
         view.Loading = _session.Worker!.IsReady ? null : LoadingLayer.Text;
+        _dialogue.SpeechUnavailable = _session.Worker.IsReady && !_session.Worker.CanHear;
         view.LoadingFrame = _loadingFrames++;
         var mouse = Mouse.GetState();
         view.Mouse = !_options.IsScreenshotRun && GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? mouse.Position : null;
@@ -727,14 +728,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     {
         foreach (var step in completed)
         {
-            _toasts.Show($"Hecho: {step.Text}");
-            Console.WriteLine($"objective: Hecho: {step.Text} -> {_session.Objective.Summary}");
+            _toasts.Show($"Done: {step.Text}");
+            Console.WriteLine($"objective: Done: {step.Text} -> {_session.Objective.Summary}");
         }
 
         if (completed.Count > 0 && _session.Objective.Complete)
         {
-            _toasts.Show($"{Objective.Title} completo");
-            Console.WriteLine($"objective: {Objective.Title} completo");
+            _toasts.Show("Objective complete");
+            Console.WriteLine("objective: complete");
         }
     }
 
@@ -1158,7 +1159,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var worker = _session.Worker!;
         if (!worker.CanHear)
         {
-            check.Notice = worker.IsReady ? worker.Load?.Problem ?? "La voz no está disponible." : "Cargando la voz…";
+            check.Notice = worker.IsReady ? worker.Load?.Problem ?? "Speech is not available." : "Loading speech…";
             return;
         }
 
@@ -1397,7 +1398,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (!worker.CanHear)
         {
-            _dialogue.SpeechNotice = worker.Load?.Problem ?? "La voz no está disponible: escribe tu frase.";
+            _dialogue.SpeechNotice = worker.Load?.Problem ?? "Speech is not available: type your answer.";
             return;
         }
 
@@ -1846,11 +1847,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var path = _options.SavePath ?? DefaultSavePath;
         if (WriteSave(path, "on F5"))
         {
-            _toasts.Show($"Partida guardada (sesión {_session.PlaySession})");
+            _toasts.Show($"Game saved (session {_session.PlaySession})");
         }
         else
         {
-            _toasts.Show("Espera un momento y pulsa F5 otra vez.");
+            _toasts.Show("Wait a moment, then press F5 again.");
         }
     }
 

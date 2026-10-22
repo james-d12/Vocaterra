@@ -82,7 +82,7 @@ public sealed class SpeechEngine : IDisposable
             var root = ModelStore.RootFromEnvironment();
             if (root is null)
             {
-                problem = $"Falta la variable {ModelStore.EnvironmentVariable}: no hay carpeta de modelos de voz.";
+                problem = NoModelsFolder;
                 return null;
             }
 
@@ -91,25 +91,25 @@ public sealed class SpeechEngine : IDisposable
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or System.Text.Json.JsonException or UnauthorizedAccessException)
         {
-            problem = $"No se puede leer la carpeta de modelos: {ex.Message}";
+            problem = $"Cannot read the speech models folder: {ex.Message}. You can still type.";
             return null;
         }
 
         if (store is null)
         {
-            problem = $"Falta la variable {ModelStore.EnvironmentVariable}: no hay carpeta de modelos de voz.";
+            problem = NoModelsFolder;
             return null;
         }
 
         if (!Directory.Exists(store.ModelDirectory(VoskModelId)))
         {
-            problem = $"Falta el modelo {VoskModelId} en {store.RootDirectory}.";
+            problem = $"Speech model {VoskModelId} is missing from {store.RootDirectory}. You can still type.";
             return null;
         }
 
         if (store.Manifest.Find(VoskModelId) is null)
         {
-            problem = $"El manifiesto de modelos no lista {VoskModelId} (ponga manifest.json en {store.RootDirectory} o la variable {ManifestVariable}).";
+            problem = $"The models manifest does not list {VoskModelId} (put manifest.json in {store.RootDirectory}, or set {ManifestVariable}). You can still type.";
             return null;
         }
 
@@ -119,6 +119,9 @@ public sealed class SpeechEngine : IDisposable
 
     /// <summary>The environment variable that names a manifest file to use when the models folder holds none.</summary>
     public const string ManifestVariable = "VOCATERRA_MODELS_MANIFEST";
+
+    /// <summary>The message when no models folder is named (S17b: English, and what to do; the player can still type).</summary>
+    public const string NoModelsFolder = "Speech models not found: set VOCATERRA_MODELS_DIR (see nlp/scripts/fetch-models.sh). You can still type.";
 
     /// <summary>
     /// The manifest to read, when it is not <c>manifest.json</c> in the models folder (where the core's <see cref="ModelStore"/> looks, and
@@ -177,7 +180,7 @@ public sealed class SpeechEngine : IDisposable
         }
         catch (Exception ex) when (ex is IOException or DllNotFoundException or BadImageFormatException or InvalidOperationException or KeyNotFoundException or TypeInitializationException)
         {
-            problem = $"No se pudo cargar el reconocedor de voz: {ex.Message}";
+            problem = $"The speech recogniser could not load: {ex.Message}. You can still type.";
             return null;
         }
     }
@@ -197,7 +200,7 @@ public sealed class SpeechEngine : IDisposable
         {
             if (!CanSpeak)
             {
-                throw new InvalidOperationException($"Falta el modelo {KokoroModelId} en {_store.RootDirectory}.");
+                throw new InvalidOperationException($"Speech model {KokoroModelId} is missing from {_store.RootDirectory}.");
             }
 
             _kokoro = KokoroSynthesizer.FromStore(_store, KokoroModelId, KokoroSpeaker);

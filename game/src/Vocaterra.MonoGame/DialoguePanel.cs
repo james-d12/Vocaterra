@@ -14,20 +14,29 @@ namespace Vocaterra.MonoGame;
 /// </summary>
 public sealed class DialoguePanel : IFrameLayer
 {
-    /// <summary>The key hints under the text box while typing.</summary>
-    public const string KeyHints = "Enter: enviar  Tab o Esc: botones  Alt+vocal: á é í ó ú  Alt+N: ñ  Alt+/: ¿  Alt+1: ¡";
+    /// <summary>
+    /// The key hints under the text box while typing (S17b). V types a letter in the text box, so the talk key is named with the way back to the buttons: the
+    /// talk key works from the buttons, and Tab or Esc returns there.
+    /// </summary>
+    public const string KeyHints = "Enter: send   Tab or Esc: buttons, then hold V or Space: speak   Alt+vowel: á é í ó ú   Alt+N: ñ   Alt+/: ¿   Alt+1: ¡";
 
-    /// <summary>The key hints while the speech buttons are shown.</summary>
-    public const string ButtonHints = "Mantén V o Espacio: hablar  Esc: cancelar o cerrar";
+    /// <summary>The key hints while the speech buttons are shown (S17b): the talk key is named in both states.</summary>
+    public const string ButtonHints = "Hold V or Space: speak   Esc: cancel or close";
+
+    /// <summary>The key hints when speech is unavailable, while the speech buttons are shown (S17b): the typed answer is the way to answer.</summary>
+    public const string SpeechOffButtonHints = "Speech off: type your answer (W or Tab)   Esc: close";
+
+    /// <summary>The key hints when speech is unavailable, while typing (S17b).</summary>
+    public const string SpeechOffKeyHints = "Speech off: type your answer   Enter: send   Tab or Esc: buttons   Alt+vowel: á é í ó ú   Alt+N: ñ   Alt+/: ¿   Alt+1: ¡";
 
     /// <summary>The status while the push-to-talk key is held and the microphone records.</summary>
-    public const string ListeningText = "Escuchando…";
+    public const string ListeningText = "Listening…";
 
     /// <summary>The status while a turn is on the worker (recognizing and evaluating).</summary>
-    public const string ThinkingText = "Pensando…";
+    public const string ThinkingText = "Thinking…";
 
     /// <summary>The prefix of a line the player said, as the recognizer heard it.</summary>
-    public const string SpokenPrefix = "Tú (voz): ";
+    public const string SpokenPrefix = "You (voice): ";
 
     /// <summary>The guide's name in the panel's title bar (the title shows the name of the NPC the panel is open on, <see cref="DialogueModel.NpcName"/>).</summary>
     public const string Title = "Guía";
@@ -115,8 +124,21 @@ public sealed class DialoguePanel : IFrameLayer
             DrawInput(spriteBatch, view, font, dialogue, ToRectangle(inputBox));
         }
 
-        DrawHelpers.Text(spriteBatch, font, dialogue.IsTyping ? KeyHints : SpeechButtons.HintsFor(ButtonHints, view.Session), new Vector2(textLeft, layout.HintsY), NoteColor);
+        DrawHelpers.Text(spriteBatch, font, HintsFor(dialogue.IsTyping, dialogue.SpeechUnavailable), new Vector2(textLeft, layout.HintsY), NoteColor);
     }
+
+    /// <summary>
+    /// The key hints line (S17b): it names the talk key in both states, and says that speech is off, with the typed answer, when the models are not loaded.
+    /// </summary>
+    /// <param name="typing">Whether the text box has the keys.</param>
+    /// <param name="speechUnavailable">Whether the speech models are not loaded (the talk key does nothing).</param>
+    public static string HintsFor(bool typing, bool speechUnavailable) => (typing, speechUnavailable) switch
+    {
+        (true, false) => KeyHints,
+        (true, true) => SpeechOffKeyHints,
+        (false, false) => ButtonHints,
+        _ => SpeechOffButtonHints,
+    };
 
     private static Rectangle ToRectangle(PixelBox box) => new(box.X, box.Y, box.Width, box.Height);
 
@@ -189,7 +211,7 @@ public sealed class DialoguePanel : IFrameLayer
             var line = dialogue.Lines[index];
             var prefix = line.Speaker switch
             {
-                DialogueSpeaker.Player => "Tú: ",
+                DialogueSpeaker.Player => "You: ",
                 DialogueSpeaker.PlayerSpoken => SpokenPrefix,
                 DialogueSpeaker.Guide or DialogueSpeaker.World or DialogueSpeaker.Correction => dialogue.NpcName + ": ",
                 DialogueSpeaker.English => EnglishPrefix,

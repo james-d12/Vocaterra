@@ -27,7 +27,7 @@ public static class JournalRows
     public const string UnseenLabel = "¿?";
 
     /// <summary>The text of a word that can earn colour now.</summary>
-    public const string DueNow = "lista para repasar";
+    public const string DueNow = "due for review";
 
     /// <summary>
     /// The text for the wait before a word can earn colour again: <c>otra vez en 8 min</c> (minutes rounded up), <c>otra vez en 40 s</c> under a
@@ -42,15 +42,15 @@ public static class JournalRows
 
         if (seconds < 60)
         {
-            return string.Create(System.Globalization.CultureInfo.InvariantCulture, $"otra vez en {seconds} s");
+            return string.Create(System.Globalization.CultureInfo.InvariantCulture, $"again in {seconds} s");
         }
 
         if (seconds < 3600)
         {
-            return string.Create(System.Globalization.CultureInfo.InvariantCulture, $"otra vez en {(seconds + 59) / 60} min");
+            return string.Create(System.Globalization.CultureInfo.InvariantCulture, $"again in {(seconds + 59) / 60} min");
         }
 
-        return string.Create(System.Globalization.CultureInfo.InvariantCulture, $"otra vez en {(seconds + 3599) / 3600} h");
+        return string.Create(System.Globalization.CultureInfo.InvariantCulture, $"again in {(seconds + 3599) / 3600} h");
     }
 
     /// <summary>Builds the rows for the words' catalogue, without the time of the next review.</summary>

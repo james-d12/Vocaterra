@@ -147,7 +147,7 @@ public sealed class GreyscaleWorld
 
             if (_nouns.ForLemma(lemma) is { } noun)
             {
-                _toasts.Show($"¡Nueva palabra: {noun.WithDefinite}!");
+                _toasts.Show($"New word: {noun.WithDefinite}!");
             }
         }
     }

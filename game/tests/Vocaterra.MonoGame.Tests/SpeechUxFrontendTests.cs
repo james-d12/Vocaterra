@@ -134,7 +134,7 @@ public sealed class SpeechUxFrontendTests
         Assert.True(dialogue.IsThinking);
         Assert.True(dialogue.CancelPending());
 
-        Assert.False(dialogue.IsThinking); // "Pensando…" is gone at once
+        Assert.False(dialogue.IsThinking); // "Thinking…" is gone at once
         Assert.Equal(1, dialogue.Pending); // the worker has not handed the outcome back yet
         Assert.False(dialogue.CancelPending()); // nothing left to cancel
 
@@ -446,7 +446,7 @@ public sealed class SpeechUxFrontendTests
         _ = dialogue.Complete(Applied(Spoken("quiero agua por favor", intent: "unknown", communicated: false, uncertain: true, confidence: 0.4)));
 
         var note = dialogue.Lines.Last(static l => l.Speaker == DialogueSpeaker.Note).Text;
-        Assert.StartsWith("oído con 40 %, no entendido", note, StringComparison.Ordinal);
+        Assert.StartsWith("heard at 40 %, not understood", note, StringComparison.Ordinal);
         Assert.DoesNotContain("request_item", note, StringComparison.Ordinal);
     }
 
@@ -472,7 +472,7 @@ public sealed class SpeechUxFrontendTests
         var log = new List<(VoiceEventKind Kind, string? Heard)>();
         var check = new MicCheckModel((kind, heard) => log.Add((kind, heard)));
         Assert.Equal(MicCheckPhase.Ready, check.Phase);
-        Assert.Equal("Di: hola", MicCheckModel.Instruction);
+        Assert.Equal("Say \"hola\"", MicCheckModel.Instruction);
         Assert.Equal([MicCheckButton.Skip], check.Buttons);
 
         check.BeginListening();
@@ -488,7 +488,7 @@ public sealed class SpeechUxFrontendTests
 
         Assert.Equal(MicCheckPhase.Failed, check.Phase);
         Assert.Equal("Oí: «gola»", check.HeardText);
-        Assert.Equal("No te oí bien. ¿Otra vez?", check.StatusText);
+        Assert.Equal("I didn't catch that. Try again?", check.StatusText);
         Assert.Equal([MicCheckButton.Retry, MicCheckButton.Skip], check.Buttons);
 
         check.Press(MicCheckButton.Retry);
@@ -500,7 +500,7 @@ public sealed class SpeechUxFrontendTests
 
         Assert.Equal(MicCheckPhase.Passed, check.Phase);
         Assert.Equal("Oí: «hola»", check.HeardText);
-        Assert.Equal("¡Bien! Te oigo.", check.StatusText);
+        Assert.Equal("Got it, I can hear you.", check.StatusText);
         Assert.Equal([MicCheckButton.Continue], check.Buttons);
         check.Press(MicCheckButton.Continue);
         Assert.False(check.IsActive);
@@ -679,11 +679,11 @@ public sealed class SpeechUxFrontendTests
     public void TheOldTabHoldToTalkHintIsReplacedByTheButtonKeysAndTheSpanishStringsAreListedForTheReview()
     {
         Assert.DoesNotContain("Tab (mantener)", DialoguePanel.KeyHints, StringComparison.Ordinal);
-        Assert.Contains("Mantén V o Espacio", DialoguePanel.ButtonHints, StringComparison.Ordinal);
+        Assert.Contains("Hold V or Space", DialoguePanel.ButtonHints, StringComparison.Ordinal);
         Assert.Equal("¿Escribes?", DialogueModel.TypeOfferText);
         Assert.Equal("nada", HeardLine.NothingHeard);
         Assert.Equal("Oí: ", HeardLine.HeardLabel);
         Assert.Equal("Esperaba: ", HeardLine.ExpectedLabel);
-        Assert.Equal(["Seguir", "Otra vez", "Saltar"], new[] { MicCheckModel.ContinueLabel, MicCheckModel.RetryLabel, MicCheckModel.SkipLabel });
+        Assert.Equal(["Continue", "Try again", "Skip"], new[] { MicCheckModel.ContinueLabel, MicCheckModel.RetryLabel, MicCheckModel.SkipLabel });
     }
 }

@@ -333,7 +333,7 @@ public sealed class TurnWorker : IDisposable
         }
         else
         {
-            problem = "Sin voz: el reconocedor no se ha cargado.";
+            problem = "Speech off: the recogniser is not loaded. Type your answer.";
         }
 
         _load = new SpeechLoad(guideDone - begin, speechMs, warmMs, Now() - begin, problem, engine?.CanSpeak ?? false);
@@ -404,7 +404,7 @@ public sealed class TurnWorker : IDisposable
 
             if (engine is null || !_canHear)
             {
-                return Failed(request, begin, _load?.Problem ?? "No hay reconocedor de voz.");
+                return Failed(request, begin, _load?.Problem ?? "No speech recogniser is loaded. Type your answer.");
             }
 
             PcmClip? clip;
@@ -421,7 +421,7 @@ public sealed class TurnWorker : IDisposable
                 default: // Speak, HearSpeak
                     if (!engine.CanSpeak)
                     {
-                        return Failed(request, begin, $"Falta el modelo {SpeechEngine.KokoroModelId}: no se puede sintetizar la frase.");
+                        return Failed(request, begin, $"Speech model {SpeechEngine.KokoroModelId} is missing, so the line cannot be spoken. Type your answer.");
                     }
 
                     var synthStart = Now();
@@ -438,7 +438,7 @@ public sealed class TurnWorker : IDisposable
 
             if (clip is null)
             {
-                return Failed(request, begin, "No se oyó nada.");
+                return Failed(request, begin, "I didn't hear anything.");
             }
 
             checkpoint = _guide.Checkpoint(request.Npc);
@@ -472,7 +472,7 @@ public sealed class TurnWorker : IDisposable
 
             if (engine is null || !_canHear || _spoken is null)
             {
-                return Failed(request, begin, _load?.Problem ?? "No hay reconocedor de voz.");
+                return Failed(request, begin, _load?.Problem ?? "No speech recogniser is loaded. Type your answer.");
             }
 
             PcmClip? clip;
@@ -487,7 +487,7 @@ public sealed class TurnWorker : IDisposable
                 case TurnSource.Speak:
                     if (!engine.CanSpeak)
                     {
-                        return Failed(request, begin, $"Falta el modelo {SpeechEngine.KokoroModelId}: no se puede sintetizar la frase.");
+                        return Failed(request, begin, $"Speech model {SpeechEngine.KokoroModelId} is missing, so the line cannot be spoken. Type your answer.");
                     }
 
                     var synthStart = Now();
@@ -501,7 +501,7 @@ public sealed class TurnWorker : IDisposable
 
             if (clip is null)
             {
-                return Failed(request, begin, "No se oyó nada.");
+                return Failed(request, begin, "I didn't hear anything.");
             }
 
             var spokenGrade = _checks.GradeSpoken(_spoken, item, clip, now, digest);

@@ -144,10 +144,13 @@ public sealed class DialogueModel
     /// <summary>The simulation tick until which <see cref="HighlightedLine"/> is drawn highlighted.</summary>
     public long HighlightUntilTick { get; private set; }
 
-    /// <summary>Whether the push-to-talk key is held and the microphone is recording: the panel shows "Escuchando…".</summary>
+    /// <summary>Whether the push-to-talk key is held and the microphone is recording: the panel shows "Listening…".</summary>
     public bool Listening { get; set; }
 
-    /// <summary>The Spanish message about the microphone (none present, silence heard), shown under the lines until the next recording, or <see langword="null"/>.</summary>
+    /// <summary>Whether the speech models are not loaded, so the talk key does nothing and the hints say to type (S17b). The game sets it each frame.</summary>
+    public bool SpeechUnavailable { get; set; }
+
+    /// <summary>The English message about the microphone or the speech models (none present, silence heard), shown in the title bar until the next recording, or <see langword="null"/>.</summary>
     public string? SpeechNotice { get; set; }
 
     /// <summary>A scripted spoken line waiting to be submitted, or <see langword="null"/>.</summary>
@@ -479,7 +482,7 @@ public sealed class DialogueModel
         TypingOffered = false;
         if (applied.Turn is not { } turn)
         {
-            Add(DialogueSpeaker.Hint, applied.Outcome.Problem ?? "No se pudo evaluar la frase.");
+            Add(DialogueSpeaker.Hint, applied.Outcome.Problem ?? "I couldn't check that line. Try again.");
             return null;
         }
 
@@ -532,9 +535,9 @@ public sealed class DialogueModel
         Choices = turn.Choices is { Count: > 0 } offered && _phrases is not null ? _phrases.OptionsFor(offered) : [];
         UncertainStreak = turn.Uncertain ? UncertainStreak + 1 : 0;
         var heard = turn.Confidence is { } confidence
-            ? string.Create(CultureInfo.InvariantCulture, $"oído con {(int)Math.Round(confidence * 100, MidpointRounding.AwayFromZero)} %, ")
+            ? string.Create(CultureInfo.InvariantCulture, $"heard at {(int)Math.Round(confidence * 100, MidpointRounding.AwayFromZero)} %, ")
             : string.Empty;
-        var summary = turn.Uncertain ? "no entendido" : turn.Summary; // an unsure recognition has no verdict to summarize
+        var summary = turn.Uncertain ? "not understood" : turn.Summary; // an unsure recognition has no verdict to summarize
         Add(DialogueSpeaker.Note, string.Create(CultureInfo.InvariantCulture, $"{heard}{summary}, {LastTurnMilliseconds:0.0} ms"));
         if (turn.Feedback is not null)
         {
