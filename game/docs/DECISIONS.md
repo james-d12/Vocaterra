@@ -171,6 +171,9 @@ the player's machine only. It is game state (game words live in `game/`); the co
 The orchestrator's choices, open to the owner's change: verbs listed by infinitive with the forms used; only words the core read from its
 lexicon are listed (recogniser noise is not); the save keeps the newest 500 lines. Plan: section 8, S19 (the record) and S20 (the book).
 
+**Owner, 2026-10-22 (follow-up).** The book item counting as the taught noun `libro` (S20) is fine. Check answers (the pre, post and recall
+checks) must **not** count in the word record: they stay in the input history, but the fold skips them (S19b).
+
 ## D-game-17: in-game bug and feature reports (decided)
 
 **Owner, 2026-10-22.** "We need a bug / feature request feature in the game. So pressing F8 will upload a bug report and save as a markdown."

@@ -730,6 +730,20 @@ After S24's mixer.
 - **Demo:** `--sound-log` along the README route lists the beds and footsteps by tick.
 - **Budget:** S24 and S25 together stay within 15 MB.
 
+### S19b: check answers do not count in the word record (Haiku 5.5, S)
+
+The owner (2026-10-22, D-game-16): check answers must not count in the book's word record. Nouns and verbs come only from dialogue and
+lesson turns.
+- **The fold skips check lines.** `LearnerWords.Fold` skips `InputPlace.Check` entries. The entries stay in the history, so "What I said"
+  still lists them.
+- **Saves.** Version 2 saves stored the word rows, so check uses already counted in a save must come out:
+  - on load, rebuild the rows from the history where the history still holds every use;
+  - otherwise subtract the check entries the history holds and keep the rest;
+  - say which approach was chosen, and add a test.
+  A save format bump is allowed if it is the cleanest way; version 2 then still loads.
+- **Tests.** A check answer leaves Nouns and Verbs unchanged and appears in What I said. An old save that counted check answers loads
+  without them, as far as its history allows. Replaying the history still gives the same record.
+
 ### S18: the playtest refresh (Haiku 5.5, S)
 
 - The playtest build, `PLAYTEST.md` and the report script are updated for the new opening, the lesson steps, the longer session and the new

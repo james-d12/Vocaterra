@@ -186,6 +186,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S17 | The opening at the cliff camp, the guide's 5 to 10 minute lesson, the ending; new phrases, checks, Opus pass, speech | done (merged to `feature/prototype` 2026-10-22, `b0ebf5f`, bundle `9582e14f…`); **the owner listens to the 72 new WAVs** (`docs/SPEECH_CHECKLIST.md`) | Sonnet 5.5 | S13, S16, D-game-15 |
 | S17b | The talk key (V) shown in the dialogue in every state; the microphone check, the game's own errors and key hints in English (owner's playtest notes) | done (merged to `feature/prototype` 2026-10-22, `678e5a2`) | Haiku 5.5 | S17 |
 | S19 | The learner's record: every spoken and typed input, the nouns and verbs used (from the core's word readings), the lessons completed; save version 2 (D-game-16) | done (merged to `feature/prototype` 2026-10-22, `c92e486`) | Haiku 5.5 | S17, D-game-16 |
+| S19b | Check answers do not count in the word record (owner); old saves lose the check uses their history holds | planned (after S24) | Haiku 5.5 | S19, S24 |
 | S20 | The book: the journal as an openable book with Nouns, Verbs, Phrases, Lessons and What I said pages (D-game-16) | done (merged to `feature/prototype` 2026-10-22, `ee2ec79`) | Haiku 5.5 | S15, S19 |
 | S21 | F8: the in-game bug and feature report, saved as Markdown with a screenshot, game state, recent turns and the session log tail; local only (D-game-17) | done (merged to `feature/prototype` 2026-10-22, `917d2c4`) | Haiku 5.5 | S19, S20, D-game-17 |
 | S18 | The playtest refresh (build, checklist, report, launcher message; the consent text mentions that the book keeps what the player said; the facilitator collects the F8 reports) | done (merged to `feature/prototype` 2026-10-22, `3c9a741`); **the owner's pre-flight** (`docs/PLAYTEST.md`) | Haiku 5.5 | S15, S17, S17b, S20, S21 |
@@ -1025,6 +1026,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     advisory until M27a2 fixes or tags its three untagged examples.
   - **After a content change:** refresh the strings file and the cache with the local server (`scripts/languagetool.sh start`), as
     game/README.md says. Otherwise the required step fails on a cache miss.
+- **`main` caught up with the prototype (2026-10-22, owner: "yes pls merge prototype into main").** `main` had no commit of its own (it was
+  156 behind), so the orchestrator fast-forwarded it to `feature/prototype` at `75bc5ea`. That is the tree the S23 gate passed, plus the
+  gate-script change, which the orchestrator tested on its own. `main` was not merged through its own gate script, which predates the
+  resource limits. Both branches now carry `scripts/limited.sh` and the limits; the S series keeps `feature/prototype` as its integration
+  branch.
 
 ## 6. Definition of done (every milestone)
 
