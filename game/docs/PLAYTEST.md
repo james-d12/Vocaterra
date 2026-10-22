@@ -30,6 +30,11 @@ Read this to the tester, in your own words, before the session:
 - The log holds: the text you typed, or the text the speech recogniser heard from what you said (the **microphone audio is not written to
   disk**); what the characters said back; how long each answer took; the quiz answers; the steps of the objective; and whether you asked for
   help, repeated a line, or said "no sé". The game also saves its state at the end (`playtest.save`).
+- **Reports (F8, S21, D-game-17).** If you press F8, the game asks you what the problem or the wish is, and saves a report to the session
+  folder: a Markdown file and a picture of the screen as you saw it. The report also holds the game's state (the seed, where you stood, your
+  objective and lesson step, the settings), **the last ten things you said or typed** (the words as the game heard or read them, so your voice
+  is not kept, only what it turned into), and the last 200 lines of the session log. Nothing is sent: the files stay in the folder until you
+  give it to the facilitator. Tell the tester: "Press F8 at any time to report a bug or ask for a feature; Esc cancels and keeps nothing."
 - You can stop at any time (Esc closes a dialogue; you can also say so and the facilitator ends the run). You can say no to giving the folder
   to the facilitator; if you say no, the facilitator does not look at it, and you can delete it.
 - The Spanish has **not been checked by a native speaker yet**.
@@ -93,7 +98,8 @@ thank-you and the debrief (10).
    `F10` in the notes with the time. The post-check is the same kind of ten items as the pre-check, in another order.
 7. **Save and thank-you.** The post-check ends with "Thank you for playing", the line "Saved: playtest.save in the session folder ...", and
    "Esc: close the game". The tester presses Esc. The game is then closed, and the folder holds `session.jsonl`, `replay.jsonl` and
-   `playtest.save`. If the run ended before the post-check (F10 or closing the window), the save is still written at the quit.
+   `playtest.save`, and `reports/` when the tester pressed F8 (each report is a `report-s<session>-t<tick>-<bug|feature>.md` with its
+   `.png`). If the run ended before the post-check (F10 or closing the window), the save is still written at the quit.
 8. **Debrief** (see section 6). Ask the questions in the notes template before you show the report.
 
 ## 5. What to observe
@@ -140,6 +146,7 @@ Quotes (with minute): _____________________________________________
 Desire to continue (their words): __________________________________
 Why Spanish was needed (their words): _______________________________
 Enjoyable (1 to 5, the observer's): __  Would play another part? yes/no/unsure
+Reports (F8, the tester's): __ (kind and title, from playtest-report.sh)
 Notes after the session: _____________________________________________
 ```
 
@@ -175,7 +182,15 @@ the grey world changes what the player notices and tries.
 
 It needs bash and Python 3 (standard library). It prints, per folder and in total, the profile and arm, completion, retries, support used,
 ASR latency and failures, the pre, post and recall checks by item kind, transfer uses, "found without Spanish", and one evidence line per
-decision gate. Paste its output into the session's notes, next to the observer notes. Keep the report and the folders together.
+decision gate. Under each folder it lists that session's bug and feature reports (the kind and the title). Paste its output into the session's
+notes, next to the observer notes. Keep the report and the folders together.
+
+To collect what the facilitator takes away, add `--copy <dir>`:
+
+    scripts/playtest-report.sh --copy <a collection folder> <session folder> [<session folder> ...]
+
+It writes `<collection folder>/<session folder name>/summary.txt` (the printed summary of that folder) and `reports/` with every report and its
+picture. Give the collection folder with the observer notes; the session folders stay with the tester's machine unless the tester agreed.
 
 ## 11. The decision gates and the evidence that answers them
 
