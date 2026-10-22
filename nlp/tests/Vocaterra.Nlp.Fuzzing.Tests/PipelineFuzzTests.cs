@@ -132,7 +132,7 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
                 diagnostics.Count($"leaves:{(named.Length > 0 ? "some" : "none")}");
                 for (var attempt = 0; attempt < 3 && named.Length > 0; attempt++)
                 {
-                    var path = rng.Pick(named);
+                    var path = PickPath(rng, named);
                     CheckOneMutation(c, envelope, path, pipeline, clip, diagnostics);
                 }
             },
@@ -509,10 +509,27 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
         return new UtterancePipeline(other, pipeline.Options);
     }
 
+    // The envelope part a path lies in: record, decision, response, effects, repair or context.
+    private static string RegionOf(string[] path)
+    {
+        return path[0] == "result" ? path[1] : path[0];
+    }
+
+    // Drawn in two steps: a region uniformly among the regions the envelope has, then a leaf uniformly inside it. A leaf drawn uniformly from the
+    // whole envelope reached the effects part (three leaves among several hundred) only a few times in 300 iterations, while the context part (one
+    // leaf) was drawn about as often as the effects part. Drawing the region first gives every present region the same share of the mutations, so
+    // a rare region is reached as often as a common one whenever the envelope has it (the generator makes effects common enough to be present).
+    private static string[] PickPath(SeededRng rng, string[][] named)
+    {
+        var regions = named.Select(RegionOf).Distinct().ToArray();
+        var region = rng.Pick(regions);
+        return rng.Pick(named.Where(path => RegionOf(path) == region).ToArray());
+    }
+
     private static void CheckOneMutation(PipelineCase c, string envelopeJson, string[] path, UtterancePipeline pipeline, PcmClip clip, FuzzDiagnostics diagnostics)
     {
         var expected = ExpectedPointer(path);
-        var region = path[0] == "result" ? path[1] : path[0];
+        var region = RegionOf(path);
         var original = JsonNode.Parse(envelopeJson)!;
         var current = Navigate(original, path);
 
