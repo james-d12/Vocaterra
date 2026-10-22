@@ -161,7 +161,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S7 | Speech UX: mic check, cancel, watchdog, heard-vs-expected, buttons, choices, uncertainty rule, constrained prompts | done (merged to `feature/prototype` 2026-10-22, bundle `c3ad62fe…`) | Sonnet 5.5 | S6 |
 | S8 | Phrase progress and fading scaffolds; the review extended to phrases | done (merged to `feature/prototype` 2026-10-22) | Sonnet 5.5 | S6 |
 | S9 | NPCs speak: pre-rendered Kokoro lines in the bundle | done (merged to `feature/prototype` 2026-10-22, bundle `f5f28b88…`); **the owner listens to every WAV** (`docs/SPEECH_CHECKLIST.md`, D-game-12 step 4) | Haiku 5.5 | S5, S6 |
-| S10 | Save, sessions, resume (P9 re-scoped) | planned | Haiku 5.5 | S4, S8 |
+| S10 | Save, sessions, resume (P9 re-scoped) | done (merged to `feature/prototype` 2026-10-22) | Haiku 5.5 | S4, S8 |
 | S11 | Checks (pre, post, recall), the session log and the report script | planned | Haiku 5.5 | S8, S10 |
 | S12 | Playtest build and facilitator checklist | planned | Haiku 5.5 | S7, S9, S11 |
 
@@ -679,6 +679,15 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   second rare fuzz coverage flake (core M29h). Content wanted later: `guide.review.phrase.*` pools and a guide-review prompt accepting
   request_item, confirm and deny. S10 must save the 11 phrase records, the play session, the carded nouns and the key-words-taught flag.
   Tests 3,780.
+- **S10, save and sessions (2026-10-22, Haiku 5.5).** `vocaterra-save` v1 in canonical JSON: seed, scene, bundle hash, stored time and
+  skipped seconds, session, tick, state digest, player, inventory, objective, word and phrase progress, carded nouns, the key-words flag,
+  per-NPC contexts (agent state, learner model with `phrase.*`, repeat counts) and bookkeeping, and only the edited chunks run-length
+  encoded (the demo save: 4 of 72 chunks, 21.9 KB). `--save` (end of a scripted run, quit, F5) and `--load` (refuses another seed, bundle,
+  version, digest or stored time); loading bumps the session, which lifts the D-game-6 gaps; stored time continues from the save (a
+  next-day check uses `--skip` after the load). Byte-identical double writes and continuation determinism tested. Checked by the
+  orchestrator: the loaded camp shows "Sesión 2", 4/4 and the same inventory; the console prints the digest equality. Not saved by
+  design: an open panel, support cards, audio queue, the event log and replay records (S11's session log). F5 and window-close untested
+  interactively. Tests 3,801.
 
 ## 6. Definition of done (every milestone)
 
