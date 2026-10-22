@@ -73,6 +73,28 @@ public sealed class Objective
     /// <summary>The checklist as one line: <c>Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1</c>.</summary>
     public string Summary => Title + ": " + string.Join(" · ", _steps.Select(static s => s.Text));
 
+    /// <summary>
+    /// Sets the count of each step by its key (S10: a save puts the checklist back). Each key must be a step of the checklist and appear once; the
+    /// steps not named keep their count.
+    /// </summary>
+    /// <exception cref="ArgumentException">A key is not a step, or is given twice.</exception>
+    public void Restore(IEnumerable<(string Key, int Count)> counts)
+    {
+        ArgumentNullException.ThrowIfNull(counts);
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var (key, count) in counts)
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(count);
+            var at = Array.FindIndex(_steps, s => string.Equals(s.Key, key, StringComparison.Ordinal));
+            if (at < 0 || !seen.Add(key))
+            {
+                throw new ArgumentException($"'{key}' is not a step of the checklist, or is given twice.", nameof(counts));
+            }
+
+            _steps[at] = _steps[at] with { Count = count };
+        }
+    }
+
     /// <summary>The step with a key, or <see langword="null"/>.</summary>
     public ObjectiveStep? Step(string key) => _steps.FirstOrDefault(s => string.Equals(s.Key, key, StringComparison.Ordinal));
 

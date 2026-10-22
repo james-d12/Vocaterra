@@ -412,10 +412,11 @@ public sealed class VoxelFrontendTests
         var sim = VoxelSimulation.Create(RouteScene());
         sim.TeleportTo(new BlockPos(11, 11, 17));
         sim.Step([VoxelCommand.Look(Angles.FromDegrees(270), Pitch(-24))]);
-        var lines = VoxelDebugText.Lines(60, sim, 42, sim.Player.Yaw, sim.Player.Pitch);
+        var lines = VoxelDebugText.Lines(60, sim, 42, sim.Player.Yaw, sim.Player.Pitch, 2);
         Assert.Equal(3, lines.Count); // the 2D test line is not part of the 3D overlay (S3)
         Assert.StartsWith("3D", lines[0], StringComparison.Ordinal);
         Assert.Contains("seed 42", lines[0], StringComparison.Ordinal);
+        Assert.EndsWith("Sesión 2", lines[0], StringComparison.Ordinal); // the play session (S10)
         Assert.Contains("pos (11.5, 11.0, 17.5)", lines[1], StringComparison.Ordinal);
         Assert.Contains("yaw 270", lines[1], StringComparison.Ordinal);
         Assert.StartsWith("target: trunk (9, 11, 17)", lines[2], StringComparison.Ordinal);

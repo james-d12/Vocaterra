@@ -75,7 +75,7 @@ public sealed class JournalLayer : IFrameLayer
         var textWidth = panel.Width - (Padding * 2);
         DrawHelpers.Text(spriteBatch, font, Title, new Vector2(left, panel.Top + 12), Gold);
         DrawTabs(spriteBatch, font, JournalPage.Words, left + (int)DrawHelpers.Width(font, Title) + 24, panel.Top + 12);
-        var summary = $"Conocidas: {known} de {rows.Count}";
+        var summary = $"Conocidas: {known} de {rows.Count}   ·   Sesión {view.Session.PlaySession}";
         DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - Padding - DrawHelpers.Width(font, summary), panel.Top + 12), Known);
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + 40, textWidth, 1), new Color(255, 214, 64, 120));
 
@@ -117,7 +117,7 @@ public sealed class JournalLayer : IFrameLayer
         DrawTabs(spriteBatch, font, JournalPage.Phrases, left + (int)DrawHelpers.Width(font, PhrasesTitle) + 24, panel.Top + 12);
         var withoutHelp = rows.Count(static r => r is { HasScaffold: true, Level: SupportLevel.None });
         var scaffolded = rows.Count(static r => r.HasScaffold);
-        var summary = $"Sin ayuda: {withoutHelp} de {scaffolded}";
+        var summary = $"Sin ayuda: {withoutHelp} de {scaffolded}   ·   Sesión {session.PlaySession}";
         DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - Padding - DrawHelpers.Width(font, summary), panel.Top + 12), Known);
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + 40, textWidth, 1), new Color(255, 214, 64, 120));
 

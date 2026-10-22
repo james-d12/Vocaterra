@@ -55,6 +55,9 @@ public sealed record LaunchOptions
         + "  --mic-check             show the mic check at the start (an interactive run shows it by default; a scripted run with --screenshot never does unless asked,\n"
         + "                          and then hears a synthesized \"hola\" when the machine has no microphone)\n"
         + "  --no-mic-check          never show the mic check\n"
+        + "  --save <file>           write the game to this save file when the run ends (on quit, or at the end of a script); F5 writes it in an interactive run\n"
+        + "  --load <file>           start from a save file: the same world, inventory, objective and progress, in the next play session (the session counter\n"
+        + "                          shows it); refused when the save is for another seed (with --seed) or another content bundle\n"
         + "  --typed-credit <full|half> the credit a correct typed use earns (default half; spoken input always earns full)\n"
         + "  --no-speech             do not load the speech models (typing only)\n"
         + "  --mute                  the NPCs' pre-rendered voices are off (the panel still shows every line)\n"
@@ -67,6 +70,15 @@ public sealed record LaunchOptions
 
     /// <summary>The world seed.</summary>
     public ulong Seed { get; init; } = DefaultSeed;
+
+    /// <summary>Whether <c>--seed</c> was given: a load then refuses a save of another seed, and without it the save's seed is taken.</summary>
+    public bool SeedGiven { get; init; }
+
+    /// <summary>The save file to write (on quit, on F5 and at the end of a scripted run), or <see langword="null"/>.</summary>
+    public string? SavePath { get; init; }
+
+    /// <summary>The save file to load into the new session (S10), or <see langword="null"/> to start a new game.</summary>
+    public string? LoadPath { get; init; }
 
     /// <summary>The content bundle folder, or <see langword="null"/> to search for <c>content/game-v1</c>.</summary>
     public string? ContentDirectory { get; init; }
@@ -214,7 +226,7 @@ public sealed record LaunchOptions
                 continue;
             }
 
-            if (arg is not ("--seed" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
+            if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"))
             {
                 error = $"Unknown argument '{arg}'.";
@@ -237,7 +249,25 @@ public sealed record LaunchOptions
                         return false;
                     }
 
-                    result = result with { Seed = seed };
+                    result = result with { Seed = seed, SeedGiven = true };
+                    break;
+                case "--save":
+                    if (value.Length == 0)
+                    {
+                        error = "--save needs a file path.";
+                        return false;
+                    }
+
+                    result = result with { SavePath = value };
+                    break;
+                case "--load":
+                    if (value.Length == 0)
+                    {
+                        error = "--load needs a file path.";
+                        return false;
+                    }
+
+                    result = result with { LoadPath = value };
                     break;
                 case "--screenshot":
                     if (value.Length == 0)

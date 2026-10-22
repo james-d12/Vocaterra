@@ -261,6 +261,34 @@ public sealed class WordProgress
         return noun is null ? 1.0 : SaturationOf(noun.Lemma);
     }
 
+    /// <summary>
+    /// Replaces the records with saved ones (S10). Every record must name a catalogue noun; a record for another lemma, or one given twice, throws.
+    /// The session is not changed here (the save sets it).
+    /// </summary>
+    /// <param name="saved">The records a save holds.</param>
+    /// <exception cref="ArgumentException">A record names no catalogue noun, or a lemma is given twice.</exception>
+    public void Restore(IEnumerable<WordRecord> saved)
+    {
+        ArgumentNullException.ThrowIfNull(saved);
+        var records = ImmutableSortedDictionary.CreateBuilder<string, WordRecord>(StringComparer.Ordinal);
+        foreach (var record in saved)
+        {
+            if (_catalog.ForLemma(record.Lemma) is null)
+            {
+                throw new ArgumentException($"'{record.Lemma}' is not a catalogue noun.", nameof(saved));
+            }
+
+            if (records.ContainsKey(record.Lemma))
+            {
+                throw new ArgumentException($"'{record.Lemma}' is given twice.", nameof(saved));
+            }
+
+            records.Add(record.Lemma, record);
+        }
+
+        _records = records.ToImmutable();
+    }
+
     /// <summary>Records that the learner has seen a noun's label for a while in the journal (the front-end calls it once per noun per opening).</summary>
     /// <param name="lemma">A catalogue noun; any other lemma is ignored.</param>
     public void MarkRead(string lemma)

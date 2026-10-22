@@ -39,6 +39,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private const int SettleTicks = 30;
     private const int RunawayTicks = 60 * 60 * 5;
 
+    /// <summary>The save file F5 writes when the run has no <c>--save</c> file.</summary>
+    private const string DefaultSavePath = "vocaterra.save.json";
+
     private static readonly (Keys Key, PanelKey Panel)[] PanelKeys =
     [
         (Keys.R, PanelKey.R), (Keys.S, PanelKey.S), (Keys.H, PanelKey.H), (Keys.N, PanelKey.N), (Keys.W, PanelKey.W), (Keys.Tab, PanelKey.Tab),
@@ -50,6 +53,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly LaunchOptions _options;
     private readonly VoxelSession _session;
     private readonly Scene _scene;
+    private readonly Func<Scene> _pristine;
     private readonly VoxelSimulation _sim;
     private readonly GraphicsDeviceManager _graphics;
     private readonly TickAccumulator _accumulator = new(VoxelSimulation.TicksPerSecond);
@@ -115,13 +119,17 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private int _printedEvents;
     private string? _shotPath;
 
-    /// <summary>Creates the 3D game for a started session (its simulation is the scene's), the built scene and the NPCs' voices (S9).</summary>
-    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice)
+    /// <summary>
+    /// Creates the 3D game for a started session (its simulation is the scene's), the built scene, the NPCs' voices (S9) and the builder of a fresh
+    /// scene of the session's seed (a save is taken against it, S10).
+    /// </summary>
+    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine)
     {
         _options = options;
         _session = session;
         _scene = scene;
         _voice = voice;
+        _pristine = pristine;
         _sim = session.Simulation;
         _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Phrases);
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
@@ -392,6 +400,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Console.WriteLine(line);
         }
 
+        if (_options.SavePath is { } savePath)
+        {
+            DrainForSave();
+            _ = WriteSave(savePath, "at the end of the run");
+        }
+
         _session.StopWorker(); // the worker disposes the recognizer on its own thread
         _renderer?.Dispose();
         _blockAtlas?.Dispose();
@@ -513,6 +527,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         bool Pressed(Keys key) => keys.IsKeyDown(key) && !_previousKeys.IsKeyDown(key);
         if (IsActive)
         {
+            if (Pressed(Keys.F5))
+            {
+                SaveNow();
+            }
+
             if (_micCheck is { IsActive: true })
             {
                 ReadMicCheckKeys(keys, Pressed);
@@ -1131,6 +1150,56 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     }
 
     // Applies the turns the worker finished, in order: the panel, the console, the arrow.
+    // The save file of F5 (S10): the --save file, or vocaterra.save.json in the working folder. A turn still thinking means "not now".
+    private void SaveNow()
+    {
+        var path = _options.SavePath ?? DefaultSavePath;
+        if (WriteSave(path, "on F5"))
+        {
+            _toasts.Show($"Partida guardada (sesión {_session.PlaySession})");
+        }
+        else
+        {
+            _toasts.Show("Espera un momento y pulsa F5 otra vez.");
+        }
+    }
+
+    // Writes the save of the session as it is now (the capture refuses a session that is not at rest, and that is said, not thrown).
+    private bool WriteSave(string path, string why)
+    {
+        if (!_session.CanSave)
+        {
+            Console.WriteLine($"save: not written {why}: the guide is still thinking, or the key words are on show");
+            return false;
+        }
+
+        var document = SaveGame.Capture(_session, _pristine());
+        var text = SaveGame.Serialize(document);
+        SaveFile.Write(path, text);
+        Console.WriteLine(
+            $"save: {path} written {why} (session {document.Session}, tick {document.Tick}, stored time {document.StoredTime}, world digest {document.StateDigest[..16]}, {System.Text.Encoding.UTF8.GetByteCount(text)} bytes)");
+        return true;
+    }
+
+    // At the quit, the turns still on the worker are applied first (up to five seconds), so that the save holds what the player said.
+    private void DrainForSave()
+    {
+        var until = MonotonicClock.Milliseconds() + 5000;
+        while (_session.PendingTurns > 0 && MonotonicClock.Milliseconds() < until)
+        {
+            ApplyFinishedTurns();
+            System.Threading.Thread.Sleep(10);
+        }
+
+        ApplyFinishedTurns();
+        if (_session.KeyWordsPending)
+        {
+            _session.FinishKeyWords();
+        }
+
+        _ = _session.TakeOpening(); // an opening that waits is only what the panel says: the save holds the NPCs' states, not the lines
+    }
+
     private void ApplyFinishedTurns()
     {
         foreach (var applied in _pump.Apply())
