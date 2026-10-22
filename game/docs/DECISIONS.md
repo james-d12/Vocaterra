@@ -18,6 +18,9 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-10 | Learning measurement for the prototype | decided (owner, 2026-10-21, from the brief) | nothing |
 | D-game-11 | The Noun Town review data | decided (owner, 2026-10-21): raw review JSON never committed; summaries and fetch scripts in `docs/research/noun-town/` | nothing |
 | D-game-12 | A competent Spanish reviewer for the phrase sheet and recordings | deferred by the owner (2026-10-21) with an interim workaround (provisional rows); the owner approved the LLM review pass (Opus) on 2026-10-21 | nothing; the playtest's content-trust gate stays provisional |
+| D-game-13 | English guidance for a player with no Spanish | decided (owner, 2026-10-22): on-screen English text only, fading per phrase; only Spanish is spoken | nothing |
+| D-game-14 | World scale and look | decided (owner, 2026-10-22): about 384 x 384 x 128, rich voxel (D-game-8 kept), close to the brief's references A to C, target a real GPU with quality presets | nothing |
+| D-game-15 | The opening and the guide's lesson | decided (owner, 2026-10-22): start alone at the player's cliff camp; a gradual guide lesson of 5 to 10 minutes; the phrase set grows beyond D-game-12's interim limit | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -125,6 +128,35 @@ by the owner on 2026-10-21, run by the orchestrator in S5) checks naturalness, L
 and accepted variant, recorded in `PHRASES.md` as `reviewer: llm-opus (provisional)` with the date; (4) the owner listens to every
 pre-rendered WAV in S9 for cut-offs and text-audio mismatches; (5) the playtest checklist marks the content-trust gate provisional and testers
 are told the Spanish has not been checked by a native speaker. Rows marked provisional are re-checked when a speaker is found.
+
+## D-game-13: English guidance (decided)
+
+**Owner, 2026-10-22, after playing the S12 build.** "We should use English to help the person be guided through; some bits can be a bit
+confusing if you know no Spanish at all." Asked how, the owner chose on-screen text: the English is written in a guide panel and only Spanish
+is spoken, so the ear stays on Spanish and no English recordings are needed. The English fades per phrase as S8's scaffolds do (a new first
+rung: English, card and audio; then card and audio with the English on the help key; then audio; then nothing), and the help key always shows it
+(rule 8). English also carries the controls, first-time tips, objectives (bilingual at first) and the feedback after a turn, in game content.
+Plan: `docs/SCENARIO_PLAN.md` section 8, S16.
+
+## D-game-14: world scale and look (decided)
+
+**Owner, 2026-10-22.** "Start on a cliff side ... make the map graphics better, with high mountains, and dense forest, with vegetation, so it's
+much more realistic. And make the map much larger." Then: "It should look close to the reference images used in the documentation" (the
+brief's references A, B, C). Answers: about 384 x 384 blocks and 128 tall (from 96 x 96 x 32); stay with blocks, made rich (textures, several
+tree species, dense undergrowth, sun shading, ambient occlusion, sky, clouds, haze, water), so D-game-8 holds; the target machine is one with a
+real GPU, with `--quality` presets so this VM (software GL) still runs and takes screenshots. The brief's art-direction rules still apply:
+Vocaterra's own identity, no Minecraft assets, textures and models drawn in code or CC0 (D-game-5); the reference images are never committed
+or copied. Plan: section 8, S13 to S15.
+
+## D-game-15: the opening and the guide's lesson (decided)
+
+**Owner, 2026-10-22.** "It should be more gradual. For example the guide should teach you a few things (this interaction alone should perhaps
+be 5 to 10 minutes). Also I want you to start on a cliff side in your own camp on your own." The player wakes alone at their own camp on a cliff
+ledge, learns the controls in English, walks down a trail to the guide, and the guide's lesson teaches greetings, yes and no, "¿Qué es esto?",
+please and thank you, and the getting-unstuck phrases before the camp task; the session ends by lighting the fire at the player's own camp.
+This departs from the brief's "Start in the forest" (the camp is now the player's, on the cliff) but keeps "no quiz at spawn". It also grows the
+phrase set beyond D-game-12's interim limit (the brief's five phrases plus five service words); every new row is still textbook A1, passes lint
+`--strict` and `cefr-check`, and gets the Opus pass, and the later native-speaker check grows accordingly. Plan: section 8, S17.
 
 ## D-game-7: one repository for the game and the core (done)
 

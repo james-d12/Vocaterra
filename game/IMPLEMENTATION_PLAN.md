@@ -179,6 +179,12 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S10 | Save, sessions, resume (P9 re-scoped) | done (merged to `feature/prototype` 2026-10-22) | Haiku 5.5 | S4, S8 |
 | S11 | Checks (pre, post, recall), the session log and the report script | done (merged to `feature/prototype` 2026-10-22, bundle `cd63077b…`) | Haiku 5.5 | S8, S10 |
 | S12 | Playtest build and facilitator checklist | done (merged to `feature/prototype` 2026-10-22); **the owner's pre-flight** (`docs/PLAYTEST.md` section 12) | Haiku 5.5 | S7, S9, S11 |
+| S13 | The large world: 384 x 384 x 128 generated terrain, mountains, cliffs, the river and waterfall, sites, the player's cliff camp and trail, view-distance rendering (`docs/SCENARIO_PLAN.md` section 8) | in progress | Sonnet 5.5 | S12, D-game-14 |
+| S14 | The look: code-drawn pixel-art textures, tree species, undergrowth, sun shading, AO, sky, clouds, haze, water, `--quality` presets | planned | Sonnet 5.5 | S13 |
+| S15 | The village, props, humanoid characters, the reference-B dialogue panel, the HUD icons and recipe panel, the F5 view | planned | Sonnet 5.5 | S14 |
+| S16 | The English guidance layer (D-game-13) and the data-driven lesson runner | in progress | Sonnet 5.5 | S12, D-game-13 |
+| S17 | The opening at the cliff camp, the guide's 5 to 10 minute lesson, the ending; new phrases, checks, Opus pass, speech | planned | Sonnet 5.5 | S13, S16, D-game-15 |
+| S18 | The playtest refresh (build, checklist, report, launcher message) | planned | Haiku 5.5 | S15, S17 |
 
 Each milestone ends with the gate in section 6 and a line in section 5. The S series is gated with `GATE_TARGET=feature/prototype
 scripts/merge-gate.sh "S<nn>:<branch>"` from the `feature/prototype` checkout.
@@ -733,6 +739,13 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   arm, the gates and their evidence, the owner's pre-flight, the bundle freeze). The orchestrator moved the playtest-only runtime pin into
   `Directory.Packages.props` (the agent had used a `VersionOverride`). Fresh clone: builds with 0 warnings and passes 3,889 tests; the README
   now says the speech models must be fetched. Checked by the orchestrator: the playtest world frame (no overlay, F10 label). Tests 3,889.
+
+- **The owner's playtest of S12 (2026-10-22).** "It's ok", with changes asked for: English guidance for a player with no Spanish (D-game-13),
+  a more gradual start with a 5 to 10 minute guide lesson and a start alone at the player's own cliff camp (D-game-15), and a much larger,
+  more realistic world with high mountains, dense forest and vegetation, close to the brief's reference images (D-game-14). The gap against the
+  references (`docs/SCENARIO_PLAN.md` section 8): the S12 build has a dark grey sky, untextured dull blocks, a small flat map and cube figures.
+  This machine renders through llvmpipe (a VM with a virtio GPU); the owner set a real GPU as the target, with presets. The launcher in
+  `game/playtest/` is only meant to run from a built folder; its missing-binary message is unhelpful (S18 fixes it).
 
 ## 6. Definition of done (every milestone)
 

@@ -290,3 +290,203 @@ In `src/Vocaterra.MonoGame`, the only engine code:
 - End to end (from S6): one scripted run under `xvfb-run -a` that walks the route, gathers, crafts, asks for water, asks for the river, fills the
   bottle, completes the objective and the transfer step, and writes a session log; the report script reads it back.
 - Playtest (S12): a fresh clone builds and runs the scripted scenario; the facilitator checklist is followed once by the owner before any tester.
+
+## 8. Second pass: the owner's playtest feedback (2026-10-22), milestones S13 to S18
+
+The owner played the S12 build: "it's ok", with five changes asked for:
+
+- English should guide a player who knows no Spanish at all.
+- The start should be more gradual: the guide teaches a few things first, and that interaction alone should take 5 to 10 minutes.
+- The player starts alone at their own camp on a cliff side.
+- The world should look much more realistic: high mountains, dense forest, vegetation, and a much larger map.
+- The look should come close to the brief's three reference images (A: the world, B: the village stall, C: crafting and the HUD).
+
+The decisions are D-game-13 (English guidance), D-game-14 (world scale and look) and D-game-15 (the opening and the guide's lesson). The
+reference images are inside `Vocaterra_Prototype_Design_Brief.docx`. Extract them to a scratch folder (outside the repository) with
+`unzip -o -j game/docs/Vocaterra_Prototype_Design_Brief.docx 'word/media/*' -d <scratch>`; image1 is reference A, image2 is B and image3 is C.
+They are generated concept art: never commit them and never copy from them. They set the target (shape, colour, scale, detail).
+
+What the references show, against the S12 build. The S12 build has a dark grey sky, flat untextured blocks with dull colours, a small flat
+map and plain cube figures.
+
+- **Sky.** A bright saturated blue sky with flat blocky clouds and a square sun.
+- **Distance.** A bluish aerial-perspective haze at distance.
+- **Mountains.** High snow-capped peaks with bare rock faces and a waterfall falling from a cliff.
+- **The valley.** A river winding through a green valley to a lake.
+- **Forest.** Dense broadleaf and conifer trees with big blocky canopies.
+- **Ground cover.** Tall grass, ferns, reeds and yellow and white flowers everywhere.
+- **Textures.** Pixel-art textures on every block: grass tops and sides, dirt, stone, bark, log rings, planks, cobble, path gravel.
+- **The village.** Timber-framed houses with stepped roofs and chimneys, a stone tower, fences, a crop field, lanterns that glow, and
+  signposts with arrows (`Tienda`, `Río`, `Montaña`).
+- **The stall.** A striped awning, with bread, apples and bottles on display.
+- **Characters.** Blocky but expressive, with faces, clothes (an apron, a baker's hat) and a backpack.
+- **Dialogue.** A dark rounded panel with the speaker's name over the line.
+- **HUD.** A hotbar with item icons and counts, and a crafting panel with recipe icons.
+
+The references are third person; the brief's first person stays the default, and S15 adds a behind-the-shoulder view as a toggle.
+
+Order:
+
+- Track A, the world: S13, then S14, then S15.
+- Track B, the learning: S16 runs beside S13, because its folders stay apart (the game layer and a UI layer, not the renderer or the
+  scene).
+- S17 needs S13 (the cliff camp and the new route) and S16 (the lesson runner). It may run beside S14 or S15.
+- S18 runs last.
+
+Every milestone keeps the whole scenario playable end to end and updates the scripted routes and tests that the new geography moves. The rules
+of section 5 carry over.
+
+### S13: the large world and its terrain (Sonnet 5.5, L)
+
+- **Size.** The map grows to 384 x 384 blocks and 128 tall (D-game-14): 24 x 24 x 8 chunks of 16³.
+- **How the terrain is made.** `scene.json` describes it instead of listing it:
+  - generator parameters;
+  - named sites at fixed positions: `camp.player`, `camp.guide`, `village`, `stall`, `river`, `bridge`, `lake`, `waterfall`, `trail`;
+  - structures as small block stamps.
+
+  The scene builder generates the heightmap from `WorldRng` and the seed, then:
+  - blends the terrain flat around each site;
+  - carves the river (from a waterfall off the northern cliffs, through the valley, past the village, under the bridge, into a lake);
+  - carves the trail.
+
+  A different seed changes the terrain but never moves a site.
+- **Shape.** High mountains along the north and west reach about 110 to 125, with bare stone above about 85 and snow caps above about 100;
+  cliffs are steep stepped faces. Forested foothills step down to a valley floor at about 30 to 40. The village stands on meadow near the
+  river.
+- **The player's camp** sits on a cliff ledge at about 65 to 75 on the mountainside, facing south-east over the valley. From it the player
+  sees the forest, the river, the village and the far peaks, the composition of reference A. A switchback trail leads down to the guide's camp
+  in a forest clearing at the trail's foot.
+- **Walking times**, at the present walk speed, are measured and reported. Targets: player camp to guide camp 40 to 70 s, guide camp to
+  village 30 to 60 s, village to river 10 to 25 s.
+- **Rendering at this scale:**
+  - only chunks within a view distance are meshed and drawn;
+  - empty and fully buried chunks are skipped;
+  - chunks are frustum-culled;
+  - meshing runs to a per-frame budget (or off the main thread; the simulation stays deterministic);
+  - distance fog matches the view distance.
+
+  The target is a real GPU (D-game-14). On this VM (llvmpipe) the build must run and take screenshots at a `--quality low` preset; frame
+  times are reported, not gated.
+- **Load cost.** Generation and the digests at load stay under about 3 s on this VM. `ComputeStateDigest` is cached, not recomputed per frame.
+  A save stays edited chunks only.
+- **What moves with it.** The existing objects, NPCs and objectives move to their sites: the workbench and the guide at `camp.guide`, the stall,
+  the houses and the signpost at the village, the bridge on the river. The fire ring for the end of the session is at `camp.player`
+  (D-game-15). `WorldFacts3D` direction and distance words stay right at the new distances (`cerca`, `lejos`). Scripted runs, demos and tests
+  follow the new layout. The bundle is re-hashed.
+- **Demo:** `--quality low --screenshot` from the player's camp looking south-east, and one from the valley looking north at the peaks.
+  The orchestrator compares both with reference A for shape and scale (textures and vegetation come in S14).
+
+### S14: the look, textures, vegetation, sky and light (Sonnet 5.5, M)
+
+- **Textures.** The block atlas is pixel art drawn in code: 16 x 16 per face, generated deterministically at load from a fixed hash (no
+  `System.Random`), CC0 by construction (D-game-5). Faces: grass top and side, dirt, stone, mossy stone, snow, sand, gravel path, cobble,
+  oak bark and log rings, spruce bark, planks, leaves (oak, spruce, with cut-out holes), water.
+- **Trees:**
+  - broadleaf oaks with large blocky canopies in the valley;
+  - spruces with tiered cones on the slopes;
+  - a few birches;
+  - density high enough to read as a dense forest, with paths and clearings left open.
+- **Undergrowth.** Crossed-quad plant blocks that do not collide: tall grass, ferns, reeds by the water, and yellow and white flowers.
+  They are placed by the scene builder from `WorldRng`, are part of the digests, and are thinned near paths and sites.
+- **Light:**
+  - a brighter, saturated palette (the brief's art-direction rules);
+  - directional sun shading per face;
+  - per-vertex ambient occlusion;
+  - a sky gradient with a square sun and a layer of flat blocky clouds;
+  - a bluish aerial-perspective fog at distance;
+  - water that is translucent with a lighter shore;
+  - a waterfall face.
+- **Quality presets** `--quality low|medium|high`: view distance, plant density drawn, AO, clouds. High is the default on a real GPU.
+- **`--greyscale` (D-game-6).** Unchanged in meaning. Plants and blocks that are not taught nouns stay in colour, as non-noun blocks do now.
+- **Demo:** the two S13 screenshots again, plus one inside the forest. They should read as reference A's style: textured, bright and dense.
+
+### S15: the village, props, characters and the HUD (Sonnet 5.5, M)
+
+- **The village:**
+  - timber-framed houses with stepped roofs and chimneys;
+  - a stone tower;
+  - fences and a small crop field;
+  - lanterns that glow at dusk (a light colour on nearby faces);
+  - signposts with arrow boards and readable text (`Tienda`, `Río`, `Montaña`).
+- **The stall** gets a striped awning and displayed bread, apples and bottles in crates (reference B).
+- **The guide's camp** has a workbench under a timber pergola with a torch (reference C).
+- **The player's camp** has a tent, a cold fire ring and a backpack or chest.
+- **Characters.** Humanoid figures with head, body, arms and legs, pixel-art faces and distinct clothes: the guide, the shopkeeper (apron and
+  hat) and the villager. They have an idle animation and turn to face the player when spoken to. The player has a figure with a backpack for the
+  behind-the-shoulder view, toggled with F5. First person stays the default.
+- **The dialogue panel** is restyled like reference B: a dark rounded panel with the speaker's name in a warm colour over the line, anchored
+  near the speaker when on screen.
+- **The HUD** gets a hotbar with pixel-art item icons and counts, and the workbench's recipe panel shows the inputs and the output as icons
+  with `have/need` counts (reference C).
+- **Demo:** screenshots at the stall (compared with reference B) and at the guide's workbench (compared with reference C).
+
+### S16: the English guidance layer and the lesson runner (Sonnet 5.5, M)
+
+- **English is on-screen text only (D-game-13).** Only Spanish is spoken. The English comes from a guide panel: a short line under or beside the
+  Spanish, in a different colour, marked as English.
+- **English fades per phrase.** S8's ladder gains a first rung:
+  1. English explanation, Spanish card and audio;
+  2. Spanish card and audio, with the English on the help key;
+  3. audio only;
+  4. nothing.
+
+  The help key shows the English at every rung (rule 8: nothing is gated behind language).
+- **English also covers the rest of the game:**
+  - the controls and first-time tips ("Look around with the mouse", "Press E to pick up");
+  - the objectives (bilingual HUD lines at first, for example `Campamento (camp): madera (wood) 0/5`, the English dropped as each noun becomes
+    known);
+  - the feedback after a turn, in plain English keyed by the core's error codes. That text lives in game content: game words live in `game/`,
+    and the core is not changed.
+- **The lesson runner.** A data-driven sequence in game content (for example `game/lessons.json`) of steps:
+  - `explain` (English text);
+  - `model` (the NPC says a line, with its WAV);
+  - `listen` (the learner hears and picks a meaning);
+  - `repeat` (the learner says it with the card);
+  - `answer` (a real turn through the core at a prompt);
+  - `do` (a world action, for example pick up the fruit the guide points at);
+  - `recap`.
+
+  Each step has a skip and a help path; a failed or uncertain turn moves forward (fail-forward, D-game-9). Progress is saved (S10), and
+  the session log records each step (S11). S16 ships the runner with a two-step sample lesson; S17 writes the real one.
+- **Demo:** a scripted run through the sample lesson prints each step and its outcome. A screenshot shows the English line under the Spanish.
+
+### S17: the opening, the guide's lesson and the ending (Sonnet 5.5, M)
+
+- **The opening (no quiz at spawn, brief step 1).** The player wakes alone at their cliff camp. English tips teach looking, walking, jumping,
+  picking up and the inventory. A note (English, with one Spanish word) says the guide's camp is down the trail. The HUD says
+  `Go down the trail and find the guide`. The view over the valley is the first thing seen.
+- **The guide's lesson** (D-game-15), 5 to 10 minutes. Each unit runs explain, model, repeat, answer and do. Units are short; the English
+  thins from the second use of a phrase on.
+  1. *Greeting:* the guide waves: "¡Hola!"; the learner says `Hola`. The guide says "Me llamo …" (understood, not said: the learner does not
+     say a name, which avoids core finding M29d).
+  2. *Yes and no:* the guide holds up items: "¿Es madera?"; the learner answers `Sí` or `No`.
+  3. *What is this?:* the learner asks "¿Qué es esto?" at things the guide points to. The guide names them: `madera`, `fruta`, `agua`,
+     `botella`, `mesa`, `antorcha`.
+  4. *Please and thank you:* the guide offers fruit: "¿Quieres fruta?"; the learner says `Sí, por favor`, then `Gracias`; the guide says
+     "De nada".
+  5. *Getting unstuck:* the learner says `No sé`, `Otra vez, por favor` and `Más despacio, por favor`. Each does what it says: the
+     guide repeats, or repeats slowly.
+  6. *The task:* "Necesito madera y frutas." (understood), with English support. The camp checklist begins, and the guide later sends the
+     learner to the village with "¿Qué necesitas?", "Quiero agua, por favor." and "¿Dónde está el río?" as now.
+
+  Recap at the end of the lesson: the phrases learnt so far, shown on the journal's phrases page.
+- **The ending.** With the torch made and the water fetched, the learner climbs back to their camp and lights the fire ring: the session's
+  closing view over the valley at dusk.
+- **Content.** New rows in `content/PHRASES.md` and the bundle: intents, examples, prompts, answer sets, dialogue and the support-card
+  English. All textbook A1, Latin American neutral, `lint --strict` and `cefr-check` clean. The phrase set grows beyond D-game-12's interim
+  five plus five; D-game-15 records the owner's request. The pre and post checks (`checks.json`) gain items for the new phrases (D-game-10),
+  the recall check included.
+- **A core gap stops that part.** If a phrase needs a call the core lacks (for example routing `Otra vez` and `Más despacio` to the repair
+  actions, if that cannot be done in content), the agent stops that part and reports it; it becomes a core milestone.
+- **Review and speech.** The orchestrator runs the Opus review pass on the new rows (D-game-12 step 3); the agent applies its advice. Then the
+  new lines are pre-rendered (`scripts/prerender-speech.sh`), and `SPEECH_CHECKLIST.md` lists the new WAVs for the owner to listen to.
+- **Measure.** One scripted run of the lesson; report its length at a learner's pace. The target is 5 to 10 minutes; the estimate counts the
+  audio lengths and a typical answer time.
+
+### S18: the playtest refresh (Haiku 5.5, S)
+
+- The playtest build, `PLAYTEST.md` and the report script are updated for the new opening, the lesson steps, the longer session and the new
+  phrases.
+- The launcher `game/playtest/playtest.sh` says "build this folder with `scripts/playtest-build.sh` first" when the game binary is missing.
+- The build-size check is re-run.
+- The bundle hash is recorded for the owner's freeze before recall sessions.
