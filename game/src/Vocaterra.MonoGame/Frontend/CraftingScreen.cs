@@ -25,7 +25,7 @@ public sealed record CraftingRow(int Index, RecipeEntry Recipe, IReadOnlyList<in
     public string Status => Result switch
     {
         CraftResult.Done => "Make",
-        CraftResult.MissingStation => "Needs " + (Recipe.Station?.Lemma ?? "estación"),
+        CraftResult.MissingStation => "Needs " + (Recipe.Station?.Lemma ?? "a station"),
         CraftResult.InventoryFull => "Inventory full",
         _ => "Missing material",
     };

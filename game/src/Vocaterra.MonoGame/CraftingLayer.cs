@@ -15,7 +15,7 @@ namespace Vocaterra.MonoGame;
 public sealed class CraftingLayer : IFrameLayer
 {
     /// <summary>The title over the rows.</summary>
-    public const string Title = "Recetas";
+    public const string Title = "Recipes";
 
     /// <summary>The key hints under the rows.</summary>
     public const string KeyHints = "C or Esc: close   click a row: make";

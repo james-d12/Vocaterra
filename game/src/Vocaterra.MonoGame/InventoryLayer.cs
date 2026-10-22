@@ -57,7 +57,7 @@ public sealed class InventoryLayer : IFrameLayer
         var textWidth = panel.Width - (Padding * 2);
         DrawHelpers.Text(spriteBatch, font, Title, new Vector2(left, panel.Top + 10), Gold);
         var used = view.Items.Slots.Count(static s => !s.IsEmpty);
-        var summary = $"Ocupadas: {used} de {Inventory.SlotCount}";
+        var summary = $"Slots used: {used} of {Inventory.SlotCount}";
         DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - Padding - DrawHelpers.Width(font, summary), panel.Top + 10), Known);
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + 36, textWidth, 1), new Color(255, 214, 64, 120));
 
