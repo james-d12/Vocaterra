@@ -122,7 +122,7 @@ public sealed class ScenarioScript
 
                     return;
                 case Phase.Waiting:
-                    if (_session.PendingTurns == 0 && !_dialogue.SubmitRequested)
+                    if (_session.PendingTurns == 0 && !_dialogue.SubmitRequested && _dialogue.PendingSpeech is null)
                     {
                         _phase = Phase.Gap;
                         _wait = GapTicks;
@@ -181,6 +181,21 @@ public sealed class ScenarioScript
                 _line = step.Value;
                 _ = _dialogue.Entry.Insert(_line);
                 _dialogue.RequestSubmit();
+                _index++;
+                _phase = Phase.Waiting;
+                break;
+            case ScriptStepKind.Speak:
+            case ScriptStepKind.Wav:
+                if (!_dialogue.IsOpen)
+                {
+                    StartTalk(NpcService.GuideAgent); // nobody to say it to: the guide, as for --say
+                    break;
+                }
+
+                // The scripted spoken path (S7): the line is synthesized by Kokoro (or the WAV read) on the worker and recognized by Vosk as if the
+                // player had said it into the microphone; the turn is the one a spoken line makes.
+                _line = step.Value;
+                _dialogue.RequestSpeech(step.Kind == ScriptStepKind.Speak ? TurnSource.Speak : TurnSource.Wav, step.Value);
                 _index++;
                 _phase = Phase.Waiting;
                 break;

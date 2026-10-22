@@ -22,7 +22,7 @@ public enum WordStage
     Known,
 }
 
-/// <summary>How the typed or spoken line arrived. The credit of each kind is set in <see cref="CreditRules"/>.</summary>
+/// <summary>How the typed, spoken or button line arrived. The credit of each kind is set in <see cref="CreditRules"/>.</summary>
 public enum InputKind
 {
     /// <summary>The player typed the line.</summary>
@@ -30,6 +30,9 @@ public enum InputKind
 
     /// <summary>The player spoke the line (P5).</summary>
     Spoken,
+
+    /// <summary>A button sent the line: a choice the repair ladder offered, <c>Ayuda</c> or <c>No sé</c> (S7). A recognition signal: it earns no credit.</summary>
+    Button,
 }
 
 /// <summary>
@@ -59,7 +62,12 @@ public sealed record CreditRules(int TypedUnits, int SpokenUnits, IReadOnlyList<
     public IReadOnlyList<long> Gaps => GapSeconds ?? DefaultGapSeconds;
 
     /// <summary>The units a correct use of the given kind earns.</summary>
-    public int For(InputKind kind) => kind == InputKind.Typed ? TypedUnits : SpokenUnits;
+    public int For(InputKind kind) => kind switch
+    {
+        InputKind.Typed => TypedUnits,
+        InputKind.Spoken => SpokenUnits,
+        _ => 0,
+    };
 
     /// <summary>
     /// The seconds of stored time that must pass after the <paramref name="creditedUses"/>-th credited use before the next one earns credit:
@@ -311,8 +319,9 @@ public sealed class WordProgress
         var credited = new List<string>();
         var newlyKnown = new List<string>();
         var outcomes = new List<WordCredit>();
-        if (!turn.Communicated)
+        if (!turn.Communicated || kind == InputKind.Button)
         {
+            // A line a button sent (a choice, Ayuda, No sé) is a recognition signal: the words it holds were heard and read, never said (D-game-10).
             return new WordTurnResult(credited, newlyKnown, outcomes);
         }
 

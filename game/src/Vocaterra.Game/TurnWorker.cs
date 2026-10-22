@@ -19,6 +19,42 @@ public enum TurnSource
 
     /// <summary>A line the worker synthesizes with Kokoro and then recognizes like a recorded one (<c>--speak</c>).</summary>
     Speak,
+
+    /// <summary>A choice the repair ladder offered, picked with a button: sent as a line, marked as a choice (S7).</summary>
+    Choice,
+
+    /// <summary>A speech button's line (<c>Ayuda</c> sends "ayuda", <c>No sé</c> sends "no sé"): sent as a line, with no credit (S7).</summary>
+    Button,
+
+    /// <summary>A recorded clip for the mic check: the worker recognizes it and reports what it heard; it is no turn (S7).</summary>
+    Hear,
+
+    /// <summary>A line the worker synthesizes with Kokoro and then hears for the mic check, as <see cref="Hear"/> (the scripted mic check, <c>--mic-check</c> without a microphone).</summary>
+    HearSpeak,
+}
+
+/// <summary>
+/// A flag the player sets to cancel a turn that is still being evaluated (Esc while "Pensando…"). The worker looks at it before it starts the turn
+/// and again when the turn is done: a cancelled turn is rolled back (<see cref="NpcService.Rollback"/>) and its outcome carries no turn, so it
+/// never reaches the world.
+/// </summary>
+public sealed class TurnCancellation
+{
+    private volatile bool _cancelled;
+
+    /// <summary>Whether the turn was cancelled.</summary>
+    public bool IsCancelled => _cancelled;
+
+    internal bool Cancel()
+    {
+        if (_cancelled)
+        {
+            return false;
+        }
+
+        _cancelled = true;
+        return true;
+    }
 }
 
 /// <summary>
@@ -50,9 +86,26 @@ public sealed record TurnRequest(
     long Tick,
     string Npc = NpcService.GuideAgent)
 {
-    /// <summary>How the line arrives: typed, or spoken (a clip, a file or a synthesized line).</summary>
-    public InputKind Kind => Source == TurnSource.Typed ? InputKind.Typed : InputKind.Spoken;
+    /// <summary>Whether the request is a mic check (<see cref="TurnSource.Hear"/> or <see cref="TurnSource.HearSpeak"/>): it hears a clip and makes no turn.</summary>
+    public bool IsMicCheck => Source is TurnSource.Hear or TurnSource.HearSpeak;
+
+    /// <summary>The flag that cancels this request while it is on the worker (see <see cref="TurnWorker.CancelPending"/>).</summary>
+    public TurnCancellation Cancellation { get; } = new();
+
+    /// <summary>How the line arrives: typed, sent by a button (a choice, <c>Ayuda</c>, <c>No sé</c>), or spoken (a clip, a file or a synthesized line).</summary>
+    public InputKind Kind => Source switch
+    {
+        TurnSource.Typed => InputKind.Typed,
+        TurnSource.Choice or TurnSource.Button => InputKind.Button,
+        _ => InputKind.Spoken,
+    };
 }
+
+/// <summary>What the worker heard for a mic check (S7).</summary>
+/// <param name="Heard">What the recognizer heard, without its <c>[unk]</c> marks; empty when nothing was heard.</param>
+/// <param name="Passed">Whether it heard "hola".</param>
+/// <param name="Level">The loudest moment of the clip, 0 to 1 (the RMS of 50 ms windows).</param>
+public sealed record MicCheckResult(string Heard, bool Passed, double Level);
 
 /// <summary>How long the stages of a turn took on the worker, in milliseconds of the clock the front-end gave it (diagnostics only).</summary>
 /// <param name="SynthesizeMilliseconds">Kokoro (zero for a cache hit or when nothing was spoken).</param>
@@ -66,7 +119,9 @@ public sealed record TurnTimings(double SynthesizeMilliseconds, double Recognize
 /// <param name="Turn">The turn, or <see langword="null"/> when <paramref name="Problem"/> says why there is none.</param>
 /// <param name="Problem">Why no turn was made (no recognizer, no such file, an unreadable clip), in Spanish for the player.</param>
 /// <param name="Timings">The stage timings.</param>
-public sealed record TurnOutcome(TurnRequest Request, GuideTurn? Turn, string? Problem, TurnTimings Timings);
+/// <param name="Cancelled">Whether the player cancelled the request: the turn (if it ran) was rolled back and nothing of it is applied.</param>
+/// <param name="MicCheck">For a mic-check request (<see cref="TurnSource.Hear"/>), what was heard; otherwise <see langword="null"/>.</param>
+public sealed record TurnOutcome(TurnRequest Request, GuideTurn? Turn, string? Problem, TurnTimings Timings, bool Cancelled = false, MicCheckResult? MicCheck = null);
 
 /// <summary>What loading did, for the loading screen and the report.</summary>
 /// <param name="GuideMilliseconds">The first typed evaluation (JIT and lazy tables).</param>
@@ -96,6 +151,8 @@ public sealed class TurnWorker : IDisposable
     private readonly bool _loadSpeech;
     private readonly BlockingCollection<TurnRequest> _queue = [];
     private readonly ConcurrentQueue<TurnOutcome> _outcomes = new();
+    private readonly object _gate = new();
+    private readonly List<TurnRequest> _open = [];
     private readonly ManualResetEventSlim _ready = new(false);
     private readonly Thread _thread;
     private long _submitted;
@@ -153,8 +210,36 @@ public sealed class TurnWorker : IDisposable
     public void Submit(TurnRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
+        lock (_gate)
+        {
+            _open.Add(request);
+        }
+
         Interlocked.Increment(ref _submitted);
         _queue.Add(request);
+    }
+
+    /// <summary>
+    /// Cancels every request that has not been finished: the ones waiting in the queue are skipped, the one on the worker is rolled back when
+    /// it ends. The outcomes still come back, in order, marked <see cref="TurnOutcome.Cancelled"/>, so <see cref="Pending"/> counts down as usual.
+    /// A request whose turn is already finished cannot be cancelled (its outcome is applied by the next collect).
+    /// </summary>
+    /// <returns>How many requests were cancelled.</returns>
+    public int CancelPending()
+    {
+        lock (_gate)
+        {
+            var count = 0;
+            foreach (var request in _open)
+            {
+                if (request.Cancellation.Cancel())
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
     }
 
     /// <summary>Takes the oldest finished outcome, or returns <see langword="false"/> when none is finished. Outcomes come in submission order.</summary>
@@ -192,7 +277,7 @@ public sealed class TurnWorker : IDisposable
             engine = LoadModels();
             foreach (var request in _queue.GetConsumingEnumerable())
             {
-                _outcomes.Enqueue(Handle(request, engine));
+                _outcomes.Enqueue(Finish(request, engine));
             }
         }
         finally
@@ -235,17 +320,58 @@ public sealed class TurnWorker : IDisposable
         return engine;
     }
 
-    private TurnOutcome Handle(TurnRequest request, SpeechEngine? engine)
+    // Runs one request and settles it with the player's cancel flag.
+    private TurnOutcome Finish(TurnRequest request, SpeechEngine? engine)
     {
+        if (request.Cancellation.IsCancelled)
+        {
+            return Settle(request, new TurnOutcome(request, null, null, new TurnTimings(0, 0, 0, false), Cancelled: true), null);
+        }
+
+        var outcome = Handle(request, engine, out var checkpoint);
+        return Settle(request, outcome, checkpoint);
+    }
+
+    // Under the gate the request leaves the open list and, if it was cancelled meanwhile, the NPC is put back as it was before the turn (the turn never
+    // happened) and the outcome says so. A cancel that comes after this point finds nothing to cancel: the outcome is applied as it is.
+    internal TurnOutcome Settle(TurnRequest request, TurnOutcome outcome, NpcCheckpoint? checkpoint)
+    {
+        lock (_gate)
+        {
+            _open.Remove(request);
+            if (request.Cancellation.IsCancelled && !outcome.Cancelled)
+            {
+                if (checkpoint is not null && outcome.Turn is not null)
+                {
+                    _guide.Rollback(checkpoint);
+                }
+
+                return new TurnOutcome(request, null, null, outcome.Timings, Cancelled: true);
+            }
+
+            return outcome;
+        }
+    }
+
+    internal TurnOutcome Handle(TurnRequest request, SpeechEngine? engine, out NpcCheckpoint? checkpoint)
+    {
+        checkpoint = null;
         var begin = Now();
         double synthMs = 0;
         var cached = false;
         try
         {
             GuideTurn turn;
-            if (request.Source == TurnSource.Typed)
+            if (request.Source is TurnSource.Typed or TurnSource.Choice or TurnSource.Button)
             {
-                turn = _guide.Say(request.Npc, request.Text!, request.Scene, request.Now, request.HostStateHash);
+                checkpoint = _guide.Checkpoint(request.Npc);
+                var origin = request.Source switch
+                {
+                    TurnSource.Choice => LineOrigin.Choice,
+                    TurnSource.Button => LineOrigin.Button,
+                    _ => LineOrigin.Typed,
+                };
+                turn = _guide.Say(request.Npc, request.Text!, request.Scene, request.Now, request.HostStateHash, origin);
                 return new TurnOutcome(request, turn, null, new TurnTimings(0, 0, Now() - begin, false));
             }
 
@@ -258,13 +384,14 @@ public sealed class TurnWorker : IDisposable
             switch (request.Source)
             {
                 case TurnSource.Clip:
+                case TurnSource.Hear:
                     clip = request.Clip;
                     break;
                 case TurnSource.Wav:
                     var (samples, rate) = AudioClips.ReadWav(File.ReadAllBytes(request.WavPath!));
                     clip = AudioClips.Prepare(samples, rate);
                     break;
-                default:
+                default: // Speak, HearSpeak
                     if (!engine.CanSpeak)
                     {
                         return Failed(request, begin, $"Falta el modelo {SpeechEngine.KokoroModelId}: no se puede sintetizar la frase.");
@@ -276,11 +403,18 @@ public sealed class TurnWorker : IDisposable
                     break;
             }
 
+            if (request.Source is TurnSource.Hear or TurnSource.HearSpeak)
+            {
+                var heard = MicCheck.Run(engine.Recognizer, clip);
+                return new TurnOutcome(request, null, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached), MicCheck: heard);
+            }
+
             if (clip is null)
             {
                 return Failed(request, begin, "No se oyó nada.");
             }
 
+            checkpoint = _guide.Checkpoint(request.Npc);
             turn = _guide.SaySpoken(request.Npc, clip, request.Scene, request.Now, request.HostStateHash);
             return new TurnOutcome(request, turn, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached));
         }

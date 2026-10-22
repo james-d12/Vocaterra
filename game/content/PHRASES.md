@@ -41,6 +41,11 @@ water, please"): `quiero` is "I want", and the polite register is carried by `po
 
 Cells never contain a `|`. A `-` means none.
 
+**The run-time copy.** The game reads `content/game-v1/game/phrases.json` (S7), a machine-readable copy of the columns it needs: `id`, `says`,
+`Spanish`, `English`, `intent`, `prompt`, the accepted variants, the support card and the audio line ids (`-` is `null` or an empty list). This file stays
+the source of truth: edit the table here first, then the JSON, then re-hash the bundle. `game/tests/Vocaterra.Host.Tests/PhraseSheetTests.cs` compares
+the two row by row on every run. The panel's `Esperaba: «…»` is the first part of a row's support card (the phrase before ` = `).
+
 ## Phrases
 
 | id | says | Spanish | English | intent | prompt | accepted variants | learner error | NPC and situation | support card | audio line ids | reviewer | date |

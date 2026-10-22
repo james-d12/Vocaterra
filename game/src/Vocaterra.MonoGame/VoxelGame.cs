@@ -39,6 +39,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private const int SettleTicks = 30;
     private const int RunawayTicks = 60 * 60 * 5;
 
+    private static readonly (Keys Key, PanelKey Panel)[] PanelKeys =
+    [
+        (Keys.R, PanelKey.R), (Keys.S, PanelKey.S), (Keys.H, PanelKey.H), (Keys.N, PanelKey.N), (Keys.W, PanelKey.W), (Keys.Tab, PanelKey.Tab),
+        (Keys.D1, PanelKey.D1), (Keys.D2, PanelKey.D2), (Keys.D3, PanelKey.D3), (Keys.NumPad1, PanelKey.D1), (Keys.NumPad2, PanelKey.D2), (Keys.NumPad3, PanelKey.D3),
+    ];
+
     private static readonly Keys[] SlotKeys = [Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9, Keys.D0];
 
     private readonly LaunchOptions _options;
@@ -59,6 +65,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly DialogueModel _dialogue;
     private readonly TurnPump _pump;
     private readonly PushToTalk _talk;
+    private readonly SpeechActionRunner _actions;
+    private readonly TurnWatchdog _watchdog = new();
+    private readonly MicCheckModel? _micCheck;
     private readonly KeyRepeater _backspace = new();
     private readonly KeyRepeater _delete = new();
     private readonly KeyRepeater _left = new();
@@ -99,6 +108,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly CraftingScreen _crafting = new();
     private readonly Queue<int> _pendingCrafts = new();
     private int _loadingFrames;
+    private bool _micScriptedSent;
+    private int _micShownTicks;
     private int _printedEvents;
     private string? _shotPath;
 
@@ -109,10 +120,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _session = session;
         _scene = scene;
         _sim = session.Simulation;
-        _dialogue = new DialogueModel(_focus, session.OpeningLine);
+        _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Phrases);
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
         _talk = new PushToTalk(microphone);
         _pump = new TurnPump(session, _dialogue, CursorCell);
+        _actions = new SpeechActionRunner(session, _dialogue, SilentLinePlayer.Instance, CursorCell);
+        _micCheck = options.ShowsMicCheck ? new MicCheckModel(session.LogMicCheck) : null;
         _look.Set(scene.Spawn.Yaw, 0);
         _currentEye = _previousEye = EyeBlocks();
         if (options.IsScreenshotRun)
@@ -205,6 +218,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             VoxelIcons = _blockAtlas,
             Objective = _session.Objective,
             Cards = _cards,
+            MicCheck = _micCheck,
         };
         _layers.Add(new HeldItemLayer());
         _layers.Add(new CrosshairLayer());
@@ -221,6 +235,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _layers.Add(new JournalLayer());
         _layers.Add(new InventoryLayer());
         _layers.Add(new CraftingLayer());
+        _layers.Add(new MicCheckLayer());
         _layers.Add(new LoadingLayer());
     }
 
@@ -244,13 +259,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         ApplyFinishedTurns();
+        RunWatchdog(seconds);
+        DriveScriptedMicCheck();
         var steps = _accumulator.Advance(seconds);
         for (var i = 0; i < steps; i++)
         {
             StepOnce();
         }
 
-        PumpTalk();
+        PumpTalk(seconds);
         _pump.Submit();
         SyncBeacon();
         _aimed = AimedFigure();
@@ -344,7 +361,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         if (_options.ScreenshotPath is { } path
-            && ((_sim.Tick >= _options.Frames && _settled >= SettleTicks && _session.Worker!.IsReady && _session.PendingTurns == 0 && !_dialogue.SubmitRequested)
+            && ((_sim.Tick >= _options.Frames && _settled >= SettleTicks && _session.Worker!.IsReady && _session.PendingTurns == 0 && !_dialogue.SubmitRequested && _dialogue.PendingSpeech is null
+                && _micCheck is not { Phase: MicCheckPhase.Ready or MicCheckPhase.Listening or MicCheckPhase.Thinking })
                 || _sim.Tick > RunawayTicks))
         {
             ExitCode = ScreenshotWriter.TrySave(GraphicsDevice, path) ? 0 : 1;
@@ -400,11 +418,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private void StepOnce()
     {
         _commands.Clear();
-        if (_scenario is { IsDone: false })
+        if (_scenario is { IsDone: false } && _micCheck is not { IsActive: true })
         {
             _scenario.Fill(_commands);
         }
-        else if (!_dialogue.IsOpen)
+        else if (!_dialogue.IsOpen && _micCheck is not { IsActive: true })
         {
             _live.Fill(_commands);
         }
@@ -481,7 +499,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         bool Pressed(Keys key) => keys.IsKeyDown(key) && !_previousKeys.IsKeyDown(key);
         if (IsActive)
         {
-            if (_dialogue.IsOpen)
+            if (_micCheck is { IsActive: true })
+            {
+                ReadMicCheckKeys(keys, Pressed);
+            }
+            else if (_dialogue.IsOpen)
             {
                 ReadDialogueKeys(keys, Pressed);
             }
@@ -542,7 +564,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
         }
 
-        var uiOpen = _journal.IsOpen || _inventory.IsOpen || _dialogue.IsOpen || _crafting.IsOpen;
+        var uiOpen = _journal.IsOpen || _inventory.IsOpen || _dialogue.IsOpen || _crafting.IsOpen || _micCheck is { IsActive: true };
         var leftDown = mouse.LeftButton == ButtonState.Pressed;
         var rightDown = mouse.RightButton == ButtonState.Pressed;
         if (IsActive && _crafting.IsOpen && leftDown && !_previousLeftDown)
@@ -553,6 +575,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             {
                 _pendingCrafts.Enqueue(row);
             }
+        }
+
+        if (IsActive && leftDown && !_previousLeftDown)
+        {
+            ClickOnScreens(mouse.X, mouse.Y);
         }
 
         var swallowClick = false;
@@ -613,57 +640,291 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _previousKeys = keys;
     }
 
-    // The panel's keys while it is open: Enter sends, Esc closes, Tab holds push-to-talk, the editing keys repeat as the panel doeso.
+    // The panel's keys while it is open. In the speech-button mode R, S, H, N, W (or Tab), 1 to 3 press the buttons, V or Space held talks and Enter
+    // presses the Escribir button when typing is on offer; in the typing mode Enter sends, Tab or Esc go back to the buttons and the editing keys repeat.
+    // Esc undoes the newest thing first: a recording, a turn that is thinking, the typing mode, and last the panel itself.
     private void ReadDialogueKeys(KeyboardState keys, Func<Keys, bool> pressed)
     {
-        if (pressed(Keys.Escape))
-        {
-            CloseDialogue();
-            return;
-        }
-
-        if (pressed(Keys.Enter))
-        {
-            _dialogue.RequestSubmit();
-        }
-
-        if (pressed(Keys.Tab))
-        {
-            BeginListening(Keys.Tab);
-        }
-
         if (_talk.Listening && !keys.IsKeyDown(_listenKey))
         {
             EndListening();
         }
 
-        var entry = _dialogue.Entry;
-        if (_backspace.Step(keys.IsKeyDown(Keys.Back)))
+        if (pressed(Keys.Escape))
         {
-            _ = entry.Backspace();
+            if (_talk.Listening)
+            {
+                CancelRecording();
+            }
+            else if (_actions.CancelThinking())
+            {
+                _watchdog.Reset();
+            }
+            else if (_dialogue.IsTyping)
+            {
+                _dialogue.EndTyping();
+            }
+            else
+            {
+                CloseDialogue();
+            }
+
+            return;
         }
 
-        if (_delete.Step(keys.IsKeyDown(Keys.Delete)))
+        if (_dialogue.IsTyping)
         {
-            _ = entry.Delete();
+            if (pressed(Keys.Tab))
+            {
+                _dialogue.EndTyping();
+                return;
+            }
+
+            if (pressed(Keys.Enter))
+            {
+                _dialogue.RequestSubmit();
+            }
+
+            var entry = _dialogue.Entry;
+            if (_backspace.Step(keys.IsKeyDown(Keys.Back)))
+            {
+                _ = entry.Backspace();
+            }
+
+            if (_delete.Step(keys.IsKeyDown(Keys.Delete)))
+            {
+                _ = entry.Delete();
+            }
+
+            if (_left.Step(keys.IsKeyDown(Keys.Left)))
+            {
+                entry.MoveLeft();
+            }
+
+            if (_right.Step(keys.IsKeyDown(Keys.Right)))
+            {
+                entry.MoveRight();
+            }
+
+            return;
         }
 
-        if (_left.Step(keys.IsKeyDown(Keys.Left)))
+        if (pressed(Keys.V) || pressed(Keys.Space))
         {
-            entry.MoveLeft();
+            BeginListening(pressed(Keys.V) ? Keys.V : Keys.Space);
+            return;
         }
 
-        if (_right.Step(keys.IsKeyDown(Keys.Right)))
+        if (pressed(Keys.Enter) && _dialogue.TypingOffered)
         {
-            entry.MoveRight();
+            PerformAction(SpeechAction.Type, null);
+            return;
+        }
+
+        foreach (var (key, panelKey) in PanelKeys)
+        {
+            if (pressed(key) && SpeechButtons.ForKey(panelKey) is { } action)
+            {
+                PerformAction(action, panelKey == PanelKey.W ? 'w' : null);
+                return;
+            }
+        }
+    }
+
+    // A button or a choice of the panel was pressed (key or mouse). Opening the text box with W would also type the W the platform delivers: swallow it.
+    private void PerformAction(SpeechAction action, char? typedByKey)
+    {
+        if (_actions.Perform(action))
+        {
+            if (action == SpeechAction.Type && typedByKey is { } typed)
+            {
+                _swallowedOpenKey = typed;
+                _swallowFrames = 2;
+            }
+
+            _watchdog.Reset();
+        }
+    }
+
+    // The mouse went down at a point: a button of the mic check, or a button or choice of the panel.
+    private void ClickOnScreens(int x, int y)
+    {
+        var font = _view!.Fonts.Get(FontProvider.NativeSize);
+        if (_micCheck is { IsActive: true } check)
+        {
+            var layout = MicCheckLayer.LayoutFor(check, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, font);
+            if (layout.ButtonAt(x, y) is { } button)
+            {
+                PressMicButton(button);
+            }
+
+            return;
+        }
+
+        if (_dialogue.IsOpen)
+        {
+            var layout = DialoguePanel.LayoutFor(_dialogue, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, font);
+            if (layout.ActionAt(x, y) is { } action)
+            {
+                PerformAction(action, null);
+            }
+        }
+    }
+
+    // The mic check's keys: hold V or Space to talk, Enter or Space to go on after a pass, Esc to skip.
+    private void ReadMicCheckKeys(KeyboardState keys, Func<Keys, bool> pressed)
+    {
+        var check = _micCheck!;
+        if (_talk.Listening && !keys.IsKeyDown(_listenKey))
+        {
+            EndMicListening();
+        }
+
+        if (pressed(Keys.Escape))
+        {
+            if (_talk.Listening)
+            {
+                _ = _talk.End();
+            }
+
+            check.Skip();
+            return;
+        }
+
+        switch (check.Phase)
+        {
+            case MicCheckPhase.Passed:
+                if (pressed(Keys.Enter) || pressed(Keys.Space))
+                {
+                    check.Continue();
+                }
+
+                break;
+            case MicCheckPhase.Ready:
+            case MicCheckPhase.Failed:
+                if (pressed(Keys.V) || pressed(Keys.Space))
+                {
+                    BeginMicListening(pressed(Keys.V) ? Keys.V : Keys.Space);
+                }
+                else if (pressed(Keys.Enter) && check.Phase == MicCheckPhase.Failed)
+                {
+                    check.Retry();
+                }
+
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void PressMicButton(MicCheckButton button)
+    {
+        if (button == MicCheckButton.Skip && _talk.Listening)
+        {
+            _ = _talk.End();
+        }
+
+        _micCheck!.Press(button);
+    }
+
+    // The mic check: the talk key went down. The recognizer must be loaded and the machine must have a microphone; otherwise the screen says why and
+    // the player can skip: nothing here ever stops the game.
+    private void BeginMicListening(Keys key)
+    {
+        var check = _micCheck!;
+        var worker = _session.Worker!;
+        if (!worker.CanHear)
+        {
+            check.Notice = worker.IsReady ? worker.Load?.Problem ?? "La voz no está disponible." : "Cargando la voz…";
+            return;
+        }
+
+        if (_talk.Begin())
+        {
+            _listenKey = key;
+            check.Notice = null;
+            check.BeginListening();
+        }
+        else
+        {
+            check.Notice = _talk.Problem;
+        }
+    }
+
+    // The mic check: the key went up (or the recording hit its cap). The clip goes to the worker, which hears it and answers with what it heard.
+    private void EndMicListening()
+    {
+        var check = _micCheck!;
+        var clip = _talk.End();
+        check.EndListening();
+        if (clip is null)
+        {
+            check.Notice = _talk.Problem;
+            check.HeardNothing();
+            return;
+        }
+
+        _ = _session.SubmitHear(clip);
+        Console.WriteLine($"mic check: {clip.DurationSeconds:0.00} s heard by the recognizer");
+    }
+
+    // A scripted mic check (no microphone): once the recognizer is loaded the worker synthesizes "hola" and hears it, as if it had been said.
+    private void DriveScriptedMicCheck()
+    {
+        if (_micCheck is not { IsActive: true } check || !_options.IsScreenshotRun)
+        {
+            return;
+        }
+
+        var worker = _session.Worker!;
+        if (!_micScriptedSent && worker.IsReady)
+        {
+            _micScriptedSent = true;
+            if (worker.CanHear)
+            {
+                _ = _session.SubmitHearSpeak(MicCheck.Word);
+                check.BeginScripted();
+            }
+            else
+            {
+                check.BeginScripted();
+                check.Complete(new MicCheckResult(string.Empty, false, 0));
+            }
+        }
+
+        // With steps to run after it, the scripted check goes on by itself once its result has been on screen for a moment; alone it stays up for the screenshot.
+        if (check.Phase is MicCheckPhase.Passed or MicCheckPhase.Failed && _scenario is { IsDone: false } && ++_micShownTicks >= 60)
+        {
+            check.Press(check.Phase == MicCheckPhase.Passed ? MicCheckButton.Continue : MicCheckButton.Skip);
+        }
+    }
+
+    // The front-end's watchdog (S7): a turn that has been thinking for five seconds of the frame clock logs a timeout and offers typing. A scripted run
+    // has no real time, so it has no watchdog.
+    private void RunWatchdog(double seconds)
+    {
+        if (_options.IsScreenshotRun)
+        {
+            return;
+        }
+
+        if (_watchdog.Update(seconds, _dialogue.IsOpen && _dialogue.IsThinking))
+        {
+            _session.LogVoice(VoiceEventKind.Timeout, $"{TurnWatchdog.LimitSeconds:0} s");
+            _dialogue.OfferTyping();
         }
     }
 
     // The window's text event: the letters of the panel's text box. The key that opened the panel (T or E) is typed by the platform too, once.
     private void OnTextInput(object? sender, TextInputEventArgs args)
     {
-        if (!_dialogue.IsOpen || char.IsControl(args.Character) || _talk.Listening)
+        if (!_dialogue.IsTyping || char.IsControl(args.Character) || _talk.Listening)
         {
+            if (_dialogue.IsOpen && _swallowedOpenKey is { } pending && char.ToLowerInvariant(args.Character) == pending)
+            {
+                _swallowedOpenKey = null;
+            }
+
             return;
         }
 
@@ -683,6 +944,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     {
         var opening = _session.OpenTalk(npc);
         _dialogue.Open(opening, NpcFigures.LabelOf(npc), _session.Review?.Question);
+        if (openedBy == 't')
+        {
+            _dialogue.BeginTyping(); // T is "type": the text box has the keyboard from the start
+        }
+
         _swallowedOpenKey = openedBy;
         _swallowFrames = 2; // the platform types the key once, in the next frame at the latest
         var how = opening.HostTurn ? "host turn" : "prompt";
@@ -693,6 +959,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private void CloseDialogue()
     {
         CancelListening();
+        _watchdog.Reset();
         _dialogue.Close();
         _session.EndTalk();
     }
@@ -775,6 +1042,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Console.WriteLine($"listened: {clip.DurationSeconds:0.00} s of speech sent to {_session.CurrentNpc}");
     }
 
+    // Esc while the microphone records: the recording is dropped and nothing is sent (logged as a cancel).
+    private void CancelRecording()
+    {
+        CancelListening();
+        _session.LogVoice(VoiceEventKind.Cancel, "recording");
+    }
+
     // The panel closed while recording: the clip is dropped.
     private void CancelListening()
     {
@@ -786,9 +1060,29 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _dialogue.Listening = false;
     }
 
-    // Once per frame while a key is held: collect the samples, and send the clip when the recording hits its length cap.
-    private void PumpTalk()
+    // Once per frame while a key is held: collect the samples, and send the clip when the recording hits its length cap. The mic check's meter moves
+    // with the level of what was collected.
+    private void PumpTalk(double seconds)
     {
+        if (_micCheck is { IsActive: true } check)
+        {
+            if (_talk.Listening)
+            {
+                _talk.Pump();
+                check.Feed(_talk.LastLevel, seconds);
+                if (_talk.ReachedLimit && !_talk.Listening)
+                {
+                    EndMicListening();
+                }
+            }
+            else
+            {
+                check.Feed(0, seconds);
+            }
+
+            return;
+        }
+
         if (!_talk.Listening)
         {
             return;
@@ -807,6 +1101,24 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         foreach (var applied in _pump.Apply())
         {
             var turn = applied.Turn;
+            if (applied.Outcome.Cancelled)
+            {
+                if (!applied.Outcome.Request.IsMicCheck)
+                {
+                    Console.WriteLine("turn cancelled: the player pressed Esc while it was thinking; nothing of it was applied");
+                }
+
+                continue;
+            }
+
+            if (applied.Outcome.Request.IsMicCheck)
+            {
+                var result = applied.Outcome.MicCheck ?? new MicCheckResult(string.Empty, false, 0);
+                Console.WriteLine($"mic check: heard \"{result.Heard}\", level {result.Level:0.00}, {(result.Passed ? "passed" : "not passed")}{(applied.Outcome.Problem is null ? string.Empty : $" ({applied.Outcome.Problem})")}");
+                _micCheck?.Complete(result);
+                continue;
+            }
+
             if (turn is null)
             {
                 Console.WriteLine($"turn failed: {applied.Outcome.Problem}");
@@ -815,12 +1127,22 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
             var timings = applied.Outcome.Timings;
             var detail = turn.Input == InputKind.Spoken
-                ? $"heard \"{turn.Line}\" (confidence {(int)Math.Round((turn.Confidence ?? 0) * 100)} %) -> {turn.Summary}, {timings.TotalMilliseconds:0} ms"
+                ? $"heard \"{turn.Line}\" (confidence {(int)Math.Round((turn.Confidence ?? 0) * 100)} %){(turn.Uncertain ? ", UNCERTAIN" : string.Empty)} -> {turn.Summary}, {timings.TotalMilliseconds:0} ms"
                 : $"\"{turn.Line}\" -> {turn.Summary}, {timings.TotalMilliseconds:0.0} ms";
             Console.WriteLine($"turn {_dialogue.TurnCount} ({turn.Npc}, {turn.Prompt}): {(turn.Input == InputKind.Spoken ? "spoken " : string.Empty)}{detail}, state {turn.AgentState}{(turn.HostEvents.Count > 0 ? $", host events {string.Join(" ", turn.HostEvents)}" : string.Empty)}{(turn.FailForward ? ", FAIL-FORWARD" : string.Empty)}");
             foreach (var line in turn.GuideLines)
             {
                 Console.WriteLine($"  {turn.Npc}: {line}");
+            }
+
+            if (_dialogue.Heard is { } heard && turn.Input == InputKind.Spoken)
+            {
+                Console.WriteLine($"  panel: {heard.Text}");
+            }
+
+            if (turn.Choices is { Count: > 0 })
+            {
+                Console.WriteLine($"  choices: {string.Join(" | ", _dialogue.Choices.Select(static c => c.Label))}");
             }
 
             if (turn.Pointer is { } arrow)

@@ -1,3 +1,4 @@
+using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
@@ -24,6 +25,60 @@ namespace Vocaterra.Game;
 /// <param name="HostEvents">The host events the host turn raised (<c>stall.give_water</c> for the fail-forward opening).</param>
 /// <param name="FailForward">Whether the opening handed over the bottle without a request (the shopkeeper's second visit).</param>
 public sealed record NpcOpening(string Npc, string Prompt, IReadOnlyList<string> Lines, bool HostTurn, IReadOnlyList<string> HostEvents, bool FailForward);
+
+/// <summary>Where a line sent to an NPC came from, when it was not recognized from speech.</summary>
+public enum LineOrigin
+{
+    /// <summary>The player typed it.</summary>
+    Typed,
+
+    /// <summary>The player picked it among the choices the repair ladder offered (a recognition signal; S7).</summary>
+    Choice,
+
+    /// <summary>A speech button sent it: <c>Ayuda</c> sends "ayuda", <c>No sé</c> sends "no sé" (S7).</summary>
+    Button,
+}
+
+/// <summary>
+/// An NPC's conversation state at one moment, kept so that a turn the player cancelled can be undone: the turn ran on the worker (it cannot be
+/// stopped half way), so when it finishes the worker rolls the NPC back and the turn never happened (S7). Opaque outside <see cref="NpcService"/>.
+/// </summary>
+public sealed class NpcCheckpoint
+{
+    internal NpcCheckpoint(string npc, ConversationContext context, int visits, int unproductive, int uncertain, bool helped, bool bottleGiven, bool offered, RepairKind? lastRepair, int records)
+    {
+        Npc = npc;
+        Context = context;
+        Visits = visits;
+        Unproductive = unproductive;
+        Uncertain = uncertain;
+        Helped = helped;
+        BottleGiven = bottleGiven;
+        Offered = offered;
+        LastRepair = lastRepair;
+        Records = records;
+    }
+
+    internal string Npc { get; }
+
+    internal ConversationContext Context { get; }
+
+    internal int Visits { get; }
+
+    internal int Unproductive { get; }
+
+    internal int Uncertain { get; }
+
+    internal bool Helped { get; }
+
+    internal bool BottleGiven { get; }
+
+    internal bool Offered { get; }
+
+    internal RepairKind? LastRepair { get; }
+
+    internal int Records { get; }
+}
 
 /// <summary>
 /// The conversations with the NPCs of the route, one agent each (the guide, the shopkeeper and the villager): a
@@ -89,6 +144,12 @@ public sealed partial class NpcService
     /// <summary>The random stream of the game's own lines is keyed by this id (the core's own draws use the agent's id).</summary>
     private const string HostLineStream = "guide.host";
 
+    /// <summary>The random stream of the line an NPC says when the recognizer was not sure (S7), keyed by the agent's interaction counter and how many such lines it has said.</summary>
+    private const string UncertainStream = "guide.uncertain";
+
+    /// <summary>The bundle pool of the line an NPC says when the recognizer was not sure: "No te entendí bien. ¿Lo dices otra vez?".</summary>
+    private const string UncertainPool = "guide.uncertain";
+
     /// <summary>The skill id prefix of a catalogue noun's learner skill (CR-005): <c>word.árbol</c>.</summary>
     private const string WordSkillPrefix = "word.";
 
@@ -130,6 +191,8 @@ public sealed partial class NpcService
         public bool BottleGiven { get; set; }
 
         public bool Offered { get; set; }
+
+        public int Uncertain { get; set; }
 
         public RepairKind? LastRepair { get; set; }
     }
@@ -310,10 +373,11 @@ public sealed partial class NpcService
     /// <param name="scene">Where the player is and what the cursor is on.</param>
     /// <param name="now">The stored time of this turn.</param>
     /// <param name="hostStateHash">The game's digest of the rest of its state.</param>
-    public GuideTurn Say(string npc, string line, GuideScene scene, StoredTimestamp now, string hostStateHash)
+    /// <param name="origin">Where the line came from: typed (the default), a choice the repair ladder offered, or a speech button (S7).</param>
+    public GuideTurn Say(string npc, string line, GuideScene scene, StoredTimestamp now, string hostStateHash, LineOrigin origin = LineOrigin.Typed)
     {
         ArgumentNullException.ThrowIfNull(line);
-        return Take(npc, line, null, scene, now, hostStateHash);
+        return Take(npc, line, null, scene, now, hostStateHash, origin);
     }
 
     /// <summary>
@@ -405,7 +469,7 @@ public sealed partial class NpcService
         }
     }
 
-    private GuideTurn Take(string npc, string? typed, PcmClip? clip, GuideScene scene, StoredTimestamp now, string hostStateHash)
+    private GuideTurn Take(string npc, string? typed, PcmClip? clip, GuideScene scene, StoredTimestamp now, string hostStateHash, LineOrigin origin = LineOrigin.Typed)
     {
         ArgumentNullException.ThrowIfNull(scene);
         ArgumentNullException.ThrowIfNull(hostStateHash);
@@ -431,8 +495,16 @@ public sealed partial class NpcService
             analysis = spoken.Analyze(clip, prompt);
         }
 
-        var line = analysis.Asr.Transcript;
+        var line = CleanTranscript(analysis.Asr.Transcript);
         var verdict = analysis.Verdict;
+        double? confidence = clip is null ? null : UncertaintyRule.MeanWordConfidence(analysis.Asr);
+        if (confidence is { } sure && UncertaintyRule.IsTooUnsure(verdict.Communicated, sure))
+        {
+            // The core would understand the line but the recognizer was not sure of its words (D-game-9): ask again and let nothing happen. The
+            // turn is not completed, so the conversation, the learner, the repeat counts and the world stay as they were.
+            return Unsure(agent, npc, promptId, line, sure, utterance, hostStateHash);
+        }
+
         var facts = new Dictionary<string, string>(StringComparer.Ordinal);
         string? worldLine = null;
         GuidePointer? pointer = null;
@@ -491,7 +563,15 @@ public sealed partial class NpcService
         var trace = Complete(clip is null, analysis, carried);
         var result = trace.Result;
         Record(new ReplayEntry(ReplayEnvelope.From(trace, carried), null));
+        var uncertain = confidence is not null && UncertaintyRule.IsUncertain(verdict.Communicated, confidence);
         agent.Context = carried.Next(result, now) with { HostStateHash = hostStateHash }; // the digest of the world again, not the core's hash of the values
+        if (uncertain)
+        {
+            // A spoken line the NPC did not understand is the recognition's trouble before it is the language's (D-game-9): the repeat counts
+            // move on (the repair ladder needs them) but the learner model is not marked down for it.
+            agent.Context = agent.Context with { Learner = utterance.Learner };
+            agent.Uncertain++;
+        }
 
         var hostEvents = HostEventsOf(result);
         Note(agent, string.Empty, hostEvents);
@@ -524,6 +604,7 @@ public sealed partial class NpcService
         }
 
         agent.LastRepair = result.Repair?.Kind;
+        IReadOnlyList<string>? choices = result.Repair is { Kind: RepairKind.OfferChoices, RetryRequest: { } retry } ? retry.GrammarPhrases : null;
         return new GuideTurn(
             line,
             verdict.Intent.Value,
@@ -543,13 +624,16 @@ public sealed partial class NpcService
             naming,
             nameTarget,
             GuideWord.From(result),
-            clip is null ? InputKind.Typed : InputKind.Spoken,
-            clip is null ? null : RecognitionConfidence(analysis.Asr),
+            clip is not null ? InputKind.Spoken : origin == LineOrigin.Typed ? InputKind.Typed : InputKind.Button,
+            confidence,
             npc,
             promptId,
             result.Repair?.Kind,
             followUp,
-            failForward);
+            failForward,
+            choices,
+            uncertain,
+            origin == LineOrigin.Choice);
     }
 
     // The stall's fail-forward (rule 8). After a line at the stall that did not ask for anything (the repair ladder's next step, a help request, a
@@ -617,9 +701,78 @@ public sealed partial class NpcService
         return spoken.CompleteTrace(analysis, context);
     }
 
-    // How sure the recognizer was of the words: the mean of Vosk's per-word confidences (the result's own confidence is 1.0 for a single-best decode).
-    private static double RecognitionConfidence(AsrResult recognition) =>
-        recognition.Words.Count == 0 ? recognition.Confidence : recognition.Words.Average(static w => w.Confidence);
+    // The transcript as the player sees it: the recognizer's [unk] marks (speech outside the grammar) are not words.
+    private static string CleanTranscript(string transcript) =>
+        string.Join(' ', transcript.Replace(GrammarBuilder.UnknownToken, " ", StringComparison.Ordinal).Split(' ', StringSplitOptions.RemoveEmptyEntries));
+
+    // The turn for a spoken line the recognizer was not sure of: the NPC asks again from the bundle's guide.uncertain pool, nothing else happens.
+    private GuideTurn Unsure(Agent agent, string npc, string promptId, string line, double confidence, ConversationContext utterance, string hostStateHash)
+    {
+        var rng = SeededRng.ForInteraction(utterance.WorldSeed, UncertainStream, utterance.AgentState.InteractionCounter + agent.Uncertain);
+        agent.Uncertain++;
+        return new GuideTurn(
+            line,
+            "unknown",
+            false,
+            0,
+            [],
+            null,
+            [Render(UncertainPool, SlotMap.Empty, rng)],
+            null,
+            agent.Context.AgentState.StateId,
+            [],
+            null,
+            null,
+            null,
+            hostStateHash,
+            SlotMap.Empty,
+            Input: InputKind.Spoken,
+            Confidence: confidence,
+            Npc: npc,
+            Prompt: promptId,
+            Uncertain: true);
+    }
+
+    /// <summary>
+    /// Takes a checkpoint of an NPC's conversation, for <see cref="Rollback"/>. The turn worker takes one before each turn it evaluates, so a turn
+    /// the player cancels while it runs can be undone.
+    /// </summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    public NpcCheckpoint Checkpoint(string npc)
+    {
+        var agent = AgentOf(npc);
+        lock (_records)
+        {
+            return new NpcCheckpoint(npc, agent.Context, agent.Visits, agent.Unproductive, agent.Uncertain, agent.Helped, agent.BottleGiven, agent.Offered, agent.LastRepair, _records.Count);
+        }
+    }
+
+    /// <summary>
+    /// Puts an NPC back as it was at the checkpoint: its state, its learner model, its repeat counts, the host decisions it remembers (the bottle,
+    /// the offer, the patience) and the replay records, so a cancelled turn leaves no trace in the conversation. Call it from the thread that
+    /// evaluated the turn, before anything else is evaluated.
+    /// </summary>
+    /// <param name="checkpoint">The checkpoint taken before the turn.</param>
+    public void Rollback(NpcCheckpoint checkpoint)
+    {
+        ArgumentNullException.ThrowIfNull(checkpoint);
+        var agent = AgentOf(checkpoint.Npc);
+        agent.Context = checkpoint.Context;
+        agent.Visits = checkpoint.Visits;
+        agent.Unproductive = checkpoint.Unproductive;
+        agent.Uncertain = checkpoint.Uncertain;
+        agent.Helped = checkpoint.Helped;
+        agent.BottleGiven = checkpoint.BottleGiven;
+        agent.Offered = checkpoint.Offered;
+        agent.LastRepair = checkpoint.LastRepair;
+        lock (_records)
+        {
+            if (_records.Count > checkpoint.Records)
+            {
+                _records.RemoveRange(checkpoint.Records, _records.Count - checkpoint.Records);
+            }
+        }
+    }
 
     private static List<string> HostEventsOf(PipelineResult result) => HostEventsOf(result.Decision.Agent?.Actions ?? []);
 

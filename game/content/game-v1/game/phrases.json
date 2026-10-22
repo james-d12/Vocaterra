@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "source": "content/PHRASES.md",
+  "phrases": [
+    {"id": "que-necesitas", "says": "hears", "spanish": "¿Qué necesitas?", "english": "What do you need?", "intent": null, "prompt": "stall-need", "variants": [], "card": "¿Qué necesitas? = What do you need? · necesitas = you need", "audioLineIds": ["shop_need.1"]},
+    {"id": "pedir-agua", "says": "says", "spanish": "Quiero agua, por favor.", "english": "I want water, please.", "intent": "request_item", "prompt": "stall-need", "variants": ["agua, por favor", "quiero agua", "necesito agua", "necesito agua, por favor", "me da agua", "me da agua, por favor", "me das agua", "me das agua, por favor", "un agua, por favor"], "card": "Quiero agua, por favor. = I want water, please. · quiero = I want · agua = water · por favor = please", "audioLineIds": ["shop_help_ask.1"]},
+    {"id": "quieres-pan", "says": "hears", "spanish": "¿Quieres pan?", "english": "Would you like bread?", "intent": null, "prompt": "stall-offer", "variants": [], "card": "¿Quieres pan? = Would you like bread? · pan = bread · quieres = you want", "audioLineIds": ["shop_offer.1"]},
+    {"id": "si-por-favor", "says": "says", "spanish": "Sí, por favor.", "english": "Yes, please.", "intent": "confirm", "prompt": "stall-offer", "variants": ["sí", "claro", "sí, gracias", "sí, quiero", "por favor, sí"], "card": "Sí, por favor. = Yes, please.", "audioLineIds": ["shop_help_offer.1", "guide_offer_help.1"]},
+    {"id": "no-gracias", "says": "says", "spanish": "No, gracias.", "english": "No, thank you.", "intent": "deny", "prompt": "stall-offer", "variants": ["no", "no, muchas gracias", "gracias, no"], "card": "No, gracias. = No, thank you.", "audioLineIds": ["shop_help_offer.1", "guide_offer_help.1"]},
+    {"id": "donde-esta-el-rio", "says": "says", "spanish": "¿Dónde está el río?", "english": "Where is the river?", "intent": "ask_directions", "prompt": "villager-open", "variants": ["dónde está el río, por favor", "dónde queda el río", "busco el río"], "card": "¿Dónde está el río? = Where is the river? · dónde = where · río = river", "audioLineIds": ["villager_help.1"]},
+    {"id": "hola", "says": "both", "spanish": "Hola.", "english": "Hello.", "intent": "greet", "prompt": "villager-open", "variants": ["buen día", "buenos días", "buenas tardes", "buenas noches"], "card": "Hola. = Hello.", "audioLineIds": ["villager_hello.1"]},
+    {"id": "gracias", "says": "says", "spanish": "Gracias.", "english": "Thank you.", "intent": "thank", "prompt": "villager-open", "variants": ["muchas gracias"], "card": "Gracias. = Thank you.", "audioLineIds": []},
+    {"id": "adios", "says": "says", "spanish": "Adiós.", "english": "Goodbye.", "intent": "farewell", "prompt": "villager-open", "variants": ["hasta luego", "nos vemos", "hasta mañana"], "card": "Adiós. = Goodbye.", "audioLineIds": ["shop_bye.1", "villager_bye.1"]},
+    {"id": "no-se", "says": "says", "spanish": "No sé.", "english": "I don't know.", "intent": "dont_know", "prompt": "villager-open", "variants": ["no lo sé", "yo no sé"], "card": "No sé. = I don't know.", "audioLineIds": []},
+    {"id": "ayuda", "says": "says", "spanish": "Ayuda.", "english": "Help.", "intent": "ask_help", "prompt": "villager-open", "variants": ["¿me ayudas?", "ayuda, por favor", "¿me puedes ayudar?", "necesito ayuda"], "card": "Ayuda. = Help. · necesito ayuda = I need help", "audioLineIds": []}
+  ]
+}

@@ -166,6 +166,13 @@
         { "lineId": "guide.review.ask.3", "text": "¿Qué es esto? Mira bien." }
       ]
     },
+    "guide.uncertain": {
+      "poolId": "guide.uncertain",
+      "variants": [
+        { "lineId": "guide.uncertain.1", "text": "No te entendí bien. ¿Lo dices otra vez?" },
+        { "lineId": "guide.uncertain.2", "text": "No te entendí bien. ¿Me lo dices otra vez?" }
+      ]
+    },
     "guide.name.none": {
       "poolId": "guide.name.none",
       "variants": [

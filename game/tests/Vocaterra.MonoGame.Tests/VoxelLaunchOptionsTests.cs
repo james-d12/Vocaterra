@@ -81,7 +81,6 @@ public sealed class VoxelLaunchOptionsTests
     {
         Assert.Contains("Unknown argument '--mine'", Refuse("--screenshot", "a.png", "--mine", "517,182"), StringComparison.Ordinal);
         Assert.Contains("Unknown argument '--teleport'", Refuse("--screenshot", "a.png", "--teleport", "1,2"), StringComparison.Ordinal);
-        Assert.Contains("Unknown argument '--wav'", Refuse("--screenshot", "a.png", "--wav", "x.wav"), StringComparison.Ordinal);
     }
 
     [Fact]

@@ -10,7 +10,9 @@ namespace Vocaterra.MonoGame.Frontend;
 /// NPC, stop about two blocks away facing it, open the panel), <c>--say</c> (type and send one line to the NPC the panel is open on; with no panel
 /// open it first talks to the guide, as in S3), <c>--leave</c> (close the panel) and <c>--shot &lt;png&gt;</c> (save the screen now and go on). All of them run in
 /// the order given (<see cref="Script"/>). <c>--beacon</c> stands the beacon on a named point, <c>--journal</c>, <c>--inventory</c> and <c>--crafting</c>
-/// open those screens at the end. <c>--voxel</c> is accepted and ignored (the 3D world is the only one since S4).
+/// open those screens at the end. <c>--voxel</c> is accepted and ignored (the 3D world is the only one since S4). Since S7 the scripted run also has
+/// <c>--speak &lt;line&gt;</c> (synthesize the line with Kokoro and say it to the NPC as if spoken: the scripted spoken path of the demos and tests) and
+/// <c>--wav &lt;file&gt;</c> (a recorded WAV said the same way), and the mic check has <c>--mic-check</c> (force it) and <c>--no-mic-check</c> (skip it).
 /// </summary>
 public sealed record LaunchOptions
 {
@@ -39,19 +41,25 @@ public sealed record LaunchOptions
         + "  --craft <item>          craft the recipe that makes the item (antorcha) with the mesa in reach; a step\n"
         + "  --talk <npc>            walk up to the NPC (guide, shopkeeper, villager), stop about two blocks away facing it and open the dialogue; a step\n"
         + "  --say <line>            type and send the line to the NPC the dialogue is open on (the guide when none is: walk to her and open it) and wait for the reply; a step\n"
+        + "  --speak <line>          synthesize the line with Kokoro and say it to the NPC the dialogue is open on as if spoken (Vosk hears it); a step\n"
+        + "  --wav <file>            say a recorded WAV file to the NPC the dialogue is open on (16-bit PCM, any rate); a step\n"
         + "  --leave                 close the dialogue (walking on or talking to another NPC closes it too); a step\n"
         + "  --shot <path.png>       save the screen at this point of the script and go on (the final --screenshot is saved when the script is done); a step\n"
         + "  --beacon <point>        stand the beacon column on a named point of the scene (camp, firering, workbench, stall, signpost, village, house1, bridge, river...)\n"
         + "  --journal               open the journal once the steps are done\n"
         + "  --inventory             open the inventory screen once the steps are done\n"
         + "  --crafting              open the crafting panel once the steps are done\n"
+        + "  --mic-check             show the mic check at the start (an interactive run shows it by default; a scripted run with --screenshot never does unless asked,\n"
+        + "                          and then hears a synthesized \"hola\" when the machine has no microphone)\n"
+        + "  --no-mic-check          never show the mic check\n"
         + "  --typed-credit <full|half> the credit a correct typed use earns (default half; spoken input always earns full)\n"
         + "  --no-speech             do not load the speech models (typing only)\n"
         + "  --greyscale             accepted; the world is drawn in full colour (D-game-6 as amended), the grey A/B is not in the 3D world yet\n"
         + "  --voxel                 accepted and ignored (the 3D world is the only world)\n"
         + "Controls: WASD or the arrows walk, Space jumps, the mouse looks; hold the left button to gather, the right to place; E opens the inventory (or\n"
         + "  the crafting panel at the workbench, or talks to the guide when the crosshair is on her); C the crafting panel; J the journal; 1..0 the hotbar.\n"
-        + "Push-to-talk: hold Tab while the dialogue is open, or hold V next to the guide to open it and listen.\n";
+        + "Push-to-talk: hold V or Space while the dialogue is open, or hold V with the crosshair on an NPC to open it and listen. In the dialogue: R repeat,\n"
+        + "  S slower, H help, N \"no sé\", W or Tab type (Tab or Esc back to the buttons), 1 to 3 pick an offered choice, Esc cancels a turn that is thinking, then closes.\n";
 
     /// <summary>The world seed.</summary>
     public ulong Seed { get; init; } = DefaultSeed;
@@ -98,14 +106,34 @@ public sealed record LaunchOptions
     /// <summary>Whether <c>--greyscale</c> was given (accepted; the 3D world has no grey copy yet).</summary>
     public bool Greyscale { get; init; }
 
+    /// <summary>Whether the mic check is forced (<c>--mic-check</c>), skipped (<c>--no-mic-check</c>) or left to the default.</summary>
+    public MicCheckMode MicCheck { get; init; } = MicCheckMode.Auto;
+
     /// <summary>Whether the run is the scripted screenshot run.</summary>
     public bool IsScreenshotRun => ScreenshotPath is not null;
 
-    /// <summary>Whether the run loads the speech models: an interactive run does, unless <c>--no-speech</c>.</summary>
-    public bool NeedsSpeech => !NoSpeech && !IsScreenshotRun;
+    /// <summary>Whether the script has a spoken step (<c>--speak</c> or <c>--wav</c>): it needs Vosk, and Kokoro for <c>--speak</c>.</summary>
+    public bool HasSpokenSteps => Script.Any(static step => step.Kind is ScriptStepKind.Speak or ScriptStepKind.Wav);
+
+    /// <summary>
+    /// Whether the run loads the speech models: an interactive run does, unless <c>--no-speech</c>; a scripted run does only when it speaks
+    /// (<c>--speak</c>, <c>--wav</c>) or checks the microphone (<c>--mic-check</c>).
+    /// </summary>
+    public bool NeedsSpeech => !NoSpeech && (!IsScreenshotRun || HasSpokenSteps || MicCheck == MicCheckMode.Force);
 
     /// <summary>Whether the run records from the real microphone (an interactive run that loads speech).</summary>
-    public bool UsesMicrophone => NeedsSpeech;
+    public bool UsesMicrophone => NeedsSpeech && !IsScreenshotRun;
+
+    /// <summary>
+    /// Whether the mic check screen is shown at the start (D-game-9): <c>--mic-check</c> always (it needs the speech models), <c>--no-mic-check</c>
+    /// never, otherwise in an interactive run that loads speech and in no scripted run.
+    /// </summary>
+    public bool ShowsMicCheck => MicCheck switch
+    {
+        MicCheckMode.Force => !NoSpeech,
+        MicCheckMode.Skip => false,
+        _ => NeedsSpeech && !IsScreenshotRun,
+    };
 
     /// <summary>Parses the arguments. On failure <paramref name="error"/> says why (or is empty for <c>--help</c>) and the options are defaults.</summary>
     public static bool TryParse(IReadOnlyList<string> args, out LaunchOptions options, out string error)
@@ -123,6 +151,7 @@ public sealed record LaunchOptions
         var inventory = false;
         var crafting = false;
         var greyscale = false;
+        var micCheck = MicCheckMode.Auto;
         for (var i = 0; i < args.Count; i++)
         {
             var arg = args[i];
@@ -132,12 +161,18 @@ public sealed record LaunchOptions
                 return false;
             }
 
-            if (arg is "--journal" or "--inventory" or "--crafting" or "--no-speech" or "--voxel" or "--greyscale" or "--leave")
+            if (arg is "--journal" or "--inventory" or "--crafting" or "--no-speech" or "--voxel" or "--greyscale" or "--leave" or "--mic-check" or "--no-mic-check")
             {
                 switch (arg)
                 {
                     case "--leave":
                         script.Add(new ScriptStep(ScriptStepKind.Leave));
+                        break;
+                    case "--mic-check":
+                        micCheck = MicCheckMode.Force;
+                        break;
+                    case "--no-mic-check":
+                        micCheck = MicCheckMode.Skip;
                         break;
                     case "--journal":
                         journal = true;
@@ -162,7 +197,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is not ("--seed" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
-                or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--talk" or "--shot"))
+                or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--talk" or "--shot" or "--speak" or "--wav"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -214,6 +249,24 @@ public sealed record LaunchOptions
 
                     says.Add(value);
                     script.Add(new ScriptStep(ScriptStepKind.Say, Value: value));
+                    break;
+                case "--speak":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = "--speak needs a line to speak.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Speak, Value: value));
+                    break;
+                case "--wav":
+                    if (value.Length == 0)
+                    {
+                        error = "--wav needs a WAV file.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Wav, Value: value));
                     break;
                 case "--talk":
                     if (Array.IndexOf(TalkTargets, value.Trim()) < 0)
@@ -343,7 +396,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --interact, --place, --select, --craft, --talk, --say, --leave, --shot, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --interact, --place, --select, --craft, --talk, --say, --speak, --wav, --leave, --shot, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 
@@ -358,6 +411,7 @@ public sealed record LaunchOptions
             ShowInventory = inventory,
             ShowCrafting = crafting,
             Greyscale = greyscale,
+            MicCheck = micCheck,
         };
         error = string.Empty;
         return true;
@@ -376,6 +430,12 @@ public enum ScriptStepKind
     /// <summary>Type and send the line in <see cref="ScriptStep.Value"/> to the NPC the dialogue is open on.</summary>
     Say,
 
+    /// <summary>Synthesize the line in <see cref="ScriptStep.Value"/> with Kokoro and say it to the NPC the dialogue is open on as if spoken (S7).</summary>
+    Speak,
+
+    /// <summary>Say the WAV file in <see cref="ScriptStep.Value"/> to the NPC the dialogue is open on as if spoken (S7).</summary>
+    Wav,
+
     /// <summary>Close the dialogue.</summary>
     Leave,
 
@@ -388,3 +448,16 @@ public enum ScriptStepKind
 /// <param name="Step">For <see cref="ScriptStepKind.Move"/>: the body's step.</param>
 /// <param name="Value">For the talk steps: the NPC, the line or the file path.</param>
 public sealed record ScriptStep(ScriptStepKind Kind, VoxelStep? Step = null, string Value = "");
+
+/// <summary>Whether the mic check is shown at the start.</summary>
+public enum MicCheckMode
+{
+    /// <summary>The default: shown at the start of an interactive run that loads speech, never in a scripted run.</summary>
+    Auto,
+
+    /// <summary><c>--mic-check</c>: shown whatever the run.</summary>
+    Force,
+
+    /// <summary><c>--no-mic-check</c>: never shown.</summary>
+    Skip,
+}

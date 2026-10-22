@@ -67,6 +67,9 @@ public sealed class FrameView
     /// <summary>The camp objective (the checklist), or <see langword="null"/>.</summary>
     public Objective? Objective { get; init; }
 
+    /// <summary>The mic check at the start (S7), or <see langword="null"/> when this run has none.</summary>
+    public MicCheckModel? MicCheck { get; init; }
+
     /// <summary>The word cards waiting to be shown (the first pickup of each noun).</summary>
     public WordCardQueue Cards { get; init; } = new();
 

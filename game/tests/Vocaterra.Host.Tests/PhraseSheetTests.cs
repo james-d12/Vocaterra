@@ -142,6 +142,37 @@ public sealed class PhraseSheetTests
         }
     }
 
+    [Fact]
+    public void TheRuntimeCopyOfTheSheetAgreesWithThisFileRowByRow()
+    {
+        // game/phrases.json is the machine-readable copy the game reads (S7, S8); content/PHRASES.md stays the source of truth.
+        var runtime = Vocaterra.Game.PhraseSheet.Load(GameContent.Bundle);
+
+        Assert.Equal(Rows.Select(static r => r.Id), runtime.Rows.Select(static r => r.Id));
+        foreach (var row in Rows)
+        {
+            var copy = runtime.Find(row.Id)!;
+            Assert.True(copy.Says == row.Says, $"{row.Id}: says '{copy.Says}' in phrases.json, '{row.Says}' in PHRASES.md.");
+            Assert.True(copy.Spanish == row.Spanish, $"{row.Id}: Spanish '{copy.Spanish}' in phrases.json, '{row.Spanish}' in PHRASES.md.");
+            Assert.True(copy.English == row.English, $"{row.Id}: English '{copy.English}' in phrases.json, '{row.English}' in PHRASES.md.");
+            Assert.True(copy.Intent == (row.Intent == "-" ? null : row.Intent), $"{row.Id}: intent '{copy.Intent}' in phrases.json, '{row.Intent}' in PHRASES.md.");
+            Assert.True(copy.Prompt == (row.Prompt == "-" ? null : row.Prompt), $"{row.Id}: prompt '{copy.Prompt}' in phrases.json, '{row.Prompt}' in PHRASES.md.");
+            Assert.True(copy.Variants.SequenceEqual(row.Variants), $"{row.Id}: variants differ: [{string.Join(" ; ", copy.Variants)}] against [{string.Join(" ; ", row.Variants)}].");
+            Assert.True(copy.Card == row.Card, $"{row.Id}: card '{copy.Card}' in phrases.json, '{row.Card}' in PHRASES.md.");
+            Assert.True(copy.AudioLineIds.SequenceEqual(row.AudioLineIds), $"{row.Id}: audio line ids differ: [{string.Join(" ; ", copy.AudioLineIds)}] against [{string.Join(" ; ", row.AudioLineIds)}].");
+        }
+    }
+
+    [Fact]
+    public void ThePhraseOfEachCardIsThePhraseAndTheRuntimeFileIsListedAsHandAuthoredInTheProvenance()
+    {
+        var runtime = Vocaterra.Game.PhraseSheet.Load(GameContent.Bundle);
+        Assert.All(runtime.Rows, row => Assert.Equal(row.Spanish, row.CardPhrase));
+
+        var provenance = File.ReadAllText(Path.Combine(GameContent.BundleDirectory(), "provenance.json"));
+        Assert.Contains("\"path\": \"game/phrases.json\", \"generatedBy\": \"hand-authored\"", provenance, StringComparison.Ordinal);
+    }
+
     private static string LineText(string lineId)
     {
         foreach (var pool in GameContent.Bundle.Dialogue.Pools.Values)
