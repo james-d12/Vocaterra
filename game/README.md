@@ -179,6 +179,35 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --typed-credit ful
   --say "quiero agua, por favor" --skip 660 --talk guide --say "quiero agua, por favor" --journal-phrases --screenshot /tmp/s8-journal.png --frames 60
 ```
 
+**Save, sessions and resume (S10).** `--save <file>` writes the game when the run ends (on quit, or at the end of a script), and **F5** writes it in an
+interactive run (to the `--save` file, or `vocaterra.save.json` in the working folder); a turn still thinking means "not now", and a quit waits up to five
+seconds for it. `--load <file>` starts from a save: the same world (the trees and the scene come from the seed, and the save holds only the blocks the
+game changed), the player where they stood, the hotbar, the inventory, the objective, every word and phrase count, each NPC's conversation state, and the
+stored time. A load is the **next play session** (the journal's header and the debug overlay read `Sesión 2`), and a new session lifts the spacing gaps
+of D-game-6, so a phrase or word whose ten-minute gap had not passed becomes creditable again. **Time rule:** a load adds nothing to the stored time (it
+continues from the save: start, plus the ticks, plus the skipped seconds); the next-day recall check moves the stored time with `--skip <seconds>` after the
+load when a scenario needs a day to pass. A load is refused, with the reason, when `--seed` names another world or when the content bundle is not the one
+the save was made from; a save whose restored world does not match its digest is refused too. The file is canonical JSON (sorted keys, no whitespace):
+the same state gives the same bytes, and a load followed by a save gives the same file except for the session number. Not saved: the open dialogue,
+the review question, the word cards not yet shown, the replay records of the conversations (the session log is S11's).
+
+```bash
+# S6's whole route, then the game saved at its end: the console prints the file, the session, the tick, the stored time and the world digest
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 \
+  --interact 17,11,15 --interact 15,11,19 --walk-to 17,20 --interact 16,11,23 \
+  --walk-to 11,17 --interact 9,11,17 --interact 9,12,17 --interact 9,13,17 --interact 9,14,17 --walk-to 11,11 --interact 11,11,9 \
+  --walk-to 20,17 --craft antorcha --walk-to 20,19 --place antorcha@21,12,21 \
+  --talk shopkeeper --say "quiero agua, por favor" --say "sí, por favor" \
+  --talk villager --say "¿dónde está el río?" \
+  --walk-to 62,79 --interact 62,7,80 --look 180,-14 \
+  --talk guide --say "sí, por favor" --talk villager --say "quiero pan, por favor" \
+  --screenshot /tmp/s10-end.png --frames 60 --save /tmp/s10.save
+# the same world in the next session: "load:" prints the saved and the next session and the digest check; the journal's phrase page reads "Sesión 2"
+dotnet run --project game/src/Vocaterra.MonoGame -- --load /tmp/s10.save --journal-phrases --screenshot /tmp/s10-load.png
+# refused: the save is for world seed 42 (the message says so and nothing starts)
+dotnet run --project game/src/Vocaterra.MonoGame -- --load /tmp/s10.save --seed 7
+```
+
 ## Content
 
 `content/game-v1` is the game's bundle, under the bundle id `game-v1`. **The game owns it** (decision D-game-4, decided 2026-10-21: the bundle

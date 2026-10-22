@@ -75,6 +75,13 @@ public sealed class VoxelSession : GuideSession
     /// </summary>
     public bool RiverPointedOut => _riverPointed;
 
+    /// <summary>Whether an NPC has pointed the player at the river so far (the save keeps it; see <see cref="RiverPointedOut"/>).</summary>
+    internal bool RiverPointedState
+    {
+        get => _riverPointed;
+        set => _riverPointed = value;
+    }
+
     /// <inheritdoc />
     protected override bool ObjectiveComplete => Objective.Complete;
 

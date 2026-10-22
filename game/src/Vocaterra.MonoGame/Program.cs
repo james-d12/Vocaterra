@@ -19,6 +19,7 @@ if (!LaunchOptions.TryParse(args, out var options, out var error))
 VoxelSession session;
 Scene scene;
 NpcVoice voice;
+Func<Scene> pristine;
 try
 {
     var started = MonotonicClock.Milliseconds();
@@ -26,8 +27,28 @@ try
     var bundle = GameBundle.Load(directory);
     var sceneStarted = MonotonicClock.Milliseconds();
     var layoutFile = SceneLocator.Resolve(options.SceneFile, directory);
-    scene = SceneBuilder.Build(SceneLayout.Load(layoutFile), options.Seed);
-    session = new VoxelSession(bundle, options.Seed, GuideSession.DefaultStartedAt, NounCatalog.Load(bundle), scene, options.Credit);
+    var layout = SceneLayout.Load(layoutFile);
+    var nouns = NounCatalog.Load(bundle);
+    Func<ulong, Scene> buildFor = seed => SceneBuilder.Build(layout, seed);
+    if (options.LoadPath is { } loadPath)
+    {
+        // A save (S10): the seed is the save's unless --seed asked for another, the bundle must be the one it was made from, and the session is the next one.
+        var document = SaveGame.Parse(SaveFile.Read(loadPath));
+        SaveGame.Check(document, bundle, options.SeedGiven ? options.Seed : null);
+        scene = buildFor(document.WorldSeed);
+        session = SaveGame.Restore(document, bundle, scene, nouns, options.Credit);
+        options = options with { Seed = document.WorldSeed };
+        Console.WriteLine($"load: {loadPath}: saved in session {document.Session}, now session {session.PlaySession}; tick {document.Tick}, stored time {document.StoredTime}");
+        Console.WriteLine($"load: world digest {session.Simulation.ComputeStateDigest()[..16]} = the save's {document.StateDigest[..16]} (restored equal); bundle {bundle.ContentHash[..12]}");
+    }
+    else
+    {
+        scene = buildFor(options.Seed);
+        session = new VoxelSession(bundle, options.Seed, GuideSession.DefaultStartedAt, nouns, scene, options.Credit);
+    }
+
+    // The fresh scene a save is taken against: a new build of the session's seed and layout (the session's own scene is changed by the play).
+    pristine = () => buildFor(session.WorldSeed);
     Console.WriteLine($"scene: {layoutFile} built in {MonotonicClock.Milliseconds() - sceneStarted:0} ms");
     Console.WriteLine($"bundle: loaded in {MonotonicClock.Milliseconds() - started:0} ms; typed credit {(options.Credit.TypedUnits < WordProgress.UnitsPerUse ? "half" : "full")}, spoken credit full");
 
@@ -41,13 +62,13 @@ try
         Console.WriteLine("voice: muted (--mute)");
     }
 }
-catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundException or IOException or UnauthorizedAccessException or ContentValidationException or System.Text.Json.JsonException or InvalidDataException or SceneLayoutException)
+catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundException or IOException or UnauthorizedAccessException or ContentValidationException or System.Text.Json.JsonException or InvalidDataException or SceneLayoutException or SaveException)
 {
     Console.Error.WriteLine(ex.Message);
     return 1;
 }
 
 // The turn worker is started by the game itself (it warms the guide up and loads Vosk behind the loading screen).
-using var game = new VoxelGame(options, session, scene, voice);
+using var game = new VoxelGame(options, session, scene, voice, pristine);
 game.Run();
 return game.ExitCode;

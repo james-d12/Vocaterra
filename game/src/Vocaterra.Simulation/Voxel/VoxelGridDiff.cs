@@ -1,0 +1,116 @@
+namespace Vocaterra.Simulation.Voxel;
+
+/// <summary>A run of equal blocks inside a chunk: <see cref="Length"/> blocks of <see cref="Block"/>, in the chunk's storage order.</summary>
+/// <param name="Block">The block kind of the run.</param>
+/// <param name="Length">How many blocks the run holds (at least 1).</param>
+public readonly record struct BlockRun(BlockId Block, int Length);
+
+/// <summary>
+/// One chunk that differs from the freshly built scene: its index in <see cref="VoxelGrid.Chunks"/> and the chunk's full content as runs of
+/// equal blocks (run-length encoded in storage order, so a chunk of air and stone is a few runs and a chunk with trees a few dozen).
+/// </summary>
+/// <param name="Chunk">The index of the chunk in <see cref="VoxelGrid.Chunks"/> (the grid's chunk order: x fastest, then z, then y).</param>
+/// <param name="Runs">The chunk's blocks, in storage order; their lengths add up to <see cref="VoxelChunk.Volume"/>.</param>
+public sealed record ChunkEdit(int Chunk, IReadOnlyList<BlockRun> Runs);
+
+/// <summary>
+/// The scene diff of a save: which chunks of the edited world differ from the freshly built scene, and how they differ. Only the edited chunks
+/// are listed, so a save of a world the player has barely changed is small; an untouched chunk is never written.
+/// </summary>
+public static class VoxelGridDiff
+{
+    /// <summary>
+    /// The chunks of <paramref name="edited"/> whose blocks differ from <paramref name="fresh"/>, in chunk order, each as runs of its blocks.
+    /// Both grids must have the same size.
+    /// </summary>
+    /// <exception cref="ArgumentException">The two grids have different sizes.</exception>
+    public static IReadOnlyList<ChunkEdit> Capture(VoxelGrid edited, VoxelGrid fresh)
+    {
+        ArgumentNullException.ThrowIfNull(edited);
+        ArgumentNullException.ThrowIfNull(fresh);
+        if (edited.SizeX != fresh.SizeX || edited.SizeY != fresh.SizeY || edited.SizeZ != fresh.SizeZ)
+        {
+            throw new ArgumentException("The grids have different sizes.", nameof(fresh));
+        }
+
+        var edits = new List<ChunkEdit>();
+        for (var i = 0; i < edited.Chunks.Count; i++)
+        {
+            var chunk = edited.Chunks[i];
+            if (!chunk.Blocks.SequenceEqual(fresh.Chunks[i].Blocks))
+            {
+                edits.Add(new ChunkEdit(i, Runs(chunk.Blocks)));
+            }
+        }
+
+        return edits;
+    }
+
+    /// <summary>
+    /// Writes the chunks of a diff over <paramref name="target"/> (a freshly built grid of the same scene). Refuses a diff that does not fit the grid:
+    /// a chunk index out of range, a run of an unknown block, runs that do not add up to one chunk, or a chunk listed twice.
+    /// </summary>
+    /// <exception cref="ArgumentException">The diff does not fit the grid.</exception>
+    public static void Apply(VoxelGrid target, IReadOnlyList<ChunkEdit> edits)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(edits);
+        var seen = new HashSet<int>();
+        foreach (var edit in edits)
+        {
+            if ((uint)edit.Chunk >= (uint)target.Chunks.Count || !seen.Add(edit.Chunk))
+            {
+                throw new ArgumentException($"Chunk {edit.Chunk} is outside the grid or listed twice.", nameof(edits));
+            }
+
+            var origin = target.Chunks[edit.Chunk].Coord;
+            var position = 0;
+            foreach (var run in edit.Runs)
+            {
+                if (run.Length < 1 || !Enum.IsDefined(run.Block) || position + run.Length > VoxelChunk.Volume)
+                {
+                    throw new ArgumentException($"Chunk {edit.Chunk} has a bad run.", nameof(edits));
+                }
+
+                for (var end = position + run.Length; position < end; position++)
+                {
+                    var localX = position & (VoxelChunk.Size - 1);
+                    var localZ = (position >> VoxelChunk.Shift) & (VoxelChunk.Size - 1);
+                    var localY = position >> (2 * VoxelChunk.Shift);
+                    _ = target.SetBlock(
+                        (origin.X << VoxelChunk.Shift) + localX,
+                        (origin.Y << VoxelChunk.Shift) + localY,
+                        (origin.Z << VoxelChunk.Shift) + localZ,
+                        run.Block);
+                }
+            }
+
+            if (position != VoxelChunk.Volume)
+            {
+                throw new ArgumentException($"Chunk {edit.Chunk} has {position} blocks, not {VoxelChunk.Volume}.", nameof(edits));
+            }
+        }
+    }
+
+    private static List<BlockRun> Runs(ReadOnlySpan<BlockId> blocks)
+    {
+        var runs = new List<BlockRun>();
+        var current = blocks[0];
+        var length = 0;
+        foreach (var block in blocks)
+        {
+            if (block == current)
+            {
+                length++;
+                continue;
+            }
+
+            runs.Add(new BlockRun(current, length));
+            current = block;
+            length = 1;
+        }
+
+        runs.Add(new BlockRun(current, length));
+        return runs;
+    }
+}

@@ -18,6 +18,45 @@ public sealed class VoxelLaunchOptionsTests
     }
 
     [Fact]
+    public void TheSaveAndLoadFilesAndTheSeedGivenAreRead()
+    {
+        var options = Parse("--save", "a.save", "--load", "b.save", "--seed", "7");
+
+        Assert.Equal("a.save", options.SavePath);
+        Assert.Equal("b.save", options.LoadPath);
+        Assert.True(options.SeedGiven);
+        Assert.Equal(7UL, options.Seed);
+
+        var plain = Parse("--screenshot", "x.png");
+        Assert.False(plain.SeedGiven); // a load then takes the save's seed
+        Assert.Null(plain.SavePath);
+        Assert.Null(plain.LoadPath);
+
+        Assert.Contains("--load needs a file path", Refuse("--load", string.Empty), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheSaveFileIsWrittenAndReadBackAsUtf8WithoutAByteOrderMark()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "vocaterra-" + Path.GetRandomFileName() + ".save");
+        try
+        {
+            SaveFile.Write(path, "{\"lemma\":\"río\"}");
+
+            Assert.Equal("{\"lemma\":\"río\"}", SaveFile.Read(path));
+            Assert.NotEqual(0xEF, File.ReadAllBytes(path)[0]);
+            Assert.False(File.Exists(path + ".tmp"));
+
+            SaveFile.Write(path, "{}"); // a second write replaces the first
+            Assert.Equal("{}", SaveFile.Read(path));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
     public void TheStepsKeepTheOrderTheyWereGiven()
     {
         var options = Parse("--screenshot", "a.png", "--look", "120,-5", "--walk-to", "11,17", "--interact", "9,11,17", "--craft", "antorcha", "--place", "antorcha@21,12,21", "--select", "2");

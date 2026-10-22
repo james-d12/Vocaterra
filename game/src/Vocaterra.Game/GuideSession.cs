@@ -247,6 +247,84 @@ public abstract class GuideSession : IDisposable
     /// <summary>The facts the guide was built with: the world as it is now.</summary>
     protected IGuideFacts LiveFacts => _liveFacts;
 
+    // ---- The save (S10): what a save keeps of this session and a load puts back. Only the save module uses these.
+
+    /// <summary>Whether the shopkeeper's key words were taught (the first panel opening on him; never again).</summary>
+    internal bool KeyWordsTaught
+    {
+        get => _keyWordsTaught;
+        set => _keyWordsTaught = value;
+    }
+
+    /// <summary>
+    /// Whether the session can be saved now: no turn is on the worker, the key-word cards are not standing alone and no opening waits. A save
+    /// taken in any other state would hold a half-applied turn.
+    /// </summary>
+    public bool CanSave => PendingTurns == 0 && !_keyWordsPending && _delayedOpening is null;
+
+    /// <summary>The number the next submitted turn gets (turn ids are in the replay and the logs).</summary>
+    internal long NextTurnId
+    {
+        get => _nextTurnId;
+        set => _nextTurnId = value;
+    }
+
+    /// <summary>The learner-model steps of the cards shown that wait for the next collect (NPC, skill), in order.</summary>
+    internal IReadOnlyList<(string Npc, string Skill)> DeferredSkills => _deferredSkills.ToArray();
+
+    /// <summary>Puts the waiting learner-model steps back, in order.</summary>
+    internal void RestoreDeferredSkills(IEnumerable<(string Npc, string Skill)> skills)
+    {
+        _deferredSkills.Clear();
+        _deferredSkills.AddRange(skills);
+    }
+
+    /// <summary>The repair each NPC's last answered turn ended with (only those that ended with one), in ordinal NPC order.</summary>
+    internal IReadOnlyList<(string Npc, RepairKind Repair)> LastRepairs() =>
+        _lastRepair.Where(static pair => pair.Value is not null)
+            .OrderBy(static pair => pair.Key, StringComparer.Ordinal)
+            .Select(static pair => (pair.Key, pair.Value!.Value))
+            .ToArray();
+
+    /// <summary>Puts back the repairs of the last answered turns.</summary>
+    internal void RestoreLastRepairs(IEnumerable<(string Npc, RepairKind Repair)> repairs)
+    {
+        _lastRepair.Clear();
+        foreach (var (npc, repair) in repairs)
+        {
+            _lastRepair[npc] = repair;
+        }
+    }
+
+    /// <summary>The lemmas of the nouns whose word card has been shown, ordinal.</summary>
+    internal IReadOnlyList<string> CardedLemmas() => CardedNouns.OrderBy(static lemma => lemma, StringComparer.Ordinal).ToArray();
+
+    /// <summary>Puts back the nouns whose card was shown; each must be a catalogue noun.</summary>
+    /// <exception cref="ArgumentException">A lemma is not a catalogue noun.</exception>
+    internal void RestoreCarded(IEnumerable<string> lemmas)
+    {
+        CardedNouns.Clear();
+        foreach (var lemma in lemmas)
+        {
+            if (Nouns.ForLemma(lemma) is null)
+            {
+                throw new ArgumentException($"'{lemma}' is not a catalogue noun.", nameof(lemmas));
+            }
+
+            _ = CardedNouns.Add(lemma);
+        }
+    }
+
+    /// <summary>Puts back the stored seconds added by <see cref="SkipTime"/>.</summary>
+    internal void RestoreSkippedSeconds(long seconds)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(seconds);
+        SkippedSeconds = seconds;
+    }
+
+    /// <summary>Puts back the arrow (a save keeps an arrow that is not a review question; the review is never saved).</summary>
+    internal void RestorePointer(PointerMarker? pointer) => Pointer = pointer;
+
     /// <summary>
     /// Moves the stored time on by <paramref name="seconds"/> without stepping the world (the player waits, or the demo skips ahead). The
     /// next turn sees the later time.

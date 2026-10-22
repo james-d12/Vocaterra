@@ -87,6 +87,24 @@ public sealed class PlayerBody3D
         Pitch = Angles.ClampPitch(pitch);
     }
 
+    /// <summary>The body as a plain value (a save reads it; <see cref="Restore"/> puts it back).</summary>
+    internal PlayerBodyState State() => new(MinX, MinY, MinZ, VelocityX, VelocityY, VelocityZ, Grounded, SteppedUp, Yaw, Pitch);
+
+    /// <summary>Puts the body back as a save recorded it. The look is taken as the save has it (the angles are wrapped and clamped as always).</summary>
+    internal void Restore(PlayerBodyState state)
+    {
+        MinX = state.MinX;
+        MinY = state.MinY;
+        MinZ = state.MinZ;
+        VelocityX = state.VelocityX;
+        VelocityY = state.VelocityY;
+        VelocityZ = state.VelocityZ;
+        Grounded = state.Grounded;
+        SteppedUp = state.SteppedUp;
+        Yaw = Angles.Wrap(state.Yaw);
+        Pitch = Angles.ClampPitch(state.Pitch);
+    }
+
     /// <summary>Puts the body with the middle of its feet at the point (in units), at rest. A debug action; the caller makes sure the box is free.</summary>
     internal void PlaceAt(VoxelGrid grid, int centerX, int feetY, int centerZ)
     {

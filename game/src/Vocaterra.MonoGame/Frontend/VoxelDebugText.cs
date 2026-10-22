@@ -12,7 +12,8 @@ public static class VoxelDebugText
     /// <param name="seed">The world seed.</param>
     /// <param name="yawSteps">The yaw being drawn, in angle steps.</param>
     /// <param name="pitchSteps">The pitch being drawn, in angle steps.</param>
-    public static IReadOnlyList<string> Lines(double fps, VoxelSimulation sim, ulong seed, double yawSteps, double pitchSteps)
+    /// <param name="playSession">The play session the game runs in (1 for a new game; a load starts the next one).</param>
+    public static IReadOnlyList<string> Lines(double fps, VoxelSimulation sim, ulong seed, double yawSteps, double pitchSteps, int playSession)
     {
         ArgumentNullException.ThrowIfNull(sim);
         var inv = CultureInfo.InvariantCulture;
@@ -33,7 +34,7 @@ public static class VoxelDebugText
 
         return
         [
-            string.Create(inv, $"3D   FPS {fps:0}   tick {sim.Tick}   seed {seed}"),
+            string.Create(inv, $"3D   FPS {fps:0}   tick {sim.Tick}   seed {seed}   Sesión {playSession}"),
             string.Create(inv, $"pos ({body.CenterX / U:0.0}, {body.FeetY / U:0.0}, {body.CenterZ / U:0.0})   yaw {yaw:0}   pitch {pitch:0}"),
             "target: " + target,
         ];

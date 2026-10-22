@@ -250,6 +250,55 @@ public sealed class VoxelSimulation
     }
 
     /// <summary>
+    /// The simulation's state apart from its grid, as plain values (a save writes it). Nothing here changes the simulation.
+    /// </summary>
+    public VoxelSimulationState CaptureState()
+    {
+        var slots = new ItemStack[Inventory.SlotCount];
+        for (var i = 0; i < Inventory.SlotCount; i++)
+        {
+            slots[i] = Inventory.Slots[i];
+        }
+
+        return new VoxelSimulationState(Tick, _selectedSlot, _gatherTarget, _gatherBlock, _gatherProgress, _noBottleHint, Player.State(), slots);
+    }
+
+    /// <summary>
+    /// Puts back a state that <see cref="CaptureState"/> gave (the grid is not touched: the scene diff of a save does that before the simulation is
+    /// made). The events of the last step are cleared. The state is checked: an unknown slot, a count above a stack limit or a negative tick throws.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">The state holds a value the simulation cannot have.</exception>
+    public void Restore(VoxelSimulationState state)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        ArgumentOutOfRangeException.ThrowIfNegative(state.Tick);
+        ArgumentOutOfRangeException.ThrowIfNegative(state.GatherProgress);
+        if (!Inventory.IsHotbarSlot(state.SelectedSlot))
+        {
+            throw new ArgumentOutOfRangeException(nameof(state), state.SelectedSlot, "The selected slot is not a hotbar slot.");
+        }
+
+        if (state.Slots.Count != Inventory.SlotCount)
+        {
+            throw new ArgumentException($"The inventory has {state.Slots.Count} slots, not {Inventory.SlotCount}.", nameof(state));
+        }
+
+        Tick = state.Tick;
+        _selectedSlot = state.SelectedSlot;
+        _gatherTarget = state.GatherTarget;
+        _gatherBlock = state.GatherBlock;
+        _gatherProgress = state.GatherProgress;
+        _noBottleHint = state.NoBottleHint;
+        Player.Restore(state.Player);
+        for (var i = 0; i < Inventory.SlotCount; i++)
+        {
+            Inventory.SetSlot(i, state.Slots[i]);
+        }
+
+        _events.Clear();
+    }
+
+    /// <summary>
     /// A SHA-256 of the whole simulation state (the grid's digest, the tick, the body, the hotbar selection, the gathering progress and the
     /// inventory) as 64 lowercase hex characters. Two runs that diverge anywhere differ here.
     /// </summary>
