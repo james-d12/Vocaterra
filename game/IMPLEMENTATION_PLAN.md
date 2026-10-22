@@ -163,7 +163,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S8 | Phrase progress and fading scaffolds; the review extended to phrases | done (merged to `feature/prototype` 2026-10-22) | Sonnet 5.5 | S6 |
 | S9 | NPCs speak: pre-rendered Kokoro lines in the bundle | done (merged to `feature/prototype` 2026-10-22, bundle `f5f28b88…`); **the owner listens to every WAV** (`docs/SPEECH_CHECKLIST.md`, D-game-12 step 4) | Haiku 5.5 | S5, S6 |
 | S10 | Save, sessions, resume (P9 re-scoped) | done (merged to `feature/prototype` 2026-10-22) | Haiku 5.5 | S4, S8 |
-| S11 | Checks (pre, post, recall), the session log and the report script | in progress | Haiku 5.5 | S8, S10 |
+| S11 | Checks (pre, post, recall), the session log and the report script | done (merged to `feature/prototype` 2026-10-22, bundle `cd63077b…`) | Haiku 5.5 | S8, S10 |
 | S12 | Playtest build and facilitator checklist | planned | Haiku 5.5 | S7, S9, S11 |
 
 Each milestone ends with the gate in section 6 and a line in section 5. The S series is gated with `GATE_TARGET=feature/prototype
@@ -695,6 +695,20 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   in greyscale mode; `--assume-known <nouns>` is a test-only option. Default mode is byte-identical to before. Checked by the orchestrator
   (`--assume-known árbol`: trees in colour, the rest grey). Open: water is named by `agua` and `río` and turns colour only when `agua` is
   known (orchestrator: either name should count, as in S3's naming rule; S12); the live transition is covered by tests only. Tests 3,816.
+- **S11, checks, the session log and the report (2026-10-22, Haiku 5.5).** `--check pre|post|recall`: a battery outside the world from
+  `game/checks.json` (6 comprehension items: hear a sheet line through S9's WAV, pick one of three English meanings, some with item icons;
+  4 production items: an English situation, graded by the core at the row's prompt in a throwaway context; "no sé" and typing allowed),
+  item and option order from `WorldRng` per check kind; a check never touches progress, the learner model or the world (tested). Pre is
+  followed by the world; post and recall end the run. `SessionLog` (front-end; `WallClock.cs` is the one file allowed the clock, an
+  `ArchitectureRulesTests` exemption the orchestrator confirmed): `--session-dir`, `session.jsonl` (session_start, check_*, turn, phrase,
+  voice, world, session_end) and the core's `replay.jsonl`. `scripts/playtest-report.sh` (bash and Python standard library) prints
+  completion, retries, support used, ASR latency, check scores by kind, transfer, found-without-Spanish, and one evidence line per decision
+  gate (Enjoyable: observer notes needed). The S8 review pools exist (pedir-agua "¿Qué necesitas?", the river "¿Qué buscas?", the offers
+  "¿Quieres agua?"; the agent's first "Pídeme agua." / "Pregúntame por el río." failed cefr-check as A2 clitic imperatives and were replaced
+  by the orchestrator's A1 choice) and the guide accepts request_item, confirm and deny with `answer_accepted`. Speech: 113 lines, 226
+  files, 0 missing. The check screen checked by the orchestrator. Open: a save refuses another bundle hash, so the bundle must be frozen
+  before testers' next-day recall (S12); the first frame of a window can be drawn at 800 x 480 before the resize (a `--wait 2` before
+  `--shot`); the two new review lines are not in PHRASES.md's reviewed set (they reuse reviewed texts). Tests 3,877.
 
 ## 6. Definition of done (every milestone)
 
