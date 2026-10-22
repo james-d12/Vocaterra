@@ -158,7 +158,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S4 | Gather, craft, the camp objective; retire the 2D slice (tag `2d-slice-p7`) | done (merged to `feature/prototype` 2026-10-22, bundle `1e13e231…`) | Haiku 5.5 | S3 |
 | S5 | Content: `content/PHRASES.md`, the stall and the villager, `request_item`, constrained prompts; Opus review pass (D-game-12) | done (merged to `feature/prototype` 2026-10-22, bundle `c3cac003…`) | Sonnet 5.5 (design), Haiku 5.5 (content) | S0 |
 | S6 | NPC exchanges in the world (`NpcService`), filling the bottle, the transfer moment | done (merged to `feature/prototype` 2026-10-22, bundle `eb4f0951…`) | Sonnet 5.5 | S3, S5 |
-| S7 | Speech UX: mic check, cancel, watchdog, heard-vs-expected, buttons, choices, uncertainty rule, constrained prompts | planned | Sonnet 5.5 | S6 |
+| S7 | Speech UX: mic check, cancel, watchdog, heard-vs-expected, buttons, choices, uncertainty rule, constrained prompts | done (merged to `feature/prototype` 2026-10-22, bundle `c3ad62fe…`) | Sonnet 5.5 | S6 |
 | S8 | Phrase progress and fading scaffolds; the review extended to phrases | planned | Sonnet 5.5 | S6 |
 | S9 | NPCs speak: pre-rendered Kokoro lines in the bundle | planned | Haiku 5.5 | S5, S6 |
 | S10 | Save, sessions, resume (P9 re-scoped) | planned | Haiku 5.5 | S4, S8 |
@@ -640,6 +640,19 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   intent only, so "quiero pan" at the stall also hands the bottle with the bottle line, and every request is logged as `pedir-agua` (core
   M28b, CR-016 host-fact replies, would allow item-dependent replies); the word card is drawn under the dialogue panel (S8); real input
   for E and push-to-talk at the stall untested. Tests 3,620.
+- **S7, speech UX (2026-10-22, Sonnet 5.5).** `game/phrases.json` (the runtime copy of PHRASES.md, a sync test); the mic check (level
+  meter, "Di: hola", Constrained then Open decode, pass/retry/skip, logged; `--mic-check`, `--no-mic-check`); Esc cancels newest-first and a
+  cancelled turn is rolled back (`NpcService.Checkpoint`/`Rollback`); a 5 s front-end watchdog offers typing ("¿Escribes?"), as do two
+  uncertain turns in a row; the persistent `Oí: «…» · Esperaba: «…»` line; buttons `Repetir`, `Más despacio` (through `ILinePlayer`, silent
+  until S9), `Ayuda`, `No sé`, `Escribir` (Tab no longer holds push-to-talk: V or Space); `OfferChoices` as buttons logged `choice`
+  (recognition only, no word credit); the uncertainty rule (`UncertaintyRule`: not communicated, or mean non-`[unk]` Vosk word confidence
+  under 0.55; an understood-but-unsure line is not passed to phase 2 and gets "No te entendí bien. ¿Lo dices otra vez?"; a not-understood
+  line restores the learner model; logged `uncertain`, never an error); `--speak` (Kokoro → Vosk) and `--wav` script steps. Constrained vs
+  Open at the stall prompts gave the same intents for every scripted line (Constrained pads with `[unk]`). Core: CR-022 confirmed (the
+  per-word confidences in `AsrResult.Words` suffice), M29b confirmed (low priority), **M29f** filed (poor offered choices). Screenshots
+  checked by the orchestrator: the choices and the five buttons at the stall; after a garbled line the shopkeeper still says "Casi. Piensa
+  otra vez." (a language-failure hint after a recognition failure, against D-game-9: content fix in S9). New UI strings reviewed
+  (llm-opus, provisional): correct A1. Real keyboard and microphone untested here. Tests 3,677.
 
 ## 6. Definition of done (every milestone)
 
