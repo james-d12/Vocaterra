@@ -194,9 +194,12 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --be
 # core host turn, the bottle comes with his answer), the villager (the beacon on the river), the river (hold the button on the water: the bottle fills and the
 # checklist is complete: a spare torch is in the bag and the beacon points up the trail), the guide's transfer offer "¿Quieres agua?", and the climb back to the
 # player's camp, where a torch on the rim of the cold fire ring lights it: the closing card says "Session complete". The console prints every lesson step and its
-# outcome, each turn, each game event and the objective's steps; the PNGs show the lesson's end, the stall, the river and the lit fire
+# outcome, each turn, each game event and the objective's steps; the PNGs show the lesson's end, the stall, the river and the lit fire. One step is spoken
+# (S22): after the lesson the route greets the guide with `--wav` and the bundle's recorded "Hola." (the Kokoro line), so the step goes through Vosk (the
+# console prints "heard "hola"" and the greet intent). It needs the Vosk model in VOCATERRA_MODELS_DIR; the other steps are typed.
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute \
   --lesson-run first-words --shot /tmp/s17-lesson.png \
+  --talk guide --wav game/content/game-v1/speech/phrase.hola.wav \
   --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
   --talk shopkeeper --say "quiero agua, por favor" --shot /tmp/s17-stall.png --say "sí, por favor" \
   --talk villager --say "¿dónde está el río?" \
