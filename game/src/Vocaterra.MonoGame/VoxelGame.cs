@@ -42,7 +42,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private const int SettleTicks = 30;
     private const int RunawayTicks = 60 * 60 * 5;
 
-    /// <summary>The save file F5 writes when the run has no <c>--save</c> file.</summary>
+    /// <summary>The save file F6 writes when the run has no <c>--save</c> file.</summary>
     private const string DefaultSavePath = "vocaterra.save.json";
 
     private static readonly (Keys Key, PanelKey Panel)[] PanelKeys =
@@ -83,6 +83,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly LookControl _look = new();
     private readonly CameraEase _ease = new();
     private readonly FirstPersonCamera _camera = new();
+    private readonly ViewModeState _viewMode = new();
+    private long _lastPlaceTick = long.MinValue / 2;
+    private double _walkDistance;
+    private (double X, double Z)? _lastWalkPoint;
     private readonly MouseLook _mouseLook = new();
     private readonly LiveVoxelInput _live = new();
     private readonly ScenarioScript? _scenario;
@@ -336,7 +340,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _figures = NpcFigures.FromScene(_scene);
         var started = MonotonicClock.Milliseconds();
         _preset = _options.QualityPreset;
-        _renderer = new VoxelRenderer(GraphicsDevice, _blockAtlas, _sim.Grid, _preset);
+        _renderer = new VoxelRenderer(GraphicsDevice, _blockAtlas, _sim.Grid, _preset, _options.Dusk);
+        if (_options.ThirdPerson)
+        {
+            _viewMode.Set(CameraMode.ThirdPerson);
+        }
+
         _renderer.SetFigures(_figures);
         _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _options.AssumeKnown);
         Console.WriteLine($"voxel: quality {_preset.Name}, view distance {_preset.ViewDistance} blocks, fog from {VoxelRenderer.FogEndFor(_preset.ViewDistance) * VoxelRenderer.FogStartFraction:0} to {VoxelRenderer.FogEndFor(_preset.ViewDistance):0}, mesh budget {_preset.MeshBudgetMilliseconds:0} ms a frame (renderer ready in {MonotonicClock.Milliseconds() - started:0} ms)");
@@ -386,19 +395,19 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             ShowTips = _options.ShowsTips,
             Ending = _ending,
         };
-        _layers.Add(new HeldItemLayer());
         _layers.Add(new CrosshairLayer());
         _layers.Add(new NpcLabelLayer());
-        _layers.Add(new WorldLabelLayer([new WorldLabel("Tienda / Río", _scene.Point("signpost").X + 0.5f, _scene.Point("signpost").Y + 4.2f, _scene.Point("signpost").Z + 0.5f)]));
         _layers.Add(new BeaconArrowLayer());
         _layers.Add(new TalkHintLayer());
         _layers.Add(_debug);
         _layers.Add(new HotbarLayer());
+        _layers.Add(new RecipePanelLayer());
         _layers.Add(new ObjectiveLayer());
         _layers.Add(new TipLayer());
         _layers.Add(new SupportLayer());
         _layers.Add(new LessonLayer(_lesson));
         _layers.Add(new WordCardLayer());
+        _layers.Add(new DialogueBubbleLayer());
         _layers.Add(new DialoguePanel());
         _layers.Add(new ToastLayer());
         _layers.Add(new EndingLayer());
@@ -543,7 +552,20 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var alpha = (float)_accumulator.Alpha;
         var eye = Vector3.Lerp(_previousEye, _currentEye, alpha);
         eye.Y += (float)(_previousEase + ((_currentEase - _previousEase) * alpha));
-        _camera.Update(eye, _look.YawSteps, _look.PitchSteps, width, height, VoxelRenderer.FarPlaneFor(_preset.ViewDistance));
+        var farPlane = VoxelRenderer.FarPlaneFor(_preset.ViewDistance);
+        _camera.Update(eye, _look.YawSteps, _look.PitchSteps, width, height, farPlane);
+        var shoulder = _viewMode.IsThirdPerson;
+        if (shoulder)
+        {
+            // Over the right shoulder, three blocks back, and in front of any wall behind the player (S15).
+            var back = ThirdPersonRig.Eye(
+                (x, y, z) => _sim.Grid.IsSolid(x, y, z),
+                (eye.X, eye.Y, eye.Z),
+                (_camera.Forward.X, _camera.Forward.Y, _camera.Forward.Z),
+                (_camera.Right.X, _camera.Right.Y, _camera.Right.Z));
+            _camera.Update(new Vector3(back.X, back.Y, back.Z), _look.YawSteps, _look.PitchSteps, width, height, farPlane);
+        }
+
         view.Eye = eye;
         view.Look = (_look.YawSteps, _look.PitchSteps);
         view.Fps = _stats.Fps;
@@ -558,9 +580,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         _colours!.Refresh();
         // A scripted run builds every mesh it needs before the picture; a live one spends its budget a frame (more while the world is still loading in).
-        _renderer!.Remesh(eye, _camera.Frustum, _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? _preset.MeshBudgetMilliseconds : 30);
+        _renderer!.Remesh(_camera.Eye, _camera.Frustum, _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? _preset.MeshBudgetMilliseconds : 30);
         GraphicsDevice.Clear(VoxelRenderer.Sky);
-        _renderer.DrawWorld(_camera, _sim.Target?.Block, Beacon.Target, _sim.Tick);
+        _renderer.DrawWorld(_camera, _sim.Target?.Block, Beacon.Target, _sim.Tick, shoulder ? PlayerAvatarNow() : null, shoulder ? null : ArmFrameNow(eye));
 
         var spriteBatch = _spriteBatch!;
         spriteBatch.Begin(samplerState: SamplerState.PointClamp);
@@ -702,6 +724,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         // The look goes first: it is absolute and every other command of the tick uses the facing it sets.
         _commands.Insert(0, VoxelCommand.Look(_look.Yaw, _look.Pitch));
         _session.Step(_commands);
+        if (_commands.Any(static c => c.Kind == VoxelCommandKind.Place))
+        {
+            _lastPlaceTick = _sim.Tick; // the arm swings once (S15)
+        }
+
+        UpdateFigures();
         _ease.Tick(_sim.Player.SteppedUp);
         _previousEye = _currentEye;
         _currentEye = EyeBlocks();
@@ -780,6 +808,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
 
             if (Pressed(Keys.F5))
+            {
+                var mode = _viewMode.Toggle(); // the behind-the-shoulder view and back (S15)
+                Console.WriteLine($"view: {(mode == CameraMode.ThirdPerson ? "behind the shoulder" : "first person")}");
+            }
+
+            if (Pressed(Keys.F6))
             {
                 SaveNow();
             }
@@ -1298,6 +1332,26 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Console.WriteLine($"talk: {npc} ({how}, {opening.Prompt}): {(_session.KeyWordsPending ? $"[key words: {string.Join(", ", _session.KeyWordCards.Select(static c => c.Phrase))}]" : string.Join(" / ", opening.Lines))}{(_session.ReviewLine is { } review ? $" / {review}" : string.Empty)}");
     }
 
+    // Once a tick (S15): the figures in a conversation face the player and gesture, the others stand as the scene put them, and the distance the player has walked
+    // (the stride of the figure seen over the shoulder) grows.
+    private void UpdateFigures()
+    {
+        var px = _sim.Player.CenterX / (double)VoxelPhysics.UnitsPerBlock;
+        var pz = _sim.Player.CenterZ / (double)VoxelPhysics.UnitsPerBlock;
+        foreach (var figure in _figures)
+        {
+            figure.Talking = _dialogue.IsOpen && string.Equals(_dialogue.Npc, figure.Name, StringComparison.Ordinal);
+            FigureFacing.Update(figure, px, pz);
+        }
+
+        if (_lastWalkPoint is { } last)
+        {
+            _walkDistance += Math.Sqrt(((px - last.X) * (px - last.X)) + ((pz - last.Z) * (pz - last.Z)));
+        }
+
+        _lastWalkPoint = (px, pz);
+    }
+
     // A lesson step of the scripted run (S16): the same presses the strip's buttons make.
     private void RunLessonStep(ScriptStepKind kind, string value)
     {
@@ -1364,6 +1418,31 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
     // The tile for "¿qué es esto?": the block under the crosshair (the scripted run has the same crosshair).
     private GuideCell? CursorCell() => _session.AimedCell;
+
+    // The player's own figure for the behind-the-shoulder view: at the feet of the body, facing the look (S15).
+    private PlayerAvatar PlayerAvatarNow()
+    {
+        var body = _sim.Player;
+        var moving = body.VelocityX != 0 || body.VelocityZ != 0;
+        return new PlayerAvatar(
+            (float)(body.CenterX / (double)VoxelPhysics.UnitsPerBlock),
+            (float)(body.FeetY / (double)VoxelPhysics.UnitsPerBlock),
+            (float)(body.CenterZ / (double)VoxelPhysics.UnitsPerBlock),
+            (float)(_look.YawSteps * Math.Tau / Angles.StepsPerTurn),
+            (float)(_look.PitchSteps * Math.Tau / Angles.StepsPerTurn),
+            (float)(_walkDistance * 2.6),
+            moving);
+    }
+
+    // The first-person arm: what the hand holds, how it moves and the light on it (S15).
+    private ArmFrame ArmFrameNow(Vector3 eye)
+    {
+        var held = HeldItems.For(_sim.SelectedStack);
+        var moving = _sim.Player.VelocityX != 0 || _sim.Player.VelocityZ != 0;
+        var motion = ArmMotion.At(_sim.Tick, moving, _sim.GatherProgress, _sim.Tick - _lastPlaceTick);
+        var light = ArmLight.At((x, y, z) => _sim.Grid.IsSolid(x, y, z), (eye.X, eye.Y, eye.Z), _renderer!.Lights, held.Kind == HeldKind.Torch, _options.Dusk);
+        return new ArmFrame(held, motion, light);
+    }
 
     // The NPC figure under the crosshair, when it is within reach and no block is in the way: the one E talks to.
     private NpcFigure? AimedFigure()
@@ -1841,17 +1920,17 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // The battery is waiting for a learner's answer that the scripted run has not given, or it has ended and shows its thank-you screen.
     private bool CheckRestsForShot => _check is { IsDone: false, Phase: CheckPhase.Showing } && _checkScript is { Rests: true } || (_checkDone && _endAfterCheck);
 
-    // The save file of F5 (S10): the --save file, or vocaterra.save.json in the working folder. A turn still thinking means "not now".
+    // The save file of F6 (S10): the --save file, or vocaterra.save.json in the working folder. A turn still thinking means "not now".
     private void SaveNow()
     {
         var path = _options.SavePath ?? DefaultSavePath;
-        if (WriteSave(path, "on F5"))
+        if (WriteSave(path, "on F6"))
         {
             _toasts.Show($"Game saved (session {_session.PlaySession})");
         }
         else
         {
-            _toasts.Show("Wait a moment, then press F5 again.");
+            _toasts.Show("Wait a moment, then press F6 again.");
         }
     }
 

@@ -51,6 +51,14 @@ public static class AsciiMap3D
         BlockId.TallGrass or BlockId.Fern or BlockId.Reeds => '"',
         BlockId.YellowFlower or BlockId.WhiteFlower => '`',
         BlockId.MossyStone or BlockId.Cobble => '#',
+        BlockId.Timber => 'X',
+        BlockId.Lantern => 'l',
+        BlockId.Crate or BlockId.Chest => 'c',
+        BlockId.AwningRed or BlockId.AwningWhite => '$',
+        BlockId.Canvas => '^',
+        BlockId.Farmland => ';',
+        BlockId.Wheat or BlockId.Loaves or BlockId.Apples or BlockId.Bottles => '"',
+        BlockId.SignTiendaA or BlockId.SignTiendaB or BlockId.SignRio or BlockId.SignMontanaA or BlockId.SignMontanaB => '!',
         _ => '?',
     };
 

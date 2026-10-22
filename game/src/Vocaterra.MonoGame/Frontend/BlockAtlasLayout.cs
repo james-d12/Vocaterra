@@ -158,6 +158,93 @@ public enum BlockCell
 
     /// <summary>Shallow water, lighter than <see cref="Water"/> (S14).</summary>
     WaterShallow,
+
+    /// <summary>The side of a timber post or beam (S15).</summary>
+    TimberSide,
+
+    /// <summary>The end of a timber post or beam.</summary>
+    TimberEnd,
+
+    /// <summary>The glass of a lantern: bright, drawn without shading.</summary>
+    Lantern,
+
+    /// <summary>The side of a crate.</summary>
+    CrateSide,
+
+    /// <summary>The top of a crate.</summary>
+    CrateTop,
+
+    /// <summary>A red stripe of the stall's awning.</summary>
+    AwningRed,
+
+    /// <summary>A white stripe of the stall's awning.</summary>
+    AwningWhite,
+
+    /// <summary>The canvas of the tent.</summary>
+    Canvas,
+
+    /// <summary>The side of a chest, with its iron bands and latch.</summary>
+    ChestSide,
+
+    /// <summary>The lid of a chest.</summary>
+    ChestTop,
+
+    /// <summary>Tilled soil in furrows.</summary>
+    FarmlandTop,
+
+    /// <summary>Wheat, a crossed-quad plant.</summary>
+    Wheat,
+
+    /// <summary>Loaves of bread on a cloth, the pile on the counter.</summary>
+    Loaves,
+
+    /// <summary>A pile of red apples.</summary>
+    Apples,
+
+    /// <summary>A group of blue glass bottles.</summary>
+    Bottles,
+
+    /// <summary>The shop's board, first half: an arrow and TIE.</summary>
+    SignTiendaA,
+
+    /// <summary>The shop's board, second half: NDA.</summary>
+    SignTiendaB,
+
+    /// <summary>The river's board: an arrow and RÍO.</summary>
+    SignRio,
+
+    /// <summary>The mountain's board, first half: an arrow and MON.</summary>
+    SignMontanaA,
+
+    /// <summary>The mountain's board, second half: TAÑA.</summary>
+    SignMontanaB,
+
+    /// <summary>The front of the guide's head (S15).</summary>
+    FaceGuide,
+
+    /// <summary>The front of the shopkeeper's head.</summary>
+    FaceShopkeeper,
+
+    /// <summary>The front of the villager's head.</summary>
+    FaceVillager,
+
+    /// <summary>The front of the player's head.</summary>
+    FacePlayer,
+
+    /// <summary>Woven cloth, nearly white: the clothes of the figures take their colour from the vertex.</summary>
+    Cloth,
+
+    /// <summary>Skin: the hands, arms, necks and the sides of the heads.</summary>
+    Skin,
+
+    /// <summary>Hair: streaked, nearly white, tinted by the vertex.</summary>
+    Hair,
+
+    /// <summary>The back of a backpack: a leather flap and a buckle.</summary>
+    Backpack,
+
+    /// <summary>The icon of a torch (the item).</summary>
+    IconTorch,
 }
 
 /// <summary>
@@ -174,7 +261,7 @@ public static class BlockAtlasLayout
     public const int Columns = 8;
 
     /// <summary>The rows of colour cells, at the top of the atlas.</summary>
-    public const int ColourRows = 7;
+    public const int ColourRows = 12;
 
     /// <summary>The rows of the atlas: the colour cells, then their grey copies.</summary>
     public const int Rows = 2 * ColourRows;
@@ -231,9 +318,26 @@ public static class BlockAtlasLayout
             BlockId.Fence => BlockCell.Fence,
             BlockId.Wall => BlockCell.Wall,
             BlockId.FireRing => BlockCell.FireRing,
-            BlockId.Sign => up || down ? BlockCell.Planks : BlockCell.SignBoard,
+            BlockId.Sign => BlockCell.SignBoard,
             BlockId.Bridge => up ? BlockCell.BridgeTop : BlockCell.BridgeSide,
             BlockId.Snow => up ? BlockCell.Snow : down ? BlockCell.Stone : BlockCell.SnowSide,
+            BlockId.Timber => up || down ? BlockCell.TimberEnd : BlockCell.TimberSide,
+            BlockId.Lantern => BlockCell.Lantern,
+            BlockId.Crate => up || down ? BlockCell.CrateTop : BlockCell.CrateSide,
+            BlockId.AwningRed => BlockCell.AwningRed,
+            BlockId.AwningWhite => BlockCell.AwningWhite,
+            BlockId.Canvas => BlockCell.Canvas,
+            BlockId.Chest => up || down ? BlockCell.ChestTop : BlockCell.ChestSide,
+            BlockId.Farmland => up ? BlockCell.FarmlandTop : BlockCell.Dirt,
+            BlockId.Wheat => BlockCell.Wheat,
+            BlockId.Loaves => BlockCell.Loaves,
+            BlockId.Apples => BlockCell.Apples,
+            BlockId.Bottles => BlockCell.Bottles,
+            BlockId.SignTiendaA => BlockCell.SignTiendaA,
+            BlockId.SignTiendaB => BlockCell.SignTiendaB,
+            BlockId.SignRio => BlockCell.SignRio,
+            BlockId.SignMontanaA => BlockCell.SignMontanaA,
+            BlockId.SignMontanaB => BlockCell.SignMontanaB,
             _ => BlockCell.White,
         };
     }
@@ -243,7 +347,7 @@ public static class BlockAtlasLayout
     {
         ItemId.Wood => BlockCell.IconWood,
         ItemId.Berry => BlockCell.IconBerry,
-        ItemId.Torch => BlockCell.TorchFlame,
+        ItemId.Torch => BlockCell.IconTorch,
         ItemId.Bottle => BlockCell.IconBottle,
         ItemId.WaterBottle => BlockCell.IconWaterBottle,
         ItemId.Bread => BlockCell.IconBread,

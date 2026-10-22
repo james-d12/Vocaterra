@@ -20,6 +20,41 @@ public static class DrawHelpers
         spriteBatch.Draw(pixel, new Rectangle(area.Right - thickness, area.Top, thickness, area.Height), color);
     }
 
+    /// <summary>
+    /// Fills a rectangle with its corners cut in steps of a quarter circle of <paramref name="radius"/> pixels (the pixel-art rounding of the panels of S15), with a border of
+    /// <paramref name="thickness"/> pixels in <paramref name="border"/>.
+    /// </summary>
+    public static void RoundedPanel(SpriteBatch spriteBatch, Texture2D pixel, Rectangle area, int radius, Color fill, Color border, int thickness)
+    {
+        RoundedFill(spriteBatch, pixel, area, radius, border);
+        var inner = new Rectangle(area.X + thickness, area.Y + thickness, area.Width - (2 * thickness), area.Height - (2 * thickness));
+        if (inner.Width > 0 && inner.Height > 0)
+        {
+            RoundedFill(spriteBatch, pixel, inner, Math.Max(0, radius - thickness), fill);
+        }
+    }
+
+    /// <summary>Fills a rectangle with its corners cut in steps of a quarter circle.</summary>
+    public static void RoundedFill(SpriteBatch spriteBatch, Texture2D pixel, Rectangle area, int radius, Color color)
+    {
+        var r = Math.Min(radius, Math.Min(area.Width, area.Height) / 2);
+        if (r <= 0)
+        {
+            spriteBatch.Draw(pixel, area, color);
+            return;
+        }
+
+        spriteBatch.Draw(pixel, new Rectangle(area.X, area.Y + r, area.Width, area.Height - (2 * r)), color);
+        for (var i = 0; i < r; i++)
+        {
+            // The row i from the edge starts further in the nearer it is to the edge: the cut of a circle of radius r.
+            var dy = r - i - 0.5;
+            var inset = r - (int)Math.Round(Math.Sqrt((r * (double)r) - (dy * dy)));
+            spriteBatch.Draw(pixel, new Rectangle(area.X + inset, area.Y + i, area.Width - (2 * inset), 1), color);
+            spriteBatch.Draw(pixel, new Rectangle(area.X + inset, area.Bottom - 1 - i, area.Width - (2 * inset), 1), color);
+        }
+    }
+
     /// <summary>Draws a bar of the given length and thickness from a point at an angle (radians, 0 is to the right, positive turns clockwise on screen).</summary>
     public static void Bar(SpriteBatch spriteBatch, Texture2D pixel, Vector2 from, float angle, float length, float thickness, Color color)
     {

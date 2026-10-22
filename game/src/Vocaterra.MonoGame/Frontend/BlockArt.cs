@@ -117,6 +117,11 @@ public static class BlockArt
             return (byte[])BlockArtNature.Pixels(cell).Clone();
         }
 
+        if (BlockArtVillage.Draws(cell))
+        {
+            return (byte[])BlockArtVillage.Pixels(cell).Clone();
+        }
+
         const int Size = BlockAtlasLayout.CellSize;
         var data = new byte[Size * Size * 4];
         for (var y = 0; y < Size; y++)

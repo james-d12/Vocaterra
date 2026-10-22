@@ -90,7 +90,9 @@ public sealed class VoxelRenderer : IDisposable
     private readonly short[] _scratchIndices = new short[4096 * 6];
     private VertexPositionColorTexture[] _scratchVertices = new VertexPositionColorTexture[4096];
     private readonly List<ChunkGpu> _visible = [];
-    private readonly List<MeshBuffer> _figureMeshes = [];
+    private IReadOnlyList<NpcFigure> _figures = [];
+    private readonly MeshBuffer _figureBuffer = new();
+    private bool _dusk;
     private readonly HashSet<int> _resident = [];
     private IReadOnlyList<int> _wanted = [];
     private long _checkedEdits = -1;
@@ -104,7 +106,7 @@ public sealed class VoxelRenderer : IDisposable
     private int _pending;
 
     /// <summary>Creates the renderer for a grid and a quality preset. Nothing is meshed yet: the first <see cref="Remesh"/> builds what the eye can see.</summary>
-    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, VoxelGrid grid, QualityPreset preset)
+    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, VoxelGrid grid, QualityPreset preset, bool dusk = false)
     {
         ArgumentNullException.ThrowIfNull(preset);
         _device = device;
@@ -138,7 +140,9 @@ public sealed class VoxelRenderer : IDisposable
             ReferenceAlpha = 110,
         };
         _sky = new SkyRenderer(device);
-        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent);
+        Lights = FindLights(grid);
+        _dusk = dusk;
+        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, Lights, dusk);
         _indices = BuildIndexBuffer(device, MaxQuadsPerMesh);
         _chunks = new ChunkGpu[grid.Chunks.Count];
         for (var i = 0; i < _chunks.Length; i++)
@@ -154,6 +158,43 @@ public sealed class VoxelRenderer : IDisposable
         }
     }
 
+    /// <summary>The lanterns of the world (S15): the places the glow comes from (found once, at the start; a lantern is never gathered or placed).</summary>
+    public IReadOnlyList<BlockPos> Lights { get; }
+
+    /// <summary>The positions of every lantern block of a grid, in a fixed order (chunk by chunk): only the chunks that hold one are looked into.</summary>
+    public static IReadOnlyList<BlockPos> FindLights(VoxelGrid grid)
+    {
+        ArgumentNullException.ThrowIfNull(grid);
+        var found = new List<BlockPos>();
+        var bit = ChunkMesher.KindBit(BlockId.Lantern);
+        foreach (var chunk in grid.Chunks)
+        {
+            if ((chunk.KindMask & bit) == 0)
+            {
+                continue;
+            }
+
+            var x0 = chunk.Coord.X * VoxelChunk.Size;
+            var y0 = chunk.Coord.Y * VoxelChunk.Size;
+            var z0 = chunk.Coord.Z * VoxelChunk.Size;
+            for (var y = y0; y < y0 + VoxelChunk.Size; y++)
+            {
+                for (var z = z0; z < z0 + VoxelChunk.Size; z++)
+                {
+                    for (var x = x0; x < x0 + VoxelChunk.Size; x++)
+                    {
+                        if (grid.GetBlock(x, y, z) == BlockId.Lantern)
+                        {
+                            found.Add(new BlockPos(x, y, z));
+                        }
+                    }
+                }
+            }
+        }
+
+        return found;
+    }
+
     /// <summary>The quality preset the renderer was made with.</summary>
     public QualityPreset Preset { get; }
 
@@ -163,16 +204,18 @@ public sealed class VoxelRenderer : IDisposable
     /// <summary>The far plane of the camera for a view distance: past the fog's end and the last chunk's corner.</summary>
     public static float FarPlaneFor(int viewDistance) => viewDistance + (2f * VoxelChunk.Size);
 
-    /// <summary>Sets the NPC figures that are drawn with the world; their meshes are built once here.</summary>
+    /// <summary>
+    /// Sets the NPC figures that are drawn with the world. Their meshes are built each frame into one reused buffer (the figures idle, talk and turn: S15), so a frame
+    /// allocates nothing for them.
+    /// </summary>
     public void SetFigures(IReadOnlyList<NpcFigure> figures)
     {
         ArgumentNullException.ThrowIfNull(figures);
-        _figureMeshes.Clear();
-        foreach (var figure in figures)
-        {
-            _figureMeshes.Add(NpcFigures.Build(figure));
-        }
+        _figures = figures;
     }
+
+    /// <summary>How many quads the figures drew last frame (the NPCs and, in the shoulder view, the player).</summary>
+    public int DrawnFigureQuads { get; private set; }
 
     /// <summary>What the mesh builds have cost so far.</summary>
     public MeshStats Stats
@@ -293,8 +336,10 @@ public sealed class VoxelRenderer : IDisposable
     /// <param name="camera">The camera for this frame.</param>
     /// <param name="highlight">The block to frame, or <see langword="null"/>.</param>
     /// <param name="beacon">The block the beacon column stands on, or <see langword="null"/>.</param>
-    /// <param name="tick">The simulation tick (animates the beacon).</param>
-    public void DrawWorld(FirstPersonCamera camera, BlockPos? highlight, BlockPos? beacon, long tick)
+    /// <param name="tick">The simulation tick (animates the beacon and the figures).</param>
+    /// <param name="avatar">The player's own figure, drawn in the behind-the-shoulder view, or <see langword="null"/> in first person.</param>
+    /// <param name="arm">The first-person arm and what it holds, drawn last over a cleared depth buffer, or <see langword="null"/> in the shoulder view.</param>
+    public void DrawWorld(FirstPersonCamera camera, BlockPos? highlight, BlockPos? beacon, long tick, PlayerAvatar? avatar = null, ArmFrame? arm = null)
     {
         _sky.Draw(camera, tick, Preset.Clouds);
 
@@ -347,9 +392,26 @@ public sealed class VoxelRenderer : IDisposable
 
         _device.RasterizerState = RasterizerState.CullClockwise;
         _effect.CurrentTechnique.Passes[0].Apply();
-        foreach (var figure in _figureMeshes)
+        DrawnFigureQuads = 0;
+        foreach (var figure in _figures)
         {
-            DrawDynamic(figure);
+            var (fx, fy, fz) = figure.FeetPosition;
+            _figureBuffer.Clear();
+            var warm = ArmLight.Warmth(Lights, fx, fy + 1f, fz, _dusk);
+            FigureMesher.Append(_figureBuffer, NpcFigures.PartsOf(figure.Name), FigureAnimation.For(figure, tick), fx, fy, fz, figure.FacingRadians, FigureLight(warm));
+            DrawnFigureQuads += _figureBuffer.FaceCount;
+            DrawDynamic(_figureBuffer);
+        }
+
+        if (avatar is { } player)
+        {
+            _figureBuffer.Clear();
+            var warm = ArmLight.Warmth(Lights, player.X, player.Y + 1f, player.Z, _dusk);
+            var pose = player.Moving ? FigureAnimation.Walking(player.WalkPhase) : FigureAnimation.Idle(tick, 3);
+            pose = pose with { HeadPitch = Math.Clamp(-player.PitchRadians, -0.6f, 0.6f) };
+            FigureMesher.Append(_figureBuffer, NpcFigures.PartsOf(NpcFigures.PlayerName), pose, player.X, player.Y, player.Z, player.YawRadians, FigureLight(warm));
+            DrawnFigureQuads += _figureBuffer.FaceCount;
+            DrawDynamic(_figureBuffer);
         }
 
         if (highlight is { } block)
@@ -377,8 +439,54 @@ public sealed class VoxelRenderer : IDisposable
             _effect.FogEnabled = true;
         }
 
+        if (arm is { } held)
+        {
+            DrawArm(camera, held);
+        }
+
         _device.DepthStencilState = DepthStencilState.None;
         _device.BlendState = BlendState.Opaque;
+    }
+
+    // The colour a lantern's warmth gives a figure on top of the sun: amber added to the three channels.
+    private static (float R, float G, float B) FigureLight(float warm) =>
+        (1f + (ChunkMesher.GlowColour.R * warm * 0.45f), 1f + (ChunkMesher.GlowColour.G * warm * 0.45f), 1f + (ChunkMesher.GlowColour.B * warm * 0.45f));
+
+    // Where the arm's elbow end is in the view space (blocks) and how it is turned: at the bottom right, the hand forward and up towards the middle of the view.
+    private const float ArmX = 0.42f;
+    private const float ArmY = -0.56f;
+    private const float ArmZ = -0.46f;
+    private const float ArmPitch = 0.42f;
+    private const float ArmYaw = 0.34f;
+
+    // The first-person arm: the depth buffer is cleared so the arm never sinks into a wall, then the arm and the item in its hand are drawn in the view space with
+    // the projection of the camera, tinted by the light of the scene (ArmLight), and the flame of a torch at full brightness.
+    private void DrawArm(FirstPersonCamera camera, in ArmFrame frame)
+    {
+        _device.Clear(ClearOptions.DepthBuffer, Color.Transparent, 1f, 0);
+        _device.DepthStencilState = DepthStencilState.Default;
+        _device.RasterizerState = RasterizerState.CullClockwise;
+        _device.BlendState = BlendState.Opaque;
+        var m = frame.Motion;
+        _solid.World = Matrix.CreateRotationX(ArmPitch + m.Pitch) * Matrix.CreateRotationY(ArmYaw) * Matrix.CreateTranslation(ArmX + m.SwayX, ArmY + m.SwayY, ArmZ - m.Forward);
+        _solid.View = Matrix.Identity;
+        _solid.Projection = camera.Projection;
+        _solid.FogEnabled = false;
+        _solid.DiffuseColor = new Vector3(frame.Light.R, frame.Light.G, frame.Light.B);
+        _device.Indices = _indices;
+        _solid.CurrentTechnique.Passes[0].Apply();
+        DrawDynamic(ArmMeshes.Arm());
+        var (body, glow) = ArmMeshes.Item(frame.Held);
+        DrawDynamic(body);
+        if (glow.VertexCount > 0)
+        {
+            _solid.DiffuseColor = Vector3.One;
+            _solid.CurrentTechnique.Passes[0].Apply();
+            DrawDynamic(glow);
+        }
+
+        _solid.DiffuseColor = Vector3.One;
+        _solid.FogEnabled = true;
     }
 
     /// <inheritdoc />
@@ -569,3 +677,19 @@ public sealed class VoxelRenderer : IDisposable
         }
     }
 }
+
+/// <summary>Where the player's own figure stands, for the behind-the-shoulder view (S15).</summary>
+/// <param name="X">The middle of the feet, east, in blocks.</param>
+/// <param name="Y">The feet, up.</param>
+/// <param name="Z">The middle of the feet, south.</param>
+/// <param name="YawRadians">The facing (0 north, a quarter turn east).</param>
+/// <param name="PitchRadians">The look up (positive) or down.</param>
+/// <param name="WalkPhase">The stride, which grows with the distance walked.</param>
+/// <param name="Moving">Whether the player is walking.</param>
+public readonly record struct PlayerAvatar(float X, float Y, float Z, float YawRadians, float PitchRadians, float WalkPhase, bool Moving);
+
+/// <summary>What the first-person arm is doing and holding this frame (S15).</summary>
+/// <param name="Held">The model of the selected item.</param>
+/// <param name="Motion">The sway and the swing.</param>
+/// <param name="Light">The scene's light on the arm (<see cref="ArmLight"/>).</param>
+public readonly record struct ArmFrame(HeldChoice Held, ArmMotion Motion, (float R, float G, float B) Light);

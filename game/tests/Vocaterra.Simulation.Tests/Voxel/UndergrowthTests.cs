@@ -45,7 +45,8 @@ public sealed class UndergrowthTests(ITestOutputHelper output)
             Assert.True(BlockDefinition.IsDecor(plant));
         }
 
-        Assert.Equal(Plants.Length, BlockDefinition.All.Count(static d => d.Decor));
+        Assert.Equal(Plants.Length + 4, BlockDefinition.All.Count(static d => d.Decor)); // the five plants, wheat and the stall's three goods (S15)
+        Assert.Equal(Plants.Length, BlockDefinition.All.Count(static d => BlockDefinition.IsUndergrowth(d.Id)));
         Assert.False(BlockDefinition.IsDecor(BlockId.Bush)); // the plain bush and the berry bush stay targets
         Assert.False(BlockDefinition.IsDecor(BlockId.BerryBush));
         Assert.False(BlockDefinition.IsDecor((BlockId)999));
@@ -206,7 +207,7 @@ public sealed class UndergrowthTests(ITestOutputHelper output)
         {
             foreach (var block in chunk.Blocks)
             {
-                if (BlockDefinition.IsDecor(block))
+                if (BlockDefinition.IsUndergrowth(block))
                 {
                     counts[block] = counts.GetValueOrDefault(block) + 1;
                 }
@@ -244,7 +245,7 @@ public sealed class UndergrowthTests(ITestOutputHelper output)
 
                 // Walk down through the plant (and the second block of tall reeds) to the ground.
                 var top = y;
-                while (top > 1 && BlockDefinition.IsDecor(grid.GetBlock(x, top, z)))
+                while (top > 1 && BlockDefinition.IsUndergrowth(grid.GetBlock(x, top, z)))
                 {
                     Assert.True(top - y < 2);
                     top--;
@@ -301,12 +302,12 @@ public sealed class UndergrowthTests(ITestOutputHelper output)
 
                     var cell = grid.GetBlock(x, grid.HighestBlock(x, z), z);
                     var within = Math.Abs(dx) <= margin && Math.Abs(dz) <= margin;
-                    if (within && BlockDefinition.IsDecor(cell))
+                    if (within && BlockDefinition.IsUndergrowth(cell))
                     {
                         // The path columns and the prop columns are never planted. A point's own column on open ground is a route cell too.
                         near++;
                     }
-                    else if (!within && BlockDefinition.IsDecor(cell))
+                    else if (!within && BlockDefinition.IsUndergrowth(cell))
                     {
                         ring++;
                     }

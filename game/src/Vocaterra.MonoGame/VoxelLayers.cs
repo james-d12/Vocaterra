@@ -46,58 +46,6 @@ public sealed class CrosshairLayer : IFrameLayer
 }
 
 /// <summary>
-/// The held item at the bottom right: an arm in a sleeve and, in the hand, the item of the selected hotbar slot (a piece of wood, a berry, a torch).
-/// It sways a little while the player walks and swings while a block is being gathered.
-/// </summary>
-public sealed class HeldItemLayer : IFrameLayer
-{
-    private static readonly Color Sleeve = new(52, 168, 92);
-    private static readonly Color Skin = new(244, 200, 154);
-    private static readonly Color Shadow = new(20, 40, 30);
-    private static readonly Color SleeveShade = new(36, 124, 68);
-    private static readonly Color Cuff = new(232, 196, 60);
-    private static readonly Color SkinShade = new(214, 164, 118);
-
-    /// <inheritdoc />
-    public void Draw(SpriteBatch spriteBatch, FrameView view)
-    {
-        if (view.Voxel is not { } sim)
-        {
-            return;
-        }
-
-        var width = view.ViewportWidth;
-        var height = view.ViewportHeight;
-        var tick = sim.Tick;
-        var moving = sim.Player.VelocityX != 0 || sim.Player.VelocityZ != 0;
-        var sway = moving ? new Vector2(MathF.Sin(tick * 0.17f) * 5f, MathF.Abs(MathF.Cos(tick * 0.17f)) * 6f) : Vector2.Zero;
-        var swing = sim.GatherProgress > 0 ? MathF.Sin(sim.GatherProgress * 0.55f) : 0f;
-        var hand = new Vector2(width - 250 + (swing * 34f), height - 170 + (swing * 22f)) + sway;
-        var elbow = new Vector2(width - 40, height + 40);
-        var toHand = hand - elbow;
-        var angle = MathF.Atan2(toHand.Y, toHand.X);
-        var length = toHand.Length();
-        var pixel = view.Pixel;
-        var along = Vector2.Normalize(toHand);
-        var cuffAt = elbow + (along * length * 0.6f);
-        // Back to front: a dark outline of the whole arm, the sleeve with a darker lower edge, a cuff, and the hand with a lighter top edge.
-        DrawHelpers.Bar(spriteBatch, pixel, elbow, angle, length + 6f, 100f, Shadow);
-        DrawHelpers.Bar(spriteBatch, pixel, elbow, angle, length * 0.6f, 92f, SleeveShade);
-        DrawHelpers.Bar(spriteBatch, pixel, elbow + (new Vector2(-along.Y, along.X) * -8f), angle, length * 0.6f, 74f, Sleeve);
-        DrawHelpers.Bar(spriteBatch, pixel, cuffAt, angle, 16f, 92f, Cuff);
-        DrawHelpers.Bar(spriteBatch, pixel, cuffAt + (along * 16f), angle, (length * 0.4f) - 16f, 84f, SkinShade);
-        DrawHelpers.Bar(spriteBatch, pixel, cuffAt + (along * 16f) + (new Vector2(-along.Y, along.X) * -8f), angle, (length * 0.4f) - 16f, 62f, Skin);
-
-        var stack = sim.SelectedStack;
-        if (!stack.IsEmpty)
-        {
-            var icon = new Rectangle((int)hand.X - 72, (int)hand.Y - 118, 112, 112);
-            view.DrawIcon(spriteBatch, stack.Item, icon);
-        }
-    }
-}
-
-/// <summary>
 /// The names over the NPC figures: the Spanish word on a dark plate, at the point above the head, drawn through the font after the scene. A name
 /// is hidden behind the camera, farther than <see cref="FullDistance"/> plus the fade, or when a solid block is in the way.
 /// </summary>
@@ -121,6 +69,11 @@ public sealed class NpcLabelLayer : IFrameLayer
         var eye = view.Eye;
         foreach (var figure in view.Figures)
         {
+            if (view.Dialogue.IsOpen && string.Equals(view.Dialogue.Npc, figure.Name, StringComparison.Ordinal))
+            {
+                continue; // the speaker has the bubble over the head (S15)
+            }
+
             var (x, y, z) = figure.LabelPosition;
             var point = camera.Screen.Project(x, y, z);
             var distance = Math.Sqrt(Math.Pow(x - eye.X, 2) + Math.Pow(y - eye.Y, 2) + Math.Pow(z - eye.Z, 2));
