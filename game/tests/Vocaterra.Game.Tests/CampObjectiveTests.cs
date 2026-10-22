@@ -19,6 +19,10 @@ public sealed class CampObjectiveTests
         var cards = new List<WordCard>();
         var grid = scene.Grid;
 
+        // The player wakes at the camp on the cliff: the walk begins with the way down to the guide's camp (the workbench, the fire ring and the berries are there).
+        var camp = scene.Point("camp.guide");
+        Assert.True(VoxelWalker.WalkTo(session, cell => Distance(cell, new BlockPos(camp.X, camp.Y + 1, camp.Z)) <= 3.0), "no way down to the guide's camp");
+
         // Five trunks: each gathered block is one wood, the trunk's own cell turns to air. Walk next to the nearest ones, one tree at a time.
         var gathered = 0;
         while (gathered < 5)
@@ -55,7 +59,8 @@ public sealed class CampObjectiveTests
         cards.AddRange(session.TakeWordCards());
 
         // The fire ring: the torch is set on the rim, on top of a stone, from a cell within reach of it.
-        var ringBlock = FindBlock(grid, BlockId.FireRing);
+        var ringCentre = scene.Point("firering");
+        var ringBlock = grid.BlocksOfKind(BlockId.FireRing).First(p => Math.Abs(p.X - ringCentre.X) <= 1 && Math.Abs(p.Z - ringCentre.Z) <= 1);
         var rim = new BlockPos(ringBlock.X, ringBlock.Y + 1, ringBlock.Z);
         Assert.True(VoxelWalker.WalkTo(session, cell => Distance(cell, rim) <= 3.0));
         Assert.True(VoxelWalker.Place(session, ItemId.Torch, rim));
@@ -123,68 +128,25 @@ public sealed class CampObjectiveTests
         Assert.Equal(first, second);
     }
 
-    // The nearest trunk block (by the body's distance) and a standing cell within reach of it: the cell on the same ground, nearest to the trunk.
-    private static BlockPos? FindTrunk(VoxelGrid grid, BlockPos from, out BlockPos? stand)
+    // The nearest block of a kind (by the body's distance) that has a standing cell within reach, and that cell.
+    private static BlockPos? FindNearest(VoxelGrid grid, BlockId kind, BlockPos from, out BlockPos? stand)
     {
-        BlockPos? best = null;
-        stand = null;
-        var bestDistance = double.MaxValue;
-        for (var y = 0; y < grid.SizeY; y++)
+        foreach (var cell in grid.BlocksOfKind(kind).OrderBy(c => Distance(c, from)))
         {
-            for (var z = 0; z < grid.SizeZ; z++)
+            if (Standing(grid, cell, out var cellStand))
             {
-                for (var x = 0; x < grid.SizeX; x++)
-                {
-                    if (grid.GetBlock(x, y, z) != BlockId.Trunk)
-                    {
-                        continue;
-                    }
-
-                    var cell = new BlockPos(x, y, z);
-                    var d = Distance(cell, from);
-                    if (d < bestDistance && Standing(grid, cell, out var cellStand))
-                    {
-                        bestDistance = d;
-                        best = cell;
-                        stand = cellStand;
-                    }
-                }
+                stand = cellStand;
+                return cell;
             }
         }
 
-        return best;
-    }
-
-    private static BlockPos? FindBerryBush(VoxelGrid grid, BlockPos from, out BlockPos? stand)
-    {
-        BlockPos? best = null;
         stand = null;
-        var bestDistance = double.MaxValue;
-        for (var y = 0; y < grid.SizeY; y++)
-        {
-            for (var z = 0; z < grid.SizeZ; z++)
-            {
-                for (var x = 0; x < grid.SizeX; x++)
-                {
-                    if (grid.GetBlock(x, y, z) != BlockId.BerryBush)
-                    {
-                        continue;
-                    }
-
-                    var cell = new BlockPos(x, y, z);
-                    var d = Distance(cell, from);
-                    if (d < bestDistance && Standing(grid, cell, out var cellStand))
-                    {
-                        bestDistance = d;
-                        best = cell;
-                        stand = cellStand;
-                    }
-                }
-            }
-        }
-
-        return best;
+        return null;
     }
+
+    private static BlockPos? FindTrunk(VoxelGrid grid, BlockPos from, out BlockPos? stand) => FindNearest(grid, BlockId.Trunk, from, out stand);
+
+    private static BlockPos? FindBerryBush(VoxelGrid grid, BlockPos from, out BlockPos? stand) => FindNearest(grid, BlockId.BerryBush, from, out stand);
 
     // A feet cell next to the target block (on its own level or the one below), from which the block is in reach.
     private static bool Standing(VoxelGrid grid, BlockPos target, out BlockPos? stand)
@@ -211,24 +173,8 @@ public sealed class CampObjectiveTests
         return false;
     }
 
-    private static BlockPos FindBlock(VoxelGrid grid, BlockId id)
-    {
-        for (var y = 0; y < grid.SizeY; y++)
-        {
-            for (var z = 0; z < grid.SizeZ; z++)
-            {
-                for (var x = 0; x < grid.SizeX; x++)
-                {
-                    if (grid.GetBlock(x, y, z) == id)
-                    {
-                        return new BlockPos(x, y, z);
-                    }
-                }
-            }
-        }
-
-        throw new InvalidOperationException($"No {id} in the scene.");
-    }
+    private static BlockPos FindBlock(VoxelGrid grid, BlockId id) =>
+        grid.BlocksOfKind(id).Cast<BlockPos?>().FirstOrDefault() ?? throw new InvalidOperationException($"No {id} in the scene.");
 
     internal static double Distance(BlockPos a, BlockPos b)
     {

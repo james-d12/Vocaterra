@@ -8,12 +8,30 @@ namespace Vocaterra.MonoGame;
 
 /// <summary>What building the chunk meshes cost and produced, for the run's report.</summary>
 /// <param name="Chunks">The chunks in the grid.</param>
-/// <param name="Meshed">How many chunk meshes were built (a chunk is built again after an edit).</param>
+/// <param name="Meshed">How many chunk meshes were built (a chunk is built again after an edit, or when it comes back into view).</param>
 /// <param name="Vertices">The vertices now on the graphics card.</param>
 /// <param name="Quads">The quads (faces) now on the graphics card.</param>
 /// <param name="TotalMilliseconds">The time spent meshing and uploading, all builds together.</param>
 /// <param name="LongestMilliseconds">The slowest single chunk build.</param>
-public readonly record struct MeshStats(int Chunks, int Meshed, int Vertices, int Quads, double TotalMilliseconds, double LongestMilliseconds)
+/// <param name="InView">The chunks within the view distance that hold something (the ones that are meshed and drawn).</param>
+/// <param name="Resident">The chunks that have a mesh on the card now.</param>
+/// <param name="Pending">The chunks in view still waiting for their mesh.</param>
+/// <param name="EmptySkipped">The chunks never meshed because they hold nothing but air (counted over the whole grid).</param>
+/// <param name="BuriedSkipped">The chunks passed by because they are full of opaque blocks all round, so they have no face to draw.</param>
+/// <param name="Released">The meshes let go because the chunk went out of view.</param>
+public readonly record struct MeshStats(
+    int Chunks,
+    int Meshed,
+    int Vertices,
+    int Quads,
+    double TotalMilliseconds,
+    double LongestMilliseconds,
+    int InView = 0,
+    int Resident = 0,
+    int Pending = 0,
+    int EmptySkipped = 0,
+    int BuriedSkipped = 0,
+    int Released = 0)
 {
     /// <summary>The average build time of a chunk in milliseconds.</summary>
     public double MeanMilliseconds => Meshed == 0 ? 0 : TotalMilliseconds / Meshed;
@@ -21,26 +39,25 @@ public readonly record struct MeshStats(int Chunks, int Meshed, int Vertices, in
     /// <summary>A one-line summary.</summary>
     public string Summary() => string.Create(
         CultureInfo.InvariantCulture,
-        $"{Chunks} chunks, {Meshed} meshes built in {TotalMilliseconds:0.0} ms (mean {MeanMilliseconds:0.00} ms, longest {LongestMilliseconds:0.00} ms), {Quads} faces, {Vertices} vertices");
+        $"{Chunks} chunks ({EmptySkipped} empty, {InView} in view, {Resident} meshed now, {Pending} pending, {BuriedSkipped} buried skipped), {Meshed} meshes built in {TotalMilliseconds:0.0} ms (mean {MeanMilliseconds:0.00} ms, longest {LongestMilliseconds:0.00} ms), {Quads} faces, {Vertices} vertices");
 }
 
 /// <summary>
 /// Draws the voxel world with MonoGame's <see cref="BasicEffect"/> (a texture times the vertex colour, so the face shade is in the mesh), with the
 /// depth buffer on: the opaque faces of every visible chunk first, then the figures and the highlight, then the translucent water chunk by chunk
-/// from the farthest to the nearest without writing depth, then the beacon. There is no custom shader. Distance fog in the sky colour hides where
-/// the 96-block world ends. A chunk is meshed again when its version, or a neighbour's, changed, or when a block kind it holds changed its grey state
-/// (<see cref="ChunkVersionTracker"/>).
+/// from the farthest to the nearest without writing depth, then the beacon. There is no custom shader. At the scale of the 384 x 384 x 128 world
+/// (S13) only the chunks within the preset's view distance of the eye are meshed and drawn (<see cref="ChunkViewSet"/>): chunks of air and chunks
+/// buried in solid blocks are skipped, the rest are built nearest first within the frame's time budget, and a chunk that goes out of range lets its
+/// mesh go. The chunks that are drawn are culled against the camera's frustum, and the fog closes in at the view distance, in the sky colour. A chunk
+/// is meshed again when its version, or a neighbour's, changed, or when a block kind it holds changed its grey state (<see cref="ChunkVersionTracker"/>).
 /// </summary>
 public sealed class VoxelRenderer : IDisposable
 {
     /// <summary>The sky colour behind the world and the colour of the fog.</summary>
     public static readonly Color Sky = new(135, 190, 235);
 
-    /// <summary>Where the fog starts, in blocks from the eye.</summary>
-    public const float FogStart = 48f;
-
-    /// <summary>Where the fog is complete, in blocks from the eye.</summary>
-    public const float FogEnd = 110f;
+    /// <summary>Where the fog starts, as a fraction of where it is complete (<see cref="FogEndFor"/>): the middle distance stays clear and the far end goes blue.</summary>
+    public const float FogStartFraction = 0.7f;
 
     // A chunk mesh is drawn with 16-bit indices, so it holds at most 65 532 vertices (16 383 quads). A full chunk of cubes tops out at 12 288 quads.
     private const int MaxQuadsPerMesh = 16383;
@@ -51,25 +68,36 @@ public sealed class VoxelRenderer : IDisposable
     private readonly BasicEffect _effect;
     private readonly GridBlockSource _source;
     private readonly ChunkVersionTracker _tracker;
+    private readonly ChunkViewSet _view;
     private readonly IndexBuffer _indices;
     private readonly ChunkGpu[] _chunks;
     private readonly short[] _scratchIndices = new short[4096 * 6];
     private VertexPositionColorTexture[] _scratchVertices = new VertexPositionColorTexture[4096];
     private readonly List<ChunkGpu> _visible = [];
     private readonly List<MeshBuffer> _figureMeshes = [];
+    private readonly HashSet<int> _resident = [];
+    private IReadOnlyList<int> _wanted = [];
+    private long _checkedEdits = -1;
     private int _meshed;
     private double _totalMilliseconds;
     private double _longestMilliseconds;
     private int _drawnChunks;
+    private int _buriedSkipped;
+    private int _released;
+    private int _pending;
 
-    /// <summary>Creates the renderer and meshes the whole grid once.</summary>
-    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, VoxelGrid grid)
+    /// <summary>Creates the renderer for a grid and a quality preset. Nothing is meshed yet: the first <see cref="Remesh"/> builds what the eye can see.</summary>
+    public VoxelRenderer(GraphicsDevice device, BlockAtlas atlas, VoxelGrid grid, QualityPreset preset)
     {
+        ArgumentNullException.ThrowIfNull(preset);
         _device = device;
         _atlas = atlas;
         _grid = grid;
+        Preset = preset;
         _source = new GridBlockSource(grid);
         _tracker = new ChunkVersionTracker(grid);
+        _view = new ChunkViewSet(grid, preset.ViewDistance);
+        var fogEnd = FogEndFor(preset.ViewDistance);
         _effect = new BasicEffect(device)
         {
             TextureEnabled = true,
@@ -77,8 +105,8 @@ public sealed class VoxelRenderer : IDisposable
             LightingEnabled = false,
             FogEnabled = true,
             FogColor = Sky.ToVector3(),
-            FogStart = FogStart,
-            FogEnd = FogEnd,
+            FogStart = fogEnd * FogStartFraction,
+            FogEnd = fogEnd,
             Texture = atlas.Texture,
         };
         _indices = BuildIndexBuffer(device, MaxQuadsPerMesh);
@@ -94,9 +122,16 @@ public sealed class VoxelRenderer : IDisposable
         {
             WriteQuadIndices(_scratchIndices, i);
         }
-
-        Remesh();
     }
+
+    /// <summary>The quality preset the renderer was made with.</summary>
+    public QualityPreset Preset { get; }
+
+    /// <summary>Where the fog is complete for a view distance: a little inside it, so the last chunks fade out before they are cut off.</summary>
+    public static float FogEndFor(int viewDistance) => viewDistance * 0.94f;
+
+    /// <summary>The far plane of the camera for a view distance: past the fog's end and the last chunk's corner.</summary>
+    public static float FarPlaneFor(int viewDistance) => viewDistance + (2f * VoxelChunk.Size);
 
     /// <summary>Sets the NPC figures that are drawn with the world; their meshes are built once here.</summary>
     public void SetFigures(IReadOnlyList<NpcFigure> figures)
@@ -116,53 +151,111 @@ public sealed class VoxelRenderer : IDisposable
         {
             var vertices = 0;
             var quads = 0;
-            foreach (var chunk in _chunks)
+            foreach (var index in _resident)
             {
-                vertices += chunk.OpaqueQuads * 4;
-                vertices += chunk.AlphaQuads * 4;
+                var chunk = _chunks[index];
+                vertices += (chunk.OpaqueQuads + chunk.AlphaQuads) * 4;
                 quads += chunk.OpaqueQuads + chunk.AlphaQuads;
             }
 
-            return new MeshStats(_chunks.Length, _meshed, vertices, quads, _totalMilliseconds, _longestMilliseconds);
+            return new MeshStats(
+                _chunks.Length,
+                _meshed,
+                vertices,
+                quads,
+                _totalMilliseconds,
+                _longestMilliseconds,
+                _wanted.Count,
+                _resident.Count,
+                _pending,
+                _view.EmptyChunks,
+                _buriedSkipped,
+                _released);
         }
     }
 
-    /// <summary>How many chunks the last <see cref="DrawWorld"/> drew (the rest were outside the view or empty).</summary>
+    /// <summary>How many chunks the last <see cref="DrawWorld"/> drew (the rest were outside the view, outside the frustum or empty).</summary>
     public int DrawnChunks => _drawnChunks;
+
+    /// <summary>How many chunks in view are still waiting for their mesh (zero when the picture is complete).</summary>
+    public int PendingChunks => _pending;
 
     /// <summary>
     /// Sets the block kinds drawn grey (the greyscale A/B, <see cref="GreyscaleWorld"/>): the chunks that hold a kind whose grey state changed are
     /// meshed again by the next <see cref="Remesh"/>; the other chunks keep their meshes.
     /// </summary>
     /// <param name="greyKinds">One bit per block kind (<see cref="ChunkMesher.KindBit"/>); 0 draws the whole world in colour.</param>
-    public void SetGreyKinds(ulong greyKinds) => _tracker.SetGreyKinds(greyKinds);
-
-    /// <summary>Meshes the chunks whose blocks (or neighbours') changed since they were last meshed. Returns how many it rebuilt.</summary>
-    public int Remesh()
+    public void SetGreyKinds(ulong greyKinds)
     {
-        var due = _tracker.Due();
-        foreach (var coord in due)
+        if (_tracker.SetGreyKinds(greyKinds) > 0)
         {
-            var started = MonotonicClock.Milliseconds();
-            var meshes = ChunkMesher.Build(_source, coord.X, coord.Y, coord.Z, _tracker.GreyKinds);
-            var chunk = _chunks[_tracker.IndexOf(coord)];
-            chunk.Opaque?.Dispose();
-            chunk.Alpha?.Dispose();
-            (chunk.Opaque, chunk.OpaqueQuads) = Upload(meshes.Opaque);
-            (chunk.Alpha, chunk.AlphaQuads) = Upload(meshes.Alpha);
-            _tracker.MarkMeshed(coord, meshes.Kinds);
-            var spent = MonotonicClock.Milliseconds() - started;
-            _meshed++;
-            _totalMilliseconds += spent;
-            _longestMilliseconds = Math.Max(_longestMilliseconds, spent);
+            _checkedEdits = -1;
         }
-
-        return due.Count;
     }
 
     /// <summary>
-    /// Draws the world from the camera: opaque chunks, the NPC figures and the block highlight, then the water and the beacon column. The caller
-    /// clears the target first and draws the layers afterwards.
+    /// Builds the meshes the eye needs: the chunks in view whose mesh is missing or out of date, in-frustum ones first and nearest first, until the
+    /// time budget is spent (always at least one, so the view fills even on a slow frame); and lets go of the meshes of the chunks that went out of
+    /// range. Returns how many meshes it built.
+    /// </summary>
+    /// <param name="eye">The eye in blocks.</param>
+    /// <param name="frustum">The camera's frustum, to build what is on screen first, or <see langword="null"/>.</param>
+    /// <param name="budgetMilliseconds">The most time to spend, or <see langword="null"/> to build everything that is due (a scripted run before its screenshot).</param>
+    public int Remesh(Vector3 eye, BoundingFrustum? frustum = null, double? budgetMilliseconds = null)
+    {
+        var wanted = _view.Update(eye.X, eye.Y, eye.Z);
+        var started = MonotonicClock.Milliseconds();
+        if (!ReferenceEquals(wanted, _wanted) || _checkedEdits != _grid.EditCount)
+        {
+            _wanted = wanted;
+            ReleaseOutOfRange(eye);
+        }
+
+        // Which chunks in view are due: never meshed, or edited (any edit since the last full check makes every meshed chunk's key worth comparing).
+        var recheck = _checkedEdits != _grid.EditCount;
+        var due = new List<int>();
+        var offscreen = new List<int>();
+        foreach (var index in wanted)
+        {
+            var chunk = _grid.Chunks[index];
+            var coord = chunk.Coord;
+            var isDue = !_tracker.HasMesh(coord) || (recheck && _tracker.IsDue(coord));
+            if (!isDue)
+            {
+                continue;
+            }
+
+            if (frustum is null || frustum.Intersects(_chunks[index].Box))
+            {
+                due.Add(index);
+            }
+            else
+            {
+                offscreen.Add(index);
+            }
+        }
+
+        _checkedEdits = _grid.EditCount;
+        due.AddRange(offscreen);
+        var built = 0;
+        foreach (var index in due)
+        {
+            if (budgetMilliseconds is { } budget && built > 0 && MonotonicClock.Milliseconds() - started >= budget)
+            {
+                break;
+            }
+
+            BuildChunk(index);
+            built++;
+        }
+
+        _pending = due.Count - built;
+        return built;
+    }
+
+    /// <summary>
+    /// Draws the world from the camera: the opaque chunks in view and in the frustum, the NPC figures and the block highlight, then the water and the
+    /// beacon column. The caller clears the target first and draws the layers afterwards.
     /// </summary>
     /// <param name="camera">The camera for this frame.</param>
     /// <param name="highlight">The block to frame, or <see langword="null"/>.</param>
@@ -178,10 +271,12 @@ public sealed class VoxelRenderer : IDisposable
         _effect.View = camera.View;
         _effect.Projection = camera.Projection;
         _effect.Texture = _atlas.Texture;
+        _effect.FogEnabled = true;
 
         _visible.Clear();
-        foreach (var chunk in _chunks)
+        foreach (var index in _wanted)
         {
+            var chunk = _chunks[index];
             if (chunk.Visible(camera.Frustum))
             {
                 _visible.Add(chunk);
@@ -220,7 +315,11 @@ public sealed class VoxelRenderer : IDisposable
 
         if (beacon is { } target)
         {
+            // The beacon is a signal: it is not lost in the haze, however far the place is.
+            _effect.FogEnabled = false;
+            _effect.CurrentTechnique.Passes[0].Apply();
             DrawDynamic(OverlayMeshes.Beacon(target, tick));
+            _effect.FogEnabled = true;
         }
 
         _device.DepthStencilState = DepthStencilState.None;
@@ -238,6 +337,79 @@ public sealed class VoxelRenderer : IDisposable
 
         _indices.Dispose();
         _effect.Dispose();
+    }
+
+    private void BuildChunk(int index)
+    {
+        var started = MonotonicClock.Milliseconds();
+        var chunk = _grid.Chunks[index];
+        var coord = chunk.Coord;
+        var gpu = _chunks[index];
+        gpu.Opaque?.Dispose();
+        gpu.Alpha?.Dispose();
+        gpu.Opaque = null;
+        gpu.Alpha = null;
+        gpu.OpaqueQuads = 0;
+        gpu.AlphaQuads = 0;
+        if (ChunkMesher.IsBuried(_source, chunk))
+        {
+            _buriedSkipped++;
+            _tracker.MarkMeshed(coord, chunk.KindMask);
+            _resident.Remove(index);
+            return;
+        }
+
+        var meshes = ChunkMesher.Build(_source, coord.X, coord.Y, coord.Z, _tracker.GreyKinds);
+        (gpu.Opaque, gpu.OpaqueQuads) = Upload(meshes.Opaque);
+        (gpu.Alpha, gpu.AlphaQuads) = Upload(meshes.Alpha);
+        _tracker.MarkMeshed(coord, meshes.Kinds);
+        if (gpu.Opaque is not null || gpu.Alpha is not null)
+        {
+            _resident.Add(index);
+        }
+        else
+        {
+            _resident.Remove(index);
+        }
+
+        var spent = MonotonicClock.Milliseconds() - started;
+        _meshed++;
+        _totalMilliseconds += spent;
+        _longestMilliseconds = Math.Max(_longestMilliseconds, spent);
+    }
+
+    // A chunk that has a mesh but is beyond the keep distance of the eye lets it go (and is due again if the eye comes back).
+    private void ReleaseOutOfRange(Vector3 eye)
+    {
+        var keep = (long)_view.KeepDistance * _view.KeepDistance;
+        List<int>? let = null;
+        foreach (var index in _resident)
+        {
+            var c = _grid.Chunks[index].Coord;
+            if (ChunkViewSet.DistanceSquared(eye.X, eye.Y, eye.Z, c.X, c.Y, c.Z) > keep)
+            {
+                (let ??= []).Add(index);
+            }
+        }
+
+        if (let is null)
+        {
+            return;
+        }
+
+        foreach (var index in let)
+        {
+            var gpu = _chunks[index];
+            gpu.Opaque?.Dispose();
+            gpu.Alpha?.Dispose();
+            gpu.Opaque = null;
+            gpu.Alpha = null;
+            gpu.OpaqueQuads = 0;
+            gpu.AlphaQuads = 0;
+            _tracker.Discard(_grid.Chunks[index].Coord);
+            _resident.Remove(index);
+            _released++;
+        }
     }
 
     private static IndexBuffer BuildIndexBuffer(GraphicsDevice device, int quads)
@@ -327,8 +499,9 @@ public sealed class VoxelRenderer : IDisposable
         public int OpaqueQuads;
         public VertexBuffer? Alpha;
         public int AlphaQuads;
+        public BoundingBox Box { get; } = box;
         public Vector3 Centre { get; } = (box.Min + box.Max) / 2f;
 
-        public bool Visible(BoundingFrustum frustum) => (Opaque is not null || Alpha is not null) && frustum.Intersects(box);
+        public bool Visible(BoundingFrustum frustum) => (Opaque is not null || Alpha is not null) && frustum.Intersects(Box);
     }
 }

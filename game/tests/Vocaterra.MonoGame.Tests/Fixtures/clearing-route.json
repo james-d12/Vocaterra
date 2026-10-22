@@ -1,0 +1,47 @@
+{
+  // A small flat test world (96 x 32 x 96) with the layout of the first prototype route (S3), so that the front-end tests keep their coordinates when the
+  // bundle's world is the large valley of S13: level ground at y 10, the camp's workbench, fire ring, bushes and the guide, a tree at (9, 17), the
+  // village's stall, houses and sign, the three NPCs, and a lake at the south for the river. Tests only; the game never loads it.
+  "schemaVersion": 2,
+  "name": "clearing-route",
+  "size": { "x": 96, "y": 32, "z": 96 },
+  "waterLevel": 4,
+  "terrain": {
+    "relief": ["222222", "222222", "222222", "222222", "222222", "222222"],
+    "valley": 8,
+    "ceiling": 20
+  },
+  "sites": {
+    "ground": { "x": 48, "z": 36, "y": 10, "radius": 46, "blend": 1 },
+    "river": { "x": 60, "z": 88 }
+  },
+  "lake": { "site": "river", "rx": 20, "rz": 6, "depth": 3 },
+  "props": [
+    {"type": "workbench", "x": 24, "z": 17, "length": 2, "axis": "x", "name": "workbench"},
+    {"type": "fire_ring", "x": 22, "z": 22, "name": "firering"},
+    {"type": "berry_bush", "x": 16, "z": 23},
+    {"type": "berry_bush", "x": 17, "z": 15},
+    {"type": "berry_bush", "x": 28, "z": 16},
+    {"type": "berry_bush", "x": 27, "z": 26},
+    {"type": "berry_bush", "x": 15, "z": 19},
+    {"type": "bush", "x": 19, "z": 26},
+    {"type": "bush", "x": 29, "z": 20},
+    {"type": "bush", "x": 14, "z": 16},
+    {"type": "tree", "x": 9, "z": 17, "height": 4},
+    {"type": "signpost", "x": 58, "z": 55, "name": "signpost"},
+    {"type": "stall", "x": 60, "z": 58, "width": 5, "depth": 2, "facing": "north", "name": "stall"},
+    {"type": "house", "x": 71, "z": 55, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "house1"},
+    {"type": "house", "x": 71, "z": 62, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "house2"},
+    {"type": "house", "x": 51, "z": 61, "width": 5, "depth": 5, "height": 3, "facing": "east", "name": "house3"}
+  ],
+  "npcs": [
+    {"name": "guide", "x": 25, "z": 21, "facing": "west"},
+    {"name": "shopkeeper", "x": 62, "z": 59, "facing": "north"},
+    {"name": "villager", "x": 63, "z": 66, "facing": "south"}
+  ],
+  "spawn": { "x": 17, "z": 17, "facing": 120 },
+  "points": {
+    "camp": {"x": 22, "z": 20},
+    "village": {"x": 62, "z": 63}
+  }
+}

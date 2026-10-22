@@ -142,7 +142,7 @@ public sealed class NpcFrontendTests
     [Fact]
     public void EveryFigureCanBeAimedAtAndTalkedToNotOnlyTheGuide()
     {
-        var scene = RouteScene.Build();
+        var scene = RouteScene.Clearing();
         var figures = NpcFigures.FromScene(scene);
         Assert.Equal(["guide", "shopkeeper", "villager"], figures.Select(static f => f.Name).Order(StringComparer.Ordinal));
         foreach (var figure in figures)
@@ -197,16 +197,22 @@ public sealed class NpcFrontendTests
         throw new InvalidOperationException("no bank beside that water");
     }
 
-    private static (VoxelSimulation Sim, List<string> Log, VoxelScript Script) AtTheWater(params VoxelStep[] steps)
+    private static (VoxelSimulation Sim, List<string> Log, VoxelScript Script) AtTheWater(Func<BlockPos, VoxelStep[]> steps)
     {
-        var scene = RouteScene.Build();
+        var scene = RouteScene.Clearing();
         var sim = VoxelSimulation.Create(scene);
-        var water = new BlockPos(61, 7, 80);
+        var river = scene.Point("river");
+        var water = river;
+        while (scene.Grid.GetBlock(water.X - 1, water.Y, water.Z) == BlockId.Water)
+        {
+            water = water with { X = water.X - 1 }; // the water at the lake's western edge, with a bank beside it
+        }
+
         Assert.Equal(BlockId.Water, scene.Grid.GetBlock(water.X, water.Y, water.Z));
         sim.TeleportTo(BesideWater(scene, water));
         var log = new List<string>();
         var look = new LookControl();
-        var script = new VoxelScript(sim, look, steps, static _ => null, log.Add);
+        var script = new VoxelScript(sim, look, steps(water), static _ => null, log.Add);
         return (sim, log, script);
     }
 
@@ -228,7 +234,7 @@ public sealed class NpcFrontendTests
     [Fact]
     public void TheInteractStepFillsABottleAtTheWaterAndSaysSo()
     {
-        var (sim, log, script) = AtTheWater(VoxelStep.Interact(61, 7, 80));
+        var (sim, log, script) = AtTheWater(static w => [VoxelStep.Interact(w.X, w.Y, w.Z)]);
         sim.GrantItems(ItemId.Bottle, 1);
 
         Run(sim, script);
@@ -240,7 +246,7 @@ public sealed class NpcFrontendTests
     [Fact]
     public void TheInteractStepAtTheWaterWithoutABottleEndsWithTheHintAndBlocksNothing()
     {
-        var (sim, log, script) = AtTheWater(VoxelStep.Interact(61, 7, 80));
+        var (sim, log, script) = AtTheWater(static w => [VoxelStep.Interact(w.X, w.Y, w.Z)]);
 
         var ticks = Run(sim, script);
 

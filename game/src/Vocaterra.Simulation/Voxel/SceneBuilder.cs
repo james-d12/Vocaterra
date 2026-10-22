@@ -1,15 +1,18 @@
-
 namespace Vocaterra.Simulation.Voxel;
 
 /// <summary>
-/// Builds a <see cref="Scene"/> from a hand-authored <see cref="SceneLayout"/> and a world seed. It is a pure function of the two: the
-/// terrain, the props, the spawn, the NPCs and the points come from the layout alone, and the only thing the seed changes is the tree
-/// scatter, drawn from <see cref="WorldRng"/> (the pass name <c>trees</c>). There is no noise, no cave, no ore and no light map.
+/// Builds a <see cref="Scene"/> from a <see cref="SceneLayout"/> and a world seed. It is a pure function of the two, in integers only: the
+/// <see cref="TerrainGenerator"/> makes the ground (mountains, river, lake, waterfall, paths, level sites) from the layout's parameters and the
+/// seed's noise; the builder fills the grid, builds the props and stamps at their sites, places the NPCs and the spawn, and plants the forest from
+/// <see cref="WorldRng"/> (the pass name <c>trees</c>). A different seed changes the land and the forest and never moves a site, a point, an NPC or
+/// the spawn, and nothing is built where a site says there is a prop.
 /// </summary>
 public static class SceneBuilder
 {
-    /// <summary>The name of the scatter's random stream (<see cref="WorldRng.For"/>); renaming it changes every golden.</summary>
+    /// <summary>The name of the forest's random stream (<see cref="WorldRng.For"/>); renaming it changes every golden.</summary>
     public const string TreePassName = "trees";
+
+    private const string ForestPassName = "forest";
 
     /// <summary>Builds the scene of <paramref name="layout"/> for <paramref name="seed"/>.</summary>
     /// <exception cref="SceneLayoutException">A prop does not fit its footprint, a position is out of the grid or on water, or a name repeats.</exception>
@@ -26,6 +29,8 @@ public static class SceneBuilder
         private readonly VoxelGrid _grid;
         private readonly bool[] _reserved;
         private readonly SortedDictionary<string, BlockPos> _points = new(StringComparer.Ordinal);
+        private Terrain _terrain = new(0, 0);
+        private TerrainNoise _forest = new(0, ForestPassName);
 
         public Builder(SceneLayout layout)
         {
@@ -36,10 +41,17 @@ public static class SceneBuilder
 
         public Scene Run(ulong seed)
         {
-            BuildTerrain();
+            _terrain = TerrainGenerator.Generate(_layout, seed);
+            _forest = new TerrainNoise(seed, ForestPassName);
+            FillTerrain();
             foreach (var prop in _layout.Props)
             {
                 BuildProp(prop);
+            }
+
+            foreach (var site in _layout.Sites)
+            {
+                AddPoint(site.Name, site.X, site.Z);
             }
 
             foreach (var point in _layout.Points)
@@ -61,41 +73,101 @@ public static class SceneBuilder
                 Reserve(point.X, point.Z);
             }
 
-            var trees = ScatterTrees(seed);
+            var trees = PlantForest(seed);
             return new Scene(_layout.Name, seed, _grid, new SpawnPoint(spawnFeet, _layout.Spawn.Yaw), npcs, _points, trees, _layout.WaterLevel);
         }
 
-        private void BuildTerrain()
+        // ---------------------------------------------------------------- the ground
+
+        private int HeightAt(int x, int z) => _terrain.Height[(z * _layout.SizeX) + x];
+
+        private bool IsWater(int x, int z) => _terrain.IsWater(x, z);
+
+        private void FillTerrain()
         {
-            for (var z = 0; z < _layout.SizeZ; z++)
+            var spec = _layout.Terrain;
+            var w = _layout.SizeX;
+            var d = _layout.SizeZ;
+            var noise = _forest;
+            for (var z = 0; z < d; z++)
             {
-                for (var x = 0; x < _layout.SizeX; x++)
+                for (var x = 0; x < w; x++)
                 {
-                    var entry = _layout.Legend[_layout.FeatureAt(x, z)];
-                    var h = _layout.HeightAt(x, z);
-                    for (var y = 0; y <= h; y++)
+                    var i = (z * w) + x;
+                    var h = _terrain.Height[i];
+                    var slope = Math.Max(
+                        Math.Max(Math.Abs(h - HeightAt(Math.Max(x - 1, 0), z)), Math.Abs(h - HeightAt(Math.Min(x + 1, w - 1), z))),
+                        Math.Max(Math.Abs(h - HeightAt(x, Math.Max(z - 1, 0))), Math.Abs(h - HeightAt(x, Math.Min(z + 1, d - 1)))));
+                    var flags = _terrain.Flags[i];
+                    if ((flags & Terrain.RouteFlag) != 0)
                     {
-                        var block = y == h ? entry.Top : y >= h - 3 ? entry.Sub : BlockId.Stone;
-                        _grid.SetBlock(x, y, z, block);
+                        slope = 0; // the sites' ground and the paths are never bare rock, whatever the land beside them does (and so never depend on the seed)
                     }
 
-                    if (entry.Water)
+                    BlockId top;
+                    BlockId sub;
+                    if (_terrain.IsWater(x, z) || (NearWater(x, z) && (flags & Terrain.ShoreFlag) != 0 && slope <= 3))
                     {
-                        for (var y = h + 1; y <= _layout.WaterLevel; y++)
-                        {
-                            _grid.SetBlock(x, y, z, BlockId.Water);
-                        }
+                        top = BlockId.Sand;
+                        sub = BlockId.Sand;
+                    }
+                    else if ((flags & Terrain.PathFlag) != 0)
+                    {
+                        top = BlockId.Path;
+                        sub = BlockId.Dirt;
+                    }
+                    else if (h >= spec.SnowLine + (noise.Column(1, x, z) % 7) - 3 && slope <= 3)
+                    {
+                        top = BlockId.Snow;
+                        sub = BlockId.Stone;
+                    }
+                    else if (h >= spec.RockLine || slope >= 5)
+                    {
+                        top = BlockId.Stone;
+                        sub = BlockId.Stone;
+                    }
+                    else
+                    {
+                        top = BlockId.Grass;
+                        sub = BlockId.Dirt;
                     }
 
-                    if (entry.Reserved)
+                    _grid.FillColumn(x, z, 0, h - 4, BlockId.Stone);
+                    _grid.FillColumn(x, z, h - 3, h - 1, sub);
+                    _grid.FillColumn(x, z, h, h, top);
+                    if (_terrain.IsWater(x, z))
                     {
-                        _reserved[(z * _layout.SizeX) + x] = true;
+                        _grid.FillColumn(x, z, h + 1, _terrain.WaterTop[i], BlockId.Water);
+                    }
+
+                    if ((flags & Terrain.RouteFlag) != 0)
+                    {
+                        _reserved[i] = true;
                     }
                 }
             }
         }
 
-        private bool IsWater(int x, int z) => _layout.Legend[_layout.FeatureAt(x, z)].Water && _layout.HeightAt(x, z) < _layout.WaterLevel;
+        // Whether the column, or one next to it, holds water (the bed and the bank are sand).
+        private bool NearWater(int x, int z)
+        {
+            for (var dz = -1; dz <= 1; dz++)
+            {
+                for (var dx = -1; dx <= 1; dx++)
+                {
+                    var cx = x + dx;
+                    var cz = z + dz;
+                    if (cx >= 0 && cx < _layout.SizeX && cz >= 0 && cz < _layout.SizeZ && IsWater(cx, cz))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // ---------------------------------------------------------------- props
 
         private void Reserve(int x, int z)
         {
@@ -126,7 +198,7 @@ public static class SceneBuilder
         private void AddPoint(string name, int x, int z)
         {
             CheckColumn(x, z, $"point '{name}'");
-            var y = IsWater(x, z) ? _layout.WaterLevel : _layout.HeightAt(x, z);
+            var y = IsWater(x, z) ? _terrain.WaterTop[(z * _layout.SizeX) + x] : HeightAt(x, z);
             if (!_points.TryAdd(name, new BlockPos(x, y, z)))
             {
                 throw new SceneLayoutException($"point '{name}' is defined twice.");
@@ -141,7 +213,7 @@ public static class SceneBuilder
                 throw new SceneLayoutException($"{where}: column ({x}, {z}) is in the water.");
             }
 
-            var feet = new BlockPos(x, _layout.HeightAt(x, z) + 1, z);
+            var feet = new BlockPos(x, HeightAt(x, z) + 1, z);
             if (_grid.IsSolid(feet.X, feet.Y, feet.Z) || _grid.IsSolid(feet.X, feet.Y + 1, feet.Z))
             {
                 throw new SceneLayoutException($"{where}: there is a solid block where the feet or head would be at ({x}, {feet.Y}, {z}).");
@@ -155,12 +227,12 @@ public static class SceneBuilder
         {
             CheckColumn(x0, z0, where);
             CheckColumn(x0 + width - 1, z0 + depth - 1, where);
-            var h = _layout.HeightAt(x0, z0);
+            var h = HeightAt(x0, z0);
             for (var z = z0; z < z0 + depth; z++)
             {
                 for (var x = x0; x < x0 + width; x++)
                 {
-                    if (_layout.HeightAt(x, z) != h || IsWater(x, z))
+                    if (HeightAt(x, z) != h || IsWater(x, z))
                     {
                         throw new SceneLayoutException($"{where}: the footprint is not flat dry ground at ({x}, {z}).");
                     }
@@ -218,6 +290,12 @@ public static class SceneBuilder
 
                 case "bridge":
                     BuildBridge(prop, where);
+                    break;
+                case "paving":
+                    BuildPaving(prop, where);
+                    break;
+                case "stamp":
+                    BuildStamp(prop, where);
                     break;
                 default:
                     throw new SceneLayoutException($"{where}: unknown prop type.");
@@ -370,7 +448,7 @@ public static class SceneBuilder
                 throw new SceneLayoutException($"{where}: the bridge must start on dry ground.");
             }
 
-            var deckY = _layout.HeightAt(prop.X, prop.Z);
+            var deckY = HeightAt(prop.X, prop.Z);
             var (ax, az) = dir switch
             {
                 Direction.North => (0, -1),
@@ -402,9 +480,74 @@ public static class SceneBuilder
             Register(prop, prop.X + (ax * (length / 2)), prop.Z + (az * (length / 2)));
         }
 
+        // A rectangle of ground laid with one block (the village square): only the top block changes.
+        private void BuildPaving(PropSpec prop, string where)
+        {
+            var width = prop.Width > 0 ? prop.Width : 1;
+            var depth = prop.Depth > 0 ? prop.Depth : 1;
+            CheckColumn(prop.X, prop.Z, where);
+            CheckColumn(prop.X + width - 1, prop.Z + depth - 1, where);
+            for (var z = prop.Z; z < prop.Z + depth; z++)
+            {
+                for (var x = prop.X; x < prop.X + width; x++)
+                {
+                    if (!IsWater(x, z))
+                    {
+                        Put(x, HeightAt(x, z), z, prop.Block, where);
+                    }
+
+                    Reserve(x, z);
+                }
+            }
+
+            Register(prop, prop.X + (width / 2), prop.Z + (depth / 2));
+        }
+
+        // A small structure drawn in the layout (a tent), turned to face a side and set on level ground.
+        private void BuildStamp(PropSpec prop, string where)
+        {
+            var stamp = prop.Stamp is { } name && _layout.Stamps.TryGetValue(name, out var found)
+                ? found
+                : throw new SceneLayoutException($"{where}: there is no stamp '{prop.Stamp}'.");
+            var drawnWidth = stamp.Layers.Max(static layer => layer.Count == 0 ? 0 : layer.Max(static row => row.Length));
+            var drawnDepth = stamp.Layers.Max(static layer => layer.Count);
+            var facing = prop.Facing ?? Direction.North;
+            var turned = facing is Direction.East or Direction.West;
+            var width = turned ? drawnDepth : drawnWidth;
+            var depth = turned ? drawnWidth : drawnDepth;
+            var h = FlatHeight(prop.X, prop.Z, width, depth, where);
+            for (var layer = 0; layer < stamp.Layers.Count; layer++)
+            {
+                var rows = stamp.Layers[layer];
+                for (var r = 0; r < rows.Count; r++)
+                {
+                    for (var c = 0; c < rows[r].Length; c++)
+                    {
+                        if (rows[r][c] == ' ')
+                        {
+                            continue;
+                        }
+
+                        var (dx, dz) = facing switch
+                        {
+                            Direction.North => (c, r),
+                            Direction.East => (drawnDepth - 1 - r, c),
+                            Direction.South => (drawnWidth - 1 - c, drawnDepth - 1 - r),
+                            _ => (r, drawnWidth - 1 - c),
+                        };
+                        Put(prop.X + dx, h + 1 + layer, prop.Z + dz, stamp.Legend[rows[r][c]], where);
+                    }
+                }
+            }
+
+            Register(prop, prop.X + (width / 2), prop.Z + (depth / 2));
+        }
+
+        // ---------------------------------------------------------------- the forest
+
         private void PlantTree(int x, int z, int trunk, string where)
         {
-            var baseY = _layout.HeightAt(x, z);
+            var baseY = HeightAt(x, z);
             var top = baseY + trunk;
             for (var y = baseY + 1; y <= top; y++)
             {
@@ -430,10 +573,12 @@ public static class SceneBuilder
             }
         }
 
-        private int ScatterTrees(ulong seed)
+        // One tree is tried in every square of the ground at a jittered place. The draws are made for every square whether or not a tree is kept, so the stream
+        // stays in step and a change to the margins moves only the trees it touches.
+        private int PlantForest(ulong seed)
         {
             var spec = _layout.Trees;
-            if (spec.Attempts <= 0 || spec.Max <= 0)
+            if (spec.Chance <= 0)
             {
                 return 0;
             }
@@ -470,26 +615,52 @@ public static class SceneBuilder
             var rng = WorldRng.For(seed, TreePassName);
             var planted = new bool[sizeX * sizeZ];
             var count = 0;
-            for (var attempt = 0; attempt < spec.Attempts && count < spec.Max; attempt++)
+            for (var cz = 0; cz < sizeZ; cz += spec.Cell)
             {
-                var x = rng.NextInt(sizeX);
-                var z = rng.NextInt(sizeZ);
-                var trunk = rng.NextInt(spec.MinTrunk, spec.MaxTrunk + 1);
-                if (x < 2 || z < 2 || x >= sizeX - 2 || z >= sizeZ - 2
-                    || closed[(z * sizeX) + x]
-                    || !_layout.Legend[_layout.FeatureAt(x, z)].Plantable
-                    || _layout.HeightAt(x, z) + trunk + 2 >= _layout.SizeY
-                    || NearTree(planted, x, z, spec.Spacing))
+                for (var cx = 0; cx < sizeX; cx += spec.Cell)
                 {
-                    continue;
-                }
+                    var x = cx + rng.NextInt(spec.Cell);
+                    var z = cz + rng.NextInt(spec.Cell);
+                    var roll = rng.NextInt(100);
+                    var trunk = rng.NextInt(spec.MinTrunk, spec.MaxTrunk + 1);
+                    if (x < 2 || z < 2 || x >= sizeX - 2 || z >= sizeZ - 2 || closed[(z * sizeX) + x])
+                    {
+                        continue;
+                    }
 
-                PlantTree(x, z, trunk, "tree scatter");
-                planted[(z * sizeX) + x] = true;
-                count++;
+                    var i = (z * sizeX) + x;
+                    var h = _terrain.Height[i];
+                    if (h > spec.TreeLine || h + trunk + 3 >= _layout.SizeY || _terrain.IsWater(x, z) || _grid.GetBlock(x, h, z) != BlockId.Grass || !Gentle(x, z))
+                    {
+                        continue;
+                    }
+
+                    // Thinner with height, and a few clearings where the slow noise is low.
+                    var chance = spec.Chance * (100 - Math.Clamp((h - 56) * 3, 0, 80)) / 100;
+                    if (_forest.Value(8, x, z, 40) < 700)
+                    {
+                        chance /= 4;
+                    }
+
+                    if (roll >= chance || NearTree(planted, x, z, spec.Spacing))
+                    {
+                        continue;
+                    }
+
+                    PlantTree(x, z, trunk, "forest");
+                    planted[i] = true;
+                    count++;
+                }
             }
 
             return count;
+        }
+
+        // No trees on a cliff: the four neighbours are within two blocks of the ground under the trunk.
+        private bool Gentle(int x, int z)
+        {
+            var h = HeightAt(x, z);
+            return Math.Abs(HeightAt(x - 1, z) - h) <= 2 && Math.Abs(HeightAt(x + 1, z) - h) <= 2 && Math.Abs(HeightAt(x, z - 1) - h) <= 2 && Math.Abs(HeightAt(x, z + 1) - h) <= 2;
         }
 
         private bool NearTree(bool[] planted, int x, int z, int spacing)

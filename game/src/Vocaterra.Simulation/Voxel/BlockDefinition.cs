@@ -56,6 +56,7 @@ public sealed record BlockDefinition(
         new(BlockId.FireRing, "fire-ring", true, false, false, 0, null, 0, BlockId.Air),
         new(BlockId.Sign, "sign", true, false, false, 0, null, 0, BlockId.Air),
         new(BlockId.Bridge, "bridge", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Snow, "snow", true, false, false, 0, null, 0, BlockId.Air),
     ];
 
     /// <summary>Every block kind, ordered by id.</summary>

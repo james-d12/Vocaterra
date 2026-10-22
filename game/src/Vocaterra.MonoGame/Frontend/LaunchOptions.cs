@@ -53,7 +53,8 @@ public sealed record LaunchOptions
         + "  --lesson-help           the lesson step's help path (its English hint, its model line again, the card and the English); a step\n"
         + "  --lesson-pick <n>       pick option n (1 to 4) of a listen step; a step\n"
         + "  --tips                  draw the first-time tips in a scripted run too (an interactive run always does; S16)\n"
-        + "  --beacon <point>        stand the beacon column on a named point of the scene (camp, firering, workbench, stall, signpost, village, house1, bridge, river...)\n"
+        + "  --beacon <point>        stand the beacon column on a named point of the scene (camp.guide, camp.player, firering, workbench, stall, signpost, village, house1, bridge, river, lake,\n"
+        + "                          waterfall...); the default is camp.guide (the walk down the trail), none puts no beacon up\n"
         + "  --journal               open the journal once the steps are done\n"
         + "  --journal-phrases       open the journal on its phrases page once the steps are done (Tab turns the page)\n"
         + "  --inventory             open the inventory screen once the steps are done\n"
@@ -71,6 +72,9 @@ public sealed record LaunchOptions
         + "  --typed-credit <full|half> the credit a correct typed use earns (default half; spoken input always earns full)\n"
         + "  --no-speech             do not load the speech models (typing only)\n"
         + "  --mute                  the NPCs' pre-rendered voices are off (the panel still shows every line)\n"
+        + "  --quality <low|medium|high>  the graphics quality (S13): how far the world is drawn (low 224 blocks, medium 304, high 400, the default); the fog closes in at that distance\n"
+        + "  --view-distance <blocks>     draw this far instead of the quality's distance (at least 48)\n"
+        + "  --teleport <x,z>        put the player at this block column, standing on the ground (a debug step for screenshots); a step\n"
         + "  --greyscale             the playtest A/B switch (D-game-6): blocks whose noun is not known yet are grey, known ones in colour; default full colour\n"
         + "  --assume-known <nouns>  a test aid: the comma-separated catalogue nouns count as known from the start (their blocks are in colour)\n"
         + "  --playtest              the playtest profile (S12): no debug overlay, the mic check, the session log in its own folder, the pre-check before the\n"
@@ -146,6 +150,15 @@ public sealed record LaunchOptions
 
     /// <summary>The named point of the scene the beacon starts on (<c>--beacon</c>), or <see langword="null"/>.</summary>
     public string? Beacon { get; init; }
+
+    /// <summary>The graphics quality (<c>--quality</c>); <see cref="QualityLevel.High"/> by default.</summary>
+    public QualityLevel Quality { get; init; } = QualityLevel.High;
+
+    /// <summary>The view distance in blocks given by <c>--view-distance</c>, or <see langword="null"/> for the quality's own.</summary>
+    public int? ViewDistance { get; init; }
+
+    /// <summary>The preset the run uses: the quality's, with the view distance <c>--view-distance</c> gave.</summary>
+    public QualityPreset QualityPreset => ViewDistance is { } blocks ? QualityPreset.For(Quality).WithViewDistance(blocks) : QualityPreset.For(Quality);
 
     /// <summary>Whether <c>--greyscale</c> was given: blocks whose noun is not known are drawn grey (the playtest A/B, D-game-6).</summary>
     public bool Greyscale { get; init; }
@@ -286,7 +299,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
-                or "--check" or "--pick" or "--session-dir" or "--lesson" or "--lesson-pick"))
+                or "--check" or "--pick" or "--session-dir" or "--lesson" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -466,6 +479,35 @@ public sealed record LaunchOptions
 
                     result = result with { SceneFile = value };
                     break;
+                case "--quality":
+                    if (QualityPreset.Parse(value) is not { } quality)
+                    {
+                        error = $"--quality needs low, medium or high, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { Quality = quality };
+                    break;
+                case "--view-distance":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var viewDistance) || viewDistance < QualityPreset.MinimumViewDistance)
+                    {
+                        error = $"--view-distance needs a number of blocks, at least {QualityPreset.MinimumViewDistance}; got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { ViewDistance = viewDistance };
+                    break;
+                case "--teleport":
+                    if (!VoxelStep.TryParseColumn(value, out var teleportX, out var teleportZ))
+                    {
+                        error = $"--teleport needs a block column and row, like 230,222; got '{value}'.";
+                        return false;
+                    }
+
+                    steps.Add(VoxelStep.Teleport(teleportX, teleportZ));
+
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
+                    break;
                 case "--beacon":
                     if (value.Trim().Length == 0)
                     {
@@ -568,7 +610,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --interact, --place, --select, --craft, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 

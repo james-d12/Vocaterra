@@ -137,31 +137,19 @@ public sealed class GatheringAndPlacingTests
     {
         var scene = BuildRoute(42);
         var grid = scene.Grid;
-        var trunkBase = new BlockPos(-1, 0, -1);
-        var bestDistance = int.MaxValue;
-        for (var z = 0; z < grid.SizeZ; z++)
-        {
-            for (var x = 0; x < grid.SizeX; x++)
-            {
-                var y = grid.HighestBlock(x, z);
-                var ground = Enumerable.Range(0, grid.SizeY).FirstOrDefault(yy => grid.GetBlock(x, yy, z) == BlockId.Trunk, -1);
-                if (ground >= 0 && y >= 0)
-                {
-                    var d = Math.Abs(x - scene.Spawn.Feet.X) + Math.Abs(z - scene.Spawn.Feet.Z);
-                    if (d < bestDistance)
-                    {
-                        bestDistance = d;
-                        trunkBase = new BlockPos(x, ground, z);
-                    }
-                }
-            }
-        }
 
-        Assert.True(trunkBase.X >= 0);
+        // The trunk nearest the guide's camp (the walk starts there): its lowest block, and the column's blocks above it.
+        var camp = scene.Point("camp.guide");
+        var trunkBase = grid.BlocksOfKind(BlockId.Trunk)
+            .GroupBy(static p => (p.X, p.Z))
+            .Select(g => (Column: g.Key, Base: g.Min(static p => p.Y)))
+            .OrderBy(t => Math.Abs(t.Column.X - camp.X) + Math.Abs(t.Column.Z - camp.Z))
+            .Select(t => new BlockPos(t.Column.X, t.Base, t.Column.Z))
+            .First();
         var trunk = Enumerable.Range(trunkBase.Y, grid.SizeY - trunkBase.Y).TakeWhile(y => grid.GetBlock(trunkBase.X, y, trunkBase.Z) == BlockId.Trunk).ToList();
         Assert.InRange(trunk.Count, 4, 5);
 
-        // Stand on the nearest open ground cell beside the trunk (the south side if it is free) and gather the whole trunk.
+        // Stand on the nearest open ground cell beside the trunk and gather the whole trunk.
         var sim = VoxelSimulation.Create(scene);
         var stand = new[] { (0, 1), (0, -1), (1, 0), (-1, 0) }
             .Select(o => new BlockPos(trunkBase.X + o.Item1, trunkBase.Y, trunkBase.Z + o.Item2))
@@ -224,10 +212,11 @@ public sealed class GatheringAndPlacingTests
         sim.SetRecipes([torch]);
         sim.GrantItems(ItemId.Wood, 2);
 
-        // The workbench is seven blocks from the spawn (reach is six), and far from the village square.
+        // The workbench is at the guide's camp, a long walk from the player's camp where the player starts, and far from the village square.
         var workbench = scene.Point("workbench");
         Assert.False(sim.StationInReach(BlockId.Table));
-        sim.TeleportTo(new BlockPos(60, scene.Point("village").Y + 1, 60));
+        var village = scene.Point("village");
+        sim.TeleportTo(new BlockPos(village.X, village.Y + 1, village.Z));
         Assert.False(sim.StationInReach(BlockId.Table));
         Assert.Equal(CraftResult.MissingStation, sim.CanCraft(0));
         sim.Step([VoxelCommand.Craft(0)]);

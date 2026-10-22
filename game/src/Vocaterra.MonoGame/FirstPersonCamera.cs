@@ -17,7 +17,7 @@ public sealed class FirstPersonCamera
     /// <summary>The near plane in blocks (small, so a block against the eye is not cut).</summary>
     public const float NearPlane = 0.05f;
 
-    /// <summary>The far plane in blocks (the whole 96-block world and its diagonal).</summary>
+    /// <summary>The default far plane in blocks; a run sets it from its view distance (<see cref="VoxelRenderer.FarPlaneFor"/>).</summary>
     public const float FarPlane = 220f;
 
     /// <summary>The eye position in blocks (east, up, south).</summary>
@@ -56,7 +56,8 @@ public sealed class FirstPersonCamera
     /// <param name="pitchSteps">The pitch in angle steps (positive up).</param>
     /// <param name="width">The viewport width in pixels.</param>
     /// <param name="height">The viewport height in pixels.</param>
-    public void Update(Vector3 eye, double yawSteps, double pitchSteps, int width, int height)
+    /// <param name="farPlane">The far plane in blocks (the view distance and a little more).</param>
+    public void Update(Vector3 eye, double yawSteps, double pitchSteps, int width, int height, float farPlane = FarPlane)
     {
         Eye = eye;
         YawSteps = yawSteps;
@@ -67,7 +68,7 @@ public sealed class FirstPersonCamera
         Up = ToVector(basis.Up);
         View = Matrix.CreateLookAt(eye, eye + Forward, Up);
         var aspect = width / (float)Math.Max(1, height);
-        Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(FieldOfViewDegrees), aspect, NearPlane, FarPlane);
+        Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(FieldOfViewDegrees), aspect, NearPlane, farPlane);
         Frustum = new BoundingFrustum(View * Projection);
         Screen = new ScreenProjection(eye.X, eye.Y, eye.Z, yawSteps, pitchSteps, FieldOfViewDegrees, Math.Max(1, width), Math.Max(1, height));
     }

@@ -276,10 +276,23 @@ public sealed class ChunkMesherTests
         var source = new GridBlockSource(scene.Grid);
         var faces = 0;
         var vertices = 0;
+        var skippable = 0;
         foreach (var chunk in scene.Grid.Chunks)
         {
+            // A chunk of air and a chunk buried in solid blocks have no face: the renderer skips them, and the mesher agrees (checked on the first of each).
+            var skipped = chunk.IsEmpty || ChunkMesher.IsBuried(source, chunk);
+            if (skipped && ++skippable > 30)
+            {
+                continue;
+            }
+
             var meshes = ChunkMesher.Build(source, chunk.Coord.X, chunk.Coord.Y, chunk.Coord.Z);
             Assert.True(meshes.Opaque.VertexCount <= 65532 && meshes.Alpha.VertexCount <= 65532);
+            if (skipped)
+            {
+                Assert.Equal(0, meshes.FaceCount);
+            }
+
             foreach (var v in meshes.Opaque.Vertices)
             {
                 Assert.True(float.IsFinite(v.X) && float.IsFinite(v.Y) && float.IsFinite(v.Z));
@@ -290,9 +303,10 @@ public sealed class ChunkMesherTests
         }
 
         Assert.Equal(faces * 4, vertices);
-        Assert.InRange(faces, 20_000, 60_000); // the culling works: 96 x 32 x 96 blocks, 33 thousand faces
+        Assert.InRange(faces, 400_000, 1_500_000); // the culling works: 384 x 128 x 384 blocks, under a million faces
         var allBlocks = scene.Grid.SizeX * scene.Grid.SizeY * scene.Grid.SizeZ;
-        Assert.True(faces < allBlocks / 4);
+        Assert.True(faces < allBlocks / 8);
+        Assert.True(skippable > 2000, $"{skippable} chunks of air or buried in stone");
     }
 
     [Fact]

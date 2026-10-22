@@ -19,10 +19,13 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--seed <ulong>` | the world seed (default 42) |
 | `--content <dir>` | the content bundle folder (default: `content/game-v1` found by walking up from the executable, then from the current directory; `VOCATERRA_CONTENT_DIR` also works) |
 | `--scene <file>` | the layout file (default: the bundle's `game/scene.json`) |
+| `--quality <low\|medium\|high>` | S13: how far the world is drawn: the view distance in blocks (low 224, medium 304, high 400, the default; a real GPU). Only the chunks within it are meshed and drawn, the fog is complete just inside it and the camera's far plane stops past it. S14 adds plants, light and clouds to the presets |
+| `--view-distance <blocks>` | draw this far instead of the quality's distance (at least 48) |
 | `--screenshot <path.png>` | scripted run: fixed 60 Hz clock, the steps below in order, save the back buffer as a PNG, exit 0 (1 if the PNG cannot be written) |
 | `--frames <n>` | with `--screenshot`: run at least `n` ticks before the screenshot (default 120) |
 | `--look <yaw>,<pitch>` | a step: face this direction in degrees (yaw 0 north, 90 east, clockwise from above; pitch positive up, within 89) |
-| `--walk-to <x>,<z>` | a step: walk with `Move` commands to the middle of that block column, within half a block, or give up after 3 600 ticks; sidesteps and jumps when stuck. Prints `walk-to 60,52: arrived at (60.02, 52.41) after 800 ticks` |
+| `--walk-to <x>,<z>` | a step: walk with `Move` commands to the middle of that block column, within half a block, or give up after 14 400 ticks (S13: the way is planned over the standable cells (`WalkPlanner`, A*: up one block, down three, no wading, no one-block gaps between trees, a dearer cell beside a trunk), so a walk follows the trail and the road, and the hops run along the eight directions); sidesteps and jumps when stuck. Prints `walk-to 60,52: arrived at (60.02, 52.41) after 800 ticks` |
+| `--teleport <x>,<z>` | a step (S13, a debug step for screenshots): stand the player on the ground of that column (the highest block that is not a tree, with room above it). Prints `teleport 230,222: standing at 230,35,222` or why not |
 | `--interact <x>,<y>,<z>` | a step: aim at the block and hold `Interact` until it is gathered or 600 ticks pass (the player must be within 4 blocks). Prints `interact 9,11,17: gathered trunk in 60 ticks (now air, +1 wood)` |
 | `--place <item>@<x>,<y>,<z>` | a step: place one item (`madera`, `antorcha`, or the item key `wood`, `torch`) in that empty cell next to a block, within reach |
 | `--select <n>` | a step: hotbar slot 1 to 10 |
@@ -31,7 +34,7 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--say "<line>"` | repeatable, a step: type the line into the panel and send it to the NPC it is open on, and wait for the reply; with no panel open it first talks to the guide (as in S3); each turn is printed (`turn 1 (guide, guide-open): ... -> ask_directions, entendido`, the NPC's lines, the arrow, then the game events it caused) |
 | `--leave` | a step: close the dialogue (a `--walk-to` or another `--talk` closes it as well) |
 | `--shot <png>` | a step: save the screen at this point of the script and go on (the final `--screenshot` is saved when the script is done) |
-| `--beacon <point>` | stand the beacon column on a named point of the scene (`camp`, `firering`, `workbench`, `stall`, `signpost`, `village`, `house1` to `house3`, `bridge`, `river`); it clears when the player comes within 3 blocks |
+| `--beacon <point>` | stand the beacon column on a named point of the scene (`camp.guide`, `camp.player`, `firering`, `workbench`, `stall`, `signpost`, `village`, `house1` to `house3`, `bridge`, `river`, `lake`, `waterfall`, `trail`); it clears when the player comes within 3 blocks. A new game starts with it on `camp.guide` (the walk down the trail from the player's own camp); `--beacon none` puts none up. The beacon is not fogged |
 | `--journal`, `--journal-phrases`, `--inventory`, `--crafting` | open those screens once the steps are done (the panel stays open for the screenshot); `--journal-phrases` opens the journal on its phrases page (S8: Tab, Left or Right turn the page) |
 | `--wait <seconds>`, `--skip <seconds>` | script steps (S8): run the game on that long; move the stored time on without waiting (so a spacing gap passes and the guide's phrase review is due) |
 | `--typed-credit <full\|half>` | the credit a correct typed use earns: `half` by default, `full` as before P5; spoken input always earns full |
@@ -60,8 +63,10 @@ is in the vertex colour (top 1.0, north and south 0.82, east and west 0.68, bott
 faces, chunk by chunk from the farthest to the nearest, reading but not writing depth, with its surface a sixteenth lower; bushes, the berry bush,
 the torch (a stick with a flame, the flame is the prototype's light), the open door and the fence are small shapes of their own. The 16 x 16 block
 atlas (`BlockArt`, 8 x 10 cells: the colour cells in the top five rows, a grey copy of each cell below them, the luma from `Greyscale`) is drawn in code (CC0 by construction, no picture file). `VoxelRenderer` uploads one vertex buffer per chunk and mesh,
-draws with `BasicEffect` (texture times vertex colour, depth on, point sampling, fog in the sky colour from 48 to 110 blocks) and no custom shader,
-skips chunks outside the frustum, and meshes again a chunk whose version changed (`ChunkVersionTracker`: the chunk's own `Version`, plus a signature
+draws with `BasicEffect` (texture times vertex colour, depth on, point sampling, fog in the sky colour closing in at the view distance) and no custom shader. At the scale of the 384 x 384 x 128 world (S13) the renderer meshes and draws only
+the chunks within the quality preset's view distance of the eye (`ChunkViewSet`, nearest first, rebuilt when the eye changes chunk or a block is edited): a chunk of air is never in the set,
+a chunk full of opaque blocks all round is skipped without meshing (`ChunkMesher.IsBuried`), the meshes are built on the main thread to a time budget a frame (in-frustum chunks first, so the view fills nearest and visible first; a scripted run builds everything it needs before the picture),
+and a mesh is let go when its chunk is more than two chunks beyond the view. The chunks drawn are culled against the camera's frustum. It meshes again a chunk whose version changed (`ChunkVersionTracker`: the chunk's own `Version`, plus a signature
 of the layer of each neighbour that touches it, so an edit in the middle of a chunk rebuilds one chunk and an edit on an edge rebuilds the
 neighbour across it). Triangles run counter-clockwise seen from outside and the renderer culls clockwise ones. The NPCs are cube assemblies
 (`NpcFigures`, drawn with the atlas's white cell) at the scene's NPC placements, facing their yaw, with their names over their heads

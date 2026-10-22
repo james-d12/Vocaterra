@@ -44,7 +44,7 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
 
         var dx = expected.X - player.X;
         var dz = expected.Z - player.Z;
-        Assert.Equal(Math.Max(Math.Abs(dx), Math.Abs(dz)), turn.Pointer.Blocks);
+        Assert.Equal(WorldFacts3D.BlocksOf((long)((dx * dx) + (dz * dz)) * VoxelPhysics.UnitsPerBlock * VoxelPhysics.UnitsPerBlock), turn.Pointer.Blocks); // the horizontal distance, rounded
         Assert.NotNull(turn.WorldLine);
         Assert.StartsWith("El árbol está", turn.WorldLine, StringComparison.Ordinal);
         Assert.Contains(turn.Pointer.Direction, turn.WorldLine, StringComparison.Ordinal); // the direction is relative to where the player faces
@@ -59,7 +59,7 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
         // regression anchor for the content and the drawing rule: change the pool, the stream id or the world and it changes on purpose.
         var turn = TestGame.NewSession().Say("¿dónde está el árbol?");
 
-        Assert.Equal("El árbol está allí, detrás, a la derecha, a seis bloques.", turn.WorldLine);
+        Assert.Equal("El árbol está allí, a la derecha, a once bloques.", turn.WorldLine);
     }
 
     [Theory]

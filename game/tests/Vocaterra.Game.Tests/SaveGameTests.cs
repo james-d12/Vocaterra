@@ -235,7 +235,8 @@ public sealed class SaveGameTests
     // Walks, turns and talks for a while: the same moves for both games of the continuation test.
     private static void Continue(VoxelSession session)
     {
-        VoxelWalker.WalkTo(session, cell => cell.X >= 22 && cell.Z <= 18, 900);
+        var camp = session.Scene.Point("camp.guide");
+        VoxelWalker.WalkTo(session, cell => cell.X >= camp.X + 5 && cell.Z <= camp.Z - 3, 3000);
         for (var i = 0; i < 180; i++)
         {
             session.Step([VoxelCommand.Look(Angles.FromDegrees(200), -4), VoxelCommand.Move(0, 1)]);

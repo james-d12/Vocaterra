@@ -53,7 +53,7 @@ public sealed class VoxelSession : GuideSession
         Simulation = VoxelSimulation.Create(scene);
         Simulation.SetRecipes(Recipes.Rules);
         Objective = Objective.Camp();
-        ScanFireRing(scene.Grid);
+        ScanFireRing(scene);
         Tips.Offer("start"); // the opening tips (S16): looking, walking, jumping, collecting
     }
 
@@ -304,19 +304,16 @@ public sealed class VoxelSession : GuideSession
         _newCards.Add(new WordCard(noun.Lemma, noun.WithDefinite));
     }
 
-    private void ScanFireRing(VoxelGrid grid)
+    // The objective's ring is the one at the guide's camp (the scene's point "firering"). The cold ring at the player's own camp (the point
+    // "firering.player") is for the end of the session: a torch set on it does not complete the camp's step. A scene without the point counts every ring.
+    private void ScanFireRing(Scene scene)
     {
-        for (var y = 0; y < grid.SizeY; y++)
+        var hasCampRing = scene.Points.TryGetValue("firering", out var centre);
+        foreach (var stone in scene.Grid.BlocksOfKind(BlockId.FireRing))
         {
-            for (var z = 0; z < grid.SizeZ; z++)
+            if (!hasCampRing || (Math.Abs(stone.X - centre.X) <= 1 && Math.Abs(stone.Z - centre.Z) <= 1))
             {
-                for (var x = 0; x < grid.SizeX; x++)
-                {
-                    if (grid.GetBlock(x, y, z) == BlockId.FireRing)
-                    {
-                        _fireRing.Add(new BlockPos(x, y, z));
-                    }
-                }
+                _fireRing.Add(stone);
             }
         }
     }

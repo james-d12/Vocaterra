@@ -164,7 +164,9 @@ public sealed class TurnWorkerTests
     public void ASnapshotOfTheWorldDoesNotSeeLaterChanges()
     {
         var session = TestGame.NewSession();
-        var bush = new BlockPos(17, 11, 15); // a berry bush two blocks from the spawn: the fruta of the route
+        var camp = session.Scene.Point("camp.guide");
+        var bush = new BlockPos(camp.X - 6, camp.Y + 1, camp.Z + 3); // a berry bush of the guide's camp: the fruta of the route
+        session.Simulation.TeleportTo(new BlockPos(bush.X + 2, bush.Y, bush.Z));
         var before = WorldFacts3D.Snapshot(session.Scene.Grid, TestGame.Nouns);
         Assert.Equal(["fruta"], before.NounsAt(bush));
 
