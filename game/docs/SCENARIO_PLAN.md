@@ -500,6 +500,11 @@ controls in English.
   "could not evaluate". Each says what to do in plain English (for example `Speech models not found: set VOCATERRA_MODELS_DIR (see
   nlp/scripts/fetch-models.sh)`). A sweep of `game/src` finds any other Spanish system text.
 - **The panel key hints are English** (dialogue, journal, inventory, crafting), following the place S16 gave the English controls.
+- **The microphone check at the start is English** (owner: "a new player, and a new person to Spanish, has no idea what this means").
+  `MicCheckModel`'s title, talk hint, pass and fail lines and `PushToTalk.NoMicrophone` become English (for example `Microphone check`,
+  `Hold V or Space and say "hola"`, `Got it, I can hear you.`, `I didn't catch that. Try again?`, `No microphone: type your answer.`).
+  The word the player says, `hola`, stays Spanish and is shown as the thing to say.
+- **The beacon's distance unit is English** (`campamento 74 blocks`): the label is a taught noun, the unit is the game's.
 - **What stays Spanish:** everything the learner learns or hears: NPC lines, prompts, Spanish labels of taught nouns, the Spanish half of
   bilingual objectives, and the core's feedback codes (their English text is S16's).
 - **Tests:** the hint text in both dialogue states, with and without speech; each model problem's English message (the cheap check runs
