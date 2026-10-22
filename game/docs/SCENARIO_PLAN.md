@@ -414,6 +414,9 @@ of section 5 carry over.
 - **Characters.** Humanoid figures with head, body, arms and legs, pixel-art faces and distinct clothes: the guide, the shopkeeper (apron and
   hat) and the villager. They have an idle animation and turn to face the player when spoken to. The player has a figure with a backpack for the
   behind-the-shoulder view, toggled with F5. First person stays the default.
+- **The first-person arm** (owner, 2026-10-22: "it looks odd with its black outline"). It loses the black outline and becomes a
+  blocky arm in the player's skin and sleeve colours, textured and shaded like the figures and lit by the scene. It holds the selected item
+  (a log, the torch with its flame, the bottle) and has a small swing when the player gathers or places.
 - **The dialogue panel** is restyled like reference B: a dark rounded panel with the speaker's name in a warm colour over the line, anchored
   near the speaker when on screen.
 - **The HUD** gets a hotbar with pixel-art item icons and counts, and the workbench's recipe panel shows the inputs and the output as icons
