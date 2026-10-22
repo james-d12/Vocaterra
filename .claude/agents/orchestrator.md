@@ -27,7 +27,8 @@ is a change to the boundary and updates that record.
 
 ## Start of a session
 1. `git status`, `git log --oneline -8`, `git worktree list` (remove leftovers with `git worktree remove --force <path>` and
-   `git branch -D <branch>`), `df -h /home` (each build is several GB).
+   `git branch -D <branch>`), `df -h /home` (each build is several GB), and the resource check below (`free -h`, `uptime`, stray
+   `dotnet` processes).
 2. Read `game/IMPLEMENTATION_PLAN.md` section 4 (with `game/docs/SCENARIO_PLAN.md` and `game/docs/PROTOTYPE_BRIEF.md` for the S series) and the last entries of section 5; `nlp/IMPLEMENTATION_PLAN.md` §5 statuses and the
    last entries of §5b; both `docs/DECISIONS.md`.
 3. If a milestone is `in progress` with no live agent, inspect its worktree before relaunching.
@@ -38,8 +39,26 @@ is a change to the boundary and updates that record.
 - **Sonnet 5.5 only** for design-heavy milestones (a new scene, a state machine, a new algorithm or cross-module design in the core, the
   engine host's architecture), or when a Haiku attempt has failed the gate twice or returned a report whose claims did not verify.
 - **Opus 5.5 only when the owner asks** (research, architecture reviews).
-- Never set an effort level unless the owner asks. One agent per milestone; run agents in parallel only when they touch disjoint
-  directories.
+- Never set an effort level unless the owner asks. One agent per milestone, and **one agent at a time** (see Machine resources).
+
+## Machine resources (owner, 2026-10-22: never max out the computer)
+The desktop crashed twice on 2026-10-22 with CPU and RAM maxed out: two Sonnet agents (S14, S17) built and tested at the same time, each
+with about 16 MSBuild nodes, the Roslyn compiler server and parallel test hosts, on a machine with 16 cores, 11 GiB of RAM and 2 GiB of swap.
+- **One agent at a time.** Do not launch a second agent while one is running, even on disjoint directories. The only exception is an agent
+  that runs no build, test or `dotnet run` at all (pure reading or writing docs), and then at most two in total.
+- **Every heavy command goes through `scripts/limited.sh`**: `dotnet restore|build|test|format|run`, `scripts/content.sh`,
+  `scripts/prerender-speech.sh`, the licence scan, screenshot runs. It holds one machine-wide lock (a second caller waits), waits until
+  at least 3 GB is free and the load is under the core count, then runs the command in a systemd user scope capped at 6 GB of RAM, no swap
+  and 10 of 16 cores, at nice 10, with MSBuild node reuse, the MSBuild server and the shared compiler server off (nothing lingers). A
+  command over the cap is killed inside its scope (exit 137) and the desktop survives; the fix is lower parallelism, never a higher cap
+  without the owner. Builds use `-m:4`, tests `-m:2`. The gate already does all of this; every brief tells the agent to do the same.
+- **Check before every launch and every gate**: `free -h` (at least 4 GB available, swap under half used), `uptime` (1-minute load
+  under 16), `df -h /home` (at least 10 GB free), `pgrep -fc 'MSBuild.dll|VBCSCompiler|testhost'` (0 when nothing is running). Orphaned
+  build servers are stopped with `dotnet build-server shutdown`. If the machine is not clear, wait or tell the owner; do not launch.
+- **While an agent runs**, glance at `free -h` and `uptime` when you are woken; if available memory drops under 2 GB or load stays
+  above 20, stop the agent (TaskStop) and relaunch with lower parallelism.
+- **After a crash**: stop orphaned build servers, check every in-progress worktree for uncommitted work and commit it as a WIP snapshot on
+  its branch, then resume the milestones one at a time, each in its existing worktree (its incremental build saves disk and time).
 
 ## Per-milestone loop
 1. **Brief.** Use the template below. Point at files to read rather than retyping them. State the gate and the report format. Name the
@@ -63,6 +82,11 @@ is a change to the boundary and updates that record.
 ```
 You are implementing <milestone id and name> for the Vocaterra repository (C#, .NET 10). The language core is nlp/, the game is game/;
 this milestone's work is under <nlp/ or game/>. You are in an isolated git worktree on your own branch; commit there, do not push.
+Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run, every scripts/content.sh call,
+speech prerender and screenshot run through scripts/limited.sh (for example `scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4`;
+tests with `-m:2`). Never start two heavy commands at once (no `&`, no background builds, no parallel test runs); prefer building or testing
+the one project you changed while iterating and run the whole solution once before reporting. Exit 137 means the 6 GB cap killed it:
+lower the parallelism, do not work around the cap.
 Environment: prefix every command inline with PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" DOTNET_NOLOGO=1 (the sandbox may
 reject a bare `export`, and it refuses a command line containing the shell builtin words `eval` or `hash`: for `scripts/content.sh hash`
 or a CLI `eval` run use a wrapper script outside the repository). Model-gated tests need VOCATERRA_MODELS_DIR=$HOME/.local/share/vocaterra/models.
@@ -78,8 +102,8 @@ wrapper if the sandbox refuses the word), validate again, cefr-check at a1 and a
 ATTRIBUTION.md. Content edits (core, nlp/content/v1): validate + hash, re-pin the bundle hash where tests pin it, re-record the
 end-to-end goldens (golden/manifest.jsonl stays untouched), clean cefr-check.
 Deliverables: <numbered list>.
-Gate (from the repository root): dotnet build Vocaterra.sln -warnaserror (0 warnings); dotnet test Vocaterra.sln (<current count> passed);
-dotnet format Vocaterra.sln --verify-no-changes clean; scripts/content.sh validate passes; <core: bash nlp/scripts/license-scan.sh
+Gate (from the repository root, each through scripts/limited.sh): dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); dotnet test
+Vocaterra.sln -m:2 (<current count> passed); dotnet format Vocaterra.sln --verify-no-changes clean; scripts/content.sh validate passes; <core: bash nlp/scripts/license-scan.sh
 --offline PASSED>; the demo lines give the stated output. Do not commit bin/, obj/ or nlp/artifacts/.
 Commit message prefix `<M|G|P><nn>: <title>`, ending with
 Co-Authored-By: Claude <model> <noreply@anthropic.com>
@@ -108,8 +132,8 @@ anything left undone and why.
 - Native assets: on Linux x64 the game builds for linux-x64 only (G7, `game/Directory.Build.props`); `-p:VocaterraAllRuntimes=true` on
   restore and build gives every platform. The game's executables and test projects that run speech reference `Vosk` directly and
   `Microsoft.ML.OnnxRuntime` with `ExcludeAssets="native"` (CR-021); keep both.
-- Disk: each full build writes several GB of native-package output per checkout; worktrees are cleaned after merge. Launch agents one or
-  two at a time.
+- Disk: each full build writes several GB of native-package output per checkout; worktrees are cleaned after merge. Launch one agent at
+  a time (Machine resources).
 
 ## Open decisions (owner's)
 Core: online versus offline (D8); determinism strictness (D9); MPL-2.0 stance (D10); tutor cost cap (D11); pronunciation ambition (D13).

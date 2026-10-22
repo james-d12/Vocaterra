@@ -12,6 +12,9 @@ set -uo pipefail
 if [ -d "$HOME/.dotnet" ]; then export DOTNET_ROOT="$HOME/.dotnet"; export PATH="$HOME/.dotnet:$PATH"; fi
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export DOTNET_NOLOGO=1
+# Resource limits (owner, 2026-10-22, after two desktop crashes): every heavy step runs through scripts/limited.sh (one heavy command
+# on the machine at a time, a memory and CPU cap, no lingering build servers), the build with -m:4 and the tests with -m:2.
+L="$(cd "$(dirname "$0")" && pwd)/limited.sh"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
 
@@ -46,38 +49,38 @@ done
 
 echo "=== gate ==="
 BUILDLOG=".claude/gate-logs/build-$STAMP.log"
-{ dotnet restore Vocaterra.sln && dotnet build Vocaterra.sln -warnaserror --no-restore; } > "$BUILDLOG" 2>&1
+{ "$L" dotnet restore Vocaterra.sln -m:4 && "$L" dotnet build Vocaterra.sln -warnaserror --no-restore -m:4; } > "$BUILDLOG" 2>&1
 build_rc=$?
 grep -E "Warning\(s\)|Error\(s\)" "$BUILDLOG" | sort | uniq -c
 grep -E ": error " "$BUILDLOG" | head -10
 
 TESTLOG=".claude/gate-logs/test-$STAMP.log"
-dotnet test Vocaterra.sln --no-build > "$TESTLOG" 2>&1
+"$L" dotnet test Vocaterra.sln --no-build -m:2 > "$TESTLOG" 2>&1
 test_rc=$?
 SUMMARY="$(grep -E "^(Passed|Failed)!" "$TESTLOG" | sed -E 's/,//g')"
 echo "$SUMMARY" | awk 'NF {f+=$4; p+=$6; s+=$8} END {print "tests: passed="p" failed="f" skipped="s}'
 grep -E "^\s+Failed |\[FAIL\]" "$TESTLOG" | head -20
 
 FORMATLOG=".claude/gate-logs/format-$STAMP.log"
-dotnet format Vocaterra.sln --verify-no-changes --no-restore > "$FORMATLOG" 2>&1
+"$L" dotnet format Vocaterra.sln --verify-no-changes --no-restore > "$FORMATLOG" 2>&1
 format_rc=$?
 [ "$format_rc" -eq 0 ] && echo "format: clean" || { echo "format: DIRTY"; head -20 "$FORMATLOG"; }
 
 CONTENTLOG=".claude/gate-logs/content-$STAMP.log"
-bash scripts/content.sh validate > "$CONTENTLOG" 2>&1
+"$L" bash scripts/content.sh validate > "$CONTENTLOG" 2>&1
 content_rc=$?
 tail -1 "$CONTENTLOG"
 # The prototype's content gate (S5, D-game-10 and D-game-12): strict lint at A1 (the guide's host-voiced pools are rendered by the game) and
 # the CEFR check at A1 and A2.
 if [ -f game/content/PHRASES.md ]; then
-  { bash scripts/content.sh lint game/content/game-v1 --strict --level a1 --host-pools 'guide.*' &&
-    bash scripts/content.sh cefr-check game/content/game-v1 --level a1 &&
-    bash scripts/content.sh cefr-check game/content/game-v1 --level a2; } >> "$CONTENTLOG" 2>&1 || { content_rc=1; echo "content gate: FAIL (lint --strict or cefr-check)"; }
+  { "$L" bash scripts/content.sh lint game/content/game-v1 --strict --level a1 --host-pools 'guide.*' &&
+    "$L" bash scripts/content.sh cefr-check game/content/game-v1 --level a1 &&
+    "$L" bash scripts/content.sh cefr-check game/content/game-v1 --level a2; } >> "$CONTENTLOG" 2>&1 || { content_rc=1; echo "content gate: FAIL (lint --strict or cefr-check)"; }
   [ "$content_rc" -eq 0 ] && echo "content gate: lint --strict a1 and cefr-check a1/a2 clean"
 fi
 
 LICENSELOG=".claude/gate-logs/license-$STAMP.log"
-bash nlp/scripts/license-scan.sh --offline > "$LICENSELOG" 2>&1
+"$L" bash nlp/scripts/license-scan.sh --offline > "$LICENSELOG" 2>&1
 license_rc=$?
 tail -1 "$LICENSELOG"
 
