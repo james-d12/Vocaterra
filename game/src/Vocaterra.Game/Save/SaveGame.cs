@@ -105,9 +105,10 @@ public static class SaveGame
     /// </summary>
     /// <param name="session">The running game.</param>
     /// <param name="pristine">The scene as it was built for the session's seed (a new build, never the session's own scene).</param>
+    /// <param name="settings">The player's settings to keep in the save (S24: the sound volumes), or <see langword="null"/> for none.</param>
     /// <exception cref="InvalidOperationException">The session is not at rest.</exception>
     /// <exception cref="ArgumentException">The pristine scene is not this session's scene.</exception>
-    public static SaveDocument Capture(VoxelSession session, Scene pristine)
+    public static SaveDocument Capture(VoxelSession session, Scene pristine, SaveSettings? settings = null)
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(pristine);
@@ -154,13 +155,15 @@ public static class SaveGame
             session.Lessons.Capture(),
             session.Tips.Capture(),
             session.Learner.Capture(),
-            BookGranted: true);
+            BookGranted: true,
+            Settings: settings is null ? null : new SaveSettings(settings.Sound.Clamped()));
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
     /// <param name="session">The running game (at rest).</param>
     /// <param name="pristine">A freshly built scene of the same seed and layout.</param>
-    public static string Save(VoxelSession session, Scene pristine) => Serialize(Capture(session, pristine));
+    /// <param name="settings">The player's settings to keep in the save (S24), or <see langword="null"/>.</param>
+    public static string Save(VoxelSession session, Scene pristine, SaveSettings? settings = null) => Serialize(Capture(session, pristine, settings));
 
     /// <summary>
     /// Reads a save's text, checks it against the bundle and the requested seed, builds its scene with <paramref name="buildPristine"/> and restores

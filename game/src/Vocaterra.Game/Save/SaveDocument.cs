@@ -43,6 +43,7 @@ namespace Vocaterra.Game;
 /// <param name="Tips">The first-time tips (S16): which were shown, which wait and which is on screen. A save from before S16 has none.</param>
 /// <param name="Learner">The learner's record (S19): the newest history entries and the word rows. A version 1 save has none (an empty history).</param>
 /// <param name="BookGranted">Whether the book item has been granted (S22): a save written since S20 says so; a save from before S20 does not, and the load gives the learner the book once.</param>
+/// <param name="Settings">The player's settings (S24: the sound volumes), or <see langword="null"/> in a save from before S24 (the defaults then apply).</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -75,7 +76,31 @@ public sealed record SaveDocument(
     LessonsSave? Lessons = null,
     TipsSave? Tips = null,
     LearnerRecordSave? Learner = null,
-    bool BookGranted = false);
+    bool BookGranted = false,
+    SaveSettings? Settings = null);
+
+/// <summary>The player's settings in a save (S24). Presentation only: nothing here reaches the simulation, a turn, a digest or the replay.</summary>
+/// <param name="Sound">The volume of each sound category.</param>
+public sealed record SaveSettings(SoundVolumes Sound);
+
+/// <summary>
+/// The volume of each sound category, 0 to 1 (S24, D-game-18): the NPCs' voices, the effects of the world, the interface and progress sounds, and the ambient beds
+/// (S25). A value outside 0 to 1 is clamped by <see cref="Clamped"/>; a save from a hand-edited file never carries the mixer past full scale.
+/// </summary>
+/// <param name="Voice">The NPCs' pre-rendered voices.</param>
+/// <param name="Sfx">The effects: gathering, placing, picking up, crafting, the fire.</param>
+/// <param name="Ui">The interface and progress sounds: panels, buttons, chimes, the push-to-talk beeps.</param>
+/// <param name="Ambient">The ambient beds.</param>
+public sealed record SoundVolumes(double Voice = 1.0, double Sfx = 0.8, double Ui = 0.8, double Ambient = 0.6)
+{
+    /// <summary>The volumes of a new game.</summary>
+    public static SoundVolumes Default { get; } = new();
+
+    /// <summary>The same volumes with every value limited to 0 to 1 (a value that is not a number counts as 0).</summary>
+    public SoundVolumes Clamped() => new(Limit(Voice), Limit(Sfx), Limit(Ui), Limit(Ambient));
+
+    private static double Limit(double value) => double.IsNaN(value) ? 0 : Math.Clamp(value, 0, 1);
+}
 
 /// <summary>The learner's record in a save (S19): the next entry's number, the newest history entries (oldest first) and the word rows, which are a fold of the whole history.</summary>
 /// <param name="NextId">The number the next history entry takes.</param>
