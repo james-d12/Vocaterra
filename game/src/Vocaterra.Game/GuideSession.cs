@@ -2,6 +2,7 @@ using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Language.Intent;
+using Vocaterra.Nlp.Language.Morphology;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 
@@ -126,6 +127,7 @@ public abstract class GuideSession : IDisposable
         Words = new WordProgress(nouns, playSession);
         Phrases = PhraseSheet.Load(bundle);
         English = EnglishText.Load(bundle, Phrases);
+        Glosses = VerbGlosses.Load(bundle);
         var book = lessons ?? LessonBook.Load(bundle, Phrases, SpeechLines.Enumerate(bundle, nouns, Phrases));
         PhraseProgress = new PhraseProgress(Phrases, playSession, book.TaughtPhrases);
         Support = new PhraseSupport(Phrases, PhraseProgress, bundle, English);
@@ -176,6 +178,14 @@ public abstract class GuideSession : IDisposable
 
     /// <summary>The lessons (S16): the data-driven sequences attached to the NPCs, and the runner that walks the learner through them.</summary>
     public LessonRunner Lessons { get; }
+
+    /// <summary>The verbs' English (S20, the book's Verbs page).</summary>
+    public VerbGlosses Glosses { get; }
+
+    /// <summary>The definite article of a noun from its gender and lemma (<c>el</c> for the feminine <c>agua</c>), as the bundle's morphology gives it (S20).</summary>
+    /// <param name="gender">The lexicon's gender (<c>m</c> or <c>f</c>).</param>
+    /// <param name="lemma">The noun.</param>
+    public string DefiniteArticle(string gender, string lemma) => Bundle.Morphology.Article(Definiteness.Definite, gender, "sg", lemma);
 
     /// <summary>
     /// The learner's record (S19): every line the game took (a dialogue turn, a lesson line, a check answer), in order, and the word record folded from them.

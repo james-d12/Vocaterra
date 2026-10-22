@@ -55,6 +55,7 @@ public sealed class VoxelSession : GuideSession
     {
         Scene = scene;
         Simulation = VoxelSimulation.Create(scene);
+        Simulation.GrantItems(ItemId.Book, 1); // the learner starts with the book (S20, D-game-16); a loaded save puts its own slots back
         Simulation.SetRecipes(Recipes.Rules);
         Objective = Objective.Camp();
         ScanFireRing(scene);

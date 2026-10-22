@@ -16,12 +16,14 @@ public sealed record WordUse(long Entry, int Session, long StoredTime, string Se
 /// </summary>
 /// <param name="Form">The token's text (normalized: accents kept, lower case).</param>
 /// <param name="Person">The person (<c>1</c>), or <see langword="null"/>.</param>
-/// <param name="Number">The number (<c>singular</c>), or <see langword="null"/>.</param>
-/// <param name="Tense">The tense (<c>present</c>), or <see langword="null"/>.</param>
+/// <param name="Number">The number (<c>sg</c> or <c>pl</c>), or <see langword="null"/>.</param>
+/// <param name="Tense">The tense (<c>pres</c>, <c>pret</c>, <c>impf</c>, <c>fut</c> or <c>cond</c>), or <see langword="null"/>.</param>
 /// <param name="Mood">The mood, or <see langword="null"/>.</param>
 /// <param name="Times">The uses of this form.</param>
 /// <param name="TimesCorrect">Of those, the correct ones.</param>
-public sealed record FormRow(string Form, string? Person, string? Number, string? Tense, string? Mood, int Times, int TimesCorrect);
+/// <param name="Question">Whether the form was used in a question (the line ends with a question mark): <c>¿quieres?</c> is a form of its own.</param>
+/// <param name="Last">The last use of this form, or <see langword="null"/> for a form read from a save that kept none (S20).</param>
+public sealed record FormRow(string Form, string? Person, string? Number, string? Tense, string? Mood, int Times, int TimesCorrect, bool Question = false, WordUse? Last = null);
 
 /// <summary>
 /// One row of the word record (S19): a lemma of one part of speech that the core read with a lexicon entry, with its gender (for a noun), the
@@ -111,7 +113,7 @@ public sealed class LearnerWords
                 row.Gender = word.Gender;
             }
 
-            var key = new FormKey(word.Text, word.Person, word.Number, word.Tense, word.Mood);
+            var key = new FormKey(word.Text, word.Person, word.Number, word.Tense, word.Mood, IsQuestion(entry.Text));
             row.Forms.TryGetValue(key, out var form);
             form.Times++;
             if (correct)
@@ -119,6 +121,7 @@ public sealed class LearnerWords
                 form.TimesCorrect++;
             }
 
+            form.Last = use;
             row.Forms[key] = form;
             row.First ??= use;
             row.Last = use;
@@ -146,12 +149,16 @@ public sealed class LearnerWords
         ? error.Start >= word.Start && error.Start < word.End
         : error.Start < word.End && word.Start < error.End;
 
-    private readonly record struct FormKey(string Form, string? Person, string? Number, string? Tense, string? Mood);
+    // A line that asks something: the form was used in a question (S20).
+    private static bool IsQuestion(string text) => text.Contains('?', StringComparison.Ordinal) || text.Contains('¿', StringComparison.Ordinal);
+
+    private readonly record struct FormKey(string Form, string? Person, string? Number, string? Tense, string? Mood, bool Question);
 
     private struct FormCount
     {
         public int Times;
         public int TimesCorrect;
+        public WordUse? Last;
     }
 
     private sealed class RowState(string lemma, string pos)
@@ -184,7 +191,7 @@ public sealed class LearnerWords
             };
             foreach (var form in row.Forms)
             {
-                state.Forms[new FormKey(form.Form, form.Person, form.Number, form.Tense, form.Mood)] = new FormCount { Times = form.Times, TimesCorrect = form.TimesCorrect };
+                state.Forms[new FormKey(form.Form, form.Person, form.Number, form.Tense, form.Mood, form.Question)] = new FormCount { Times = form.Times, TimesCorrect = form.TimesCorrect, Last = form.Last };
             }
 
             return state;
@@ -198,7 +205,8 @@ public sealed class LearnerWords
                 .ThenBy(static f => f.Key.Number ?? string.Empty, StringComparer.Ordinal)
                 .ThenBy(static f => f.Key.Tense ?? string.Empty, StringComparer.Ordinal)
                 .ThenBy(static f => f.Key.Mood ?? string.Empty, StringComparer.Ordinal)
-                .Select(static f => new FormRow(f.Key.Form, f.Key.Person, f.Key.Number, f.Key.Tense, f.Key.Mood, f.Value.Times, f.Value.TimesCorrect))
+                .ThenBy(static f => f.Key.Question)
+                .Select(static f => new FormRow(f.Key.Form, f.Key.Person, f.Key.Number, f.Key.Tense, f.Key.Mood, f.Value.Times, f.Value.TimesCorrect, f.Key.Question, f.Value.Last))
                 .ToList();
             return new WordRow(Lemma, Pos, Gender, Times, TimesCorrect, forms, First ?? throw new InvalidOperationException("A word row has no use."), Last ?? First);
         }

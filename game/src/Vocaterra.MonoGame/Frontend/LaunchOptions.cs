@@ -60,6 +60,8 @@ public sealed record LaunchOptions
         + "                          waterfall...); the default is camp.guide (the walk down the trail), none puts no beacon up\n"
         + "  --journal               open the journal once the steps are done\n"
         + "  --journal-phrases       open the journal on its phrases page once the steps are done (Tab turns the page)\n"
+        + "  --book                  open the book (J) once the steps are done: the same as --journal\n"
+        + "  --book-page <page>      open the book on nouns, verbs, phrases, lessons or said (What I said) once the steps are done\n"
         + "  --inventory             open the inventory screen once the steps are done\n"
         + "  --crafting              open the crafting panel once the steps are done\n"
         + "  --mic-check             show the mic check at the start (an interactive run shows it by default; a scripted run with --screenshot never does unless asked,\n"
@@ -144,6 +146,9 @@ public sealed record LaunchOptions
 
     /// <summary>Whether the journal opens on its phrases page (<c>--journal-phrases</c>, S8); otherwise on its words page.</summary>
     public bool JournalPhrases { get; init; }
+
+    /// <summary>The page the book opens on in a scripted run (<c>--book-page</c>, or the phrases page for <c>--journal-phrases</c>); <see langword="null"/> for the nouns page (S20).</summary>
+    public BookPage? BookStart { get; init; }
 
     /// <summary>Whether the inventory screen is opened once the script is done (<c>--inventory</c>).</summary>
     public bool ShowInventory { get; init; }
@@ -234,6 +239,7 @@ public sealed record LaunchOptions
         CheckKind? check = null;
         var journal = false;
         var journalPhrases = false;
+        BookPage? bookPage = null;
         var inventory = false;
         var crafting = false;
         var greyscale = false;
@@ -248,7 +254,7 @@ public sealed record LaunchOptions
                 return false;
             }
 
-            if (arg is "--journal" or "--journal-phrases" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--voxel" or "--greyscale" or "--leave" or "--mic-check" or "--no-mic-check"
+            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--voxel" or "--greyscale" or "--leave" or "--mic-check" or "--no-mic-check"
                     or "--playtest" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help")
             {
                 switch (arg)
@@ -284,6 +290,7 @@ public sealed record LaunchOptions
                         micCheck = MicCheckMode.Skip;
                         break;
                     case "--journal":
+                    case "--book":
                         journal = true;
                         break;
                     case "--journal-phrases":
@@ -314,7 +321,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
-                or "--check" or "--pick" or "--session-dir" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport"))
+                or "--check" or "--pick" or "--session-dir" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -532,6 +539,24 @@ public sealed record LaunchOptions
 
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
+                case "--book-page":
+                    bookPage = value.Trim().ToLowerInvariant() switch
+                    {
+                        "nouns" => BookPage.Nouns,
+                        "verbs" => BookPage.Verbs,
+                        "phrases" => BookPage.Phrases,
+                        "lessons" => BookPage.Lessons,
+                        "said" => BookPage.Said,
+                        _ => null,
+                    };
+                    if (bookPage is null)
+                    {
+                        error = $"--book-page needs nouns, verbs, phrases, lessons or said, got '{value}'.";
+                        return false;
+                    }
+
+                    journal = true;
+                    break;
                 case "--beacon":
                     if (value.Trim().Length == 0)
                     {
@@ -662,6 +687,7 @@ public sealed record LaunchOptions
             Beacon = beacon,
             Journal = journal,
             JournalPhrases = journalPhrases,
+            BookStart = bookPage ?? (journalPhrases ? BookPage.Phrases : null),
             ShowInventory = inventory,
             ShowCrafting = crafting,
             Greyscale = greyscale,

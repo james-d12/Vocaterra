@@ -52,7 +52,7 @@ public sealed record ObjectivePiece(string Text, ObjectivePieceKind Kind, bool D
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Feedback.</b> <see cref="FeedbackFor"/> turns a finished turn into one to three English lines: the outcome (understood, understood with a mistake, not
+/// <b>Feedback.</b> <see cref="FeedbackFor(GuideTurn)"/> turns a finished turn into one to three English lines: the outcome (understood, understood with a mistake, not
 /// understood, an uncertain recognition, "no sé", help, a choice, a fail-forward, a pointed arrow) and, for a turn that was understood with mistakes, one line per
 /// distinct error code (at most two). An error code the file has no line for gets the fallback line, so a new core code never leaves the player with nothing.
 /// An uncertain recognition is said to be the microphone's trouble, never the language's (D-game-9).
@@ -80,7 +80,7 @@ public sealed class EnglishText
         "english", "lesson", "stepOf", "continue", "skip", "help", "startLesson", "lessonDone", "retry", "helpDefault", "recapTitle", "controlsTitle", "controlsClose",
         "tipNext", "controlsHint", "stepExplain", "stepModel", "stepListen", "stepRepeat", "stepAnswer", "stepDo", "stepRecap", "outcomeDone", "outcomeSkipped", "outcomeMovedOn",
         "objectiveFindGuide", "objectiveLightFire", "objectiveComplete", "spareTorch", "sessionCompleteTitle", "sessionCompleteLine", "sessionCompleteKeys",
-        "btnRepeat", "btnSlower", "btnHelp", "btnDontKnow", "btnType", "btnHold",
+        "btnRepeat", "btnSlower", "btnHelp", "btnDontKnow", "btnType",
     ];
 
     /// <summary>The most error lines one turn's feedback carries.</summary>
@@ -409,6 +409,49 @@ public sealed class EnglishText
         {
             var noun = NounEnglish(pointer.Place) ?? pointer.Place;
             lines.Add(Fill(_outcomes["pointed"], ("npc", npc), ("noun", noun), ("blocks", pointer.Blocks.ToString(CultureInfo.InvariantCulture))));
+        }
+
+        return lines;
+    }
+
+    /// <summary>
+    /// The plain-English feedback for a line the learner gave, as the book's "What I said" page shows it (S20): the same outcome lines as
+    /// <see cref="FeedbackFor(GuideTurn)"/>, read from the history entry (its core verdict and errors; a held or unsure line says so).
+    /// </summary>
+    /// <param name="entry">The history entry.</param>
+    public IReadOnlyList<string> FeedbackFor(InputEntry entry)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        var npc = NpcName(entry.Npc ?? string.Empty);
+        if (entry.Held)
+        {
+            return [Fill(_outcomes["uncertain"], ("npc", npc))];
+        }
+
+        if (!entry.Communicated)
+        {
+            return [Fill(_outcomes["not_understood"], ("npc", npc))];
+        }
+
+        if (string.Equals(entry.Intent, "dont_know", StringComparison.Ordinal))
+        {
+            return [Fill(_outcomes["dont_know"], ("npc", npc))];
+        }
+
+        if (string.Equals(entry.Intent, "ask_help", StringComparison.Ordinal))
+        {
+            return [Fill(_outcomes["help"], ("npc", npc))];
+        }
+
+        if (entry.Errors.Count == 0)
+        {
+            return [Fill(_outcomes["understood"], ("npc", npc))];
+        }
+
+        var lines = new List<string> { Fill(_outcomes["understood_with_mistake"], ("npc", npc)) };
+        foreach (var error in entry.Errors.DistinctBy(static e => e.Tag, StringComparer.Ordinal).Take(MaxErrorLines))
+        {
+            lines.Add(ErrorLine(error));
         }
 
         return lines;

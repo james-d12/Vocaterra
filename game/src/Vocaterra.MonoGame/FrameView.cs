@@ -41,7 +41,7 @@ public sealed class FrameView
     public required ulong Seed { get; init; }
 
     /// <summary>The journal screen's state.</summary>
-    public required JournalModel Journal { get; init; }
+    public required BookModel Book { get; init; }
 
     /// <summary>The toasts waiting to be shown ("new word", the checklist's steps).</summary>
     public required ToastQueue Toasts { get; init; }

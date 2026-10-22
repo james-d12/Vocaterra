@@ -34,6 +34,7 @@
     { "path": "game/checks.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/english.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "game/lessons.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
+    { "path": "game/glosses.json", "generatedBy": "hand-authored", "approvedBy": null, "approvedOn": null },
     { "path": "speech/answer_accepted.1.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "ef_dora", "speaker": "28", "source": "answer_accepted.1 (speed 0.8)" },
     { "path": "speech/answer_accepted.1.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "ef_dora", "speaker": "28", "source": "answer_accepted.1 (speed 1.0)" },
     { "path": "speech/answer_accepted.2.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "ef_dora", "speaker": "28", "source": "answer_accepted.2 (speed 0.8)" },

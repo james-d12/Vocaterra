@@ -10,7 +10,7 @@ public sealed class InputFocus
     public bool TextEntryActive { get; set; }
 
     /// <summary>Whether the journal screen is open: the player does not walk while it is.</summary>
-    public bool JournalOpen { get; set; }
+    public bool BookOpen { get; set; }
 
     /// <summary>Whether the crafting panel is open: the player does not walk while it is.</summary>
     public bool CraftingOpen { get; set; }
