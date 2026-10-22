@@ -94,13 +94,16 @@ public sealed record GuideScene(GuideViewpoint Player, GuideCell? Cursor = null,
 /// <param name="Naming">For a <c>name_object</c> turn, the guide's check of the name against the tile (the word counts withhold colour from a wrong name and from a name with no tile to check).</param>
 /// <param name="NameTarget">For a <see cref="NameCheck.Wrong"/> or <see cref="NameCheck.Right"/> check, the noun of the tile (the word the guide revealed when the name was wrong).</param>
 /// <param name="Words">The line's normalized words with the resolver's readings (<see cref="GuideWord.From(PipelineResult)"/>), or <see langword="null"/> for a turn built by hand.</param>
-/// <param name="Input">How the line arrived; the word counts apply the credit of this kind (<see cref="CreditRules"/>).</param>
-/// <param name="Confidence">For a spoken line, how sure Vosk was of the words (0 to 1, the mean of its per-word confidences); <see langword="null"/> for a typed line.</param>
+/// <param name="Input">How the line arrived (typed, spoken, or sent by a button); the word counts apply the credit of this kind (<see cref="CreditRules"/>).</param>
+/// <param name="Confidence">For a spoken line, how sure Vosk was of the words (0 to 1, the mean of its per-word confidences without the <c>[unk]</c> marks, <see cref="UncertaintyRule.MeanWordConfidence"/>); <see langword="null"/> for a typed line or a button.</param>
 /// <param name="Npc">The NPC the line was said to (<c>guide</c>, <c>shopkeeper</c>, <c>villager</c>); the type's name is the guide's from S3, when she was the only one.</param>
 /// <param name="Prompt">The prompt the line was evaluated on (<c>stall-need</c>).</param>
 /// <param name="RepairKind">The core's repair step after an unclear line (ask again, slow repeat, offer choices, give up), or <see langword="null"/> for a line that was understood.</param>
 /// <param name="FollowUp">What the NPC says after the rest because of a host decision, not the player's line (the shopkeeper's fail-forward line), or <see langword="null"/>.</param>
 /// <param name="FailForward">Whether the game carried on without the player's phrase: the shopkeeper handed over the bottle after the exchange ran out (<c>stall.give_water</c> is among <paramref name="HostEvents"/>).</param>
+/// <param name="Choices">When the repair ladder offered choices (<see cref="RepairKind.OfferChoices"/>), the two or three phrases it offered, in order; otherwise <see langword="null"/>. The panel shows them as buttons (<see cref="PhraseSheet.OptionsFor"/>).</param>
+/// <param name="Uncertain">Whether a spoken line was an uncertain recognition (D-game-9, <see cref="UncertaintyRule"/>): the NPC did not understand it, or the recognizer was not sure of its words. Never a language failure.</param>
+/// <param name="Choice">Whether the line was picked among the offered choices (a recognition signal, never counted as production; <see cref="Input"/> is then <see cref="InputKind.Button"/>).</param>
 public sealed record GuideTurn(
     string Line,
     string Intent,
@@ -126,8 +129,17 @@ public sealed record GuideTurn(
     string Prompt = "",
     RepairKind? RepairKind = null,
     IReadOnlyList<string>? FollowUp = null,
-    bool FailForward = false)
+    bool FailForward = false,
+    IReadOnlyList<string>? Choices = null,
+    bool Uncertain = false,
+    bool Choice = false)
 {
+    /// <summary>
+    /// Whether the line was held back as an unsure recognition (<see cref="UncertaintyRule.IsTooUnsure"/>): the NPC would have understood it but the
+    /// recognizer was not sure of the words, so the turn was not completed and nothing changed in the conversation, the learner or the world.
+    /// </summary>
+    public bool Unsure => Uncertain && RepairKind is null;
+
     /// <summary>A one-line summary of the verdict for the panel, for example <c>ask_directions, entendido, 100 %</c>.</summary>
     public string Summary => string.Create(
         CultureInfo.InvariantCulture,

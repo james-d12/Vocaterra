@@ -164,9 +164,16 @@ the same `NpcService` turn, and each turn records how it arrived (`GuideTurn.Inp
   embeddings, so it never needs that copy.
 - **Push-to-talk and the microphone** (`src/Vocaterra.MonoGame` only). MonoGame's `Microphone` (OpenAL capture) records at the device's own rate
   (44.1 kHz mono on the development machine) and `AudioClips.Prepare` converts to 16 kHz, trims the silence at both ends and cuts at 8 seconds.
-  Hold **Tab** while the dialogue is open, or hold **V** next to the guide to open it and listen; letting go sends the clip. No PortAudio was
+  Hold **V** or **Space** while the dialogue is open (S7: **Tab** now opens the text box), or hold **V** with the crosshair on an NPC to open it and listen; letting go sends the clip. No PortAudio was
   needed. MonoGame 3.8.6 only fills the buffer `GetData` reads while something subscribes to `BufferReady`, so `MicrophoneCapture` subscribes an
   empty handler. With no microphone the panel says "No hay micrófono: escribe tu frase." and the keyboard keeps working.
+- **Speech UX (S7).** The uncertainty rule (`UncertaintyRule`, D-game-9) works on the per-word confidences the core already returns in
+  `AsrResult.Words` (the result's own confidence is 1.0 for the single-best decode, CR-022), leaving out `[unk]`; a line the core understood on words
+  under the threshold is held back by `NpcService` before phase 2, so nothing moves in the conversation, the learner model or the world. A turn the player
+  cancels is rolled back on the worker (`NpcService.Checkpoint` and `Rollback`) and its outcome dropped by `GuideSession.Collect`. The NPC prompts at the stall
+  and the guide's offer are Constrained in the bundle: `UtterancePipeline.Analyze` builds the Vosk grammar from the prompt's answer set, so the game only
+  evaluates on the prompt. The expected phrase of the panel's heard-versus-expected line and the labels of the offered choices come from `game/phrases.json`
+  (`PhraseSheet`), the machine-readable copy of `content/PHRASES.md` that a test holds row by row.
 - **Scripted speech for demos and tests.** `--wav <file>` feeds a 16-bit PCM WAV (any rate), `--speak "<text>"` synthesizes the line with
   Kokoro speaker 28 (`ef_dora`), converts 24 kHz to 16 kHz and recognizes it, and `--listen <seconds>` records the real microphone; all are
   ordered script steps like `--say`, and the turn line prints the transcript, the confidence and the stage timings.

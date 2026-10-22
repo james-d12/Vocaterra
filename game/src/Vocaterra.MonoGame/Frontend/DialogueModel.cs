@@ -33,6 +33,16 @@ public enum DialogueSpeaker
 /// <param name="Value">The file path, or the text to speak.</param>
 public sealed record SpeechRequest(TurnSource Source, string Value);
 
+/// <summary>What the dialogue panel is doing with the keyboard: showing the speech buttons (the keys R, S, H, N, W, 1 to 3 press them, V or Space talks) or the text box.</summary>
+public enum PanelMode
+{
+    /// <summary>The speech buttons; the keys are shortcuts, nothing is typed.</summary>
+    Buttons,
+
+    /// <summary>The text box has the keyboard (the Escribir button, Tab or W opened it).</summary>
+    Typing,
+}
+
 /// <summary>One line of the dialogue panel.</summary>
 /// <param name="Speaker">Whose line it is.</param>
 /// <param name="Text">The text.</param>
@@ -52,16 +62,26 @@ public sealed class DialogueModel
     private readonly InputFocus _focus;
     private readonly string _openingLine;
     private readonly HashSet<string> _opened = new(StringComparer.Ordinal);
+    private readonly PhraseSheet? _phrases;
+    private int _cancelled;
+
+    /// <summary>The text of the hint line that offers typing (the watchdog, or two uncertain recognitions in a row).</summary>
+    public const string TypeOfferText = "¿Escribes?";
+
+    /// <summary>How many uncertain spoken lines in a row make the panel offer typing.</summary>
+    public const int TypingOfferStreak = 2;
 
     /// <summary>Creates a closed panel.</summary>
     /// <param name="focus">Who has the keyboard; the model sets <see cref="InputFocus.TextEntryActive"/> while it is open.</param>
     /// <param name="openingLine">What the guide says the first time the panel opens (the prompt's text).</param>
-    public DialogueModel(InputFocus focus, string openingLine)
+    /// <param name="phrases">The phrase sheet, for the heard-versus-expected line and the labels of the offered choices; without it neither is shown.</param>
+    public DialogueModel(InputFocus focus, string openingLine, PhraseSheet? phrases = null)
     {
         ArgumentNullException.ThrowIfNull(focus);
         ArgumentNullException.ThrowIfNull(openingLine);
         _focus = focus;
         _openingLine = openingLine;
+        _phrases = phrases;
     }
 
     /// <summary>Whether the panel is open (and so has the keyboard).</summary>
@@ -88,8 +108,35 @@ public sealed class DialogueModel
     /// <summary>The number of turns taken.</summary>
     public int TurnCount { get; private set; }
 
-    /// <summary>Turns sent to the worker whose answer has not come back: the panel shows "Pensando…" while it is above zero.</summary>
+    /// <summary>Turns sent to the worker whose answer has not come back (the cancelled ones too, until their outcome arrives).</summary>
     public int Pending { get; private set; }
+
+    /// <summary>Whether a turn that has not been cancelled is on the worker: the panel shows "Pensando…" and Esc cancels it.</summary>
+    public bool IsThinking => Pending > _cancelled;
+
+    /// <summary>Whether the panel shows the speech buttons or the text box.</summary>
+    public PanelMode Mode { get; private set; } = PanelMode.Buttons;
+
+    /// <summary>Whether the text box has the keyboard.</summary>
+    public bool IsTyping => IsOpen && Mode == PanelMode.Typing;
+
+    /// <summary>The persistent <c>Oí: «…» · Esperaba: «…»</c> line of the last spoken turn, or <see langword="null"/> (no spoken turn yet at this NPC, or the last turn was typed).</summary>
+    public HeardLine? Heard { get; private set; }
+
+    /// <summary>The choices the repair ladder offered with the last turn, as buttons; empty when none.</summary>
+    public IReadOnlyList<ChoiceOption> Choices { get; private set; } = [];
+
+    /// <summary>Whether typing is on offer ("¿Escribes?"): the Escribir button is focused and Enter presses it.</summary>
+    public bool TypingOffered { get; private set; }
+
+    /// <summary>How many spoken lines in a row were uncertain recognitions.</summary>
+    public int UncertainStreak { get; private set; }
+
+    /// <summary>The index in <see cref="Lines"/> of the NPC line the Repetir or Más despacio button showed again, or -1.</summary>
+    public int HighlightedLine { get; private set; } = -1;
+
+    /// <summary>The simulation tick until which <see cref="HighlightedLine"/> is drawn highlighted.</summary>
+    public long HighlightUntilTick { get; private set; }
 
     /// <summary>Whether the push-to-talk key is held and the microphone is recording: the panel shows "Escuchando…".</summary>
     public bool Listening { get; set; }
@@ -120,6 +167,7 @@ public sealed class DialogueModel
 
         SwitchTo(NpcService.GuideAgent, "Guía");
         IsOpen = true;
+        Mode = PanelMode.Buttons;
         _focus.TextEntryActive = true;
         if (_opened.Add(NpcService.GuideAgent))
         {
@@ -151,6 +199,7 @@ public sealed class DialogueModel
 
         SwitchTo(opening.Npc, displayName);
         IsOpen = true;
+        Mode = PanelMode.Buttons;
         _focus.TextEntryActive = true;
         var first = _opened.Add(opening.Npc);
         if (opening.HostTurn || first || _lines.Count == 0)
@@ -173,6 +222,10 @@ public sealed class DialogueModel
         if (!string.Equals(Npc, npc, StringComparison.Ordinal))
         {
             _lines.Clear();
+            Heard = null;
+            Choices = [];
+            HighlightedLine = -1;
+            UncertainStreak = 0;
         }
 
         Npc = npc;
@@ -190,6 +243,8 @@ public sealed class DialogueModel
     public void Close()
     {
         IsOpen = false;
+        Mode = PanelMode.Buttons;
+        TypingOffered = false;
         SubmitRequested = false;
         PendingSpeech = null;
         PendingListenSeconds = null;
@@ -248,15 +303,118 @@ public sealed class DialogueModel
         var line = Entry.Take();
         Add(DialogueSpeaker.Player, line);
         SpeechNotice = null;
-        Pending++;
+        StartTurn();
         return line;
+    }
+
+    // A turn goes to the worker: the offered choices and the typing offer are answered, the panel thinks.
+    private void StartTurn()
+    {
+        Pending++;
+        Choices = [];
+        TypingOffered = false;
+    }
+
+    /// <summary>Switches the panel to the text box (the Escribir button, W or Tab). The keyboard types until <see cref="EndTyping"/>.</summary>
+    public void BeginTyping()
+    {
+        if (IsOpen)
+        {
+            Mode = PanelMode.Typing;
+            TypingOffered = false;
+        }
+    }
+
+    /// <summary>Switches the panel back to the speech buttons (Esc or Tab in the text box). What was typed stays in the box.</summary>
+    public void EndTyping() => Mode = PanelMode.Buttons;
+
+    /// <summary>
+    /// Offers typing: adds the hint line <see cref="TypeOfferText"/> and focuses the Escribir button (Enter presses it). The watchdog calls it when
+    /// a turn takes too long; two uncertain recognitions in a row call it too. Does nothing when the panel is closed or already typing.
+    /// </summary>
+    public void OfferTyping()
+    {
+        if (!IsOpen || Mode == PanelMode.Typing || TypingOffered)
+        {
+            return;
+        }
+
+        TypingOffered = true;
+        Add(DialogueSpeaker.Hint, TypeOfferText);
+    }
+
+    /// <summary>
+    /// Esc while "Pensando…": the turns on the worker are marked cancelled here, so the panel stops thinking at once. Their outcomes still arrive (the
+    /// session dropped them) and are counted down by <see cref="Complete"/>. Returns whether there was a turn to cancel.
+    /// </summary>
+    public bool CancelPending()
+    {
+        if (!IsThinking)
+        {
+            return false;
+        }
+
+        _cancelled = Pending;
+        TypingOffered = false;
+        return true;
+    }
+
+    /// <summary>
+    /// A button or a choice sent a line (the player's own line is shown as what they picked): shows it, counts the turn as pending and answers the
+    /// offered choices.
+    /// </summary>
+    /// <param name="shown">What the panel shows as the player's line (the choice's label, "Ayuda", "No sé").</param>
+    public void BeginLine(string shown)
+    {
+        ArgumentNullException.ThrowIfNull(shown);
+        Add(DialogueSpeaker.Player, shown);
+        SpeechNotice = null;
+        StartTurn();
+    }
+
+    /// <summary>
+    /// The text of the NPC's last line (what Repetir plays again), or <see langword="null"/> when the NPC has said nothing yet. Corrections and the
+    /// game's world lines are not the NPC's speech and are skipped.
+    /// </summary>
+    public string? LastNpcLine
+    {
+        get
+        {
+            for (var i = _lines.Count - 1; i >= 0; i--)
+            {
+                if (_lines[i].Speaker == DialogueSpeaker.Guide)
+                {
+                    return _lines[i].Text;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    /// <summary>Highlights the NPC's last line until the given tick (Repetir and Más despacio re-show it; S9 plays its audio).</summary>
+    /// <param name="untilTick">The simulation tick the highlight ends at.</param>
+    /// <returns>Whether there was a line to highlight.</returns>
+    public bool HighlightLastNpcLine(long untilTick)
+    {
+        for (var i = _lines.Count - 1; i >= 0; i--)
+        {
+            if (_lines[i].Speaker == DialogueSpeaker.Guide)
+            {
+                HighlightedLine = i;
+                HighlightUntilTick = untilTick;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>Counts a spoken turn sent to the worker as pending (its line is shown when the answer comes back, as the recognizer heard it).</summary>
     public void BeginSpoken()
     {
         SpeechNotice = null;
-        Pending++;
+        StartTurn();
     }
 
     /// <summary>
@@ -268,6 +426,13 @@ public sealed class DialogueModel
     {
         ArgumentNullException.ThrowIfNull(applied);
         Pending = Math.Max(0, Pending - 1);
+        if (applied.Outcome.Cancelled)
+        {
+            _cancelled = Math.Max(0, _cancelled - 1); // dropped by the session: nothing is shown, the turn never happened
+            return null;
+        }
+
+        TypingOffered = false;
         if (applied.Turn is not { } turn)
         {
             Add(DialogueSpeaker.Hint, applied.Outcome.Problem ?? "No se pudo evaluar la frase.");
@@ -319,10 +484,14 @@ public sealed class DialogueModel
         LastTurn = turn;
         LastTurnMilliseconds = milliseconds;
         TurnCount++;
+        Heard = _phrases is null ? null : HeardLine.For(turn, _phrases);
+        Choices = turn.Choices is { Count: > 0 } offered && _phrases is not null ? _phrases.OptionsFor(offered) : [];
+        UncertainStreak = turn.Uncertain ? UncertainStreak + 1 : 0;
         var heard = turn.Confidence is { } confidence
             ? string.Create(CultureInfo.InvariantCulture, $"oído con {(int)Math.Round(confidence * 100, MidpointRounding.AwayFromZero)} %, ")
             : string.Empty;
-        Add(DialogueSpeaker.Note, string.Create(CultureInfo.InvariantCulture, $"{heard}{turn.Summary}, {LastTurnMilliseconds:0.0} ms"));
+        var summary = turn.Uncertain ? "no entendido" : turn.Summary; // an unsure recognition has no verdict to summarize
+        Add(DialogueSpeaker.Note, string.Create(CultureInfo.InvariantCulture, $"{heard}{summary}, {LastTurnMilliseconds:0.0} ms"));
         if (turn.Feedback is not null)
         {
             Add(DialogueSpeaker.Correction, turn.Feedback);
@@ -350,6 +519,11 @@ public sealed class DialogueModel
                 Add(DialogueSpeaker.Guide, line);
             }
         }
+
+        if (UncertainStreak >= TypingOfferStreak)
+        {
+            OfferTyping();
+        }
     }
 
     private void Add(DialogueSpeaker speaker, string text)
@@ -357,7 +531,9 @@ public sealed class DialogueModel
         _lines.Add(new DialogueLine(speaker, text));
         if (_lines.Count > MaxLines)
         {
-            _lines.RemoveRange(0, _lines.Count - MaxLines);
+            var dropped = _lines.Count - MaxLines;
+            _lines.RemoveRange(0, dropped);
+            HighlightedLine = HighlightedLine < dropped ? -1 : HighlightedLine - dropped;
         }
     }
 }

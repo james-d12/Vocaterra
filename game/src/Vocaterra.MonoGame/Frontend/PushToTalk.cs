@@ -56,6 +56,9 @@ public sealed class PushToTalk
     /// <summary>How many seconds have been recorded since <see cref="Begin"/> (at the device's own rate).</summary>
     public double SecondsRecorded => _capture is null || _capture.SampleRate <= 0 ? 0 : (double)_samples.Count / _capture.SampleRate;
 
+    /// <summary>The level of the samples the last <see cref="Pump"/> collected, 0 to 1 (the loudest 50 ms RMS window): what the mic check's meter shows.</summary>
+    public double LastLevel { get; private set; }
+
     /// <summary>Whether the recording was stopped by the length cap while the key was still held: the game then calls <see cref="End"/> at once.</summary>
     public bool ReachedLimit { get; private set; }
 
@@ -73,6 +76,7 @@ public sealed class PushToTalk
 
         Problem = null;
         ReachedLimit = false;
+        LastLevel = 0;
         if (_capture is null)
         {
             Problem = NoMicrophone;
@@ -103,7 +107,9 @@ public sealed class PushToTalk
             return;
         }
 
-        _samples.AddRange(_capture.ReadAvailable());
+        var read = _capture.ReadAvailable();
+        _samples.AddRange(read);
+        LastLevel = read.Length == 0 ? 0 : MicCheck.Level(read, _capture.SampleRate);
         if (_samples.Count >= _limit)
         {
             _capture.Stop();

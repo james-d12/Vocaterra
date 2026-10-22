@@ -63,6 +63,12 @@ public sealed record AppliedTurn(TurnOutcome Outcome, WordTurnResult? Words)
 /// </remarks>
 public abstract class GuideSession : IDisposable
 {
+    /// <summary>The line the <c>Ayuda</c> button sends (the intent <c>ask_help</c> is allowed at every prompt).</summary>
+    public const string HelpLine = "ayuda";
+
+    /// <summary>The line the <c>No sé</c> button sends (the intent <c>dont_know</c> is allowed at every prompt).</summary>
+    public const string DontKnowLine = "no sé";
+
     /// <summary>The start time used when a caller gives none: 2025-10-09 08:53:20 UTC, the time the console host's one-shot runs use.</summary>
     public const long DefaultStartedAt = 1_760_000_000;
 
@@ -105,6 +111,7 @@ public abstract class GuideSession : IDisposable
         StartedAt = startedAt;
         Recipes = recipes;
         Words = new WordProgress(nouns, playSession);
+        Phrases = PhraseSheet.Load(bundle);
         _liveFacts = liveFacts;
         _npcs = new NpcService(bundle, liveFacts, nouns, worldSeed, new StoredTimestamp(startedAt), recipes);
     }
@@ -126,6 +133,9 @@ public abstract class GuideSession : IDisposable
 
     /// <summary>The crafting recipes of the bundle.</summary>
     public RecipeBook Recipes { get; }
+
+    /// <summary>The phrase sheet (<c>game/phrases.json</c>): the expected phrase of a prompt, the labels of the offered choices.</summary>
+    public PhraseSheet Phrases { get; }
 
     /// <summary>The learner's progress with the catalogue nouns, fed from every turn.</summary>
     public WordProgress Words { get; }
@@ -159,6 +169,9 @@ public abstract class GuideSession : IDisposable
 
     /// <summary>The review question in progress, or <see langword="null"/>.</summary>
     public GuideReview? Review { get; private set; }
+
+    /// <summary>The game's tick count now (the front-end stamps its highlights with it; the session logs its events at it).</summary>
+    public long CurrentTick => Tick;
 
     /// <summary>The line the guide says when the dialogue opens (<c>PromptSpec.Text</c> of the prompt).</summary>
     public string OpeningLine => _npcs.OpeningLine;
@@ -358,6 +371,85 @@ public abstract class GuideSession : IDisposable
         return Submit(TurnSource.Typed, line, null, null, cursor);
     }
 
+    /// <summary>
+    /// Submits the choice the player picked among those the repair ladder offered (S7). The line goes to the NPC the panel is open on like a typed
+    /// one, marked as a choice: a recognition signal that is logged as a phrase use of kind <see cref="PhraseUseKind.Choice"/> and earns no word credit.
+    /// The press is logged as a voice event. Returns at once.
+    /// </summary>
+    /// <param name="line">The phrase the NPC offered (<see cref="ChoiceOption.Line"/>).</param>
+    /// <param name="cursor">The cell under the crosshair.</param>
+    public TurnRequest SubmitChoice(string line, GuideCell? cursor = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(line);
+        LogVoice(VoiceEventKind.Choice, line);
+        return Submit(TurnSource.Choice, line, null, null, cursor);
+    }
+
+    /// <summary>The <c>Ayuda</c> button: sends "ayuda" to the NPC the panel is open on (it answers with the model phrase or the hint), logged as a voice event. Returns at once.</summary>
+    /// <param name="cursor">The cell under the crosshair.</param>
+    public TurnRequest SubmitHelp(GuideCell? cursor = null)
+    {
+        LogVoice(VoiceEventKind.Hint);
+        return Submit(TurnSource.Button, HelpLine, null, null, cursor);
+    }
+
+    /// <summary>The <c>No sé</c> button: sends "no sé" to the NPC the panel is open on (a <c>dont_know</c> turn, never a failure), logged as a voice event. Returns at once.</summary>
+    /// <param name="cursor">The cell under the crosshair.</param>
+    public TurnRequest SubmitDontKnow(GuideCell? cursor = null)
+    {
+        LogVoice(VoiceEventKind.NoSe);
+        return Submit(TurnSource.Button, DontKnowLine, null, null, cursor);
+    }
+
+    /// <summary>Submits a clip for the mic check: the worker recognizes it and the outcome carries what it heard (<see cref="TurnOutcome.MicCheck"/>). It is no turn. Returns at once.</summary>
+    /// <param name="clip">The prepared clip (16 kHz), or <see langword="null"/> for silence.</param>
+    public TurnRequest SubmitHear(PcmClip? clip) => Submit(TurnSource.Hear, null, clip, null, null);
+
+    /// <summary>Submits a line for the worker to synthesize with Kokoro and hear for the mic check (the scripted mic check). Returns at once.</summary>
+    /// <param name="text">The text to speak.</param>
+    public TurnRequest SubmitHearSpeak(string text)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(text);
+        return Submit(TurnSource.HearSpeak, text, null, null, null);
+    }
+
+    /// <summary>
+    /// Cancels the turns that are still on the worker (Esc while "Pensando…", S7): they are rolled back there, their outcomes come back marked
+    /// cancelled and <see cref="Collect"/> drops them, so nothing of them reaches the conversation, the words or the world. Logged as a voice event.
+    /// </summary>
+    /// <returns>How many requests were cancelled.</returns>
+    public int CancelPending()
+    {
+        var cancelled = _worker?.CancelPending() ?? 0;
+        if (cancelled > 0)
+        {
+            LogVoice(VoiceEventKind.Cancel);
+        }
+
+        return cancelled;
+    }
+
+    /// <summary>
+    /// Logs a voice event at the current tick and stored time, against the NPC the panel is open on (the front-end's controls: replay, slower, the
+    /// timeout, the typing fallback). The turns log their own voice events.
+    /// </summary>
+    /// <param name="kind">What happened.</param>
+    /// <param name="detail">The line concerned or the reason, or <see langword="null"/>.</param>
+    public void LogVoice(VoiceEventKind kind, string? detail = null) => Log(new VoiceEvent(Tick, StoredTime.UnixSeconds, kind, CurrentNpc, detail));
+
+    /// <summary>Logs the result of the mic check (no NPC is involved).</summary>
+    /// <param name="kind">One of the three mic-check kinds.</param>
+    /// <param name="heard">What the recognizer heard, or <see langword="null"/>.</param>
+    public void LogMicCheck(VoiceEventKind kind, string? heard = null)
+    {
+        if (kind is not (VoiceEventKind.MicCheckPassed or VoiceEventKind.MicCheckFailed or VoiceEventKind.MicCheckSkipped))
+        {
+            throw new ArgumentOutOfRangeException(nameof(kind), kind, "Not a mic-check event.");
+        }
+
+        Log(new VoiceEvent(Tick, StoredTime.UnixSeconds, kind, null, heard));
+    }
+
     /// <summary>Submits a recorded clip (16 kHz, from <see cref="AudioClips.Prepare"/>). Returns at once.</summary>
     public TurnRequest SubmitClip(PcmClip clip, GuideCell? cursor = null)
     {
@@ -389,28 +481,35 @@ public abstract class GuideSession : IDisposable
         var applied = new List<AppliedTurn>();
         while (_worker is { } worker && worker.TryTake(out var outcome))
         {
-            WordTurnResult? words = null;
-            if (outcome!.Turn is { } turn)
-            {
-                if (outcome.Request.Review is { } review && turn.Communicated && ReferenceEquals(review, Review))
-                {
-                    EndReview();
-                }
-
-                if (turn.Pointer is { Blocks: > 0 } pointer)
-                {
-                    Pointer = new PointerMarker(pointer.Place, pointer.Target);
-                }
-
-                words = Words.RecordTurn(turn, turn.Input, Credit, outcome.Request.Now.UnixSeconds);
-                LastWordTurn = words;
-                AfterTurn(turn, outcome.Request.Tick, outcome.Request.Now.UnixSeconds);
-            }
-
-            applied.Add(new AppliedTurn(outcome, words));
+            applied.Add(Apply(outcome!));
         }
 
         return applied;
+    }
+
+    // One finished request, on the caller's thread: a cancelled one is dropped (its turn never happened), a mic check is no turn, and a turn changes
+    // the arrow, the review, the words and the events.
+    internal AppliedTurn Apply(TurnOutcome outcome)
+    {
+        WordTurnResult? words = null;
+        if (!outcome.Cancelled && outcome.Turn is { } turn)
+        {
+            if (outcome.Request.Review is { } review && turn.Communicated && ReferenceEquals(review, Review))
+            {
+                EndReview();
+            }
+
+            if (turn.Pointer is { Blocks: > 0 } pointer)
+            {
+                Pointer = new PointerMarker(pointer.Place, pointer.Target);
+            }
+
+            words = Words.RecordTurn(turn, turn.Input, Credit, outcome.Request.Now.UnixSeconds);
+            LastWordTurn = words;
+            AfterTurn(turn, outcome.Request.Tick, outcome.Request.Now.UnixSeconds);
+        }
+
+        return new AppliedTurn(outcome, words);
     }
 
     /// <summary>Takes the arrow off the screen (the player closed the dialogue or asked for it to go).</summary>
@@ -439,15 +538,18 @@ public abstract class GuideSession : IDisposable
     {
         var npc = turn.Npc;
         _lastRepair.TryGetValue(npc, out var previousRepair);
-        _lastRepair[npc] = turn.RepairKind;
-        if (!turn.Communicated)
+        if (!turn.Unsure)
         {
-            if (turn.Input == InputKind.Spoken)
-            {
-                Log(new VoiceEvent(tick, time, VoiceEventKind.NotUnderstood, npc, turn.Line));
-            }
+            _lastRepair[npc] = turn.RepairKind; // a line held back as unsure changed nothing: the offer of choices, if any, still stands
         }
-        else if (PhraseIds.For(turn.Intent, turn.Slots) is { } phrase)
+
+        if (turn.Uncertain)
+        {
+            // D-game-9: an uncertain recognition is the microphone's trouble, not the language's: a voice event, no phrase use, no error.
+            Log(new VoiceEvent(tick, time, VoiceEventKind.Uncertain, npc, turn.Line));
+        }
+
+        if (turn.Communicated && PhraseIds.For(turn.Intent, turn.Slots) is { } phrase)
         {
             var kind = Classify(turn, phrase, previousRepair);
             var detail = turn.Slots.TryGetValue("item", out var item) ? item : turn.Slots.TryGetValue("place", out var place) ? place : null;
@@ -473,7 +575,7 @@ public abstract class GuideSession : IDisposable
             return PhraseUseKind.DontKnow;
         }
 
-        if (previousRepair == RepairKind.OfferChoices)
+        if (turn.Choice || previousRepair == RepairKind.OfferChoices)
         {
             return PhraseUseKind.Choice;
         }

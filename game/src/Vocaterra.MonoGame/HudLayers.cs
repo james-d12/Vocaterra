@@ -71,6 +71,25 @@ public sealed class WordCardLayer : IFrameLayer
     private static readonly Color Empty = new(90, 90, 110);
     private static readonly Color Back = new(10, 10, 20, 215);
 
+    /// <summary>
+    /// Where the card is for a window: above the hotbar, and, while the dialogue panel is open (it covers the bottom of the window; S6 left the card
+    /// hidden behind it), on top of the panel.
+    /// </summary>
+    /// <param name="viewportWidth">The window's width.</param>
+    /// <param name="viewportHeight">The window's height.</param>
+    /// <param name="dialogueOpen">Whether the dialogue panel is open.</param>
+    public static Rectangle BoxFor(int viewportWidth, int viewportHeight, bool dialogueOpen)
+    {
+        var box = new Rectangle((viewportWidth - Width) / 2, viewportHeight - Bottom - Height, Width, Height);
+        if (dialogueOpen)
+        {
+            var panel = DialogueLayout.PanelBox(viewportWidth, viewportHeight);
+            box.Y = Math.Max(4, panel.Y - 8 - Height);
+        }
+
+        return box;
+    }
+
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
     {
@@ -81,8 +100,8 @@ public sealed class WordCardLayer : IFrameLayer
 
         var age = view.Tick - shown.StartTick;
         var alpha = (float)Math.Clamp((WordCardQueue.Duration - age) / (double)FadeTicks, 0.0, 1.0);
-        var viewport = new Rectangle(0, 0, view.ViewportWidth, view.ViewportHeight);
-        var box = new Rectangle((viewport.Width - Width) / 2, viewport.Height - Bottom - Height, Width, Height);
+        var box = BoxFor(view.ViewportWidth, view.ViewportHeight, view.Dialogue.IsOpen);
+
         spriteBatch.Draw(view.Pixel, box, Back * alpha);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, Gold * alpha);
 

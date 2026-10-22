@@ -6,7 +6,8 @@ namespace Vocaterra.MonoGame.Frontend;
 /// <summary>
 /// The two hand-overs between the dialogue panel and the turn worker, as plain code the game calls once per frame and the tests call the same
 /// way: <see cref="Submit"/> sends what the panel asked for (the typed line, a scripted spoken line) and <see cref="Apply"/> takes the turns
-/// the worker has finished, in the order they were submitted, applies them to the session (the arrow, the words) and shows them in the panel.
+/// the worker has finished, in the order they were submitted, applies them to the session (the arrow, the words) and shows them in the panel (a cancelled
+/// turn is counted down and shows nothing; a mic-check outcome is left to the mic-check screen).
 /// Neither waits for the worker.
 /// </summary>
 /// <param name="session">The game (the 3D scene), with its worker started.</param>
@@ -43,7 +44,10 @@ public sealed class TurnPump(GuideSession session, DialogueModel dialogue, Func<
         var applied = session.Collect();
         foreach (var turn in applied)
         {
-            _ = dialogue.Complete(turn);
+            if (!turn.Outcome.Request.IsMicCheck)
+            {
+                _ = dialogue.Complete(turn); // a mic check is no turn: the mic-check screen takes its outcome
+            }
         }
 
         return applied;

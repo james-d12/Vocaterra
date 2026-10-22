@@ -37,6 +37,11 @@ public sealed class FontTests
             DialoguePanel.KeyHints, DialoguePanel.Title, Objective.Title, "Palabra nueva", "audio", "Hecho: madera 5/5", "Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1", CraftingLayer.Title, CraftingLayer.KeyHints, "Hacer", "Sin mesa", "Inventario lleno", "Sin material", "A mano", "Usa", "Tú: ", "Guía: ", "Esc: quitar la flecha", "entendido, no entendido", VoxelSession.NeedBottleHint, NpcFigures.LabelOf("shopkeeper"), NpcFigures.LabelOf("villager"), NpcFigures.LabelOf("guide"), "Tendero: ", "Aldeano: ",
             DialoguePanel.ListeningText, DialoguePanel.ThinkingText, DialoguePanel.SpokenPrefix, LoadingLayer.Text, PushToTalk.NoMicrophone, PushToTalk.Silence,
             "oído con 96 %, No se pudo abrir el micrófono: ", "Falta el modelo vosk-model-small-es-0.42 en /ruta.", "Sin voz: el reconocedor no se ha cargado.", "No se oyó nada.",
+            // S7: the speech UX (the buttons, the heard-versus-expected line, the mic check, the typing offer).
+            DialoguePanel.ButtonHints, DialogueModel.TypeOfferText, HeardLine.HeardLabel, HeardLine.ExpectedLabel, HeardLine.NothingHeard, HeardLine.SomethingHeard, "no entendido",
+            MicCheckModel.Instruction, MicCheckModel.Title, MicCheckModel.TalkHint, MicCheckModel.PassedText, MicCheckModel.FailedText, MicCheckModel.ContinueLabel, MicCheckModel.RetryLabel,
+            MicCheckModel.SkipLabel, "Esc: saltar", "Cargando la voz…", "La voz no está disponible.",
+            string.Join(' ', SpeechButtons.All.Select(static b => b.Text)), "[1] Quiero agua, por favor. [2] Ayuda. [3] Sí, por favor. No, gracias. Adiós. «…»",
         };
 
         // Every template and prompt of the bundle, as written (the slot words are plain nouns the font covers as letters).

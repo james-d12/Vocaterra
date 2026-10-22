@@ -103,8 +103,11 @@ WASD or the arrows walk, Space jumps, the mouse looks (Esc lets the mouse go, a 
 pick the hotbar slot, **I** the inventory, **C** the crafting panel, **E** the inventory or, with the crosshair on the workbench (`mesa`), the
 crafting panel. The panel lists the recipes (the torch: `antorcha` from two `madera` at the workbench); a click on a row crafts it. **J** the
 journal, **F3** the debug overlay. **Aim the crosshair at the guide's figure**: the hint `E: hablar` shows, and **E** (or **T** to type, or **V**
-to talk: hold it, the clip goes when it is let go) opens the dialogue panel, which takes the keyboard and frees the mouse. Enter sends, Esc
-closes, Tab holds push-to-talk. Her answers point the beacon at the named noun's nearest block (the arrow at the screen edge when it is off
+to talk: hold it, the clip goes when it is let go) opens the dialogue panel, which takes the keyboard and frees the mouse. **The panel has
+speech buttons (S7)**: `[R] Repetir`, `[S] Más despacio`, `[H] Ayuda`, `[N] No sé` and `[W] Escribir` (keys or the mouse); hold **V** or **Space** to talk;
+`Escribir` (W or Tab) opens the text box, where Enter sends and Tab or Esc go back to the buttons; Esc cancels a turn that is "Pensando…", then closes the
+panel. After a spoken turn the line `Oí: «…» · Esperaba: «…»` stays under the conversation; when the NPC offers choices they are buttons too (keys 1 to 3).
+A mic check (`Di: hola`, a level meter, what was heard) opens an interactive run (`--no-mic-check` skips it, `--mic-check` forces it). Her answers point the beacon at the named noun's nearest block (the arrow at the screen edge when it is off
 screen); "¿qué es esto?" names the block under the crosshair. **The shopkeeper and the villager are talked to the same way** (S6): aim at any figure, `E: hablar`; the panel's title is the NPC's name.
 
 **The camp objective (S4).** The checklist top right, `Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1`, is completed by the
@@ -150,7 +153,15 @@ The steps `--look yaw,pitch` (degrees, yaw 0 north and 90 east), `--walk-to x,z`
 two blocks away facing it, open the panel), `--say <line>` (type and send a line to the NPC the panel is open on and wait for the reply; with no
 panel open it first talks to the guide, as in S3), `--leave` (close the panel; walking on or talking to someone else closes it too) and `--shot
 <png>` (save the screen at that point and go on); `--beacon <point>` stands the beacon column on a named point of the scene. Details are in `src/Vocaterra.MonoGame/README.md`.
-Spoken input (push-to-talk) works in the interactive game; the scripted `--speak` step comes back with the speech UX in S7.
+Spoken input (push-to-talk) works in the interactive game. The scripted spoken path (S7): `--speak "<line>"` synthesizes the line with Kokoro and
+says it to the NPC the panel is open on as if spoken (Vosk hears it, in the core's Constrained mode at the stall's and the guide's offer prompts), `--wav
+<file>` does the same from a recording, and `--mic-check --screenshot <png>` runs the mic check on a synthesized "hola" when there is no microphone:
+
+```bash
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --talk shopkeeper --speak "quiero agua" --screenshot /tmp/s7-stall.png
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --talk shopkeeper --speak "agua agua mesa" --speak "agua agua mesa" --speak "agua agua mesa" --screenshot /tmp/s7-choices.png
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mic-check --screenshot /tmp/s7-mic.png
+```
 
 ## Content
 

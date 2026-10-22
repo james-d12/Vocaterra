@@ -88,7 +88,7 @@ edge arrow, and the 3D debug overlay.
 its direction from the facing and its distance in blocks. The panel (`DialogueModel`, `DialoguePanel`) is in the layer list; **E** (or **T**; **V**
 talks) opens it when the crosshair is on an NPC's figure, the guide's, the shopkeeper's or the villager's since S6 (`FigureAim` on the figure's chest, reach 8 blocks, no block in between through
 `NpcLabelLayer.Occluded`; the hint `E: hablar` is `TalkHintLayer`). The panel takes the keyboard, the mouse is released and no walking happens while
-it is open; Enter sends, Esc closes, Tab holds push-to-talk. The arrow of the session is the beacon: `SyncBeacon` puts `Beacon.Set` on the pointer's
+it is open (the keys are in the S7 paragraph below). The arrow of the session is the beacon: `SyncBeacon` puts `Beacon.Set` on the pointer's
 block (a review question shows `¿?`), and the beacon's own reach takes the arrow down. "¿qué es esto?" uses `VoxelSession.AimedCell`, the block under
 the crosshair (`sim.Target`). `--talk` and `--say` are `ScenarioScript` steps: a `VoxelScript` walk to the stand-off cell of the NPC, a look at it, then the panel opens (the
 NPC's host turn, or the guide's review question when one is due), each line is typed and sent, and the script waits for the turn to be applied. The
@@ -98,7 +98,17 @@ sign is a `WorldLabel` (`Tienda / Río` over the signpost's board, in `VoxelTalk
 ring, so its flame shows from the camp. A torch in the ring's centre would sit below the stones' top and be hidden from ground level, which is why
 the objective counts the rim (`VoxelSession.AtFireRing`: the three-by-three square of the ring, on its layer or on top of a stone).
 
-**Not in 3D yet:** the scripted `--speak` and `--wav` steps (S7), the Alt-accent shortcuts of the panel (typed `é`, `ñ` and the
+**The speech UX (S7).** The panel opens on its speech buttons (`SpeechButtons`: `[R] Repetir`, `[S] Más despacio`, `[H] Ayuda`, `[N] No sé`,
+`[W] Escribir`, and the offered choices `[1]` to `[3]`; `DialogueLayout` is the one layout the drawing and the mouse hit-test share, as `CraftingLayout`
+is for the crafting panel; `SpeechActionRunner` carries a press out and raises its voice event; `ILinePlayer` is the hook S9 fills to play the NPC's
+line again, `SilentLinePlayer` until then). Hold **V** or **Space** to talk (Tab no longer holds push-to-talk: it opens the text box with W); in the text
+box Enter sends and Tab or Esc return to the buttons. **Esc** undoes the newest thing: a recording, a turn that is "Pensando…" (`TurnWatchdog`'s five seconds of the
+frame clock offer typing, `¿Escribes?`, with the Escribir button focused), the text box, and last the panel. `DialogueModel` holds the persistent
+`Oí: «…» · Esperaba: «…»` line (`HeardLine`, from the phrase sheet) and the choices; `MicCheckModel` and `MicCheckLayer` are the mic-check screen (a live
+level meter from `PushToTalk.LastLevel`, `Di: hola`, what was heard, pass, retry or skip). `--mic-check` forces the screen, `--no-mic-check` skips it, and a
+scripted run skips it unless asked (then the worker hears a synthesized "hola"). `--speak` and `--wav` are `ScenarioScript` steps like `--say`.
+
+**Not in 3D yet:** the Alt-accent shortcuts of the panel (typed `é`, `ñ` and the
 others come through the platform's text input), the grey A/B (`--greyscale` is a stub).
 
 **Where the pieces are:** `VoxelGame.cs` (the host: the worker, the panel and its keys, the beacon, the crafting panel, the objective, the script),
