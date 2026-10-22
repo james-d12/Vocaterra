@@ -524,7 +524,8 @@
         { "lineId": "guide.lesson.it_is.3", "text": "Esto es agua." },
         { "lineId": "guide.lesson.it_is.4", "text": "Esto es una botella." },
         { "lineId": "guide.lesson.it_is.5", "text": "Esto es una mesa." },
-        { "lineId": "guide.lesson.it_is.6", "text": "Esto es una antorcha." }
+        { "lineId": "guide.lesson.it_is.6", "text": "Esto es una antorcha." },
+        { "lineId": "guide.lesson.it_is.7", "text": "Esto es una piedra." }
       ]
     },
     "guide.lesson.offer": {
@@ -536,13 +537,13 @@
     "guide.lesson.take": {
       "poolId": "guide.lesson.take",
       "variants": [
-        { "lineId": "guide.lesson.take.1", "text": "Toma la fruta." }
+        { "lineId": "guide.lesson.take.1", "text": "Toma una fruta." }
       ]
     },
     "guide.lesson.have": {
       "poolId": "guide.lesson.have",
       "variants": [
-        { "lineId": "guide.lesson.have.1", "text": "¡Muy bien! Tienes fruta." }
+        { "lineId": "guide.lesson.have.1", "text": "¡Muy bien! Tienes una fruta." }
       ]
     },
     "guide.lesson.welcome": {
@@ -560,13 +561,13 @@
     "guide.lesson.task": {
       "poolId": "guide.lesson.task",
       "variants": [
-        { "lineId": "guide.lesson.task.1", "text": "Necesito madera y frutas." }
+        { "lineId": "guide.lesson.task.1", "text": "Necesitas madera y frutas." }
       ]
     },
     "guide.lesson.end": {
       "poolId": "guide.lesson.end",
       "variants": [
-        { "lineId": "guide.lesson.end.1", "text": "¡Muy bien! Ya tienes tu fuego." }
+        { "lineId": "guide.lesson.end.1", "text": "¡Muy bien! Ya tienes fuego." }
       ]
     }
   }

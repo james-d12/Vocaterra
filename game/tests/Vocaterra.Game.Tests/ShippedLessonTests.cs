@@ -163,7 +163,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
 
         Assert.Equal(("No sé", "dont_know", StepOutcome.Done), (quiz.Sent, quiz.Turn!.Intent, quiz.Outcome));
         Assert.Equal("u5-answer", session.Lessons.Current!.Id);
-        Assert.Equal("Esto es una botella.", session.Lessons.Current.Line!.Text); // "No sé" is never wrong: she tells the answer
+        Assert.Equal("Esto es una piedra.", session.Lessons.Current.Line!.Text); // "No sé" is never wrong: she tells the answer
         var use = session.Events.OfType<PhraseUse>().Last(static u => u.PhraseId == "no-se");
         Assert.Equal(PhraseUseKind.DontKnow, use.Kind);
     }

@@ -55,7 +55,7 @@
           "phrase": "si",
           "prompt": "lesson-yesno",
           "english": "It is wood, so the answer is yes. Say “Sí” (SEE).",
-          "help": "Say: Sí (SEE, with an accent mark). It means yes.",
+          "help": "Say: Sí (SEE). It means yes. It is written sí, with an accent; si without the accent means “if”.",
           "retry": "Not quite. It is wood, so say: Sí."
         },
         {
@@ -105,8 +105,8 @@
           "id": "u3-is-2",
           "type": "model",
           "line": "guide.lesson.it_is.2",
-          "translation": "This is a piece of fruit.",
-          "english": "Fruta is fruit."
+          "translation": "This is a fruit.",
+          "english": "“Una fruta” is “a fruit”: una means a. Madera and agua need no una, just like wood and water in English."
         },
         {
           "id": "u3-ask-3",
@@ -139,7 +139,11 @@
           "line": "guide.lesson.it_is.5",
           "translation": "This is a table.",
           "english": "Luna pats the workbench beside her. What does she say?",
-          "options": ["This is a table (the workbench).", "This is a torch.", "This is a bottle."],
+          "options": [
+            "This is a table (the workbench).",
+            "This is a torch.",
+            "This is a bottle."
+          ],
           "correct": 0,
           "help": "“Mesa” is a table. The workbench next to Luna is a mesa.",
           "retry": "Not quite. Listen again: she pats the workbench."
@@ -150,7 +154,11 @@
           "line": "guide.lesson.it_is.6",
           "translation": "This is a torch.",
           "english": "Luna lifts a torch. What does she say?",
-          "options": ["This is a torch.", "This is wood.", "This is water."],
+          "options": [
+            "This is a torch.",
+            "This is wood.",
+            "This is water."
+          ],
           "correct": 0,
           "help": "“Antorcha” is a torch. You will make one soon.",
           "retry": "Not quite. Listen again."
@@ -165,7 +173,7 @@
           "type": "model",
           "line": "guide.lesson.offer.1",
           "translation": "Would you like some fruit?",
-          "english": "Luna offers you some fruit. “Quieres” means “do you want”."
+          "english": "Luna offers you some fruit. “¿Quieres…?” means “do you want…?”."
         },
         {
           "id": "u4-yes",
@@ -180,7 +188,7 @@
           "id": "u4-take",
           "type": "model",
           "line": "guide.lesson.take.1",
-          "translation": "Take the fruit.",
+          "translation": "Take a fruit.",
           "english": "Luna nods at the berry bushes. You pick the fruit yourself."
         },
         {
@@ -199,7 +207,7 @@
           "phrase": "gracias",
           "prompt": "lesson-thanks",
           "line": "guide.lesson.have.1",
-          "translation": "Very good! You have fruit.",
+          "translation": "Very good! You have a fruit.",
           "english": "You have the fruit. Thank Luna: say “Gracias” (GRAH-see-ahs).",
           "help": "Say: Gracias. It means thank you.",
           "retry": "Not quite. Say: Gracias. It means thank you."
@@ -223,15 +231,15 @@
           "prompt": "lesson-unstuck",
           "line": "guide.review.ask.1",
           "translation": "Look. What is this?",
-          "english": "Luna asks you something and you have no idea. Say “No sé” (noh SEH). It is never wrong.",
+          "english": "Luna points at something new. You don't know the word yet, so say “No sé” (noh SEH). It is never wrong.",
           "help": "Say: No sé. It means I don't know.",
           "retry": "Say: No sé. It means I don't know."
         },
         {
           "id": "u5-answer",
           "type": "model",
-          "line": "guide.lesson.it_is.4",
-          "translation": "This is a bottle.",
+          "line": "guide.lesson.it_is.7",
+          "translation": "This is a stone.",
           "english": "When you say “No sé”, Luna tells you the answer."
         },
         {
@@ -255,7 +263,7 @@
           "type": "repeat",
           "phrase": "mas-despacio",
           "prompt": "lesson-unstuck",
-          "english": "Now ask for it more slowly: “Más despacio, por favor” (mahs deh-SPAH-see-oh). She will say it slowly.",
+          "english": "Now ask for it more slowly: “Más despacio, por favor” (mahs dehs-PAH-syoh). She will say it slowly.",
           "help": "Say: Más despacio, por favor. It means more slowly, please.",
           "retry": "Not quite. Say: Más despacio, por favor."
         },
@@ -263,11 +271,15 @@
           "id": "u6-task",
           "type": "listen",
           "line": "guide.lesson.task.1",
-          "translation": "I need wood and fruit.",
+          "translation": "You need wood and fruit.",
           "english": "Luna explains what the camp needs. What does she say?",
-          "options": ["She needs wood and fruit.", "She needs water and bread.", "She needs a torch and a bottle."],
+          "options": [
+            "You need wood and fruit.",
+            "You need water and bread.",
+            "You need a torch and a bottle."
+          ],
           "correct": 0,
-          "help": "“Necesito” is “I need”. “Madera” is wood and “frutas” is fruit.",
+          "help": "“Necesitas” is “you need”. “Madera” is wood and “frutas” is fruit.",
           "retry": "Not quite. Listen again: madera and frutas."
         },
         {
@@ -278,7 +290,7 @@
         {
           "id": "u6-recap",
           "type": "recap",
-          "english": "You can already say all of this."
+          "english": "You can already say or understand all of this."
         }
       ]
     }

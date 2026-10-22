@@ -423,13 +423,13 @@ DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute 
   step of the checklist). The beacon points at her camp from the start.
 - **The guide's lesson** (`first-words`, `game/lessons.json`). Luna, the guide, greets the player who comes within five blocks of her
   (`GuideApproach`; the same call as the E key, once per approach; Esc closes the panel and the lesson waits): the lesson starts by itself. Six units, 34 steps, about
-  eight minutes at a learner's pace (estimated 5.6 minutes for a quick reader who answers in 4 s, 8.2 for a slow one, plus about a minute to walk down the trail): hello, yes and
+  eight minutes at a learner's pace (estimated 4.8 minutes for a quick reader who answers in 4 s, 7.5 for a slow one, from the real WAV lengths, plus about a minute to walk down the trail): hello, yes and
   no, what is this, please and thank you (the guide offers fruit and the
   learner picks it from a bush: a `do` step with a beacon on the nearest berry bush), getting unstuck (`No sé`, `Otra vez, por favor`, `Más despacio, por favor`
   do what they say) and the camp's task, then a recap that opens the journal's phrases page. While a lesson step takes a turn the guide's ordinary reply is not
   shown (the lesson speaks for her); a turn the core did not understand keeps her not-understood line and the English help.
 - **The ending.** The complete checklist gives a spare torch, sets the beacon on the player's own camp and changes the objective line to `Go back up the trail and
-  light your own fire`. A torch placed on the rim of the fire ring at `firering.player` lights it: the guide's closing line (`¡Muy bien! Ya tienes tu fuego.`) is
+  light your own fire`. A torch placed on the rim of the fire ring at `firering.player` lights it: the guide's closing line (`¡Muy bien! Ya tienes fuego.`) is
   said and shown with its English on a `Session complete` card, and in a playtest the post-check follows (the transfer offer first: she greets the player with
   it when they pass through her camp on the way back). The fire ring at the guide's camp keeps its role: the checklist's torch step.
 - **English on the buttons.** `[R] Repetir (repeat)`, `[S] Más despacio (slower)`, `[H] Ayuda (help)`, `[N] No sé (I don't know)`, `[W] Escribir (type)` and the hold-to-talk

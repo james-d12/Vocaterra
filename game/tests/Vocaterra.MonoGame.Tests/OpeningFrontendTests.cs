@@ -133,8 +133,8 @@ public sealed class OpeningFrontendTests
 
         Assert.True(ending.Update(session, 300));
         Assert.False(ending.Update(session, 301)); // once
-        Assert.Equal("¡Muy bien! Ya tienes tu fuego.", ending.Spanish);
-        Assert.Equal("Well done! Now you have your fire.", ending.English);
+        Assert.Equal("¡Muy bien! Ya tienes fuego.", ending.Spanish);
+        Assert.Equal("Very good! Now you have a fire.", ending.English);
         Assert.True(ending.Visible(300 + SessionEnding.ShowTicks - 1));
         Assert.False(ending.Visible(300 + SessionEnding.ShowTicks));
         var dismissed = new SessionEnding();

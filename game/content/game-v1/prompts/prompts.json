@@ -97,7 +97,7 @@
     "allowedIntentIds": ["dont_know", "ask_repeat", "ask_slower", "ask_help"],
     "agentId": "guide",
     "slotGrammarIds": [],
-    "text": "Necesito madera y frutas."
+    "text": "Necesitas madera y frutas."
   },
   {
     "promptId": "lesson-thanks",
@@ -107,7 +107,7 @@
     "allowedIntentIds": ["thank", "ask_help", "dont_know", "ask_repeat", "ask_slower"],
     "agentId": "guide",
     "slotGrammarIds": [],
-    "text": "¡Muy bien! Tienes fruta."
+    "text": "¡Muy bien! Tienes una fruta."
   },
   {
     "promptId": "lesson-unstuck",
@@ -133,7 +133,7 @@
     "promptId": "lesson-yesno",
     "mode": "Constrained",
     "difficulty": "Beginner",
-    "answerSetId": "lesson-yes-no",
+    "answerSetId": "lesson-yesno-plain",
     "allowedIntentIds": ["confirm", "deny", "ask_help", "dont_know", "ask_repeat", "ask_slower"],
     "agentId": "guide",
     "slotGrammarIds": [],

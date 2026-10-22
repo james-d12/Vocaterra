@@ -22,13 +22,13 @@
     {
       "answerId": "again",
       "canonical": "otra vez por favor",
-      "aliases": ["otra vez", "repite por favor", "repite"],
+      "aliases": ["otra vez", "repite por favor", "repite", "puedes repetir", "puedes repetir por favor"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
       "answerId": "slower",
       "canonical": "más despacio por favor",
-      "aliases": ["más despacio", "habla más despacio", "habla más despacio por favor"],
+      "aliases": ["más despacio", "habla más despacio", "habla más despacio por favor", "despacio por favor", "despacio", "más lento", "más lento por favor"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     }
   ]

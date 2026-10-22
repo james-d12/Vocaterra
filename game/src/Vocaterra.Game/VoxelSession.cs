@@ -113,7 +113,7 @@ public sealed class VoxelSession : GuideSession
     /// <summary>The bundle pool that holds the guide's closing line, said when the player's own fire is lit (S17).</summary>
     public const string ClosingPool = "guide.lesson.end";
 
-    /// <summary>The guide's closing line in Spanish (<c>¡Muy bien! Ya tienes tu fuego.</c>), or an empty text when the bundle has none.</summary>
+    /// <summary>The guide's closing line in Spanish (<c>¡Muy bien! Ya tienes fuego.</c>), or an empty text when the bundle has none.</summary>
     public string ClosingLine => Bundle.Dialogue.TryGetPoolById(ClosingPool, out var pool) && pool.Variants.Count > 0 ? pool.Variants[0].Text : string.Empty;
 
     /// <summary>

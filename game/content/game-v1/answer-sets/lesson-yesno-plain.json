@@ -1,0 +1,41 @@
+{
+  "answerSetId": "lesson-yesno-plain",
+  "answers": [
+    {
+      "answerId": "yes",
+      "canonical": "sí",
+      "aliases": ["si", "sí por favor", "si por favor", "sí gracias", "si gracias", "por favor sí", "claro", "claro que sí", "sí es madera"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "no",
+      "canonical": "no",
+      "aliases": ["no gracias", "no muchas gracias", "gracias no", "no es agua", "no es madera"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "again",
+      "canonical": "otra vez por favor",
+      "aliases": ["otra vez", "repite por favor", "repite", "puedes repetir", "puedes repetir por favor"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "slower",
+      "canonical": "más despacio por favor",
+      "aliases": ["más despacio", "habla más despacio", "habla más despacio por favor", "despacio por favor", "despacio", "más lento", "más lento por favor"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

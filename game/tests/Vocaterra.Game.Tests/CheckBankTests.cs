@@ -21,17 +21,17 @@ public sealed class CheckBankTests
     private static string Battery(params string[] items) => """{"schemaVersion":1,"items":[""" + string.Join(",", items) + "]}";
 
     [Fact]
-    public void TheBundleHoldsEightComprehensionItemsAndSevenProductionItems()
+    public void TheBundleHoldsElevenComprehensionItemsAndNineProductionItems()
     {
         var bank = Bank;
 
-        Assert.Equal(15, bank.Count);
-        Assert.Equal(8, bank.Count(static i => i.Kind == CheckItemKind.Comprehension));
+        Assert.Equal(20, bank.Count);
+        Assert.Equal(11, bank.Count(static i => i.Kind == CheckItemKind.Comprehension));
         Assert.Equal(
-            ["say.pedir-agua", "say.si-por-favor", "say.no-gracias", "say.donde-esta-el-rio", "say.si", "say.que-es-esto", "say.otra-vez"],
+            ["say.pedir-agua", "say.si-por-favor", "say.no-gracias", "say.donde-esta-el-rio", "say.si", "say.no", "say.que-es-esto", "say.otra-vez", "say.mas-despacio"],
             bank.Where(static i => i.Kind == CheckItemKind.Production).Select(static i => i.Id));
         Assert.Equal(
-            ["request_item", "confirm", "deny", "ask_directions", "confirm", "ask_what", "ask_repeat"],
+            ["request_item", "confirm", "deny", "ask_directions", "confirm", "deny", "ask_what", "ask_repeat", "ask_slower"],
             bank.Where(static i => i.Kind == CheckItemKind.Production).Select(static i => i.Intent));
     }
 

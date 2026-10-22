@@ -131,14 +131,14 @@ public sealed class OpeningAndEndingTests
         Assert.Equal(1, names.Count(static n => n == WorldEvents.FireLit));
         Assert.Equal(1, names.Count(static n => n == WorldEvents.SessionComplete));
         Assert.True(names.IndexOf(WorldEvents.FireLit) < names.IndexOf(WorldEvents.SessionComplete));
-        Assert.Equal("¡Muy bien! Ya tienes tu fuego.", session.ClosingLine);
-        Assert.Equal("Well done! Now you have your fire.", session.English.ForLine(session.ClosingLine));
+        Assert.Equal("¡Muy bien! Ya tienes fuego.", session.ClosingLine);
+        Assert.Equal("Very good! Now you have a fire.", session.English.ForLine(session.ClosingLine));
     }
 
     [Fact]
     public void TheClosingLineIsASpeakableLineOfTheGuideWithItsEnglish()
     {
-        var line = TestGame.Speech.Single(static l => l.Text == "¡Muy bien! Ya tienes tu fuego.");
+        var line = TestGame.Speech.Single(static l => l.Text == "¡Muy bien! Ya tienes fuego.");
 
         Assert.Equal(("guide.lesson.end.1", SpeechSpeakers.Guide), (line.LineId, line.Speaker));
         Assert.Equal(line.Text, TestGame.NewSession().ClosingLine);

@@ -60,6 +60,44 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | guide.identify.none.1 | speech/guide.identify.none.1.wav | guide | 1.0 | No sé qué es. |  |
 | guide.identify.none.2 | speech/guide.identify.none.2.slow.wav | guide | 0.8 | Busca una cosa y pregunta otra vez. |  |
 | guide.identify.none.2 | speech/guide.identify.none.2.wav | guide | 1.0 | Busca una cosa y pregunta otra vez. |  |
+| guide.lesson.end.1 | speech/guide.lesson.end.1.slow.wav | guide | 0.8 | ¡Muy bien! Ya tienes fuego. |  |
+| guide.lesson.end.1 | speech/guide.lesson.end.1.wav | guide | 1.0 | ¡Muy bien! Ya tienes fuego. |  |
+| guide.lesson.fast.1 | speech/guide.lesson.fast.1.slow.wav | guide | 0.8 | Mira. La madera es para la antorcha. |  |
+| guide.lesson.fast.1 | speech/guide.lesson.fast.1.wav | guide | 1.0 | Mira. La madera es para la antorcha. |  |
+| guide.lesson.have.1 | speech/guide.lesson.have.1.slow.wav | guide | 0.8 | ¡Muy bien! Tienes una fruta. |  |
+| guide.lesson.have.1 | speech/guide.lesson.have.1.wav | guide | 1.0 | ¡Muy bien! Tienes una fruta. |  |
+| guide.lesson.hello.1 | speech/guide.lesson.hello.1.slow.wav | guide | 0.8 | ¡Hola! |  |
+| guide.lesson.hello.1 | speech/guide.lesson.hello.1.wav | guide | 1.0 | ¡Hola! |  |
+| guide.lesson.is_water.1 | speech/guide.lesson.is_water.1.slow.wav | guide | 0.8 | ¿Es agua? |  |
+| guide.lesson.is_water.1 | speech/guide.lesson.is_water.1.wav | guide | 1.0 | ¿Es agua? |  |
+| guide.lesson.is_wood.1 | speech/guide.lesson.is_wood.1.slow.wav | guide | 0.8 | ¿Es madera? |  |
+| guide.lesson.is_wood.1 | speech/guide.lesson.is_wood.1.wav | guide | 1.0 | ¿Es madera? |  |
+| guide.lesson.it_is.1 | speech/guide.lesson.it_is.1.slow.wav | guide | 0.8 | Esto es madera. |  |
+| guide.lesson.it_is.1 | speech/guide.lesson.it_is.1.wav | guide | 1.0 | Esto es madera. |  |
+| guide.lesson.it_is.2 | speech/guide.lesson.it_is.2.slow.wav | guide | 0.8 | Esto es una fruta. |  |
+| guide.lesson.it_is.2 | speech/guide.lesson.it_is.2.wav | guide | 1.0 | Esto es una fruta. |  |
+| guide.lesson.it_is.3 | speech/guide.lesson.it_is.3.slow.wav | guide | 0.8 | Esto es agua. |  |
+| guide.lesson.it_is.3 | speech/guide.lesson.it_is.3.wav | guide | 1.0 | Esto es agua. |  |
+| guide.lesson.it_is.4 | speech/guide.lesson.it_is.4.slow.wav | guide | 0.8 | Esto es una botella. |  |
+| guide.lesson.it_is.4 | speech/guide.lesson.it_is.4.wav | guide | 1.0 | Esto es una botella. |  |
+| guide.lesson.it_is.5 | speech/guide.lesson.it_is.5.slow.wav | guide | 0.8 | Esto es una mesa. |  |
+| guide.lesson.it_is.5 | speech/guide.lesson.it_is.5.wav | guide | 1.0 | Esto es una mesa. |  |
+| guide.lesson.it_is.6 | speech/guide.lesson.it_is.6.slow.wav | guide | 0.8 | Esto es una antorcha. |  |
+| guide.lesson.it_is.6 | speech/guide.lesson.it_is.6.wav | guide | 1.0 | Esto es una antorcha. |  |
+| guide.lesson.it_is.7 | speech/guide.lesson.it_is.7.slow.wav | guide | 0.8 | Esto es una piedra. |  |
+| guide.lesson.it_is.7 | speech/guide.lesson.it_is.7.wav | guide | 1.0 | Esto es una piedra. |  |
+| guide.lesson.look.1 | speech/guide.lesson.look.1.slow.wav | guide | 0.8 | Mira. |  |
+| guide.lesson.look.1 | speech/guide.lesson.look.1.wav | guide | 1.0 | Mira. |  |
+| guide.lesson.name.1 | speech/guide.lesson.name.1.slow.wav | guide | 0.8 | Me llamo Luna. |  |
+| guide.lesson.name.1 | speech/guide.lesson.name.1.wav | guide | 1.0 | Me llamo Luna. |  |
+| guide.lesson.offer.1 | speech/guide.lesson.offer.1.slow.wav | guide | 0.8 | ¿Quieres fruta? |  |
+| guide.lesson.offer.1 | speech/guide.lesson.offer.1.wav | guide | 1.0 | ¿Quieres fruta? |  |
+| guide.lesson.take.1 | speech/guide.lesson.take.1.slow.wav | guide | 0.8 | Toma una fruta. |  |
+| guide.lesson.take.1 | speech/guide.lesson.take.1.wav | guide | 1.0 | Toma una fruta. |  |
+| guide.lesson.task.1 | speech/guide.lesson.task.1.slow.wav | guide | 0.8 | Necesitas madera y frutas. |  |
+| guide.lesson.task.1 | speech/guide.lesson.task.1.wav | guide | 1.0 | Necesitas madera y frutas. |  |
+| guide.lesson.welcome.1 | speech/guide.lesson.welcome.1.slow.wav | guide | 0.8 | De nada. |  |
+| guide.lesson.welcome.1 | speech/guide.lesson.welcome.1.wav | guide | 1.0 | De nada. |  |
 | guide.name.none.1 | speech/guide.name.none.1.slow.wav | guide | 0.8 | Mira una cosa y dime qué es. |  |
 | guide.name.none.1 | speech/guide.name.none.1.wav | guide | 1.0 | Mira una cosa y dime qué es. |  |
 | guide.name.none.2 | speech/guide.name.none.2.slow.wav | guide | 0.8 | No sé qué es. Mira algo. |  |
@@ -82,6 +120,10 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | guide.uncertain.1 | speech/guide.uncertain.1.wav | guide | 1.0 | No te entendí bien. ¿Lo dices otra vez? |  |
 | guide.uncertain.2 | speech/guide.uncertain.2.slow.wav | guide | 0.8 | No te entendí bien. ¿Me lo dices otra vez? |  |
 | guide.uncertain.2 | speech/guide.uncertain.2.wav | guide | 1.0 | No te entendí bien. ¿Me lo dices otra vez? |  |
+| guide_again.1 | speech/guide_again.1.slow.wav | guide | 0.8 | Claro. Otra vez. |  |
+| guide_again.1 | speech/guide_again.1.wav | guide | 1.0 | Claro. Otra vez. |  |
+| guide_again.2 | speech/guide_again.2.slow.wav | guide | 0.8 | ¡Claro! Te lo digo otra vez. |  |
+| guide_again.2 | speech/guide_again.2.wav | guide | 1.0 | ¡Claro! Te lo digo otra vez. |  |
 | guide_craft.1 | speech/guide_craft.1.slow.wav | guide | 0.8 | ¡Claro! Mira. |  |
 | guide_craft.1 | speech/guide_craft.1.wav | guide | 1.0 | ¡Claro! Mira. |  |
 | guide_craft.2 | speech/guide_craft.2.slow.wav | guide | 0.8 | A ver, te digo. |  |
@@ -140,6 +182,10 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | guide_point.2 | speech/guide_point.2.wav | guide | 1.0 | Un minuto, miro. |  |
 | guide_point.3 | speech/guide_point.3.slow.wav | guide | 0.8 | ¡Claro! Miro. |  |
 | guide_point.3 | speech/guide_point.3.wav | guide | 1.0 | ¡Claro! Miro. |  |
+| guide_slower.1 | speech/guide_slower.1.slow.wav | guide | 0.8 | Claro. Más despacio. |  |
+| guide_slower.1 | speech/guide_slower.1.wav | guide | 1.0 | Claro. Más despacio. |  |
+| guide_slower.2 | speech/guide_slower.2.slow.wav | guide | 0.8 | ¡Claro! Te lo digo más despacio. |  |
+| guide_slower.2 | speech/guide_slower.2.wav | guide | 1.0 | ¡Claro! Te lo digo más despacio. |  |
 | guide_thank.1 | speech/guide_thank.1.slow.wav | guide | 0.8 | ¡Con gusto, amigo! |  |
 | guide_thank.1 | speech/guide_thank.1.wav | guide | 1.0 | ¡Con gusto, amigo! |  |
 | guide_thank.2 | speech/guide_thank.2.slow.wav | guide | 0.8 | ¡De nada! |  |
@@ -160,12 +206,22 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | phrase.gracias | speech/phrase.gracias.wav | guide | 1.0 | Gracias. |  |
 | phrase.hola | speech/phrase.hola.slow.wav | guide | 0.8 | Hola. |  |
 | phrase.hola | speech/phrase.hola.wav | guide | 1.0 | Hola. |  |
+| phrase.mas-despacio | speech/phrase.mas-despacio.slow.wav | guide | 0.8 | Más despacio, por favor. |  |
+| phrase.mas-despacio | speech/phrase.mas-despacio.wav | guide | 1.0 | Más despacio, por favor. |  |
+| phrase.no | speech/phrase.no.slow.wav | guide | 0.8 | No. |  |
+| phrase.no | speech/phrase.no.wav | guide | 1.0 | No. |  |
 | phrase.no-gracias | speech/phrase.no-gracias.slow.wav | guide | 0.8 | No, gracias. |  |
 | phrase.no-gracias | speech/phrase.no-gracias.wav | guide | 1.0 | No, gracias. |  |
 | phrase.no-se | speech/phrase.no-se.slow.wav | guide | 0.8 | No sé. |  |
 | phrase.no-se | speech/phrase.no-se.wav | guide | 1.0 | No sé. |  |
+| phrase.otra-vez | speech/phrase.otra-vez.slow.wav | guide | 0.8 | Otra vez, por favor. |  |
+| phrase.otra-vez | speech/phrase.otra-vez.wav | guide | 1.0 | Otra vez, por favor. |  |
 | phrase.pedir-agua | speech/phrase.pedir-agua.slow.wav | guide | 0.8 | Quiero agua, por favor. |  |
 | phrase.pedir-agua | speech/phrase.pedir-agua.wav | guide | 1.0 | Quiero agua, por favor. |  |
+| phrase.que-es-esto | speech/phrase.que-es-esto.slow.wav | guide | 0.8 | ¿Qué es esto? |  |
+| phrase.que-es-esto | speech/phrase.que-es-esto.wav | guide | 1.0 | ¿Qué es esto? |  |
+| phrase.si | speech/phrase.si.slow.wav | guide | 0.8 | Sí. |  |
+| phrase.si | speech/phrase.si.wav | guide | 1.0 | Sí. |  |
 | phrase.si-por-favor | speech/phrase.si-por-favor.slow.wav | guide | 0.8 | Sí, por favor. |  |
 | phrase.si-por-favor | speech/phrase.si-por-favor.wav | guide | 1.0 | Sí, por favor. |  |
 | prompt.guide-offer | speech/prompt.guide-offer.slow.wav | guide | 0.8 | ¿Quieres agua? |  |
@@ -174,6 +230,22 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | prompt.guide-open | speech/prompt.guide-open.wav | guide | 1.0 | ¡Hola! Soy la guía. ¿En qué te ayudo? |  |
 | prompt.guide-review | speech/prompt.guide-review.slow.wav | guide | 0.8 | ¿Qué es esto? |  |
 | prompt.guide-review | speech/prompt.guide-review.wav | guide | 1.0 | ¿Qué es esto? |  |
+| prompt.lesson-hello | speech/prompt.lesson-hello.slow.wav | guide | 0.8 | ¡Hola! |  |
+| prompt.lesson-hello | speech/prompt.lesson-hello.wav | guide | 1.0 | ¡Hola! |  |
+| prompt.lesson-name | speech/prompt.lesson-name.slow.wav | guide | 0.8 | Me llamo Luna. |  |
+| prompt.lesson-name | speech/prompt.lesson-name.wav | guide | 1.0 | Me llamo Luna. |  |
+| prompt.lesson-offer | speech/prompt.lesson-offer.slow.wav | guide | 0.8 | ¿Quieres fruta? |  |
+| prompt.lesson-offer | speech/prompt.lesson-offer.wav | guide | 1.0 | ¿Quieres fruta? |  |
+| prompt.lesson-task | speech/prompt.lesson-task.slow.wav | guide | 0.8 | Necesitas madera y frutas. |  |
+| prompt.lesson-task | speech/prompt.lesson-task.wav | guide | 1.0 | Necesitas madera y frutas. |  |
+| prompt.lesson-thanks | speech/prompt.lesson-thanks.slow.wav | guide | 0.8 | ¡Muy bien! Tienes una fruta. |  |
+| prompt.lesson-thanks | speech/prompt.lesson-thanks.wav | guide | 1.0 | ¡Muy bien! Tienes una fruta. |  |
+| prompt.lesson-unstuck | speech/prompt.lesson-unstuck.slow.wav | guide | 0.8 | Mira. ¿Qué es esto? |  |
+| prompt.lesson-unstuck | speech/prompt.lesson-unstuck.wav | guide | 1.0 | Mira. ¿Qué es esto? |  |
+| prompt.lesson-what | speech/prompt.lesson-what.slow.wav | guide | 0.8 | Mira. |  |
+| prompt.lesson-what | speech/prompt.lesson-what.wav | guide | 1.0 | Mira. |  |
+| prompt.lesson-yesno | speech/prompt.lesson-yesno.slow.wav | guide | 0.8 | ¿Es madera? |  |
+| prompt.lesson-yesno | speech/prompt.lesson-yesno.wav | guide | 1.0 | ¿Es madera? |  |
 | prompt.stall-need | speech/prompt.stall-need.slow.wav | shopkeeper | 0.8 | ¿Qué necesitas? |  |
 | prompt.stall-need | speech/prompt.stall-need.wav | shopkeeper | 1.0 | ¿Qué necesitas? |  |
 | prompt.stall-offer | speech/prompt.stall-offer.slow.wav | shopkeeper | 0.8 | ¿Quieres pan? |  |
