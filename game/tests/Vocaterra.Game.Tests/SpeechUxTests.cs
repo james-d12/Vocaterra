@@ -145,7 +145,7 @@ public sealed class SpeechUxTests
 
         var third = SaySpoken(session);
         Assert.Equal(RepairKind.OfferChoices, third.RepairKind);
-        Assert.Equal(["agua por favor", "ayuda", "ayuda por favor"], third.Choices);
+        Assert.Equal(["quiero agua por favor", "quiero pan por favor", "quiero fruta por favor"], third.Choices); // one canonical per answer, declared order (M29f)
     }
 
     [Fact]
@@ -251,20 +251,20 @@ public sealed class SpeechUxTests
         var offered = session.Say("el gato come queso");
         Assert.Equal(RepairKind.OfferChoices, offered.RepairKind);
         var options = session.Phrases.OptionsFor(offered.Choices!);
-        Assert.Equal(["Quiero agua, por favor.", "Ayuda."], options.Select(static o => o.Label));
+        Assert.Equal(["Quiero agua, por favor.", "Quiero pan por favor.", "Quiero fruta por favor."], options.Select(static o => o.Label));
 
         _ = session.SubmitChoice(options[0].Line);
         var picked = Drain(session, 1).Single().Turn!;
 
         Assert.True(picked.Choice);
         Assert.Equal(InputKind.Button, picked.Input);
-        Assert.Equal("agua por favor", picked.Line);
+        Assert.Equal("quiero agua por favor", picked.Line);
         Assert.Equal("request_item", picked.Intent);
         Assert.True(picked.Communicated);
         Assert.Contains("stall.give_water", picked.HostEvents); // the choice works like the phrase: the shopkeeper hands over the bottle
         var use = Assert.Single(session.Events.OfType<PhraseUse>());
         Assert.Equal((PhraseIds.RequestWater, PhraseUseKind.Choice), (use.PhraseId, use.Kind)); // a recognition signal, never counted as production
-        Assert.Equal(["voice choice at shopkeeper (\"agua por favor\")"], session.Events.OfType<VoiceEvent>().Select(static e => e.Text));
+        Assert.Equal(["voice choice at shopkeeper (\"quiero agua por favor\")"], session.Events.OfType<VoiceEvent>().Select(static e => e.Text));
         Assert.Equal(0, session.Words.RecordOf("agua").CreditUnits); // no word credit for a button
         Assert.Equal(0, session.Words.RecordOf("agua").Spoken);
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bottle));
