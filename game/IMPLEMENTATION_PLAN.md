@@ -159,7 +159,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S5 | Content: `content/PHRASES.md`, the stall and the villager, `request_item`, constrained prompts; Opus review pass (D-game-12) | done (merged to `feature/prototype` 2026-10-22, bundle `c3cac003…`) | Sonnet 5.5 (design), Haiku 5.5 (content) | S0 |
 | S6 | NPC exchanges in the world (`NpcService`), filling the bottle, the transfer moment | done (merged to `feature/prototype` 2026-10-22, bundle `eb4f0951…`) | Sonnet 5.5 | S3, S5 |
 | S7 | Speech UX: mic check, cancel, watchdog, heard-vs-expected, buttons, choices, uncertainty rule, constrained prompts | done (merged to `feature/prototype` 2026-10-22, bundle `c3ad62fe…`) | Sonnet 5.5 | S6 |
-| S8 | Phrase progress and fading scaffolds; the review extended to phrases | planned | Sonnet 5.5 | S6 |
+| S8 | Phrase progress and fading scaffolds; the review extended to phrases | done (merged to `feature/prototype` 2026-10-22) | Sonnet 5.5 | S6 |
 | S9 | NPCs speak: pre-rendered Kokoro lines in the bundle | done (merged to `feature/prototype` 2026-10-22, bundle `f5f28b88…`); **the owner listens to every WAV** (`docs/SPEECH_CHECKLIST.md`, D-game-12 step 4) | Haiku 5.5 | S5, S6 |
 | S10 | Save, sessions, resume (P9 re-scoped) | planned | Haiku 5.5 | S4, S8 |
 | S11 | Checks (pre, post, recall), the session log and the report script | planned | Haiku 5.5 | S8, S10 |
@@ -664,6 +664,21 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   failure; the core plans that help line only when the verdict has an expected form, otherwise only "No te entendí. ¿Me lo dices otra
   vez?" (accepted). **Owner's step:** listen to every file and mark `game/docs/SPEECH_CHECKLIST.md` (cut-offs, text-audio mismatches).
   Tests 3,719.
+- **S8, phrase progress and fading scaffolds (2026-10-22, Sonnet 5.5).** `PhraseProgress` per sheet row: supported, unaided and transfer
+  credit (spoken 1, typed 0.5 by default), slips (communicated with a mistake: no credit, no step), choice_only, dont_know (on the phrases in
+  play), fail_forward, card shows, heard/answered for the two NPC phrases, last use. Classification (`GuideSession.Classify`): help/no sé,
+  then choice, then the review answer, then transfer, then the scaffold rule: supported while a card or audio is offered or after Ayuda,
+  unaided at level None (the orchestrator accepted that answering the shopkeeper at level None is unaided: otherwise fading would never
+  show). Support levels `CardAndAudio` → `AudioOnly` → `None` for pedir-agua, si-por-favor, no-gracias, donde-esta-el-rio, stepped down by a
+  full credited use once the D-game-6 gap has passed (or a new session), up by no sé, a choice or a fail-forward. Support card above the
+  panel ("Puedes decir", the phrase, its English and glosses, audio); key words `el agua` and `el pan` before the shopkeeper's first question;
+  `phrase.<id>` through extraSkills and `StepSkills` when a card shows (no core gap); the journal's phrases page (J, then Tab); the guide's
+  review asks a due phrase first (placeholders from existing pools until `guide.review.phrase.*` pools exist); console `phrase:` lines and a
+  summary; `--wait`, `--skip`. Cues play S9's files by text (`ILinePlayer.Append` queues them). Screenshot checked by the orchestrator (the
+  support card and key words over the stall). The first S8 gate conflicted with S9 in `VoxelGame.cs` (resolved by the agent) and hit a
+  second rare fuzz coverage flake (core M29h). Content wanted later: `guide.review.phrase.*` pools and a guide-review prompt accepting
+  request_item, confirm and deny. S10 must save the 11 phrase records, the play session, the carded nouns and the key-words-taught flag.
+  Tests 3,780.
 
 ## 6. Definition of done (every milestone)
 
