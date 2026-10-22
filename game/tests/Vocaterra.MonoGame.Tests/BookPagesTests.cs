@@ -98,6 +98,7 @@ public sealed class BookPagesTests
         Assert.Contains("fue — he/she/it was", texts);
         var quiero = lines.First(static l => l.Text == "quiero — I want");
         Assert.Equal("2 times   2 correct", quiero.Right);
+        Assert.Equal("1 time   1 correct", lines.First(static l => l.Text == "fue — he/she/it was").Right); // one use reads in the singular
     }
 
     [Fact]
