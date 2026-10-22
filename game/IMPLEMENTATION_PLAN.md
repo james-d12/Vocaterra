@@ -186,7 +186,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S17 | The opening at the cliff camp, the guide's 5 to 10 minute lesson, the ending; new phrases, checks, Opus pass, speech | done (merged to `feature/prototype` 2026-10-22, `b0ebf5f`, bundle `9582e14f…`); **the owner listens to the 72 new WAVs** (`docs/SPEECH_CHECKLIST.md`) | Sonnet 5.5 | S13, S16, D-game-15 |
 | S17b | The talk key (V) shown in the dialogue in every state; the microphone check, the game's own errors and key hints in English (owner's playtest notes) | done (merged to `feature/prototype` 2026-10-22, `678e5a2`) | Haiku 5.5 | S17 |
 | S19 | The learner's record: every spoken and typed input, the nouns and verbs used (from the core's word readings), the lessons completed; save version 2 (D-game-16) | done (merged to `feature/prototype` 2026-10-22, `c92e486`) | Haiku 5.5 | S17, D-game-16 |
-| S20 | The book: the journal as an openable book with Nouns, Verbs, Phrases, Lessons and What I said pages (D-game-16) | planned | Haiku 5.5 | S15, S19 |
+| S20 | The book: the journal as an openable book with Nouns, Verbs, Phrases, Lessons and What I said pages (D-game-16) | done (merged to `feature/prototype` 2026-10-22, `ee2ec79`) | Haiku 5.5 | S15, S19 |
 | S21 | F8: the in-game bug and feature report, saved as Markdown with a screenshot, game state, recent turns and the session log tail; local only (D-game-17) | planned | Haiku 5.5 | S19, S20, D-game-17 |
 | S18 | The playtest refresh (build, checklist, report, launcher message; the consent text mentions that the book keeps what the player said; the facilitator collects the F8 reports) | planned | Haiku 5.5 | S15, S17, S17b, S20, S21 |
 
@@ -919,6 +919,27 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     every «por favor». Numerals are digits, as documented.
   - **Checked by the orchestrator:** the gate (4,232 passed, 5 skipped). The agent's lesson run prints 3 nouns and 2 verbs with the core
     readings above; the full S17 route completes.
+- **S20, the book (2026-10-22, Haiku 5.5; merged `ee2ec79`).**
+  - **Built.**
+    - The journal became the book, opened with J, with the book item (right-click on the hotbar), or with `--book` (`OpenBook`).
+    - Five pages: Nouns (the catalogue plus any noun used, with its article, forms, counts and last sentence), Verbs, Phrases, Lessons and
+      What I said.
+    - Verbs: the infinitive with its gloss, from the new `glosses.json`, and each form with an English label (`VerbLabels`). A question is
+      a form of its own (`FormRow.Question`), and each form has its own last use (`FormRow.Last`).
+    - Lessons: state, units ticked, phrases, help, and an English summary from `lessons.json`.
+    - What I said: `Recent(500)` with the English feedback.
+    - Scrolling, and the page models engine-free in `Frontend/BookPages`, `Book` and `VerbLabels`.
+  - **The book item is a taught noun:** `libro` (m), with its word card pre-rendered. The catalogue grew from 18 to 19, because every item
+    needs a noun (NounCatalogTests). The owner may prefer the book not to count; that would change the NounCatalog rule instead.
+  - **Bugs fixed:** an engine `Rectangle` in Frontend (ArchitectureRulesTests); a mid-enum atlas cell that shifted seeded noise; "1 times";
+    an overlong summary.
+  - **Checked by the orchestrator:** the gate (4,327 passed, 5 skipped); the Nouns, Verbs, Lessons and What I said screenshots
+    (`saber — to know`, `sé — I know`, `¿es? — is he/she/it?`, the six ticked units and the summary; `por favor` and `gracias` absent
+    from Nouns and Verbs, thanks to M29j); the full S17 route on the merged build; the host demo.
+  - **Seen, not fixed:**
+    - the inventory still says `Ocupadas: 1 de 40` (S17b missed it; S21 fixes it);
+    - saves from before S20 have no book item;
+    - `--greyscale` on the book was not checked by eye.
 
 ## 6. Definition of done (every milestone)
 
