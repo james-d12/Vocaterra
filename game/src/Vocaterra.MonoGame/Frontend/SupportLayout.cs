@@ -7,6 +7,10 @@ namespace Vocaterra.MonoGame.Frontend;
 /// support cards (the phrase sheet's card of each phrase at <see cref="SupportLevel.CardAndAudio"/>), the audio-only chip, and the key-word cards
 /// of the stall (large and centred while they stand alone before the shopkeeper's question, small at the right of the row afterwards). The word card
 /// of a pickup (<see cref="WordCardLayer"/>) lifts above <see cref="Top"/> so nothing overlaps.
+/// <para>
+/// Since S22 the layers no longer place the cards with this row: <see cref="ConversationLayout"/> does, in a column beside the speaker, because the row covered the speaker and the
+/// bubble. The sizes here are still the cards' sizes (<see cref="ConversationCards"/>), and <see cref="For"/> says which pieces are up.
+/// </para>
 /// </summary>
 public readonly record struct SupportLayout
 {

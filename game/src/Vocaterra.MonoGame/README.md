@@ -183,7 +183,12 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
                     the tabs and the lines at a viewport size: a click lands on the tab drawn there), BookScroll, BookPages (what each page lists: nouns, verbs,
                     phrases, lessons, what I said, as BookLine values), VerbLabels (the English of a verb form from person, number, tense and mood)
   PhraseJournal     PhraseJournalRows (every phrase of the sheet: Spanish, English, support level, counts)
-  SupportLayout     where the support cards, the audio-only chip and the key-word cards stand above the panel (SupportLayer draws them; WordCardLayer lifts clear)
+  ConversationLayout  (S22) the layout of the conversation screen: from the window, the speaker's projected head rectangle, the bubble, the panel and the cards (new-word toast,
+                    support cards, key words, the audio-only chip; newest first) it gives each card a rectangle, collapsed to one line or hidden. The cards stack in a column beside the
+                    head and the bubble (or in the strip under them), whole while they fit, then the older ones as one line; no card overlaps the head, the bubble, the panel or another
+                    card (tested at 1280 x 720 and 800 x 600). It also reserves the facilitator's F10 label (top left). ConversationFrame computes it for a frame; SupportLayer,
+                    DialogueBubbleLayer and WordCardLayer draw their pieces where it says. ConversationCards holds the card sizes and the head rectangle
+  SupportLayout     the sizes of the support cards, the audio-only chip and the key-word cards (S8; their places are ConversationLayout's since S22)
   SupportFrontend   plays the session's audio cues through the line player, adds the shopkeeper's opening after the key words, words the console's phrase lines
   InventoryScreen   the 40-slot screen (I or E): open, close, the lemmas it shows (counted as read once per opening)
   Toasts            ToastQueue: lines shown one after another for 240 ticks each, by the simulation's tick (no clock)
