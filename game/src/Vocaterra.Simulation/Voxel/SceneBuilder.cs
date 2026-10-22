@@ -14,6 +14,15 @@ public static class SceneBuilder
 
     private const string ForestPassName = "forest";
 
+    /// <summary>The name of the stream that shapes each tried tree's crown and species (S14); a separate stream, so the trees themselves did not move.</summary>
+    private const string ShapePassName = "treeshape";
+
+    /// <summary>The name of the undergrowth's noise (S14).</summary>
+    private const string UndergrowthPassName = "undergrowth";
+
+    /// <summary>How far in front of a lookout, inside its sight cone, the undergrowth stays at flower height (S14).</summary>
+    private const int LookoutForegroundBlocks = 44;
+
     /// <summary>Builds the scene of <paramref name="layout"/> for <paramref name="seed"/>.</summary>
     /// <exception cref="SceneLayoutException">A prop does not fit its footprint, a position is out of the grid or on water, or a name repeats.</exception>
     public static Scene Build(SceneLayout layout, ulong seed)
@@ -28,6 +37,8 @@ public static class SceneBuilder
         private readonly SceneLayout _layout;
         private readonly VoxelGrid _grid;
         private readonly bool[] _reserved;
+        private readonly bool[] _hard; // columns of props, points, NPCs, the spawn and the bridge: the undergrowth keeps off them (S14)
+        private bool[] _trunkColumns = [];
         private readonly SortedDictionary<string, BlockPos> _points = new(StringComparer.Ordinal);
         private Terrain _terrain = new(0, 0);
         private TerrainNoise _forest = new(0, ForestPassName);
@@ -37,6 +48,7 @@ public static class SceneBuilder
             _layout = layout;
             _grid = new VoxelGrid(layout.SizeX, layout.SizeY, layout.SizeZ);
             _reserved = new bool[layout.SizeX * layout.SizeZ];
+            _hard = new bool[layout.SizeX * layout.SizeZ];
         }
 
         public Scene Run(ulong seed)
@@ -74,7 +86,8 @@ public static class SceneBuilder
             }
 
             var trees = PlantForest(seed);
-            return new Scene(_layout.Name, seed, _grid, new SpawnPoint(spawnFeet, _layout.Spawn.Yaw), npcs, _points, trees, _layout.WaterLevel);
+            var plants = PlantUndergrowth(seed);
+            return new Scene(_layout.Name, seed, _grid, new SpawnPoint(spawnFeet, _layout.Spawn.Yaw, _layout.Spawn.Pitch), npcs, _points, trees, _layout.WaterLevel, plants);
         }
 
         // ---------------------------------------------------------------- the ground
@@ -116,15 +129,17 @@ public static class SceneBuilder
                         top = BlockId.Path;
                         sub = BlockId.Dirt;
                     }
-                    else if (h >= spec.SnowLine + (noise.Column(1, x, z) % 7) - 3 && slope <= 3)
+                    else if (h >= spec.SnowLine + (noise.Column(1, x, z) % 7) - 3 && slope <= 5)
                     {
                         top = BlockId.Snow;
                         sub = BlockId.Stone;
                     }
                     else if (h >= spec.RockLine || slope >= 5)
                     {
-                        top = BlockId.Stone;
-                        sub = BlockId.Stone;
+                        // Low rock in the forest is mossy (S14); the high crags are bare.
+                        var mossy = h < spec.RockLine - 20;
+                        top = mossy ? BlockId.MossyStone : BlockId.Stone;
+                        sub = mossy && noise.Column(2, x, z) % 2 == 0 ? BlockId.MossyStone : BlockId.Stone;
                     }
                     else
                     {
@@ -174,6 +189,7 @@ public static class SceneBuilder
             if (x >= 0 && x < _layout.SizeX && z >= 0 && z < _layout.SizeZ)
             {
                 _reserved[(z * _layout.SizeX) + x] = true;
+                _hard[(z * _layout.SizeX) + x] = true;
             }
         }
 
@@ -545,36 +561,282 @@ public static class SceneBuilder
 
         // ---------------------------------------------------------------- the forest
 
-        private void PlantTree(int x, int z, int trunk, string where)
+        // The three species (S14). Oaks fill the valley with big rounded crowns, spruces take over on the slopes with tiered cones, and a few birches
+        // stand in the lowlands, away from the sites.
+        private enum Species
+        {
+            Oak,
+            Spruce,
+            Birch,
+        }
+
+        private static BlockId TrunkOf(Species species) => species switch
+        {
+            Species.Spruce => BlockId.SpruceTrunk,
+            Species.Birch => BlockId.BirchTrunk,
+            _ => BlockId.Trunk,
+        };
+
+        private static BlockId LeavesOf(Species species) => species switch
+        {
+            Species.Spruce => BlockId.SpruceLeaves,
+            Species.Birch => BlockId.BirchLeaves,
+            _ => BlockId.Leaves,
+        };
+
+        // The trunk of a species in blocks, from the draw the forest makes for every cell (4 or 5 by default): a spruce is much taller, a birch a little.
+        private static int TrunkLength(Species species, int drawn) => species switch
+        {
+            Species.Spruce => drawn + 6,
+            Species.Birch => drawn + 2,
+            _ => drawn,
+        };
+
+        // The crown, from the top downwards: the squared distance (in columns) from the trunk inside which a layer has leaves. The layer's offset from the top
+        // of the trunk is OakTop[0] for the first entry, and so on downwards.
+        private static readonly int[] OakCrown = [1, 5, 10, 10, 5];
+        private static readonly int[] SmallOakCrown = [0, 2, 5, 5, 2];
+        private static readonly int[] BirchCrown = [0, 2, 5, 5, 2];
+        private static readonly int[] SpruceCone = [0, 1, 2, 2, 5, 5, 5, 10, 10, 10];
+
+        // The block above the trunk's top where the crown starts (offset from the top of the trunk, for the first entry of the list).
+        private static int CrownTopOffset(Species species) => species switch
+        {
+            Species.Spruce => 1,
+            _ => 3,
+        };
+
+        private static int TreeHeight(Species species, int trunk) => TrunkLength(species, trunk) + CrownTopOffset(species);
+
+        private void PlantTree(int x, int z, int trunk, string where) => PlantTree(x, z, trunk, Species.Oak, 1, where, true);
+
+        private void PlantTree(int x, int z, int drawnTrunk, Species species, ulong shape, string where, bool exact = false)
         {
             var baseY = HeightAt(x, z);
-            var top = baseY + trunk;
+            var length = exact ? drawnTrunk : TrunkLength(species, drawnTrunk);
+            var top = baseY + length;
+            var trunkBlock = TrunkOf(species);
+            var leaves = LeavesOf(species);
             for (var y = baseY + 1; y <= top; y++)
             {
-                Put(x, y, z, BlockId.Trunk, where);
+                Put(x, y, z, trunkBlock, where);
             }
 
-            for (var dy = -1; dy <= 2; dy++)
+            // The crown: layers from the top downwards. Oaks have a big and a small crown (a third are small), and the outer rim of every layer is ragged.
+            int[] profile;
+            int first;
+            if (species == Species.Spruce)
             {
-                var y = top + dy;
-                for (var dz = -2; dz <= 2; dz++)
+                var layers = length - 1;
+                profile = new int[layers];
+                for (var k = 0; k < layers; k++)
                 {
-                    for (var dx = -2; dx <= 2; dx++)
+                    profile[k] = SpruceCone[Math.Min(k, SpruceCone.Length - 1)];
+                }
+
+                first = top + 1;
+            }
+            else
+            {
+                profile = species == Species.Birch ? BirchCrown : ((shape & 3) == 0 ? SmallOakCrown : OakCrown);
+                first = top + 3;
+            }
+
+            for (var k = 0; k < profile.Length; k++)
+            {
+                var y = first - k;
+                var limit = profile[k];
+                var reach = limit == 0 ? 0 : limit <= 1 ? 1 : limit <= 2 ? 1 : limit <= 5 ? 2 : 3;
+                for (var dz = -reach; dz <= reach; dz++)
+                {
+                    for (var dx = -reach; dx <= reach; dx++)
                     {
-                        var inside = dy <= 0
-                            ? Math.Abs(dx) < 2 || Math.Abs(dz) < 2
-                            : dy == 1 ? Math.Abs(dx) <= 1 && Math.Abs(dz) <= 1 : Math.Abs(dx) + Math.Abs(dz) <= 1;
-                        if (inside && _grid.InBounds(x + dx, y, z + dz) && _grid.GetBlock(x + dx, y, z + dz) == BlockId.Air)
+                        var d2 = (dx * dx) + (dz * dz);
+                        if (d2 > limit || !_grid.InBounds(x + dx, y, z + dz) || _grid.GetBlock(x + dx, y, z + dz) != BlockId.Air)
                         {
-                            _grid.SetBlock(x + dx, y, z + dz, BlockId.Leaves);
+                            continue;
                         }
+
+                        // A ragged rim: the layer's outermost blocks go now and then, never the ones next to the trunk.
+                        if (d2 >= limit - 1 && d2 > 1 && (WorldRng.Mix(shape ^ (ulong)((dx + 8) | ((dz + 8) << 4) | (k << 8))) & 3) == 0)
+                        {
+                            continue;
+                        }
+
+                        _grid.SetBlock(x + dx, y, z + dz, leaves);
                     }
                 }
             }
         }
 
+        // Whole-map distance (in chamfer units, 3 per column along an axis, 4 along a diagonal) from the water's edge, capped at 90.
+        private int[] ShoreDistances()
+        {
+            const int Cap = 90;
+            var w = _layout.SizeX;
+            var d = _layout.SizeZ;
+            var dist = new int[w * d];
+            for (var i = 0; i < dist.Length; i++)
+            {
+                dist[i] = (_terrain.Flags[i] & Terrain.ShoreFlag) != 0 ? 0 : Cap;
+            }
+
+            for (var z = 0; z < d; z++)
+            {
+                for (var x = 0; x < w; x++)
+                {
+                    var i = (z * w) + x;
+                    var best = dist[i];
+                    if (x > 0)
+                    {
+                        best = Math.Min(best, dist[i - 1] + 3);
+                    }
+
+                    if (z > 0)
+                    {
+                        best = Math.Min(best, dist[i - w] + 3);
+                        if (x > 0)
+                        {
+                            best = Math.Min(best, dist[i - w - 1] + 4);
+                        }
+
+                        if (x < w - 1)
+                        {
+                            best = Math.Min(best, dist[i - w + 1] + 4);
+                        }
+                    }
+
+                    dist[i] = best;
+                }
+            }
+
+            for (var z = d - 1; z >= 0; z--)
+            {
+                for (var x = w - 1; x >= 0; x--)
+                {
+                    var i = (z * w) + x;
+                    var best = dist[i];
+                    if (x < w - 1)
+                    {
+                        best = Math.Min(best, dist[i + 1] + 3);
+                    }
+
+                    if (z < d - 1)
+                    {
+                        best = Math.Min(best, dist[i + w] + 3);
+                        if (x < w - 1)
+                        {
+                            best = Math.Min(best, dist[i + w + 1] + 4);
+                        }
+
+                        if (x > 0)
+                        {
+                            best = Math.Min(best, dist[i + w - 1] + 4);
+                        }
+                    }
+
+                    dist[i] = best;
+                }
+            }
+
+            return dist;
+        }
+
+        // The share of trees (percent) the meadows and the shore leave at a column: 100 in the forest, less towards a site's meadow or the water.
+        private int KeptPercent(int x, int z, int[] shore)
+        {
+            var spec = _layout.Trees;
+            var kept = 100;
+            if (spec.ShoreClear > 0)
+            {
+                var blocks16 = shore[(z * _layout.SizeX) + x] * 16 / 3;
+                var weight = IntMath.Ramp(blocks16, spec.ShoreClear * 16, (spec.ShoreClear + spec.ShoreFade) * 16);
+                kept = Math.Min(kept, IntMath.Lerp(spec.ShoreKeep, 100, weight));
+            }
+
+            foreach (var clearing in spec.ClearingList)
+            {
+                var site = _layout.Site(clearing.Site)!;
+                var dist16 = (int)IntMath.ISqrt((long)(((x - site.X) * (x - site.X)) + ((z - site.Z) * (z - site.Z))) * 256);
+                var weight = IntMath.Ramp(dist16, clearing.Radius * 16, (clearing.Radius + clearing.Fade) * 16);
+                kept = Math.Min(kept, IntMath.Lerp(clearing.Keep, 100, weight));
+            }
+
+            return kept;
+        }
+
+        // Whether the column is inside the sight cone of a vista (within a percent of its radius), and how far it is from the lookout in 1/16 blocks.
+        private bool InVista(VistaSpec vista, int x, int z, int radiusPercent, out int dist16)
+        {
+            var site = _layout.Site(vista.Site)!;
+            var dx = x - site.X;
+            var dz = z - site.Z;
+            dist16 = (int)IntMath.ISqrt((long)((dx * dx) + (dz * dz)) * 256);
+            if (dist16 > vista.Radius * 16 * radiusPercent / 100)
+            {
+                return false;
+            }
+
+            var forward = Angles.Direction(Angles.FromDegrees(vista.YawDegrees), 0);
+            var dot = ((long)dx * forward.X) + ((long)dz * forward.Z); // blocks * One
+            var cosHalf = Angles.Cos(Angles.FromDegrees(vista.HalfAngleDegrees));
+            return dot * 16 >= (long)cosHalf * dist16;
+        }
+
+        // Whether the column is in the near part of a sight cone, where nothing taller than a flower may grow: the grass would hide the valley from the lookout.
+        private bool InLookoutForeground(int x, int z)
+        {
+            foreach (var vista in _layout.Trees.VistaList)
+            {
+                if (InVista(vista, x, z, 100, out var dist16) && dist16 <= LookoutForegroundBlocks * 16)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // Whether a crown of this height at this column stands inside a sight cone and above the line the lookout needs kept clear.
+        private bool HidesAVista(int x, int z, int crownTop)
+        {
+            foreach (var vista in _layout.Trees.VistaList)
+            {
+                if (!InVista(vista, x, z, 100, out var dist16))
+                {
+                    continue;
+                }
+
+                var site = _layout.Site(vista.Site)!;
+                var down = Angles.FromDegrees(vista.DownDegrees);
+                var tanMilli = (int)((long)Angles.Sin(down) * 1000 / Math.Max(1, Angles.Cos(down)));
+                var eyeMilli = ((long)(site.Y ?? 0) + 3) * 1000;
+                if ((long)crownTop * 1000 > eyeMilli - ((long)dist16 * tanMilli / 16))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // Whether any site that has level ground is within the distance of the column.
+        private bool NearASite(int x, int z, int distance)
+        {
+            foreach (var site in _layout.Sites)
+            {
+                if (site.Radius > 0 && ((x - site.X) * (x - site.X)) + ((z - site.Z) * (z - site.Z)) <= distance * distance)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         // One tree is tried in every square of the ground at a jittered place. The draws are made for every square whether or not a tree is kept, so the stream
-        // stays in step and a change to the margins moves only the trees it touches.
+        // stays in step and a change to the margins moves only the trees it touches. (S14: the species, the shape of the crown, the meadows, the shore and the
+        // sight cones only decide which of the tried trees stay and what they are; the first stream is the one S13 drew, so no trunk moved.)
         private int PlantForest(ulong seed)
         {
             var spec = _layout.Trees;
@@ -612,8 +874,11 @@ public static class SceneBuilder
                 }
             }
 
+            var shore = ShoreDistances();
             var rng = WorldRng.For(seed, TreePassName);
+            var shapes = WorldRng.For(seed, ShapePassName);
             var planted = new bool[sizeX * sizeZ];
+            _trunkColumns = planted;
             var count = 0;
             for (var cz = 0; cz < sizeZ; cz += spec.Cell)
             {
@@ -623,6 +888,7 @@ public static class SceneBuilder
                     var z = cz + rng.NextInt(spec.Cell);
                     var roll = rng.NextInt(100);
                     var trunk = rng.NextInt(spec.MinTrunk, spec.MaxTrunk + 1);
+                    var shape = shapes.NextUInt64();
                     if (x < 2 || z < 2 || x >= sizeX - 2 || z >= sizeZ - 2 || closed[(z * sizeX) + x])
                     {
                         continue;
@@ -630,30 +896,216 @@ public static class SceneBuilder
 
                     var i = (z * sizeX) + x;
                     var h = _terrain.Height[i];
-                    if (h > spec.TreeLine || h + trunk + 3 >= _layout.SizeY || _terrain.IsWater(x, z) || _grid.GetBlock(x, h, z) != BlockId.Grass || !Gentle(x, z))
+                    if (h > spec.TreeLine || _terrain.IsWater(x, z) || _grid.GetBlock(x, h, z) != BlockId.Grass || !Gentle(x, z))
                     {
                         continue;
                     }
 
-                    // Thinner with height, and a few clearings where the slow noise is low.
+                    // Thinner with height, a few clearings where the slow noise is low, and the meadows round the sites and along the water.
                     var chance = spec.Chance * (100 - Math.Clamp((h - 56) * 3, 0, 80)) / 100;
                     if (_forest.Value(8, x, z, 40) < 700)
                     {
                         chance /= 4;
                     }
 
+                    chance = chance * KeptPercent(x, z, shore) / 100;
                     if (roll >= chance || NearTree(planted, x, z, spec.Spacing))
                     {
                         continue;
                     }
 
-                    PlantTree(x, z, trunk, "forest");
+                    // Spruces on the slopes (all of them 20 blocks above where they start), a few birches in the lowlands, oaks otherwise.
+                    var species = Species.Oak;
+                    var spruceShare = IntMath.Ramp(h, spec.SpruceFrom, spec.SpruceFrom + 20) * 100 / IntMath.One;
+                    if ((int)((shape >> 8) % 100) < spruceShare)
+                    {
+                        species = Species.Spruce;
+                    }
+                    else if ((int)((shape >> 20) % 100) < spec.Birch && !NearASite(x, z, spec.BirchAway))
+                    {
+                        species = Species.Birch;
+                    }
+
+                    var crownTop = h + TreeHeight(species, trunk);
+                    if (crownTop + 1 >= _layout.SizeY || HidesAVista(x, z, crownTop))
+                    {
+                        continue;
+                    }
+
+                    PlantTree(x, z, trunk, species, shape, "forest");
                     planted[i] = true;
                     count++;
                 }
             }
 
             return count;
+        }
+
+        // ---------------------------------------------------------------- the undergrowth
+
+        // Tall grass, ferns, reeds and flowers on the open ground (S14). Each column's chance comes from the noise of the pass 'undergrowth' (keyed from WorldRng),
+        // modulated by slow patches (thick grass here, a flower meadow there); nothing grows on a path or beside a prop, and a third as much one column further.
+        private int PlantUndergrowth(ulong seed)
+        {
+            var spec = _layout.Undergrowth;
+            if (spec.Grass <= 0 && spec.Flowers <= 0 && spec.Reeds <= 0)
+            {
+                return 0;
+            }
+
+            var sizeX = _layout.SizeX;
+            var sizeZ = _layout.SizeZ;
+            var noise = new TerrainNoise(seed, UndergrowthPassName);
+
+            // 2 on the columns of a path, a prop, a point, an NPC or the spawn, widened by the margin (nothing grows) and one more (a third as much).
+            var near = new byte[sizeX * sizeZ];
+            var margin = spec.RouteMargin;
+            for (var z = 0; z < sizeZ; z++)
+            {
+                for (var x = 0; x < sizeX; x++)
+                {
+                    var i = (z * sizeX) + x;
+                    if (!_hard[i] && (_terrain.Flags[i] & Terrain.PathFlag) == 0)
+                    {
+                        continue;
+                    }
+
+                    for (var dz = -(margin + 1); dz <= margin + 1; dz++)
+                    {
+                        for (var dx = -(margin + 1); dx <= margin + 1; dx++)
+                        {
+                            var cx = x + dx;
+                            var cz = z + dz;
+                            if (cx < 0 || cx >= sizeX || cz < 0 || cz >= sizeZ)
+                            {
+                                continue;
+                            }
+
+                            var near1 = Math.Abs(dx) <= margin && Math.Abs(dz) <= margin;
+                            var j = (cz * sizeX) + cx;
+                            near[j] = (byte)Math.Max(near[j], near1 ? 2 : 1);
+                        }
+                    }
+                }
+            }
+
+            var count = 0;
+            for (var z = 1; z < sizeZ - 1; z++)
+            {
+                for (var x = 1; x < sizeX - 1; x++)
+                {
+                    var i = (z * sizeX) + x;
+                    if (near[i] == 2 || _terrain.IsWater(x, z))
+                    {
+                        continue;
+                    }
+
+                    var h = _terrain.Height[i];
+                    var ground = _grid.GetBlock(x, h, z);
+                    if ((ground != BlockId.Grass && ground != BlockId.Sand) || h + 2 >= _layout.SizeY || _grid.GetBlock(x, h + 1, z) != BlockId.Air)
+                    {
+                        continue;
+                    }
+
+                    // In front of a lookout only flowers grow, in meadows of their own: the grass would stand between the player and the valley.
+                    if (InLookoutForeground(x, z))
+                    {
+                        if (ground == BlockId.Grass && spec.Flowers > 0 && noise.Column(14, x, z) % 100 < 26)
+                        {
+                            var yellow = noise.Value(2, x, z, 26) > 2048;
+                            _grid.SetBlock(x, h + 1, z, yellow != (noise.Column(12, x, z) % 9 == 0) ? BlockId.YellowFlower : BlockId.WhiteFlower);
+                            count++;
+                        }
+
+                        continue;
+                    }
+
+                    var thin = near[i] == 1 ? 3 : 1; // a third as much one column from the route
+                    var pick = noise.Column(10, x, z) * 100 / 4096; // 0 to 99
+                    var kind = noise.Column(11, x, z) * 100 / 4096;
+                    var block = BlockId.Air;
+
+                    // Reeds stand on the bank, within two columns of the water.
+                    if (spec.Reeds > 0 && NearWater(x, z, 2) && pick * thin < spec.Reeds)
+                    {
+                        block = BlockId.Reeds;
+                    }
+                    else if (ground == BlockId.Grass)
+                    {
+                        var patch = noise.Value(0, x, z, 10);
+                        var flowerBed = noise.Value(1, x, z, 22);
+                        if (spec.Flowers > 0 && patch > 2900 && flowerBed > 1100 && pick * thin < spec.Flowers)
+                        {
+                            // A flower meadow is mostly one colour, with some of the other.
+                            var yellowPatch = noise.Value(2, x, z, 26) > 2048;
+                            var other = noise.Column(12, x, z) % 9 == 0;
+                            block = yellowPatch != other ? BlockId.YellowFlower : BlockId.WhiteFlower;
+                        }
+
+                        if (block == BlockId.Air && spec.Grass > 0)
+                        {
+                            var density = 70 + (noise.Value(3, x, z, 18) * 30 / 4096); // 70 to 100
+                            if (pick * thin * 100 < spec.Grass * density)
+                            {
+                                var shade = HasTrunkNear(x, z, 2);
+                                var fern = shade ? Math.Min(100, spec.Fern + 45) : spec.Fern;
+                                block = kind < fern ? BlockId.Fern : BlockId.TallGrass;
+                            }
+                        }
+                    }
+
+                    if (block == BlockId.Air)
+                    {
+                        continue;
+                    }
+
+                    _grid.SetBlock(x, h + 1, z, block);
+                    count++;
+                    if (block == BlockId.Reeds && noise.Column(13, x, z) % 3 == 0 && _grid.GetBlock(x, h + 2, z) == BlockId.Air)
+                    {
+                        _grid.SetBlock(x, h + 2, z, BlockId.Reeds);
+                        count++;
+                    }
+                }
+            }
+
+            return count;
+        }
+
+        private bool NearWater(int x, int z, int distance)
+        {
+            for (var dz = -distance; dz <= distance; dz++)
+            {
+                for (var dx = -distance; dx <= distance; dx++)
+                {
+                    var cx = x + dx;
+                    var cz = z + dz;
+                    if (cx >= 0 && cx < _layout.SizeX && cz >= 0 && cz < _layout.SizeZ && IsWater(cx, cz))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool HasTrunkNear(int x, int z, int distance)
+        {
+            for (var dz = -distance; dz <= distance; dz++)
+            {
+                for (var dx = -distance; dx <= distance; dx++)
+                {
+                    var cx = x + dx;
+                    var cz = z + dz;
+                    if (cx >= 0 && cx < _layout.SizeX && cz >= 0 && cz < _layout.SizeZ && _trunkColumns[(cz * _layout.SizeX) + cx])
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         // No trees on a cliff: the four neighbours are within two blocks of the ground under the trunk.

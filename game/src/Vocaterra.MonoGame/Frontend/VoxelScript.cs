@@ -297,7 +297,7 @@ public sealed class VoxelScript
         for (var y = grid.SizeY - 3; y >= 1; y--)
         {
             var block = grid.GetBlock(step.X, y, step.Z);
-            if (block is BlockId.Air or BlockId.Leaves or BlockId.Trunk or BlockId.Water || !grid.IsSolid(step.X, y, step.Z))
+            if (block is BlockId.Air or BlockId.Water || BlockDefinition.IsLeaves(block) || BlockDefinition.IsTrunk(block) || !grid.IsSolid(step.X, y, step.Z))
             {
                 continue;
             }

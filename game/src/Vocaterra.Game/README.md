@@ -52,8 +52,8 @@ var arrow = session.Pointer;                             // where the guide poin
 
 ## Words (P4): the noun catalogue and the D-game-6 rule
 
-- `content/game-v1/game/nouns.json` names the noun of each tile kind (`trunk` and `leaves` are `árbol`, `dirt` is `tierra`, `grass` is `hierba`,
-  `stone` is `piedra`) and lists `air` as colourless. Each noun also names its item kinds (`items`, P6: `madera` is `wood`, `hacha` is `axe`),
+- `content/game-v1/game/nouns.json` names the noun of each tile kind (`trunk`, `leaves` and the spruce and birch kinds of S14 are `árbol`, `stone`, `mossy-stone` and `cobble` are `piedra`, `dirt` is `tierra`, `grass` is `hierba`;
+  the undergrowth, the snow and the bushes of the 3D world are named by no noun and stay in colour) and lists `air` as colourless. Each noun also names its item kinds (`items`, P6: `madera` is `wood`, `hacha` is `axe`),
   and may carry `"mass": true` (counted in `bloques de`) and `"sources"` (`madera` comes from `árbol`, for P6b's "where is it" answers). A test
   checks that every tile and every item is a noun or colourless and every noun has a noun reading and a gender in the bundle's lexicon. The
   core supplies the article and the plural (`Morphology.Article`, `Pluralize`).

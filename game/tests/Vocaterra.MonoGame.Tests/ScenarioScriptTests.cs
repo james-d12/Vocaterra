@@ -202,7 +202,7 @@ public sealed class ScenarioScriptTests
         var steps = new[]
         {
             Move(VoxelStep.Look(90, 0)),
-            Move(VoxelStep.WalkTo(18, 17)),
+            Move(VoxelStep.WalkTo(176, 148)), // a point of the trail, on the way down from the player's camp
             Talk("guide"),
             Say("hola"),
         };
@@ -211,8 +211,8 @@ public sealed class ScenarioScriptTests
         run.Go();
 
         Assert.Contains(run.Log, static l => l.StartsWith("look:", StringComparison.Ordinal));
-        Assert.Contains(run.Log, static l => l.StartsWith("walk-to 18,17: arrived", StringComparison.Ordinal));
-        Assert.True(run.Log.Count(static l => l.StartsWith("walk-to ", StringComparison.Ordinal)) >= 2, "the walk to the guide came after the walk to 18,17");
+        Assert.Contains(run.Log, static l => l.StartsWith("walk-to 176,148: arrived", StringComparison.Ordinal));
+        Assert.True(run.Log.Count(static l => l.StartsWith("walk-to ", StringComparison.Ordinal)) >= 2, "the walk to the guide came after the walk to 176,148");
         Assert.Equal("greet", run.Dialogue.LastTurn!.Intent);
     }
 

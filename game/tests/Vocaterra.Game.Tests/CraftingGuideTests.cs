@@ -105,7 +105,7 @@ public sealed class CraftingGuideTests
         Assert.Contains("árbol está", turn.WorldLine, StringComparison.Ordinal); // "El árbol está" or "Mira: el árbol está": the pointing pool's variants
         Assert.NotNull(turn.Pointer);
         Assert.Equal("árbol", turn.Pointer.Place);
-        var nearest = TestGame.NearestBlock(session, BlockId.Trunk, BlockId.Leaves);
+        var nearest = TestGame.NearestBlock(session, BlockId.Trunk, BlockId.Leaves, BlockId.SpruceTrunk, BlockId.SpruceLeaves, BlockId.BirchTrunk, BlockId.BirchLeaves);
         Assert.Equal(nearest, turn.Pointer.Target);
         Assert.Contains(turn.Pointer.Direction, turn.WorldLine, StringComparison.Ordinal);
         Assert.Equal("árbol", session.Pointer!.Place);

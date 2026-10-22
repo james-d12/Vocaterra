@@ -63,7 +63,7 @@ public sealed class NounCatalogTests
     [Fact]
     public void TheRouteNounsNameTheirBlocksAndItems()
     {
-        Assert.Equal([BlockId.Trunk, BlockId.Leaves], TestGame.Nouns.ForLemma("árbol")!.Blocks);
+        Assert.Equal([BlockId.Trunk, BlockId.Leaves, BlockId.SpruceTrunk, BlockId.SpruceLeaves, BlockId.BirchTrunk, BlockId.BirchLeaves], TestGame.Nouns.ForLemma("árbol")!.Blocks);
         Assert.Equal([ItemId.Wood], TestGame.Nouns.ForLemma("madera")!.Items);
         Assert.Equal([BlockId.BerryBush], TestGame.Nouns.ForLemma("fruta")!.Blocks);
         Assert.Equal([ItemId.Berry], TestGame.Nouns.ForLemma("fruta")!.Items);

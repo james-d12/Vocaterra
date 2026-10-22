@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "generated_by": "hand-authored",
   "nouns": [
-    { "lemma": "árbol", "items": [], "blocks": ["trunk", "leaves"] },
+    { "lemma": "árbol", "items": [], "blocks": ["trunk", "leaves", "spruce-trunk", "spruce-leaves", "birch-trunk", "birch-leaves"] },
     { "lemma": "hierba", "items": [], "blocks": ["grass"] },
     { "lemma": "tierra", "items": [], "blocks": ["dirt"], "mass": true, "sources": ["tierra"] },
-    { "lemma": "piedra", "items": [], "blocks": ["stone"], "mass": true, "sources": ["piedra"] },
+    { "lemma": "piedra", "items": [], "blocks": ["stone", "mossy-stone", "cobble"], "mass": true, "sources": ["piedra"] },
     { "lemma": "arena", "items": [], "blocks": ["sand"], "mass": true, "sources": ["arena"] },
     { "lemma": "madera", "items": ["wood"], "blocks": ["planks"], "mass": true, "sources": ["árbol"] },
     { "lemma": "puerta", "items": [], "blocks": ["door"] },

@@ -34,11 +34,11 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
         Assert.Equal("pointing", turn.AgentState);
         Assert.Equal(["guide.point"], turn.HostEvents);
 
-        // The árbol names the trunk and the leaves of a tree: the nearest of either is the answer.
-        var expected = TestGame.NearestBlock(session, BlockId.Trunk, BlockId.Leaves);
+        // The árbol names the trunk and the leaves of a tree of any species (S14): the nearest of either is the answer.
+        var expected = TestGame.NearestBlock(session, BlockId.Trunk, BlockId.Leaves, BlockId.SpruceTrunk, BlockId.SpruceLeaves, BlockId.BirchTrunk, BlockId.BirchLeaves);
         Assert.NotNull(turn.Pointer);
         Assert.Equal(expected, turn.Pointer.Target);
-        Assert.Contains(session.Scene.Grid.GetBlock(expected.X, expected.Y, expected.Z), new[] { BlockId.Trunk, BlockId.Leaves });
+        Assert.Contains(session.Scene.Grid.GetBlock(expected.X, expected.Y, expected.Z), new[] { BlockId.Trunk, BlockId.Leaves, BlockId.SpruceTrunk, BlockId.SpruceLeaves, BlockId.BirchTrunk, BlockId.BirchLeaves });
         Assert.Equal("árbol", turn.Pointer.Place);
         Assert.Equal(new PointerMarker("árbol", expected), session.Pointer);
 
@@ -59,7 +59,7 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
         // regression anchor for the content and the drawing rule: change the pool, the stream id or the world and it changes on purpose.
         var turn = TestGame.NewSession().Say("¿dónde está el árbol?");
 
-        Assert.Equal("El árbol está allí, a la derecha, a once bloques.", turn.WorldLine);
+        Assert.Equal("El árbol está allí, adelante, a doce bloques.", turn.WorldLine);
     }
 
     [Theory]

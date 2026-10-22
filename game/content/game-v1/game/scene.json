@@ -22,19 +22,19 @@
       "trrrrrrrmmmmmhhhqqggtrrs",
       "rtrrrrrrkkkkkeeerpddptrs",
       "prtrrrrriiiiicccccbbrpts",
-      "rprtrrrrgggggaaabbabrrpu",
-      "rrprsokeeeeeeaaaaa9bhnqq",
-      "trrookebccccc9999999bhnq",
-      "rtqokeb9bbbbb99999999bhn",
-      "rrtqokebaaaaa9999999bhnq",
-      "rrrtqokebaaaa9999999bhns",
-      "prrrtqokeb9999999999bhnq",
-      "tprrqokeb9999999999bhnos",
-      "rtpqokeb99999999999bhnqq",
-      "rrsokeb9999999999999bhnq",
-      "rrrsokeb9999999999999bhn",
-      "rrrrsokeb99999999999bhnq",
-      "trrrrsokebaaaaaaaaabhnqs",
+      "rprtrrrrgggggaaabbabbfko",
+      "rrprsokeeeeeeaaaaa9b9bfk",
+      "trrookebccccc9999999bbfk",
+      "rtqokeb9bbbbb99999999bbf",
+      "rrtqokebaaaaa9999999bbfk",
+      "rrrtqokebaaaa9999999bbfk",
+      "prrrtqokeb9999999999bbfk",
+      "tprrqokeb9999999999b9bfk",
+      "rtpqokeb99999999999bbfko",
+      "rrsokeb999999999999bfkoq",
+      "rrrsokeb99999999999bfkoq",
+      "rrrrsokeb99999999999bfko",
+      "trrrrsokebaaaaaaaaabbfko",
       "ptrrqokebbbbbbbbbbbbhnqs",
       "rptqokjjjjjjjjjjjjjjjnqs",
       "rrpsqqqqsoqqqsqqoqsqqqqs"
@@ -60,7 +60,7 @@
     "village": { "x": 292, "z": 218, "y": 37, "radius": 20, "blend": 8 },
     "river": { "x": 230, "z": 222 },
     "waterfall": { "x": 258, "z": 112 },
-    "lake": { "x": 215, "z": 316 }
+    "lake": { "x": 212, "z": 294 }
   },
 
   // The waterfall: a cliff whose lip is the row of the site; the plateau behind it is raised to "top" and a sheet of water falls into the pool.
@@ -73,14 +73,14 @@
     "halfWidth": 3,
     "depth": 3,
     "bank": 4,
-    "path": [[258, 118], [262, 134], [256, 152], [247, 170], [238, 188], [232, 205], [230, 222], [236, 240], [247, 258], [250, 276], [243, 292], [232, 304]]
+    "path": [[258, 118], [262, 134], [256, 152], [247, 170], [238, 188], [232, 205], [230, 222], [236, 240], [247, 258], [250, 276], [243, 290], [230, 296]]
   },
 
   "paths": [
     // The trail: four legs across the mountainside, from the player's ledge down to the guide's clearing; its height changes evenly.
     {
       "name": "trail", "from": "camp.player", "to": "camp.guide", "mode": "grade", "halfWidth": 1,
-      "via": [[150, 118], [190, 122], [193, 130], [152, 138], [149, 146], [192, 154], [195, 162], [158, 170]]
+      "via": [[148, 121], [124, 130], [128, 140], [176, 148], [180, 158], [134, 166], [140, 176], [168, 182]]
     },
     // The road: from the guide's clearing through the forest, over the bridge, to the village; it follows the valley floor.
     {
@@ -137,7 +137,7 @@
   ],
 
   // The player wakes alone on the ledge, facing south-east over the valley.
-  "spawn": { "site": "camp.player", "facing": 135 },
+  "spawn": { "site": "camp.player", "facing": 135, "pitch": -10 },
 
   // Other names the scene answers to: the guide's clearing is also "camp" (the name the first prototype used).
   "points": {
@@ -145,5 +145,17 @@
   },
 
   // The forest: a tree tried in every 3 x 3 square, kept on the valley floor with this chance, thinner higher up and gone above the tree line.
-  "trees": { "cell": 3, "chance": 90, "spacing": 2, "margin": 3, "minTrunk": 4, "maxTrunk": 5, "treeLine": 80 }
+  // S14: oaks in the valley, spruces from 48 up (all of them from 68), a tenth birches away from the sites; meadows along the water and round the village
+  // and the lake (a few trees stay); and a sight cone from the ledge, inside which no crown stands higher than the line 12 degrees below the horizon.
+  "trees": {
+    "cell": 3, "chance": 90, "spacing": 2, "margin": 3, "minTrunk": 4, "maxTrunk": 5, "treeLine": 80,
+    "spruceFrom": 48, "birch": 10, "birchAway": 30,
+    "shoreClear": 9, "shoreFade": 14, "shoreKeep": 8,
+    "clearings": [ { "site": "village", "radius": 36, "fade": 24, "keep": 5 } ],
+    "vistas": [ { "site": "camp.player", "yaw": 135, "half": 58, "radius": 66, "down": 25 } ]
+  },
+
+  // The undergrowth: tall grass and ferns on the open grass (more ferns under the trees), flower meadows in patches, reeds on the banks. Nothing grows on
+  // a path or within a column of a prop, and a third as much one column further.
+  "undergrowth": { "grass": 100, "fern": 18, "flowers": 40, "reeds": 55, "routeMargin": 1 }
 }

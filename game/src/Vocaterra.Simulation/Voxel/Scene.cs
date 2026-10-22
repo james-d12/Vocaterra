@@ -11,7 +11,8 @@ public sealed record NpcPlacement(string Name, BlockPos Feet, int Yaw);
 /// <summary>Where the player starts: the cell the feet are in and the facing.</summary>
 /// <param name="Feet">The cell the feet are in (the air cell above the ground); the body starts at its middle.</param>
 /// <param name="Yaw">The facing in <see cref="Angles"/> steps.</param>
-public readonly record struct SpawnPoint(BlockPos Feet, int Yaw);
+/// <param name="Pitch">The look up or down in <see cref="Angles"/> steps (negative looks down), 0 for level.</param>
+public readonly record struct SpawnPoint(BlockPos Feet, int Yaw, int Pitch = 0);
 
 /// <summary>
 /// A built scene: the voxel grid, the player's spawn, the NPC placements and the named points (<c>camp</c>, <c>stall</c>, <c>river</c> ...).
@@ -29,7 +30,8 @@ public sealed class Scene
         IReadOnlyList<NpcPlacement> npcs,
         SortedDictionary<string, BlockPos> points,
         int treeCount,
-        int waterLevel)
+        int waterLevel,
+        int plantCount = 0)
     {
         Name = name;
         Seed = seed;
@@ -39,6 +41,7 @@ public sealed class Scene
         Points = new ReadOnlyDictionary<string, BlockPos>(points);
         TreeCount = treeCount;
         WaterLevel = waterLevel;
+        PlantCount = plantCount;
     }
 
     /// <summary>The layout's name.</summary>
@@ -61,6 +64,9 @@ public sealed class Scene
 
     /// <summary>How many trees the scatter planted (explicit tree props are not counted).</summary>
     public int TreeCount { get; }
+
+    /// <summary>How many undergrowth blocks (tall grass, ferns, reeds, flowers) the scene builder planted (S14).</summary>
+    public int PlantCount { get; }
 
     /// <summary>The y of the water surface block.</summary>
     public int WaterLevel { get; }

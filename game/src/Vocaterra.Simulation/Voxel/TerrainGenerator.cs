@@ -191,10 +191,17 @@ internal static class TerrainGenerator
                 for (var x = 0; x < _w; x++)
                 {
                     var i = (z * _w) + x;
-                    var basis = Relief16(x, z);
+                    var calm = Math.Max(300, IntMath.Ramp(_feature16[i] == int.MaxValue ? CalmReach * 16 : _feature16[i], 0, CalmReach * 16));
+
+                    // S14: the relief is looked up at a point moved by slow noise (a wide bend and a small wiggle), so the walls of the valley are not the straight
+                    // lines of the chunk grid. The move is damped near the sites, the paths and the river, like the other noise, so they keep their ground.
+                    var warpX = ((_noise.Value(20, x, z, 120) - 2048) * 64 / 2048) + ((_noise.Value(22, x, z, 44) - 2048) * 22 / 2048);
+                    var warpZ = ((_noise.Value(21, x, z, 120) - 2048) * 64 / 2048) + ((_noise.Value(23, x, z, 44) - 2048) * 22 / 2048);
+                    warpX = (int)((long)warpX * calm / IntMath.One);
+                    warpZ = (int)((long)warpZ * calm / IntMath.One);
+                    var basis = Relief16(Math.Clamp(x + warpX, 0, _w - 1), Math.Clamp(z + warpZ, 0, _d - 1));
                     var above16 = Math.Max(0, basis - valley16);
                     var amp16 = 24 + (int)(above16 * 16L / 100);
-                    var calm = Math.Max(300, IntMath.Ramp(_feature16[i] == int.MaxValue ? CalmReach * 16 : _feature16[i], 0, CalmReach * 16));
                     var detail = (int)((long)_noise.Hills(x, z) * amp16 / IntMath.One * calm / IntMath.One);
                     var crag = (int)((long)(_noise.Value(5, x, z, 5) - 2048) * 48 / 2048 * IntMath.Ramp(above16, 30 * 16, 60 * 16) / IntMath.One * calm / IntMath.One);
                     var h = basis + detail + crag;
@@ -234,7 +241,7 @@ internal static class TerrainGenerator
             }
 
             var step = _spec.Terrace * 16;
-            var strength = IntMath.Ramp(h16, 46 * 16, 66 * 16);
+            var strength = IntMath.Ramp(h16, 64 * 16, 90 * 16);
             if (strength == 0)
             {
                 return h16;

@@ -43,9 +43,11 @@ public readonly record struct MeshStats(
 }
 
 /// <summary>
-/// Draws the voxel world with MonoGame's <see cref="BasicEffect"/> (a texture times the vertex colour, so the face shade is in the mesh), with the
-/// depth buffer on: the opaque faces of every visible chunk first, then the figures and the highlight, then the translucent water chunk by chunk
-/// from the farthest to the nearest without writing depth, then the beacon. There is no custom shader. At the scale of the 384 x 384 x 128 world
+/// Draws the voxel world with MonoGame's own effects (no custom shader: mgfxc needs Wine on Linux): <see cref="AlphaTestEffect"/> for the opaque faces and
+/// the undergrowth (a texture times the vertex colour, the light and the ambient occlusion being in the mesh, and the cut-out pixels of the leaves and the
+/// plants dropped by the alpha test), <see cref="BasicEffect"/> for the water and the small overlays. The sky comes first (<see cref="SkyRenderer"/>), then
+/// with the depth buffer on: the opaque faces of every visible chunk, the undergrowth of the chunks near the eye without culling, the figures and the
+/// highlight, then the translucent water chunk by chunk from the farthest to the nearest without writing depth, then the beacon. At the scale of the 384 x 384 x 128 world
 /// (S13) only the chunks within the preset's view distance of the eye are meshed and drawn (<see cref="ChunkViewSet"/>): chunks of air and chunks
 /// buried in solid blocks are skipped, the rest are built nearest first within the frame's time budget, and a chunk that goes out of range lets its
 /// mesh go. The chunks that are drawn are culled against the camera's frustum, and the fog closes in at the view distance, in the sky colour. A chunk
@@ -53,11 +55,22 @@ public readonly record struct MeshStats(
 /// </summary>
 public sealed class VoxelRenderer : IDisposable
 {
-    /// <summary>The sky colour behind the world and the colour of the fog.</summary>
-    public static readonly Color Sky = new(135, 190, 235);
+    /// <summary>The colour the target is cleared to and the colour of the fog: the haze at the horizon (<see cref="SkyPalette.Horizon"/>), so far land fades into the sky.</summary>
+    public static readonly Color Sky = new(SkyPalette.Horizon.R, SkyPalette.Horizon.G, SkyPalette.Horizon.B);
 
-    /// <summary>Where the fog starts, as a fraction of where it is complete (<see cref="FogEndFor"/>): the middle distance stays clear and the far end goes blue.</summary>
-    public const float FogStartFraction = 0.7f;
+    /// <summary>Where the fog starts, as a fraction of where it is complete (<see cref="FogEndFor"/>): the near land is clear, and from a third of the way out the distance turns to haze.</summary>
+    public const float FogStartFraction = 0.8f;
+
+    /// <summary>
+    /// The sampler of the block atlas: the picture is sampled by the nearest texel (crisp pixels up close, no blur between them) and blended between the two
+    /// nearest mip levels with distance, each level made cell by cell (<see cref="BlockArt.MipLevel"/>), so a far face is smooth and in its own colours instead of a shimmer.
+    /// </summary>
+    public static readonly SamplerState AtlasSampler = new()
+    {
+        Filter = TextureFilter.PointMipLinear,
+        AddressU = TextureAddressMode.Clamp,
+        AddressV = TextureAddressMode.Clamp,
+    };
 
     // A chunk mesh is drawn with 16-bit indices, so it holds at most 65 532 vertices (16 383 quads). A full chunk of cubes tops out at 12 288 quads.
     private const int MaxQuadsPerMesh = 16383;
@@ -66,6 +79,9 @@ public sealed class VoxelRenderer : IDisposable
     private readonly BlockAtlas _atlas;
     private readonly VoxelGrid _grid;
     private readonly BasicEffect _effect;
+    private readonly AlphaTestEffect _solid;
+    private readonly SkyRenderer _sky;
+    private readonly MeshOptions _meshOptions;
     private readonly GridBlockSource _source;
     private readonly ChunkVersionTracker _tracker;
     private readonly ChunkViewSet _view;
@@ -82,6 +98,7 @@ public sealed class VoxelRenderer : IDisposable
     private double _totalMilliseconds;
     private double _longestMilliseconds;
     private int _drawnChunks;
+    private int _drawnPlantQuads;
     private int _buriedSkipped;
     private int _released;
     private int _pending;
@@ -109,6 +126,19 @@ public sealed class VoxelRenderer : IDisposable
             FogEnd = fogEnd,
             Texture = atlas.Texture,
         };
+        _solid = new AlphaTestEffect(device)
+        {
+            VertexColorEnabled = true,
+            FogEnabled = true,
+            FogColor = Sky.ToVector3(),
+            FogStart = fogEnd * FogStartFraction,
+            FogEnd = fogEnd,
+            Texture = atlas.Texture,
+            AlphaFunction = CompareFunction.Greater,
+            ReferenceAlpha = 110,
+        };
+        _sky = new SkyRenderer(device);
+        _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent);
         _indices = BuildIndexBuffer(device, MaxQuadsPerMesh);
         _chunks = new ChunkGpu[grid.Chunks.Count];
         for (var i = 0; i < _chunks.Length; i++)
@@ -154,8 +184,8 @@ public sealed class VoxelRenderer : IDisposable
             foreach (var index in _resident)
             {
                 var chunk = _chunks[index];
-                vertices += (chunk.OpaqueQuads + chunk.AlphaQuads) * 4;
-                quads += chunk.OpaqueQuads + chunk.AlphaQuads;
+                vertices += (chunk.OpaqueQuads + chunk.AlphaQuads + chunk.PlantQuads) * 4;
+                quads += chunk.OpaqueQuads + chunk.AlphaQuads + chunk.PlantQuads;
             }
 
             return new MeshStats(
@@ -173,6 +203,9 @@ public sealed class VoxelRenderer : IDisposable
                 _released);
         }
     }
+
+    /// <summary>How many undergrowth quads the last <see cref="DrawWorld"/> drew (the plants of the chunks near the eye).</summary>
+    public int DrawnPlantQuads => _drawnPlantQuads;
 
     /// <summary>How many chunks the last <see cref="DrawWorld"/> drew (the rest were outside the view, outside the frustum or empty).</summary>
     public int DrawnChunks => _drawnChunks;
@@ -263,15 +296,21 @@ public sealed class VoxelRenderer : IDisposable
     /// <param name="tick">The simulation tick (animates the beacon).</param>
     public void DrawWorld(FirstPersonCamera camera, BlockPos? highlight, BlockPos? beacon, long tick)
     {
+        _sky.Draw(camera, tick, Preset.Clouds);
+
         _device.DepthStencilState = DepthStencilState.Default;
         _device.RasterizerState = RasterizerState.CullClockwise; // triangles run counter-clockwise seen from outside
         _device.BlendState = BlendState.Opaque;
-        _device.SamplerStates[0] = SamplerState.PointClamp;
+        _device.SamplerStates[0] = AtlasSampler;
         _effect.World = Matrix.Identity;
         _effect.View = camera.View;
         _effect.Projection = camera.Projection;
         _effect.Texture = _atlas.Texture;
         _effect.FogEnabled = true;
+        _solid.World = Matrix.Identity;
+        _solid.View = camera.View;
+        _solid.Projection = camera.Projection;
+        _solid.Texture = _atlas.Texture;
 
         _visible.Clear();
         foreach (var index in _wanted)
@@ -285,12 +324,29 @@ public sealed class VoxelRenderer : IDisposable
 
         _drawnChunks = _visible.Count;
         _device.Indices = _indices;
-        _effect.CurrentTechnique.Passes[0].Apply();
+        _solid.CurrentTechnique.Passes[0].Apply();
         foreach (var chunk in _visible)
         {
             DrawChunk(chunk.Opaque, chunk.OpaqueQuads);
         }
 
+        // The undergrowth: crossed quads with both sides showing, only in the chunks near the eye.
+        var eye = camera.Eye;
+        var plantReach = Preset.PlantDistance + VoxelChunk.Size;
+        var plantReachSquared = (float)plantReach * plantReach;
+        _device.RasterizerState = RasterizerState.CullNone;
+        _drawnPlantQuads = 0;
+        foreach (var chunk in _visible)
+        {
+            if (chunk.PlantQuads > 0 && Vector3.DistanceSquared(chunk.Centre, eye) <= plantReachSquared)
+            {
+                DrawChunk(chunk.Plants, chunk.PlantQuads);
+                _drawnPlantQuads += chunk.PlantQuads;
+            }
+        }
+
+        _device.RasterizerState = RasterizerState.CullClockwise;
+        _effect.CurrentTechnique.Passes[0].Apply();
         foreach (var figure in _figureMeshes)
         {
             DrawDynamic(figure);
@@ -305,7 +361,6 @@ public sealed class VoxelRenderer : IDisposable
         _device.BlendState = BlendState.NonPremultiplied;
         _device.DepthStencilState = DepthStencilState.DepthRead;
         _effect.CurrentTechnique.Passes[0].Apply();
-        var eye = camera.Eye;
         _visible.Sort((a, b) => Vector3.DistanceSquared(b.Centre, eye).CompareTo(Vector3.DistanceSquared(a.Centre, eye)));
         _device.Indices = _indices;
         foreach (var chunk in _visible)
@@ -333,10 +388,13 @@ public sealed class VoxelRenderer : IDisposable
         {
             chunk.Opaque?.Dispose();
             chunk.Alpha?.Dispose();
+            chunk.Plants?.Dispose();
         }
 
         _indices.Dispose();
         _effect.Dispose();
+        _solid.Dispose();
+        _sky.Dispose();
     }
 
     private void BuildChunk(int index)
@@ -345,12 +403,7 @@ public sealed class VoxelRenderer : IDisposable
         var chunk = _grid.Chunks[index];
         var coord = chunk.Coord;
         var gpu = _chunks[index];
-        gpu.Opaque?.Dispose();
-        gpu.Alpha?.Dispose();
-        gpu.Opaque = null;
-        gpu.Alpha = null;
-        gpu.OpaqueQuads = 0;
-        gpu.AlphaQuads = 0;
+        gpu.Release();
         if (ChunkMesher.IsBuried(_source, chunk))
         {
             _buriedSkipped++;
@@ -359,11 +412,12 @@ public sealed class VoxelRenderer : IDisposable
             return;
         }
 
-        var meshes = ChunkMesher.Build(_source, coord.X, coord.Y, coord.Z, _tracker.GreyKinds);
+        var meshes = ChunkMesher.Build(_source, coord.X, coord.Y, coord.Z, _tracker.GreyKinds, _meshOptions);
         (gpu.Opaque, gpu.OpaqueQuads) = Upload(meshes.Opaque);
         (gpu.Alpha, gpu.AlphaQuads) = Upload(meshes.Alpha);
+        (gpu.Plants, gpu.PlantQuads) = Upload(meshes.PlantMesh);
         _tracker.MarkMeshed(coord, meshes.Kinds);
-        if (gpu.Opaque is not null || gpu.Alpha is not null)
+        if (gpu.Opaque is not null || gpu.Alpha is not null || gpu.Plants is not null)
         {
             _resident.Add(index);
         }
@@ -400,12 +454,7 @@ public sealed class VoxelRenderer : IDisposable
         foreach (var index in let)
         {
             var gpu = _chunks[index];
-            gpu.Opaque?.Dispose();
-            gpu.Alpha?.Dispose();
-            gpu.Opaque = null;
-            gpu.Alpha = null;
-            gpu.OpaqueQuads = 0;
-            gpu.AlphaQuads = 0;
+            gpu.Release();
             _tracker.Discard(_grid.Chunks[index].Coord);
             _resident.Remove(index);
             _released++;
@@ -499,9 +548,24 @@ public sealed class VoxelRenderer : IDisposable
         public int OpaqueQuads;
         public VertexBuffer? Alpha;
         public int AlphaQuads;
+        public VertexBuffer? Plants;
+        public int PlantQuads;
         public BoundingBox Box { get; } = box;
         public Vector3 Centre { get; } = (box.Min + box.Max) / 2f;
 
-        public bool Visible(BoundingFrustum frustum) => (Opaque is not null || Alpha is not null) && frustum.Intersects(Box);
+        public bool Visible(BoundingFrustum frustum) => (Opaque is not null || Alpha is not null || Plants is not null) && frustum.Intersects(Box);
+
+        public void Release()
+        {
+            Opaque?.Dispose();
+            Alpha?.Dispose();
+            Plants?.Dispose();
+            Opaque = null;
+            Alpha = null;
+            Plants = null;
+            OpaqueQuads = 0;
+            AlphaQuads = 0;
+            PlantQuads = 0;
+        }
     }
 }

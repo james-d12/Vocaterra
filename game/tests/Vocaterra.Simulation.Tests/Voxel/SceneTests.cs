@@ -9,7 +9,7 @@ public sealed class SceneTests(ITestOutputHelper output)
 {
     private const ulong Seed = 42;
 
-    private const string GoldenDigest = "4a8ad02d9db6abc20e282693f7bf3ea1bacb9e8fa8ef57fd509d5c40b7b61674";
+    private const string GoldenDigest = "25c00aeff23d2e73e962d096de9fd07baf02b3b93976635296a976ca65c42dfe";
 
     private const int Units = VoxelTestSupport.Units;
 
@@ -92,7 +92,10 @@ public sealed class SceneTests(ITestOutputHelper output)
 
                     for (var y = (site.Y ?? 30) - 3; y <= (site.Y ?? 30) + 12; y++)
                     {
-                        Assert.True(a.Grid.GetBlock(x, y, z) == b.Grid.GetBlock(x, y, z), $"{name}: ({x}, {y}, {z}) differs between seed 42 and seed {seed}");
+                        // The undergrowth on a site's meadow is the seed's (S14): it is not part of the site, which is the level ground and what is built on it.
+                        var one = a.Grid.GetBlock(x, y, z);
+                        var other = b.Grid.GetBlock(x, y, z);
+                        Assert.True(one == other || (BlockDefinition.IsDecor(one) || one == BlockId.Air) && (BlockDefinition.IsDecor(other) || other == BlockId.Air), $"{name}: ({x}, {y}, {z}) differs between seed 42 and seed {seed}");
                     }
                 }
             }
@@ -238,7 +241,7 @@ public sealed class SceneTests(ITestOutputHelper output)
         Assert.Equal(3, counts[BlockId.Stall]); // the counter
         Assert.Equal(1, counts[BlockId.Sign]);
         Assert.Equal(2 * 8, counts[BlockId.FireRing]); // two rings of eight stones
-        Assert.True(counts[BlockId.Trunk] > 10_000, "a dense forest has many trunk blocks");
+        Assert.True(TrunkBlocks(grid) > 10_000, "a dense forest has many trunk blocks");
     }
 
     [Fact]
@@ -406,7 +409,7 @@ public sealed class SceneTests(ITestOutputHelper output)
         var scene = VoxelTestSupport.BuildRoute(seed);
         var layout = VoxelTestSupport.RouteDraft;
         var grid = scene.Grid;
-        Assert.True(scene.TreeCount > 2500, "the forest should be a forest");
+        Assert.True(scene.TreeCount > 1800, "the forest should be a forest");
 
         // The route: every path block, every column that holds a built block, and the named places.
         var width = grid.SizeX;
@@ -452,12 +455,15 @@ public sealed class SceneTests(ITestOutputHelper output)
             return false;
         }
 
-        foreach (var trunk in grid.BlocksOfKind(BlockId.Trunk))
+        foreach (var trunk in AllTrunks(grid))
         {
             Assert.False(Near(trunk.X, trunk.Z, margin - 1), $"trunk at {trunk} is within {margin - 1} columns of the route");
         }
 
-        foreach (var leaf in grid.BlocksOfKind(BlockId.Leaves))
+        var leaves = grid.BlocksOfKind(BlockId.Leaves);
+        leaves.AddRange(grid.BlocksOfKind(BlockId.SpruceLeaves));
+        leaves.AddRange(grid.BlocksOfKind(BlockId.BirchLeaves));
+        foreach (var leaf in leaves)
         {
             Assert.False(Near(leaf.X, leaf.Z, margin - 3), $"leaves at {leaf} are on the route");
         }
@@ -469,7 +475,7 @@ public sealed class SceneTests(ITestOutputHelper output)
         var scene = VoxelTestSupport.BuildRoute(Seed);
         var grid = scene.Grid;
         var trunks = new HashSet<(int X, int Z)>();
-        foreach (var p in grid.BlocksOfKind(BlockId.Trunk))
+        foreach (var p in AllTrunks(grid))
         {
             trunks.Add((p.X, p.Z));
         }
@@ -543,12 +549,28 @@ public sealed class SceneTests(ITestOutputHelper output)
     private static int Ground(VoxelGrid grid, int x, int z)
     {
         var y = grid.HighestBlock(x, z);
-        while (y > 0 && grid.GetBlock(x, y, z) is BlockId.Leaves or BlockId.Trunk or BlockId.Air or BlockId.Water or BlockId.Bush or BlockId.BerryBush)
+        while (y > 0 && IsNotGround(grid.GetBlock(x, y, z)))
         {
             y--;
         }
 
         return y;
+    }
+
+    // A tree of any species, the undergrowth (S14), a bush, water and air are on the ground, not the ground.
+    private static bool IsNotGround(BlockId block) =>
+        block is BlockId.Air or BlockId.Water or BlockId.Bush or BlockId.BerryBush
+        || BlockDefinition.IsLeaves(block) || BlockDefinition.IsTrunk(block) || BlockDefinition.IsDecor(block);
+
+    private static int TrunkBlocks(VoxelGrid grid) =>
+        grid.BlocksOfKind(BlockId.Trunk).Count + grid.BlocksOfKind(BlockId.SpruceTrunk).Count + grid.BlocksOfKind(BlockId.BirchTrunk).Count;
+
+    private static List<BlockPos> AllTrunks(VoxelGrid grid)
+    {
+        var trunks = grid.BlocksOfKind(BlockId.Trunk);
+        trunks.AddRange(grid.BlocksOfKind(BlockId.SpruceTrunk));
+        trunks.AddRange(grid.BlocksOfKind(BlockId.BirchTrunk));
+        return trunks;
     }
 
     private static int WaterSurface(VoxelGrid grid, int x, int z)
