@@ -44,6 +44,16 @@ public static class Program
                                                              --prompts measures reachability from those prompts only; --host-pools names
                                                              pools the host voices itself (exact ids, or a prefix ending in *); hashes are
                                                              not verified, so run it before hash
+          grammar <bundleDir> [--strings <jsonl> [--strings-only]] [--server URL] [--offline] [--cache FILE] [--waivers FILE]
+                  [--level picky|default] [--format text|json] [--strict]
+                                                             check the Spanish strings (dialogue lines, prompts, answer sets, intent examples,
+                                                             slot templates rendered from sampled fillings, and the host's JSONL strings) with a
+                                                             local LanguageTool server (default http://localhost:8081, plain 'es'); results are
+                                                             cached in <bundle's folder>/grammar/<name>-cache.json and waivers are read from
+                                                             <name>-waivers.json beside it; --offline replays the cache only (a missing entry is an
+                                                             error); learner examples with expected error tags are graded as an oracle; findings
+                                                             print like lint; exit 1 on errors (and warnings with --strict), 3 when no server
+                                                             answers in online mode (skipped, not passed); docs/API.md has the JSONL format
           import-lexicon <kaikki.jsonl> <out.json> [--max N] [--frequency <es_50k.txt> [--top N]] [--hand-authored <dir|a.json,b.json>]
                                                              [--sidecar <out.source.json> [--sources <sources.json>]]
                                                              convert wiktextract Spanish JSONL into a lexicon file; with a frequency
@@ -68,8 +78,11 @@ public static class Program
         return Run(args, Console.Out, Console.Error);
     }
 
-    /// <summary>Runs the tool, writing normal output to <paramref name="output"/> and problems and usage errors to <paramref name="error"/>.</summary>
-    public static int Run(string[] args, TextWriter output, TextWriter error)
+    /// <summary>
+    /// Runs the tool, writing normal output to <paramref name="output"/> and problems and usage errors to <paramref name="error"/>. The HTTP handler
+    /// is used only by <c>grammar</c>, in place of the network (tests pass a stub).
+    /// </summary>
+    public static int Run(string[] args, TextWriter output, TextWriter error, HttpMessageHandler? httpHandler = null)
     {
         ArgumentNullException.ThrowIfNull(args);
         ArgumentNullException.ThrowIfNull(output);
@@ -97,6 +110,11 @@ public static class Program
                 "verify-pack" => VerifyPack(new ArgumentList(args, 1, []), output, error),
                 "lint" => Lint(new ArgumentList(args, 1, ["--level", "--prompts", "--host-pools"], ["--strict", "--fail-on-level", "--json"]), output, error),
                 "cefr-check" => CefrCheck(new ArgumentList(args, 1, ["--level"]), output, error),
+                "grammar" => GrammarCommand.Run(
+                    new ArgumentList(args, 1, ["--strings", "--server", "--cache", "--waivers", "--level", "--format"], ["--offline", "--strict", "--strings-only"]),
+                    output,
+                    error,
+                    httpHandler),
                 "import-lexicon" => ImportLexicon(new ArgumentList(args, 1, ["--max", "--frequency", "--top", "--sidecar", "--sources", "--hand-authored"]), output, error),
                 "lexicon-report" => LexiconReportCommand(new ArgumentList(args, 1, []), output, error),
                 _ => throw new UsageException($"Unknown command '{command}'."),

@@ -12,6 +12,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- The learner-error oracle's rule-to-tag hints (a data file, not code). -->
+    <EmbeddedResource Include="Grammar/rule-tags.json" LogicalName="rule-tags.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The content tests exercise the grammar check's cache, waivers and JSONL reader directly. -->
+    <InternalsVisibleTo Include="Vocaterra.Nlp.Content.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../../src/Vocaterra.Nlp.Pipeline/Vocaterra.Nlp.Pipeline.csproj" />
     <ProjectReference Include="../../src/Vocaterra.Nlp.Content/Vocaterra.Nlp.Content.csproj" />
   </ItemGroup>

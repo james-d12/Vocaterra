@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "waivers": [
+    {
+      "rule": "PUNTOS_SUSPENSIVOS",
+      "id": "sell_item_reply.2",
+      "reason": "Style, not grammar: the sample's spoken line uses an ASCII ellipsis (...) and LanguageTool prefers the typographic character (U+2026). Accepted for now; M30 does not edit content (M27a2 owns content fixes), and the speech path has not been checked for the two forms."
+    }
+  ]
+}
