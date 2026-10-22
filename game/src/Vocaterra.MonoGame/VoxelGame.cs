@@ -60,6 +60,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <summary>The thank-you note of the next-day recall of a playtest.</summary>
     private const string RecallThankYou = "Thank you. Your answers are in the session log.";
 
+    private static readonly (Keys Key, LessonKey Lesson)[] LessonKeys =
+    [
+        (Keys.Enter, LessonKey.Enter), (Keys.K, LessonKey.K), (Keys.L, LessonKey.L),
+        (Keys.D1, LessonKey.D1), (Keys.D2, LessonKey.D2), (Keys.D3, LessonKey.D3), (Keys.D4, LessonKey.D4),
+        (Keys.NumPad1, LessonKey.D1), (Keys.NumPad2, LessonKey.D2), (Keys.NumPad3, LessonKey.D3), (Keys.NumPad4, LessonKey.D4),
+    ];
+
     private static readonly (Keys Key, Keys Pad)[] CheckOptionKeys = [(Keys.D1, Keys.NumPad1), (Keys.D2, Keys.NumPad2), (Keys.D3, Keys.NumPad3)];
 
     private static readonly Keys[] SlotKeys = [Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9, Keys.D0];
@@ -85,6 +92,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly PushToTalk _talk;
     private readonly SpeechActionRunner _actions;
     private readonly SupportFrontend _support;
+    private readonly LessonFrontend _lesson;
+    private bool _controlsOpen;
+    private bool _aimedTipOffered;
     private readonly NpcVoice _voice;
     private readonly TurnWatchdog _watchdog = new();
     private readonly MicCheckModel? _micCheck;
@@ -164,12 +174,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _voice = voice;
         _pristine = pristine;
         _sim = session.Simulation;
-        _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Phrases);
+        _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Phrases, session.English);
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
         _talk = new PushToTalk(microphone);
         _pump = new TurnPump(session, _dialogue, CursorCell);
         _actions = new SpeechActionRunner(session, _dialogue, voice, CursorCell);
         _support = new SupportFrontend(session, _dialogue, _actions, Console.WriteLine);
+        _lesson = new LessonFrontend(session, _dialogue, Console.WriteLine);
         _micCheck = options.ShowsMicCheck ? new MicCheckModel(session.LogMicCheck) : null;
         _playtest = options.Playtest;
         _debug.Visible = !_playtest; // the playtest has no debug overlay (F3 is off there too)
@@ -180,7 +191,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _clock = new FixedFrameClock(VoxelSimulation.TicksPerSecond);
             if (options.Script.Count > 0)
             {
-                var hooks = new ScenarioHooks(npc => OpenDialogueOn(npc, null), CloseDialogue, path => _shotPath = path, () => _shotPath is not null);
+                var hooks = new ScenarioHooks(npc => OpenDialogueOn(npc, null), CloseDialogue, path => _shotPath = path, () => _shotPath is not null, RunLessonStep);
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, ResolveItem, hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
@@ -368,6 +379,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Objective = _session.Objective,
             Cards = _cards,
             MicCheck = _micCheck,
+            ShowTips = _options.ShowsTips,
         };
         _layers.Add(new HeldItemLayer());
         _layers.Add(new CrosshairLayer());
@@ -378,13 +390,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _layers.Add(_debug);
         _layers.Add(new HotbarLayer());
         _layers.Add(new ObjectiveLayer());
+        _layers.Add(new TipLayer());
         _layers.Add(new SupportLayer());
+        _layers.Add(new LessonLayer(_lesson));
         _layers.Add(new WordCardLayer());
         _layers.Add(new DialoguePanel());
         _layers.Add(new ToastLayer());
         _layers.Add(new JournalLayer());
         _layers.Add(new InventoryLayer());
         _layers.Add(new CraftingLayer());
+        _layers.Add(new ControlsLayer());
         _layers.Add(new CheckLayer());
         _layers.Add(new MicCheckLayer());
         if (_playtest)
@@ -417,6 +432,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         ApplyFinishedTurns();
         _log?.Pump(_session); // the replay records and the events of this frame (S11)
         _ = _support.Pump(later => _voice.Say(later.Npc, later.Lines)); // the shopkeeper's question after the key words is spoken first
+        _lesson.Pump(); // a lesson step's line goes on the panel (S16)
 
         RunWatchdog(seconds);
         DriveScriptedMicCheck();
@@ -448,6 +464,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _pump.Submit();
         SyncBeacon();
         _aimed = AimedFigure();
+        if (_aimed is not null && !_aimedTipOffered)
+        {
+            _aimedTipOffered = true;
+            _session.Tips.Offer("aimed_npc"); // the first time the crosshair is on someone (S16)
+        }
+
         PrintEvents();
 
         // Settled: the world's script is done (or there is none) with no battery on screen, a battery that ends the run has shown its end, or a
@@ -508,6 +530,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.Fps = _stats.Fps;
         view.Aimed = _aimed;
         view.Check = _check;
+        view.ControlsOpen = _controlsOpen;
         view.Loading = _session.Worker!.IsReady ? null : LoadingLayer.Text;
         view.LoadingFrame = _loadingFrames++;
         var mouse = Mouse.GetState();
@@ -753,6 +776,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             {
                 ReadDialogueKeys(keys, Pressed);
             }
+            else if (_controlsOpen)
+            {
+                if (Pressed(Keys.Escape) || Pressed(Keys.F1))
+                {
+                    _controlsOpen = false; // the controls help (F1, S16)
+                }
+            }
             else if (_journal.IsOpen)
             {
                 if (Pressed(Keys.Escape) || Pressed(Keys.J))
@@ -791,6 +821,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     OpenDialogueOn(_aimed.Name, Pressed(Keys.T) ? 't' : 'e');
                 }
             }
+            else if (Pressed(Keys.F1))
+            {
+                _controlsOpen = true;
+            }
+            else if (Pressed(Keys.Enter) && _session.Tips.Current is not null)
+            {
+                _session.Tips.Dismiss(); // Enter: next tip (S16)
+            }
             else if (Pressed(Keys.J))
             {
                 OpenJournal();
@@ -814,7 +852,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
         }
 
-        var uiOpen = _journal.IsOpen || _inventory.IsOpen || _dialogue.IsOpen || _crafting.IsOpen || _micCheck is { IsActive: true };
+        var uiOpen = _journal.IsOpen || _inventory.IsOpen || _dialogue.IsOpen || _crafting.IsOpen || _controlsOpen || _micCheck is { IsActive: true };
         var leftDown = mouse.LeftButton == ButtonState.Pressed;
         var rightDown = mouse.RightButton == ButtonState.Pressed;
         if (IsActive && _crafting.IsOpen && leftDown && !_previousLeftDown)
@@ -959,6 +997,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return;
         }
 
+        // The lesson strip's keys (S16): L starts the lesson on offer, Enter continues, K skips the step, 1 to 4 pick an answer of a listen step.
+        foreach (var (key, lessonKey) in LessonKeys)
+        {
+            if (pressed(key) && _lesson.PressKey(lessonKey))
+            {
+                return;
+            }
+        }
+
         if (pressed(Keys.V) || pressed(Keys.Space))
         {
             BeginListening(pressed(Keys.V) ? Keys.V : Keys.Space);
@@ -1013,6 +1060,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (_dialogue.IsOpen)
         {
+            if (LessonLayer.LayoutFor(_view!, _lesson) is { } strip && strip.ActionAt(x, y) is { } lessonAction)
+            {
+                _ = _lesson.Perform(lessonAction); // a button of the lesson strip (S16)
+                return;
+            }
+
             var layout = DialoguePanel.LayoutFor(_dialogue, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, font);
             if (layout.ActionAt(x, y) is { } action)
             {
@@ -1222,6 +1275,35 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _swallowFrames = 2; // the platform types the key once, in the next frame at the latest
         var how = opening.HostTurn ? "host turn" : "prompt";
         Console.WriteLine($"talk: {npc} ({how}, {opening.Prompt}): {(_session.KeyWordsPending ? $"[key words: {string.Join(", ", _session.KeyWordCards.Select(static c => c.Phrase))}]" : string.Join(" / ", opening.Lines))}{(_session.ReviewLine is { } review ? $" / {review}" : string.Empty)}");
+    }
+
+    // A lesson step of the scripted run (S16): the same presses the strip's buttons make.
+    private void RunLessonStep(ScriptStepKind kind, string value)
+    {
+        switch (kind)
+        {
+            case ScriptStepKind.LessonStart:
+                if (!_session.Lessons.Start(value))
+                {
+                    Console.WriteLine($"lesson: cannot start '{value}' (unknown, or another lesson is active)");
+                    return;
+                }
+
+                _lesson.Pump();
+                break;
+            case ScriptStepKind.LessonContinue:
+                _ = _lesson.Perform(LessonAction.Continue);
+                break;
+            case ScriptStepKind.LessonSkip:
+                _ = _lesson.Perform(LessonAction.Skip);
+                break;
+            case ScriptStepKind.LessonHelp:
+                _ = _lesson.Perform(LessonAction.Help);
+                break;
+            default: // LessonPick
+                _ = _lesson.Perform(LessonAction.Option1 + (int.Parse(value, System.Globalization.CultureInfo.InvariantCulture) - 1));
+                break;
+        }
     }
 
     // The panel closes (Esc, or the script walks on): a recording in progress is dropped and the talk ends.

@@ -12,7 +12,8 @@ namespace Vocaterra.MonoGame.Frontend;
 /// <param name="CloseTalk">Closes the panel (the same call the Esc key makes).</param>
 /// <param name="TakeShot">Asks for a screenshot of the next drawn frame.</param>
 /// <param name="ShotPending">Whether the last requested screenshot has not been saved yet.</param>
-public sealed record ScenarioHooks(Action<string> OpenTalk, Action CloseTalk, Action<string> TakeShot, Func<bool> ShotPending);
+/// <param name="Lesson">Carries out a lesson step of the script (S16): the kind and its value (the lesson's id, or the option). The game supplies the lesson front-end's call.</param>
+public sealed record ScenarioHooks(Action<string> OpenTalk, Action CloseTalk, Action<string> TakeShot, Func<bool> ShotPending, Action<ScriptStepKind, string>? Lesson = null);
 
 /// <summary>
 /// The scripted run of the 3D game (<c>--screenshot</c> with steps): the body's steps (<see cref="VoxelScript"/>), the talk steps (S6) and the
@@ -249,6 +250,28 @@ public sealed class ScenarioScript
             case ScriptStepKind.Leave:
                 CloseIfOpen();
                 _index++;
+                break;
+            case ScriptStepKind.LessonStart:
+                if (!_dialogue.IsOpen)
+                {
+                    // The lesson is attached to an NPC: walk up to it and open the panel first (the step itself is taken next).
+                    StartTalk(_session.Lessons.Book.Find(step.Value)?.Npc ?? NpcService.GuideAgent);
+                    break;
+                }
+
+                _hooks.Lesson?.Invoke(step.Kind, step.Value);
+                _index++;
+                _phase = Phase.Gap;
+                _wait = GapTicks;
+                break;
+            case ScriptStepKind.LessonContinue:
+            case ScriptStepKind.LessonSkip:
+            case ScriptStepKind.LessonHelp:
+            case ScriptStepKind.LessonPick:
+                _hooks.Lesson?.Invoke(step.Kind, step.Value);
+                _index++;
+                _phase = Phase.Gap;
+                _wait = GapTicks;
                 break;
             case ScriptStepKind.Pick:
                 _log($"pick {step.Value}: a check step; the check battery takes it before the world (ignored here)");

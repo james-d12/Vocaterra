@@ -47,6 +47,12 @@ public sealed record LaunchOptions
         + "  --wait <seconds>        let the game run this many seconds (60 ticks each) before the next step, for example to see the stall's question after the key words; a step\n"
         + "  --skip <seconds>        move the stored time on this many seconds without waiting (the demo of the spacing gaps and of the guide's review); a step\n"
         + "  --shot <path.png>       save the screen at this point of the script and go on (the final --screenshot is saved when the script is done); a step\n"
+        + "  --lesson <id>           start the lesson (the sample is `sample`) at the NPC it is attached to: walk up, open the dialogue and begin it; a step (S16)\n"
+        + "  --lesson-next           the lesson strip's Continue (explain, model, recap and a picked listen step); a step\n"
+        + "  --lesson-skip           skip the lesson step in progress; a step\n"
+        + "  --lesson-help           the lesson step's help path (its English hint, its model line again, the card and the English); a step\n"
+        + "  --lesson-pick <n>       pick option n (1 to 4) of a listen step; a step\n"
+        + "  --tips                  draw the first-time tips in a scripted run too (an interactive run always does; S16)\n"
         + "  --beacon <point>        stand the beacon column on a named point of the scene (camp.guide, camp.player, firering, workbench, stall, signpost, village, house1, bridge, river, lake,\n"
         + "                          waterfall...); the default is camp.guide (the walk down the trail), none puts no beacon up\n"
         + "  --journal               open the journal once the steps are done\n"
@@ -79,7 +85,8 @@ public sealed record LaunchOptions
         + "Controls: WASD or the arrows walk, Space jumps, the mouse looks; hold the left button to gather, the right to place; E opens the inventory (or\n"
         + "  the crafting panel at the workbench, or talks to the guide when the crosshair is on her); C the crafting panel; J the journal; 1..0 the hotbar.\n"
         + "Push-to-talk: hold V or Space while the dialogue is open, or hold V with the crosshair on an NPC to open it and listen. In the dialogue: R repeat,\n"
-        + "  S slower, H help, N \"no sé\", W or Tab type (Tab or Esc back to the buttons), 1 to 3 pick an offered choice, Esc cancels a turn that is thinking, then closes.\n";
+        + "  S slower, H help, N \"no sé\", W or Tab type (Tab or Esc back to the buttons), 1 to 3 pick an offered choice, Esc cancels a turn that is thinking, then closes.\n"
+        + "F1 shows the controls in English. In a lesson at the guide: L starts it, Enter continues, K skips the step, H helps, 1 to 4 pick an answer.\n";
 
     /// <summary>The world seed.</summary>
     public ulong Seed { get; init; } = DefaultSeed;
@@ -156,6 +163,12 @@ public sealed record LaunchOptions
     /// <summary>Whether <c>--greyscale</c> was given: blocks whose noun is not known are drawn grey (the playtest A/B, D-game-6).</summary>
     public bool Greyscale { get; init; }
 
+    /// <summary>Whether <c>--tips</c> was given: a scripted run draws the first-time tips too (S16).</summary>
+    public bool Tips { get; init; }
+
+    /// <summary>Whether the first-time tips are drawn: an interactive run always shows them, a scripted run only with <c>--tips</c>.</summary>
+    public bool ShowsTips => !IsScreenshotRun || Tips;
+
     /// <summary>The catalogue nouns that count as known from the start (<c>--assume-known</c>, a test aid); empty by default.</summary>
     public IReadOnlyList<string> AssumeKnown { get; init; } = [];
 
@@ -227,12 +240,24 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--voxel" or "--greyscale" or "--leave" or "--mic-check" or "--no-mic-check"
-                    or "--playtest")
+                    or "--playtest" or "--tips" or "--lesson-next" or "--lesson-skip" or "--lesson-help")
             {
                 switch (arg)
                 {
                     case "--leave":
                         script.Add(new ScriptStep(ScriptStepKind.Leave));
+                        break;
+                    case "--tips":
+                        result = result with { Tips = true };
+                        break;
+                    case "--lesson-next":
+                        script.Add(new ScriptStep(ScriptStepKind.LessonContinue));
+                        break;
+                    case "--lesson-skip":
+                        script.Add(new ScriptStep(ScriptStepKind.LessonSkip));
+                        break;
+                    case "--lesson-help":
+                        script.Add(new ScriptStep(ScriptStepKind.LessonHelp));
                         break;
                     case "--mute":
                         result = result with { Muted = true };
@@ -274,7 +299,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
-                or "--check" or "--pick" or "--session-dir" or "--quality" or "--view-distance" or "--teleport"))
+                or "--check" or "--pick" or "--session-dir" or "--lesson" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -408,6 +433,24 @@ public sealed record LaunchOptions
                     }
 
                     script.Add(new ScriptStep(arg == "--wait" ? ScriptStepKind.Wait : ScriptStepKind.Skip, Value: amount.ToString(CultureInfo.InvariantCulture)));
+                    break;
+                case "--lesson":
+                    if (string.IsNullOrWhiteSpace(value))
+                    {
+                        error = "--lesson needs the id of a lesson (the sample is 'sample').";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.LessonStart, Value: value.Trim()));
+                    break;
+                case "--lesson-pick":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var option) || option is < 1 or > 4)
+                    {
+                        error = $"--lesson-pick needs an option from 1 to 4, got '{value}'.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.LessonPick, Value: option.ToString(CultureInfo.InvariantCulture)));
                     break;
                 case "--shot":
                     if (value.Length == 0)
@@ -567,7 +610,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --talk, --say, --speak, --wav, --leave, --shot, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 
@@ -638,6 +681,21 @@ public enum ScriptStepKind
 
     /// <summary>Move the stored time on by the seconds in <see cref="ScriptStep.Value"/> without stepping the world (S8).</summary>
     Skip,
+
+    /// <summary>Start the lesson whose id is in <see cref="ScriptStep.Value"/> at the NPC it is attached to: walk up, open the dialogue and begin it (S16).</summary>
+    LessonStart,
+
+    /// <summary>The lesson strip's Continue (S16).</summary>
+    LessonContinue,
+
+    /// <summary>Skip the lesson step in progress (S16).</summary>
+    LessonSkip,
+
+    /// <summary>The lesson step's help path (S16).</summary>
+    LessonHelp,
+
+    /// <summary>Pick the option (1 to 4) in <see cref="ScriptStep.Value"/> of a listen step (S16).</summary>
+    LessonPick,
 }
 
 /// <summary>One step of the scripted run, in the order given on the command line.</summary>

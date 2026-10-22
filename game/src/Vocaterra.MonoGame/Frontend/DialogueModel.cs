@@ -26,6 +26,9 @@ public enum DialogueSpeaker
 
     /// <summary>A hint from the game about the player's progress (for example why a word did not gain colour).</summary>
     Hint,
+
+    /// <summary>The plain-English feedback after a turn (S16, D-game-13): what happened and what to do, drawn in its own colour and marked as English. Never spoken.</summary>
+    English,
 }
 
 /// <summary>A scripted spoken line waiting to be sent (<c>--wav</c>, <c>--speak</c>): the game submits it to the worker between ticks.</summary>
@@ -63,6 +66,7 @@ public sealed class DialogueModel
     private readonly string _openingLine;
     private readonly HashSet<string> _opened = new(StringComparer.Ordinal);
     private readonly PhraseSheet? _phrases;
+    private readonly EnglishText? _english;
     private int _cancelled;
 
     /// <summary>The text of the hint line that offers typing (the watchdog, or two uncertain recognitions in a row).</summary>
@@ -75,13 +79,15 @@ public sealed class DialogueModel
     /// <param name="focus">Who has the keyboard; the model sets <see cref="InputFocus.TextEntryActive"/> while it is open.</param>
     /// <param name="openingLine">What the guide says the first time the panel opens (the prompt's text).</param>
     /// <param name="phrases">The phrase sheet, for the heard-versus-expected line and the labels of the offered choices; without it neither is shown.</param>
-    public DialogueModel(InputFocus focus, string openingLine, PhraseSheet? phrases = null)
+    /// <param name="english">The game's English text, for the plain-English feedback after a turn (S16); without it no feedback line is added.</param>
+    public DialogueModel(InputFocus focus, string openingLine, PhraseSheet? phrases = null, EnglishText? english = null)
     {
         ArgumentNullException.ThrowIfNull(focus);
         ArgumentNullException.ThrowIfNull(openingLine);
         _focus = focus;
         _openingLine = openingLine;
         _phrases = phrases;
+        _english = english;
     }
 
     /// <summary>Whether the panel is open (and so has the keyboard).</summary>
@@ -256,6 +262,25 @@ public sealed class DialogueModel
     {
         ArgumentNullException.ThrowIfNull(text);
         Add(DialogueSpeaker.Hint, text);
+    }
+
+    /// <summary>Adds a line the open NPC says (S16: a lesson's model or question line), so it is shown, repeated and glossed like any other of the NPC's lines.</summary>
+    /// <param name="text">The Spanish line.</param>
+    public void AddNpcLine(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        if (IsOpen)
+        {
+            Add(DialogueSpeaker.Guide, text);
+        }
+    }
+
+    /// <summary>Adds a line of English from the game (S16: a lesson's hint), drawn like the feedback after a turn.</summary>
+    /// <param name="text">The English text.</param>
+    public void AddEnglish(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        Add(DialogueSpeaker.English, text);
     }
 
     /// <summary>Closes the panel, gives the keyboard back to the player and drops a pending send. The lines and the half-typed text stay.</summary>
@@ -536,6 +561,14 @@ public sealed class DialogueModel
             foreach (var line in turn.FollowUp)
             {
                 Add(DialogueSpeaker.Guide, line);
+            }
+        }
+
+        if (_english is not null)
+        {
+            foreach (var line in _english.FeedbackFor(turn))
+            {
+                Add(DialogueSpeaker.English, line); // the plain-English feedback after the turn (S16, D-game-13)
             }
         }
 

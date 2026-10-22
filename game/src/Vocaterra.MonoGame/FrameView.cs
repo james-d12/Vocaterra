@@ -73,6 +73,12 @@ public sealed class FrameView
     /// <summary>The check battery's screen (S11) while it runs, or <see langword="null"/>.</summary>
     public CheckScreen? Check { get; set; }
 
+    /// <summary>Whether the first-time tips are drawn (S16): an interactive run shows them, a scripted run only when asked.</summary>
+    public bool ShowTips { get; set; }
+
+    /// <summary>Whether the controls help (F1, S16) is open.</summary>
+    public bool ControlsOpen { get; set; }
+
     /// <summary>The word cards waiting to be shown (the first pickup of each noun).</summary>
     public WordCardQueue Cards { get; init; } = new();
 

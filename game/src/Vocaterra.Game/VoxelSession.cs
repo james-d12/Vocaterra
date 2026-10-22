@@ -36,7 +36,8 @@ public sealed class VoxelSession : GuideSession
     /// <param name="nouns">The noun catalogue of the same bundle.</param>
     /// <param name="scene">The built scene; the simulation starts with the player at its spawn.</param>
     /// <param name="credit">The credit per kind of input and the gaps; <see cref="CreditRules.Default"/> when <see langword="null"/>.</param>
-    public VoxelSession(ContentBundle bundle, ulong worldSeed, long startedAt, NounCatalog nouns, Scene scene, CreditRules? credit = null)
+    /// <param name="lessons">The lessons to run instead of the bundle's <c>game/lessons.json</c> (the tests' own lessons), or <see langword="null"/> for the bundle's.</param>
+    public VoxelSession(ContentBundle bundle, ulong worldSeed, long startedAt, NounCatalog nouns, Scene scene, CreditRules? credit = null, LessonBook? lessons = null)
         : base(
             bundle,
             worldSeed,
@@ -45,13 +46,15 @@ public sealed class VoxelSession : GuideSession
             WorldFacts3D.Live(scene?.Grid ?? throw new ArgumentNullException(nameof(scene)), nouns),
             RecipeBook.Load(bundle, nouns),
             playSession: 1,
-            credit)
+            credit,
+            lessons)
     {
         Scene = scene;
         Simulation = VoxelSimulation.Create(scene);
         Simulation.SetRecipes(Recipes.Rules);
         Objective = Objective.Camp();
         ScanFireRing(scene);
+        Tips.Offer("start"); // the opening tips (S16): looking, walking, jumping, collecting
     }
 
     /// <summary>The built scene (the world the facts read).</summary>
@@ -117,6 +120,7 @@ public sealed class VoxelSession : GuideSession
 
         Simulation.Step(commands);
         AdvanceKeyWords();
+        Tips.Step(Simulation.Tick);
         var completed = new List<ObjectiveStep>();
         foreach (var e in Simulation.Events)
         {
@@ -125,6 +129,7 @@ public sealed class VoxelSession : GuideSession
                 case SimulationEventKind.ItemPickedUp:
                     completed.AddRange(Objective.RecordPickup((ItemId)e.Detail, e.Amount));
                     LearnItem((ItemId)e.Detail);
+                    LogWorld(WorldEvents.ItemPickedUp, null, Nouns.ForItem((ItemId)e.Detail)?.Lemma ?? ItemDefinition.Get((ItemId)e.Detail).Name);
                     break;
                 case SimulationEventKind.ItemCrafted:
                     LearnItem((ItemId)e.Detail);

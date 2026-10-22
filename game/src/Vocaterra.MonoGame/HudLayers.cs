@@ -6,17 +6,23 @@ using Vocaterra.MonoGame.Frontend;
 namespace Vocaterra.MonoGame;
 
 /// <summary>
-/// The camp checklist, top right: <c>Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1</c>. A done step is drawn in green, an open
-/// one in white; the title in gold. The text is drawn from <see cref="Objective.Steps"/>, so the line is the one the objective reports.
+/// The camp checklist, top right: <c>Campamento (camp): madera (wood) 0/5 · frutas (fruit) 0/3 · antorcha (torch) 0/1 · agua (water) 0/1</c> (S16, D-game-13).
+/// A done step is drawn in green, an open one in white, the title in gold and the English in its own colour; the English of a step goes once its noun is known
+/// (D-game-6) and the title's once every step's has. The text comes from <see cref="EnglishText.ObjectivePieces"/>, so the line is the one the content gives; a line
+/// wider than the window's share wraps to a second row, the title first.
 /// </summary>
 public sealed class ObjectiveLayer : IFrameLayer
 {
     /// <summary>The distance from the top and the right edge, in pixels.</summary>
     public const int Margin = 12;
 
+    /// <summary>The share of the window's width the checklist may take before it wraps.</summary>
+    public const double WidthShare = 0.62;
+
     private static readonly Color Gold = new(255, 214, 64);
     private static readonly Color Open = new(245, 245, 245);
     private static readonly Color Done = new(120, 220, 130);
+    private static readonly Color DoneEnglish = new(150, 190, 160);
     private static readonly Color Back = new(10, 10, 20, 190);
 
     /// <inheritdoc />
@@ -28,30 +34,48 @@ public sealed class ObjectiveLayer : IFrameLayer
         }
 
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        const string Separator = " · ";
-        var pieces = new List<(string Text, Color Colour)> { (Objective.Title + ": ", Gold) };
-        for (var i = 0; i < objective.Steps.Count; i++)
-        {
-            var step = objective.Steps[i];
-            if (i > 0)
-            {
-                pieces.Add((Separator, Open));
-            }
-
-            pieces.Add((step.Text, step.Done ? Done : Open));
-        }
-
-        var width = pieces.Sum(p => (int)DrawHelpers.Width(font, p.Text));
-        var box = new Rectangle(view.ViewportWidth - width - (Margin * 2) - 8, Margin, width + 16, 28);
+        var session = view.Session;
+        var pieces = session.English.ObjectivePieces(objective, lemma => session.Words.RecordOf(lemma).Known);
+        var rows = Rows(pieces, font, (int)(view.ViewportWidth * WidthShare));
+        var width = rows.Max(row => row.Sum(p => (int)DrawHelpers.Width(font, p.Text)));
+        var height = 8 + (rows.Count * 20);
+        var box = new Rectangle(view.ViewportWidth - width - (Margin * 2) - 8, Margin, width + 16, height);
         spriteBatch.Draw(view.Pixel, box, Back);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, Gold);
-        var x = box.Left + 8;
-        foreach (var (text, colour) in pieces)
+        var y = box.Top + 6;
+        foreach (var row in rows)
         {
-            DrawHelpers.Text(spriteBatch, font, text, new Vector2(x, box.Top + 6), colour);
-            x += (int)DrawHelpers.Width(font, text);
+            var x = box.Left + 8;
+            foreach (var piece in row)
+            {
+                DrawHelpers.Text(spriteBatch, font, piece.Text, new Vector2(x, y), ColourOf(piece));
+                x += (int)DrawHelpers.Width(font, piece.Text);
+            }
+
+            y += 20;
         }
     }
+
+    // The checklist on one row when it fits; otherwise the title on the first row and the steps on the second.
+    private static List<List<ObjectivePiece>> Rows(IReadOnlyList<ObjectivePiece> pieces, FontStashSharp.SpriteFontBase font, int maxWidth)
+    {
+        var whole = pieces.Sum(p => (int)DrawHelpers.Width(font, p.Text));
+        if (whole <= maxWidth)
+        {
+            return [pieces.ToList()];
+        }
+
+        var firstStep = pieces.ToList().FindIndex(static p => p.Kind == ObjectivePieceKind.Word);
+        return [pieces.Take(firstStep).ToList(), pieces.Skip(firstStep).ToList()];
+    }
+
+    private static Color ColourOf(ObjectivePiece piece) => piece.Kind switch
+    {
+        ObjectivePieceKind.Title => Gold,
+        ObjectivePieceKind.English => piece.Done ? DoneEnglish : DialoguePanel.EnglishColor,
+        ObjectivePieceKind.Word or ObjectivePieceKind.Count => piece.Done ? Done : Open,
+        _ => Open,
+    };
 }
 
 /// <summary>
