@@ -15,7 +15,7 @@ public sealed record PhraseReview(string PhraseId, string Prompt, string Request
 
 /// <summary>
 /// How the guide asks a due phrase (S8). The bundle's pool <see cref="PoolOf"/> holds the request line when the content has it (for example
-/// <c>Pídeme agua.</c>); until then the placeholder is a line the bundle already has that makes the same situation: the stall's own question for
+/// <c>¿Qué necesitas?</c>); until then the placeholder is a line the bundle already has that makes the same situation: the stall's own question for
 /// <c>pedir-agua</c> (the guide asks what the player needs, so the transfer is to a different speaker), the guide's offer for <c>sí, por favor</c>
 /// and <c>no, gracias</c>, and the villager's greeting question for the river question.
 /// </summary>

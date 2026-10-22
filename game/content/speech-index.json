@@ -685,26 +685,26 @@
       "Bytes": 105644
     },
     "speech/guide.review.phrase.donde_esta_el_rio.1.slow.wav": {
-      "Text": "Preg\u00FAntame por el r\u00EDo.",
+      "Text": "\u00BFQu\u00E9 buscas?",
       "Speaker": "guide",
       "SpeakerId": 28,
       "Voice": "ef_dora",
       "Speed": 0.8,
       "Rate": 24000,
       "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
-      "Sha256": "0c127bcb8c86e9be00e91b2200992a7fe706897cbdd64a0b887cda5315d4e939",
-      "Bytes": 97660
+      "Sha256": "741617fd6fb1bcb24f6999d8ad95e89778290be9560a4ac8a4aaa42b7783e8b8",
+      "Bytes": 63644
     },
     "speech/guide.review.phrase.donde_esta_el_rio.1.wav": {
-      "Text": "Preg\u00FAntame por el r\u00EDo.",
+      "Text": "\u00BFQu\u00E9 buscas?",
       "Speaker": "guide",
       "SpeakerId": 28,
       "Voice": "ef_dora",
       "Speed": 1,
       "Rate": 24000,
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
-      "Sha256": "18c0a68792879a1b60602c7cc2d1c9b4598e69870ea7dddb1466c1ec654ed038",
-      "Bytes": 72336
+      "Sha256": "6a25a508556d0cfc03cddda3a6902dc0e672980b6c3ab8e1ebba210aac080cc6",
+      "Bytes": 52844
     },
     "speech/guide.review.phrase.no_gracias.1.slow.wav": {
       "Text": "\u00BFQuieres agua?",
@@ -729,26 +729,26 @@
       "Bytes": 56444
     },
     "speech/guide.review.phrase.pedir_agua.1.slow.wav": {
-      "Text": "P\u00EDdeme agua.",
+      "Text": "\u00BFQu\u00E9 necesitas?",
       "Speaker": "guide",
       "SpeakerId": 28,
       "Voice": "ef_dora",
       "Speed": 0.8,
       "Rate": 24000,
       "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
-      "Sha256": "0f14ff8e01d3335f8c13d3395f71d204a28061239fe1840b2239c9f7f2cd113d",
-      "Bytes": 72044
+      "Sha256": "642da07d8a217fa5a61b57f23e348f5eb5ca4c475622af79f999fc79ac2de242",
+      "Bytes": 76844
     },
     "speech/guide.review.phrase.pedir_agua.1.wav": {
-      "Text": "P\u00EDdeme agua.",
+      "Text": "\u00BFQu\u00E9 necesitas?",
       "Speaker": "guide",
       "SpeakerId": 28,
       "Voice": "ef_dora",
       "Speed": 1,
       "Rate": 24000,
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
-      "Sha256": "dea5c044d7e5a2242095b7dc004324d8aef9ac8a59273238f2c550f006bc2e13",
-      "Bytes": 47882
+      "Sha256": "92f7e330969e1453672ab8a94c52913790f6f97501ffc9c4e4cbb9cf325cc0c6",
+      "Bytes": 52160
     },
     "speech/guide.review.phrase.si_por_favor.1.slow.wav": {
       "Text": "\u00BFQuieres agua?",

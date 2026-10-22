@@ -79,8 +79,9 @@ reviewer reads every Spanish line the learner can hear (the content-trust gate c
   feedback (`Di «ayuda» y te ayudo.`, `Si necesitas ayuda, di «ayuda».`). A line that is not understood gets these help lines and never a
   hint (S9, D-game-9): the feedback policy's not-communicated type is `SlowRepeat`, whose pool holds only the help lines; a hint
   (`Casi. Piensa otra vez.`) is said only for a real language error in a turn that was understood.
-- The guide's phrase review (S8, S11, the request of a due phrase in context): `Pídeme agua.` (for `pedir-agua`), `Pregúntame por el río.` (for
-  `donde-esta-el-rio`), and `¿Quieres agua?` for the yes and the no (`si-por-favor`, `no-gracias`); the guide accepts the request, the yes and the
-  no with `¡Muy bien!`, `¡Bien!` or `¡Eso es!` (the bundle's `answer_accepted` pool). These four review lines are not reviewed yet (llm-opus not run);
-  the lexicon does not list the forms `pídeme` and `pregúntame`, so `cefr-check` names them (the reviewer decides: an A2 imperative with a pronoun).
+- The guide's phrase review (S8, S11, the request of a due phrase in context): `¿Qué necesitas?` (for `pedir-agua`, graded at the stall's
+  prompt), `¿Qué buscas?` (for `donde-esta-el-rio`, graded at the villager's prompt), and `¿Quieres agua?` for the yes and the no (`si-por-favor`,
+  `no-gracias`). The guide accepts the request, the yes and the no with `¡Muy bien!`, `¡Bien!` or `¡Eso es!` (the bundle's `answer_accepted` pool).
+  All four are A1 lines already in the bundle as other NPCs' lines (cefr-check clean at A1 and A2). The review lines are not reviewed by a
+  Spanish speaker or an LLM pass yet (provisional); the owner's listening step covers their WAVs (game/docs/SPEECH_CHECKLIST.md).
 - The guide's existing lines (greeting, pointing, crafting, naming, the review) are the P-series content and are not part of this sheet.

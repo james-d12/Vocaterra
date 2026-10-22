@@ -169,13 +169,13 @@
     "guide.review.phrase.pedir_agua": {
       "poolId": "guide.review.phrase.pedir_agua",
       "variants": [
-        { "lineId": "guide.review.phrase.pedir_agua.1", "text": "Pídeme agua." }
+        { "lineId": "guide.review.phrase.pedir_agua.1", "text": "¿Qué necesitas?" }
       ]
     },
     "guide.review.phrase.donde_esta_el_rio": {
       "poolId": "guide.review.phrase.donde_esta_el_rio",
       "variants": [
-        { "lineId": "guide.review.phrase.donde_esta_el_rio.1", "text": "Pregúntame por el río." }
+        { "lineId": "guide.review.phrase.donde_esta_el_rio.1", "text": "¿Qué buscas?" }
       ]
     },
     "guide.review.phrase.si_por_favor": {

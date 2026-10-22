@@ -70,12 +70,12 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | guide.review.ask.2 | speech/guide.review.ask.2.wav | guide | 1.0 | A ver, ¿qué es esto? |  |
 | guide.review.ask.3 | speech/guide.review.ask.3.slow.wav | guide | 0.8 | ¿Qué es esto? Mira bien. |  |
 | guide.review.ask.3 | speech/guide.review.ask.3.wav | guide | 1.0 | ¿Qué es esto? Mira bien. |  |
-| guide.review.phrase.donde_esta_el_rio.1 | speech/guide.review.phrase.donde_esta_el_rio.1.slow.wav | guide | 0.8 | Pregúntame por el río. |  |
-| guide.review.phrase.donde_esta_el_rio.1 | speech/guide.review.phrase.donde_esta_el_rio.1.wav | guide | 1.0 | Pregúntame por el río. |  |
+| guide.review.phrase.donde_esta_el_rio.1 | speech/guide.review.phrase.donde_esta_el_rio.1.slow.wav | guide | 0.8 | ¿Qué buscas? |  |
+| guide.review.phrase.donde_esta_el_rio.1 | speech/guide.review.phrase.donde_esta_el_rio.1.wav | guide | 1.0 | ¿Qué buscas? |  |
 | guide.review.phrase.no_gracias.1 | speech/guide.review.phrase.no_gracias.1.slow.wav | guide | 0.8 | ¿Quieres agua? |  |
 | guide.review.phrase.no_gracias.1 | speech/guide.review.phrase.no_gracias.1.wav | guide | 1.0 | ¿Quieres agua? |  |
-| guide.review.phrase.pedir_agua.1 | speech/guide.review.phrase.pedir_agua.1.slow.wav | guide | 0.8 | Pídeme agua. |  |
-| guide.review.phrase.pedir_agua.1 | speech/guide.review.phrase.pedir_agua.1.wav | guide | 1.0 | Pídeme agua. |  |
+| guide.review.phrase.pedir_agua.1 | speech/guide.review.phrase.pedir_agua.1.slow.wav | guide | 0.8 | ¿Qué necesitas? |  |
+| guide.review.phrase.pedir_agua.1 | speech/guide.review.phrase.pedir_agua.1.wav | guide | 1.0 | ¿Qué necesitas? |  |
 | guide.review.phrase.si_por_favor.1 | speech/guide.review.phrase.si_por_favor.1.slow.wav | guide | 0.8 | ¿Quieres agua? |  |
 | guide.review.phrase.si_por_favor.1 | speech/guide.review.phrase.si_por_favor.1.wav | guide | 1.0 | ¿Quieres agua? |  |
 | guide.uncertain.1 | speech/guide.uncertain.1.slow.wav | guide | 0.8 | No te entendí bien. ¿Lo dices otra vez? |  |

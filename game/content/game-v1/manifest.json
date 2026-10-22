@@ -8,7 +8,7 @@
 {"path":"answer-sets/yes-no.json","sha256":"75fe43420c8085dc63e90f22b799d3882f7388cf7318d949e395f461d6a78b1a","bytes":873},
 {"path":"cefr/a1.txt","sha256":"d84de3d85a24320d3c70409e89abe8c864b2555f46bf236e882b334c03856aeb","bytes":2196},
 {"path":"cefr/a2.txt","sha256":"ca2bd4e709130d68b0375bf9df23cae7a9f31911776f7cf0500419a51516d44c","bytes":5010},
-{"path":"dialogue/dialogue.json","sha256":"071110f618d5faf6b2afdeba71cacb9c85bf91aba56f0dd10e4a6bc7f696b5ad","bytes":17254},
+{"path":"dialogue/dialogue.json","sha256":"5e5eed98bfc152f6114a1fed7c34a3741a54403ac7495202ef6dac162a59fceb","bytes":17248},
 {"path":"effects/effects.json","sha256":"47a642d10e9362d320f94022d165e52d53fc26468f3d42e41a37f4e29b003b7b","bytes":20},
 {"path":"evaluation/evaluation-config.json","sha256":"fc7d6d2567808648dd6615e4c2ea60556b50eba487ee381e74d5d0769003867d","bytes":1632},
 {"path":"feedback/feedback-policy.json","sha256":"63e3ac7e5a4e7c95ca2d26212ae2536622e606be07cc2117f89cdb34f4da9dcf","bytes":492},
@@ -88,12 +88,12 @@
 {"path":"speech/guide.review.ask.2.wav","sha256":"84dbd44ea9b6a587ec24f941555756b02876cc82ed931612b8ba8390855feaa5","bytes":69644},
 {"path":"speech/guide.review.ask.3.slow.wav","sha256":"e8e8c999f0146f0b8206a0dc861345d729e20cab1d0da4756def6ede5abed7d4","bytes":129644},
 {"path":"speech/guide.review.ask.3.wav","sha256":"4fef6d9fee4889e31461d75ae6d3b336525ac1182a8e0b75fe207a121618b638","bytes":105644},
-{"path":"speech/guide.review.phrase.donde_esta_el_rio.1.slow.wav","sha256":"0c127bcb8c86e9be00e91b2200992a7fe706897cbdd64a0b887cda5315d4e939","bytes":97660},
-{"path":"speech/guide.review.phrase.donde_esta_el_rio.1.wav","sha256":"18c0a68792879a1b60602c7cc2d1c9b4598e69870ea7dddb1466c1ec654ed038","bytes":72336},
+{"path":"speech/guide.review.phrase.donde_esta_el_rio.1.slow.wav","sha256":"741617fd6fb1bcb24f6999d8ad95e89778290be9560a4ac8a4aaa42b7783e8b8","bytes":63644},
+{"path":"speech/guide.review.phrase.donde_esta_el_rio.1.wav","sha256":"6a25a508556d0cfc03cddda3a6902dc0e672980b6c3ab8e1ebba210aac080cc6","bytes":52844},
 {"path":"speech/guide.review.phrase.no_gracias.1.slow.wav","sha256":"ff7ee6ae9630c60923db2c0732a53fc0cb006d85f0b136bfc5be0e88d6bd756e","bytes":70844},
 {"path":"speech/guide.review.phrase.no_gracias.1.wav","sha256":"dbcc8feb8baf2d60240920cb02733804b0a7ee169cb4d1e80056b72ee5829d8c","bytes":56444},
-{"path":"speech/guide.review.phrase.pedir_agua.1.slow.wav","sha256":"0f14ff8e01d3335f8c13d3395f71d204a28061239fe1840b2239c9f7f2cd113d","bytes":72044},
-{"path":"speech/guide.review.phrase.pedir_agua.1.wav","sha256":"dea5c044d7e5a2242095b7dc004324d8aef9ac8a59273238f2c550f006bc2e13","bytes":47882},
+{"path":"speech/guide.review.phrase.pedir_agua.1.slow.wav","sha256":"642da07d8a217fa5a61b57f23e348f5eb5ca4c475622af79f999fc79ac2de242","bytes":76844},
+{"path":"speech/guide.review.phrase.pedir_agua.1.wav","sha256":"92f7e330969e1453672ab8a94c52913790f6f97501ffc9c4e4cbb9cf325cc0c6","bytes":52160},
 {"path":"speech/guide.review.phrase.si_por_favor.1.slow.wav","sha256":"ff7ee6ae9630c60923db2c0732a53fc0cb006d85f0b136bfc5be0e88d6bd756e","bytes":70844},
 {"path":"speech/guide.review.phrase.si_por_favor.1.wav","sha256":"dbcc8feb8baf2d60240920cb02733804b0a7ee169cb4d1e80056b72ee5829d8c","bytes":56444},
 {"path":"speech/guide.uncertain.1.slow.wav","sha256":"0dd65475a9d5a8614bfbf34a790834a859ea1ff56fc449e3a7d2b99ecc69b3b6","bytes":167762},
@@ -252,4 +252,4 @@
 {"path":"speech/villager_thank.1.wav","sha256":"264a8166023475d7d7842d08050d562924cb4212881ad755cc67afd728d5f7bb","bytes":45644},
 {"path":"speech/villager_thank.2.slow.wav","sha256":"791dd1d9ba9a64ba04d5b734f0e8c91b4ab25fa869ec85a6e2a6937a5b794ea0","bytes":70844},
 {"path":"speech/villager_thank.2.wav","sha256":"0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3","bytes":54044}
-],"bundleHash":"fa9b79ff76de916a6cf23b3b8951b0d852f54cf0695a6f78b633968d89526aa7"}
+],"bundleHash":"cd63077b9a8b0ee34a21d4cf963aa2afa8fa6ee6866827224b847cefd7c94f88"}

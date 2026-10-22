@@ -24,6 +24,35 @@ public sealed class PhraseReviewReplyTests
         Assert.DoesNotContain(turn.GuideLines, static line => line.StartsWith("No te entendí", StringComparison.Ordinal));
     }
 
+    [Theory]
+    [InlineData("busco el río")]
+    [InlineData("¿Dónde está el río?")]
+    public void TheAnswersToTheRiverReviewResolveAtTheVillagersPrompt(string answer)
+    {
+        // The review asks "¿Qué buscas?" and is graded at villager-open: the guide's ask_directions answers it (a communicated turn).
+        var session = TestGame.NewSession();
+
+        var turn = Review(session, answer, "villager-open");
+
+        Assert.True(turn.Communicated);
+        Assert.Equal("ask_directions", turn.Intent);
+        Assert.DoesNotContain(turn.GuideLines, static line => line.StartsWith("No te entendí", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("necesito agua")]
+    [InlineData("quiero agua, por favor")]
+    public void TheAnswersToTheWaterReviewResolveAtTheStallsPrompt(string answer)
+    {
+        // The review asks "¿Qué necesitas?" and is graded at stall-need, where the request resolves whatever the guide's state.
+        var session = TestGame.NewSession();
+
+        var turn = Review(session, answer, "stall-need");
+
+        Assert.True(turn.Communicated);
+        Assert.Equal("request_item", turn.Intent);
+    }
+
     [Fact]
     public void YesAndNoAtTheOfferAreAcceptedWithAReply()
     {
