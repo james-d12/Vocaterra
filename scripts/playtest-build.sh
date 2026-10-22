@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds the private linux-x64 playtest folder (S12): the MonoGame game, self-contained so that a tester needs no .NET install, the content
-# bundle with its 226 speech WAVs, the Vosk model (the only speech model the playtest loads) with the manifest that pins it, the tester's README
+# bundle with its speech WAVs (300 in game-v1 at S18), the Vosk model (the only speech model the playtest loads) with the manifest that pins it, the tester's README
 # and the launcher. Then it checks the folder: no sherpa-onnx or ONNX Runtime native library, no espeak-ng library and no sherpa model file
 # ships (core D2 and CR-021); the playtest loads Vosk only (the NPCs' voices are the pre-rendered WAVs, S9).
 #
@@ -144,12 +144,15 @@ for entry in pinned["files"]:
         mismatch.append(entry["path"])
 report(not mismatch, f"Vosk model files match the manifest ({len(pinned['files'])} files)", ", ".join(mismatch[:5]))
 
-# The bundle: its manifest and the speech WAVs (the S9 files, 226 in game-v1 at this commit).
+# The bundle: its manifest and the speech WAVs. The expected count is what the bundle manifest lists (S18: 300 in game-v1, the S9 files
+# plus the S17 lesson's and the ending's), so a bundle change needs no edit here.
 bundle = os.path.join(dest, "content", "game-v1")
 with open(os.path.join(bundle, "manifest.json"), encoding="utf-8") as handle:
     bundle_manifest = json.load(handle)
+listed = [f["path"] for f in bundle_manifest["files"] if f["path"].startswith("speech/") and f["path"].endswith(".wav")]
 wavs = sorted(os.listdir(os.path.join(bundle, "speech"))) if os.path.isdir(os.path.join(bundle, "speech")) else []
-report(len(wavs) == 226 and all(name.endswith(".wav") for name in wavs), "speech WAVs in the bundle", f"{len(wavs)} files")
+report(len(wavs) == len(listed) > 0 and all(name.endswith(".wav") for name in wavs), "speech WAVs in the bundle",
+       f"{len(wavs)} files, the manifest lists {len(listed)}")
 size = sum(os.path.getsize(os.path.join(dest, path)) for path in files)
 print(f"bundle: {bundle_manifest['bundleId']}, bundle hash {bundle_manifest['bundleHash']}")
 print(f"folder: {len(files)} files, {size / (1 << 20):.1f} MiB")
