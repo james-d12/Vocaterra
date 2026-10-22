@@ -5,7 +5,7 @@ using Vocaterra.Simulation.Voxel;
 namespace Vocaterra.Game;
 
 /// <summary>
-/// One saved game (format <c>vocaterra-save</c>, version 2; version 1 still loads), written as canonical JSON by <see cref="SaveGame"/>. It holds what a run needs to
+/// One saved game (format <c>vocaterra-save</c>, version 3; versions 1 and 2 still load), written as canonical JSON by <see cref="SaveGame"/>. It holds what a run needs to
 /// continue and nothing derived from the clock: the world seed and the bundle hash that the world was made from; the scene diff (the chunks
 /// edited against the fresh scene); the player, the hotbar, the gathering, the inventory and the objective; the word and phrase progress; the
 /// NPCs' conversation states and host decisions; the carded nouns and the flags of the story; the stored time (start, ticks, skipped seconds),
@@ -41,7 +41,7 @@ namespace Vocaterra.Game;
 /// <param name="Chunks">The scene diff: the chunks that differ from the fresh scene, in chunk order.</param>
 /// <param name="Lessons">The progress of the lessons (S16): where each one stands and which is active. A save from before S16 has none.</param>
 /// <param name="Tips">The first-time tips (S16): which were shown, which wait and which is on screen. A save from before S16 has none.</param>
-/// <param name="Learner">The learner's record (S19): the newest history entries and the word rows. A version 1 save has none (an empty history).</param>
+/// <param name="Learner">The learner's record (S19): the newest history entries and the word rows. A version 1 save has none (an empty history). A version 2 save's rows counted the check answers (S19b); they are taken out on the load.</param>
 /// <param name="BookGranted">Whether the book item has been granted (S22): a save written since S20 says so; a save from before S20 does not, and the load gives the learner the book once.</param>
 /// <param name="Settings">The player's settings (S24: the sound volumes), or <see langword="null"/> in a save from before S24 (the defaults then apply).</param>
 public sealed record SaveDocument(

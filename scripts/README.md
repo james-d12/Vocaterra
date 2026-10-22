@@ -11,7 +11,7 @@ Runs the language core's content tool on a game content bundle (default `game/co
 - `hash` rewrites `manifest.json` from the files on disk, the step after any edit. Options after the bundle directory are passed on, so a
   new bundle id is set with `hash game/content/game-v1 --bundle-id game-v1`; without the option the manifest keeps its id.
 - `cefr-check` lists dialogue-template and prompt-text lemmas missing from a CEFR list (`cefr-check game/content/game-v1 --level a1`).
-- `lint`, `pack` and `verify-pack` are passed through as `nlp/TOOLS.md` and `nlp/docs/PACKAGING.md` describe.
+- `lint`, `pack` and `verify-pack` are passed through as `nlp/TOOLS.md` describes.
 
 The tool is the `Vocaterra.Nlp.ContentBuilder` project under `nlp/tools`, run from source with `dotnet run`, so it is always the core at
 the current commit. Needs bash and the .NET SDK (`~/.dotnet` is used when present).

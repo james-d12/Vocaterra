@@ -3,8 +3,8 @@ bin/
 obj/
 TestResults/
 
-# Packages and bundle archives written by nlp/scripts/pack.sh and sample-host.sh are rebuilt, never committed (nlp/.gitignore covers
-# nlp/artifacts/); this entry covers an artifacts/ folder anywhere else.
+# Packages and bundle archives are rebuilt, never committed (nlp/.gitignore covers nlp/artifacts/, where the core's former pack step
+# wrote them); this entry covers an artifacts/ folder anywhere else.
 artifacts/
 
 # IDE / user-specific

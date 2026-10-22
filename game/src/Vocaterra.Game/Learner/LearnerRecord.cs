@@ -72,8 +72,9 @@ public sealed class LearnerRecord
 
     /// <summary>Puts a saved record back (S10). The history's ids must be increasing and below the next id.</summary>
     /// <param name="save">The save's part.</param>
+    /// <param name="checksCounted">Whether the save is a version 2 save, whose word rows counted the check answers (S19b); they are taken out on the load.</param>
     /// <exception cref="ArgumentException">The save's history or word rows are not a record this game writes.</exception>
-    internal void Restore(LearnerRecordSave save)
+    internal void Restore(LearnerRecordSave save, bool checksCounted)
     {
         ArgumentNullException.ThrowIfNull(save);
         if (save.NextId < 1)
@@ -95,7 +96,8 @@ public sealed class LearnerRecord
         _history.Clear();
         _history.AddRange(save.History);
         NextId = save.NextId;
-        _words = new LearnerWords();
-        _words.Restore(save.Words);
+        _words = checksCounted
+            ? LearnerWords.FromVersion2(save.Words, save.History, save.NextId)
+            : LearnerWords.FromRows(save.Words);
     }
 }

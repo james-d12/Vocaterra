@@ -69,8 +69,8 @@ The core cannot know these, so the host supplies them (API document, "The host o
 
 - The game and the core are built from the same commit by the root `Vocaterra.sln`: `Vocaterra.Game` and `Vocaterra.Host` reference the
   core's projects (`../../../nlp/src/Vocaterra.Nlp.<X>/...csproj`), so a core change is visible to the game in the same build. There is no
-  package version to bump, no feed and no pack step; the root `nuget.config` lists nuget.org only. The core still packs
-  (`nlp/scripts/pack.sh`) for its sample host and for a consumer outside this repository (core D5).
+  package version to bump, no feed and no pack step (M50 retired the packaging scripts and the sample host; core D5 is superseded); the root
+  `nuget.config` lists nuget.org only.
 - Third-party package versions for both halves are in the root `Directory.Packages.props`.
 - A core change the game needs is a core milestone in `nlp/IMPLEMENTATION_PLAN.md`; a game milestone never edits `nlp/`.
 - The content tool is the core's `nlp/tools/Vocaterra.Nlp.ContentBuilder`, run from source by `scripts/content.sh`.

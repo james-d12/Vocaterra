@@ -40,8 +40,7 @@ dotnet run --project game/src/Vocaterra.MonoGame
 ```
 
 Tests that need the speech models read `VOCATERRA_MODELS_DIR` and are skipped without it; `nlp/scripts/fetch-models.sh` fetches the pinned
-models (`nlp/models/manifest.json`). `dotnet build nlp/Vocaterra.Nlp.sln` builds the core alone, and `nlp/scripts/pack.sh` still packs it
-for a consumer outside this repository.
+models (`nlp/models/manifest.json`). `dotnet build nlp/Vocaterra.Nlp.sln` builds the core alone.
 
 ## Working on it
 

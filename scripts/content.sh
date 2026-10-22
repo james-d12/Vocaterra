@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runs the language core's content tool (vocaterra-content, the Vocaterra.Nlp.ContentBuilder project under nlp/tools) on a game content
 # bundle. `validate` checks every file's hash and the cross-references; `hash` rewrites manifest.json from the files on disk, which is the
-# step after any edit to a bundle. `cefr-check`, `lint`, `pack` and `verify-pack` are passed through as well (nlp/docs/PACKAGING.md, nlp/TOOLS.md).
+# step after any edit to a bundle. `cefr-check`, `lint`, `pack` and `verify-pack` are passed through as well (nlp/TOOLS.md).
 #
 # `grammar` runs the core's grammar check (nlp/docs/API.md, "Grammar check the strings"): the bundle's Spanish, or with
 #   `--strings game/content/grammar/game-v1-strings.jsonl --strings-only` the game's whole list (written by the host's --grammar-strings).
