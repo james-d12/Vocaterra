@@ -13,7 +13,16 @@ namespace Vocaterra.MonoGame.Frontend;
 /// <param name="TakeShot">Asks for a screenshot of the next drawn frame.</param>
 /// <param name="ShotPending">Whether the last requested screenshot has not been saved yet.</param>
 /// <param name="Lesson">Carries out a lesson step of the script (S16): the kind and its value (the lesson's id, or the option). The game supplies the lesson front-end's call.</param>
-public sealed record ScenarioHooks(Action<string> OpenTalk, Action CloseTalk, Action<string> TakeShot, Func<bool> ShotPending, Action<ScriptStepKind, string>? Lesson = null);
+/// <param name="Report">Opens the report panel (S21) and types the text in it; the flag says whether the panel stays open (<c>--report-open</c>) or the text is saved (<c>--report</c>).</param>
+/// <param name="ReportBusy">Whether the report panel is up or on its way (S21): a saved report closes it, and the script waits for that.</param>
+public sealed record ScenarioHooks(
+    Action<string> OpenTalk,
+    Action CloseTalk,
+    Action<string> TakeShot,
+    Func<bool> ShotPending,
+    Action<ScriptStepKind, string>? Lesson = null,
+    Action<string, bool>? Report = null,
+    Func<bool>? ReportBusy = null);
 
 /// <summary>
 /// The scripted run of the 3D game (<c>--screenshot</c> with steps): the body's steps (<see cref="VoxelScript"/>), the talk steps (S6) and the
@@ -184,6 +193,14 @@ public sealed class ScenarioScript
                     }
 
                     continue;
+                case Phase.ReportBusy:
+                    if (_hooks.ReportBusy?.Invoke() ?? false)
+                    {
+                        return; // the report panel is up or on its way: the script waits until the report is saved
+                    }
+
+                    _phase = Phase.Idle;
+                    continue;
                 default: // Phase.Shot
                     if (_hooks.ShotPending())
                     {
@@ -304,6 +321,16 @@ public sealed class ScenarioScript
                 _lessonId = runLesson.Id;
                 _hooks.Lesson?.Invoke(ScriptStepKind.LessonStart, runLesson.Id); // an auto-start lesson is engaged already: this changes nothing then
                 _phase = Phase.Lesson;
+                break;
+            case ScriptStepKind.Report:
+                _hooks.Report?.Invoke(step.Value, false); // opens the panel and types the text; it is saved at the next frame
+                _index++;
+                _phase = Phase.ReportBusy;
+                break;
+            case ScriptStepKind.ReportOpen:
+                // Leaves the panel open for the screenshot. A paused world takes no further steps, so this is the script's last step (LaunchOptions checks it).
+                _hooks.Report?.Invoke(step.Value, true);
+                _index++;
                 break;
             case ScriptStepKind.Pick:
                 _log($"pick {step.Value}: a check step; the check battery takes it before the world (ignored here)");
@@ -458,6 +485,7 @@ public sealed class ScenarioScript
         Waiting,
         Gap,
         Lesson,
+        ReportBusy,
         Shot,
     }
 }

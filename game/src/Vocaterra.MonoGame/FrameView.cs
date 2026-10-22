@@ -79,6 +79,9 @@ public sealed class FrameView
     /// <summary>The closing moment of the session (S17), or <see langword="null"/> when this view has none.</summary>
     public SessionEnding? Ending { get; init; }
 
+    /// <summary>The bug and feature report panel (S21), or <see langword="null"/> when the view has none.</summary>
+    public Frontend.ReportPanel? Report { get; set; }
+
     /// <summary>Whether the controls help (F1, S16) is open.</summary>
     public bool ControlsOpen { get; set; }
 
