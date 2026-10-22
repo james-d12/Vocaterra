@@ -71,4 +71,7 @@ public enum BlockId : ushort
 
     /// <summary>A plank of the bridge deck (solid). Appended in S1.</summary>
     Bridge = 21,
+
+    /// <summary>Snow: the cap of the high peaks (solid). Appended in S13.</summary>
+    Snow = 22,
 }

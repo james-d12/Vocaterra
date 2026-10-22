@@ -18,7 +18,7 @@ internal static class VoxelWalker
     private static readonly (int Dx, int Dz)[] Directions = [(1, 0), (-1, 0), (0, 1), (0, -1)];
 
     /// <summary>Walks the body until its feet stand on a cell the goal accepts. Returns false when there is no path or the tick limit runs out.</summary>
-    public static bool WalkTo(VoxelSession session, Func<BlockPos, bool> goal, int maxTicks = 4000)
+    public static bool WalkTo(VoxelSession session, Func<BlockPos, bool> goal, int maxTicks = 30000)
     {
         var sim = session.Simulation;
         var path = FindPath(session.Scene.Grid, sim.Player.FeetBlock, goal);

@@ -45,7 +45,7 @@ public sealed class PlayerBody3DTests
         Assert.Equal(before, (sim.Player.MinX, sim.Player.MinY, sim.Player.MinZ));
         Assert.True(sim.Player.Grounded);
         Assert.Equal(scene.Spawn.Feet, sim.Player.FeetBlock);
-        Assert.Equal(Angles.FromDegrees(120), sim.Player.Yaw);
+        Assert.Equal(Angles.FromDegrees(135), sim.Player.Yaw);
     }
 
     [Fact]

@@ -12,8 +12,11 @@ public enum VoxelStepKind
     /// <summary>Face a direction (<c>--look yaw,pitch</c> in degrees).</summary>
     Look,
 
-    /// <summary>Walk to a column (<c>--walk-to x,z</c>).</summary>
+    /// <summary>Walk to a column (<c>--walk-to x,z</c>), by the cheapest way the world allows (<see cref="WalkPlanner"/>).</summary>
     WalkTo,
+
+    /// <summary>Put the player at a column, standing on the ground (<c>--teleport x,z</c>, a debug step for screenshots, S13).</summary>
+    Teleport,
 
     /// <summary>Hold the gather command on a block (<c>--interact x,y,z</c>).</summary>
     Interact,
@@ -44,6 +47,9 @@ public sealed record VoxelStep(VoxelStepKind Kind, double Yaw = 0, double Pitch 
 
     /// <summary>A step that walks to a column.</summary>
     public static VoxelStep WalkTo(int x, int z) => new(VoxelStepKind.WalkTo, X: x, Z: z);
+
+    /// <summary>A step that puts the player at a column (a debug step).</summary>
+    public static VoxelStep Teleport(int x, int z) => new(VoxelStepKind.Teleport, X: x, Z: z);
 
     /// <summary>A step that gathers a block.</summary>
     public static VoxelStep Interact(int x, int y, int z) => new(VoxelStepKind.Interact, X: x, Y: y, Z: z);
@@ -90,8 +96,8 @@ public sealed class VoxelScript
     /// <summary>The distance in blocks at which a walk counts as arrived.</summary>
     public const double ArrivedDistance = 0.5;
 
-    /// <summary>The most ticks a walk may take (60 seconds).</summary>
-    public const int WalkTickLimit = 3600;
+    /// <summary>The most ticks a walk may take (four minutes: the trail from the player's camp to the village is about a minute and a half).</summary>
+    public const int WalkTickLimit = 14400;
 
     /// <summary>The most ticks an interact may hold (10 seconds).</summary>
     public const int InteractTickLimit = 600;
@@ -114,6 +120,8 @@ public sealed class VoxelScript
     private BlockId _interactBlock;
     private int _interactDrops;
     private int _craftBefore;
+    private IReadOnlyList<(int X, int Z)> _route = [];
+    private int _routeIndex;
 
     /// <summary>Creates the script over a simulation and the look the game sends.</summary>
     /// <param name="sim">The simulation to read (the script never steps it).</param>
@@ -184,6 +192,13 @@ public sealed class VoxelScript
                 _windowTicks = 0;
                 _unstickTicks = 0;
                 _unstickCount = 0;
+                _route = WalkPlanner.Plan(_sim.Grid, _sim.Player.FeetBlock, step.X, step.Z) ?? [(step.X, step.Z)];
+                _routeIndex = 0;
+                if (_route.Count > 1)
+                {
+                    _log($"walk-to {step.X},{step.Z}: a route of {_route.Count} turns");
+                }
+
                 break;
             case VoxelStepKind.Interact:
                 _interactBlock = _sim.Grid.GetBlock(step.X, step.Y, step.Z);
@@ -209,6 +224,8 @@ public sealed class VoxelScript
                 return true;
             case VoxelStepKind.WalkTo:
                 return WalkTick(step, commands);
+            case VoxelStepKind.Teleport:
+                return TeleportNow(step);
             case VoxelStepKind.Interact:
                 return InteractTick(step, commands);
             case VoxelStepKind.Craft:
@@ -261,14 +278,58 @@ public sealed class VoxelScript
         return true;
     }
 
+    // The player's feet go to the ground of a column: the highest block that is not a tree and has two free cells over it.
+    private bool TeleportNow(VoxelStep step)
+    {
+        var grid = _sim.Grid;
+        if (!grid.InBounds(step.X, 0, step.Z))
+        {
+            _log($"teleport {step.X},{step.Z}: outside the world");
+            return true;
+        }
+
+        for (var y = grid.SizeY - 3; y >= 1; y--)
+        {
+            var block = grid.GetBlock(step.X, y, step.Z);
+            if (block is BlockId.Air or BlockId.Leaves or BlockId.Trunk or BlockId.Water || !grid.IsSolid(step.X, y, step.Z))
+            {
+                continue;
+            }
+
+            if (grid.IsSolid(step.X, y + 1, step.Z) || grid.IsSolid(step.X, y + 2, step.Z))
+            {
+                break;
+            }
+
+            _sim.TeleportTo(new BlockPos(step.X, y + 1, step.Z));
+            _log($"teleport {step.X},{step.Z}: standing at {step.X},{y + 1},{step.Z}");
+            return true;
+        }
+
+        _log($"teleport {step.X},{step.Z}: no ground to stand on there");
+        return true;
+    }
+
     private bool WalkTick(VoxelStep step, List<VoxelCommand> commands)
     {
         var (x, z) = FeetOf(_sim.Player);
-        var targetX = step.X + 0.5;
-        var targetZ = step.Z + 0.5;
-        var ex = targetX - x;
-        var ez = targetZ - z;
-        var distance = Math.Sqrt((ex * ex) + (ez * ez));
+        double ex = 0;
+        double ez = 0;
+        double distance = 0;
+        while (true)
+        {
+            var (waypointX, waypointZ) = _route[_routeIndex];
+            ex = waypointX + 0.5 - x;
+            ez = waypointZ + 0.5 - z;
+            distance = Math.Sqrt((ex * ex) + (ez * ez));
+            if (distance > ArrivedDistance || _routeIndex == _route.Count - 1)
+            {
+                break;
+            }
+
+            _routeIndex++; // a turning point reached: on to the next
+        }
+
         if (distance <= ArrivedDistance)
         {
             _log(string.Create(CultureInfo.InvariantCulture, $"walk-to {step.X},{step.Z}: arrived at ({x:0.00}, {z:0.00}) after {_stepTicks} ticks"));

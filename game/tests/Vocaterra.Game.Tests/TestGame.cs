@@ -43,8 +43,8 @@ internal static class TestGame
         FactsOf(session).NearestOfNoun(ViewpointOf(session), lemma)!.Cell;
 
     /// <summary>
-    /// The nearest block of one of the kinds by brute force over the whole grid, with the guide's rule written out again: the smallest squared
-    /// distance from the player's feet, then the smaller y, z and x.
+    /// The nearest block of one of the kinds with the guide's rule written out again (over every block of the kinds, not the facts' chunk search): the smallest
+    /// squared horizontal distance from the player's feet block, then the smaller z, then the smaller x, then the smaller y.
     /// </summary>
     public static BlockPos NearestBlock(VoxelSession session, params BlockId[] kinds)
     {
@@ -52,23 +52,15 @@ internal static class TestGame
         var from = session.Simulation.Player.FeetBlock;
         BlockPos? best = null;
         long bestDistance = long.MaxValue;
-        for (var y = 0; y < grid.SizeY; y++)
+        foreach (var kind in kinds)
         {
-            for (var z = 0; z < grid.SizeZ; z++)
+            foreach (var p in grid.BlocksOfKind(kind))
             {
-                for (var x = 0; x < grid.SizeX; x++)
+                var distance = ((long)(p.X - from.X) * (p.X - from.X)) + ((long)(p.Z - from.Z) * (p.Z - from.Z));
+                if (distance < bestDistance || (distance == bestDistance && (p.Z, p.X, p.Y).CompareTo((best!.Value.Z, best.Value.X, best.Value.Y)) < 0))
                 {
-                    if (!kinds.Contains(grid.GetBlock(x, y, z)))
-                    {
-                        continue;
-                    }
-
-                    var distance = ((long)(x - from.X) * (x - from.X)) + ((long)(z - from.Z) * (z - from.Z));
-                    if (distance < bestDistance || (distance == bestDistance && (y, z, x).CompareTo((best!.Value.Y, best.Value.Z, best.Value.X)) < 0))
-                    {
-                        bestDistance = distance;
-                        best = new BlockPos(x, y, z);
-                    }
+                    bestDistance = distance;
+                    best = p;
                 }
             }
         }

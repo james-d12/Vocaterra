@@ -34,6 +34,9 @@ namespace Vocaterra.MonoGame;
 /// </remarks>
 public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 {
+    /// <summary>The point the beacon stands on at the start of a new game: the guide's camp, at the foot of the trail from the player's own camp (S13).</summary>
+    public const string StartBeaconPoint = "camp.guide";
+
     private const int StartWidth = 1280;
     private const int StartHeight = 720;
     private const int SettleTicks = 30;
@@ -102,6 +105,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private Texture2D? _pixel;
     private BlockAtlas? _blockAtlas;
     private VoxelRenderer? _renderer;
+    private QualityPreset _preset = QualityPreset.For(QualityLevel.High);
     private GreyscaleWorld? _colours;
     private FrameView? _view;
     private KeyboardState _previousKeys;
@@ -316,17 +320,18 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _blockAtlas = new BlockAtlas(GraphicsDevice);
         _figures = NpcFigures.FromScene(_scene);
         var started = MonotonicClock.Milliseconds();
-        _renderer = new VoxelRenderer(GraphicsDevice, _blockAtlas, _sim.Grid);
+        _preset = _options.QualityPreset;
+        _renderer = new VoxelRenderer(GraphicsDevice, _blockAtlas, _sim.Grid, _preset);
         _renderer.SetFigures(_figures);
         _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _options.AssumeKnown);
-        Console.WriteLine($"voxel: {_renderer.Stats.Summary()} (renderer ready in {MonotonicClock.Milliseconds() - started:0} ms)");
+        Console.WriteLine($"voxel: quality {_preset.Name}, view distance {_preset.ViewDistance} blocks, fog from {VoxelRenderer.FogEndFor(_preset.ViewDistance) * VoxelRenderer.FogStartFraction:0} to {VoxelRenderer.FogEndFor(_preset.ViewDistance):0}, mesh budget {_preset.MeshBudgetMilliseconds:0} ms a frame (renderer ready in {MonotonicClock.Milliseconds() - started:0} ms)");
         Console.WriteLine($"graphics: {GraphicsAdapter.DefaultAdapter.Description}, depth {GraphicsDevice.PresentationParameters.DepthStencilFormat}");
         if (_options.Greyscale)
         {
             Console.WriteLine("greyscale: blocks whose noun is not known are grey (the playtest A/B, D-game-6); figures, sky and UI in colour");
         }
         Console.WriteLine($"scene: {_scene.Name}, seed {_scene.Seed}, {_scene.TreeCount} trees, spawn {_scene.Spawn.Feet.X},{_scene.Spawn.Feet.Y},{_scene.Spawn.Feet.Z}, digest {_scene.Grid.ComputeDigestHex()[..16]}");
-        if (_options.Beacon is { } point)
+        if (_options.Beacon is { } point && !string.Equals(point, "none", StringComparison.Ordinal))
         {
             if (Beacon.SetPoint(_scene, point, PointLabels.For(point)))
             {
@@ -336,6 +341,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             {
                 Console.Error.WriteLine($"beacon: the scene has no point '{point}' (it has {string.Join(", ", _scene.Points.Keys)})");
             }
+        }
+
+        if (_options.Beacon is null && _options.LoadPath is null && Beacon.SetPoint(_scene, StartBeaconPoint, PointLabels.For(StartBeaconPoint)))
+        {
+            // The new game starts with a walk down the trail: the beacon stands on the guide's camp (until the opening of S17 says it in words).
+            Console.WriteLine($"beacon: {StartBeaconPoint} at {Beacon.Target!.Value.X},{Beacon.Target.Value.Y},{Beacon.Target.Value.Z} (the walk down the trail)");
         }
 
         _view = new FrameView
@@ -491,7 +502,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var alpha = (float)_accumulator.Alpha;
         var eye = Vector3.Lerp(_previousEye, _currentEye, alpha);
         eye.Y += (float)(_previousEase + ((_currentEase - _previousEase) * alpha));
-        _camera.Update(eye, _look.YawSteps, _look.PitchSteps, width, height);
+        _camera.Update(eye, _look.YawSteps, _look.PitchSteps, width, height, VoxelRenderer.FarPlaneFor(_preset.ViewDistance));
         view.Eye = eye;
         view.Look = (_look.YawSteps, _look.PitchSteps);
         view.Fps = _stats.Fps;
@@ -503,7 +514,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.Mouse = !_options.IsScreenshotRun && GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? mouse.Position : null;
 
         _colours!.Refresh();
-        _renderer!.Remesh();
+        // A scripted run builds every mesh it needs before the picture; a live one spends its budget a frame (more while the world is still loading in).
+        _renderer!.Remesh(eye, _camera.Frustum, _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? _preset.MeshBudgetMilliseconds : 30);
         GraphicsDevice.Clear(VoxelRenderer.Sky);
         _renderer.DrawWorld(_camera, _sim.Target?.Block, Beacon.Target, _sim.Tick);
 

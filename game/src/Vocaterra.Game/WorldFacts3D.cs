@@ -52,11 +52,19 @@ public sealed class WorldFacts3D : IGuideFacts
     private readonly int _sizeX;
     private readonly int _sizeY;
     private readonly int _sizeZ;
+    private const int ChunkShift = VoxelChunk.Shift;
+    private const int ChunkSize = VoxelChunk.Size;
+
     private readonly Func<int, int, int, BlockId> _blockAt;
+    private readonly Func<int, int, int, ulong>? _chunkKinds;
     private readonly NounCatalog _nouns;
 
-    /// <summary>Creates the facts over any grid of the given size, read through <paramref name="blockAt"/> (a function of x, y and z).</summary>
-    public WorldFacts3D(int sizeX, int sizeY, int sizeZ, Func<int, int, int, BlockId> blockAt, NounCatalog nouns)
+    /// <summary>
+    /// Creates the facts over any grid of the given size, read through <paramref name="blockAt"/> (a function of x, y and z). A search skips the
+    /// 16 x 16 x 16 chunks that cannot hold the noun when <paramref name="chunkKinds"/> says which block kinds a chunk holds (one bit per kind, as
+    /// <see cref="VoxelChunk.KindMask"/>); without it every block is read.
+    /// </summary>
+    public WorldFacts3D(int sizeX, int sizeY, int sizeZ, Func<int, int, int, BlockId> blockAt, NounCatalog nouns, Func<int, int, int, ulong>? chunkKinds = null)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sizeX);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sizeY);
@@ -65,6 +73,7 @@ public sealed class WorldFacts3D : IGuideFacts
         _sizeY = sizeY;
         _sizeZ = sizeZ;
         _blockAt = blockAt ?? throw new ArgumentNullException(nameof(blockAt));
+        _chunkKinds = chunkKinds;
         _nouns = nouns ?? throw new ArgumentNullException(nameof(nouns));
     }
 
@@ -72,32 +81,51 @@ public sealed class WorldFacts3D : IGuideFacts
     public static WorldFacts3D Live(VoxelGrid grid, NounCatalog nouns)
     {
         ArgumentNullException.ThrowIfNull(grid);
-        return new WorldFacts3D(grid.SizeX, grid.SizeY, grid.SizeZ, grid.GetBlock, nouns);
+        return new WorldFacts3D(grid.SizeX, grid.SizeY, grid.SizeZ, grid.GetBlock, nouns, (cx, cy, cz) => grid.GetChunk(new VoxelChunkCoord(cx, cy, cz)).KindMask);
     }
 
-    /// <summary>A copy of the blocks, as facts that no later edit can reach (the turn worker reads these).</summary>
+    /// <summary>
+    /// A copy of the blocks, as facts that no later edit can reach (the turn worker reads these). Only the chunks that hold something are copied
+    /// (a chunk of air costs nothing), with the block kinds each holds, so the copy is a few milliseconds and a search reads only the chunks that can
+    /// hold the noun.
+    /// </summary>
     public static WorldFacts3D Snapshot(VoxelGrid grid, NounCatalog nouns)
     {
         ArgumentNullException.ThrowIfNull(grid);
-        var copy = new BlockId[grid.SizeX * grid.SizeY * grid.SizeZ];
-        var index = 0;
-        for (var z = 0; z < grid.SizeZ; z++)
+        var chunksX = grid.ChunksX;
+        var chunksY = grid.ChunksY;
+        var chunksZ = grid.ChunksZ;
+        var blocks = new BlockId[grid.Chunks.Count][];
+        var kinds = new ulong[grid.Chunks.Count];
+        for (var i = 0; i < blocks.Length; i++)
         {
-            for (var y = 0; y < grid.SizeY; y++)
+            var chunk = grid.Chunks[i];
+            if (!chunk.IsEmpty)
             {
-                for (var x = 0; x < grid.SizeX; x++)
-                {
-                    copy[index++] = grid.GetBlock(x, y, z);
-                }
+                blocks[i] = chunk.Blocks.ToArray();
+                kinds[i] = chunk.KindMask;
             }
         }
 
         var sizeX = grid.SizeX;
         var sizeY = grid.SizeY;
         var sizeZ = grid.SizeZ;
-        return new WorldFacts3D(sizeX, sizeY, sizeZ, (x, y, z) => x >= 0 && y >= 0 && z >= 0 && x < sizeX && y < sizeY && z < sizeZ
-            ? copy[(((z * sizeY) + y) * sizeX) + x]
-            : BlockId.Air, nouns);
+        return new WorldFacts3D(
+            sizeX,
+            sizeY,
+            sizeZ,
+            (x, y, z) =>
+            {
+                if (x < 0 || y < 0 || z < 0 || x >= sizeX || y >= sizeY || z >= sizeZ)
+                {
+                    return BlockId.Air;
+                }
+
+                var chunk = blocks[((((y >> ChunkShift) * chunksZ) + (z >> ChunkShift)) * chunksX) + (x >> ChunkShift)];
+                return chunk is null ? BlockId.Air : chunk[(((((y & (ChunkSize - 1)) << ChunkShift) + (z & (ChunkSize - 1))) << ChunkShift) + (x & (ChunkSize - 1)))];
+            },
+            nouns,
+            (cx, cy, cz) => kinds[(((cy * chunksZ) + cz) * chunksX) + cx]);
     }
 
     /// <summary>The block at a cell; air outside the scene.</summary>
@@ -122,34 +150,88 @@ public sealed class WorldFacts3D : IGuideFacts
             return null;
         }
 
+        var mask = 0UL;
+        for (var kind = 0; kind < wanted.Length; kind++)
+        {
+            if (wanted[kind])
+            {
+                mask |= 1UL << kind;
+            }
+        }
+
+        // The chunks that can hold the noun, nearest first: a chunk is read only while it could still beat the best block found.
+        var chunksX = (_sizeX + ChunkSize - 1) >> ChunkShift;
+        var chunksY = (_sizeY + ChunkSize - 1) >> ChunkShift;
+        var chunksZ = (_sizeZ + ChunkSize - 1) >> ChunkShift;
+        var candidates = new List<(long Nearest, int Cx, int Cz)>();
+        for (var cz = 0; cz < chunksZ; cz++)
+        {
+            var gapZ = GapToChunk(from.CentreZ, cz, _sizeZ);
+            for (var cx = 0; cx < chunksX; cx++)
+            {
+                if (!ChunkColumnMayHold(cx, cz, chunksY, mask))
+                {
+                    continue;
+                }
+
+                var gapX = GapToChunk(from.CentreX, cx, _sizeX);
+                candidates.Add(((gapX * gapX) + (gapZ * gapZ), cx, cz));
+            }
+        }
+
+        candidates.Sort(static (a, b) => a.Nearest != b.Nearest ? a.Nearest.CompareTo(b.Nearest) : a.Cz != b.Cz ? a.Cz.CompareTo(b.Cz) : a.Cx.CompareTo(b.Cx));
+
+        // The least (horizontal distance, z, x, y): the guide's tie rule, whatever order the chunks are read in.
         long bestDistance = long.MaxValue;
         int bestX = 0;
         int bestY = 0;
         int bestZ = 0;
         var found = false;
-        for (var z = 0; z < _sizeZ; z++)
+        foreach (var (nearest, cx, cz) in candidates)
         {
-            var dz = ((long)z * UnitsPerBlock) + HalfBlock - from.CentreZ;
-            for (var x = 0; x < _sizeX; x++)
+            if (nearest > bestDistance)
             {
-                var dx = ((long)x * UnitsPerBlock) + HalfBlock - from.CentreX;
-                var horizontal = (dx * dx) + (dz * dz);
-                if (horizontal >= bestDistance)
+                break;
+            }
+
+            for (var cy = 0; cy < chunksY; cy++)
+            {
+                if (_chunkKinds is { } kindsOf && (kindsOf(cx, cy, cz) & mask) == 0)
                 {
-                    continue; // the same as the reading order's first block of the least distance: a later block must be strictly nearer
+                    continue;
                 }
 
-                for (var y = 0; y < _sizeY; y++)
+                for (var z = cz << ChunkShift; z < Math.Min(_sizeZ, (cz + 1) << ChunkShift); z++)
                 {
-                    var block = _blockAt(x, y, z);
-                    if (block != BlockId.Air && wanted[(int)block])
+                    var dz = ((long)z * UnitsPerBlock) + HalfBlock - from.CentreZ;
+                    for (var x = cx << ChunkShift; x < Math.Min(_sizeX, (cx + 1) << ChunkShift); x++)
                     {
-                        bestDistance = horizontal;
-                        bestX = x;
-                        bestY = y;
-                        bestZ = z;
-                        found = true;
-                        break;
+                        var dx = ((long)x * UnitsPerBlock) + HalfBlock - from.CentreX;
+                        var horizontal = (dx * dx) + (dz * dz);
+                        if (horizontal > bestDistance)
+                        {
+                            continue;
+                        }
+
+                        for (var y = cy << ChunkShift; y < Math.Min(_sizeY, (cy + 1) << ChunkShift); y++)
+                        {
+                            var block = _blockAt(x, y, z);
+                            if (block == BlockId.Air || !wanted[(int)block])
+                            {
+                                continue;
+                            }
+
+                            if (horizontal < bestDistance || (z, x, y).CompareTo((bestZ, bestX, bestY)) < 0)
+                            {
+                                bestDistance = horizontal;
+                                bestX = x;
+                                bestY = y;
+                                bestZ = z;
+                                found = true;
+                            }
+
+                            break; // the lowest block of the column that is the noun
+                        }
                     }
                 }
             }
@@ -172,6 +254,32 @@ public sealed class WorldFacts3D : IGuideFacts
             BlocksOf(bestDistance),
             DirectionPhrase(forward, lateral),
             bestDistance);
+    }
+
+    // The distance in units from a coordinate to the nearest block centre of the chunk row or column (0 when the coordinate is inside it).
+    private static long GapToChunk(long centre, int chunk, int size)
+    {
+        long low = ((long)chunk << ChunkShift) * UnitsPerBlock + HalfBlock;
+        long high = ((long)Math.Min(size, (chunk + 1) << ChunkShift) - 1) * UnitsPerBlock + HalfBlock;
+        return centre < low ? low - centre : centre > high ? centre - high : 0;
+    }
+
+    private bool ChunkColumnMayHold(int cx, int cz, int chunksY, ulong mask)
+    {
+        if (_chunkKinds is not { } kindsOf)
+        {
+            return true;
+        }
+
+        for (var cy = 0; cy < chunksY; cy++)
+        {
+            if ((kindsOf(cx, cy, cz) & mask) != 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <inheritdoc />

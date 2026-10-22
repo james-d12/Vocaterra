@@ -27,7 +27,7 @@ public sealed class VoxelSaveStateTests
         var edits = VoxelGridDiff.Capture(scene.Grid, fresh);
 
         Assert.Equal(2, edits.Count);
-        // The grid's chunk order is x fastest, then z, then y: chunk (3, 0, 0) is index 3 and chunk (1, 0, 1) is index 7 on a 6 x 6 footprint.
+        // The grid chunk order is x fastest, then z, then y: chunk (3, 0, 0) is index 3 and chunk (1, 0, 1) is index 25 on a 24 x 24 footprint.
         Assert.Equal(new VoxelChunkCoord(3, 0, 0), scene.Grid.Chunks[edits[0].Chunk].Coord);
         Assert.Equal(new VoxelChunkCoord(1, 0, 1), scene.Grid.Chunks[edits[1].Chunk].Coord);
         Assert.True(edits[0].Chunk < edits[1].Chunk);

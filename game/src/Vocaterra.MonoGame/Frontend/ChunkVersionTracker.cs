@@ -76,6 +76,15 @@ public sealed class ChunkVersionTracker
         return due;
     }
 
+    /// <summary>Whether a chunk's mesh is missing or built from older blocks (the same test as <see cref="Due"/>, for one chunk).</summary>
+    public bool IsDue(VoxelChunkCoord coord) => _meshed[IndexOf(coord)] != KeyOf(coord);
+
+    /// <summary>Whether the chunk has a mesh the tracker counts as current or stale (it was meshed and not let go since).</summary>
+    public bool HasMesh(VoxelChunkCoord coord) => _meshed[IndexOf(coord)] is not null;
+
+    /// <summary>Forgets a chunk's mesh (the renderer let it go because the chunk is out of view): it is due again if it comes back.</summary>
+    public void Discard(VoxelChunkCoord coord) => _meshed[IndexOf(coord)] = null;
+
     /// <summary>Records that a chunk was meshed from the blocks as they are now, with the given block kinds (<see cref="ChunkMeshes.Kinds"/>).</summary>
     public void MarkMeshed(VoxelChunkCoord coord, ulong kinds = 0)
     {

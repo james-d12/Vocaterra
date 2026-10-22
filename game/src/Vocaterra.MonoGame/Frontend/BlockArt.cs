@@ -83,6 +83,8 @@ public static class BlockArt
                     return crack ? Shade(100, 104, 116, 0) : Shade(138, 142, 152, speckle);
                 }
 
+            case BlockCell.Snow:
+                return rare ? Shade(214, 226, 246, 0) : Shade(244, 248, 255, speckle);
             case BlockCell.Sand:
                 return rare ? Shade(206, 180, 110, 0) : Shade(238, 214, 136, speckle);
             case BlockCell.TrunkSide:

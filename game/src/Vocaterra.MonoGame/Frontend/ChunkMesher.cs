@@ -101,6 +101,57 @@ public static class ChunkMesher
         return !(neighbour == self && BlockDefinition.Get(self).Transparent);
     }
 
+    // The kinds that are not an opaque cube: a chunk holding one of them is never buried.
+    private static readonly ulong NotOpaqueCubes = NonOpaqueKindMask();
+
+    /// <summary>
+    /// Whether a chunk is fully buried: all of its 4 096 blocks are opaque cubes and every neighbour block across its six faces is an opaque cube too, so
+    /// its mesh would have no face at all. The renderer skips it without meshing. (A chunk at the edge of the world is never buried on the sides
+    /// where the world ends, because beyond the edge reads as air.)
+    /// </summary>
+    public static bool IsBuried(IBlockSource blocks, VoxelChunk chunk)
+    {
+        ArgumentNullException.ThrowIfNull(blocks);
+        ArgumentNullException.ThrowIfNull(chunk);
+        if (chunk.NonAirCount != VoxelChunk.Volume || (chunk.KindMask & NotOpaqueCubes) != 0)
+        {
+            return false;
+        }
+
+        var x0 = chunk.Coord.X * VoxelChunk.Size;
+        var y0 = chunk.Coord.Y * VoxelChunk.Size;
+        var z0 = chunk.Coord.Z * VoxelChunk.Size;
+        const int N = VoxelChunk.Size;
+        for (var a = 0; a < N; a++)
+        {
+            for (var b = 0; b < N; b++)
+            {
+                if (!IsOpaqueCube(blocks.Get(x0 - 1, y0 + a, z0 + b)) || !IsOpaqueCube(blocks.Get(x0 + N, y0 + a, z0 + b))
+                    || !IsOpaqueCube(blocks.Get(x0 + a, y0 - 1, z0 + b)) || !IsOpaqueCube(blocks.Get(x0 + a, y0 + N, z0 + b))
+                    || !IsOpaqueCube(blocks.Get(x0 + a, y0 + b, z0 - 1)) || !IsOpaqueCube(blocks.Get(x0 + a, y0 + b, z0 + N)))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private static ulong NonOpaqueKindMask()
+    {
+        var mask = 0UL;
+        foreach (var kind in Enum.GetValues<BlockId>())
+        {
+            if (!IsOpaqueCube(kind))
+            {
+                mask |= KindBit(kind);
+            }
+        }
+
+        return mask;
+    }
+
     /// <summary>The bit of a block kind in a kinds mask (one bit per <see cref="BlockId"/> value; every kind is below 64).</summary>
     public static ulong KindBit(BlockId id) => 1UL << (int)id;
 

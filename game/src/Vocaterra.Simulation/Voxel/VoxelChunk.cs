@@ -21,6 +21,9 @@ public sealed class VoxelChunk
 
     private readonly BlockId[] _blocks = new BlockId[Volume];
     private byte[]? _digest;
+    private int _nonAir;
+    private ulong _kinds;
+    private bool _kindsValid;
 
     internal VoxelChunk(VoxelChunkCoord coord) => Coord = coord;
 
@@ -35,6 +38,36 @@ public sealed class VoxelChunk
     /// it with the value it last meshed.
     /// </summary>
     public uint Version { get; private set; }
+
+    /// <summary>How many of the 4 096 blocks are not air (kept up to date by every edit, so it costs nothing to read).</summary>
+    public int NonAirCount => _nonAir;
+
+    /// <summary>Whether the chunk holds nothing but air: a renderer skips it and a search passes it by.</summary>
+    public bool IsEmpty => _nonAir == 0;
+
+    /// <summary>
+    /// The block kinds the chunk holds, one bit each (bit <c>(int)BlockId</c>; every kind is below 64). Computed on first use after an edit and cached,
+    /// so a search for one kind skips every chunk without it.
+    /// </summary>
+    public ulong KindMask
+    {
+        get
+        {
+            if (!_kindsValid)
+            {
+                var mask = 0UL;
+                foreach (var block in _blocks)
+                {
+                    mask |= 1UL << (int)block;
+                }
+
+                _kinds = mask;
+                _kindsValid = true;
+            }
+
+            return _kinds;
+        }
+    }
 
     /// <summary>The block at the chunk-local position.</summary>
     public BlockId this[int localX, int localY, int localZ] => _blocks[Index(localX, localY, localZ)];
@@ -70,10 +103,56 @@ public sealed class VoxelChunk
             return false;
         }
 
+        if (_blocks[index] == BlockId.Air)
+        {
+            _nonAir++;
+        }
+        else if (block == BlockId.Air)
+        {
+            _nonAir--;
+        }
+
         _blocks[index] = block;
         _digest = null;
+        _kindsValid = false;
         Version++;
         return true;
+    }
+
+    /// <summary>Fills the chunk-local column (localX, localZ) from <paramref name="localY0"/> to <paramref name="localY1"/> inclusive with a block; returns how many blocks changed.</summary>
+    internal int FillColumn(int localX, int localZ, int localY0, int localY1, BlockId block)
+    {
+        var changed = 0;
+        for (var y = localY0; y <= localY1; y++)
+        {
+            var index = Index(localX, y, localZ);
+            var old = _blocks[index];
+            if (old == block)
+            {
+                continue;
+            }
+
+            if (old == BlockId.Air)
+            {
+                _nonAir++;
+            }
+            else if (block == BlockId.Air)
+            {
+                _nonAir--;
+            }
+
+            _blocks[index] = block;
+            changed++;
+        }
+
+        if (changed > 0)
+        {
+            _digest = null;
+            _kindsValid = false;
+            Version++;
+        }
+
+        return changed;
     }
 
     private static int Index(int localX, int localY, int localZ) => (((localY << Shift) + localZ) << Shift) + localX;

@@ -107,6 +107,9 @@ public enum BlockCell
 
     /// <summary>The icon of a loaf of bread (the item, S6).</summary>
     IconBread,
+
+    /// <summary>Snow: the cap of the high peaks (S13; S14 draws it again with the rest of the textures).</summary>
+    Snow,
 }
 
 /// <summary>
@@ -171,6 +174,7 @@ public static class BlockAtlasLayout
             BlockId.FireRing => BlockCell.FireRing,
             BlockId.Sign => up || down ? BlockCell.Planks : BlockCell.SignBoard,
             BlockId.Bridge => up ? BlockCell.BridgeTop : BlockCell.BridgeSide,
+            BlockId.Snow => BlockCell.Snow,
             _ => BlockCell.White,
         };
     }

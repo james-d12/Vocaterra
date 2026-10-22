@@ -100,11 +100,20 @@ public sealed class VoxelGrid
             return -1;
         }
 
-        for (var y = SizeY - 1; y >= 0; y--)
+        for (var cy = ChunksY - 1; cy >= 0; cy--)
         {
-            if (GetBlock(x, y, z) != BlockId.Air)
+            var chunk = _chunks[ChunkIndex(x >> VoxelChunk.Shift, cy, z >> VoxelChunk.Shift)];
+            if (chunk.IsEmpty)
             {
-                return y;
+                continue;
+            }
+
+            for (var ly = VoxelChunk.Size - 1; ly >= 0; ly--)
+            {
+                if (chunk[x & (VoxelChunk.Size - 1), ly, z & (VoxelChunk.Size - 1)] != BlockId.Air)
+                {
+                    return (cy << VoxelChunk.Shift) + ly;
+                }
             }
         }
 
@@ -141,6 +150,58 @@ public sealed class VoxelGrid
 
     /// <summary>The world digest as 64 lowercase hex characters.</summary>
     public string ComputeDigestHex() => Convert.ToHexString(ComputeDigest()).ToLowerInvariant();
+
+    /// <summary>
+    /// The positions of every block of kind <paramref name="kind"/>, chunk by chunk (chunks in <see cref="Chunks"/> order, blocks in storage order
+    /// inside each); a chunk without the kind is passed by without reading its blocks. For searches that must not read the whole grid.
+    /// </summary>
+    public List<BlockPos> BlocksOfKind(BlockId kind)
+    {
+        var found = new List<BlockPos>();
+        var bit = 1UL << (int)kind;
+        foreach (var chunk in _chunks)
+        {
+            if ((chunk.KindMask & bit) == 0)
+            {
+                continue;
+            }
+
+            var origin = chunk.Coord.Origin;
+            var blocks = chunk.Blocks;
+            for (var i = 0; i < blocks.Length; i++)
+            {
+                if (blocks[i] == kind)
+                {
+                    found.Add(new BlockPos(
+                        origin.X + (i & (VoxelChunk.Size - 1)),
+                        origin.Y + (i >> (2 * VoxelChunk.Shift)),
+                        origin.Z + ((i >> VoxelChunk.Shift) & (VoxelChunk.Size - 1))));
+                }
+            }
+        }
+
+        return found;
+    }
+
+    /// <summary>Fills the column (<paramref name="x"/>, <paramref name="z"/>) from <paramref name="y0"/> to <paramref name="y1"/> inclusive (clipped to the grid) with a block, chunk by chunk.</summary>
+    internal void FillColumn(int x, int z, int y0, int y1, BlockId block)
+    {
+        if ((uint)x >= (uint)SizeX || (uint)z >= (uint)SizeZ)
+        {
+            throw new ArgumentOutOfRangeException(nameof(x), $"Column ({x}, {z}) lies outside the grid.");
+        }
+
+        y0 = Math.Max(y0, 0);
+        y1 = Math.Min(y1, SizeY - 1);
+        while (y0 <= y1)
+        {
+            var cy = y0 >> VoxelChunk.Shift;
+            var top = Math.Min(y1, ((cy + 1) << VoxelChunk.Shift) - 1);
+            EditCount += _chunks[ChunkIndex(x >> VoxelChunk.Shift, cy, z >> VoxelChunk.Shift)]
+                .FillColumn(x & (VoxelChunk.Size - 1), z & (VoxelChunk.Size - 1), y0 & (VoxelChunk.Size - 1), top & (VoxelChunk.Size - 1), block);
+            y0 = top + 1;
+        }
+    }
 
     /// <summary>Writes a block; returns whether the grid changed.</summary>
     internal bool SetBlock(int x, int y, int z, BlockId block)
