@@ -744,6 +744,31 @@ lesson turns.
 - **Tests.** A check answer leaves Nouns and Verbs unchanged and appears in What I said. An old save that counted check answers loads
   without them, as far as its history allows. Replaying the history still gives the same record.
 
+### S20b: replay the sound of any noun or phrase in the book (Haiku 5.5, S)
+
+The owner (2026-10-22): "the ability to replay the soundclip for any of the nouns and phrases within the book."
+- **Play from the book.** Every noun row (Nouns page) and every phrase row (Phrases page, and the phrases a lesson taught on the Lessons
+  page) gets a small speaker button. A click, or Enter on the selected row, plays its recording, and Shift plays the slow version. It plays
+  through S24's mixer as voice. A noun the learner has not met yet (`¿?`) stays silent and shows no button, so nothing is given away.
+- **Recordings that exist today:**
+  - 7 of the 19 catalogue nouns have a word card (`speech/card.<noun>.wav`);
+  - 14 of the 21 phrases have `speech/phrase.<id>.wav`.
+- **The 12 nouns without one** (árbol, hierba, tierra, piedra, arena, puerta, mesa, río, camino, casa, tienda, puente) get card
+  recordings: `scripts/prerender-speech.sh`, normal and slow, the same Kokoro voice as the other cards, with the article as the cards say
+  it (`el árbol`).
+- **The 7 phrases the learner only hears** (que-necesitas, quieres-pan, me-llamo, es-madera, quieres-fruta, de-nada, necesitas-madera)
+  play the NPC line that already speaks them (for example `guide.lesson.name.1` for `Me llamo Luna.`). The phrase sheet names the line;
+  render a phrase recording only where no line exists.
+- **Not played:** nouns used outside the catalogue, which have no recording (they show no button), and the verb forms on the Verbs page.
+- **The listening list.** New WAVs are listed in `docs/SPEECH_CHECKLIST.md` for the owner (D-game-12 step 4). If the bundle changes:
+  validate, hash, then refresh the grammar strings and cache (the game-v1 grammar gate is required).
+- **Tests:**
+  - every catalogue noun and every phrase resolves to a recording, or is listed as having none on purpose;
+  - unknown nouns have no button;
+  - click and Enter play, Shift plays slow;
+  - `--mute` keeps the voices off;
+  - `--sound-log` shows the plays.
+
 ### S18: the playtest refresh (Haiku 5.5, S)
 
 - The playtest build, `PLAYTEST.md` and the report script are updated for the new opening, the lesson steps, the longer session and the new
