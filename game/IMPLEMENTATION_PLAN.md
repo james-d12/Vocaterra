@@ -187,7 +187,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S17b | The talk key (V) shown in the dialogue in every state; the microphone check, the game's own errors and key hints in English (owner's playtest notes) | done (merged to `feature/prototype` 2026-10-22, `678e5a2`) | Haiku 5.5 | S17 |
 | S19 | The learner's record: every spoken and typed input, the nouns and verbs used (from the core's word readings), the lessons completed; save version 2 (D-game-16) | done (merged to `feature/prototype` 2026-10-22, `c92e486`) | Haiku 5.5 | S17, D-game-16 |
 | S20 | The book: the journal as an openable book with Nouns, Verbs, Phrases, Lessons and What I said pages (D-game-16) | done (merged to `feature/prototype` 2026-10-22, `ee2ec79`) | Haiku 5.5 | S15, S19 |
-| S21 | F8: the in-game bug and feature report, saved as Markdown with a screenshot, game state, recent turns and the session log tail; local only (D-game-17) | planned | Haiku 5.5 | S19, S20, D-game-17 |
+| S21 | F8: the in-game bug and feature report, saved as Markdown with a screenshot, game state, recent turns and the session log tail; local only (D-game-17) | done (merged to `feature/prototype` 2026-10-22, `917d2c4`) | Haiku 5.5 | S19, S20, D-game-17 |
 | S18 | The playtest refresh (build, checklist, report, launcher message; the consent text mentions that the book keeps what the player said; the facilitator collects the F8 reports) | planned | Haiku 5.5 | S15, S17, S17b, S20, S21 |
 
 Each milestone ends with the gate in section 6 and a line in section 5. The S series is gated with `GATE_TARGET=feature/prototype
@@ -940,6 +940,27 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - the inventory still says `Ocupadas: 1 de 40` (S17b missed it; S21 fixes it);
     - saves from before S20 have no book item;
     - `--greyscale` on the book was not checked by eye.
+- **S21, F8 bug and feature reports (2026-10-22, Haiku 5.5; merged `917d2c4`).**
+  - **Built.**
+    - `Vocaterra.Game/Reports/` is engine-free: `ReportKind`, `ReportNaming` (`report-s<n>-t<tick>-<kind>`, a counter if taken, never
+      the clock), `ReportSnapshot` (bounds of 10 turns and 200 log lines) and `ReportMarkdown`. The save time arrives as a preformatted
+      string, so the game layer stays clock-free (ArchitectureRulesTests).
+    - The panel (`ReportPanel`, `ReportEntry`, `ReportLayer`):
+      - F8 works anywhere and pauses the game: no ticks, no turns, no watchdog, and the microphone dropped.
+      - The F8 frame is held in memory and written only on save; Esc drops it.
+      - The report and its PNG are saved to `<session>/reports/` or `--report-dir`.
+      - Scripted flags `--report`, `--report-open`, `--report-kind` and `--report-dir`.
+    - `scripts/playtest-report.sh` lists and copies the reports. PLAYTEST.md's consent text names what a report holds.
+    - `Slots used`, `Recipes` and `a station` are English now.
+  - **Bug fixed:** the Alt+vowel accents shown in the hints were never applied (`AccentShortcuts` was unused); now applied in the dialogue,
+    check and report boxes.
+  - **Checked by the orchestrator.**
+    - The gate: 4,356 passed, 5 skipped.
+    - The panel screenshot: English, Bug or Feature request, Cancel and Save report.
+    - On the merged build, the full S17 route (34 steps, session complete) and a scripted F8 report at the guide (Markdown and PNG
+      written, kind, tick and the open panel recorded).
+  - **For S18:** the build commit reads `unknown`. The csproj stamps it from `VOCATERRA_BUILD_COMMIT`, which
+    `scripts/playtest-build.sh` must set.
 
 ## 6. Definition of done (every milestone)
 

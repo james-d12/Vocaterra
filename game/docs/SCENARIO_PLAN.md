@@ -616,3 +616,8 @@ a markdown." Asked where to upload, the owner chose a local file only: no networ
 - The launcher `game/playtest/playtest.sh` says "build this folder with `scripts/playtest-build.sh` first" when the game binary is missing.
 - The build-size check is re-run.
 - The bundle hash is recorded for the owner's freeze before recall sessions.
+- Left for S18 by S15 to S21:
+  - `scripts/playtest-build.sh` sets `VOCATERRA_BUILD_COMMIT=$(git rev-parse HEAD)` so that F8 reports name the build;
+  - `--playtest` hides the debug line in the dialogue log (`request_item, understood, 100 %, 2.2 ms`), or S18 confirms it already does;
+  - PLAYTEST.md and the tester README name the new keys: J or the book item for the book, F5 for the view, F6 to save, F8 to report;
+  - the facilitator checklist covers the opening, the lesson, the book and collecting the F8 reports.
