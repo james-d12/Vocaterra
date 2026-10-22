@@ -90,6 +90,29 @@ embedding anchors are unchanged), and an intent may carry `"lint": { "allowOverl
 serializes as before. `ReservedPools` (in `Vocaterra.Nlp.Response.Templates`) names the dialogue pools the pipeline uses without an agent action
 (`not_understood`, `answer_accepted`, `feedback.<kind>[.<tag>]`).
 
+### Grammar check the strings (M30)
+
+`vocaterra-content grammar <bundleDir>` checks the Spanish strings of a bundle with a local LanguageTool server (D10; procedure in
+[CONTRIBUTING.md](../CONTRIBUTING.md#check-the-grammar-of-your-spanish-before-you-hash-it)). A host with strings the bundle does not hold
+(phrase sheets, its own English-side Spanish) passes them as JSON Lines with `--strings <file.jsonl>`. `--strings-only` checks only the file.
+Each line is one object:
+
+| Member | Required | Meaning |
+| --- | --- | --- |
+| `id` | yes | A non-empty string, unique in the file and not the id of a bundle string. It names the string in findings and in the waiver file. |
+| `text` | yes | The string as the learner or the host shows it. Not normalised: the tool capitalises learner strings only. |
+| `kind` | yes | `npc` (authored speech, checked as written), `learner` (what a learner says: the first letter is capitalised before the check) or `template` (a slot template, `{slot}` or `{slot:filter(args)}`, rendered with the core's template engine from four sampled fillings; each distinct rendering is checked). |
+| `errors` | no | An array of expected error tags (`conj.person`, `gender.agree`, `noun.number`, `vocab.unknown`, ...). Its presence makes the line a learner example for the oracle; `[]` means "no error expected". |
+
+```json
+{"id":"le06-yo-quieres-agua","text":"yo quieres agua, por favor","kind":"learner","errors":["conj.person"]}
+{"id":"greet.1","text":"¡Hola! Soy {name:cap}.","kind":"template"}
+{"id":"prompt.buy","text":"¿Qué quieres comprar?","kind":"npc"}
+```
+
+Blank lines are skipped. A bad line (not JSON, an unknown kind, no text, a duplicate id) stops the command with exit 1 and the line number.
+The file is read as UTF-8. Findings for these strings name the file; their waivers go in the same waiver file as the bundle's, by `id`.
+
 ## 2. Build the services (D0, with optional D1)
 
 ```csharp

@@ -11,3 +11,11 @@ that kaikki.org publishes. It is licensed under the Creative Commons Attribution
 (CC BY-SA 4.0), not under the Apache License 2.0, and it keeps that licence wherever it is copied. The attribution it
 requires, the source of its word frequency list and the licences of the models the project downloads are listed in
 content/v1/ATTRIBUTION.md and models/manifest.json.
+
+Development-time tools (not linked, not shipped)
+
+The grammar check (`vocaterra-content grammar`, M30) calls a LanguageTool server over HTTP at development time. LanguageTool 6.6
+is licensed under the GNU Lesser General Public License 2.1, and the Temurin Java runtime that runs it under the GNU General Public
+License 2.0 with the Classpath Exception. Both are downloaded by scripts/fetch-tools.sh from the URLs and sha256 values pinned in
+nlp/tools/manifest.json, run as separate local processes and never linked, copied into the source or shipped. No n-gram data is used.
+The HTTP client is part of this project under Apache-2.0 and contains no LanguageTool code.
