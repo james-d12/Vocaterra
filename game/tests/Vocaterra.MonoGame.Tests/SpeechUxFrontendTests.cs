@@ -339,8 +339,8 @@ public sealed class SpeechUxFrontendTests
             _ = stall.Await(1);
         }
 
-        Assert.Equal(["Quiero agua, por favor.", "Ayuda."], stall.Dialogue.Choices.Select(static c => c.Label));
-        Assert.False(stall.Actions.Perform(SpeechAction.Choice3)); // only two on offer
+        // The core offers one canonical per answer in declared order (M29f): the water row has a sheet row, the bread and the fruit do not and get the core's text, capitalized.
+        Assert.Equal(["Quiero agua, por favor.", "Quiero pan por favor.", "Quiero fruta por favor."], stall.Dialogue.Choices.Select(static c => c.Label));
 
         Assert.True(stall.Actions.Perform(SpeechAction.Choice1));
 
@@ -351,7 +351,7 @@ public sealed class SpeechUxFrontendTests
         Assert.Equal("request_item", picked.Intent);
         Assert.Contains("stall.give_water", picked.HostEvents);
         Assert.Contains(stall.Session.Events.OfType<PhraseUse>(), static u => u is { PhraseId: "pedir-agua", Kind: PhraseUseKind.Choice });
-        Assert.Equal(["voice choice at shopkeeper (\"agua por favor\")"], stall.Voice);
+        Assert.Equal(["voice choice at shopkeeper (\"quiero agua por favor\")"], stall.Voice); // the line the choice sends is the offered canonical
         Assert.Equal(0, stall.Session.Words.RecordOf("agua").Spoken); // a recognition signal, never counted as said
         Assert.Empty(stall.Dialogue.Choices);
     }
