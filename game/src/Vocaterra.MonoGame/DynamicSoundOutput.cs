@@ -13,6 +13,7 @@ public sealed class DynamicSoundOutput : IAudioOutput
 {
     private DynamicSoundEffectInstance? _instance;
     private bool _unavailable;
+    private float _volume = 1f;
 
     /// <inheritdoc />
     public bool Available => !_unavailable;
@@ -33,6 +34,7 @@ public sealed class DynamicSoundOutput : IAudioOutput
         try
         {
             var instance = new DynamicSoundEffectInstance(clip.SampleRate, AudioChannels.Mono);
+            instance.Volume = _volume;
             instance.SubmitBuffer(Pcm16Bytes(clip.Samples));
             instance.Play();
             _instance = instance;
@@ -55,6 +57,16 @@ public sealed class DynamicSoundOutput : IAudioOutput
             _instance = null;
             instance.Stop();
             instance.Dispose();
+        }
+    }
+
+    /// <inheritdoc />
+    public void SetVolume(double volume)
+    {
+        _volume = (float)Math.Clamp(volume, 0, 1);
+        if (_instance is { } instance)
+        {
+            instance.Volume = _volume;
         }
     }
 

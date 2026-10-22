@@ -20,3 +20,9 @@ player in `src/Vocaterra.MonoGame`) is part of the source and is not a file asse
   fails if any of `á é í ó ú ü ñ Á É Í Ó Ú Ü Ñ ¿ ¡` has no glyph.
 - **Use.** Loaded at run time by FontStashSharp (no content pipeline). A 16 px bitmap-style face: draw it at 16 px or a multiple of 16.
 - Only the regular weight is committed; the zip also holds bold, small-caps, mono, 8 px and "HB" variants (not needed yet).
+
+## Sounds (S24)
+
+The sound files are under `audio/` and are listed, with source, pack, author, licence and edit, in [audio/SOURCES.md](audio/SOURCES.md) (Kenney's Impact Sounds, RPG Audio
+and Interface Sounds, all CC0). A test (`AudioProvenanceTests`) fails on a file that is not listed there and on a total over the budget. The cues made in code
+(`SoundSynth`) are not files.

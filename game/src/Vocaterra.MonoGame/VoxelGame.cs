@@ -6,6 +6,7 @@ using Vocaterra.Game;
 using Vocaterra.Game.Reports;
 using Vocaterra.MonoGame.Frontend;
 using Vocaterra.Simulation;
+using Vocaterra.Simulation.Crafting;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 
@@ -99,6 +100,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly DialogueModel _dialogue;
     private readonly TurnPump _pump;
     private readonly PushToTalk _talk;
+    private readonly SoundFrontend _sound;
+    private readonly ISoundOutput _soundOutput;
+    private readonly SoundLogWriter? _soundLog;
     private readonly SpeechActionRunner _actions;
     private readonly SupportFrontend _support;
     private readonly SessionEnding _ending = new();
@@ -188,7 +192,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// Creates the 3D game for a started session (its simulation is the scene's), the built scene, the NPCs' voices (S9) and the builder of a fresh
     /// scene of the session's seed (a save is taken against it, S10).
     /// </summary>
-    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine)
+    /// <param name="options">The launch options.</param>
+    /// <param name="session">The started session.</param>
+    /// <param name="scene">The built scene.</param>
+    /// <param name="voice">The NPCs voices.</param>
+    /// <param name="pristine">Builds a fresh scene of the session seed.</param>
+    /// <param name="savedVolumes">The sound volumes a loaded save holds (S24), or <see langword="null"/>; <c>--sfx-volume</c> and <c>--ambient-volume</c> override them.</param>
+    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SoundVolumes? savedVolumes = null)
     {
         _options = options;
         _session = session;
@@ -196,10 +206,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _voice = voice;
         _pristine = pristine;
         _sim = session.Simulation;
+        (_sound, _soundOutput, _soundLog) = CreateSound(options, session, savedVolumes);
         _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
         _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Phrases, session.English, showVerdictNotes: !options.Playtest);
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
-        _talk = new PushToTalk(microphone);
+        _talk = new PushToTalk(microphone) { Sounds = _sound.Mixer };
         _microphoneFound = microphone is not null;
         _pump = new TurnPump(session, _dialogue, CursorCell);
         _actions = new SpeechActionRunner(session, _dialogue, voice, CursorCell);
@@ -247,6 +258,39 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Window.TextInput += OnTextInput;
         StartLogAndCheck(options);
         _session.StartWorker(MonotonicClock.Milliseconds, options.NeedsSpeech);
+    }
+
+    // The sound side (S24): scripted runs and --no-sounds play nothing aloud (the null output, no audio device needed); the sound log still records the cues of a
+    // scripted run. The volumes are the save's, then the command line's. The presentation generator is seeded from the world seed and is the sound's alone.
+    private static (SoundFrontend Sound, ISoundOutput Output, SoundLogWriter? Log) CreateSound(LaunchOptions options, VoxelSession session, SoundVolumes? saved)
+    {
+        var volumes = SoundSetup.VolumesFor(options, saved);
+        ISoundOutput output = SoundSetup.UsesNullOutput(options) ? new NullSoundOutput() : new SoundEffectOutput(AssetPaths.Audio, Console.WriteLine);
+        var log = options.SoundLogPath is { } path ? SoundLogWriter.Open(path) : null;
+        var mixer = new SoundMixer(output, volumes, new PresentationRng(session.WorldSeed), log, options.NoSounds);
+        if (log is not null)
+        {
+            var clamped = mixer.Volumes;
+            log.Write($"# vocaterra sound log, format 1: tick, category, cue, take, gain, pitch (marks: voice and recording windows); seed {session.WorldSeed}");
+            log.Write(string.Create(CultureInfo.InvariantCulture, $"# volumes: voice {clamped.Voice:0.00} sfx {clamped.Sfx:0.00} ui {clamped.Ui:0.00} ambient {clamped.Ambient:0.00}; sounds {(options.NoSounds ? "off (--no-sounds)" : "on")}; output {(output is NullSoundOutput ? "null (silent)" : "device")}"));
+        }
+
+        var sound = new SoundFrontend(mixer, new SoundEventMapper(session.Lessons.Book));
+        sound.SkipEvents(session.Events.Count);
+        return (sound, output, log);
+    }
+
+    // Once per frame (S24): the voice's state ducks the other sounds, the game events, the panels and the frame's cues are played, and the duck and the beds move on.
+    private void UpdateSound(double seconds)
+    {
+        var mixer = _sound.Mixer;
+        mixer.SetTick(_sim.Tick);
+        mixer.SetVoice(_voice.Busy);
+        _voice.SetVolume(mixer.Gain(SoundCategory.Voice));
+        _sound.ObserveGameEvents(_session.Events);
+        _sound.ObservePanels(new PanelState(_inventory.IsOpen, _crafting.IsOpen, _book.IsOpen, (int)_book.Page, _dialogue.IsOpen));
+        _sound.Flush(_sim.Tick);
+        mixer.Advance(seconds);
     }
 
     // The session log (S11) and the check battery (S11): the log is opened first, so the battery's start is in it; the scripted answers of the
@@ -524,6 +568,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         PumpTalk(seconds);
         if (!_report.Paused)
         {
+            if (_dialogue.PendingSpeech is not null)
+            {
+                _sound.Scripted.Begin(); // a scripted spoken line stands for a push-to-talk: the start beep, a silent window, the stop beep (S24)
+            }
+
             _pump.Submit();
         }
 
@@ -572,6 +621,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 }
             }
         }
+
+        UpdateSound(seconds);
 
         var label = Beacon.Label;
         if (Beacon.ClearIfReached(_sim.Player.CenterX / (double)VoxelPhysics.UnitsPerBlock, _sim.Player.CenterZ / (double)VoxelPhysics.UnitsPerBlock))
@@ -727,6 +778,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         _session.StopWorker(); // the worker disposes the recognizer on its own thread
+        _sound.Mixer.WriteSummary();
+        _soundLog?.Dispose();
+        _soundOutput.Dispose();
         _renderer?.Dispose();
         _blockAtlas?.Dispose();
         _pixel?.Dispose();
@@ -790,6 +844,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
         }
 
+        // The sounds of the tick (S24): they read the tick's events and write nothing back.
+        _sound.ObserveSimulation(_sim.Events, (x, y, z) => _sim.Grid.GetBlock(x, y, z));
+        _sound.Scripted.Tick(); // the cues of the frame play together in UpdateSound, so an answer's chime and a step's chime fold into one
+
         UpdateFigures();
         _ease.Tick(_sim.Player.SteppedUp);
         _previousEye = _currentEye;
@@ -803,6 +861,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         foreach (var card in _session.TakeWordCards())
         {
             _cards.Add(card);
+            _sound.Queue(SoundCue.WordLearnt); // a new word: the sparkle (S24)
             _voice.Say(SpeechSpeakers.Guide, [card.Phrase]); // a word card says its noun (S9)
         }
 
@@ -997,6 +1056,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             if (new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height).TabAt(mouse.X, mouse.Y) is { } tab)
             {
                 _book.Show(tab);
+                _sound.QueueClick(SoundCue.UiTab);
             }
         }
 
@@ -1006,6 +1066,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             var layout = new CraftingLayout(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, _session.Recipes.Entries.Count);
             if (layout.RowAt(mouse.X, mouse.Y) is { } row)
             {
+                if (_sim.CanCraft(row) != CraftResult.Done)
+                {
+                    _sound.Queue(SoundCue.CraftRefused); // soft: the ingredients are not there yet (S24)
+                }
+
                 _pendingCrafts.Enqueue(row);
             }
         }
@@ -1251,6 +1316,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _report.Hide();
             _reportShot = null;
             _toasts.Show($"Report saved: {markdownPath}");
+            _sound.Queue(SoundCue.ReportSaved);
             Console.WriteLine($"report saved: {markdownPath} and {picture} ({ReportKinds.Word(kind)}, panel: {report.State.OpenPanel})");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or NotSupportedException)
@@ -1466,6 +1532,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     {
         if (_actions.Perform(action))
         {
+            _sound.QueueClick(SoundCue.UiClick);
             if (action == SpeechAction.Type && typedByKey is { } typed)
             {
                 _swallowedOpenKey = typed;
@@ -1495,7 +1562,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         {
             if (LessonLayer.LayoutFor(_view!, _lesson) is { } strip && strip.ActionAt(x, y) is { } lessonAction)
             {
-                _ = _lesson.Perform(lessonAction); // a button of the lesson strip (S16)
+                if (_lesson.Perform(lessonAction)) // a button of the lesson strip (S16)
+                {
+                    _sound.QueueClick(SoundCue.UiClick);
+                }
+
                 return;
             }
 
@@ -1555,6 +1626,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
     private void PressMicButton(MicCheckButton button)
     {
+        _sound.QueueClick(SoundCue.UiClick);
         if (button == MicCheckButton.Skip && _talk.Listening)
         {
             _ = _talk.End();
@@ -1618,6 +1690,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _micScriptedSent = true;
             if (worker.CanHear)
             {
+                _sound.Scripted.Begin(); // the scripted check stands for a recording: beep, silent window, beep (S24)
                 _ = _session.SubmitHearSpeak(MicCheck.Word);
                 check.BeginScripted();
             }
@@ -1978,6 +2051,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             if (applied.Outcome.Grade is { } grade)
             {
                 _check.Graded(grade);
+                _sound.ObserveTurn(null, null, isCheck: true);
                 Console.WriteLine($"check: {applied.Outcome.Request.Check.Id} heard \"{grade.Transcript}\" -> {grade.Intent}, {(grade.Correct ? "correct" : grade.DontKnow ? "no sé" : "not correct")}{(grade.ErrorTags.Count > 0 ? $" ({string.Join(", ", grade.ErrorTags)})" : string.Empty)}");
             }
             else
@@ -2002,6 +2076,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (check.Pick(shown))
         {
+            _sound.ObserveTurn(null, null, isCheck: true);
             Console.WriteLine($"check: picked {shown + 1} ({(check.Results[^1].Correct ? "the right one" : "not the right one")}, {check.Results[^1].LatencyMs:0} ms)");
         }
     }
@@ -2333,7 +2408,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return false;
         }
 
-        var document = SaveGame.Capture(_session, _pristine());
+        var document = SaveGame.Capture(_session, _pristine(), new SaveSettings(_sound.Mixer.Volumes)); // the sound volumes ride in the save's settings (S24)
         var text = SaveGame.Serialize(document);
         SaveFile.Write(path, text);
         Console.WriteLine(
@@ -2382,6 +2457,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
             if (applied.Outcome.Request.IsMicCheck)
             {
+                // The sound for a mic check's result comes with its voice event (passed or not), in the session's events (S24).
                 var result = applied.Outcome.MicCheck ?? new MicCheckResult(string.Empty, false, 0);
                 Console.WriteLine($"mic check: heard \"{result.Heard}\", level {result.Level:0.00}, {(result.Passed ? "passed" : "not passed")}{(applied.Outcome.Problem is null ? string.Empty : $" ({applied.Outcome.Problem})")}");
                 _micCheck?.Complete(result);
@@ -2394,6 +2470,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 continue;
             }
 
+            _sound.ObserveTurn(turn, applied.Words); // the answer's cue: understood, or the neutral one, and a new known word (S24)
             var timings = applied.Outcome.Timings;
             var detail = turn.Input == InputKind.Spoken
                 ? $"heard \"{turn.Line}\" (confidence {(int)Math.Round((turn.Confidence ?? 0) * 100)} %){(turn.Uncertain ? ", UNCERTAIN" : string.Empty)} -> {turn.Summary}, {timings.TotalMilliseconds:0} ms"

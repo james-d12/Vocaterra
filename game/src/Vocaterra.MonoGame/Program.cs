@@ -20,6 +20,7 @@ VoxelSession session;
 Scene scene;
 NpcVoice voice;
 Func<Scene> pristine;
+SoundVolumes? savedVolumes = null; // the volumes a loaded save holds (S24)
 try
 {
     var started = MonotonicClock.Milliseconds();
@@ -38,6 +39,7 @@ try
         scene = buildFor(document.WorldSeed);
         session = SaveGame.Restore(document, bundle, scene, nouns, options.Credit);
         options = options with { Seed = document.WorldSeed };
+        savedVolumes = document.Settings?.Sound.Clamped();
         Console.WriteLine($"load: {loadPath}: saved in session {document.Session}, now session {session.PlaySession}; tick {document.Tick}, stored time {document.StoredTime}");
         Console.WriteLine($"load: world digest {session.Simulation.ComputeStateDigest()[..16]} = the save's {document.StateDigest[..16]} (restored equal); bundle {bundle.ContentHash[..12]}");
     }
@@ -69,6 +71,6 @@ catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundExcep
 }
 
 // The turn worker is started by the game itself (it warms the guide up and loads Vosk behind the loading screen).
-using var game = new VoxelGame(options, session, scene, voice, pristine);
+using var game = new VoxelGame(options, session, scene, voice, pristine, savedVolumes);
 game.Run();
 return game.ExitCode;

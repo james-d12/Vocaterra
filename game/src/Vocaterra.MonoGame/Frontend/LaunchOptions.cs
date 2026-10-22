@@ -81,6 +81,10 @@ public sealed record LaunchOptions
         + "  --typed-credit <full|half> the credit a correct typed use earns (default half; spoken input always earns full)\n"
         + "  --no-speech             do not load the speech models (typing only)\n"
         + "  --mute                  the NPCs' pre-rendered voices are off (the panel still shows every line)\n"
+        + "  --sfx-volume <0..1>     the volume of the effects (gathering, placing, picking up, crafting, the fire); default 0.8, or the save's (S24)\n"
+        + "  --ambient-volume <0..1> the volume of the ambient beds; default 0.6, or the save's (S24)\n"
+        + "  --no-sounds             every sound but the NPCs' voices is off: effects, interface and progress sounds, beeps and ambient (S24)\n"
+        + "  --sound-log <file>      write every cue played, with its tick and category, to this file; a scripted run plays nothing aloud (S24)\n"
         + "  --quality <low|medium|high>  the graphics quality (S13): how far the world is drawn (low 224 blocks, medium 304, high 400, the default); the fog closes in at that distance\n"
         + "  --view-distance <blocks>     draw this far instead of the quality's distance (at least 48)\n"
         + "  --teleport <x,z>        put the player at this block column, standing on the ground (a debug step for screenshots); a step\n"
@@ -151,6 +155,18 @@ public sealed record LaunchOptions
 
     /// <summary>Whether the NPCs' voices are off (<c>--mute</c>): the panel shows the lines and nothing plays (S9).</summary>
     public bool Muted { get; init; }
+
+    /// <summary>The effects' volume asked for with <c>--sfx-volume</c> (0 to 1), or <see langword="null"/> to take the save's or the default (S24).</summary>
+    public double? SfxVolume { get; init; }
+
+    /// <summary>The ambient beds' volume asked for with <c>--ambient-volume</c> (0 to 1), or <see langword="null"/> to take the save's or the default (S24).</summary>
+    public double? AmbientVolume { get; init; }
+
+    /// <summary>Whether <c>--no-sounds</c> was given: every sound but the NPCs' voices is off (S24).</summary>
+    public bool NoSounds { get; init; }
+
+    /// <summary>The file <c>--sound-log</c> names: a text log of every cue played, with its tick and category (S24), or <see langword="null"/>.</summary>
+    public string? SoundLogPath { get; init; }
 
     /// <summary>Whether the journal is opened once the script is done (<c>--journal</c>, or <c>--journal-phrases</c>).</summary>
     public bool Journal { get; init; }
@@ -265,7 +281,7 @@ public sealed record LaunchOptions
                 return false;
             }
 
-            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--voxel" or "--greyscale" or "--leave" or "--mic-check" or "--no-mic-check"
+            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--leave" or "--mic-check" or "--no-mic-check"
                     or "--playtest" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help")
             {
                 switch (arg)
@@ -293,6 +309,9 @@ public sealed record LaunchOptions
                         break;
                     case "--mute":
                         result = result with { Muted = true };
+                        break;
+                    case "--no-sounds":
+                        result = result with { NoSounds = true };
                         break;
                     case "--mic-check":
                         micCheck = MicCheckMode.Force;
@@ -333,7 +352,7 @@ public sealed record LaunchOptions
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
                 or "--check" or "--pick" or "--session-dir" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page"
-                or "--report" or "--report-open" or "--report-kind" or "--report-dir"))
+                or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -395,6 +414,25 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { ReportKind = reportKind };
+                    break;
+                case "--sfx-volume":
+                case "--ambient-volume":
+                    if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var volume) || double.IsNaN(volume) || volume < 0 || volume > 1)
+                    {
+                        error = $"{arg} needs a number from 0 to 1, got '{value}'.";
+                        return false;
+                    }
+
+                    result = arg == "--sfx-volume" ? result with { SfxVolume = volume } : result with { AmbientVolume = volume };
+                    break;
+                case "--sound-log":
+                    if (value.Length == 0)
+                    {
+                        error = "--sound-log needs a file path.";
+                        return false;
+                    }
+
+                    result = result with { SoundLogPath = value };
                     break;
                 case "--report-dir":
                     if (value.Length == 0)
