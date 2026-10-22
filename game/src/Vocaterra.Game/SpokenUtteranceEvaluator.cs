@@ -10,9 +10,9 @@ namespace Vocaterra.Game;
 
 /// <summary>
 /// The call sequence of the core's API document for one spoken line: the clip (16 kHz mono) goes through the pipeline with the real word
-/// recognizer (Vosk), which decodes it once. The result carries the recognizer's output (<see cref="PipelineTrace.Asr"/>), so the guide's
-/// second evaluation (CR-017) is made over that recognition with <see cref="TypedUtteranceEvaluator.EvaluateRecognized"/> and the same
-/// transcript and confidence are seen twice with one decode.
+/// recognizer (Vosk), which decodes it once. The result carries the recognizer's output (<see cref="PipelineTrace.Asr"/>). The NPCs use the two
+/// phases (CR-017): <see cref="Analyze"/> decodes the clip once and <see cref="CompleteTrace"/> completes the analysis in a context, as often as
+/// the host needs, so the transcript and the confidence are the same in every completion.
 /// </summary>
 /// <remarks>
 /// <b>Threads.</b> The recognizer is not safe for concurrent calls and must not be disposed while a call may run (core API section 8): one
@@ -52,5 +52,24 @@ public sealed class SpokenUtteranceEvaluator
         ArgumentNullException.ThrowIfNull(prompt);
         ArgumentNullException.ThrowIfNull(context);
         return _pipeline.Trace(clip, prompt, context);
+    }
+
+    /// <summary>
+    /// Phase 1 of a spoken line (CR-017): the clip is recognized, once, and read. Complete the analysis with <see cref="CompleteTrace"/>; the
+    /// recognizer is not called again.
+    /// </summary>
+    public UtteranceAnalysis Analyze(PcmClip clip, PromptSpec prompt)
+    {
+        ArgumentNullException.ThrowIfNull(clip);
+        ArgumentNullException.ThrowIfNull(prompt);
+        return _pipeline.Analyze(clip, prompt);
+    }
+
+    /// <summary>Phase 2 for an analysis made by <see cref="Analyze"/>, in the context. Pure.</summary>
+    public PipelineTrace CompleteTrace(UtteranceAnalysis analysis, ConversationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(analysis);
+        ArgumentNullException.ThrowIfNull(context);
+        return _pipeline.CompleteTrace(analysis, context);
     }
 }

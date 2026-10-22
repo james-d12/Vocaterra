@@ -194,11 +194,11 @@
         { "lemmas": ["hacer"], "requiresSlots": ["item"], "slotFromNoun": "item" }
       ],
       "examples": [
-        "cómo hago una mesa",
-        "qué necesito para una puerta",
-        "cómo se hace un horno",
-        "quiero hacer una silla",
-        "cómo hago la espada"
+        "cómo hago una antorcha",
+        "qué necesito para una antorcha",
+        "cómo se hace una antorcha",
+        "quiero hacer una antorcha",
+        "cómo hago la antorcha"
       ]
     },
     {

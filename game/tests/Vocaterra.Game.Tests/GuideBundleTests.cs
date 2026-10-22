@@ -19,14 +19,14 @@ public sealed class GuideBundleTests
     {
         var bundle = TestGame.Bundle;
 
-        var prompt = bundle.Prompts[GuideService.PromptId];
-        Assert.Equal(GuideService.AgentId, prompt.AgentId);
+        var prompt = bundle.Prompts[NpcService.GuidePrompt];
+        Assert.Equal(NpcService.GuideAgent, prompt.AgentId);
         Assert.Equal(GuideIntents.Order(StringComparer.Ordinal), prompt.AllowedIntentIds.Order(StringComparer.Ordinal));
         Assert.False(string.IsNullOrWhiteSpace(prompt.Text));
 
-        var machine = bundle.Agents[GuideService.AgentId];
+        var machine = bundle.Agents[NpcService.GuideAgent];
         Assert.Equal("idle", machine.InitialState().StateId);
-        Assert.Equal(GuideService.AgentId, machine.InitialState().AgentId);
+        Assert.Equal(NpcService.GuideAgent, machine.InitialState().AgentId);
     }
 
     [Fact]
@@ -51,9 +51,9 @@ public sealed class GuideBundleTests
     {
         var bundle = TestGame.Bundle;
         var evaluator = new TypedUtteranceEvaluator(bundle);
-        var prompt = bundle.Prompts[GuideService.PromptId];
+        var prompt = bundle.Prompts[NpcService.GuidePrompt];
         var context = ConversationContext.Create(
-            TestGame.Seed, GuideService.AgentId, bundle.Agents[GuideService.AgentId].InitialState(), new StoredTimestamp(GuideSession.DefaultStartedAt), LearnerModel.New());
+            TestGame.Seed, NpcService.GuideAgent, bundle.Agents[NpcService.GuideAgent].InitialState(), new StoredTimestamp(GuideSession.DefaultStartedAt), LearnerModel.New());
         foreach (var id in new[] { "ask_directions", "ask_craft", "ask_find", "ask_what", "ask_help", "name_object" })
         {
             foreach (var example in bundle.Intents.Intents.Single(i => i.Id.Value == id).Examples)
@@ -100,7 +100,7 @@ public sealed class GuideBundleTests
     {
         var bundle = TestGame.Bundle;
         var evaluator = new TypedUtteranceEvaluator(bundle);
-        var prompt = bundle.Prompts[GuideService.PromptId];
+        var prompt = bundle.Prompts[NpcService.GuidePrompt];
         var lines = new Dictionary<string, string>
         {
             ["greet"] = "hola",
@@ -126,7 +126,7 @@ public sealed class GuideBundleTests
             foreach (var (intent, line) in lines)
             {
                 var context = ConversationContext.Create(
-                    TestGame.Seed, GuideService.AgentId, new AgentState(GuideService.AgentId, state, 0), new StoredTimestamp(GuideSession.DefaultStartedAt), LearnerModel.New());
+                    TestGame.Seed, NpcService.GuideAgent, new AgentState(NpcService.GuideAgent, state, 0), new StoredTimestamp(GuideSession.DefaultStartedAt), LearnerModel.New());
                 var result = evaluator.Evaluate(line, prompt, context);
                 Assert.Equal(intent, result.Verdict.Intent.Value);
                 var step = result.Decision.Agent;

@@ -98,7 +98,7 @@ The prototype is three libraries and a front-end, so that the engine can change 
 
 - `src/Vocaterra.Simulation`: the 3D voxel world (the scene, the player body, gathering, placing, crafting) and a fixed 60 Hz tick. No packages, no engine.
 - `src/Vocaterra.Game`: `VoxelSession` (the simulation, the bundle, the world seed, the stored time, the guide, the conversation, the camp objective
-  and the word cards), `GuideService` (one typed turn over the packages), `WorldFacts3D` (the nearest block, the direction and the distance in Spanish) and
+  and the word cards), `NpcService` (the three NPCs' conversations over the packages: a context per agent, host turns, two-phase turns, S6), `WorldFacts3D` (the nearest block, the direction and the distance in Spanish) and
   `TypedUtteranceEvaluator`, the call sequence of the steps above, which the console host shares. No engine type.
 - `src/Vocaterra.MonoGame`: the only engine code: window, drawing, input, the dialogue panel. It names no `Vocaterra.Nlp.*` package.
 
@@ -125,7 +125,7 @@ How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md`
 ## Spoken input, the worker thread and the models folder (P5)
 
 A turn is either typed (the line is the transcript, the core's scripted recognizer) or spoken (a 16 kHz clip decoded by Vosk). Both go through
-the same `GuideService` turn, and each turn records how it arrived (`GuideTurn.Input`) so that word progress applies the credit of that kind
+the same `NpcService` turn, and each turn records how it arrived (`GuideTurn.Input`) so that word progress applies the credit of that kind
 (`CreditRules`: typed input half, spoken full, D-game-6; `--typed-credit full` switches typed back to full).
 
 - **One worker thread owns the recognizer.** `TurnWorker` (in `Vocaterra.Game`, no engine type) is the only thread that loads the Vosk model

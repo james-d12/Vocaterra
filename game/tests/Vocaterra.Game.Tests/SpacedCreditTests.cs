@@ -438,8 +438,8 @@ public sealed class SpacedCreditTests
     {
         var bundle = TestGame.Bundle;
 
-        Assert.Equal("¿Qué es esto?", bundle.Prompts[GuideService.ReviewPromptId].Text);
-        Assert.Equal(bundle.Prompts[GuideService.PromptId].AllowedIntentIds, bundle.Prompts[GuideService.ReviewPromptId].AllowedIntentIds);
+        Assert.Equal("¿Qué es esto?", bundle.Prompts[NpcService.GuideReviewPrompt].Text);
+        Assert.Equal(bundle.Prompts[NpcService.GuidePrompt].AllowedIntentIds, bundle.Prompts[NpcService.GuideReviewPrompt].AllowedIntentIds);
         Assert.True(bundle.Dialogue.TryGetPool("guide.review.ask", out var pool));
         Assert.All(pool.Variants, static v => Assert.Contains("¿", v.Text));
         Assert.All(pool.Variants, static v => Assert.Contains("qué es esto?", v.Text, StringComparison.OrdinalIgnoreCase));

@@ -27,7 +27,10 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--place <item>@<x>,<y>,<z>` | a step: place one item (`madera`, `antorcha`, or the item key `wood`, `torch`) in that empty cell next to a block, within reach |
 | `--select <n>` | a step: hotbar slot 1 to 10 |
 | `--craft <item>` | a step: craft the recipe that makes the item (`antorcha`), with the workbench in reach; prints `craft: antorcha made (antorcha 0 -> 1)` or why it was refused |
-| `--say "<line>"` | repeatable: after the steps, walk the player to the guide, open the dialogue panel, type the line and send it, and wait for her reply; each turn is printed (`turn 1: ... -> ask_directions, entendido`, her line, the arrow) |
+| `--talk <npc>` | a step (S6): walk to the guide, shopkeeper or villager, stop at the stand-off (`NpcStandOff`, about two blocks, a clear line to its chest) facing it, open the dialogue panel on it; the NPC's opening is printed (`talk: shopkeeper (host turn, stall-need): ¿Qué necesitas?`) |
+| `--say "<line>"` | repeatable, a step: type the line into the panel and send it to the NPC it is open on, and wait for the reply; with no panel open it first talks to the guide (as in S3); each turn is printed (`turn 1 (guide, guide-open): ... -> ask_directions, entendido`, the NPC's lines, the arrow, then the game events it caused) |
+| `--leave` | a step: close the dialogue (a `--walk-to` or another `--talk` closes it as well) |
+| `--shot <png>` | a step: save the screen at this point of the script and go on (the final `--screenshot` is saved when the script is done) |
 | `--beacon <point>` | stand the beacon column on a named point of the scene (`camp`, `firering`, `workbench`, `stall`, `signpost`, `village`, `house1` to `house3`, `bridge`, `river`); it clears when the player comes within 3 blocks |
 | `--journal`, `--inventory`, `--crafting` | open those screens once the steps are done (the panel stays open for the screenshot) |
 | `--typed-credit <full\|half>` | the credit a correct typed use earns: `half` by default, `full` as before P5; spoken input always earns full |
@@ -83,19 +86,19 @@ edge arrow, and the 3D debug overlay.
 **The guide (S3).** The turn worker starts with the game (typed and spoken, the loading screen until Vosk is ready), with a `VoxelSession` (in
 `Vocaterra.Game`, the shared part is `GuideSession`) over the scene's blocks: `WorldFacts3D` answers "where is it" with the nearest block of a noun,
 its direction from the facing and its distance in blocks. The panel (`DialogueModel`, `DialoguePanel`) is in the layer list; **E** (or **T**; **V**
-talks) opens it when the crosshair is on the guide's figure (`FigureAim` on the figure's chest, reach 8 blocks, no block in between through
+talks) opens it when the crosshair is on an NPC's figure, the guide's, the shopkeeper's or the villager's since S6 (`FigureAim` on the figure's chest, reach 8 blocks, no block in between through
 `NpcLabelLayer.Occluded`; the hint `E: hablar` is `TalkHintLayer`). The panel takes the keyboard, the mouse is released and no walking happens while
 it is open; Enter sends, Esc closes, Tab holds push-to-talk. The arrow of the session is the beacon: `SyncBeacon` puts `Beacon.Set` on the pointer's
 block (a review question shows `¿?`), and the beacon's own reach takes the arrow down. "¿qué es esto?" uses `VoxelSession.AimedCell`, the block under
-the crosshair (`sim.Target`). `--say` walks the player to the guide (`VoxelSayScript`: a `VoxelScript` walk to two blocks east of her, then a look at
-her), opens the panel (asking the review question when one is due), types each line, sends it, waits for the turn to be applied, and goes on. The
+the crosshair (`sim.Target`). `--talk` and `--say` are `ScenarioScript` steps: a `VoxelScript` walk to the stand-off cell of the NPC, a look at it, then the panel opens (the
+NPC's host turn, or the guide's review question when one is due), each line is typed and sent, and the script waits for the turn to be applied. The
 sign is a `WorldLabel` (`Tienda / Río` over the signpost's board, in `VoxelTalkLayers.cs`).
 
 **The flame of the torch.** The torch placed on the fire ring's rim (`antorcha` at `21,12,21` in the bundle's route) stands above the one-block
 ring, so its flame shows from the camp. A torch in the ring's centre would sit below the stones' top and be hidden from ground level, which is why
 the objective counts the rim (`VoxelSession.AtFireRing`: the three-by-three square of the ring, on its layer or on top of a stone).
 
-**Not in 3D yet:** the other NPCs (S6), the scripted `--speak` and `--wav` steps (S7), the Alt-accent shortcuts of the panel (typed `é`, `ñ` and the
+**Not in 3D yet:** the scripted `--speak` and `--wav` steps (S7), the Alt-accent shortcuts of the panel (typed `é`, `ñ` and the
 others come through the platform's text input), the grey A/B (`--greyscale` is a stub).
 
 **Where the pieces are:** `VoxelGame.cs` (the host: the worker, the panel and its keys, the beacon, the crafting panel, the objective, the script),
@@ -114,7 +117,7 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   LookControl       the look (yaw and pitch in angle steps), mouse look, the camera ease over a step-up
   LiveVoxelInput    the device state of a tick as VoxelCommands (walk, jump, gather, place, the hotbar)
   VoxelScript       the --look, --walk-to, --interact, --place, --select and --craft steps over ticks
-  VoxelSayScript    the --say script: walk to the guide, settle, open, type and send each line, wait for the reply
+  ScenarioScript    the scripted run: the body's steps, --talk (walk to the stand-off, settle, open the panel), --say (type, send, wait for the reply), --leave, --shot
   ChunkMesher, MeshVertex, BlockAtlasLayout, BlockArt, ChunkVersionTracker, NpcFigures, OverlayMeshes, ViewMath, PointLabels, FigureAim
   CountBadge        the stack count on an opaque dark plate (contrast tested)
   CraftingScreen    the panel's open state, its rows (CraftingRow) and the layout that drawing and clicks share (CraftingLayout)
@@ -178,7 +181,7 @@ dotnet run --project src/Vocaterra.MonoGame --no-build -- --seed 42 --interact 1
 `tests/Vocaterra.MonoGame.Tests` (no GPU, no window, no microphone): the first-person camera (the look vector, MonoGame's view matrix, the plain
 projection), the mesher and the block atlas (faces, winding, shade, UVs, every chunk of the route within the 16-bit limit), the beacon's arrow, the
 figure aim, the voxel script steps against a real simulation (walk-to, interact, place, select, craft, the tick limits, determinism), the
-`--say` script (walk, open, type, send, the arrow, determinism), the launch options (`VoxelLaunchOptionsTests`: the steps in order, the screen
+`--talk` / `--say` / `--leave` / `--shot` script (`ScenarioScriptTests`: walk to the stand-off, open, type, send, close, determinism) and the NPC panel (`NpcFrontendTests`), the launch options (`VoxelLaunchOptionsTests`: the steps in order, the screen
 flags, the refusals, `--voxel` accepted and ignored), the word card queue (one at a time, by ticks), the crafting panel's rows, layout and reads,
 the dialogue model and its key repeat, the text box and the accent shortcuts, the push-to-talk state over a fake device, the turn pump against a
 real worker, the accumulator (exact ticks, uneven frames, the cap), the font (every character of the panel's, the HUD's and the bundle's texts is in

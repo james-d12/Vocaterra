@@ -23,7 +23,7 @@ public sealed class DialoguePanel : IFrameLayer
     /// <summary>The prefix of a line the player said, as the recognizer heard it.</summary>
     public const string SpokenPrefix = "Tú (voz): ";
 
-    /// <summary>The guide's name in the panel's title bar.</summary>
+    /// <summary>The guide's name in the panel's title bar (the title shows the name of the NPC the panel is open on, <see cref="DialogueModel.NpcName"/>).</summary>
     public const string Title = "Guía";
 
     private const int Margin = 16;
@@ -62,7 +62,7 @@ public sealed class DialoguePanel : IFrameLayer
 
         var textLeft = panel.Left + Padding;
         var textWidth = panel.Width - (Padding * 2);
-        DrawHelpers.Text(spriteBatch, font, Title, new Vector2(textLeft, panel.Top + 8), Frame);
+        DrawHelpers.Text(spriteBatch, font, dialogue.NpcName, new Vector2(textLeft, panel.Top + 8), Frame);
         spriteBatch.Draw(pixel, new Rectangle(panel.Left + Padding, panel.Top + 8 + LineHeight, textWidth, 1), new Color(255, 214, 64, 120));
 
         // The input row and the hints sit at the bottom; the lines fill what is above, newest last.
@@ -132,7 +132,7 @@ public sealed class DialoguePanel : IFrameLayer
             {
                 DialogueSpeaker.Player => "Tú: ",
                 DialogueSpeaker.PlayerSpoken => SpokenPrefix,
-                DialogueSpeaker.Guide or DialogueSpeaker.World or DialogueSpeaker.Correction => "Guía: ",
+                DialogueSpeaker.Guide or DialogueSpeaker.World or DialogueSpeaker.Correction => dialogue.NpcName + ": ",
                 _ => string.Empty,
             };
             var color = line.Speaker switch

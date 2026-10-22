@@ -35,7 +35,8 @@ public enum TurnSource
 /// <param name="Now">The stored time of the turn, captured when it was submitted.</param>
 /// <param name="HostStateHash">The simulation's state digest, captured when it was submitted.</param>
 /// <param name="Review">The review question that was open when the line was submitted, or <see langword="null"/>.</param>
-/// <param name="Tick">The simulation tick at submission (for reports only).</param>
+/// <param name="Tick">The simulation tick at submission (for reports only, and the log's time of the turn).</param>
+/// <param name="Npc">The NPC the line is said to (<c>guide</c> by default).</param>
 public sealed record TurnRequest(
     long Id,
     TurnSource Source,
@@ -46,7 +47,8 @@ public sealed record TurnRequest(
     StoredTimestamp Now,
     string HostStateHash,
     GuideReview? Review,
-    long Tick)
+    long Tick,
+    string Npc = NpcService.GuideAgent)
 {
     /// <summary>How the line arrives: typed, or spoken (a clip, a file or a synthesized line).</summary>
     public InputKind Kind => Source == TurnSource.Typed ? InputKind.Typed : InputKind.Spoken;
@@ -77,7 +79,7 @@ public sealed record SpeechLoad(double GuideMilliseconds, double SpeechMilliseco
 
 /// <summary>
 /// The one thread that evaluates turns. It owns the Vosk recognizer (one instance, loaded and used and disposed on this thread only: core
-/// API section 8) and the conversation (<see cref="GuideService"/>), so the frame never waits for a decode or an evaluation. The game thread
+/// API section 8) and the conversation (<see cref="NpcService"/>), so the frame never waits for a decode or an evaluation. The game thread
 /// <see cref="Submit"/>s requests with their inputs fixed, the worker runs them in order, and the game thread <see cref="TryTake"/>s the
 /// outcomes in the same order and applies them (<see cref="GuideSession.Collect"/>). Starting it loads the models (the loading screen waits
 /// for <see cref="IsReady"/>).
@@ -88,7 +90,7 @@ public sealed record SpeechLoad(double GuideMilliseconds, double SpeechMilliseco
 /// </remarks>
 public sealed class TurnWorker : IDisposable
 {
-    private readonly GuideService _guide;
+    private readonly NpcService _guide;
     private readonly ContentBundle _bundle;
     private readonly Func<double>? _clock;
     private readonly bool _loadSpeech;
@@ -103,11 +105,11 @@ public sealed class TurnWorker : IDisposable
     private bool _started;
 
     /// <summary>Creates the worker; it does nothing until <see cref="Start"/>.</summary>
-    /// <param name="guide">The conversation. After <see cref="Start"/> only the worker thread may call its <c>Say</c> methods.</param>
+    /// <param name="guide">The conversations with the NPCs. After <see cref="Start"/> only the worker thread may call their <c>Say</c> methods.</param>
     /// <param name="bundle">The content bundle (for the spoken-line evaluator).</param>
     /// <param name="clockMilliseconds">A clock for the timings only; <see langword="null"/> gives zeros.</param>
     /// <param name="loadSpeech">Whether to load the speech models (false for a typed-only worker: no models, no Vosk).</param>
-    public TurnWorker(GuideService guide, ContentBundle bundle, Func<double>? clockMilliseconds = null, bool loadSpeech = true)
+    public TurnWorker(NpcService guide, ContentBundle bundle, Func<double>? clockMilliseconds = null, bool loadSpeech = true)
     {
         ArgumentNullException.ThrowIfNull(guide);
         ArgumentNullException.ThrowIfNull(bundle);
@@ -243,7 +245,7 @@ public sealed class TurnWorker : IDisposable
             GuideTurn turn;
             if (request.Source == TurnSource.Typed)
             {
-                turn = _guide.Say(request.Text!, request.Scene, request.Now, request.HostStateHash);
+                turn = _guide.Say(request.Npc, request.Text!, request.Scene, request.Now, request.HostStateHash);
                 return new TurnOutcome(request, turn, null, new TurnTimings(0, 0, Now() - begin, false));
             }
 
@@ -279,7 +281,7 @@ public sealed class TurnWorker : IDisposable
                 return Failed(request, begin, "No se oyó nada.");
             }
 
-            turn = _guide.SaySpoken(clip, request.Scene, request.Now, request.HostStateHash);
+            turn = _guide.SaySpoken(request.Npc, clip, request.Scene, request.Now, request.HostStateHash);
             return new TurnOutcome(request, turn, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached));
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or InvalidOperationException or UnauthorizedAccessException or ArgumentException or KeyNotFoundException or DllNotFoundException or TypeInitializationException)

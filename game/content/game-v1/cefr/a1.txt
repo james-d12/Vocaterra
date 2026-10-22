@@ -41,6 +41,7 @@ bloque
 boca
 bolsa
 bonito
+botella
 bueno
 buscar
 caballo

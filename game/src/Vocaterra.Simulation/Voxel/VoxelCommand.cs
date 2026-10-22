@@ -19,7 +19,8 @@ public enum VoxelCommandKind
 
     /// <summary>
     /// Gather the block at (<see cref="VoxelCommand.A"/>, <see cref="VoxelCommand.B"/>, <see cref="VoxelCommand.C"/>) by hand. Held: send it every
-    /// tick the button is down; progress builds while the target stays the same, and a tick without it resets the progress.
+    /// tick the button is down; progress builds while the target stays the same, and a tick without it resets the progress. On a water block with
+    /// an empty bottle in the inventory it fills the bottle (S6, <see cref="VoxelSimulation.BottleFillTicks"/> ticks); without a bottle it does nothing.
     /// </summary>
     Interact = 4,
 

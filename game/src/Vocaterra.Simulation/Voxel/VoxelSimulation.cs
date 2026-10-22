@@ -17,6 +17,9 @@ public sealed class VoxelSimulation
     /// <summary>The ticks per second of game time (60).</summary>
     public const int TicksPerSecond = VoxelPhysics.TicksPerSecond;
 
+    /// <summary>The ticks a player holds <see cref="VoxelCommandKind.Interact"/> on water with a bottle to fill it (half a second).</summary>
+    public const int BottleFillTicks = 30;
+
     /// <summary>The fixed-point factor that keeps a diagonal walk as fast as a straight one: 1 / sqrt(2) in units of 1/65 536.</summary>
     private const int DiagonalScale = 46341;
 
@@ -27,6 +30,7 @@ public sealed class VoxelSimulation
     private BlockId _gatherBlock;
     private int _gatherProgress;
     private IReadOnlyList<Recipe> _recipes = [];
+    private BlockPos? _noBottleHint;
 
     private VoxelSimulation(Scene scene)
     {
@@ -350,11 +354,19 @@ public sealed class VoxelSimulation
     {
         if (target is not { } cell || !Grid.InBounds(cell.X, cell.Y, cell.Z) || !InReach(cell))
         {
+            _noBottleHint = null;
             ResetGather();
             return;
         }
 
         var id = Grid.GetBlock(cell.X, cell.Y, cell.Z);
+        if (id == BlockId.Water)
+        {
+            StepFill(cell);
+            return;
+        }
+
+        _noBottleHint = null;
         var definition = BlockDefinition.Get(id);
         if (!definition.Gatherable || !Inventory.CanAdd(definition.Drop!.Value, definition.DropCount))
         {
@@ -382,6 +394,47 @@ public sealed class VoxelSimulation
         ResetGather();
         _events.Add(new SimulationEvent(SimulationEventKind.BlockRemoved, Tick, cell.X, cell.Y, cell.Z, (int)id));
         _events.Add(new SimulationEvent(SimulationEventKind.ItemPickedUp, Tick, cell.X, cell.Y, cell.Z, (int)drop, definition.DropCount));
+    }
+
+    /// <summary>
+    /// One tick of working on a water block (S6). With an empty bottle in the inventory, holding builds progress like a gather and, after
+    /// <see cref="BottleFillTicks"/>, the bottle becomes a bottle of water (the water block stays: the river is not used up). Without a bottle
+    /// nothing is gathered and nothing blocks: one <see cref="SimulationEventKind.WaterWithoutBottle"/> per hold lets the front-end say why.
+    /// </summary>
+    private void StepFill(BlockPos cell)
+    {
+        if (Inventory.Count(ItemId.Bottle) < 1)
+        {
+            ResetGather();
+            if (_noBottleHint != cell)
+            {
+                _noBottleHint = cell;
+                _events.Add(new SimulationEvent(SimulationEventKind.WaterWithoutBottle, Tick, cell.X, cell.Y, cell.Z));
+            }
+
+            return;
+        }
+
+        _noBottleHint = null;
+        if (_gatherTarget != cell || _gatherBlock != BlockId.Water)
+        {
+            _gatherTarget = cell;
+            _gatherBlock = BlockId.Water;
+            _gatherProgress = 0;
+        }
+
+        _gatherProgress++;
+        _events.Add(new SimulationEvent(SimulationEventKind.GatherProgress, Tick, cell.X, cell.Y, cell.Z, _gatherProgress, BottleFillTicks));
+        if (_gatherProgress < BottleFillTicks)
+        {
+            return;
+        }
+
+        ResetGather();
+        Inventory.Remove(ItemId.Bottle, 1);
+        Inventory.Add(ItemId.WaterBottle, 1);
+        _events.Add(new SimulationEvent(SimulationEventKind.BottleFilled, Tick, cell.X, cell.Y, cell.Z, (int)ItemId.WaterBottle));
+        _events.Add(new SimulationEvent(SimulationEventKind.ItemPickedUp, Tick, cell.X, cell.Y, cell.Z, (int)ItemId.WaterBottle, 1));
     }
 
     /// <summary>

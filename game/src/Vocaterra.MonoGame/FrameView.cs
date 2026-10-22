@@ -19,7 +19,7 @@ public sealed class FrameView
     /// <summary>The 3D simulation being shown: the body, the inventory, the tick and the events (read only for layers).</summary>
     public required VoxelSimulation Voxel { get; init; }
 
-    /// <summary>The NPC figure the crosshair is on (the guide's, for the talk hint), or <see langword="null"/>.</summary>
+    /// <summary>The NPC figure the crosshair is on (any of the three, for the talk hint), or <see langword="null"/>.</summary>
     public NpcFigure? Aimed { get; set; }
 
     /// <summary>The dialogue panel's state.</summary>

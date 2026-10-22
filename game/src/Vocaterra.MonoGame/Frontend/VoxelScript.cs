@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Simulation;
 using Vocaterra.Simulation.Crafting;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
@@ -186,7 +187,7 @@ public sealed class VoxelScript
                 break;
             case VoxelStepKind.Interact:
                 _interactBlock = _sim.Grid.GetBlock(step.X, step.Y, step.Z);
-                _interactDrops = DropCount(_interactBlock);
+                _interactDrops = _interactBlock == BlockId.Water ? _sim.Inventory.Count(ItemId.WaterBottle) : DropCount(_interactBlock);
                 AimAt(step.X, step.Y, step.Z);
                 break;
             default:
@@ -324,6 +325,11 @@ public sealed class VoxelScript
             return true;
         }
 
+        if (_interactBlock == BlockId.Water)
+        {
+            return FillTick(step, commands);
+        }
+
         if (now != _interactBlock)
         {
             var gained = DropCount(_interactBlock) - _interactDrops;
@@ -335,6 +341,32 @@ public sealed class VoxelScript
         if (_stepTicks >= InteractTickLimit)
         {
             _log($"interact {step.X},{step.Y},{step.Z}: not gathered after {_stepTicks} ticks (out of reach, or not gatherable)");
+            return true;
+        }
+
+        commands.Add(VoxelCommand.Interact(step.X, step.Y, step.Z));
+        return false;
+    }
+
+    // Water is not gathered: with a bottle the hold fills it (the bottle of water appears), without one the simulation says so once and the step ends.
+    private bool FillTick(VoxelStep step, List<VoxelCommand> commands)
+    {
+        var where = $"{step.X},{step.Y},{step.Z}";
+        if (_sim.Inventory.Count(ItemId.WaterBottle) > _interactDrops)
+        {
+            _log($"interact {where}: filled the bottle in {_stepTicks} ticks (water-bottle {_interactDrops} -> {_sim.Inventory.Count(ItemId.WaterBottle)})");
+            return true;
+        }
+
+        if (_stepTicks > 0 && _sim.Events.Any(static e => e.Kind == SimulationEventKind.WaterWithoutBottle))
+        {
+            _log($"interact {where}: water, but no bottle in the inventory (a hint, nothing is blocked)");
+            return true;
+        }
+
+        if (_stepTicks >= InteractTickLimit)
+        {
+            _log($"interact {where}: not filled after {_stepTicks} ticks (out of reach)");
             return true;
         }
 

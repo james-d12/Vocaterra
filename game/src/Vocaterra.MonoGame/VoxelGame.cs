@@ -20,14 +20,16 @@ namespace Vocaterra.MonoGame;
 /// <para>
 /// <b>What works in 3D.</b> Walking (WASD or the arrows, Space to jump), mouse look in relative mode (Esc lets the mouse go, a click takes it
 /// again), gathering by holding the left button on a trunk or a berry bush, placing with the right button, the hotbar, the inventory (I, or E
-/// when the crosshair is not on the guide), the journal (J), the debug overlay (F3), toasts, the NPC figures with their names, the beacon column
-/// and its edge arrow, and the guide: aim the crosshair at her figure and press E (or T to type, V to talk) to open the panel. Her answers
-/// point the beacon at the named noun's nearest block; "¿qué es esto?" names the block under the crosshair. The panel takes the keyboard and
-/// frees the mouse while it is open. The sign reads <c>Tienda / Río</c>.
+/// when the crosshair is not on an NPC), the journal (J), the debug overlay (F3), toasts, the NPC figures with their names, the beacon column
+/// and its edge arrow, and the NPCs: aim the crosshair at the guide, the shopkeeper or the villager and press E (or T to type, V to talk) to open
+/// the panel, which shows the NPC's name. The guide's answers point the beacon at the named noun's nearest block; "¿qué es esto?" names the block
+/// under the crosshair; the shopkeeper hands over a bottle that the left button fills at the river; the villager points the beacon at the river.
+/// The panel takes the keyboard and frees the mouse while it is open. The sign reads <c>Tienda / Río</c>.
 /// </para>
 /// <para>
-/// <b>Script steps.</b> <c>--look</c>, <c>--walk-to</c>, <c>--interact</c>, <c>--place</c>, <c>--select</c>, <c>--beacon</c>, <c>--journal</c>,
-/// <c>--inventory</c>, and <c>--say</c> (walk to the guide, open the panel, type and send each line; the scripted run waits for each reply).
+/// <b>Script steps.</b> <c>--look</c>, <c>--walk-to</c>, <c>--interact</c>, <c>--place</c>, <c>--select</c>, <c>--craft</c>, <c>--talk</c> (walk to an NPC and
+/// open the panel), <c>--say</c> (type and send a line; the scripted run waits for each reply), <c>--leave</c>, <c>--shot</c>, then <c>--beacon</c>,
+/// <c>--journal</c>, <c>--inventory</c> and <c>--crafting</c> at the end (<see cref="ScenarioScript"/>).
 /// </para>
 /// </remarks>
 public sealed class VoxelGame : Microsoft.Xna.Framework.Game
@@ -36,7 +38,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private const int StartHeight = 720;
     private const int SettleTicks = 30;
     private const int RunawayTicks = 60 * 60 * 5;
-    private const string GuideName = "guide";
 
     private static readonly Keys[] SlotKeys = [Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9, Keys.D0];
 
@@ -53,8 +54,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly FirstPersonCamera _camera = new();
     private readonly MouseLook _mouseLook = new();
     private readonly LiveVoxelInput _live = new();
-    private readonly VoxelScript? _script;
-    private readonly VoxelSayScript? _say;
+    private readonly ScenarioScript? _scenario;
     private readonly InputFocus _focus = new();
     private readonly DialogueModel _dialogue;
     private readonly TurnPump _pump;
@@ -69,7 +69,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly BusyFrameStats _draws = new();
     private readonly BusyFrameStats _frames = new();
     private readonly List<VoxelCommand> _commands = [];
-    private readonly List<VoxelCommand> _scripted = [];
     private readonly List<IFrameLayer> _layers = [];
     private readonly VoxelDebugOverlay _debug = new();
     private IReadOnlyList<NpcFigure> _figures = [];
@@ -100,6 +99,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly CraftingScreen _crafting = new();
     private readonly Queue<int> _pendingCrafts = new();
     private int _loadingFrames;
+    private int _printedEvents;
+    private string? _shotPath;
 
     /// <summary>Creates the 3D game for a started session (its simulation is the scene's) and the built scene.</summary>
     public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene)
@@ -117,14 +118,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         if (options.IsScreenshotRun)
         {
             _clock = new FixedFrameClock(VoxelSimulation.TicksPerSecond);
-            if (options.VoxelSteps.Count > 0)
+            if (options.Script.Count > 0)
             {
-                _script = new VoxelScript(_sim, _look, options.VoxelSteps, ResolveItem, Console.WriteLine);
-            }
-
-            if (options.Says.Count > 0)
-            {
-                _say = new VoxelSayScript(session, _look, _dialogue, options.Says, Console.WriteLine);
+                var hooks = new ScenarioHooks(npc => OpenDialogueOn(npc, null), CloseDialogue, path => _shotPath = path, () => _shotPath is not null);
+                _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, ResolveItem, hooks, Console.WriteLine);
             }
         }
         else
@@ -257,8 +254,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _pump.Submit();
         SyncBeacon();
         _aimed = AimedFigure();
+        PrintEvents();
 
-        if ((_script is null || _script.IsDone) && (_say is null || _say.IsDone))
+        if (_scenario is null || _scenario.IsDone)
         {
             _settled++;
             if (!_shown)
@@ -336,6 +334,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _lastDrawEnd = drawEnd;
         base.Draw(gameTime);
 
+        if (_shotPath is { } shot)
+        {
+            // A --shot step: the screen as it is at this point of the script, then the script goes on.
+            var saved = ScreenshotWriter.TrySave(GraphicsDevice, shot);
+            Console.WriteLine($"shot: {shot} ({(saved ? "saved" : "FAILED")}) at tick {_sim.Tick}, {_session.Objective.Summary}");
+            ExitCode = saved ? ExitCode : 1;
+            _shotPath = null;
+        }
+
         if (_options.ScreenshotPath is { } path
             && ((_sim.Tick >= _options.Frames && _settled >= SettleTicks && _session.Worker!.IsReady && _session.PendingTurns == 0 && !_dialogue.SubmitRequested)
                 || _sim.Tick > RunawayTicks))
@@ -345,7 +352,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Console.WriteLine($"frame time (end of one draw to the next, no vsync): {_frames.Summary()}");
             Console.WriteLine($"voxel: {_renderer.Stats.Summary()}; {_renderer.DrawnChunks} chunks drawn this frame");
             var body = _sim.Player;
-            Console.WriteLine(string.Create(CultureInfo.InvariantCulture, $"player: ({body.CenterX / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.FeetY / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.CenterZ / (double)VoxelPhysics.UnitsPerBlock:0.00}), tick {_sim.Tick}, wood {_sim.Inventory.Count(ItemId.Wood)}, berries {_sim.Inventory.Count(ItemId.Berry)}"));
+            Console.WriteLine(string.Create(CultureInfo.InvariantCulture, $"player: ({body.CenterX / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.FeetY / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.CenterZ / (double)VoxelPhysics.UnitsPerBlock:0.00}), tick {_sim.Tick}, wood {_sim.Inventory.Count(ItemId.Wood)}, berries {_sim.Inventory.Count(ItemId.Berry)}, bottle {_sim.Inventory.Count(ItemId.Bottle)}, water {_sim.Inventory.Count(ItemId.WaterBottle)}, bread {_sim.Inventory.Count(ItemId.Bread)}"));
+            Console.WriteLine($"objective: {_session.Objective.Summary}");
             Exit();
         }
     }
@@ -392,14 +400,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private void StepOnce()
     {
         _commands.Clear();
-        if (_script is { IsDone: false })
+        if (_scenario is { IsDone: false })
         {
-            _script.Fill(_scripted);
-            _commands.AddRange(_scripted);
-        }
-        else if (_say is { IsDone: false })
-        {
-            _say.Fill(_commands);
+            _scenario.Fill(_commands);
         }
         else if (!_dialogue.IsOpen)
         {
@@ -427,6 +430,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         {
             _cards.Add(card);
         }
+
+        foreach (var hint in _session.TakeHints())
+        {
+            _toasts.Show(hint);
+        }
     }
 
     // A step of the camp checklist that was just done: a toast with the step, and one for the whole checklist when it is complete.
@@ -435,11 +443,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         foreach (var step in completed)
         {
             _toasts.Show($"Hecho: {step.Text}");
+            Console.WriteLine($"objective: Hecho: {step.Text} -> {_session.Objective.Summary}");
         }
 
         if (completed.Count > 0 && _session.Objective.Complete)
         {
             _toasts.Show($"{Objective.Title} completo");
+            Console.WriteLine($"objective: {Objective.Title} completo");
         }
     }
 
@@ -498,15 +508,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
             else if (_aimed is not null && (Pressed(Keys.E) || Pressed(Keys.T) || Pressed(Keys.V)))
             {
-                // The crosshair is on the guide: E or T opens the panel; V opens it and starts listening (as the 3D guide always did).
+                // The crosshair is on an NPC: E or T opens the panel; V opens it and starts listening.
                 if (Pressed(Keys.V))
                 {
-                    OpenDialogue(null);
+                    OpenDialogueOn(_aimed.Name, null);
                     BeginListening(Keys.V);
                 }
                 else
                 {
-                    OpenDialogue(Pressed(Keys.T) ? 't' : 'e');
+                    OpenDialogueOn(_aimed.Name, Pressed(Keys.T) ? 't' : 'e');
                 }
             }
             else if (Pressed(Keys.J))
@@ -608,9 +618,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     {
         if (pressed(Keys.Escape))
         {
-            CancelListening();
-            _dialogue.Close();
-            _session.EndReview();
+            CloseDialogue();
             return;
         }
 
@@ -668,18 +676,41 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _ = _dialogue.Entry.Insert(args.Character);
     }
 
-    // Opens the panel with the guide's review question when one is due; the key that opened it is swallowed by the text event.
-    private void OpenDialogue(char? openedBy)
+    // Opens the panel on an NPC: its opening is a core host turn when its state has one (the shopkeeper's question, the villager's hello, the
+    // guide's transfer offer), otherwise its prompt's text, and the guide's review question when one is due. The key that opened the panel is
+    // swallowed by the text event.
+    private void OpenDialogueOn(string npc, char? openedBy)
     {
-        _dialogue.Open(_session.BeginTalk()?.Question);
+        var opening = _session.OpenTalk(npc);
+        _dialogue.Open(opening, NpcFigures.LabelOf(npc), _session.Review?.Question);
         _swallowedOpenKey = openedBy;
         _swallowFrames = 2; // the platform types the key once, in the next frame at the latest
+        var how = opening.HostTurn ? "host turn" : "prompt";
+        Console.WriteLine($"talk: {npc} ({how}, {opening.Prompt}): {string.Join(" / ", opening.Lines)}{(_session.Review is { } review ? $" / {review.Question}" : string.Empty)}");
+    }
+
+    // The panel closes (Esc, or the script walks on): a recording in progress is dropped and the talk ends.
+    private void CloseDialogue()
+    {
+        CancelListening();
+        _dialogue.Close();
+        _session.EndTalk();
+    }
+
+    // The new game events since the last frame, one console line each (the phrase uses, the voice events, the world events).
+    private void PrintEvents()
+    {
+        var events = _session.Events;
+        for (; _printedEvents < events.Count; _printedEvents++)
+        {
+            Console.WriteLine($"  event: {events[_printedEvents].Text}");
+        }
     }
 
     // The tile for "¿qué es esto?": the block under the crosshair (the scripted run has the same crosshair).
     private GuideCell? CursorCell() => _session.AimedCell;
 
-    // The guide's figure under the crosshair, when it is within reach and no block is in the way; the other figures cannot be talked to yet (S6).
+    // The NPC figure under the crosshair, when it is within reach and no block is in the way: the one E talks to.
     private NpcFigure? AimedFigure()
     {
         if (_dialogue.IsOpen)
@@ -690,11 +721,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var eye = (x: (double)_currentEye.X, y: (double)_currentEye.Y, z: (double)_currentEye.Z);
         foreach (var figure in _figures)
         {
-            if (figure.Name != GuideName)
-            {
-                continue;
-            }
-
             var point = FigureAim.BodyOf(figure);
             if (FigureAim.Hits(eye, _look.Yaw, _look.Pitch, point)
                 && !NpcLabelLayer.Occluded(_sim, _currentEye, ((float)point.X, (float)point.Y, (float)point.Z), FigureAim.Distance(eye, point)))
@@ -712,7 +738,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var worker = _session.Worker!;
         if (!_dialogue.IsOpen)
         {
-            _dialogue.Open(_session.BeginTalk()?.Question);
+            OpenDialogueOn(_aimed?.Name ?? NpcService.GuideAgent, null);
         }
 
         if (!worker.CanHear)
@@ -746,7 +772,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         _ = _session.SubmitClip(clip, CursorCell());
         _dialogue.BeginSpoken();
-        Console.WriteLine($"listened: {clip.DurationSeconds:0.00} s of speech sent to the guide");
+        Console.WriteLine($"listened: {clip.DurationSeconds:0.00} s of speech sent to {_session.CurrentNpc}");
     }
 
     // The panel closed while recording: the clip is dropped.
@@ -791,10 +817,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             var detail = turn.Input == InputKind.Spoken
                 ? $"heard \"{turn.Line}\" (confidence {(int)Math.Round((turn.Confidence ?? 0) * 100)} %) -> {turn.Summary}, {timings.TotalMilliseconds:0} ms"
                 : $"\"{turn.Line}\" -> {turn.Summary}, {timings.TotalMilliseconds:0.0} ms";
-            Console.WriteLine($"turn {_dialogue.TurnCount}: {(turn.Input == InputKind.Spoken ? "spoken " : string.Empty)}{detail}, state {turn.AgentState}");
+            Console.WriteLine($"turn {_dialogue.TurnCount} ({turn.Npc}, {turn.Prompt}): {(turn.Input == InputKind.Spoken ? "spoken " : string.Empty)}{detail}, state {turn.AgentState}{(turn.HostEvents.Count > 0 ? $", host events {string.Join(" ", turn.HostEvents)}" : string.Empty)}{(turn.FailForward ? ", FAIL-FORWARD" : string.Empty)}");
             foreach (var line in turn.GuideLines)
             {
-                Console.WriteLine($"  guide: {line}");
+                Console.WriteLine($"  {turn.Npc}: {line}");
             }
 
             if (turn.Pointer is { } arrow)
