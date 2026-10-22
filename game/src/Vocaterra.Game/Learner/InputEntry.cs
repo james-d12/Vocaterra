@@ -28,7 +28,7 @@ public enum InputPlace
 
 /// <summary>
 /// One line the learner gave the game (S19): the text the core evaluated, how it came, where it was said, what the core made of it and when. The
-/// history is a list of these in the order the game took them; the word record is a fold of them (<see cref="WordRecord"/>).
+/// history is a list of these in the order the game took them; the word record is a fold of them (<see cref="LearnerWords"/>).
 /// </summary>
 /// <param name="Id">The entry's number, from 1, in the order the game took the lines (it never repeats, so the order is total).</param>
 /// <param name="Session">The play session the line was said in.</param>
