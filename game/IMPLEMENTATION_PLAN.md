@@ -184,7 +184,8 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S15 | The village, props, humanoid characters, the reference-B dialogue panel, the HUD icons and recipe panel, the F5 view, the first-person arm without its outline | planned | Sonnet 5.5 | S14 |
 | S16 | The English guidance layer (D-game-13) and the data-driven lesson runner | done (merged to `feature/prototype` 2026-10-22, bundle `4be20d61…`) | Sonnet 5.5 | S12, D-game-13 |
 | S17 | The opening at the cliff camp, the guide's 5 to 10 minute lesson, the ending; new phrases, checks, Opus pass, speech | in progress | Sonnet 5.5 | S13, S16, D-game-15 |
-| S18 | The playtest refresh (build, checklist, report, launcher message) | planned | Haiku 5.5 | S15, S17 |
+| S17b | The talk key (V) shown in the dialogue in every state; the game's own errors and key hints in English (owner's playtest notes) | planned | Haiku 5.5 | S17 |
+| S18 | The playtest refresh (build, checklist, report, launcher message) | planned | Haiku 5.5 | S15, S17, S17b |
 
 Each milestone ends with the gate in section 6 and a line in section 5. The S series is gated with `GATE_TARGET=feature/prototype
 scripts/merge-gate.sh "S<nn>:<branch>"` from the `feature/prototype` checkout.
