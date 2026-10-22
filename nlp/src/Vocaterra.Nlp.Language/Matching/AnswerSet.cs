@@ -123,13 +123,39 @@ public sealed record AnswerSet(string AnswerSetId, IReadOnlyList<Answer> Answers
         return phrases.ToArray();
     }
 
+    /// <summary>
+    /// Returns one phrase per answer: its canonical, normalized as <see cref="GrammarPhrases"/> normalizes it (no aliases). The order is the
+    /// set's declared order (authoring order), not sorted; an answer whose canonical repeats an earlier phrase, or normalizes to nothing, is
+    /// left out. The repair ladder offers these as its choices, so a host can show one button per answer.
+    /// </summary>
+    public IReadOnlyList<string> CanonicalPhrases()
+    {
+        var phrases = new List<string>(Answers.Count);
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var answer in Answers)
+        {
+            var text = GrammarPhrase(answer.Canonical);
+            if (text.Length > 0 && seen.Add(text))
+            {
+                phrases.Add(text);
+            }
+        }
+
+        return phrases;
+    }
+
     private static void AddPhrase(SortedSet<string> phrases, string raw)
     {
-        var text = SpanishNumbers.DigitsToWords(TextNormalizer.Normalize(raw, GrammarOptions).Text);
+        var text = GrammarPhrase(raw);
         if (text.Length > 0)
         {
             phrases.Add(text);
         }
+    }
+
+    private static string GrammarPhrase(string raw)
+    {
+        return SpanishNumbers.DigitsToWords(TextNormalizer.Normalize(raw, GrammarOptions).Text);
     }
 
     private sealed record AnswerSetDto(string AnswerSetId, IReadOnlyList<AnswerDto> Answers);

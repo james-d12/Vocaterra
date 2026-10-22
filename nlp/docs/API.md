@@ -379,6 +379,19 @@ if (result.Repair is { } repair)
 }
 ```
 
+The repair ladder (`RepairStrategy.Next`, M29f) is deterministic by failed attempt: attempt 1 `AskAgain`, attempt 2 `SlowRepeat`, attempt 3
+`OfferChoices`, later attempts `GiveUp`. A constrained prompt's retry at attempts 1 and 2 recognizes every phrase of the answer set
+(`AnswerSet.GrammarPhrases()`, aliases included). The `OfferChoices` step offers one phrase per answer, the **canonical** phrase
+(`AnswerSet.CanonicalPhrases()`, normalized as the grammar is, no aliases), in the answer set's **declared order** (the order the answers
+are written in the content, not an ordinal sort), and the first three distinct ones are offered. The retry at attempt 3 is a constrained
+request limited to exactly those phrases, so a host can show them as buttons from `RetryRequest.GrammarPhrases`. Answers that normalize to
+the same phrase, or to nothing, are left out. A set with fewer than three answers offers all of them.
+
+Which answers are offered is therefore set by the content: a set declares the answers the prompt is for first, and a help or don't-know
+answer last, so it is offered only when the set has fewer than three others. Given a yes/no set declared as confirm, deny, help, don't-know,
+the choices are the confirm, the deny and help. There is no content marker for "service" answers, and the core does not recognize intent ids
+in the repair ladder; a set that needs a different order is declared in that order.
+
 Host slots (section 4) are available to the reply and feedback templates of this response; the planner is called with them as
 `ResponsePlanner.Plan(..., hostSlots: context.HostSlots)`, and a host that renders a template of its own can use the same engine:
 `bundle.TemplateEngine.Render(template, result.Verdict.Slots.WithFallback(hostSlots))` (the verdict wins, as in the pipeline).

@@ -330,6 +330,33 @@ public class PipelineTests
     }
 
     [Fact]
+    public void TheOfferedChoicesAreOneCanonicalPerAnswerInDeclaredOrder()
+    {
+        // items-basic is declared sword, shield, bow, ...: the choices are their canonicals in that order, not the ordinal-sorted aliases («arco», «brebaje», «el arco»).
+        var pipeline = TestSupport.Pipeline("xyzzy plugh", RecognitionMode.Constrained);
+        var counts = new Dictionary<string, int> { [FeedbackPolicy.NotCommunicatedTag] = 2 };
+
+        var result = pipeline.Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), TestSupport.Context(repeats: counts));
+
+        Assert.Equal(RepairKind.OfferChoices, result.Repair!.Kind);
+        Assert.Equal(["espada", "escudo", "arco"], result.Repair.RetryRequest!.GrammarPhrases);
+        Assert.Equal("¿Quieres decir «espada», «escudo» o «arco»?", result.Repair.AgentLine);
+    }
+
+    [Fact]
+    public void TheRetryBeforeTheChoicesStillRecognizesTheAliases()
+    {
+        var pipeline = TestSupport.Pipeline("xyzzy plugh", RecognitionMode.Constrained);
+        var counts = new Dictionary<string, int> { [FeedbackPolicy.NotCommunicatedTag] = 0 };
+
+        var result = pipeline.Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), TestSupport.Context(repeats: counts));
+
+        Assert.Equal(RepairKind.AskAgain, result.Repair!.Kind);
+        Assert.Equal(RecognitionMode.Constrained, result.Repair.RetryRequest!.Mode);
+        Assert.Contains("el arco", result.Repair.RetryRequest.GrammarPhrases);
+    }
+
+    [Fact]
     public void ACommunicatedUtteranceHasNoRepairStep()
     {
         var result = TestSupport.Pipeline(TestSupport.WorkedExample).Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context());

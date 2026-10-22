@@ -99,6 +99,48 @@ public class AnswerSetTests
     }
 
     [Fact]
+    public void CanonicalPhrasesAreOnePerAnswerInDeclaredOrderWithoutAliases()
+    {
+        // Declared out of ordinal order on purpose: the offered choices follow the authoring order, not the sort the grammar uses.
+        var set = new AnswerSet(
+            "declared",
+            [
+                new Answer("water", "quiero agua por favor", ["agua por favor", "necesito agua"], []),
+                new Answer("help", "ayuda", ["ayuda por favor"], []),
+                new Answer("dont-know", "no sé", ["no lo sé"], []),
+            ]);
+
+        Assert.Equal(["quiero agua por favor", "ayuda", "no sé"], set.CanonicalPhrases());
+        Assert.Equal(set.CanonicalPhrases(), set.CanonicalPhrases());
+    }
+
+    [Fact]
+    public void CanonicalPhrasesAreNormalizedLikeTheGrammar()
+    {
+        var set = new AnswerSet("normalized", [new Answer("two", "¡2 Espadas!", [], []), new Answer("zeta", "Zeta", [], [])]);
+
+        Assert.Equal(["dos espadas", "zeta"], set.CanonicalPhrases());
+        Assert.Contains("dos espadas", set.GrammarPhrases());
+    }
+
+    [Fact]
+    public void CanonicalPhrasesSkipDuplicatesAndBlanksAndKeepFewerThanThree()
+    {
+        var set = new AnswerSet(
+            "short",
+            [
+                new Answer("a", "sí", [], []),
+                new Answer("b", " ", [], []),
+                new Answer("c", "Sí", ["si"], []),
+                new Answer("d", "no", [], []),
+            ]);
+
+        Assert.Equal(["sí", "no"], set.CanonicalPhrases());
+        Assert.Equal(["sí"], new AnswerSet("one", [new Answer("a", "sí", [], [])]).CanonicalPhrases());
+        Assert.Empty(new AnswerSet("none", []).CanonicalPhrases());
+    }
+
+    [Fact]
     public void ValueEqualityComparesListContents()
     {
         Assert.Equal(Sample(), Sample());
