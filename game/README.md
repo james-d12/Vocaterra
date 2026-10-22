@@ -363,3 +363,15 @@ says so; the owner decides whether handing the private folder to testers counts 
 - [nlp/docs/API.md](../nlp/docs/API.md): the calls a host makes, in order
 - [nlp/docs/adr/0009-core-and-game-boundary.md](../nlp/docs/adr/0009-core-and-game-boundary.md): what the core and the game each own
 - [CLAUDE.md](../CLAUDE.md): working notes for the agents and the owner
+
+## English guidance and the lesson runner (S16)
+
+English is drawn, never spoken (D-game-13): an English line under the guide's Spanish in its own colour (`English: ...`), the bilingual camp checklist, plain-English
+feedback after each turn, first-time tips and the controls on F1; the support ladder starts with English and fades per phrase (see
+[src/Vocaterra.Game/README.md](src/Vocaterra.Game/README.md)). A data-driven lesson runner (`content/game-v1/game/lessons.json`) ships with a two-step sample at the
+guide (L starts it, Enter continues, K skips a step, H helps). A scripted run through it prints each step and its outcome:
+
+```bash
+DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --talk guide --lesson sample --say hola --say gracias --screenshot /tmp/s16.png --frames 60
+```
+

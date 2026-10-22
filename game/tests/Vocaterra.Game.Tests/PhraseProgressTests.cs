@@ -34,7 +34,7 @@ public sealed class PhraseProgressTests
         Assert.Equal(progress.Sheet.Rows.Select(static r => r.Id), progress.Records.Select(static r => r.Id));
         Assert.Equal(
             ["donde-esta-el-rio", "no-gracias", "pedir-agua", "si-por-favor"],
-            progress.Records.Where(static r => r.Level == SupportLevel.CardAndAudio).Select(static r => r.Id).Order(StringComparer.Ordinal));
+            progress.Records.Where(static r => r.Level == SupportLevel.EnglishAndCard).Select(static r => r.Id).Order(StringComparer.Ordinal));
         Assert.All(progress.Records.Where(static r => !PhraseIds.HasScaffold(r.Id)), static r => Assert.Equal(SupportLevel.None, r.Level));
     }
 
@@ -63,26 +63,39 @@ public sealed class PhraseProgressTests
         _ = full.Apply(Use("pedir-agua", PhraseUseKind.Supported, input: InputKind.Typed), CreditRules.FullTyped);
 
         Assert.Equal(3, defaults.RecordOf("pedir-agua").Supported);
-        Assert.Equal(SupportLevel.CardAndAudio, defaults.LevelOf("pedir-agua")); // half a use is not a step
+        Assert.Equal(SupportLevel.EnglishAndCard, defaults.LevelOf("pedir-agua")); // half a use is not a step
         Assert.Equal(6, full.RecordOf("pedir-agua").Supported);
-        Assert.Equal(SupportLevel.AudioOnly, full.LevelOf("pedir-agua"));
+        Assert.Equal(SupportLevel.CardAndAudio, full.LevelOf("pedir-agua")); // the first step: the English goes, the card and the audio stay
     }
 
     [Fact]
     public void ATypedUseStepsTheLevelDownOnlyWhenTwoCreditedUsesAddUpToAFullOne()
     {
         var progress = New();
+        _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0), Default); // the English rung goes at once: card and audio now
 
-        var first = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0, InputKind.Typed), Default).Single();
-        var early = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0 + (5 * Minute), InputKind.Typed), Default).Single();
-        var second = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0 + (11 * Minute), InputKind.Typed), Default).Single();
+        var first = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0 + (11 * Minute), InputKind.Typed), Default).Single();
+        var early = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0 + (30 * Minute), InputKind.Typed), Default).Single();
+        var second = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0 + (72 * Minute), InputKind.Typed), Default).Single();
 
         Assert.Equal(PhraseStep.Credited, first.Step);
         Assert.Equal(PhraseStep.TooEarly, early.Step);
-        Assert.Equal(5 * Minute, early.SecondsRemaining);
+        Assert.Equal(41 * Minute, early.SecondsRemaining); // an hour after the second credited use, which was at T0 + 11 min
         Assert.Equal(PhraseStep.SteppedDown, second.Step);
         Assert.Equal(SupportLevel.AudioOnly, progress.LevelOf("pedir-agua"));
-        Assert.Equal(9, progress.RecordOf("pedir-agua").Supported); // every use counted, three halves and a half
+        Assert.Equal(6 + 9, progress.RecordOf("pedir-agua").Supported); // every use counted: one full, three halves
+    }
+
+    [Fact]
+    public void ATypedUseAtTheEnglishRungNeedsTwoOfThemButNoGapBetween()
+    {
+        var progress = New();
+
+        var first = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0, InputKind.Typed), Default).Single();
+        var second = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0 + 5, InputKind.Typed), Default).Single();
+
+        Assert.Equal((PhraseStep.Credited, SupportLevel.EnglishAndCard), (first.Step, first.Level));
+        Assert.Equal((PhraseStep.SteppedDown, SupportLevel.CardAndAudio), (second.Step, second.Level)); // five seconds later: the English rung has no gap
     }
 
     [Fact]
@@ -94,9 +107,9 @@ public sealed class PhraseProgressTests
         var early = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0 + (9 * Minute)), Default).Single();
         var late = progress.Apply(Use("pedir-agua", PhraseUseKind.Unaided, T0 + (11 * Minute)), Default).Single();
 
-        Assert.Equal((PhraseStep.SteppedDown, SupportLevel.AudioOnly), (first.Step, first.Level));
-        Assert.Equal((PhraseStep.TooEarly, SupportLevel.AudioOnly), (early.Step, early.Level)); // logged, no step
-        Assert.Equal((PhraseStep.SteppedDown, SupportLevel.None), (late.Step, late.Level));
+        Assert.Equal((PhraseStep.SteppedDown, SupportLevel.CardAndAudio), (first.Step, first.Level)); // the English rung: no gap needed
+        Assert.Equal((PhraseStep.TooEarly, SupportLevel.CardAndAudio), (early.Step, early.Level)); // the card rung waits for the gap: logged, no step
+        Assert.Equal((PhraseStep.SteppedDown, SupportLevel.AudioOnly), (late.Step, late.Level));
         var record = progress.RecordOf("pedir-agua");
         Assert.Equal((6 + 6, 6, 2), (record.Supported, record.Unaided, record.CreditedUses));
     }
@@ -123,25 +136,29 @@ public sealed class PhraseProgressTests
 
         Assert.Equal(PhraseStep.Logged, result.Step);
         var record = progress.RecordOf("pedir-agua");
-        Assert.Equal((0, 1, SupportLevel.CardAndAudio, T0), (record.Supported, record.Slips, record.Level, record.LastUseAt));
+        Assert.Equal((0, 1, SupportLevel.EnglishAndCard, T0), (record.Supported, record.Slips, record.Level, record.LastUseAt));
     }
 
     [Fact]
-    public void ANoSeOnAPhraseInPlayCountsOnItAndStepsItsLevelUpToTheCard()
+    public void ANoSeOnAPhraseInPlayCountsOnItAndStepsItsLevelUpToTheEnglish()
     {
         var progress = New();
-        _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0), Default); // card-and-audio to audio-only
-        _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Unaided, T0 + (11 * Minute)), Default); // to none
+        _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0), Default); // english to card-and-audio
+        _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Unaided, T0 + (11 * Minute)), Default); // to audio-only
+        _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Unaided, T0 + (72 * Minute)), Default); // to none
         Assert.Equal(SupportLevel.None, progress.LevelOf("pedir-agua"));
 
-        var results = progress.Apply(Use("no-se", PhraseUseKind.DontKnow, T0 + (12 * Minute), inPlay: ["pedir-agua"]), Default);
+        var results = progress.Apply(Use("no-se", PhraseUseKind.DontKnow, T0 + (73 * Minute), inPlay: ["pedir-agua"]), Default);
 
         Assert.Equal([("pedir-agua", PhraseStep.SteppedUp, SupportLevel.AudioOnly)], results.Select(static r => (r.PhraseId, r.Step, r.Level)));
         Assert.Equal(1, progress.RecordOf("pedir-agua").DontKnow);
         Assert.Equal(0, progress.RecordOf("no-se").DontKnow); // the service phrase is counted only when nothing else was in play
         Assert.Equal(6, progress.RecordOf("no-se").Unaided); // but typed or said, it is a use of its own
-        _ = progress.Apply(Use("ayuda", PhraseUseKind.DontKnow, T0 + (13 * Minute), inPlay: ["pedir-agua"]), Default);
+        _ = progress.Apply(Use("ayuda", PhraseUseKind.DontKnow, T0 + (74 * Minute), inPlay: ["pedir-agua"]), Default);
         Assert.Equal((SupportLevel.CardAndAudio, 2), (progress.LevelOf("pedir-agua"), progress.RecordOf("pedir-agua").DontKnow));
+        _ = progress.Apply(Use("ayuda", PhraseUseKind.DontKnow, T0 + (75 * Minute), inPlay: ["pedir-agua"]), Default);
+        _ = progress.Apply(Use("ayuda", PhraseUseKind.DontKnow, T0 + (76 * Minute), inPlay: ["pedir-agua"]), Default);
+        Assert.Equal(SupportLevel.EnglishAndCard, progress.LevelOf("pedir-agua")); // help brings the English back, and no rung is above it
     }
 
     [Fact]
@@ -159,11 +176,11 @@ public sealed class PhraseProgressTests
     public void AChoiceIsRecognitionOnlyAndStepsTheLevelUp()
     {
         var progress = New();
-        _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0), Default); // audio-only now
+        _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0), Default); // card-and-audio now
 
         var result = progress.Apply(Use("pedir-agua", PhraseUseKind.Choice, T0 + (1 * Minute), InputKind.Button), Default).Single();
 
-        Assert.Equal((PhraseStep.SteppedUp, SupportLevel.CardAndAudio), (result.Step, result.Level));
+        Assert.Equal((PhraseStep.SteppedUp, SupportLevel.EnglishAndCard), (result.Step, result.Level));
         var record = progress.RecordOf("pedir-agua");
         Assert.Equal((1, 6), (record.ChoiceOnly, record.Supported)); // no production credit for the choice
     }
@@ -173,11 +190,11 @@ public sealed class PhraseProgressTests
     {
         var progress = New();
         _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0), Default);
-        _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Unaided, T0 + (11 * Minute)), Default);
+        _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Unaided, T0 + (11 * Minute)), Default); // audio-only
 
         var result = progress.Apply(Use("pedir-agua", PhraseUseKind.FailForward, T0 + (12 * Minute)), Default).Single();
 
-        Assert.Equal((PhraseStep.SteppedUp, SupportLevel.AudioOnly), (result.Step, result.Level));
+        Assert.Equal((PhraseStep.SteppedUp, SupportLevel.CardAndAudio), (result.Step, result.Level));
         var record = progress.RecordOf("pedir-agua");
         Assert.Equal((1, 12), (record.FailForward, record.Supported + record.Unaided));
     }
@@ -206,7 +223,7 @@ public sealed class PhraseProgressTests
         var progress = New();
         Assert.Empty(progress.DuePhrases(T0, Default)); // nothing credited yet
 
-        _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0), Default); // audio-only, credited at T0
+        _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Supported, T0), Default); // card-and-audio, credited at T0
         _ = progress.Apply(Use("si-por-favor", PhraseUseKind.Supported, T0 + 60, prompt: "stall-offer"), Default);
 
         Assert.Empty(progress.DuePhrases(T0 + (5 * Minute), Default)); // inside the gap
@@ -214,8 +231,9 @@ public sealed class PhraseProgressTests
         Assert.Equal(["pedir-agua", "si-por-favor"], due.Select(static d => d.PhraseId)); // the most overdue first
         Assert.Equal(10 * Minute, due[0].OverdueSeconds);
 
-        _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Unaided, T0 + (20 * Minute)), Default); // none: nothing left to fade
-        Assert.DoesNotContain(progress.DuePhrases(T0 + (200 * Minute), Default), static d => d.PhraseId == "pedir-agua");
+        _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Unaided, T0 + (20 * Minute)), Default); // audio-only
+        _ = progress.Apply(Use("pedir-agua", PhraseUseKind.Unaided, T0 + (82 * Minute)), Default); // none: nothing left to fade
+        Assert.DoesNotContain(progress.DuePhrases(T0 + (300 * Minute), Default), static d => d.PhraseId == "pedir-agua");
 
         progress.Session = 2; // a new session lifts every gap
         Assert.Contains(progress.DuePhrases(T0 + 90, Default), static d => d.PhraseId == "si-por-favor");
@@ -266,7 +284,7 @@ public sealed class PhraseProgressTests
         progress.NoteCardShown("pedir-agua");
         _ = progress.Apply(Use("hola", PhraseUseKind.Unaided, T0, InputKind.Typed), Default);
 
-        Assert.Equal("phrase: pedir-agua, supported 1, unaided 0, choice 0, no sé 0, transfer 0, fail-forward 0, cards 1, support audio-only", progress.ConsoleLine("pedir-agua"));
+        Assert.Equal("phrase: pedir-agua, supported 1, unaided 0, choice 0, no sé 0, transfer 0, fail-forward 0, cards 1, support card-and-audio", progress.ConsoleLine("pedir-agua"));
         Assert.StartsWith("phrase: hola, supported 0, unaided 0.5,", progress.ConsoleLine("hola"), StringComparison.Ordinal);
         Assert.Equal(2, progress.SummaryLines().Count);
     }

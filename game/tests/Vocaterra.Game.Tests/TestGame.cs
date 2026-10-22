@@ -25,8 +25,14 @@ internal static class TestGame
         SceneBuilder.Build(SceneLayout.Load(Path.Combine(GameBundle.ResolveDirectory(), "game", "scene.json")), seed);
 
     /// <summary>A new session on the route for a seed, with the fixed start time.</summary>
-    public static VoxelSession NewSession(ulong seed = Seed, CreditRules? credit = null) =>
-        new(Bundle, seed, GuideSession.DefaultStartedAt, Nouns, Route(seed), credit ?? CreditRules.FullTyped);
+    public static VoxelSession NewSession(ulong seed = Seed, CreditRules? credit = null, LessonBook? lessons = null) =>
+        new(Bundle, seed, GuideSession.DefaultStartedAt, Nouns, Route(seed), credit ?? CreditRules.FullTyped, lessons);
+
+    /// <summary>The bundle's speakable lines (the lessons' lines are checked against them).</summary>
+    public static IReadOnlyList<SpeechLine> Speech => SpeechLines.Enumerate(Bundle, Nouns, PhraseSheet.Load(Bundle));
+
+    /// <summary>Lessons from a file's text, checked against the bundle as the game checks its own.</summary>
+    public static LessonBook Lessons(string json) => LessonBook.Parse(json, PhraseSheet.Load(Bundle), Speech, Bundle.Prompts);
 
     /// <summary>The live facts of a session's world (the blocks as they are now).</summary>
     public static WorldFacts3D FactsOf(VoxelSession session) => WorldFacts3D.Live(session.Scene.Grid, Nouns);

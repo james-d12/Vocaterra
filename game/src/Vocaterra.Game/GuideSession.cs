@@ -97,6 +97,7 @@ public abstract class GuideSession : IDisposable
     /// <param name="recipes">The crafting recipes of the bundle.</param>
     /// <param name="playSession">The number of this play session (1 for a new game; the saves of S10 will bump it on each load).</param>
     /// <param name="credit">The credit per kind of input and the gaps; <see cref="CreditRules.Default"/> (typed half, spoken full) when <see langword="null"/>.</param>
+    /// <param name="lessons">The lessons to run instead of the bundle's <c>game/lessons.json</c> (the tests' own), or <see langword="null"/> for the bundle's.</param>
     protected GuideSession(
         ContentBundle bundle,
         ulong worldSeed,
@@ -105,7 +106,8 @@ public abstract class GuideSession : IDisposable
         IGuideFacts liveFacts,
         RecipeBook recipes,
         int playSession,
-        CreditRules? credit)
+        CreditRules? credit,
+        LessonBook? lessons = null)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         ArgumentNullException.ThrowIfNull(nouns);
@@ -119,8 +121,12 @@ public abstract class GuideSession : IDisposable
         Recipes = recipes;
         Words = new WordProgress(nouns, playSession);
         Phrases = PhraseSheet.Load(bundle);
-        PhraseProgress = new PhraseProgress(Phrases, playSession);
-        Support = new PhraseSupport(Phrases, PhraseProgress, bundle);
+        English = EnglishText.Load(bundle, Phrases);
+        var book = lessons ?? LessonBook.Load(bundle, Phrases, SpeechLines.Enumerate(bundle, nouns, Phrases));
+        PhraseProgress = new PhraseProgress(Phrases, playSession, book.TaughtPhrases);
+        Support = new PhraseSupport(Phrases, PhraseProgress, bundle, English);
+        Lessons = new LessonRunner(this, book, English);
+        Tips = new TipFeed(this, English);
         _liveFacts = liveFacts;
         _npcs = new NpcService(bundle, liveFacts, nouns, worldSeed, new StoredTimestamp(startedAt), recipes);
     }
@@ -160,6 +166,28 @@ public abstract class GuideSession : IDisposable
 
     /// <summary>What the dialogue panel shows by way of support for the prompt it is on: the cards, the audio-only state and the sounds to play (S8).</summary>
     public PhraseSupport Support { get; }
+
+    /// <summary>The game's English text (S16, D-game-13): the controls, the tips, the bilingual objective, the English under the NPCs' lines and the feedback after a turn.</summary>
+    public EnglishText English { get; }
+
+    /// <summary>The lessons (S16): the data-driven sequences attached to the NPCs, and the runner that walks the learner through them.</summary>
+    public LessonRunner Lessons { get; }
+
+    /// <summary>The first-time tips (S16): English text shown once each when something happens for the first time.</summary>
+    public TipFeed Tips { get; }
+
+    /// <summary>
+    /// The English to draw under an NPC's Spanish line, or <see langword="null"/> when there is none or it is not due: the file's English for the line (or the
+    /// lesson's translation of it), shown while the phrase in play is at the English rung or the help key was pressed, and always for a line no phrase of the
+    /// prompt is practising (S16, <see cref="PhraseSupport.EnglishForLines"/>).
+    /// </summary>
+    /// <param name="spanish">The line as the panel shows it.</param>
+    public string? EnglishForNpcLine(string spanish)
+    {
+        ArgumentNullException.ThrowIfNull(spanish);
+        var english = English.ForLine(spanish) ?? Lessons.TranslationOf(spanish);
+        return english is not null && Support.EnglishForLines ? english : null;
+    }
 
     /// <summary>The guide's review of a due phrase in progress (S8), or <see langword="null"/>.</summary>
     public PhraseReview? PhraseReview { get; private set; }
@@ -428,7 +456,35 @@ public abstract class GuideSession : IDisposable
             return BeginKeyWords(npc);
         }
 
-        return OpenNow(npc, logOpened: true);
+        var opening = OpenNow(npc, logOpened: true);
+        Lessons.OnTalkOpened(npc); // a lesson attached to this NPC takes up where it stopped, or starts by itself when its file says so (S16)
+        return opening;
+    }
+
+    // ---- The lessons' hooks (S16): the runner is in LessonRunner.cs; these are the parts of the session it needs.
+
+    /// <summary>Whether the panel is open on this NPC (a talk is open and the NPC is the one the lines go to).</summary>
+    internal bool TalkOpenOn(string npc) => _talkOpen && string.Equals(CurrentNpc, npc, StringComparison.Ordinal);
+
+    /// <summary>Appends a game event to <see cref="Events"/> (the lesson runner and the tips log through it).</summary>
+    internal void LogEvent(GameEvent gameEvent) => Log(gameEvent);
+
+    /// <summary>The panel's support follows the lesson step now in play (its card and audio, or none): called when a step begins or the lesson ends.</summary>
+    internal void RefreshLessonSupport()
+    {
+        if (_talkOpen && Support.Npc is { } npc)
+        {
+            RefreshSupport(npc, _npcs.PromptOf(npc));
+        }
+    }
+
+    /// <summary>The help path of a lesson step with a phrase: the card and the English go up whatever the rung (the help key shows the English at every rung).</summary>
+    internal void RevealLessonSupport() => RevealSupport();
+
+    /// <summary>"No sé" in a lesson step with a phrase: the phrase use ("no sé" with the step's phrase in play), as the button makes in an ordinary exchange.</summary>
+    internal void LogLessonDontKnow(string npc, string prompt, string phraseId)
+    {
+        Log(new PhraseUse(Tick, StoredTime.UnixSeconds, PhraseIds.DontKnow, PhraseUseKind.DontKnow, npc, prompt, DontKnowLine, null, InputKind.Button, true, PhraseProgress.LevelOf(phraseId), [phraseId]));
     }
 
     // The first time the shopkeeper's panel opens, the key words (agua, pan) are taught before his question (brief step 4): their word cards stand alone for
@@ -503,7 +559,7 @@ public abstract class GuideSession : IDisposable
         {
             opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest());
             if (string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && !opening.HostTurn
-                && !string.Equals(_npcs.GuideState.StateId, "offering", StringComparison.Ordinal))
+                && !string.Equals(_npcs.GuideState.StateId, "offering", StringComparison.Ordinal) && !Lessons.OwnsConversation(npc))
             {
                 _ = BeginTalk();
             }
@@ -537,6 +593,7 @@ public abstract class GuideSession : IDisposable
     {
         Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.TalkClosed, CurrentNpc));
         EndReview();
+        Lessons.OnTalkClosed();
         _talkOpen = false;
         _keyWordsPending = false;
         _keyWordCards = [];
@@ -560,7 +617,7 @@ public abstract class GuideSession : IDisposable
         var phraseReview = PhraseReview;
         var support = Support.Snapshot();
         var scene = review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? Lessons.ActivePrompt)
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: LiveInventory);
         var turn = _npcs.Say(CurrentNpc, line, scene, StoredTime, StateDigest());
         if (review is not null && turn.Communicated)
@@ -819,6 +876,11 @@ public abstract class GuideSession : IDisposable
         {
             _ = PhraseProgress.Apply(use, Credit); // the phrase progress is fed from the events, in the order they are logged (S8)
         }
+        else if (gameEvent is WorldEvent world)
+        {
+            Tips.Offer(world.Name); // a first-time tip waits for the event it explains (S16)
+            Lessons.OnEvent(world); // a lesson's do step waits for a world event (S16)
+        }
     }
 
     // What follows an applied turn: the phrase it used, the voice event it was, and what its host events do in the world.
@@ -838,7 +900,7 @@ public abstract class GuideSession : IDisposable
             Log(new VoiceEvent(tick, time, VoiceEventKind.Uncertain, npc, turn.Line));
         }
 
-        if (turn.Communicated && PhraseIds.For(turn.Intent, turn.Slots) is { } phrase)
+        if (turn.Communicated && (PhraseIds.For(turn.Intent, turn.Slots) ?? PhraseInPlayFor(turn, support)) is { } phrase)
         {
             var kind = Classify(turn, phrase, previousRepair, phraseReview, support);
             var detail = turn.Slots.TryGetValue("item", out var item) ? item : turn.Slots.TryGetValue("place", out var place) ? place : null;
@@ -872,11 +934,17 @@ public abstract class GuideSession : IDisposable
             ApplyHostEvents(npc, turn.HostEvents, turn.FailForward ? "fail_forward" : "request");
         }
 
+        Lessons.OnTurn(turn); // a lesson's repeat or answer step ends, retries or moves on with this turn (S16)
+
         if (_talkOpen && string.Equals(Support.Npc, npc, StringComparison.Ordinal) && !turn.Unsure)
         {
             RefreshSupport(npc, NpcService.PromptAfter(npc, turn.AgentState)); // the prompt may have moved on (the bread offer), and a level may have changed
         }
     }
+
+    // A phrase the sheet teaches for an intent the game has no fixed mapping for (a lesson's phrase, S16): the phrase in play on the prompt whose row has this intent.
+    private string? PhraseInPlayFor(GuideTurn turn, SupportSnapshot support) =>
+        support.InPlay.FirstOrDefault(id => Phrases.Find(id) is { Intent: { } intent } && string.Equals(intent, turn.Intent, StringComparison.Ordinal));
 
     private static bool IsHelpRequest(GuideTurn turn) =>
         string.Equals(turn.Intent, "dont_know", StringComparison.Ordinal) || string.Equals(turn.Intent, "ask_help", StringComparison.Ordinal);
@@ -885,7 +953,7 @@ public abstract class GuideSession : IDisposable
     // phrase skill step (LearnerModel.StepSkills), deferred while a turn is on the worker.
     private void RefreshSupport(string npc, string prompt)
     {
-        var change = Support.Show(npc, prompt, PhraseReview?.PhraseId);
+        var change = Support.Show(npc, prompt, PhraseReview?.PhraseId, string.Equals(npc, Lessons.Active?.Npc, StringComparison.Ordinal) ? Lessons.Focus : null);
         foreach (var id in change.NewCards)
         {
             CardAppeared(npc, id, "level");
@@ -998,7 +1066,7 @@ public abstract class GuideSession : IDisposable
         var facts = SnapshotFacts();
         var inventory = LiveInventory.Copy();
         return review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt ?? Lessons.ActivePrompt)
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: inventory, Facts: facts);
     }
 }
