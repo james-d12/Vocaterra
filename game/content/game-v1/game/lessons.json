@@ -7,7 +7,7 @@
       "npc": "guide",
       "title": "First words with Luna",
       "english": "Six short units: hello, yes and no, what is this, please and thank you, getting unstuck, and what the camp needs. About eight minutes.",
-      "summary": "You can greet, say yes and no, ask what something is, say please and thank you, ask Luna to repeat or go slower, and say what the camp needs.",
+      "summary": "You can greet, say yes and no, ask what something is, say please and thank you, and say what the camp needs.",
       "autoStart": true,
       "steps": [
         {

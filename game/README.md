@@ -162,7 +162,7 @@ WASD or the arrows walk, Space jumps, the mouse looks (Esc lets the mouse go, a 
 (`madera`, five for the camp) or a berry bush (`fruta`, three) to gather it, the right button places the selected item, `1`..`0` or the wheel
 pick the hotbar slot, **I** the inventory, **C** the crafting panel, **E** the inventory or, with the crosshair on the workbench (`mesa`), the
 crafting panel. The panel lists the recipes (the torch: `antorcha` from two `madera` at the workbench); a click on a row crafts it. **J** the
-journal, **F3** the debug overlay, **F5** the view over your own shoulder and back (S15: first person is where every run starts; `--third-person` starts
+book, **F3** the debug overlay, **F5** the view over your own shoulder and back (S15: first person is where every run starts; `--third-person` starts
 in the shoulder view), **F6** saves. **Aim the crosshair at the guide's figure**: the hint `E: talk` shows, and **E** (or **T** to type, or **V**
 to talk: hold it, the clip goes when it is let go) opens the dialogue panel, which takes the keyboard and frees the mouse. **The panel has
 speech buttons (S7)**: `[R] Repetir`, `[S] Más despacio`, `[H] Ayuda`, `[N] No sé` and `[W] Escribir` (keys or the mouse); hold **V** or **Space** to talk;
@@ -204,7 +204,7 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute \
   --talk guide --say "sí, por favor" \
   --walk-to 153,109 --look 330,-12 --place antorcha@153,74,105 --wait 1 \
   --screenshot /tmp/s17-fire.png --frames 90
-# the lesson alone, with its steps printed (the player is walked down the trail to the guide first); the journal's phrases page at the end shows what was learnt
+# the lesson alone, with its steps printed (the player is walked down the trail to the guide first); the book's phrases page at the end shows what was learnt
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --journal --journal-phrases --screenshot /tmp/s17-journal.png --frames 30
 # the opening: the objective line and the first tip at the spawn (a scripted run draws no tips unless --tips is given)
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --tips --screenshot /tmp/s17-opening.png --frames 90
@@ -237,7 +237,7 @@ phrase use and a summary at exit. A due phrase (ten minutes after a credited use
 opens the phrases page, `--wait <seconds>` runs the game on, `--skip <seconds>` moves the stored time on:
 
 ```bash
-# the stall's key words, then the question with the card (the two PNGs), a use, ten minutes later the guide asks for it, the journal's phrases page
+# the stall's key words, then the question with the card (the two PNGs), a use, ten minutes later the guide asks for it, the book's phrases page
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --typed-credit full --no-speech --talk shopkeeper --shot /tmp/s8-intro.png --wait 3 --shot /tmp/s8-stall.png \
   --say "quiero agua, por favor" --skip 660 --talk guide --say "quiero agua, por favor" --journal-phrases --screenshot /tmp/s8-journal.png --frames 60
 ```
@@ -457,7 +457,7 @@ DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute 
   eight minutes at a learner's pace (estimated 4.8 minutes for a quick reader who answers in 4 s, 7.5 for a slow one, from the real WAV lengths, plus about a minute to walk down the trail): hello, yes and
   no, what is this, please and thank you (the guide offers fruit and the
   learner picks it from a bush: a `do` step with a beacon on the nearest berry bush), getting unstuck (`No sé`, `Otra vez, por favor`, `Más despacio, por favor`
-  do what they say) and the camp's task, then a recap that opens the journal's phrases page. While a lesson step takes a turn the guide's ordinary reply is not
+  do what they say) and the camp's task, then a recap that opens the book's phrases page. While a lesson step takes a turn the guide's ordinary reply is not
   shown (the lesson speaks for her); a turn the core did not understand keeps her not-understood line and the English help.
 - **The ending.** The complete checklist gives a spare torch, sets the beacon on the player's own camp and changes the objective line to `Go back up the trail and
   light your own fire`. A torch placed on the rim of the fire ring at `firering.player` lights it: the guide's closing line (`¡Muy bien! Ya tienes fuego.`) is
@@ -467,7 +467,55 @@ DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute 
   hint carry their English until the button (or its phrase) has been used three times; the keys and buttons work the same without it.
 
 ```bash
-# the whole lesson with typed answers (every step and its outcome is printed), then the journal's phrases page
+# the whole lesson with typed answers (every step and its outcome is printed), then the book's phrases page
 DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --journal --journal-phrases --screenshot /tmp/s17-journal.png --frames 30
 ```
 
+
+## The book (S20, D-game-16)
+
+The journal is the learner's book: an open book drawn in code over the scene, in the panel style of S15. It opens with **J** (or with the book
+item, which the learner starts with at the camp: select it on the hotbar and use it with the right button). Both call the same opening. It covers the
+screen and takes the keyboard while it is open. Every title, tab, label and key hint is English; the Spanish is what the learner learnt (D-game-13).
+
+- **Pages.** Five tabs, turned with **Tab** (Shift and Tab turns back), **Left** and **Right**, or a click on a tab: **Nouns**, **Verbs**, **Phrases**,
+  **Lessons**, **What I said**. The lists scroll with the wheel, **Page Up** and **Page Down** (and Up and Down a line at a time); the page's line count is
+  shown at the bottom right. The book reads at 1280 x 720.
+- **Nouns.** The catalogue words as they were (seen or `¿?`, the icon, heard, read, said, correct and the three pips), then every other noun the learner
+  used (from the record's word rows), each with its article from the bundle's morphology (`el agua`, `la botella`), the forms used with their counts, and
+  the last sentence (with its English when the sentence is a phrase of the sheet). A fixed expression (`por favor`) and an interjection (`gracias`) are not
+  nouns and are not listed.
+- **Verbs.** The infinitive with its English from `game/glosses.json` (`querer — to want`), then each form used with a plain-English label built by
+  `VerbLabels` (`quiero — I want`, `¿quieres? — do you want?`, `está — he/she/it is`), its counts and its last sentence. A form used in a question is a
+  form of its own (the record keeps the question flag). `to be` has its own forms (am, is, are, was, were); an irregular third person or past comes from
+  the glosses file; a verb with no gloss shows its infinitive alone.
+- **Phrases.** The phrases page of S8, unchanged in meaning: the phrases the learner has met first, each with its Spanish, its English, its help now
+  (the card and audio lamps) and its counts.
+- **Lessons.** Every lesson of the bundle in its order: its state (completed in session n, in progress with the units done, not started), its units with a
+  tick each, the phrases it taught (S17's recap), the help used and, once completed, its English summary, stored in `game/lessons.json` beside the lesson
+  (`summary`).
+- **What I said.** `Learner.Recent(500)`, newest first: the line, said or typed, where it was said (the NPC's English name, the lesson and its unit, or a
+  check), and the core's feedback in English (`EnglishText.FeedbackFor(InputEntry)`, the same lines as S16's).
+
+**Page models.** `src/Vocaterra.MonoGame/Frontend/BookPages.cs` (what each page lists, as `BookLine` values: a tone, a text, an aside, a right-hand text,
+an icon, pips, lamps or a tick), `VerbLabels.cs` (the English table of a verb form: person, number, tense and mood), `Book.cs` (`BookModel`, the pages in
+`BookTabs`, `BookGeometry` for the panel, the tabs and the lines at a size, `BookScroll`). They are engine-free and tested in
+`BookPagesTests`, `VerbLabelsTests` and `BookModelTests`; the drawing is `src/Vocaterra.MonoGame/BookLayer.cs`.
+
+**The record and the bundle (what the book reads).** The learner's record gains, per form, the question flag and the last use (`FormRow.Question`,
+`FormRow.Last`; a save of version 2 keeps them). Lessons gain `summary` (optional) and the step ids (`LessonRecordRow.StepIds`, from which the book groups
+the steps into units by their prefix: `u1-hello` is unit `u1`). `game/glosses.json` is new (the verbs' English, `VerbGlosses`; it is in the manifest and
+`provenance.json`). `btnHold` is removed from `english.json` and from `EnglishText.UiKeys`. The book item is `ItemId.Book` (29), given by
+`VoxelSession` at a new game; a loaded save puts its own slots back.
+
+**Demo and flags.** The flags open the book for screenshots once the steps are done: `--book` (the nouns page, the same as `--journal`),
+`--book-page nouns|verbs|phrases|lessons|said`, and `--journal-phrases` (the phrases page, as before).
+
+```bash
+# the five pages after the S17 lesson route (the lesson is walked first, then the book opens on the page named)
+for page in nouns verbs phrases lessons said; do
+  dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --book-page $page --screenshot /tmp/s20-$page.png --frames 30
+done
+```
+
+The S17 route (`--lesson-run first-words` and the steps above it) still completes with `fire_lit` and `session_complete`.

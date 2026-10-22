@@ -35,7 +35,7 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--leave` | a step: close the dialogue (a `--walk-to` or another `--talk` closes it as well) |
 | `--shot <png>` | a step: save the screen at this point of the script and go on (the final `--screenshot` is saved when the script is done) |
 | `--beacon <point>` | stand the beacon column on a named point of the scene (`camp.guide`, `camp.player`, `firering`, `workbench`, `stall`, `signpost`, `village`, `house1` to `house3`, `bridge`, `river`, `lake`, `waterfall`, `trail`); it clears when the player comes within 3 blocks. A new game starts with it on `camp.guide` (the walk down the trail from the player's own camp); `--beacon none` puts none up. The beacon is not fogged |
-| `--journal`, `--journal-phrases`, `--inventory`, `--crafting` | open those screens once the steps are done (the panel stays open for the screenshot); `--journal-phrases` opens the journal on its phrases page (S8: Tab, Left or Right turn the page) |
+| `--book`, `--book-page <page>`, `--journal`, `--journal-phrases`, `--inventory`, `--crafting` | open those screens once the steps are done (the panel stays open for the screenshot). S20: `--book` (the same as `--journal`) opens the book on its nouns page, `--book-page nouns\|verbs\|phrases\|lessons\|said` on the named page, and `--journal-phrases` on the phrases page (S8). Tab, Left and Right turn the page; the wheel, Page Up and Page Down scroll |
 | `--wait <seconds>`, `--skip <seconds>` | script steps (S8): run the game on that long; move the stored time on without waiting (so a spacing gap passes and the guide's phrase review is due) |
 | `--typed-credit <full\|half>` | the credit a correct typed use earns: `half` by default, `full` as before P5; spoken input always earns full |
 | `--no-speech` | do not load Vosk (an interactive run loads it unless this is given; a scripted run never does) |
@@ -54,7 +54,7 @@ switch for it, so `MouseLook` calls `SDL_SetRelativeMouseMode` and `SDL_GetRelat
 pointer to the middle of the window if that library cannot be reached); **Esc** frees the mouse and a click takes it back. Hold the **left
 button** on a gatherable block (a trunk, a berry bush) to gather it, the **right button** places the selected item in the cell in front of the
 face the crosshair is on, `1`..`0` and the wheel pick the hotbar slot, **I** or **E** the inventory, **C** (or **E** with the crosshair on the
-workbench) the crafting panel, **J** the journal, **F3** the debug overlay. The camera eases over a step-up (`CameraEase`: the eye lifts a block in
+workbench) the crafting panel, **J** the book (S20; the selected book item, used with the right button, opens the same book), **F3** the debug overlay. The camera eases over a step-up (`CameraEase`: the eye lifts a block in
 one tick; the camera holds the old height and lets it go over 8 ticks).
 
 ## What is drawn
@@ -106,7 +106,7 @@ each ingredient as `have/need word`, the station (`Uses mesa`, or `By hand`) and
 `Needs mesa` (the workbench is not within 6 blocks) or `Inventory full`. A click on a row queues one `Craft` command for the next tick (the same
 command a script sends), so a craft is deterministic. Opening the panel counts each shown word as read once.
 
-**The screens over the scene.** The hotbar, the toast, the inventory screen, the journal and the crafting panel draw over the scene; `FrameView`
+**The screens over the scene.** The hotbar, the toast, the inventory screen, the book and the crafting panel draw over the scene; `FrameView`
 carries the `VoxelSimulation`, the first-person camera, the beacon, the figures, the block atlas (`VoxelIcons`, full colour), the `Objective`, the word
 cards and the viewport size. New layers: the crosshair with a gather bar, the NPC labels, the beacon's label and
 edge arrow, and the 3D debug overlay.
@@ -178,7 +178,10 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   DialogueModel     the panel as state: open or closed, the text box, the lines, a request to send; Submit shows the turn's lines
   PushToTalk        the push-to-talk state over an ISpeechCapture (the device): Begin, Pump (collects, caps at 8 s), End (a trimmed 16 kHz clip or null)
   TurnPump          Submit (the typed line and the spoken clip to the worker) and Apply (the finished turns, in order, to the session and the panel)
-  Journal           JournalRows (every catalogue noun: label, counts, pips, saturation) and JournalModel (open or closed, the words or the phrases page; opening counts a read)
+  Journal           JournalRows (every catalogue noun: label, counts, pips, saturation; the nouns page builds on them)
+  Book              BookModel (open or closed, the five pages, the scroll; opening counts a read), BookTabs (the labels and their order), BookGeometry (the panel,
+                    the tabs and the lines at a viewport size: a click lands on the tab drawn there), BookScroll, BookPages (what each page lists: nouns, verbs,
+                    phrases, lessons, what I said, as BookLine values), VerbLabels (the English of a verb form from person, number, tense and mood)
   PhraseJournal     PhraseJournalRows (every phrase of the sheet: Spanish, English, support level, counts)
   SupportLayout     where the support cards, the audio-only chip and the key-word cards stand above the panel (SupportLayer draws them; WordCardLayer lifts clear)
   SupportFrontend   plays the session's audio cues through the line player, adds the shopkeeper's opening after the key words, words the console's phrase lines
@@ -186,7 +189,7 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   Toasts            ToastQueue: lines shown one after another for 240 ticks each, by the simulation's tick (no clock)
   WordCardQueue     the word cards: one at a time, 300 ticks each
   TextEntry         the dialogue panel's text box: insert (Spanish letters and marks included), backspace, delete, caret, limits; AccentShortcuts
-  InputFocus        who has the keyboard (the panel, the journal, the inventory, the crafting panel); KeyRepeater counts auto-repeat in frames
+  InputFocus        who has the keyboard (the panel, the book, the inventory, the crafting panel); KeyRepeater counts auto-repeat in frames
   VoxelDebugText    the overlay's lines (FPS, tick, the pose, the target block)
   SceneLocator      the bundle's scene file or --scene
   FrameStats, BusyFrameStats, FrameClock (the frame numbers the overlay and the screenshot run print)
@@ -197,7 +200,7 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   IFrameLayer       "draw after the world": the layers listed above, in the order VoxelGame adds them
   HudLayers         ObjectiveLayer (the checklist) and WordCardLayer (the word card)
   CraftingLayer     the crafting panel (C, or E at the workbench)
-  HotbarLayer, InventoryLayer, JournalLayer, ToastLayer, DialoguePanel, LoadingLayer
+  HotbarLayer, InventoryLayer, BookLayer (S20: the book drawn in code, its tabs, lines, icons, pips and scroll), ToastLayer, DialoguePanel, LoadingLayer
   VoxelRenderer     the chunks: one vertex buffer per chunk and mesh, AlphaTestEffect and BasicEffect, the frustum, the re-mesh on a changed version
   SkyRenderer       the sky dome, the sun and the clouds (S14)
   VoxelLayers       the crosshair (with the gather bar), the NPC labels, the beacon's arrow, the 3D debug overlay
@@ -255,6 +258,6 @@ outside `FrameClock.cs`, project references only the game layer and the simulati
 - **S17.** `GuideApproach` opens the panel on the guide when the player walks up to her and her lesson is waiting (or her transfer offer is, once the camp is
   done); `SessionEnding` and `EndingLayer` are the closing card; `SpeechButtons.TextFor` and `HintsFor` add the English to the buttons and the hold-to-talk hint (a
   second row of buttons when they do not fit the panel); `--lesson-run <id>` runs a whole lesson in a scripted run (walks to the NPC, types each answer, walks to the
-  fruit and back for a `do` step) and `--lesson` takes the guide's `first-words`; the recap ends on the journal's phrases page (`LessonFrontend.OnRecapDone`; a
+  fruit and back for a `do` step) and `--lesson` takes the guide's `first-words`; the recap ends on the book's phrases page (`LessonFrontend.OnRecapDone`; a
   scripted run does not open it and asks for `--journal --journal-phrases` instead). The post-check of a playtest starts when the session is complete
   (`PlaytestEnd.StartsOnItsOwn`: the camp done and the player's own fire lit) and the transfer offered.

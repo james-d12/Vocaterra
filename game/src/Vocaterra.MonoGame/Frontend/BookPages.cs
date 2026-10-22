@@ -140,7 +140,7 @@ public static class BookPages
             foreach (var form in row.Forms)
             {
                 var label = VerbLabels.Label(form.Form, row.Lemma, gloss, form.Person, form.Number, form.Tense, form.Mood, form.Question);
-                lines.Add(new BookLine(BookTone.Seen, label, Right: $"{form.Times} times   {form.TimesCorrect} correct", Indent: true));
+                lines.Add(new BookLine(BookTone.Seen, label, Right: $"{Uses(form.Times)}   {form.TimesCorrect} correct", Indent: true));
                 if (form.Last is { } last)
                 {
                     lines.Add(new BookLine(BookTone.Hint, $"last: \"{last.Sentence}\"{EnglishSuffix(sheet, last.Sentence)}", Indent: true));
@@ -284,6 +284,9 @@ public static class BookPages
         var last = row.Last;
         lines.Add(new BookLine(BookTone.Hint, $"last: \"{last.Sentence}\"{EnglishSuffix(sheet, last.Sentence)}", Indent: true));
     }
+
+    // "1 time", "3 times": the count of uses in words.
+    private static string Uses(int times) => times == 1 ? "1 time" : $"{times} times";
 
     private static string EnglishSuffix(PhraseSheet sheet, string sentence) =>
         SheetEnglish(sheet, sentence) is { } english ? " = " + english : string.Empty;

@@ -1,5 +1,6 @@
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 
@@ -33,12 +34,12 @@ public sealed class BookDataTests
     [Fact]
     public void TheFirstLessonCarriesItsSummaryAndItsStepIdsInOrder()
     {
-        using var session = TestGame.NewSession();
+        using var session = TestGame.NewSessionWithShippedLessons();
         var row = session.Lessons.Record.Single(static r => r.LessonId == "first-words");
 
-        Assert.StartsWith("You can greet, say yes and no, ask what something is", row.Summary, StringComparison.Ordinal);
-        Assert.Equal("u1-welcome", row.StepIds[0]);
-        Assert.Equal(row.StepCount, row.StepIds.Count);
+        Assert.StartsWith("You can greet, say yes and no, ask what something is", row.Summary!, StringComparison.Ordinal);
+        Assert.Equal("u1-welcome", row.StepIds![0]);
+        Assert.Equal(row.StepCount, row.StepIds!.Count);
     }
 
     [Fact]
@@ -52,7 +53,7 @@ public sealed class BookDataTests
     [Fact]
     public void ANewGameStartsWithTheBookItemAndTheItemIsNotPlaceable()
     {
-        using var session = TestGame.NewSession();
+        using var session = TestGame.NewSessionWithShippedLessons();
 
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Book));
         Assert.Null(BlockDefinition.PlacedBy(ItemId.Book));

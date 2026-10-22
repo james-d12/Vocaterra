@@ -101,6 +101,47 @@ public sealed class BookModelTests
     }
 
     [Fact]
+    public void TheFontCoversEveryCharacterTheBookDraws()
+    {
+        var cmap = TrueTypeCmap.Load(Repo.Path("assets", "fonts", "pixel-operator", "PixelOperator.ttf"));
+        var strings = new List<string>
+        {
+            BookTabs.Title, BookTabs.KeyHints, "lines 1 to 29 of 80   wheel, Page Up, Page Down", "Known: 3 of 18   ·   Session 1", "Without help: 0   ·   Session 1",
+            VerbLabels.Separator, "¿quieres? — do you want?", "¿estás? — are you?", "he/she/it wants", "you all want! (you all)", "let's want", "that I want",
+            "completed in session 2", "in progress: 1 of 2 units done", "not started", "help used: 0   I don't know: 0   repeats asked: 0   turns: 0",
+            "unit 1", "2 of 2 steps", "lesson First words with Luna, u1", "said, talk to The guide", "typed", "button", "used 1   correct 1", "forms: agua 1",
+            "last: \"¿quieres pan?\" = Would you like bread?", "...", "Session 2",
+        };
+        strings.AddRange(BookTabs.Labels);
+        strings.AddRange(Enum.GetValues<BookPage>().Select(static page => BookTabs.LabelOf(page)));
+        var missing = strings.SelectMany(static s => s).Where(c => !cmap.Covers(c)).Distinct().Select(static c => $"U+{(int)c:X4} {c}").ToList();
+        Assert.True(missing.Count == 0, "The font has no glyph for: " + string.Join(", ", missing));
+    }
+
+    [Theory]
+    [InlineData("--book", null)]
+    [InlineData("--journal", null)]
+    [InlineData("--journal-phrases", "phrases")]
+    [InlineData("--book-page", "nouns")]
+    [InlineData("--book-page", "verbs")]
+    [InlineData("--book-page", "lessons")]
+    [InlineData("--book-page", "said")]
+    public void TheBookFlagsOpenTheBookAndTheirPage(string flag, string? page)
+    {
+        var args = flag == "--book-page" ? new[] { "--screenshot", "a.png", flag, page! } : new[] { "--screenshot", "a.png", flag };
+        Assert.True(LaunchOptions.TryParse(args, out var options, out var error), error);
+        Assert.True(options.Journal);
+        Assert.Equal(page is null ? null : (BookPage?)Enum.Parse<BookPage>(page, ignoreCase: true), options.BookStart);
+    }
+
+    [Fact]
+    public void ABookPageNamedWrongIsRefused()
+    {
+        Assert.False(LaunchOptions.TryParse(["--screenshot", "a.png", "--book-page", "maps"], out _, out var error));
+        Assert.Contains("nouns, verbs, phrases, lessons or said", error, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AClickOnATabTurnsToThatPageAndAClickBesideTheTabsTurnsNothing()
     {
         var geometry = new BookGeometry(1280, 720);
