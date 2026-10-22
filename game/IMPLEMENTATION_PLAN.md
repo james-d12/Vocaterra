@@ -179,11 +179,11 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S10 | Save, sessions, resume (P9 re-scoped) | done (merged to `feature/prototype` 2026-10-22) | Haiku 5.5 | S4, S8 |
 | S11 | Checks (pre, post, recall), the session log and the report script | done (merged to `feature/prototype` 2026-10-22, bundle `cd63077b…`) | Haiku 5.5 | S8, S10 |
 | S12 | Playtest build and facilitator checklist | done (merged to `feature/prototype` 2026-10-22); **the owner's pre-flight** (`docs/PLAYTEST.md` section 12) | Haiku 5.5 | S7, S9, S11 |
-| S13 | The large world: 384 x 384 x 128 generated terrain, mountains, cliffs, the river and waterfall, sites, the player's cliff camp and trail, view-distance rendering (`docs/SCENARIO_PLAN.md` section 8) | in progress | Sonnet 5.5 | S12, D-game-14 |
-| S14 | The look: code-drawn pixel-art textures, tree species, undergrowth, sun shading, AO, sky, clouds, haze, water, `--quality` presets | planned | Sonnet 5.5 | S13 |
+| S13 | The large world: 384 x 384 x 128 generated terrain, mountains, cliffs, the river and waterfall, sites, the player's cliff camp and trail, view-distance rendering (`docs/SCENARIO_PLAN.md` section 8) | done (merged to `feature/prototype` 2026-10-22) | Sonnet 5.5 | S12, D-game-14 |
+| S14 | The look: code-drawn pixel-art textures, tree species, undergrowth, sun shading, AO, sky, clouds, haze, water, `--quality` presets | in progress | Sonnet 5.5 | S13 |
 | S15 | The village, props, humanoid characters, the reference-B dialogue panel, the HUD icons and recipe panel, the F5 view | planned | Sonnet 5.5 | S14 |
 | S16 | The English guidance layer (D-game-13) and the data-driven lesson runner | done (merged to `feature/prototype` 2026-10-22, bundle `4be20d61…`) | Sonnet 5.5 | S12, D-game-13 |
-| S17 | The opening at the cliff camp, the guide's 5 to 10 minute lesson, the ending; new phrases, checks, Opus pass, speech | planned | Sonnet 5.5 | S13, S16, D-game-15 |
+| S17 | The opening at the cliff camp, the guide's 5 to 10 minute lesson, the ending; new phrases, checks, Opus pass, speech | in progress | Sonnet 5.5 | S13, S16, D-game-15 |
 | S18 | The playtest refresh (build, checklist, report, launcher message) | planned | Haiku 5.5 | S15, S17 |
 
 Each milestone ends with the gate in section 6 and a line in section 5. The S series is gated with `GATE_TARGET=feature/prototype
@@ -777,6 +777,40 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - phrase reviews still cover only the four stall and river phrases;
     - the sample lesson's offer also shows in `--playtest` (S17 replaces it);
     - `playtest-report.sh` ignores `lesson` lines (S18).
+
+- **S13, the large world and its terrain (2026-10-22, Sonnet 5.5).**
+  - **The map.** 384 x 384 x 128 (4,608 chunks, 1,114 empty). `scene.json` schemaVersion 2 holds no block list: a 24 x 24 relief grid,
+    named sites (`camp.player`, `camp.ledge`, `camp.guide`, `village`, `stall`, `river`, `bridge`, `lake`, `waterfall`, `trail`; `camp`
+    aliases `camp.guide`), the river, lake, waterfall, two paths and stamps.
+  - **The generator.** `TerrainGenerator`, `Polyline`, `IntMath` and `TerrainNoise` are integer-only.
+    - Peaks reach 124, with stone above 85 and snow above 100 (new `BlockId.Snow` = 22).
+    - The river never runs uphill. A graded switchback trail leads down, and a road follows the valley.
+    - The forest is dense: 3,189 trees at seed 42.
+    - Another seed never moves a site, NPC or spawn (tested block for block).
+    - Generation takes 0.42 s and the first digest 0.09 s.
+  - **Rendering.** `--quality low|medium|high` gives view distances of 224, 304 and 400 (default high; `--view-distance`
+    overrides). Chunks are limited to the view distance, empty and buried ones skipped, frustum-culled and meshed to a per-frame budget;
+    fog follows.
+    - On this VM at low, from the camp: 1,250 chunks meshed, about 2.2 million vertices, 452 drawn.
+    - Frame medians are 32 to 49 ms (about 20 to 30 fps).
+  - **Walking times at 4.3 blocks/s.** Camp to guide by the trail 53 s, guide to village 36 s, village to river 12.8 s. Dropping down the
+    hillside skips the trail in about 22 s, because falls are free (no-death rule).
+  - **Script additions.** An A* `WalkPlanner` for `--walk-to` and `--talk`, plus `--teleport x,z` and `--beacon none`. A new game starts
+    with the beacon on `camp.guide`. The cold fire ring `firering.player` and a tent stamp stand on `camp.ledge`.
+  - **Tests.** Many front-end tests use a flat fixture (`Fixtures/clearing-route.json`). The pinned world line now rounds the Euclidean
+    distance. Tests: 4,049 passed, 5 skipped. Seed-42 world digest `4a8ad02d…`.
+  - **Bugs fixed:**
+    - `IntMath` names matched the source scan's banned `Math.Sqrt`/`Math.Floor` substrings;
+    - the waterfall pool cut the plateau;
+    - a site's rim depended on the seed;
+    - `KindMask` was 0 on never-edited chunks;
+    - several planner arrival and canopy faults.
+  - **Checked by the orchestrator:** the gate and two screenshots.
+    - The valley view north reads well: terraced forested slopes, grey cliffs, snow, the waterfall.
+    - **The camp view does not.** Trees on the ledge block the vista, the valley is a thin band, and a pale fog wall stands mid-picture.
+      The village and lake are not visible.
+    - Carried into S14: a clear sightline from `camp.player` to the valley, village, river and lake (reference A); the fog and haze; the
+      boxy valley outline.
 
 ## 6. Definition of done (every milestone)
 
