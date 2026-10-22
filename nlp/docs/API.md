@@ -49,6 +49,16 @@ path, an absolute path, a path with `..`, a backslash or a drive letter, and for
 `ATTRIBUTION.md`, `lexicon/`, `answer-sets/`, `agents/`, `cefr/`, `intents/`, `prompts/`, `dialogue/`, `feedback/`, `evaluation/`,
 `effects/`). A bundle loaded with `VerifyHashes = false` has no host files.
 
+A host file that a model rendered (pre-rendered speech, for example) is listed with the provenance kind `GeneratedByKinds.ModelOutput`,
+`"model-output"` (M29g). Its item names the model in `model` (required; a missing or blank model is refused) and may name `voice`, `speaker` and
+`source` (the text or line id it renders); the other kinds refuse those fields, and `model-output` is refused for any file the loader parses
+(language data). It needs no approval in the bundle: the review of the output is the host's process.
+
+```json
+{ "path": "speech/shop_need.1.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null,
+  "model": "kokoro-multi-lang-v1_0", "voice": "af_bella", "speaker": "3", "source": "shop_need.1" }
+```
+
 ### Lint a bundle (M27a)
 
 The loader checks references; `ContentLinter` checks behaviour: it runs the real analyzer, intent resolver and grader on the bundle's own

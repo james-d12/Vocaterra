@@ -129,6 +129,13 @@ public static class KnownTolerances
         ("prompts/prompts.json", "*/text", ContentFieldReason.Optional),
         ("provenance.json", "items/*/approvedBy", ContentFieldReason.Optional),
         ("provenance.json", "items/*/approvedOn", ContentFieldReason.Optional),
+
+        // The model fields (M29g): required for a model-output item (the validator refuses a missing model there, and refuses them elsewhere), so
+        // dropping one from an item of another kind leaves a loadable bundle.
+        ("provenance.json", "items/*/model", ContentFieldReason.Optional),
+        ("provenance.json", "items/*/voice", ContentFieldReason.Optional),
+        ("provenance.json", "items/*/speaker", ContentFieldReason.Optional),
+        ("provenance.json", "items/*/source", ContentFieldReason.Optional),
     ];
 
     /// <summary>

@@ -75,6 +75,8 @@ internal static class ContentValidator
             {
                 problems.Add($"{where} is a language-model draft and must be approved by a person before it ships.");
             }
+
+            ValidateModelFields(item, where, problems);
         }
 
         foreach (var path in files.Paths)
@@ -86,6 +88,47 @@ internal static class ContentValidator
         }
 
         ValidateLexiconProvenance(parts, files, provenance, problems);
+    }
+
+    // A model output is a host-owned file rendered from text a person has reviewed, so it names the model and may not be language data: the loader
+    // parses that, and its provenance is what the approval rules protect. Every other kind must leave the model fields out.
+    private static void ValidateModelFields(ProvenanceItem item, string where, List<string> problems)
+    {
+        if (!string.Equals(item.GeneratedBy, GeneratedByKinds.ModelOutput, StringComparison.Ordinal))
+        {
+            if (item.Model is not null || item.Voice is not null || item.Speaker is not null || item.Source is not null)
+            {
+                problems.Add($"{where} sets model, voice, speaker or source, which only a '{GeneratedByKinds.ModelOutput}' item may set.");
+            }
+
+            return;
+        }
+
+        if (ContentPaths.IsLoaderOwned(item.Path))
+        {
+            problems.Add($"{where} is '{GeneratedByKinds.ModelOutput}', which only host-owned files may be; this file is language data the loader parses, so give it a human-reviewed kind instead.");
+        }
+
+        if (item.Model is null || string.IsNullOrWhiteSpace(item.Model))
+        {
+            problems.Add($"{where} is '{GeneratedByKinds.ModelOutput}' and needs a model: the id of the model that rendered the file, for example 'kokoro-multi-lang-v1_0'.");
+        }
+        else if (!string.Equals(item.Model, item.Model.Trim(), StringComparison.Ordinal))
+        {
+            problems.Add($"{where} has a model with leading or trailing whitespace.");
+        }
+
+        CheckOptionalModelField(where, "voice", item.Voice, problems);
+        CheckOptionalModelField(where, "speaker", item.Speaker, problems);
+        CheckOptionalModelField(where, "source", item.Source, problems);
+    }
+
+    private static void CheckOptionalModelField(string where, string name, string? value, List<string> problems)
+    {
+        if (value is not null && (string.IsNullOrWhiteSpace(value) || !string.Equals(value, value.Trim(), StringComparison.Ordinal)))
+        {
+            problems.Add($"{where} has a {name} that is empty or has leading or trailing whitespace; leave the field out instead.");
+        }
     }
 
     // A lexicon file marks its own origin with "generated_by"; the mark and provenance.json must tell the same story, and every imported file

@@ -224,6 +224,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M29d | Fuzz finding (found during M29c at 30,000 grammar iterations, seed `6QxmQKiJ7Ip8`, oracle O3): "conejos Movo una cuestiono por favor" flags `conj.irregular` expected 'muevo' on a `[WORD]` name slot ('Movo'); a name slot must not be graded as a verb. Not blocking the game | M29c | H | proposed |
 | M29e | Fuzz suite flake (found by the S2 gate, 2026-10-22): `PipelineFuzzTests` asserts at least 10 `hostturn:none` cases in 300 random-seed iterations, but the generator produces about 11 to 20 (P(host turn) 1/3 x P(unknown agent) 1/5); five runs gave 8, 11, 15, 17, 20, so roughly one gate in seven fails. Fix the generator so every covered situation's expected count is several standard deviations above its minimum; the minimums stay | M28a | H | done (merged to `feature/prototype` 2026-10-22) |
 | M29f | Game request (prototype S7): the repair ladder's offered choices are the first three ordinal-sorted grammar phrases of the answer set (`UtterancePipeline.RepairFor` with `answerSet.GrammarPhrases()`), so the stall offers «agua por favor», «ayuda», «ayuda por favor» and the offer never offers «no gracias». Offer one phrase per answer (the canonical), limited to the prompt's allowed intents and the answers that serve the prompt's purpose (help/dont-know answers last or not at all), deterministic order; e.g. `AnswerSet.CanonicalPhrases()` used in `RepairFor`. Waiting: the game's choice buttons (S7) | M28a | H | proposed |
+| M29g | Game request (prototype S9): `provenance.json` has no kind for model-generated host files (pre-rendered Kokoro speech): `hand-authored` would be false provenance and `llm-draft` needs a human approval. Add a model-output kind with a required `model` field (optional voice and source). Waiting: the game's S9 speech files | M27a | H | done (merged to `feature/prototype` 2026-10-22) |
 
 ### Delegation waves
 
@@ -895,6 +896,10 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   the host-turn flag (1/2 the blacksmith, 1/2 an unknown agent), so `hostturn:none` averages 54 per 300 iterations (minimum 43 in 20 runs;
   before 19, minimum 8) against the unchanged minimum of 10; every other asserted key was already more than 4 standard deviations clear.
   Coverage flake, not a pipeline bug; logged in the fuzzing README.
+- **M29g results (2026-10-22, Haiku 5.5; requested by the game's S9).** `GeneratedByKinds.ModelOutput` (`"model-output"`): a provenance
+  item of this kind needs a non-blank `model` and may carry `voice`, `speaker` (string) and `source`; no approval; refused for
+  loader-owned language data (lexicon, intents, prompts, dialogue, ...) and the model fields refused on other kinds; the fields serialize
+  only when set, so existing bundles are byte-identical. Fuzz O15 lists the four new optional fields like `approvedBy`. 23 new tests.
 
 ## 6. Definition of done (every milestone)
 
