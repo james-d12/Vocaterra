@@ -41,6 +41,13 @@ public sealed class LearnerRecordTests
     private static GuideWord Noun(string text, string lemma, int start, int length, string? gender = "f", string? number = "sg") =>
         new(text, new TextSpan(start, length), lemma, "noun", WordRole.Word, null, number, null, null, gender);
 
+    private static GuideWord Verb(string text, string lemma, int start, int length) =>
+        new(text, new TextSpan(start, length), lemma, "verb", WordRole.Word, "1", "sg", "pres", "ind", null);
+
+    // A check answer (S11) as the record gets it: a line of the check battery, said to no NPC (S19b: in the history, not in the word record).
+    private static InputEntry CheckEntry(long id, string text, IReadOnlyList<GuideWord> words) =>
+        Entry(id, text, words) with { Place = InputPlace.Check, Unit = "say.pedir-agua", Npc = null };
+
     [Fact]
     public void ATypedTurnLandsInTheHistoryWithItsSourceSessionAndStoredTime()
     {
@@ -258,7 +265,7 @@ public sealed class LearnerRecordTests
     }
 
     [Fact]
-    public void ACheckAnswerIsALineToo()
+    public void ACheckAnswerIsALineTooButNotAWordOfTheRecord()
     {
         using var session = TestGame.NewSession(credit: CreditRules.Default);
         session.OpenTalk("shopkeeper");
@@ -274,7 +281,101 @@ public sealed class LearnerRecordTests
         Assert.Equal("say.pedir-agua", entry.Unit);
         Assert.Equal(InputSource.Typed, entry.Source);
         Assert.Equal(item.Prompt, entry.Prompt);
-        Assert.Contains(session.Learner.Rows, static row => row.Lemma == "querer");
+        Assert.Empty(session.Learner.Rows); // S19b: the check's "querer" and "agua" are not counted
+        Assert.Empty(session.Learner.Nouns);
+        Assert.Empty(session.Learner.Verbs);
+    }
+
+    [Fact]
+    public void ACheckAnswerLeavesNounsAndVerbsAsTheyWereAndStaysInWhatISaid()
+    {
+        var record = new LearnerRecord();
+        record.Append(Entry(1, "quiero dos aguas", [Noun("aguas", "agua", 9, 5), Verb("quiero", "querer", 0, 6)]));
+        var before = Show(record.Rows);
+
+        record.Append(CheckEntry(2, "quiero agua", [Noun("agua", "agua", 7, 4), Verb("quiero", "querer", 0, 6)]));
+
+        Assert.Equal(before, Show(record.Rows));
+        Assert.Equal(1, Assert.Single(record.Nouns).Times);
+        Assert.Equal(1, Assert.Single(record.Verbs).Times);
+        var said = record.Recent(1).Single();
+        Assert.Equal(2, said.Id);
+        Assert.Equal(InputPlace.Check, said.Place);
+        Assert.Equal("quiero agua", said.Text);
+    }
+
+    [Fact]
+    public void AVersionTwoSaveThatCountedTheCheckAnswersLoadsWithoutThemAndKeepsThemInTheHistory()
+    {
+        var session = TestGame.NewSession(credit: CreditRules.Default);
+        session.Learner.Append(Entry(1, "quiero dos aguas", [Noun("aguas", "agua", 9, 5), Verb("quiero", "querer", 0, 6)]));
+        session.Learner.Append(CheckEntry(2, "quiero agua", [Noun("agua", "agua", 7, 4), Verb("quiero", "querer", 0, 6)]));
+        session.Learner.Append(CheckEntry(3, "agua", [Noun("agua", "agua", 0, 4)]));
+        var before = Show(session.Learner.Rows);
+
+        // The save as version 2 wrote it: the rows counted every line, the check answers too.
+        var current = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
+        var old = current with
+        {
+            Version = 2,
+            Learner = current.Learner! with { Words = LearnerWords.Fold(session.Learner.History.Select(static e => e with { Place = InputPlace.Dialogue })).Rows },
+        };
+        Assert.Equal(3, Assert.Single(old.Learner!.Words, static w => w.Lemma == "agua").Times);
+
+        var loaded = SaveGame.Load(SaveGame.Serialize(old), TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.Default, bumpSession: false);
+
+        Assert.Equal(before, Show(loaded.Learner.Rows));
+        Assert.Equal(1, Assert.Single(loaded.Learner.Nouns).Times);
+        Assert.Equal(3, loaded.Learner.History.Count);
+        Assert.Equal(InputPlace.Check, loaded.Learner.History[^1].Place);
+
+        // Saved again (version 3) and loaded again, the record is the same: the check answers are not taken out twice.
+        var resaved = SaveGame.Save(loaded, TestGame.Route());
+        Assert.Equal(SaveGame.CurrentVersion, SaveGame.Parse(resaved).Version);
+        var again = SaveGame.Load(resaved, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.Default, bumpSession: false);
+        Assert.Equal(before, Show(again.Learner.Rows));
+    }
+
+    [Fact]
+    public void AVersionTwoSaveWhoseHistoryWasTrimmedTakesOutOnlyTheChecksItStillHolds()
+    {
+        var session = TestGame.NewSession(credit: CreditRules.Default);
+        for (var id = 1; id <= 510; id++)
+        {
+            // Entry 10 is a check answer the bound trims away from the save; entry 11 is one the saved history still holds.
+            var entry = Entry(session.Learner.NextId, $"agua {id}", [Noun("agua", "agua", 0, 4)]);
+            session.Learner.Append(id is 10 or 11 ? entry with { Place = InputPlace.Check, Unit = "say.pedir-agua", Npc = null } : entry);
+        }
+
+        var current = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
+        var old = current with
+        {
+            Version = 2,
+            Learner = current.Learner! with { Words = LearnerWords.Fold(session.Learner.History.Select(static e => e with { Place = InputPlace.Dialogue })).Rows },
+        };
+        Assert.Equal(510, Assert.Single(old.Learner!.Words, static w => w.Lemma == "agua").Times);
+        Assert.Equal(11, old.Learner.History[0].Id);
+
+        var loaded = SaveGame.Load(SaveGame.Serialize(old), TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.Default, bumpSession: false);
+
+        // The history holds 500 entries of 510: it can take out entry 11 only. Entry 10 was counted, is not held, and stays counted.
+        Assert.Equal(509, Assert.Single(loaded.Learner.Nouns).Times);
+        Assert.Equal(511, loaded.Learner.NextId);
+    }
+
+    [Fact]
+    public void ReplayingAHistoryWithCheckAnswersGivesTheSameRecordAfterASaveAndALoad()
+    {
+        var session = TestGame.NewSession(credit: CreditRules.Default);
+        session.Learner.Append(Entry(1, "quiero dos aguas", [Noun("aguas", "agua", 9, 5), Verb("quiero", "querer", 0, 6)]));
+        session.Learner.Append(CheckEntry(2, "agua", [Noun("agua", "agua", 0, 4)]));
+
+        var replayed = LearnerWords.Fold(session.Learner.History).Rows;
+        Assert.Equal(Show(session.Learner.Rows), Show(replayed));
+
+        var loaded = SaveGame.Load(SaveGame.Save(session, TestGame.Route()), TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.Default, bumpSession: false);
+        Assert.Equal(Show(replayed), Show(loaded.Learner.Rows));
+        Assert.Equal(Show(replayed), Show(LearnerWords.Fold(loaded.Learner.History).Rows));
     }
 
     [Fact]
@@ -300,9 +401,9 @@ public sealed class LearnerRecordTests
         Assert.Equal(0, lesson.HelpUses);
         Assert.Equal(0, lesson.DontKnowUses);
 
-        // Saved again it is version 2 with the (empty) learner's record.
+        // Saved again it is the current version with the (empty) learner's record.
         var again = SaveGame.Parse(SaveGame.Save(loaded, TestGame.Route()));
-        Assert.Equal(2, again.Version);
+        Assert.Equal(SaveGame.CurrentVersion, again.Version);
         Assert.NotNull(again.Learner);
         Assert.Empty(again.Learner!.History);
     }

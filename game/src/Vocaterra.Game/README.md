@@ -294,7 +294,8 @@ the session log; nothing is sent. Everything is plain values, with no clock and 
   failed or cancelled request and a mic check are not lines and are not entries. The session log's `turn` lines already carry every typed and spoken turn
   (`input`), and `check_result` lines the check answers.
 - **The word record** (`LearnerWords`, rows `WordRow`, forms `FormRow`, first and last use `WordUse`). A pure fold of the history: `LearnerWords.Fold(History)`
-  gives the same rows as the live record. An entry adds its words when it is not `Held` and not `Button`: a token with `Role == Word` and a lemma (names and
+  gives the same rows as the live record. An entry adds its words when it is not `Held`, not `Button` and not a check answer (`Place == Check`, S19b): check
+  answers do not count in the nouns and verbs (D-game-16), though they stay in the history and in "What I said". A token with `Role == Word` and a lemma (names and
   unknown tokens are not in it; numbers are, with their `Pos` `num`). `Times` counts the tokens of the lemma; `TimesCorrect` counts those in a line the core
   understood with no error span over the token. Each form (`aguas`, `quiero` with its person, number, tense and mood) has its own counts. A row is per (lemma,
   part of speech). The save keeps the rows whole, because the history is bounded: `LearnerRecord.SavedEntries` (500) is the newest entries kept in the save, and
@@ -305,9 +306,13 @@ the session log; nothing is sent. Everything is plain values, with no clock and 
   the lesson's NPC) and `Phrases`. The counts are over every run of the lesson. A version 1 save has none of the counts and no completion session: they load as
   zero and null, and the units and status come from the saved runner state.
 - **Save version 2.** `SaveDocument.Learner` (`LearnerRecordSave`: `NextId`, the newest history entries, the word rows) and `LessonProgressSave` gets `Turns`,
-  `HelpUses`, `DontKnowUses`, `RepeatUses` and `CompletedSession`. `SaveGame.CurrentVersion` is 2 and versions 1 and 2 load (`OldestReadableVersion`); a version 1
-  save loads with an empty history and an empty word record (its readings were never kept). The fixture `Fixtures/save-v1.json` (in `game/tests/Vocaterra.Game.Tests`)
-  is a real version 1 save of the S18 code, for `LearnerRecordTests`.
+  `HelpUses`, `DontKnowUses`, `RepeatUses` and `CompletedSession`. A version 1 save loads with an empty history and an empty word record (its readings were
+  never kept). The fixture `Fixtures/save-v1.json` (in `game/tests/Vocaterra.Game.Tests`) is a real version 1 save of the S18 code, for `LearnerRecordTests`.
+- **Save version 3 (S19b).** `SaveGame.CurrentVersion` is 3; versions 1 to 3 load. Version 2 counted the check answers in its word rows. On a version 2 load,
+  `LearnerWords.FromVersion2` takes them out: when the saved history holds every entry (none trimmed by the bound), the rows are folded from it again; otherwise
+  the check answers the history still holds are subtracted from the saved rows, and a first or last use that was one is replaced by the row's last non-check use
+  in the history. A check answer older than the bound cannot be taken out (the history no longer holds it). The version bump keeps the migration from running
+  twice: a version 3 save's rows are loaded as they are. The fixture stays version 1 (its format did not change).
 
 **The read API for the book (S20).** Read it from the session; the lists are sorted, so the same record always gives the same order.
 
