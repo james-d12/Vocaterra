@@ -1,6 +1,6 @@
 # Scripts
 
-Helper scripts for the repository. All are bash and can be run from any directory.
+Helper scripts for the language core. All are bash and can be run from any directory.
 
 ## fetch-models.sh
 
@@ -16,10 +16,9 @@ Checks the licence of every NuGet package in `Vocaterra.Nlp.sln`, direct and tra
 
 Packages whose metadata names no usable licence can be covered by `license-overrides.txt`, one `<package-id>|<version>|<spdx>|<evidence-url>|<reviewed-on>` line per package version. An override applies only to the exact id (case-insensitive) and version on its line, is used only after the nuspec and the API have failed to name a licence, and must cite an https evidence URL. Its SPDX value is still checked against the allowlist, and the table reports its source as `override`. Malformed lines stop the scan with exit status 2. When a package is updated, its override no longer matches and the scan reports it again.
 
-## pack.sh
 
-Packs the eleven `Vocaterra.Nlp.*` libraries (the projects under `src/`; tests, tools and samples are not packable) with `dotnet pack Vocaterra.Nlp.sln -c Release -o artifacts/packages`, which writes a `.nupkg` and a `.snupkg` for each. The `.nupkg` files are then copied to `artifacts/feed`, a folder that NuGet reads as a local feed; `samples/HostConsole/nuget.config` points at it. Both folders are emptied first. Nothing is published: the feed is undecided (`docs/DECISIONS.md` D5) and the packages name no licence (D3). The metadata is in `Directory.Build.props`; the packaging is described in [docs/PACKAGING.md](../docs/PACKAGING.md). Needs bash and the .NET SDK.
+## check-links.sh
 
-## sample-host.sh
+Checks the relative Markdown links in every `.md` file under `nlp/` (build output excluded). A link is checked when it has no URL scheme and is not a bare `#anchor`; its target, without any `#fragment`, must exist in the working tree. Links inside code fences and code spans are ignored, and nothing is fetched. It prints each broken link as `file:line: target` and the count of links checked, and exits 1 when any link is broken. Run it as `bash nlp/scripts/check-links.sh` from anywhere in the repository; `--quiet` prints only the broken links and the summary when there are some.
 
-Runs `pack.sh`, removes the cached `vocaterra.nlp.*` folders from the NuGet global packages folder so the packs are not shadowed by a previous build of the same version, restores and builds `samples/HostConsole` against the local feed, and runs it on `content/v1` (or the bundle directory given as its argument). The sample references the packages by version and is not in the solution. It exits 1 unless the verdicts of the two demo utterances match, so a non-zero exit means the packages no longer give a host what it needs. The `pack` job of the parked workflow runs `pack.sh` and then this script.
+The scripts that build and check the content bundle, the lexicon tools and the LanguageTool server live in the repository root `scripts/` (`content.sh`, `fetch-tools.sh`, `languagetool.sh`), next to the game tools, because the game uses them too. The tool inventory for them is in [TOOLS.md](../TOOLS.md).

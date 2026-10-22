@@ -3,7 +3,7 @@ bin/
 obj/
 TestResults/
 
-# Packages, the local feed and the content bundle archives (scripts/pack.sh, scripts/sample-host.sh); rebuilt, never committed
+# Build output of `dotnet pack` and the content bundle archives written by `ContentBuilder pack`; rebuilt, never committed
 artifacts/
 
 # IDE / user-specific

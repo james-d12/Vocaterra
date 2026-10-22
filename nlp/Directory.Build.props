@@ -11,7 +11,7 @@
          in its project file. Tests and samples are never packages. -->
   </PropertyGroup>
 
-  <!-- Package metadata shared by the libraries. The version is 0.1.0 until the first publish (docs/PACKAGING.md). The licence is Apache-2.0
+  <!-- Package metadata shared by the libraries. The version is 0.1.0; nothing is published (the game references the projects directly). The licence is Apache-2.0
        (LICENSE and NOTICE in this folder; docs/DECISIONS.md D3). The Wiktionary-derived lexicon data is CC BY-SA 4.0 and is not in the packages. -->
   <PropertyGroup>
     <VersionPrefix>0.1.0</VersionPrefix>

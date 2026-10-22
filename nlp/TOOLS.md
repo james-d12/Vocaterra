@@ -1,8 +1,10 @@
 # Tools, libraries, models and data sources
 
-An inventory of everything external that the Vocaterra.NLP repository builds on, runs, downloads or plans to use: runtimes, NuGet packages, native binaries, machine-learning models, data sources and developer tooling, with versions, licenses and sources. It is a hand-checked snapshot of the repository at commit `4a91cad` (2026-10-20); regenerate the numbers when a dependency changes.
+An inventory of everything external that the language core builds on, runs, downloads or plans to use: runtimes, NuGet packages, native binaries, machine-learning models, data sources and developer tooling, with versions, licenses and sources. It is a hand-checked snapshot of the language core (`nlp/`, in the Vocaterra repository) at commit `a642066` (2026-10-22, the M50 base); regenerate the numbers when a dependency changes. It replaces the snapshot of 2026-10-20 (commit `4a91cad`), which was taken when the core was a repository of its own.
 
-**How this was compiled.** From the repository root's `global.json` and `Directory.Packages.props`, this folder's `Directory.Build.props`, every `*.csproj`, the output of `scripts/license-scan.sh --offline` (27 packages, 27 pass, run on the authoring machine after `dotnet restore`), the cached `.nuspec` files and native binaries of the restored packages, `models/manifest.json`, `scripts/*.sh`, `.github/workflows-pending/ci.yml`, `content/v1/ATTRIBUTION.md` and `provenance.json`, `HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md` and `docs/FUZZING_PLAN.md`.
+**How this was compiled.** From the repository root's `global.json` and `Directory.Packages.props`, this folder's `Directory.Build.props`, every `*.csproj`, the output of `scripts/license-scan.sh --offline` (run on 2026-10-22 after `dotnet restore`: 28 packages, 28 pass; see the note on the counts below), the cached `.nuspec` files and native binaries of the restored packages, `models/manifest.json`, `scripts/*.sh`, `.github/workflows-pending/ci.yml`, `content/v1/ATTRIBUTION.md` and `provenance.json`, `docs/history/HIGH_LEVEL_DOCS.md`, `IMPLEMENTATION_PLAN.md` and `docs/FUZZING_PLAN.md`.
+
+**Counts.** The licence scan at the M50 base reports 28 packages, one more than the 27 of the earlier snapshot. Every one of the 28 is named in this file, but the package-by-package tables (sections 2, 3 and 9) were not re-audited for that difference, so their counts still read as they were at `4a91cad`. The scan is the authority for the total.
 
 **Conventions.** A license is the SPDX identifier the package metadata or the manifest declares, unless a cell says otherwise. Anything this inventory could not confirm from files in the repository or from the restored packages is marked **unverified**. Items that are only planned are in section 8 and are not dependencies of the code.
 
@@ -148,7 +150,7 @@ The hand-authored content has no third-party text in it, and it is licensed Apac
 | NuGet | bundled in the SDK | package restore from nuget.org; license scan reads `~/.nuget/packages` or `NUGET_PACKAGES` | `scripts/license-scan.sh` | Apache-2.0 / MIT |
 | NuGet registration API | `https://api.nuget.org/v3/registration5-gz-semver2/{id}/{version}.json` | online license lookup when a nuspec names no license (skipped with `--offline`) | `scripts/license-scan.sh` | service |
 | `git` | 2.43.0 | version control; LF normalization via [`.gitattributes`](../.gitattributes) (`* text=auto eol=lf`, `*.wav` and `*.onnx` binary); worktrees for parallel agents | repository | GPL-2.0 |
-| `gh` (GitHub CLI) | 2.102.0 | `gh auth refresh -h github.com -s workflow` to activate the parked workflow | [`.github/workflows-pending/README.md`](../.github/workflows-pending/README.md) | MIT |
+| `gh` (GitHub CLI) | 2.102.0 | `gh auth refresh -h github.com -s workflow` to activate the parked workflow | [`.github/workflows-pending/ci.yml`](../.github/workflows-pending/ci.yml) | MIT |
 | `bash` | not recorded | `scripts/fetch-models.sh`, `scripts/fetch-lexicon-sources.sh`, `scripts/license-scan.sh` (`set -euo pipefail`) | [`scripts/`](scripts/README.md) | GPL-3.0-or-later |
 | `python3` | 3.12.3, standard library only, run as `python3 -I` | parses `models/manifest.json` in the fetch script and writes `lexicon-sources/sources.json` in the lexicon fetch script; evaluates SPDX expressions, reads nuspecs and calls the NuGet API in the license scan (`json`, `re`, `gzip`, `urllib`, `xml.etree`, `datetime`, `os`, `time`) | both scripts | PSF-2.0 |
 | `python3` with `yaml` (YAML syntax check of `ci.yml`) | **unverified**: named in the task brief, not referenced anywhere in the repository | validating the parked workflow file | - | - |
@@ -157,7 +159,9 @@ The hand-authored content has no third-party text in it, and it is licensed Apac
 | `unzip`, `tar` with bzip2 | UnZip 6.00, GNU tar 1.35 | extracting `.zip` and `.tar.bz2` model archives | `scripts/fetch-models.sh` | Info-ZIP / GPL-3.0-or-later |
 | coreutils (`mktemp`, `cut`, `wc`, `tr`, `basename`) | coreutils 9.4 | fetch script housekeeping | `scripts/fetch-models.sh` | GPL-3.0-or-later |
 | `.editorconfig` | - | 4-space C#, 2-space JSON/YAML/XML, LF, file-scoped namespaces as a warning; enforced by `dotnet format` | [`.editorconfig`](../.editorconfig) | - |
-| Mermaid | rendered by GitHub | flowcharts in `HIGH_LEVEL_DOCS.md` | `HIGH_LEVEL_DOCS.md` | MIT |
+| Mermaid | rendered by GitHub | flowcharts in `docs/history/HIGH_LEVEL_DOCS.md` | `docs/history/HIGH_LEVEL_DOCS.md` | MIT |
+| Temurin JRE | 21.0.13+9 (`nlp/tools/manifest.json`) | the Java runtime of the LanguageTool server (M30); a separate local process, never linked or shipped; started by `scripts/languagetool.sh` (repository root) | `scripts/fetch-tools.sh` installs it under `${VOCATERRA_TOOLS_DIR:-~/.local/share/vocaterra/tools}` | GPL-2.0 with the classpath exception (declared in the manifest; D10) |
+| LanguageTool | 6.6 (`nlp/tools/manifest.json`) | grammar check of the authored content (M30, `lint`); a separate local server on localhost, no n-gram data installed | `scripts/fetch-tools.sh` and `scripts/languagetool.sh` (repository root) | LGPL-2.1 (declared in the manifest; D10) |
 | draw.io (diagrams.net) | file format only | the hand-written overview diagram | [`docs/diagrams/system-overview.drawio`](docs/diagrams/system-overview.drawio) | Apache-2.0 |
 
 **GitHub Actions** (workflow parked in `.github/workflows-pending/` because the push token lacks the `workflow` scope, so nothing runs in CI today). Licenses of the actions: MIT per their upstream repositories, **unverified**.
@@ -171,7 +175,7 @@ The hand-authored content has no third-party text in it, and it is licensed Apac
 | Runners | `ubuntu-latest`, `ubuntu-24.04-arm`, `windows-latest`, `macos-latest` | build-and-test matrix | cross-platform determinism; golden and license jobs run on `ubuntu-latest` |
 | Repository variable | `VOCATERRA_RUN_MODEL_TESTS == 'true'` | models job | opt-in model-backed tests |
 
-**Network endpoints the repository's scripts contact:** `alphacephei.com` (Vosk model zip), `github.com` release downloads from `k2-fsa/sherpa-onnx` (Parakeet, Kokoro), `api.nuget.org` and the NuGet feed (restore, license lookup). `huggingface.co` (wav2vec2, multilingual-e5-small) is referenced but no script downloads from it yet.
+**Network endpoints the repository's scripts contact:** `alphacephei.com` (Vosk model zip), `github.com` release downloads from `k2-fsa/sherpa-onnx` (Parakeet, Kokoro), `api.nuget.org` and the NuGet feed (restore, license lookup). The development-time LanguageTool archive comes from `languagetool.org` and the Temurin JRE from `github.com/adoptium` (both by `scripts/fetch-tools.sh`; the servers themselves run on localhost). `huggingface.co` (wav2vec2, multilingual-e5-small) is referenced but no script downloads from it yet.
 
 **In-repository tools** (first-party, not third-party): `tools/Vocaterra.Nlp.ContentBuilder` (validate, hash, lint, cefr-check, import-lexicon, lexicon-report), `tools/Vocaterra.Nlp.Cli` (eval, replay), `tools/Vocaterra.Nlp.Bench` (WER, learner-error preservation, latency).
 
@@ -234,7 +238,7 @@ neither serializes byte for byte as before.
 
 ## 8. Planned or referenced but not used
 
-**None of the items in this section is a dependency of the code today.** They come from `HIGH_LEVEL_DOCS.md` ("Technology choices", "Licensing", per-step "Non-deterministic considerations"), `IMPLEMENTATION_PLAN.md` and `docs/FUZZING_PLAN.md`.
+**None of the items in this section is a dependency of the code today.** They come from `docs/history/HIGH_LEVEL_DOCS.md` ("Technology choices", "Licensing", per-step "Non-deterministic considerations"), `IMPLEMENTATION_PLAN.md` and `docs/FUZZING_PLAN.md`.
 
 | Item | Intended role | License per the HLD | Status | Source |
 | --- | --- | --- | --- | --- |
