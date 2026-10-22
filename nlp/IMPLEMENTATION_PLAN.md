@@ -225,7 +225,8 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M29e | Fuzz suite flake (found by the S2 gate, 2026-10-22): `PipelineFuzzTests` asserts at least 10 `hostturn:none` cases in 300 random-seed iterations, but the generator produces about 11 to 20 (P(host turn) 1/3 x P(unknown agent) 1/5); five runs gave 8, 11, 15, 17, 20, so roughly one gate in seven fails. Fix the generator so every covered situation's expected count is several standard deviations above its minimum; the minimums stay | M28a | H | done (merged to `feature/prototype` 2026-10-22) |
 | M29f | Game request (prototype S7): the repair ladder's offered choices are the first three ordinal-sorted grammar phrases of the answer set (`UtterancePipeline.RepairFor` with `answerSet.GrammarPhrases()`), so the stall offers «agua por favor», «ayuda», «ayuda por favor» and the offer never offers «no gracias». Offer one phrase per answer (the canonical), limited to the prompt's allowed intents and the answers that serve the prompt's purpose (help/dont-know answers last or not at all), deterministic order; e.g. `AnswerSet.CanonicalPhrases()` used in `RepairFor`. Waiting: the game's choice buttons (S7) | M28a | H | done (merged to `feature/prototype` 2026-10-22, `bdc490b` and the game-test follow-up `bc85a7f`) |
 | M29g | Game request (prototype S9): `provenance.json` has no kind for model-generated host files (pre-rendered Kokoro speech): `hand-authored` would be false provenance and `llm-draft` needs a human approval. Add a model-output kind with a required `model` field (optional voice and source). Waiting: the game's S9 speech files | M27a | H | done (merged to `feature/prototype` 2026-10-22) |
-| M29h | Fuzz suite flake (found by the S8 gate, 2026-10-22): `ChangingOneRecordedOutput_MakesTheReplayerNameThatPath` asserts each envelope region is reached at least once in 300 random-seed iterations, but `region:effects` is reached about 4 times per run (measured 3 to 5), so about 1 to 2 runs in 100 fail. Fix the generator or the mutation-path choice so every region's expected count is well above its minimum; minimums unchanged | M29e | H | in-progress |
+| M29h | Fuzz suite flake (found by the S8 gate, 2026-10-22): `ChangingOneRecordedOutput_MakesTheReplayerNameThatPath` asserts each envelope region is reached at least once in 300 random-seed iterations, but `region:effects` is reached about 4 times per run (measured 3 to 5), so about 1 to 2 runs in 100 fail. Fix the generator or the mutation-path choice so every region's expected count is well above its minimum; minimums unchanged | M29e | H | done (merged to `feature/prototype` 2026-10-22) |
+| M29i | Fuzz finding (found during M29h, 2026-10-22, seed not recorded): `MutationTagFuzzTests.OneMutation_YieldsExactlyTheNamedTag_WithTheOriginalFormAsCorrection` (O4) failed once: "missing [word_order@22+23 expected 'juventudes sorprendidas' actual 'sorprendidas juventudes']"; passed on reruns. A rare analyzer word-order mismatch; reproduce with a recorded seed (raise iterations until it recurs), fix at the source. Not blocking the game | M29h | S | proposed |
 
 ### Delegation waves
 
@@ -908,6 +909,11 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   favor», «claro»). Help answers come last by content order (no service marker in the core). The agent built only the core solution, so
   three game tests that pinned the old choices failed in the gate; a follow-up commit (the orchestrator's narrow exception) updated them.
   Lesson: a core milestone that changes behaviour visible to the game builds the whole solution.
+- **M29h results (2026-10-22, Haiku 5.5; found by the S8 gate).** The replay test's effects region depends on a communicated verdict of an
+  effect intent (only 37 of 300 cases had effects, and the mutated leaf was drawn uniformly over all leaves). Now the mutation picks a region
+  uniformly among those the envelope has, then a leaf in it, and one case in four is aimed at an effect intent (drawn last, so earlier draws
+  keep their values). Effects per run: before min 2, mean 5.4; after min 30, mean 47.4 (15 runs). Minimums unchanged. A rare O4 word-order
+  failure seen once during the work is filed as M29i.
 
 ## 6. Definition of done (every milestone)
 
