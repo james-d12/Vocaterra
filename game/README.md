@@ -46,7 +46,7 @@ src/Vocaterra.MonoGame/          the MonoGame DesktopGL front-end: the first-per
 src/Vocaterra.Host/              the console host: loads the bundle, evaluates lines, runs the text loop
 tests/                           one test project per source project (Simulation, Game, MonoGame, Host)
 content/game-v1/                 the game's content bundle (see below)
-assets/                          CC0 art, fonts and sounds, each listed in assets/ATTRIBUTION.md
+assets/                          CC0 art, fonts and sounds, each listed in assets/ATTRIBUTION.md (sounds: assets/audio/SOURCES.md)
 docs/                            SPECIFICATION (design), ARCHITECTURE (boundary), DECISIONS
 IMPLEMENTATION_PLAN.md           the milestones and the findings log
 ../scripts/content.sh            validate, hash and check a bundle with the core's content tool
@@ -551,3 +551,52 @@ done
 ```
 
 The S17 route (`--lesson-run first-words` and the steps above it) still completes with `fire_lit` and `session_complete`.
+
+## Sounds (S24)
+
+The sound system (D-game-18): interaction and progress sounds through a mixer with four categories, and no music. Every file is CC0 (Kenney's Impact Sounds, RPG Audio and
+Interface Sounds, listed in [assets/audio/SOURCES.md](assets/audio/SOURCES.md)); the chimes, the push-to-talk beeps, the sparkle, the bottle and the fire's whoosh are
+made in code at load from a fixed seed. The audio is under 1 MB (the budget is 15 MB for S24 and S25 together). Sounds react to events and never touch the simulation, a
+turn, a verdict, a state hash or the replay.
+
+**The mixer** (`src/Vocaterra.MonoGame/Frontend/SoundMixer.cs`, engine free; the engine output is `src/Vocaterra.MonoGame/SoundEffectOutput.cs`):
+- Categories: voice (the NPCs' Spanish, S9), sfx, ui (panels, buttons, progress, the beeps) and ambient (S25's beds), each with a volume (defaults 1.0, 0.8, 0.8, 0.6).
+- Ducking: sfx and ambient dip to 35 % under any NPC voice line (eased in over 0.08 s, back over 0.6 s), so the ear stays on the Spanish.
+- The microphone rule: while push-to-talk or the mic check records, sfx, ambient and ui are all silent and what plays is stopped. The start beep plays just before the
+  recording and the stop beep just after it; the recording drops the start beep's length from its start, so no game sound reaches Vosk.
+- Variation: the take of a sound and a small pitch change come from a presentation generator seeded from the world seed (`PresentationRng`, its own SplitMix64 stream),
+  never the same take twice in a row.
+- Beds (for S25): `SoundMixer.SetBeds` takes position-weighted targets and cross-fades them over 1.5 s.
+- Volumes are kept in the save's `settings.sound` and restored on `--load`.
+
+**Flags.** `--mute` (the voices off, as before), `--sfx-volume <0..1>`, `--ambient-volume <0..1>`, `--no-sounds` (every sound but the voices off, the beeps too) and
+`--sound-log <file>`. A scripted run (`--screenshot`) uses a null output: silent, no audio device needed. `--sound-log` still records its cues, one line each:
+`tick category cue take gain pitch`, with `mark` lines for the voice and recording windows and `#` summary lines at the end. A scripted spoken step (`--wav`, `--speak`) and
+the scripted mic check stand for a push-to-talk: the start beep, 24 silent ticks, the stop beep.
+
+**The sounds.**
+
+| Event | Cue (category) | Source |
+| --- | --- | --- |
+| Gathering hits: wood, stone, leaves, soft ground | `gather_wood`, `gather_stone`, `gather_leaf`, `gather_soft` (sfx; every 15th tick of holding) | Kenney Impact Sounds, RPG Audio |
+| A block breaks | `break_wood`, `break_stone`, `break_leaf`, `break_soft` (sfx) | Kenney Impact Sounds, RPG Audio |
+| Placing a block, picking up an item, crafting done | `place_block`, `pick_up`, `craft_done` (sfx) | Kenney Impact Sounds, RPG Audio |
+| Filling the bottle, lighting the fire | `bottle_fill`, `fire_light` (sfx) | synthesized |
+| Inventory, crafting panel and book open and close; the book's page turn | `inventory_open`, `inventory_close`, `crafting_open`, `crafting_close`, `book_open`, `book_close`, `book_page` (ui) | Kenney RPG Audio |
+| A craft refused (soft) | `craft_refused` (ui) | Kenney Interface Sounds |
+| The dialogue opens and closes | `dialogue_open`, `dialogue_close` (ui) | Kenney Interface Sounds |
+| Push-to-talk start and stop | `push_to_talk_start`, `push_to_talk_stop` (ui) | synthesized |
+| A button, a tab, the F8 report saved | `ui_click`, `ui_tab`, `report_saved` (ui) | Kenney Interface Sounds |
+| A lesson step, a unit, the lesson | `step_done` (soft chime), `unit_done` (brighter), `lesson_done` (flourish) (ui) | synthesized |
+| An answer understood | `answer_understood` (ui) | synthesized |
+| Not understood, "try again", "no sé", help | `answer_neutral` (ui): one soft steady tone, never punishing | synthesized |
+| A new word (a word card, or a noun that became known) | `word_learnt` (ui, sparkle) | synthesized |
+| An objective step | `objective_step` (ui) | Kenney Interface Sounds |
+| The objective complete | `objective_done` (ui) | synthesized |
+| A check item answered | `check_answered` (ui) | Kenney Interface Sounds |
+| Session complete, at the fire | `session_done` (ui) | synthesized |
+
+```bash
+# the S17 route with the sound log: add --sound-log to the route above; the cues played are listed with their ticks, and the recording window of the --wav step is marked
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --sound-log /tmp/route-sounds.log --lesson-run first-words ...
+```

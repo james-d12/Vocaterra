@@ -21,6 +21,12 @@ public interface IAudioOutput : IDisposable
 
     /// <summary>Stops the clip that plays, if any.</summary>
     void Stop();
+
+    /// <summary>Sets the voice volume, 0 to 1 (S24); an output with no volume control ignores it.</summary>
+    /// <param name="volume">The volume.</param>
+    void SetVolume(double volume)
+    {
+    }
 }
 
 /// <summary>
@@ -70,6 +76,10 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
 
     /// <summary>How many shown NPC lines have no speakable line (a templated world line): text only, by design.</summary>
     public int TextOnly { get; private set; }
+
+    /// <summary>Sets the volume of the voices, 0 to 1 (the mixer's voice volume, S24).</summary>
+    /// <param name="volume">The volume.</param>
+    public void SetVolume(double volume) => _output.SetVolume(volume);
 
     /// <summary>Whether a clip is playing or waiting.</summary>
     public bool Busy => _playing || _queue.Count > 0;

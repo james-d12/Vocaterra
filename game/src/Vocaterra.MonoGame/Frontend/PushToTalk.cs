@@ -40,12 +40,19 @@ public sealed class PushToTalk
     private readonly List<short> _samples = [];
     private int _limit;
     private bool _stopped;
+    private int _discard;
 
     /// <summary>Creates the state over a capture device, or <see langword="null"/> when the machine has none.</summary>
     public PushToTalk(ISpeechCapture? capture)
     {
         _capture = capture;
     }
+
+    /// <summary>
+    /// The sound side (S24): told before the recording starts (the start beep plays, and the recording discards the beep's length from its start), when it has started and
+    /// when it has ended. <see langword="null"/> in the tests that do not care.
+    /// </summary>
+    public ITalkSounds? Sounds { get; set; }
 
     /// <summary>Whether a microphone is there.</summary>
     public bool Available => _capture is not null;
@@ -83,6 +90,7 @@ public sealed class PushToTalk
             return false;
         }
 
+        var leadIn = Sounds?.Starting() ?? 0;
         try
         {
             _samples.Clear();
@@ -95,7 +103,9 @@ public sealed class PushToTalk
         }
 
         _limit = _capture.SampleRate * AudioClips.MaxSeconds;
+        _discard = (int)Math.Round(leadIn * _capture.SampleRate);
         Listening = true;
+        Sounds?.Started();
         return true;
     }
 
@@ -107,8 +117,7 @@ public sealed class PushToTalk
             return;
         }
 
-        var read = _capture.ReadAvailable();
-        _samples.AddRange(read);
+        var read = Collect(_capture.ReadAvailable());
         LastLevel = read.Length == 0 ? 0 : MicCheck.Level(read, _capture.SampleRate);
         if (_samples.Count >= _limit)
         {
@@ -116,6 +125,7 @@ public sealed class PushToTalk
             Listening = false;
             ReachedLimit = true;
             _stopped = true;
+            Sounds?.Stopped();
         }
     }
 
@@ -127,14 +137,20 @@ public sealed class PushToTalk
             return null;
         }
 
+        var wasListening = Listening;
         if (Listening && _capture is not null)
         {
-            _samples.AddRange(_capture.ReadAvailable());
+            _ = Collect(_capture.ReadAvailable());
             _capture.Stop();
         }
 
         Listening = false;
         _stopped = false;
+        if (wasListening)
+        {
+            Sounds?.Stopped();
+        }
+
         var clip = _capture is null ? null : AudioClips.Prepare(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(_samples), _capture.SampleRate);
         _samples.Clear();
         if (clip is null)
@@ -143,5 +159,19 @@ public sealed class PushToTalk
         }
 
         return clip;
+    }
+
+    // Keeps the samples of the recording, minus the start beep's length at the very start (the beep plays through the speakers just before the recording opens).
+    private short[] Collect(short[] read)
+    {
+        if (_discard > 0)
+        {
+            var drop = Math.Min(_discard, read.Length);
+            _discard -= drop;
+            read = read[drop..];
+        }
+
+        _samples.AddRange(read);
+        return read;
     }
 }
