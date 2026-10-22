@@ -19,6 +19,7 @@ editing its status; the plan (`IMPLEMENTATION_PLAN.md`) and ADRs follow.
 | D11 | Cloud cost cap for an optional tutor | open |
 | D12 | Game engine | moved (owner, 2026-10-21): a Vocaterra repository decision; not tracked here |
 | D13 | Pronunciation ambition | open, after the speech check |
+| D14 | German and a multi-language core | decided (owner, 2026-10-22): record the roadmap only (run nothing yet); German in the core only; Piper thorsten for private German speech; register per agent, Sie for strangers | nothing running |
 
 ## D1. Workflow token scope
 **Status (2026-10-21):** deferred by the owner. CI is not a requirement at the moment; the workflow stays parked and the orchestrator does not raise this item until the owner reopens it.
@@ -114,6 +115,22 @@ the report:** Godot .NET. **Waiting on it:** M19c's host project shape, M24's ca
 How far to take pronunciation scoring (four `pron.*` tags, GOP-style scoring, a new phoneme model).
 **Recommendation:** decide after M24's speech reality check shows which recognizer preserves learner
 errors; until then the phoneme stage stays optional. **Waiting on it:** M24 results.
+
+
+## D14. German and a multi-language core
+
+**Owner, 2026-10-22.** "See what it will take to make it also support German, and make the architecture for it support multi lang."
+The research (`docs/research/2026-10-22-multilingual.md`) found about 23 % of the core Spanish-specific (about 6,400 lines). It proposed
+the target language as a property of the content bundle (`manifest.json` `language`, absent meaning `es`), resolved through a language-pack
+registry, with Spanish kept byte-identical behind an identity guard. It also proposed a staged roadmap, M31 to M48. The owner chose:
+- **record only:** the roadmap is planned (`IMPLEMENTATION_PLAN.md` §11) and nothing runs until the owner says so;
+- **German in the core only:** the game stays Spanish; one target language per bundle;
+- **German speech output:** Piper's `thorsten` voice (CC0 voice data) through sherpa-onnx for private builds, under D2's terms (the
+  espeak-ng GPL issue blocks distribution). Distributed builds use pre-rendered lines. Revisit at the GPL-free pin;
+- **register:** each agent declares du or Sie, with Sie for shopkeepers and strangers, and an opt-in register check (M48).
+Still open: the variety (the research suggests de-DE, accepting Austrian and Swiss forms when grading); the tagger route (hand-written checks
+first, M47 only if M39 or M44 fail their false-positive gates; spaCy de, MIT, and Stanza de, Apache-2.0, avoid the MPL-2.0 question); German
+content trust (no reviewer; the Goethe A1 list has no licence, so it can only be a reference).
 
 ## Already decided (for the record)
 - 2026-10-20: core repository renamed `Vocaterra.NLP`; game repository `Vocaterra` created; M19a

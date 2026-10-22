@@ -1217,3 +1217,41 @@ LLM drafting at authoring time = M21, with `lint --strict` and `cefr-check --fai
 acceptance gate; intents from examples via embeddings after D9 and the e5 export (lint data gives the
 calibration sets); character templates when a third agent of an existing shape is planned; pattern
 suggestion revisited after M20. Do not import Home Assistant or MASSIVE sentences into content.
+
+## 11. German and a multi-language core (roadmap, recorded only; owner D14, 2026-10-22)
+
+The design and the evidence are in `docs/research/2026-10-22-multilingual.md`. Nothing here runs until the owner says so (D14). The guard for
+the whole of Phase A is `SpanishIdentityTests` (M31). It freezes an input corpus and the hash of every Spanish stage's output. Phase A
+merges also need an unchanged `content/v1` hash, no change under `tests/*/Data`, `golden/` or `content/`, and green game tests.
+The research lists seven places that would break silently when a second language loads: `PunctuationFixer`'s ¿ ¡,
+`RepairStrategy`'s Spanish lines, accent folding of ü ä ö, lowercased recasts, slot grammars' implicit missing subject and `por favor`,
+`ErrorTags.All` read by the game, and `CanonicalJson` writing nulls.
+
+| ID | Milestone | Depends on | Tier | Status |
+| --- | --- | --- | --- | --- |
+| M31 | Spanish identity guard (`SpanishIdentityTests`) | M29j | H | proposed (D14: record only) |
+| M32 | Language id in the manifest (absent = `es`, folded into the hash only when present), pack registry, `ContentBundle.Language`, ADR 0011 | M31 | S | proposed |
+| M33 | Text-side seams: normalizer, numbers, phonetic key, punctuation, repair lines, grammar defaults, lint, G2P call sites, Kokoro `lang` | M32 | H | proposed |
+| M34 | Analysis-side seams and schema: `IMorphology`, `IAnalysisRules`, template functions, optional `LexicalFeatures` fields (Case, VerbForm, Declension, Particle, Register), per-pack tag sets (`ErrorTags.All` frozen as Spanish) | M33 | S | proposed |
+| M35 | Per-language test harness, and a toy pack that proves no hidden Spanish dependency remains | M34 | H | proposed |
+| M36 | German lexicon import (kaikki German, `de_50k`; D4 applies as for `es_50k`) | M35 | S | proposed |
+| M37 | German text layer: umlaut and ß folding (ae, oe, ue), contractions, numbers, phonetic key, noun capitals | M36 | S | proposed |
+| M38 | German morphology | M36 | S | proposed |
+| M39 | German A1 analyzer: chunk-based case, gender and number; V2 and verb-bracket order; separable and modal verbs. A false-positive gate runs on a corpus of correct sentences | M37, M38 | S | proposed |
+| M40 | German grammar DSL options and template filters | M38 | S | proposed |
+| M41 | German sample bundle `content/de-v1` (with the LanguageTool step of M30) | M39, M40, M30 | H | proposed |
+| M42 | German fuzz | M41 | S | proposed |
+| M43 | German speech: Vosk `vosk-model-small-de-0.15` (Apache-2.0), a Parakeet v3 test, Piper `thorsten` through sherpa-onnx (private builds, D2, D14) | M35 | H | proposed |
+| M44 | Perfekt and its auxiliary, past tense, subordinate clauses, two-way prepositions | M42 | S | proposed |
+| M45 | Compounds and an A2 lexicon | M44 | S | proposed |
+| M46 | German G2P and pronunciation (only if D13 and the GPL-free pin allow) | M45 | S | proposed, conditional |
+| M47 | German tagger spike (only if M39 or M44 fail their false-positive gates; D10) | M44 | S | proposed, conditional |
+| M48 | du/Sie register check (per agent, Sie for strangers, D14) | M41 | H | proposed |
+
+Effort, estimated: about 13,000 new or moved source lines and 15,000 test lines. Phase A (M31 to M35) is 3 to 4 days, Phase B (M36 to
+M43, M48) 2 to 3 weeks, and Phase C (M44 to M47) about 2 weeks. The riskiest items:
+1. M39's case checks (false positives);
+2. M34 keeping Spanish byte-identical;
+3. German speech output (D2);
+4. lexicon size against the 300 ms load gate;
+5. German content trust.

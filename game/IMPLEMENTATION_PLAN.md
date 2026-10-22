@@ -189,7 +189,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S20 | The book: the journal as an openable book with Nouns, Verbs, Phrases, Lessons and What I said pages (D-game-16) | done (merged to `feature/prototype` 2026-10-22, `ee2ec79`) | Haiku 5.5 | S15, S19 |
 | S21 | F8: the in-game bug and feature report, saved as Markdown with a screenshot, game state, recent turns and the session log tail; local only (D-game-17) | done (merged to `feature/prototype` 2026-10-22, `917d2c4`) | Haiku 5.5 | S19, S20, D-game-17 |
 | S18 | The playtest refresh (build, checklist, report, launcher message; the consent text mentions that the book keeps what the player said; the facilitator collects the F8 reports) | done (merged to `feature/prototype` 2026-10-22, `3c9a741`); **the owner's pre-flight** (`docs/PLAYTEST.md`) | Haiku 5.5 | S15, S17, S17b, S20, S21 |
-| S22 | The second pass's known issues: an uncrowded conversation screen, the F10 label, measured session durations, a Vosk route step and test, thin pergola posts, the book in greyscale, the book item for old saves | in progress | Sonnet 5.5 | S18 |
+| S22 | The second pass's known issues: an uncrowded conversation screen, the F10 label, measured session durations, a Vosk route step and test, thin pergola posts, the book in greyscale, the book item for old saves | done (merged to `feature/prototype` 2026-10-22, `8609183`) | Sonnet 5.5 | S18 |
 | S23 | LanguageTool over the game's Spanish: strings extractor, first waiver round, the `si quiero` and `traveller` findings, an advisory gate step (required after the waiver round) | planned | Haiku 5.5 | S22, core M30, D10 |
 
 Each milestone ends with the gate in section 6 and a line in section 5. The S series is gated with `GATE_TARGET=feature/prototype
@@ -981,6 +981,28 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - the facilitator's `F10: end the run` label overlaps the dialogue footer in a playtest;
     - the session length (15 to 25 minutes) is an estimate for the first real session to measure;
     - scripted runs do not exercise Vosk (the owner's pre-flight does).
+- **S22, the second pass's known issues (2026-10-22, Sonnet 5.5; merged `8609183`).**
+  - **Conversation screen.** `Frontend/ConversationLayout` (engine-free) keeps the speaker's head and the bubble clear. Cards stack in a
+    column beside them, and older cards collapse to one line, then hide. The new-word card is a toast. `SupportLayer`, `DialogueBubbleLayer`
+    and `WordCardLayer` draw from the model. Tested: no overlap at 1280 x 720 and 800 x 600, with 0 to 5 cards and 6 head positions.
+  - **F10 label.** It moved top left, in a place the layout reserves.
+  - **Beacon label.** `Frontend/BeaconLabel` keeps it inside the window and clear of the panel, the speaker and the cards. It was clipped:
+    `campamento 111 bloc…`.
+  - **Check card.** `Frontend/CheckCardLayout` wraps the text. All 20 items fit at both sizes; "Say no politely" overflowed before.
+  - **Measured durations.** `scripts/playtest-report.sh` prints the whole session, the lesson, the walk and each check from the session
+    log. A scripted route took 4 min 46 s; the first human session gives the real figure.
+  - **Vosk end to end.** The README route says `hola` from the bundle's Kokoro WAV, and Vosk hears `hola` (96 %, `greet`). Two
+    model-gated tests cover the WAV and push-to-talk paths.
+  - **Other fixes.**
+    - Pergola posts are now fence posts (scene digest `80486440…`).
+    - The book's icons honour `--greyscale`; they ignored it, and block nouns were dark squares.
+    - Saves from before S20 get the book once (`BookGranted`).
+    - The README `--playtest` route matches the 20-item checks and now lights the fire, so the post-check runs; it hung before.
+    - The legacy `SupportLayout` placement is removed.
+  - **Checked by the orchestrator:**
+    - the gate, 4,373 passed and 5 skipped;
+    - the before and after conversation shots, the playtest dialogue, the beacon, the wrapped check card and the greyscale book;
+    - the README route on the merged build, with the Vosk step.
 
 ## 6. Definition of done (every milestone)
 
