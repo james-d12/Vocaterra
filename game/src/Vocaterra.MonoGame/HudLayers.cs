@@ -35,7 +35,9 @@ public sealed class ObjectiveLayer : IFrameLayer
 
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var session = view.Session;
-        var pieces = session.English.ObjectivePieces(objective, lemma => session.Words.RecordOf(lemma).Known);
+        var pieces = session is VoxelSession voxel
+            ? voxel.ObjectiveHud() // the stage's line, or the checklist (S17)
+            : session.English.ObjectivePieces(objective, lemma => session.Words.RecordOf(lemma).Known);
         var rows = Rows(pieces, font, (int)(view.ViewportWidth * WidthShare));
         var width = rows.Max(row => row.Sum(p => (int)DrawHelpers.Width(font, p.Text)));
         var height = 8 + (rows.Count * 20);
@@ -66,6 +68,11 @@ public sealed class ObjectiveLayer : IFrameLayer
         }
 
         var firstStep = pieces.ToList().FindIndex(static p => p.Kind == ObjectivePieceKind.Word);
+        if (firstStep < 0)
+        {
+            return [pieces.ToList()]; // a stage line is one piece of English (S17): it is short, and it is never split
+        }
+
         return [pieces.Take(firstStep).ToList(), pieces.Skip(firstStep).ToList()];
     }
 

@@ -15,13 +15,20 @@ core's calls and the content. The 2D slice (P1 to P7) was retired at S4; its cod
 ## The prototype scenario
 
 The prototype is the Minecraft-inspired first-person voxel slice in [docs/PROTOTYPE_BRIEF.md](docs/PROTOTYPE_BRIEF.md) (the owner's Prototype
-Design Brief, v1.2); its plan, milestone by milestone, is [docs/SCENARIO_PLAN.md](docs/SCENARIO_PLAN.md). The scenario takes 10 to 15 minutes:
+Design Brief, v1.2); its plan, milestone by milestone, is [docs/SCENARIO_PLAN.md](docs/SCENARIO_PLAN.md). The scenario takes 10 to 15 minutes beside the
+guide's lesson (S17):
 
+- **The opening (S17).** The player wakes alone at their own camp on the cliff. English tips teach looking, walking, jumping, a note at the tent that says the
+  guide's camp is down the trail, collecting and the inventory, one at a time. The objective area says `Go down the trail and find the guide`.
+- **The guide's lesson (S17).** Luna, the guide, greets the player who walks up to her and teaches six short units (hello, yes and no, what is this, please and
+  thank you, getting unstuck, what the camp needs), about eight minutes, with the English thinning as phrases are used again.
 - **Forest camp.** Gather wood and berries from the trees and bushes, then craft a torch at the workbench.
 - **The stall.** The shopkeeper asks `¿Qué necesitas?`; the player answers `Quiero agua, por favor.` The shopkeeper offers `¿Quieres pan?`, answered
   with `Sí, por favor.` or `No, gracias.`
 - **The villager and the river.** The player asks `¿Dónde está el río?`, follows the directions to the river and fills a bottle.
 - **The transfer moment.** After the objective, one phrase is revisited without the original prompt, or with a different NPC or context.
+- **The ending (S17).** The complete checklist sends the player back up the trail with a spare torch; a torch on the rim of the fire ring at their own camp
+  lights it, the guide's closing line is said and shown in Spanish and English, and the post-check is offered (playtest).
 
 These are the brief's five target phrases. Nothing in the scenario ends by a language mistake: no death, no timers, no language gate. The run
 lines for the 3D world are in "The 3D world" below; they grow as S5 onward land.
@@ -160,18 +167,25 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --beacon none --te
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --beacon none --teleport 283,221 --look 270,-6 --screenshot /tmp/s3-sign.png --frames 150
 # the camp from the player's eyes at spawn: the guide's figure and label, the beacon on the river (an arrow at the edge when it is off screen)
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --beacon river --screenshot /tmp/s2-camp.png --frames 240
-# S6, the whole route in one run: the camp, the stall (the shopkeeper's "¿Qué necesitas?" is a core host turn, the bottle comes with his answer),
-# the villager (the beacon on the river), the river (hold the button on the water: the bottle fills, the checklist reads 4/4), then back to the
-# guide for her transfer offer "¿Quieres agua?" and to the villager for bread. The console prints each turn, each game event (phrase uses,
-# world events) and the objective's steps; the PNGs show the stall exchange and the river after the fill
-dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 \
-  --walk-to 176,186 --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
-  --talk shopkeeper --say "quiero agua, por favor" --shot /tmp/s6-stall.png --say "sí, por favor" \
+# S17, the whole route in one run, from the player's own camp: the walk down the trail to the guide, her lesson (`--lesson-run` does every step with typed
+# answers and picks the fruit she offers from a bush), the camp (wood, fruit, the torch at her fire ring), the stall (the shopkeeper's "¿Qué necesitas?" is a
+# core host turn, the bottle comes with his answer), the villager (the beacon on the river), the river (hold the button on the water: the bottle fills and the
+# checklist is complete: a spare torch is in the bag and the beacon points up the trail), the guide's transfer offer "¿Quieres agua?", and the climb back to the
+# player's camp, where a torch on the rim of the cold fire ring lights it: the closing card says "Session complete". The console prints every lesson step and its
+# outcome, each turn, each game event and the objective's steps; the PNGs show the lesson's end, the stall, the river and the lit fire
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute \
+  --lesson-run first-words --shot /tmp/s17-lesson.png \
+  --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
+  --talk shopkeeper --say "quiero agua, por favor" --shot /tmp/s17-stall.png --say "sí, por favor" \
   --talk villager --say "¿dónde está el río?" \
-  --walk-to 234,222 --interact 233,34,222 --look 180,-14 --shot /tmp/s6-river.png \
-  --talk guide --say "sí, por favor" --talk villager --say "quiero pan, por favor" \
-  --screenshot /tmp/s6-end.png --frames 60
-# the host's stall prompt (no display): the request is understood
+  --walk-to 234,222 --interact 233,34,222 --look 180,-14 --shot /tmp/s17-river.png \
+  --talk guide --say "sí, por favor" \
+  --walk-to 153,109 --look 330,-12 --place antorcha@153,74,105 --wait 1 \
+  --screenshot /tmp/s17-fire.png --frames 90
+# the lesson alone, with its steps printed (the player is walked down the trail to the guide first); the journal's phrases page at the end shows what was learnt
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --journal --journal-phrases --screenshot /tmp/s17-journal.png --frames 30
+# the opening: the objective line and the first tip at the spawn (a scripted run draws no tips unless --tips is given)
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --tips --screenshot /tmp/s17-opening.png --frames 90
 dotnet run --project game/src/Vocaterra.Host -- --transcript "quiero agua, por favor" --prompt stall-need
 ```
 
@@ -375,10 +389,36 @@ says so; the owner decides whether handing the private folder to testers counts 
 
 English is drawn, never spoken (D-game-13): an English line under the guide's Spanish in its own colour (`English: ...`), the bilingual camp checklist, plain-English
 feedback after each turn, first-time tips and the controls on F1; the support ladder starts with English and fades per phrase (see
-[src/Vocaterra.Game/README.md](src/Vocaterra.Game/README.md)). A data-driven lesson runner (`content/game-v1/game/lessons.json`) ships with a two-step sample at the
-guide (L starts it, Enter continues, K skips a step, H helps). A scripted run through it prints each step and its outcome:
+[src/Vocaterra.Game/README.md](src/Vocaterra.Game/README.md)). A data-driven lesson runner (`content/game-v1/game/lessons.json`) walks the learner through the
+guide's lesson (L starts it, Enter continues, K skips a step, H helps; S16 shipped a two-step sample, which S17 replaced with the real lesson). A scripted run
+through it prints each step and its outcome:
 
 ```bash
-DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --talk guide --lesson sample --say hola --say gracias --screenshot /tmp/s16.png --frames 60
+DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --talk guide --lesson first-words --lesson-next --lesson-next --say hola --screenshot /tmp/s16.png --frames 60
+```
+
+## The opening, the guide's lesson and the ending (S17)
+
+- **The opening.** No quiz at the spawn. The first tips come one at a time, each at its delay (`delay` seconds in `english.json`): look at 0 s, walk at 9 s, jump at 18 s,
+  the note pinned to the tent at 28 s (English, with the one Spanish word `camino`, saying the guide's camp is down the trail), collecting at 50 s; the first
+  pickup then teaches the inventory. The objective area says `Go down the trail and find the guide` until the guide is met (the panel opened on her, or the first
+  step of the checklist). The beacon points at her camp from the start.
+- **The guide's lesson** (`first-words`, `game/lessons.json`). Luna, the guide, greets the player who comes within five blocks of her
+  (`GuideApproach`; the same call as the E key, once per approach; Esc closes the panel and the lesson waits): the lesson starts by itself. Six units, 34 steps, about
+  eight minutes at a learner's pace (estimated 5.6 minutes for a quick reader who answers in 4 s, 8.2 for a slow one, plus about a minute to walk down the trail): hello, yes and
+  no, what is this, please and thank you (the guide offers fruit and the
+  learner picks it from a bush: a `do` step with a beacon on the nearest berry bush), getting unstuck (`No sé`, `Otra vez, por favor`, `Más despacio, por favor`
+  do what they say) and the camp's task, then a recap that opens the journal's phrases page. While a lesson step takes a turn the guide's ordinary reply is not
+  shown (the lesson speaks for her); a turn the core did not understand keeps her not-understood line and the English help.
+- **The ending.** The complete checklist gives a spare torch, sets the beacon on the player's own camp and changes the objective line to `Go back up the trail and
+  light your own fire`. A torch placed on the rim of the fire ring at `firering.player` lights it: the guide's closing line (`¡Muy bien! Ya tienes tu fuego.`) is
+  said and shown with its English on a `Session complete` card, and in a playtest the post-check follows (the transfer offer first: she greets the player with
+  it when they pass through her camp on the way back). The fire ring at the guide's camp keeps its role: the checklist's torch step.
+- **English on the buttons.** `[R] Repetir (repeat)`, `[S] Más despacio (slower)`, `[H] Ayuda (help)`, `[N] No sé (I don't know)`, `[W] Escribir (type)` and the hold-to-talk
+  hint carry their English until the button (or its phrase) has been used three times; the keys and buttons work the same without it.
+
+```bash
+# the whole lesson with typed answers (every step and its outcome is printed), then the journal's phrases page
+DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --journal --journal-phrases --screenshot /tmp/s17-journal.png --frames 30
 ```
 

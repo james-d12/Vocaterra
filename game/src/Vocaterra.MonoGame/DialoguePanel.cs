@@ -60,11 +60,12 @@ public sealed class DialoguePanel : IFrameLayer
     /// <param name="viewportWidth">The window's width.</param>
     /// <param name="viewportHeight">The window's height.</param>
     /// <param name="font">The font the panel draws with.</param>
-    public static DialogueLayout LayoutFor(DialogueModel dialogue, int viewportWidth, int viewportHeight, FontStashSharp.SpriteFontBase font)
+    /// <param name="session">The game, whose counts say whether a button still carries its English (S17), or <see langword="null"/> for the Spanish labels alone.</param>
+    public static DialogueLayout LayoutFor(DialogueModel dialogue, int viewportWidth, int viewportHeight, FontStashSharp.SpriteFontBase font, GuideSession? session = null)
     {
         ArgumentNullException.ThrowIfNull(dialogue);
         ArgumentNullException.ThrowIfNull(font);
-        return new DialogueLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), dialogue.Choices.Select(static c => c.Label).ToList(), dialogue.IsTyping);
+        return new DialogueLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), dialogue.Choices.Select(static c => c.Label).ToList(), dialogue.IsTyping, button => SpeechButtons.TextFor(button, session));
     }
 
     /// <inheritdoc />
@@ -78,7 +79,7 @@ public sealed class DialoguePanel : IFrameLayer
 
         var pixel = view.Pixel;
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var layout = LayoutFor(dialogue, view.ViewportWidth, view.ViewportHeight, font);
+        var layout = LayoutFor(dialogue, view.ViewportWidth, view.ViewportHeight, font, view.Session);
         var panel = ToRectangle(layout.Panel);
         spriteBatch.Draw(pixel, panel, Background);
         DrawHelpers.Border(spriteBatch, pixel, panel, 2, Frame);
@@ -101,7 +102,7 @@ public sealed class DialoguePanel : IFrameLayer
         {
             var button = SpeechButtons.All.First(b => b.Action == action);
             var focused = dialogue.TypingOffered && action == SpeechAction.Type;
-            DrawButton(spriteBatch, view, font, box, button.Text, mouse, focused ? HintColor : null, ButtonBack);
+            DrawButton(spriteBatch, view, font, box, SpeechButtons.TextFor(button, view.Session), mouse, focused ? HintColor : null, ButtonBack);
         }
 
         for (var i = 0; i < layout.Choices.Count; i++)
@@ -114,7 +115,7 @@ public sealed class DialoguePanel : IFrameLayer
             DrawInput(spriteBatch, view, font, dialogue, ToRectangle(inputBox));
         }
 
-        DrawHelpers.Text(spriteBatch, font, dialogue.IsTyping ? KeyHints : ButtonHints, new Vector2(textLeft, layout.HintsY), NoteColor);
+        DrawHelpers.Text(spriteBatch, font, dialogue.IsTyping ? KeyHints : SpeechButtons.HintsFor(ButtonHints, view.Session), new Vector2(textLeft, layout.HintsY), NoteColor);
     }
 
     private static Rectangle ToRectangle(PixelBox box) => new(box.X, box.Y, box.Width, box.Height);

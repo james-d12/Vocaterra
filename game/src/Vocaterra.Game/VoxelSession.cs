@@ -83,6 +83,24 @@ public sealed class VoxelSession : GuideSession
     public SessionStage Stage =>
         Objective.Complete ? (_fireLit ? SessionStage.Complete : SessionStage.LightFire) : _guideMet ? SessionStage.Camp : SessionStage.FindGuide;
 
+    /// <summary>
+    /// What the objective area (top right) says now, as coloured pieces (S17): a lesson's short line while its <c>do</c> step waits ("Pick a fruit from a berry bush, then go
+    /// back to Luna"); before the guide is met "Go down the trail and find the guide"; the camp checklist while it is the objective (<c>Campamento (camp): madera (wood)
+    /// 0/5 ...</c>, the English going as the nouns become known, D-game-13); once it is complete "Go back up the trail and light your own fire"; and, with the fire lit,
+    /// "Session complete". Every line but the checklist is English only.
+    /// </summary>
+    public IReadOnlyList<ObjectivePiece> ObjectiveHud()
+    {
+        if (Lessons.HudLine is { } hud)
+        {
+            return [new ObjectivePiece(hud, ObjectivePieceKind.English)];
+        }
+
+        return English.StageLine(Stage) is { } line
+            ? [new ObjectivePiece(line, ObjectivePieceKind.English, Stage == SessionStage.Complete)]
+            : English.ObjectivePieces(Objective, lemma => Words.RecordOf(lemma).Known);
+    }
+
     /// <summary>Whether the player has met the guide (the panel opened on her, or the first step of the checklist was done).</summary>
     public bool GuideMet => _guideMet;
 
@@ -91,6 +109,12 @@ public sealed class VoxelSession : GuideSession
 
     /// <summary>Whether the session is complete: the camp checklist is done and the player's own fire is lit. The front-end then shows the closing moment.</summary>
     public bool SessionComplete => _sessionComplete;
+
+    /// <summary>The bundle pool that holds the guide's closing line, said when the player's own fire is lit (S17).</summary>
+    public const string ClosingPool = "guide.lesson.end";
+
+    /// <summary>The guide's closing line in Spanish (<c>¡Muy bien! Ya tienes tu fuego.</c>), or an empty text when the bundle has none.</summary>
+    public string ClosingLine => Bundle.Dialogue.TryGetPoolById(ClosingPool, out var pool) && pool.Variants.Count > 0 ? pool.Variants[0].Text : string.Empty;
 
     /// <summary>
     /// Whether the scene has a fire ring at the player's own camp, where the closing fire is lit (the flat test clearing has none, and its sessions never reach
@@ -313,8 +337,21 @@ public sealed class VoxelSession : GuideSession
         }
 
         _fireLit = true;
+        Pointer = null; // the way back is walked: the arrow to the player's camp (or any earlier one) goes
         LogWorld(WorldEvents.FireLit, null, "firering.player");
         CheckSessionComplete();
+    }
+
+    // The arrow sends the player up the trail to their own camp, where the cold ring waits (S17).
+    private void PointAtOwnCamp()
+    {
+        if (_fireLit || !Scene.Points.TryGetValue("firering.player", out var ring))
+        {
+            return;
+        }
+
+        Pointer = new PointerMarker("fuego", new GuideCell(ring.X, ring.Y, ring.Z));
+        LogWorld(WorldEvents.BeaconSet, null, $"fuego at {ring.X},{ring.Y},{ring.Z}");
     }
 
     private void CheckSessionComplete()
@@ -415,6 +452,7 @@ public sealed class VoxelSession : GuideSession
         {
             LogWorld(WorldEvents.ObjectiveComplete, null, Objective.Summary);
             GiveSpareTorch();
+            PointAtOwnCamp();
             CheckSessionComplete(); // the player lit their own fire first: the checklist was the last thing missing
         }
     }

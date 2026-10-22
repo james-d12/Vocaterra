@@ -16,6 +16,12 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
     private string? _stepKey;
 
     /// <summary>
+    /// Called when the recap step ends and the lesson is complete (S17): the game closes the panel and opens the journal on its phrases page, where the phrases the
+    /// lesson taught are listed with the help each has now and its counts. <see langword="null"/> for none (the tests').
+    /// </summary>
+    public Action? OnRecapDone { get; set; }
+
+    /// <summary>
     /// One frame: when a step began since the last frame and it has a line (a model, a listen or an answer step), the line is added to the panel as the NPC's, so it
     /// is shown, glossed in English, and can be repeated like any other of the NPC's lines. A step the panel was closed for is shown when the panel opens again.
     /// </summary>
@@ -101,7 +107,15 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
                 done = runner.OfferFor(dialogue.Npc) is { } offer && runner.Start(offer.LessonId);
                 break;
             case LessonAction.Continue:
+                var lessonId = runner.Active?.Id;
+                var recap = runner.Current is { Type: LessonStepType.Recap };
                 done = runner.Continue();
+                if (done && recap && lessonId is not null && runner.StatusOf(lessonId) == LessonStatus.Completed)
+                {
+                    log($"lesson: the recap is done; the journal opens on its phrases page");
+                    OnRecapDone?.Invoke();
+                }
+
                 break;
             case LessonAction.Skip:
                 done = runner.Skip();

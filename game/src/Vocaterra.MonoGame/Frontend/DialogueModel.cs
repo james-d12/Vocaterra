@@ -541,7 +541,8 @@ public sealed class DialogueModel
             Add(DialogueSpeaker.Correction, turn.Feedback);
         }
 
-        foreach (var reply in turn.Replies)
+        // A turn the lesson took (S17) shows none of the guide's ordinary reply or world line: the lesson speaks for her (see GuideTurn.GuideLines).
+        foreach (var reply in turn.LessonHandled ? [] : turn.Replies)
         {
             Add(DialogueSpeaker.Guide, reply);
         }
@@ -551,7 +552,7 @@ public sealed class DialogueModel
             Add(DialogueSpeaker.Guide, turn.Repair);
         }
 
-        if (turn.WorldLine is not null)
+        if (turn.WorldLine is not null && !turn.LessonHandled)
         {
             Add(DialogueSpeaker.World, turn.WorldLine);
         }

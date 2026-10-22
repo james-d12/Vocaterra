@@ -35,7 +35,7 @@ public sealed class LessonFrontendTests
 
         public Harness(IReadOnlyList<ScriptStep> steps, LessonBook? lessons = null)
         {
-            Session = new VoxelSession(Bundle.Value, 42, GuideSession.DefaultStartedAt, Nouns.Value, RouteScene.Build(), CreditRules.FullTyped, lessons);
+            Session = new VoxelSession(Bundle.Value, 42, GuideSession.DefaultStartedAt, Nouns.Value, RouteScene.Build(), CreditRules.FullTyped, lessons ?? RouteScene.Sample(Bundle.Value, Nouns.Value));
             Session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
             Look = new LookControl();
             Look.Set(Session.Scene.Spawn.Yaw, 0);
@@ -175,6 +175,25 @@ public sealed class LessonFrontendTests
     }
 
     [Fact]
+    public void ALessonRunStepDoesTheWholeFirstWordsLessonWithTypedAnswersAndWalksToPickTheFruit()
+    {
+        var shipped = LessonBook.Load(Bundle.Value, PhraseSheet.Load(Bundle.Value), SpeechLines.Enumerate(Bundle.Value, Nouns.Value, PhraseSheet.Load(Bundle.Value)));
+        using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "first-words")], shipped);
+
+        run.Go(60000);
+
+        var done = run.Log.Where(static l => l.StartsWith("  event: lesson first-words step ", StringComparison.Ordinal) && (l.EndsWith(" done", StringComparison.Ordinal) || l.Contains(" done (", StringComparison.Ordinal))).ToList();
+        Assert.Equal(34, done.Count); // every step, its outcome printed by the event line
+        Assert.Contains("  event: lesson first-words step 23 do (u4-pick) done (fruta)", run.Log); // the fruit was picked up at the bush
+        Assert.Contains("  event: lesson first-words completed (done 34, skipped 0, moved on 0)", run.Log);
+        Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("first-words"));
+        Assert.Equal(1, run.Session.Objective.Step(Objective.BerryKey)!.Count); // the lesson's fruit is a real one: the checklist moved
+        Assert.True(run.Session.GuideMet);
+        Assert.Equal(["hola", "si", "no", "que-es-esto", "que-es-esto", "que-es-esto", "si-por-favor", "gracias", "no-se", "otra-vez", "mas-despacio"],
+            run.Session.Events.OfType<PhraseUse>().Select(static u => u.PhraseId));
+    }
+
+    [Fact]
     public void TheLessonStepsOfTheScriptSkipHelpPickAndContinueLikeTheButtons()
     {
         var lessons = LessonBook.Parse(LessonBookTestsRich, PhraseSheet.Load(Bundle.Value), SpeechLines.Enumerate(Bundle.Value, Nouns.Value, PhraseSheet.Load(Bundle.Value)), Bundle.Value.Prompts);
@@ -293,7 +312,7 @@ public sealed class LessonFrontendTests
 
     private static (VoxelSession Session, DialogueModel Dialogue, LessonFrontend Lesson, RecordingPlayer Player, SpeechActionRunner Actions) AtGuide(LessonBook? lessons = null)
     {
-        var session = new VoxelSession(Bundle.Value, 42, GuideSession.DefaultStartedAt, Nouns.Value, RouteScene.Build(), CreditRules.FullTyped, lessons);
+        var session = new VoxelSession(Bundle.Value, 42, GuideSession.DefaultStartedAt, Nouns.Value, RouteScene.Build(), CreditRules.FullTyped, lessons ?? RouteScene.Sample(Bundle.Value, Nouns.Value));
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("guide").Feet, session.Simulation.Player.FeetBlock)!.Value);
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases, session.English);
         var player = new RecordingPlayer();

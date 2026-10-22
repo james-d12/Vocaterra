@@ -88,7 +88,9 @@ public static class PhraseJournalRows
                 wait == 0));
         }
 
-        return rows;
+        // The phrases the learner has met come first, each group in the sheet's order (S17): with twenty-one phrases the page cannot show them all, and the lesson's
+        // recap ends here, so what was just learnt is what shows. A new game has met none, and the page is the sheet's.
+        return [.. rows.Where(static r => r.Record.Seen), .. rows.Where(static r => !r.Record.Seen)];
     }
 
     /// <summary>The counts of a phrase in words: <c>con ayuda</c> (supported), <c>sin ayuda</c> (unaided), <c>opciones</c> (choice-only), <c>no sé</c> and <c>otra situación</c> (transfer); for a phrase an NPC says <c>oída</c> and <c>respondida</c>.</summary>

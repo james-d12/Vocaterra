@@ -47,7 +47,8 @@ public sealed record LaunchOptions
         + "  --wait <seconds>        let the game run this many seconds (60 ticks each) before the next step, for example to see the stall's question after the key words; a step\n"
         + "  --skip <seconds>        move the stored time on this many seconds without waiting (the demo of the spacing gaps and of the guide's review); a step\n"
         + "  --shot <path.png>       save the screen at this point of the script and go on (the final --screenshot is saved when the script is done); a step\n"
-        + "  --lesson <id>           start the lesson (the sample is `sample`) at the NPC it is attached to: walk up, open the dialogue and begin it; a step (S16)\n"
+        + "  --lesson <id>           start the lesson (the guide's is `first-words`) at the NPC it is attached to: walk up, open the dialogue and begin it; a step (S16)\n"
+        + "  --lesson-run <id>       run the whole lesson as a learner who gets everything right (typed answers, the fruit picked): prints every step and its outcome; a step (S17)\n"
         + "  --lesson-next           the lesson strip's Continue (explain, model, recap and a picked listen step); a step\n"
         + "  --lesson-skip           skip the lesson step in progress; a step\n"
         + "  --lesson-help           the lesson step's help path (its English hint, its model line again, the card and the English); a step\n"
@@ -299,7 +300,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
-                or "--check" or "--pick" or "--session-dir" or "--lesson" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport"))
+                or "--check" or "--pick" or "--session-dir" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -437,11 +438,20 @@ public sealed record LaunchOptions
                 case "--lesson":
                     if (string.IsNullOrWhiteSpace(value))
                     {
-                        error = "--lesson needs the id of a lesson (the sample is 'sample').";
+                        error = "--lesson needs the id of a lesson (the guide's is 'first-words').";
                         return false;
                     }
 
                     script.Add(new ScriptStep(ScriptStepKind.LessonStart, Value: value.Trim()));
+                    break;
+                case "--lesson-run":
+                    if (string.IsNullOrWhiteSpace(value))
+                    {
+                        error = "--lesson-run needs the id of a lesson (the guide's is 'first-words').";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.LessonRun, Value: value.Trim()));
                     break;
                 case "--lesson-pick":
                     if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var option) || option is < 1 or > 4)
@@ -610,7 +620,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 
@@ -696,6 +706,13 @@ public enum ScriptStepKind
 
     /// <summary>Pick the option (1 to 4) in <see cref="ScriptStep.Value"/> of a listen step (S16).</summary>
     LessonPick,
+
+    /// <summary>
+    /// Run the whole lesson whose id is in <see cref="ScriptStep.Value"/> the way a learner who gets everything right would (S17): walk up to its NPC, then for each
+    /// step continue, pick the right option, type the phrase, or (a <c>do</c> step) close the panel, walk to the beacon and pick the thing up and walk back. Every step
+    /// and its outcome is printed by the game's event lines.
+    /// </summary>
+    LessonRun,
 }
 
 /// <summary>One step of the scripted run, in the order given on the command line.</summary>

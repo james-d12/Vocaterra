@@ -15,10 +15,18 @@ NPCs (`¿Quieres...?`, `¿Qué necesitas?`), no vosotros, no Spain-only words (`
 The word for the berries is `fruta` (`la fruta`, `las frutas`; A1, in the lexicon): `baya` is in neither the lexicon nor the A1 and A2 lists, so the
 reviewer chose `fruta`. The camp objective's HUD will say `frutas 3/3`, and there is no separate noun for the bush.
 
-**The review is provisional.** Every row was read by an LLM pass (Opus, 2026-10-21, D-game-12) for naturalness, Latin American neutral usage and
+**The review is provisional.** Every row of the first eleven was read by an LLM pass (Opus, 2026-10-21, D-game-12) for naturalness, Latin American neutral usage and
 the English meaning, and its advice is applied. This is not native-speaker approval: the rows stay `llm-opus (provisional)` until a Spanish speaker
 checks them. On the reviewer's advice the English of `pedir-agua` is `I want water, please.`, which departs from the brief's gloss ("I would like
 water, please"): `quiero` is "I want", and the polite register is carried by `por favor`.
+
+**The guide's lesson (S17, D-game-15).** The set grew by ten rows for the guide's lesson (`first-words`, in `game/content/game-v1/game/lessons.json`): five the learner
+says (`si`, `no`, `que-es-esto`, `otra-vez`, `mas-despacio`) and five the learner only understands (`me-llamo`, `es-madera`, `quieres-fruta`, `de-nada`,
+`necesito-madera`). The guide's name is **Luna** (`Me llamo Luna.`): a name that is also an A1 word, so the lint and `cefr-check` need no special entry for it. The owner asked for
+the larger set (D-game-15), which goes past D-game-12's interim limit of five phrases plus five service words. Every new row is `pending` until the Opus pass of
+D-game-12 step 3 is recorded. The game's `cefr/a1.txt` gained `madera`, `antorcha`, `fuego` and `despacio` (world nouns the player handles from the first minutes,
+and the adverb of `Más despacio, por favor`, a classroom phrase): provisional, like `botella` before them. `Sí.` and `No.` share their intents with `Sí, por favor.` and
+`No, gracias.`; the game credits the phrase the lesson step has in play, and the plain `sí` at an offer stays `si-por-favor`.
 
 **How a row is read.** The table below is parsed by the test, so keep its shape. Columns:
 
@@ -95,3 +103,12 @@ reviewer reads every Spanish line the learner can hear (the content-trust gate c
   All four are A1 lines already in the bundle as other NPCs' lines (cefr-check clean at A1 and A2). The review lines are not reviewed by a
   Spanish speaker or an LLM pass yet (provisional); the owner's listening step covers their WAVs (game/docs/SPEECH_CHECKLIST.md).
 - The guide's existing lines (greeting, pointing, crafting, naming, the review) are the P-series content and are not part of this sheet.
+- The guide's lesson (S17), lines that are in no row, all `pending` review: `¡Hola!` (`guide.lesson.hello.1`, the greeting the learner says back), `¿Es agua?` (`guide.lesson.is_water.1`,
+  the second yes-or-no question, answered `No.`), `Mira.` (`guide.lesson.look.1`), the six namings `Esto es madera.`, `Esto es una fruta.`, `Esto es agua.`, `Esto es una botella.`,
+  `Esto es una mesa.` and `Esto es una antorcha.` (`guide.lesson.it_is.1` to `.6`; the learner asks `¿Qué es esto?` and she names what she points at), `Toma la fruta.`
+  (`guide.lesson.take.1`), `¡Muy bien! Tienes fruta.` (`guide.lesson.have.1`, after the learner picks the fruit), `Mira. La madera es para la antorcha.` (`guide.lesson.fast.1`, the line the
+  learner has repeated and slowed) and the closing line `¡Muy bien! Ya tienes tu fuego.` (`guide.lesson.end.1`, said when the player's own fire is lit). The lesson also reuses
+  the existing `Mira. ¿Qué es esto?` (`guide.review.ask.1`, the question the learner answers with `No sé`). Her replies to `Otra vez, por favor` and `Más despacio, por favor`
+  outside the lesson are `Claro. Otra vez.` / `¡Claro! Te lo digo otra vez.` (`guide_again`) and `Claro. Más despacio.` / `¡Claro! Te lo digo más despacio.` (`guide_slower`); she
+  then says her last line again. The lesson prompts (`lesson-*` in `prompts/prompts.json`) carry the text of the line they are said at.
+- The guide's phrase review (S8) also asks `hola` (with `¡Hola!`), `si` and `no` (with `¿Quieres fruta?`) when they are due, using the lesson's lines.

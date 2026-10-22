@@ -214,3 +214,9 @@ outside `FrameClock.cs`, project references only the game layer and the simulati
   and `libopenal` (the DesktopGL package ships its own copies; on a Linux x64 build they are copied next to the executable, see
   `docs/ARCHITECTURE.md` for the native-asset trim).
 - The back buffer is read after the frame is drawn and before the swap; on DesktopGL it comes back upright (checked), not flipped.
+- **S17.** `GuideApproach` opens the panel on the guide when the player walks up to her and her lesson is waiting (or her transfer offer is, once the camp is
+  done); `SessionEnding` and `EndingLayer` are the closing card; `SpeechButtons.TextFor` and `HintsFor` add the English to the buttons and the hold-to-talk hint (a
+  second row of buttons when they do not fit the panel); `--lesson-run <id>` runs a whole lesson in a scripted run (walks to the NPC, types each answer, walks to the
+  fruit and back for a `do` step) and `--lesson` takes the guide's `first-words`; the recap ends on the journal's phrases page (`LessonFrontend.OnRecapDone`; a
+  scripted run does not open it and asks for `--journal --journal-phrases` instead). The post-check of a playtest starts when the session is complete
+  (`PlaytestEnd.StartsOnItsOwn`: the camp done and the player's own fire lit) and the transfer offered.
