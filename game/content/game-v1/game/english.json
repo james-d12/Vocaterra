@@ -71,7 +71,7 @@
     { "id": "look", "when": "start", "text": "Move the mouse to look around. The valley below is where you are headed." },
     { "id": "walk", "when": "start", "delay": 9, "text": "Walk with W A S D. The trail starts beside your camp." },
     { "id": "jump", "when": "start", "delay": 18, "text": "Press Space to jump up a ledge or over a gap." },
-    { "id": "note", "when": "start", "delay": 28, "text": "A note is pinned to your tent: “Welcome, traveller. My camp is down the trail, past the trees. Follow the camino (the trail) and come and say hello. Luna”" },
+    { "id": "note", "when": "start", "delay": 28, "text": "A note is pinned to your tent: “Welcome, traveler. My camp is down the trail, past the trees. Follow the camino (the trail) and come and say hello. Luna”" },
     { "id": "gather", "when": "start", "delay": 50, "text": "Aim the dot in the middle of the screen at a tree trunk and hold the left mouse button to collect wood." },
     { "id": "pickup", "when": "item_picked_up", "text": "What you collect appears in the bar at the bottom. Press I to see everything you carry." },
     { "id": "npc", "when": "aimed_npc", "text": "Press E to talk to someone. The English under the Spanish is there to help you." },

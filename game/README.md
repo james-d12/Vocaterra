@@ -396,7 +396,34 @@ scripts/content.sh validate                                  # every file's hash
 scripts/content.sh hash game/content/game-v1 --bundle-id game-v1  # rewrite manifest.json (keep the bundle id once it is set)
 scripts/content.sh cefr-check game/content/game-v1 --level a1     # and --level a2: the lemmas the templates use that the level list lacks
 scripts/content.sh lint game/content/game-v1 --strict --level a1 --host-pools 'guide.*'   # 0 errors, 0 warnings (the guide's host-voiced pools are named)
+scripts/content.sh grammar game/content/game-v1 --strings game/content/grammar/game-v1-strings.jsonl --strings-only --offline   # the grammar check from the committed cache, no server
 ```
+
+**The grammar check (S23, core M30, D10).** The review chain is lint, `cefr-check`, grammar, then the Opus pass (D-game-12). The grammar step
+sends every Spanish string the player hears or says to a LanguageTool server on this machine (never the public API) and reads the answers back
+through a committed cache. It covers the bundle's dialogue, prompts, answer sets and intents, the phrase sheet (the phrases, the accepted variants
+and the learner-error examples, with their tags), the Spanish sides of `game/english.json` and `game/checks.json`, and the speech index. The
+strings are written by the host from those sources, so the list is always the game's own:
+
+```bash
+dotnet run --project game/src/Vocaterra.Host -- --content game/content/game-v1 --grammar-strings game/content/grammar/game-v1-strings.jsonl
+```
+
+The committed files are `game/content/grammar/game-v1-strings.jsonl` (the strings), `game-v1-cache.json` (one result per string, keyed by the
+LanguageTool version, the settings and the text) and `game-v1-waivers.json` (each accepted match, by rule and string id, with its reason; a
+waiver with no reason is refused). Findings are warnings (agreement, spelling, grammar), info (style, and the learner-error oracle's facts) or
+errors (a string with no cached result). The English support text is not checked (the owner's decision).
+
+**Refreshing the cache after a content change.** Run these from the repository root:
+
+1. Write the strings again (the command above). The strings file is checked by a test, so a stale file fails `dotnet test`.
+2. Start the server: `scripts/languagetool.sh start` (it refuses below 4 GB free; `scripts/languagetool.sh status` shows it).
+3. Check the new strings and prune the entries no string uses any more:
+   `scripts/content.sh grammar game/content/game-v1 --strings game/content/grammar/game-v1-strings.jsonl --strings-only --prune`
+4. Read every warning and every new info finding. Fix the content, or add a waiver with a reason to `game-v1-waivers.json`. Do not
+   waive a true positive to get a clean run.
+5. Stop the server (`scripts/languagetool.sh stop`), run the offline command above (it must exit 0), and commit the strings, the cache and the
+   waivers with the content change. The gate runs the offline command only and never needs the server.
 
 Since S4 the catalogue holds only the nouns of the 3D world (the ores, tools and furniture of the 2D slice are gone), and the recipes are the
 workbench's torch alone; the core's sample keeps the rest.

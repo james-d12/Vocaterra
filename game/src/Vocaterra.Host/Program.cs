@@ -38,22 +38,32 @@ if (options.ShowHelp)
 }
 
 ContentBundle bundle;
+// The default is relative to the current directory; when it is not there (the host is run from the repository root, say), the game's
+// bundle is searched for above the executable and the current directory, as the front-end does.
+var contentDirectory = options.ContentDirectory;
+if (contentDirectory == HostOptions.DefaultContentDirectory && !Directory.Exists(contentDirectory))
+{
+    contentDirectory = GameBundle.ResolveDirectory();
+}
+
 try
 {
-    // The default is relative to the current directory; when it is not there (the host is run from the repository root, say), the game's
-    // bundle is searched for above the executable and the current directory, as the front-end does.
-    var contentDirectory = options.ContentDirectory;
-    if (contentDirectory == HostOptions.DefaultContentDirectory && !Directory.Exists(contentDirectory))
-    {
-        contentDirectory = GameBundle.ResolveDirectory();
-    }
-
     bundle = ContentLoader.Load(contentDirectory);
 }
 catch (Exception ex) when (ex is ContentValidationException or IOException or UnauthorizedAccessException or JsonException)
 {
     Console.Error.WriteLine(ex.Message);
     return ExitInvalidContent;
+}
+
+if (options.GrammarStringsOut is { } stringsOut)
+{
+    // The grammar check's strings (scripts/content.sh grammar): written from the bundle and the game's sheets, then the host exits.
+    var written = GrammarStringsExtractor.Write(bundle, contentDirectory, stringsOut);
+    Console.WriteLine(string.Create(
+        CultureInfo.InvariantCulture,
+        $"grammar strings: {written.Count} written to {stringsOut} ({string.Join(", ", written.GroupBy(static line => line.Kind).OrderBy(static group => group.Key, StringComparer.Ordinal).Select(static group => group.Key + " " + group.Count()))})"));
+    return ExitOk;
 }
 
 var session = new ConversationSession(bundle);
