@@ -169,7 +169,7 @@ Copy this into a file for each session (one file per tester; the code, not the n
 
 ```
 Tester code: P__        Date: ____        Session folder: ____________________
-Bundle hash (frozen):   cd63077b...   Build: ____ (arm A colour / arm B --greyscale)
+Bundle hash (frozen):   393548666329...   Build commit: ____ (arm A colour / arm B --greyscale)
 Consent (yes/no, time): ____            Beginner screener (answer, no names): ____________
 Microphone: works / no mic (typed)   Mic check: passed / retried / skipped
 Pre-check (20 items): done / Esc at item __   Post-check (20 items): automatic / F10 at minute __
@@ -194,7 +194,7 @@ Run it the next day, or later, on the same build:
 
     ./playtest.sh --load <session folder>/playtest.save
 
-The playtest profile implies `--check recall` on a load: the mic check (skip if you wish), the recall battery (ten items, the same kinds as
+The playtest profile implies `--check recall` on a load: the mic check (skip if you wish), the recall battery (twenty items, the same kinds as
 the pre- and post-checks, another order), then the thank-you screen, and the game ends on Esc. It saves nothing. Its log goes into a new
 session folder (`~/.local/share/vocaterra/sessions/...`). Use the same build folder and the same bundle: a save made against another bundle
 is refused.
