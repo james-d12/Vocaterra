@@ -279,18 +279,18 @@ public sealed class SoundMixer : ITalkSounds
         var pitch = definition.PitchJitter > 0 ? _rng.NextBetween(-definition.PitchJitter, definition.PitchJitter) : 0;
         if (SoundsOff)
         {
-            return Drop("off");
+            return Drop("off", cue);
         }
 
         if (Recording)
         {
-            return Drop("recording"); // the microphone rule: sfx, ambient and ui are all silent; the beeps play outside the window
+            return Drop("recording", cue); // the microphone rule: sfx, ambient and ui are all silent; the beeps play outside the window
         }
 
         var gain = definition.Gain * Gain(category);
         if (gain <= 0)
         {
-            return Drop("volume");
+            return Drop("volume", cue);
         }
 
         var request = new SoundRequest(cue, category, take, gain, pitch);
@@ -377,9 +377,15 @@ public sealed class SoundMixer : ITalkSounds
     public static string FormatLine(long tick, SoundRequest request) =>
         string.Create(CultureInfo.InvariantCulture, $"{tick:D6} {SoundCues.NameOf(request.Category),-7} {SoundCues.NameOf(request.Cue),-17} take={request.Take} gain={request.Gain:0.00} pitch={request.Pitch:+0.00;-0.00;+0.00}");
 
-    private SoundRequest? Drop(string reason)
+    private SoundRequest? Drop(string reason, SoundCue cue)
     {
         _dropped[reason] = DroppedCount(reason) + 1;
+        if (reason != "off")
+        {
+            // A comment line (it starts with #): what the rule held back, so a log shows the microphone rule at work. It is not a cue that played.
+            _log?.Write(string.Create(CultureInfo.InvariantCulture, $"# {_tick:D6} held back ({reason}): {SoundCues.NameOf(SoundCues.CategoryOf(cue))} {SoundCues.NameOf(cue)}"));
+        }
+
         return null;
     }
 

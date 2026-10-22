@@ -151,10 +151,11 @@ public sealed class SoundMixerTests
             [SoundCue.PushToTalkStart, SoundCue.PushToTalkStop, SoundCue.PlaceBlock],
             output.Played.Select(static r => r.Cue).ToArray());
         var window = log.Lines.SkipWhile(static l => !l.Contains("recording-begin", StringComparison.Ordinal)).Skip(1).TakeWhile(static l => !l.Contains("recording-end", StringComparison.Ordinal)).ToList();
-        Assert.Empty(window); // nothing is logged between the marks
+        Assert.All(window, static l => Assert.StartsWith("# 000110 held back (recording): ", l, StringComparison.Ordinal)); // only comments on what the rule held back, no cue
+        Assert.Equal(3, window.Count);
         Assert.Contains("000100 ui      push_to_talk_start", log.Lines[0], StringComparison.Ordinal);
-        Assert.Contains("000150 mark    recording-end", log.Lines[2], StringComparison.Ordinal);
-        Assert.Contains("000150 ui      push_to_talk_stop", log.Lines[3], StringComparison.Ordinal);
+        Assert.Contains("000150 mark    recording-end", log.Lines[1 + 1 + 3], StringComparison.Ordinal);
+        Assert.Contains("000150 ui      push_to_talk_stop", log.Lines[1 + 1 + 3 + 1], StringComparison.Ordinal);
     }
 
     [Fact]

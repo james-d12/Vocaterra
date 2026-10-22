@@ -571,7 +571,7 @@ turn, a verdict, a state hash or the replay.
 
 **Flags.** `--mute` (the voices off, as before), `--sfx-volume <0..1>`, `--ambient-volume <0..1>`, `--no-sounds` (every sound but the voices off, the beeps too) and
 `--sound-log <file>`. A scripted run (`--screenshot`) uses a null output: silent, no audio device needed. `--sound-log` still records its cues, one line each:
-`tick category cue take gain pitch`, with `mark` lines for the voice and recording windows and `#` summary lines at the end. A scripted spoken step (`--wav`, `--speak`) and
+`tick category cue take gain pitch`, with `mark` lines for the voice and recording windows, `#` comment lines for what the microphone rule held back (`# 001640 held back (recording): sfx place_block`) and a `#` summary at the end. A scripted spoken step (`--wav`, `--speak`) and
 the scripted mic check stand for a push-to-talk: the start beep, 24 silent ticks, the stop beep.
 
 **The sounds.**

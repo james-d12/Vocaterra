@@ -129,7 +129,8 @@ public sealed class SoundFrontendTests
         Assert.Equal([SoundCue.PushToTalkStart, SoundCue.PushToTalkStop], output.Played.Select(static r => r.Cue).ToArray());
         Assert.Equal(
             ["000500 ui      push_to_talk_start", "000500 mark    recording-begin", "000524 mark    recording-end", "000524 ui      push_to_talk_stop"],
-            log.Lines.Select(static l => l.Contains(" take=", StringComparison.Ordinal) ? l[..l.IndexOf(" take=", StringComparison.Ordinal)] : l).ToArray());
+            log.Lines.Where(static l => !l.StartsWith('#')).Select(static l => l.Contains(" take=", StringComparison.Ordinal) ? l[..l.IndexOf(" take=", StringComparison.Ordinal)] : l).ToArray());
+        Assert.Equal(ScriptedRecording.Ticks - 1, log.Lines.Count(static l => l.Contains("held back (recording): sfx gather_wood", StringComparison.Ordinal)));
         Assert.NotNull(sound.Mixer.Play(SoundCue.GatherWood)); // and sound again after it
     }
 
