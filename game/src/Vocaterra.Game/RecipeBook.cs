@@ -3,7 +3,7 @@ using System.Text.Json;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Simulation.Crafting;
 using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Tiles;
+using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game;
 
@@ -19,7 +19,7 @@ public sealed record RecipeIngredient(NounEntry Noun, ItemId Item, int Count);
 /// <param name="Output">The noun of the item made (<c>mesa</c>).</param>
 /// <param name="OutputCount">How many one craft gives.</param>
 /// <param name="Ingredients">What one craft uses up, in the file's order.</param>
-/// <param name="Station">The noun of the station (<c>mesa</c>, <c>horno</c>), or <see langword="null"/> when the hands do.</param>
+/// <param name="Station">The noun of the station (<c>mesa</c>), or <see langword="null"/> when the hands do.</param>
 /// <param name="Rule">The simulation's value for the same recipe.</param>
 public sealed record RecipeEntry(
     NounEntry Output,
@@ -73,7 +73,7 @@ public sealed class RecipeBook
     }
 
     /// <summary>Builds the book from the file's text.</summary>
-    /// <exception cref="InvalidDataException">The text is malformed, a lemma is not a catalogue noun with an item, a station is not a placeable tile, or a count is not positive.</exception>
+    /// <exception cref="InvalidDataException">The text is malformed, a lemma is not a catalogue noun with an item, a station names no block, or a count is not positive.</exception>
     public static RecipeBook Parse(string json, NounCatalog nouns)
     {
         ArgumentNullException.ThrowIfNull(json);
@@ -112,16 +112,17 @@ public sealed class RecipeBook
             }
 
             NounEntry? station = null;
-            TileId? stationTile = null;
+            BlockId? stationBlock = null;
             if (element.TryGetProperty("station", out var stationValue) && stationValue.ValueKind == JsonValueKind.String)
             {
                 var lemma = stationValue.GetString()!;
                 station = nouns.ForLemma(lemma) ?? throw new InvalidDataException($"{RelativePath}: station '{lemma}' of '{outputLemma}' is not a catalogue noun.");
-                stationTile = PlaceableTileOf(station)
-                    ?? throw new InvalidDataException($"{RelativePath}: station '{lemma}' of '{outputLemma}' is not a placeable tile.");
+                stationBlock = station.Blocks.Count > 0
+                    ? station.Blocks[0]
+                    : throw new InvalidDataException($"{RelativePath}: station '{lemma}' of '{outputLemma}' names no block.");
             }
 
-            var rule = new Recipe(outputItem, count, ingredients.Select(static i => new Ingredient(i.Item, i.Count)).ToList(), stationTile);
+            var rule = new Recipe(outputItem, count, ingredients.Select(static i => new Ingredient(i.Item, i.Count)).ToList(), stationBlock);
             entries.Add(new RecipeEntry(output, count, ingredients, station, rule));
         }
 
@@ -150,18 +151,4 @@ public sealed class RecipeBook
 
     private static ItemId ItemOf(NounEntry noun, string file) =>
         noun.Items.Count > 0 ? noun.Items[0] : throw new InvalidDataException($"{file}: '{noun.Lemma}' names no item.");
-
-    // The tile of a noun that some item places: the tile a station stands as.
-    private static TileId? PlaceableTileOf(NounEntry noun)
-    {
-        foreach (var tile in noun.Tiles)
-        {
-            if (ItemDefinition.All.Any(i => i.PlacesTile == tile))
-            {
-                return tile;
-            }
-        }
-
-        return null;
-    }
 }

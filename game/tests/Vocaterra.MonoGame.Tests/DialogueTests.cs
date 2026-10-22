@@ -1,7 +1,6 @@
 using Vocaterra.Game;
 using Vocaterra.MonoGame.Frontend;
 using Vocaterra.Simulation;
-using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.MonoGame.Tests;
 
@@ -44,56 +43,6 @@ public sealed class DialogueTests
         dialogue.Close();
         Assert.False(dialogue.IsOpen);
         Assert.False(focus.TextEntryActive);
-    }
-
-    [Fact]
-    public void WhileThePanelIsOpenTheMovementKeysAreLettersAndThePlayerStaysPut()
-    {
-        var dialogue = Model(out var focus);
-        var sim = GameSimulation.Create(42);
-        var held = new HeldKeys(InputActions.Right | InputActions.Jump);
-        var gated = new FocusGatedInput(held, focus);
-        var commands = new List<PlayerCommand>();
-
-        dialogue.Open();
-        foreach (var letter in "dad w") // D walks right, A walks left, W and space jump
-        {
-            dialogue.Entry.Insert(letter);
-        }
-
-        var start = sim.Player;
-        for (var i = 0; i < 60; i++)
-        {
-            CommandMapper.Fill(gated.Poll(sim.Tick), commands);
-            sim.Step(commands);
-        }
-
-        Assert.Equal("dad w", dialogue.Entry.Text);
-        Assert.Empty(commands);
-        Assert.Equal(start.X, sim.Player.X);
-        Assert.Equal(start.Y, sim.Player.Y);
-
-        dialogue.Close();
-        for (var i = 0; i < 60; i++)
-        {
-            CommandMapper.Fill(gated.Poll(sim.Tick), commands);
-            sim.Step(commands);
-        }
-
-        Assert.True(sim.Player.X > start.X, "With the panel closed the same held keys walk the player again.");
-    }
-
-    [Fact]
-    public void TheGatePollsTheInnerSourceEvenWhileClosedToIt()
-    {
-        var focus = new InputFocus { TextEntryActive = true };
-        var inner = new HeldKeys(InputActions.Left);
-        var gated = new FocusGatedInput(inner, focus);
-
-        Assert.Equal(InputActions.None, gated.Poll(0));
-        Assert.Equal(1, inner.Polls);
-        focus.TextEntryActive = false;
-        Assert.Equal(InputActions.Left, gated.Poll(1));
     }
 
     [Fact]
@@ -284,14 +233,5 @@ public sealed class DialogueTests
         Assert.Equal(("abc", 3), TextWrap.Window("abc", 3, 100, Measure));
     }
 
-    private sealed class HeldKeys(InputActions actions) : IInputSource
-    {
-        public int Polls { get; private set; }
 
-        public InputActions Poll(long tick)
-        {
-            Polls++;
-            return actions;
-        }
-    }
 }

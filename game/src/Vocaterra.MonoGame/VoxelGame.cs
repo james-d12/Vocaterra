@@ -11,9 +11,9 @@ using Vocaterra.Simulation.Voxel;
 namespace Vocaterra.MonoGame;
 
 /// <summary>
-/// The engine host of the 3D first-person scene (<c>--voxel</c>, S2 and S3). Each frame it turns the real clock into whole ticks, reads the
+/// The engine host of the 3D first-person scene, the prototype's only world (S2 to S4). Each frame it turns the real clock into whole ticks, reads the
 /// keyboard and the mouse (or the scripted run) into <see cref="VoxelCommand"/>s and steps the <see cref="VoxelSession"/>'s simulation; then it
-/// places the <see cref="FirstPersonCamera"/> at the interpolated eye, draws the voxel world with <see cref="VoxelRenderer"/> and the 2D layers
+/// places the <see cref="FirstPersonCamera"/> at the interpolated eye, draws the voxel world with <see cref="VoxelRenderer"/> and the layers
 /// over it. All rules live in <c>Vocaterra.Simulation</c>, <c>Vocaterra.Game</c> and the plain classes under <c>Frontend/</c>.
 /// </summary>
 /// <remarks>
@@ -66,7 +66,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly JournalModel _journal = new();
     private readonly ToastQueue _toasts = new();
     private readonly InventoryScreen _inventory = new();
-    private readonly Camera _screenCamera = new(1, 1, 1);
     private readonly BusyFrameStats _draws = new();
     private readonly BusyFrameStats _frames = new();
     private readonly List<VoxelCommand> _commands = [];
@@ -76,7 +75,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private IReadOnlyList<NpcFigure> _figures = [];
     private SpriteBatch? _spriteBatch;
     private Texture2D? _pixel;
-    private TileAtlas? _tileAtlas;
     private BlockAtlas? _blockAtlas;
     private VoxelRenderer? _renderer;
     private FrameView? _view;
@@ -98,6 +96,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private int _swallowFrames;
     private NpcFigure? _aimed;
     private PointerMarker? _shownPointer;
+    private readonly WordCardQueue _cards = new();
+    private readonly CraftingScreen _crafting = new();
+    private readonly Queue<int> _pendingCrafts = new();
+    private int _loadingFrames;
 
     /// <summary>Creates the 3D game for a started session (its simulation is the scene's) and the built scene.</summary>
     public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene)
@@ -164,7 +166,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _previousScroll = Mouse.GetState().ScrollWheelValue;
         _pixel = new Texture2D(GraphicsDevice, 1, 1);
         _pixel.SetData([Color.White]);
-        _tileAtlas = new TileAtlas(GraphicsDevice);
         _blockAtlas = new BlockAtlas(GraphicsDevice);
         _figures = NpcFigures.FromScene(_scene);
         var started = MonotonicClock.Milliseconds();
@@ -172,6 +173,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _renderer.SetFigures(_figures);
         Console.WriteLine($"voxel: {_renderer.Stats.Summary()} (renderer ready in {MonotonicClock.Milliseconds() - started:0} ms)");
         Console.WriteLine($"graphics: {GraphicsAdapter.DefaultAdapter.Description}, depth {GraphicsDevice.PresentationParameters.DepthStencilFormat}");
+        if (_options.Greyscale)
+        {
+            Console.WriteLine("greyscale: the 3D world is drawn in full colour (D-game-6 as amended); the grey A/B is not in the 3D world yet (stub)");
+        }
         Console.WriteLine($"scene: {_scene.Name}, seed {_scene.Seed}, {_scene.TreeCount} trees, spawn {_scene.Spawn.Feet.X},{_scene.Spawn.Feet.Y},{_scene.Spawn.Feet.Z}, digest {_scene.Grid.ComputeDigestHex()[..16]}");
         if (_options.Beacon is { } point)
         {
@@ -189,20 +194,20 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         {
             Session = _session,
             Dialogue = _dialogue,
-            Camera = _screenCamera,
             Fonts = new FontProvider(AssetPaths.Font),
             Pixel = _pixel,
             Seed = _options.Seed,
-            Atlas = _tileAtlas,
             Journal = _journal,
             Toasts = _toasts,
             Inventory = _inventory,
-            Crafting = new CraftingScreen(),
+            Crafting = _crafting,
             Voxel = _sim,
             Camera3D = _camera,
             Beacon = Beacon,
             Figures = _figures,
             VoxelIcons = _blockAtlas,
+            Objective = _session.Objective,
+            Cards = _cards,
         };
         _layers.Add(new HeldItemLayer());
         _layers.Add(new CrosshairLayer());
@@ -212,10 +217,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _layers.Add(new TalkHintLayer());
         _layers.Add(_debug);
         _layers.Add(new HotbarLayer());
+        _layers.Add(new ObjectiveLayer());
+        _layers.Add(new WordCardLayer());
         _layers.Add(new DialoguePanel());
         _layers.Add(new ToastLayer());
         _layers.Add(new JournalLayer());
         _layers.Add(new InventoryLayer());
+        _layers.Add(new CraftingLayer());
         _layers.Add(new LoadingLayer());
     }
 
@@ -265,6 +273,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 {
                     OpenInventory();
                 }
+
+                if (_options.ShowCrafting)
+                {
+                    OpenCrafting();
+                }
             }
         }
 
@@ -284,7 +297,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var viewport = GraphicsDevice.PresentationParameters;
         var width = viewport.BackBufferWidth;
         var height = viewport.BackBufferHeight;
-        _screenCamera.Resize(width, height);
+        view.ViewportWidth = width;
+        view.ViewportHeight = height;
         var drawStart = MonotonicClock.Milliseconds();
 
         var alpha = (float)_accumulator.Alpha;
@@ -296,6 +310,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.Fps = _stats.Fps;
         view.Aimed = _aimed;
         view.Loading = _session.Worker!.IsReady ? null : LoadingLayer.Text;
+        view.LoadingFrame = _loadingFrames++;
         var mouse = Mouse.GetState();
         view.Mouse = !_options.IsScreenshotRun && GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? mouse.Position : null;
 
@@ -342,7 +357,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _session.StopWorker(); // the worker disposes the recognizer on its own thread
         _renderer?.Dispose();
         _blockAtlas?.Dispose();
-        _tileAtlas?.Dispose();
         _pixel?.Dispose();
         _spriteBatch?.Dispose();
         base.UnloadContent();
@@ -364,7 +378,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return noun.Items[0];
         }
 
-        foreach (var definition in ItemDefinition.All.Concat(ItemDefinition.VoxelOnly))
+        foreach (var definition in ItemDefinition.All)
         {
             if (string.Equals(definition.Name, name, StringComparison.OrdinalIgnoreCase))
             {
@@ -392,6 +406,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _live.Fill(_commands);
         }
 
+        // A craft clicked or typed this frame runs in this tick, after the gathering and the placing (the simulation's order).
+        while (_pendingCrafts.Count > 0)
+        {
+            _commands.Add(VoxelCommand.Craft(_pendingCrafts.Dequeue()));
+        }
+
         // The look goes first: it is absolute and every other command of the tick uses the facing it sets.
         _commands.Insert(0, VoxelCommand.Look(_look.Yaw, _look.Pitch));
         _session.Step(_commands);
@@ -400,16 +420,43 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _currentEye = EyeBlocks();
         _previousEase = _currentEase;
         _currentEase = _ease.Offset;
-        foreach (var e in _sim.Events)
+        // Pickups show in the hotbar and, the first time, as a word card; they do not toast (a toast per pickup would queue behind the
+        // checklist's completions for minutes).
+        AnnounceObjective(_session.Completed);
+        foreach (var card in _session.TakeWordCards())
         {
-            if (e.Kind == SimulationEventKind.ItemPickedUp)
-            {
-                var item = (ItemId)e.Detail;
-                var label = _session.Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name;
-                _toasts.Show($"+{e.Amount} {label}");
-            }
+            _cards.Add(card);
         }
     }
+
+    // A step of the camp checklist that was just done: a toast with the step, and one for the whole checklist when it is complete.
+    private void AnnounceObjective(IReadOnlyList<ObjectiveStep> completed)
+    {
+        foreach (var step in completed)
+        {
+            _toasts.Show($"Hecho: {step.Text}");
+        }
+
+        if (completed.Count > 0 && _session.Objective.Complete)
+        {
+            _toasts.Show($"{Objective.Title} completo");
+        }
+    }
+
+    private void OpenCrafting()
+    {
+        if (_journal.IsOpen || _inventory.IsOpen || _dialogue.IsOpen)
+        {
+            return;
+        }
+
+        _crafting.Open(_session.Words, CraftingScreen.LemmasShown(_session.Recipes));
+    }
+
+    private void CloseCrafting() => _crafting.Close();
+
+    // The crosshair is on the workbench (the mesa): E opens the crafting panel there, as C does anywhere.
+    private bool AimedAtWorkbench() => _sim.Target is { } hit && hit.Id == BlockId.Table;
 
     // Keys and mouse, once per frame, for the interactive run. The device state becomes this frame's commands (LiveVoxelInput) and the look.
     private void ReadInput()
@@ -442,9 +489,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     CloseInventory();
                 }
             }
+            else if (_crafting.IsOpen)
+            {
+                if (Pressed(Keys.Escape) || Pressed(Keys.C))
+                {
+                    CloseCrafting();
+                }
+            }
             else if (_aimed is not null && (Pressed(Keys.E) || Pressed(Keys.T) || Pressed(Keys.V)))
             {
-                // The crosshair is on the guide: E or T opens the panel; V opens it and starts listening (as in the 2D slice).
+                // The crosshair is on the guide: E or T opens the panel; V opens it and starts listening (as the 3D guide always did).
                 if (Pressed(Keys.V))
                 {
                     OpenDialogue(null);
@@ -458,6 +512,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             else if (Pressed(Keys.J))
             {
                 OpenJournal();
+            }
+            else if (Pressed(Keys.C) || (Pressed(Keys.E) && AimedAtWorkbench()))
+            {
+                OpenCrafting();
             }
             else if (Pressed(Keys.I) || Pressed(Keys.E))
             {
@@ -474,9 +532,19 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
         }
 
-        var uiOpen = _journal.IsOpen || _inventory.IsOpen || _dialogue.IsOpen;
+        var uiOpen = _journal.IsOpen || _inventory.IsOpen || _dialogue.IsOpen || _crafting.IsOpen;
         var leftDown = mouse.LeftButton == ButtonState.Pressed;
         var rightDown = mouse.RightButton == ButtonState.Pressed;
+        if (IsActive && _crafting.IsOpen && leftDown && !_previousLeftDown)
+        {
+            // A click on a row of the panel asks for one craft in the next tick (the same command a script sends).
+            var layout = new CraftingLayout(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, _session.Recipes.Entries.Count);
+            if (layout.RowAt(mouse.X, mouse.Y) is { } row)
+            {
+                _pendingCrafts.Enqueue(row);
+            }
+        }
+
         var swallowClick = false;
         if (IsActive && !uiOpen && !_captureWanted && leftDown && !_previousLeftDown)
         {
@@ -535,7 +603,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _previousKeys = keys;
     }
 
-    // The panel's keys while it is open: Enter sends, Esc closes, Tab holds push-to-talk, the editing keys repeat as the 2D panel's do.
+    // The panel's keys while it is open: Enter sends, Esc closes, Tab holds push-to-talk, the editing keys repeat as the panel doeso.
     private void ReadDialogueKeys(KeyboardState keys, Func<Keys, bool> pressed)
     {
         if (pressed(Keys.Escape))

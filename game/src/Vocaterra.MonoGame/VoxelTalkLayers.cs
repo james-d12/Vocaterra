@@ -23,8 +23,8 @@ public sealed class TalkHintLayer : IFrameLayer
 
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var width = DrawHelpers.Width(font, Text);
-        var screen = view.Camera.ViewportWidth / 2;
-        var box = new Rectangle((int)(screen - (width / 2)) - 8, (view.Camera.ViewportHeight / 2) + 26, (int)width + 16, 24);
+        var screen = view.ViewportWidth / 2;
+        var box = new Rectangle((int)(screen - (width / 2)) - 8, (view.ViewportHeight / 2) + 26, (int)width + 16, 24);
         spriteBatch.Draw(view.Pixel, box, new Color(0, 0, 0, 175));
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, new Color(255, 214, 64));
         DrawHelpers.Text(spriteBatch, font, Text, new Vector2(box.X + 8, box.Y + 3), Color.White);

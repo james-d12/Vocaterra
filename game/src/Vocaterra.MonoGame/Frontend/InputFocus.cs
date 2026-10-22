@@ -20,23 +20,6 @@ public sealed class InputFocus
 }
 
 /// <summary>
-/// An <see cref="IInputSource"/> that passes the inner source through while the player has the keyboard and holds nothing while a text box
-/// has it. The simulation then sees no movement command, so typing <c>a</c> or <c>d</c> in the panel does not walk.
-/// </summary>
-/// <param name="Inner">The device the held actions come from.</param>
-/// <param name="Focus">Who has the keyboard.</param>
-public sealed class FocusGatedInput(IInputSource Inner, InputFocus Focus) : IInputSource
-{
-    /// <inheritdoc />
-    public InputActions Poll(long tick)
-    {
-        // The inner source is polled either way, so a scripted source keeps its own clock.
-        var held = Inner.Poll(tick);
-        return Focus.TextEntryActive || Focus.JournalOpen || Focus.InventoryOpen || Focus.CraftingOpen ? InputActions.None : held;
-    }
-}
-
-/// <summary>
 /// Key auto-repeat for an editing key, counted in frames so it needs no clock: the first press acts at once, then nothing for
 /// <see cref="DelayFrames"/> frames, then once every <see cref="IntervalFrames"/> frames while the key stays down.
 /// </summary>

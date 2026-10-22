@@ -1,34 +1,11 @@
-using Vocaterra.Game;
-using Vocaterra.Nlp.Content;
-using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Tiles;
+using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Tests;
 
-/// <summary>The noun catalogue (<c>game/nouns.json</c>): every tile is a noun or colourless, every noun has a lexicon reading and a gender.</summary>
+/// <summary>The noun catalogue of the 3D world: which block and item kinds name which Spanish noun, and each noun's gender and articles.</summary>
 public sealed class NounCatalogTests
 {
-    [Fact]
-    public void EveryTileKindIsANounOrColourlessAndEveryNounHasANounReadingAndAGender()
-    {
-        var catalogue = TestGame.Nouns;
-        foreach (var definition in TileDefinition.All)
-        {
-            var noun = catalogue.ForTile(definition.Id);
-            var colourless = catalogue.IsColourless(definition.Id);
-            Assert.True(noun is not null || colourless, $"Tile {definition.Name} is neither a catalogue noun nor colourless.");
-            Assert.False(noun is not null && colourless, $"Tile {definition.Name} is both a noun and colourless.");
-        }
-
-        foreach (var noun in catalogue.Nouns)
-        {
-            var readings = TestGame.Bundle.Lexicon.EntriesForLemma(noun.Lemma);
-            Assert.Contains(readings, e => e.Pos == "noun");
-            Assert.Contains(noun.Gender, new[] { "m", "f" });
-        }
-    }
-
     [Fact]
     public void EveryItemKindIsNamedByANounWithAGenderAndANounReading()
     {
@@ -44,11 +21,28 @@ public sealed class NounCatalogTests
     }
 
     [Theory]
+    [InlineData("árbol", "el", "un")]
+    [InlineData("madera", "la", "una")]
+    [InlineData("fruta", "la", "una")]
+    [InlineData("antorcha", "la", "una")]
+    [InlineData("mesa", "la", "una")]
+    [InlineData("río", "el", "un")]
+    [InlineData("agua", "el", "un")]
+    public void TheArticlesComeFromTheLexicon(string lemma, string definite, string indefinite)
+    {
+        var noun = TestGame.Nouns.ForLemma(lemma);
+        Assert.NotNull(noun);
+        Assert.Equal(definite, noun.Definite);
+        Assert.Equal(indefinite, noun.Indefinite);
+    }
+
+    [Theory]
     [InlineData("madera", true)]
     [InlineData("piedra", true)]
     [InlineData("tierra", true)]
     [InlineData("arena", true)]
-    [InlineData("flor", false)]
+    [InlineData("agua", true)]
+    [InlineData("fruta", false)]
     [InlineData("árbol", false)]
     public void MassNounsAreMarkedAsSuch(string lemma, bool mass)
     {
@@ -56,151 +50,65 @@ public sealed class NounCatalogTests
     }
 
     [Fact]
-    public void WoodComesFromTrees()
+    public void WoodComesFromTreesAndAMaterialComesFromItself()
     {
         Assert.Equal(["árbol"], TestGame.Nouns.ForLemma("madera")!.Sources);
-        Assert.Equal(["piedra"], TestGame.Nouns.ForLemma("piedra")!.Sources); // a material that is a tile of its own comes from itself
+        Assert.Equal(["piedra"], TestGame.Nouns.ForLemma("piedra")!.Sources);
     }
 
     [Fact]
-    public void AnItemNamedTwiceOrUnknownIsRefused()
+    public void TheRouteNounsNameTheirBlocksAndItems()
     {
-        var twice = """{"schemaVersion":1,"nouns":[{"lemma":"piedra","tiles":["stone"],"items":["stone"]},{"lemma":"madera","tiles":["planks"],"items":["stone"]}],"colourless":["air"]}""";
+        Assert.Equal([BlockId.Trunk, BlockId.Leaves], TestGame.Nouns.ForLemma("árbol")!.Blocks);
+        Assert.Equal([ItemId.Wood], TestGame.Nouns.ForLemma("madera")!.Items);
+        Assert.Equal([BlockId.BerryBush], TestGame.Nouns.ForLemma("fruta")!.Blocks);
+        Assert.Equal([ItemId.Berry], TestGame.Nouns.ForLemma("fruta")!.Items);
+        Assert.Equal([BlockId.Table], TestGame.Nouns.ForLemma("mesa")!.Blocks);
+        Assert.Equal([BlockId.Torch], TestGame.Nouns.ForLemma("antorcha")!.Blocks);
+        Assert.Equal([ItemId.Torch], TestGame.Nouns.ForLemma("antorcha")!.Items);
+        Assert.Equal([BlockId.Water], TestGame.Nouns.ForLemma("agua")!.Blocks);
+        Assert.Equal([BlockId.Water], TestGame.Nouns.ForLemma("río")!.Blocks);
+        Assert.Equal([BlockId.Bridge], TestGame.Nouns.ForLemma("puente")!.Blocks);
+        Assert.Equal([BlockId.Stall, BlockId.Roof], TestGame.Nouns.ForLemma("tienda")!.Blocks);
+    }
+
+    [Fact]
+    public void ABlockWithTwoNounsIsNamedByTheFirstInLemmaOrder()
+    {
+        // The water is agua and río; agua comes first in ordinal order, so the guide's name for a water block is agua.
+        Assert.Equal("agua", TestGame.Nouns.ForBlock(BlockId.Water)!.Lemma);
+        Assert.Equal(["agua", "río"], TestGame.Nouns.NounsOfBlock(BlockId.Water).Select(static n => n.Lemma).ToArray());
+    }
+
+    [Fact]
+    public void AnItemNamedTwiceOrAnUnknownItemOrBlockIsRefused()
+    {
+        var twice = """{"schemaVersion":1,"nouns":[{"lemma":"piedra","items":["wood"]},{"lemma":"madera","items":["wood"]}]}""";
         Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, twice));
 
-        var unknown = """{"schemaVersion":1,"nouns":[{"lemma":"piedra","tiles":["stone"],"items":["rock"]}],"colourless":["air"]}""";
-        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, unknown));
+        var unknownItem = """{"schemaVersion":1,"nouns":[{"lemma":"piedra","items":["rock"]}]}""";
+        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, unknownItem));
+
+        var unknownBlock = """{"schemaVersion":1,"nouns":[{"lemma":"piedra","items":[],"blocks":["rock"]}]}""";
+        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, unknownBlock));
     }
 
     [Fact]
     public void ASourceThatIsNotACatalogueNounIsRefused()
     {
-        var json = """{"schemaVersion":1,"nouns":[{"lemma":"madera","tiles":["planks"],"items":["wood"],"sources":["cueva"]}],"colourless":["air"]}""";
+        var json = """{"schemaVersion":1,"nouns":[{"lemma":"madera","items":["wood"],"sources":["cueva"]}]}""";
         Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, json));
     }
 
     [Fact]
-    public void EveryTileNamedInTheFileIsTheTileKindTheSimulationDefines()
+    public void TheCatalogueHoldsOnlyTheNounsOfThe3DWorld()
     {
-        foreach (var noun in TestGame.Nouns.Nouns)
+        // The 2D nouns (the ores, the tools, the furniture and the flowers) are gone with the 2D slice (S4).
+        foreach (var lemma in new[] { "carbón", "hierro", "hacha", "silla", "horno", "flor", "seta" })
         {
-            foreach (var tile in noun.Tiles)
-            {
-                Assert.Equal(tile, TileDefinition.Get(tile).Id);
-            }
+            Assert.Null(TestGame.Nouns.ForLemma(lemma));
         }
 
-        Assert.Equal([TileId.Air], TestGame.Nouns.Colourless);
-    }
-
-    [Theory]
-    [InlineData(ItemId.Wood, "madera")]
-    [InlineData(ItemId.Sand, "arena")]
-    [InlineData(ItemId.Mushroom, "seta")]
-    [InlineData(ItemId.Axe, "hacha")]
-    [InlineData(ItemId.Pickaxe, "pico")]
-    [InlineData(ItemId.Chest, "caja")]
-    public void EachItemIsNamedByItsNoun(ItemId item, string lemma)
-    {
-        Assert.Equal(lemma, TestGame.Nouns.ForItem(item)?.Lemma);
-    }
-
-    [Theory]
-    [InlineData("arena", TileId.Sand)]
-    [InlineData("flor", TileId.Flower)]
-    [InlineData("seta", TileId.Mushroom)]
-    [InlineData("madera", TileId.Planks)]
-    [InlineData("puerta", TileId.Door)]
-    [InlineData("mesa", TileId.Table)]
-    [InlineData("silla", TileId.Chair)]
-    [InlineData("cama", TileId.Bed)]
-    [InlineData("caja", TileId.Chest)]
-    public void TheNewNounsAndTheirTilesAgreeInBothDirections(string lemma, TileId tile)
-    {
-        Assert.Equal([tile], WorldFacts.TilesOfNoun(lemma));
-        Assert.Equal(lemma, WorldFacts.NounOfTile(tile));
-    }
-
-    [Fact]
-    public void MaderaComesFromTheTreesAndTheMassNounsAreCountedInBlocks()
-    {
-        Assert.True(TestGame.Nouns.ForLemma("arena")!.Mass);
-        Assert.True(TestGame.Nouns.ForLemma("madera")!.Mass);
-        Assert.False(TestGame.Nouns.ForLemma("flor")!.Mass);
-        Assert.Equal(["árbol"], TestGame.Nouns.ForLemma("madera")!.Sources);
-    }
-
-    [Theory]
-    [InlineData("árbol", "m", "el", "un", "árboles")]
-    [InlineData("piedra", "f", "la", "una", "piedras")]
-    [InlineData("tierra", "f", "la", "una", "tierras")]
-    [InlineData("hierba", "f", "la", "una", "hierbas")]
-    public void EachNounHasItsGenderArticlesAndPluralFromTheCore(string lemma, string gender, string definite, string indefinite, string plural)
-    {
-        var noun = TestGame.Nouns.ForLemma(lemma);
-
-        Assert.NotNull(noun);
-        Assert.Equal(gender, noun.Gender);
-        Assert.Equal(definite, noun.Definite);
-        Assert.Equal(indefinite, noun.Indefinite);
-        Assert.Equal(plural, noun.Plural);
-        Assert.Equal($"{definite} {lemma}", noun.WithDefinite);
-        Assert.Equal($"{indefinite} {lemma}", noun.WithIndefinite);
-    }
-
-    [Fact]
-    public void TheWorldFactsNounOfEachTileIsTheCataloguesNounOfThatTile()
-    {
-        foreach (var definition in TileDefinition.All.Where(static d => d.Id != TileId.Air))
-        {
-            var fromFacts = WorldFacts.NounOfTile(definition.Id);
-            Assert.Equal(fromFacts, TestGame.Nouns.ForTile(definition.Id)?.Lemma);
-        }
-
-        Assert.Null(WorldFacts.NounOfTile(TileId.Air));
-    }
-
-    [Fact]
-    public void AReadingCountsAsACatalogueNounOnlyWhenItIsANoun()
-    {
-        Assert.Same(TestGame.Nouns.ForLemma("árbol"), TestGame.Nouns.ForReading("árbol", "noun"));
-        Assert.Null(TestGame.Nouns.ForReading("árbol", "verb"));
-        Assert.Null(TestGame.Nouns.ForReading("es", "verb"));
-        Assert.Null(TestGame.Nouns.ForReading(null, "noun"));
-    }
-
-    [Fact]
-    public void AnUnknownTileNameIsRefused()
-    {
-        var json = """{"schemaVersion":1,"nouns":[{"lemma":"árbol","tiles":["oak"],"items":[]}],"colourless":["air"]}""";
-
-        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, json));
-    }
-
-    [Fact]
-    public void ANounWithoutANounReadingIsRefused()
-    {
-        var json = """{"schemaVersion":1,"nouns":[{"lemma":"correr","tiles":["dirt"],"items":[]}],"colourless":["air"]}""";
-
-        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, json));
-    }
-
-    [Fact]
-    public void ATileListedTwiceIsRefused()
-    {
-        var json = """{"schemaVersion":1,"nouns":[{"lemma":"árbol","tiles":["trunk"],"items":[]},{"lemma":"piedra","tiles":["trunk"],"items":[]}],"colourless":["air"]}""";
-
-        Assert.Throws<InvalidDataException>(() => NounCatalog.Parse(TestGame.Bundle, json));
-    }
-
-    [Fact]
-    public void TheCatalogueIsTheBundlesHostFileWhoseBytesTheLoadHashed()
-    {
-        // CR-007: game/nouns.json is a host file of the bundle, read through TryReadHostFile, so the catalogue needs the hash check.
-        var catalogue = NounCatalog.Load(TestGame.Bundle);
-        Assert.Equal(TestGame.Nouns.Nouns.Select(static n => n.Lemma), catalogue.Nouns.Select(static n => n.Lemma));
-
-        var unverified = ContentLoader.Load(GameBundle.ResolveDirectory(), new ContentLoadOptions { VerifyHashes = false });
-        Assert.Throws<InvalidDataException>(() => NounCatalog.Load(unverified));
+        Assert.Equal(16, TestGame.Nouns.Nouns.Count);
     }
 }

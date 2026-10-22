@@ -143,7 +143,7 @@ public sealed class BlockRayTests
     {
         // Property: the exact grid walk finds the same block as marching along the ray in 1/256-block steps (the march can miss a corner that
         // the exact walk clips, so a handful of disagreements is allowed, and then the exact walk must be the nearer one).
-        var rng = new Vocaterra.Simulation.Generation.WorldRng(5);
+        var rng = new Vocaterra.Simulation.WorldRng(5);
         var grid = FlatScene(g =>
         {
             for (var i = 0; i < 300; i++)

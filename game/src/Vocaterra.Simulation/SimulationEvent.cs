@@ -39,7 +39,7 @@ public enum SimulationEventKind
 
 /// <summary>An event a tick produced, for sounds, particles and the guide. </summary>
 /// <param name="Kind">What happened.</param>
-/// <param name="Tick">The tick in which it happened (the value of <see cref="GameSimulation.Tick"/> after that step).</param>
+/// <param name="Tick">The tick in which it happened (the simulation's tick after that step).</param>
 /// <param name="X">The block or tile column of a 3D event, otherwise 0.</param>
 /// <param name="Y">The block layer of a 3D event, otherwise 0.</param>
 /// <param name="Z">The block row of a 3D event, otherwise 0.</param>

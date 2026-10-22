@@ -9,7 +9,7 @@ namespace Vocaterra.MonoGame.Frontend;
 /// the worker has finished, in the order they were submitted, applies them to the session (the arrow, the words) and shows them in the panel.
 /// Neither waits for the worker.
 /// </summary>
-/// <param name="session">The game (the 2D slice or the 3D scene), with its worker started.</param>
+/// <param name="session">The game (the 3D scene), with its worker started.</param>
 /// <param name="dialogue">The panel.</param>
 /// <param name="cursor">The cell under the mouse, the scripted cursor or the crosshair at the moment of the call, for "¿qué es esto?".</param>
 public sealed class TurnPump(GuideSession session, DialogueModel dialogue, Func<GuideCell?> cursor)

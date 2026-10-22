@@ -1,11 +1,11 @@
 using Vocaterra.MonoGame.Frontend;
-using Vocaterra.Simulation;
+using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Tests;
 
 public sealed class TickAccumulatorTests
 {
-    private static readonly int Rate = GameSimulation.TicksPerSecond;
+    private static readonly int Rate = VoxelSimulation.TicksPerSecond;
 
     [Fact]
     public void AFrameOfExactlyOneTickRunsExactlyOneTickForever()

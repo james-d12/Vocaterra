@@ -167,11 +167,6 @@ public static class BlockAtlasLayout
     {
         ItemId.Wood => BlockCell.IconWood,
         ItemId.Berry => BlockCell.IconBerry,
-        ItemId.Stone => BlockCell.Stone,
-        ItemId.Dirt => BlockCell.Dirt,
-        ItemId.Sand => BlockCell.Sand,
-        ItemId.Table => BlockCell.TableTop,
-        ItemId.Door => BlockCell.DoorLeaf,
         ItemId.Torch => BlockCell.TorchFlame,
         _ => null,
     };

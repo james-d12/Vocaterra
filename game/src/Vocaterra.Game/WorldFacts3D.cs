@@ -16,7 +16,7 @@ namespace Vocaterra.Game;
 /// </para>
 /// <para>
 /// <b>Direction.</b> Forward is the facing (<c>sin yaw</c> east, <c>-cos yaw</c> south: yaw 0 looks north) and lateral is to the right
-/// (<c>cos yaw</c>, <c>sin yaw</c>). The larger of the two components leads, as in the 2D slice: <c>adelante</c>, <c>detrás</c>, <c>a la
+/// (<c>cos yaw</c>, <c>sin yaw</c>). The larger of the two components leads: <c>adelante</c>, <c>detrás</c>, <c>a la
 /// izquierda</c>, <c>a la derecha</c>. The other one is added, forward first, when it is at least two blocks and at least half the leading one:
 /// <c>adelante, a la derecha</c>. A block the player stands on gives an empty direction.
 /// </para>

@@ -10,8 +10,7 @@ agent's response text. The game references the core's projects directly and copi
 
 The prototype is the 3D scenario in the next section. The engine for it is MonoGame (decision D-game-1 in [docs/DECISIONS.md](docs/DECISIONS.md);
 the final engine is open), and all engine code lives in `src/Vocaterra.MonoGame`. The console host stays as the cheapest way to exercise the
-core's calls and the content. The 2D slice (P1 to P7), retired at S4, was a small Terraria-like slice: you could walk through a generated
-forest, meet the guide, type Spanish to her (`¿dónde está el árbol?`) and follow the arrow she puts out; see "The guide, typed" below.
+core's calls and the content. The 2D slice (P1 to P7) was retired at S4; its code is tagged `2d-slice-p7` (the last commit that holds it).
 
 ## The prototype scenario
 
@@ -25,7 +24,7 @@ Design Brief, v1.2); its plan, milestone by milestone, is [docs/SCENARIO_PLAN.md
 - **The transfer moment.** After the objective, one phrase is revisited without the original prompt, or with a different NPC or context.
 
 These are the brief's five target phrases. Nothing in the scenario ends by a language mistake: no death, no timers, no language gate. The run
-lines for the 3D build are in "3D (S2)" below and grow as S3 onward land; the 2D run lines after them are the 2D slice (P1 to P7), retired at S4.
+lines for the 3D world are in "The 3D world" below; they grow as S5 onward land.
 
 ## Layout
 
@@ -34,9 +33,9 @@ This folder, `game/`, is one half of the repository; the shared solution, build 
 
 ```
 Directory.Build.props            the game's additions to the shared build settings (the Linux-only native trim)
-src/Vocaterra.Simulation/        the world and the player body: seeded generation, tiles in chunks, a fixed 60 Hz tick (no packages, no engine)
-src/Vocaterra.Game/              the game session, the guide's typed turns and the facts about the world (the core's projects, no engine)
-src/Vocaterra.MonoGame/          the MonoGame DesktopGL front-end: window, drawing, input, the dialogue panel (the only engine code)
+src/Vocaterra.Simulation/        the 3D voxel world and the player body: the scene, gathering, crafting, a fixed 60 Hz tick (no packages, no engine)
+src/Vocaterra.Game/              the 3D session, the guide's turns, the word progress, the camp objective and the facts about the world (no engine)
+src/Vocaterra.MonoGame/          the MonoGame DesktopGL front-end: the first-person window, drawing, input, the HUD (the only engine code)
 src/Vocaterra.Host/              the console host: loads the bundle, evaluates lines, runs the text loop
 tests/                           one test project per source project (Simulation, Game, MonoGame, Host)
 content/game-v1/                 the game's content bundle (see below)
@@ -87,97 +86,56 @@ for each typed line; `ConversationContext.Create` for the utterance's context an
 `RepeatCounts.Next` to the error tags. The host owns the world seed, the stored time (fixed for `--transcript`, the clock in the loop),
 the learner model and the repeat counts.
 
-## 3D (S2, S3)
+## The 3D world (S2 to S4)
 
-The first-person voxel scene runs beside the 2D slice (which stays the default until S4): add `--voxel`. It loads the prototype route from the
-bundle (`content/game-v1/game/scene.json`, a 96 x 32 x 96 block world: the forest clearing with the camp, the path south-east, the village with
-the stall and its shopkeeper behind the counter, the villager on the square, three houses, the signpost `Tienda / Río`, the river and its bridge)
-at `--seed` (default 42) and shows it from the player's eyes.
+The prototype's world is the first-person voxel scene: it loads the prototype route from the bundle
+(`content/game-v1/game/scene.json`, a 96 x 32 x 96 block world: the forest clearing with the camp, the workbench, the fire ring and the guide, the
+path south-east, the village with the stall and its shopkeeper behind the counter, the villager on the square, three houses, the signpost
+`Tienda / Río`, the river and its bridge) at `--seed` (default 42), and shows it from the player's eyes. (`--voxel`, which selected it until S4, is
+accepted and ignored.)
 
 ```bash
-dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42
 ```
 
-WASD or the arrows walk, Space jumps, the mouse looks (Esc lets the mouse go, a click takes it back), **hold the left button** on a trunk or a
-berry bush to gather it (`madera`, `fruta`), the right button places the selected item, `1`..`0` or the wheel pick the hotbar slot, **I** the
-inventory, **J** the journal, **F3** the debug overlay. **Aim the crosshair at the guide's figure**: the hint `E: hablar` shows, and **E** (or
-**T** to type, or **V** to talk: hold it, the clip goes when it is let go) opens the dialogue panel, which takes the keyboard and frees the mouse.
-Enter sends, Esc closes, Tab holds push-to-talk. Her answers point the beacon at the named noun's nearest block (the arrow at the screen edge
-when it is off screen); "¿qué es esto?" names the block under the crosshair. Other NPCs cannot be talked to yet (S6), and crafting is S4.
+WASD or the arrows walk, Space jumps, the mouse looks (Esc lets the mouse go, a click takes it back). **Hold the left button** on a trunk
+(`madera`, five for the camp) or a berry bush (`fruta`, three) to gather it, the right button places the selected item, `1`..`0` or the wheel
+pick the hotbar slot, **I** the inventory, **C** the crafting panel, **E** the inventory or, with the crosshair on the workbench (`mesa`), the
+crafting panel. The panel lists the recipes (the torch: `antorcha` from two `madera` at the workbench); a click on a row crafts it. **J** the
+journal, **F3** the debug overlay. **Aim the crosshair at the guide's figure**: the hint `E: hablar` shows, and **E** (or **T** to type, or **V**
+to talk: hold it, the clip goes when it is let go) opens the dialogue panel, which takes the keyboard and frees the mouse. Enter sends, Esc
+closes, Tab holds push-to-talk. Her answers point the beacon at the named noun's nearest block (the arrow at the screen edge when it is off
+screen); "¿qué es esto?" names the block under the crosshair. Other NPCs cannot be talked to yet (S6).
 
-To check it without playing, script it and save a screenshot (needs a display; every line below also prints what the step did):
+**The camp objective (S4).** The checklist top right, `Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1`, is completed by the
+game's events and the inventory, never by a language score: five trunks, three berries, the torch placed at the fire ring, and the water, which
+S6 completes when the bottle is filled. Each step that completes shows a toast. The first time an item enters the inventory (a pickup, a craft)
+its word card shows, `la madera`, `la fruta`, `la antorcha`, with an empty audio slot for S9; the word counts as heard and read, never as a quiz.
+
+To check it without playing, script it and save a screenshot (needs a display; every line also prints what its step did):
 
 ```bash
-# the guide answers "where is the river?": the console prints the verdict, her two lines and the arrow; the PNG shows the panel and the arrow
-dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42 --look 120,-5 --say "¿dónde está el río?" --screenshot /tmp/s3-river.png --frames 300
+# the camp (S4): gather, craft at the workbench, place the torch on the fire ring's rim, look at it: the checklist reads 3/4
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --interact 17,11,15 --interact 15,11,19 \
+  --walk-to 17,20 --interact 16,11,23 --walk-to 11,17 --interact 9,11,17 --interact 9,12,17 --interact 9,13,17 --interact 9,14,17 \
+  --walk-to 11,11 --interact 11,11,9 --walk-to 20,17 --craft antorcha \
+  --walk-to 20,19 --place antorcha@21,12,21 --walk-to 22,19 --look 180,-15 --screenshot /tmp/s4-camp.png
+# the guide answers "where is the river?": the console prints the verdict, her line and the arrow; the PNG shows the panel and the arrow
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --say "¿dónde está el río?" --screenshot /tmp/s3-river.png --frames 300
 # the village: walk to the square's north side and look at the stall: the shopkeeper behind the counter facing the player, with his label
-dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42 --walk-to 62,52 --look 180,-12 --screenshot /tmp/s3-stall.png --frames 150
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --walk-to 62,52 --look 180,-12 --screenshot /tmp/s3-stall.png --frames 150
 # the signpost, from the east side of the path: the label "Tienda / Río" over the board
-dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42 --walk-to 64,53 --look 262,-8 --screenshot /tmp/s3-sign.png --frames 150
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --walk-to 64,53 --look 262,-8 --screenshot /tmp/s3-sign.png --frames 150
 # the camp from the player's eyes at spawn: the guide's figure and label, the beacon on the river (an arrow at the edge when it is off screen)
-dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42 --look 120,-5 --beacon river --screenshot /tmp/s2-camp.png --frames 240
-# walk to a tree, gather its four trunk blocks and look down: the trunk is gone and madera is in the hotbar
-dotnet run --project game/src/Vocaterra.MonoGame -- --voxel --seed 42 --walk-to 11,17 --interact 9,11,17 --interact 9,12,17 --interact 9,13,17 --interact 9,14,17 --look 270,-45 --screenshot /tmp/s2-gather.png
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --beacon river --screenshot /tmp/s2-camp.png --frames 240
 # the host's stall prompt (no display): the request is understood
 dotnet run --project game/src/Vocaterra.Host -- --transcript "quiero agua, por favor" --prompt stall-need
 ```
 
 The steps `--look yaw,pitch` (degrees, yaw 0 north and 90 east), `--walk-to x,z`, `--interact x,y,z`, `--place item@x,y,z`, `--select n` and
-`--say <line>` (walk to the guide, face her, open the panel, type and send each line, and wait for her reply) run in the order given;
-`--beacon <point>` stands the beacon column on a named point of the scene. Details are in `src/Vocaterra.MonoGame/README.md`.
-
-## The guide, typed
-
-> **The 2D slice (P1 to P7), retired at S4.** The run lines in this section are for the 2D slice.
-
-The smallest vertical slice that proves the core inside the game loop (milestone P3). From the repository root, with a display:
-
-```bash
-dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42
-```
-
-Walk with A and D (Space jumps) to the guide, the figure in the purple robe. When "Pulsa T para hablar" shows, press **T**: the dialogue panel
-opens and takes the keyboard, so the movement keys type letters. Type a Spanish line and press **Enter**; **Esc** closes the panel. Without
-an accent key, hold **Alt** with a vowel for `á é í ó ú`, **Alt+N** for `ñ`, **Alt+/** for `¿` and **Alt+1** for `¡` (accents are optional:
-`dónde esta el arbol` is understood too). Try `¿dónde está el árbol?`, `¿dónde hay piedra?`, `¿qué es esto?` (with the mouse on something),
-`ayuda`, `hola`, `gracias`, `adiós`. The panel shows your line, a note with the core's verdict, the guide's correction when you made a mistake,
-her reply and, for a question about where something is, the game's own line with the direction and distance (`El árbol está a la derecha, a
-doce bloques.`) while an arrow points at the tile until you reach it or press **Esc** with the panel closed.
-
-To check it without typing, the front-end can script the whole thing and save a screenshot (see `src/Vocaterra.MonoGame/README.md`):
-
-```bash
-dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --say "¿dónde está el árbol?" --screenshot /tmp/p3.png --frames 240
-```
-
-## The guide, spoken (P5)
-
-> **The 2D slice (P1 to P7), retired at S4.** The run lines in this section are for the 2D slice.
-
-Hold **Tab** while the dialogue is open, or hold **V** next to the guide (it opens the panel and listens), say the line, and let go: the clip is
-trimmed, converted to 16 kHz, recognized by Vosk and evaluated like a typed line, on a worker thread, so the game never stalls ("Escuchando…",
-then "Pensando…" in the panel). A spoken correct use earns full credit (three uses make a word known); a typed one earns half (six),
-`--typed-credit full` gives typed input full credit again. Without a microphone the panel says so and typing works.
-
-It needs the speech models, fetched outside the repository (`VOCATERRA_MODELS_DIR` names the folder; the core's `scripts/fetch-models.sh`
-fills it with `vosk-model-small-es-0.42` and `kokoro-multi-lang-v1_0`). Without them the game starts and runs, typed only, and says why:
-
-```bash
-export VOCATERRA_MODELS_DIR="$HOME/.local/share/vocaterra/models"
-dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42
-```
-
-Spoken input without a microphone, for demos and tests (each is an ordered script step like `--say`; they print the transcript, the
-confidence and the timings in the turn line):
-
-```bash
-dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --speak "¿dónde está el árbol?" --screenshot /tmp/p5.png   # Kokoro speaks it, Vosk hears it
-dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --wav line.wav --screenshot /tmp/p5-wav.png               # a 16-bit PCM WAV, any rate
-dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --listen 3 --screenshot /tmp/p5-mic.png                   # the real microphone for 3 s
-```
-
-Kokoro's audio is cached under `~/.cache/vocaterra/tts` (nothing of it is in the repository). See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-for the worker thread, the models folder and the native libraries.
+`--craft item` run in the order given; `--say <line>` (walk to the guide, face her, open the panel, type and send each line, and wait for her
+reply) runs after them; `--beacon <point>` stands the beacon column on a named point of the scene. Details are in `src/Vocaterra.MonoGame/README.md`.
+Spoken input (push-to-talk) works in the interactive game; the scripted `--speak` step comes back with the speech UX in S7.
 
 ## Content
 
@@ -200,6 +158,9 @@ scripts/content.sh hash game/content/game-v1 --bundle-id game-v1  # rewrite mani
 scripts/content.sh cefr-check game/content/game-v1 --level a1     # and --level a2: the lemmas the templates use that the level list lacks
 scripts/content.sh lint game/content/game-v1 --strict --level a1 --host-pools 'guide.*'   # 0 errors, 0 warnings (the guide's host-voiced pools are named)
 ```
+
+Since S4 the catalogue holds only the nouns of the 3D world (the ores, tools and furniture of the 2D slice are gone), and the recipes are the
+workbench's torch alone; the core's sample keeps the rest.
 
 The content gate from S5 on: `lint --strict` at A1 clean (an example expectation for every phrase the learner says, in `intents/intents.json`),
 `cefr-check` clean at A1 and A2, and the phrase-sheet test green. `--host-pools 'guide.*'` tells the lint that the game voices the guide's

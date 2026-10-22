@@ -27,7 +27,7 @@ public sealed class HotbarLayer : IFrameLayer
         var inventory = view.Items;
         var pixel = view.Pixel;
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var viewport = new Rectangle(0, 0, view.Camera.ViewportWidth, view.Camera.ViewportHeight);
+        var viewport = new Rectangle(0, 0, view.ViewportWidth, view.ViewportHeight);
         var width = (Inventory.HotbarSize * SlotSize) + ((Inventory.HotbarSize - 1) * Gap);
         var left = (viewport.Width - width) / 2;
         var top = viewport.Height - SlotSize - Bottom;

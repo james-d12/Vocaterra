@@ -21,7 +21,7 @@ public sealed class VoxelSessionTests
     public void TheGuidePointsAtTheNearestRiverBlockFromWhereThePlayerFaces()
     {
         var scene = RouteScene();
-        var session = new VoxelSession(TestGame.Bundle, TestGame.Seed, GameSession.DefaultStartedAt, TestGame.Nouns, scene);
+        var session = new VoxelSession(TestGame.Bundle, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Nouns, scene);
         var turn = session.Say("¿dónde está el río?");
 
         Assert.True(turn.Communicated);
@@ -47,7 +47,7 @@ public sealed class VoxelSessionTests
     public void ThePlayerWhoAsksWhatTheCursorIsOnIsToldTheNounOfTheBlock()
     {
         var scene = RouteScene();
-        var session = new VoxelSession(TestGame.Bundle, TestGame.Seed, GameSession.DefaultStartedAt, TestGame.Nouns, scene);
+        var session = new VoxelSession(TestGame.Bundle, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Nouns, scene);
         var water = scene.Point("river");
         var turn = session.Say("¿qué es esto?", water);
 
@@ -59,7 +59,7 @@ public sealed class VoxelSessionTests
     public void ANamedRiverBlockIsAguaAndRioAndANameOfEitherIsRight()
     {
         var scene = RouteScene();
-        var session = new VoxelSession(TestGame.Bundle, TestGame.Seed, GameSession.DefaultStartedAt, TestGame.Nouns, scene);
+        var session = new VoxelSession(TestGame.Bundle, TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Nouns, scene);
         var water = scene.Point("river");
         Assert.Equal(BlockId.Water, scene.Grid.GetBlock(water.X, water.Y, water.Z));
 

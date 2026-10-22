@@ -1,6 +1,7 @@
 using Vocaterra.Game;
 using Vocaterra.Simulation;
 using Vocaterra.Simulation.Crafting;
+using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Frontend;
 
@@ -161,8 +162,8 @@ public sealed class CraftingScreen
         return lemmas.Distinct(StringComparer.Ordinal).ToList();
     }
 
-    /// <summary>The panel's rows for the simulation's current inventory and surroundings, in the book's order.</summary>
-    public static IReadOnlyList<CraftingRow> Rows(GameSimulation simulation, RecipeBook book)
+    /// <summary>The panel's rows for the 3D simulation's inventory and the stations in reach, in the book's order.</summary>
+    public static IReadOnlyList<CraftingRow> Rows(VoxelSimulation simulation, RecipeBook book)
     {
         ArgumentNullException.ThrowIfNull(simulation);
         ArgumentNullException.ThrowIfNull(book);

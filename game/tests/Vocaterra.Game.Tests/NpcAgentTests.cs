@@ -17,7 +17,7 @@ namespace Vocaterra.Game.Tests;
 /// </summary>
 public sealed class NpcAgentTests
 {
-    private static readonly StoredTimestamp Start = new(GameSession.DefaultStartedAt);
+    private static readonly StoredTimestamp Start = new(GuideSession.DefaultStartedAt);
 
     [Fact]
     public void TheBundleHoldsTheGuideTheShopkeeperAndTheVillagerOnly()

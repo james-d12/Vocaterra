@@ -22,8 +22,8 @@ public sealed class CrosshairLayer : IFrameLayer
             return;
         }
 
-        var cx = view.Camera.ViewportWidth / 2;
-        var cy = view.Camera.ViewportHeight / 2;
+        var cx = view.ViewportWidth / 2;
+        var cy = view.ViewportHeight / 2;
         const int Arm = 9;
         const int Thick = 2;
         var pixel = view.Pixel;
@@ -65,8 +65,8 @@ public sealed class HeldItemLayer : IFrameLayer
             return;
         }
 
-        var width = view.Camera.ViewportWidth;
-        var height = view.Camera.ViewportHeight;
+        var width = view.ViewportWidth;
+        var height = view.ViewportHeight;
         var tick = sim.Tick;
         var moving = sim.Player.VelocityX != 0 || sim.Player.VelocityZ != 0;
         var sway = moving ? new Vector2(MathF.Sin(tick * 0.17f) * 5f, MathF.Abs(MathF.Cos(tick * 0.17f)) * 6f) : Vector2.Zero;
@@ -173,8 +173,8 @@ public sealed class BeaconArrowLayer : IFrameLayer
             return;
         }
 
-        var width = view.Camera.ViewportWidth;
-        var height = view.Camera.ViewportHeight;
+        var width = view.ViewportWidth;
+        var height = view.ViewportHeight;
         var eye = view.Eye;
         var point = camera.Screen.Project(target.X + 0.5, target.Y + 4.0, target.Z + 0.5);
         var arrow = EdgeArrow.For(point, width, height, EdgeMargin);

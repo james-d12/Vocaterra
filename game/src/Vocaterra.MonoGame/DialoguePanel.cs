@@ -52,12 +52,11 @@ public sealed class DialoguePanel : IFrameLayer
             return;
         }
 
-        var camera = view.Camera;
         var pixel = view.Pixel;
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var width = Math.Min(MaxWidth, camera.ViewportWidth - (Margin * 2));
-        var height = Math.Min(PanelHeight, camera.ViewportHeight - (Margin * 2));
-        var panel = new Rectangle((camera.ViewportWidth - width) / 2, camera.ViewportHeight - height - Margin, width, height);
+        var width = Math.Min(MaxWidth, view.ViewportWidth - (Margin * 2));
+        var height = Math.Min(PanelHeight, view.ViewportHeight - (Margin * 2));
+        var panel = new Rectangle((view.ViewportWidth - width) / 2, view.ViewportHeight - height - Margin, width, height);
         spriteBatch.Draw(pixel, panel, Background);
         DrawHelpers.Border(spriteBatch, pixel, panel, 2, Frame);
 

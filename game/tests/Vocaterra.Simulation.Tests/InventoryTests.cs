@@ -1,9 +1,8 @@
 using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.Simulation.Tests;
 
-/// <summary>Stacks, limits, the hotbar and the removals of <see cref="Inventory"/>.</summary>
+/// <summary>The inventory as plain values: forty slots, a ten-slot hotbar, stacks with one limit per kind, and what does not fit.</summary>
 public sealed class InventoryTests
 {
     [Fact]
@@ -21,122 +20,58 @@ public sealed class InventoryTests
     }
 
     [Fact]
-    public void ANewGameStartsWithAnAxeAndAPickaxeOnTheHotbar()
-    {
-        var sim = GameSimulation.Create(42);
-        Assert.Equal(new ItemStack(ItemId.Axe, 1), sim.Inventory.Slots[0]);
-        Assert.Equal(new ItemStack(ItemId.Pickaxe, 1), sim.Inventory.Slots[1]);
-        Assert.Equal(0, sim.SelectedSlot);
-        Assert.Equal(new ItemStack(ItemId.Axe, 1), sim.SelectedStack);
-    }
-
-    [Fact]
-    public void AddingFillsTheExistingStackBeforeAnEmptySlotAndStopsAtTheLimit()
+    public void AStackHoldsNinetyNineAndTheRestGoesToTheNextSlot()
     {
         var inventory = new Inventory();
-        Assert.Equal(0, inventory.Add(ItemId.Dirt, 60));
-        Assert.Equal(0, inventory.Add(ItemId.Stone, 5));
-        Assert.Equal(0, inventory.Add(ItemId.Dirt, 50));
 
-        Assert.Equal(new ItemStack(ItemId.Dirt, 99), inventory.Slots[0]);
-        Assert.Equal(new ItemStack(ItemId.Stone, 5), inventory.Slots[1]);
-        Assert.Equal(new ItemStack(ItemId.Dirt, 11), inventory.Slots[2]);
-        Assert.Equal(110, inventory.Count(ItemId.Dirt));
-        Assert.Equal(5, inventory.Count(ItemId.Stone));
+        Assert.Equal(0, inventory.Add(ItemId.Wood, 99));
+        Assert.Equal(0, inventory.Add(ItemId.Wood, 1));
+        Assert.Equal(new ItemStack(ItemId.Wood, 99), inventory.Slots[0]);
+        Assert.Equal(new ItemStack(ItemId.Wood, 1), inventory.Slots[1]);
+        Assert.Equal(100, inventory.Count(ItemId.Wood));
     }
 
     [Fact]
-    public void AStackNeverExceedsTheLimitOfItsKind()
-    {
-        Assert.Equal(ItemDefinition.DefaultStackLimit, ItemDefinition.Get(ItemId.Wood).MaxStack);
-        Assert.Equal(ItemDefinition.ToolStackLimit, ItemDefinition.Get(ItemId.Axe).MaxStack);
-        Assert.Equal(1, ItemDefinition.ToolStackLimit);
-        Assert.Throws<ArgumentOutOfRangeException>(() => new Inventory().SetSlot(0, new ItemStack(ItemId.Axe, 2)));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new Inventory().SetSlot(0, new ItemStack(ItemId.Wood, 100)));
-    }
-
-    [Fact]
-    public void AddingReturnsWhatDoesNotFitAndCanAddSaysSoFirst()
+    public void WhatDoesNotFitIsReturnedAndNothingIsLost()
     {
         var inventory = new Inventory();
-        Assert.Equal(0, inventory.Add(ItemId.Dirt, 40 * 99));
-        Assert.False(inventory.CanAdd(ItemId.Dirt, 1));
-        Assert.False(inventory.CanAdd(ItemId.Stone, 1));
-        Assert.Equal(1, inventory.Add(ItemId.Stone, 1));
-        Assert.Equal(40 * 99, inventory.Count(ItemId.Dirt));
-        Assert.Equal(0, inventory.Count(ItemId.Stone));
+        Assert.Equal(0, inventory.Add(ItemId.Berry, 99 * 40));
+        Assert.False(inventory.CanAdd(ItemId.Berry, 1));
+        Assert.Equal(5, inventory.Add(ItemId.Berry, 5));
+        Assert.Equal(99 * 40, inventory.Count(ItemId.Berry));
     }
 
     [Fact]
-    public void CanAddChangesNothing()
+    public void RemovingTakesFromTheKindAndFailsWhenThereIsNotEnough()
     {
         var inventory = new Inventory();
-        inventory.Add(ItemId.Wood, 7);
-        var before = inventory.Slots.ToArray();
-        Assert.True(inventory.CanAdd(ItemId.Wood, 50));
-        Assert.Equal(before, inventory.Slots);
-    }
+        inventory.Add(ItemId.Wood, 3);
 
-    [Fact]
-    public void ToolsTakeOneSlotEach()
-    {
-        var inventory = new Inventory();
-        Assert.Equal(0, inventory.Add(ItemId.Axe, 2));
-        Assert.Equal(new ItemStack(ItemId.Axe, 1), inventory.Slots[0]);
-        Assert.Equal(new ItemStack(ItemId.Axe, 1), inventory.Slots[1]);
-        Assert.True(inventory.Slots[2].IsEmpty);
-    }
-
-    [Fact]
-    public void RemoveIsAllOrNothingAndTakesFromTheLowestSlotFirst()
-    {
-        var inventory = new Inventory();
-        inventory.Add(ItemId.Wood, 99);
-        inventory.Add(ItemId.Wood, 20);
-        Assert.False(inventory.Remove(ItemId.Wood, 200));
-        Assert.Equal(119, inventory.Count(ItemId.Wood));
-        Assert.True(inventory.Remove(ItemId.Wood, 100));
-        Assert.Equal(19, inventory.Count(ItemId.Wood));
-        Assert.Equal(new ItemStack(ItemId.Wood, 19), inventory.Slots[1]);
+        Assert.False(inventory.Remove(ItemId.Wood, 4));
+        Assert.Equal(3, inventory.Count(ItemId.Wood));
+        Assert.True(inventory.Remove(ItemId.Wood, 2));
+        Assert.Equal(1, inventory.Count(ItemId.Wood));
+        Assert.True(inventory.Remove(ItemId.Wood, 1));
         Assert.True(inventory.Slots[0].IsEmpty);
     }
 
     [Fact]
-    public void RemoveFromSlotEmptiesTheSlotWhenItRunsOut()
+    public void CopyIsIndependent()
     {
         var inventory = new Inventory();
-        inventory.SetSlot(3, new ItemStack(ItemId.Flower, 2));
-        Assert.False(inventory.RemoveFromSlot(3, 3));
-        Assert.True(inventory.RemoveFromSlot(3, 1));
-        Assert.Equal(new ItemStack(ItemId.Flower, 1), inventory.Slots[3]);
-        Assert.True(inventory.RemoveFromSlot(3, 1));
-        Assert.True(inventory.Slots[3].IsEmpty);
-        Assert.False(inventory.RemoveFromSlot(3, 1));
+        inventory.Add(ItemId.Torch, 2);
+
+        var copy = inventory.Copy();
+        inventory.Remove(ItemId.Torch, 2);
+
+        Assert.Equal(2, copy.Count(ItemId.Torch));
+        Assert.Equal(0, inventory.Count(ItemId.Torch));
     }
 
     [Fact]
-    public void SettingAnEmptyStackClearsTheSlot()
+    public void EveryItemHasItsStackLimitInTheDefinitionsAndNothingElse()
     {
-        var inventory = new Inventory();
-        inventory.SetSlot(5, new ItemStack(ItemId.Sand, 4));
-        inventory.SetSlot(5, ItemStack.Empty);
-        Assert.True(inventory.Slots[5].IsEmpty);
-        Assert.Throws<ArgumentOutOfRangeException>(() => inventory.SetSlot(40, ItemStack.Empty));
-    }
-
-    [Fact]
-    public void EveryItemKindHasADefinitionWithItsOwnId()
-    {
-        for (var i = 0; i < ItemDefinition.All.Count; i++)
-        {
-            Assert.Equal((ItemId)i, ItemDefinition.All[i].Id);
-            Assert.Equal(ItemDefinition.All[i], ItemDefinition.Get((ItemId)i));
-        }
-
-        Assert.Equal(25, ItemDefinition.All.Count);
-        Assert.Equal(ToolKind.Axe, ItemDefinition.Get(ItemId.Axe).Tool);
-        Assert.Equal(ToolKind.Pickaxe, ItemDefinition.Get(ItemId.Pickaxe).Tool);
-        Assert.Null(ItemDefinition.Get(ItemId.Axe).PlacesTile);
-        Assert.Equal(TileId.Planks, ItemDefinition.Get(ItemId.Wood).PlacesTile);
+        Assert.Equal(new[] { ItemId.Wood, ItemId.Torch, ItemId.Berry }, ItemDefinition.All.Select(static d => d.Id).ToArray());
+        Assert.All(ItemDefinition.All, static d => Assert.Equal(ItemDefinition.DefaultStackLimit, d.MaxStack));
     }
 }

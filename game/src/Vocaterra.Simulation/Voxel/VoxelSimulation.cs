@@ -285,7 +285,7 @@ public sealed class VoxelSimulation
     }
 
     private bool RecipeStationInReach(Recipe recipe) =>
-        recipe.Station is { } station && BlockDefinition.StationBlock(station) is { } block && StationInReach(block);
+        recipe.Station is { } station && StationInReach(station);
 
     /// <summary>The summed walking intent of the tick's move commands, each component within +-1.0 (fixed point).</summary>
     private (int X, int Z) WalkIntent(IReadOnlyList<VoxelCommand> commands)

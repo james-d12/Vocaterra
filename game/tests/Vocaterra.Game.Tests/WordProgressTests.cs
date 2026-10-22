@@ -4,7 +4,8 @@ using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Pipeline;
-using Vocaterra.Simulation.Tiles;
+using Vocaterra.Simulation.Items;
+using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Tests;
 
@@ -41,7 +42,7 @@ public sealed class WordProgressTests
             TestGame.Seed,
             GuideService.AgentId,
             TestGame.Bundle.Agents[GuideService.AgentId].InitialState(),
-            new StoredTimestamp(GameSession.DefaultStartedAt),
+            new StoredTimestamp(GuideSession.DefaultStartedAt),
             LearnerModel.New(),
             new Dictionary<string, int>(StringComparer.Ordinal),
             SlotMap.Empty,
@@ -51,7 +52,7 @@ public sealed class WordProgressTests
     }
 
     // Stored time in the tests: the session's default start plus minutes and seconds.
-    private static long At(int minutes, int seconds = 0) => GameSession.DefaultStartedAt + (minutes * 60L) + seconds;
+    private static long At(int minutes, int seconds = 0) => GuideSession.DefaultStartedAt + (minutes * 60L) + seconds;
 
     private static SlotMap Object(string lemma) => SlotMap.From(new Dictionary<string, string> { ["object"] = lemma });
 
@@ -202,16 +203,14 @@ public sealed class WordProgressTests
     }
 
     [Fact]
-    public void ColourFollowsTheLemmaAndTheTileTakesTheColourOfItsNoun()
+    public void ColourFollowsTheLemmaAndABlockTakesTheColourOfItsNoun()
     {
         var words = new WordProgress(TestGame.Nouns);
         words.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Typed, CreditRules.FullTyped, At(0));
 
-        Assert.Equal(1.0 / 3, words.SaturationOf(TileId.Trunk), 9);
-        Assert.Equal(1.0 / 3, words.SaturationOf(TileId.Leaves), 9);
-        Assert.Equal(0.0, words.SaturationOf(TileId.Stone));
+        Assert.Equal(1.0 / 3, words.SaturationOf("árbol"), 9);
         Assert.Equal(0.0, words.SaturationOf("piedra"));
-        Assert.Equal(1.0, words.SaturationOf(TileId.Air));
+        Assert.Equal(0.0, words.SaturationOf(ItemId.Berry)); // the berry is named by fruta, which is not seen yet
     }
 
     [Fact]
@@ -254,7 +253,7 @@ public sealed class WordProgressTests
         long[] spokenAt = [0, 10 * 60, (10 * 60) + (60 * 60)];
         foreach (var second in spokenAt)
         {
-            spoken.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Spoken, rules, GameSession.DefaultStartedAt + second);
+            spoken.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Spoken, rules, GuideSession.DefaultStartedAt + second);
         }
 
         Assert.True(spoken.RecordOf("árbol").Known);
@@ -266,7 +265,7 @@ public sealed class WordProgressTests
         for (var i = 0; i < gaps.Length; i++)
         {
             time += gaps[i];
-            typed.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Typed, rules, GameSession.DefaultStartedAt + time);
+            typed.RecordTurn(Turn("es un árbol", slots: Object("árbol")), InputKind.Typed, rules, GuideSession.DefaultStartedAt + time);
             Assert.Equal(i < gaps.Length - 1, !typed.RecordOf("árbol").Known);
             Assert.Equal((i + 1) / 2.0, typed.RecordOf("árbol").Uses, 9);
         }
@@ -301,8 +300,8 @@ public sealed class WordProgressTests
         Assert.Null(Turn("es un árbol").Confidence);
 
         var typed = TestGame.NewSession(credit: CreditRules.Default);
-        var player = typed.PlayerTile;
-        var cursor = TestGame.BruteForceNearest(typed.Simulation.World, player, TileId.Trunk);
+        var player = typed.Simulation.Player.FeetBlock;
+        var cursor = TestGame.NearestBlock(typed, BlockId.Trunk);
         var turn = typed.Say("es un árbol", cursor);
 
         Assert.Equal(InputKind.Typed, turn.Input);
@@ -339,7 +338,7 @@ public sealed class WordProgressTests
     public void ThreeTypedUsesOfTheTreeInTheCoreSpacedByTheGapsMakeItKnown()
     {
         var session = TestGame.NewSession();
-        var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
+        var tree = TestGame.NearestOf(session, "árbol");
 
         for (var i = 1; i <= WordProgress.UsesToKnow; i++)
         {
@@ -353,7 +352,7 @@ public sealed class WordProgressTests
 
         Assert.True(session.Words.RecordOf("árbol").Known);
         Assert.Equal(["árbol"], session.Words.KnownLemmas);
-        Assert.Equal(1.0, session.Words.SaturationOf(TileId.Trunk));
+        Assert.Equal(1.0, session.Words.SaturationOf("árbol"));
     }
 
     [Fact]
@@ -374,7 +373,7 @@ public sealed class WordProgressTests
         // Measured on the core at db39999: `es un arbol` is understood as name_object with no error, so the unaccented word earns credit. The
         // journal shows the accented spelling (the lemma). A bare `arbol` is not a sentence and earns no credit as an intent.
         var session = TestGame.NewSession();
-        var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
+        var tree = TestGame.NearestOf(session, "árbol");
 
         var turn = session.Say("es un arbol", tree);
 
@@ -388,7 +387,7 @@ public sealed class WordProgressTests
     public void ANamedNounAtTheRightTileGetsTheRightReplyAndAWrongOneTheCorrection()
     {
         var session = TestGame.NewSession();
-        var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
+        var tree = TestGame.NearestOf(session, "árbol");
 
         var right = session.Say("es un árbol", tree);
         Assert.Contains("Es un árbol", right.WorldLine);
