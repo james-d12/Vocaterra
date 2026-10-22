@@ -186,7 +186,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S17 | The opening at the cliff camp, the guide's 5 to 10 minute lesson, the ending; new phrases, checks, Opus pass, speech | done (merged to `feature/prototype` 2026-10-22, `b0ebf5f`, bundle `9582e14f…`); **the owner listens to the 72 new WAVs** (`docs/SPEECH_CHECKLIST.md`) | Sonnet 5.5 | S13, S16, D-game-15 |
 | S17b | The talk key (V) shown in the dialogue in every state; the microphone check, the game's own errors and key hints in English (owner's playtest notes) | done (merged to `feature/prototype` 2026-10-22, `678e5a2`) | Haiku 5.5 | S17 |
 | S19 | The learner's record: every spoken and typed input, the nouns and verbs used (from the core's word readings), the lessons completed; save version 2 (D-game-16) | done (merged to `feature/prototype` 2026-10-22, `c92e486`) | Haiku 5.5 | S17, D-game-16 |
-| S19b | Check answers do not count in the word record (owner); old saves lose the check uses their history holds | planned (after S24) | Haiku 5.5 | S19, S24 |
+| S19b | Check answers do not count in the word record (owner); old saves lose the check uses their history holds | done (merged to `main` 2026-10-23, `7fda074`) | Haiku 5.5 | S19, S24 |
 | S20 | The book: the journal as an openable book with Nouns, Verbs, Phrases, Lessons and What I said pages (D-game-16) | done (merged to `feature/prototype` 2026-10-22, `ee2ec79`) | Haiku 5.5 | S15, S19 |
 | S20b | Replay any noun or phrase from the book (speaker button, slow with Shift); card recordings for the 12 block nouns; heard-only phrases play their NPC line | planned (after S19b) | Haiku 5.5 | S20, S24 |
 | S21 | F8: the in-game bug and feature report, saved as Markdown with a screenshot, game state, recent turns and the session log tail; local only (D-game-17) | done (merged to `feature/prototype` 2026-10-22, `917d2c4`) | Haiku 5.5 | S19, S20, D-game-17 |
@@ -1061,6 +1061,20 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - in-flight one-shots are cut hard when recording starts;
     - the real audio device was not exercised headless;
     - the cue choices rest on file names, so the owner should listen once.
+- **S19b, check answers out of the word record (2026-10-23, Haiku 5.5; merged to `main` `7fda074`).**
+  - **The fold.** `LearnerWords` skips `InputPlace.Check` entries, which stay in the history and in What I said.
+  - **Save version 3** (versions 1 to 3 load). A version 2 save is migrated on load:
+    - if its history holds every entry, the rows are folded again, exactly;
+    - otherwise the check uses the history still holds are subtracted, and first and last uses are repointed.
+    The bump stops a re-saved version 2 save from being subtracted twice.
+  - **Stale references to M50's removed files** fixed in `nuget.config`, `scripts/content.sh`, `scripts/README.md`, the root README,
+    `.gitignore` comments and `game/docs/ARCHITECTURE.md`.
+  - **Gate:** 4,481 passed, 5 skipped.
+  - **Not fixed:**
+    - a check that was trimmed out of a version 2 history stays counted;
+    - `game/docs/research/PROTOTYPE_RESEARCH.md` (a dated snapshot) still cites the removed files;
+    - the parked `.github/workflows-pending/ci.yml` still calls `pack.sh` and `sample-host.sh`. CI is deferred (D1), so it is noted for
+      when CI returns.
 
 ## 6. Definition of done (every milestone)
 
