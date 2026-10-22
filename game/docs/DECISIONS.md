@@ -22,6 +22,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-14 | World scale and look | decided (owner, 2026-10-22): about 384 x 384 x 128, rich voxel (D-game-8 kept), close to the brief's references A to C, target a real GPU with quality presets | nothing |
 | D-game-15 | The opening and the guide's lesson | decided (owner, 2026-10-22): start alone at the player's cliff camp; a gradual guide lesson of 5 to 10 minutes; the phrase set grows beyond D-game-12's interim limit | nothing |
 | D-game-16 | The learner's book: words used and lessons completed | decided (owner, 2026-10-22): record every spoken and typed input; a book shows the nouns and verbs used and the lessons completed | nothing |
+| D-game-17 | In-game bug and feature reports | decided (owner, 2026-10-22): F8 saves a Markdown report with a screenshot, game state, recent turns and the session log tail; local files only, no upload | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -168,6 +169,15 @@ lessons completed. The journal (J) becomes that book, with the lessons on a page
 the player's machine only. It is game state (game words live in `game/`); the core already returns the word readings, so no core change.
 The orchestrator's choices, open to the owner's change: verbs listed by infinitive with the forms used; only words the core read from its
 lexicon are listed (recogniser noise is not); the save keeps the newest 500 lines. Plan: section 8, S19 (the record) and S20 (the book).
+
+## D-game-17: in-game bug and feature reports (decided)
+
+**Owner, 2026-10-22.** "We need a bug / feature request feature in the game. So pressing F8 will upload a bug report and save as a markdown."
+Asked where to upload, the owner chose a **local file only**: the report is a Markdown file with a PNG in the session's folder, and the
+playtest folder collects them (no network, so core D8 is untouched, and no token in the game). The owner chose every attachment: the
+screenshot, the game state (build, bundle, seed, position, objective, lesson step, settings, speech status), the last 10 turns the player
+said or typed (from S19's history; they include the player's own transcripts, so S18's consent text names them) and the last 200 lines of
+the session log. Plan: section 8, S21.
 
 ## D-game-7: one repository for the game and the core (done)
 

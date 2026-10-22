@@ -291,7 +291,7 @@ In `src/Vocaterra.MonoGame`, the only engine code:
   bottle, completes the objective and the transfer step, and writes a session log; the report script reads it back.
 - Playtest (S12): a fresh clone builds and runs the scripted scenario; the facilitator checklist is followed once by the owner before any tester.
 
-## 8. Second pass: the owner's playtest feedback (2026-10-22), milestones S13 to S20
+## 8. Second pass: the owner's playtest feedback (2026-10-22), milestones S13 to S21
 
 The owner played the S12 build: "it's ok", with five changes asked for:
 
@@ -332,7 +332,8 @@ Order:
   scene).
 - S17 needs S13 (the cliff camp and the new route) and S16 (the lesson runner). It may run beside S14 or S15.
 - S17b runs after S17 (it edits the dialogue panel and model that S17 changes).
-- S19 (the record) needs S17 (the guide's lesson). S20 (the book) needs S19 and S15 (the panel style). S18 runs last, after S20.
+- S19 (the record) needs S17 (the guide's lesson). S20 (the book) needs S19 and S15 (the panel style). S21 (F8 reports) needs S19
+  (the recent turns) and runs after S20. S18 runs last, after S21.
 
 Every milestone keeps the whole scenario playable end to end and updates the scripted routes and tests that the new geography moves. The rules
 of section 5 carry over.
@@ -572,6 +573,41 @@ catalogue words page and the phrases page (S8), rather than adding a second note
 - **Tests:** what each page lists for a fixed record; the English labels for verb forms across person and tense; tab order and scrolling;
   that the book item and J open the same book.
 - **Demo:** screenshots of the five pages after S17's scripted lesson run, saved outside the repository.
+
+### S21: F8, the in-game bug and feature report (Haiku 5.5, S)
+
+The owner (2026-10-22, D-game-17): "We need a bug / feature request feature in the game. So pressing F8 will upload a bug report and save as
+a markdown." Asked where to upload, the owner chose a local file only: no network (core D8 untouched); the playtest folder collects the files.
+- **F8 opens the report panel** anywhere in the game: in the world, in a dialogue, in the lesson, in the journal or the book, in a check.
+  - The screenshot is taken from the frame before the panel draws, so it shows what the player saw.
+  - The game pauses while the panel is open: no ticks, no turns, the microphone off.
+  - The panel is English (D-game-13) and drawn in S15's panel style. It offers a choice of `Bug` or `Feature request` (Tab or click), and a
+    multi-line text box with the accents keys of the dialogue (Alt+vowel and the others).
+  - Ctrl+Enter or the `Save report` button saves. Esc cancels and keeps nothing.
+  - A toast says `Report saved: <path>`.
+  - F8 is listed in the help (F1) and the controls in english.json.
+- **The report** is a Markdown file plus a PNG, saved in a `reports/` folder in the session's folder (`--session-dir`, default under
+  `~/.local/share/vocaterra/sessions/`). A `--report-dir <dir>` option overrides the folder. The file name comes from the session number,
+  the tick and the kind (`report-s1-t4681-bug.md`, with a counter if taken), never from the clock. The header may show the local date and
+  time through an injected clock (the tests fix it); nothing in the evaluation path reads it. The Markdown holds:
+  - the title (the first line of the player's text) and the kind;
+  - the player's text;
+  - the screenshot, linked;
+  - **Game state**, as a table: build commit, bundle id and hash, seed, position, view direction, objective and its steps, lesson and step,
+    open panel, quality preset, greyscale, speech status (models found, microphone);
+  - **Recent turns**: the last 10 lines from S19's history (text, voice or typed, where, understood, error tags);
+  - **Session log**: the last 200 lines of the session log, in a fenced block.
+- **The playtest script** `scripts/playtest-report.sh` lists the reports of each session (kind and title) and copies them with the session's
+  summary.
+- **Tests:**
+  - the Markdown for a fixed state, as a golden;
+  - the file naming and its counter;
+  - the 10 and 200 bounds;
+  - cancel saves nothing;
+  - the panel's key handling;
+  - the pause: no tick passes while the panel is open.
+- **Demo:** a scripted run with a flag that opens the panel, types a line and saves it (for example `--report "The bridge is missing"
+  --report-kind bug`). It prints the saved path; show the Markdown and the PNG.
 
 ### S18: the playtest refresh (Haiku 5.5, S)
 
