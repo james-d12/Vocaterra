@@ -36,7 +36,8 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--wait <seconds>`, `--skip <seconds>` | script steps (S8): run the game on that long; move the stored time on without waiting (so a spacing gap passes and the guide's phrase review is due) |
 | `--typed-credit <full\|half>` | the credit a correct typed use earns: `half` by default, `full` as before P5; spoken input always earns full |
 | `--no-speech` | do not load Vosk (an interactive run loads it unless this is given; a scripted run never does) |
-| `--greyscale` | accepted; the world is drawn in full colour (D-game-6 as amended). The grey A/B is not in the 3D world yet (a stub: it prints that and changes nothing) |
+| `--greyscale` | the playtest A/B switch (D-game-6 as amended): blocks whose noun is not known yet are grey, known ones in colour (`GreyscaleWorld`, `WordColours`; blocks no noun names, the figures, the sky and the UI stay in colour); a noun that becomes known during play regains its colour and toasts. Default: full colour |
+| `--assume-known <nouns>` | a test aid: the comma-separated catalogue nouns count as known from the start (`--assume-known árbol` colours the trunks for an A/B shot); not a play path |
 | `--voxel` | accepted and ignored (the 3D world is the only one since S4) |
 
 The steps run in the order given, one at a time, each at the simulation's fixed 60 Hz (one tick per frame on the fixed clock). The screenshot is
@@ -58,7 +59,7 @@ cube (or the same transparent kind: leaves against leaves, water against water),
 is in the vertex colour (top 1.0, north and south 0.82, east and west 0.68, bottom 0.55). Water goes into a second mesh drawn after the opaque
 faces, chunk by chunk from the farthest to the nearest, reading but not writing depth, with its surface a sixteenth lower; bushes, the berry bush,
 the torch (a stick with a flame, the flame is the prototype's light), the open door and the fence are small shapes of their own. The 16 x 16 block
-atlas (`BlockArt`, 8 x 5 cells) is drawn in code (CC0 by construction, no picture file). `VoxelRenderer` uploads one vertex buffer per chunk and mesh,
+atlas (`BlockArt`, 8 x 10 cells: the colour cells in the top five rows, a grey copy of each cell below them, the luma from `Greyscale`) is drawn in code (CC0 by construction, no picture file). `VoxelRenderer` uploads one vertex buffer per chunk and mesh,
 draws with `BasicEffect` (texture times vertex colour, depth on, point sampling, fog in the sky colour from 48 to 110 blocks) and no custom shader,
 skips chunks outside the frustum, and meshes again a chunk whose version changed (`ChunkVersionTracker`: the chunk's own `Version`, plus a signature
 of the layer of each neighbour that touches it, so an edit in the middle of a chunk rebuilds one chunk and an edit on an edge rebuilds the
@@ -110,7 +111,7 @@ level meter from `PushToTalk.LastLevel`, `Di: hola`, what was heard, pass, retry
 scripted run skips it unless asked (then the worker hears a synthesized "hola"). `--speak` and `--wav` are `ScenarioScript` steps like `--say`.
 
 **Not in 3D yet:** the Alt-accent shortcuts of the panel (typed `é`, `ñ` and the
-others come through the platform's text input), the grey A/B (`--greyscale` is a stub).
+others come through the platform's text input).
 
 **Where the pieces are:** `VoxelGame.cs` (the host: the worker, the panel and its keys, the beacon, the crafting panel, the objective, the script),
 `HudLayers.cs` (`ObjectiveLayer`, `WordCardLayer`), `CraftingLayer.cs`, `VoxelTalkLayers.cs` (`TalkHintLayer`, `WorldLabel`, `WorldLabelLayer`),
