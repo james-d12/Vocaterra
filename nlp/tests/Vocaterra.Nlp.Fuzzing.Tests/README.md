@@ -363,6 +363,22 @@ synthetic), and O3 now realises the `ask_price` grammar (about 30 sentences per 
   change: `hostturn:none` mean 53.6, minimum 43; before (15 runs): mean 18.9, minimum 12. Every other asserted key was checked with the same
   arithmetic and sits at least 4 standard deviations above its minimum (`agent:none` now counts the unknown agents of host turns too: about 90).
 
+- **The replay test's `effects` region was a flake, not a pipeline bug** (M29h; the generator, `Generation/PipelineGen.cs`, and the path choice in
+  `PipelineFuzzTests.ChangingOneRecordedOutput_MakesTheReplayerNameThatPath`). The S2 gate's merge gate failed once with "No mutation reached the
+  effects part of the envelope". The effects part exists only when the verdict is communicated and its intent is `buy_item`, `cast_spell` or
+  `sell_item` (the bundle's effect table), so only 37 of 300 cases had it; and the path was drawn uniformly over every compared leaf, of which
+  the three effect leaves are a few percent. The merge gate failed on this assertion once. Measured before (15 runs): `region:effects` minimum 2,
+  mean 5.4, standard deviation 2.4, so the minimum of 1 was about 1.7 standard deviations below the mean, with a failure in roughly one run in
+  a hundred. The fix has two parts, and the
+  oracle and the minimum (1 per region) are unchanged. The path is drawn in two steps, a region uniformly among the regions the envelope has,
+  then a leaf inside it, so a rare region gets the same share of the mutations as a common one. The generator draws, last of all, whether one case
+  in four is aimed at a prompt that allows an effect intent with a correct sentence of it; only the prompt, transcript, source and phoneme flag of
+  those cases change, and every earlier draw keeps its value. After (15 runs): `region:effects` minimum 30, mean 47.4, standard deviation 7.3; the
+  other regions' minimums were record 163, decision 151, response 117, context 158 and repair 33, all far above 1. Over five runs of the other
+  pipeline test every asserted key stayed well above its minimum of 10 (`hostturn:none` minimum 50; the lowest minimum was `hostturn:step`, 38).
+  The count of mutations with no valid replacement (skipped, not failed) rose from 24 to 119 in one run each; most likely a null leaf, such as an
+  absent repair, has no replacement that deserializes. This was not measured by region.
+
 ## Known, deliberately not fixed
 
 Findings that are content gaps or design limits rather than defects of one stage. None changes behaviour here; the generators step around

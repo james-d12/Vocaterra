@@ -125,18 +125,66 @@ public static class PipelineGen
         // a standard deviation of 4.3, so the minimum of 10 is only 2.3 standard deviations below it, which made the suite flaky; README, bugs found
         // and fixed). The agent is drawn again only for a host turn, after the flags, so nothing drawn before a host turn changes.
         var twoPhase = rng.NextInt(2) == 0;
-        if (rng.NextInt(3) != 0)
+        var hosted = plan with { TwoPhase = twoPhase };
+        if (rng.NextInt(3) == 0)
         {
-            return plan with { TwoPhase = twoPhase };
+            var hostKnown = rng.NextInt(2) == 0;
+            hosted = hosted with
+            {
+                HostTurn = true,
+                AgentId = hostKnown ? blacksmith.AgentId : "nobody",
+                StateId = hostKnown ? rng.Pick(states) : "idle",
+            };
         }
 
-        var hostKnown = rng.NextInt(2) == 0;
+        return Aimed(harness, rng, hosted);
+    }
+
+    // The verdict intents that resolve an effect (the bundle's effect table: an effect needs a communicated verdict of its intent). Only some
+    // prompts allow them, so the effects part of the replay envelope is rare unless a case is aimed at one.
+    private static string[] EffectIntents(PipelineHarness harness)
+    {
+        return harness.Bundle.Effects.Effects
+            .Select(static effect => effect.Intent)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(static intent => intent, StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    // Drawn last, after every draw above, so no other value changes: one case in four is aimed at a prompt that allows an effect intent, with a
+    // correct sentence of it as the transcript (the effect of a communicated verdict then appears in the envelope). Only the prompt, the transcript,
+    // its source and the phoneme flag (kept only for a transcript short enough to score) change. Measured: 37 of 300 cases had effects before this,
+    // and the replay test's effects region needs about 25 mutations (README, bugs found and fixed).
+    private static PipelineCase Aimed(PipelineHarness harness, SeededRng rng, PipelineCase plan)
+    {
+        if (rng.NextInt(4) != 0)
+        {
+            return plan;
+        }
+
+        var effectIntents = EffectIntents(harness);
+        var prompts = harness.Bundle.Prompts.Values
+            .Where(prompt => prompt.AllowedIntentIds.Any(intent => effectIntents.Contains(intent, StringComparer.Ordinal)))
+            .OrderBy(static prompt => prompt.PromptId, StringComparer.Ordinal)
+            .ToArray();
+        if (prompts.Length == 0)
+        {
+            return plan;
+        }
+
+        var prompt = rng.Pick(prompts);
+        var sentence = CorrectSentence(harness, rng, prompt);
+        if (sentence is null)
+        {
+            return plan;
+        }
+
         return plan with
         {
-            TwoPhase = twoPhase,
-            HostTurn = true,
-            AgentId = hostKnown ? blacksmith.AgentId : "nobody",
-            StateId = hostKnown ? rng.Pick(states) : "idle",
+            PromptId = prompt.PromptId,
+            Transcript = sentence,
+            Source = "correct",
+            Phonemes = plan.Phonemes && sentence.Length <= PipelineCase.MaxScoredTranscriptCharacters,
         };
     }
 
