@@ -84,6 +84,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly CameraEase _ease = new();
     private readonly FirstPersonCamera _camera = new();
     private readonly ViewModeState _viewMode = new();
+    private readonly Func<int, int, int, bool> _isSolid;
     private long _lastPlaceTick = long.MinValue / 2;
     private double _walkDistance;
     private (double X, double Z)? _lastWalkPoint;
@@ -180,6 +181,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _voice = voice;
         _pristine = pristine;
         _sim = session.Simulation;
+        _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
         _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Phrases, session.English);
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
         _talk = new PushToTalk(microphone);
@@ -559,7 +561,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         {
             // Over the right shoulder, three blocks back, and in front of any wall behind the player (S15).
             var back = ThirdPersonRig.Eye(
-                (x, y, z) => _sim.Grid.IsSolid(x, y, z),
+                _isSolid,
                 (eye.X, eye.Y, eye.Z),
                 (_camera.Forward.X, _camera.Forward.Y, _camera.Forward.Z),
                 (_camera.Right.X, _camera.Right.Y, _camera.Right.Z));
@@ -581,7 +583,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _colours!.Refresh();
         // A scripted run builds every mesh it needs before the picture; a live one spends its budget a frame (more while the world is still loading in).
         _renderer!.Remesh(_camera.Eye, _camera.Frustum, _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? _preset.MeshBudgetMilliseconds : 30);
-        GraphicsDevice.Clear(VoxelRenderer.Sky);
+        GraphicsDevice.Clear(_renderer.ClearColour);
         _renderer.DrawWorld(_camera, _sim.Target?.Block, Beacon.Target, _sim.Tick, shoulder ? PlayerAvatarNow() : null, shoulder ? null : ArmFrameNow(eye));
 
         var spriteBatch = _spriteBatch!;
@@ -633,7 +635,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             ExitCode = ScreenshotWriter.TrySave(GraphicsDevice, path) ? 0 : 1;
             Console.WriteLine($"scene draw (voxel world, layers, flush): {_draws.Summary()}");
             Console.WriteLine($"frame time (end of one draw to the next, no vsync): {_frames.Summary()}");
-            Console.WriteLine($"voxel: {_renderer.Stats.Summary()}; {_renderer.DrawnChunks} chunks drawn this frame, {_renderer.DrawnPlantQuads} plant quads (within {_preset.PlantDistance} blocks, {_preset.PlantKeepPercent}% built), occlusion {(_preset.AmbientOcclusion ? "on" : "off")}, clouds {(_preset.Clouds ? "on" : "off")}");
+            Console.WriteLine($"voxel: {_renderer.Stats.Summary()}; {_renderer.DrawnChunks} chunks drawn this frame, {_renderer.DrawnFigureQuads} figure quads, {_renderer.DrawnPlantQuads} plant quads (within {_preset.PlantDistance} blocks, {_preset.PlantKeepPercent}% built), occlusion {(_preset.AmbientOcclusion ? "on" : "off")}, clouds {(_preset.Clouds ? "on" : "off")}");
             var body = _sim.Player;
             Console.WriteLine(string.Create(CultureInfo.InvariantCulture, $"player: ({body.CenterX / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.FeetY / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.CenterZ / (double)VoxelPhysics.UnitsPerBlock:0.00}), tick {_sim.Tick}, wood {_sim.Inventory.Count(ItemId.Wood)}, berries {_sim.Inventory.Count(ItemId.Berry)}, bottle {_sim.Inventory.Count(ItemId.Bottle)}, water {_sim.Inventory.Count(ItemId.WaterBottle)}, bread {_sim.Inventory.Count(ItemId.Bread)}"));
             Console.WriteLine($"objective: {_session.Objective.Summary}");
@@ -724,9 +726,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         // The look goes first: it is absolute and every other command of the tick uses the facing it sets.
         _commands.Insert(0, VoxelCommand.Look(_look.Yaw, _look.Pitch));
         _session.Step(_commands);
-        if (_commands.Any(static c => c.Kind == VoxelCommandKind.Place))
+        foreach (var command in _commands)
         {
-            _lastPlaceTick = _sim.Tick; // the arm swings once (S15)
+            if (command.Kind == VoxelCommandKind.Place)
+            {
+                _lastPlaceTick = _sim.Tick; // the arm swings once (S15)
+            }
         }
 
         UpdateFigures();
@@ -1440,7 +1445,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var held = HeldItems.For(_sim.SelectedStack);
         var moving = _sim.Player.VelocityX != 0 || _sim.Player.VelocityZ != 0;
         var motion = ArmMotion.At(_sim.Tick, moving, _sim.GatherProgress, _sim.Tick - _lastPlaceTick);
-        var light = ArmLight.At((x, y, z) => _sim.Grid.IsSolid(x, y, z), (eye.X, eye.Y, eye.Z), _renderer!.Lights, held.Kind == HeldKind.Torch, _options.Dusk);
+        var light = ArmLight.At(_isSolid, (eye.X, eye.Y, eye.Z), _renderer!.Lights, held.Kind == HeldKind.Torch, _options.Dusk);
         return new ArmFrame(held, motion, light);
     }
 

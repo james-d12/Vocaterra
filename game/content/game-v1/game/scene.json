@@ -129,9 +129,9 @@
 
     // The guide's camp: the workbench, the fire ring for the torch, the berry bushes and the bushes.
     {"type": "workbench", "site": "camp.guide", "dx": 2, "dz": -3, "length": 2, "axis": "x", "name": "workbench"},
-    {"type": "pergola", "site": "camp.guide", "dx": 1, "dz": -4, "width": 4, "depth": 3, "height": 3, "name": "pergola"},
+    {"type": "pergola", "site": "camp.guide", "dx": 0, "dz": -4, "width": 6, "depth": 3, "height": 3, "name": "pergola"},
     {"type": "block", "block": "chest", "site": "camp.guide", "dx": 5, "dz": -3, "name": "chest.guide"},
-    {"type": "block", "block": "crate", "site": "camp.guide", "dx": 5, "dz": -2, "height": 2},
+    {"type": "block", "block": "crate", "site": "camp.guide", "dx": 6, "dz": -2, "height": 2},
     {"type": "fire_ring", "site": "camp.guide", "dx": 0, "dz": 2, "name": "firering"},
     {"type": "berry_bush", "site": "camp.guide", "dx": -6, "dz": 3},
     {"type": "berry_bush", "site": "camp.guide", "dx": -5, "dz": -5},

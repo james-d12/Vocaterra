@@ -37,7 +37,7 @@ public static class AsciiMap3D
         BlockId.Planks => 'p',
         BlockId.Door => 'D',
         BlockId.Table => 'M',
-        BlockId.Torch => 'i',
+        BlockId.Torch or BlockId.PostTorch => 'i',
         BlockId.Stall => '$',
         BlockId.Roof => '^',
         BlockId.Fence => '+',

@@ -9,8 +9,8 @@ public sealed class VillageTests(ITestOutputHelper output)
     private const ulong Seed = 42;
 
     // The digest of the built things in a box of the world, with the undergrowth, the stall's goods, the wheat and the trees counted as air (they are the seed's, S14 and S15).
-    private const string VillageStructureDigest = "7620252aeba34732";
-    private const string CampsStructureDigest = "ed42e2a69d88beb77568b1d1862101d3";
+    private const string VillageStructureDigest = "ec0916593813273a";
+    private const string CampsStructureDigest = "ed42e2a69d88beb7534c723211646a3a";
 
     // The columns within radius of (cx, cz), from y0 to y1: the level ground of a site, where nothing but the built things rises above the ground.
     private static string StructureDigest(VoxelGrid grid, int cx, int cz, int radius, int y0, int y1)
@@ -243,12 +243,13 @@ public sealed class VillageTests(ITestOutputHelper output)
         var corner = scene.Point("pergola"); // the north-west post
         for (var y = 1; y <= 3; y++)
         {
-            Assert.Equal(BlockId.Timber, grid.GetBlock(corner.X + 3, corner.Y + y, corner.Z + 2)); // the opposite post
+            Assert.Equal(BlockId.Timber, grid.GetBlock(corner.X + 5, corner.Y + y, corner.Z + 2)); // the opposite post
         }
 
-        Assert.Equal(BlockId.Torch, grid.GetBlock(corner.X, corner.Y + 4, corner.Z)); // a torch on the north-west post
+        Assert.Equal(BlockId.PostTorch, grid.GetBlock(corner.X, corner.Y + 4, corner.Z)); // a torch on the north-west post (scenery: not the item's torch block)
+        Assert.Empty(grid.BlocksOfKind(BlockId.Torch)); // so "where is the torch" never points at it
         Assert.Equal(BlockId.Timber, grid.GetBlock(corner.X + 1, corner.Y + 4, corner.Z)); // the beam
-        Assert.Equal(BlockId.Lantern, grid.GetBlock(corner.X + 2, corner.Y + 3, corner.Z + 1)); // over the bench
+        Assert.Equal(BlockId.Lantern, grid.GetBlock(corner.X + 3, corner.Y + 3, corner.Z + 1)); // over the bench
     }
 
     [Fact]
@@ -269,5 +270,21 @@ public sealed class VillageTests(ITestOutputHelper output)
             Assert.False(grid.IsSolid(x, ground + 1, z), $"({x}, {z}) feet");
             Assert.False(grid.IsSolid(x, ground + 2, z), $"({x}, {z}) head");
         }
+    }
+
+    [Fact]
+    public void EveryNewKindIsInTheSceneAndTheCountsArePrinted()
+    {
+        var grid = VoxelTestSupport.BuildRoute(Seed).Grid;
+        var total = 0;
+        foreach (var kind in Enum.GetValues<BlockId>().Where(static k => k >= BlockId.Timber))
+        {
+            var count = grid.BlocksOfKind(kind).Count;
+            total += count;
+            output.WriteLine($"{kind}: {count}");
+            Assert.True(count > 0, $"{kind} is in the scene");
+        }
+
+        output.WriteLine($"blocks of the S15 kinds: {total}");
     }
 }

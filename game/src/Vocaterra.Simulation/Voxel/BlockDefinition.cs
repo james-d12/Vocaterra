@@ -87,6 +87,7 @@ public sealed record BlockDefinition(
         new(BlockId.SignRio, "sign-rio", true, false, false, 0, null, 0, BlockId.Air),
         new(BlockId.SignMontanaA, "sign-montana-a", true, false, false, 0, null, 0, BlockId.Air),
         new(BlockId.SignMontanaB, "sign-montana-b", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.PostTorch, "post-torch", false, true, false, 0, null, 0, BlockId.Air),
     ];
 
     /// <summary>Every block kind, ordered by id.</summary>

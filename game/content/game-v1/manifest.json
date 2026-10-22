@@ -19,12 +19,12 @@
 {"path":"evaluation/evaluation-config.json","sha256":"fc7d6d2567808648dd6615e4c2ea60556b50eba487ee381e74d5d0769003867d","bytes":1632},
 {"path":"feedback/feedback-policy.json","sha256":"63e3ac7e5a4e7c95ca2d26212ae2536622e606be07cc2117f89cdb34f4da9dcf","bytes":492},
 {"path":"game/checks.json","sha256":"2e77e10770c12d43c1579db6903c044d5940871f5490236996c88d144ad413ae","bytes":8593},
-{"path":"game/english.json","sha256":"c433aed56beb0792e2a90492256f561f1507c093928c02ccd2f9a62c66cda618","bytes":19159},
+{"path":"game/english.json","sha256":"2f790b3ff4646de5077ffb44fe2c9fae6b7cca75ac116bb99d1ecef302a4662d","bytes":19128},
 {"path":"game/lessons.json","sha256":"5c85f9ee26a953be951a694bfd3b13ef1c5e96d27739525049740ce2c7f41c1e","bytes":12516},
 {"path":"game/nouns.json","sha256":"e615eae632592aac081bc0dac835742f55394aa7470a41bb8d3b74b8df17b0dd","bytes":1464},
 {"path":"game/phrases.json","sha256":"667d418b9a14317ff4cd87780d41ebdcde174fad4fad687af1b16b17454167d9","bytes":6464},
 {"path":"game/recipes.json","sha256":"e369e410429aa82e34b85fabad23550b71a551086d69dc365fd892a57b2247ed","bytes":191},
-{"path":"game/scene.json","sha256":"8e14b280f62f0de430d5e373cfd8e895a0395bd71276bec9e1612531b0ff5549","bytes":11795},
+{"path":"game/scene.json","sha256":"4e589b91eb29b4c0082377edb5015bb7d992034f7f82a16daf12c30d8be06fd4","bytes":11795},
 {"path":"intents/intents.json","sha256":"cb92f270fb576b87c0fae565044f3016e2fa44502fc9c74a886b2b48f9f621b0","bytes":13166},
 {"path":"lexicon/game.json","sha256":"16c4dcbc4f190f6dc7ca68aa4b42a435f8517f71699668f439a37a7f17243eb7","bytes":5802},
 {"path":"lexicon/seed.json","sha256":"c6d3c0348339015ab9693cfcb9089935fddd997f5cf2d1d64237e4ae8ed11eb0","bytes":119541},
@@ -332,4 +332,4 @@
 {"path":"speech/villager_thank.1.wav","sha256":"264a8166023475d7d7842d08050d562924cb4212881ad755cc67afd728d5f7bb","bytes":45644},
 {"path":"speech/villager_thank.2.slow.wav","sha256":"791dd1d9ba9a64ba04d5b734f0e8c91b4ab25fa869ec85a6e2a6937a5b794ea0","bytes":70844},
 {"path":"speech/villager_thank.2.wav","sha256":"0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3","bytes":54044}
-],"bundleHash":"c2575ad431065f72b4ecb24a0dc5ae2d9cbcf41e754b573e21c6ce4ca294358d"}
+],"bundleHash":"49ef3ba386c38e7e3ea77f7125a83d18b598d49e2dd89920a3c052a2a253733e"}

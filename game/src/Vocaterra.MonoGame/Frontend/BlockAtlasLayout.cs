@@ -312,7 +312,7 @@ public static class BlockAtlasLayout
             BlockId.Planks => BlockCell.Planks,
             BlockId.Door => BlockCell.DoorLeaf,
             BlockId.Table => up ? BlockCell.TableTop : down ? BlockCell.Planks : BlockCell.TableSide,
-            BlockId.Torch => up ? BlockCell.TorchFlame : BlockCell.TorchStick,
+            BlockId.Torch or BlockId.PostTorch => up ? BlockCell.TorchFlame : BlockCell.TorchStick,
             BlockId.Stall => up ? BlockCell.StallTop : BlockCell.StallSide,
             BlockId.Roof => up ? BlockCell.RoofTop : BlockCell.RoofSide,
             BlockId.Fence => BlockCell.Fence,

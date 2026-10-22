@@ -400,9 +400,11 @@ public static class SceneBuilder
                     var awning = stripe % 2 == 0 ? BlockId.AwningRed : BlockId.AwningWhite;
                     if (cornerX && cornerZ)
                     {
+                        // Thin fence posts at the front (a customer in front of the counter looks past them), thick timber posts at the back.
+                        var post = OnSide(front, x, z, prop.X, prop.Z, x1, z1) ? BlockId.Fence : BlockId.Timber;
                         for (var y = h + 1; y <= h + 3; y++)
                         {
-                            Put(x, y, z, BlockId.Timber, where);
+                            Put(x, y, z, post, where);
                         }
                     }
                     else if (OnSide(front, x, z, prop.X, prop.Z, x1, z1))
@@ -631,7 +633,7 @@ public static class SceneBuilder
 
                     if (x == prop.X && z == prop.Z)
                     {
-                        Put(x, h + post + 1, z, BlockId.Torch, where);
+                        Put(x, h + post + 1, z, BlockId.PostTorch, where);
                     }
                     else if (cornerX || cornerZ)
                     {

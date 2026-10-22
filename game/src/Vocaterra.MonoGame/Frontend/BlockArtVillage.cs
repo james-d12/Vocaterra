@@ -107,14 +107,14 @@ public static class BlockArtVillage
 
             case BlockCell.Lantern:
                 {
-                    var edge = x is 0 or 15 || y is 0 or 15;
-                    if (edge || x is 7 or 8 && y % 5 == 0)
+                    // A cage: dark caps at the top and the bottom, dark posts at the sides, and a flame of light behind the glass, white-hot in the middle.
+                    if (y is <= 1 or >= 14 || x is <= 1 or >= 14)
                     {
-                        return new Rgba(54, 42, 34);
+                        return new Rgba(58, 44, 34);
                     }
 
-                    var d = Math.Abs(x - 7.5f) + Math.Abs(y - 7.5f);
-                    return d < 4 ? new Rgba(255, 246, 190) : d < 8 ? new Rgba(255, 206, 88) : new Rgba(238, 150, 40);
+                    var d = Math.Abs(x - 7.5f) + (Math.Abs(y - 8f) * 0.8f);
+                    return d < 3.2f ? new Rgba(255, 250, 214) : d < 6.2f ? new Rgba(255, 214, 96) : new Rgba(242, 160, 48);
                 }
 
             case BlockCell.CrateSide:

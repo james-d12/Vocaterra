@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.MonoGame.Frontend;
 using Vocaterra.Simulation.Items;
+using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame;
 
@@ -20,6 +21,9 @@ public sealed class RecipePanelLayer : IFrameLayer
 
     /// <summary>The hint under the recipe when something is missing.</summary>
     public const string MissingHint = "Collect what is missing";
+
+    private long _tick = -1;
+    private RecipePanelModel? _model;
 
     private const int Slot = 60;
     private const int Gap = 8;
@@ -40,13 +44,23 @@ public sealed class RecipePanelLayer : IFrameLayer
             return;
         }
 
-        var panels = RecipePanelModel.AtStation(CraftingScreen.Rows(view.Voxel, view.Session.Recipes), view.Voxel.StationInReach);
-        if (panels.Count == 0)
+        // The model is made once a tick, and only at the workbench (the only station): away from it the layer costs one look round the player a tick.
+        if (view.Voxel.Tick != _tick)
+        {
+            _tick = view.Voxel.Tick;
+            _model = null;
+            if (view.Voxel.StationInReach(BlockId.Table))
+            {
+                var panels = RecipePanelModel.AtStation(CraftingScreen.Rows(view.Voxel, view.Session.Recipes), view.Voxel.StationInReach);
+                _model = panels.Count > 0 ? panels[0] : null;
+            }
+        }
+
+        if (_model is not { } model)
         {
             return;
         }
 
-        var model = panels[0];
         var pixel = view.Pixel;
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var slots = Math.Max(1, model.Ingredients.Count);

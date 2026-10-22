@@ -63,7 +63,7 @@
     { "id": "noidea", "keys": "N in a conversation", "text": "“No sé” means I don't know. It is never wrong." },
     { "id": "replay", "keys": "R and S in a conversation", "text": "Hear the last line again, or more slowly." },
     { "id": "lessonKeys", "keys": "Enter, K, L during a lesson", "text": "Enter: continue. K: skip this step. L: start the lesson at the guide." },
-    { "id": "view", "keys": "F5", "text": "Switch between seeing through your own eyes and seeing yourself from behind your shoulder." },
+    { "id": "view", "keys": "F5", "text": "Switch between your own eyes and a view over your shoulder." },
     { "id": "save", "keys": "F6", "text": "Save the game." },
     { "id": "escape", "keys": "Esc", "text": "Cancel, or close what is open." }
   ],

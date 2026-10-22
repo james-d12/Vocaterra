@@ -151,7 +151,7 @@ public static class ChunkMesher
         BlockId.Water => BlockShape.Liquid,
         BlockId.Bush or BlockId.BerryBush => BlockShape.Plant,
         BlockId.TallGrass or BlockId.Fern or BlockId.Reeds or BlockId.YellowFlower or BlockId.WhiteFlower => BlockShape.Cross,
-        BlockId.Torch => BlockShape.Torch,
+        BlockId.Torch or BlockId.PostTorch => BlockShape.Torch,
         BlockId.Lantern => BlockShape.Lantern,
         BlockId.Loaves or BlockId.Apples or BlockId.Bottles => BlockShape.Pile,
         BlockId.Wheat => BlockShape.Cross,
@@ -452,19 +452,27 @@ public static class ChunkMesher
     private static uint Light(BlockFace face, int ao, (float R, float G, float B) baseTint, Glow glow, float vx, float vy, float vz)
     {
         var (r, g, b) = FaceTint(face);
-        var keep = AoKeep[ao] * glow.Daylight;
-        var (gr, gg, gb) = glow.At(vx, vy, vz, face);
+        var keep = AoKeep[ao];
+        var k = glow.At(vx, vy, vz, face);
+
+        // A lantern both warms the face (less green, much less blue: it shows even on a face the sun already lights in full) and brightens it.
         return MeshVertex.Pack(
-            (byte)Math.Min(255f, 255f * ((r * keep * baseTint.R) + gr)),
-            (byte)Math.Min(255f, 255f * ((g * keep * baseTint.G) + gg)),
-            (byte)Math.Min(255f, 255f * ((b * keep * baseTint.B) + gb)));
+            (byte)Math.Min(255f, 255f * ((r * keep * baseTint.R * glow.Evening.R) + (GlowAdd.R * k))),
+            (byte)Math.Min(255f, 255f * (((g * keep * baseTint.G * glow.Evening.G) * (1f - (GlowCool.G * k))) + (GlowAdd.G * k))),
+            (byte)Math.Min(255f, 255f * (((b * keep * baseTint.B * glow.Evening.B) * (1f - (GlowCool.B * k))) + (GlowAdd.B * k))));
     }
 
     /// <summary>How far a lantern's light reaches, in blocks.</summary>
-    public const float GlowRadius = 7f;
+    public const float GlowRadius = 9f;
+
+    /// <summary>What the sun's light is multiplied by at dusk (S15): lower and redder.</summary>
+    public static readonly (float R, float G, float B) DuskLight = (0.84f, 0.66f, 0.6f);
 
     /// <summary>The colour a lantern adds to a face it lights, at full strength (a warm amber).</summary>
     public static readonly (float R, float G, float B) GlowColour = (0.95f, 0.55f, 0.20f);
+
+    private static readonly (float R, float G, float B) GlowAdd = (0.55f, 0.30f, 0.08f);
+    private static readonly (float R, float G, float B) GlowCool = (0f, 0.16f, 0.42f);
 
     // The lanterns near one chunk, ready to light its vertices (S15). The light falls off with the square of the distance and is strongest on faces
     // that look at the lantern. Nothing here reads a clock or a random number: the same blocks give the same colours.
@@ -473,22 +481,22 @@ public static class ChunkMesher
         private readonly (float X, float Y, float Z)[] _lights;
         private readonly float _strength;
 
-        private Glow((float X, float Y, float Z)[] lights, float strength, float daylight)
+        private Glow((float X, float Y, float Z)[] lights, float strength, (float R, float G, float B) evening)
         {
             _lights = lights;
             _strength = strength;
-            Daylight = daylight;
+            Evening = evening;
         }
 
-        /// <summary>The share of the sun's light that stays at this hour: 1 by day, lower at dusk.</summary>
-        public float Daylight { get; }
+        /// <summary>What the sun's light is multiplied by at this hour: nothing by day, a dimmer, warmer light at dusk.</summary>
+        public (float R, float G, float B) Evening { get; }
 
         public static Glow For(MeshOptions options, int x0, int y0, int z0)
         {
-            var daylight = options.Dusk ? 0.8f : 1f;
+            var evening = options.Dusk ? DuskLight : (1f, 1f, 1f);
             if (options.Lights is not { Count: > 0 } all)
             {
-                return new Glow([], 0f, daylight);
+                return new Glow([], 0f, evening);
             }
 
             List<(float X, float Y, float Z)>? near = null;
@@ -502,14 +510,15 @@ public static class ChunkMesher
                 }
             }
 
-            return new Glow(near?.ToArray() ?? [], options.Dusk ? 1f : 0.5f, daylight);
+            return new Glow(near?.ToArray() ?? [], options.Dusk ? 1f : 0.5f, evening);
         }
 
-        public (float R, float G, float B) At(float vx, float vy, float vz, BlockFace face)
+        // How much a lantern lights a corner of a face, from 0 (none in reach) to the strength (1 at dusk, one half by day).
+        public float At(float vx, float vy, float vz, BlockFace face)
         {
             if (_lights.Length == 0)
             {
-                return (0f, 0f, 0f);
+                return 0f;
             }
 
             var (nx, ny, nz) = face.Normal();
@@ -526,11 +535,10 @@ public static class ChunkMesher
                 var d = MathF.Sqrt(d2);
                 var fall = 1f - (d / GlowRadius);
                 var facing = d < 0.01f ? 1f : Math.Clamp(((nx * dx) + (ny * dy) + (nz * dz)) / d, 0f, 1f);
-                sum += fall * fall * (0.3f + (0.7f * facing));
+                sum += 1.6f * fall * fall * (0.3f + (0.7f * facing));
             }
 
-            var k = Math.Min(sum, 1f) * _strength;
-            return (GlowColour.R * k, GlowColour.G * k, GlowColour.B * k);
+            return Math.Min(sum, 1f) * _strength;
         }
     }
 

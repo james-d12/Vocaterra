@@ -39,6 +39,8 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--wait <seconds>`, `--skip <seconds>` | script steps (S8): run the game on that long; move the stored time on without waiting (so a spacing gap passes and the guide's phrase review is due) |
 | `--typed-credit <full\|half>` | the credit a correct typed use earns: `half` by default, `full` as before P5; spoken input always earns full |
 | `--no-speech` | do not load Vosk (an interactive run loads it unless this is given; a scripted run never does) |
+| `--third-person` | start in the behind-the-shoulder view (S15); **F5** switches between it and first person in an interactive run (first person is the default). The player's own figure is drawn with its backpack, and the arm is not |
+| `--dusk` | an evening (S15): an amber and rose sky and haze, a lower, warmer sun on the blocks, the figures and the arm, and the lanterns and the pergola's torch glowing at full strength (by day they glow at half) |
 | `--greyscale` | the playtest A/B switch (D-game-6 as amended): blocks whose noun is not known yet are grey, known ones in colour (`GreyscaleWorld`, `WordColours`; blocks no noun names, the figures, the sky and the UI stay in colour); a noun that becomes known during play regains its colour and toasts. Default: full colour |
 | `--assume-known <nouns>` | a test aid: the comma-separated catalogue nouns count as known from the start (`--assume-known árbol` colours the trunks for an A/B shot); not a play path |
 | `--voxel` | accepted and ignored (the 3D world is the only one since S4) |
@@ -73,7 +75,7 @@ the open door and the fence are small shapes of their own. **The atlas** is `Blo
 them a grey copy of each cell, the luma from `Greyscale`), drawn in code from a fixed integer hash and fixed palettes (CC0 by construction, no picture file): grass top and
 side (the green bleeding over the dirt), dirt, stone, mossy stone, cobble, snow top and side, sand, the gravel path, the bark and the rings of the oak, the spruce and the birch,
 planks, three kinds of leaves with cut-out holes, the bush, tall grass, ferns, reeds with cattails, a yellow and a white flower, shallow and deep water and the waterfall. The village's
-cells (the stall, the houses, the signpost, the workbench) and the item icons are as they were: they are S15's. The texture is made with its mip chain (`BlockArt.MipLevel`, each
+cells (the stall, the houses, the signpost, the workbench) and the item icons were redone in S15 (`BlockArtVillage`: timber, lantern, crates, chest, the red and white awning, canvas, farmland, wheat, the bread, apple and bottle piles, the five boards of the signpost in a 3 x 5 pixel font, the faces, cloth, skin and hair of the figures, the backpack and the torch icon; the atlas grew to 12 rows of colour cells). The texture is made with its mip chain (`BlockArt.MipLevel`, each
 level averaged cell by cell so no level ever mixes one cell with the next, and with the colours weighted by alpha so the leaves do not darken) and sampled with `PointMipLinear`: crisp
 pixels close up, smooth and in the right colours far away, no shimmer. `VoxelRenderer` uploads one vertex buffer per chunk and mesh and draws with MonoGame's own effects (no custom shader:
 `mgfxc` needs Wine on Linux): `AlphaTestEffect` for the opaque faces and the plants (texture times vertex colour, the cut-out pixels dropped at alpha 110, fog in the haze colour) and `BasicEffect`
@@ -84,9 +86,10 @@ the chunks within the quality preset's view distance of the eye (`ChunkViewSet`,
 a chunk full of opaque blocks all round is skipped without meshing (`ChunkMesher.IsBuried`), the meshes are built on the main thread to a time budget a frame (in-frustum chunks first, so the view fills nearest and visible first; a scripted run builds everything it needs before the picture),
 and a mesh is let go when its chunk is more than two chunks beyond the view. The chunks drawn are culled against the camera's frustum. It meshes again a chunk whose version changed (`ChunkVersionTracker`: the chunk's own `Version`, plus a signature
 of the layer of each neighbour that touches it, so an edit in the middle of a chunk rebuilds one chunk and an edit on an edge rebuilds the
-neighbour across it; the occlusion at a chunk's corner looks at the diagonal neighbour too, which the signature does not track, so a corner vertex can keep a stale shade until its chunk is meshed again). Triangles run counter-clockwise seen from outside and the renderer culls clockwise ones. The NPCs are cube assemblies
-(`NpcFigures`, drawn with the atlas's white cell) at the scene's NPC placements, facing their yaw, with their names over their heads
-(`NpcLabelLayer`, hidden when a solid block is in the way). `FirstPersonCamera` builds MonoGame's view and projection from `CameraBasis` (the same
+neighbour across it; the occlusion at a chunk's corner looks at the diagonal neighbour too, which the signature does not track, so a corner vertex can keep a stale shade until its chunk is meshed again). Triangles run counter-clockwise seen from outside and the renderer culls clockwise ones. The NPCs are figures of textured boxes
+(`NpcFigures`, `FigureMesher`: the atlas's cloth, skin and hair cells tinted by the part, a face on the head, shaded with the blocks' sun table) at the scene's NPC placements. Each frame the mesher
+rebuilds a figure into one reused buffer (no allocation) from its pose (`FigureAnimation`: idle, talking, walking), and `FigureFacing` turns a figure in a conversation to the player. Their names hang over their heads
+(`NpcLabelLayer`, hidden when a solid block is in the way, and for the speaker, who has the bubble). `FirstPersonCamera` builds MonoGame's view and projection from `CameraBasis` (the same
 vectors as the simulation's look vector, and MonoGame is right-handed with a camera looking down -z, so x east, y up, z south need no flip);
 `ScreenProjection` is the same camera as plain maths for the labels and the beacon's arrow. **`--greyscale` (D-game-6)** keeps its meaning: a block whose noun is not known is drawn
 from the grey copy of its cell, a block no noun names stays in colour. The new trees are named by `árbol` and the new rock by `piedra` in `nouns.json`, so they go grey and regain colour with their words;
@@ -105,7 +108,7 @@ command a script sends), so a craft is deterministic. Opening the panel counts e
 
 **The screens over the scene.** The hotbar, the toast, the inventory screen, the journal and the crafting panel draw over the scene; `FrameView`
 carries the `VoxelSimulation`, the first-person camera, the beacon, the figures, the block atlas (`VoxelIcons`, full colour), the `Objective`, the word
-cards and the viewport size. New layers: the crosshair with a gather bar, the held item at the bottom right, the NPC labels, the beacon's label and
+cards and the viewport size. New layers: the crosshair with a gather bar, the NPC labels, the beacon's label and
 edge arrow, and the 3D debug overlay.
 
 **The guide (S3).** The turn worker starts with the game (typed and spoken, the loading screen until Vosk is ready), with a `VoxelSession` (in
@@ -117,7 +120,21 @@ it is open (the keys are in the S7 paragraph below). The arrow of the session is
 block (a review question shows `¿?`), and the beacon's own reach takes the arrow down. "¿qué es esto?" uses `VoxelSession.AimedCell`, the block under
 the crosshair (`sim.Target`). `--talk` and `--say` are `ScenarioScript` steps: a `VoxelScript` walk to the stand-off cell of the NPC, a look at it, then the panel opens (the
 NPC's host turn, or the guide's review question when one is due), each line is typed and sent, and the script waits for the turn to be applied. The
-sign is a `WorldLabel` (`Tienda / Río` over the signpost's board, in `VoxelTalkLayers.cs`).
+signpost's words are on its boards (S15), so the `WorldLabel` over it is gone.
+
+**The shoulder view, the arm and the glow (S15).** `ViewModeState` holds the camera mode (first person at the start; **F5** flips it; `--third-person` starts in the shoulder view;
+the save moved to **F6**). In the shoulder view `ThirdPersonRig.Eye` puts the camera 3.4 blocks behind the head, 0.4 up and 0.55 to the right, walking the ray in 0.1-block steps and stopping a quarter of a
+block short of the first solid cell, and `VoxelRenderer.DrawWorld` draws the player's own figure (`PlayerAvatar`: the feet, the facing, the stride of the distance walked, the pitch for the head). In first
+person it draws the arm last, over a cleared depth buffer so it never sinks into a wall: `ArmMeshes` builds the sleeve, the cuff and the hand once (boxes of the cloth and skin cells, shaded by face, no
+outline) and the item the hand holds (`HeldItems.For`: a log, a torch with its flame drawn unlit, a bottle, a flat berry or loaf); the world matrix places it at the bottom right and applies
+`ArmMotion` (a sway while walking, a chop while `GatherProgress` grows, a dip for `ArmMotion.PlaceTicks` after a place command), and `ArmLight` tints it by the cover above the head and the lanterns and torch
+near it (the `DiffuseColor` of the alpha-test effect). Lanterns glow because `VoxelRenderer.FindLights` collects the lantern blocks (only the chunks whose kind mask holds one are searched) and
+`ChunkMesher` warms and brightens the vertices within `GlowRadius` (7 blocks) of one, with a falloff by the square of the distance and the most on faces that look at the lantern; `--dusk` gives
+the glow full strength and dims the sun. A lantern is a small unlit glass box (`BlockShape.Lantern`) and the stall's goods are low boxes (`BlockShape.Pile`).
+
+**The HUD of S15.** `RecipePanelLayer` (model: `RecipePanelModel`, from the same crafting rows as the recipe book) shows the workbench's recipe at the right while the bench is in reach and no other panel is open;
+`DialogueBubbleLayer` hangs the speaker's newest line over its head (`DialogueBubble.Place` keeps it in the window and the pointer on the head); `DialoguePanel`, the hotbar and the panels use
+`DrawHelpers.RoundedPanel` (pixel-art rounded corners).
 
 **The flame of the torch.** The torch placed on the fire ring's rim (`antorcha` at `21,12,21` in the bundle's route) stands above the one-block
 ring, so its flame shows from the camp. A torch in the ring's centre would sit below the stones' top and be hidden from ground level, which is why
@@ -138,7 +155,7 @@ others come through the platform's text input).
 
 **Where the pieces are:** `VoxelGame.cs` (the host: the worker, the panel and its keys, the beacon, the crafting panel, the objective, the script),
 `HudLayers.cs` (`ObjectiveLayer`, `WordCardLayer`), `CraftingLayer.cs`, `VoxelTalkLayers.cs` (`TalkHintLayer`, `WorldLabel`, `WorldLabelLayer`),
-`VoxelLayers.cs` (the crosshair, the held item, the NPC labels, the beacon arrow, the debug overlay), `Frontend/FigureAim.cs` (the crosshair test, plain
+`VoxelLayers.cs` (the crosshair, the NPC labels, the beacon arrow, the debug overlay), `Frontend/FigureAim.cs` (the crosshair test, plain
 maths), `Frontend/VoxelScript.cs` (the step machine over ticks: look, walk, interact, place, select, craft), `Frontend/VoxelSayScript.cs` (the
 `--say` state machine), `Frontend/WordCardQueue.cs`, `Frontend/CraftingScreen.cs` (the panel's rows and layout) and `Frontend/SceneLocator.cs` (the
 bundle's `game/scene.json`, or `--scene`).
@@ -153,7 +170,7 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   LiveVoxelInput    the device state of a tick as VoxelCommands (walk, jump, gather, place, the hotbar)
   VoxelScript       the --look, --walk-to, --interact, --place, --select and --craft steps over ticks
   ScenarioScript    the scripted run: the body's steps, --talk (walk to the stand-off, settle, open the panel), --say (type, send, wait for the reply), --leave, --shot
-  ChunkMesher, MeshVertex, BlockAtlasLayout, BlockArt, BlockArtNature, ChunkVersionTracker, NpcFigures, OverlayMeshes, ViewMath, PointLabels, FigureAim
+  ChunkMesher, MeshVertex, BlockAtlasLayout, BlockArt, BlockArtNature, ChunkVersionTracker, NpcFigures, FigureMesher, FigureAnimation, FigureFacing, BlockArtVillage, ViewModeState, ThirdPersonRig, HeldItems, ArmMotion, ArmLight, ArmMeshes, RecipePanelModel, DialogueBubble, OverlayMeshes, ViewMath, PointLabels, FigureAim
   SkyPalette, CloudField, CloudBox   the sky's colours (and the fog's) and the flat clouds as plain maths (S14)
   QualityPreset     the view distance, the plant distance and share, the occlusion and the clouds of low, medium and high
   CountBadge        the stack count on an opaque dark plate (contrast tested)
@@ -183,7 +200,7 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   HotbarLayer, InventoryLayer, JournalLayer, ToastLayer, DialoguePanel, LoadingLayer
   VoxelRenderer     the chunks: one vertex buffer per chunk and mesh, AlphaTestEffect and BasicEffect, the frustum, the re-mesh on a changed version
   SkyRenderer       the sky dome, the sun and the clouds (S14)
-  VoxelLayers       the crosshair (with the gather bar), the held item, the NPC labels, the beacon's arrow, the 3D debug overlay
+  VoxelLayers       the crosshair (with the gather bar), the NPC labels, the beacon's arrow, the 3D debug overlay
   VoxelTalkLayers   the talk hint, the world labels (the signpost)
   FirstPersonCamera the eye, the look and the projection (MonoGame's matrices from the simulation's vectors)
   BlockAtlas        the block atlas texture and the item icons (IItemIcons)

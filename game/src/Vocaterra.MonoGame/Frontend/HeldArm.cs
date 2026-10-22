@@ -147,8 +147,8 @@ public static class ArmLight
             covered = isSolid(ex, ey + dy, ez);
         }
 
-        var sun = (covered ? CoveredShare : 1f) * (dusk ? 0.8f : 1f);
-        float r = sun, g = sun, b = sun;
+        var sun = covered ? CoveredShare : 1f;
+        float r = sun * (dusk ? ChunkMesher.DuskLight.R : 1f), g = sun * (dusk ? ChunkMesher.DuskLight.G : 1f), b = sun * (dusk ? ChunkMesher.DuskLight.B : 1f);
         var warm = Warmth(lights, eye.X, eye.Y, eye.Z, dusk);
         if (holdingTorch)
         {
@@ -231,9 +231,9 @@ public static class ArmMeshes
                 FigureMesher.AddBlock(body, new Box(-0.12f, 0.05f, z - 0.12f, 0.12f, 0.29f, z + 0.12f), BlockCell.TrunkSide, white, BlockCell.TrunkEnd);
                 break;
             case HeldKind.Torch:
-                FigureMesher.AddBlock(body, new Box(-0.035f, 0.05f, z - 0.035f, 0.035f, 0.5f, z + 0.035f), BlockCell.TorchStick, white);
-                FigureMesher.AddBlock(glow, new Box(-0.075f, 0.5f, z - 0.075f, 0.075f, 0.66f, z + 0.075f), BlockCell.TorchFlame, white, null, true);
-                FigureMesher.AddBlock(glow, new Box(-0.04f, 0.66f, z - 0.04f, 0.04f, 0.74f, z + 0.04f), BlockCell.TorchFlame, (255, 240, 160), null, true);
+                FigureMesher.AddBlock(body, new Box(-0.03f, 0.05f, z - 0.03f, 0.03f, 0.42f, z + 0.03f), BlockCell.TorchStick, white);
+                FigureMesher.AddBlock(glow, new Box(-0.05f, 0.42f, z - 0.05f, 0.05f, 0.54f, z + 0.05f), BlockCell.TorchFlame, white, null, true);
+                FigureMesher.AddBlock(glow, new Box(-0.026f, 0.54f, z - 0.026f, 0.026f, 0.6f, z + 0.026f), BlockCell.TorchFlame, (255, 240, 160), null, true);
                 break;
             case HeldKind.Bottle:
             case HeldKind.Sprite:

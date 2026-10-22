@@ -58,6 +58,9 @@ public sealed class VoxelRenderer : IDisposable
     /// <summary>The colour the target is cleared to and the colour of the fog: the haze at the horizon (<see cref="SkyPalette.Horizon"/>), so far land fades into the sky.</summary>
     public static readonly Color Sky = new(SkyPalette.Horizon.R, SkyPalette.Horizon.G, SkyPalette.Horizon.B);
 
+    /// <summary>The colour of the evening haze (S15, <c>--dusk</c>).</summary>
+    public static readonly Color DuskSky = new(SkyPalette.DuskHorizon.R, SkyPalette.DuskHorizon.G, SkyPalette.DuskHorizon.B);
+
     /// <summary>Where the fog starts, as a fraction of where it is complete (<see cref="FogEndFor"/>): the near land is clear, and from a third of the way out the distance turns to haze.</summary>
     public const float FogStartFraction = 0.8f;
 
@@ -113,6 +116,8 @@ public sealed class VoxelRenderer : IDisposable
         _atlas = atlas;
         _grid = grid;
         Preset = preset;
+        _dusk = dusk;
+        ClearColour = dusk ? DuskSky : Sky;
         _source = new GridBlockSource(grid);
         _tracker = new ChunkVersionTracker(grid);
         _view = new ChunkViewSet(grid, preset.ViewDistance);
@@ -123,7 +128,7 @@ public sealed class VoxelRenderer : IDisposable
             VertexColorEnabled = true,
             LightingEnabled = false,
             FogEnabled = true,
-            FogColor = Sky.ToVector3(),
+            FogColor = ClearColour.ToVector3(),
             FogStart = fogEnd * FogStartFraction,
             FogEnd = fogEnd,
             Texture = atlas.Texture,
@@ -132,16 +137,15 @@ public sealed class VoxelRenderer : IDisposable
         {
             VertexColorEnabled = true,
             FogEnabled = true,
-            FogColor = Sky.ToVector3(),
+            FogColor = ClearColour.ToVector3(),
             FogStart = fogEnd * FogStartFraction,
             FogEnd = fogEnd,
             Texture = atlas.Texture,
             AlphaFunction = CompareFunction.Greater,
             ReferenceAlpha = 110,
         };
-        _sky = new SkyRenderer(device);
+        _sky = new SkyRenderer(device, dusk);
         Lights = FindLights(grid);
-        _dusk = dusk;
         _meshOptions = new MeshOptions(preset.AmbientOcclusion, preset.PlantKeepPercent, Lights, dusk);
         _indices = BuildIndexBuffer(device, MaxQuadsPerMesh);
         _chunks = new ChunkGpu[grid.Chunks.Count];
@@ -158,15 +162,15 @@ public sealed class VoxelRenderer : IDisposable
         }
     }
 
-    /// <summary>The lanterns of the world (S15): the places the glow comes from (found once, at the start; a lantern is never gathered or placed).</summary>
+    /// <summary>The lanterns and post torches of the world (S15): the places the glow comes from (found once, at the start; none is ever gathered or placed).</summary>
     public IReadOnlyList<BlockPos> Lights { get; }
 
-    /// <summary>The positions of every lantern block of a grid, in a fixed order (chunk by chunk): only the chunks that hold one are looked into.</summary>
+    /// <summary>The positions of every lantern and post torch of a grid, in a fixed order (chunk by chunk): only the chunks that hold one are looked into.</summary>
     public static IReadOnlyList<BlockPos> FindLights(VoxelGrid grid)
     {
         ArgumentNullException.ThrowIfNull(grid);
         var found = new List<BlockPos>();
-        var bit = ChunkMesher.KindBit(BlockId.Lantern);
+        var bit = ChunkMesher.KindBit(BlockId.Lantern) | ChunkMesher.KindBit(BlockId.PostTorch);
         foreach (var chunk in grid.Chunks)
         {
             if ((chunk.KindMask & bit) == 0)
@@ -183,7 +187,7 @@ public sealed class VoxelRenderer : IDisposable
                 {
                     for (var x = x0; x < x0 + VoxelChunk.Size; x++)
                     {
-                        if (grid.GetBlock(x, y, z) == BlockId.Lantern)
+                        if (grid.GetBlock(x, y, z) is BlockId.Lantern or BlockId.PostTorch)
                         {
                             found.Add(new BlockPos(x, y, z));
                         }
@@ -194,6 +198,9 @@ public sealed class VoxelRenderer : IDisposable
 
         return found;
     }
+
+    /// <summary>The colour the target is cleared to and the fog's colour: the haze of the day, or of the evening with <c>--dusk</c>.</summary>
+    public Color ClearColour { get; }
 
     /// <summary>The quality preset the renderer was made with.</summary>
     public QualityPreset Preset { get; }

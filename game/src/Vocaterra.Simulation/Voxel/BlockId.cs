@@ -158,4 +158,7 @@ public enum BlockId : ushort
 
     /// <summary>The second half of the mountain's board: "TAÑA" (solid). Appended in S15.</summary>
     SignMontanaB = 50,
+
+    /// <summary>A torch fixed to a post as scenery (the guide's pergola): drawn like <see cref="Torch"/> and lights its surroundings like a lantern, but it is not the item's torch (not gathered, not a noun, never found by "where is the torch"). Appended in S15.</summary>
+    PostTorch = 51,
 }
