@@ -451,6 +451,21 @@ public sealed class SessionLog : IDisposable
                     WriteNullable(w, "detail", world.Detail);
                 }));
                 break;
+            case LessonEvent lesson:
+                // A step of a lesson and how it ended (S16): started, done, skipped or moved on (a failed or uncertain turn is not a language failure, D-game-9), help, retry.
+                WriteLine(Json("lesson", w =>
+                {
+                    w.WriteNumber("tick", lesson.Tick);
+                    w.WriteNumber("stored_time", lesson.Time);
+                    w.WriteString("kind", LessonEventNames.Of(lesson.Kind));
+                    w.WriteString("lesson", lesson.Lesson);
+                    w.WriteNumber("step", lesson.Step);
+                    WriteNullable(w, "step_id", lesson.StepId.Length == 0 ? null : lesson.StepId);
+                    WriteNullable(w, "step_type", lesson.StepType.Length == 0 ? null : lesson.StepType);
+                    WriteNullable(w, "outcome", lesson.Outcome is { } outcome ? LessonEventNames.Of(outcome) : null);
+                    WriteNullable(w, "detail", lesson.Detail);
+                }));
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(gameEvent), gameEvent, "Unknown game event.");
         }

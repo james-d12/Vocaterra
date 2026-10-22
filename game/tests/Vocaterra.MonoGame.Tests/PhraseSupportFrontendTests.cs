@@ -49,14 +49,14 @@ public sealed class PhraseSupportFrontendTests
         Assert.Equal(progress.Sheet.Rows.Select(static r => r.Id), rows.Select(static r => r.Id));
         var water = rows.Single(static r => r.Id == "pedir-agua");
         Assert.Equal(("Quiero agua, por favor.", "I want water, please."), (water.Spanish, water.English));
-        Assert.Equal("ayuda: solo audio", water.LevelText);
+        Assert.Equal("ayuda: tarjeta y audio", water.LevelText); // the English rung went with the first correct use
         Assert.Equal("con ayuda 1   sin ayuda 0   opciones 0   no sé 0   otra situación 0", water.CountsText);
         Assert.Equal(("lista para repasar", true), (water.DueText, water.IsDue)); // twenty minutes after its credited use
         var hello = rows.Single(static r => r.Id == "hola");
         Assert.Equal("con ayuda 0   sin ayuda 0.5   opciones 0   no sé 0   otra situación 0", hello.CountsText); // typed: half a use
         Assert.Equal("ayuda: ninguna", hello.LevelText);
         var river = rows.Single(static r => r.Id == "donde-esta-el-rio");
-        Assert.Equal(("ayuda: tarjeta y audio", "con ayuda 0   sin ayuda 0   opciones 0   no sé 1   otra situación 0"), (river.LevelText, river.CountsText));
+        Assert.Equal(("ayuda: inglés, tarjeta y audio", "con ayuda 0   sin ayuda 0   opciones 0   no sé 1   otra situación 0"), (river.LevelText, river.CountsText));
         var question = rows.Single(static r => r.Id == "que-necesitas");
         Assert.Equal(("se oye", "oída 1   respondida 1"), (question.LevelText, question.CountsText));
         Assert.True(question.Hears);
@@ -176,10 +176,16 @@ public sealed class PhraseSupportFrontendTests
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("villager").Feet, session.Simulation.Player.FeetBlock)!.Value);
         dialogue.Open(session.OpenTalk("villager"), "Aldeano");
         _ = frontend.Pump();
-        _ = session.Say("¿dónde está el río?");
+        _ = session.Say("¿dónde está el río?"); // english to card-and-audio
         session.EndTalk();
         dialogue.Close();
         session.SkipTime(11 * 60);
+        dialogue.Open(session.OpenTalk("villager"), "Aldeano");
+        _ = frontend.Pump();
+        _ = session.Say("¿dónde está el río?"); // card-and-audio to audio-only, after the gap
+        session.EndTalk();
+        dialogue.Close();
+        session.SkipTime(61 * 60);
         player.Played.Clear();
 
         dialogue.Open(session.OpenTalk("villager"), "Aldeano");
@@ -265,7 +271,7 @@ public sealed class PhraseSupportFrontendTests
         _ = session.Say("quiero agua, por favor");
 
         var use = session.Events.OfType<PhraseUse>().Single();
-        Assert.Equal(["phrase: pedir-agua, supported 1, unaided 0, choice 0, no sé 0, transfer 0, fail-forward 0, cards 1, support audio-only"], frontend.LinesFor(use));
+        Assert.Equal(["phrase: pedir-agua, supported 1, unaided 0, choice 0, no sé 0, transfer 0, fail-forward 0, cards 1, support card-and-audio"], frontend.LinesFor(use));
         Assert.Empty(frontend.LinesFor(session.Events.OfType<WorldEvent>().First()));
         var summary = frontend.Summary();
         Assert.StartsWith("phrases: summary at exit", summary[0], StringComparison.Ordinal);

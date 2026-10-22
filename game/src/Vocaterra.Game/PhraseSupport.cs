@@ -11,7 +11,9 @@ namespace Vocaterra.Game;
 /// <param name="Meaning">The English meaning (<c>I want water, please.</c>).</param>
 /// <param name="Glosses">The word glosses (<c>quiero = I want</c>), possibly none.</param>
 /// <param name="AudioLineId">The bundle line id of the phrase's model audio (<c>shop_help_ask.1</c>), or <see langword="null"/>.</param>
-public sealed record SupportCard(string PhraseId, string Phrase, string Meaning, IReadOnlyList<string> Glosses, string? AudioLineId)
+/// <param name="EnglishShown">Whether the English (the meaning, the glosses and the explanation) is drawn now: at the first rung of the ladder, and on every rung once the help key was pressed (S16, D-game-13).</param>
+/// <param name="Explanation">The short English explanation of the phrase from the game's English text (<c>game/english.json</c>), or <see langword="null"/> when it has none.</param>
+public sealed record SupportCard(string PhraseId, string Phrase, string Meaning, IReadOnlyList<string> Glosses, string? AudioLineId, bool EnglishShown = true, string? Explanation = null)
 {
     /// <summary>Reads a card from a phrase row.</summary>
     /// <param name="row">The sheet's row.</param>
@@ -45,6 +47,14 @@ public sealed record AudioCue(string Npc, string Text, string? LineId, string Re
 /// <param name="Scaffolded">Those of them with help on offer.</param>
 public sealed record SupportSnapshot(IReadOnlyList<string> InPlay, IReadOnlyList<string> Scaffolded);
 
+/// <summary>
+/// The phrase a lesson step has in play (S16): a <c>repeat</c> step keeps the phrase's card and audio up whatever the rung (<see cref="Card"/> true, a supported
+/// use), an <c>answer</c> step shows no card (the step is the test, like the guide's review; <see cref="Card"/> false). The help key reveals both.
+/// </summary>
+/// <param name="PhraseId">The phrase sheet's id.</param>
+/// <param name="Card">Whether the card and the audio are up for the step.</param>
+public sealed record LessonFocus(string PhraseId, bool Card);
+
 /// <summary>What <see cref="PhraseSupport.Show"/> found new on the screen.</summary>
 /// <param name="NewCards">The phrases whose support card appeared (each counts as a card shown, once per appearance).</param>
 /// <param name="NewHears">The phrases the NPC's prompt asked (the rows the learner hears), once per appearance of the prompt.</param>
@@ -64,11 +74,14 @@ public sealed record SupportChange(IReadOnlyList<string> NewCards, IReadOnlyList
 /// At <see cref="SupportLevel.AudioOnly"/> there is no card, only the sound (and <c>Repetir</c> replays it); at <see cref="SupportLevel.None"/> nothing
 /// is shown until the player asks for help. During the guide's phrase review no card is shown at all, whatever the level: the review is the test.
 /// The <c>Esperaba</c> line of the panel (S7) is not part of this state: it appears only after a spoken turn, so it never gives the answer away before the turn.
+/// <b>The English (S16).</b> The card carries an English meaning, glosses and explanation only at <see cref="SupportLevel.EnglishAndCard"/>, and on every
+/// rung once the help key was pressed (<see cref="EnglishUp"/>); the NPC's lines get their English under them on the same terms (<see cref="EnglishForLines"/>).
 /// </remarks>
 public sealed class PhraseSupport
 {
     private readonly PhraseSheet _sheet;
     private readonly PhraseProgress _progress;
+    private readonly EnglishText? _english;
     private readonly Dictionary<string, string> _lineText = new(StringComparer.Ordinal);
     private readonly HashSet<string> _revealed = new(StringComparer.Ordinal);
     private readonly HashSet<string> _counted = new(StringComparer.Ordinal);
@@ -79,19 +92,22 @@ public sealed class PhraseSupport
     private string? _npc;
     private string? _prompt;
     private string? _reviewPhrase;
+    private string? _forcedPhrase;
     private bool _help;
 
     /// <summary>Creates the support state over the phrase sheet and the progress whose levels it follows.</summary>
     /// <param name="sheet">The phrase sheet.</param>
     /// <param name="progress">The phrase progress.</param>
     /// <param name="bundle">The bundle whose dialogue lines hold the model audio's text.</param>
-    public PhraseSupport(PhraseSheet sheet, PhraseProgress progress, ContentBundle bundle)
+    /// <param name="english">The game's English text (the explanations on the cards), or <see langword="null"/> for cards without them.</param>
+    public PhraseSupport(PhraseSheet sheet, PhraseProgress progress, ContentBundle bundle, EnglishText? english = null)
     {
         ArgumentNullException.ThrowIfNull(sheet);
         ArgumentNullException.ThrowIfNull(progress);
         ArgumentNullException.ThrowIfNull(bundle);
         _sheet = sheet;
         _progress = progress;
+        _english = english;
         var wanted = new HashSet<string>(sheet.Rows.SelectMany(static r => r.AudioLineIds), StringComparer.Ordinal);
         foreach (var pool in bundle.Dialogue.Pools.Values)
         {
@@ -115,17 +131,47 @@ public sealed class PhraseSupport
     public bool HelpGiven => _help;
 
     /// <summary>The phrases in play on this prompt: the review's phrase during a review, otherwise the prompt's focus (<see cref="PhraseIds.FocusAt"/>).</summary>
-    public IReadOnlyList<string> InPlay => _npc is null ? [] : _reviewPhrase is not null ? [_reviewPhrase] : PhraseIds.FocusAt(_prompt ?? string.Empty);
+    public IReadOnlyList<string> InPlay => _npc is null
+        ? []
+        : _forcedPhrase is not null ? [_forcedPhrase] : _reviewPhrase is not null ? [_reviewPhrase] : PhraseIds.FocusAt(_prompt ?? string.Empty);
 
-    /// <summary>The support cards to draw now, in the phrase sheet's order.</summary>
+    /// <summary>The support cards to draw now, in the phrase sheet's order; each says whether its English is drawn (<see cref="SupportCard.EnglishShown"/>).</summary>
     public IReadOnlyList<SupportCard> Cards => _npc is null
         ? []
-        : InPlay.Where(id => CardUp(id)).Select(id => SupportCard.From(_sheet.Find(id)!)).ToList();
+        : InPlay.Where(id => CardUp(id)).Select(id => CardOf(id)).ToList();
 
     /// <summary>The phrases in play at <see cref="SupportLevel.AudioOnly"/> (no card): the panel shows only the replay hook for them.</summary>
     public IReadOnlyList<string> AudioOnly => _npc is null || _reviewPhrase is not null
         ? []
-        : InPlay.Where(id => _progress.LevelOf(id) == SupportLevel.AudioOnly && !_revealed.Contains(id)).ToList();
+        : InPlay.Where(id => _progress.LevelOf(id) == SupportLevel.AudioOnly && !_revealed.Contains(id) && !string.Equals(_forcedPhrase, id, StringComparison.Ordinal)).ToList();
+
+    /// <summary>
+    /// Whether the English of a phrase is drawn now (S16, D-game-13): its card is up and the phrase is at <see cref="SupportLevel.EnglishAndCard"/>, or the
+    /// help key (Ayuda, "no sé") was pressed on this prompt, at any rung.
+    /// </summary>
+    /// <param name="phraseId">The phrase.</param>
+    public bool EnglishUp(string phraseId) =>
+        CardUp(phraseId) && (_revealed.Contains(phraseId) || (_reviewPhrase is null && SupportLevels.ShowsEnglish(_progress.LevelOf(phraseId))));
+
+    /// <summary>
+    /// Whether the English under the NPC's lines is drawn now: when the prompt asks for no phrase with a scaffold the lines are always glossed (they are
+    /// information, not practice); otherwise when any phrase in play is at <see cref="SupportLevel.EnglishAndCard"/> or was helped (<see cref="EnglishUp"/> for its card).
+    /// </summary>
+    public bool EnglishForLines
+    {
+        get
+        {
+            var inPlay = InPlay;
+            return inPlay.Count == 0
+                || inPlay.Any(id => _revealed.Contains(id) || SupportLevels.ShowsEnglish(_progress.LevelOf(id))); // the rung counts in a review too: the test is of saying, not of understanding the NPC
+        }
+    }
+
+    private SupportCard CardOf(string phraseId)
+    {
+        var card = SupportCard.From(_sheet.Find(phraseId)!);
+        return card with { EnglishShown = EnglishUp(phraseId), Explanation = _english?.Explanation(phraseId) };
+    }
 
     /// <summary>The sound <c>Repetir</c> replays while a phrase's help is on offer (its card is up, or it is at audio-only), or <see langword="null"/> to replay the NPC's last line.</summary>
     public AudioCue? ReplayCue
@@ -155,7 +201,9 @@ public sealed class PhraseSupport
     /// <summary>Whether a phrase's card is up now.</summary>
     /// <param name="phraseId">The phrase.</param>
     public bool CardUp(string phraseId) =>
-        _npc is not null && InPlay.Contains(phraseId, StringComparer.Ordinal) && (_revealed.Contains(phraseId) || (_reviewPhrase is null && _progress.LevelOf(phraseId) == SupportLevel.CardAndAudio));
+        _npc is not null && InPlay.Contains(phraseId, StringComparer.Ordinal)
+        && (_revealed.Contains(phraseId) || string.Equals(_forcedPhrase, phraseId, StringComparison.Ordinal)
+            || (_reviewPhrase is null && SupportLevels.ShowsCard(_progress.LevelOf(phraseId))));
 
     /// <summary>
     /// Whether the learner has help on offer for a phrase right now (a card, the audio, or a model just shown after Ayuda or "no sé"): a use then
@@ -163,7 +211,8 @@ public sealed class PhraseSupport
     /// </summary>
     /// <param name="phraseId">The phrase.</param>
     public bool Scaffolded(string phraseId) =>
-        _help || _revealed.Contains(phraseId) || (_reviewPhrase is null && _progress.LevelOf(phraseId) != SupportLevel.None);
+        _help || _revealed.Contains(phraseId) || string.Equals(_forcedPhrase, phraseId, StringComparison.Ordinal)
+        || (_reviewPhrase is null && _progress.LevelOf(phraseId) != SupportLevel.None);
 
     /// <summary>
     /// The panel is open on an NPC, or a turn moved its prompt on. Brings the cards and the sounds up to date with the levels. A change of NPC or
@@ -173,11 +222,15 @@ public sealed class PhraseSupport
     /// <param name="npc">The NPC the panel is open on.</param>
     /// <param name="prompt">The prompt the NPC is waiting on.</param>
     /// <param name="reviewPhrase">The phrase the guide's review asks (no card is shown for it), or <see langword="null"/>.</param>
-    public SupportChange Show(string npc, string prompt, string? reviewPhrase = null)
+    /// <param name="lesson">The phrase a lesson step has in play (S16), or <see langword="null"/>: it replaces the prompt's own focus.</param>
+    public SupportChange Show(string npc, string prompt, string? reviewPhrase = null, LessonFocus? lesson = null)
     {
         ArgumentNullException.ThrowIfNull(npc);
         ArgumentNullException.ThrowIfNull(prompt);
-        var fresh = !string.Equals(_npc, npc, StringComparison.Ordinal) || !string.Equals(_prompt, prompt, StringComparison.Ordinal) || !string.Equals(_reviewPhrase, reviewPhrase, StringComparison.Ordinal);
+        var review = reviewPhrase ?? (lesson is { Card: false } ? lesson.PhraseId : null);
+        var forced = lesson is { Card: true } ? lesson.PhraseId : null;
+        var fresh = !string.Equals(_npc, npc, StringComparison.Ordinal) || !string.Equals(_prompt, prompt, StringComparison.Ordinal)
+            || !string.Equals(_reviewPhrase, review, StringComparison.Ordinal) || !string.Equals(_forcedPhrase, forced, StringComparison.Ordinal);
         if (fresh)
         {
             ResetPrompt();
@@ -185,12 +238,13 @@ public sealed class PhraseSupport
 
         _npc = npc;
         _prompt = prompt;
-        _reviewPhrase = reviewPhrase;
+        _reviewPhrase = review;
+        _forcedPhrase = forced;
         var newCards = new List<string>();
         foreach (var id in InPlay)
         {
             var level = _progress.LevelOf(id);
-            if (_reviewPhrase is null && level == SupportLevel.CardAndAudio && _counted.Add(id))
+            if (_reviewPhrase is null && (SupportLevels.ShowsCard(level) || string.Equals(_forcedPhrase, id, StringComparison.Ordinal)) && _counted.Add(id))
             {
                 newCards.Add(id);
                 Cue(id, "card");
@@ -260,6 +314,7 @@ public sealed class PhraseSupport
         _npc = null;
         _prompt = null;
         _reviewPhrase = null;
+        _forcedPhrase = null;
     }
 
     /// <summary>Takes the sounds waiting to be played, oldest first, and clears them.</summary>

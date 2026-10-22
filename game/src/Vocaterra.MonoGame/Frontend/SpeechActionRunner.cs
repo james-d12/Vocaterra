@@ -69,10 +69,22 @@ public sealed class SpeechActionRunner(GuideSession session, DialogueModel dialo
             case SpeechAction.Slower:
                 return Replay(action == SpeechAction.Slower);
             case SpeechAction.Help:
+                if (session.Lessons.HandlesHelp)
+                {
+                    // A lesson step has its own help path (S16): the English hint, the model line again and, for a phrase, the card and the English.
+                    session.LogVoice(VoiceEventKind.Hint);
+                    return session.Lessons.Help();
+                }
+
                 _ = session.SubmitHelp(cursor());
                 dialogue.BeginLine(SpeechButtons.HelpLabel);
                 return true;
             case SpeechAction.DontKnow:
+                if (session.Lessons.HandlesHelp)
+                {
+                    return session.Lessons.DontKnow(); // "no sé" in a lesson: the help path and a tracked "no sé", never a failure
+                }
+
                 _ = session.SubmitDontKnow(cursor());
                 dialogue.BeginLine(SpeechButtons.DontKnowLabel);
                 return true;

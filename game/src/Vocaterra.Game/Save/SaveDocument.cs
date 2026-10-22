@@ -39,6 +39,8 @@ namespace Vocaterra.Game;
 /// <param name="NextTurnId">The id the next submitted turn gets.</param>
 /// <param name="Npcs">Each NPC's conversation state, in agent order (guide, shopkeeper, villager).</param>
 /// <param name="Chunks">The scene diff: the chunks that differ from the fresh scene, in chunk order.</param>
+/// <param name="Lessons">The progress of the lessons (S16): where each one stands and which is active. A save from before S16 has none.</param>
+/// <param name="Tips">The first-time tips (S16): which were shown, which wait and which is on screen. A save from before S16 has none.</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -67,7 +69,35 @@ public sealed record SaveDocument(
     IReadOnlyList<LastRepairSave> LastRepairs,
     long NextTurnId,
     IReadOnlyList<NpcSave> Npcs,
-    IReadOnlyList<ChunkEdit> Chunks);
+    IReadOnlyList<ChunkEdit> Chunks,
+    LessonsSave? Lessons = null,
+    TipsSave? Tips = null);
+
+/// <summary>The first-time tips (S16): the ids shown so far, the ids waiting to be shown (in order), and the one on screen with the tick it came up at.</summary>
+/// <param name="Shown">The ids shown so far, in ordinal order (the one on screen is among them).</param>
+/// <param name="Queued">The ids waiting, in the order they will be shown.</param>
+/// <param name="Current">The id of the tip on screen, or <see langword="null"/>.</param>
+/// <param name="Since">The tick the tip on screen came up at (0 when none).</param>
+public sealed record TipsSave(IReadOnlyList<string> Shown, IReadOnlyList<string> Queued, string? Current, long Since);
+
+/// <summary>The progress of the lessons (S16): each lesson's state, and the id of the one that has begun and not finished.</summary>
+/// <param name="Lessons">One entry per lesson of the game, in the file's order.</param>
+/// <param name="Active">The active lesson's id, or <see langword="null"/>.</param>
+public sealed record LessonsSave(IReadOnlyList<LessonProgressSave> Lessons, string? Active);
+
+/// <summary>Where one lesson stands: its status, the step in progress, how the finished steps ended, and the tries and help used on the step in progress.</summary>
+/// <param name="Id">The lesson's id.</param>
+/// <param name="Status">Not started, in progress or completed.</param>
+/// <param name="Step">The index of the step in progress (0-based).</param>
+/// <param name="Outcomes">How the finished steps ended, in order.</param>
+/// <param name="Attempts">The tries used on the step in progress.</param>
+/// <param name="Helped">Whether the help path was used on the step in progress.</param>
+public sealed record LessonProgressSave(string Id, LessonStatus Status, int Step, IReadOnlyList<StepOutcomeSave> Outcomes, int Attempts, bool Helped);
+
+/// <summary>How one finished lesson step ended.</summary>
+/// <param name="StepId">The step's id.</param>
+/// <param name="Outcome">Done, skipped or moved on.</param>
+public sealed record StepOutcomeSave(string StepId, StepOutcome Outcome);
 
 /// <summary>The gathering in progress: the block being gathered (or none), its kind and the ticks of holding spent on it.</summary>
 /// <param name="Target">The block, or <see langword="null"/> when nothing is being gathered.</param>

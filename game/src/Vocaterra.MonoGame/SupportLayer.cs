@@ -23,6 +23,9 @@ public sealed class SupportLayer : IFrameLayer
     /// <summary>The heading over the key-word cards while they stand alone.</summary>
     public const string KeyWordsHeading = "Palabras nuevas";
 
+    /// <summary>The note on a card at the second rung of the ladder: the English is one key away (S16, D-game-13).</summary>
+    public const string EnglishOnHelp = "H: English";
+
     private const int PhraseSize = 32;
     private static readonly Color Gold = new(255, 214, 64);
     private static readonly Color Ink = new(250, 246, 232);
@@ -86,13 +89,30 @@ public sealed class SupportLayer : IFrameLayer
         DrawHelpers.Text(spriteBatch, small, "audio", new Vector2(slot.X + 6, slot.Y + 3), Empty);
         var phraseFont = DrawHelpers.Width(large, card.Phrase) <= width ? large : small;
         DrawHelpers.Text(spriteBatch, phraseFont, card.Phrase, new Vector2(left, box.Y + 22), Ink);
-        DrawHelpers.Text(spriteBatch, small, card.Meaning, new Vector2(left, box.Y + 58), new Color(190, 225, 255));
-        if (card.Glosses.Count > 0)
+        if (!card.EnglishShown)
+        {
+            // Rung 2 of the ladder (S16): the Spanish card and its audio, the English on the help key.
+            DrawHelpers.Text(spriteBatch, small, EnglishOnHelp, new Vector2(left, box.Bottom - 22), Empty);
+            return;
+        }
+
+        var english = DialoguePanel.EnglishColor;
+        DrawHelpers.Text(spriteBatch, small, DialoguePanel.EnglishPrefix + card.Meaning, new Vector2(left, box.Y + 58), english);
+        var y = box.Y + 76;
+        if (card.Explanation is { } explanation)
+        {
+            foreach (var row in TextWrap.Wrap(explanation, width, t => DrawHelpers.Width(small, t)).Take(2))
+            {
+                DrawHelpers.Text(spriteBatch, small, row, new Vector2(left, y), english);
+                y += 16;
+            }
+        }
+        else if (card.Glosses.Count > 0)
         {
             var rows = TextWrap.Wrap(string.Join(" · ", card.Glosses), width, t => DrawHelpers.Width(small, t));
             for (var i = 0; i < Math.Min(2, rows.Count); i++)
             {
-                DrawHelpers.Text(spriteBatch, small, rows[i], new Vector2(left, box.Y + 76 + (i * 16)), Dim);
+                DrawHelpers.Text(spriteBatch, small, rows[i], new Vector2(left, y + (i * 16)), Dim);
             }
         }
     }

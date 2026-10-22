@@ -156,7 +156,7 @@ public sealed class JournalLayer : IFrameLayer
         DrawHelpers.Text(spriteBatch, font, level, new Vector2(boxLeft - levelWidth - (boxes > 0 ? 8 : 0), top + 2), row.Hears ? Hints : Learning);
         if (boxes > 0)
         {
-            DrawLit(spriteBatch, pixel, new Rectangle(boxLeft, top + 5, Pip, Pip), row.Level == SupportLevel.CardAndAudio);
+            DrawLit(spriteBatch, pixel, new Rectangle(boxLeft, top + 5, Pip, Pip), SupportLevels.ShowsCard(row.Level));
             DrawLit(spriteBatch, pixel, new Rectangle(boxLeft + Pip + 4, top + 5, Pip, Pip), row.Level != SupportLevel.None);
         }
 

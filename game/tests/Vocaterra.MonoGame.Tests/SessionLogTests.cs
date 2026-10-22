@@ -171,7 +171,7 @@ public sealed class SessionLogTests
         Assert.True(turn.GetProperty("latency_ms").GetDouble() >= 0);
         Assert.Equal("pedir-agua", turn.GetProperty("phrase").GetString());
         Assert.Equal("supported", turn.GetProperty("classification").GetString()); // the card is up at the stall's first question
-        Assert.Equal("card-and-audio", turn.GetProperty("support").GetString());
+        Assert.Equal("english-and-card", turn.GetProperty("support").GetString()); // the level the phrase had when it was used: the first rung
 
         var phrase = lines.Single(static l => l.GetProperty("type").GetString() == "phrase");
         Assert.Equal("pedir-agua", phrase.GetProperty("phrase").GetString());

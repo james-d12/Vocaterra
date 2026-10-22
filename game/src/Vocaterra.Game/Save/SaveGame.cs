@@ -147,7 +147,9 @@ public static class SaveGame
             session.LastRepairs().Select(static step => new LastRepairSave(step.Npc, step.Repair)).ToArray(),
             session.NextTurnId,
             NpcService.AgentIds.Select(session.Conversation.CaptureAgent).ToArray(),
-            VoxelGridDiff.Capture(session.Scene.Grid, pristine.Grid));
+            VoxelGridDiff.Capture(session.Scene.Grid, pristine.Grid),
+            session.Lessons.Capture(),
+            session.Tips.Capture());
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
@@ -269,6 +271,15 @@ public static class SaveGame
         session.RestoreLastRepairs(document.LastRepairs.Select(static step => (step.Npc, step.Repair)));
         session.NextTurnId = document.NextTurnId;
         RestoreNpcs(session, document.Npcs);
+        if (document.Lessons is { } lessons)
+        {
+            session.Lessons.Restore(lessons);
+        }
+
+        if (document.Tips is { } tips)
+        {
+            session.Tips.Restore(tips);
+        }
     }
 
     // The phrase sheet's rows, each exactly once: a save with an unknown or missing phrase is refused.

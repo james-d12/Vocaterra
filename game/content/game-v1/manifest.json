@@ -13,6 +13,8 @@
 {"path":"evaluation/evaluation-config.json","sha256":"fc7d6d2567808648dd6615e4c2ea60556b50eba487ee381e74d5d0769003867d","bytes":1632},
 {"path":"feedback/feedback-policy.json","sha256":"63e3ac7e5a4e7c95ca2d26212ae2536622e606be07cc2117f89cdb34f4da9dcf","bytes":492},
 {"path":"game/checks.json","sha256":"ab9a3bf3c2e522e01f3c720b26b4d2f1808e91872735e5efd698782a18b0d4c7","bytes":4485},
+{"path":"game/english.json","sha256":"718c498b67584f370682a5af411dbe8a793a53dc09f9081cb00700f9acb08ec8","bytes":15455},
+{"path":"game/lessons.json","sha256":"3169ea89f9e45128874593a0ab051ec7fa14317093cfe743efa9296027b5f8da","bytes":1700},
 {"path":"game/nouns.json","sha256":"2e9c79a8e8933b22fa4daeff59a1bf591809a1032dd108e36849a6871af7bb33","bytes":1375},
 {"path":"game/phrases.json","sha256":"39325755f4bf5894cd7235f7e688785e811b5fca4b0f5f6b3c685dce2fcdfbb3","bytes":3454},
 {"path":"game/recipes.json","sha256":"e369e410429aa82e34b85fabad23550b71a551086d69dc365fd892a57b2247ed","bytes":191},
@@ -25,7 +27,7 @@
 {"path":"lexicon/wiktionary-es.source.json","sha256":"9cecd4bd49f21bfb153b69aeaaa1118740e8649ba5dce61a9dc925e557134b70","bytes":3640},
 {"path":"lexicon/world.json","sha256":"5f4621688b17027f1925fb9c6504753a7abc8d2a4d9f6ef114150085b22e11d5","bytes":1579},
 {"path":"prompts/prompts.json","sha256":"9c927ce5394361f7f717b1dffff14bd5c0184d5eed3580f6d350fb0e95f7a9e9","bytes":1893},
-{"path":"provenance.json","sha256":"1c3123d58683812eabbdf3209def7f5b5dd72fdc42891665bf59cbd91189538d","bytes":55843},
+{"path":"provenance.json","sha256":"8f56f02b2e1d404786983da44f9a025bcdc4a55eb21c267b303a970f0e1b18c8","bytes":56061},
 {"path":"speech/answer_accepted.1.slow.wav","sha256":"51451a86215f94bde2697ddfa526b537a85838d7ebf0a45d585b04cb6a5cf546","bytes":58844},
 {"path":"speech/answer_accepted.1.wav","sha256":"db65f6b943a2968a335da25fcef1199971ed172c65a393d461a8a47b525fa6fe","bytes":46844},
 {"path":"speech/answer_accepted.2.slow.wav","sha256":"f1e6aad21a2bfcd911e843c8e6b634e5853df1544b1b1ddefb52cfb23b5554d7","bytes":43244},
@@ -252,4 +254,4 @@
 {"path":"speech/villager_thank.1.wav","sha256":"264a8166023475d7d7842d08050d562924cb4212881ad755cc67afd728d5f7bb","bytes":45644},
 {"path":"speech/villager_thank.2.slow.wav","sha256":"791dd1d9ba9a64ba04d5b734f0e8c91b4ab25fa869ec85a6e2a6937a5b794ea0","bytes":70844},
 {"path":"speech/villager_thank.2.wav","sha256":"0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3","bytes":54044}
-],"bundleHash":"cd63077b9a8b0ee34a21d4cf963aa2afa8fa6ee6866827224b847cefd7c94f88"}
+],"bundleHash":"4be20d61fbf5893ef3b8fabb3ef88f2e0cf911947d6199acc2aab92d0b1e129c"}

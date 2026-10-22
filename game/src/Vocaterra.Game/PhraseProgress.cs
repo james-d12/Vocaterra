@@ -3,20 +3,48 @@ using System.Globalization;
 namespace Vocaterra.Game;
 
 /// <summary>
-/// How much help the learner is given with a phrase (S8, the brief's "scaffold then fade"): the support card and the model's audio, only the audio,
-/// or nothing until the player asks. A level steps down after a correct use once the spacing gap has passed and back up after "no sé", a choice
-/// or a fail-forward (<see cref="PhraseProgress"/>).
+/// How much help the learner is given with a phrase (S8, the brief's "scaffold then fade"; S16 adds the English rung, D-game-13). The ladder runs from
+/// the most help to the least: English with the Spanish card and audio, then the Spanish card and audio (the English only on the help key), then only the
+/// audio, then nothing. The help key (<c>Ayuda</c>) shows the English and the card at every rung, so nothing is ever gated behind language (rule 8).
 /// </summary>
+/// <remarks>
+/// <b>The rules of the ladder</b> (<see cref="PhraseProgress"/> applies them; the tests pin them):
+/// <list type="number">
+/// <item>A phrase with a scaffold starts at <see cref="EnglishAndCard"/>; a phrase with none stays at <see cref="None"/>.</item>
+/// <item>A correct, full-credit use at <see cref="EnglishAndCard"/> steps to <see cref="CardAndAudio"/> at once: the English rung needs no spacing gap (the
+/// English is a crutch for meaning, not a memory to space out). That use is the phrase's first credited use, so the gap clock starts there.</item>
+/// <item>A correct, credited use at <see cref="CardAndAudio"/> or <see cref="AudioOnly"/> steps down one rung once the spacing gap of D-game-6 has passed
+/// (10 minutes after the first credited use, 1 hour after later ones, or a new play session); a correct use before its gap is logged and does not step.</item>
+/// <item>A half-credit (typed) use needs two to make a step.</item>
+/// <item>"No sé", Ayuda, a pick among offered choices and a fail-forward step the level up one rung (never above <see cref="EnglishAndCard"/>) and clear the
+/// credit toward the next step.</item>
+/// </list>
+/// </remarks>
 public enum SupportLevel
 {
-    /// <summary>The phrase's card (the phrase sheet's card text) is shown beside the panel and its model audio plays when it appears.</summary>
+    /// <summary>The first rung: an English explanation under the Spanish card, which is shown beside the panel with its model audio.</summary>
+    EnglishAndCard,
+
+    /// <summary>The Spanish card (the phrase sheet's card text) is shown beside the panel and its model audio plays when it appears; the English is on the help key.</summary>
     CardAndAudio,
 
     /// <summary>No card; the model audio plays when the prompt appears and can be repeated (<c>Repetir</c>).</summary>
     AudioOnly,
 
-    /// <summary>Nothing is shown until the player asks (<c>Ayuda</c> shows the card again).</summary>
+    /// <summary>Nothing is shown until the player asks (<c>Ayuda</c> shows the card and the English again).</summary>
     None,
+}
+
+/// <summary>What each rung of the <see cref="SupportLevel"/> ladder shows, as plain questions the panel and the tests share.</summary>
+public static class SupportLevels
+{
+    /// <summary>Whether the Spanish card is drawn at this rung without the help key.</summary>
+    /// <param name="level">The rung.</param>
+    public static bool ShowsCard(SupportLevel level) => level is SupportLevel.EnglishAndCard or SupportLevel.CardAndAudio;
+
+    /// <summary>Whether the English explanation is drawn at this rung without the help key.</summary>
+    /// <param name="level">The rung.</param>
+    public static bool ShowsEnglish(SupportLevel level) => level == SupportLevel.EnglishAndCard;
 }
 
 /// <summary>The wire names of the support levels for the console and the session log.</summary>
@@ -25,6 +53,7 @@ public static class SupportLevelNames
     /// <summary>The wire name of a level: <c>card-and-audio</c>, <c>audio-only</c> or <c>none</c>.</summary>
     public static string Of(SupportLevel level) => level switch
     {
+        SupportLevel.EnglishAndCard => "english-and-card",
         SupportLevel.CardAndAudio => "card-and-audio",
         SupportLevel.AudioOnly => "audio-only",
         SupportLevel.None => "none",
@@ -144,25 +173,35 @@ public sealed record DuePhrase(string PhraseId, long OverdueSeconds);
 /// <b>The support level.</b> A correct production (supported, unaided or transfer) is <i>credited</i> when the phrase has no credited use yet, or the
 /// spacing gap of D-game-6 has passed since the last one (<see cref="CreditRules.GapAfter"/>: 10 minutes after the first, 1 hour after the second and
 /// later), or the play session changed. A credited use adds its credit units toward the next step; a full use of <see cref="WordProgress.UnitsPerUse"/>
-/// units steps the level down one (<see cref="SupportLevel.CardAndAudio"/> to <see cref="SupportLevel.AudioOnly"/> to <see cref="SupportLevel.None"/>), so
-/// a spoken credited use steps down and a typed one at half credit needs two. An early correct use is logged and does not step. "No sé", a choice and a
-/// fail-forward step the level up one and clear the credit toward the next step. Only the phrases that have a scaffold to show
-/// (<see cref="PhraseIds.HasScaffold"/>) have a level to move; the others stay at <see cref="SupportLevel.None"/>.
+/// units steps the level down one (<see cref="SupportLevel.EnglishAndCard"/> to <see cref="SupportLevel.CardAndAudio"/> to <see cref="SupportLevel.AudioOnly"/> to
+/// <see cref="SupportLevel.None"/>), so a spoken credited use steps down and a typed one at half credit needs two. An early correct use is logged and does not
+/// step. <b>The English rung has no gap</b> (S16): a correct use at <see cref="SupportLevel.EnglishAndCard"/> counts whenever it comes, and is the first credited
+/// use, so the first gap runs from it. "No sé", a choice and a fail-forward step the level up one (to <see cref="SupportLevel.EnglishAndCard"/> at the most) and
+/// clear the credit toward the next step. Only the phrases that have a scaffold to show (<see cref="HasScaffold"/>) have a level to move; the others stay at
+/// <see cref="SupportLevel.None"/>. The scaffolded phrases are the four taught at the stall and the river (<see cref="PhraseIds.HasScaffold"/>) and, since S16, the
+/// phrases the lessons of <c>game/lessons.json</c> teach (the <c>scaffolds</c> argument of the constructor).
 /// </para>
 /// </remarks>
 public sealed class PhraseProgress
 {
     private readonly PhraseSheet _sheet;
     private readonly Dictionary<string, int> _index = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _scaffolds = new(StringComparer.Ordinal);
     private PhraseRecord[] _records;
 
-    /// <summary>Starts with nothing seen: each phrase with a scaffold at <see cref="SupportLevel.CardAndAudio"/>, every other at <see cref="SupportLevel.None"/>.</summary>
+    /// <summary>Starts with nothing seen: each phrase with a scaffold at <see cref="SupportLevel.EnglishAndCard"/>, every other at <see cref="SupportLevel.None"/>.</summary>
     /// <param name="sheet">The phrase sheet whose rows are tracked (all of them, in the sheet's order).</param>
     /// <param name="session">The number of this play session.</param>
-    public PhraseProgress(PhraseSheet sheet, int session = 1)
+    /// <param name="scaffolds">The phrases a lesson teaches, which have a scaffold to fade besides the four of <see cref="PhraseIds.HasScaffold"/>; <see langword="null"/> for none.</param>
+    public PhraseProgress(PhraseSheet sheet, int session = 1, IEnumerable<string>? scaffolds = null)
     {
         _sheet = sheet ?? throw new ArgumentNullException(nameof(sheet));
         Session = session;
+        foreach (var id in scaffolds ?? [])
+        {
+            _ = _scaffolds.Add(id);
+        }
+
         _records = new PhraseRecord[sheet.Rows.Count];
         for (var i = 0; i < _records.Length; i++)
         {
@@ -171,6 +210,10 @@ public sealed class PhraseProgress
             _index.Add(id, i);
         }
     }
+
+    /// <summary>Whether a phrase has a scaffold to fade: one of the four taught at the stall and the river, or one a lesson teaches.</summary>
+    /// <param name="id">The sheet's id.</param>
+    public bool HasScaffold(string id) => PhraseIds.HasScaffold(id) || _scaffolds.Contains(id);
 
     /// <summary>The number of the current play session (1 for a new game; the saves of S10 bump it on each load).</summary>
     public int Session { get; set; }
@@ -266,7 +309,7 @@ public sealed class PhraseProgress
     {
         ArgumentNullException.ThrowIfNull(rules);
         var record = RecordOf(id);
-        return record.CreditedUses == 0 ? null : SecondsUntilCredit(record, now, Session, rules);
+        return record.CreditedUses == 0 ? null : record.Level == SupportLevel.EnglishAndCard ? 0 : SecondsUntilCredit(record, now, Session, rules);
     }
 
     /// <summary>
@@ -283,7 +326,7 @@ public sealed class PhraseProgress
         for (var i = 0; i < _records.Length; i++)
         {
             var record = _records[i];
-            if (record.CreditedUses == 0 || record.Level == SupportLevel.None || !PhraseIds.HasScaffold(record.Id) || SecondsUntilCredit(record, now, Session, rules) > 0)
+            if (record.CreditedUses == 0 || record.Level == SupportLevel.None || !HasScaffold(record.Id) || SecondsUntilCredit(record, now, Session, rules) > 0)
             {
                 continue;
             }
@@ -338,7 +381,7 @@ public sealed class PhraseProgress
     /// <param name="units">Credit units (<see cref="WordProgress.UnitsPerUse"/> per full use).</param>
     public static string Uses(int units) => (units / (double)WordProgress.UnitsPerUse).ToString("0.#", CultureInfo.InvariantCulture);
 
-    private static SupportLevel StartLevel(string id) => PhraseIds.HasScaffold(id) ? SupportLevel.CardAndAudio : SupportLevel.None;
+    private SupportLevel StartLevel(string id) => HasScaffold(id) ? SupportLevel.EnglishAndCard : SupportLevel.None;
 
     // A correct (or slipped) production of a phrase: supported, unaided or transfer.
     private PhraseUseResult Produce(PhraseUse use, CreditRules rules)
@@ -364,14 +407,15 @@ public sealed class PhraseProgress
         }
 
         var before = RecordOf(id);
-        var remaining = SecondsUntilCredit(before, use.Time, Session, rules);
+        // The English rung has no spacing gap (S16): the English is help with the meaning, not a memory to space out.
+        var remaining = before.Level == SupportLevel.EnglishAndCard ? 0 : SecondsUntilCredit(before, use.Time, Session, rules);
         if (remaining > 0)
         {
             return new PhraseUseResult(id, PhraseStep.TooEarly, before.Level, remaining);
         }
 
         var credit = before.StepUnits + units;
-        var steps = PhraseIds.HasScaffold(id) && before.Level != SupportLevel.None && credit >= WordProgress.UnitsPerUse;
+        var steps = HasScaffold(id) && before.Level != SupportLevel.None && credit >= WordProgress.UnitsPerUse;
         var level = steps ? before.Level + 1 : before.Level;
         Update(id, record => record with
         {
@@ -414,13 +458,13 @@ public sealed class PhraseProgress
     private PhraseUseResult StepUp(string id)
     {
         var before = RecordOf(id);
-        if (!PhraseIds.HasScaffold(id))
+        if (!HasScaffold(id))
         {
             return new PhraseUseResult(id, PhraseStep.Logged, before.Level);
         }
 
-        // The credit toward the next step down is lost either way: the learner needs the help again.
-        var level = before.Level == SupportLevel.CardAndAudio ? before.Level : before.Level - 1;
+        // The credit toward the next step down is lost either way: the learner needs the help again. The English rung is the top of the ladder.
+        var level = before.Level == SupportLevel.EnglishAndCard ? before.Level : before.Level - 1;
         Update(id, record => record with { Level = level, StepUnits = 0 });
         return new PhraseUseResult(id, level == before.Level ? PhraseStep.Logged : PhraseStep.SteppedUp, level);
     }

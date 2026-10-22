@@ -37,6 +37,9 @@ public static class PhraseJournalRows
     /// <summary>The text of a phrase an NPC says in place of a support level.</summary>
     public const string HearsText = "se oye";
 
+    /// <summary>The label of <see cref="SupportLevel.EnglishAndCard"/> (S16).</summary>
+    public const string EnglishAndCardText = "ayuda: inglés, tarjeta y audio";
+
     /// <summary>The label of <see cref="SupportLevel.CardAndAudio"/>.</summary>
     public const string CardAndAudioText = "ayuda: tarjeta y audio";
 
@@ -50,6 +53,7 @@ public static class PhraseJournalRows
     /// <param name="level">The level.</param>
     public static string LevelLabel(SupportLevel level) => level switch
     {
+        SupportLevel.EnglishAndCard => EnglishAndCardText,
         SupportLevel.CardAndAudio => CardAndAudioText,
         SupportLevel.AudioOnly => AudioOnlyText,
         _ => NoneText,
@@ -68,7 +72,7 @@ public static class PhraseJournalRows
         {
             var record = progress.RecordOf(sheetRow.Id);
             var hears = !sheetRow.IsLearnerPhrase;
-            var scaffold = PhraseIds.HasScaffold(sheetRow.Id);
+            var scaffold = progress.HasScaffold(sheetRow.Id);
             var wait = scaffold && record.Level != SupportLevel.None ? progress.SecondsUntilNextCredit(sheetRow.Id, now, rules) : null;
             rows.Add(new PhraseJournalRow(
                 sheetRow.Id,

@@ -216,7 +216,7 @@ itself (`no-se`, `ayuda`) counts as an unaided use when typed or said; `FailForw
 objective a taught phrase used with another NPC is a `Transfer` (the guide's offer shows no card); the guide's review answer is `Unaided` unless
 Ayuda was asked first.
 
-The support level (`SupportLevel`: `CardAndAudio`, `AudioOnly`, `None`) steps down after a *credited* correct use: credited means the phrase has
+The support level (`SupportLevel`: `EnglishAndCard`, `CardAndAudio`, `AudioOnly`, `None`; S16 added the first rung, see "English and the lessons (S16)" below) steps down after a *credited* correct use: credited means the phrase has
 no credited use yet, or the D-game-6 gap (10 minutes after the first, 1 hour after the second and later) has passed since the last one, or the
 play session changed; a credited use adds its units toward one full use, which steps the level down (a spoken use steps at once, a typed one at half
 credit needs two). An early correct use is counted and logged and does not step. "No sé" or Ayuda, a choice and a fail-forward step the level up
@@ -235,3 +235,35 @@ question after `KeyWordTicks`; `TakeOpening()` returns it. The guide's due revie
 (the stall's own question for `pedir-agua`); the answer is evaluated on the phrase's own prompt (`GuideScene.PromptOverride`). What a save must keep
 (S10): the `PhraseRecord`s (`PhraseProgress.Records`, `Restore`), `PlaySession`, the carded nouns and the key-words-taught flag, and the NPCs'
 learner models (`phrase.*` skills).
+
+## English and the lessons (S16, D-game-13)
+
+English is on-screen text only; only Spanish is spoken. All of it is game content in the bundle, never code strings, and the core is not changed.
+
+- **The ladder** (`SupportLevel`, rules in the enum's remarks, pinned by `SupportLadderTests`): 1 `EnglishAndCard` (English under the Spanish card, with
+  its audio), 2 `CardAndAudio` (the English only on the help key), 3 `AudioOnly`, 4 `None`. A phrase with a scaffold starts at 1. A correct full-credit use
+  at rung 1 steps to 2 at once (no spacing gap, and it is the first credited use); rungs 2 and 3 step down on a credited use after the D-game-6 gap; two
+  typed half uses make one step; "no sé", Ayuda, a choice and a fail-forward step up one rung, never above 1. The help key (`PhraseSupport.Reveal`) shows the card
+  and the English at every rung (`PhraseSupport.EnglishUp`). The phrases with a scaffold are the four of `PhraseIds.HasScaffold` plus every phrase a lesson
+  teaches (`PhraseProgress` takes them as `scaffolds`; `HasScaffold(id)` is the instance question).
+- **`game/english.json`** (`EnglishText`): `ui` words, `npcNames`, `controls` (the F1 panel), `tips` (first-time tips: `when` is `start`, `aimed_npc` or a world
+  event name), `objective` and `nouns` (the bilingual camp line: `Campamento (camp): madera (wood) 0/5 · ...`, each English word dropped once its noun is
+  known, the title's once all are), `phrases` (a short English explanation per phrase, on the card at rung 1), `lines` (the English under each NPC line, by its
+  Spanish text without case, accents or punctuation; a templated world line has none) and `feedback` (plain English after a turn keyed by outcome and by the
+  core's `ErrorTags`, with `unknownError` as the fallback; `EnglishText.FeedbackFor(turn)`). It is checked at load and by `EnglishTextTests`: every outcome and
+  every core error code has a line, every speakable NPC line has its English.
+- **`TipFeed`** (`GuideSession.Tips`): the tips come one at a time for seven seconds of game ticks and never again; the saved game keeps which were shown, which
+  wait and which is up.
+- **`game/lessons.json`** (`LessonBook`, `LessonRunner`, `GuideSession.Lessons`): data-driven lessons attached to an NPC. A step has `id`, `type`, `english` and
+  optionally `help`, `retry`, `attempts` (1 to 5, default 2); the seven types are `explain`, `model` (`line`, `translation`), `listen` (`line`, `translation`,
+  `options`, `correct`), `repeat` (`phrase`, `prompt`), `answer` (`phrase`, `prompt`, `line`, `translation`), `do` (`event`, `detail`: a world event the game
+  raises, such as `item_picked_up`) and `recap` (`phrases`). `line` is a pre-rendered speech id (`phrase.hola`, `guide_offer_yes.1`); the file is checked at
+  load against the phrase sheet, the bundle's prompts (the prompt must allow the phrase's intent), the speech lines and the world-event names. A lesson
+  is offered at its NPC (`L` starts it) or, with `"autoStart": true`, starts at the first talk. **Rules:** every step can be skipped (`K`) and has a help path
+  (`H` or Ayuda: the English hint, the model line again, the card and the English); a `repeat` step keeps the card and audio up and counts a *supported* use of the
+  phrase, an `answer` step shows no card and counts as the guide's review does (*unaided*, *supported* after help); both are real turns at the step's prompt
+  (`GuideScene.PromptOverride`). A turn the core did not understand, an uncertain recognition or another phrase is an attempt that did not work, and after the
+  step's attempts the step moves on (`moved_on`, fail-forward, never a language failure, D-game-9); help and "no sé" are never attempts. Progress (`LessonsSave`,
+  `TipsSave`) is in the save; each step and its outcome is a `LessonEvent` (the console's `event: lesson ...` lines and the session log's `lesson` lines).
+  To add a lesson: edit the file, re-hash the bundle, run the tests (`LessonBookTests` loads the shipped file and checks that its WAVs exist).
+
