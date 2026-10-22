@@ -1237,7 +1237,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 _report.Text,
                 _reportSession,
                 _reportTick,
-                WallClock.LocalNow,
+                WallClock.LocalNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
                 picture,
                 BuildReportState(),
                 _session.Learner.Recent(ReportBounds.RecentTurns),

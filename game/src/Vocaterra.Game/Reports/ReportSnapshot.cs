@@ -57,7 +57,7 @@ public sealed record ReportGameState(
 /// <param name="Text">The player's text, as typed (the title is its first line).</param>
 /// <param name="Session">The play session number.</param>
 /// <param name="Tick">The simulation tick of the screenshot.</param>
-/// <param name="SavedAt">The local date and time the report was saved (the only use of the clock; the tests fix it).</param>
+/// <param name="SavedAt">The local date and time the report was saved, formatted by the caller (the game reads the clock; the game layer does not).</param>
 /// <param name="ScreenshotFile">The screenshot's file name, relative to the report (the link in the Markdown).</param>
 /// <param name="State">The game's state.</param>
 /// <param name="RecentTurns">The learner's newest lines, newest first (<c>LearnerRecord.Recent</c>); the report keeps <see cref="ReportBounds.RecentTurns"/>.</param>
@@ -67,7 +67,7 @@ public sealed record ReportSnapshot(
     string Text,
     int Session,
     long Tick,
-    DateTime SavedAt,
+    string SavedAt,
     string ScreenshotFile,
     ReportGameState State,
     IReadOnlyList<InputEntry> RecentTurns,

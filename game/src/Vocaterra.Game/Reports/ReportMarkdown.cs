@@ -25,7 +25,7 @@ public static class ReportMarkdown
         var builder = new StringBuilder();
         builder.Append("# ").Append(Title(report.Text)).Append('\n').Append('\n');
         builder.Append("- **Kind:** ").Append(ReportKinds.Label(report.Kind)).Append('\n');
-        builder.Append("- **Saved:** ").Append(report.SavedAt.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)).Append(" (local time)\n");
+        builder.Append("- **Saved:** ").Append(report.SavedAt).Append(" (local time)\n");
         builder.Append("- **Session:** ").Append(report.Session.ToString(CultureInfo.InvariantCulture))
             .Append(", tick ").Append(report.Tick.ToString(CultureInfo.InvariantCulture)).Append('\n');
         builder.Append('\n');

@@ -9,7 +9,7 @@ namespace Vocaterra.Game.Tests;
 /// </summary>
 public sealed class ReportTests
 {
-    private static readonly DateTime FixedSavedAt = new(2026, 10, 22, 10, 1, 2);
+    private const string FixedSavedAt = "2026-10-22 10:01:02";
 
     // The golden: the Markdown of a fixed report (the first line is the title, the turns are shown oldest first, the log is in a fence).
     private const string Golden = """
