@@ -188,7 +188,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S19 | The learner's record: every spoken and typed input, the nouns and verbs used (from the core's word readings), the lessons completed; save version 2 (D-game-16) | done (merged to `feature/prototype` 2026-10-22, `c92e486`) | Haiku 5.5 | S17, D-game-16 |
 | S20 | The book: the journal as an openable book with Nouns, Verbs, Phrases, Lessons and What I said pages (D-game-16) | done (merged to `feature/prototype` 2026-10-22, `ee2ec79`) | Haiku 5.5 | S15, S19 |
 | S21 | F8: the in-game bug and feature report, saved as Markdown with a screenshot, game state, recent turns and the session log tail; local only (D-game-17) | done (merged to `feature/prototype` 2026-10-22, `917d2c4`) | Haiku 5.5 | S19, S20, D-game-17 |
-| S18 | The playtest refresh (build, checklist, report, launcher message; the consent text mentions that the book keeps what the player said; the facilitator collects the F8 reports) | planned | Haiku 5.5 | S15, S17, S17b, S20, S21 |
+| S18 | The playtest refresh (build, checklist, report, launcher message; the consent text mentions that the book keeps what the player said; the facilitator collects the F8 reports) | done (merged to `feature/prototype` 2026-10-22, `3c9a741`); **the owner's pre-flight** (`docs/PLAYTEST.md`) | Haiku 5.5 | S15, S17, S17b, S20, S21 |
 
 Each milestone ends with the gate in section 6 and a line in section 5. The S series is gated with `GATE_TARGET=feature/prototype
 scripts/merge-gate.sh "S<nn>:<branch>"` from the `feature/prototype` checkout.
@@ -961,6 +961,24 @@ Facts that shape the plan. Each one names its source; the core's own findings st
       written, kind, tick and the open panel recorded).
   - **For S18:** the build commit reads `unknown`. The csproj stamps it from `VOCATERRA_BUILD_COMMIT`, which
     `scripts/playtest-build.sh` must set.
+- **S18, the playtest refresh (2026-10-22, Haiku 5.5; merged `3c9a741`).** This closes the second pass (S13 to S21, with M29j).
+  - **Changed.**
+    - `--playtest` hides the verdict line (`greet, understood, 100 %, 2.2 ms`); it was showing.
+    - F6 in a playtest writes the session folder's `playtest.save`, not the build folder.
+    - `scripts/playtest-build.sh` stamps `VOCATERRA_BUILD_COMMIT` (F8 reports from the built binary name the commit) and publishes with
+      `-m:4`. Its speech-WAV check compares against the bundle manifest; it had 226 hard-coded and failed on 300.
+    - `playtest.sh` says to build first when the binary is missing.
+    - PLAYTEST.md and the tester README describe the current game: the opening, the lesson, the 20-item checks, the book, F5, F6, F8, J,
+      collecting reports with `--copy`, and the consent text naming the book and the reports.
+  - **Build:** 602 files, 199.7 MiB (S12: 519, 193 MiB). Frozen bundle `393548666329…`, 300 speech files.
+  - **Smoke run of the built folder** (scripted): pre-check 20 of 20, lesson 34 of 34, session complete, post-check 20 of 20, save
+    written.
+  - **Checked by the orchestrator:** the gate (4,358 passed, 5 skipped), the launcher message from an empty folder, and the full S17 route on
+    the merged build.
+  - **Not fixed:**
+    - the facilitator's `F10: end the run` label overlaps the dialogue footer in a playtest;
+    - the session length (15 to 25 minutes) is an estimate for the first real session to measure;
+    - scripted runs do not exercise Vosk (the owner's pre-flight does).
 
 ## 6. Definition of done (every milestone)
 
