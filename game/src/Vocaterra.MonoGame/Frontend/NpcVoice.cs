@@ -108,6 +108,21 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
         StartNext();
     }
 
+    /// <summary><see cref="ILinePlayer.Append"/>: queues the line after what plays, without stopping it.</summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    /// <param name="line">The Spanish text of the line.</param>
+    /// <param name="slow">Whether to play the slow file.</param>
+    public void Append(string npc, string line, bool slow)
+    {
+        ArgumentNullException.ThrowIfNull(npc);
+        ArgumentNullException.ThrowIfNull(line);
+        Enqueue(npc, line, slow);
+        if (!_playing)
+        {
+            StartNext();
+        }
+    }
+
     /// <summary>Called every frame: starts the next queued clip when the one that plays has ended.</summary>
     public void Update()
     {

@@ -203,3 +203,35 @@ event `objective.water`, which `VoxelSession` raises when the bottle is filled a
 noun is counted as heard and read (`WordProgress.MarkHeard`, `MarkRead`) and its `WordCard` (`la madera`) waits in `TakeWordCards()`; a card is
 never a quiz and never a use.
 
+
+## Phrase progress and fading scaffolds (S8)
+
+`PhraseProgress` (`PhraseProgress.cs`) keeps one `PhraseRecord` per row of the phrase sheet (the 11 rows of `game/phrases.json`) and is fed by
+`GuideSession.Log` from every `PhraseUse` (`GuideSession.PhraseProgress`). The mapping, which `PhraseProgressTests` pin: `Supported`, `Unaided` and
+`Transfer` uses add the credit of the input (spoken a full use, typed half, `CreditRules`, in units of `WordProgress.UnitsPerUse`; a typed use
+shows as `0.5`); a communicated use with a mistake (`PhraseUse.Correct` false) is a slip and counts nothing; `Choice` adds a choice-only use
+(recognition, no production credit); `DontKnow` adds one to each phrase in play (`PhraseUse.InPlay`, the prompt's phrases) and the service phrase
+itself (`no-se`, `ayuda`) counts as an unaided use when typed or said; `FailForward` adds one. **A use is `Supported` while help is on offer**
+(the card or the audio of its level, or the model just shown after Ayuda or "no sé") **and `Unaided` once the level is `None`**; after the
+objective a taught phrase used with another NPC is a `Transfer` (the guide's offer shows no card); the guide's review answer is `Unaided` unless
+Ayuda was asked first.
+
+The support level (`SupportLevel`: `CardAndAudio`, `AudioOnly`, `None`) steps down after a *credited* correct use: credited means the phrase has
+no credited use yet, or the D-game-6 gap (10 minutes after the first, 1 hour after the second and later) has passed since the last one, or the
+play session changed; a credited use adds its units toward one full use, which steps the level down (a spoken use steps at once, a typed one at half
+credit needs two). An early correct use is counted and logged and does not step. "No sé" or Ayuda, a choice and a fail-forward step the level up
+one and clear the credit toward the next step. Only the taught phrases (`PhraseIds.HasScaffold`: `pedir-agua`, `si-por-favor`, `no-gracias`,
+`donde-esta-el-rio`) have a level to move; `PhraseIds.FocusAt(prompt)` says which phrases a prompt asks for.
+
+`PhraseSupport` (`GuideSession.Support`) is what the panel shows for the prompt it is on: `Cards` (the sheet's card text broken into phrase,
+meaning and glosses, `SupportCard`) at `CardAndAudio`, `AudioOnly` (no card, the replay hook), nothing at `None` until Ayuda or "no sé" reveals the
+card, and the sounds to play (`TakeCues()`: the audio line of the phrase when its card appears or its prompt appears at audio-only; the front-end
+plays them through `ILinePlayer`, S9 makes them audible). A card that appears counts as shown (`PhraseRecord.CardShown`) and steps the NPC's
+learner skill `phrase.<id>` with `LearnerModel.StepSkills`; the turn passes `phrase.<id>` of the phrase used (and of the hears-row the prompt asked)
+through `extraSkills` when the line was understood and had no mistake (not for a choice, not for the service words). `OpenTalk(npc,
+teachKeyWords: true)` shows the key words `agua` and `pan` first (`KeyWordCards`, counted as heard and read, never a quiz) and runs the shopkeeper's
+question after `KeyWordTicks`; `TakeOpening()` returns it. The guide's due review (`BeginTalk`) asks a due phrase first (`PhraseReview`,
+`PhraseReviews`): the line is the bundle's pool `guide.review.phrase.<id with underscores>` when it exists, else a placeholder from an existing pool
+(the stall's own question for `pedir-agua`); the answer is evaluated on the phrase's own prompt (`GuideScene.PromptOverride`). What a save must keep
+(S10): the `PhraseRecord`s (`PhraseProgress.Records`, `Restore`), `PlaySession`, the carded nouns and the key-words-taught flag, and the NPCs'
+learner models (`phrase.*` skills).

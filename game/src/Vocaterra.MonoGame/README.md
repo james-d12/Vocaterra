@@ -32,7 +32,8 @@ PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/
 | `--leave` | a step: close the dialogue (a `--walk-to` or another `--talk` closes it as well) |
 | `--shot <png>` | a step: save the screen at this point of the script and go on (the final `--screenshot` is saved when the script is done) |
 | `--beacon <point>` | stand the beacon column on a named point of the scene (`camp`, `firering`, `workbench`, `stall`, `signpost`, `village`, `house1` to `house3`, `bridge`, `river`); it clears when the player comes within 3 blocks |
-| `--journal`, `--inventory`, `--crafting` | open those screens once the steps are done (the panel stays open for the screenshot) |
+| `--journal`, `--journal-phrases`, `--inventory`, `--crafting` | open those screens once the steps are done (the panel stays open for the screenshot); `--journal-phrases` opens the journal on its phrases page (S8: Tab, Left or Right turn the page) |
+| `--wait <seconds>`, `--skip <seconds>` | script steps (S8): run the game on that long; move the stored time on without waiting (so a spacing gap passes and the guide's phrase review is due) |
 | `--typed-credit <full\|half>` | the credit a correct typed use earns: `half` by default, `full` as before P5; spoken input always earns full |
 | `--no-speech` | do not load Vosk (an interactive run loads it unless this is given; a scripted run never does) |
 | `--greyscale` | accepted; the world is drawn in full colour (D-game-6 as amended). The grey A/B is not in the 3D world yet (a stub: it prints that and changes nothing) |
@@ -134,7 +135,10 @@ Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or Fon
   DialogueModel     the panel as state: open or closed, the text box, the lines, a request to send; Submit shows the turn's lines
   PushToTalk        the push-to-talk state over an ISpeechCapture (the device): Begin, Pump (collects, caps at 8 s), End (a trimmed 16 kHz clip or null)
   TurnPump          Submit (the typed line and the spoken clip to the worker) and Apply (the finished turns, in order, to the session and the panel)
-  Journal           JournalRows (every catalogue noun: label, counts, pips, saturation) and JournalModel (open or closed; opening counts a read)
+  Journal           JournalRows (every catalogue noun: label, counts, pips, saturation) and JournalModel (open or closed, the words or the phrases page; opening counts a read)
+  PhraseJournal     PhraseJournalRows (every phrase of the sheet: Spanish, English, support level, counts)
+  SupportLayout     where the support cards, the audio-only chip and the key-word cards stand above the panel (SupportLayer draws them; WordCardLayer lifts clear)
+  SupportFrontend   plays the session's audio cues through the line player, adds the shopkeeper's opening after the key words, words the console's phrase lines
   InventoryScreen   the 40-slot screen (I or E): open, close, the lemmas it shows (counted as read once per opening)
   Toasts            ToastQueue: lines shown one after another for 240 ticks each, by the simulation's tick (no clock)
   WordCardQueue     the word cards: one at a time, 300 ticks each

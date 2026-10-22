@@ -73,6 +73,8 @@ public sealed class TurnCancellation
 /// <param name="Review">The review question that was open when the line was submitted, or <see langword="null"/>.</param>
 /// <param name="Tick">The simulation tick at submission (for reports only, and the log's time of the turn).</param>
 /// <param name="Npc">The NPC the line is said to (<c>guide</c> by default).</param>
+/// <param name="PhraseReview">The guide's phrase review that was open when the line was submitted (S8), or <see langword="null"/>.</param>
+/// <param name="Support">The phrases in play and the help on offer when the line was submitted (S8), or <see langword="null"/>.</param>
 public sealed record TurnRequest(
     long Id,
     TurnSource Source,
@@ -84,7 +86,9 @@ public sealed record TurnRequest(
     string HostStateHash,
     GuideReview? Review,
     long Tick,
-    string Npc = NpcService.GuideAgent)
+    string Npc = NpcService.GuideAgent,
+    PhraseReview? PhraseReview = null,
+    SupportSnapshot? Support = null)
 {
     /// <summary>Whether the request is a mic check (<see cref="TurnSource.Hear"/> or <see cref="TurnSource.HearSpeak"/>): it hears a clip and makes no turn.</summary>
     public bool IsMicCheck => Source is TurnSource.Hear or TurnSource.HearSpeak;

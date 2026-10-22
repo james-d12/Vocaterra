@@ -290,11 +290,11 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
         }
 
         var digest = session.Simulation.ComputeStateDigest();
-        var first = session.Say("hola");
+        var first = session.Say("blah"); // a line the guide does not understand carries no skills and no facts: the bare digest
         Assert.Equal(digest, first.HostStateHash);
 
         session.Step([]);
-        var second = session.Say("hola");
+        var second = session.Say("blah");
         Assert.Equal(session.Simulation.ComputeStateDigest(), second.HostStateHash);
         Assert.NotEqual(first.HostStateHash, second.HostStateHash);
     }
@@ -302,12 +302,14 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
     [Fact]
     public void ATurnWithHostFactsOrSkillsHashesThemWithTheSimulationDigest()
     {
-        // The second evaluation's digest covers the host slots and the word skills (HostDigest); a turn with neither keeps the bare digest.
+        // The second evaluation's digest covers the host slots and the word and phrase skills (HostDigest); a turn with neither keeps the bare digest.
         var session = TestGame.NewSession();
         var digest = session.Simulation.ComputeStateDigest();
 
-        var greeting = session.Say("hola");
-        Assert.Equal(digest, greeting.HostStateHash);
+        var unclear = session.Say("blah");
+        Assert.Equal(digest, unclear.HostStateHash);
+        var greeting = session.Say("hola"); // the sheet's phrase "Hola." is in play (S8): its skill is part of the digest
+        Assert.Equal(HostDigest.Of(digest, new Dictionary<string, string>(), ["phrase.hola"]), greeting.HostStateHash);
 
         var point = session.Say("¿dónde está el árbol?");
         Assert.NotEqual(digest, point.HostStateHash);

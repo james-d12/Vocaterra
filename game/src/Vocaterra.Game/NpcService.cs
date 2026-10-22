@@ -144,6 +144,15 @@ public sealed partial class NpcService
     /// <summary>The random stream of the game's own lines is keyed by this id (the core's own draws use the agent's id).</summary>
     private const string HostLineStream = "guide.host";
 
+    /// <summary>The bundle pool of the core's fallback line for a line an agent's state does not know: "No te entendí. ¿Me lo dices otra vez?".</summary>
+    private const string NotUnderstoodPool = "not_understood";
+
+    /// <summary>The bundle pool of the guide's line for a phrase answered correctly in her review: "¡Muy bien!" (S8 placeholder until the bundle has review replies).</summary>
+    private const string AnswerAcceptedPool = "answer_accepted";
+
+    /// <summary>The random stream of that line, keyed by the agent's interaction counter.</summary>
+    private const string AcceptedStream = "guide.accepted";
+
     /// <summary>The random stream of the line an NPC says when the recognizer was not sure (S7), keyed by the agent's interaction counter and how many such lines it has said.</summary>
     private const string UncertainStream = "guide.uncertain";
 
@@ -152,6 +161,9 @@ public sealed partial class NpcService
 
     /// <summary>The skill id prefix of a catalogue noun's learner skill (CR-005): <c>word.árbol</c>.</summary>
     private const string WordSkillPrefix = "word.";
+
+    /// <summary>The skill id prefix of a phrase's learner skill (S8): <c>phrase.pedir-agua</c>.</summary>
+    public const string PhraseSkillPrefix = "phrase.";
 
     /// <summary>The failed lines in a row at the stall after which the shopkeeper hands the bottle over anyway (four is also where the core's repair ladder gives up).</summary>
     private const int StallPatience = 4;
@@ -164,6 +176,7 @@ public sealed partial class NpcService
     private readonly IGuideFacts _worldFacts;
     private readonly NounCatalog _nouns;
     private readonly RecipeBook _recipes;
+    private readonly PhraseSheet _phrases;
     private readonly Dictionary<string, Agent> _agents = new(StringComparer.Ordinal);
     private readonly List<ReplayEntry> _records = [];
     private volatile SpokenUtteranceEvaluator? _spoken;
@@ -224,6 +237,7 @@ public sealed partial class NpcService
         _nouns = nouns;
         _recipes = recipes ?? RecipeBook.Load(bundle, nouns);
         _typed = new TypedUtteranceEvaluator(bundle);
+        _phrases = PhraseSheet.Load(bundle);
         foreach (var id in AgentIds)
         {
             if (!bundle.Agents.TryGetValue(id, out var machine))
@@ -410,15 +424,39 @@ public sealed partial class NpcService
         return _agents.TryGetValue(npc, out var agent) ? agent : throw new ArgumentException($"There is no NPC '{npc}'.", nameof(npc));
     }
 
-    private string PromptFor(Agent agent, bool review)
+    private string PromptFor(Agent agent, bool review) => PromptAfter(agent.Id, agent.Context.AgentState.StateId, review);
+
+    /// <summary>
+    /// The prompt an NPC waits on when it is in a given state: the shopkeeper's bread offer and the guide's transfer offer in <c>offering</c>, the
+    /// stall's question otherwise. The session uses it to know the prompt after an applied turn (the turn carries the state it left the NPC in).
+    /// </summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    /// <param name="stateId">The NPC's state id (<see cref="GuideTurn.AgentState"/>).</param>
+    /// <param name="review">Whether the guide's review question is open (her review prompt).</param>
+    public static string PromptAfter(string npc, string stateId, bool review = false)
     {
-        var state = agent.Context.AgentState.StateId;
-        return agent.Id switch
+        ArgumentNullException.ThrowIfNull(npc);
+        ArgumentNullException.ThrowIfNull(stateId);
+        return npc switch
         {
-            GuideAgent => review ? GuideReviewPrompt : string.Equals(state, "offering", StringComparison.Ordinal) ? GuideOfferPrompt : GuidePrompt,
-            ShopkeeperAgent => string.Equals(state, "offering", StringComparison.Ordinal) ? StallOfferPrompt : StallNeedPrompt,
+            GuideAgent => review ? GuideReviewPrompt : string.Equals(stateId, "offering", StringComparison.Ordinal) ? GuideOfferPrompt : GuidePrompt,
+            ShopkeeperAgent => string.Equals(stateId, "offering", StringComparison.Ordinal) ? StallOfferPrompt : StallNeedPrompt,
             _ => VillagerPrompt,
         };
+    }
+
+    /// <summary>
+    /// Steps learner skills of an NPC's learner model without an utterance (S8: "the player was shown this phrase's card", the core's
+    /// <c>LearnerModel.StepSkills</c>). Call it between turns, never while a turn is on the worker.
+    /// </summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    /// <param name="skills">The skill ids (<c>phrase.pedir-agua</c>).</param>
+    /// <param name="correct">Whether the learner is credited with them.</param>
+    public void StepSkills(string npc, IReadOnlyList<string> skills, bool correct)
+    {
+        ArgumentNullException.ThrowIfNull(skills);
+        var agent = AgentOf(npc);
+        agent.Context = agent.Context with { Learner = agent.Context.Learner.StepSkills(skills, correct) };
     }
 
     // The host event the NPC opens the talk with, or null when the prompt's text is the opening.
@@ -475,7 +513,7 @@ public sealed partial class NpcService
         ArgumentNullException.ThrowIfNull(hostStateHash);
         var agent = AgentOf(npc);
         var isGuide = string.Equals(npc, GuideAgent, StringComparison.Ordinal);
-        var promptId = PromptFor(agent, scene.Review);
+        var promptId = scene.PromptOverride ?? PromptFor(agent, scene.Review);
         var prompt = _bundle.Prompts[promptId];
         var utterance = agent.Context with { Now = now, HostStateHash = hostStateHash };
         if (isGuide)
@@ -548,7 +586,7 @@ public sealed partial class NpcService
         // Phase 2: the decision, the response and the replay record, with the host's facts and the word skills in the context. The learner is
         // updated once, here. The digest covers the slots and skills (HostDigest, the core's contract); without them the context keeps the bare
         // digest, as the core does when no slots are given.
-        var skills = verdict.Communicated ? WordSkillsOf(GuideWord.From(analysis.Words)) : [];
+        var skills = verdict.Communicated ? WordSkillsOf(GuideWord.From(analysis.Words), PhraseSkillsOf(verdict, promptId, origin)) : [];
         var created = ConversationContext.Create(
             utterance.WorldSeed,
             utterance.AgentId,
@@ -578,6 +616,7 @@ public sealed partial class NpcService
         var holdsBottle = scene.Inventory is { } inventory
             && (inventory.Count(Simulation.Items.ItemId.Bottle) + inventory.Count(Simulation.Items.ItemId.WaterBottle)) > 0;
         string? feedback = null;
+        var accepted = false;
         var replies = new List<string>();
         foreach (var responseLine in result.Response.Lines)
         {
@@ -590,10 +629,21 @@ public sealed partial class NpcService
             {
                 // The shopkeeper's line gives the bottle; the player has it already, so nothing is given and the line is not said.
             }
+            else if (scene.PromptOverride is not null && verdict.Communicated && responseLine.LineId.StartsWith(NotUnderstoodPool, StringComparison.Ordinal))
+            {
+                // A phrase review (S8): the guide's states do not know this intent (a request at the guide), so the core's fallback says "No te
+                // entendí" to a line it understood. The game says the bundle's own "¡Muy bien!" instead.
+                accepted = true;
+            }
             else
             {
                 replies.Add(responseLine.Text);
             }
+        }
+
+        if (accepted)
+        {
+            replies.Add(Render(AnswerAcceptedPool, SlotMap.Empty, SeededRng.ForInteraction(utterance.WorldSeed, AcceptedStream, utterance.AgentState.InteractionCounter)));
         }
 
         var followUp = new List<string>();
@@ -779,10 +829,43 @@ public sealed partial class NpcService
     private static List<string> HostEventsOf(IReadOnlyList<AgentAction> actions) =>
         actions.Where(static a => a.HostEvent is not null).Select(static a => a.HostEvent!).ToList();
 
-    // The learner skill of each catalogue noun the line's words are read as (CR-005): one per noun, in ordinal order.
-    private List<string> WordSkillsOf(IReadOnlyList<GuideWord> words)
+    // The learner skills of the phrases in play in a turn (S8): the learner phrase the line used and the phrase of the prompt the NPC asked, both only
+    // when the line was understood and had no mistake; a choice picked from the offered buttons is a recognition signal and exercises no skill; the
+    // service words (help, "no sé") exercise none either.
+    private List<string> PhraseSkillsOf(Verdict verdict, string promptId, LineOrigin origin)
+    {
+        var skills = new List<string>();
+        if (!verdict.Communicated || verdict.Errors.Count > 0 || origin == LineOrigin.Choice
+            || string.Equals(verdict.Intent.Value, "ask_help", StringComparison.Ordinal) || string.Equals(verdict.Intent.Value, "dont_know", StringComparison.Ordinal))
+        {
+            return skills;
+        }
+
+        if (PhraseIds.For(verdict.Intent.Value, verdict.Slots) is { } used)
+        {
+            skills.Add(PhraseSkillPrefix + used);
+        }
+
+        foreach (var row in _phrases.Rows)
+        {
+            if (string.Equals(row.Says, "hears", StringComparison.Ordinal) && string.Equals(row.Prompt, promptId, StringComparison.Ordinal))
+            {
+                skills.Add(PhraseSkillPrefix + row.Id); // the learner understood what the NPC asked and answered it
+            }
+        }
+
+        return skills;
+    }
+
+    // The learner skill of each catalogue noun the line's words are read as (CR-005), and any extra skills: one each, in ordinal order.
+    private List<string> WordSkillsOf(IReadOnlyList<GuideWord> words, IReadOnlyList<string>? extra = null)
     {
         var skills = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (var skill in extra ?? [])
+        {
+            skills.Add(skill);
+        }
+
         foreach (var word in words)
         {
             var noun = _nouns.ForReading(word.Lemma, word.Pos);

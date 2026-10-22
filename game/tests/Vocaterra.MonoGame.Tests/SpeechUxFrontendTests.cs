@@ -285,7 +285,15 @@ public sealed class SpeechUxFrontendTests
         Assert.True(stall.Actions.Perform(SpeechAction.Repeat));
         Assert.True(stall.Actions.Perform(SpeechAction.Slower));
 
-        Assert.Equal([("shopkeeper", "¿Qué necesitas?", false), ("shopkeeper", "¿Qué necesitas?", true)], stall.Player.Played);
+        // The question again, and (S8: the card of the request is up) the model answer after it.
+        Assert.Equal(
+            [
+                ("shopkeeper", "¿Qué necesitas?", false),
+                ("shopkeeper", "Puedes decir: «Quiero agua, por favor».", false),
+                ("shopkeeper", "¿Qué necesitas?", true),
+                ("shopkeeper", "Puedes decir: «Quiero agua, por favor».", true),
+            ],
+            stall.Player.Played);
         Assert.Equal(["voice replay at shopkeeper (\"¿Qué necesitas?\")", "voice slower at shopkeeper (\"¿Qué necesitas?\")"], stall.Voice);
         Assert.Equal(0, stall.Dialogue.HighlightedLine);
         Assert.Equal(stall.Session.CurrentTick + SpeechActionRunner.HighlightTicks, stall.Dialogue.HighlightUntilTick);

@@ -13,6 +13,15 @@ public interface ILinePlayer
     /// <param name="line">The Spanish text of the line.</param>
     /// <param name="slow">Whether to play it slowly (the <c>.slow</c> file of S9).</param>
     void Play(string npc, string line, bool slow);
+
+    /// <summary>
+    /// Plays a line after what is playing instead of replacing it (S8: the phrase support's sounds follow the NPC's line, and the two key words follow
+    /// each other). A player with no queue replaces, as <see cref="Play"/> does.
+    /// </summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    /// <param name="line">The Spanish text of the line.</param>
+    /// <param name="slow">Whether to play it slowly.</param>
+    void Append(string npc, string line, bool slow) => Play(npc, line, slow);
 }
 
 /// <summary>The line player of S7: it plays nothing (the panel highlights the line instead).</summary>
@@ -40,6 +49,9 @@ public sealed class SpeechActionRunner(GuideSession session, DialogueModel dialo
 {
     /// <summary>How long a re-shown line stays highlighted, in ticks of the simulation (two seconds).</summary>
     public const long HighlightTicks = 120;
+
+    /// <summary>The hook that plays an NPC's line (S9); the support cards' sounds go through it too (S8).</summary>
+    public ILinePlayer Player => player;
 
     /// <summary>Presses a button or a choice. Does nothing (and returns <see langword="false"/>) when the panel is closed or a choice is not on offer.</summary>
     /// <param name="action">What was pressed.</param>
@@ -105,6 +117,11 @@ public sealed class SpeechActionRunner(GuideSession session, DialogueModel dialo
         session.LogVoice(slow ? VoiceEventKind.Slower : VoiceEventKind.Replay, line);
         _ = dialogue.HighlightLastNpcLine(session.CurrentTick + HighlightTicks);
         player.Play(session.CurrentNpc, line, slow);
+        if (session.Support.ReplayCue is { } cue)
+        {
+            player.Append(cue.Npc, cue.Text, slow); // a phrase's help is on offer (S8, the audio-only level's replay hook): the model answer follows the question
+        }
+
         return true;
     }
 

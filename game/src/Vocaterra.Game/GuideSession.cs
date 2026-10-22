@@ -76,8 +76,15 @@ public abstract class GuideSession : IDisposable
     private readonly IGuideFacts _liveFacts;
     private readonly List<GameEvent> _events = [];
     private readonly Dictionary<string, RepairKind?> _lastRepair = new(StringComparer.Ordinal);
+    private readonly List<(string Npc, string Skill)> _deferredSkills = [];
     private TurnWorker? _worker;
     private long _nextTurnId = 1;
+    private IReadOnlyList<WordCard> _keyWordCards = [];
+    private bool _keyWordsPending;
+    private bool _keyWordsTaught;
+    private long _keyWordsStart;
+    private NpcOpening? _delayedOpening;
+    private bool _talkOpen;
 
     /// <summary>
     /// The shared part of a game, on a loaded bundle.
@@ -112,6 +119,8 @@ public abstract class GuideSession : IDisposable
         Recipes = recipes;
         Words = new WordProgress(nouns, playSession);
         Phrases = PhraseSheet.Load(bundle);
+        PhraseProgress = new PhraseProgress(Phrases, playSession);
+        Support = new PhraseSupport(Phrases, PhraseProgress, bundle);
         _liveFacts = liveFacts;
         _npcs = new NpcService(bundle, liveFacts, nouns, worldSeed, new StoredTimestamp(startedAt), recipes);
     }
@@ -139,6 +148,47 @@ public abstract class GuideSession : IDisposable
 
     /// <summary>The learner's progress with the catalogue nouns, fed from every turn.</summary>
     public WordProgress Words { get; }
+
+    /// <summary>
+    /// The learner's progress with the phrases of the phrase sheet (S8): the counts and the support level of each row, fed from every
+    /// <see cref="PhraseUse"/> this session logs.
+    /// </summary>
+    public PhraseProgress PhraseProgress { get; }
+
+    /// <summary>What the dialogue panel shows by way of support for the prompt it is on: the cards, the audio-only state and the sounds to play (S8).</summary>
+    public PhraseSupport Support { get; }
+
+    /// <summary>The guide's review of a due phrase in progress (S8), or <see langword="null"/>.</summary>
+    public PhraseReview? PhraseReview { get; private set; }
+
+    /// <summary>What the guide says to start a review: the word review's question, or the request line of the phrase review; <see langword="null"/> when none is open.</summary>
+    public string? ReviewLine => Review?.Question ?? PhraseReview?.Request;
+
+    /// <summary>The number of this play session; setting it sets the words' and the phrases' (the saves of S10 bump it on each load, which lifts the spacing gaps).</summary>
+    public int PlaySession
+    {
+        get => Words.Session;
+        set
+        {
+            Words.Session = value;
+            PhraseProgress.Session = value;
+        }
+    }
+
+    /// <summary>The ticks the stall's key-word cards stand alone before the shopkeeper's first question (two and a half seconds).</summary>
+    public const long KeyWordTicks = 150;
+
+    /// <summary>The key words of the stall, taught before the first exchange (brief step 4): the nouns of the first request and the bread.</summary>
+    public static IReadOnlyList<string> KeyWords { get; } = ["agua", "pan"];
+
+    /// <summary>The key-word cards on show: from the first time the shopkeeper's panel opens (S8) until that talk ends; empty otherwise.</summary>
+    public IReadOnlyList<WordCard> KeyWordCards => _keyWordCards;
+
+    /// <summary>Whether the key-word cards are on show alone, before the shopkeeper's first question (the opening follows by itself after <see cref="KeyWordTicks"/>).</summary>
+    public bool KeyWordsPending => _keyWordsPending;
+
+    /// <summary>The nouns whose word card has been shown (a pickup, a craft or the key words): a card is shown once per noun.</summary>
+    protected ISet<string> CardedNouns { get; } = new HashSet<string>(StringComparer.Ordinal);
 
     /// <summary>What the last turn changed in the word counts: the nouns it credited and the nouns it made known (null before the first turn).</summary>
     public WordTurnResult? LastWordTurn { get; private set; }
@@ -211,7 +261,8 @@ public abstract class GuideSession : IDisposable
     /// The player opens the dialogue with the guide. When a word is due (<see cref="WordProgress.DueWords"/>, the most overdue first) and an
     /// example of it is in range, the guide points at the nearest example (the arrow, without the noun) and asks what it is; that is the
     /// returned <see cref="Review"/>. When no word is due, or no example is in range, nothing changes and the result is
-    /// <see langword="null"/>. An earlier review left open is replaced.
+    /// <see langword="null"/>. An earlier review left open is replaced. A due phrase (<see cref="PhraseProgress.DuePhrases"/>) is asked first, in
+    /// context, as a <see cref="PhraseReview"/> (the result is then <see langword="null"/> too); the due word follows the next time.
     /// </summary>
     public GuideReview? BeginTalk()
     {
@@ -219,6 +270,11 @@ public abstract class GuideSession : IDisposable
         if (PendingTurns > 0)
         {
             return null; // the words and the guide's state are about to change: no review question until the pending turns are in
+        }
+
+        if (BeginPhraseReview())
+        {
+            return null; // a due phrase is asked first (the prototype is about phrases); the due word, if any, is asked the next time
         }
 
         foreach (var due in Words.DueWords(StoredTime.UnixSeconds, Credit))
@@ -237,6 +293,22 @@ public abstract class GuideSession : IDisposable
         return null;
     }
 
+    // Ask a due phrase in context (S8). The guide's request line is shown; the answer is graded unaided unless the card was shown again.
+    private bool BeginPhraseReview()
+    {
+        foreach (var due in PhraseProgress.DuePhrases(StoredTime.UnixSeconds, Credit))
+        {
+            if (PhraseReviews.Create(due.PhraseId, Phrases, Bundle) is { } review)
+            {
+                PhraseReview = review;
+                Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.PhraseReviewAsked, NpcService.GuideAgent, review.PhraseId));
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /// <summary>Drops the review question and its arrow (the dialogue closed, or the answer was understood).</summary>
     public void EndReview()
     {
@@ -246,6 +318,7 @@ public abstract class GuideSession : IDisposable
         }
 
         Review = null;
+        PhraseReview = null;
     }
 
     /// <summary>
@@ -255,12 +328,90 @@ public abstract class GuideSession : IDisposable
     /// (the shopkeeper's second visit hands over the bottle). Later typed and spoken lines go to this NPC until <see cref="EndTalk"/>.
     /// </summary>
     /// <param name="npc">The NPC's agent id.</param>
+    /// <param name="teachKeyWords">
+    /// Whether the front-end wants the key words of the stall taught first (S8): the first time the shopkeeper's panel opens with this set, his opening
+    /// waits while the word cards for <c>agua</c> and <c>pan</c> stand alone for <see cref="KeyWordTicks"/> (the returned opening has no lines; the real
+    /// one arrives from <see cref="TakeOpening"/>). Headless callers leave it off and get the opening at once.
+    /// </param>
     /// <returns>What the NPC says first.</returns>
-    public NpcOpening OpenTalk(string npc)
+    public NpcOpening OpenTalk(string npc, bool teachKeyWords = false)
     {
         ArgumentNullException.ThrowIfNull(npc);
         EndReview();
         CurrentNpc = npc;
+        _talkOpen = true;
+        _delayedOpening = null;
+        FlushSkills();
+        if (teachKeyWords && PendingTurns == 0 && !_keyWordsTaught && string.Equals(npc, NpcService.ShopkeeperAgent, StringComparison.Ordinal))
+        {
+            return BeginKeyWords(npc);
+        }
+
+        return OpenNow(npc, logOpened: true);
+    }
+
+    // The first time the shopkeeper's panel opens, the key words (agua, pan) are taught before his question (brief step 4): their word cards stand alone for
+    // KeyWordTicks, counted as heard and read (never a quiz), and the real opening follows (FinishKeyWords).
+    private NpcOpening BeginKeyWords(string npc)
+    {
+        _keyWordsTaught = true;
+        _keyWordsPending = true;
+        _keyWordsStart = Tick;
+        var cards = new List<WordCard>();
+        foreach (var lemma in KeyWords)
+        {
+            if (Nouns.ForLemma(lemma) is not { } noun)
+            {
+                continue;
+            }
+
+            Words.MarkHeard(lemma);
+            Words.MarkRead(lemma);
+            CardedNouns.Add(lemma);
+            cards.Add(new WordCard(lemma, noun.WithDefinite));
+            Support.Enqueue(new AudioCue(npc, noun.WithDefinite, null, "key-word"));
+        }
+
+        _keyWordCards = cards;
+        Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.TalkOpened, npc, "key_words"));
+        Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.KeyWordsShown, npc, string.Join(", ", cards.Select(static c => c.Lemma))));
+        return new NpcOpening(npc, _npcs.PromptOf(npc), [], false, [], false);
+    }
+
+    /// <summary>
+    /// Ends the key-word cards standing alone and runs the shopkeeper's real opening now (the player pressed a key, or sent a line, before the
+    /// time was up). Does nothing when the key words are not pending. The opening is then waiting in <see cref="TakeOpening"/>.
+    /// </summary>
+    public void FinishKeyWords()
+    {
+        if (!_keyWordsPending)
+        {
+            return;
+        }
+
+        _keyWordsPending = false;
+        _delayedOpening = OpenNow(CurrentNpc, logOpened: false);
+    }
+
+    /// <summary>The shopkeeper's opening that followed the key-word cards (his question), once; <see langword="null"/> when there is none waiting.</summary>
+    public NpcOpening? TakeOpening()
+    {
+        var opening = _delayedOpening;
+        _delayedOpening = null;
+        return opening;
+    }
+
+    /// <summary>Counts the key-word cards' time in ticks of the game: the derived class calls it from its <c>Step</c>; after <see cref="KeyWordTicks"/> the opening follows.</summary>
+    protected void AdvanceKeyWords()
+    {
+        if (_keyWordsPending && Tick - _keyWordsStart >= KeyWordTicks)
+        {
+            FinishKeyWords();
+        }
+    }
+
+    private NpcOpening OpenNow(string npc, bool logOpened)
+    {
         NpcOpening opening;
         if (PendingTurns > 0)
         {
@@ -277,7 +428,11 @@ public abstract class GuideSession : IDisposable
             }
         }
 
-        Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.TalkOpened, npc, opening.HostTurn ? "host_turn" : null));
+        if (logOpened)
+        {
+            Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.TalkOpened, npc, opening.HostTurn ? "host_turn" : null));
+        }
+
         if (opening.HostEvents.Count > 0)
         {
             ApplyHostEvents(npc, opening.HostEvents, opening.FailForward ? "fail_forward" : "offer");
@@ -292,6 +447,7 @@ public abstract class GuideSession : IDisposable
             Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.TransferOffered, npc, "¿Quieres agua?"));
         }
 
+        RefreshSupport(npc, opening.Prompt);
         return opening;
     }
 
@@ -300,6 +456,11 @@ public abstract class GuideSession : IDisposable
     {
         Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.TalkClosed, CurrentNpc));
         EndReview();
+        _talkOpen = false;
+        _keyWordsPending = false;
+        _keyWordCards = [];
+        _delayedOpening = null;
+        Support.Clear();
         CurrentNpc = NpcService.GuideAgent;
     }
 
@@ -313,14 +474,21 @@ public abstract class GuideSession : IDisposable
     public GuideTurn Say(string line, GuideCell? cursor = null)
     {
         ArgumentNullException.ThrowIfNull(line);
+        FinishKeyWords();
         var review = Review;
+        var phraseReview = PhraseReview;
+        var support = Support.Snapshot();
         var scene = review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt)
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: LiveInventory);
         var turn = _npcs.Say(CurrentNpc, line, scene, StoredTime, StateDigest());
         if (review is not null && turn.Communicated)
         {
             EndReview(); // understood: the question is answered (a line the guide did not understand leaves it open for another try)
+        }
+        else if (phraseReview is not null && turn.Communicated && !IsHelpRequest(turn) && ReferenceEquals(phraseReview, PhraseReview))
+        {
+            PhraseReview = null; // answered (a request for help leaves the review open: the card goes up and the next line is the answer)
         }
 
         if (turn.Pointer is { Blocks: > 0 } pointer)
@@ -329,7 +497,7 @@ public abstract class GuideSession : IDisposable
         }
 
         LastWordTurn = Words.RecordTurn(turn, turn.Input, Credit, StoredTime.UnixSeconds);
-        AfterTurn(turn, Tick, StoredTime.UnixSeconds);
+        AfterTurn(turn, Tick, StoredTime.UnixSeconds, phraseReview, support);
         return turn;
     }
 
@@ -390,6 +558,7 @@ public abstract class GuideSession : IDisposable
     public TurnRequest SubmitHelp(GuideCell? cursor = null)
     {
         LogVoice(VoiceEventKind.Hint);
+        RevealSupport();
         return Submit(TurnSource.Button, HelpLine, null, null, cursor);
     }
 
@@ -398,6 +567,7 @@ public abstract class GuideSession : IDisposable
     public TurnRequest SubmitDontKnow(GuideCell? cursor = null)
     {
         LogVoice(VoiceEventKind.NoSe);
+        RevealSupport();
         return Submit(TurnSource.Button, DontKnowLine, null, null, cursor);
     }
 
@@ -484,6 +654,7 @@ public abstract class GuideSession : IDisposable
             applied.Add(Apply(outcome!));
         }
 
+        FlushSkills();
         return applied;
     }
 
@@ -498,6 +669,10 @@ public abstract class GuideSession : IDisposable
             {
                 EndReview();
             }
+            else if (outcome.Request.PhraseReview is { } phraseReview && turn.Communicated && !IsHelpRequest(turn) && ReferenceEquals(phraseReview, PhraseReview))
+            {
+                PhraseReview = null;
+            }
 
             if (turn.Pointer is { Blocks: > 0 } pointer)
             {
@@ -506,7 +681,7 @@ public abstract class GuideSession : IDisposable
 
             words = Words.RecordTurn(turn, turn.Input, Credit, outcome.Request.Now.UnixSeconds);
             LastWordTurn = words;
-            AfterTurn(turn, outcome.Request.Tick, outcome.Request.Now.UnixSeconds);
+            AfterTurn(turn, outcome.Request.Tick, outcome.Request.Now.UnixSeconds, outcome.Request.PhraseReview, outcome.Request.Support);
         }
 
         return new AppliedTurn(outcome, words);
@@ -531,11 +706,16 @@ public abstract class GuideSession : IDisposable
     {
         ArgumentNullException.ThrowIfNull(gameEvent);
         _events.Add(gameEvent);
+        if (gameEvent is PhraseUse use)
+        {
+            _ = PhraseProgress.Apply(use, Credit); // the phrase progress is fed from the events, in the order they are logged (S8)
+        }
     }
 
     // What follows an applied turn: the phrase it used, the voice event it was, and what its host events do in the world.
-    private void AfterTurn(GuideTurn turn, long tick, long time)
+    private void AfterTurn(GuideTurn turn, long tick, long time, PhraseReview? phraseReview, SupportSnapshot? support)
     {
+        support ??= Support.Snapshot();
         var npc = turn.Npc;
         _lastRepair.TryGetValue(npc, out var previousRepair);
         if (!turn.Unsure)
@@ -551,9 +731,26 @@ public abstract class GuideSession : IDisposable
 
         if (turn.Communicated && PhraseIds.For(turn.Intent, turn.Slots) is { } phrase)
         {
-            var kind = Classify(turn, phrase, previousRepair);
+            var kind = Classify(turn, phrase, previousRepair, phraseReview, support);
             var detail = turn.Slots.TryGetValue("item", out var item) ? item : turn.Slots.TryGetValue("place", out var place) ? place : null;
-            Log(new PhraseUse(tick, time, phrase, kind, npc, turn.Prompt, turn.Line, detail));
+            var correct = turn.Errors.Count == 0;
+            IReadOnlyList<string>? inPlay = kind == PhraseUseKind.DontKnow ? (phraseReview is not null ? [phraseReview.PhraseId] : support.InPlay) : null;
+            Log(new PhraseUse(tick, time, phrase, kind, npc, turn.Prompt, turn.Line, detail, turn.Input, correct, PhraseProgress.LevelOf(phrase), inPlay));
+            if (kind == PhraseUseKind.DontKnow)
+            {
+                RevealSupport(); // the NPC gave the model: its card is up and the next use counts as supported
+            }
+            else if (kind is PhraseUseKind.Supported or PhraseUseKind.Unaided or PhraseUseKind.Transfer)
+            {
+                Support.SpendHelp();
+                if (correct && phraseReview is null)
+                {
+                    foreach (var row in Phrases.Rows.Where(row => string.Equals(row.Says, "hears", StringComparison.Ordinal) && string.Equals(row.Prompt, turn.Prompt, StringComparison.Ordinal)))
+                    {
+                        PhraseProgress.NoteAnswered(row.Id); // the learner understood the question and answered it
+                    }
+                }
+            }
         }
 
         if (turn.FailForward)
@@ -565,10 +762,76 @@ public abstract class GuideSession : IDisposable
         {
             ApplyHostEvents(npc, turn.HostEvents, turn.FailForward ? "fail_forward" : "request");
         }
+
+        if (_talkOpen && string.Equals(Support.Npc, npc, StringComparison.Ordinal) && !turn.Unsure)
+        {
+            RefreshSupport(npc, NpcService.PromptAfter(npc, turn.AgentState)); // the prompt may have moved on (the bread offer), and a level may have changed
+        }
+    }
+
+    private static bool IsHelpRequest(GuideTurn turn) =>
+        string.Equals(turn.Intent, "dont_know", StringComparison.Ordinal) || string.Equals(turn.Intent, "ask_help", StringComparison.Ordinal);
+
+    // The support cards and sounds for the prompt the NPC waits on; a card that newly appears counts as shown and, for the core's learner model, as a
+    // phrase skill step (LearnerModel.StepSkills), deferred while a turn is on the worker.
+    private void RefreshSupport(string npc, string prompt)
+    {
+        var change = Support.Show(npc, prompt, PhraseReview?.PhraseId);
+        foreach (var id in change.NewCards)
+        {
+            CardAppeared(npc, id, "level");
+        }
+
+        foreach (var id in change.NewHears)
+        {
+            PhraseProgress.NoteHeard(id);
+        }
+
+        FlushSkills();
+    }
+
+    // Ayuda or "no sé": the card of the phrases in play goes up whatever their level.
+    private void RevealSupport()
+    {
+        if (Support.Npc is not { } npc)
+        {
+            return;
+        }
+
+        foreach (var id in Support.Reveal())
+        {
+            CardAppeared(npc, id, "help");
+        }
+
+        FlushSkills();
+    }
+
+    private void CardAppeared(string npc, string phraseId, string how)
+    {
+        PhraseProgress.NoteCardShown(phraseId);
+        _deferredSkills.Add((npc, NpcService.PhraseSkillPrefix + phraseId));
+        Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.SupportCardShown, npc, $"{phraseId}, {how}"));
+    }
+
+    // The learner-model steps of the cards shown. They change an NPC's context, which the worker rewrites at the end of a turn, so they wait until no
+    // turn is on the worker (the next collect, or the next time a panel opens).
+    private void FlushSkills()
+    {
+        if (_deferredSkills.Count == 0 || PendingTurns > 0)
+        {
+            return;
+        }
+
+        foreach (var (npc, skill) in _deferredSkills)
+        {
+            _npcs.StepSkills(npc, [skill], correct: true);
+        }
+
+        _deferredSkills.Clear();
     }
 
     // How a phrase was used (D-game-10): the rules are in GameEvents.cs and the remarks of this type.
-    private PhraseUseKind Classify(GuideTurn turn, string phrase, RepairKind? previousRepair)
+    private PhraseUseKind Classify(GuideTurn turn, string phrase, RepairKind? previousRepair, PhraseReview? phraseReview, SupportSnapshot support)
     {
         if (string.Equals(turn.Intent, "dont_know", StringComparison.Ordinal) || string.Equals(turn.Intent, "ask_help", StringComparison.Ordinal))
         {
@@ -580,19 +843,25 @@ public abstract class GuideSession : IDisposable
             return PhraseUseKind.Choice;
         }
 
+        if (phraseReview is not null && PhraseIds.FocusAt(phraseReview.Prompt).Contains(phrase, StringComparer.Ordinal))
+        {
+            // The guide's review of a due phrase (S8): no card is shown, so the answer is unaided unless help was asked for first.
+            return support.Scaffolded.Count > 0 ? PhraseUseKind.Supported : PhraseUseKind.Unaided;
+        }
+
         if (ObjectiveComplete && PhraseIds.HomeOf(phrase) is { } home && !string.Equals(home, turn.Npc, StringComparison.Ordinal))
         {
             return PhraseUseKind.Transfer;
         }
 
-        return turn.Prompt is NpcService.StallNeedPrompt or NpcService.StallOfferPrompt or NpcService.GuideOfferPrompt
-            ? PhraseUseKind.Supported
-            : PhraseUseKind.Unaided;
+        // Supported while the help is on offer (the card, the audio, or the model just shown after Ayuda or "no sé"), unaided once it has faded to nothing.
+        return support.Scaffolded.Contains(phrase, StringComparer.Ordinal) ? PhraseUseKind.Supported : PhraseUseKind.Unaided;
     }
 
     private TurnRequest Submit(TurnSource source, string? text, PcmClip? clip, string? wavPath, GuideCell? cursor)
     {
         var worker = _worker ?? throw new InvalidOperationException("The turn worker is not started (StartWorker).");
+        FinishKeyWords();
         var review = Review;
         var request = new TurnRequest(
             _nextTurnId++,
@@ -605,7 +874,9 @@ public abstract class GuideSession : IDisposable
             StateDigest(),
             review,
             Tick,
-            CurrentNpc);
+            CurrentNpc,
+            PhraseReview,
+            Support.Snapshot());
         worker.Submit(request);
         return request;
     }
@@ -617,7 +888,7 @@ public abstract class GuideSession : IDisposable
         var facts = SnapshotFacts();
         var inventory = LiveInventory.Copy();
         return review is null
-            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts)
+            ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: inventory, Facts: facts, PromptOverride: PhraseReview?.Prompt)
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: inventory, Facts: facts);
     }
 }

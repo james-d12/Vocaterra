@@ -66,6 +66,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly TurnPump _pump;
     private readonly PushToTalk _talk;
     private readonly SpeechActionRunner _actions;
+    private readonly SupportFrontend _support;
     private readonly NpcVoice _voice;
     private readonly TurnWatchdog _watchdog = new();
     private readonly MicCheckModel? _micCheck;
@@ -127,6 +128,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _talk = new PushToTalk(microphone);
         _pump = new TurnPump(session, _dialogue, CursorCell);
         _actions = new SpeechActionRunner(session, _dialogue, voice, CursorCell);
+        _support = new SupportFrontend(session, _dialogue, _actions, Console.WriteLine);
         _micCheck = options.ShowsMicCheck ? new MicCheckModel(session.LogMicCheck) : null;
         _look.Set(scene.Spawn.Yaw, 0);
         _currentEye = _previousEye = EyeBlocks();
@@ -231,6 +233,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _layers.Add(_debug);
         _layers.Add(new HotbarLayer());
         _layers.Add(new ObjectiveLayer());
+        _layers.Add(new SupportLayer());
         _layers.Add(new WordCardLayer());
         _layers.Add(new DialoguePanel());
         _layers.Add(new ToastLayer());
@@ -261,6 +264,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         ApplyFinishedTurns();
+        _ = _support.Pump(later => _voice.Say(later.Npc, later.Lines)); // the shopkeeper's question after the key words is spoken first
+
         RunWatchdog(seconds);
         DriveScriptedMicCheck();
         var steps = _accumulator.Advance(seconds);
@@ -382,6 +387,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     protected override void UnloadContent()
     {
         Window.TextInput -= OnTextInput;
+        foreach (var line in _support.Summary())
+        {
+            Console.WriteLine(line);
+        }
+
         _session.StopWorker(); // the worker disposes the recognizer on its own thread
         _renderer?.Dispose();
         _blockAtlas?.Dispose();
@@ -516,6 +526,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 if (Pressed(Keys.Escape) || Pressed(Keys.J))
                 {
                     CloseJournal();
+                }
+                else if (Pressed(Keys.Tab) || Pressed(Keys.Left) || Pressed(Keys.Right))
+                {
+                    _journal.TogglePage(); // the words page and the phrases page
                 }
             }
             else if (_inventory.IsOpen)
@@ -946,8 +960,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // swallowed by the text event.
     private void OpenDialogueOn(string npc, char? openedBy)
     {
-        var opening = _session.OpenTalk(npc);
-        _dialogue.Open(opening, NpcFigures.LabelOf(npc), _session.Review?.Question);
+        var opening = _session.OpenTalk(npc, teachKeyWords: true);
+        _dialogue.Open(opening, NpcFigures.LabelOf(npc), _session.ReviewLine);
         _voice.Say(npc, opening.Lines);
         if (openedBy == 't')
         {
@@ -957,7 +971,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _swallowedOpenKey = openedBy;
         _swallowFrames = 2; // the platform types the key once, in the next frame at the latest
         var how = opening.HostTurn ? "host turn" : "prompt";
-        Console.WriteLine($"talk: {npc} ({how}, {opening.Prompt}): {string.Join(" / ", opening.Lines)}{(_session.Review is { } review ? $" / {review.Question}" : string.Empty)}");
+        Console.WriteLine($"talk: {npc} ({how}, {opening.Prompt}): {(_session.KeyWordsPending ? $"[key words: {string.Join(", ", _session.KeyWordCards.Select(static c => c.Phrase))}]" : string.Join(" / ", opening.Lines))}{(_session.ReviewLine is { } review ? $" / {review}" : string.Empty)}");
     }
 
     // The panel closes (Esc, or the script walks on): a recording in progress is dropped and the talk ends.
@@ -988,6 +1002,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         for (; _printedEvents < events.Count; _printedEvents++)
         {
             Console.WriteLine($"  event: {events[_printedEvents].Text}");
+            foreach (var line in _support.LinesFor(events[_printedEvents]))
+            {
+                Console.WriteLine(line);
+            }
         }
     }
 
@@ -1199,6 +1217,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private void OpenJournal()
     {
         _journal.Open(_session.Words);
+        if (_options.JournalPhrases)
+        {
+            _journal.Show(JournalPage.Phrases);
+        }
+
         _focus.JournalOpen = true;
     }
 

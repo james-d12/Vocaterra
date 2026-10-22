@@ -134,7 +134,7 @@ public sealed class NpcServiceTests
         var beacon = Assert.Single(WorldEventsOf(session, WorldEvents.BeaconSet));
         Assert.Equal("villager", beacon.Npc);
         var use = Assert.Single(Phrases(session));
-        Assert.Equal((PhraseIds.WhereIsTheRiver, PhraseUseKind.Unaided, "villager", "río"), (use.PhraseId, use.Kind, use.Npc, use.Detail));
+        Assert.Equal((PhraseIds.WhereIsTheRiver, PhraseUseKind.Supported, "villager", "río"), (use.PhraseId, use.Kind, use.Npc, use.Detail)); // S8: the card was up
     }
 
     [Fact]

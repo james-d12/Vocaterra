@@ -21,7 +21,6 @@ public sealed class VoxelSession : GuideSession
     /// <summary>The arrow is taken down when the player comes within this many blocks of its target (the beacon's own reach).</summary>
     public const int ReachBlocks = 3;
 
-    private readonly HashSet<string> _carded = new(StringComparer.Ordinal);
     private readonly List<WordCard> _newCards = [];
     private readonly List<BlockPos> _fireRing = [];
     private readonly List<string> _hints = [];
@@ -110,6 +109,7 @@ public sealed class VoxelSession : GuideSession
         }
 
         Simulation.Step(commands);
+        AdvanceKeyWords();
         var completed = new List<ObjectiveStep>();
         foreach (var e in Simulation.Events)
         {
@@ -282,7 +282,7 @@ public sealed class VoxelSession : GuideSession
     private void LearnItem(ItemId item)
     {
         var noun = Nouns.ForItem(item);
-        if (noun is null || !_carded.Add(noun.Lemma))
+        if (noun is null || !CardedNouns.Add(noun.Lemma))
         {
             return;
         }

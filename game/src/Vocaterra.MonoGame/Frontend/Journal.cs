@@ -96,18 +96,34 @@ public static class JournalRows
     };
 }
 
+/// <summary>The journal's two pages (S8): the words (the nouns, D-game-6) and the phrases (the phrase sheet, D-game-10).</summary>
+public enum JournalPage
+{
+    /// <summary>The nouns with their counts and pips.</summary>
+    Words,
+
+    /// <summary>The phrases with their support level and counts.</summary>
+    Phrases,
+}
+
 /// <summary>
-/// Whether the journal screen is open. The journal takes the keyboard while it is open (the player does not walk); it is opened and closed
-/// by the game (J, Esc) and by the scripted run's <c>--journal</c>.
+/// Whether the journal screen is open, and on which page. The journal takes the keyboard while it is open (the player does not walk); it is opened and
+/// closed by the game (J, Esc) and by the scripted run's <c>--journal</c> and <c>--journal-phrases</c>. Tab, Left and Right turn the page.
 /// </summary>
 public sealed class JournalModel
 {
+    private WordProgress? _words;
+    private bool _read;
+
     /// <summary>Whether the journal is on screen.</summary>
     public bool IsOpen { get; private set; }
 
+    /// <summary>The page on screen (the words page opens first).</summary>
+    public JournalPage Page { get; private set; } = JournalPage.Words;
+
     /// <summary>
-    /// Opens the journal. Each seen noun's label counts as read once per opening (the research's "shown for a second" rule, with the opening as the
-    /// unit of time, so no clock is needed).
+    /// Opens the journal on its words page. Each seen noun's label counts as read once per opening, when the words page is shown (the research's
+    /// "shown for a second" rule, with the opening as the unit of time, so no clock is needed).
     /// </summary>
     public void Open(WordProgress words)
     {
@@ -118,15 +134,45 @@ public sealed class JournalModel
         }
 
         IsOpen = true;
-        foreach (var row in JournalRows.Build(words))
-        {
-            if (row.Seen)
-            {
-                words.MarkRead(row.Lemma);
-            }
-        }
+        _words = words;
+        _read = false;
+        Page = JournalPage.Words;
+        MarkRead();
     }
+
+    /// <summary>Shows a page (the words page counts the seen labels as read, once per opening).</summary>
+    /// <param name="page">The page.</param>
+    public void Show(JournalPage page)
+    {
+        if (!IsOpen)
+        {
+            return;
+        }
+
+        Page = page;
+        MarkRead();
+    }
+
+    /// <summary>Turns to the other page (Tab, Left or Right).</summary>
+    public void TogglePage() => Show(Page == JournalPage.Words ? JournalPage.Phrases : JournalPage.Words);
 
     /// <summary>Closes the journal.</summary>
     public void Close() => IsOpen = false;
+
+    private void MarkRead()
+    {
+        if (Page != JournalPage.Words || _read || _words is null)
+        {
+            return;
+        }
+
+        _read = true;
+        foreach (var row in JournalRows.Build(_words))
+        {
+            if (row.Seen)
+            {
+                _words.MarkRead(row.Lemma);
+            }
+        }
+    }
 }

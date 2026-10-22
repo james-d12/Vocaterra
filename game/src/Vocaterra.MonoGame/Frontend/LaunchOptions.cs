@@ -9,7 +9,7 @@ namespace Vocaterra.MonoGame.Frontend;
 /// <c>--walk-to</c>, <c>--interact</c>, <c>--place</c>, <c>--select</c>, <c>--craft</c>, and, since S6, the talk steps <c>--talk &lt;npc&gt;</c> (walk to the
 /// NPC, stop about two blocks away facing it, open the panel), <c>--say</c> (type and send one line to the NPC the panel is open on; with no panel
 /// open it first talks to the guide, as in S3), <c>--leave</c> (close the panel) and <c>--shot &lt;png&gt;</c> (save the screen now and go on). All of them run in
-/// the order given (<see cref="Script"/>). <c>--beacon</c> stands the beacon on a named point, <c>--journal</c>, <c>--inventory</c> and <c>--crafting</c>
+/// the order given (<see cref="Script"/>); S8 adds <c>--wait &lt;seconds&gt;</c> and <c>--skip &lt;seconds&gt;</c> (the stored time moves on, so a gap passes). <c>--beacon</c> stands the beacon on a named point, <c>--journal</c>, <c>--inventory</c> and <c>--crafting</c>
 /// open those screens at the end. <c>--voxel</c> is accepted and ignored (the 3D world is the only one since S4). Since S7 the scripted run also has
 /// <c>--speak &lt;line&gt;</c> (synthesize the line with Kokoro and say it to the NPC as if spoken: the scripted spoken path of the demos and tests) and
 /// <c>--wav &lt;file&gt;</c> (a recorded WAV said the same way), and the mic check has <c>--mic-check</c> (force it) and <c>--no-mic-check</c> (skip it).
@@ -44,9 +44,12 @@ public sealed record LaunchOptions
         + "  --speak <line>          synthesize the line with Kokoro and say it to the NPC the dialogue is open on as if spoken (Vosk hears it); a step\n"
         + "  --wav <file>            say a recorded WAV file to the NPC the dialogue is open on (16-bit PCM, any rate); a step\n"
         + "  --leave                 close the dialogue (walking on or talking to another NPC closes it too); a step\n"
+        + "  --wait <seconds>        let the game run this many seconds (60 ticks each) before the next step, for example to see the stall's question after the key words; a step\n"
+        + "  --skip <seconds>        move the stored time on this many seconds without waiting (the demo of the spacing gaps and of the guide's review); a step\n"
         + "  --shot <path.png>       save the screen at this point of the script and go on (the final --screenshot is saved when the script is done); a step\n"
         + "  --beacon <point>        stand the beacon column on a named point of the scene (camp, firering, workbench, stall, signpost, village, house1, bridge, river...)\n"
         + "  --journal               open the journal once the steps are done\n"
+        + "  --journal-phrases       open the journal on its phrases page once the steps are done (Tab turns the page)\n"
         + "  --inventory             open the inventory screen once the steps are done\n"
         + "  --crafting              open the crafting panel once the steps are done\n"
         + "  --mic-check             show the mic check at the start (an interactive run shows it by default; a scripted run with --screenshot never does unless asked,\n"
@@ -95,8 +98,11 @@ public sealed record LaunchOptions
     /// <summary>Whether the NPCs' voices are off (<c>--mute</c>): the panel shows the lines and nothing plays (S9).</summary>
     public bool Muted { get; init; }
 
-    /// <summary>Whether the journal is opened once the script is done (<c>--journal</c>).</summary>
+    /// <summary>Whether the journal is opened once the script is done (<c>--journal</c>, or <c>--journal-phrases</c>).</summary>
     public bool Journal { get; init; }
+
+    /// <summary>Whether the journal opens on its phrases page (<c>--journal-phrases</c>, S8); otherwise on its words page.</summary>
+    public bool JournalPhrases { get; init; }
 
     /// <summary>Whether the inventory screen is opened once the script is done (<c>--inventory</c>).</summary>
     public bool ShowInventory { get; init; }
@@ -152,6 +158,7 @@ public sealed record LaunchOptions
         var script = new List<ScriptStep>();
         string? beacon = null;
         var journal = false;
+        var journalPhrases = false;
         var inventory = false;
         var crafting = false;
         var greyscale = false;
@@ -165,7 +172,7 @@ public sealed record LaunchOptions
                 return false;
             }
 
-            if (arg is "--journal" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--voxel" or "--greyscale" or "--leave" or "--mic-check" or "--no-mic-check")
+            if (arg is "--journal" or "--journal-phrases" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--voxel" or "--greyscale" or "--leave" or "--mic-check" or "--no-mic-check")
             {
                 switch (arg)
                 {
@@ -183,6 +190,10 @@ public sealed record LaunchOptions
                         break;
                     case "--journal":
                         journal = true;
+                        break;
+                    case "--journal-phrases":
+                        journal = true;
+                        journalPhrases = true;
                         break;
                     case "--inventory":
                         inventory = true;
@@ -204,7 +215,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is not ("--seed" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
-                or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--talk" or "--shot" or "--speak" or "--wav"))
+                or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -283,6 +294,16 @@ public sealed record LaunchOptions
                     }
 
                     script.Add(new ScriptStep(ScriptStepKind.Talk, Value: value.Trim()));
+                    break;
+                case "--wait":
+                case "--skip":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var amount) || amount < 1 || amount > 86_400)
+                    {
+                        error = $"{arg} needs a whole number of seconds from 1 to 86400, got '{value}'.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(arg == "--wait" ? ScriptStepKind.Wait : ScriptStepKind.Skip, Value: amount.ToString(CultureInfo.InvariantCulture)));
                     break;
                 case "--shot":
                     if (value.Length == 0)
@@ -415,6 +436,7 @@ public sealed record LaunchOptions
             Script = script,
             Beacon = beacon,
             Journal = journal,
+            JournalPhrases = journalPhrases,
             ShowInventory = inventory,
             ShowCrafting = crafting,
             Greyscale = greyscale,
@@ -448,6 +470,12 @@ public enum ScriptStepKind
 
     /// <summary>Save the screen to the file in <see cref="ScriptStep.Value"/> and go on.</summary>
     Shot,
+
+    /// <summary>Let the game run for the seconds in <see cref="ScriptStep.Value"/> (S8).</summary>
+    Wait,
+
+    /// <summary>Move the stored time on by the seconds in <see cref="ScriptStep.Value"/> without stepping the world (S8).</summary>
+    Skip,
 }
 
 /// <summary>One step of the scripted run, in the order given on the command line.</summary>
