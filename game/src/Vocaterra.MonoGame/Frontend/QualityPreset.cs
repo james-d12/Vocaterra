@@ -1,6 +1,6 @@
 namespace Vocaterra.MonoGame.Frontend;
 
-/// <summary>The graphics quality of a run (<c>--quality</c>, S13): how far the world is drawn. Later milestones add the plants, the lighting and the clouds to it.</summary>
+/// <summary>The graphics quality of a run (<c>--quality</c>, S13 and S14): how far the world is drawn, how much undergrowth is drawn, whether the corners are shaded by ambient occlusion and whether clouds are drawn.</summary>
 public enum QualityLevel
 {
     /// <summary>The preset for a machine with software rendering or an old graphics card: the shortest view.</summary>
@@ -21,7 +21,18 @@ public enum QualityLevel
 /// <param name="Level">The level.</param>
 /// <param name="ViewDistance">How far the world is drawn, in blocks from the eye.</param>
 /// <param name="MeshBudgetMilliseconds">The most time one frame spends meshing chunks (an interactive run; a scripted run meshes everything it needs before a screenshot).</param>
-public sealed record QualityPreset(QualityLevel Level, int ViewDistance, double MeshBudgetMilliseconds)
+/// <param name="PlantDistance">S14: how far from the eye the undergrowth (tall grass, ferns, reeds, flowers) is drawn, in blocks.</param>
+/// <param name="PlantKeepPercent">S14: the percent of the undergrowth that is built at all (a stable pick by position), 100 for every plant.</param>
+/// <param name="AmbientOcclusion">S14: whether the cube corners are darkened by the blocks round them.</param>
+/// <param name="Clouds">S14: whether the flat clouds are drawn.</param>
+public sealed record QualityPreset(
+    QualityLevel Level,
+    int ViewDistance,
+    double MeshBudgetMilliseconds,
+    int PlantDistance = 64,
+    int PlantKeepPercent = 60,
+    bool AmbientOcclusion = true,
+    bool Clouds = true)
 {
     /// <summary>The lowest view distance a run may be given: three chunks.</summary>
     public const int MinimumViewDistance = 48;
@@ -29,9 +40,9 @@ public sealed record QualityPreset(QualityLevel Level, int ViewDistance, double 
     /// <summary>The preset of a level.</summary>
     public static QualityPreset For(QualityLevel level) => level switch
     {
-        QualityLevel.Low => new QualityPreset(QualityLevel.Low, 224, 6),
-        QualityLevel.Medium => new QualityPreset(QualityLevel.Medium, 304, 5),
-        _ => new QualityPreset(QualityLevel.High, 400, 4),
+        QualityLevel.Low => new QualityPreset(QualityLevel.Low, 224, 6, 64, 80, true, true),
+        QualityLevel.Medium => new QualityPreset(QualityLevel.Medium, 304, 5, 112, 100, true, true),
+        _ => new QualityPreset(QualityLevel.High, 400, 4, 192, 100, true, true),
     };
 
     /// <summary>The level named by <c>--quality</c> (<c>low</c>, <c>medium</c> or <c>high</c>), or <see langword="null"/>.</summary>

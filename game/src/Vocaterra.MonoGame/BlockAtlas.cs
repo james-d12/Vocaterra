@@ -21,8 +21,13 @@ public sealed class BlockAtlas : IItemIcons, IDisposable
     /// <summary>Builds the atlas on the given device.</summary>
     public BlockAtlas(GraphicsDevice device)
     {
-        Texture = new Texture2D(device, BlockAtlasLayout.Width, BlockAtlasLayout.Height);
-        Texture.SetData(BlockArt.AtlasPixels());
+        Texture = new Texture2D(device, BlockAtlasLayout.Width, BlockAtlasLayout.Height, true, SurfaceFormat.Color);
+        var level0 = BlockArt.AtlasPixels();
+        for (var level = 0; level < Math.Min(Texture.LevelCount, BlockArt.MipLevelCount); level++)
+        {
+            var pixels = BlockArt.MipLevel(level0, level);
+            Texture.SetData(level, null, pixels, 0, pixels.Length);
+        }
     }
 
     /// <summary>The atlas texture.</summary>

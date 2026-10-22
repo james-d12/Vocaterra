@@ -166,10 +166,12 @@ public static class WalkPlanner
         && grid.GetBlock(x, y, z) != BlockId.Water
         && grid.GetBlock(x, y - 1, z) != BlockId.Water;
 
-    // A cell with a tree (trunk or leaves) on both sides of it, west and east or north and south, is a one-block gap in the forest: a walk avoids it.
+    private static bool IsTreeBlock(BlockId block) => BlockDefinition.IsTrunk(block) || BlockDefinition.IsLeaves(block);
+
+    // A cell with a tree (trunk or leaves, of any species) on both sides of it, west and east or north and south, is a one-block gap in the forest: a walk avoids it.
     private static bool Pinched(VoxelGrid grid, int x, int y, int z)
     {
-        bool Tree(int tx, int tz) => grid.GetBlock(tx, y, tz) is BlockId.Trunk or BlockId.Leaves || grid.GetBlock(tx, y + 1, tz) is BlockId.Trunk or BlockId.Leaves;
+        bool Tree(int tx, int tz) => IsTreeBlock(grid.GetBlock(tx, y, tz)) || IsTreeBlock(grid.GetBlock(tx, y + 1, tz));
         return (Tree(x - 1, z) && Tree(x + 1, z)) || (Tree(x, z - 1) && Tree(x, z + 1));
     }
 

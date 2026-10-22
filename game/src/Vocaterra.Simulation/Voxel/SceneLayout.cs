@@ -133,7 +133,8 @@ public sealed record NpcSpec(string Name, int X, int Z, int Yaw);
 /// <param name="X">The column.</param>
 /// <param name="Z">The row.</param>
 /// <param name="Yaw">The facing in <see cref="Angles"/> steps.</param>
-public sealed record SpawnSpec(int X, int Z, int Yaw);
+/// <param name="Pitch">The look up or down in <see cref="Angles"/> steps (negative looks down; 0 level, S14).</param>
+public sealed record SpawnSpec(int X, int Z, int Yaw, int Pitch = 0);
 
 /// <summary>A named point of the scene beside the sites, given by column and row; its Y is the top of the terrain (or of the water).</summary>
 /// <param name="Name">The point's name.</param>
@@ -152,7 +153,71 @@ public sealed record PointSpec(string Name, int X, int Z);
 /// <param name="MinTrunk">The shortest trunk in blocks.</param>
 /// <param name="MaxTrunk">The longest trunk in blocks.</param>
 /// <param name="TreeLine">The height above which no tree grows.</param>
-public sealed record TreeScatterSpec(int Cell, int Chance, int Spacing, int Margin, int MinTrunk, int MaxTrunk, int TreeLine);
+/// <param name="SpruceFrom">S14: the ground height where spruces start to take over from oaks; the share of spruces rises over the next 20 blocks to all of them.</param>
+/// <param name="Birch">S14: the percent of the lowland trees that are birches (none within <paramref name="BirchAway"/> blocks of a site).</param>
+/// <param name="BirchAway">S14: the distance from every site with a radius inside which no birch grows (the guide's clearing keeps its oaks).</param>
+/// <param name="ShoreClear">S14: the distance from the water (the river, the pool, the lake) inside which the forest keeps only <paramref name="ShoreKeep"/> percent of its trees, so the banks are meadow.</param>
+/// <param name="ShoreFade">S14: how many more blocks the forest takes to come back to full density beyond <paramref name="ShoreClear"/>.</param>
+/// <param name="ShoreKeep">S14: the percent of trees kept inside the shore clearing.</param>
+/// <param name="Clearings">S14: round meadows round a site.</param>
+/// <param name="Vistas">S14: sight cones kept clear of the trees that would hide the valley.</param>
+public sealed record TreeScatterSpec(
+    int Cell,
+    int Chance,
+    int Spacing,
+    int Margin,
+    int MinTrunk,
+    int MaxTrunk,
+    int TreeLine,
+    int SpruceFrom = 48,
+    int Birch = 10,
+    int BirchAway = 30,
+    int ShoreClear = 0,
+    int ShoreFade = 1,
+    int ShoreKeep = 100,
+    IReadOnlyList<ClearingSpec>? Clearings = null,
+    IReadOnlyList<VistaSpec>? Vistas = null)
+{
+    /// <summary>The meadows round sites (empty when the layout names none).</summary>
+    public IReadOnlyList<ClearingSpec> ClearingList => Clearings ?? [];
+
+    /// <summary>The sight cones (empty when the layout names none).</summary>
+    public IReadOnlyList<VistaSpec> VistaList => Vistas ?? [];
+}
+
+/// <summary>A meadow round a site (S14): inside <paramref name="Radius"/> the forest keeps only <paramref name="Keep"/> percent of its trees, and it grows back to full density over <paramref name="Fade"/> more blocks.</summary>
+/// <param name="Site">The site the meadow is round.</param>
+/// <param name="Radius">The meadow's radius in blocks.</param>
+/// <param name="Fade">The width of the edge where the forest comes back.</param>
+/// <param name="Keep">The percent of trees kept inside.</param>
+public sealed record ClearingSpec(string Site, int Radius, int Fade, int Keep);
+
+/// <summary>
+/// A sight cone (S14), for a lookout such as the player's ledge: from the site's eye (the site's height plus the player's eye) the trees inside the cone
+/// (<paramref name="HalfAngleDegrees"/> either side of <paramref name="YawDegrees"/>, out to <paramref name="Radius"/> blocks) must stand lower than the
+/// line that falls <paramref name="DownDegrees"/> degrees below the horizontal, so no crown hides the valley floor from the lookout.
+/// </summary>
+/// <param name="Site">The lookout site.</param>
+/// <param name="YawDegrees">The way the cone points, as a compass bearing in degrees.</param>
+/// <param name="HalfAngleDegrees">Half the cone's width in degrees.</param>
+/// <param name="Radius">How far the cone reaches in blocks.</param>
+/// <param name="DownDegrees">The depression of the sight line the tree tops must stay under.</param>
+public sealed record VistaSpec(string Site, int YawDegrees, int HalfAngleDegrees, int Radius, int DownDegrees);
+
+/// <summary>
+/// The undergrowth (S14): crossed plants set on the grass by the scene builder from <c>WorldRng</c> (the pass <c>undergrowth</c>). Every figure is a
+/// percent of the columns that can hold a plant (open grass, not on a path, not beside a prop).
+/// </summary>
+/// <param name="Grass">The percent of open grass columns that hold tall grass or a fern at the densest, before the patches thin it.</param>
+/// <param name="Fern">The percent of those plants that are ferns (more under the trees).</param>
+/// <param name="Flowers">The percent of grass columns inside a flower patch that hold a flower.</param>
+/// <param name="Reeds">The percent of the shore columns (grass or sand within two blocks of water) that hold reeds.</param>
+/// <param name="RouteMargin">The columns round a path, a prop, a point or an NPC where nothing grows (and, one more, where only a third grows).</param>
+public sealed record UndergrowthSpec(int Grass, int Fern, int Flowers, int Reeds, int RouteMargin)
+{
+    /// <summary>No undergrowth.</summary>
+    public static UndergrowthSpec None { get; } = new(0, 0, 0, 0, 1);
+}
 
 /// <summary>
 /// A scene as plain values, parsed from the layout JSON (see <see cref="Parse"/>): the generator's parameters, the named sites at fixed positions, the
@@ -178,7 +243,8 @@ public sealed class SceneLayout
         IReadOnlyList<NpcSpec> npcs,
         SpawnSpec spawn,
         IReadOnlyList<PointSpec> points,
-        TreeScatterSpec trees)
+        TreeScatterSpec trees,
+        UndergrowthSpec undergrowth)
     {
         Name = name;
         SizeX = sizeX;
@@ -197,6 +263,7 @@ public sealed class SceneLayout
         Spawn = spawn;
         Points = points;
         Trees = trees;
+        Undergrowth = undergrowth;
     }
 
     /// <summary>The layout's name.</summary>
@@ -250,6 +317,9 @@ public sealed class SceneLayout
     /// <summary>The forest's parameters.</summary>
     public TreeScatterSpec Trees { get; }
 
+    /// <summary>The undergrowth's parameters (S14).</summary>
+    public UndergrowthSpec Undergrowth { get; }
+
     /// <summary>The site called <paramref name="name"/>, or <see langword="null"/>.</summary>
     public SiteSpec? Site(string name)
     {
@@ -279,7 +349,8 @@ public sealed class SceneLayout
     /// <c>lake</c> {site, rx, rz, depth}, <c>river</c> {halfWidth, depth, bank, path: [[x, z]...]}, <c>paths</c> [{name, from, to, via: [[x, z]...],
     /// halfWidth, mode: grade|follow}], <c>stamps</c> {name: {legend: {char: block}, layers: [[row...]...]}}, <c>props</c> [{type, site?, dx?, dz?, x?, z?,
     /// name?, width?, depth?, height?, length?, facing?, axis?, stamp?, block?}], <c>npcs</c> [{name, site?, dx?, dz?, x?, z?, facing}], <c>spawn</c>
-    /// {site?, dx?, dz?, x?, z?, facing}, <c>points</c> {name: {x, z}} and <c>trees</c> {cell, chance, spacing, margin, minTrunk, maxTrunk, treeLine}. A
+    /// {site?, dx?, dz?, x?, z?, facing}, <c>points</c> {name: {x, z}} and <c>trees</c> {cell, chance, spacing, margin, minTrunk, maxTrunk, treeLine, spruceFrom?, birch?, birchAway?, shoreClear?, shoreFade?, shoreKeep?, clearings?: [{site, radius, fade?, keep?}], vistas?: [{site, yaw, half, radius, down?}]}
+    /// and <c>undergrowth</c> {grass, fern, flowers, reeds, routeMargin} (S14). A
     /// prop, NPC or spawn is placed at a site's column plus an offset, or at a column. A facing is a compass word or a whole number of degrees.
     /// </summary>
     /// <exception cref="SceneLayoutException">The text is not valid JSON or does not describe a buildable layout.</exception>
@@ -337,10 +408,17 @@ public sealed class SceneLayout
             var npcs = ParseNpcs(root, byName);
             var spawnElement = Require(root, "spawn");
             var (spawnX, spawnZ) = ParsePlace(spawnElement, byName, "spawn");
-            var spawn = new SpawnSpec(spawnX, spawnZ, ParseYaw(spawnElement, "spawn"));
+            var pitchDegrees = GetOptionalInt(spawnElement, "pitch") ?? 0;
+            if (pitchDegrees is < -80 or > 80)
+            {
+                throw new SceneLayoutException("spawn: pitch must be between -80 and 80 degrees.");
+            }
+
+            var spawn = new SpawnSpec(spawnX, spawnZ, ParseYaw(spawnElement, "spawn"), pitchDegrees * Angles.StepsPerTurn / 360);
             var points = ParsePoints(root);
-            var trees = ParseTrees(root);
-            return new SceneLayout(name, sizeX, sizeY, sizeZ, waterLevel, terrain, sites, waterfall, lake, river, paths, stamps, props, npcs, spawn, points, trees);
+            var trees = ParseTrees(root, byName);
+            var undergrowth = ParseUndergrowth(root);
+            return new SceneLayout(name, sizeX, sizeY, sizeZ, waterLevel, terrain, sites, waterfall, lake, river, paths, stamps, props, npcs, spawn, points, trees, undergrowth);
         }
     }
 
@@ -626,7 +704,28 @@ public sealed class SceneLayout
         return points;
     }
 
-    private static TreeScatterSpec ParseTrees(JsonElement root)
+    private static UndergrowthSpec ParseUndergrowth(JsonElement root)
+    {
+        if (!root.TryGetProperty("undergrowth", out var element))
+        {
+            return UndergrowthSpec.None;
+        }
+
+        var spec = new UndergrowthSpec(
+            GetOptionalInt(element, "grass") ?? 0,
+            GetOptionalInt(element, "fern") ?? 20,
+            GetOptionalInt(element, "flowers") ?? 0,
+            GetOptionalInt(element, "reeds") ?? 0,
+            GetOptionalInt(element, "routeMargin") ?? 1);
+        if (spec.Grass is < 0 or > 100 || spec.Fern is < 0 or > 100 || spec.Flowers is < 0 or > 100 || spec.Reeds is < 0 or > 100 || spec.RouteMargin < 0)
+        {
+            throw new SceneLayoutException("undergrowth: grass, fern, flowers and reeds are percents (0 to 100) and routeMargin is at least 0.");
+        }
+
+        return spec;
+    }
+
+    private static TreeScatterSpec ParseTrees(JsonElement root, Dictionary<string, SiteSpec> sites)
     {
         if (!root.TryGetProperty("trees", out var element))
         {
@@ -640,13 +739,74 @@ public sealed class SceneLayout
             GetOptionalInt(element, "margin") ?? 3,
             GetOptionalInt(element, "minTrunk") ?? 4,
             GetOptionalInt(element, "maxTrunk") ?? 5,
-            GetOptionalInt(element, "treeLine") ?? 80);
+            GetOptionalInt(element, "treeLine") ?? 80,
+            GetOptionalInt(element, "spruceFrom") ?? 48,
+            GetOptionalInt(element, "birch") ?? 10,
+            GetOptionalInt(element, "birchAway") ?? 30,
+            GetOptionalInt(element, "shoreClear") ?? 0,
+            Math.Max(1, GetOptionalInt(element, "shoreFade") ?? 1),
+            GetOptionalInt(element, "shoreKeep") ?? 100,
+            ParseClearings(element, sites),
+            ParseVistas(element, sites));
         if (spec.Cell < 2 || spec.Chance is < 0 or > 100 || spec.Spacing < 1 || spec.Margin < 0 || spec.MinTrunk < 1 || spec.MaxTrunk < spec.MinTrunk)
         {
             throw new SceneLayoutException("trees: cell must be at least 2, chance 0 to 100, spacing at least 1, margin at least 0 and 1 <= minTrunk <= maxTrunk.");
         }
 
         return spec;
+    }
+
+    private static List<ClearingSpec> ParseClearings(JsonElement trees, Dictionary<string, SiteSpec> sites)
+    {
+        var list = new List<ClearingSpec>();
+        if (!trees.TryGetProperty("clearings", out var element) || element.ValueKind != JsonValueKind.Array)
+        {
+            return list;
+        }
+
+        foreach (var item in element.EnumerateArray())
+        {
+            var siteName = GetString(item, "site") ?? throw new SceneLayoutException("trees.clearings: a clearing needs a site.");
+            RequireSite(sites, siteName, "trees.clearings");
+            var clearing = new ClearingSpec(siteName, GetInt(item, "radius", "trees.clearings"), Math.Max(1, GetOptionalInt(item, "fade") ?? 16), GetOptionalInt(item, "keep") ?? 0);
+            if (clearing.Radius < 0 || clearing.Keep is < 0 or > 100)
+            {
+                throw new SceneLayoutException("trees.clearings: radius must be at least 0 and keep a percent.");
+            }
+
+            list.Add(clearing);
+        }
+
+        return list;
+    }
+
+    private static List<VistaSpec> ParseVistas(JsonElement trees, Dictionary<string, SiteSpec> sites)
+    {
+        var list = new List<VistaSpec>();
+        if (!trees.TryGetProperty("vistas", out var element) || element.ValueKind != JsonValueKind.Array)
+        {
+            return list;
+        }
+
+        foreach (var item in element.EnumerateArray())
+        {
+            var siteName = GetString(item, "site") ?? throw new SceneLayoutException("trees.vistas: a vista needs a site.");
+            var site = RequireSite(sites, siteName, "trees.vistas");
+            if (site.Y is null)
+            {
+                throw new SceneLayoutException($"trees.vistas: the site '{siteName}' needs a y (the lookout's height).");
+            }
+
+            var vista = new VistaSpec(siteName, GetInt(item, "yaw", "trees.vistas"), GetInt(item, "half", "trees.vistas"), GetInt(item, "radius", "trees.vistas"), GetOptionalInt(item, "down") ?? 12);
+            if (vista.HalfAngleDegrees is < 1 or > 179 || vista.Radius < 1 || vista.DownDegrees is < 0 or > 60)
+            {
+                throw new SceneLayoutException("trees.vistas: half must be 1 to 179, radius at least 1 and down 0 to 60 degrees.");
+            }
+
+            list.Add(vista);
+        }
+
+        return list;
     }
 
     private static List<(int X, int Z)> ParseColumns(JsonElement element, string where, int sizeX, int sizeZ)

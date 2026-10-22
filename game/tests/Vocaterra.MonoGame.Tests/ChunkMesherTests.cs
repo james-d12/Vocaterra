@@ -177,10 +177,12 @@ public sealed class ChunkMesherTests
             byDirection[key] = (int)(vertices[quad * 4].Color & 0xFF); // the red channel is the shade for the grey white tint
         }
 
+        // S14: the sun is in the north-west, so the west and north faces are lit, the east and south faces are not, and the bottom is darkest.
         Assert.True(byDirection["up"] > byDirection["north"]);
-        Assert.Equal(byDirection["north"], byDirection["south"]);
-        Assert.Equal(byDirection["east"], byDirection["west"]);
-        Assert.True(byDirection["north"] > byDirection["east"]);
+        Assert.True(byDirection["up"] > byDirection["west"]);
+        Assert.True(byDirection["west"] > byDirection["east"]);
+        Assert.True(byDirection["north"] > byDirection["south"]);
+        Assert.Equal(byDirection["east"], byDirection["south"]);
         Assert.True(byDirection["east"] > byDirection["down"]);
         Assert.Equal(255, byDirection["up"]);
     }
@@ -299,11 +301,12 @@ public sealed class ChunkMesherTests
             }
 
             faces += meshes.FaceCount;
-            vertices += meshes.Opaque.VertexCount + meshes.Alpha.VertexCount;
+            Assert.True(meshes.PlantMesh.VertexCount <= 65532);
+            vertices += meshes.Opaque.VertexCount + meshes.Alpha.VertexCount + meshes.PlantMesh.VertexCount;
         }
 
         Assert.Equal(faces * 4, vertices);
-        Assert.InRange(faces, 400_000, 1_500_000); // the culling works: 384 x 128 x 384 blocks, under a million faces
+        Assert.InRange(faces, 400_000, 2_000_000); // the culling works: 384 x 128 x 384 blocks, about a million faces with the undergrowth's crossed quads
         var allBlocks = scene.Grid.SizeX * scene.Grid.SizeY * scene.Grid.SizeZ;
         Assert.True(faces < allBlocks / 8);
         Assert.True(skippable > 2000, $"{skippable} chunks of air or buried in stone");
@@ -318,7 +321,7 @@ public sealed class ChunkMesherTests
         var chunk = VoxelChunkCoord.FromBlock(river.X, river.Y, river.Z);
         var meshes = ChunkMesher.Build(source, chunk.X, chunk.Y, chunk.Z);
         Assert.True(meshes.Alpha.FaceCount > 0);
-        Assert.All(Enumerable.Range(0, meshes.Alpha.VertexCount), i => Assert.Equal(BlockAtlasLayout.CellFor(BlockId.Water, BlockFace.Up), CellOf(meshes.Alpha.Vertices[i])));
+        Assert.All(Enumerable.Range(0, meshes.Alpha.VertexCount), i => Assert.Contains(CellOf(meshes.Alpha.Vertices[i]), new[] { BlockCell.Water, BlockCell.WaterShallow, BlockCell.Waterfall }));
     }
 
     private static BlockCell CellOf(MeshVertex vertex)

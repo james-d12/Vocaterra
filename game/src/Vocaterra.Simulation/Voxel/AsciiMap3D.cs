@@ -17,7 +17,7 @@ public static class AsciiMap3D
     /// <summary>The legend line to print under a map.</summary>
     public const string Legend =
         "Legend: . grass  , dirt  # stone  : sand  T trunk  o leaves  b bush  B berry bush  ~ water  = path  p planks  D door  "
-        + "M workbench  i torch  $ stall  ^ roof  + fence  W wall  O fire ring  ! sign  H bridge  * snow  @ spawn  P player  "
+        + "M workbench  i torch  $ stall  ^ roof  + fence  W wall  O fire ring  ! sign  H bridge  * snow  \" undergrowth  ` flower  @ spawn  P player  "
         + "G guide  K shopkeeper  V villager  N other npc";
 
     /// <summary>The character for a block kind (air is a space).</summary>
@@ -46,6 +46,11 @@ public static class AsciiMap3D
         BlockId.Sign => '!',
         BlockId.Bridge => 'H',
         BlockId.Snow => '*',
+        BlockId.SpruceTrunk or BlockId.BirchTrunk => 'T',
+        BlockId.SpruceLeaves or BlockId.BirchLeaves => 'o',
+        BlockId.TallGrass or BlockId.Fern or BlockId.Reeds => '"',
+        BlockId.YellowFlower or BlockId.WhiteFlower => '`',
+        BlockId.MossyStone or BlockId.Cobble => '#',
         _ => '?',
     };
 

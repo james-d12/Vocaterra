@@ -162,7 +162,7 @@ public sealed class WorldFacts3DTests
         Assert.Equal("casa", catalogue.ForBlock(BlockId.Roof)!.Lemma);
         Assert.Equal([BlockId.BerryBush], catalogue.BlocksOf("fruta"));
         Assert.Equal("fruta", catalogue.ForItem(ItemId.Berry)!.Lemma); // the berry is the inventory's fruta, not "berry"
-        Assert.Equal(["trunk", "leaves"], catalogue.BlocksOf("árbol").Select(static b => BlockDefinition.Get(b).Name));
+        Assert.Equal(["trunk", "leaves", "spruce-trunk", "spruce-leaves", "birch-trunk", "birch-leaves"], catalogue.BlocksOf("árbol").Select(static b => BlockDefinition.Get(b).Name));
     }
 
     [Fact]
