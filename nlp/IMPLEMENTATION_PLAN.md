@@ -227,7 +227,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M29g | Game request (prototype S9): `provenance.json` has no kind for model-generated host files (pre-rendered Kokoro speech): `hand-authored` would be false provenance and `llm-draft` needs a human approval. Add a model-output kind with a required `model` field (optional voice and source). Waiting: the game's S9 speech files | M27a | H | done (merged to `feature/prototype` 2026-10-22) |
 | M29h | Fuzz suite flake (found by the S8 gate, 2026-10-22): `ChangingOneRecordedOutput_MakesTheReplayerNameThatPath` asserts each envelope region is reached at least once in 300 random-seed iterations, but `region:effects` is reached about 4 times per run (measured 3 to 5), so about 1 to 2 runs in 100 fail. Fix the generator or the mutation-path choice so every region's expected count is well above its minimum; minimums unchanged | M29e | H | done (merged to `feature/prototype` 2026-10-22) |
 | M29i | Fuzz finding (found during M29h, 2026-10-22, seed not recorded): `MutationTagFuzzTests.OneMutation_YieldsExactlyTheNamedTag_WithTheOriginalFormAsCorrection` (O4) failed once: "missing [word_order@22+23 expected 'juventudes sorprendidas' actual 'sorprendidas juventudes']"; passed on reruns. A rare analyzer word-order mismatch; reproduce with a recorded seed (raise iterations until it recurs), fix at the source. Not blocking the game | M29h | S | proposed |
-| M29j | Game request (prototype S19, for S20's book): readings a learner's word record exposes. (1) `está` in «¿dónde está el río?» is read as the 2 sg imperative, because the resolver takes the first reading in lexicon order; prefer the indicative when a subject follows or the verb is not clause-initial. (2) «gracias» alone and in «muchas gracias» is read as the plural noun `gracia`; give it an interjection reading (lemma `gracias`). (3) `favor` in every «por favor» is read as a noun; read «por favor» as one fixed expression (tokens keep their spans). Agreement checks must not change: M29c's «mucho gracias» still gives `gender.agree` 'muchas'. Regression tests in the analysis module; no fuzz oracle weakened; goldens re-recorded only where a reading changes, with errors unchanged; the core demo unchanged. Numerals as digits (`dos` gives lemma `2`) stay as documented. Waiting: game S20 (the book's Nouns and Verbs pages) | M29c | S | proposed |
+| M29j | Game request (prototype S19, for S20's book): readings a learner's word record exposes. (1) `está` in «¿dónde está el río?» is read as the 2 sg imperative, because the resolver takes the first reading in lexicon order; prefer the indicative when a subject follows or the verb is not clause-initial. (2) «gracias» alone and in «muchas gracias» is read as the plural noun `gracia`; give it an interjection reading (lemma `gracias`). (3) `favor` in every «por favor» is read as a noun; read «por favor» as one fixed expression (tokens keep their spans). Agreement checks must not change: M29c's «mucho gracias» still gives `gender.agree` 'muchas'. Regression tests in the analysis module; no fuzz oracle weakened; goldens re-recorded only where a reading changes, with errors unchanged; the core demo unchanged. Numerals as digits (`dos` gives lemma `2`) stay as documented. Waiting: game S20 (the book's Nouns and Verbs pages) | M29c | S | done (merged to `feature/prototype` 2026-10-22, `7ebf9b5`) |
 
 ### Delegation waves
 
@@ -915,6 +915,22 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   uniformly among those the envelope has, then a leaf in it, and one case in four is aimed at an effect intent (drawn last, so earlier draws
   keep their values). Effects per run: before min 2, mean 5.4; after min 30, mean 47.4 (15 runs). Minimums unchanged. A rare O4 word-order
   failure seen once during the work is filed as M29i.
+- **M29j, readings a learner's word record exposes (2026-10-22, Sonnet 5.5; found by the game's S19; merged `7ebf9b5`).**
+  - **Root cause.** `result.Words` reported the first reading the resolver left, in lexicon order. The resolver rightly works in word classes:
+    the imperative and indicative of one verb are both finite, and a noun beats an interjection because interjections are a last resort. So
+    the reported reading was an accident of lexicon order, and the lexicon's multi-word entry `por favor` could never match a single token.
+  - **Fix.** A reporting step, `Analysis/ReportedReadings`, runs after resolution and changes no error and no check (`ReadingResolver` and
+    `AgreementChecker` are untouched, so M29c's «mucho gracias» still gives `gender.agree` 'muchas'):
+    - an ambiguous imperative/indicative form is reported as the imperative only when it opens its clause; clause-initial `ser`, `estar` or
+      `haber` before a determiner, noun or participle is the indicative;
+    - `gracias` is the interjection unless an article or numeral precedes it, through a one-word table (`AnalysisTables.InterjectionFirstWords`),
+      because the imported lexicon marks `sus`, `sé` and others as interjections too;
+    - two or three adjacent tokens whose joined text is an exact lexicon form (`por favor`, `de nada`) report that entry's reading on each
+      token. The lemma contains a space; each token keeps its `Text` and `Span`.
+  - **Boundary.** No public member added; API.md documents the three cases. Goldens unchanged; 22 new tests; fuzz 57/57 at the defaults and
+    at 10,000 and 8,000 iterations. Gate: 4,259 passed, 5 skipped; core demo unchanged.
+  - **Known limits:** normalization drops `¿?`, so a bare «¿Está quieto?» reads as the imperative; `Está lloviendo` too (no gerunds in the
+    lexicon); only exact lexicon multi-word forms are found («por qué» and «buenos días» are not in the lexicon).
 
 ## 6. Definition of done (every milestone)
 
