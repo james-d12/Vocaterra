@@ -79,6 +79,21 @@ public sealed class ScenarioScript
         _log = log;
     }
 
+    /// <summary>
+    /// Starts the world's steps at this index: the steps before it were the check battery's (<see cref="CheckScript"/>, S11), and the script begins
+    /// with the first step after them. Call it once, before the first <see cref="Fill"/>.
+    /// </summary>
+    /// <param name="index">The index of the first world step.</param>
+    public void SkipTo(int index)
+    {
+        if (index < 0 || index > _steps.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index), index, "The step is not in the script.");
+        }
+
+        _index = index;
+    }
+
     /// <summary>Whether every step has been done and its effect applied.</summary>
     public bool IsDone => _phase == Phase.Idle && _index >= _steps.Count;
 
@@ -206,6 +221,10 @@ public sealed class ScenarioScript
                 break;
             case ScriptStepKind.Leave:
                 CloseIfOpen();
+                _index++;
+                break;
+            case ScriptStepKind.Pick:
+                _log($"pick {step.Value}: a check step; the check battery takes it before the world (ignored here)");
                 _index++;
                 break;
             case ScriptStepKind.Wait:

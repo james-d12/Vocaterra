@@ -125,6 +125,9 @@ public abstract class GuideSession : IDisposable
         _npcs = new NpcService(bundle, liveFacts, nouns, worldSeed, new StoredTimestamp(startedAt), recipes);
     }
 
+    /// <summary>Raised on the caller's thread after each finished turn is applied by <see cref="Collect"/>, once its events are in <see cref="Events"/> (the session log, S11).</summary>
+    public event Action<AppliedTurn>? Applied;
+
     /// <summary>The content bundle.</summary>
     public ContentBundle Bundle { get; }
 
@@ -593,7 +596,7 @@ public abstract class GuideSession : IDisposable
             throw new InvalidOperationException("The turn worker is already started.");
         }
 
-        _worker = new TurnWorker(_npcs, Bundle, clockMilliseconds, loadSpeech);
+        _worker = new TurnWorker(_npcs, Bundle, clockMilliseconds, loadSpeech, WorldSeed);
         _worker.Start();
         return _worker;
     }
@@ -647,6 +650,32 @@ public abstract class GuideSession : IDisposable
         LogVoice(VoiceEventKind.NoSe);
         RevealSupport();
         return Submit(TurnSource.Button, DontKnowLine, null, null, cursor);
+    }
+
+    /// <summary>
+    /// Submits a check answer (S11): a typed line, the "No sé" button, or a clip, WAV or line to synthesize, for a production item. The worker
+    /// grades it through the core in a throwaway context; no conversation, learner model, word or phrase changes (<see cref="TurnOutcome.Grade"/>).
+    /// Returns at once. Call it only while the check battery runs.
+    /// </summary>
+    /// <param name="item">The production item.</param>
+    /// <param name="source">Typed, Button (no sé), Clip, Speak or Wav.</param>
+    /// <param name="text">The typed line or the "no sé" text, or the line to synthesize.</param>
+    /// <param name="clip">A recorded clip (for <see cref="TurnSource.Clip"/>).</param>
+    /// <param name="wavPath">A WAV file (for <see cref="TurnSource.Wav"/>).</param>
+    public TurnRequest SubmitCheck(CheckItem item, TurnSource source, string? text, PcmClip? clip, string? wavPath)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        if (item.Kind != CheckItemKind.Production)
+        {
+            throw new ArgumentException($"The item '{item.Id}' is a comprehension item: its answer is a pick, not a submission.", nameof(item));
+        }
+
+        if (source is not (TurnSource.Typed or TurnSource.Button or TurnSource.Clip or TurnSource.Speak or TurnSource.Wav))
+        {
+            throw new ArgumentOutOfRangeException(nameof(source), source, "A check answer is typed, a button, a clip, a line to speak or a WAV file.");
+        }
+
+        return Submit(source, text, clip, wavPath, null, item);
     }
 
     /// <summary>Submits a clip for the mic check: the worker recognizes it and the outcome carries what it heard (<see cref="TurnOutcome.MicCheck"/>). It is no turn. Returns at once.</summary>
@@ -729,7 +758,9 @@ public abstract class GuideSession : IDisposable
         var applied = new List<AppliedTurn>();
         while (_worker is { } worker && worker.TryTake(out var outcome))
         {
-            applied.Add(Apply(outcome!));
+            var one = Apply(outcome!);
+            applied.Add(one);
+            Applied?.Invoke(one); // after this turn's events are logged: the session log writes the turn with its events (S11)
         }
 
         FlushSkills();
@@ -936,7 +967,7 @@ public abstract class GuideSession : IDisposable
         return support.Scaffolded.Contains(phrase, StringComparer.Ordinal) ? PhraseUseKind.Supported : PhraseUseKind.Unaided;
     }
 
-    private TurnRequest Submit(TurnSource source, string? text, PcmClip? clip, string? wavPath, GuideCell? cursor)
+    private TurnRequest Submit(TurnSource source, string? text, PcmClip? clip, string? wavPath, GuideCell? cursor, CheckItem? check = null)
     {
         var worker = _worker ?? throw new InvalidOperationException("The turn worker is not started (StartWorker).");
         FinishKeyWords();
@@ -954,7 +985,8 @@ public abstract class GuideSession : IDisposable
             Tick,
             CurrentNpc,
             PhraseReview,
-            Support.Snapshot());
+            Support.Snapshot(),
+            check);
         worker.Submit(request);
         return request;
     }

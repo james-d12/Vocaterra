@@ -216,6 +216,36 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --load /tmp/s10.save --journ
 dotnet run --project game/src/Vocaterra.MonoGame -- --load /tmp/s10.save --seed 7
 ```
 
+**Checks, the session log and the report (S11).** `--check pre|post|recall` runs the check battery outside the world, on its own screen (the
+items are `content/game-v1/game/checks.json`): ten items, six that play a Spanish line and offer three meanings (keys **1**, **2**, **3**; **R**
+plays it again), and four that ask the learner to say a phrase in Spanish for an English situation (hold **V** to speak, **W** to type and
+**Enter** to send, **N** for "no sé"). The order and the options' order come from the world seed and the kind, so a pre-check and a post-check
+hold the same items in other orders. **Esc** ends the battery (the rest is skipped). `pre` is followed by the world; `post` and `recall` end the
+run after the battery. A check never changes the learner model, the phrase progress, the conversations or the world. The answers go to the
+session log: **`--session-dir <dir>`** names the folder (default: a new folder named by the local date and time and the session number, under
+`~/.local/share/vocaterra/sessions/`), which holds `session.jsonl` (one JSON object per line: `session_start`, `turn`, `phrase`, `voice`, `world`,
+`check_start`, `check_result`, `check_end`, `session_end`) and the core's `replay.jsonl`. A folder that already has a log is appended to. Scripted:
+`--pick <n>` answers a comprehension item, `--say` and `--speak` answer a production item, `--shot` saves the screen where it stands; a scripted run
+prints the item order and the right option of each item on the console.
+
+```bash
+# the pre-check, scripted (the console prints the order: "check order: ..."), a screenshot of the first comprehension item, then the world
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --check pre --session-dir /tmp/sess1 --wait 2 --shot /tmp/s11-check.png \
+  --pick 3 --pick 2 --pick 2 --say "¿Dónde está el río?" --pick 1 --say "No, gracias." --pick 3 --speak "Quiero agua, por favor." \
+  --say "Sí, por favor." --pick 3 --screenshot /tmp/s11-world.png --frames 60 --save /tmp/s11.save
+# the S6 route into the same folder (a second run in the folder: another session_start and session_end)
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --session-dir /tmp/sess1 --talk shopkeeper --say "quiero agua, por favor" ...
+# the recall check on the saved game, in the next play session (the probe prints "check order:" first; the answers follow it)
+dotnet run --project game/src/Vocaterra.MonoGame -- --load /tmp/s11.save --check recall --session-dir /tmp/sess2 --wait 2 --shot /tmp/s11-recall.png \
+  --pick 1 --pick 1 --pick 1 --say "No, gracias." --pick 1 --say "Sí, por favor." --say "necesito agua" --pick 3 --say "no sé" --pick 1 \
+  --screenshot /tmp/s11-recall-end.png --frames 30
+# the report: per folder and in total, the completion, retries, support, ASR latency, the checks by item kind, transfer, and the gates' evidence
+bash scripts/playtest-report.sh /tmp/sess1 /tmp/sess2
+```
+
+The report (`scripts/playtest-report.sh`, bash and Python 3's standard library, run with `python3 -I`) reads only the session folders. Its gate lines
+(Playable, Learning signal, Transfer, Enjoyable) are evidence, never a verdict on learning; Enjoyable needs observer notes.
+
 ## Content
 
 `content/game-v1` is the game's bundle, under the bundle id `game-v1`. **The game owns it** (decision D-game-4, decided 2026-10-21: the bundle

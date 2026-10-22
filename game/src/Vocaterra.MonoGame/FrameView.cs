@@ -70,6 +70,9 @@ public sealed class FrameView
     /// <summary>The mic check at the start (S7), or <see langword="null"/> when this run has none.</summary>
     public MicCheckModel? MicCheck { get; init; }
 
+    /// <summary>The check battery's screen (S11) while it runs, or <see langword="null"/>.</summary>
+    public CheckScreen? Check { get; set; }
+
     /// <summary>The word cards waiting to be shown (the first pickup of each noun).</summary>
     public WordCardQueue Cards { get; init; } = new();
 

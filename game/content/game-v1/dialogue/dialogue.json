@@ -166,6 +166,30 @@
         { "lineId": "guide.review.ask.3", "text": "¿Qué es esto? Mira bien." }
       ]
     },
+    "guide.review.phrase.pedir_agua": {
+      "poolId": "guide.review.phrase.pedir_agua",
+      "variants": [
+        { "lineId": "guide.review.phrase.pedir_agua.1", "text": "¿Qué necesitas?" }
+      ]
+    },
+    "guide.review.phrase.donde_esta_el_rio": {
+      "poolId": "guide.review.phrase.donde_esta_el_rio",
+      "variants": [
+        { "lineId": "guide.review.phrase.donde_esta_el_rio.1", "text": "¿Qué buscas?" }
+      ]
+    },
+    "guide.review.phrase.si_por_favor": {
+      "poolId": "guide.review.phrase.si_por_favor",
+      "variants": [
+        { "lineId": "guide.review.phrase.si_por_favor.1", "text": "¿Quieres agua?" }
+      ]
+    },
+    "guide.review.phrase.no_gracias": {
+      "poolId": "guide.review.phrase.no_gracias",
+      "variants": [
+        { "lineId": "guide.review.phrase.no_gracias.1", "text": "¿Quieres agua?" }
+      ]
+    },
     "guide.uncertain": {
       "poolId": "guide.uncertain",
       "variants": [

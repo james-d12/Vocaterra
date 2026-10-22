@@ -58,6 +58,10 @@ public sealed record LaunchOptions
         + "  --save <file>           write the game to this save file when the run ends (on quit, or at the end of a script); F5 writes it in an interactive run\n"
         + "  --load <file>           start from a save file: the same world, inventory, objective and progress, in the next play session (the session counter\n"
         + "                          shows it); refused when the save is for another seed (with --seed) or another content bundle\n"
+        + "  --check <pre|post|recall>  run the check battery (S11) first, outside the world: pre then the world; post or recall instead of the world (the run ends\n"
+        + "                          after it). Its items are answered by the player, or by the script's --pick and --say/--speak steps\n"
+        + "  --pick <n>              answer the check's comprehension item with the option n (1 to 3, as shown); a step, with --check\n"
+        + "  --session-dir <dir>     write this run's session.jsonl and replay.jsonl here (default: a new folder under ~/.local/share/vocaterra/sessions/)\n"
         + "  --typed-credit <full|half> the credit a correct typed use earns (default half; spoken input always earns full)\n"
         + "  --no-speech             do not load the speech models (typing only)\n"
         + "  --mute                  the NPCs' pre-rendered voices are off (the panel still shows every line)\n"
@@ -80,6 +84,12 @@ public sealed record LaunchOptions
 
     /// <summary>The save file to load into the new session (S10), or <see langword="null"/> to start a new game.</summary>
     public string? LoadPath { get; init; }
+
+    /// <summary>The check battery to run (<c>--check</c>), or <see langword="null"/> for none.</summary>
+    public CheckKind? Check { get; init; }
+
+    /// <summary>The folder the session log is written to (<c>--session-dir</c>), or <see langword="null"/> for a new folder under the sessions folder.</summary>
+    public string? SessionDir { get; init; }
 
     /// <summary>The content bundle folder, or <see langword="null"/> to search for <c>content/game-v1</c>.</summary>
     public string? ContentDirectory { get; init; }
@@ -173,6 +183,7 @@ public sealed record LaunchOptions
         var steps = new List<VoxelStep>();
         var script = new List<ScriptStep>();
         string? beacon = null;
+        CheckKind? check = null;
         var journal = false;
         var journalPhrases = false;
         var inventory = false;
@@ -231,7 +242,8 @@ public sealed record LaunchOptions
             }
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
-                or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"))
+                or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
+                or "--check" or "--pick" or "--session-dir"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -263,6 +275,33 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { SavePath = value };
+                    break;
+                case "--check":
+                    check = CheckKinds.Parse(value);
+                    if (check is null)
+                    {
+                        error = $"--check needs pre, post or recall, got '{value}'.";
+                        return false;
+                    }
+
+                    break;
+                case "--session-dir":
+                    if (value.Length == 0)
+                    {
+                        error = "--session-dir needs a folder.";
+                        return false;
+                    }
+
+                    result = result with { SessionDir = value };
+                    break;
+                case "--pick":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var pick) || pick < 1 || pick > 3)
+                    {
+                        error = $"--pick needs an option from 1 to 3, got '{value}'.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Pick, Value: pick.ToString(CultureInfo.InvariantCulture)));
                     break;
                 case "--load":
                     if (value.Length == 0)
@@ -472,6 +511,12 @@ public sealed record LaunchOptions
             return false;
         }
 
+        if (script.Any(static step => step.Kind == ScriptStepKind.Pick) && check is null)
+        {
+            error = "--pick answers a check item: it needs --check.";
+            return false;
+        }
+
         options = result with
         {
             ScreenshotPath = screenshot,
@@ -485,6 +530,7 @@ public sealed record LaunchOptions
             ShowCrafting = crafting,
             Greyscale = greyscale,
             MicCheck = micCheck,
+            Check = check,
         };
         error = string.Empty;
         return true;
@@ -514,6 +560,9 @@ public enum ScriptStepKind
 
     /// <summary>Save the screen to the file in <see cref="ScriptStep.Value"/> and go on.</summary>
     Shot,
+
+    /// <summary>Answer the check's comprehension item with the option (1 to 3, as shown) in <see cref="ScriptStep.Value"/> (S11).</summary>
+    Pick,
 
     /// <summary>Let the game run for the seconds in <see cref="ScriptStep.Value"/> (S8).</summary>
     Wait,

@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "about": "The check battery (S11, D-game-10): run with --check pre|post|recall, outside the world; it never changes the learner model, the phrase progress or the world. Production items are graded by the core at the row's prompt (communicated and the row's intent = correct; errors are recorded; no sé is allowed and recorded as dont_know). Comprehension items play the row's pre-rendered line (speech index id: the line id) and offer three options; the options are shown in an order drawn from the world seed and the check kind, so pre and post differ in order but not in content. The item's id is hear.<row> (comprehension) or say.<row> (production).",
+  "items": [
+    {
+      "id": "hear.que-necesitas",
+      "kind": "comprehension",
+      "phrase": "que-necesitas",
+      "line": "prompt.stall-need",
+      "spanish": "¿Qué necesitas?",
+      "question": "You hear this at the stall. What does it mean?",
+      "options": [
+        { "label": "The shopkeeper asks what you need." },
+        { "label": "The shopkeeper offers you bread.", "icon": "Bread" },
+        { "label": "The shopkeeper says goodbye." }
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.quieres-pan",
+      "kind": "comprehension",
+      "phrase": "quieres-pan",
+      "line": "prompt.stall-offer",
+      "spanish": "¿Quieres pan?",
+      "question": "You hear this at the stall. What does it mean?",
+      "options": [
+        { "label": "The shopkeeper asks what you need." },
+        { "label": "The shopkeeper says the river is over there." },
+        { "label": "The shopkeeper offers you bread.", "icon": "Bread" }
+      ],
+      "correct": 2
+    },
+    {
+      "id": "hear.pedir-agua",
+      "kind": "comprehension",
+      "phrase": "pedir-agua",
+      "line": "phrase.pedir-agua",
+      "spanish": "Quiero agua, por favor.",
+      "question": "You hear this from a customer. What does it mean?",
+      "options": [
+        { "label": "Asking for water, please.", "icon": "WaterBottle" },
+        { "label": "Asking for bread, please.", "icon": "Bread" },
+        { "label": "Asking where the river is." }
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.si-por-favor",
+      "kind": "comprehension",
+      "phrase": "si-por-favor",
+      "line": "phrase.si-por-favor",
+      "spanish": "Sí, por favor.",
+      "question": "You hear this. What does it mean?",
+      "options": [
+        { "label": "Saying no, thank you." },
+        { "label": "Saying yes, please." },
+        { "label": "Saying goodbye." }
+      ],
+      "correct": 1
+    },
+    {
+      "id": "hear.no-gracias",
+      "kind": "comprehension",
+      "phrase": "no-gracias",
+      "line": "phrase.no-gracias",
+      "spanish": "No, gracias.",
+      "question": "You hear this. What does it mean?",
+      "options": [
+        { "label": "Saying yes, please." },
+        { "label": "Asking for water.", "icon": "WaterBottle" },
+        { "label": "Saying no, thank you." }
+      ],
+      "correct": 2
+    },
+    {
+      "id": "hear.donde-esta-el-rio",
+      "kind": "comprehension",
+      "phrase": "donde-esta-el-rio",
+      "line": "phrase.donde-esta-el-rio",
+      "spanish": "¿Dónde está el río?",
+      "question": "You hear this from a traveller. What does it mean?",
+      "options": [
+        { "label": "Saying thank you." },
+        { "label": "Asking for water.", "icon": "WaterBottle" },
+        { "label": "Asking where the river is." }
+      ],
+      "correct": 2
+    },
+    {
+      "id": "say.pedir-agua",
+      "kind": "production",
+      "phrase": "pedir-agua",
+      "situation": "You are at a market stall. You want water. Ask for it politely.",
+      "prompt": "stall-need",
+      "intent": "request_item"
+    },
+    {
+      "id": "say.si-por-favor",
+      "kind": "production",
+      "phrase": "si-por-favor",
+      "situation": "The shopkeeper offers you bread. You want it.",
+      "prompt": "stall-offer",
+      "intent": "confirm"
+    },
+    {
+      "id": "say.no-gracias",
+      "kind": "production",
+      "phrase": "no-gracias",
+      "situation": "The shopkeeper offers you bread. You don't want it. Say no politely.",
+      "prompt": "stall-offer",
+      "intent": "deny"
+    },
+    {
+      "id": "say.donde-esta-el-rio",
+      "kind": "production",
+      "phrase": "donde-esta-el-rio",
+      "situation": "You are in a village and need to find the river. Ask a villager.",
+      "prompt": "villager-open",
+      "intent": "ask_directions"
+    }
+  ]
+}

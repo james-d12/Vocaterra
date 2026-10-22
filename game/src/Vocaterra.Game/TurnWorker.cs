@@ -75,6 +75,7 @@ public sealed class TurnCancellation
 /// <param name="Npc">The NPC the line is said to (<c>guide</c> by default).</param>
 /// <param name="PhraseReview">The guide's phrase review that was open when the line was submitted (S8), or <see langword="null"/>.</param>
 /// <param name="Support">The phrases in play and the help on offer when the line was submitted (S8), or <see langword="null"/>.</param>
+/// <param name="Check">For a check answer (S11), the production item it answers: the worker grades it in a throwaway context and makes no turn; otherwise <see langword="null"/>.</param>
 public sealed record TurnRequest(
     long Id,
     TurnSource Source,
@@ -88,7 +89,8 @@ public sealed record TurnRequest(
     long Tick,
     string Npc = NpcService.GuideAgent,
     PhraseReview? PhraseReview = null,
-    SupportSnapshot? Support = null)
+    SupportSnapshot? Support = null,
+    CheckItem? Check = null)
 {
     /// <summary>Whether the request is a mic check (<see cref="TurnSource.Hear"/> or <see cref="TurnSource.HearSpeak"/>): it hears a clip and makes no turn.</summary>
     public bool IsMicCheck => Source is TurnSource.Hear or TurnSource.HearSpeak;
@@ -125,7 +127,17 @@ public sealed record TurnTimings(double SynthesizeMilliseconds, double Recognize
 /// <param name="Timings">The stage timings.</param>
 /// <param name="Cancelled">Whether the player cancelled the request: the turn (if it ran) was rolled back and nothing of it is applied.</param>
 /// <param name="MicCheck">For a mic-check request (<see cref="TurnSource.Hear"/>), what was heard; otherwise <see langword="null"/>.</param>
-public sealed record TurnOutcome(TurnRequest Request, GuideTurn? Turn, string? Problem, TurnTimings Timings, bool Cancelled = false, MicCheckResult? MicCheck = null);
+/// <param name="Grade">For a check answer (<see cref="TurnRequest.Check"/>), what the core made of it; otherwise <see langword="null"/>.</param>
+/// <param name="ReplayIndex">For a turn with an utterance record, its index in <see cref="NpcService.Records"/> (the session log numbers the records); otherwise <see langword="null"/>.</param>
+public sealed record TurnOutcome(
+    TurnRequest Request,
+    GuideTurn? Turn,
+    string? Problem,
+    TurnTimings Timings,
+    bool Cancelled = false,
+    MicCheckResult? MicCheck = null,
+    CheckGrade? Grade = null,
+    int? ReplayIndex = null);
 
 /// <summary>What loading did, for the loading screen and the report.</summary>
 /// <param name="GuideMilliseconds">The first typed evaluation (JIT and lazy tables).</param>
@@ -162,7 +174,9 @@ public sealed class TurnWorker : IDisposable
     private long _submitted;
     private long _taken;
     private volatile SpeechLoad? _load;
+    private readonly CheckGrader _checks;
     private volatile bool _canHear;
+    private SpokenUtteranceEvaluator? _spoken;
     private bool _started;
 
     /// <summary>Creates the worker; it does nothing until <see cref="Start"/>.</summary>
@@ -170,7 +184,8 @@ public sealed class TurnWorker : IDisposable
     /// <param name="bundle">The content bundle (for the spoken-line evaluator).</param>
     /// <param name="clockMilliseconds">A clock for the timings only; <see langword="null"/> gives zeros.</param>
     /// <param name="loadSpeech">Whether to load the speech models (false for a typed-only worker: no models, no Vosk).</param>
-    public TurnWorker(NpcService guide, ContentBundle bundle, Func<double>? clockMilliseconds = null, bool loadSpeech = true)
+    /// <param name="worldSeed">The world seed of the session, for the throwaway contexts of the check answers (S11).</param>
+    public TurnWorker(NpcService guide, ContentBundle bundle, Func<double>? clockMilliseconds = null, bool loadSpeech = true, ulong worldSeed = 0)
     {
         ArgumentNullException.ThrowIfNull(guide);
         ArgumentNullException.ThrowIfNull(bundle);
@@ -178,6 +193,7 @@ public sealed class TurnWorker : IDisposable
         _bundle = bundle;
         _clock = clockMilliseconds;
         _loadSpeech = loadSpeech;
+        _checks = new CheckGrader(bundle, worldSeed);
         _thread = new Thread(Run) { Name = "Vocaterra turn worker", IsBackground = true };
     }
 
@@ -307,7 +323,8 @@ public sealed class TurnWorker : IDisposable
             speechMs = Now() - speechStart;
             if (engine is not null)
             {
-                _guide.AttachSpeech(new SpokenUtteranceEvaluator(_bundle, engine.Recognizer));
+                _spoken = new SpokenUtteranceEvaluator(_bundle, engine.Recognizer);
+                _guide.AttachSpeech(_spoken);
                 var warmStart = Now();
                 _guide.WarmUpSpeech();
                 warmMs = Now() - warmStart;
@@ -363,6 +380,11 @@ public sealed class TurnWorker : IDisposable
         var begin = Now();
         double synthMs = 0;
         var cached = false;
+        if (request.Check is { } item)
+        {
+            return HandleCheck(request, item, engine, begin);
+        }
+
         try
         {
             GuideTurn turn;
@@ -375,8 +397,9 @@ public sealed class TurnWorker : IDisposable
                     TurnSource.Button => LineOrigin.Button,
                     _ => LineOrigin.Typed,
                 };
+                var before = _guide.RecordCount;
                 turn = _guide.Say(request.Npc, request.Text!, request.Scene, request.Now, request.HostStateHash, origin);
-                return new TurnOutcome(request, turn, null, new TurnTimings(0, 0, Now() - begin, false));
+                return new TurnOutcome(request, turn, null, new TurnTimings(0, 0, Now() - begin, false), ReplayIndex: ReplayIndexSince(before));
             }
 
             if (engine is null || !_canHear)
@@ -419,8 +442,70 @@ public sealed class TurnWorker : IDisposable
             }
 
             checkpoint = _guide.Checkpoint(request.Npc);
+            var recorded = _guide.RecordCount;
             turn = _guide.SaySpoken(request.Npc, clip, request.Scene, request.Now, request.HostStateHash);
-            return new TurnOutcome(request, turn, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached));
+            return new TurnOutcome(request, turn, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached), ReplayIndex: ReplayIndexSince(recorded));
+        }
+        catch (Exception ex) when (ex is IOException or InvalidDataException or InvalidOperationException or UnauthorizedAccessException or ArgumentException or KeyNotFoundException or DllNotFoundException or TypeInitializationException)
+        {
+            return Failed(request, begin, ex.Message);
+        }
+    }
+
+    // The index of the utterance record a turn added to the conversations' log (none for a turn held back as unsure, or for a host turn).
+    private int? ReplayIndexSince(int before) => _guide.RecordCount > before ? _guide.RecordCount - 1 : null;
+
+    // A check answer (S11): graded by the core in a throwaway context, on this thread (the recognizer is this thread's). It changes no conversation,
+    // no learner model and no world: the outcome carries the grade, and the front-end records it.
+    private TurnOutcome HandleCheck(TurnRequest request, CheckItem item, SpeechEngine? engine, double begin)
+    {
+        var now = request.Now;
+        var digest = request.HostStateHash;
+        try
+        {
+            if (request.Source is TurnSource.Typed or TurnSource.Button)
+            {
+                var input = request.Source == TurnSource.Button ? InputKind.Button : InputKind.Typed;
+                var typedGrade = _checks.GradeTyped(item, request.Text!, input, now, digest);
+                return new TurnOutcome(request, null, null, new TurnTimings(0, 0, Now() - begin, false), Grade: typedGrade);
+            }
+
+            if (engine is null || !_canHear || _spoken is null)
+            {
+                return Failed(request, begin, _load?.Problem ?? "No hay reconocedor de voz.");
+            }
+
+            PcmClip? clip;
+            double synthMs = 0;
+            var cached = false;
+            switch (request.Source)
+            {
+                case TurnSource.Wav:
+                    var (samples, rate) = AudioClips.ReadWav(File.ReadAllBytes(request.WavPath!));
+                    clip = AudioClips.Prepare(samples, rate);
+                    break;
+                case TurnSource.Speak:
+                    if (!engine.CanSpeak)
+                    {
+                        return Failed(request, begin, $"Falta el modelo {SpeechEngine.KokoroModelId}: no se puede sintetizar la frase.");
+                    }
+
+                    var synthStart = Now();
+                    clip = engine.Synthesize(request.Text!, out cached);
+                    synthMs = Now() - synthStart;
+                    break;
+                default: // Clip
+                    clip = request.Clip;
+                    break;
+            }
+
+            if (clip is null)
+            {
+                return Failed(request, begin, "No se oyó nada.");
+            }
+
+            var spokenGrade = _checks.GradeSpoken(_spoken, item, clip, now, digest);
+            return new TurnOutcome(request, null, null, new TurnTimings(synthMs, engine.LastRecognizeMilliseconds, Now() - begin, cached), Grade: spokenGrade);
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or InvalidOperationException or UnauthorizedAccessException or ArgumentException or KeyNotFoundException or DllNotFoundException or TypeInitializationException)
         {

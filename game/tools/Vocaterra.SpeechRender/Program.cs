@@ -96,7 +96,7 @@ internal static class Program
                     expected.Add(fileName);
                     checklist.Add((line.LineId, relative, line.Speaker, variant.Item2 == NormalSpeed ? "1.0" : "0.8", line.Text));
 
-                    if (!check && !force && index.Files.TryGetValue(relative, out var previous) && SameInputs(previous, wanted)
+                    if (!force && index.Files.TryGetValue(relative, out var previous) && SameInputs(previous, wanted)
                         && File.Exists(target) && Sha256(File.ReadAllBytes(target)) == previous.Sha256)
                     {
                         kept[relative] = previous;

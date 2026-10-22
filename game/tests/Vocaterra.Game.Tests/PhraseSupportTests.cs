@@ -388,7 +388,7 @@ public sealed class PhraseSupportTests
 
         var review = session.PhraseReview;
         Assert.NotNull(review);
-        Assert.Equal(("pedir-agua", "stall-need", "¿Qué necesitas?", false), (review.PhraseId, review.Prompt, review.Request, review.FromBundle));
+        Assert.Equal(("pedir-agua", "stall-need", "¿Qué necesitas?", true), (review.PhraseId, review.Prompt, review.Request, review.FromBundle));
         Assert.Equal("¿Qué necesitas?", session.ReviewLine);
         Assert.Equal(["¡Hola! Soy la guía. ¿En qué te ayudo?"], opening.Lines);
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e is { Name: WorldEvents.PhraseReviewAsked, Detail: "pedir-agua" });
@@ -480,7 +480,7 @@ public sealed class PhraseSupportTests
         var sheet = PhraseSheet.Load(TestGame.Bundle);
         Assert.Equal("¿Qué necesitas?", PhraseReviews.Create("pedir-agua", sheet, TestGame.Bundle)?.Request);
         Assert.Equal("¿Quieres agua?", PhraseReviews.Create("no-gracias", sheet, TestGame.Bundle)?.Request);
-        Assert.Equal("¡Hola! ¿Qué buscas?", PhraseReviews.Create("donde-esta-el-rio", sheet, TestGame.Bundle)?.Request);
+        Assert.Equal("¿Qué buscas?", PhraseReviews.Create("donde-esta-el-rio", sheet, TestGame.Bundle)?.Request);
         Assert.Null(PhraseReviews.Create("hola", sheet, TestGame.Bundle)); // no scaffold, nothing to fade, nothing to review
     }
 }
