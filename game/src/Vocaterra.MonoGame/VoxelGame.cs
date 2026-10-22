@@ -419,6 +419,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Cards = _cards,
             MicCheck = _micCheck,
             ShowTips = _options.ShowsTips,
+            Playtest = _playtest,
+            Greyscale = _options.Greyscale,
             Ending = _ending,
         };
         _layers.Add(new CrosshairLayer());
@@ -620,6 +622,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.LoadingFrame = _loadingFrames++;
         var mouse = Mouse.GetState();
         view.Mouse = !_options.IsScreenshotRun && GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? mouse.Position : null;
+
+        view.LessonStripBox = LessonLayer.LayoutFor(view, _lesson) is { } lessonStrip ? lessonStrip.Box : null; // the cards keep clear of it (S22)
 
         _colours!.Refresh();
         // A scripted run builds every mesh it needs before the picture; a live one spends its budget a frame (more while the world is still loading in).

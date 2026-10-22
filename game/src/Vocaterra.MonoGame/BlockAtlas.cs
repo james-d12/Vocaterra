@@ -10,6 +10,9 @@ public interface IItemIcons
 {
     /// <summary>Draws the icon of <paramref name="item"/> in <paramref name="destination"/> at a saturation (0 grey to 1 full colour).</summary>
     void DrawIcon(SpriteBatch spriteBatch, ItemId item, Rectangle destination, double saturation);
+
+    /// <summary>Draws a side of a block as an icon (S22: the book's nouns that name a block and no item, <c>árbol</c> or <c>río</c>), grey at saturation 0.</summary>
+    void DrawBlock(SpriteBatch spriteBatch, Vocaterra.Simulation.Voxel.BlockId block, Rectangle destination, double saturation);
 }
 
 /// <summary>
@@ -43,9 +46,19 @@ public sealed class BlockAtlas : IItemIcons, IDisposable
     /// <inheritdoc />
     public void DrawIcon(SpriteBatch spriteBatch, ItemId item, Rectangle destination, double saturation)
     {
-        // The world is drawn in full colour (D-game-6 amended), so the saturation is not used here.
-        var cell = BlockAtlasLayout.IconFor(item) ?? BlockCell.White;
-        spriteBatch.Draw(Texture, destination, Source(cell), cell == BlockCell.White ? new Color(200, 200, 215) : Color.White);
+        // The world is drawn in full colour (D-game-6 amended): an icon is in colour at any saturation above 0. A caller that wants it grey (the book in
+        // --greyscale, for a noun not known yet, S22) passes 0 and gets the cell's grey copy.
+        DrawCell(spriteBatch, BlockAtlasLayout.IconFor(item) ?? BlockCell.White, destination, saturation);
+    }
+
+    /// <inheritdoc />
+    public void DrawBlock(SpriteBatch spriteBatch, Vocaterra.Simulation.Voxel.BlockId block, Rectangle destination, double saturation) =>
+        DrawCell(spriteBatch, BlockAtlasLayout.CellFor(block, Vocaterra.Simulation.Voxel.BlockFace.East), destination, saturation);
+
+    private void DrawCell(SpriteBatch spriteBatch, BlockCell cell, Rectangle destination, double saturation)
+    {
+        var (x, y, w, h) = saturation <= 0 ? BlockAtlasLayout.GreyPixelRectangle(cell) : BlockAtlasLayout.PixelRectangle(cell);
+        spriteBatch.Draw(Texture, destination, new Rectangle(x, y, w, h), cell == BlockCell.White ? new Color(200, 200, 215) : Color.White);
     }
 
     /// <inheritdoc />

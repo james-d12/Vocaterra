@@ -68,6 +68,27 @@ public sealed class PlaytestReportTests
     }
 
     [Fact]
+    public void TheReportPrintsTheMeasuredDurationsOfTheLessonTheWalkTheChecksAndTheWholeSession()
+    {
+        if (!Available("bash") || !Available("python3"))
+        {
+            return;
+        }
+
+        var (code, output) = Run(Fixture("session-timed"), Fixture("session-recall"));
+
+        Assert.Equal(0, code);
+        Assert.Contains("run, session 1: whole session 23 min 20 s", output, StringComparison.Ordinal); // 10:00:00 to 10:23:20
+        Assert.Contains("lesson: 4 min 30 s", output, StringComparison.Ordinal); // 10:03:10 to 10:07:40
+        Assert.Contains("walk: 11 min 45 s (to the objective's completion, after the lesson)", output, StringComparison.Ordinal); // 10:07:40 to 10:19:25
+        Assert.Contains("check pre: 2 min 30 s (20 answered, 0 skipped)", output, StringComparison.Ordinal);
+        Assert.Contains("check post: 3 min 30 s (19 answered, 1 skipped)", output, StringComparison.Ordinal);
+        Assert.Contains("lesson: not run in this session", output, StringComparison.Ordinal); // the recall fixture has no lesson
+        Assert.Contains("Durations over 2 runs", output, StringComparison.Ordinal);
+        Assert.Contains("lesson: median 4 min 30 s, 4 min 30 s to 4 min 30 s over 1 run", output, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AFolderWithoutASessionLogIsRefused()
     {
         if (!Available("bash") || !Available("python3"))

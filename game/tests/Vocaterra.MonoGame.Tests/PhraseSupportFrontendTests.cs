@@ -104,46 +104,23 @@ public sealed class PhraseSupportFrontendTests
     }
 
     [Fact]
-    public void TheSupportCardsStandAboveThePanelAndTheWordCardLiftsClearOfThem()
+    public void TheSupportCardsAndTheWordToastStandClearOfThePanelAndEachOther()
     {
-        var panel = DialogueLayout.PanelBox(1280, 720);
+        // The places are the conversation layout's (S22); the sizes are SupportLayout's.
+        foreach (var (width, height) in new[] { (1280, 720), (800, 600) })
+        {
+            var panel = DialogueLayout.PanelBox(width, height);
+            var head = ConversationCards.HeadRect(width / 2.0, height * 0.25, (height * 0.25) + 110);
+            var requests = new[] { ConversationCards.NewWord, ConversationCards.Support, ConversationCards.Support, ConversationCards.KeyWord(false), ConversationCards.KeyWord(false), ConversationCards.Chip };
 
-        var none = new SupportLayout(1280, 720, 0, 0, false, false);
-        Assert.Equal(panel.Y, none.Top);
-        var one = new SupportLayout(1280, 720, 1, 0, false, false);
-        var card = Assert.Single(one.Cards);
-        Assert.Equal((panel.X, panel.Y - SupportLayout.Gap), (card.X, card.Bottom));
-        Assert.Equal(SupportLayout.CardHeight, card.Height);
-        Assert.InRange(card.Width, SupportLayout.CardMinWidth, SupportLayout.CardMaxWidth);
-        Assert.Equal(card.Y, one.Top);
+            var layout = ConversationLayout.Compute(width, height, head, null, panel, requests);
 
-        var withWords = new SupportLayout(1280, 720, 2, 2, false, false);
-        Assert.Equal(2, withWords.Cards.Count);
-        Assert.Equal(2, withWords.KeyWords.Count);
-        Assert.True(withWords.Cards[1].Right + SupportLayout.Gap <= withWords.KeyWords[0].X, "the cards and the key words do not overlap");
-        Assert.True(withWords.KeyWords[1].Right <= panel.Right);
-
-        var alone = new SupportLayout(1280, 720, 0, 2, true, false);
-        Assert.True(alone.KeyWordsAlone);
-        Assert.Equal(SupportLayout.LargeKeyWordWidth, alone.KeyWords[0].Width);
-        var middle = (alone.KeyWords[0].X + alone.KeyWords[1].Right) / 2;
-        Assert.InRange(middle, panel.X + (panel.Width / 2) - 1, panel.X + (panel.Width / 2) + 1);
-        Assert.True(alone.Top < alone.KeyWords[0].Y, "the heading is above the cards");
-
-        var chip = new SupportLayout(1280, 720, 0, 0, false, true);
-        Assert.Equal(panel.Y - SupportLayout.Gap, chip.Chip!.Value.Bottom);
-
-        var lifted = WordCardLayer.BoxFor(1280, 720, true, one.Top);
-        Assert.True(lifted.Bottom <= one.Top, "the pickup's word card is above the support card");
-        Assert.True(WordCardLayer.BoxFor(1280, 720, true).Bottom <= panel.Y); // unchanged without support
-    }
-
-    [Fact]
-    public void ThePanelAndTheSupportDoNotOverflowASmallWindow()
-    {
-        var layout = new SupportLayout(800, 600, 2, 2, false, false);
-
-        Assert.All(layout.Cards.Concat(layout.KeyWords), static box => Assert.True(box.X >= 0 && box.Right <= 800 && box.Y >= 0));
+            var shown = layout.Cards.Where(static c => c.State != CardPresence.Hidden).ToList();
+            Assert.NotEmpty(shown);
+            Assert.All(shown, c => Assert.False(ConversationLayout.Overlaps(c.Box, panel)));
+            Assert.All(shown, c => Assert.True(c.Box.X >= 0 && c.Box.Right <= width && c.Box.Y >= 0));
+            Assert.InRange(ConversationCards.Support.Width, SupportLayout.CardMinWidth, SupportLayout.CardMaxWidth);
+        }
     }
 
     [Fact]
@@ -194,7 +171,7 @@ public sealed class PhraseSupportFrontendTests
 
         Assert.Equal([("villager", "Puedes preguntar: «¿Dónde está el río?».", false)], player.Played);
         Assert.Empty(session.Support.Cards);
-        Assert.True(SupportLayout.For(session, 1280, 720).Chip is not null);
+        Assert.NotEmpty(session.Support.AudioOnly); // the audio-only chip is up: no card, an audio-only phrase
         player.Played.Clear();
         Assert.True(actions.Perform(SpeechAction.Repeat));
         Assert.Equal([("villager", "Hola.", false), ("villager", "Puedes preguntar: «¿Dónde está el río?».", false)], player.Played);

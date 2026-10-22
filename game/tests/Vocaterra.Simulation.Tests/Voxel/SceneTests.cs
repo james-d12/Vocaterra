@@ -9,7 +9,7 @@ public sealed class SceneTests(ITestOutputHelper output)
 {
     private const ulong Seed = 42;
 
-    private const string GoldenDigest = "397e58bf5dfe713aa6dcc9b9fa557cb3eb66b5bb6d3b603c1cb33d7f9958c866";
+    private const string GoldenDigest = "8048644059674b5335ef2c32e230defbbe8402a32f72f7ee10324a36fc80cb47";
 
     private const int Units = VoxelTestSupport.Units;
 

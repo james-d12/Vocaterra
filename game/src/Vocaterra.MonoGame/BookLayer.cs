@@ -193,10 +193,17 @@ public sealed class BookLayer : IFrameLayer
     private static void DrawNounIcon(SpriteBatch spriteBatch, FrameView view, string lemma, Rectangle icon)
     {
         var noun = view.Session.Nouns.ForLemma(lemma);
+
+        // The colour rule of --greyscale (S22): a noun that is not known yet has a grey icon, a known one is in colour; with the switch off every icon is in colour.
+        var saturation = NounIcons.Saturation(view.Greyscale, view.Session.Words.RecordOf(lemma).Known);
         if (noun is { Items.Count: > 0 })
         {
-            var saturation = view.Session.Words.RecordOf(lemma).Saturation;
             view.VoxelIcons.DrawIcon(spriteBatch, noun.Items[0], icon, saturation);
+        }
+        else if (noun is { Blocks.Count: > 0 })
+        {
+            // A noun that names a block and no item (the tree, the river) shows the block's side, grey or in colour by the same rule (it was a dark square).
+            view.VoxelIcons.DrawBlock(spriteBatch, noun.Blocks[0], icon, saturation);
         }
         else
         {

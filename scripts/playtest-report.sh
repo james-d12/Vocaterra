@@ -40,6 +40,7 @@ import os
 import re
 import shutil
 import sys
+from datetime import datetime
 
 
 def read_lines(folder):
@@ -95,6 +96,126 @@ SUPPORT_KINDS = [
 ]
 
 
+def wall(event):
+    """The wall-clock time of a session-log line (its `t`, ISO 8601), or None. The game's own clock is ticks; this is the one place with a clock (S11)."""
+    text = event.get("t")
+    if not text:
+        return None
+    match = re.match(r"^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)(\.\d+)?(.*)$", text)
+    if not match:
+        return None
+    fraction = (match.group(2) or "")[:7]  # at most microseconds
+    try:
+        return datetime.fromisoformat(match.group(1) + fraction + match.group(3))
+    except ValueError:
+        return None
+
+
+def between(start, end):
+    return None if start is None or end is None else max(0.0, (end - start).total_seconds())
+
+
+def durations(events):
+    """
+    The measured durations of each run in a folder (S22), from the wall-clock times of the session log: the whole session (session_start to
+    session_end), the lesson (lesson_started to lesson_completed), the walk (from the end of the lesson, or of the pre-check when there was no
+    lesson, to the objective's completion: the camp) and each check (check_start to check_end). A piece the run never reached is None; a run
+    with no session_end (the game was closed hard) has no whole time.
+    """
+    runs = []
+    run = None
+    for event in events:
+        kind = event.get("type")
+        moment = wall(event)
+        if kind == "session_start":
+            run = {"session": event.get("session"), "start": moment, "end": None, "lesson_start": None, "lesson_end": None,
+                   "complete": None, "checks": [], "open_check": None, "world_from": moment}
+            runs.append(run)
+            continue
+        if run is None:
+            continue
+        if kind == "session_end":
+            run["end"] = moment
+        elif kind == "lesson" and event.get("step") == 0:
+            if event.get("kind") == "lesson_started" and run["lesson_start"] is None:
+                run["lesson_start"] = moment
+            elif event.get("kind") == "lesson_completed" and run["lesson_end"] is None:
+                run["lesson_end"] = moment
+        elif kind == "world" and event.get("name") == "objective_complete" and run["complete"] is None:
+            run["complete"] = moment
+        elif kind == "check_start":
+            run["open_check"] = (event.get("check"), moment)
+        elif kind == "check_end" and run["open_check"] is not None:
+            name, started = run["open_check"]
+            run["checks"].append((name, between(started, moment), event.get("answered"), event.get("skipped")))
+            if run["lesson_end"] is None and run["complete"] is None:
+                run["world_from"] = moment  # the world starts when the check before it ends
+            run["open_check"] = None
+    found = []
+    for run in runs:
+        walk_from = run["lesson_end"] or run["world_from"]
+        found.append({
+            "session": run["session"],
+            "whole": between(run["start"], run["end"]),
+            "ended": run["end"] is not None,
+            "lesson": between(run["lesson_start"], run["lesson_end"]),
+            "lesson_seen": run["lesson_start"] is not None,
+            "walk": between(walk_from, run["complete"]),
+            "walk_from_lesson": run["lesson_end"] is not None,
+            "checks": run["checks"],
+        })
+    return found
+
+
+def clock(seconds):
+    if seconds is None:
+        return "-"
+    minutes, rest = divmod(int(round(seconds)), 60)
+    return f"{minutes} min {rest:02d} s" if minutes else f"{rest} s"
+
+
+def duration_lines(runs, out):
+    """The measured durations, one block per run (S22). PLAYTEST.md tells the facilitator to read them here and not to estimate."""
+    if not runs:
+        out.append("  Durations: no session_start in this folder")
+        return
+    out.append("  Durations (wall clock, from the session log's t fields):")
+    for run in runs:
+        whole = clock(run["whole"]) if run["ended"] else "not ended (no session_end: the game was closed hard)"
+        out.append(f"    run, session {run['session']}: whole session {whole}")
+        if run["lesson"] is not None:
+            out.append(f"      lesson: {clock(run['lesson'])}")
+        elif run["lesson_seen"]:
+            out.append("      lesson: started, not completed")
+        else:
+            out.append("      lesson: not run in this session")
+        if run["walk"] is not None:
+            origin = "after the lesson" if run["walk_from_lesson"] else "from when the world started"
+            out.append(f"      walk: {clock(run['walk'])} (to the objective's completion, {origin})")
+        else:
+            out.append("      walk: the objective was not completed")
+        for name, seconds, answered, skipped in run["checks"]:
+            out.append(f"      check {name}: {clock(seconds)} ({answered} answered, {skipped} skipped)")
+
+
+def total_duration_lines(runs, out):
+    """The durations over every run of every folder: how many runs measured each, the median and the range (S22)."""
+    pieces = [
+        ("whole session", [r["whole"] for r in runs]),
+        ("lesson", [r["lesson"] for r in runs]),
+        ("walk", [r["walk"] for r in runs]),
+    ]
+    for name in ("pre", "post", "recall"):
+        pieces.append((f"check {name}", [seconds for r in runs for check, seconds, _, _ in r["checks"] if check == name]))
+    out.append(f"  Durations over {len(runs)} run{'s' if len(runs) != 1 else ''} (median, shortest to longest):")
+    for name, values in pieces:
+        known = [v for v in values if v is not None]
+        if not known:
+            out.append(f"    {name}: not measured")
+        else:
+            out.append(f"    {name}: median {clock(median(known))}, {clock(min(known))} to {clock(max(known))} over {len(known)} run{'s' if len(known) != 1 else ''}")
+
+
 def summarise(events):
     """Everything the report prints, from one folder's events (a folder may hold several runs)."""
     summary = {
@@ -124,6 +245,7 @@ def summarise(events):
         "found_without_spanish": False,
         "checks": {},  # (check, kind) -> {"correct", "answered", "dont_know", "skipped"}
         "phrases": {},
+        "durations": durations(events),
     }
     for event in events:
         kind = event.get("type")
@@ -218,6 +340,10 @@ def print_folder(title, summary, out):
         out.append(f"  Completion: {steps}; complete in {seconds:.0f} s of play (tick {summary['complete_tick']})")
     else:
         out.append(f"  Completion: {steps}; not complete (last tick {summary['end_tick']})")
+    if title.startswith("TOTAL"):
+        total_duration_lines(summary["durations"], out)
+    else:
+        duration_lines(summary["durations"], out)
     out.append(
         f"  Retries: uncertain recognitions {summary['uncertain']}, not understood {summary['not_understood']} "
         f"(of {summary['turns']} turns)"
@@ -331,7 +457,7 @@ def main(folders, copy_dir=None):
         "end_tick": 0, "turns": 0, "spoken_latencies": [], "spoken_turns": 0, "not_understood": 0, "uncertain": 0,
         "turn_failed": 0, "timeouts": 0, "mic_failed": 0, "support": {label: 0 for _, _, label in SUPPORT_KINDS},
         "check_spoken_not_understood": 0,
-        "cards": 0, "fail_forward": 0, "transfer": 0, "found_without_spanish": False, "checks": {}, "phrases": {},
+        "cards": 0, "fail_forward": 0, "transfer": 0, "found_without_spanish": False, "checks": {}, "phrases": {}, "durations": [],
     }
     for folder in folders:
         events = read_lines(folder)
@@ -359,6 +485,7 @@ def main(folders, copy_dir=None):
             totals["complete_tick"] = summary["complete_tick"]
         totals["end_tick"] = max(totals["end_tick"], summary["end_tick"])
         totals["spoken_latencies"] += summary["spoken_latencies"]
+        totals["durations"] += summary["durations"]
         totals["found_without_spanish"] = totals["found_without_spanish"] or summary["found_without_spanish"]
         for label in totals["support"]:
             totals["support"][label] += summary["support"][label]

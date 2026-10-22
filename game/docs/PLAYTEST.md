@@ -119,7 +119,7 @@ included), the post-check (about 5, 20 items), the thank-you and the debrief (10
    rescue the struggle the study is about, and a longer one would let a stuck player sit for the whole session. A rescue lowers the Playable
    evidence, and the report counts it only in your notes.
 8. **The post-check.** It starts by itself once the camp is complete and the guide has made her offer ("¿Quieres agua?"), and the tester has
-   closed her panel. If the tester never gets there and the time is up, press **F10** ("end the run (facilitator)", bottom left). Write
+   closed her panel. If the tester never gets there and the time is up, press **F10** ("end the run (facilitator)", top left, clear of the dialogue). Write
    `F10` in the notes with the time. The post-check is **twenty items** of the same kinds as the pre-check (eleven and nine), in another order.
 9. **Save and thank-you.** The post-check ends with "Thank you for playing", the line "Saved: playtest.save in the session folder ...", and
    "Esc: close the game". The tester presses Esc. The game is then closed, and the folder holds `session.jsonl`, `replay.jsonl` and
@@ -217,7 +217,8 @@ the grey world changes what the player notices and tries.
 
     scripts/playtest-report.sh <session folder> [<session folder> ...]
 
-It needs bash and Python 3 (standard library). It prints, per folder and in total, the profile and arm, completion, retries, support used,
+It needs bash and Python 3 (standard library). It prints, per folder and in total, the profile and arm, completion, **the measured durations**
+(whole session, lesson, walk, each check; read them here for the section 4 and 6 estimates), retries, support used,
 ASR latency and failures, the pre, post and recall checks by item kind, transfer uses, "found without Spanish", and one evidence line per
 decision gate. Under each folder it lists that session's bug and feature reports (the kind and the title). Paste its output into the session's
 notes, next to the observer notes. Keep the report and the folders together.
@@ -252,8 +253,10 @@ Before any tester (the owner, once, end to end):
 2. Play one full session in the build folder as a beginner would: `./playtest.sh`, the mic check (or skip), the pre-check (20 items), the
    opening at the cliff camp, the guide's lesson (about 5 to 8.5 minutes), the camp, the stall, the villager, the river, the guide's offer, the
    ending (the torch at your own fire ring), the post-check (20 items, or F10), the thank-you (Esc). Also press J (the book), F5 (the view),
-   F6 (save) and F8 (a report, Ctrl+Enter to save). Note any control you had to guess, and the time each part took: the first real run
-   replaces the estimates in sections 4 and 6.
+   F6 (save) and F8 (a report, Ctrl+Enter to save). Note any control you had to guess. The game measures the time of each part; do not time
+   it by hand: `scripts/playtest-report.sh <folder>` prints, under "Durations", the whole session, the lesson, the walk (from the end of the
+   lesson to the camp's completion) and each check, from the wall-clock times of the session log (the `lesson_started`, `lesson_completed`,
+   `check_start`, `check_end` and `session_end` lines). The first real run replaces the estimates in sections 4 and 6 with these numbers.
 3. Run the recall on the session's `playtest.save`: `./playtest.sh --load <folder>/playtest.save`. Check that the thank-you says "Thank you".
 4. Run `scripts/playtest-report.sh` on the two folders and read every line; then collect the owner's own F8 report with
    `scripts/playtest-report.sh --copy <collection folder> <folder>` and check its "Build commit" line.

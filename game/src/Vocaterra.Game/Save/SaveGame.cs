@@ -153,7 +153,8 @@ public static class SaveGame
             VoxelGridDiff.Capture(session.Scene.Grid, pristine.Grid),
             session.Lessons.Capture(),
             session.Tips.Capture(),
-            session.Learner.Capture());
+            session.Learner.Capture(),
+            BookGranted: true);
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
@@ -244,6 +245,13 @@ public static class SaveGame
         if (!string.Equals(digest, document.StateDigest, StringComparison.Ordinal))
         {
             throw new SaveException("The restored world does not match the save's digest: the save is damaged or was made by another build.");
+        }
+
+        // A save from before S20 has no book in its slots, because the learner was only given it when a new game started (S22): the load gives it once. Done after the
+        // digest check, which is the check of the save's own world; the next save says the book was granted. A bag with no free slot cannot take it, and the next load tries again.
+        if (!document.BookGranted && session.Simulation.Inventory.Count(ItemId.Book) == 0)
+        {
+            _ = session.Simulation.GrantItems(ItemId.Book, 1);
         }
 
         session.PlaySession = bumpSession ? document.Session + 1 : document.Session;

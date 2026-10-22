@@ -10,7 +10,7 @@ public sealed class VillageTests(ITestOutputHelper output)
 
     // The digest of the built things in a box of the world, with the undergrowth, the stall's goods, the wheat and the trees counted as air (they are the seed's, S14 and S15).
     private const string VillageStructureDigest = "ec0916593813273a";
-    private const string CampsStructureDigest = "ed42e2a69d88beb7534c723211646a3a";
+    private const string CampsStructureDigest = "ed42e2a69d88beb7c801126a48c72c7a";
 
     // The columns within radius of (cx, cz), from y0 to y1: the level ground of a site, where nothing but the built things rises above the ground.
     private static string StructureDigest(VoxelGrid grid, int cx, int cz, int radius, int y0, int y1)
@@ -234,16 +234,20 @@ public sealed class VillageTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void TheGuidesWorkbenchStandsUnderATimberPergolaWithATorchAndAHangingLantern()
+    public void TheGuidesWorkbenchStandsUnderAPergolaOnThinPostsWithATorchAndAHangingLantern()
     {
         var scene = VoxelTestSupport.BuildRoute(Seed);
         var grid = scene.Grid;
         var bench = scene.Point("workbench");
         Assert.Equal(BlockId.Table, grid.GetBlock(bench.X, bench.Y + 1, bench.Z));
         var corner = scene.Point("pergola"); // the north-west post
-        for (var y = 1; y <= 3; y++)
+        foreach (var (dx, dz) in new[] { (0, 0), (5, 0), (0, 2), (5, 2) })
         {
-            Assert.Equal(BlockId.Timber, grid.GetBlock(corner.X + 5, corner.Y + y, corner.Z + 2)); // the opposite post
+            for (var y = 1; y <= 3; y++)
+            {
+                // Thin fence posts like the stall's front posts (S22): full timber blocks filled the view at the workbench.
+                Assert.Equal(BlockId.Fence, grid.GetBlock(corner.X + dx, corner.Y + y, corner.Z + dz));
+            }
         }
 
         Assert.Equal(BlockId.PostTorch, grid.GetBlock(corner.X, corner.Y + 4, corner.Z)); // a torch on the north-west post (scenery: not the item's torch block)

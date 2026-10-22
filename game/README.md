@@ -194,9 +194,12 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --be
 # core host turn, the bottle comes with his answer), the villager (the beacon on the river), the river (hold the button on the water: the bottle fills and the
 # checklist is complete: a spare torch is in the bag and the beacon points up the trail), the guide's transfer offer "¿Quieres agua?", and the climb back to the
 # player's camp, where a torch on the rim of the cold fire ring lights it: the closing card says "Session complete". The console prints every lesson step and its
-# outcome, each turn, each game event and the objective's steps; the PNGs show the lesson's end, the stall, the river and the lit fire
+# outcome, each turn, each game event and the objective's steps; the PNGs show the lesson's end, the stall, the river and the lit fire. One step is spoken
+# (S22): after the lesson the route greets the guide with `--wav` and the bundle's recorded "Hola." (the Kokoro line), so the step goes through Vosk (the
+# console prints "heard "hola"" and the greet intent). It needs the Vosk model in VOCATERRA_MODELS_DIR; the other steps are typed.
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute \
   --lesson-run first-words --shot /tmp/s17-lesson.png \
+  --talk guide --wav game/content/game-v1/speech/phrase.hola.wav \
   --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
   --talk shopkeeper --say "quiero agua, por favor" --shot /tmp/s17-stall.png --say "sí, por favor" \
   --talk villager --say "¿dónde está el río?" \
@@ -342,13 +345,15 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --playtest --greyscale      
 # the next-day recall of a playtest's save: the recall check, then the thank-you; nothing is saved
 dotnet run --project game/src/Vocaterra.MonoGame -- --playtest --load ~/.local/share/vocaterra/sessions/<folder>/playtest.save
 # the same run, scripted (a screenshot needs a display; the pre-check's answers are --pick and --say; the post-check's answers come after the
-# transfer's --leave, in the order the console prints as "check order:"; see the S11 lines above for the shape of a check's answers)
+# transfer's --leave and the climb to the player's own fire, in the order the console prints as "check order:" (both lists below are for seed 42);
+# see the S11 lines above for the shape of a check's answers)
 DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --playtest --seed 42 --session-dir /tmp/playtest1 \
-  --pick 3 --pick 2 --pick 2 --say "¿Dónde está el río?" --pick 1 --say "No, gracias." --pick 3 --say "Quiero agua, por favor." --say "Sí, por favor." --pick 3 \
-  --walk-to 176,186 --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
+  --say "No, gracias." --pick 2 --pick 1 --say "Más despacio." --say "Sí." --say "No." --say "Quiero agua, por favor." --say "¿Qué es esto?" --pick 3 --pick 3 --pick 3 --say "Sí, por favor." --pick 2 --pick 2 --pick 3 --pick 3 --pick 2 --say "Otra vez." --say "¿Dónde está el río?" --pick 3 \
+  --lesson-run first-words --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
   --talk shopkeeper --say "quiero agua, por favor" --say "sí, por favor" --talk villager --say "¿dónde está el río?" \
   --walk-to 234,222 --interact 233,34,222 --look 180,-14 --talk guide --say "sí, por favor" --leave \
-  --say "Sí, por favor." --say "No, gracias." --pick 1 --pick 2 --pick 2 --say "¿Dónde está el río?" --say "Quiero agua, por favor." --pick 1 --pick 3 --pick 1 \
+  --walk-to 153,109 --look 330,-12 --place antorcha@153,74,105 --wait 1 \
+  --pick 2 --say "Más despacio." --say "¿Qué es esto?" --say "Sí." --say "Otra vez." --pick 1 --say "No." --pick 3 --say "No, gracias." --pick 1 --pick 1 --pick 2 --pick 2 --say "Quiero agua, por favor." --pick 2 --pick 1 --say "¿Dónde está el río?" --say "Sí, por favor." --pick 2 --pick 1 \
   --screenshot /tmp/playtest1-thanks.png --frames 60
 ```
 
