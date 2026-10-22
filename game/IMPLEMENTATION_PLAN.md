@@ -156,7 +156,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S2 | First-person voxel front-end (mesher, renderer, camera, figures, beacon; 2D UI over the scene) | done (merged to `feature/prototype` 2026-10-22, `c5af3d6`) | Sonnet 5.5 | S1 |
 | S3 | The scenario world and the guide in 3D (`WorldFacts3D`, the route layout, new nouns) | done (merged to `feature/prototype` 2026-10-22, bundle `5b9d0dab…`) | Haiku 5.5 | S2 |
 | S4 | Gather, craft, the camp objective; retire the 2D slice (tag `2d-slice-p7`) | done (merged to `feature/prototype` 2026-10-22, bundle `1e13e231…`) | Haiku 5.5 | S3 |
-| S4b | The `--greyscale` A/B switch in 3D (D-game-6 amended; S4 left a stub) | in progress | Haiku 5.5 | S4 |
+| S4b | The `--greyscale` A/B switch in 3D (D-game-6 amended; S4 left a stub) | done (merged to `feature/prototype` 2026-10-22) | Haiku 5.5 | S4 |
 | S5 | Content: `content/PHRASES.md`, the stall and the villager, `request_item`, constrained prompts; Opus review pass (D-game-12) | done (merged to `feature/prototype` 2026-10-22, bundle `c3cac003…`) | Sonnet 5.5 (design), Haiku 5.5 (content) | S0 |
 | S6 | NPC exchanges in the world (`NpcService`), filling the bottle, the transfer moment | done (merged to `feature/prototype` 2026-10-22, bundle `eb4f0951…`) | Sonnet 5.5 | S3, S5 |
 | S7 | Speech UX: mic check, cancel, watchdog, heard-vs-expected, buttons, choices, uncertainty rule, constrained prompts | done (merged to `feature/prototype` 2026-10-22, bundle `c3ad62fe…`) | Sonnet 5.5 | S6 |
@@ -689,6 +689,12 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   orchestrator: the loaded camp shows "Sesión 2", 4/4 and the same inventory; the console prints the digest equality. Not saved by
   design: an open panel, support cards, audio queue, the event log and replay records (S11's session log). F5 and window-close untested
   interactively. Tests 3,801.
+- **S4b, the greyscale A/B switch (2026-10-22, Haiku 5.5).** The atlas holds a grey (Rec. 601 luma) copy of every cell; the mesher picks
+  grey or colour per block by a 64-bit mask of block kinds whose noun is not known (`WordColours.GreyKinds` from `NounCatalog.ForBlock` and
+  WordProgress); only chunks holding a kind whose state changed are re-meshed; figures, sky and UI stay in colour; "¡Nueva palabra: …!" toasts
+  in greyscale mode; `--assume-known <nouns>` is a test-only option. Default mode is byte-identical to before. Checked by the orchestrator
+  (`--assume-known árbol`: trees in colour, the rest grey). Open: water is named by `agua` and `río` and turns colour only when `agua` is
+  known (orchestrator: either name should count, as in S3's naming rule; S12); the live transition is covered by tests only. Tests 3,816.
 
 ## 6. Definition of done (every milestone)
 
