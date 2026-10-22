@@ -177,6 +177,12 @@ public abstract class GuideSession : IDisposable
     /// <summary>The lessons (S16): the data-driven sequences attached to the NPCs, and the runner that walks the learner through them.</summary>
     public LessonRunner Lessons { get; }
 
+    /// <summary>
+    /// The learner's record (S19): every line the game took (a dialogue turn, a lesson line, a check answer), in order, and the word record folded from them.
+    /// Fed on the caller's thread by <see cref="Apply"/>; the book reads it.
+    /// </summary>
+    public LearnerRecord Learner { get; } = new();
+
     /// <summary>The first-time tips (S16): English text shown once each when something happens for the first time.</summary>
     public TipFeed Tips { get; }
 
@@ -708,6 +714,7 @@ public abstract class GuideSession : IDisposable
         }
 
         LastWordTurn = Words.RecordTurn(turn, turn.Input, Credit, StoredTime.UnixSeconds);
+        RecordTurnLine(turn, StoredTime.UnixSeconds); // the learner's history (S19): the synchronous path records its lines like the worker's
         return AfterTurn(turn, Tick, StoredTime.UnixSeconds, phraseReview, support);
     }
 
@@ -919,15 +926,65 @@ public abstract class GuideSession : IDisposable
 
             words = Words.RecordTurn(turn, turn.Input, Credit, outcome.Request.Now.UnixSeconds);
             LastWordTurn = words;
+            RecordTurnLine(turn, outcome.Request.Now.UnixSeconds);
             var shown = AfterTurn(turn, outcome.Request.Tick, outcome.Request.Now.UnixSeconds, outcome.Request.PhraseReview, outcome.Request.Support);
             if (!ReferenceEquals(shown, turn))
             {
                 outcome = outcome with { Turn = shown }; // the lesson took the turn, or the guide says her last line again (S17)
             }
         }
+        else if (!outcome.Cancelled && outcome.Grade is { } grade && outcome.Request.Check is { } item)
+        {
+            // A check answer (S11) is a line the learner gave too (S19). It changes nothing else: the battery grades it; the world and the progress do not move.
+            Learner.Append(new InputEntry(
+                Learner.NextId,
+                PlaySession,
+                outcome.Request.Now.UnixSeconds,
+                SourceOf(grade.Input),
+                grade.Transcript,
+                null,
+                item.Prompt,
+                InputPlace.Check,
+                item.Id,
+                grade.Intent,
+                grade.Communicated,
+                false,
+                grade.Errors ?? [],
+                grade.Words ?? []));
+        }
 
         return new AppliedTurn(outcome, words);
     }
+
+    // A turn the game took is a line in the learner's history (S19), numbered and stamped with its session and stored time. Read before the turn can end
+    // a lesson's step: the unit is the step the line landed on.
+    private void RecordTurnLine(GuideTurn turn, long storedTime)
+    {
+        var unit = Lessons.UnitFor(turn.Npc);
+        Learner.Append(new InputEntry(
+            Learner.NextId,
+            PlaySession,
+            storedTime,
+            SourceOf(turn.Input),
+            turn.Line,
+            turn.Npc,
+            turn.Prompt,
+            unit is null ? InputPlace.Dialogue : InputPlace.Lesson,
+            unit,
+            turn.Intent,
+            turn.Communicated,
+            turn.Unsure,
+            turn.Errors,
+            turn.Words ?? []));
+    }
+
+    // How a line arrived, as the learner's record names it (S19).
+    private static InputSource SourceOf(InputKind input) => input switch
+    {
+        InputKind.Spoken => InputSource.Voice,
+        InputKind.Button => InputSource.Button,
+        _ => InputSource.Typed,
+    };
 
     /// <summary>Takes the arrow off the screen (the player closed the dialogue or asked for it to go).</summary>
     public void DismissPointer() => Pointer = null;
@@ -1026,6 +1083,11 @@ public abstract class GuideSession : IDisposable
         }
 
         var hadLast = _lastLine.TryGetValue(npc, out var last);
+        if (turn.Communicated && !turn.Unsure && (turn.HostEvents.Contains(GuideEvents.Repeat, StringComparer.Ordinal) || turn.HostEvents.Contains(GuideEvents.RepeatSlow, StringComparer.Ordinal)))
+        {
+            Lessons.NoteRepeat(npc); // the learner asked for the line again: the lesson's record counts it (S19)
+        }
+
         var handled = Lessons.OnTurn(turn); // a lesson's repeat or answer step ends, retries or moves on with this turn (S16); it speaks for the guide (S17)
         var shown = turn; // (`last` was read before the turn ended the step: the next step's line is not what the learner asked to hear again)
         if (turn.Communicated && !turn.Unsure && (turn.HostEvents.Contains(GuideEvents.Repeat, StringComparer.Ordinal) || turn.HostEvents.Contains(GuideEvents.RepeatSlow, StringComparer.Ordinal)))

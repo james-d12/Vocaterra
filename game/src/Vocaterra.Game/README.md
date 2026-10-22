@@ -280,3 +280,43 @@ English is on-screen text only; only Spanish is spoken. All of it is game conten
   `firering.player`; the guide's ring still completes the checklist's torch step) and `SessionComplete`. The stage is worked out again after a load
   (`RestoreStage`), so the save has no new field.
 
+## The learner's record (S19, D-game-16)
+
+The record of what the learner said and which lessons they finished, for the book (S20). It is game state on the player's machine: the save (version 2) and
+the session log; nothing is sent. Everything is plain values, with no clock and no random number.
+
+- **The history** (`LearnerRecord.History`, entries `InputEntry` in `Learner/InputEntry.cs`). One entry per line the game took and evaluated: every dialogue
+  turn (`GuideSession.Apply` for the worker's turns, `GuideSession.Say` for the synchronous path), every check answer (`CheckGrade`, with its words and errors),
+  every lesson line (`Place = Lesson`, `Unit = "lesson/step"`). Each has `Id` (1, 2, ... never repeated), `Session` and `StoredTime` (the stored game time,
+  Unix seconds), `Source` (`Voice`, `Typed`, `Button`: a repair choice, "ayuda", "no sé"), `Text` (what the core evaluated: the transcript for speech), `Npc`,
+  `Prompt`, `Place` (`Dialogue`, `Lesson`, `Check`), `Unit`, `Intent`, `Communicated`, `Held` (an unsure recognition, D-game-9), `Errors` (`GuideError`: tag,
+  expected, actual, span) and `Words` (`GuideWord`: text, span, lemma, `Pos`, `Role`, and the reading's `Person`, `Number`, `Tense`, `Mood`, `Gender`). A
+  failed or cancelled request and a mic check are not lines and are not entries. The session log's `turn` lines already carry every typed and spoken turn
+  (`input`), and `check_result` lines the check answers.
+- **The word record** (`LearnerWords`, rows `WordRow`, forms `FormRow`, first and last use `WordUse`). A pure fold of the history: `LearnerWords.Fold(History)`
+  gives the same rows as the live record. An entry adds its words when it is not `Held` and not `Button`: a token with `Role == Word` and a lemma (names and
+  unknown tokens are not in it; numbers are, with their `Pos` `num`). `Times` counts the tokens of the lemma; `TimesCorrect` counts those in a line the core
+  understood with no error span over the token. Each form (`aguas`, `quiero` with its person, number, tense and mood) has its own counts. A row is per (lemma,
+  part of speech). The save keeps the rows whole, because the history is bounded: `LearnerRecord.SavedEntries` (500) is the newest entries kept in the save, and
+  `NextId` goes on from it, so a loaded record is the saved rows, not a fold of the saved history.
+- **The lesson record** (`LessonRunner.Record`, rows `LessonRecordRow`, units `LessonUnitRow`). Written by the runner's own events: the step outcomes (`Units`,
+  done, skipped or moved on), `Status`, `CompletedSession` (the session of the last completion), `Turns` (turns that reached a repeat or answer step),
+  `HelpUses` (the help path, the English shown), `DontKnowUses` ("no sé" said at a turn step or pressed), `RepeatUses` ("Otra vez" and "Más despacio" asked of
+  the lesson's NPC) and `Phrases`. The counts are over every run of the lesson. A version 1 save has none of the counts and no completion session: they load as
+  zero and null, and the units and status come from the saved runner state.
+- **Save version 2.** `SaveDocument.Learner` (`LearnerRecordSave`: `NextId`, the newest history entries, the word rows) and `LessonProgressSave` gets `Turns`,
+  `HelpUses`, `DontKnowUses`, `RepeatUses` and `CompletedSession`. `SaveGame.CurrentVersion` is 2 and versions 1 and 2 load (`OldestReadableVersion`); a version 1
+  save loads with an empty history and an empty word record (its readings were never kept). The fixture `Fixtures/save-v1.json` (in `game/tests/Vocaterra.Game.Tests`)
+  is a real version 1 save of the S18 code, for `LearnerRecordTests`.
+
+**The read API for the book (S20).** Read it from the session; the lists are sorted, so the same record always gives the same order.
+
+- `session.Learner.Nouns`: the noun rows (`WordRow`), by lemma (ordinal). `Lemma`, `Gender` (the lexicon's, e.g. `f`), `Times`, `TimesCorrect`, `Forms` (by text,
+  then person, number, tense, mood), `First` and `Last` (`WordUse`: `Entry`, `Session`, `StoredTime`, `Sentence`) and `LastSentence`.
+- `session.Learner.Verbs`: the verb rows, by infinitive (`querer`), with the same fields; each `FormRow` has `Person`, `Number`, `Tense`, `Mood` (`1`, `sg`,
+  `pres`, `ind`). `session.Learner.Rows` is every row (by lemma, then `Pos`); the other parts of speech are there with their `Pos`.
+- `session.Learner.Recent(n)`: the newest `n` history entries, newest first (`InputEntry`); `session.Learner.History` is all of them, oldest first.
+- `session.Lessons.Record`: one `LessonRecordRow` per lesson in the bundle's `lessons.json` order: `LessonId`, `Title`, `English`, `Status`, `StepCount`,
+  `Units`, `CompletedSession`, `Turns`, `HelpUses`, `DontKnowUses`, `RepeatUses`, `Phrases`.
+- `LearnerSummary.Lines(learner, lessons, session, storedTime)`: the console summary the front-end prints at exit (`book: summary at exit`), as text.
+

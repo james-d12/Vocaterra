@@ -5,7 +5,7 @@ using Vocaterra.Simulation.Voxel;
 namespace Vocaterra.Game;
 
 /// <summary>
-/// One saved game (format <c>vocaterra-save</c>, version 1), written as canonical JSON by <see cref="SaveGame"/>. It holds what a run needs to
+/// One saved game (format <c>vocaterra-save</c>, version 2; version 1 still loads), written as canonical JSON by <see cref="SaveGame"/>. It holds what a run needs to
 /// continue and nothing derived from the clock: the world seed and the bundle hash that the world was made from; the scene diff (the chunks
 /// edited against the fresh scene); the player, the hotbar, the gathering, the inventory and the objective; the word and phrase progress; the
 /// NPCs' conversation states and host decisions; the carded nouns and the flags of the story; the stored time (start, ticks, skipped seconds),
@@ -41,6 +41,7 @@ namespace Vocaterra.Game;
 /// <param name="Chunks">The scene diff: the chunks that differ from the fresh scene, in chunk order.</param>
 /// <param name="Lessons">The progress of the lessons (S16): where each one stands and which is active. A save from before S16 has none.</param>
 /// <param name="Tips">The first-time tips (S16): which were shown, which wait and which is on screen. A save from before S16 has none.</param>
+/// <param name="Learner">The learner's record (S19): the newest history entries and the word rows. A version 1 save has none (an empty history).</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -71,7 +72,14 @@ public sealed record SaveDocument(
     IReadOnlyList<NpcSave> Npcs,
     IReadOnlyList<ChunkEdit> Chunks,
     LessonsSave? Lessons = null,
-    TipsSave? Tips = null);
+    TipsSave? Tips = null,
+    LearnerRecordSave? Learner = null);
+
+/// <summary>The learner's record in a save (S19): the next entry's number, the newest history entries (oldest first) and the word rows, which are a fold of the whole history.</summary>
+/// <param name="NextId">The number the next history entry takes.</param>
+/// <param name="History">The newest entries of the history, oldest first (at most <see cref="LearnerRecord.SavedEntries"/>).</param>
+/// <param name="Words">The word rows (<see cref="LearnerWords"/>), sorted by lemma then part of speech.</param>
+public sealed record LearnerRecordSave(long NextId, IReadOnlyList<InputEntry> History, IReadOnlyList<WordRow> Words);
 
 /// <summary>The first-time tips (S16): the ids shown so far, the ids waiting to be shown (in order), and the one on screen with the tick it came up at.</summary>
 /// <param name="Shown">The ids shown so far, in ordinal order (the one on screen is among them).</param>
@@ -93,7 +101,23 @@ public sealed record LessonsSave(IReadOnlyList<LessonProgressSave> Lessons, stri
 /// <param name="Outcomes">How the finished steps ended, in order.</param>
 /// <param name="Attempts">The tries used on the step in progress.</param>
 /// <param name="Helped">Whether the help path was used on the step in progress.</param>
-public sealed record LessonProgressSave(string Id, LessonStatus Status, int Step, IReadOnlyList<StepOutcomeSave> Outcomes, int Attempts, bool Helped);
+/// <param name="Turns">The turns taken at the lesson's turn steps (S19; 0 in a version 1 save).</param>
+/// <param name="HelpUses">The help-path uses (S19; 0 in a version 1 save).</param>
+/// <param name="DontKnowUses">The "no sé" uses (S19; 0 in a version 1 save).</param>
+/// <param name="RepeatUses">The requests to say the line again (S19; 0 in a version 1 save).</param>
+/// <param name="CompletedSession">The session the lesson was last completed in (S19; null when never, or unknown in a version 1 save).</param>
+public sealed record LessonProgressSave(
+    string Id,
+    LessonStatus Status,
+    int Step,
+    IReadOnlyList<StepOutcomeSave> Outcomes,
+    int Attempts,
+    bool Helped,
+    int Turns = 0,
+    int HelpUses = 0,
+    int DontKnowUses = 0,
+    int RepeatUses = 0,
+    int? CompletedSession = null);
 
 /// <summary>How one finished lesson step ended.</summary>
 /// <param name="StepId">The step's id.</param>

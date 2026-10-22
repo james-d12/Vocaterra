@@ -60,6 +60,42 @@ public sealed record LessonView(
 /// <param name="Resume">Whether the learner has begun it already.</param>
 public sealed record LessonOffer(string LessonId, string Title, string English, bool Resume);
 
+/// <summary>One step of a lesson as the record shows it: the step's id and how it ended.</summary>
+/// <param name="StepId">The step's id.</param>
+/// <param name="Outcome">Done, skipped or moved on.</param>
+public sealed record LessonUnitRow(string StepId, StepOutcome Outcome);
+
+/// <summary>
+/// One lesson in the learner's record (S19): where it stands, the units (steps) finished so far in the current run, the session it was last completed in,
+/// the turns taken at its turn steps, the help used (the English hint, "no sé", the repeats asked for), and the phrases it teaches. The counts are over every
+/// run of the lesson; <see cref="Units"/> is the current run's.
+/// </summary>
+/// <param name="LessonId">The lesson's id.</param>
+/// <param name="Title">The lesson's English title.</param>
+/// <param name="English">The lesson's English line.</param>
+/// <param name="Status">Not started, in progress or completed.</param>
+/// <param name="StepCount">The number of steps (units) in the lesson.</param>
+/// <param name="Units">The finished steps, in order.</param>
+/// <param name="CompletedSession">The play session the lesson was last completed in, or <see langword="null"/> (never, or before this record was kept: a load of a version 1 save).</param>
+/// <param name="Turns">The turns the learner took at the lesson's turn steps (a repeat or answer step).</param>
+/// <param name="HelpUses">The times the help path was used (the English hint shown, the model line again, the card).</param>
+/// <param name="DontKnowUses">The times "no sé" was said or pressed in the lesson.</param>
+/// <param name="RepeatUses">The times the learner asked the guide to say the lesson's line again ("Otra vez, por favor", "Más despacio, por favor").</param>
+/// <param name="Phrases">The phrases the lesson teaches, in order.</param>
+public sealed record LessonRecordRow(
+    string LessonId,
+    string Title,
+    string English,
+    LessonStatus Status,
+    int StepCount,
+    IReadOnlyList<LessonUnitRow> Units,
+    int? CompletedSession,
+    int Turns,
+    int HelpUses,
+    int DontKnowUses,
+    int RepeatUses,
+    IReadOnlyList<string> Phrases);
+
 /// <summary>
 /// Runs the lessons of <c>game/lessons.json</c> (S16): a data-driven sequence of steps attached to an NPC. One lesson runs at a time; each step has a skip and a
 /// help path; a failed or uncertain turn moves on after the step's attempts (fail-forward, D-game-9: the recognition's trouble is never the learner's failure and
@@ -105,6 +141,18 @@ public sealed class LessonRunner
         public StepOutcome? Pending { get; set; }
 
         public string? Hint { get; set; }
+
+        // The record of the lesson (S19), over every run of it: the turns that reached its turn steps, the help uses, the "no sé" uses, the
+        // repeats asked for, and the session it was last completed in.
+        public int Turns { get; set; }
+
+        public int HelpUses { get; set; }
+
+        public int DontKnowUses { get; set; }
+
+        public int RepeatUses { get; set; }
+
+        public int? CompletedSession { get; set; }
     }
 
     private readonly GuideSession _session;
@@ -131,6 +179,28 @@ public sealed class LessonRunner
 
     /// <summary>A number that changes whenever what the strip draws changes (a step began or ended, a hint appeared, a pick was made).</summary>
     public int Version => _version;
+
+    /// <summary>
+    /// The learner's record of every lesson (S19), in the bundle's lesson order: where each stands, its finished steps, the session it was completed in, the turns
+    /// taken and the help used. It is kept by the runner's own events and saved with the game.
+    /// </summary>
+    public IReadOnlyList<LessonRecordRow> Record => _book.Lessons.Select(lesson =>
+    {
+        var state = _states[lesson.Id];
+        return new LessonRecordRow(
+            lesson.Id,
+            lesson.Title,
+            lesson.English,
+            state.Status,
+            lesson.Steps.Count,
+            state.Outcomes.Select(static o => new LessonUnitRow(o.StepId, o.Outcome)).ToArray(),
+            state.CompletedSession,
+            state.Turns,
+            state.HelpUses,
+            state.DontKnowUses,
+            state.RepeatUses,
+            lesson.TaughtPhrases);
+    }).ToArray();
 
     /// <summary>The lesson that has begun and not finished, or <see langword="null"/>.</summary>
     public LessonDefinition? Active => _activeId is null ? null : _book.Find(_activeId);
@@ -346,6 +416,7 @@ public sealed class LessonRunner
         var state = _states[lesson.Id];
         var step = lesson.Steps[state.Step];
         state.Helped = true;
+        state.HelpUses++;
         state.Hint = step.Help ?? _english.Ui("helpDefault");
         Emit(LessonEventKind.Help, lesson, state, step, null, null);
         if (step.Line is { } line)
@@ -374,6 +445,7 @@ public sealed class LessonRunner
         }
 
         var step = lesson.Steps[_states[lesson.Id].Step];
+        _states[lesson.Id].DontKnowUses++;
         _session.LogVoice(VoiceEventKind.NoSe);
         if (step.WaitsOnTurn && step.Phrase is { } phrase)
         {
@@ -447,6 +519,21 @@ public sealed class LessonRunner
 
     // ---- What the session tells the runner.
 
+    // The lesson unit ("lesson/step") a line said to this NPC now lands on: the engaged lesson's step that waits on a turn, at that NPC; otherwise null.
+    internal string? UnitFor(string npc) =>
+        Engaged && Active is { } lesson && Current is { WaitsOnTurn: true } step && string.Equals(lesson.Npc, npc, StringComparison.Ordinal)
+            ? $"{lesson.Id}/{step.Id}"
+            : null;
+
+    // The learner asked the lesson's NPC to say her last line again, while the lesson has her conversation (S19's repeats).
+    internal void NoteRepeat(string npc)
+    {
+        if (Engaged && Active is { } lesson && string.Equals(lesson.Npc, npc, StringComparison.Ordinal))
+        {
+            _states[lesson.Id].RepeatUses++;
+        }
+    }
+
     internal void OnTalkOpened(string npc)
     {
         if (Active is { } lesson && string.Equals(lesson.Npc, npc, StringComparison.Ordinal))
@@ -496,6 +583,12 @@ public sealed class LessonRunner
             return false;
         }
 
+        state.Turns++;
+        if (turn.Communicated && string.Equals(turn.Intent, "dont_know", StringComparison.Ordinal))
+        {
+            state.DontKnowUses++; // "no sé" said at the turn step, whether it is the step's phrase or a help request (S19)
+        }
+
         var taken = true;
         if (turn.Unsure || turn.Uncertain || !turn.Communicated)
         {
@@ -505,6 +598,7 @@ public sealed class LessonRunner
         else if (IsServiceIntent(turn.Intent) && !MatchesPhrase(turn, step.Phrase!))
         {
             state.Helped = true;
+            state.HelpUses++;
             state.Hint = step.Help ?? _english.Ui("helpDefault");
             Emit(LessonEventKind.Help, lesson, state, step, null, turn.Intent);
             _version++;
@@ -564,7 +658,12 @@ public sealed class LessonRunner
                 state.Step,
                 state.Outcomes.Select(static o => new StepOutcomeSave(o.StepId, o.Outcome)).ToArray(),
                 state.Attempts,
-                state.Helped);
+                state.Helped,
+                state.Turns,
+                state.HelpUses,
+                state.DontKnowUses,
+                state.RepeatUses,
+                state.CompletedSession);
         }).ToArray(),
         _activeId);
 
@@ -587,6 +686,11 @@ public sealed class LessonRunner
             state.Step = progress.Step;
             state.Attempts = progress.Attempts;
             state.Helped = progress.Helped;
+            state.Turns = progress.Turns;
+            state.HelpUses = progress.HelpUses;
+            state.DontKnowUses = progress.DontKnowUses;
+            state.RepeatUses = progress.RepeatUses;
+            state.CompletedSession = progress.CompletedSession;
             state.Picked = -1;
             state.Pending = null;
             state.Hint = null;
@@ -645,6 +749,7 @@ public sealed class LessonRunner
         }
 
         state.Status = LessonStatus.Completed;
+        state.CompletedSession = _session.PlaySession;
         _activeId = null;
         _engaged = false;
         var done = state.Outcomes.Count(static o => o.Outcome == StepOutcome.Done);

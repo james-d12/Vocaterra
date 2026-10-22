@@ -21,6 +21,8 @@ namespace Vocaterra.Game;
 /// <param name="DontKnow">Whether the learner said they do not know.</param>
 /// <param name="Correct">Whether the line was communicated with the row's intent.</param>
 /// <param name="Entry">The replay record of the evaluation (utterance envelope), for the session's replay log.</param>
+/// <param name="Words">The answer's words with the core's readings (S19: the learner's record of what was said).</param>
+/// <param name="Errors">The core's errors with their spans and forms (S19), in the verdict's order.</param>
 public sealed record CheckGrade(
     string Transcript,
     InputKind Input,
@@ -30,7 +32,9 @@ public sealed record CheckGrade(
     double? Confidence,
     bool DontKnow,
     bool Correct,
-    ReplayEntry Entry);
+    ReplayEntry Entry,
+    IReadOnlyList<GuideWord>? Words = null,
+    IReadOnlyList<GuideError>? Errors = null);
 
 /// <summary>
 /// Grades the production answers of a check through the core, at the item's prompt, in a throwaway conversation context: a fresh learner model,
@@ -132,6 +136,8 @@ public sealed class CheckGrader
             confidence,
             string.Equals(intent, "dont_know", StringComparison.Ordinal),
             IsCorrect(verdict.Communicated, intent, item.Intent),
-            new ReplayEntry(ReplayEnvelope.From(trace, context), null));
+            new ReplayEntry(ReplayEnvelope.From(trace, context), null),
+            GuideWord.From(trace.Result),
+            verdict.Errors.Select(static e => new GuideError(e.Tag, e.Expected, e.Actual, e.Span)).ToList());
     }
 }

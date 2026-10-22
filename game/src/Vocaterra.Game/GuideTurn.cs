@@ -24,13 +24,30 @@ public sealed record GuidePointer(string Place, GuideCell Target, int Blocks, st
 
 /// <summary>
 /// One normalized word of the typed line with the reading the core's resolver chose for it (<c>PipelineResult.Words</c>, CR-002). The word
-/// counts read the catalogue nouns from these, so they follow the verdict's own analysis.
+/// counts read the catalogue nouns from these, so they follow the verdict's own analysis; the learner's word record (S19) folds the
+/// readings too.
 /// </summary>
-/// <param name="Text">The normalized token.</param>
+/// <param name="Text">The normalized token (its form: <c>aguas</c>; a number word is its digit, <c>2</c>).</param>
 /// <param name="Span">Its span in the normalized line, the one the verdict's errors use.</param>
-/// <param name="Lemma">The chosen reading's lemma, or <see langword="null"/> for a name or an unknown word.</param>
-/// <param name="Pos">The chosen reading's part of speech, or <see langword="null"/>.</param>
-public sealed record GuideWord(string Text, TextSpan Span, string? Lemma, string? Pos)
+/// <param name="Lemma">The chosen reading's lemma (<c>agua</c>, the infinitive <c>querer</c>), or <see langword="null"/> for a name or an unknown word.</param>
+/// <param name="Pos">The chosen reading's part of speech (<c>noun</c>, <c>verb</c>, ...), or <see langword="null"/>.</param>
+/// <param name="Role">Whether the lexicon knows the word (<see cref="WordRole.Word"/>), a grammar binds it as a name, or it is unknown.</param>
+/// <param name="Person">The reading's person (<c>1</c>), or <see langword="null"/> where it does not apply.</param>
+/// <param name="Number">The reading's number (<c>singular</c>), or <see langword="null"/>.</param>
+/// <param name="Tense">The reading's tense (<c>present</c>), or <see langword="null"/>.</param>
+/// <param name="Mood">The reading's mood, or <see langword="null"/>.</param>
+/// <param name="Gender">The reading's gender (for a noun), or <see langword="null"/>.</param>
+public sealed record GuideWord(
+    string Text,
+    TextSpan Span,
+    string? Lemma,
+    string? Pos,
+    WordRole Role = WordRole.Unknown,
+    string? Person = null,
+    string? Number = null,
+    string? Tense = null,
+    string? Mood = null,
+    string? Gender = null)
 {
     /// <summary>The words of a pipeline result, in order: every token with its role and the reading the resolver chose.</summary>
     /// <param name="result">The result of one evaluated line.</param>
@@ -43,7 +60,17 @@ public sealed record GuideWord(string Text, TextSpan Span, string? Lemma, string
     /// <summary>The words of a phase-1 analysis (<c>UtteranceAnalysis.Words</c>), in order; empty for <see langword="null"/>.</summary>
     /// <param name="words">The resolved words of one analysed line.</param>
     public static IReadOnlyList<GuideWord> From(IReadOnlyList<ResolvedWord>? words) =>
-        (words ?? []).Select(static w => new GuideWord(w.Token.Text, w.Token.Span, w.Reading?.Lemma, w.Reading?.Pos)).ToList();
+        (words ?? []).Select(static w => new GuideWord(
+            w.Token.Text,
+            w.Token.Span,
+            w.Reading?.Lemma,
+            w.Reading?.Pos,
+            w.Role,
+            w.Reading?.Person,
+            w.Reading?.Number,
+            w.Reading?.Tense,
+            w.Reading?.Mood,
+            w.Reading?.Gender)).ToList();
 }
 
 /// <summary>The guide's check of a name the player gave an object (<c>name_object</c>) against the tile it is about.</summary>
