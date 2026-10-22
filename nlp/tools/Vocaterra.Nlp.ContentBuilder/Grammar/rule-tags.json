@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "note": "LanguageTool rule ids mapped to the learner error tags they most often explain (the shared taxonomy of the core). A hint for the learner-error oracle: a rule not listed still counts as a flag.",
+  "rules": {
+    "AGREEMENT_PRONOUNSUBJECT_VERB": ["conj.person"],
+    "AGREEMENT_NUMERAL_PLURAL": ["noun.number"],
+    "AGREEMENT_DET_NOUN": ["gender.agree", "noun.number"],
+    "AGREEMENT_ADJ_NOUN": ["gender.agree", "noun.number"],
+    "MORFOLOGIK_RULE_ES": ["vocab.unknown", "conj.irregular"]
+  }
+}

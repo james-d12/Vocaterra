@@ -238,6 +238,40 @@ What to do with a finding:
 
 Editing examples or adding `lint` waivers changes `intents/intents.json`, so re-hash afterwards like any content edit.
 
+### Check the grammar of your Spanish before you hash it
+
+The content procedure is: lint, `cefr-check`, **grammar**, then the Opus pass (D-game-12), then `hash`. The grammar step sends every Spanish
+string of the bundle to a local LanguageTool server (plain `es`, the server is never the public API, D10) and reports what it flags. It
+removes the mechanical errors (agreement, spelling) before a reviewer reads the text.
+
+The scripts run from the repository root; the tool runs from `nlp/`:
+
+```bash
+scripts/fetch-tools.sh                     # once: the pinned Java runtime and LanguageTool, in ~/.local/share/vocaterra/tools
+scripts/languagetool.sh start              # the server, capped (2 GB, 200 % CPU); scripts/languagetool.sh stop when done
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- grammar content/v1 --strings <host.jsonl>   # online: adds to the cache
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- grammar content/v1                         # offline: the committed cache
+```
+
+- The strings are the dialogue lines (slot templates rendered from four sampled fillings, with the core's own template engine), prompts,
+  answer-set canonicals and aliases, and intent examples. `--strings` adds a host's JSONL strings (format in [docs/API.md](docs/API.md#grammar-check-the-strings-m30)).
+  Learner-side strings (answers, examples) are capitalised before the check, so the sentence-start rule does not fire on every answer.
+- Results are cached in `content/grammar/<name>-cache.json`, keyed by the SHA-256 of the LanguageTool version, the settings and the text.
+  Commit the cache with the content it checks. An online run that finds a string not in the cache asks the server; an offline run
+  (`--offline`, what the gate uses) never does and fails on a missing entry, so after a content edit run the online command once.
+  An online run keeps the cache's other entries, so a `--strings` file's entries survive a run without it; `--prune` drops the entries
+  that run did not use (run it with the same `--strings` as the offline checks).
+- Waivers are in `content/grammar/<name>-waivers.json`: each names the rule and the string (`id`, or the exact `text`) and must give a
+  `reason`. A waiver that matches nothing is a warning (`grammar.waiver-unused`).
+- Findings print like lint's. `grammar.<RULE>` is a warning for agreement, spelling and grammar, and info for style and typography.
+  Learner examples are an oracle: `oracle.flagged-and-tagged` and `oracle.tagged-but-silent` are info (a silent server is a blind spot, not
+  a failure), and `oracle.untagged-but-flagged` is a warning: either the example is an error you did not tag (add `"errors"`, or fix it), or the
+  server is wrong (waive it with a reason).
+- Exit codes: 0 pass, 1 errors (warnings too with `--strict`), 2 usage, 3 no server answered in online mode (skipped, not passed).
+
+The grammar check is advisory, as the lint was, until one round of waivers has been done. A clean run is not approval: a native speaker
+still reviews the text (`PHRASES.md`'s `reviewer` column).
+
 ## Recipe: add a golden audio clip
 
 The golden set exists to answer one question with real data: does the recognizer keep the mistakes a learner makes? The full

@@ -26,6 +26,7 @@
     <None Include="../../content/v1/**/*" Link="content/v1/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../../models/manifest.json" Link="models/manifest.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Data/**/*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../content/grammar/*" Link="grammar/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
