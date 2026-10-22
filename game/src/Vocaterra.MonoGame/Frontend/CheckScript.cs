@@ -37,16 +37,20 @@ public sealed class CheckScript
     /// <param name="check">The battery.</param>
     /// <param name="hooks">What the script asks of the game.</param>
     /// <param name="log">Where the script reports a step it cannot take (the console).</param>
-    public CheckScript(IReadOnlyList<ScriptStep> steps, CheckScreen check, CheckScriptHooks hooks, Action<string> log)
+    /// <param name="startIndex">The first step the battery takes (0 for the pre-check; the playtest's post-check starts where the world script stopped, S12).</param>
+    public CheckScript(IReadOnlyList<ScriptStep> steps, CheckScreen check, CheckScriptHooks hooks, Action<string> log, int startIndex = 0)
     {
         ArgumentNullException.ThrowIfNull(steps);
         ArgumentNullException.ThrowIfNull(check);
         ArgumentNullException.ThrowIfNull(hooks);
         ArgumentNullException.ThrowIfNull(log);
+        ArgumentOutOfRangeException.ThrowIfNegative(startIndex);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(startIndex, steps.Count);
         _steps = steps;
         _check = check;
         _hooks = hooks;
         _log = log;
+        Index = startIndex;
     }
 
     /// <summary>The next step the battery does not take (the world script starts there when the battery is done).</summary>

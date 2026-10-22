@@ -38,6 +38,7 @@ public sealed class ScenarioScript
     private readonly Func<string, ItemId?> _resolveItem;
     private readonly ScenarioHooks _hooks;
     private readonly Action<string> _log;
+    private readonly bool _holdsCheckAnswers;
     private readonly List<VoxelCommand> _scratch = [];
     private Phase _phase = Phase.Idle;
     private VoxelScript? _walk;
@@ -54,6 +55,10 @@ public sealed class ScenarioScript
     /// <param name="resolveItem">Maps an item as typed (a noun or a key) to the item, for the place and craft steps.</param>
     /// <param name="hooks">What the script asks of the game around it.</param>
     /// <param name="log">Where the steps report (the console).</param>
+    /// <param name="holdsCheckAnswers">
+    /// Whether the script stops at the answers of a check battery (<c>--pick</c>, and a <c>--say</c> or <c>--speak</c> with no panel open) instead of
+    /// taking them as world steps: in a playtest the post-check takes them from the same step list (S12).
+    /// </param>
     public ScenarioScript(
         VoxelSession session,
         LookControl look,
@@ -61,7 +66,8 @@ public sealed class ScenarioScript
         IReadOnlyList<ScriptStep> steps,
         Func<string, ItemId?> resolveItem,
         ScenarioHooks hooks,
-        Action<string> log)
+        Action<string> log,
+        bool holdsCheckAnswers = false)
     {
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(look);
@@ -77,6 +83,7 @@ public sealed class ScenarioScript
         _resolveItem = resolveItem;
         _hooks = hooks;
         _log = log;
+        _holdsCheckAnswers = holdsCheckAnswers;
     }
 
     /// <summary>
@@ -96,6 +103,12 @@ public sealed class ScenarioScript
 
     /// <summary>Whether every step has been done and its effect applied.</summary>
     public bool IsDone => _phase == Phase.Idle && _index >= _steps.Count;
+
+    /// <summary>The next step the script has not started (the playtest's post-check takes the script from here, S12).</summary>
+    public int Index => _index;
+
+    /// <summary>Whether no step is half done (no walk, line or wait in progress), so the script can hand the steps on (S12).</summary>
+    public bool AtStepBoundary => _phase == Phase.Idle;
 
     /// <summary>The line being said (empty when none).</summary>
     public string CurrentLine => _line;
@@ -120,6 +133,11 @@ public sealed class ScenarioScript
                     if (_session.KeyWordsPending && _steps[_index].Kind is ScriptStepKind.Say or ScriptStepKind.Speak or ScriptStepKind.Wav)
                     {
                         return; // the stall's key-word cards stand alone first (S8): the line waits for the shopkeeper's question
+                    }
+
+                    if (_holdsCheckAnswers && IsCheckAnswer(_steps[_index]))
+                    {
+                        return; // a playtest: the post-check's answers are taken by the battery once it starts (S12), not by the world
                     }
 
                     Begin();
@@ -170,6 +188,15 @@ public sealed class ScenarioScript
     }
 
     // Takes the next step: a run of body steps becomes one VoxelScript, a talk walks to the NPC, a say types its line.
+    // A step the check battery answers when a playtest holds the script: a pick, or a line with no panel open (the world would walk to the guide
+    // for it). A line with the panel open is the world's, as before.
+    private bool IsCheckAnswer(ScriptStep step) => step.Kind switch
+    {
+        ScriptStepKind.Pick => true,
+        ScriptStepKind.Say or ScriptStepKind.Speak => !_dialogue.IsOpen,
+        _ => false,
+    };
+
     private void Begin()
     {
         var step = _steps[_index];

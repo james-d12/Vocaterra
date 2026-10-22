@@ -244,6 +244,27 @@ public sealed class GreyscaleTests
     }
 
     [Fact]
+    public void AWaterBlockNamedByTwoNounsRegainsColourWhenEitherIsKnown()
+    {
+        // S12, the orchestrator's water rule: agua and río both name the water block; one known name colours it.
+        Assert.Equal(new[] { "agua", "río" }, Nouns.Value.NounsOfBlock(BlockId.Water).Select(static noun => noun.Lemma).Order(StringComparer.Ordinal).ToArray());
+
+        var none = WordColours.GreyKinds(Nouns.Value, new WordProgress(Nouns.Value));
+        Assert.True(ChunkMesher.IsGrey(BlockId.Water, none));
+
+        var riverKnown = new WordProgress(Nouns.Value);
+        riverKnown.Restore([new WordRecord("río", CreditUnits: WordProgress.UnitsToKnow, CorrectTurns: WordProgress.UsesToKnow)]);
+        Assert.False(ChunkMesher.IsGrey(BlockId.Water, WordColours.GreyKinds(Nouns.Value, riverKnown)));
+
+        var waterKnown = new WordProgress(Nouns.Value);
+        waterKnown.Restore([new WordRecord("agua", CreditUnits: WordProgress.UnitsToKnow, CorrectTurns: WordProgress.UsesToKnow)]);
+        Assert.False(ChunkMesher.IsGrey(BlockId.Water, WordColours.GreyKinds(Nouns.Value, waterKnown)));
+
+        // A single-noun block is unchanged: the trunk is grey until árbol is known, whatever else is known.
+        Assert.True(ChunkMesher.IsGrey(BlockId.Trunk, WordColours.GreyKinds(Nouns.Value, riverKnown)));
+    }
+
+    [Fact]
     public void WithTheSwitchOffNothingIsGreyAndNothingIsToasted()
     {
         var words = new WordProgress(Nouns.Value);

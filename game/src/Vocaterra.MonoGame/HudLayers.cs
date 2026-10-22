@@ -55,6 +55,32 @@ public sealed class ObjectiveLayer : IFrameLayer
 }
 
 /// <summary>
+/// The playtest's end key label (S12): <c>F10: end the run (facilitator)</c>, bottom left, on the world's frames only. It is for the facilitator
+/// and says what the key does; the run ends with the post-check, the save and the thank-you screen.
+/// </summary>
+public sealed class PlaytestHintLayer : IFrameLayer
+{
+    /// <summary>The label the layer draws.</summary>
+    public const string Text = PlaytestEnd.EndKeyName + ": end the run (facilitator)";
+
+    private static readonly Color Dim = new(200, 200, 215);
+
+    /// <inheritdoc />
+    public void Draw(SpriteBatch spriteBatch, FrameView view)
+    {
+        if (view.Check is not null)
+        {
+            return;
+        }
+
+        var font = view.Fonts.Get(FontProvider.NativeSize);
+        var box = new Rectangle(12, view.ViewportHeight - 40, (int)DrawHelpers.Width(font, Text) + 16, 28);
+        spriteBatch.Draw(view.Pixel, box, new Color(10, 10, 20, 170));
+        DrawHelpers.Text(spriteBatch, font, Text, new Vector2(box.Left + 8, box.Top + 6), Dim);
+    }
+}
+
+/// <summary>
 /// The word card of a first pickup: the noun with its article (<c>la madera</c>) in a panel above the hotbar, a slot for its audio (the
 /// audio comes with S9, so the slot is an empty placeholder for now) and the line <c>Palabra nueva</c>. It is shown for
 /// <see cref="WordCardQueue.Duration"/> ticks; nothing in it asks the learner anything.

@@ -72,6 +72,12 @@ public sealed class CheckScreen
     /// <summary>The typed line of a production item (the text box).</summary>
     public TextEntry Entry { get; } = new(200);
 
+    /// <summary>
+    /// What the done screen says under the summary, in place of the footer about the session log (the playtest's thank-you, S12), or
+    /// <see langword="null"/> for the plain screen.
+    /// </summary>
+    public string? Closing { get; set; }
+
     /// <summary>Whether the text box has the keyboard (W or Tab).</summary>
     public bool IsTyping { get; set; }
 

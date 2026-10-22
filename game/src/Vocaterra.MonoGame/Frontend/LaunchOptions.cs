@@ -67,6 +67,10 @@ public sealed record LaunchOptions
         + "  --mute                  the NPCs' pre-rendered voices are off (the panel still shows every line)\n"
         + "  --greyscale             the playtest A/B switch (D-game-6): blocks whose noun is not known yet are grey, known ones in colour; default full colour\n"
         + "  --assume-known <nouns>  a test aid: the comma-separated catalogue nouns count as known from the start (their blocks are in colour)\n"
+        + "  --playtest              the playtest profile (S12): no debug overlay, the mic check, the session log in its own folder, the pre-check before the\n"
+        + "                          world (a fresh start) or the recall check (with --load), the post-check when the camp is done and the transfer offered\n"
+        + "                          (or F10 ends the run), then playtest.save in the session folder and the thank-you screen until Esc; --greyscale stays\n"
+        + "                          the A/B switch; --check, --no-mic-check and --session-dir still apply\n"
         + "  --voxel                 accepted and ignored (the 3D world is the only world)\n"
         + "Controls: WASD or the arrows walk, Space jumps, the mouse looks; hold the left button to gather, the right to place; E opens the inventory (or\n"
         + "  the crafting panel at the workbench, or talks to the guide when the crosshair is on her); C the crafting panel; J the journal; 1..0 the hotbar.\n"
@@ -145,6 +149,15 @@ public sealed record LaunchOptions
     /// <summary>Whether the mic check is forced (<c>--mic-check</c>), skipped (<c>--no-mic-check</c>) or left to the default.</summary>
     public MicCheckMode MicCheck { get; init; } = MicCheckMode.Auto;
 
+    /// <summary>
+    /// Whether the run is the playtest profile (<c>--playtest</c>, S12): no debug overlay, the mic check on, the pre-check before the world (or the
+    /// recall check on a load), the post-check at the end, a save in the session folder and a thank-you screen.
+    /// </summary>
+    public bool Playtest { get; init; }
+
+    /// <summary>Whether the run is the next-day recall of a playtest (<c>--playtest --load</c>): it runs the recall check and saves nothing.</summary>
+    public bool IsPlaytestRecall => Playtest && Check == CheckKind.Recall;
+
     /// <summary>Whether the run is the scripted screenshot run.</summary>
     public bool IsScreenshotRun => ScreenshotPath is not null;
 
@@ -190,6 +203,7 @@ public sealed record LaunchOptions
         var crafting = false;
         var greyscale = false;
         var micCheck = MicCheckMode.Auto;
+        var playtest = false;
         for (var i = 0; i < args.Count; i++)
         {
             var arg = args[i];
@@ -199,7 +213,8 @@ public sealed record LaunchOptions
                 return false;
             }
 
-            if (arg is "--journal" or "--journal-phrases" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--voxel" or "--greyscale" or "--leave" or "--mic-check" or "--no-mic-check")
+            if (arg is "--journal" or "--journal-phrases" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--voxel" or "--greyscale" or "--leave" or "--mic-check" or "--no-mic-check"
+                    or "--playtest")
             {
                 switch (arg)
                 {
@@ -233,6 +248,9 @@ public sealed record LaunchOptions
                         break;
                     case "--greyscale":
                         greyscale = true;
+                        break;
+                    case "--playtest":
+                        playtest = true;
                         break;
                     default:
                         break; // --voxel: accepted for old scripts, the 3D world is the only one
@@ -511,6 +529,14 @@ public sealed record LaunchOptions
             return false;
         }
 
+        if (playtest)
+        {
+            // The playtest profile (S12): the mic check is on unless --no-mic-check; a fresh start has its pre-check, a load its recall check
+            // (an explicit --check still wins).
+            micCheck = micCheck == MicCheckMode.Auto ? MicCheckMode.Force : micCheck;
+            check ??= result.LoadPath is null ? CheckKind.Pre : CheckKind.Recall;
+        }
+
         if (script.Any(static step => step.Kind == ScriptStepKind.Pick) && check is null)
         {
             error = "--pick answers a check item: it needs --check.";
@@ -519,6 +545,7 @@ public sealed record LaunchOptions
 
         options = result with
         {
+            Playtest = playtest,
             ScreenshotPath = screenshot,
             Says = says,
             VoxelSteps = steps,

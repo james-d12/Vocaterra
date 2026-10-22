@@ -15,6 +15,8 @@
          the package itself, never through a project reference. License: Apache-2.0. -->
     <PackageVersion Include="Vosk" Version="0.3.38" />
     <PackageVersion Include="org.k2fsa.sherpa.onnx" Version="1.13.8" />
+    <!-- The transitive native runtime of sherpa-onnx, named directly only by the game's playtest publish to exclude its native assets (S12); same version as org.k2fsa.sherpa.onnx. -->
+    <PackageVersion Include="org.k2fsa.sherpa.onnx.runtime.linux-x64" Version="1.13.8" />
     <!-- Microsoft.ML.OnnxRuntime 1.31.0 is the core's embedding-model dependency. The game never loads that model (it uses the core's fake
          embeddings), but the package ships a libonnxruntime.so that overwrites the one sherpa-onnx (Kokoro) needs in the same output folder,
          and sherpa's library then fails to load (VERS_1.28.2 not found). The game's executables and test projects that speak name it with
