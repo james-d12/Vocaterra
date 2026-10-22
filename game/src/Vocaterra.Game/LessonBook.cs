@@ -82,6 +82,8 @@ public static class LessonStepTypes
 /// <param name="Detail">For <c>do</c>: a text the event's detail must contain (ignoring case), or <see langword="null"/> for any.</param>
 /// <param name="Phrases">For <c>recap</c>: the phrases it lists; empty means every phrase the lesson's <c>repeat</c> and <c>answer</c> steps teach.</param>
 /// <param name="Attempts">For <c>listen</c>, <c>repeat</c> and <c>answer</c>: how many tries the step allows before it moves on (fail-forward, D-game-9).</param>
+/// <param name="Point">For <c>do</c> (S17): a catalogue noun the beacon is pointed at when the step begins (the nearest block of it), or <see langword="null"/> for none.</param>
+/// <param name="Hud">For <c>do</c> (S17): the short English line the objective area shows while the step waits and the panel is closed, or <see langword="null"/> for none.</param>
 public sealed record LessonStep(
     string Id,
     LessonStepType Type,
@@ -97,7 +99,9 @@ public sealed record LessonStep(
     string? Event,
     string? Detail,
     IReadOnlyList<string> Phrases,
-    int Attempts)
+    int Attempts,
+    string? Point = null,
+    string? Hud = null)
 {
     /// <summary>The attempts a step allows when the file says nothing: one try and one retry, then the lesson moves on.</summary>
     public const int DefaultAttempts = 2;
@@ -135,7 +139,7 @@ public sealed record LessonDefinition(string Id, string Npc, string Title, strin
 /// <item><c>listen</c>: <c>line</c>, <c>translation</c>, <c>options</c> (two to four English strings) and <c>correct</c> (the index).</item>
 /// <item><c>repeat</c>: <c>phrase</c> (a row the learner says) and optionally <c>prompt</c> (default: the row's).</item>
 /// <item><c>answer</c>: <c>phrase</c>, <c>line</c>, <c>translation</c> and optionally <c>prompt</c>.</item>
-/// <item><c>do</c>: <c>event</c> (a world event name) and optionally <c>detail</c>.</item>
+/// <item><c>do</c>: <c>event</c> (a world event name) and optionally <c>detail</c>, <c>point</c> (a noun the beacon goes to when the step begins) and <c>hud</c> (the short line the objective area shows while the step waits).</item>
 /// <item><c>recap</c>: optionally <c>phrases</c> (default: every phrase the lesson teaches).</item>
 /// </list>
 /// <para>The row's intent must be one the prompt allows, so the core can recognise the answer. Plain values, no clock, no random numbers.</para>
@@ -347,7 +351,7 @@ public sealed class LessonBook
                 break;
         }
 
-        return new LessonStep(id, type, Text(element, "english"), Optional(element, "help"), Optional(element, "retry"), line, translation, phrase, prompt, options, correct, worldEvent, detail, phrases, attempts);
+        return new LessonStep(id, type, Text(element, "english"), Optional(element, "help"), Optional(element, "retry"), line, translation, phrase, prompt, options, correct, worldEvent, detail, phrases, attempts, type == LessonStepType.Do ? Optional(element, "point") : null, type == LessonStepType.Do ? Optional(element, "hud") : null);
     }
 
     private static (string Phrase, string Prompt) PhraseAndPrompt(string lesson, string step, JsonElement element, PhraseSheet sheet, IReadOnlyDictionary<string, PromptSpec> prompts)

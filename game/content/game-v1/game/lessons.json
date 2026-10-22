@@ -1,33 +1,296 @@
 {
   "schemaVersion": 1,
-  "about": "The lessons (S16): data the lesson runner walks the learner through, attached to an NPC. Step types: explain, model, listen, repeat, answer, do, recap (see LessonBook for the fields of each). Every step has a skip and a help path; a failed or uncertain turn moves on after the step's attempts (fail-forward, D-game-9). Lines are pre-rendered speech ids (speech/<id>.wav); phrases are rows of content/PHRASES.md; a repeat or answer step's prompt must allow the phrase's intent. This file holds the two-step sample that ships with the runner; the guide's real lesson (S17) is more lessons here, with no code.",
+  "about": "The guide's lessons (S16, S17): data the lesson runner walks the learner through, attached to an NPC. Step types: explain, model, listen, repeat, answer, do, recap (see LessonBook for the fields of each; a do step may name a noun to point the beacon at). Every step has a skip and a help path; a failed or uncertain turn moves on after the step's attempts (fail-forward, D-game-9). Lines are pre-rendered speech ids (speech/<id>.wav); phrases are rows of content/PHRASES.md; a repeat or answer step's prompt must allow the phrase's intent. S17 retired the two-step sample: this is the guide's first lesson, six short units (about eight minutes), and it starts by itself when the player first talks to her. The English thins from a phrase's second use.",
   "lessons": [
     {
-      "id": "sample",
+      "id": "first-words",
       "npc": "guide",
-      "title": "A first hello",
-      "english": "Say hello to the guide, then say thank you. It takes a minute.",
-      "autoStart": false,
+      "title": "First words with Luna",
+      "english": "Six short units: hello, yes and no, what is this, please and thank you, getting unstuck, and what the camp needs. About eight minutes.",
+      "autoStart": true,
       "steps": [
         {
-          "id": "say-hola",
+          "id": "u1-welcome",
+          "type": "explain",
+          "english": "This is Luna, the guide. She will teach you some Spanish, one phrase at a time. Nothing here is a test. Enter goes on, H helps, K skips a step."
+        },
+        {
+          "id": "u1-hello",
+          "type": "model",
+          "line": "guide.lesson.hello.1",
+          "translation": "Hello.",
+          "english": "Luna waves and says hello."
+        },
+        {
+          "id": "u1-say-hola",
           "type": "repeat",
           "phrase": "hola",
-          "prompt": "guide-open",
-          "english": "Say hello to the guide. “Hola” is how you greet anyone.",
+          "prompt": "lesson-hello",
+          "english": "Say hello back: “Hola” (OH-lah). Hold V to speak into the microphone, or press W to type.",
           "help": "Say: Hola (OH-lah). It means hello. The letter h is silent in Spanish.",
           "retry": "Not quite. Say: Hola. It means hello."
         },
         {
-          "id": "say-gracias",
+          "id": "u1-name",
+          "type": "model",
+          "line": "guide.lesson.name.1",
+          "translation": "My name is Luna.",
+          "english": "Luna tells you her name. “Me llamo” means “my name is”. You only need to understand this one, not say it."
+        },
+        {
+          "id": "u2-intro",
+          "type": "explain",
+          "english": "Next: yes and no. Luna holds things up and asks about them. Answer “Sí” for yes or “No” for no."
+        },
+        {
+          "id": "u2-ask-wood",
+          "type": "model",
+          "line": "guide.lesson.is_wood.1",
+          "translation": "Is it wood?",
+          "english": "Luna holds up a log of wood and asks if it is wood. “Madera” means wood."
+        },
+        {
+          "id": "u2-yes",
+          "type": "repeat",
+          "phrase": "si",
+          "prompt": "lesson-yesno",
+          "english": "It is wood, so the answer is yes. Say “Sí” (SEE).",
+          "help": "Say: Sí (SEE). It means yes. It is written sí, with an accent; si without the accent means “if”.",
+          "retry": "Not quite. It is wood, so say: Sí."
+        },
+        {
+          "id": "u2-no",
+          "type": "answer",
+          "phrase": "no",
+          "prompt": "lesson-yesno",
+          "line": "guide.lesson.is_water.1",
+          "translation": "Is it water?",
+          "english": "She holds up the same log and asks if it is water. It is not: answer “No”.",
+          "help": "Say: No. It means no.",
+          "retry": "Not quite. A log is not water, so say: No."
+        },
+        {
+          "id": "u3-intro",
+          "type": "explain",
+          "english": "Now ask what things are. “¿Qué es esto?” means “What is this?”. Luna points at something and names it."
+        },
+        {
+          "id": "u3-ask-1",
+          "type": "repeat",
+          "phrase": "que-es-esto",
+          "prompt": "lesson-what",
+          "english": "Luna points at a log. Ask her: “¿Qué es esto?” (keh ehs EHS-toh).",
+          "help": "Say: ¿Qué es esto? It means what is this?",
+          "retry": "Not quite. Say: ¿Qué es esto?"
+        },
+        {
+          "id": "u3-is-1",
+          "type": "model",
+          "line": "guide.lesson.it_is.1",
+          "translation": "This is wood.",
+          "english": "“Esto es” means “this is”. “Madera” is wood."
+        },
+        {
+          "id": "u3-ask-2",
+          "type": "answer",
+          "phrase": "que-es-esto",
+          "prompt": "lesson-what",
+          "line": "guide.lesson.look.1",
+          "translation": "Look.",
+          "english": "Luna points at some fruit. Ask again.",
+          "help": "Say: ¿Qué es esto?",
+          "retry": "Not quite. Say: ¿Qué es esto?"
+        },
+        {
+          "id": "u3-is-2",
+          "type": "model",
+          "line": "guide.lesson.it_is.2",
+          "translation": "This is a fruit.",
+          "english": "“Una fruta” is “a fruit”: una means a. Madera and agua need no una, just like wood and water in English."
+        },
+        {
+          "id": "u3-ask-3",
+          "type": "answer",
+          "phrase": "que-es-esto",
+          "prompt": "lesson-what",
+          "line": "guide.lesson.look.1",
+          "translation": "Look.",
+          "english": "Luna holds up a bottle of water.",
+          "help": "Say: ¿Qué es esto?",
+          "retry": "Say: ¿Qué es esto?"
+        },
+        {
+          "id": "u3-is-3",
+          "type": "model",
+          "line": "guide.lesson.it_is.3",
+          "translation": "This is water.",
+          "english": "Agua is water."
+        },
+        {
+          "id": "u3-bottle",
+          "type": "model",
+          "line": "guide.lesson.it_is.4",
+          "translation": "This is a bottle.",
+          "english": "She taps the bottle: botella."
+        },
+        {
+          "id": "u3-table",
+          "type": "listen",
+          "line": "guide.lesson.it_is.5",
+          "translation": "This is a table.",
+          "english": "Luna pats the workbench beside her. What does she say?",
+          "options": [
+            "This is a table (the workbench).",
+            "This is a torch.",
+            "This is a bottle."
+          ],
+          "correct": 0,
+          "help": "“Mesa” is a table. The workbench next to Luna is a mesa.",
+          "retry": "Not quite. Listen again: she pats the workbench."
+        },
+        {
+          "id": "u3-torch",
+          "type": "listen",
+          "line": "guide.lesson.it_is.6",
+          "translation": "This is a torch.",
+          "english": "Luna lifts a torch. What does she say?",
+          "options": [
+            "This is a torch.",
+            "This is wood.",
+            "This is water."
+          ],
+          "correct": 0,
+          "help": "“Antorcha” is a torch. You will make one soon.",
+          "retry": "Not quite. Listen again."
+        },
+        {
+          "id": "u4-intro",
+          "type": "explain",
+          "english": "Good manners. When someone offers you something, “Sí, por favor” means “yes, please”, and “Gracias” means “thank you”."
+        },
+        {
+          "id": "u4-offer",
+          "type": "model",
+          "line": "guide.lesson.offer.1",
+          "translation": "Would you like some fruit?",
+          "english": "Luna offers you some fruit. “¿Quieres…?” means “do you want…?”."
+        },
+        {
+          "id": "u4-yes",
+          "type": "repeat",
+          "phrase": "si-por-favor",
+          "prompt": "lesson-offer",
+          "english": "You would like some. Say: “Sí, por favor” (SEE, por fah-VOR).",
+          "help": "Say: Sí, por favor. It means yes, please.",
+          "retry": "Not quite. Say: Sí, por favor."
+        },
+        {
+          "id": "u4-take",
+          "type": "model",
+          "line": "guide.lesson.take.1",
+          "translation": "Take a fruit.",
+          "english": "Luna nods at the berry bushes. You pick the fruit yourself."
+        },
+        {
+          "id": "u4-pick",
+          "type": "do",
+          "event": "item_picked_up",
+          "detail": "fruta",
+          "point": "fruta",
+          "hud": "Pick a fruit from a berry bush, then go back to Luna",
+          "english": "Press Esc to close this panel. Aim the dot at a berry bush (the arrow shows one) and hold the left mouse button to pick a fruit. Then walk back to Luna and press E.",
+          "help": "A berry bush is a green bush with red berries. Hold the left mouse button until the fruit drops into your bar."
+        },
+        {
+          "id": "u4-thanks",
           "type": "answer",
           "phrase": "gracias",
-          "prompt": "guide-open",
-          "line": "guide_offer_yes.1",
-          "translation": "Of course! Here you are.",
-          "english": "The guide hands you something. Thank her.",
-          "help": "Say: Gracias (GRAH-see-ahs). It means thank you.",
+          "prompt": "lesson-thanks",
+          "line": "guide.lesson.have.1",
+          "translation": "Very good! You have a fruit.",
+          "english": "You have the fruit. Thank Luna: say “Gracias” (GRAH-see-ahs).",
+          "help": "Say: Gracias. It means thank you.",
           "retry": "Not quite. Say: Gracias. It means thank you."
+        },
+        {
+          "id": "u4-welcome",
+          "type": "model",
+          "line": "guide.lesson.welcome.1",
+          "translation": "You are welcome.",
+          "english": "“De nada” is the polite answer to “gracias”."
+        },
+        {
+          "id": "u5-intro",
+          "type": "explain",
+          "english": "Everyone gets stuck. Three phrases always help: “No sé” (I don't know), “Otra vez, por favor” (again, please) and “Más despacio, por favor” (more slowly, please). The buttons R, S and N do the same."
+        },
+        {
+          "id": "u5-quiz",
+          "type": "answer",
+          "phrase": "no-se",
+          "prompt": "lesson-unstuck",
+          "line": "guide.review.ask.1",
+          "translation": "Look. What is this?",
+          "english": "Luna points at something new. You don't know the word yet, so say “No sé” (noh SEH). It is never wrong.",
+          "help": "Say: No sé. It means I don't know.",
+          "retry": "Say: No sé. It means I don't know."
+        },
+        {
+          "id": "u5-answer",
+          "type": "model",
+          "line": "guide.lesson.it_is.7",
+          "translation": "This is a stone.",
+          "english": "When you say “No sé”, Luna tells you the answer."
+        },
+        {
+          "id": "u5-fast",
+          "type": "model",
+          "line": "guide.lesson.fast.1",
+          "translation": "Look. The wood is for the torch.",
+          "english": "Luna says something longer. Did you catch it?"
+        },
+        {
+          "id": "u5-again",
+          "type": "repeat",
+          "phrase": "otra-vez",
+          "prompt": "lesson-unstuck",
+          "english": "Ask her to say it again: “Otra vez, por favor” (OH-trah behs, por fah-VOR). She will repeat her last line.",
+          "help": "Say: Otra vez, por favor. It means again, please.",
+          "retry": "Not quite. Say: Otra vez, por favor."
+        },
+        {
+          "id": "u5-slow",
+          "type": "repeat",
+          "phrase": "mas-despacio",
+          "prompt": "lesson-unstuck",
+          "english": "Now ask for it more slowly: “Más despacio, por favor” (mahs dehs-PAH-syoh). She will say it slowly.",
+          "help": "Say: Más despacio, por favor. It means more slowly, please.",
+          "retry": "Not quite. Say: Más despacio, por favor."
+        },
+        {
+          "id": "u6-task",
+          "type": "listen",
+          "line": "guide.lesson.task.1",
+          "translation": "You need wood and fruit.",
+          "english": "Luna explains what the camp needs. What does she say?",
+          "options": [
+            "You need wood and fruit.",
+            "You need water and bread.",
+            "You need a torch and a bottle."
+          ],
+          "correct": 0,
+          "help": "“Necesitas” is “you need”. “Madera” is wood and “frutas” is fruit.",
+          "retry": "Not quite. Listen again: madera and frutas."
+        },
+        {
+          "id": "u6-explain",
+          "type": "explain",
+          "english": "Your list is at the top right: 5 wood, 3 fruit, a torch and water. Collect wood from trees and fruit from bushes (hold the left mouse button). Make a torch at the workbench (press E on it) and place it on the fire ring. The village down the road has water. Talk to Luna any time."
+        },
+        {
+          "id": "u6-recap",
+          "type": "recap",
+          "english": "You can already say or understand all of this."
         }
       ]
     }

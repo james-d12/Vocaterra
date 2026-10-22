@@ -47,6 +47,7 @@ public sealed class ScenarioScript
     private string _line = string.Empty;
     private int _index;
     private int _wait;
+    private string _lessonId = string.Empty;
 
     /// <summary>Creates the script over a started session and its panel.</summary>
     /// <param name="session">The 3D game, with its worker started.</param>
@@ -176,6 +177,13 @@ public sealed class ScenarioScript
                     }
 
                     return;
+                case Phase.Lesson:
+                    if (LessonTick())
+                    {
+                        return;
+                    }
+
+                    continue;
                 default: // Phase.Shot
                     if (_hooks.ShotPending())
                     {
@@ -273,6 +281,30 @@ public sealed class ScenarioScript
                 _phase = Phase.Gap;
                 _wait = GapTicks;
                 break;
+            case ScriptStepKind.LessonRun:
+                if (_session.Lessons.Book.Find(step.Value) is not { } runLesson)
+                {
+                    _log($"lesson-run: there is no lesson '{step.Value}'");
+                    _index++;
+                    break;
+                }
+
+                if (_session.Lessons.StatusOf(runLesson.Id) == LessonStatus.Completed)
+                {
+                    _index++; // done (the step is taken again after each interruption: a line sent, a walk to the fruit)
+                    break;
+                }
+
+                if (!_dialogue.IsOpen)
+                {
+                    StartTalk(runLesson.Npc); // walk up to the NPC and open the panel; the step itself is taken next
+                    break;
+                }
+
+                _lessonId = runLesson.Id;
+                _hooks.Lesson?.Invoke(ScriptStepKind.LessonStart, runLesson.Id); // an auto-start lesson is engaged already: this changes nothing then
+                _phase = Phase.Lesson;
+                break;
             case ScriptStepKind.Pick:
                 _log($"pick {step.Value}: a check step; the check battery takes it before the world (ignored here)");
                 _index++;
@@ -294,6 +326,72 @@ public sealed class ScenarioScript
                 _phase = Phase.Shot;
                 break;
         }
+    }
+
+    // One tick of a lesson run (S17): the learner who gets everything right does the step in progress. Returns true when the tick was taken (the script waits), false
+    // when the script should look again at once (the panel is closed, or the lesson ended).
+    private bool LessonTick()
+    {
+        var runner = _session.Lessons;
+        if (runner.StatusOf(_lessonId) == LessonStatus.Completed)
+        {
+            _index++;
+            _phase = Phase.Gap;
+            _wait = GapTicks;
+            return true;
+        }
+
+        if (!runner.Engaged || !_dialogue.IsOpen || runner.Current is not { } step)
+        {
+            _phase = Phase.Idle; // the panel was closed for a do step: the run walks back to the NPC and takes up where the lesson stopped
+            return false;
+        }
+
+        if (_session.PendingTurns > 0 || _dialogue.SubmitRequested || _dialogue.PendingSpeech is not null)
+        {
+            return true;
+        }
+
+        switch (step.Type)
+        {
+            case LessonStepType.Listen:
+                _hooks.Lesson?.Invoke(ScriptStepKind.LessonPick, (step.Correct + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
+                _hooks.Lesson?.Invoke(ScriptStepKind.LessonContinue, string.Empty);
+                break;
+            case LessonStepType.Repeat:
+            case LessonStepType.Answer:
+                _line = _session.Phrases.Find(step.Phrase!)!.Spanish.TrimEnd('.');
+                _ = _dialogue.Entry.Insert(_line);
+                _dialogue.RequestSubmit();
+                _phase = Phase.Waiting;
+                return true;
+            case LessonStepType.Do:
+                CloseIfOpen();
+                if (_session.Pointer is { } target)
+                {
+                    _walk = new VoxelScript(
+                        _session.Simulation,
+                        _look,
+                        [VoxelStep.WalkTo(target.Target.X, target.Target.Z), VoxelStep.Interact(target.Target.X, target.Target.Y, target.Target.Z)],
+                        static _ => null,
+                        _log);
+                    _phase = Phase.Moving;
+                }
+                else
+                {
+                    _log($"lesson-run: the step '{step.Id}' has nothing to walk to; it is skipped");
+                    _hooks.Lesson?.Invoke(ScriptStepKind.LessonSkip, string.Empty);
+                }
+
+                return true;
+            default:
+                _hooks.Lesson?.Invoke(ScriptStepKind.LessonContinue, string.Empty);
+                break;
+        }
+
+        _phase = Phase.Gap;
+        _wait = GapTicks;
+        return true;
     }
 
     // Walks to the stand-off cell of the NPC, then looks at it and opens the panel.
@@ -359,6 +457,7 @@ public sealed class ScenarioScript
         Settling,
         Waiting,
         Gap,
+        Lesson,
         Shot,
     }
 }

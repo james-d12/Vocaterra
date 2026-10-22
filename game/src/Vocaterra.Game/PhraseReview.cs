@@ -27,6 +27,9 @@ public static class PhraseReviews
         [PhraseIds.YesPlease] = "guide_offer.1",
         [PhraseIds.NoThanks] = "guide_offer.1",
         [PhraseIds.WhereIsTheRiver] = "villager_greet.1",
+        [PhraseIds.Hello] = "guide.lesson.hello.1", // S17: the lesson's phrases (Rosa says "¡Hola!", offers fruit) are asked again with the lines of the lesson
+        [PhraseIds.Yes] = "guide.lesson.offer.1",
+        [PhraseIds.No] = "guide.lesson.offer.1",
     };
 
     /// <summary>The bundle pool that holds the request line of a phrase's review: <c>guide.review.phrase.pedir_agua</c> (hyphens become underscores).</summary>
@@ -46,7 +49,7 @@ public static class PhraseReviews
         ArgumentNullException.ThrowIfNull(phraseId);
         ArgumentNullException.ThrowIfNull(sheet);
         ArgumentNullException.ThrowIfNull(bundle);
-        if (!PhraseIds.HasScaffold(phraseId) || sheet.Find(phraseId) is not { Prompt: { } prompt })
+        if (sheet.Find(phraseId) is not { IsLearnerPhrase: true, Prompt: { } prompt })
         {
             return null;
         }

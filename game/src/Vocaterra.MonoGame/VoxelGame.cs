@@ -92,6 +92,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly PushToTalk _talk;
     private readonly SpeechActionRunner _actions;
     private readonly SupportFrontend _support;
+    private readonly SessionEnding _ending = new();
+    private bool _greetArmed = true;
     private readonly LessonFrontend _lesson;
     private bool _controlsOpen;
     private bool _aimedTipOffered;
@@ -181,6 +183,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _actions = new SpeechActionRunner(session, _dialogue, voice, CursorCell);
         _support = new SupportFrontend(session, _dialogue, _actions, Console.WriteLine);
         _lesson = new LessonFrontend(session, _dialogue, Console.WriteLine);
+        _lesson.OnRecapDone = ShowPhrasesJournal; // the lesson's recap ends on the journal's phrases page (S17)
+        _ending.MarkSeen(session); // a game loaded after its ending does not play it again
         _micCheck = options.ShowsMicCheck ? new MicCheckModel(session.LogMicCheck) : null;
         _playtest = options.Playtest;
         _debug.Visible = !_playtest; // the playtest has no debug overlay (F3 is off there too)
@@ -239,7 +243,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _playtestSavePath = PlaytestEnd.SaveIn(directory);
             Console.WriteLine(options.IsPlaytestRecall
                 ? $"playtest: the next-day recall of the save from session {_session.PlaySession - 1}; the run ends after the check"
-                : $"playtest: the pre-check, the run, then the post-check when the camp is done and the transfer offered (or F10); the save is {_playtestSavePath}");
+                : $"playtest: the pre-check, the run, then the post-check when the camp is done, the fire at the player's camp is lit and the transfer offered (or F10); the save is {_playtestSavePath}");
         }
 
         if (options.Check is { } battery)
@@ -380,6 +384,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Cards = _cards,
             MicCheck = _micCheck,
             ShowTips = _options.ShowsTips,
+            Ending = _ending,
         };
         _layers.Add(new HeldItemLayer());
         _layers.Add(new CrosshairLayer());
@@ -396,6 +401,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _layers.Add(new WordCardLayer());
         _layers.Add(new DialoguePanel());
         _layers.Add(new ToastLayer());
+        _layers.Add(new EndingLayer());
         _layers.Add(new JournalLayer());
         _layers.Add(new InventoryLayer());
         _layers.Add(new CraftingLayer());
@@ -433,13 +439,19 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _log?.Pump(_session); // the replay records and the events of this frame (S11)
         _ = _support.Pump(later => _voice.Say(later.Npc, later.Lines)); // the shopkeeper's question after the key words is spoken first
         _lesson.Pump(); // a lesson step's line goes on the panel (S16)
+        if (_ending.Update(_session, _sim.Tick))
+        {
+            // The session's ending (S17): the guide says her closing line, the card says "Session complete" in English and Spanish.
+            _voice.Say(SpeechSpeakers.Guide, [_ending.Spanish]);
+            Console.WriteLine($"session complete: {_ending.Spanish} ({_ending.English}); {_session.Objective.Summary}");
+        }
 
         RunWatchdog(seconds);
         DriveScriptedMicCheck();
         if (_playtest && (_scenario is null || _scenario.AtStepBoundary)
-            && PlaytestEnd.StartsOnItsOwn(true, WorldRunning, _playtestStarted, _session.Objective.Complete, PlaytestEnd.TransferOffered(_session.Events), _dialogue.IsOpen))
+            && PlaytestEnd.StartsOnItsOwn(true, WorldRunning, _playtestStarted, _session.SessionComplete, PlaytestEnd.TransferOffered(_session.Events), _dialogue.IsOpen))
         {
-            StartPlaytestPost("the camp is done and the transfer offered");
+            StartPlaytestPost("the camp is done, the player's fire is lit and the transfer offered");
         }
 
         if (_playtestSaveDue && _session.CanSave)
@@ -463,6 +475,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         PumpTalk(seconds);
         _pump.Submit();
         SyncBeacon();
+        var free = _scenario is null && WorldRunning && !_dialogue.IsOpen && !_journal.IsOpen && !_inventory.IsOpen && !_crafting.IsOpen && !_controlsOpen && _session.PendingTurns == 0;
+        if (GuideApproach.ShouldGreet(_session, ref _greetArmed, free))
+        {
+            Console.WriteLine("approach: the guide greets the player and her lesson begins");
+            OpenDialogueOn(NpcService.GuideAgent, null); // the player came up to her (S17): the same call the E key makes
+        }
+
         _aimed = AimedFigure();
         if (_aimed is not null && !_aimedTipOffered)
         {
@@ -844,6 +863,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             else if (Pressed(Keys.Escape))
             {
                 _captureWanted = false;
+                _ending.Dismiss(); // Esc takes the closing card down (S17)
             }
 
             if (Pressed(Keys.F3) && !_playtest)
@@ -1066,7 +1086,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 return;
             }
 
-            var layout = DialoguePanel.LayoutFor(_dialogue, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, font);
+            var layout = DialoguePanel.LayoutFor(_dialogue, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, font, _session);
             if (layout.ActionAt(x, y) is { } action)
             {
                 PerformAction(action, null);
@@ -1914,7 +1934,19 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 Console.WriteLine($"  {turn.Npc}: {line}");
             }
 
-            _voice.Say(turn.Npc, turn.GuideLines); // the NPC's lines, in the order the panel shows them (S9)
+            if (turn.SlowFollowUp && turn.FollowUp is { Count: > 0 } again)
+            {
+                // "Más despacio, por favor" (S17): her reply, then her last line again from the slow recordings.
+                _voice.Say(turn.Npc, turn.GuideLines.Take(turn.GuideLines.Count - again.Count));
+                foreach (var line in again)
+                {
+                    _voice.Append(turn.Npc, line, slow: true);
+                }
+            }
+            else
+            {
+                _voice.Say(turn.Npc, turn.GuideLines); // the NPC's lines, in the order the panel shows them (S9)
+            }
 
             if (_dialogue.Heard is { } heard && turn.Input == InputKind.Spoken)
             {
@@ -1966,6 +1998,24 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _journal.Show(JournalPage.Phrases);
         }
 
+        _focus.JournalOpen = true;
+    }
+
+    // The end of the lesson's recap (S17): the panel closes and the journal opens on its phrases page, where each phrase the lesson taught is listed with the help it has now.
+    private void ShowPhrasesJournal()
+    {
+        if (_scenario is not null)
+        {
+            return; // a scripted run goes on with its steps and asks for the journal itself (--journal --journal-phrases); an overlay would cover its screenshots
+        }
+
+        if (_dialogue.IsOpen)
+        {
+            CloseDialogue();
+        }
+
+        _journal.Open(_session.Words);
+        _journal.Show(JournalPage.Phrases);
         _focus.JournalOpen = true;
     }
 

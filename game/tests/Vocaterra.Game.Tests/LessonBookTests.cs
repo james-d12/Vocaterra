@@ -25,23 +25,59 @@ public sealed class LessonBookTests
         "{ \"schemaVersion\": 1, \"lessons\": [ { " + head + ", \"steps\": [ " + steps + " ] } ] }";
 
     [Fact]
-    public void TheShippedSampleIsATwoStepLessonAtTheGuideOnPhrasesAndLinesThatAlreadyExist()
+    public void TheShippedLessonIsTheGuidesFirstWordsInSixUnitsAndTheSampleIsRetired()
     {
         var book = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), TestGame.Speech);
 
-        var sample = Assert.Single(book.Lessons);
-        Assert.Equal(("sample", "guide", 2), (sample.Id, sample.Npc, sample.Steps.Count));
-        Assert.Equal([LessonStepType.Repeat, LessonStepType.Answer], sample.Steps.Select(static s => s.Type));
-        Assert.Equal(["hola", "gracias"], sample.TaughtPhrases);
-        Assert.Equal(["hola", "gracias"], book.TaughtPhrases);
-        Assert.False(sample.AutoStart);
-        var answer = sample.Steps[1];
-        Assert.Equal("guide_offer_yes.1", answer.Line!.LineId);
-        var folder = Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName);
-        var store = new Vocaterra.Nlp.Response.Speech.StaticLineStore(folder);
-        Assert.True(store.Contains(answer.Line.LineId));
-        Assert.True(store.Contains(SpeechFiles.SlowId(answer.Line.LineId)));
-        Assert.True(store.Contains("phrase.hola")); // the repeat step's model is the phrase's own file
+        var lesson = Assert.Single(book.Lessons);
+        Assert.Equal(("first-words", "guide", true), (lesson.Id, lesson.Npc, lesson.AutoStart)); // it starts by itself when the player first talks to her
+        Assert.Null(book.Find("sample"));
+        foreach (var unit in new[] { "u1", "u2", "u3", "u4", "u5", "u6" })
+        {
+            Assert.Contains(lesson.Steps, s => s.Id.StartsWith(unit + "-", StringComparison.Ordinal));
+        }
+
+        Assert.Equal(LessonStepType.Recap, lesson.Steps[^1].Type); // the recap of the phrases learnt closes it
+        Assert.Equal(
+            ["hola", "si", "no", "que-es-esto", "si-por-favor", "gracias", "no-se", "otra-vez", "mas-despacio"],
+            lesson.TaughtPhrases);
+        Assert.Equal(lesson.TaughtPhrases, book.TaughtPhrases);
+        Assert.All(lesson.TaughtPhrases, id => Assert.True(PhraseSheet.Load(TestGame.Bundle).Find(id)!.IsLearnerPhrase, id));
+        foreach (var type in Enum.GetValues<LessonStepType>().Where(static t => t != LessonStepType.Recap))
+        {
+            Assert.Contains(lesson.Steps, s => s.Type == type); // built from the runner's step types: explain, model, listen, repeat, answer and do
+        }
+
+        var pick = Assert.Single(lesson.Steps, static s => s.Type == LessonStepType.Do);
+        Assert.Equal(("item_picked_up", "fruta", "fruta"), (pick.Event, pick.Detail, pick.Point)); // the fruit Luna offers is picked up from a bush
+        Assert.False(string.IsNullOrWhiteSpace(pick.Hud));
+    }
+
+    [Fact]
+    public void TheFirstUseOfAPhraseHasItsCardAndTheEnglishThinsAfterIt()
+    {
+        var lesson = Assert.Single(LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), TestGame.Speech).Lessons);
+
+        // The first time a phrase is asked it is a repeat step (the card is up) unless an explain step has named it in English just before (the card is not
+        // needed for a word the learner has just read); every later use is an answer step (no card), with fewer words of English.
+        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        foreach (var phrase in lesson.TaughtPhrases)
+        {
+            var uses = lesson.Steps.Where(s => s.WaitsOnTurn && s.Phrase == phrase).ToList();
+            if (uses[0].Type != LessonStepType.Repeat)
+            {
+                var spanish = sheet.Find(phrase)!.Spanish.TrimEnd('.').Split(',')[0];
+                var before = lesson.Steps.Take(lesson.Steps.ToList().IndexOf(uses[0])).Where(static s => s.Type == LessonStepType.Explain);
+                Assert.Contains(before, s => s.English.Contains("“" + spanish + "”", StringComparison.OrdinalIgnoreCase));
+            }
+
+            Assert.All(uses.Skip(1), static s => Assert.Equal(LessonStepType.Answer, s.Type));
+        }
+
+        var asks = lesson.Steps.Where(static s => s.Phrase == "que-es-esto").ToList();
+        Assert.Equal(3, asks.Count);
+        Assert.True(asks[1].English.Length < asks[0].English.Length);
+        Assert.True(asks[2].English.Length <= asks[1].English.Length);
     }
 
     [Fact]
@@ -49,15 +85,21 @@ public sealed class LessonBookTests
     {
         var book = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), TestGame.Speech);
         var store = new Vocaterra.Nlp.Response.Speech.StaticLineStore(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
+        var english = EnglishText.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle));
 
         foreach (var step in book.Lessons.SelectMany(static l => l.Steps))
         {
             Assert.False(string.IsNullOrWhiteSpace(step.English), step.Id);
             if (step.Line is { } line)
             {
-                Assert.True(store.Contains(line.LineId), $"{line.LineId}.wav");
-                Assert.True(store.Contains(SpeechFiles.SlowId(line.LineId)), $"{line.LineId}.slow.wav");
+                if (!PendingSpeech.Contains(line.LineId))
+                {
+                    Assert.True(store.Contains(line.LineId), $"{line.LineId}.wav");
+                    Assert.True(store.Contains(SpeechFiles.SlowId(line.LineId)), $"{line.LineId}.slow.wav");
+                }
+
                 Assert.False(string.IsNullOrWhiteSpace(step.Translation), step.Id);
+                Assert.Equal(step.Translation, english.ForLine(line.Text)); // the English under the line is the same in the file's lines and in the step
             }
         }
     }

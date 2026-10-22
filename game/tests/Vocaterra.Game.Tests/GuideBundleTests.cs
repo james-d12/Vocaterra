@@ -12,7 +12,7 @@ namespace Vocaterra.Game.Tests;
 /// <summary>The guide's part of <c>content/game-v1</c>: its agent, intents, prompt and pools load, are consistent and say what the game relies on.</summary>
 public sealed class GuideBundleTests
 {
-    private static readonly string[] GuideIntents = ["ask_directions", "ask_craft", "ask_find", "ask_what", "ask_help", "dont_know", "name_object", "greet", "thank", "farewell"];
+    private static readonly string[] GuideIntents = ["ask_directions", "ask_craft", "ask_find", "ask_what", "ask_help", "dont_know", "name_object", "greet", "thank", "farewell", "ask_repeat", "ask_slower"];
 
     [Fact]
     public void TheGuidePromptAndAgentLoad()

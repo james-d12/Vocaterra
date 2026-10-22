@@ -99,6 +99,44 @@ public static class SpeechButtons
         new(SpeechAction.Type, TypeLabel, "W"),
     ];
 
+    /// <summary>The English-text key of a fixed button (<see cref="SpeechButtonKeys"/>), or <see langword="null"/> for a choice.</summary>
+    /// <param name="action">The button.</param>
+    public static string? KeyOf(SpeechAction action) => action switch
+    {
+        SpeechAction.Repeat => SpeechButtonKeys.Repeat,
+        SpeechAction.Slower => SpeechButtonKeys.Slower,
+        SpeechAction.Help => SpeechButtonKeys.Help,
+        SpeechAction.DontKnow => SpeechButtonKeys.DontKnow,
+        SpeechAction.Type => SpeechButtonKeys.Type,
+        _ => null,
+    };
+
+    /// <summary>
+    /// The text drawn on a fixed button (S17, D-game-13): <c>[R] Repetir (repeat)</c> while the learner is early, <c>[R] Repetir</c> once the button (or its phrase) has
+    /// been used <see cref="GuideSession.ButtonEnglishUses"/> times. The English is help on screen only; the key and the button work the same without it (rule 8).
+    /// </summary>
+    /// <param name="button">The button.</param>
+    /// <param name="session">The game whose counts say whether the English is still up, or <see langword="null"/> for the Spanish alone.</param>
+    public static string TextFor(SpeechButton button, GuideSession? session)
+    {
+        ArgumentNullException.ThrowIfNull(button);
+        return session is not null && KeyOf(button.Action) is { } key && session.ButtonEnglishUp(key)
+            ? $"{button.Text} ({session.English.ButtonEnglish(key)})"
+            : button.Text;
+    }
+
+    /// <summary>
+    /// The key hints under the buttons (S17): the hold-to-talk hint in Spanish, with its English while the learner has spoken fewer than
+    /// <see cref="GuideSession.ButtonEnglishUses"/> lines.
+    /// </summary>
+    /// <param name="hints">The Spanish hints (<c>Mantén V o Espacio: hablar  Esc: cancelar o cerrar</c>).</param>
+    /// <param name="session">The game, or <see langword="null"/> for the Spanish alone.</param>
+    public static string HintsFor(string hints, GuideSession? session)
+    {
+        ArgumentNullException.ThrowIfNull(hints);
+        return session is not null && session.ButtonEnglishUp(SpeechButtonKeys.Hold) ? $"{hints} ({session.English.ButtonEnglish(SpeechButtonKeys.Hold)})" : hints;
+    }
+
     /// <summary>The action a key presses while the panel shows its buttons (not while the text entry has the keys), or <see langword="null"/>.</summary>
     /// <param name="key">The key.</param>
     public static SpeechAction? ForKey(PanelKey key) => key switch
@@ -215,7 +253,8 @@ public readonly record struct DialogueLayout
     /// <param name="measure">The width of a text in pixels, in the font the panel draws with.</param>
     /// <param name="choiceLabels">The labels of the offered choices (at most three are laid out).</param>
     /// <param name="typing">Whether the text box is shown.</param>
-    public DialogueLayout(int viewportWidth, int viewportHeight, Func<string, float> measure, IReadOnlyList<string> choiceLabels, bool typing)
+    /// <param name="buttonText">The text drawn on each fixed button (S17: with its English while the learner is early); <see langword="null"/> for the Spanish label alone.</param>
+    public DialogueLayout(int viewportWidth, int viewportHeight, Func<string, float> measure, IReadOnlyList<string> choiceLabels, bool typing, Func<SpeechButton, string>? buttonText = null)
     {
         ArgumentNullException.ThrowIfNull(measure);
         ArgumentNullException.ThrowIfNull(choiceLabels);
@@ -230,14 +269,35 @@ public readonly record struct DialogueLayout
             floor = InputBox.Value.Y - 6;
         }
 
-        var buttonsY = floor - ButtonHeight;
-        var buttons = new List<(SpeechAction Action, PixelBox Box)>();
+        // The five buttons in a row; with their English (S17) they may not all fit, and the rest go on a second row above, so a button is never off the panel.
+        var widths = SpeechButtons.All.Select(button => (int)Math.Ceiling(measure(buttonText?.Invoke(button) ?? button.Text)) + (ButtonPadding * 2)).ToList();
+        var rowCount = 1;
         var x = left;
-        foreach (var button in SpeechButtons.All)
+        foreach (var width in widths)
         {
-            var width = (int)Math.Ceiling(measure(button.Text)) + (ButtonPadding * 2);
-            buttons.Add((button.Action, new PixelBox(x, buttonsY, width, ButtonHeight)));
+            if (x > left && x + width > left + InnerWidth)
+            {
+                rowCount++;
+                x = left;
+            }
+
             x += width + Gap;
+        }
+
+        var buttonsY = floor - ButtonHeight - ((rowCount - 1) * (ButtonHeight + Gap));
+        var buttons = new List<(SpeechAction Action, PixelBox Box)>();
+        x = left;
+        var rowY = buttonsY;
+        for (var i = 0; i < widths.Count; i++)
+        {
+            if (x > left && x + widths[i] > left + InnerWidth)
+            {
+                rowY += ButtonHeight + Gap;
+                x = left;
+            }
+
+            buttons.Add((SpeechButtons.All[i].Action, new PixelBox(x, rowY, widths[i], ButtonHeight)));
+            x += widths[i] + Gap;
         }
 
         Buttons = buttons;

@@ -133,9 +133,24 @@ public static class PhraseIds
     /// <summary>"Ayuda."</summary>
     public const string Help = "ayuda";
 
+    /// <summary>"Sí." (S17: the lesson's yes; a lesson step has it in play, and the plain "sí" is otherwise <see cref="YesPlease"/>).</summary>
+    public const string Yes = "si";
+
+    /// <summary>"No." (S17: the lesson's no; otherwise <see cref="NoThanks"/>).</summary>
+    public const string No = "no";
+
+    /// <summary>"¿Qué es esto?" (S17).</summary>
+    public const string WhatIsThis = "que-es-esto";
+
+    /// <summary>"Otra vez, por favor." (S17).</summary>
+    public const string AgainPlease = "otra-vez";
+
+    /// <summary>"Más despacio, por favor." (S17).</summary>
+    public const string SlowerPlease = "mas-despacio";
+
     /// <summary>Every phrase id the game can log, in ordinal order.</summary>
     public static IReadOnlyList<string> All { get; } =
-        new[] { RequestWater, YesPlease, NoThanks, WhereIsTheRiver, Hello, Thanks, Goodbye, DontKnow, Help }.Order(StringComparer.Ordinal).ToList();
+        new[] { RequestWater, YesPlease, NoThanks, WhereIsTheRiver, Hello, Thanks, Goodbye, DontKnow, Help, Yes, No, WhatIsThis, AgainPlease, SlowerPlease }.Order(StringComparer.Ordinal).ToList();
 
     /// <summary>
     /// The sheet's id of the phrase a communicated turn used, or <see langword="null"/> when the turn is not one of the sheet's phrases (a

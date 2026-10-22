@@ -18,6 +18,7 @@
         {"text": "buenas tardes", "errors": [], "prompt": "villager-open"},
         {"text": "buenas noches", "errors": [], "prompt": "villager-open"},
         {"text": "buen día", "errors": [], "prompt": "villager-open"},
+        {"text": "hola, Luna", "errors": [], "prompt": "villager-open"},
         {"text": "buenos día", "errors": ["noun.number"], "prompt": "villager-open"},
         "hola amigo"
       ]
@@ -35,7 +36,7 @@
       "keywordRules": [
         { "lemmas": ["sí"], "requiresSlots": [] }
       ],
-      "lint": {"allowRuleOnly": ["sí, por favo"]},
+      "lint": {"allowRuleOnly": ["sí, por favo", "sí, es madera", "sí, es un madera"]},
       "examples": [
         {"text": "sí, por favor", "errors": [], "prompt": "stall-offer"},
         {"text": "sí", "errors": [], "prompt": "stall-offer"},
@@ -45,6 +46,8 @@
         {"text": "por favor, sí", "errors": [], "prompt": "stall-offer"},
         {"text": "claro que sí", "errors": [], "prompt": "stall-offer"},
         {"text": "sí, por favo", "errors": ["vocab.unknown"], "prompt": "stall-offer"},
+        {"text": "sí, es madera", "errors": [], "prompt": "lesson-yesno"},
+        {"text": "sí, es un madera", "errors": ["gender.agree"], "prompt": "lesson-yesno"},
         "de acuerdo"
       ]
     },
@@ -60,13 +63,16 @@
       "keywordRules": [
         { "lemmas": ["no"], "requiresSlots": [] }
       ],
-      "lint": {"allowRuleOnly": ["no, mucho gracias"]},
+      "lint": {"allowRuleOnly": ["no, mucho gracias", "no es agua", "no, es madera", "no, es un madera"]},
       "examples": [
         {"text": "no, gracias", "errors": [], "prompt": "stall-offer"},
         {"text": "no", "errors": [], "prompt": "stall-offer"},
         {"text": "no, muchas gracias", "errors": [], "prompt": "stall-offer"},
         {"text": "gracias, no", "errors": [], "prompt": "stall-offer"},
         {"text": "no, mucho gracias", "errors": ["gender.agree", "noun.number"], "prompt": "stall-offer"},
+        {"text": "no es agua", "errors": [], "prompt": "lesson-yesno"},
+        {"text": "no, es madera", "errors": [], "prompt": "lesson-yesno"},
+        {"text": "no, es un madera", "errors": ["gender.agree"], "prompt": "lesson-yesno"},
         "ahora no",
         "no quiero"
       ]
@@ -233,12 +239,13 @@
         { "lemmas": ["esto"], "requiresSlots": [] },
         { "lemmas": ["eso"], "requiresSlots": [] }
       ],
+      "lint": {"allowRuleOnly": ["y esto"]},
       "examples": [
         "qué es esto",
         "qué es eso",
         "cómo se llama esto",
         "cómo se llama eso",
-        "qué son esto"
+        "y esto"
       ]
     },
     {
@@ -278,6 +285,49 @@
         {"text": "me puedes ayudar", "errors": [], "prompt": "villager-open"},
         {"text": "yo necesitas ayuda", "errors": ["conj.person"], "prompt": "villager-open"},
         "qué hago"
+      ]
+    },
+    {
+      "intentId": "ask_repeat",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "otra vez (por favor)?",
+        "[VERB:repetir] (por favor)?"
+      ],
+      "keywordRules": [
+        { "lemmas": ["repetir"], "requiresSlots": [] }
+      ],
+      "lint": {"allowRuleOnly": ["puedes repetir", "puedes repetir, por favor"]},
+      "examples": [
+        {"text": "otra vez, por favor", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "otra vez", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "repite, por favor", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "repite", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "puedes repetir", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "puedes repetir, por favor", "errors": [], "prompt": "lesson-unstuck"}
+      ]
+    },
+    {
+      "intentId": "ask_slower",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "más despacio (por favor)?",
+        "despacio (por favor)?",
+        "más lento (por favor)?",
+        "[VERB:hablar] más despacio (por favor)?"
+      ],
+      "keywordRules": [
+        { "lemmas": ["despacio"], "requiresSlots": [] },
+        { "lemmas": ["lento"], "requiresSlots": [] }
+      ],
+      "examples": [
+        {"text": "más despacio, por favor", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "más despacio", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "habla más despacio", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "habla más despacio, por favor", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "despacio, por favor", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "más lento", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "más lento, por favor", "errors": [], "prompt": "lesson-unstuck"}
       ]
     }
   ]

@@ -93,8 +93,9 @@ public sealed class SpeechLinesTests
 
         Assert.Equal(Lines.Count, summary.Lines);
         Assert.Equal(2 * Lines.Count, summary.Files);
-        Assert.Equal(0, summary.Missing);
-        Assert.Equal($"speech: {Lines.Count} lines, {2 * Lines.Count} files, 0 missing", summary.ToString());
+        Assert.Equal(2 * PendingSpeech.Ids.Count, summary.Missing); // exactly the lines S17 phase 1 added and phase 2 renders: nothing else is missing
+        Assert.Equal($"speech: {Lines.Count} lines, {2 * Lines.Count} files, {2 * PendingSpeech.Ids.Count} missing", summary.ToString());
+        Assert.All(PendingSpeech.Ids, id => Assert.Contains(Lines, l => string.Equals(l.LineId, id, StringComparison.Ordinal)));
     }
 
     [Fact]
@@ -110,7 +111,7 @@ public sealed class SpeechLinesTests
     public void EveryCommittedFileIsAReadableMonoWavOfKokoroRate()
     {
         var store = new StaticLineStore(SpeechDirectory);
-        foreach (var line in Lines)
+        foreach (var line in Lines.Where(static l => !PendingSpeech.Contains(l.LineId)))
         {
             foreach (var id in new[] { line.LineId, SpeechFiles.SlowId(line.LineId) })
             {

@@ -267,3 +267,16 @@ English is on-screen text only; only Spanish is spoken. All of it is game conten
   `TipsSave`) is in the save; each step and its outcome is a `LessonEvent` (the console's `event: lesson ...` lines and the session log's `lesson` lines).
   To add a lesson: edit the file, re-hash the bundle, run the tests (`LessonBookTests` loads the shipped file and checks that its WAVs exist).
 
+  **S17 additions.** A `do` step may carry `point` (a catalogue noun: the beacon goes to the nearest block of it when the step begins) and `hud` (the short line the
+  objective area shows while the step waits and the panel is closed). `LessonRunner.OnTurn` says whether the lesson *took* the turn (the core understood it):
+  `GuideTurn.LessonHandled` is then set on the copy the session returns (`GuideSession.AfterTurn`), and the guide's ordinary reply and world line are neither shown
+  nor played (`GuideTurn.GuideLines`, `DialogueModel`); help and "no sé" are the lesson's help path except in the step whose own phrase is `no-se` or `ayuda`.
+  `Otra vez, por favor` and `Más despacio, por favor` are intents (`ask_repeat`, `ask_slower`) of the guide's prompts; her state machine raises the host events
+  `guide.repeat` and `guide.repeat_slow`, and the session adds her last line (`LastLineOf`: her opening, a lesson step's line, or the last line of a turn the lesson
+  did not take) to the turn's follow-up, with `SlowFollowUp` set for the slow one so the front-end plays the slow recording. The credit of a phrase goes to the
+  phrase a step has in play before the fixed intent mapping (`Sí.` in the lesson, `Sí, por favor.` at an offer). Tips have a `delay` (seconds after their
+  trigger), so the opening tips come one at a time. `VoxelSession` adds the stage of the objective area (`SessionStage`: find the guide, the checklist, light your
+  fire, complete), the spare torch when the checklist is complete, the arrow to the player's own camp, the lit fire (a torch on the rim of the ring at
+  `firering.player`; the guide's ring still completes the checklist's torch step) and `SessionComplete`. The stage is worked out again after a load
+  (`RestoreStage`), so the save has no new field.
+

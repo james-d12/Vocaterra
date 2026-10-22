@@ -76,6 +76,9 @@ public sealed class FrameView
     /// <summary>Whether the first-time tips are drawn (S16): an interactive run shows them, a scripted run only when asked.</summary>
     public bool ShowTips { get; set; }
 
+    /// <summary>The closing moment of the session (S17), or <see langword="null"/> when this view has none.</summary>
+    public SessionEnding? Ending { get; init; }
+
     /// <summary>Whether the controls help (F1, S16) is open.</summary>
     public bool ControlsOpen { get; set; }
 

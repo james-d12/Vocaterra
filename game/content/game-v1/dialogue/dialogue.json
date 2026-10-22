@@ -471,6 +471,104 @@
       "variants": [
         { "lineId": "guide_offer_help.1", "text": "Puedes decir: «Sí, por favor» o «No, gracias»." }
       ]
+    },
+    "guide_again": {
+      "poolId": "guide_again",
+      "variants": [
+        { "lineId": "guide_again.1", "text": "Claro. Otra vez." },
+        { "lineId": "guide_again.2", "text": "¡Claro! Te lo digo otra vez." }
+      ]
+    },
+    "guide_slower": {
+      "poolId": "guide_slower",
+      "variants": [
+        { "lineId": "guide_slower.1", "text": "Claro. Más despacio." },
+        { "lineId": "guide_slower.2", "text": "¡Claro! Te lo digo más despacio." }
+      ]
+    },
+    "guide.lesson.hello": {
+      "poolId": "guide.lesson.hello",
+      "variants": [
+        { "lineId": "guide.lesson.hello.1", "text": "¡Hola!" }
+      ]
+    },
+    "guide.lesson.name": {
+      "poolId": "guide.lesson.name",
+      "variants": [
+        { "lineId": "guide.lesson.name.1", "text": "Me llamo Luna." }
+      ]
+    },
+    "guide.lesson.is_wood": {
+      "poolId": "guide.lesson.is_wood",
+      "variants": [
+        { "lineId": "guide.lesson.is_wood.1", "text": "¿Es madera?" }
+      ]
+    },
+    "guide.lesson.is_water": {
+      "poolId": "guide.lesson.is_water",
+      "variants": [
+        { "lineId": "guide.lesson.is_water.1", "text": "¿Es agua?" }
+      ]
+    },
+    "guide.lesson.look": {
+      "poolId": "guide.lesson.look",
+      "variants": [
+        { "lineId": "guide.lesson.look.1", "text": "Mira." }
+      ]
+    },
+    "guide.lesson.it_is": {
+      "poolId": "guide.lesson.it_is",
+      "variants": [
+        { "lineId": "guide.lesson.it_is.1", "text": "Esto es madera." },
+        { "lineId": "guide.lesson.it_is.2", "text": "Esto es una fruta." },
+        { "lineId": "guide.lesson.it_is.3", "text": "Esto es agua." },
+        { "lineId": "guide.lesson.it_is.4", "text": "Esto es una botella." },
+        { "lineId": "guide.lesson.it_is.5", "text": "Esto es una mesa." },
+        { "lineId": "guide.lesson.it_is.6", "text": "Esto es una antorcha." },
+        { "lineId": "guide.lesson.it_is.7", "text": "Esto es una piedra." }
+      ]
+    },
+    "guide.lesson.offer": {
+      "poolId": "guide.lesson.offer",
+      "variants": [
+        { "lineId": "guide.lesson.offer.1", "text": "¿Quieres fruta?" }
+      ]
+    },
+    "guide.lesson.take": {
+      "poolId": "guide.lesson.take",
+      "variants": [
+        { "lineId": "guide.lesson.take.1", "text": "Toma una fruta." }
+      ]
+    },
+    "guide.lesson.have": {
+      "poolId": "guide.lesson.have",
+      "variants": [
+        { "lineId": "guide.lesson.have.1", "text": "¡Muy bien! Tienes una fruta." }
+      ]
+    },
+    "guide.lesson.welcome": {
+      "poolId": "guide.lesson.welcome",
+      "variants": [
+        { "lineId": "guide.lesson.welcome.1", "text": "De nada." }
+      ]
+    },
+    "guide.lesson.fast": {
+      "poolId": "guide.lesson.fast",
+      "variants": [
+        { "lineId": "guide.lesson.fast.1", "text": "Mira. La madera es para la antorcha." }
+      ]
+    },
+    "guide.lesson.task": {
+      "poolId": "guide.lesson.task",
+      "variants": [
+        { "lineId": "guide.lesson.task.1", "text": "Necesitas madera y frutas." }
+      ]
+    },
+    "guide.lesson.end": {
+      "poolId": "guide.lesson.end",
+      "variants": [
+        { "lineId": "guide.lesson.end.1", "text": "¡Muy bien! Ya tienes fuego." }
+      ]
     }
   }
 }

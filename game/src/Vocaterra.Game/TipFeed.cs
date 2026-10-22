@@ -14,7 +14,10 @@ public sealed class TipFeed
     private readonly GuideSession _session;
     private readonly EnglishText _english;
     private readonly HashSet<string> _shown = new(StringComparer.Ordinal);
+    private const long VoxelTicksPerSecond = 60;
+
     private readonly List<TipSpec> _queue = [];
+    private readonly Dictionary<string, long> _readyAt = new(StringComparer.Ordinal);
     private TipSpec? _current;
     private long _since;
 
@@ -44,11 +47,12 @@ public sealed class TipFeed
             if (string.Equals(tip.When, when, StringComparison.Ordinal) && !_shown.Contains(tip.Id) && !_queue.Contains(tip) && !Equals(_current, tip))
             {
                 _queue.Add(tip);
+                _readyAt[tip.Id] = _session.CurrentTick + (tip.DelaySeconds * VoxelTicksPerSecond); // a delayed tip waits (S17: the opening tips come one at a time)
             }
         }
     }
 
-    /// <summary>Moves the feed on to a tick: an old tip goes, and the next one waiting comes up (and is logged as shown).</summary>
+    /// <summary>Moves the feed on to a tick: an old tip goes, and the next one waiting (whose delay is over) comes up and is logged as shown.</summary>
     /// <param name="tick">The simulation tick.</param>
     public void Step(long tick)
     {
@@ -57,10 +61,11 @@ public sealed class TipFeed
             _current = null;
         }
 
-        if (_current is null && _queue.Count > 0)
+        var next = _current is null ? _queue.FindIndex(tip => !_readyAt.TryGetValue(tip.Id, out var ready) || ready <= tick) : -1;
+        if (next >= 0)
         {
-            _current = _queue[0];
-            _queue.RemoveAt(0);
+            _current = _queue[next];
+            _queue.RemoveAt(next);
             _since = tick;
             _ = _shown.Add(_current.Id);
             _session.LogEvent(new WorldEvent(_session.CurrentTick, _session.StoredTime.UnixSeconds, WorldEvents.TipShown, null, _current.Id));
@@ -71,7 +76,8 @@ public sealed class TipFeed
     public void Dismiss() => _current = null;
 
     /// <summary>What a save keeps: the tips shown, the ones waiting in order, and the one on screen.</summary>
-    internal TipsSave Capture() => new(Shown, _queue.Select(static t => t.Id).ToArray(), _current?.Id, _current is null ? 0 : _since);
+    internal TipsSave Capture() =>
+        new(Shown, _queue.Select(static t => t.Id).ToArray(), _current?.Id, _current is null ? 0 : _since, _queue.Select(t => _readyAt.GetValueOrDefault(t.Id)).ToArray());
 
     /// <summary>Puts back the tips a save kept. An id the game's English text does not have is refused.</summary>
     /// <param name="save">The saved tips.</param>
@@ -88,7 +94,15 @@ public sealed class TipFeed
         }
 
         _queue.Clear();
+        _readyAt.Clear(); // a save from before the delays (no Ready) has its waiting tips ready at once
         _queue.AddRange(save.Queued.Select(Spec));
+        if (save.Ready is { } ready && ready.Count == save.Queued.Count)
+        {
+            for (var i = 0; i < ready.Count; i++)
+            {
+                _readyAt[save.Queued[i]] = ready[i];
+            }
+        }
         _current = save.Current is { } current ? Spec(current) : null;
         _since = save.Since;
     }

@@ -267,6 +267,12 @@ public sealed class LessonRunner
     }
 
     /// <summary>
+    /// The short English line the objective area shows while an engaged lesson waits on a <c>do</c> step that has one (S17: "Pick a fruit from a berry bush, then
+    /// go back to Rosa"), or <see langword="null"/>.
+    /// </summary>
+    public string? HudLine => Engaged && Current is { Type: LessonStepType.Do, Hud: { } hud } ? hud : null;
+
+    /// <summary>
     /// The prompt the next line the learner sends is evaluated at, while the step in progress waits on a turn and the panel is open on the lesson's NPC; otherwise
     /// <see langword="null"/> (the NPC's own prompt).
     /// </summary>
@@ -473,26 +479,30 @@ public sealed class LessonRunner
         }
     }
 
-    // A turn the session applied. Only a turn at the lesson's NPC, while a repeat or answer step waits, is the lesson's.
-    internal void OnTurn(GuideTurn turn)
+    // A turn the session applied. Only a turn at the lesson's NPC, while a repeat or answer step waits, is the lesson's. Returns whether the lesson took the
+    // turn (the core understood it): the lesson then speaks for the guide, so her ordinary reply is not shown (S17). A turn the core did not understand, or that
+    // the recognizer was unsure of, is not taken: her not-understood line and the help lines stay.
+    internal bool OnTurn(GuideTurn turn)
     {
         if (!Engaged || Active is not { } lesson || !string.Equals(turn.Npc, lesson.Npc, StringComparison.Ordinal))
         {
-            return;
+            return false;
         }
 
         var state = _states[lesson.Id];
         var step = lesson.Steps[state.Step];
         if (!step.WaitsOnTurn)
         {
-            return;
+            return false;
         }
 
+        var taken = true;
         if (turn.Unsure || turn.Uncertain || !turn.Communicated)
         {
             Miss(lesson, state, step, turn.Unsure || (turn.Uncertain && turn.Input == InputKind.Spoken) ? "uncertain recognition" : "not understood");
+            taken = false;
         }
-        else if (string.Equals(turn.Intent, "ask_help", StringComparison.Ordinal) || string.Equals(turn.Intent, "dont_know", StringComparison.Ordinal))
+        else if (IsServiceIntent(turn.Intent) && !MatchesPhrase(turn, step.Phrase!))
         {
             state.Helped = true;
             state.Hint = step.Help ?? _english.Ui("helpDefault");
@@ -511,7 +521,13 @@ public sealed class LessonRunner
         {
             Miss(lesson, state, step, $"said {turn.Intent}");
         }
+
+        return taken;
     }
+
+    // "Ayuda" and "no sé" ask for help and are never an attempt, except in the step that teaches the phrase itself (S17: "No sé" is a lesson phrase).
+    private static bool IsServiceIntent(string intent) =>
+        string.Equals(intent, "ask_help", StringComparison.Ordinal) || string.Equals(intent, "dont_know", StringComparison.Ordinal);
 
     // A world event the session logged: a do step waits for it.
     internal void OnEvent(GameEvent gameEvent)
@@ -604,6 +620,12 @@ public sealed class LessonRunner
         if (step.Line is { } line)
         {
             _session.Support.Enqueue(new AudioCue(line.Speaker, line.Text, line.LineId, "lesson"));
+            _session.NoteNpcLine(lesson.Npc, line.Text); // what "Otra vez, por favor" repeats (S17)
+        }
+
+        if (step.Point is { } noun)
+        {
+            _session.LessonPointAt(lesson.Npc, noun); // a do step may send the beacon to what the learner is to pick up (S17)
         }
 
         _version++;
@@ -648,17 +670,10 @@ public sealed class LessonRunner
         _version++;
     }
 
-    // Whether the core understood the line as the step's phrase: the intent of its row (and the river for the river question, as the phrase tracking reads it).
-    private bool MatchesPhrase(GuideTurn turn, string phraseId)
-    {
-        var row = _session.Phrases.Find(phraseId);
-        if (row?.Intent is null || !string.Equals(row.Intent, turn.Intent, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        return PhraseIds.For(turn.Intent, turn.Slots) is not { } mapped || string.Equals(mapped, phraseId, StringComparison.Ordinal);
-    }
+    // Whether the core understood the line as the step's phrase: the intent of its row. Phrases that share an intent (Sí and Sí, por favor) are one answer to
+    // the core, and the step's own phrase is the one the tracking credits (GuideSession.PhraseInPlayFor).
+    private bool MatchesPhrase(GuideTurn turn, string phraseId) =>
+        _session.Phrases.Find(phraseId) is { Intent: { } intent } && string.Equals(intent, turn.Intent, StringComparison.Ordinal);
 
     private IReadOnlyList<string> RecapLines(LessonDefinition lesson, LessonStep step)
     {

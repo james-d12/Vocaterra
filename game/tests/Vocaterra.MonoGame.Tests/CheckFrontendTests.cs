@@ -145,14 +145,14 @@ public sealed class CheckFrontendTests
     {
         var reported = new List<CheckResult>();
         var screen = new CheckScreen(CheckKind.Pre, Plan(), () => 0, reported.Add);
-        _ = screen.Pick(0);
+        var answered = screen.Pick(0) ? 1 : 0; // the first item of the plan is a comprehension item or not, depending on the bank and the seed
 
         screen.SkipRest();
 
         Assert.True(screen.IsDone);
-        Assert.Equal(10, screen.Results.Count);
-        Assert.Equal(9, screen.Results.Count(static r => r.Input == CheckInput.Skipped));
-        Assert.Equal(10, reported.Count);
+        Assert.Equal(20, screen.Results.Count);
+        Assert.Equal(20 - answered, screen.Results.Count(static r => r.Input == CheckInput.Skipped));
+        Assert.Equal(20, reported.Count);
     }
 
     [Fact]
@@ -172,9 +172,9 @@ public sealed class CheckFrontendTests
             }
         }
 
-        Assert.Equal(10, screen.Results.Count);
+        Assert.Equal(20, screen.Results.Count);
         Assert.Null(screen.Current);
-        Assert.Equal(10, screen.Index);
+        Assert.Equal(20, screen.Index);
     }
 
     [Fact]

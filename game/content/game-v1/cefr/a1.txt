@@ -17,6 +17,7 @@ amiga
 amigo
 animal
 antes
+antorcha
 aprender
 aquel
 aquí
@@ -92,6 +93,7 @@ de
 decir
 demasiado
 desde
+despacio
 después
 difícil
 dinero
@@ -127,6 +129,7 @@ feliz
 feo
 flecha
 fruta
+fuego
 frío
 fácil
 gallina
@@ -183,6 +186,7 @@ lo
 luego
 luna
 lunes
+madera
 madre
 mal
 malo

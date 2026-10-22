@@ -23,9 +23,13 @@ public sealed class VoxelSession : GuideSession
 
     private readonly List<WordCard> _newCards = [];
     private readonly List<BlockPos> _fireRing = [];
+    private readonly List<BlockPos> _playerFireRing = [];
     private readonly List<string> _hints = [];
     private IReadOnlyList<ObjectiveStep> _completed = [];
     private bool _riverPointed;
+    private bool _guideMet;
+    private bool _fireLit;
+    private bool _sessionComplete;
 
     /// <summary>
     /// Starts a 3D game on a loaded bundle and a built scene.
@@ -71,6 +75,69 @@ public sealed class VoxelSession : GuideSession
 
     /// <summary>The hint shown when the player works on water with no bottle (a toast; nothing is blocked).</summary>
     public const string NeedBottleHint = "Necesitas una botella.";
+
+    /// <summary>
+    /// Where the session stands for the objective area (S17): sent down the trail to the guide, the camp checklist, sent back up to light the player's own fire,
+    /// or complete. It only picks a line; nothing is gated by it.
+    /// </summary>
+    public SessionStage Stage =>
+        Objective.Complete ? (_fireLit ? SessionStage.Complete : SessionStage.LightFire) : _guideMet ? SessionStage.Camp : SessionStage.FindGuide;
+
+    /// <summary>
+    /// What the objective area (top right) says now, as coloured pieces (S17): a lesson's short line while its <c>do</c> step waits ("Pick a fruit from a berry bush, then go
+    /// back to Luna"); before the guide is met "Go down the trail and find the guide"; the camp checklist while it is the objective (<c>Campamento (camp): madera (wood)
+    /// 0/5 ...</c>, the English going as the nouns become known, D-game-13); once it is complete "Go back up the trail and light your own fire"; and, with the fire lit,
+    /// "Session complete". Every line but the checklist is English only.
+    /// </summary>
+    public IReadOnlyList<ObjectivePiece> ObjectiveHud()
+    {
+        if (Lessons.HudLine is { } hud)
+        {
+            return [new ObjectivePiece(hud, ObjectivePieceKind.English)];
+        }
+
+        return English.StageLine(Stage) is { } line
+            ? [new ObjectivePiece(line, ObjectivePieceKind.English, Stage == SessionStage.Complete)]
+            : English.ObjectivePieces(Objective, lemma => Words.RecordOf(lemma).Known);
+    }
+
+    /// <summary>Whether the player has met the guide (the panel opened on her, or the first step of the checklist was done).</summary>
+    public bool GuideMet => _guideMet;
+
+    /// <summary>Whether a torch stands on the rim of the fire ring at the player's own camp (<c>firering.player</c>): the fire is lit.</summary>
+    public bool FireLit => _fireLit;
+
+    /// <summary>Whether the session is complete: the camp checklist is done and the player's own fire is lit. The front-end then shows the closing moment.</summary>
+    public bool SessionComplete => _sessionComplete;
+
+    /// <summary>The bundle pool that holds the guide's closing line, said when the player's own fire is lit (S17).</summary>
+    public const string ClosingPool = "guide.lesson.end";
+
+    /// <summary>The guide's closing line in Spanish (<c>¡Muy bien! Ya tienes fuego.</c>), or an empty text when the bundle has none.</summary>
+    public string ClosingLine => Bundle.Dialogue.TryGetPoolById(ClosingPool, out var pool) && pool.Variants.Count > 0 ? pool.Variants[0].Text : string.Empty;
+
+    /// <summary>
+    /// Whether the scene has a fire ring at the player's own camp, where the closing fire is lit (the flat test clearing has none, and its sessions never reach
+    /// <see cref="SessionStage.Complete"/>).
+    /// </summary>
+    public bool HasPlayerFireRing => _playerFireRing.Count > 0;
+
+    /// <summary>Whether a cell lies at the fire ring of the player's own camp (the same square as <see cref="AtFireRing"/>, around <c>firering.player</c>).</summary>
+    /// <param name="cell">The cell.</param>
+    public bool AtPlayerFireRing(BlockPos cell) => AtRing(_playerFireRing, cell);
+
+    /// <inheritdoc />
+    protected override void NoteGuideMet()
+    {
+        if (!_guideMet)
+        {
+            _guideMet = true;
+            LogWorld(WorldEvents.GuideMet, NpcService.GuideAgent, null);
+        }
+    }
+
+    /// <inheritdoc />
+    internal override void LessonPointAt(string npc, string noun) => PointAt(npc, noun);
 
     /// <summary>
     /// Whether an NPC has pointed the player at the river (the villager's answer, or the guide's) at any time so far. A player who fills the
@@ -137,7 +204,12 @@ public sealed class VoxelSession : GuideSession
                 case SimulationEventKind.BlockPlaced:
                     if ((BlockId)e.Detail == BlockId.Torch)
                     {
-                        completed.AddRange(Objective.RecordTorchPlaced(AtFireRing(new BlockPos(e.X, e.Y, e.Z))));
+                        var cell = new BlockPos(e.X, e.Y, e.Z);
+                        completed.AddRange(Objective.RecordTorchPlaced(AtFireRing(cell)));
+                        if (AtPlayerFireRing(cell))
+                        {
+                            LightFire(); // the closing fire (S17): a torch on the rim of the ring at the player's own camp
+                        }
                     }
 
                     break;
@@ -161,6 +233,11 @@ public sealed class VoxelSession : GuideSession
 
         _completed = completed;
         LogSteps(completed);
+        if (!_guideMet && Objective.Steps.Any(static s => s.Count > 0))
+        {
+            NoteGuideMet(); // the player started on the checklist without the guide: the objective line moves on all the same (nothing is gated)
+        }
+
         if (Pointer is { } pointer)
         {
             const long Unit = VoxelPhysics.UnitsPerBlock;
@@ -206,9 +283,11 @@ public sealed class VoxelSession : GuideSession
     /// Whether a cell lies at the camp's fire ring: a cell in the three-by-three square of the ring, on the layer of its stones (the empty
     /// centre) or on top of a stone (the rim). The torch is set on the rim, where a one-block ring does not hide its flame.
     /// </summary>
-    public bool AtFireRing(BlockPos cell)
+    public bool AtFireRing(BlockPos cell) => AtRing(_fireRing, cell);
+
+    private static bool AtRing(List<BlockPos> ring, BlockPos cell)
     {
-        foreach (var stone in _fireRing)
+        foreach (var stone in ring)
         {
             if ((stone.Y == cell.Y || stone.Y + 1 == cell.Y) && Math.Abs(stone.X - cell.X) <= 1 && Math.Abs(stone.Z - cell.Z) <= 1)
             {
@@ -217,6 +296,91 @@ public sealed class VoxelSession : GuideSession
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Works the session's stage out again from the world and the progress a save puts back (S17): the guide is met when a lesson was begun or the checklist moved, the
+    /// fire is lit when a torch stands at the player's own ring, and the session is complete when both that and the checklist are done. The save needs no new field.
+    /// </summary>
+    internal void RestoreStage()
+    {
+        _guideMet = Lessons.Book.Lessons.Any(l => Lessons.StatusOf(l.Id) != LessonStatus.NotStarted) || Objective.Steps.Any(static s => s.Count > 0);
+        _fireLit = false;
+        foreach (var stone in _playerFireRing)
+        {
+            for (var dx = -2; dx <= 2 && !_fireLit; dx++)
+            {
+                for (var dz = -2; dz <= 2 && !_fireLit; dz++)
+                {
+                    foreach (var y in new[] { stone.Y, stone.Y + 1 })
+                    {
+                        var x = stone.X + dx;
+                        var z = stone.Z + dz;
+                        if (Scene.Grid.InBounds(x, y, z) && Scene.Grid.GetBlock(x, y, z) == BlockId.Torch && AtPlayerFireRing(new BlockPos(x, y, z)))
+                        {
+                            _fireLit = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        _sessionComplete = _fireLit && Objective.Complete;
+    }
+
+    // The player's own fire is lit (S17). The session is complete once the checklist is too, in either order.
+    private void LightFire()
+    {
+        if (_fireLit)
+        {
+            return;
+        }
+
+        _fireLit = true;
+        Pointer = null; // the way back is walked: the arrow to the player's camp (or any earlier one) goes
+        LogWorld(WorldEvents.FireLit, null, "firering.player");
+        CheckSessionComplete();
+    }
+
+    // The arrow sends the player up the trail to their own camp, where the cold ring waits (S17).
+    private void PointAtOwnCamp()
+    {
+        if (_fireLit || !Scene.Points.TryGetValue("firering.player", out var ring))
+        {
+            return;
+        }
+
+        Pointer = new PointerMarker("fuego", new GuideCell(ring.X, ring.Y, ring.Z));
+        LogWorld(WorldEvents.BeaconSet, null, $"fuego at {ring.X},{ring.Y},{ring.Z}");
+    }
+
+    private void CheckSessionComplete()
+    {
+        if (_sessionComplete || !_fireLit || !Objective.Complete)
+        {
+            return;
+        }
+
+        _sessionComplete = true;
+        LogWorld(WorldEvents.SessionComplete, null, Objective.Summary);
+    }
+
+    // The checklist is complete (S17): the player is sent back up the trail with a spare torch for their own fire, unless they hold one already or the fire is lit.
+    private void GiveSpareTorch()
+    {
+        if (_fireLit || Simulation.Inventory.Count(ItemId.Torch) > 0 || !HasPlayerFireRing)
+        {
+            return;
+        }
+
+        if (Simulation.GrantItems(ItemId.Torch, 1) > 0)
+        {
+            LogWorld(WorldEvents.SpareTorch, null, "bag full");
+            return;
+        }
+
+        LogWorld(WorldEvents.SpareTorch, null, "antorcha");
+        _hints.Add(English.Ui("spareTorch"));
     }
 
     /// <inheritdoc />
@@ -287,6 +451,9 @@ public sealed class VoxelSession : GuideSession
         if (steps.Count > 0 && Objective.Complete)
         {
             LogWorld(WorldEvents.ObjectiveComplete, null, Objective.Summary);
+            GiveSpareTorch();
+            PointAtOwnCamp();
+            CheckSessionComplete(); // the player lit their own fire first: the checklist was the last thing missing
         }
     }
 
@@ -309,9 +476,14 @@ public sealed class VoxelSession : GuideSession
     private void ScanFireRing(Scene scene)
     {
         var hasCampRing = scene.Points.TryGetValue("firering", out var centre);
+        var hasOwnRing = scene.Points.TryGetValue("firering.player", out var own);
         foreach (var stone in scene.Grid.BlocksOfKind(BlockId.FireRing))
         {
-            if (!hasCampRing || (Math.Abs(stone.X - centre.X) <= 1 && Math.Abs(stone.Z - centre.Z) <= 1))
+            if (hasOwnRing && Math.Abs(stone.X - own.X) <= 1 && Math.Abs(stone.Z - own.Z) <= 1)
+            {
+                _playerFireRing.Add(stone);
+            }
+            else if (!hasCampRing || (Math.Abs(stone.X - centre.X) <= 1 && Math.Abs(stone.Z - centre.Z) <= 1))
             {
                 _fireRing.Add(stone);
             }

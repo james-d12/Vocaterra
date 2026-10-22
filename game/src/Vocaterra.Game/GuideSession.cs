@@ -76,6 +76,10 @@ public abstract class GuideSession : IDisposable
     private readonly IGuideFacts _liveFacts;
     private readonly List<GameEvent> _events = [];
     private readonly Dictionary<string, RepairKind?> _lastRepair = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _lastLine = new(StringComparer.Ordinal);
+    private readonly Dictionary<VoiceEventKind, int> _voiceCounts = [];
+    private int _spokenTurns;
+    private int _typedTurns;
     private readonly List<(string Npc, string Skill)> _deferredSkills = [];
     private TurnWorker? _worker;
     private long _nextTurnId = 1;
@@ -450,6 +454,11 @@ public abstract class GuideSession : IDisposable
         CurrentNpc = npc;
         _talkOpen = true;
         _delayedOpening = null;
+        if (string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal))
+        {
+            NoteGuideMet();
+        }
+
         FlushSkills();
         if (teachKeyWords && PendingTurns == 0 && !_keyWordsTaught && string.Equals(npc, NpcService.ShopkeeperAgent, StringComparison.Ordinal))
         {
@@ -468,6 +477,58 @@ public abstract class GuideSession : IDisposable
 
     /// <summary>Appends a game event to <see cref="Events"/> (the lesson runner and the tips log through it).</summary>
     internal void LogEvent(GameEvent gameEvent) => Log(gameEvent);
+
+    /// <summary>How many uses of a speech button make its English go (the way the objective line drops a word's English once the word is known, D-game-13): three.</summary>
+    public const int ButtonEnglishUses = 3;
+
+    /// <summary>
+    /// Whether the English next to a speech button (<c>[R] Repetir (repeat)</c>) or the hold-to-talk hint is drawn now (S17, D-game-13). It is drawn while the learner is
+    /// early: until the button has been used (or its phrase said) <see cref="ButtonEnglishUses"/> times; the hint until as many lines have been spoken, the typing
+    /// button until as many typed. The English is on-screen help only: the buttons and the keys work the same with or without it (rule 8).
+    /// </summary>
+    /// <param name="button">One of <see cref="SpeechButtonKeys"/>.</param>
+    public bool ButtonEnglishUp(string button)
+    {
+        ArgumentNullException.ThrowIfNull(button);
+        var uses = button switch
+        {
+            SpeechButtonKeys.Repeat => _voiceCounts.GetValueOrDefault(VoiceEventKind.Replay) + PhraseUsesOf(PhraseIds.AgainPlease),
+            SpeechButtonKeys.Slower => _voiceCounts.GetValueOrDefault(VoiceEventKind.Slower) + PhraseUsesOf(PhraseIds.SlowerPlease),
+            SpeechButtonKeys.Help => _voiceCounts.GetValueOrDefault(VoiceEventKind.Hint) + PhraseUsesOf(PhraseIds.Help),
+            SpeechButtonKeys.DontKnow => _voiceCounts.GetValueOrDefault(VoiceEventKind.NoSe) + PhraseUsesOf(PhraseIds.DontKnow),
+            SpeechButtonKeys.Type => _voiceCounts.GetValueOrDefault(VoiceEventKind.TypeFallback) + _typedTurns,
+            SpeechButtonKeys.Hold => _spokenTurns,
+            _ => ButtonEnglishUses,
+        };
+        return uses < ButtonEnglishUses;
+    }
+
+    // The phrase's credited production in whole uses (a typed use at half credit counts half), rounded down.
+    private int PhraseUsesOf(string phraseId)
+    {
+        var record = PhraseProgress.RecordOf(phraseId);
+        return (int)Math.Floor(record.SupportedUses + record.UnaidedUses);
+    }
+
+    /// <summary>
+    /// What the NPC said last, as one line (S17): the line "Otra vez, por favor" says again. It follows the NPC's opening, the line of a lesson step and the last line of
+    /// each turn the lesson did not take.
+    /// </summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    public string? LastLineOf(string npc) => _lastLine.TryGetValue(npc, out var line) ? line : null;
+
+    /// <summary>The NPC says a line (a lesson step's line, S17): it becomes the line a request to say it again repeats.</summary>
+    internal void NoteNpcLine(string npc, string text) => _lastLine[npc] = text;
+
+    /// <summary>A lesson step sends the beacon to the nearest block of a noun (S17, a <c>do</c> step with a <c>point</c>). The 3D scene does it; the base game has no beacon.</summary>
+    internal virtual void LessonPointAt(string npc, string noun)
+    {
+    }
+
+    /// <summary>The player opened the panel on the guide, or began her lesson: the 3D scene notes that the guide has been met (S17).</summary>
+    protected virtual void NoteGuideMet()
+    {
+    }
 
     /// <summary>The panel's support follows the lesson step now in play (its card and audio, or none): called when a step begins or the lesson ends.</summary>
     internal void RefreshLessonSupport()
@@ -559,10 +620,22 @@ public abstract class GuideSession : IDisposable
         {
             opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest());
             if (string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && !opening.HostTurn
-                && !string.Equals(_npcs.GuideState.StateId, "offering", StringComparison.Ordinal) && !Lessons.OwnsConversation(npc))
+                && !string.Equals(_npcs.GuideState.StateId, "offering", StringComparison.Ordinal))
             {
-                _ = BeginTalk();
+                if (Lessons.OwnsConversation(npc))
+                {
+                    opening = opening with { Lines = [] }; // her lesson speaks first (S17): no "¿En qué te ayudo?" before the first step
+                }
+                else
+                {
+                    _ = BeginTalk();
+                }
             }
+        }
+
+        if (opening.Lines.Count > 0)
+        {
+            _lastLine[npc] = opening.Lines[^1];
         }
 
         if (logOpened)
@@ -635,8 +708,7 @@ public abstract class GuideSession : IDisposable
         }
 
         LastWordTurn = Words.RecordTurn(turn, turn.Input, Credit, StoredTime.UnixSeconds);
-        AfterTurn(turn, Tick, StoredTime.UnixSeconds, phraseReview, support);
-        return turn;
+        return AfterTurn(turn, Tick, StoredTime.UnixSeconds, phraseReview, support);
     }
 
     /// <summary>
@@ -847,7 +919,11 @@ public abstract class GuideSession : IDisposable
 
             words = Words.RecordTurn(turn, turn.Input, Credit, outcome.Request.Now.UnixSeconds);
             LastWordTurn = words;
-            AfterTurn(turn, outcome.Request.Tick, outcome.Request.Now.UnixSeconds, outcome.Request.PhraseReview, outcome.Request.Support);
+            var shown = AfterTurn(turn, outcome.Request.Tick, outcome.Request.Now.UnixSeconds, outcome.Request.PhraseReview, outcome.Request.Support);
+            if (!ReferenceEquals(shown, turn))
+            {
+                outcome = outcome with { Turn = shown }; // the lesson took the turn, or the guide says her last line again (S17)
+            }
         }
 
         return new AppliedTurn(outcome, words);
@@ -872,6 +948,11 @@ public abstract class GuideSession : IDisposable
     {
         ArgumentNullException.ThrowIfNull(gameEvent);
         _events.Add(gameEvent);
+        if (gameEvent is VoiceEvent voice)
+        {
+            _voiceCounts[voice.Kind] = _voiceCounts.GetValueOrDefault(voice.Kind) + 1;
+        }
+
         if (gameEvent is PhraseUse use)
         {
             _ = PhraseProgress.Apply(use, Credit); // the phrase progress is fed from the events, in the order they are logged (S8)
@@ -883,8 +964,9 @@ public abstract class GuideSession : IDisposable
         }
     }
 
-    // What follows an applied turn: the phrase it used, the voice event it was, and what its host events do in the world.
-    private void AfterTurn(GuideTurn turn, long tick, long time, PhraseReview? phraseReview, SupportSnapshot? support)
+    // What follows an applied turn: the phrase it used, the voice event it was, and what its host events do in the world. Returns the turn as the player is to see
+    // it: the same turn, or (S17) a copy marked as taken by the lesson, or with the guide's last line added because the learner asked for it again.
+    private GuideTurn AfterTurn(GuideTurn turn, long tick, long time, PhraseReview? phraseReview, SupportSnapshot? support)
     {
         support ??= Support.Snapshot();
         var npc = turn.Npc;
@@ -900,7 +982,7 @@ public abstract class GuideSession : IDisposable
             Log(new VoiceEvent(tick, time, VoiceEventKind.Uncertain, npc, turn.Line));
         }
 
-        if (turn.Communicated && (PhraseIds.For(turn.Intent, turn.Slots) ?? PhraseInPlayFor(turn, support)) is { } phrase)
+        if (turn.Communicated && (PhraseInPlayFor(turn, support) ?? PhraseIds.For(turn.Intent, turn.Slots)) is { } phrase)
         {
             var kind = Classify(turn, phrase, previousRepair, phraseReview, support);
             var detail = turn.Slots.TryGetValue("item", out var item) ? item : turn.Slots.TryGetValue("place", out var place) ? place : null;
@@ -934,12 +1016,48 @@ public abstract class GuideSession : IDisposable
             ApplyHostEvents(npc, turn.HostEvents, turn.FailForward ? "fail_forward" : "request");
         }
 
-        Lessons.OnTurn(turn); // a lesson's repeat or answer step ends, retries or moves on with this turn (S16)
+        if (!turn.Unsure && turn.Input == InputKind.Spoken)
+        {
+            _spokenTurns++;
+        }
+        else if (turn.Input == InputKind.Typed)
+        {
+            _typedTurns++;
+        }
+
+        var hadLast = _lastLine.TryGetValue(npc, out var last);
+        var handled = Lessons.OnTurn(turn); // a lesson's repeat or answer step ends, retries or moves on with this turn (S16); it speaks for the guide (S17)
+        var shown = turn; // (`last` was read before the turn ended the step: the next step's line is not what the learner asked to hear again)
+        if (turn.Communicated && !turn.Unsure && (turn.HostEvents.Contains(GuideEvents.Repeat, StringComparer.Ordinal) || turn.HostEvents.Contains(GuideEvents.RepeatSlow, StringComparer.Ordinal)))
+        {
+            // "Otra vez, por favor" and "Más despacio, por favor" do what they say (S17): the guide's last line is shown and played again, the second time slowly.
+            var slow = turn.HostEvents.Contains(GuideEvents.RepeatSlow, StringComparer.Ordinal);
+            shown = turn with
+            {
+                LessonHandled = handled,
+                SlowFollowUp = slow,
+                FollowUp = hadLast ? [.. turn.FollowUp ?? [], last!] : turn.FollowUp,
+            };
+        }
+        else
+        {
+            if (handled)
+            {
+                shown = turn with { LessonHandled = true };
+            }
+
+            if (!handled && shown.GuideLines.Count > 0)
+            {
+                _lastLine[npc] = shown.GuideLines[^1];
+            }
+        }
 
         if (_talkOpen && string.Equals(Support.Npc, npc, StringComparison.Ordinal) && !turn.Unsure)
         {
             RefreshSupport(npc, NpcService.PromptAfter(npc, turn.AgentState)); // the prompt may have moved on (the bread offer), and a level may have changed
         }
+
+        return shown;
     }
 
     // A phrase the sheet teaches for an intent the game has no fixed mapping for (a lesson's phrase, S16): the phrase in play on the prompt whose row has this intent.

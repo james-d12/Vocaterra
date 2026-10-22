@@ -136,6 +136,15 @@ public sealed record GuideTurn(
     bool Choice = false)
 {
     /// <summary>
+    /// Whether a lesson step took this turn (S17): the learner answered what the step asked, so the lesson speaks for the guide and her ordinary reply and
+    /// world line (<c>Replies</c>, <c>WorldLine</c>) are not shown or played. The correction and any follow-up stay. Set by the session when it applies the turn.
+    /// </summary>
+    public bool LessonHandled { get; init; }
+
+    /// <summary>Whether the follow-up lines are the guide's last line said again slowly (the learner asked <c>Más despacio, por favor</c>, S17): the front-end plays the slow recording.</summary>
+    public bool SlowFollowUp { get; init; }
+
+    /// <summary>
     /// Whether the line was held back as an unsure recognition (<see cref="UncertaintyRule.IsTooUnsure"/>): the NPC would have understood it but the
     /// recognizer was not sure of the words, so the turn was not completed and nothing changed in the conversation, the learner or the world.
     /// </summary>
@@ -157,13 +166,17 @@ public sealed record GuideTurn(
                 lines.Add(Feedback);
             }
 
-            lines.AddRange(Replies);
+            if (!LessonHandled)
+            {
+                lines.AddRange(Replies);
+            }
+
             if (Repair is not null)
             {
                 lines.Add(Repair);
             }
 
-            if (WorldLine is not null)
+            if (WorldLine is not null && !LessonHandled)
             {
                 lines.Add(WorldLine);
             }
@@ -204,4 +217,10 @@ public static class GuideEvents
 
     /// <summary>The player named what they are looking at ("es un árbol"): the guide says whether the name fits the cursor's tile.</summary>
     public const string Name = "guide.name";
+
+    /// <summary>The player asked the guide to say her last line again ("Otra vez, por favor", S17): the line is shown and played again.</summary>
+    public const string Repeat = "guide.repeat";
+
+    /// <summary>The player asked the guide to say her last line again more slowly ("Más despacio, por favor", S17): the line is shown again and the slow recording plays.</summary>
+    public const string RepeatSlow = "guide.repeat_slow";
 }

@@ -45,8 +45,9 @@ public sealed class PhraseSupportFrontendTests
 
         var rows = PhraseJournalRows.Build(progress, 1000 + 1200, CreditRules.Default);
 
-        Assert.Equal(11, rows.Count);
-        Assert.Equal(progress.Sheet.Rows.Select(static r => r.Id), rows.Select(static r => r.Id));
+        Assert.Equal(21, rows.Count);
+        Assert.Equal(progress.Sheet.Rows.Select(static r => r.Id).Order(StringComparer.Ordinal), rows.Select(static r => r.Id).Order(StringComparer.Ordinal));
+        Assert.Equal(["que-necesitas", "pedir-agua", "donde-esta-el-rio", "hola"], rows.Take(4).Select(static r => r.Id)); // the phrases met come first, each group in the sheet's order (S17)
         var water = rows.Single(static r => r.Id == "pedir-agua");
         Assert.Equal(("Quiero agua, por favor.", "I want water, please."), (water.Spanish, water.English));
         Assert.Equal("ayuda: tarjeta y audio", water.LevelText); // the English rung went with the first correct use
