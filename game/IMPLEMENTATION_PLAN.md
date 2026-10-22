@@ -155,7 +155,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S1 | 3D voxel simulation, headless (`Vocaterra.Simulation.Voxel`, `scene.json`, `PlayerBody3D`, `BlockRay`) | done (merged to `feature/prototype` 2026-10-21, `d2329cb`) | Sonnet 5.5 | S0 |
 | S2 | First-person voxel front-end (mesher, renderer, camera, figures, beacon; 2D UI over the scene) | done (merged to `feature/prototype` 2026-10-22, `c5af3d6`) | Sonnet 5.5 | S1 |
 | S3 | The scenario world and the guide in 3D (`WorldFacts3D`, the route layout, new nouns) | done (merged to `feature/prototype` 2026-10-22, bundle `5b9d0dab…`) | Haiku 5.5 | S2 |
-| S4 | Gather, craft, the camp objective; retire the 2D slice (tag `2d-slice-p7`) | planned | Haiku 5.5 | S3 |
+| S4 | Gather, craft, the camp objective; retire the 2D slice (tag `2d-slice-p7`) | done (merged to `feature/prototype` 2026-10-22, bundle `1e13e231…`) | Haiku 5.5 | S3 |
 | S5 | Content: `content/PHRASES.md`, the stall and the villager, `request_item`, constrained prompts; Opus review pass (D-game-12) | done (merged to `feature/prototype` 2026-10-22, bundle `c3cac003…`) | Sonnet 5.5 (design), Haiku 5.5 (content) | S0 |
 | S6 | NPC exchanges in the world (`NpcService`), filling the bottle, the transfer moment | planned | Sonnet 5.5 | S3, S5 |
 | S7 | Speech UX: mic check, cancel, watchdog, heard-vs-expected, buttons, choices, uncertainty rule, constrained prompts | planned | Sonnet 5.5 | S6 |
@@ -615,6 +615,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   orchestrator: "El río está allí, a la izquierda, a sesenta bloques." (the `--say` script walks the player to the guide, facing west; the
   river is due south, so left is right). Real key events are untested (no X automation here); the camera ends inside the guide's figure
   when `--say` walks up to it (S6: a stand-off distance). Tests 3,887.
+- **S4, gather, craft, objective; the 2D slice retired (2026-10-22, Haiku 5.5).** `recipes.json` is one recipe (`antorcha` ← 2 `madera`
+  at the `mesa`); the torch goes on the fire ring's rim (the centre hid it); `Objective` (engine-free) "Campamento" madera 5, frutas 3,
+  antorcha 1, agua 1 (host event `objective.water`, raised from S6); HUD top right, completion toasts (pickups no longer toast); word cards
+  on first pickup (`la madera`, `la fruta`, `la antorcha`; heard and read, never a quiz; audio slot for S9). The 2D slice is gone: 66 files
+  (2D simulation, generator, lighting, `GameSession`, `WorldFacts`, the 2D renderer and layers, 19 test files); `--voxel` accepted and
+  ignored; `WorldRng` moved to the simulation root; nouns are the 16 the scene reaches. Headless `CampObjectiveTests` (a BFS walker) reaches
+  3/4; screenshot checked by the orchestrator (HUD 3/4, the flame, the card). Tests 3,887 → 3,562. Open: **`--greyscale` is a stub** (the
+  grey A/B of D-game-6 needs per-block saturation in the mesher; due before the playtest, S12); the guide's `ask_craft` lines still name
+  2D recipes (`mesa`, `puerta`, `espada`: "Eso no se puede hacer."; content pass with S6); "La piedra está aquí" for stone under the feet
+  (horizontal distance); toast queue lags; crafting clicks and E at the mesa untested with real input; `JournalRows` lost its direct test.
 
 ## 6. Definition of done (every milestone)
 
@@ -622,21 +632,13 @@ Facts that shape the plan. Each one names its source; the core's own findings st
 2. `dotnet format Vocaterra.sln --verify-no-changes` clean.
 3. `scripts/content.sh validate` passes; after a content edit the bundle is hashed and its manifest committed; `cefr-check` is clean at A1 and A2
    for any content that adds templates.
-4. The host demo runs: `dotnet run --project src/Vocaterra.Host -- --transcript "yo tiene dos espada" --prompt offer-items-open` prints the
-   two errors `conj.person` and `noun.number`; the README demo for the milestone's scene runs as written.
-   From P3 on, also the game demo (needs a display, `DISPLAY=:0`): `dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --say
-   "¿dónde está el árbol?" --screenshot <scratch>/demo.png --frames 240` prints `ask_directions, entendido, 100 %` and the guide's line
-   `El árbol está allí, a la derecha, a ocho bloques.`, and the PNG shows the dialogue panel, the arrow and the marker on the trunk. Look at
-   the PNG. From P4 on, also `--seed 42 --point-nearest árbol --say "es un árbol"` three times with `--screenshot <scratch>/known.png
-   --frames 300` prints `known: el árbol`, and the PNG shows the trees in full colour, the rest grey, and the "¡Nueva palabra: el árbol!"
-   toast; one `--say` gives trees a third coloured. From P5 on, typed input earns half credit: the P4/P4b demos add `--typed-credit full` (or use six spaced
-   uses), and the spoken demo (models in `VOCATERRA_MODELS_DIR`) `--speak "¿dónde está el árbol?"` prints `spoken heard "dónde está el
-   árbol"`, `ask_directions, entendido` and the "a ocho bloques" line with the arrow.
-   From S2 on (S series, `feature/prototype`), the 3D demos replace the 2D ones as they land: S2 `--seed 42 --walk-to <x,z> --look 90,0
-   --screenshot <png>` shows the clearing in first person with the guide's label; S3 `--say "¿dónde está el río?" --screenshot <png>` prints
-   `ask_directions, entendido` and the guide's line with the direction and distance, and the beacon stands on the river; S5 the host
-   `--transcript "quiero agua, por favor" --prompt stall-need` prints `request_item`, communicated, no errors; S6 the scripted route run prints
-   each turn and the objective's steps. Each later milestone's demo is in `docs/SCENARIO_PLAN.md` section 4.
+4. The demos run (since S4 the 3D voxel world is the only world; the 2D demos retired with the slice, tag `2d-slice-p7`):
+   the host `dotnet run --project src/Vocaterra.Host -- --transcript "quiero agua, por favor" --prompt stall-need` prints `request_item`,
+   communicated, and `--transcript "quiero dos agua por favor" --prompt stall-need` prints `noun.number` (expected 'aguas'); the core demo
+   (`nlp/README.md`) still yields exactly `conj.person` and `noun.number`. The game (needs a display, `DISPLAY=:0`): `dotnet run --project
+   src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --say "¿dónde está el río?" --screenshot <scratch>/s3.png --frames 300` prints
+   `ask_directions, entendido` and "El río está allí, a la izquierda, a sesenta bloques."; the PNG shows the dialogue panel and the beacon
+   arrow. Each later milestone's demo is in `docs/SCENARIO_PLAN.md` section 4. Look at every PNG.
 5. No violation of section 3: no copied core source, no edit under `nlp/` in a game milestone, nothing under `.github/workflows/`, no
    engine code outside `src/Vocaterra.MonoGame`.
 6. `git status` is clean after the commit: no `bin/`, `obj/` or `nlp/artifacts/` output is staged.
