@@ -26,6 +26,7 @@ public sealed class ChunkVersionTracker
 {
     private readonly VoxelGrid _grid;
     private readonly ChunkKey?[] _meshed;
+    private readonly ulong[] _kinds; // the block kinds each chunk was meshed with (ChunkMeshes.Kinds)
     private readonly ulong[] _signatures; // six per chunk, in the order of BlockFace
     private readonly long[] _signedAt; // the chunk version the signatures belong to, or -1
 
@@ -35,10 +36,17 @@ public sealed class ChunkVersionTracker
         ArgumentNullException.ThrowIfNull(grid);
         _grid = grid;
         _meshed = new ChunkKey?[grid.Chunks.Count];
+        _kinds = new ulong[grid.Chunks.Count];
         _signatures = new ulong[grid.Chunks.Count * 6];
         _signedAt = new long[grid.Chunks.Count];
         Array.Fill(_signedAt, -1L);
     }
+
+    /// <summary>
+    /// The block kinds drawn grey (one bit per <see cref="BlockId"/>, see <see cref="ChunkMesher.KindBit"/>): the mesh builds use it. It changes
+    /// only through <see cref="SetGreyKinds"/>.
+    /// </summary>
+    public ulong GreyKinds { get; private set; }
 
     /// <summary>The index of a chunk in <see cref="VoxelGrid.Chunks"/>.</summary>
     public int IndexOf(VoxelChunkCoord coord) => (((coord.Y * _grid.ChunksZ) + coord.Z) * _grid.ChunksX) + coord.X;
@@ -68,8 +76,40 @@ public sealed class ChunkVersionTracker
         return due;
     }
 
-    /// <summary>Records that a chunk was meshed from the blocks as they are now.</summary>
-    public void MarkMeshed(VoxelChunkCoord coord) => _meshed[IndexOf(coord)] = KeyOf(coord);
+    /// <summary>Records that a chunk was meshed from the blocks as they are now, with the given block kinds (<see cref="ChunkMeshes.Kinds"/>).</summary>
+    public void MarkMeshed(VoxelChunkCoord coord, ulong kinds = 0)
+    {
+        var index = IndexOf(coord);
+        _meshed[index] = KeyOf(coord);
+        _kinds[index] = kinds;
+    }
+
+    /// <summary>
+    /// Sets the grey set (the greyscale A/B). A chunk that holds a block kind whose grey state changed is due again; the others are not. Setting
+    /// the same set again changes nothing.
+    /// </summary>
+    /// <returns>How many chunks became due.</returns>
+    public int SetGreyKinds(ulong greyKinds)
+    {
+        var changed = greyKinds ^ GreyKinds;
+        GreyKinds = greyKinds;
+        if (changed == 0)
+        {
+            return 0;
+        }
+
+        var due = 0;
+        for (var index = 0; index < _kinds.Length; index++)
+        {
+            if ((_kinds[index] & changed) != 0 && _meshed[index] is not null)
+            {
+                _meshed[index] = null;
+                due++;
+            }
+        }
+
+        return due;
+    }
 
     // The signature of the layer of the chunk at (x, y, z) that faces the given direction (zero outside the grid).
     private ulong Layer(int x, int y, int z, BlockFace face)

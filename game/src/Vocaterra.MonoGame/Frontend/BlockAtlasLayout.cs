@@ -111,7 +111,8 @@ public enum BlockCell
 
 /// <summary>
 /// Where each block face's picture lives in the block atlas, and its texture rectangle. The atlas is <see cref="Columns"/> x <see cref="Rows"/>
-/// cells of <see cref="CellSize"/> pixels; <see cref="BlockArt"/> draws it, the renderer uploads it.
+/// cells of <see cref="CellSize"/> pixels: the colour cells in the top <see cref="ColourRows"/> rows, and below them a grey copy of each cell in
+/// the same place (<see cref="GreyPixelRectangle"/>; the greyscale A/B of D-game-6). <see cref="BlockArt"/> draws it, the renderer uploads it.
 /// </summary>
 public static class BlockAtlasLayout
 {
@@ -121,8 +122,11 @@ public static class BlockAtlasLayout
     /// <summary>The cells in a row of the atlas.</summary>
     public const int Columns = 8;
 
-    /// <summary>The rows of the atlas.</summary>
-    public const int Rows = 5;
+    /// <summary>The rows of colour cells, at the top of the atlas.</summary>
+    public const int ColourRows = 5;
+
+    /// <summary>The rows of the atlas: the colour cells, then their grey copies.</summary>
+    public const int Rows = 2 * ColourRows;
 
     /// <summary>The atlas width in pixels.</summary>
     public const int Width = Columns * CellSize;
@@ -190,10 +194,22 @@ public static class BlockAtlasLayout
         return ((index % Columns) * CellSize, (index / Columns) * CellSize, CellSize, CellSize);
     }
 
-    /// <summary>The texture rectangle of a cell, inset by <see cref="Inset"/> texels: (u0, v0, u1, v1), v growing downward.</summary>
-    public static (float U0, float V0, float U1, float V1) Uv(BlockCell cell)
+    /// <summary>
+    /// The cell's rectangle in pixels of its grey copy: the same column, one block of <see cref="ColourRows"/> rows further down.
+    /// </summary>
+    public static (int X, int Y, int Width, int Height) GreyPixelRectangle(BlockCell cell)
     {
         var (x, y, w, h) = PixelRectangle(cell);
+        return (x, y + (ColourRows * CellSize), w, h);
+    }
+
+    /// <summary>
+    /// The texture rectangle of a cell, inset by <see cref="Inset"/> texels: (u0, v0, u1, v1), v growing downward. With <paramref name="grey"/>
+    /// it is the rectangle of the cell's grey copy.
+    /// </summary>
+    public static (float U0, float V0, float U1, float V1) Uv(BlockCell cell, bool grey = false)
+    {
+        var (x, y, w, h) = grey ? GreyPixelRectangle(cell) : PixelRectangle(cell);
         return ((x + Inset) / Width, (y + Inset) / Height, (x + w - Inset) / Width, (y + h - Inset) / Height);
     }
 }

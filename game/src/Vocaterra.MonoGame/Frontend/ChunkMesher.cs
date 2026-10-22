@@ -101,12 +101,23 @@ public static class ChunkMesher
         return !(neighbour == self && BlockDefinition.Get(self).Transparent);
     }
 
-    /// <summary>Meshes the chunk at chunk coordinates (<paramref name="chunkX"/>, <paramref name="chunkY"/>, <paramref name="chunkZ"/>).</summary>
-    public static ChunkMeshes Build(IBlockSource blocks, int chunkX, int chunkY, int chunkZ)
+    /// <summary>The bit of a block kind in a kinds mask (one bit per <see cref="BlockId"/> value; every kind is below 64).</summary>
+    public static ulong KindBit(BlockId id) => 1UL << (int)id;
+
+    /// <summary>Whether a block kind is drawn grey: its bit is set in the grey mask (the greyscale A/B, see <see cref="GreyscaleWorld"/>).</summary>
+    public static bool IsGrey(BlockId id, ulong greyKinds) => (greyKinds & KindBit(id)) != 0;
+
+    /// <summary>
+    /// Meshes the chunk at chunk coordinates (<paramref name="chunkX"/>, <paramref name="chunkY"/>, <paramref name="chunkZ"/>). The blocks whose kind
+    /// is in <paramref name="greyKinds"/> take their pictures from the grey copies of the atlas; with the default 0 every block is drawn in colour.
+    /// The result says which kinds the chunk holds (<see cref="ChunkMeshes.Kinds"/>).
+    /// </summary>
+    public static ChunkMeshes Build(IBlockSource blocks, int chunkX, int chunkY, int chunkZ, ulong greyKinds = 0)
     {
         ArgumentNullException.ThrowIfNull(blocks);
         var opaque = new MeshBuffer();
         var alpha = new MeshBuffer();
+        var kinds = 0UL;
         var x0 = chunkX * VoxelChunk.Size;
         var y0 = chunkY * VoxelChunk.Size;
         var z0 = chunkZ * VoxelChunk.Size;
@@ -125,26 +136,28 @@ public static class ChunkMesher
                         continue;
                     }
 
+                    kinds |= KindBit(id);
+                    var grey = IsGrey(id, greyKinds);
                     switch (ShapeOf(id))
                     {
                         case BlockShape.Cube:
-                            AddCube(opaque, blocks, id, x, y, z);
+                            AddCube(opaque, blocks, id, x, y, z, grey);
                             break;
                         case BlockShape.Liquid:
-                            AddLiquid(alpha, blocks, x, y, z);
+                            AddLiquid(alpha, blocks, x, y, z, grey);
                             break;
                         case BlockShape.Plant:
-                            AddAllFaces(opaque, x, y, z, new Box(x + 0.125f, y, z + 0.125f, x + 0.875f, y + 0.75f, z + 0.875f), id);
+                            AddAllFaces(opaque, x, y, z, new Box(x + 0.125f, y, z + 0.125f, x + 0.875f, y + 0.75f, z + 0.875f), id, null, grey);
                             break;
                         case BlockShape.Torch:
-                            AddAllFaces(opaque, x, y, z, new Box(x + 0.4375f, y, z + 0.4375f, x + 0.5625f, y + 0.625f, z + 0.5625f), BlockId.Torch, BlockCell.TorchStick);
-                            AddAllFaces(opaque, x, y, z, new Box(x + 0.375f, y + 0.625f, z + 0.375f, x + 0.625f, y + 0.8125f, z + 0.625f), BlockId.Torch, BlockCell.TorchFlame);
+                            AddAllFaces(opaque, x, y, z, new Box(x + 0.4375f, y, z + 0.4375f, x + 0.5625f, y + 0.625f, z + 0.5625f), BlockId.Torch, BlockCell.TorchStick, grey);
+                            AddAllFaces(opaque, x, y, z, new Box(x + 0.375f, y + 0.625f, z + 0.375f, x + 0.625f, y + 0.8125f, z + 0.625f), BlockId.Torch, BlockCell.TorchFlame, grey);
                             break;
                         case BlockShape.Door:
-                            AddDoor(opaque, blocks, x, y, z);
+                            AddDoor(opaque, blocks, x, y, z, grey);
                             break;
                         case BlockShape.Fence:
-                            AddFence(opaque, blocks, x, y, z);
+                            AddFence(opaque, blocks, x, y, z, grey);
                             break;
                         default:
                             break;
@@ -153,7 +166,7 @@ public static class ChunkMesher
             }
         }
 
-        return new ChunkMeshes(opaque, alpha);
+        return new ChunkMeshes(opaque, alpha, kinds);
     }
 
     /// <summary>Appends one face of a box to a mesh, optionally moved and turned about the vertical axis (for the figures).</summary>
@@ -164,10 +177,11 @@ public static class ChunkMesher
     /// <param name="cell">The picture on the face.</param>
     /// <param name="tint">The colour multiplier before the face shade (white for a block).</param>
     /// <param name="turn">The turn and move applied to every vertex.</param>
-    public static void AddFace(MeshBuffer buffer, BlockFace face, in Box box, (float X, float Y, float Z) origin, BlockCell cell, (byte R, byte G, byte B, byte A) tint, Turn turn)
+    /// <param name="grey">Whether the picture is the cell's grey copy (a block drawn grey; figures and overlays are never grey).</param>
+    public static void AddFace(MeshBuffer buffer, BlockFace face, in Box box, (float X, float Y, float Z) origin, BlockCell cell, (byte R, byte G, byte B, byte A) tint, Turn turn, bool grey = false)
     {
         ArgumentNullException.ThrowIfNull(buffer);
-        var (u0, v0, u1, v1) = BlockAtlasLayout.Uv(cell);
+        var (u0, v0, u1, v1) = BlockAtlasLayout.Uv(cell, grey);
         var (_, nz) = turn.Rotate(face.Normal().Dx, face.Normal().Dz);
         var shade = face switch
         {
@@ -207,7 +221,7 @@ public static class ChunkMesher
         }
     }
 
-    private static void AddCube(MeshBuffer buffer, IBlockSource blocks, BlockId id, int x, int y, int z)
+    private static void AddCube(MeshBuffer buffer, IBlockSource blocks, BlockId id, int x, int y, int z, bool grey)
     {
         var box = new Box(x, y, z, x + 1, y + 1, z + 1);
         foreach (var face in Faces)
@@ -215,12 +229,12 @@ public static class ChunkMesher
             var (dx, dy, dz) = face.Normal();
             if (FaceVisible(id, blocks.Get(x + dx, y + dy, z + dz)))
             {
-                AddFace(buffer, face, box, (x, y, z), BlockAtlasLayout.CellFor(id, face), White, Turn.None);
+                AddFace(buffer, face, box, (x, y, z), BlockAtlasLayout.CellFor(id, face), White, Turn.None, grey);
             }
         }
     }
 
-    private static void AddLiquid(MeshBuffer buffer, IBlockSource blocks, int x, int y, int z)
+    private static void AddLiquid(MeshBuffer buffer, IBlockSource blocks, int x, int y, int z, bool grey)
     {
         var above = blocks.Get(x, y + 1, z);
         var top = above == BlockId.Water ? 1f : WaterSurface;
@@ -234,19 +248,19 @@ public static class ChunkMesher
                 continue;
             }
 
-            AddFace(buffer, face, box, (x, y, z), BlockCell.Water, White, Turn.None);
+            AddFace(buffer, face, box, (x, y, z), BlockCell.Water, White, Turn.None, grey);
         }
     }
 
-    private static void AddAllFaces(MeshBuffer buffer, int x, int y, int z, in Box box, BlockId id, BlockCell? cell = null)
+    private static void AddAllFaces(MeshBuffer buffer, int x, int y, int z, in Box box, BlockId id, BlockCell? cell, bool grey)
     {
         foreach (var face in Faces)
         {
-            AddFace(buffer, face, box, (x, y, z), cell ?? BlockAtlasLayout.CellFor(id, face), White, Turn.None);
+            AddFace(buffer, face, box, (x, y, z), cell ?? BlockAtlasLayout.CellFor(id, face), White, Turn.None, grey);
         }
     }
 
-    private static void AddDoor(MeshBuffer buffer, IBlockSource blocks, int x, int y, int z)
+    private static void AddDoor(MeshBuffer buffer, IBlockSource blocks, int x, int y, int z, bool grey)
     {
         // An open door hangs against the side of the doorway, at right angles to the wall: if the wall runs east-west (solid blocks to the
         // east or west) the panel lies along the north-south axis at the west edge; otherwise it lies along the east-west axis at the north edge.
@@ -254,12 +268,12 @@ public static class ChunkMesher
         var box = wallRunsEastWest
             ? new Box(x, y, z, x + 0.1875f, y + 1, z + 1)
             : new Box(x, y, z, x + 1, y + 1, z + 0.1875f);
-        AddAllFaces(buffer, x, y, z, box, BlockId.Door);
+        AddAllFaces(buffer, x, y, z, box, BlockId.Door, null, grey);
     }
 
-    private static void AddFence(MeshBuffer buffer, IBlockSource blocks, int x, int y, int z)
+    private static void AddFence(MeshBuffer buffer, IBlockSource blocks, int x, int y, int z, bool grey)
     {
-        AddAllFaces(buffer, x, y, z, new Box(x + 0.375f, y, z + 0.375f, x + 0.625f, y + 1, z + 0.625f), BlockId.Fence);
+        AddAllFaces(buffer, x, y, z, new Box(x + 0.375f, y, z + 0.375f, x + 0.625f, y + 1, z + 0.625f), BlockId.Fence, null, grey);
         foreach (var (dx, dz) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
         {
             if (blocks.Get(x + dx, y, z + dz) != BlockId.Fence)
@@ -272,7 +286,7 @@ public static class ChunkMesher
                 var box = dx != 0
                     ? new Box(dx > 0 ? x + 0.625f : x, y + low, z + 0.4375f, dx > 0 ? x + 1 : x + 0.375f, y + high, z + 0.5625f)
                     : new Box(x + 0.4375f, y + low, dz > 0 ? z + 0.625f : z, x + 0.5625f, y + high, dz > 0 ? z + 1 : z + 0.375f);
-                AddAllFaces(buffer, x, y, z, box, BlockId.Fence);
+                AddAllFaces(buffer, x, y, z, box, BlockId.Fence, null, grey);
             }
         }
     }
@@ -338,7 +352,8 @@ public readonly struct Turn
 /// <summary>The two meshes of a chunk: the opaque faces and the translucent ones (water).</summary>
 /// <param name="Opaque">The opaque quads (drawn first, with depth writes).</param>
 /// <param name="Alpha">The translucent quads (drawn after, back to front by chunk, without depth writes).</param>
-public sealed record ChunkMeshes(MeshBuffer Opaque, MeshBuffer Alpha)
+/// <param name="Kinds">The block kinds the chunk holds, one bit each (<see cref="ChunkMesher.KindBit"/>): a change in the grey set of one of them makes the chunk due.</param>
+public sealed record ChunkMeshes(MeshBuffer Opaque, MeshBuffer Alpha, ulong Kinds = 0)
 {
     /// <summary>The number of quads in both meshes.</summary>
     public int FaceCount => Opaque.FaceCount + Alpha.FaceCount;
