@@ -74,20 +74,29 @@ public sealed class SpeechEngine : IDisposable
     /// loaded.
     /// </summary>
     /// <param name="problem">When the result is <see langword="null"/>, why (a message for the player, in Spanish).</param>
-    public static ModelStore? FindModels(out string? problem)
+    public static ModelStore? FindModels(out string? problem) => FindModels(Environment.GetEnvironmentVariable, out problem);
+
+    /// <summary>
+    /// The same check with the variables read through <paramref name="getVariable"/> (S17b): a test passes its own values and never changes the process
+    /// environment, which other tests read in parallel.
+    /// </summary>
+    /// <param name="getVariable">The environment's variable reader (<see cref="Environment.GetEnvironmentVariable(string)"/> in the game).</param>
+    /// <param name="problem">When the result is <see langword="null"/>, why (a message for the player, in English).</param>
+    public static ModelStore? FindModels(Func<string, string?> getVariable, out string? problem)
     {
+        ArgumentNullException.ThrowIfNull(getVariable);
         ModelStore? store;
         try
         {
-            var root = ModelStore.RootFromEnvironment();
+            var root = ModelStore.RootFromEnvironment(getVariable);
             if (root is null)
             {
                 problem = NoModelsFolder;
                 return null;
             }
 
-            var manifest = ManifestPath(root);
-            store = manifest is null ? ModelStore.FromEnvironment() : new ModelStore(root, ModelManifest.Load(manifest));
+            var manifest = ManifestPath(root, getVariable);
+            store = manifest is null ? ModelStore.FromEnvironment(getVariable) : new ModelStore(root, ModelManifest.Load(manifest));
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or System.Text.Json.JsonException or UnauthorizedAccessException)
         {
@@ -129,14 +138,19 @@ public sealed class SpeechEngine : IDisposable
     /// <c>nlp/models/manifest.json</c> found by walking up from the executable's folder and the current directory. <see langword="null"/> means
     /// the store reads the folder's own manifest.
     /// </summary>
-    public static string? ManifestPath(string modelsRoot)
+    public static string? ManifestPath(string modelsRoot) => ManifestPath(modelsRoot, Environment.GetEnvironmentVariable);
+
+    /// <summary>The manifest lookup with the variable read through <paramref name="getVariable"/> (S17b; see <see cref="FindModels(Func{string, string?}, out string?)"/>).</summary>
+    /// <param name="modelsRoot">The models folder.</param>
+    /// <param name="getVariable">The variable reader.</param>
+    public static string? ManifestPath(string modelsRoot, Func<string, string?> getVariable)
     {
         if (File.Exists(Path.Combine(modelsRoot, ModelStore.ManifestFileName)))
         {
             return null;
         }
 
-        var named = Environment.GetEnvironmentVariable(ManifestVariable);
+        var named = getVariable(ManifestVariable);
         if (!string.IsNullOrWhiteSpace(named))
         {
             return File.Exists(named) ? named : null;

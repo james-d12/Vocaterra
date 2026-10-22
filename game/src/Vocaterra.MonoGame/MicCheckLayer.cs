@@ -6,7 +6,7 @@ namespace Vocaterra.MonoGame;
 
 /// <summary>
 /// The mic-check screen at the start (D-game-9, S7): the instruction <c>Di: hola</c>, a live level meter from the capture's RMS, the line
-/// <c>Oí: «…»</c> once the recognizer has heard the try, and the result (<c>¡Bien! Te oigo.</c> or <c>No te oí bien. ¿Otra vez?</c>) with the
+/// <c>Heard: «…»</c> once the recognizer has heard the try, and the result (<c>Got it, I can hear you.</c> or <c>No te oí bien. ¿Otra vez?</c>) with the
 /// buttons <c>Seguir</c>, <c>Otra vez</c> and <c>Saltar</c>. It only draws the <see cref="MicCheckModel"/>; the keys and the mouse are the game's.
 /// </summary>
 public sealed class MicCheckLayer : IFrameLayer

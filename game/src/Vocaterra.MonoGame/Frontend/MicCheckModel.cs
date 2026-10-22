@@ -26,7 +26,7 @@ public enum MicCheckPhase
 
 /// <summary>
 /// The mic check at the start (D-game-9, S7) as plain state: a live level meter from the capture's RMS while the talk key is held, the instruction
-/// <see cref="Instruction"/>, what the recognizer heard (<c>Oí: «hola»</c>) and a pass, retry or skip result. It never blocks the game: it can be
+/// <see cref="Instruction"/>, what the recognizer heard (<c>Heard: «hola»</c>) and a pass, retry or skip result. It never blocks the game: it can be
 /// skipped from any phase, and the result is logged as a voice event (<c>mic_check_passed</c>, <c>mic_check_failed</c>, <c>mic_check_skipped</c>).
 /// </summary>
 public sealed class MicCheckModel
@@ -106,7 +106,7 @@ public sealed class MicCheckModel
         _ => TalkHint,
     };
 
-    /// <summary>The line <c>Oí: «…»</c> once something was heard, or <see langword="null"/>.</summary>
+    /// <summary>The line <c>Heard: «…»</c> once something was heard, or <see langword="null"/>.</summary>
     public string? HeardText => Heard is null ? null : $"{HeardLine.HeardLabel}{(Heard.Length == 0 ? HeardLine.NothingHeard : $"«{Heard}»")}";
 
     /// <summary>The talk key went down: the meter starts to move. Does nothing unless the check is ready (or failed: a new try starts).</summary>

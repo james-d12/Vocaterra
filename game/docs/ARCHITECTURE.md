@@ -136,8 +136,8 @@ the same `NpcService` turn, and each turn records how it arrived (`GuideTurn.Inp
   input of the evaluation is fixed at that moment: the stored time, the simulation's state digest, a copy of the inventory and a copy of the
   blocks around the player (`WorldFacts3D.Snapshot`), so the worker never reads a world that keeps changing and a turn does not depend on when
   the worker gets to it. `GuideSession.Collect` (called at the start of each frame through `TurnPump`) takes the finished turns in submission
-  order and applies them on the game thread: the arrow, the review question, the word counts and the panel. The panel shows "Pensando…"
-  while a turn is out and "Escuchando…" while the key is held. A scripted (`--screenshot`) run freezes the world while a turn is out, so its
+  order and applies them on the game thread: the arrow, the review question, the word counts and the panel. The panel shows "Thinking…"
+  while a turn is out and "Listening…" while the key is held. A scripted (`--screenshot`) run freezes the world while a turn is out, so its
   ticks and output do not depend on how fast the worker is.
 - **The double evaluation recognizes once** (CR-017). The guide evaluates a line twice (the first finds the verdict, the words and the host
   events; the facts and skills they give go into the second, whose result is the one kept). For a spoken line the first evaluation is
@@ -155,7 +155,7 @@ the same `NpcService` turn, and each turn records how it arrived (`GuideTurn.Inp
 - **The models folder.** `VOCATERRA_MODELS_DIR` names a folder with `vosk-model-small-es-0.42` and `kokoro-multi-lang-v1_0` (fetched outside the
   repository with the core's `scripts/fetch-models.sh`, never committed). The core's `ModelStore` reads `manifest.json` from that folder, and
   the fetch script does not copy it there (CR-019), so `SpeechEngine` falls back to `VOCATERRA_MODELS_MANIFEST` and then to the core's
-  `nlp/models/manifest.json` found above the executable. With no folder, no model or no manifest the game says so in Spanish ("Sin voz...") and typing
+  `nlp/models/manifest.json` found above the executable. With no folder, no model or no manifest the game says so in English ("Speech off...") and typing
   works as before; the model tests are skipped with the reason.
 - **Native libraries.** `libvosk.so` is copied by Vosk's `build/Vosk.targets`, which NuGet imports only into a project that references `Vosk`
   directly, so the executable and the test projects that run the recognizer name `Vosk` 0.3.38 (the core's own version, Apache-2.0) in
@@ -166,7 +166,7 @@ the same `NpcService` turn, and each turn records how it arrived (`GuideTurn.Inp
   (44.1 kHz mono on the development machine) and `AudioClips.Prepare` converts to 16 kHz, trims the silence at both ends and cuts at 8 seconds.
   Hold **V** or **Space** while the dialogue is open (S7: **Tab** now opens the text box), or hold **V** with the crosshair on an NPC to open it and listen; letting go sends the clip. No PortAudio was
   needed. MonoGame 3.8.6 only fills the buffer `GetData` reads while something subscribes to `BufferReady`, so `MicrophoneCapture` subscribes an
-  empty handler. With no microphone the panel says "No hay micrófono: escribe tu frase." and the keyboard keeps working.
+  empty handler. With no microphone the panel says "No microphone: type your answer." and the keyboard keeps working.
 - **Speech UX (S7).** The uncertainty rule (`UncertaintyRule`, D-game-9) works on the per-word confidences the core already returns in
   `AsrResult.Words` (the result's own confidence is 1.0 for the single-best decode, CR-022), leaving out `[unk]`; a line the core understood on words
   under the threshold is held back by `NpcService` before phase 2, so nothing moves in the conversation, the learner model or the world. A turn the player

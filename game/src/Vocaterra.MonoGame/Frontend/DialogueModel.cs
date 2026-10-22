@@ -126,7 +126,7 @@ public sealed class DialogueModel
     /// <summary>Whether the text box has the keyboard.</summary>
     public bool IsTyping => IsOpen && Mode == PanelMode.Typing;
 
-    /// <summary>The persistent <c>Oí: «…» · Esperaba: «…»</c> line of the last spoken turn, or <see langword="null"/> (no spoken turn yet at this NPC, or the last turn was typed).</summary>
+    /// <summary>The persistent <c>Heard: «…» · Expected: «…»</c> line of the last spoken turn, or <see langword="null"/> (no spoken turn yet at this NPC, or the last turn was typed).</summary>
     public HeardLine? Heard { get; private set; }
 
     /// <summary>The choices the repair ladder offered with the last turn, as buttons; empty when none.</summary>

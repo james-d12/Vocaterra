@@ -11,7 +11,7 @@ namespace Vocaterra.MonoGame;
 public sealed class TalkHintLayer : IFrameLayer
 {
     /// <summary>The hint's text.</summary>
-    public const string Text = "E: hablar";
+    public const string Text = "E: talk";
 
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)

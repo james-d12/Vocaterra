@@ -171,12 +171,12 @@ public sealed class SpeechUxFrontendTests
 
         _ = dialogue.Complete(Applied(Spoken("quiero agua")));
 
-        Assert.Equal("Oí: «quiero agua» · Esperaba: «Quiero agua, por favor.»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: «quiero agua» · Expected: «Quiero agua, por favor.»", dialogue.Heard!.Text);
         Assert.Equal("pedir-agua", dialogue.Heard.ExpectedId);
 
         // It stays through the next turn until a spoken one replaces it; a typed turn clears it (nothing was heard).
         _ = dialogue.Complete(Applied(Spoken("no gracias", intent: "deny", prompt: "stall-offer")));
-        Assert.Equal("Oí: «no gracias» · Esperaba: «No, gracias.»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: «no gracias» · Expected: «No, gracias.»", dialogue.Heard!.Text);
         dialogue.BeginLine("Ayuda");
         _ = dialogue.Complete(Applied(Spoken("ayuda") with { Input = InputKind.Button }));
         Assert.Null(dialogue.Heard);
@@ -188,13 +188,13 @@ public sealed class SpeechUxFrontendTests
         var dialogue = OpenPanel(out _);
 
         _ = dialogue.Complete(Applied(Spoken("no gracia", intent: "unknown", communicated: false, uncertain: true, prompt: "stall-offer", repair: RepairKind.AskAgain)));
-        Assert.Equal("Oí: «no gracia» · Esperaba: «No, gracias.»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: «no gracia» · Expected: «No, gracias.»", dialogue.Heard!.Text);
 
         _ = dialogue.Complete(Applied(Spoken(string.Empty, intent: "unknown", communicated: false, uncertain: true, confidence: 0.0, repair: RepairKind.AskAgain))); // only [unk]: speech that was no words
-        Assert.Equal("Oí: «…» · Esperaba: «Quiero agua, por favor.»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: «…» · Expected: «Quiero agua, por favor.»", dialogue.Heard!.Text);
 
         _ = dialogue.Complete(Applied(Spoken(string.Empty, intent: "unknown", communicated: false, uncertain: true, confidence: 1.0, repair: RepairKind.AskAgain))); // silence
-        Assert.Equal("Oí: nada · Esperaba: «Quiero agua, por favor.»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: (nothing) · Expected: «Quiero agua, por favor.»", dialogue.Heard!.Text);
     }
 
     [Fact]
@@ -205,13 +205,13 @@ public sealed class SpeechUxFrontendTests
         dialogue.Open(new NpcOpening("villager", "villager-open", ["Hola."], true, [], false), "Aldeano");
 
         _ = dialogue.Complete(Applied(Spoken("dónde está el río", intent: "ask_directions", prompt: "villager-open")));
-        Assert.Equal("Oí: «dónde está el río» · Esperaba: «¿Dónde está el río?»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: «dónde está el río» · Expected: «¿Dónde está el río?»", dialogue.Heard!.Text);
 
         _ = dialogue.Complete(Applied(Spoken("buenos días", intent: "greet", prompt: "villager-open")));
-        Assert.Equal("Oí: «buenos días» · Esperaba: «Hola.»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: «buenos días» · Expected: «Hola.»", dialogue.Heard!.Text);
 
         _ = dialogue.Complete(Applied(Spoken("gola", intent: "unknown", communicated: false, uncertain: true, prompt: "villager-open", repair: RepairKind.AskAgain)));
-        Assert.Equal("Oí: «gola» · Esperaba: «Hola.»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: «gola» · Expected: «Hola.»", dialogue.Heard!.Text);
     }
 
     [Fact]
@@ -487,7 +487,7 @@ public sealed class SpeechUxFrontendTests
         check.Complete(new MicCheckResult("gola", false, 0.3));
 
         Assert.Equal(MicCheckPhase.Failed, check.Phase);
-        Assert.Equal("Oí: «gola»", check.HeardText);
+        Assert.Equal("Heard: «gola»", check.HeardText);
         Assert.Equal("I didn't catch that. Try again?", check.StatusText);
         Assert.Equal([MicCheckButton.Retry, MicCheckButton.Skip], check.Buttons);
 
@@ -499,7 +499,7 @@ public sealed class SpeechUxFrontendTests
         check.Complete(new MicCheckResult("hola", true, 0.4));
 
         Assert.Equal(MicCheckPhase.Passed, check.Phase);
-        Assert.Equal("Oí: «hola»", check.HeardText);
+        Assert.Equal("Heard: «hola»", check.HeardText);
         Assert.Equal("Got it, I can hear you.", check.StatusText);
         Assert.Equal([MicCheckButton.Continue], check.Buttons);
         check.Press(MicCheckButton.Continue);
@@ -543,7 +543,7 @@ public sealed class SpeechUxFrontendTests
         silent.EndListening();
         silent.HeardNothing();
         Assert.Equal(MicCheckPhase.Failed, silent.Phase);
-        Assert.Equal("Oí: nada", silent.HeardText);
+        Assert.Equal("Heard: (nothing)", silent.HeardText);
     }
 
     [Fact]
@@ -681,9 +681,9 @@ public sealed class SpeechUxFrontendTests
         Assert.DoesNotContain("Tab (mantener)", DialoguePanel.KeyHints, StringComparison.Ordinal);
         Assert.Contains("Hold V or Space", DialoguePanel.ButtonHints, StringComparison.Ordinal);
         Assert.Equal("¿Escribes?", DialogueModel.TypeOfferText);
-        Assert.Equal("nada", HeardLine.NothingHeard);
-        Assert.Equal("Oí: ", HeardLine.HeardLabel);
-        Assert.Equal("Esperaba: ", HeardLine.ExpectedLabel);
+        Assert.Equal("(nothing)", HeardLine.NothingHeard);
+        Assert.Equal("Heard: ", HeardLine.HeardLabel);
+        Assert.Equal("Expected: ", HeardLine.ExpectedLabel);
         Assert.Equal(["Continue", "Try again", "Skip"], new[] { MicCheckModel.ContinueLabel, MicCheckModel.RetryLabel, MicCheckModel.SkipLabel });
     }
 }

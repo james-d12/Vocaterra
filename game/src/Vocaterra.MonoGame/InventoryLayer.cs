@@ -14,7 +14,7 @@ namespace Vocaterra.MonoGame;
 public sealed class InventoryLayer : IFrameLayer
 {
     /// <summary>The title over the slots.</summary>
-    public const string Title = "Inventario";
+    public const string Title = "Inventory";
 
     /// <summary>The key hints under the slots.</summary>
     public const string KeyHints = "I or Esc: close   1 to 0 or wheel: choose   left click: mine   right click: place";

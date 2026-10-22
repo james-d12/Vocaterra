@@ -108,7 +108,7 @@ Write notes as you go (template in section 7). For each session:
 - **Comments:** what they said aloud, unprompted. Quote the words, with the minute.
 - **Desire to continue:** ask at the end, "Would you play the next part of this?" and "What would you do next?". Write the answer as said.
 - **Understanding of why Spanish was needed:** ask, "Why did you need Spanish in that part?" The Enjoyable gate asks for this.
-- **Voice:** what the game heard (the "Oí / Esperaba" line) and whether the tester understood the difference.
+- **Voice:** what the game heard (the "Heard / Expected" line) and whether the tester understood the difference.
 
 Do not coach, do not praise a correct answer in Spanish, and do not correct a wrong one. Say "thank you" and move on.
 

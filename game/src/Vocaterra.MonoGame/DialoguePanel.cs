@@ -7,7 +7,7 @@ namespace Vocaterra.MonoGame;
 
 /// <summary>
 /// The dialogue panel along the bottom of the window: the lines so far (what the player said, the verdict note, the NPC's correction and reply, the
-/// game's line with the world facts), the persistent <c>Oí: «…» · Esperaba: «…»</c> line after a spoken turn, the five speech buttons (Repetir,
+/// game's line with the world facts), the persistent <c>Heard: «…» · Expected: «…»</c> line after a spoken turn, the five speech buttons (Repetir,
 /// Más despacio, Ayuda, No sé, Escribir), the choices the repair ladder offered, the text box while typing and a line of key hints. Its status
 /// (<c>Escuchando…</c>, <c>Pensando…</c>) sits in the title bar. It only draws the state of the <see cref="DialogueModel"/>; the keys and the
 /// mouse are handled by the game, which finds the buttons with the same <see cref="DialogueLayout"/> the drawing uses.

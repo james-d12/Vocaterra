@@ -93,14 +93,14 @@ from the grey copy of its cell, a block no noun names stays in colour. The new t
 the undergrowth, the snow and the bushes are named by no noun and stay in colour, as the bush always did.
 
 **The camp objective and the word cards (S4).** The checklist (`ObjectiveLayer`, top right) reads `Campamento: madera 5/5 · frutas 3/3 · antorcha
-1/1 · agua 0/1`: a done step in green, an open one in white. Each step that completes shows a toast (`Hecho: frutas 3/3`), and the whole checklist
+1/1 · agua 0/1`: a done step in green, an open one in white. Each step that completes shows a toast (`Done: frutas 3/3`), and the whole checklist
 its own (`Campamento completo`). The first time an item enters the inventory (a pickup, a craft) its word card goes up (`WordCardLayer`, above the
-hotbar): `Palabra nueva`, the noun with its article (`la antorcha`), and an empty slot where the audio comes with S9; it stays for five seconds
+hotbar): `New word`, the noun with its article (`la antorcha`), and an empty slot where the audio comes with S9; it stays for five seconds
 (`WordCardQueue`, one at a time, by ticks). Pickups do not toast any more (the hotbar counts them; a toast each would queue behind the checklist).
 
 **The crafting panel (S4).** `CraftingLayer` lists the bundle's recipes (`CraftingScreen.Rows` over the 3D simulation): the output's icon and word,
-each ingredient as `have/need word`, the station (`Usa mesa`, or `A mano`) and a status: `Hacer` when it can be made here, else `Sin material`,
-`Sin mesa` (the workbench is not within 6 blocks) or `Inventario lleno`. A click on a row queues one `Craft` command for the next tick (the same
+each ingredient as `have/need word`, the station (`Uses mesa`, or `By hand`) and a status: `Make` when it can be made here, else `Missing material`,
+`Needs mesa` (the workbench is not within 6 blocks) or `Inventory full`. A click on a row queues one `Craft` command for the next tick (the same
 command a script sends), so a craft is deterministic. Opening the panel counts each shown word as read once.
 
 **The screens over the scene.** The hotbar, the toast, the inventory screen, the journal and the crafting panel draw over the scene; `FrameView`
@@ -112,7 +112,7 @@ edge arrow, and the 3D debug overlay.
 `Vocaterra.Game`, the shared part is `GuideSession`) over the scene's blocks: `WorldFacts3D` answers "where is it" with the nearest block of a noun,
 its direction from the facing and its distance in blocks. The panel (`DialogueModel`, `DialoguePanel`) is in the layer list; **E** (or **T**; **V**
 talks) opens it when the crosshair is on an NPC's figure, the guide's, the shopkeeper's or the villager's since S6 (`FigureAim` on the figure's chest, reach 8 blocks, no block in between through
-`NpcLabelLayer.Occluded`; the hint `E: hablar` is `TalkHintLayer`). The panel takes the keyboard, the mouse is released and no walking happens while
+`NpcLabelLayer.Occluded`; the hint `E: talk` is `TalkHintLayer`). The panel takes the keyboard, the mouse is released and no walking happens while
 it is open (the keys are in the S7 paragraph below). The arrow of the session is the beacon: `SyncBeacon` puts `Beacon.Set` on the pointer's
 block (a review question shows `¿?`), and the beacon's own reach takes the arrow down. "¿qué es esto?" uses `VoxelSession.AimedCell`, the block under
 the crosshair (`sim.Target`). `--talk` and `--say` are `ScenarioScript` steps: a `VoxelScript` walk to the stand-off cell of the NPC, a look at it, then the panel opens (the
@@ -127,10 +127,10 @@ the objective counts the rim (`VoxelSession.AtFireRing`: the three-by-three squa
 `[W] Escribir`, and the offered choices `[1]` to `[3]`; `DialogueLayout` is the one layout the drawing and the mouse hit-test share, as `CraftingLayout`
 is for the crafting panel; `SpeechActionRunner` carries a press out and raises its voice event; `ILinePlayer` is the hook S9 fills to play the NPC's
 line again, `SilentLinePlayer` until then). Hold **V** or **Space** to talk (Tab no longer holds push-to-talk: it opens the text box with W); in the text
-box Enter sends and Tab or Esc return to the buttons. **Esc** undoes the newest thing: a recording, a turn that is "Pensando…" (`TurnWatchdog`'s five seconds of the
+box Enter sends and Tab or Esc return to the buttons. **Esc** undoes the newest thing: a recording, a turn that is "Thinking…" (`TurnWatchdog`'s five seconds of the
 frame clock offer typing, `¿Escribes?`, with the Escribir button focused), the text box, and last the panel. `DialogueModel` holds the persistent
-`Oí: «…» · Esperaba: «…»` line (`HeardLine`, from the phrase sheet) and the choices; `MicCheckModel` and `MicCheckLayer` are the mic-check screen (a live
-level meter from `PushToTalk.LastLevel`, `Di: hola`, what was heard, pass, retry or skip). `--mic-check` forces the screen, `--no-mic-check` skips it, and a
+`Heard: «…» · Expected: «…»` line (`HeardLine`, from the phrase sheet) and the choices; `MicCheckModel` and `MicCheckLayer` are the mic-check screen (a live
+level meter from `PushToTalk.LastLevel`, `Say "hola"`, what was heard, pass, retry or skip). `--mic-check` forces the screen, `--no-mic-check` skips it, and a
 scripted run skips it unless asked (then the worker hears a synthesized "hola"). `--speak` and `--wav` are `ScenarioScript` steps like `--say`.
 
 **Not in 3D yet:** the Alt-accent shortcuts of the panel (typed `é`, `ñ` and the

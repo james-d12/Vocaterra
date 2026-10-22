@@ -97,12 +97,12 @@ public sealed class CraftingLayer : IFrameLayer
         var stationX = box.Left + 470;
         if (row.Recipe.Station is { } station)
         {
-            DrawHelpers.Text(spriteBatch, font, "Usa", new Vector2(stationX, middle), Hints);
+            DrawHelpers.Text(spriteBatch, font, "Uses", new Vector2(stationX, middle), Hints);
             DrawWord(spriteBatch, font, station.Lemma, stationX + 34, middle, words.SaturationOf(station.Lemma), 0);
         }
         else
         {
-            DrawHelpers.Text(spriteBatch, font, "A mano", new Vector2(stationX, middle), Hints);
+            DrawHelpers.Text(spriteBatch, font, "By hand", new Vector2(stationX, middle), Hints);
         }
 
         var status = row.Status;
