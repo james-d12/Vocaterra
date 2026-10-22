@@ -185,7 +185,9 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S16 | The English guidance layer (D-game-13) and the data-driven lesson runner | done (merged to `feature/prototype` 2026-10-22, bundle `4be20d61…`) | Sonnet 5.5 | S12, D-game-13 |
 | S17 | The opening at the cliff camp, the guide's 5 to 10 minute lesson, the ending; new phrases, checks, Opus pass, speech | in progress | Sonnet 5.5 | S13, S16, D-game-15 |
 | S17b | The talk key (V) shown in the dialogue in every state; the microphone check, the game's own errors and key hints in English (owner's playtest notes) | planned | Haiku 5.5 | S17 |
-| S18 | The playtest refresh (build, checklist, report, launcher message) | planned | Haiku 5.5 | S15, S17, S17b |
+| S19 | The learner's record: every spoken and typed input, the nouns and verbs used (from the core's word readings), the lessons completed; save version 2 (D-game-16) | planned | Haiku 5.5 | S17, D-game-16 |
+| S20 | The book: the journal as an openable book with Nouns, Verbs, Phrases, Lessons and What I said pages (D-game-16) | planned | Haiku 5.5 | S15, S19 |
+| S18 | The playtest refresh (build, checklist, report, launcher message; the consent text mentions that the book keeps what the player said) | planned | Haiku 5.5 | S15, S17, S17b, S20 |
 
 Each milestone ends with the gate in section 6 and a line in section 5. The S series is gated with `GATE_TARGET=feature/prototype
 scripts/merge-gate.sh "S<nn>:<branch>"` from the `feature/prototype` checkout.

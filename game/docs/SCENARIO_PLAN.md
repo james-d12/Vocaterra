@@ -291,7 +291,7 @@ In `src/Vocaterra.MonoGame`, the only engine code:
   bottle, completes the objective and the transfer step, and writes a session log; the report script reads it back.
 - Playtest (S12): a fresh clone builds and runs the scripted scenario; the facilitator checklist is followed once by the owner before any tester.
 
-## 8. Second pass: the owner's playtest feedback (2026-10-22), milestones S13 to S18
+## 8. Second pass: the owner's playtest feedback (2026-10-22), milestones S13 to S20
 
 The owner played the S12 build: "it's ok", with five changes asked for:
 
@@ -331,7 +331,8 @@ Order:
 - Track B, the learning: S16 runs beside S13, because its folders stay apart (the game layer and a UI layer, not the renderer or the
   scene).
 - S17 needs S13 (the cliff camp and the new route) and S16 (the lesson runner). It may run beside S14 or S15.
-- S17b runs after S17 (it edits the dialogue panel and model that S17 changes). S18 runs last.
+- S17b runs after S17 (it edits the dialogue panel and model that S17 changes).
+- S19 (the record) needs S17 (the guide's lesson). S20 (the book) needs S19 and S15 (the panel style). S18 runs last, after S20.
 
 Every milestone keeps the whole scenario playable end to end and updates the scripted routes and tests that the new geography moves. The rules
 of section 5 carry over.
@@ -511,6 +512,63 @@ controls in English.
   without models: point `VOCATERRA_MODELS_DIR` at an empty temporary folder).
 - **Demo:** `--playtest` with `VOCATERRA_MODELS_DIR` unset shows the English model message and the typing hint; with models set, the
   dialogue shows the V hint in both states.
+
+### S19: the learner's word record and lesson record (Haiku 5.5, M)
+
+The owner (2026-10-22, D-game-16): "a book that can be opened that tracks the nouns / verbs that the player has used, for this we need to track
+all the input they provide to us (speaking / writing). I also want a UI (perhaps in the book too) to track all completed lessons." S19 is the
+data; S20 is the book. No core change is needed: every evaluated turn already carries `PipelineResult.Words` (nlp/docs/API.md), one entry
+per token with the core's reading (`Lemma`, `Pos`, `Person`, `Number`, `Tense`, `Mood`, `Gender`), for a typed line exactly as for speech.
+- **The input history** (`Vocaterra.Game`, beside `PhraseProgress`): every line the learner gives the game, spoken or typed, in any
+  dialogue, lesson step or check. One entry each: the text the core evaluated (the transcript for speech, the typed line), the source
+  (voice or typed), where it was said (prompt id, NPC or lesson unit), the verdict (communicated, error tags), and when, as the session
+  number and the stored game time (never the wall clock). Bounded: the newest 500 entries are kept in the save; the session log (S11)
+  keeps the full stream as now, with typed lines included if they are not yet.
+- **The word record**, built from the history's word readings, one row per lemma of a noun or a verb that the core read with a lexicon
+  entry (unknown tokens and recogniser noise stay in the history only):
+  - nouns: lemma, gender (for the article), the forms used (`agua`, `aguas`), times used, times used correctly (no error span over the word),
+    first and last use, and the last sentence it was used in;
+  - verbs: lemma (the infinitive, `querer`), each form used with its person and tense (`quiero`, 1st singular present), the same counts and
+    the last sentence.
+  - Other parts of speech are recorded in the same table with their `Pos`, for a later page, but S20 shows only nouns and verbs.
+- **The lesson record:** for each lesson in `lessons.json` (S16's runner, S17's guide lesson), the units done, the state (not started, in
+  progress, completed), the session it was completed in, the turns it took, and the help used (English shown, "no sé", repeats). It is
+  written by the lesson runner's own completion events, not inferred from phrases.
+- **The save (S10):** format version 2 adds the history, the word record and the lesson record. A version 1 save still loads, with an empty
+  history and the lesson record rebuilt as far as the saved runner state allows. New learner-model state stays in the game layer, not the core.
+- **Determinism:** ordinal comparisons, no clock, no `System.Random`; the record is a pure fold of the history, so replaying a save's
+  history gives the same record (a test proves it).
+- **Tests:** a spoken and a typed turn both land in the history; `quiero dos aguas` gives the noun `agua` (forms `aguas`) and the verb
+  `querer` (form `quiero`, 1st singular present); an error span marks the word used but not correct; unknown words stay out of the record;
+  the 500-entry bound; lesson states across a unit, a whole lesson and a resumed save; version 1 to 2 loading.
+- **Demo:** `--transcript` cannot show a record across turns, so a scripted run of the guide's lesson (S17's measurement script) prints the
+  word record and lesson record at the end.
+
+### S20: the book (Haiku 5.5, M)
+
+The learner's book, the place to see what they have said and learnt (D-game-16). It grows out of the journal (J), which already has the
+catalogue words page and the phrases page (S8), rather than adding a second notebook.
+- **A book you open.** The journal becomes the book: drawn in code as an open book over the scene, in S15's panel style (reference B),
+  CC0 by construction. It opens with J, as now, and the learner also starts with a book item at the cliff camp (S17's opening) that opens
+  it when used. It covers the screen and takes the keyboard while open, as the journal does now. Page tabs, turned with Tab, Left, Right
+  or a click: **Nouns**, **Verbs**, **Phrases**, **Lessons**, **What I said**. Every title, tab, column head and key hint is English
+  (D-game-13); the Spanish is what the learner learnt.
+- **Nouns:** the catalogue nouns as on today's words page (seen or `¿?`, icon, heard, read, said, correct, the three pips), plus every
+  other noun the learner has used from S19's word record. Each row has the article (`el agua`, `la botella`), the forms used, times used and
+  correct, and the last sentence, with its English when the sentence is a known phrase.
+- **Verbs:** the infinitive with its English (`querer — to want`, from the bundle's lexicon gloss where there is one), each form the learner
+  used with a plain-English label (`quiero — I want`, `¿quieres? — do you want?`), counts, and the last sentence.
+- **Phrases:** today's phrases page, unchanged in meaning.
+- **Lessons:** every lesson in the bundle with its state (completed, in progress with units done, or not started), when it was completed
+  (session n), its units with a tick each, the phrases it taught (S17's recap), and the help used. A completed lesson shows a short
+  English summary: "You can greet, say yes and no, ask what something is…".
+- **What I said:** the newest entries of S19's history, newest first: the line, voice or typed, where, and whether it was understood,
+  with the core's feedback in English (S16's text). This page is the learner's view of "all the input".
+- **Large lists scroll** with the wheel and Page Up and Page Down; the book stays readable at 1280 x 720.
+- **`--greyscale` (D-game-6)** behaves on the book's icons as it does on the journal's now.
+- **Tests:** what each page lists for a fixed record; the English labels for verb forms across person and tense; tab order and scrolling;
+  that the book item and J open the same book.
+- **Demo:** screenshots of the five pages after S17's scripted lesson run, saved outside the repository.
 
 ### S18: the playtest refresh (Haiku 5.5, S)
 

@@ -21,6 +21,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-13 | English guidance for a player with no Spanish | decided (owner, 2026-10-22): on-screen English text only, fading per phrase; only Spanish is spoken | nothing |
 | D-game-14 | World scale and look | decided (owner, 2026-10-22): about 384 x 384 x 128, rich voxel (D-game-8 kept), close to the brief's references A to C, target a real GPU with quality presets | nothing |
 | D-game-15 | The opening and the guide's lesson | decided (owner, 2026-10-22): start alone at the player's cliff camp; a gradual guide lesson of 5 to 10 minutes; the phrase set grows beyond D-game-12's interim limit | nothing |
+| D-game-16 | The learner's book: words used and lessons completed | decided (owner, 2026-10-22): record every spoken and typed input; a book shows the nouns and verbs used and the lessons completed | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -157,6 +158,16 @@ please and thank you, and the getting-unstuck phrases before the camp task; the 
 This departs from the brief's "Start in the forest" (the camp is now the player's, on the cliff) but keeps "no quiz at spawn". It also grows the
 phrase set beyond D-game-12's interim limit (the brief's five phrases plus five service words); every new row is still textbook A1, passes lint
 `--strict` and `cefr-check`, and gets the Opus pass, and the later native-speaker check grows accordingly. Plan: section 8, S17.
+
+## D-game-16: the learner's book (decided)
+
+**Owner, 2026-10-22.** "A book that can be opened that tracks the nouns / verbs that the player has used, for this we need to track all the
+input they provide to us (speaking / writing). I also want a UI (perhaps in the book too), to track all completed lessons." The game records
+every line the learner speaks or types, with the core's reading of each word, and folds it into a record of the nouns and verbs used and the
+lessons completed. The journal (J) becomes that book, with the lessons on a page of it. The record lives in the save and the session log, on
+the player's machine only. It is game state (game words live in `game/`); the core already returns the word readings, so no core change.
+The orchestrator's choices, open to the owner's change: verbs listed by infinitive with the forms used; only words the core read from its
+lexicon are listed (recogniser noise is not); the save keeps the newest 500 lines. Plan: section 8, S19 (the record) and S20 (the book).
 
 ## D-game-7: one repository for the game and the core (done)
 
