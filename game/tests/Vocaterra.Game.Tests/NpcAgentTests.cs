@@ -4,6 +4,7 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Decision.ConversationAgents;
+using Vocaterra.Nlp.Decision.Feedback;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Language.Embeddings;
 using Vocaterra.Nlp.Pipeline;
@@ -113,7 +114,9 @@ public sealed class NpcAgentTests
         Assert.Equal("idle", context.AgentState.StateId);
         Assert.Equal("not_understood.1", result.Response.Lines[0].LineId);
         Assert.Equal("No te entendí. ¿Me lo dices otra vez?", result.Response.Lines[0].Text);
-        Assert.Contains(result.Response.Lines, static l => l.LineId.StartsWith("feedback.hint.not_communicated", StringComparison.Ordinal));
+        // The core plans the not-communicated feedback (SlowRepeat) only when the verdict has an expected form; "está el río" has none, so no
+        // feedback line is said and in particular no hint.
+        Assert.DoesNotContain(result.Response.Lines, static l => l.LineId.StartsWith("feedback.hint", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -204,15 +207,52 @@ public sealed class NpcAgentTests
     }
 
     [Fact]
-    public void TheNotUnderstoodLineAsksForAnotherTryAndTheHelpLineIsAHint()
+    public void TheNotUnderstoodLineAsksForAnotherTryAndTheFeedbackIsTheHelpLineNotAHint()
     {
+        // D-game-9 (S9): a turn the NPC did not understand gets the help line, never a hint ("Casi. Piensa otra vez."). The core picks the pool
+        // of the policy's not-communicated type by the first error's tag, falling back to the kind's generic pool, so that type is SlowRepeat (no
+        // rule produces it) and its generic pool holds the help lines only.
         var bundle = TestGame.Bundle;
 
         Assert.Equal("No te entendí. ¿Me lo dices otra vez?", bundle.Dialogue.Pools["not_understood"].Variants[0].Text);
-        Assert.Contains("feedback.hint.not_communicated", bundle.Dialogue.Pools.Keys);
-        Assert.All(bundle.Dialogue.Pools["feedback.hint.not_communicated"].Variants, static v => Assert.Contains("ayuda", v.Text, StringComparison.Ordinal));
-        var path = Path.Combine(GameBundle.ResolveDirectory(), "feedback", "feedback-policy.json");
-        Assert.Contains("\"notCommunicatedType\": \"Hint\"", File.ReadAllText(path), StringComparison.Ordinal);
+        Assert.DoesNotContain("feedback.hint.not_communicated", bundle.Dialogue.Pools.Keys);
+        Assert.All(bundle.Dialogue.Pools["feedback.slow_repeat"].Variants, static v => Assert.Contains("ayuda", v.Text, StringComparison.Ordinal));
+        Assert.Equal(["Di «ayuda» y te ayudo.", "Si necesitas ayuda, di «ayuda»."], bundle.Dialogue.Pools["feedback.slow_repeat"].Variants.Select(static v => v.Text));
+        Assert.Equal(FeedbackType.SlowRepeat, bundle.FeedbackPolicy.NotCommunicatedType);
+        Assert.Equal(FeedbackType.Hint, bundle.FeedbackPolicy.Rules.Single(static r => r.TagPattern == "*" && r.MinRepeat == 2).Type);
+    }
+
+    [Fact]
+    public void AGarbledLineTheShopkeeperDoesNotUnderstandGetsNoHintWhenItHasErrors()
+    {
+        // The S7 screenshot: a garbled spoken line at the stall answered "No te entendí..." and then "Casi. Piensa otra vez." Here every line that
+        // is not communicated at the stall gets the not-understood line and the help line, whatever errors the analysis found in it.
+        var lines = new[] { "yo quieres agua por favor", "quiero dos aguas", "agua agua agua", "el el el", "nada de nada", "xyz", "tienes pan" };
+        var notCommunicated = 0;
+        var withErrors = 0;
+        foreach (var line in lines)
+        {
+            var context = Context("shopkeeper", "idle");
+            var result = Say(line, "stall-need", ref context);
+            if (result.Verdict.Communicated)
+            {
+                continue;
+            }
+
+            notCommunicated++;
+            if (result.Verdict.Errors.Count > 0)
+            {
+                withErrors++;
+            }
+
+            var feedback = result.Response.Lines.Where(static l => l.LineId.StartsWith("feedback.", StringComparison.Ordinal)).ToList();
+            Assert.All(feedback, static f => Assert.StartsWith("feedback.slow_repeat.", f.LineId, StringComparison.Ordinal));
+            Assert.All(feedback, static f => Assert.Contains("ayuda", f.Text, StringComparison.Ordinal));
+            Assert.DoesNotContain(result.Response.Lines, static l => l.Text.Contains("Casi", StringComparison.Ordinal) || l.Text.Contains("Piensa", StringComparison.Ordinal));
+        }
+
+        Assert.True(notCommunicated > 0, "no line was left uncommunicated");
+        Assert.True(withErrors > 0, "no uncommunicated line carried an error, so the error path was not exercised");
     }
 
     [Fact]
