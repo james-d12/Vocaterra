@@ -93,6 +93,30 @@ public sealed class DialogueTests
     }
 
     [Fact]
+    public void APlaytestHidesTheVerdictNoteButKeepsTheTurnsOtherLines()
+    {
+        var focus = new InputFocus();
+        var playtest = new DialogueModel(focus, "¡Hola! Soy la guía.", showVerdictNotes: false);
+        playtest.Open();
+        playtest.Entry.Insert("hola");
+        playtest.RequestSubmit();
+        playtest.Submit(line => Turn(line, feedback: "¡Eso es!", world: "El camino está allí."), () => 2.2);
+
+        Assert.DoesNotContain(playtest.Lines, l => l.Speaker == DialogueSpeaker.Note);
+        Assert.Contains(playtest.Lines, l => l.Speaker == DialogueSpeaker.Correction && l.Text == "¡Eso es!");
+        Assert.Contains(playtest.Lines, l => l.Speaker == DialogueSpeaker.World && l.Text == "El camino está allí.");
+        Assert.Equal(2.2, playtest.LastTurnMilliseconds);
+
+        // The default (scripted and developer runs) keeps the verdict line, with its confidence and milliseconds.
+        var developer = new DialogueModel(new InputFocus(), "¡Hola! Soy la guía.");
+        developer.Open();
+        developer.Entry.Insert("hola");
+        developer.RequestSubmit();
+        developer.Submit(line => Turn(line), () => 2.2);
+        Assert.Contains(developer.Lines, l => l.Speaker == DialogueSpeaker.Note && l.Text == "greet, understood, 100 %, 2.2 ms");
+    }
+
+    [Fact]
     public void ARepairLineIsShownWhenTheGuideDidNotUnderstand()
     {
         var dialogue = Model(out _);
