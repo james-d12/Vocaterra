@@ -84,7 +84,7 @@ public sealed class DialogueTests
             [
                 new DialogueLine(DialogueSpeaker.Guide, "¡Hola! Soy la guía."),
                 new DialogueLine(DialogueSpeaker.Player, "¿dónde está la árbol?"),
-                new DialogueLine(DialogueSpeaker.Note, "greet, entendido, 100 %, 3.5 ms"),
+                new DialogueLine(DialogueSpeaker.Note, "greet, understood, 100 %, 3.5 ms"),
                 new DialogueLine(DialogueSpeaker.Correction, "¡Eso es! Dónde está el árbol."),
                 new DialogueLine(DialogueSpeaker.Guide, "¡Hola!"),
                 new DialogueLine(DialogueSpeaker.World, "El árbol está a la derecha, a doce bloques."),
@@ -102,7 +102,7 @@ public sealed class DialogueTests
         dialogue.Submit(line => Turn(line, repair: "¿Cómo?", communicated: false));
 
         Assert.Contains(new DialogueLine(DialogueSpeaker.Guide, "¿Cómo?"), dialogue.Lines);
-        Assert.Contains(dialogue.Lines, l => l.Speaker == DialogueSpeaker.Note && l.Text.StartsWith("unknown, no entendido", StringComparison.Ordinal));
+        Assert.Contains(dialogue.Lines, l => l.Speaker == DialogueSpeaker.Note && l.Text.StartsWith("unknown, not understood", StringComparison.Ordinal));
     }
 
     [Fact]

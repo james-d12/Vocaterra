@@ -74,7 +74,7 @@ public sealed class VoxelSession : GuideSession
     public IReadOnlyList<ObjectiveStep> Completed => _completed;
 
     /// <summary>The hint shown when the player works on water with no bottle (a toast; nothing is blocked).</summary>
-    public const string NeedBottleHint = "Necesitas una botella.";
+    public const string NeedBottleHint = "You need a bottle.";
 
     /// <summary>
     /// Where the session stands for the objective area (S17): sent down the trail to the guide, the camp checklist, sent back up to light the player's own fire,

@@ -26,34 +26,34 @@ public enum MicCheckPhase
 
 /// <summary>
 /// The mic check at the start (D-game-9, S7) as plain state: a live level meter from the capture's RMS while the talk key is held, the instruction
-/// <see cref="Instruction"/>, what the recognizer heard (<c>Oí: «hola»</c>) and a pass, retry or skip result. It never blocks the game: it can be
+/// <see cref="Instruction"/>, what the recognizer heard (<c>Heard: «hola»</c>) and a pass, retry or skip result. It never blocks the game: it can be
 /// skipped from any phase, and the result is logged as a voice event (<c>mic_check_passed</c>, <c>mic_check_failed</c>, <c>mic_check_skipped</c>).
 /// </summary>
 public sealed class MicCheckModel
 {
     /// <summary>The instruction the screen shows.</summary>
-    public const string Instruction = "Di: hola";
+    public const string Instruction = "Say \"hola\"";
 
-    /// <summary>The title of the screen.</summary>
-    public const string Title = "Micrófono";
+    /// <summary>The title of the screen (S17b: English; the word the player says, <c>hola</c>, stays Spanish).</summary>
+    public const string Title = "Microphone check";
 
     /// <summary>How to talk (the held key).</summary>
-    public const string TalkHint = "Mantén V o Espacio y di «hola»";
+    public const string TalkHint = "Hold V or Space and say \"hola\"";
 
     /// <summary>The result line after a pass.</summary>
-    public const string PassedText = "¡Bien! Te oigo.";
+    public const string PassedText = "Got it, I can hear you.";
 
     /// <summary>The result line after a failed try.</summary>
-    public const string FailedText = "No te oí bien. ¿Otra vez?";
+    public const string FailedText = "I didn't catch that. Try again?";
 
     /// <summary>The label of the button that leaves the screen after a pass.</summary>
-    public const string ContinueLabel = "Seguir";
+    public const string ContinueLabel = "Continue";
 
     /// <summary>The label of the button that tries again.</summary>
-    public const string RetryLabel = "Otra vez";
+    public const string RetryLabel = "Try again";
 
     /// <summary>The label of the button that skips the check.</summary>
-    public const string SkipLabel = "Saltar";
+    public const string SkipLabel = "Skip";
 
     /// <summary>How fast the meter falls back, per second (a fraction of full scale).</summary>
     public const double FallPerSecond = 1.5;
@@ -99,14 +99,14 @@ public sealed class MicCheckModel
     /// <summary>The line under the instruction for the phase: how to talk, or the result.</summary>
     public string StatusText => Notice is not null && Phase is MicCheckPhase.Ready or MicCheckPhase.Failed ? Notice : Phase switch
     {
-        MicCheckPhase.Listening => "Escuchando…",
-        MicCheckPhase.Thinking => "Pensando…",
+        MicCheckPhase.Listening => "Listening…",
+        MicCheckPhase.Thinking => "Thinking…",
         MicCheckPhase.Passed => PassedText,
         MicCheckPhase.Failed => FailedText,
         _ => TalkHint,
     };
 
-    /// <summary>The line <c>Oí: «…»</c> once something was heard, or <see langword="null"/>.</summary>
+    /// <summary>The line <c>Heard: «…»</c> once something was heard, or <see langword="null"/>.</summary>
     public string? HeardText => Heard is null ? null : $"{HeardLine.HeardLabel}{(Heard.Length == 0 ? HeardLine.NothingHeard : $"«{Heard}»")}";
 
     /// <summary>The talk key went down: the meter starts to move. Does nothing unless the check is ready (or failed: a new try starts).</summary>

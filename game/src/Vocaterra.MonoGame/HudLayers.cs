@@ -166,7 +166,7 @@ public sealed class WordCardLayer : IFrameLayer
 
         var small = view.Fonts.Get(FontProvider.NativeSize);
         var large = view.Fonts.Get(PhraseSize);
-        DrawHelpers.Text(spriteBatch, small, "Palabra nueva", new Vector2(box.Left + 14, box.Top + 8), Gold * alpha);
+        DrawHelpers.Text(spriteBatch, small, "New word", new Vector2(box.Left + 14, box.Top + 8), Gold * alpha);
         DrawHelpers.Text(spriteBatch, large, shown.Card.Phrase, new Vector2(box.Left + 14, box.Top + 28), Ink * alpha);
 
         // The audio slot: an empty placeholder until S9 records the word.

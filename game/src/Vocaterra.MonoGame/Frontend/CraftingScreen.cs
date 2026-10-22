@@ -19,15 +19,15 @@ public sealed record CraftingRow(int Index, RecipeEntry Recipe, IReadOnlyList<in
     public bool HasEnough(int ingredient) => Have[ingredient] >= Recipe.Ingredients[ingredient].Count;
 
     /// <summary>
-    /// The short status the row shows at its right edge: <c>Hacer</c> when it can be made, otherwise what is missing (<c>Sin material</c>,
-    /// <c>Sin mesa</c>, <c>Inventario lleno</c>).
+    /// The short status the row shows at its right edge: <c>Make</c> when it can be made, otherwise what is missing (<c>Missing material</c>,
+    /// <c>Needs mesa</c>, <c>Inventory full</c>).
     /// </summary>
     public string Status => Result switch
     {
-        CraftResult.Done => "Hacer",
-        CraftResult.MissingStation => "Sin " + (Recipe.Station?.Lemma ?? "estación"),
-        CraftResult.InventoryFull => "Inventario lleno",
-        _ => "Sin material",
+        CraftResult.Done => "Make",
+        CraftResult.MissingStation => "Needs " + (Recipe.Station?.Lemma ?? "estación"),
+        CraftResult.InventoryFull => "Inventory full",
+        _ => "Missing material",
     };
 }
 

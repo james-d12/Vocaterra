@@ -236,7 +236,7 @@ public sealed class GreyscaleTests
         Assert.False(ChunkMesher.IsGrey(BlockId.Water, calls[1]));
         Assert.True(ChunkMesher.IsGrey(BlockId.Trunk, calls[1]));
         Assert.Equal(ChunkMesher.KindBit(BlockId.Water), calls[0] & ~calls[1]); // exactly the water changed
-        Assert.Equal("¡Nueva palabra: el agua!", toasts.Current(0)?.Text);
+        Assert.Equal("New word: el agua!", toasts.Current(0)?.Text);
 
         world.Refresh(); // nothing changed since: no call, no second toast
         Assert.Equal(2, calls.Count);

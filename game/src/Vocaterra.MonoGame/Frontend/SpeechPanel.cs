@@ -125,18 +125,6 @@ public static class SpeechButtons
             : button.Text;
     }
 
-    /// <summary>
-    /// The key hints under the buttons (S17): the hold-to-talk hint in Spanish, with its English while the learner has spoken fewer than
-    /// <see cref="GuideSession.ButtonEnglishUses"/> lines.
-    /// </summary>
-    /// <param name="hints">The Spanish hints (<c>Mantén V o Espacio: hablar  Esc: cancelar o cerrar</c>).</param>
-    /// <param name="session">The game, or <see langword="null"/> for the Spanish alone.</param>
-    public static string HintsFor(string hints, GuideSession? session)
-    {
-        ArgumentNullException.ThrowIfNull(hints);
-        return session is not null && session.ButtonEnglishUp(SpeechButtonKeys.Hold) ? $"{hints} ({session.English.ButtonEnglish(SpeechButtonKeys.Hold)})" : hints;
-    }
-
     /// <summary>The action a key presses while the panel shows its buttons (not while the text entry has the keys), or <see langword="null"/>.</summary>
     /// <param name="key">The key.</param>
     public static SpeechAction? ForKey(PanelKey key) => key switch

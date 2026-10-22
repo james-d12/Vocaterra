@@ -15,19 +15,19 @@ namespace Vocaterra.MonoGame;
 public sealed class JournalLayer : IFrameLayer
 {
     /// <summary>The title over the list.</summary>
-    public const string Title = "Diario de palabras";
+    public const string Title = "Word journal";
 
     /// <summary>The title over the phrases page.</summary>
-    public const string PhrasesTitle = "Diario de frases";
+    public const string PhrasesTitle = "Phrase journal";
 
     /// <summary>The tab of the words page.</summary>
-    public const string WordsTab = "Palabras";
+    public const string WordsTab = "Words";
 
     /// <summary>The tab of the phrases page.</summary>
-    public const string PhrasesTab = "Frases";
+    public const string PhrasesTab = "Phrases";
 
     /// <summary>The key hints under the list.</summary>
-    public const string KeyHints = "J o Esc: cerrar el diario   Tab: palabras y frases";
+    public const string KeyHints = "J or Esc: close the journal   Tab: words and phrases";
 
     private const int Margin = 16;
     private const int Padding = 16;
@@ -75,7 +75,7 @@ public sealed class JournalLayer : IFrameLayer
         var textWidth = panel.Width - (Padding * 2);
         DrawHelpers.Text(spriteBatch, font, Title, new Vector2(left, panel.Top + 12), Gold);
         DrawTabs(spriteBatch, font, JournalPage.Words, left + (int)DrawHelpers.Width(font, Title) + 24, panel.Top + 12);
-        var summary = $"Conocidas: {known} de {rows.Count}   ·   Sesión {view.Session.PlaySession}";
+        var summary = $"Known: {known} of {rows.Count}   ·   Session {view.Session.PlaySession}";
         DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - Padding - DrawHelpers.Width(font, summary), panel.Top + 12), Known);
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + 40, textWidth, 1), new Color(255, 214, 64, 120));
 
@@ -90,7 +90,7 @@ public sealed class JournalLayer : IFrameLayer
 
         if (rows.Count > capacity)
         {
-            var more = $"y {rows.Count - capacity} más";
+            var more = $"and {rows.Count - capacity} more";
             DrawHelpers.Text(spriteBatch, font, more, new Vector2(left, y), Hints);
         }
 
@@ -117,7 +117,7 @@ public sealed class JournalLayer : IFrameLayer
         DrawTabs(spriteBatch, font, JournalPage.Phrases, left + (int)DrawHelpers.Width(font, PhrasesTitle) + 24, panel.Top + 12);
         var withoutHelp = rows.Count(static r => r is { HasScaffold: true, Level: SupportLevel.None });
         var scaffolded = rows.Count(static r => r.HasScaffold);
-        var summary = $"Sin ayuda: {withoutHelp} de {scaffolded}   ·   Sesión {session.PlaySession}";
+        var summary = $"Without help: {withoutHelp} of {scaffolded}   ·   Session {session.PlaySession}";
         DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - Padding - DrawHelpers.Width(font, summary), panel.Top + 12), Known);
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + 40, textWidth, 1), new Color(255, 214, 64, 120));
 
@@ -132,7 +132,7 @@ public sealed class JournalLayer : IFrameLayer
 
         if (rows.Count > capacity)
         {
-            DrawHelpers.Text(spriteBatch, font, $"y {rows.Count - capacity} más", new Vector2(left, y), Hints);
+            DrawHelpers.Text(spriteBatch, font, $"and {rows.Count - capacity} more", new Vector2(left, y), Hints);
         }
 
         DrawHelpers.Text(spriteBatch, font, KeyHints, new Vector2(left, panel.Bottom - 30), Hints);
@@ -196,7 +196,7 @@ public sealed class JournalLayer : IFrameLayer
         var colour = row.Known ? Known : row.Record.CreditUnits > 0 ? Learning : row.Seen ? Seen : Unseen;
         DrawHelpers.Text(spriteBatch, font, row.Label, new Vector2(left + Icon + 10, top + 4), colour);
 
-        var counts = $"oído {row.Record.Heard}   leído {row.Record.Read}   dicho {row.Record.Spoken}   bien {row.Record.SpokenCorrect}";
+        var counts = $"heard {row.Record.Heard}   read {row.Record.Read}   said {row.Record.Spoken}   correct {row.Record.SpokenCorrect}";
         DrawHelpers.Text(spriteBatch, font, counts, new Vector2(left + Icon + 10, top + 20), Hints);
 
         // Three pips at the right: filled for each use in, outlined for each still to come.

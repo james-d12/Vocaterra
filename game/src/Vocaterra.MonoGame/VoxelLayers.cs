@@ -166,6 +166,15 @@ public sealed class BeaconArrowLayer : IFrameLayer
     private static readonly Color Gold = new(255, 214, 64);
     private static readonly Color Outline = new(40, 28, 0);
 
+    /// <summary>
+    /// The beacon's label (S17b): the noun's Spanish label (<c>campamento</c>, a taught noun, so it stays Spanish) and the distance in the game's English unit,
+    /// for example <c>campamento 74 blocks</c>.
+    /// </summary>
+    /// <param name="label">The beacon's label, or <see langword="null"/>.</param>
+    /// <param name="distance">The distance in blocks, on the ground.</param>
+    public static string BeaconText(string? label, double distance) =>
+        string.Create(CultureInfo.InvariantCulture, $"{label ?? string.Empty}  {distance:0} blocks").Trim();
+
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
     {
@@ -180,7 +189,7 @@ public sealed class BeaconArrowLayer : IFrameLayer
         var point = camera.Screen.Project(target.X + 0.5, target.Y + 4.0, target.Z + 0.5);
         var arrow = EdgeArrow.For(point, width, height, EdgeMargin);
         var distance = Math.Sqrt(Math.Pow(target.X + 0.5 - eye.X, 2) + Math.Pow(target.Z + 0.5 - eye.Z, 2));
-        var text = string.Create(CultureInfo.InvariantCulture, $"{beacon.Label ?? string.Empty}  {distance:0} bloques").Trim();
+        var text = BeaconText(beacon.Label, distance);
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var pixel = view.Pixel;
         if (arrow.OnScreen)

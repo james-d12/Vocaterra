@@ -157,7 +157,7 @@ public sealed class SpokenFrontendTests
         Assert.False(talk.Listening);
         Assert.Null(talk.End());
         talk.Pump(); // harmless
-        Assert.Contains("micrófono", PushToTalk.NoMicrophone, StringComparison.Ordinal);
+        Assert.Contains("microphone", PushToTalk.NoMicrophone, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -167,7 +167,7 @@ public sealed class SpokenFrontendTests
 
         Assert.False(talk.Begin());
         Assert.False(talk.Listening);
-        Assert.StartsWith("No se pudo abrir el micrófono", talk.Problem, StringComparison.Ordinal);
+        Assert.StartsWith("Could not open the microphone", talk.Problem, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public sealed class SpokenFrontendTests
         dialogue.RequestSubmit();
         pump.Submit();
 
-        Assert.Equal(1, dialogue.Pending); // "Pensando…"
+        Assert.Equal(1, dialogue.Pending); // "Thinking…"
         Assert.False(dialogue.SubmitRequested);
         Assert.Equal(DialogueSpeaker.Player, dialogue.Lines[^1].Speaker); // what the player typed is shown at once
         Assert.Equal(1, session.PendingTurns);

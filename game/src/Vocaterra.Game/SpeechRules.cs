@@ -59,7 +59,7 @@ public static class UncertaintyRule
 }
 
 /// <summary>
-/// The persistent line of the dialogue panel after a spoken turn, <c>Oí: «…» · Esperaba: «…»</c> (D-game-9: "what we heard versus what we
+/// The persistent line of the dialogue panel after a spoken turn, <c>Heard: «…» · Expected: «…»</c> (D-game-9: "what we heard versus what we
 /// expected"): the transcript the recognizer gave, and the phrase of the phrase sheet the prompt was waiting for.
 /// </summary>
 /// <param name="Heard">The transcript, without the recognizer's <c>[unk]</c> marks; empty when nothing was heard.</param>
@@ -69,18 +69,18 @@ public static class UncertaintyRule
 public sealed record HeardLine(string Heard, string? Expected, string? ExpectedId, bool Unrecognized = false)
 {
     /// <summary>The label before the heard text.</summary>
-    public const string HeardLabel = "Oí: ";
+    public const string HeardLabel = "Heard: ";
 
-    /// <summary>The label before the expected phrase.</summary>
-    public const string ExpectedLabel = "Esperaba: ";
+    /// <summary>The label before the expected phrase (S17b: English; the quoted Spanish inside stays as it is).</summary>
+    public const string ExpectedLabel = "Expected: ";
 
     /// <summary>What the line says when the recognizer heard nothing (silence).</summary>
-    public const string NothingHeard = "nada";
+    public const string NothingHeard = "(nothing)";
 
     /// <summary>What the line shows inside the quotes when there was speech the recognizer could not make into words.</summary>
     public const string SomethingHeard = "…";
 
-    /// <summary>The line as the panel shows it: <c>Oí: «quiero agua» · Esperaba: «Quiero agua, por favor.»</c>.</summary>
+    /// <summary>The line as the panel shows it: <c>Heard: «quiero agua» · Expected: «Quiero agua, por favor.»</c>.</summary>
     public string Text => string.Create(
         CultureInfo.InvariantCulture,
         $"{HeardLabel}{(Heard.Length > 0 ? $"«{Heard}»" : Unrecognized ? $"«{SomethingHeard}»" : NothingHeard)}{(Expected is null ? string.Empty : $" · {ExpectedLabel}«{Expected}»")}");

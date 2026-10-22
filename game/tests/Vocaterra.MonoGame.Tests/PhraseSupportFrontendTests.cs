@@ -50,16 +50,16 @@ public sealed class PhraseSupportFrontendTests
         Assert.Equal(["que-necesitas", "pedir-agua", "donde-esta-el-rio", "hola"], rows.Take(4).Select(static r => r.Id)); // the phrases met come first, each group in the sheet's order (S17)
         var water = rows.Single(static r => r.Id == "pedir-agua");
         Assert.Equal(("Quiero agua, por favor.", "I want water, please."), (water.Spanish, water.English));
-        Assert.Equal("ayuda: tarjeta y audio", water.LevelText); // the English rung went with the first correct use
-        Assert.Equal("con ayuda 1   sin ayuda 0   opciones 0   no sé 0   otra situación 0", water.CountsText);
-        Assert.Equal(("lista para repasar", true), (water.DueText, water.IsDue)); // twenty minutes after its credited use
+        Assert.Equal("help: card and audio", water.LevelText); // the English rung went with the first correct use
+        Assert.Equal("with help 1   without help 0   choices 0   don't know 0   other situation 0", water.CountsText);
+        Assert.Equal(("due for review", true), (water.DueText, water.IsDue)); // twenty minutes after its credited use
         var hello = rows.Single(static r => r.Id == "hola");
-        Assert.Equal("con ayuda 0   sin ayuda 0.5   opciones 0   no sé 0   otra situación 0", hello.CountsText); // typed: half a use
-        Assert.Equal("ayuda: ninguna", hello.LevelText);
+        Assert.Equal("with help 0   without help 0.5   choices 0   don't know 0   other situation 0", hello.CountsText); // typed: half a use
+        Assert.Equal("help: none", hello.LevelText);
         var river = rows.Single(static r => r.Id == "donde-esta-el-rio");
-        Assert.Equal(("ayuda: inglés, tarjeta y audio", "con ayuda 0   sin ayuda 0   opciones 0   no sé 1   otra situación 0"), (river.LevelText, river.CountsText));
+        Assert.Equal(("help: English, card and audio", "with help 0   without help 0   choices 0   don't know 1   other situation 0"), (river.LevelText, river.CountsText));
         var question = rows.Single(static r => r.Id == "que-necesitas");
-        Assert.Equal(("se oye", "oída 1   respondida 1"), (question.LevelText, question.CountsText));
+        Assert.Equal(("heard", "heard 1   answered 1"), (question.LevelText, question.CountsText));
         Assert.True(question.Hears);
         Assert.Null(question.DueText);
     }
@@ -416,7 +416,7 @@ public sealed class PhraseSupportFrontendTests
         {
             SupportLayer.CardTag, SupportLayer.ChipText, SupportLayer.KeyWordsHeading, JournalLayer.PhrasesTitle, JournalLayer.WordsTab, JournalLayer.PhrasesTab, JournalLayer.KeyHints,
             PhraseJournalRows.HearsText, PhraseJournalRows.CardAndAudioText, PhraseJournalRows.AudioOnlyText, PhraseJournalRows.NoneText,
-            "con ayuda 1   sin ayuda 0.5   opciones 0   no sé 0   otra situación 0", "oída 1   respondida 1", "Sin ayuda: 1 de 4", "y 3 más", "audio",
+            "with help 1   without help 0.5   choices 0   don't know 0   other situation 0", "heard 1   answered 1", "Without help: 1 of 4", "and 3 more", "audio",
         };
         var sheet = PhraseSheet.Load(Bundle.Value);
         strings.AddRange(sheet.Rows.SelectMany(static r => new[] { r.Spanish, r.English, r.Card }));

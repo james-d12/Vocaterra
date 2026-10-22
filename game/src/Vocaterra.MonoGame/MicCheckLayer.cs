@@ -6,7 +6,7 @@ namespace Vocaterra.MonoGame;
 
 /// <summary>
 /// The mic-check screen at the start (D-game-9, S7): the instruction <c>Di: hola</c>, a live level meter from the capture's RMS, the line
-/// <c>Oí: «…»</c> once the recognizer has heard the try, and the result (<c>¡Bien! Te oigo.</c> or <c>No te oí bien. ¿Otra vez?</c>) with the
+/// <c>Heard: «…»</c> once the recognizer has heard the try, and the result (<c>Got it, I can hear you.</c> or <c>No te oí bien. ¿Otra vez?</c>) with the
 /// buttons <c>Seguir</c>, <c>Otra vez</c> and <c>Saltar</c>. It only draws the <see cref="MicCheckModel"/>; the keys and the mouse are the game's.
 /// </summary>
 public sealed class MicCheckLayer : IFrameLayer
@@ -84,7 +84,7 @@ public sealed class MicCheckLayer : IFrameLayer
             DrawHelpers.Text(spriteBatch, small, MicCheckModel.LabelOf(button), new Vector2(rect.Left + 14, rect.Top + 8), Ink);
         }
 
-        DrawHelpers.Text(spriteBatch, small, "Esc: saltar", new Vector2(panel.Right - 40 - DrawHelpers.Width(small, "Esc: saltar"), panel.Bottom - 44), Dim);
+        DrawHelpers.Text(spriteBatch, small, "Esc: skip", new Vector2(panel.Right - 40 - DrawHelpers.Width(small, "Esc: skip"), panel.Bottom - 44), Dim);
     }
 
     // A row of segments that light up to the level: green, then yellow, then red for a very loud input.

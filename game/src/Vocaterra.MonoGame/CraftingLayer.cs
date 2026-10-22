@@ -18,7 +18,7 @@ public sealed class CraftingLayer : IFrameLayer
     public const string Title = "Recetas";
 
     /// <summary>The key hints under the rows.</summary>
-    public const string KeyHints = "C o Esc: cerrar   clic en una fila: hacer";
+    public const string KeyHints = "C or Esc: close   click a row: make";
 
     private const int Icon = 32;
 
@@ -53,7 +53,7 @@ public sealed class CraftingLayer : IFrameLayer
         var left = layout.RowX;
         DrawHelpers.Text(spriteBatch, font, Title, new Vector2(left, panel.Top + 10), Gold);
         var made = rows.Count(static r => r.CanMake);
-        var summary = $"Puedes hacer: {made.ToString(CultureInfo.InvariantCulture)} de {rows.Count.ToString(CultureInfo.InvariantCulture)}";
+        var summary = $"You can make: {made.ToString(CultureInfo.InvariantCulture)} of {rows.Count.ToString(CultureInfo.InvariantCulture)}";
         DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - CraftingLayout.Padding - DrawHelpers.Width(font, summary), panel.Top + 10), Known);
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + 36, layout.RowWidth, 1), new Color(255, 214, 64, 120));
 
@@ -97,12 +97,12 @@ public sealed class CraftingLayer : IFrameLayer
         var stationX = box.Left + 470;
         if (row.Recipe.Station is { } station)
         {
-            DrawHelpers.Text(spriteBatch, font, "Usa", new Vector2(stationX, middle), Hints);
+            DrawHelpers.Text(spriteBatch, font, "Uses", new Vector2(stationX, middle), Hints);
             DrawWord(spriteBatch, font, station.Lemma, stationX + 34, middle, words.SaturationOf(station.Lemma), 0);
         }
         else
         {
-            DrawHelpers.Text(spriteBatch, font, "A mano", new Vector2(stationX, middle), Hints);
+            DrawHelpers.Text(spriteBatch, font, "By hand", new Vector2(stationX, middle), Hints);
         }
 
         var status = row.Status;

@@ -35,19 +35,19 @@ public sealed record PhraseJournalRow(
 public static class PhraseJournalRows
 {
     /// <summary>The text of a phrase an NPC says in place of a support level.</summary>
-    public const string HearsText = "se oye";
+    public const string HearsText = "heard";
 
-    /// <summary>The label of <see cref="SupportLevel.EnglishAndCard"/> (S16).</summary>
-    public const string EnglishAndCardText = "ayuda: inglés, tarjeta y audio";
+    /// <summary>The label of <see cref="SupportLevel.EnglishAndCard"/> (S16; English in S17b).</summary>
+    public const string EnglishAndCardText = "help: English, card and audio";
 
     /// <summary>The label of <see cref="SupportLevel.CardAndAudio"/>.</summary>
-    public const string CardAndAudioText = "ayuda: tarjeta y audio";
+    public const string CardAndAudioText = "help: card and audio";
 
     /// <summary>The label of <see cref="SupportLevel.AudioOnly"/>.</summary>
-    public const string AudioOnlyText = "ayuda: solo audio";
+    public const string AudioOnlyText = "help: audio only";
 
     /// <summary>The label of <see cref="SupportLevel.None"/>.</summary>
-    public const string NoneText = "ayuda: ninguna";
+    public const string NoneText = "help: none";
 
     /// <summary>The words for a support level.</summary>
     /// <param name="level">The level.</param>
@@ -100,9 +100,9 @@ public static class PhraseJournalRows
     {
         ArgumentNullException.ThrowIfNull(record);
         return hears
-            ? string.Create(CultureInfo.InvariantCulture, $"oída {record.Heard}   respondida {record.Answered}")
+            ? string.Create(CultureInfo.InvariantCulture, $"heard {record.Heard}   answered {record.Answered}")
             : string.Create(
                 CultureInfo.InvariantCulture,
-                $"con ayuda {PhraseProgress.Uses(record.Supported)}   sin ayuda {PhraseProgress.Uses(record.Unaided)}   opciones {record.ChoiceOnly}   no sé {record.DontKnow}   otra situación {PhraseProgress.Uses(record.Transfer)}");
+                $"with help {PhraseProgress.Uses(record.Supported)}   without help {PhraseProgress.Uses(record.Unaided)}   choices {record.ChoiceOnly}   don't know {record.DontKnow}   other situation {PhraseProgress.Uses(record.Transfer)}");
     }
 }

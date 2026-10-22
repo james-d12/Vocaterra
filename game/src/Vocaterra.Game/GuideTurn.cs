@@ -153,7 +153,7 @@ public sealed record GuideTurn(
     /// <summary>A one-line summary of the verdict for the panel, for example <c>ask_directions, entendido, 100 %</c>.</summary>
     public string Summary => string.Create(
         CultureInfo.InvariantCulture,
-        $"{Intent}, {(Communicated ? "entendido" : "no entendido")}, {(int)Math.Round(Correctness * 100, MidpointRounding.AwayFromZero)} %");
+        $"{Intent}, {(Communicated ? "understood" : "not understood")}, {(int)Math.Round(Correctness * 100, MidpointRounding.AwayFromZero)} %");
 
     /// <summary>Every line the NPC says this turn, in the order shown: the correction, the replies, the repair, the world line, then the follow-up.</summary>
     public IReadOnlyList<string> GuideLines

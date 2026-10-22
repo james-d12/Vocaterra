@@ -74,42 +74,51 @@ public sealed class SpeechEngine : IDisposable
     /// loaded.
     /// </summary>
     /// <param name="problem">When the result is <see langword="null"/>, why (a message for the player, in Spanish).</param>
-    public static ModelStore? FindModels(out string? problem)
+    public static ModelStore? FindModels(out string? problem) => FindModels(Environment.GetEnvironmentVariable, out problem);
+
+    /// <summary>
+    /// The same check with the variables read through <paramref name="getVariable"/> (S17b): a test passes its own values and never changes the process
+    /// environment, which other tests read in parallel.
+    /// </summary>
+    /// <param name="getVariable">The environment's variable reader (<see cref="Environment.GetEnvironmentVariable(string)"/> in the game).</param>
+    /// <param name="problem">When the result is <see langword="null"/>, why (a message for the player, in English).</param>
+    public static ModelStore? FindModels(Func<string, string?> getVariable, out string? problem)
     {
+        ArgumentNullException.ThrowIfNull(getVariable);
         ModelStore? store;
         try
         {
-            var root = ModelStore.RootFromEnvironment();
+            var root = ModelStore.RootFromEnvironment(getVariable);
             if (root is null)
             {
-                problem = $"Falta la variable {ModelStore.EnvironmentVariable}: no hay carpeta de modelos de voz.";
+                problem = NoModelsFolder;
                 return null;
             }
 
-            var manifest = ManifestPath(root);
-            store = manifest is null ? ModelStore.FromEnvironment() : new ModelStore(root, ModelManifest.Load(manifest));
+            var manifest = ManifestPath(root, getVariable);
+            store = manifest is null ? ModelStore.FromEnvironment(getVariable) : new ModelStore(root, ModelManifest.Load(manifest));
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or System.Text.Json.JsonException or UnauthorizedAccessException)
         {
-            problem = $"No se puede leer la carpeta de modelos: {ex.Message}";
+            problem = $"Cannot read the speech models folder: {ex.Message}. You can still type.";
             return null;
         }
 
         if (store is null)
         {
-            problem = $"Falta la variable {ModelStore.EnvironmentVariable}: no hay carpeta de modelos de voz.";
+            problem = NoModelsFolder;
             return null;
         }
 
         if (!Directory.Exists(store.ModelDirectory(VoskModelId)))
         {
-            problem = $"Falta el modelo {VoskModelId} en {store.RootDirectory}.";
+            problem = $"Speech model {VoskModelId} is missing from {store.RootDirectory}. You can still type.";
             return null;
         }
 
         if (store.Manifest.Find(VoskModelId) is null)
         {
-            problem = $"El manifiesto de modelos no lista {VoskModelId} (ponga manifest.json en {store.RootDirectory} o la variable {ManifestVariable}).";
+            problem = $"The models manifest does not list {VoskModelId} (put manifest.json in {store.RootDirectory}, or set {ManifestVariable}). You can still type.";
             return null;
         }
 
@@ -120,20 +129,28 @@ public sealed class SpeechEngine : IDisposable
     /// <summary>The environment variable that names a manifest file to use when the models folder holds none.</summary>
     public const string ManifestVariable = "VOCATERRA_MODELS_MANIFEST";
 
+    /// <summary>The message when no models folder is named (S17b: English, and what to do; the player can still type).</summary>
+    public const string NoModelsFolder = "Speech models not found: set VOCATERRA_MODELS_DIR (see nlp/scripts/fetch-models.sh). You can still type.";
+
     /// <summary>
     /// The manifest to read, when it is not <c>manifest.json</c> in the models folder (where the core's <see cref="ModelStore"/> looks, and
     /// where the core's fetch script does not put it: CR-019): the file named by <see cref="ManifestVariable"/>, else the core's
     /// <c>nlp/models/manifest.json</c> found by walking up from the executable's folder and the current directory. <see langword="null"/> means
     /// the store reads the folder's own manifest.
     /// </summary>
-    public static string? ManifestPath(string modelsRoot)
+    public static string? ManifestPath(string modelsRoot) => ManifestPath(modelsRoot, Environment.GetEnvironmentVariable);
+
+    /// <summary>The manifest lookup with the variable read through <paramref name="getVariable"/> (S17b; see <see cref="FindModels(Func{string, string?}, out string?)"/>).</summary>
+    /// <param name="modelsRoot">The models folder.</param>
+    /// <param name="getVariable">The variable reader.</param>
+    public static string? ManifestPath(string modelsRoot, Func<string, string?> getVariable)
     {
         if (File.Exists(Path.Combine(modelsRoot, ModelStore.ManifestFileName)))
         {
             return null;
         }
 
-        var named = Environment.GetEnvironmentVariable(ManifestVariable);
+        var named = getVariable(ManifestVariable);
         if (!string.IsNullOrWhiteSpace(named))
         {
             return File.Exists(named) ? named : null;
@@ -177,7 +194,7 @@ public sealed class SpeechEngine : IDisposable
         }
         catch (Exception ex) when (ex is IOException or DllNotFoundException or BadImageFormatException or InvalidOperationException or KeyNotFoundException or TypeInitializationException)
         {
-            problem = $"No se pudo cargar el reconocedor de voz: {ex.Message}";
+            problem = $"The speech recogniser could not load: {ex.Message}. You can still type.";
             return null;
         }
     }
@@ -197,7 +214,7 @@ public sealed class SpeechEngine : IDisposable
         {
             if (!CanSpeak)
             {
-                throw new InvalidOperationException($"Falta el modelo {KokoroModelId} en {_store.RootDirectory}.");
+                throw new InvalidOperationException($"Speech model {KokoroModelId} is missing from {_store.RootDirectory}.");
             }
 
             _kokoro = KokoroSynthesizer.FromStore(_store, KokoroModelId, KokoroSpeaker);
