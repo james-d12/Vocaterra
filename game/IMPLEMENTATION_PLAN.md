@@ -193,11 +193,15 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S18 | The playtest refresh (build, checklist, report, launcher message; the consent text mentions that the book keeps what the player said; the facilitator collects the F8 reports) | done (merged to `feature/prototype` 2026-10-22, `3c9a741`); **the owner's pre-flight** (`docs/PLAYTEST.md`) | Haiku 5.5 | S15, S17, S17b, S20, S21 |
 | S22 | The second pass's known issues: an uncrowded conversation screen, the F10 label, measured session durations, a Vosk route step and test, thin pergola posts, the book in greyscale, the book item for old saves | done (merged to `feature/prototype` 2026-10-22, `8609183`) | Sonnet 5.5 | S18 |
 | S23 | LanguageTool over the game's Spanish: strings extractor, first waiver round, the `si quiero` and `traveller` findings, an advisory gate step (required after the waiver round) | done (merged to `feature/prototype` 2026-10-22, `ddb834a`); the gate's game-v1 grammar step is required | Haiku 5.5 | S22, core M30, D10 |
-| S24 | The audio system (mixer, ducking under the voices, silence while the microphone records), interaction and progress sounds; CC0 packs plus code, no music (D-game-18) | planned | Sonnet 5.5 | S23, D-game-18 |
+| S24 | The audio system (mixer, ducking under the voices, silence while the microphone records), interaction and progress sounds; CC0 packs plus code, no music (D-game-18) | done (merged to `main` 2026-10-22, `9291bab`); **the owner listens to the cues once** (judged by name and length only) | Sonnet 5.5 | S23, D-game-18 |
 | S25 | Ambient beds by place (birds, wind, river and waterfall, village, fire, dusk insects) and footsteps per surface | planned | Haiku 5.5 | S24 |
 | S26 | Verbs in the lessons: a yo/tú unit in session 1, lesson "Personas" (él/ella/usted, nosotros, ustedes/ellos) in session 2; lessons unlock by session and replay from the book; Opus pass, speech (D-game-19) | planned | Sonnet 5.5 | S25, D-game-19 |
 | S27 | Verbs, session 3: "Ayer y mañana" (ir a + infinitive, a few preterite forms, time words) | planned | Sonnet 5.5 | S26, core M49 |
 | S28 | The book remade as a book (two-page spread, ribbons, page turn) with conjugation tables (used, taught, hidden until taught) | planned | Sonnet 5.5 | S20b, S27 |
+
+**Standing direction (owner, 2026-10-22, late):** finish the queued milestones (M50, S19b, S20b, S25, S26, M49, S27, S28) and push each
+to `main`. Do not work on the German milestones (M31 to M48, D14); they wait until much later. After the queue, the orchestrator researches
+and makes its own improvements to the game on a new branch, `feature/experiment` (not `main`).
 
 Each milestone ends with the gate in section 6 and a line in section 5. Since 2026-10-22 (owner) every milestone is gated with
 `scripts/merge-gate.sh "S<nn>:<branch>"` from the `main` checkout and pushed straight to `main`. S0 to S23 were merged into
@@ -1036,6 +1040,27 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   gate-script change, which the orchestrator tested on its own. `main` was not merged through its own gate script, which predates the
   resource limits. Both branches now carry `scripts/limited.sh` and the limits; the S series keeps `feature/prototype` as its integration
   branch.
+- **S24, the audio system, interaction and progress sounds (2026-10-22, Sonnet 5.5; merged to `main` `9291bab`, the first milestone merged
+  straight to `main`).**
+  - **The mixer.** It is engine-free in `Frontend/` (`SoundMixer`, `SoundCatalog`, `SoundSynth`, `SoundEventMapper`, `PresentationRng`);
+    the output is `SoundEffectOutput`, or `NullSoundOutput` in scripted runs.
+    - Volumes: voice 1.0, sfx 0.8, ui 0.8, ambient 0.6. sfx and ambient duck to 35 % under any voice line.
+    - Microphone rule: from `Started` to `Stopped` sfx, ambient and ui are silent and in-flight sounds stop. The start beep is trimmed from
+      the recording, so it never reaches Vosk.
+    - A bed API for S25 (`SetBeds`, a 1.5 s cross-fade).
+    - Each frame's cues are folded, so a step's chime replaces an answer's.
+    - Flags `--sfx-volume`, `--ambient-volume`, `--no-sounds` and `--sound-log`; the volumes are kept in the save's settings.
+  - **Assets.** 47 Kenney CC0 files (Impact, RPG and Interface packs) as 22.05 kHz mono WAV, 0.82 MB in all, plus synthesized chimes,
+    beeps, sparkle and whoosh. The source of each file is in `game/assets/audio/SOURCES.md`. They are game assets, not in the content
+    bundle.
+  - **Checked by the orchestrator.**
+    - The gate: 4,477 passed, 5 skipped; both grammar steps clean.
+    - On merged `main`, the README route with `--sound-log`: session complete, 121 cues, and none inside the recording window.
+  - **Not fixed:**
+    - a scripted `--wav` answer's chime falls inside the fixed scripted recording window and is held back (real push-to-talk is fine);
+    - in-flight one-shots are cut hard when recording starts;
+    - the real audio device was not exercised headless;
+    - the cue choices rest on file names, so the owner should listen once.
 
 ## 6. Definition of done (every milestone)
 

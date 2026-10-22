@@ -26,6 +26,16 @@ is a change to the boundary and updates that record.
 - Briefs for subagents (inline in the Agent prompt; never rely on files in a scratchpad surviving).
 - The merge gate (`scripts/merge-gate.sh`), `CLAUDE.md`, this file, and the report to the owner after each milestone.
 
+## Standing direction (owner, 2026-10-22)
+- Keep iterating on outstanding work without waiting to be asked: finish the queue in `game/IMPLEMENTATION_PLAN.md` section 4 (M50, S19b,
+  S20b, S25, S26, M49, S27, S28), each gated and pushed to `main`.
+- Do not work on the German milestones (core M31 to M48, D14) until the owner reopens them.
+- After the queue: research and make improvements to the game yourself, on the branch `feature/experiment`. Create it from `main`, gate
+  with `GATE_TARGET=feature/experiment scripts/merge-gate.sh ...` from a `feature/experiment` checkout, and push it, never `main`.
+  - Plan each experiment as a milestone (an `X<nn>` id in a section of `game/IMPLEMENTATION_PLAN.md`), with the same briefs, model policy,
+    resource rules and gate.
+  - Bring owner decisions (licences, scope, anything that changes D-numbers) to the owner rather than deciding them.
+
 ## Start of a session
 1. `git status`, `git log --oneline -8`, `git worktree list` (remove leftovers with `git worktree remove --force <path>` and
    `git branch -D <branch>`), `df -h /home` (each build is several GB), and the resource check below (`free -h`, `uptime`, stray
