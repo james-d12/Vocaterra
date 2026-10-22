@@ -22,6 +22,16 @@ public static class PlaytestEnd
         return Path.Combine(sessionFolder, SaveFileName);
     }
 
+    /// <summary>
+    /// Where F6 writes the save (S18): the <c>--save</c> file when one is given; in a playtest the session folder's <c>playtest.save</c>, the file
+    /// the run ends with (before S18 F6 wrote <c>vocaterra.save.json</c> into the working folder, the build folder for a tester); otherwise the
+    /// fallback.
+    /// </summary>
+    /// <param name="savePath">The <c>--save</c> file, or <see langword="null"/>.</param>
+    /// <param name="playtestSave">The playtest's save file in its session folder, or <see langword="null"/> outside a playtest.</param>
+    /// <param name="fallback">The save file of an ordinary run.</param>
+    public static string ManualSavePath(string? savePath, string? playtestSave, string fallback) => savePath ?? playtestSave ?? fallback;
+
     /// <summary>Whether the guide has made her transfer offer (the event logged when she asks "¿Quieres agua?" after the camp is done).</summary>
     /// <param name="events">The session's events.</param>
     public static bool TransferOffered(IEnumerable<GameEvent> events)

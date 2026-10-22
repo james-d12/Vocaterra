@@ -79,6 +79,17 @@ public sealed class PlaytestTests
     }
 
     [Fact]
+    public void F6WritesThePlaytestSaveInTheSessionFolderNotTheWorkingFolder()
+    {
+        var playtestSave = PlaytestEnd.SaveIn(Path.Combine("sessions", "s1"));
+
+        // A playtest's F6 goes to its session folder (the build folder is the tester's working folder); --save still wins; an ordinary run keeps its own.
+        Assert.Equal(playtestSave, PlaytestEnd.ManualSavePath(null, playtestSave, "vocaterra.save.json"));
+        Assert.Equal("chosen.json", PlaytestEnd.ManualSavePath("chosen.json", playtestSave, "vocaterra.save.json"));
+        Assert.Equal("vocaterra.save.json", PlaytestEnd.ManualSavePath(null, null, "vocaterra.save.json"));
+    }
+
+    [Fact]
     public void TheTransferIsOfferedWhenTheGuideMadeHerOffer()
     {
         var offered = new GameEvent[] { new WorldEvent(10, 1, WorldEvents.TalkOpened, "guide") };

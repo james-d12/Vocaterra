@@ -2305,10 +2305,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // The battery is waiting for a learner's answer that the scripted run has not given, or it has ended and shows its thank-you screen.
     private bool CheckRestsForShot => _check is { IsDone: false, Phase: CheckPhase.Showing } && _checkScript is { Rests: true } || (_checkDone && _endAfterCheck);
 
-    // The save file of F6 (S10): the --save file, or vocaterra.save.json in the working folder. A turn still thinking means "not now".
+    // The save file of F6 (S10): the --save file, in a playtest the session folder's playtest.save (S18), or vocaterra.save.json in the working folder.
+    // A turn still thinking means "not now".
     private void SaveNow()
     {
-        var path = _options.SavePath ?? DefaultSavePath;
+        var path = PlaytestEnd.ManualSavePath(_options.SavePath, _playtest ? _playtestSavePath : null, DefaultSavePath);
         if (WriteSave(path, "on F6"))
         {
             _toasts.Show($"Game saved (session {_session.PlaySession})");
