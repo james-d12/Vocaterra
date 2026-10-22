@@ -184,7 +184,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S15 | The village, props, humanoid characters, the reference-B dialogue panel, the HUD icons and recipe panel, the F5 view, the first-person arm without its outline | planned | Sonnet 5.5 | S14 |
 | S16 | The English guidance layer (D-game-13) and the data-driven lesson runner | done (merged to `feature/prototype` 2026-10-22, bundle `4be20d61…`) | Sonnet 5.5 | S12, D-game-13 |
 | S17 | The opening at the cliff camp, the guide's 5 to 10 minute lesson, the ending; new phrases, checks, Opus pass, speech | done (merged to `feature/prototype` 2026-10-22, `b0ebf5f`, bundle `9582e14f…`); **the owner listens to the 72 new WAVs** (`docs/SPEECH_CHECKLIST.md`) | Sonnet 5.5 | S13, S16, D-game-15 |
-| S17b | The talk key (V) shown in the dialogue in every state; the microphone check, the game's own errors and key hints in English (owner's playtest notes) | planned | Haiku 5.5 | S17 |
+| S17b | The talk key (V) shown in the dialogue in every state; the microphone check, the game's own errors and key hints in English (owner's playtest notes) | done (merged to `feature/prototype` 2026-10-22, `678e5a2`) | Haiku 5.5 | S17 |
 | S19 | The learner's record: every spoken and typed input, the nouns and verbs used (from the core's word readings), the lessons completed; save version 2 (D-game-16) | planned | Haiku 5.5 | S17, D-game-16 |
 | S20 | The book: the journal as an openable book with Nouns, Verbs, Phrases, Lessons and What I said pages (D-game-16) | planned | Haiku 5.5 | S15, S19 |
 | S18 | The playtest refresh (build, checklist, report, launcher message; the consent text mentions that the book keeps what the player said) | planned | Haiku 5.5 | S15, S17, S17b, S20 |
@@ -854,6 +854,25 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - **Seen for S17b and S20:** the journal's own labels are Spanish (`Diario de frases`, `con ayuda`, `ayuda: inglés, tarjeta y audio`,
     `lista para repasar`, `J o Esc: cerrar el diario`). They are the game's own text, so they become English (D-game-13): the key hint
     in S17b, the rest when S20 rebuilds the journal as the book.
+- **S17b, the talk key and the game's own text in English (2026-10-22, Haiku 5.5; merged `678e5a2`).**
+  - **Built.**
+    - The dialogue footer names the talk key: `Hold V or Space: speak   Esc: cancel or close` with the buttons, and
+      `Tab or Esc: buttons, then hold V or Space: speak` while typing (V types a letter there). With speech off it reads
+      `Speech off: type your answer`.
+    - The microphone check is English (`Microphone check`, `Say "hola"`, `Got it, I can hear you.`, `I didn't catch that. Try again?`,
+      `Continue / Try again / Skip`, `Esc: skip`).
+    - Every model and microphone problem is plain English with what to do, for example `Speech models not found: set
+      VOCATERRA_MODELS_DIR (see nlp/scripts/fetch-models.sh). You can still type.`
+    - The journal, inventory, crafting, HUD, save, status and beacon text is English (`74 blocks`).
+    - The heard line reads `Heard: «…» · Expected: «…»`.
+  - **Left Spanish:** what is learnt or said: NPC names, taught nouns, the speech buttons with their English beside them, NPC lines, the
+    guide's `Puedes decir` card tag.
+  - **Fixed on review:** the first pass changed `VOCATERRA_MODELS_DIR` inside a test while other test classes run in parallel. `SpeechEngine`
+    now takes the variable reader, and no test writes the environment. The orchestrator overruled keeping `Oí`/`Esperaba` in Spanish.
+  - **Not done:** the content key `btnHold` in english.json is no longer drawn but is still required by `EnglishText.UiKeys`. It is
+    harmless, and S20 can drop it with the journal rebuild.
+  - **Checked by the orchestrator:** the gate (4,161 passed, 5 skipped) and the three screenshots: the V hint, the English model message
+    with the speech-off hint, and the English microphone check. Host demo `quiero dos agua por favor` gives `noun.number`.
 
 ## 6. Definition of done (every milestone)
 
