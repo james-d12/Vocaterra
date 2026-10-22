@@ -291,7 +291,7 @@ In `src/Vocaterra.MonoGame`, the only engine code:
   bottle, completes the objective and the transfer step, and writes a session log; the report script reads it back.
 - Playtest (S12): a fresh clone builds and runs the scripted scenario; the facilitator checklist is followed once by the owner before any tester.
 
-## 8. Second pass: the owner's playtest feedback (2026-10-22), milestones S13 to S21
+## 8. Second pass: the owner's playtest feedback (2026-10-22), milestones S13 to S22
 
 The owner played the S12 build: "it's ok", with five changes asked for:
 
@@ -608,6 +608,37 @@ a markdown." Asked where to upload, the owner chose a local file only: no networ
   - the pause: no tick passes while the panel is open.
 - **Demo:** a scripted run with a flag that opens the panel, types a line and saves it (for example `--report "The bridge is missing"
   --report-kind bug`). It prints the saved path; show the Markdown and the PNG.
+
+### S22: the known issues of the second pass (Sonnet 5.5, M)
+
+The owner (2026-10-22): "Fix the known issues." These are the issues the second pass logged in `IMPLEMENTATION_PLAN.md` section 5 (S15,
+S18, S20) and left open.
+1. **The conversation screen is crowded** (S15). The support cards (`Puedes decir`) and the new-word cards cover the speaker and the
+   speech bubble.
+   - Give the dialogue screen layout regions: the speaker's head and bubble stay clear, the cards stack in a column beside the panel (or
+     above it, outside the speaker's projected rectangle), and the new-word card is a small toast.
+   - When there is no room, cards collapse to one line each, with the newest first.
+   - A layout model, engine-free and tested at 1280 x 720 and 800 x 600, proves that no card overlaps the speaker's head rectangle or the
+     bubble.
+2. **The facilitator's `F10: end the run` label overlaps the dialogue footer** in a playtest (S18). Move it to a place the layout reserves,
+   and test that it does not overlap.
+3. **The session length is an estimate** (S18). The first real session should measure it, and the tools should do the measuring:
+   - the session log marks the lesson's start and end and the session's end;
+   - `scripts/playtest-report.sh` prints the measured durations (the lesson, the walk, the whole session, each check);
+   - PLAYTEST.md tells the facilitator where to read them.
+4. **Scripted runs never exercise Vosk** (S18). Make one route speak, so speech recognition is tested end to end:
+   - the README's S17 route feeds the greeting step a real recorded WAV with `--wav` (the bundle's `speech/phrase.hola.wav`, the Kokoro
+     line `Hola.`), and the step passes through Vosk;
+   - a model-gated test in the game's tests sends that WAV through `TurnWorker` and the push-to-talk path, and asserts the transcript and
+     the `greet` intent;
+   - if the Kokoro voice is not recognised as `hola`, say so with the transcript; do not weaken the assertion to pass.
+5. **The pergola posts are full blocks and dominate the workbench view** (S15). Make them thin posts, like the stall's front posts,
+   keeping the pergola's shape. The scene digest changes on purpose, and the pinned values are updated.
+6. **`--greyscale` on the book was not checked** (S20). Take the screenshot and fix what is wrong. Taught nouns turn grey when unknown, as
+   on the journal before.
+7. **Saves from before S20 have no book item** (S20). Loading a save without the book grants it once, and a test covers it.
+- **Demo:** screenshots of a conversation with cards (before and after), a playtest dialogue with the F10 label, the workbench, and the
+  book in greyscale; the report script's durations from a scripted session; the route's Vosk step with its transcript.
 
 ### S18: the playtest refresh (Haiku 5.5, S)
 
