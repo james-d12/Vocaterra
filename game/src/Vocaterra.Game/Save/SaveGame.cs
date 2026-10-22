@@ -18,7 +18,7 @@ public sealed class SaveException : Exception
 }
 
 /// <summary>
-/// Saves and loads a running game (S10). <see cref="Capture"/> reads a session at rest into a <see cref="SaveDocument"/> and
+/// Saves and loads a running game (S10; version 2 with the learner's record, S19; version 1 still loads). <see cref="Capture"/> reads a session at rest into a <see cref="SaveDocument"/> and
 /// <see cref="Serialize"/> writes it as canonical JSON (sorted keys, no whitespace, invariant numbers): the same state gives the same bytes.
 /// <see cref="Load"/> reads one back into a new session: it refuses a save of another seed or bundle, rebuilds the scene from the seed and the
 /// layout, applies the scene diff, restores every part, checks the world's digest, and runs the session in the next play session (which lifts
@@ -32,8 +32,11 @@ public static class SaveGame
     /// <summary>The format name every save carries.</summary>
     public const string FormatName = "vocaterra-save";
 
-    /// <summary>The format version this code writes and reads.</summary>
-    public const int CurrentVersion = 1;
+    /// <summary>The format version this code writes (version 2 adds the learner's record, S19).</summary>
+    public const int CurrentVersion = 2;
+
+    /// <summary>The oldest format version this code still reads (version 1, before S19: no learner's record, so an empty history).</summary>
+    public const int OldestReadableVersion = 1;
 
     /// <summary>The canonical JSON of a save (the same document always gives the same string).</summary>
     /// <param name="document">The document.</param>
@@ -63,9 +66,9 @@ public static class SaveGame
             throw new SaveException($"The file is not a {FormatName} save (its format is '{document.Format}').");
         }
 
-        if (document.Version != CurrentVersion)
+        if (document.Version < OldestReadableVersion || document.Version > CurrentVersion)
         {
-            throw new SaveException($"The save is format version {document.Version}; this game reads version {CurrentVersion}.");
+            throw new SaveException($"The save is format version {document.Version}; this game reads versions {OldestReadableVersion} to {CurrentVersion}.");
         }
 
         return document;
@@ -149,7 +152,8 @@ public static class SaveGame
             NpcService.AgentIds.Select(session.Conversation.CaptureAgent).ToArray(),
             VoxelGridDiff.Capture(session.Scene.Grid, pristine.Grid),
             session.Lessons.Capture(),
-            session.Tips.Capture());
+            session.Tips.Capture(),
+            session.Learner.Capture());
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
@@ -279,6 +283,11 @@ public static class SaveGame
         if (document.Tips is { } tips)
         {
             session.Tips.Restore(tips);
+        }
+
+        if (document.Learner is { } learner)
+        {
+            session.Learner.Restore(learner); // a version 1 save has none: the learner's history starts empty (S19)
         }
 
         session.RestoreStage(); // the stage of the objective area (S17) follows from the world and the progress just put back

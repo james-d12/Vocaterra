@@ -652,6 +652,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Console.WriteLine(line);
         }
 
+        foreach (var line in LearnerSummary.Lines(_session.Learner, _session.Lessons.Record, _session.PlaySession, _session.StoredTime.UnixSeconds))
+        {
+            Console.WriteLine(line); // the learner's book at exit (S19): the nouns and verbs used, the lessons and their states
+        }
+
         if (_options.SavePath is { } savePath)
         {
             DrainForSave();
