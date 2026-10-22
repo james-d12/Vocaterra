@@ -213,15 +213,15 @@ dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero compra
 repair: SlowRepeat Perdón, te lo repito más despacio.
 ```
 
-`OfferChoices` offers the first three distinct phrases of the answer set in ordinal order, aliases included, which is why `arco` and
-`el arco` can appear together:
+`OfferChoices` offers one phrase per answer, the canonical phrase, in the answer set's declared order (no aliases, no sort), the first three
+distinct ones; `items-basic` declares the sword, the shield and the bow first:
 
 ```bash
 dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1 --repeat not_communicated=2
 ```
 
 ```text
-repair: OfferChoices ¿Quieres decir «arco», «brebaje» o «el arco»?
+repair: OfferChoices ¿Quieres decir «espada», «escudo» o «arco»?
 ```
 
 ```bash
