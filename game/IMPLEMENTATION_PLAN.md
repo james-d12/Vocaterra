@@ -183,7 +183,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S14 | The look: code-drawn pixel-art textures, tree species, undergrowth, sun shading, AO, sky, clouds, haze, water, `--quality` presets | done (merged to `feature/prototype` 2026-10-22, `849fd52`) | Sonnet 5.5 | S13 |
 | S15 | The village, props, humanoid characters, the reference-B dialogue panel, the HUD icons and recipe panel, the F5 view, the first-person arm without its outline | planned | Sonnet 5.5 | S14 |
 | S16 | The English guidance layer (D-game-13) and the data-driven lesson runner | done (merged to `feature/prototype` 2026-10-22, bundle `4be20d61…`) | Sonnet 5.5 | S12, D-game-13 |
-| S17 | The opening at the cliff camp, the guide's 5 to 10 minute lesson, the ending; new phrases, checks, Opus pass, speech | in progress | Sonnet 5.5 | S13, S16, D-game-15 |
+| S17 | The opening at the cliff camp, the guide's 5 to 10 minute lesson, the ending; new phrases, checks, Opus pass, speech | done (merged to `feature/prototype` 2026-10-22, `b0ebf5f`, bundle `9582e14f…`); **the owner listens to the 72 new WAVs** (`docs/SPEECH_CHECKLIST.md`) | Sonnet 5.5 | S13, S16, D-game-15 |
 | S17b | The talk key (V) shown in the dialogue in every state; the microphone check, the game's own errors and key hints in English (owner's playtest notes) | planned | Haiku 5.5 | S17 |
 | S19 | The learner's record: every spoken and typed input, the nouns and verbs used (from the core's word readings), the lessons completed; save version 2 (D-game-16) | planned | Haiku 5.5 | S17, D-game-16 |
 | S20 | The book: the journal as an openable book with Nouns, Verbs, Phrases, Lessons and What I said pages (D-game-16) | planned | Haiku 5.5 | S15, S19 |
@@ -830,6 +830,30 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     bright and dense. Host demo `quiero dos agua por favor` gives `noun.number`.
   - **Not checked:** dusk and the low and medium presets by eye; the valley standpoint is near, not identical to, S13's.
   - **Seen for S15 and S17b:** the beacon label reads `campamento 74 bloques` (the unit is the game's own text: S17b makes it `blocks`).
+- **S17, the opening, the guide's lesson and the ending (2026-10-22, Sonnet 5.5; merged `b0ebf5f`, bundle `9582e14f…`).**
+  - **History.** The first agent's work was snapshotted after the crashes. A resumed agent merged S14 in (only `manifest.json` conflicted:
+    re-hashed) and found the WIP complete. Then the Opus pass (D-game-12 step 3) reviewed the eleven rows and the unrowed lines; the agent
+    applied every item, and every "verify" variant and error passed `PhraseSheetTests` with the stated codes.
+  - **Built.** The opening (tips, the note with `camino`, the objective `Go down the trail and find the guide`). The lesson `first-words`:
+    six units, 34 steps, started within five blocks of the guide (Luna). `Otra vez` and `Más despacio` route to `ask_repeat` and
+    `ask_slower` in content (no core gap). The ending: a spare torch, the beacon home, the fire ring lit, `Session complete`. Ten new rows
+    plus `hola`, all `llm-opus (provisional)`; `cefr/a1.txt` gained `madera`, `antorcha`, `fuego` and `despacio`. The check battery has 20
+    items (11 comprehension, 9 production). 72 WAVs (36 lines, normal and slow).
+  - **The review's main changes:**
+    - the owner chose `Necesitas madera y frutas.` (the list and the fire are the player's; row `necesitas-madera`);
+    - `u5-quiz` no longer answers with the bottle Unit 3 taught: Luna points at a stone (`Esto es una piedra.`);
+    - `Toma una fruta.`, `¡Muy bien! Tienes una fruta.` and `¡Muy bien! Ya tienes fuego.`;
+    - the `sí`/`si` help text;
+    - `más lento` and `¿puedes repetir?` accepted;
+    - `qué son esto` removed (ungrammatical, was accepted);
+    - a yes/no answer set apart from the offer set, so `no quiero` is no longer accepted at `¿Es agua?`.
+  - **Measured.** Lesson about 4.8 minutes (quick) to 7.5 minutes (slow), with the real WAV lengths; plus about 1 minute of walking. Gate:
+    4,149 passed, 5 skipped.
+  - **Checked by the orchestrator:** the gate, and the scripted `--lesson-run first-words --journal --journal-phrases` after the review: the
+    lesson reaches `Necesitas…` and opens the recap on the phrases page.
+  - **Seen for S17b and S20:** the journal's own labels are Spanish (`Diario de frases`, `con ayuda`, `ayuda: inglés, tarjeta y audio`,
+    `lista para repasar`, `J o Esc: cerrar el diario`). They are the game's own text, so they become English (D-game-13): the key hint
+    in S17b, the rest when S20 rebuilds the journal as the book.
 
 ## 6. Definition of done (every milestone)
 

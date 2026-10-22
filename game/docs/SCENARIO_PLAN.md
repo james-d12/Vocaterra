@@ -501,6 +501,9 @@ controls in English.
   "could not evaluate". Each says what to do in plain English (for example `Speech models not found: set VOCATERRA_MODELS_DIR (see
   nlp/scripts/fetch-models.sh)`). A sweep of `game/src` finds any other Spanish system text.
 - **The panel key hints are English** (dialogue, journal, inventory, crafting), following the place S16 gave the English controls.
+- **The journal's labels are English too** (`Diario de frases` becomes `Phrase journal`; also `con ayuda`, `sin ayuda`, `ayuda: inglés,
+  tarjeta y audio`, `lista para repasar`, `se oye`, `Sin ayuda: 0 de 12`, `Sesión 1`). S20 rebuilds this page as the book; S17b only
+  translates the strings, so S20 inherits English.
 - **The microphone check at the start is English** (owner: "a new player, and a new person to Spanish, has no idea what this means").
   `MicCheckModel`'s title, talk hint, pass and fail lines and `PushToTalk.NoMicrophone` become English (for example `Microphone check`,
   `Hold V or Space and say "hola"`, `Got it, I can hear you.`, `I didn't catch that. Try again?`, `No microphone: type your answer.`).
