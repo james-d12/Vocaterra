@@ -43,7 +43,7 @@ public sealed class InventoryLayer : IFrameLayer
 
         var pixel = view.Pixel;
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var viewport = new Rectangle(0, 0, view.Camera.ViewportWidth, view.Camera.ViewportHeight);
+        var viewport = new Rectangle(0, 0, view.ViewportWidth, view.ViewportHeight);
         spriteBatch.Draw(pixel, viewport, new Color(6, 6, 14, 150));
 
         var rows = Inventory.SlotCount / Columns;
@@ -84,7 +84,7 @@ public sealed class InventoryLayer : IFrameLayer
             return;
         }
 
-        var saturation = view.IconSaturation(stack.Item);
+        var saturation = view.Session.Words.SaturationOf(stack.Item);
         var icon = new Rectangle(box.Center.X - (Icon / 2), box.Top + 4, Icon, Icon);
         view.DrawIcon(spriteBatch, stack.Item, icon);
 

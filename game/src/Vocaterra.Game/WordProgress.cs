@@ -3,7 +3,6 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.Game;
 
@@ -245,16 +244,6 @@ public sealed class WordProgress
     public double SaturationOf(string lemma) => RecordOf(lemma).Saturation;
 
     /// <summary>
-    /// The colour of a tile kind, 0 to 1: the saturation of the noun that names it. A colourless tile, or one with no noun, is always in full
-    /// colour (1).
-    /// </summary>
-    public double SaturationOf(TileId tile)
-    {
-        var noun = _catalog.ForTile(tile);
-        return noun is null ? 1.0 : SaturationOf(noun.Lemma);
-    }
-
-    /// <summary>
     /// The colour of an item kind, 0 to 1: the saturation of the noun that names it (the inventory's labels and icons, P6). An item no noun
     /// names is in full colour (1).
     /// </summary>
@@ -274,6 +263,21 @@ public sealed class WordProgress
         }
 
         Update(lemma, record => record with { Read = record.Read + 1 });
+    }
+
+    /// <summary>
+    /// Records that the learner has heard a noun's word outside a guide turn, for example on its word card the first time it is picked up
+    /// (counted as heard, never as a use).
+    /// </summary>
+    /// <param name="lemma">A catalogue noun; any other lemma is ignored.</param>
+    public void MarkHeard(string lemma)
+    {
+        if (_catalog.ForLemma(lemma) is null)
+        {
+            return;
+        }
+
+        Update(lemma, record => record with { Heard = record.Heard + 1 });
     }
 
     /// <summary>

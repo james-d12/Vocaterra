@@ -4,7 +4,7 @@ using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Pipeline;
-using Vocaterra.Simulation.Tiles;
+using Vocaterra.Simulation.Voxel;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Tests;
@@ -64,12 +64,12 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
         Assert.NotNull(engine);
         var session = TestGame.NewSession();
         var counting = new CountingRecognizer(engine.Recognizer);
-        var guide = new GuideService(TestGame.Bundle, session.Facts, TestGame.Nouns, TestGame.Seed, new StoredTimestamp(GameSession.DefaultStartedAt));
+        var guide = new GuideService(TestGame.Bundle, TestGame.FactsOf(session), TestGame.Nouns, TestGame.Seed, new StoredTimestamp(GuideSession.DefaultStartedAt));
         guide.AttachSpeech(new SpokenUtteranceEvaluator(TestGame.Bundle, counting));
         var clip = engine.Synthesize(TreeQuestion, out var cached);
         output.WriteLine($"{TreeQuestion}: {clip.DurationSeconds:0.00} s, cached {cached}");
 
-        var spoken = guide.SaySpoken(clip, new GuideScene(session.PlayerTile), new StoredTimestamp(GameSession.DefaultStartedAt), session.Simulation.ComputeStateDigest());
+        var spoken = guide.SaySpoken(clip, new GuideScene(TestGame.ViewpointOf(session)), new StoredTimestamp(GuideSession.DefaultStartedAt), session.Simulation.ComputeStateDigest());
         var typed = TestGame.NewSession().Say("dónde está el árbol");
 
         output.WriteLine($"heard '{spoken.Line}' confidence {spoken.Confidence:0.00}");
@@ -96,7 +96,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
             TestGame.Seed,
             GuideService.AgentId,
             TestGame.Bundle.Agents[GuideService.AgentId].InitialState(),
-            new StoredTimestamp(GameSession.DefaultStartedAt),
+            new StoredTimestamp(GuideSession.DefaultStartedAt),
             Vocaterra.Nlp.Decision.Learning.LearnerModel.New(),
             new Dictionary<string, int>(StringComparer.Ordinal),
             Vocaterra.Nlp.Core.Verdicts.SlotMap.Empty,
@@ -127,7 +127,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
         Assert.True(worker.WaitUntilReady(60000));
         var load = worker.Load!;
         Assert.True(typed.StartWorker(loadSpeech: false).WaitUntilReady(30000));
-        var cursor = TestGame.BruteForceNearest(spoken.Simulation.World, spoken.PlayerTile, TileId.Trunk);
+        var cursor = TestGame.NearestBlock(spoken, BlockId.Trunk);
 
         _ = spoken.SubmitSpeak("es un árbol", cursor);
         _ = typed.SubmitTyped("es un árbol", cursor);
@@ -206,7 +206,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
         Assert.True(applied.Outcome.Timings.TotalMilliseconds >= applied.Outcome.Timings.RecognizeMilliseconds);
     }
 
-    private static List<AppliedTurn> Drain(GameSession session, int count)
+    private static List<AppliedTurn> Drain(VoxelSession session, int count)
     {
         var all = new List<AppliedTurn>();
         var deadline = Environment.TickCount64 + 120000;

@@ -1,4 +1,4 @@
-namespace Vocaterra.Simulation.Generation;
+namespace Vocaterra.Simulation;
 
 /// <summary>
 /// The simulation's own seeded generator: SplitMix64. Every generation pass derives its generator from the world seed, the pass name and a

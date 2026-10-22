@@ -1,6 +1,5 @@
 using Vocaterra.Simulation.Crafting;
 using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Tiles;
 using Vocaterra.Simulation.Voxel;
 using static Vocaterra.Simulation.Tests.Voxel.VoxelTestSupport;
 
@@ -109,7 +108,7 @@ public sealed class GatheringAndPlacingTests
         var sim = WithBlock(BlockId.Trunk);
         for (var slot = 0; slot < Inventory.SlotCount; slot++)
         {
-            sim.Inventory.SetSlot(slot, new ItemStack(ItemId.Stone, 99));
+            sim.Inventory.SetSlot(slot, new ItemStack(ItemId.Berry, 99));
         }
 
         Run(sim, 200, InteractAhead);
@@ -221,7 +220,7 @@ public sealed class GatheringAndPlacingTests
     {
         var scene = BuildRoute(42);
         var sim = VoxelSimulation.Create(scene);
-        var torch = new Recipe(ItemId.Torch, 1, [new Ingredient(ItemId.Wood, 2)], TileId.Table);
+        var torch = new Recipe(ItemId.Torch, 1, [new Ingredient(ItemId.Wood, 2)], BlockId.Table);
         sim.SetRecipes([torch]);
         sim.GrantItems(ItemId.Wood, 2);
 

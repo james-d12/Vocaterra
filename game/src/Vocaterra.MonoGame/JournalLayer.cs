@@ -39,10 +39,9 @@ public sealed class JournalLayer : IFrameLayer
             return;
         }
 
-        var camera = view.Camera;
         var pixel = view.Pixel;
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var viewport = new Rectangle(0, 0, camera.ViewportWidth, camera.ViewportHeight);
+        var viewport = new Rectangle(0, 0, view.ViewportWidth, view.ViewportHeight);
         spriteBatch.Draw(pixel, viewport, new Color(6, 6, 14, 236));
 
         var width = Math.Min(760, viewport.Width - (Margin * 2));
@@ -84,9 +83,9 @@ public sealed class JournalLayer : IFrameLayer
         var pixel = view.Pixel;
         var noun = view.Session.Nouns.ForLemma(row.Lemma);
         var icon = new Rectangle(left, top + 4, Icon, Icon);
-        if (noun is { Tiles.Count: > 0 })
+        if (noun is { Items.Count: > 0 })
         {
-            view.Atlas.DrawTile(spriteBatch, noun.Tiles[0], icon, row.Saturation);
+            view.VoxelIcons.DrawIcon(spriteBatch, noun.Items[0], icon, row.Saturation);
         }
         else
         {

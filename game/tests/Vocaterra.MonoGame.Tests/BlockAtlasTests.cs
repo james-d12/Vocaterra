@@ -157,6 +157,6 @@ public sealed class BlockAtlasTests
         Assert.Equal(BlockCell.IconWood, BlockAtlasLayout.IconFor(ItemId.Wood));
         Assert.Equal(BlockCell.IconBerry, BlockAtlasLayout.IconFor(ItemId.Berry));
         Assert.Equal(BlockCell.TorchFlame, BlockAtlasLayout.IconFor(ItemId.Torch));
-        Assert.Null(BlockAtlasLayout.IconFor(ItemId.Sword));
+        Assert.Null(BlockAtlasLayout.IconFor((ItemId)999));
     }
 }

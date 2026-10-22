@@ -1,7 +1,7 @@
 namespace Vocaterra.MonoGame.Frontend;
 
 /// <summary>
-/// The art of the block atlas, drawn in code the way <see cref="TileArt"/> draws the 2D tiles (D-game-5: nothing third-party, so the pictures
+/// The art of the block atlas, drawn in code (no picture file) (D-game-5: nothing third-party, so the pictures
 /// are CC0 by construction): flat bright colours with a deterministic speckle, as RGBA bytes. The palette follows the prototype brief: saturated
 /// greens for plants, clear blues for water, warm wood and stone accents. Transparent pixels have alpha 0; water has a partial alpha.
 /// </summary>

@@ -120,12 +120,6 @@
         { "lineId": "guide.point.here.2", "text": "¡Mira! {place:article(def):cap} está aquí." }
       ]
     },
-    "guide.point.deep": {
-      "poolId": "guide.point.deep",
-      "variants": [
-        { "lineId": "guide.point.deep.1", "text": "Está muy abajo." }
-      ]
-    },
     "guide.point.none": {
       "poolId": "guide.point.none",
       "variants": [

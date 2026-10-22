@@ -1,4 +1,4 @@
-using Vocaterra.Simulation.Generation;
+using Vocaterra.Simulation;
 using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Simulation.Tests.Voxel;

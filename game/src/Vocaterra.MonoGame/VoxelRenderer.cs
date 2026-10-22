@@ -154,7 +154,7 @@ public sealed class VoxelRenderer : IDisposable
 
     /// <summary>
     /// Draws the world from the camera: opaque chunks, the NPC figures and the block highlight, then the water and the beacon column. The caller
-    /// clears the target first and draws the 2D layers afterwards.
+    /// clears the target first and draws the layers afterwards.
     /// </summary>
     /// <param name="camera">The camera for this frame.</param>
     /// <param name="highlight">The block to frame, or <see langword="null"/>.</param>

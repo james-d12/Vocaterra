@@ -1,4 +1,3 @@
-using Vocaterra.Simulation.Generation;
 
 namespace Vocaterra.Simulation.Voxel;
 

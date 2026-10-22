@@ -53,7 +53,7 @@ public sealed class GuideBundleTests
         var evaluator = new TypedUtteranceEvaluator(bundle);
         var prompt = bundle.Prompts[GuideService.PromptId];
         var context = ConversationContext.Create(
-            TestGame.Seed, GuideService.AgentId, bundle.Agents[GuideService.AgentId].InitialState(), new StoredTimestamp(GameSession.DefaultStartedAt), LearnerModel.New());
+            TestGame.Seed, GuideService.AgentId, bundle.Agents[GuideService.AgentId].InitialState(), new StoredTimestamp(GuideSession.DefaultStartedAt), LearnerModel.New());
         foreach (var id in new[] { "ask_directions", "ask_craft", "ask_find", "ask_what", "ask_help", "name_object" })
         {
             foreach (var example in bundle.Intents.Intents.Single(i => i.Id.Value == id).Examples)
@@ -126,7 +126,7 @@ public sealed class GuideBundleTests
             foreach (var (intent, line) in lines)
             {
                 var context = ConversationContext.Create(
-                    TestGame.Seed, GuideService.AgentId, new AgentState(GuideService.AgentId, state, 0), new StoredTimestamp(GameSession.DefaultStartedAt), LearnerModel.New());
+                    TestGame.Seed, GuideService.AgentId, new AgentState(GuideService.AgentId, state, 0), new StoredTimestamp(GuideSession.DefaultStartedAt), LearnerModel.New());
                 var result = evaluator.Evaluate(line, prompt, context);
                 Assert.Equal(intent, result.Verdict.Intent.Value);
                 var step = result.Decision.Agent;

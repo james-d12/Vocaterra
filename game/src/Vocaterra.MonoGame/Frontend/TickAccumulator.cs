@@ -14,7 +14,7 @@ public sealed class TickAccumulator
     private long _micro;
 
     /// <summary>Creates an accumulator for the given tick rate.</summary>
-    /// <param name="ticksPerSecond">The simulation rate (<c>GameSimulation.TicksPerSecond</c>).</param>
+    /// <param name="ticksPerSecond">The simulation rate (<c>VoxelSimulation.TicksPerSecond</c>).</param>
     /// <param name="maxStepsPerFrame">The cap on ticks per frame.</param>
     public TickAccumulator(int ticksPerSecond, int maxStepsPerFrame = 5)
     {

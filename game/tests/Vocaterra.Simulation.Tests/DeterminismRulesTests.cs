@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Simulation.Tests;
 
@@ -57,7 +58,7 @@ public sealed class DeterminismRulesTests
     [Fact]
     public void AssemblyReferencesOnlyTheFramework()
     {
-        var references = typeof(GameSimulation).Assembly.GetReferencedAssemblies().Select(a => a.Name!).ToList();
+        var references = typeof(VoxelSimulation).Assembly.GetReferencedAssemblies().Select(a => a.Name!).ToList();
         Assert.All(references, name => Assert.True(
             name == "System.Runtime" || name.StartsWith("System.", StringComparison.Ordinal) || name == "netstandard" || name == "mscorlib",
             $"Unexpected reference {name}."));

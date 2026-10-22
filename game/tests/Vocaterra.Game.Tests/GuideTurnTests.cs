@@ -1,7 +1,8 @@
 using System.Text.Json;
 using Vocaterra.Game;
+using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Simulation;
-using Vocaterra.Simulation.Tiles;
+using Vocaterra.Simulation.Voxel;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Tests;
@@ -16,11 +17,11 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
     public void AskingWhereTheTreeIsPointsAtTheNearestTrunk()
     {
         var session = TestGame.NewSession();
-        var player = session.PlayerTile;
+        var player = session.Simulation.Player.FeetBlock;
 
         var turn = session.Say("¿dónde está el árbol?");
 
-        output.WriteLine($"player tile {player}, guide {session.Guide.Feet}");
+        output.WriteLine($"player block {player}, guide {session.Scene.Npc("guide").Feet}");
         foreach (var line in turn.GuideLines)
         {
             output.WriteLine("guide: " + line);
@@ -33,21 +34,21 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
         Assert.Equal("pointing", turn.AgentState);
         Assert.Equal(["guide.point"], turn.HostEvents);
 
-        var expected = TestGame.BruteForceNearest(session.Simulation.World, player, TileId.Trunk);
+        // The árbol names the trunk and the leaves of a tree: the nearest of either is the answer.
+        var expected = TestGame.NearestBlock(session, BlockId.Trunk, BlockId.Leaves);
         Assert.NotNull(turn.Pointer);
         Assert.Equal(expected, turn.Pointer.Target);
-        Assert.Equal(TileId.Trunk, session.Simulation.World.GetTile(expected.X, expected.Y));
+        Assert.Contains(session.Scene.Grid.GetBlock(expected.X, expected.Y, expected.Z), new[] { BlockId.Trunk, BlockId.Leaves });
         Assert.Equal("árbol", turn.Pointer.Place);
         Assert.Equal(new PointerMarker("árbol", expected), session.Pointer);
 
         var dx = expected.X - player.X;
-        var dy = expected.Y - player.Y;
-        Assert.Equal(Math.Max(Math.Abs(dx), Math.Abs(dy)), turn.Pointer.Blocks);
-        Assert.Equal(WorldFacts.DirectionPhrase(dx, dy), turn.Pointer.Direction);
+        var dz = expected.Z - player.Z;
+        Assert.Equal(Math.Max(Math.Abs(dx), Math.Abs(dz)), turn.Pointer.Blocks);
         Assert.NotNull(turn.WorldLine);
         Assert.StartsWith("El árbol está", turn.WorldLine, StringComparison.Ordinal);
-        Assert.Contains(dx < 0 ? "izquierda" : "derecha", turn.WorldLine, StringComparison.Ordinal);
-        Assert.Contains(WorldFacts.NumberInWords(turn.Pointer.Blocks), turn.WorldLine, StringComparison.Ordinal);
+        Assert.Contains(turn.Pointer.Direction, turn.WorldLine, StringComparison.Ordinal); // the direction is relative to where the player faces
+        Assert.Contains(SpanishNumbers.ToWords(turn.Pointer.Blocks), turn.WorldLine, StringComparison.Ordinal);
         Assert.Contains("bloque", turn.WorldLine, StringComparison.Ordinal);
     }
 
@@ -58,7 +59,7 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
         // regression anchor for the content and the drawing rule: change the pool, the stream id or the world and it changes on purpose.
         var turn = TestGame.NewSession().Say("¿dónde está el árbol?");
 
-        Assert.Equal("El árbol está allí, a la derecha, a cinco bloques.", turn.WorldLine);
+        Assert.Equal("El árbol está allí, detrás, a la derecha, a seis bloques.", turn.WorldLine);
     }
 
     [Theory]
@@ -158,9 +159,9 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
         Assert.Equal("ask_find", turn.Intent); // "dónde hay" is the material question since P6b; stone is its own source
         Assert.Equal("piedra", turn.Pointer!.Place);
         Assert.NotNull(turn.Pointer);
-        var expected = TestGame.BruteForceNearest(session.Simulation.World, session.PlayerTile, TileId.Stone);
+        var expected = TestGame.NearestBlock(session, BlockId.Stone);
         Assert.Equal(expected, turn.Pointer.Target);
-        Assert.StartsWith("La piedra está", turn.WorldLine, StringComparison.Ordinal);
+        Assert.Contains("piedra", turn.WorldLine, StringComparison.Ordinal); // the nearest stone is under the ground, so the guide may say it is here
         Assert.Contains(turn.Pointer.Direction, turn.WorldLine, StringComparison.Ordinal);
     }
 
@@ -212,8 +213,8 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
     public void TheCursorTileIsNamedWhenTheGuideIsAskedWhatThisIs()
     {
         var session = TestGame.NewSession();
-        var trunk = TestGame.BruteForceNearest(session.Simulation.World, session.PlayerTile, TileId.Trunk);
-        var stone = TestGame.BruteForceNearest(session.Simulation.World, session.PlayerTile, TileId.Stone);
+        var trunk = TestGame.NearestBlock(session, BlockId.Trunk);
+        var stone = TestGame.NearestBlock(session, BlockId.Stone);
 
         var onTrunk = session.Say("¿qué es esto?", trunk);
         Assert.Equal("ask_what", onTrunk.Intent);
@@ -285,7 +286,7 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
         var session = TestGame.NewSession();
         for (var i = 0; i < 90; i++)
         {
-            session.Step([PlayerCommand.MoveRight]);
+            session.Step([VoxelCommand.Move(1, 0)]);
         }
 
         var digest = session.Simulation.ComputeStateDigest();
@@ -317,14 +318,14 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
     public void TheStoredTimeIsTheStartPlusTheTicksAndNeverTheClock()
     {
         var session = TestGame.NewSession();
-        Assert.Equal(GameSession.DefaultStartedAt, session.StoredTime.UnixSeconds);
+        Assert.Equal(GuideSession.DefaultStartedAt, session.StoredTime.UnixSeconds);
 
         for (var i = 0; i < 125; i++)
         {
             session.Step([]);
         }
 
-        Assert.Equal(GameSession.DefaultStartedAt + 2, session.StoredTime.UnixSeconds);
+        Assert.Equal(GuideSession.DefaultStartedAt + 2, session.StoredTime.UnixSeconds);
         session.Say("hola");
         Assert.Equal(session.StoredTime, session.Conversation.Context.Now);
     }
@@ -353,13 +354,13 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
     {
         var session = TestGame.NewSession();
         var turns = new List<GuideTurn>();
-        var cursor = TestGame.BruteForceNearest(session.Simulation.World, session.PlayerTile, TileId.Trunk);
+        var cursor = TestGame.NearestBlock(session, BlockId.Trunk);
         foreach (var line in lines)
         {
             turns.Add(session.Say(line, cursor));
             for (var i = 0; i < 30; i++)
             {
-                session.Step([PlayerCommand.MoveRight]);
+                session.Step([VoxelCommand.Move(1, 0)]);
             }
         }
 

@@ -96,17 +96,17 @@ out of the core.
 
 The prototype is three libraries and a front-end, so that the engine can change without rewriting the game:
 
-- `src/Vocaterra.Simulation`: the world and the player body, generation and a fixed 60 Hz tick. No packages, no engine.
-- `src/Vocaterra.Game`: `GameSession` (the simulation, the bundle, the world seed, the stored time, the guide and the conversation),
-  `GuideService` (one typed turn over the packages), `WorldFacts` (the nearest tile, the direction and the distance in Spanish) and
+- `src/Vocaterra.Simulation`: the 3D voxel world (the scene, the player body, gathering, placing, crafting) and a fixed 60 Hz tick. No packages, no engine.
+- `src/Vocaterra.Game`: `VoxelSession` (the simulation, the bundle, the world seed, the stored time, the guide, the conversation, the camp objective
+  and the word cards), `GuideService` (one typed turn over the packages), `WorldFacts3D` (the nearest block, the direction and the distance in Spanish) and
   `TypedUtteranceEvaluator`, the call sequence of the steps above, which the console host shares. No engine type.
 - `src/Vocaterra.MonoGame`: the only engine code: window, drawing, input, the dialogue panel. It names no `Vocaterra.Nlp.*` package.
 
 How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md` for the steps):
 
-- **The stored time** is a fixed start plus `Tick / 60` seconds of game time (`GameSession.StoredTime`); nothing reads the clock, so a scripted
+- **The stored time** is a fixed start plus `Tick / 60` seconds of game time (`GuideSession.StoredTime`); nothing reads the clock, so a scripted
   run gives the same turns everywhere. The save file will own the start time.
-- **`HostStateHash`** is the simulation's state digest (`GameSimulation.ComputeStateDigest()`), given to the context's constructor instead of the
+- **`HostStateHash`** is the simulation's state digest (`VoxelSimulation.ComputeStateDigest()`), given to the context's constructor instead of the
   core's default digest and set again before each turn, because `ConversationContext.Next` recomputes the default.
 - **Repeat counts.** The pipeline adds the utterance's own repeats to the counts in the context and `Next` carries them to the next utterance
   (CR-012, core M26a). The guide and the console host both evaluate once with the carried counts, so the recast, hint and correction ladder and
@@ -118,8 +118,8 @@ How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md`
 - **Words and learner skills** (CR-002, CR-005, core M26c and M26d). The guide's evaluation reads the catalogue nouns of a turn from the core's
   resolved words, and gives each one its `word.<lemma>` skill in the same learner update, through `extraSkills`.
 - **Host events.** The guide's state machine raises `guide.point`, `guide.identify` and `guide.help` (opaque strings to the core); the game maps
-  them to the nearest tile, the cursor tile and a hint, and the front-end draws the arrow.
-- **Evaluation** never runs inside `GameSession.Step`. Since P5 it runs on the turn worker (next section); `GameSession.Say` is the synchronous
+  them to the nearest block, the cursor block and a hint, and the front-end draws the beacon.
+- **Evaluation** never runs inside `VoxelSession.Step`. Since P5 it runs on the turn worker (next section); `GuideSession.Say` is the synchronous
   path that the tests and any headless caller still use.
 
 ## Spoken input, the worker thread and the models folder (P5)
@@ -132,10 +132,10 @@ the same `GuideService` turn, and each turn records how it arrived (`GuideTurn.I
   (`VoskWordRecognizer`, one instance), decodes with it, runs the guide's evaluations and disposes it, as the core's thread rules require
   (API document section 8: Vosk is not safe for concurrent calls and must not be disposed while a call may run). The pipeline is built with
   `RunRecognizersConcurrently = false`, so Vosk is never called from a pool thread. The game thread never calls the recognizer or the guide.
-- **Submit, then apply.** The frame calls `GameSession.SubmitTyped / SubmitClip / SubmitWav / SubmitSpeak` between ticks and goes on. Every
+- **Submit, then apply.** The frame calls `GuideSession.SubmitTyped / SubmitClip / SubmitWav / SubmitSpeak` between ticks and goes on. Every
   input of the evaluation is fixed at that moment: the stored time, the simulation's state digest, a copy of the inventory and a copy of the
-  tiles around the player (`WorldFacts.Snapshot`), so the worker never reads a world that keeps changing and a turn does not depend on when
-  the worker gets to it. `GameSession.Collect` (called at the start of each frame through `TurnPump`) takes the finished turns in submission
+  blocks around the player (`WorldFacts3D.Snapshot`), so the worker never reads a world that keeps changing and a turn does not depend on when
+  the worker gets to it. `GuideSession.Collect` (called at the start of each frame through `TurnPump`) takes the finished turns in submission
   order and applies them on the game thread: the arrow, the review question, the word counts and the panel. The panel shows "Pensando…"
   while a turn is out and "Escuchando…" while the key is held. A scripted (`--screenshot`) run freezes the world while a turn is out, so its
   ticks and output do not depend on how fast the worker is.
@@ -177,8 +177,8 @@ the same `GuideService` turn, and each turn records how it arrived (`GuideTurn.I
   the manifest against the loader's, and checks that the conversation carries its counts and learner from one utterance to the next. It
   checks that a count at `int.MaxValue` stays there, and that the prompt's line is written under its header (`PromptReportTests`).
 - `tests/Vocaterra.Game.Tests` runs the guide's turns on a fixed seed and a fixed stored time with the scripted recognizer (the verdict, the
-  guide's state, the host event, the target tile and the world line; an unaccented line; the repair path; determinism), `WorldFacts` on small
-  grids, the guide's content in the bundle, the layering rules of `Vocaterra.Game` (no clock, no `System.Random`, no engine type, packages only),
+  guide's state, the host event, the target tile and the world line; an unaccented line; the repair path; determinism), `WorldFacts3D` on the
+  route, the guide's content in the bundle, the layering rules of `Vocaterra.Game` (no clock, no `System.Random`, no engine type, packages only),
   the audio handling (`AudioClips`), the turn worker (order, fixed inputs, the snapshot), and the model tests: Kokoro speaks a line, Vosk
   recognizes it once, the guide answers it like the typed line. Those are skipped with a reason when `VOCATERRA_MODELS_DIR` is unset or a model
   is missing.

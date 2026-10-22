@@ -1,5 +1,4 @@
 using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.Simulation.Voxel;
 
@@ -100,24 +99,13 @@ public sealed record BlockDefinition(
     }
 
     /// <summary>
-    /// The block that placing one <paramref name="item"/> makes, or <see langword="null"/> when the item cannot be placed in the 3D world.
-    /// Wood makes planks, a torch a torch, a table the workbench, a door a door; stone, dirt and sand make themselves.
+    /// The block that placing one <paramref name="item"/> makes, or <see langword="null"/> when the item cannot be placed. Wood makes planks and a
+    /// torch makes a torch; a berry is eaten, not placed.
     /// </summary>
     public static BlockId? PlacedBy(ItemId item) => item switch
     {
         ItemId.Wood => BlockId.Planks,
         ItemId.Torch => BlockId.Torch,
-        ItemId.Table => BlockId.Table,
-        ItemId.Door => BlockId.Door,
-        ItemId.Stone => BlockId.Stone,
-        ItemId.Dirt => BlockId.Dirt,
-        ItemId.Sand => BlockId.Sand,
         _ => null,
     };
-
-    /// <summary>
-    /// The block kind a recipe's <paramref name="station"/> tile means in the 3D world (the 2D <see cref="TileId.Table"/> is the workbench),
-    /// or <see langword="null"/> when the 3D world has no such station (a recipe that needs it can never be crafted there).
-    /// </summary>
-    public static BlockId? StationBlock(TileId station) => station == TileId.Table ? BlockId.Table : null;
 }

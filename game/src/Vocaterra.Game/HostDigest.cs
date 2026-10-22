@@ -16,7 +16,7 @@ namespace Vocaterra.Game;
 public static class HostDigest
 {
     /// <summary>The digest of the simulation state together with one utterance's host slots and extra skills.</summary>
-    /// <param name="simulationDigest">The simulation's state digest (<c>GameSimulation.ComputeStateDigest()</c>).</param>
+    /// <param name="simulationDigest">The simulation's state digest (<c>VoxelSimulation.ComputeStateDigest()</c>).</param>
     /// <param name="hostSlots">The host facts of the utterance, by name; the order they were added in does not matter.</param>
     /// <param name="extraSkills">The extra skill ids of the utterance; the order does not matter and a repeated id counts once.</param>
     /// <returns>The lower-case hexadecimal SHA-256 of the sections above.</returns>

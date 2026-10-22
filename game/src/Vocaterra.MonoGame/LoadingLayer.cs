@@ -23,11 +23,10 @@ public sealed class LoadingLayer : IFrameLayer
             return;
         }
 
-        var camera = view.Camera;
-        spriteBatch.Draw(view.Pixel, new Rectangle(0, 0, camera.ViewportWidth, camera.ViewportHeight), new Color(8, 8, 20, 235));
+        spriteBatch.Draw(view.Pixel, new Rectangle(0, 0, view.ViewportWidth, view.ViewportHeight), new Color(8, 8, 20, 235));
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var width = DrawHelpers.Width(font, text);
-        var box = new Rectangle((int)((camera.ViewportWidth - width) / 2) - 24, (camera.ViewportHeight / 2) - 24, (int)width + 48, 48);
+        var box = new Rectangle((int)((view.ViewportWidth - width) / 2) - 24, (view.ViewportHeight / 2) - 24, (int)width + 48, 48);
         spriteBatch.Draw(view.Pixel, box, new Color(0, 0, 0, 220));
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, Gold);
         DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.Left + 24, box.Top + 14), Color.White);

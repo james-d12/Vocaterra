@@ -60,7 +60,7 @@ public enum NameCheck
 /// <param name="Cursor">The tile under the mouse pointer, or <see langword="null"/> when there is none.</param>
 /// <param name="PointerActive">Whether an arrow from an earlier question is still on screen (the help line then says to follow it).</param>
 /// <param name="Review">Whether the line answers the guide's review question: it is evaluated on the <c>guide-review</c> prompt and <paramref name="Cursor"/> is the tile she pointed at.</param>
-/// <param name="Facts">The world as the guide sees it for this turn: a copy of the tiles around the player taken when the line was submitted (<see cref="WorldFacts.Snapshot"/> or <see cref="WorldFacts3D.Snapshot"/>), so the turn does not read a world that keeps changing under the worker thread; <see langword="null"/> uses the facts the guide was built with.</param>
+/// <param name="Facts">The world as the guide sees it for this turn: a copy of the blocks around the player taken when the line was submitted (<see cref="WorldFacts3D.Snapshot"/>), so the turn does not read a world that keeps changing under the worker thread; <see langword="null"/> uses the facts the guide was built with.</param>
 /// <param name="Inventory">What the player carries, for the crafting and finding answers ("te faltan dos bloques de madera", "tienes un hacha"); <see langword="null"/> is read as nothing carried and nothing said about it.</param>
 public sealed record GuideScene(GuideViewpoint Player, GuideCell? Cursor = null, bool PointerActive = false, bool Review = false, Inventory? Inventory = null, IGuideFacts? Facts = null);
 

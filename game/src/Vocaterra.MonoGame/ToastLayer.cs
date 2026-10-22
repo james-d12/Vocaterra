@@ -29,7 +29,7 @@ public sealed class ToastLayer : IFrameLayer
         var alpha = (float)fade;
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var width = DrawHelpers.Width(font, toast.Text);
-        var viewportWidth = view.Camera.ViewportWidth;
+        var viewportWidth = view.ViewportWidth;
         var box = new Rectangle((int)((viewportWidth - width) / 2) - 14, Top, (int)width + 28, 30);
         spriteBatch.Draw(view.Pixel, box, new Color(0, 0, 0, 200) * alpha);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, Gold * alpha);

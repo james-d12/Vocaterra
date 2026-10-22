@@ -1,5 +1,5 @@
 using Vocaterra.Simulation;
-using Vocaterra.Simulation.Tiles;
+using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Tests;
 
@@ -9,7 +9,7 @@ namespace Vocaterra.Game.Tests;
 /// </summary>
 public sealed class TurnWorkerTests
 {
-    private static GameSession StartedSession(CreditRules? credit = null)
+    private static VoxelSession StartedSession(CreditRules? credit = null)
     {
         var session = TestGame.NewSession(credit: credit ?? CreditRules.Default);
         var worker = session.StartWorker(loadSpeech: false);
@@ -17,7 +17,7 @@ public sealed class TurnWorkerTests
         return session;
     }
 
-    private static List<AppliedTurn> Drain(GameSession session, int count)
+    private static List<AppliedTurn> Drain(VoxelSession session, int count)
     {
         var all = new List<AppliedTurn>();
         var deadline = Environment.TickCount64 + 30000;
@@ -55,7 +55,7 @@ public sealed class TurnWorkerTests
     public void TheWorkerGivesTheSameTurnsAsTheSynchronousPathAndAppliesThemInOrder()
     {
         var sync = TestGame.NewSession(credit: CreditRules.Default);
-        var cursor = TestGame.BruteForceNearest(sync.Simulation.World, sync.PlayerTile, TileId.Trunk);
+        var cursor = TestGame.NearestBlock(sync, BlockId.Trunk);
         var lines = new[] { "¿dónde está el árbol?", "es un árbol", "yo tiene dos espada" };
         var expected = lines.Select(l => sync.Say(l, cursor)).ToList();
 
@@ -77,19 +77,19 @@ public sealed class TurnWorkerTests
     public void TheStoredTimeAndTheStateDigestAreFixedWhenTheLineIsSubmittedNotWhenTheWorkerRuns()
     {
         using var session = StartedSession();
-        var cursor = TestGame.BruteForceNearest(session.Simulation.World, session.PlayerTile, TileId.Trunk);
+        var cursor = TestGame.NearestBlock(session, BlockId.Trunk);
         var digest = session.Simulation.ComputeStateDigest();
 
         var request = session.SubmitTyped("es un árbol", cursor);
         session.SkipTime(7200); // two hours pass before the answer is applied
-        session.Simulation.Step([PlayerCommand.SelectSlot(3)]);
+        session.Simulation.Step([VoxelCommand.SelectSlot(3)]);
         var applied = Drain(session, 1).Single();
 
-        Assert.Equal(GameSession.DefaultStartedAt, request.Now.UnixSeconds);
+        Assert.Equal(GuideSession.DefaultStartedAt, request.Now.UnixSeconds);
         Assert.Equal(digest, request.HostStateHash);
         Assert.NotNull(applied.Turn);
-        Assert.Equal(GameSession.DefaultStartedAt, session.Words.RecordOf("árbol").LastCreditedAt);
-        Assert.True(session.StoredTime.UnixSeconds > GameSession.DefaultStartedAt + 7000);
+        Assert.Equal(GuideSession.DefaultStartedAt, session.Words.RecordOf("árbol").LastCreditedAt);
+        Assert.True(session.StoredTime.UnixSeconds > GuideSession.DefaultStartedAt + 7000);
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public sealed class TurnWorkerTests
     {
         using var half = StartedSession(CreditRules.Default);
         using var full = StartedSession(CreditRules.FullTyped);
-        var cursor = TestGame.BruteForceNearest(half.Simulation.World, half.PlayerTile, TileId.Trunk);
+        var cursor = TestGame.NearestBlock(half, BlockId.Trunk);
 
         _ = half.SubmitTyped("es un árbol", cursor);
         _ = full.SubmitTyped("es un árbol", cursor);
@@ -134,7 +134,7 @@ public sealed class TurnWorkerTests
     public void NoReviewQuestionIsAskedWhileATurnIsPending()
     {
         using var session = StartedSession(CreditRules.FullTyped);
-        var cursor = TestGame.BruteForceNearest(session.Simulation.World, session.PlayerTile, TileId.Trunk);
+        var cursor = TestGame.NearestBlock(session, BlockId.Trunk);
         _ = session.SubmitTyped("es un árbol", cursor);
         Drain(session, 1);
         session.SkipTime(11 * 60);
@@ -164,49 +164,29 @@ public sealed class TurnWorkerTests
     public void ASnapshotOfTheWorldDoesNotSeeLaterChanges()
     {
         var session = TestGame.NewSession();
-        var player = session.PlayerTile;
-        var before = WorldFacts.Snapshot(session.Simulation.World, player);
+        var bush = new BlockPos(17, 11, 15); // a berry bush two blocks from the spawn: the fruta of the route
+        var before = WorldFacts3D.Snapshot(session.Scene.Grid, TestGame.Nouns);
+        Assert.Equal(["fruta"], before.NounsAt(bush));
 
-        // Mine a grass or dirt tile near the player with the pickaxe (slot 2 on the hotbar).
-        TilePoint? target = null;
-        for (var dy = 0; dy <= 3 && target is null; dy++)
-        {
-            for (var dx = -3; dx <= 3 && target is null; dx++)
-            {
-                var tile = new TilePoint(player.X + dx, player.Y + dy);
-                if (session.Simulation.World.GetTile(tile.X, tile.Y) is TileId.Grass or TileId.Dirt)
-                {
-                    target = tile;
-                }
-            }
-        }
+        Assert.True(VoxelWalker.Gather(session, bush));
 
-        Assert.NotNull(target);
-        var kind = session.Simulation.World.GetTile(target.Value.X, target.Value.Y);
-        session.Simulation.Step([PlayerCommand.SelectSlot(1)]);
-        for (var i = 0; i < 2000 && session.Simulation.World.GetTile(target.Value.X, target.Value.Y) == kind; i++)
-        {
-            session.Simulation.Step([PlayerCommand.Mine(target.Value.X, target.Value.Y)]);
-        }
-
-        Assert.Equal(TileId.Air, session.Simulation.World.GetTile(target.Value.X, target.Value.Y));
-        Assert.Equal(kind, before.TileAt(target.Value)); // the copy still has the tile
-        Assert.Equal(TileId.Air, WorldFacts.Snapshot(session.Simulation.World, player).TileAt(target.Value));
+        Assert.Equal(["fruta"], before.NounsAt(bush)); // the copy still has the bush with its berry
+        Assert.Empty(WorldFacts3D.Snapshot(session.Scene.Grid, TestGame.Nouns).NounsAt(bush));
     }
 
     [Fact]
     public void ASnapshotAnswersLikeTheLiveWorldWithinItsRadius()
     {
         var session = TestGame.NewSession();
-        var live = session.Facts;
-        var player = session.PlayerTile;
-        var snapshot = WorldFacts.Snapshot(session.Simulation.World, player);
+        var live = TestGame.FactsOf(session);
+        var viewpoint = TestGame.ViewpointOf(session);
+        var snapshot = WorldFacts3D.Snapshot(session.Scene.Grid, TestGame.Nouns);
 
         foreach (var noun in new[] { "árbol", "hierba", "tierra", "piedra", "arena" })
         {
-            Assert.Equal(live.NearestOfNoun(player, noun), snapshot.NearestOfNoun(player, noun));
+            Assert.Equal(live.NearestOfNoun(viewpoint, noun), snapshot.NearestOfNoun(viewpoint, noun));
         }
 
-        Assert.Equal(TileId.Air, snapshot.TileAt(new TilePoint(-1, -1)));
+        Assert.Empty(snapshot.NounsAt(new GuideCell(-1, -1, -1)));
     }
 }

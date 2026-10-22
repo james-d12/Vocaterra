@@ -1,8 +1,8 @@
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
-using Vocaterra.Simulation;
 using Vocaterra.Simulation.Items;
+using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game;
 
@@ -34,9 +34,8 @@ public sealed record AppliedTurn(TurnOutcome Outcome, WordTurnResult? Words)
 
 /// <summary>
 /// The part of a running game that the guide and the learner share, whatever the world is: the conversation (<see cref="GuideService"/>), the
-/// word counts, the arrow, the review question, the stored time and the turn worker. The two worlds derive from it: the 2D slice
-/// (<see cref="GameSession"/>, tiles) and the 3D scene (<see cref="VoxelSession"/>, blocks). A derived class says where the player is, what
-/// the facts are and what the state digest is; everything else is here, so both answer the same way.
+/// word counts, the arrow, the review question, the stored time and the turn worker. The 3D scene derives from it (<see cref="VoxelSession"/>):
+/// a derived class says where the player is, what the facts are and what the state digest is; everything else is here.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -141,7 +140,7 @@ public abstract class GuideSession : IDisposable
     public long SkippedSeconds { get; private set; }
 
     /// <summary>The stored time now: the start plus the seconds of game time that have been stepped plus the skipped seconds.</summary>
-    public StoredTimestamp StoredTime => new(StartedAt + (Tick / GameSimulation.TicksPerSecond) + SkippedSeconds);
+    public StoredTimestamp StoredTime => new(StartedAt + (Tick / VoxelSimulation.TicksPerSecond) + SkippedSeconds);
 
     /// <summary>The review question in progress, or <see langword="null"/>.</summary>
     public GuideReview? Review { get; private set; }

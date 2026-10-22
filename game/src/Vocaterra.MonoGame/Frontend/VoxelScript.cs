@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Simulation.Crafting;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 
@@ -21,6 +22,9 @@ public enum VoxelStepKind
 
     /// <summary>Select a hotbar slot (<c>--select 1..10</c>).</summary>
     Select,
+
+    /// <summary>Craft the recipe that makes an item, with the station in reach (<c>--craft madera</c>, <c>--craft antorcha</c>).</summary>
+    Craft,
 }
 
 /// <summary>One step of the scripted 3D run, in plain values.</summary>
@@ -48,6 +52,9 @@ public sealed record VoxelStep(VoxelStepKind Kind, double Yaw = 0, double Pitch 
 
     /// <summary>A step that selects a hotbar slot (1 to 10).</summary>
     public static VoxelStep Select(int slot) => new(VoxelStepKind.Select, Slot: slot);
+
+    /// <summary>Craft the recipe that makes the item (its Spanish noun or the item's key).</summary>
+    public static VoxelStep Craft(string item) => new(VoxelStepKind.Craft, Item: item);
 
     /// <summary>Reads <c>x,z</c> (two non-negative integers).</summary>
     public static bool TryParseColumn(string value, out int x, out int z)
@@ -105,6 +112,7 @@ public sealed class VoxelScript
     private int _unstickCount;
     private BlockId _interactBlock;
     private int _interactDrops;
+    private int _craftBefore;
 
     /// <summary>Creates the script over a simulation and the look the game sends.</summary>
     /// <param name="sim">The simulation to read (the script never steps it).</param>
@@ -202,9 +210,54 @@ public sealed class VoxelScript
                 return WalkTick(step, commands);
             case VoxelStepKind.Interact:
                 return InteractTick(step, commands);
+            case VoxelStepKind.Craft:
+                return CraftTick(step, commands);
             default:
                 return PlaceTick(step, commands);
         }
+    }
+
+    // A craft is one command in its first tick; the next tick reports what it did. A recipe the simulation refuses is reported at once.
+    private bool CraftTick(VoxelStep step, List<VoxelCommand> commands)
+    {
+        if (_resolveItem(step.Item) is not { } item)
+        {
+            _log($"craft: no item called '{step.Item}'");
+            return true;
+        }
+
+        var index = -1;
+        for (var i = 0; i < _sim.Recipes.Count; i++)
+        {
+            if (_sim.Recipes[i].Output == item)
+            {
+                index = i;
+                break;
+            }
+        }
+
+        if (index < 0)
+        {
+            _log($"craft: no recipe makes {step.Item}");
+            return true;
+        }
+
+        if (_stepTicks == 0)
+        {
+            _craftBefore = _sim.Inventory.Count(item);
+            var result = _sim.CanCraft(index);
+            if (result != CraftResult.Done)
+            {
+                _log($"craft: {step.Item} refused ({result})");
+                return true;
+            }
+
+            commands.Add(VoxelCommand.Craft(index));
+            return false;
+        }
+
+        _log($"craft: {step.Item} made ({step.Item} {_craftBefore} -> {_sim.Inventory.Count(item)})");
+        return true;
     }
 
     private bool WalkTick(VoxelStep step, List<VoxelCommand> commands)

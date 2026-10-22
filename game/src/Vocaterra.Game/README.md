@@ -4,6 +4,11 @@ The engine-agnostic game layer: one running game, the conversation with the guid
 `Vocaterra.Simulation` by project and the language core only as the `Vocaterra.Nlp.*` packages (never its projects or source), and it knows no
 engine (plan section 3, rules 1 and 3). `Vocaterra.MonoGame` and the console host build on it.
 
+Since S4 the running game is the 3D world (`VoxelSession`). Where this file says tiles, the 2D world or `GameSession`, it describes the guide's
+design from P1 to P7, when the 2D slice was the game; the 2D slice was retired at S4 (its code is tagged `2d-slice-p7`), and the guide's rules
+are the same in 3D with blocks for tiles. The camp objective and the word cards are in "The camp objective (S4)" below.
+
+
 ## The API
 
 ```csharp
@@ -20,25 +25,25 @@ var arrow = session.Pointer;                             // where the guide poin
 
 | Type | Role |
 | --- | --- |
-| `GameSession` | owns the `GameSimulation`, the bundle, the world seed, the stored time, the guide (`GuideNpc`), the conversation (`GuideService`), `WorldFacts` and the arrow (`PointerMarker`). `Step`, `Say`, `DismissPointer`, `StoredTime`, `PlayerTile`, `IsNearGuide`, `OpeningLine`. P5: `Credit` (`CreditRules`), `StartWorker`, `SubmitTyped` / `SubmitClip` / `SubmitWav` / `SubmitSpeak`, `Collect`, `PendingTurns`, `StopWorker` (`IDisposable`) |
+| `VoxelSession` (S4: the only session; `GuideSession` is its shared base) | owns the `VoxelSimulation` over the scene, the bundle, the world seed, the stored time, the guide and the conversation (`GuideService`), the word progress, the camp objective (`Objective`), the word cards (`TakeWordCards`) and the arrow; `Step(commands)` feeds the objective and the cards from the tick's events; `HostEvent(name)` raises a named host event (`objective.water`) |
 | `TurnWorker`, `TurnRequest`, `TurnOutcome`, `TurnSource`, `SpeechLoad` | P5: the one thread that loads Vosk, owns it and the conversation, and evaluates submitted turns in order; a request carries every input fixed at submission (scene with a copy of the world around the player and of the inventory, stored time, state digest); outcomes come back in order through `TryTake` (`GameSession.Collect` applies them on the caller's thread) |
 | `SpeechEngine` | P5: the speech models from `VOCATERRA_MODELS_DIR` (`FindModels`, `TryCreate`): Vosk small Spanish, and Kokoro speaker 28 behind `CachedSynthesizer` with the cache in `~/.cache/vocaterra/tts` (`Synthesize`). Created, used and disposed by the worker thread only. The manifest comes from the folder, `VOCATERRA_MODELS_MANIFEST` or the core submodule (CR-019) |
 | `SpokenUtteranceEvaluator` | P5: the call sequence for one spoken clip: the pipeline over the real recognizer with one n-best hypothesis (`SingleBest`, CR-022); `Trace` returns the result and the recognizer's output, which the guide's second evaluation reuses (`TypedUtteranceEvaluator.EvaluateRecognized`) so the clip is decoded once |
 | `AudioClips` | P5: `Resample` (windowed sinc, any rate to 16 kHz), `TrimSilence`, `Prepare` (convert, trim, cap at 8 s, `null` for silence), `FromPcm16`, `ReadWav` (16-bit PCM, channels averaged) |
 | `GuideService` | one turn: `Say(line, scene, now, hostStateHash)` evaluates the line on the prompt `guide-open` with the core's scripted recognizer (twice, see step 2 below), carries the context with `ConversationContext.Next`, and returns a `GuideTurn`; `SaySpoken(clip, ...)` does the same from a clip (Vosk decodes it once; `AttachSpeech`, `WarmUpSpeech`). `Context`, `GuideState`, `OpeningLine`, `WarmUp()` |
 | `GuideTurn` | the verdict in plain values (`Intent`, `Communicated`, `Correctness`, `Errors`, `Summary`), `Feedback` (the recast or hint), `Replies`, `Repair`, `AgentState`, `HostEvents`, `WorldLine` (the game's own line), `Pointer` (`GuidePointer`: place, target tile, blocks, direction), `IdentifiedNoun`, `Words` (`GuideWord`: each token with the reading the core's resolver chose, CR-002), `Input` (`InputKind.Typed` or `Spoken`, which decides the credit) and `Confidence` (a spoken turn's mean Vosk word confidence), and `GuideLines` in the order shown. For a spoken turn `Line` is what the recognizer heard. No time in it, so equal inputs give an equal turn |
-| `WorldFacts` | `Nearest(from, kinds, radius)`, `NearestOfNoun(from, "árbol")`, `DirectionPhrase(dx, dy)`, `NumberInWords(n)`, `TilesOfNoun`, `NounOfTile`, `CenterTile(player)`. Integer arithmetic only |
+| `WorldFacts3D` | the nearest block of a noun from a viewpoint (`NearestOfNoun(from, "árbol")`), the direction in Spanish (`DirectionPhrase`), the distance in words, `Live(grid)` and `Snapshot(grid)` |
 | `GuideNpc` | `Place(world)`: a grass column 8 to 28 columns from the spawn with headroom, clear of trees if it can; `IsNear(player)` |
 | `TypedUtteranceEvaluator` | the call sequence over the packages for one typed line (scripted recognizer, fake embeddings, silent synthesizer); the console host uses it too. The pipeline counts each utterance's repeats itself (core M26a, CR-012), so the evaluation takes the carried context as it is |
 | `GameBundle` | `Locate()` and `Load()` for `content/game-v1` (`VOCATERRA_CONTENT_DIR` overrides) |
 | `GuideEvents` | the host event names the guide's state machine raises: `guide.point`, `guide.identify`, `guide.help`, `guide.name`, `guide.craft`, `guide.find`, `agent.greet`, `agent.farewell` |
 | `RecipeBook`, `RecipeEntry`, `RecipeIngredient` | the crafting recipes, `game/recipes.json`, read with `Load(bundle, nouns)` through `TryReadHostFile`: `Entries` (the nouns, for the guide and the panel), `Rules` (the plain `Recipe` values the simulation crafts with, same order), `ForOutput(lemma)`, `IndexOf(lemma)`. A lemma that is not a catalogue noun with an item, or a station that is not a placeable tile, is an `InvalidDataException` |
 | `NounCatalog` | the noun catalogue, `game/nouns.json` in the bundle, read with `Load(bundle)` through `ContentBundle.TryReadHostFile` (its bytes are the ones the load hashed, CR-007): `ForLemma`, `ForReading(lemma, pos)` (the catalogue noun a resolved reading names, CR-002), `ForTile`, `ForItem`, `IsColourless`, `Nouns` (lemma, gender, `el`/`un`, plural, tiles, items) |
-| `WordProgress` | the learner's counts per catalogue noun (`Records`, `RecordOf`, `SaturationOf(lemma)` and `SaturationOf(TileId)`, `KnownLemmas`, `MarkRead`), the play `Session`, and `RecordTurn(turn, kind, rules, now)`, which counts one guide turn: heard, spoken, spoken correctly, credit (at most one per noun per turn, and only when its gap has passed), known. Also `DueWords(now, rules)` and `SecondsUntilNextCredit(lemma, now, rules)` |
+| `WordProgress` | the learner's counts per catalogue noun (`Records`, `RecordOf`, `SaturationOf(lemma)` and `SaturationOf(ItemId)`, `KnownLemmas`, `MarkRead`), the play `Session`, and `RecordTurn(turn, kind, rules, now)`, which counts one guide turn: heard, spoken, spoken correctly, credit (at most one per noun per turn, and only when its gap has passed), known. Also `DueWords(now, rules)` and `SecondsUntilNextCredit(lemma, now, rules)` |
 | `WordRecord`, `WordStage` | one noun's counts (`Known`, `Saturation` in thirds, `Stage`: Unseen, Encountered, Learning, Known) and the time and play session of its last credited use (`LastCreditedAt`, `LastCreditedSession`) |
 | `CreditRules` | the credit per kind of input (`Typed`, `Spoken`) and the gaps between credited uses (`Gaps`, default 10 min then 1 h; `GapAfter(n)`): the one place the owner's tuning changes (D-game-6). From P5 `Default` is typed half, spoken full (`FullTyped` is the setting behind `--typed-credit full`); a word then takes three spoken uses or six typed ones, the last gap repeating |
 | `CreditOutcome`, `WordCredit`, `DueWord` | what a turn did to a noun (`Credited`, `TooEarly` with the seconds left, `Wrong`, `NamedWrong`) and a word due for review (`Lemma`, `OverdueSeconds`) |
-| `GuideReview` | the review question in progress: the due word, the pointed tile and the question; `GameSession.Review`, `BeginTalk()`, `EndReview()`, `SkipTime(seconds)` |
+| `GuideReview` | the review question in progress: the due word, the pointed tile and the question; `GuideSession.Review`, `BeginTalk()`, `EndReview()`, `SkipTime(seconds)` |
 
 ## Words (P4): the noun catalogue and the D-game-6 rule
 
@@ -183,3 +188,13 @@ the not-communicated turn, heard, read, the credit setting, determinism) and the
 `CraftingGuideTests` (the intents, every answer branch through the real core, the carried line, determinism, the new pools). P7: `OresAndTorchTests`
 (each ore is a mass catalogue noun with its tile, item and source; the torch and the metal recipes and their stations; "¿dónde hay carbón?" points,
 "¿dónde hay oro?" says "Está muy abajo.", the carried coal is "Tienes dos bloques de carbón.").
+
+## The camp objective and the word cards (S4)
+
+`Objective` (`Objective.cs`) is the checklist `Campamento`: `madera` 5, `frutas` 3, `antorcha` 1 (placed at the fire ring), `agua` 1 (the host
+event `objective.water`, which S6 raises when the bottle is filled). It moves only on events: `RecordPickup(item, count)` for wood and berries,
+`RecordTorchPlaced(atFireRing)`, `RecordHostEvent(name)`; each returns the steps that this call completed. `Summary` is the line the HUD shows.
+`VoxelSession.Step` feeds it from the tick's events; `VoxelSession.AtFireRing` decides the ring. The first time an item enters the inventory the
+noun is counted as heard and read (`WordProgress.MarkHeard`, `MarkRead`) and its `WordCard` (`la madera`) waits in `TakeWordCards()`; a card is
+never a quiz and never a use.
+

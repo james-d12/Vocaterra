@@ -1,4 +1,4 @@
-using Vocaterra.Simulation.Generation;
+using Vocaterra.Simulation;
 
 namespace Vocaterra.Simulation.Tests;
 
@@ -38,28 +38,5 @@ public sealed class WorldRngTests
         }
 
         Assert.All(seen, Assert.True);
-    }
-
-    [Fact]
-    public void NoiseStaysInRangeIsDeterministicAndIsContinuous()
-    {
-        const ulong seed = 99;
-        var previous = ValueNoise.Fractal1D(seed, -200, 64, 4);
-        for (var x = -199; x < 2000; x++)
-        {
-            var value = ValueNoise.Fractal1D(seed, x, 64, 4);
-            Assert.InRange(value, 0, ValueNoise.Max);
-            Assert.Equal(value, ValueNoise.Fractal1D(seed, x, 64, 4));
-            Assert.InRange(Math.Abs(value - previous), 0, ValueNoise.Max / 8);
-            previous = value;
-        }
-
-        for (var y = 0; y < 100; y++)
-        {
-            for (var x = 0; x < 100; x++)
-            {
-                Assert.InRange(ValueNoise.Sample2D(seed, x, y, 10), 0, ValueNoise.Max);
-            }
-        }
     }
 }

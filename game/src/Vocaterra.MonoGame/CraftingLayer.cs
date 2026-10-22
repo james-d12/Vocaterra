@@ -41,10 +41,10 @@ public sealed class CraftingLayer : IFrameLayer
 
         var pixel = view.Pixel;
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var viewport = new Rectangle(0, 0, view.Camera.ViewportWidth, view.Camera.ViewportHeight);
+        var viewport = new Rectangle(0, 0, view.ViewportWidth, view.ViewportHeight);
         spriteBatch.Draw(pixel, viewport, new Color(6, 6, 14, 150));
 
-        var rows = CraftingScreen.Rows(view.Simulation!, view.Session.Recipes);
+        var rows = CraftingScreen.Rows(view.Voxel, view.Session.Recipes);
         var layout = new CraftingLayout(viewport.Width, viewport.Height, rows.Count);
         var panel = new Rectangle(layout.X, layout.Y, layout.Width, layout.Height);
         spriteBatch.Draw(pixel, panel, new Color(18, 18, 34, 250));
@@ -78,7 +78,7 @@ public sealed class CraftingLayer : IFrameLayer
         var output = row.Recipe.Output;
         var item = row.Recipe.Rule.Output;
         var size = Math.Min(Icon, box.Height - 6);
-        view.Atlas.DrawIcon(spriteBatch, item, new Rectangle(box.Left + 8, box.Center.Y - (size / 2), size, size), words.SaturationOf(output.Lemma));
+        view.DrawIcon(spriteBatch, item, new Rectangle(box.Left + 8, box.Center.Y - (size / 2), size, size));
         var x = box.Left + 8 + Icon + 10;
         var label = row.Recipe.OutputCount > 1
             ? $"{output.Lemma} x{row.Recipe.OutputCount.ToString(CultureInfo.InvariantCulture)}"

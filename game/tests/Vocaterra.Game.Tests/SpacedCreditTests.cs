@@ -1,6 +1,5 @@
 using Vocaterra.Game;
 using Vocaterra.Nlp.Core.Verdicts;
-using Vocaterra.Simulation.Tiles;
 
 namespace Vocaterra.Game.Tests;
 
@@ -11,7 +10,7 @@ namespace Vocaterra.Game.Tests;
 /// </summary>
 public sealed class SpacedCreditTests
 {
-    private static long At(int minutes, int seconds = 0) => GameSession.DefaultStartedAt + (minutes * 60L) + seconds;
+    private static long At(int minutes, int seconds = 0) => GuideSession.DefaultStartedAt + (minutes * 60L) + seconds;
 
     private static SlotMap Object(string lemma) => SlotMap.From(new Dictionary<string, string> { ["object"] = lemma });
 
@@ -54,7 +53,7 @@ public sealed class SpacedCreditTests
     public void ThreeUsesWithinSecondsGiveOneThirdAndTwoEarlyOutcomes()
     {
         var session = TestGame.NewSession();
-        var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
+        var tree = TestGame.NearestOf(session, "árbol");
 
         var first = session.Say("es un árbol", tree);
         Assert.Equal([CreditOutcome.Credited], session.LastWordTurn!.Outcomes.Select(static o => o.Outcome));
@@ -141,8 +140,8 @@ public sealed class SpacedCreditTests
     [Fact]
     public void AGameSessionStartedInAnEarlierSessionCreditsTheWordsOfALaterOne()
     {
-        var session = new GameSession(TestGame.Bundle, TestGame.Seed, GameSession.DefaultStartedAt, TestGame.Nouns, playSession: 1, credit: CreditRules.FullTyped);
-        var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
+        var session = TestGame.NewSession(TestGame.Seed, CreditRules.FullTyped);
+        var tree = TestGame.NearestOf(session, "árbol");
         session.Say("es un árbol", tree);
         session.Words.Session = 2;
 
@@ -172,7 +171,7 @@ public sealed class SpacedCreditTests
     public void AWrongNameOrANameWithNoTargetEarnsNoColourInTheCore()
     {
         var session = TestGame.NewSession();
-        var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
+        var tree = TestGame.NearestOf(session, "árbol");
 
         var wrong = session.Say("es una piedra", tree);
         Assert.Equal(NameCheck.Wrong, wrong.Naming);
@@ -204,7 +203,7 @@ public sealed class SpacedCreditTests
     public void CopyingTheGuidesCorrectionAfterAWrongReviewAnswerIsTooEarly()
     {
         var session = TestGame.NewSession();
-        var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
+        var tree = TestGame.NearestOf(session, "árbol");
         session.Say("es un árbol", tree);
         session.SkipTime(11 * 60);
         session.BeginTalk();
@@ -309,7 +308,7 @@ public sealed class SpacedCreditTests
     public void TheGuideAsksAboutTheNearestExampleOfADueWordAndGradesAgainstThatTile()
     {
         var session = TestGame.NewSession();
-        var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
+        var tree = TestGame.NearestOf(session, "árbol");
         session.Say("es un árbol", tree);
         session.SkipTime(11 * 60);
 
@@ -322,7 +321,7 @@ public sealed class SpacedCreditTests
         Assert.Equal(new PointerMarker("árbol", tree, Quiz: true), session.Pointer);
 
         // The mouse is on a stone tile, but the answer is graded against the pointed tile.
-        var stone = session.Facts.NearestOfNoun(session.PlayerTile, "piedra")!.Tile;
+        var stone = TestGame.NearestOf(session, "piedra");
         var answer = session.Say("es un árbol", stone);
 
         Assert.Equal(NameCheck.Right, answer.Naming);
@@ -336,7 +335,7 @@ public sealed class SpacedCreditTests
     public void AWrongAnswerToTheReviewIsCorrectedAndEarnsNothing()
     {
         var session = TestGame.NewSession();
-        var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
+        var tree = TestGame.NearestOf(session, "árbol");
         session.Say("es un árbol", tree);
         session.SkipTime(11 * 60);
         session.BeginTalk();
@@ -353,7 +352,7 @@ public sealed class SpacedCreditTests
     public void ALineTheGuideDoesNotUnderstandLeavesTheReviewOpen()
     {
         var session = TestGame.NewSession();
-        var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
+        var tree = TestGame.NearestOf(session, "árbol");
         session.Say("es un árbol", tree);
         session.SkipTime(11 * 60);
         var review = session.BeginTalk();
@@ -371,7 +370,7 @@ public sealed class SpacedCreditTests
         var session = TestGame.NewSession();
         Assert.Null(session.BeginTalk()); // nothing started
 
-        var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
+        var tree = TestGame.NearestOf(session, "árbol");
         session.Say("es un árbol", tree);
         session.SkipTime((10 * 60) - 1);
         Assert.Null(session.BeginTalk()); // started, gap not passed
@@ -386,7 +385,7 @@ public sealed class SpacedCreditTests
     public void TheReviewWorksForAnyCatalogueNoun()
     {
         var session = TestGame.NewSession();
-        var stone = session.Facts.NearestOfNoun(session.PlayerTile, "piedra")!.Tile;
+        var stone = TestGame.NearestOf(session, "piedra");
         session.Say("es una piedra", stone);
         session.SkipTime(11 * 60);
 
@@ -405,7 +404,7 @@ public sealed class SpacedCreditTests
         session.SkipTime(11 * 60);
 
         Assert.Equal(tick, session.Simulation.Tick);
-        Assert.Equal(GameSession.DefaultStartedAt + (11 * 60), session.StoredTime.UnixSeconds);
+        Assert.Equal(GuideSession.DefaultStartedAt + (11 * 60), session.StoredTime.UnixSeconds);
         Assert.Throws<ArgumentOutOfRangeException>(() => session.SkipTime(-1));
     }
 
@@ -415,7 +414,7 @@ public sealed class SpacedCreditTests
         static (List<string> Lines, List<WordRecord> Records) Play()
         {
             var session = TestGame.NewSession();
-            var tree = session.Facts.NearestOfNoun(session.PlayerTile, "árbol")!.Tile;
+            var tree = TestGame.NearestOf(session, "árbol");
             var lines = new List<string>();
             lines.AddRange(session.Say("es un árbol", tree).GuideLines);
             session.SkipTime(11 * 60);

@@ -2,18 +2,6 @@
   "schemaVersion": 1,
   "generated_by": "hand-authored",
   "recipes": [
-    { "output": "mesa", "count": 1, "ingredients": [{ "item": "madera", "count": 10 }], "station": null },
-    { "output": "puerta", "count": 1, "ingredients": [{ "item": "madera", "count": 6 }], "station": "mesa" },
-    { "output": "silla", "count": 1, "ingredients": [{ "item": "madera", "count": 4 }], "station": "mesa" },
-    { "output": "cama", "count": 1, "ingredients": [{ "item": "madera", "count": 15 }], "station": "mesa" },
-    { "output": "caja", "count": 1, "ingredients": [{ "item": "madera", "count": 8 }], "station": "mesa" },
-    { "output": "espada", "count": 1, "ingredients": [{ "item": "madera", "count": 2 }, { "item": "piedra", "count": 6 }], "station": "mesa" },
-    { "output": "horno", "count": 1, "ingredients": [{ "item": "piedra", "count": 20 }, { "item": "madera", "count": 4 }], "station": "mesa" },
-    { "output": "cristal", "count": 1, "ingredients": [{ "item": "arena", "count": 2 }], "station": "horno" },
-    { "output": "ladrillo", "count": 1, "ingredients": [{ "item": "piedra", "count": 2 }], "station": "horno" },
-    { "output": "antorcha", "count": 4, "ingredients": [{ "item": "madera", "count": 1 }, { "item": "carbón", "count": 1 }], "station": null },
-    { "output": "lámpara", "count": 1, "ingredients": [{ "item": "hierro", "count": 1 }, { "item": "cristal", "count": 1 }], "station": "mesa" },
-    { "output": "cubo", "count": 1, "ingredients": [{ "item": "hierro", "count": 3 }], "station": "horno" },
-    { "output": "anillo", "count": 1, "ingredients": [{ "item": "oro", "count": 2 }], "station": "horno" }
+    { "output": "antorcha", "count": 1, "ingredients": [{ "item": "madera", "count": 2 }], "station": "mesa" }
   ]
 }
