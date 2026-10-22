@@ -78,7 +78,7 @@ distribute a build that includes them until D2 is settled.
 The files `speech/*.wav` (and `speech/*.slow.wav`) are the NPCs' voices, rendered with `kokoro-multi-lang-v1_0` (Kokoro, Apache-2.0, through
 sherpa-onnx) by `scripts/prerender-speech.sh` (S9). They are model output, not recordings of a person: the voices are `ef_dora` (speaker 28, the
 guide, and the word cards and model answers), `em_alex` (speaker 29, the shopkeeper) and `em_santa` (speaker 53, the villager), at speed 1.0 and,
-for the `.slow` files, 0.8. They are listed in `provenance.json` with `generatedBy: hand-authored` and a `source` field that names Kokoro (the
-core has no model-output kind yet). They are shipped under the private-build terms of the core's decision D2: the Kokoro archive's espeak-ng data
+for the `.slow` files, 0.8. They are listed in `provenance.json` with `generatedBy: model-output` (the core's kind for host-owned files a model rendered), the model
+`kokoro-multi-lang-v1_0`, the voice, the speaker id and the line they render. They are shipped under the private-build terms of the core's decision D2: the Kokoro archive's espeak-ng data
 is GPL-3.0 code, so a distributed build with these files waits on D2 as well. The Spanish text they say is the bundle's own (the lines of
 `dialogue/dialogue.json`, the prompts and `content/PHRASES.md`); the owner's listening check is `docs/SPEECH_CHECKLIST.md`.

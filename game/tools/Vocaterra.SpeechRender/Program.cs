@@ -37,6 +37,8 @@ internal static class Program
     private const string DefaultBundle = "game/content/game-v1";
     private const string DefaultIndex = "game/content/speech-index.json";
     private const string DefaultChecklist = "game/docs/SPEECH_CHECKLIST.md";
+    /// <summary>The core's provenance kind for a host-owned file a model rendered (M29g).</summary>
+    private const string GeneratedByModelOutput = "model-output";
     private const string ChecklistMarksHeader = "ok / cut-off / mismatch";
 
     private static readonly JsonSerializerOptions IndexJson = new() { WriteIndented = true };
@@ -222,10 +224,8 @@ internal static class Program
     }
 
     /// <summary>
-    /// Rewrites the bundle's provenance: every non-speech item as it was, then one item per speech file. The core's kinds have no model-output
-    /// kind (<c>GeneratedByKinds</c>: hand-authored, llm-draft, wiktionary-import; llm-draft needs a person's approval), so a speech file is
-    /// listed as <c>hand-authored</c> with a <c>source</c> field that names Kokoro, the model, the voice and the speed. The core ignores the
-    /// extra field. This is a core gap (see the S9 report).
+    /// Rewrites the bundle's provenance: every non-speech item as it was, then one <c>model-output</c> item per speech file (the core's kind for
+    /// host-owned files a model rendered, M29g: it takes the model id, the voice, the speaker id as text and a source).
     /// </summary>
     private static void WriteProvenance(string path, SortedDictionary<string, IndexEntry> speech)
     {
@@ -247,10 +247,19 @@ internal static class Program
 
         foreach (var (relative, entry) in speech)
         {
-            items.Add(ProvenanceLine(relative, "hand-authored", $"kokoro-tts {SpeechEngine.KokoroModelId} {entry.Voice} (speaker {entry.SpeakerId}) speed {entry.Speed.ToString("0.0", CultureInfo.InvariantCulture)}"));
+            items.Add(SpeechProvenanceLine(relative, entry));
         }
 
         File.WriteAllText(path, "{\n  \"items\": [\n    " + string.Join(",\n    ", items) + "\n  ]\n}\n", new UTF8Encoding(false));
+    }
+
+    private static string SpeechProvenanceLine(string relative, IndexEntry entry)
+    {
+        var name = Path.GetFileNameWithoutExtension(relative);
+        var lineId = name.EndsWith(SpeechFiles.SlowSuffix, StringComparison.Ordinal) ? name[..^SpeechFiles.SlowSuffix.Length] : name;
+        var speed = entry.Speed.ToString("0.0", CultureInfo.InvariantCulture);
+        var speaker = entry.SpeakerId.ToString(CultureInfo.InvariantCulture);
+        return $"{{ \"path\": \"{relative}\", \"generatedBy\": \"{GeneratedByModelOutput}\", \"approvedBy\": null, \"approvedOn\": null, \"model\": \"{SpeechEngine.KokoroModelId}\", \"voice\": \"{entry.Voice}\", \"speaker\": \"{speaker}\", \"source\": \"{lineId} (speed {speed})\" }}";
     }
 
     private static string ProvenanceLine(string path, string generatedBy, string? source)
