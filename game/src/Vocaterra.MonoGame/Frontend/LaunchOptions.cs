@@ -65,7 +65,8 @@ public sealed record LaunchOptions
         + "  --typed-credit <full|half> the credit a correct typed use earns (default half; spoken input always earns full)\n"
         + "  --no-speech             do not load the speech models (typing only)\n"
         + "  --mute                  the NPCs' pre-rendered voices are off (the panel still shows every line)\n"
-        + "  --greyscale             accepted; the world is drawn in full colour (D-game-6 as amended), the grey A/B is not in the 3D world yet\n"
+        + "  --greyscale             the playtest A/B switch (D-game-6): blocks whose noun is not known yet are grey, known ones in colour; default full colour\n"
+        + "  --assume-known <nouns>  a test aid: the comma-separated catalogue nouns count as known from the start (their blocks are in colour)\n"
         + "  --voxel                 accepted and ignored (the 3D world is the only world)\n"
         + "Controls: WASD or the arrows walk, Space jumps, the mouse looks; hold the left button to gather, the right to place; E opens the inventory (or\n"
         + "  the crafting panel at the workbench, or talks to the guide when the crosshair is on her); C the crafting panel; J the journal; 1..0 the hotbar.\n"
@@ -135,8 +136,11 @@ public sealed record LaunchOptions
     /// <summary>The named point of the scene the beacon starts on (<c>--beacon</c>), or <see langword="null"/>.</summary>
     public string? Beacon { get; init; }
 
-    /// <summary>Whether <c>--greyscale</c> was given (accepted; the 3D world has no grey copy yet).</summary>
+    /// <summary>Whether <c>--greyscale</c> was given: blocks whose noun is not known are drawn grey (the playtest A/B, D-game-6).</summary>
     public bool Greyscale { get; init; }
+
+    /// <summary>The catalogue nouns that count as known from the start (<c>--assume-known</c>, a test aid); empty by default.</summary>
+    public IReadOnlyList<string> AssumeKnown { get; init; } = [];
 
     /// <summary>Whether the mic check is forced (<c>--mic-check</c>), skipped (<c>--no-mic-check</c>) or left to the default.</summary>
     public MicCheckMode MicCheck { get; init; } = MicCheckMode.Auto;
@@ -238,7 +242,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
-                or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
+                or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
                 or "--check" or "--pick" or "--session-dir"))
             {
                 error = $"Unknown argument '{arg}'.";
@@ -418,6 +422,16 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { Credit = value == "full" ? CreditRules.FullTyped : CreditRules.Default };
+                    break;
+                case "--assume-known":
+                    var lemmas = value.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                    if (lemmas.Length == 0)
+                    {
+                        error = "--assume-known needs one or more nouns, comma separated, like madera,agua.";
+                        return false;
+                    }
+
+                    result = result with { AssumeKnown = lemmas };
                     break;
                 case "--look":
                     if (!LookControl.TryParseDegrees(value, out var lookYaw, out var lookPitch))

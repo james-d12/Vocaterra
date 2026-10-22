@@ -9,22 +9,33 @@ public static class BlockArt
 {
     private static readonly (byte R, byte G, byte B, byte A) Clear = (0, 0, 0, 0);
 
-    /// <summary>The RGBA bytes of the whole atlas, row by row (<see cref="BlockAtlasLayout.Width"/> x <see cref="BlockAtlasLayout.Height"/> x 4).</summary>
+    /// <summary>
+    /// The RGBA bytes of the whole atlas, row by row (<see cref="BlockAtlasLayout.Width"/> x <see cref="BlockAtlasLayout.Height"/> x 4): the colour
+    /// cells, then the grey copy of each cell (its <see cref="Greyscale"/> luma, alpha kept) in the place <see cref="BlockAtlasLayout.GreyPixelRectangle"/> gives.
+    /// </summary>
     public static byte[] AtlasPixels()
     {
         var width = BlockAtlasLayout.Width;
         var data = new byte[width * BlockAtlasLayout.Height * 4];
         foreach (var cell in Enum.GetValues<BlockCell>())
         {
-            var (ox, oy, _, _) = BlockAtlasLayout.PixelRectangle(cell);
             var art = Pixels(cell);
-            for (var y = 0; y < BlockAtlasLayout.CellSize; y++)
-            {
-                Array.Copy(art, y * BlockAtlasLayout.CellSize * 4, data, (((oy + y) * width) + ox) * 4, BlockAtlasLayout.CellSize * 4);
-            }
+            Paste(data, width, BlockAtlasLayout.PixelRectangle(cell), art);
+            Paste(data, width, BlockAtlasLayout.GreyPixelRectangle(cell), Greyscale.ToLuma(art));
         }
 
         return data;
+    }
+
+    /// <summary>The RGBA bytes of one cell's grey copy (row by row, 16 x 16 x 4): the luma of <see cref="Pixels"/>, alpha kept.</summary>
+    public static byte[] GreyPixels(BlockCell cell) => Greyscale.ToLuma(Pixels(cell));
+
+    private static void Paste(byte[] atlas, int width, (int X, int Y, int Width, int Height) rectangle, byte[] art)
+    {
+        for (var y = 0; y < BlockAtlasLayout.CellSize; y++)
+        {
+            Array.Copy(art, y * BlockAtlasLayout.CellSize * 4, atlas, (((rectangle.Y + y) * width) + rectangle.X) * 4, BlockAtlasLayout.CellSize * 4);
+        }
     }
 
     /// <summary>The RGBA bytes (row by row, 16 x 16 x 4) of one cell.</summary>

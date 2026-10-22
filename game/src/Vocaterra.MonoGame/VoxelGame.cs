@@ -96,6 +96,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private Texture2D? _pixel;
     private BlockAtlas? _blockAtlas;
     private VoxelRenderer? _renderer;
+    private GreyscaleWorld? _colours;
     private FrameView? _view;
     private KeyboardState _previousKeys;
     private int _previousScroll;
@@ -248,11 +249,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var started = MonotonicClock.Milliseconds();
         _renderer = new VoxelRenderer(GraphicsDevice, _blockAtlas, _sim.Grid);
         _renderer.SetFigures(_figures);
+        _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _options.AssumeKnown);
         Console.WriteLine($"voxel: {_renderer.Stats.Summary()} (renderer ready in {MonotonicClock.Milliseconds() - started:0} ms)");
         Console.WriteLine($"graphics: {GraphicsAdapter.DefaultAdapter.Description}, depth {GraphicsDevice.PresentationParameters.DepthStencilFormat}");
         if (_options.Greyscale)
         {
-            Console.WriteLine("greyscale: the 3D world is drawn in full colour (D-game-6 as amended); the grey A/B is not in the 3D world yet (stub)");
+            Console.WriteLine("greyscale: blocks whose noun is not known are grey (the playtest A/B, D-game-6); figures, sky and UI in colour");
         }
         Console.WriteLine($"scene: {_scene.Name}, seed {_scene.Seed}, {_scene.TreeCount} trees, spawn {_scene.Spawn.Feet.X},{_scene.Spawn.Feet.Y},{_scene.Spawn.Feet.Z}, digest {_scene.Grid.ComputeDigestHex()[..16]}");
         if (_options.Beacon is { } point)
@@ -412,6 +414,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var mouse = Mouse.GetState();
         view.Mouse = !_options.IsScreenshotRun && GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? mouse.Position : null;
 
+        _colours!.Refresh();
         _renderer!.Remesh();
         GraphicsDevice.Clear(VoxelRenderer.Sky);
         _renderer.DrawWorld(_camera, _sim.Target?.Block, Beacon.Target, _sim.Tick);

@@ -28,7 +28,8 @@ public readonly record struct MeshStats(int Chunks, int Meshed, int Vertices, in
 /// Draws the voxel world with MonoGame's <see cref="BasicEffect"/> (a texture times the vertex colour, so the face shade is in the mesh), with the
 /// depth buffer on: the opaque faces of every visible chunk first, then the figures and the highlight, then the translucent water chunk by chunk
 /// from the farthest to the nearest without writing depth, then the beacon. There is no custom shader. Distance fog in the sky colour hides where
-/// the 96-block world ends. A chunk is meshed again when its version, or a neighbour's, changed (<see cref="ChunkVersionTracker"/>).
+/// the 96-block world ends. A chunk is meshed again when its version, or a neighbour's, changed, or when a block kind it holds changed its grey state
+/// (<see cref="ChunkVersionTracker"/>).
 /// </summary>
 public sealed class VoxelRenderer : IDisposable
 {
@@ -129,6 +130,13 @@ public sealed class VoxelRenderer : IDisposable
     /// <summary>How many chunks the last <see cref="DrawWorld"/> drew (the rest were outside the view or empty).</summary>
     public int DrawnChunks => _drawnChunks;
 
+    /// <summary>
+    /// Sets the block kinds drawn grey (the greyscale A/B, <see cref="GreyscaleWorld"/>): the chunks that hold a kind whose grey state changed are
+    /// meshed again by the next <see cref="Remesh"/>; the other chunks keep their meshes.
+    /// </summary>
+    /// <param name="greyKinds">One bit per block kind (<see cref="ChunkMesher.KindBit"/>); 0 draws the whole world in colour.</param>
+    public void SetGreyKinds(ulong greyKinds) => _tracker.SetGreyKinds(greyKinds);
+
     /// <summary>Meshes the chunks whose blocks (or neighbours') changed since they were last meshed. Returns how many it rebuilt.</summary>
     public int Remesh()
     {
@@ -136,13 +144,13 @@ public sealed class VoxelRenderer : IDisposable
         foreach (var coord in due)
         {
             var started = MonotonicClock.Milliseconds();
-            var meshes = ChunkMesher.Build(_source, coord.X, coord.Y, coord.Z);
+            var meshes = ChunkMesher.Build(_source, coord.X, coord.Y, coord.Z, _tracker.GreyKinds);
             var chunk = _chunks[_tracker.IndexOf(coord)];
             chunk.Opaque?.Dispose();
             chunk.Alpha?.Dispose();
             (chunk.Opaque, chunk.OpaqueQuads) = Upload(meshes.Opaque);
             (chunk.Alpha, chunk.AlphaQuads) = Upload(meshes.Alpha);
-            _tracker.MarkMeshed(coord);
+            _tracker.MarkMeshed(coord, meshes.Kinds);
             var spent = MonotonicClock.Milliseconds() - started;
             _meshed++;
             _totalMilliseconds += spent;
