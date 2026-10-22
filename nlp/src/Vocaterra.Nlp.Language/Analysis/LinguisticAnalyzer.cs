@@ -100,9 +100,10 @@ public sealed class LinguisticAnalyzer
     }
 
     // One resolved word per token: a name keeps no reading, an unknown word has none, and a word gets the reading the resolver left first.
-    private static List<ResolvedWord> ResolvedWords(NormalizedText text, IReadOnlyList<AnalyzedToken> analyzed, IReadOnlyList<AnalyzedToken> resolved, IReadOnlySet<int> names)
+    private List<ResolvedWord> ResolvedWords(NormalizedText text, IReadOnlyList<AnalyzedToken> analyzed, IReadOnlyList<AnalyzedToken> resolved, IReadOnlySet<int> names)
     {
         var words = new List<ResolvedWord>(text.Tokens.Count);
+        var reported = ReportedReadings.Choose(text.Tokens, analyzed, resolved, names, _lexicon);
         for (var i = 0; i < text.Tokens.Count; i++)
         {
             if (names.Contains(i))
@@ -115,8 +116,7 @@ public sealed class LinguisticAnalyzer
             }
             else
             {
-                var readings = resolved[i].Readings;
-                words.Add(new ResolvedWord(text.Tokens[i], WordRole.Word, readings.Count > 0 ? readings[0] : analyzed[i].Readings[0]));
+                words.Add(new ResolvedWord(text.Tokens[i], WordRole.Word, reported[i]));
             }
         }
 

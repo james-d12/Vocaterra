@@ -37,6 +37,9 @@ internal static class AnalysisTables
         ["mucho"] = new[] { "gracia" }.ToFrozenSet(StringComparer.Ordinal),
     }.ToFrozenDictionary(StringComparer.Ordinal);
 
+    // Words whose use as an interjection is the first reading to report although the lexicon also lists them as a plural noun (gracias, the plural of gracia).
+    private static readonly FrozenSet<string> InterjectionFirstWords = new[] { "gracias" }.ToFrozenSet(StringComparer.Ordinal);
+
     // The question words that take a verb right after them (dónde está, cómo está), spelled with and without the accent, folded to lower case.
     private static readonly FrozenSet<string> VerbSeekingQuestionWords = new[] { "dónde", "donde", "cómo" }.ToFrozenSet(StringComparer.Ordinal);
 
@@ -92,6 +95,12 @@ internal static class AnalysisTables
     public static bool IsPastTimeAdverb(string lemma)
     {
         return PastTimeAdverbs.Contains(lemma);
+    }
+
+    /// <summary>True for a word that is reported as an interjection unless an article or a numeral precedes it (<c>gracias</c>, but <c>las gracias</c>); see <see cref="ReportedReadings"/>.</summary>
+    public static bool IsInterjectionFirst(string word)
+    {
+        return InterjectionFirstWords.Contains(word);
     }
 
     /// <summary>True when the adjective lemma and the noun lemma form a fixed expression that is plural as a whole (<c>bueno</c> + <c>día</c>, <c>mucho</c> + <c>gracia</c>).</summary>
