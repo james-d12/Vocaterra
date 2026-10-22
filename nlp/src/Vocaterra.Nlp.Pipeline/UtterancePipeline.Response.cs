@@ -217,6 +217,7 @@ public sealed partial class UtterancePipeline
     }
 
     // The counts are the ones after this utterance: a verdict that was not communicated always carries the not_communicated count, at 1 or more.
+    // The retry grammar (attempts 1 and 2) is every phrase the set accepts; the offered choices (attempt 3) are one canonical phrase per answer, in declared order.
     private static RepairStep? RepairFor(Verdict verdict, PromptSpec prompt, AnswerSet answerSet, IReadOnlyDictionary<string, int> counts)
     {
         if (verdict.Communicated)
@@ -224,7 +225,11 @@ public sealed partial class UtterancePipeline
             return null;
         }
 
-        return RepairStrategy.Next(counts[FeedbackPolicy.NotCommunicatedTag], prompt, answerSet.GrammarPhrases());
+        return RepairStrategy.Next(
+            counts[FeedbackPolicy.NotCommunicatedTag],
+            prompt,
+            answerSet.GrammarPhrases(),
+            answerSet.CanonicalPhrases());
     }
 
     private static SeededRng NewRng(ConversationContext context)

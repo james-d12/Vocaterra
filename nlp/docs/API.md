@@ -49,6 +49,16 @@ path, an absolute path, a path with `..`, a backslash or a drive letter, and for
 `ATTRIBUTION.md`, `lexicon/`, `answer-sets/`, `agents/`, `cefr/`, `intents/`, `prompts/`, `dialogue/`, `feedback/`, `evaluation/`,
 `effects/`). A bundle loaded with `VerifyHashes = false` has no host files.
 
+A host file that a model rendered (pre-rendered speech, for example) is listed with the provenance kind `GeneratedByKinds.ModelOutput`,
+`"model-output"` (M29g). Its item names the model in `model` (required; a missing or blank model is refused) and may name `voice`, `speaker` and
+`source` (the text or line id it renders); the other kinds refuse those fields, and `model-output` is refused for any file the loader parses
+(language data). It needs no approval in the bundle: the review of the output is the host's process.
+
+```json
+{ "path": "speech/shop_need.1.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null,
+  "model": "kokoro-multi-lang-v1_0", "voice": "af_bella", "speaker": "3", "source": "shop_need.1" }
+```
+
 ### Lint a bundle (M27a)
 
 The loader checks references; `ContentLinter` checks behaviour: it runs the real analyzer, intent resolver and grader on the bundle's own
@@ -368,6 +378,19 @@ if (result.Repair is { } repair)
     Console.WriteLine($"repair: {repair.Kind} {repair.AgentLine}");
 }
 ```
+
+The repair ladder (`RepairStrategy.Next`, M29f) is deterministic by failed attempt: attempt 1 `AskAgain`, attempt 2 `SlowRepeat`, attempt 3
+`OfferChoices`, later attempts `GiveUp`. A constrained prompt's retry at attempts 1 and 2 recognizes every phrase of the answer set
+(`AnswerSet.GrammarPhrases()`, aliases included). The `OfferChoices` step offers one phrase per answer, the **canonical** phrase
+(`AnswerSet.CanonicalPhrases()`, normalized as the grammar is, no aliases), in the answer set's **declared order** (the order the answers
+are written in the content, not an ordinal sort), and the first three distinct ones are offered. The retry at attempt 3 is a constrained
+request limited to exactly those phrases, so a host can show them as buttons from `RetryRequest.GrammarPhrases`. Answers that normalize to
+the same phrase, or to nothing, are left out. A set with fewer than three answers offers all of them.
+
+Which answers are offered is therefore set by the content: a set declares the answers the prompt is for first, and a help or don't-know
+answer last, so it is offered only when the set has fewer than three others. Given a yes/no set declared as confirm, deny, help, don't-know,
+the choices are the confirm, the deny and help. There is no content marker for "service" answers, and the core does not recognize intent ids
+in the repair ladder; a set that needs a different order is declared in that order.
 
 Host slots (section 4) are available to the reply and feedback templates of this response; the planner is called with them as
 `ResponsePlanner.Plan(..., hostSlots: context.HostSlots)`, and a host that renders a template of its own can use the same engine:

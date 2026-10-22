@@ -45,21 +45,34 @@ public static class RepairStrategy
     public const string GiveUpLine = "Bueno, no importa.";
 
     /// <summary>
-    /// Returns the repair step for the given failed attempt (1 for the first failure). Attempts 1 and 2 keep the prompt's recognition
-    /// mode (constrained retries use all <paramref name="choicePhrases"/>); attempt 3 offers the first three distinct non-blank phrases
-    /// as a constrained request, or gives up when there are none; attempts of 4 and more give up.
+    /// Returns the repair step for the given failed attempt (1 for the first failure), with the same phrases for the retry and for the
+    /// choices: attempts 1 and 2 keep the prompt's recognition mode (constrained retries use all <paramref name="choicePhrases"/>);
+    /// attempt 3 offers the first three distinct non-blank phrases as a constrained request, or gives up when there are none; attempts
+    /// of 4 and more give up.
     /// </summary>
     public static RepairStep Next(int attempt, PromptSpec prompt, IReadOnlyList<string> choicePhrases)
     {
+        return Next(attempt, prompt, choicePhrases, choicePhrases);
+    }
+
+    /// <summary>
+    /// The same ladder with the two lists apart: <paramref name="retryPhrases"/> is the grammar of a constrained retry at attempts 1 and 2 (the
+    /// pipeline passes every phrase the answer set accepts, aliases included), and <paramref name="choicePhrases"/> are the phrases offered at
+    /// attempt 3, in their order (the pipeline passes one canonical phrase per answer, in the set's declared order). The first three distinct
+    /// non-blank choices are offered, and the constrained retry at attempt 3 is limited to exactly those.
+    /// </summary>
+    public static RepairStep Next(int attempt, PromptSpec prompt, IReadOnlyList<string> retryPhrases, IReadOnlyList<string> choicePhrases)
+    {
         ArgumentOutOfRangeException.ThrowIfLessThan(attempt, 1);
         ArgumentNullException.ThrowIfNull(prompt);
+        ArgumentNullException.ThrowIfNull(retryPhrases);
         ArgumentNullException.ThrowIfNull(choicePhrases);
         switch (attempt)
         {
             case 1:
-                return new RepairStep(RepairKind.AskAgain, AskAgainLine, SameMode(prompt, choicePhrases));
+                return new RepairStep(RepairKind.AskAgain, AskAgainLine, SameMode(prompt, retryPhrases));
             case 2:
-                return new RepairStep(RepairKind.SlowRepeat, SlowRepeatLine, SameMode(prompt, choicePhrases));
+                return new RepairStep(RepairKind.SlowRepeat, SlowRepeatLine, SameMode(prompt, retryPhrases));
             case 3:
                 var choices = FirstChoices(choicePhrases);
                 return choices.Count == 0
@@ -75,10 +88,10 @@ public static class RepairStrategy
         return new RepairStep(RepairKind.GiveUp, GiveUpLine, null);
     }
 
-    private static RecognitionRequest SameMode(PromptSpec prompt, IReadOnlyList<string> choicePhrases)
+    private static RecognitionRequest SameMode(PromptSpec prompt, IReadOnlyList<string> retryPhrases)
     {
         return prompt.Mode == RecognitionMode.Constrained
-            ? RecognitionRequest.Constrained(choicePhrases.ToArray())
+            ? RecognitionRequest.Constrained(retryPhrases.ToArray())
             : RecognitionRequest.Open();
     }
 

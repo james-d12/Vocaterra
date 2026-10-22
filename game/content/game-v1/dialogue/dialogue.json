@@ -54,8 +54,8 @@
     "feedback.slow_repeat": {
       "poolId": "feedback.slow_repeat",
       "variants": [
-        { "lineId": "feedback.slow_repeat.1", "text": "Otra vez, por favor: {expected}." },
-        { "lineId": "feedback.slow_repeat.2", "text": "Escucha: {expected}." }
+        { "lineId": "feedback.slow_repeat.1", "text": "Di «ayuda» y te ayudo." },
+        { "lineId": "feedback.slow_repeat.2", "text": "Si necesitas ayuda, di «ayuda»." }
       ]
     },
     "guide_greet": {
@@ -308,13 +308,6 @@
       "variants": [
         { "lineId": "not_understood.1", "text": "No te entendí. ¿Me lo dices otra vez?" },
         { "lineId": "not_understood.2", "text": "Perdón, ¿qué dices?" }
-      ]
-    },
-    "feedback.hint.not_communicated": {
-      "poolId": "feedback.hint.not_communicated",
-      "variants": [
-        { "lineId": "feedback.hint.not_communicated.1", "text": "Di «ayuda» y te ayudo." },
-        { "lineId": "feedback.hint.not_communicated.2", "text": "Si necesitas ayuda, di «ayuda»." }
       ]
     },
     "shop_need": {

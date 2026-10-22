@@ -13,6 +13,15 @@ public interface ILinePlayer
     /// <param name="line">The Spanish text of the line.</param>
     /// <param name="slow">Whether to play it slowly (the <c>.slow</c> file of S9).</param>
     void Play(string npc, string line, bool slow);
+
+    /// <summary>
+    /// Plays a line after what is playing instead of replacing it (S8: the phrase support's sounds follow the NPC's line, and the two key words follow
+    /// each other). A player with no queue replaces, as <see cref="Play"/> does.
+    /// </summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    /// <param name="line">The Spanish text of the line.</param>
+    /// <param name="slow">Whether to play it slowly.</param>
+    void Append(string npc, string line, bool slow) => Play(npc, line, slow);
 }
 
 /// <summary>The line player of S7: it plays nothing (the panel highlights the line instead).</summary>
@@ -110,7 +119,7 @@ public sealed class SpeechActionRunner(GuideSession session, DialogueModel dialo
         player.Play(session.CurrentNpc, line, slow);
         if (session.Support.ReplayCue is { } cue)
         {
-            player.Play(cue.Npc, cue.Text, slow); // a phrase's help is on offer (S8, the audio-only level's replay hook): the model answer follows the question
+            player.Append(cue.Npc, cue.Text, slow); // a phrase's help is on offer (S8, the audio-only level's replay hook): the model answer follows the question
         }
 
         return true;

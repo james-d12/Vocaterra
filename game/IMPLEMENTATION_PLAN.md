@@ -160,7 +160,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S6 | NPC exchanges in the world (`NpcService`), filling the bottle, the transfer moment | done (merged to `feature/prototype` 2026-10-22, bundle `eb4f0951…`) | Sonnet 5.5 | S3, S5 |
 | S7 | Speech UX: mic check, cancel, watchdog, heard-vs-expected, buttons, choices, uncertainty rule, constrained prompts | done (merged to `feature/prototype` 2026-10-22, bundle `c3ad62fe…`) | Sonnet 5.5 | S6 |
 | S8 | Phrase progress and fading scaffolds; the review extended to phrases | planned | Sonnet 5.5 | S6 |
-| S9 | NPCs speak: pre-rendered Kokoro lines in the bundle | planned | Haiku 5.5 | S5, S6 |
+| S9 | NPCs speak: pre-rendered Kokoro lines in the bundle | done (merged to `feature/prototype` 2026-10-22, bundle `f5f28b88…`); **the owner listens to every WAV** (`docs/SPEECH_CHECKLIST.md`, D-game-12 step 4) | Haiku 5.5 | S5, S6 |
 | S10 | Save, sessions, resume (P9 re-scoped) | planned | Haiku 5.5 | S4, S8 |
 | S11 | Checks (pre, post, recall), the session log and the report script | planned | Haiku 5.5 | S8, S10 |
 | S12 | Playtest build and facilitator checklist | planned | Haiku 5.5 | S7, S9, S11 |
@@ -653,6 +653,17 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   checked by the orchestrator: the choices and the five buttons at the stall; after a garbled line the shopkeeper still says "Casi. Piensa
   otra vez." (a language-failure hint after a recognition failure, against D-game-9: content fix in S9). New UI strings reviewed
   (llm-opus, provisional): correct A1. Real keyboard and microphone untested here. Tests 3,677.
+- **S9, the NPCs speak (2026-10-22, Haiku 5.5).** `scripts/prerender-speech.sh` with `game/tools/Vocaterra.SpeechRender` (the core's
+  `KokoroSynthesizer`; re-runnable, an index outside the bundle) rendered 109 slot-free lines (88 dialogue variants, 6 prompt texts, 6
+  word cards, 9 model answers) at speed 1.0 and 0.8: 218 WAVs, 16-bit mono 24 kHz, 16.8 MiB, in `content/game-v1/speech/`, provenance
+  `model-output` (core M29g; model `kokoro-multi-lang-v1_0`, guide 28 `ef_dora`, shopkeeper 29 `em_alex`, villager 53 `em_santa`).
+  `NpcVoice` (an `ILinePlayer` over `DynamicSoundEffectInstance`) plays each NPC line, `Repetir` and `Más despacio` (the slow file), and
+  the word cards; silent without a device; `--mute`. Startup line `speech: 109 lines, 218 files, 0 missing` (checked by the orchestrator).
+  Kokoro is constructed only for `--speak` (and the scripted mic check without a microphone). Content fix (D-game-9): not-communicated
+  feedback is `SlowRepeat` with the help lines ("Di «ayuda» y te ayudo."), so "Casi. Piensa otra vez." no longer follows a recognition
+  failure; the core plans that help line only when the verdict has an expected form, otherwise only "No te entendí. ¿Me lo dices otra
+  vez?" (accepted). **Owner's step:** listen to every file and mark `game/docs/SPEECH_CHECKLIST.md` (cut-offs, text-audio mismatches).
+  Tests 3,719.
 
 ## 6. Definition of done (every milestone)
 

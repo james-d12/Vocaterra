@@ -394,8 +394,10 @@ so the host gates effects by state (the host decides whether a trade is allowed 
 
 If the player was not understood, `RepairStrategy.Next(attempt, prompt, phrases)` returns the deterministic repair ladder step.
 The attempt number is the count of the pseudo-tag `not_communicated` after this utterance (the context's count before it, plus one, so at least 1): attempt 1 is
-`AskAgain` ("¿Cómo?"), attempt 2 `SlowRepeat`, attempt 3 `OfferChoices` (the first three distinct phrases of the answer set in
-ordinal order, with a constrained retry request), later attempts `GiveUp`. For understood utterances `repair` is `null`.
+`AskAgain` ("¿Cómo?"), attempt 2 `SlowRepeat`, attempt 3 `OfferChoices` (one canonical phrase per answer of the answer set, in its declared
+order, the first three distinct ones, with a constrained retry request limited to them; see [API.md](API.md#6-plan-the-response-d0-with-d1-for-speech)),
+later attempts `GiveUp`. The retry at attempts 1 and 2 uses every phrase the answer set accepts, aliases included. For understood utterances
+`repair` is `null`.
 
 ### 12. Replay record (D0)
 
@@ -474,7 +476,7 @@ Each of these is a real run of the CLI on `content/v1` (verdict line shortened).
 | `--transcript "ezpada" --prompt quiz-item-name` | intent `unknown`, communicated, correctness 0.6, one `vocab.unknown` with expected `espada`, `resolvedBy: Fuzzy`, confidence 0.5 (a near miss, see [Near misses](#near-misses)) | `agent: Ah, espada. ¡Perfecto!` and `decision: rating Good, learner skills 1, feedback items 1` |
 | `--transcript "bla bla" --prompt offer-items-open` | intent `unknown`, not communicated, correctness 0.2, two `vocab.unknown` errors, `resolvedBy: Unresolved`, confidence 0 | `agent: Perdón, ¿qué dices?`, `repair: AskAgain ¿Cómo?`, `decision: rating Again, learner skills 1, feedback items 1` |
 | the same with `--repeat not_communicated=1` (the second failure) | as above | `repair: SlowRepeat Perdón, te lo repito más despacio.` |
-| the same with `--repeat not_communicated=2` (the third failure) | as above | `repair: OfferChoices ¿Quieres decir «arco», «brebaje» o «el arco»?` |
+| the same with `--repeat not_communicated=2` (the third failure) | as above | `repair: OfferChoices ¿Quieres decir «espada», «escudo» o «arco»?` |
 
 The first row shows the answer-only rule: a quiz answer with no intent is still `communicated`, because the answer set matched.
 The second shows a host effect, a spell cast at full power because correctness is 1 (the curve in `effects.json` gives 0.5 power at

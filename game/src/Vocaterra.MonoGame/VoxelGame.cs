@@ -67,6 +67,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly PushToTalk _talk;
     private readonly SpeechActionRunner _actions;
     private readonly SupportFrontend _support;
+    private readonly NpcVoice _voice;
     private readonly TurnWatchdog _watchdog = new();
     private readonly MicCheckModel? _micCheck;
     private readonly KeyRepeater _backspace = new();
@@ -114,18 +115,19 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private int _printedEvents;
     private string? _shotPath;
 
-    /// <summary>Creates the 3D game for a started session (its simulation is the scene's) and the built scene.</summary>
-    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene)
+    /// <summary>Creates the 3D game for a started session (its simulation is the scene's), the built scene and the NPCs' voices (S9).</summary>
+    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice)
     {
         _options = options;
         _session = session;
         _scene = scene;
+        _voice = voice;
         _sim = session.Simulation;
         _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Phrases);
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
         _talk = new PushToTalk(microphone);
         _pump = new TurnPump(session, _dialogue, CursorCell);
-        _actions = new SpeechActionRunner(session, _dialogue, SilentLinePlayer.Instance, CursorCell);
+        _actions = new SpeechActionRunner(session, _dialogue, voice, CursorCell);
         _support = new SupportFrontend(session, _dialogue, _actions, Console.WriteLine);
         _micCheck = options.ShowsMicCheck ? new MicCheckModel(session.LogMicCheck) : null;
         _look.Set(scene.Spawn.Yaw, 0);
@@ -262,7 +264,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         ApplyFinishedTurns();
-        _ = _support.Pump();
+        _ = _support.Pump(later => _voice.Say(later.Npc, later.Lines)); // the shopkeeper's question after the key words is spoken first
+
         RunWatchdog(seconds);
         DriveScriptedMicCheck();
         var steps = _accumulator.Advance(seconds);
@@ -453,9 +456,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         // Pickups show in the hotbar and, the first time, as a word card; they do not toast (a toast per pickup would queue behind the
         // checklist's completions for minutes).
         AnnounceObjective(_session.Completed);
+        _voice.Update();
         foreach (var card in _session.TakeWordCards())
         {
             _cards.Add(card);
+            _voice.Say(SpeechSpeakers.Guide, [card.Phrase]); // a word card says its noun (S9)
         }
 
         foreach (var hint in _session.TakeHints())
@@ -957,6 +962,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     {
         var opening = _session.OpenTalk(npc, teachKeyWords: true);
         _dialogue.Open(opening, NpcFigures.LabelOf(npc), _session.ReviewLine);
+        _voice.Say(npc, opening.Lines);
         if (openedBy == 't')
         {
             _dialogue.BeginTyping(); // T is "type": the text box has the keyboard from the start
@@ -974,7 +980,19 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         CancelListening();
         _watchdog.Reset();
         _dialogue.Close();
+        _voice.Stop();
         _session.EndTalk();
+    }
+
+    /// <inheritdoc />
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _voice.Dispose();
+        }
+
+        base.Dispose(disposing);
     }
 
     // The new game events since the last frame, one console line each (the phrase uses, the voice events, the world events).
@@ -1151,6 +1169,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             {
                 Console.WriteLine($"  {turn.Npc}: {line}");
             }
+
+            _voice.Say(turn.Npc, turn.GuideLines); // the NPC's lines, in the order the panel shows them (S9)
 
             if (_dialogue.Heard is { } heard && turn.Input == InputKind.Spoken)
             {

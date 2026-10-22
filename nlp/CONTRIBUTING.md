@@ -181,9 +181,10 @@ Steps:
 
 1. Edit or add the files. Keep text in NFC and write grammar only with the lemmas of the lexicon (a word the analyzer does not know
    becomes `vocab.unknown`).
-2. Add an item for every **new** file to `content/v1/provenance.json` (`generatedBy` is `hand-authored`, `llm-draft` or
-   `wiktionary-import`; a language-model draft is refused until `approvedBy` and `approvedOn` are set). If you import Wiktionary data,
-   `ATTRIBUTION.md` must keep its CC BY-SA notice.
+2. Add an item for every **new** file to `content/v1/provenance.json` (`generatedBy` is `hand-authored`, `llm-draft`,
+   `wiktionary-import` or `model-output`; a language-model draft is refused until `approvedBy` and `approvedOn` are set). `model-output`
+   (M29g) is for host-owned files a model rendered, such as pre-rendered speech: it needs a `model`, may carry `voice`, `speaker` and
+   `source`, and is refused for any file the loader parses. If you import Wiktionary data, `ATTRIBUTION.md` must keep its CC BY-SA notice.
 3. Lint, then re-hash. `lint` does not need current hashes, so run it first and fix what it reports (next section). Re-hashing rewrites
    `content/v1/manifest.json` from the files on disk and prints the new bundle hash:
 

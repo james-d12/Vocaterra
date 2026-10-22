@@ -18,14 +18,27 @@ public sealed class SupportFrontend(GuideSession session, DialogueModel dialogue
     /// key-word cards have stood alone long enough, puts the shopkeeper's opening on the panel. Returns the opening that was added, or
     /// <see langword="null"/>.
     /// </summary>
-    public NpcOpening? Pump()
+    /// <param name="onOpening">Called with that opening before the sounds are queued (the game says its lines, which replaces what plays), or <see langword="null"/>.</param>
+    public NpcOpening? Pump(Action<NpcOpening>? onOpening = null)
     {
-        foreach (var cue in session.Support.TakeCues())
+        var opening = session.TakeOpening();
+        if (opening is not null)
         {
-            actions.Player.Play(cue.Npc, cue.Text, false);
+            onOpening?.Invoke(opening);
         }
 
-        if (session.TakeOpening() is not { } opening)
+        string? previous = null;
+        foreach (var cue in session.Support.TakeCues())
+        {
+            if (!string.Equals(cue.Text, previous, StringComparison.Ordinal))
+            {
+                actions.Player.Append(cue.Npc, cue.Text, false); // after the NPC's own line; two cards with one model say it once
+            }
+
+            previous = cue.Text;
+        }
+
+        if (opening is null)
         {
             return null;
         }

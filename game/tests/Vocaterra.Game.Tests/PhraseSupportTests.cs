@@ -441,6 +441,38 @@ public sealed class PhraseSupportTests
     }
 
     [Fact]
+    public void EveryAudioCueTheSupportCanQueueResolvesToAPreRenderedFileOfS9()
+    {
+        // The cues go to the line player by text: each text must be a speakable line of the bundle with its normal and its slow file in speech/.
+        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        var index = new SpeechIndex(SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, sheet));
+        var store = new Vocaterra.Nlp.Response.Speech.StaticLineStore(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
+        var texts = new List<(string Speaker, string Text)> { ("guide", "el agua"), ("guide", "el pan") };
+        foreach (var id in PhraseIds.All.Where(PhraseIds.HasScaffold))
+        {
+            var support = new PhraseSupport(sheet, new PhraseProgress(sheet), TestGame.Bundle);
+            _ = support.Show("shopkeeper", Prompt(id));
+            texts.AddRange(support.TakeCues().Select(static c => (c.Npc, c.Text)));
+        }
+
+        Assert.True(texts.Count >= 6);
+        foreach (var (speaker, text) in texts)
+        {
+            var line = index.Find(speaker, text);
+            Assert.True(line is not null, $"no speech line for \"{text}\"");
+            Assert.True(store.Contains(line.LineId), $"{line.LineId}.wav is missing");
+            Assert.True(store.Contains(SpeechFiles.SlowId(line.LineId)), $"{line.LineId}.slow.wav is missing");
+        }
+    }
+
+    private static string Prompt(string phraseId) => phraseId switch
+    {
+        "pedir-agua" => "stall-need",
+        "donde-esta-el-rio" => "villager-open",
+        _ => "stall-offer",
+    };
+
+    [Fact]
     public void ThePhraseReviewUsesTheBundlesOwnLineWhenThePoolExists()
     {
         Assert.Equal("guide.review.phrase.pedir_agua", PhraseReviews.PoolOf("pedir-agua"));

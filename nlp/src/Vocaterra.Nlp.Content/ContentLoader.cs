@@ -24,7 +24,7 @@ namespace Vocaterra.Nlp.Content;
 /// Cross-reference checks: every prompt's answer set, allowed intents, agent and slot grammar ids exist; every agent condition intent and dialogue
 /// intent exists, and each variant pool is no larger than the dialogue pool it draws from; every effect intent exists; the dialogue catalog
 /// has a <c>not_understood</c> pool; every dialogue template renders against a sample slot map (see <c>SampleSlots</c>) using the
-/// bundle's own lexicon; provenance covers every file and a language-model draft is approved by a person.
+/// bundle's own lexicon; provenance covers every file, a language-model draft is approved by a person, and a model output (host-owned only) names its model.
 /// </remarks>
 public static class ContentLoader
 {

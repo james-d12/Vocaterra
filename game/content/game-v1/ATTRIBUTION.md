@@ -72,3 +72,13 @@ when speech and the guide's voice land (milestones P5 and P8 in `IMPLEMENTATION_
 The NVIDIA Parakeet model requires attribution to NVIDIA under CC-BY-4.0. The Kokoro archive also contains espeak-ng
 data; the licensing of that phonemizer is open with the GPL-3.0 native libraries (the core's decision D2), and the game does not
 distribute a build that includes them until D2 is settled.
+
+## Speech recordings (Kokoro model output)
+
+The files `speech/*.wav` (and `speech/*.slow.wav`) are the NPCs' voices, rendered with `kokoro-multi-lang-v1_0` (Kokoro, Apache-2.0, through
+sherpa-onnx) by `scripts/prerender-speech.sh` (S9). They are model output, not recordings of a person: the voices are `ef_dora` (speaker 28, the
+guide, and the word cards and model answers), `em_alex` (speaker 29, the shopkeeper) and `em_santa` (speaker 53, the villager), at speed 1.0 and,
+for the `.slow` files, 0.8. They are listed in `provenance.json` with `generatedBy: model-output` (the core's kind for host-owned files a model rendered), the model
+`kokoro-multi-lang-v1_0`, the voice, the speaker id and the line they render. They are shipped under the private-build terms of the core's decision D2: the Kokoro archive's espeak-ng data
+is GPL-3.0 code, so a distributed build with these files waits on D2 as well. The Spanish text they say is the bundle's own (the lines of
+`dialogue/dialogue.json`, the prompts and `content/PHRASES.md`); the owner's listening check is `docs/SPEECH_CHECKLIST.md`.

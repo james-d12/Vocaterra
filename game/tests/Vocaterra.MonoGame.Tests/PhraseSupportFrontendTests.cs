@@ -193,6 +193,65 @@ public sealed class PhraseSupportFrontendTests
         Assert.Equal([("villager", "Hola.", false), ("villager", "Puedes preguntar: «¿Dónde está el río?».", false)], player.Played);
     }
 
+    private sealed class FakeOutput : IAudioOutput
+    {
+        private bool _playing;
+
+        public bool Available => true;
+
+        public bool IsPlaying => _playing;
+
+        public bool Start(Vocaterra.Nlp.Core.Audio.AudioBuffer clip)
+        {
+            _playing = true;
+            return true;
+        }
+
+        public void Stop() => _playing = false;
+
+        public void Finish() => _playing = false;
+
+        public void Dispose()
+        {
+        }
+    }
+
+    [Fact]
+    public void TheKeyWordAndSupportCardCuesPlayThePreRenderedFilesOfS9()
+    {
+        var bundle = Bundle.Value;
+        var lines = SpeechLines.Enumerate(bundle, Nouns.Value, PhraseSheet.Load(bundle));
+        var logs = new List<string>();
+        var output = new FakeOutput();
+        using var voice = new NpcVoice(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName), new SpeechIndex(lines), output, muted: false, logs.Add);
+        var session = RouteScene.NewSession(bundle, Nouns.Value, CreditRules.FullTyped);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases);
+        var actions = new SpeechActionRunner(session, dialogue, voice, () => null);
+        var frontend = new SupportFrontend(session, dialogue, actions, _ => { });
+        session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("shopkeeper").Feet, session.Simulation.Player.FeetBlock)!.Value);
+        dialogue.Open(session.OpenTalk("shopkeeper", teachKeyWords: true), "Tendero");
+        voice.Say("shopkeeper", []);
+
+        _ = frontend.Pump(o => voice.Say(o.Npc, o.Lines));
+        for (var i = 0; i < 4; i++)
+        {
+            output.Finish();
+            voice.Update();
+        }
+
+        session.FinishKeyWords();
+        _ = frontend.Pump(o => voice.Say(o.Npc, o.Lines));
+        for (var i = 0; i < 4; i++)
+        {
+            output.Finish();
+            voice.Update();
+        }
+
+        var played = logs.Where(static l => l.StartsWith("voice: ", StringComparison.Ordinal)).Select(static l => l["voice: ".Length..]).ToList();
+        Assert.Equal(["card.agua", "card.pan", "shop_need.1", "shop_help_ask.1"], played); // the two key words, the question, then the model answer of the card
+        Assert.Equal((0, 0), (voice.Missing, voice.TextOnly));
+    }
+
     [Fact]
     public void ThePhraseProgressLinesFollowAPhraseUseAndTheSummaryListsWhatWasSeen()
     {
