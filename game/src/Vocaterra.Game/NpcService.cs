@@ -144,15 +144,6 @@ public sealed partial class NpcService
     /// <summary>The random stream of the game's own lines is keyed by this id (the core's own draws use the agent's id).</summary>
     private const string HostLineStream = "guide.host";
 
-    /// <summary>The bundle pool of the core's fallback line for a line an agent's state does not know: "No te entendí. ¿Me lo dices otra vez?".</summary>
-    private const string NotUnderstoodPool = "not_understood";
-
-    /// <summary>The bundle pool of the guide's line for a phrase answered correctly in her review: "¡Muy bien!" (S8 placeholder until the bundle has review replies).</summary>
-    private const string AnswerAcceptedPool = "answer_accepted";
-
-    /// <summary>The random stream of that line, keyed by the agent's interaction counter.</summary>
-    private const string AcceptedStream = "guide.accepted";
-
     /// <summary>The random stream of the line an NPC says when the recognizer was not sure (S7), keyed by the agent's interaction counter and how many such lines it has said.</summary>
     private const string UncertainStream = "guide.uncertain";
 
@@ -247,6 +238,18 @@ public sealed partial class NpcService
 
             var context = ConversationContext.Create(worldSeed, id, machine.InitialState(), start, LearnerModel.New(), new Dictionary<string, int>(StringComparer.Ordinal), SlotMap.Empty, []);
             _agents.Add(id, new Agent(id, context));
+        }
+    }
+
+    /// <summary>How many replay entries the conversations have recorded so far (the session log numbers them; S11).</summary>
+    public int RecordCount
+    {
+        get
+        {
+            lock (_records)
+            {
+                return _records.Count;
+            }
         }
     }
 
@@ -616,7 +619,6 @@ public sealed partial class NpcService
         var holdsBottle = scene.Inventory is { } inventory
             && (inventory.Count(Simulation.Items.ItemId.Bottle) + inventory.Count(Simulation.Items.ItemId.WaterBottle)) > 0;
         string? feedback = null;
-        var accepted = false;
         var replies = new List<string>();
         foreach (var responseLine in result.Response.Lines)
         {
@@ -629,21 +631,10 @@ public sealed partial class NpcService
             {
                 // The shopkeeper's line gives the bottle; the player has it already, so nothing is given and the line is not said.
             }
-            else if (scene.PromptOverride is not null && verdict.Communicated && responseLine.LineId.StartsWith(NotUnderstoodPool, StringComparison.Ordinal))
-            {
-                // A phrase review (S8): the guide's states do not know this intent (a request at the guide), so the core's fallback says "No te
-                // entendí" to a line it understood. The game says the bundle's own "¡Muy bien!" instead.
-                accepted = true;
-            }
             else
             {
                 replies.Add(responseLine.Text);
             }
-        }
-
-        if (accepted)
-        {
-            replies.Add(Render(AnswerAcceptedPool, SlotMap.Empty, SeededRng.ForInteraction(utterance.WorldSeed, AcceptedStream, utterance.AgentState.InteractionCounter)));
         }
 
         var followUp = new List<string>();

@@ -48,7 +48,7 @@ public sealed class NpcVoiceTests
         voice.Play(SpeechSpeakers.Guide, "¿Quieres agua?", slow: false);
         voice.Play(SpeechSpeakers.Guide, "¿Quieres agua?", slow: true);
 
-        Assert.Equal(["guide_offer.1", "guide_offer.1.slow"], Played(logs));
+        Assert.Equal(["guide.review.phrase.no_gracias.1", "guide.review.phrase.no_gracias.1.slow"], Played(logs)); // the first line with that text (S11 added two)
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public sealed class NpcVoiceTests
 
         Assert.Equal(1, voice.Missing);
         Assert.Empty(output.Clips);
-        Assert.Contains(logs, static line => line.StartsWith("voice: missing guide_offer.1.wav", StringComparison.Ordinal));
+        Assert.Contains(logs, static line => line.StartsWith("voice: missing guide.review.phrase.no_gracias.1.wav", StringComparison.Ordinal));
     }
 
     [Fact]

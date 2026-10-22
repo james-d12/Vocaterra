@@ -383,7 +383,7 @@ public sealed class PhraseSupportFrontendTests
         Assert.True(run.Session.StoredTime.UnixSeconds - before >= 660);
         Assert.Contains(run.Log, static l => l.StartsWith("skip: the stored time moves on 660 s", StringComparison.Ordinal));
         Assert.Equal("pedir-agua", run.Session.PhraseReview?.PhraseId);
-        Assert.Contains(run.Dialogue.Lines, static l => l.Text == "¿Qué necesitas?" && l.Speaker == DialogueSpeaker.Guide);
+        Assert.Contains(run.Dialogue.Lines, static l => l.Text == "Pídeme agua." && l.Speaker == DialogueSpeaker.Guide); // the bundle's review line (S11)
     }
 
     [Fact]

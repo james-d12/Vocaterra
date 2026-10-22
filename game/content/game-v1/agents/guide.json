@@ -2,6 +2,7 @@
   "agentId": "guide",
   "initialState": "idle",
   "variantPools": [
+    { "id": "answer_accepted", "count": 3 },
     { "id": "farewell_reply", "count": 3 },
     { "id": "guide_craft", "count": 3 },
     { "id": "guide_find", "count": 3 },
@@ -22,6 +23,9 @@
     {
       "id": "idle",
       "transitions": [
+        {"on": {"intent": "request_item", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
+        {"on": {"intent": "confirm", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
+        {"on": {"intent": "deny", "communicated": true}, "to": "idle", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
         {"onHostEvent": "guide.offer", "to": "offering", "actions": [{"dialogueIntent": "guide_offer", "hostEvent": "guide.offered", "variantPoolId": "guide_offer"}]},
         {"on": {"intent": "greet", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_greet", "hostEvent": "agent.greet", "variantPoolId": "guide_greet"}]},
         {"on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_point", "hostEvent": "guide.point", "variantPoolId": "guide_point"}]},
@@ -42,6 +46,9 @@
     {
       "id": "talking",
       "transitions": [
+        {"on": {"intent": "request_item", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
+        {"on": {"intent": "confirm", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
+        {"on": {"intent": "deny", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
         {"onHostEvent": "guide.offer", "to": "offering", "actions": [{"dialogueIntent": "guide_offer", "hostEvent": "guide.offered", "variantPoolId": "guide_offer"}]},
         {"on": {"intent": "greet", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_greet_again", "hostEvent": "agent.greet", "variantPoolId": "guide_greet_again"}]},
         {"on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_point", "hostEvent": "guide.point", "variantPoolId": "guide_point"}]},
@@ -62,6 +69,9 @@
     {
       "id": "pointing",
       "transitions": [
+        {"on": {"intent": "request_item", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
+        {"on": {"intent": "confirm", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
+        {"on": {"intent": "deny", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
         {"onHostEvent": "guide.offer", "to": "offering", "actions": [{"dialogueIntent": "guide_offer", "hostEvent": "guide.offered", "variantPoolId": "guide_offer"}]},
         {"on": {"intent": "greet", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_greet_again", "hostEvent": "agent.greet", "variantPoolId": "guide_greet_again"}]},
         {"on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{"dialogueIntent": "guide_point", "hostEvent": "guide.point", "variantPoolId": "guide_point"}]},
@@ -82,6 +92,7 @@
     {
       "id": "offering",
       "transitions": [
+        {"on": {"intent": "request_item", "communicated": true}, "to": "offering", "actions": [{"dialogueIntent": "answer_accepted", "variantPoolId": "answer_accepted"}]},
         {"on": {"intent": "confirm", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_offer_yes", "hostEvent": "guide.give_water", "variantPoolId": "guide_offer_yes"}]},
         {"on": {"intent": "deny", "communicated": true}, "to": "talking", "actions": [{"dialogueIntent": "guide_offer_no", "variantPoolId": "guide_offer_no"}]},
         {"on": {"intent": "ask_help", "communicated": true}, "to": "offering", "actions": [{"dialogueIntent": "guide_offer_help", "variantPoolId": "guide_offer_help"}]},

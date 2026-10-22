@@ -44,7 +44,7 @@ public sealed class TurnPump(GuideSession session, DialogueModel dialogue, Func<
         var applied = session.Collect();
         foreach (var turn in applied)
         {
-            if (!turn.Outcome.Request.IsMicCheck)
+            if (!turn.Outcome.Request.IsMicCheck && turn.Outcome.Request.Check is null)
             {
                 _ = dialogue.Complete(turn); // a mic check is no turn: the mic-check screen takes its outcome
             }
