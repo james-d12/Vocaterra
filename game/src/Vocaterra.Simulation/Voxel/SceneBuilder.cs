@@ -607,7 +607,7 @@ public static class SceneBuilder
             Register(prop, prop.X, prop.Z);
         }
 
-        // A timber pergola: posts at the four corners and a frame of beams across the top with slats, a torch on the north-west post and a lantern hanging in the middle.
+        // A timber pergola: thin fence posts at the four corners and a frame of beams across the top with slats, a torch on the north-west post and a lantern hanging in the middle.
         private void BuildPergola(PropSpec prop, string where)
         {
             var width = prop.Width > 0 ? prop.Width : 4;
@@ -624,9 +624,10 @@ public static class SceneBuilder
                     var cornerZ = z == prop.Z || z == z1;
                     if (cornerX && cornerZ)
                     {
+                        // Thin fence posts, like the stall's front posts (S22: full timber blocks filled the view at the workbench); the beams on top stay timber.
                         for (var y = h + 1; y <= h + post; y++)
                         {
-                            Put(x, y, z, BlockId.Timber, where);
+                            Put(x, y, z, BlockId.Fence, where);
                         }
                     }
 
