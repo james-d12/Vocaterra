@@ -1,6 +1,7 @@
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
+using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 
@@ -33,8 +34,8 @@ public sealed record AppliedTurn(TurnOutcome Outcome, WordTurnResult? Words)
 }
 
 /// <summary>
-/// The part of a running game that the guide and the learner share, whatever the world is: the conversation (<see cref="GuideService"/>), the
-/// word counts, the arrow, the review question, the stored time and the turn worker. The 3D scene derives from it (<see cref="VoxelSession"/>):
+/// The part of a running game that the NPCs and the learner share, whatever the world is: the conversations (<see cref="NpcService"/>), the
+/// word counts, the arrow, the review question, the stored time, the turn worker and the game events (<see cref="Events"/>). The 3D scene derives from it (<see cref="VoxelSession"/>):
 /// a derived class says where the player is, what the facts are and what the state digest is; everything else is here.
 /// </summary>
 /// <remarks>
@@ -45,6 +46,12 @@ public sealed record AppliedTurn(TurnOutcome Outcome, WordTurnResult? Words)
 /// <para>
 /// <b>Words.</b> Every turn is counted in <see cref="Words"/> (the learner's progress with the catalogue nouns, D-game-6) with the
 /// <see cref="Credit"/> rules for the kind of input of the turn and the stored time of the turn (spaced uses, D-game-6 as amended).
+/// </para>
+/// <para>
+/// <b>Talking to an NPC (S6).</b> <see cref="OpenTalk"/> starts a talk with the guide, the shopkeeper or the villager: the NPC's opening is a core
+/// host turn when its state has one, and what the NPC's host events mean in the world (an item, the arrow) is applied by the derived class
+/// (<see cref="ApplyHostEvents"/>), in the order the turns were submitted. Every phrase of the phrase sheet a turn uses, every world event and every
+/// voice event is appended to <see cref="Events"/> for the phrase progress (S8) and the session log (S11).
 /// </para>
 /// <para>
 /// <b>Turns on a worker (P5).</b> After <see cref="StartWorker"/> a turn is <i>submitted</i> (<see cref="SubmitTyped"/>, <see cref="SubmitClip"/>,
@@ -59,8 +66,10 @@ public abstract class GuideSession : IDisposable
     /// <summary>The start time used when a caller gives none: 2025-10-09 08:53:20 UTC, the time the console host's one-shot runs use.</summary>
     public const long DefaultStartedAt = 1_760_000_000;
 
-    private readonly GuideService _guideService;
+    private readonly NpcService _npcs;
     private readonly IGuideFacts _liveFacts;
+    private readonly List<GameEvent> _events = [];
+    private readonly Dictionary<string, RepairKind?> _lastRepair = new(StringComparer.Ordinal);
     private TurnWorker? _worker;
     private long _nextTurnId = 1;
 
@@ -97,7 +106,7 @@ public abstract class GuideSession : IDisposable
         Recipes = recipes;
         Words = new WordProgress(nouns, playSession);
         _liveFacts = liveFacts;
-        _guideService = new GuideService(bundle, liveFacts, nouns, worldSeed, new StoredTimestamp(startedAt), recipes);
+        _npcs = new NpcService(bundle, liveFacts, nouns, worldSeed, new StoredTimestamp(startedAt), recipes);
     }
 
     /// <summary>The content bundle.</summary>
@@ -130,8 +139,14 @@ public abstract class GuideSession : IDisposable
     /// <summary>The stored time at tick 0, in Unix seconds.</summary>
     public long StartedAt { get; }
 
-    /// <summary>The conversation with the guide: its state, the learner model and the repeat counts.</summary>
-    public GuideService Conversation => _guideService;
+    /// <summary>The conversations with the NPCs: each one's state, the learner model and the repeat counts (the guide's are <see cref="NpcService.Context"/>).</summary>
+    public NpcService Conversation => _npcs;
+
+    /// <summary>The phrase uses, voice events and world events so far, in the order they happened (an in-memory list for S8 and S11).</summary>
+    public IReadOnlyList<GameEvent> Events => _events;
+
+    /// <summary>The NPC the panel is open on (the one the next typed or spoken line goes to); the guide until <see cref="OpenTalk"/> says otherwise.</summary>
+    public string CurrentNpc { get; private set; } = NpcService.GuideAgent;
 
     /// <summary>The arrow now on screen, or <see langword="null"/>.</summary>
     public PointerMarker? Pointer { get; protected set; }
@@ -146,7 +161,10 @@ public abstract class GuideSession : IDisposable
     public GuideReview? Review { get; private set; }
 
     /// <summary>The line the guide says when the dialogue opens (<c>PromptSpec.Text</c> of the prompt).</summary>
-    public string OpeningLine => _guideService.OpeningLine;
+    public string OpeningLine => _npcs.OpeningLine;
+
+    /// <summary>Whether the camp objective is complete (the guide then makes her transfer offer when the player talks to her). The 3D scene overrides it.</summary>
+    protected virtual bool ObjectiveComplete => false;
 
     /// <summary>The game's tick count (the simulation's own tick: 60 per second of game time).</summary>
     protected abstract long Tick { get; }
@@ -198,7 +216,7 @@ public abstract class GuideSession : IDisposable
                 continue;
             }
 
-            Review = new GuideReview(due.Lemma, found.Cell, _guideService.ReviewQuestion());
+            Review = new GuideReview(due.Lemma, found.Cell, _npcs.ReviewQuestion());
             Pointer = new PointerMarker(due.Lemma, found.Cell, Quiz: true);
             return Review;
         }
@@ -218,8 +236,64 @@ public abstract class GuideSession : IDisposable
     }
 
     /// <summary>
-    /// The player types a line to the guide. Evaluates it, moves the conversation on, and, if the guide points at something, puts the arrow
-    /// out (replacing any earlier one). Call it between ticks, never while the worker is running.
+    /// The player starts talking to an NPC (S6). The NPC opens with a core host turn when its state has one (the shopkeeper's "¿Qué necesitas?",
+    /// the villager's "Hola.", the guide's transfer offer), and with its prompt's text otherwise; the guide may instead open with her review
+    /// question (<see cref="BeginTalk"/>, returned in <see cref="Review"/>). What the opening's host events mean in the world is applied here
+    /// (the shopkeeper's second visit hands over the bottle). Later typed and spoken lines go to this NPC until <see cref="EndTalk"/>.
+    /// </summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    /// <returns>What the NPC says first.</returns>
+    public NpcOpening OpenTalk(string npc)
+    {
+        ArgumentNullException.ThrowIfNull(npc);
+        EndReview();
+        CurrentNpc = npc;
+        NpcOpening opening;
+        if (PendingTurns > 0)
+        {
+            // A turn is still on the worker (the player closed the panel while it thought): the NPC's state is about to change, so no host turn now.
+            opening = new NpcOpening(npc, _npcs.PromptOf(npc), [_npcs.PromptTextOf(npc)], false, [], false);
+        }
+        else
+        {
+            opening = _npcs.Open(npc, ObjectiveComplete, StoredTime, StateDigest());
+            if (string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && !opening.HostTurn
+                && !string.Equals(_npcs.GuideState.StateId, "offering", StringComparison.Ordinal))
+            {
+                _ = BeginTalk();
+            }
+        }
+
+        Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.TalkOpened, npc, opening.HostTurn ? "host_turn" : null));
+        if (opening.HostEvents.Count > 0)
+        {
+            ApplyHostEvents(npc, opening.HostEvents, opening.FailForward ? "fail_forward" : "offer");
+            if (opening.FailForward)
+            {
+                Log(new PhraseUse(Tick, StoredTime.UnixSeconds, PhraseIds.RequestWater, PhraseUseKind.FailForward, npc, NpcService.StallNeedPrompt, string.Empty, "second visit"));
+            }
+        }
+
+        if (opening.HostTurn && opening.HostEvents.Contains(NpcHostEvents.GuideOffered, StringComparer.Ordinal))
+        {
+            Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.TransferOffered, npc, "¿Quieres agua?"));
+        }
+
+        return opening;
+    }
+
+    /// <summary>The panel closed: later lines go to the guide again (the default), and the end of the talk is logged.</summary>
+    public void EndTalk()
+    {
+        Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.TalkClosed, CurrentNpc));
+        EndReview();
+        CurrentNpc = NpcService.GuideAgent;
+    }
+
+    /// <summary>
+    /// The player types a line to the NPC the panel is open on (the guide by default). Evaluates it, moves the conversation on, applies what its
+    /// host events mean in the world, and, if the guide points at something, puts the arrow out (replacing any earlier one). Call it between
+    /// ticks, never while the worker is running.
     /// </summary>
     /// <param name="line">The typed line.</param>
     /// <param name="cursor">The cell under the mouse pointer or the crosshair, for "¿qué es esto?" (ignored while a <see cref="Review"/> is open: the pointed cell counts).</param>
@@ -230,7 +304,7 @@ public abstract class GuideSession : IDisposable
         var scene = review is null
             ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory)
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: LiveInventory);
-        var turn = _guideService.Say(line, scene, StoredTime, StateDigest());
+        var turn = _npcs.Say(CurrentNpc, line, scene, StoredTime, StateDigest());
         if (review is not null && turn.Communicated)
         {
             EndReview(); // understood: the question is answered (a line the guide did not understand leaves it open for another try)
@@ -242,6 +316,7 @@ public abstract class GuideSession : IDisposable
         }
 
         LastWordTurn = Words.RecordTurn(turn, turn.Input, Credit, StoredTime.UnixSeconds);
+        AfterTurn(turn, Tick, StoredTime.UnixSeconds);
         return turn;
     }
 
@@ -259,7 +334,7 @@ public abstract class GuideSession : IDisposable
             throw new InvalidOperationException("The turn worker is already started.");
         }
 
-        _worker = new TurnWorker(_guideService, Bundle, clockMilliseconds, loadSpeech);
+        _worker = new TurnWorker(_npcs, Bundle, clockMilliseconds, loadSpeech);
         _worker.Start();
         return _worker;
     }
@@ -329,6 +404,7 @@ public abstract class GuideSession : IDisposable
 
                 words = Words.RecordTurn(turn, turn.Input, Credit, outcome.Request.Now.UnixSeconds);
                 LastWordTurn = words;
+                AfterTurn(turn, outcome.Request.Tick, outcome.Request.Now.UnixSeconds);
             }
 
             applied.Add(new AppliedTurn(outcome, words));
@@ -339,6 +415,78 @@ public abstract class GuideSession : IDisposable
 
     /// <summary>Takes the arrow off the screen (the player closed the dialogue or asked for it to go).</summary>
     public void DismissPointer() => Pointer = null;
+
+    /// <summary>
+    /// Applies what the host events of a turn or an opening mean in the world: an item in the inventory, the arrow on the river. The game's
+    /// words for the events are in <see cref="NpcHostEvents"/>; the derived class owns the world they act on. Called on the caller's thread.
+    /// </summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    /// <param name="hostEvents">The events, in the order they were raised.</param>
+    /// <param name="how">How they came about: <c>request</c>, <c>offer</c> or <c>fail_forward</c> (for the log).</param>
+    protected virtual void ApplyHostEvents(string npc, IReadOnlyList<string> hostEvents, string how)
+    {
+    }
+
+    /// <summary>Appends a game event to <see cref="Events"/>.</summary>
+    protected void Log(GameEvent gameEvent)
+    {
+        ArgumentNullException.ThrowIfNull(gameEvent);
+        _events.Add(gameEvent);
+    }
+
+    // What follows an applied turn: the phrase it used, the voice event it was, and what its host events do in the world.
+    private void AfterTurn(GuideTurn turn, long tick, long time)
+    {
+        var npc = turn.Npc;
+        _lastRepair.TryGetValue(npc, out var previousRepair);
+        _lastRepair[npc] = turn.RepairKind;
+        if (!turn.Communicated)
+        {
+            if (turn.Input == InputKind.Spoken)
+            {
+                Log(new VoiceEvent(tick, time, VoiceEventKind.NotUnderstood, npc, turn.Line));
+            }
+        }
+        else if (PhraseIds.For(turn.Intent, turn.Slots) is { } phrase)
+        {
+            var kind = Classify(turn, phrase, previousRepair);
+            var detail = turn.Slots.TryGetValue("item", out var item) ? item : turn.Slots.TryGetValue("place", out var place) ? place : null;
+            Log(new PhraseUse(tick, time, phrase, kind, npc, turn.Prompt, turn.Line, detail));
+        }
+
+        if (turn.FailForward)
+        {
+            Log(new PhraseUse(tick, time, PhraseIds.RequestWater, PhraseUseKind.FailForward, npc, turn.Prompt, turn.Line, turn.Communicated ? turn.Intent : "no request"));
+        }
+
+        if (turn.HostEvents.Count > 0)
+        {
+            ApplyHostEvents(npc, turn.HostEvents, turn.FailForward ? "fail_forward" : "request");
+        }
+    }
+
+    // How a phrase was used (D-game-10): the rules are in GameEvents.cs and the remarks of this type.
+    private PhraseUseKind Classify(GuideTurn turn, string phrase, RepairKind? previousRepair)
+    {
+        if (string.Equals(turn.Intent, "dont_know", StringComparison.Ordinal) || string.Equals(turn.Intent, "ask_help", StringComparison.Ordinal))
+        {
+            return PhraseUseKind.DontKnow;
+        }
+
+        if (previousRepair == RepairKind.OfferChoices)
+        {
+            return PhraseUseKind.Choice;
+        }
+
+        if (ObjectiveComplete && PhraseIds.HomeOf(phrase) is { } home && !string.Equals(home, turn.Npc, StringComparison.Ordinal))
+        {
+            return PhraseUseKind.Transfer;
+        }
+
+        return turn.Prompt is NpcService.StallNeedPrompt or NpcService.StallOfferPrompt or NpcService.GuideOfferPrompt
+            ? PhraseUseKind.Supported
+            : PhraseUseKind.Unaided;
+    }
 
     private TurnRequest Submit(TurnSource source, string? text, PcmClip? clip, string? wavPath, GuideCell? cursor)
     {
@@ -354,7 +502,8 @@ public abstract class GuideSession : IDisposable
             StoredTime,
             StateDigest(),
             review,
-            Tick);
+            Tick,
+            CurrentNpc);
         worker.Submit(request);
         return request;
     }

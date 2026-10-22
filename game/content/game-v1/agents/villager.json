@@ -32,6 +32,7 @@
     {
       "id": "pointing",
       "transitions": [
+        { "onHostEvent": "villager.greet", "to": "pointing", "actions": [{ "dialogueIntent": "villager_hello", "variantPoolId": "villager_hello" }] },
         { "on": {"intent": "greet", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_greet", "variantPoolId": "villager_greet" }] },
         { "on": {"intent": "ask_directions", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_point", "hostEvent": "villager.point", "variantPoolId": "villager_point" }] },
         { "on": {"intent": "request_item", "communicated": true}, "to": "pointing", "actions": [{ "dialogueIntent": "villager_give", "hostEvent": "villager.give", "variantPoolId": "villager_give" }] },

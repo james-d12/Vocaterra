@@ -105,11 +105,11 @@ crafting panel. The panel lists the recipes (the torch: `antorcha` from two `mad
 journal, **F3** the debug overlay. **Aim the crosshair at the guide's figure**: the hint `E: hablar` shows, and **E** (or **T** to type, or **V**
 to talk: hold it, the clip goes when it is let go) opens the dialogue panel, which takes the keyboard and frees the mouse. Enter sends, Esc
 closes, Tab holds push-to-talk. Her answers point the beacon at the named noun's nearest block (the arrow at the screen edge when it is off
-screen); "¿qué es esto?" names the block under the crosshair. Other NPCs cannot be talked to yet (S6).
+screen); "¿qué es esto?" names the block under the crosshair. **The shopkeeper and the villager are talked to the same way** (S6): aim at any figure, `E: hablar`; the panel's title is the NPC's name.
 
 **The camp objective (S4).** The checklist top right, `Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1`, is completed by the
-game's events and the inventory, never by a language score: five trunks, three berries, the torch placed at the fire ring, and the water, which
-S6 completes when the bottle is filled. Each step that completes shows a toast. The first time an item enters the inventory (a pickup, a craft)
+game's events and the inventory, never by a language score: five trunks, three berries, the torch placed at the fire ring, and the water: the shopkeeper hands over an empty bottle (`la botella`), and holding the left button on the river with it in the
+inventory fills it (half a second; without a bottle a toast says `Necesitas una botella.` and nothing is blocked). Each step that completes shows a toast. The first time an item enters the inventory (a pickup, a craft)
 its word card shows, `la madera`, `la fruta`, `la antorcha`, with an empty audio slot for S9; the word counts as heard and read, never as a quiz.
 
 To check it without playing, script it and save a screenshot (needs a display; every line also prints what its step did):
@@ -128,13 +128,28 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --walk-to 62,52 --
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --walk-to 64,53 --look 262,-8 --screenshot /tmp/s3-sign.png --frames 150
 # the camp from the player's eyes at spawn: the guide's figure and label, the beacon on the river (an arrow at the edge when it is off screen)
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --beacon river --screenshot /tmp/s2-camp.png --frames 240
+# S6, the whole route in one run: the camp, the stall (the shopkeeper's "¿Qué necesitas?" is a core host turn, the bottle comes with his answer),
+# the villager (the beacon on the river), the river (hold the button on the water: the bottle fills, the checklist reads 4/4), then back to the
+# guide for her transfer offer "¿Quieres agua?" and to the villager for bread. The console prints each turn, each game event (phrase uses,
+# world events) and the objective's steps; the PNGs show the stall exchange and the river after the fill
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 \
+  --interact 17,11,15 --interact 15,11,19 --walk-to 17,20 --interact 16,11,23 \
+  --walk-to 11,17 --interact 9,11,17 --interact 9,12,17 --interact 9,13,17 --interact 9,14,17 --walk-to 11,11 --interact 11,11,9 \
+  --walk-to 20,17 --craft antorcha --walk-to 20,19 --place antorcha@21,12,21 \
+  --talk shopkeeper --say "quiero agua, por favor" --shot /tmp/s6-stall.png --say "sí, por favor" \
+  --talk villager --say "¿dónde está el río?" \
+  --walk-to 62,79 --interact 62,7,80 --look 180,-14 --shot /tmp/s6-river.png \
+  --talk guide --say "sí, por favor" --talk villager --say "quiero pan, por favor" \
+  --screenshot /tmp/s6-end.png --frames 60
 # the host's stall prompt (no display): the request is understood
 dotnet run --project game/src/Vocaterra.Host -- --transcript "quiero agua, por favor" --prompt stall-need
 ```
 
 The steps `--look yaw,pitch` (degrees, yaw 0 north and 90 east), `--walk-to x,z`, `--interact x,y,z`, `--place item@x,y,z`, `--select n` and
-`--craft item` run in the order given; `--say <line>` (walk to the guide, face her, open the panel, type and send each line, and wait for her
-reply) runs after them; `--beacon <point>` stands the beacon column on a named point of the scene. Details are in `src/Vocaterra.MonoGame/README.md`.
+`--craft item` run in the order given, and so do the talk steps (S6): `--talk <npc>` (`guide`, `shopkeeper`, `villager`: walk up to the figure, stop about
+two blocks away facing it, open the panel), `--say <line>` (type and send a line to the NPC the panel is open on and wait for the reply; with no
+panel open it first talks to the guide, as in S3), `--leave` (close the panel; walking on or talking to someone else closes it too) and `--shot
+<png>` (save the screen at that point and go on); `--beacon <point>` stands the beacon column on a named point of the scene. Details are in `src/Vocaterra.MonoGame/README.md`.
 Spoken input (push-to-talk) works in the interactive game; the scripted `--speak` step comes back with the speech UX in S7.
 
 ## Content

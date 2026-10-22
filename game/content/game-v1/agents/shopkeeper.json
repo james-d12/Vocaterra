@@ -19,6 +19,7 @@
       "id": "idle",
       "transitions": [
         { "onHostEvent": "shopkeeper.ask", "to": "asking", "actions": [{ "dialogueIntent": "shop_need", "variantPoolId": "shop_need" }] },
+        { "onHostEvent": "shopkeeper.give", "to": "offering", "actions": [{ "dialogueIntent": "shop_give", "hostEvent": "stall.give_water", "variantPoolId": "shop_give" }, { "dialogueIntent": "shop_offer", "variantPoolId": "shop_offer" }] },
         { "on": {"intent": "request_item", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "shop_give", "hostEvent": "stall.give_water", "variantPoolId": "shop_give" }, { "dialogueIntent": "shop_offer", "variantPoolId": "shop_offer" }] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "shop_help_ask", "variantPoolId": "shop_help_ask" }] },
         { "on": {"intent": "dont_know", "communicated": true}, "to": "idle", "actions": [{ "dialogueIntent": "shop_help_ask", "variantPoolId": "shop_help_ask" }] },
@@ -33,6 +34,7 @@
     {
       "id": "asking",
       "transitions": [
+        { "onHostEvent": "shopkeeper.give", "to": "offering", "actions": [{ "dialogueIntent": "shop_give", "hostEvent": "stall.give_water", "variantPoolId": "shop_give" }, { "dialogueIntent": "shop_offer", "variantPoolId": "shop_offer" }] },
         { "on": {"intent": "request_item", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "shop_give", "hostEvent": "stall.give_water", "variantPoolId": "shop_give" }, { "dialogueIntent": "shop_offer", "variantPoolId": "shop_offer" }] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "asking", "actions": [{ "dialogueIntent": "shop_help_ask", "variantPoolId": "shop_help_ask" }] },
         { "on": {"intent": "dont_know", "communicated": true}, "to": "asking", "actions": [{ "dialogueIntent": "shop_help_ask", "variantPoolId": "shop_help_ask" }] },
@@ -47,6 +49,7 @@
     {
       "id": "offering",
       "transitions": [
+        { "onHostEvent": "shopkeeper.offer", "to": "offering", "actions": [{ "dialogueIntent": "shop_offer", "variantPoolId": "shop_offer" }] },
         { "on": {"intent": "confirm", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_give_bread", "hostEvent": "stall.give_bread", "variantPoolId": "shop_give_bread" }] },
         { "on": {"intent": "deny", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_deny", "variantPoolId": "shop_deny" }] },
         { "on": {"intent": "ask_help", "communicated": true}, "to": "offering", "actions": [{ "dialogueIntent": "shop_help_offer", "variantPoolId": "shop_help_offer" }] },
@@ -62,6 +65,8 @@
     {
       "id": "done",
       "transitions": [
+        { "onHostEvent": "shopkeeper.ask", "to": "asking", "actions": [{ "dialogueIntent": "shop_need", "variantPoolId": "shop_need" }] },
+        { "onHostEvent": "shopkeeper.give", "to": "offering", "actions": [{ "dialogueIntent": "shop_give", "hostEvent": "stall.give_water", "variantPoolId": "shop_give" }, { "dialogueIntent": "shop_offer", "variantPoolId": "shop_offer" }] },
         { "on": {"intent": "thank", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_thank", "variantPoolId": "shop_thank" }] },
         { "on": {"intent": "farewell", "communicated": true}, "to": "done", "actions": [{ "dialogueIntent": "shop_bye", "variantPoolId": "shop_bye" }] }
       ],

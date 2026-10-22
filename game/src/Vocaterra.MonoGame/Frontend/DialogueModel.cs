@@ -18,7 +18,7 @@ public enum DialogueSpeaker
     /// <summary>The guide's correction of the player's line (a recast, a hint or a correction).</summary>
     Correction,
 
-    /// <summary>The guide's own reply.</summary>
+    /// <summary>The NPC's own reply (the guide's, the shopkeeper's or the villager's: the panel's title says whose).</summary>
     Guide,
 
     /// <summary>The game's line with the world facts.</summary>
@@ -51,7 +51,7 @@ public sealed class DialogueModel
     private readonly List<DialogueLine> _lines = [];
     private readonly InputFocus _focus;
     private readonly string _openingLine;
-    private bool _opened;
+    private readonly HashSet<string> _opened = new(StringComparer.Ordinal);
 
     /// <summary>Creates a closed panel.</summary>
     /// <param name="focus">Who has the keyboard; the model sets <see cref="InputFocus.TextEntryActive"/> while it is open.</param>
@@ -66,6 +66,12 @@ public sealed class DialogueModel
 
     /// <summary>Whether the panel is open (and so has the keyboard).</summary>
     public bool IsOpen { get; private set; }
+
+    /// <summary>The NPC the panel is open on (its agent id); the guide until another NPC is opened.</summary>
+    public string Npc { get; private set; } = NpcService.GuideAgent;
+
+    /// <summary>The name of that NPC as the panel's title shows it (<c>Guía</c>, <c>Tendero</c>, <c>Aldeano</c>).</summary>
+    public string NpcName { get; private set; } = "Guía";
 
     /// <summary>The text box.</summary>
     public TextEntry Entry { get; } = new();
@@ -101,7 +107,7 @@ public sealed class DialogueModel
     public bool SubmitRequested { get; private set; }
 
     /// <summary>
-    /// Opens the panel and gives it the keyboard. The first time, the guide's opening line is added; when the guide opens with a review
+    /// Opens the panel on the guide and gives it the keyboard. The first time, the guide's opening line is added; when the guide opens with a review
     /// question, that is added as her line (every time the panel opens with one).
     /// </summary>
     /// <param name="reviewQuestion">The review question ("¿Qué es esto?"), or <see langword="null"/> when no word is due.</param>
@@ -112,11 +118,11 @@ public sealed class DialogueModel
             return;
         }
 
+        SwitchTo(NpcService.GuideAgent, "Guía");
         IsOpen = true;
         _focus.TextEntryActive = true;
-        if (!_opened)
+        if (_opened.Add(NpcService.GuideAgent))
         {
-            _opened = true;
             Add(DialogueSpeaker.Guide, _openingLine);
         }
 
@@ -124,6 +130,53 @@ public sealed class DialogueModel
         {
             Add(DialogueSpeaker.Guide, reviewQuestion);
         }
+    }
+
+    /// <summary>
+    /// Opens the panel on an NPC (S6) and gives it the keyboard. The NPC's lines are added when they came from a core host turn (every time) or
+    /// when it is the first talk with this NPC or the page is empty (the prompt's text); a talk with another NPC than the last starts a clean page. The guide's review
+    /// question, when she asks one, follows her opening.
+    /// </summary>
+    /// <param name="opening">What the NPC says first (<c>GuideSession.OpenTalk</c>).</param>
+    /// <param name="displayName">The NPC's name as the title shows it.</param>
+    /// <param name="reviewQuestion">The guide's review question, or <see langword="null"/>.</param>
+    public void Open(NpcOpening opening, string displayName, string? reviewQuestion = null)
+    {
+        ArgumentNullException.ThrowIfNull(opening);
+        ArgumentNullException.ThrowIfNull(displayName);
+        if (IsOpen)
+        {
+            return;
+        }
+
+        SwitchTo(opening.Npc, displayName);
+        IsOpen = true;
+        _focus.TextEntryActive = true;
+        var first = _opened.Add(opening.Npc);
+        if (opening.HostTurn || first || _lines.Count == 0)
+        {
+            foreach (var line in opening.Lines)
+            {
+                Add(DialogueSpeaker.Guide, line);
+            }
+        }
+
+        if (reviewQuestion is not null)
+        {
+            Add(DialogueSpeaker.Guide, reviewQuestion);
+        }
+    }
+
+    // A talk with another NPC than the last one starts on a clean page.
+    private void SwitchTo(string npc, string displayName)
+    {
+        if (!string.Equals(Npc, npc, StringComparison.Ordinal))
+        {
+            _lines.Clear();
+        }
+
+        Npc = npc;
+        NpcName = displayName;
     }
 
     /// <summary>Adds a hint line from the game to the panel (for example <c>Bien. Repasa más tarde.</c>).</summary>
@@ -288,6 +341,14 @@ public sealed class DialogueModel
         if (turn.WorldLine is not null)
         {
             Add(DialogueSpeaker.World, turn.WorldLine);
+        }
+
+        if (turn.FollowUp is not null)
+        {
+            foreach (var line in turn.FollowUp)
+            {
+                Add(DialogueSpeaker.Guide, line);
+            }
         }
     }
 

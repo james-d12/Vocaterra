@@ -64,7 +64,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
         Assert.NotNull(engine);
         var session = TestGame.NewSession();
         var counting = new CountingRecognizer(engine.Recognizer);
-        var guide = new GuideService(TestGame.Bundle, TestGame.FactsOf(session), TestGame.Nouns, TestGame.Seed, new StoredTimestamp(GuideSession.DefaultStartedAt));
+        var guide = new NpcService(TestGame.Bundle, TestGame.FactsOf(session), TestGame.Nouns, TestGame.Seed, new StoredTimestamp(GuideSession.DefaultStartedAt));
         guide.AttachSpeech(new SpokenUtteranceEvaluator(TestGame.Bundle, counting));
         var clip = engine.Synthesize(TreeQuestion, out var cached);
         output.WriteLine($"{TreeQuestion}: {clip.DurationSeconds:0.00} s, cached {cached}");
@@ -73,7 +73,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
         var typed = TestGame.NewSession().Say("dónde está el árbol");
 
         output.WriteLine($"heard '{spoken.Line}' confidence {spoken.Confidence:0.00}");
-        Assert.Equal(1, counting.Calls); // the double evaluation reused the first recognition
+        Assert.Equal(1, counting.Calls); // the two completions share the one recognition
         Assert.Equal(InputKind.Spoken, spoken.Input);
         Assert.Equal("dónde está el árbol", spoken.Line);
         Assert.InRange(spoken.Confidence!.Value, 0.5, 1.0);
@@ -91,11 +91,11 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
         using var engine = SpeechEngine.TryCreate(out _)!;
         var counting = new CountingRecognizer(engine.Recognizer);
         var evaluator = new SpokenUtteranceEvaluator(TestGame.Bundle, counting);
-        var prompt = TestGame.Bundle.Prompts[GuideService.PromptId];
+        var prompt = TestGame.Bundle.Prompts[NpcService.GuidePrompt];
         var context = ConversationContext.Create(
             TestGame.Seed,
-            GuideService.AgentId,
-            TestGame.Bundle.Agents[GuideService.AgentId].InitialState(),
+            NpcService.GuideAgent,
+            TestGame.Bundle.Agents[NpcService.GuideAgent].InitialState(),
             new StoredTimestamp(GuideSession.DefaultStartedAt),
             Vocaterra.Nlp.Decision.Learning.LearnerModel.New(),
             new Dictionary<string, int>(StringComparer.Ordinal),
@@ -204,6 +204,29 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
         Assert.True(worker.Load!.CanSpeak);
         Assert.Null(worker.Load.Problem);
         Assert.True(applied.Outcome.Timings.TotalMilliseconds >= applied.Outcome.Timings.RecognizeMilliseconds);
+    }
+
+    [ModelFact(needsKokoro: true)]
+    public void ASpokenRequestAtTheStallThroughTheWorkerHandsOverTheBottleLikeATypedOne()
+    {
+        using var session = TestGame.NewSession();
+        Assert.True(session.StartWorker().WaitUntilReady(60000));
+        Stage.TeleportToNpc(session, "shopkeeper");
+        var opening = session.OpenTalk("shopkeeper");
+        Assert.Equal(["¿Qué necesitas?"], opening.Lines);
+
+        _ = session.SubmitSpeak("quiero agua, por favor");
+        var applied = Drain(session, 1).Single();
+
+        var turn = applied.Turn!;
+        output.WriteLine($"heard '{turn.Line}' ({turn.Confidence:0.00}) -> {turn.Summary}, {string.Join(' ', turn.GuideLines)}");
+        Assert.Equal(InputKind.Spoken, turn.Input);
+        Assert.Equal("shopkeeper", turn.Npc);
+        Assert.Equal("stall-need", turn.Prompt);
+        Assert.Equal("request_item", turn.Intent);
+        Assert.Contains("stall.give_water", turn.HostEvents);
+        Assert.Equal(1, session.Simulation.Inventory.Count(Vocaterra.Simulation.Items.ItemId.Bottle));
+        Assert.Contains(session.Events.OfType<PhraseUse>(), static u => u is { PhraseId: PhraseIds.RequestWater, Kind: PhraseUseKind.Supported });
     }
 
     private static List<AppliedTurn> Drain(VoxelSession session, int count)

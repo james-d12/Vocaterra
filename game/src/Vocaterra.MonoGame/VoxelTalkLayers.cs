@@ -5,7 +5,7 @@ using Vocaterra.MonoGame.Frontend;
 namespace Vocaterra.MonoGame;
 
 /// <summary>
-/// The hint under the crosshair when it is on the guide's figure (S3): <c>E: hablar</c>, or <c>T: escribir</c> for the typed panel. It is hidden
+/// The hint under the crosshair when it is on an NPC's figure (S3, every NPC since S6): <c>E: hablar</c>, or <c>T: escribir</c> for the typed panel. It is hidden
 /// while the panel is open.
 /// </summary>
 public sealed class TalkHintLayer : IFrameLayer

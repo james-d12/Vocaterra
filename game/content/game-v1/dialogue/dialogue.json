@@ -319,8 +319,8 @@
     "shop_give": {
       "poolId": "shop_give",
       "variants": [
-        { "lineId": "shop_give.1", "text": "Aquí tienes." },
-        { "lineId": "shop_give.2", "text": "Toma." }
+        { "lineId": "shop_give.1", "text": "Toma la botella. El agua está en el río." },
+        { "lineId": "shop_give.2", "text": "Aquí tienes la botella. El agua está en el río." }
       ]
     },
     "shop_offer": {

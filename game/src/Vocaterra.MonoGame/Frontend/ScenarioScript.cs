@@ -1,0 +1,264 @@
+using Vocaterra.Game;
+using Vocaterra.Simulation.Items;
+using Vocaterra.Simulation.Voxel;
+
+namespace Vocaterra.MonoGame.Frontend;
+
+/// <summary>
+/// What the scripted run asks of the game around it: open and close the dialogue panel on an NPC, and save a screenshot. The game supplies
+/// these (the panel and the back buffer are its), so the script itself stays free of the engine and is tested without a window.
+/// </summary>
+/// <param name="OpenTalk">Opens the panel on an NPC (the same call the E key makes).</param>
+/// <param name="CloseTalk">Closes the panel (the same call the Esc key makes).</param>
+/// <param name="TakeShot">Asks for a screenshot of the next drawn frame.</param>
+/// <param name="ShotPending">Whether the last requested screenshot has not been saved yet.</param>
+public sealed record ScenarioHooks(Action<string> OpenTalk, Action CloseTalk, Action<string> TakeShot, Func<bool> ShotPending);
+
+/// <summary>
+/// The scripted run of the 3D game (<c>--screenshot</c> with steps): the body's steps (<see cref="VoxelScript"/>), the talk steps (S6) and the
+/// screenshots, one after the other in the order given. A <c>--talk</c> walks to the NPC and stops at the stand-off distance
+/// (<see cref="NpcStandOff"/>, about two blocks, with a clear line to the NPC) facing it, then opens the panel; a <c>--say</c> types the line into
+/// the panel, sends it and waits for the NPC's turn to be applied (with no panel open it first talks to the guide, as the S3 run did); walking on
+/// or talking to someone else closes the panel, as pressing Esc would. It drives the same panel, the same worker and the same session the player
+/// does; the frame calls <see cref="Fill"/> once per tick for the body's commands.
+/// </summary>
+/// <remarks>The script is a state machine over ticks: nothing reads the clock or draws a random number.</remarks>
+public sealed class ScenarioScript
+{
+    /// <summary>The ticks the script waits after arriving before it opens the panel (the view settles).</summary>
+    public const int SettleTicks = 20;
+
+    /// <summary>The ticks between one line's reply and the next step.</summary>
+    public const int GapTicks = 6;
+
+    private readonly VoxelSession _session;
+    private readonly LookControl _look;
+    private readonly DialogueModel _dialogue;
+    private readonly IReadOnlyList<ScriptStep> _steps;
+    private readonly Func<string, ItemId?> _resolveItem;
+    private readonly ScenarioHooks _hooks;
+    private readonly Action<string> _log;
+    private readonly List<VoxelCommand> _scratch = [];
+    private Phase _phase = Phase.Idle;
+    private VoxelScript? _walk;
+    private string _npc = string.Empty;
+    private string _line = string.Empty;
+    private int _index;
+    private int _wait;
+
+    /// <summary>Creates the script over a started session and its panel.</summary>
+    /// <param name="session">The 3D game, with its worker started.</param>
+    /// <param name="look">The look the script turns (the front-end's own).</param>
+    /// <param name="dialogue">The panel the lines are typed into.</param>
+    /// <param name="steps">The steps in order.</param>
+    /// <param name="resolveItem">Maps an item as typed (a noun or a key) to the item, for the place and craft steps.</param>
+    /// <param name="hooks">What the script asks of the game around it.</param>
+    /// <param name="log">Where the steps report (the console).</param>
+    public ScenarioScript(
+        VoxelSession session,
+        LookControl look,
+        DialogueModel dialogue,
+        IReadOnlyList<ScriptStep> steps,
+        Func<string, ItemId?> resolveItem,
+        ScenarioHooks hooks,
+        Action<string> log)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        ArgumentNullException.ThrowIfNull(look);
+        ArgumentNullException.ThrowIfNull(dialogue);
+        ArgumentNullException.ThrowIfNull(steps);
+        ArgumentNullException.ThrowIfNull(resolveItem);
+        ArgumentNullException.ThrowIfNull(hooks);
+        ArgumentNullException.ThrowIfNull(log);
+        _session = session;
+        _look = look;
+        _dialogue = dialogue;
+        _steps = steps;
+        _resolveItem = resolveItem;
+        _hooks = hooks;
+        _log = log;
+    }
+
+    /// <summary>Whether every step has been done and its effect applied.</summary>
+    public bool IsDone => _phase == Phase.Idle && _index >= _steps.Count;
+
+    /// <summary>The line being said (empty when none).</summary>
+    public string CurrentLine => _line;
+
+    /// <summary>
+    /// Advances the script by one tick and adds the body's commands for it. Call it once per tick, before the simulation steps, and only while
+    /// the script is not done.
+    /// </summary>
+    public void Fill(List<VoxelCommand> commands)
+    {
+        ArgumentNullException.ThrowIfNull(commands);
+        while (true)
+        {
+            switch (_phase)
+            {
+                case Phase.Idle:
+                    if (_index >= _steps.Count)
+                    {
+                        return;
+                    }
+
+                    Begin();
+                    continue;
+                case Phase.Moving:
+                case Phase.Walking:
+                    if (Advance(commands))
+                    {
+                        return;
+                    }
+
+                    continue;
+                case Phase.Settling:
+                    if (--_wait <= 0)
+                    {
+                        _hooks.OpenTalk(_npc);
+                        _phase = Phase.Idle;
+                        continue;
+                    }
+
+                    return;
+                case Phase.Waiting:
+                    if (_session.PendingTurns == 0 && !_dialogue.SubmitRequested)
+                    {
+                        _phase = Phase.Gap;
+                        _wait = GapTicks;
+                    }
+
+                    return;
+                case Phase.Gap:
+                    if (--_wait <= 0)
+                    {
+                        _phase = Phase.Idle;
+                        continue;
+                    }
+
+                    return;
+                default: // Phase.Shot
+                    if (_hooks.ShotPending())
+                    {
+                        return;
+                    }
+
+                    _phase = Phase.Idle;
+                    continue;
+            }
+        }
+    }
+
+    // Takes the next step: a run of body steps becomes one VoxelScript, a talk walks to the NPC, a say types its line.
+    private void Begin()
+    {
+        var step = _steps[_index];
+        switch (step.Kind)
+        {
+            case ScriptStepKind.Move:
+                CloseIfOpen();
+                var run = new List<VoxelStep>();
+                while (_index < _steps.Count && _steps[_index].Kind == ScriptStepKind.Move)
+                {
+                    run.Add(_steps[_index].Step!);
+                    _index++;
+                }
+
+                _walk = new VoxelScript(_session.Simulation, _look, run, _resolveItem, _log);
+                _phase = Phase.Moving;
+                break;
+            case ScriptStepKind.Talk:
+                StartTalk(step.Value);
+                _index++;
+                break;
+            case ScriptStepKind.Say:
+                if (!_dialogue.IsOpen)
+                {
+                    StartTalk(NpcService.GuideAgent); // a line with nobody to say it to: the guide, as in S3 (the step itself is taken next)
+                    break;
+                }
+
+                _line = step.Value;
+                _ = _dialogue.Entry.Insert(_line);
+                _dialogue.RequestSubmit();
+                _index++;
+                _phase = Phase.Waiting;
+                break;
+            case ScriptStepKind.Leave:
+                CloseIfOpen();
+                _index++;
+                break;
+            default: // Shot
+                _hooks.TakeShot(step.Value);
+                _index++;
+                _phase = Phase.Shot;
+                break;
+        }
+    }
+
+    // Walks to the stand-off cell of the NPC, then looks at it and opens the panel.
+    private void StartTalk(string npc)
+    {
+        CloseIfOpen();
+        _npc = npc;
+        var scene = _session.Scene;
+        var feet = scene.Npc(npc).Feet;
+        var from = _session.Simulation.Player.FeetBlock;
+        var stand = NpcStandOff.Choose(scene.Grid, feet, from) ?? new BlockPos(feet.X + NpcStandOff.Blocks, feet.Y, feet.Z);
+        _walk = new VoxelScript(_session.Simulation, _look, [VoxelStep.WalkTo(stand.X, stand.Z)], static _ => null, _log);
+        _phase = Phase.Walking;
+    }
+
+    private void CloseIfOpen()
+    {
+        if (_dialogue.IsOpen)
+        {
+            _hooks.CloseTalk();
+        }
+    }
+
+    // One tick of the running walk. Returns true when it produced commands (the tick is taken); false when it finished with none (go on).
+    private bool Advance(List<VoxelCommand> commands)
+    {
+        var walk = _walk!;
+        walk.Fill(_scratch);
+        commands.AddRange(_scratch);
+        var finished = walk.IsDone;
+        if (finished)
+        {
+            _walk = null;
+            if (_phase == Phase.Walking)
+            {
+                FaceNpc();
+                _phase = Phase.Settling;
+                _wait = SettleTicks;
+            }
+            else
+            {
+                _phase = Phase.Idle;
+            }
+        }
+
+        return _scratch.Count > 0 || !finished;
+    }
+
+    // Turns the view to the NPC's chest, the point the crosshair aims at (FigureAim).
+    private void FaceNpc()
+    {
+        var feet = _session.Scene.Npc(_npc).Feet;
+        var body = _session.Simulation.Player;
+        const double U = VoxelPhysics.UnitsPerBlock;
+        _look.LookAt(body.EyeX / U, body.EyeY / U, body.EyeZ / U, feet.X + 0.5, feet.Y + 1.2, feet.Z + 0.5);
+    }
+
+    private enum Phase
+    {
+        Idle,
+        Moving,
+        Walking,
+        Settling,
+        Waiting,
+        Gap,
+        Shot,
+    }
+}

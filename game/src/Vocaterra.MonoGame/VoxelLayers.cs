@@ -34,7 +34,8 @@ public sealed class CrosshairLayer : IFrameLayer
 
         if (sim.GatherTarget is { } target && sim.GatherProgress > 0)
         {
-            var needed = Math.Max(1, BlockDefinition.Get(sim.Grid.GetBlock(target.X, target.Y, target.Z)).GatherTicks);
+            var block = sim.Grid.GetBlock(target.X, target.Y, target.Z);
+            var needed = block == BlockId.Water ? VoxelSimulation.BottleFillTicks : Math.Max(1, BlockDefinition.Get(block).GatherTicks); // the fill of a bottle builds the same bar
             var fraction = Math.Clamp(sim.GatherProgress / (double)needed, 0.0, 1.0);
             var bar = new Rectangle(cx - 30, cy + 26, 60, 8);
             spriteBatch.Draw(pixel, bar, new Color(0, 0, 0, 170));

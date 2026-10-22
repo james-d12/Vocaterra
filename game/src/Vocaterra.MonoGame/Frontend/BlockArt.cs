@@ -187,6 +187,12 @@ public static class BlockArt
                 return WoodIconPixel(x, y, speckle);
             case BlockCell.IconBerry:
                 return BerryIconPixel(x, y);
+            case BlockCell.IconBottle:
+                return BottleIconPixel(x, y, filled: false);
+            case BlockCell.IconWaterBottle:
+                return BottleIconPixel(x, y, filled: true);
+            case BlockCell.IconBread:
+                return BreadIconPixel(x, y);
             default:
                 return Clear;
         }
@@ -242,6 +248,68 @@ public static class BlockArt
         }
 
         return Clear;
+    }
+
+    // Whether a pixel is inside the bottle's glass: a neck two wide, shoulders, and a round-cornered body.
+    private static bool InBottle(int x, int y) => y switch
+    {
+        3 or 4 or 5 => x is 7 or 8,
+        6 => x is >= 6 and <= 9,
+        >= 7 and <= 13 => x is >= 5 and <= 10,
+        14 => x is >= 6 and <= 9,
+        _ => false,
+    };
+
+    private static (byte R, byte G, byte B, byte A) BottleIconPixel(int x, int y, bool filled)
+    {
+        // A cork on top of a pale glass bottle; the water, when there is some, fills the body from the shoulders down.
+        if (y is 1 or 2 && x is 7 or 8)
+        {
+            return Shade(176, 120, 64, 0);
+        }
+
+        if (!InBottle(x, y))
+        {
+            return Clear;
+        }
+
+        var edge = !InBottle(x - 1, y) || !InBottle(x + 1, y) || !InBottle(x, y - 1) || !InBottle(x, y + 1);
+        if (edge)
+        {
+            return Shade(104, 150, 186, 0);
+        }
+
+        if (filled && y >= 8)
+        {
+            return x == 6 && y is >= 9 and <= 11 ? Shade(150, 200, 255, 0) : Shade(44, 116, 226, 0);
+        }
+
+        return x == 6 && y is >= 8 and <= 11 ? Shade(250, 253, 255, 0) : Shade(206, 232, 246, 0);
+    }
+
+    private static (byte R, byte G, byte B, byte A) BreadIconPixel(int x, int y)
+    {
+        // A golden loaf, wider than tall, with three slashes across the top.
+        var dx = (x - 7.5) / 6.5;
+        var dy = (y - 9.5) / 4.5;
+        var r2 = (dx * dx) + (dy * dy);
+        if (r2 > 1.0)
+        {
+            return Clear;
+        }
+
+        if (r2 > 0.72)
+        {
+            return Shade(150, 92, 38, 0); // the dark crust edge
+        }
+
+        var slash = y is >= 7 and <= 10 && (x + y) % 4 == 0 && x is >= 5 and <= 10;
+        if (slash)
+        {
+            return Shade(238, 200, 128, 0);
+        }
+
+        return y <= 9 ? Shade(214, 148, 66, 0) : Shade(190, 122, 52, 0);
     }
 
     private static (byte R, byte G, byte B, byte A) Shade(int r, int g, int b, uint noise)

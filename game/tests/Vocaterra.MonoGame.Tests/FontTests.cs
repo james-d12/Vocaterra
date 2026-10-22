@@ -34,7 +34,7 @@ public sealed class FontTests
         var cmap = TrueTypeCmap.Load(CommittedFont);
         var strings = new List<string>
         {
-            DialoguePanel.KeyHints, DialoguePanel.Title, Objective.Title, "Palabra nueva", "audio", "Hecho: madera 5/5", "Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1", CraftingLayer.Title, CraftingLayer.KeyHints, "Hacer", "Sin mesa", "Inventario lleno", "Sin material", "A mano", "Usa", "Tú: ", "Guía: ", "Esc: quitar la flecha", "entendido, no entendido",
+            DialoguePanel.KeyHints, DialoguePanel.Title, Objective.Title, "Palabra nueva", "audio", "Hecho: madera 5/5", "Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1", CraftingLayer.Title, CraftingLayer.KeyHints, "Hacer", "Sin mesa", "Inventario lleno", "Sin material", "A mano", "Usa", "Tú: ", "Guía: ", "Esc: quitar la flecha", "entendido, no entendido", VoxelSession.NeedBottleHint, NpcFigures.LabelOf("shopkeeper"), NpcFigures.LabelOf("villager"), NpcFigures.LabelOf("guide"), "Tendero: ", "Aldeano: ",
             DialoguePanel.ListeningText, DialoguePanel.ThinkingText, DialoguePanel.SpokenPrefix, LoadingLayer.Text, PushToTalk.NoMicrophone, PushToTalk.Silence,
             "oído con 96 %, No se pudo abrir el micrófono: ", "Falta el modelo vosk-model-small-es-0.42 en /ruta.", "Sin voz: el reconocedor no se ha cargado.", "No se oyó nada.",
         };

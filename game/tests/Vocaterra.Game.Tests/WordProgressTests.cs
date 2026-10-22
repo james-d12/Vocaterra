@@ -40,14 +40,14 @@ public sealed class WordProgressTests
     {
         var context = ConversationContext.Create(
             TestGame.Seed,
-            GuideService.AgentId,
-            TestGame.Bundle.Agents[GuideService.AgentId].InitialState(),
+            NpcService.GuideAgent,
+            TestGame.Bundle.Agents[NpcService.GuideAgent].InitialState(),
             new StoredTimestamp(GuideSession.DefaultStartedAt),
             LearnerModel.New(),
             new Dictionary<string, int>(StringComparer.Ordinal),
             SlotMap.Empty,
             []);
-        var result = new TypedUtteranceEvaluator(TestGame.Bundle).Evaluate(line, TestGame.Bundle.Prompts[GuideService.PromptId], context);
+        var result = new TypedUtteranceEvaluator(TestGame.Bundle).Evaluate(line, TestGame.Bundle.Prompts[NpcService.GuidePrompt], context);
         return GuideWord.From(result);
     }
 

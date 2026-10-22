@@ -35,6 +35,12 @@ public enum SimulationEventKind
 
     /// <summary>(3D, S1) A block was placed: the position is in X, Y, Z, <see cref="SimulationEvent.Detail"/> the new block id and <see cref="SimulationEvent.Amount"/> the item id used.</summary>
     BlockPlaced = 8,
+
+    /// <summary>(3D, S6) An empty bottle was filled at the water: the position is the water block in X, Y, Z and <see cref="SimulationEvent.Detail"/> is the new item id.</summary>
+    BottleFilled = 9,
+
+    /// <summary>(3D, S6) The player worked on water with no bottle: the position is the water block. Raised once per hold; the front-end shows a short hint (nothing is blocked).</summary>
+    WaterWithoutBottle = 10,
 }
 
 /// <summary>An event a tick produced, for sounds, particles and the guide. </summary>

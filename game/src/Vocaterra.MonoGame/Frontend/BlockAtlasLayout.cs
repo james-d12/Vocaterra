@@ -98,6 +98,15 @@ public enum BlockCell
 
     /// <summary>The icon of a berry (the item).</summary>
     IconBerry,
+
+    /// <summary>The icon of an empty glass bottle (the item, S6).</summary>
+    IconBottle,
+
+    /// <summary>The icon of a bottle of water (the item, S6).</summary>
+    IconWaterBottle,
+
+    /// <summary>The icon of a loaf of bread (the item, S6).</summary>
+    IconBread,
 }
 
 /// <summary>
@@ -168,6 +177,9 @@ public static class BlockAtlasLayout
         ItemId.Wood => BlockCell.IconWood,
         ItemId.Berry => BlockCell.IconBerry,
         ItemId.Torch => BlockCell.TorchFlame,
+        ItemId.Bottle => BlockCell.IconBottle,
+        ItemId.WaterBottle => BlockCell.IconWaterBottle,
+        ItemId.Bread => BlockCell.IconBread,
         _ => null,
     };
 

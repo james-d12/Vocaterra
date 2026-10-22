@@ -88,7 +88,10 @@ public sealed class LiveVoxelInput
         return (selected.Item, hit.Adjacent);
     }
 
-    /// <summary>The block the gather button works on: the one under the crosshair when it can be gathered, otherwise <see langword="null"/>.</summary>
+    /// <summary>
+    /// The block the interact button works on: the one under the crosshair when it can be gathered, or when it is water (S6: with a bottle in the
+    /// inventory the simulation fills it, without one it only says so), otherwise <see langword="null"/>.
+    /// </summary>
     public static BlockPos? GatherFor(BlockRayHit? target) =>
-        target is { } hit && BlockDefinition.Get(hit.Id).Gatherable ? hit.Block : null;
+        target is { } hit && (BlockDefinition.Get(hit.Id).Gatherable || hit.Id == BlockId.Water) ? hit.Block : null;
 }

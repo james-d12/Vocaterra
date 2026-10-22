@@ -28,6 +28,8 @@ public sealed class NounCatalogTests
     [InlineData("mesa", "la", "una")]
     [InlineData("río", "el", "un")]
     [InlineData("agua", "el", "un")]
+    [InlineData("botella", "la", "una")]
+    [InlineData("pan", "el", "un")]
     public void TheArticlesComeFromTheLexicon(string lemma, string definite, string indefinite)
     {
         var noun = TestGame.Nouns.ForLemma(lemma);
@@ -41,7 +43,9 @@ public sealed class NounCatalogTests
     [InlineData("piedra", true)]
     [InlineData("tierra", true)]
     [InlineData("arena", true)]
-    [InlineData("agua", true)]
+    [InlineData("agua", false)] // since S6 the bottle of water is a counted item ("un agua"), not a mass of blocks
+    [InlineData("botella", false)]
+    [InlineData("pan", false)]
     [InlineData("fruta", false)]
     [InlineData("árbol", false)]
     public void MassNounsAreMarkedAsSuch(string lemma, bool mass)
@@ -67,6 +71,9 @@ public sealed class NounCatalogTests
         Assert.Equal([BlockId.Torch], TestGame.Nouns.ForLemma("antorcha")!.Blocks);
         Assert.Equal([ItemId.Torch], TestGame.Nouns.ForLemma("antorcha")!.Items);
         Assert.Equal([BlockId.Water], TestGame.Nouns.ForLemma("agua")!.Blocks);
+        Assert.Equal([ItemId.WaterBottle], TestGame.Nouns.ForLemma("agua")!.Items);
+        Assert.Equal([ItemId.Bottle], TestGame.Nouns.ForLemma("botella")!.Items);
+        Assert.Equal([ItemId.Bread], TestGame.Nouns.ForLemma("pan")!.Items);
         Assert.Equal([BlockId.Water], TestGame.Nouns.ForLemma("río")!.Blocks);
         Assert.Equal([BlockId.Bridge], TestGame.Nouns.ForLemma("puente")!.Blocks);
         Assert.Equal([BlockId.Stall, BlockId.Roof], TestGame.Nouns.ForLemma("tienda")!.Blocks);
@@ -109,6 +116,6 @@ public sealed class NounCatalogTests
             Assert.Null(TestGame.Nouns.ForLemma(lemma));
         }
 
-        Assert.Equal(16, TestGame.Nouns.Nouns.Count);
+        Assert.Equal(18, TestGame.Nouns.Nouns.Count); // the 16 of S4 and, since S6, botella and pan
     }
 }

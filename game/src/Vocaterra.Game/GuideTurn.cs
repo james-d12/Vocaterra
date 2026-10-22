@@ -1,5 +1,7 @@
 using System.Globalization;
+using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
@@ -35,8 +37,13 @@ public sealed record GuideWord(string Text, TextSpan Span, string? Lemma, string
     public static IReadOnlyList<GuideWord> From(PipelineResult result)
     {
         ArgumentNullException.ThrowIfNull(result);
-        return (result.Words ?? []).Select(static w => new GuideWord(w.Token.Text, w.Token.Span, w.Reading?.Lemma, w.Reading?.Pos)).ToList();
+        return From(result.Words);
     }
+
+    /// <summary>The words of a phase-1 analysis (<c>UtteranceAnalysis.Words</c>), in order; empty for <see langword="null"/>.</summary>
+    /// <param name="words">The resolved words of one analysed line.</param>
+    public static IReadOnlyList<GuideWord> From(IReadOnlyList<ResolvedWord>? words) =>
+        (words ?? []).Select(static w => new GuideWord(w.Token.Text, w.Token.Span, w.Reading?.Lemma, w.Reading?.Pos)).ToList();
 }
 
 /// <summary>The guide's check of a name the player gave an object (<c>name_object</c>) against the tile it is about.</summary>
@@ -86,9 +93,14 @@ public sealed record GuideScene(GuideViewpoint Player, GuideCell? Cursor = null,
 /// <param name="Slots">The slot values the core filled from the line (<c>place</c>, <c>object</c>), for the word counts.</param>
 /// <param name="Naming">For a <c>name_object</c> turn, the guide's check of the name against the tile (the word counts withhold colour from a wrong name and from a name with no tile to check).</param>
 /// <param name="NameTarget">For a <see cref="NameCheck.Wrong"/> or <see cref="NameCheck.Right"/> check, the noun of the tile (the word the guide revealed when the name was wrong).</param>
-/// <param name="Words">The line's normalized words with the resolver's readings (<see cref="GuideWord.From"/>), or <see langword="null"/> for a turn built by hand.</param>
+/// <param name="Words">The line's normalized words with the resolver's readings (<see cref="GuideWord.From(PipelineResult)"/>), or <see langword="null"/> for a turn built by hand.</param>
 /// <param name="Input">How the line arrived; the word counts apply the credit of this kind (<see cref="CreditRules"/>).</param>
 /// <param name="Confidence">For a spoken line, how sure Vosk was of the words (0 to 1, the mean of its per-word confidences); <see langword="null"/> for a typed line.</param>
+/// <param name="Npc">The NPC the line was said to (<c>guide</c>, <c>shopkeeper</c>, <c>villager</c>); the type's name is the guide's from S3, when she was the only one.</param>
+/// <param name="Prompt">The prompt the line was evaluated on (<c>stall-need</c>).</param>
+/// <param name="RepairKind">The core's repair step after an unclear line (ask again, slow repeat, offer choices, give up), or <see langword="null"/> for a line that was understood.</param>
+/// <param name="FollowUp">What the NPC says after the rest because of a host decision, not the player's line (the shopkeeper's fail-forward line), or <see langword="null"/>.</param>
+/// <param name="FailForward">Whether the game carried on without the player's phrase: the shopkeeper handed over the bottle after the exchange ran out (<c>stall.give_water</c> is among <paramref name="HostEvents"/>).</param>
 public sealed record GuideTurn(
     string Line,
     string Intent,
@@ -109,14 +121,19 @@ public sealed record GuideTurn(
     string? NameTarget = null,
     IReadOnlyList<GuideWord>? Words = null,
     InputKind Input = InputKind.Typed,
-    double? Confidence = null)
+    double? Confidence = null,
+    string Npc = NpcService.GuideAgent,
+    string Prompt = "",
+    RepairKind? RepairKind = null,
+    IReadOnlyList<string>? FollowUp = null,
+    bool FailForward = false)
 {
     /// <summary>A one-line summary of the verdict for the panel, for example <c>ask_directions, entendido, 100 %</c>.</summary>
     public string Summary => string.Create(
         CultureInfo.InvariantCulture,
         $"{Intent}, {(Communicated ? "entendido" : "no entendido")}, {(int)Math.Round(Correctness * 100, MidpointRounding.AwayFromZero)} %");
 
-    /// <summary>Every line the guide says this turn, in the order shown: the correction, the replies, the repair, then the world line.</summary>
+    /// <summary>Every line the NPC says this turn, in the order shown: the correction, the replies, the repair, the world line, then the follow-up.</summary>
     public IReadOnlyList<string> GuideLines
     {
         get
@@ -136,6 +153,11 @@ public sealed record GuideTurn(
             if (WorldLine is not null)
             {
                 lines.Add(WorldLine);
+            }
+
+            if (FollowUp is not null)
+            {
+                lines.AddRange(FollowUp);
             }
 
             return lines;

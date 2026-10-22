@@ -157,6 +157,37 @@ public sealed class BlockAtlasTests
         Assert.Equal(BlockCell.IconWood, BlockAtlasLayout.IconFor(ItemId.Wood));
         Assert.Equal(BlockCell.IconBerry, BlockAtlasLayout.IconFor(ItemId.Berry));
         Assert.Equal(BlockCell.TorchFlame, BlockAtlasLayout.IconFor(ItemId.Torch));
+        Assert.Equal(BlockCell.IconBottle, BlockAtlasLayout.IconFor(ItemId.Bottle));
+        Assert.Equal(BlockCell.IconWaterBottle, BlockAtlasLayout.IconFor(ItemId.WaterBottle));
+        Assert.Equal(BlockCell.IconBread, BlockAtlasLayout.IconFor(ItemId.Bread));
         Assert.Null(BlockAtlasLayout.IconFor((ItemId)999));
+    }
+
+    [Fact]
+    public void TheBottleOfWaterIsBluerThanTheEmptyBottleAndTheBreadIsWarm()
+    {
+        static (double R, double B) Mean(BlockCell cell)
+        {
+            var p = BlockArt.Pixels(cell);
+            double r = 0, b = 0;
+            var n = 0;
+            for (var i = 0; i < p.Length; i += 4)
+            {
+                if (p[i + 3] > 0)
+                {
+                    r += p[i];
+                    b += p[i + 2];
+                    n++;
+                }
+            }
+
+            return (r / n, b / n);
+        }
+
+        var empty = Mean(BlockCell.IconBottle);
+        var full = Mean(BlockCell.IconWaterBottle);
+        var bread = Mean(BlockCell.IconBread);
+        Assert.True(full.B - full.R > empty.B - empty.R + 40, "the filled bottle shows water");
+        Assert.True(bread.R > bread.B * 1.8, "bread is warm");
     }
 }

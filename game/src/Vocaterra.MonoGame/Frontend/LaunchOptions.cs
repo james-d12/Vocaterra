@@ -6,12 +6,17 @@ namespace Vocaterra.MonoGame.Frontend;
 /// <summary>
 /// The command line of the game (the 3D first-person scene, the prototype's only world since S4): <c>--seed &lt;ulong&gt;</c> (default 42), the
 /// content bundle and the scene, and for the scripted run (<c>--screenshot &lt;path.png&gt;</c>) a list of steps in the order given: <c>--look</c>,
-/// <c>--walk-to</c>, <c>--interact</c>, <c>--place</c>, <c>--select</c>, <c>--craft</c>; then the dialogue lines <c>--say</c>, which walk the player to
-/// the guide and send each line after the steps. <c>--beacon</c> stands the beacon on a named point, <c>--journal</c>, <c>--inventory</c> and <c>--crafting</c>
+/// <c>--walk-to</c>, <c>--interact</c>, <c>--place</c>, <c>--select</c>, <c>--craft</c>, and, since S6, the talk steps <c>--talk &lt;npc&gt;</c> (walk to the
+/// NPC, stop about two blocks away facing it, open the panel), <c>--say</c> (type and send one line to the NPC the panel is open on; with no panel
+/// open it first talks to the guide, as in S3), <c>--leave</c> (close the panel) and <c>--shot &lt;png&gt;</c> (save the screen now and go on). All of them run in
+/// the order given (<see cref="Script"/>). <c>--beacon</c> stands the beacon on a named point, <c>--journal</c>, <c>--inventory</c> and <c>--crafting</c>
 /// open those screens at the end. <c>--voxel</c> is accepted and ignored (the 3D world is the only one since S4).
 /// </summary>
 public sealed record LaunchOptions
 {
+    /// <summary>The NPCs <c>--talk</c> accepts: the scene's names for them.</summary>
+    public static readonly string[] TalkTargets = ["guide", "shopkeeper", "villager"];
+
     /// <summary>The seed used when <c>--seed</c> is absent.</summary>
     public const ulong DefaultSeed = 42;
 
@@ -32,7 +37,10 @@ public sealed record LaunchOptions
         + "  --place <item>@<x,y,z>  place one item (madera, antorcha, wood, torch...) in this empty cell, within reach; a step\n"
         + "  --select <n>            select a hotbar slot, 1 to 10; a step\n"
         + "  --craft <item>          craft the recipe that makes the item (antorcha) with the mesa in reach; a step\n"
-        + "  --say <line>            walk to the guide, open the dialogue, type and send the line, and wait for her reply; repeat for more lines\n"
+        + "  --talk <npc>            walk up to the NPC (guide, shopkeeper, villager), stop about two blocks away facing it and open the dialogue; a step\n"
+        + "  --say <line>            type and send the line to the NPC the dialogue is open on (the guide when none is: walk to her and open it) and wait for the reply; a step\n"
+        + "  --leave                 close the dialogue (walking on or talking to another NPC closes it too); a step\n"
+        + "  --shot <path.png>       save the screen at this point of the script and go on (the final --screenshot is saved when the script is done); a step\n"
         + "  --beacon <point>        stand the beacon column on a named point of the scene (camp, firering, workbench, stall, signpost, village, house1, bridge, river...)\n"
         + "  --journal               open the journal once the steps are done\n"
         + "  --inventory             open the inventory screen once the steps are done\n"
@@ -60,11 +68,14 @@ public sealed record LaunchOptions
     /// <summary>The ticks to run before the screenshot (only used with <see cref="ScreenshotPath"/>).</summary>
     public int Frames { get; init; } = DefaultScreenshotFrames;
 
-    /// <summary>The lines the scripted run says to the guide, in order (<c>--say</c>).</summary>
+    /// <summary>The lines the scripted run says (<c>--say</c>), in order.</summary>
     public IReadOnlyList<string> Says { get; init; } = [];
 
-    /// <summary>The 3D scripted steps (<c>--look</c>, <c>--walk-to</c>, <c>--interact</c>, <c>--place</c>, <c>--select</c>, <c>--craft</c>) in the order given.</summary>
+    /// <summary>The body's scripted steps (<c>--look</c>, <c>--walk-to</c>, <c>--interact</c>, <c>--place</c>, <c>--select</c>, <c>--craft</c>) in the order given.</summary>
     public IReadOnlyList<VoxelStep> VoxelSteps { get; init; } = [];
+
+    /// <summary>Every step of the scripted run in the order given: the body's steps, <c>--talk</c>, <c>--say</c>, <c>--leave</c> and <c>--shot</c>.</summary>
+    public IReadOnlyList<ScriptStep> Script { get; init; } = [];
 
     /// <summary>The credit a correct use earns per kind of input (<c>--typed-credit</c>); typed input earns half by default.</summary>
     public CreditRules Credit { get; init; } = CreditRules.Default;
@@ -106,6 +117,7 @@ public sealed record LaunchOptions
         var framesGiven = false;
         var says = new List<string>();
         var steps = new List<VoxelStep>();
+        var script = new List<ScriptStep>();
         string? beacon = null;
         var journal = false;
         var inventory = false;
@@ -120,10 +132,13 @@ public sealed record LaunchOptions
                 return false;
             }
 
-            if (arg is "--journal" or "--inventory" or "--crafting" or "--no-speech" or "--voxel" or "--greyscale")
+            if (arg is "--journal" or "--inventory" or "--crafting" or "--no-speech" or "--voxel" or "--greyscale" or "--leave")
             {
                 switch (arg)
                 {
+                    case "--leave":
+                        script.Add(new ScriptStep(ScriptStepKind.Leave));
+                        break;
                     case "--journal":
                         journal = true;
                         break;
@@ -147,7 +162,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is not ("--seed" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
-                or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit"))
+                or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--talk" or "--shot"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -198,6 +213,25 @@ public sealed record LaunchOptions
                     }
 
                     says.Add(value);
+                    script.Add(new ScriptStep(ScriptStepKind.Say, Value: value));
+                    break;
+                case "--talk":
+                    if (Array.IndexOf(TalkTargets, value.Trim()) < 0)
+                    {
+                        error = $"--talk needs an NPC ({string.Join(", ", TalkTargets)}), got '{value}'.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Talk, Value: value.Trim()));
+                    break;
+                case "--shot":
+                    if (value.Length == 0)
+                    {
+                        error = "--shot needs a file path.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Shot, Value: value));
                     break;
                 case "--content":
                     if (value.Length == 0)
@@ -243,6 +277,8 @@ public sealed record LaunchOptions
                     }
 
                     steps.Add(VoxelStep.Look(lookYaw, lookPitch));
+
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--walk-to":
                     if (!VoxelStep.TryParseColumn(value, out var walkX, out var walkZ))
@@ -252,6 +288,8 @@ public sealed record LaunchOptions
                     }
 
                     steps.Add(VoxelStep.WalkTo(walkX, walkZ));
+
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--interact":
                     if (!VoxelStep.TryParseBlock(value, out var interactX, out var interactY, out var interactZ))
@@ -261,6 +299,8 @@ public sealed record LaunchOptions
                     }
 
                     steps.Add(VoxelStep.Interact(interactX, interactY, interactZ));
+
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--place":
                     var at = value.IndexOf('@', StringComparison.Ordinal);
@@ -271,6 +311,8 @@ public sealed record LaunchOptions
                     }
 
                     steps.Add(VoxelStep.Place(value[..at].Trim(), placeX, placeY, placeZ));
+
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--select":
                     if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var slot) || slot < 1 || slot > 10)
@@ -280,6 +322,8 @@ public sealed record LaunchOptions
                     }
 
                     steps.Add(VoxelStep.Select(slot));
+
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 case "--craft":
                     if (value.Trim().Length == 0)
@@ -289,15 +333,17 @@ public sealed record LaunchOptions
                     }
 
                     steps.Add(VoxelStep.Craft(value.Trim()));
+
+                    script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
                 default:
                     break;
             }
         }
 
-        if (screenshot is null && (framesGiven || steps.Count > 0 || beacon is not null || journal || inventory || crafting))
+        if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --interact, --place, --select, --craft, --say, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --interact, --place, --select, --craft, --talk, --say, --leave, --shot, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 
@@ -306,6 +352,7 @@ public sealed record LaunchOptions
             ScreenshotPath = screenshot,
             Says = says,
             VoxelSteps = steps,
+            Script = script,
             Beacon = beacon,
             Journal = journal,
             ShowInventory = inventory,
@@ -316,3 +363,28 @@ public sealed record LaunchOptions
         return true;
     }
 }
+
+/// <summary>The kinds of step of the scripted run: the body's steps and the talk steps.</summary>
+public enum ScriptStepKind
+{
+    /// <summary>A step of the body (<see cref="ScriptStep.Step"/>): look, walk, interact, place, select, craft.</summary>
+    Move,
+
+    /// <summary>Walk up to the NPC named in <see cref="ScriptStep.Value"/>, stop at the stand-off distance facing it and open the dialogue.</summary>
+    Talk,
+
+    /// <summary>Type and send the line in <see cref="ScriptStep.Value"/> to the NPC the dialogue is open on.</summary>
+    Say,
+
+    /// <summary>Close the dialogue.</summary>
+    Leave,
+
+    /// <summary>Save the screen to the file in <see cref="ScriptStep.Value"/> and go on.</summary>
+    Shot,
+}
+
+/// <summary>One step of the scripted run, in the order given on the command line.</summary>
+/// <param name="Kind">What the step does.</param>
+/// <param name="Step">For <see cref="ScriptStepKind.Move"/>: the body's step.</param>
+/// <param name="Value">For the talk steps: the NPC, the line or the file path.</param>
+public sealed record ScriptStep(ScriptStepKind Kind, VoxelStep? Step = null, string Value = "");

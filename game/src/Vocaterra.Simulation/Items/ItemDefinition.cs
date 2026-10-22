@@ -1,7 +1,7 @@
 namespace Vocaterra.Simulation.Items;
 
 /// <summary>
-/// The item kinds the player can hold in the 3D world: wood (from a trunk), a torch (crafted at the workbench) and a berry (from a berry bush).
+/// The item kinds the player can hold in the 3D world: wood (from a trunk), a torch (crafted at the workbench), a berry (from a berry bush), and, since S6, a bottle (empty, then full of water) and bread (both given by NPCs).
 /// The numeric values are saved in later milestones (S10), so a value is never changed or reused: a kind the prototype retired (the 2D tools,
 /// ores and furniture) keeps its number out of this enum. Spanish names are not here; each kind's noun is the bundle's <c>game/nouns.json</c>,
 /// keyed by <see cref="ItemDefinition.Name"/>.
@@ -16,6 +16,15 @@ public enum ItemId : ushort
 
     /// <summary>A berry gathered from a berry bush.</summary>
     Berry = 25,
+
+    /// <summary>An empty bottle, handed over at the stall (S6); at the river it is filled and becomes <see cref="WaterBottle"/>.</summary>
+    Bottle = 26,
+
+    /// <summary>A bottle of water (<c>agua</c>): an empty <see cref="Bottle"/> filled at the river, or water the guide gives (S6).</summary>
+    WaterBottle = 27,
+
+    /// <summary>A bread (<c>pan</c>), handed over at the stall or by the villager (S6).</summary>
+    Bread = 28,
 }
 
 /// <summary>
@@ -34,6 +43,9 @@ public sealed record ItemDefinition(ItemId Id, string Name, int MaxStack)
         new(ItemId.Wood, "wood", DefaultStackLimit),
         new(ItemId.Torch, "torch", DefaultStackLimit),
         new(ItemId.Berry, "berry", DefaultStackLimit),
+        new(ItemId.Bottle, "bottle", DefaultStackLimit),
+        new(ItemId.WaterBottle, "water-bottle", DefaultStackLimit),
+        new(ItemId.Bread, "bread", DefaultStackLimit),
     ];
 
     /// <summary>Every item kind, ordered by id.</summary>

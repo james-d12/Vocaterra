@@ -12,7 +12,7 @@ public sealed class CampObjectiveTests
     private const string ThreeOfFour = "Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1";
 
     /// <summary>Plays the camp run once and returns the session and what it did.</summary>
-    private static (VoxelSession Session, List<WordCard> Cards, string Digest) PlayCamp(ulong seed = TestGame.Seed)
+    internal static (VoxelSession Session, List<WordCard> Cards, string Digest) PlayCamp(ulong seed = TestGame.Seed)
     {
         var scene = SceneBuilder.Build(SceneLayout.Load(Path.Combine(GameBundle.ResolveDirectory(), "game", "scene.json")), seed);
         var session = new VoxelSession(TestGame.Bundle, seed, GuideSession.DefaultStartedAt, TestGame.Nouns, scene, CreditRules.FullTyped);
@@ -230,7 +230,7 @@ public sealed class CampObjectiveTests
         throw new InvalidOperationException($"No {id} in the scene.");
     }
 
-    private static double Distance(BlockPos a, BlockPos b)
+    internal static double Distance(BlockPos a, BlockPos b)
     {
         var dx = a.X - b.X;
         var dy = a.Y - b.Y;
