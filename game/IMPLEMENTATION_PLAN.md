@@ -119,6 +119,20 @@ to do with each:
 8. *Licences*: the game is MIT, the core Apache-2.0 (core D3): the merged repository needs one decision (or per-directory licences).
 9. *CI*: still deferred (D-game-3, core D1).
 
+**Handover (2026-10-22, morning): the S series is done** on `feature/prototype` (pushed; `main` untouched). S0 to S12 and S4b merged
+through the gate; core M29c, M29e, M29f, M29g, M29h merged; 3,889 tests pass (5 model-gated skips without models). Bundle `game-v1`
+`cd63077b…` (253 files, 226 pre-rendered WAVs). The playtest: `--playtest` (mic check, pre-check, the route, post-check after the transfer
+or F10, `playtest.save`, thank-you), recall with `--playtest --load <folder>/playtest.save`, `scripts/playtest-report.sh`, the private
+linux-x64 folder from `scripts/playtest-build.sh` (no sherpa-onnx or ONNX Runtime native; Vosk model copied; 193 MiB).
+**Waiting for the owner:** (1) listen to every WAV and mark `docs/SPEECH_CHECKLIST.md` (D-game-12 step 4); (2) the pre-flight in
+`docs/PLAYTEST.md` section 12 — real keyboard, mouse look, E/T/V, push-to-talk with a real microphone, F10 and Esc were never exercised
+by an agent (no input automation on this machine); (3) core D2: does handing the private build folder to testers count as distribution
+(the WAVs were rendered by Kokoro through sherpa-onnx, whose native runtime carries GPL code; the folder ships only the managed wrapper);
+(4) the native-speaker check stays deferred (D-game-12; rows provisional, reviewed by llm-opus); (5) whether to merge `feature/prototype`
+into `main`; (6) freeze the bundle before testers' recall sessions (a save refuses another bundle hash). Proposed, not started: core M29b
+(retry with the repair's request), M29d and M29i (fuzz findings), M28b (item-dependent replies: today "quiero pan" at the stall also gets
+the bottle line), M28c, M28d.
+
 **Now (2026-10-21, night): the S series is running** on `feature/prototype` (owner: through S12 overnight, push after each merge; the Opus
 review of the phrase sheet and the content hash step approved; the owner's own steps, listening to the S9 WAVs and following the S12
 checklist, wait for the owner). Design per milestone: section 4.4 and `docs/SCENARIO_PLAN.md`.
@@ -164,7 +178,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S9 | NPCs speak: pre-rendered Kokoro lines in the bundle | done (merged to `feature/prototype` 2026-10-22, bundle `f5f28b88…`); **the owner listens to every WAV** (`docs/SPEECH_CHECKLIST.md`, D-game-12 step 4) | Haiku 5.5 | S5, S6 |
 | S10 | Save, sessions, resume (P9 re-scoped) | done (merged to `feature/prototype` 2026-10-22) | Haiku 5.5 | S4, S8 |
 | S11 | Checks (pre, post, recall), the session log and the report script | done (merged to `feature/prototype` 2026-10-22, bundle `cd63077b…`) | Haiku 5.5 | S8, S10 |
-| S12 | Playtest build and facilitator checklist | in progress | Haiku 5.5 | S7, S9, S11 |
+| S12 | Playtest build and facilitator checklist | done (merged to `feature/prototype` 2026-10-22); **the owner's pre-flight** (`docs/PLAYTEST.md` section 12) | Haiku 5.5 | S7, S9, S11 |
 
 Each milestone ends with the gate in section 6 and a line in section 5. The S series is gated with `GATE_TARGET=feature/prototype
 scripts/merge-gate.sh "S<nn>:<branch>"` from the `feature/prototype` checkout.
@@ -709,6 +723,16 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   files, 0 missing. The check screen checked by the orchestrator. Open: a save refuses another bundle hash, so the bundle must be frozen
   before testers' next-day recall (S12); the first frame of a window can be drawn at 800 x 480 before the resize (a `--wait 2` before
   `--shot`); the two new review lines are not in PHRASES.md's reviewed set (they reuse reviewed texts). Tests 3,877.
+- **S12, the playtest build (2026-10-22, Haiku 5.5).** `--playtest` (no debug overlay, mic check on, session log on, pre-check implied on a
+  fresh start and recall on a load, the post-check once the camp is complete and the guide's transfer offer has been made, or on F10;
+  `playtest.save` in the session folder; a thank-you screen held until Esc); the water rule (a block named by several nouns is in colour
+  when any of them is known); a screenshot gate that waits for the final back-buffer size; `scripts/playtest-build.sh` (self-contained
+  linux-x64 publish with `-p:VocaterraPlaytest=true`, which excludes the sherpa-onnx and ONNX Runtime natives; the Vosk model copied and
+  checked against the manifest; 519 files, 193 MiB; every check passes); `game/docs/PLAYTEST.md` (recruitment of beginners, consent and
+  what is logged, the provisional content-trust note, setup, the session, a 5-minute rule before helping, observer notes, recall, the A/B
+  arm, the gates and their evidence, the owner's pre-flight, the bundle freeze). The orchestrator moved the playtest-only runtime pin into
+  `Directory.Packages.props` (the agent had used a `VersionOverride`). Fresh clone: builds with 0 warnings and passes 3,889 tests; the README
+  now says the speech models must be fetched. Checked by the orchestrator: the playtest world frame (no overlay, F10 label). Tests 3,889.
 
 ## 6. Definition of done (every milestone)
 
