@@ -132,24 +132,11 @@ public sealed class WordCardLayer : IFrameLayer
     private static readonly Color Back = new(10, 10, 20, 215);
 
     /// <summary>
-    /// Where the card is for a window: above the hotbar, and, while the dialogue panel is open (it covers the bottom of the window; S6 left the card
-    /// hidden behind it), on top of the panel.
+    /// Where the card is for a window while no talk is open: above the hotbar. While a talk is open the card is a small toast placed by <see cref="ConversationLayout"/> (S22).
     /// </summary>
     /// <param name="viewportWidth">The window's width.</param>
     /// <param name="viewportHeight">The window's height.</param>
-    /// <param name="dialogueOpen">Whether the dialogue panel is open.</param>
-    /// <param name="supportTop">While the dialogue panel is open, the top of the support cards above it (<see cref="SupportLayout.Top"/>, S8) so the card stays clear of them; <see langword="null"/> when there are none.</param>
-    public static Rectangle BoxFor(int viewportWidth, int viewportHeight, bool dialogueOpen, int? supportTop = null)
-    {
-        var box = new Rectangle((viewportWidth - Width) / 2, viewportHeight - Bottom - Height, Width, Height);
-        if (dialogueOpen)
-        {
-            var panel = DialogueLayout.PanelBox(viewportWidth, viewportHeight);
-            box.Y = Math.Max(4, Math.Min(panel.Y, supportTop ?? panel.Y) - 8 - Height);
-        }
-
-        return box;
-    }
+    public static Rectangle BoxFor(int viewportWidth, int viewportHeight) => new((viewportWidth - Width) / 2, viewportHeight - Bottom - Height, Width, Height);
 
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
@@ -173,7 +160,7 @@ public sealed class WordCardLayer : IFrameLayer
             return;
         }
 
-        var box = BoxFor(view.ViewportWidth, view.ViewportHeight, false);
+        var box = BoxFor(view.ViewportWidth, view.ViewportHeight);
 
         spriteBatch.Draw(view.Pixel, box, Back * alpha);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, Gold * alpha);

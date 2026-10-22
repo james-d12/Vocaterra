@@ -410,13 +410,16 @@ public sealed class SpeechUxFrontendTests
     public void TheWordCardStandsAboveTheDialoguePanelNotUnderIt()
     {
         var panel = DialogueLayout.PanelBox(1280, 720);
-        var card = WordCardLayer.BoxFor(1280, 720, dialogueOpen: true);
-        var free = WordCardLayer.BoxFor(1280, 720, dialogueOpen: false);
+        var head = ConversationCards.HeadRect(640, 180, 290);
+        var layout = ConversationLayout.Compute(1280, 720, head, null, panel, [ConversationCards.NewWord]);
+        var toast = Assert.Single(layout.Cards);
+        var free = WordCardLayer.BoxFor(1280, 720);
 
-        Assert.True(card.Bottom <= panel.Y, "the card must not overlap the panel"); // S6 left it hidden behind the panel
-        Assert.True(card.Y >= 0);
-        Assert.True(free.Y > card.Y); // without the panel it sits above the hotbar as before
-        Assert.Equal(WordCardLayer.BoxFor(1280, 720, dialogueOpen: false), free);
+        Assert.Equal(CardPresence.Full, toast.State);
+        Assert.False(ConversationLayout.Overlaps(toast.Box, panel), "the toast must not overlap the panel"); // S6 left it hidden behind the panel
+        Assert.False(ConversationLayout.Overlaps(toast.Box, head), "nor the speaker (S22)");
+        Assert.True(toast.Box.Y >= 0);
+        Assert.True(free.Y > toast.Box.Y); // without the panel it sits above the hotbar as before
     }
 
     [Fact]

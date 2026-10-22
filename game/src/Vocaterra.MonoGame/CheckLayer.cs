@@ -32,20 +32,23 @@ public sealed class CheckLayer : IFrameLayer
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown check kind."),
     };
 
-    /// <summary>The panel's rectangle in a window of this size (centred, at most 820 pixels wide).</summary>
+    /// <summary>The line under the question of a comprehension item.</summary>
+    public const string ComprehensionHint = "The line plays once (R hears it again). Press 1, 2 or 3 for the meaning.";
+
+    /// <summary>The line before the situation of a production item.</summary>
+    public const string ProductionPreface = "Say it in Spanish, the way you would to the person in this situation.";
+
+    /// <summary>The line under the situation of a production item.</summary>
+    public const string ProductionHint = "Hold V and speak, or W to type. N: I don't know (no sé). Enter sends what you typed.";
+
+    /// <summary>The panel's rectangle in a window of this size (centred; <see cref="CheckCardLayout.PanelFor"/>).</summary>
     /// <param name="viewportWidth">The window's width.</param>
     /// <param name="viewportHeight">The window's height.</param>
     public static Rectangle PanelFor(int viewportWidth, int viewportHeight)
     {
-        var width = Math.Min(820, viewportWidth - 48);
-        var height = Math.Min(430, viewportHeight - 48);
-        return new Rectangle((viewportWidth - width) / 2, (viewportHeight - height) / 2, width, height);
+        var box = CheckCardLayout.PanelFor(viewportWidth, viewportHeight);
+        return new Rectangle(box.X, box.Y, box.Width, box.Height);
     }
-
-    /// <summary>The rectangle of option <paramref name="index"/> (from 0) in the panel: a row of 56 pixels.</summary>
-    /// <param name="panel">The panel.</param>
-    /// <param name="index">The option.</param>
-    public static Rectangle OptionRow(Rectangle panel, int index) => new(panel.Left + 40, panel.Top + 150 + (index * 66), panel.Width - 80, 56);
 
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
@@ -105,35 +108,64 @@ public sealed class CheckLayer : IFrameLayer
         DrawHelpers.Text(spriteBatch, small, footer, new Vector2(panel.Left + 40, panel.Bottom - 40), thinking ? Gold : Dim);
     }
 
+    private static void DrawRows(SpriteBatch spriteBatch, SpriteFontBase font, IReadOnlyList<string> rows, int x, int y, int rowHeight, Color colour)
+    {
+        for (var i = 0; i < rows.Count; i++)
+        {
+            DrawHelpers.Text(spriteBatch, font, rows[i], new Vector2(x, y + (i * rowHeight)), colour);
+        }
+    }
+
     private static void DrawComprehension(SpriteBatch spriteBatch, FrameView view, CheckPlanEntry entry, Rectangle panel, SpriteFontBase title, SpriteFontBase small)
     {
-        DrawHelpers.Text(spriteBatch, title, entry.Item.Question, new Vector2(panel.Left + 40, panel.Top + 66), Ink);
-        DrawHelpers.Text(spriteBatch, small, "The line plays once (R hears it again). Press 1, 2 or 3 for the meaning.", new Vector2(panel.Left + 40, panel.Top + 110), Dim);
-        var mouse = view.Mouse;
         var shown = entry.ShownOptions;
+        var layout = CheckCardLayout.ForComprehension(
+            new PixelBox(panel.X, panel.Y, panel.Width, panel.Height),
+            entry.Item.Question,
+            ComprehensionHint,
+            shown.Select(static o => (o.Label, o.Icon is not null)).ToList(),
+            t => DrawHelpers.Width(title, t),
+            t => DrawHelpers.Width(small, t));
+        DrawRows(spriteBatch, title, layout.Heading, panel.Left + CheckCardLayout.Side, layout.HeadingY, CheckCardLayout.LargeRow, Ink);
+        DrawRows(spriteBatch, small, layout.Hint, panel.Left + CheckCardLayout.Side, layout.HintY, CheckCardLayout.SmallRow, Dim);
+        var mouse = view.Mouse;
         for (var i = 0; i < shown.Count; i++)
         {
-            var row = OptionRow(panel, i);
+            var option = layout.Options[i];
+            var row = new Rectangle(option.Box.X, option.Box.Y, option.Box.Width, option.Box.Height);
             var hovered = mouse is { } at && row.Contains(at.X, at.Y);
             spriteBatch.Draw(view.Pixel, row, hovered ? new Color(60, 60, 96, 245) : new Color(34, 34, 58, 235));
             DrawHelpers.Border(spriteBatch, view.Pixel, row, 1, new Color(110, 110, 150));
-            var textX = row.Left + 16;
             if (shown[i].Icon is { } name && Enum.TryParse<ItemId>(name, out var item))
             {
                 view.VoxelIcons.DrawIcon(spriteBatch, item, new Rectangle(row.Left + 12, row.Top + 8, 40, 40), 1);
-                textX = row.Left + 64;
             }
 
-            DrawHelpers.Text(spriteBatch, title, $"{i + 1}  {shown[i].Label}", new Vector2(textX, row.Top + 12), Ink);
+            if (option.Large)
+            {
+                DrawHelpers.Text(spriteBatch, title, option.Rows[0], new Vector2(option.TextX, row.Top + 12), Ink);
+            }
+            else
+            {
+                DrawRows(spriteBatch, small, option.Rows, option.TextX, row.Top + 8, CheckCardLayout.SmallRow, Ink);
+            }
         }
     }
 
     private static void DrawProduction(SpriteBatch spriteBatch, Texture2D pixel, CheckScreen check, CheckPlanEntry entry, Rectangle panel, SpriteFontBase title, SpriteFontBase small)
     {
-        DrawHelpers.Text(spriteBatch, small, "Say it in Spanish, the way you would to the person in this situation.", new Vector2(panel.Left + 40, panel.Top + 66), Dim);
-        DrawHelpers.Text(spriteBatch, title, entry.Item.Situation, new Vector2(panel.Left + 40, panel.Top + 100), Ink);
-        DrawHelpers.Text(spriteBatch, small, "Hold V and speak, or W to type. N: I don't know (no sé). Enter sends what you typed.", new Vector2(panel.Left + 40, panel.Top + 160), Dim);
-        var box = new Rectangle(panel.Left + 40, panel.Top + 200, panel.Width - 80, 44);
+        var layout = CheckCardLayout.ForProduction(
+            new PixelBox(panel.X, panel.Y, panel.Width, panel.Height),
+            ProductionPreface,
+            entry.Item.Situation,
+            ProductionHint,
+            t => DrawHelpers.Width(title, t),
+            t => DrawHelpers.Width(small, t));
+        DrawRows(spriteBatch, small, layout.Preface, panel.Left + CheckCardLayout.Side, layout.PrefaceY, CheckCardLayout.SmallRow, Dim);
+        DrawRows(spriteBatch, title, layout.Heading, panel.Left + CheckCardLayout.Side, layout.HeadingY, CheckCardLayout.LargeRow, Ink);
+        DrawRows(spriteBatch, small, layout.Hint, panel.Left + CheckCardLayout.Side, layout.HintY, CheckCardLayout.SmallRow, Dim);
+        var input = layout.Input!.Value;
+        var box = new Rectangle(input.X, input.Y, input.Width, input.Height);
         spriteBatch.Draw(pixel, box, new Color(10, 10, 20, 255));
         var typed = check.Entry.Text;
         if (typed.Length > 0 || check.IsTyping)

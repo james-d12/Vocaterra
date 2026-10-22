@@ -103,7 +103,18 @@ public sealed class ConversationFrame
         }
 
         var beaconLabel = BeaconArrowLayer.LabelFor(view, labelAvoid)?.Box;
-        var layout = ConversationLayout.Compute(width, height, head, bubbleBox, panel, requests, beaconLabel is { } label ? [label] : null);
+        var extraClear = new List<PixelBox>();
+        if (beaconLabel is { } label)
+        {
+            extraClear.Add(label);
+        }
+
+        if (view.LessonStripBox is { } strip)
+        {
+            extraClear.Add(strip);
+        }
+
+        var layout = ConversationLayout.Compute(width, height, head, bubbleBox, panel, requests, extraClear);
         var placements = layout.Cards;
         var at = 0;
         CardPlacement? toast = showToast ? placements[at++] : null;

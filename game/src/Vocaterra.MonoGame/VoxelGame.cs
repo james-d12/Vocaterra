@@ -623,6 +623,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var mouse = Mouse.GetState();
         view.Mouse = !_options.IsScreenshotRun && GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? mouse.Position : null;
 
+        view.LessonStripBox = LessonLayer.LayoutFor(view, _lesson) is { } lessonStrip ? lessonStrip.Box : null; // the cards keep clear of it (S22)
+
         _colours!.Refresh();
         // A scripted run builds every mesh it needs before the picture; a live one spends its budget a frame (more while the world is still loading in).
         _renderer!.Remesh(_camera.Eye, _camera.Frustum, _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? _preset.MeshBudgetMilliseconds : 30);
