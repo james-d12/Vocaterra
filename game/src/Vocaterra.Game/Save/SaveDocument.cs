@@ -42,6 +42,7 @@ namespace Vocaterra.Game;
 /// <param name="Lessons">The progress of the lessons (S16): where each one stands and which is active. A save from before S16 has none.</param>
 /// <param name="Tips">The first-time tips (S16): which were shown, which wait and which is on screen. A save from before S16 has none.</param>
 /// <param name="Learner">The learner's record (S19): the newest history entries and the word rows. A version 1 save has none (an empty history).</param>
+/// <param name="BookGranted">Whether the book item has been granted (S22): a save written since S20 says so; a save from before S20 does not, and the load gives the learner the book once.</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -73,7 +74,8 @@ public sealed record SaveDocument(
     IReadOnlyList<ChunkEdit> Chunks,
     LessonsSave? Lessons = null,
     TipsSave? Tips = null,
-    LearnerRecordSave? Learner = null);
+    LearnerRecordSave? Learner = null,
+    bool BookGranted = false);
 
 /// <summary>The learner's record in a save (S19): the next entry's number, the newest history entries (oldest first) and the word rows, which are a fold of the whole history.</summary>
 /// <param name="NextId">The number the next history entry takes.</param>

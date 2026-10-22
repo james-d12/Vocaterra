@@ -76,6 +76,48 @@ public sealed class SaveGameTests
         Assert.Equal(SaveGame.Serialize(SaveGame.Capture(session, Pristine())), first);
     }
 
+    // A save as S19 wrote it, before S20 gave the learner the book: no book in the slots and no "bookGranted" field (S22).
+    private static string SaveBeforeTheBook()
+    {
+        var session = TestGame.NewSession();
+        Assert.True(session.Simulation.Inventory.Remove(ItemId.Book, 1));
+        var text = SaveOf(session);
+        var old = text.Replace(",\"bookGranted\":true", string.Empty, StringComparison.Ordinal);
+        Assert.NotEqual(text, old); // the field was there and is now gone
+        Assert.DoesNotContain("bookGranted", old, StringComparison.Ordinal);
+        return old;
+    }
+
+    [Fact]
+    public void ASaveFromBeforeTheBookGrantsTheBookOnceWhenItLoads()
+    {
+        var old = SaveBeforeTheBook();
+        Assert.False(SaveGame.Parse(old).BookGranted);
+
+        var first = LoadOf(old);
+
+        Assert.Equal(1, first.Simulation.Inventory.Count(ItemId.Book)); // given on the load
+        var second = LoadOf(SaveOf(first));
+        Assert.Equal(1, second.Simulation.Inventory.Count(ItemId.Book)); // the next save says it was granted: still the one book, not two
+        Assert.True(SaveGame.Parse(SaveOf(first)).BookGranted);
+
+        // Once: a learner who has put the book away is not given another by a later load.
+        Assert.True(first.Simulation.Inventory.Remove(ItemId.Book, 1));
+        var third = LoadOf(SaveOf(first));
+        Assert.Equal(0, third.Simulation.Inventory.Count(ItemId.Book));
+    }
+
+    [Fact]
+    public void ASaveWithTheBookDoesNotGetASecondOne()
+    {
+        var text = SaveOf(TestGame.NewSession());
+        var withoutField = text.Replace(",\"bookGranted\":true", string.Empty, StringComparison.Ordinal);
+
+        var loaded = LoadOf(withoutField); // an old save that already has the book in its slots
+
+        Assert.Equal(1, loaded.Simulation.Inventory.Count(ItemId.Book));
+    }
+
     [Fact]
     public void ASaveAfterALoadIsTheSameExceptForTheSessionNumber()
     {
