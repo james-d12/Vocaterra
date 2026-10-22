@@ -24,9 +24,27 @@ internal static class TestGame
     public static Scene Route(ulong seed = Seed) =>
         SceneBuilder.Build(SceneLayout.Load(Path.Combine(GameBundle.ResolveDirectory(), "game", "scene.json")), seed);
 
-    /// <summary>A new session on the route for a seed, with the fixed start time.</summary>
+    /// <summary>
+    /// A new session on the route for a seed, with the fixed start time. The guide has no lesson unless the test asks for one (S17: the shipped lesson starts by itself
+    /// and takes the guide's conversation, which the tests of her ordinary conversation do not want); use <see cref="NewSessionWithShippedLessons"/> for the real one.
+    /// </summary>
     public static VoxelSession NewSession(ulong seed = Seed, CreditRules? credit = null, LessonBook? lessons = null) =>
-        new(Bundle, seed, GuideSession.DefaultStartedAt, Nouns, Route(seed), credit ?? CreditRules.FullTyped, lessons);
+        new(Bundle, seed, GuideSession.DefaultStartedAt, Nouns, Route(seed), credit ?? CreditRules.FullTyped, lessons ?? NoLessons);
+
+    /// <summary>A new session on the route with the lessons of the bundle (the guide's <c>first-words</c> lesson).</summary>
+    public static VoxelSession NewSessionWithShippedLessons(ulong seed = Seed, CreditRules? credit = null) =>
+        new(Bundle, seed, GuideSession.DefaultStartedAt, Nouns, Route(seed), credit ?? CreditRules.FullTyped, LessonBook.Load(Bundle, PhraseSheet.Load(Bundle), Speech));
+
+    /// <summary>A book without lessons.</summary>
+    public static LessonBook NoLessons => Lessons("{ \"schemaVersion\": 1, \"lessons\": [] }");
+
+    /// <summary>The two-step sample lesson of S16 (hola, gracias), which S17 retired from the bundle and the runner's tests keep: the same text, the same ids.</summary>
+    public const string SampleLesson = """
+        { "schemaVersion": 1, "lessons": [ { "id": "sample", "npc": "guide", "title": "A first hello", "english": "Say hello to the guide, then say thank you. It takes a minute.", "autoStart": false, "steps": [
+          { "id": "say-hola", "type": "repeat", "phrase": "hola", "prompt": "guide-open", "english": "Say hello to the guide. “Hola” is how you greet anyone.", "help": "Say: Hola (OH-lah). It means hello. The letter h is silent in Spanish.", "retry": "Not quite. Say: Hola. It means hello." },
+          { "id": "say-gracias", "type": "answer", "phrase": "gracias", "prompt": "guide-open", "line": "guide_offer_yes.1", "translation": "Of course! Here you are.", "english": "The guide hands you something. Thank her.", "help": "Say: Gracias (GRAH-see-ahs). It means thank you.", "retry": "Not quite. Say: Gracias. It means thank you." }
+        ] } ] }
+        """;
 
     /// <summary>The bundle's speakable lines (the lessons' lines are checked against them).</summary>
     public static IReadOnlyList<SpeechLine> Speech => SpeechLines.Enumerate(Bundle, Nouns, PhraseSheet.Load(Bundle));

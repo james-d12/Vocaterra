@@ -243,11 +243,23 @@ public static class WorldEvents
     /// <summary>A first-time tip was shown (S16; the detail is the tip's id).</summary>
     public const string TipShown = "tip_shown";
 
+    /// <summary>The player met the guide (S17): the first time the panel opened on her, or the first step of the camp's checklist, whichever came first. The objective line then stops sending the learner down the trail.</summary>
+    public const string GuideMet = "guide_met";
+
+    /// <summary>A torch was set on the rim of the fire ring at the player's own camp (S17): the fire is lit.</summary>
+    public const string FireLit = "fire_lit";
+
+    /// <summary>The session's ending (S17): the camp checklist is complete and the player's own fire is lit. The front-end shows the closing moment.</summary>
+    public const string SessionComplete = "session_complete";
+
+    /// <summary>The camp's checklist was complete and the player was given a spare torch for their own fire (S17; the detail says how, or that the bag was full).</summary>
+    public const string SpareTorch = "spare_torch";
+
     /// <summary>Every world event name, in the order above (the English text and the lessons check the names they use against it).</summary>
     public static IReadOnlyList<string> All { get; } =
     [
         TalkOpened, TalkClosed, ItemGiven, BeaconSet, BottleFilled, WaterWithoutBottle, FoundWithoutSpanish, ObjectiveStep, ObjectiveComplete, TransferOffered,
-        KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, TipShown,
+        KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, TipShown, GuideMet, FireLit, SessionComplete, SpareTorch,
     ];
 }
 

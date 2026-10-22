@@ -501,6 +501,9 @@ public sealed class PhraseSupportTests
         Assert.Equal("¿Qué necesitas?", PhraseReviews.Create("pedir-agua", sheet, TestGame.Bundle)?.Request);
         Assert.Equal("¿Quieres agua?", PhraseReviews.Create("no-gracias", sheet, TestGame.Bundle)?.Request);
         Assert.Equal("¿Qué buscas?", PhraseReviews.Create("donde-esta-el-rio", sheet, TestGame.Bundle)?.Request);
-        Assert.Null(PhraseReviews.Create("hola", sheet, TestGame.Bundle)); // no scaffold, nothing to fade, nothing to review
+        Assert.Equal("¡Hola!", PhraseReviews.Create("hola", sheet, TestGame.Bundle)?.Request); // S17: the lesson's phrases are asked with the lesson's own lines
+        Assert.Equal("¿Quieres fruta?", PhraseReviews.Create("si", sheet, TestGame.Bundle)?.Request);
+        Assert.Null(PhraseReviews.Create("gracias", sheet, TestGame.Bundle)); // no request to make of it: nothing to review
+        Assert.Null(PhraseReviews.Create("que-necesitas", sheet, TestGame.Bundle)); // a phrase the learner hears is never reviewed
     }
 }

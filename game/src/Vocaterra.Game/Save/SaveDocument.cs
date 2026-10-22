@@ -78,7 +78,8 @@ public sealed record SaveDocument(
 /// <param name="Queued">The ids waiting, in the order they will be shown.</param>
 /// <param name="Current">The id of the tip on screen, or <see langword="null"/>.</param>
 /// <param name="Since">The tick the tip on screen came up at (0 when none).</param>
-public sealed record TipsSave(IReadOnlyList<string> Shown, IReadOnlyList<string> Queued, string? Current, long Since);
+/// <param name="Ready">For each id in <paramref name="Queued"/>, the tick it may come up at (S17: the opening tips wait their delay); <see langword="null"/> in a save from before, which then has them ready at once.</param>
+public sealed record TipsSave(IReadOnlyList<string> Shown, IReadOnlyList<string> Queued, string? Current, long Since, IReadOnlyList<long>? Ready = null);
 
 /// <summary>The progress of the lessons (S16): each lesson's state, and the id of the one that has begun and not finished.</summary>
 /// <param name="Lessons">One entry per lesson of the game, in the file's order.</param>

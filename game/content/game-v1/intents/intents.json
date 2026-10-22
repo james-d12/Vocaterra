@@ -279,6 +279,40 @@
         {"text": "yo necesitas ayuda", "errors": ["conj.person"], "prompt": "villager-open"},
         "qué hago"
       ]
+    },
+    {
+      "intentId": "ask_repeat",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "otra vez (por favor)?",
+        "[VERB:repetir] (por favor)?"
+      ],
+      "keywordRules": [
+        { "lemmas": ["repetir"], "requiresSlots": [] }
+      ],
+      "examples": [
+        {"text": "otra vez, por favor", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "otra vez", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "repite, por favor", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "repite", "errors": [], "prompt": "lesson-unstuck"}
+      ]
+    },
+    {
+      "intentId": "ask_slower",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "más despacio (por favor)?",
+        "[VERB:hablar] más despacio (por favor)?"
+      ],
+      "keywordRules": [
+        { "lemmas": ["despacio"], "requiresSlots": [] }
+      ],
+      "examples": [
+        {"text": "más despacio, por favor", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "más despacio", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "habla más despacio", "errors": [], "prompt": "lesson-unstuck"},
+        {"text": "habla más despacio, por favor", "errors": [], "prompt": "lesson-unstuck"}
+      ]
     }
   ]
 }

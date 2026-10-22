@@ -87,6 +87,34 @@
       "correct": 2
     },
     {
+      "id": "hear.quieres-fruta",
+      "kind": "comprehension",
+      "phrase": "quieres-fruta",
+      "line": "guide.lesson.offer.1",
+      "spanish": "¿Quieres fruta?",
+      "question": "A guide says this to you. What does it mean?",
+      "options": [
+        { "label": "She asks where the river is." },
+        { "label": "She offers you some fruit." },
+        { "label": "She says thank you." }
+      ],
+      "correct": 1
+    },
+    {
+      "id": "hear.necesito-madera",
+      "kind": "comprehension",
+      "phrase": "necesito-madera",
+      "line": "guide.lesson.task.1",
+      "spanish": "Necesito madera y frutas.",
+      "question": "A guide says this at her camp. What does it mean?",
+      "options": [
+        { "label": "She needs water and bread.", "icon": "WaterBottle" },
+        { "label": "She needs a torch and a bottle." },
+        { "label": "She needs wood and fruit." }
+      ],
+      "correct": 2
+    },
+    {
       "id": "say.pedir-agua",
       "kind": "production",
       "phrase": "pedir-agua",
@@ -117,6 +145,30 @@
       "situation": "You are in a village and need to find the river. Ask a villager.",
       "prompt": "villager-open",
       "intent": "ask_directions"
+    },
+    {
+      "id": "say.si",
+      "kind": "production",
+      "phrase": "si",
+      "situation": "A guide holds up a log and asks if it is wood. Answer yes.",
+      "prompt": "lesson-yesno",
+      "intent": "confirm"
+    },
+    {
+      "id": "say.que-es-esto",
+      "kind": "production",
+      "phrase": "que-es-esto",
+      "situation": "A guide points at a plant you do not know. Ask her what it is.",
+      "prompt": "lesson-what",
+      "intent": "ask_what"
+    },
+    {
+      "id": "say.otra-vez",
+      "kind": "production",
+      "phrase": "otra-vez",
+      "situation": "A guide spoke too fast and you did not catch it. Ask her to say it again.",
+      "prompt": "lesson-unstuck",
+      "intent": "ask_repeat"
     }
   ]
 }

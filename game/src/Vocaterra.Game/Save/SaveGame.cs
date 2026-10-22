@@ -280,6 +280,8 @@ public static class SaveGame
         {
             session.Tips.Restore(tips);
         }
+
+        session.RestoreStage(); // the stage of the objective area (S17) follows from the world and the progress just put back
     }
 
     // The phrase sheet's rows, each exactly once: a save with an unknown or missing phrase is refused.

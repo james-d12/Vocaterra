@@ -10,12 +10,13 @@ public sealed class PhraseSheetLookupTests
     private static PhraseSheet Sheet => PhraseSheet.Load(TestGame.Bundle);
 
     [Fact]
-    public void TheBundleHoldsTheElevenPhrasesOfTheSheetInOrder()
+    public void TheBundleHoldsTheTwentyOnePhrasesOfTheSheetInOrder()
     {
         var sheet = Sheet;
 
         Assert.Equal(
-            ["que-necesitas", "pedir-agua", "quieres-pan", "si-por-favor", "no-gracias", "donde-esta-el-rio", "hola", "gracias", "adios", "no-se", "ayuda"],
+            ["que-necesitas", "pedir-agua", "quieres-pan", "si-por-favor", "no-gracias", "donde-esta-el-rio", "hola", "gracias", "adios", "no-se", "ayuda",
+                "me-llamo", "es-madera", "si", "no", "que-es-esto", "quieres-fruta", "de-nada", "otra-vez", "mas-despacio", "necesito-madera"],
             sheet.Rows.Select(static r => r.Id));
         Assert.Equal("Quiero agua, por favor.", sheet.Find("pedir-agua")!.CardPhrase);
         Assert.Equal("¿Dónde está el río?", sheet.Find("donde-esta-el-rio")!.CardPhrase);

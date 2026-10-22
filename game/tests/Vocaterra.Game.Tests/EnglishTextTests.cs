@@ -20,7 +20,9 @@ public sealed class EnglishTextTests
         Assert.True(english.Controls.Count >= 10);
         Assert.Contains(english.Controls, static c => c.Id == "look" && c.Text.StartsWith("Look around", StringComparison.Ordinal));
         Assert.Contains(english.Controls, static c => c.Id == "help" && c.Keys.Contains('H', StringComparison.Ordinal));
-        Assert.Contains(english.Tips, static t => t is { When: "start", Text: "Move the mouse to look around." });
+        Assert.Contains(english.Tips, static t => t is { When: "start", Text: "Move the mouse to look around. The valley below is where you are headed." });
+        Assert.Equal(["look", "walk", "jump", "note", "gather"], english.Tips.Where(static t => t.When == "start").Select(static t => t.Id)); // the opening (S17)
+        Assert.Equal([0, 9, 18, 28, 50], english.Tips.Where(static t => t.When == "start").Select(static t => t.DelaySeconds)); // paced so they do not stack up
         Assert.Contains(english.Tips, static t => t.When == "aimed_npc");
         Assert.All(EnglishText.UiKeys, key => Assert.False(string.IsNullOrWhiteSpace(english.Ui(key)), key));
         Assert.Equal("step 2 of 7", english.Ui("stepOf", ("n", "2"), ("total", "7")));

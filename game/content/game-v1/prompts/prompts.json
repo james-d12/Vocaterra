@@ -14,7 +14,7 @@
     "mode": "Open",
     "difficulty": "Beginner",
     "answerSetId": "places-basic",
-    "allowedIntentIds": ["ask_directions", "ask_craft", "ask_find", "ask_what", "ask_help", "dont_know", "name_object", "greet", "thank", "farewell"],
+    "allowedIntentIds": ["ask_directions", "ask_craft", "ask_find", "ask_what", "ask_help", "dont_know", "name_object", "greet", "thank", "farewell", "ask_repeat", "ask_slower"],
     "agentId": "guide",
     "slotGrammarIds": [],
     "text": "¡Hola! Soy la guía. ¿En qué te ayudo?"
@@ -24,7 +24,7 @@
     "mode": "Open",
     "difficulty": "Beginner",
     "answerSetId": "places-basic",
-    "allowedIntentIds": ["ask_directions", "ask_craft", "ask_find", "ask_what", "ask_help", "dont_know", "name_object", "greet", "thank", "farewell"],
+    "allowedIntentIds": ["ask_directions", "ask_craft", "ask_find", "ask_what", "ask_help", "dont_know", "name_object", "greet", "thank", "farewell", "ask_repeat", "ask_slower"],
     "agentId": "guide",
     "slotGrammarIds": [],
     "text": "¿Qué es esto?"
@@ -58,5 +58,85 @@
     "agentId": "villager",
     "slotGrammarIds": [],
     "text": "Hola."
+  },
+  {
+    "promptId": "lesson-hello",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-greet",
+    "allowedIntentIds": ["greet", "ask_help", "dont_know", "ask_repeat", "ask_slower"],
+    "agentId": "guide",
+    "slotGrammarIds": [],
+    "text": "¡Hola!"
+  },
+  {
+    "promptId": "lesson-name",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-unstuck",
+    "allowedIntentIds": ["dont_know", "ask_repeat", "ask_slower", "ask_help"],
+    "agentId": "guide",
+    "slotGrammarIds": [],
+    "text": "Me llamo Luna."
+  },
+  {
+    "promptId": "lesson-offer",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-yes-no",
+    "allowedIntentIds": ["confirm", "deny", "ask_help", "dont_know", "ask_repeat", "ask_slower"],
+    "agentId": "guide",
+    "slotGrammarIds": [],
+    "text": "¿Quieres fruta?"
+  },
+  {
+    "promptId": "lesson-task",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-unstuck",
+    "allowedIntentIds": ["dont_know", "ask_repeat", "ask_slower", "ask_help"],
+    "agentId": "guide",
+    "slotGrammarIds": [],
+    "text": "Necesito madera y frutas."
+  },
+  {
+    "promptId": "lesson-thanks",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-thanks",
+    "allowedIntentIds": ["thank", "ask_help", "dont_know", "ask_repeat", "ask_slower"],
+    "agentId": "guide",
+    "slotGrammarIds": [],
+    "text": "¡Muy bien! Tienes fruta."
+  },
+  {
+    "promptId": "lesson-unstuck",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-unstuck",
+    "allowedIntentIds": ["dont_know", "ask_repeat", "ask_slower", "ask_help"],
+    "agentId": "guide",
+    "slotGrammarIds": [],
+    "text": "Mira. ¿Qué es esto?"
+  },
+  {
+    "promptId": "lesson-what",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-what",
+    "allowedIntentIds": ["ask_what", "ask_help", "dont_know", "ask_repeat", "ask_slower"],
+    "agentId": "guide",
+    "slotGrammarIds": [],
+    "text": "Mira."
+  },
+  {
+    "promptId": "lesson-yesno",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-yes-no",
+    "allowedIntentIds": ["confirm", "deny", "ask_help", "dont_know", "ask_repeat", "ask_slower"],
+    "agentId": "guide",
+    "slotGrammarIds": [],
+    "text": "¿Es madera?"
   }
 ]

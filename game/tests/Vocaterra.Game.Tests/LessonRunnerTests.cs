@@ -28,7 +28,7 @@ public sealed class LessonRunnerTests
 
     private static VoxelSession AtGuide(string? lessons = null)
     {
-        var session = TestGame.NewSession(lessons: lessons is null ? null : TestGame.Lessons(lessons));
+        var session = TestGame.NewSession(lessons: TestGame.Lessons(lessons ?? TestGame.SampleLesson)); // the retired S16 sample, kept here as the runner's plain two-step lesson
         Stage.TeleportToNpc(session, "guide");
         _ = session.OpenTalk("guide");
         return session;
@@ -539,7 +539,7 @@ public sealed class LessonRunnerTests
         Assert.Null(auto.PhraseReview);
         Assert.True(auto.Lessons.Engaged);
 
-        var offered = WithDuePhrase(null);
+        var offered = WithDuePhrase(TestGame.Lessons(TestGame.SampleLesson));
         _ = offered.OpenTalk("guide");
         Assert.NotNull(offered.PhraseReview); // the sample is only offered: the review asks as before
         Assert.False(offered.Lessons.Engaged);
@@ -568,44 +568,53 @@ public sealed class LessonRunnerTests
     [Fact]
     public void TheLessonProgressIsSavedAndLoadedAndAByteForByteSecondSaveIsTheSame()
     {
-        var session = AtGuide();
-        _ = session.Lessons.Start("sample");
-        _ = session.Say("hola");
+        var session = TestGame.NewSessionWithShippedLessons();
+        Stage.TeleportToNpc(session, "guide");
+        _ = session.OpenTalk("guide");
+        Assert.True(session.Lessons.Engaged); // the shipped lesson starts by itself
+        _ = LessonDriver.DoStep(session); // u1-welcome
+        _ = LessonDriver.DoStep(session); // u1-hello
+        _ = LessonDriver.DoStep(session); // u1-say-hola: a typed "Hola"
         var saved = SaveGame.Save(session, TestGame.Route());
 
         var loaded = SaveGame.Load(saved, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Equal(saved, SaveGame.Save(loaded, TestGame.Route()));
-        Assert.Equal(LessonStatus.InProgress, loaded.Lessons.StatusOf("sample"));
-        Assert.Equal([("say-hola", StepOutcome.Done)], loaded.Lessons.OutcomesOf("sample"));
-        Assert.Equal("say-gracias", loaded.Lessons.Current!.Id);
-        Assert.Equal(2, loaded.Lessons.StepNumber);
+        Assert.Equal(LessonStatus.InProgress, loaded.Lessons.StatusOf("first-words"));
+        Assert.Equal(
+            [("u1-welcome", StepOutcome.Done), ("u1-hello", StepOutcome.Done), ("u1-say-hola", StepOutcome.Done)],
+            loaded.Lessons.OutcomesOf("first-words"));
+        Assert.Equal("u1-name", loaded.Lessons.Current!.Id);
+        Assert.Equal(4, loaded.Lessons.StepNumber);
         Assert.False(loaded.Lessons.Engaged); // a load does not take the conversation over
         Assert.Equal(session.PhraseProgress.Records, loaded.PhraseProgress.Records);
+        Assert.True(loaded.GuideMet); // worked out again from the progress that came back (S17)
+        Assert.Equal(SessionStage.Camp, loaded.Stage);
 
         Stage.TeleportToNpc(loaded, "guide");
         _ = loaded.OpenTalk("guide");
-        Assert.True(loaded.Lessons.OfferFor("guide")!.Resume);
-        Assert.True(loaded.Lessons.Start("sample"));
-        _ = loaded.Say("gracias");
-        Assert.Equal(LessonStatus.Completed, loaded.Lessons.StatusOf("sample"));
-        Assert.Equal([("say-hola", StepOutcome.Done), ("say-gracias", StepOutcome.Done)], loaded.Lessons.OutcomesOf("sample"));
+        Assert.True(loaded.Lessons.Engaged); // it starts by itself again where it stopped
+        Assert.Equal(4, loaded.Lessons.StepNumber);
+        var rest = LessonDriver.CompleteAll(loaded);
+        Assert.Equal("u1-name", rest[0].Id);
+        Assert.Equal(LessonStatus.Completed, loaded.Lessons.StatusOf("first-words"));
     }
 
     [Fact]
     public void AFinishedLessonStaysFinishedAfterASaveAndALoad()
     {
-        var session = AtGuide();
-        _ = session.Lessons.Start("sample");
-        _ = session.Say("hola");
-        _ = session.Say("gracias");
+        var session = TestGame.NewSessionWithShippedLessons();
+        Stage.TeleportToNpc(session, "guide");
+        _ = session.OpenTalk("guide");
+        _ = LessonDriver.CompleteAll(session);
         var loaded = SaveGame.Load(SaveGame.Save(session, TestGame.Route()), TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped);
 
-        Assert.Equal(LessonStatus.Completed, loaded.Lessons.StatusOf("sample"));
+        Assert.Equal(LessonStatus.Completed, loaded.Lessons.StatusOf("first-words"));
         Assert.Null(loaded.Lessons.Active);
         Stage.TeleportToNpc(loaded, "guide");
         _ = loaded.OpenTalk("guide");
         Assert.Null(loaded.Lessons.OfferFor("guide"));
+        Assert.False(loaded.Lessons.Engaged);
     }
 
     [Fact]

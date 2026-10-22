@@ -16,6 +16,7 @@ public sealed class PhraseSheetTests
     [
         "que-necesitas", "pedir-agua", "quieres-pan", "si-por-favor", "no-gracias", "donde-esta-el-rio",
         "hola", "gracias", "adios", "no-se", "ayuda",
+        "me-llamo", "es-madera", "si", "no", "que-es-esto", "quieres-fruta", "de-nada", "otra-vez", "mas-despacio", "necesito-madera",
     ];
 
     private static readonly Lazy<IReadOnlyList<PhraseRow>> LoadedRows = new(ReadRows);
@@ -27,7 +28,7 @@ public sealed class PhraseSheetTests
     private static IEnumerable<PhraseRow> HeardRows => Rows.Where(static r => r.Says is "hears" or "both");
 
     [Fact]
-    public void TheSheetHoldsExactlyTheElevenPhrasesInOrder()
+    public void TheSheetHoldsExactlyTheTwentyOnePhrasesInOrder()
     {
         Assert.Equal(ExpectedIds, Rows.Select(static r => r.Id));
         foreach (var row in Rows)

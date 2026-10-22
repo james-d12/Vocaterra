@@ -21,17 +21,17 @@ public sealed class CheckBankTests
     private static string Battery(params string[] items) => """{"schemaVersion":1,"items":[""" + string.Join(",", items) + "]}";
 
     [Fact]
-    public void TheBundleHoldsSixComprehensionItemsAndFourProductionItems()
+    public void TheBundleHoldsEightComprehensionItemsAndSevenProductionItems()
     {
         var bank = Bank;
 
-        Assert.Equal(10, bank.Count);
-        Assert.Equal(6, bank.Count(static i => i.Kind == CheckItemKind.Comprehension));
+        Assert.Equal(15, bank.Count);
+        Assert.Equal(8, bank.Count(static i => i.Kind == CheckItemKind.Comprehension));
         Assert.Equal(
-            ["say.pedir-agua", "say.si-por-favor", "say.no-gracias", "say.donde-esta-el-rio"],
+            ["say.pedir-agua", "say.si-por-favor", "say.no-gracias", "say.donde-esta-el-rio", "say.si", "say.que-es-esto", "say.otra-vez"],
             bank.Where(static i => i.Kind == CheckItemKind.Production).Select(static i => i.Id));
         Assert.Equal(
-            ["request_item", "confirm", "deny", "ask_directions"],
+            ["request_item", "confirm", "deny", "ask_directions", "confirm", "ask_what", "ask_repeat"],
             bank.Where(static i => i.Kind == CheckItemKind.Production).Select(static i => i.Intent));
     }
 

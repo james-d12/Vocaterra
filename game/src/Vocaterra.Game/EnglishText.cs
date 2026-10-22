@@ -16,7 +16,8 @@ public sealed record ControlHelp(string Id, string Keys, string Text);
 /// <param name="Id">A stable id (the save keeps which tips were shown).</param>
 /// <param name="When">The trigger: <c>start</c>, <c>aimed_npc</c> or the name of a world event (<see cref="WorldEvents"/>).</param>
 /// <param name="Text">The tip, in English.</param>
-public sealed record TipSpec(string Id, string When, string Text);
+/// <param name="DelaySeconds">How many seconds of game time after its trigger the tip waits before it may come up (S17: the opening tips are paced so they do not stack up); 0 for none.</param>
+public sealed record TipSpec(string Id, string When, string Text, int DelaySeconds = 0);
 
 /// <summary>What a piece of the bilingual objective line is, so the HUD can colour it.</summary>
 public enum ObjectivePieceKind
@@ -78,6 +79,8 @@ public sealed class EnglishText
     [
         "english", "lesson", "stepOf", "continue", "skip", "help", "startLesson", "lessonDone", "retry", "helpDefault", "recapTitle", "controlsTitle", "controlsClose",
         "tipNext", "controlsHint", "stepExplain", "stepModel", "stepListen", "stepRepeat", "stepAnswer", "stepDo", "stepRecap", "outcomeDone", "outcomeSkipped", "outcomeMovedOn",
+        "objectiveFindGuide", "objectiveLightFire", "objectiveComplete", "spareTorch", "sessionCompleteTitle", "sessionCompleteLine", "sessionCompleteKeys",
+        "btnRepeat", "btnSlower", "btnHelp", "btnDontKnow", "btnType", "btnHold",
     ];
 
     /// <summary>The most error lines one turn's feedback carries.</summary>
@@ -172,7 +175,13 @@ public sealed class EnglishText
             var tips = new List<TipSpec>();
             foreach (var element in root.GetProperty("tips").EnumerateArray())
             {
-                var tip = new TipSpec(Text(element, "id"), Text(element, "when"), Text(element, "text"));
+                var delay = element.TryGetProperty("delay", out var delayElement) ? delayElement.GetInt32() : 0;
+                if (delay is < 0 or > 300)
+                {
+                    throw new InvalidDataException($"{RelativePath}: the tip '{Text(element, "id")}' waits {delay.ToString(CultureInfo.InvariantCulture)} seconds; it must be 0 to 300.");
+                }
+
+                var tip = new TipSpec(Text(element, "id"), Text(element, "when"), Text(element, "text"), delay);
                 if (!TipTriggers.Contains(tip.When, StringComparer.Ordinal))
                 {
                     throw new InvalidDataException($"{RelativePath}: the tip '{tip.Id}' has the trigger '{tip.When}', which is neither 'start', 'aimed_npc' nor a world event.");
@@ -250,6 +259,26 @@ public sealed class EnglishText
     /// <param name="key">One of <see cref="UiKeys"/>.</param>
     /// <param name="values">The placeholder values as name/value pairs.</param>
     public string Ui(string key, params (string Name, string Value)[] values) => Fill(_ui[key], values);
+
+    /// <summary>
+    /// The English of a speech button or of the hold-to-talk hint (S17), written after the Spanish label: <c>repeat</c> for <c>Repetir</c>.
+    /// </summary>
+    /// <param name="button">One of <see cref="SpeechButtonKeys.All"/>.</param>
+    public string ButtonEnglish(string button) => _ui["btn" + char.ToUpperInvariant(button[0]) + button[1..]];
+
+    /// <summary>
+    /// The line the objective area shows at a stage that has one instead of the checklist (S17): <c>Go down the trail and find the guide</c> before the guide is met,
+    /// <c>Go back up the trail and light your own fire</c> once the checklist is complete, and the closing line once the fire is lit; <see langword="null"/> while the
+    /// checklist is the objective.
+    /// </summary>
+    /// <param name="stage">The session's stage.</param>
+    public string? StageLine(SessionStage stage) => stage switch
+    {
+        SessionStage.FindGuide => _ui["objectiveFindGuide"],
+        SessionStage.LightFire => _ui["objectiveLightFire"],
+        SessionStage.Complete => _ui["objectiveComplete"],
+        _ => null,
+    };
 
     /// <summary>The English explanation of a phrase, or <see langword="null"/> when the file has none.</summary>
     /// <param name="phraseId">The phrase sheet's id.</param>

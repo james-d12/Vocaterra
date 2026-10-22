@@ -30,7 +30,7 @@ public sealed class PhraseProgressTests
     {
         var progress = New();
 
-        Assert.Equal(11, progress.Records.Count);
+        Assert.Equal(21, progress.Records.Count);
         Assert.Equal(progress.Sheet.Rows.Select(static r => r.Id), progress.Records.Select(static r => r.Id));
         Assert.Equal(
             ["donde-esta-el-rio", "no-gracias", "pedir-agua", "si-por-favor"],

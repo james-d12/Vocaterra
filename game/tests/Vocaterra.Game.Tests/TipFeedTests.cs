@@ -17,35 +17,72 @@ public sealed class TipFeedTests
     private static List<string> Shown(VoxelSession session) =>
         session.Events.OfType<WorldEvent>().Where(static e => e.Name == WorldEvents.TipShown).Select(static e => e.Detail!).ToList();
 
+    // The opening tips (S17) end with "gather" at 50 s of game time (3,000 ticks), which is up for seven seconds.
+    private const long OpeningTicks = (50 * 60) + TipFeed.ShowTicks + 2;
+
     [Fact]
-    public void TheStartTipsComeOneAtATimeInTheFilesOrderForSevenSecondsEach()
+    public void TheOpeningTipsTeachLookingWalkingJumpingTheNoteAndGatheringOneAtATimeWithGapsBetween()
     {
         var session = TestGame.NewSession();
         Assert.Null(session.Tips.Current);
 
         session.Step([]);
         Assert.Equal("look", session.Tips.Current!.Id);
-        Assert.Equal("Move the mouse to look around.", session.Tips.Current.Text);
+        Assert.Equal("Move the mouse to look around. The valley below is where you are headed.", session.Tips.Current.Text);
         Run(session, TipFeed.ShowTicks - 1);
         Assert.Equal("look", session.Tips.Current!.Id); // still up
         Run(session, 1);
+        Assert.Null(session.Tips.Current); // down, and the next tip waits for its delay: they do not stack up
+        Run(session, (9 * 60) - TipFeed.ShowTicks - 2);
+        Assert.Null(session.Tips.Current);
+        Run(session, 2);
         Assert.Equal("walk", session.Tips.Current!.Id);
-        Run(session, TipFeed.ShowTicks);
-        Assert.Equal("gather", session.Tips.Current!.Id);
-        Run(session, TipFeed.ShowTicks);
 
-        Assert.Null(session.Tips.Current); // the start tips are all shown
-        Assert.Equal(["look", "walk", "gather"], Shown(session));
-        Run(session, TipFeed.ShowTicks * 3);
-        Assert.Equal(["look", "walk", "gather"], Shown(session)); // and never again
-        Assert.Equal(["gather", "look", "walk"], session.Tips.Shown);
+        // The whole opening, tick by tick: each tip at its delay, seven seconds up, a gap of at least a second between two.
+        var fresh = TestGame.NewSession();
+        var cameUp = new List<(string Id, long Tick)>();
+        string? previous = null;
+        for (long tick = 1; tick <= OpeningTicks + 600; tick++)
+        {
+            fresh.Step([]);
+            if (fresh.Tips.Current is { } tip && !string.Equals(tip.Id, previous, StringComparison.Ordinal))
+            {
+                cameUp.Add((tip.Id, tick));
+            }
+
+            previous = fresh.Tips.Current?.Id;
+        }
+
+        Assert.Equal(["look", "walk", "jump", "note", "gather"], cameUp.Select(static c => c.Id));
+        Assert.Equal([1L, 9 * 60, 18 * 60, 28 * 60, 50 * 60], cameUp.Select(static c => c.Tick)); // the file's delays: 0, 9, 18, 28 and 50 seconds
+        for (var i = 1; i < cameUp.Count; i++)
+        {
+            Assert.True(cameUp[i].Tick - cameUp[i - 1].Tick >= TipFeed.ShowTicks + 60, $"{cameUp[i].Id} came up too soon after {cameUp[i - 1].Id}");
+        }
+
+        Assert.Null(fresh.Tips.Current); // the opening is over
+        Assert.Equal(["look", "walk", "jump", "note", "gather"], Shown(fresh));
+        Run(fresh, TipFeed.ShowTicks * 3);
+        Assert.Equal(["look", "walk", "jump", "note", "gather"], Shown(fresh)); // and never again
+        Assert.Equal(["gather", "jump", "look", "note", "walk"], fresh.Tips.Shown);
+    }
+
+    [Fact]
+    public void TheNoteSaysTheGuidesCampIsDownTheTrailInEnglishWithOneSpanishWord()
+    {
+        var note = Assert.Single(TestGame.NewSession().English.Tips, static t => t.Id == "note");
+
+        Assert.Contains("down the trail", note.Text, StringComparison.Ordinal);
+        Assert.Contains("camino", note.Text, StringComparison.Ordinal); // the one Spanish word, glossed in brackets
+        Assert.Contains("(the trail)", note.Text, StringComparison.Ordinal);
+        Assert.Equal("start", note.When);
     }
 
     [Fact]
     public void ATipWaitsForItsTriggerAndIsShownOnceHoweverOftenTheTriggerRepeats()
     {
         var session = TestGame.NewSession();
-        Run(session, TipFeed.ShowTicks * 3 + 2); // the start tips are done
+        Run(session, OpeningTicks); // the start tips are done
 
         Assert.False(session.Tips.WasShown("pickup"));
         session.LogEvent(new WorldEvent(session.CurrentTick, session.StoredTime.UnixSeconds, WorldEvents.ItemPickedUp, null, "madera"));
@@ -65,7 +102,7 @@ public sealed class TipFeedTests
     public void TheTalkTipComesWhenThePanelOpensAndTheAimedTipWhenTheFrontEndOffersIt()
     {
         var session = TestGame.NewSession();
-        Run(session, TipFeed.ShowTicks * 3 + 2);
+        Run(session, OpeningTicks);
         session.Tips.Offer("aimed_npc");
         session.Step([]);
         Assert.Equal("npc", session.Tips.Current!.Id);
@@ -90,14 +127,16 @@ public sealed class TipFeedTests
         Assert.Null(session.Tips.Current);
         session.Step([]);
 
+        Assert.Null(session.Tips.Current); // the next tip waits for its delay (nine seconds from the start)
+        Run(session, (9 * 60) - 2);
         Assert.Equal("walk", session.Tips.Current!.Id);
     }
 
     [Fact]
     public void TheTipsShownAndWaitingAndTheOneOnScreenAreSavedAndALoadedGameContinuesAsTheOriginalWould()
     {
-        var session = TestGame.NewSession();
-        Run(session, TipFeed.ShowTicks + 30); // "walk" is up, "gather" waits
+        var session = TestGame.NewSessionWithShippedLessons(); // (a load builds its session with the bundle's lessons)
+        Run(session, (9 * 60) + 30); // "walk" is up; "jump", "note" and "gather" wait for their delays
         session.Tips.Offer("aimed_npc");
         var saved = SaveGame.Save(session, TestGame.Route());
 
@@ -106,8 +145,8 @@ public sealed class TipFeedTests
         Assert.Equal(saved, SaveGame.Save(loaded, TestGame.Route()));
         Assert.Equal(["look", "walk"], loaded.Tips.Shown.Where(static id => id is "look" or "walk"));
         Assert.Equal("walk", loaded.Tips.Current!.Id);
-        Run(session, TipFeed.ShowTicks * 2);
-        Run(loaded, TipFeed.ShowTicks * 2);
+        Run(session, TipFeed.ShowTicks * 3);
+        Run(loaded, TipFeed.ShowTicks * 3);
         Assert.Equal(session.Tips.Shown, loaded.Tips.Shown);
         Assert.Equal(session.Tips.Current?.Id, loaded.Tips.Current?.Id);
         Assert.Equal(SaveGame.Save(session, TestGame.Route()), SaveGame.Save(loaded, TestGame.Route()));
