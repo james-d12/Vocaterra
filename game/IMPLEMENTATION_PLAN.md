@@ -185,7 +185,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S16 | The English guidance layer (D-game-13) and the data-driven lesson runner | done (merged to `feature/prototype` 2026-10-22, bundle `4be20d61…`) | Sonnet 5.5 | S12, D-game-13 |
 | S17 | The opening at the cliff camp, the guide's 5 to 10 minute lesson, the ending; new phrases, checks, Opus pass, speech | done (merged to `feature/prototype` 2026-10-22, `b0ebf5f`, bundle `9582e14f…`); **the owner listens to the 72 new WAVs** (`docs/SPEECH_CHECKLIST.md`) | Sonnet 5.5 | S13, S16, D-game-15 |
 | S17b | The talk key (V) shown in the dialogue in every state; the microphone check, the game's own errors and key hints in English (owner's playtest notes) | done (merged to `feature/prototype` 2026-10-22, `678e5a2`) | Haiku 5.5 | S17 |
-| S19 | The learner's record: every spoken and typed input, the nouns and verbs used (from the core's word readings), the lessons completed; save version 2 (D-game-16) | planned | Haiku 5.5 | S17, D-game-16 |
+| S19 | The learner's record: every spoken and typed input, the nouns and verbs used (from the core's word readings), the lessons completed; save version 2 (D-game-16) | done (merged to `feature/prototype` 2026-10-22, `c92e486`) | Haiku 5.5 | S17, D-game-16 |
 | S20 | The book: the journal as an openable book with Nouns, Verbs, Phrases, Lessons and What I said pages (D-game-16) | planned | Haiku 5.5 | S15, S19 |
 | S21 | F8: the in-game bug and feature report, saved as Markdown with a screenshot, game state, recent turns and the session log tail; local only (D-game-17) | planned | Haiku 5.5 | S19, S20, D-game-17 |
 | S18 | The playtest refresh (build, checklist, report, launcher message; the consent text mentions that the book keeps what the player said; the facilitator collects the F8 reports) | planned | Haiku 5.5 | S15, S17, S17b, S20, S21 |
@@ -901,6 +901,24 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - The dialogue log shows a debug line (`request_item, understood, 100 %, 2.2 ms`) in a scripted run; S18 checks whether `--playtest`
       hides it.
     - The pergola posts are full blocks and dominate the workbench view.
+- **S19, the learner's record (2026-10-22, Haiku 5.5).**
+  - **Built.**
+    - `Learner/InputEntry`: every spoken, typed or button line in dialogues, lessons and checks, with source, place, verdict and the
+      core's word readings.
+    - `LearnerWords.Fold`: noun and verb rows with forms (person, number, tense, mood), times used and correct, first and last use.
+    - `LearnerRecord` (`session.Learner`): `Nouns`, `Verbs`, `Rows`, `Recent(n)`, `History`.
+    - `LessonRunner.Record`: per lesson, status, units, completed session, turns, help, "no sé" and repeats.
+    - Save version 2 keeps the newest 500 lines and the whole word rows (stored, not rebuilt, so older uses survive the bound). Version 1
+      loads (fixture `save-v1.json`). An exit summary prints `book: …`.
+  - **Choices (accepted by the orchestrator):**
+    - "correct" is communicated and no error span over the word;
+    - check answers count;
+    - button and held (unsure) lines stay in the history but are not folded.
+  - **Bugs fixed:** the lesson's own "No sé" answer was not counted; the synchronous `Say` path skipped the history.
+  - **Core gaps → M29j:** `está` read as an imperative in «¿dónde está el río?»; «gracias» as the noun `gracia`; `favor` as a noun in
+    every «por favor». Numerals are digits, as documented.
+  - **Checked by the orchestrator:** the gate (4,232 passed, 5 skipped). The agent's lesson run prints 3 nouns and 2 verbs with the core
+    readings above; the full S17 route completes.
 
 ## 6. Definition of done (every milestone)
 
