@@ -190,7 +190,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S21 | F8: the in-game bug and feature report, saved as Markdown with a screenshot, game state, recent turns and the session log tail; local only (D-game-17) | done (merged to `feature/prototype` 2026-10-22, `917d2c4`) | Haiku 5.5 | S19, S20, D-game-17 |
 | S18 | The playtest refresh (build, checklist, report, launcher message; the consent text mentions that the book keeps what the player said; the facilitator collects the F8 reports) | done (merged to `feature/prototype` 2026-10-22, `3c9a741`); **the owner's pre-flight** (`docs/PLAYTEST.md`) | Haiku 5.5 | S15, S17, S17b, S20, S21 |
 | S22 | The second pass's known issues: an uncrowded conversation screen, the F10 label, measured session durations, a Vosk route step and test, thin pergola posts, the book in greyscale, the book item for old saves | done (merged to `feature/prototype` 2026-10-22, `8609183`) | Sonnet 5.5 | S18 |
-| S23 | LanguageTool over the game's Spanish: strings extractor, first waiver round, the `si quiero` and `traveller` findings, an advisory gate step (required after the waiver round) | planned | Haiku 5.5 | S22, core M30, D10 |
+| S23 | LanguageTool over the game's Spanish: strings extractor, first waiver round, the `si quiero` and `traveller` findings, an advisory gate step (required after the waiver round) | done (merged to `feature/prototype` 2026-10-22, `ddb834a`); the gate's game-v1 grammar step is required | Haiku 5.5 | S22, core M30, D10 |
 | S24 | The audio system (mixer, ducking under the voices, silence while the microphone records), interaction and progress sounds; CC0 packs plus code, no music (D-game-18) | planned | Sonnet 5.5 | S23, D-game-18 |
 | S25 | Ambient beds by place (birds, wind, river and waterfall, village, fire, dusk insects) and footsteps per surface | planned | Haiku 5.5 | S24 |
 
@@ -1005,6 +1005,26 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - the gate, 4,373 passed and 5 skipped;
     - the before and after conversation shots, the playtest dialogue, the beacon, the wrapped check card and the greyscale book;
     - the README route on the merged build, with the Vosk step.
+- **S23, the LanguageTool check over the game's Spanish (2026-10-22, Haiku 5.5; merged `ddb834a`).**
+  - **Extractor.** The Host's `--grammar-strings <file>` (`GrammarStringsExtractor`) writes 749 strings: 456 learner, 258 npc and 35
+    template. The sources are dialogue, intents, english.json's Spanish sides, PHRASES.md, answer sets, prompts, checks and speech cards.
+    lessons.json holds dialogue ids only. `scripts/content.sh grammar` runs the core's command. The cache, waivers (12, each with a reason)
+    and strings file are in `game/content/grammar/`. A test keeps the committed strings file equal to the extractor's output.
+  - **The run.** 0 errors.
+  - **Waived.**
+    - `si quiero` without the accent: answer matching strips accents on both sides, and the yes aliases come in accented and unaccented
+      pairs on purpose.
+    - The `de el` template: the guide always passes `many = 2`.
+    - 13 lowercase fragments: a quoted `¿tiene?`, recipe parts joined into one sentence, and noun card labels.
+  - **Fixed:** `traveller` became `traveler` in checks.json and english.json.
+  - **Oracle:** 19 flagged and tagged, all agreeing on span and tag; 7 tagged but silent; 0 untagged but flagged.
+  - **Checked by the orchestrator.**
+    - The gate: 4,423 passed, 5 skipped.
+    - The offline run with `--strict`: 0 errors, 0 warnings, 16 waived, 0 unchecked.
+  - **The gate.** The game-v1 grammar step is **required** from now on, after its first waiver round (owner, D10). content/v1 stays
+    advisory until M27a2 fixes or tags its three untagged examples.
+  - **After a content change:** refresh the strings file and the cache with the local server (`scripts/languagetool.sh start`), as
+    game/README.md says. Otherwise the required step fails on a cache miss.
 
 ## 6. Definition of done (every milestone)
 

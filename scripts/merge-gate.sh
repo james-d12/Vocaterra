@@ -87,6 +87,15 @@ if [ -f nlp/content/grammar/v1-cache.json ]; then
     --cache nlp/content/grammar/v1-cache.json --waivers nlp/content/grammar/v1-waivers.json > "$GRAMMARLOG" 2>&1
   echo "grammar (advisory, content/v1): $(grep -E '^grammar:' "$GRAMMARLOG" | tail -1)"
 fi
+# The game bundle (S23): REQUIRED since its first waiver round (owner, 2026-10-22). --strict fails on any unwaived warning or a cache miss;
+# after a content change, refresh the strings file and the cache (game/README.md) with the local server, then rerun.
+grammar_rc=0
+if [ -f game/content/grammar/game-v1-cache.json ]; then
+  { "$L" bash scripts/content.sh grammar game/content/game-v1 --strings game/content/grammar/game-v1-strings.jsonl --strings-only --offline \
+      --strict; } >> "$GRAMMARLOG" 2>&1 || grammar_rc=1
+  echo "grammar (required, game-v1): $(grep -E '^grammar:' "$GRAMMARLOG" | tail -1)"
+  [ "$grammar_rc" -eq 0 ] || echo "grammar: FAIL (game-v1; see $GRAMMARLOG)"
+fi
 
 LICENSELOG=".claude/gate-logs/license-$STAMP.log"
 "$L" bash nlp/scripts/license-scan.sh --offline > "$LICENSELOG" 2>&1
@@ -99,6 +108,7 @@ ok=1
 [ "$format_rc" -eq 0 ] || ok=0
 [ "$content_rc" -eq 0 ] || ok=0
 [ "$license_rc" -eq 0 ] || ok=0
+[ "${grammar_rc:-0}" -eq 0 ] || ok=0
 echo "logs: $BUILDLOG $TESTLOG $FORMATLOG $CONTENTLOG $LICENSELOG ${GRAMMARLOG:-}"
 [ "${#failed[@]}" -eq 0 ] && echo "merge-failures: none" || { echo "merge-failures: ${failed[*]}"; ok=0; }
 if [ "$ok" -eq 1 ]; then echo "result: PASS"; else echo "result: FAIL"; exit 1; fi
