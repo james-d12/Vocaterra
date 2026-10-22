@@ -42,6 +42,7 @@ public static class SceneBuilder
         private readonly SortedDictionary<string, BlockPos> _points = new(StringComparer.Ordinal);
         private Terrain _terrain = new(0, 0);
         private TerrainNoise _forest = new(0, ForestPassName);
+        private ulong _seed;
 
         public Builder(SceneLayout layout)
         {
@@ -53,6 +54,7 @@ public static class SceneBuilder
 
         public Scene Run(ulong seed)
         {
+            _seed = seed;
             _terrain = TerrainGenerator.Generate(_layout, seed);
             _forest = new TerrainNoise(seed, ForestPassName);
             FillTerrain();
@@ -278,14 +280,23 @@ public static class SceneBuilder
                     BuildHouse(prop, where);
                     break;
                 case "signpost":
-                    {
-                        var h = FlatHeight(prop.X, prop.Z, 1, 1, where);
-                        Put(prop.X, h + 1, prop.Z, BlockId.Fence, where);
-                        Put(prop.X, h + 2, prop.Z, BlockId.Fence, where);
-                        Put(prop.X, h + 3, prop.Z, BlockId.Sign, where);
-                        Register(prop, prop.X, prop.Z);
-                        break;
-                    }
+                    BuildSignpost(prop, where);
+                    break;
+                case "lamp":
+                    BuildLamp(prop, where);
+                    break;
+                case "block":
+                    BuildBlock(prop, where);
+                    break;
+                case "pergola":
+                    BuildPergola(prop, where);
+                    break;
+                case "field":
+                    BuildField(prop, where);
+                    break;
+                case "fence_line":
+                    BuildFenceLine(prop, where);
+                    break;
 
                 case "bush":
                 case "berry_bush":
@@ -369,25 +380,66 @@ public static class SceneBuilder
             var h = FlatHeight(prop.X, prop.Z, width, depth, where);
             var x1 = prop.X + width - 1;
             var z1 = prop.Z + depth - 1;
+            var back = front switch
+            {
+                Direction.North => Direction.South,
+                Direction.South => Direction.North,
+                Direction.West => Direction.East,
+                _ => Direction.West,
+            };
+            var rng = WorldRng.For(_seed, StallPassName);
             for (var z = prop.Z; z <= z1; z++)
             {
                 for (var x = prop.X; x <= x1; x++)
                 {
                     var cornerX = x == prop.X || x == x1;
                     var cornerZ = z == prop.Z || z == z1;
+
+                    // The awning's stripes run across the counter: the stripe is picked by the cell's place along the counter's own line.
+                    var stripe = front is Direction.North or Direction.South ? x - prop.X : z - prop.Z;
+                    var awning = stripe % 2 == 0 ? BlockId.AwningRed : BlockId.AwningWhite;
                     if (cornerX && cornerZ)
                     {
+                        // Thin fence posts at the front (a customer in front of the counter looks past them), thick timber posts at the back.
+                        var post = OnSide(front, x, z, prop.X, prop.Z, x1, z1) ? BlockId.Fence : BlockId.Timber;
                         for (var y = h + 1; y <= h + 3; y++)
                         {
-                            Put(x, y, z, BlockId.Fence, where);
+                            Put(x, y, z, post, where);
                         }
                     }
                     else if (OnSide(front, x, z, prop.X, prop.Z, x1, z1))
                     {
                         Put(x, h + 1, z, BlockId.Stall, where);
+                        Put(x, h + 2, z, StallGoods(rng.NextUInt32()), where);
+                    }
+                    else if (OnSide(back, x, z, prop.X, prop.Z, x1, z1) && !IsMiddle(back, x, z, prop.X, prop.Z, x1, z1))
+                    {
+                        // The shopkeeper stands at the middle of the back row; the crates beside him hold the goods.
+                        Put(x, h + 1, z, BlockId.Crate, where);
+                        Put(x, h + 2, z, StallGoods(rng.NextUInt32()), where);
                     }
 
-                    Put(x, h + 4, z, BlockId.Roof, where);
+                    Put(x, h + 4, z, awning, where);
+                }
+            }
+
+            // The awning reaches one block out over the counter's side, so the stripes show from the front.
+            var (ox, oz) = front switch
+            {
+                Direction.North => (0, -1),
+                Direction.South => (0, 1),
+                Direction.West => (-1, 0),
+                _ => (1, 0),
+            };
+            for (var z = prop.Z; z <= z1; z++)
+            {
+                for (var x = prop.X; x <= x1; x++)
+                {
+                    if (OnSide(front, x, z, prop.X, prop.Z, x1, z1))
+                    {
+                        var stripe = front is Direction.North or Direction.South ? x - prop.X : z - prop.Z;
+                        Put(x + ox, h + 4, z + oz, stripe % 2 == 0 ? BlockId.AwningRed : BlockId.AwningWhite, where);
+                    }
                 }
             }
 
@@ -401,6 +453,19 @@ public static class SceneBuilder
             };
             Register(prop, rx, rz);
         }
+
+        private const string StallPassName = "stall";
+
+        // What lies on a counter or a crate: bread, apples or bottles, from the pass's draw.
+        private static BlockId StallGoods(uint draw) => (draw % 3) switch
+        {
+            0 => BlockId.Loaves,
+            1 => BlockId.Apples,
+            _ => BlockId.Bottles,
+        };
+
+        private static bool IsMiddle(Direction side, int x, int z, int x0, int z0, int x1, int z1) =>
+            side is Direction.North or Direction.South ? x == x0 + ((x1 - x0 + 1) / 2) : z == z0 + ((z1 - z0 + 1) / 2);
 
         private static bool OnSide(Direction side, int x, int z, int x0, int z0, int x1, int z1) => side switch
         {
@@ -439,18 +504,205 @@ public static class SceneBuilder
                     var perimeter = x == prop.X || x == x1 || z == prop.Z || z == z1;
                     if (perimeter)
                     {
+                        // A timber frame: posts at the corners, a beam under the eaves, plaster between.
+                        var corner = (x == prop.X || x == x1) && (z == prop.Z || z == z1);
                         var isDoor = x == doorX && z == doorZ;
                         for (var y = h + 1; y <= h + wall; y++)
                         {
-                            Put(x, y, z, isDoor && y <= h + 2 ? BlockId.Door : BlockId.Wall, where);
+                            var block = isDoor && y <= h + 2 ? BlockId.Door : corner || y == h + wall ? BlockId.Timber : BlockId.Wall;
+                            Put(x, y, z, block, where);
                         }
                     }
+                }
+            }
 
-                    Put(x, h + wall + 1, z, BlockId.Roof, where);
+            // The roof steps in one block a layer, from the eaves to a ridge cap, and the chimney rises from the second step at a corner the seed picks.
+            var layers = 0;
+            for (var k = 0; width - (2 * k) >= 1 && depth - (2 * k) >= 1; k++)
+            {
+                for (var z = prop.Z + k; z <= z1 - k; z++)
+                {
+                    for (var x = prop.X + k; x <= x1 - k; x++)
+                    {
+                        Put(x, h + wall + 1 + k, z, BlockId.Roof, where);
+                    }
+                }
+
+                layers = k + 1;
+            }
+
+            if (layers >= 2)
+            {
+                var draw = WorldRng.Mix(((ulong)(uint)prop.X << 20) ^ (uint)prop.Z ^ 0x68AB9D1UL); // by place, not by seed: a site never changes with the seed
+                var east = (draw & 1) == 0;
+                var cx = east ? x1 - 1 : prop.X + 1;
+                var cz = (draw & 2) == 0 ? prop.Z + 1 : z1 - 1;
+                var top = h + wall + 1 + layers + 1;
+                for (var y = h + wall + 2; y <= top; y++)
+                {
+                    Put(cx, y, cz, BlockId.Cobble, where);
                 }
             }
 
             Register(prop, prop.X + (width / 2), prop.Z + (depth / 2));
+        }
+
+        // A signpost (S15): a post and up to three boards stacked on it, each carrying a place name and an arrow, readable from the side the prop faces.
+        // The boards extend from the post to the reader's right; the names are in prop.Stamp, separated by commas (default: tienda, rio, montana).
+        private void BuildSignpost(PropSpec prop, string where)
+        {
+            var reader = prop.Facing ?? Direction.South;
+            if (reader is not (Direction.South or Direction.West))
+            {
+                throw new SceneLayoutException($"{where}: a signpost is read from its south or its west side (the words are drawn on those faces).");
+            }
+
+            var (ax, az) = reader == Direction.South ? (1, 0) : (0, 1);
+            var boards = (prop.Stamp ?? "tienda,rio,montana").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var x0 = Math.Min(prop.X, prop.X + (2 * ax));
+            var z0 = Math.Min(prop.Z, prop.Z + (2 * az));
+            var h = FlatHeight(x0, z0, Math.Abs(2 * ax) + 1, Math.Abs(2 * az) + 1, where);
+            Put(prop.X, h + 1, prop.Z, BlockId.Fence, where);
+            Put(prop.X, h + 2, prop.Z, BlockId.Fence, where);
+            for (var row = 0; row < boards.Length; row++)
+            {
+                var y = h + 3 + row;
+                Put(prop.X, y, prop.Z, BlockId.Sign, where);
+                var cells = boards[row] switch
+                {
+                    "tienda" => new[] { BlockId.SignTiendaA, BlockId.SignTiendaB },
+                    "rio" => new[] { BlockId.SignRio },
+                    "montana" => new[] { BlockId.SignMontanaA, BlockId.SignMontanaB },
+                    _ => throw new SceneLayoutException($"{where}: unknown sign board '{boards[row]}'."),
+                };
+                for (var i = 0; i < cells.Length; i++)
+                {
+                    Put(prop.X + (ax * (i + 1)), y, prop.Z + (az * (i + 1)), cells[i], where);
+                }
+            }
+
+            Register(prop, prop.X, prop.Z);
+        }
+
+        // A lamp post: two fence blocks and a lantern on top.
+        private void BuildLamp(PropSpec prop, string where)
+        {
+            var h = FlatHeight(prop.X, prop.Z, 1, 1, where);
+            Put(prop.X, h + 1, prop.Z, BlockId.Fence, where);
+            Put(prop.X, h + 2, prop.Z, BlockId.Fence, where);
+            Put(prop.X, h + 3, prop.Z, BlockId.Lantern, where);
+            Register(prop, prop.X, prop.Z);
+        }
+
+        // A stack of one kind of block (a crate, a chest) on the ground.
+        private void BuildBlock(PropSpec prop, string where)
+        {
+            var h = FlatHeight(prop.X, prop.Z, 1, 1, where);
+            var count = prop.Height > 0 ? prop.Height : 1;
+            for (var i = 1; i <= count; i++)
+            {
+                Put(prop.X, h + i, prop.Z, prop.Block, where);
+            }
+
+            Register(prop, prop.X, prop.Z);
+        }
+
+        // A timber pergola: posts at the four corners and a frame of beams across the top with slats, a torch on the north-west post and a lantern hanging in the middle.
+        private void BuildPergola(PropSpec prop, string where)
+        {
+            var width = prop.Width > 0 ? prop.Width : 4;
+            var depth = prop.Depth > 0 ? prop.Depth : 3;
+            var post = prop.Height > 0 ? prop.Height : 3;
+            var h = FlatHeight(prop.X, prop.Z, width, depth, where);
+            var x1 = prop.X + width - 1;
+            var z1 = prop.Z + depth - 1;
+            for (var z = prop.Z; z <= z1; z++)
+            {
+                for (var x = prop.X; x <= x1; x++)
+                {
+                    var cornerX = x == prop.X || x == x1;
+                    var cornerZ = z == prop.Z || z == z1;
+                    if (cornerX && cornerZ)
+                    {
+                        for (var y = h + 1; y <= h + post; y++)
+                        {
+                            Put(x, y, z, BlockId.Timber, where);
+                        }
+                    }
+
+                    if (x == prop.X && z == prop.Z)
+                    {
+                        Put(x, h + post + 1, z, BlockId.PostTorch, where);
+                    }
+                    else if (cornerX || cornerZ)
+                    {
+                        Put(x, h + post + 1, z, BlockId.Timber, where);
+                    }
+                    else if (x % 2 == 0)
+                    {
+                        Put(x, h + post + 1, z, BlockId.Timber, where);
+                    }
+                }
+            }
+
+            Put(prop.X + (width / 2), h + post, prop.Z + (depth / 2), BlockId.Lantern, where);
+            Register(prop, prop.X, prop.Z);
+        }
+
+        // A crop field: tilled soil in rows of wheat and bare furrows, inside a fence with a gap on the south side. The seed leaves a few cells bare.
+        private void BuildField(PropSpec prop, string where)
+        {
+            var width = prop.Width > 0 ? prop.Width : 7;
+            var depth = prop.Depth > 0 ? prop.Depth : 7;
+            var h = FlatHeight(prop.X, prop.Z, width, depth, where);
+            var x1 = prop.X + width - 1;
+            var z1 = prop.Z + depth - 1;
+            var rng = WorldRng.For(_seed, "crops");
+            for (var z = prop.Z; z <= z1; z++)
+            {
+                for (var x = prop.X; x <= x1; x++)
+                {
+                    var edge = x == prop.X || x == x1 || z == prop.Z || z == z1;
+                    if (edge)
+                    {
+                        var gate = z == z1 && x == prop.X + (width / 2);
+                        if (!gate)
+                        {
+                            Put(x, h + 1, z, BlockId.Fence, where);
+                        }
+
+                        continue;
+                    }
+
+                    Put(x, h, z, BlockId.Farmland, where);
+                    var draw = rng.NextUInt32();
+                    if (z % 2 == 0 && draw % 10 != 0)
+                    {
+                        Put(x, h + 1, z, BlockId.Wheat, where);
+                    }
+                }
+            }
+
+            Register(prop, prop.X + (width / 2), prop.Z + (depth / 2));
+        }
+
+        // A run of fence along the ground, following its height, with no block under it changed.
+        private void BuildFenceLine(PropSpec prop, string where)
+        {
+            var length = prop.Length > 0 ? prop.Length : 1;
+            for (var i = 0; i < length; i++)
+            {
+                var x = prop.X + (prop.AlongZ ? 0 : i);
+                var z = prop.Z + (prop.AlongZ ? i : 0);
+                CheckColumn(x, z, where);
+                if (IsWater(x, z))
+                {
+                    continue;
+                }
+
+                Put(x, HeightAt(x, z) + 1, z, BlockId.Fence, where);
+                Reserve(x, z);
+            }
         }
 
         private void BuildBridge(PropSpec prop, string where)

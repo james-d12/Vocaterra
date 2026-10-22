@@ -364,27 +364,30 @@ public sealed class VoxelFrontendTests
     }
 
     [Fact]
-    public void TheEyesOfAFigureAreInFrontOfItAtEveryYaw()
+    public void TheFaceOfAFigureIsOnTheFrontOfItsHeadAtEveryYaw()
     {
-        // The eyes are the ninth part (index 8): its six faces are the vertices 8 * 24 to 8 * 24 + 23 of the mesh. Seen from the feet they
-        // must lie in the direction the figure faces: yaw 0 north (-z), 90 east (+x), 180 south, 270 west.
-        var box = NpcFigures.PartsOf("guide")[8].Box;
-        var local = ((box.X0 + box.X1) / 2 * NpcFigure.PixelInBlocks, (box.Z0 + box.Z1) / 2 * NpcFigure.PixelInBlocks);
-        foreach (var yawDegrees in new[] { 0, 90, 180, 270, 45 })
+        // The face is the picture on the north face of the head box (S15): its four vertices are the 4th to 7th of the head part's six faces (north first). Seen from the
+        // feet they must lie in the direction the figure faces: yaw 0 north (-z), 90 east (+x), 180 south, 270 west.
+        foreach (var name in new[] { "guide", "shopkeeper", "villager", NpcFigures.PlayerName })
         {
-            var figure = new NpcFigure("guide", "Guía", new BlockPos(20, 10, 20), Angles.FromDegrees(yawDegrees));
-            var vertices = NpcFigures.Build(figure).Vertices.ToArray();
-            var eye = vertices.Skip(8 * 24).Take(24).ToArray();
-            var meanX = eye.Average(static v => (double)v.X) - 20.5;
-            var meanZ = eye.Average(static v => (double)v.Z) - 20.5;
-            var yaw = figure.YawRadians;
-            // The figure's frame turned clockwise by the yaw: (x, z) -> (x cos - z sin, x sin + z cos).
-            Assert.InRange(Math.Abs(meanX - ((local.Item1 * Math.Cos(yaw)) - (local.Item2 * Math.Sin(yaw)))), 0, 2e-3);
-            Assert.InRange(Math.Abs(meanZ - ((local.Item1 * Math.Sin(yaw)) + (local.Item2 * Math.Cos(yaw)))), 0, 2e-3);
-            var forward = (X: Math.Sin(yaw), Z: -Math.Cos(yaw));
-            Assert.True((meanX * forward.X) + (meanZ * forward.Z) > 0.15, $"the eyes of the figure facing {yawDegrees} are not in front of it");
-            // The eye parts are dark.
-            Assert.All(eye, static v => Assert.True((v.Color & 0xFF) < 45));
+            var parts = NpcFigures.PartsOf(name);
+            var headIndex = Array.FindIndex(parts, static p => p.Special is not null && p.SpecialFace == BlockFace.North && p.Group == FigureGroup.Head);
+            Assert.True(headIndex >= 0, $"{name} has a face");
+            var box = parts[headIndex].Box;
+            var local = ((box.X0 + box.X1) / 2 * NpcFigure.PixelInBlocks, box.Z0 * NpcFigure.PixelInBlocks);
+            foreach (var yawDegrees in new[] { 0, 90, 180, 270, 45 })
+            {
+                var figure = new NpcFigure(name, "x", new BlockPos(20, 10, 20), Angles.FromDegrees(yawDegrees));
+                var vertices = NpcFigures.Build(figure).Vertices.ToArray();
+                var face = vertices.Skip(headIndex * 24).Take(4).ToArray(); // the north face is the first face of a part
+                var meanX = face.Average(static v => (double)v.X) - 20.5;
+                var meanZ = face.Average(static v => (double)v.Z) - 20.5;
+                var yaw = figure.YawRadians;
+                Assert.InRange(Math.Abs(meanX - ((local.Item1 * Math.Cos(yaw)) - (local.Item2 * Math.Sin(yaw)))), 0, 2e-3);
+                Assert.InRange(Math.Abs(meanZ - ((local.Item1 * Math.Sin(yaw)) + (local.Item2 * Math.Cos(yaw)))), 0, 2e-3);
+                var forward = (X: Math.Sin(yaw), Z: -Math.Cos(yaw));
+                Assert.True((meanX * forward.X) + (meanZ * forward.Z) > 0.15, $"the face of {name} facing {yawDegrees} is not in front of it");
+            }
         }
     }
 

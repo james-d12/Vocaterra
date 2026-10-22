@@ -91,8 +91,27 @@
 
   "stamps": {
     // A plain A-frame tent (north row first): the roof blocks come down to the ground on both sides and the ends stay open.
+    // A stone tower (S15): a cobble shaft with a door and four window slits, a timber band under a stepped roof and a flagpole. Five by five.
+    "tower": {
+      "legend": { "S": "stone", "C": "cobble", "T": "timber", "R": "roof", "F": "fence" },
+      "layers": [
+        ["SSSSS", "S   S", "S   S", "S   S", "SS SS"],
+        ["CCCCC", "C   C", "C   C", "C   C", "CC CC"],
+        ["CCCCC", "C   C", "C   C", "C   C", "CCCCC"],
+        ["CC CC", "C   C", "     ", "C   C", "CC CC"],
+        ["CCCCC", "C   C", "C   C", "C   C", "CCCCC"],
+        ["TTTTT", "T   T", "T   T", "T   T", "TTTTT"],
+        ["RRRRR", "RRRRR", "RRRRR", "RRRRR", "RRRRR"],
+        ["     ", " RRR ", " RRR ", " RRR ", "     "],
+        ["     ", "     ", "  R  ", "     ", "     "],
+        ["     ", "     ", "  F  ", "     ", "     "],
+        ["     ", "     ", "  F  ", "     ", "     "]
+      ]
+    },
+
+    // A plain A-frame tent (north row first): the canvas comes down to the ground on both sides and the ends stay open.
     "tent": {
-      "legend": { "R": "roof" },
+      "legend": { "R": "canvas" },
       "layers": [
         ["R   R", "R   R", "R   R", "R   R"],
         [" R R ", " R R ", " R R ", " R R "],
@@ -104,10 +123,15 @@
   "props": [
     // The player's camp: a tent behind the spawn and a cold fire ring in front of it (lit at the end of the session).
     {"type": "stamp", "stamp": "tent", "site": "camp.ledge", "dx": -7, "dz": -5, "facing": "south", "name": "tent"},
+    {"type": "block", "block": "chest", "site": "camp.ledge", "dx": -1, "dz": -4, "name": "chest.player"},
+    {"type": "block", "block": "crate", "site": "camp.ledge", "dx": -1, "dz": -5},
     {"type": "fire_ring", "site": "camp.ledge", "dx": 5, "dz": -3, "name": "firering.player"},
 
     // The guide's camp: the workbench, the fire ring for the torch, the berry bushes and the bushes.
     {"type": "workbench", "site": "camp.guide", "dx": 2, "dz": -3, "length": 2, "axis": "x", "name": "workbench"},
+    {"type": "pergola", "site": "camp.guide", "dx": 0, "dz": -4, "width": 6, "depth": 3, "height": 3, "name": "pergola"},
+    {"type": "block", "block": "chest", "site": "camp.guide", "dx": 5, "dz": -3, "name": "chest.guide"},
+    {"type": "block", "block": "crate", "site": "camp.guide", "dx": 6, "dz": -2, "height": 2},
     {"type": "fire_ring", "site": "camp.guide", "dx": 0, "dz": 2, "name": "firering"},
     {"type": "berry_bush", "site": "camp.guide", "dx": -6, "dz": 3},
     {"type": "berry_bush", "site": "camp.guide", "dx": -5, "dz": -5},
@@ -123,11 +147,26 @@
 
     // The village: the square, the signpost where the road comes in, the stall (counter on the west side, towards the road), three houses.
     {"type": "paving", "site": "village", "dx": -8, "dz": -6, "width": 16, "depth": 12, "block": "path"},
-    {"type": "signpost", "site": "village", "dx": -14, "dz": 3, "name": "signpost"},
+    {"type": "signpost", "site": "village", "dx": -14, "dz": 3, "facing": "west", "stamp": "tienda,rio,montana", "name": "signpost"},
     {"type": "stall", "site": "village", "dx": -6, "dz": -9, "width": 2, "depth": 5, "facing": "west", "name": "stall"},
     {"type": "house", "site": "village", "dx": 9, "dz": -9, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "house1"},
     {"type": "house", "site": "village", "dx": 9, "dz": 5, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "house2"},
-    {"type": "house", "site": "village", "dx": -13, "dz": 7, "width": 5, "depth": 5, "height": 3, "facing": "east", "name": "house3"}
+    {"type": "house", "site": "village", "dx": -13, "dz": 7, "width": 5, "depth": 5, "height": 3, "facing": "east", "name": "house3"},
+
+    // The village's furnishing (S15): the stone tower behind the square, the crop field between the houses, fences, crates beside the stall and lanterns on
+    // posts by the doors, the square's corners and the road.
+    {"type": "stamp", "stamp": "tower", "site": "village", "dx": 2, "dz": -16, "facing": "north", "name": "tower"},
+    {"type": "field", "site": "village", "dx": 9, "dz": -2, "width": 7, "depth": 6, "name": "field"},
+    {"type": "fence_line", "site": "village", "dx": -8, "dz": 7, "length": 7},
+    {"type": "fence_line", "site": "village", "dx": 1, "dz": 7, "length": 7},
+    {"type": "block", "block": "crate", "site": "village", "dx": -6, "dz": -3, "height": 2},
+    {"type": "block", "block": "crate", "site": "village", "dx": -6, "dz": -2},
+    {"type": "lamp", "site": "village", "dx": -9, "dz": -10, "name": "lamp.stall"},
+    {"type": "lamp", "site": "village", "dx": 8, "dz": -5, "name": "lamp.house1"},
+    {"type": "lamp", "site": "village", "dx": 8, "dz": 4, "name": "lamp.house2"},
+    {"type": "lamp", "site": "village", "dx": -8, "dz": 8, "name": "lamp.house3"},
+    {"type": "lamp", "site": "village", "dx": -12, "dz": 1, "name": "lamp.road"},
+    {"type": "lamp", "site": "village", "dx": 0, "dz": -6, "name": "lamp.square"}
   ],
 
   "npcs": [

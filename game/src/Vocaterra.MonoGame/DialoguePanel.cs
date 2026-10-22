@@ -44,7 +44,11 @@ public sealed class DialoguePanel : IFrameLayer
     /// <summary>The mark before every line of English in the panel (S16): the English is never spoken, so the panel says which line it is.</summary>
     public const string EnglishPrefix = "English: ";
 
-    private static readonly Color Background = new(14, 14, 28, 232);
+    private static readonly Color Background = new(16, 16, 24, 236);
+    private static readonly Color PanelEdge = new(112, 114, 136);
+
+    /// <summary>The warm colour of the speaker's name over the line (S15, reference B).</summary>
+    public static readonly Color NameColor = new(255, 204, 110);
     private static readonly Color Frame = new(255, 214, 64);
     private static readonly Color PlayerColor = new(150, 205, 255);
     private static readonly Color NoteColor = new(140, 140, 150);
@@ -90,13 +94,12 @@ public sealed class DialoguePanel : IFrameLayer
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var layout = LayoutFor(dialogue, view.ViewportWidth, view.ViewportHeight, font, view.Session);
         var panel = ToRectangle(layout.Panel);
-        spriteBatch.Draw(pixel, panel, Background);
-        DrawHelpers.Border(spriteBatch, pixel, panel, 2, Frame);
+        DrawHelpers.RoundedPanel(spriteBatch, pixel, panel, 9, Background, PanelEdge, 2);
 
         var textLeft = panel.Left + DialogueLayout.Padding;
         var textWidth = layout.InnerWidth;
-        DrawHelpers.Text(spriteBatch, font, dialogue.NpcName, new Vector2(textLeft, panel.Top + 8), Frame);
-        spriteBatch.Draw(pixel, new Rectangle(textLeft, panel.Top + 8 + DialogueLayout.LineHeight, textWidth, 1), new Color(255, 214, 64, 120));
+        DrawHelpers.Text(spriteBatch, font, dialogue.NpcName, new Vector2(textLeft, panel.Top + 8), NameColor);
+        spriteBatch.Draw(pixel, new Rectangle(textLeft, panel.Top + 8 + DialogueLayout.LineHeight, textWidth, 1), new Color(255, 204, 110, 90));
         DrawStatus(spriteBatch, view, font, dialogue, panel);
         DrawLines(spriteBatch, view, font, dialogue, textLeft, textWidth, layout.LinesTop, layout.LinesBottom);
 
@@ -146,9 +149,8 @@ public sealed class DialoguePanel : IFrameLayer
     {
         var rect = ToRectangle(box);
         var hovered = mouse is { } at && box.Contains(at.X, at.Y);
-        spriteBatch.Draw(view.Pixel, rect, hovered ? ButtonHover : back);
         var border = emphasis ?? new Color(110, 110, 150);
-        DrawHelpers.Border(spriteBatch, view.Pixel, rect, emphasis is null && !hovered ? 1 : 2, hovered && emphasis is null ? Frame : border);
+        DrawHelpers.RoundedPanel(spriteBatch, view.Pixel, rect, 5, hovered ? ButtonHover : back, hovered && emphasis is null ? Frame : border, emphasis is null && !hovered ? 1 : 2);
         DrawHelpers.Text(spriteBatch, font, text, new Vector2(rect.Left + DialogueLayout.ButtonPadding, rect.Top + 5), ButtonText);
     }
 

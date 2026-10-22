@@ -24,11 +24,13 @@ public sealed class SkyRenderer : IDisposable
     private readonly short[] _sunIndices;
     private readonly List<CloudBox> _boxes = [];
     private VertexPositionColor[] _clouds = new VertexPositionColor[6 * 5 * 128];
+    private readonly bool _dusk;
 
-    /// <summary>Creates the sky.</summary>
-    public SkyRenderer(GraphicsDevice device)
+    /// <summary>Creates the sky; with <paramref name="dusk"/> (S15, <c>--dusk</c>) it is an amber and rose evening sky with a low orange sun.</summary>
+    public SkyRenderer(GraphicsDevice device, bool dusk = false)
     {
         _device = device;
+        _dusk = dusk;
         _effect = new BasicEffect(device)
         {
             TextureEnabled = false,
@@ -36,7 +38,7 @@ public sealed class SkyRenderer : IDisposable
             LightingEnabled = false,
             FogEnabled = false,
         };
-        (_dome, _domeIndices) = BuildDome();
+        (_dome, _domeIndices) = BuildDome(dusk);
         _sunIndices = new short[6 * 3];
         for (var q = 0; q < 3; q++)
         {
@@ -86,7 +88,7 @@ public sealed class SkyRenderer : IDisposable
 
     private static Color ToColor((byte R, byte G, byte B) c, byte alpha = 255) => new(c.R, c.G, c.B, alpha);
 
-    private static (VertexPositionColor[] Vertices, short[] Indices) BuildDome()
+    private static (VertexPositionColor[] Vertices, short[] Indices) BuildDome(bool dusk)
     {
         // Rings from 25 degrees below the horizon up to the zenith; every vertex takes the sky colour of its elevation.
         var vertices = new List<VertexPositionColor>();
@@ -99,7 +101,7 @@ public sealed class SkyRenderer : IDisposable
             var rad = MathHelper.ToRadians(Math.Min(elevation, 90f));
             var y = MathF.Sin(rad) * DomeRadius;
             var ring = MathF.Cos(rad) * DomeRadius;
-            var colour = ToColor(SkyPalette.At(elevation));
+            var colour = ToColor(dusk ? SkyPalette.AtDusk(elevation) : SkyPalette.At(elevation));
             for (var s = 0; s < Segments; s++)
             {
                 var a = s * MathHelper.TwoPi / Segments;
@@ -131,9 +133,9 @@ public sealed class SkyRenderer : IDisposable
         var centre = sun * (DomeRadius * 0.96f);
         (float Half, Color Colour)[] squares =
         [
-            (12f, new Color(255, 250, 220, 28)),
-            (8.5f, new Color(255, 250, 214, 66)),
-            (5f, new Color(255, 252, 232, 255)),
+            (12f, _dusk ? new Color(255, 170, 90, 40) : new Color(255, 250, 220, 28)),
+            (8.5f, _dusk ? new Color(255, 176, 96, 90) : new Color(255, 250, 214, 66)),
+            (5f, _dusk ? new Color(255, 214, 150, 255) : new Color(255, 252, 232, 255)),
         ];
         for (var q = 0; q < squares.Length; q++)
         {
@@ -167,9 +169,10 @@ public sealed class SkyRenderer : IDisposable
             // Far clouds melt into the haze: colour towards the fog's, and fainter at the very edge of the field.
             var haze = Math.Clamp((distance - 150f) / 520f, 0f, 0.85f);
             var fade = (byte)(255f * Math.Clamp(1.6f - (distance / (CloudField.Reach * CloudField.CellSize)), 0f, 1f));
-            var top = ToColor(SkyPalette.Blend(SkyPalette.CloudTop, SkyPalette.Horizon, haze), fade);
-            var side = ToColor(SkyPalette.Blend(SkyPalette.CloudSide, SkyPalette.Horizon, haze), fade);
-            var bottom = ToColor(SkyPalette.Blend(SkyPalette.CloudBottom, SkyPalette.Horizon, haze), fade);
+            var horizon = _dusk ? SkyPalette.DuskHorizon : SkyPalette.Horizon;
+            var top = ToColor(SkyPalette.Blend(_dusk ? SkyPalette.DuskCloudTop : SkyPalette.CloudTop, horizon, haze), fade);
+            var side = ToColor(SkyPalette.Blend(_dusk ? SkyPalette.DuskCloudSide : SkyPalette.CloudSide, horizon, haze), fade);
+            var bottom = ToColor(SkyPalette.Blend(_dusk ? SkyPalette.DuskCloudBottom : SkyPalette.CloudBottom, horizon, haze), fade);
             float x0 = box.X, x1 = box.X + box.Width, z0 = box.Z, z1 = box.Z + box.Depth, y0 = box.Y, y1 = box.Y + box.Thickness;
             count = Quad(count, new Vector3(x0, y1, z1), new Vector3(x1, y1, z1), new Vector3(x1, y1, z0), new Vector3(x0, y1, z0), top);
             count = Quad(count, new Vector3(x0, y0, z0), new Vector3(x1, y0, z0), new Vector3(x1, y0, z1), new Vector3(x0, y0, z1), bottom);

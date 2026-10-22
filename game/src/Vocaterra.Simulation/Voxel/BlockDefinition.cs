@@ -70,6 +70,24 @@ public sealed record BlockDefinition(
         new(BlockId.WhiteFlower, "white-flower", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
         new(BlockId.MossyStone, "mossy-stone", true, false, false, 0, null, 0, BlockId.Air),
         new(BlockId.Cobble, "cobble", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Timber, "timber", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Lantern, "lantern", false, true, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Crate, "crate", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.AwningRed, "awning-red", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.AwningWhite, "awning-white", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Canvas, "canvas", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Chest, "chest", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Farmland, "farmland", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.Wheat, "wheat", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
+        new(BlockId.Loaves, "loaves", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
+        new(BlockId.Apples, "apples", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
+        new(BlockId.Bottles, "bottles", false, true, false, 0, null, 0, BlockId.Air, Decor: true),
+        new(BlockId.SignTiendaA, "sign-tienda-a", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.SignTiendaB, "sign-tienda-b", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.SignRio, "sign-rio", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.SignMontanaA, "sign-montana-a", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.SignMontanaB, "sign-montana-b", true, false, false, 0, null, 0, BlockId.Air),
+        new(BlockId.PostTorch, "post-torch", false, true, false, 0, null, 0, BlockId.Air),
     ];
 
     /// <summary>Every block kind, ordered by id.</summary>
@@ -110,6 +128,9 @@ public sealed record BlockDefinition(
         var index = (int)id;
         return (uint)index < (uint)Table.Length && Table[index].Decor;
     }
+
+    /// <summary>Whether the block is one of the five undergrowth plants the scene's undergrowth pass sows (tall grass, fern, reeds, the two flowers); wheat and the stall's goods are decor too but are built with their props (S15).</summary>
+    public static bool IsUndergrowth(BlockId id) => id is BlockId.TallGrass or BlockId.Fern or BlockId.Reeds or BlockId.YellowFlower or BlockId.WhiteFlower;
 
     /// <summary>The block whose <see cref="Name"/> is <paramref name="name"/> (ordinal), or <see langword="null"/> when there is none.</summary>
     public static BlockDefinition? FromName(string? name)

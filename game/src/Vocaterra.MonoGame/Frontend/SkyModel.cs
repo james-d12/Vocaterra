@@ -24,12 +24,35 @@ public static class SkyPalette
     /// <summary>The colour of a cloud's underside.</summary>
     public static readonly (byte R, byte G, byte B) CloudBottom = (204, 216, 238);
 
+    /// <summary>The colour at the horizon at dusk (S15, <c>--dusk</c>), and the colour of the dusk fog: a warm amber haze.</summary>
+    public static readonly (byte R, byte G, byte B) DuskHorizon = (246, 170, 118);
+
+    /// <summary>The colour half way up the sky at dusk: a dusty rose.</summary>
+    public static readonly (byte R, byte G, byte B) DuskMiddle = (178, 118, 146);
+
+    /// <summary>The colour overhead at dusk: a deep indigo.</summary>
+    public static readonly (byte R, byte G, byte B) DuskZenith = (44, 54, 124);
+
+    /// <summary>The colour of a cloud's lit top at dusk.</summary>
+    public static readonly (byte R, byte G, byte B) DuskCloudTop = (255, 204, 168);
+
+    /// <summary>The colour of a cloud's sides at dusk.</summary>
+    public static readonly (byte R, byte G, byte B) DuskCloudSide = (226, 156, 148);
+
+    /// <summary>The colour of a cloud's underside at dusk.</summary>
+    public static readonly (byte R, byte G, byte B) DuskCloudBottom = (150, 104, 134);
+
     /// <summary>The colour of the sky at an elevation in degrees above the horizon (below the horizon it is the haze).</summary>
-    public static (byte R, byte G, byte B) At(float elevationDegrees)
+    public static (byte R, byte G, byte B) At(float elevationDegrees) => At(elevationDegrees, Horizon, Middle, Zenith);
+
+    /// <summary>The colour of the dusk sky at an elevation in degrees (S15).</summary>
+    public static (byte R, byte G, byte B) AtDusk(float elevationDegrees) => At(elevationDegrees, DuskHorizon, DuskMiddle, DuskZenith);
+
+    private static (byte R, byte G, byte B) At(float elevationDegrees, (byte R, byte G, byte B) horizon, (byte R, byte G, byte B) middle, (byte R, byte G, byte B) zenith)
     {
         if (elevationDegrees <= 0f)
         {
-            return Horizon;
+            return horizon;
         }
 
         var t = Math.Clamp(elevationDegrees / 90f, 0f, 1f);
@@ -37,8 +60,8 @@ public static class SkyPalette
         var low = Math.Clamp(t * 2.4f, 0f, 1f);
         low = low * low * (3f - (2f * low));
         var high = Math.Clamp((t - 0.35f) / 0.65f, 0f, 1f);
-        var mid = Blend(Horizon, Middle, low);
-        return Blend(mid, Zenith, high);
+        var mid = Blend(horizon, middle, low);
+        return Blend(mid, zenith, high);
     }
 
     /// <summary>The colour that is <paramref name="t"/> of the way from <paramref name="a"/> to <paramref name="b"/>.</summary>

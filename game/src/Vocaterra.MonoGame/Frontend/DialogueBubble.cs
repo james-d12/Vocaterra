@@ -1,0 +1,85 @@
+namespace Vocaterra.MonoGame.Frontend;
+
+/// <summary>Where the speaker's bubble goes on the screen (S15): its box, and where its little pointer touches the box and points at the speaker.</summary>
+/// <param name="Box">The bubble's box in pixels.</param>
+/// <param name="TailX">The pointer's tip, x.</param>
+/// <param name="TailY">The pointer's tip, y (below the box: the bubble hangs over the speaker's head).</param>
+/// <param name="TailBaseX">The middle of the pointer's base on the box's bottom edge.</param>
+public readonly record struct BubbleLayout(PixelBox Box, int TailX, int TailY, int TailBaseX);
+
+/// <summary>
+/// The speaker's bubble (S15, reference B): a small dark panel over the speaking figure's head with the name in a warm colour over the line, and a pointer to the
+/// head. It is anchored to the speaker's head on the screen and kept inside the window; when the head is off the screen there is no bubble (the panel along the
+/// bottom still has every line). Plain maths: a test places a bubble with no window.
+/// </summary>
+public static class DialogueBubble
+{
+    /// <summary>The widest a bubble is, in pixels.</summary>
+    public const int MaxWidth = 340;
+
+    /// <summary>The padding inside the bubble.</summary>
+    public const int Padding = 10;
+
+    /// <summary>The height of the pointer.</summary>
+    public const int TailHeight = 12;
+
+    /// <summary>The distance kept from the window's edge.</summary>
+    public const int Margin = 8;
+
+    /// <summary>The most rows of the line a bubble shows (the rest is cut with an ellipsis).</summary>
+    public const int MaxRows = 3;
+
+    /// <summary>
+    /// Places a bubble of a size over a head on the screen, or returns <see langword="null"/> when the head is not on the screen. The bubble is centred over the head, moved
+    /// to stay inside the window, and the pointer's tip stays on the head.
+    /// </summary>
+    /// <param name="viewportWidth">The window's width.</param>
+    /// <param name="viewportHeight">The window's height.</param>
+    /// <param name="headX">The head's x on the screen.</param>
+    /// <param name="headY">The head's y on the screen (the top of the head).</param>
+    /// <param name="width">The bubble's width.</param>
+    /// <param name="height">The bubble's height.</param>
+    public static BubbleLayout? Place(int viewportWidth, int viewportHeight, double headX, double headY, int width, int height)
+    {
+        if (headX < 0 || headX > viewportWidth || headY < 0 || headY > viewportHeight || width + (2 * Margin) > viewportWidth)
+        {
+            return null;
+        }
+
+        var x = (int)Math.Round(headX - (width / 2.0));
+        x = Math.Clamp(x, Margin, viewportWidth - Margin - width);
+        var bottom = (int)Math.Round(headY) - TailHeight;
+        var y = Math.Max(Margin, bottom - height);
+        var tailBase = Math.Clamp((int)Math.Round(headX), x + 16, x + width - 16);
+        return new BubbleLayout(new PixelBox(x, y, width, height), (int)Math.Round(headX), (int)Math.Round(headY), tailBase);
+    }
+
+    /// <summary>The line the bubble shows: the speaker's newest line (what the NPC said last), or <see langword="null"/> when it has said nothing yet.</summary>
+    public static string? LineOf(DialogueModel dialogue)
+    {
+        ArgumentNullException.ThrowIfNull(dialogue);
+        for (var i = dialogue.Lines.Count - 1; i >= 0; i--)
+        {
+            if (dialogue.Lines[i].Speaker is DialogueSpeaker.Guide or DialogueSpeaker.Correction)
+            {
+                return dialogue.Lines[i].Text;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>The rows of a line for a text width, cut to <see cref="MaxRows"/> with an ellipsis on the last when it is longer.</summary>
+    public static IReadOnlyList<string> Rows(string line, float textWidth, Func<string, float> measure)
+    {
+        var rows = TextWrap.Wrap(line, textWidth, measure);
+        if (rows.Count <= MaxRows)
+        {
+            return rows;
+        }
+
+        var cut = rows.Take(MaxRows).ToList();
+        cut[MaxRows - 1] = cut[MaxRows - 1].TrimEnd() + "…";
+        return cut;
+    }
+}

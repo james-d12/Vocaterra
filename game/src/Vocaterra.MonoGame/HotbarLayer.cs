@@ -13,13 +13,14 @@ namespace Vocaterra.MonoGame;
 public sealed class HotbarLayer : IFrameLayer
 {
     /// <summary>The width and height of one slot in pixels.</summary>
-    public const int SlotSize = 40;
+    public const int SlotSize = 48;
 
     private const int Gap = 4;
     private const int Bottom = 12;
     private static readonly Color Gold = new(255, 214, 64);
-    private static readonly Color Frame = new(90, 90, 110);
-    private static readonly Color Back = new(10, 10, 20, 200);
+    private static readonly Color Frame = new(88, 92, 108);
+    private static readonly Color Selected = new(250, 244, 220);
+    private static readonly Color Back = new(22, 24, 30, 220);
 
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
@@ -34,13 +35,17 @@ public sealed class HotbarLayer : IFrameLayer
         for (var i = 0; i < Inventory.HotbarSize; i++)
         {
             var box = new Rectangle(left + (i * (SlotSize + Gap)), top, SlotSize, SlotSize);
-            spriteBatch.Draw(pixel, box, Back);
             var selected = i == view.SelectedSlot;
-            DrawHelpers.Border(spriteBatch, pixel, box, selected ? 3 : 1, selected ? Gold : Frame);
+            // A dark rounded slot with a light edge, the selected one lifted by a bright frame (reference C).
+            DrawHelpers.RoundedPanel(spriteBatch, pixel, box, 5, Back, selected ? Selected : Frame, selected ? 3 : 1);
+            if (selected)
+            {
+                spriteBatch.Draw(pixel, new Rectangle(box.X + 5, box.Y + 3, box.Width - 10, 1), new Color(255, 255, 255, 60));
+            }
             var stack = inventory.Slots[i];
             if (!stack.IsEmpty)
             {
-                var icon = new Rectangle(box.X + 6, box.Y + 6, SlotSize - 12, SlotSize - 12);
+                var icon = new Rectangle(box.X + 7, box.Y + 7, SlotSize - 14, SlotSize - 14);
                 view.DrawIcon(spriteBatch, stack.Item, icon);
                 if (CountBadge.Text(stack.Count, showOne: false) is { } text)
                 {
@@ -50,7 +55,7 @@ public sealed class HotbarLayer : IFrameLayer
 
             // The key that selects the slot: 1 to 9, then 0 for the tenth.
             var key = ((i + 1) % 10).ToString(CultureInfo.InvariantCulture);
-            DrawHelpers.Text(spriteBatch, font, key, new Vector2(box.X + 3, box.Y + 1), selected ? Gold : Frame);
+            DrawHelpers.Text(spriteBatch, font, key, new Vector2(box.X + 3, box.Y + 1), selected ? Gold : new Color(150, 154, 170));
         }
     }
 }

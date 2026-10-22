@@ -9,7 +9,7 @@ public sealed class SceneTests(ITestOutputHelper output)
 {
     private const ulong Seed = 42;
 
-    private const string GoldenDigest = "25c00aeff23d2e73e962d096de9fd07baf02b3b93976635296a976ca65c42dfe";
+    private const string GoldenDigest = "397e58bf5dfe713aa6dcc9b9fa557cb3eb66b5bb6d3b603c1cb33d7f9958c866";
 
     private const int Units = VoxelTestSupport.Units;
 
@@ -220,7 +220,7 @@ public sealed class SceneTests(ITestOutputHelper output)
         Assert.InRange(Distance(scene.Point("tent"), scene.Point("camp.player")), 1, 18);
         Assert.InRange(Distance(scene.Point("workbench"), scene.Point("camp.guide")), 1, 12);
         Assert.InRange(Distance(scene.Point("stall"), scene.Point("village")), 1, 20);
-        Assert.Equal(BlockId.Roof, grid.GetBlock(scene.Point("tent").X, scene.Point("tent").Y + 3, scene.Point("tent").Z));
+        Assert.Equal(BlockId.Canvas, grid.GetBlock(scene.Point("tent").X, scene.Point("tent").Y + 3, scene.Point("tent").Z));
 
         Assert.Equal(["guide", "shopkeeper", "villager"], scene.Npcs.Select(n => n.Name));
         Assert.InRange(Distance(scene.Npc("guide").Feet, scene.Point("camp.guide")), 0, 12);
@@ -239,7 +239,8 @@ public sealed class SceneTests(ITestOutputHelper output)
         Assert.Equal(3 * 5 * 5, counts[BlockId.Planks]); // three 5 x 5 house floors
         Assert.Equal(3 * 2, counts[BlockId.Door]); // a two-block doorway each
         Assert.Equal(3, counts[BlockId.Stall]); // the counter
-        Assert.Equal(1, counts[BlockId.Sign]);
+        Assert.Equal(3, counts[BlockId.Sign]); // the post column of the signpost's three boards
+        Assert.Equal(5, counts[BlockId.SignTiendaA] + counts[BlockId.SignTiendaB] + counts[BlockId.SignRio] + counts[BlockId.SignMontanaA] + counts[BlockId.SignMontanaB]); // the names: two, one and two cells
         Assert.Equal(2 * 8, counts[BlockId.FireRing]); // two rings of eight stones
         Assert.True(TrunkBlocks(grid) > 10_000, "a dense forest has many trunk blocks");
     }
@@ -417,7 +418,8 @@ public sealed class SceneTests(ITestOutputHelper output)
         foreach (var kind in new[]
         {
             BlockId.Path, BlockId.Planks, BlockId.Door, BlockId.Table, BlockId.Torch, BlockId.Stall, BlockId.Roof, BlockId.Fence, BlockId.Wall, BlockId.FireRing,
-            BlockId.Sign, BlockId.Bridge, BlockId.Bush, BlockId.BerryBush,
+            BlockId.Sign, BlockId.Bridge, BlockId.Bush, BlockId.BerryBush, BlockId.Timber, BlockId.Lantern, BlockId.Crate, BlockId.AwningRed, BlockId.AwningWhite,
+            BlockId.Canvas, BlockId.Chest, BlockId.Farmland, BlockId.SignTiendaA, BlockId.SignRio, BlockId.SignMontanaA,
         })
         {
             foreach (var p in grid.BlocksOfKind(kind))

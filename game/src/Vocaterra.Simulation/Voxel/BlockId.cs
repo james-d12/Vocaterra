@@ -107,4 +107,58 @@ public enum BlockId : ushort
 
     /// <summary>Cobblestone: paving and stonework (solid). Appended in S14.</summary>
     Cobble = 33,
+
+    /// <summary>A timber post or beam: the frame of the houses, the stall's posts and the pergola (solid). Appended in S15.</summary>
+    Timber = 34,
+
+    /// <summary>A lantern on a post or hanging from a beam: not solid, and it glows (the mesher lights the faces near it). Appended in S15.</summary>
+    Lantern = 35,
+
+    /// <summary>A wooden crate (solid). Appended in S15.</summary>
+    Crate = 36,
+
+    /// <summary>A red stripe of the stall's awning (solid). Appended in S15.</summary>
+    AwningRed = 37,
+
+    /// <summary>A white stripe of the stall's awning (solid). Appended in S15.</summary>
+    AwningWhite = 38,
+
+    /// <summary>Canvas: the player's tent (solid). Appended in S15.</summary>
+    Canvas = 39,
+
+    /// <summary>A chest (solid). Appended in S15.</summary>
+    Chest = 40,
+
+    /// <summary>Tilled soil of the crop field (solid). Appended in S15.</summary>
+    Farmland = 41,
+
+    /// <summary>Wheat in the crop field: undergrowth, not solid, never targeted. Appended in S15.</summary>
+    Wheat = 42,
+
+    /// <summary>A pile of loaves on the stall's counter or in a crate: a small decoration, not solid, never targeted. Appended in S15.</summary>
+    Loaves = 43,
+
+    /// <summary>A pile of apples (a decoration like <see cref="Loaves"/>). Appended in S15.</summary>
+    Apples = 44,
+
+    /// <summary>A group of bottles (a decoration like <see cref="Loaves"/>). Appended in S15.</summary>
+    Bottles = 45,
+
+    /// <summary>The first half of the signpost's board that points to the shop: an arrow and "TIE" (solid). Appended in S15.</summary>
+    SignTiendaA = 46,
+
+    /// <summary>The second half of the shop's board: "NDA" (solid). Appended in S15.</summary>
+    SignTiendaB = 47,
+
+    /// <summary>The board that points to the river: an arrow and "RÍO" (solid). Appended in S15.</summary>
+    SignRio = 48,
+
+    /// <summary>The first half of the mountain's board: an arrow and "MON" (solid). Appended in S15.</summary>
+    SignMontanaA = 49,
+
+    /// <summary>The second half of the mountain's board: "TAÑA" (solid). Appended in S15.</summary>
+    SignMontanaB = 50,
+
+    /// <summary>A torch fixed to a post as scenery (the guide's pergola): drawn like <see cref="Torch"/> and lights its surroundings like a lantern, but it is not the item's torch (not gathered, not a noun, never found by "where is the torch"). Appended in S15.</summary>
+    PostTorch = 51,
 }

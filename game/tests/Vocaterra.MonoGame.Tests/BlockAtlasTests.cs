@@ -159,7 +159,7 @@ public sealed class BlockAtlasTests
     {
         Assert.Equal(BlockCell.IconWood, BlockAtlasLayout.IconFor(ItemId.Wood));
         Assert.Equal(BlockCell.IconBerry, BlockAtlasLayout.IconFor(ItemId.Berry));
-        Assert.Equal(BlockCell.TorchFlame, BlockAtlasLayout.IconFor(ItemId.Torch));
+        Assert.Equal(BlockCell.IconTorch, BlockAtlasLayout.IconFor(ItemId.Torch)); // S15: a stick with its flame, not the flame's square
         Assert.Equal(BlockCell.IconBottle, BlockAtlasLayout.IconFor(ItemId.Bottle));
         Assert.Equal(BlockCell.IconWaterBottle, BlockAtlasLayout.IconFor(ItemId.WaterBottle));
         Assert.Equal(BlockCell.IconBread, BlockAtlasLayout.IconFor(ItemId.Bread));

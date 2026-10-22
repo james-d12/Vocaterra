@@ -107,9 +107,10 @@ the learner model and the repeat counts.
 The prototype's world is the first-person voxel scene: it loads the world from the bundle (`content/game-v1/game/scene.json`, S13: generator
 parameters and named sites, not blocks, a 384 x 384 x 128 block valley with high snow-capped mountains along the north and the west, a waterfall off
 the northern cliffs, a river through a dense forest to a lake, the guide's camp in a clearing, the village on the meadow across the river with the stall,
-three houses and the signpost `Tienda / Río`, and the player's own camp on a cliff ledge at the top of a switchback trail) at `--seed` (default 42; the
+three timber-framed houses with stepped roofs and chimneys, a stone tower, a fenced crop field, lanterns on posts and the signpost with its three boards
+`Tienda`, `Río` and `Montaña` (S15), and the player's own camp on a cliff ledge at the top of a switchback trail) at `--seed` (default 42; the
 seed changes the land between the sites and the forest, never a site), and shows it from the player's eyes. A new game starts at the player's camp
-(facing south-east, a tent and a cold fire ring beside it) with the beacon on the guide's camp: the first thing to do is the walk down the trail.
+(facing south-east, a canvas tent, a chest and a cold fire ring beside it) with the beacon on the guide's camp: the first thing to do is the walk down the trail.
 `--quality low|medium|high` sets how far the world is drawn and how much is drawn of the undergrowth, the occlusion and the clouds (see `src/Vocaterra.MonoGame/README.md`); the default, high, is for a real graphics card, and
 **on a machine with software GL (this VM) pass `--quality low`**. S14 gave it its look: code-drawn pixel-art textures (a 16 x 16 atlas, deterministic, CC0 by construction), oaks, spruces and birches,
 tall grass, ferns, reeds and flowers that nothing collides with and the block ray looks through, sun shading and ambient occlusion in the vertex colours, a blue sky with a square sun and flat clouds,
@@ -130,6 +131,8 @@ DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --quali
 DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --teleport 176,200 --look 25,8 --screenshot /tmp/s13-peaks.png --frames 3
 # the village, from the road: the stall, the signpost, a house and the villager
 DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --teleport 272,224 --look 75,-4 --screenshot /tmp/s13-village.png --frames 3
+# the village from its entrance, with the boards Tienda, Río and Montaña on the signpost, the stall's awning, the houses and the tower (S15)
+DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --teleport 266,223 --look 80,2 --screenshot /tmp/s15-village.png --frames 60
 ```
 
 **S14 demos** (the look; `--quality low`, 1280 x 720; the default spawn look is yaw 135, pitch -10):
@@ -159,7 +162,8 @@ WASD or the arrows walk, Space jumps, the mouse looks (Esc lets the mouse go, a 
 (`madera`, five for the camp) or a berry bush (`fruta`, three) to gather it, the right button places the selected item, `1`..`0` or the wheel
 pick the hotbar slot, **I** the inventory, **C** the crafting panel, **E** the inventory or, with the crosshair on the workbench (`mesa`), the
 crafting panel. The panel lists the recipes (the torch: `antorcha` from two `madera` at the workbench); a click on a row crafts it. **J** the
-journal, **F3** the debug overlay. **Aim the crosshair at the guide's figure**: the hint `E: talk` shows, and **E** (or **T** to type, or **V**
+journal, **F3** the debug overlay, **F5** the view over your own shoulder and back (S15: first person is where every run starts; `--third-person` starts
+in the shoulder view), **F6** saves. **Aim the crosshair at the guide's figure**: the hint `E: talk` shows, and **E** (or **T** to type, or **V**
 to talk: hold it, the clip goes when it is let go) opens the dialogue panel, which takes the keyboard and frees the mouse. **The panel has
 speech buttons (S7)**: `[R] Repetir`, `[S] Más despacio`, `[H] Ayuda`, `[N] No sé` and `[W] Escribir` (keys or the mouse); hold **V** or **Space** to talk;
 `Escribir` (W or Tab) opens the text box, where Enter sends and Tab or Esc go back to the buttons; Esc cancels a turn that is "Thinking…", then closes the
@@ -181,8 +185,8 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --walk-to 176,186 
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --say "¿dónde está el río?" --screenshot /tmp/s3-river.png --frames 300
 # the village: walk to the square's north side and look at the stall: the shopkeeper behind the counter facing the player, with his label
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --beacon none --teleport 282,211 --look 90,-8 --screenshot /tmp/s3-stall.png --frames 150
-# the signpost, from the east side of the path: the label "Tienda / Río" over the board
-dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --beacon none --teleport 283,221 --look 270,-6 --screenshot /tmp/s3-sign.png --frames 150
+# the signpost, from the road on its west side (S15): the boards Tienda, Río and Montaña with their arrows, in the letters of the block texture
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --beacon none --teleport 272,222 --look 90,2 --screenshot /tmp/s3-sign.png --frames 150
 # the camp from the player's eyes at spawn: the guide's figure and label, the beacon on the river (an arrow at the edge when it is off screen)
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --beacon river --screenshot /tmp/s2-camp.png --frames 240
 # S17, the whole route in one run, from the player's own camp: the walk down the trail to the guide, her lesson (`--lesson-run` does every step with typed
@@ -238,8 +242,35 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --typed-credit ful
   --say "quiero agua, por favor" --skip 660 --talk guide --say "quiero agua, por favor" --journal-phrases --screenshot /tmp/s8-journal.png --frames 60
 ```
 
-**Save, sessions and resume (S10).** `--save <file>` writes the game when the run ends (on quit, or at the end of a script), and **F5** writes it in an
-interactive run (to the `--save` file, or `vocaterra.save.json` in the working folder); a turn still thinking means "not now", and a quit waits up to five
+**The village, the figures and the HUD (S15).** The valley holds the village the brief's references show. The houses are timber-framed (posts at the corners, a beam
+under the eaves, plaster between) under roofs that step in a block a layer, with a cobble chimney at a corner the position picks; a stone tower with a door, four
+window slits, a timber band and a flagpole stands behind the square; a crop field of tilled soil and rows of wheat (a seeded gap here and there) sits inside a
+fence with a gate; fence lines run along the square; and six lanterns on posts stand by the doors, the square and the road. The signpost carries three boards
+(`Tienda`, `Río`, `Montaña`), each an arrow and the word in a 3 x 5 pixel font on the plank of a block texture, with the accent and the tilde drawn; the words are on the faces that read left to right from the south and the west (the road comes in from the west), and the other sides are plain plank. The stall has
+a red and white awning that reaches over the front, bread, apples and bottles on the counter and on two crates behind it (which of the three each cell holds comes
+from the seed), and thin fence posts at the front, so the player looks past them at the shopkeeper. The guide's workbench stands under a timber pergola with a torch
+on one post and a lantern hanging over the bench, with a chest and crates beside it; the player's camp has a canvas tent, a chest and a crate beside the cold
+fire ring (which the S17 ending lights as before). The lanterns tint the faces within seven blocks warm (half as strongly by day, fully with `--dusk`).
+Everything is placed by `SceneBuilder` from `scene.json` and the seed's `WorldRng` (the stall's goods, the field's gaps), so it is part of the scene digest and
+a test pins the village's and the camps' structure.
+
+**The figures.** The guide Luna (green jacket, yellow scarf, long hair, a pack), the shopkeeper (a white shirt with rolled sleeves, a leather apron, a beard and a
+baker's hat), the villager (a blue tunic and a straw hat) and the player (a blue shirt and a backpack with a bedroll) are boxes of the atlas's cloth, skin and
+hair pictures with a drawn face on the front of the head, shaded by the same sun table as the blocks. They idle (a breath, swaying arms, a head that looks about);
+**when you talk to one it turns to you** (`FigureFacing`: the shorter way round, at most 80 angle steps a tick) and nods and waves its right arm, and turns back to
+where the scene put it when the talk is over. **F5** shows you from behind your right shoulder (the camera stands three blocks back and never inside a wall), with
+the figure walking when you walk; first person has the arm instead.
+
+**The arm.** The first-person arm is a blocky forearm in the player's blue sleeve with a hand in the player's skin, drawn in 3D with the figures' cloth and skin
+pictures, no outline, tinted by the light where you stand (dimmer under cover, warm near a lantern or with a torch in hand). It holds what the hotbar has selected:
+a log for wood, a torch with its flame for a torch, a bottle, or a flat berry or loaf; it sways when you walk, chops while you gather and dips once when you place.
+
+**The HUD.** The hotbar is a row of dark rounded slots with the item's pixel-art icon and the count; the selected one has a bright frame. At the workbench a panel at the
+right shows the recipe as icons: what it makes at the top and, under the arrow, each ingredient with `have/need` in green or red. The dialogue panel is a dark
+rounded panel with the speaker's name in a warm colour, and the speaker's latest line also hangs in a bubble over the figure's head when it is on the screen.
+
+**Save, sessions and resume (S10).** `--save <file>` writes the game when the run ends (on quit, or at the end of a script), and **F6** writes it in an
+interactive run (S15: F5 became the view key) (to the `--save` file, or `vocaterra.save.json` in the working folder); a turn still thinking means "not now", and a quit waits up to five
 seconds for it. `--load <file>` starts from a save: the same world (the trees and the scene come from the seed, and the save holds only the blocks the
 game changed), the player where they stood, the hotbar, the inventory, the objective, every word and phrase count, each NPC's conversation state, and the
 stored time. A load is the **next play session** (the journal's header and the debug overlay read `Sesión 2`), and a new session lifts the spacing gaps

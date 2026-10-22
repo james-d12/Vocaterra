@@ -54,6 +54,8 @@ public sealed record LaunchOptions
         + "  --lesson-help           the lesson step's help path (its English hint, its model line again, the card and the English); a step\n"
         + "  --lesson-pick <n>       pick option n (1 to 4) of a listen step; a step\n"
         + "  --tips                  draw the first-time tips in a scripted run too (an interactive run always does; S16)\n"
+        + "  --third-person          start in the behind-the-shoulder view (S15; F5 switches between it and first person)\n"
+        + "  --dusk                  a lower, dimmer sun and lanterns that glow at full strength (S15)\n"
         + "  --beacon <point>        stand the beacon column on a named point of the scene (camp.guide, camp.player, firering, workbench, stall, signpost, village, house1, bridge, river, lake,\n"
         + "                          waterfall...); the default is camp.guide (the walk down the trail), none puts no beacon up\n"
         + "  --journal               open the journal once the steps are done\n"
@@ -63,7 +65,7 @@ public sealed record LaunchOptions
         + "  --mic-check             show the mic check at the start (an interactive run shows it by default; a scripted run with --screenshot never does unless asked,\n"
         + "                          and then hears a synthesized \"hola\" when the machine has no microphone)\n"
         + "  --no-mic-check          never show the mic check\n"
-        + "  --save <file>           write the game to this save file when the run ends (on quit, or at the end of a script); F5 writes it in an interactive run\n"
+        + "  --save <file>           write the game to this save file when the run ends (on quit, or at the end of a script); F6 writes it in an interactive run\n"
         + "  --load <file>           start from a save file: the same world, inventory, objective and progress, in the next play session (the session counter\n"
         + "                          shows it); refused when the save is for another seed (with --seed) or another content bundle\n"
         + "  --check <pre|post|recall>  run the check battery (S11) first, outside the world: pre then the world; post or recall instead of the world (the run ends\n"
@@ -95,7 +97,7 @@ public sealed record LaunchOptions
     /// <summary>Whether <c>--seed</c> was given: a load then refuses a save of another seed, and without it the save's seed is taken.</summary>
     public bool SeedGiven { get; init; }
 
-    /// <summary>The save file to write (on quit, on F5 and at the end of a scripted run), or <see langword="null"/>.</summary>
+    /// <summary>The save file to write (on quit, on F6 and at the end of a scripted run), or <see langword="null"/>.</summary>
     public string? SavePath { get; init; }
 
     /// <summary>The save file to load into the new session (S10), or <see langword="null"/> to start a new game.</summary>
@@ -166,6 +168,12 @@ public sealed record LaunchOptions
 
     /// <summary>Whether <c>--tips</c> was given: a scripted run draws the first-time tips too (S16).</summary>
     public bool Tips { get; init; }
+
+    /// <summary>Whether <c>--third-person</c> was given: the run starts in the behind-the-shoulder view (S15; F5 flips it in an interactive run).</summary>
+    public bool ThirdPerson { get; init; }
+
+    /// <summary>Whether <c>--dusk</c> was given (S15): the sun is lower and dimmer and the lanterns glow at full strength.</summary>
+    public bool Dusk { get; init; }
 
     /// <summary>Whether the first-time tips are drawn: an interactive run always shows them, a scripted run only with <c>--tips</c>.</summary>
     public bool ShowsTips => !IsScreenshotRun || Tips;
@@ -241,7 +249,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--voxel" or "--greyscale" or "--leave" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--tips" or "--lesson-next" or "--lesson-skip" or "--lesson-help")
+                    or "--playtest" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help")
             {
                 switch (arg)
                 {
@@ -250,6 +258,12 @@ public sealed record LaunchOptions
                         break;
                     case "--tips":
                         result = result with { Tips = true };
+                        break;
+                    case "--third-person":
+                        result = result with { ThirdPerson = true };
+                        break;
+                    case "--dusk":
+                        result = result with { Dusk = true };
                         break;
                     case "--lesson-next":
                         script.Add(new ScriptStep(ScriptStepKind.LessonContinue));
