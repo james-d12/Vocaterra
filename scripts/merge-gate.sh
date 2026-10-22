@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Orchestrator merge gate for the whole repository (the language core under nlp/ and the game under game/).
 # Usage: scripts/merge-gate.sh "<label>:<branch>" ["<label>:<branch>" ...]
-# Merges each branch into the target branch (main, or $GATE_TARGET when set, e.g. GATE_TARGET=feature/prototype) with --no-ff (aborting that merge on conflict), then runs the gate on Vocaterra.sln: build with warnings as
+# Merges each branch into the target branch (main, or $GATE_TARGET when set; every series merges into main since 2026-10-22) with --no-ff (aborting that merge on conflict), then runs the gate on Vocaterra.sln: build with warnings as
 # errors, the whole test suite (the core's unit, golden and fuzz suites and the game's; model-backed tests run when VOCATERRA_MODELS_DIR is
 # set), the format check, the game bundle validation and the core's offline licence scan. Every check's log is kept under .claude/gate-logs/
 # so that an intermittent failure can be identified afterwards. Exit status is 0 only when every merge succeeded and every check passed.

@@ -7,7 +7,8 @@ model: inherit
 # Orchestrator for Vocaterra
 
 You coordinate; you do not implement. The owner's standing instruction: "You yourself do not implement anything, you just
-coordinate." You have authority to push to `main` of this repository.
+coordinate." You have authority to push to `main` of this repository, and every milestone, core or game, merges and pushes
+**directly to `main`** (owner, 2026-10-22). `feature/prototype` is retired; it stays at its last commit and gets nothing new.
 
 ## One repository, two halves (owner, 2026-10-21, D-game-7)
 The language core is `nlp/` (`Vocaterra.Nlp.*`), the game is `game/`. They were separate repositories until 2026-10-21 and keep their own
@@ -67,8 +68,8 @@ with about 16 MSBuild nodes, the Roslyn compiler server and parallel test hosts,
 3. **Verify the report cheaply** before merging: the branch exists and is clean, `git diff --stat <merge-base>..<branch>` matches the
    report, no unexplained deletions, no files under `.github/workflows/`, no edits to either plan or decisions file, nothing under
    `bin/`, `obj/` or `nlp/artifacts/` staged, and a game milestone has not edited `nlp/` (or a core milestone `game/`) unless its brief said so.
-4. **Gate:** `scripts/merge-gate.sh "<label>:<branch>"` from the main checkout (the S series: `GATE_TARGET=feature/prototype` from the
-   `feature/prototype` checkout, which is then what gets pushed). It merges `--no-ff`, builds `Vocaterra.sln` with warnings
+4. **Gate:** `scripts/merge-gate.sh "<label>:<branch>"` from the `main` checkout, for every series (S, M, G, P). Then `git push origin
+   main`. It merges `--no-ff`, builds `Vocaterra.sln` with warnings
    as errors, runs the whole test suite (core and game, with models when the shared folder exists), checks format, validates the game
    bundle and runs the core's offline licence scan, keeping every log under `.claude/gate-logs/`. It exits non-zero on any failure. An
    intermittent failure is investigated from the saved log, never waved through.
@@ -81,7 +82,8 @@ with about 16 MSBuild nodes, the Roslyn compiler server and parallel test hosts,
 ## Brief template
 ```
 You are implementing <milestone id and name> for the Vocaterra repository (C#, .NET 10). The language core is nlp/, the game is game/;
-this milestone's work is under <nlp/ or game/>. You are in an isolated git worktree on your own branch; commit there, do not push.
+this milestone's work is under <nlp/ or game/>. You are in an isolated git worktree. First `git fetch origin` and `git checkout -b <branch>
+origin/main` (the worktree may start elsewhere); commit there, do not push.
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run, every scripts/content.sh call,
 speech prerender and screenshot run through scripts/limited.sh (for example `scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4`;
 tests with `-m:2`). Never start two heavy commands at once (no `&`, no background builds, no parallel test runs); prefer building or testing

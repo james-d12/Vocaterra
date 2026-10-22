@@ -46,6 +46,6 @@ Facts every session needs:
   reads the clock or draws random numbers; a `--transcript` run uses a fixed time.
 - **The prototype (D-game-8):** the owner's brief `game/docs/PROTOTYPE_BRIEF.md` (source: the `.docx` beside it) and its plan
   `game/docs/SCENARIO_PLAN.md`, milestones S0 to S12 (branch `S<nn>-<name>`, prefix `S<nn>:`): a 3D first-person voxel slice on MonoGame,
-  merged into the integration branch `feature/prototype` (`GATE_TARGET=feature/prototype scripts/merge-gate.sh ...`). Content gate from S5:
+  merged **directly into `main`** (owner, 2026-10-22; `feature/prototype` is retired) with `scripts/merge-gate.sh ...`. Content gate from S5:
   `scripts/content.sh lint game/content/game-v1 --strict --level a1` clean, `content/PHRASES.md` the source of truth (D-game-10, D-game-12).
 - **Open owner decisions:** core D8 to D11 and D13 (`nlp/docs/DECISIONS.md`); D1 and D4 deferred, do not raise them.

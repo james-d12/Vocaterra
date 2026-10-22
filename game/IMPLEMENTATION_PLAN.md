@@ -16,7 +16,7 @@ This is the plan for the game, the folder `game/` of the repository. The languag
 - **Model policy:** Haiku 5.5 by default, Sonnet 5.5 for design-heavy milestones, Opus only on the owner's request.
 - **The prototype brief** (D-game-8, owner, 2026-10-21): a 3D first-person voxel slice on MonoGame (forest, path, village stall, river; three
   NPCs; five target phrases), speech rules D-game-9, learning measurement D-game-10, full colour (D-game-6 amended), the Spanish reviewer
-  deferred with a provisional workaround (D-game-12). The S series is built on the integration branch `feature/prototype`.
+  deferred with a provisional workaround (D-game-12). The S series was built on the integration branch `feature/prototype` until 2026-10-22; it now merges into `main`.
 
 ## 2. Repository layout
 
@@ -199,8 +199,9 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S27 | Verbs, session 3: "Ayer y mañana" (ir a + infinitive, a few preterite forms, time words) | planned | Sonnet 5.5 | S26, core M49 |
 | S28 | The book remade as a book (two-page spread, ribbons, page turn) with conjugation tables (used, taught, hidden until taught) | planned | Sonnet 5.5 | S20b, S27 |
 
-Each milestone ends with the gate in section 6 and a line in section 5. The S series is gated with `GATE_TARGET=feature/prototype
-scripts/merge-gate.sh "S<nn>:<branch>"` from the `feature/prototype` checkout.
+Each milestone ends with the gate in section 6 and a line in section 5. Since 2026-10-22 (owner) every milestone is gated with
+`scripts/merge-gate.sh "S<nn>:<branch>"` from the `main` checkout and pushed straight to `main`. S0 to S23 were merged into
+`feature/prototype`, which `main` fast-forwarded to; that branch is retired.
 
 Prototype order (owner, 2026-10-21): G1 and G2 run alongside P1 and P2 (P1 and P2 do not use the packages); then P3, the smallest vertical
 slice; then P4 to P9; P10 is optional. Details, demos and test approaches per milestone: `docs/research/PROTOTYPE_PLAN.md`; reasons and
