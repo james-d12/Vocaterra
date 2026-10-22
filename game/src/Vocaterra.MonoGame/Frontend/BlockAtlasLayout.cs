@@ -105,8 +105,6 @@ public enum BlockCell
     /// <summary>The icon of a bottle of water (the item, S6).</summary>
     IconWaterBottle,
 
-    /// <summary>The icon of the learner's book (the item, S20): a closed book with a brown cover and cream pages.</summary>
-    IconBook,
 
     /// <summary>The icon of a loaf of bread (the item, S6).</summary>
     IconBread,
@@ -251,6 +249,9 @@ public enum BlockCell
 
     /// <summary>A signpost board with no word: the sides of a board that are not meant to be read (S15).</summary>
     SignBlank,
+
+    /// <summary>The icon of the learner's book (the item, S20): a closed book with a brown cover and cream pages.</summary>
+    IconBook,
 }
 
 /// <summary>
