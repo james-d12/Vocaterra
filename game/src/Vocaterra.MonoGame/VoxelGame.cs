@@ -419,6 +419,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Cards = _cards,
             MicCheck = _micCheck,
             ShowTips = _options.ShowsTips,
+            Playtest = _playtest,
             Ending = _ending,
         };
         _layers.Add(new CrosshairLayer());

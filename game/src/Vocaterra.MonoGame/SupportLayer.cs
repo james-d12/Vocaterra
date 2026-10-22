@@ -43,35 +43,59 @@ public sealed class SupportLayer : IFrameLayer
         }
 
         var session = view.Session;
-        var layout = SupportLayout.For(session, view.ViewportWidth, view.ViewportHeight);
+        var frame = ConversationFrame.For(view);
         var small = view.Fonts.Get(FontProvider.NativeSize);
         var large = view.Fonts.Get(PhraseSize);
         var cards = session.Support.Cards;
-        for (var i = 0; i < cards.Count && i < layout.Cards.Count; i++)
+        for (var i = 0; i < cards.Count && i < frame.Support.Count; i++)
         {
-            DrawCard(spriteBatch, view, small, large, cards[i], Rect(layout.Cards[i]));
+            var placement = frame.Support[i];
+            if (placement.State == CardPresence.Full)
+            {
+                DrawCard(spriteBatch, view, small, large, cards[i], Rect(placement.Box));
+            }
+            else if (placement.State == CardPresence.Collapsed)
+            {
+                DrawLine(spriteBatch, view, small, cards[i].Phrase, Rect(placement.Box), CardBorder);
+            }
         }
 
         var words = session.KeyWordCards;
-        if (layout.KeyWordsAlone && words.Count > 0)
+        for (var i = 0; i < words.Count && i < frame.KeyWords.Count; i++)
         {
-            var heading = new Rectangle(layout.KeyWords[0].X, layout.HeadingY + 2, (int)DrawHelpers.Width(small, KeyWordsHeading) + 16, 20);
-            spriteBatch.Draw(view.Pixel, heading, Back);
-            DrawHelpers.Text(spriteBatch, small, KeyWordsHeading, new Vector2(heading.X + 8, heading.Y + 2), Gold);
+            var placement = frame.KeyWords[i];
+            if (placement.State == CardPresence.Full)
+            {
+                DrawKeyWord(spriteBatch, view, small, large, words[i], Rect(placement.Box), frame.KeyWordsAlone);
+            }
+            else if (placement.State == CardPresence.Collapsed)
+            {
+                DrawLine(spriteBatch, view, small, words[i].Phrase, Rect(placement.Box), Gold);
+            }
         }
 
-        for (var i = 0; i < words.Count && i < layout.KeyWords.Count; i++)
+        if (frame.Chip is { State: not CardPresence.Hidden } chip)
         {
-            DrawKeyWord(spriteBatch, view, small, large, words[i], Rect(layout.KeyWords[i]), layout.KeyWordsAlone);
-        }
-
-        if (layout.Chip is { } chip)
-        {
-            var box = Rect(chip);
+            var box = Rect(chip.Box);
             spriteBatch.Draw(view.Pixel, box, Back);
             DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, Gold);
             DrawHelpers.Text(spriteBatch, small, ChipText, new Vector2(box.X + 10, box.Y + 6), Ink);
         }
+    }
+
+    /// <summary>A card collapsed to one line (S22): the phrase on a slim strip, in the card's colour.</summary>
+    private static void DrawLine(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase small, string phrase, Rectangle box, Color border)
+    {
+        spriteBatch.Draw(view.Pixel, box, Back);
+        DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, border);
+        var text = phrase;
+        var room = box.Width - 16;
+        while (text.Length > 1 && DrawHelpers.Width(small, text) > room)
+        {
+            text = text[..^2] + "…";
+        }
+
+        DrawHelpers.Text(spriteBatch, small, text, new Vector2(box.X + 8, box.Y + 4), Ink);
     }
 
     private static Rectangle Rect(PixelBox box) => new(box.X, box.Y, box.Width, box.Height);
@@ -121,10 +145,16 @@ public sealed class SupportLayer : IFrameLayer
     {
         spriteBatch.Draw(view.Pixel, box, Back);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, Gold);
-        DrawHelpers.Text(spriteBatch, large, card.Phrase, new Vector2(box.X + 14, box.Y + (alone ? 16 : 6)), Ink);
-        var slot = alone ? new Rectangle(box.Right - 86, box.Y + 58, 72, 40) : new Rectangle(box.X + 14, box.Y + 42, 48, 16);
+        if (alone)
+        {
+            // Before the question the heading is the card's own first line (S22: it used to be a separate strip over the row).
+            DrawHelpers.Text(spriteBatch, small, KeyWordsHeading, new Vector2(box.X + 14, box.Y + 6), Gold);
+        }
+
+        DrawHelpers.Text(spriteBatch, large, card.Phrase, new Vector2(box.X + 14, box.Y + (alone ? 24 : 6)), Ink);
+        var slot = alone ? new Rectangle(box.X + 14, box.Y + 68, 52, 18) : new Rectangle(box.X + 14, box.Y + 42, 48, 16);
         spriteBatch.Draw(view.Pixel, slot, new Color(30, 30, 44));
         DrawHelpers.Border(spriteBatch, view.Pixel, slot, 1, Empty);
-        DrawHelpers.Text(spriteBatch, small, "audio", new Vector2(slot.X + (alone ? 12 : 4), slot.Y + (alone ? 11 : 0)), Empty);
+        DrawHelpers.Text(spriteBatch, small, "audio", new Vector2(slot.X + 4, slot.Y + (alone ? 1 : 0)), Empty);
     }
 }

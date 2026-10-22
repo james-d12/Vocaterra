@@ -76,6 +76,9 @@ public sealed class FrameView
     /// <summary>Whether the first-time tips are drawn (S16): an interactive run shows them, a scripted run only when asked.</summary>
     public bool ShowTips { get; set; }
 
+    /// <summary>Whether the run is the playtest profile (S22): the facilitator's label has a reserved place and the bubble keeps below it.</summary>
+    public bool Playtest { get; init; }
+
     /// <summary>The closing moment of the session (S17), or <see langword="null"/> when this view has none.</summary>
     public SessionEnding? Ending { get; init; }
 

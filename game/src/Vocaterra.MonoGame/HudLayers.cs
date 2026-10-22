@@ -105,9 +105,11 @@ public sealed class PlaytestHintLayer : IFrameLayer
         }
 
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var box = new Rectangle(12, view.ViewportHeight - 40, (int)DrawHelpers.Width(font, Text) + 16, 28);
+        // The place the conversation layout reserves (S22): top left, clear of the dialogue footer, the cards and the bubble.
+        var label = ConversationLayout.FacilitatorLabel((int)DrawHelpers.Width(font, Text));
+        var box = new Rectangle(label.X, label.Y, label.Width, label.Height);
         spriteBatch.Draw(view.Pixel, box, new Color(10, 10, 20, 170));
-        DrawHelpers.Text(spriteBatch, font, Text, new Vector2(box.Left + 8, box.Top + 6), Dim);
+        DrawHelpers.Text(spriteBatch, font, Text, new Vector2(box.Left + 8, box.Top + 4), Dim);
     }
 }
 
@@ -123,6 +125,7 @@ public sealed class WordCardLayer : IFrameLayer
     private const int Bottom = 120;
     private const int FadeTicks = 30;
     private const int PhraseSize = 32;
+    private const int ToastPhraseSize = 24;
     private static readonly Color Gold = new(255, 214, 64);
     private static readonly Color Ink = new(250, 246, 232);
     private static readonly Color Empty = new(90, 90, 110);
@@ -158,13 +161,23 @@ public sealed class WordCardLayer : IFrameLayer
 
         var age = view.Tick - shown.StartTick;
         var alpha = (float)Math.Clamp((WordCardQueue.Duration - age) / (double)FadeTicks, 0.0, 1.0);
-        var supportTop = view.Dialogue.IsOpen ? SupportLayout.For(view.Session, view.ViewportWidth, view.ViewportHeight).Top : (int?)null;
-        var box = BoxFor(view.ViewportWidth, view.ViewportHeight, view.Dialogue.IsOpen, supportTop);
+        var small = view.Fonts.Get(FontProvider.NativeSize);
+        if (view.Dialogue.IsOpen)
+        {
+            // While a talk is open the card is a small toast in the conversation layout's column (S22): it never covers the speaker or the bubble.
+            if (ConversationFrame.For(view).NewWord is { State: not CardPresence.Hidden } placement)
+            {
+                DrawToast(spriteBatch, view, small, shown.Card.Phrase, new Rectangle(placement.Box.X, placement.Box.Y, placement.Box.Width, placement.Box.Height), placement.State == CardPresence.Collapsed, alpha);
+            }
+
+            return;
+        }
+
+        var box = BoxFor(view.ViewportWidth, view.ViewportHeight, false);
 
         spriteBatch.Draw(view.Pixel, box, Back * alpha);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, Gold * alpha);
 
-        var small = view.Fonts.Get(FontProvider.NativeSize);
         var large = view.Fonts.Get(PhraseSize);
         DrawHelpers.Text(spriteBatch, small, "New word", new Vector2(box.Left + 14, box.Top + 8), Gold * alpha);
         DrawHelpers.Text(spriteBatch, large, shown.Card.Phrase, new Vector2(box.Left + 14, box.Top + 28), Ink * alpha);
@@ -174,5 +187,19 @@ public sealed class WordCardLayer : IFrameLayer
         spriteBatch.Draw(view.Pixel, slot, new Color(30, 30, 44) * alpha);
         DrawHelpers.Border(spriteBatch, view.Pixel, slot, 1, Empty * alpha);
         DrawHelpers.Text(spriteBatch, small, "audio", new Vector2(slot.Left + 12, slot.Top + 11), Empty * alpha);
+    }
+
+    private static void DrawToast(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase small, string phrase, Rectangle box, bool collapsed, float alpha)
+    {
+        spriteBatch.Draw(view.Pixel, box, Back * alpha);
+        DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, Gold * alpha);
+        if (collapsed)
+        {
+            DrawHelpers.Text(spriteBatch, small, "New word: " + phrase, new Vector2(box.X + 8, box.Y + 4), Ink * alpha);
+            return;
+        }
+
+        DrawHelpers.Text(spriteBatch, small, "New word", new Vector2(box.X + 12, box.Y + 6), Gold * alpha);
+        DrawHelpers.Text(spriteBatch, view.Fonts.Get(ToastPhraseSize), phrase, new Vector2(box.X + 12, box.Y + 22), Ink * alpha);
     }
 }

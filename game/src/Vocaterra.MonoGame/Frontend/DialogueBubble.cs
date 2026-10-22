@@ -39,7 +39,8 @@ public static class DialogueBubble
     /// <param name="headY">The head's y on the screen (the top of the head).</param>
     /// <param name="width">The bubble's width.</param>
     /// <param name="height">The bubble's height.</param>
-    public static BubbleLayout? Place(int viewportWidth, int viewportHeight, double headX, double headY, int width, int height)
+    /// <param name="top">The highest y the bubble may have (S22: a playtest keeps it below the facilitator's label); the margin by default.</param>
+    public static BubbleLayout? Place(int viewportWidth, int viewportHeight, double headX, double headY, int width, int height, int top = Margin)
     {
         if (headX < 0 || headX > viewportWidth || headY < 0 || headY > viewportHeight || width + (2 * Margin) > viewportWidth)
         {
@@ -49,7 +50,7 @@ public static class DialogueBubble
         var x = (int)Math.Round(headX - (width / 2.0));
         x = Math.Clamp(x, Margin, viewportWidth - Margin - width);
         var bottom = (int)Math.Round(headY) - TailHeight;
-        var y = Math.Max(Margin, bottom - height);
+        var y = Math.Max(Math.Max(Margin, top), bottom - height);
         var tailBase = Math.Clamp((int)Math.Round(headX), x + 16, x + width - 16);
         return new BubbleLayout(new PixelBox(x, y, width, height), (int)Math.Round(headX), (int)Math.Round(headY), tailBase);
     }

@@ -7,7 +7,7 @@ namespace Vocaterra.MonoGame;
 /// <summary>
 /// The speaker's bubble (S15, reference B): while a conversation is open and the speaker's head is on the screen, a small dark rounded panel hangs over it with the
 /// name in a warm colour over the line the speaker said last, and a pointer to the head. The panel along the bottom keeps every line, the buttons and the hints; this
-/// is the line where the eye already is.
+/// is the line where the eye already is. Its place comes from <see cref="ConversationFrame"/>, which keeps the cards clear of it (S22).
 /// </summary>
 public sealed class DialogueBubbleLayer : IFrameLayer
 {
@@ -19,34 +19,20 @@ public sealed class DialogueBubbleLayer : IFrameLayer
     public void Draw(SpriteBatch spriteBatch, FrameView view)
     {
         var dialogue = view.Dialogue;
-        if (!dialogue.IsOpen || view.Camera3D is not { } camera || DialogueBubble.LineOf(dialogue) is not { } line)
+        if (!dialogue.IsOpen)
         {
             return;
         }
 
-        var speaker = view.Figures.FirstOrDefault(f => string.Equals(f.Name, dialogue.Npc, StringComparison.Ordinal));
-        if (speaker is null)
-        {
-            return;
-        }
-
-        var head = camera.Screen.Project(speaker.Feet.X + 0.5, speaker.Feet.Y + 2.1, speaker.Feet.Z + 0.5);
-        if (!head.InFront)
+        var frame = ConversationFrame.For(view);
+        if (frame.Bubble is not { } layout)
         {
             return;
         }
 
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var rows = DialogueBubble.Rows(line, DialogueBubble.MaxWidth - (2 * DialogueBubble.Padding), t => DrawHelpers.Width(font, t));
-        var widest = rows.Max(r => DrawHelpers.Width(font, r));
-        var width = (int)Math.Min(DialogueBubble.MaxWidth, Math.Max(widest, DrawHelpers.Width(font, dialogue.NpcName)) + (2 * DialogueBubble.Padding));
+        var rows = frame.BubbleRows;
         var lineHeight = DialogueLayout.LineHeight;
-        var height = (2 * DialogueBubble.Padding) + ((rows.Count + 1) * lineHeight);
-        if (DialogueBubble.Place(view.ViewportWidth, view.ViewportHeight, head.X, head.Y, width, height) is not { } layout)
-        {
-            return;
-        }
-
         var box = new Rectangle(layout.Box.X, layout.Box.Y, layout.Box.Width, layout.Box.Height);
         DrawHelpers.RoundedPanel(spriteBatch, view.Pixel, box, 7, Back, Edge, 2);
 
