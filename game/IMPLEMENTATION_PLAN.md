@@ -182,7 +182,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S13 | The large world: 384 x 384 x 128 generated terrain, mountains, cliffs, the river and waterfall, sites, the player's cliff camp and trail, view-distance rendering (`docs/SCENARIO_PLAN.md` section 8) | in progress | Sonnet 5.5 | S12, D-game-14 |
 | S14 | The look: code-drawn pixel-art textures, tree species, undergrowth, sun shading, AO, sky, clouds, haze, water, `--quality` presets | planned | Sonnet 5.5 | S13 |
 | S15 | The village, props, humanoid characters, the reference-B dialogue panel, the HUD icons and recipe panel, the F5 view | planned | Sonnet 5.5 | S14 |
-| S16 | The English guidance layer (D-game-13) and the data-driven lesson runner | in progress | Sonnet 5.5 | S12, D-game-13 |
+| S16 | The English guidance layer (D-game-13) and the data-driven lesson runner | done (merged to `feature/prototype` 2026-10-22, bundle `4be20d61…`) | Sonnet 5.5 | S12, D-game-13 |
 | S17 | The opening at the cliff camp, the guide's 5 to 10 minute lesson, the ending; new phrases, checks, Opus pass, speech | planned | Sonnet 5.5 | S13, S16, D-game-15 |
 | S18 | The playtest refresh (build, checklist, report, launcher message) | planned | Haiku 5.5 | S15, S17 |
 
@@ -746,6 +746,37 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   references (`docs/SCENARIO_PLAN.md` section 8): the S12 build has a dark grey sky, untextured dull blocks, a small flat map and cube figures.
   This machine renders through llvmpipe (a VM with a virtio GPU); the owner set a real GPU as the target, with presets. The launcher in
   `game/playtest/` is only meant to run from a built folder; its missing-binary message is unhelpful (S18 fixes it).
+
+- **S16, the English guidance layer and the lesson runner (2026-10-22, Sonnet 5.5).**
+  - **English text.** `game/english.json` (`EnglishText`) holds the UI words, the F1 controls, first-time tips, the bilingual objective
+    (`Campamento (camp): madera (wood) 0/5 ...`; each English word goes when its noun is known), one explanation per phrase, the English
+    under each NPC line (matched by the Spanish without case, accents or punctuation), and feedback keyed by outcome and by every core error
+    code, with a fallback. An uncertain spoken line is blamed on the microphone.
+  - **The ladder.** `SupportLevel` runs `EnglishAndCard`, `CardAndAudio`, `AudioOnly`, `None`.
+    - One full-credit use at the English rung steps down at once. Without this, the D-game-6 gaps would keep the English up for a whole lesson.
+    - The lower rungs keep the 10-minute and 1-hour gaps.
+    - The help key shows card plus English at every rung.
+  - **Lessons.** `game/lessons.json` (`LessonBook`, `LessonRunner`): steps `explain`, `model`, `listen`, `repeat`, `answer`, `do`, `recap`,
+    validated at load against the phrase sheet, prompts, speech lines and world events.
+    - Every step has skip (K) and help (H).
+    - A failed turn moves on after `attempts` (default 2: one retry with help; 1 moves on at once), never counted as a language failure.
+      Accepted by the orchestrator as the reading of fail-forward for lessons.
+    - A lesson takes over the NPC's conversation only while engaged (`L` or `autoStart`).
+    - Progress is saved (`LessonsSave`, `TipsSave`; older saves load), and every step is logged (`lesson` lines).
+    - A new world event, `item_picked_up`, serves `do` steps.
+    - A two-step sample lesson (hola, gracias) is on the guide.
+  - **Front-end.** `LessonLayer`, `TipLayer`, `ControlsLayer` (F1); English drawn in orchid prefixed `English:`; tips hidden in scripted runs
+    unless `--tips`. Script flags: `--lesson`, `--lesson-next`, `--lesson-skip`, `--lesson-help`, `--lesson-pick`.
+  - **Tests:** 3,984 passed, 5 skipped. No core gaps.
+  - **Checked by the orchestrator:** the gate; the demo `--talk guide --lesson sample --say hola --say gracias` completes both steps; a
+    screenshot shows the English under each Spanish line and the bilingual HUD.
+  - **Left for S17 and S18:**
+    - the speech buttons are still Spanish only (`Repetir`, `Más despacio`, `Ayuda`, `No sé`, `Escribir`) and need English while the
+      English rung is up;
+    - the guide's world lines have no fixed English (a pointer feedback line stands in);
+    - phrase reviews still cover only the four stall and river phrases;
+    - the sample lesson's offer also shows in `--playtest` (S17 replaces it);
+    - `playtest-report.sh` ignores `lesson` lines (S18).
 
 ## 6. Definition of done (every milestone)
 
