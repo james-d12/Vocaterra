@@ -84,6 +84,7 @@ def summarise(events):
         "runs": 0,
         "sessions": [],
         "seeds": set(),
+        "arms": set(),  # the profile and the A/B arm of each run (S12)
         "checks_run": [],
         "objective_complete": False,
         "objective_done": 0,
@@ -113,6 +114,13 @@ def summarise(events):
             summary["runs"] += 1
             summary["sessions"].append(event.get("session"))
             summary["seeds"].add(event.get("seed"))
+            profile = event.get("profile") or {}
+            if "playtest" not in profile:
+                profile_label = "before the playtest flag"
+            else:
+                profile_label = "playtest" if profile.get("playtest") else "not the playtest profile"
+            arm = "arm B, greyscale" if profile.get("greyscale") else "arm A, colour"
+            summary["arms"].add(f"{profile_label}, {arm}")
         elif kind == "session_end":
             summary["end_tick"] = max(summary["end_tick"], event.get("tick") or 0)
             steps = event.get("objective") or []
@@ -184,6 +192,7 @@ def print_folder(title, summary, out):
         f"  runs: {summary['runs']} (sessions {', '.join(str(s) for s in summary['sessions']) or '-'}; "
         f"seeds {', '.join(str(s) for s in sorted(summary['seeds'], key=str)) or '-'})"
     )
+    out.append(f"  profile: {'; '.join(sorted(summary['arms'])) or '-'}")
     steps = f"objective {summary['objective_done']}/{summary['objective_steps']} steps"
     if summary["objective_complete"] and summary["complete_tick"] is None:
         out.append(f"  Completion: {steps}; already complete when this run started (no completion in this folder's runs)")
@@ -250,7 +259,7 @@ def gates(summary, out, label):
 def main(folders):
     out = []
     totals = {
-        "runs": 0, "sessions": [], "seeds": set(), "checks_run": [], "objective_complete": False, "complete_tick": None,
+        "runs": 0, "sessions": [], "seeds": set(), "arms": set(), "checks_run": [], "objective_complete": False, "complete_tick": None,
         "objective_done": 0, "objective_steps": 0,
         "end_tick": 0, "turns": 0, "spoken_latencies": [], "spoken_turns": 0, "not_understood": 0, "uncertain": 0,
         "turn_failed": 0, "timeouts": 0, "mic_failed": 0, "support": {label: 0 for _, _, label in SUPPORT_KINDS},
@@ -268,6 +277,7 @@ def main(folders):
             totals[key] += summary[key]
         totals["sessions"] += summary["sessions"]
         totals["seeds"] |= summary["seeds"]
+        totals["arms"] |= summary["arms"]
         totals["checks_run"] += summary["checks_run"]
         totals["objective_complete"] = totals["objective_complete"] or summary["objective_complete"]
         totals["objective_done"] = max(totals["objective_done"], summary["objective_done"])

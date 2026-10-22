@@ -5,8 +5,9 @@ namespace Vocaterra.MonoGame.Frontend;
 
 /// <summary>
 /// The grey set of the 3D world, from the learner's progress (D-game-6 as amended, the playtest A/B of <c>--greyscale</c>). A block kind is grey
-/// while the catalogue noun that names it (<see cref="NounCatalog.ForBlock"/>) is not known (<see cref="WordRecord.Known"/>). A block no noun names
-/// is always in colour, and so are the figures, the sky and the UI.
+/// while every catalogue noun that names it (<see cref="NounCatalog.NounsOfBlock"/>) is unknown (<see cref="WordRecord.Known"/>): one known
+/// name is enough (the water block is named by <c>agua</c> and <c>río</c>, S12). A block no noun names is always in colour, and so are the
+/// figures, the sky and the UI.
 /// </summary>
 public static class WordColours
 {
@@ -23,8 +24,8 @@ public static class WordColours
                 continue;
             }
 
-            var noun = nouns.ForBlock(block);
-            if (noun is not null && !words.RecordOf(noun.Lemma).Known)
+            var named = nouns.NounsOfBlock(block);
+            if (named.Count > 0 && named.All(noun => !words.RecordOf(noun.Lemma).Known))
             {
                 grey |= ChunkMesher.KindBit(block);
             }

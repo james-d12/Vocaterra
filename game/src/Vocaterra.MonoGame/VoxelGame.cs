@@ -51,6 +51,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <summary>The frames a post- or recall-check's thank-you screen stays up before the run ends.</summary>
     private const int CheckEndFrames = 90;
 
+    /// <summary>The thank-you note of the playtest's post-check (the screen's closing lines; the English is for the facilitator and the tester alike).</summary>
+    private const string PlaytestThankYou = "Thank you for playing. Your answers are in the session log.";
+
+    /// <summary>The thank-you note of the next-day recall of a playtest.</summary>
+    private const string RecallThankYou = "Thank you. Your answers are in the session log.";
+
     private static readonly (Keys Key, Keys Pad)[] CheckOptionKeys = [(Keys.D1, Keys.NumPad1), (Keys.D2, Keys.NumPad2), (Keys.D3, Keys.NumPad3)];
 
     private static readonly Keys[] SlotKeys = [Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9, Keys.D0];
@@ -132,6 +138,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private int _checkFramesLeft;
     private int _checkPlayedAt = -1;
 
+    // The playtest profile (S12): the post-check starts by itself or with F10, its save goes to the session folder, and the thank-you
+    // screen waits for Esc. A screenshot waits for the wanted window size before it is taken (ScreenshotGate).
+    private readonly bool _playtest;
+    private string? _playtestSavePath;
+    private bool _playtestStarted;
+    private bool _playtestSaveDue;
+    private bool _playtestSaved;
+    private int _sizeFrames;
+    private bool _sizeWarned;
+
     /// <summary>
     /// Creates the 3D game for a started session (its simulation is the scene's), the built scene, the NPCs' voices (S9) and the builder of a fresh
     /// scene of the session's seed (a save is taken against it, S10).
@@ -151,6 +167,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _actions = new SpeechActionRunner(session, _dialogue, voice, CursorCell);
         _support = new SupportFrontend(session, _dialogue, _actions, Console.WriteLine);
         _micCheck = options.ShowsMicCheck ? new MicCheckModel(session.LogMicCheck) : null;
+        _playtest = options.Playtest;
+        _debug.Visible = !_playtest; // the playtest has no debug overlay (F3 is off there too)
         _look.Set(scene.Spawn.Yaw, 0);
         _currentEye = _previousEye = EyeBlocks();
         if (options.IsScreenshotRun)
@@ -159,7 +177,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             if (options.Script.Count > 0)
             {
                 var hooks = new ScenarioHooks(npc => OpenDialogueOn(npc, null), CloseDialogue, path => _shotPath = path, () => _shotPath is not null);
-                _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, ResolveItem, hooks, Console.WriteLine);
+                _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, ResolveItem, hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
         else
@@ -177,7 +195,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         IsFixedTimeStep = false; // the accumulator owns the tick rate
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
-        Window.Title = $"Vocaterra 3D (seed {options.Seed})";
+        Window.Title = _playtest ? $"Vocaterra playtest (seed {options.Seed})" : $"Vocaterra 3D (seed {options.Seed})";
         Window.TextInput += OnTextInput;
         StartLogAndCheck(options);
         _session.StartWorker(MonotonicClock.Milliseconds, options.NeedsSpeech);
@@ -196,34 +214,85 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Greyscale: options.Greyscale,
             TypedCredit: options.Credit.TypedUnits < WordProgress.UnitsPerUse ? "half" : "full",
             Check: options.Check is { } kind ? CheckKinds.Of(kind) : null,
-            Scripted: options.IsScreenshotRun);
+            Scripted: options.IsScreenshotRun,
+            Playtest: options.Playtest);
         _log.SessionStart(_session.PlaySession, _session.WorldSeed, _session.Bundle.ContentHash, _session.StoredTime.UnixSeconds, profile);
         Console.WriteLine($"session log: {directory} ({SessionLog.SessionFileName}, {SessionLog.ReplayFileName})");
         _session.Applied += OnAppliedTurn;
+        if (options.Playtest)
+        {
+            _playtestSavePath = PlaytestEnd.SaveIn(directory);
+            Console.WriteLine(options.IsPlaytestRecall
+                ? $"playtest: the next-day recall of the save from session {_session.PlaySession - 1}; the run ends after the check"
+                : $"playtest: the pre-check, the run, then the post-check when the camp is done and the transfer offered (or F10); the save is {_playtestSavePath}");
+        }
+
         if (options.Check is { } battery)
         {
-            var plan = CheckPlan.For(CheckBank.Load(_session.Bundle), battery, _session.WorldSeed);
-            _check = new CheckScreen(battery, plan, MonotonicClock.Milliseconds, result => _log.CheckResult(result, CheckKinds.Of(battery), _session.PlaySession, _sim.Tick));
-            _log.CheckStart(CheckKinds.Of(battery), _session.PlaySession, plan.Count);
-            Console.WriteLine($"check: {CheckKinds.Of(battery)}, {plan.Count} items");
-            if (options.IsScreenshotRun)
-            {
-                // A scripted run prints the order and the right option of each item, so that its --pick steps can be written (a console line only).
-                var order = plan.Select(static e => e.Item.Kind == CheckItemKind.Comprehension ? $"{e.Item.Id} (pick {e.ShownCorrect + 1})" : e.Item.Id);
-                Console.WriteLine($"check order: {string.Join(", ", order)}");
-            }
-            if (options.IsScreenshotRun)
-            {
-                var hooks = new CheckScriptHooks(
-                    picked => PickCheck(picked - 1),
-                    SubmitTypedCheck,
-                    SubmitSpeakCheck,
-                    path => _shotPath = path,
-                    () => _shotPath is not null);
-                _checkScript = new CheckScript(options.Script, _check, hooks, Console.WriteLine);
-            }
+            BeginBattery(battery, options.IsScreenshotRun, 0);
         }
     }
+
+    // Starts a check battery: its plan from the bundle and the seed, its log line, and for a scripted run the script's answers from a step.
+    private void BeginBattery(CheckKind battery, bool scripted, int scriptIndex)
+    {
+        // A battery starts fresh: the pre-check's end (_checkDone) must not stand for the post-check (S12).
+        _checkDone = false;
+        _endAfterCheck = false;
+        _checkFramesLeft = 0;
+        _checkPlayedAt = -1;
+        var plan = CheckPlan.For(CheckBank.Load(_session.Bundle), battery, _session.WorldSeed);
+        _check = new CheckScreen(battery, plan, MonotonicClock.Milliseconds, result => _log!.CheckResult(result, CheckKinds.Of(battery), _session.PlaySession, _sim.Tick));
+        _log!.CheckStart(CheckKinds.Of(battery), _session.PlaySession, plan.Count);
+        Console.WriteLine($"check: {CheckKinds.Of(battery)}, {plan.Count} items");
+        if (!scripted)
+        {
+            return;
+        }
+
+        // A scripted run prints the order and the right option of each item, so that its --pick steps can be written (a console line only).
+        var order = plan.Select(static e => e.Item.Kind == CheckItemKind.Comprehension ? $"{e.Item.Id} (pick {e.ShownCorrect + 1})" : e.Item.Id);
+        Console.WriteLine($"check order: {string.Join(", ", order)}");
+        var hooks = new CheckScriptHooks(
+            picked => PickCheck(picked - 1),
+            SubmitTypedCheck,
+            SubmitSpeakCheck,
+            path => _shotPath = path,
+            () => _shotPath is not null);
+        _checkScript = new CheckScript(_options.Script, _check, hooks, Console.WriteLine, scriptIndex);
+    }
+
+    // The post-check of a playtest (S12): it starts when the camp is done and the transfer offered (Update), or at once with F10. The world stops
+    // while it runs; a scripted run answers it from the script's next step, so the world script is done with its steps when it ends.
+    private void StartPlaytestPost(string why)
+    {
+        _playtestStarted = true;
+        if (_dialogue.IsOpen)
+        {
+            CloseDialogue();
+        }
+
+        if (_journal.IsOpen)
+        {
+            CloseJournal();
+        }
+
+        if (_inventory.IsOpen)
+        {
+            CloseInventory();
+        }
+
+        if (_crafting.IsOpen)
+        {
+            CloseCrafting();
+        }
+
+        Console.WriteLine($"playtest: the post-check starts ({why}) at tick {_sim.Tick}; {_session.Objective.Summary}");
+        BeginBattery(CheckKind.Post, _options.IsScreenshotRun, _scenario?.Index ?? 0);
+    }
+
+    // The world is on screen: no check battery and no mic check (the playtest's triggers and its end key need that).
+    private bool WorldRunning => _check is null && _micCheck is not { IsActive: true };
 
     /// <summary>The process exit code: 0 unless the screenshot could not be saved.</summary>
     public int ExitCode { get; private set; }
@@ -307,6 +376,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _layers.Add(new CraftingLayer());
         _layers.Add(new CheckLayer());
         _layers.Add(new MicCheckLayer());
+        if (_playtest)
+        {
+            _layers.Add(new PlaytestHintLayer());
+        }
+
         _layers.Add(new LoadingLayer());
     }
 
@@ -335,6 +409,18 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         RunWatchdog(seconds);
         DriveScriptedMicCheck();
+        if (_playtest && (_scenario is null || _scenario.AtStepBoundary)
+            && PlaytestEnd.StartsOnItsOwn(true, WorldRunning, _playtestStarted, _session.Objective.Complete, PlaytestEnd.TransferOffered(_session.Events), _dialogue.IsOpen))
+        {
+            StartPlaytestPost("the camp is done and the transfer offered");
+        }
+
+        if (_playtestSaveDue && _session.CanSave)
+        {
+            _playtestSaved = WriteSave(_playtestSavePath!, "at the end of the playtest");
+            _playtestSaveDue = !_playtestSaved;
+        }
+
         DriveCheck();
         var steps = _accumulator.Advance(seconds);
         if (_check is not null)
@@ -353,7 +439,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _aimed = AimedFigure();
         PrintEvents();
 
-        if (_check is null && (_scenario is null || _scenario.IsDone) || _checkDone || _checkScript is { Rests: true } && _check is { IsDone: false })
+        // Settled: the world's script is done (or there is none) with no battery on screen, a battery that ends the run has shown its end, or a
+        // battery's script rests. A pre-check is not an end: the world's script after it still has steps to take (S12, a screenshot waits for them).
+        if (_check is null && (_scenario is null || _scenario.IsDone) || _checkDone && _endAfterCheck || _checkScript is { Rests: true } && _check is { IsDone: false })
         {
             _settled++;
         }
@@ -437,7 +525,20 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _lastDrawEnd = drawEnd;
         base.Draw(gameTime);
 
-        if (_shotPath is { } shot)
+        // A screenshot is taken at the size the game asked for (ScreenshotGate): a window's first frames can be drawn before its resize.
+        var sized = !_options.IsScreenshotRun || ScreenshotGate.IsFinalSize(width, height, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight, Window.ClientBounds.Width, Window.ClientBounds.Height);
+        if (!sized)
+        {
+            _sizeFrames++;
+            if (!_sizeWarned && ScreenshotGate.MayShoot(false, _sizeFrames))
+            {
+                _sizeWarned = true;
+                Console.WriteLine($"screenshot: the window stayed {width} x {height} (wanted {_graphics.PreferredBackBufferWidth} x {_graphics.PreferredBackBufferHeight}) for {_sizeFrames} frames; the picture is taken at this size");
+            }
+        }
+
+        var mayShoot = ScreenshotGate.MayShoot(sized, _sizeFrames);
+        if (_shotPath is { } shot && mayShoot)
         {
             // A --shot step: the screen as it is at this point of the script, then the script goes on.
             var saved = ScreenshotWriter.TrySave(GraphicsDevice, shot);
@@ -446,7 +547,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _shotPath = null;
         }
 
-        if (_options.ScreenshotPath is { } path
+        if (mayShoot && _options.ScreenshotPath is { } path
             && ((_sim.Tick >= _options.Frames && _settled >= SettleTicks && _session.Worker!.IsReady && _session.PendingTurns == 0 && !_dialogue.SubmitRequested && _dialogue.PendingSpeech is null
                 && _micCheck is not { Phase: MicCheckPhase.Ready or MicCheckPhase.Listening or MicCheckPhase.Thinking })
                 || _sim.Tick > RunawayTicks
@@ -476,6 +577,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         {
             DrainForSave();
             _ = WriteSave(savePath, "at the end of the run");
+        }
+
+        if (_playtest && !_options.IsPlaytestRecall && !_playtestSaved && _playtestSavePath is { } playtestSave)
+        {
+            DrainForSave();
+            _playtestSaved = WriteSave(playtestSave, "at the quit (the playtest ended before its post-check)");
         }
 
         if (_log is { } log)
@@ -605,6 +712,18 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         bool Pressed(Keys key) => keys.IsKeyDown(key) && !_previousKeys.IsKeyDown(key);
         if (IsActive)
         {
+            if (_playtest && _endAfterCheck && _checkDone && Pressed(Keys.Escape))
+            {
+                Exit(); // the playtest's thank-you screen: Esc closes the game (Esc always works)
+                _previousKeys = keys;
+                return;
+            }
+
+            if (_playtest && Pressed(Keys.F10) && PlaytestEnd.EndKeyStarts(true, WorldRunning, _playtestStarted))
+            {
+                StartPlaytestPost("the end key");
+            }
+
             if (Pressed(Keys.F5))
             {
                 SaveNow();
@@ -677,7 +796,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 _captureWanted = false;
             }
 
-            if (Pressed(Keys.F3))
+            if (Pressed(Keys.F3) && !_playtest)
             {
                 _debug.Visible = !_debug.Visible;
             }
@@ -1011,8 +1130,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
         }
 
-        // With steps to run after it, the scripted check goes on by itself once its result has been on screen for a moment; alone it stays up for the screenshot.
-        if (check.Phase is MicCheckPhase.Passed or MicCheckPhase.Failed && _scenario is { IsDone: false } && ++_micShownTicks >= 60)
+        // With steps to run after it (or a check battery waiting behind it, S12: the playtest's pre-check), the scripted check goes on by itself once
+        // its result has been on screen for a moment; alone it stays up for the screenshot.
+        if (check.Phase is MicCheckPhase.Passed or MicCheckPhase.Failed && (_scenario is { IsDone: false } || _check is { IsDone: false }) && ++_micShownTicks >= 60)
         {
             check.Press(check.Phase == MicCheckPhase.Passed ? MicCheckButton.Continue : MicCheckButton.Skip);
         }
@@ -1579,7 +1699,28 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         _checkScript = null;
         _endAfterCheck = true;
-        _checkFramesLeft = CheckEndFrames;
+        if (!_playtest)
+        {
+            _checkFramesLeft = CheckEndFrames;
+            return;
+        }
+
+        // The playtest's end: the thank-you holds until Esc (no timer), the world script is done with its steps, and a post-check saves the run.
+        _checkFramesLeft = -1;
+        if (_scenario is not null)
+        {
+            _scenario.SkipTo(_options.Script.Count);
+        }
+
+        if (_options.IsPlaytestRecall)
+        {
+            check.Closing = RecallThankYou;
+            return;
+        }
+
+        var folder = Path.GetFileName(Path.GetDirectoryName(_playtestSavePath!)) ?? string.Empty;
+        check.Closing = $"{PlaytestThankYou}\nSaved: {PlaytestEnd.SaveFileName} in the session folder {folder}.";
+        _playtestSaveDue = true;
     }
 
     // The battery is waiting for a learner's answer that the scripted run has not given, or it has ended and shows its thank-you screen.

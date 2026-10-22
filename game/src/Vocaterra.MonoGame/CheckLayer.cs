@@ -84,6 +84,15 @@ public sealed class CheckLayer : IFrameLayer
             var skipped = check.Results.Count(static r => r.Input == CheckInput.Skipped);
             DrawHelpers.Text(spriteBatch, title, "Thank you.", new Vector2(panel.Left + 40, panel.Top + 150), Good);
             DrawHelpers.Text(spriteBatch, small, $"{answered} answered, {skipped} skipped.", new Vector2(panel.Left + 40, panel.Top + 200), Dim);
+            if (check.Closing is { } closing)
+            {
+                // The playtest's closing note (S12): one line per row of the text.
+                var rows = closing.Split('\n');
+                for (var i = 0; i < rows.Length; i++)
+                {
+                    DrawHelpers.Text(spriteBatch, small, rows[i], new Vector2(panel.Left + 40, panel.Top + 240 + (i * 28)), Ink);
+                }
+            }
         }
 
         if (check.Notice is { } notice)
@@ -92,7 +101,7 @@ public sealed class CheckLayer : IFrameLayer
         }
 
         var thinking = check.Phase == CheckPhase.Thinking;
-        var footer = thinking ? "Thinking..." : check.IsDone ? "The answers are in the session log." : "Esc: end the check (the rest is skipped)";
+        var footer = thinking ? "Thinking..." : check.IsDone ? (check.Closing is null ? "The answers are in the session log." : "Esc: close the game") : "Esc: end the check (the rest is skipped)";
         DrawHelpers.Text(spriteBatch, small, footer, new Vector2(panel.Left + 40, panel.Bottom - 40), thinking ? Gold : Dim);
     }
 

@@ -61,6 +61,15 @@ dotnet test Vocaterra.sln
 The .NET SDK is pinned in `global.json` (10.0.402, `latestPatch`). A user-local install is enough. The core's projects are built from the
 same commit; there is no pack step and no local feed.
 
+The speech models are not in the repository. Without them five model-gated tests are skipped, and the speech runs (the mic check, `--speak`,
+`--playtest`) cannot hear. Fetch the pinned Vosk model and the Kokoro model once into a folder outside the repository, then point
+`VOCATERRA_MODELS_DIR` at it for the tests and the runs:
+
+```bash
+export VOCATERRA_MODELS_DIR="$HOME/.local/share/vocaterra/models"
+nlp/scripts/fetch-models.sh vosk-model-small-es-0.42 kokoro-multi-lang-v1_0   # needs curl, python3, sha256sum, unzip or tar with bzip2
+```
+
 On a Linux x64 build host the build copies only the linux-x64 native libraries (about 400 MB less per build); the commands and the output
 paths are the same. `dotnet build -p:VocaterraAllRuntimes=true` copies every platform's natives again (for a release build). See
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -246,6 +255,52 @@ bash scripts/playtest-report.sh /tmp/sess1 /tmp/sess2
 The report (`scripts/playtest-report.sh`, bash and Python 3's standard library, run with `python3 -I`) reads only the session folders. Its gate lines
 (Playable, Learning signal, Transfer, Enjoyable) are evidence, never a verdict on learning; Enjoyable needs observer notes.
 
+## The playtest (S12)
+
+`--playtest` is the profile for the playtests (the facilitator's script is [docs/PLAYTEST.md](docs/PLAYTEST.md)): no debug overlay (F3 is off),
+the mic check on, the session log in its own folder under `~/.local/share/vocaterra/sessions/` (or `--session-dir`), the pre-check before the
+world (a fresh start) or the recall check (with `--load`), and `--greyscale` only when given (the A/B arm B; arm A is the default). Nothing in
+the profile blocks progress, and Esc always works. The run ends like this: the **post-check** starts by itself once the camp is complete and the
+guide has made her transfer offer, and the tester has closed her panel (or at once with **F10**, which the screen labels for the facilitator);
+then the game saves to `playtest.save` in the session folder and shows the thank-you screen until Esc.
+
+```bash
+# a playtest in a checkout (the speech models in VOCATERRA_MODELS_DIR; the pre-check first, then the world, then the post-check)
+dotnet run --project game/src/Vocaterra.MonoGame -- --playtest
+dotnet run --project game/src/Vocaterra.MonoGame -- --playtest --greyscale           # arm B of the A/B
+# the next-day recall of a playtest's save: the recall check, then the thank-you; nothing is saved
+dotnet run --project game/src/Vocaterra.MonoGame -- --playtest --load ~/.local/share/vocaterra/sessions/<folder>/playtest.save
+# the same run, scripted (a screenshot needs a display; the pre-check's answers are --pick and --say; the post-check's answers come after the
+# transfer's --leave, in the order the console prints as "check order:"; see the S11 lines above for the shape of a check's answers)
+DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --playtest --seed 42 --session-dir /tmp/playtest1 \
+  --pick 3 --pick 2 --pick 2 --say "¿Dónde está el río?" --pick 1 --say "No, gracias." --pick 3 --say "Quiero agua, por favor." --say "Sí, por favor." --pick 3 \
+  --interact 17,11,15 --interact 15,11,19 --walk-to 17,20 --interact 16,11,23 --walk-to 11,17 --interact 9,11,17 --interact 9,12,17 \
+  --interact 9,13,17 --interact 9,14,17 --walk-to 11,11 --interact 11,11,9 --walk-to 20,17 --craft antorcha --walk-to 20,19 --place antorcha@21,12,21 \
+  --talk shopkeeper --say "quiero agua, por favor" --say "sí, por favor" --talk villager --say "¿dónde está el río?" \
+  --walk-to 62,79 --interact 62,7,80 --look 180,-14 --talk guide --say "sí, por favor" --leave \
+  --say "Sí, por favor." --say "No, gracias." --pick 1 --pick 2 --pick 2 --say "¿Dónde está el río?" --say "Quiero agua, por favor." --pick 1 --pick 3 --pick 1 \
+  --screenshot /tmp/playtest1-thanks.png --frames 60
+```
+
+**The build folder.** `scripts/playtest-build.sh <a new folder outside the repository>` publishes the game for linux-x64 as a self-contained
+folder (a tester needs no .NET install), copies the bundle with its speech WAVs, the pinned Vosk model with its manifest (copied from
+`VOCATERRA_MODELS_DIR`, after its checksums are checked), the tester's README (`playtest/README-tester.md`) and the launcher
+(`playtest/playtest.sh`, which runs `--playtest` with the folder's own models). Then it checks the folder: no sherpa-onnx or ONNX Runtime native
+library, no espeak-ng, no sherpa model file, the Vosk model's checksums, 226 speech files; the build fails if one check does not pass. The
+sherpa-onnx native library is left out by the build property `VocaterraPlaytest=true` (in `src/Vocaterra.MonoGame/Vocaterra.MonoGame.csproj`:
+the native assets of the linux-x64 runtime pack are excluded, and the ONNX Runtime Windows DLLs that its props add are dropped from the publish).
+The managed `sherpa-onnx.dll` stays, because the core's assemblies reference it. The playtest loads Vosk only; the NPCs' voices are the
+pre-rendered WAVs (S9), and a developer build keeps Kokoro for `--speak`.
+
+```bash
+scripts/playtest-build.sh /tmp/playtest-build      # a new folder; ends with "all checks passed"
+cd /tmp/playtest-build && ./playtest.sh             # the tester's run (./playtest.sh --greyscale for arm B)
+bash scripts/playtest-report.sh ~/.local/share/vocaterra/sessions/<folder> [<folder> ...]   # from the repository root
+```
+
+The report (`scripts/playtest-report.sh`) prints each folder's profile and arm as well as the gates' evidence. The folder is private: the
+speech WAVs are model output and the native code it runs is under core D2 (see the licence section).
+
 ## Content
 
 `content/game-v1` is the game's bundle, under the bundle id `game-v1`. **The game owns it** (decision D-game-4, decided 2026-10-21: the bundle
@@ -287,7 +342,8 @@ The repository's `.github/workflows-pending/ci.yml` is parked: it needs the work
 ## The core's native libraries
 
 The core depends on third-party native libraries, and one of them carries GPL-3.0 code (core D2); the game does not distribute a build that
-includes them until D2 is settled in the core.
+includes them until D2 is settled in the core. The playtest folder (`scripts/playtest-build.sh`) leaves that native library out, and its check
+says so; the owner decides whether handing the private folder to testers counts as distribution under D2.
 
 ## Licence
 

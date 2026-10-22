@@ -16,7 +16,8 @@ namespace Vocaterra.MonoGame.Frontend;
 /// <param name="TypedCredit">The credit of a correct typed use: <c>half</c> or <c>full</c>.</param>
 /// <param name="Check">The check battery run in this session (<c>pre</c>, <c>post</c>, <c>recall</c>), or <see langword="null"/>.</param>
 /// <param name="Scripted">Whether this is a scripted run (<c>--screenshot</c>).</param>
-public sealed record SessionProfile(bool MicCheck, bool Muted, bool NoSpeech, bool Greyscale, string TypedCredit, string? Check, bool Scripted);
+/// <param name="Playtest">Whether the run is the playtest profile (<c>--playtest</c>, S12).</param>
+public sealed record SessionProfile(bool MicCheck, bool Muted, bool NoSpeech, bool Greyscale, string TypedCredit, string? Check, bool Scripted, bool Playtest = false);
 
 /// <summary>
 /// The session log of the front-end (S11, D-game-10): one <c>session.jsonl</c> with a JSON object per line (the session start and end, each turn,
@@ -135,6 +136,7 @@ public sealed class SessionLog : IDisposable
             }
 
             w.WriteBoolean("scripted", profile.Scripted);
+            w.WriteBoolean("playtest", profile.Playtest);
             w.WriteEndObject();
         }));
     }
