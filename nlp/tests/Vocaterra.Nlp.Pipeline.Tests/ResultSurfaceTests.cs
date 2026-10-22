@@ -71,6 +71,35 @@ public class ResultSurfaceTests
     }
 
     [Fact]
+    public void M29j_AQuestionedEstarIsTheIndicativeNotTheImperative()
+    {
+        var result = Evaluate("dónde está el río", Prompt(TestSupport.OfferPrompt));
+
+        var esta = result.Words![1];
+        Assert.Equal(new LexicalFeatures("estar", LexiconSchema.Verb, "3", LexiconSchema.Singular, "pres", "ind", null), esta.Reading);
+    }
+
+    [Theory]
+    [InlineData("gracias")]
+    [InlineData("muchas gracias")]
+    public void M29j_GraciasIsTheInterjection(string transcript)
+    {
+        var gracias = Evaluate(transcript, Prompt(TestSupport.OfferPrompt)).Words!.Last();
+
+        Assert.Equal(new LexicalFeatures("gracias", LexiconSchema.Interjection, null, null, null, null, null), gracias.Reading);
+    }
+
+    [Fact]
+    public void M29j_PorFavorIsOneExpressionOverTwoTokens()
+    {
+        var words = Evaluate("quiero agua por favor", Prompt(TestSupport.OfferPrompt)).Words!;
+
+        Assert.Equal(["por", "favor"], words.Skip(2).Select(static w => w.Token.Text).ToArray());
+        Assert.All(words.Skip(2), static w => Assert.Equal(new LexicalFeatures("por favor", LexiconSchema.Interjection, null, null, null, null, null), w.Reading));
+        Assert.NotEqual(words[2].Token.Span, words[3].Token.Span);
+    }
+
+    [Fact]
     public void AName_BoundToAWordElement_IsMarkedAsAName()
     {
         var result = Evaluate("me llamo Ana", IntroductionPrompt());

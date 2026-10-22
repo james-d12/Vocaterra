@@ -230,7 +230,19 @@ that text; `Original`, the surface as typed), a `Role` and the `Reading` the res
 `Name` (the best slot grammar binds it to a `[WORD]` element; it has no reading) or `Unknown` (no reading, no grammar). A reading is the
 `LexicalFeatures` record (`Lemma`, `Pos`, `Person`, `Number`, `Tense`, `Mood`, `Gender`; null where a feature does not apply). It is the
 reading the agreement checks used, so its lemma agrees with the error spans; a host need not run `TextNormalizer` or `LinguisticAnalyzer`
-again. Where the resolver left several readings of one word, the first in lexicon order is reported. `Text` keeps accents and writes number
+again. Where the resolver left several readings of one word, the first in lexicon order is reported, except in three cases (M29j; the agreement
+checks read the resolver's readings and are not affected):
+
+- **Mood.** A form that is both the imperative and the indicative (`está`, `abre`) is reported as the 2nd person imperative only when it opens its
+  clause (nothing before it but interjections: `¡Está quieto!`, `por favor abre la puerta`). Otherwise it is the indicative: `¿dónde está el río?`
+  gives `estar`, 3rd person singular, `pres`, `ind`. A clause-initial `ser`, `estar` or `haber` is also the indicative before a noun phrase or a
+  participle, and any clause-initial verb is before a subject pronoun. The text keeps no punctuation, so a question shows by its question word.
+- **`gracias`** is the interjection (lemma `gracias`, `Pos` `interj`), alone and after a quantifier (`muchas gracias`). After an article or a numeral
+  (`las gracias`, `dos gracias`) it is the noun `gracia`.
+- **Fixed expressions.** Adjacent words that the lexicon lists as one form (`por favor`, `de nada`) are reported with one reading on every token: the
+  lemma is the whole expression (`por favor`) and `Pos` is that entry's (`interj`). Each token keeps its own `Text`, `Span` and `Original`. A host
+  detects a fixed expression by a `Lemma` that contains a space; the tokens that share it are adjacent. There is no new member or value.
+  The agreement checks still see `por` and `favor` as a preposition and a noun. `Text` keeps accents and writes number
 words as digits (`dos` is `2`); `Original` is the typed text. A word typed without its accent is reported with the reading the resolver
 chose, so `esta` is `estar` after `donde`, and its `Original` stays `esta`.
 
