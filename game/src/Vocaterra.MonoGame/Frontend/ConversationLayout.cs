@@ -131,7 +131,8 @@ public sealed class ConversationLayout
     /// <param name="bubble">The speech bubble's box (with its pointer), or <see langword="null"/> when there is none.</param>
     /// <param name="panel">The dialogue panel's box.</param>
     /// <param name="cards">The cards, newest first.</param>
-    public static ConversationLayout Compute(int viewportWidth, int viewportHeight, PixelBox? head, PixelBox? bubble, PixelBox panel, IReadOnlyList<ConversationCardRequest> cards)
+    /// <param name="extraClear">Further rectangles the cards keep clear of (the beacon's label, S22), or <see langword="null"/>.</param>
+    public static ConversationLayout Compute(int viewportWidth, int viewportHeight, PixelBox? head, PixelBox? bubble, PixelBox panel, IReadOnlyList<ConversationCardRequest> cards, IReadOnlyList<PixelBox>? extraClear = null)
     {
         ArgumentNullException.ThrowIfNull(cards);
         PixelBox? clear = head is { } h ? Union(h, bubble) : bubble;
@@ -148,7 +149,7 @@ public sealed class ConversationLayout
         {
             foreach (var zone in zones)
             {
-                var placed = Pack(zone, cards, fullCount);
+                var placed = Pack(zone, cards, fullCount, extraClear ?? []);
                 var shown = placed.Count(p => p.State != CardPresence.Hidden);
                 if (shown == cards.Count)
                 {
@@ -188,7 +189,7 @@ public sealed class ConversationLayout
     }
 
     // The first fullCount cards (the newest) stand whole, the others as one line each.
-    private static List<CardPlacement> Pack(PixelBox zone, IReadOnlyList<ConversationCardRequest> cards, int fullCount)
+    private static List<CardPlacement> Pack(PixelBox zone, IReadOnlyList<ConversationCardRequest> cards, int fullCount, IReadOnlyList<PixelBox> extraClear)
     {
         var placed = new List<CardPlacement>();
         var bottom = zone.Bottom;
@@ -229,7 +230,8 @@ public sealed class ConversationLayout
             }
 
             var rowHeight = row.Max(c => c.Height);
-            if (bottom - rowHeight < zone.Y)
+            var rowBox = new PixelBox(zone.X, bottom - rowHeight, row.Sum(c => c.Width + Gap) - Gap, rowHeight);
+            if (rowBox.Y < zone.Y || extraClear.Any(c => Overlaps(rowBox, c)))
             {
                 index -= row.Count;
                 break;

@@ -174,6 +174,36 @@ public sealed class ConversationLayoutTests(ITestOutputHelper output)
     }
 
     [Fact]
+    public void TheBeaconLabelStaysInsideTheWindowClearOfThePanelAndTheSpeakerAndTheCardsKeepClearOfIt()
+    {
+        // (right, up) of an off-screen target in the camera's frame: right, left, up, down, and the corners.
+        var directions = new (double Right, double Up)[] { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, 1), (1, -1), (-1, -1), (1, 0.2), (-1, -0.2) };
+        foreach (var (width, height) in Sizes)
+        {
+            var panel = DialogueLayout.PanelBox(width, height);
+            var (head, bubble) = Speaker(width, height, (0.5, 0.25), 300);
+            var speaker = ConversationLayout.Union(head, bubble);
+            foreach (var (right, up) in directions)
+            {
+                var arrow = EdgeArrow.For(new ProjectedPoint(0, 0, -1, right, up), width, height, 56);
+                Assert.False(arrow.OnScreen);
+                foreach (var textWidth in new[] { 120.0, 190.0 }) // "campamento 111 blocks" is about 190 px
+                {
+                    var label = BeaconLabel.Place(width, height, arrow.X, arrow.Y, textWidth, [panel, speaker]);
+                    var where = $"{width}x{height} target ({right}, {up}), arrow ({arrow.X:0}, {arrow.Y:0})";
+                    Assert.True(label.X >= 0 && label.Y >= 0 && label.Right <= width && label.Bottom <= height, $"{where}: label {label} leaves the window");
+                    Assert.False(ConversationLayout.Overlaps(label, panel), $"{where}: label {label} overlaps the panel");
+                    Assert.False(ConversationLayout.Overlaps(label, speaker), $"{where}: label {label} overlaps the speaker");
+
+                    var layout = ConversationLayout.Compute(width, height, head, bubble, panel, Pattern, [label]);
+                    Assert.Contains(layout.Cards, c => c.State != CardPresence.Hidden);
+                    Assert.All(layout.Cards.Where(c => c.State != CardPresence.Hidden), c => Assert.False(ConversationLayout.Overlaps(c.Box, label), $"{where}: a card overlaps the label"));
+                }
+            }
+        }
+    }
+
+    [Fact]
     public void TheHeadRectangleIsCentredOnTheHeadAndNeverTiny()
     {
         var head = ConversationCards.HeadRect(640, 200, 300);

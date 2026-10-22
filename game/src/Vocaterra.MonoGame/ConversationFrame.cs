@@ -21,6 +21,9 @@ public sealed class ConversationFrame
     /// <summary>The rows of the bubble's line.</summary>
     public IReadOnlyList<string> BubbleRows { get; private init; } = [];
 
+    /// <summary>The beacon's edge label while a talk is open (clear of the panel, the head and the bubble; the cards keep clear of it), or <see langword="null"/> when there is none.</summary>
+    public PixelBox? BeaconLabel { get; private init; }
+
     /// <summary>The layout of the cards.</summary>
     public required ConversationLayout Layout { get; init; }
 
@@ -91,7 +94,16 @@ public sealed class ConversationFrame
         }
 
         PixelBox? bubbleBox = bubble is { } b ? new PixelBox(b.Box.X, b.Box.Y, b.Box.Width, b.Box.Height + DialogueBubble.TailHeight) : null;
-        var layout = ConversationLayout.Compute(width, height, head, bubbleBox, panel, requests);
+
+        // The beacon's label is placed first, clear of the panel, the head and the bubble; the cards then keep clear of it (S22).
+        var labelAvoid = new List<PixelBox> { panel };
+        if (head is { } headBox)
+        {
+            labelAvoid.Add(ConversationLayout.Union(headBox, bubbleBox));
+        }
+
+        var beaconLabel = BeaconArrowLayer.LabelFor(view, labelAvoid)?.Box;
+        var layout = ConversationLayout.Compute(width, height, head, bubbleBox, panel, requests, beaconLabel is { } label ? [label] : null);
         var placements = layout.Cards;
         var at = 0;
         CardPlacement? toast = showToast ? placements[at++] : null;
@@ -106,6 +118,7 @@ public sealed class ConversationFrame
             Bubble = bubble,
             BubbleRows = rows,
             Layout = layout,
+            BeaconLabel = beaconLabel,
             NewWord = toast,
             Support = support,
             KeyWords = keys,

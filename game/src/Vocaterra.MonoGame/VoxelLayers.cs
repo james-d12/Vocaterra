@@ -128,12 +128,17 @@ public sealed class BeaconArrowLayer : IFrameLayer
     public static string BeaconText(string? label, double distance) =>
         string.Create(CultureInfo.InvariantCulture, $"{label ?? string.Empty}  {distance:0} blocks").Trim();
 
-    /// <inheritdoc />
-    public void Draw(SpriteBatch spriteBatch, FrameView view)
+    /// <summary>
+    /// The beacon's arrow, label text and label box for a frame (S22), or <see langword="null"/> when the beacon has no target. The box is <see langword="null"/> while the
+    /// target is on the screen (the label then hangs at the target); otherwise it is clamped inside the window and clear of <paramref name="avoid"/>.
+    /// </summary>
+    /// <param name="view">The frame's view.</param>
+    /// <param name="avoid">Rectangles the label keeps clear of (the panel, the head and the bubble while a talk is open).</param>
+    internal static (EdgeArrow Arrow, string Text, PixelBox? Box)? LabelFor(FrameView view, IReadOnlyList<PixelBox> avoid)
     {
         if (view.Beacon is not { Target: { } target } beacon || view.Camera3D is not { } camera)
         {
-            return;
+            return null;
         }
 
         var width = view.ViewportWidth;
@@ -143,8 +148,32 @@ public sealed class BeaconArrowLayer : IFrameLayer
         var arrow = EdgeArrow.For(point, width, height, EdgeMargin);
         var distance = Math.Sqrt(Math.Pow(target.X + 0.5 - eye.X, 2) + Math.Pow(target.Z + 0.5 - eye.Z, 2));
         var text = BeaconText(beacon.Label, distance);
+        if (arrow.OnScreen)
+        {
+            return (arrow, text, null);
+        }
+
+        var font = view.Fonts.Get(FontProvider.NativeSize);
+        return (arrow, text, BeaconLabel.Place(width, height, arrow.X, arrow.Y, DrawHelpers.Width(font, text), avoid));
+    }
+
+    /// <inheritdoc />
+    public void Draw(SpriteBatch spriteBatch, FrameView view)
+    {
+        var avoid = new List<PixelBox>();
+        if (view.Dialogue.IsOpen)
+        {
+            avoid.Add(DialogueLayout.PanelBox(view.ViewportWidth, view.ViewportHeight));
+        }
+
+        if (LabelFor(view, avoid) is not { } beacon)
+        {
+            return;
+        }
+
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var pixel = view.Pixel;
+        var (arrow, text, _) = beacon;
         if (arrow.OnScreen)
         {
             DrawLabel(spriteBatch, pixel, font, text, new Vector2((float)arrow.X, (float)arrow.Y));
@@ -153,8 +182,21 @@ public sealed class BeaconArrowLayer : IFrameLayer
 
         var from = new Vector2((float)arrow.X, (float)arrow.Y) - (new Vector2(MathF.Cos((float)arrow.Angle), MathF.Sin((float)arrow.Angle)) * (ArrowLength * 0.5f));
         DrawArrow(spriteBatch, pixel, from, (float)arrow.Angle, ArrowLength);
-        var labelAt = new Vector2((float)arrow.X, (float)arrow.Y) + new Vector2(0, arrow.Y > height / 2.0 ? -40 : 28);
-        DrawLabel(spriteBatch, pixel, font, text, labelAt);
+
+        // The label stays inside the window and clear of the conversation's panel, head, bubble and cards (S22): the frame places it first and the cards keep clear of it.
+        var box = new Rectangle(0, 0, 0, 0);
+        if (view.Dialogue.IsOpen && ConversationFrame.For(view).BeaconLabel is { } placed)
+        {
+            box = new Rectangle(placed.X, placed.Y, placed.Width, placed.Height);
+        }
+        else if (beacon.Box is { } plain)
+        {
+            box = new Rectangle(plain.X, plain.Y, plain.Width, plain.Height);
+        }
+
+        spriteBatch.Draw(pixel, box, new Color(0, 0, 0, 190));
+        DrawHelpers.Border(spriteBatch, pixel, box, 1, Gold);
+        DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.X + BeaconLabel.Padding, box.Y + 2), Color.White);
     }
 
     private static void DrawLabel(SpriteBatch spriteBatch, Texture2D pixel, FontStashSharp.SpriteFontBase font, string text, Vector2 centre)
