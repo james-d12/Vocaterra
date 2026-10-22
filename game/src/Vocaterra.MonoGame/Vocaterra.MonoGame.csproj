@@ -44,6 +44,14 @@
     </ItemGroup>
   </Target>
 
+  <!-- The build's commit for the in-game report (S21): VOCATERRA_BUILD_COMMIT, empty (the report says unknown) when the build does not set it. -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>BuildCommit</_Parameter1>
+      <_Parameter2>$(VOCATERRA_BUILD_COMMIT)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
   <!-- Assets live at the repository root (assets/ATTRIBUTION.md records each file) and are copied next to the executable. -->
   <ItemGroup>
     <None Include="../../assets/fonts/pixel-operator/PixelOperator.ttf" Link="assets/fonts/PixelOperator.ttf" CopyToOutputDirectory="PreserveNewest" />

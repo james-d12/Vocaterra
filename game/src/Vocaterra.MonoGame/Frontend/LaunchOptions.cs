@@ -74,6 +74,10 @@ public sealed record LaunchOptions
         + "                          after it). Its items are answered by the player, or by the script's --pick and --say/--speak steps\n"
         + "  --pick <n>              answer the check's comprehension item with the option n (1 to 3, as shown); a step, with --check\n"
         + "  --session-dir <dir>     write this run's session.jsonl and replay.jsonl here (default: a new folder under ~/.local/share/vocaterra/sessions/)\n"
+        + "  --report <text>         open the report panel (F8), type the text and save the report (a Markdown file and a screenshot); a step (S21)\n"
+        + "  --report-open <text>   open the report panel, type the text and leave the panel open (the screenshot of the panel); a step (S21)\n"
+        + "  --report-kind <bug|feature>  the kind a report starts with (default bug; S21)\n"
+        + "  --report-dir <dir>      write the reports here instead of the session folder's reports/ (S21)\n"
         + "  --typed-credit <full|half> the credit a correct typed use earns (default half; spoken input always earns full)\n"
         + "  --no-speech             do not load the speech models (typing only)\n"
         + "  --mute                  the NPCs' pre-rendered voices are off (the panel still shows every line)\n"
@@ -91,6 +95,7 @@ public sealed record LaunchOptions
         + "  the crafting panel at the workbench, or talks to the guide when the crosshair is on her); C the crafting panel; J the journal; 1..0 the hotbar.\n"
         + "Push-to-talk: hold V or Space while the dialogue is open, or hold V with the crosshair on an NPC to open it and listen. In the dialogue: R repeat,\n"
         + "  S slower, H help, N \"no sé\", W or Tab type (Tab or Esc back to the buttons), 1 to 3 pick an offered choice, Esc cancels a turn that is thinking, then closes.\n"
+        + "F8 reports a bug or asks for a feature: a Markdown file and a screenshot in the session folder (Ctrl+Enter saves, Esc cancels).\n"
         + "F1 shows the controls in English. In a lesson at the guide: L starts it, Enter continues, K skips the step, H helps, 1 to 4 pick an answer.\n";
 
     /// <summary>The world seed.</summary>
@@ -110,6 +115,12 @@ public sealed record LaunchOptions
 
     /// <summary>The folder the session log is written to (<c>--session-dir</c>), or <see langword="null"/> for a new folder under the sessions folder.</summary>
     public string? SessionDir { get; init; }
+
+    /// <summary>The folder the reports are written to (<c>--report-dir</c>), or <see langword="null"/> for <c>reports/</c> in the session folder (S21).</summary>
+    public string? ReportDir { get; init; }
+
+    /// <summary>The kind a report starts with (<c>--report-kind</c>): Bug unless given (S21).</summary>
+    public Vocaterra.Game.Reports.ReportKind ReportKind { get; init; } = Vocaterra.Game.Reports.ReportKind.Bug;
 
     /// <summary>The content bundle folder, or <see langword="null"/> to search for <c>content/game-v1</c>.</summary>
     public string? ContentDirectory { get; init; }
@@ -321,7 +332,8 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
-                or "--check" or "--pick" or "--session-dir" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page"))
+                or "--check" or "--pick" or "--session-dir" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page"
+                or "--report" or "--report-open" or "--report-kind" or "--report-dir"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -362,6 +374,36 @@ public sealed record LaunchOptions
                         return false;
                     }
 
+                    break;
+                case "--report":
+                    if (value.Length == 0)
+                    {
+                        error = "--report needs the text of the report.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.Report, Value: value));
+                    break;
+                case "--report-open":
+                    script.Add(new ScriptStep(ScriptStepKind.ReportOpen, Value: value));
+                    break;
+                case "--report-kind":
+                    if (!Vocaterra.Game.Reports.ReportKinds.TryParse(value, out var reportKind))
+                    {
+                        error = $"--report-kind needs bug or feature, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { ReportKind = reportKind };
+                    break;
+                case "--report-dir":
+                    if (value.Length == 0)
+                    {
+                        error = "--report-dir needs a folder.";
+                        return false;
+                    }
+
+                    result = result with { ReportDir = value };
                     break;
                 case "--session-dir":
                     if (value.Length == 0)
@@ -659,7 +701,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 
@@ -669,6 +711,14 @@ public sealed record LaunchOptions
             // (an explicit --check still wins).
             micCheck = micCheck == MicCheckMode.Auto ? MicCheckMode.Force : micCheck;
             check ??= result.LoadPath is null ? CheckKind.Pre : CheckKind.Recall;
+        }
+
+        // A --report-open leaves the panel open, and a paused world takes no further steps: it must be the last step of the script (S21).
+        var openAt = script.FindIndex(static step => step.Kind == ScriptStepKind.ReportOpen);
+        if (openAt >= 0 && openAt != script.Count - 1)
+        {
+            error = "--report-open leaves the report panel open, so it must be the last step of the script (use --report to save a report in the middle).";
+            return false;
         }
 
         if (script.Any(static step => step.Kind == ScriptStepKind.Pick) && check is null)
@@ -725,6 +775,12 @@ public enum ScriptStepKind
 
     /// <summary>Answer the check's comprehension item with the option (1 to 3, as shown) in <see cref="ScriptStep.Value"/> (S11).</summary>
     Pick,
+
+    /// <summary>Open the report panel, type the text in <see cref="ScriptStep.Value"/> and save the report; the script waits until it is saved (S21).</summary>
+    Report,
+
+    /// <summary>Open the report panel, type the text in <see cref="ScriptStep.Value"/> and leave it open for the screenshot; the script goes on (S21).</summary>
+    ReportOpen,
 
     /// <summary>Let the game run for the seconds in <see cref="ScriptStep.Value"/> (S8).</summary>
     Wait,

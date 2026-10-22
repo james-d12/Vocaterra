@@ -64,6 +64,7 @@
     { "id": "lessonKeys", "keys": "Enter, K, L during a lesson", "text": "Enter: continue. K: skip this step. L: start the lesson at the guide." },
     { "id": "view", "keys": "F5", "text": "Switch between your own eyes and a view over your shoulder." },
     { "id": "save", "keys": "F6", "text": "Save the game." },
+    { "id": "report", "keys": "F8", "text": "Report a bug or ask for a feature. A Markdown file and a screenshot go to the session folder. Ctrl+Enter saves, Esc cancels." },
     { "id": "escape", "keys": "Esc", "text": "Cancel, or close what is open." }
   ],
   "tips": [

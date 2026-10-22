@@ -5,12 +5,27 @@
 # The gates are evidence, never a verdict on learning efficacy (the brief: a small pilot gives directional evidence only); "Enjoyable" needs
 # observer notes, which the script cannot measure.
 #
-# Usage: scripts/playtest-report.sh <session folder> [<session folder> ...]
+# The bug and feature reports (S21, D-game-17) of each session folder: reports/report-s<session>-t<tick>-<bug|feature>.md with its screenshot. The
+# script lists each report's kind and title under the folder's summary, and with --copy <dir> it copies the reports and the summary to
+# <dir>/<session folder name>/ (summary.txt, reports/), so that one folder of the playtest holds what the facilitator collects.
+#
+# Usage: scripts/playtest-report.sh [--copy <dir>] <session folder> [<session folder> ...]
 # Needs bash and Python 3 (standard library only; the Python runs with -I, so no user site or environment imports). Nothing is sent anywhere.
 set -euo pipefail
 
+usage="usage: scripts/playtest-report.sh [--copy <dir>] <session folder> [<session folder> ...]"
+copy_dir=""
+if [ "${1:-}" = "--copy" ]; then
+  if [ "$#" -lt 3 ]; then
+    echo "$usage" >&2
+    exit 2
+  fi
+  copy_dir="$2"
+  shift 2
+fi
+
 if [ "$#" -eq 0 ]; then
-  echo "usage: scripts/playtest-report.sh <session folder> [<session folder> ...]" >&2
+  echo "$usage" >&2
   exit 2
 fi
 
@@ -19,9 +34,11 @@ if ! command -v python3 >/dev/null 2>&1; then
   exit 2
 fi
 
-python3 -I - "$@" <<'PY'
+python3 -I - "$copy_dir" "$@" <<'PY'
 import json
 import os
+import re
+import shutil
 import sys
 
 
@@ -256,7 +273,57 @@ def gates(summary, out, label):
     _ = label
 
 
-def main(folders):
+REPORT_FILE = re.compile(r"^report-s\d+-t\d+-(bug|feature)(-\d+)?\.md$")
+
+
+def reports_of(folder):
+    """The reports of a session folder (reports/report-*.md, S21): each one's file name, kind and title (from the Markdown's own lines)."""
+    directory = os.path.join(folder, "reports")
+    if not os.path.isdir(directory):
+        return []
+    found = []
+    for name in sorted(os.listdir(directory)):
+        match = REPORT_FILE.match(name)
+        if not match:
+            continue
+        kind = "Feature request" if match.group(1) == "feature" else "Bug"
+        title = "(no title)"
+        with open(os.path.join(directory, name), encoding="utf-8") as handle:
+            for line in handle:
+                if line.startswith("- **Kind:**"):
+                    kind = line.split(":**", 1)[1].strip()
+                elif line.startswith("# ") and title == "(no title)":
+                    title = line[2:].strip()
+        found.append((name, kind, title))
+    return found
+
+
+def report_lines(reports, folder, out):
+    if not reports:
+        out.append("  Reports: none (no reports/ folder with report-*.md files)")
+        return
+    out.append(f"  Reports: {len(reports)} ({os.path.join(folder, 'reports')})")
+    for name, kind, title in reports:
+        out.append(f"    {kind}: {title}  [{name}]")
+
+
+def copy_session(folder, copy_dir, reports, summary):
+    """Copies a session's summary and its reports (each Markdown with the screenshot it links) to copy_dir/<session folder name>/."""
+    target = os.path.join(copy_dir, os.path.basename(os.path.normpath(folder)))
+    os.makedirs(os.path.join(target, "reports"), exist_ok=True)
+    with open(os.path.join(target, "summary.txt"), "w", encoding="utf-8") as handle:
+        handle.write(summary + "\n")
+    for name, _, _ in reports:
+        shutil.copy2(os.path.join(folder, "reports", name), os.path.join(target, "reports", name))
+        picture = name[:-3] + ".png"
+        source = os.path.join(folder, "reports", picture)
+        if os.path.isfile(source):
+            shutil.copy2(source, os.path.join(target, "reports", picture))
+    count = len(reports)
+    print(f"copied: {target} (summary.txt, {count} report{'s' if count != 1 else ''})", file=sys.stderr)
+
+
+def main(folders, copy_dir=None):
     out = []
     totals = {
         "runs": 0, "sessions": [], "seeds": set(), "arms": set(), "checks_run": [], "objective_complete": False, "complete_tick": None,
@@ -269,9 +336,15 @@ def main(folders):
     for folder in folders:
         events = read_lines(folder)
         summary = summarise(events)
-        print_folder(folder, summary, out)
-        gates(summary, out, folder)
-        out.append("")
+        folder_out = []
+        print_folder(folder, summary, folder_out)
+        gates(summary, folder_out, folder)
+        reports = reports_of(folder)
+        report_lines(reports, folder, folder_out)
+        folder_out.append("")
+        out.extend(folder_out)
+        if copy_dir:
+            copy_session(folder, copy_dir, reports, "\n".join(folder_out))
         for key in ("runs", "turns", "spoken_turns", "not_understood", "uncertain", "turn_failed", "timeouts", "mic_failed", "cards",
                     "fail_forward", "transfer", "check_spoken_not_understood"):
             totals[key] += summary[key]
@@ -300,5 +373,5 @@ def main(folders):
     print("\n".join(out))
 
 
-main(sys.argv[1:])
+main(sys.argv[2:], sys.argv[1] or None)
 PY

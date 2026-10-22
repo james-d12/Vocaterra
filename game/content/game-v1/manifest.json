@@ -19,7 +19,7 @@
 {"path":"evaluation/evaluation-config.json","sha256":"fc7d6d2567808648dd6615e4c2ea60556b50eba487ee381e74d5d0769003867d","bytes":1632},
 {"path":"feedback/feedback-policy.json","sha256":"63e3ac7e5a4e7c95ca2d26212ae2536622e606be07cc2117f89cdb34f4da9dcf","bytes":492},
 {"path":"game/checks.json","sha256":"2e77e10770c12d43c1579db6903c044d5940871f5490236996c88d144ad413ae","bytes":8593},
-{"path":"game/english.json","sha256":"5e879452986df60c6a36a671b8fff046cce61b44907311fb6194a27d51f990c6","bytes":19073},
+{"path":"game/english.json","sha256":"305963f41881507a494d531dc25b35317aa4894a845160413e8ab68c73302bea","bytes":19247},
 {"path":"game/glosses.json","sha256":"1dec0333191dfee6325cf50bce1e4dd7beee4c8b028a821f277937d48cb8b984","bytes":2510},
 {"path":"game/lessons.json","sha256":"d5fc1165aa9490b3cfa27f83fe4dd3ed0e9a642260d531fa3803bfd582d2ebc2","bytes":12645},
 {"path":"game/nouns.json","sha256":"b13fe2ed1cf0c1c79cc7417c7e67420ee0e68e4bdcce175fc3a89cedeb0c32f4","bytes":1523},
@@ -335,4 +335,4 @@
 {"path":"speech/villager_thank.1.wav","sha256":"264a8166023475d7d7842d08050d562924cb4212881ad755cc67afd728d5f7bb","bytes":45644},
 {"path":"speech/villager_thank.2.slow.wav","sha256":"791dd1d9ba9a64ba04d5b734f0e8c91b4ab25fa869ec85a6e2a6937a5b794ea0","bytes":70844},
 {"path":"speech/villager_thank.2.wav","sha256":"0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3","bytes":54044}
-],"bundleHash":"145152e60f7c1bb58a709ac2717cf8850963e71be129e1084ca0ef9b52ecab10"}
+],"bundleHash":"393548666329ed76cac52e5d37dbb249285a37b6e12314b23a0df735fdfdeb98"}
