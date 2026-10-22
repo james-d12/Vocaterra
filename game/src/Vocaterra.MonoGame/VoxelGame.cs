@@ -197,7 +197,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _pristine = pristine;
         _sim = session.Simulation;
         _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
-        _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Phrases, session.English);
+        _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Phrases, session.English, showVerdictNotes: !options.Playtest);
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
         _talk = new PushToTalk(microphone);
         _microphoneFound = microphone is not null;

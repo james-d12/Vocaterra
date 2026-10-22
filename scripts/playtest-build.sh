@@ -40,8 +40,11 @@ echo "== 1. the content bundle (validate before it is copied)"
 "$ROOT/scripts/content.sh" validate "$BUNDLE"
 
 echo "== 2. publish the game for linux-x64 (self-contained; playtest: no sherpa-onnx or ONNX Runtime native library)"
-dotnet publish "$ROOT/game/src/Vocaterra.MonoGame/Vocaterra.MonoGame.csproj" -c Release -r linux-x64 --self-contained true \
-  -p:VocaterraPlaytest=true -o "$DEST" --nologo
+# The build's commit (S18): the in-game F8 report names it in its game-state table (the csproj reads VOCATERRA_BUILD_COMMIT, else "unknown").
+BUILD_COMMIT="$(git -C "$ROOT" rev-parse HEAD)"
+VOCATERRA_BUILD_COMMIT="$BUILD_COMMIT" dotnet publish "$ROOT/game/src/Vocaterra.MonoGame/Vocaterra.MonoGame.csproj" -c Release -r linux-x64 \
+  --self-contained true -p:VocaterraPlaytest=true -m:4 -o "$DEST" --nologo
+echo "build commit: $BUILD_COMMIT"
 
 echo "== 3. the bundle with its speech, the models, the tester's README and the launcher"
 mkdir -p "$DEST/content" "$DEST/models"
