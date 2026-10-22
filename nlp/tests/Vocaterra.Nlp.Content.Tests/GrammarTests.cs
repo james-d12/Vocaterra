@@ -222,6 +222,22 @@ public sealed class GrammarTests : IDisposable
     }
 
     [Fact]
+    public void AnOnlineRunKeepsOtherEntriesUnlessPruned()
+    {
+        var cache = InFolder("keep.json");
+        var strings = WriteJsonl("keep.jsonl", "{\"id\":\"k1\",\"text\":\"Zzz prueba de caché.\",\"kind\":\"npc\"}");
+
+        Assert.Equal(Program.ExitOk, Run(Rules(_ => []), "grammar", TestSupport.BundleDir, "--strings", strings, "--cache", cache).Code);
+        Assert.Equal(Program.ExitOk, Run(Rules(_ => []), "grammar", TestSupport.BundleDir, "--cache", cache).Code);
+        // The string checked with --strings is still cached after a run without it.
+        Assert.Equal(Program.ExitOk, Run(null, "grammar", TestSupport.BundleDir, "--offline", "--strings", strings, "--cache", cache).Code);
+
+        Assert.Equal(Program.ExitOk, Run(Rules(_ => []), "grammar", TestSupport.BundleDir, "--cache", cache, "--prune").Code);
+        // Pruning removes it, so the next offline run with that file reports the miss.
+        Assert.Equal(Program.ExitInvalid, Run(null, "grammar", TestSupport.BundleDir, "--offline", "--strings", strings, "--cache", cache).Code);
+    }
+
+    [Fact]
     public void TheCacheFileIsSortedByKeyWithAStableFormat()
     {
         var cache = InFolder("sorted.json");

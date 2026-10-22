@@ -259,6 +259,8 @@ dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- grammar content/v1   
 - Results are cached in `content/grammar/<name>-cache.json`, keyed by the SHA-256 of the LanguageTool version, the settings and the text.
   Commit the cache with the content it checks. An online run that finds a string not in the cache asks the server; an offline run
   (`--offline`, what the gate uses) never does and fails on a missing entry, so after a content edit run the online command once.
+  An online run keeps the cache's other entries, so a `--strings` file's entries survive a run without it; `--prune` drops the entries
+  that run did not use (run it with the same `--strings` as the offline checks).
 - Waivers are in `content/grammar/<name>-waivers.json`: each names the rule and the string (`id`, or the exact `text`) and must give a
   `reason`. A waiver that matches nothing is a warning (`grammar.waiver-unused`).
 - Findings print like lint's. `grammar.<RULE>` is a warning for agreement, spelling and grammar, and info for style and typography.

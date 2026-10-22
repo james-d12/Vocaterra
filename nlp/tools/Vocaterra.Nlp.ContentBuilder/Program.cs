@@ -45,7 +45,7 @@ public static class Program
                                                              pools the host voices itself (exact ids, or a prefix ending in *); hashes are
                                                              not verified, so run it before hash
           grammar <bundleDir> [--strings <jsonl> [--strings-only]] [--server URL] [--offline] [--cache FILE] [--waivers FILE]
-                  [--level picky|default] [--format text|json] [--strict]
+                  [--level picky|default] [--format text|json] [--strict] [--prune]
                                                              check the Spanish strings (dialogue lines, prompts, answer sets, intent examples,
                                                              slot templates rendered from sampled fillings, and the host's JSONL strings) with a
                                                              local LanguageTool server (default http://localhost:8081, plain 'es'); results are
@@ -53,7 +53,8 @@ public static class Program
                                                              <name>-waivers.json beside it; --offline replays the cache only (a missing entry is an
                                                              error); learner examples with expected error tags are graded as an oracle; findings
                                                              print like lint; exit 1 on errors (and warnings with --strict), 3 when no server
-                                                             answers in online mode (skipped, not passed); docs/API.md has the JSONL format
+                                                             answers in online mode (skipped, not passed); online runs keep the cache's other
+                                                             entries unless --prune drops those this run did not use; docs/API.md has the JSONL format
           import-lexicon <kaikki.jsonl> <out.json> [--max N] [--frequency <es_50k.txt> [--top N]] [--hand-authored <dir|a.json,b.json>]
                                                              [--sidecar <out.source.json> [--sources <sources.json>]]
                                                              convert wiktextract Spanish JSONL into a lexicon file; with a frequency
@@ -111,7 +112,7 @@ public static class Program
                 "lint" => Lint(new ArgumentList(args, 1, ["--level", "--prompts", "--host-pools"], ["--strict", "--fail-on-level", "--json"]), output, error),
                 "cefr-check" => CefrCheck(new ArgumentList(args, 1, ["--level"]), output, error),
                 "grammar" => GrammarCommand.Run(
-                    new ArgumentList(args, 1, ["--strings", "--server", "--cache", "--waivers", "--level", "--format"], ["--offline", "--strict", "--strings-only"]),
+                    new ArgumentList(args, 1, ["--strings", "--server", "--cache", "--waivers", "--level", "--format"], ["--offline", "--strict", "--strings-only", "--prune"]),
                     output,
                     error,
                     httpHandler),

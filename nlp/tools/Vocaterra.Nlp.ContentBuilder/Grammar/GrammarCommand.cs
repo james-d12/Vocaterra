@@ -87,7 +87,7 @@ internal static class GrammarCommand
             }
             else
             {
-                results = CheckOnline(items, cache, settings, level, server, cachePath, output, error, handler, out var skipped);
+                results = CheckOnline(items, cache, settings, level, server, cachePath, arguments.Flag("--prune"), output, error, handler, out var skipped);
                 if (skipped)
                 {
                     return ExitNoServer;
@@ -140,6 +140,7 @@ internal static class GrammarCommand
         string level,
         string server,
         string cachePath,
+        bool prune,
         TextWriter output,
         TextWriter error,
         HttpMessageHandler? handler,
@@ -173,7 +174,12 @@ internal static class GrammarCommand
             results.Add((item, entry.Matches));
         }
 
-        cache.Prune();
+        // Entries are kept unless --prune is given: a run over the bundle alone must not drop the entries of a --strings file checked earlier.
+        if (prune)
+        {
+            cache.Prune();
+        }
+
         var wrote = cache.Save(cachePath, LanguageToolClient.PinnedVersion);
         // The cache note goes to stderr so that --format json keeps stdout a single document.
         error.WriteLine($"cache: {cache.Count} entries, {cache.Added} new, {cache.Pruned} pruned; {(wrote ? "wrote" : "unchanged")} {cachePath}");
