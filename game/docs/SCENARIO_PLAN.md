@@ -291,7 +291,7 @@ In `src/Vocaterra.MonoGame`, the only engine code:
   bottle, completes the objective and the transfer step, and writes a session log; the report script reads it back.
 - Playtest (S12): a fresh clone builds and runs the scripted scenario; the facilitator checklist is followed once by the owner before any tester.
 
-## 8. Second pass: the owner's playtest feedback (2026-10-22), milestones S13 to S23
+## 8. Second pass: the owner's playtest feedback (2026-10-22), milestones S13 to S25
 
 The owner played the S12 build: "it's ok", with five changes asked for:
 
@@ -656,6 +656,79 @@ After core M30 (D10's dev-time half, owner 2026-10-22; research in `nlp/docs/res
 - **Review chain.** The D-game-12 chain becomes lint, cefr-check, grammar, then the Opus pass. PLAYTEST.md and CONTRIBUTING notes follow.
 - **Logged, not live:** the template `guide.find.source` would render `de el` in the singular. The guide always passes `many = 2`, so it
   renders `de los …`. A singular caller would need `del` (the core has no contraction).
+
+### S24: the audio system, interaction and progress sounds (Sonnet 5.5, M)
+
+The owner (2026-10-22, D-game-18): "We also need to plan in sounds. So ambient sounds, also sounds when things are done, like when progressing
+through a lesson. Also sounds for interacting." The sources are CC0 packs (Kenney's audio packs, OpenGameArt CC0) plus sounds synthesized in
+code. There is no music.
+- **The mixer** (`game/src/Vocaterra.MonoGame`, beside `DynamicSoundOutput`; the policy is an engine-free model in Frontend/):
+  - categories: voice (the NPCs' pre-rendered Spanish, S9), sfx, ui and ambient (S25), each with its own volume;
+  - **ducking:** ambient and sfx dip under any NPC voice line, so the ear stays on the Spanish (D-game-13);
+  - **the microphone rule:** while push-to-talk or the mic check records, ambient and sfx are silent and ui plays only the start and stop
+    beeps before and after recording, so no game sound reaches Vosk;
+  - `--mute` keeps its meaning (the voices off). New flags: `--sfx-volume`, `--ambient-volume` and `--no-sounds` (every non-voice sound off).
+    Scripted runs and tests use a null output, so headless runs stay silent and deterministic;
+  - the volumes are saved in the save's settings.
+- **Interaction sounds:**
+  - gathering hits per material (wood chop, stone knock, leaf rustle) and a break sound;
+  - placing a block;
+  - picking up an item;
+  - the inventory, crafting panel and book opening and closing, and the book's page turn;
+  - crafting done, and crafting refused (soft);
+  - filling the bottle at the river;
+  - lighting the fire (a whoosh, then S25's crackle);
+  - a dialogue opening (a short attention cue) and closing;
+  - push-to-talk start and stop beeps;
+  - ui clicks for buttons and tabs, and the F8 report saved.
+- **Progress sounds:**
+  - a lesson step done (a soft chime);
+  - a unit complete (a brighter chime);
+  - the lesson complete (a short flourish);
+  - an answer understood (positive);
+  - not understood, or "try again" (neutral, never punishing; a "no sé" is never penalised by sound either);
+  - a new word learnt (a sparkle);
+  - an objective step done, and the objective complete;
+  - a check item answered;
+  - session complete (the closing cue at the fire).
+- **Assets.**
+  - Every file is CC0. It is listed in `game/ATTRIBUTION.md` (or an `audio/SOURCES.md`) with its source URL, pack, licence and any edit,
+    and a test fails on an unlisted file.
+  - Synthesized cues are generated deterministically at load: a fixed seed, never `System.Random`.
+  - The audio budget is at most 15 MB in the playtest build. Files are 16-bit PCM WAV, mono for effects, at 22.05 or 44.1 kHz.
+  - Variation (several takes per sound, a small pitch change) is picked by a presentation RNG seeded from the world seed, which never
+    touches the simulation.
+- **Not in the evaluation path.** Sounds react to game events. They never change a turn, a verdict, a digest or the replay.
+- **Tests:**
+  - the event-to-cue mapping;
+  - the mixer's state machine (ducking under voice, silence while recording, restore after);
+  - volume settings in the save;
+  - the provenance check;
+  - the size budget;
+  - deterministic variation;
+  - the null output in scripted runs.
+- **Demo:** a scripted lesson run with `--sound-log <file>`, a text log of every cue played with its tick and category, so the orchestrator
+  can check the cues without speakers. The README gets a sound list.
+
+### S25: ambient sound and footsteps (Haiku 5.5, M)
+
+After S24's mixer.
+- **Ambient beds by place, from the world's sites and blocks:**
+  - forest birds by day;
+  - wind on the cliff and the heights;
+  - the river, and the waterfall louder near it (positional, by distance);
+  - a light village bed near the houses and the stall;
+  - fire crackle near the lit fire ring and the torches;
+  - evening insects with `--dusk`.
+- **Mixing and synthesis.** Beds cross-fade by position, with no hard cuts. Wind, water and fire may be synthesized in code where no good
+  CC0 loop exists. Loops are seamless.
+- **Footsteps** per surface (grass, dirt, gravel path, stone, wood or planks, sand, snow), jumping and landing, and stepping in water.
+- **Ducking and silence** follow S24's mixer: under the voices, and silent while recording.
+- **Positional sound** means simple stereo pan and distance falloff. There is no 3D audio engine.
+- **Tests:** bed selection by position (fixed points: the camp, the forest, the river, the village, the waterfall), the cross-fade weights,
+  the surface-to-footstep mapping, and the loop seams (no clicks: the first and last samples match within a tolerance).
+- **Demo:** `--sound-log` along the README route lists the beds and footsteps by tick.
+- **Budget:** S24 and S25 together stay within 15 MB.
 
 ### S18: the playtest refresh (Haiku 5.5, S)
 

@@ -23,6 +23,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-15 | The opening and the guide's lesson | decided (owner, 2026-10-22): start alone at the player's cliff camp; a gradual guide lesson of 5 to 10 minutes; the phrase set grows beyond D-game-12's interim limit | nothing |
 | D-game-16 | The learner's book: words used and lessons completed | decided (owner, 2026-10-22): record every spoken and typed input; a book shows the nouns and verbs used and the lessons completed | nothing |
 | D-game-17 | In-game bug and feature reports | decided (owner, 2026-10-22): F8 saves a Markdown report with a screenshot, game state, recent turns and the session log tail; local files only, no upload | nothing |
+| D-game-18 | Sound | decided (owner, 2026-10-22): ambient, interaction and progress sounds; CC0 packs plus code-synthesized sounds; no music; ambient and effects duck under the voices and are silent while the microphone records | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -178,6 +179,18 @@ playtest folder collects them (no network, so core D8 is untouched, and no token
 screenshot, the game state (build, bundle, seed, position, objective, lesson step, settings, speech status), the last 10 turns the player
 said or typed (from S19's history; they include the player's own transcripts, so S18's consent text names them) and the last 200 lines of
 the session log. Plan: section 8, S21.
+
+## D-game-18: sound (decided)
+
+**Owner, 2026-10-22.** "We also need to plan in sounds. So ambient sounds, also sounds when things are done, like when progressing through a
+lesson. Also sounds for interacting." Asked about sources and music, the owner chose CC0 packs (Kenney, OpenGameArt CC0) plus sounds
+synthesized in code where no good CC0 file exists, and no music.
+- Every file keeps D-game-5's CC0 rule, with its source logged.
+- The orchestrator added two rules to protect the learning:
+  - ambient and effects duck under the NPCs' Spanish voices (D-game-13: the ear stays on Spanish);
+  - they are silent while the microphone records, so no game sound reaches speech recognition.
+- Sounds never touch the evaluation path or the replay.
+Plan: section 8, S24 (the system, interaction and progress) and S25 (ambient and footsteps).
 
 ## D-game-7: one repository for the game and the core (done)
 
