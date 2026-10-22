@@ -11,6 +11,10 @@ gate is **provisional**. The Spanish was reviewed by an LLM pass (`content/PHRAS
 listened to the recordings (`docs/SPEECH_CHECKLIST.md`). **Tell every tester:** "The Spanish in this game has not been checked by a native
 speaker yet." Put that sentence in the consent script too. Do not claim the Spanish is correct to a tester.
 
+**The review chain (D-game-12, S23).** Before a build goes to a tester the content runs lint `--strict`, `cefr-check` (A1 and A2), the grammar
+check (LanguageTool over every Spanish string, from the committed cache, `game/README.md`), then the Opus pass. Each step is supplementary: a clean
+grammar run is not native-speaker approval, and `reviewer` in `content/PHRASES.md` does not change because of it.
+
 ## 1. Who to recruit
 
 - **Beginners with little or no Spanish.** This is the audience the prototype promises to help (the brief's audience decision). Ask in the

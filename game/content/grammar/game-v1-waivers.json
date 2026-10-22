@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "waivers": [
+    {
+      "rule": "CONTRACCIONES",
+      "id": "dialogue:guide.find.source.1",
+      "reason": "Logged in S23 (SCENARIO_PLAN section 8): the template renders 'de el' for a singular source (many = 1). The guide always passes many = 2, so the game renders 'de los' and the singular is not reached in game-v1. The core has no contraction, so this waiver stands until a singular caller needs 'del' (a core gap, not a content error)."
+    },
+    {
+      "rule": "SI_AFIRMACION",
+      "id": "answer-sets/yes-no:yes.alias7",
+      "reason": "Accepted on purpose: each yes answer keeps an unaccented typed form beside its accented one (si, si por favor, si gracias, si quiero). Answer matching ignores accents on both sides (AnswerMatcher), so this alias matches as sí quiero does, and it stays in the constrained phrase list for unaccented input. The lesson's help teaches the accent for the written form."
+    },
+    {
+      "rule": "SI_AFIRMACION",
+      "id": "answer-sets/lesson-yes-no:yes.alias7",
+      "reason": "The same deliberate unaccented typed form as answer-sets/yes-no:yes.alias7 (si quiero beside sí quiero). Matching ignores accents, so the two are one answer; the lesson's help teaches the accent for the written form."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "dialogue:feedback.hint.gender.agree.2",
+      "reason": "A question fragment that quotes the learner's own form: '¿tiene? Piensa: ¿el o la?'. A lowercase word after ¿ is correct here; the rule sees a stand-alone sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "dialogue:guide.craft.part.count.1",
+      "reason": "A fragment: the guide's recipe line joins these parts into one sentence (NpcService.Guide.cs, CraftPartCount), so a lowercase start is correct mid-sentence. The rule checks each part on its own."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "dialogue:guide.craft.part.mass.1",
+      "reason": "A fragment: the guide's recipe line joins these parts into one sentence (NpcService.Guide.cs, CraftPartMass), so a lowercase start is correct mid-sentence. The rule checks each part on its own."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.agua",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.antorcha",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.botella",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.fruta",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.libro",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.madera",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.pan",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    }
+  ]
+}

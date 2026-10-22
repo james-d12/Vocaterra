@@ -3,7 +3,11 @@
 # bundle. `validate` checks every file's hash and the cross-references; `hash` rewrites manifest.json from the files on disk, which is the
 # step after any edit to a bundle. `cefr-check`, `lint`, `pack` and `verify-pack` are passed through as well (nlp/docs/PACKAGING.md, nlp/TOOLS.md).
 #
-# Usage: scripts/content.sh validate|hash|cefr-check|lint|pack|verify-pack [bundleDir] [tool options]
+# `grammar` runs the core's grammar check (nlp/docs/API.md, "Grammar check the strings"): the bundle's Spanish, or with
+#   `--strings game/content/grammar/game-v1-strings.jsonl --strings-only` the game's whole list (written by the host's --grammar-strings).
+#   It needs a local LanguageTool server (scripts/languagetool.sh start) unless `--offline` replays the committed cache.
+#
+# Usage: scripts/content.sh validate|hash|cefr-check|lint|pack|verify-pack|grammar [bundleDir] [tool options]
 #   bundleDir defaults to game/content/game-v1 (relative to the repository root). Options after it are passed on, for example
 #   `hash game/content/game-v1 --bundle-id game-v1` (hash keeps the manifest's bundle id unless one is given) or
 #   `cefr-check game/content/game-v1 --level a1`.
@@ -20,12 +24,12 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 usage() {
-  echo "usage: scripts/content.sh validate|hash|cefr-check|lint|pack|verify-pack [bundleDir] [options]" >&2
+  echo "usage: scripts/content.sh validate|hash|cefr-check|lint|pack|verify-pack|grammar [bundleDir] [options]" >&2
   exit 2
 }
 [ "$#" -ge 1 ] || usage
 case "$1" in
-  validate|hash|cefr-check|lint|pack|verify-pack) ;;
+  validate|hash|cefr-check|lint|pack|verify-pack|grammar) ;;
   *) echo "scripts/content.sh: unknown command '$1'" >&2; usage ;;
 esac
 BUNDLE="${2:-game/content/game-v1}"

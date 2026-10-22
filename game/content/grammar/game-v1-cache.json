@@ -1,0 +1,2616 @@
+{
+  "schemaVersion": 1,
+  "languageTool": "6.6",
+  "entries": [
+    {
+      "key": "0240069b7e0cb5a541904e7dadb4f903fd307c12396235a0f9828839ef307bfe",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da agua, por favor",
+      "matches": []
+    },
+    {
+      "key": "04d663b3bfb19af9a54fb3c86a53cbad139c3d312ef925750177af00e4c6231a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué es esto? Mira bien.",
+      "matches": []
+    },
+    {
+      "key": "07d9adbc240133df8dc81e872ad2ac3f825f11f0c39e3b9b08df89b6572bf070",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Más despacio, por favor",
+      "matches": []
+    },
+    {
+      "key": "0813b84032048cd2f9cdd117ce130b84bbf394435c2b7276f5849a9b9b32017f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El libro está allí, libro, a un libro.",
+      "matches": []
+    },
+    {
+      "key": "08778059012e91fe75443425c97ef6becdddea8996b7a8adef30391a11fd751a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da pan por favor",
+      "matches": []
+    },
+    {
+      "key": "088c12004ebab29756882ee9b0590df96a242bf68822b1082fa8d69819b80c16",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí por favor",
+      "matches": []
+    },
+    {
+      "key": "08be35b787fe4aec66702af786f3c478e3fe49a6cf6c87d96a99a58678160251",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Agua, por favor",
+      "matches": []
+    },
+    {
+      "key": "09157574febfe1784d8167952ac8bc51e8c744b9e8183530025ef7c1a79cd84e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No",
+      "matches": []
+    },
+    {
+      "key": "09993789e889b111b63ecee94cb8cfa2fffe4f618173c34fa0e23e4865eab9d9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí es madera",
+      "matches": []
+    },
+    {
+      "key": "0cec631344478d4df4dce3be2e4f3bc7bc468b04b9a6321323c702868f603ed3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Gracias no",
+      "matches": []
+    },
+    {
+      "key": "0d64481b32f69a6b3062a6839454af56b043a7d2a385cd0053879311068eb330",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Gracias, no",
+      "matches": []
+    },
+    {
+      "key": "0e5995759ba5c9ea536051c481465cc4e7bd35f7c4a506869c0edfeaec2d57d4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "una espada",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 3,
+          "replacements": [
+            "Una"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "0f3347a3665556828c2a98fdd5b3ade03810f5b2228213526fdd4f0c94d9f996",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Un minuto, busco.",
+      "matches": []
+    },
+    {
+      "key": "0f57216ebe33bb0a99dc27c0a40778c84b39b90f3779b6da20d76819e5a39286",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No, mucho gracias",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 4,
+          "length": 13,
+          "replacements": [
+            "mucha gracia",
+            "muchas gracias"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "104e803f1a1f0ac93214177ebb1a89a508252fd59f787d18c2419c4538dca661",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Habla más despacio por favor",
+      "matches": []
+    },
+    {
+      "key": "109d99350319f363a12fdce241f222ab44b7fad89b06af8b56130ab9d3db1521",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Claro, «yo tengo dos espadas». Muy bien.",
+      "matches": []
+    },
+    {
+      "key": "118a3145e29e90ad574251874586f32234898dbe04d41561b3c59d35b784f249",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesitas una botella.",
+      "matches": []
+    },
+    {
+      "key": "12c7b966e6d9f740a2ee7d199bf47f2db7b5533433dca6d2afefc69712f6b746",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Es la tierra",
+      "matches": []
+    },
+    {
+      "key": "1447d70f83de2a8ca0d341c386e455ac982152916f9c7104d9788cc2c365126f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito fruta",
+      "matches": []
+    },
+    {
+      "key": "14b6510ec943e52a9a665b6bf0942ed0a59d6f5a426dc422c5238500d42af707",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Usa el libro.",
+      "matches": []
+    },
+    {
+      "key": "151b1a489f4b815f74df1cc7435ecaab4b065e7af1fea94981af2e96cee44dd7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Buenos día",
+      "matches": [
+        {
+          "rule": "AGREEMENT_ADJ_NOUN",
+          "issueType": "inconsistency",
+          "message": "Posible error de concordancia.",
+          "offset": 0,
+          "length": 10,
+          "replacements": [
+            "Buen día",
+            "Buenos días",
+            "Buenos, día"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "15c906bca78ce31524a2d27a96f963007440896942aa49c10b877851a2a1a29e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola! Soy la guía.",
+      "matches": []
+    },
+    {
+      "key": "167f11bfba1cbb9f94f34c90aee38e3250276ddb08d5c88f24c8f6ec5260bf85",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira, ¿eres dos espadas? Se dice «soy dos espadas».",
+      "matches": []
+    },
+    {
+      "key": "1705c99c0612961031a4d35d43067b6aeecefafc03efa6b034564e5bc4514e2b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes el pan.",
+      "matches": []
+    },
+    {
+      "key": "171f66ec98360fb84634c10f260e0a9cffaf0a5a58daea7c619cf41c5fa10032",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te falta libro.",
+      "matches": []
+    },
+    {
+      "key": "17a0ab05990429aea89af8b65c620ce3610395acfdf62b6196f81d88c097b5e0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes la botella. El agua está en el río.",
+      "matches": []
+    },
+    {
+      "key": "17b3db03ccdb791eee6081a67bc7f8d00c39a25d368b0aa289770c66ba75513b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La espada sale de las espadas.",
+      "matches": []
+    },
+    {
+      "key": "17d61886ed1186d72c9a195b953e63a5a8ec5311f25c86687ca05549f71c03fd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Claro! Mira.",
+      "matches": []
+    },
+    {
+      "key": "18600258ad0438d857719fc3174cbb6ae6e12aff457269c301e42724e5693f5a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Eso es un árbol",
+      "matches": []
+    },
+    {
+      "key": "19089c51ac90f10598cf486d3534a5565a343f0bb668dda11732a2043c6089cc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El libro está allí, libro, a dos libros.",
+      "matches": []
+    },
+    {
+      "key": "192eade8b5ab8c6f30ed6193ad74fe4d6284259af001b92c02b0d56a3eb557ce",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira. ¿Qué es esto?",
+      "matches": []
+    },
+    {
+      "key": "1a16bc59e8027ee5fe78a9bc527f46b7d0e48b0f097a2f12559e02def7791dee",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No es madera",
+      "matches": []
+    },
+    {
+      "key": "1a4dff6926f60985c6ea53dcdd069475733058c469792e6c11d06e406f75c09c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira. La madera es para la antorcha.",
+      "matches": []
+    },
+    {
+      "key": "1a5a294554a1ffa8bbe59648a8cd5ade1abd3894959bac19124d18b367de350f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No te entendí. ¿Me lo dices otra vez?",
+      "matches": []
+    },
+    {
+      "key": "1a64a382c9455196e4b5e7b26f1f835fb3516dfa6a38063cf84e4ff176e94e78",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la botella",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "1a7f042903b181dd9ec7d55b4a82186a2870a912d34581e08fcdc4cb72578089",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el río, por favor",
+      "matches": []
+    },
+    {
+      "key": "1ac76f303ec3890dd18d907c84592948c591e880563ca6475bc96900a002d9b6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Un minuto, miro.",
+      "matches": []
+    },
+    {
+      "key": "1af9abc58b5249c80467c99ecdb5a723308b3e309c0bd989d1468f9949820d7f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí: «Soy dos espadas». ¡Muy bien!",
+      "matches": []
+    },
+    {
+      "key": "1c449e9c70e5e1504c403b9f219a60baf6bad50f44040186f580ad974c58b79d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayuda",
+      "matches": []
+    },
+    {
+      "key": "1c5497019da467a4d3f144d1beb861d2e54098c0d1effd29a5770b7df3c03932",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da agua por favor",
+      "matches": []
+    },
+    {
+      "key": "1d3dc32ea36fa992724771c46d1c0bb485f5926bb0c350a951f998c875d83393",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito agua por favor",
+      "matches": []
+    },
+    {
+      "key": "1d60d7ec37587cef828abd103dbf5b5137254ecd7e4cff917fd43366c5742cb9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Qué es esto",
+      "matches": []
+    },
+    {
+      "key": "1decaf3ee7fa2e212ad79a4e3a599094f94903a36769e7fd75e8fd8b01f7abbe",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Si",
+      "matches": []
+    },
+    {
+      "key": "1decb2715fce462c6b504b576291d0057575e1a797f9cc5272ee41ca9ccb5500",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Agua por favor",
+      "matches": []
+    },
+    {
+      "key": "1e06b0d595f9c66ce5802a7a24109e765c8f46a949219d89d1700e7155430caf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo nos vemos",
+      "matches": []
+    },
+    {
+      "key": "1eed04a111cb1b9afde385c725d1230a665318b55f0cf689d64e5984618c0d0e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Eso es! Es un libro.",
+      "matches": []
+    },
+    {
+      "key": "2145541a82186cc338c8bda4f3b5fcc2b9d17fd3914ef16c99c2347a9bd195f4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tienes un libro de libro.",
+      "matches": []
+    },
+    {
+      "key": "217569ad3ee11ba87030f16ecf3d04dfdcde1e7af1abfb4353e081f48c2d4521",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Bien!",
+      "matches": []
+    },
+    {
+      "key": "22f6aa98e3f082f0ffbe6fce0b46a6fab9d7d6c978dc28111b454e5fd6904c45",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Escucha y dilo: tengo.",
+      "matches": []
+    },
+    {
+      "key": "236f89312f284a98392bfb9ddb9ba032ba95ffb3fd08407a50910fc15ba9b3a5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira, es un libro.",
+      "matches": []
+    },
+    {
+      "key": "241bbcec332f22e700d11394e80d7a948fd0483c515a9de7c81a695b21ef3faf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí",
+      "matches": []
+    },
+    {
+      "key": "24a2da1831ccea5dc14fc8f5f6e542b43b3bfbf493df76d765ae4c2e8b5b605f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Más despacio, por favor.",
+      "matches": []
+    },
+    {
+      "key": "24df3b4f88215b3c5ba206ca099f22de866fac209952bd4612aa76aacf4d7e66",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Otra vez, por favor",
+      "matches": []
+    },
+    {
+      "key": "2733aae616b0f11c278089c89636e70f09d76007bdd26d2c0a66566fe7ae80d2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Otra vez",
+      "matches": []
+    },
+    {
+      "key": "274ec7b4cf1b2923521b0e786dd4124b7e79b0fa791d4694542b94c1c823c588",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Muy bien!",
+      "matches": []
+    },
+    {
+      "key": "289af934695cfb5d27b31069d39286fb2c90ae2ea5eb4f56b4ca22450571a380",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Por favor, sí",
+      "matches": []
+    },
+    {
+      "key": "2926c293faf1031175b1c9b3a80a4d4c0ac9164dbe07a0251b7976b42108220c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira, es una espada.",
+      "matches": []
+    },
+    {
+      "key": "296c11d17ccc7fbb8c5bca6fafcc71ce2c4507e1cf814dfdcde0002a8fd59005",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das agua por favor",
+      "matches": []
+    },
+    {
+      "key": "298b8614941aa8741e8633e94c341af3ea6c3c07b3893e2be77d2739ec28d6fc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde queda el río",
+      "matches": []
+    },
+    {
+      "key": "29960dfb7ddcc6809a11b3d167ab27565a202dddde962418bb446b223d9b1007",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes repetir por favor",
+      "matches": []
+    },
+    {
+      "key": "2a04a7af7d295ab87a3ce883ef6e15da6a959f933bb5cb0942374f9edeaaac96",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Esto es una botella.",
+      "matches": []
+    },
+    {
+      "key": "2a30ed1a8555bfec0bc566a418925c3f9a2f2f2edfb2f207954cc8ab67eb3451",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Muy bien! Tienes una fruta.",
+      "matches": []
+    },
+    {
+      "key": "2ab767364cb805f286937b8437cbfe3e736524525e31c8a08c06b512c1efb6fb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el libro",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "2c251fb64054b697c53506df9faca60ee96860f5c7513404018d10eb6108a042",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Muy bien! Es un libro.",
+      "matches": []
+    },
+    {
+      "key": "2d1a63dff370ad784a6bcf0d766e2678a00c5dd48c38f649f4eec3a91bda6d3b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito pan",
+      "matches": []
+    },
+    {
+      "key": "2d90b3502c37f8c76a08efd75c23b0317b4145842f82e866daa07a21cf44ee9e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Camina hasta la flecha.",
+      "matches": []
+    },
+    {
+      "key": "2f2069124ae9b6a2a01167824c5df112ff6cf4b19375cdd4f2329f2ee56e7045",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Es agua?",
+      "matches": []
+    },
+    {
+      "key": "2ff2217494f1d75ce6a72b297f7576e97750973d7bc759ce5d800e58626c2d55",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Se dice «tengo», no «tiene».",
+      "matches": []
+    },
+    {
+      "key": "301d92b3ce04e9e1e4e9f92fa03e653cc79dd8b65aa7ba717c0c00079230519c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Muy bien! Es una espada.",
+      "matches": []
+    },
+    {
+      "key": "30e4266b6d38ea99b812c7d86e0a03979c949d8ab3e503fe2cf83c7c4c4f99d5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No muchas gracias",
+      "matches": []
+    },
+    {
+      "key": "328bcf5495b96dcb58dca3c3f08b6338b8d94284501612242a6c9ff5d4e1ecbf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Se dice así: «tengo».",
+      "matches": []
+    },
+    {
+      "key": "33056b7814a159213a6d54f3deb765555e6fe6c491d357f4433590b915979cb4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la antorcha",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "3354d6ac848434798722a4ed9adde549a64bde91fd1b3ac3f420128bb5dadd36",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Es madera?",
+      "matches": []
+    },
+    {
+      "key": "343f37a7d0ec787034dd2fb3b0be1cf04fd5529b0b61672d23dcd5aed169f634",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el río",
+      "matches": []
+    },
+    {
+      "key": "351aa8a4be5f31ff6ab19321362bc1ed182346fa9a704ae93763cd1552025091",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "A ver si es eso.",
+      "matches": []
+    },
+    {
+      "key": "35720891bc7da645abb0d41b9d389bebf0ee3357f6e893d3c5ad5f48c104bab9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Un agua por favor",
+      "matches": []
+    },
+    {
+      "key": "3596915f27256370d87be30456d6a2880b6a4c4e66420a5aeb90985cf6a0fed8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Casi. Piensa otra vez.",
+      "matches": []
+    },
+    {
+      "key": "364620510ba99ba2728bdf96aa2161da070a2f702709ccdaefdf7eed54751078",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Un árbol",
+      "matches": []
+    },
+    {
+      "key": "36a97e83086fa9fcc772b3294f35031fb84e82628dd587696f2863a0ceb0794b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Con gusto, te ayudo.",
+      "matches": []
+    },
+    {
+      "key": "370e7fab1b75a79ef9bae64f2c38960dfa04c850b1fc0ec78aac95a8fac566ea",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "dos espadas de espada",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 3,
+          "replacements": [
+            "Dos"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "3815fabb30cec7fbb9f68cb1a189e556987c743dad1fa1322b5ea404585747fe",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Claro",
+      "matches": []
+    },
+    {
+      "key": "3871497cfdae00026652c5b3a8cedeea2732044a656f0a5eb271034f12df0514",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Me puedes ayudar?",
+      "matches": []
+    },
+    {
+      "key": "38dfcaaa43a7459dec87098e1caeab9dcce6742a575512c7f585c0b46a27f273",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero pan, por favor",
+      "matches": []
+    },
+    {
+      "key": "39888cbf1ed544b6008150b43cde5e97782dce452f322316b81a3d607a21e4cc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Despacio, por favor",
+      "matches": []
+    },
+    {
+      "key": "3a86e7c8dc0d6fe64e4d0cca98bf373b97e39f40c2b4cefee32a629150631f69",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No, es una espada.",
+      "matches": []
+    },
+    {
+      "key": "3aad69f825759427ef1002a7bd2e96d320b0ca84dec5ef8b59295454da350e21",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Habla más despacio",
+      "matches": []
+    },
+    {
+      "key": "3bb9726343344e53248c9462361d2612147e1aacba5ac9338bf524c4f445d241",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te faltan libro.",
+      "matches": []
+    },
+    {
+      "key": "3d3daea7d897f5c2ae06e8435bacad0e8d9adb1b568abfc243de5ca29238179b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está la piedra",
+      "matches": []
+    },
+    {
+      "key": "3d8077aeb0d50d2c8ff518062addf0f67fc7c83202490aaba6ea6341775c4a98",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "dos espadas",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 3,
+          "replacements": [
+            "Dos"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "3f1d0034bc921c32c2da88dff03d89f4744e4a6f0fbe11e85b74aaa764d938df",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo se llama esto",
+      "matches": []
+    },
+    {
+      "key": "3f9f5db7f9bd2d30917a00a7ac0a817b8fafeaab07b52fc14f00c98ac8831a28",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Adiós",
+      "matches": []
+    },
+    {
+      "key": "41539dedf94cac3657e63df85c2d4838bfb28cb6b69ccf7a599be4b11f72a29a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das pan",
+      "matches": []
+    },
+    {
+      "key": "417eb3ece624ec462105f8448802624784214bb64c755e3f384bcc13ee11c10c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo hago la antorcha",
+      "matches": []
+    },
+    {
+      "key": "41c22d8e6288248df4949c8f3462c60c1b07083daef2e4edc6f7f5d4b25aac30",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "un libro",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "Un"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "42caea4336cf5a8eac951f7cabc5873a8e24a383e0af17e878dd4eba71a6d9ea",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Esto es una piedra.",
+      "matches": []
+    },
+    {
+      "key": "436785643a61e2fe3e6327f4e3603f0c270a0d8e6e5b49588b08e3abb2e14eb5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Toma el pan.",
+      "matches": []
+    },
+    {
+      "key": "43a379ad3256da83e22ede77ce5b35ff8111ee98eb29db43353b0791d53d22bc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está la río",
+      "matches": []
+    },
+    {
+      "key": "43b3a6b6bea11ffe70d05e7dfd6d1ffbc66cf05ee68ebac4db08193631315de0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Buenas tardes",
+      "matches": []
+    },
+    {
+      "key": "43e934f82b8ef2cb194bd18c425cabc0d10eef2edaf5df5561471e94241e0711",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "dos libros de libro",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 3,
+          "replacements": [
+            "Dos"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "44efd4b5a6eb72309cabdb1b2c804ecb9588559eb0fa746ad2b82a2f5bf885dc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busco el río",
+      "matches": []
+    },
+    {
+      "key": "453d9335c86613072393d8c7744cf26abcffd2b4b1c675b8aa4f469a3553ad32",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero fruta",
+      "matches": []
+    },
+    {
+      "key": "45ff135b77536ad7bb79980197fbafb18f4d635ccc6a85e0e67543b9dc7a5af7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Eso no se puede hacer.",
+      "matches": []
+    },
+    {
+      "key": "4637107eb60ce6f3ff3f47ba011e64a8459b0c619cf91cd003488733eb1a8901",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí no hay una espada.",
+      "matches": []
+    },
+    {
+      "key": "4652d41d1369b6c9766b1168d63bbe92fb8b06121dc00dd19acef14cb3fb51ce",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me ayudas",
+      "matches": []
+    },
+    {
+      "key": "46e9905bed6f5b530b5127f321874ce206844511a32768f8f8f7034a8abb2739",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito fruta por favor",
+      "matches": []
+    },
+    {
+      "key": "474f8d842b23918faf025ac0ec6c2f818cee82d96410e5ce9afd4092268d0fb8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Si quiero",
+      "matches": [
+        {
+          "rule": "SI_AFIRMACION",
+          "issueType": "misspelling",
+          "message": "Se escribe con tilde si es una afirmación.\u00A0Correcto si es una frase condicional.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "Sí"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "48da4caa422f989e44e78a49e0aac787096f66277a76fd95726dbea7226ed41e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Árbol",
+      "matches": []
+    },
+    {
+      "key": "490b0d6c486d3d2fa79ba52b6edeabb56a3e10f6fc38975f85b296f1265c5951",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero una fruta",
+      "matches": []
+    },
+    {
+      "key": "4a3734d82d4274797d36f68faf4b24305c33cf43b97f214c081adfee17398be3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Claro! Te lo digo más despacio.",
+      "matches": []
+    },
+    {
+      "key": "4a5f8470b34aa556327f63181b36587826303e09651e5c938af9f3d5085181be",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Qué es eso",
+      "matches": []
+    },
+    {
+      "key": "4a9d66370c65b66e9a62cea9b92f5c2a75173bee3550c359a475cecea673c464",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hola, Luna",
+      "matches": []
+    },
+    {
+      "key": "4adbb6db895ff6444bbe0f9df47a9705ca62dd8f6f7c1602a06c76b20d28506e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, por favor",
+      "matches": []
+    },
+    {
+      "key": "4b48e9076c1551eb26c89ecca4316e2001a5328107db9320207500cd0b7179c4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "A ver, ¿qué es esto?",
+      "matches": []
+    },
+    {
+      "key": "4b537a18233ae65109cae115d8f85676e4ec15f83089caf77ff4d62e534fa2ea",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La espada está allí, espada, a dos espadas.",
+      "matches": []
+    },
+    {
+      "key": "4b7bd4551f4dcac75ddfd4d98138b2c547898ade71c759d27870b881a71ad24d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero pan por favor",
+      "matches": []
+    },
+    {
+      "key": "4ba3899316e81c879c53dc3725f41abb995526fcd19c5459886e93608b7964b1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da pan",
+      "matches": []
+    },
+    {
+      "key": "4c6c0cd87d4c1179643d511afaf20767ededc52ea5744daa9559231107c18e0f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Qué necesito para una antorcha",
+      "matches": []
+    },
+    {
+      "key": "4ca6008508f70c6787b2f056874e6522ba30add5018f4fb88ccd0756fe683985",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes repetir",
+      "matches": []
+    },
+    {
+      "key": "4e9542f0a3a3c3dd3679b85e9f149838461c0b6b4648cc5947d8b26d068b6db0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das pan por favor",
+      "matches": []
+    },
+    {
+      "key": "4ebc526c4664e77b52a6cbb51b7a159dea040789b2350def88896ebc631048eb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la fruta",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "512d7a9bad5321d2a4edef455795a9722ee084c5d25338a82a2efdbb5264f461",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí tienes.",
+      "matches": []
+    },
+    {
+      "key": "51af9ae9957b0a7e584a532dd6ca4a6940228e531af934b9b7d7cb1234e8b11c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Un río",
+      "matches": []
+    },
+    {
+      "key": "531a8f6f7fb3b3e0e23bcff70dbfbb81b7ccbe0fc0e362ca10b959bc7a862ca4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué necesitas?",
+      "matches": []
+    },
+    {
+      "key": "54b4dbdccb7d86ac155f51728cd93b6f824e3025e6648ab0d19ae08fa71d652e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayuda, por favor",
+      "matches": []
+    },
+    {
+      "key": "55584c83edb9de3a9ebe72f9c55ef8c83a15e176b1182960469473a557d1e6dd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Nos vemos",
+      "matches": []
+    },
+    {
+      "key": "5589b37a9e891c4894697eda8c9efd86919a9f1a03ebcd8befc46467c9c22698",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Pan por favor",
+      "matches": []
+    },
+    {
+      "key": "56e6fde7e21be7cd328bfd97b8f530a6ae6d61817f99d830911648db15a63a06",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí.",
+      "matches": []
+    },
+    {
+      "key": "5a24c651a340520ed61e7dfca0a869aefb1d57c9466fd1ccecba68fcebcbeeaf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayuda.",
+      "matches": []
+    },
+    {
+      "key": "5a9812585b309770a2c51a21b286e73f833e4794cec526b1672d6b5f8af046c5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La espada sale de la espada.",
+      "matches": []
+    },
+    {
+      "key": "5ad5b83874c21eaa7313f075750a6fc161a05415cf05ef0047aebeb6c78cc77a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te faltan espada.",
+      "matches": []
+    },
+    {
+      "key": "5be09ba5382116ad2d1a3e72958a26156ef7e13e2883fb01aa1f1f17c21388a7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola! Soy la guía. ¿En qué te ayudo?",
+      "matches": []
+    },
+    {
+      "key": "5c4cb372a5e6df485073dfd860ca6af352afb780cb139d8cc60acc4126913578",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Repite por favor",
+      "matches": []
+    },
+    {
+      "key": "5cfaaa496c03cc47438f63961ae27924694c6468c450aaa4fb648f1fde4c5b66",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el pan",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "5d296eea6b03fe89610d22a2b110d0aac22ab2a7de29317cc935b4e1c6b97837",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero hacer una antorcha",
+      "matches": []
+    },
+    {
+      "key": "5d3ede35bd262f7bdee41cb26bad5274041fd179aae5a57d7977aa5f9c4637db",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da fruta por favor",
+      "matches": []
+    },
+    {
+      "key": "5d41e6e88a32873803f32413ebc7019d3a4805c9380e33aad4e63d44e3b7df68",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Otra vez por favor",
+      "matches": []
+    },
+    {
+      "key": "5d4c9b4336c70066de3f0c2392ec2badce2119da550cd0fee1f5874af95c591a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das agua",
+      "matches": []
+    },
+    {
+      "key": "5d6f2a940eae677c953d5e6fa2b734fc552b90499910bc184ab800a04c6762d4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayuda por favor",
+      "matches": []
+    },
+    {
+      "key": "5e9ab4c7812cc96b2900b0eaa03e03c80e1765cc5e2e9d2eea71c1dbebecf153",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí: «Tengo dos libros». ¡Muy bien!",
+      "matches": []
+    },
+    {
+      "key": "5ea25f83b5bf6c5df1fc6bd4fce6157cde4cbbcee61a7a85487ea32e29a940fc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito pan por favor",
+      "matches": []
+    },
+    {
+      "key": "5ecb14ef692797400cf75adfa15152145ac88e1b6059676387a44d38c650f290",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No te entendí bien. ¿Me lo dices otra vez?",
+      "matches": []
+    },
+    {
+      "key": "5f05aada629310ab4ac43faaf8f344049eb916d51c1440dfc418c194895c9b0d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Un agua, por favor",
+      "matches": []
+    },
+    {
+      "key": "5f124443642caeef7ff1c3f54ed2fb1e2d60ce04b47c465e9450cb556fb30809",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo se llama eso",
+      "matches": []
+    },
+    {
+      "key": "601b2958f2cfd769569e81088283e72e85f0cfc6c237885364babe7553d0fc82",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Escucha: tengo. Ahora tú.",
+      "matches": []
+    },
+    {
+      "key": "60397b7114d29ed2485d110bda448f05a0efdab5168cc45271f186bc82bd49c3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Toma una fruta.",
+      "matches": []
+    },
+    {
+      "key": "61b3bc282c10f95873f938266ffa7d1b9e0b6bdba0c18710c8598a624c2b45dc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Quieres fruta?",
+      "matches": []
+    },
+    {
+      "key": "621968e86258a8a2f26d24c9af5185e89e9c08025193951ecaca2c9f797a2ff5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Otra vez, por favor.",
+      "matches": []
+    },
+    {
+      "key": "63038d50ebd7cb1f90b745912b485ee96d5a6ecec281b3e8ff66baae4a1ff795",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, es madera",
+      "matches": []
+    },
+    {
+      "key": "63a6d40acfff466f519db94b467f87d7bb9fde15e0b98934c876ecc600b8bdb6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Claro! Miro.",
+      "matches": []
+    },
+    {
+      "key": "6500e30c19106fccf6ab2268cbb86cd360ad5dbc2833f97b3981e6fb8085204c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira, ¿tienes dos libros? Se dice «tengo dos libros».",
+      "matches": []
+    },
+    {
+      "key": "651cdfc58fd9e60190a4e33bc2686b0492202f6bf4cec5a3a263c841b9e2d338",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Toma.",
+      "matches": []
+    },
+    {
+      "key": "65705c2fa7496e7f90fbf053c3ab0dc832edc87f995e81944b80354bef03b28e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito ayuda",
+      "matches": []
+    },
+    {
+      "key": "65ccdc9fe3f023ed1616f0d28071bb203f73153871a5df7c14476acbd2a68559",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No sabo",
+      "matches": [
+        {
+          "rule": "MORFOLOGIK_RULE_ES",
+          "issueType": "misspelling",
+          "message": "Se ha encontrado un posible error ortográfico.",
+          "offset": 3,
+          "length": 4,
+          "replacements": [
+            "cabo",
+            "sabe",
+            "salvo"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "65e26b916e16711804c33be1569248eab02d40bd8c680e7f4b1bd0f4187943e9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira, ¿tienes un libro? Se dice «tengo un libro».",
+      "matches": []
+    },
+    {
+      "key": "66997e51a57740279e5d9ebdb1540d84f0cd74109876af44f07244611f5c4532",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, quiero",
+      "matches": []
+    },
+    {
+      "key": "66a6c15cc861111045d8326c199ef45a58258c8e080c1030390727ce0d455650",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tienes dos espadas.",
+      "matches": []
+    },
+    {
+      "key": "66f344546c48bf6806050dab36eabf4bf733ea4ac6cfc2bc43353bce92517998",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde encuentro la arena",
+      "matches": []
+    },
+    {
+      "key": "67b40459fc4f15d2a1272f7f9af12abd24171c05b68fdb22d43c87437e1f64df",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No, es madera",
+      "matches": []
+    },
+    {
+      "key": "6818a566c74a7a67e8cc34018510e8c9f11ce235732fe1bf354644a01ea688ff",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busco la hierba",
+      "matches": []
+    },
+    {
+      "key": "6840c985f989baf503b2b44520660ba1066c972ef2989b2f3e24db4b788c8c5b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Es un libro.",
+      "matches": []
+    },
+    {
+      "key": "69d880eff4fdade7d8c3a7234afddeadf89f7e4eb805bb9dc1bc66c3f1750961",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Habla más despacio, por favor",
+      "matches": []
+    },
+    {
+      "key": "6a69133fe7ba13c9ac4db0ef6d10d5718f5b7dd5508d0a2e6dfd8af945ad67ed",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Repite, por favor",
+      "matches": []
+    },
+    {
+      "key": "6aaef55f5b3c72dd606d458268c388e9c24ec44aafe010dc529ade7ceedc150e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Esto es agua.",
+      "matches": []
+    },
+    {
+      "key": "6b4ca4452ef29270250b9420e97962b03b28263f454433bd5b59907370310d71",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, «yo tengo dos espadas». ¡Muy bien!",
+      "matches": []
+    },
+    {
+      "key": "6b54e6cfc9144d697eab22eb030b5160110e8a38c93de632e833c8a6940898ed",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Nos vemos!",
+      "matches": []
+    },
+    {
+      "key": "6b9ec86c25a26d249c163a9ede8cb8720886f65e010a5977619ffe716954aeef",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, es un madera",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 7,
+          "length": 9,
+          "replacements": [
+            "una madera",
+            "unas maderas"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "6c3db20f1b6524686404dd3e67c8c09c7b3350ac559e1ff68aab22e96f49fca7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No sé.",
+      "matches": []
+    },
+    {
+      "key": "6c5aaf4b588169894e7ae19069ef08c370743a74cfa978989151341e02d8eeae",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira: la espada está espada, a dos espadas.",
+      "matches": []
+    },
+    {
+      "key": "6c69449e700c66caf21c0769a963b2a05656ec8e04b4299a2fbbac34bd7430fb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesitas madera y frutas.",
+      "matches": []
+    },
+    {
+      "key": "6c935fc1d29fdf234d2b45b96e3c578163e40385e113cde2e0877a0d832ec975",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué es esto?",
+      "matches": []
+    },
+    {
+      "key": "6d646aaed7eb39eca969a4c9c446044cc3402de71a7204274310cd6dd21f38f3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "un espada de espada",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "Un"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "70691c35cfec90abe5dd0b93b3f8092674991fb1b13f31a15ecd2326fd41a19a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La espada está espada, a dos espadas.",
+      "matches": []
+    },
+    {
+      "key": "74333f12ff83759867e826670bbc5301dc96782b983721642400af1307e2d009",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No, gracias",
+      "matches": []
+    },
+    {
+      "key": "750d78e40ccd43c56f94fa3a29fade36a95f818a2b209cf78b5ccb5fc22f9d7e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Otro vez, por favor",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 0,
+          "length": 8,
+          "replacements": [
+            "Otra vez",
+            "Otras veces"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "76273d53f462a12545d400c68aed3305bf1ede1641c69d25bf69a5b074424c13",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Despacio por favor",
+      "matches": []
+    },
+    {
+      "key": "7631e58b7139d8f23b5a5e7363b563f29476df718e2cf46b4e935d0a9750bed6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Mira, mira!",
+      "matches": []
+    },
+    {
+      "key": "77086263e74beab745b5b612c1ab0206c323038307e534acb80f7e413f19a8b3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Claro. Más despacio.",
+      "matches": []
+    },
+    {
+      "key": "7784c71a2da5ce9df46c7c6e2d29a73f8594257f6ad383d143599df181c14df3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo necesitas ayuda",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «necesitas».",
+          "offset": 3,
+          "length": 9,
+          "replacements": [
+            "necesito"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "7794d3b82c8db0d2867df36f033e69fbf5f81990d013c9db5f2c39bfa78583a0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "A ver qué es.",
+      "matches": []
+    },
+    {
+      "key": "7836f896ede67d9215dae04cea2c15338fd3fdb73b126cd813e497ad6ebbb48f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "De dónde sale la madera",
+      "matches": []
+    },
+    {
+      "key": "78d337b688759850a7f49a55c4d1f7ac0ee184f1f5851ca402255a85361ed51b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la madera",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "7af60f03d2aa6f7a7177eef3f6d38fc5dd1a2e5e48292bf0e07abe76da1e2505",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Gracias, amigo",
+      "matches": []
+    },
+    {
+      "key": "7c130d0ae58ac99f74527b1bcd8dd22a25a5377612c80e06e20b3da7d7a36c55",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Piedra",
+      "matches": []
+    },
+    {
+      "key": "7e1b2ee34c30f7287d6e45ad10ac73f63fe523f4873c3f9c041682424d7e9b28",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde hay arena",
+      "matches": []
+    },
+    {
+      "key": "7e8a5e99f8f53a56a60a8b8b161311fc54266208563e2cab0a61b0f3f478aa44",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No veo un libro cerca.",
+      "matches": []
+    },
+    {
+      "key": "7f80e86b662382f2a407acbb0197be2826d2a2db68080bdb2494d5d1233e8830",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, gracias",
+      "matches": []
+    },
+    {
+      "key": "7f924efff6c033d409db3ae36c54e49d848df495ac121536442147a3bf0285b6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola! ¿Qué buscas?",
+      "matches": []
+    },
+    {
+      "key": "7fb4cc9af2c4d3d914938e43f2045cf5bf51adbc9636cfb8788b8d0cf8bd0b3a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hasta luego!",
+      "matches": []
+    },
+    {
+      "key": "8001e80382df43e669077390534a987ec1aa6fa9948ed2207cc86eb342fb44b7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No entiendo",
+      "matches": []
+    },
+    {
+      "key": "80bd1dca1c1453e19506afc3e0070ba1c1dbf1d8301ef015b312cd77cda6a1a4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un agua",
+      "matches": []
+    },
+    {
+      "key": "80d62873b993c609639db3450d84d56fbdfe8bf37ced7eb3b55bdb40cc4756c8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Quieres agua?",
+      "matches": []
+    },
+    {
+      "key": "817296ecea788fb5ed34518a64a213a538a9032d204f6fcf5485d42267bc8632",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Adiós! Hasta luego.",
+      "matches": []
+    },
+    {
+      "key": "81d6434146cb6a98ab3345f1875619dd445ac628ca1ed0b80341a5fa0cf79666",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola! ¿Qué necesitas?",
+      "matches": []
+    },
+    {
+      "key": "82b1e4197a276a8e0ee3ff44580f1917403c561d6f2bc0043d82f59f48ee34b2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hasta mañana",
+      "matches": []
+    },
+    {
+      "key": "8305d52dfc0f7edf08539816e03fd7093c4cf065467b3ef50b9291480bc814fe",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde encuentro madera",
+      "matches": []
+    },
+    {
+      "key": "8430c19cd0b9d61fa4ebce58a179f31b437bfd3883f9bdf7989c15b856543c51",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Es una piedra",
+      "matches": []
+    },
+    {
+      "key": "8531181fccc84883f643e8f368cb1ee28a13b711dc6583f7f9dcb451313b147e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No es agua",
+      "matches": []
+    },
+    {
+      "key": "8538c1fea53548ddbeabbe1c604f5c5f26807db13acc4e5b8bdc290b049d610e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No sé",
+      "matches": []
+    },
+    {
+      "key": "873cdee57cade9c9257b21986c500977b6d22e9001b63289f109c925c12c0d08",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El libro está libro, a un libro.",
+      "matches": []
+    },
+    {
+      "key": "885e4df4c1ee327120d42d218a8f0e16e49b9977f9247601319451c80b5a5fab",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Más lento",
+      "matches": []
+    },
+    {
+      "key": "8959bbb1dcf4214ff22ec84138faf20443f8c1d02947e004f77bc64ac3928a39",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Muchas gracias",
+      "matches": []
+    },
+    {
+      "key": "89846819aa7e36df34f783295c1fd682d262c10ba117720178bd490c4036051e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Busca una cosa y pregunta otra vez.",
+      "matches": []
+    },
+    {
+      "key": "8c025a29f163d57fd4434a9952d312697856d1a043adc0121a461a1190232ff3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Es una hierba",
+      "matches": []
+    },
+    {
+      "key": "8e93d32183e458f534f6e037b2cc61c7343cbadaaa5413969ab365b826ebf530",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La espada está espada, a un espada.",
+      "matches": []
+    },
+    {
+      "key": "8edafc4c1f545aebe152a29b3e73a1f8d00e49b7fb1998a75436b924b0626a69",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ahora no",
+      "matches": []
+    },
+    {
+      "key": "8fb2471b4ccd992ee0adc4eb8ca0c453d8a3d710034150b7bc8db2854ecb3525",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No.",
+      "matches": []
+    },
+    {
+      "key": "90af35973af7546495c37d40cc3be2483ea50d106928042c12502a6fc2031440",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Río",
+      "matches": []
+    },
+    {
+      "key": "90bf0e167cf3a8b516eb0aa36ad4f3f897194054eea53cbd4898162865dc0c75",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Por favor sí",
+      "matches": []
+    },
+    {
+      "key": "913db9aa4136ccc3b118aadc323e554bf3518ef167758b796a258ceda7c4be04",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Me ayudas?",
+      "matches": []
+    },
+    {
+      "key": "915ee2356e5fc3a90032cdcfdf747e8e02c2ae2a771bbeefda71c6d142bee5ef",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes decir: «Sí, por favor» o «No, gracias».",
+      "matches": []
+    },
+    {
+      "key": "9178f6428fb673858e185f7ed38302584e55baa428656ae7982c97d74aeb3240",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "A ver, busco.",
+      "matches": []
+    },
+    {
+      "key": "919896b402bf117b5efac81945461bf746d3d670606dd6348fed625978528b47",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hola.",
+      "matches": []
+    },
+    {
+      "key": "91da7d9d0d7443e1a233e5621551b4580af10938a36d859e7b435f3829300912",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Di «ayuda» y te ayudo.",
+      "matches": []
+    },
+    {
+      "key": "91f5bb6f457edae2003171b29b36560f8bf926cc9b447d4b501a3f967ee368da",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No lo sé",
+      "matches": []
+    },
+    {
+      "key": "92efdf31b32f5ddf0269958b9446b3757a45262d60a98311d36c554ae63cdf43",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da fruta",
+      "matches": []
+    },
+    {
+      "key": "92ff4a0c9aa8947f3a1832a3265bbecf0d2e3d3dbc242eaffe670711c93146b4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Perdón, ¿qué dices?",
+      "matches": []
+    },
+    {
+      "key": "933012e810af624bc2d94e5c4737804790abfb706c5616cc879785874f8b64c2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Buen día",
+      "matches": []
+    },
+    {
+      "key": "9352c3a4ed22096ba1d89b5a5cb61035dd837147224c571bfb813961e52f78a6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No, gracias.",
+      "matches": []
+    },
+    {
+      "key": "93ca5b41a4e29a114b7691b828f99859664c0521b927fe7cbe1e8f4b99e2e464",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La espada está allí, espada, a un espada.",
+      "matches": []
+    },
+    {
+      "key": "94cb005ca097afac0a31a19954dac42b438079fdccfe62736bfd6ec19789c6b0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero agua, por favor.",
+      "matches": []
+    },
+    {
+      "key": "953774e7b74807d7276dfde2ea90799afb91e4778fc14ab17b1c38581f1e7212",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Pan, por favor",
+      "matches": []
+    },
+    {
+      "key": "964fa12e360d88bb1af8e33c9fab575b20efa49afb0d3931be765f681139a5ee",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero agua",
+      "matches": []
+    },
+    {
+      "key": "968135789bf920afb96980795879377db7eba5eb214cb747cf82b539f9f4b3b1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vamos a ver.",
+      "matches": []
+    },
+    {
+      "key": "97b8288ed7b77c8396882ee43f89e6e2ea42544fd53cdfa4c84c2ba232f9050e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Es una espada.",
+      "matches": []
+    },
+    {
+      "key": "9a4c101b8ef13132addc8e60c7df4f63916ccdd0733eb93e30f0ae5826883a77",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí gracias",
+      "matches": []
+    },
+    {
+      "key": "9a90d55d2a1d57cdb6bd3a37062c78419ff9249e920f308eb12a7c77d54ae998",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Mira! El libro está aquí.",
+      "matches": []
+    },
+    {
+      "key": "9b35beb3f8389f739b72334064c4dc7a3def91ffdfaf991e7cfb36ac1333dd00",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola!",
+      "matches": []
+    },
+    {
+      "key": "9b8a1395a621aad794f530037f4fbbe3ae22a0eafc1727292641b7c0a8d526c5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cuál es esto",
+      "matches": []
+    },
+    {
+      "key": "9befce8029dff4774e5b4ed0e5dd1a80a25f46ae484887ebabad8f4d5d78d91c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El libro está libro, a dos libros.",
+      "matches": []
+    },
+    {
+      "key": "9c44837f79479658ee58081949ab4c1585c92c902f939975f37a675fb391a33b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hasta luego. ¡Buen día!",
+      "matches": []
+    },
+    {
+      "key": "9c6d50e3db5764f8a69d767dff7b3df23aeea6ae30f5b1e7624b40e1b3990554",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué buscas?",
+      "matches": []
+    },
+    {
+      "key": "9ce2d3beb3f49f3c85ee98657a5d8f3c52dfb1f9d86750020628b36bfb786af9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Qué hago",
+      "matches": []
+    },
+    {
+      "key": "9d03cf861bf71c8ae9d7e327624afe6094dc8538cb2e53d7aa095ab0da08d554",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tienes una espada.",
+      "matches": []
+    },
+    {
+      "key": "9da820ff31440f49af57a5b73f4dfd80381471b85699e92ef239e9e0693a3b32",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Para una espada necesitas espada.",
+      "matches": []
+    },
+    {
+      "key": "9e2999c94a0c9ebe84a08b7e28eb7375269def53feb514404539073e6884e446",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Esto es madera.",
+      "matches": []
+    },
+    {
+      "key": "9e42337554bec578d3c2fbb77632262fd582f436adf05b1b5557dac4f3f1958d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Buenos días. ¿En qué te ayudo?",
+      "matches": []
+    },
+    {
+      "key": "a07a4107972b9cf4d579e1bedfee0d9cf4382a694fd0ff87cd3da2c03164e17c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "dos libros",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 3,
+          "replacements": [
+            "Dos"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "a08ca1f1803942a99778e288c5171490327382ca058e22c306fb2ad83c8fbe15",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me da agua",
+      "matches": []
+    },
+    {
+      "key": "a24d72e18b42fed0f3ad3926d87691687d723e9c018c2fa41612839cbabcbd9f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Más despasio, por favor",
+      "matches": [
+        {
+          "rule": "MORFOLOGIK_RULE_ES",
+          "issueType": "misspelling",
+          "message": "Se ha encontrado un posible error ortográfico.",
+          "offset": 4,
+          "length": 8,
+          "replacements": [
+            "despacio",
+            "despacito",
+            "desasió"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "a2ba9fd5fd084c40035bd58936e6666226de598135000e33c08ccd45e63aa17c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Una piedra",
+      "matches": []
+    },
+    {
+      "key": "a3591601d252b675abafe873f4a4827c35d15c800a60423302e582062ab626db",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, te ayudo.",
+      "matches": []
+    },
+    {
+      "key": "a3a11df9ce9687a56d32a3b117222ebd4ecdce1949aab2cfa3d2f297d1fd5b47",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira: el libro está libro, a un libro.",
+      "matches": []
+    },
+    {
+      "key": "a431ac037e99a47d4a6055a4e4bded40240270c50fa5bad0b5e4ec666ea57237",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Muy bien! Ya tienes fuego.",
+      "matches": []
+    },
+    {
+      "key": "a50452cef8660a6ababd2b21fe0b8495c6ed117780712df1d18dbb60dcbc6d2d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hasta luego",
+      "matches": []
+    },
+    {
+      "key": "a5fb4fd4fd245bd9d448686f68f595c6130d420795744b062f989d2dc92ed835",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El libro sale de el libro.",
+      "matches": [
+        {
+          "rule": "CONTRACCIONES",
+          "issueType": "misspelling",
+          "message": "Contracción.",
+          "offset": 14,
+          "length": 5,
+          "replacements": [
+            "del"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "a724fe37f5d14de89cf7fbfb60faa868e2748e2b81c03a9f2e4439bd54300da5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Un pan por favor",
+      "matches": []
+    },
+    {
+      "key": "a762fb7b3af429c3bd782bdd5151f6a937778be4c19d662e4ae8f8f88842f815",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Eso es! Es una espada.",
+      "matches": []
+    },
+    {
+      "key": "a7a4e1965aaf983cde9ac400ff45d643dddf5a4151bdc8b84d091f7e38c38596",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tienes dos espadas de espada.",
+      "matches": []
+    },
+    {
+      "key": "a7e5c78783773da859e0b0727cca04b6c2f3507fb3048e08f8ffef20f400a34e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me puedes ayudar",
+      "matches": []
+    },
+    {
+      "key": "a8000a9055d19cf3e01e598cfc2eb480260602883e3d9e73a0047e7a8ba62140",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das fruta por favor",
+      "matches": []
+    },
+    {
+      "key": "a8bd00ba75eb4691bb84627aa21b45f6d0c983644ec281144b87cc5e77847d29",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tienes dos libros.",
+      "matches": []
+    },
+    {
+      "key": "a91377bd2026098dd3e476567566dc42b887b29ae248f810413c3d1889439f61",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito agua",
+      "matches": []
+    },
+    {
+      "key": "a943795ddf4c2ee129e055470ed5d458caa991e8f1551bd8353fe76bc8e9d8b8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La roca",
+      "matches": []
+    },
+    {
+      "key": "a9b93bd44d38abf3b89e135332ac7f566eedfacd8cb6365d7bb65cc72402175c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Esto es una fruta.",
+      "matches": []
+    },
+    {
+      "key": "aa00bd1de9cfae21035c270c669074116b79ec9eea0597ba24b480ff113985f5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira bien.",
+      "matches": []
+    },
+    {
+      "key": "ab4a7657ac2d37641cd571fd06ac9f8ffb4b347e68466b59b294446d718de631",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira, está allí.",
+      "matches": []
+    },
+    {
+      "key": "aca6a438d6bc866b4ee54eb1d2426b2e4af5dda2011c74064e8b983d2ae124fb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Más despacio",
+      "matches": []
+    },
+    {
+      "key": "acc15d97fa8cb2e3368ed752092d927f130392258804c8b12946f38e8e9250c5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el agua",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "acd6707ca71e448336ce377130dcb2793ab96eacaad56e1266c086148f3afc78",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Toma la botella. El agua está en el río.",
+      "matches": []
+    },
+    {
+      "key": "ae362f0bc061ad55777bba33d84d5cce1ae676ef7b9c3bb2188ad892fd27934a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo se hace una antorcha",
+      "matches": []
+    },
+    {
+      "key": "af51ff67a0f316b114009274c9756b1b3729584afa5f11cf65c5cab39c236a1d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Claro! Te lo digo otra vez.",
+      "matches": []
+    },
+    {
+      "key": "afa41c6a0283cd2b1844f0b5034b36a35d7d16a838aaa8db182965d44da48f5b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Pregunta por una cosa. ¿Dónde está la piedra?",
+      "matches": []
+    },
+    {
+      "key": "b039e4290bb75ce713a5cacf819f2ad93bc7ddefd41d3c41b07d85605af281e2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Fruta por favor",
+      "matches": []
+    },
+    {
+      "key": "b044bc3aa24dcccbbfe11e812b4eb9c9cf34f618307f1e336f47436accdf61f0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde hay piedra",
+      "matches": []
+    },
+    {
+      "key": "b0d2f9c17e5697a622380f49aa6def18df21247ac0e1039aee139dff0abefeba",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira, ¿eres una espada? Se dice «soy una espada».",
+      "matches": []
+    },
+    {
+      "key": "b17e6266628f0de9b8ac16d2942b39aa35e9801503affcc2b5727c83cbd99b04",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Claro, te ayudo!",
+      "matches": []
+    },
+    {
+      "key": "b1d742e6d3ab935b8b38ac79c10c57c2df575cba854292874afe76b7f934520d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira.",
+      "matches": []
+    },
+    {
+      "key": "b31222584e8bf1b4632291a16131b3584b96b14ff685926bc91865a118abba52",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí no hay un libro.",
+      "matches": []
+    },
+    {
+      "key": "b69f91a1e30c9dadd79a9f18dddf09fc3ee2817af5a6f63c04af0861e3e797a3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "A ver, te digo.",
+      "matches": []
+    },
+    {
+      "key": "b7de5b0d5cd8a75d64c27c2d5310900a16e37dd4897bdf2a6e795f884d005f46",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No gracias",
+      "matches": []
+    },
+    {
+      "key": "b808b5b69767c60a579422cb662c1b2f66c72064b92f09e70acaef8bf1cfb76c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está bien.",
+      "matches": []
+    },
+    {
+      "key": "b97d14d24ae374e757d6311272ccaffb31f9d944a84f0bd16e7168b283822b30",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero agua por favor",
+      "matches": []
+    },
+    {
+      "key": "b985b265063bc06cced5806182904ffe58b7da8e3eee2e4de7150f6f4c6f56ce",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero pan",
+      "matches": []
+    },
+    {
+      "key": "bc054d5fff4732690b7695373cf3afe558057c5184907b6438d3d2090de826b4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí: «Tengo un libro». ¡Muy bien!",
+      "matches": []
+    },
+    {
+      "key": "bd08ff51ddce0def3d68fc6cfb97015441f7f6506f40ea1feb6f6e7d53817bb2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes preguntar: «¿Dónde está el río?».",
+      "matches": []
+    },
+    {
+      "key": "bdaf9a9043ca139e2d62269b78136c126d7666c6bbc84b2dc3becab04e5314ae",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Adiós.",
+      "matches": []
+    },
+    {
+      "key": "bde0b244affad338fc93d6c38499ad6b7e9906927214012e77b7ae21405ffcc3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo quieres agua, por favor",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «quieres».",
+          "offset": 3,
+          "length": 7,
+          "replacements": [
+            "quiero"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "bed01c1a74556ac2e73f772a60fa2f7e926b6d3d50d5a8afceefde898e95735a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hola amigo",
+      "matches": []
+    },
+    {
+      "key": "beede482275a3e0dd159dae1ff0d83c21f287285695559fc3b412cc40b8a274d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, por favo",
+      "matches": []
+    },
+    {
+      "key": "c10eed6c41e3bb71343d082677fee372234f1e691b430592bf061614bd28c7e3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La espada está aquí.",
+      "matches": []
+    },
+    {
+      "key": "c1114700901fb4630580911abaa3dbe65c5c4f7868d74f1e8980e0434fe399fb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El árbol",
+      "matches": []
+    },
+    {
+      "key": "c2411ec86a4bcb854bf8727d3c64e5042581879257c2d7dbf9b8310f83ca1c69",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero fruta por favor",
+      "matches": []
+    },
+    {
+      "key": "c27fe955cf0b2a8a6aa9b8202fa497036d95283afad3d8677032bf72ba95c0ac",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Esto es una piedra",
+      "matches": []
+    },
+    {
+      "key": "c56b184c15d647c3161a85275140cce7366ce49d25ab648324dc29dde2653aa5",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Piensa otra vez: ¿el o la?",
+      "matches": []
+    },
+    {
+      "key": "c603b493d4e9c02b19d70f4d36045532c56d868f0045775626c2080cdb56d9ae",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tienes dos libros de libro.",
+      "matches": []
+    },
+    {
+      "key": "c63247d261065554e1d3a0fabb0e81d44d07613b7110d2350ab748f2e5e06c0d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí quiero",
+      "matches": []
+    },
+    {
+      "key": "c6ff84f969169a64ade50734c46d1ce3e41549dd6d420ac20926098e740b29ae",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Gracias.",
+      "matches": []
+    },
+    {
+      "key": "c77bd230add3597a2b42d2da451ea768a3581367a71d3873215ee5d307c12e2c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Hola, amigo! ¿Qué buscas?",
+      "matches": []
+    },
+    {
+      "key": "c8780344527d5db5f8344338b5b5788aecb85345c6b240c4c67a6b598bc61b37",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Para un libro necesitas libro.",
+      "matches": []
+    },
+    {
+      "key": "c89ea10bd2db5bb819c632fd4e8e3f7235b8777448c55b6cc8b5db76a4c73c2d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira una cosa y dime qué es.",
+      "matches": []
+    },
+    {
+      "key": "c9b62ab391a4bf2c6fbaf2126d82aa82c87ee2adf9f00b609618d6b3723a1f75",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El libro sale de los libros.",
+      "matches": []
+    },
+    {
+      "key": "c9c761d2b9f70041032017cadf7dba8a02d11f2cfcd45c7d5db1a32cd39b8272",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "La piedra",
+      "matches": []
+    },
+    {
+      "key": "ca71fe7c23db38223f47d6cf149c536b024b50b6d7726083fa2dfc7f526acdc0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Una fruta por favor",
+      "matches": []
+    },
+    {
+      "key": "caa598caa560129632ecaae08f1534410af1126136d80f842e2306dddb6be68f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Esto es una mesa.",
+      "matches": []
+    },
+    {
+      "key": "cb26fca3e7d77a901b0e2b9d6700cbe8768baffcfe0508af2406ed0d3a63944a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero agua, por favor",
+      "matches": []
+    },
+    {
+      "key": "cb299c33ca05926efe01371da9d246e168d0503fad74ae2c5f52e7df7abcb268",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Casi. Mira: es un libro.",
+      "matches": []
+    },
+    {
+      "key": "cbd663e6c8e124ad0c435c2236d0c84a8cb766a368317aeba5e75dc06d56d1b8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿tiene? Piensa: ¿el o la?",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 1,
+          "length": 5,
+          "replacements": [
+            "Tiene"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "cc01da7dc63f000176ac63973b3547a342755be052d0adc6a5f8bb1f68a95d87",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Es un árbol",
+      "matches": []
+    },
+    {
+      "key": "cc9b7a438685599c2db24dea23944363eea3be8d3de48d4d470bd345305ce3a4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Y esto",
+      "matches": []
+    },
+    {
+      "key": "cd40e3f1d4e725b5965b973627198d776a2f6f9aec5497e166b4ddf80ca660a8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das agua, por favor",
+      "matches": []
+    },
+    {
+      "key": "ce51354d0d4ddde25bf9f869a0d25cf2dbd212179c2b43372f53a123634a6b27",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Ya lo tienes todo!",
+      "matches": []
+    },
+    {
+      "key": "cf32d37daf15008e357a49406def7308cb38d4a166d3d57da5a3c1ddc4aa736a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No, es un libro.",
+      "matches": []
+    },
+    {
+      "key": "cfbab6a6d5c95ef67406d85c072340225abe6ab1a9afbc592cea09536c6f7010",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira: el libro está libro, a dos libros.",
+      "matches": []
+    },
+    {
+      "key": "cfce433aec657559a7e1db2ec7c9c2357f411b17bfa3faa637ae7d2df0256d3f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero encontrar tierra",
+      "matches": []
+    },
+    {
+      "key": "d0f5577b2cd8d7445dee5f9adfd727f44b1d08150f42c1fdf0944eb4436f6ab8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Claro! Aquí tienes.",
+      "matches": []
+    },
+    {
+      "key": "d2b3a22085836ed83c65e8f31be930f9f7432ab6660570648fa573ed9c44b087",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Si por favor",
+      "matches": []
+    },
+    {
+      "key": "d2f3eadd304b45b5c69ce67ab997f70ddd908a9cb2da331a574c4e393f4bc84c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí hay un libro.",
+      "matches": []
+    },
+    {
+      "key": "d394382d17187b9573efe3de89028da743c67c315aa09657836e2f5fb65fdb06",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí: «Soy una espada». ¡Muy bien!",
+      "matches": []
+    },
+    {
+      "key": "d3ac0ced8e798d41cc5a26a3e80de6fea2eca5f1f57d52a259e3e3423c2be9c8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Adiós, amigo! Hasta luego.",
+      "matches": []
+    },
+    {
+      "key": "d4b0b767e5b84b68d6c431ba7f7f981fdd5febbdfae364fb7a366a7fa4571fe7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Mira! La espada está aquí.",
+      "matches": []
+    },
+    {
+      "key": "d571795690ec499d0a7d26766a245c45f586cba8c16fea6aa96ca175792588c6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tienes un espada de espada.",
+      "matches": []
+    },
+    {
+      "key": "d5b33f14f52e78368798f58accc56dca9b3cff93d24445886f399c2cada25492",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Más despacio por favor",
+      "matches": []
+    },
+    {
+      "key": "d628309a2a88fc8d327c88768bae190487d8bbdadb178858a980b48291dab845",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ve hasta la flecha.",
+      "matches": []
+    },
+    {
+      "key": "d8259d70622cfa71e1a5ff815a2f140bbec4391b3d3a27c563893fe5c6722f77",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Repite",
+      "matches": []
+    },
+    {
+      "key": "d85c5a72e09a14814bfecc7aab11c2cae8078425e9a6fff939c3e46bfefec95d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El libro está aquí.",
+      "matches": []
+    },
+    {
+      "key": "d8f1797ff652837e8b2a328665b2836797fae51ac47f1a2fcaae0397efb63e98",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No hay un libro cerca.",
+      "matches": []
+    },
+    {
+      "key": "d903b82e334ad05199676aa0dea235cc5b695057e7bdf4cf9498a7f798d2e644",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No, muchas gracias",
+      "matches": []
+    },
+    {
+      "key": "d94f9c6ce78f0f450cfbd039b18eaad24aa93df8d047f40385f85ebfb88b70fb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "El río",
+      "matches": []
+    },
+    {
+      "key": "dac790de49a81829cd63b5d23ad2649e7e7e36e68ed43d1d178a1a53aa971638",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Pregunta: ¿dónde está el árbol?",
+      "matches": []
+    },
+    {
+      "key": "dad26baca6224bccef09de002620e079fc6f193197ef923058616d16cb73ca40",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "A ver, miro.",
+      "matches": []
+    },
+    {
+      "key": "db24b627f9454d7d86a10572f0ecc1ded82d634cefa6ff7de68c46637e94f6b0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Bueno.",
+      "matches": []
+    },
+    {
+      "key": "db3023c83f5b0b37eb29c33703849a5abca90b7209971fbbac32208b423a3613",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hola",
+      "matches": []
+    },
+    {
+      "key": "dd1702873e3783e9ac415bd9d50b0d88b36657d5bcbd6a5e952cb83d8d5049d9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No hay una espada cerca.",
+      "matches": []
+    },
+    {
+      "key": "dd4b044f5eb271cec817030522a18fda3c503d022e8e01ba6680f641271d14d6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Miro bien.",
+      "matches": []
+    },
+    {
+      "key": "dd5e8fc9dc2233bb38946f472d7179851dddbd490b4def792653b621b2dfc3bf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Esto es una antorcha.",
+      "matches": []
+    },
+    {
+      "key": "de251829111b8c3e01d75f7d868d5c3ef9469725b157189f36eaf3e3e4da42ee",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Claro que sí",
+      "matches": []
+    },
+    {
+      "key": "de8407340d5a8742150dd8641efc59d9ba5e8139c6ef8005837fe566fa499d1c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No te entendí bien. ¿Lo dices otra vez?",
+      "matches": []
+    },
+    {
+      "key": "de9265441925c67053e15d9f3a37c26e48257b357ef9eb38a55a78239a7d92d3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "un libro de libro",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "Un"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "dea8dd0334d494533e87a4942249dbfa9d332fe0bbd0421cad28a05317e8205b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero un pan",
+      "matches": []
+    },
+    {
+      "key": "df3caaa77b0ba66aa44ecab4a3fb72621a3538f5912ed020c083cd49c622aa9b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Buenos días",
+      "matches": []
+    },
+    {
+      "key": "e0a4b89c184a6049a28021ad310d831b0d8b9d0e2c33ada463e279d239576e5e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes repetir, por favor",
+      "matches": []
+    },
+    {
+      "key": "e18363348826eae79b1212f5bfc1779120e782458b21ecf13be7fee3da863b0d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me das fruta",
+      "matches": []
+    },
+    {
+      "key": "e377ae09b7adeeb06e170ec42dff1dfa930065508df4f8ee45fffefa996fb405",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Está allí, mira.",
+      "matches": []
+    },
+    {
+      "key": "e38f5a44b51cbf1fb6e34dd5cc30afc177649d7659d6380895da1ff6540bbb1f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Casi. Mira: es una espada.",
+      "matches": []
+    },
+    {
+      "key": "e4e50e7bec848744aaf71c5c994d8a84ee8d336bf1619be4afb285a2e9bfb20c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes decir: «Quiero agua, por favor».",
+      "matches": []
+    },
+    {
+      "key": "e542b4ee0cff791ea97f25fec550528b2b0c5a545974b447e6ed49539239f594",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡De nada!",
+      "matches": []
+    },
+    {
+      "key": "e54c9f807ed81bb19c4747fe3b0480215a40ed6707d25f5c56f574daa9727b2c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mira: la espada está espada, a un espada.",
+      "matches": []
+    },
+    {
+      "key": "e55a6dd1ec32f62c019681fb16ea5e9ed59947315004bcccc4c24fcac7a900af",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Nos vemos, amigo!",
+      "matches": []
+    },
+    {
+      "key": "e5ef8240ed00807b78c88df1c09b77f12c6381c50604791c928039c2ce95a7f0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No veo una espada cerca.",
+      "matches": []
+    },
+    {
+      "key": "e6e82a6e6ba85191e3052cdb9967aa0b120c0ecdb566af68a4842cc24bf1c4b4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde está el árbol",
+      "matches": []
+    },
+    {
+      "key": "e6fc9db1a8f53d62b7dc49e48a29d78665edcdaa20fd58062b171802a8de94d8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Con gusto!",
+      "matches": []
+    },
+    {
+      "key": "e737495df9484f1eaf1f888005fcf8c441fa2cdba2d8c50a7c18df508f1b403e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo no sé",
+      "matches": []
+    },
+    {
+      "key": "e743c52c02de0a833ef85403fd242f2776a1e79b570adc1dd22256459eec731f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Si necesitas ayuda, di «ayuda».",
+      "matches": []
+    },
+    {
+      "key": "e76750cc5153948711b7fe91e1275660a01830397751add7f41bea87fa917b19",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Eso es! «Yo tengo dos espadas».",
+      "matches": []
+    },
+    {
+      "key": "e7bfa21ad0d2dba2c61c26ef8f6b346ed71b2b2f6295063e5bfc29062c5af61b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Quieres pan?",
+      "matches": []
+    },
+    {
+      "key": "e8121177b3ab360642fc7a783d57fd8a70cb26e2929ef395b15880498cf41c1c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No quiero",
+      "matches": []
+    },
+    {
+      "key": "ea5fa881b9be6124fc496fde0150ea57c7dbe393317a71e2171dfeddc7c0ec98",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Con gusto, amigo!",
+      "matches": []
+    },
+    {
+      "key": "eb147f19bb9783e25a0ae5acbe8d0d6b990f3b4ccc21798deafecd4030ea0668",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hasta luego.",
+      "matches": []
+    },
+    {
+      "key": "eb617adfa0a5fbdb6c9e42a4b70c889edd8cf660281ac6584a5fdcba0be96545",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Me llamo Luna.",
+      "matches": []
+    },
+    {
+      "key": "ebdce26959dddfb4eb20f60c381071c07e34fe8e875f5b05136717cdd85e6b06",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "De nada.",
+      "matches": []
+    },
+    {
+      "key": "ec0cea4b27b50811f90c75af6ddbd304925d8a486583a7e6cafc49e0c432a038",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Dónde hay un árbol",
+      "matches": []
+    },
+    {
+      "key": "ec220724cb8905f1570b9316afe7b906bb9d720c58d43ba915ea9d45c4cc7834",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Dónde está el río?",
+      "matches": []
+    },
+    {
+      "key": "ece1b6855ed122cf4c35a9dec101dea716fe2e661941431f1e875ef59cfa0e2c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hola luna",
+      "matches": []
+    },
+    {
+      "key": "ed3cbfcf342e9bf7d4c6fc25665c077ef22c3018c9787b7e431a1b25cdc16db7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Si gracias",
+      "matches": []
+    },
+    {
+      "key": "ee3f52c17fc70a0438caf8ec807119be069b018364eb73eb75f63cfa72e84b42",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hola otra vez. ¿Qué buscas?",
+      "matches": []
+    },
+    {
+      "key": "ef1839b715e4ef3f6848644614818ef02ba62d83a2f7500ae43aa0322d37d29d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Seguro? Dilo otra vez.",
+      "matches": []
+    },
+    {
+      "key": "f0068021b5d34f9c7cdda2d54934b8417c4782c7c8656482c5961b8c677bb8ba",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Necesito agua, por favor",
+      "matches": []
+    },
+    {
+      "key": "f03921a1f2f4a290b49f1753a0d2aaf88d930684febef1a055601e411ece128e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Te falta espada.",
+      "matches": []
+    },
+    {
+      "key": "f0a8ab0da00b0e509dc2e18b3af08b2a0a3a156c2e114ab24ea16f422cdf32d4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Claro. Otra vez.",
+      "matches": []
+    },
+    {
+      "key": "f0ca6167c21cd1437e8ebcc7720bebea2e0274de26e65d46febe0f40e04a9e37",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "De acuerdo",
+      "matches": []
+    },
+    {
+      "key": "f1485d55f4da7c5bece6ee39d8c177055c846b1fa6a26842595c22a1e5b47938",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Despacio",
+      "matches": []
+    },
+    {
+      "key": "f24fb165ca17ef916e70c04b9c784f6ce732522271bdaa81fe11325942d959d7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No sé qué es.",
+      "matches": []
+    },
+    {
+      "key": "f26a5624ee4cec020b6988e25c23ae525f9d7bc810ad76d1844babcf2e85d5c4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tienes un libro.",
+      "matches": []
+    },
+    {
+      "key": "f385d8e86224fcfaf07b25d67fe4e202605ee374d748dcc1cfa98900d96d1262",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, por favor.",
+      "matches": []
+    },
+    {
+      "key": "f3d18c0902ef92757443818ef071d85e78fef9405def8099b40585092da93f35",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Más lento por favor",
+      "matches": []
+    },
+    {
+      "key": "f46278d23ccdef507db1a52a0461f8c77f004171da2d88b7a998023578c9f9cd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Quiero dos agua, por favor",
+      "matches": [
+        {
+          "rule": "AGREEMENT_NUMERAL_PLURAL",
+          "issueType": "inconsistency",
+          "message": "Posible error de concordancia. Revise la puntuación.",
+          "offset": 11,
+          "length": 4,
+          "replacements": [
+            "aguas"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "f486747590bc3712586107fa5fe9d364460a1d552127a1b91e410d4ea534e980",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Más lento, por favor",
+      "matches": []
+    },
+    {
+      "key": "f6ff36f4906e2057ea83bb2222330afc08abad6118807ea13dc00a026bf7860c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No necesitas nada más.",
+      "matches": []
+    },
+    {
+      "key": "f7294403ce92cb25fc68b3eb3ca2b618f9810ee4e5716d9c95f505544ae5d86f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Eso es!",
+      "matches": []
+    },
+    {
+      "key": "f7d1a12983af765c0be540a18b029082021c589027e88fb4acf093aa18461d2d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aquí hay una espada.",
+      "matches": []
+    },
+    {
+      "key": "f7dce295e84042236aff45b90ec2065c394d55f47fcd153602ca787c10678b13",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Buenas noches",
+      "matches": []
+    },
+    {
+      "key": "f85571d8e061709c9ab74816ee8cc582d54ebce171d7ac47115d559f0db626d7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Gracias",
+      "matches": []
+    },
+    {
+      "key": "f91f61941959aa695cddfcd695c60bf7c5b63428404636e4448581c098cab47c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Usa la espada.",
+      "matches": []
+    },
+    {
+      "key": "f9852a485ed1615496312b73a0709fd915ef1db9c8be1f708b686b4649f10cb9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No, es un madera",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 7,
+          "length": 9,
+          "replacements": [
+            "una madera",
+            "unas maderas"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "fa71d6c4968dd6d2009bc75a2f7f3918265a2ca9149dbab60267cf56046e13ad",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "No sé qué es. Mira algo.",
+      "matches": []
+    },
+    {
+      "key": "fbd566429329974c9c7ea7fcdac39145b055cafef5029104f04046da37abc11e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡Claro! Busco.",
+      "matches": []
+    },
+    {
+      "key": "fd3135d5a6de51cb7fa2eecddaf50a2e63e1536bbe6e95b255e78a691011314f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Cómo hago una antorcha",
+      "matches": []
+    },
+    {
+      "key": "fe587bb2505fe3e574af90f6631aa82c1ef33308b774a055f6677ae4f80d5190",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¡De nada, amigo!",
+      "matches": []
+    },
+    {
+      "key": "fe952210ecab0592dbf23f7e47fefbc2254003ec9ef104ac5ee34ebee3fd0a13",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mucho gracias",
+      "matches": [
+        {
+          "rule": "AGREEMENT_DET_NOUN",
+          "issueType": "inconsistency",
+          "message": "Error de concordancia.",
+          "offset": 0,
+          "length": 13,
+          "replacements": [
+            "Mucha gracia",
+            "Muchas gracias"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "fea925e9599fb5d1387914ac637f58a87df51c6d1b4ddcfbc8b5119022d8ae19",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Roca",
+      "matches": []
+    }
+  ]
+}
