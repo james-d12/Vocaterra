@@ -54,6 +54,7 @@ public sealed record LaunchOptions
         + "  --no-mic-check          never show the mic check\n"
         + "  --typed-credit <full|half> the credit a correct typed use earns (default half; spoken input always earns full)\n"
         + "  --no-speech             do not load the speech models (typing only)\n"
+        + "  --mute                  the NPCs' pre-rendered voices are off (the panel still shows every line)\n"
         + "  --greyscale             accepted; the world is drawn in full colour (D-game-6 as amended), the grey A/B is not in the 3D world yet\n"
         + "  --voxel                 accepted and ignored (the 3D world is the only world)\n"
         + "Controls: WASD or the arrows walk, Space jumps, the mouse looks; hold the left button to gather, the right to place; E opens the inventory (or\n"
@@ -90,6 +91,9 @@ public sealed record LaunchOptions
 
     /// <summary>Whether <c>--no-speech</c> was given: Vosk is not loaded.</summary>
     public bool NoSpeech { get; init; }
+
+    /// <summary>Whether the NPCs' voices are off (<c>--mute</c>): the panel shows the lines and nothing plays (S9).</summary>
+    public bool Muted { get; init; }
 
     /// <summary>Whether the journal is opened once the script is done (<c>--journal</c>).</summary>
     public bool Journal { get; init; }
@@ -161,12 +165,15 @@ public sealed record LaunchOptions
                 return false;
             }
 
-            if (arg is "--journal" or "--inventory" or "--crafting" or "--no-speech" or "--voxel" or "--greyscale" or "--leave" or "--mic-check" or "--no-mic-check")
+            if (arg is "--journal" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--voxel" or "--greyscale" or "--leave" or "--mic-check" or "--no-mic-check")
             {
                 switch (arg)
                 {
                     case "--leave":
                         script.Add(new ScriptStep(ScriptStepKind.Leave));
+                        break;
+                    case "--mute":
+                        result = result with { Muted = true };
                         break;
                     case "--mic-check":
                         micCheck = MicCheckMode.Force;

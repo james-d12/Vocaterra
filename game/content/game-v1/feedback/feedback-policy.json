@@ -5,5 +5,5 @@
     { "tagPattern": "*", "minRepeat": 4, "maxRepeat": 2147483647, "difficulty": null, "type": "ExplicitCorrection" },
     { "tagPattern": "pron.*", "minRepeat": 2, "maxRepeat": 2147483647, "difficulty": null, "type": "ModelPronunciation" }
   ],
-  "notCommunicatedType": "Hint"
+  "notCommunicatedType": "SlowRepeat"
 }

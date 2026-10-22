@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The speech renderer of S9: renders the bundle's speakable lines with Kokoro (through the core's KokoroSynthesizer, public API only) into
+       content/game-v1/speech/. A build tool, not part of the game: scripts/prerender-speech.sh runs it. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Vocaterra.SpeechRender</RootNamespace>
+    <AssemblyName>Vocaterra.SpeechRender</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Vocaterra.Game/Vocaterra.Game.csproj" />
+  </ItemGroup>
+
+  <!-- Kokoro (sherpa-onnx) needs its own libonnxruntime.so next to the executable; this package's native copy would overwrite it (CR-021). -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" ExcludeAssets="native" />
+  </ItemGroup>
+
+</Project>

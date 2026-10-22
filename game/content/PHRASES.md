@@ -76,5 +76,7 @@ reviewer reads every Spanish line the learner can hear (the content-trust gate c
 - The guide's transfer offer at the camp: `¿Quieres agua?` (the transfer of `quieres-pan` to a different NPC), `¡Claro! Aquí tienes.` /
   `Toma.`, `Está bien.` / `Bueno.`, and the help line `Puedes decir: «Sí, por favor» o «No, gracias».`
 - Every NPC: `No te entendí. ¿Me lo dices otra vez?` / `Perdón, ¿qué dices?` when a line is not understood, and the help lines of the
-  feedback (`Di «ayuda» y te ayudo.`, `Si necesitas ayuda, di «ayuda».`).
+  feedback (`Di «ayuda» y te ayudo.`, `Si necesitas ayuda, di «ayuda».`). A line that is not understood gets these help lines and never a
+  hint (S9, D-game-9): the feedback policy's not-communicated type is `SlowRepeat`, whose pool holds only the help lines; a hint
+  (`Casi. Piensa otra vez.`) is said only for a real language error in a turn that was understood.
 - The guide's existing lines (greeting, pointing, crafting, naming, the review) are the P-series content and are not part of this sheet.
