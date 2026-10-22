@@ -164,7 +164,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S9 | NPCs speak: pre-rendered Kokoro lines in the bundle | done (merged to `feature/prototype` 2026-10-22, bundle `f5f28b88…`); **the owner listens to every WAV** (`docs/SPEECH_CHECKLIST.md`, D-game-12 step 4) | Haiku 5.5 | S5, S6 |
 | S10 | Save, sessions, resume (P9 re-scoped) | done (merged to `feature/prototype` 2026-10-22) | Haiku 5.5 | S4, S8 |
 | S11 | Checks (pre, post, recall), the session log and the report script | done (merged to `feature/prototype` 2026-10-22, bundle `cd63077b…`) | Haiku 5.5 | S8, S10 |
-| S12 | Playtest build and facilitator checklist | planned | Haiku 5.5 | S7, S9, S11 |
+| S12 | Playtest build and facilitator checklist | in progress | Haiku 5.5 | S7, S9, S11 |
 
 Each milestone ends with the gate in section 6 and a line in section 5. The S series is gated with `GATE_TARGET=feature/prototype
 scripts/merge-gate.sh "S<nn>:<branch>"` from the `feature/prototype` checkout.
