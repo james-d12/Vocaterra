@@ -33,9 +33,9 @@ public sealed record ReviewScript(long Start, double DesiredRetention, int Maxim
 /// </summary>
 public static class DecisionGen
 {
-    private static readonly string[] Intents = ["offer_item", "buy_item", "ask_price", "cast_spell", "greet", "unknown", "zzz"];
-    private static readonly string[] Dialogue = ["greet_reply", "offer_item_reply", "not_understood", "trade_done", "idle_chat", "zzz"];
-    private static readonly string[] Events = ["trade.offer", "trade.done", "quest.start", "shop.open"];
+    private static readonly string[] Intents = ["request_item", "state_have", "ask_directions", "confirm", "greet", "unknown", "zzz"];
+    private static readonly string[] Dialogue = ["villager_greet", "villager_give", "not_understood", "shop_bye", "idle_chat", "zzz"];
+    private static readonly string[] Events = ["villager.give", "villager.point", "quest.start", "shop.open"];
     private static readonly string[] Patterns = ["*", "conj.*", "gender.*", "noun.*", "pron.*", "vocab.*", "ser_estar", "word_order", "conj.person", "pron.r", "vocab.unknown", "zzz.*", "zzz"];
 
     /// <summary>Verdict-independent agent cases: the machine, a state it declares, a counter and a world seed.</summary>
@@ -81,7 +81,9 @@ public static class DecisionGen
 
         var states = stateIds.Select(id => new AgentStateDefinition(
             id,
-            [.. Enumerable.Range(0, rng.NextInt(5)).Select(_ => new AgentTransition(Condition(), rng.Pick(stateIds), Actions()))],
+            [.. Enumerable.Range(0, rng.NextInt(5)).Select(_ => rng.NextInt(5) == 0
+                ? new AgentTransition(new AgentCondition(), rng.Pick(stateIds), Actions(), rng.Pick(Events))
+                : new AgentTransition(Condition(), rng.Pick(stateIds), Actions()))],
             rng.NextInt(3) == 0 ? null : new AgentFallback(Actions(), rng.NextInt(2) == 0 ? null : rng.Pick(stateIds)))).ToArray();
         return new AgentDefinition("agent" + rng.NextInt(100), rng.Pick(stateIds), states, pools.Length == 0 && rng.NextInt(2) == 0 ? null : pools);
     }
@@ -103,7 +105,7 @@ public static class DecisionGen
                     {
                         Transitions =
                         [
-                            new AgentTransition(new AgentCondition(), definition.States[0].Id, [new AgentActionDefinition("greet_reply", null, null)]),
+                            new AgentTransition(new AgentCondition(), definition.States[0].Id, [new AgentActionDefinition("villager_greet", null, null)]),
                             .. definition.States[0].Transitions,
                         ],
                     },
@@ -123,7 +125,7 @@ public static class DecisionGen
                 4 => (definition with { States = [first with { Transitions = [new AgentTransition(new AgentCondition(), "nowhere", []), .. first.Transitions] }, .. definition.States.Skip(1)] }, "transition to an undefined state"),
                 5 => (definition with { VariantPools = [new VariantPoolDefinition("poolx", 0), .. definition.VariantPools ?? []] }, "variant pool of size 0"),
                 6 => (definition with { VariantPools = [new VariantPoolDefinition("poolx", 2), new VariantPoolDefinition("poolx", 3), .. definition.VariantPools ?? []] }, "duplicate variant pool"),
-                7 => (definition with { States = [first with { Transitions = [new AgentTransition(new AgentCondition(), first.Id, [new AgentActionDefinition("greet_reply", null, "missing-pool")]), .. first.Transitions] }, .. definition.States.Skip(1)] }, "undefined variant pool"),
+                7 => (definition with { States = [first with { Transitions = [new AgentTransition(new AgentCondition(), first.Id, [new AgentActionDefinition("villager_greet", null, "missing-pool")]), .. first.Transitions] }, .. definition.States.Skip(1)] }, "undefined variant pool"),
                 8 => (definition with { States = [first with { Transitions = [new AgentTransition(new AgentCondition(AnyErrorTag: ["a*b"]), first.Id, []), .. first.Transitions] }, .. definition.States.Skip(1)] }, "malformed error-tag pattern"),
                 _ => (definition with { States = [first with { Transitions = [new AgentTransition(new AgentCondition(NoErrorTag: []), first.Id, []), .. first.Transitions] }, .. definition.States.Skip(1)] }, "empty noErrorTag list"),
             };

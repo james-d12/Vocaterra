@@ -156,7 +156,7 @@ public sealed class DecisionFuzzTests(ITestOutputHelper output)
                 for (var step = 0; step < updates; step++)
                 {
                     var verdict = VerdictAssembler.Assemble(VerdictGen.Build(Harness, rng));
-                    var exercised = Enumerable.Range(0, rng.NextInt(4)).Select(_ => rng.Pick(["intent.buy_item", "intent.ask_price", "vocab", "alpha", "conj", "alpha"])).ToArray();
+                    var exercised = Enumerable.Range(0, rng.NextInt(4)).Select(_ => rng.Pick(["intent.request_item", "intent.ask_directions", "vocab", "alpha", "conj", "alpha"])).ToArray();
                     var before = CanonicalJson.Serialize(model);
                     var next = model.Update(verdict, exercised);
                     if (!string.Equals(CanonicalJson.Serialize(model), before, StringComparison.Ordinal))
@@ -335,7 +335,7 @@ public sealed class DecisionFuzzTests(ITestOutputHelper output)
     }
 
     // The rules of AgentStateMachine.Step restated: the first transition whose conditions all hold, else the fallback, else stay; one draw per
-    // pooled action, in action order.
+    // pooled action, in action order. A transition that waits for a host event (CR-015: the game's agents have them) is never taken by a verdict.
     private static AgentStepResult ExpectedStep(AgentDefinition definition, AgentState state, Verdict verdict, SeededRng rng)
     {
         var current = definition.States.Single(s => s.Id == state.StateId);
@@ -344,7 +344,7 @@ public sealed class DecisionFuzzTests(ITestOutputHelper output)
         var matched = false;
         foreach (var transition in current.Transitions)
         {
-            if (ConditionHolds(transition.On, verdict))
+            if (transition.OnHostEvent is null && ConditionHolds(transition.On, verdict))
             {
                 target = transition.To;
                 actions = transition.Actions;
@@ -480,7 +480,7 @@ public sealed class DecisionFuzzTests(ITestOutputHelper output)
     // The next item is one of the items; a due card of an available item beats mastery; otherwise the weakest skill wins; ties go to the smaller id.
     private static void CheckContentPicker(LearnerModel model, SeededRng rng, object input)
     {
-        var skillPool = new[] { "intent.buy_item", "intent.ask_price", "vocab", "alpha", "conj", "unseen" };
+        var skillPool = new[] { "intent.request_item", "intent.ask_directions", "vocab", "alpha", "conj", "unseen" };
         var items = Enumerable.Range(0, 1 + rng.NextInt(6)).Select(i => new ContentItem("item" + rng.NextInt(8), [.. Enumerable.Range(0, rng.NextInt(3)).Select(_ => rng.Pick(skillPool))])).DistinctBy(static i => i.ItemId).ToArray();
         var now = new StoredTimestamp(1_700_000_000);
         var cards = Enumerable.Range(0, rng.NextInt(5)).Select(_ =>

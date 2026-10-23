@@ -7,7 +7,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Nlp.Fuzzing.Tests;
 
 /// <summary>
-/// O15: content schema violations. A structurally damaged copy of <c>content/v1</c> (a property removed, a value of another JSON kind, a reference to
+/// O15: content schema violations. A structurally damaged copy of <c>content/game-v1</c> (a property removed, a value of another JSON kind, a reference to
 /// an id that does not exist, an unknown enumeration value, an emptied required string, a duplicated id, a flipped byte) makes
 /// <c>ContentLoader.Load</c> throw a <see cref="ContentValidationException"/> and nothing else, and the exception names the file that was damaged.
 /// Damage to a value the loader must read (a dangling reference, an unknown enumeration value, an empty required string, a duplicated id, a flipped
@@ -33,24 +33,27 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
     {
         var diagnostics = new FuzzDiagnostics();
         var iterations = FuzzOptions.Iterations(FuzzOptions.ContentVar, FuzzOptions.ContentDefault);
-        var catalog = ContentMutationGen.Shared;
 
-        ContentMutationGen.Mutation.Sample(
-            mutation =>
-            {
-                var directory = catalog.Materialize(mutation);
-                try
+        // The bundle itself, then (a third as many draws) the same bundle with the effects fixture, whose effect table the loader checks and the game's is empty.
+        foreach (var (catalog, draws) in new[] { (ContentMutationGen.Shared, iterations), (ContentMutationGen.WithEffects, Math.Max(1, iterations / 3)) })
+        {
+            catalog.Draws.Sample(
+                mutation =>
                 {
-                    CheckMutation(mutation, directory, diagnostics);
-                }
-                finally
-                {
-                    DeleteQuietly(directory);
-                }
-            },
-            writeLine: output.WriteLine,
-            iter: iterations,
-            threads: Threads);
+                    var directory = catalog.Materialize(mutation);
+                    try
+                    {
+                        CheckMutation(mutation, directory, catalog, diagnostics);
+                    }
+                    finally
+                    {
+                        DeleteQuietly(directory);
+                    }
+                },
+                writeLine: output.WriteLine,
+                iter: draws,
+                threads: Threads);
+        }
 
         output.WriteLine("Content mutation diagnostics:\n" + diagnostics.Report());
         var minimum = Math.Max(1, Math.Min(15, iterations / 30));
@@ -65,7 +68,8 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
         }
     }
 
-    // The empty-string mutation drawn at random above reaches these places only by chance; each required non-empty field is also checked on its own.
+    // The empty-string mutation drawn at random above reaches these places only by chance; each required non-empty field is also checked on its own. The effect
+    // table of the game's bundle is empty, so its rows are applied to the bundle with the effects fixture.
     public static TheoryData<ContentMutation> EmptyRequiredFields()
     {
         return new TheoryData<ContentMutation>
@@ -82,7 +86,8 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
     [MemberData(nameof(EmptyRequiredFields))]
     public void AnEmptyRequiredString_IsRefused_NamingTheDamagedFile(ContentMutation mutation)
     {
-        var directory = ContentMutationGen.Shared.Materialize(mutation);
+        var catalog = mutation.File == ContentPaths.Effects ? ContentMutationGen.WithEffects : ContentMutationGen.Shared;
+        var directory = catalog.Materialize(mutation);
         try
         {
             var ex = Assert.Throws<ContentValidationException>(() => ContentLoader.Load(directory, LoadOptions));
@@ -97,24 +102,29 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
     [Fact]
     public void TheUnmutatedBundle_AlwaysLoads_WithTheCommittedHash()
     {
-        var catalog = ContentMutationGen.Shared;
-        var directory = catalog.Materialize(null);
-        try
+        foreach (var catalog in new[] { ContentMutationGen.Shared, ContentMutationGen.WithEffects })
         {
-            var bundle = ContentLoader.Load(directory, LoadOptions);
-            Assert.Equal(Harness.Bundle.ContentHash, bundle.ContentHash);
-            Assert.Equal(Harness.Bundle.Manifest.BundleHash, ContentManifest.Compute(directory).BundleHash);
-            Assert.Equal(catalog.Files.Count(static f => f != "manifest.json"), bundle.Manifest.Files.Count);
+            var directory = catalog.Materialize(null);
+            try
+            {
+                var bundle = ContentLoader.Load(directory, LoadOptions);
+                Assert.Equal(catalog.BaseHash, bundle.ContentHash);
+                Assert.Equal(catalog.BaseHash, ContentManifest.Compute(directory).BundleHash);
+                Assert.Equal(catalog.Files.Count(static f => f != "manifest.json"), bundle.Manifest.Files.Count);
+            }
+            finally
+            {
+                DeleteQuietly(directory);
+            }
         }
-        finally
-        {
-            DeleteQuietly(directory);
-        }
+
+        Assert.Equal(Harness.Bundle.ContentHash, ContentMutationGen.Shared.BaseHash);
+        Assert.NotEmpty(ContentLoader.Load(ContentMutationGen.WithEffects.Directory, LoadOptions).Effects.Effects);
     }
 
-    private static void CheckMutation(ContentMutation mutation, string directory, FuzzDiagnostics diagnostics)
+    private static void CheckMutation(ContentMutation mutation, string directory, ContentMutationGen catalog, FuzzDiagnostics diagnostics)
     {
-        if (mutation.Kind == ContentMutationKind.FlipByte && ContentManifest.Compute(directory).BundleHash == Harness.Bundle.ContentHash)
+        if (mutation.Kind == ContentMutationKind.FlipByte && ContentManifest.Compute(directory).BundleHash == catalog.BaseHash)
         {
             throw Determinism.Fail(Oracle, $"Flipping a byte of {mutation.File} did not change the bundle hash.", mutation);
         }
@@ -129,7 +139,7 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
             // is reported where the definition is used, so for those kinds a problem naming another bundle file is the actionable message; for every
             // other kind the damaged file itself must be named.
             var cascades = mutation.Kind is ContentMutationKind.RemoveProperty or ContentMutationKind.ChangeKind or ContentMutationKind.DuplicateId;
-            var files = ContentMutationGen.Shared.Files;
+            var files = catalog.Files;
             if (ex.Problems.Count == 0 || ex.Problems.Any(problem => !files.Any(file => problem.StartsWith(file, StringComparison.Ordinal))))
             {
                 throw Determinism.Fail(Oracle, $"A problem does not start with the path of a bundle file:\n{ex.Message}", mutation);
@@ -156,7 +166,9 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
         }
 
         // Dropping or retyping a field the loader does not require may leave a loadable bundle, but only on the documented list of fields.
-        var reason = KnownTolerances.AcceptedContentField(mutation.File, mutation.Path);
+        var reason = KnownTolerances.AcceptedContentField(mutation.File, mutation.Path)
+            ?? (mutation.Kind == ContentMutationKind.RemoveProperty ? KnownTolerances.AcceptedHostVoicedPool(mutation.File, mutation.Path, Harness.Bundle.Agents.Values) : null)
+            ?? (mutation.Kind == ContentMutationKind.RemoveProperty ? KnownTolerances.AcceptedRuleOnlyIntent(mutation.File, mutation.Path, catalog.OriginalJson("intents/intents.json")) : null);
         if (reason is null)
         {
             throw Determinism.Fail(Oracle, $"The loader accepted a {mutation.Kind} mutation of {mutation.File} /{string.Join('/', mutation.Path)}, which is not a documented optional field (KnownTolerances).", mutation);

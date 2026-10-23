@@ -93,8 +93,8 @@ public sealed partial class TemplateFuzzTests(ITestOutputHelper output)
                     throw Determinism.Fail(Oracle, $"Selection from pool '{pool.PoolId}' with seed {seed} is not stable or not the variant at NextInt(count).", new { pool = pool.PoolId, seed });
                 }
 
-                var interaction = SeededRng.ForInteraction(seed, "blacksmith", counter);
-                var again = SeededRng.ForInteraction(seed, "blacksmith", counter);
+                var interaction = SeededRng.ForInteraction(seed, "villager", counter);
+                var again = SeededRng.ForInteraction(seed, "villager", counter);
                 if (interaction.NextUInt64() != again.NextUInt64())
                 {
                     throw Determinism.Fail(Oracle, "SeededRng.ForInteraction is not a function of its arguments.", new { seed, counter });

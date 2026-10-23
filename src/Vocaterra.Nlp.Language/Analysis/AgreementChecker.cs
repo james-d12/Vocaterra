@@ -196,8 +196,16 @@ internal sealed class AgreementChecker
             return;
         }
 
+        // A finite verb right after "ir a" is already reported by CheckNearFuture, with the infinitive as the expected form ("ayer voy a como" -> "comer"); a second
+        // conj.tense on the same word would be two errors with one tag and one span.
+        var afterIrA = FormsAfterIrA();
         for (var i = 0; i < _tokens.Count; i++)
         {
+            if (afterIrA.ContainsKey(i))
+            {
+                continue;
+            }
+
             var finite = Readings(i, static r => IsFiniteVerb(r) && r.Tense is not null);
             if (finite.Count == 0
                 || finite.Any(static r => r.Tense is LexiconSchema.Preterite or LexiconSchema.Imperfect or LexiconSchema.Conditional))
@@ -226,29 +234,9 @@ internal sealed class AgreementChecker
     //     word that can be a noun is left alone.
     private void CheckNearFuture()
     {
-        var afterIrA = new HashSet<int>();
-        for (var i = 0; i + 2 < _tokens.Count; i++)
+        var afterIrA = FormsAfterIrA();
+        foreach (var (next, verb) in afterIrA.OrderBy(static pair => pair.Key).Select(static pair => (pair.Key, pair.Value)))
         {
-            if (FirstReading(i, static r => IsDeclarativeFiniteVerb(r) && r.Lemma == "ir" && r.Tense is LexiconSchema.Present or LexiconSchema.Imperfect) is null
-                || !string.Equals(TextOf(i + 1), "a", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            var next = i + 2;
-            var readings = _tokens[next].Readings;
-            if (readings.Count == 0 || readings.Any(r => !IsDeclarativeFiniteVerb(r) && r.Pos != LexiconSchema.Adverb && r.Pos != LexiconSchema.Conjunction))
-            {
-                continue;
-            }
-
-            var verb = readings.FirstOrDefault(static r => IsDeclarativeFiniteVerb(r) && r.Mood == LexiconSchema.Indicative) ?? readings.FirstOrDefault(IsDeclarativeFiniteVerb);
-            if (verb is null)
-            {
-                continue;
-            }
-
-            afterIrA.Add(next);
             Add(ErrorTags.ConjTense, next, next, verb.Lemma, TextOf(next));
         }
 
@@ -272,7 +260,7 @@ internal sealed class AgreementChecker
                 continue;
             }
 
-            if (afterIrA.Contains(i))
+            if (afterIrA.ContainsKey(i))
             {
                 continue;
             }
@@ -299,6 +287,35 @@ internal sealed class AgreementChecker
 
             Add(ErrorTags.ConjTense, i, i, expected, TextOf(i));
         }
+    }
+
+    // The tokens that are a finite verb right after "ir a" ("voy a como"), each with the reading the error is reported for.
+    private Dictionary<int, LexicalFeatures> FormsAfterIrA()
+    {
+        var found = new Dictionary<int, LexicalFeatures>();
+        for (var i = 0; i + 2 < _tokens.Count; i++)
+        {
+            if (FirstReading(i, static r => IsDeclarativeFiniteVerb(r) && r.Lemma == "ir" && r.Tense is LexiconSchema.Present or LexiconSchema.Imperfect) is null
+                || !string.Equals(TextOf(i + 1), "a", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var next = i + 2;
+            var readings = _tokens[next].Readings;
+            if (readings.Count == 0 || readings.Any(r => !IsDeclarativeFiniteVerb(r) && r.Pos != LexiconSchema.Adverb && r.Pos != LexiconSchema.Conjunction))
+            {
+                continue;
+            }
+
+            var verb = readings.FirstOrDefault(static r => IsDeclarativeFiniteVerb(r) && r.Mood == LexiconSchema.Indicative) ?? readings.FirstOrDefault(IsDeclarativeFiniteVerb);
+            if (verb is not null)
+            {
+                found[next] = verb;
+            }
+        }
+
+        return found;
     }
 
     // Rule M51 (ir + a bare infinitive). A present or imperfect form of "ir" directly followed by an infinitive drops the "a": "voy comer pan" -> "voy a comer".

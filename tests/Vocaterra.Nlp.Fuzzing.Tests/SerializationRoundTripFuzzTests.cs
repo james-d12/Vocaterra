@@ -159,9 +159,10 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
     [Fact]
     public void ReplayEnvelopes_SurviveCanonicalJson_ForRealPipelineRuns()
     {
-        var blacksmith = Harness.Bundle.Agents["blacksmith"].Definition;
+        var agents = Harness.Bundle.Agents.Values.Select(static machine => machine.Definition).OrderBy(static definition => definition.AgentId, StringComparer.Ordinal).ToArray();
         var prompts = Harness.Bundle.Prompts.Values.ToArray();
-        var states = blacksmith.States.Select(static s => s.Id).ToArray();
+        var states = agents.SelectMany(static agent => agent.States.Select(state => (agent.AgentId, StateId: state.Id))).ToArray();
+        var hostIntent = "intent." + Harness.Bundle.Intents.Intents[0].Id.Value;
         var gen = Gen.Select(
             SentenceGen.Recipe(Harness),
             SpanishTextGen.Text(Harness.Words),
@@ -174,7 +175,7 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
         var iterations = FuzzOptions.Iterations(FuzzOptions.PipelineVar, FuzzOptions.PipelineDefault);
 
         gen.Sample(
-            ((SentenceRecipe Recipe, string Text, Vocaterra.Nlp.Core.Prompts.PromptSpec Prompt, string State, int Mode, ulong Seed, bool Phonemes) input) =>
+            ((SentenceRecipe Recipe, string Text, Vocaterra.Nlp.Core.Prompts.PromptSpec Prompt, (string AgentId, string StateId) State, int Mode, ulong Seed, bool Phonemes) input) =>
             {
                 // A recognizer returns well-formed text; canonical JSON writes a lone surrogate as U+FFFD, which is not the same text, so the
                 // adversarial strings are made well-formed first (see the README, known findings).
@@ -186,12 +187,12 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
                 var pipeline = Harness.NewPipeline(transcript, input.Prompt.Mode, phonemes);
                 var withHost = input.Seed % 3 == 0;
                 var context = Harness.NewContext(
-                    "blacksmith",
-                    input.State,
+                    input.State.AgentId,
+                    input.State.StateId,
                     counter: (long)(input.Seed % 7),
                     worldSeed: input.Seed,
                     hostSlots: withHost ? SlotMap.From([new KeyValuePair<string, string>("target", "árbol"), new KeyValuePair<string, string>("distance", "3")]) : null,
-                    extraSkills: withHost ? ["word.árbol", "intent.offer_item"] : null);
+                    extraSkills: withHost ? ["word.árbol", hostIntent] : null);
                 var info = new { transcript, prompt = input.Prompt.PromptId, input.State, input.Seed, phonemes };
 
                 PipelineTrace trace;
