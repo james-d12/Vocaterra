@@ -15,6 +15,7 @@ namespace Vocaterra.MonoGame.Frontend;
 /// <param name="Lesson">Carries out a lesson step of the script (S16): the kind and its value (the lesson's id, or the option). The game supplies the lesson front-end's call.</param>
 /// <param name="Report">Opens the report panel (S21) and types the text in it; the flag says whether the panel stays open (<c>--report-open</c>) or the text is saved (<c>--report</c>).</param>
 /// <param name="ReportBusy">Whether the report panel is up or on its way (S21): a saved report closes it, and the script waits for that.</param>
+/// <param name="BookPlay">Opens the book on the target's page and plays its recording, normal or slow (S20b, <c>--book-play</c>).</param>
 public sealed record ScenarioHooks(
     Action<string> OpenTalk,
     Action CloseTalk,
@@ -22,7 +23,8 @@ public sealed record ScenarioHooks(
     Func<bool> ShotPending,
     Action<ScriptStepKind, string>? Lesson = null,
     Action<string, bool>? Report = null,
-    Func<bool>? ReportBusy = null);
+    Func<bool>? ReportBusy = null,
+    Action<string, bool>? BookPlay = null);
 
 /// <summary>
 /// The scripted run of the 3D game (<c>--screenshot</c> with steps): the body's steps (<see cref="VoxelScript"/>), the talk steps (S6) and the
@@ -330,6 +332,11 @@ public sealed class ScenarioScript
             case ScriptStepKind.ReportOpen:
                 // Leaves the panel open for the screenshot. A paused world takes no further steps, so this is the script's last step (LaunchOptions checks it).
                 _hooks.Report?.Invoke(step.Value, true);
+                _index++;
+                break;
+            case ScriptStepKind.BookPlay:
+            case ScriptStepKind.BookPlaySlow:
+                _hooks.BookPlay?.Invoke(step.Value, step.Kind == ScriptStepKind.BookPlaySlow);
                 _index++;
                 break;
             case ScriptStepKind.Pick:

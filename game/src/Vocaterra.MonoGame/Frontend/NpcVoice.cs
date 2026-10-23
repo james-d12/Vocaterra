@@ -133,6 +133,39 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
         }
     }
 
+    /// <summary>
+    /// Plays a recording by its line id (S20b: a book row's button), normal or slow, replacing what plays. Returns whether the clip was queued: false
+    /// when muted, when the output is unavailable or when the file is not there. (Without a sound device the clip is queued and the start fails, which
+    /// the voice logs once, as for any line.)
+    /// </summary>
+    /// <param name="lineId">The line id, as the speech folder names it (<c>card.madera</c>, <c>shop_need.1</c>).</param>
+    /// <param name="slow">Whether to play the slow file.</param>
+    public bool PlayLine(string lineId, bool slow)
+    {
+        ArgumentNullException.ThrowIfNull(lineId);
+        if (Muted || !_output.Available)
+        {
+            return false;
+        }
+
+        Stop();
+        if (!TryQueue(slow ? SpeechFiles.SlowId(lineId) : lineId))
+        {
+            return false;
+        }
+
+        StartNext();
+        return true;
+    }
+
+    /// <summary>Whether the speech folder has the normal file of a line id (the book resolves its buttons with it).</summary>
+    /// <param name="lineId">The line id.</param>
+    public bool HasRecording(string lineId)
+    {
+        ArgumentNullException.ThrowIfNull(lineId);
+        return _store.Contains(lineId);
+    }
+
     /// <summary>Called every frame: starts the next queued clip when the one that plays has ended.</summary>
     public void Update()
     {
@@ -179,13 +212,18 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
             return;
         }
 
-        var id = slow ? SpeechFiles.SlowId(line.LineId) : line.LineId;
+        _ = TryQueue(slow ? SpeechFiles.SlowId(line.LineId) : line.LineId);
+    }
+
+    // Queues the file of a line id; a missing or unreadable file counts as Missing and is logged.
+    private bool TryQueue(string id)
+    {
         try
         {
             if (_store.TryGet(id, out var clip))
             {
                 _queue.Enqueue((id, clip));
-                return;
+                return true;
             }
         }
         catch (InvalidDataException)
@@ -195,6 +233,7 @@ public sealed class NpcVoice : ILinePlayer, IDisposable
 
         Missing++;
         _log($"voice: missing {id}.wav");
+        return false;
     }
 
     private void StartNext()

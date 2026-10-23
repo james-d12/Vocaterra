@@ -9,6 +9,7 @@ namespace Vocaterra.MonoGame;
 /// The book (J, or the book item): an open book over the scene in the panel style (S15), with five pages turned with Tab, Left or Right or a click
 /// (S20): Nouns, Verbs, Phrases, Lessons and What I said. Its lines are built by <see cref="BookPages"/> from the learner's record; this layer only draws
 /// them: the tone, the icon of a noun, the pips, the lamps, the tick boxes and the right-hand text, with the scroll (the wheel, Page Up and Page Down).
+/// A row with a recording has a speaker button at its right (S20b), and the selected row is marked; the keys and the clicks are read by the game.
 /// It covers the screen while it is open and takes the keyboard (the player does not walk).
 /// </summary>
 public sealed class BookLayer : IFrameLayer
@@ -54,15 +55,16 @@ public sealed class BookLayer : IFrameLayer
         DrawTabs(spriteBatch, pixel, font, geometry, page);
         spriteBatch.Draw(pixel, new Rectangle(left, geometry.RuleTop, right - left, 1), new Color(255, 214, 64, 120));
 
-        var lines = LinesOf(view, page);
+        var lines = BookPages.ForPage(view.Session, page, view.Recordings);
         var visible = geometry.LinesVisible;
         view.Book.ClampTo(lines.Count, visible);
         var offset = view.Book.Offset;
         var textWidth = right - left;
+        var selected = SelectedLine(view, lines);
         var y = geometry.ContentTop;
         for (var i = offset; i < lines.Count && i < offset + visible; i++)
         {
-            DrawLine(spriteBatch, view, font, lines[i], left, right, y, textWidth);
+            DrawLine(spriteBatch, view, font, lines[i], left, right, y, textWidth, i == selected);
             y += BookGeometry.LineHeight;
         }
 
@@ -109,23 +111,30 @@ public sealed class BookLayer : IFrameLayer
         return rows.Count(static r => r is { HasScaffold: true, Level: SupportLevel.None });
     }
 
-    // The lines of the page, built from the record (no drawing here).
-    private static IReadOnlyList<BookLine> LinesOf(FrameView view, BookPage page)
+    // The line index of the selected speakable row (S20b), or -1 when the page has no row with a recording.
+    private static int SelectedLine(FrameView view, IReadOnlyList<BookLine> lines)
     {
-        var session = view.Session;
-        return page switch
-        {
-            BookPage.Nouns => BookPages.Nouns(session.Words, session.Learner.Nouns, session.StoredTime.UnixSeconds, session.DefiniteArticle, session.Phrases),
-            BookPage.Verbs => BookPages.Verbs(session.Learner.Verbs, session.Glosses, session.Phrases),
-            BookPage.Phrases => BookPages.Phrases(PhraseJournalRows.Build(session.PhraseProgress, session.StoredTime.UnixSeconds, session.Credit)),
-            BookPage.Lessons => BookPages.Lessons(session.Lessons.Record, session.Phrases),
-            _ => BookPages.Said(session.Learner.Recent(LearnerRecord.SavedEntries), session.English, session.Lessons.Record),
-        };
+        var rows = BookSpeakers.Speakable(lines);
+        var index = view.Book.SelectedIndex(rows.Count);
+        return index < 0 ? -1 : rows[index];
     }
 
-    private static void DrawLine(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, BookLine line, int left, int right, int top, int textWidth)
+    private static void DrawLine(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, BookLine line, int left, int right, int top, int textWidth, bool selected)
     {
         var pixel = view.Pixel;
+        if (selected)
+        {
+            spriteBatch.Draw(pixel, new Rectangle(left, top, right - left, BookGeometry.LineHeight - 1), new Color(70, 56, 12));
+        }
+
+        // The speaker button sits at the right edge; the text before it keeps clear of it.
+        var rightEdge = right;
+        if (line.Speak is not null)
+        {
+            DrawSpeaker(spriteBatch, pixel, new Rectangle(right - BookSpeakers.ButtonSize, top + 2, BookSpeakers.ButtonSize, BookSpeakers.ButtonSize), selected);
+            rightEdge = right - BookSpeakers.ButtonSize - BookSpeakers.Gap;
+        }
+
         var x = left + (line.Indent ? IndentWidth : 0);
         if (line.Tick is { } ticked)
         {
@@ -140,7 +149,6 @@ public sealed class BookLayer : IFrameLayer
         }
 
         // The right-hand part: the pips or the lamps, then the text before them.
-        var rightEdge = right;
         if (line.Pips is { } pips)
         {
             var pipLeft = rightEdge - ((WordPips * Pip) + ((WordPips - 1) * PipGap));
@@ -188,6 +196,20 @@ public sealed class BookLayer : IFrameLayer
             var asideText = Fit(font, aside, Math.Max(20, rightEdge - asideX - reserved - Gutter));
             DrawHelpers.Text(spriteBatch, font, asideText, new Vector2(asideX, top + 2), Hints);
         }
+    }
+
+    // The speaker button (S20b): a box with a speaker drawn in pixels; gold when the row is selected.
+    private static void DrawSpeaker(SpriteBatch spriteBatch, Texture2D pixel, Rectangle box, bool selected)
+    {
+        var ink = selected ? Gold : Seen;
+        DrawHelpers.Border(spriteBatch, pixel, box, 1, selected ? Gold : Hints);
+        var x = box.X;
+        var y = box.Y;
+        spriteBatch.Draw(pixel, new Rectangle(x + 3, y + 6, 3, 4), ink); // the body
+        spriteBatch.Draw(pixel, new Rectangle(x + 6, y + 4, 2, 8), ink); // the cone
+        spriteBatch.Draw(pixel, new Rectangle(x + 8, y + 2, 2, 12), ink);
+        spriteBatch.Draw(pixel, new Rectangle(x + 11, y + 5, 1, 6), ink); // the sound
+        spriteBatch.Draw(pixel, new Rectangle(x + 13, y + 3, 1, 10), ink);
     }
 
     private static void DrawNounIcon(SpriteBatch spriteBatch, FrameView view, string lemma, Rectangle icon)

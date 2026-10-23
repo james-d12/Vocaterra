@@ -49,12 +49,16 @@ public sealed class SpeechLinesTests
     }
 
     [Fact]
-    public void TheWordCardsAreTheNounsThatComeInAnItem()
+    public void TheWordCardsAreEveryCatalogueNounS20b()
     {
+        // Every catalogue noun has a card (S20b: the book's Nouns page plays it); the file name folds the accent (card.rio for río).
         var cards = Lines.Where(static l => l.Kind == SpeechKind.Word).ToDictionary(static l => l.LineId, static l => l.Text, StringComparer.Ordinal);
         Assert.Equal(
-            ["card.agua", "card.antorcha", "card.botella", "card.fruta", "card.libro", "card.madera", "card.pan"],
+            TestGame.Nouns.Nouns.Select(static n => SpeechFiles.CardId(n.Lemma)).Order(StringComparer.Ordinal),
             cards.Keys.Order(StringComparer.Ordinal));
+        Assert.Equal(19, cards.Count);
+        Assert.Equal("el río", cards["card.rio"]);
+        Assert.Equal("el árbol", cards["card.arbol"]);
         Assert.Equal("la madera", cards["card.madera"]);
         Assert.Equal("la fruta", cards["card.fruta"]);
         Assert.Equal("la antorcha", cards["card.antorcha"]);

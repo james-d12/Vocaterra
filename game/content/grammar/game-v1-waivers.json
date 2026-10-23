@@ -65,6 +65,51 @@
       "rule": "UPPERCASE_SENTENCE_START",
       "id": "speech:card.pan",
       "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.arena",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.camino",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.casa",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.hierba",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.mesa",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.puente",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.puerta",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.tienda",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
+    },
+    {
+      "rule": "UPPERCASE_SENTENCE_START",
+      "id": "speech:card.tierra",
+      "reason": "A bare noun phrase spoken as a card label (SpeechLines.cs, SpeechKind.Word), not a sentence."
     }
   ]
 }

@@ -43,6 +43,9 @@ public sealed class FrameView
     /// <summary>The journal screen's state.</summary>
     public required BookModel Book { get; init; }
 
+    /// <summary>Which recording each row of the book plays (S20b); the book shows no button when it is <see cref="BookRecordings.None"/>.</summary>
+    public BookRecordings Recordings { get; init; } = BookRecordings.None;
+
     /// <summary>The toasts waiting to be shown ("new word", the checklist's steps).</summary>
     public required ToastQueue Toasts { get; init; }
 

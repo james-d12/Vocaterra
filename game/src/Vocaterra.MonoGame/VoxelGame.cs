@@ -118,6 +118,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly KeyRepeater _left = new();
     private readonly KeyRepeater _right = new();
     private readonly BookModel _book = new();
+    private readonly BookRecordings _recordings;
+    private readonly BookSpeechControls _bookControls;
     private readonly ToastQueue _toasts = new();
     private readonly InventoryScreen _inventory = new();
     private readonly BusyFrameStats _draws = new();
@@ -208,6 +210,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _sim = session.Simulation;
         (_sound, _soundOutput, _soundLog) = CreateSound(options, session, savedVolumes);
         _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
+        // The book's speaker buttons (S20b): a row plays the recording the speech folder has for it (the files are read once, here).
+        _recordings = new BookRecordings(SpeechLines.Enumerate(session.Bundle, session.Nouns, session.Phrases).Select(static l => l.LineId).Where(voice.HasRecording), session.Phrases);
+        _bookControls = new BookSpeechControls(_book, new BookSpeaker(voice, _sound.Mixer), session, _recordings);
         _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Phrases, session.English, showVerdictNotes: !options.Playtest);
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
         _talk = new PushToTalk(microphone) { Sounds = _sound.Mixer };
@@ -235,7 +240,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     () => _shotPath is not null,
                     RunLessonStep,
                     RequestScriptReport,
-                    () => _report.Paused);
+                    () => _report.Paused,
+                    PlayBookTarget);
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, ResolveItem, hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
@@ -451,6 +457,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Pixel = _pixel,
             Seed = _options.Seed,
             Book = _book,
+            Recordings = _recordings,
             Toasts = _toasts,
             Inventory = _inventory,
             Crafting = _crafting,
@@ -1057,6 +1064,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             {
                 _book.Show(tab);
                 _sound.QueueClick(SoundCue.UiTab);
+            }
+            else if (_bookControls.Click(new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), mouse.X, mouse.Y, ShiftDown(keys)))
+            {
+                _sound.QueueClick(SoundCue.UiClick);
             }
         }
 
@@ -2537,7 +2548,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
     }
 
-    // The book's keys (S20): Escape or J closes it; Tab (Shift and Tab turns back), Left and Right turn the page; Page Up and Page Down, Up and Down scroll.
+    // The book's keys (S20, S20b): Escape or J closes it; Tab (Shift and Tab turns back), Left and Right turn the page; Page Up and Page Down scroll.
+    // Up and Down move the selection among the rows with a speaker button (the selection is kept on screen); a page with none scrolls a line. Enter plays
+    // the selected row, Shift+Enter its slow recording.
     private void ReadBookKeys(KeyboardState keys, Func<Keys, bool> pressed)
     {
         if (pressed(Keys.Escape) || pressed(Keys.J))
@@ -2568,15 +2581,28 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         {
             _book.Scroll(-lines);
         }
-        else if (pressed(Keys.Down))
+        else if (pressed(Keys.Down) || pressed(Keys.Up))
         {
-            _book.Scroll(1);
+            _bookControls.Move(pressed(Keys.Down) ? 1 : -1, new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height).LinesVisible);
         }
-        else if (pressed(Keys.Up))
+        else if (pressed(Keys.Enter))
         {
-            _book.Scroll(-1);
+            _ = _bookControls.Enter(ShiftDown(keys));
         }
     }
+
+    // The scripted run's book step (S20b, --book-play and --book-play-slow): opens the book, then plays the target's row as Enter does.
+    private void PlayBookTarget(string target, bool slow)
+    {
+        if (!_book.IsOpen)
+        {
+            OpenBook();
+        }
+
+        Console.WriteLine(_bookControls.PlayTarget(target, slow));
+    }
+
+    private static bool ShiftDown(KeyboardState keys) => keys.IsKeyDown(Keys.LeftShift) || keys.IsKeyDown(Keys.RightShift);
 
     private void OpenBook()
     {

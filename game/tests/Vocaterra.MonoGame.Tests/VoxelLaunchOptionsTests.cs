@@ -72,6 +72,15 @@ public sealed class VoxelLaunchOptionsTests
     }
 
     [Fact]
+    public void TheBookPlaySteps_S20b_KeepTheirTargetsAndTheirSpeed()
+    {
+        var options = Parse("--screenshot", "a.png", "--book-play", "madera", "--book-play-slow", "phrase:pedir-agua", "--book-play", "fruta");
+
+        Assert.Equal([ScriptStepKind.BookPlay, ScriptStepKind.BookPlaySlow, ScriptStepKind.BookPlay], options.Script.Select(static step => step.Kind).ToArray());
+        Assert.Equal(["madera", "phrase:pedir-agua", "fruta"], options.Script.Select(static step => step.Value).ToArray());
+    }
+
+    [Fact]
     public void VoxelIsAcceptedAndIgnoredAndTheSayLinesAreKept()
     {
         var options = Parse("--voxel", "--seed", "7", "--screenshot", "a.png", "--say", "¿dónde está el río?", "--say", "Quiero agua, por favor.");

@@ -38,6 +38,7 @@ public enum BookTone
 /// <param name="Tick">A tick box at the left, ticked or not, or <see langword="null"/> for none.</param>
 /// <param name="Lamps">Two small boxes at the right, lit or not (the card and the audio of a phrase's help), or <see langword="null"/>.</param>
 /// <param name="Indent">Whether the line sits under its heading.</param>
+/// <param name="Speak">The line id of the recording the row's speaker button plays (S20b), or <see langword="null"/> for no button.</param>
 public sealed record BookLine(
     BookTone Tone,
     string Text,
@@ -47,7 +48,8 @@ public sealed record BookLine(
     int? Pips = null,
     bool? Tick = null,
     IReadOnlyList<bool>? Lamps = null,
-    bool Indent = false)
+    bool Indent = false,
+    string? Speak = null)
 {
     /// <summary>The empty line between two entries.</summary>
     public static BookLine Gap { get; } = new(BookTone.Hint, string.Empty);
@@ -73,6 +75,24 @@ public static class BookPages
         return sheet.Rows.FirstOrDefault(row => row.Texts.Any(text => string.Equals(PhraseSheet.Plain(text), plain, StringComparison.Ordinal)))?.English;
     }
 
+    /// <summary>The lines of a page, built from the session's record (no drawing here). The book's layer and its speaker controls read the same lines (S20b).</summary>
+    /// <param name="session">The session.</param>
+    /// <param name="page">The page.</param>
+    /// <param name="recordings">Which recording each row plays.</param>
+    public static IReadOnlyList<BookLine> ForPage(GuideSession session, BookPage page, BookRecordings recordings)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        ArgumentNullException.ThrowIfNull(recordings);
+        return page switch
+        {
+            BookPage.Nouns => Nouns(session.Words, session.Learner.Nouns, session.StoredTime.UnixSeconds, session.DefiniteArticle, session.Phrases, recordings),
+            BookPage.Verbs => Verbs(session.Learner.Verbs, session.Glosses, session.Phrases),
+            BookPage.Phrases => Phrases(PhraseJournalRows.Build(session.PhraseProgress, session.StoredTime.UnixSeconds, session.Credit), recordings),
+            BookPage.Lessons => Lessons(session.Lessons.Record, session.Phrases, recordings),
+            _ => Said(session.Learner.Recent(LearnerRecord.SavedEntries), session.English, session.Lessons.Record),
+        };
+    }
+
     /// <summary>
     /// The nouns page: every catalogue noun (the words page as it was: heard, read, said and correct, the three pips, <c>¿?</c> before it is seen), then
     /// every other noun the learner used (a lemma with no space: a fixed expression such as <c>por favor</c> is not a noun), each with its article, its
@@ -83,7 +103,8 @@ public static class BookPages
     /// <param name="now">The stored time in Unix seconds (the due text).</param>
     /// <param name="definite">The definite article of a noun from its gender and lemma (<c>el</c> for <c>agua</c>).</param>
     /// <param name="sheet">The phrase sheet (for the English of a sentence that is a phrase).</param>
-    public static IReadOnlyList<BookLine> Nouns(WordProgress words, IReadOnlyList<WordRow> learnerNouns, long now, Func<string, string, string> definite, PhraseSheet sheet)
+    /// <param name="recordings">The recordings (S20b): a seen catalogue noun gets a speaker button for its word card. An unmet noun (<c>¿?</c>) and a noun outside the catalogue get none.</param>
+    public static IReadOnlyList<BookLine> Nouns(WordProgress words, IReadOnlyList<WordRow> learnerNouns, long now, Func<string, string, string> definite, PhraseSheet sheet, BookRecordings? recordings = null)
     {
         ArgumentNullException.ThrowIfNull(words);
         ArgumentNullException.ThrowIfNull(learnerNouns);
@@ -96,7 +117,8 @@ public static class BookPages
         {
             catalogue.Add(row.Lemma);
             var tone = row.Known ? BookTone.Known : row.Record.CreditUnits > 0 ? BookTone.Learning : row.Seen ? BookTone.Seen : BookTone.Unseen;
-            lines.Add(new BookLine(tone, row.Label, Lemma: row.Lemma, Pips: row.Pips, Right: row.Known ? KnownTag : null));
+            var speak = row.Seen ? recordings?.ForNoun(row.Lemma) : null;
+            lines.Add(new BookLine(tone, row.Label, Lemma: row.Lemma, Pips: row.Pips, Right: row.Known ? KnownTag : null, Speak: speak));
             var counts = $"heard {row.Record.Heard}   read {row.Record.Read}   said {row.Record.Spoken}   correct {row.Record.SpokenCorrect}";
             lines.Add(new BookLine(BookTone.Hint, counts, Right: row.DueText, Indent: true));
             if (learner.TryGetValue(row.Lemma, out var used))
@@ -158,7 +180,8 @@ public static class BookPages
     /// card and audio) and its counts.
     /// </summary>
     /// <param name="rows">The rows from <see cref="PhraseJournalRows.Build"/>.</param>
-    public static IReadOnlyList<BookLine> Phrases(IReadOnlyList<PhraseJournalRow> rows)
+    /// <param name="recordings">The recordings (S20b): every phrase row gets a speaker button for its recording, when it has one.</param>
+    public static IReadOnlyList<BookLine> Phrases(IReadOnlyList<PhraseJournalRow> rows, BookRecordings? recordings = null)
     {
         ArgumentNullException.ThrowIfNull(rows);
         var lines = new List<BookLine>();
@@ -166,7 +189,7 @@ public static class BookPages
         {
             var tone = row.HasScaffold && row.Level == SupportLevel.None && row.Record.CreditedUses > 0 ? BookTone.Known : row.Record.Seen ? BookTone.Learning : BookTone.Unseen;
             var lamps = row.HasScaffold ? new[] { SupportLevels.ShowsCard(row.Level), row.Level != SupportLevel.None } : null;
-            lines.Add(new BookLine(tone, row.Spanish, Aside: row.English, Right: row.LevelText, Lamps: lamps));
+            lines.Add(new BookLine(tone, row.Spanish, Aside: row.English, Right: row.LevelText, Lamps: lamps, Speak: recordings?.ForPhrase(row.Id)));
             lines.Add(new BookLine(BookTone.Hint, row.CountsText, Right: row.DueText, Indent: true));
         }
 
@@ -179,7 +202,8 @@ public static class BookPages
     /// </summary>
     /// <param name="lessons">The lesson record (<c>session.Lessons.Record</c>).</param>
     /// <param name="sheet">The phrase sheet (the English and the Spanish of the phrases).</param>
-    public static IReadOnlyList<BookLine> Lessons(IReadOnlyList<LessonRecordRow> lessons, PhraseSheet sheet)
+    /// <param name="recordings">The recordings (S20b): each phrase a lesson taught gets a speaker button for its recording.</param>
+    public static IReadOnlyList<BookLine> Lessons(IReadOnlyList<LessonRecordRow> lessons, PhraseSheet sheet, BookRecordings? recordings = null)
     {
         ArgumentNullException.ThrowIfNull(lessons);
         ArgumentNullException.ThrowIfNull(sheet);
@@ -208,7 +232,7 @@ public static class BookPages
             foreach (var phrase in lesson.Phrases)
             {
                 var row = sheet.Find(phrase);
-                lines.Add(new BookLine(BookTone.Seen, row?.Spanish ?? phrase, Aside: row?.English, Indent: true));
+                lines.Add(new BookLine(BookTone.Seen, row?.Spanish ?? phrase, Aside: row?.English, Indent: true, Speak: recordings?.ForPhrase(phrase)));
             }
 
             lines.Add(new BookLine(

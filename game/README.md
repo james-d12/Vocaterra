@@ -511,7 +511,8 @@ item, which the learner starts with at the camp: select it on the hotbar and use
 screen and takes the keyboard while it is open. Every title, tab, label and key hint is English; the Spanish is what the learner learnt (D-game-13).
 
 - **Pages.** Five tabs, turned with **Tab** (Shift and Tab turns back), **Left** and **Right**, or a click on a tab: **Nouns**, **Verbs**, **Phrases**,
-  **Lessons**, **What I said**. The lists scroll with the wheel, **Page Up** and **Page Down** (and Up and Down a line at a time); the page's line count is
+  **Lessons**, **What I said**. The lists scroll with the wheel, **Page Up** and **Page Down**; **Up** and **Down** move the selected row (see the buttons below),
+  or scroll a line on a page with no button; the page's line count is
   shown at the bottom right. The book reads at 1280 x 720.
 - **Nouns.** The catalogue words as they were (seen or `¿?`, the icon, heard, read, said, correct and the three pips), then every other noun the learner
   used (from the record's word rows), each with its article from the bundle's morphology (`el agua`, `la botella`), the forms used with their counts, and
@@ -528,6 +529,16 @@ screen and takes the keyboard while it is open. Every title, tab, label and key 
   (`summary`).
 - **What I said.** `Learner.Recent(500)`, newest first: the line, said or typed, where it was said (the NPC's English name, the lesson and its unit, or a
   check), and the core's feedback in English (`EnglishText.FeedbackFor(InputEntry)`, the same lines as S16's).
+- **Speaker buttons (S20b).** A row with a recording has a small speaker at its right edge: every seen catalogue noun on the Nouns page (its word card,
+  `card.<noun>`, with the accent folded in the file name: `card.rio`), every phrase on the Phrases page and every phrase a lesson taught on the Lessons
+  page. A click plays the normal recording and **Shift**+click the slow one. From the keyboard, **Up** and **Down** move a selection (a gold bar) among
+  the rows with a speaker, the selected row stays on screen, **Enter** plays it and **Shift+Enter** plays its slow recording. The first such row is
+  selected until the learner moves. An unmet noun (`¿?`) and a noun used outside the catalogue have no button, so nothing is given away; so do the verb
+  forms. A phrase the learner only hears has no file of its own: its speaker plays the NPC line that speaks it (`¿Qué necesitas?` is the shopkeeper's
+  `shop_need.1`, `Me llamo Luna.` is `guide.lesson.name.1`; the mapping is the phrase sheet's `audioLineIds`).
+  The sound goes through the voice (the sfx and ambient ducks under it; `--mute` keeps it silent), and each play that is accepted is a mark in the sound
+  log: `000123 mark    speak card.madera slow`. The rules are in `Frontend/BookRecordings.cs` (which recording a row plays and the button's
+  geometry), `Frontend/BookSpeechControls.cs` (the click, Enter, the arrows and the scripted step) and `Frontend/BookSpeaker.cs`; tested in `BookSpeechTests`.
 
 **Page models.** `src/Vocaterra.MonoGame/Frontend/BookPages.cs` (what each page lists, as `BookLine` values: a tone, a text, an aside, a right-hand text,
 an icon, pips, lamps or a tick), `VerbLabels.cs` (the English table of a verb form: person, number, tense and mood), `Book.cs` (`BookModel`, the pages in
@@ -541,7 +552,17 @@ the steps into units by their prefix: `u1-hello` is unit `u1`). `game/glosses.js
 `VoxelSession` at a new game; a loaded save puts its own slots back.
 
 **Demo and flags.** The flags open the book for screenshots once the steps are done: `--book` (the nouns page, the same as `--journal`),
-`--book-page nouns|verbs|phrases|lessons|said`, and `--journal-phrases` (the phrases page, as before).
+`--book-page nouns|verbs|phrases|lessons|said`, and `--journal-phrases` (the phrases page, as before). `--book-play <noun|phrase:id>` (and
+`--book-play-slow`) is a scripted step: it opens the book on the target's page, selects its row and plays it as Enter does, so a script can play a
+word or a phrase and take a screenshot in the same run. A target with no button yet (a noun not met) says so and plays nothing.
+
+```bash
+# S20b: after the S17 lesson route, play a noun from the book (normal) and a phrase (slow), with the sound log (the plays are the "speak" marks)
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --sound-log /tmp/s20b.log --lesson-run first-words --book-play fruta --shot /tmp/s20b-noun.png --book-play-slow phrase:pedir-agua --shot /tmp/s20b-phrase.png --screenshot /tmp/s20b-final.png --frames 30
+# the Nouns and Phrases pages with their buttons (the speaker at each row's right edge; the selected row is gold)
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --book-page nouns --screenshot /tmp/s20b-nouns.png --frames 30
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --book-page phrases --screenshot /tmp/s20b-phrases.png --frames 30
+```
 
 ```bash
 # the five pages after the S17 lesson route (the lesson is walked first, then the book opens on the page named)

@@ -113,6 +113,12 @@ public sealed record BookGeometry(int ViewportWidth, int ViewportHeight)
     /// <summary>The top of the content.</summary>
     public int ContentTop => Panel.Y + 76;
 
+    /// <summary>The left edge of the content (the text of a line starts here, before its indent).</summary>
+    public int ContentLeft => Panel.X + Padding;
+
+    /// <summary>The right edge of the content (a row's right-hand text, lamps, pips and speaker button end here).</summary>
+    public int ContentRight => Panel.Right - Padding;
+
     /// <summary>The bottom of the content (the key hints sit under it).</summary>
     public int ContentBottom => Panel.Bottom - 46;
 
@@ -162,6 +168,7 @@ public sealed class BookModel
 {
     private WordProgress? _words;
     private bool _read;
+    private int _selected;
 
     /// <summary>Whether the book is on screen.</summary>
     public bool IsOpen { get; private set; }
@@ -190,6 +197,7 @@ public sealed class BookModel
         _read = false;
         Page = BookPage.Nouns;
         Offset = 0;
+        _selected = 0;
         MarkRead();
     }
 
@@ -205,6 +213,7 @@ public sealed class BookModel
         if (page != Page)
         {
             Offset = 0;
+            _selected = 0;
         }
 
         Page = page;
@@ -229,6 +238,56 @@ public sealed class BookModel
     /// <param name="total">The page's lines.</param>
     /// <param name="visible">The lines on screen.</param>
     public void ClampTo(int total, int visible) => Offset = BookScroll.Clamp(Offset, total, visible);
+
+    /// <summary>
+    /// The selected row among the page's speakable rows (S20b): the first one until the learner moves the selection; <c>-1</c> when the page has none.
+    /// The index is kept inside <c>[0, count - 1]</c>.
+    /// </summary>
+    /// <param name="count">How many speakable rows the page has.</param>
+    public int SelectedIndex(int count) => count == 0 ? -1 : Math.Clamp(_selected, 0, count - 1);
+
+    /// <summary>Selects a speakable row by its index (a scripted run's book step, S20b).</summary>
+    /// <param name="index">The row's index among the speakable rows.</param>
+    public void SelectRow(int index)
+    {
+        if (IsOpen)
+        {
+            _selected = Math.Max(0, index);
+        }
+    }
+
+    /// <summary>Moves the selection among the speakable rows (Up is negative, Down positive), stopping at the first and the last.</summary>
+    /// <param name="delta">The steps.</param>
+    /// <param name="count">How many speakable rows the page has.</param>
+    public void MoveSelection(int delta, int count)
+    {
+        if (!IsOpen || count == 0)
+        {
+            return;
+        }
+
+        _selected = Math.Clamp(SelectedIndex(count) + delta, 0, count - 1);
+    }
+
+    /// <summary>Scrolls, if needed, so that a line is on screen (the selected row stays visible when the learner moves it).</summary>
+    /// <param name="line">The line's index.</param>
+    /// <param name="visible">The lines on screen.</param>
+    public void Reveal(int line, int visible)
+    {
+        if (!IsOpen || visible <= 0)
+        {
+            return;
+        }
+
+        if (line < Offset)
+        {
+            Offset = line;
+        }
+        else if (line >= Offset + visible)
+        {
+            Offset = line - visible + 1;
+        }
+    }
 
     /// <summary>Closes the book.</summary>
     public void Close() => IsOpen = false;
