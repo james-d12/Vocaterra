@@ -701,7 +701,16 @@ public sealed class LessonRunner
         }
         else if (MatchesPhrase(turn, step.Phrase!))
         {
-            Finish(lesson, state, StepOutcome.Done, turn.Errors.Count == 0 ? null : "with a slip");
+            if (step.Person is { } wanted && WrongPerson(turn, wanted) is { } said)
+            {
+                // The answer is the right phrase with another person's verb and no error for the core to flag (no subject pronoun said): quieres for quiero, or quiero at "¿Qué quieren
+                // ustedes?". It is a miss, and the retry names the ending (S26). A wrong person next to a pronoun (yo quieres) is the core's conj.person: a slip, the step ends.
+                Miss(lesson, state, step, $"wrong person: said {said}, expected {wanted}", step.PersonRetry);
+            }
+            else
+            {
+                Finish(lesson, state, StepOutcome.Done, turn.Errors.Count == 0 ? null : "with a slip");
+            }
         }
         else
         {
@@ -868,7 +877,23 @@ public sealed class LessonRunner
     }
 
     // An attempt that did not work: try again, or after the step's attempts move on (fail-forward).
-    private void Miss(LessonDefinition lesson, State state, LessonStep step, string reason)
+    // The person and number (1sg...) of the answer's finite verb when they are not the expected ones and the core found no error to flag, else null. A line with no finite verb
+    // is not judged. When the line has several verbs, one with the expected person is enough.
+    private static string? WrongPerson(GuideTurn turn, string wanted)
+    {
+        if (turn.Errors.Any(static e => e.Tag.StartsWith("conj.", StringComparison.Ordinal)) || turn.Words is not { } words)
+        {
+            return null;
+        }
+
+        var verbs = words.Where(static w => string.Equals(w.Pos, "verb", StringComparison.Ordinal) && w.Person is { Length: > 0 } && w.Number is { Length: > 0 }
+            && !string.Equals(w.Mood, "inf", StringComparison.OrdinalIgnoreCase) && !string.Equals(w.Mood, "infinitive", StringComparison.OrdinalIgnoreCase))
+            .Select(static w => w.Person![0] + (w.Number![0] is 'p' or 'P' ? "pl" : "sg"))
+            .ToList();
+        return verbs.Count == 0 || verbs.Contains(wanted, StringComparer.Ordinal) ? null : verbs[0];
+    }
+
+    private void Miss(LessonDefinition lesson, State state, LessonStep step, string reason, string? retry = null)
     {
         state.Attempts++;
         if (state.Attempts >= step.Attempts)
@@ -877,7 +902,7 @@ public sealed class LessonRunner
             return;
         }
 
-        state.Hint = step.Retry ?? _english.Ui("retry");
+        state.Hint = retry ?? step.Retry ?? _english.Ui("retry");
         Emit(LessonEventKind.Retry, lesson, state, step, null, reason);
         _version++;
     }

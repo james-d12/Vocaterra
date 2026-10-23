@@ -157,7 +157,7 @@
     "allowedIntentIds": ["state_have", "ask_help", "dont_know", "ask_repeat", "ask_slower"],
     "agentId": "guide",
     "slotGrammarIds": [],
-    "text": "¿Tienes madera?"
+    "text": "¿Tienes una fruta?"
   },
   {
     "promptId": "lesson-need",

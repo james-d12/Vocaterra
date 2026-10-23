@@ -19,13 +19,8 @@ public sealed class BookSpeechTests
     private static readonly Lazy<IReadOnlyList<SpeechLine>> Lines = new(() => SpeechLines.Enumerate(Bundle.Value, Nouns.Value, Sheet.Value));
     private static readonly Lazy<string> Folder = new(() => Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
 
-    // The phrases that have no recording yet: S26 phase 1 wrote the verb phrases and waits for the review pass (D-game-12 step 3) before pre-rendering them, so the
-    // thirteen rows of the guide's verb unit and of Personas have none until phase 2. Every other phrase plays its own file or an NPC line.
-    private static readonly string[] PhrasesWithoutARecording =
-    [
-        "que-quieres", "quiero-madera", "tienes-madera", "tengo-madera", "necesito-agua",
-        "que-quiere-luna", "ella-quiere-fruta", "necesitamos-agua", "que-necesita-usted", "necesito-pan", "tengo-botella", "que-quieren-ustedes", "queremos-pan",
-    ];
+    // The phrases that have no recording of their own on purpose: none (every phrase plays its own file or an NPC line).
+    private static readonly string[] PhrasesWithoutARecording = [];
 
     private static readonly long Now = GuideSession.DefaultStartedAt;
 

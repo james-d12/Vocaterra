@@ -576,10 +576,10 @@
         { "lineId": "guide.lesson.want.1", "text": "¿Qué quieres?" }
       ]
     },
-    "guide.lesson.have_wood": {
-      "poolId": "guide.lesson.have_wood",
+    "guide.lesson.have_fruit": {
+      "poolId": "guide.lesson.have_fruit",
       "variants": [
-        { "lineId": "guide.lesson.have_wood.1", "text": "¿Tienes madera?" }
+        { "lineId": "guide.lesson.have_fruit.1", "text": "¿Tienes una fruta?" }
       ]
     },
     "guide.lesson.need": {
@@ -588,16 +588,10 @@
         { "lineId": "guide.lesson.need.1", "text": "¿Qué necesitas?" }
       ]
     },
-    "guide.lesson.i_have": {
-      "poolId": "guide.lesson.i_have",
-      "variants": [
-        { "lineId": "guide.lesson.i_have.1", "text": "Tengo agua." }
-      ]
-    },
     "guide.lesson.villager.she": {
       "poolId": "guide.lesson.villager.she",
       "variants": [
-        { "lineId": "guide.lesson.villager.she.1", "text": "Ella es la guía." }
+        { "lineId": "guide.lesson.villager.she.1", "text": "Luna es la guía. Ella es mi amiga." }
       ]
     },
     "guide.lesson.villager.luna": {
@@ -621,7 +615,7 @@
     "guide.lesson.villager.be": {
       "poolId": "guide.lesson.villager.be",
       "variants": [
-        { "lineId": "guide.lesson.villager.be.1", "text": "Nosotros somos amigos." }
+        { "lineId": "guide.lesson.villager.be.1", "text": "Tú y yo somos amigos." }
       ]
     },
     "guide.lesson.villager.go": {
@@ -648,18 +642,6 @@
         { "lineId": "guide.lesson.shop.all.1", "text": "¿Qué quieren ustedes?" }
       ]
     },
-    "guide.lesson.shop.go": {
-      "poolId": "guide.lesson.shop.go",
-      "variants": [
-        { "lineId": "guide.lesson.shop.go.1", "text": "Ellos van a la casa." }
-      ]
-    },
-    "guide.lesson.shop.here": {
-      "poolId": "guide.lesson.shop.here",
-      "variants": [
-        { "lineId": "guide.lesson.shop.here.1", "text": "Estamos aquí." }
-      ]
-    },
     "guide.lesson.shop.they": {
       "poolId": "guide.lesson.shop.they",
       "variants": [
@@ -675,7 +657,7 @@
     "guide.lesson.villager.where": {
       "poolId": "guide.lesson.villager.where",
       "variants": [
-        { "lineId": "guide.lesson.villager.where.1", "text": "Ella está en la tienda." }
+        { "lineId": "guide.lesson.villager.where.1", "text": "Ella está en el campamento." }
       ]
     }
   }

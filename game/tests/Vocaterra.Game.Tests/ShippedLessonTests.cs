@@ -60,7 +60,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
             output.WriteLine($"{step.Id,-14} {step.Type,-8} {step.Sent,-26} {step.Outcome,-8} {string.Join(" / ", step.Shown)}");
         }
 
-        Assert.Equal(40, steps.Count);
+        Assert.Equal(37, steps.Count);
         Assert.All(steps, static s => Assert.Equal(StepOutcome.Done, s.Outcome));
         var units = steps.Select(static s => s.Id[..2]).Distinct().ToList();
         Assert.Equal(["u1", "u2", "u3", "u4", "u5", "u6"], units);

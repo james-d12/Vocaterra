@@ -41,10 +41,11 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
 
         Assert.Equal("u4-welcome", ids[first - 1]); // "De nada", the end of please and thank you
         Assert.Equal(
-            [("u4v-intro", LessonStepType.Explain), ("u4v-ask-want", LessonStepType.Model), ("u4v-say-want", LessonStepType.Repeat), ("u4v-ask-have", LessonStepType.Answer), ("u4v-ask-need", LessonStepType.Answer), ("u4v-i-have", LessonStepType.Listen)],
-            steps.Skip(first).Take(6).Select(static s => (s.Id, s.Type)));
-        Assert.Equal("u5-intro", ids[first + 6]);
-        Assert.Contains("-o is I", steps[first].English, StringComparison.Ordinal); // the English names the pattern once...
+            [("u4v-intro", LessonStepType.Explain), ("u4v-ask-want", LessonStepType.Model), ("u4v-say-want", LessonStepType.Repeat), ("u4v-ask-have", LessonStepType.Answer), ("u4v-ask-need", LessonStepType.Answer)],
+            steps.Skip(first).Take(5).Select(static s => (s.Id, s.Type)));
+        Assert.Equal("u5-intro", ids[first + 5]);
+        Assert.DoesNotContain(steps, static s => s.Id == "u3-table"); // cut to keep the lesson under ten minutes
+        Assert.Contains("the ending is -o", steps[first].English, StringComparison.Ordinal); // the English names the pattern once...
         Assert.True(steps.Single(static s => s.Id == "u4v-ask-need").English.Length < steps.Single(static s => s.Id == "u4v-say-want").English.Length); // ...and thins
     }
 
@@ -53,7 +54,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     {
         var session = AtGuide();
         var done = new List<LessonDriver.Done>();
-        while (session.Lessons.Current is { } step && step.Id != "u4v-i-have")
+        while (session.Lessons.Current is { } step && step.Id != "u5-intro")
         {
             done.Add(LessonDriver.DoStep(session));
         }
@@ -64,7 +65,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
             output.WriteLine($"{d.Id,-14} {d.Type,-8} {d.Sent,-20} {d.Turn?.Intent}");
         }
 
-        Assert.Equal(["Quiero madera", "Tengo madera", "Necesito agua"], unit.Where(static d => d.Sent is not null).Select(static d => d.Sent));
+        Assert.Equal(["Quiero madera", "Tengo una fruta", "Necesito agua"], unit.Where(static d => d.Sent is not null).Select(static d => d.Sent));
         Assert.Equal(["state_want", "state_have", "state_want"], unit.Where(static d => d.Turn is not null).Select(static d => d.Turn!.Intent));
         Assert.All(unit.Where(static d => d.Turn is not null), static d =>
         {
@@ -102,7 +103,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
             _ = LessonDriver.DoStep(session);
         }
 
-        var turn = session.Say("yo teno madera");
+        var turn = session.Say("yo teno una fruta");
 
         Assert.Contains(turn.Errors, static e => e.Tag == "conj.irregular");
     }
@@ -339,7 +340,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
 
         var again = LessonDriver.CompleteAll(session);
 
-        Assert.Equal(40, again.Count);
+        Assert.Equal(37, again.Count);
         Assert.Equal(LessonStatus.Completed, session.Lessons.StatusOf("first-words"));
     }
 
@@ -454,11 +455,11 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     {
         var forms = Book.Find("personas")!.TaughtVerbs;
 
-        Assert.Equal(18, forms.Count);
-        foreach (var lemma in new[] { "querer", "tener", "necesitar", "ser", "estar", "ir" })
-        {
-            Assert.Equal(["3 sg pres", "1 pl pres", "3 pl pres"], forms.Where(f => f.Lemma == lemma).Select(static f => $"{f.Person} {f.Number} {f.Tense}")); // él, ella, usted; nosotros; ustedes, ellos
-        }
+        // only the forms that are heard, said or named: él, ella, usted (3 sg); nosotros (1 pl); ustedes, ellos (3 pl). The conjugation of ir comes in session 3.
+        Assert.Equal(
+            ["querer 3 sg", "querer 1 pl", "querer 3 pl", "tener 3 sg", "tener 1 pl", "tener 3 pl", "necesitar 3 sg", "necesitar 1 pl", "ser 3 sg", "ser 1 pl", "estar 3 sg", "ir 1 pl"],
+            forms.Select(static f => $"{f.Lemma} {f.Person} {f.Number}"));
+        Assert.All(forms, static f => Assert.Equal("pres", f.Tense));
 
         Assert.DoesNotContain(forms, static f => f is { Person: "2", Number: "pl" }); // no vosotros
     }
@@ -504,6 +505,134 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         Assert.Contains("talk_opened", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"do\", \"event\": \"item_picked_up\", \"at\": \"shopkeeper\", \"english\": \"E\" }"))).Message, StringComparison.Ordinal);
     }
 
+    // ---- The person of the answer's verb (S26 part 2)
+
+    private static VoxelSession AtStep(string stepId)
+    {
+        var session = SessionTwoAtVillager();
+        while (session.Lessons.Current is { } step && step.Id != stepId)
+        {
+            if (step.Id == "p2-walk")
+            {
+                session.EndTalk();
+                Stage.TeleportToNpc(session, "shopkeeper");
+                _ = session.OpenTalk("shopkeeper");
+                continue;
+            }
+
+            _ = LessonDriver.DoStep(session);
+        }
+
+        return session;
+    }
+
+    private static void AssertMissThenDone(VoxelSession session, string wrong, string right, string stepId, string next, string ending)
+    {
+        var turn = session.Say(wrong);
+        Assert.True(turn.Communicated, wrong);
+        Assert.DoesNotContain(turn.Errors, static e => e.Tag.StartsWith("conj.", StringComparison.Ordinal)); // no pronoun, so the core flags no person: only the verb's person is wrong
+        Assert.Equal(stepId, session.Lessons.Current!.Id); // a miss: the step stays
+        Assert.Equal(1, session.Lessons.Attempts);
+        Assert.Contains(ending, session.Lessons.View!.Hint, StringComparison.Ordinal); // the retry names the ending
+        Assert.Contains(session.Events.OfType<LessonEvent>(), e => e.Kind == LessonEventKind.Retry && e.StepId == stepId && e.Detail!.StartsWith("wrong person", StringComparison.Ordinal)); // and the log says why
+
+        _ = session.Say(right);
+        Assert.Equal(next, session.Lessons.Current!.Id);
+        Assert.Equal(StepOutcome.Done, session.Lessons.OutcomesOf(session.Lessons.Active!.Id)[^1].Outcome);
+    }
+
+    [Fact]
+    public void TuForYoIsAMissAtQueQuieresAndTheRetryNamesTheEnding()
+    {
+        var session = AtGuide();
+        while (session.Lessons.Current is { } step && step.Id != "u4v-say-want")
+        {
+            _ = LessonDriver.DoStep(session);
+        }
+
+        AssertMissThenDone(session, "quieres madera", "quiero madera", "u4v-say-want", "u4v-ask-have", "-o");
+    }
+
+    [Fact]
+    public void YoForElIsAMissAtQueQuiereLuna()
+    {
+        var session = AtStep("p1-say-she");
+
+        AssertMissThenDone(session, "quiero fruta", "ella quiere fruta", "p1-say-she", "p2-intro", "-e");
+    }
+
+    [Fact]
+    public void YoForNosotrosIsAMissAtQueNecesitamos()
+    {
+        var session = AtStep("p2-ask-we");
+
+        AssertMissThenDone(session, "necesito agua", "necesitamos agua", "p2-ask-we", "p2-they", "-amos");
+    }
+
+    [Fact]
+    public void YoForNosotrosIsAMissAtTheShopkeepersUstedesQuestionToo()
+    {
+        var session = AtStep("p4-say-we");
+
+        AssertMissThenDone(session, "quiero pan", "queremos pan", "p4-say-we", "p4-they", "-amos");
+    }
+
+    [Fact]
+    public void AMissIsStillFailForwardAndAStepWithNoDeclaredPersonJudgesNothingOfIt()
+    {
+        var session = AtGuide();
+        while (session.Lessons.Current is { } step && step.Id != "u4v-say-want")
+        {
+            _ = LessonDriver.DoStep(session);
+        }
+
+        _ = session.Say("quieres madera");
+        _ = session.Say("quieres fruta");
+        Assert.Equal("u4v-ask-have", session.Lessons.Current!.Id); // the second miss moves on (attempts, D-game-9)
+        Assert.Equal(StepOutcome.MovedOn, session.Lessons.OutcomesOf("first-words")[^1].Outcome);
+
+        const string Plain = """
+            { "schemaVersion": 1, "lessons": [ { "id": "t", "npc": "guide", "title": "T", "english": "E", "steps": [
+              { "id": "say", "type": "repeat", "phrase": "quiero-madera", "prompt": "lesson-want", "english": "Say it." },
+              { "id": "end", "type": "explain", "english": "Done." } ] } ] }
+            """;
+        var other = TestGame.NewSession(lessons: TestGame.Lessons(Plain));
+        Stage.TeleportToNpc(other, "guide");
+        _ = other.OpenTalk("guide");
+        Assert.True(other.Lessons.Start("t"));
+
+        _ = other.Say("quieres madera"); // no person declared: as before, the intent is all that counts
+
+        Assert.Equal("end", other.Lessons.Current!.Id);
+        Assert.Equal(StepOutcome.Done, other.Lessons.OutcomesOf("t")[^1].Outcome);
+    }
+
+    [Fact]
+    public void EveryVerbStepOfBothLessonsDeclaresItsPerson()
+    {
+        var expected = new Dictionary<string, string>
+        {
+            ["quiero-madera"] = "1sg",
+            ["tengo-fruta"] = "1sg",
+            ["necesito-agua"] = "1sg",
+            ["ella-quiere-fruta"] = "3sg",
+            ["necesitamos-agua"] = "1pl",
+            ["necesito-pan"] = "1sg",
+            ["tengo-botella"] = "1sg",
+            ["queremos-pan"] = "1pl",
+        };
+
+        foreach (var step in Book.Lessons.SelectMany(static l => l.Steps).Where(s => s.WaitsOnTurn && expected.ContainsKey(s.Phrase!)))
+        {
+            Assert.Equal(expected[step.Phrase!], step.Person);
+            Assert.False(string.IsNullOrWhiteSpace(step.PersonRetry), step.Id);
+        }
+
+        Assert.All(Book.Lessons.SelectMany(static l => l.Steps).Where(s => s.Type is LessonStepType.Repeat or LessonStepType.Answer && expected.ContainsKey(s.Phrase!)), s => Assert.NotNull(s.Person));
+        Assert.Contains("person", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(
+            "{ \"schemaVersion\": 1, \"lessons\": [ { \"id\": \"t\", \"npc\": \"guide\", \"title\": \"T\", \"english\": \"E\", \"steps\": [ { \"id\": \"a\", \"type\": \"explain\", \"english\": \"E\", \"person\": \"1sg\" } ] } ] }")).Message, StringComparison.Ordinal);
+    }
+
     // ---- The new content
 
     [Fact]
@@ -512,7 +641,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         var sheet = PhraseSheet.Load(TestGame.Bundle);
         var added = new[]
         {
-            "que-quieres", "quiero-madera", "tienes-madera", "tengo-madera", "necesito-agua",
+            "que-quieres", "quiero-madera", "tienes-fruta", "tengo-fruta", "necesito-agua",
             "que-quiere-luna", "ella-quiere-fruta", "necesitamos-agua", "que-necesita-usted", "necesito-pan", "tengo-botella", "que-quieren-ustedes", "queremos-pan",
         };
 

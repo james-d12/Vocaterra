@@ -486,7 +486,7 @@ DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute 
   step of the checklist). The beacon points at her camp from the start.
 - **The guide's lesson** (`first-words`, `game/lessons.json`). Luna, the guide, greets the player who comes within five blocks of her
   (`GuideApproach`; the same call as the E key, once per approach; Esc closes the panel and the lesson waits): the lesson starts by itself. Seven units since S26 (the verb unit
-  below), 40 steps (S17: six units, 34 steps, about eight minutes at a learner's pace, estimated 4.8 minutes for a quick reader who answers in 4 s, 7.5 for a slow one, from the real WAV lengths, plus about a minute to walk down the trail): hello, yes and
+  below), 37 steps (S17: six units, 34 steps, about eight minutes at a learner's pace, estimated 4.8 minutes for a quick reader who answers in 4 s, 7.5 for a slow one, from the real WAV lengths, plus about a minute to walk down the trail): hello, yes and
   no, what is this, please and thank you (the guide offers fruit and the
   learner picks it from a bush: a `do` step with a beacon on the nearest berry bush), getting unstuck (`No sé`, `Otra vez, por favor`, `Más despacio, por favor`
   do what they say) and the camp's task, then a recap that opens the book's phrases page. While a lesson step takes a turn the guide's ordinary reply is not
@@ -506,25 +506,29 @@ DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute 
 
 ## Verbs in the lessons, sessions and replay (S26, D-game-19)
 
-- **The verb unit** (in `first-words`, after "please and thank you", six steps): the present yo and tú of `querer`, `tener` and `necesitar`. Luna asks `¿Qué quieres?`, `¿Tienes madera?` and
-  `¿Qué necesitas?`, and the learner answers with the yo forms (`Quiero madera.`, `Tengo madera.`, `Necesito agua.`); a listen step has her say `Tengo agua.` about herself. The English names the
+- **The verb unit** (in `first-words`, after "please and thank you", five steps): the present yo and tú of `querer`, `tener` and `necesitar`. Luna asks `¿Qué quieres?`, `¿Tienes una fruta?` and
+  `¿Qué necesitas?`, and the learner answers with the yo forms (`Quiero madera.`, `Tengo una fruta.`, `Necesito agua.`; the fruit is the one the learner just picked). The English names the
   pattern once (-o is I, -as or -es is you) and then thins. The answers are statements (`state_want`, `state_have`), so nothing is handed over; a tú form after `yo` is a `conj.person` slip
   and `teno` for `tengo` a `conj.irregular` one, and the step goes on either way (fail-forward).
 - **Sessions.** A lesson has a `session` in `lessons.json` (default 1) and is offered only once the play session has reached it; the session is the save's number (a load is the next session).
   A lesson of a later session also has an English `objective` that names it: the objective area shows it (and the beacon points at the lesson's NPC) while the lesson is unlocked and not begun.
   `--session <n>` starts a run as play session n (`--session 2 --screenshot x.png --frames 120` shows session 2 opening at the camp: `Session 2: go to the village and talk to the villager to start
   the lesson “Personas”`, with the beacon on the villager).
-- **Personas** (session 2, the villager then the shopkeeper, 22 steps, `autoStart`): él, ella, usted, nosotros, ustedes and ellos of `querer`, `tener`, `necesitar`, `ser`, `estar` and `ir`. The learner
+- **Personas** (session 2, the villager then the shopkeeper, 20 steps, `autoStart`): él, ella, usted, nosotros, ustedes and ellos of `querer`, `tener`, `necesitar`, `ser`, `estar` and `ir`. The learner
   says what Luna wants, what we need and what we want and answers the shopkeeper's `usted` questions about themself; the other forms are heard (listen steps) and listed once. A step may name its NPC
   (`npc`), and a `do` step may wait for the panel to open on an NPC (`at`): the walk from the villager to the stall. While such a step waits the objective says `Walk to the stall and talk to the
   shopkeeper`. The villager's and the shopkeeper's lines are in pools named `guide.lesson.villager.*` and `guide.lesson.shop.*` (the voices follow the prefix; `--host-pools 'guide.*'` counts them).
   `--session 2 --lesson-run personas` runs it with typed answers, walking from the player's camp to the villager and then the stall.
 - **The forms a lesson teaches.** `lessons.json` declares them (`verbs`: lemma, person 1 to 3, number sg or pl, tense): the yo and tú of the three verbs (`first-words`) and the third person singular, the
-  first and the third person plural of the six verbs (`personas`, 18 forms). A test checks each is a word the learner meets in the lesson and that the core's morphology knows it; the book's conjugation
+  first and the third person plural of the verbs it uses (`personas`, 12 forms: only those heard, said or named; the conjugation of `ir` waits for session 3). A test checks each is a word the learner meets in the lesson and that the core's morphology knows it; the book's conjugation
   tables (S28) read them.
 - **Practise again.** A completed lesson's heading on the book's Lessons page has a `Practise again` button (a click, or P with the page open). It closes the book, sets the objective line (`Practise
   again: talk to the guide to start “First words with Luna”`) and the beacon, and the lesson starts from its first step when the learner talks to its NPC. It stays done while it runs again.
   `--book-practise <id>` presses the button in a scripted run (`--lesson-run first-words --book-practise first-words --lesson-run first-words`).
+- **The person of the answer's verb.** A step may declare the person and number its answer's verb must have (`person`: `1sg`, `3sg`, `1pl`...; and a `personRetry` line that names the ending).
+  The runner reads the finite verb's person and number from the turn's word readings; a mismatch the core did not flag (no subject pronoun, so no `conj.person`: `quieres madera` at `¿Qué quieres?`,
+  `quiero fruta` at `¿Qué quiere Luna?`) is a miss, not a success: the step stays, the retry names the ending, and after the step's attempts it moves on (fail-forward). The log's retry line says
+  `wrong person: said 2sg, expected 1sg`. A wrong person next to a pronoun (`yo quieres`) stays a slip the core grades. Every verb step of both lessons declares its person.
 - **The save** is version 4 (1 to 3 still load): each lesson keeps whether it was ever completed (`everCompleted`; a completed lesson of an older save counts) and the save keeps a replay that was asked for.
 
 ## The book (S20, D-game-16)

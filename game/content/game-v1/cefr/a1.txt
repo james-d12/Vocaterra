@@ -53,6 +53,7 @@ calle
 cama
 caminar
 camisa
+campamento
 cansado
 cantar
 carne

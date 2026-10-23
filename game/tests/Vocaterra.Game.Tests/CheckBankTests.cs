@@ -29,7 +29,7 @@ public sealed class CheckBankTests
         Assert.Equal(14, bank.Count(static i => i.Kind == CheckItemKind.Comprehension));
         Assert.Equal(
             ["say.pedir-agua", "say.si-por-favor", "say.no-gracias", "say.donde-esta-el-rio", "say.si", "say.no", "say.que-es-esto", "say.otra-vez", "say.mas-despacio",
-                "say.quiero-madera", "say.tengo-madera", "say.ella-quiere-fruta", "say.necesitamos-agua"],
+                "say.quiero-madera", "say.tengo-fruta", "say.ella-quiere-fruta", "say.necesitamos-agua"],
             bank.Where(static i => i.Kind == CheckItemKind.Production).Select(static i => i.Id));
         Assert.Equal(
             ["request_item", "confirm", "deny", "ask_directions", "confirm", "deny", "ask_what", "ask_repeat", "ask_slower", "state_want", "state_have", "state_want", "state_want"],

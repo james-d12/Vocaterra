@@ -36,7 +36,7 @@ public sealed class GrammarStringsExtractorTests
         ["otra-vez"] = ["gender.agree"],
         ["mas-despacio"] = ["vocab.unknown"],
         ["quiero-madera"] = ["conj.person"],
-        ["tengo-madera"] = ["conj.irregular"],
+        ["tengo-fruta"] = ["conj.irregular"],
         ["necesito-agua"] = ["conj.person"],
         ["ella-quiere-fruta"] = ["conj.person"],
         ["necesitamos-agua"] = ["conj.person"],

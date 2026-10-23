@@ -3,8 +3,8 @@
   "answers": [
     {
       "answerId": "have",
-      "canonical": "tengo madera",
-      "aliases": ["sí tengo madera", "sí yo tengo madera", "sí tengo", "tengo"],
+      "canonical": "tengo una fruta",
+      "aliases": ["sí tengo una fruta", "sí yo tengo una fruta", "yo tengo una fruta", "tengo fruta", "sí tengo fruta", "sí tengo una", "sí tengo", "tengo"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {

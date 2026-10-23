@@ -183,13 +183,13 @@ public sealed class LessonFrontendTests
         run.Go(60000);
 
         var done = run.Log.Where(static l => l.StartsWith("  event: lesson first-words step ", StringComparison.Ordinal) && (l.EndsWith(" done", StringComparison.Ordinal) || l.Contains(" done (", StringComparison.Ordinal))).ToList();
-        Assert.Equal(40, done.Count); // every step, its outcome printed by the event line
-        Assert.Contains("  event: lesson first-words step 23 do (u4-pick) done (fruta)", run.Log); // the fruit was picked up at the bush
-        Assert.Contains("  event: lesson first-words completed (done 40, skipped 0, moved on 0)", run.Log);
+        Assert.Equal(37, done.Count); // every step, its outcome printed by the event line
+        Assert.Contains("  event: lesson first-words step 21 do (u4-pick) done (fruta)", run.Log); // the fruit was picked up at the bush
+        Assert.Contains("  event: lesson first-words completed (done 37, skipped 0, moved on 0)", run.Log);
         Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("first-words"));
         Assert.Equal(1, run.Session.Objective.Step(Objective.BerryKey)!.Count); // the lesson's fruit is a real one: the checklist moved
         Assert.True(run.Session.GuideMet);
-        Assert.Equal(["hola", "si", "no", "que-es-esto", "que-es-esto", "que-es-esto", "si-por-favor", "gracias", "quiero-madera", "tengo-madera", "necesito-agua", "no-se", "otra-vez", "mas-despacio"],
+        Assert.Equal(["hola", "si", "no", "que-es-esto", "que-es-esto", "que-es-esto", "si-por-favor", "gracias", "quiero-madera", "tengo-fruta", "necesito-agua", "no-se", "otra-vez", "mas-despacio"],
             run.Session.Events.OfType<PhraseUse>().Select(static u => u.PhraseId));
     }
 
@@ -203,8 +203,8 @@ public sealed class LessonFrontendTests
         run.Go(120000);
 
         var done = run.Log.Where(static l => l.StartsWith("  event: lesson personas step ", StringComparison.Ordinal) && (l.EndsWith(" done", StringComparison.Ordinal) || l.Contains(" done (", StringComparison.Ordinal))).ToList();
-        Assert.Equal(22, done.Count);
-        Assert.Contains("  event: lesson personas completed (done 22, skipped 0, moved on 0)", run.Log);
+        Assert.Equal(20, done.Count);
+        Assert.Contains("  event: lesson personas completed (done 20, skipped 0, moved on 0)", run.Log);
         Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("personas"));
         Assert.Equal(["quiero-madera", "ella-quiere-fruta", "necesitamos-agua", "necesito-pan", "tengo-botella", "queremos-pan"], run.Session.Events.OfType<PhraseUse>().Select(static u => u.PhraseId));
         var opened = run.Session.Events.OfType<WorldEvent>().Where(static e => e.Name == WorldEvents.TalkOpened).Select(static e => e.Npc).ToList();

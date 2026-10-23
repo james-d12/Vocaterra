@@ -40,7 +40,7 @@ public sealed class LessonBookTests
 
         Assert.Equal(LessonStepType.Recap, lesson.Steps[^1].Type); // the recap of the phrases learnt closes it
         Assert.Equal(
-            ["hola", "si", "no", "que-es-esto", "si-por-favor", "gracias", "quiero-madera", "tengo-madera", "necesito-agua", "no-se", "otra-vez", "mas-despacio"],
+            ["hola", "si", "no", "que-es-esto", "si-por-favor", "gracias", "quiero-madera", "tengo-fruta", "necesito-agua", "no-se", "otra-vez", "mas-despacio"],
             lesson.TaughtPhrases);
         Assert.Equal(lesson.TaughtPhrases.Concat(book.Find("personas")!.TaughtPhrases).Distinct(), book.TaughtPhrases); // quiero-madera is asked again at the start of Personas
         Assert.All(lesson.TaughtPhrases, id => Assert.True(PhraseSheet.Load(TestGame.Bundle).Find(id)!.IsLearnerPhrase, id));
@@ -71,8 +71,9 @@ public sealed class LessonBookTests
                 if (uses[0].Type != LessonStepType.Repeat)
                 {
                     var spanish = sheet.Find(phrase)!.Spanish.TrimEnd('.').Split(',')[0];
-                    var before = each.Steps.Take(each.Steps.ToList().IndexOf(uses[0])).Where(static s => s.Type == LessonStepType.Explain);
-                    Assert.Contains(before, s => s.English.Contains("“" + spanish + "”", StringComparison.OrdinalIgnoreCase));
+                    // an explain step before names it in English, or the step itself quotes the words it asks for (S26: "say “Tengo una fruta”")
+                    var named = each.Steps.Take(each.Steps.ToList().IndexOf(uses[0]) + 1).Where(static s => s.Type is LessonStepType.Explain or LessonStepType.Answer);
+                    Assert.Contains(named, s => s.English.Contains("“" + spanish + "”", StringComparison.OrdinalIgnoreCase));
                 }
 
                 Assert.All(uses.Skip(1), static s => Assert.Equal(LessonStepType.Answer, s.Type));

@@ -4,7 +4,7 @@
     {
       "answerId": "have",
       "canonical": "tengo una botella",
-      "aliases": ["sí tengo una botella", "sí yo tengo una botella", "sí tengo botella", "tengo botella"],
+      "aliases": ["sí tengo una botella", "sí yo tengo una botella", "yo tengo una botella", "sí tengo la botella", "sí tengo botella", "tengo botella"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {

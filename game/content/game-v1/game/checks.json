@@ -250,15 +250,15 @@
       "correct": 0
     },
     {
-      "id": "hear.tienes-madera",
+      "id": "hear.tienes-fruta",
       "kind": "comprehension",
-      "phrase": "tienes-madera",
-      "line": "guide.lesson.have_wood.1",
-      "spanish": "¿Tienes madera?",
+      "phrase": "tienes-fruta",
+      "line": "guide.lesson.have_fruit.1",
+      "spanish": "¿Tienes una fruta?",
       "question": "A guide says this to you. What does it mean?",
       "options": [
         {
-          "label": "The guide asks if you have wood."
+          "label": "The guide asks if you have a fruit."
         },
         {
           "label": "The guide says the wood is for the torch."
@@ -370,10 +370,10 @@
       "intent": "state_want"
     },
     {
-      "id": "say.tengo-madera",
+      "id": "say.tengo-fruta",
       "kind": "production",
-      "phrase": "tengo-madera",
-      "situation": "A guide asks if you have wood. You do. Say yes and say that you have it.",
+      "phrase": "tengo-fruta",
+      "situation": "A guide asks if you have a fruit. You do. Say yes and say that you have one.",
       "prompt": "lesson-have",
       "intent": "state_have"
     },
