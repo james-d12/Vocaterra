@@ -23,6 +23,9 @@ public sealed class BookLayer : IFrameLayer
     private const int Gutter = 10;
     private const int NotchDepth = 9;
 
+    // The narrowest a row's right-hand note may be and still be read (X03); narrower, the note is left off.
+    private const int MinNoteWidth = 90;
+
     // The cover, the paper and the ink (all drawn in code).
     private static readonly Color CoverDark = new(70, 38, 28);
     private static readonly Color Cover = new(104, 58, 40);
@@ -328,17 +331,21 @@ public sealed class BookLayer : IFrameLayer
             rightEdge = lampsLeft - Gutter;
         }
 
+        // The right-hand note. A row with an English aside keeps its Spanish and its English whole, and the note takes what is left, shortened with "..."
+        // (X03: a narrow row on an 800 x 600 page kept no note at all before). It is left off only when less than a readable width is left.
         var reserved = 0;
-
-        // A row with an English aside keeps its Spanish and its English whole before its right-hand note (the state of a phrase's help): the note is left for the right page
-        // when the row is too narrow for all three, which it is on a page of 800 x 600.
-        var roomForNote = line.Aside is null || DrawHelpers.Width(font, line.Text) + Gutter + DrawHelpers.Width(font, line.Aside) + (Gutter * 2) + DrawHelpers.Width(font, line.Right ?? string.Empty) <= rightEdge - x;
-        if (line.Right is { } rightText && roomForNote)
+        if (line.Right is { } rightText)
         {
-            var fitted = Fit(font, rightText, textWidth / 2);
-            var width = (int)DrawHelpers.Width(font, fitted);
-            InkText(spriteBatch, font, fitted, new Vector2(rightEdge - width, top + 2), line.Tone == BookTone.Gold ? InkKnown : InkHint);
-            reserved = width + Gutter;
+            var room = line.Aside is null
+                ? textWidth / 2
+                : rightEdge - x - (int)DrawHelpers.Width(font, line.Text) - (Gutter * 2) - (int)DrawHelpers.Width(font, line.Aside) - Gutter;
+            if (line.Aside is null || room >= MinNoteWidth)
+            {
+                var fitted = Fit(font, rightText, room);
+                var width = (int)DrawHelpers.Width(font, fitted);
+                InkText(spriteBatch, font, fitted, new Vector2(rightEdge - width, top + 2), line.Tone == BookTone.Gold ? InkKnown : InkHint);
+                reserved = width + Gutter;
+            }
         }
 
         var maxText = Math.Max(40, rightEdge - x - reserved - Gutter);
@@ -352,7 +359,8 @@ public sealed class BookLayer : IFrameLayer
         }
     }
 
-    // The right page of a page that is not the verbs: the selected item's own lines (its block), written out in full on the page, wrapped instead of cut short.
+    // The right page of a page that is not the verbs: the selected item's own lines (its block), written out in full on the page. The page scrolls (X03), so a
+    // long block is read to its end and not cut at the bottom.
     private static void DrawBlockDetail(SpriteBatch spriteBatch, FrameView view, BookGeometry geometry, IReadOnlyList<BookLine> lines, int line)
     {
         var block = BookPages.BlockOf(lines, line);
@@ -365,160 +373,174 @@ public sealed class BookLayer : IFrameLayer
         var big = view.Fonts.Get(FontProvider.NativeSize * 2);
         var left = geometry.DetailLeft;
         var width = geometry.DetailRight - left;
-        var bottom = geometry.ContentBottom;
-        var y = geometry.ContentTop;
+        var sheet = new DetailSheet(spriteBatch);
         var heading = block[0];
-        var x = left;
-        if (heading.Lemma is { } lemma)
-        {
-            DrawNounIcon(spriteBatch, view, lemma, new Rectangle(left, y, 32, 32));
-            x += 40;
-        }
-
+        var x = heading.Lemma is null ? left : left + 40;
         var title = Fit(big, heading.Text, left + width - x);
-        InkText(spriteBatch, big, title, new Vector2(x, y), ToneColour(heading.Tone == BookTone.Unseen ? BookTone.Seen : heading.Tone));
-        y += 38;
-        if (heading.Pips is { } pips)
+        var headingColour = ToneColour(heading.Tone == BookTone.Unseen ? BookTone.Seen : heading.Tone);
+        sheet.Add(38, y =>
         {
-            for (var i = 0; i < WordPips; i++)
+            if (heading.Lemma is { } lemma)
             {
-                DrawPip(spriteBatch, view.Pixel, new Rectangle(left + (i * (Pip + PipGap)), y + 2, Pip, Pip), i < pips);
+                DrawNounIcon(spriteBatch, view, lemma, new Rectangle(left, y, 32, 32));
             }
 
-            y += BookGeometry.LineHeight;
+            InkText(spriteBatch, big, title, new Vector2(x, y), headingColour);
+        });
+
+        if (heading.Pips is { } pips)
+        {
+            sheet.Add(BookGeometry.LineHeight, y =>
+            {
+                for (var i = 0; i < WordPips; i++)
+                {
+                    DrawPip(spriteBatch, view.Pixel, new Rectangle(left + (i * (Pip + PipGap)), y + 2, Pip, Pip), i < pips);
+                }
+            });
         }
 
         foreach (var text in new[] { heading.Aside, heading.Right })
         {
             if (text is not null)
             {
-                y = DrawWrapped(spriteBatch, font, text, left, y, width, bottom, InkHint);
+                AddWrapped(sheet, font, text, left, width, InkHint);
             }
         }
 
-        y += 6;
-        for (var i = 1; i < block.Count && y < bottom; i++)
+        sheet.Add(6, static _ => { });
+        for (var i = 1; i < block.Count; i++)
         {
             var text = block[i];
             var inset = text.Tick is null ? 0 : 18;
-            if (text.Tick is { } ticked)
-            {
-                DrawTick(spriteBatch, view.Pixel, new Rectangle(left, y + 3, 11, 11), ticked);
-            }
-
-            y = DrawWrapped(spriteBatch, font, text.Text, left + inset, y, width - inset, bottom, ToneColour(text.Tone));
+            Action<int>? tick = text.Tick is { } ticked ? y => DrawTick(spriteBatch, view.Pixel, new Rectangle(left, y + 3, 11, 11), ticked) : null;
+            AddWrapped(sheet, font, text.Text, left + inset, width - inset, ToneColour(text.Tone), tick);
             if (text.Aside is not null)
             {
-                y = DrawWrapped(spriteBatch, font, text.Aside, left + inset, y, width - inset, bottom, InkHint);
+                AddWrapped(sheet, font, text.Aside, left + inset, width - inset, InkHint);
             }
 
             if (text.Right is not null)
             {
-                y = DrawWrapped(spriteBatch, font, text.Right, left + inset, y, width - inset, bottom, InkHint);
+                AddWrapped(sheet, font, text.Right, left + inset, width - inset, InkHint);
             }
 
-            y += 4;
+            sheet.Add(4, static _ => { });
         }
+
+        PaintDetail(spriteBatch, view, geometry, font, sheet, line);
     }
 
-    // The right page of the verbs page: the verb and its English, the conjugation table, what the colours mean, the other forms met and the last sentence.
+    // The right page of the verbs page: the verb and its English, the conjugation table, what the colours mean, the other forms met and the last sentence. The
+    // whole page scrolls (X03).
     private static void DrawVerbDetail(SpriteBatch spriteBatch, FrameView view, BookGeometry geometry, IReadOnlyList<BookLine> lines, int selected)
     {
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var big = view.Fonts.Get(FontProvider.NativeSize * 2);
         var left = geometry.DetailLeft;
         var width = geometry.DetailRight - left;
-        var bottom = geometry.ContentBottom;
-        var y = geometry.ContentTop;
+        var sheet = new DetailSheet(spriteBatch);
         if (selected < 0 || lines[selected].Verb is not { } lemma || BookPages.VerbTable(view.Session, lemma) is not { } table)
         {
-            InkText(spriteBatch, font, "Choose a verb on the left page.", new Vector2(left, y), InkHint);
+            sheet.Add(BookGeometry.LineHeight, y => InkText(spriteBatch, font, "Choose a verb on the left page.", new Vector2(left, y), InkHint));
+            PaintDetail(spriteBatch, view, geometry, font, sheet, selected);
             return;
         }
 
-        InkText(spriteBatch, big, Fit(big, table.Lemma, width), new Vector2(left, y), InkKnown);
-        y += 34;
-        if (table.Gloss is not null)
+        var title = Fit(big, table.Lemma, width);
+        sheet.Add(34, y => InkText(spriteBatch, big, title, new Vector2(left, y), InkKnown));
+        sheet.Add(BookGeometry.LineHeight + 6, y =>
         {
-            InkText(spriteBatch, font, table.Gloss, new Vector2(left, y), InkSeen);
-        }
-
-        y += BookGeometry.LineHeight + 6;
-        y = DrawTable(spriteBatch, view.Pixel, font, table, left, y, width);
-        y += 6;
-        y = DrawWrapped(spriteBatch, font, "Highlighted: said (x = times). Plain: taught. Dash: not yet.", left, y, width, bottom, InkHint);
+            if (table.Gloss is not null)
+            {
+                InkText(spriteBatch, font, table.Gloss, new Vector2(left, y), InkSeen);
+            }
+        });
+        AddTable(sheet, view.Pixel, font, table, left, width);
+        sheet.Add(6, static _ => { });
+        AddWrapped(sheet, font, "Highlighted: said (x = times). Plain: taught. Dash: not yet.", left, width, InkHint);
 
         // What the learner said, as the verbs page listed it (S20): each form with its English, its count and the last sentence it was said in.
         var row = view.Session.Learner.Verbs.First(r => string.Equals(r.Lemma, lemma, StringComparison.Ordinal));
-        var said = BookPages.Verbs([row], view.Session.Glosses, view.Session.Phrases).Skip(1).Where(static l => l.Text.Length > 0).ToList();
-        y += 8;
-        if (said.Count > 0 && y + BookGeometry.LineHeight <= bottom)
+        var said = BookPages.Verbs([row], view.Session.Glosses, view.Session.Phrases, view.Session.Bundle.Morphology).Skip(1).Where(static l => l.Text.Length > 0).ToList();
+        sheet.Add(8, static _ => { });
+        if (said.Count > 0)
         {
-            InkText(spriteBatch, font, "What you said", new Vector2(left, y), InkKnown);
-            y += BookGeometry.LineHeight;
+            sheet.Add(BookGeometry.LineHeight, y => InkText(spriteBatch, font, "What you said", new Vector2(left, y), InkKnown));
         }
 
         foreach (var form in said)
         {
-            if (y + BookGeometry.LineHeight > bottom)
-            {
-                break;
-            }
-
             if (form.Right is { } count)
             {
-                var countWidth = (int)DrawHelpers.Width(font, count);
-                InkText(spriteBatch, font, count, new Vector2(left + width - countWidth, y), InkHint);
-                InkText(spriteBatch, font, Fit(font, form.Text, width - countWidth - Gutter), new Vector2(left, y), InkSeen);
-                y += BookGeometry.LineHeight;
+                sheet.Add(BookGeometry.LineHeight, y =>
+                {
+                    var countWidth = (int)DrawHelpers.Width(font, count);
+                    InkText(spriteBatch, font, count, new Vector2(left + width - countWidth, y), InkHint);
+                    InkText(spriteBatch, font, Fit(font, form.Text, width - countWidth - Gutter), new Vector2(left, y), InkSeen);
+                });
             }
             else
             {
-                y = DrawWrapped(spriteBatch, font, form.Text, left + IndentWidth, y, width - IndentWidth, bottom, InkHint);
+                AddWrapped(sheet, font, form.Text, left + IndentWidth, width - IndentWidth, InkHint);
             }
+        }
+
+        PaintDetail(spriteBatch, view, geometry, font, sheet, selected);
+    }
+
+    // The table as rows of the scrolling page: a header row of tenses (row -1), then the five persons. Each row is drawn at its own top.
+    private static void AddTable(DetailSheet sheet, Texture2D pixel, SpriteFontBase font, ConjugationTable table, int left, int width)
+    {
+        for (var r = -1; r < table.Rows.Count; r++)
+        {
+            var row = r;
+
+            // The table's top is the row's top less the rows above it (the header is above the first person's row).
+            sheet.Add(ConjugationLayout.RowHeight, y => DrawTableRow(sheet.Batch, pixel, font, table, left, y - ((row + 1) * ConjugationLayout.RowHeight), width, row));
         }
     }
 
-    // The table: a header row of tenses, then the five persons. A used form is highlighted with its count; a taught one is plain; a form not taught is a dash.
-    private static int DrawTable(SpriteBatch spriteBatch, Texture2D pixel, SpriteFontBase font, ConjugationTable table, int left, int top, int width)
+    // One row of a table: -1 is the header of tenses and the rule under it; a person's row draws its label and its cells. A used form is highlighted with its count;
+    // a taught one is plain; a form not taught is a dash.
+    private static void DrawTableRow(SpriteBatch spriteBatch, Texture2D pixel, SpriteFontBase font, ConjugationTable table, int left, int top, int width, int r)
     {
         var columns = table.Columns.Count;
-        for (var c = 0; c < columns; c++)
+        if (r < 0)
         {
-            DrawCentred(spriteBatch, font, table.Columns[c].Title, ToRectangle(ConjugationLayout.Header(left, top, width, columns, c)), InkKnown);
-        }
-
-        spriteBatch.Draw(pixel, new Rectangle(left, top + ConjugationLayout.RowHeight - 2, width, 1), PageEdgeLine);
-        for (var r = 0; r < table.Rows.Count; r++)
-        {
-            var row = table.Rows[r];
-            var label = ToRectangle(ConjugationLayout.Label(left, top, r));
-            InkText(spriteBatch, font, Fit(font, row.Label, label.Width), new Vector2(label.X, label.Y + ((label.Height - 16) / 2)), InkSeen);
             for (var c = 0; c < columns; c++)
             {
-                var cell = row.Cells[c];
-                var box = ToRectangle(ConjugationLayout.Cell(left, top, width, columns, r, c));
-                var inner = new Rectangle(box.X + 2, box.Y + 2, box.Width - 4, box.Height - 4);
-                switch (cell.State)
-                {
-                    case CellState.Used:
-                        spriteBatch.Draw(pixel, inner, Highlight);
-                        DrawHelpers.Border(spriteBatch, pixel, inner, 1, InkKnown);
-                        DrawCentred(spriteBatch, font, cell.Text ?? string.Empty, new Rectangle(inner.X, inner.Y, inner.Width, inner.Height - 8), Ink);
-                        DrawCount(spriteBatch, font, cell.Uses, inner);
-                        break;
-                    case CellState.Taught:
-                        DrawHelpers.Border(spriteBatch, pixel, inner, 1, PageEdgeLine);
-                        DrawCentred(spriteBatch, font, cell.Text ?? string.Empty, inner, Ink);
-                        break;
-                    default:
-                        DrawCentred(spriteBatch, font, "-", inner, InkUnseen);
-                        break;
-                }
+                DrawCentred(spriteBatch, font, table.Columns[c].Title, ToRectangle(ConjugationLayout.Header(left, top, width, columns, c)), InkKnown);
             }
+
+            spriteBatch.Draw(pixel, new Rectangle(left, top + ConjugationLayout.RowHeight - 2, width, 1), PageEdgeLine);
+            return;
         }
 
-        return top + ConjugationLayout.Height;
+        var row = table.Rows[r];
+        var label = ToRectangle(ConjugationLayout.Label(left, top, r));
+        InkText(spriteBatch, font, Fit(font, row.Label, label.Width), new Vector2(label.X, label.Y + ((label.Height - 16) / 2)), InkSeen);
+        for (var c = 0; c < columns; c++)
+        {
+            var cell = row.Cells[c];
+            var box = ToRectangle(ConjugationLayout.Cell(left, top, width, columns, r, c));
+            var inner = new Rectangle(box.X + 2, box.Y + 2, box.Width - 4, box.Height - 4);
+            switch (cell.State)
+            {
+                case CellState.Used:
+                    spriteBatch.Draw(pixel, inner, Highlight);
+                    DrawHelpers.Border(spriteBatch, pixel, inner, 1, InkKnown);
+                    DrawCentred(spriteBatch, font, cell.Text ?? string.Empty, new Rectangle(inner.X, inner.Y, inner.Width, inner.Height - 8), Ink);
+                    DrawCount(spriteBatch, font, cell.Uses, inner);
+                    break;
+                case CellState.Taught:
+                    DrawHelpers.Border(spriteBatch, pixel, inner, 1, PageEdgeLine);
+                    DrawCentred(spriteBatch, font, cell.Text ?? string.Empty, inner, Ink);
+                    break;
+                default:
+                    DrawCentred(spriteBatch, font, "-", inner, InkUnseen);
+                    break;
+            }
+        }
     }
 
     // The count of a used cell, at its bottom right, in small ink ("x3").
@@ -548,21 +570,37 @@ public sealed class BookLayer : IFrameLayer
         }
     }
 
-    // Wrapped text from (x, y) within a width, down to a bottom edge; returns the y under it.
-    private static int DrawWrapped(SpriteBatch spriteBatch, SpriteFontBase font, string text, int x, int y, int width, int bottom, Color colour)
+    // Wrapped text as rows of the right page: one row per line. The first line also draws what is given for it (a tick box beside a unit).
+    private static void AddWrapped(DetailSheet sheet, SpriteFontBase font, string text, int x, int width, Color colour, Action<int>? atFirst = null)
     {
+        var extra = atFirst;
         foreach (var line in Wrap(font, text, width))
         {
-            if (y + BookGeometry.LineHeight > bottom)
+            var first = extra;
+            extra = null;
+            sheet.Add(BookGeometry.LineHeight, y =>
             {
-                return y;
-            }
-
-            InkText(spriteBatch, font, line, new Vector2(x, y), colour);
-            y += BookGeometry.LineHeight;
+                InkText(sheet.Batch, font, line, new Vector2(x, y), colour);
+                first?.Invoke(y);
+            });
         }
+    }
 
-        return y;
+    // Paints a right page's detail at its scroll, and the "more below" marker when writing lies under the page. The detail is of a line (the scroll resets when
+    // that line changes; see BookModel.KeepDetail).
+    private static void PaintDetail(SpriteBatch spriteBatch, FrameView view, BookGeometry geometry, SpriteFontBase font, DetailSheet sheet, int line)
+    {
+        var book = view.Book;
+        var height = geometry.DetailHeight;
+        book.KeepDetail(line);
+        book.ClampDetail(sheet.Height, height);
+        sheet.PaintFrom(geometry.ContentTop, geometry.ContentBottom, book.DetailOffset);
+        if (DetailScroll.MoreBelow(book.DetailOffset, sheet.Height, height))
+        {
+            const string marker = "more below";
+            var width = (int)DrawHelpers.Width(font, marker);
+            InkText(spriteBatch, font, marker, new Vector2(geometry.DetailRight - width, geometry.Paper.Bottom - 22), InkHint);
+        }
     }
 
     // Breaks a text at its spaces into lines no wider than a width (a word wider than the width stays whole on its own line; the caller cuts it).
@@ -689,6 +727,33 @@ public sealed class BookLayer : IFrameLayer
         new((int)(colour.R + ((255 - colour.R) * amount)), (int)(colour.G + ((255 - colour.G) * amount)), (int)(colour.B + ((255 - colour.B) * amount)));
 
     private static Color Darken(Color colour, double amount) => new((int)(colour.R * (1 - amount)), (int)(colour.G * (1 - amount)), (int)(colour.B * (1 - amount)));
+
+    // The writing of a right page as rows, each drawn at its top when it lies wholly on the page. The page scrolls by pixels: a row that an edge cuts waits
+    // until the scroll shows it whole.
+    private sealed class DetailSheet(SpriteBatch batch)
+    {
+        private readonly List<(int Height, Action<int> Paint)> _rows = [];
+
+        public SpriteBatch Batch { get; } = batch;
+
+        public int Height => _rows.Sum(static row => row.Height);
+
+        public void Add(int height, Action<int> paint) => _rows.Add((height, paint));
+
+        public void PaintFrom(int top, int bottom, int offset)
+        {
+            var y = top - offset;
+            foreach (var (height, paint) in _rows)
+            {
+                if (y >= top && y + height <= bottom)
+                {
+                    paint(y);
+                }
+
+                y += height;
+            }
+        }
+    }
 
     private static Rectangle ToRectangle(BookRect rect) => new(rect.X, rect.Y, rect.Width, rect.Height);
 }

@@ -76,6 +76,81 @@ public sealed class BookModelTests
         Assert.Equal(0, model.Offset);
     }
 
+    [Fact]
+    public void TheRightPageScrollsInPixelsAndStaysInsideItsDetail()
+    {
+        var model = OpenBook();
+        model.ScrollDetail(40);
+        Assert.Equal(40, model.DetailOffset);
+        model.ScrollDetail(-100);
+        Assert.Equal(0, model.DetailOffset); // never above the top
+
+        model.ScrollDetail(500);
+        model.ClampDetail(content: 300, view: 200);
+        Assert.Equal(100, model.DetailOffset); // the last of the detail is at the bottom of the page
+        model.ClampDetail(content: 150, view: 200);
+        Assert.Equal(0, model.DetailOffset); // a detail that fits does not scroll
+
+        var closed = new BookModel();
+        closed.ScrollDetail(40); // no effect while closed
+        Assert.Equal(0, closed.DetailOffset);
+    }
+
+    [Fact]
+    public void TheMoreBelowMarkerShowsOnlyWhileWritingLiesUnderThePage()
+    {
+        Assert.True(DetailScroll.MoreBelow(offset: 0, content: 300, view: 200));
+        Assert.True(DetailScroll.MoreBelow(offset: 50, content: 300, view: 200));
+        Assert.False(DetailScroll.MoreBelow(offset: 100, content: 300, view: 200)); // at the end
+        Assert.False(DetailScroll.MoreBelow(offset: 0, content: 150, view: 200)); // it all fits
+    }
+
+    [Fact]
+    public void TheRightPageScrollStartsAtTheTopWhenTheSelectionOrThePageChanges()
+    {
+        var model = OpenBook();
+        model.SelectRow(2);
+        model.ScrollDetail(60);
+        model.SelectRow(2); // the same row keeps its place
+        Assert.Equal(60, model.DetailOffset);
+        model.SelectRow(4); // another row starts at its top
+        Assert.Equal(0, model.DetailOffset);
+
+        model.ScrollDetail(60);
+        model.MoveSelection(0, count: 5); // no move, so no change
+        Assert.Equal(60, model.DetailOffset);
+        model.MoveSelection(-1, count: 5);
+        Assert.Equal(0, model.DetailOffset);
+
+        model.ScrollDetail(30);
+        model.Show(BookPage.Verbs); // another page starts at its top
+        Assert.Equal(0, model.DetailOffset);
+        model.ScrollDetail(30);
+        model.Show(BookPage.Verbs); // the same page keeps its place
+        Assert.Equal(30, model.DetailOffset);
+    }
+
+    [Fact]
+    public void TheDetailOfALineKeepsItsScrollUntilTheLineChanges()
+    {
+        var model = OpenBook();
+        model.ScrollDetail(40);
+        model.KeepDetail(7); // the first frame after the book opens keeps the scroll it was given
+        Assert.Equal(40, model.DetailOffset);
+        model.KeepDetail(7);
+        Assert.Equal(40, model.DetailOffset);
+        model.KeepDetail(9); // a detail with no row selected (the first line on screen) moved on
+        Assert.Equal(0, model.DetailOffset);
+    }
+
+    [Fact]
+    public void TheBookDetailFlagScrollsTheRightPageAndNeedsAPositiveNumber()
+    {
+        Assert.True(LaunchOptions.TryParse(["--screenshot", "a.png", "--book-detail", "4"], out var options, out var error), error);
+        Assert.Equal(4, options.BookDetailLines);
+        Assert.False(LaunchOptions.TryParse(["--screenshot", "a.png", "--book-detail", "0"], out _, out _));
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
@@ -114,7 +189,7 @@ public sealed class BookModelTests
 
             // S28: the spread's headings, the empty pages and the conjugation table.
             "Your book  -  Verbs", "Highlighted: said (x = times). Plain: taught. Dash: not yet.", "What you said", "Choose a verb on the left page.",
-            "No verbs yet. Use a verb in a sentence and it comes here.", "Nothing said yet.", "Nothing here yet.", "x12", "-",
+            "No verbs yet. Use a verb in a sentence and it comes here.", "Nothing said yet.", "Nothing here yet.", "x12", "-", "more below",
         };
         strings.AddRange(ConjugationTable.AllColumns.Select(static c => c.Title));
         strings.AddRange(ConjugationTable.Persons.Select(static p => p.Label));

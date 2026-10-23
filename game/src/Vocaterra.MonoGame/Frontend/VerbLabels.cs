@@ -113,8 +113,9 @@ public static class VerbLabels
     {
         public Conjugation(string english, string? third, string? past)
         {
-            IsBe = string.Equals(english, "to be", StringComparison.Ordinal);
-            Base = english.StartsWith("to ", StringComparison.Ordinal) ? english[3..] : english;
+            // "to be" and its glosses that say what the verb is for (ser: "to be: what", estar: "to be: where or how") all conjugate as be.
+            IsBe = english is "to be" || english.StartsWith("to be:", StringComparison.Ordinal) || english.StartsWith("to be (", StringComparison.Ordinal);
+            Base = IsBe ? "be" : english.StartsWith("to ", StringComparison.Ordinal) ? english[3..] : english;
             Third = third ?? (IsBe ? "is" : ThirdOf(Base));
             Pst = past ?? (IsBe ? "was" : PastOf(Base));
         }

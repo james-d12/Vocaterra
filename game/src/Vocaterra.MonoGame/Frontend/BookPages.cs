@@ -1,5 +1,6 @@
 using System.Globalization;
 using Vocaterra.Game;
+using Vocaterra.Nlp.Language.Morphology;
 
 namespace Vocaterra.MonoGame.Frontend;
 
@@ -90,7 +91,7 @@ public static class BookPages
         return page switch
         {
             BookPage.Nouns => Nouns(session.Words, session.Learner.Nouns, session.StoredTime.UnixSeconds, session.DefiniteArticle, session.Phrases, recordings),
-            BookPage.Verbs => Verbs(session.Learner.Verbs, session.Glosses, session.Phrases),
+            BookPage.Verbs => Verbs(session.Learner.Verbs, session.Glosses, session.Phrases, session.Bundle.Morphology),
             BookPage.Phrases => Phrases(PhraseJournalRows.Build(session.PhraseProgress, session.StoredTime.UnixSeconds, session.Credit), recordings),
             BookPage.Lessons => Lessons(session.Lessons.Record, session.Phrases, recordings),
             _ => Said(session.Learner.Recent(LearnerRecord.SavedEntries), session.English, session.Lessons.Record),
@@ -216,11 +217,13 @@ public static class BookPages
     /// <param name="learnerVerbs">The verb rows of the learner's record (<c>session.Learner.Verbs</c>).</param>
     /// <param name="glosses">The verbs' English.</param>
     /// <param name="sheet">The phrase sheet (for the English of a sentence that is a phrase).</param>
-    public static IReadOnlyList<BookLine> Verbs(IReadOnlyList<WordRow> learnerVerbs, VerbGlosses glosses, PhraseSheet sheet)
+    /// <param name="morphology">The bundle's morphology: an imperative reading that is an indicative present is labelled as that present (<see cref="VerbReading"/>).</param>
+    public static IReadOnlyList<BookLine> Verbs(IReadOnlyList<WordRow> learnerVerbs, VerbGlosses glosses, PhraseSheet sheet, MorphologyGenerator morphology)
     {
         ArgumentNullException.ThrowIfNull(learnerVerbs);
         ArgumentNullException.ThrowIfNull(glosses);
         ArgumentNullException.ThrowIfNull(sheet);
+        ArgumentNullException.ThrowIfNull(morphology);
         var lines = new List<BookLine>();
         foreach (var row in learnerVerbs.Where(static row => !row.Lemma.Contains(' ', StringComparison.Ordinal)).OrderBy(static row => row.Lemma, StringComparer.Ordinal))
         {
@@ -229,7 +232,8 @@ public static class BookPages
             lines.Add(new BookLine(BookTone.Known, heading, Right: $"used {row.Times}   correct {row.TimesCorrect}", Verb: row.Lemma));
             foreach (var form in row.Forms)
             {
-                var label = VerbLabels.Label(form.Form, row.Lemma, gloss, form.Person, form.Number, form.Tense, form.Mood, form.Question);
+                var (person, number, tense, mood) = VerbReading.Normalize(row.Lemma, form.Form, form.Person, form.Number, form.Tense, form.Mood, morphology);
+                var label = VerbLabels.Label(form.Form, row.Lemma, gloss, person, number, tense, mood, form.Question);
                 lines.Add(new BookLine(BookTone.Seen, label, Right: $"{Uses(form.Times)}   {form.TimesCorrect} correct", Indent: true));
                 if (form.Last is { } last)
                 {

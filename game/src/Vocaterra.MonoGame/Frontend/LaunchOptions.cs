@@ -66,6 +66,7 @@ public sealed record LaunchOptions
         + "  --book-page <page>      open the book on nouns, verbs, phrases, lessons or said (What I said) once the steps are done\n"
         + "  --size <W>x<H>          the window's size (default 1280x720; 800x600 is the smallest the book is made for)\n"
         + "  --book-verb <verb>     open the book on the verbs page with this verb's conjugation table on the right page (S28)\n"
+        + "  --book-detail <lines>  scroll the book's right page down by this many lines when it opens (a scripted run, X03)\n"
         + "  --inventory             open the inventory screen once the steps are done\n"
         + "  --crafting              open the crafting panel once the steps are done\n"
         + "  --mic-check             show the mic check at the start (an interactive run shows it by default; a scripted run with --screenshot never does unless asked,\n"
@@ -196,6 +197,9 @@ public sealed record LaunchOptions
     /// <summary>The verb whose table the book opens on, with the verbs page (<c>--book-verb</c>, S28), or <see langword="null"/>.</summary>
     public string? BookVerb { get; init; }
 
+    /// <summary>The lines the right page is scrolled down when the book opens (<c>--book-detail</c>, X03), so a scripted run can show a long block scrolled; 0 for none.</summary>
+    public int BookDetailLines { get; init; }
+
     /// <summary>The window's width in pixels (<c>--size</c>, S28), or <see langword="null"/> for the default.</summary>
     public int? WindowWidth { get; init; }
 
@@ -299,6 +303,7 @@ public sealed record LaunchOptions
         var journalPhrases = false;
         BookPage? bookPage = null;
         string? bookVerb = null;
+        var bookDetailLines = 0;
         int? windowWidth = null;
         int? windowHeight = null;
         var inventory = false;
@@ -392,7 +397,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
-                or "--check" or "--pick" or "--session-dir" or "--session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--size"
+                or "--check" or "--pick" or "--session-dir" or "--session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after"))
             {
@@ -711,6 +716,15 @@ public sealed record LaunchOptions
                     windowWidth = sizeW;
                     windowHeight = sizeH;
                     break;
+                case "--book-detail":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var detailLines) || detailLines < 1)
+                    {
+                        error = $"--book-detail needs a positive number of lines, got '{value}'.";
+                        return false;
+                    }
+
+                    bookDetailLines = detailLines;
+                    break;
                 case "--book-verb":
                     bookVerb = value.Trim().ToLowerInvariant();
                     bookPage = BookPage.Verbs;
@@ -875,6 +889,7 @@ public sealed record LaunchOptions
             JournalPhrases = journalPhrases,
             BookStart = bookPage ?? (journalPhrases ? BookPage.Phrases : null),
             BookVerb = bookVerb,
+            BookDetailLines = bookDetailLines,
             WindowWidth = windowWidth,
             WindowHeight = windowHeight,
             ShowInventory = inventory,
