@@ -40,6 +40,7 @@ public enum BookTone
 /// <param name="Indent">Whether the line sits under its heading.</param>
 /// <param name="Speak">The line id of the recording the row's speaker button plays (S20b), or <see langword="null"/> for no button.</param>
 /// <param name="Practise">The id of the completed lesson the row's "Practise again" button starts (S26), or <see langword="null"/> for no button.</param>
+/// <param name="Verb">The infinitive of the verb the row lists on the verbs page (S28): choosing the row shows its conjugation table on the right page, or <see langword="null"/>.</param>
 public sealed record BookLine(
     BookTone Tone,
     string Text,
@@ -51,7 +52,8 @@ public sealed record BookLine(
     IReadOnlyList<bool>? Lamps = null,
     bool Indent = false,
     string? Speak = null,
-    string? Practise = null)
+    string? Practise = null,
+    string? Verb = null)
 {
     /// <summary>The empty line between two entries.</summary>
     public static BookLine Gap { get; } = new(BookTone.Hint, string.Empty);
@@ -93,6 +95,70 @@ public static class BookPages
             BookPage.Lessons => Lessons(session.Lessons.Record, session.Phrases, recordings),
             _ => Said(session.Learner.Recent(LearnerRecord.SavedEntries), session.English, session.Lessons.Record),
         };
+    }
+
+    /// <summary>
+    /// The left page's list (S28): the page's lines, except on the verbs page, where only the verbs themselves are listed (one line each) and the right page shows
+    /// the selected verb's conjugation table and the other forms. The book's layer and its controls read the same list.
+    /// </summary>
+    /// <param name="session">The session.</param>
+    /// <param name="page">The page.</param>
+    /// <param name="recordings">Which recording each row plays.</param>
+    public static IReadOnlyList<BookLine> ListFor(GuideSession session, BookPage page, BookRecordings recordings)
+    {
+        var lines = ForPage(session, page, recordings);
+        return page == BookPage.Verbs ? lines.Where(static line => line.Verb is not null).ToList() : lines;
+    }
+
+    /// <summary>The verb forms taught by the lessons that are completed or under way (the book's tables show these plainly).</summary>
+    /// <param name="session">The session.</param>
+    public static IReadOnlyList<TaughtVerbForm> TaughtForms(GuideSession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        return session.Lessons.Book.Lessons
+            .Where(lesson => session.Lessons.StatusOf(lesson.Id) is LessonStatus.Completed or LessonStatus.InProgress)
+            .SelectMany(static lesson => lesson.TaughtVerbs)
+            .ToList();
+    }
+
+    /// <summary>The conjugation table of a verb the learner has met (S28), or <see langword="null"/> when the learner has not used it.</summary>
+    /// <param name="session">The session.</param>
+    /// <param name="lemma">The infinitive.</param>
+    public static ConjugationTable? VerbTable(GuideSession session, string lemma)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+        ArgumentNullException.ThrowIfNull(lemma);
+        var row = session.Learner.Verbs.FirstOrDefault(r => string.Equals(r.Lemma, lemma, StringComparison.Ordinal));
+        return row is null ? null : ConjugationTable.Build(row, session.Learner.History, TaughtForms(session), session.Bundle.Morphology, session.Glosses.ForLemma(lemma));
+    }
+
+    /// <summary>
+    /// The lines of the item the right page details (S28): the block of lines that holds <paramref name="line"/>: its heading (a line that is not indented)
+    /// and the indented lines under it, up to the next gap or heading. Empty when the line is outside the list or is a gap.
+    /// </summary>
+    /// <param name="lines">The page's lines.</param>
+    /// <param name="line">The index of a line of the item (the selected row, or the first line on screen).</param>
+    public static IReadOnlyList<BookLine> BlockOf(IReadOnlyList<BookLine> lines, int line)
+    {
+        ArgumentNullException.ThrowIfNull(lines);
+        if (line < 0 || line >= lines.Count || lines[line].Text.Length == 0)
+        {
+            return [];
+        }
+
+        var start = line;
+        while (start > 0 && lines[start].Indent && lines[start - 1].Text.Length > 0)
+        {
+            start--;
+        }
+
+        var end = start + 1;
+        while (end < lines.Count && lines[end].Indent && lines[end].Text.Length > 0)
+        {
+            end++;
+        }
+
+        return lines.Skip(start).Take(end - start).ToList();
     }
 
     /// <summary>
@@ -160,7 +226,7 @@ public static class BookPages
         {
             var gloss = glosses.ForLemma(row.Lemma);
             var heading = gloss is null ? row.Lemma : row.Lemma + VerbLabels.Separator + gloss.English;
-            lines.Add(new BookLine(BookTone.Known, heading, Right: $"used {row.Times}   correct {row.TimesCorrect}"));
+            lines.Add(new BookLine(BookTone.Known, heading, Right: $"used {row.Times}   correct {row.TimesCorrect}", Verb: row.Lemma));
             foreach (var form in row.Forms)
             {
                 var label = VerbLabels.Label(form.Form, row.Lemma, gloss, form.Person, form.Number, form.Tense, form.Mood, form.Question);

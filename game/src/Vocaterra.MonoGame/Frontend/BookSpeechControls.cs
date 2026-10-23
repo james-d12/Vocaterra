@@ -27,7 +27,7 @@ public sealed class BookSpeechControls
     }
 
     /// <summary>The lines of the page on screen.</summary>
-    public IReadOnlyList<BookLine> Lines => BookPages.ForPage(_session, _book.Page, _recordings);
+    public IReadOnlyList<BookLine> Lines => BookPages.ListFor(_session, _book.Page, _recordings);
 
     /// <summary>
     /// A click at a point. A click on a row's speaker button selects that row and plays it (Shift: the slow recording). Returns whether the click was on a
@@ -49,6 +49,67 @@ public sealed class BookSpeechControls
 
         _book.SelectRow(index);
         _ = _speaker.Speak(lines, index, slow);
+        return true;
+    }
+
+    /// <summary>The scripted run's step (<c>--book-verb</c>, S28): selects a verb of the verbs page, so the right page shows its table. Returns whether the verb is in the book.</summary>
+    /// <param name="lemma">The verb's infinitive.</param>
+    public bool SelectVerb(string lemma)
+    {
+        ArgumentNullException.ThrowIfNull(lemma);
+        _book.Show(BookPage.Verbs, animate: false);
+        var rows = BookSpeakers.Selectable(Lines);
+        var lines = Lines;
+        for (var i = 0; i < rows.Count; i++)
+        {
+            if (string.Equals(lines[rows[i]].Verb, lemma, StringComparison.Ordinal))
+            {
+                _book.SelectRow(i);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// A click on a verb's row of the verbs page (S28) selects it, so the right page shows its table. Returns whether the click chose a verb.
+    /// </summary>
+    /// <param name="geometry">The book's geometry at the window's size.</param>
+    /// <param name="x">The x of the click.</param>
+    /// <param name="y">The y of the click.</param>
+    public bool ClickVerb(BookGeometry geometry, int x, int y)
+    {
+        ArgumentNullException.ThrowIfNull(geometry);
+        if (_book.Page != BookPage.Verbs || x < geometry.ContentLeft || x >= geometry.ContentRight || y < geometry.ContentTop)
+        {
+            return false;
+        }
+
+        var lines = Lines;
+        var offset = BookScroll.Clamp(_book.Offset, lines.Count, geometry.LinesVisible);
+        var line = offset + ((y - geometry.ContentTop) / BookGeometry.LineHeight);
+        if (line >= lines.Count || line >= offset + geometry.LinesVisible)
+        {
+            return false;
+        }
+
+        var rows = BookSpeakers.Selectable(lines);
+        var index = -1;
+        for (var i = 0; i < rows.Count; i++)
+        {
+            if (rows[i] == line)
+            {
+                index = i;
+            }
+        }
+
+        if (index < 0)
+        {
+            return false;
+        }
+
+        _book.SelectRow(index);
         return true;
     }
 
@@ -105,7 +166,7 @@ public sealed class BookSpeechControls
     /// <param name="visible">The lines on screen.</param>
     public void Move(int delta, int visible)
     {
-        var rows = BookSpeakers.Speakable(Lines);
+        var rows = BookSpeakers.Selectable(Lines);
         if (rows.Count == 0)
         {
             _book.Scroll(delta);

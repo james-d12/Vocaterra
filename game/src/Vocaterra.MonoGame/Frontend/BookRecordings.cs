@@ -108,6 +108,26 @@ public static class BookSpeakers
         return result;
     }
 
+    /// <summary>
+    /// The rows the selection moves over (S28): the rows with a speaker button, and on the verbs page the verbs themselves (choosing one shows its table).
+    /// Their indexes are lines' indexes; on every other page this is <see cref="Speakable"/>.
+    /// </summary>
+    /// <param name="lines">The page's list.</param>
+    public static IReadOnlyList<int> Selectable(IReadOnlyList<BookLine> lines)
+    {
+        ArgumentNullException.ThrowIfNull(lines);
+        var result = new List<int>();
+        for (var i = 0; i < lines.Count; i++)
+        {
+            if (lines[i].Speak is not null || lines[i].Verb is not null)
+            {
+                result.Add(i);
+            }
+        }
+
+        return result;
+    }
+
     /// <summary>The button of a row whose text starts at <paramref name="rowTop"/>: at the content's right edge.</summary>
     /// <param name="geometry">The book's geometry.</param>
     /// <param name="rowTop">The top of the row, in pixels.</param>

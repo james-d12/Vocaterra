@@ -1,3 +1,4 @@
+using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game;
@@ -6,11 +7,11 @@ using Vocaterra.MonoGame.Frontend;
 namespace Vocaterra.MonoGame;
 
 /// <summary>
-/// The book (J, or the book item): an open book over the scene in the panel style (S15), with five pages turned with Tab, Left or Right or a click
-/// (S20): Nouns, Verbs, Phrases, Lessons and What I said. Its lines are built by <see cref="BookPages"/> from the learner's record; this layer only draws
-/// them: the tone, the icon of a noun, the pips, the lamps, the tick boxes and the right-hand text, with the scroll (the wheel, Page Up and Page Down).
-/// A row with a recording has a speaker button at its right (S20b), and the selected row is marked; the keys and the clicks are read by the game.
-/// It covers the screen while it is open and takes the keyboard (the player does not walk).
+/// The book (J, or the book item), remade as a book (S28): an open two-page spread on paper with a spine and binding, page edges and a cover, five ribbon
+/// bookmarks along the top edge (Nouns, Verbs, Phrases, Lessons, What I said) and a short page-turn leaf. Everything is drawn in code from rectangles (D-game-5).
+/// The left page lists (the lines <see cref="BookPages"/> builds from the learner's record, scrolled with the wheel, Page Up and Page Down, a speaker button at the
+/// right of a row that has a recording, S20b); the right page shows the selected item: on the Verbs page its conjugation table (<see cref="ConjugationTable"/>),
+/// elsewhere the item's own lines, written out in full. It covers the screen while it is open and takes the keyboard (the player does not walk).
 /// </summary>
 public sealed class BookLayer : IFrameLayer
 {
@@ -20,13 +21,35 @@ public sealed class BookLayer : IFrameLayer
     private const int WordPips = Vocaterra.Game.WordProgress.UsesToKnow;
     private const int PipGap = 6;
     private const int Gutter = 10;
+    private const int NotchDepth = 9;
 
-    private static readonly Color Gold = new(255, 214, 64);
-    private static readonly Color Known = new(255, 236, 160);
-    private static readonly Color Learning = new(235, 235, 235);
-    private static readonly Color Seen = new(190, 190, 200);
-    private static readonly Color Unseen = new(110, 110, 120);
-    private static readonly Color Hints = new(140, 140, 150);
+    // The cover, the paper and the ink (all drawn in code).
+    private static readonly Color CoverDark = new(70, 38, 28);
+    private static readonly Color Cover = new(104, 58, 40);
+    private static readonly Color CoverLight = new(132, 80, 54);
+    private static readonly Color Brass = new(206, 164, 72);
+    private static readonly Color Paper = new(238, 227, 200);
+    private static readonly Color PaperShade = new(214, 200, 168);
+    private static readonly Color PageEdge = new(247, 240, 222);
+    private static readonly Color PageEdgeLine = new(196, 182, 150);
+    private static readonly Color Ink = new(44, 32, 26);
+    private static readonly Color InkKnown = new(116, 70, 6);
+    private static readonly Color InkSeen = new(78, 64, 52);
+    private static readonly Color InkUnseen = new(138, 122, 102);
+    private static readonly Color InkHint = new(104, 90, 74);
+    private static readonly Color Select = new(246, 218, 128);
+    private static readonly Color Highlight = new(250, 214, 96);
+    private static readonly Color Cream = new(238, 220, 176);
+    private static readonly Color Dim = new(6, 6, 14, 236);
+
+    private static readonly Color[] Ribbons =
+    [
+        new(150, 46, 46), // Nouns
+        new(42, 92, 138), // Verbs
+        new(52, 116, 72), // Phrases
+        new(110, 62, 128), // Lessons
+        new(168, 112, 30), // What I said
+    ];
 
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
@@ -38,30 +61,35 @@ public sealed class BookLayer : IFrameLayer
 
         var pixel = view.Pixel;
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var viewport = new Rectangle(0, 0, view.ViewportWidth, view.ViewportHeight);
-        spriteBatch.Draw(pixel, viewport, new Color(6, 6, 14, 236));
+        spriteBatch.Draw(pixel, new Rectangle(0, 0, view.ViewportWidth, view.ViewportHeight), Dim);
 
         var geometry = new BookGeometry(view.ViewportWidth, view.ViewportHeight);
         var page = view.Book.Page;
-        var panel = ToRectangle(geometry.Panel);
-        spriteBatch.Draw(pixel, panel, new Color(18, 18, 34, 250));
-        DrawHelpers.Border(spriteBatch, pixel, panel, 2, Gold);
+        DrawCover(spriteBatch, pixel, geometry);
+        DrawPaper(spriteBatch, pixel, geometry);
 
-        var left = panel.Left + BookGeometry.Padding;
-        var right = panel.Right - BookGeometry.Padding;
-        DrawHelpers.Text(spriteBatch, font, BookTabs.Title, new Vector2(left, geometry.TitleTop), Gold);
-        var summary = SummaryOf(view, page);
-        DrawHelpers.Text(spriteBatch, font, summary, new Vector2(right - DrawHelpers.Width(font, summary), geometry.TitleTop), Known);
-        DrawTabs(spriteBatch, pixel, font, geometry, page);
-        spriteBatch.Draw(pixel, new Rectangle(left, geometry.RuleTop, right - left, 1), new Color(255, 214, 64, 120));
+        // The headings: the title on the left page, the summary on the right, a rule under each.
+        var left = geometry.ContentLeft;
+        var right = geometry.ContentRight;
+        InkText(spriteBatch, font, $"{BookTabs.Title}  -  {BookTabs.LabelOf(page)}", new Vector2(left, geometry.TitleTop), InkKnown);
+        var summary = Fit(font, SummaryOf(view, page), geometry.DetailRight - geometry.DetailLeft);
+        InkText(spriteBatch, font, summary, new Vector2(geometry.DetailRight - DrawHelpers.Width(font, summary), geometry.TitleTop), InkHint);
+        spriteBatch.Draw(pixel, new Rectangle(left, geometry.RuleTop, right - left, 1), PageEdgeLine);
+        spriteBatch.Draw(pixel, new Rectangle(geometry.DetailLeft, geometry.RuleTop, geometry.DetailRight - geometry.DetailLeft, 1), PageEdgeLine);
 
-        var lines = BookPages.ForPage(view.Session, page, view.Recordings);
+        // The left page: the list.
+        var lines = BookPages.ListFor(view.Session, page, view.Recordings);
         var visible = geometry.LinesVisible;
         view.Book.ClampTo(lines.Count, visible);
         var offset = view.Book.Offset;
         var textWidth = right - left;
-        var selected = SelectedLine(view, lines);
+        var selected = SelectedLine(lines, view.Book);
         var y = geometry.ContentTop;
+        if (lines.Count == 0)
+        {
+            InkText(spriteBatch, font, EmptyText(page), new Vector2(left, y), InkHint);
+        }
+
         for (var i = offset; i < lines.Count && i < offset + visible; i++)
         {
             DrawLine(spriteBatch, view, font, lines[i], left, right, y, textWidth, i == selected);
@@ -70,27 +98,127 @@ public sealed class BookLayer : IFrameLayer
 
         if (lines.Count > visible)
         {
-            var first = offset + 1;
-            var last = Math.Min(lines.Count, offset + visible);
-            var position = $"lines {first} to {last} of {lines.Count}   wheel, Page Up, Page Down";
-            DrawHelpers.Text(spriteBatch, font, position, new Vector2(right - DrawHelpers.Width(font, position), panel.Bottom - 50), Hints);
+            var position = $"lines {offset + 1} to {Math.Min(lines.Count, offset + visible)} of {lines.Count}   wheel, Page Up, Page Down";
+            position = Fit(font, position, right - left);
+            InkText(spriteBatch, font, position, new Vector2(left, geometry.Paper.Bottom - 22), InkHint);
         }
 
-        DrawHelpers.Text(spriteBatch, font, BookTabs.KeyHints, new Vector2(left, panel.Bottom - 30), Hints);
+        // The right page: the selected item.
+        if (page == BookPage.Verbs)
+        {
+            DrawVerbDetail(spriteBatch, view, geometry, lines, selected);
+        }
+        else
+        {
+            DrawBlockDetail(spriteBatch, view, geometry, lines, selected < 0 ? FirstOnScreen(lines, offset, visible) : selected);
+        }
+
+        if (view.Book.IsTurning)
+        {
+            DrawLeaf(spriteBatch, pixel, geometry, view.Book.TurnProgress, view.Book.TurnForward);
+        }
+
+        DrawRibbons(spriteBatch, pixel, font, geometry, page); // over the leaf: the ribbons hang from the top edge whatever page is turning
+
+        var hints = Fit(font, BookTabs.KeyHints, geometry.Panel.Width - 56);
+        DrawHelpers.Text(spriteBatch, font, hints, new Vector2(geometry.Panel.X + 28, geometry.Panel.Bottom - 24), Cream);
     }
 
-    // The tab row: the page on screen is bright, the others dim.
-    private static void DrawTabs(SpriteBatch spriteBatch, Texture2D pixel, FontStashSharp.SpriteFontBase font, BookGeometry geometry, BookPage page)
+    // The cover: leather with a lighter rim, brass corners and the binding bands across the spine (top and bottom of the cover).
+    private static void DrawCover(SpriteBatch spriteBatch, Texture2D pixel, BookGeometry geometry)
+    {
+        var panel = ToRectangle(geometry.Panel);
+        DrawHelpers.RoundedFill(spriteBatch, pixel, panel, 6, CoverDark);
+        DrawHelpers.RoundedFill(spriteBatch, pixel, new Rectangle(panel.X + 2, panel.Y + 2, panel.Width - 4, panel.Height - 4), 5, Cover);
+        DrawHelpers.Border(spriteBatch, pixel, new Rectangle(panel.X + 4, panel.Y + 4, panel.Width - 8, panel.Height - 8), 1, CoverLight);
+        var spine = ToRectangle(geometry.Spine);
+        foreach (var (cx, cy) in new[] { (panel.X + 8, panel.Y + 8), (panel.Right - 16, panel.Y + 8), (panel.X + 8, panel.Bottom - 16), (panel.Right - 16, panel.Bottom - 16) })
+        {
+            spriteBatch.Draw(pixel, new Rectangle(cx, cy, 8, 8), Brass);
+            spriteBatch.Draw(pixel, new Rectangle(cx + 2, cy + 2, 4, 4), CoverDark);
+        }
+    }
+
+    // The paper: the stack of page edges under each page (stripes at the outer side and the bottom), the two pages, the shading toward the spine and the spine itself.
+    private static void DrawPaper(SpriteBatch spriteBatch, Texture2D pixel, BookGeometry geometry)
+    {
+        var paper = ToRectangle(geometry.Paper);
+        for (var i = 3; i >= 1; i--)
+        {
+            var rim = new Rectangle(paper.X - i, paper.Y + i, paper.Width + (2 * i), paper.Height + i);
+            spriteBatch.Draw(pixel, rim, i % 2 == 0 ? PageEdgeLine : PageEdge);
+        }
+
+        var leftPage = ToRectangle(geometry.LeftPage);
+        var rightPage = ToRectangle(geometry.RightPage);
+        spriteBatch.Draw(pixel, leftPage, Paper);
+        spriteBatch.Draw(pixel, rightPage, Paper);
+        var spine = ToRectangle(geometry.Spine);
+        spriteBatch.Draw(pixel, spine, PaperShade);
+        spriteBatch.Draw(pixel, new Rectangle(spine.X + (spine.Width / 2) - 1, spine.Y, 2, spine.Height), PageEdgeLine);
+
+        // The binding: the thread through the fold, stitch after stitch down the spine.
+        for (var y = spine.Y + 14; y < spine.Bottom - 14; y += 34)
+        {
+            spriteBatch.Draw(pixel, new Rectangle(spine.X + 3, y, spine.Width - 6, 2), CoverDark);
+        }
+
+        // The pages curve into the spine: columns of paper getting darker toward it.
+        for (var i = 0; i < 14; i++)
+        {
+            var shade = PaperShade * (float)(0.6 * Math.Pow((14 - i) / 14.0, 2)); // premultiplied: a colour times its alpha
+            spriteBatch.Draw(pixel, new Rectangle(leftPage.Right - 1 - i, leftPage.Y, 1, leftPage.Height), shade);
+            spriteBatch.Draw(pixel, new Rectangle(rightPage.X + i, rightPage.Y, 1, rightPage.Height), shade);
+        }
+    }
+
+    // The ribbons hang from above the top edge of the paper over the cover, a swallow-tail at the end; the ribbon of the page on screen is lit and hangs lower.
+    private static void DrawRibbons(SpriteBatch spriteBatch, Texture2D pixel, SpriteFontBase font, BookGeometry geometry, BookPage page)
     {
         foreach (var tab in Enum.GetValues<BookPage>())
         {
-            var label = BookTabs.LabelOf(tab);
-            var rect = geometry.TabRect(tab);
-            DrawHelpers.Text(spriteBatch, font, label, new Vector2(rect.X + 6, geometry.TabsTop), tab == page ? Known : Hints);
-            if (tab == page)
+            var rect = ToRectangle(geometry.TabRect(tab));
+            var active = tab == page;
+            var colour = Ribbons[(int)tab];
+            var shade = active ? Lighten(colour, 0.25) : colour;
+            var bottom = rect.Bottom + (active ? 6 : 0);
+            var body = new Rectangle(rect.X, rect.Y, rect.Width, bottom - rect.Y);
+            spriteBatch.Draw(pixel, new Rectangle(body.X - 1, body.Y, body.Width + 2, body.Height), Darken(colour, 0.45));
+            spriteBatch.Draw(pixel, body, shade);
+            spriteBatch.Draw(pixel, new Rectangle(body.X + 3, body.Y, 1, body.Height), Lighten(shade, 0.18));
+
+            // The swallow-tail: a notch cut out of the bottom edge, in paper.
+            var middle = body.X + (body.Width / 2);
+            for (var r = 0; r < NotchDepth; r++)
             {
-                spriteBatch.Draw(pixel, new Rectangle(rect.X + 6, geometry.TabsTop + 18, (int)DrawHelpers.Width(font, label), 2), Gold);
+                var half = NotchDepth - r;
+                spriteBatch.Draw(pixel, new Rectangle(middle - half, body.Bottom - 1 - r, half * 2, 1), Paper);
             }
+
+            var label = BookTabs.LabelOf(tab);
+            var x = rect.X + ((rect.Width - (int)DrawHelpers.Width(font, label)) / 2);
+            DrawHelpers.Text(spriteBatch, font, label, new Vector2(x, geometry.TabsTop), active ? Color.White : Cream);
+        }
+    }
+
+    // The leaf of the page turn: a sheet of paper hinged at the spine, narrowing and widening on the other side, with a shadow at its free edge.
+    private static void DrawLeaf(SpriteBatch spriteBatch, Texture2D pixel, BookGeometry geometry, double progress, bool forward)
+    {
+        var leaf = ToRectangle(geometry.Leaf(progress, forward));
+        if (leaf.Width <= 0)
+        {
+            return;
+        }
+
+        spriteBatch.Draw(pixel, leaf, PageEdge);
+        var onRight = leaf.X >= geometry.Spine.Right;
+        var freeEdge = onRight ? leaf.Right - 2 : leaf.X;
+        spriteBatch.Draw(pixel, new Rectangle(freeEdge, leaf.Y, 2, leaf.Height), PageEdgeLine);
+        var shadowWidth = Math.Min(16, geometry.PageWidth - leaf.Width);
+        if (shadowWidth > 0)
+        {
+            var shadowX = onRight ? leaf.Right : leaf.X - shadowWidth;
+            spriteBatch.Draw(pixel, new Rectangle(shadowX, leaf.Y, shadowWidth, leaf.Height), new Color(60, 40, 20) * 0.2f);
         }
     }
 
@@ -105,26 +233,46 @@ public sealed class BookLayer : IFrameLayer
         };
     }
 
+    private static string EmptyText(BookPage page) => page switch
+    {
+        BookPage.Verbs => "No verbs yet. Use a verb in a sentence and it comes here.",
+        BookPage.Said => "Nothing said yet.",
+        _ => "Nothing here yet.",
+    };
+
     private static int PhraseWithoutHelp(FrameView view)
     {
         var rows = PhraseJournalRows.Build(view.Session.PhraseProgress, view.Session.StoredTime.UnixSeconds, view.Session.Credit);
         return rows.Count(static r => r is { HasScaffold: true, Level: SupportLevel.None });
     }
 
-    // The line index of the selected speakable row (S20b), or -1 when the page has no row with a recording.
-    private static int SelectedLine(FrameView view, IReadOnlyList<BookLine> lines)
+    // The line index of the selected row (S20b: a row with a speaker button; S28: a verb on the verbs page), or -1 when the page has none.
+    private static int SelectedLine(IReadOnlyList<BookLine> lines, BookModel book)
     {
-        var rows = BookSpeakers.Speakable(lines);
-        var index = view.Book.SelectedIndex(rows.Count);
+        var rows = BookSpeakers.Selectable(lines);
+        var index = book.SelectedIndex(rows.Count);
         return index < 0 ? -1 : rows[index];
     }
 
-    private static void DrawLine(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, BookLine line, int left, int right, int top, int textWidth, bool selected)
+    private static int FirstOnScreen(IReadOnlyList<BookLine> lines, int offset, int visible)
+    {
+        for (var i = Math.Max(0, offset); i < lines.Count && i < offset + visible; i++)
+        {
+            if (lines[i].Text.Length > 0)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private static void DrawLine(SpriteBatch spriteBatch, FrameView view, SpriteFontBase font, BookLine line, int left, int right, int top, int textWidth, bool selected)
     {
         var pixel = view.Pixel;
         if (selected)
         {
-            spriteBatch.Draw(pixel, new Rectangle(left, top, right - left, BookGeometry.LineHeight - 1), new Color(70, 56, 12));
+            spriteBatch.Draw(pixel, new Rectangle(left - 4, top, right - left + 8, BookGeometry.LineHeight - 1), Select);
         }
 
         // The speaker button sits at the right edge; the text before it keeps clear of it.
@@ -138,9 +286,10 @@ public sealed class BookLayer : IFrameLayer
         {
             // The "Practise again" button of a completed lesson (S26), at the right edge of its heading.
             var box = new Rectangle(right - BookPractise.ButtonWidth, top + 1, BookPractise.ButtonWidth, BookGeometry.LineHeight - 3);
-            DrawHelpers.Border(spriteBatch, pixel, box, 1, Gold);
+            spriteBatch.Draw(pixel, box, new Color(246, 236, 210));
+            DrawHelpers.Border(spriteBatch, pixel, box, 1, InkKnown);
             var labelWidth = (int)DrawHelpers.Width(font, BookPractise.Label);
-            DrawHelpers.Text(spriteBatch, font, BookPractise.Label, new Vector2(box.X + ((box.Width - labelWidth) / 2), top + 1), Gold);
+            InkText(spriteBatch, font, BookPractise.Label, new Vector2(box.X + ((box.Width - labelWidth) / 2), top + 1), InkKnown);
             rightEdge = box.X - BookSpeakers.Gap;
         }
 
@@ -163,15 +312,7 @@ public sealed class BookLayer : IFrameLayer
             var pipLeft = rightEdge - ((WordPips * Pip) + ((WordPips - 1) * PipGap));
             for (var i = 0; i < WordPips; i++)
             {
-                var box = new Rectangle(pipLeft + (i * (Pip + PipGap)), top + 5, Pip, Pip);
-                if (i < pips)
-                {
-                    spriteBatch.Draw(pixel, box, Gold);
-                }
-                else
-                {
-                    DrawHelpers.Border(spriteBatch, pixel, box, 1, Hints);
-                }
+                DrawPip(spriteBatch, pixel, new Rectangle(pipLeft + (i * (Pip + PipGap)), top + 5, Pip, Pip), i < pips);
             }
 
             rightEdge = pipLeft - Gutter;
@@ -181,37 +322,286 @@ public sealed class BookLayer : IFrameLayer
             var lampsLeft = rightEdge - ((lamps.Count * Pip) + ((lamps.Count - 1) * 4));
             for (var i = 0; i < lamps.Count; i++)
             {
-                DrawLamp(spriteBatch, pixel, new Rectangle(lampsLeft + (i * (Pip + 4)), top + 5, Pip, Pip), lamps[i]);
+                DrawPip(spriteBatch, pixel, new Rectangle(lampsLeft + (i * (Pip + 4)), top + 5, Pip, Pip), lamps[i]);
             }
 
             rightEdge = lampsLeft - Gutter;
         }
 
         var reserved = 0;
-        if (line.Right is { } rightText)
+
+        // A row with an English aside keeps its Spanish and its English whole before its right-hand note (the state of a phrase's help): the note is left for the right page
+        // when the row is too narrow for all three, which it is on a page of 800 x 600.
+        var roomForNote = line.Aside is null || DrawHelpers.Width(font, line.Text) + Gutter + DrawHelpers.Width(font, line.Aside) + (Gutter * 2) + DrawHelpers.Width(font, line.Right ?? string.Empty) <= rightEdge - x;
+        if (line.Right is { } rightText && roomForNote)
         {
             var fitted = Fit(font, rightText, textWidth / 2);
             var width = (int)DrawHelpers.Width(font, fitted);
-            DrawHelpers.Text(spriteBatch, font, fitted, new Vector2(rightEdge - width, top + 2), line.Tone == BookTone.Gold ? Gold : Hints);
+            InkText(spriteBatch, font, fitted, new Vector2(rightEdge - width, top + 2), line.Tone == BookTone.Gold ? InkKnown : InkHint);
             reserved = width + Gutter;
         }
 
         var maxText = Math.Max(40, rightEdge - x - reserved - Gutter);
         var text = Fit(font, line.Text, maxText);
-        DrawHelpers.Text(spriteBatch, font, text, new Vector2(x, top + 2), ToneColour(line.Tone));
+        InkText(spriteBatch, font, text, new Vector2(x, top + 2), ToneColour(line.Tone));
         if (line.Aside is { } aside)
         {
             var asideX = x + (int)DrawHelpers.Width(font, text) + Gutter;
             var asideText = Fit(font, aside, Math.Max(20, rightEdge - asideX - reserved - Gutter));
-            DrawHelpers.Text(spriteBatch, font, asideText, new Vector2(asideX, top + 2), Hints);
+            InkText(spriteBatch, font, asideText, new Vector2(asideX, top + 2), InkHint);
         }
     }
 
-    // The speaker button (S20b): a box with a speaker drawn in pixels; gold when the row is selected.
+    // The right page of a page that is not the verbs: the selected item's own lines (its block), written out in full on the page, wrapped instead of cut short.
+    private static void DrawBlockDetail(SpriteBatch spriteBatch, FrameView view, BookGeometry geometry, IReadOnlyList<BookLine> lines, int line)
+    {
+        var block = BookPages.BlockOf(lines, line);
+        if (block.Count == 0)
+        {
+            return;
+        }
+
+        var font = view.Fonts.Get(FontProvider.NativeSize);
+        var big = view.Fonts.Get(FontProvider.NativeSize * 2);
+        var left = geometry.DetailLeft;
+        var width = geometry.DetailRight - left;
+        var bottom = geometry.ContentBottom;
+        var y = geometry.ContentTop;
+        var heading = block[0];
+        var x = left;
+        if (heading.Lemma is { } lemma)
+        {
+            DrawNounIcon(spriteBatch, view, lemma, new Rectangle(left, y, 32, 32));
+            x += 40;
+        }
+
+        var title = Fit(big, heading.Text, left + width - x);
+        InkText(spriteBatch, big, title, new Vector2(x, y), ToneColour(heading.Tone == BookTone.Unseen ? BookTone.Seen : heading.Tone));
+        y += 38;
+        if (heading.Pips is { } pips)
+        {
+            for (var i = 0; i < WordPips; i++)
+            {
+                DrawPip(spriteBatch, view.Pixel, new Rectangle(left + (i * (Pip + PipGap)), y + 2, Pip, Pip), i < pips);
+            }
+
+            y += BookGeometry.LineHeight;
+        }
+
+        foreach (var text in new[] { heading.Aside, heading.Right })
+        {
+            if (text is not null)
+            {
+                y = DrawWrapped(spriteBatch, font, text, left, y, width, bottom, InkHint);
+            }
+        }
+
+        y += 6;
+        for (var i = 1; i < block.Count && y < bottom; i++)
+        {
+            var text = block[i];
+            var inset = text.Tick is null ? 0 : 18;
+            if (text.Tick is { } ticked)
+            {
+                DrawTick(spriteBatch, view.Pixel, new Rectangle(left, y + 3, 11, 11), ticked);
+            }
+
+            y = DrawWrapped(spriteBatch, font, text.Text, left + inset, y, width - inset, bottom, ToneColour(text.Tone));
+            if (text.Aside is not null)
+            {
+                y = DrawWrapped(spriteBatch, font, text.Aside, left + inset, y, width - inset, bottom, InkHint);
+            }
+
+            if (text.Right is not null)
+            {
+                y = DrawWrapped(spriteBatch, font, text.Right, left + inset, y, width - inset, bottom, InkHint);
+            }
+
+            y += 4;
+        }
+    }
+
+    // The right page of the verbs page: the verb and its English, the conjugation table, what the colours mean, the other forms met and the last sentence.
+    private static void DrawVerbDetail(SpriteBatch spriteBatch, FrameView view, BookGeometry geometry, IReadOnlyList<BookLine> lines, int selected)
+    {
+        var font = view.Fonts.Get(FontProvider.NativeSize);
+        var big = view.Fonts.Get(FontProvider.NativeSize * 2);
+        var left = geometry.DetailLeft;
+        var width = geometry.DetailRight - left;
+        var bottom = geometry.ContentBottom;
+        var y = geometry.ContentTop;
+        if (selected < 0 || lines[selected].Verb is not { } lemma || BookPages.VerbTable(view.Session, lemma) is not { } table)
+        {
+            InkText(spriteBatch, font, "Choose a verb on the left page.", new Vector2(left, y), InkHint);
+            return;
+        }
+
+        InkText(spriteBatch, big, Fit(big, table.Lemma, width), new Vector2(left, y), InkKnown);
+        y += 34;
+        if (table.Gloss is not null)
+        {
+            InkText(spriteBatch, font, table.Gloss, new Vector2(left, y), InkSeen);
+        }
+
+        y += BookGeometry.LineHeight + 6;
+        y = DrawTable(spriteBatch, view.Pixel, font, table, left, y, width);
+        y += 6;
+        y = DrawWrapped(spriteBatch, font, "Highlighted: said (x = times). Plain: taught. Dash: not yet.", left, y, width, bottom, InkHint);
+
+        // What the learner said, as the verbs page listed it (S20): each form with its English, its count and the last sentence it was said in.
+        var row = view.Session.Learner.Verbs.First(r => string.Equals(r.Lemma, lemma, StringComparison.Ordinal));
+        var said = BookPages.Verbs([row], view.Session.Glosses, view.Session.Phrases).Skip(1).Where(static l => l.Text.Length > 0).ToList();
+        y += 8;
+        if (said.Count > 0 && y + BookGeometry.LineHeight <= bottom)
+        {
+            InkText(spriteBatch, font, "What you said", new Vector2(left, y), InkKnown);
+            y += BookGeometry.LineHeight;
+        }
+
+        foreach (var form in said)
+        {
+            if (y + BookGeometry.LineHeight > bottom)
+            {
+                break;
+            }
+
+            if (form.Right is { } count)
+            {
+                var countWidth = (int)DrawHelpers.Width(font, count);
+                InkText(spriteBatch, font, count, new Vector2(left + width - countWidth, y), InkHint);
+                InkText(spriteBatch, font, Fit(font, form.Text, width - countWidth - Gutter), new Vector2(left, y), InkSeen);
+                y += BookGeometry.LineHeight;
+            }
+            else
+            {
+                y = DrawWrapped(spriteBatch, font, form.Text, left + IndentWidth, y, width - IndentWidth, bottom, InkHint);
+            }
+        }
+    }
+
+    // The table: a header row of tenses, then the five persons. A used form is highlighted with its count; a taught one is plain; a form not taught is a dash.
+    private static int DrawTable(SpriteBatch spriteBatch, Texture2D pixel, SpriteFontBase font, ConjugationTable table, int left, int top, int width)
+    {
+        var columns = table.Columns.Count;
+        for (var c = 0; c < columns; c++)
+        {
+            DrawCentred(spriteBatch, font, table.Columns[c].Title, ToRectangle(ConjugationLayout.Header(left, top, width, columns, c)), InkKnown);
+        }
+
+        spriteBatch.Draw(pixel, new Rectangle(left, top + ConjugationLayout.RowHeight - 2, width, 1), PageEdgeLine);
+        for (var r = 0; r < table.Rows.Count; r++)
+        {
+            var row = table.Rows[r];
+            var label = ToRectangle(ConjugationLayout.Label(left, top, r));
+            InkText(spriteBatch, font, Fit(font, row.Label, label.Width), new Vector2(label.X, label.Y + ((label.Height - 16) / 2)), InkSeen);
+            for (var c = 0; c < columns; c++)
+            {
+                var cell = row.Cells[c];
+                var box = ToRectangle(ConjugationLayout.Cell(left, top, width, columns, r, c));
+                var inner = new Rectangle(box.X + 2, box.Y + 2, box.Width - 4, box.Height - 4);
+                switch (cell.State)
+                {
+                    case CellState.Used:
+                        spriteBatch.Draw(pixel, inner, Highlight);
+                        DrawHelpers.Border(spriteBatch, pixel, inner, 1, InkKnown);
+                        DrawCentred(spriteBatch, font, cell.Text ?? string.Empty, new Rectangle(inner.X, inner.Y, inner.Width, inner.Height - 8), Ink);
+                        DrawCount(spriteBatch, font, cell.Uses, inner);
+                        break;
+                    case CellState.Taught:
+                        DrawHelpers.Border(spriteBatch, pixel, inner, 1, PageEdgeLine);
+                        DrawCentred(spriteBatch, font, cell.Text ?? string.Empty, inner, Ink);
+                        break;
+                    default:
+                        DrawCentred(spriteBatch, font, "-", inner, InkUnseen);
+                        break;
+                }
+            }
+        }
+
+        return top + ConjugationLayout.Height;
+    }
+
+    // The count of a used cell, at its bottom right, in small ink ("x3").
+    private static void DrawCount(SpriteBatch spriteBatch, SpriteFontBase font, int uses, Rectangle cell)
+    {
+        var text = $"x{uses}";
+        var width = (int)DrawHelpers.Width(font, text);
+        InkText(spriteBatch, font, text, new Vector2(cell.Right - width - 3, cell.Bottom - 17), InkKnown);
+    }
+
+    // Text centred in a rectangle; one that is too wide breaks at its spaces onto two lines (voy a / comer) and is cut short only as a last resort.
+    private static void DrawCentred(SpriteBatch spriteBatch, SpriteFontBase font, string text, Rectangle area, Color colour)
+    {
+        if (DrawHelpers.Width(font, text) > area.Width - 4)
+        {
+            text = text.Replace(" (", "\n(", StringComparison.Ordinal); // "future (ir a)" breaks before its bracket, not inside it
+        }
+
+        var lines = text.Split('\n').SelectMany(part => Wrap(font, part, area.Width - 4)).Take(2).Select(l => Fit(font, l, area.Width - 4)).ToList();
+        var lineHeight = 17;
+        var top = area.Y + ((area.Height - (lines.Count * lineHeight)) / 2);
+        foreach (var line in lines)
+        {
+            var width = (int)DrawHelpers.Width(font, line);
+            InkText(spriteBatch, font, line, new Vector2(area.X + ((area.Width - width) / 2), top), colour);
+            top += lineHeight;
+        }
+    }
+
+    // Wrapped text from (x, y) within a width, down to a bottom edge; returns the y under it.
+    private static int DrawWrapped(SpriteBatch spriteBatch, SpriteFontBase font, string text, int x, int y, int width, int bottom, Color colour)
+    {
+        foreach (var line in Wrap(font, text, width))
+        {
+            if (y + BookGeometry.LineHeight > bottom)
+            {
+                return y;
+            }
+
+            InkText(spriteBatch, font, line, new Vector2(x, y), colour);
+            y += BookGeometry.LineHeight;
+        }
+
+        return y;
+    }
+
+    // Breaks a text at its spaces into lines no wider than a width (a word wider than the width stays whole on its own line; the caller cuts it).
+    private static List<string> Wrap(SpriteFontBase font, string text, int width)
+    {
+        var result = new List<string>();
+        var current = string.Empty;
+        foreach (var word in text.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var candidate = current.Length == 0 ? word : current + " " + word;
+            if (current.Length > 0 && DrawHelpers.Width(font, candidate) > width)
+            {
+                result.Add(current);
+                current = word;
+            }
+            else
+            {
+                current = candidate;
+            }
+        }
+
+        if (current.Length > 0)
+        {
+            result.Add(current);
+        }
+
+        return result;
+    }
+
+    // Text on paper: dark ink with no shadow (the panels' shadowed text is for dark backgrounds).
+    private static void InkText(SpriteBatch spriteBatch, SpriteFontBase font, string text, Vector2 position, Color colour) =>
+        spriteBatch.DrawString(font, text, position, colour);
+
+    // The speaker button (S20b): a box with a speaker drawn in pixels; dark red-brown ink, with the selected row's button boxed in the brass of the select bar.
     private static void DrawSpeaker(SpriteBatch spriteBatch, Texture2D pixel, Rectangle box, bool selected)
     {
-        var ink = selected ? Gold : Seen;
-        DrawHelpers.Border(spriteBatch, pixel, box, 1, selected ? Gold : Hints);
+        var ink = selected ? InkKnown : InkSeen;
+        spriteBatch.Draw(pixel, box, new Color(246, 236, 210));
+        DrawHelpers.Border(spriteBatch, pixel, box, 1, selected ? InkKnown : InkHint);
         var x = box.X;
         var y = box.Y;
         spriteBatch.Draw(pixel, new Rectangle(x + 3, y + 6, 3, 4), ink); // the body
@@ -238,37 +628,38 @@ public sealed class BookLayer : IFrameLayer
         }
         else
         {
-            spriteBatch.Draw(view.Pixel, icon, new Color(40, 40, 50));
+            spriteBatch.Draw(view.Pixel, icon, PaperShade);
         }
     }
 
     private static void DrawTick(SpriteBatch spriteBatch, Texture2D pixel, Rectangle box, bool ticked)
     {
-        DrawHelpers.Border(spriteBatch, pixel, box, 1, ticked ? Gold : Hints);
+        DrawHelpers.Border(spriteBatch, pixel, box, 1, ticked ? InkKnown : InkHint);
         if (ticked)
         {
             // A tick: a short stroke down to the corner and a longer one up.
-            spriteBatch.Draw(pixel, new Rectangle(box.X + 2, box.Y + 6, 2, 2), Gold);
-            spriteBatch.Draw(pixel, new Rectangle(box.X + 4, box.Y + 7, 2, 2), Gold);
-            spriteBatch.Draw(pixel, new Rectangle(box.X + 6, box.Y + 5, 2, 2), Gold);
-            spriteBatch.Draw(pixel, new Rectangle(box.X + 8, box.Y + 3, 2, 2), Gold);
+            spriteBatch.Draw(pixel, new Rectangle(box.X + 2, box.Y + 6, 2, 2), InkKnown);
+            spriteBatch.Draw(pixel, new Rectangle(box.X + 4, box.Y + 7, 2, 2), InkKnown);
+            spriteBatch.Draw(pixel, new Rectangle(box.X + 6, box.Y + 5, 2, 2), InkKnown);
+            spriteBatch.Draw(pixel, new Rectangle(box.X + 8, box.Y + 3, 2, 2), InkKnown);
         }
     }
 
-    private static void DrawLamp(SpriteBatch spriteBatch, Texture2D pixel, Rectangle box, bool lit)
+    // A pip or a lamp: filled when lit, an outline when not.
+    private static void DrawPip(SpriteBatch spriteBatch, Texture2D pixel, Rectangle box, bool lit)
     {
         if (lit)
         {
-            spriteBatch.Draw(pixel, box, Gold);
+            spriteBatch.Draw(pixel, box, InkKnown);
         }
         else
         {
-            DrawHelpers.Border(spriteBatch, pixel, box, 1, Hints);
+            DrawHelpers.Border(spriteBatch, pixel, box, 1, InkHint);
         }
     }
 
     // Shortens a text to fit a width with "..." at its end (a line never runs over its neighbour).
-    private static string Fit(FontStashSharp.SpriteFontBase font, string text, int maxWidth)
+    private static string Fit(SpriteFontBase font, string text, int maxWidth)
     {
         if (DrawHelpers.Width(font, text) <= maxWidth)
         {
@@ -286,13 +677,18 @@ public sealed class BookLayer : IFrameLayer
 
     private static Color ToneColour(BookTone tone) => tone switch
     {
-        BookTone.Known => Known,
-        BookTone.Learning => Learning,
-        BookTone.Seen => Seen,
-        BookTone.Unseen => Unseen,
-        BookTone.Gold => Gold,
-        _ => Hints,
+        BookTone.Known => InkKnown,
+        BookTone.Learning => Ink,
+        BookTone.Seen => InkSeen,
+        BookTone.Unseen => InkUnseen,
+        BookTone.Gold => InkKnown,
+        _ => InkHint,
     };
+
+    private static Color Lighten(Color colour, double amount) =>
+        new((int)(colour.R + ((255 - colour.R) * amount)), (int)(colour.G + ((255 - colour.G) * amount)), (int)(colour.B + ((255 - colour.B) * amount)));
+
+    private static Color Darken(Color colour, double amount) => new((int)(colour.R * (1 - amount)), (int)(colour.G * (1 - amount)), (int)(colour.B * (1 - amount)));
 
     private static Rectangle ToRectangle(BookRect rect) => new(rect.X, rect.Y, rect.Width, rect.Height);
 }

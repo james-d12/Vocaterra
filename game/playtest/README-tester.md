@@ -37,8 +37,10 @@ this folder, the folder was not built: ask the facilitator for a built copy.
   - Numbers **1, 2, 3** choose one of the offered answers.
   - **Esc** closes the talk.
 - **C**: the crafting table (stand next to the table). **I**: the inventory.
-- **J**: the book. It has five pages (nouns, verbs, phrases, lessons and what you said). You can also right-click the book
-  on your hotbar. Esc or J closes it.
+- **J**: the book. It is an open book with five pages, each with a ribbon at the top (nouns, verbs, phrases, lessons and what
+  you said); click a ribbon or press Tab to turn the page. On the verbs page, pick a verb to see its table: the forms you said
+  are highlighted, the forms the lessons taught are plain. A lesson you finished has a "Practise again" button on the lessons
+  page. You can also right-click the book on your hotbar. Esc or J closes it.
 - **F6**: save the game (to the session folder).
 - **F8**: report a bug or ask for a feature (see "Reports" below).
 - **Esc** always gets you out of whatever you are doing. It never ends the playtest by itself, except on the final
@@ -47,8 +49,8 @@ this folder, the folder was not built: ask the facilitator for a built copy.
 ## What happens
 
 1. A short **microphone check** (skip it with Esc if you wish).
-2. A **short quiz before the game**: 20 short items. You hear a line and choose what it means (11 items), and you say a
-   Spanish phrase for an English situation (9 items). Answer as well as you can; "I do not know" (N, or say "no sé") is
+2. A **short quiz before the game**: 31 short items. You hear a line and choose what it means (16 items), and you say a
+   Spanish phrase for an English situation (15 items). Answer as well as you can; "I do not know" (N, or say "no sé") is
    always allowed and is useful to us.
 3. **The opening.** You wake at your own camp on a cliff. Short English tips explain looking, walking, jumping, the note
    at your tent (it says the guide's camp is down the trail), collecting and the inventory. Your goal is shown at the top:
@@ -61,7 +63,7 @@ this folder, the folder was not built: ask the facilitator for a built copy.
    for the river, and fill your bottle there. The guide may offer you water too.
 6. **The ending.** Take the spare torch back up the trail and place it on the rim of the fire ring at your own camp. The
    fire lights, and the screen says "Session complete".
-7. **A short quiz after the game**, again 20 items, then a thank-you screen. Press **Esc** to close the game.
+7. **A short quiz after the game**, again 31 items, then a thank-you screen. Press **Esc** to close the game.
 
 Please talk out loud while you play if the facilitator asks you to (think aloud). Tell them what you tried, and what
 you expected.

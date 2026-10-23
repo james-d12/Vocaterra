@@ -1,7 +1,7 @@
 # Playtest: the facilitator's script
 
 The facilitator's checklist for the prototype's playtests (S12, `docs/PROTOTYPE_BRIEF.md`, `docs/SCENARIO_PLAN.md` section 4 "S12"; refreshed
-at S18 for the opening at the cliff camp, the guide's lesson, the longer run, the 20-item checks, the book and the keys F5, F6 and F8). Read it
+at S18 for the opening at the cliff camp, the guide's lesson, the longer run, the 31-item checks, the book and the keys F5, F6 and F8; refreshed at S28 for the book as a book, the lessons of sessions 2 and 3 and "Practise again"). Read it
 end to end before the first tester. It says what to recruit, what is logged, how a session runs, what to watch, how the next-day recall
 works, how the two arms are run, which evidence answers which decision gate, and the owner's own pre-flight. Nothing here is a verdict on
 learning: a small pilot gives directional evidence only (the brief).
@@ -40,8 +40,8 @@ Read this to the tester, in your own words, before the session:
   objective and lesson step, the settings), **the last ten things you said or typed** (the words as the game heard or read them, so your voice
   is not kept, only what it turned into), and the last 200 lines of the session log. Nothing is sent: the files stay in the folder until you
   give it to the facilitator. Tell the tester: "Press F8 at any time to report a bug or ask for a feature; Esc cancels and keeps nothing."
-- **The book (J, or the book item on the hotbar, S20).** The book shows the nouns, verbs and phrases the game has seen you use, the lessons and
-  what you said. It keeps **every line you said or typed** in the run (as the game heard or read it, not your voice), and the words those lines
+- **The book (J, or the book item on the hotbar, S20, S28).** The book is an open two-page book with a ribbon for each page. It shows the nouns, verbs and phrases the game has seen you use, the lessons and
+  what you said; each verb has a conjugation table of the forms you said and the forms the lessons taught. A lesson you finished has a "Practise again" button. It keeps **every line you said or typed** in the run (as the game heard or read it, not your voice), and the words those lines
   used; the save (`playtest.save`) keeps the newest 500 of those lines. Nothing is sent.
 - You can stop at any time (Esc closes a dialogue; you can also say so and the facilitator ends the run). You can say no to giving the folder
   to the facilitator; if you say no, the facilitator does not look at it, and you can delete it.
@@ -89,16 +89,16 @@ difference is the S15 to S21 content and the 74 further speech WAVs). Its F8 rep
 
 ## 4. The session
 
-Plan 40 to 50 minutes in total: consent (3), the mic check (1), the pre-check (about 5, 20 items), the run (about 15 to 25, the guide's lesson
-included), the post-check (about 5, 20 items), the thank-you and the debrief (10).
+Plan 45 to 55 minutes in total: consent (3), the mic check (1), the pre-check (about 7, 31 items), the run (about 15 to 25, the guide's lesson
+included), the post-check (about 7, 31 items), the thank-you and the debrief (10).
 
 1. **Start** the build (`./playtest.sh`, or `./playtest.sh --greyscale` for arm B, see section 9). Confirm the session folder is named with
    today's date. Say: "Nothing here is a test of you; the game is being tested." Say: "Press F8 at any time to report a bug or ask for a
    feature; Esc cancels and keeps nothing."
 2. **Mic check** (shown first). The tester says "hola" when asked. If it does not pass, the tester may retry or skip (Esc). Skipping is fine;
    note it. The mic check never blocks the game.
-3. **Pre-check** (automatic after the mic check; "Check: before the game"). **Twenty items**: eleven hear a Spanish line and choose one of three
-   English meanings (1, 2, 3; R hears it again); nine say a Spanish phrase for an English situation (type with W, or hold V to speak, Enter
+3. **Pre-check** (automatic after the mic check; "Check: before the game"). **Thirty-one items**: sixteen hear a Spanish line and choose one of three
+   English meanings (1, 2, 3; R hears it again); fifteen say a Spanish phrase for an English situation (type with W, or hold V to speak, Enter
    sends, N means "no sé"). Say before it starts: "Some items are hard on purpose. Guess, or say 'no sé'. There is no score for you." Do not
    help with an item. Esc ends the check (the rest is skipped; note it).
 4. **The opening, at the player's own camp on the cliff.** The tester wakes alone there; no quiz. The English tips come one at a time: look,
@@ -106,7 +106,7 @@ included), the post-check (about 5, 20 items), the thank-you and the debrief (10
    objective reads `Go down the trail and find the guide`, and the beacon points down the trail to her camp. Say only: "Please go on as you
    would in a game. Talk out loud if you can." Do not explain the controls: the tips do that. Note whether the tester reads them.
 5. **The guide's lesson** (about 5 to 8.5 minutes, the walk down the trail included). Luna, the guide, starts the lesson by herself when the
-   tester comes within five blocks of her; Esc closes the panel and the lesson waits. Six units, 34 steps: hello; yes and no; what is this;
+   tester comes within five blocks of her; Esc closes the panel and the lesson waits. Seven units, 37 steps: hello; yes and no; what is this;
    please and thank you (she offers fruit: the tester picks it from a bush); getting unstuck (`No sé`, `Otra vez, por favor`, `Más despacio,
    por favor`); the camp's task. The English under her lines thins out as phrases come back. The lesson ends with a recap that opens the
    book's phrases page. Note the minute the lesson ends and whether the tester could say what the recap showed.
@@ -124,7 +124,7 @@ included), the post-check (about 5, 20 items), the thank-you and the debrief (10
    evidence, and the report counts it only in your notes.
 8. **The post-check.** It starts by itself once the camp is complete and the guide has made her offer ("¿Quieres agua?"), and the tester has
    closed her panel. If the tester never gets there and the time is up, press **F10** ("end the run (facilitator)", top left, clear of the dialogue). Write
-   `F10` in the notes with the time. The post-check is **twenty items** of the same kinds as the pre-check (eleven and nine), in another order.
+   `F10` in the notes with the time. The post-check is **thirty-one items** of the same kinds as the pre-check (sixteen and fifteen), in another order.
 9. **Save and thank-you.** The post-check ends with "Thank you for playing", the line "Saved: playtest.save in the session folder ...", and
    "Esc: close the game". The tester presses Esc. The game is then closed, and the folder holds `session.jsonl`, `replay.jsonl` and
    `playtest.save`, and `reports/` when the tester pressed F8 (each report is a `report-s<session>-t<tick>-<bug|feature>.md` with its
@@ -150,8 +150,8 @@ Write notes as you go (template in section 7). For each session:
 - **Voice:** what the game heard (the "Heard / Expected" line) and whether the tester understood the difference.
 - **The opening and the lesson:** whether the tester read the tips; how long the walk to the guide took; the minute the lesson started and
   ended; whether the tester used the English under her lines or only the audio.
-- **The book:** whether the tester opened it (J, or the book item on the hotbar), which page, and whether they used the phrases page after the
-  lesson's recap. Note the words they named.
+- **The book:** whether the tester opened it (J, or the book item on the hotbar), which page (the ribbons at the top turn the pages), and whether they used the phrases page after the
+  lesson's recap. Whether they found a verb's table on the Verbs page (the highlighted forms are the ones they said). Note the words they named.
 - **Reports:** whether they pressed F8, what they wrote, and whether it was a bug or a feature. Do not read a report aloud to them.
 - **Keys they did not find:** F5 (the view over the shoulder), F6 (save), F8 (report), and J (book), in addition to the controls listed above.
 
@@ -176,7 +176,7 @@ Tester code: P__        Date: ____        Session folder: ____________________
 Bundle hash (frozen):   393548666329...   Build commit: ____ (arm A colour / arm B --greyscale)
 Consent (yes/no, time): ____            Beginner screener (answer, no names): ____________
 Microphone: works / no mic (typed)   Mic check: passed / retried / skipped
-Pre-check (20 items): done / Esc at item __   Post-check (20 items): automatic / F10 at minute __
+Pre-check (31 items): done / Esc at item __   Post-check (31 items): automatic / F10 at minute __
 Opening: tips read yes/no; lesson started at minute __, ended at minute __ (walk included)
 Camp complete: yes/no, at minute __     Rescues: __ (minute, what was given)
 Stuck (more than 5 min on one step): ____________________________
@@ -198,7 +198,7 @@ Run it the next day, or later, on the same build:
 
     ./playtest.sh --load <session folder>/playtest.save
 
-The playtest profile implies `--check recall` on a load: the mic check (skip if you wish), the recall battery (twenty items, the same kinds as
+The playtest profile implies `--check recall` on a load: the mic check (skip if you wish), the recall battery (thirty-one items, the same kinds as
 the pre- and post-checks, another order), then the thank-you screen, and the game ends on Esc. It saves nothing. Its log goes into a new
 session folder (`~/.local/share/vocaterra/sessions/...`). Use the same build folder and the same bundle: a save made against another bundle
 is refused.
@@ -254,9 +254,9 @@ a fun game with weak recall means change how the practice is built into the obje
 Before any tester (the owner, once, end to end):
 
 1. Build the folder with `scripts/playtest-build.sh`; keep the output; it must end with `all checks passed`.
-2. Play one full session in the build folder as a beginner would: `./playtest.sh`, the mic check (or skip), the pre-check (20 items), the
+2. Play one full session in the build folder as a beginner would: `./playtest.sh`, the mic check (or skip), the pre-check (31 items), the
    opening at the cliff camp, the guide's lesson (about 5 to 8.5 minutes), the camp, the stall, the villager, the river, the guide's offer, the
-   ending (the torch at your own fire ring), the post-check (20 items, or F10), the thank-you (Esc). Also press J (the book), F5 (the view),
+   ending (the torch at your own fire ring), the post-check (31 items, or F10), the thank-you (Esc). Also press J (the book), F5 (the view),
    F6 (save) and F8 (a report, Ctrl+Enter to save). Note any control you had to guess. The game measures the time of each part; do not time
    it by hand: `scripts/playtest-report.sh <folder>` prints, under "Durations", the whole session, the lesson, the walk (from the end of the
    lesson to the camp's completion) and each check, from the wall-clock times of the session log (the `lesson_started`, `lesson_completed`,
@@ -275,6 +275,9 @@ Before any tester (the owner, once, end to end):
   scripted route through the built folder, with the pre-check, the lesson, the camp and the post-check answered by script) reached session
   complete and saved, but a scripted run loads no recogniser, so the speech path is not checked by them. Real use with a microphone and a
   keyboard is the owner's step 2 above.
+- The lessons of sessions 2 and 3 (S26 and S27: "Personas" at the villager, "Ayer y mañana" at the villager and the shopkeeper) are in the build, but a
+  `--playtest` load runs the recall battery and then ends (section 8), so a tester does not reach them in a playtest. Only the first session's lesson, the
+  guide's, is part of the playtest. The book's Lessons page lists all three, and a finished lesson has a "Practise again" button.
 - The playtest build has no Kokoro: the NPCs speak with the pre-rendered WAVs; a live spoken line of the facilitator's (`--speak`) is a
   developer option only.
 - The build is private. Its native code is the one of core D2 (sherpa-onnx's native library is left out; the managed wrapper stays). Do not
