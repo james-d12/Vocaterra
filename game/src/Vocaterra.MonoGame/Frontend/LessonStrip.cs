@@ -28,6 +28,9 @@ public enum LessonAction
 
     /// <summary><c>4</c>: the fourth option of a listen step.</summary>
     Option4,
+
+    /// <summary><c>M</c>: the next page of the step's English, when it is too long for the strip at this size (X08).</summary>
+    More,
 }
 
 /// <summary>The keys of the lesson strip, without the engine's key type (the game maps its keys to these).</summary>
@@ -53,6 +56,9 @@ public enum LessonKey
 
     /// <summary>The key 4.</summary>
     D4,
+
+    /// <summary>M.</summary>
+    M,
 }
 
 /// <summary>
@@ -75,6 +81,12 @@ public sealed class LessonStripLayout
     /// <summary>The height of a button.</summary>
     public const int ButtonHeight = 28;
 
+    /// <summary>The padding inside the strip on a short canvas (X08).</summary>
+    public const int CompactPadding = 8;
+
+    /// <summary>The height of a button on a short canvas (X08): the 16 px text with 4 px above and below.</summary>
+    public const int CompactButtonHeight = 24;
+
     /// <summary>The gap between buttons and between the strip and what is below it.</summary>
     public const int Gap = 8;
 
@@ -93,13 +105,16 @@ public sealed class LessonStripLayout
     /// <summary>The highest y the strip may have (X08): on a short canvas it gives up its hint and rows of English to stay under it.</summary>
     public const int MinTop = 4;
 
-    private LessonStripLayout(PixelBox box, int headingY, int? spanishY, IReadOnlyList<string> spanishRows, int englishY, IReadOnlyList<string> englishRows, int hintY, IReadOnlyList<string> hintRows, IReadOnlyList<(LessonAction Action, PixelBox Box, string Text)> buttons)
+    private LessonStripLayout(PixelBox box, int pad, int headingY, int? spanishY, IReadOnlyList<string> spanishRows, int englishY, IReadOnlyList<string> englishRows, int englishPage, int englishPages, int hintY, IReadOnlyList<string> hintRows, IReadOnlyList<(LessonAction Action, PixelBox Box, string Text)> buttons)
     {
         Box = box;
+        Pad = pad;
         HeadingY = headingY;
         SpanishY = spanishY;
         SpanishRows = spanishRows;
         EnglishY = englishY;
+        EnglishPage = englishPage;
+        EnglishPages = englishPages;
         EnglishRows = englishRows;
         HintY = hintY;
         HintRows = hintRows;
@@ -108,6 +123,9 @@ public sealed class LessonStripLayout
 
     /// <summary>The strip's box.</summary>
     public PixelBox Box { get; }
+
+    /// <summary>The padding inside the strip (<see cref="Padding"/>, or <see cref="CompactPadding"/> on a short canvas): the text's left edge is this far from the box's.</summary>
+    public int Pad { get; }
 
     /// <summary>The y of the heading line.</summary>
     public int HeadingY { get; }
@@ -120,6 +138,12 @@ public sealed class LessonStripLayout
 
     /// <summary>The y of the first row of English.</summary>
     public int EnglishY { get; }
+
+    /// <summary>The page of the English the strip shows (from 0).</summary>
+    public int EnglishPage { get; }
+
+    /// <summary>How many pages the English goes over (1 when it fits the strip; more when a short canvas gives the strip fewer rows, and the More button turns them).</summary>
+    public int EnglishPages { get; }
 
     /// <summary>The rows of English, each already marked (the first starts with <c>English:</c>).</summary>
     public IReadOnlyList<string> EnglishRows { get; }
@@ -157,6 +181,7 @@ public sealed class LessonStripLayout
         LessonAction.Continue => "Enter",
         LessonAction.Skip => "K",
         LessonAction.Help => "H",
+        LessonAction.More => "M",
         LessonAction.Option1 => "1",
         LessonAction.Option2 => "2",
         LessonAction.Option3 => "3",
@@ -174,6 +199,7 @@ public sealed class LessonStripLayout
         LessonKey.D2 => LessonAction.Option2,
         LessonKey.D3 => LessonAction.Option3,
         LessonKey.D4 => LessonAction.Option4,
+        LessonKey.M => LessonAction.More,
         _ => null,
     };
 
@@ -200,6 +226,7 @@ public sealed class LessonStripLayout
     /// <param name="limitTop">The y the strip must end above.</param>
     /// <param name="measure">The width of a text in pixels in the small font.</param>
     /// <param name="measureLarge">The width of a text in pixels in the large font (the Spanish line).</param>
+    /// <param name="englishPage">The page of the English to show (it wraps round): a step's English longer than the strip has room for goes over several pages, and the <c>[M] More</c> button turns them.</param>
     public static LessonStripLayout? For(
         EnglishText ui,
         LessonView? view,
@@ -208,27 +235,107 @@ public sealed class LessonStripLayout
         int viewportHeight,
         int limitTop,
         Func<string, float> measure,
-        Func<string, float> measureLarge)
+        Func<string, float> measureLarge,
+        int englishPage = 0)
     {
         ArgumentNullException.ThrowIfNull(ui);
         ArgumentNullException.ThrowIfNull(measure);
         ArgumentNullException.ThrowIfNull(measureLarge);
         var panel = DialogueLayout.PanelBox(viewportWidth, viewportHeight);
         var width = panel.Width;
-        var inner = width - (Padding * 2);
+        var compact = DialogueLayout.IsCompact(viewportHeight);
+        var pad = compact ? CompactPadding : Padding; // a short canvas tightens the strip: smaller padding and buttons (X08)
+        var buttonHeight = compact ? CompactButtonHeight : ButtonHeight;
+        var rowGap = compact ? 4 : Gap;
+        var inner = width - (pad * 2);
         if (view is null)
         {
             return offer is null ? null : ForOffer(ui, offer, panel, limitTop, inner, measure);
         }
 
         var englishAll = TextWrap.Wrap(DialoguePanel.EnglishPrefix + view.English, inner, measure);
-        var english = Cut(englishAll, MaxEnglishRows);
         var hintAll = view.Hint is { } text ? TextWrap.Wrap(DialoguePanel.EnglishPrefix + text, inner, measure) : [];
-        var hint = Cut(hintAll, MaxHintRows);
+        var hint = Cut(hintAll, MaxHintRows, measure, inner);
         var showsSpanish = view.Spanish is not null;
-        var spanishRows = showsSpanish ? Cut(TextWrap.Wrap(view.Spanish!, inner, measureLarge), MaxSpanishRows) : [];
+        var spanishAll = showsSpanish ? TextWrap.Wrap(view.Spanish!, inner, measureLarge) : [];
+        var spanishRows = Cut(spanishAll, MaxSpanishRows, measureLarge, inner);
 
-        // The buttons, left to right; a row too wide for the strip goes on to a second row (a button is never off the strip).
+        // The English goes over pages of up to MaxEnglishRows rows; the page is as tall as its rows, and the More button turns them. On a short canvas
+        // the page gets fewer rows (down to one) and the hint fewer, until the strip stands under the limit; the Spanish line and the buttons stay, and no English is left out.
+        var perPage = MaxEnglishRows;
+        List<(LessonAction Action, string Text)> labels;
+        List<int> widths;
+        List<int> rowOf;
+        int rowCount;
+        int pages;
+        int HeightOf() => pad + LineHeight + (spanishRows.Count * SpanishHeight) + (Math.Min(perPage, englishAll.Count) * LineHeight) + (hint.Count * LineHeight) + rowGap + (rowCount * buttonHeight) + ((rowCount - 1) * rowGap) + pad;
+        while (true)
+        {
+            pages = (englishAll.Count + perPage - 1) / perPage;
+            labels = ButtonLabels(ui, view, pages, englishPage, perPage);
+            widths = labels.Select(l => Math.Min((int)Math.Ceiling(measure(l.Text)) + (ButtonPadding * 2), inner)).ToList();
+            rowOf = Rows(widths, inner, out rowCount);
+            if (limitTop - Gap - HeightOf() >= MinTop || (hint.Count == 0 && perPage == 1 && spanishRows.Count <= 1))
+            {
+                break;
+            }
+
+            if (perPage > 1)
+            {
+                perPage--;
+            }
+            else if (hint.Count > 1)
+            {
+                hint = Cut(hintAll, 1, measure, inner);
+            }
+            else if (hint.Count == 1)
+            {
+                hint = [];
+            }
+            else
+            {
+                spanishRows = Cut(spanishAll, 1, measureLarge, inner); // the last resort: a second row of the Spanish line goes (the panel's log and the bubble have the line)
+            }
+        }
+
+        var page = pages <= 1 ? 0 : ((englishPage % pages) + pages) % pages;
+        var english = englishAll.Skip(page * perPage).Take(perPage).ToList();
+        var height = HeightOf();
+        var y = Math.Max(MinTop, limitTop - Gap - height);
+        var box = new PixelBox(panel.X, y, width, height);
+        var headingY = y + pad - 4;
+        var cursor = headingY + LineHeight;
+        int? spanishY = null;
+        if (showsSpanish)
+        {
+            spanishY = cursor;
+            cursor += spanishRows.Count * SpanishHeight;
+        }
+
+        var englishY = cursor;
+        cursor += english.Count * LineHeight;
+        var hintY = cursor;
+        var buttonsTop = box.Bottom - pad - (rowCount * buttonHeight) - ((rowCount - 1) * rowGap);
+        var buttons = new List<(LessonAction, PixelBox, string)>();
+        var x = panel.X + pad;
+        for (var i = 0; i < labels.Count; i++)
+        {
+            if (i > 0 && rowOf[i] != rowOf[i - 1])
+            {
+                x = panel.X + pad;
+            }
+
+            buttons.Add((labels[i].Action, new PixelBox(x, buttonsTop + (rowOf[i] * (buttonHeight + rowGap)), widths[i], buttonHeight), labels[i].Text));
+            x += widths[i] + Gap;
+        }
+
+        return new LessonStripLayout(box, pad, headingY, spanishY, spanishRows, englishY, english, page, pages, hintY, hint, buttons);
+    }
+
+    // The buttons of a step, left to right: the options of a listen step, Continue, More (when the English goes over pages), Help and Skip.
+    private static List<(LessonAction Action, string Text)> ButtonLabels(EnglishText ui, LessonView view, int pages, int englishPage, int perPage)
+    {
+        _ = perPage;
         var labels = new List<(LessonAction Action, string Text)>();
         void Label(LessonAction action, string label) => labels.Add((action, $"[{KeyLabel(action)}] {label}"));
         if (view.Type == LessonStepType.Listen)
@@ -244,12 +351,23 @@ public sealed class LessonStripLayout
             Label(LessonAction.Continue, ui.Ui("continue"));
         }
 
+        if (pages > 1)
+        {
+            var page = ((englishPage % pages) + pages) % pages;
+            Label(LessonAction.More, $"More ({page + 1}/{pages})");
+        }
+
         Label(LessonAction.Help, ui.Ui("help"));
         Label(LessonAction.Skip, ui.Ui("skip"));
-        var widths = labels.Select(l => Math.Min((int)Math.Ceiling(measure(l.Text)) + (ButtonPadding * 2), inner)).ToList();
+        return labels;
+    }
+
+    // The row of each button: a row too wide for the strip goes on to the next (a button is never off the strip).
+    private static List<int> Rows(IReadOnlyList<int> widths, int inner, out int rowCount)
+    {
         var rowOf = new List<int>();
         var rowX = 0;
-        var rowCount = 1;
+        rowCount = 1;
         foreach (var buttonWidth in widths)
         {
             if (rowX > 0 && rowX + buttonWidth > inner)
@@ -262,59 +380,11 @@ public sealed class LessonStripLayout
             rowX += buttonWidth + Gap;
         }
 
-        int HeightOf() => Padding + LineHeight + (spanishRows.Count * SpanishHeight) + (english.Count * LineHeight) + (hint.Count * LineHeight) + Gap + (rowCount * ButtonHeight) + ((rowCount - 1) * Gap) + Padding;
-
-        // Too tall for the room above the limit: the hint goes first, then the English is cut to fewer rows (ending in an ellipsis); the Spanish line and the buttons stay.
-        while (limitTop - Gap - HeightOf() < MinTop)
-        {
-            if (hint.Count > 0)
-            {
-                hint = [];
-            }
-            else if (english.Count > 1)
-            {
-                english = Cut(englishAll, english.Count - 1);
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        var height = HeightOf();
-        var y = Math.Max(MinTop, limitTop - Gap - height);
-        var box = new PixelBox(panel.X, y, width, height);
-        var headingY = y + Padding - 4;
-        var cursor = headingY + LineHeight;
-        int? spanishY = null;
-        if (showsSpanish)
-        {
-            spanishY = cursor;
-            cursor += spanishRows.Count * SpanishHeight;
-        }
-
-        var englishY = cursor;
-        cursor += english.Count * LineHeight;
-        var hintY = cursor;
-        var buttonsTop = box.Bottom - Padding - (rowCount * ButtonHeight) - ((rowCount - 1) * Gap);
-        var buttons = new List<(LessonAction, PixelBox, string)>();
-        var x = panel.X + Padding;
-        for (var i = 0; i < labels.Count; i++)
-        {
-            if (i > 0 && rowOf[i] != rowOf[i - 1])
-            {
-                x = panel.X + Padding;
-            }
-
-            buttons.Add((labels[i].Action, new PixelBox(x, buttonsTop + (rowOf[i] * (ButtonHeight + Gap)), widths[i], ButtonHeight), labels[i].Text));
-            x += widths[i] + Gap;
-        }
-
-        return new LessonStripLayout(box, headingY, spanishY, spanishRows, englishY, english, hintY, hint, buttons);
+        return rowOf;
     }
 
     // The first rows of a wrapped text, the last one ending in an ellipsis when rows were left out.
-    private static List<string> Cut(IReadOnlyList<string> rows, int max)
+    private static List<string> Cut(IReadOnlyList<string> rows, int max, Func<string, float> measure, float width)
     {
         if (rows.Count <= max)
         {
@@ -322,7 +392,13 @@ public sealed class LessonStripLayout
         }
 
         var cut = rows.Take(max).ToList();
-        cut[^1] = cut[^1].TrimEnd() + "…";
+        var last = cut[^1].TrimEnd();
+        while (last.Length > 1 && measure(last + "…") > width)
+        {
+            last = last[..^1].TrimEnd();
+        }
+
+        cut[^1] = last + "…";
         return cut;
     }
 
@@ -336,7 +412,7 @@ public sealed class LessonStripLayout
         var text = $"[{KeyLabel(LessonAction.Start)}] {ui.Ui("startLesson")}";
         var buttonWidth = (int)Math.Ceiling(measure(text)) + (ButtonPadding * 2);
         var button = new PixelBox(panel.X + Padding, box.Bottom - Padding - ButtonHeight, buttonWidth, ButtonHeight);
-        return new LessonStripLayout(box, headingY, null, [], headingY + LineHeight, rows, box.Bottom, [], [(LessonAction.Start, button, text)]);
+        return new LessonStripLayout(box, Padding, headingY, null, [], headingY + LineHeight, rows, 0, 1, box.Bottom, [], [(LessonAction.Start, button, text)]);
     }
 
     /// <summary>The heading of a strip for a lesson step: <c>Lesson · A first hello · step 1 of 2 · Say it</c>.</summary>

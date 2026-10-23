@@ -23,9 +23,9 @@ public sealed class CraftingLayer : IFrameLayer
     private const int Icon = 32;
 
     private static readonly Color Gold = new(255, 214, 64);
-    private static readonly Color Unseen = new(150, 150, 165);
+    private static readonly Color Unseen = UiPalette.Unseen.ToColor();
     private static readonly Color Known = new(255, 240, 190);
-    private static readonly Color Hints = new(140, 140, 150);
+    private static readonly Color Hints = UiPalette.Muted.ToColor();
     private static readonly Color Enough = new(120, 220, 130);
     private static readonly Color Short = new(240, 110, 100);
     private static readonly Color Dim = new(30, 30, 44, 235);
@@ -94,18 +94,21 @@ public sealed class CraftingLayer : IFrameLayer
             x = DrawWord(spriteBatch, font, part.Noun.Lemma, wordX, middle, words.SaturationOf(part.Noun.Lemma), 0) + 14;
         }
 
-        var stationX = box.Left + 470;
-        if (row.Recipe.Station is { } station)
+        var status = row.Status;
+        var statusWidth = (int)DrawHelpers.Width(font, status);
+        var stationText = row.Recipe.Station is not null ? "Uses" : "By hand";
+        var stationWord = row.Recipe.Station?.Lemma;
+        var stationWidth = (int)DrawHelpers.Width(font, stationText) + (stationWord is null ? 0 : 34 - (int)DrawHelpers.Width(font, stationText) + (int)DrawHelpers.Width(font, stationWord));
+        if (CraftingLayout.StationX(layout.RowWidth, x - box.Left, stationWidth, statusWidth) is { } offset)
         {
-            DrawHelpers.Text(spriteBatch, font, "Uses", new Vector2(stationX, middle), Hints);
-            DrawWord(spriteBatch, font, station.Lemma, stationX + 34, middle, words.SaturationOf(station.Lemma), 0);
-        }
-        else
-        {
-            DrawHelpers.Text(spriteBatch, font, "By hand", new Vector2(stationX, middle), Hints);
+            var stationX = box.Left + offset;
+            DrawHelpers.Text(spriteBatch, font, stationText, new Vector2(stationX, middle), Hints);
+            if (stationWord is not null)
+            {
+                DrawWord(spriteBatch, font, stationWord, stationX + 34, middle, words.SaturationOf(stationWord), 0);
+            }
         }
 
-        var status = row.Status;
         DrawHelpers.Text(
             spriteBatch,
             font,

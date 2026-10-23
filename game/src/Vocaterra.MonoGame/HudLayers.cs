@@ -22,7 +22,7 @@ public sealed class ObjectiveLayer : IFrameLayer
     private static readonly Color Gold = new(255, 214, 64);
     private static readonly Color Open = new(245, 245, 245);
     private static readonly Color Done = new(120, 220, 130);
-    private static readonly Color DoneEnglish = new(150, 190, 160);
+    private static readonly Color DoneEnglish = UiPalette.DoneEnglish.ToColor();
     private static readonly Color Back = new(10, 10, 20, 190);
 
     /// <inheritdoc />
@@ -177,7 +177,7 @@ public sealed class WordCardLayer : IFrameLayer
         var slot = new Rectangle(box.Right - 86, box.Top + 26, 72, 40);
         spriteBatch.Draw(view.Pixel, slot, new Color(30, 30, 44) * alpha);
         DrawHelpers.Border(spriteBatch, view.Pixel, slot, 1, Empty * alpha);
-        DrawHelpers.Text(spriteBatch, small, "audio", new Vector2(slot.Left + 12, slot.Top + 11), Empty * alpha);
+        DrawHelpers.Text(spriteBatch, small, "audio", new Vector2(slot.Left + 12, slot.Top + 11), UiPalette.Muted.ToColor() * alpha);
     }
 
     private static void DrawToast(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase small, string phrase, Rectangle box, bool collapsed, float alpha)

@@ -15,6 +15,9 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
 {
     private string? _stepKey;
 
+    /// <summary>The page of the strip's English now (X08): a step's English longer than the strip has room for goes over pages, and the More button (M) turns them; a new step starts at the first.</summary>
+    public int EnglishPage { get; private set; }
+
     /// <summary>
     /// Called when the recap step ends and the lesson is complete (S17): the game closes the panel and opens the journal on its phrases page, where the phrases the
     /// lesson taught are listed with the help each has now and its counts. <see langword="null"/> for none (the tests').
@@ -44,6 +47,7 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
         }
 
         _stepKey = key;
+        EnglishPage = 0;
         if (session.Lessons.Current is { Line: { } line })
         {
             dialogue.AddNpcLine(line.Text);
@@ -82,6 +86,7 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
             LessonAction.Start => offer is not null,
             LessonAction.Continue => view is { CanContinue: true },
             LessonAction.Skip => view is not null,
+            LessonAction.More => view is not null,
             LessonAction.Option1 or LessonAction.Option2 or LessonAction.Option3 or LessonAction.Option4 => view is { Type: LessonStepType.Listen, CanContinue: false },
             _ => false,
         };
@@ -125,6 +130,9 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
                 session.LogVoice(VoiceEventKind.Hint);
                 done = runner.Help();
                 break;
+            case LessonAction.More:
+                EnglishPage++; // the strip wraps the page round
+                return runner.View is not null;
             default:
                 done = LessonStripLayout.OptionIndex(action) is { } index && runner.Pick(index);
                 break;

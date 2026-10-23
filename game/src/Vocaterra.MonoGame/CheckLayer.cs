@@ -18,7 +18,7 @@ public sealed class CheckLayer : IFrameLayer
 
     private static readonly Color Gold = new(255, 214, 64);
     private static readonly Color Ink = new(250, 246, 232);
-    private static readonly Color Dim = new(150, 150, 165);
+    private static readonly Color Dim = UiPalette.Muted.ToColor();
     private static readonly Color Good = new(120, 220, 130);
     private static readonly Color Warn = new(255, 150, 120);
 
@@ -139,7 +139,7 @@ public sealed class CheckLayer : IFrameLayer
             t => DrawHelpers.Width(title, t),
             t => DrawHelpers.Width(small, t));
         var side = CheckCardLayout.SideFor(new PixelBox(panel.X, panel.Y, panel.Width, panel.Height));
-        DrawRows(spriteBatch, title, layout.Heading, panel.Left + side, layout.HeadingY, CheckCardLayout.LargeRowFor(new PixelBox(panel.X, panel.Y, panel.Width, panel.Height)), Ink);
+        DrawRows(spriteBatch, layout.HeadingLarge ? title : small, layout.Heading, panel.Left + side, layout.HeadingY, layout.HeadingRow, Ink);
         DrawRows(spriteBatch, small, layout.Hint, panel.Left + side, layout.HintY, CheckCardLayout.SmallRow, Dim);
         var mouse = view.Mouse;
         for (var i = 0; i < shown.Count; i++)
@@ -178,7 +178,7 @@ public sealed class CheckLayer : IFrameLayer
         var card = new PixelBox(panel.X, panel.Y, panel.Width, panel.Height);
         var side = CheckCardLayout.SideFor(card);
         DrawRows(spriteBatch, small, layout.Preface, panel.Left + side, layout.PrefaceY, CheckCardLayout.SmallRow, Dim);
-        DrawRows(spriteBatch, title, layout.Heading, panel.Left + side, layout.HeadingY, CheckCardLayout.LargeRowFor(card), Ink);
+        DrawRows(spriteBatch, layout.HeadingLarge ? title : small, layout.Heading, panel.Left + side, layout.HeadingY, layout.HeadingRow, Ink);
         DrawRows(spriteBatch, small, layout.Hint, panel.Left + side, layout.HintY, CheckCardLayout.SmallRow, Dim);
         var input = layout.Input!.Value;
         var box = new Rectangle(input.X, input.Y, input.Width, input.Height);

@@ -134,8 +134,9 @@ public sealed class BeaconArrowLayer : IFrameLayer
     /// target is on the screen (the label then hangs at the target); otherwise it is clamped inside the window and clear of <paramref name="avoid"/>.
     /// </summary>
     /// <param name="view">The frame's view.</param>
-    /// <param name="avoid">Rectangles the label keeps clear of (the panel, the head and the bubble while a talk is open).</param>
-    internal static (EdgeArrow Arrow, string Text, PixelBox? Box)? LabelFor(FrameView view, IReadOnlyList<PixelBox> avoid)
+    /// <param name="avoid">Rectangles the label never overlaps (the panel and the lesson strip while a talk is open).</param>
+    /// <param name="soft">Rectangles the label keeps clear of when there is room (the head and the bubble), or <see langword="null"/> to treat <paramref name="avoid"/> alone, as before.</param>
+    internal static (EdgeArrow Arrow, string Text, PixelBox? Box)? LabelFor(FrameView view, IReadOnlyList<PixelBox> avoid, IReadOnlyList<PixelBox>? soft = null)
     {
         if (view.Beacon is not { Target: { } target } beacon || view.Camera3D is not { } camera)
         {
@@ -155,7 +156,7 @@ public sealed class BeaconArrowLayer : IFrameLayer
         }
 
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        return (arrow, text, BeaconLabel.Place(width, height, arrow.X, arrow.Y, DrawHelpers.Width(font, text), avoid));
+        return (arrow, text, soft is null ? BeaconLabel.Place(width, height, arrow.X, arrow.Y, DrawHelpers.Width(font, text), avoid) : BeaconLabel.TryPlace(width, height, arrow.X, arrow.Y, DrawHelpers.Width(font, text), avoid, soft));
     }
 
     /// <inheritdoc />
@@ -186,8 +187,13 @@ public sealed class BeaconArrowLayer : IFrameLayer
 
         // The label stays inside the window and clear of the conversation's panel, head, bubble and cards (S22): the frame places it first and the cards keep clear of it.
         var box = new Rectangle(0, 0, 0, 0);
-        if (view.Dialogue.IsOpen && ConversationFrame.For(view).BeaconLabel is { } placed)
+        if (view.Dialogue.IsOpen)
         {
+            if (ConversationFrame.For(view).BeaconLabel is not { } placed)
+            {
+                return; // no free place for the label on this canvas (a tall lesson strip over the panel): the arrow stays, the label is left out (X08)
+            }
+
             box = new Rectangle(placed.X, placed.Y, placed.Width, placed.Height);
         }
         else if (beacon.Box is { } plain)

@@ -16,7 +16,7 @@ public sealed class MicCheckLayer : IFrameLayer
 
     private static readonly Color Gold = new(255, 214, 64);
     private static readonly Color Ink = new(250, 246, 232);
-    private static readonly Color Dim = new(140, 140, 150);
+    private static readonly Color Dim = UiPalette.Muted.ToColor();
     private static readonly Color Good = new(120, 220, 130);
     private static readonly Color Warn = new(255, 150, 120);
     private static readonly Color HeardColor = new(190, 225, 255);

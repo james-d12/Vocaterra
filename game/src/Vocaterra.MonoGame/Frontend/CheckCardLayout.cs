@@ -69,6 +69,18 @@ public sealed class CheckCardLayout
 
     private static int TopFor(PixelBox panel) => IsCompact(panel) ? 58 : 66;
 
+    // The heading in the large font; on a compact card a heading of more than two rows goes in the small font instead.
+    private static (IReadOnlyList<string> Rows, bool Large, int RowHeight) HeadingFor(PixelBox panel, string text, int inner, Func<string, float> large, Func<string, float> small)
+    {
+        var rows = TextWrap.Wrap(text, inner, large);
+        if (IsCompact(panel) && rows.Count > 2)
+        {
+            return (TextWrap.Wrap(text, inner, small), false, SmallRow + 2);
+        }
+
+        return (rows, true, LargeRowFor(panel));
+    }
+
     /// <summary>The y of the notice line (a warning under the content), from the card's bottom.</summary>
     /// <param name="panel">The card.</param>
     public static int NoticeY(PixelBox panel) => panel.Bottom - (IsCompact(panel) ? 58 : 74);
@@ -82,8 +94,10 @@ public sealed class CheckCardLayout
     /// <param name="hasIcon">Whether the option has an icon.</param>
     public static int OptionTextOffset(PixelBox panel, bool hasIcon) => hasIcon ? (IsCompact(panel) ? 54 : 64) : 16;
 
-    private CheckCardLayout(IReadOnlyList<string> preface, int prefaceY, IReadOnlyList<string> heading, int headingY, IReadOnlyList<string> hint, int hintY, IReadOnlyList<CheckOptionLayout> options, PixelBox? input, int bottom)
+    private CheckCardLayout(IReadOnlyList<string> preface, int prefaceY, IReadOnlyList<string> heading, int headingY, bool headingLarge, int headingRow, IReadOnlyList<string> hint, int hintY, IReadOnlyList<CheckOptionLayout> options, PixelBox? input, int bottom)
     {
+        HeadingLarge = headingLarge;
+        HeadingRow = headingRow;
         Preface = preface;
         PrefaceY = prefaceY;
         Heading = heading;
@@ -106,6 +120,12 @@ public sealed class CheckCardLayout
 
     /// <summary>The y of the first heading row.</summary>
     public int HeadingY { get; }
+
+    /// <summary>Whether the heading is in the large font; a compact card gives a heading of more than two rows the small font (X08), so it takes the room of fewer rows.</summary>
+    public bool HeadingLarge { get; }
+
+    /// <summary>The height of a heading row (the large row, or <see cref="SmallRow"/> plus two when the heading is small).</summary>
+    public int HeadingRow { get; }
 
     /// <summary>The rows of the hint under the heading, in the small font.</summary>
     public IReadOnlyList<string> Hint { get; }
@@ -149,9 +169,9 @@ public sealed class CheckCardLayout
         var side = SideFor(panel);
         var inner = panel.Width - (2 * side);
         var y = panel.Y + TopFor(panel);
-        var heading = TextWrap.Wrap(question, inner, large);
+        var (heading, headingLarge, headingRow) = HeadingFor(panel, question, inner, large, small);
         var headingY = y;
-        y += (heading.Count * LargeRowFor(panel)) + 4;
+        y += (heading.Count * headingRow) + 4;
         var hintRows = TextWrap.Wrap(hint, inner, small);
         var hintY = y;
         y += (hintRows.Count * SmallRow) + 10;
@@ -174,7 +194,7 @@ public sealed class CheckCardLayout
             y += OptionHeightFor(panel) + OptionGapFor(panel);
         }
 
-        return new CheckCardLayout([], 0, heading, headingY, hintRows, hintY, laid, null, y - OptionGapFor(panel));
+        return new CheckCardLayout([], 0, heading, headingY, headingLarge, headingRow, hintRows, hintY, laid, null, y - OptionGapFor(panel));
     }
 
     /// <summary>Lays out a production item: the line before, the situation, the hint and the text box.</summary>
@@ -192,13 +212,13 @@ public sealed class CheckCardLayout
         var prefaceRows = TextWrap.Wrap(preface, inner, small);
         var prefaceY = y;
         y += (prefaceRows.Count * SmallRow) + 8;
-        var heading = TextWrap.Wrap(situation, inner, large);
+        var (heading, headingLarge, headingRow) = HeadingFor(panel, situation, inner, large, small);
         var headingY = y;
-        y += (heading.Count * LargeRowFor(panel)) + 6;
+        y += (heading.Count * headingRow) + 6;
         var hintRows = TextWrap.Wrap(hint, inner, small);
         var hintY = y;
         y += (hintRows.Count * SmallRow) + 8;
         var input = new PixelBox(panel.X + side, y, inner, InputHeightFor(panel));
-        return new CheckCardLayout(prefaceRows, prefaceY, heading, headingY, hintRows, hintY, [], input, input.Bottom);
+        return new CheckCardLayout(prefaceRows, prefaceY, heading, headingY, headingLarge, headingRow, hintRows, hintY, [], input, input.Bottom);
     }
 }

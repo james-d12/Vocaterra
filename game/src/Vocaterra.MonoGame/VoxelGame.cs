@@ -67,7 +67,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
 
     private static readonly (Keys Key, LessonKey Lesson)[] LessonKeys =
     [
-        (Keys.Enter, LessonKey.Enter), (Keys.K, LessonKey.K), (Keys.L, LessonKey.L),
+        (Keys.Enter, LessonKey.Enter), (Keys.K, LessonKey.K), (Keys.L, LessonKey.L), (Keys.M, LessonKey.M),
         (Keys.D1, LessonKey.D1), (Keys.D2, LessonKey.D2), (Keys.D3, LessonKey.D3), (Keys.D4, LessonKey.D4),
         (Keys.NumPad1, LessonKey.D1), (Keys.NumPad2, LessonKey.D2), (Keys.NumPad3, LessonKey.D3), (Keys.NumPad4, LessonKey.D4),
     ];
@@ -109,6 +109,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     private bool _greetArmed = true;
     private readonly LessonFrontend _lesson;
     private bool _controlsOpen;
+    private int _controlsScroll;
     private bool _aimedTipOffered;
     private readonly NpcVoice _voice;
     private readonly TurnWatchdog _watchdog = new();
@@ -721,6 +722,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         view.Aimed = _aimed;
         view.Check = _check;
         view.ControlsOpen = _controlsOpen;
+        view.ControlsScroll = _controlsScroll;
         view.Report = _report;
         view.Loading = _session.Worker!.IsReady ? null : LoadingLayer.Text;
         _dialogue.SpeechUnavailable = _session.Worker.IsReady && !_session.Worker.CanHear;
@@ -1062,6 +1064,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
                 if (Pressed(Keys.Escape) || Pressed(Keys.F1))
                 {
                     _controlsOpen = false; // the controls help (F1, S16)
+                    _controlsScroll = 0;
+                }
+                else
+                {
+                    // When the controls do not all fit the canvas (a large text size), Up and Down and the wheel scroll the list (X08).
+                    var maxScroll = ControlsLayer.MaxScrollFor(_view!);
+                    var step = (Pressed(Keys.Down) ? 1 : 0) - (Pressed(Keys.Up) ? 1 : 0) + (Pressed(Keys.PageDown) ? 5 : 0) - (Pressed(Keys.PageUp) ? 5 : 0);
+                    var wheelNotches = -(int)Math.Round((mouse.ScrollWheelValue - _previousWheel) / 120.0);
+                    _controlsScroll = Math.Clamp(_controlsScroll + step + wheelNotches, 0, maxScroll);
                 }
             }
             else if (_book.IsOpen)

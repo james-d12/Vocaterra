@@ -232,7 +232,7 @@ public readonly record struct DialogueLayout
     public const int CompactMargin = 8;
 
     /// <summary>The shortest a compact panel is.</summary>
-    public const int CompactMinHeight = 200;
+    public const int CompactMinHeight = 190;
 
     /// <summary>Whether a canvas of this height gets the compact panel.</summary>
     /// <param name="viewportHeight">The canvas's height.</param>
@@ -251,7 +251,7 @@ public readonly record struct DialogueLayout
         var margin = compact ? CompactMargin : Margin;
         var width = Math.Min(MaxWidth, Math.Max(viewportWidth - (margin * 2), 200));
         var height = compact
-            ? Math.Min(PanelHeight, Math.Max((int)Math.Round(viewportHeight * 0.52), CompactMinHeight))
+            ? Math.Min(PanelHeight, Math.Max((int)Math.Round(viewportHeight * 0.5), CompactMinHeight))
             : Math.Min(PanelHeight, Math.Max(viewportHeight - (margin * 2), 120));
         height = Math.Min(height, Math.Max(120, viewportHeight - (margin * 2)));
         return new PixelBox((viewportWidth - width) / 2, viewportHeight - height - margin, width, height);
@@ -277,12 +277,13 @@ public readonly record struct DialogueLayout
         Choices = [];
         HintRows = [];
         var rowGap = compact ? 4 : Gap; // the gap between rows (the gap between buttons of one row stays Gap)
-        var widths = SpeechButtons.All.Select(button => (int)Math.Ceiling(measure(buttonText?.Invoke(button) ?? button.Text)) + (ButtonPadding * 2)).ToList();
-
-        // Two passes: with the key hints line, and, on a compact panel that has no room left for the conversation, without it.
-        for (var pass = 0; pass < 2; pass++)
+        // Three passes: with the key hints line and the buttons' English; on a compact panel that has no room left for the conversation, without the hints line; and, still short of
+        // room, with the buttons in Spanish alone (their keys are on them, and the lesson strip has the English).
+        for (var pass = 0; pass < 3; pass++)
         {
             var showHints = pass == 0;
+            ButtonsGlossed = pass < 2 && buttonText is not null;
+            var widths = SpeechButtons.All.Select(button => (int)Math.Ceiling(measure(pass < 2 ? buttonText?.Invoke(button) ?? button.Text : button.Text)) + (ButtonPadding * 2)).ToList();
             HasHints = showHints;
             var hintRows = hints is null ? [string.Empty] : HintRowsFor(hints, InnerWidth, measure);
             HintRows = showHints ? hintRows : [];
@@ -388,6 +389,9 @@ public readonly record struct DialogueLayout
 
     /// <summary>The rows of the key hints (empty when they are not shown).</summary>
     public IReadOnlyList<string> HintRows { get; }
+
+    /// <summary>Whether the fixed buttons carry their English (S17); a compact panel short of room shows them in Spanish alone.</summary>
+    public bool ButtonsGlossed { get; }
 
     /// <summary>Whether the key hints line is shown (a compact panel without the room leaves it out).</summary>
     public bool HasHints { get; }

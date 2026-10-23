@@ -107,12 +107,13 @@ public sealed class ConversationFrame
             labelAvoid.Add(stripToAvoid);
         }
 
+        var labelSoft = new List<PixelBox>();
         if (head is { } headBox)
         {
-            labelAvoid.Add(ConversationLayout.Union(headBox, bubbleBox));
+            labelSoft.Add(ConversationLayout.Union(headBox, bubbleBox));
         }
 
-        var beaconLabel = BeaconArrowLayer.LabelFor(view, labelAvoid)?.Box;
+        var beaconLabel = BeaconArrowLayer.LabelFor(view, labelAvoid, labelSoft)?.Box;
         var extraClear = new List<PixelBox>();
         if (beaconLabel is { } label)
         {

@@ -8,6 +8,10 @@ namespace Vocaterra.MonoGame;
 /// <summary>Small drawing helpers over the 1 x 1 white texture and the font: rectangles, borders, rotated bars and text with a shadow.</summary>
 public static class DrawHelpers
 {
+    /// <summary>A palette colour (<see cref="UiPalette"/>) as an engine colour.</summary>
+    /// <param name="colour">The colour.</param>
+    public static Color ToColor(this Rgb colour) => new(colour.R, colour.G, colour.B);
+
     /// <summary>Fills a rectangle.</summary>
     public static void Fill(SpriteBatch spriteBatch, Texture2D pixel, Rectangle area, Color color) => spriteBatch.Draw(pixel, area, color);
 

@@ -51,7 +51,7 @@ public sealed class DialoguePanel : IFrameLayer
     public static readonly Color NameColor = new(255, 204, 110);
     private static readonly Color Frame = new(255, 214, 64);
     private static readonly Color PlayerColor = new(150, 205, 255);
-    private static readonly Color NoteColor = new(140, 140, 150);
+    private static readonly Color NoteColor = UiPalette.Muted.ToColor();
     private static readonly Color CorrectionColor = new(255, 190, 110);
     private static readonly Color GuideColor = new(255, 242, 180);
     private static readonly Color WorldColor = new(170, 255, 190);
@@ -114,7 +114,7 @@ public sealed class DialoguePanel : IFrameLayer
         {
             var button = SpeechButtons.All.First(b => b.Action == action);
             var focused = dialogue.TypingOffered && action == SpeechAction.Type;
-            DrawButton(spriteBatch, view, font, box, SpeechButtons.TextFor(button, view.Session), mouse, focused ? HintColor : null, ButtonBack);
+            DrawButton(spriteBatch, view, font, box, layout.ButtonsGlossed ? SpeechButtons.TextFor(button, view.Session) : button.Text, mouse, focused ? HintColor : null, ButtonBack);
         }
 
         for (var i = 0; i < layout.Choices.Count; i++)

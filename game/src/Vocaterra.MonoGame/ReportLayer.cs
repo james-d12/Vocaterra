@@ -33,9 +33,9 @@ public sealed class ReportLayer : IFrameLayer
     private static readonly Color ButtonHover = new(60, 60, 96, 245);
     private static readonly Color ButtonSelected = new(70, 62, 110, 245);
     private static readonly Color ButtonText = new(236, 236, 246);
-    private static readonly Color NoteColor = new(140, 140, 150);
+    private static readonly Color NoteColor = UiPalette.Muted.ToColor();
     private static readonly Color NoticeColor = new(255, 150, 120);
-    private static readonly Color PlaceholderColor = new(120, 120, 140);
+    private static readonly Color PlaceholderColor = UiPalette.Placeholder.ToColor();
 
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
