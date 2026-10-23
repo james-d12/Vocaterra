@@ -320,9 +320,9 @@ not made. The German milestones stay parked (D14).
 
 | X04 | Session summary card from the learner's record (R01), and a second try after "No sé" in the same session (R02) | done (merged to `feature/experiment` 2026-10-23, `6e14821`) | Haiku 5.5 | X01 |
 | X05 | Autosave at safe points, and a crash handler around `game.Run()` that writes a crash report next to the F8 reports (R04) | done (merged to `feature/experiment` 2026-10-23, `001d75a`) | Haiku 5.5 | X01 |
-| X06 | Review deck: a session warm-up of due items, a "Review now" button in the book, and a `review` lesson step that brings earlier phrases back inside later lessons (R06, R07) | planned | Sonnet 5.5 | X03, X04 |
+| X06 | Review deck: a session warm-up of due items, a "Review now" button in the book, and a `review` lesson step that brings earlier phrases back inside later lessons (R06, R07) | in progress | Sonnet 5.5 | X03, X04 |
 | X07 | Tools for the owner: `--mic-lab` (measure the real microphone path) and `--bench-route` (a real-GPU benchmark). Built only: the agent runs neither (R03 first half, R13) | planned | Haiku 5.5 | X05 |
-| X08 | UI scale and readable text: a text-scale setting and layouts that hold at larger sizes (R09) | in progress | Sonnet 5.5 | X03 |
+| X08 | UI scale and readable text: a text-scale setting and layouts that hold at larger sizes (R09) | done (merged to `feature/experiment` 2026-10-23, `f3cf721`) | Sonnet 5.5 | X03 |
 | X09 | Playtest tooling: per-step evidence in the report, and a test that keeps the playtest documents' counts equal to the bundle (R10; the counts drifted in S26, S27 and S28) | planned | Haiku 5.5 | X04 |
 
 **Waiting on the owner** (from X00's open questions; not planned until answered):
@@ -1288,6 +1288,39 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - **Not fixed:**
     - `vamos a comer` is not labelled "we are going to"; the table's future column counts it;
     - a genuine command that has an indicative twin reads as the present.
+- **X08, UI scale and readable text (2026-10-23, Sonnet 5.5; merged to `feature/experiment` `f3cf721`).**
+  - **The scale.** 100, 125 or 150 % (`--text-scale`, F9, and the save's `SaveSettings.TextScale`). The 2D layers lay out on a window/scale
+    canvas, so every engine-free layout model just gets a smaller canvas, down to 533 x 400. `UiScale.Effective` lowers the scale for a
+    window too small. Atlas pictures are drawn in window pixels. The font floor is 16 px.
+  - **Layouts degrade predictably.**
+    - Dialogue: drops its hints, then the buttons' English, then collapses the log.
+    - Lesson strip: pages long English (`[M] More`), wraps its buttons, and two rows of Spanish. The longest step is 431 characters, which
+      were silently cut before.
+    - Check card: compact metrics.
+    - Book: narrow ribbons and stacked tenses.
+    - Checklist and toast: wrap.
+    - F1 help: scrolls.
+    - Crafting: drops its station column.
+    - F3 overlay: hidden on small canvases.
+  - **Contrast.** `UiPalette` has 35 pairs, all at least 4.5 : 1 on their panel and over a bright sky (WCAG AA; tested). Raised: dialogue
+    notes 5.69 to 7.35, the book's unseen ink 3.25 to 5.04, the support card's hint about 2.7 to 7.35, and the ribbons.
+  - **Bugs fixed:**
+    - the check card's option 3 overlapped the footer at 800 x 600 and 150 %;
+    - a ribbon fell off the cover;
+    - the strip ran over the checklist and the panel;
+    - the beacon label crossed the strip;
+    - the workbench panel overlapped the checklist;
+    - F1 help overflowed even at 100 %;
+    - the hotbar icons bled.
+  - **Checked by the orchestrator:**
+    - the gate (4,908 passed, 5 skipped; 92 new tests on six canvases);
+    - the conversation at 800 x 600 and 150 %;
+    - the README route on the merged branch (38 lesson steps, the Vosk step, session complete).
+  - **Not fixed:**
+    - colour-only signals are only partly addressed;
+    - fractional magnification gives uneven pixel strokes;
+    - the word card and the workbench panel may overlap on the smallest canvas;
+    - `--report-open` does not end a scripted run, by S21's design.
 
 ## 6. Definition of done (every milestone)
 
