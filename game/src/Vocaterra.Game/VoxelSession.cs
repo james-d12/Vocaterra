@@ -102,6 +102,11 @@ public sealed class VoxelSession : GuideSession
             return [new ObjectivePiece(replay, ObjectivePieceKind.English)]; // the learner asked to practise a lesson again from the book (S26)
         }
 
+        if (Deck.PendingHud is { } review)
+        {
+            return [new ObjectivePiece(review, ObjectivePieceKind.English)]; // the learner asked for a review from the book (X06)
+        }
+
         if (Stage is SessionStage.Complete or SessionStage.FindGuide && Lessons.NewLesson is { Objective: { } objective })
         {
             return [new ObjectivePiece(objective, ObjectivePieceKind.English)]; // a new session's lesson is unlocked and not begun: the objective names it (S26)

@@ -30,6 +30,8 @@ public static class PhraseReviews
         [PhraseIds.Hello] = "guide.lesson.hello.1", // S17: the lesson's phrases (Rosa says "¡Hola!", offers fruit) are asked again with the lines of the lesson
         [PhraseIds.Yes] = "guide.lesson.offer.1",
         [PhraseIds.No] = "guide.lesson.offer.1",
+        [PhraseIds.Thanks] = "guide.lesson.have.1", // X06: the guide hands over the fruit ("¡Muy bien! Tienes una fruta."), as in the lesson, and the learner thanks her
+        ["necesito-agua"] = "guide.lesson.need.1", // the lesson's own question ("¿Qué necesitas?"), asked again
     };
 
     /// <summary>The bundle pool that holds the request line of a phrase's review: <c>guide.review.phrase.pedir_agua</c> (hyphens become underscores).</summary>
@@ -59,9 +61,41 @@ public static class PhraseReviews
             return new PhraseReview(phraseId, prompt, pool.Variants[0].Text, true);
         }
 
-        return Placeholders.TryGetValue(phraseId, out var lineId) && TextOf(bundle, lineId) is { } text
-            ? new PhraseReview(phraseId, prompt, text, false)
-            : null;
+        if (Placeholders.TryGetValue(phraseId, out var lineId) && TextOf(bundle, lineId) is { } text)
+        {
+            return new PhraseReview(phraseId, prompt, text, false);
+        }
+
+        // X06: a phrase of a lesson is asked with the line its lesson asks it with, which the phrase sheet names as the audio of the row the guide says for the same prompt
+        // (for example "quiero madera" with the guide's "¿Qué quieres?"). Only a line of the guide: the review is hers. No new Spanish.
+        foreach (var heard in sheet.Rows.Where(row => string.Equals(row.Says, "hears", StringComparison.Ordinal) && string.Equals(row.Prompt, prompt, StringComparison.Ordinal)))
+        {
+            foreach (var audio in heard.AudioLineIds)
+            {
+                if (FindLine(bundle, audio) is { } found && string.Equals(SpeechSpeakers.OfPool(found.PoolId), SpeechSpeakers.Guide, StringComparison.Ordinal))
+                {
+                    return new PhraseReview(phraseId, prompt, found.Text, false);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static (string PoolId, string Text)? FindLine(ContentBundle bundle, string lineId)
+    {
+        foreach (var pool in bundle.Dialogue.Pools.Values)
+        {
+            foreach (var variant in pool.Variants)
+            {
+                if (string.Equals(variant.LineId, lineId, StringComparison.Ordinal))
+                {
+                    return (pool.PoolId, variant.Text);
+                }
+            }
+        }
+
+        return null;
     }
 
     private static string? TextOf(ContentBundle bundle, string lineId)

@@ -78,12 +78,13 @@ public sealed class EnglishText
     public static IReadOnlyList<string> UiKeys { get; } =
     [
         "english", "lesson", "stepOf", "continue", "skip", "help", "startLesson", "lessonDone", "retry", "helpDefault", "recapTitle", "controlsTitle", "controlsClose",
-        "tipNext", "controlsHint", "stepExplain", "stepModel", "stepListen", "stepRepeat", "stepAnswer", "stepDo", "stepRecap", "outcomeDone", "outcomeSkipped", "outcomeMovedOn",
+        "tipNext", "controlsHint", "stepExplain", "stepModel", "stepListen", "stepRepeat", "stepAnswer", "stepDo", "stepRecap", "stepReview", "outcomeDone", "outcomeSkipped", "outcomeMovedOn",
         "objectiveFindGuide", "objectiveLightFire", "objectiveComplete", "spareTorch", "sessionCompleteTitle", "sessionCompleteLine", "sessionCompleteKeys",
         "btnRepeat", "btnSlower", "btnHelp", "btnDontKnow", "btnType",
-        "summaryTitle", "summaryLessons", "summaryLessonDone", "summaryLessonAdvanced", "summaryWords", "summaryUnaided", "summaryForms", "summaryPractise",
+        "summaryTitle", "summaryLessons", "summaryLessonDone", "summaryLessonAdvanced", "summaryWords", "summaryUnaided", "summaryReviewed", "summaryForms", "summaryPractise",
         "summaryPractiseNoSe", "summaryPractiseSlip", "summaryPractiseSupport", "summaryPractiseNone", "summaryReplay", "summaryNone", "summaryMore",
         "tensePres", "tensePret", "tenseImpf", "tenseFut", "person1", "person2", "person3", "singular", "plural", "retryAgain",
+        "warmupTitle", "warmupOffer", "warmupOfferOne", "warmupStart", "warmupAsk", "warmupDone", "warmupDoneOne", "reviewNowHud",
     ];
 
     /// <summary>The most error lines one turn's feedback carries.</summary>

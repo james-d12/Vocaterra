@@ -24,6 +24,7 @@
     "stepAnswer": "Answer",
     "stepDo": "Do it",
     "stepRecap": "Recap",
+    "stepReview": "Remember it",
     "outcomeDone": "done",
     "outcomeSkipped": "skipped",
     "outcomeMovedOn": "moved on",
@@ -45,6 +46,7 @@
     "summaryLessonAdvanced": "{title} begun ({steps} steps done)",
     "summaryWords": "New words: {items}",
     "summaryUnaided": "Said without help: {items}",
+    "summaryReviewed": "Reviewed: {items}",
     "summaryForms": "Verb forms used: {items}",
     "summaryPractise": "Next time, practise: {items}",
     "summaryPractiseNoSe": "{phrase} (you said I don't know)",
@@ -63,7 +65,15 @@
     "person3": "3rd",
     "singular": "singular",
     "plural": "plural",
-    "retryAgain": "Let's try that one again: {english}"
+    "retryAgain": "Let's try that one again: {english}",
+    "warmupTitle": "Warm-up",
+    "warmupOffer": "{n} phrases from last time are ready for a quick warm-up. Not a test: skip it any time.",
+    "warmupOfferOne": "A phrase from last time is ready for a quick warm-up. Not a test: skip it any time.",
+    "warmupStart": "Start the warm-up",
+    "warmupAsk": "She asks about something from before. Say your answer. H helps, K skips this one.",
+    "warmupDone": "Warm-up done: {n} phrases reviewed.",
+    "warmupDoneOne": "Warm-up done: 1 phrase reviewed.",
+    "reviewNowHud": "Review now: talk to {npc} to start the warm-up"
   },
   "npcNames": {
     "guide": "The guide",

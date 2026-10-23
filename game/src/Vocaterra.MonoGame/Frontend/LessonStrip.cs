@@ -250,7 +250,7 @@ public sealed class LessonStripLayout
         var inner = width - (pad * 2);
         if (view is null)
         {
-            return offer is null ? null : ForOffer(ui, offer, panel, limitTop, inner, measure);
+            return offer is null ? null : ForOffer(ui, offer, panel, limitTop, inner, measure, compact);
         }
 
         var englishAll = TextWrap.Wrap(DialoguePanel.EnglishPrefix + view.English, inner, measure);
@@ -402,17 +402,40 @@ public sealed class LessonStripLayout
         return cut;
     }
 
-    private static LessonStripLayout ForOffer(EnglishText ui, LessonOffer offer, PixelBox panel, int limitTop, int inner, Func<string, float> measure)
+    private static LessonStripLayout ForOffer(EnglishText ui, LessonOffer offer, PixelBox panel, int limitTop, int inner, Func<string, float> measure, bool compact)
     {
-        var rows = TextWrap.Wrap(DialoguePanel.EnglishPrefix + offer.English, inner, measure).Take(2).ToList();
-        var height = Padding + LineHeight + (rows.Count * LineHeight) + Gap + ButtonHeight + Padding;
-        var y = Math.Max(4, limitTop - Gap - height);
+        // The warm-up (X06) has two buttons, Start and Skip; a lesson on offer has Start. A button row too wide for the strip goes on to the next, as for a step.
+        var pad = compact ? CompactPadding : Padding;
+        var buttonHeight = compact ? CompactButtonHeight : ButtonHeight;
+        var rowGap = compact ? 4 : Gap;
+        var rows = Cut(TextWrap.Wrap(DialoguePanel.EnglishPrefix + offer.English, inner, measure), 2, measure, inner);
+        var labels = new List<(LessonAction Action, string Text)> { (LessonAction.Start, $"[{KeyLabel(LessonAction.Start)}] {ui.Ui(offer.Warmup ? "warmupStart" : "startLesson")}") };
+        if (offer.Warmup)
+        {
+            labels.Add((LessonAction.Skip, $"[{KeyLabel(LessonAction.Skip)}] {ui.Ui("skip")}"));
+        }
+
+        var widths = labels.Select(l => Math.Min((int)Math.Ceiling(measure(l.Text)) + (ButtonPadding * 2), inner)).ToList();
+        var rowOf = Rows(widths, inner, out var rowCount);
+        var height = pad + LineHeight + (rows.Count * LineHeight) + rowGap + (rowCount * buttonHeight) + ((rowCount - 1) * rowGap) + pad;
+        var y = Math.Max(MinTop, limitTop - Gap - height);
         var box = new PixelBox(panel.X, y, panel.Width, height);
-        var headingY = y + Padding - 4;
-        var text = $"[{KeyLabel(LessonAction.Start)}] {ui.Ui("startLesson")}";
-        var buttonWidth = (int)Math.Ceiling(measure(text)) + (ButtonPadding * 2);
-        var button = new PixelBox(panel.X + Padding, box.Bottom - Padding - ButtonHeight, buttonWidth, ButtonHeight);
-        return new LessonStripLayout(box, Padding, headingY, null, [], headingY + LineHeight, rows, 0, 1, box.Bottom, [], [(LessonAction.Start, button, text)]);
+        var headingY = y + pad - 4;
+        var buttonsTop = box.Bottom - pad - (rowCount * buttonHeight) - ((rowCount - 1) * rowGap);
+        var buttons = new List<(LessonAction, PixelBox, string)>();
+        var x = panel.X + pad;
+        for (var i = 0; i < labels.Count; i++)
+        {
+            if (i > 0 && rowOf[i] != rowOf[i - 1])
+            {
+                x = panel.X + pad;
+            }
+
+            buttons.Add((labels[i].Action, new PixelBox(x, buttonsTop + (rowOf[i] * (buttonHeight + rowGap)), widths[i], buttonHeight), labels[i].Text));
+            x += widths[i] + Gap;
+        }
+
+        return new LessonStripLayout(box, pad, headingY, null, [], headingY + LineHeight, rows, 0, 1, box.Bottom, [], buttons);
     }
 
     /// <summary>The heading of a strip for a lesson step: <c>Lesson · A first hello · step 1 of 2 · Say it</c>.</summary>
@@ -423,7 +446,9 @@ public sealed class LessonStripLayout
         ArgumentNullException.ThrowIfNull(ui);
         ArgumentNullException.ThrowIfNull(view);
         var step = ui.Ui("stepOf", ("n", view.StepNumber.ToString(System.Globalization.CultureInfo.InvariantCulture)), ("total", view.StepCount.ToString(System.Globalization.CultureInfo.InvariantCulture)));
-        return $"{ui.Ui("lesson")} · {view.Title} · {step} · {view.Heading}";
+        return string.Equals(view.LessonId, ReviewDeck.StripId, StringComparison.Ordinal)
+            ? $"{view.Title} · {step} · {view.Heading}" // the warm-up is not a lesson (X06)
+            : $"{ui.Ui("lesson")} · {view.Title} · {step} · {view.Heading}";
     }
 
     /// <summary>The heading of the strip of a lesson on offer: <c>Lesson · A first hello</c>.</summary>
@@ -433,6 +458,6 @@ public sealed class LessonStripLayout
     {
         ArgumentNullException.ThrowIfNull(ui);
         ArgumentNullException.ThrowIfNull(offer);
-        return $"{ui.Ui("lesson")} · {offer.Title}";
+        return offer.Warmup ? offer.Title : $"{ui.Ui("lesson")} · {offer.Title}";
     }
 }

@@ -62,7 +62,7 @@ public sealed record AppliedTurn(TurnOutcome Outcome, WordTurnResult? Words)
 /// <see cref="Say"/> is the synchronous path (tests and the console host's sibling): do not mix it with the worker.
 /// </para>
 /// </remarks>
-public abstract class GuideSession : IDisposable
+public abstract partial class GuideSession : IDisposable
 {
     /// <summary>The line the <c>Ayuda</c> button sends (the intent <c>ask_help</c> is allowed at every prompt).</summary>
     public const string HelpLine = "ayuda";
@@ -133,6 +133,7 @@ public abstract class GuideSession : IDisposable
         PhraseProgress = new PhraseProgress(Phrases, playSession, book.TaughtPhrases);
         Support = new PhraseSupport(Phrases, PhraseProgress, bundle, English);
         Lessons = new LessonRunner(this, book, English);
+        Deck = new ReviewDeck(this);
         Tips = new TipFeed(this, English);
         _liveFacts = liveFacts;
         _npcs = new NpcService(bundle, liveFacts, nouns, worldSeed, new StoredTimestamp(startedAt), recipes);
@@ -493,6 +494,7 @@ public abstract class GuideSession : IDisposable
         CurrentNpc = npc;
         _talkOpen = true;
         _delayedOpening = null;
+        _deckClaim = Deck.Claims(npc);
         if (string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal))
         {
             NoteGuideMet();
@@ -507,6 +509,8 @@ public abstract class GuideSession : IDisposable
         var opening = OpenNow(npc, logOpened: true);
         Lessons.OnTalkOpened(npc); // a lesson attached to this NPC takes up where it stopped, or starts by itself when its file says so (S16)
         OfferSecondTry(npc);
+        Deck.OnTalkOpened(npc); // the warm-up offer of a new session, or the review asked for from the book (X06)
+        _deckClaim = false;
         return opening;
     }
 
@@ -701,7 +705,7 @@ public abstract class GuideSession : IDisposable
                 {
                     opening = opening with { Lines = [] }; // her lesson speaks first (S17): no "¿En qué te ayudo?" before the first step
                 }
-                else
+                else if (!_deckClaim)
                 {
                     _ = BeginTalk();
                 }
@@ -744,6 +748,7 @@ public abstract class GuideSession : IDisposable
     public void EndTalk()
     {
         Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.TalkClosed, CurrentNpc));
+        Deck.OnTalkClosed(); // an offer or a warm-up left standing is over (X06)
         EndReview();
         Lessons.OnTalkClosed();
         _talkOpen = false;
@@ -772,6 +777,7 @@ public abstract class GuideSession : IDisposable
             ? new GuideScene(Viewpoint, cursor, Pointer is not null, Inventory: LiveInventory, PromptOverride: phraseReview?.Prompt ?? Lessons.ActivePrompt)
             : new GuideScene(Viewpoint, review.Target, Pointer is not null, Review: true, Inventory: LiveInventory);
         var turn = _npcs.Say(CurrentNpc, line, scene, StoredTime, StateDigest());
+        PhraseReview? answeredReview = null;
         if (review is not null && turn.Communicated)
         {
             EndReview(); // understood: the question is answered (a line the guide did not understand leaves it open for another try)
@@ -779,6 +785,7 @@ public abstract class GuideSession : IDisposable
         else if (phraseReview is not null && turn.Communicated && !IsHelpRequest(turn) && ReferenceEquals(phraseReview, PhraseReview))
         {
             PhraseReview = null; // answered (a request for help leaves the review open: the card goes up and the next line is the answer)
+            answeredReview = phraseReview;
         }
 
         if (turn.Pointer is { Blocks: > 0 } pointer)
@@ -788,7 +795,13 @@ public abstract class GuideSession : IDisposable
 
         LastWordTurn = Words.RecordTurn(turn, turn.Input, Credit, StoredTime.UnixSeconds);
         RecordTurnLine(turn, StoredTime.UnixSeconds); // the learner's history (S19): the synchronous path records its lines like the worker's
-        return AfterTurn(turn, Tick, StoredTime.UnixSeconds, phraseReview, support);
+        var afterwards = AfterTurn(turn, Tick, StoredTime.UnixSeconds, phraseReview, support);
+        if (answeredReview is not null)
+        {
+            Deck.AfterAnswer(answeredReview); // the next item of the warm-up is asked, once this answer has been counted (X06)
+        }
+
+        return afterwards;
     }
 
     /// <summary>
@@ -981,6 +994,7 @@ public abstract class GuideSession : IDisposable
     internal AppliedTurn Apply(TurnOutcome outcome)
     {
         WordTurnResult? words = null;
+        PhraseReview? answeredReview = null;
         if (!outcome.Cancelled && outcome.Turn is { } turn)
         {
             if (outcome.Request.Review is { } review && turn.Communicated && ReferenceEquals(review, Review))
@@ -990,6 +1004,7 @@ public abstract class GuideSession : IDisposable
             else if (outcome.Request.PhraseReview is { } phraseReview && turn.Communicated && !IsHelpRequest(turn) && ReferenceEquals(phraseReview, PhraseReview))
             {
                 PhraseReview = null;
+                answeredReview = phraseReview;
             }
 
             if (turn.Pointer is { Blocks: > 0 } pointer)
@@ -1004,6 +1019,11 @@ public abstract class GuideSession : IDisposable
             if (!ReferenceEquals(shown, turn))
             {
                 outcome = outcome with { Turn = shown }; // the lesson took the turn, or the guide says her last line again (S17)
+            }
+
+            if (answeredReview is not null)
+            {
+                Deck.AfterAnswer(answeredReview); // the next item of the warm-up is asked, once this answer has been counted (X06)
             }
         }
         else if (!outcome.Cancelled && outcome.Grade is { } grade && outcome.Request.Check is { } item)

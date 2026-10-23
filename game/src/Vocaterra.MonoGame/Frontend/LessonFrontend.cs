@@ -30,6 +30,7 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
     /// </summary>
     public void Pump()
     {
+        PumpDeck();
         if (!dialogue.IsOpen || !AtLessonsNpc || session.Lessons.View is not { } view)
         {
             if (session.Lessons.View is null)
@@ -54,7 +55,31 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
         }
     }
 
-    /// <summary>The lesson strip's state now: the step in progress, or the lesson on offer at the NPC the panel is open on.</summary>
+    // The review deck's part of a frame (X06): the guide's request for the next item of the warm-up goes on the panel, and a note (the warm-up is done) goes to the game.
+    private void PumpDeck()
+    {
+        foreach (var line in session.Deck.TakeLines())
+        {
+            if (dialogue.IsOpen)
+            {
+                dialogue.AddNpcLine(line);
+            }
+        }
+
+        foreach (var note in session.Deck.TakeNotes())
+        {
+            log($"warm-up: {note}");
+            OnNote?.Invoke(note);
+        }
+    }
+
+    /// <summary>Called with an English note the game shows as a toast (the warm-up is done, X06). <see langword="null"/> for none (the tests').</summary>
+    public Action<string>? OnNote { get; set; }
+
+    /// <summary>
+    /// The lesson strip's state now: the step in progress, or the lesson on offer at the NPC the panel is open on. The review deck's warm-up (X06) shows in the same
+    /// strip: its offer in place of a lesson's, and its item in progress in place of a step.
+    /// </summary>
     /// <returns>The step and the offer; at most one of them is set.</returns>
     public (LessonView? View, LessonOffer? Offer) State()
     {
@@ -64,7 +89,17 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
         }
 
         var view = AtLessonsNpc ? session.Lessons.View : null;
-        return view is not null ? (view, null) : (null, session.Lessons.OfferFor(dialogue.Npc));
+        if (view is not null)
+        {
+            return (view, null);
+        }
+
+        if (session.Deck.ViewFor(dialogue.Npc) is { } warmup)
+        {
+            return (warmup, null);
+        }
+
+        return (null, session.Deck.OfferFor(dialogue.Npc) ?? session.Lessons.OfferFor(dialogue.Npc));
     }
 
     // The panel is open on the NPC the engaged lesson is attached to: a lesson that stays engaged (autoStart) is not drawn over another NPC's panel.
@@ -85,7 +120,7 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
         {
             LessonAction.Start => offer is not null,
             LessonAction.Continue => view is { CanContinue: true },
-            LessonAction.Skip => view is not null,
+            LessonAction.Skip => view is not null || offer is { Warmup: true },
             LessonAction.More => view is not null,
             LessonAction.Option1 or LessonAction.Option2 or LessonAction.Option3 or LessonAction.Option4 => view is { Type: LessonStepType.Listen, CanContinue: false },
             _ => false,
@@ -106,9 +141,28 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
         }
 
         var runner = session.Lessons;
+        var (state, shown) = State();
+        var warmup = shown is { Warmup: true } ? shown : null;
+        var running = state is not null && string.Equals(state.LessonId, ReviewDeck.StripId, StringComparison.Ordinal);
         bool done;
         switch (action)
         {
+            case LessonAction.Start when warmup is not null:
+                done = session.Deck.Accept(); // the offered warm-up begins (X06)
+                break;
+            case LessonAction.Skip when warmup is not null:
+                done = session.Deck.SkipAll();
+                break;
+            case LessonAction.Skip when running:
+                done = session.Deck.SkipItem();
+                break;
+            case LessonAction.Help when running:
+                _ = session.SubmitHelp(null); // the panel's own Ayuda: the card goes up and the next line is the answer
+                dialogue.BeginLine(SpeechButtons.HelpLabel);
+                done = true;
+                break;
+            case LessonAction.More when running:
+                return false;
             case LessonAction.Start:
                 done = runner.OfferFor(dialogue.Npc) is { } offer && runner.Start(offer.LessonId);
                 break;
