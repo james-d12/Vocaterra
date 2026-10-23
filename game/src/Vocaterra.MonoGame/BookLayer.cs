@@ -329,7 +329,11 @@ public sealed class BookLayer : IFrameLayer
         }
 
         var reserved = 0;
-        if (line.Right is { } rightText)
+
+        // A row with an English aside keeps its Spanish and its English whole before its right-hand note (the state of a phrase's help): the note is left for the right page
+        // when the row is too narrow for all three, which it is on a page of 800 x 600.
+        var roomForNote = line.Aside is null || DrawHelpers.Width(font, line.Text) + Gutter + DrawHelpers.Width(font, line.Aside) + (Gutter * 2) + DrawHelpers.Width(font, line.Right ?? string.Empty) <= rightEdge - x;
+        if (line.Right is { } rightText && roomForNote)
         {
             var fitted = Fit(font, rightText, textWidth / 2);
             var width = (int)DrawHelpers.Width(font, fitted);
