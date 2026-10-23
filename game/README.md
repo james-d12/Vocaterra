@@ -724,6 +724,18 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --load /tmp
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --size 800x600 --load /tmp/s28-3.save --book-verb comer --screenshot /tmp/s28-comer-800.png --frames 30
 ```
 
+## Book polish (X03)
+
+- **The right page scrolls.** The wheel over the right page scrolls that page, and over the list it scrolls the list (three lines a notch, as before). Shift with Up or Down moves the right page a line; Shift with Page Up or Page Down, a page of it. The list keeps Up, Down (the speaker rows), Page Up and Page Down. A "more below" marker shows while writing lies under the page. The right page goes back to its top when the selection or the page changes (`BookModel.DetailOffset`, `DetailScroll`, `BookModel.KeepDetail`). The detail is laid out as rows (`BookLayer.DetailSheet`), so a long block (a lesson with all its units and phrases) is read to its end at 800 x 600. `--book-detail <lines>` scrolls it when the book opens (a scripted run).
+- **`vamos` is `we go`.** A form of `ir` whose text is `vamos` reads as `ir`'s present, 1 pl, in the verb labels and in What you said (`VerbLabels.IsVamos`), as the conjugation table already counted it. The core still reads it as an imperative (S27). `vamos a comer` is not labelled `we are going to …`: the verb's labels are per form, not per sentence, and the future (ir a) column of the table already counts it.
+- **ser and estar.** The bundle's glosses (`game/glosses.json`) read `to be: what` (ser) and `to be: where or how` (estar), in the list and on the table's heading. The forms are still the forms of *to be* (`VerbLabels`). The lessons say the same (S26: "Estar is “to be” for where someone is; ser ... is for what someone is").
+- **A narrow row keeps its note.** A row with an English aside (a phrase) keeps its Spanish and its English whole; its right-hand note is shortened with "..." to what is left, and is left off only when less than 90 pixels would be left (`MinNoteWidth`).
+- **The hint line** now reads `wheel: scroll   Shift+Up/Down: right page`.
+
+```bash
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --size 800x600 --load /tmp/s28-3.save --book-page lessons --book-detail 9 --screenshot /tmp/x03-lessons.png --frames 30
+```
+
 ## Sounds (S24)
 
 The sound system (D-game-18): interaction, progress, movement and ambient sounds through a mixer with four categories, and no music. Every file is CC0 (Kenney's Impact Sounds, RPG Audio and

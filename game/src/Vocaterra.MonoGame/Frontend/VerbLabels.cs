@@ -86,6 +86,12 @@ public static class VerbLabels
         ArgumentNullException.ThrowIfNull(form);
         ArgumentNullException.ThrowIfNull(infinitive);
         var spanish = question ? "¿" + form + "?" : form;
+        if (IsVamos(infinitive, form))
+        {
+            // The game's reading of "vamos" (X03): the core reads it as an imperative (S27); for ir it is ir's present, 1 pl ("we go").
+            (person, number, tense, mood) = ("1", "pl", "pres", "ind");
+        }
+
         if (person is null && mood is null && tense is null)
         {
             return string.Equals(form, infinitive, StringComparison.Ordinal) && gloss is not null
@@ -96,6 +102,15 @@ public static class VerbLabels
         var english = English(gloss?.English, gloss?.Third, gloss?.Past, person, number, tense, mood, question);
         return english is null ? spanish : spanish + Separator + english;
     }
+
+    /// <summary>
+    /// Whether a form is <c>vamos</c> of <c>ir</c> (X03): the core reads it as an imperative with no tense, and the book reads it as <c>ir</c>'s present, 1 pl,
+    /// as the conjugation table does (S28). <c>vamos</c> of any other verb is left as the core reads it.
+    /// </summary>
+    /// <param name="infinitive">The lemma.</param>
+    /// <param name="form">The form's text.</param>
+    public static bool IsVamos(string infinitive, string form) =>
+        string.Equals(infinitive, "ir", StringComparison.Ordinal) && string.Equals(form.Trim(), "vamos", StringComparison.OrdinalIgnoreCase);
 
     private static string PresentAux(Conjugation verb, string? person, string? number, bool singularThird) =>
         verb.IsBe ? verb.Present(person, number) : singularThird ? "does" : "do";
@@ -113,8 +128,9 @@ public static class VerbLabels
     {
         public Conjugation(string english, string? third, string? past)
         {
-            IsBe = string.Equals(english, "to be", StringComparison.Ordinal);
-            Base = english.StartsWith("to ", StringComparison.Ordinal) ? english[3..] : english;
+            // "to be" and its glosses that say what the verb is for (ser: "to be: what", estar: "to be: where or how") all conjugate as be.
+            IsBe = english is "to be" || english.StartsWith("to be:", StringComparison.Ordinal) || english.StartsWith("to be (", StringComparison.Ordinal);
+            Base = IsBe ? "be" : english.StartsWith("to ", StringComparison.Ordinal) ? english[3..] : english;
             Third = third ?? (IsBe ? "is" : ThirdOf(Base));
             Pst = past ?? (IsBe ? "was" : PastOf(Base));
         }

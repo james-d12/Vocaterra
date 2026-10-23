@@ -86,6 +86,40 @@ public sealed class VerbLabelsTests
     }
 
     [Fact]
+    public void SerAndEstarGlossedByWhatTheyAreForStillConjugateAsToBe()
+    {
+        var serWhat = new VerbGloss("ser", "to be: what", null, null);
+        var estarWhere = new VerbGloss("estar", "to be: where or how", null, null);
+        Assert.Equal("soy — I am", Label("soy", serWhat, "1", "sg", "pres", "ind"));
+        Assert.Equal("está — he/she/it is", Label("está", estarWhere, "3", "sg", "pres", "ind"));
+        Assert.Equal("fue — he/she/it was", Label("fue", serWhat, "3", "sg", "pret", "ind"));
+        Assert.Equal("I will be", VerbLabels.English(serWhat.English, null, null, "1", "sg", "fut", "ind", question: false));
+        Assert.Equal("that I be", VerbLabels.English(estarWhere.English, null, null, "1", "sg", "pres", "subj", question: false));
+        Assert.Equal("ser — to be: what", VerbLabels.Label("ser", "ser", serWhat, null, null, null, null, question: false));
+        Assert.Equal("estar — to be: where or how", VerbLabels.Label("estar", "estar", estarWhere, null, null, null, null, question: false));
+    }
+
+    [Fact]
+    public void VamosOfIrIsWeGoWhetherTheCoreReadsItAsAnImperativeOrNot()
+    {
+        // The core reads vamos as an imperative (S27): the label is ir's present, 1 pl, whatever the reading.
+        Assert.Equal("vamos — we go", VerbLabels.Label("vamos", "ir", Ir, "1", "pl", null, "imp", question: false));
+        Assert.Equal("vamos — we go", Label("vamos", Ir, "1", "pl", "pres", "ind", question: false));
+        Assert.Equal("vamos — we go", VerbLabels.Label("vamos", "ir", Ir, null, null, null, null, question: false));
+        Assert.Equal("¿vamos? — do we go?", VerbLabels.Label("vamos", "ir", Ir, "1", "pl", null, "imp", question: true));
+        Assert.True(VerbLabels.IsVamos("ir", "vamos"));
+        Assert.False(VerbLabels.IsVamos("ir", "vamos a")); // the word only
+        Assert.False(VerbLabels.IsVamos("comer", "vamos"));
+    }
+
+    [Fact]
+    public void VamosOfAnotherVerbIsLeftAsTheCoreReadsIt()
+    {
+        var comer = new VerbGloss("comer", "to eat", null, null);
+        Assert.Equal("vamos — let's eat", VerbLabels.Label("vamos", "comer", comer, "1", "pl", null, "imp", question: false));
+    }
+
+    [Fact]
     public void AnIrregularVerbUsesTheThirdPersonAndPastFromItsGloss()
     {
         Assert.Equal("tiene — he/she/it has", Label("tiene", Tener, "3", "sg", "pres", "ind"));

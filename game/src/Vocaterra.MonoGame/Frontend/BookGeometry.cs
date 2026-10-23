@@ -96,6 +96,9 @@ public sealed record BookGeometry(int ViewportWidth, int ViewportHeight)
     /// <summary>The right edge of the right page's writing.</summary>
     public int DetailRight => RightPage.Right - Padding;
 
+    /// <summary>The height of the writing on the right page (the detail scrolls within it, X03).</summary>
+    public int DetailHeight => ContentBottom - ContentTop;
+
     /// <summary>How many whole lines of the list fit (at least one).</summary>
     public int LinesVisible => Math.Max(1, (ContentBottom - ContentTop) / LineHeight);
 

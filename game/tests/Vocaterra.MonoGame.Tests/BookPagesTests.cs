@@ -102,6 +102,28 @@ public sealed class BookPagesTests
     }
 
     [Fact]
+    public void WhatYouSaidGivesVamosAsWeGoAndSerAndEstarTheirOwnGlosses()
+    {
+        var record = new LearnerRecord();
+        record.Append(Entry(1, "vamos a comer fruta", [
+            Word("vamos", "ir", "verb", 0, "1", "pl", null, "imp"),
+            Word("comer", "comer", "verb", 9),
+        ]));
+        record.Append(Entry(2, "soy Luna, estoy aquí", [
+            Word("soy", "ser", "verb", 0, "1", "sg", "pres", "ind"),
+            Word("estoy", "estar", "verb", 13, "1", "sg", "pres", "ind"),
+        ]));
+        var texts = BookPages.Verbs(record.Verbs, Glosses.Value, Sheet.Value).Select(static l => l.Text).ToList();
+
+        Assert.Contains("vamos — we go", texts);
+        Assert.DoesNotContain(texts, static t => t.Contains("let's", StringComparison.Ordinal));
+        Assert.Contains("ser — to be: what", texts);
+        Assert.Contains("estar — to be: where or how", texts);
+        Assert.Contains("soy — I am", texts);
+        Assert.Contains("estoy — I am", texts);
+    }
+
+    [Fact]
     public void TheVersesPageNeverListsAFixedExpressionOrAnInterjection()
     {
         var lines = BookPages.Verbs(FixedRecord().Verbs, Glosses.Value, Sheet.Value);

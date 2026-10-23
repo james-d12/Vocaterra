@@ -31,7 +31,7 @@ public static class BookTabs
     public const string Title = "Your book";
 
     /// <summary>The key hints under the pages.</summary>
-    public const string KeyHints = "J or Esc: close the book   Tab, Left, Right or click: turn the page   wheel, Page Up, Page Down: scroll";
+    public const string KeyHints = "J or Esc: close the book   Tab, Left, Right or click: turn the page   wheel: scroll   Shift+Up/Down: right page";
 
     /// <summary>The label of a page.</summary>
     /// <param name="page">The page.</param>
@@ -82,6 +82,25 @@ public static class BookScroll
 }
 
 /// <summary>
+/// The right page's scroll (X03): the detail is drawn in pixels from its top, and it moves in whole lines. The page's writing is <c>content</c> pixels
+/// tall and the page shows <c>view</c>; the offset is kept inside the difference (zero when all of it fits). Plain values.
+/// </summary>
+public static class DetailScroll
+{
+    /// <summary>The offset kept inside <c>[0, content - view]</c> (zero when the detail fits).</summary>
+    /// <param name="offset">The offset to keep, in pixels.</param>
+    /// <param name="content">The detail's height, in pixels.</param>
+    /// <param name="view">The height the page shows, in pixels.</param>
+    public static int Clamp(int offset, int content, int view) => Math.Clamp(offset, 0, Math.Max(0, content - view));
+
+    /// <summary>Whether writing lies under the bottom of the page at this offset (the "more below" marker).</summary>
+    /// <param name="offset">The offset, in pixels (already kept inside its bounds).</param>
+    /// <param name="content">The detail's height, in pixels.</param>
+    /// <param name="view">The height the page shows, in pixels.</param>
+    public static bool MoreBelow(int offset, int content, int view) => content - offset > view;
+}
+
+/// <summary>
 /// The book (J): which page is on screen, whether it is open, and the scroll. It takes the keyboard while it is open (the player does not walk).
 /// It is opened by J and by using the book item (both call <see cref="Open"/>), so the two open the same book. Plain values; no clock.
 /// </summary>
@@ -90,6 +109,7 @@ public sealed class BookModel
     private WordProgress? _words;
     private bool _read;
     private int _selected;
+    private (BookPage Page, int Line)? _detailKey;
 
     /// <summary>Whether the book is on screen.</summary>
     public bool IsOpen { get; private set; }
@@ -99,6 +119,9 @@ public sealed class BookModel
 
     /// <summary>The first line on screen of the page (lines, not pixels).</summary>
     public int Offset { get; private set; }
+
+    /// <summary>How far the right page is scrolled, in pixels (X03). It moves in whole lines and resets when the selection or the page changes.</summary>
+    public int DetailOffset { get; private set; }
 
     /// <summary>How long a page turn lasts, in seconds (S28).</summary>
     public const double TurnSeconds = 0.3;
@@ -155,6 +178,8 @@ public sealed class BookModel
         Page = BookPage.Nouns;
         Offset = 0;
         _selected = 0;
+        DetailOffset = 0;
+        _detailKey = null;
         MarkRead();
     }
 
@@ -172,6 +197,7 @@ public sealed class BookModel
         {
             Offset = 0;
             _selected = 0;
+            DetailOffset = 0;
             if (animate)
             {
                 IsTurning = true;
@@ -205,6 +231,40 @@ public sealed class BookModel
         }
     }
 
+    /// <summary>
+    /// Scrolls the right page by some pixels (X03): the wheel over that page, and Shift with Up, Down, Page Up or Page Down. Down is positive. It stays at zero or
+    /// more here; the layer keeps it inside the detail's height (<see cref="ClampDetail"/>).
+    /// </summary>
+    /// <param name="pixels">The pixels to go down (negative: up).</param>
+    public void ScrollDetail(int pixels)
+    {
+        if (IsOpen)
+        {
+            DetailOffset = Math.Max(0, DetailOffset + pixels);
+        }
+    }
+
+    /// <summary>Keeps the right page's scroll inside its detail, once the layer knows how tall the detail is and how much of the page it shows.</summary>
+    /// <param name="content">The detail's height, in pixels.</param>
+    /// <param name="view">The height of the page's writing, in pixels.</param>
+    public void ClampDetail(int content, int view) => DetailOffset = DetailScroll.Clamp(DetailOffset, content, view);
+
+    /// <summary>
+    /// Tells the right page which line it details this frame (the selected row, or the first line on screen when none is selected). A change of that line or of the
+    /// page resets the scroll, so a new item always starts at its top. The first call after opening keeps the scroll the open set.
+    /// </summary>
+    /// <param name="line">The line the detail is of.</param>
+    public void KeepDetail(int line)
+    {
+        var key = (Page, line);
+        if (_detailKey is { } previous && previous != key)
+        {
+            DetailOffset = 0;
+        }
+
+        _detailKey = key;
+    }
+
     /// <summary>Keeps the scroll inside a page's lines, once the layer knows how many there are and how many fit.</summary>
     /// <param name="total">The page's lines.</param>
     /// <param name="visible">The lines on screen.</param>
@@ -223,7 +283,13 @@ public sealed class BookModel
     {
         if (IsOpen)
         {
-            _selected = Math.Max(0, index);
+            var chosen = Math.Max(0, index);
+            if (chosen != _selected)
+            {
+                DetailOffset = 0;
+            }
+
+            _selected = chosen;
         }
     }
 
@@ -237,7 +303,13 @@ public sealed class BookModel
             return;
         }
 
-        _selected = Math.Clamp(SelectedIndex(count) + delta, 0, count - 1);
+        var moved = Math.Clamp(SelectedIndex(count) + delta, 0, count - 1);
+        if (moved != _selected)
+        {
+            DetailOffset = 0;
+        }
+
+        _selected = moved;
     }
 
     /// <summary>Scrolls, if needed, so that a line is on screen (the selected row stays visible when the learner moves it).</summary>

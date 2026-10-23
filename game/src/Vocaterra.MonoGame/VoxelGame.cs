@@ -1104,7 +1104,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         var bookWheel = mouse.ScrollWheelValue;
         if (IsActive && _book.IsOpen && bookWheel != _previousWheel)
         {
-            _book.Scroll(-(int)Math.Round((bookWheel - _previousWheel) / 40.0));
+            // Over the right page the wheel scrolls that page (X03); over the list it scrolls the list.
+            var notchLines = -(int)Math.Round((bookWheel - _previousWheel) / 40.0);
+            if (new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height).RightPage.Contains(mouse.X, mouse.Y))
+            {
+                _book.ScrollDetail(notchLines * BookGeometry.LineHeight);
+            }
+            else
+            {
+                _book.Scroll(notchLines);
+            }
         }
 
         _previousWheel = bookWheel;
@@ -2747,8 +2756,19 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             _book.Turn(forward: true);
         }
 
-        var lines = new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height).LinesVisible;
-        if (pressed(Keys.PageDown))
+        var geometry = new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+        var lines = geometry.LinesVisible;
+        var shift = ShiftDown(keys);
+        if (shift && (pressed(Keys.Down) || pressed(Keys.Up)))
+        {
+            // Shift with Up or Down scrolls the right page a line (X03); Shift with Page Up or Page Down, a page of it.
+            _book.ScrollDetail(pressed(Keys.Down) ? BookGeometry.LineHeight : -BookGeometry.LineHeight);
+        }
+        else if (shift && (pressed(Keys.PageDown) || pressed(Keys.PageUp)))
+        {
+            _book.ScrollDetail(pressed(Keys.PageDown) ? geometry.DetailHeight : -geometry.DetailHeight);
+        }
+        else if (pressed(Keys.PageDown))
         {
             _book.Scroll(lines);
         }
@@ -2823,6 +2843,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         if (_options.BookVerb is { } verb)
         {
             Console.WriteLine(_bookControls.SelectVerb(verb) ? $"book: the table of {verb}" : $"book: no verb '{verb}' in the book");
+        }
+
+        if (_options.BookDetailLines > 0)
+        {
+            _book.ScrollDetail(_options.BookDetailLines * BookGeometry.LineHeight); // a scripted run's right page, scrolled down (X03)
         }
 
         _focus.BookOpen = true;
