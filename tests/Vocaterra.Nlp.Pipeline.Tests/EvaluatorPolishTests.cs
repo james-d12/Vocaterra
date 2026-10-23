@@ -15,35 +15,35 @@ public class EvaluatorPolishTests
         return TestSupport.Bundle.Prompts[id];
     }
 
-    private static PipelineResult Quiz(string transcript, string promptId)
+    private static PipelineResult Quiz(string transcript)
     {
         return TestSupport.Pipeline(transcript, RecognitionMode.Constrained)
-            .Evaluate(TestSupport.Clip(), Prompt(promptId), TestSupport.Context(state: "none", agentId: "player"));
+            .Evaluate(TestSupport.Clip(), TestSupport.QuizPrompt, TestSupport.Context(state: "none", agentId: "player"));
     }
 
     [Theory]
-    [InlineData("ezpada", "quiz-item-name", "espada")]
-    [InlineData("espado", "quiz-item-name", "espada")]
-    [InlineData("yelo", "quiz-spell-name", "hielo")]
-    public void EveryNearMissOnAQuizIsCommunicatedAndRecastWithTheCanonicalWord(string transcript, string promptId, string canonical)
+    [InlineData("pietra", "piedra")]
+    [InlineData("piedro", "piedra")]
+    [InlineData("árbal", "árbol")]
+    public void EveryNearMissOnAQuizIsCommunicatedAndRecastWithTheCanonicalWord(string transcript, string canonical)
     {
-        var result = Quiz(transcript, promptId);
+        var result = Quiz(transcript);
 
         Assert.True(result.Verdict.Communicated);
         Assert.Equal(ResolvedBy.Fuzzy, result.Verdict.ResolvedBy);
         var error = Assert.Single(result.Verdict.Errors);
         Assert.Equal((ErrorTags.VocabUnknown, canonical, transcript), (error.Tag, error.Expected, error.Actual));
         var recast = Assert.Single(result.Response.Lines, static line => line.IsRecast);
-        Assert.Contains("Ah, " + canonical + ".", recast.Text, StringComparison.Ordinal);
+        Assert.Contains("«" + canonical + "»", recast.Text, StringComparison.Ordinal);
         Assert.DoesNotContain(transcript, recast.Text, StringComparison.Ordinal);
     }
 
     [Fact]
     public void AnInflectedNearMissIsCommunicatedAsAFuzzyMatchOnTheBudgetsEdge()
     {
-        // espadas is one edit from espada, which is the whole budget for a six-letter answer at Beginner. The lexicon knows the plural, so no
+        // piedras is one edit from piedra, which is the whole budget for a six-letter answer at Beginner. The lexicon knows the plural, so no
         // vocabulary error is raised, and the match is communicated with the confidence of its distance.
-        var verdict = Quiz("espadas", "quiz-item-name").Verdict;
+        var verdict = Quiz("piedras").Verdict;
 
         Assert.True(verdict.Communicated);
         Assert.Equal(ResolvedBy.Fuzzy, verdict.ResolvedBy);
@@ -54,7 +54,7 @@ public class EvaluatorPolishTests
     [Fact]
     public void AVocabWrongOnAQuizWithSeveralAnswersHasNoExpectedWord()
     {
-        var error = Assert.Single(Quiz("fuego", "quiz-item-name").Verdict.Errors);
+        var error = Assert.Single(Quiz("fuego").Verdict.Errors);
 
         Assert.Equal((ErrorTags.VocabWrong, string.Empty, "fuego"), (error.Tag, error.Expected, error.Actual));
     }
@@ -63,14 +63,13 @@ public class EvaluatorPolishTests
     public void ALeadingAdverbBeforeAnOfferIsUnderstoodByTheRulesAndKeepsItsTense()
     {
         var result = TestSupport.Pipeline("ayer tengo dos espadas", RecognitionMode.Open)
-            .Evaluate(TestSupport.Clip(), Prompt("offer-items-open"), TestSupport.Context());
+            .Evaluate(TestSupport.Clip(), TestSupport.HldPrompt, TestSupport.Context());
 
         var verdict = result.Verdict;
-        Assert.Equal("offer_item", verdict.Intent.Value);
+        Assert.Equal("state_have", verdict.Intent.Value);
         Assert.Equal(ResolvedBy.Rules, verdict.ResolvedBy);
         Assert.True(verdict.Communicated);
         Assert.Equal("espada", verdict.Slots["item"]);
-        Assert.Equal("2", verdict.Slots["qty"]);
         var tense = Assert.Single(verdict.Errors, static error => error.Tag == ErrorTags.ConjTense);
         Assert.Equal("tuve", tense.Expected);
     }
@@ -79,9 +78,9 @@ public class EvaluatorPolishTests
     public void ARecastRestoresTheAccentsTheLexiconGivesAWordThePlayerLeftOut()
     {
         var result = TestSupport.Pipeline("buenas dias", RecognitionMode.Open)
-            .Evaluate(TestSupport.Clip(), Prompt("greet-open"), TestSupport.Context());
+            .Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context());
 
         var recast = Assert.Single(result.Response.Lines, static line => line.IsRecast);
-        Assert.Contains("buenos días", recast.Text, StringComparison.Ordinal);
+        Assert.Contains("buenos días", recast.Text, StringComparison.OrdinalIgnoreCase);
     }
 }

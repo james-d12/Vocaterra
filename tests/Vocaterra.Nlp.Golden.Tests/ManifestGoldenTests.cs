@@ -19,7 +19,7 @@ namespace Vocaterra.Nlp.Golden.Tests;
 public partial class ManifestGoldenTests
 {
     private static readonly string GoldenDir = Path.Combine(AppContext.BaseDirectory, "golden");
-    private static readonly ContentBundle Bundle = ContentLoader.Load(Path.Combine(AppContext.BaseDirectory, "content", "v1"));
+    private static readonly ContentBundle Bundle = ContentLoader.Load(GameBundleLocator.Directory);
 
     [GeneratedRegex(@"^audio/[a-z0-9]+-[a-z0-9]+(-[a-z0-9]+)*-[1-9][0-9]*\.wav$")]
     private static partial Regex ClipName();
@@ -119,7 +119,7 @@ public partial class ManifestGoldenTests
     {
         var entries = Entries();
         var clip = PcmClip.FromSamples(new short[PcmClip.DefaultSampleRate]);
-        var recognizer = new ScriptedWordRecognizer(Asr("quiero comprar una espada", "correcting"));
+        var recognizer = new ScriptedWordRecognizer(Asr("quiero una espada", "correcting"));
 
         var report = BenchRunner.Run(entries, Bundle, _ => recognizer, _ => clip, RecognitionMode.Open);
 
@@ -142,7 +142,7 @@ public partial class ManifestGoldenTests
                 "scripted-manifest",
                 prompt.Mode));
             var pipeline = new UtterancePipeline(new PipelineServices(recognizer, null, null, null, Bundle));
-            var context = ConversationContext.Create(1, "blacksmith", new AgentState("blacksmith", "idle", 0), new StoredTimestamp(0), LearnerModel.New());
+            var context = ConversationContext.Create(1, "villager", new AgentState("villager", "idle", 0), new StoredTimestamp(0), LearnerModel.New());
 
             var verdict = pipeline.Evaluate(PcmClip.FromSamples([]), prompt, context).Verdict;
 

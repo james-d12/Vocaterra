@@ -18,22 +18,25 @@ using Vocaterra.Nlp.Pronunciation;
 namespace Vocaterra.Nlp.Golden.Tests;
 
 /// <summary>
-/// The worked example from the high-level design, end to end: scripted ASR hears "yo tiene dos espada", a fake phoneme recognizer hears it
-/// pronounced correctly, and the whole pipeline runs on the committed <c>content/v1</c> bundle. The full result is compared with a committed
-/// golden file. Set <c>VOCATERRA_RECORD_GOLDEN=1</c> (or the deprecated <c>SLG_RECORD_GOLDEN=1</c>) to (re)record that file after an intended change.
+/// Two turns of the game's bundle, end to end, each compared with a committed golden file. The first is the design document's worked example in the
+/// bundle's words: scripted ASR hears "yo quiere dos espada" (a wrong verb form and a noun left singular after a number), a fake phoneme recognizer hears
+/// it pronounced correctly, and the villager recasts it and answers. The second is a state transition: the shopkeeper, offering bread, hears "sí, por favor"
+/// and finishes the trade with its host event. The pipeline runs on the repository's one bundle, <c>content/game-v1</c>, so a lesson that moves what the
+/// core says here fails this test, and the milestone that changed the lesson records the golden again. Set <c>VOCATERRA_RECORD_GOLDEN=1</c> (or the deprecated
+/// <c>SLG_RECORD_GOLDEN=1</c>) to (re)record the files after an intended change. The bundle hash, which moves with every edit of the game, is not in the golden
+/// text: the golden holds a placeholder, and the test checks that the result carries the bundle's own hash.
 /// </summary>
 public class EndToEndGoldenTests
 {
-    private const string GoldenName = "e2e-offer-items-open.golden.json";
-    private const string ConfirmGoldenName = "e2e-confirm-open.golden.json";
+    private const string GoldenName = "e2e-villager-request.golden.json";
+    private const string ConfirmGoldenName = "e2e-shopkeeper-confirm.golden.json";
+    private const string HashPlaceholder = "<bundle-hash>";
     private const string RecordVariable = "VOCATERRA_RECORD_GOLDEN";
     private const string LegacyRecordVariable = "SLG_RECORD_GOLDEN";
-    private const string Transcript = "yo tiene dos espada";
-    private const string ConfirmTranscript = "sí";
+    private const string Transcript = "yo quiere dos espada";
+    private const string ConfirmTranscript = "sí, por favor";
 
-    private static readonly string BundleDir = Path.Combine(AppContext.BaseDirectory, "content", "v1");
-
-    private static ContentBundle Bundle { get; } = ContentLoader.Load(BundleDir);
+    private static ContentBundle Bundle { get; } = ContentLoader.Load(GameBundleLocator.Directory);
 
     private static PcmClip Clip()
     {
@@ -51,8 +54,8 @@ public class EndToEndGoldenTests
     {
         return ConversationContext.Create(
             20_261_018UL,
-            "blacksmith",
-            new AgentState("blacksmith", "trading", 7),
+            "villager",
+            new AgentState("villager", "idle", 7),
             new StoredTimestamp(1_792_000_000),
             LearnerModel.New(),
             new Dictionary<string, int>());
@@ -65,7 +68,7 @@ public class EndToEndGoldenTests
         var phones = SpanishG2p.Phonemize(Transcript, DialectConfig.LatinAmericanNeutral).Phones;
         fake.Returns(fake.FromPhones(phones));
         var pipeline = new UtterancePipeline(new PipelineServices(new ScriptedWordRecognizer(asr), fake, null, null, Bundle));
-        return pipeline.Evaluate(Clip(), Bundle.Prompts["offer-items-open"], Context());
+        return pipeline.Evaluate(Clip(), Bundle.Prompts["villager-open"], Context());
     }
 
     [Fact]
@@ -73,12 +76,12 @@ public class EndToEndGoldenTests
     {
         var verdict = Run().Verdict;
 
-        Assert.Equal("offer_item", verdict.Intent.Value);
+        Assert.Equal("request_item", verdict.Intent.Value);
         Assert.Equal("espada", verdict.Slots["item"]);
         Assert.Equal("2", verdict.Slots["qty"]);
         Assert.True(verdict.Communicated);
         Assert.Equal([ErrorTags.ConjPerson, ErrorTags.NounNumber], verdict.Errors.Select(static e => e.Tag).ToArray());
-        Assert.Equal(("tiene", "tengo"), (verdict.Errors[0].Actual, verdict.Errors[0].Expected));
+        Assert.Equal(("quiere", "quiero"), (verdict.Errors[0].Actual, verdict.Errors[0].Expected));
         Assert.Equal(("espada", "espadas"), (verdict.Errors[1].Actual, verdict.Errors[1].Expected));
         Assert.NotEmpty(verdict.Pronunciation);
         Assert.All(verdict.Pronunciation, static score => Assert.Equal(1.0, score.Score, 6));
@@ -87,15 +90,14 @@ public class EndToEndGoldenTests
     }
 
     [Fact]
-    public void TheSampleAgentRecastsFromThePlayersOwnSlots()
+    public void TheVillagerRecastsTheSentenceAndGivesWhatWasAskedFor()
     {
         var result = Run();
 
         var recast = Assert.Single(result.Response.Lines, static line => line.IsRecast);
         Assert.Contains("dos espadas", recast.Text, StringComparison.Ordinal);
-        Assert.Equal("¿Tienes dos espadas? ¡Perfecto!", recast.Text);
-        Assert.Equal("done", result.Decision.Agent!.Next.StateId);
-        Assert.Contains(result.Decision.Agent.Actions, static action => action.HostEvent == "trade.offer");
+        Assert.Equal("idle", result.Decision.Agent!.Next.StateId);
+        Assert.Contains(result.Decision.Agent.Actions, static action => action.HostEvent == "villager.give");
     }
 
     [Fact]
@@ -104,23 +106,23 @@ public class EndToEndGoldenTests
         Assert.Equal(CanonicalJson.Serialize(Run()), CanonicalJson.Serialize(Run()));
     }
 
-    // The confirm flow of the sample agent (M17b): the agent is in its confirming state and the learner says "sí", so the trade is confirmed and the agent is done.
+    // The confirm flow of the shopkeeper: the agent is offering bread and the learner says "sí, por favor", so the bread is given and the agent is done.
     private static PipelineResult RunConfirm()
     {
         var asr = new AsrResult(ConfirmTranscript, [new AsrHypothesis(ConfirmTranscript, 1.0)], [], 1.0, "scripted-golden", RecognitionMode.Open);
         var context = ConversationContext.Create(
             20_261_021UL,
-            "blacksmith",
-            new AgentState("blacksmith", "confirming", 3),
+            "shopkeeper",
+            new AgentState("shopkeeper", "offering", 3),
             new StoredTimestamp(1_792_000_000),
             LearnerModel.New(),
             new Dictionary<string, int>());
         var pipeline = new UtterancePipeline(new PipelineServices(new ScriptedWordRecognizer(asr), null, null, null, Bundle));
-        return pipeline.Evaluate(Clip(), Bundle.Prompts["confirm-open"], context);
+        return pipeline.Evaluate(Clip(), Bundle.Prompts["stall-offer"], context);
     }
 
     [Fact]
-    public void TheConfirmFlowFromConfirmingEndsTheTradeWithItsHostEvent()
+    public void TheConfirmFlowFromOfferingEndsTheTradeWithItsHostEvent()
     {
         var result = RunConfirm();
 
@@ -128,7 +130,7 @@ public class EndToEndGoldenTests
         Assert.True(result.Verdict.Communicated);
         Assert.Empty(result.Verdict.Errors);
         Assert.Equal("done", result.Decision.Agent!.Next.StateId);
-        Assert.Contains(result.Decision.Agent.Actions, static action => action.HostEvent == "trade.confirmed");
+        Assert.Contains(result.Decision.Agent.Actions, static action => action.HostEvent == "stall.give_bread");
         Assert.Single(result.Response.Lines);
     }
 
@@ -146,6 +148,12 @@ public class EndToEndGoldenTests
 
     private static void AssertGolden(string actual, string goldenName)
     {
+        // The result stamps the bundle hash on the verdict and on the replay record; it is computed from the files, and the golden keeps a placeholder.
+        var computed = ContentManifest.Compute(GameBundleLocator.Directory).BundleHash;
+        Assert.Equal(computed, Bundle.ContentHash);
+        Assert.Contains(computed, actual, StringComparison.Ordinal);
+        actual = actual.Replace(computed, HashPlaceholder, StringComparison.Ordinal);
+
         if (string.Equals(EnvironmentSettings.Get(RecordVariable, LegacyRecordVariable), "1", StringComparison.Ordinal))
         {
             File.WriteAllText(SourceGoldenPath(goldenName), Format(actual, indented: true) + "\n", new UTF8Encoding(false));

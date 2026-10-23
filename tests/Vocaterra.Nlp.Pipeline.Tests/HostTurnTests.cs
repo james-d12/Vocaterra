@@ -9,31 +9,30 @@ using Vocaterra.Nlp.Response.Templates;
 namespace Vocaterra.Nlp.Pipeline.Tests;
 
 /// <summary>Tests for host-initiated agent turns (CR-015): <see cref="UtterancePipeline.Advance"/> and the transition trigger it uses.</summary>
-public sealed class HostTurnTests : IDisposable
+public sealed class HostTurnTests
 {
     private const string Event = "guide.ask";
 
-    private readonly DirectoryInfo _directory = Directory.CreateTempSubdirectory("vocaterra-host-turn-");
     private readonly ContentBundle _bundle;
     private readonly UtterancePipeline _pipeline;
 
     public HostTurnTests()
     {
         _bundle = FixtureBundle.Create(
-            _directory,
             pools =>
             {
                 TwoPhaseTests.SetVariants(pools, "guide_ask", "¿Qué es {target:article(def)}?", "¿Y {target:article(def)}, qué es?");
                 TwoPhaseTests.SetVariants(pools, "guide_hint", "Mira bien.", "Piénsalo.", "Con calma.");
             },
-            blacksmith =>
+            "villager",
+            villager =>
             {
-                var variantPools = blacksmith["variantPools"]!.AsArray();
+                var variantPools = villager["variantPools"]!.AsArray();
                 variantPools.Add(new JsonObject { ["id"] = "guide_ask_v", ["count"] = 2 });
-                var idle = blacksmith["states"]!.AsArray().Single(static s => s!["id"]!.GetValue<string>() == "idle")!.AsObject();
+                var idle = villager["states"]!.AsArray().Single(static s => s!["id"]!.GetValue<string>() == "idle")!.AsObject();
                 var transitions = idle["transitions"]!.AsArray();
                 transitions.Insert(0, JsonNode.Parse("""
-                    {"onHostEvent":"guide.ask","to":"trading","actions":[
+                    {"onHostEvent":"guide.ask","to":"pointing","actions":[
                       {"dialogueIntent":"guide_ask","hostEvent":"ui.ask","variantPoolId":"guide_ask_v"},
                       {"dialogueIntent":"guide_hint"}]}
                     """));
@@ -42,17 +41,12 @@ public sealed class HostTurnTests : IDisposable
         _pipeline = new UtterancePipeline(services);
     }
 
-    public void Dispose()
-    {
-        _directory.Delete(recursive: true);
-    }
-
     private static ConversationContext Idle(long counter = 0, SlotMap? slots = null)
     {
         return ConversationContext.Create(
             42,
-            "blacksmith",
-            new AgentState("blacksmith", "idle", counter),
+            "villager",
+            new AgentState("villager", "idle", counter),
             new StoredTimestamp(1_700_000_000),
             Vocaterra.Nlp.Decision.Learning.LearnerModel.New(),
             new Dictionary<string, int> { ["conj.person"] = 2 },
@@ -65,7 +59,7 @@ public sealed class HostTurnTests : IDisposable
         var turn = _pipeline.Advance(Event, Idle());
 
         Assert.NotNull(turn);
-        Assert.Equal("trading", turn.Agent.Next.StateId);
+        Assert.Equal("pointing", turn.Agent.Next.StateId);
         Assert.Equal(1, turn.Agent.Next.InteractionCounter);
         Assert.Equal(["guide_ask", "guide_hint"], turn.Agent.Actions.Select(static a => a.DialogueIntent).ToArray());
         Assert.Equal("ui.ask", turn.Agent.Actions[0].HostEvent);
@@ -97,8 +91,8 @@ public sealed class HostTurnTests : IDisposable
     {
         Assert.Null(_pipeline.Advance("guide.unknown", Idle()));
 
-        // "trading" has no transition for the event either.
-        var trading = Idle() with { AgentState = new AgentState("blacksmith", "trading", 3) };
+        // "pointing" has no transition for the event either.
+        var trading = Idle() with { AgentState = new AgentState("villager", "pointing", 3) };
         Assert.Null(_pipeline.Advance(Event, trading));
     }
 
@@ -121,7 +115,7 @@ public sealed class HostTurnTests : IDisposable
     [Fact]
     public void ALineNeedingAHostSlotTheContextLacksThrows()
     {
-        var context = ConversationContext.Create(42, "blacksmith", new AgentState("blacksmith", "idle", 0), new StoredTimestamp(0), Vocaterra.Nlp.Decision.Learning.LearnerModel.New());
+        var context = ConversationContext.Create(42, "villager", new AgentState("villager", "idle", 0), new StoredTimestamp(0), Vocaterra.Nlp.Decision.Learning.LearnerModel.New());
 
         Assert.Throws<TemplateException>(() => _pipeline.Advance(Event, context));
     }
@@ -150,13 +144,13 @@ public sealed class HostTurnTests : IDisposable
         var context = Idle();
         var turn = _pipeline.Advance(Event, context)!;
         var next = context.Next(turn, context.Now);
-        var prompt = _bundle.Prompts[TestSupport.OfferPrompt];
+        var prompt = _bundle.Prompts[TestSupport.OpenPrompt];
 
         var result = _pipeline.Evaluate(TestSupport.Clip(), prompt, next);
         var byHand = _pipeline.Evaluate(
             TestSupport.Clip(),
             prompt,
-            ConversationContext.Create(42, "blacksmith", new AgentState("blacksmith", "trading", 1), context.Now, context.Learner, context.RepeatCountsByTag));
+            ConversationContext.Create(42, "villager", new AgentState("villager", "pointing", 1), context.Now, context.Learner, context.RepeatCountsByTag));
 
         Assert.Equal(byHand, result);
         Assert.Equal(2, result.Decision.Agent!.Next.InteractionCounter);
@@ -178,7 +172,7 @@ public sealed class HostTurnTests : IDisposable
         var log = new ReplayLog(writer);
         log.Append(HostTurnEnvelope.From(turn, context));
         var next = context.Next(turn, context.Now);
-        var trace = _pipeline.Trace(TestSupport.Clip(), _bundle.Prompts[TestSupport.OfferPrompt], next);
+        var trace = _pipeline.Trace(TestSupport.Clip(), _bundle.Prompts[TestSupport.OpenPrompt], next);
         log.Append(ReplayEnvelope.From(trace, next));
         var text = writer.ToString();
 
@@ -214,7 +208,7 @@ public sealed class HostTurnTests : IDisposable
         var context = Idle();
         var turn = _pipeline.Advance(Event, context)!;
         var next = context.Next(turn, context.Now);
-        var trace = _pipeline.Trace(TestSupport.Clip(), _bundle.Prompts[TestSupport.OfferPrompt], next);
+        var trace = _pipeline.Trace(TestSupport.Clip(), _bundle.Prompts[TestSupport.OpenPrompt], next);
         using var writer = new StringWriter();
         var log = new ReplayLog(writer);
         log.Append(HostTurnEnvelope.From(turn, context));
@@ -229,7 +223,7 @@ public sealed class HostTurnTests : IDisposable
     {
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
         var context = TestSupport.Context();
-        var trace = pipeline.Trace(TestSupport.Clip(), TestSupport.Bundle.Prompts[TestSupport.OfferPrompt], context);
+        var trace = pipeline.Trace(TestSupport.Clip(), TestSupport.Bundle.Prompts[TestSupport.OpenPrompt], context);
         using var writer = new StringWriter();
         new ReplayLog(writer).Append(ReplayEnvelope.From(trace, context));
 
@@ -254,22 +248,36 @@ public sealed class HostTurnTests : IDisposable
         var recognizer = new ScriptedWordRecognizer(TestSupport.Asr("blorp"));
         var pipeline = new UtterancePipeline(new PipelineServices(recognizer, null, null, null, _bundle));
 
-        var result = pipeline.Evaluate(TestSupport.Clip(), _bundle.Prompts[TestSupport.OfferPrompt], Idle());
+        var result = pipeline.Evaluate(TestSupport.Clip(), _bundle.Prompts[TestSupport.OpenPrompt], Idle());
 
         Assert.Equal("idle", result.Decision.Agent!.Next.StateId);
         Assert.DoesNotContain(result.Decision.Agent.Actions, static a => a.DialogueIntent == "guide_ask");
     }
 
     [Fact]
-    public void ExistingAgentFilesLoadUnchangedAndCarryNoHostEventTransitions()
+    public void TheGameAgentsHostEventTransitionsAreHandledByAdvanceAndNeverByAnUtterance()
     {
-        foreach (var machine in TestSupport.Bundle.Agents.Values)
-        {
-            Assert.All(machine.Definition.States.SelectMany(static s => s.Transitions), static t => Assert.Null(t.OnHostEvent));
-        }
+        // The villager of the bundle has a host-event transition of its own ("villager.greet"); an event no state handles reports no step.
+        var villager = TestSupport.Bundle.Agents["villager"];
+        Assert.Contains(villager.Definition.States.SelectMany(static s => s.Transitions), static t => t.OnHostEvent == "villager.greet");
+        var pipeline = new UtterancePipeline(TestSupport.Services("hola"));
 
-        Assert.Equal("1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2", TestSupport.Bundle.ContentHash);
-        Assert.Null(new UtterancePipeline(TestSupport.Services("hola")).Advance(Event, TestSupport.Context("idle")));
+        var turn = pipeline.Advance("villager.greet", TestSupport.Context("idle"));
+
+        Assert.NotNull(turn);
+        Assert.Equal("villager_hello", Assert.Single(turn.Agent.Actions).DialogueIntent);
+        Assert.Equal(TestSupport.Bundle.ContentHash, turn.ContentHash);
+        Assert.Null(pipeline.Advance(Event, TestSupport.Context("idle")));
+
+        // An utterance, which no host event comes with, is answered by the intent transitions of the same state.
+        var spoken = pipeline.Evaluate(TestSupport.Clip(), TestSupport.Bundle.Prompts[TestSupport.OpenPrompt], TestSupport.Context("idle"));
+        Assert.StartsWith("villager_greet.", Assert.Single(spoken.Response.Lines).LineId, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheBundleHashOfTheRepositoryBundleIsTheHashOfItsFiles()
+    {
+        Assert.Equal(ContentManifest.Compute(TestSupport.BundleDir).BundleHash, TestSupport.Bundle.ContentHash);
     }
 
     [Fact]
@@ -282,7 +290,7 @@ public sealed class HostTurnTests : IDisposable
     [Fact]
     public void TheCliReplayReadsHostTurnEntriesAndReportsOneThatNoLongerHappens()
     {
-        // The committed bundle has no host-event transition, so a turn recorded in the fixture bundle (same content hash) does not happen there.
+        // The committed bundle has no "guide.ask" transition, so a turn recorded in the fixture bundle (same content hash) does not happen there.
         var path = Path.Combine(Path.GetTempPath(), "vocaterra-hostturn-" + Guid.NewGuid().ToString("N") + ".jsonl");
         try
         {

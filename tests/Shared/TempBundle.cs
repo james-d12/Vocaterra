@@ -19,7 +19,13 @@ internal sealed class TempBundle : IDisposable
 
     private static readonly string[] ImportedFiles = ["lexicon/wiktionary-es.json", "lexicon/wiktionary-es.source.json"];
 
-    public TempBundle(bool full = false)
+    /// <param name="full">Keep the imported lexicon and its sidecar (they are 4.7 MB and slow to parse, so most tests leave them out).</param>
+    /// <param name="rehash">
+    /// Rewrite <c>manifest.json</c> from the copied files. A test that loads the copy with the hashes verified needs it; a test that edits the copy and loads it
+    /// without verification can pass <see langword="false"/> to keep the repository bundle's own manifest, and with it the bundle hash that the pipeline stamps on
+    /// every result and every replay record.
+    /// </param>
+    public TempBundle(bool full = false, bool rehash = true)
     {
         Directory = Path.Combine(Path.GetTempPath(), "vocaterra-content-tests-" + Guid.NewGuid().ToString("N"));
         CopyDirectory(GameBundleLocator.Directory, Directory, full ? [] : ImportedFiles);
@@ -32,7 +38,10 @@ internal sealed class TempBundle : IDisposable
         var last = kept.FindLastIndex(line => line.TrimStart().StartsWith("{ \"path\"", StringComparison.Ordinal));
         kept[last] = kept[last].TrimEnd().TrimEnd(',');
         File.WriteAllText(provenance, string.Join('\n', kept) + "\n", new UTF8Encoding(false));
-        Rehash();
+        if (rehash)
+        {
+            Rehash();
+        }
     }
 
     public string Directory { get; }

@@ -14,7 +14,7 @@ public class BenchTests
 {
     private static ManifestEntry Entry(
         string transcript,
-        string promptId = "offer-items-open",
+        string promptId = "villager-open",
         string clip = "audio/e.wav",
         (string Tag, string Actual)[]? errors = null)
     {
@@ -140,9 +140,9 @@ public class BenchTests
     {
         var entries = new[]
         {
-            Entry("hola amigo", "greet-open", "audio/1.wav"),
+            Entry("hola amigo", "guide-open", "audio/1.wav"),
             Entry("yo tiene dos espada", clip: "audio/2.wav", errors: [("noun.number", "espada")]),
-            Entry("quiero comprar un espada", "buy-item-open", "audio/3.wav", [("gender.agree", "un")]),
+            Entry("quiero comprar un espada", "guide-review", "audio/3.wav", [("gender.agree", "un")]),
         };
         var clips = new Dictionary<string, PcmClip>
         {
@@ -173,9 +173,9 @@ public class BenchTests
     [Fact]
     public void EntriesWithoutAudioOrPromptAreListedButNotCounted()
     {
-        var entries = new[] { Entry("hola"), Entry("hola", "no-such-prompt"), Entry("hola", "greet-open") };
+        var entries = new[] { Entry("hola"), Entry("hola", "no-such-prompt"), Entry("hola", "guide-open") };
 
-        var report = Run(entries, "hola", clips: entry => entry.PromptId == "greet-open" ? null : TestSupport.Clip());
+        var report = Run(entries, "hola", clips: entry => entry.PromptId == "guide-open" ? null : TestSupport.Clip());
 
         Assert.Equal([BenchRunner.StatusOk, BenchRunner.StatusUnknownPrompt, BenchRunner.StatusMissingClip], report.Entries.Select(static e => e.Status).ToArray());
         Assert.Null(report.Entries[1].Wer);
@@ -189,7 +189,7 @@ public class BenchTests
         var recognizer = new ScriptedWordRecognizer(TestSupport.Asr("hola"));
 
         var report = BenchRunner.Run(
-            [Entry("hola", "greet-blacksmith"), Entry("hola", "greet-open")],
+            [Entry("hola", "lesson-hello"), Entry("hola", "guide-open")],
             TestSupport.Bundle,
             mode =>
             {
@@ -209,7 +209,7 @@ public class BenchTests
     {
         var recognizer = new ScriptedWordRecognizer(TestSupport.Asr("hola"));
 
-        var report = BenchRunner.Run([Entry("hola", "greet-blacksmith"), Entry("hola", "greet-open")], TestSupport.Bundle, _ => recognizer, _ => TestSupport.Clip());
+        var report = BenchRunner.Run([Entry("hola", "lesson-hello"), Entry("hola", "guide-open")], TestSupport.Bundle, _ => recognizer, _ => TestSupport.Clip());
 
         Assert.Equal([RecognitionMode.Constrained, RecognitionMode.Open], report.Entries.Select(static e => e.Mode).ToArray());
         Assert.Equal(2, report.Groups.Count);
@@ -260,7 +260,7 @@ public class BenchTests
     [Fact]
     public void ManifestLinesAreParsedAndBadLinesNameTheirNumber()
     {
-        const string good = """{"clip":"audio/a.wav","promptId":"greet-open","speaker":"s01","l1":"en","expectedTranscript":"hola","expectedErrors":[{"tag":"vocab.wrong","actual":"ola"}],"expectedIntent":null}""";
+        const string good = """{"clip":"audio/a.wav","promptId":"guide-open","speaker":"s01","l1":"en","expectedTranscript":"hola","expectedErrors":[{"tag":"vocab.wrong","actual":"ola"}],"expectedIntent":null}""";
 
         var entries = ManifestReader.Read(new StringReader($"{good}\n\n{good}\n"));
         var ex = Assert.Throws<InvalidDataException>(() => ManifestReader.Read(new StringReader($"{good}\n{{\"clip\":1}}\n")));
@@ -302,7 +302,7 @@ public class BenchTests
         try
         {
             var manifest = Path.Combine(directory, "manifest.jsonl");
-            File.WriteAllText(manifest, """{"clip":"audio/a.wav","promptId":"greet-open","speaker":"s01","l1":"en","expectedTranscript":"hola","expectedErrors":[],"expectedIntent":null}""" + "\n");
+            File.WriteAllText(manifest, """{"clip":"audio/a.wav","promptId":"guide-open","speaker":"s01","l1":"en","expectedTranscript":"hola","expectedErrors":[],"expectedIntent":null}""" + "\n");
             WavFile.Write(Path.Combine(Directory.CreateDirectory(Path.Combine(directory, "audio")).FullName, "a.wav"), new WavData(16000, 1, new short[16000]));
             using var output = new StringWriter();
             using var error = new StringWriter();
@@ -325,7 +325,7 @@ public class BenchTests
         try
         {
             var manifest = Path.Combine(directory, "manifest.jsonl");
-            File.WriteAllText(manifest, """{"clip":"audio/a.wav","promptId":"greet-open","speaker":"s01","l1":"en","expectedTranscript":"hola","expectedErrors":[],"expectedIntent":null}""" + "\n");
+            File.WriteAllText(manifest, """{"clip":"audio/a.wav","promptId":"guide-open","speaker":"s01","l1":"en","expectedTranscript":"hola","expectedErrors":[],"expectedIntent":null}""" + "\n");
             using var output = new StringWriter();
             using var error = new StringWriter();
 
