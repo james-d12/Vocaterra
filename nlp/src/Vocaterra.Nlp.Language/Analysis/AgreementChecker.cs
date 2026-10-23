@@ -24,6 +24,7 @@ internal sealed class AgreementChecker
     {
         CheckSubjectVerb();
         CheckTense();
+        CheckNearFuture();
         CheckSerEstar();
         CheckNounPhrases();
     }
@@ -203,7 +204,8 @@ internal sealed class AgreementChecker
                 continue;
             }
 
-            var present = finite.FirstOrDefault(static r => r.Tense == LexiconSchema.Present);
+            var present = finite.FirstOrDefault(static r => r.Tense == LexiconSchema.Present)
+                ?? finite.FirstOrDefault(static r => r.Tense == LexiconSchema.Future);
             if (present is null)
             {
                 continue;
@@ -212,6 +214,121 @@ internal sealed class AgreementChecker
             var expected = _morphology.Conjugate(present.Lemma, present.Person!, present.Number!, LexiconSchema.Preterite) ?? string.Empty;
             Add(ErrorTags.ConjTense, i, i, expected, TextOf(i));
         }
+    }
+
+    // Rule M49 (the near future). Two checks, both conj.tense:
+    //  1. A future-time marker (mañana, pasado mañana, la próxima semana, el año que viene) with a finite preterite or imperfect form: the expected form is the
+    //     ir a + infinitive for that person ("mañana comí" -> "voy a comer"), the form the game teaches; "ir a" itself (mañana fui a la tienda) expects the
+    //     present ("voy"). The present stays correct ("mañana como pan") and so does the future. A sentence that also has a past marker is left to CheckTense.
+    //     luego and más tarde are not markers: "luego comí" is ordinary narration.
+    //  2. A finite verb right after "ir a" ("voy a como", "vamos a tenemos"): the expected form is the infinitive. A noun phrase after a ("voy a la casa") or a
+    //     word that can be a noun is left alone.
+    private void CheckNearFuture()
+    {
+        var afterIrA = new HashSet<int>();
+        for (var i = 0; i + 2 < _tokens.Count; i++)
+        {
+            if (FirstReading(i, static r => IsDeclarativeFiniteVerb(r) && r.Lemma == "ir" && r.Tense is LexiconSchema.Present or LexiconSchema.Imperfect) is null
+                || !string.Equals(TextOf(i + 1), "a", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var next = i + 2;
+            var readings = _tokens[next].Readings;
+            if (readings.Count == 0 || readings.Any(r => !IsDeclarativeFiniteVerb(r) && r.Pos != LexiconSchema.Adverb && r.Pos != LexiconSchema.Conjunction))
+            {
+                continue;
+            }
+
+            var verb = readings.FirstOrDefault(static r => IsDeclarativeFiniteVerb(r) && r.Mood == LexiconSchema.Indicative) ?? readings.FirstOrDefault(IsDeclarativeFiniteVerb);
+            if (verb is null)
+            {
+                continue;
+            }
+
+            afterIrA.Add(next);
+            Add(ErrorTags.ConjTense, next, next, verb.Lemma, TextOf(next));
+        }
+
+        var marker = FutureTimeMarkerIndex();
+        if (marker < 0 || HasPastTimeMarker())
+        {
+            return;
+        }
+
+        var seenQue = false;
+        for (var i = 0; i < _tokens.Count; i++)
+        {
+            if (string.Equals(TextOf(i), "que", StringComparison.Ordinal))
+            {
+                seenQue = true;
+            }
+
+            // A verb that governs a reported clause ("dijo que mañana venía") is not in the time of the marker: a que between the verb and the marker ends the check for it.
+            if (i < marker && Enumerable.Range(i + 1, marker - i - 1).Any(j => string.Equals(TextOf(j), "que", StringComparison.Ordinal)))
+            {
+                continue;
+            }
+
+            if (afterIrA.Contains(i))
+            {
+                continue;
+            }
+
+            var finite = Readings(i, static r => IsDeclarativeFiniteVerb(r) && r.Tense is not null);
+            if (finite.Count == 0
+                || finite.Any(static r => r.Tense is LexiconSchema.Present or LexiconSchema.Future or LexiconSchema.Conditional)
+                || (seenQue && finite.All(static r => r.Tense == LexiconSchema.Imperfect)))
+            {
+                continue;
+            }
+
+            var past = finite[0];
+            string expected;
+            if (past.Lemma == "ir" && i + 1 < _tokens.Count && string.Equals(TextOf(i + 1), "a", StringComparison.Ordinal))
+            {
+                expected = _morphology.Conjugate("ir", past.Person!, past.Number!, LexiconSchema.Present) ?? string.Empty;
+            }
+            else
+            {
+                var goer = _morphology.Conjugate("ir", past.Person!, past.Number!, LexiconSchema.Present);
+                expected = goer is null ? string.Empty : goer + " a " + past.Lemma;
+            }
+
+            Add(ErrorTags.ConjTense, i, i, expected, TextOf(i));
+        }
+    }
+
+    /// <summary>The index of the first future-time marker (the time noun for a phrase), or -1: mañana (not "la mañana"), pasado mañana, próximo/a + a time noun, or a time noun + que viene.</summary>
+    private int FutureTimeMarkerIndex()
+    {
+        for (var i = 0; i < _tokens.Count; i++)
+        {
+            if (FirstReading(i, static r => r.Pos == LexiconSchema.Adverb && r.Lemma == "mañana") is not null
+                && (i == 0 || TextOf(i - 1) is not ("la" or "esta" or "una" or "cada" or "toda" or "esa" or "aquella" or "de")))
+            {
+                return i;
+            }
+
+            if (i > 0
+                && FirstReading(i - 1, static r => r.Pos == LexiconSchema.Adjective && r.Lemma == "próximo") is not null
+                && FirstReading(i, static r => r.Pos == LexiconSchema.Noun && AnalysisTables.IsUpcomingTimeNoun(r.Lemma)) is not null)
+            {
+                return i;
+            }
+
+            if (i > 0
+                && FirstReading(i - 1, static r => r.Pos == LexiconSchema.Noun && AnalysisTables.IsTimeNoun(r.Lemma)) is not null
+                && string.Equals(TextOf(i), "que", StringComparison.Ordinal)
+                && i + 1 < _tokens.Count
+                && string.Equals(TextOf(i + 1), "viene", StringComparison.Ordinal))
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     /// <summary>True when the sentence has a past-time adverb (ayer, anoche, anteayer) or a time noun with <c>pasado</c> (la semana pasada).</summary>
@@ -531,6 +648,12 @@ internal sealed class AgreementChecker
         var adjectiveIndex = phrase.Before[^1];
         var adjectives = Readings(adjectiveIndex, static r => r.Pos == LexiconSchema.Adjective);
         if (adjectives.Count == 0 || adjectives.Exists(static a => AnalysisTables.IsPrenominal(a.Lemma)))
+        {
+            return;
+        }
+
+        // "la próxima semana", "el próximo año": próximo goes before a time noun (but "unos próximos salones" is still a word-order mistake).
+        if (adjectives.Exists(static a => a.Lemma == "próximo") && Readings(phrase.Head, static r => r.Pos == LexiconSchema.Noun && AnalysisTables.IsUpcomingTimeNoun(r.Lemma)).Count > 0)
         {
             return;
         }

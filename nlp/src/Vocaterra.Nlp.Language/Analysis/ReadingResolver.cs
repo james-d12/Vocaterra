@@ -286,7 +286,18 @@ internal static class ReadingResolver
             // A preposition does not govern a finite verb (a casa, de lanza).
             if (next < Count && IsCertainPreposition(i))
             {
-                changed |= Narrow(next, static r => !ReadingClasses.IsFiniteVerb(r));
+                // M49: after "ir a" a word that is a finite verb and nothing but a conjunction or adverb besides (voy a como) keeps the verb, so that the near-future check
+                // sees it; a word that can also be a noun, adjective or pronoun is still the noun phrase (voy a casa).
+                if (IsIrA(i)
+                    && HasReading(next, ReadingClasses.IsFiniteVerb)
+                    && All(next, static r => ReadingClasses.IsFiniteVerb(r) || r.Pos is LexiconSchema.Conjunction or LexiconSchema.Adverb))
+                {
+                    changed |= Narrow(next, ReadingClasses.IsFiniteVerb);
+                }
+                else
+                {
+                    changed |= Narrow(next, static r => !ReadingClasses.IsFiniteVerb(r));
+                }
             }
 
             // A copula is followed by an adjective, a noun or an adverb, not by another finite verb.
@@ -368,6 +379,15 @@ internal static class ReadingResolver
         private bool IsCertainPreposition(int index)
         {
             return All(index, static r => r.Pos == LexiconSchema.Preposition);
+        }
+
+        // The preposition at index is the a of "ir a": the word before it is a finite form of ir (voy, vamos, iba).
+        private bool IsIrA(int index)
+        {
+            return index > 0
+                && string.Equals(_candidates[index][0].Lemma, "a", StringComparison.Ordinal)
+                && All(index - 1, static r => ReadingClasses.IsFiniteVerb(r) && r.Lemma == "ir")
+                && HasReading(index - 1, static r => r.Mood != LexiconSchema.Imperative);
         }
 
         private bool IsCertainCopula(int index)

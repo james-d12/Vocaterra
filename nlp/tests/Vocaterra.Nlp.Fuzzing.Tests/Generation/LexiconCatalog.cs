@@ -51,6 +51,9 @@ public sealed class LexiconCatalog
     /// <summary>Adverbs that put a sentence in the past (mirror of <c>AnalysisTables.PastTimeAdverbs</c>).</summary>
     public static readonly IReadOnlyList<string> PastTimeAdverbs = ["ayer", "anoche", "anteayer"];
 
+    /// <summary>Adverbs that put a sentence in the future (mirror of the marker in <c>AgreementChecker.CheckNearFuture</c>, M49): a preterite beside one is a tense mistake.</summary>
+    public static readonly IReadOnlyList<string> FutureTimeAdverbs = ["mañana"];
+
     /// <summary>Nouns that combine with <c>pasado</c> to mark past time (mirror of <c>AnalysisTables.TimeNouns</c>).</summary>
     public static readonly IReadOnlyList<string> TimeNouns =
         ["semana", "mes", "año", "día", "noche", "vez", "hora", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
@@ -89,7 +92,7 @@ public sealed class LexiconCatalog
         Verbs = BuildVerbs();
         DescriptiveAdjectives = BuildAdjectives();
         Adverbs = FormsOf(LexiconSchema.Adverb)
-            .Where(f => !PastTimeAdverbs.Contains(f) && !f.Contains(' ', StringComparison.Ordinal) && Stable(f) && OnlyReadings(f, LexiconSchema.Adverb, LexiconSchema.Interjection))
+            .Where(f => !PastTimeAdverbs.Contains(f) && !FutureTimeAdverbs.Contains(f) && !f.Contains(' ', StringComparison.Ordinal) && Stable(f) && OnlyReadings(f, LexiconSchema.Adverb, LexiconSchema.Interjection))
             .ToArray();
         Prepositions = FormsOf(LexiconSchema.Preposition).Where(f => Stable(f) && OnlyReadings(f, LexiconSchema.Preposition)).ToArray();
         Conjunctions = FormsOf(LexiconSchema.Conjunction).Where(f => Stable(f) && OnlyReadings(f, LexiconSchema.Conjunction)).ToArray();
@@ -220,7 +223,7 @@ public sealed class LexiconCatalog
     /// <summary>Descriptive adjectives (no determiners) that have a lexicon form for every gender and number.</summary>
     public IReadOnlyList<string> DescriptiveAdjectives { get; }
 
-    /// <summary>Adverbs without the past-time markers and without spaces, whose every reading is an adverb or interjection (the analyzer skips them between a subject and its verb).</summary>
+    /// <summary>Adverbs without the past-time and future-time markers and without spaces, whose every reading is an adverb or interjection (the analyzer skips them between a subject and its verb).</summary>
     public IReadOnlyList<string> Adverbs { get; }
 
     /// <summary>Prepositions whose every reading is a preposition.</summary>
