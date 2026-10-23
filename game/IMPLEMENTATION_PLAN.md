@@ -303,6 +303,23 @@ blacksmith and spell material leaves `content/game-v1` in S5 (the core's sample 
 the riverbank (water, a bridge). The five phrases: "¿Qué necesitas?", "Quiero agua, por favor.", "¿Quieres pan?", "Sí, por favor." /
 "No, gracias.", "¿Dónde está el río?".
 
+### 4.5 Experiments on `feature/experiment` (the X series; owner's standing direction, 2026-10-22)
+
+The owner: "I want you to research and make improvements to the game against a new branch called feature/experiment for any changes you come
+up with." The X series is the orchestrator's own work. It is planned here, gated with `GATE_TARGET=feature/experiment` from a
+`feature/experiment` checkout, and pushed to that branch only, never `main`. The rules are the same as everywhere else: briefs, model
+policy, machine resources and the merge gate. A change that needs an owner decision (a licence, scope, a D-number) is brought to the owner,
+not made. The German milestones stay parked (D14).
+
+| ID | Experiment | Status | Model | Depends on |
+| --- | --- | --- | --- | --- |
+| X00 | Research: a ranked backlog of improvements (learning effect, player experience, robustness, technical debt), with evidence from the code, plans, findings and screenshots | in progress | Sonnet 5.5 | S28 |
+| X01 | Saves survive content updates: a save made under an older bundle loads under a newer one (learner record, lessons, phrases, inventory and world edits kept where their ids still exist; the rest dropped and logged), instead of being refused; a strict mode keeps the refusal for the playtest's frozen bundle | in progress | Sonnet 5.5 | S28 |
+| X02 | Core M51: `ir` + a bare infinitive (`voy comer`) flagged | planned | Sonnet 5.5 | M49 |
+| X03 | Book polish: the right page scrolls; `vamos` glossed "we go" in What you said; ser and estar glossed apart ("to be: what", "to be: where or how") | planned | Haiku 5.5 | S28 |
+
+More rows come from X00's backlog.
+
 ## 5. Findings log
 
 Facts that shape the plan. Each one names its source; the core's own findings stay in the core's plan.
