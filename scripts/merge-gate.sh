@@ -83,16 +83,10 @@ if [ -f content/PHRASES.md ]; then
   [ "$content_rc" -eq 0 ] && echo "content gate: lint --strict a1 and cefr-check a1/a2 clean"
 fi
 
-# The LanguageTool grammar check (core M30, D10's dev-time half): ADVISORY, offline from the committed cache, never fails the gate. It
-# becomes required after the first waiver round (owner, 2026-10-22); S23 adds the game bundle.
+# The LanguageTool grammar check (core M30, D10's dev-time half), on the repository's one bundle (R02: content/v1 and its advisory step are gone).
+# REQUIRED since the first waiver round (owner, 2026-10-22). --strict fails on any unwaived warning or a cache miss, offline from the committed
+# cache; after a content change, refresh the strings file and the cache (docs/game/README.md) with the local server, then rerun.
 GRAMMARLOG=".claude/gate-logs/grammar-$STAMP.log"
-if [ -f content/grammar/v1-cache.json ]; then
-  "$L" dotnet run --project tools/Vocaterra.Nlp.ContentBuilder --no-build -- grammar content/v1 --offline \
-    --cache content/grammar/v1-cache.json --waivers content/grammar/v1-waivers.json > "$GRAMMARLOG" 2>&1
-  echo "grammar (advisory, content/v1): $(grep -E '^grammar:' "$GRAMMARLOG" | tail -1)"
-fi
-# The game bundle (S23): REQUIRED since its first waiver round (owner, 2026-10-22). --strict fails on any unwaived warning or a cache miss;
-# after a content change, refresh the strings file and the cache (docs/game/README.md) with the local server, then rerun.
 grammar_rc=0
 if [ -f content/grammar/game-v1-cache.json ]; then
   { "$L" bash scripts/content.sh grammar content/game-v1 --strings content/grammar/game-v1-strings.jsonl --strings-only --offline \

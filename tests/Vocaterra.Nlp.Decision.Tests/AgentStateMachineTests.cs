@@ -261,7 +261,7 @@ public class AgentStateMachineTests
     [Fact]
     public void StepRejectsAnotherAgentsStateAndUnknownStates()
     {
-        Assert.Throws<ArgumentException>(() => Innkeeper.Step(new AgentState("blacksmith", "greeting", 0), TestVerdicts.Clean(), new SeededRng(1)));
+        Assert.Throws<ArgumentException>(() => Innkeeper.Step(new AgentState("villager", "greeting", 0), TestVerdicts.Clean(), new SeededRng(1)));
         Assert.Throws<ArgumentException>(() => Innkeeper.Step(new AgentState("innkeeper", "nowhere", 0), TestVerdicts.Clean(), new SeededRng(1)));
     }
 

@@ -21,9 +21,9 @@ internal static class Fixtures
     public static PromptSpec Prompt(
         RecognitionMode mode = RecognitionMode.Open,
         Difficulty difficulty = Difficulty.Beginner,
-        string answerSetId = "blacksmith.offer")
+        string answerSetId = "villager.offer")
     {
-        return new PromptSpec("blacksmith.offer.1", mode, difficulty, answerSetId, ["offer_item"], "blacksmith", ["offer_item.have"]);
+        return new PromptSpec("villager.offer.1", mode, difficulty, answerSetId, ["offer_item"], "villager", ["offer_item.have"]);
     }
 
     public static AsrResult Asr(double confidence = 0.9, RecognitionMode mode = RecognitionMode.Open)
@@ -86,7 +86,7 @@ internal static class Fixtures
         return new PronunciationResult(phones ?? [], errors ?? [], 0.8, confidence, "pron-hash");
     }
 
-    /// <summary>The HLD worked example "yo tiene dos espada" at the blacksmith, with deliberately unsorted analysis lists.</summary>
+    /// <summary>The HLD worked example "yo tiene dos espada" at the villager, with deliberately unsorted analysis lists.</summary>
     public static VerdictInputs WorkedExample()
     {
         var analysis = new AnalysisResult(

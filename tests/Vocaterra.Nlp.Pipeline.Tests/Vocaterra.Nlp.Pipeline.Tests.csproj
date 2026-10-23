@@ -23,7 +23,7 @@
     <ProjectReference Include="../../tools/Vocaterra.Nlp.Bench/Vocaterra.Nlp.Bench.csproj" />
   </ItemGroup>
 
-  <!-- The committed bundle and the model manifest are copied next to the test assembly. -->
+  <!-- The bundle (content/game-v1, 38 MB) is found by walking up from the test assembly (Shared/GameBundleLocator.cs), not copied; the model manifest is copied next to it. -->
   <ItemGroup>
     <Compile Include="../Shared/GameBundleLocator.cs" Link="Shared/GameBundleLocator.cs" />
     <Compile Include="../Shared/TempBundle.cs" Link="Shared/TempBundle.cs" />

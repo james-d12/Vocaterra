@@ -46,7 +46,7 @@ public static class Program
               Re-evaluates every logged utterance from its recorded recognizer output; prints OK, or the differing JSON paths and exits 1.
 
         Example:
-          eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1
+          eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1
         """;
 
     /// <summary>Process entry point.</summary>

@@ -29,7 +29,7 @@
     <None Include="Data/e2e-*.golden.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <!-- The committed bundle and the golden manifest are copied next to the test assembly. -->
+  <!-- The bundle (content/game-v1) is found by walking up from the test assembly (Shared/GameBundleLocator.cs), not copied; the golden manifest is copied next to it. -->
   <ItemGroup>
     <Compile Include="../Shared/GameBundleLocator.cs" Link="Shared/GameBundleLocator.cs" />
     <None Include="../golden/manifest.jsonl" Link="golden/manifest.jsonl" CopyToOutputDirectory="PreserveNewest" />

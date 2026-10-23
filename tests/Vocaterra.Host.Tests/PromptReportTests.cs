@@ -13,7 +13,7 @@ public sealed class PromptReportTests
         var lines = Write(prompt);
 
         Assert.Equal(
-            new[] { "[greet-test] Open, agent blacksmith, intents greet", "  agent: ¡Hola! ¿Qué necesitas?" },
+            new[] { "[greet-test] Open, agent villager, intents greet", "  agent: ¡Hola! ¿Qué necesitas?" },
             lines);
     }
 
@@ -22,7 +22,7 @@ public sealed class PromptReportTests
     {
         var lines = Write(Prompt(text: null));
 
-        Assert.Equal(new[] { "[greet-test] Open, agent blacksmith, intents greet" }, lines);
+        Assert.Equal(new[] { "[greet-test] Open, agent villager, intents greet" }, lines);
     }
 
     [Theory]
@@ -49,7 +49,7 @@ public sealed class PromptReportTests
 
     private static PromptSpec Prompt(string? text)
     {
-        return new PromptSpec("greet-test", RecognitionMode.Open, Difficulty.Beginner, "greetings", ["greet"], "blacksmith", [], text);
+        return new PromptSpec("greet-test", RecognitionMode.Open, Difficulty.Beginner, "greetings", ["greet"], "villager", [], text);
     }
 
     private static string[] Write(PromptSpec prompt)
