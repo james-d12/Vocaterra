@@ -1,5 +1,3 @@
-using Vocaterra.Nlp.Content;
-
 namespace Vocaterra.Game.Tests;
 
 /// <summary>The check battery's items (<c>game/checks.json</c>, S11): what is in the bundle, and that a bad item is refused when it is read.</summary>

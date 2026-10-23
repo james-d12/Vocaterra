@@ -2,14 +2,11 @@ using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
-using Vocaterra.Nlp.Core.Prompts;
-using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Pipeline;
-using Vocaterra.Nlp.Response.Templates;
 
 namespace Vocaterra.Game;
 

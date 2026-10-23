@@ -1,4 +1,3 @@
-using Vocaterra.Game;
 using Vocaterra.Nlp.Response.Speech;
 
 namespace Vocaterra.Game.Tests;

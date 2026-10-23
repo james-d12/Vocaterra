@@ -1,4 +1,3 @@
-using Vocaterra.Game;
 using Vocaterra.Nlp.Asr.Models;
 
 namespace Vocaterra.Game.Tests;

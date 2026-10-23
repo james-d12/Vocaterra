@@ -1,5 +1,4 @@
 using Vocaterra.Game;
-using Vocaterra.MonoGame;
 using Vocaterra.MonoGame.Frontend;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Pipeline;

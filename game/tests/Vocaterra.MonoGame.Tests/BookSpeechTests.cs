@@ -5,7 +5,6 @@ using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Response.Speech;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Tests;
 

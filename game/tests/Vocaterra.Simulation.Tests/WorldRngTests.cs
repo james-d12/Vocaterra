@@ -1,5 +1,3 @@
-using Vocaterra.Simulation;
-
 namespace Vocaterra.Simulation.Tests;
 
 /// <summary>The SplitMix64 generator, its derivation per pass and chunk, and the integer value noise.</summary>

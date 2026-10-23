@@ -1,7 +1,6 @@
 using Vocaterra.Game;
 using Vocaterra.MonoGame.Frontend;
 using Vocaterra.Nlp.Content;
-using Vocaterra.Nlp.Language.Morphology;
 
 namespace Vocaterra.MonoGame.Tests;
 

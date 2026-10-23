@@ -1,5 +1,4 @@
 using System.Globalization;
-using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game;

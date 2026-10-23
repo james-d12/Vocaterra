@@ -4,7 +4,6 @@ using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game;
 

@@ -1,7 +1,5 @@
 using Vocaterra.Nlp.Core.Audio;
-using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
-using Vocaterra.Nlp.Language.Intent;
 
 namespace Vocaterra.Game.Tests;
 

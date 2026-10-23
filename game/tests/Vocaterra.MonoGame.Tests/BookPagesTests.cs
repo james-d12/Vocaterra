@@ -3,7 +3,6 @@ using Vocaterra.MonoGame.Frontend;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Tests;
 

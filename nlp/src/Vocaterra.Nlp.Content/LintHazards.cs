@@ -1,4 +1,3 @@
-using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Lexicon;
 
 namespace Vocaterra.Nlp.Content;

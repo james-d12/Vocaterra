@@ -1,6 +1,4 @@
 using System.Collections.Immutable;
-using Vocaterra.Nlp.Core.Stages;
-using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Simulation.Items;
 

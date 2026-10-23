@@ -1,5 +1,3 @@
-using Vocaterra.Game;
-
 namespace Vocaterra.MonoGame.Frontend;
 
 /// <summary>

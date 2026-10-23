@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using Vocaterra.Nlp.Core.Determinism;
 
 namespace Vocaterra.Nlp.Core.Verdicts;
 

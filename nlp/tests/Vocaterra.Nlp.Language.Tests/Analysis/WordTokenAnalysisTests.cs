@@ -1,8 +1,6 @@
 namespace Vocaterra.Nlp.Language.Tests.Analysis;
 
 using Vocaterra.Nlp.Core.Taxonomy;
-using Vocaterra.Nlp.Core.Verdicts;
-using Vocaterra.Nlp.Language.Lexicon;
 
 /// <summary>What the analyzer and the reading resolver do with a <c>[WORD]</c> token: no unknown-word error, no agreement check, and the lexicon readings kept.</summary>
 public class WordTokenAnalysisTests

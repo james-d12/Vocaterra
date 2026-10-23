@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Vocaterra.Game;
 using Vocaterra.MonoGame;
 using Vocaterra.MonoGame.Frontend;

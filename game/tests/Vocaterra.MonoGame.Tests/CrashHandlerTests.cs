@@ -1,5 +1,4 @@
 using System.Text;
-using Vocaterra.Game;
 using Vocaterra.MonoGame.Frontend;
 
 namespace Vocaterra.MonoGame.Tests;

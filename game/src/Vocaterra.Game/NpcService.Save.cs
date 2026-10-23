@@ -1,7 +1,6 @@
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
-using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Pipeline;
 
 namespace Vocaterra.Game;

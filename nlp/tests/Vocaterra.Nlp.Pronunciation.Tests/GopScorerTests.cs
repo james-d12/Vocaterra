@@ -3,7 +3,6 @@ using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
-using Vocaterra.Nlp.Phonology;
 
 namespace Vocaterra.Nlp.Pronunciation.Tests;
 

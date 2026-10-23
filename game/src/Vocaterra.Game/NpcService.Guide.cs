@@ -1,8 +1,6 @@
-using System.Globalization;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Response.Templates;
-using Vocaterra.Simulation.Items;
 
 namespace Vocaterra.Game;
 

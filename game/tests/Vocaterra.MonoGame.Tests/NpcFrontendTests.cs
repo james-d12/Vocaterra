@@ -1,6 +1,5 @@
 using Vocaterra.Game;
 using Vocaterra.MonoGame.Frontend;
-using Vocaterra.Simulation;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 

@@ -1,6 +1,4 @@
-using Vocaterra.Game;
 using Vocaterra.Nlp.Content;
-using Vocaterra.Simulation;
 using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Tests;

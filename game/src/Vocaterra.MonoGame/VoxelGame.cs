@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game;
 using Vocaterra.Game.Reports;
 using Vocaterra.MonoGame.Frontend;
-using Vocaterra.Simulation;
 using Vocaterra.Simulation.Crafting;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;

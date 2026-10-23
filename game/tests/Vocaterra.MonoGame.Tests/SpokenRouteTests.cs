@@ -1,7 +1,6 @@
 using Vocaterra.Game;
 using Vocaterra.MonoGame.Frontend;
 using Vocaterra.Nlp.Content;
-using Vocaterra.Simulation.Voxel;
 using Xunit.Abstractions;
 
 namespace Vocaterra.MonoGame.Tests;

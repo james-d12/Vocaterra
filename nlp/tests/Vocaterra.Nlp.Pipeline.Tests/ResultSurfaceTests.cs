@@ -1,7 +1,6 @@
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
-using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Lexicon;
 using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 

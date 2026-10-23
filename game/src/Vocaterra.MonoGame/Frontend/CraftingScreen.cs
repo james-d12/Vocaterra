@@ -1,5 +1,4 @@
 using Vocaterra.Game;
-using Vocaterra.Simulation;
 using Vocaterra.Simulation.Crafting;
 using Vocaterra.Simulation.Voxel;
 

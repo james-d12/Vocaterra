@@ -1,4 +1,3 @@
-using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 
