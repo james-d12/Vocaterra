@@ -226,8 +226,17 @@ public abstract class GuideSession : IDisposable
         }
     }
 
+    /// <summary>The learner asked to practise a lesson again from the book (S26): the 3D scene points the beacon at the lesson's NPC. The base game has no beacon.</summary>
+    /// <param name="npc">The lesson's NPC.</param>
+    internal virtual void LessonReplayAsked(string npc)
+    {
+    }
+
     /// <summary>The ticks the stall's key-word cards stand alone before the shopkeeper's first question (two and a half seconds).</summary>
     public const long KeyWordTicks = 150;
+
+    // The prompt the support follows while a lesson step of the villager or the shopkeeper asks for no phrase (S26): the guide's open prompt, which no phrase row uses.
+    private const string QuietPrompt = "guide-open";
 
     /// <summary>The key words of the stall, taught before the first exchange (brief step 4): the nouns of the first request and the bread.</summary>
     public static IReadOnlyList<string> KeyWords { get; } = ["agua", "pan"];
@@ -646,6 +655,10 @@ public abstract class GuideSession : IDisposable
                 {
                     _ = BeginTalk();
                 }
+            }
+            else if (!string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && Lessons.OwnsConversation(npc))
+            {
+                opening = opening with { Lines = [] }; // the villager's or the shopkeeper's lesson speaks first (S26): the host turn's state change stays, its line is not said
             }
         }
 
@@ -1143,7 +1156,15 @@ public abstract class GuideSession : IDisposable
     // phrase skill step (LearnerModel.StepSkills), deferred while a turn is on the worker.
     private void RefreshSupport(string npc, string prompt)
     {
-        var change = Support.Show(npc, prompt, PhraseReview?.PhraseId, string.Equals(npc, Lessons.Active?.Npc, StringComparison.Ordinal) ? Lessons.Focus : null);
+        var inLesson = Lessons.Engaged && string.Equals(npc, Lessons.CurrentNpc, StringComparison.Ordinal);
+        if (inLesson && Lessons.Focus is null && !string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal))
+        {
+            // A lesson step of the villager's or the shopkeeper's that asks for no phrase (S26): the stall's and the villager's own phrase cards stay down, as the guide's do (her
+            // own prompt asks for none). The quiet prompt is one no row of the sheet uses.
+            prompt = QuietPrompt;
+        }
+
+        var change = Support.Show(npc, prompt, PhraseReview?.PhraseId, inLesson ? Lessons.Focus : null);
         foreach (var id in change.NewCards)
         {
             CardAppeared(npc, id, "level");

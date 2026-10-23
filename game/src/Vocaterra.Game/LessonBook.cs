@@ -84,6 +84,10 @@ public static class LessonStepTypes
 /// <param name="Attempts">For <c>listen</c>, <c>repeat</c> and <c>answer</c>: how many tries the step allows before it moves on (fail-forward, D-game-9).</param>
 /// <param name="Point">For <c>do</c> (S17): a catalogue noun the beacon is pointed at when the step begins (the nearest block of it), or <see langword="null"/> for none.</param>
 /// <param name="Hud">For <c>do</c> (S17): the short English line the objective area shows while the step waits and the panel is closed, or <see langword="null"/> for none.</param>
+/// <param name="Npc">The NPC the step is said at (S26: a lesson may move from one NPC to another), or <see langword="null"/> for the lesson's own NPC.</param>
+/// <param name="Person">For <c>repeat</c> and <c>answer</c> (S26): the person and number of the finite verb the answer must have (<c>1sg</c>, <c>2sg</c>, <c>3sg</c>, <c>1pl</c>, <c>2pl</c> or <c>3pl</c>), or <see langword="null"/> to judge nothing of it.</param>
+/// <param name="PersonRetry">The English line shown when the answer's verb has another person than <see cref="Person"/> (it names the ending), or <see langword="null"/> for the step's retry line.</param>
+/// <param name="At">For <c>do</c> with the <c>talk_opened</c> event (S26): the NPC the learner is to walk up to and talk to; the step ends when the panel opens on that NPC.</param>
 public sealed record LessonStep(
     string Id,
     LessonStepType Type,
@@ -101,7 +105,11 @@ public sealed record LessonStep(
     IReadOnlyList<string> Phrases,
     int Attempts,
     string? Point = null,
-    string? Hud = null)
+    string? Hud = null,
+    string? Npc = null,
+    string? At = null,
+    string? Person = null,
+    string? PersonRetry = null)
 {
     /// <summary>The attempts a step allows when the file says nothing: one try and one retry, then the lesson moves on.</summary>
     public const int DefaultAttempts = 2;
@@ -109,6 +117,16 @@ public sealed record LessonStep(
     /// <summary>Whether the step waits for the learner to say something (a real turn through the core).</summary>
     public bool WaitsOnTurn => Type is LessonStepType.Repeat or LessonStepType.Answer;
 }
+
+/// <summary>
+/// One verb form a lesson teaches (S26): the lemma, the grammatical person (<c>1</c>, <c>2</c> or <c>3</c>), the number (<c>sg</c> or <c>pl</c>) and the tense, spelled as the
+/// core's lexicon features spell them. <c>usted</c> shares the third person singular and <c>ustedes</c> the third person plural; the book's tables place them.
+/// </summary>
+/// <param name="Lemma">The verb's infinitive.</param>
+/// <param name="Person">The person: <c>1</c>, <c>2</c> or <c>3</c>.</param>
+/// <param name="Number">The number: <c>sg</c> or <c>pl</c>.</param>
+/// <param name="Tense">The tense: <c>pres</c> now (S27 adds the preterite and the near future).</param>
+public sealed record TaughtVerbForm(string Lemma, string Person, string Number, string Tense);
 
 /// <summary>One lesson: a short sequence of steps attached to an NPC.</summary>
 /// <param name="Id">The lesson's id.</param>
@@ -119,8 +137,33 @@ public sealed record LessonStep(
 /// <param name="After">The id of a lesson that must be completed first, or <see langword="null"/>.</param>
 /// <param name="Steps">The steps, in order.</param>
 /// <param name="Summary">What the learner can say once the lesson is done, in English (the book's line for a completed lesson, S20), or <see langword="null"/>.</param>
-public sealed record LessonDefinition(string Id, string Npc, string Title, string English, bool AutoStart, string? After, IReadOnlyList<LessonStep> Steps, string? Summary = null)
+/// <param name="Session">The play session the lesson unlocks in (S26): 1 is open from the first session, 2 from the second, and so on.</param>
+/// <param name="Objective">For a lesson of a later session: the English line the objective area shows once the lesson is unlocked and not begun (it names the lesson), or <see langword="null"/>.</param>
+/// <param name="Verbs">The verb forms the lesson teaches (S26; the book's conjugation tables, S28, show what has been taught).</param>
+public sealed record LessonDefinition(
+    string Id,
+    string Npc,
+    string Title,
+    string English,
+    bool AutoStart,
+    string? After,
+    IReadOnlyList<LessonStep> Steps,
+    string? Summary = null,
+    int Session = 1,
+    string? Objective = null,
+    IReadOnlyList<TaughtVerbForm>? Verbs = null)
 {
+    /// <summary>The verb forms the lesson teaches, as the file declares them (empty when it declares none).</summary>
+    public IReadOnlyList<TaughtVerbForm> TaughtVerbs => Verbs ?? [];
+
+    /// <summary>The NPC a step is said at: its own, or the lesson's.</summary>
+    /// <param name="step">The step.</param>
+    public string NpcOf(LessonStep step)
+    {
+        ArgumentNullException.ThrowIfNull(step);
+        return step.Npc ?? Npc;
+    }
+
     /// <summary>The phrases the lesson teaches: those of its <c>repeat</c> and <c>answer</c> steps, in order, each once.</summary>
     public IReadOnlyList<string> TaughtPhrases =>
         Steps.Where(static s => s.WaitsOnTurn).Select(static s => s.Phrase!).Distinct(StringComparer.Ordinal).ToList();
@@ -133,16 +176,18 @@ public sealed record LessonDefinition(string Id, string Npc, string Title, strin
 /// </summary>
 /// <remarks>
 /// <para>The file is <c>{ "schemaVersion": 1, "lessons": [ { "id", "npc", "title", "english", "autoStart"?, "after"?, "steps": [ ... ] } ] }</c>. A step has an <c>id</c>, a
-/// <c>type</c> and <c>english</c> always, and optionally <c>help</c> (the hint of the help path), <c>retry</c> and <c>attempts</c> (1 to 5, default 2), plus:</para>
+/// <c>type</c> and <c>english</c> always, and optionally <c>help</c> (the hint of the help path), <c>retry</c>, <c>attempts</c> (1 to 5, default 2) and <c>npc</c> (S26: the NPC the step is said at, when the lesson moves from one NPC to another), plus:</para>
 /// <list type="bullet">
 /// <item><c>explain</c>: nothing more.</item>
 /// <item><c>model</c>: <c>line</c> (a speech id such as <c>phrase.hola</c> or <c>guide_greet.1</c>) and <c>translation</c>.</item>
 /// <item><c>listen</c>: <c>line</c>, <c>translation</c>, <c>options</c> (two to four English strings) and <c>correct</c> (the index).</item>
 /// <item><c>repeat</c>: <c>phrase</c> (a row the learner says) and optionally <c>prompt</c> (default: the row's).</item>
 /// <item><c>answer</c>: <c>phrase</c>, <c>line</c>, <c>translation</c> and optionally <c>prompt</c>.</item>
-/// <item><c>do</c>: <c>event</c> (a world event name) and optionally <c>detail</c>, <c>point</c> (a noun the beacon goes to when the step begins) and <c>hud</c> (the short line the objective area shows while the step waits).</item>
+/// <item><c>do</c>: <c>event</c> (a world event name) and optionally <c>detail</c>, <c>point</c> (a noun the beacon goes to when the step begins), <c>hud</c> (the short line the objective area shows while the step waits) and, with the event <c>talk_opened</c>, <c>at</c> (the NPC to walk up to; S26).</item>
 /// <item><c>recap</c>: optionally <c>phrases</c> (default: every phrase the lesson teaches).</item>
 /// </list>
+/// <para>A lesson may also carry <c>session</c> (the play session it unlocks in, default 1), <c>objective</c> (the English line that names it while it is unlocked and not begun; needed when <c>session</c> is above 1)
+/// and <c>verbs</c> (the verb forms it teaches: <c>lemma</c>, <c>person</c> 1 to 3, <c>number</c> sg or pl, <c>tense</c>; S26).</para>
 /// <para>The row's intent must be one the prompt allows, so the core can recognise the answer. Plain values, no clock, no random numbers.</para>
 /// </remarks>
 public sealed class LessonBook
@@ -255,8 +300,29 @@ public sealed class LessonBook
             throw Bad(id, "has no steps");
         }
 
+        foreach (var step in steps)
+        {
+            var stepNpc = step.Npc ?? npc;
+            if (step.Line is { Kind: SpeechKind.Dialogue or SpeechKind.Prompt } spoken && !string.Equals(spoken.Speaker, stepNpc, StringComparison.Ordinal))
+            {
+                throw Bad(id, $"step '{step.Id}' is said at {stepNpc}, but its line '{spoken.LineId}' is spoken by {spoken.Speaker}");
+            }
+        }
+
         var autoStart = element.TryGetProperty("autoStart", out var auto) && auto.ValueKind == JsonValueKind.True;
-        var lesson = new LessonDefinition(id, npc, Text(element, "title"), Text(element, "english"), autoStart, after, steps, Optional(element, "summary"));
+        var session = element.TryGetProperty("session", out var sessionElement) ? sessionElement.GetInt32() : 1;
+        if (session < 1)
+        {
+            throw Bad(id, $"unlocks in session {session.ToString(CultureInfo.InvariantCulture)}; sessions start at 1");
+        }
+
+        var objective = Optional(element, "objective");
+        if (session > 1 && objective is null)
+        {
+            throw Bad(id, "unlocks in a later session and needs an English \"objective\" line that names it");
+        }
+
+        var lesson = new LessonDefinition(id, npc, Text(element, "title"), Text(element, "english"), autoStart, after, steps, Optional(element, "summary"), session, objective, ParseVerbs(id, element));
         foreach (var recap in steps.Where(static s => s.Type == LessonStepType.Recap))
         {
             foreach (var phrase in recap.Phrases)
@@ -269,6 +335,34 @@ public sealed class LessonBook
         }
 
         return lesson;
+    }
+
+    private static List<TaughtVerbForm> ParseVerbs(string lesson, JsonElement element)
+    {
+        var forms = new List<TaughtVerbForm>();
+        if (!element.TryGetProperty("verbs", out var listed))
+        {
+            return forms;
+        }
+
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var item in listed.EnumerateArray())
+        {
+            var form = new TaughtVerbForm(Text(item, "lemma"), Text(item, "person"), Text(item, "number"), Text(item, "tense"));
+            if (form.Person is not ("1" or "2" or "3") || form.Number is not ("sg" or "pl") || form.Tense is not ("pres" or "pret" or "fut" or "ir-a"))
+            {
+                throw Bad(lesson, $"declares the verb form {form.Lemma} {form.Person} {form.Number} {form.Tense}, which is not a person 1 to 3, a number sg or pl and a tense pres, pret, fut or ir-a");
+            }
+
+            if (!seen.Add($"{form.Lemma}/{form.Person}/{form.Number}/{form.Tense}"))
+            {
+                throw Bad(lesson, $"declares the verb form {form.Lemma} {form.Person} {form.Number} {form.Tense} twice");
+            }
+
+            forms.Add(form);
+        }
+
+        return forms;
     }
 
     private static LessonStep ParseStep(string lesson, JsonElement element, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts)
@@ -352,7 +446,25 @@ public sealed class LessonBook
                 break;
         }
 
-        return new LessonStep(id, type, Text(element, "english"), Optional(element, "help"), Optional(element, "retry"), line, translation, phrase, prompt, options, correct, worldEvent, detail, phrases, attempts, type == LessonStepType.Do ? Optional(element, "point") : null, type == LessonStepType.Do ? Optional(element, "hud") : null);
+        var stepNpc = Optional(element, "npc");
+        if (stepNpc is not null && !NpcService.AgentIds.Contains(stepNpc, StringComparer.Ordinal))
+        {
+            throw Bad(lesson, $"step '{id}' is said at '{stepNpc}', which is not one of the NPCs ({string.Join(", ", NpcService.AgentIds)})");
+        }
+
+        var at = type == LessonStepType.Do ? Optional(element, "at") : null;
+        if (at is not null && (!NpcService.AgentIds.Contains(at, StringComparer.Ordinal) || !string.Equals(worldEvent, WorldEvents.TalkOpened, StringComparison.Ordinal)))
+        {
+            throw Bad(lesson, $"step '{id}' waits at '{at}': \"at\" names an NPC ({string.Join(", ", NpcService.AgentIds)}) and goes with the event {WorldEvents.TalkOpened}");
+        }
+
+        var person = Optional(element, "person");
+        if (person is not null && (type is not (LessonStepType.Repeat or LessonStepType.Answer) || !System.Text.RegularExpressions.Regex.IsMatch(person, "^[123](sg|pl)$")))
+        {
+            throw Bad(lesson, $"step '{id}' expects the person '{person}': \"person\" is 1sg, 2sg, 3sg, 1pl, 2pl or 3pl and goes with a repeat or answer step");
+        }
+
+        return new LessonStep(id, type, Text(element, "english"), Optional(element, "help"), Optional(element, "retry"), line, translation, phrase, prompt, options, correct, worldEvent, detail, phrases, attempts, type == LessonStepType.Do ? Optional(element, "point") : null, type == LessonStepType.Do ? Optional(element, "hud") : null, stepNpc, at, person, person is null ? null : Optional(element, "personRetry"));
     }
 
     private static (string Phrase, string Prompt) PhraseAndPrompt(string lesson, string step, JsonElement element, PhraseSheet sheet, IReadOnlyDictionary<string, PromptSpec> prompts)

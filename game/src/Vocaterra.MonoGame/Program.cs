@@ -51,6 +51,14 @@ try
         session = new VoxelSession(bundle, options.Seed, GuideSession.DefaultStartedAt, nouns, scene, options.Credit);
     }
 
+    if (options.Session is { } playSession)
+    {
+        // A run started at a given session (S26, --session): the lessons of that session are unlocked, and the objective names the new one.
+        session.PlaySession = playSession;
+        session.BeginPlaySession();
+        Console.WriteLine($"session: this run is play session {playSession}");
+    }
+
     // The fresh scene a save is taken against: a new build of the session's seed and layout (the session's own scene is changed by the play).
     pristine = () => buildFor(session.WorldSeed);
     Console.WriteLine($"scene: {layoutFile} built in {MonotonicClock.Milliseconds() - sceneStarted:0} ms");

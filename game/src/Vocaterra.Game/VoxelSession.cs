@@ -97,6 +97,16 @@ public sealed class VoxelSession : GuideSession
             return [new ObjectivePiece(hud, ObjectivePieceKind.English)];
         }
 
+        if (Lessons.ReplayHud is { } replay)
+        {
+            return [new ObjectivePiece(replay, ObjectivePieceKind.English)]; // the learner asked to practise a lesson again from the book (S26)
+        }
+
+        if (Stage is SessionStage.Complete or SessionStage.FindGuide && Lessons.NewLesson is { Objective: { } objective })
+        {
+            return [new ObjectivePiece(objective, ObjectivePieceKind.English)]; // a new session's lesson is unlocked and not begun: the objective names it (S26)
+        }
+
         return English.StageLine(Stage) is { } line
             ? [new ObjectivePiece(line, ObjectivePieceKind.English, Stage == SessionStage.Complete)]
             : English.ObjectivePieces(Objective, lemma => Words.RecordOf(lemma).Known);
@@ -139,6 +149,35 @@ public sealed class VoxelSession : GuideSession
 
     /// <inheritdoc />
     internal override void LessonPointAt(string npc, string noun) => PointAt(npc, noun);
+
+    /// <inheritdoc />
+    internal override void LessonReplayAsked(string npc) => PointAtNpc(npc);
+
+    /// <summary>
+    /// A new play session begins (S26): a save was loaded into it, or a run was started at a given session. When the session has a lesson that is unlocked and not begun, the beacon
+    /// points at its NPC, and the objective line names the lesson (<see cref="ObjectiveHud"/>).
+    /// </summary>
+    public void BeginPlaySession()
+    {
+        if (Lessons.NewLesson is { } lesson)
+        {
+            PointAtNpc(lesson.Npc);
+        }
+    }
+
+    // The beacon goes to an NPC, where a lesson starts (S26). The label is the NPC's name: Luna, or the villager's or the shopkeeper's role.
+    private void PointAtNpc(string npc)
+    {
+        if (!Scene.Npcs.Any(placed => string.Equals(placed.Name, npc, StringComparison.Ordinal)))
+        {
+            return;
+        }
+
+        var feet = Scene.Npc(npc).Feet;
+        var label = string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) ? "Luna" : npc;
+        Pointer = new PointerMarker(label, new GuideCell(feet.X, feet.Y, feet.Z));
+        LogWorld(WorldEvents.BeaconSet, npc, $"{label} at {feet.X},{feet.Y},{feet.Z}");
+    }
 
     /// <summary>
     /// Whether an NPC has pointed the player at the river (the villager's answer, or the guide's) at any time so far. A player who fills the

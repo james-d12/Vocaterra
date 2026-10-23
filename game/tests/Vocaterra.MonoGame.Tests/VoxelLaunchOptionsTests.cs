@@ -81,6 +81,30 @@ public sealed class VoxelLaunchOptionsTests
     }
 
     [Fact]
+    public void TheSessionFlag_S26_StartsTheRunAtAGivenPlaySessionAndRefusesNonsense()
+    {
+        Assert.Null(Parse("--screenshot", "a.png").Session);
+        Assert.Equal(2, Parse("--session", "2", "--lesson-run", "personas", "--screenshot", "a.png").Session);
+        Assert.Equal(99, Parse("--session", "99").Session);
+        Assert.Contains("--session needs", Refuse("--session", "0"), StringComparison.Ordinal);
+        Assert.Contains("--session needs", Refuse("--session", "100"), StringComparison.Ordinal);
+        Assert.Contains("--session needs", Refuse("--session", "two"), StringComparison.Ordinal);
+        Assert.Contains("--session", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheBookPractiseStep_S26_KeepsItsLessonAndNeedsTheScriptScreenshot()
+    {
+        var options = Parse("--screenshot", "a.png", "--lesson-run", "first-words", "--book-practise", "first-words", "--lesson-run", "first-words");
+
+        Assert.Equal([ScriptStepKind.LessonRun, ScriptStepKind.BookPractise, ScriptStepKind.LessonRun], options.Script.Select(static step => step.Kind).ToArray());
+        Assert.Equal("first-words", options.Script[1].Value);
+        Assert.Contains("--screenshot", Refuse("--book-practise", "first-words"), StringComparison.Ordinal);
+        Assert.Contains("--book-practise needs", Refuse("--screenshot", "a.png", "--book-practise", " "), StringComparison.Ordinal);
+        Assert.Contains("--book-practise", LaunchOptions.Usage, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void VoxelIsAcceptedAndIgnoredAndTheSayLinesAreKept()
     {
         var options = Parse("--voxel", "--seed", "7", "--screenshot", "a.png", "--say", "¿dónde está el río?", "--say", "Quiero agua, por favor.");

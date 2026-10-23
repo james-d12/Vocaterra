@@ -128,7 +128,8 @@ public sealed class SaveGameTests
         var second = SaveOf(loaded);
 
         Assert.Equal(2, loaded.PlaySession);
-        Assert.Equal(SaveGame.Serialize(SaveGame.Parse(first) with { Session = 2 }), second);
+        // S26: the new session points the beacon at the NPC of its new lesson (Personas, the villager); nothing else differs.
+        Assert.Equal(SaveGame.Serialize(SaveGame.Parse(first) with { Session = 2, Pointer = new PointerSave(loaded.Pointer!.Place, loaded.Pointer.Target) }), second);
     }
 
     [Fact]
@@ -144,9 +145,9 @@ public sealed class SaveGameTests
         var bundle = Assert.Throws<SaveException>(() => SaveGame.Load(SaveGame.Serialize(document with { BundleHash = new string('0', 64) }), TestGame.Bundle, Pristine, TestGame.Nouns));
         Assert.Contains("content bundle", bundle.Message, StringComparison.Ordinal);
 
-        var version = Assert.Throws<SaveException>(() => SaveGame.Parse(SaveGame.Serialize(document with { Version = 4 })));
-        Assert.Contains("version 4", version.Message, StringComparison.Ordinal);
-        Assert.Contains("versions 1 to 3", version.Message, StringComparison.Ordinal);
+        var version = Assert.Throws<SaveException>(() => SaveGame.Parse(SaveGame.Serialize(document with { Version = 5 })));
+        Assert.Contains("version 5", version.Message, StringComparison.Ordinal);
+        Assert.Contains("versions 1 to 4", version.Message, StringComparison.Ordinal);
 
         var format = Assert.Throws<SaveException>(() => SaveGame.Parse("{\"format\":\"something-else\",\"version\":1}"));
         Assert.Contains("not a vocaterra-save", format.Message, StringComparison.Ordinal);

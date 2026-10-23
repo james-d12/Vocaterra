@@ -283,6 +283,9 @@ public enum LessonEventKind
 
     /// <summary>The lesson ended: every step is done, skipped or moved on from.</summary>
     LessonCompleted,
+
+    /// <summary>The learner asked to practise a completed lesson again from the book (S26); it starts when they talk to its NPC.</summary>
+    ReplayRequested,
 }
 
 /// <summary>How a lesson step ended.</summary>
@@ -311,6 +314,7 @@ public static class LessonEventNames
         LessonEventKind.Help => "help",
         LessonEventKind.Retry => "retry",
         LessonEventKind.LessonCompleted => "lesson_completed",
+        LessonEventKind.ReplayRequested => "replay_requested",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown lesson-event kind."),
     };
 
@@ -374,6 +378,7 @@ public sealed record LessonEvent(
             {
                 LessonEventKind.LessonStarted => $"lesson {Lesson} started{detail}",
                 LessonEventKind.LessonCompleted => $"lesson {Lesson} completed{detail}",
+                LessonEventKind.ReplayRequested => $"lesson {Lesson} practise again asked{detail}",
                 LessonEventKind.StepDone => string.Create(CultureInfo.InvariantCulture, $"lesson {Lesson} step {Step} {StepType} ({StepId}) {LessonEventNames.Of(Outcome ?? StepOutcome.Done)}{detail}"),
                 _ => string.Create(CultureInfo.InvariantCulture, $"lesson {Lesson} step {Step} {StepType} ({StepId}) {LessonEventNames.Of(Kind)}{detail}"),
             };

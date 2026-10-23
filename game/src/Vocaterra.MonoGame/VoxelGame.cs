@@ -242,7 +242,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     RunLessonStep,
                     RequestScriptReport,
                     () => _report.Paused,
-                    PlayBookTarget);
+                    PlayBookTarget,
+                    PractiseFromScript);
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, ResolveItem, hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
@@ -1073,6 +1074,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             else if (_bookControls.Click(new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), mouse.X, mouse.Y, ShiftDown(keys)))
             {
                 _sound.QueueClick(SoundCue.UiClick);
+            }
+            else if (_bookControls.ClickPractise(new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), mouse.X, mouse.Y) is { } practise)
+            {
+                _sound.QueueClick(SoundCue.UiClick);
+                PractiseAgain(practise);
             }
         }
 
@@ -2593,6 +2599,39 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         else if (pressed(Keys.Enter))
         {
             _ = _bookControls.Enter(ShiftDown(keys));
+        }
+        else if (pressed(Keys.P) && _bookControls.PractiseFirst(new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height)) is { } practise)
+        {
+            PractiseAgain(practise);
+        }
+    }
+
+    // "Practise again" in the book (S26): the lesson starts when the learner talks to its NPC. The book closes, the objective area says where to go and the beacon points there.
+    private void PractiseAgain(string lessonId)
+    {
+        CloseBook();
+        var line = _session.Lessons.ReplayHud ?? lessonId;
+        _toasts.Show(line);
+        Console.WriteLine($"book: practise again {lessonId}; {line}");
+    }
+
+    // The scripted run's book step (S26, --book-practise): opens the book on its Lessons page, then presses the lesson's button.
+    private void PractiseFromScript(string lessonId)
+    {
+        if (!_book.IsOpen)
+        {
+            OpenBook();
+        }
+
+        _book.Show(BookPage.Lessons);
+        if (_bookControls.Practise(lessonId) is { } asked)
+        {
+            PractiseAgain(asked);
+        }
+        else
+        {
+            Console.WriteLine($"book: '{lessonId}' cannot be practised again (it is not a completed lesson, or another lesson is under way)");
+            CloseBook();
         }
     }
 

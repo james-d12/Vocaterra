@@ -127,7 +127,7 @@ public sealed class BookSpeechTests
         Assert.All(verbs, static l => Assert.Null(l.Speak));
 
         var phrases = BookPages.ForPage(session, BookPage.Phrases, Committed());
-        Assert.Equal(Sheet.Value.Rows.Count, phrases.Count(static l => l.Speak is not null)); // every phrase row, the met and the unmet
+        Assert.Equal(Sheet.Value.Rows.Count - PhrasesWithoutARecording.Length, phrases.Count(static l => l.Speak is not null)); // every phrase row with a recording, the met and the unmet
     }
 
     [Fact]
@@ -231,15 +231,83 @@ public sealed class BookSpeechTests
         Assert.Equal(["card.madera", "phrase.pedir-agua.slow"], bench.Played());
     }
 
+    // ---- "Practise again" (S26)
+
+    [Fact]
+    public void OnlyACompletedLessonHasAPractiseAgainButtonAtTheRightEdgeOfItsHeading()
+    {
+        var bench = new Bench(Lines.Value, muted: true, shippedLessons: true);
+        bench.Book.Show(BookPage.Lessons);
+        Assert.All(bench.Controls.Lines, static l => Assert.Null(l.Practise)); // nothing is completed yet
+
+        Assert.True(bench.Session.Lessons.Start("first-words"));
+        Assert.All(bench.Controls.Lines, static l => Assert.Null(l.Practise)); // under way is not completed
+        while (bench.Session.Lessons.Active is not null)
+        {
+            _ = bench.Session.Lessons.Skip();
+        }
+
+        var lines = bench.Controls.Lines;
+        var heading = lines.Select((line, index) => (line, index)).Single(static x => x.line.Practise is not null);
+        Assert.Equal("first-words", heading.line.Practise);
+        Assert.Equal("First words with Luna", heading.line.Text);
+        Assert.Single(lines, static l => l.Practise is not null); // Personas is not completed
+
+        var geometry = new BookGeometry(1280, 720);
+        var top = geometry.ContentTop + (heading.index * BookGeometry.LineHeight);
+        var button = BookPractise.ButtonRect(geometry, top);
+        Assert.Equal(geometry.ContentRight, button.Right);
+        Assert.Equal("first-words", BookPractise.At(geometry, lines, 0, button.X + 3, button.Y + 3));
+        Assert.Null(BookPractise.At(geometry, lines, 0, geometry.ContentLeft + 4, top + 2)); // the title is no button
+        Assert.Null(BookPractise.At(geometry, lines, heading.index + 1, button.X + 3, button.Y + 3)); // scrolled off: no button there
+        Assert.Equal("first-words", BookPractise.FirstOnScreen(geometry, lines, 0));
+        Assert.Null(BookPractise.FirstOnScreen(geometry, lines, heading.index + 1));
+    }
+
+    [Fact]
+    public void AClickOnPractiseAgainAsksForTheReplayAndAClickElsewhereDoesNot()
+    {
+        var bench = new Bench(Lines.Value, muted: true, shippedLessons: true);
+        bench.Book.Show(BookPage.Lessons);
+        Assert.True(bench.Session.Lessons.Start("first-words"));
+        while (bench.Session.Lessons.Active is not null)
+        {
+            _ = bench.Session.Lessons.Skip();
+        }
+
+        var geometry = new BookGeometry(1280, 720);
+        Assert.Null(bench.Controls.ClickPractise(geometry, geometry.ContentLeft + 4, geometry.ContentTop + 2));
+        Assert.Null(bench.Session.Lessons.ReplayPending);
+
+        var button = BookPractise.ButtonRect(geometry, geometry.ContentTop);
+        Assert.Equal("first-words", bench.Controls.ClickPractise(geometry, button.X + 3, button.Y + 3));
+        Assert.Equal("first-words", bench.Session.Lessons.ReplayPending);
+        Assert.Equal("Practise again: talk to the guide to start “First words with Luna”", bench.Session.ObjectiveHud()[0].Text);
+
+        Assert.Null(bench.Controls.Practise("personas")); // never completed
+        Assert.Equal("first-words", bench.Controls.PractiseFirst(geometry)); // the P key asks for the first lesson on screen
+    }
+
+    [Fact]
+    public void ThePractiseAgainLabelIsEnglishAndTheButtonFitsTheContent()
+    {
+        var geometry = new BookGeometry(800, 600);
+        var button = BookPractise.ButtonRect(geometry, geometry.ContentTop);
+
+        Assert.Equal("Practise again", BookPractise.Label);
+        Assert.True(button.X > geometry.ContentLeft + 200); // the heading keeps most of the row
+        Assert.True(button.Right <= geometry.ContentRight && button.Bottom <= geometry.ContentTop + BookGeometry.LineHeight);
+    }
+
     // A session, a book and the controls over the committed speech folder, with a fake sound device and a sound log.
     private sealed class Bench
     {
         private readonly List<string> _voiceLog = [];
 
-        public Bench(IReadOnlyList<SpeechLine> lines, bool muted)
+        public Bench(IReadOnlyList<SpeechLine> lines, bool muted, bool shippedLessons = false)
         {
             var bundle = Bundle.Value;
-            Session = RouteScene.NewSession(bundle, Nouns.Value);
+            Session = shippedLessons ? RouteScene.NewSessionWithShippedLessons(bundle, Nouns.Value) : RouteScene.NewSession(bundle, Nouns.Value);
             Book = new BookModel();
             Log = [];
             var mixer = new SoundMixer(new NullSoundOutput(), new SoundVolumes(), new PresentationRng(42), new ListLog(Log));

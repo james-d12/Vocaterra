@@ -33,7 +33,7 @@ public static class SaveGame
     public const string FormatName = "vocaterra-save";
 
     /// <summary>The format version this code writes (version 2 adds the learner's record, S19; version 3 keeps the check answers out of its word rows, S19b).</summary>
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
 
     /// <summary>The oldest format version this code still reads (version 1, before S19: no learner's record, so an empty history).</summary>
     public const int OldestReadableVersion = 1;
@@ -258,6 +258,11 @@ public static class SaveGame
         }
 
         session.PlaySession = bumpSession ? document.Session + 1 : document.Session;
+        if (bumpSession)
+        {
+            session.BeginPlaySession(); // a new session's lesson, if one is unlocked, is named by the objective and pointed at (S26)
+        }
+
         return session;
     }
 

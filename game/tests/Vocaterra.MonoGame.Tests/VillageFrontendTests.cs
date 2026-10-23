@@ -217,17 +217,31 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
             Frame(i); // warm up: the buffer grows to its size, the code is compiled
         }
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        for (var i = 200; i < 1200; i++)
+        // Nothing per frame: one object a frame would be 24 000 bytes or more over 1 000 frames; the few hundred bytes that may remain are the runtime's own (tiered compilation).
+        // The test failed once in a loaded parallel run (S25): the runtime promotes a method to its optimised tier on its own schedule, and under load that can fall inside the
+        // window, where its own allocations are counted against the code. So the 1 000-frame window is measured up to three times and the smallest count is the one asserted:
+        // the runtime's promotion happens once and does not come back, while a real per-frame allocation is in every window and fails all three (24 000 bytes or more each).
+        const int Bound = 4000;
+        const int Attempts = 3;
+        var smallest = long.MaxValue;
+        var tick = 200;
+        var elapsed = TimeSpan.Zero;
+        for (var attempt = 0; attempt < Attempts && smallest > Bound; attempt++)
         {
-            Frame(i);
+            var before = GC.GetAllocatedBytesForCurrentThread();
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            for (var i = 0; i < 1000; i++)
+            {
+                Frame(tick++);
+            }
+
+            stopwatch.Stop();
+            elapsed = stopwatch.Elapsed;
+            smallest = Math.Min(smallest, GC.GetAllocatedBytesForCurrentThread() - before);
         }
 
-        stopwatch.Stop();
-        output.WriteLine($"four figures, the arm's light and motion and the shoulder camera: {stopwatch.Elapsed.TotalMilliseconds / 1000:F4} ms a frame on the CPU, {buffer.FaceCount} quads in the last figure");
-        // Nothing per frame: one object a frame would be 24 000 bytes or more over 1 000 frames; the few hundred bytes that may remain are the runtime's own (tiered compilation).
-        Assert.InRange(GC.GetAllocatedBytesForCurrentThread() - before, 0, 4000);
+        output.WriteLine($"four figures, the arm's light and motion and the shoulder camera: {elapsed.TotalMilliseconds / 1000:F4} ms a frame on the CPU, {buffer.FaceCount} quads in the last figure, {smallest} bytes allocated in the smallest window");
+        Assert.InRange(smallest, 0, Bound);
         Assert.True(arm.FaceCount > 0);
     }
 

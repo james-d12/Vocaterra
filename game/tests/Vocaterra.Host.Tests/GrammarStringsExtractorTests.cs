@@ -35,6 +35,14 @@ public sealed class GrammarStringsExtractorTests
         ["que-es-esto"] = ["vocab.wrong"],
         ["otra-vez"] = ["gender.agree"],
         ["mas-despacio"] = ["vocab.unknown"],
+        ["quiero-madera"] = ["conj.person"],
+        ["tengo-fruta"] = ["conj.irregular"],
+        ["necesito-agua"] = ["conj.person"],
+        ["ella-quiere-fruta"] = ["conj.person"],
+        ["necesitamos-agua"] = ["conj.person"],
+        ["necesito-pan"] = ["conj.person"],
+        ["tengo-botella"] = ["conj.person"],
+        ["queremos-pan"] = ["conj.person"],
     };
 
     [Fact]

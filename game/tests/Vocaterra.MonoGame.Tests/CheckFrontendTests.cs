@@ -150,9 +150,9 @@ public sealed class CheckFrontendTests
         screen.SkipRest();
 
         Assert.True(screen.IsDone);
-        Assert.Equal(20, screen.Results.Count);
-        Assert.Equal(20 - answered, screen.Results.Count(static r => r.Input == CheckInput.Skipped));
-        Assert.Equal(20, reported.Count);
+        Assert.Equal(27, screen.Results.Count);
+        Assert.Equal(27 - answered, screen.Results.Count(static r => r.Input == CheckInput.Skipped));
+        Assert.Equal(27, reported.Count);
     }
 
     [Fact]
@@ -172,9 +172,9 @@ public sealed class CheckFrontendTests
             }
         }
 
-        Assert.Equal(20, screen.Results.Count);
+        Assert.Equal(27, screen.Results.Count);
         Assert.Null(screen.Current);
-        Assert.Equal(20, screen.Index);
+        Assert.Equal(27, screen.Index);
     }
 
     [Fact]

@@ -265,6 +265,87 @@
       ]
     },
     {
+      "intentId": "state_have",
+      "requiredSlots": ["item"],
+      "slotGrammars": [
+        "(sí)? [PRON]? [VERB:tener] [ART]? [NUM:qty]? [NOUN:item]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["tener"], "requiresSlots": ["item"], "slotFromNoun": "item" }
+      ],
+      "examples": [
+        {"text": "tengo una fruta", "errors": [], "prompt": "lesson-have"},
+        {"text": "sí, tengo una fruta", "errors": [], "prompt": "lesson-have"},
+        {"text": "sí, yo tengo una fruta", "errors": [], "prompt": "lesson-have"},
+        {"text": "yo tengo una fruta", "errors": [], "prompt": "lesson-have"},
+        {"text": "tengo fruta", "errors": [], "prompt": "lesson-have"},
+        {"text": "sí, tengo fruta", "errors": [], "prompt": "lesson-have"},
+        {"text": "sí, tengo una botella", "errors": [], "prompt": "lesson-bottle"},
+        {"text": "tengo una botella", "errors": [], "prompt": "lesson-bottle"},
+        {"text": "sí, yo tengo una botella", "errors": [], "prompt": "lesson-bottle"},
+        {"text": "yo tengo una botella", "errors": [], "prompt": "lesson-bottle"},
+        {"text": "sí, tengo la botella", "errors": [], "prompt": "lesson-bottle"},
+        {"text": "sí, yo tienes una fruta", "errors": ["conj.person"], "prompt": "lesson-have"},
+        {"text": "yo teno una fruta", "errors": ["conj.irregular"], "prompt": "lesson-have"},
+        {"text": "sí, yo tiene una botella", "errors": ["conj.person"], "prompt": "lesson-bottle"},
+        "ella tiene madera",
+        "nosotros tenemos agua",
+        "ellos tienen pan"
+      ]
+    },
+    {
+      "intentId": "state_want",
+      "requiredSlots": ["item"],
+      "slotGrammars": [
+        "[VERB:querer] [ART]? [NUM:qty]? [NOUN:item]",
+        "[VERB:necesitar] [ART]? [NUM:qty]? [NOUN:item]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["querer"], "requiresSlots": ["item"], "slotFromNoun": "item" },
+        { "lemmas": ["necesitar"], "requiresSlots": ["item"], "slotFromNoun": "item" }
+      ],
+      "lint": {"allowOverlap": ["request_item", "ask_help"], "allowRuleOnly": ["luna quiere fruta", "necesito un poco de agua"]},
+      "examples": [
+        {"text": "ella quiere fruta", "errors": [], "prompt": "lesson-she"},
+        {"text": "luna quiere fruta", "errors": [], "prompt": "lesson-she"},
+        {"text": "ella quiere frutas", "errors": [], "prompt": "lesson-she"},
+        {"text": "quiere fruta", "errors": [], "prompt": "lesson-she"},
+        {"text": "ella quiere una fruta", "errors": [], "prompt": "lesson-she"},
+        {"text": "ella necesita fruta", "errors": [], "prompt": "lesson-she"},
+        {"text": "necesitamos agua", "errors": [], "prompt": "lesson-we"},
+        {"text": "nosotros necesitamos agua", "errors": [], "prompt": "lesson-we"},
+        {"text": "queremos agua", "errors": [], "prompt": "lesson-we"},
+        {"text": "nosotros queremos agua", "errors": [], "prompt": "lesson-we"},
+        {"text": "necesito pan", "errors": [], "prompt": "lesson-usted"},
+        {"text": "yo necesito pan", "errors": [], "prompt": "lesson-usted"},
+        {"text": "necesito pan, por favor", "errors": [], "prompt": "lesson-usted"},
+        {"text": "quiero pan", "errors": [], "prompt": "lesson-usted"},
+        {"text": "queremos pan", "errors": [], "prompt": "lesson-ustedes"},
+        {"text": "nosotros queremos pan", "errors": [], "prompt": "lesson-ustedes"},
+        {"text": "queremos pan, por favor", "errors": [], "prompt": "lesson-ustedes"},
+        {"text": "necesitamos pan", "errors": [], "prompt": "lesson-ustedes"},
+        {"text": "ella quiero fruta", "errors": ["conj.person"], "prompt": "lesson-she"},
+        {"text": "nosotros necesita agua", "errors": ["conj.person"], "prompt": "lesson-we"},
+        {"text": "yo necesita pan", "errors": ["conj.person"], "prompt": "lesson-usted"},
+        {"text": "nosotros quieren pan", "errors": ["conj.person"], "prompt": "lesson-ustedes"},
+        {"text": "quiero madera", "errors": [], "prompt": "lesson-want"},
+        {"text": "quiero madera, por favor", "errors": [], "prompt": "lesson-want"},
+        {"text": "necesito madera", "errors": [], "prompt": "lesson-want"},
+        {"text": "yo quiero madera", "errors": [], "prompt": "lesson-want"},
+        {"text": "yo quieres madera", "errors": ["conj.person"], "prompt": "lesson-want"},
+        {"text": "yo quero madera", "errors": ["conj.irregular"], "prompt": "lesson-want"},
+        {"text": "necesito agua", "errors": [], "prompt": "lesson-need"},
+        {"text": "necesito agua, por favor", "errors": [], "prompt": "lesson-need"},
+        {"text": "quiero agua", "errors": [], "prompt": "lesson-need"},
+        {"text": "yo necesito agua", "errors": [], "prompt": "lesson-need"},
+        {"text": "necesito un poco de agua", "errors": [], "prompt": "lesson-need"},
+        {"text": "yo necesitas agua", "errors": ["conj.person"], "prompt": "lesson-need"},
+        {"text": "ella quere fruta", "errors": ["conj.irregular"], "prompt": "lesson-she"},
+        "ellos quieren agua",
+        "usted necesita pan"
+      ]
+    },
+    {
       "intentId": "ask_help",
       "requiredSlots": [],
       "slotGrammars": [

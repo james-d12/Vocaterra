@@ -39,6 +39,7 @@ public enum BookTone
 /// <param name="Lamps">Two small boxes at the right, lit or not (the card and the audio of a phrase's help), or <see langword="null"/>.</param>
 /// <param name="Indent">Whether the line sits under its heading.</param>
 /// <param name="Speak">The line id of the recording the row's speaker button plays (S20b), or <see langword="null"/> for no button.</param>
+/// <param name="Practise">The id of the completed lesson the row's "Practise again" button starts (S26), or <see langword="null"/> for no button.</param>
 public sealed record BookLine(
     BookTone Tone,
     string Text,
@@ -49,7 +50,8 @@ public sealed record BookLine(
     bool? Tick = null,
     IReadOnlyList<bool>? Lamps = null,
     bool Indent = false,
-    string? Speak = null)
+    string? Speak = null,
+    string? Practise = null)
 {
     /// <summary>The empty line between two entries.</summary>
     public static BookLine Gap { get; } = new(BookTone.Hint, string.Empty);
@@ -218,7 +220,7 @@ public static class BookPages
                 LessonStatus.InProgress => (BookTone.Learning, $"in progress: {doneUnits} of {units.Count} units done"),
                 _ => (BookTone.Unseen, "not started"),
             };
-            lines.Add(new BookLine(tone, lesson.Title, Aside: state));
+            lines.Add(new BookLine(tone, lesson.Title, Aside: state, Practise: lesson.Status == LessonStatus.Completed ? lesson.LessonId : null));
             if (lesson.Status == LessonStatus.Completed && lesson.Summary is { } summary)
             {
                 lines.Add(new BookLine(BookTone.Gold, summary, Indent: true));

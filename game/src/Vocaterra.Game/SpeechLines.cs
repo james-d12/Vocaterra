@@ -17,11 +17,30 @@ public static class SpeechSpeakers
     /// <summary>The villager (<c>em_santa</c>, speaker 53).</summary>
     public const string Villager = "villager";
 
-    /// <summary>The speaker of a dialogue pool: the shopkeeper's pools are <c>shop_*</c>, the villager's <c>villager_*</c>, and every other pool is the guide's voice.</summary>
+    /// <summary>The pool-id prefix of the villager's lesson lines (S26): they are named <c>guide.lesson.*</c> so the content lint counts them as the game's own pools.</summary>
+    public const string VillagerLessonPrefix = "guide.lesson.villager.";
+
+    /// <summary>The pool-id prefix of the shopkeeper's lesson lines (S26), named like the villager's.</summary>
+    public const string ShopkeeperLessonPrefix = "guide.lesson.shop.";
+
+    /// <summary>
+    /// The speaker of a dialogue pool: the shopkeeper's pools are <c>shop_*</c> and <c>guide.lesson.shop.*</c>, the villager's <c>villager_*</c> and <c>guide.lesson.villager.*</c>, and every
+    /// other pool is the guide's voice.
+    /// </summary>
     /// <param name="poolId">The pool id.</param>
     public static string OfPool(string poolId)
     {
         ArgumentNullException.ThrowIfNull(poolId);
+        if (poolId.StartsWith(VillagerLessonPrefix, StringComparison.Ordinal))
+        {
+            return Villager;
+        }
+
+        if (poolId.StartsWith(ShopkeeperLessonPrefix, StringComparison.Ordinal))
+        {
+            return Shopkeeper;
+        }
+
         if (poolId.StartsWith("shop_", StringComparison.Ordinal))
         {
             return Shopkeeper;

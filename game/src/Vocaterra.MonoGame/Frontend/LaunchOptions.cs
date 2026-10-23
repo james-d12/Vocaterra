@@ -53,6 +53,8 @@ public sealed record LaunchOptions
         + "  --lesson-skip           skip the lesson step in progress; a step\n"
         + "  --lesson-help           the lesson step's help path (its English hint, its model line again, the card and the English); a step\n"
         + "  --lesson-pick <n>       pick option n (1 to 4) of a listen step; a step\n"
+        + "  --book-practise <id>    open the book on its Lessons page and press \"Practise again\" on the lesson (a completed one); it starts when the lesson's NPC is talked to; a step (S26)\n"
+        + "  --session <n>           start the run as play session n (1 to 99), so the lessons of session n are unlocked: `--session 2` unlocks the villager's lesson `personas` (S26)\n"
         + "  --tips                  draw the first-time tips in a scripted run too (an interactive run always does; S16)\n"
         + "  --third-person          start in the behind-the-shoulder view (S15; F5 switches between it and first person)\n"
         + "  --dusk                  a lower, dimmer sun and lanterns that glow at full strength (S15)\n"
@@ -173,6 +175,9 @@ public sealed record LaunchOptions
 
     /// <summary>Whether the journal opens on its phrases page (<c>--journal-phrases</c>, S8); otherwise on its words page.</summary>
     public bool JournalPhrases { get; init; }
+
+    /// <summary>The play session the run starts as (<c>--session</c>, S26), or <see langword="null"/> for the game's own (1 for a new game, the save's plus one for a load).</summary>
+    public int? Session { get; init; }
 
     /// <summary>The page the book opens on in a scripted run (<c>--book-page</c>, or the phrases page for <c>--journal-phrases</c>); <see langword="null"/> for the nouns page (S20).</summary>
     public BookPage? BookStart { get; init; }
@@ -351,7 +356,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
-                or "--check" or "--pick" or "--session-dir" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page"
+                or "--check" or "--pick" or "--session-dir" or "--session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
                 or "--book-play" or "--book-play-slow"))
             {
@@ -376,6 +381,24 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { Seed = seed, SeedGiven = true };
+                    break;
+                case "--session":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var playSession) || playSession is < 1 or > 99)
+                    {
+                        error = $"--session needs a play session from 1 to 99, got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { Session = playSession };
+                    break;
+                case "--book-practise":
+                    if (string.IsNullOrWhiteSpace(value))
+                    {
+                        error = "--book-practise needs the id of a completed lesson (the guide's is 'first-words').";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(ScriptStepKind.BookPractise, Value: value.Trim()));
                     break;
                 case "--save":
                     if (value.Length == 0)
@@ -750,7 +773,7 @@ public sealed record LaunchOptions
 
         if (screenshot is null && (framesGiven || script.Count > 0 || beacon is not null || journal || inventory || crafting))
         {
-            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
+            error = "--frames, --look, --walk-to, --teleport, --interact, --place, --select, --craft, --talk, --say, --speak, --wav, --leave, --lesson, --lesson-run, --book-practise, --lesson-next, --lesson-skip, --lesson-help, --lesson-pick, --shot, --report, --report-open, --journal, --inventory, --crafting and --beacon steps need --screenshot (the script).";
             return false;
         }
 
@@ -857,6 +880,9 @@ public enum ScriptStepKind
 
     /// <summary>As <see cref="BookPlay"/>, the slow recording, as Shift+Enter does (S20b).</summary>
     BookPlaySlow,
+
+    /// <summary>Opens the book on its Lessons page and presses "Practise again" on the lesson whose id is in <see cref="ScriptStep.Value"/> (S26).</summary>
+    BookPractise,
 
     /// <summary>
     /// Run the whole lesson whose id is in <see cref="ScriptStep.Value"/> the way a learner who gets everything right would (S17): walk up to its NPC, then for each

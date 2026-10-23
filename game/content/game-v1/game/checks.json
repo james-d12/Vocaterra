@@ -230,6 +230,66 @@
       "correct": 1
     },
     {
+      "id": "hear.que-quieres",
+      "kind": "comprehension",
+      "phrase": "que-quieres",
+      "line": "guide.lesson.want.1",
+      "spanish": "¿Qué quieres?",
+      "question": "A guide says this to you. What does it mean?",
+      "options": [
+        {
+          "label": "The guide asks what you want."
+        },
+        {
+          "label": "The guide asks where the river is."
+        },
+        {
+          "label": "The guide says goodbye."
+        }
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.tienes-fruta",
+      "kind": "comprehension",
+      "phrase": "tienes-fruta",
+      "line": "guide.lesson.have_fruit.1",
+      "spanish": "¿Tienes una fruta?",
+      "question": "A guide says this to you. What does it mean?",
+      "options": [
+        {
+          "label": "The guide asks if you have a fruit."
+        },
+        {
+          "label": "The guide says the wood is for the torch."
+        },
+        {
+          "label": "The guide offers you some fruit."
+        }
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.que-quieren-ustedes",
+      "kind": "comprehension",
+      "phrase": "que-quieren-ustedes",
+      "line": "guide.lesson.shop.all.1",
+      "spanish": "¿Qué quieren ustedes?",
+      "question": "A shopkeeper says this to you and a friend. What does it mean?",
+      "options": [
+        {
+          "label": "She asks what you both want."
+        },
+        {
+          "label": "She says she has bread."
+        },
+        {
+          "label": "She says goodbye to you both."
+        }
+      ],
+      "correct": 0
+    },
+    {
       "id": "say.pedir-agua",
       "kind": "production",
       "phrase": "pedir-agua",
@@ -300,6 +360,38 @@
       "situation": "A guide spoke too fast. Ask her to say it again more slowly.",
       "prompt": "lesson-unstuck",
       "intent": "ask_slower"
+    },
+    {
+      "id": "say.quiero-madera",
+      "kind": "production",
+      "phrase": "quiero-madera",
+      "situation": "A guide asks what you want. You want wood. Say so.",
+      "prompt": "lesson-want",
+      "intent": "state_want"
+    },
+    {
+      "id": "say.tengo-fruta",
+      "kind": "production",
+      "phrase": "tengo-fruta",
+      "situation": "A guide asks if you have a fruit. You do. Say yes and say that you have one.",
+      "prompt": "lesson-have",
+      "intent": "state_have"
+    },
+    {
+      "id": "say.ella-quiere-fruta",
+      "kind": "production",
+      "phrase": "ella-quiere-fruta",
+      "situation": "A friend asks what Luna wants. She wants fruit. Say what she wants.",
+      "prompt": "lesson-she",
+      "intent": "state_want"
+    },
+    {
+      "id": "say.necesitamos-agua",
+      "kind": "production",
+      "phrase": "necesitamos-agua",
+      "situation": "A friend asks what you both need. You need water. Say it for the two of you.",
+      "prompt": "lesson-we",
+      "intent": "state_want"
     }
   ]
 }
