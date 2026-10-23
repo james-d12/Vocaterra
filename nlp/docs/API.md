@@ -288,6 +288,24 @@ if (result.Answer is { AnswerId: not null } answer)
 The pipeline always sets both members; they are nullable only so that a result built by hand (in a test) needs no analysis. Both are part of
 the result's `CanonicalJson`, but not of the replay record (see [REPLAY.md](REPLAY.md)).
 
+### Tense errors, `conj.tense` (M49)
+
+`conj.tense` is reported by the analysis for four cases, each with `expected` and `actual` on the verb token:
+
+- **Past marker with a non-past verb** (`ayer`, `anoche`, `anteayer`, a time noun with `pasado`): a present or simple future form expects the preterite
+  (`ayer canto` gives expected `canté`, actual `canto`; `ayer comeré` gives `comí`).
+- **Future marker with a past verb:** `mañana`, `pasado mañana`, `próximo/a` before a time noun (`la próxima semana`, `el próximo año`) or a time noun
+  followed by `que viene` (`la semana que viene`), with a preterite or imperfect form, expects the `ir a` + infinitive form for that person
+  (`mañana comí` gives expected `voy a comer`, actual `comí`). When the verb is `ir` itself followed by `a`, the expected form is the present
+  (`mañana fui a la tienda` gives `voy`). The present stays correct (`mañana como pan`), so does the future (`mañana comeré`), and `esta mañana` and
+  `por la mañana` are not markers. `luego` and `más tarde` are not markers either (`luego comí` is ordinary narration). A sentence with a past marker as
+  well is left to the first rule, and a verb before a `que` that precedes the marker (`dijo que mañana venía`) is not checked. An imperfect after such
+  a `que` is not checked either.
+- **A conjugated verb after `ir a`:** `voy a como` and `vamos a tenemos` expect the infinitive (`comer`, `tener`; the lemma). A noun phrase after `a`
+  (`voy a la casa`, `vamos a la tienda`) and a word that can also be a noun are not checked.
+
+The checks work on the whole utterance, not on clauses, and on the verb forms the lexicon lists.
+
 ### Carry the context to the next utterance
 
 The host passes the repeat counts it carried from the previous `Next`; the first utterance of a conversation starts with none (`Create` with

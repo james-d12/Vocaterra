@@ -15,7 +15,7 @@ internal static class AnalysisTables
         "alto", "bajo", "inteligente", "simpático", "amable", "guapo", "feo", "importante", "fácil", "difícil", "trabajador",
     }.ToFrozenSet(StringComparer.Ordinal);
 
-    private static readonly FrozenSet<string> PrenominalAdjectives = new[] { "grande", "bueno", "malo" }.ToFrozenSet(StringComparer.Ordinal);
+    private static readonly FrozenSet<string> PrenominalAdjectives = new[] { "grande", "bueno", "malo", "próximo" }.ToFrozenSet(StringComparer.Ordinal);
 
     private static readonly FrozenSet<string> NounModifyingAdverbs = new[]
     {
