@@ -36,7 +36,8 @@ public enum Surface
 /// <param name="Grounded">Whether the player is on the ground (a step is heard only on the ground).</param>
 /// <param name="Under">The surface under the feet.</param>
 /// <param name="InWater">Whether the feet are in water.</param>
-public readonly record struct FootState(double X, double Z, bool Grounded, Surface Under, bool InWater);
+/// <param name="FeetY">The height of the feet, in blocks (the landing and the falls are measured with it).</param>
+public readonly record struct FootState(double X, double Z, bool Grounded, Surface Under, bool InWater, double FeetY = 0);
 
 /// <summary>
 /// The footsteps (S25): a step every <see cref="StrideBlocks"/> walked on the ground, so the pace follows the walking speed (at 4.3 blocks a second, about two steps
@@ -48,10 +49,20 @@ public sealed class Footsteps
     /// <summary>The distance walked between two steps, in blocks.</summary>
     public const double StrideBlocks = 2.0;
 
+    /// <summary>
+    /// The fall, in blocks, from the highest point of an airborne spell to the ground, above which a landing thumps (S25). A step down of up to this is an
+    /// ordinary footstep: walking off a one-block step is not a landing.
+    /// </summary>
+    public const double HardFallBlocks = 1.5;
+
     private double _distance;
     private double _lastX;
     private double _lastZ;
     private bool _hasLast;
+    private bool _airborne;
+    private bool _jumpedInAir;
+    private double _peakY;
+    private double _groundedY;
 
     /// <summary>The surface of a block the player can stand on (every solid kind, and the rest as the ground they cover). A new block kind must be placed here (the test checks every kind).</summary>
     /// <param name="id">The block.</param>
@@ -127,21 +138,52 @@ public sealed class Footsteps
         _ => throw new ArgumentOutOfRangeException(nameof(surface), surface, "Unknown surface."),
     };
 
-    /// <summary>The cues of one tick: a jump, a landing, and the steps the distance walked on the ground calls for.</summary>
+    /// <summary>
+    /// The cues of one tick: a jump, a landing, and the steps the distance walked on the ground calls for. A landing is <see cref="SoundCue.Land"/> only after a
+    /// jump, or after a fall of more than <see cref="HardFallBlocks"/> from the highest point of the airborne spell; any other touch-down (a walk off a one-block
+    /// step) is a footstep on the surface, and a landing in water is a splash.
+    /// </summary>
     /// <param name="state">The player this tick.</param>
     /// <param name="jumped">Whether the player jumped this tick.</param>
-    /// <param name="landed">Whether the player landed this tick.</param>
+    /// <param name="landed">Whether the simulation reported a landing this tick.</param>
     public IReadOnlyList<SoundCue> Observe(FootState state, bool jumped, bool landed)
     {
         var cues = new List<SoundCue>();
         if (jumped)
         {
             cues.Add(SoundCue.Jump);
+            _jumpedInAir = true;
         }
 
-        if (landed)
+        if (!state.Grounded)
         {
-            cues.Add(state.InWater ? SoundCue.FootWater : SoundCue.Land);
+            if (!_airborne)
+            {
+                _airborne = true;
+                _peakY = _groundedY; // the highest point starts at the takeoff
+            }
+
+            _peakY = Math.Max(_peakY, state.FeetY);
+        }
+        else
+        {
+            _groundedY = state.FeetY;
+        }
+
+        if (state.Grounded && (landed || _airborne))
+        {
+            var fall = _peakY - state.FeetY;
+            var hard = _jumpedInAir || fall > HardFallBlocks;
+            _airborne = false;
+            _jumpedInAir = false;
+            if (state.InWater)
+            {
+                cues.Add(SoundCue.FootWater);
+            }
+            else
+            {
+                cues.Add(hard ? SoundCue.Land : CueOf(state.Under));
+            }
         }
 
         if (_hasLast && state.Grounded && !jumped)
@@ -174,7 +216,7 @@ public sealed class Footsteps
         var cellZ = FloorDiv(player.CenterZ, unitsPerBlock);
         var inWater = blockAt(cellX, cellY, cellZ) == BlockId.Water;
         var under = SurfaceOf(blockAt(cellX, cellY - 1, cellZ));
-        return new FootState(player.CenterX / (double)unitsPerBlock, player.CenterZ / (double)unitsPerBlock, player.Grounded, under, inWater);
+        return new FootState(player.CenterX / (double)unitsPerBlock, player.CenterZ / (double)unitsPerBlock, player.Grounded, under, inWater, player.MinY / (double)unitsPerBlock);
     }
 
     // Rounds towards minus infinity (a body below the zero of the grid is in the cell below it).

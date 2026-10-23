@@ -1,5 +1,6 @@
 using Vocaterra.Game;
 using Vocaterra.MonoGame.Frontend;
+using Vocaterra.Simulation;
 using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Tests;
@@ -178,6 +179,104 @@ public sealed class FootstepTests
 
         Assert.Equal(first, second);
         Assert.NotEqual(first, other);
+    }
+
+    [Fact]
+    public void WalkingOffAOneBlockStepIsAFootstepAndNotALanding()
+    {
+        var footsteps = new Footsteps();
+        for (var i = 0; i < 10; i++)
+        {
+            _ = footsteps.Observe(new FootState(i * 0.1, 0, true, Surface.Stone, false, FeetY: 5), jumped: false, landed: false);
+        }
+
+        // The ledge: one airborne tick as the feet drop a block, then the ground at the lower level. The simulation reports a landing; it is not a thump.
+        var cues = new List<SoundCue>();
+        cues.AddRange(footsteps.Observe(new FootState(1.0, 0, false, Surface.Stone, false, FeetY: 4.6), jumped: false, landed: false));
+        cues.AddRange(footsteps.Observe(new FootState(1.1, 0, true, Surface.Stone, false, FeetY: 4), jumped: false, landed: true));
+
+        Assert.DoesNotContain(SoundCue.Land, cues);
+        Assert.Contains(SoundCue.FootStone, cues);
+    }
+
+    [Fact]
+    public void AJumpAndItsLandingPlayTheJumpAndTheLanding()
+    {
+        var footsteps = new Footsteps();
+        var cues = new List<SoundCue>();
+        cues.AddRange(footsteps.Observe(new FootState(0, 0, true, Surface.Grass, false, FeetY: 5), jumped: false, landed: false));
+        cues.AddRange(footsteps.Observe(new FootState(0, 0, false, Surface.Grass, false, FeetY: 5.4), jumped: true, landed: false));
+        cues.AddRange(footsteps.Observe(new FootState(0, 0, false, Surface.Grass, false, FeetY: 5.6), jumped: false, landed: false));
+        cues.AddRange(footsteps.Observe(new FootState(0, 0, false, Surface.Grass, false, FeetY: 5.2), jumped: false, landed: false));
+        cues.AddRange(footsteps.Observe(new FootState(0, 0, true, Surface.Grass, false, FeetY: 5), jumped: false, landed: true));
+
+        Assert.Contains(SoundCue.Jump, cues);
+        Assert.Contains(SoundCue.Land, cues);
+        Assert.True(cues.IndexOf(SoundCue.Jump) < cues.IndexOf(SoundCue.Land), "the jump comes before the landing");
+    }
+
+    [Fact]
+    public void AFallOfThreeBlocksPlaysTheLanding()
+    {
+        var footsteps = new Footsteps();
+        for (var i = 0; i < 5; i++)
+        {
+            _ = footsteps.Observe(new FootState(i * 0.1, 0, true, Surface.Grass, false, FeetY: 5), jumped: false, landed: false);
+        }
+
+        var cues = new List<SoundCue>();
+        cues.AddRange(footsteps.Observe(new FootState(0.6, 0, false, Surface.Grass, false, FeetY: 4.5), jumped: false, landed: false));
+        cues.AddRange(footsteps.Observe(new FootState(0.7, 0, false, Surface.Grass, false, FeetY: 3.5), jumped: false, landed: false));
+        cues.AddRange(footsteps.Observe(new FootState(0.8, 0, false, Surface.Grass, false, FeetY: 2.5), jumped: false, landed: false));
+        cues.AddRange(footsteps.Observe(new FootState(0.9, 0, true, Surface.Grass, false, FeetY: 2), jumped: false, landed: true));
+
+        Assert.Contains(SoundCue.Land, cues);
+    }
+
+    [Fact]
+    public void AFallOfJustUnderTheThresholdIsAFootstep()
+    {
+        Assert.Equal(1.5, Footsteps.HardFallBlocks);
+        var footsteps = new Footsteps();
+        _ = footsteps.Observe(new FootState(0, 0, true, Surface.Sand, false, FeetY: 5), jumped: false, landed: false);
+        _ = footsteps.Observe(new FootState(0, 0, false, Surface.Sand, false, FeetY: 4.2), jumped: false, landed: false);
+        var cues = footsteps.Observe(new FootState(0, 0, true, Surface.Sand, false, FeetY: 3.6), jumped: false, landed: true); // a 1.4 block fall
+
+        Assert.DoesNotContain(SoundCue.Land, cues);
+        Assert.Contains(SoundCue.FootSand, cues);
+    }
+
+    [Fact]
+    public void AScriptedJumpInTheSimulationSoundsAJumpAndALanding()
+    {
+        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), 42);
+        var sim = VoxelSimulation.Create(scene);
+        var footsteps = new Footsteps();
+        var cues = new List<SoundCue>();
+
+        void Tick(IReadOnlyList<VoxelCommand> commands)
+        {
+            sim.Step(commands);
+            var jumped = sim.Events.Any(static e => e.Kind == SimulationEventKind.PlayerJumped);
+            var landed = sim.Events.Any(static e => e.Kind == SimulationEventKind.PlayerLanded);
+            cues.AddRange(footsteps.Observe(Footsteps.StateOf(sim.Player, (x, y, z) => sim.Grid.GetBlock(x, y, z)), jumped, landed));
+        }
+
+        for (var i = 0; i < 60; i++)
+        {
+            Tick([]); // the spawn settles on the ground
+        }
+
+        cues.Clear();
+        Tick([VoxelCommand.Jump]);
+        for (var i = 0; i < 90 && !cues.Contains(SoundCue.Land); i++)
+        {
+            Tick([]);
+        }
+
+        Assert.Contains(SoundCue.Jump, cues);
+        Assert.Contains(SoundCue.Land, cues);
+        Assert.True(cues.IndexOf(SoundCue.Jump) < cues.IndexOf(SoundCue.Land));
     }
 
     private static List<int> Takes(ulong seed)
