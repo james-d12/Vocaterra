@@ -64,6 +64,8 @@ public sealed record LaunchOptions
         + "  --journal-phrases       open the journal on its phrases page once the steps are done (Tab turns the page)\n"
         + "  --book                  open the book (J) once the steps are done: the same as --journal\n"
         + "  --book-page <page>      open the book on nouns, verbs, phrases, lessons or said (What I said) once the steps are done\n"
+        + "  --size <W>x<H>          the window's size (default 1280x720; 800x600 is the smallest the book is made for)\n"
+        + "  --book-verb <verb>     open the book on the verbs page with this verb's conjugation table on the right page (S28)\n"
         + "  --inventory             open the inventory screen once the steps are done\n"
         + "  --crafting              open the crafting panel once the steps are done\n"
         + "  --mic-check             show the mic check at the start (an interactive run shows it by default; a scripted run with --screenshot never does unless asked,\n"
@@ -182,6 +184,15 @@ public sealed record LaunchOptions
     /// <summary>The page the book opens on in a scripted run (<c>--book-page</c>, or the phrases page for <c>--journal-phrases</c>); <see langword="null"/> for the nouns page (S20).</summary>
     public BookPage? BookStart { get; init; }
 
+    /// <summary>The verb whose table the book opens on, with the verbs page (<c>--book-verb</c>, S28), or <see langword="null"/>.</summary>
+    public string? BookVerb { get; init; }
+
+    /// <summary>The window's width in pixels (<c>--size</c>, S28), or <see langword="null"/> for the default.</summary>
+    public int? WindowWidth { get; init; }
+
+    /// <summary>The window's height in pixels (<c>--size</c>, S28), or <see langword="null"/> for the default.</summary>
+    public int? WindowHeight { get; init; }
+
     /// <summary>Whether the inventory screen is opened once the script is done (<c>--inventory</c>).</summary>
     public bool ShowInventory { get; init; }
 
@@ -272,6 +283,9 @@ public sealed record LaunchOptions
         var journal = false;
         var journalPhrases = false;
         BookPage? bookPage = null;
+        string? bookVerb = null;
+        int? windowWidth = null;
+        int? windowHeight = null;
         var inventory = false;
         var crafting = false;
         var greyscale = false;
@@ -356,7 +370,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
-                or "--check" or "--pick" or "--session-dir" or "--session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page"
+                or "--check" or "--pick" or "--session-dir" or "--session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--size"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
                 or "--book-play" or "--book-play-slow"))
             {
@@ -653,6 +667,23 @@ public sealed record LaunchOptions
 
                     script.Add(new ScriptStep(ScriptStepKind.Move, steps[^1]));
                     break;
+                case "--size":
+                    var sizeParts = value.Trim().ToLowerInvariant().Split('x');
+                    if (sizeParts.Length != 2 || !int.TryParse(sizeParts[0], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var sizeW)
+                        || !int.TryParse(sizeParts[1], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var sizeH) || sizeW < 640 || sizeH < 480 || sizeW > 3840 || sizeH > 2160)
+                    {
+                        error = $"--size needs <width>x<height> from 640x480 to 3840x2160, got '{value}'.";
+                        return false;
+                    }
+
+                    windowWidth = sizeW;
+                    windowHeight = sizeH;
+                    break;
+                case "--book-verb":
+                    bookVerb = value.Trim().ToLowerInvariant();
+                    bookPage = BookPage.Verbs;
+                    journal = true;
+                    break;
                 case "--book-page":
                     bookPage = value.Trim().ToLowerInvariant() switch
                     {
@@ -810,6 +841,9 @@ public sealed record LaunchOptions
             Journal = journal,
             JournalPhrases = journalPhrases,
             BookStart = bookPage ?? (journalPhrases ? BookPage.Phrases : null),
+            BookVerb = bookVerb,
+            WindowWidth = windowWidth,
+            WindowHeight = windowHeight,
             ShowInventory = inventory,
             ShowCrafting = crafting,
             Greyscale = greyscale,

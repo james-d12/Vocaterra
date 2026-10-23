@@ -67,85 +67,6 @@ public readonly record struct BookRect(int X, int Y, int Width, int Height)
     public bool Contains(int x, int y) => x >= X && x < Right && y >= Y && y < Bottom;
 }
 
-/// <summary>
-/// The book's screen geometry at a viewport size: the panel, its title and tab row, the content area and how many lines of content it holds.
-/// The layer and the mouse read the same numbers, so a click lands on the tab that is drawn there. Plain values.
-/// </summary>
-public sealed record BookGeometry(int ViewportWidth, int ViewportHeight)
-{
-    /// <summary>The widest the panel is.</summary>
-    public const int MaxPanelWidth = 760;
-
-    /// <summary>The gap from the window's edge to the panel, and inside the panel to its content.</summary>
-    public const int Margin = 16;
-
-    /// <summary>The padding inside the panel.</summary>
-    public const int Padding = 16;
-
-    /// <summary>The height of one line of content, in pixels.</summary>
-    public const int LineHeight = 19;
-
-    /// <summary>The width of one tab's click area, in pixels.</summary>
-    public const int TabWidth = 140;
-
-    /// <summary>The panel.</summary>
-    public BookRect Panel
-    {
-        get
-        {
-            var width = Math.Min(MaxPanelWidth, ViewportWidth - (Margin * 2));
-            return new BookRect((ViewportWidth - width) / 2, Margin, width, ViewportHeight - (Margin * 2));
-        }
-    }
-
-    /// <summary>The title's line: the top of the panel plus the padding.</summary>
-    public int TitleTop => Panel.Y + 12;
-
-    /// <summary>The tab row's top, under the title.</summary>
-    public int TabsTop => Panel.Y + 40;
-
-    /// <summary>The first tab's left edge.</summary>
-    public int TabsLeft => Panel.X + Padding;
-
-    /// <summary>The rule under the tabs.</summary>
-    public int RuleTop => Panel.Y + 66;
-
-    /// <summary>The top of the content.</summary>
-    public int ContentTop => Panel.Y + 76;
-
-    /// <summary>The left edge of the content (the text of a line starts here, before its indent).</summary>
-    public int ContentLeft => Panel.X + Padding;
-
-    /// <summary>The right edge of the content (a row's right-hand text, lamps, pips and speaker button end here).</summary>
-    public int ContentRight => Panel.Right - Padding;
-
-    /// <summary>The bottom of the content (the key hints sit under it).</summary>
-    public int ContentBottom => Panel.Bottom - 46;
-
-    /// <summary>How many whole lines of content fit (at least one).</summary>
-    public int LinesVisible => Math.Max(1, (ContentBottom - ContentTop) / LineHeight);
-
-    /// <summary>The click area of a tab, by page.</summary>
-    /// <param name="page">The page.</param>
-    public BookRect TabRect(BookPage page) => new(TabsLeft + ((int)page * TabWidth), TabsTop - 4, TabWidth, 24);
-
-    /// <summary>The page whose tab is at a point, or <see langword="null"/> when the point is on no tab.</summary>
-    /// <param name="x">The x of the point.</param>
-    /// <param name="y">The y of the point.</param>
-    public BookPage? TabAt(int x, int y)
-    {
-        foreach (var page in Enum.GetValues<BookPage>())
-        {
-            if (TabRect(page).Contains(x, y))
-            {
-                return page;
-            }
-        }
-
-        return null;
-    }
-}
-
 /// <summary>The book's scroll position in lines: moved by the wheel and the keys, kept inside the page's lines.</summary>
 public static class BookScroll
 {
@@ -179,6 +100,41 @@ public sealed class BookModel
     /// <summary>The first line on screen of the page (lines, not pixels).</summary>
     public int Offset { get; private set; }
 
+    /// <summary>How long a page turn lasts, in seconds (S28).</summary>
+    public const double TurnSeconds = 0.3;
+
+    /// <summary>Whether a page turn is under way (S28): the leaf is drawn while it is.</summary>
+    public bool IsTurning { get; private set; }
+
+    /// <summary>How far the page turn has gone, 0 to 1 (0 when none is under way).</summary>
+    public double TurnProgress { get; private set; }
+
+    /// <summary>Whether the turn under way goes to a later page (the leaf lifts from the right).</summary>
+    public bool TurnForward { get; private set; }
+
+    /// <summary>Moves the page turn on by some seconds of the frame clock (no wall clock here); it ends at the full duration.</summary>
+    /// <param name="seconds">The seconds since the last frame.</param>
+    public void Advance(double seconds)
+    {
+        if (!IsTurning)
+        {
+            return;
+        }
+
+        TurnProgress += Math.Max(0, seconds) / TurnSeconds;
+        if (TurnProgress >= 1)
+        {
+            FinishTurn();
+        }
+    }
+
+    /// <summary>Ends a page turn at once (a scripted screenshot run does not wait for the leaf).</summary>
+    public void FinishTurn()
+    {
+        IsTurning = false;
+        TurnProgress = 0;
+    }
+
     /// <summary>
     /// Opens the book on its nouns page. Each seen noun's label counts as read once per opening, when the nouns page is shown (the research's "shown
     /// for a second" rule, with the opening as the unit of time, so no clock is needed).
@@ -193,6 +149,7 @@ public sealed class BookModel
         }
 
         IsOpen = true;
+        FinishTurn();
         _words = words;
         _read = false;
         Page = BookPage.Nouns;
@@ -203,7 +160,8 @@ public sealed class BookModel
 
     /// <summary>Shows a page. The nouns page counts the seen labels as read, once per opening; the scroll goes back to the top.</summary>
     /// <param name="page">The page.</param>
-    public void Show(BookPage page)
+    /// <param name="animate">Whether a changed page starts the page turn (the opening page of a scripted run does not).</param>
+    public void Show(BookPage page, bool animate = true)
     {
         if (!IsOpen)
         {
@@ -214,6 +172,12 @@ public sealed class BookModel
         {
             Offset = 0;
             _selected = 0;
+            if (animate)
+            {
+                IsTurning = true;
+                TurnProgress = 0;
+                TurnForward = (int)page > (int)Page;
+            }
         }
 
         Page = page;
@@ -222,7 +186,14 @@ public sealed class BookModel
 
     /// <summary>Turns to the next page (Tab, Right) or the previous one (Left, Shift+Tab).</summary>
     /// <param name="forward">Whether to go forward.</param>
-    public void Turn(bool forward) => Show(BookTabs.Turn(Page, forward));
+    public void Turn(bool forward)
+    {
+        Show(BookTabs.Turn(Page, forward));
+        if (IsTurning)
+        {
+            TurnForward = forward; // Tab on the last page wraps to the first: the leaf still lifts the way the key says
+        }
+    }
 
     /// <summary>Moves the scroll by some lines (the wheel up is negative in the layer's terms: pass the lines to go down).</summary>
     /// <param name="lines">The lines to go down (negative: up).</param>
@@ -290,7 +261,11 @@ public sealed class BookModel
     }
 
     /// <summary>Closes the book.</summary>
-    public void Close() => IsOpen = false;
+    public void Close()
+    {
+        IsOpen = false;
+        FinishTurn();
+    }
 
     private void MarkRead()
     {

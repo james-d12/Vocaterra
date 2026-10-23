@@ -254,8 +254,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         _graphics = new GraphicsDeviceManager(this)
         {
-            PreferredBackBufferWidth = StartWidth,
-            PreferredBackBufferHeight = StartHeight,
+            PreferredBackBufferWidth = options.WindowWidth ?? StartWidth,
+            PreferredBackBufferHeight = options.WindowHeight ?? StartHeight,
             PreferredDepthStencilFormat = DepthFormat.Depth24,
             SynchronizeWithVerticalRetrace = !options.IsScreenshotRun,
         };
@@ -524,6 +524,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         var seconds = _clock.NextFrameSeconds();
         _stats.Record(seconds);
+        if (_options.IsScreenshotRun)
+        {
+            _book.FinishTurn(); // a scripted screenshot waits for no leaf
+        }
+        else
+        {
+            _book.Advance(seconds); // the page turn runs on the frame clock (S28)
+        }
+
         if (!_options.IsScreenshotRun)
         {
             ReadInput();
@@ -1072,6 +1081,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 _sound.QueueClick(SoundCue.UiTab);
             }
             else if (_bookControls.Click(new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), mouse.X, mouse.Y, ShiftDown(keys)))
+            {
+                _sound.QueueClick(SoundCue.UiClick);
+            }
+            else if (_bookControls.ClickVerb(new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), mouse.X, mouse.Y))
             {
                 _sound.QueueClick(SoundCue.UiClick);
             }
@@ -2653,7 +2666,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _book.Open(_session.Words);
         if (_options.BookStart is { } start)
         {
-            _book.Show(start);
+            _book.Show(start, animate: false);
+        }
+
+        if (_options.BookVerb is { } verb)
+        {
+            Console.WriteLine(_bookControls.SelectVerb(verb) ? $"book: the table of {verb}" : $"book: no verb '{verb}' in the book");
         }
 
         _focus.BookOpen = true;
