@@ -96,7 +96,7 @@ public class VoskPipelineTests
         var store = ModelGate.Store!;
         using var vosk = VoskWordRecognizer.FromStore(store, ModelGate.VoskId);
         var live = new UtterancePipeline(new PipelineServices(vosk, null, null, null, TestSupport.Bundle));
-        var prompt = TestSupport.Bundle.Prompts["trade-free-conversation"];
+        var prompt = TestSupport.Bundle.Prompts[TestSupport.OpenPrompt];
         var context = TestSupport.Context();
         var trace = live.Trace(Speechlike(), prompt, context);
         using var writer = new StringWriter();
