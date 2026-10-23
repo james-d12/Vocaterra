@@ -11,6 +11,10 @@ public sealed class GrammarTests : IDisposable
 {
     private readonly string _folder = Path.Combine(Path.GetTempPath(), "vocaterra-grammar-" + Guid.NewGuid().ToString("N"));
 
+    // The grammar command looks for its default cache and waivers in the folder 'grammar' beside the bundle; a temporary copy has none, so these tests
+    // see no committed waivers unless they pass --waivers.
+    private readonly TempBundle _bundle = new();
+
     public GrammarTests()
     {
         Directory.CreateDirectory(_folder);
@@ -19,6 +23,7 @@ public sealed class GrammarTests : IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
+        _bundle.Dispose();
         if (Directory.Exists(_folder))
         {
             Directory.Delete(_folder, recursive: true);
@@ -57,12 +62,12 @@ public sealed class GrammarTests : IDisposable
     {
         var items = GrammarStrings.FromBundle(TestSupport.Bundle);
 
-        var example = items.Single(item => item.Id == "confirm.ex5");
-        Assert.Equal("yo estás de acuerdo", example.Original);
+        var example = items.Single(item => item.Id == "confirm.ex1");
+        Assert.Equal(TestSupport.Bundle.Intents.Intents.Single(intent => intent.Id.Value == "confirm").ExampleSpecs[1].Text, example.Original);
         Assert.Equal(GrammarKind.Learner, example.Kind);
         Assert.Equal("intents/intents.json", example.Path);
         Assert.True(example.IsExample);
-        Assert.Empty(example.ExpectedErrors!);
+        Assert.NotNull(example.ExpectedErrors);
         Assert.Contains(items, item => item.Id.StartsWith("prompt.", StringComparison.Ordinal) && item.Path == "prompts/prompts.json" && item.Kind == GrammarKind.Npc);
         Assert.Contains(items, item => item.Path.StartsWith("answer-sets/", StringComparison.Ordinal) && item.Id.Contains(".alias", StringComparison.Ordinal));
         Assert.Contains(items, item => item.Path == "dialogue/dialogue.json" && item.Filling.Length > 0);
@@ -209,9 +214,9 @@ public sealed class GrammarTests : IDisposable
         var cache = InFolder("cache.json");
         var fake = Rules(_ => []);
 
-        var first = Run(fake, "grammar", TestSupport.BundleDir, "--cache", cache);
+        var first = Run(fake, "grammar", _bundle.Directory, "--cache", cache);
         var afterFirst = fake.Requests;
-        var second = Run(fake, "grammar", TestSupport.BundleDir, "--cache", cache);
+        var second = Run(fake, "grammar", _bundle.Directory, "--cache", cache);
 
         Assert.Equal(0, first.Code);
         Assert.Contains("0 new", second.Error.Split('\n').First(line => line.StartsWith("cache:", StringComparison.Ordinal)), StringComparison.Ordinal);
@@ -227,21 +232,21 @@ public sealed class GrammarTests : IDisposable
         var cache = InFolder("keep.json");
         var strings = WriteJsonl("keep.jsonl", "{\"id\":\"k1\",\"text\":\"Zzz prueba de caché.\",\"kind\":\"npc\"}");
 
-        Assert.Equal(Program.ExitOk, Run(Rules(_ => []), "grammar", TestSupport.BundleDir, "--strings", strings, "--cache", cache).Code);
-        Assert.Equal(Program.ExitOk, Run(Rules(_ => []), "grammar", TestSupport.BundleDir, "--cache", cache).Code);
+        Assert.Equal(Program.ExitOk, Run(Rules(_ => []), "grammar", _bundle.Directory, "--strings", strings, "--cache", cache).Code);
+        Assert.Equal(Program.ExitOk, Run(Rules(_ => []), "grammar", _bundle.Directory, "--cache", cache).Code);
         // The string checked with --strings is still cached after a run without it.
-        Assert.Equal(Program.ExitOk, Run(null, "grammar", TestSupport.BundleDir, "--offline", "--strings", strings, "--cache", cache).Code);
+        Assert.Equal(Program.ExitOk, Run(null, "grammar", _bundle.Directory, "--offline", "--strings", strings, "--cache", cache).Code);
 
-        Assert.Equal(Program.ExitOk, Run(Rules(_ => []), "grammar", TestSupport.BundleDir, "--cache", cache, "--prune").Code);
+        Assert.Equal(Program.ExitOk, Run(Rules(_ => []), "grammar", _bundle.Directory, "--cache", cache, "--prune").Code);
         // Pruning removes it, so the next offline run with that file reports the miss.
-        Assert.Equal(Program.ExitInvalid, Run(null, "grammar", TestSupport.BundleDir, "--offline", "--strings", strings, "--cache", cache).Code);
+        Assert.Equal(Program.ExitInvalid, Run(null, "grammar", _bundle.Directory, "--offline", "--strings", strings, "--cache", cache).Code);
     }
 
     [Fact]
     public void TheCacheFileIsSortedByKeyWithAStableFormat()
     {
         var cache = InFolder("sorted.json");
-        Run(Rules(_ => []), "grammar", TestSupport.BundleDir, "--cache", cache);
+        Run(Rules(_ => []), "grammar", _bundle.Directory, "--cache", cache);
 
         var document = JsonDocument.Parse(File.ReadAllText(cache));
         var keys = document.RootElement.GetProperty("entries").EnumerateArray().Select(entry => entry.GetProperty("key").GetString()!).ToList();
@@ -258,15 +263,15 @@ public sealed class GrammarTests : IDisposable
     {
         var cache = InFolder("offline.json");
 
-        var miss = Run(null, "grammar", TestSupport.BundleDir, "--offline", "--cache", cache);
+        var miss = Run(null, "grammar", _bundle.Directory, "--offline", "--cache", cache);
         Assert.Equal(Program.ExitInvalid, miss.Code);
         Assert.Contains("grammar.cache-miss", miss.Output, StringComparison.Ordinal);
         Assert.Contains("no cached result", miss.Output, StringComparison.Ordinal);
 
         // An online run fills the cache; then, with no server at all, the offline replay still passes.
-        Assert.Equal(Program.ExitOk, Run(Rules(_ => []), "grammar", TestSupport.BundleDir, "--cache", cache).Code);
+        Assert.Equal(Program.ExitOk, Run(Rules(_ => []), "grammar", _bundle.Directory, "--cache", cache).Code);
         var down = new FakeLanguageTool { Down = true };
-        var hit = Run(down, "grammar", TestSupport.BundleDir, "--offline", "--cache", cache);
+        var hit = Run(down, "grammar", _bundle.Directory, "--offline", "--cache", cache);
         Assert.Equal(Program.ExitOk, hit.Code);
         Assert.Equal(0, down.Requests);
     }
@@ -274,7 +279,7 @@ public sealed class GrammarTests : IDisposable
     [Fact]
     public void NoServerIsSkippedWithExitCodeThree()
     {
-        var result = Run(new FakeLanguageTool { Down = true }, "grammar", TestSupport.BundleDir, "--cache", InFolder("none.json"));
+        var result = Run(new FakeLanguageTool { Down = true }, "grammar", _bundle.Directory, "--cache", InFolder("none.json"));
 
         Assert.Equal(GrammarCommand.ExitNoServer, result.Code);
         Assert.Contains("skipped: no LanguageTool server", result.Output, StringComparison.Ordinal);
@@ -284,7 +289,7 @@ public sealed class GrammarTests : IDisposable
     [Fact]
     public void AServerOfAnotherVersionIsRefused()
     {
-        var result = Run(new FakeLanguageTool { Version = "6.5" }, "grammar", TestSupport.BundleDir, "--cache", InFolder("v.json"));
+        var result = Run(new FakeLanguageTool { Version = "6.5" }, "grammar", _bundle.Directory, "--cache", InFolder("v.json"));
 
         Assert.Equal(Program.ExitInvalid, result.Code);
         Assert.Contains("pinned to 6.6", result.Output + result.Error, StringComparison.Ordinal);
@@ -299,7 +304,7 @@ public sealed class GrammarTests : IDisposable
             "{\"schemaVersion\":1,\"waivers\":[{\"rule\":\"FAKE_GRACIAS\",\"id\":\"x1\",\"reason\":\"accepted in the test\"}]}");
         var fake = Rules(text => text.Contains("gracias", StringComparison.Ordinal) ? [new FakeMatch("FAKE_GRACIAS", "grammar", 0, 5, "x")] : []);
 
-        var result = Run(fake, "grammar", TestSupport.BundleDir, "--strings-only", "--strings", strings, "--waivers", waivers, "--cache", InFolder("w.json"), "--strict");
+        var result = Run(fake, "grammar", _bundle.Directory, "--strings-only", "--strings", strings, "--waivers", waivers, "--cache", InFolder("w.json"), "--strict");
 
         Assert.Equal(Program.ExitOk, result.Code);
         Assert.Contains("waived oracle.untagged-but-flagged", result.Output, StringComparison.Ordinal);
@@ -313,8 +318,8 @@ public sealed class GrammarTests : IDisposable
         var strings = WriteJsonl("none.jsonl", "{\"id\":\"x1\",\"text\":\"Hola.\",\"kind\":\"npc\"}");
         var waivers = WriteJsonl("unused.json", "{\"schemaVersion\":1,\"waivers\":[{\"rule\":\"NOPE\",\"id\":\"x1\",\"reason\":\"stale\"}]}");
 
-        var lenient = Run(Rules(_ => []), "grammar", TestSupport.BundleDir, "--strings-only", "--strings", strings, "--waivers", waivers, "--cache", InFolder("u.json"));
-        var strict = Run(Rules(_ => []), "grammar", TestSupport.BundleDir, "--strings-only", "--strings", strings, "--waivers", waivers, "--cache", InFolder("u.json"), "--strict");
+        var lenient = Run(Rules(_ => []), "grammar", _bundle.Directory, "--strings-only", "--strings", strings, "--waivers", waivers, "--cache", InFolder("u.json"));
+        var strict = Run(Rules(_ => []), "grammar", _bundle.Directory, "--strings-only", "--strings", strings, "--waivers", waivers, "--cache", InFolder("u.json"), "--strict");
 
         Assert.Equal(Program.ExitOk, lenient.Code);
         Assert.Contains("warning grammar.waiver-unused unused.json [NOPE, x1]", lenient.Output, StringComparison.Ordinal);
@@ -331,7 +336,7 @@ public sealed class GrammarTests : IDisposable
         var strings = WriteJsonl("refuse.jsonl", "{\"id\":\"x1\",\"text\":\"Hola.\",\"kind\":\"npc\"}");
         var waivers = WriteJsonl("refuse-waivers.json", file);
 
-        var result = Run(Rules(_ => []), "grammar", TestSupport.BundleDir, "--strings-only", "--strings", strings, "--waivers", waivers, "--cache", InFolder("r.json"));
+        var result = Run(Rules(_ => []), "grammar", _bundle.Directory, "--strings-only", "--strings", strings, "--waivers", waivers, "--cache", InFolder("r.json"));
 
         Assert.Equal(Program.ExitInvalid, result.Code);
         Assert.Contains(message, result.Error, StringComparison.Ordinal);
@@ -340,7 +345,7 @@ public sealed class GrammarTests : IDisposable
     [Fact]
     public void AnExplicitWaiverFileMustExist()
     {
-        var result = Run(Rules(_ => []), "grammar", TestSupport.BundleDir, "--offline", "--waivers", InFolder("missing.json"), "--cache", InFolder("m.json"));
+        var result = Run(Rules(_ => []), "grammar", _bundle.Directory, "--offline", "--waivers", InFolder("missing.json"), "--cache", InFolder("m.json"));
 
         Assert.Equal(Program.ExitInvalid, result.Code);
         Assert.Contains("waiver file not found", result.Error, StringComparison.Ordinal);
@@ -357,7 +362,7 @@ public sealed class GrammarTests : IDisposable
             "{\"id\":\"d\",\"text\":\"yo quieres\",\"kind\":\"learner\"}");
         var fake = Rules(text => text.Contains("quieres", StringComparison.Ordinal) ? [Agreement] : []);
 
-        var result = Run(fake, "grammar", TestSupport.BundleDir, "--strings-only", "--strings", strings, "--cache", InFolder("o.json"));
+        var result = Run(fake, "grammar", _bundle.Directory, "--strings-only", "--strings", strings, "--cache", InFolder("o.json"));
 
         Assert.Equal(Program.ExitOk, result.Code);
         Assert.Contains("info oracle.flagged-and-tagged oracle.jsonl [a] example \"yo quieres agua\" expects [conj.person]", result.Output, StringComparison.Ordinal);
@@ -367,7 +372,7 @@ public sealed class GrammarTests : IDisposable
         // A plain string (not an example) is a grammar finding, not an oracle finding.
         Assert.Contains("warning grammar.AGREEMENT_PRONOUNSUBJECT_VERB oracle.jsonl [d]", result.Output, StringComparison.Ordinal);
         Assert.Contains("grammar: 0 errors, 2 warnings, 2 info, 0 waived, 0 unchecked", result.Output, StringComparison.Ordinal);
-        Assert.Equal(Program.ExitInvalid, Run(fake, "grammar", TestSupport.BundleDir, "--strings-only", "--strings", strings, "--cache", InFolder("o.json"), "--strict").Code);
+        Assert.Equal(Program.ExitInvalid, Run(fake, "grammar", _bundle.Directory, "--strings-only", "--strings", strings, "--cache", InFolder("o.json"), "--strict").Code);
     }
 
     [Fact]
@@ -376,7 +381,7 @@ public sealed class GrammarTests : IDisposable
         var strings = WriteJsonl("json.jsonl", "{\"id\":\"c\",\"text\":\"yo quieres ir\",\"kind\":\"learner\",\"errors\":[]}");
         var fake = Rules(text => text.Contains("quieres", StringComparison.Ordinal) ? [Agreement] : []);
 
-        var result = Run(fake, "grammar", TestSupport.BundleDir, "--strings-only", "--strings", strings, "--cache", InFolder("j.json"), "--format", "json");
+        var result = Run(fake, "grammar", _bundle.Directory, "--strings-only", "--strings", strings, "--cache", InFolder("j.json"), "--format", "json");
 
         var document = JsonDocument.Parse(result.Output);
         Assert.Equal(1, document.RootElement.GetProperty("summary").GetProperty("warnings").GetInt32());
@@ -388,46 +393,32 @@ public sealed class GrammarTests : IDisposable
     [Fact]
     public void UsageErrorsExitWithTwo()
     {
-        Assert.Equal(Program.ExitUsage, Run(null, "grammar", TestSupport.BundleDir, "--level", "nonsense").Code);
-        Assert.Equal(Program.ExitUsage, Run(null, "grammar", TestSupport.BundleDir, "--strings-only").Code);
-        Assert.Equal(Program.ExitUsage, Run(null, "grammar", TestSupport.BundleDir, "--format", "xml").Code);
+        Assert.Equal(Program.ExitUsage, Run(null, "grammar", _bundle.Directory, "--level", "nonsense").Code);
+        Assert.Equal(Program.ExitUsage, Run(null, "grammar", _bundle.Directory, "--strings-only").Code);
+        Assert.Equal(Program.ExitUsage, Run(null, "grammar", _bundle.Directory, "--format", "xml").Code);
         Assert.Equal(Program.ExitUsage, Run(null, "grammar").Code);
     }
 
     [Fact]
     public void AMissingStringsFileExitsWithOne()
     {
-        var result = Run(Rules(_ => []), "grammar", TestSupport.BundleDir, "--strings", InFolder("nothing.jsonl"), "--offline", "--cache", InFolder("s.json"));
+        var result = Run(Rules(_ => []), "grammar", _bundle.Directory, "--strings", InFolder("nothing.jsonl"), "--offline", "--cache", InFolder("s.json"));
 
         Assert.Equal(Program.ExitInvalid, result.Code);
         Assert.Contains("strings file not found", result.Error, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void TheCommittedCacheReplaysTheSampleOfflineWithItsWaivers()
+    public void TheCommittedCacheReplaysTheBundleOfflineWithItsWaivers()
     {
-        var committed = Path.Combine(AppContext.BaseDirectory, "grammar");
-        var cache = Path.Combine(committed, "v1-cache.json");
-        var waivers = Path.Combine(committed, "v1-waivers.json");
+        // The same command as the merge gate's required game-v1 step: the strings file, the cache and the waivers are the ones committed beside the bundle
+        // (content/grammar/game-v1-*). A content change that is not followed by a refresh of the strings file and the cache fails here and in the gate.
+        var strings = Path.Combine(Path.GetDirectoryName(TestSupport.BundleDir)!, "grammar", "game-v1-strings.jsonl");
 
-        var sample = Run(null, "grammar", TestSupport.BundleDir, "--offline", "--cache", cache, "--waivers", waivers, "--strict");
-        var withStrings = Run(
-            null,
-            "grammar",
-            TestSupport.BundleDir,
-            "--offline",
-            "--cache",
-            cache,
-            "--waivers",
-            waivers,
-            "--strings",
-            Path.Combine(committed, "v1-learner-errors.jsonl"));
+        var result = Run(null, "grammar", TestSupport.BundleDir, "--strings", strings, "--strings-only", "--offline", "--strict");
 
-        // The three untagged examples of M27a2 are warnings, so --strict fails and the plain run passes.
-        Assert.Equal(Program.ExitInvalid, sample.Code);
-        Assert.Contains("grammar: 0 errors, 3 warnings, 0 info, 1 waived, 0 unchecked", sample.Output, StringComparison.Ordinal);
-        Assert.Equal(Program.ExitOk, withStrings.Code);
-        Assert.Contains("grammar: 0 errors, 3 warnings, 15 info, 1 waived, 0 unchecked", withStrings.Output, StringComparison.Ordinal);
-        Assert.Contains("oracle.untagged-but-flagged intents/intents.json [confirm.ex5]", withStrings.Output, StringComparison.Ordinal);
+        Assert.Equal(Program.ExitOk, result.Code);
+        Assert.Contains(", 0 unchecked", result.Output, StringComparison.Ordinal);
+        Assert.Matches(@"grammar: 0 errors, 0 warnings, \d+ info, \d+ waived, 0 unchecked", result.Output);
     }
 }

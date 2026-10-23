@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="Vocaterra.Nlp.Testing" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,7 +31,7 @@
 
   <!-- The committed bundle and the golden manifest are copied next to the test assembly. -->
   <ItemGroup>
-    <None Include="../../content/v1/**/*" Link="content/v1/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Compile Include="../Shared/GameBundleLocator.cs" Link="Shared/GameBundleLocator.cs" />
     <None Include="../golden/manifest.jsonl" Link="golden/manifest.jsonl" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

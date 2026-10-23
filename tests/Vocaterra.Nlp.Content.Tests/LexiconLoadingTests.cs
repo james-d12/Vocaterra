@@ -222,7 +222,7 @@ public class LexiconLoadingTests
         var options = new ContentLoadOptions { LexiconCache = new LexiconCache() };
 
         var first = ContentLoader.Load(bundle.Directory, options);
-        bundle.Edit("effects/effects.json", "\"value\": 1.3", "\"value\": 1.35");
+        bundle.Touch("effects/effects.json");
         bundle.Rehash();
         var second = ContentLoader.Load(bundle.Directory, options);
 

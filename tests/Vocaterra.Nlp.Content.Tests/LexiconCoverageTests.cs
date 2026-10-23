@@ -111,8 +111,15 @@ public class LexiconCoverageTests
         var missing = new List<string>();
         foreach (var intent in Bundle.Intents.Intents)
         {
-            foreach (var example in intent.Examples)
+            foreach (var spec in intent.ExampleSpecs)
             {
+                // An example that expects vocab.unknown is a deliberate learner error (a misspelling the lesson tests for), not a lexicon gap.
+                if (spec.HasExpectation && spec.ExpectedErrors!.Contains(ErrorTags.VocabUnknown))
+                {
+                    continue;
+                }
+
+                var example = spec.Text;
                 var analysis = Analyzer.Analyze(TextNormalizer.Normalize(example, PipelineOptions));
                 foreach (var error in analysis.Errors.Where(static error => error.Tag == ErrorTags.VocabUnknown))
                 {

@@ -210,11 +210,14 @@ public class ProgramLexiconTests : IDisposable
 
         Assert.Equal(Program.ExitOk, code);
         Assert.Equal(string.Empty, error);
-        Assert.StartsWith("4 lexicon files\n", output, StringComparison.Ordinal);
-        Assert.Contains("lexicon/game.json: generated_by hand-authored,", output, StringComparison.Ordinal);
-        Assert.Contains("lexicon/seed.json: generated_by hand-authored,", output, StringComparison.Ordinal);
-        Assert.Contains("lexicon/supplement.json: generated_by hand-authored,", output, StringComparison.Ordinal);
-        Assert.Contains("lexicon/wiktionary-es.json: generated_by wiktionary-import,", output, StringComparison.Ordinal);
+        var files = Directory.EnumerateFiles(Path.Combine(TestSupport.BundleDir, "lexicon"), "*.json").Where(path => !path.EndsWith(".source.json", StringComparison.Ordinal)).ToArray();
+        Assert.StartsWith($"{files.Length} lexicon files\n", output, StringComparison.Ordinal);
+        foreach (var file in files.Select(Path.GetFileName))
+        {
+            var kind = file == "wiktionary-es.json" ? "wiktionary-import" : "hand-authored";
+            Assert.Contains($"lexicon/{file}: generated_by {kind},", output, StringComparison.Ordinal);
+        }
+
         Assert.DoesNotContain("source.json:", output, StringComparison.Ordinal);
         Assert.Contains("overlap lexicon/seed.json / lexicon/wiktionary-es.json:", output, StringComparison.Ordinal);
         Assert.Contains("identical readings (stored once)", output, StringComparison.Ordinal);

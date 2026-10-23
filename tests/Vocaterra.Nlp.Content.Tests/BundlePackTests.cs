@@ -11,9 +11,14 @@ public sealed class BundlePackTests : IDisposable
 
     private readonly string _folder = Path.Combine(Path.GetTempPath(), "vocaterra-pack-tests-" + Guid.NewGuid().ToString("N"));
 
+    // The archive commands are packed from a light copy of the bundle (no speech clips, no imported lexicon), so each test packs a small bundle.
+    private readonly TempBundle _bundle = new();
+    private readonly ContentManifest _manifest;
+
     public BundlePackTests()
     {
         Directory.CreateDirectory(_folder);
+        _manifest = ContentManifest.Compute(_bundle.Directory);
     }
 
     public static TheoryData<string> WrongCommandLines()
@@ -35,15 +40,15 @@ public sealed class BundlePackTests : IDisposable
     {
         var archive = Archive();
 
-        var (code, output, error) = Run("pack", TestSupport.BundleDir, archive);
+        var (code, output, error) = Run("pack", _bundle.Directory, archive);
 
         Assert.Equal(Program.ExitOk, code);
         Assert.Equal(string.Empty, error);
-        Assert.Contains($"bundle hash {TestSupport.Bundle.ContentHash}", output, StringComparison.Ordinal);
-        Assert.Equal(TestSupport.Bundle.ContentHash + "\n", File.ReadAllText(archive + BundlePack.SidecarSuffix, Encoding.UTF8));
+        Assert.Contains($"bundle hash {_manifest.BundleHash}", output, StringComparison.Ordinal);
+        Assert.Equal(_manifest.BundleHash + "\n", File.ReadAllText(archive + BundlePack.SidecarSuffix, Encoding.UTF8));
 
         using var zip = ZipFile.OpenRead(archive);
-        var expected = TestSupport.Bundle.Manifest.Files.Select(static file => file.Path).Append(ContentPaths.Manifest).Order(StringComparer.Ordinal).ToArray();
+        var expected = _manifest.Files.Select(static file => file.Path).Append(ContentPaths.Manifest).Order(StringComparer.Ordinal).ToArray();
         Assert.Equal(expected, zip.Entries.Select(static entry => entry.FullName).Order(StringComparer.Ordinal).ToArray());
     }
 
@@ -53,8 +58,8 @@ public sealed class BundlePackTests : IDisposable
         var first = Archive("first.zip");
         var second = Archive("second.zip");
 
-        Assert.Equal(Program.ExitOk, Run("pack", TestSupport.BundleDir, first).Code);
-        Assert.Equal(Program.ExitOk, Run("pack", TestSupport.BundleDir, second).Code);
+        Assert.Equal(Program.ExitOk, Run("pack", _bundle.Directory, first).Code);
+        Assert.Equal(Program.ExitOk, Run("pack", _bundle.Directory, second).Code);
 
         Assert.Equal(File.ReadAllBytes(first), File.ReadAllBytes(second));
     }
@@ -63,28 +68,28 @@ public sealed class BundlePackTests : IDisposable
     public void VerifyPackAcceptsAPackedBundleAndReportsItsHash()
     {
         var archive = Archive();
-        Assert.Equal(Program.ExitOk, Run("pack", TestSupport.BundleDir, archive).Code);
+        Assert.Equal(Program.ExitOk, Run("pack", _bundle.Directory, archive).Code);
 
         var (code, output, error) = Run("verify-pack", archive);
 
         Assert.Equal(Program.ExitOk, code);
         Assert.Equal(string.Empty, error);
         Assert.StartsWith("OK: ", output, StringComparison.Ordinal);
-        Assert.Contains(TestSupport.Bundle.ContentHash, output, StringComparison.Ordinal);
+        Assert.Contains(_manifest.BundleHash, output, StringComparison.Ordinal);
     }
 
     [Fact]
     public void VerifyPackRejectsASidecarThatNamesAnotherHash()
     {
         var archive = Archive();
-        Assert.Equal(Program.ExitOk, Run("pack", TestSupport.BundleDir, archive).Code);
+        Assert.Equal(Program.ExitOk, Run("pack", _bundle.Directory, archive).Code);
         File.WriteAllText(archive + BundlePack.SidecarSuffix, WrongHash + "\n", new UTF8Encoding(false));
 
         var (code, _, error) = Run("verify-pack", archive);
 
         Assert.Equal(Program.ExitInvalid, code);
         Assert.Contains($"The sidecar names bundle hash {WrongHash}", error, StringComparison.Ordinal);
-        Assert.Contains($"hashes to {TestSupport.Bundle.ContentHash}", error, StringComparison.Ordinal);
+        Assert.Contains($"hashes to {_manifest.BundleHash}", error, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -92,7 +97,7 @@ public sealed class BundlePackTests : IDisposable
     {
         // The sidecar of the sound archive is kept; one entry is copied with a byte added, so the loader's hash check fails for that file.
         var sound = Archive("sound.zip");
-        Assert.Equal(Program.ExitOk, Run("pack", TestSupport.BundleDir, sound).Code);
+        Assert.Equal(Program.ExitOk, Run("pack", _bundle.Directory, sound).Code);
         var damaged = Archive("damaged.zip");
         using (var source = ZipFile.OpenRead(sound))
         using (var target = ZipFile.Open(damaged, ZipArchiveMode.Create))
@@ -142,7 +147,7 @@ public sealed class BundlePackTests : IDisposable
     public void PackRefusesAnInvalidBundleAndWritesNothing()
     {
         using var bundle = new TempBundle();
-        bundle.Edit("prompts/prompts.json", "\"greet-open\"", "\"greet-open2\"");
+        bundle.Touch("prompts/prompts.json");
         var archive = Archive();
 
         var (code, output, error) = Run("pack", bundle.Directory, archive);
@@ -158,7 +163,7 @@ public sealed class BundlePackTests : IDisposable
     public void VerifyPackRejectsAMissingSidecarAndAFileThatIsNotAnArchive()
     {
         var archive = Archive();
-        Assert.Equal(Program.ExitOk, Run("pack", TestSupport.BundleDir, archive).Code);
+        Assert.Equal(Program.ExitOk, Run("pack", _bundle.Directory, archive).Code);
         File.Delete(archive + BundlePack.SidecarSuffix);
 
         var (missingCode, _, missingError) = Run("verify-pack", archive);
@@ -187,6 +192,7 @@ public sealed class BundlePackTests : IDisposable
 
     public void Dispose()
     {
+        _bundle.Dispose();
         try
         {
             Directory.Delete(_folder, recursive: true);

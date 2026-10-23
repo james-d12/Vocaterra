@@ -3,8 +3,8 @@ using System.Text.Json.Nodes;
 namespace Vocaterra.Nlp.Content.Tests;
 
 /// <summary>
-/// A writable copy of the sample bundle for lint fixtures: intents, prompts, dialogue and agents are edited as JSON and the bundle is loaded without
-/// hash verification (the fixtures are never hashed).
+/// A writable copy of the bundle (<c>content/game-v1</c>) for lint fixtures: intents, prompts, dialogue and agents are edited as JSON and the bundle is
+/// loaded without hash verification (the fixtures are never hashed). The fixture lints with the game's host pools by default, as the merge gate does.
 /// </summary>
 internal sealed class LintFixture : IDisposable
 {
@@ -29,7 +29,7 @@ internal sealed class LintFixture : IDisposable
         return this;
     }
 
-    /// <summary>Replaces the examples of a sample intent with the given JSON array.</summary>
+    /// <summary>Replaces the examples of an intent of the bundle with the given JSON array.</summary>
     public LintFixture Examples(string intentId, string jsonArray)
     {
         Find(intentId)["examples"] = JsonNode.Parse(jsonArray);
@@ -43,11 +43,14 @@ internal sealed class LintFixture : IDisposable
         return this;
     }
 
-    /// <summary>Adds an open-mode prompt that allows the intents, uses the greetings answer set and names no agent.</summary>
+    /// <summary>The lint options the merge gate uses for the bundle: the guide's host-voiced pools are rendered by the game, so they count as reachable.</summary>
+    public static LintOptions GateOptions { get; } = new() { HostPools = ["guide.*"] };
+
+    /// <summary>Adds an open-mode prompt that allows the intents, uses the yes-no answer set and names no agent.</summary>
     public LintFixture Prompt(string promptId, params string[] allowed)
     {
         _prompts.Add(JsonNode.Parse(
-            $"{{\"promptId\":\"{promptId}\",\"mode\":\"Open\",\"difficulty\":\"Beginner\",\"answerSetId\":\"greetings\",\"allowedIntentIds\":[{string.Join(",", allowed.Select(id => $"\"{id}\""))}],\"agentId\":null,\"slotGrammarIds\":[]}}"));
+            $"{{\"promptId\":\"{promptId}\",\"mode\":\"Open\",\"difficulty\":\"Beginner\",\"answerSetId\":\"yes-no\",\"allowedIntentIds\":[{string.Join(",", allowed.Select(id => $"\"{id}\""))}],\"agentId\":null,\"slotGrammarIds\":[]}}"));
         return this;
     }
 
@@ -79,7 +82,7 @@ internal sealed class LintFixture : IDisposable
 
     public LintReport Lint(LintOptions? options = null)
     {
-        return ContentLinter.Lint(Load(), options);
+        return ContentLinter.Lint(Load(), options ?? GateOptions);
     }
 
     public void Dispose()
@@ -96,7 +99,7 @@ internal sealed class LintFixture : IDisposable
 /// <summary>Tests of the content lint library: one fixture per check proving that it fires and that it does not fire.</summary>
 public class LintTests
 {
-    private static readonly LintReport Sample = ContentLinter.Lint(TestSupport.Bundle);
+    private static readonly LintReport Sample = ContentLinter.Lint(TestSupport.Bundle, LintFixture.GateOptions);
 
     private const string BuyIntent =
         "{\"intentId\":\"fx_buy\",\"requiredSlots\":[\"item\"],\"slotGrammars\":[\"[VERB:comprar] [ART]? [NOUN:item]\"],\"examples\":[\"compro una espada\"]}";
@@ -106,46 +109,44 @@ public class LintTests
         return report.Findings.Where(f => f.CheckId == checkId && (id is null || f.Ids.Contains(id)));
     }
 
-    // ---- The sample bundle ---------------------------------------------------------------------------------------------------------
+    // ---- The bundle ----------------------------------------------------------------------------------------------------------------
 
     [Fact]
-    public void TheSampleHasNoErrorsAndNoWarningsExceptTheTwoRuleOnlyExamples()
+    public void TheBundleLintsCleanUnderTheGateOptionsAndEveryWaiverNamesItsReason()
     {
         Assert.Equal(0, Sample.Errors);
-        Assert.Equal(
-            ["coverage.rule-only", "coverage.rule-only"],
-            Sample.Findings.Where(f => f.Severity == LintSeverity.Warning).Select(f => f.CheckId));
-        Assert.Contains(Of(Sample, "coverage.rule-only"), f => f.Message.Contains("\"muchas gracias por todo\"", StringComparison.Ordinal));
-        Assert.Contains(Of(Sample, "coverage.rule-only"), f => f.Message.Contains("\"mucho gracias\"", StringComparison.Ordinal));
+        Assert.Equal(0, Sample.Warnings);
         Assert.True(Sample.Passes(strict: false));
-        Assert.False(Sample.Passes(strict: true));
+        Assert.True(Sample.Passes(strict: true));
+        Assert.Equal(Sample.Waived, Sample.Findings.Count(f => f.IsWaived));
+        Assert.All(Sample.Findings.Where(f => f.IsWaived), f => Assert.False(string.IsNullOrWhiteSpace(f.WaivedBy)));
     }
 
     [Fact]
-    public void TheSampleReportsTheCastSpellThankOverlapAsInfoBecauseNoPromptAllowsBoth()
+    public void TheBundleReportsAnOverlapOnlyAsAnInfoOrAWaivedFinding()
     {
-        var overlap = Assert.Single(Of(Sample, "confusion.catalog"));
+        // request_item and state_want both match "necesito agua"; no prompt allows both, so it is an info (waived here by the bundle's own lint block).
+        var overlap = Of(Sample, "confusion.catalog").First(f => f.Ids.SequenceEqual(["request_item", "state_want"]));
 
         Assert.Equal(LintSeverity.Info, overlap.Severity);
-        Assert.Equal(["thank", "cast_spell"], overlap.Ids);
-        Assert.Contains("\"gracias\"", overlap.Message, StringComparison.Ordinal);
-        Assert.Contains("[VERB:lanzar]? [ART]? [NOUN:spell] [ADJ]?", overlap.Message, StringComparison.Ordinal);
+        Assert.True(overlap.IsWaived);
+        Assert.Equal("state_want lint.allowOverlap request_item", overlap.WaivedBy);
         Assert.Contains("tie-break", overlap.Message, StringComparison.Ordinal);
-        Assert.Empty(Of(Sample, "confusion.prompt"));
+        Assert.All(Of(Sample, "confusion.prompt"), f => Assert.True(f.IsWaived, f.ToLine()));
     }
 
     [Fact]
-    public void TheSampleHasNoGrammarHazardsOtherThanHomographInfo()
+    public void TheBundleHasNoGrammarHazardsOtherThanHomographInfo()
     {
         Assert.Empty(Of(Sample, "hazard.optional-word"));
         Assert.Empty(Of(Sample, "hazard.lexicon-gap"));
         Assert.All(Of(Sample, "hazard.homograph"), f => Assert.Equal(LintSeverity.Info, f.Severity));
-        Assert.Contains(Of(Sample, "hazard.homograph"), f => f.Ids.SequenceEqual(["ask_price", "costar"]));
+        Assert.Contains(Of(Sample, "hazard.homograph"), f => f.Ids.SequenceEqual(["ask_craft", "hacer"]));
         Assert.DoesNotContain(Of(Sample, "hazard.homograph"), f => f.Ids.Contains("querer"));
     }
 
     [Fact]
-    public void TheSampleIsFullyReachableAndReservedPoolsAreNeverReported()
+    public void TheBundleIsFullyReachableAndReservedPoolsAreNeverReported()
     {
         Assert.Empty(Of(Sample, "reach.pool"));
         Assert.Empty(Of(Sample, "reach.intent"));
@@ -155,7 +156,7 @@ public class LintTests
     }
 
     [Fact]
-    public void TheSampleHasNoCefrFindingsWithoutALevelAndExpectationFindingsWithoutExpectations()
+    public void TheBundleHasNoCefrFindingsWithoutALevelAndNoExpectationFindings()
     {
         Assert.DoesNotContain(Sample.Findings, f => f.CheckId.StartsWith("cefr.", StringComparison.Ordinal));
         Assert.DoesNotContain(Sample.Findings, f => f.CheckId.StartsWith("expect.", StringComparison.Ordinal));
@@ -177,7 +178,7 @@ public class LintTests
     }
 
     [Fact]
-    public void TheSampleLintTakesUnderFiveSeconds()
+    public void TheBundleLintTakesUnderFiveSeconds()
     {
         var started = System.Diagnostics.Stopwatch.StartNew();
         ContentLinter.Lint(TestSupport.Bundle, new LintOptions { Level = "a2" });
@@ -306,7 +307,7 @@ public class LintTests
         Assert.True(finding.IsWaived);
         Assert.Equal(waiver, finding.WaivedBy);
         Assert.Equal(LintSeverity.Warning, finding.Severity);
-        Assert.Equal(1, report.Waived);
+        Assert.Equal(Sample.Waived + 1, report.Waived);
     }
 
     [Fact]
@@ -396,15 +397,18 @@ public class LintTests
     {
         using var plain = new LintFixture();
         var report = plain.Lint();
-        var costar = Assert.Single(Of(report, "hazard.homograph", "costar"));
-        Assert.Equal(["ask_price", "costar"], costar.Ids);
-        Assert.Contains("cuesta", costar.Message, StringComparison.Ordinal);
-        Assert.False(costar.IsWaived);
+        // One finding per grammar of the intent that binds the verb first ("cómo [VERB:hacer]" and "qué [VERB:hacer]").
+        var hacer = Of(report, "hazard.homograph", "hacer").Where(f => f.Ids.Contains("ask_craft")).ToList();
+        Assert.NotEmpty(hacer);
+        Assert.All(hacer, f => Assert.Equal(["ask_craft", "hacer"], f.Ids));
+        Assert.All(hacer, f => Assert.Contains("haces", f.Message, StringComparison.Ordinal));
+        Assert.All(hacer, f => Assert.False(f.IsWaived));
 
-        using var waived = new LintFixture().Member("ask_price", "lint", "{\"allowHomograph\":[\"costar\"]}");
-        var waivedFinding = Assert.Single(Of(waived.Lint(), "hazard.homograph", "costar"));
-        Assert.True(waivedFinding.IsWaived);
-        Assert.Equal("ask_price lint.allowHomograph costar", waivedFinding.WaivedBy);
+        using var waived = new LintFixture().Member("ask_craft", "lint", "{\"allowHomograph\":[\"hacer\"]}");
+        var waivedFindings = Of(waived.Lint(), "hazard.homograph", "hacer").Where(f => f.Ids.Contains("ask_craft")).ToList();
+        Assert.Equal(hacer.Count, waivedFindings.Count);
+        Assert.All(waivedFindings, f => Assert.True(f.IsWaived));
+        Assert.All(waivedFindings, f => Assert.Equal("ask_craft lint.allowHomograph hacer", f.WaivedBy));
     }
 
     // ---- 4. Reachability -------------------------------------------------------------------------------------------------------------
@@ -447,8 +451,8 @@ public class LintTests
         fixture.Write("dialogue/dialogue.json", dialogue.ToJsonString());
 
         Assert.Equal(3, Of(fixture.Lint(), "reach.pool").Count());
-        Assert.Equal(["fx_b"], Of(fixture.Lint(new LintOptions { HostPools = ["fx_a.*"] }), "reach.pool").Select(f => f.Ids[0]));
-        Assert.Empty(Of(fixture.Lint(new LintOptions { HostPools = ["fx_a.*", "fx_b"] }), "reach.pool"));
+        Assert.Equal(["fx_b"], Of(fixture.Lint(new LintOptions { HostPools = ["guide.*", "fx_a.*"] }), "reach.pool").Select(f => f.Ids[0]));
+        Assert.Empty(Of(fixture.Lint(new LintOptions { HostPools = ["guide.*", "fx_a.*", "fx_b"] }), "reach.pool"));
     }
 
     [Fact]
@@ -456,18 +460,18 @@ public class LintTests
     {
         using var fixture = new LintFixture();
 
-        var report = fixture.Lint(new LintOptions { RootPrompts = ["spell-cast-open", "quiz-spell-name"] });
+        var report = fixture.Lint(new LintOptions { RootPrompts = ["villager-open"] });
 
-        // Neither prompt names the blacksmith, so all its pools, its agent, the other answer sets and the other intents are unreachable from them.
-        Assert.Contains(Of(report, "reach.pool"), f => f.Ids.SequenceEqual(["greet_reply", "blacksmith"]));
-        Assert.Contains(Of(report, "reach.agent"), f => f.Ids.SequenceEqual(["blacksmith"]));
-        Assert.Contains(Of(report, "reach.answer-set"), f => f.Ids.SequenceEqual(["greetings"]));
-        Assert.DoesNotContain(Of(report, "reach.answer-set"), f => f.Ids.Contains("spells-basic"));
-        Assert.Contains(Of(report, "reach.intent"), f => f.Ids.SequenceEqual(["greet"]));
-        Assert.DoesNotContain(Of(report, "reach.intent"), f => f.Ids.Contains("cast_spell"));
+        // The villager prompt names the villager, so the guide's pools, the guide, the lesson answer sets and the intents it does not allow are unreachable from it.
+        Assert.Contains(Of(report, "reach.pool"), f => f.Ids.SequenceEqual(["farewell_reply", "guide"]));
+        Assert.Contains(Of(report, "reach.agent"), f => f.Ids.SequenceEqual(["guide"]));
+        Assert.Contains(Of(report, "reach.answer-set"), f => f.Ids.SequenceEqual(["lesson-greet"]));
+        Assert.DoesNotContain(Of(report, "reach.answer-set"), f => f.Ids.Contains("places-basic"));
+        Assert.Contains(Of(report, "reach.intent"), f => f.Ids.SequenceEqual(["confirm"]));
+        Assert.DoesNotContain(Of(report, "reach.intent"), f => f.Ids.Contains("ask_directions"));
         Assert.Empty(Of(report, "reach.pool", "not_understood"));
         Assert.Empty(Of(report, "reach.pool", "answer_accepted"));
-        Assert.Contains("none of the selected prompts", Of(report, "reach.agent").Single().Message, StringComparison.Ordinal);
+        Assert.Contains("none of the selected prompts", Of(report, "reach.agent", "guide").Single().Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -492,13 +496,13 @@ public class LintTests
     [Fact]
     public void AnAgentStateWithNoWayInIsAWarning()
     {
-        using var fixture = new LintFixture().Edit("agents/blacksmith.json", "\"states\": [", "\"states\": [{ \"id\": \"fx_island\", \"transitions\": [] },");
+        using var fixture = new LintFixture().Edit("agents/villager.json", "\"states\": [", "\"states\": [{ \"id\": \"fx_island\", \"transitions\": [] },");
 
         var report = fixture.Lint();
 
         var state = Assert.Single(Of(report, "reach.state"));
-        Assert.Equal(["blacksmith", "fx_island"], state.Ids);
-        Assert.Equal("agents/blacksmith.json", state.Path);
+        Assert.Equal(["villager", "fx_island"], state.Ids);
+        Assert.Equal("agents/villager.json", state.Path);
     }
 
     // ---- 5. CEFR ---------------------------------------------------------------------------------------------------------------------
@@ -506,19 +510,29 @@ public class LintTests
     [Fact]
     public void CefrFindingsCoverDialoguePromptTextAndAnswerSetsAndAreWarningsByDefault()
     {
-        var report = ContentLinter.Lint(TestSupport.Bundle, new LintOptions { Level = "A1" });
+        using var fixture = LevelFixture();
 
-        Assert.Contains(Of(report, "cefr.dialogue"), f => f.Message.Contains("'oro'", StringComparison.Ordinal) && f.Ids.Contains("ask_price_reply.1"));
-        Assert.Contains(Of(report, "cefr.prompt"), f => f.Message.Contains("'espada'", StringComparison.Ordinal) && f.Ids.Contains("ask-price-open"));
-        Assert.Contains(Of(report, "cefr.answer"), f => f.Message.Contains("'espada'", StringComparison.Ordinal) && f.Ids.Contains("items-basic"));
+        var report = fixture.Lint(new LintOptions { Level = "A1", HostPools = ["guide.*"] });
+
+        Assert.Contains(Of(report, "cefr.dialogue"), f => f.Message.Contains("'amigo'", StringComparison.Ordinal) && f.Ids.Contains("farewell_reply.1"));
+        Assert.Contains(Of(report, "cefr.prompt"), f => f.Message.Contains("'agua'", StringComparison.Ordinal) && f.Ids.Contains("guide-offer"));
+        Assert.Contains(Of(report, "cefr.answer"), f => f.Message.Contains("'agua'", StringComparison.Ordinal) && f.Ids.Contains("supplies"));
         Assert.All(report.Findings.Where(f => f.CheckId.StartsWith("cefr.", StringComparison.Ordinal)), f => Assert.Equal(LintSeverity.Warning, f.Severity));
         Assert.Equal(0, report.Errors);
+    }
+
+    // The bundle itself lints clean at A1 (the gate), so the CEFR checks are shown on a copy whose A1 list is cut down to one word and whose A2 list adds the water.
+    private static LintFixture LevelFixture()
+    {
+        return new LintFixture().Write("cefr/a1.txt", "hola\n").Write("cefr/a2.txt", "agua\n");
     }
 
     [Fact]
     public void FailOnLevelTurnsUnlistedLemmasIntoErrors()
     {
-        var report = ContentLinter.Lint(TestSupport.Bundle, new LintOptions { Level = "a1", FailOnLevel = true });
+        using var fixture = LevelFixture();
+
+        var report = fixture.Lint(new LintOptions { Level = "a1", FailOnLevel = true, HostPools = ["guide.*"] });
 
         Assert.All(report.Findings.Where(f => f.CheckId.StartsWith("cefr.", StringComparison.Ordinal)), f => Assert.Equal(LintSeverity.Error, f.Severity));
         Assert.True(report.Errors > 0);
@@ -528,19 +542,34 @@ public class LintTests
     [Fact]
     public void ALevelAboveTheContentHasFewerFindingsAndAnUnknownLevelIsRejected()
     {
-        var a1 = ContentLinter.Lint(TestSupport.Bundle, new LintOptions { Level = "a1" });
-        var a2 = ContentLinter.Lint(TestSupport.Bundle, new LintOptions { Level = "a2" });
+        using var fixture = LevelFixture();
+
+        var a1 = fixture.Lint(new LintOptions { Level = "a1", HostPools = ["guide.*"] });
+        var a2 = fixture.Lint(new LintOptions { Level = "a2", HostPools = ["guide.*"] });
 
         Assert.True(a2.Findings.Count(f => f.CheckId.StartsWith("cefr.", StringComparison.Ordinal)) < a1.Findings.Count(f => f.CheckId.StartsWith("cefr.", StringComparison.Ordinal)));
         Assert.Throws<ArgumentException>(() => ContentLinter.Lint(TestSupport.Bundle, new LintOptions { Level = "b2" }));
     }
 
     [Fact]
+    public void TheBundleLintsCleanAtBothLevels()
+    {
+        foreach (var level in new[] { "a1", "a2" })
+        {
+            var report = ContentLinter.Lint(TestSupport.Bundle, new LintOptions { Level = level, FailOnLevel = true, HostPools = ["guide.*"] });
+
+            Assert.Equal(0, report.Errors);
+            Assert.Equal(0, report.Warnings);
+        }
+    }
+
+    [Fact]
     public void AnswerSetCanonicalsAreCheckedButAliasesAreNot()
     {
-        var report = CefrChecker.CheckAnswerSets(TestSupport.Bundle, "a1");
+        using var fixture = LevelFixture();
+        var report = CefrChecker.CheckAnswerSets(fixture.Load(), "a1");
 
-        Assert.Contains(report.Missing, m => m.Lemma == "espada" && m.LineIds.Contains("items-basic"));
+        Assert.Contains(report.Missing, m => m.Lemma == "agua" && m.LineIds.Contains("supplies"));
         Assert.True(report.CoveredLemmas > 0);
         Assert.Equal(report.TotalLemmas, report.CoveredLemmas + report.Missing.Count);
     }
@@ -551,7 +580,7 @@ public class LintTests
     public void AnExampleWhoseVerdictCarriesExactlyTheExpectedTagsPassesAndStringExamplesAreNotChecked()
     {
         using var fixture = new LintFixture()
-            .Examples("introduce_self", "[\"me llamo Rosa\",{\"text\":\"yo es Rosa\",\"errors\":[\"conj.person\"]},{\"text\":\"soy Sol\",\"errors\":[]}]");
+            .Examples("state_have", "[\"tengo una fruta\",{\"text\":\"sí, yo tienes una fruta\",\"errors\":[\"conj.person\"],\"prompt\":\"lesson-have\"},{\"text\":\"tengo una fruta\",\"errors\":[],\"prompt\":\"lesson-have\"}]");
 
         var report = fixture.Lint();
 
@@ -560,25 +589,28 @@ public class LintTests
     }
 
     [Fact]
-    public void TheReadmeDemoSentenceExpectsConjPersonAndNounNumberAgainstTheOpenPrompt()
+    public void TheDesignDocDemoSentenceExpectsConjPersonAndNounNumberAgainstTheOpenPrompt()
     {
-        using var fixture = new LintFixture().Examples("offer_item", "[\"tengo dos espadas\",{\"text\":\"yo tiene dos espada\",\"errors\":[\"noun.number\",\"conj.person\"]}]");
+        // The worked example of the design document, in the bundle's words: a wrong verb form and a plural noun missing after "dos", asked of an open prompt.
+        using var fixture = new LintFixture().Examples(
+            "request_item",
+            "[\"quiero dos espadas\",{\"text\":\"yo quiere dos espada\",\"errors\":[\"noun.number\",\"conj.person\"],\"prompt\":\"villager-open\"}]");
 
         Assert.Empty(Of(fixture.Lint(), "expect.mismatch"));
     }
 
     [Theory]
-    [InlineData("[\"conj.person\",\"gender.agree\"]", "expects error tags [conj.person, gender.agree] but prompt 'introduce-open' gives [conj.person]")]
-    [InlineData("[]", "expects error tags [] but prompt 'introduce-open' gives [conj.person]")]
-    [InlineData("[\"noun.number\"]", "expects error tags [noun.number] but prompt 'introduce-open' gives [conj.person]")]
+    [InlineData("[\"conj.person\",\"gender.agree\"]", "expects error tags [conj.person, gender.agree] but prompt 'lesson-have' gives [conj.person]")]
+    [InlineData("[]", "expects error tags [] but prompt 'lesson-have' gives [conj.person]")]
+    [InlineData("[\"noun.number\"]", "expects error tags [noun.number] but prompt 'lesson-have' gives [conj.person]")]
     public void AnExampleWhoseVerdictDiffersFromTheExpectationIsAnError(string expected, string message)
     {
-        using var fixture = new LintFixture().Examples("introduce_self", "[{\"text\":\"yo es Rosa\",\"errors\":" + expected + "}]");
+        using var fixture = new LintFixture().Examples("state_have", "[{\"text\":\"sí, yo tienes una fruta\",\"errors\":" + expected + ",\"prompt\":\"lesson-have\"}]");
 
         var finding = Assert.Single(Of(fixture.Lint(), "expect.mismatch"));
 
         Assert.Equal(LintSeverity.Error, finding.Severity);
-        Assert.Equal(["introduce_self", "introduce-open"], finding.Ids);
+        Assert.Equal(["state_have", "lesson-have"], finding.Ids);
         Assert.Contains(message, finding.Message, StringComparison.Ordinal);
     }
 
@@ -587,8 +619,8 @@ public class LintTests
     {
         // The constrained prompt expects an answer-set phrase, so a sentence gets vocab.wrong there; the same text passes against the open prompt.
         using var fixture = new LintFixture().Examples(
-            "offer_item",
-            "[{\"text\":\"tengo dos espadas\",\"errors\":[\"vocab.wrong\"],\"prompt\":\"offer-items-constrained\"},{\"text\":\"tengo tres escudos\",\"errors\":[],\"prompt\":\"offer-items-open\"}]");
+            "request_item",
+            "[{\"text\":\"quiero dos espadas\",\"errors\":[\"vocab.wrong\"],\"prompt\":\"stall-need\"},{\"text\":\"quiero dos espadas\",\"errors\":[],\"prompt\":\"villager-open\"}]");
 
         Assert.Empty(Of(fixture.Lint(), "expect.mismatch"));
     }
@@ -596,8 +628,8 @@ public class LintTests
     [Fact]
     public void TheDefaultPromptIsTheFirstOpenPromptThatAllowsTheIntent()
     {
-        // offer-items-constrained sorts before offer-items-open, but the open prompt is the one that grades sentences.
-        using var fixture = new LintFixture().Examples("offer_item", "[{\"text\":\"tengo dos espadas\",\"errors\":[]}]");
+        // stall-need (constrained) sorts before villager-open, but the open prompt is the one that grades sentences.
+        using var fixture = new LintFixture().Examples("request_item", "[{\"text\":\"quiero dos espadas\",\"errors\":[]}]");
 
         Assert.Empty(Of(fixture.Lint(), "expect.mismatch"));
     }
@@ -606,8 +638,8 @@ public class LintTests
     public void AnExpectationNamingAnUnknownPromptOrOneThatDoesNotAllowTheIntentIsAnError()
     {
         using var fixture = new LintFixture().Examples(
-            "introduce_self",
-            "[{\"text\":\"soy Sol\",\"errors\":[],\"prompt\":\"nope\"},{\"text\":\"soy Mar\",\"errors\":[],\"prompt\":\"greet-open\"}]");
+            "state_have",
+            "[{\"text\":\"tengo una fruta\",\"errors\":[],\"prompt\":\"nope\"},{\"text\":\"tengo fruta\",\"errors\":[],\"prompt\":\"villager-open\"}]");
 
         var report = fixture.Lint();
 
@@ -631,9 +663,9 @@ public class LintTests
     [Fact]
     public void FindingLinesCarrySeverityCheckPathAndIds()
     {
-        var overlap = Of(Sample, "confusion.catalog").Single();
+        var overlap = Of(Sample, "confusion.catalog").First(f => f.Ids.SequenceEqual(["request_item", "state_want"]));
 
-        Assert.StartsWith("info confusion.catalog intents/intents.json [thank, cast_spell] ", overlap.ToLine(), StringComparison.Ordinal);
+        Assert.StartsWith("waived confusion.catalog intents/intents.json [request_item, state_want] ", overlap.ToLine(), StringComparison.Ordinal);
         Assert.Equal(
             Sample.Findings.Count + 1,
             Sample.Format().Split('\n', StringSplitOptions.RemoveEmptyEntries).Length);
@@ -660,17 +692,21 @@ public class LintTests
 
         Assert.DoesNotContain("info ", text, StringComparison.Ordinal);
         Assert.EndsWith(Sample.SummaryLine() + "\n", text, StringComparison.Ordinal);
-        Assert.Equal(Sample.Warnings + Sample.Errors + 1, text.Split('\n', StringSplitOptions.RemoveEmptyEntries).Length);
+        // Waived findings keep the severity they had before the waiver, so a waived warning is still a line here.
+        Assert.Equal(Sample.Findings.Count(f => f.Severity != LintSeverity.Info) + 1, text.Split('\n', StringSplitOptions.RemoveEmptyEntries).Length);
     }
 
     [Fact]
-    public void TheSampleCatalogLoadsStringExamplesAsPlainExamples()
+    public void TheBundleCatalogLoadsPlainAndExpectationExamplesAndLintBlocksAndWritesThemBack()
     {
         var catalog = TestSupport.Bundle.Intents;
 
-        Assert.All(catalog.Intents, intent => Assert.All(intent.ExampleSpecs, example => Assert.False(example.HasExpectation)));
-        Assert.All(catalog.Intents, intent => Assert.True(intent.Lint.IsEmpty));
-        Assert.DoesNotContain("\"lint\"", catalog.ToJson(), StringComparison.Ordinal);
-        Assert.DoesNotContain("{\"text\"", catalog.ToJson(), StringComparison.Ordinal);
+        // A string example is a plain example; an object example carries its expected tags; the plain text is the same either way.
+        Assert.All(catalog.Intents, intent => Assert.Equal(intent.Examples, intent.ExampleSpecs.Select(example => example.Text)));
+        Assert.Contains(catalog.Intents, intent => intent.ExampleSpecs.Any(example => !example.HasExpectation));
+        Assert.Contains(catalog.Intents, intent => intent.ExampleSpecs.Any(example => example.HasExpectation));
+        Assert.Contains(catalog.Intents, intent => !intent.Lint.IsEmpty);
+        Assert.Contains("\"lint\"", catalog.ToJson(), StringComparison.Ordinal);
+        Assert.Contains("{\"text\"", catalog.ToJson(), StringComparison.Ordinal);
     }
 }

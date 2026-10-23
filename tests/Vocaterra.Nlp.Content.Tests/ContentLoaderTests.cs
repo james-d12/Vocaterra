@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Nodes;
 
 namespace Vocaterra.Nlp.Content.Tests;
 
@@ -16,7 +17,7 @@ public class ContentLoaderTests
         var bundle = ContentLoader.Load(TestSupport.BundleDir, new ContentLoadOptions { VerifyHashes = true });
 
         Assert.Equal(bundle.Manifest.BundleHash, bundle.ContentHash);
-        Assert.Equal("v1", bundle.Manifest.BundleId);
+        Assert.Equal("game-v1", bundle.Manifest.BundleId);
         Assert.Equal(ContentManifest.CurrentSchemaVersion, bundle.Manifest.SchemaVersion);
         Assert.Equal(64, bundle.ContentHash.Length);
     }
@@ -27,9 +28,9 @@ public class ContentLoaderTests
         Assert.True(new ContentLoadOptions().VerifyHashes);
         Assert.True(ContentLoadOptions.Default.VerifyHashes);
         using var bundle = new TempBundle();
-        bundle.Edit("answer-sets/greetings.json", "\"hola amigo\"", "\"hola amiga\"");
+        bundle.Touch("answer-sets/yes-no.json");
 
-        Assert.Contains(LoadFails(bundle.Directory).Problems, problem => problem.StartsWith("answer-sets/greetings.json: hash mismatch", StringComparison.Ordinal));
+        Assert.Contains(LoadFails(bundle.Directory).Problems, problem => problem.StartsWith("answer-sets/yes-no.json: hash mismatch", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -49,6 +50,7 @@ public class ContentLoaderTests
     public void ACrlfCheckoutStillVerifies()
     {
         using var bundle = new TempBundle(full: true);
+        var before = ContentManifest.Compute(bundle.Directory).BundleHash;
         foreach (var path in new[] { "intents/intents.json", "dialogue/dialogue.json", "cefr/a1.txt", "ATTRIBUTION.md" })
         {
             bundle.Write(path, bundle.Read(path).Replace("\n", "\r\n", StringComparison.Ordinal));
@@ -56,14 +58,14 @@ public class ContentLoaderTests
 
         var loaded = ContentLoader.Load(bundle.Directory);
 
-        Assert.Equal(TestSupport.Bundle.ContentHash, loaded.ContentHash);
+        Assert.Equal(before, loaded.ContentHash);
     }
 
     [Fact]
     public void ATamperedFileIsRejectedAndNamed()
     {
         using var bundle = new TempBundle();
-        bundle.Edit("prompts/prompts.json", "\"promptId\": \"greet-open\"", "\"promptId\": \"greet-open2\"");
+        bundle.Touch("prompts/prompts.json");
 
         var problems = LoadFails(bundle.Directory).Problems;
 
@@ -75,15 +77,15 @@ public class ContentLoaderTests
     public void TheExceptionMessageListsEveryProblem()
     {
         using var bundle = new TempBundle();
-        bundle.Edit("prompts/prompts.json", "\"greet-open\"", "\"greet-open2\"");
-        bundle.Edit("effects/effects.json", "\"effectId\": \"buy_item_price\"", "\"effectId\": \"buy_item_cost\"");
-        bundle.Delete("answer-sets/spells-basic.json");
+        bundle.Touch("prompts/prompts.json");
+        bundle.Touch("effects/effects.json");
+        bundle.Delete("answer-sets/places-basic.json");
 
         var exception = LoadFails(bundle.Directory);
 
         Assert.Contains(exception.Problems, p => p.StartsWith("prompts/prompts.json: hash mismatch", StringComparison.Ordinal));
         Assert.Contains(exception.Problems, p => p.StartsWith("effects/effects.json: hash mismatch", StringComparison.Ordinal));
-        Assert.Contains(exception.Problems, p => p.StartsWith("answer-sets/spells-basic.json: file is missing", StringComparison.Ordinal));
+        Assert.Contains(exception.Problems, p => p.StartsWith("answer-sets/places-basic.json: file is missing", StringComparison.Ordinal));
         foreach (var problem in exception.Problems)
         {
             Assert.Contains(problem, exception.Message, StringComparison.Ordinal);
@@ -96,23 +98,23 @@ public class ContentLoaderTests
     public void TamperingIsIgnoredWhenHashesAreNotVerified()
     {
         using var bundle = new TempBundle();
-        bundle.Edit("answer-sets/greetings.json", "\"hola amigo\"", "\"hola amiga\"");
+        bundle.EditJson("answer-sets/yes-no.json", root => root["answers"]![0]!["aliases"]!.AsArray().Add("claro amigo"));
 
         var loaded = ContentLoader.Load(bundle.Directory, new ContentLoadOptions { VerifyHashes = false });
 
-        Assert.Contains("hola amiga", loaded.AnswerSets["greetings"].GrammarPhrases());
+        Assert.Contains("claro amigo", loaded.AnswerSets["yes-no"].GrammarPhrases());
     }
 
     [Fact]
     public void AMissingFileIsReported()
     {
         using var bundle = new TempBundle();
-        bundle.Delete("answer-sets/greetings.json");
+        bundle.Delete("answer-sets/yes-no.json");
 
         var problems = LoadFails(bundle.Directory).Problems;
 
-        Assert.Contains("answer-sets/greetings.json: file is missing (listed in manifest.json).", problems);
-        Assert.Contains(problems, p => p.Contains("unknown answer set 'greetings'", StringComparison.Ordinal));
+        Assert.Contains("answer-sets/yes-no.json: file is missing (listed in manifest.json).", problems);
+        Assert.Contains(problems, p => p.Contains("unknown answer set 'yes-no'", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -132,7 +134,9 @@ public class ContentLoaderTests
         using var bundle = new TempBundle(full: true);
         bundle.Write(".DS_Store", "junk");
 
-        Assert.Equal(TestSupport.Bundle.ContentHash, ContentLoader.Load(bundle.Directory).ContentHash);
+        var expected = ContentManifest.Compute(bundle.Directory).BundleHash;
+
+        Assert.Equal(expected, ContentLoader.Load(bundle.Directory).ContentHash);
     }
 
     [Fact]
@@ -140,7 +144,7 @@ public class ContentLoaderTests
     {
         using var bundle = new TempBundle(full: true);
         var manifest = bundle.Read("manifest.json");
-        bundle.Write("manifest.json", manifest.Replace(TestSupport.Bundle.ContentHash, new string('0', 64), StringComparison.Ordinal));
+        bundle.Write("manifest.json", manifest.Replace(ContentManifest.FromJson(manifest).BundleHash, new string('0', 64), StringComparison.Ordinal));
 
         var problems = LoadFails(bundle.Directory).Problems;
 
@@ -152,7 +156,7 @@ public class ContentLoaderTests
     public void ASizeThatDoesNotMatchIsReported()
     {
         using var bundle = new TempBundle();
-        var entry = TestSupport.Bundle.Manifest.Files.Single(file => file.Path == "cefr/a1.txt");
+        var entry = ContentManifest.Compute(bundle.Directory).Files.Single(file => file.Path == "cefr/a1.txt");
         var manifest = bundle.Read("manifest.json");
         bundle.Write("manifest.json", manifest.Replace(
             "\"sha256\":\"" + entry.Sha256 + "\",\"bytes\":" + entry.Bytes.ToString(System.Globalization.CultureInfo.InvariantCulture),
@@ -192,7 +196,7 @@ public class ContentLoaderTests
     [Theory]
     [InlineData("not json")]
     [InlineData("{}")]
-    [InlineData("{\"schemaVersion\":1,\"bundleId\":\"v1\"}")]
+    [InlineData("{\"schemaVersion\":1,\"bundleId\":\"game-v1\"}")]
     public void AMalformedManifestIsReported(string manifest)
     {
         using var bundle = new TempBundle();
@@ -268,33 +272,136 @@ public class ContentLoaderTests
         Assert.Equal(TestSupport.Bundle.Effects, loaded.Effects);
     }
 
+    public static TheoryData<string, string> Damages()
+    {
+        return new TheoryData<string, string>
+        {
+            { "prompt-unknown-slot-grammar", "unknown slot grammar 'no such grammar'" },
+            { "intent-renamed", "allows unknown intent 'greet'" },
+            { "intent-renamed", "reacts to unknown intent 'greet'" },
+            { "answer-set-renamed", "unknown answer set 'yes-no'" },
+            { "answer-set-renamed", "answerSetId 'hellos' must equal the file name 'yes-no'" },
+            { "agent-renamed", "references unknown agent 'guide'" },
+            { "agent-renamed", "agentId 'agent' must equal the file name 'guide'" },
+            { "dialogue-pool-renamed", "says unknown dialogue intent 'villager_thank'" },
+            { "dialogue-no-not-understood", "needs a 'not_understood' pool" },
+            { "template-unknown-modifier", "line 'guide.point.found.1' of 'guide.point.found' does not render" },
+            { "template-unclosed-brace", "does not render" },
+            { "template-unknown-slot", "line 'villager_thank.1' of 'villager_thank' does not render" },
+            { "variant-pool-too-big", "variant pool 'farewell_reply' has 9 variants but dialogue intent 'farewell_reply' only has 3" },
+            { "transition-to-undefined-state", "undefined state 'nowhere'" },
+            { "effect-unknown-intent", "effect 'fx_effect' references unknown intent 'gone'" },
+            { "invalid-slot-grammar", "intents/intents.json: Invalid slot grammar" },
+            { "negative-epsilon", "evaluation/evaluation-config.json: " },
+            { "zero-min-repeat", "feedback/feedback-policy.json: " },
+            { "duplicate-answer-id", "answer-sets/yes-no.json: Duplicate answerId 'yes'" },
+            { "empty-prompt-text", "prompt 'guide-offer' has a text that is empty or has leading or trailing whitespace" },
+            { "blank-prompt-text", "prompt 'guide-offer' has a text that is empty or has leading or trailing whitespace" },
+            { "padded-prompt-text", "prompt 'guide-offer' has a text that is empty or has leading or trailing whitespace" },
+        };
+    }
+
+    // Each damage edits the parsed JSON of the bundle, so it keeps working when the lessons change the text of a file; it breaks only when the structure it names goes.
+    private static void Damage(TempBundle bundle, string name)
+    {
+        switch (name)
+        {
+            case "prompt-unknown-slot-grammar":
+                bundle.EditJson("prompts/prompts.json", root => root[0]!["slotGrammarIds"] = new JsonArray("no such grammar"));
+                break;
+            case "intent-renamed":
+                bundle.EditJson("intents/intents.json", root => Intent(root, "greet")["intentId"] = "hello");
+                break;
+            case "answer-set-renamed":
+                bundle.EditJson("answer-sets/yes-no.json", root => root["answerSetId"] = "hellos");
+                break;
+            case "agent-renamed":
+                bundle.EditJson("agents/guide.json", root => root["agentId"] = "agent");
+                break;
+            case "dialogue-pool-renamed":
+                bundle.EditJson("dialogue/dialogue.json", root => RenamePool(root, "villager_thank", "villager_gone"));
+                break;
+            case "dialogue-no-not-understood":
+                bundle.EditJson("dialogue/dialogue.json", root => RenamePool(root, "not_understood", "not_heard"));
+                break;
+            case "template-unknown-modifier":
+                bundle.EditJson("dialogue/dialogue.json", root => SetLine(root, "guide.point.found", 0, "{place:bogus} está aquí."));
+                break;
+            case "template-unclosed-brace":
+                bundle.EditJson("dialogue/dialogue.json", root => SetLine(root, "guide.point.found", 1, "Mira: {place:article(def} está aquí."));
+                break;
+            case "template-unknown-slot":
+                bundle.EditJson("dialogue/dialogue.json", root => SetLine(root, "villager_thank", 0, "Hola {nobody:bogus}."));
+                break;
+            case "variant-pool-too-big":
+                bundle.EditJson(
+                    "agents/guide.json",
+                    root => root["variantPools"]!.AsArray().Single(pool => pool!["id"]!.GetValue<string>() == "farewell_reply")!["count"] = 9);
+                break;
+            case "transition-to-undefined-state":
+                bundle.EditJson("agents/villager.json", root => root["states"]![0]!["transitions"]!.AsArray().First(t => t!["to"] is not null)!["to"] = "nowhere");
+                break;
+            case "effect-unknown-intent":
+                bundle.Write(
+                    "effects/effects.json",
+                    "{\"effects\":[{\"effectId\":\"fx_effect\",\"intent\":\"gone\",\"kind\":\"k\",\"curve\":[{\"correctness\":0,\"value\":0},{\"correctness\":1,\"value\":1}],\"requiresCommunicated\":true}]}");
+                break;
+            case "invalid-slot-grammar":
+                bundle.EditJson("intents/intents.json", root => Intent(root, "greet")["slotGrammars"]![0] = "hola [NOUN");
+                break;
+            case "negative-epsilon":
+                bundle.EditJson("evaluation/evaluation-config.json", root => root["beginner"]!["epsilon"] = -1);
+                break;
+            case "zero-min-repeat":
+                bundle.EditJson("feedback/feedback-policy.json", root => root["rules"]![2]!["minRepeat"] = 0);
+                break;
+            case "duplicate-answer-id":
+                bundle.EditJson("answer-sets/yes-no.json", root => root["answers"]![1]!["answerId"] = "yes");
+                break;
+            case "empty-prompt-text":
+                bundle.EditJson("prompts/prompts.json", root => PromptNamed(root, "guide-offer")["text"] = string.Empty);
+                break;
+            case "blank-prompt-text":
+                bundle.EditJson("prompts/prompts.json", root => PromptNamed(root, "guide-offer")["text"] = "   ");
+                break;
+            case "padded-prompt-text":
+                bundle.EditJson("prompts/prompts.json", root => PromptNamed(root, "guide-offer")["text"] = " " + PromptNamed(root, "guide-offer")["text"]!.GetValue<string>());
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(name), name, null);
+        }
+    }
+
+    private static JsonNode Intent(JsonNode root, string id)
+    {
+        return root["intents"]!.AsArray().Single(node => node!["intentId"]!.GetValue<string>() == id)!;
+    }
+
+    private static JsonNode PromptNamed(JsonNode root, string id)
+    {
+        return root.AsArray().Single(node => node!["promptId"]!.GetValue<string>() == id)!;
+    }
+
+    private static void RenamePool(JsonNode root, string from, string to)
+    {
+        var pools = root["pools"]!.AsObject();
+        var pool = pools[from]!;
+        pools.Remove(from);
+        pool["poolId"] = to;
+        pools[to] = pool;
+    }
+
+    private static void SetLine(JsonNode root, string poolId, int index, string text)
+    {
+        root["pools"]![poolId]!["variants"]![index]!["text"] = text;
+    }
+
     [Theory]
-    [InlineData("prompts/prompts.json", "\"slotGrammarIds\": [\"hola [NOUN]?\"]", "\"slotGrammarIds\": [\"no such grammar\"]", "unknown slot grammar 'no such grammar'")]
-    [InlineData("intents/intents.json", "\"intentId\": \"greet\"", "\"intentId\": \"hello\"", "allows unknown intent 'greet'")]
-    [InlineData("intents/intents.json", "\"intentId\": \"greet\"", "\"intentId\": \"hello\"", "reacts to unknown intent 'greet'")]
-    [InlineData("answer-sets/greetings.json", "\"answerSetId\": \"greetings\"", "\"answerSetId\": \"hellos\"", "unknown answer set 'greetings'")]
-    [InlineData("answer-sets/greetings.json", "\"answerSetId\": \"greetings\"", "\"answerSetId\": \"hellos\"", "answerSetId 'hellos' must equal the file name 'greetings'")]
-    [InlineData("agents/blacksmith.json", "\"agentId\": \"blacksmith\"", "\"agentId\": \"agent\"", "references unknown agent 'blacksmith'")]
-    [InlineData("agents/blacksmith.json", "\"agentId\": \"blacksmith\"", "\"agentId\": \"agent\"", "agentId 'agent' must equal the file name 'blacksmith'")]
-    [InlineData("dialogue/dialogue.json", "\"trade_done\": {", "\"trade_gone\": {", "says unknown dialogue intent 'trade_done'")]
-    [InlineData("dialogue/dialogue.json", "\"not_understood\": {", "\"not_heard\": {", "needs a 'not_understood' pool")]
-    [InlineData("dialogue/dialogue.json", "{item:article(def):cap} cuesta", "{item:bogus} cuesta", "line 'ask_price_reply.1' of 'ask_price_reply' does not render")]
-    [InlineData("dialogue/dialogue.json", "Por {item:article(def)} pido", "Por {item:article(def} pido", "does not render")]
-    [InlineData("dialogue/dialogue.json", "{ \"lineId\": \"greet_again.2\", \"text\": \"Hola de nuevo. ¿Qué quieres hoy?\" }", "{ \"lineId\": \"greet_again.2\", \"text\": \"Hola {nobody:bogus}.\" }", "line 'greet_again.2' of 'greet_again' does not render")]
-    [InlineData("agents/blacksmith.json", "{ \"id\": \"trade_done\", \"count\": 2 }", "{ \"id\": \"trade_done\", \"count\": 9 }", "variant pool 'trade_done' has 9 variants but dialogue intent 'trade_done' only has 2")]
-    [InlineData("agents/blacksmith.json", "\"offer_item\", \"communicated\": true },\n          \"to\": \"done\"", "\"offer_item\", \"communicated\": true },\n          \"to\": \"nowhere\"", "undefined state 'nowhere'")]
-    [InlineData("effects/effects.json", "\"intent\": \"buy_item\"", "\"intent\": \"buy_gone\"", "effect 'buy_item_price' references unknown intent 'buy_gone'")]
-    [InlineData("intents/intents.json", "\"hola [NOUN]?\"", "\"hola [NOUN\"", "intents/intents.json: Invalid slot grammar")]
-    [InlineData("evaluation/evaluation-config.json", "\"epsilon\": 0.02,\n    \"unknownTagWeight\": 0.3\n  },\n  \"intermediate\"", "\"epsilon\": -1,\n    \"unknownTagWeight\": 0.3\n  },\n  \"intermediate\"", "evaluation/evaluation-config.json: ")]
-    [InlineData("feedback/feedback-policy.json", "\"minRepeat\": 4", "\"minRepeat\": 0", "feedback/feedback-policy.json: ")]
-    [InlineData("answer-sets/items-basic.json", "\"answerId\": \"arrow\"", "\"answerId\": \"bow\"", "answer-sets/items-basic.json: Duplicate answerId 'bow'")]
-    [InlineData("prompts/prompts.json", "\"text\": \"¿Qué quieres comprar?\"", "\"text\": \"\"", "prompt 'buy-item-constrained' has a text that is empty or has leading or trailing whitespace")]
-    [InlineData("prompts/prompts.json", "\"text\": \"¿Qué quieres comprar?\"", "\"text\": \"   \"", "prompt 'buy-item-constrained' has a text that is empty or has leading or trailing whitespace")]
-    [InlineData("prompts/prompts.json", "\"text\": \"¿Qué quieres comprar?\"", "\"text\": \" ¿Qué quieres comprar?\"", "prompt 'buy-item-constrained' has a text that is empty or has leading or trailing whitespace")]
-    public void CrossReferenceAndFormatProblemsAreReported(string file, string oldText, string newText, string expected)
+    [MemberData(nameof(Damages))]
+    public void CrossReferenceAndFormatProblemsAreReported(string damage, string expected)
     {
         using var bundle = new TempBundle();
-        bundle.Edit(file, oldText, newText);
+        Damage(bundle, damage);
         bundle.Rehash();
 
         var problems = LoadFails(bundle.Directory).Problems;
@@ -306,13 +413,13 @@ public class ContentLoaderTests
     public void APromptTextIsOptionalAndIsLoaded()
     {
         using var bundle = new TempBundle();
-        bundle.Edit("prompts/prompts.json", "\"text\": \"¿Qué quieres comprar?\"", "\"text\": null");
+        bundle.EditJson("prompts/prompts.json", root => PromptNamed(root, "guide-offer")["text"] = null);
         bundle.Rehash();
 
         var loaded = ContentLoader.Load(bundle.Directory);
 
-        Assert.Null(loaded.Prompts["buy-item-constrained"].Text);
-        Assert.Equal("¿Quieres comprar algo?", TestSupport.Bundle.Prompts["buy-item-open"].Text);
+        Assert.Null(loaded.Prompts["guide-offer"].Text);
+        Assert.False(string.IsNullOrWhiteSpace(TestSupport.Bundle.Prompts["guide-offer"].Text));
     }
 
     [Fact]
@@ -329,24 +436,24 @@ public class ContentLoaderTests
     public void ADuplicatePromptIdIsReported()
     {
         using var bundle = new TempBundle();
-        bundle.Edit("prompts/prompts.json", "\"promptId\": \"greet-open\"", "\"promptId\": \"greet-blacksmith\"");
+        bundle.EditJson("prompts/prompts.json", root => root[0]!["promptId"] = root[1]!["promptId"]!.GetValue<string>());
         bundle.Rehash();
 
-        Assert.Contains(LoadFails(bundle.Directory).Problems, p => p.Contains("Duplicate promptId 'greet-blacksmith'", StringComparison.Ordinal));
+        Assert.Contains(LoadFails(bundle.Directory).Problems, p => p.Contains("Duplicate promptId 'guide-open'", StringComparison.Ordinal));
     }
 
     [Fact]
     public void AnUnknownEnumNameIsReported()
     {
         using var bundle = new TempBundle();
-        bundle.Edit("prompts/prompts.json", "\"promptId\": \"ask-price-open\",\n    \"mode\": \"Open\"", "\"promptId\": \"ask-price-open\",\n    \"mode\": \"Sideways\"");
+        bundle.EditJson("prompts/prompts.json", root => root[0]!["mode"] = "Sideways");
         bundle.Rehash();
 
         Assert.Contains(LoadFails(bundle.Directory).Problems, p => p.StartsWith("prompts/prompts.json: ", StringComparison.Ordinal));
     }
 
     [Theory]
-    [InlineData("\"generatedBy\": \"hand-authored\", \"approvedBy\": null, \"approvedOn\": null },\n    { \"path\": \"answer-sets/greetings.json\"", "\"generatedBy\": \"llm-draft\", \"approvedBy\": null, \"approvedOn\": null },\n    { \"path\": \"answer-sets/greetings.json\"", "is a language-model draft and must be approved")]
+    [InlineData("{ \"path\": \"cefr/a1.txt\", \"generatedBy\": \"hand-authored\", \"approvedBy\": null, \"approvedOn\": null }", "{ \"path\": \"cefr/a1.txt\", \"generatedBy\": \"llm-draft\", \"approvedBy\": null, \"approvedOn\": null }", "is a language-model draft and must be approved")]
     [InlineData("{ \"path\": \"cefr/a1.txt\", \"generatedBy\": \"hand-authored\", \"approvedBy\": null, \"approvedOn\": null }", "{ \"path\": \"cefr/a1.txt\", \"generatedBy\": \"invented\", \"approvedBy\": null, \"approvedOn\": null }", "unknown generatedBy 'invented'")]
     [InlineData("{ \"path\": \"cefr/a1.txt\", \"generatedBy\": \"hand-authored\", \"approvedBy\": null, \"approvedOn\": null }", "{ \"path\": \"cefr/a1.txt\", \"generatedBy\": \"hand-authored\", \"approvedBy\": \"Ana\", \"approvedOn\": null }", "must set approvedBy and approvedOn together")]
     [InlineData("{ \"path\": \"cefr/a1.txt\", \"generatedBy\": \"hand-authored\", \"approvedBy\": null, \"approvedOn\": null }", "{ \"path\": \"cefr/a1.txt\", \"generatedBy\": \"hand-authored\", \"approvedBy\": \"Ana\", \"approvedOn\": \"20/10/2026\" }", "expected YYYY-MM-DD")]

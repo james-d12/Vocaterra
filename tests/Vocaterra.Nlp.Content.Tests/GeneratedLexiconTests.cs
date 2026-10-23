@@ -95,7 +95,12 @@ public class GeneratedLexiconTests(ITestOutputHelper output)
         var hand = HandAuthoredLemmas.Read(Path.Combine(TestSupport.BundleDir, "lexicon"));
         var imported = Imported;
 
-        Assert.Equal(["game.json", "seed.json", "supplement.json"], hand.FileNames);
+        var expectedFiles = Directory.EnumerateFiles(Path.Combine(TestSupport.BundleDir, "lexicon"), "*.json")
+            .Select(path => Path.GetFileName(path))
+            .Where(name => !name.EndsWith(".source.json", StringComparison.Ordinal) && name != "wiktionary-es.json")
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+        Assert.Equal(expectedFiles, hand.FileNames);
         var redefined = imported.Entries
             .Where(entry => entry.Pos != "verb" && hand.Lemmas.Contains(entry.Lemma))
             .Select(entry => $"{entry.Form} ({entry.Lemma}/{entry.Pos})")
@@ -114,11 +119,11 @@ public class GeneratedLexiconTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void TheMergedLexiconKeepsTheHandAuthoredGendersOfTheSampleNouns()
+    public void TheMergedLexiconKeepsTheHandAuthoredGendersOfTheBundleNouns()
     {
         var lexicon = TestSupport.Bundle.Lexicon;
 
-        foreach (var (word, gender) in new[] { ("espada", "f"), ("escudo", "m"), ("flecha", "f"), ("arco", "m"), ("poción", "f") })
+        foreach (var (word, gender) in new[] { ("espada", "f"), ("escudo", "m"), ("flecha", "f"), ("arco", "m"), ("bloque", "m"), ("lámpara", "f"), ("seta", "f"), ("río", "m") })
         {
             Assert.All(lexicon.Lookup(word).Where(static reading => reading.Pos == "noun"), reading => Assert.Equal(gender, reading.Gender));
         }
