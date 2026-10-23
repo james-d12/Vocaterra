@@ -316,13 +316,13 @@ not made. The German milestones stay parked (D14).
 | X00 | Research: a ranked backlog of improvements (learning effect, player experience, robustness, technical debt), with evidence from the code, plans, findings and screenshots | done (`game/docs/research/2026-10-23-improvement-backlog.md`, R01 to R18) | Sonnet 5.5 | S28 |
 | X01 | Saves survive content updates: a save made under an older bundle loads under a newer one (learner record, lessons, phrases, inventory and world edits kept where their ids still exist; the rest dropped and logged), instead of being refused; a strict mode keeps the refusal for the playtest's frozen bundle | done (merged to `feature/experiment` 2026-10-23, `bf90201`) | Sonnet 5.5 | S28 |
 | X02 | Core M51: `ir` + a bare infinitive (`voy comer`) flagged | done (merged to `feature/experiment` 2026-10-23, `e70441c`; see core §5b M51) | Sonnet 5.5 | M49 |
-| X03 | Book polish: the right page scrolls; `vamos` glossed "we go" in What you said; ser and estar glossed apart ("to be: what", "to be: where or how") | in progress | Haiku 5.5 | S28 |
+| X03 | Book polish: the right page scrolls; `vamos` glossed "we go" in What you said; ser and estar glossed apart ("to be: what", "to be: where or how") | done (merged to `feature/experiment` 2026-10-23, `08152fb`, bundle `2156744b…`) | Haiku 5.5 | S28 |
 
 | X04 | Session summary card from the learner's record (R01), and a second try after "No sé" in the same session (R02) | done (merged to `feature/experiment` 2026-10-23, `6e14821`) | Haiku 5.5 | X01 |
 | X05 | Autosave at safe points, and a crash handler around `game.Run()` that writes a crash report next to the F8 reports (R04) | done (merged to `feature/experiment` 2026-10-23, `001d75a`) | Haiku 5.5 | X01 |
 | X06 | Review deck: a session warm-up of due items, a "Review now" button in the book, and a `review` lesson step that brings earlier phrases back inside later lessons (R06, R07) | planned | Sonnet 5.5 | X03, X04 |
 | X07 | Tools for the owner: `--mic-lab` (measure the real microphone path) and `--bench-route` (a real-GPU benchmark). Built only: the agent runs neither (R03 first half, R13) | planned | Haiku 5.5 | X05 |
-| X08 | UI scale and readable text: a text-scale setting and layouts that hold at larger sizes (R09) | planned | Sonnet 5.5 | X03 |
+| X08 | UI scale and readable text: a text-scale setting and layouts that hold at larger sizes (R09) | in progress | Sonnet 5.5 | X03 |
 | X09 | Playtest tooling: per-step evidence in the report, and a test that keeps the playtest documents' counts equal to the bundle (R10; the counts drifted in S26, S27 and S28) | planned | Haiku 5.5 | X04 |
 
 **Waiting on the owner** (from X00's open questions; not planned until answered):
@@ -1275,6 +1275,19 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - the first autosave of a run costs about 0.7 s;
     - saves run on the game loop;
     - a crash inside a dialogue leaves no `crash.save` (the last autosave stands).
+- **X03, book polish (2026-10-23, Haiku 5.5; merged to `feature/experiment` `08152fb`, bundle `2156744b…`).**
+  - **Scrolling.** The right page scrolls: the wheel over it, Shift+Up/Down, Shift+PgUp/PgDn, a "more below" marker, and a reset on a new
+    selection or page (`--book-detail <lines>` for screenshots). Long blocks are readable at 800 x 600.
+  - **Glosses.** ser "to be: what", estar "to be: where or how" (glosses.json).
+  - **Narrow rows** shorten their note with "..." instead of dropping it.
+  - **One reading rule** (`VerbReading.Normalize`, engine-free, shared by the labels and the conjugation table, added after an orchestrator
+    review). A used form the core read as an imperative, or with no tense, whose text is an indicative present of the same verb is read
+    as that present: `está — he/she/it is`, `vamos — we go`, `come — he/she/it eats`. A form with no indicative twin keeps its command
+    label (`ven — come!`). This replaces S28's vamos-only special case.
+  - **Checked by the orchestrator:** the gate (4,816 passed, 5 skipped) and the scrolled lesson block at 800 x 600.
+  - **Not fixed:**
+    - `vamos a comer` is not labelled "we are going to"; the table's future column counts it;
+    - a genuine command that has an indicative twin reads as the present.
 
 ## 6. Definition of done (every milestone)
 
