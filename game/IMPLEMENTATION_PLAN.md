@@ -314,11 +314,11 @@ not made. The German milestones stay parked (D14).
 | ID | Experiment | Status | Model | Depends on |
 | --- | --- | --- | --- | --- |
 | X00 | Research: a ranked backlog of improvements (learning effect, player experience, robustness, technical debt), with evidence from the code, plans, findings and screenshots | done (`game/docs/research/2026-10-23-improvement-backlog.md`, R01 to R18) | Sonnet 5.5 | S28 |
-| X01 | Saves survive content updates: a save made under an older bundle loads under a newer one (learner record, lessons, phrases, inventory and world edits kept where their ids still exist; the rest dropped and logged), instead of being refused; a strict mode keeps the refusal for the playtest's frozen bundle | in progress | Sonnet 5.5 | S28 |
+| X01 | Saves survive content updates: a save made under an older bundle loads under a newer one (learner record, lessons, phrases, inventory and world edits kept where their ids still exist; the rest dropped and logged), instead of being refused; a strict mode keeps the refusal for the playtest's frozen bundle | done (merged to `feature/experiment` 2026-10-23, `bf90201`) | Sonnet 5.5 | S28 |
 | X02 | Core M51: `ir` + a bare infinitive (`voy comer`) flagged | planned | Sonnet 5.5 | M49 |
 | X03 | Book polish: the right page scrolls; `vamos` glossed "we go" in What you said; ser and estar glossed apart ("to be: what", "to be: where or how") | planned | Haiku 5.5 | S28 |
 
-| X04 | Session summary card from the learner's record (R01), and a second try after "No sé" in the same session (R02) | planned | Haiku 5.5 | X01 |
+| X04 | Session summary card from the learner's record (R01), and a second try after "No sé" in the same session (R02) | in progress | Haiku 5.5 | X01 |
 | X05 | Autosave at safe points, and a crash handler around `game.Run()` that writes a crash report next to the F8 reports (R04) | planned | Haiku 5.5 | X01 |
 | X06 | Review deck: a session warm-up of due items, a "Review now" button in the book, and a `review` lesson step that brings earlier phrases back inside later lessons (R06, R07) | planned | Sonnet 5.5 | X03, X04 |
 | X07 | Tools for the owner: `--mic-lab` (measure the real microphone path) and `--bench-route` (a real-GPU benchmark). Built only: the agent runs neither (R03 first half, R13) | planned | Haiku 5.5 | X05 |
@@ -1219,6 +1219,26 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - ir-a counts come from the bounded history;
     - the "What you said" list glosses `vamos` as "let's go";
     - ser and estar are both glossed "to be".
+- **X01, saves survive content updates (2026-10-23, Sonnet 5.5; merged to `feature/experiment` `bf90201`, with X00's backlog).**
+  - **Across bundles.** A save of another bundle now loads unless strict. These are kept wherever their ids still exist:
+    - the learner record (kept whole), settings, the session, words, phrase records, the objective and NPC states with their skills;
+    - tips and inventory;
+    - lessons, mapped by step id: a completed lesson stays completed, and an in-progress lesson keeps its longest finished run from the
+      first step.
+    Gone ids are dropped and logged. New rows start as in a fresh game.
+  - **World edits.** They are applied by position, and only where the player could have made them (a gathered block, or planks or a torch
+    placed). Other differences belong to the new generation and are kept. A player standing inside a new block starts at the spawn.
+  - **Reporting.** `SaveMigrationReport` (engine-free), `migrate:` console lines, a `save_migration` session-log line, and the toast "The
+    game was updated. Your progress was kept; N old records no longer in the game were dropped."
+  - **Strict mode** (`--strict-save`, implied by `--playtest`) keeps the refusal, which the frozen-bundle recall needs. A same-bundle load is
+    byte-identical to before.
+  - **Checked by the orchestrator.**
+    - The gate: 4,727 passed, 5 skipped.
+    - The agent's demo: a scratch bundle without `u6-recap` migrated 136 records and dropped 1; strict refused.
+    - The README's full scripted `--playtest` run on the merged branch: pre 31/31, session complete, post 31/31, save written.
+  - **Not fixed:**
+    - placeable items are listed in `SaveMigration.IsPlaceable`, so a new placeable needs adding there;
+    - edits are not remapped when a layout moves.
 
 ## 6. Definition of done (every milestone)
 
