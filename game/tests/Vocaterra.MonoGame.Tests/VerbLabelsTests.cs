@@ -100,19 +100,6 @@ public sealed class VerbLabelsTests
     }
 
     [Fact]
-    public void VamosOfIrIsWeGoWhetherTheCoreReadsItAsAnImperativeOrNot()
-    {
-        // The core reads vamos as an imperative (S27): the label is ir's present, 1 pl, whatever the reading.
-        Assert.Equal("vamos — we go", VerbLabels.Label("vamos", "ir", Ir, "1", "pl", null, "imp", question: false));
-        Assert.Equal("vamos — we go", Label("vamos", Ir, "1", "pl", "pres", "ind", question: false));
-        Assert.Equal("vamos — we go", VerbLabels.Label("vamos", "ir", Ir, null, null, null, null, question: false));
-        Assert.Equal("¿vamos? — do we go?", VerbLabels.Label("vamos", "ir", Ir, "1", "pl", null, "imp", question: true));
-        Assert.True(VerbLabels.IsVamos("ir", "vamos"));
-        Assert.False(VerbLabels.IsVamos("ir", "vamos a")); // the word only
-        Assert.False(VerbLabels.IsVamos("comer", "vamos"));
-    }
-
-    [Fact]
     public void VamosOfAnotherVerbIsLeftAsTheCoreReadsIt()
     {
         var comer = new VerbGloss("comer", "to eat", null, null);

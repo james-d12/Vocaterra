@@ -89,7 +89,7 @@ public sealed class BookPagesTests
     [Fact]
     public void TheVersesPageGivesEachInfinitiveWithItsEnglishAndEachFormWithItsLabel()
     {
-        var lines = BookPages.Verbs(FixedRecord().Verbs, Glosses.Value, Sheet.Value);
+        var lines = BookPages.Verbs(FixedRecord().Verbs, Glosses.Value, Sheet.Value, Bundle.Value.Morphology);
         var texts = lines.Select(static l => l.Text).ToList();
 
         Assert.Equal("querer — to want", texts[0]);
@@ -113,9 +113,13 @@ public sealed class BookPagesTests
             Word("soy", "ser", "verb", 0, "1", "sg", "pres", "ind"),
             Word("estoy", "estar", "verb", 13, "1", "sg", "pres", "ind"),
         ]));
-        var texts = BookPages.Verbs(record.Verbs, Glosses.Value, Sheet.Value).Select(static l => l.Text).ToList();
+        record.Append(Entry(3, "Está aquí.", [
+            Word("está", "estar", "verb", 0, "2", "sg", null, "imp"),
+        ]));
+        var texts = BookPages.Verbs(record.Verbs, Glosses.Value, Sheet.Value, Bundle.Value.Morphology).Select(static l => l.Text).ToList();
 
         Assert.Contains("vamos — we go", texts);
+        Assert.Contains("está — he/she/it is", texts); // an imperative reading that is the present of estar
         Assert.DoesNotContain(texts, static t => t.Contains("let's", StringComparison.Ordinal));
         Assert.Contains("ser — to be: what", texts);
         Assert.Contains("estar — to be: where or how", texts);
@@ -126,7 +130,7 @@ public sealed class BookPagesTests
     [Fact]
     public void TheVersesPageNeverListsAFixedExpressionOrAnInterjection()
     {
-        var lines = BookPages.Verbs(FixedRecord().Verbs, Glosses.Value, Sheet.Value);
+        var lines = BookPages.Verbs(FixedRecord().Verbs, Glosses.Value, Sheet.Value, Bundle.Value.Morphology);
         Assert.DoesNotContain(lines, static l => l.Text.StartsWith("por favor", StringComparison.Ordinal) || l.Text.StartsWith("gracias", StringComparison.Ordinal));
         Assert.DoesNotContain(lines, static l => l.Text.Contains(" — ", StringComparison.Ordinal) && (l.Text.StartsWith("por", StringComparison.Ordinal) || l.Text.StartsWith("gracias", StringComparison.Ordinal)));
     }
@@ -137,7 +141,7 @@ public sealed class BookPagesTests
         var sheetRow = Sheet.Value.Find("pedir-agua")!;
         var record = new LearnerRecord();
         record.Append(Entry(1, sheetRow.Spanish, [Word("quiero", "querer", "verb", 0, "1", "sg", "pres", "ind")]));
-        var verbs = BookPages.Verbs(record.Verbs, Glosses.Value, Sheet.Value);
+        var verbs = BookPages.Verbs(record.Verbs, Glosses.Value, Sheet.Value, Bundle.Value.Morphology);
         Assert.Contains(verbs, line => line.Text == $"last: \"{sheetRow.Spanish}\" = {sheetRow.English}");
     }
 

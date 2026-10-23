@@ -67,9 +67,9 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
     /// <summary>
     /// Builds the table of a verb. The counts come from the learner's word record (<paramref name="verb"/>, the forms it holds) for the present and the past, and
     /// from the history for the future (ir a), which is a phrase and not a word: <c>ir</c> in the present, <c>a</c>, then the infinitive. Two readings of the core
-    /// are handled here, in the game: <c>vamos</c> is read as an imperative with no tense (so the word record shows it as <c>vamos (1 pl imp)</c>), and the
-    /// book counts it as <c>ir</c> in the present, 1 pl, and <c>vamos a comer</c> also as the future (ir a) of <c>comer</c>; a bare <c>vamos</c> that is <c>ir</c> 1 pl
-    /// counts the same way, in <c>ir</c>'s own present column.
+    /// are handled here, in the game: an imperative reading whose text is the indicative present of its verb is that present (<see cref="VerbReading"/>, the
+    /// rule the labels use too). So <c>vamos</c> (the word record shows <c>vamos (1 pl imp)</c>) counts in <c>ir</c>'s present, 1 pl, and <c>está</c> in
+    /// <c>estar</c>'s present, 3 sg. <c>vamos a comer</c> also counts as the future (ir a) of <c>comer</c>.
     /// </summary>
     /// <param name="verb">The verb's row of the learner's record.</param>
     /// <param name="history">The learner's history, oldest first (for the future (ir a) counts).</param>
@@ -128,22 +128,13 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
     private static int WordRecordUses(WordRow verb, string person, string number, string tense, MorphologyGenerator morphology) =>
         verb.Forms.Where(form => Matches(verb.Lemma, form, person, number, tense, morphology)).Sum(static form => form.Times);
 
-    // A form is in a cell when its reading is that person, number and tense in the indicative. The one exception is the game's own reading of "vamos": the core
-    // reads it as an imperative with no tense, and the book counts it as ir in the present, 1 pl (the text rule is for ir alone, in its present column).
+    // A form is in a cell when its reading (VerbReading: an imperative whose text is the indicative present of the verb counts as that present) is that person,
+    // number and tense in the indicative. So "está" is estar's 3 sg present, and "vamos" is ir's 1 pl present, as the labels read them.
     private static bool Matches(string lemma, FormRow form, string person, string number, string tense, MorphologyGenerator morphology)
     {
-        if (string.Equals(form.Person, person, StringComparison.Ordinal) && string.Equals(form.Number, number, StringComparison.Ordinal)
-            && string.Equals(form.Tense, tense, StringComparison.Ordinal) && form.Mood is null or "ind")
-        {
-            return true;
-        }
-
-        return tense == "pres" && IsVamos(lemma, form.Form, person, number, morphology);
+        var (readPerson, readNumber, readTense, readMood) = VerbReading.Normalize(lemma, form.Form, form.Person, form.Number, form.Tense, form.Mood, morphology);
+        return readPerson == person && readNumber == number && readTense == tense && (readMood is null or "ind");
     }
-
-    private static bool IsVamos(string lemma, string text, string person, string number, MorphologyGenerator morphology) =>
-        string.Equals(lemma, "ir", StringComparison.Ordinal) && person == "1" && number == "pl"
-        && string.Equals(Plain(text), Plain(morphology.Conjugate("ir", "1", "pl", "pres") ?? "vamos"), StringComparison.Ordinal);
 
     /// <summary>
     /// The uses of the future (ir a) of a verb, by person and number: <c>ir</c> in the present (the text of its form for that person), then <c>a</c>, then the verb. It
