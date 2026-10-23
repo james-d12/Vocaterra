@@ -227,7 +227,9 @@ public sealed class EndingLayer : IFrameLayer
         var width = Math.Min(760, view.ViewportWidth - 48);
         var spanish = TextWrap.Wrap(ending.Spanish, width - 40, t => DrawHelpers.Width(large, t));
         var english = TextWrap.Wrap(DialoguePanel.EnglishPrefix + ending.English, width - 40, t => DrawHelpers.Width(small, t));
-        var height = 18 + 40 + (spanish.Count * 40) + 8 + (english.Count * 22) + 30;
+        var summary = ending.Summary.SelectMany(line => TextWrap.Wrap(line, width - 40, t => DrawHelpers.Width(small, t))).ToList();
+        var summaryHeight = summary.Count == 0 ? 0 : 14 + 22 + (summary.Count * 20);
+        var height = 18 + 40 + (spanish.Count * 40) + 8 + (english.Count * 22) + summaryHeight + 30;
         var box = new Rectangle((view.ViewportWidth - width) / 2, Math.Max(40, (view.ViewportHeight / 5) - (height / 2)), width, height);
         spriteBatch.Draw(view.Pixel, box, Back);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 3, Gold);
@@ -245,6 +247,19 @@ public sealed class EndingLayer : IFrameLayer
         {
             DrawHelpers.Text(spriteBatch, small, row, new Vector2(box.X + 20, y), DialoguePanel.EnglishColor);
             y += 22;
+        }
+
+        if (summary.Count > 0)
+        {
+            // The session summary (X04, R01): what was done this session, in English, under the closing line.
+            y += 14;
+            DrawHelpers.Text(spriteBatch, small, ui.Ui("summaryTitle"), new Vector2(box.X + 20, y), Gold);
+            y += 22;
+            foreach (var row in summary)
+            {
+                DrawHelpers.Text(spriteBatch, small, row, new Vector2(box.X + 20, y), Ink);
+                y += 20;
+            }
         }
 
         DrawHelpers.Text(spriteBatch, small, ui.Ui("sessionCompleteKeys"), new Vector2(box.X + 20, box.Bottom - 26), Dim);

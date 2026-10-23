@@ -306,7 +306,7 @@ plays it again), and four that ask the learner to say a phrase in Spanish for an
 hold the same items in other orders. **Esc** ends the battery (the rest is skipped). `pre` is followed by the world; `post` and `recall` end the
 run after the battery. A check never changes the learner model, the phrase progress, the conversations or the world. The answers go to the
 session log: **`--session-dir <dir>`** names the folder (default: a new folder named by the local date and time and the session number, under
-`~/.local/share/vocaterra/sessions/`), which holds `session.jsonl` (one JSON object per line: `session_start`, `turn`, `phrase`, `voice`, `world`,
+`~/.local/share/vocaterra/sessions/`), which holds `session.jsonl` (one JSON object per line: `session_start`, `turn`, `phrase`, `voice`, `world`, `session_summary` (X04: the closing card's lines),
 `check_start`, `check_result`, `check_end`, `session_end`) and the core's `replay.jsonl`. A folder that already has a log is appended to. Scripted:
 `--pick <n>` answers a comprehension item, `--say` and `--speak` answer a production item, `--shot` saves the screen where it stands; a scripted run
 prints the item order and the right option of each item on the console.
@@ -654,6 +654,44 @@ updated. Now a `--load` of a save made from another bundle **migrates** it (`Sav
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --save /tmp/x01.save --screenshot /tmp/x01-before.png --frames 30
 dotnet run --project game/src/Vocaterra.MonoGame -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --strict-save --screenshot /tmp/x01-strict.png --frames 5
 dotnet run --project game/src/Vocaterra.MonoGame -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
+```
+
+## The session summary and the second try (X04, R01 and R02)
+
+**The summary card.** When the session is complete (S17's closing card), the card shows **This session** under the closing line, in English: the lessons
+completed or begun (with the steps done), the new nouns the learner's own lines used for the first time, the phrases said correctly without help, the verb
+forms used (tense and person), up to two phrases to practise next time (a phrase said "no sé" first, then a slip, then a phrase whose help is still on), and
+a line on how to replay a lesson (press J for the book, choose a finished lesson, Practise again). The card stays up for 45 seconds (it was 12) or until Esc,
+and it fits at 1280 x 720 and 800 x 600. `SessionSummary` (engine-free, `Vocaterra.Game`) builds it from the learner's record and the run's events. It counts
+things done only: no score, no CEFR label, no count of failures (D-game-10). The lines are written to `session.jsonl` as a `session_summary` line. The card is
+not drawn when a session ends early (F6, F10, quit): that is left for later.
+
+**The second try.** A phrase the learner says "no sé" to (typed, spoken, the button, or a lesson step's phrase; "ayuda" is help, not "no sé") waits in
+`RetryQueue` for the next talk with its NPC. At that talk, when no lesson holds the conversation and no review is open, the guide asks it once more as her
+review (the same request line and answer rules as a due phrase), with the English note *Let's try that one again: …*. The answer is logged as a world event
+`second_try_answered`, detail `recovered` (the same phrase, said correctly, with or without the card) or `not_yet`. Why these rules:
+
+- **A talk, not the next step.** A review opened between two lesson steps would take the next step's prompt (the core evaluates the answer on the review's
+  prompt). So the retry waits for a talk, and never interrupts a lesson's own turn.
+- **Once per session, two waiting at most** (repetition fatigue, R02). A second "no sé" on the retry does not bring it back.
+- **Never in a check.** A check is graded and changes nothing else; a check's "no sé" queues nothing.
+- **No credit before the gap.** The retry's use is counted like any review answer, so the spacing gap (D-game-6) still decides any credit.
+- **Not saved.** A loaded game is a new play session, and the queue belongs to the session it came from.
+
+Not done (R02 as written in the backlog): the retry is not asked one rung lower on the support ladder, and a "miss" at a phrase is not queued (only "no sé").
+
+```bash
+# S17's route with a "no sé" at the villager's first talk, then a second talk: the villager asks the river question again with the English note (the
+# console prints second_try_asked and second_try_answered); the closing card, with its summary, is in the last PNG (--size 800x600 for the small window)
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --session-dir /tmp/x04/session --lesson-run first-words --shot /tmp/x04/lesson.png \
+  --talk guide --wav game/content/game-v1/speech/phrase.hola.wav \
+  --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
+  --talk shopkeeper --say "quiero agua, por favor" --shot /tmp/x04/stall.png --say "sí, por favor" \
+  --talk villager --say "no sé" --shot /tmp/x04/no-se.png --leave \
+  --talk villager --say "¿dónde está el río?" --shot /tmp/x04/second-try.png \
+  --walk-to 234,222 --interact 233,34,222 --look 180,-14 --shot /tmp/x04/river.png \
+  --talk guide --say "sí, por favor" --walk-to 153,109 --look 330,-12 --place antorcha@153,74,105 --wait 1 \
+  --screenshot /tmp/x04/summary-card.png --frames 90
 ```
 
 ## The book as a book, with conjugation tables (S28, D-game-19)

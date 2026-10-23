@@ -201,7 +201,8 @@ public sealed class DialogueModel
     /// <param name="opening">What the NPC says first (<c>GuideSession.OpenTalk</c>).</param>
     /// <param name="displayName">The NPC's name as the title shows it.</param>
     /// <param name="reviewQuestion">The guide's review question, or <see langword="null"/>.</param>
-    public void Open(NpcOpening opening, string displayName, string? reviewQuestion = null)
+    /// <param name="englishNote">The English note above the review question (the second try, X04), or <see langword="null"/>.</param>
+    public void Open(NpcOpening opening, string displayName, string? reviewQuestion = null, string? englishNote = null)
     {
         ArgumentNullException.ThrowIfNull(opening);
         ArgumentNullException.ThrowIfNull(displayName);
@@ -221,6 +222,11 @@ public sealed class DialogueModel
             {
                 Add(DialogueSpeaker.Guide, line);
             }
+        }
+
+        if (englishNote is not null)
+        {
+            Add(DialogueSpeaker.English, englishNote);
         }
 
         if (reviewQuestion is not null)

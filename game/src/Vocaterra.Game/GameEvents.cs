@@ -234,6 +234,12 @@ public static class WorldEvents
     /// <summary>The guide's review asked a due phrase in context (the detail is the phrase id).</summary>
     public const string PhraseReviewAsked = "phrase_review_asked";
 
+    /// <summary>A phrase said "no sé" to is asked once more in this session (X04, R02; the detail is the phrase id).</summary>
+    public const string SecondTryAsked = "second_try_asked";
+
+    /// <summary>The second try was answered (X04, R02; the detail is the phrase id and <c>recovered</c> when it was said correctly without help, else <c>not_yet</c>).</summary>
+    public const string SecondTryAnswered = "second_try_answered";
+
     /// <summary>A phrase's support card appeared (the detail is the phrase id and how: <c>level</c> or <c>help</c>).</summary>
     public const string SupportCardShown = "support_card_shown";
 
@@ -259,7 +265,7 @@ public static class WorldEvents
     public static IReadOnlyList<string> All { get; } =
     [
         TalkOpened, TalkClosed, ItemGiven, BeaconSet, BottleFilled, WaterWithoutBottle, FoundWithoutSpanish, ObjectiveStep, ObjectiveComplete, TransferOffered,
-        KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, TipShown, GuideMet, FireLit, SessionComplete, SpareTorch,
+        KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, TipShown, GuideMet, FireLit, SessionComplete, SpareTorch, SecondTryAsked, SecondTryAnswered,
     ];
 }
 
