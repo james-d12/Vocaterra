@@ -622,6 +622,36 @@ done
 
 The S17 route (`--lesson-run first-words` and the steps above it) still completes with `fire_lit` and `session_complete`.
 
+## The book as a book, with conjugation tables (S28, D-game-19)
+
+- **The spread.** The book is an open two-page book drawn in code (no image files, D-game-5): a leather cover with brass corners, the paper with page edges, the spine with
+  its stitches, and five ribbon bookmarks along the top edge (Nouns, Verbs, Phrases, Lessons, What I said; the page on screen hangs lower and brighter). A click on a ribbon, Tab,
+  Left and Right turn the page; a page turn shows a short leaf hinged at the spine (0.3 s on the frame clock) and S24's `book_page` cue plays as before. The left page lists (the
+  rows, the scroll, the speaker buttons of S20b, the "Practise again" buttons of S26, the selected row); the right page shows the selected item. `BookGeometry` (engine free,
+  `Frontend/BookGeometry.cs`) gives every rectangle for a window size; the layer, the mouse and the tests read the same numbers.
+- **The right page.** Verbs: the verb, its English and its conjugation table, then what you said (each form with its count and its last sentence, as the S20 page listed them).
+  Up and Down or a click on a verb choose it. Every other page: the selected item's own lines (a noun's counts and last sentence, a phrase, a lesson with its units and phrases,
+  a line you said), written out in full on the page, wrapped instead of cut short. The selected item is the selected row (the rows with a button) or, with none, the first on screen.
+- **The table** (`ConjugationTable`, `Frontend/ConjugationTable.cs`). Rows: yo, tú, él/ella/usted, nosotros, ustedes/ellos (no vosotros row). Columns: present, past (preterite)
+  and future (ir a). A cell is **highlighted** with its count when you have said the form (the learner's record), **plain** when a lesson that is completed or under way has taught it
+  (`lessons.json` `verbs`) and you have not said it yet, and a dash when it is neither. A tense column shows once a lesson has taught a form of that tense for the verb or you have
+  said one (what you said is never hidden); a verb with neither gets the present alone. Every form is the core's (`ContentBundle.Morphology`, `TaughtVerbForm.Text`); the future (ir a)
+  of `comer` is `ir`'s present, `a` and the infinitive (`voy a comer`), counted from the history's words in order (`ir` form, `a`, the verb), over the lines the word record counts.
+- **`vamos`.** The core reads `vamos` as an imperative with no tense, so the word record says `vamos (1 pl imp)`. The table fixes that in the game: a form of `ir` whose text is `vamos` counts in `ir`'s present column,
+  nosotros, whatever the core made of it (so a bare `vamos` and the one in `vamos a comer` are `ir`, present, nosotros), and `vamos a comer` is also the nosotros cell of the
+  future (ir a) of `comer`. The word record itself is unchanged.
+- **Flags.** `--book-verb <verb>` opens the book on the Verbs page with that verb's table; `--size <W>x<H>` sets the window (`--size 800x600` for the smallest size the book is made for).
+  Everything of S20 to S22 stays: `--book`, `--book-page`, `--book-play`, `--book-practise`, `--greyscale`.
+
+```bash
+# the table of ir after the three lessons: the S17 lesson, then each later session on the previous save (a load is the next session)
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --save /tmp/s28-1.save --screenshot /tmp/s28-1.png --frames 30
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --load /tmp/s28-1.save --lesson-run personas --save /tmp/s28-2.save --screenshot /tmp/s28-2.png --frames 30
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --load /tmp/s28-2.save --lesson-run ayer-y-manana --save /tmp/s28-3.save --screenshot /tmp/s28-3.png --frames 30
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --load /tmp/s28-3.save --book-verb ir --screenshot /tmp/s28-ir.png --frames 30
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --size 800x600 --load /tmp/s28-3.save --book-verb comer --screenshot /tmp/s28-comer-800.png --frames 30
+```
+
 ## Sounds (S24)
 
 The sound system (D-game-18): interaction, progress, movement and ambient sounds through a mixer with four categories, and no music. Every file is CC0 (Kenney's Impact Sounds, RPG Audio and
