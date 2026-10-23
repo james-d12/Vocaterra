@@ -279,8 +279,8 @@ game changed), the player where they stood, the hotbar, the inventory, the objec
 stored time. A load is the **next play session** (the journal's header and the debug overlay read `Sesión 2`), and a new session lifts the spacing gaps
 of D-game-6, so a phrase or word whose ten-minute gap had not passed becomes creditable again. **Time rule:** a load adds nothing to the stored time (it
 continues from the save: start, plus the ticks, plus the skipped seconds); the next-day recall check moves the stored time with `--skip <seconds>` after the
-load when a scenario needs a day to pass. A load is refused, with the reason, when `--seed` names another world or when the content bundle is not the one
-the save was made from; a save whose restored world does not match its digest is refused too. The file is canonical JSON (sorted keys, no whitespace):
+load when a scenario needs a day to pass. A load is refused, with the reason, when `--seed` names another world; a save whose restored world does not match its digest is refused too. A save made
+from **another content bundle** is carried into this one (X01, below), unless the run is strict (`--strict-save`, or any `--playtest`), which refuses it. The file is canonical JSON (sorted keys, no whitespace):
 the same state gives the same bytes, and a load followed by a save gives the same file except for the session number. Not saved: the open dialogue,
 the review question, the word cards not yet shown, the replay records of the conversations (the session log is S11's).
 
@@ -621,6 +621,40 @@ done
 ```
 
 The S17 route (`--lesson-run first-words` and the steps above it) still completes with `fire_lit` and `session_complete`.
+
+## Saves survive content updates (X01)
+
+Every content change used to make every save unloadable (the S10 rule: a save refuses another bundle hash), so a player lost all progress when the game
+updated. Now a `--load` of a save made from another bundle **migrates** it (`SaveMigration`, engine-free, in `Vocaterra.Game/Save`) unless the run is strict.
+
+- **Kept where the id still exists in this bundle:** the learner's record (history, word rows), the settings and the session number, the word records
+  (by lemma), the carded nouns, the phrase records (one per sheet row, by id), the objective's counts (by step key), each NPC's conversation state and its
+  learner-model skills (`word.<noun>` and `phrase.<id>` skills of content that is gone are dropped), the tips, the arrow, the inventory (items are an enum
+  of the code, not of the bundle) and the lessons. A **lesson** is mapped by step id: a completed lesson stays completed (and `EverCompleted` stays) with the
+  outcomes of the steps that still exist; a lesson in progress keeps the longest run of its steps, from the first, that are all among the finished ones,
+  goes on at the next step, and does again a finished step that follows one the lesson has not finished (the tries on the step in progress reset when
+  the step changed). A lesson that is gone is dropped, and so is an active mark or a replay that named it.
+- **Dropped and logged:** records whose phrase row, noun, lesson, step, tip or step key is not in this bundle. **New** content (a phrase row, a lesson, a
+  noun) starts empty, as in a fresh game.
+- **World edits are applied by position.** The save holds whole chunks of the world it was made from (and, since X01, the grid's chunk counts, so a grid that
+  changed size still maps by position). A saved cell is applied only if it is a change the player can make to the cell the new scene has: a gathered block
+  (the cell now holds what a gather leaves) or a placed block (planks or a torch) in air or undergrowth that touches a block. Anything else is the old world
+  generation, not the player's work: it is skipped and counted in the report. The world's digest is then **reported, not required** (it still matches, and
+  the log says so, when the generation did not change). A player who would stand inside a block of the new world starts where a new game starts. A save of
+  this very bundle is restored exactly as before: the exact diff and the digest check, which still refuses a damaged save.
+- **Told and logged:** the toast "The game was updated. Your progress was kept; N old records no longer in the game were dropped.", the console lines
+  `migrate: ...` (the areas, then each dropped id), and a `save_migration` line in the session log. `VoxelSession.Migration` holds the `SaveMigrationReport`.
+- **Strict mode.** `--strict-save` refuses a save of another bundle with the old message plus the reason; **`--playtest` implies it** (a playtest's recall
+  session needs the bundle frozen between the sessions, D-game-10; see `docs/PLAYTEST.md`). The library's `SaveGame.Load/Check/Restore` take
+  `migrate` (default off: strict), and the front-end passes `!StrictSave`.
+
+```bash
+# a save on the current bundle, then the same save under a changed copy of the bundle (a lesson step removed, a tip reworded; the copy is re-stamped with
+# scripts/content.sh): the strict run refuses, the default run keeps the progress and prints what was dropped; the toast is in the screenshot
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --save /tmp/x01.save --screenshot /tmp/x01-before.png --frames 30
+dotnet run --project game/src/Vocaterra.MonoGame -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --strict-save --screenshot /tmp/x01-strict.png --frames 5
+dotnet run --project game/src/Vocaterra.MonoGame -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
+```
 
 ## The book as a book, with conjugation tables (S28, D-game-19)
 

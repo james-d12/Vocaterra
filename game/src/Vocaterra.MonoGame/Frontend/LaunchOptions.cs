@@ -94,6 +94,8 @@ public sealed record LaunchOptions
         + "  --teleport <x,z>        put the player at this block column, standing on the ground (a debug step for screenshots); a step\n"
         + "  --greyscale             the playtest A/B switch (D-game-6): blocks whose noun is not known yet are grey, known ones in colour; default full colour\n"
         + "  --assume-known <nouns>  a test aid: the comma-separated catalogue nouns count as known from the start (their blocks are in colour)\n"
+        + "  --strict-save           refuse a save made from another content bundle (the playtest's frozen bundle, D-game-10); without it a --load across bundles keeps\n"
+     + "                          the progress where its ids still exist and drops the rest (X01); --playtest implies it\n"
         + "  --playtest              the playtest profile (S12): no debug overlay, the mic check, the session log in its own folder, the pre-check before the\n"
         + "                          world (a fresh start) or the recall check (with --load), the post-check when the camp is done and the transfer offered\n"
         + "                          (or F10 ends the run), then playtest.save in the session folder and the thank-you screen until Esc; --greyscale stays\n"
@@ -238,6 +240,12 @@ public sealed record LaunchOptions
     /// </summary>
     public bool Playtest { get; init; }
 
+    /// <summary>
+    /// Whether a save of another content bundle is refused (<c>--strict-save</c>, or <c>--playtest</c>, X01). Off, a <c>--load</c> across bundles keeps the progress where its ids still
+    /// exist and logs what was dropped. A playtest is strict because its recall check needs the bundle frozen between the sessions (D-game-10).
+    /// </summary>
+    public bool StrictSave { get; init; }
+
     /// <summary>Whether the run is the next-day recall of a playtest (<c>--playtest --load</c>): it runs the recall check and saves nothing.</summary>
     public bool IsPlaytestRecall => Playtest && Check == CheckKind.Recall;
 
@@ -291,6 +299,7 @@ public sealed record LaunchOptions
         var greyscale = false;
         var micCheck = MicCheckMode.Auto;
         var playtest = false;
+        var strictSave = false;
         for (var i = 0; i < args.Count; i++)
         {
             var arg = args[i];
@@ -300,7 +309,7 @@ public sealed record LaunchOptions
                 return false;
             }
 
-            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--leave" or "--mic-check" or "--no-mic-check"
+            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--mic-check" or "--no-mic-check"
                     or "--playtest" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help")
             {
                 switch (arg)
@@ -360,6 +369,9 @@ public sealed record LaunchOptions
                         break;
                     case "--playtest":
                         playtest = true;
+                        break;
+                    case "--strict-save":
+                        strictSave = true;
                         break;
                     default:
                         break; // --voxel: accepted for old scripts, the 3D world is the only one
@@ -833,6 +845,7 @@ public sealed record LaunchOptions
         options = result with
         {
             Playtest = playtest,
+            StrictSave = strictSave || playtest,
             ScreenshotPath = screenshot,
             Says = says,
             VoxelSteps = steps,

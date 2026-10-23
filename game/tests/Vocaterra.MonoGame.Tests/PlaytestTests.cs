@@ -34,6 +34,17 @@ public sealed class PlaytestTests
     }
 
     [Fact]
+    public void AStrictSaveIsOnForAPlaytestAndWithTheFlagAndOffOtherwise()
+    {
+        // X01: a --load across content bundles keeps the progress by default; a playtest's recall session needs the frozen bundle (D-game-10), so it refuses.
+        Assert.False(Parse().StrictSave);
+        Assert.False(Parse("--load", "x.save").StrictSave);
+        Assert.True(Parse("--load", "x.save", "--strict-save").StrictSave);
+        Assert.True(Parse("--playtest").StrictSave);
+        Assert.True(Parse("--playtest", "--load", "x.save").StrictSave);
+    }
+
+    [Fact]
     public void TheArmsAndTheExplicitOptionsStillApply()
     {
         Assert.True(Parse("--playtest", "--greyscale").Greyscale);

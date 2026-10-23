@@ -77,7 +77,10 @@ README's build steps are the reference; S12's fresh-clone check is in `game/READ
 **Before the tester sits down:** the microphone works (the mic check will tell you), the screen is at least 1280 x 720, and the session folder
 root is empty of old runs you do not want mixed in (each run makes its own folder anyway).
 
-**Freeze the bundle first.** A save refuses another bundle hash (the save would not load). Before the first tester, note the bundle hash
+**Freeze the bundle first.** A playtest run is **strict** (X01: `--playtest` implies `--strict-save`): its save refuses another bundle hash, with a message that
+names both hashes, and does not load. Outside a playtest a save of an older bundle is carried into the new one (progress kept where its ids exist, the rest
+dropped and logged), which is right for a player and wrong for a recall check: the recall battery assumes the bundle the tester learned from. Do not load a
+tester's save without `--playtest` to get round the freeze; the recall session must be `--playtest --load`, on the same bundle. Before the first tester, note the bundle hash
 from `game/content/game-v1/manifest.json` (`bundleHash`) and do not change `game/content/game-v1` until the last next-day recall is done. The
 hash recorded at S18 (the refresh, 2026-10-22) is `393548666329ed76cac52e5d37dbb249285a37b6e12314b23a0df735fdfdeb98` (bundle `game-v1`,
 300 speech files, 20-item battery). The owner's freeze is the hash in the owner's observer notes; if `manifest.json` shows another hash when
@@ -201,7 +204,7 @@ Run it the next day, or later, on the same build:
 The playtest profile implies `--check recall` on a load: the mic check (skip if you wish), the recall battery (thirty-one items, the same kinds as
 the pre- and post-checks, another order), then the thank-you screen, and the game ends on Esc. It saves nothing. Its log goes into a new
 session folder (`~/.local/share/vocaterra/sessions/...`). Use the same build folder and the same bundle: a save made against another bundle
-is refused.
+is refused (the playtest is strict, X01; a plain `--load` would migrate it instead, and a migrated save is not a recall of what the tester learned).
 
 From a checkout: `dotnet run --project game/src/Vocaterra.MonoGame -- --playtest --load <session folder>/playtest.save`.
 

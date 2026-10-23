@@ -37,13 +37,25 @@ try
     {
         // A save (S10): the seed is the save's unless --seed asked for another, the bundle must be the one it was made from, and the session is the next one.
         var document = SaveGame.Parse(SaveFile.Read(loadPath));
-        SaveGame.Check(document, bundle, options.SeedGiven ? options.Seed : null);
+        // A save of another bundle is refused in strict mode (--strict-save, and every --playtest: its recall check needs the frozen bundle, D-game-10); otherwise it is carried into this bundle (X01).
+        SaveGame.Check(document, bundle, options.SeedGiven ? options.Seed : null, migrate: !options.StrictSave);
         scene = buildFor(document.WorldSeed);
-        session = SaveGame.Restore(document, bundle, scene, nouns, options.Credit);
+        session = SaveGame.Restore(document, bundle, scene, nouns, options.Credit, migrate: !options.StrictSave);
         options = options with { Seed = document.WorldSeed };
         savedVolumes = document.Settings?.Sound.Clamped();
         Console.WriteLine($"load: {loadPath}: saved in session {document.Session}, now session {session.PlaySession}; tick {document.Tick}, stored time {document.StoredTime}");
-        Console.WriteLine($"load: world digest {session.Simulation.ComputeStateDigest()[..16]} = the save's {document.StateDigest[..16]} (restored equal); bundle {bundle.ContentHash[..12]}");
+        if (session.Migration is { } migration)
+        {
+            Console.WriteLine($"load: world digest {session.Simulation.ComputeStateDigest()[..16]}, the save's {document.StateDigest[..16]} ({(migration.WorldDigestMatched ? "equal" : "differs: the content changed")}); bundle {bundle.ContentHash[..12]}, the save's {document.BundleHash[..12]}");
+            foreach (var line in migration.Lines())
+            {
+                Console.WriteLine(line);
+            }
+        }
+        else
+        {
+            Console.WriteLine($"load: world digest {session.Simulation.ComputeStateDigest()[..16]} = the save's {document.StateDigest[..16]} (restored equal); bundle {bundle.ContentHash[..12]}");
+        }
     }
     else
     {
