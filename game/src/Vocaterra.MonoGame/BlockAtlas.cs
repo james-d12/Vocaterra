@@ -58,7 +58,19 @@ public sealed class BlockAtlas : IItemIcons, IDisposable
     private void DrawCell(SpriteBatch spriteBatch, BlockCell cell, Rectangle destination, double saturation)
     {
         var (x, y, w, h) = saturation <= 0 ? BlockAtlasLayout.GreyPixelRectangle(cell) : BlockAtlasLayout.PixelRectangle(cell);
-        spriteBatch.Draw(Texture, destination, new Rectangle(x, y, w, h), cell == BlockCell.White ? new Color(200, 200, 215) : Color.White);
+        var colour = cell == BlockCell.White ? new Color(200, 200, 215) : Color.White;
+        if (UiTransform.IsIdentity)
+        {
+            spriteBatch.Draw(Texture, destination, new Rectangle(x, y, w, h), colour);
+            return;
+        }
+
+        // Under the interface scale the picture is drawn in window pixels (UiTransform): the batch is flushed, the picture drawn untransformed, and the batch resumed in order.
+        spriteBatch.End();
+        spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+        spriteBatch.Draw(Texture, UiTransform.ToWindow(destination), new Rectangle(x, y, w, h), colour);
+        spriteBatch.End();
+        spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: UiTransform.Matrix);
     }
 
     /// <inheritdoc />

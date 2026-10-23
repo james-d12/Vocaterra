@@ -84,10 +84,11 @@ public sealed class NpcLabelLayer : IFrameLayer
 
             var alpha = (float)Math.Clamp((FullDistance + FadeDistance - distance) / FadeDistance, 0.0, 1.0);
             var width = DrawHelpers.Width(font, figure.Label);
-            var box = new Rectangle((int)(point.X - (width / 2)) - 7, (int)point.Y - 12, (int)width + 14, 24);
+            var placed = BeaconLabel.Clamp(new PixelBox((int)(point.X - (width / 2)) - 7, (int)point.Y - 12, (int)width + 14, 24), view.ViewportWidth, view.ViewportHeight);
+            var box = new Rectangle(placed.X, placed.Y, placed.Width, placed.Height);
             spriteBatch.Draw(view.Pixel, box, new Color(0, 0, 0, 175) * alpha);
             DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, new Color(255, 214, 64) * alpha);
-            DrawHelpers.Text(spriteBatch, font, figure.Label, new Vector2(box.X + 7, box.Y + 3), Color.White * alpha);
+            DrawHelpers.Outlined(spriteBatch, font, figure.Label, new Vector2(box.X + 7, box.Y + 3), Color.White * alpha);
         }
     }
 
@@ -133,8 +134,9 @@ public sealed class BeaconArrowLayer : IFrameLayer
     /// target is on the screen (the label then hangs at the target); otherwise it is clamped inside the window and clear of <paramref name="avoid"/>.
     /// </summary>
     /// <param name="view">The frame's view.</param>
-    /// <param name="avoid">Rectangles the label keeps clear of (the panel, the head and the bubble while a talk is open).</param>
-    internal static (EdgeArrow Arrow, string Text, PixelBox? Box)? LabelFor(FrameView view, IReadOnlyList<PixelBox> avoid)
+    /// <param name="avoid">Rectangles the label never overlaps (the panel and the lesson strip while a talk is open).</param>
+    /// <param name="soft">Rectangles the label keeps clear of when there is room (the head and the bubble), or <see langword="null"/> to treat <paramref name="avoid"/> alone, as before.</param>
+    internal static (EdgeArrow Arrow, string Text, PixelBox? Box)? LabelFor(FrameView view, IReadOnlyList<PixelBox> avoid, IReadOnlyList<PixelBox>? soft = null)
     {
         if (view.Beacon is not { Target: { } target } beacon || view.Camera3D is not { } camera)
         {
@@ -154,7 +156,7 @@ public sealed class BeaconArrowLayer : IFrameLayer
         }
 
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        return (arrow, text, BeaconLabel.Place(width, height, arrow.X, arrow.Y, DrawHelpers.Width(font, text), avoid));
+        return (arrow, text, soft is null ? BeaconLabel.Place(width, height, arrow.X, arrow.Y, DrawHelpers.Width(font, text), avoid) : BeaconLabel.TryPlace(width, height, arrow.X, arrow.Y, DrawHelpers.Width(font, text), avoid, soft));
     }
 
     /// <inheritdoc />
@@ -176,7 +178,7 @@ public sealed class BeaconArrowLayer : IFrameLayer
         var (arrow, text, _) = beacon;
         if (arrow.OnScreen)
         {
-            DrawLabel(spriteBatch, pixel, font, text, new Vector2((float)arrow.X, (float)arrow.Y));
+            DrawLabel(spriteBatch, pixel, font, text, new Vector2((float)arrow.X, (float)arrow.Y), view.ViewportWidth, view.ViewportHeight);
             return;
         }
 
@@ -185,8 +187,13 @@ public sealed class BeaconArrowLayer : IFrameLayer
 
         // The label stays inside the window and clear of the conversation's panel, head, bubble and cards (S22): the frame places it first and the cards keep clear of it.
         var box = new Rectangle(0, 0, 0, 0);
-        if (view.Dialogue.IsOpen && ConversationFrame.For(view).BeaconLabel is { } placed)
+        if (view.Dialogue.IsOpen)
         {
+            if (ConversationFrame.For(view).BeaconLabel is not { } placed)
+            {
+                return; // no free place for the label on this canvas (a tall lesson strip over the panel): the arrow stays, the label is left out (X08)
+            }
+
             box = new Rectangle(placed.X, placed.Y, placed.Width, placed.Height);
         }
         else if (beacon.Box is { } plain)
@@ -196,16 +203,17 @@ public sealed class BeaconArrowLayer : IFrameLayer
 
         spriteBatch.Draw(pixel, box, new Color(0, 0, 0, 190));
         DrawHelpers.Border(spriteBatch, pixel, box, 1, Gold);
-        DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.X + BeaconLabel.Padding, box.Y + 2), Color.White);
+        DrawHelpers.Outlined(spriteBatch, font, text, new Vector2(box.X + BeaconLabel.Padding, box.Y + 2), Color.White);
     }
 
-    private static void DrawLabel(SpriteBatch spriteBatch, Texture2D pixel, FontStashSharp.SpriteFontBase font, string text, Vector2 centre)
+    private static void DrawLabel(SpriteBatch spriteBatch, Texture2D pixel, FontStashSharp.SpriteFontBase font, string text, Vector2 centre, int viewportWidth, int viewportHeight)
     {
         var width = DrawHelpers.Width(font, text);
-        var box = new Rectangle((int)(centre.X - (width / 2)) - 6, (int)centre.Y - 11, (int)width + 12, 22);
+        var placed = BeaconLabel.Clamp(new PixelBox((int)(centre.X - (width / 2)) - 6, (int)centre.Y - 11, (int)width + 12, 22), viewportWidth, viewportHeight);
+        var box = new Rectangle(placed.X, placed.Y, placed.Width, placed.Height);
         spriteBatch.Draw(pixel, box, new Color(0, 0, 0, 190));
         DrawHelpers.Border(spriteBatch, pixel, box, 1, Gold);
-        DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.X + 6, box.Y + 2), Color.White);
+        DrawHelpers.Outlined(spriteBatch, font, text, new Vector2(box.X + 6, box.Y + 2), Color.White);
     }
 
     private static void DrawArrow(SpriteBatch spriteBatch, Texture2D pixel, Vector2 from, float angle, float length)
@@ -227,6 +235,9 @@ public sealed class VoxelDebugOverlay : IFrameLayer
     private const int Margin = 8;
     private const int LineHeight = 20;
 
+    /// <summary>The narrowest canvas the overlay is drawn on (X08): below it the overlay would run under the checklist.</summary>
+    public const int MinCanvasWidth = 900;
+
     /// <summary>Whether the overlay is shown.</summary>
     public bool Visible { get; set; } = true;
 
@@ -236,6 +247,11 @@ public sealed class VoxelDebugOverlay : IFrameLayer
         if (!Visible || view.Voxel is not { } sim)
         {
             return;
+        }
+
+        if (view.ViewportWidth < MinCanvasWidth || (view.Dialogue.IsOpen && DialogueLayout.IsCompact(view.ViewportHeight)))
+        {
+            return; // on a narrow or short canvas the developer's overlay gives way to the interface and the conversation (X08)
         }
 
         var lines = VoxelDebugText.Lines(view.Fps, sim, view.Seed, view.Look.Yaw, view.Look.Pitch, view.Session.PlaySession);

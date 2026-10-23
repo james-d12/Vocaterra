@@ -33,9 +33,9 @@ public sealed class ReportLayer : IFrameLayer
     private static readonly Color ButtonHover = new(60, 60, 96, 245);
     private static readonly Color ButtonSelected = new(70, 62, 110, 245);
     private static readonly Color ButtonText = new(236, 236, 246);
-    private static readonly Color NoteColor = new(140, 140, 150);
+    private static readonly Color NoteColor = UiPalette.Muted.ToColor();
     private static readonly Color NoticeColor = new(255, 150, 120);
-    private static readonly Color PlaceholderColor = new(120, 120, 140);
+    private static readonly Color PlaceholderColor = UiPalette.Placeholder.ToColor();
 
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
@@ -48,7 +48,7 @@ public sealed class ReportLayer : IFrameLayer
 
         var pixel = view.Pixel;
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var layout = new ReportLayout(view.ViewportWidth, view.ViewportHeight);
+        var layout = LayoutFor(view.ViewportWidth, view.ViewportHeight, font);
         spriteBatch.Draw(pixel, new Rectangle(0, 0, view.ViewportWidth, view.ViewportHeight), Scrim);
         var box = ToRectangle(layout.Panel);
         DrawHelpers.RoundedPanel(spriteBatch, pixel, box, 9, Background, PanelEdge, 2);
@@ -63,16 +63,42 @@ public sealed class ReportLayer : IFrameLayer
         DrawButton(spriteBatch, view, font, layout.SaveButton, "Save report", mouse, ButtonBack);
 
         var hintsLeft = left;
-        if (panel.Notice is { } notice)
+        var firstRows = panel.Notice is { } notice
+            ? NoticeRows(notice, layout, font)
+            : layout.FirstRows;
+        var noticeShown = panel.Notice is not null;
+        for (var i = 0; i < firstRows.Count; i++)
         {
-            DrawHelpers.Text(spriteBatch, font, notice, new Vector2(hintsLeft, layout.HintsY), NoticeColor);
-        }
-        else
-        {
-            DrawHelpers.Text(spriteBatch, font, HintsFirst, new Vector2(hintsLeft, layout.HintsY), NoteColor);
+            DrawHelpers.Text(spriteBatch, font, firstRows[i], new Vector2(hintsLeft, layout.HintsY + (i * ReportLayout.LineHeight)), noticeShown ? NoticeColor : NoteColor);
         }
 
-        DrawHelpers.Text(spriteBatch, font, HintsSecond, new Vector2(hintsLeft, layout.HintsY + ReportLayout.LineHeight), NoteColor);
+        for (var i = 0; i < layout.SecondRows.Count; i++)
+        {
+            DrawHelpers.Text(spriteBatch, font, layout.SecondRows[i], new Vector2(hintsLeft, layout.SecondY + (i * ReportLayout.LineHeight)), NoteColor);
+        }
+    }
+
+    /// <summary>The layout for a canvas in the panel's font: what the drawing and the mouse hit-test share (the hint rows depend on the font's widths).</summary>
+    /// <param name="viewportWidth">The canvas's width.</param>
+    /// <param name="viewportHeight">The canvas's height.</param>
+    /// <param name="font">The font the panel draws with.</param>
+    public static ReportLayout LayoutFor(int viewportWidth, int viewportHeight, FontStashSharp.SpriteFontBase font)
+    {
+        ArgumentNullException.ThrowIfNull(font);
+        return new ReportLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), HintsFirst, HintsSecond);
+    }
+
+    // The notice wrapped into the rows the first hints line has (the buttons must not move when it comes and goes), the last row ending in an ellipsis when it is cut.
+    private static List<string> NoticeRows(string notice, ReportLayout layout, FontStashSharp.SpriteFontBase font)
+    {
+        var rows = TextWrap.Wrap(notice, layout.Panel.Width - (2 * ReportLayout.Padding), text => DrawHelpers.Width(font, text)).ToList();
+        if (rows.Count > layout.FirstRows.Count)
+        {
+            rows = rows.Take(layout.FirstRows.Count).ToList();
+            rows[^1] = rows[^1].TrimEnd() + "…";
+        }
+
+        return rows;
     }
 
     private static void DrawChoice(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, PixelBox box, string label, bool selected, Point? mouse)
@@ -104,7 +130,11 @@ public sealed class ReportLayer : IFrameLayer
         var origin = new Vector2(box.Left + 8, box.Top + 8);
         if (text.Length == 0)
         {
-            DrawHelpers.Text(spriteBatch, font, Placeholder, origin, PlaceholderColor);
+            var holder = TextWrap.Wrap(Placeholder, layout.InnerWidth, t => DrawHelpers.Width(font, t));
+            for (var i = 0; i < holder.Count && i < layout.VisibleRows; i++)
+            {
+                DrawHelpers.Text(spriteBatch, font, holder[i], origin + new Vector2(0, i * ReportLayout.LineHeight), PlaceholderColor);
+            }
         }
 
         var rows = ReportWrap.Rows(text, layout.InnerWidth, t => DrawHelpers.Width(font, t));

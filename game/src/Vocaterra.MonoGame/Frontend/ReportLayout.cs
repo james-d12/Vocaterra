@@ -21,16 +21,38 @@ public sealed class ReportLayout
     private const int ButtonHeight = 30;
     private const int Gap = 12;
 
-    /// <summary>Creates the layout for a window.</summary>
-    /// <param name="viewportWidth">The window's width.</param>
-    /// <param name="viewportHeight">The window's height.</param>
-    public ReportLayout(int viewportWidth, int viewportHeight)
+    /// <summary>
+    /// Creates the layout for a canvas. The hint texts wrap to the panel's width (at most two rows each), and the text box shows fewer rows (at least three) when the panel
+    /// would not fit the canvas otherwise: the box scrolls, so nothing of the report is lost.
+    /// </summary>
+    /// <param name="viewportWidth">The canvas's width.</param>
+    /// <param name="viewportHeight">The canvas's height.</param>
+    /// <param name="measure">The width of a text in pixels, or <see langword="null"/> to take each hint as one row.</param>
+    /// <param name="hintsFirst">The first hints line (the notice shows there too), or <see langword="null"/>.</param>
+    /// <param name="hintsSecond">The second hints line, or <see langword="null"/>.</param>
+    public ReportLayout(int viewportWidth, int viewportHeight, Func<string, float>? measure = null, string? hintsFirst = null, string? hintsSecond = null)
     {
-        var width = Math.Min(MaxWidth, viewportWidth - 48);
+        var width = Math.Min(MaxWidth, viewportWidth - (viewportWidth < 600 ? 24 : 48));
         var left = (viewportWidth - width) / 2;
-        var textHeight = (TextRows * LineHeight) + 16;
-        var hintsOffset = Gap + LineHeight + 8 + ButtonHeight + Gap + textHeight + Gap + ButtonHeight + 10;
-        var height = hintsOffset + (2 * LineHeight) + Gap;
+        var hintWidth = width - (2 * Padding);
+        FirstRows = RowsOf(hintsFirst, hintWidth, measure);
+        SecondRows = RowsOf(hintsSecond, hintWidth, measure);
+        var rows = TextRows;
+        int HeightFor(int textRows)
+        {
+            var textBox = (textRows * LineHeight) + 16;
+            var offset = Gap + LineHeight + 8 + ButtonHeight + Gap + textBox + Gap + ButtonHeight + 10;
+            return offset + ((FirstRows.Count + SecondRows.Count) * LineHeight) + Gap;
+        }
+
+        while (rows > MinTextRows && HeightFor(rows) > viewportHeight - 16)
+        {
+            rows--;
+        }
+
+        VisibleRows = rows;
+        var textHeight = (rows * LineHeight) + 16;
+        var height = HeightFor(rows);
         var top = Math.Max(8, (viewportHeight - height) / 2);
         Panel = new PixelBox(left, top, width, height);
         TitleY = top + Gap;
@@ -44,6 +66,30 @@ public sealed class ReportLayout
         HintsY = buttonsY + ButtonHeight + 10;
         InnerWidth = TextBox.Width - 16;
     }
+
+    // A hint wrapped to at most two rows, the second ending in an ellipsis when text is left out; one empty row when there is no measure.
+    private static List<string> RowsOf(string? text, int width, Func<string, float>? measure)
+    {
+        if (text is null || measure is null)
+        {
+            return [string.Empty];
+        }
+
+        var rows = TextWrap.Wrap(text, width, measure);
+        return rows.Count <= 2 ? rows.ToList() : [rows[0], rows[1].TrimEnd() + "…"];
+    }
+
+    /// <summary>The fewest rows the text box shows on a short canvas.</summary>
+    public const int MinTextRows = 3;
+
+    /// <summary>The rows of the first hints line as wrapped (the notice takes this place, and the same number of rows).</summary>
+    public IReadOnlyList<string> FirstRows { get; }
+
+    /// <summary>The rows of the second hints line as wrapped.</summary>
+    public IReadOnlyList<string> SecondRows { get; }
+
+    /// <summary>The Y of the second hints line's first row.</summary>
+    public int SecondY => HintsY + (FirstRows.Count * LineHeight);
 
     /// <summary>The panel's box.</summary>
     public PixelBox Panel { get; }
@@ -72,8 +118,8 @@ public sealed class ReportLayout
     /// <summary>The width a line of the text has inside the text box, in pixels.</summary>
     public int InnerWidth { get; }
 
-    /// <summary>How many text rows fit in the text box.</summary>
-    public int VisibleRows => TextRows;
+    /// <summary>How many text rows fit in the text box (<see cref="TextRows"/>, fewer on a short canvas).</summary>
+    public int VisibleRows { get; }
 
     /// <summary>The button under a point, or <see langword="null"/>.</summary>
     /// <param name="x">The point's x.</param>

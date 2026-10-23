@@ -56,4 +56,51 @@ public sealed class SaveSettingsTests
         Assert.Equal(SaveGame.Serialize(quiet with { Settings = null }), SaveGame.Serialize(loud with { Settings = null })); // only the settings differ
         Assert.Equal(quiet.StateDigest, loud.StateDigest);
     }
+
+    [Theory]
+    [InlineData(100)]
+    [InlineData(125)]
+    [InlineData(150)]
+    public void TheTextScaleSurvivesASaveAndAParseAndIsPartOfTheCanonicalBytes(int percent)
+    {
+        var session = TestGame.NewSession();
+        var settings = new SaveSettings(new SoundVolumes(0.9, 0.25, 0.5, 0.0), percent);
+
+        var text = SaveOf(session, settings);
+        var document = SaveGame.Parse(text);
+
+        Assert.Equal(percent, document.Settings!.TextScale);
+        Assert.Equal(settings, document.Settings);
+        Assert.Equal(text, SaveGame.Serialize(document));
+        Assert.Contains($"\"textScale\":{percent}", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ASaveFromBeforeTheTextScaleLoadsAtOneHundredPercentAndAValueOffTheStepsIsSnappedToTheNearest()
+    {
+        var session = TestGame.NewSession();
+        var text = SaveOf(session, new SaveSettings(SoundVolumes.Default, 125));
+        var old = text.Replace(",\"textScale\":125", string.Empty, StringComparison.Ordinal);
+        Assert.NotEqual(text, old); // the field was there and is now gone, as in a save from the time of S24
+
+        var document = SaveGame.Parse(old);
+
+        Assert.Equal(100, document.Settings!.TextScale);
+        Assert.Equal(125, SaveGame.Parse(SaveOf(session, new SaveSettings(SoundVolumes.Default, 130))).Settings!.TextScale);
+        Assert.Equal(150, SaveGame.Parse(SaveOf(session, new SaveSettings(SoundVolumes.Default, 400))).Settings!.TextScale);
+        Assert.Equal(100, SaveGame.Parse(SaveOf(session, new SaveSettings(SoundVolumes.Default, -20))).Settings!.TextScale);
+        Assert.Equal([100, 125, 150], SaveSettings.TextScaleLevels);
+    }
+
+    [Fact]
+    public void TheTextScaleIsNotPartOfTheWorldsState()
+    {
+        var session = TestGame.NewSession();
+
+        var small = SaveGame.Parse(SaveOf(session, new SaveSettings(SoundVolumes.Default, 100)));
+        var big = SaveGame.Parse(SaveOf(session, new SaveSettings(SoundVolumes.Default, 150)));
+
+        Assert.Equal(SaveGame.Serialize(small with { Settings = null }), SaveGame.Serialize(big with { Settings = null }));
+        Assert.Equal(small.StateDigest, big.StateDigest);
+    }
 }

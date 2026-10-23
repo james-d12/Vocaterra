@@ -55,7 +55,7 @@ public sealed class HotbarLayer : IFrameLayer
 
             // The key that selects the slot: 1 to 9, then 0 for the tenth.
             var key = ((i + 1) % 10).ToString(CultureInfo.InvariantCulture);
-            DrawHelpers.Text(spriteBatch, font, key, new Vector2(box.X + 3, box.Y + 1), selected ? Gold : new Color(150, 154, 170));
+            DrawHelpers.Text(spriteBatch, font, key, new Vector2(box.X + 3, box.Y + 1), selected ? Gold : UiPalette.HotbarKey.ToColor());
         }
     }
 }

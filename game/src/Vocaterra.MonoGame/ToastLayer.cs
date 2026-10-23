@@ -11,7 +11,6 @@ namespace Vocaterra.MonoGame;
 public sealed class ToastLayer : IFrameLayer
 {
     private const int FadeTicks = 30;
-    private const int Top = 56;
 
     private static readonly Color Gold = new(255, 214, 64);
 
@@ -28,11 +27,13 @@ public sealed class ToastLayer : IFrameLayer
         var fade = Math.Clamp((ToastQueue.Duration - age) / (double)FadeTicks, 0.0, 1.0);
         var alpha = (float)fade;
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var width = DrawHelpers.Width(font, toast.Text);
-        var viewportWidth = view.ViewportWidth;
-        var box = new Rectangle((int)((viewportWidth - width) / 2) - 14, Top, (int)width + 28, 30);
+        var (toastBox, rows) = HudLayout.Toast(view.ViewportWidth, toast.Text, text => DrawHelpers.Width(font, text));
+        var box = new Rectangle(toastBox.X, toastBox.Y, toastBox.Width, toastBox.Height);
         spriteBatch.Draw(view.Pixel, box, new Color(0, 0, 0, 200) * alpha);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, Gold * alpha);
-        DrawHelpers.Text(spriteBatch, font, toast.Text, new Vector2(box.Left + 14, box.Top + 7), Color.White * alpha);
+        for (var i = 0; i < rows.Count; i++)
+        {
+            DrawHelpers.Text(spriteBatch, font, rows[i], new Vector2(box.Left + HudLayout.ToastPadding, box.Top + 7 + (i * HudLayout.RowHeight)), Color.White * alpha);
+        }
     }
 }

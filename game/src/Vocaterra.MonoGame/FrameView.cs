@@ -97,6 +97,9 @@ public sealed class FrameView
     /// <summary>Whether the controls help (F1, S16) is open.</summary>
     public bool ControlsOpen { get; set; }
 
+    /// <summary>The first control the help is scrolled to (X08), when the controls do not all fit the canvas.</summary>
+    public int ControlsScroll { get; set; }
+
     /// <summary>The word cards waiting to be shown (the first pickup of each noun).</summary>
     public WordCardQueue Cards { get; init; } = new();
 

@@ -225,91 +225,148 @@ public readonly record struct DialogueLayout
     /// <summary>The height of the text box.</summary>
     public const int InputHeight = 28;
 
-    /// <summary>The panel's box for a window: centred, along the bottom.</summary>
-    /// <param name="viewportWidth">The window's width.</param>
-    /// <param name="viewportHeight">The window's height.</param>
+    /// <summary>The canvas height under which the panel is compact (X08): a smaller margin, a panel about half the canvas tall, and the key hints line given up when the conversation needs the room.</summary>
+    public const int CompactBelow = 540;
+
+    /// <summary>The gap between the panel and the canvas's edge when the panel is compact.</summary>
+    public const int CompactMargin = 8;
+
+    /// <summary>The shortest a compact panel is.</summary>
+    public const int CompactMinHeight = 190;
+
+    /// <summary>Whether a canvas of this height gets the compact panel.</summary>
+    /// <param name="viewportHeight">The canvas's height.</param>
+    public static bool IsCompact(int viewportHeight) => viewportHeight < CompactBelow;
+
+    /// <summary>
+    /// The panel's box for a canvas: centred, along the bottom. Up to a canvas 540 tall it is <see cref="PanelHeight"/> and a 16 px margin (the sizes of 100 percent at
+    /// 1280 x 720 and 800 x 600); on a shorter canvas (150 percent at 800 x 600 is 533 x 400) it is a little over half the canvas, so the lesson strip and the cards have
+    /// the rest.
+    /// </summary>
+    /// <param name="viewportWidth">The canvas's width.</param>
+    /// <param name="viewportHeight">The canvas's height.</param>
     public static PixelBox PanelBox(int viewportWidth, int viewportHeight)
     {
-        var width = Math.Min(MaxWidth, Math.Max(viewportWidth - (Margin * 2), 200));
-        var height = Math.Min(PanelHeight, Math.Max(viewportHeight - (Margin * 2), 120));
-        return new PixelBox((viewportWidth - width) / 2, viewportHeight - height - Margin, width, height);
+        var compact = IsCompact(viewportHeight);
+        var margin = compact ? CompactMargin : Margin;
+        var width = Math.Min(MaxWidth, Math.Max(viewportWidth - (margin * 2), 200));
+        var height = compact
+            ? Math.Min(PanelHeight, Math.Max((int)Math.Round(viewportHeight * 0.5), CompactMinHeight))
+            : Math.Min(PanelHeight, Math.Max(viewportHeight - (margin * 2), 120));
+        height = Math.Min(height, Math.Max(120, viewportHeight - (margin * 2)));
+        return new PixelBox((viewportWidth - width) / 2, viewportHeight - height - margin, width, height);
     }
 
     /// <summary>Computes the layout.</summary>
-    /// <param name="viewportWidth">The window's width.</param>
-    /// <param name="viewportHeight">The window's height.</param>
+    /// <param name="viewportWidth">The canvas's width.</param>
+    /// <param name="viewportHeight">The canvas's height.</param>
     /// <param name="measure">The width of a text in pixels, in the font the panel draws with.</param>
     /// <param name="choiceLabels">The labels of the offered choices (at most three are laid out).</param>
     /// <param name="typing">Whether the text box is shown.</param>
     /// <param name="buttonText">The text drawn on each fixed button (S17: with its English while the learner is early); <see langword="null"/> for the Spanish label alone.</param>
-    public DialogueLayout(int viewportWidth, int viewportHeight, Func<string, float> measure, IReadOnlyList<string> choiceLabels, bool typing, Func<SpeechButton, string>? buttonText = null)
+    /// <param name="hints">The key hints line (it wraps to at most two rows, and a compact panel with no room gives it up); <see langword="null"/> for one row.</param>
+    public DialogueLayout(int viewportWidth, int viewportHeight, Func<string, float> measure, IReadOnlyList<string> choiceLabels, bool typing, Func<SpeechButton, string>? buttonText = null, string? hints = null)
     {
         ArgumentNullException.ThrowIfNull(measure);
         ArgumentNullException.ThrowIfNull(choiceLabels);
         Panel = PanelBox(viewportWidth, viewportHeight);
+        var compact = IsCompact(viewportHeight);
         var left = Panel.X + Padding;
         InnerWidth = Panel.Width - (Padding * 2);
-        HintsY = Panel.Bottom - Padding - LineHeight + 2;
-        var floor = HintsY - 6;
-        if (typing)
+        Buttons = [];
+        Choices = [];
+        HintRows = [];
+        var rowGap = compact ? 4 : Gap; // the gap between rows (the gap between buttons of one row stays Gap)
+        // Three passes: with the key hints line and the buttons' English; on a compact panel that has no room left for the conversation, without the hints line; and, still short of
+        // room, with the buttons in Spanish alone (their keys are on them, and the lesson strip has the English).
+        for (var pass = 0; pass < 3; pass++)
         {
-            InputBox = new PixelBox(left, floor - InputHeight, InnerWidth, InputHeight);
-            floor = InputBox.Value.Y - 6;
-        }
-
-        // The five buttons in a row; with their English (S17) they may not all fit, and the rest go on a second row above, so a button is never off the panel.
-        var widths = SpeechButtons.All.Select(button => (int)Math.Ceiling(measure(buttonText?.Invoke(button) ?? button.Text)) + (ButtonPadding * 2)).ToList();
-        var rowCount = 1;
-        var x = left;
-        foreach (var width in widths)
-        {
-            if (x > left && x + width > left + InnerWidth)
+            var showHints = pass == 0;
+            ButtonsGlossed = pass < 2 && buttonText is not null;
+            var widths = SpeechButtons.All.Select(button => (int)Math.Ceiling(measure(pass < 2 ? buttonText?.Invoke(button) ?? button.Text : button.Text)) + (ButtonPadding * 2)).ToList();
+            HasHints = showHints;
+            var hintRows = hints is null ? [string.Empty] : HintRowsFor(hints, InnerWidth, measure);
+            HintRows = showHints ? hintRows : [];
+            HintsY = Panel.Bottom - Padding - (hintRows.Count * LineHeight) + 2;
+            var floor = showHints ? HintsY - 6 : Panel.Bottom - Padding;
+            if (typing)
             {
-                rowCount++;
-                x = left;
+                InputBox = new PixelBox(left, floor - InputHeight, InnerWidth, InputHeight);
+                floor = InputBox.Value.Y - 6;
             }
 
-            x += width + Gap;
-        }
-
-        var buttonsY = floor - ButtonHeight - ((rowCount - 1) * (ButtonHeight + Gap));
-        var buttons = new List<(SpeechAction Action, PixelBox Box)>();
-        x = left;
-        var rowY = buttonsY;
-        for (var i = 0; i < widths.Count; i++)
-        {
-            if (x > left && x + widths[i] > left + InnerWidth)
+            // The five buttons in a row; with their English (S17) they may not all fit, and the rest go on a second row above, so a button is never off the panel.
+            var rowCount = 1;
+            var x = left;
+            foreach (var width in widths)
             {
-                rowY += ButtonHeight + Gap;
-                x = left;
-            }
+                if (x > left && x + width > left + InnerWidth)
+                {
+                    rowCount++;
+                    x = left;
+                }
 
-            buttons.Add((SpeechButtons.All[i].Action, new PixelBox(x, rowY, widths[i], ButtonHeight)));
-            x += widths[i] + Gap;
-        }
-
-        Buttons = buttons;
-        var top = buttonsY;
-        var choices = new List<(SpeechAction Action, PixelBox Box)>();
-        if (choiceLabels.Count > 0)
-        {
-            var choicesY = buttonsY - Gap - ButtonHeight;
-            x = left;
-            for (var i = 0; i < Math.Min(choiceLabels.Count, 3); i++)
-            {
-                var text = ChoiceText(i, choiceLabels[i]);
-                var width = Math.Min((int)Math.Ceiling(measure(text)) + (ButtonPadding * 2), InnerWidth);
-                choices.Add((SpeechButtons.ChoiceAt(i)!.Value, new PixelBox(x, choicesY, width, ButtonHeight)));
                 x += width + Gap;
             }
 
-            top = choicesY;
+            var buttonsY = floor - ButtonHeight - ((rowCount - 1) * (ButtonHeight + rowGap));
+            var buttons = new List<(SpeechAction Action, PixelBox Box)>();
+            x = left;
+            var rowY = buttonsY;
+            for (var i = 0; i < widths.Count; i++)
+            {
+                if (x > left && x + widths[i] > left + InnerWidth)
+                {
+                    rowY += ButtonHeight + rowGap;
+                    x = left;
+                }
+
+                buttons.Add((SpeechButtons.All[i].Action, new PixelBox(x, rowY, Math.Min(widths[i], InnerWidth), ButtonHeight)));
+                x += widths[i] + Gap;
+            }
+
+            Buttons = buttons;
+            var top = buttonsY;
+            var choices = new List<(SpeechAction Action, PixelBox Box)>();
+            if (choiceLabels.Count > 0)
+            {
+                var choicesY = buttonsY - rowGap - ButtonHeight;
+                x = left;
+                for (var i = 0; i < Math.Min(choiceLabels.Count, 3); i++)
+                {
+                    var text = ChoiceText(i, choiceLabels[i]);
+                    var width = Math.Min((int)Math.Ceiling(measure(text)) + (ButtonPadding * 2), InnerWidth);
+                    choices.Add((SpeechButtons.ChoiceAt(i)!.Value, new PixelBox(x, choicesY, width, ButtonHeight)));
+                    x += width + Gap;
+                }
+
+                top = choicesY;
+            }
+
+            Choices = choices;
+            HeardY = top - 4 - LineHeight;
+            LinesTop = Panel.Y + 8 + LineHeight + 6;
+            LinesBottom = Math.Max(LinesTop, HeardY - 4);
+
+            // A compact panel that is left with less than one line of conversation gives the key hints up (the buttons carry the keys), and the log
+            // collapses to nothing when even that is not enough: the bubble and the lesson strip show the line.
+            if (!compact || LinesBottom - LinesTop >= LineHeight)
+            {
+                break;
+            }
+        }
+    }
+
+    // The hints wrapped to at most two rows, the second ending in an ellipsis when text is left out.
+    private static List<string> HintRowsFor(string hints, int width, Func<string, float> measure)
+    {
+        var rows = TextWrap.Wrap(hints, width, measure);
+        if (rows.Count <= 2)
+        {
+            return rows.ToList();
         }
 
-        Choices = choices;
-        HeardY = top - 4 - LineHeight;
-        LinesTop = Panel.Y + 8 + LineHeight + 6;
-        LinesBottom = HeardY - 4;
+        return [rows[0], rows[1].TrimEnd() + "…"];
     }
 
     /// <summary>The panel.</summary>
@@ -329,6 +386,15 @@ public readonly record struct DialogueLayout
 
     /// <summary>The top of the key hints line.</summary>
     public int HintsY { get; }
+
+    /// <summary>The rows of the key hints (empty when they are not shown).</summary>
+    public IReadOnlyList<string> HintRows { get; }
+
+    /// <summary>Whether the fixed buttons carry their English (S17); a compact panel short of room shows them in Spanish alone.</summary>
+    public bool ButtonsGlossed { get; }
+
+    /// <summary>Whether the key hints line is shown (a compact panel without the room leaves it out).</summary>
+    public bool HasHints { get; }
 
     /// <summary>The text box, or <see langword="null"/> when the panel is not in typing mode.</summary>
     public PixelBox? InputBox { get; }

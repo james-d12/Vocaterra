@@ -70,7 +70,12 @@ public sealed class ConversationFrame
                     var bubbleWidth = (int)Math.Min(DialogueBubble.MaxWidth, Math.Max(widest, DrawHelpers.Width(font, dialogue.NpcName)) + (2 * DialogueBubble.Padding));
                     var bubbleHeight = (2 * DialogueBubble.Padding) + ((rows.Count + 1) * DialogueLayout.LineHeight);
                     var inset = view.Playtest ? ConversationLayout.BubbleTop : DialogueBubble.Margin;
-                    bubble = DialogueBubble.Place(width, height, top.X, top.Y, bubbleWidth, bubbleHeight, inset);
+                    if (view.LessonStripBox is { } stripBox)
+                    {
+                        inset = Math.Max(inset, stripBox.Bottom + ConversationLayout.Gap); // the bubble stands under the lesson strip, not over it (X08)
+                    }
+
+                    bubble = DialogueBubble.PlaceBetween(width, height, top.X, top.Y, bubbleWidth, bubbleHeight, inset, panel.Y - ConversationLayout.Gap);
                 }
             }
         }
@@ -97,12 +102,18 @@ public sealed class ConversationFrame
 
         // The beacon's label is placed first, clear of the panel, the head and the bubble; the cards then keep clear of it (S22).
         var labelAvoid = new List<PixelBox> { panel };
-        if (head is { } headBox)
+        if (view.LessonStripBox is { } stripToAvoid)
         {
-            labelAvoid.Add(ConversationLayout.Union(headBox, bubbleBox));
+            labelAvoid.Add(stripToAvoid);
         }
 
-        var beaconLabel = BeaconArrowLayer.LabelFor(view, labelAvoid)?.Box;
+        var labelSoft = new List<PixelBox>();
+        if (head is { } headBox)
+        {
+            labelSoft.Add(ConversationLayout.Union(headBox, bubbleBox));
+        }
+
+        var beaconLabel = BeaconArrowLayer.LabelFor(view, labelAvoid, labelSoft)?.Box;
         var extraClear = new List<PixelBox>();
         if (beaconLabel is { } label)
         {

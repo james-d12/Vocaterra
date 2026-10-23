@@ -55,6 +55,35 @@ public static class DialogueBubble
         return new BubbleLayout(new PixelBox(x, y, width, height), (int)Math.Round(headX), (int)Math.Round(headY), tailBase);
     }
 
+    /// <summary>
+    /// Places a bubble in the band between a top and a bottom limit (X08: the lesson strip above it, the dialogue panel under it), or returns <see langword="null"/> when the head is
+    /// not on the screen or the band is too short for the bubble and its pointer: then there is no bubble, and the lesson strip and the panel's log carry the line. The bubble
+    /// hangs over the head as <see cref="Place"/> says, moved down into the band or up out of it.
+    /// </summary>
+    /// <param name="viewportWidth">The canvas's width.</param>
+    /// <param name="viewportHeight">The canvas's height.</param>
+    /// <param name="headX">The head's x.</param>
+    /// <param name="headY">The top of the head, y.</param>
+    /// <param name="width">The bubble's width.</param>
+    /// <param name="height">The bubble's height.</param>
+    /// <param name="top">The highest y the bubble may have.</param>
+    /// <param name="bottom">The lowest y the bubble's pointer may reach (the top of whatever stands below, less a gap).</param>
+    public static BubbleLayout? PlaceBetween(int viewportWidth, int viewportHeight, double headX, double headY, int width, int height, int top, int bottom)
+    {
+        if (bottom - Math.Max(top, Margin) < height + TailHeight)
+        {
+            return null;
+        }
+
+        if (Place(viewportWidth, viewportHeight, headX, headY, width, height, top) is not { } placed)
+        {
+            return null;
+        }
+
+        var y = Math.Min(placed.Box.Y, bottom - TailHeight - height);
+        return placed with { Box = placed.Box with { Y = y } };
+    }
+
     /// <summary>The line the bubble shows: the speaker's newest line (what the NPC said last), or <see langword="null"/> when it has said nothing yet.</summary>
     public static string? LineOf(DialogueModel dialogue)
     {

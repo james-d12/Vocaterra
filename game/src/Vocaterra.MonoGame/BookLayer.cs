@@ -35,24 +35,17 @@ public sealed class BookLayer : IFrameLayer
     private static readonly Color PaperShade = new(214, 200, 168);
     private static readonly Color PageEdge = new(247, 240, 222);
     private static readonly Color PageEdgeLine = new(196, 182, 150);
-    private static readonly Color Ink = new(44, 32, 26);
-    private static readonly Color InkKnown = new(116, 70, 6);
-    private static readonly Color InkSeen = new(78, 64, 52);
-    private static readonly Color InkUnseen = new(138, 122, 102);
-    private static readonly Color InkHint = new(104, 90, 74);
+    private static readonly Color Ink = UiPalette.Ink.ToColor();
+    private static readonly Color InkKnown = UiPalette.InkKnown.ToColor();
+    private static readonly Color InkSeen = UiPalette.InkSeen.ToColor();
+    private static readonly Color InkUnseen = UiPalette.InkUnseen.ToColor();
+    private static readonly Color InkHint = UiPalette.InkHint.ToColor();
     private static readonly Color Select = new(246, 218, 128);
     private static readonly Color Highlight = new(250, 214, 96);
     private static readonly Color Cream = new(238, 220, 176);
     private static readonly Color Dim = new(6, 6, 14, 236);
 
-    private static readonly Color[] Ribbons =
-    [
-        new(150, 46, 46), // Nouns
-        new(42, 92, 138), // Verbs
-        new(52, 116, 72), // Phrases
-        new(110, 62, 128), // Lessons
-        new(168, 112, 30), // What I said
-    ];
+    private static readonly Color[] Ribbons = UiPalette.Ribbons.Select(static c => c.ToColor()).ToArray(); // nouns, verbs, phrases, lessons, what I said
 
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
@@ -123,7 +116,8 @@ public sealed class BookLayer : IFrameLayer
 
         DrawRibbons(spriteBatch, pixel, font, geometry, page); // over the leaf: the ribbons hang from the top edge whatever page is turning
 
-        var hints = Fit(font, BookTabs.KeyHints, geometry.Panel.Width - 56);
+        var hintRoom = geometry.Panel.Width - 56;
+        var hints = Fit(font, DrawHelpers.Width(font, BookTabs.KeyHints) <= hintRoom ? BookTabs.KeyHints : BookTabs.KeyHintsShort, hintRoom);
         DrawHelpers.Text(spriteBatch, font, hints, new Vector2(geometry.Panel.X + 28, geometry.Panel.Bottom - 24), Cream);
     }
 
@@ -183,7 +177,7 @@ public sealed class BookLayer : IFrameLayer
             var rect = ToRectangle(geometry.TabRect(tab));
             var active = tab == page;
             var colour = Ribbons[(int)tab];
-            var shade = active ? Lighten(colour, 0.25) : colour;
+            var shade = active ? Lighten(colour, UiPalette.ActiveRibbonLighten) : colour;
             var bottom = rect.Bottom + (active ? 6 : 0);
             var body = new Rectangle(rect.X, rect.Y, rect.Width, bottom - rect.Y);
             spriteBatch.Draw(pixel, new Rectangle(body.X - 1, body.Y, body.Width + 2, body.Height), Darken(colour, 0.45));
@@ -200,7 +194,7 @@ public sealed class BookLayer : IFrameLayer
 
             var label = BookTabs.LabelOf(tab);
             var x = rect.X + ((rect.Width - (int)DrawHelpers.Width(font, label)) / 2);
-            DrawHelpers.Text(spriteBatch, font, label, new Vector2(x, geometry.TabsTop), active ? Color.White : Cream);
+            DrawHelpers.Text(spriteBatch, font, label, new Vector2(x, geometry.TabsTop), UiPalette.RibbonLabel.ToColor()); // white on every ribbon, lit or not (X08: the cream label was 3.1 to 1 on the last)
         }
     }
 
@@ -341,7 +335,7 @@ public sealed class BookLayer : IFrameLayer
                 : rightEdge - x - (int)DrawHelpers.Width(font, line.Text) - (Gutter * 2) - (int)DrawHelpers.Width(font, line.Aside) - Gutter;
             if (line.Aside is null || room >= MinNoteWidth)
             {
-                var fitted = Fit(font, rightText, room);
+                var fitted = FitNote(font, rightText, room);
                 var width = (int)DrawHelpers.Width(font, fitted);
                 InkText(spriteBatch, font, fitted, new Vector2(rightEdge - width, top + 2), line.Tone == BookTone.Gold ? InkKnown : InkHint);
                 reserved = width + Gutter;
@@ -491,25 +485,35 @@ public sealed class BookLayer : IFrameLayer
     // The table as rows of the scrolling page: a header row of tenses (row -1), then the five persons. Each row is drawn at its own top.
     private static void AddTable(DetailSheet sheet, Texture2D pixel, SpriteFontBase font, ConjugationTable table, int left, int width)
     {
-        for (var r = -1; r < table.Rows.Count; r++)
+        var perBlock = ConjugationLayout.ColumnsPerBlock(width, table.Columns.Count);
+        for (var start = 0; start < table.Columns.Count; start += perBlock)
         {
-            var row = r;
+            var first = start;
+            var count = Math.Min(perBlock, table.Columns.Count - start);
+            if (start > 0)
+            {
+                sheet.Add(10, static _ => { }); // a narrow page stacks the tenses: a gap between the blocks (X08)
+            }
 
-            // The table's top is the row's top less the rows above it (the header is above the first person's row).
-            sheet.Add(ConjugationLayout.RowHeight, y => DrawTableRow(sheet.Batch, pixel, font, table, left, y - ((row + 1) * ConjugationLayout.RowHeight), width, row));
+            for (var r = -1; r < table.Rows.Count; r++)
+            {
+                var row = r;
+
+                // The table's top is the row's top less the rows above it (the header is above the first person's row).
+                sheet.Add(ConjugationLayout.RowHeight, y => DrawTableRow(sheet.Batch, pixel, font, table, left, y - ((row + 1) * ConjugationLayout.RowHeight), width, row, first, count));
+            }
         }
     }
 
     // One row of a table: -1 is the header of tenses and the rule under it; a person's row draws its label and its cells. A used form is highlighted with its count;
     // a taught one is plain; a form not taught is a dash.
-    private static void DrawTableRow(SpriteBatch spriteBatch, Texture2D pixel, SpriteFontBase font, ConjugationTable table, int left, int top, int width, int r)
+    private static void DrawTableRow(SpriteBatch spriteBatch, Texture2D pixel, SpriteFontBase font, ConjugationTable table, int left, int top, int width, int r, int firstColumn, int columns)
     {
-        var columns = table.Columns.Count;
         if (r < 0)
         {
             for (var c = 0; c < columns; c++)
             {
-                DrawCentred(spriteBatch, font, table.Columns[c].Title, ToRectangle(ConjugationLayout.Header(left, top, width, columns, c)), InkKnown);
+                DrawCentred(spriteBatch, font, table.Columns[firstColumn + c].Title, ToRectangle(ConjugationLayout.Header(left, top, width, columns, c)), InkKnown);
             }
 
             spriteBatch.Draw(pixel, new Rectangle(left, top + ConjugationLayout.RowHeight - 2, width, 1), PageEdgeLine);
@@ -521,7 +525,7 @@ public sealed class BookLayer : IFrameLayer
         InkText(spriteBatch, font, Fit(font, row.Label, label.Width), new Vector2(label.X, label.Y + ((label.Height - 16) / 2)), InkSeen);
         for (var c = 0; c < columns; c++)
         {
-            var cell = row.Cells[c];
+            var cell = row.Cells[firstColumn + c];
             var box = ToRectangle(ConjugationLayout.Cell(left, top, width, columns, r, c));
             var inner = new Rectangle(box.X + 2, box.Y + 2, box.Width - 4, box.Height - 4);
             switch (cell.State)
@@ -697,20 +701,22 @@ public sealed class BookLayer : IFrameLayer
     }
 
     // Shortens a text to fit a width with "..." at its end (a line never runs over its neighbour).
-    private static string Fit(SpriteFontBase font, string text, int maxWidth)
+    private static string Fit(SpriteFontBase font, string text, int maxWidth) => DrawHelpers.Fit(font, text, maxWidth);
+
+    // A row's note on the right is columns three spaces apart ("used 1   correct 1"): on a narrow page it gives up its last columns before it is cut mid-word (X08).
+    private static string FitNote(SpriteFontBase font, string text, int maxWidth)
     {
-        if (DrawHelpers.Width(font, text) <= maxWidth)
+        var columns = text.Split("   ", StringSplitOptions.RemoveEmptyEntries);
+        for (var count = columns.Length; count >= 1; count--)
         {
-            return text;
+            var candidate = string.Join("   ", columns.Take(count));
+            if (DrawHelpers.Width(font, candidate) <= maxWidth)
+            {
+                return candidate;
+            }
         }
 
-        var cut = text.Length;
-        while (cut > 0 && DrawHelpers.Width(font, text[..cut] + "...") > maxWidth)
-        {
-            cut--;
-        }
-
-        return text[..cut] + "...";
+        return Fit(font, columns.Length == 0 ? text : columns[0], maxWidth);
     }
 
     private static Color ToneColour(BookTone tone) => tone switch

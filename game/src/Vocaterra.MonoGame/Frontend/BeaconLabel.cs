@@ -16,6 +16,47 @@ public static class BeaconLabel
     /// <summary>The padding either side of the text.</summary>
     public const int Padding = 6;
 
+    /// <summary>
+    /// A box moved (and, if it is wider than the canvas, narrowed) so it lies inside the canvas less <see cref="Margin"/> (X08): the label of an on-screen target hangs at the
+    /// target, which may be near an edge, and a larger text scale makes the label wider.
+    /// </summary>
+    /// <param name="box">The box.</param>
+    /// <param name="viewportWidth">The canvas's width.</param>
+    /// <param name="viewportHeight">The canvas's height.</param>
+    public static PixelBox Clamp(PixelBox box, int viewportWidth, int viewportHeight)
+    {
+        var width = Math.Min(box.Width, viewportWidth - (2 * Margin));
+        var height = Math.Min(box.Height, viewportHeight - (2 * Margin));
+        return new PixelBox(Math.Clamp(box.X, Margin, viewportWidth - Margin - width), Math.Clamp(box.Y, Margin, viewportHeight - Margin - height), width, height);
+    }
+
+    /// <summary>
+    /// Places the label like <see cref="Place"/>, but never over <paramref name="hard"/> (the panel and the lesson strip), and returns <see langword="null"/> when there is no free place
+    /// for it there (a short canvas under a tall lesson strip has none): the arrow stays and the label is left out. It keeps clear of <paramref name="soft"/> (the speaker's head and the
+    /// bubble) when it can, and takes a place over them when that is the only one.
+    /// </summary>
+    /// <param name="viewportWidth">The canvas's width.</param>
+    /// <param name="viewportHeight">The canvas's height.</param>
+    /// <param name="arrowX">The arrow's x on the edge.</param>
+    /// <param name="arrowY">The arrow's y on the edge.</param>
+    /// <param name="textWidth">The width of the label's text.</param>
+    /// <param name="hard">Rectangles the label never overlaps.</param>
+    /// <param name="soft">Rectangles the label keeps clear of when there is room.</param>
+    public static PixelBox? TryPlace(int viewportWidth, int viewportHeight, double arrowX, double arrowY, double textWidth, IReadOnlyList<PixelBox> hard, IReadOnlyList<PixelBox> soft)
+    {
+        ArgumentNullException.ThrowIfNull(hard);
+        ArgumentNullException.ThrowIfNull(soft);
+        var all = hard.Concat(soft).ToList();
+        var placed = Place(viewportWidth, viewportHeight, arrowX, arrowY, textWidth, all);
+        if (!all.Any(a => ConversationLayout.Overlaps(placed, a)))
+        {
+            return placed;
+        }
+
+        var onlyHard = Place(viewportWidth, viewportHeight, arrowX, arrowY, textWidth, hard);
+        return hard.Any(a => ConversationLayout.Overlaps(onlyHard, a)) ? null : onlyHard;
+    }
+
     /// <summary>Places the label of an off-screen target next to its edge arrow.</summary>
     /// <param name="viewportWidth">The window's width.</param>
     /// <param name="viewportHeight">The window's height.</param>

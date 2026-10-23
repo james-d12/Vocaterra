@@ -22,26 +22,55 @@ public sealed class ObjectiveLayer : IFrameLayer
     private static readonly Color Gold = new(255, 214, 64);
     private static readonly Color Open = new(245, 245, 245);
     private static readonly Color Done = new(120, 220, 130);
-    private static readonly Color DoneEnglish = new(150, 190, 160);
+    private static readonly Color DoneEnglish = UiPalette.DoneEnglish.ToColor();
     private static readonly Color Back = new(10, 10, 20, 190);
 
-    /// <inheritdoc />
-    public void Draw(SpriteBatch spriteBatch, FrameView view)
+    // The checklist's rows and box for a frame, or null when there is no checklist.
+    private static (List<List<ObjectivePiece>> Rows, PixelBox Box)? PlanFor(FrameView view, FontStashSharp.SpriteFontBase font)
     {
         if (view.Objective is not { } objective)
         {
-            return;
+            return null;
         }
 
-        var font = view.Fonts.Get(FontProvider.NativeSize);
         var session = view.Session;
         var pieces = session is VoxelSession voxel
             ? voxel.ObjectiveHud() // the stage's line, or the checklist (S17)
             : session.English.ObjectivePieces(objective, lemma => session.Words.RecordOf(lemma).Known);
-        var rows = Rows(pieces, font, (int)(view.ViewportWidth * WidthShare));
+        var rows = HudLayout.ObjectiveRows(pieces, p => DrawHelpers.Width(font, p.Text), static p => p.Kind == ObjectivePieceKind.Word, (float)(view.ViewportWidth * WidthShare), view.ViewportWidth - (2 * Margin) - 16);
         var width = rows.Max(row => row.Sum(p => (int)DrawHelpers.Width(font, p.Text)));
-        var height = 8 + (rows.Count * 20);
-        var box = new Rectangle(view.ViewportWidth - width - (Margin * 2) - 8, Margin, width + 16, height);
+        return (rows, HudLayout.ObjectiveBox(view.ViewportWidth, width, rows.Count));
+    }
+
+    /// <summary>The bottom of the checklist this frame, or 0 when it is not drawn: the workbench panel stands under it.</summary>
+    /// <param name="view">The frame's view.</param>
+    internal static int BottomOf(FrameView view)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+        if (PlanFor(view, view.Fonts.Get(FontProvider.NativeSize)) is not { } plan)
+        {
+            return 0;
+        }
+
+        return view.Dialogue.IsOpen && !HudLayout.ObjectiveVisible(plan.Box, ConversationBoxes(view)) ? 0 : plan.Box.Bottom;
+    }
+
+    /// <inheritdoc />
+    public void Draw(SpriteBatch spriteBatch, FrameView view)
+    {
+        var font = view.Fonts.Get(FontProvider.NativeSize);
+        if (PlanFor(view, font) is not { } plan)
+        {
+            return;
+        }
+
+        var (rows, layoutBox) = plan;
+        if (view.Dialogue.IsOpen && !HudLayout.ObjectiveVisible(layoutBox, ConversationBoxes(view)))
+        {
+            return; // it gives way to the lesson strip and the bubble on a short canvas (X08)
+        }
+
+        var box = new Rectangle(layoutBox.X, layoutBox.Y, layoutBox.Width, layoutBox.Height);
         spriteBatch.Draw(view.Pixel, box, Back);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, Gold);
         var y = box.Top + 6;
@@ -58,22 +87,21 @@ public sealed class ObjectiveLayer : IFrameLayer
         }
     }
 
-    // The checklist on one row when it fits; otherwise the title on the first row and the steps on the second.
-    private static List<List<ObjectivePiece>> Rows(IReadOnlyList<ObjectivePiece> pieces, FontStashSharp.SpriteFontBase font, int maxWidth)
+    // What the conversation puts on the canvas this frame: the lesson strip and the bubble.
+    private static List<PixelBox> ConversationBoxes(FrameView view)
     {
-        var whole = pieces.Sum(p => (int)DrawHelpers.Width(font, p.Text));
-        if (whole <= maxWidth)
+        var boxes = new List<PixelBox>();
+        if (view.LessonStripBox is { } strip)
         {
-            return [pieces.ToList()];
+            boxes.Add(strip);
         }
 
-        var firstStep = pieces.ToList().FindIndex(static p => p.Kind == ObjectivePieceKind.Word);
-        if (firstStep < 0)
+        if (ConversationFrame.For(view).Bubble is { } bubble)
         {
-            return [pieces.ToList()]; // a stage line is one piece of English (S17): it is short, and it is never split
+            boxes.Add(new PixelBox(bubble.Box.X, bubble.Box.Y, bubble.Box.Width, bubble.Box.Height + DialogueBubble.TailHeight));
         }
 
-        return [pieces.Take(firstStep).ToList(), pieces.Skip(firstStep).ToList()];
+        return boxes;
     }
 
     private static Color ColourOf(ObjectivePiece piece) => piece.Kind switch
@@ -173,7 +201,7 @@ public sealed class WordCardLayer : IFrameLayer
         var slot = new Rectangle(box.Right - 86, box.Top + 26, 72, 40);
         spriteBatch.Draw(view.Pixel, slot, new Color(30, 30, 44) * alpha);
         DrawHelpers.Border(spriteBatch, view.Pixel, slot, 1, Empty * alpha);
-        DrawHelpers.Text(spriteBatch, small, "audio", new Vector2(slot.Left + 12, slot.Top + 11), Empty * alpha);
+        DrawHelpers.Text(spriteBatch, small, "audio", new Vector2(slot.Left + 12, slot.Top + 11), UiPalette.Muted.ToColor() * alpha);
     }
 
     private static void DrawToast(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase small, string phrase, Rectangle box, bool collapsed, float alpha)

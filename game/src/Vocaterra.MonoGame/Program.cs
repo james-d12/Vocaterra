@@ -40,6 +40,7 @@ Scene scene;
 NpcVoice voice;
 Func<Scene> pristine;
 SoundVolumes? savedVolumes = null; // the volumes a loaded save holds (S24)
+int? savedTextScale = null; // the text size a loaded save holds (X08)
 SceneLayout? sceneLayout = null; // the scene's layout: the ambient beds read its places (S25)
 try
 {
@@ -62,6 +63,7 @@ try
         session = SaveGame.Restore(document, bundle, scene, nouns, options.Credit, migrate: !options.StrictSave);
         options = options with { Seed = document.WorldSeed };
         savedVolumes = document.Settings?.Sound.Clamped();
+        savedTextScale = document.Settings?.Clamped().TextScale;
         Console.WriteLine($"load: {loadPath}: saved in session {document.Session}, now session {session.PlaySession}; tick {document.Tick}, stored time {document.StoredTime}");
         if (session.Migration is { } migration)
         {
@@ -112,7 +114,7 @@ catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundExcep
 }
 
 // The turn worker is started by the game itself (it warms the guide up and loads Vosk behind the loading screen).
-using var game = new VoxelGame(options, session, scene, voice, pristine, savedVolumes);
+using var game = new VoxelGame(options, session, scene, voice, pristine, savedVolumes, savedTextScale: savedTextScale);
 crash.Attach(game); // the crash report, the last-chance save and the state come from the game (X05)
 try
 {
