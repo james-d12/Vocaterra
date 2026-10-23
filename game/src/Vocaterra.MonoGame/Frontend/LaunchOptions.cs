@@ -77,6 +77,7 @@ public sealed record LaunchOptions
         + "  --check <pre|post|recall>  run the check battery (S11) first, outside the world: pre then the world; post or recall instead of the world (the run ends\n"
         + "                          after it). Its items are answered by the player, or by the script's --pick and --say/--speak steps\n"
         + "  --pick <n>              answer the check's comprehension item with the option n (1 to 3, as shown); a step, with --check\n"
+        + "  --no-autosave           do not autosave (X05): the autosave in the session folder is not written; a playtest's playtest.save is still written at its end\n"
         + "  --session-dir <dir>     write this run's session.jsonl and replay.jsonl here (default: a new folder under ~/.local/share/vocaterra/sessions/)\n"
         + "  --report <text>         open the report panel (F8), type the text and save the report (a Markdown file and a screenshot); a step (S21)\n"
         + "  --report-open <text>   open the report panel, type the text and leave the panel open (the screenshot of the panel); a step (S21)\n"
@@ -122,6 +123,12 @@ public sealed record LaunchOptions
 
     /// <summary>The check battery to run (<c>--check</c>), or <see langword="null"/> for none.</summary>
     public CheckKind? Check { get; init; }
+
+    /// <summary>Whether <c>--no-autosave</c> was given: the game writes no autosave (X05).</summary>
+    public bool NoAutosave { get; init; }
+
+    /// <summary>The tick at which the game throws on purpose (<c>--debug-crash-after</c>, a test-only hook of X05, not in the usage), or <see langword="null"/>.</summary>
+    public long? DebugCrashAfter { get; init; }
 
     /// <summary>The folder the session log is written to (<c>--session-dir</c>), or <see langword="null"/> for a new folder under the sessions folder.</summary>
     public string? SessionDir { get; init; }
@@ -310,7 +317,7 @@ public sealed record LaunchOptions
             }
 
             if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help")
+                    or "--playtest" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help")
             {
                 switch (arg)
                 {
@@ -373,6 +380,9 @@ public sealed record LaunchOptions
                     case "--strict-save":
                         strictSave = true;
                         break;
+                    case "--no-autosave":
+                        result = result with { NoAutosave = true };
+                        break;
                     default:
                         break; // --voxel: accepted for old scripts, the 3D world is the only one
                 }
@@ -384,7 +394,7 @@ public sealed record LaunchOptions
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
                 or "--check" or "--pick" or "--session-dir" or "--session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--size"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
-                or "--book-play" or "--book-play-slow"))
+                or "--book-play" or "--book-play-slow" or "--debug-crash-after"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -492,6 +502,16 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { ReportDir = value };
+                    break;
+                case "--debug-crash-after":
+                    // A test hook (X05, not in the usage): the game throws on the game loop once the simulation reaches this tick, so the crash handler runs.
+                    if (!long.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var crashTick) || crashTick < 0)
+                    {
+                        error = $"--debug-crash-after needs a tick (0 or more), got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { DebugCrashAfter = crashTick };
                     break;
                 case "--session-dir":
                     if (value.Length == 0)

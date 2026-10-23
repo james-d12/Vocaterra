@@ -1,8 +1,27 @@
+using System.Threading.Tasks;
 using Vocaterra.Game;
 using Vocaterra.MonoGame;
 using Vocaterra.MonoGame.Frontend;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Simulation.Voxel;
+
+// The crash handler (X05) is installed before anything else, so a crash at any point writes its report. The process-wide hooks cover what
+// the game loop's catch does not: an exception on another thread, or an unobserved task exception (the game goes on after that one).
+var crash = new CrashHandler(static () => WallClock.Now, Console.Error, BuildCommit.Read());
+AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
+{
+    if (eventArgs.ExceptionObject is Exception unhandled)
+    {
+        crash.Handle(unhandled, "an unhandled exception", stopped: true);
+    }
+
+    Environment.Exit(CrashHandler.ExitCode);
+};
+TaskScheduler.UnobservedTaskException += (_, eventArgs) =>
+{
+    crash.Handle(eventArgs.Exception, "an unobserved task exception", stopped: false);
+    eventArgs.SetObserved();
+};
 
 if (!LaunchOptions.TryParse(args, out var options, out var error))
 {
@@ -94,5 +113,16 @@ catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundExcep
 
 // The turn worker is started by the game itself (it warms the guide up and loads Vosk behind the loading screen).
 using var game = new VoxelGame(options, session, scene, voice, pristine, savedVolumes);
-game.Run();
+crash.Attach(game); // the crash report, the last-chance save and the state come from the game (X05)
+try
+{
+    game.Run();
+}
+catch (Exception ex)
+{
+    // The game loop threw: the crash report and the last-chance save are written, the paths are printed, and the exit code is not zero (X05).
+    crash.Handle(ex, "the game loop", stopped: true);
+    return CrashHandler.ExitCode;
+}
+
 return game.ExitCode;
