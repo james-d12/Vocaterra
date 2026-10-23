@@ -92,4 +92,18 @@ public class NearFutureTenseTests
     {
         Assert.Empty(Described(sentence));
     }
+
+    [Fact]
+    public void ProximoBeforeATimeNounIsNotAWordOrderMistake()
+    {
+        Assert.Equal(["conj.tense|compré|voy a comprar"], Described("la próxima semana compré pan"));
+        Assert.Empty(Described("el próximo año"));
+        Assert.Empty(Described("el próximo verano"));
+    }
+
+    [Fact]
+    public void ProximoBeforeAnOtherNounIsStillAWordOrderMistake()
+    {
+        Assert.Contains("word_order|próximos salones|salones próximos", Described("unos seis próximos salones"));
+    }
 }

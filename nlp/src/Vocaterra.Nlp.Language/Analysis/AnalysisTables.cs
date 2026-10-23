@@ -15,7 +15,7 @@ internal static class AnalysisTables
         "alto", "bajo", "inteligente", "simpático", "amable", "guapo", "feo", "importante", "fácil", "difícil", "trabajador",
     }.ToFrozenSet(StringComparer.Ordinal);
 
-    private static readonly FrozenSet<string> PrenominalAdjectives = new[] { "grande", "bueno", "malo", "próximo" }.ToFrozenSet(StringComparer.Ordinal);
+    private static readonly FrozenSet<string> PrenominalAdjectives = new[] { "grande", "bueno", "malo" }.ToFrozenSet(StringComparer.Ordinal);
 
     private static readonly FrozenSet<string> NounModifyingAdverbs = new[]
     {
@@ -23,6 +23,8 @@ internal static class AnalysisTables
     }.ToFrozenSet(StringComparer.Ordinal);
 
     private static readonly FrozenSet<string> PastTimeAdverbs = new[] { "ayer", "anoche", "anteayer" }.ToFrozenSet(StringComparer.Ordinal);
+
+    private static readonly FrozenSet<string> UpcomingExtraTimeNouns = new[] { "siglo", "verano", "invierno", "otoño", "primavera", "fin", "finde", "sábado" }.ToFrozenSet(StringComparer.Ordinal);
 
     private static readonly FrozenSet<string> TimeNouns = new[]
     {
@@ -107,6 +109,12 @@ internal static class AnalysisTables
     public static bool IsFixedPluralExpression(string adjectiveLemma, string nounLemma)
     {
         return FixedPluralExpressions.TryGetValue(adjectiveLemma, out var nouns) && nouns.Contains(nounLemma);
+    }
+
+    /// <summary>True for a noun that <c>próximo</c> precedes as a time word (la próxima semana, el próximo verano): the time nouns and the seasons, centuries and weekend.</summary>
+    public static bool IsUpcomingTimeNoun(string lemma)
+    {
+        return TimeNouns.Contains(lemma) || UpcomingExtraTimeNouns.Contains(lemma);
     }
 
     /// <summary>True for nouns that combine with <c>pasado</c> to mark past time (la semana pasada).</summary>

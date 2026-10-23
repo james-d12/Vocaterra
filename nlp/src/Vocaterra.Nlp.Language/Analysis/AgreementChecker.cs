@@ -313,7 +313,7 @@ internal sealed class AgreementChecker
 
             if (i > 0
                 && FirstReading(i - 1, static r => r.Pos == LexiconSchema.Adjective && r.Lemma == "próximo") is not null
-                && FirstReading(i, static r => r.Pos == LexiconSchema.Noun && AnalysisTables.IsTimeNoun(r.Lemma)) is not null)
+                && FirstReading(i, static r => r.Pos == LexiconSchema.Noun && AnalysisTables.IsUpcomingTimeNoun(r.Lemma)) is not null)
             {
                 return i;
             }
@@ -648,6 +648,12 @@ internal sealed class AgreementChecker
         var adjectiveIndex = phrase.Before[^1];
         var adjectives = Readings(adjectiveIndex, static r => r.Pos == LexiconSchema.Adjective);
         if (adjectives.Count == 0 || adjectives.Exists(static a => AnalysisTables.IsPrenominal(a.Lemma)))
+        {
+            return;
+        }
+
+        // "la próxima semana", "el próximo año": próximo goes before a time noun (but "unos próximos salones" is still a word-order mistake).
+        if (adjectives.Exists(static a => a.Lemma == "próximo") && Readings(phrase.Head, static r => r.Pos == LexiconSchema.Noun && AnalysisTables.IsUpcomingTimeNoun(r.Lemma)).Count > 0)
         {
             return;
         }
