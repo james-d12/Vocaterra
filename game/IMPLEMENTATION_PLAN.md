@@ -194,7 +194,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S22 | The second pass's known issues: an uncrowded conversation screen, the F10 label, measured session durations, a Vosk route step and test, thin pergola posts, the book in greyscale, the book item for old saves | done (merged to `feature/prototype` 2026-10-22, `8609183`) | Sonnet 5.5 | S18 |
 | S23 | LanguageTool over the game's Spanish: strings extractor, first waiver round, the `si quiero` and `traveller` findings, an advisory gate step (required after the waiver round) | done (merged to `feature/prototype` 2026-10-22, `ddb834a`); the gate's game-v1 grammar step is required | Haiku 5.5 | S22, core M30, D10 |
 | S24 | The audio system (mixer, ducking under the voices, silence while the microphone records), interaction and progress sounds; CC0 packs plus code, no music (D-game-18) | done (merged to `main` 2026-10-22, `9291bab`); **the owner listens to the cues once** (judged by name and length only) | Sonnet 5.5 | S23, D-game-18 |
-| S25 | Ambient beds by place (birds, wind, river and waterfall, village, fire, dusk insects) and footsteps per surface | planned | Haiku 5.5 | S24 |
+| S25 | Ambient beds by place (birds, wind, river and waterfall, village, fire, dusk insects) and footsteps per surface | done (merged to `main` 2026-10-23, `6c73d63`); **the owner listens once** | Haiku 5.5 | S24 |
 | S26 | Verbs in the lessons: a yo/tú unit in session 1, lesson "Personas" (él/ella/usted, nosotros, ustedes/ellos) in session 2; lessons unlock by session and replay from the book; Opus pass, speech (D-game-19) | planned | Sonnet 5.5 | S25, D-game-19 |
 | S27 | Verbs, session 3: "Ayer y mañana" (ir a + infinitive, a few preterite forms, time words) | planned | Sonnet 5.5 | S26, core M49 |
 | S28 | The book remade as a book (two-page spread, ribbons, page turn) with conjugation tables (used, taught, hidden until taught) | planned | Sonnet 5.5 | S20b, S27 |
@@ -1089,6 +1089,22 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     nouns only).
   - **Note.** Every bundle change makes older saves refuse to load (the content-hash rule since S10). A candidate for the experiment
     branch.
+- **S25, ambient sound and footsteps (2026-10-23, Haiku 5.5; merged to `main` `6c73d63`).**
+  - **Beds.** Wind on the heights, the river and lake, the waterfall (6 to 40 blocks), the village murmur and dusk insects are synthesized
+    10 s loops with equal-power seams. Birds and fire crackle are scheduled one-shots from the presentation RNG. All of them go through
+    S24's `SetBeds` (1.5 s cross-fade), panned by bearing.
+  - **Footsteps.** Kenney CC0 for grass, snow, wood, stone, jump and land; synthesized dirt, gravel, sand and water splash.
+    `SurfaceOf` covers every block kind.
+  - **Landing.** It plays only after a jump or a fall of more than 1.5 blocks. The orchestrator sent this back: the first version thumped
+    40 times walking down the trail; now it is 4.
+  - **Assets:** 57 WAVs, 1.0 MB in all (S25 adds 0.2 MB).
+  - **Checked by the orchestrator:** the gate (4,557 passed, 5 skipped). The agent's route log: beds change from the heights' wind to the
+    valley's birds and back, no cue plays in the recording window, and grass 216, gravel 47, wood 7, sand 1.
+  - **Intermittent test found:** `VillageFrontendTests.DrawingTheFiguresTheArmAndTheShoulderCameraAllocatesNothingOnceWarm` failed once
+    under a loaded parallel run. It measures per-thread allocations over 1,000 frames after a 200-frame warm-up; tiered-compilation
+    promotion inside the window is the likely cause. The fix (measure up to three times and take the least, so a real per-frame
+    allocation still fails) goes into the next brief, S26.
+  - **Not fixed:** the pace is distance-based (no run pace); lamps stand in for torches; fades run on frame time.
 
 ## 6. Definition of done (every milestone)
 
