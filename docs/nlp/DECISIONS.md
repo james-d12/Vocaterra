@@ -55,10 +55,10 @@ The frequency list (`hermitdave/FrequencyWords`, `es_50k`) is CC BY-SA 4.0 for t
 terms of the underlying OpenSubtitles corpus were not confirmed. Only a ranking derived from the
 counts is used; no counts or subtitle text ship. **Recommendation:** accept as is for a personal
 project; before any public release, either confirm the terms or swap the ranking source for a Leipzig
-Corpora or wordfreq-based list and regenerate (`docs/LEXICON.md`). **Waiting on it:** public release only.
+Corpora or wordfreq-based list and regenerate (`docs/nlp/LEXICON.md`). **Waiting on it:** public release only.
 
 ## D5. Package feed
-**Decided (2026-10-21, owner):** no hosted feed. At first the Vocaterra game repository included this repository as a git submodule and consumed the local feed that `scripts/pack.sh` builds (M19e, `docs/PACKAGING.md`). Later the same day the two repositories became one (game decision D-game-7): the game is `game/`, this folder is `nlp/`, and the game references the core's projects directly. The feed remains for `samples/HostConsole` and for a consumer outside the repository; still no hosted feed.
+**Decided (2026-10-21, owner):** no hosted feed. At first the Vocaterra game repository included this repository as a git submodule and consumed the local feed that `scripts/pack.sh` builds (M19e, `docs/nlp/PACKAGING.md`). Later the same day the two repositories became one (game decision D-game-7): the game is `game/`, this folder is `nlp/`, and the game references the core's projects directly. The feed remains for `samples/HostConsole` and for a consumer outside the repository; still no hosted feed.
 `Vocaterra.Nlp.*` packages (M19b) need a feed. **Options:** GitHub Packages (token also needs
 `write:packages`; private, fits two private repositories; recommended), a local folder feed committed
 as release artifacts (simplest, no token change), or nuget.org (public only). **Waiting on it:** M19b's
@@ -94,7 +94,7 @@ C# binding) is MPL-2.0; LanguageTool (LGPL) is useful only as a separate develop
 with a note), allow GPL/LGPL tools only as separate processes used at development time, never linked
 or shipped. **Waiting on it:** M20 (tagger choice), M22 (evaluation oracles).
 
-**Owner, 2026-10-22 (the dev-time half).** After the LanguageTool research (`docs/research/2026-10-22-languagetool.md`), the owner accepted
+**Owner, 2026-10-22 (the dev-time half).** After the LanguageTool research (`docs/nlp/research/2026-10-22-languagetool.md`), the owner accepted
 LanguageTool as a separate, local, development-time grammar check called over HTTP: no LanguageTool code is linked, nothing is shipped,
 and no content is sent to the public API. The check covers the Spanish content of both bundles, with plain `es` as the stand-in for
 neutral Latin American Spanish. It is advisory in the merge gate until one round of waivers is done, then required. The MPL-2.0 half
@@ -120,7 +120,7 @@ errors; until then the phoneme stage stays optional. **Waiting on it:** M24 resu
 ## D14. German and a multi-language core
 
 **Owner, 2026-10-22.** "See what it will take to make it also support German, and make the architecture for it support multi lang."
-The research (`docs/research/2026-10-22-multilingual.md`) found about 23 % of the core Spanish-specific (about 6,400 lines). It proposed
+The research (`docs/nlp/research/2026-10-22-multilingual.md`) found about 23 % of the core Spanish-specific (about 6,400 lines). It proposed
 the target language as a property of the content bundle (`manifest.json` `language`, absent meaning `es`), resolved through a language-pack
 registry, with Spanish kept byte-identical behind an identity guard. It also proposed a staged roadmap, M31 to M48. The owner chose:
 - **record only:** the roadmap is planned (`IMPLEMENTATION_PLAN.md` §11) and nothing runs until the owner says so;

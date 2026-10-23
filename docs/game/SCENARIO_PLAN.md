@@ -3,7 +3,7 @@
 Written 2026-10-21 from the owner's Prototype Design Brief v1.2 (`Vocaterra_Prototype_Design_Brief.docx`, this folder) and a review of the
 codebase as it stands after P7 and D-game-7 (one repository, 3,585 tests, bundle `game-v1` at `fa8fb030…`). It is the orchestrator's entry point
 for the next phase: **run S0 first** (it folds this document into `IMPLEMENTATION_PLAN.md` section 4 and records the decisions), then launch
-S1 and S5 in parallel. S0 is done (2026-10-21): the plan of record is `game/IMPLEMENTATION_PLAN.md` section 4, with this file as the per-milestone design; the milestone and decision ids below are reserved.
+S1 and S5 in parallel. S0 is done (2026-10-21): the plan of record is `docs/game/IMPLEMENTATION_PLAN.md` section 4, with this file as the per-milestone design; the milestone and decision ids below are reserved.
 
 ## 1. Why
 
@@ -15,7 +15,7 @@ the player, phrase-level tracking of supported versus unaided use, pre, post and
 by a Spanish reviewer before testing.
 
 The codebase is a 2D Terraria side-scroller (P1 to P7: procedural world, caves, ores, lighting, mining, 13 recipes, a static guide, typed and
-spoken turns, noun colour with spaced credit). The language core (`nlp/`) already provides everything the scenario needs: constrained
+spoken turns, noun colour with spaced credit). The language core (`Vocaterra.Nlp.*`) already provides everything the scenario needs: constrained
 recognition from an answer set (the Vosk grammar), content-driven agent state machines with host-initiated turns (`UtterancePipeline.Advance`,
 CR-015), two-phase evaluation with host facts (`Analyze` then `Complete`, CR-017), host-named skills (`phrase.<id>` through `extraSkills` and
 `LearnerModel.StepSkills`), a repair ladder that ends in offered choices (`RepairStrategy.OfferChoices`), pre-rendered speech by line id
@@ -59,8 +59,8 @@ colour with the counts, the journal and the spaced review kept, and the grey atl
   shown-card, supported, unaided, choice-only (a recognition signal) and "no sé" uses; no automated CEFR placement or global score; a pre-check,
   a post-check and a later recall check; telemetry local only (JSONL in the session folder).
 - **D-game-11, the Noun Town review data (decided, owner, 2026-10-21).** The raw Steam review JSON (450 KB of third-party text) is never
-  committed: `.gitignore` covers `scripts/noun_town/*.json` and `docs/research/noun-town/*.json` (done the same day). The two summaries and the
-  fetch scripts are committed and move to `docs/research/noun-town/` in S0.
+  committed: `.gitignore` covers `scripts/noun_town/*.json` and `docs/game/research/noun-town/*.json` (done the same day). The two summaries and the
+  fetch scripts are committed and move to `docs/game/research/noun-town/` in S0.
 - **D-game-12, the Spanish reviewer (deferred by the owner, 2026-10-21; a workaround is needed).** The brief wants every phrase, translation,
   accepted response and recording checked by a competent Spanish speaker before testing; none is available yet. Interim workaround until a
   speaker checks the sheet: (1) the phrase set stays at the brief's five phrases plus the five service words, all textbook A1, so a later
@@ -100,18 +100,18 @@ screenshot looked at). Sizes: S about one agent session, M two to three.
 ### S0: plan and docs (the orchestrator; no code, no agent)
 
 1. `DECISIONS.md`: the rows and sections of section 3 above.
-2. `docs/PROTOTYPE_BRIEF.md`: the brief's text as Markdown so agents can read it (the docx stays as the source; `pandoc` is not installed, so
+2. `docs/game/PROTOTYPE_BRIEF.md`: the brief's text as Markdown so agents can read it (the docx stays as the source; `pandoc` is not installed, so
    extract with a Python standard-library script over `word/document.xml`: paragraphs, headings and tables; the three concept images stay inside
-   the docx). `docs/SPECIFICATION.md` becomes a pointer to the brief with the one-paragraph premise.
+   the docx). `docs/game/SPECIFICATION.md` becomes a pointer to the brief with the one-paragraph premise.
 3. `IMPLEMENTATION_PLAN.md`: section 1 (the decisions), section 2 (the layout after S4), section 3 rule 8 ("nothing is gated behind language or
    voice; every failure has a recovery path"), section 4 (this series as the table and a new 4.4 "The prototype scenario"; P8, P9, G3, G4 marked
    superseded by S9, S10, S5/S6; P10 optional, later), section 5 (one finding line pointing here), section 6 (the demo lines of S2, S3, S6).
-4. `../nlp/IMPLEMENTATION_PLAN.md` §5: M29a and M29b as `proposed, conditional` (section 6 below).
+4. `docs/nlp/IMPLEMENTATION_PLAN.md` §5: M29a and M29b as `proposed, conditional` (section 6 below).
 5. `../README.md` (Terraria to Minecraft-inspired voxel), `README.md` (this folder: the scenario, the new run lines as they land),
    `../CLAUDE.md` (facts: the brief, 3D first person, the S series, the content gate with lint `--strict`), `../.claude/agents/orchestrator.md`
    (read-first list gains the brief and this plan; commit prefix `S<nn>:`).
-6. `../scripts/noun_town/` to `docs/research/noun-town/` (the summaries and the fetch scripts only; the raw JSON is already git-ignored,
-   D-game-11). `docs/research/PROTOTYPE_PLAN.md` and `PROTOTYPE_RESEARCH.md` get a note at the top: they describe the 2D era (R1).
+6. `../scripts/noun_town/` to `docs/game/research/noun-town/` (the summaries and the fetch scripts only; the raw JSON is already git-ignored,
+   D-game-11). `docs/game/research/PROTOTYPE_PLAN.md` and `PROTOTYPE_RESEARCH.md` get a note at the top: they describe the 2D era (R1).
 7. One commit with the brief and the deleted `.odt`, pushed.
 
 ### S1: 3D voxel simulation, headless (Sonnet 5.5, M)
@@ -186,11 +186,11 @@ In `src/Vocaterra.MonoGame`, the only engine code:
   "por favor" is tried as `(por favor)?` in the grammar DSL; if the DSL cannot express it, that is core gap M29a.
 - The blacksmith and spell material leaves `content/game-v1` (unreachable from the prototype's prompts; the core's sample keeps it), so the
   reviewed sheet and the bundle are the same set.
-- Gates added to the content procedure from here on: `scripts/content.sh lint game/content/game-v1 --strict --level a1` clean with an example
+- Gates added to the content procedure from here on: `scripts/content.sh lint content/game-v1 --strict --level a1` clean with an example
   expectation for every phrase; `cefr-check` clean at A1 and A2; a test that every PHRASES.md row is an example of its intent in the bundle and
   resolves to it. The `hash` step: the sandbox refuses the word, so the orchestrator runs it with the owner's standing permission or the owner
   runs it.
-- Demo: `dotnet run --project game/src/Vocaterra.Host -- --transcript "quiero agua, por favor" --prompt stall-need` prints `request_item`,
+- Demo: `dotnet run --project src/Vocaterra.Host -- --transcript "quiero agua, por favor" --prompt stall-need` prints `request_item`,
   communicated, no errors; `--transcript "quiero aguas por favor"` prints `noun.number`.
 
 ### S6: NPC exchanges in the world, the transfer moment (Sonnet 5.5, M)
@@ -261,7 +261,7 @@ In `src/Vocaterra.MonoGame`, the only engine code:
 ### S12: playtest build and facilitator checklist (Haiku 5.5, S)
 
 - `--playtest` profile: no debug overlay, mic check on, checks on, logs on, `--greyscale` off.
-- `docs/PLAYTEST.md`: the facilitator script (pre-check, the run, post-check, next-day recall, what to observe, the gates, the beginner audience
+- `docs/game/PLAYTEST.md`: the facilitator script (pre-check, the run, post-check, next-day recall, what to observe, the gates, the beginner audience
   rule, and the note that the content-trust gate is provisional while D-game-12 is deferred: testers are told the Spanish has not been checked
   by a native speaker). A fresh-clone build and a linux-x64 private build folder with a check that no sherpa-onnx native ships.
 - Demo: the owner follows the checklist once end to end before any tester.
@@ -285,7 +285,7 @@ In `src/Vocaterra.MonoGame`, the only engine code:
 
 - Every milestone: `scripts/merge-gate.sh` from `main` (build with warnings as errors, the whole suite, format, bundle validation, the licence
   scan), then the orchestrator's behaviour spot-check: the milestone's demo line and a screenshot looked at.
-- Content (S5, S9): `scripts/content.sh validate`, `lint game/content/game-v1 --strict --level a1`, `cefr-check` at A1 and A2, the PHRASES.md sync
+- Content (S5, S9): `scripts/content.sh validate`, `lint content/game-v1 --strict --level a1`, `cefr-check` at A1 and A2, the PHRASES.md sync
   test, every referenced WAV present and hashed.
 - End to end (from S6): one scripted run under `xvfb-run -a` that walks the route, gathers, crafts, asks for water, asks for the river, fills the
   bottle, completes the objective and the transfer step, and writes a session log; the report script reads it back.
@@ -303,7 +303,7 @@ The owner played the S12 build: "it's ok", with five changes asked for:
 
 The decisions are D-game-13 (English guidance), D-game-14 (world scale and look) and D-game-15 (the opening and the guide's lesson). The
 reference images are inside `Vocaterra_Prototype_Design_Brief.docx`. Extract them to a scratch folder (outside the repository) with
-`unzip -o -j game/docs/Vocaterra_Prototype_Design_Brief.docx 'word/media/*' -d <scratch>`; image1 is reference A, image2 is B and image3 is C.
+`unzip -o -j docs/game/Vocaterra_Prototype_Design_Brief.docx 'word/media/*' -d <scratch>`; image1 is reference A, image2 is B and image3 is C.
 They are generated concept art: never commit them and never copy from them. They set the target (shape, colour, scale, detail).
 
 What the references show, against the S12 build. The S12 build has a dark grey sky, flat untextured blocks with dull colours, a small flat
@@ -440,7 +440,7 @@ of section 5 carry over.
   - the controls and first-time tips ("Look around with the mouse", "Press E to pick up");
   - the objectives (bilingual HUD lines at first, for example `Campamento (camp): madera (wood) 0/5`, the English dropped as each noun becomes
     known);
-  - the feedback after a turn, in plain English keyed by the core's error codes. That text lives in game content: game words live in `game/`,
+  - the feedback after a turn, in plain English keyed by the core's error codes. That text lives in game content: game words live in `content/game-v1`,
     and the core is not changed.
 - **The lesson runner.** A data-driven sequence in game content (for example `game/lessons.json`) of steps:
   - `explain` (English text);
@@ -500,7 +500,7 @@ controls in English.
   the speech-model checks in `SpeechEngine` (missing `VOCATERRA_MODELS_DIR`, a missing Vosk or Kokoro model, an unlisted manifest entry,
   a recogniser that fails to load), `TurnWorker`'s synthesis failures, `PushToTalk`'s microphone failure and `DialogueModel`'s fallback
   "could not evaluate". Each says what to do in plain English (for example `Speech models not found: set VOCATERRA_MODELS_DIR (see
-  nlp/scripts/fetch-models.sh)`). A sweep of `game/src` finds any other Spanish system text.
+  scripts/fetch-models.sh)`). A sweep of `src` finds any other Spanish system text.
 - **The panel key hints are English** (dialogue, journal, inventory, crafting), following the place S16 gave the English controls.
 - **The journal's labels are English too** (`Diario de frases` becomes `Phrase journal`; also `con ayuda`, `sin ayuda`, `ayuda: inglés,
   tarjeta y audio`, `lista para repasar`, `se oye`, `Sin ayuda: 0 de 12`, `Sesión 1`). S20 rebuilds this page as the book; S17b only
@@ -521,7 +521,7 @@ controls in English.
 
 The owner (2026-10-22, D-game-16): "a book that can be opened that tracks the nouns / verbs that the player has used, for this we need to track
 all the input they provide to us (speaking / writing). I also want a UI (perhaps in the book too) to track all completed lessons." S19 is the
-data; S20 is the book. No core change is needed: every evaluated turn already carries `PipelineResult.Words` (nlp/docs/API.md), one entry
+data; S20 is the book. No core change is needed: every evaluated turn already carries `PipelineResult.Words` (docs/nlp/API.md), one entry
 per token with the core's reading (`Lemma`, `Pos`, `Person`, `Number`, `Tense`, `Mood`, `Gender`), for a typed line exactly as for speech.
 - **The input history** (`Vocaterra.Game`, beside `PhraseProgress`): every line the learner gives the game, spoken or typed, in any
   dialogue, lesson step or check. One entry each: the text the core evaluated (the transcript for speech, the typed line), the source
@@ -642,7 +642,7 @@ S18, S20) and left open.
 
 ### S23: the LanguageTool check over the game's Spanish (Haiku 5.5, S)
 
-After core M30 (D10's dev-time half, owner 2026-10-22; research in `nlp/docs/research/2026-10-22-languagetool.md`).
+After core M30 (D10's dev-time half, owner 2026-10-22; research in `docs/nlp/research/2026-10-22-languagetool.md`).
 - **The game's strings.** A `--strings` JSONL extractor for the game's Spanish: dialogue lines, prompts, answer sets, PHRASES.md rows
   (Spanish, variants and learner-error examples), lessons, checks, and the Spanish sides of english.json. Slot templates are rendered by the
   core. Spanish only; the owner chose to leave the English support text out.
@@ -662,7 +662,7 @@ After core M30 (D10's dev-time half, owner 2026-10-22; research in `nlp/docs/res
 The owner (2026-10-22, D-game-18): "We also need to plan in sounds. So ambient sounds, also sounds when things are done, like when progressing
 through a lesson. Also sounds for interacting." The sources are CC0 packs (Kenney's audio packs, OpenGameArt CC0) plus sounds synthesized in
 code. There is no music.
-- **The mixer** (`game/src/Vocaterra.MonoGame`, beside `DynamicSoundOutput`; the policy is an engine-free model in Frontend/):
+- **The mixer** (`src/Vocaterra.MonoGame`, beside `DynamicSoundOutput`; the policy is an engine-free model in Frontend/):
   - categories: voice (the NPCs' pre-rendered Spanish, S9), sfx, ui and ambient (S25), each with its own volume;
   - **ducking:** ambient and sfx dip under any NPC voice line, so the ear stays on the Spanish (D-game-13);
   - **the microphone rule:** while push-to-talk or the mic check records, ambient and sfx are silent and ui plays only the start and stop
@@ -692,7 +692,7 @@ code. There is no music.
   - a check item answered;
   - session complete (the closing cue at the fire).
 - **Assets.**
-  - Every file is CC0. It is listed in `game/ATTRIBUTION.md` (or an `audio/SOURCES.md`) with its source URL, pack, licence and any edit,
+  - Every file is CC0. It is listed in `assets/ATTRIBUTION.md` (or an `audio/SOURCES.md`) with its source URL, pack, licence and any edit,
     and a test fails on an unlisted file.
   - Synthesized cues are generated deterministically at load: a fixed seed, never `System.Random`.
   - The audio budget is at most 15 MB in the playtest build. Files are 16-bit PCM WAV, mono for effects, at 22.05 or 44.1 kHz.
@@ -760,7 +760,7 @@ The owner (2026-10-22): "the ability to replay the soundclip for any of the noun
   play the NPC line that already speaks them (for example `guide.lesson.name.1` for `Me llamo Luna.`). The phrase sheet names the line;
   render a phrase recording only where no line exists.
 - **Not played:** nouns used outside the catalogue, which have no recording (they show no button), and the verb forms on the Verbs page.
-- **The listening list.** New WAVs are listed in `docs/SPEECH_CHECKLIST.md` for the owner (D-game-12 step 4). If the bundle changes:
+- **The listening list.** New WAVs are listed in `docs/game/SPEECH_CHECKLIST.md` for the owner (D-game-12 step 4). If the bundle changes:
   validate, hash, then refresh the grammar strings and cache (the game-v1 grammar gate is required).
 - **Tests:**
   - every catalogue noun and every phrase resolves to a recording, or is listed as having none on purpose;
@@ -834,7 +834,7 @@ The owner (2026-10-22): "a remake of the UI for the book, it should look like a 
 
 - The playtest build, `PLAYTEST.md` and the report script are updated for the new opening, the lesson steps, the longer session and the new
   phrases.
-- The launcher `game/playtest/playtest.sh` says "build this folder with `scripts/playtest-build.sh` first" when the game binary is missing.
+- The launcher `scripts/playtest/playtest.sh` says "build this folder with `scripts/playtest-build.sh` first" when the game binary is missing.
 - The build-size check is re-run.
 - The bundle hash is recorded for the owner's freeze before recall sessions.
 - Left for S18 by S15 to S21:

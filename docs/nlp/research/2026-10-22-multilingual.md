@@ -33,7 +33,7 @@ Staged plan: **Phase A**, five milestones that put Spanish behind interfaces wit
 
 | Measure | Value |
 | --- | --- |
-| C# in `nlp/src` and `nlp/tools` | 254 files, 28,297 lines |
+| C# in `src` and `tools` | 254 files, 28,297 lines |
 | Wholly Spanish code (would be rewritten for German) | about 5,200 lines in 28 files: Phonology 1,776, Analysis 2,055, Morphology 743, numbers and phonetic key 524, word classes and folding 116 |
 | Spanish inside otherwise neutral files (seams to cut) | about 1,200 lines in about 20 files (normalizer, templates, recast, punctuation, slot-grammar defaults, lint, pronunciation tuning, importer, taxonomy, schema) |
 | Language-neutral code | about 21,900 lines (77 %) |
@@ -60,11 +60,11 @@ section 5. S is under a day of agent work, M one to three days and L more (**est
 | 11 | Intent resolver and keyword rules | `Intent/IntentResolver.cs` (340), `IntentCatalog.cs` (386), `KeywordRule.cs` (39), `IntentExample.cs` (202) | None in code: keyword rules are lemmas in content, and the e5 model is multilingual. Examples are normalized with the Spanish normalizer (`IntentResolver.cs:328`) | none beyond item 1 |
 | 12 | Template functions and response planner | `Response/Templates/TemplateEngine.cs` (438): `article(def|indef)` with no case, `plural-if`, `conj(p,n,t)`, `words(m|f|slot)`, `cap`, the `HeuristicGender` fallback, and `TemplateEngine.Default` built on the Spanish seed lexicon; `PunctuationFixer.cs` (110) balances `¿?` and `¡!` in *every* rendered line; `ResponsePlanner.cs` (101) is neutral | Articles, number words, gender guess, inverted marks | M: an `ITemplateFunctions` provider plus `IPunctuation`. Today a German line `Was kostet das?` would render as `¿Was kostet das?` |
 | 13 | Feedback, recasts, repair ladder | `RecastBuilder.cs` (275): span edits are neutral; accent restoration, digits as Spanish words and `un/una` before a noun are not; it works on lowercased normalized text. `Intent/RepairStrategy.cs` (133): `AskAgainLine = "¿Cómo?"`, `SlowRepeatLine = "Perdón, te lo repito más despacio."` are Spanish text in code. `Decision/Feedback/FeedbackPolicy.cs` (165) and `TagPattern.cs` (82) are neutral | Recast spelling restoration; repair lines | S: an `IRecastPolicy`; the repair lines become reserved dialogue pools with the constants as fallback |
-| 14 | Pronunciation and speech adapters | `Pronunciation/PredictedErrorMatcher.cs` (173), `PhoneClass.cs` (81), `EspeakPhoneMap.cs` (94), `FakePhonemeRecognizer.ForSpanish` (205), `PronunciationThresholds.cs` (98): tuned to the Spanish inventory and the four `pron.*` tags. CTC, GOP, the aligner and the wav2vec2 adapter (about 1,400 lines) are neutral. `KokoroSynthesizer.cs:34` hard-codes `Lang = "es"`. Model ids: `tools/Vocaterra.Nlp.Cli/Program.cs:303` and `Bench/Program.cs:121` (`vosk-model-small-es-0.42`); `game/src/Vocaterra.Game/SpeechEngine.cs:23,32` (Vosk es, `ef_dora`) | Phone inventory, tags, voice language | S for the seams (the phone map comes from the pack's G2P); the German scorer depends on D13 |
+| 14 | Pronunciation and speech adapters | `Pronunciation/PredictedErrorMatcher.cs` (173), `PhoneClass.cs` (81), `EspeakPhoneMap.cs` (94), `FakePhonemeRecognizer.ForSpanish` (205), `PronunciationThresholds.cs` (98): tuned to the Spanish inventory and the four `pron.*` tags. CTC, GOP, the aligner and the wav2vec2 adapter (about 1,400 lines) are neutral. `KokoroSynthesizer.cs:34` hard-codes `Lang = "es"`. Model ids: `tools/Vocaterra.Nlp.Cli/Program.cs:303` and `Bench/Program.cs:121` (`vosk-model-small-es-0.42`); `src/Vocaterra.Game/SpeechEngine.cs:23,32` (Vosk es, `ef_dora`) | Phone inventory, tags, voice language | S for the seams (the phone map comes from the pack's G2P); the German scorer depends on D13 |
 | 15 | CEFR lists and `cefr-check` | `Content/CefrChecker.cs` (349), `LintCefr.cs` (46) | Mechanism neutral (lemma lists in content). It normalizes with the Spanish normalizer and keeps `una` as the article | S (follows item 1) |
 | 16 | Content linter (M27a) | `Content/ContentLinter.cs`, `Lint*.cs` (about 1,000) | `LintCoverage.cs:12` lists the Spanish subject pronouns, `:85` the trailing `por favor`, `:107` `un`/`una`; the hazards check knows Spanish homograph shapes | S |
 | 17 | Fuzz generators and oracles | `tests/Vocaterra.Nlp.Fuzzing.Tests/Generation/SentenceRealizer.cs` (1,205), `MutationGen.cs` (764), `LexiconCatalog.cs` (645), `SpanishTextGen.cs` (287), `SentenceModel.cs` (207), `SentenceGen.cs` (159), `PhoneGen.cs` (203), `AdversarialCorpus.cs` (199) | O3, O4, O5, O6, O8, O9 and O12 are Spanish models (O12 checks balanced `¿?`); O1, O2, O7, O10, O11, O13 to O16 are neutral apart from their input generators | M (section 4.8) |
-| 18 | Goldens | `tests/Vocaterra.Nlp.Golden.Tests/Data/g2p-golden.jsonl` (1,788 lines), `e2e-offer-items-open.golden.json`, `e2e-confirm-open.golden.json`; `golden/manifest.jsonl` (audio protocol) | All Spanish | S: a `Data/<lang>/` layout for new languages; existing paths unchanged |
+| 18 | Goldens | `tests/Vocaterra.Nlp.Golden.Tests/Data/g2p-golden.jsonl` (1,788 lines), `e2e-offer-items-open.golden.json`, `e2e-confirm-open.golden.json`; `tests/golden/manifest.jsonl` (audio protocol) | All Spanish | S: a `Data/<lang>/` layout for new languages; existing paths unchanged |
 | 19 | CLI and bench | `tools/Vocaterra.Nlp.Cli/Program.cs` (360), `Bench/Program.cs` (213) | Model ids; the default bundle `content/v1` | S: `--language` is read from the bundle; model ids come from a per-language table |
 | 20 | Pipeline and bundle wiring | `ContentBundle.cs:37-38` builds `MorphologyGenerator` and `TemplateEngine` directly; `UtterancePipeline.cs:99-100,313,319` calls `TextNormalizer`, `AnswerMatcher`, `SpanishNumbers` and `SpanishG2p` statically; `ContentManifest.cs` has no language; `CanonicalJson.cs:25` mentions Spanish in a comment only | The construction sites | S: the bundle owns the pack; the pipeline asks the bundle |
 
@@ -94,7 +94,7 @@ These would break silently, not loudly, the day a second language loads:
 5. Every slot grammar silently accepts a missing subject and a trailing `por favor`. In German, a dropped subject is an error, and `bitte`
    can stand almost anywhere.
 6. `ErrorTags.All` is the whole taxonomy. The game builds its English error lines from it and tests that every tag has one
-   (`game/src/Vocaterra.Game/EnglishText.cs:485`, `game/tests/Vocaterra.Game.Tests/EnglishTextTests.cs:111`). Appending German tags to
+   (`src/Vocaterra.Game/EnglishText.cs:485`, `tests/Vocaterra.Game.Tests/EnglishTextTests.cs:111`). Appending German tags to
    `All` would fail a game test and change the fuzz suite's random draws (`VerdictGen`, `TemplateFuzzTests` pick from `All`).
 7. `CanonicalJson` writes nulls (`DefaultIgnoreCondition = Never`). A new nullable member on any serialized record changes every golden,
    unless it carries `JsonIgnore(WhenWritingNull)`, as `IntentLintWaivers` already does.
@@ -219,7 +219,7 @@ All checked on 2026-10-22. Sizes are download sizes as published.
 
 - **`manifest.json` gains `"language"`** (a BCP-47 tag: `de-DE`; the pack is chosen by its primary subtag `de`) and an optional
   `"supportLanguage"` (`en`). When `language` is absent, the bundle is Spanish (`es`, with ADR 0005's Latin American default). So
-  `content/v1` and `game/content/game-v1` need no edit and keep their hashes. One bundle has one target language.
+  `content/v1` and `content/game-v1` need no edit and keep their hashes. One bundle has one target language.
 - **The bundle hash** includes the language only when the field is present: `Combine("language", tag, path₁, sha₁, …)`, otherwise the
   current `Combine(path₁, sha₁, …)`. A German bundle can never share a hash with a Spanish one, and a Spanish bundle hashes as before.
 - **The loader resolves an `ILanguagePack`** from a registry (`LanguagePacks.Default` holds `es`, and `de` once it ships; a host may pass
@@ -382,7 +382,7 @@ Dependency direction after the change: `Core` ← `Language` (engines, interface
 
 Every Phase A milestone must keep Spanish byte-identical. The guard is **`SpanishIdentityGuard`**, built first (M31):
 
-1. **A frozen input corpus.** The 96 real-lexicon homograph sentences of M18's `HomographSentencesTests` and the regression sentences of M26b, M29c and M29j (M26b's 1,102-sentence corpus is not committed; re-create it if it can be found), every intent example of `content/v1` and `game/content/game-v1`, every
+1. **A frozen input corpus.** The 96 real-lexicon homograph sentences of M18's `HomographSentencesTests` and the regression sentences of M26b, M29c and M29j (M26b's 1,102-sentence corpus is not committed; re-create it if it can be found), every intent example of `content/v1` and `content/game-v1`, every
    `docs/CLI_EXAMPLES.md` input, all 1,788 G2P golden words, and 5,000 sentences and mutations drawn once from the current fuzz generators at
    fixed seeds. The inputs are stored as data, so later generator changes cannot alter them.
 2. **A frozen output baseline,** recorded on the pre-refactor commit. For each input it stores the SHA-256 of the canonical JSON of
@@ -514,6 +514,6 @@ Accessed 2026-10-22.
 23. LanguageTool (LGPL-2.1 or later): https://github.com/languagetool-org/languagetool
 
 **Repository (read at `ecd646d`)**
-`nlp/IMPLEMENTATION_PLAN.md` (§1–§5, §5b M26b, M29c, M29j, §7, §9, §10); `nlp/docs/DECISIONS.md`; `nlp/docs/API.md`; `nlp/docs/adr/0002`, `0005`,
-`0007`, `0008`, `0009`; `nlp/docs/LEXICON.md`; `nlp/docs/FUZZING_PLAN.md`; `nlp/models/manifest.json`; `nlp/docs/research/SCALING_APPROACHES.md`;
-`game/docs/DECISIONS.md` (D-game-9, 10, 12, 13, 16); `game/docs/ARCHITECTURE.md`; source files as cited in section 1.
+`docs/nlp/IMPLEMENTATION_PLAN.md` (§1–§5, §5b M26b, M29c, M29j, §7, §9, §10); `docs/nlp/DECISIONS.md`; `docs/nlp/API.md`; `docs/nlp/adr/0002`, `0005`,
+`0007`, `0008`, `0009`; `docs/nlp/LEXICON.md`; `docs/nlp/FUZZING_PLAN.md`; `models/manifest.json`; `docs/nlp/research/SCALING_APPROACHES.md`;
+`docs/game/DECISIONS.md` (D-game-9, 10, 12, 13, 16); `docs/game/ARCHITECTURE.md`; source files as cited in section 1.

@@ -44,7 +44,7 @@ The check is advisory first, required after one round of waivers, as the lint wa
 | `game-v1/game/phrases.json` and `PHRASES.md` | 21 + 53 variants (and the sheet repeats them, plus 14 learner-error cells) | the sheet and the JSON are the same set |
 | `game-v1/game/english.json` `lines[]`, `checks.json` | 104 + 11 | Spanish and English sides |
 | `game-v1/game/lessons.json` | 0 Spanish (all English; the Spanish is in `lines`/phrases by id) | |
-| `nlp/content/v1` (sample bundle) | 28 lines + 53 renderings, 18 prompts, 19 + 46 answers, 57 examples | |
+| `content/v1` (sample bundle) | 28 lines + 53 renderings, 18 prompts, 19 + 46 answers, 57 examples | |
 | **Total** | **1 344 strings from all sources including English, 530 distinct Spanish** (419 plain, 111 rendered) | `game/scene.json` has no learner text |
 
 The English support text (`english.json`, `lessons.json`, `checks.json`, `phrases.json`, `PHRASES.md`): 206 distinct strings.
@@ -117,7 +117,7 @@ against the report's 9 on a 6.9 snapshot; it still misses `tú habla`, `las casa
 ## 3. Constraints that shape the design
 
 - **Licence.** LanguageTool and its Spanish dictionary are LGPL-2.1 [2][3]. D10's recommendation (allow LGPL/GPL only as a separate process at
-  development time, never linked or shipped) fits exactly; D10 is still marked open in `nlp/docs/DECISIONS.md`, and M22 already assumes it. A C#
+  development time, never linked or shipped) fits exactly; D10 is still marked open in `docs/nlp/DECISIONS.md`, and M22 already assumes it. A C#
   HTTP client has no LanguageTool code in it, so `scripts/license-scan.sh` (NuGet only, copyleft refused) stays clean and needs no new package
   (`System.Net.Http`). The JRE is GPLv2 with Classpath Exception [4]: a tool we download, not ship. Add both to a `NOTICE` development-tools note.
 - **Determinism (plan section 3, D9).** Nothing in the evaluation path may depend on it. A network oracle at gate time would break reproducibility,
@@ -130,7 +130,7 @@ against the report's 9 on a 6.9 snapshot; it still misses `tú habla`, `las casa
 ## 4. Integration design
 
 **Where it lives.** `vocaterra-content grammar <bundleDir> [--server http://localhost:8081] [--strings extra.jsonl] [--cache path]
-[--waivers path] [--offline] [--json] [--english]` in `nlp/tools/Vocaterra.Nlp.ContentBuilder`, an HTTP client only, beside `lint` and `cefr-check`. A
+[--waivers path] [--offline] [--json] [--english]` in `tools/Vocaterra.Nlp.ContentBuilder`, an HTTP client only, beside `lint` and `cefr-check`. A
 script beside `content.sh` would have to re-implement bundle reading and the template engine; the core command gets both for free and joins
 `scripts/content.sh` (add `grammar` to its case list). Game-owned strings enter through `--strings`, a JSONL list `{id, file, lang, text, tags[],
 template?}` produced by a small game script (`scripts/grammar-strings.sh`, S23); the core never learns the game's file shapes.
@@ -193,14 +193,14 @@ Never fetch n-gram data: it enables confusion-pair rules (`a ver`/`haber`) but i
 1. `game-v1/answer-sets/yes-no.json` (`yes-no.yes.alias6`) and `lesson-yes-no.json` (`lesson-yes-no.yes.alias6`): `si quiero` -> rule `SI_AFIRMACION`,
    span `si`, suggestion `Sí`. The accepted answer is missing its accent. Decide: add `sí quiero` (the normaliser may fold both, check) or waive
    with the reason "unaccented typing".
-2. `nlp/content/v1/intents/intents.json` `confirm.ex5` `yo estás de acuerdo` and `introduce_self.ex4` `yo es Rosa` (`AGREEMENT_PRONOUNSUBJECT_VERB`),
+2. `content/v1/intents/intents.json` `confirm.ex5` `yo estás de acuerdo` and `introduce_self.ex4` `yo es Rosa` (`AGREEMENT_PRONOUNSUBJECT_VERB`),
    and `thank.ex4` `mucho gracias` (`AGREEMENT_DET_NOUN`): untagged examples that are learner errors. Already named in M27a2; add the expectations
    (`conj.person`, `conj.person`, `gender.agree`+`noun.number`).
-3. `nlp/content/v1/dialogue/dialogue.json` `sell_item_reply.2`: `...` (`PUNTOS_SUSPENSIVOS`, suggests `…`). Style only; waive or change to `…`.
+3. `content/v1/dialogue/dialogue.json` `sell_item_reply.2`: `...` (`PUNTOS_SUSPENSIVOS`, suggests `…`). Style only; waive or change to `…`.
    Check that the speech/TTS path treats both alike.
 4. `game-v1/game/checks.json:116`: `traveller` -> `traveler` in en-US text (the game's English is US everywhere else).
 5. Template, not text, **to verify**: `game-v1/dialogue/dialogue.json` `guide.find.source.1` renders `de el` for a singular masculine source;
-   the core's template engine has no `de`+`el` contraction (no `del` in `nlp/src` templating). No current caller triggers it; either add a
+   the core's template engine has no `de`+`el` contraction (no `del` in `src` templating). No current caller triggers it; either add a
    contraction modifier (a core item) or keep the sources plural. M30 will confirm by rendering with the real engine.
 6. Style notes the check cannot make: the sample bundle's `Vale` (5 lines) is Spain-only; fix only if the sample is meant to follow ADR 0005.
 
@@ -211,16 +211,16 @@ sampler turns out to be fiddly). Depends on M27a (done) and D10. Replaces the La
 COWS-L2H sample.
 - Scope: `vocaterra-content grammar` as in section 4 (`LanguageToolClient` in ContentBuilder, bundle string extraction, `TemplateEngine`
   sampling, `--strings` JSONL input, cache, waivers, rule-to-tag map, lint-style and `--json` output, exit codes 0/1/2/3); `scripts/fetch-tools.sh`,
-  `tools/manifest.json`, `scripts/languagetool.sh`; docs (`nlp/TOOLS.md` section, a `NOTICE` development-tools line, `CONTRIBUTING.md` step);
-  run it on `nlp/content/v1`, commit `grammar-cache.json` and the waivers with a reason each.
+  `tools/manifest.json`, `scripts/languagetool.sh`; docs (`docs/nlp/TOOLS.md` section, a `NOTICE` development-tools line, `CONTRIBUTING.md` step);
+  run it on `content/v1`, commit `grammar-cache.json` and the waivers with a reason each.
 - Deliverables: the command with unit tests that use a **fake HTTP server** (a canned response; the tests never need Java, so `dotnet test` stays
   unchanged); the cache and waivers for the sample bundle; the item-2 and item-3 fixes via the bundle's re-hash procedure.
-- Gate: the normal merge gate; plus `grammar --offline nlp/content/v1` clean (advisory in the gate script); `license-scan.sh` unchanged (no new package).
+- Gate: the normal merge gate; plus `grammar --offline content/v1` clean (advisory in the gate script); `license-scan.sh` unchanged (no new package).
   Not a hard gate until one waiver round is done.
 
 **S23: Grammar check on the game bundle** (game plan, after M30, size **S**, Haiku). `scripts/grammar-strings.sh` (the phrase sheet, `phrases.json`,
 `english.json` Spanish lines, `checks.json`), run `grammar` over `game-v1`, apply item 1 and 4, commit cache and waivers, add the advisory step to
-the content gate in `scripts/merge-gate.sh` and to the D-game-12 checklist (before the Opus pass). Gate: `grammar --offline game/content/game-v1
+the content gate in `scripts/merge-gate.sh` and to the D-game-12 checklist (before the Opus pass). Gate: `grammar --offline content/game-v1
 --strings ...` clean on `feature/prototype`.
 
 ## 7. Open decisions for the owner
@@ -242,7 +242,7 @@ the content gate in `scripts/merge-gate.sh` and to the D-game-12 checklist (befo
 3. LanguageTool download (`LanguageTool-stable.zip`, here 6.6): https://languagetool.org/download/
 4. Eclipse Temurin (Adoptium) 21 JRE, GPLv2 with Classpath Exception: https://adoptium.net/temurin/releases/
 5. LanguageTool HTTP API (`/v2/check` parameters, annotated text): https://languagetool.org/http-api/
-6. `nlp/docs/research/SCALING_APPROACHES.md` section 3.2 (the 9-of-20 experiment) and its sources 24 to 28.
+6. `docs/nlp/research/SCALING_APPROACHES.md` section 3.2 (the 9-of-20 experiment) and its sources 24 to 28.
 7. LanguageTool public API and its limits: https://dev.languagetool.org/public-http-api
-8. Repository: `nlp/docs/DECISIONS.md` D8 to D10; `nlp/IMPLEMENTATION_PLAN.md` M22, M27a, M27a2, section 3; `game/docs/DECISIONS.md` D-game-10, 12, 13;
-   `nlp/TOOLS.md` (lint); `nlp/scripts/license-scan.sh`; `scripts/content.sh`; `scripts/merge-gate.sh`.
+8. Repository: `docs/nlp/DECISIONS.md` D8 to D10; `docs/nlp/IMPLEMENTATION_PLAN.md` M22, M27a, M27a2, section 3; `docs/game/DECISIONS.md` D-game-10, 12, 13;
+   `docs/nlp/TOOLS.md` (lint); `scripts/license-scan.sh`; `scripts/content.sh`; `scripts/merge-gate.sh`.

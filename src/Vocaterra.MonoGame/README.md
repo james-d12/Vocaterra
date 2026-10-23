@@ -258,7 +258,7 @@ outside `FrameClock.cs`, project references only the game layer and the simulati
 
 - The sandbox or CI may have no display: `--screenshot` then needs `xvfb-run -a dotnet run ...`. The Linux runtime needs `libSDL2`
   and `libopenal` (the DesktopGL package ships its own copies; on a Linux x64 build they are copied next to the executable, see
-  `docs/ARCHITECTURE.md` for the native-asset trim).
+  `docs/game/ARCHITECTURE.md` for the native-asset trim).
 - The back buffer is read after the frame is drawn and before the swap; on DesktopGL it comes back upright (checked), not flipped.
 - **S17.** `GuideApproach` opens the panel on the guide when the player walks up to her and her lesson is waiting (or her transfer offer is, once the camp is
   done); `SessionEnding` and `EndingLayer` are the closing card; `SpeechButtons.TextFor` and `HintsFor` add the English to the buttons and the hold-to-talk hint (a

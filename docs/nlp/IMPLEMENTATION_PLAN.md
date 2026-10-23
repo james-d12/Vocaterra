@@ -1,5 +1,7 @@
 # Implementation Plan — Voice Recognition & Feedback System
 
+> **Layout note (R01, 2026-10-23):** the repository now has one root layout. `nlp/src`, `nlp/tests`, `nlp/tools` and `game/src`, `game/tests`, `game/tools` are `src/`, `tests/` and `tools/`; `nlp/docs` is `docs/nlp/`, `game/docs` is `docs/game/`; `nlp/content/v1` is `content/v1`, `game/content/*` is `content/`, `nlp/golden` is `tests/golden`, `nlp/models` is `models/`, `game/assets` is `assets/`, `nlp/scripts` is `scripts/`, `game/playtest` is `scripts/playtest`; `LICENSE` and `NOTICE` are at the root and cover the whole repository (Apache-2.0). The core is the `Vocaterra.Nlp.*` projects, the game is `Vocaterra.{Simulation,Game,MonoGame,Host,SpeechRender}`; `Vocaterra.Nlp.slnf` builds the core alone. Paths and links below were updated to match; the narrative is otherwise unchanged. `.github/workflows-pending/ci.yml` still uses the old `nlp/` paths.
+
 Derived from `HIGH_LEVEL_DOCS.md` (Oct 18, 2026) and `SPECIFICATION.md`. This file is the
 working plan for building the deterministic voice pipeline in C# / .NET. It is maintained by the
 orchestrator; milestone agents update only the **Status** column of their own milestone.
@@ -51,7 +53,7 @@ SpanishLearningGame/
   content/v1/             versioned, hashed content bundle (JSON)
   golden/                 golden learner audio manifest (+ recording protocol); audio is gitignored
   models/                 gitignored; models/manifest.json (names, versions, SHA-256) is committed
-  docs/adr/               architecture decision records
+  docs/nlp/adr/               architecture decision records
 ```
 
 Dependency direction (no cycles): `Core` <- `Audio`, `Phonology`, `Nlp`, `Pronunciation`, `Asr`,
@@ -189,23 +191,23 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M13b | Integration fixes from the demo: answer-match communication, spell grammars, blacksmith idle transitions | M13 | S | done |
 | M14 | CI matrix (x64/ARM64/Windows/macOS), golden tests, license scan, format check (workflow parked in `.github/workflows-pending` until the push token has `workflow` scope) | M13 | H | done |
 | M15 | README, ADRs, CONTRIBUTING, determinism checklist | M13 | S | done |
-| M16a | Combinatorial fuzz testing, stage 1: project, CsCheck, generators, harness, language oracles (see `docs/FUZZING_PLAN.md`) | M13b | S | done |
+| M16a | Combinatorial fuzz testing, stage 1: project, CsCheck, generators, harness, language oracles (see `docs/nlp/FUZZING_PLAN.md`) | M13b | S | done |
 | M16b | Combinatorial fuzz testing, stage 2: signal, decision, content and pipeline oracles | M16a | S | done |
 | M17a | Vocabulary expansion: Wiktionary (kaikki.org) lexicon import filtered by a frequency list, provenance, coverage gates (see §7) | M16b | M | done |
 | M17b | Intent expansion, game part: planned and built in the Vocaterra repository (not tracked here since 2026-10-21) | M17b-core | — | moved (Vocaterra) |
 | M17b-core | The core part of M17b: `[WORD:slot]` grammar token, generic sample intents (confirm, deny, farewell, thank, introduce_self), blacksmith confirming state, fuzz support | M19a | M | done |
 | M18 | Part-of-speech disambiguation in the analyzer (triggered: `ayer compré un libro` yields a false `conj.tense` on main after M17a) | M17a | M | done |
-| M19a | Standalone core, step 1: boundary ADR, rename `Slg.*` → `Vocaterra.Nlp.*` (solution, projects, namespaces, packages), game-agnostic context and agent naming, opaque outcome kinds, `docs/API.md`, README reframed as a library (see §8) | M18 | M | done |
+| M19a | Standalone core, step 1: boundary ADR, rename `Slg.*` → `Vocaterra.Nlp.*` (solution, projects, namespaces, packages), game-agnostic context and agent naming, opaque outcome kinds, `docs/nlp/API.md`, README reframed as a library (see §8) | M18 | M | done |
 | M19b | Standalone core, step 2: NuGet packaging of `Slg.*`, content bundle packaging, `samples/HostConsole` consuming the packages (see §8) | M19a | S | done |
 | M19c | Standalone core, step 3: new game repository scaffold with the game spec, game content bundle and a host project on the packages (see §8) | M19b | S | done |
 | M17c | Evaluator polish from the CLI-examples review: near-miss recast, `vocab.wrong` expected value, plural/accent corrections, leading-adverb grammars (see §5b) | M16b | S | done |
 | M19d | Post-split core follow-ups from the game host author: repeat-count helper and next-turn context, prompt `text` in `PromptSpec`, ContentBuilder as a dotnet tool `vocaterra-content` | M19c, M17b-core | H | done |
 | M19e | Apache-2.0 licence (D3), submodule consumption route (D5), core/game documentation isolation (D12) | M19d | H | done |
 | M19f | Recast bug from the fuzz suite (O5, seed `1diyRPH9lxJ1`): a `conj.tense` error after a leading `ayer` on an irregular verb (`ayer tengo sufrir`) is detected but the recast repeats the wrong form instead of `tuve` | M19e | H | done |
-| M26 | Game requests, batch 1 (CR-002…CR-013, triaged 2026-10-21 into M26a–f below; all rows `done` in the game's `docs/CORE_REQUESTS.md`) | M19f | — | done |
+| M26 | Game requests, batch 1 (CR-002…CR-013, triaged 2026-10-21 into M26a–f below; all rows `done` in the game's `docs/nlp/CORE_REQUESTS.md`) | M19f | — | done |
 | M26a | CR-012: repeat counts mean "before this utterance" on `ConversationContext`; the pipeline applies `RepeatCounts.Next` itself before `FeedbackPolicy.Plan` and `RepairFor`; docs and sample host follow | M19f | H | done |
 | M26b | CR-013: accent-insensitive lookup also offers the accented readings of a form the lexicon has (`esta`/`está`, `si`/`sí`, `mas`/`más`, `el`/`él`, `tu`/`tú`…) and the reading resolver chooses | M19f | S | done |
-| M26c | CR-002 analysis on the result, CR-004 answer match on the result, CR-007 host-owned bundle files (`ContentBundle.TryReadHostFile`), CR-008 threading and load-cost contract in `docs/API.md` | M26a | H | done |
+| M26c | CR-002 analysis on the result, CR-004 answer match on the result, CR-007 host-owned bundle files (`ContentBundle.TryReadHostFile`), CR-008 threading and load-cost contract in `docs/nlp/API.md` | M26a | H | done |
 | M26d | CR-003 host slot values (`SlotMap` on the context, template access, replay record and `HostStateHash`), CR-005 host-named skills in the learner update | M26c | S | todo |
 | M26e | CR-006 speech-out readiness: Kokoro and Parakeet file hashes pinned from real downloads, `KokoroSynthesizer.FromStore`, Spanish speaker ids documented (D2: private builds only) | M19f | H | done |
 | M26f | CR-010 `cefr-check` reads prompt text; CR-011 sample `ATTRIBUTION.md` describes the sample only (content procedure: hash re-pin, goldens) | M26d | H | done |
@@ -217,7 +219,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M28a | Game requests, batch 2: CR-017 two-phase evaluation (analyse, then plan the response with host slots and skills computed from the analysis; one evaluation per turn) and CR-015 host-initiated agent turns (the agent speaks and moves on a host event, in the replay record and the interaction counter) | M26 | S | done |
 | M28b | Game requests, batch 2: CR-016 replies that depend on a host fact (variant or pool chosen by a host slot, or a conditional that renders only when a slot is supplied) and CR-018 lists in templates (`join` with per-part count agreement) | M26 | S | proposed |
 | M28c | Game requests, batch 2: CR-014 host-supplied expected slot values graded like an answer set (`vocab.wrong` on the span, correctness and `communicated` follow) | M26 | S | proposed |
-| M28d | Game requests, batch 3 (the last rows of the game's former `docs/CORE_REQUESTS.md`, closed when the repositories merged on 2026-10-21): CR-019 `scripts/fetch-models.sh` copies `models/manifest.json` into the destination (or `ModelStore` takes a manifest path), so a shared models folder is self-describing; CR-020 a public WAV reader and writer (mono or multi-channel 16-bit PCM to `AudioBuffer`); CR-021 the two `libonnxruntime.so` (Microsoft.ML.OnnxRuntime and sherpa-onnx) coexisting without the consumer's `ExcludeAssets="native"` workaround; CR-022 an ASR confidence that tracks the audio (for example the mean or minimum of Vosk's per-word `conf`) as `AsrResult.Confidence`, or a recognizer option for it | M26 | S | proposed |
+| M28d | Game requests, batch 3 (the last rows of the game's former `docs/nlp/CORE_REQUESTS.md`, closed when the repositories merged on 2026-10-21): CR-019 `scripts/fetch-models.sh` copies `models/manifest.json` into the destination (or `ModelStore` takes a manifest path), so a shared models folder is self-describing; CR-020 a public WAV reader and writer (mono or multi-channel 16-bit PCM to `AudioBuffer`); CR-021 the two `libonnxruntime.so` (Microsoft.ML.OnnxRuntime and sherpa-onnx) coexisting without the consumer's `ExcludeAssets="native"` workaround; CR-022 an ASR confidence that tracks the audio (for example the mean or minimum of Vosk's per-word `conf`) as `AsrResult.Confidence`, or a recognizer option for it | M26 | S | proposed |
 | M29a | Game request (prototype S5, conditional): a trailing optional literal group in the slot-grammar DSL (`(por favor)?`); filed only if S5 confirms the DSL cannot express it | M27a | H | proposed, conditional |
 | M29b | Game request (prototype S7, conditional): evaluate with an explicit `RecognitionRequest` (the repair ladder's `RetryRequest`) instead of the prompt's request; filed only if S7 finds no `PipelineOptions` route. **Confirmed by S7 (2026-10-22):** `Analyze(PcmClip, PromptSpec)` builds the request from the prompt and answer set only; the call needed is an optional `RecognitionRequest` on `Analyze`/`Trace`/`Evaluate`. Low priority (the game shows the choices as buttons) | M28a | S | proposed |
 | M29c | Game request (prototype S5, bug): number and gender agreement blames the noun when the modifier is wrong. "no, mucho gracias" gives `noun.number` expected 'gracia' (and `gender.agree` expected 'mucha'), recast «no mucha gracia»; "buenos día" recasts «Bueno día». The expected forms and the recast must agree with the noun as said when the noun is a valid word ("muchas gracias", "buenos días"), at the source in `AgreementChecker` / `RecastBuilder`, with regression tests and the fuzz oracles unchanged. Waiting: the game's S6/S7 feedback (on-screen recasts) | M28a | S | done (merged to `feature/prototype` 2026-10-22, `27808db`) |
@@ -228,9 +230,9 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M29h | Fuzz suite flake (found by the S8 gate, 2026-10-22): `ChangingOneRecordedOutput_MakesTheReplayerNameThatPath` asserts each envelope region is reached at least once in 300 random-seed iterations, but `region:effects` is reached about 4 times per run (measured 3 to 5), so about 1 to 2 runs in 100 fail. Fix the generator or the mutation-path choice so every region's expected count is well above its minimum; minimums unchanged | M29e | H | done (merged to `feature/prototype` 2026-10-22) |
 | M29i | Fuzz finding (found during M29h, 2026-10-22, seed not recorded): `MutationTagFuzzTests.OneMutation_YieldsExactlyTheNamedTag_WithTheOriginalFormAsCorrection` (O4) failed once: "missing [word_order@22+23 expected 'juventudes sorprendidas' actual 'sorprendidas juventudes']"; passed on reruns. A rare analyzer word-order mismatch; reproduce with a recorded seed (raise iterations until it recurs), fix at the source. Not blocking the game | M29h | S | proposed |
 | M29j | Game request (prototype S19, for S20's book): readings a learner's word record exposes. (1) `está` in «¿dónde está el río?» is read as the 2 sg imperative, because the resolver takes the first reading in lexicon order; prefer the indicative when a subject follows or the verb is not clause-initial. (2) «gracias» alone and in «muchas gracias» is read as the plural noun `gracia`; give it an interjection reading (lemma `gracias`). (3) `favor` in every «por favor» is read as a noun; read «por favor» as one fixed expression (tokens keep their spans). Agreement checks must not change: M29c's «mucho gracias» still gives `gender.agree` 'muchas'. Regression tests in the analysis module; no fuzz oracle weakened; goldens re-recorded only where a reading changes, with errors unchanged; the core demo unchanged. Numerals as digits (`dos` gives lemma `2`) stay as documented. Waiting: game S20 (the book's Nouns and Verbs pages) | M29c | S | done (merged to `feature/prototype` 2026-10-22, `7ebf9b5`) |
-| M30 | LanguageTool content grammar check (D10's dev-time half, owner 2026-10-22; design in `docs/research/2026-10-22-languagetool.md`): `vocaterra-content grammar`, a plain HTTP client (no LanguageTool code linked; licence scan unchanged). (1) It extracts the bundle's Spanish strings, or reads a host's `--strings` JSONL, and renders slot templates with the core's own template engine from sampled fillings. (2) It capitalises learner-side strings before the call, so `UPPERCASE_SENTENCE_START` is not hit. (3) Output matches `lint`, with a waiver file that gives a reason per accepted match. (4) Learner-error examples act as a second oracle (flagged and tagged, tagged but silent, untagged but flagged). (5) A committed result cache keyed by sha256 of LanguageTool version, settings and text; `--offline` reads only the cache. (6) `scripts/fetch-tools.sh` and `tools/manifest.json` (Temurin JRE and LanguageTool pinned by hash; no n-grams). (7) `scripts/languagetool.sh` starts the server in a capped systemd scope (2 GB, 2 cores), not through `limited.sh`. (8) Tests use a fake HTTP server, so `dotnet test` needs no Java. (9) A cache and waivers for `content/v1`, which closes M27a2's three untagged examples. Replaces the LanguageTool half of M22. Waiting: game S23 | M29j | H | done (merged to `feature/prototype` 2026-10-22, `0d04a33`) |
+| M30 | LanguageTool content grammar check (D10's dev-time half, owner 2026-10-22; design in `docs/nlp/research/2026-10-22-languagetool.md`): `vocaterra-content grammar`, a plain HTTP client (no LanguageTool code linked; licence scan unchanged). (1) It extracts the bundle's Spanish strings, or reads a host's `--strings` JSONL, and renders slot templates with the core's own template engine from sampled fillings. (2) It capitalises learner-side strings before the call, so `UPPERCASE_SENTENCE_START` is not hit. (3) Output matches `lint`, with a waiver file that gives a reason per accepted match. (4) Learner-error examples act as a second oracle (flagged and tagged, tagged but silent, untagged but flagged). (5) A committed result cache keyed by sha256 of LanguageTool version, settings and text; `--offline` reads only the cache. (6) `scripts/fetch-tools.sh` and `tools/manifest.json` (Temurin JRE and LanguageTool pinned by hash; no n-grams). (7) `scripts/languagetool.sh` starts the server in a capped systemd scope (2 GB, 2 cores), not through `limited.sh`. (8) Tests use a fake HTTP server, so `dotnet test` needs no Java. (9) A cache and waivers for `content/v1`, which closes M27a2's three untagged examples. Replaces the LanguageTool half of M22. Waiting: game S23 | M29j | H | done (merged to `feature/prototype` 2026-10-22, `0d04a33`) |
 | M49 | Game request (prototype S27, D-game-19): tense checks for the near future. (1) A future-time marker (`mañana`, `la próxima semana`, `luego`…) with a past form gives `conj.tense`, expected the `ir a` + infinitive or future form. (2) A conjugated verb after `ir a` (`voy a como`) gives `conj.tense`, expected the infinitive, unless the core's design finds a better existing tag. Mirror today's past-marker rule in `AgreementChecker.CheckTense`. Regression tests in the analysis module; no fuzz oracle weakened; goldens unchanged unless a reading changes; core demo unchanged. Waiting: game S27 | M29j | S | done (merged to `main` 2026-10-23, `dc53cbb`) |
-| M50 | Core folder cleanup (owner, 2026-10-22: "the nlp folder needs some cleanup"). `content/v1` stays (D7: the core's sample, tests, goldens, fuzz and demo depend on it). Retire what the two-repository era left behind: `scripts/pack.sh` and `docs/PACKAGING.md` (no pack step or feed since D5 was superseded); README, TOOLS.md and CONTRIBUTING passages about packages, feeds, submodules or the separate repository; `HIGH_LEVEL_DOCS.md` moved to `docs/history/` (it is the original design note). Refresh `TOOLS.md`, or fold it into the licence-scan docs. Decide whether `samples/HostConsole` and `scripts/sample-host.sh` still earn their keep (the game is the real host), and say why. Fix stale links. No behaviour change: the build, tests, goldens, licence scan and core demo are unchanged | — | H | done (merged to `main` 2026-10-23, `3bc525b`) |
+| M50 | Core folder cleanup (owner, 2026-10-22: "the nlp folder needs some cleanup"). `content/v1` stays (D7: the core's sample, tests, goldens, fuzz and demo depend on it). Retire what the two-repository era left behind: `scripts/pack.sh` and `docs/nlp/PACKAGING.md` (no pack step or feed since D5 was superseded); README, TOOLS.md and CONTRIBUTING passages about packages, feeds, submodules or the separate repository; `HIGH_LEVEL_DOCS.md` moved to `docs/nlp/history/` (it is the original design note). Refresh `TOOLS.md`, or fold it into the licence-scan docs. Decide whether `samples/HostConsole` and `scripts/sample-host.sh` still earn their keep (the game is the real host), and say why. Fix stale links. No behaviour change: the build, tests, goldens, licence scan and core demo are unchanged | — | H | done (merged to `main` 2026-10-23, `3bc525b`) |
 | M51 | Game finding (S27): `ir` + a bare infinitive with no `a` (`voy comer pan`) passes clean (state_action, no error). Flag it, expected `ir a` + infinitive (`voy a comer`), under `conj.tense` or a better-fitting tag; regression tests; no fuzz oracle weakened (check the generator does not produce `ir` + infinitive as a correct sentence) | M49 | S | done (merged to `feature/experiment` 2026-10-23, `e70441c`; experiment X02) |
 
 ### Delegation waves
@@ -259,7 +261,7 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
 - Every project in §2 created as an empty class library / console / xunit project; each test
   project references its src project; `InternalsVisibleTo` for tests; all added to the `.sln`.
 - `.editorconfig` (4 spaces, LF, `dotnet_diagnostic` defaults), `.gitignore` (dotnet + `models/*`
-  except `manifest.json` + `golden/audio/`), README skeleton, `.github/workflows/ci.yml`
+  except `manifest.json` + `tests/golden/audio/`), README skeleton, `.github/workflows/ci.yml`
   (ubuntu, `dotnet build -warnaserror`, `dotnet test`, `dotnet format --verify-no-changes`).
 - Acceptance: `dotnet build` and `dotnet test` green from a clean clone; `dotnet format --verify-no-changes` clean.
 
@@ -425,15 +427,15 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   fixed order. `ReplayLog` writes `ReplayRecord` JSONL via `CanonicalJson`; `Replayer` re-evaluates
   and reports any diff.
 - `Slg.Cli`: `eval --wav --prompt --content [--models]`, `replay <log.jsonl>`.
-- `Slg.Bench`: `--manifest golden/manifest.jsonl` → WER, learner-error preservation rate
+- `Slg.Bench`: `--manifest tests/golden/manifest.jsonl` → WER, learner-error preservation rate
   (does the transcript keep the annotated error?), latency p50/p95 per model and mode.
-- `golden/README.md`: recording protocol, consent, manifest schema; `golden/manifest.jsonl` seeded
+- `tests/golden/README.md`: recording protocol, consent, manifest schema; `tests/golden/manifest.jsonl` seeded
   with entries for synthetic test clips.
 - Tests: end-to-end worked example with fakes reproduces the HLD verdict; replay of the same record
   is byte-identical.
 
 #### M16 — Combinatorial fuzz testing (S)
-- Full design in `docs/FUZZING_PLAN.md`: CsCheck generators driven by the project's own catalogs
+- Full design in `docs/nlp/FUZZING_PLAN.md`: CsCheck generators driven by the project's own catalogs
   (lexicon, taxonomy, slot-grammar DSL, intent/dialogue catalogs, phone inventory, content bundle),
   sixteen oracles (crash, determinism, mutation↔tag agreement, recast closed loop, metamorphic
   matching, replay sensitivity, schema violations), explicit tolerances, full soak by default with
@@ -515,7 +517,7 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   Follow-up: validate the sample-rate range in `WavFile.Read`.
 - **`cuál` added (M16b):** `content/v1/lexicon/seed.json` now has 1217 entries; bundle hash is
   `b076558f7d1280b20ae84844d6aa377467fae8d3e8a86fc9d924c89d535d4efb`; the end-to-end golden was
-  re-recorded; `golden/manifest.jsonl` is unchanged. O3 now realises every catalog grammar.
+  re-recorded; `tests/golden/manifest.jsonl` is unchanged. O3 now realises every catalog grammar.
 - **Fuzz CI (M16b, parked):** `fuzz` job on push and pull request, `fuzz-soak` weekly (Sunday 03:17
   UTC) and on demand at 50 000/50 000/10 000/3 000/5 000 iterations (176 s measured locally); the
   existing jobs are guarded to push and pull request. Whole fuzz project: 49 tests, about 17 s at
@@ -542,12 +544,12 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   lemmas failed the bundle-load gate (333–373 ms against 300 ms) and left no margin on suite time, so
   3 000 ships. Measured: bundle load 246–267 ms debug, full suite +21 %, fuzz suite 20 s. Bundle hash
   `8090fe859f5ad0f7eeec56d1aa710110b00a8de76deca8728887d21826bafb78`. Sources live in git-ignored
-  `lexicon-sources/` (fetched by `scripts/fetch-lexicon-sources.sh`); `docs/LEXICON.md` has the
+  `lexicon-sources/` (fetched by `scripts/fetch-lexicon-sources.sh`); `docs/nlp/LEXICON.md` has the
   regeneration command.
 - **Hand-authored deference (M17a):** the importer's `--hand-authored` option drops imported readings
   that would override hand-authored ones (Wiktionary's masculine `espada`, the matador, would otherwise
   make `un espada` correct) and words spelled like hand-authored function words (`la` the note, `si`
-  the noun). Curated readings win; the policy is in `docs/LEXICON.md` and ADR 0008.
+  the noun). Curated readings win; the policy is in `docs/nlp/LEXICON.md` and ADR 0008.
 - **Analyzer bugs fixed by the fuzz oracles on the new words (M17a):** an imperative spelled like the
   third person excused `tú habla`; the copula correction picked an imperative (`ella está alta` →
   `eres`); adjective lemmas sorted before their masculine form broke the ser/estar class check
@@ -571,7 +573,7 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   `gender.agree` (`cuánto` → `cuánta`, correctness 0.85) on every `ask_price` input, because the
   imported lexicon carries gendered readings under the lemma `cuanto` and the agreement checker ties
   the interrogative to the following noun. Forwarded to M18 as a required case; the `ask_price`
-  example was removed from `docs/CLI_EXAMPLES.md` until M18 lands and is to be restored then.
+  example was removed from `docs/nlp/CLI_EXAMPLES.md` until M18 lands and is to be restored then.
 - **M18 results:** `ReadingResolver` (new) picks one reading per token before the checks run: local
   syntax first (hard constraints on words whose every reading is of the triggering kind), then the
   slot-grammar bindings (`SlotGrammarMatch.Bindings`, with tied parses keeping either reading), then
@@ -593,7 +595,7 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   `tener` keyword rule, so `ayer tengo dos espadas` resolves by Rules and keeps `conj.tense`. Bundle
   hash `1adcf251fb31189f0cb42875135217e65f4ee3d8e4c81dff19b5e0073ee1d294`. Known limit: `espadas`
   for `espada` on an answer-only prompt is a Fuzzy match with no `noun.number` tag (no grammar to
-  check number). The `docs/CLI_EXAMPLES.md` prose for the `fuego` example (expected now empty) is
+  check number). The `docs/nlp/CLI_EXAMPLES.md` prose for the `fuego` example (expected now empty) is
   fixed in M19a's docs pass.
 - **M19a results:** 516 files renamed or edited; solution `Vocaterra.Nlp.sln`, 27 projects under
   `Vocaterra.Nlp.*`; env vars `VOCATERRA_MODELS_DIR` and `VOCATERRA_FUZZ_ITERATIONS*` with the `SLG_`
@@ -604,7 +606,7 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   M19a no longer replay (accepted: pre-release developer artefacts; the golden was re-recorded).
   Bundle hash `d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f`. Kept as data:
   `slg-vosk-runtime` cache folder, `vosk-runtime-1` hash input, bundle id `v1`, sample ids. New
-  `docs/API.md` (snippets compiled in a scratch host) and ADR 0009. Follow-ups taken into M19b: the
+  `docs/nlp/API.md` (snippets compiled in a scratch host) and ADR 0009. Follow-ups taken into M19b: the
   literal rename produced `Vocaterra.Nlp.Nlp` (to become `Vocaterra.Nlp.Language`); O15 lost its
   `kind` enum mutation and needs an empty-kind mutation instead; the parked workflow now reads the
   repository variable `VOCATERRA_RUN_MODEL_TESTS` (rename it on GitHub if `SLG_RUN_MODEL_TESTS` was set).
@@ -617,8 +619,8 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   prompt id). Parked workflow has a `pack` job with the GitHub Packages publish step commented out
   (D5). The Asr and Response packages carry the sherpa-onnx dependency with GPL espeak-ng inside
   (D2): do not distribute them until that is settled. Suite: 2603 passed, 5 skipped.
-- **M19c results:** `james-d12/Vocaterra` has its root commit: the game design (`docs/SPECIFICATION.md`),
-  `docs/ARCHITECTURE.md`, bundle `content/game-v1` (a copy of the core sample with id `game-v1`, same
+- **M19c results:** `james-d12/Vocaterra` has its root commit: the game design (`docs/game/SPECIFICATION.md`),
+  `docs/game/ARCHITECTURE.md`, bundle `content/game-v1` (a copy of the core sample with id `game-v1`, same
   hash), an engine-agnostic console host on the seven `Vocaterra.Nlp.*` packages with a text loop
   that carries agent state, learner model and repeat counts across turns, 4 smoke tests, a parked
   workflow, and `scripts/content.sh` that drives the core checkout's ContentBuilder. No API gap: every
@@ -670,18 +672,18 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
 - **M19e results:** `LICENSE` (Apache-2.0, byte-identical to the Debian copy of the apache.org text,
   sha256 `cfc7749b…523d30`) and `NOTICE` (copyright 2026 james-d12; the Wiktionary lexicon stays CC BY-SA
   4.0); `PackageLicenseExpression` Apache-2.0 and both files shipped in all 12 packages;
-  `docs/PACKAGING.md` documents the decided consumption route (the game includes this repository as a
+  `docs/nlp/PACKAGING.md` documents the decided consumption route (the game includes this repository as a
   git submodule and uses the local feed from `scripts/pack.sh`; hosted feeds are not planned).
-  Isolation audit: README, `HIGH_LEVEL_DOCS.md`, `TOOLS.md`, `docs/PACKAGING.md`, `docs/PACKAGE_README.md`
-  and `docs/LEXICON.md` now describe the core only; ADRs 0001–0009 and the research report keep their
+  Isolation audit: README, `HIGH_LEVEL_DOCS.md`, `TOOLS.md`, `docs/nlp/PACKAGING.md`, `docs/nlp/PACKAGE_README.md`
+  and `docs/nlp/LEXICON.md` now describe the core only; ADRs 0001–0009 and the research report keep their
   bodies with a note that game matters are decided in the Vocaterra repository; text not already in
-  the game's docs went to Vocaterra `docs/NOTES_FROM_CORE.md`. No code or content changed (bundle hash
+  the game's docs went to Vocaterra `docs/nlp/NOTES_FROM_CORE.md`. No code or content changed (bundle hash
   unchanged). Found by the agent's second test run: fuzz oracle O5 fails with seed `1diyRPH9lxJ1`
   (`ayer tengo sufrir`: `conj.tense` expected `tuve`, recast repeats `tengo`); reproduced by the
   orchestrator on main before the merge, so it predates M19e; scheduled as M19f. Follow-ups:
   `content/v1/ATTRIBUTION.md` still says "the game loads at run time" and "licence not chosen" (a
   content edit, needs the bundle procedure; fold into the next content milestone); the game's
-  `docs/ARCHITECTURE.md` and `nuget.config` still name the old feed path (game side).
+  `docs/game/ARCHITECTURE.md` and `nuget.config` still name the old feed path (game side).
 - **M19f results:** the O5 failure was not a recast bug. The pattern `[WORD:item]? [VERB] [ADJ]?
   [VERB:sufrir]` bound `ayer` as the optional name; a name carries no reading, so the past-time marker
   vanished, no `conj.tense` was raised and the recast had nothing to apply. Fix in the matcher:
@@ -697,7 +699,7 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   CR-012, the repeat counts mean "including this utterance" to `FeedbackPolicy.Plan` and `RepairFor`
   but `RepeatCounts.Next`/`ConversationContext.Next` (M19d) produce the counts before the next
   utterance, so the host cannot supply the right value (decide one meaning, fix the pipeline side,
-  document it in `docs/API.md`); CR-013, accent-insensitive lookup is only a fallback, so `esta`
+  document it in `docs/nlp/API.md`); CR-013, accent-insensitive lookup is only a fallback, so `esta`
   never reads as `está` and `dónde esta el arbol` gets a false `gender.agree` and a wrong recast.
   CR-011 and CR-010 are the ATTRIBUTION.md and cefr-check follow-ups already listed under M19d/M19e.
   CR-006 unblocks the game's speech milestone P8 and must respect D2 (private builds only). The next
@@ -720,7 +722,7 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   guard is gone: a not-communicated verdict always carries its count). `yo tiene dos espada` three times
   now gives recast, hint, hint (was recast, recast, hint); the repair ladder for three failures is
   AskAgain, SlowRepeat, OfferChoices (was AskAgain, AskAgain, SlowRepeat). The CLI's `--repeat` now
-  means counts before the utterance (README, `docs/PIPELINE.md`, `docs/CLI_EXAMPLES.md` examples shifted
+  means counts before the utterance (README, `docs/nlp/PIPELINE.md`, `docs/nlp/CLI_EXAMPLES.md` examples shifted
   by one, outputs unchanged). Fuzz oracle `PipelineFuzzTests.CheckDecision` updated to the new contract
   (still exact equality). `samples/HostConsole` threads `ConversationContext.Next` over three repetitions
   and checks the ladder. Caveat: a replay log recorded before M26a with non-empty counts replays with
@@ -759,7 +761,7 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   e2e goldens gained the new fields (additions only). Host files: any manifest-listed file the loader does
   not own (`ContentPaths.IsLoaderOwned`), bytes kept from the load's hash check (never re-read from disk),
   `ContentBundle.TryReadHostFile(path, out ReadOnlyMemory<byte>)` and `HostFilePaths`; strict relative
-  path rule; none exposed when loaded with `VerifyHashes=false`. `docs/API.md` §8 states the threading and
+  path rule; none exposed when loaded with `VerifyHashes=false`. `docs/nlp/API.md` §8 states the threading and
   load-cost contract. Thread-safety findings, documented not fixed (follow-up candidates):
   `VoskWordRecognizer.Recognize` checks `_disposed` without a lock (dispose racing a call can use a freed
   model; rule: one instance per thread, no dispose in use); `DirectorySynthesisCache.Put` uses a fixed
@@ -795,7 +797,7 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   Asr (for `ModelStore`), so the Response package pulls the ASR package; moving `ModelStore` to Core is a
   follow-up. Suite after M26d+M26e: 2823 passed, 3 skipped (wav2vec2 ×2, e5 ×1, both need an ONNX export).
 - **Content-authoring research (Opus, 2026-10-21):** the owner named content authoring (intents and the
-  content folder) as the main cost. Report `docs/research/2026-10-21-content-authoring.md`; outcome in §10.
+  content folder) as the main cost. Report `docs/nlp/research/2026-10-21-content-authoring.md`; outcome in §10.
   It corrected the orchestrator's first proposal: the game's copies are unchanged rather than edited, and
   pattern suggestion generalises poorly, so a lint (coverage, confusion, reachability, CEFR, examples
   with expected errors) goes first, then layering with `std-v1`, then format de-duplication. Owner chose
@@ -864,7 +866,7 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   serialized `AgentDefinition` JSON emits `onHostEvent: null` (no hash covers it). Not done: no
   two-phase example in `samples/HostConsole` (docs carry it). Suite: 2982 passed, 3 skipped.
 - **Session close (2026-10-21, evening):** M26 (all 11 requests), M26g, M27a and M28a merged; the
-  research report is in `docs/research/`. Next, each waiting for the owner's go: M27b layering and
+  research report is in `docs/nlp/research/`. Next, each waiting for the owner's go: M27b layering and
   `std-v1` (with M27a2's sample fixes folded in; content edits need `hash`, which the sandbox refuses inside
   an isolated agent, so the owner runs it or tells the orchestrator to), M28b (CR-016/018 templates),
   M28c (CR-014 expected answers). Follow-ups logged: ORT native collision between
@@ -874,7 +876,7 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   `CORE_REQUESTS.md` edits (all rows' statuses) are uncommitted in the game checkout for its orchestrator.
 - **Two orchestrators (owner, 2026-10-21):** this repository is run by the core orchestrator only; the
   Vocaterra repository has its own orchestrator and plan. Protocol: the game writes requests for core
-  changes to `docs/CORE_REQUESTS.md` in its repository; the core orchestrator reads that file at the
+  changes to `docs/nlp/CORE_REQUESTS.md` in its repository; the core orchestrator reads that file at the
   start of every session, implements accepted requests as core milestones, and marks the row done with
   the core commit; the game orchestrator then bumps its submodule. The core never plans game content;
   the game never reaches into core source (packages only, API gaps go in the requests file).
@@ -942,7 +944,7 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
   - **Strings and oracle.** The strings JSONL (`id`, `text`, `kind` npc|learner|template, optional `errors`) is in API.md. Templates
     render from four sampled fillings with the core's `TemplateEngine`. Every intent example goes through the oracle.
   - **Files.** Cache `content/grammar/v1-cache.json` (sorted, keyed by sha256 of LanguageTool version, settings and text); waivers
-    `v1-waivers.json` (a reason is required); learner-error fixture `v1-learner-errors.jsonl`; the tool manifest `nlp/tools/manifest.json`
+    `v1-waivers.json` (a reason is required); learner-error fixture `v1-learner-errors.jsonl`; the tool manifest `tools/manifest.json`
     (Temurin and LanguageTool 6.6 by sha256); `scripts/fetch-tools.sh` and `scripts/languagetool.sh` (capped systemd scope, not
     `limited.sh`). Tests use an `HttpMessageHandler` fake, so no Java runs.
   - **content/v1.** No grammar error. One style waiver (`...` against `…`). Three untagged learner errors (`confirm.ex5`,
@@ -953,18 +955,18 @@ Each parallel agent touches only its own `src/<project>` and `tests/<project>.Te
     with no server: exit 0, 3 warnings, 1 waived.
   - **Wired into the gate:** the orchestrator added an advisory step to `scripts/merge-gate.sh` (offline, never fails).
 - **M50, core folder cleanup (2026-10-23, Haiku 5.5; merged to `main` `3bc525b`).**
-  - **Removed:** `scripts/pack.sh`, `docs/PACKAGING.md`, `scripts/sample-host.sh` and `samples/HostConsole/`. The sample was in no
+  - **Removed:** `scripts/pack.sh`, `docs/nlp/PACKAGING.md`, `scripts/sample-host.sh` and `samples/HostConsole/`. The sample was in no
     solution and no test used it; its only caller was `pack.sh`, and with no feed (D5) nothing outside the repository will consume
     packages. The CLI and the game cover the host path.
-  - **Moved:** `HIGH_LEVEL_DOCS.md` to `docs/history/`.
+  - **Moved:** `HIGH_LEVEL_DOCS.md` to `docs/nlp/history/`.
   - **Refreshed:** `TOOLS.md`, with the snapshot at `a642066`, 28 scanned packages, and the M30 JRE and LanguageTool.
   - **Rewritten:** README ("Using the core from a host"), CONTRIBUTING, API.md and scripts/README.
   - **New:** `scripts/check-links.sh`. It found 1 broken link before (to `.github/workflows-pending/README.md`) and 0 after;
     CONTRIBUTING requires it to pass.
   - **Unchanged:** `content/v1`, the goldens, fuzz, tests (4,477 passed, 5 skipped), the licence scan and the core demo.
-  - **Kept as build configuration:** the packaging properties in `Directory.Build.props` and `docs/PACKAGE_README.md`.
+  - **Kept as build configuration:** the packaging properties in `Directory.Build.props` and `docs/nlp/PACKAGE_README.md`.
   - **Left for the next game milestone:** stale references outside `nlp/` in `scripts/content.sh`, `scripts/README.md`, the root
-    `nuget.config` comment and `game/docs/ARCHITECTURE.md`.
+    `nuget.config` comment and `docs/game/ARCHITECTURE.md`.
 - **M49, near-future tense checks (2026-10-23, Sonnet 5.5; for the game's S27; merged to `main` `dc53cbb`).**
   - **The new check.** `AgreementChecker.CheckNearFuture` gives `conj.tense` in two cases:
     - a future-time marker with a preterite-only or imperfect-only finite verb. The markers are `mañana` (not after a determiner or
@@ -1061,7 +1063,7 @@ Deliverables
    that still passes.
 7. Docs: README vocabulary section and regeneration recipe; TOOLS.md rows for kaikki.org,
    wiktextract, FrequencyWords and OpenSubtitles; `ATTRIBUTION.md` (frequency list);
-   `docs/adr/0008-lexicon-sources-and-frequency-filter.md`.
+   `docs/nlp/adr/0008-lexicon-sources-and-frequency-filter.md`.
 
 Gates (all of §6 plus): fuzz suite green at default depth with the new lexicon, no oracle weakened
 (O3, O4 and O5 now draw from thousands of lemmas, so any analyzer bug they expose is fixed at the
@@ -1118,7 +1120,7 @@ about 400 lines) and `Slg.Response/Effects` (two named outcome kinds, `spell_pow
 
 | Stays in the core | Moves to the game repository |
 | --- | --- |
-| `Slg.Core` contracts: verdict, prompt spec, error tags, replay envelope | `SPECIFICATION.md`, the game design (moved to Vocaterra `docs/SPECIFICATION.md` in M19c) |
+| `Slg.Core` contracts: verdict, prompt spec, error tags, replay envelope | `SPECIFICATION.md`, the game design (moved to Vocaterra `docs/game/SPECIFICATION.md` in M19c) |
 | Audio, Asr, Phonology, Pronunciation, Nlp, Evaluation | Character definitions (blacksmith, innkeeper, captain) and their dialogue pools |
 | Decision: learner model (BKT), scheduling (FSRS), feedback policy, and the conversation state-machine *engine* (renamed from Npc to a generic conversation agent) | Items, spells, quests, prices and rewards: the effect tables and game-event names |
 | Response: templates, recast, speech synthesis, and the effect *resolver* with opaque outcome names | The game's content bundles, built with the core's ContentBuilder |
@@ -1127,7 +1129,7 @@ about 400 lines) and `Slg.Response/Effects` (two named outcome kinds, `spell_pow
 | Tools (Cli, Bench, ContentBuilder), fuzz and golden suites, a sample bundle | |
 
 The boundary is defined on the contracts (verdict, prompt spec, content formats), which stay stable
-whatever the research report in `docs/research/SCALING_APPROACHES.md` changes inside the core.
+whatever the research report in `docs/nlp/research/SCALING_APPROACHES.md` changes inside the core.
 
 ### 8.2 Milestones
 
@@ -1139,7 +1141,7 @@ whatever the research report in `docs/research/SCALING_APPROACHES.md` changes in
   `HostStateHash`); `NpcStateMachine`/`NpcDefinition`/`NpcState` to `AgentStateMachine`/`AgentDefinition`/`AgentState` (namespace `Decision.ConversationAgents`), content
   folder `npcs/` → `agents/`; `EffectTable` constants removed, outcome kinds become opaque strings
   validated for uniqueness only (the sample content defines `trade_price` and `spell_power`). Game
-  words scrubbed from identifiers and doc comments (Spanish example words may stay). `docs/API.md`
+  words scrubbed from identifiers and doc comments (Spanish example words may stay). `docs/nlp/API.md`
   documents what a host calls: load a bundle, build services, evaluate an utterance, plan a response,
   replay a log. README reframed as a standalone library with the CLI as the demo host. Fuzz harness,
   goldens and replay docs follow the renames; the bundle hash changes (content keys renamed) and the
@@ -1178,7 +1180,7 @@ author: a repeat-count helper, prompt text in `PromptSpec`, the ContentBuilder a
 
 ## 9. Research outcome (2026-10-20) and proposed re-plan
 
-`docs/research/SCALING_APPROACHES.md` (Opus 5.5, 120 sources, two experiments run) concludes that
+`docs/nlp/research/SCALING_APPROACHES.md` (Opus 5.5, 120 sources, two experiments run) concludes that
 the hand-written grammar checks are worth keeping and that what breaks them is not knowing each
 word's part of speech. A stock Universal Dependencies tagger tagged all four M17a false positives
 correctly (`libro`, `cuánto`, `lanza`, `ayudas`), while LanguageTool caught only 9 of 20 learner
@@ -1209,7 +1211,7 @@ the split's M19a–c):
 M18 (in progress) is kept: its resolver seam and regression tests are what M20 plugs into, and it
 removes the two false positives from `main` now.
 
-### 9.1 Owner decisions raised by the report (with its recommendations; tracked in `docs/DECISIONS.md`)
+### 9.1 Owner decisions raised by the report (with its recommendations; tracked in `docs/nlp/DECISIONS.md`)
 - Online or offline: offline-capable core with the online tutor optional.
 - Determinism: relax "N forbidden in core" and bit-identical cross-platform goldens to
   "replay-exact" (seeded RNG, stored time and hashing stay); write it up as ADR 0010.
@@ -1225,7 +1227,7 @@ removes the two false positives from `main` now.
 
 ### 10.1 Why
 The owner: writing the intents and the content folder is expensive. Research report:
-`docs/research/2026-10-21-content-authoring.md` (Opus, 2026-10-21). Measured: one new intent costs 70–100
+`docs/nlp/research/2026-10-21-content-authoring.md` (Opus, 2026-10-21). Measured: one new intent costs 70–100
 lines across six files (the intent entry is 20–30 % of it); much is mechanical (all 107 dialogue line ids are
 `<pool>.<n>`, all 58 agent actions repeat the pool name twice, the guide's 24 transitions hold 12 distinct
 ones, 31 of 57 answer aliases are article + word). The game carries all 11 sample intents unchanged plus 4
@@ -1269,7 +1271,7 @@ merge gate until one round of waivers has been done; after that "never weaken an
 - `intents/`, `prompts/`, `dialogue/` accept several `*.json` files (ordinal path order, duplicate ids an
   error). One level only. `std-v1` passes A1 with zero unlisted lemmas.
 - Success: `content/v1` = `std-v1` + blacksmith overlay with every golden verdict unchanged apart from
-  `contentHash`; lint finds no new issue; a layered bundle packs, verifies and hashes; `docs/API.md` shows
+  `contentHash`; lint finds no new issue; a layered bundle packs, verifies and hashes; `docs/nlp/API.md` shows
   the route; the game is told through `CORE_REQUESTS.md`/its notes, never by editing its repository.
 - Not to do: deep merge, array patches, multi-level bases, silent override, reading the game's host files.
 
@@ -1288,7 +1290,7 @@ suggestion revisited after M20. Do not import Home Assistant or MASSIVE sentence
 
 ## 11. German and a multi-language core (roadmap, recorded only; owner D14, 2026-10-22)
 
-The design and the evidence are in `docs/research/2026-10-22-multilingual.md`. Nothing here runs until the owner says so (D14). The guard for
+The design and the evidence are in `docs/nlp/research/2026-10-22-multilingual.md`. Nothing here runs until the owner says so (D14). The guard for
 the whole of Phase A is `SpanishIdentityTests` (M31). It freezes an input corpus and the hash of every Spanish stage's output. Phase A
 merges also need an unchanged `content/v1` hash, no change under `tests/*/Data`, `golden/` or `content/`, and green game tests.
 The research lists seven places that would break silently when a second language loads: `PunctuationFixer`'s ¿ ¡,

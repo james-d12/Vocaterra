@@ -30,7 +30,7 @@ public partial class ManifestGoldenTests
         return ManifestReader.Read(reader);
     }
 
-    /// <summary>Writes a one-second 16 kHz tone for the entry under the test output (never under the repository's golden/audio).</summary>
+    /// <summary>Writes a one-second 16 kHz tone for the entry under the test output (never under the repository's tests/golden/audio).</summary>
     private static string WriteTone(ManifestEntry entry, int index)
     {
         var path = Path.Combine(GoldenDir, entry.Clip.Replace('/', Path.DirectorySeparatorChar));

@@ -12,7 +12,7 @@ using Vocaterra.Nlp.Core.Stages;
 namespace Vocaterra.Nlp.Bench;
 
 /// <summary>
-/// Entry point of the ASR benchmark: runs a recognizer over <c>golden/manifest.jsonl</c> and prints a table plus a JSON summary of word
+/// Entry point of the ASR benchmark: runs a recognizer over <c>tests/golden/manifest.jsonl</c> and prints a table plus a JSON summary of word
 /// error rate, learner-error preservation and latency percentiles. Exit codes: 0 success, 1 the input is invalid, 2 the command line is wrong.
 /// </summary>
 public static class Program

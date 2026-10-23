@@ -54,7 +54,7 @@ public static class Program
                                                              error); learner examples with expected error tags are graded as an oracle; findings
                                                              print like lint; exit 1 on errors (and warnings with --strict), 3 when no server
                                                              answers in online mode (skipped, not passed); online runs keep the cache's other
-                                                             entries unless --prune drops those this run did not use; docs/API.md has the JSONL format
+                                                             entries unless --prune drops those this run did not use; docs/nlp/API.md has the JSONL format
           import-lexicon <kaikki.jsonl> <out.json> [--max N] [--frequency <es_50k.txt> [--top N]] [--hand-authored <dir|a.json,b.json>]
                                                              [--sidecar <out.source.json> [--sources <sources.json>]]
                                                              convert wiktextract Spanish JSONL into a lexicon file; with a frequency

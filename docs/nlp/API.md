@@ -64,7 +64,7 @@ A host file that a model rendered (pre-rendered speech, for example) is listed w
 The loader checks references; `ContentLinter` checks behaviour: it runs the real analyzer, intent resolver and grader on the bundle's own
 examples and finds examples nothing resolves, intents that take each other's sentences, hazardous grammar constructs, content nothing reaches, words
 above a CEFR level and example expectations that no longer hold. A host or a build step can call it on a loaded bundle; the command line is
-`vocaterra-content lint` (checks, waivers and exit codes: [TOOLS.md](../TOOLS.md#content-lint)).
+`vocaterra-content lint` (checks, waivers and exit codes: [TOOLS.md](TOOLS.md#content-lint)).
 
 ```csharp
 using Vocaterra.Nlp.Content;
@@ -93,7 +93,7 @@ serializes as before. `ReservedPools` (in `Vocaterra.Nlp.Response.Templates`) na
 ### Grammar check the strings (M30)
 
 `vocaterra-content grammar <bundleDir>` checks the Spanish strings of a bundle with a local LanguageTool server (D10; procedure in
-[CONTRIBUTING.md](../CONTRIBUTING.md#check-the-grammar-of-your-spanish-before-you-hash-it)). A host with strings the bundle does not hold
+[CONTRIBUTING.md](CONTRIBUTING.md#check-the-grammar-of-your-spanish-before-you-hash-it)). A host with strings the bundle does not hold
 (phrase sheets, its own English-side Spanish) passes them as JSON Lines with `--strings <file.jsonl>`. `--strings-only` checks only the file.
 Each line is one object:
 

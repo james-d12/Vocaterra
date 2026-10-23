@@ -4,7 +4,7 @@ using System.Text;
 namespace Vocaterra.Game;
 
 /// <summary>
-/// The game's host state digest for an utterance that carries host slots or extra skills. The core's contract (docs/API.md, section 4): a host
+/// The game's host state digest for an utterance that carries host slots or extra skills. The core's contract (docs/nlp/API.md, section 4): a host
 /// that gives the context its own digest must include the host slots and the extra skills of the utterance in it.
 /// </summary>
 /// <remarks>

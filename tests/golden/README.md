@@ -65,7 +65,7 @@ One JSON object per line (JSON Lines, UTF-8, LF). Property names are camelCase a
 ## Running the benchmark
 
 ```
-dotnet run --project tools/Vocaterra.Nlp.Bench -- --manifest golden/manifest.jsonl --content content/v1 --models models [--mode constrained|open]
+dotnet run --project tools/Vocaterra.Nlp.Bench -- --manifest tests/golden/manifest.jsonl --content content/v1 --models models [--mode constrained|open]
 ```
 
 For every entry the benchmark runs the recognizer in the prompt's mode (or the forced `--mode`) and reports:

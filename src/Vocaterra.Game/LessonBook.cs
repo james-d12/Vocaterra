@@ -6,7 +6,7 @@ using Vocaterra.Nlp.Core.Prompts;
 
 namespace Vocaterra.Game;
 
-/// <summary>The kinds of lesson step (S16, <c>docs/SCENARIO_PLAN.md</c> section 8).</summary>
+/// <summary>The kinds of lesson step (S16, <c>docs/game/SCENARIO_PLAN.md</c> section 8).</summary>
 public enum LessonStepType
 {
     /// <summary><c>explain</c>: English text only; the learner reads it and continues.</summary>

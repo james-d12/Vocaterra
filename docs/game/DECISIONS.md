@@ -1,6 +1,6 @@
 # Decisions for the game (Vocaterra)
 
-The owner's decisions for the game (`game/`). The language core's decisions are in its own file, `nlp/docs/DECISIONS.md`: D1 CI, D2 the GPL-3.0 native libraries, D3 the
+The owner's decisions for the game (the game projects, `content/game-v1`, `assets/` and `docs/game/`). The language core's decisions are in its own file, `docs/nlp/DECISIONS.md`: D1 CI, D2 the GPL-3.0 native libraries, D3 the
 core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open core items, and D12 (the engine), which moved here on
 2026-10-21. Status values: **open** (the owner has not decided), **decided**, **deferred** (the owner has set it aside; do not raise it).
 
@@ -16,7 +16,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-8 | The prototype brief adopted | decided (owner, 2026-10-21): 3D voxel, first person, MonoGame; the 2D slice parked (tag `2d-slice-p7`, removed at S4); Latin American neutral Spanish; nothing gated behind language or voice | nothing |
 | D-game-9 | Speech rules for the prototype | decided (owner, 2026-10-21, from the brief) | nothing |
 | D-game-10 | Learning measurement for the prototype | decided (owner, 2026-10-21, from the brief) | nothing |
-| D-game-11 | The Noun Town review data | decided (owner, 2026-10-21): raw review JSON never committed; summaries and fetch scripts in `docs/research/noun-town/` | nothing |
+| D-game-11 | The Noun Town review data | decided (owner, 2026-10-21): raw review JSON never committed; summaries and fetch scripts in `docs/game/research/noun-town/` | nothing |
 | D-game-12 | A competent Spanish reviewer for the phrase sheet and recordings | deferred by the owner (2026-10-21) with an interim workaround (provisional rows); the owner approved the LLM review pass (Opus) on 2026-10-21 | nothing; the playtest's content-trust gate stays provisional |
 | D-game-13 | English guidance for a player with no Spanish | decided (owner, 2026-10-22): on-screen English text only, fading per phrase; only Spanish is spoken | nothing |
 | D-game-14 | World scale and look | decided (owner, 2026-10-22): about 384 x 384 x 128, rich voxel (D-game-8 kept), close to the brief's references A to C, target a real GPU with quality presets | nothing |
@@ -28,12 +28,12 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
-**Question.** Which engine renders the game and plays its audio. The core's research report (core `docs/research`) suggested Godot .NET;
+**Question.** Which engine renders the game and plays its audio. The core's research report (core `docs/nlp/research`) suggested Godot .NET;
 the core's high-level design also listed MonoGame, Bevy and macroquad, and Ebitengine. The core's language is C# (core ADR 0001), which
 Godot .NET and MonoGame share.
 
 **Owner, 2026-10-21.** The Terraria-inspired prototype uses MonoGame (3.8 DesktopGL), with a plan to perhaps move to Godot (.NET) later. The
-layout from research R1 (`docs/research/PROTOTYPE_PLAN.md`), adopted by the owner the same day: `src/Vocaterra.Simulation` (no packages, no
+layout from research R1 (`docs/game/research/PROTOTYPE_PLAN.md`), adopted by the owner the same day: `src/Vocaterra.Simulation` (no packages, no
 engine), `src/Vocaterra.Game` (the `Vocaterra.Nlp.*` packages, no engine) and `src/Vocaterra.MonoGame` (the only engine code). Engine code never
 goes into `src/Vocaterra.Host`, `src/Vocaterra.Simulation` or `src/Vocaterra.Game`. The final engine stays open; P10 (an optional Godot spike)
 measures the cost of the move. G5 is replaced by P2.
@@ -97,8 +97,8 @@ The grey atlas stays behind `--greyscale` for an A/B in the playtest. Colour nev
 
 ## D-game-8: the prototype brief adopted (decided)
 
-The owner's Prototype Design Brief v1.2 (`docs/Vocaterra_Prototype_Design_Brief.docx`, as Markdown in `docs/PROTOTYPE_BRIEF.md`) defines the
-prototype's scope, scenario, guardrails and gates; `docs/SCENARIO_PLAN.md` is its plan (the S series). World: 3D voxel, first person, MonoGame
+The owner's Prototype Design Brief v1.2 (`docs/game/Vocaterra_Prototype_Design_Brief.docx`, as Markdown in `docs/game/PROTOTYPE_BRIEF.md`) defines the
+prototype's scope, scenario, guardrails and gates; `docs/game/SCENARIO_PLAN.md` is its plan (the S series). World: 3D voxel, first person, MonoGame
 (D-game-1 unchanged; engine code only in `src/Vocaterra.MonoGame`). The 2D Terraria slice is parked: its code is tagged `2d-slice-p7` and removed
 once the 3D world reaches gathering and crafting (S4). Spanish variety: Latin American neutral (core ADR 0005). Nothing in the game is gated
 behind language or voice; every failure has a recovery path. Work on the S series lands on the integration branch `feature/prototype`
@@ -120,7 +120,7 @@ check. Telemetry is local only (JSONL in the session folder).
 ## D-game-11: the Noun Town review data (decided)
 
 The raw Steam review JSON (about 450 KB of third-party text) is never committed: `.gitignore` covers `scripts/noun_town/*.json` and
-`docs/research/noun-town/*.json`. The two summaries and the fetch scripts are committed and live in `docs/research/noun-town/` (moved in S0).
+`docs/game/research/noun-town/*.json`. The two summaries and the fetch scripts are committed and live in `docs/game/research/noun-town/` (moved in S0).
 
 ## D-game-12: the Spanish reviewer (deferred, interim workaround)
 
@@ -140,7 +140,7 @@ confusing if you know no Spanish at all." Asked how, the owner chose on-screen t
 is spoken, so the ear stays on Spanish and no English recordings are needed. The English fades per phrase as S8's scaffolds do (a new first
 rung: English, card and audio; then card and audio with the English on the help key; then audio; then nothing), and the help key always shows it
 (rule 8). English also carries the controls, first-time tips, objectives (bilingual at first) and the feedback after a turn, in game content.
-Plan: `docs/SCENARIO_PLAN.md` section 8, S16.
+Plan: `docs/game/SCENARIO_PLAN.md` section 8, S16.
 
 ## D-game-14: world scale and look (decided)
 
@@ -168,7 +168,7 @@ phrase set beyond D-game-12's interim limit (the brief's five phrases plus five 
 input they provide to us (speaking / writing). I also want a UI (perhaps in the book too), to track all completed lessons." The game records
 every line the learner speaks or types, with the core's reading of each word, and folds it into a record of the nouns and verbs used and the
 lessons completed. The journal (J) becomes that book, with the lessons on a page of it. The record lives in the save and the session log, on
-the player's machine only. It is game state (game words live in `game/`); the core already returns the word readings, so no core change.
+the player's machine only. It is game state (game words live in `content/game-v1`); the core already returns the word readings, so no core change.
 The orchestrator's choices, open to the owner's change: verbs listed by infinitive with the forms used; only words the core read from its
 lexicon are listed (recogniser noise is not); the save keeps the newest 500 lines. Plan: section 8, S19 (the record) and S20 (the book).
 
@@ -214,7 +214,7 @@ Plan: section 8, S26, S27 and S28; core M49 for the future-tense checks.
 
 **Owner, 2026-10-21.** "My plan is to actually merge the game and the NLP back together, for simplicity and as they both update they can
 update together." The orchestrator stopped after P7 at the owner's request; P8 and later waited for the merged repository. The parts of the
-game that existed only because the two were separate (packages only, the submodule and its feed, `docs/CORE_REQUESTS.md`, two
+game that existed only because the two were separate (packages only, the submodule and its feed, `docs/game/CORE_REQUESTS.md`, two
 orchestrators, two gates) are listed in `IMPLEMENTATION_PLAN.md`, section 4, the handover.
 
 **Done, 2026-10-21 (the owner, with Claude).** Layout: `nlp/` (the core, with its own plan, decisions, docs and Apache-2.0 licence) and
@@ -226,7 +226,7 @@ repository is open only if the owner wants one. The old `james-d12/Vocaterra.NLP
 ## Already decided
 
 - **The core by project reference** (D-game-7; until 2026-10-21 "packages only" from a submodule's local feed). The game never copies core
-  source (core ADR 0009); a missing call is a core milestone in `nlp/IMPLEMENTATION_PLAN.md`.
+  source (core ADR 0009); a missing call is a core milestone in `docs/nlp/IMPLEMENTATION_PLAN.md`.
 - **Console host until D-game-1 is decided.**
 - **Game words live here:** scenes, characters, items, spells, prices, rewards, dialogue and the meaning of each effect kind.
 - **The content tool** is the core's ContentBuilder run from source, through the root `scripts/content.sh`.

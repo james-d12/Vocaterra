@@ -1,8 +1,8 @@
 # X00: a ranked improvement backlog (2026-10-23)
 
-Research for the X series on `feature/experiment` (`game/IMPLEMENTATION_PLAN.md` section 4.5). Read-only: nothing was built, run or
-changed. The evidence is the plans, the findings log (`IMPLEMENTATION_PLAN.md` section 5), the decisions (`game/docs/DECISIONS.md`,
-`nlp/docs/DECISIONS.md`), the playtest and README documents, the code (file and line where it matters) and earlier agents' screenshots
+Research for the X series on `feature/experiment` (`docs/game/IMPLEMENTATION_PLAN.md` section 4.5). Read-only: nothing was built, run or
+changed. The evidence is the plans, the findings log (`IMPLEMENTATION_PLAN.md` section 5), the decisions (`docs/game/DECISIONS.md`,
+`docs/nlp/DECISIONS.md`), the playtest and README documents, the code (file and line where it matters) and earlier agents' screenshots
 under `/tmp/claude-1000/` (s22, s20b, s28). Nothing was learned from a real tester: no tester session exists yet (the owner's pre-flight in
 `docs/PLAYTEST.md` section 12 is still open), so every "effect" below is a hypothesis a playtest can check, not a measurement.
 
@@ -12,7 +12,7 @@ voice (D-game-8, D-game-9).
 
 ## 1. The game as it stands
 
-**What it is.** A first-person voxel game on MonoGame (about 45,000 lines of C# in `game/src`; 4,709 tests passing on `main`). A 384 x 384 x
+**What it is.** A first-person voxel game on MonoGame (about 45,000 lines of C# in `src`; 4,709 tests passing on `main`). A 384 x 384 x
 128 generated world with a player's cliff camp, a trail, a village (stall, three houses, signposts), a river and a waterfall. Three NPCs
 (Luna the guide, the villager, the shopkeeper), 19 noun lemmas (`content/game-v1/game/nouns.json`), 3 lessons, 31 check items. All Spanish
 is Latin American neutral, A1, hand-authored in `content/PHRASES.md` (about 60 rows, all `llm-opus (provisional)`; the native-speaker check
@@ -29,7 +29,7 @@ is deferred, D-game-12). NPC voices are pre-rendered Kokoro WAVs; the learner sp
 A session is a load of the save (`--load`), so a "session" is a relaunch. In a playtest the pre-check (31 items, about 7 min) comes first,
 the post-check last, and the recall check on a later load (`docs/PLAYTEST.md` sections 2, 3 and 8; 45 to 55 minutes in all).
 
-**The systems.** The language core (`nlp/`): utterance to verdict, error codes, word readings, conversation steps. In the game: the lesson
+**The systems.** The language core (`Vocaterra.Nlp.*`): utterance to verdict, error codes, word readings, conversation steps. In the game: the lesson
 runner with fail-forward and person and tense checks (`LessonRunner.cs`); fading English scaffolds per phrase (S8); spaced credit for words
 and phrases with growing gaps and the guide's review question (`GuideSession.BeginTalk`, about line 405; `WordProgress.DueWords`,
 `PhraseProgress.DuePhrases`); the learner's record (S19, save version 4); the book with Nouns, Verbs (conjugation tables), Phrases, Lessons
@@ -198,7 +198,7 @@ Sonnet 5.5 for design-heavy work.
 ### R14. Numbers and prices: a fourth lesson
 
 - **Problem.** Content is thin and narrow: 19 nouns, and `madera`, `fruta`, `agua` and `pan` carry every verb exercise. The brief's functions are "request, answer, ask directions and clarify" (signals table); quantities and prices are not taught at all, and the stall hands over one bottle and one bread, so `quiero dos panes` has no meaning in the game. The lexicon has numerals and question words (`game-v1/lexicon/seed.json`) but no phrase row uses them (`PHRASES.md` has no `cuánto`).
-- **Change.** Session 4, "En la tienda": one to ten, `Quiero dos panes`, `¿Cuánto cuesta?`, `Cuesta tres monedas`, the plural of nouns already known; a coin item and a price at the stall. Game words stay in `game/`; check the core's intents for quantities first and file a core milestone if one is missing. Opus pass, lint `--strict --level a1`, speech, and a larger check bank.
+- **Change.** Session 4, "En la tienda": one to ten, `Quiero dos panes`, `¿Cuánto cuesta?`, `Cuesta tres monedas`, the plural of nouns already known; a coin item and a price at the stall. Game words stay in `content/game-v1`; check the core's intents for quantities first and file a core milestone if one is missing. Opus pass, lint `--strict --level a1`, speech, and a larger check bank.
 - **Effect.** Practical, transferable vocabulary with an obvious use (brief issue 7). Playtest: the transfer check with the villager buying.
 - **Effort / model.** M to L, Sonnet (design, stall logic), Haiku (rows, WAVs).
 - **Risks.** More unreviewed Spanish (D-game-12 deferral grows; the sheet is already about 60 rows against the brief's 5); 40 or more new WAVs for the owner to hear; a changed check bank changes the frozen bundle for any recall test.

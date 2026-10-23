@@ -174,7 +174,7 @@ public class GeneratedLexiconTests(ITestOutputHelper output)
         output.WriteLine($"ContentLoader.Load with hash verification: {string.Join(", ", timings)} ms (median {ordered[ordered.Length / 2]} ms)");
 
         // The recorded gate is 300 ms for a release build on a development machine; a test run is a debug build on whatever machine runs it, so only a generous
-        // bound is asserted here. The measurement above goes into docs/LEXICON.md.
+        // bound is asserted here. The measurement above goes into docs/nlp/LEXICON.md.
         Assert.True(ordered[ordered.Length / 2] < 3000, "Loading the bundle takes more than three seconds.");
     }
 }

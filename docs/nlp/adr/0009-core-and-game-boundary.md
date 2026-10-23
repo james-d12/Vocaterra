@@ -4,9 +4,11 @@
 >
 > **Note (2026-10-21, later; game decision D-game-7):** the two repositories are one again, as sibling folders: this record's "core" is `nlp/`, the "game" is `game/`. The boundary is unchanged and is now a folder boundary: the game references the core's projects (no packages), never copies core source, and a core change the game needs is a core milestone. The text below is unchanged.
 
+> **Note (2026-10-23, R01):** the repository now has one root layout (`src/`, `tests/`, `tools/`, `docs/nlp/`, `docs/game/`, `content/`, `assets/`, `models/`, `scripts/`) and one solution. The boundary is by project name, not by folder: the core is the `Vocaterra.Nlp.*` projects (with `content/v1`, `tests/golden` and `docs/nlp/`), the game is `Vocaterra.Simulation`, `Vocaterra.Game`, `Vocaterra.MonoGame`, `Vocaterra.Host` and `Vocaterra.SpeechRender` (with their tests, `content/game-v1`, `assets/` and `docs/game/`). The rules are unchanged: the game references the core's projects (no packages), never copies core source, and a core change the game needs is a core milestone. The text below is unchanged.
+
 - Status: accepted
 - Date: 2026-10-20
-- Deciders: the repository owner (repository names, the rename to `Vocaterra.Nlp.*`, and decisions D6 and D7 in [docs/DECISIONS.md](../DECISIONS.md)); the implementation plan (`IMPLEMENTATION_PLAN.md` section 8, milestone M19a)
+- Deciders: the repository owner (repository names, the rename to `Vocaterra.Nlp.*`, and decisions D6 and D7 in [docs/nlp/DECISIONS.md](../DECISIONS.md)); the implementation plan (`IMPLEMENTATION_PLAN.md` section 8, milestone M19a)
 
 This record fixes what the language core `Vocaterra.NLP` (this repository) owns and what the game `Vocaterra` (a separate repository) owns. It
 is the rule every later change to the core is checked against.
@@ -15,7 +17,7 @@ is the rule every later change to the core is checked against.
 
 The core was built inside one game project, so game words reached its code: the conversation state machine was called an NPC machine, the
 verdict context was a `GameContext` with NPC fields, and the effect table named two outcome kinds for spells and trade prices. The research
-report (`docs/research/SCALING_APPROACHES.md`) and the plan's section 8 both assume the core will be consumed as NuGet packages by a game that
+report (`docs/nlp/research/SCALING_APPROACHES.md`) and the plan's section 8 both assume the core will be consumed as NuGet packages by a game that
 is not in this repository. That needs a boundary the code can be checked against, and names that do not presuppose a game.
 
 ## Decision
@@ -36,7 +38,7 @@ The sample bundle in `content/v1` (a blacksmith's dialogue, spells and items) st
 the fuzz suite and the docs run against (decision D7). The game keeps its own bundle.
 
 > Note (M19c, 2026-10-20): the game design moved out of this repository. The `SPECIFICATION.md` row in the table above now refers to
-> `docs/SPECIFICATION.md` in the game repository ([Vocaterra](https://github.com/james-d12/Vocaterra)), and the game's bundle is its
+> `docs/game/SPECIFICATION.md` in the game repository ([Vocaterra](https://github.com/james-d12/Vocaterra)), and the game's bundle is its
 > `content/game-v1`. The table records the boundary as it was decided.
 
 ### 2. What the core knows, and what it does not
@@ -77,8 +79,8 @@ M19b.
 
 - Replay logs and end-to-end goldens recorded before this change do not replay: the replay envelope and the verdict's bundle hash carry the
   renamed keys and the new bundle hash. The goldens were re-recorded (only the names, the bundle hash and the host state hash changed).
-- The bundle hash changed with the file and key renames. `golden/manifest.jsonl` is untouched, and `cefr-check` at a1 and a2 is unchanged.
-- The game repository consumes the core through `docs/API.md`. A change to a public type listed there is a change to the boundary and
+- The bundle hash changed with the file and key renames. `tests/golden/manifest.jsonl` is untouched, and `cefr-check` at a1 and a2 is unchanged.
+- The game repository consumes the core through `docs/nlp/API.md`. A change to a public type listed there is a change to the boundary and
   needs this record updated.
 - Anything a host needs that the core does not provide (microphone capture, save files, rendering) stays out of the core.
 

@@ -1,7 +1,7 @@
 # More CLI examples
 
 Worked runs of the demo CLI (`tools/Vocaterra.Nlp.Cli`) against the sample bundle `content/v1`, continuing the examples in the README
-section [More examples](../README.md#more-examples). Together they show the trade intents, the conversation intents (M17b), every error tag the CLI can trigger and the
+section [More examples](README.md#more-examples). Together they show the trade intents, the conversation intents (M17b), every error tag the CLI can trigger and the
 main command-line options. All commands run from the repository root; the output is what the CLI printed.
 
 Each verdict is abbreviated: `…` marks the cut fields (`pronunciation`, `confidence`, `resolvedBy` and `versions`, unless an example

@@ -39,7 +39,7 @@ produced them. Contributors and CI runners must also be able to build and test w
    reports it as skipped, never failed. The optional `models` job in `.github/workflows-pending/ci.yml` opts in with the
    repository variable `SLG_RUN_MODEL_TESTS` and fetches only the Vosk model.
 6. **Replays do not need models.** The replay envelope stores the recognizers' outputs, so a log can be checked on a machine
-   that has no models at all (`docs/REPLAY.md`).
+   that has no models at all (`docs/nlp/REPLAY.md`).
 
 ## Consequences
 
@@ -53,6 +53,6 @@ produced them. Contributors and CI runners must also be able to build and test w
 - Changing a model, or the runtime that executes it, changes the hash and therefore the `VersionStamp`. Old replay logs
   stay valid records of what happened under the old stamp; they are not expected to re-run with a new model.
 - A model update is a reviewed change to `models/manifest.json` with new hashes, and should be accompanied by a run of the
-  golden audio set once real learner recordings exist (`golden/README.md`).
+  golden audio set once real learner recordings exist (`tests/golden/README.md`).
 - The licenses of the models are recorded in the manifest and repeated in `content/v1/ATTRIBUTION.md`. The Parakeet model is
   CC-BY-4.0 and needs attribution; the Kokoro phonemizer has an open licensing question (ADR 0007).

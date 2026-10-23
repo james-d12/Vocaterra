@@ -1,20 +1,21 @@
 # Vocaterra.NLP
 
-> This folder (`nlp/`) is the language core. It sits in the Vocaterra repository beside the game (`game/`), which references the
-> core's projects directly; this document covers the core only.
+> This document covers the language core: the `Vocaterra.Nlp.*` projects of the Vocaterra repository (`src/`, `tests/`, `tools/`). The game
+> (`docs/game/README.md`) sits beside it in the same solution and references the core's projects directly. Paths below are relative to the
+> repository root.
 
 Vocaterra.NLP is a standalone Spanish voice-and-language evaluation core, written in C# on .NET. Given an utterance (audio, or a transcript
 for development), it works out what the learner meant and how well they said it, and returns one deterministic **verdict**, with tagged
 errors such as `conj.person` or `pron.r`, a feedback plan, a conversation step and the response text. It is a library first: a host loads a
-content bundle, builds the services, evaluates utterances and plans responses; [docs/API.md](docs/API.md) lists the calls in order. The
-`Vocaterra.Nlp.Cli` tool is a demo host that drives the same API from the command line. Hosts live outside the core; nothing host-specific (scenes, items, prices, rewards) is in this folder. The Spanish sample content, a blacksmith's
+content bundle, builds the services, evaluates utterances and plans responses; [docs/nlp/API.md](API.md) lists the calls in order. The
+`Vocaterra.Nlp.Cli` tool is a demo host that drives the same API from the command line. Hosts live outside the core; nothing host-specific (scenes, items, prices, rewards) is in the core. The Spanish sample content, a blacksmith's
 dialogue, stays here as the demo and the test fixture.
 
 The verdict separates whether the learner *communicated* (the agent understood) from whether they were *correct* (grammar, vocabulary,
 pronunciation). The guiding principle is to reward communication and coach correctness: if the learner was understood the conversation
 responds, and the correction rides along on the response, for example as a recast ("¿Tienes dos espadas?").
 
-**Every runtime step is deterministic.** The same audio clip, host state and content version always produce the same verdict, feedback and outcome. Algorithmic stages are plain code with fixed-order math; the neural models (speech recognition, phoneme recognition, embeddings, speech synthesis) are frozen, run greedily on one CPU thread, and are pinned by SHA-256, with a margin on every threshold so floating-point drift cannot flip an outcome. Every graded interaction can be written to a replay log and re-checked later without the models. The libraries are engine-agnostic; the host engine is still an open decision ([docs/DECISIONS.md](docs/DECISIONS.md)).
+**Every runtime step is deterministic.** The same audio clip, host state and content version always produce the same verdict, feedback and outcome. Algorithmic stages are plain code with fixed-order math; the neural models (speech recognition, phoneme recognition, embeddings, speech synthesis) are frozen, run greedily on one CPU thread, and are pinned by SHA-256, with a margin on every threshold so floating-point drift cannot flip an outcome. Every graded interaction can be written to a replay log and re-checked later without the models. The libraries are engine-agnostic; the host engine is still an open decision ([docs/nlp/DECISIONS.md](DECISIONS.md)).
 
 ## Architecture
 
@@ -60,11 +61,11 @@ flowchart TD
 ```
 
 The dependency direction is `Core` <- stage libraries <- `Content` <- `Pipeline` <- tools, with no cycles; only `Pronunciation` and
-`Response` reference a sibling (see [ADR 0003](docs/adr/0003-engine-agnostic-core.md)). For what each stage does with a real
-utterance, read [docs/PIPELINE.md](docs/PIPELINE.md).
+`Response` reference a sibling (see [ADR 0003](adr/0003-engine-agnostic-core.md)). For what each stage does with a real
+utterance, read [docs/nlp/PIPELINE.md](PIPELINE.md).
 
 The same system is also drawn as a one-page draw.io diagram in
-[docs/diagrams/system-overview.drawio](docs/diagrams/system-overview.drawio); [docs/diagrams/README.md](docs/diagrams/README.md) explains how to open it.
+[docs/nlp/diagrams/system-overview.drawio](diagrams/system-overview.drawio); [docs/nlp/diagrams/README.md](diagrams/README.md) explains how to open it.
 
 ## Prerequisites
 
@@ -80,7 +81,7 @@ The same system is also drawn as a one-page draw.io diagram in
 
   Put the two `export` lines in your shell profile, or run them at the start of every shell. `dotnet --version` inside the
   repository should print `10.0.402`.
-- On Linux the ICU libraries (`libicu`) must be installed: invariant globalization is deliberately off ([ADR 0006](docs/adr/0006-globalization-icu.md)).
+- On Linux the ICU libraries (`libicu`) must be installed: invariant globalization is deliberately off ([ADR 0006](adr/0006-globalization-icu.md)).
 - To fetch models: `bash`, `python3`, `curl`, `sha256sum` (or `shasum`), and `unzip` or `tar` with bzip2.
 - A full build writes roughly 3 GB of `bin/` and `obj/` output because of the native speech packages. Make room, and delete
   the output with `git clean -fdX -- src tests tools` when you are done with a checkout.
@@ -122,8 +123,8 @@ CsCheck_Seed=<seed> dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests
 ```
 
 The failure message also carries the generated input, which is what a regression test needs. The design is in
-[docs/FUZZING_PLAN.md](docs/FUZZING_PLAN.md); the oracles, the bounds and the bugs found so far are in
-[tests/Vocaterra.Nlp.Fuzzing.Tests/README.md](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md).
+[docs/nlp/FUZZING_PLAN.md](FUZZING_PLAN.md); the oracles, the bounds and the bugs found so far are in
+[tests/Vocaterra.Nlp.Fuzzing.Tests/README.md](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md).
 
 ## Running the demo CLI
 
@@ -146,7 +147,7 @@ decision: rating Hard, learner skills 3, feedback items 2
 ```
 
 The first line is the verdict (the player was understood, and two grammar errors are tagged with the corrected forms); the rest is
-what the host does with it. [docs/PIPELINE.md](docs/PIPELINE.md) explains every part.
+what the host does with it. [docs/nlp/PIPELINE.md](PIPELINE.md) explains every part.
 
 Other prompts to try (the sample bundle has 14, listed in `content/v1/prompts/prompts.json`):
 
@@ -173,7 +174,7 @@ dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --wav clip.wav --prompt spe
 ```
 
 `clip.wav` is any WAV file (16-bit PCM or 32-bit float, mono or stereo, any sample rate; the audio front end converts it to 16 kHz mono). Models are
-downloaded, never committed; `models/manifest.json` pins every file, and [models/README.md](models/README.md) describes the manifest.
+downloaded, never committed; `models/manifest.json` pins every file, and [models/README.md](../../models/README.md) describes the manifest.
 `--models` needs `--wav`. The CLI picks Vosk for constrained prompts; for open prompts it uses Parakeet when
 `sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8` is present in the models directory and falls back to Vosk otherwise; it adds
 pronunciation scoring when `wav2vec2-xlsr-53-espeak-cv-ft` is present. The last two do not have an ONNX export in the repository yet
@@ -183,7 +184,7 @@ pronunciation scoring when `wav2vec2-xlsr-53-espeak-cv-ft` is present. The last 
 
 These are real runs against `content/v1`. Each verdict is abbreviated: `…` marks the cut fields (`pronunciation`, `confidence`,
 `resolvedBy` and `versions`, unless an example keeps them), and the closing `decision:` line is left out. Error spans count characters of the
-normalized text. Twelve more examples are in [docs/CLI_EXAMPLES.md](docs/CLI_EXAMPLES.md): the other four intents, five more
+normalized text. Twelve more examples are in [docs/nlp/CLI_EXAMPLES.md](CLI_EXAMPLES.md): the other four intents, five more
 error tags, an exact quiz answer, the repair ladder and a replay log.
 
 A correct utterance is understood in full: the slots are filled, there are no errors and the trade price factor is 1.
@@ -345,7 +346,7 @@ dotnet run --project tools/Vocaterra.Nlp.Cli -- replay replay.jsonl --content co
 ```
 
 The second command prints `OK`, or the JSON paths that differ (for example `DIFF entry 1: /verdict/correctness`) and exits 1.
-Audio is never stored and logs are opt-in. The format, a real example and what a difference means are in [docs/REPLAY.md](docs/REPLAY.md).
+Audio is never stored and logs are opt-in. The format, a real example and what a difference means are in [docs/nlp/REPLAY.md](REPLAY.md).
 
 ## Content builder
 
@@ -358,7 +359,7 @@ dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- hash content/v1      
 dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lint content/v1 --level a1               # check examples, overlaps, hazards, reachability, CEFR (run before hash; see TOOLS.md)
 dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- cefr-check content/v1 --level a1         # list lemmas of dialogue templates and of prompt text missing from the CEFR list (a1 or a2)
 dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- import-lexicon kaikki.jsonl lexicon.json # wiktextract Spanish JSONL to a lexicon file (--max N limits it;
-#   --frequency es_50k.txt --top N keeps the N most frequent lemmas; --sidecar writes the source record; see docs/LEXICON.md)
+#   --frequency es_50k.txt --top N keeps the N most frequent lemmas; --sidecar writes the source record; see docs/nlp/LEXICON.md)
 dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lexicon-report content/v1                # each lexicon file, how they overlap, the merged lexicon
 ```
 
@@ -367,8 +368,8 @@ Any edit to a file in `content/v1` changes the bundle hash, so run `hash` afterw
 
 ## Using the core from a host
 
-A host calls the core as [docs/API.md](docs/API.md) lists: load a bundle, build the services, evaluate an utterance, plan a response, replay
-a log. The game in this repository (`game/`) is a host: it references the core's projects directly, so there is no pack step and no feed.
+A host calls the core as [docs/nlp/API.md](API.md) lists: load a bundle, build the services, evaluate an utterance, plan a response, replay
+a log. The game in this repository (`Vocaterra.Game`, `Vocaterra.Host`, `Vocaterra.MonoGame`) is a host: it references the core's projects directly, so there is no pack step and no feed.
 Nothing is published. `ContentBuilder pack <bundleDir> <out.zip>` archives a bundle with a `.sha256` sidecar holding its bundle hash, and
 `verify-pack <zip>` checks the archive; hosts ship the extracted folder, since the loader reads a directory.
 
@@ -378,17 +379,17 @@ Nothing is published. `ContentBuilder pack <bundleDir> <out.zip>` archives a bun
 transcript keep the mistake the learner made?) and latency:
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Bench -- --manifest golden/manifest.jsonl --content content/v1 --models models
+dotnet run --project tools/Vocaterra.Nlp.Bench -- --manifest tests/golden/manifest.jsonl --content content/v1 --models models
 ```
 
 The three committed entries are synthetic, so the clips are reported as `missing-clip` on a plain checkout. The recording protocol,
-consent rules and manifest schema are in [golden/README.md](golden/README.md).
+consent rules and manifest schema are in [tests/golden/README.md](../../tests/golden/README.md).
 
 ## Repository layout
 
 | Path | Contents |
 | --- | --- |
-| `Directory.Build.props` | The core's build rules (package metadata, packing); the pinned SDK (`global.json`) and the package versions (`Directory.Packages.props`) are at the repository root |
+| `Directory.Build.props` | The repository's build rules: the shared settings, then the groups for the projects named `Vocaterra.Nlp.*` (package metadata, packing) and for the game; the pinned SDK (`global.json`) and the package versions (`Directory.Packages.props`) are beside it. `Vocaterra.sln` holds every project; `Vocaterra.Nlp.slnf` is the filter for the core alone |
 | `src/Vocaterra.Nlp.Core` | Contracts between stages (`Verdict`, stage records, interfaces), determinism primitives (`SeededRng`, `DeterministicHash`, `CanonicalJson`, `Margin`), error taxonomy |
 | `src/Vocaterra.Nlp.Audio` | WAV reading and writing, resampler, downmix, gain, energy VAD, push-to-talk session, clip hash |
 | `src/Vocaterra.Nlp.Phonology` | Spanish grapheme-to-phoneme converter, dialect presets, predicted learner-error variants |
@@ -405,20 +406,20 @@ consent rules and manifest schema are in [golden/README.md](golden/README.md).
 | `tools/Vocaterra.Nlp.ContentBuilder` | `validate`, `hash`, `lint`, `cefr-check`, `import-lexicon`, `lexicon-report` |
 | `tests/Vocaterra.Nlp.<Project>.Tests` | One xUnit project per source project |
 | `tests/Vocaterra.Nlp.Golden.Tests` | G2P golden set, end-to-end worked example, golden manifest layout |
-| `tests/Vocaterra.Nlp.Fuzzing.Tests` | Combinatorial fuzz tests: CsCheck oracles over generators driven by the content catalogs ([README](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)) |
+| `tests/Vocaterra.Nlp.Fuzzing.Tests` | Combinatorial fuzz tests: CsCheck oracles over generators driven by the content catalogs ([README](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)) |
 | `content/v1` | The versioned, hashed content bundle (JSON) and its `ATTRIBUTION.md` |
-| `golden/` | Golden learner audio manifest and recording protocol; the audio itself is gitignored |
+| `tests/golden/` | Golden learner audio manifest and recording protocol; the audio itself is gitignored |
 | `models/` | `manifest.json` and a README are committed; the model files are fetched and gitignored |
-| `scripts/` | `fetch-models.sh`, `fetch-lexicon-sources.sh`, `license-scan.sh` and its allowlist and overrides, `check-links.sh` ([scripts/README.md](scripts/README.md)) |
-| `../.github/workflows-pending/ci.yml` | The CI workflow (repository root), parked until the push token has the `workflow` scope |
-| `docs/` | [API.md](docs/API.md), [PIPELINE.md](docs/PIPELINE.md), [REPLAY.md](docs/REPLAY.md), [LEXICON.md](docs/LEXICON.md), [CLI_EXAMPLES.md](docs/CLI_EXAMPLES.md) and the architecture decision records in `docs/adr/` |
-| `docs/diagrams/` | The draw.io system overview and how to open it ([README](docs/diagrams/README.md)) |
-| `docs/history/` | [HIGH_LEVEL_DOCS.md](docs/history/HIGH_LEVEL_DOCS.md), the original design note (2026-10-18), kept for history |
-| `IMPLEMENTATION_PLAN.md` | The milestone plan, the findings log and the split roadmap. Host designs, such as the game's, are not in this folder |
+| `scripts/` | `fetch-models.sh`, `fetch-lexicon-sources.sh`, `license-scan.sh` and its allowlist and overrides, `check-links.sh` ([scripts/README.md](../../scripts/README.md)) |
+| `.github/workflows-pending/ci.yml` | The CI workflow, parked until the push token has the `workflow` scope |
+| `docs/nlp/` | [API.md](API.md), [PIPELINE.md](PIPELINE.md), [REPLAY.md](REPLAY.md), [LEXICON.md](LEXICON.md), [CLI_EXAMPLES.md](CLI_EXAMPLES.md) and the architecture decision records in `docs/nlp/adr/` |
+| `docs/nlp/diagrams/` | The draw.io system overview and how to open it ([README](diagrams/README.md)) |
+| `docs/nlp/history/` | [HIGH_LEVEL_DOCS.md](history/HIGH_LEVEL_DOCS.md), the original design note (2026-10-18), kept for history |
+| `docs/nlp/IMPLEMENTATION_PLAN.md` | The milestone plan, the findings log and the split roadmap. Host designs, such as the game's, are not in this document |
 
 ## Determinism rules in brief
 
-The full rules, with where each is enforced, are in [ADR 0002](docs/adr/0002-determinism-rules.md); the pull request checklist is in
+The full rules, with where each is enforced, are in [ADR 0002](adr/0002-determinism-rules.md); the pull request checklist is in
 [CONTRIBUTING.md](CONTRIBUTING.md). In short, code under `src/` must:
 
 - use no `System.Random` (only `SeededRng.ForInteraction(worldSeed, agentId, counter)`) and no wall clock (time arrives as a `StoredTimestamp`);
@@ -430,12 +431,12 @@ The full rules, with where each is enforced, are in [ADR 0002](docs/adr/0002-det
 
 ## Licence
 
-- **Code and hand-authored content** are licensed under the [Apache License 2.0](LICENSE). The copyright line and the statement about the
-  third-party data are in [NOTICE](NOTICE).
+- **Code and hand-authored content** are licensed under the [Apache License 2.0](../../LICENSE). The copyright line and the statement about the
+  third-party data are in [NOTICE](../../NOTICE).
 - **The Wiktionary-derived lexicon** `content/v1/lexicon/wiktionary-es.json` is derived from Wiktionary and is licensed under CC BY-SA 4.0, not
   under Apache-2.0. Its attribution, and the terms of the frequency list it was selected with, are in
-  [content/v1/ATTRIBUTION.md](content/v1/ATTRIBUTION.md) and [docs/LEXICON.md](docs/LEXICON.md).
-- **Models** are downloaded, not committed. Each model's licence is recorded in [models/manifest.json](models/manifest.json).
+  [content/v1/ATTRIBUTION.md](../../content/v1/ATTRIBUTION.md) and [docs/nlp/LEXICON.md](LEXICON.md).
+- **Models** are downloaded, not committed. Each model's licence is recorded in [models/manifest.json](../../models/manifest.json).
 
 Third-party checks:
 
@@ -444,7 +445,7 @@ Third-party checks:
   `scripts/license-overrides.txt` holds reviewed exceptions for packages whose metadata names no license.
 - **Two GPL components must stay out of anything shipped**: espeak-ng (GPL-3.0) and the current Piper runtime. espeak-ng is
   only a development-time oracle. Kokoro's bundled phonemizer is espeak-ng, and the sherpa-onnx native library appears to
-  contain it too; see [ADR 0007](docs/adr/0007-kokoro-phonemizer-licensing.md) and Known gaps. This is an engineering note, not legal advice.
+  contain it too; see [ADR 0007](adr/0007-kokoro-phonemizer-licensing.md) and Known gaps. This is an engineering note, not legal advice.
 
 ## Status
 
@@ -470,21 +471,21 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 | M14 | CI matrix (x64/ARM64/Windows/macOS), golden tests, license scan, format check (workflow parked in `.github/workflows-pending`) | done |
 | M15 | README, ADRs, CONTRIBUTING, determinism checklist, replay and pipeline docs | done |
 | M16 | Combinatorial fuzz testing: CsCheck, 16 oracles over catalog-driven generators | done |
-| M17a | Vocabulary: 3 000 Wiktionary lemmas (about 40 000 entries) selected by a frequency list, with sources, hashes and coverage tests (see [docs/LEXICON.md](docs/LEXICON.md)) | done |
-| M18 | Part-of-speech disambiguation: the analyzer resolves each word to one reading before its checks (see [docs/PIPELINE.md](docs/PIPELINE.md#4-linguistic-analysis-d0)) | done |
-| M19a | Standalone core, step 1: the solution, projects and namespaces are `Vocaterra.Nlp.*`; the conversation engine is a generic agent; the boundary is in [ADR 0009](docs/adr/0009-core-and-game-boundary.md) and the host API in [docs/API.md](docs/API.md) | done |
-| M19b | Standalone core, step 2: NuGet packaging of the eleven libraries (version 0.1.0, symbols, a shared readme), a local feed from `scripts/pack.sh`, content bundle archives (`ContentBuilder pack` and `verify-pack`), and `samples/HostConsole` consuming the packages; nothing is published (`docs/PACKAGING.md` was retired in M50) | done |
-| M50 | Folder cleanup after the two-repository era: the packaging scripts, the sample host and `docs/PACKAGING.md` retired (D5 superseded; no pack step or feed), `HIGH_LEVEL_DOCS.md` moved to `docs/history/`, `TOOLS.md` refreshed, link check in `scripts/check-links.sh`; no behaviour change | done |
+| M17a | Vocabulary: 3 000 Wiktionary lemmas (about 40 000 entries) selected by a frequency list, with sources, hashes and coverage tests (see [docs/nlp/LEXICON.md](LEXICON.md)) | done |
+| M18 | Part-of-speech disambiguation: the analyzer resolves each word to one reading before its checks (see [docs/nlp/PIPELINE.md](PIPELINE.md#4-linguistic-analysis-d0)) | done |
+| M19a | Standalone core, step 1: the solution, projects and namespaces are `Vocaterra.Nlp.*`; the conversation engine is a generic agent; the boundary is in [ADR 0009](adr/0009-core-and-game-boundary.md) and the host API in [docs/nlp/API.md](API.md) | done |
+| M19b | Standalone core, step 2: NuGet packaging of the eleven libraries (version 0.1.0, symbols, a shared readme), a local feed from `scripts/pack.sh`, content bundle archives (`ContentBuilder pack` and `verify-pack`), and `samples/HostConsole` consuming the packages; nothing is published (`docs/nlp/PACKAGING.md` was retired in M50) | done |
+| M50 | Folder cleanup after the two-repository era: the packaging scripts, the sample host and `docs/nlp/PACKAGING.md` retired (D5 superseded; no pack step or feed), `HIGH_LEVEL_DOCS.md` moved to `docs/nlp/history/`, `TOOLS.md` refreshed, link check in `scripts/check-links.sh`; no behaviour change | done |
 | M19c | Standalone core, step 3: the first consumer, the [Vocaterra](https://github.com/james-d12/Vocaterra) game repository, is built on the packages (its own console host, smoke tests, content bundle and parked CI job); its design lives in that repository | done |
-| M17b-core | Generic conversation intents (`confirm`, `deny`, `farewell`, `thank`, `introduce_self`), the `[WORD:slot]` name token of the slot-grammar DSL, the blacksmith's `confirming` state and their dialogue (see [docs/PIPELINE.md](docs/PIPELINE.md#4-linguistic-analysis-d0)) | done |
+| M17b-core | Generic conversation intents (`confirm`, `deny`, `farewell`, `thank`, `introduce_self`), the `[WORD:slot]` name token of the slot-grammar DSL, the blacksmith's `confirming` state and their dialogue (see [docs/nlp/PIPELINE.md](PIPELINE.md#4-linguistic-analysis-d0)) | done |
 
 ## Known gaps and next steps
 
 - **Engine integration.** This folder is the core, not a host. A host still has to capture the microphone (v1 has no
   operating-system capture adapter, only WAV files and `PushToTalkSession`), play the synthesized audio, map its saves to
   `ConversationContext` and back, apply the resolved effects and the agent's host events, and ship the native speech libraries. The
-  engine is the host's own choice ([ADR 0003](docs/adr/0003-engine-agnostic-core.md)); the boundary is in [ADR 0009](docs/adr/0009-core-and-game-boundary.md).
-- **Real golden learner audio.** `golden/manifest.jsonl` has three synthetic entries and `golden/audio/` is empty. Until
+  engine is the host's own choice ([ADR 0003](adr/0003-engine-agnostic-core.md)); the boundary is in [ADR 0009](adr/0009-core-and-game-boundary.md).
+- **Real golden learner audio.** `tests/golden/manifest.jsonl` has three synthetic entries and `tests/golden/audio/` is empty. Until
   recordings of real non-native speakers exist, word error rate, learner-error preservation, the pronunciation thresholds
   (initial, uncalibrated guesses) and the latency budget of the design document are unmeasured.
 - **ONNX exports for wav2vec2 and e5.** The upstream wav2vec2 phoneme model ships PyTorch weights only and multilingual-e5-small
@@ -493,9 +494,9 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
   e5 files. The Parakeet and Kokoro file hashes are pinned (M26e, 2026-10-21).
 - **Kokoro phonemizer licensing.** Kokoro through sherpa-onnx phonemizes with espeak-ng (GPL-3.0), and the sherpa-onnx native
   library appears to link it statically. The plan is to feed Kokoro phones from the in-house G2P and to settle the native
-  binaries before release ([ADR 0007](docs/adr/0007-kokoro-phonemizer-licensing.md)). Dynamic TTS must not ship until then.
-- **App-local ICU.** Shipped builds should carry a pinned ICU instead of using the machine's ([ADR 0006](docs/adr/0006-globalization-icu.md)).
-- **CI workflow activation.** `../.github/workflows-pending/ci.yml` (at the repository root) (build, format check, tests on Linux x64 and ARM64, Windows and
+  binaries before release ([ADR 0007](adr/0007-kokoro-phonemizer-licensing.md)). Dynamic TTS must not ship until then.
+- **App-local ICU.** Shipped builds should carry a pinned ICU instead of using the machine's ([ADR 0006](adr/0006-globalization-icu.md)).
+- **CI workflow activation.** `.github/workflows-pending/ci.yml` (build, format check, tests on Linux x64 and ARM64, Windows and
   macOS, golden tests, license scan, optional model-backed tests) is parked because the push token lacks the `workflow` scope. To
   activate it:
 
@@ -508,37 +509,37 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
 - **Content.** The vocabulary is large (3 372 lemmas) but the sample is small: one agent, 18 prompts, eleven intents. Its dialogue uses lemmas that are
   not in the A1 list (`cefr-check` prints them; it is advisory). `pron.stress` is recognized by the taxonomy but is not scored in v1.
 - **Open decisions.** The sherpa-onnx native build (D2) and the terms of the frequency list (D4) decide what may be released publicly; the
-  rest are in [docs/DECISIONS.md](docs/DECISIONS.md).
+  rest are in [docs/nlp/DECISIONS.md](DECISIONS.md).
 - **Build size.** A full build writes about 3 GB per checkout; trimming the runtime packs is a follow-up.
 - **Part of speech.** Since M18 the analyzer resolves each word to one part of speech before it checks anything, from the neighbouring words, the
-  slot grammar that matched and, last, the reading with the fewest errors ([how](docs/PIPELINE.md#4-linguistic-analysis-d0)), so correct sentences
+  slot grammar that matched and, last, the reading with the fewest errors ([how](PIPELINE.md#4-linguistic-analysis-d0)), so correct sentences
   with `libro`, `lanza`, `vino` or `ayudas` analyze clean and the mistakes in sentences with them are still found. Two verbs that share a form (`fue` is `ir`
   and `ser`) are not told apart, and a sentence that is a mistake under one reading and correct under another, with nothing around the word to
-  prefer either, is read the charitable way ([fuzz suite findings](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)).
+  prefer either, is read the charitable way ([fuzz suite findings](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)).
 - **Pronunciation cost.** Scoring grows with the cube of the phone count, because `PredictedErrorMatcher.Match` aligns against the reference once
-  per predicted-error variant. Spoken utterances are far below the sizes where this matters ([fuzz suite findings](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)).
+  per predicted-error variant. Spoken utterances are far below the sizes where this matters ([fuzz suite findings](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)).
 - **Content defaults.** The content loader silently defaults missing number, flag and enumeration fields to 0, false or the first member. The
-  places where this is accepted are listed in [`KnownTolerances.cs`](tests/Vocaterra.Nlp.Fuzzing.Tests/Oracles/KnownTolerances.cs) (`AcceptedContentField`).
+  places where this is accepted are listed in [`KnownTolerances.cs`](../../tests/Vocaterra.Nlp.Fuzzing.Tests/Oracles/KnownTolerances.cs) (`AcceptedContentField`).
 - **WAV sample rate.** `WavFile.Read` does not validate the sample-rate range, and the resampler rebuilds its kernel bank on every call, so a
-  damaged header can inflate one clip's output or make it slow ([fuzz suite findings](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)).
+  damaged header can inflate one clip's output or make it slow ([fuzz suite findings](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)).
 - **Replay envelope copies.** The replayer does not cross-check the envelope's duplicate `result/verdict` and `result/replay` copies against the
-  core record, so an edited log can replay clean ([fuzz suite findings](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)).
+  core record, so an edited log can replay clean ([fuzz suite findings](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)).
 
 ## Documentation
 
-- [docs/PIPELINE.md](docs/PIPELINE.md): the pipeline stage by stage, with the worked example and the CLI's verdict
-- [docs/REPLAY.md](docs/REPLAY.md): replay log and envelope format, with a real example
-- [docs/CLI_EXAMPLES.md](docs/CLI_EXAMPLES.md): more worked runs of the demo CLI: the other intents and error tags, the repair ladder and a replay log
-- [docs/DECISIONS.md](docs/DECISIONS.md): the register of open owner decisions, with context and recommendations
-- [docs/research/SCALING_APPROACHES.md](docs/research/SCALING_APPROACHES.md): research on scaling the core with existing NLP, speech and model components
-- [docs/FUZZING_PLAN.md](docs/FUZZING_PLAN.md): the fuzz testing design, its generators, oracles O1 to O16 and iteration budgets
-- [tests/Vocaterra.Nlp.Fuzzing.Tests/README.md](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md): the fuzz suite, how to run and soak it, its oracles, the bugs it found and the known findings
-- [docs/LEXICON.md](docs/LEXICON.md): the lexicon files, the Wiktionary and frequency-list sources with hashes and licences, how to fetch and regenerate, the merge policy, measurements
-- [docs/API.md](docs/API.md): what a host calls, in order: load a bundle, build the services, evaluate an utterance, plan a response, record and replay
-- [docs/adr/](docs/adr/): architecture decision records 0001 to 0009 (language, determinism, engine-agnostic core, model pinning, dialect, ICU, Kokoro phonemizer licensing, lexicon sources and frequency filter, core and game boundary)
-- [docs/diagrams/README.md](docs/diagrams/README.md): the system diagram in draw.io, and how to open it
+- [docs/nlp/PIPELINE.md](PIPELINE.md): the pipeline stage by stage, with the worked example and the CLI's verdict
+- [docs/nlp/REPLAY.md](REPLAY.md): replay log and envelope format, with a real example
+- [docs/nlp/CLI_EXAMPLES.md](CLI_EXAMPLES.md): more worked runs of the demo CLI: the other intents and error tags, the repair ladder and a replay log
+- [docs/nlp/DECISIONS.md](DECISIONS.md): the register of open owner decisions, with context and recommendations
+- [docs/nlp/research/SCALING_APPROACHES.md](research/SCALING_APPROACHES.md): research on scaling the core with existing NLP, speech and model components
+- [docs/nlp/FUZZING_PLAN.md](FUZZING_PLAN.md): the fuzz testing design, its generators, oracles O1 to O16 and iteration budgets
+- [tests/Vocaterra.Nlp.Fuzzing.Tests/README.md](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md): the fuzz suite, how to run and soak it, its oracles, the bugs it found and the known findings
+- [docs/nlp/LEXICON.md](LEXICON.md): the lexicon files, the Wiktionary and frequency-list sources with hashes and licences, how to fetch and regenerate, the merge policy, measurements
+- [docs/nlp/API.md](API.md): what a host calls, in order: load a bundle, build the services, evaluate an utterance, plan a response, record and replay
+- [docs/nlp/adr/](adr/): architecture decision records 0001 to 0009 (language, determinism, engine-agnostic core, model pinning, dialect, ICU, Kokoro phonemizer licensing, lexicon sources and frequency filter, core and game boundary)
+- [docs/nlp/diagrams/README.md](diagrams/README.md): the system diagram in draw.io, and how to open it
 - [TOOLS.md](TOOLS.md): the inventory of third-party tools, libraries, models and data sources, with their licenses
 - [CONTRIBUTING.md](CONTRIBUTING.md): development setup, conventions, the determinism checklist, and how to add error tags, content, golden clips and model adapters
-- [docs/history/HIGH_LEVEL_DOCS.md](docs/history/HIGH_LEVEL_DOCS.md): the original design note (2026-10-18), kept for history
+- [docs/nlp/history/HIGH_LEVEL_DOCS.md](history/HIGH_LEVEL_DOCS.md): the original design note (2026-10-18), kept for history
 - [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md): milestones, repository layout, determinism rules, findings log
-- [models/README.md](models/README.md), [golden/README.md](golden/README.md), [scripts/README.md](scripts/README.md): the model manifest, the recording protocol and the helper scripts
+- [models/README.md](../../models/README.md), [tests/golden/README.md](../../tests/golden/README.md), [scripts/README.md](../../scripts/README.md): the model manifest, the recording protocol and the helper scripts

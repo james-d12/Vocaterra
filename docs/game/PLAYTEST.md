@@ -1,6 +1,6 @@
 # Playtest: the facilitator's script
 
-The facilitator's checklist for the prototype's playtests (S12, `docs/PROTOTYPE_BRIEF.md`, `docs/SCENARIO_PLAN.md` section 4 "S12"; refreshed
+The facilitator's checklist for the prototype's playtests (S12, `docs/game/PROTOTYPE_BRIEF.md`, `docs/game/SCENARIO_PLAN.md` section 4 "S12"; refreshed
 at S18 for the opening at the cliff camp, the guide's lesson, the longer run, the 31-item checks, the book and the keys F5, F6 and F8; refreshed at S28 for the book as a book, the lessons of sessions 2 and 3 and "Practise again"). Read it
 end to end before the first tester. It says what to recruit, what is logged, how a session runs, what to watch, how the next-day recall
 works, how the two arms are run, which evidence answers which decision gate, and the owner's own pre-flight. Nothing here is a verdict on
@@ -8,11 +8,11 @@ learning: a small pilot gives directional evidence only (the brief).
 
 **Provisional content trust (D-game-12).** Until a native Spanish speaker has checked the phrase sheet and the recordings, the content-trust
 gate is **provisional**. The Spanish was reviewed by an LLM pass (`content/PHRASES.md`, `reviewer: llm-opus (provisional)`) and the owner
-listened to the recordings (`docs/SPEECH_CHECKLIST.md`). **Tell every tester:** "The Spanish in this game has not been checked by a native
+listened to the recordings (`docs/game/SPEECH_CHECKLIST.md`). **Tell every tester:** "The Spanish in this game has not been checked by a native
 speaker yet." Put that sentence in the consent script too. Do not claim the Spanish is correct to a tester.
 
 **The review chain (D-game-12, S23).** Before a build goes to a tester the content runs lint `--strict`, `cefr-check` (A1 and A2), the grammar
-check (LanguageTool over every Spanish string, from the committed cache, `game/README.md`), then the Opus pass. Each step is supplementary: a clean
+check (LanguageTool over every Spanish string, from the committed cache, `docs/game/README.md`), then the Opus pass. Each step is supplementary: a clean
 grammar run is not native-speaker approval, and `reviewer` in `content/PHRASES.md` does not change because of it.
 
 ## 1. Who to recruit
@@ -57,7 +57,7 @@ Record consent in the observer notes (yes or no, the time, the code). A tester w
 
 The script validates the bundle, publishes the game self-contained (no .NET install for the tester), copies the bundle with its 300 speech
 WAVs, copies the pinned Vosk model from the shared models folder (`VOCATERRA_MODELS_DIR`, default `~/.local/share/vocaterra/models`; fetch it with
-`nlp/scripts/fetch-models.sh` first) and its manifest, copies the tester's README and the launcher, then checks the folder: no sherpa-onnx or
+`scripts/fetch-models.sh` first) and its manifest, copies the tester's README and the launcher, then checks the folder: no sherpa-onnx or
 ONNX Runtime native library, no espeak-ng, no sherpa model file, the Vosk model matching its pinned SHA-256 sums, and every speech WAV the
 bundle manifest lists. The build must end with `all checks passed`. Keep its output with the build folder.
 
@@ -68,11 +68,11 @@ facilitator records the build folder's commit in the observer notes.
 The tester runs `./playtest.sh` in that folder. The launcher sets `VOCATERRA_MODELS_DIR` to the folder's own `models/`. If the folder has no
 game in it (not built), the launcher says so and asks for `scripts/playtest-build.sh` first; it does not start.
 
-**A checkout** (for the owner or a developer): `dotnet run --project game/src/Vocaterra.MonoGame -- --playtest` from the repository root, with
+**A checkout** (for the owner or a developer): `dotnet run --project src/Vocaterra.MonoGame -- --playtest` from the repository root, with
 `VOCATERRA_MODELS_DIR` set. The developer build also carries Kokoro (`--speak`), which the playtest build does not.
 
-**Fresh clone.** A clone needs the .NET 10 SDK, the speech models (`nlp/scripts/fetch-models.sh`) and `dotnet build Vocaterra.sln`. The
-README's build steps are the reference; S12's fresh-clone check is in `game/README.md`.
+**Fresh clone.** A clone needs the .NET 10 SDK, the speech models (`scripts/fetch-models.sh`) and `dotnet build Vocaterra.sln`. The
+README's build steps are the reference; S12's fresh-clone check is in `docs/game/README.md`.
 
 **Before the tester sits down:** the microphone works (the mic check will tell you), the screen is at least 1280 x 720, and the session folder
 root is empty of old runs you do not want mixed in (each run makes its own folder anyway).
@@ -81,7 +81,7 @@ root is empty of old runs you do not want mixed in (each run makes its own folde
 names both hashes, and does not load. Outside a playtest a save of an older bundle is carried into the new one (progress kept where its ids exist, the rest
 dropped and logged), which is right for a player and wrong for a recall check: the recall battery assumes the bundle the tester learned from. Do not load a
 tester's save without `--playtest` to get round the freeze; the recall session must be `--playtest --load`, on the same bundle. Before the first tester, note the bundle hash
-from `game/content/game-v1/manifest.json` (`bundleHash`) and do not change `game/content/game-v1` until the last next-day recall is done. The
+from `content/game-v1/manifest.json` (`bundleHash`) and do not change `content/game-v1` until the last next-day recall is done. The
 hash recorded at S18 (the refresh, 2026-10-22) is `393548666329ed76cac52e5d37dbb249285a37b6e12314b23a0df735fdfdeb98` (bundle `game-v1`,
 300 speech files, 20-item battery). The owner's freeze is the hash in the owner's observer notes; if `manifest.json` shows another hash when
 you build, that is a content change since S18 and the notes say so. Write the hash you froze in your observer notes header. A content change
@@ -207,7 +207,7 @@ the pre- and post-checks, another order), then the thank-you screen, and the gam
 session folder (`~/.local/share/vocaterra/sessions/...`). Use the same build folder and the same bundle: a save made against another bundle
 is refused (the playtest is strict, X01; a plain `--load` would migrate it instead, and a migrated save is not a recall of what the tester learned).
 
-From a checkout: `dotnet run --project game/src/Vocaterra.MonoGame -- --playtest --load <session folder>/playtest.save`.
+From a checkout: `dotnet run --project src/Vocaterra.MonoGame -- --playtest --load <session folder>/playtest.save`.
 
 ## 9. The A/B arm (`--greyscale`)
 
@@ -256,7 +256,7 @@ code 1.
 
 ## 11. The decision gates and the evidence that answers them
 
-From the brief (`docs/PROTOTYPE_BRIEF.md`). The report gives evidence lines; the decision is yours and the owner's, with the notes.
+From the brief (`docs/game/PROTOTYPE_BRIEF.md`). The report gives evidence lines; the decision is yours and the owner's, with the notes.
 
 | Gate | Criterion (the brief) | Evidence that answers it | Where |
 | --- | --- | --- | --- |
@@ -264,7 +264,7 @@ From the brief (`docs/PROTOTYPE_BRIEF.md`). The report gives evidence lines; the
 | Enjoyable | Players understand why they needed Spanish and show interest in another scenario | The debrief answers (questions 3 and 5); observer notes "Why Spanish was needed" and "Would play another part"; comments | Observer notes only: the script cannot measure it |
 | Learning signal | Players independently recall or understand several phrases after support is reduced | Post-check against pre-check, by kind (production and comprehension); the recall check the next day; support used (cards, Repetir, Ayuda, No sé) during the run | Report "Checks pre/post/recall", "Support used" |
 | Transfer | At least some target language works with a different NPC or changed context; a next-day check is preferable | Transfer uses (the guide's "¿Quieres agua?" answered after the camp); the villager and shopkeeper phrases in the post-check; the next-day recall | Report "Transfer uses", "Found without Spanish", the recall lines |
-| Content trust | Every prototype phrase, translation, accepted response and recording is checked together before testing | Provisional: the LLM review and the owner's listening pass (`content/PHRASES.md`, `docs/SPEECH_CHECKLIST.md`); a native speaker's check is not done | Status stays **provisional** (D-game-12) until a speaker checks it |
+| Content trust | Every prototype phrase, translation, accepted response and recording is checked together before testing | Provisional: the LLM review and the owner's listening pass (`content/PHRASES.md`, `docs/game/SPEECH_CHECKLIST.md`); a native speaker's check is not done | Status stays **provisional** (D-game-12) until a speaker checks it |
 
 Read the gates separately, as the brief asks: a recall check that is weak with a fun game means improve the learning loop before the world;
 a fun game with weak recall means change how the practice is built into the objective. Transcription accuracy is not learning.
@@ -284,7 +284,7 @@ Before any tester (the owner, once, end to end):
 3. Run the recall on the session's `playtest.save`: `./playtest.sh --load <folder>/playtest.save`. Check that the thank-you says "Thank you".
 4. Run `scripts/playtest-report.sh` on the two folders and read every line; then collect the owner's own F8 report with
    `scripts/playtest-report.sh --copy <collection folder> <folder>` and check its "Build commit" line.
-5. **Listen to every speech WAV** and mark each row of `game/docs/SPEECH_CHECKLIST.md` `ok`, `cut-off` or `mismatch` (D-game-12, step 4).
+5. **Listen to every speech WAV** and mark each row of `docs/game/SPEECH_CHECKLIST.md` `ok`, `cut-off` or `mismatch` (D-game-12, step 4).
    The owner's rows decide whether a file is played to a tester; a `mismatch` or `cut-off` is a bundle change and a new build.
 6. Check that the thank-you and the pre- and post-check text still match this document (the English is for the tester and the facilitator).
 7. Freeze the bundle (section 3) and note its hash.

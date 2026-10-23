@@ -1,6 +1,6 @@
 # Audio sources
 
-Every sound file under `game/assets/audio/` is CC0 (decision D-game-5, D-game-18). Each file is listed here with its source, pack, author, licence and edit.
+Every sound file under `assets/audio/` is CC0 (decision D-game-5, D-game-18). Each file is listed here with its source, pack, author, licence and edit.
 `tests/Vocaterra.MonoGame.Tests/AudioProvenanceTests.cs` fails on a file that is not listed here, on a row whose file is missing or whose licence is not CC0,
 and on a total size over the budget (15 MB for S24 and S25 together; S24 uses about 0.8 MB and S25 about 0.5 MB).
 

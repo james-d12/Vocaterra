@@ -9,7 +9,7 @@ that was retired (its last commit is tagged `2d-slice-p7`).
 The API a front-end uses (the S4 world):
 
 ```csharp
-var layout = SceneLayout.Load("game/content/game-v1/game/scene.json");     // or SceneLayout.Parse(json)
+var layout = SceneLayout.Load("content/game-v1/game/scene.json");     // or SceneLayout.Parse(json)
 var scene = SceneBuilder.Build(layout, seed: 42);                          // a pure function of (layout, seed)
 var sim = VoxelSimulation.Create(scene);                                   // the player stands at scene.Spawn
 sim.SetRecipes(recipes);                                                   // the bundle's recipes as plain values
@@ -27,12 +27,12 @@ while (running)
 
 ## The 3D voxel world (S1, `Vocaterra.Simulation.Voxel`; the route in S3)
 
-The prototype's world (docs/SCENARIO_PLAN.md): a generated 384 x 384 x 128 block valley (S13), a first-person body, gathering and placing, all
+The prototype's world (docs/game/SCENARIO_PLAN.md): a generated 384 x 384 x 128 block valley (S13), a first-person body, gathering and placing, all
 headless and integer-only (the 2D code above is untouched). The folder is `src/Vocaterra.Simulation/Voxel/`; the prototype route is
 `content/game-v1/game/scene.json` in the bundle (S3, rewritten as generator parameters in S13).
 
 ```csharp
-var layout = SceneLayout.Load("game/content/game-v1/game/scene.json");     // or SceneLayout.Parse(json)
+var layout = SceneLayout.Load("content/game-v1/game/scene.json");     // or SceneLayout.Parse(json)
 var scene = SceneBuilder.Build(layout, seed: 42);                          // a pure function of (layout, seed)
 var sim = VoxelSimulation.Create(scene);                                   // the player stands at scene.Spawn
 sim.Step([VoxelCommand.Look(Angles.FromDegrees(90), 0), VoxelCommand.MoveRelative(0, 1)]);   // one 1/60 s tick
@@ -139,4 +139,4 @@ reach, a full inventory, placing rules, the torch at the workbench and the fire 
 hotbar, stacks of 99, what does not fit, removals), `CraftingTests` (the rule: ingredients, the station, the room for the output), `WorldRngTests`
 and `DeterminismRulesTests`, which scans the sources (every folder, the Voxel folder for floating point too) and the project file for the
 forbidden libraries and for any reference beyond the framework. Print the route:
-`dotnet test game/tests/Vocaterra.Simulation.Tests --filter "FullyQualifiedName~Voxel" --logger "console;verbosity=detailed"`.
+`dotnet test tests/Vocaterra.Simulation.Tests --filter "FullyQualifiedName~Voxel" --logger "console;verbosity=detailed"`.

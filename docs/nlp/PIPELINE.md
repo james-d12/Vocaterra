@@ -3,7 +3,7 @@
 `Vocaterra.Nlp.Pipeline.UtterancePipeline` turns one recorded utterance into everything the host needs to react: a graded **verdict**, the
 agent's and learner model's **decision**, the **lines** the agent says, the **effects**, an optional **repair** step and a
 **replay record**. This page walks through `Evaluate` stage by stage, using the worked example from the high-level design
-(`docs/history/HIGH_LEVEL_DOCS.md`, "Verdict contract and error taxonomy"), and shows the actual output of the CLI for it.
+(`docs/nlp/history/HIGH_LEVEL_DOCS.md`, "Verdict contract and error taxonomy"), and shows the actual output of the CLI for it.
 
 - [The call](#the-call)
 - [The stages at a glance](#the-stages-at-a-glance)
@@ -402,7 +402,7 @@ later attempts `GiveUp`. The retry at attempts 1 and 2 uses every phrase the ans
 ### 12. Replay record (D0)
 
 `ReplayRecord(clip.ClipHash, prompt.PromptId, context.HostStateHash, versions, verdict)` is attached to the result. With
-`Trace`, the recognizer outputs and the context are what [`docs/REPLAY.md`](REPLAY.md) calls an envelope.
+`Trace`, the recognizer outputs and the context are what [`docs/nlp/REPLAY.md`](REPLAY.md) calls an envelope.
 
 ## The verdict the CLI prints
 

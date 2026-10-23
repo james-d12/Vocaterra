@@ -426,7 +426,7 @@ What a difference means:
   `content/v1` changes the hash, so old logs report a difference until they are re-recorded. That is expected after an
   intentional content change; it is not expected otherwise.
 - The replay does not re-check the models. It trusts the recorded `asr` and `posteriors`. Whether a model still produces the
-  same output is the job of the model-gated tests and of the golden audio set (`golden/README.md`).
+  same output is the job of the model-gated tests and of the golden audio set (`tests/golden/README.md`).
 
 ## A model-backed log
 
@@ -550,6 +550,6 @@ state or the event is no longer handled) is reported as `/result`. The CLI `repl
   nothing in the repository uploads a log.
 - **Logs can still be personal.** They contain what the recognizer heard (the transcript, which includes the player's
   mistakes), the host state, and, for pronunciation scoring, the phone posteriors. Treat them like the recordings in
-  `golden/README.md`: do not attach a log from a real person to a public issue without their consent.
+  `tests/golden/README.md`: do not attach a log from a real person to a public issue without their consent.
 - A replay log is the thing to attach to a bug report about a wrong verdict: it reproduces the verdict on the maintainer's
   machine without any model.

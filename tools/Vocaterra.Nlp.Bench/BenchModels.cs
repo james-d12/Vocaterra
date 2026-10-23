@@ -7,7 +7,7 @@ namespace Vocaterra.Nlp.Bench;
 /// <param name="Actual">The word or words the learner said, for example <c>tiene</c>.</param>
 public sealed record ExpectedError(string Tag, string Actual);
 
-/// <summary>One line of <c>golden/manifest.jsonl</c>.</summary>
+/// <summary>One line of <c>tests/golden/manifest.jsonl</c>.</summary>
 /// <param name="Clip">The audio file, relative to the manifest's directory (or the <c>--audio-dir</c>).</param>
 /// <param name="PromptId">The prompt the speaker was answering; it selects the answer set and the recognition mode.</param>
 /// <param name="Speaker">An opaque speaker label (never a name).</param>

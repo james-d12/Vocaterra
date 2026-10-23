@@ -107,7 +107,7 @@ public static class BenchMetrics
     }
 }
 
-/// <summary>Reads <c>golden/manifest.jsonl</c>.</summary>
+/// <summary>Reads <c>tests/golden/manifest.jsonl</c>.</summary>
 public static class ManifestReader
 {
     /// <summary>Reads one <see cref="ManifestEntry"/> per non-blank line.</summary>

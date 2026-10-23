@@ -8,7 +8,7 @@ dialogue, agents, answer sets, CEFR lemma lists and the hand-authored lexicons `
 The generic intents (`confirm`, `deny`, `farewell`, `thank`), the feedback and acknowledgement dialogue pools (`feedback.*`, `answer_accepted`,
 `farewell_reply`) and the feedback policy were copied from the sample bundle `content/v1` of the language core (Vocaterra.NLP, Apache-2.0), in
 places reworded to pass this bundle's A1 check, and stay credited to that sample under its Apache-2.0 licence. Since decision D-game-4
-(`docs/DECISIONS.md`, decided 2026-10-21) this bundle diverges from the sample: the game owns every file, nothing is re-synced when the
+(`docs/game/DECISIONS.md`, decided 2026-10-21) this bundle diverges from the sample: the game owns every file, nothing is re-synced when the
 core's sample changes, and a milestone that wants another piece of the sample copies only that piece and records it in `provenance.json`.
 The sample's blacksmith agent, its spells, items and trade intents, answer sets, prompts and effects were copied in the first milestones and
 left the bundle in S5 (they remain in the core's sample). Everything added since is written for the game and has no third-party text in it:
@@ -27,7 +27,7 @@ Version 2.0 (`LICENSE` and `NOTICE` at the repository root). The third-party dat
 `lexicon/wiktionary-es.json` is derived from Wiktionary (https://en.wiktionary.org). It was generated with
 `Vocaterra.Nlp.ContentBuilder import-lexicon` from the Spanish extract of English Wiktionary (wiktextract data of 2026-10-03, from the
 dump of 2026-09-02) that kaikki.org publishes at https://kaikki.org/dictionary/Spanish/. It holds the lemmas, the inflected
-forms and the gender and number tags of the 3 000 most frequent Spanish lemmas, filtered as the core's `docs/LEXICON.md` describes. The
+forms and the gender and number tags of the 3 000 most frequent Spanish lemmas, filtered as the core's `docs/nlp/LEXICON.md` describes. The
 extraction tool, wiktextract (https://github.com/tatuylonen/wiktextract, Tatu Ylonen), is licensed under the MIT license; the
 extracted data is Wiktionary text. The file `lexicon/wiktionary-es.source.json` beside it records the source URLs, the retrieval
 date, the SHA-256 and size of every input file, the import parameters and the importer version.
@@ -56,7 +56,7 @@ the Wiktionary data.
 
 ## Models
 
-The models are downloaded, not committed. The core's `nlp/models/manifest.json` (the sibling folder of `game/` in the repository) pins
+The models are downloaded, not committed. The repository's `models/manifest.json` pins
 the exact files and hashes; the licenses below are the ones recorded there. The prototype loads none of these files yet: its text
 loop runs on the core's scripted recognizer and stand-in models. The table is the licence record for the models the game will load
 when speech and the guide's voice land (milestones P5 and P8 in `IMPLEMENTATION_PLAN.md`).
@@ -81,4 +81,4 @@ guide, and the word cards and model answers), `em_alex` (speaker 29, the shopkee
 for the `.slow` files, 0.8. They are listed in `provenance.json` with `generatedBy: model-output` (the core's kind for host-owned files a model rendered), the model
 `kokoro-multi-lang-v1_0`, the voice, the speaker id and the line they render. They are shipped under the private-build terms of the core's decision D2: the Kokoro archive's espeak-ng data
 is GPL-3.0 code, so a distributed build with these files waits on D2 as well. The Spanish text they say is the bundle's own (the lines of
-`dialogue/dialogue.json`, the prompts and `content/PHRASES.md`); the owner's listening check is `docs/SPEECH_CHECKLIST.md`.
+`dialogue/dialogue.json`, the prompts and `content/PHRASES.md`); the owner's listening check is `docs/game/SPEECH_CHECKLIST.md`.

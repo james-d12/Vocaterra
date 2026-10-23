@@ -4,8 +4,8 @@ Thank you for helping with the voice recognition, decision and feedback system. 
 up, how to name and commit things, the determinism checklist every change must pass, and recipes for the four changes people
 make most often (a new error tag, new content, a new golden clip, a new model adapter).
 
-Read these first: [README.md](README.md) for what the project is and how to run it, [docs/PIPELINE.md](docs/PIPELINE.md) for what
-happens to one utterance, [docs/adr/](docs/adr/) for why the rules exist, and `IMPLEMENTATION_PLAN.md` for the milestones.
+Read these first: [README.md](README.md) for what the project is and how to run it, [docs/nlp/PIPELINE.md](PIPELINE.md) for what
+happens to one utterance, [docs/nlp/adr/](adr/) for why the rules exist, and [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for the milestones.
 
 - [Development setup](#development-setup)
 - [Branches and commits](#branches-and-commits)
@@ -57,7 +57,7 @@ happens to one utterance, [docs/adr/](docs/adr/) for why the rules exist, and `I
    adding it: every package passes the license scan (`scripts/license-scan.sh [--offline]`), and the scan only means something if
    the list is curated.
 
-6. Documents: after you change a Markdown file under `nlp/`, `bash nlp/scripts/check-links.sh` must report no broken relative links.
+6. Documents: after you change a Markdown file anywhere in the repository, `scripts/check-links.sh` must report no broken relative links.
 
 ## Branches and commits
 
@@ -85,7 +85,7 @@ happens to one utterance, [docs/adr/](docs/adr/) for why the rules exist, and `I
 ## The determinism checklist
 
 Copy this into the description of every pull request and tick what applies. Each item comes from the determinism rules in
-`IMPLEMENTATION_PLAN.md` section 3 and [ADR 0002](docs/adr/0002-determinism-rules.md); a "not applicable" is fine, an unchecked
+`IMPLEMENTATION_PLAN.md` section 3 and [ADR 0002](adr/0002-determinism-rules.md); a "not applicable" is fine, an unchecked
 item that does apply is not.
 
 ```markdown
@@ -112,14 +112,14 @@ Before you ask for review, in this order, from a clean tree:
 2. `dotnet format` then `dotnet format --verify-no-changes` is clean.
 3. `dotnet test` is green for the whole solution (model-gated tests may be skipped).
 4. New public types have summaries; no rule in the checklist is broken; no package outside `Directory.Packages.props` is used.
-5. Every command you wrote in a document was run and works. If you changed behaviour that [docs/PIPELINE.md](docs/PIPELINE.md),
-   [docs/REPLAY.md](docs/REPLAY.md) or the README describe, update them with fresh output.
+5. Every command you wrote in a document was run and works. If you changed behaviour that [docs/nlp/PIPELINE.md](PIPELINE.md),
+   [docs/nlp/REPLAY.md](REPLAY.md) or the README describe, update them with fresh output.
 
 ## Fuzz tests
 
 `tests/Vocaterra.Nlp.Fuzzing.Tests` generates inputs from the project's own catalogs and checks sixteen oracles against the real stages. The design is
-in [docs/FUZZING_PLAN.md](docs/FUZZING_PLAN.md); the oracles, the bugs found so far and the known findings are in
-[tests/Vocaterra.Nlp.Fuzzing.Tests/README.md](tests/Vocaterra.Nlp.Fuzzing.Tests/README.md).
+in [docs/nlp/FUZZING_PLAN.md](FUZZING_PLAN.md); the oracles, the bugs found so far and the known findings are in
+[tests/Vocaterra.Nlp.Fuzzing.Tests/README.md](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md).
 
 - Before you open a pull request that touches `Vocaterra.Nlp.Language`, `Vocaterra.Nlp.Evaluation`, `Vocaterra.Nlp.Response`, `Vocaterra.Nlp.Audio`, `Vocaterra.Nlp.Phonology`,
   `Vocaterra.Nlp.Pronunciation`, `Vocaterra.Nlp.Decision`, `Vocaterra.Nlp.Content` or `Vocaterra.Nlp.Pipeline`, run `dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests`.
@@ -137,7 +137,7 @@ the dialogue and the learner model. Add it in this order:
    array. Append at the end: errors in a verdict are sorted by position and then by the tag's index in `ErrorTags.All`, so inserting
    in the middle changes the order of existing verdicts and breaks golden files. Tags are `family.name`; the family (the text before
    the first dot) is also the learner-model skill id, so `conj.person` and `conj.tense` train the same skill `conj`.
-   Update `tests/Vocaterra.Nlp.Core.Tests/ErrorTagsTests.cs` (it pins the count and the order) and the taxonomy table in `docs/history/HIGH_LEVEL_DOCS.md`.
+   Update `tests/Vocaterra.Nlp.Core.Tests/ErrorTagsTests.cs` (it pins the count and the order) and the taxonomy table in `docs/nlp/history/HIGH_LEVEL_DOCS.md`.
    This is a change to `Vocaterra.Nlp.Core`: agree it with a maintainer first.
 2. **Analyzer.** Produce the tag where the error is detected, with the span in the normalized text and the expected form:
    - grammar and vocabulary tags: `src/Vocaterra.Nlp.Language/Analysis/AgreementChecker.cs` (agreement rules) or `LinguisticAnalyzer.cs`; the
@@ -177,7 +177,7 @@ Where things go:
 | A prompt | `prompts/prompts.json` | `promptId`, `mode` (`Constrained` or `Open`), `difficulty`, `answerSetId`, `allowedIntentIds` (empty means an answer-only prompt such as a quiz), `agentId` or `null`, `slotGrammarIds` (each must be a grammar defined in `intents.json`), `text` (optional: the line the agent says before the player answers; not empty, no leading or trailing whitespace). |
 | agent behaviour | `agents/<agentId>.json` and `dialogue/dialogue.json` | Transitions keyed on intent and error tags; `variantPools` must have matching dialogue pools. |
 | Effects | `effects/effects.json` | Verdict to effect with a correctness curve (spell power, trade price). |
-| Lexicon | `lexicon/*.json` | Every `*.json` file in the folder is merged (identical readings stored once, different readings of a form all kept; see [docs/LEXICON.md](docs/LEXICON.md)). `lexicon/*.source.json` are sidecars of generated files, not lexicons. A Wiktionary import is regenerated with `import-lexicon`, never edited by hand, and stays marked `wiktionary-import` with its sidecar. A word the content uses but the lexicon lacks goes into a hand-authored file; `LexiconCoverageTests` names the word and where it is used. |
+| Lexicon | `lexicon/*.json` | Every `*.json` file in the folder is merged (identical readings stored once, different readings of a form all kept; see [docs/nlp/LEXICON.md](LEXICON.md)). `lexicon/*.source.json` are sidecars of generated files, not lexicons. A Wiktionary import is regenerated with `import-lexicon`, never edited by hand, and stays marked `wiktionary-import` with its sidecar. A word the content uses but the lexicon lacks goes into a hand-authored file; `LexiconCoverageTests` names the word and where it is used. |
 
 Steps:
 
@@ -246,7 +246,7 @@ The content procedure is: lint, `cefr-check`, **grammar**, then the Opus pass (D
 string of the bundle to a local LanguageTool server (plain `es`, the server is never the public API, D10) and reports what it flags. It
 removes the mechanical errors (agreement, spelling) before a reviewer reads the text.
 
-The scripts run from the repository root; the tool runs from `nlp/`:
+The scripts and the tool run from the repository root:
 
 ```bash
 scripts/fetch-tools.sh                     # once: the pinned Java runtime and LanguageTool, in ~/.local/share/vocaterra/tools
@@ -256,7 +256,7 @@ dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- grammar content/v1   
 ```
 
 - The strings are the dialogue lines (slot templates rendered from four sampled fillings, with the core's own template engine), prompts,
-  answer-set canonicals and aliases, and intent examples. `--strings` adds a host's JSONL strings (format in [docs/API.md](docs/API.md#grammar-check-the-strings-m30)).
+  answer-set canonicals and aliases, and intent examples. `--strings` adds a host's JSONL strings (format in [docs/nlp/API.md](API.md#grammar-check-the-strings-m30)).
   Learner-side strings (answers, examples) are capitalised before the check, so the sentence-start rule does not fire on every answer.
 - Results are cached in `content/grammar/<name>-cache.json`, keyed by the SHA-256 of the LanguageTool version, the settings and the text.
   Commit the cache with the content it checks. An online run that finds a string not in the cache asks the server; an offline run
@@ -277,11 +277,11 @@ still reviews the text (`PHRASES.md`'s `reviewer` column).
 ## Recipe: add a golden audio clip
 
 The golden set exists to answer one question with real data: does the recognizer keep the mistakes a learner makes? The full
-protocol, consent text and manifest schema are in [golden/README.md](golden/README.md); the short version:
+protocol, consent text and manifest schema are in [tests/golden/README.md](../../tests/golden/README.md); the short version:
 
-- **Real recordings stay on your machine.** `golden/audio/` is gitignored and nothing uploads recordings. Participation is opt-in
-  and requires the consent sentence in `golden/README.md`; recordings without consent are deleted. Speakers are opaque labels (`s01`),
-  never names. The committed `golden/manifest.jsonl` holds synthetic entries only: a test (`ManifestGoldenTests`) requires every committed
+- **Real recordings stay on your machine.** `tests/golden/audio/` is gitignored and nothing uploads recordings. Participation is opt-in
+  and requires the consent sentence in `tests/golden/README.md`; recordings without consent are deleted. Speakers are opaque labels (`s01`),
+  never names. The committed `tests/golden/manifest.jsonl` holds synthetic entries only: a test (`ManifestGoldenTests`) requires every committed
   entry to have the speaker `synth`.
 - **To benchmark real clips**, record 16 kHz mono 16-bit WAV, one utterance per file, push-to-talk, unedited, named
   `<speaker>-<prompt>-<n>.wav` (for example `s01-offer-items-open-2.wav`). Keep them and a manifest outside the repository or in the
@@ -310,7 +310,7 @@ protocol, consent text and manifest schema are in [golden/README.md](golden/READ
 ## Recipe: add a D1 model adapter
 
 A D1 model is a neural model with frozen weights. It enters the system only as an adapter behind a `Vocaterra.Nlp.Core` interface, pinned by
-hash and gated in tests ([ADR 0004](docs/adr/0004-model-pinning-and-gating.md)).
+hash and gated in tests ([ADR 0004](adr/0004-model-pinning-and-gating.md)).
 
 1. **Interface.** Implement the interface for the role: `IWordRecognizer` (ASR), `IPhonemeRecognizer`, `IEmbeddingModel` or
    `ISpeechSynthesizer`. Configure it for determinism: one intra-op thread, CPU execution provider, greedy decoding or a fixed
@@ -326,7 +326,7 @@ hash and gated in tests ([ADR 0004](docs/adr/0004-model-pinning-and-gating.md)).
    `ModelStore.ModelHash(id)`. Update `content/v1/ATTRIBUTION.md` (license table) and `models/README.md`.
 4. **Licenses.** Record the license of the model, of the NuGet package and of every native binary and data file it brings. Check that
    it is in `scripts/license-allowlist.txt` terms and that no GPL component (for example espeak-ng) rides along unseen
-   ([ADR 0007](docs/adr/0007-kokoro-phonemizer-licensing.md)); the license scan reads package metadata, not binaries. A new NuGet
+   ([ADR 0007](adr/0007-kokoro-phonemizer-licensing.md)); the license scan reads package metadata, not binaries. A new NuGet
    package needs the maintainers' approval.
 5. **Pipeline wiring.** Add the model to `PipelineServices` (or reuse its slot) so its hash appears in `VersionStamp.ModelHashes`
    (`asr`, `phoneme`, `embedding`, `tts`), and to the CLI's `ModelSet` if it should be selectable with `--models`.
@@ -335,7 +335,7 @@ hash and gated in tests ([ADR 0004](docs/adr/0004-model-pinning-and-gating.md)).
    `ModelStore.Verify(id)` reports the files as ok.
 7. **Golden test.** With the model present, a gated test must show: the same clip decoded twice (in one process, and ideally in two)
    gives identical output; the result equals the recorded expectation for a small committed clip or a synthetic signal; a record
-   made with the real model replays without the model (`ReplayEnvelope`; see [docs/REPLAY.md](docs/REPLAY.md)); thresholds that use
+   made with the real model replays without the model (`ReplayEnvelope`; see [docs/nlp/REPLAY.md](REPLAY.md)); thresholds that use
    the model's scores have a `Margin`. Once real learner audio exists, add the model to the benchmark runs.
 8. **CI.** Extend the `models` job in `../.github/workflows-pending/ci.yml` so that it fetches the model (it runs only when the
    repository variable `VOCATERRA_RUN_MODEL_TESTS` is `true`).

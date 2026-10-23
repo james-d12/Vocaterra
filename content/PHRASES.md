@@ -2,14 +2,14 @@
 
 The source of truth for the prototype's Spanish (decision D-game-10; the brief is `../docs/PROTOTYPE_BRIEF.md`, the plan `../docs/SCENARIO_PLAN.md`,
 milestone S5). The bundle `game-v1` and this sheet are the same set: every phrase here is in `game-v1`, and a test
-(`game/tests/Vocaterra.Host.Tests/PhraseSheetTests.cs`) reads this file and checks it against the bundle on every run.
+(`tests/Vocaterra.Host.Tests/PhraseSheetTests.cs`) reads this file and checks it against the bundle on every run.
 
 **Purpose.** A short list of practical phrases for requesting supplies, answering an offer, asking where something is and getting unstuck.
 Each row says who says the phrase (the learner, the NPC, or both), what it means, which variants the game accepts, one typical learner
 mistake with the error code the core gives it, where it happens, what the support card shows, which NPC dialogue lines speak it (for the
 pre-rendered speech of S9) and who has reviewed it. Nothing outside this list is taught or tracked as a phrase.
 
-**The Spanish variety.** Latin American neutral (core ADR 0005, `nlp/docs/adr/0005-*`): textbook A1, the informal address `tú` for the
+**The Spanish variety.** Latin American neutral (core ADR 0005, `docs/nlp/adr/0005-*`): textbook A1, the informal address `tú` for the
 NPCs (`¿Quieres...?`, `¿Qué necesitas?`), no vosotros, no Spain-only words (`vale` is neither spoken, taught nor accepted).
 `me da agua` (the usted form, common at counters) and `me das agua` (the tú form) are both accepted; the card teaches `Quiero agua, por favor.`.
 The word for the berries is `fruta` (`la fruta`, `las frutas`; A1, in the lexicon): `baya` is in neither the lexicon nor the A1 and A2 lists, so the
@@ -20,7 +20,7 @@ the English meaning, and its advice is applied. This is not native-speaker appro
 checks them. On the reviewer's advice the English of `pedir-agua` is `I want water, please.`, which departs from the brief's gloss ("I would like
 water, please"): `quiero` is "I want", and the polite register is carried by `por favor`.
 
-**The guide's lesson (S17, D-game-15).** The set grew by ten rows for the guide's lesson (`first-words`, in `game/content/game-v1/game/lessons.json`): five the learner
+**The guide's lesson (S17, D-game-15).** The set grew by ten rows for the guide's lesson (`first-words`, in `content/game-v1/game/lessons.json`): five the learner
 says (`si`, `no`, `que-es-esto`, `otra-vez`, `mas-despacio`) and five the learner only understands (`me-llamo`, `es-madera`, `quieres-fruta`, `de-nada`,
 `necesitas-madera`). The guide's name is **Luna** (`Me llamo Luna.`): a name that is also an A1 word, so the lint and `cefr-check` need no special entry for it. The owner asked for
 the larger set (D-game-15), which goes past D-game-12's interim limit of five phrases plus five service words. Every new row was read by the LLM pass of
@@ -65,7 +65,7 @@ Cells never contain a `|`. A `-` means none.
 
 **The run-time copy.** The game reads `content/game-v1/game/phrases.json` (S7), a machine-readable copy of the columns it needs: `id`, `says`,
 `Spanish`, `English`, `intent`, `prompt`, the accepted variants, the support card and the audio line ids (`-` is `null` or an empty list). This file stays
-the source of truth: edit the table here first, then the JSON, then re-hash the bundle. `game/tests/Vocaterra.Host.Tests/PhraseSheetTests.cs` compares
+the source of truth: edit the table here first, then the JSON, then re-hash the bundle. `tests/Vocaterra.Host.Tests/PhraseSheetTests.cs` compares
 the two row by row on every run. The panel's `Expected: «…»` is the first part of a row's support card (the phrase before ` = `).
 
 ## Phrases
@@ -140,7 +140,7 @@ reviewer reads every Spanish line the learner can hear (the content-trust gate c
   prompt), `¿Qué buscas?` (for `donde-esta-el-rio`, graded at the villager's prompt), and `¿Quieres agua?` for the yes and the no (`si-por-favor`,
   `no-gracias`). The guide accepts the request, the yes and the no with `¡Muy bien!`, `¡Bien!` or `¡Eso es!` (the bundle's `answer_accepted` pool).
   All four are A1 lines already in the bundle as other NPCs' lines (cefr-check clean at A1 and A2). The review lines are not reviewed by a
-  Spanish speaker or an LLM pass yet (provisional); the owner's listening step covers their WAVs (game/docs/SPEECH_CHECKLIST.md).
+  Spanish speaker or an LLM pass yet (provisional); the owner's listening step covers their WAVs (docs/game/SPEECH_CHECKLIST.md).
 - The guide's existing lines (greeting, pointing, crafting, naming, the review) are the P-series content and are not part of this sheet.
 - The guide's lesson (S17), lines that are in no row, read by the LLM pass (`llm-opus (provisional)`, 2026-10-22): `¡Hola!` (`guide.lesson.hello.1`, the greeting the learner says back), `¿Es agua?` (`guide.lesson.is_water.1`,
   the second yes-or-no question, answered `No.`), `Mira.` (`guide.lesson.look.1`), the six namings `Esto es madera.`, `Esto es una fruta.`, `Esto es agua.`, `Esto es una botella.`,

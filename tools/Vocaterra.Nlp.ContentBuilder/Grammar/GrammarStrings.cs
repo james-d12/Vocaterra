@@ -8,7 +8,7 @@ namespace Vocaterra.Nlp.ContentBuilder;
 
 /// <summary>
 /// Collects the Spanish strings the grammar check reads: from a bundle (dialogue lines, prompts, answer sets, intent examples) and from a host's JSONL
-/// file (one string per line, see <c>docs/API.md</c>). Dialogue lines with slots are rendered with the core's own <see cref="TemplateEngine"/> from a
+/// file (one string per line, see <c>docs/nlp/API.md</c>). Dialogue lines with slots are rendered with the core's own <see cref="TemplateEngine"/> from a
 /// fixed set of sampled fillings, so a template that produces an agreement error is found in the text it produces.
 /// </summary>
 internal static class GrammarStrings

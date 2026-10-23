@@ -9,7 +9,7 @@
 - Deciders: repository owner; raised by the implementation plan (M11, `// TODO(ADR)` in `KokoroSynthesizer`)
 
 This ADR records an engineering decision and the evidence behind it. It is not legal advice; the repository owner has to get the
-licensing conclusion confirmed before release, as `docs/history/HIGH_LEVEL_DOCS.md` ("Licensing") already says.
+licensing conclusion confirmed before release, as `docs/nlp/history/HIGH_LEVEL_DOCS.md` ("Licensing") already says.
 
 ## Context
 

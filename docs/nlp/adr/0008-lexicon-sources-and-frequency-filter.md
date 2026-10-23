@@ -9,7 +9,7 @@
 - Deciders: the implementation plan (`IMPLEMENTATION_PLAN.md` section 7, milestone M17a); the repository owner confirms the licensing conclusion
 
 This ADR records engineering decisions and the evidence behind them. It is not legal advice; the repository owner has to get the licensing
-conclusion confirmed before release, as `docs/history/HIGH_LEVEL_DOCS.md` ("Licensing") already says. The practical recipe is in [docs/LEXICON.md](../LEXICON.md).
+conclusion confirmed before release, as `docs/nlp/history/HIGH_LEVEL_DOCS.md` ("Licensing") already says. The practical recipe is in [docs/nlp/LEXICON.md](../LEXICON.md).
 
 ## Context
 
@@ -113,7 +113,7 @@ marked so in `provenance.json` (and the reverse), has no sidecar, or has a sidec
 At 3 000 lemmas the file is 4.7 MB (limit 15 MB), there are 41 078 entries in the merged lexicon, the first load of the bundle in a fresh process takes
 217 to 267 ms (limit 300 ms), the fuzz suite is green at default depth in about 20 s (limit 60 s), and the whole suite is about 21 % slower (limit 25 %). At 5 000
 lemmas the file is 6.6 MB and the suites are green, but the first load takes 333 to 373 ms and the suite time has no margin left, so 3 000 is kept. The
-measurements are in [docs/LEXICON.md](../LEXICON.md). To keep the gates at 3 000
+measurements are in [docs/nlp/LEXICON.md](../LEXICON.md). To keep the gates at 3 000
 the loader reads the lexicon with a hand-written `Utf8JsonReader` instead of the reflection deserializer and builds its indexes without
 intermediate lists, and the fuzz oracle that loads 500 damaged copies of the bundle uses an opt-in cache of the parsed lexicon files (`LexiconCache`)
 and four threads; the generators index the lexicon instead of scanning it.

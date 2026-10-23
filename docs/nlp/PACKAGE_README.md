@@ -22,8 +22,8 @@ Every package is version 0.1.0 and references the others at that exact version. 
 
 A host loads a content bundle (`ContentLoader.Load(directory)`), builds the services and a pipeline, and evaluates an utterance. Without model
 files every stage runs with the scripted recognizer and the fakes, so a host needs no model to start. The host API, call by call, is in
-`docs/API.md` of the repository.
+`docs/nlp/API.md` of the repository.
 
 Licence: Apache-2.0. Each package sets the licence expression `Apache-2.0` and ships the repository's `LICENSE` and `NOTICE`. The
 `Vocaterra.Nlp.Asr` and `Vocaterra.Nlp.Response` packages depend on sherpa-onnx, whose native build contains GPL code unless a GPL-free release
-is pinned (see `docs/DECISIONS.md`, D2).
+is pinned (see `docs/nlp/DECISIONS.md`, D2).
