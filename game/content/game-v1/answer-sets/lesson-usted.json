@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-usted",
+  "answers": [
+    {
+      "answerId": "need",
+      "canonical": "necesito pan",
+      "aliases": ["yo necesito pan", "necesito pan por favor", "quiero pan", "quiero pan por favor", "necesito agua", "quiero agua"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

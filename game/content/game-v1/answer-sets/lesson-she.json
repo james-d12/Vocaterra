@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-she",
+  "answers": [
+    {
+      "answerId": "she",
+      "canonical": "ella quiere fruta",
+      "aliases": ["quiere fruta", "ella quiere una fruta", "ella necesita fruta", "ella necesita madera", "ella quiere agua"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

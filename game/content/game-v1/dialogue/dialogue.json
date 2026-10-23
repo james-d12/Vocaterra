@@ -569,6 +569,96 @@
       "variants": [
         { "lineId": "guide.lesson.end.1", "text": "¡Muy bien! Ya tienes fuego." }
       ]
+    },
+    "guide.lesson.want": {
+      "poolId": "guide.lesson.want",
+      "variants": [
+        { "lineId": "guide.lesson.want.1", "text": "¿Qué quieres?" }
+      ]
+    },
+    "guide.lesson.have_wood": {
+      "poolId": "guide.lesson.have_wood",
+      "variants": [
+        { "lineId": "guide.lesson.have_wood.1", "text": "¿Tienes madera?" }
+      ]
+    },
+    "guide.lesson.need": {
+      "poolId": "guide.lesson.need",
+      "variants": [
+        { "lineId": "guide.lesson.need.1", "text": "¿Qué necesitas?" }
+      ]
+    },
+    "guide.lesson.i_have": {
+      "poolId": "guide.lesson.i_have",
+      "variants": [
+        { "lineId": "guide.lesson.i_have.1", "text": "Tengo agua." }
+      ]
+    },
+    "guide.lesson.villager.she": {
+      "poolId": "guide.lesson.villager.she",
+      "variants": [
+        { "lineId": "guide.lesson.villager.she.1", "text": "Ella es la guía." }
+      ]
+    },
+    "guide.lesson.villager.luna": {
+      "poolId": "guide.lesson.villager.luna",
+      "variants": [
+        { "lineId": "guide.lesson.villager.luna.1", "text": "¿Qué quiere Luna?" }
+      ]
+    },
+    "guide.lesson.villager.we": {
+      "poolId": "guide.lesson.villager.we",
+      "variants": [
+        { "lineId": "guide.lesson.villager.we.1", "text": "¿Qué necesitamos?" }
+      ]
+    },
+    "guide.lesson.villager.they": {
+      "poolId": "guide.lesson.villager.they",
+      "variants": [
+        { "lineId": "guide.lesson.villager.they.1", "text": "Ellos tienen pan." }
+      ]
+    },
+    "guide.lesson.villager.be": {
+      "poolId": "guide.lesson.villager.be",
+      "variants": [
+        { "lineId": "guide.lesson.villager.be.1", "text": "Nosotros somos amigos." }
+      ]
+    },
+    "guide.lesson.villager.go": {
+      "poolId": "guide.lesson.villager.go",
+      "variants": [
+        { "lineId": "guide.lesson.villager.go.1", "text": "Vamos a la tienda." }
+      ]
+    },
+    "guide.lesson.shop.need": {
+      "poolId": "guide.lesson.shop.need",
+      "variants": [
+        { "lineId": "guide.lesson.shop.need.1", "text": "¿Qué necesita usted?" }
+      ]
+    },
+    "guide.lesson.shop.bottle": {
+      "poolId": "guide.lesson.shop.bottle",
+      "variants": [
+        { "lineId": "guide.lesson.shop.bottle.1", "text": "¿Tiene usted una botella?" }
+      ]
+    },
+    "guide.lesson.shop.all": {
+      "poolId": "guide.lesson.shop.all",
+      "variants": [
+        { "lineId": "guide.lesson.shop.all.1", "text": "¿Qué quieren ustedes?" }
+      ]
+    },
+    "guide.lesson.shop.go": {
+      "poolId": "guide.lesson.shop.go",
+      "variants": [
+        { "lineId": "guide.lesson.shop.go.1", "text": "Ellos van a la casa." }
+      ]
+    },
+    "guide.lesson.shop.here": {
+      "poolId": "guide.lesson.shop.here",
+      "variants": [
+        { "lineId": "guide.lesson.shop.here.1", "text": "Estamos aquí." }
+      ]
     }
   }
 }

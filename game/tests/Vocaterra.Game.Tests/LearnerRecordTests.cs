@@ -394,7 +394,7 @@ public sealed class LearnerRecordTests
         Assert.Equal(2, loaded.PlaySession);
         var lesson = Assert.Single(loaded.Lessons.Record, static r => r.LessonId == "first-words");
         Assert.Equal(LessonStatus.Completed, lesson.Status);
-        Assert.Equal(34, lesson.Units.Count);
+        Assert.Equal(34, lesson.Units.Count); // the lesson as the version 1 save recorded it (before the verb unit of S26)
         Assert.All(lesson.Units, static u => Assert.Equal(StepOutcome.Done, u.Outcome));
         Assert.Null(lesson.CompletedSession); // the version 1 save does not say the session it was completed in
         Assert.Equal(0, lesson.Turns);
@@ -441,7 +441,7 @@ public sealed class LearnerRecordTests
         var whole = resumed.Lessons.Record.Single(static r => r.LessonId == "first-words");
         Assert.Equal(LessonStatus.Completed, whole.Status);
         Assert.Equal(2, whole.CompletedSession);
-        Assert.Equal(34, whole.Units.Count);
+        Assert.Equal(40, whole.Units.Count);
         Assert.Equal(unit.Count(static s => s.Sent is not null) + rest.Count(static s => s.Sent is not null), whole.Turns);
         Assert.Equal(1, whole.HelpUses);
     }
@@ -488,7 +488,7 @@ public sealed class LearnerRecordTests
         Assert.Equal(session.Lessons.Book.Lessons.Select(static l => l.Id), session.Lessons.Record.Select(static r => r.LessonId));
         var row = session.Lessons.Record.Single(static r => r.LessonId == "first-words");
         Assert.Equal(LessonStatus.NotStarted, row.Status);
-        Assert.Equal(34, row.StepCount);
+        Assert.Equal(40, row.StepCount);
         Assert.Empty(row.Units);
         Assert.Equal(session.Lessons.Book.Lessons.Single(static l => l.Id == "first-words").TaughtPhrases, row.Phrases);
     }

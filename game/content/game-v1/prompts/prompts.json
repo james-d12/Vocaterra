@@ -138,5 +138,85 @@
     "agentId": "guide",
     "slotGrammarIds": [],
     "text": "¿Es madera?"
+  },
+  {
+    "promptId": "lesson-want",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-want",
+    "allowedIntentIds": ["request_item", "ask_help", "dont_know", "ask_repeat", "ask_slower"],
+    "agentId": "guide",
+    "slotGrammarIds": [],
+    "text": "¿Qué quieres?"
+  },
+  {
+    "promptId": "lesson-have",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-have",
+    "allowedIntentIds": ["state_have", "ask_help", "dont_know", "ask_repeat", "ask_slower"],
+    "agentId": "guide",
+    "slotGrammarIds": [],
+    "text": "¿Tienes madera?"
+  },
+  {
+    "promptId": "lesson-need",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-need",
+    "allowedIntentIds": ["request_item", "ask_help", "dont_know", "ask_repeat", "ask_slower"],
+    "agentId": "guide",
+    "slotGrammarIds": [],
+    "text": "¿Qué necesitas?"
+  },
+  {
+    "promptId": "lesson-she",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-she",
+    "allowedIntentIds": ["state_want", "ask_help", "dont_know"],
+    "agentId": "villager",
+    "slotGrammarIds": [],
+    "text": "¿Qué quiere Luna?"
+  },
+  {
+    "promptId": "lesson-we",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-we",
+    "allowedIntentIds": ["state_want", "ask_help", "dont_know"],
+    "agentId": "villager",
+    "slotGrammarIds": [],
+    "text": "¿Qué necesitamos?"
+  },
+  {
+    "promptId": "lesson-usted",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-usted",
+    "allowedIntentIds": ["state_want", "ask_help", "dont_know"],
+    "agentId": "shopkeeper",
+    "slotGrammarIds": [],
+    "text": "¿Qué necesita usted?"
+  },
+  {
+    "promptId": "lesson-bottle",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-bottle",
+    "allowedIntentIds": ["state_have", "ask_help", "dont_know"],
+    "agentId": "shopkeeper",
+    "slotGrammarIds": [],
+    "text": "¿Tiene usted una botella?"
+  },
+  {
+    "promptId": "lesson-ustedes",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-ustedes",
+    "allowedIntentIds": ["state_want", "ask_help", "dont_know"],
+    "agentId": "shopkeeper",
+    "slotGrammarIds": [],
+    "text": "¿Qué quieren ustedes?"
   }
 ]

@@ -25,23 +25,24 @@ public sealed class LessonBookTests
         "{ \"schemaVersion\": 1, \"lessons\": [ { " + head + ", \"steps\": [ " + steps + " ] } ] }";
 
     [Fact]
-    public void TheShippedLessonIsTheGuidesFirstWordsInSixUnitsAndTheSampleIsRetired()
+    public void TheShippedLessonsAreTheGuidesFirstWordsInSevenUnitsAndPersonasInSessionTwoAndTheSampleIsRetired()
     {
         var book = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), TestGame.Speech);
 
-        var lesson = Assert.Single(book.Lessons);
-        Assert.Equal(("first-words", "guide", true), (lesson.Id, lesson.Npc, lesson.AutoStart)); // it starts by itself when the player first talks to her
+        Assert.Equal(["first-words", "personas"], book.Lessons.Select(static l => l.Id));
+        var lesson = book.Find("first-words")!;
+        Assert.Equal(("first-words", "guide", true, 1), (lesson.Id, lesson.Npc, lesson.AutoStart, lesson.Session)); // it starts by itself when the player first talks to her
         Assert.Null(book.Find("sample"));
-        foreach (var unit in new[] { "u1", "u2", "u3", "u4", "u5", "u6" })
+        foreach (var unit in new[] { "u1", "u2", "u3", "u4", "u4v", "u5", "u6" })
         {
             Assert.Contains(lesson.Steps, s => s.Id.StartsWith(unit + "-", StringComparison.Ordinal));
         }
 
         Assert.Equal(LessonStepType.Recap, lesson.Steps[^1].Type); // the recap of the phrases learnt closes it
         Assert.Equal(
-            ["hola", "si", "no", "que-es-esto", "si-por-favor", "gracias", "no-se", "otra-vez", "mas-despacio"],
+            ["hola", "si", "no", "que-es-esto", "si-por-favor", "gracias", "quiero-madera", "tengo-madera", "necesito-agua", "no-se", "otra-vez", "mas-despacio"],
             lesson.TaughtPhrases);
-        Assert.Equal(lesson.TaughtPhrases, book.TaughtPhrases);
+        Assert.Equal(lesson.TaughtPhrases.Concat(book.Find("personas")!.TaughtPhrases), book.TaughtPhrases);
         Assert.All(lesson.TaughtPhrases, id => Assert.True(PhraseSheet.Load(TestGame.Bundle).Find(id)!.IsLearnerPhrase, id));
         foreach (var type in Enum.GetValues<LessonStepType>().Where(static t => t != LessonStepType.Recap))
         {
@@ -56,22 +57,26 @@ public sealed class LessonBookTests
     [Fact]
     public void TheFirstUseOfAPhraseHasItsCardAndTheEnglishThinsAfterIt()
     {
-        var lesson = Assert.Single(LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), TestGame.Speech).Lessons);
+        var book = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), TestGame.Speech);
+        var lesson = book.Find("first-words")!;
 
         // The first time a phrase is asked it is a repeat step (the card is up) unless an explain step has named it in English just before (the card is not
-        // needed for a word the learner has just read); every later use is an answer step (no card), with fewer words of English.
+        // needed for a word the learner has just read); every later use is an answer step (no card), with fewer words of English. The same holds in Personas (S26).
         var sheet = PhraseSheet.Load(TestGame.Bundle);
-        foreach (var phrase in lesson.TaughtPhrases)
+        foreach (var each in book.Lessons)
         {
-            var uses = lesson.Steps.Where(s => s.WaitsOnTurn && s.Phrase == phrase).ToList();
-            if (uses[0].Type != LessonStepType.Repeat)
+            foreach (var phrase in each.TaughtPhrases)
             {
-                var spanish = sheet.Find(phrase)!.Spanish.TrimEnd('.').Split(',')[0];
-                var before = lesson.Steps.Take(lesson.Steps.ToList().IndexOf(uses[0])).Where(static s => s.Type == LessonStepType.Explain);
-                Assert.Contains(before, s => s.English.Contains("“" + spanish + "”", StringComparison.OrdinalIgnoreCase));
-            }
+                var uses = each.Steps.Where(s => s.WaitsOnTurn && s.Phrase == phrase).ToList();
+                if (uses[0].Type != LessonStepType.Repeat)
+                {
+                    var spanish = sheet.Find(phrase)!.Spanish.TrimEnd('.').Split(',')[0];
+                    var before = each.Steps.Take(each.Steps.ToList().IndexOf(uses[0])).Where(static s => s.Type == LessonStepType.Explain);
+                    Assert.Contains(before, s => s.English.Contains("“" + spanish + "”", StringComparison.OrdinalIgnoreCase));
+                }
 
-            Assert.All(uses.Skip(1), static s => Assert.Equal(LessonStepType.Answer, s.Type));
+                Assert.All(uses.Skip(1), static s => Assert.Equal(LessonStepType.Answer, s.Type));
+            }
         }
 
         var asks = lesson.Steps.Where(static s => s.Phrase == "que-es-esto").ToList();

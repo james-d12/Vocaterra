@@ -1,14 +1,52 @@
 {
   "schemaVersion": 1,
-  "about": "The guide's lessons (S16, S17): data the lesson runner walks the learner through, attached to an NPC. Step types: explain, model, listen, repeat, answer, do, recap (see LessonBook for the fields of each; a do step may name a noun to point the beacon at). Every step has a skip and a help path; a failed or uncertain turn moves on after the step's attempts (fail-forward, D-game-9). Lines are pre-rendered speech ids (speech/<id>.wav); phrases are rows of content/PHRASES.md; a repeat or answer step's prompt must allow the phrase's intent. S17 retired the two-step sample: this is the guide's first lesson, six short units (about eight minutes), and it starts by itself when the player first talks to her. The English thins from a phrase's second use.",
+  "about": "The guide's lessons (S16, S17): data the lesson runner walks the learner through, attached to an NPC. Step types: explain, model, listen, repeat, answer, do, recap (see LessonBook for the fields of each; a do step may name a noun to point the beacon at). Every step has a skip and a help path; a failed or uncertain turn moves on after the step's attempts (fail-forward, D-game-9). Lines are pre-rendered speech ids (speech/<id>.wav); phrases are rows of content/PHRASES.md; a repeat or answer step's prompt must allow the phrase's intent. S17 retired the two-step sample: this is the guide's first lesson, six short units (about eight minutes), and it starts by itself when the player first talks to her. The English thins from a phrase's second use. S26 (verbs): a lesson may carry session (the play session it unlocks in), objective (the English line that names it) and verbs (the forms it teaches: lemma, person, number, tense); a step may carry npc (the lesson moves from the villager to the shopkeeper); a do step may wait for talk_opened at an npc.",
   "lessons": [
     {
       "id": "first-words",
       "npc": "guide",
       "title": "First words with Luna",
-      "english": "Six short units: hello, yes and no, what is this, please and thank you, getting unstuck, and what the camp needs. About eight minutes.",
-      "summary": "You can greet, say yes and no, ask what something is, say please and thank you, and say what the camp needs.",
+      "english": "Seven short units: hello, yes and no, what is this, please and thank you, I and you with three verbs, getting unstuck, and what the camp needs.",
+      "summary": "You can greet, say yes and no, ask what something is, say please and thank you, say what you want, have and need, and say what the camp needs.",
       "autoStart": true,
+      "verbs": [
+        {
+          "lemma": "querer",
+          "person": "1",
+          "number": "sg",
+          "tense": "pres"
+        },
+        {
+          "lemma": "querer",
+          "person": "2",
+          "number": "sg",
+          "tense": "pres"
+        },
+        {
+          "lemma": "tener",
+          "person": "1",
+          "number": "sg",
+          "tense": "pres"
+        },
+        {
+          "lemma": "tener",
+          "person": "2",
+          "number": "sg",
+          "tense": "pres"
+        },
+        {
+          "lemma": "necesitar",
+          "person": "1",
+          "number": "sg",
+          "tense": "pres"
+        },
+        {
+          "lemma": "necesitar",
+          "person": "2",
+          "number": "sg",
+          "tense": "pres"
+        }
+      ],
       "steps": [
         {
           "id": "u1-welcome",
@@ -221,6 +259,64 @@
           "english": "“De nada” is the polite answer to “gracias”."
         },
         {
+          "id": "u4v-intro",
+          "type": "explain",
+          "english": "Spanish verbs change with who does them. Luna asks you with “tú” (you) and you answer about yourself with “yo” (I). The ending says who: -o is I, -as or -es is you. So “quieres” is “you want” and “quiero” is “I want”. You will say “Quiero madera”, “Tengo madera” and “Necesito agua”."
+        },
+        {
+          "id": "u4v-ask-want",
+          "type": "model",
+          "line": "guide.lesson.want.1",
+          "translation": "What do you want?",
+          "english": "Luna asks what you want. “Quieres” is “you want”: the ending -es means she is asking you."
+        },
+        {
+          "id": "u4v-say-want",
+          "type": "repeat",
+          "phrase": "quiero-madera",
+          "prompt": "lesson-want",
+          "english": "You want wood. Say it: “Quiero madera” (kee-EH-roh mah-DEH-rah). “Quiero” is “I want”: the ending -o means you.",
+          "help": "Say: Quiero madera. It means I want wood.",
+          "retry": "Not quite. Say: Quiero madera."
+        },
+        {
+          "id": "u4v-ask-have",
+          "type": "answer",
+          "phrase": "tengo-madera",
+          "prompt": "lesson-have",
+          "line": "guide.lesson.have_wood.1",
+          "translation": "Do you have wood?",
+          "english": "Luna asks if you have wood: “tienes” is “you have”. Say you do, with “tengo” (I have).",
+          "help": "Say: Tengo madera. It means I have wood. Tengo is I have; tienes is you have.",
+          "retry": "Not quite. Say: Tengo madera."
+        },
+        {
+          "id": "u4v-ask-need",
+          "type": "answer",
+          "phrase": "necesito-agua",
+          "prompt": "lesson-need",
+          "line": "guide.lesson.need.1",
+          "translation": "What do you need?",
+          "english": "Now she asks what you need. Answer about yourself, with the -o ending.",
+          "help": "Say: Necesito agua. It means I need water.",
+          "retry": "Not quite. Say: Necesito agua."
+        },
+        {
+          "id": "u4v-i-have",
+          "type": "listen",
+          "line": "guide.lesson.i_have.1",
+          "translation": "I have water.",
+          "english": "Luna holds up her bottle and speaks about herself. What does she say?",
+          "options": [
+            "I have water.",
+            "You have water.",
+            "She has water."
+          ],
+          "correct": 0,
+          "help": "“Tengo” ends in -o: she is speaking about herself. “Tienes” would be you.",
+          "retry": "Not quite. Listen again: tengo ends in -o."
+        },
+        {
           "id": "u5-intro",
           "type": "explain",
           "english": "Everyone gets stuck. Three phrases always help: “No sé” (I don't know), “Otra vez, por favor” (again, please) and “Más despacio, por favor” (more slowly, please). The buttons R, S and N do the same."
@@ -292,6 +388,303 @@
           "id": "u6-recap",
           "type": "recap",
           "english": "You can already say or understand all of this."
+        }
+      ]
+    },
+    {
+      "id": "personas",
+      "npc": "villager",
+      "title": "Personas: he, she, we, they",
+      "english": "Session 2: the verbs for he, she, you (polite), we and they, with the villager and the shopkeeper.",
+      "summary": "You can say what she wants and what we need or want, and you understand the verbs for he, she, you (polite), we and they.",
+      "autoStart": true,
+      "session": 2,
+      "objective": "Session 2: go to the village and talk to the villager to start the lesson “Personas”",
+      "verbs": [
+        {
+          "lemma": "querer",
+          "person": "3",
+          "number": "sg",
+          "tense": "pres"
+        },
+        {
+          "lemma": "querer",
+          "person": "1",
+          "number": "pl",
+          "tense": "pres"
+        },
+        {
+          "lemma": "querer",
+          "person": "3",
+          "number": "pl",
+          "tense": "pres"
+        },
+        {
+          "lemma": "tener",
+          "person": "3",
+          "number": "sg",
+          "tense": "pres"
+        },
+        {
+          "lemma": "tener",
+          "person": "1",
+          "number": "pl",
+          "tense": "pres"
+        },
+        {
+          "lemma": "tener",
+          "person": "3",
+          "number": "pl",
+          "tense": "pres"
+        },
+        {
+          "lemma": "necesitar",
+          "person": "3",
+          "number": "sg",
+          "tense": "pres"
+        },
+        {
+          "lemma": "necesitar",
+          "person": "1",
+          "number": "pl",
+          "tense": "pres"
+        },
+        {
+          "lemma": "necesitar",
+          "person": "3",
+          "number": "pl",
+          "tense": "pres"
+        },
+        {
+          "lemma": "ser",
+          "person": "3",
+          "number": "sg",
+          "tense": "pres"
+        },
+        {
+          "lemma": "ser",
+          "person": "1",
+          "number": "pl",
+          "tense": "pres"
+        },
+        {
+          "lemma": "ser",
+          "person": "3",
+          "number": "pl",
+          "tense": "pres"
+        },
+        {
+          "lemma": "estar",
+          "person": "3",
+          "number": "sg",
+          "tense": "pres"
+        },
+        {
+          "lemma": "estar",
+          "person": "1",
+          "number": "pl",
+          "tense": "pres"
+        },
+        {
+          "lemma": "estar",
+          "person": "3",
+          "number": "pl",
+          "tense": "pres"
+        },
+        {
+          "lemma": "ir",
+          "person": "3",
+          "number": "sg",
+          "tense": "pres"
+        },
+        {
+          "lemma": "ir",
+          "person": "1",
+          "number": "pl",
+          "tense": "pres"
+        },
+        {
+          "lemma": "ir",
+          "person": "3",
+          "number": "pl",
+          "tense": "pres"
+        }
+      ],
+      "steps": [
+        {
+          "id": "p1-intro",
+          "type": "explain",
+          "english": "Session 2: more people. You know “I” (yo) and “you” (tú). Now: he or she (él, ella), we (nosotros) and they (ellos). The verb ending changes with the person. The villager helps first, then you talk to the shopkeeper at the stall. Enter goes on, H helps, K skips a step."
+        },
+        {
+          "id": "p1-she-is",
+          "type": "model",
+          "line": "guide.lesson.villager.she.1",
+          "translation": "She is the guide.",
+          "english": "The villager is talking about Luna. “Ella” is “she” and “es” is “is”."
+        },
+        {
+          "id": "p1-ask-luna",
+          "type": "model",
+          "line": "guide.lesson.villager.luna.1",
+          "translation": "What does Luna want?",
+          "english": "He asks what Luna wants. “Quiere” is “wants”: the ending -e means he or she, not -o (I)."
+        },
+        {
+          "id": "p1-say-she",
+          "type": "repeat",
+          "phrase": "ella-quiere-fruta",
+          "prompt": "lesson-she",
+          "english": "Say what she wants: “Ella quiere fruta” (EH-yah kee-EH-reh FROO-tah).",
+          "help": "Say: Ella quiere fruta. It means she wants fruit. Ella is she, so quiere ends in -e.",
+          "retry": "Not quite. Say: Ella quiere fruta."
+        },
+        {
+          "id": "p2-intro",
+          "type": "explain",
+          "english": "Now “we”: nosotros. The ending is -amos or -emos: queremos (we want), tenemos (we have), necesitamos (we need). The villager will ask what you need: say “Necesitamos agua”."
+        },
+        {
+          "id": "p2-ask-we",
+          "type": "answer",
+          "phrase": "necesitamos-agua",
+          "prompt": "lesson-we",
+          "line": "guide.lesson.villager.we.1",
+          "translation": "What do we need?",
+          "english": "He asks what the two of you need. Answer with “we”.",
+          "help": "Say: Necesitamos agua. It means we need water.",
+          "retry": "Not quite. Say: Necesitamos agua."
+        },
+        {
+          "id": "p2-they",
+          "type": "listen",
+          "line": "guide.lesson.villager.they.1",
+          "translation": "They have bread.",
+          "english": "Now “they”: ellos. The ending is -an or -en: tienen (they have). What does he say?",
+          "options": [
+            "They have bread.",
+            "We have bread.",
+            "She has bread."
+          ],
+          "correct": 0,
+          "help": "“Ellos” is they, and “tienen” is they have.",
+          "retry": "Not quite. Listen again: ellos tienen."
+        },
+        {
+          "id": "p2-be",
+          "type": "model",
+          "line": "guide.lesson.villager.be.1",
+          "translation": "We are friends.",
+          "english": "“Somos” is “we are”. “Ser” and “estar” both mean “to be”, and “ir” is “to go”. They do not follow the pattern, so you meet them one form at a time."
+        },
+        {
+          "id": "p2-go",
+          "type": "model",
+          "line": "guide.lesson.villager.go.1",
+          "translation": "Let's go to the shop.",
+          "english": "“Vamos” is “we go” (the verb ir). He says let's go to the stall."
+        },
+        {
+          "id": "p2-walk",
+          "type": "do",
+          "at": "shopkeeper",
+          "event": "talk_opened",
+          "point": "tienda",
+          "hud": "Walk to the stall and talk to the shopkeeper",
+          "english": "Press Esc to close this panel. Walk to the stall (the arrow shows it) and press E to talk to the shopkeeper.",
+          "help": "The stall is the one with the red and white awning in the village."
+        },
+        {
+          "id": "p3-intro",
+          "type": "explain",
+          "npc": "shopkeeper",
+          "english": "The shopkeeper says “usted”: the polite “you”, for someone you do not know well. Its verb ends like he or she: “necesita”, “tiene”. You still answer about yourself, with the -o of “yo”: “Necesito pan” and “Tengo una botella”."
+        },
+        {
+          "id": "p3-need",
+          "type": "answer",
+          "npc": "shopkeeper",
+          "phrase": "necesito-pan",
+          "prompt": "lesson-usted",
+          "line": "guide.lesson.shop.need.1",
+          "translation": "What do you need?",
+          "english": "She asks what you need. Answer about yourself.",
+          "help": "Say: Necesito pan. It means I need bread.",
+          "retry": "Not quite. Say: Necesito pan."
+        },
+        {
+          "id": "p3-bottle",
+          "type": "answer",
+          "npc": "shopkeeper",
+          "phrase": "tengo-botella",
+          "prompt": "lesson-bottle",
+          "line": "guide.lesson.shop.bottle.1",
+          "translation": "Do you have a bottle?",
+          "english": "She asks if you have a bottle. Say you do.",
+          "help": "Say: Tengo una botella. It means I have a bottle.",
+          "retry": "Not quite. Say: Tengo una botella."
+        },
+        {
+          "id": "p4-all",
+          "type": "model",
+          "npc": "shopkeeper",
+          "line": "guide.lesson.shop.all.1",
+          "translation": "What do you all want?",
+          "english": "Now she speaks to you and the villager together: “ustedes”, the plural “you”. The ending is -en, like ellos: quieren."
+        },
+        {
+          "id": "p4-say-we",
+          "type": "repeat",
+          "npc": "shopkeeper",
+          "phrase": "queremos-pan",
+          "prompt": "lesson-ustedes",
+          "english": "Answer for the two of you: “Queremos pan” (keh-REH-mohs pahn).",
+          "help": "Say: Queremos pan. It means we want bread.",
+          "retry": "Not quite. Say: Queremos pan."
+        },
+        {
+          "id": "p4-here",
+          "type": "listen",
+          "npc": "shopkeeper",
+          "line": "guide.lesson.shop.here.1",
+          "translation": "We are here.",
+          "options": [
+            "We are here.",
+            "They are here.",
+            "I am here."
+          ],
+          "correct": 0,
+          "english": "She says where you all are. “Estamos” is “we are” (estar). What does she say?",
+          "help": "“Estamos” ends in -amos: we.",
+          "retry": "Not quite. Listen again: estamos."
+        },
+        {
+          "id": "p4-van",
+          "type": "listen",
+          "npc": "shopkeeper",
+          "line": "guide.lesson.shop.go.1",
+          "translation": "They go to the house.",
+          "options": [
+            "They go to the house.",
+            "We go to the house.",
+            "He goes to the house."
+          ],
+          "correct": 0,
+          "english": "One more: “van” is “they go” (ir). What does she say?",
+          "help": "“Ellos van” is they go.",
+          "retry": "Not quite. Listen again: ellos van."
+        },
+        {
+          "id": "p4-table",
+          "type": "explain",
+          "npc": "shopkeeper",
+          "english": "Your forms so far. necesitar: necesita, necesitamos, necesitan. ser: es, somos, son. estar: está, estamos, están. ir: va, vamos, van. The book keeps them."
+        },
+        {
+          "id": "p4-recap",
+          "type": "recap",
+          "npc": "shopkeeper",
+          "english": "You can now say what she wants, what we need and what we want, and you understand he, she, you (polite), we and they."
         }
       ]
     }

@@ -60,7 +60,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
             output.WriteLine($"{step.Id,-14} {step.Type,-8} {step.Sent,-26} {step.Outcome,-8} {string.Join(" / ", step.Shown)}");
         }
 
-        Assert.Equal(34, steps.Count);
+        Assert.Equal(40, steps.Count);
         Assert.All(steps, static s => Assert.Equal(StepOutcome.Done, s.Outcome));
         var units = steps.Select(static s => s.Id[..2]).Distinct().ToList();
         Assert.Equal(["u1", "u2", "u3", "u4", "u5", "u6"], units);
@@ -277,7 +277,8 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
         var view = session.Lessons.View!;
 
         Assert.Equal(LessonStepType.Recap, view.Type);
-        Assert.Equal(9, view.RecapLines.Count);
+        Assert.Equal(12, view.RecapLines.Count);
+        Assert.Contains("Quiero madera. = I want wood.", view.RecapLines);
         Assert.Contains("Hola. = Hello.", view.RecapLines);
         Assert.Contains("Más despacio, por favor. = More slowly, please.", view.RecapLines);
         Assert.Contains("¿Qué es esto? = What is this?", view.RecapLines);
@@ -286,7 +287,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
     [Fact]
     public void TheGuideNeverAsksTheLearnerForTheirName()
     {
-        var lesson = TestGame.NewSessionWithShippedLessons().Lessons.Book.Lessons.Single();
+        var lesson = TestGame.NewSessionWithShippedLessons().Lessons.Book.Find("first-words")!;
         var sheet = PhraseSheet.Load(TestGame.Bundle);
 
         // "Me llamo Luna." is heard, not said (core finding M29d): no step has the learner say a name.

@@ -44,7 +44,7 @@ public sealed class LessonFrontendTests
             var actions = new SpeechActionRunner(Session, Dialogue, Player, () => Session.AimedCell);
             _support = new SupportFrontend(Session, Dialogue, actions, Log.Add);
             Lesson = new LessonFrontend(Session, Dialogue, Log.Add);
-            var hooks = new ScenarioHooks(OpenTalk, CloseTalk, path => Shots.Add(path), () => false, RunLessonStep);
+            var hooks = new ScenarioHooks(OpenTalk, CloseTalk, path => Shots.Add(path), () => false, RunLessonStep, BookPractise: id => Assert.True(Session.Lessons.RequestReplay(id)));
             Script = new ScenarioScript(Session, Look, Dialogue, steps, static _ => null, hooks, Log.Add);
         }
 
@@ -183,14 +183,54 @@ public sealed class LessonFrontendTests
         run.Go(60000);
 
         var done = run.Log.Where(static l => l.StartsWith("  event: lesson first-words step ", StringComparison.Ordinal) && (l.EndsWith(" done", StringComparison.Ordinal) || l.Contains(" done (", StringComparison.Ordinal))).ToList();
-        Assert.Equal(34, done.Count); // every step, its outcome printed by the event line
+        Assert.Equal(40, done.Count); // every step, its outcome printed by the event line
         Assert.Contains("  event: lesson first-words step 23 do (u4-pick) done (fruta)", run.Log); // the fruit was picked up at the bush
-        Assert.Contains("  event: lesson first-words completed (done 34, skipped 0, moved on 0)", run.Log);
+        Assert.Contains("  event: lesson first-words completed (done 40, skipped 0, moved on 0)", run.Log);
         Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("first-words"));
         Assert.Equal(1, run.Session.Objective.Step(Objective.BerryKey)!.Count); // the lesson's fruit is a real one: the checklist moved
         Assert.True(run.Session.GuideMet);
-        Assert.Equal(["hola", "si", "no", "que-es-esto", "que-es-esto", "que-es-esto", "si-por-favor", "gracias", "no-se", "otra-vez", "mas-despacio"],
+        Assert.Equal(["hola", "si", "no", "que-es-esto", "que-es-esto", "que-es-esto", "si-por-favor", "gracias", "quiero-madera", "tengo-madera", "necesito-agua", "no-se", "otra-vez", "mas-despacio"],
             run.Session.Events.OfType<PhraseUse>().Select(static u => u.PhraseId));
+    }
+
+    [Fact]
+    public void ALessonRunStepDoesPersonasFromTheVillagerToTheStallAndTheShopkeeper()
+    {
+        var shipped = LessonBook.Load(Bundle.Value, PhraseSheet.Load(Bundle.Value), SpeechLines.Enumerate(Bundle.Value, Nouns.Value, PhraseSheet.Load(Bundle.Value)));
+        using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "personas")], shipped);
+        run.Session.PlaySession = 2; // the lesson of the second session
+
+        run.Go(120000);
+
+        var done = run.Log.Where(static l => l.StartsWith("  event: lesson personas step ", StringComparison.Ordinal) && (l.EndsWith(" done", StringComparison.Ordinal) || l.Contains(" done (", StringComparison.Ordinal))).ToList();
+        Assert.Equal(19, done.Count);
+        Assert.Contains("  event: lesson personas completed (done 19, skipped 0, moved on 0)", run.Log);
+        Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("personas"));
+        Assert.Equal(["ella-quiere-fruta", "necesitamos-agua", "necesito-pan", "tengo-botella", "queremos-pan"], run.Session.Events.OfType<PhraseUse>().Select(static u => u.PhraseId));
+        var opened = run.Session.Events.OfType<WorldEvent>().Where(static e => e.Name == WorldEvents.TalkOpened).Select(static e => e.Npc).ToList();
+        Assert.Equal("villager", opened[0]);
+        Assert.Contains("shopkeeper", opened); // the run walked from the villager to the stall
+        Assert.Equal(0, run.Session.Simulation.Inventory.Count(Vocaterra.Simulation.Items.ItemId.Bottle)); // the stall handed nothing over: the statements are no requests
+    }
+
+    [Fact]
+    public void APractiseAgainStepStartsACompletedLessonAtItsNpcAndTheRunRunsItAgain()
+    {
+        var shipped = LessonBook.Load(Bundle.Value, PhraseSheet.Load(Bundle.Value), SpeechLines.Enumerate(Bundle.Value, Nouns.Value, PhraseSheet.Load(Bundle.Value)));
+        using var run = new Harness(
+        [
+            new(ScriptStepKind.LessonRun, Value: "first-words"),
+            new(ScriptStepKind.BookPractise, Value: "first-words"),
+            new(ScriptStepKind.LessonRun, Value: "first-words"),
+        ], shipped);
+
+        run.Go(160000);
+
+        Assert.Equal(2, run.Log.Count(static l => l == "  event: lesson first-words started"));
+        Assert.Equal(2, run.Log.Count(static l => l.StartsWith("  event: lesson first-words completed", StringComparison.Ordinal)));
+        Assert.Contains(run.Session.Events.OfType<LessonEvent>(), static e => e.Kind == LessonEventKind.ReplayRequested);
+        Assert.Null(run.Session.Lessons.ReplayPending);
+        Assert.True(run.Session.Lessons.IsDone("first-words"));
     }
 
     [Fact]
