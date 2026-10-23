@@ -195,7 +195,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S23 | LanguageTool over the game's Spanish: strings extractor, first waiver round, the `si quiero` and `traveller` findings, an advisory gate step (required after the waiver round) | done (merged to `feature/prototype` 2026-10-22, `ddb834a`); the gate's game-v1 grammar step is required | Haiku 5.5 | S22, core M30, D10 |
 | S24 | The audio system (mixer, ducking under the voices, silence while the microphone records), interaction and progress sounds; CC0 packs plus code, no music (D-game-18) | done (merged to `main` 2026-10-22, `9291bab`); **the owner listens to the cues once** (judged by name and length only) | Sonnet 5.5 | S23, D-game-18 |
 | S25 | Ambient beds by place (birds, wind, river and waterfall, village, fire, dusk insects) and footsteps per surface | done (merged to `main` 2026-10-23, `6c73d63`); **the owner listens once** | Haiku 5.5 | S24 |
-| S26 | Verbs in the lessons: a yo/tú unit in session 1, lesson "Personas" (él/ella/usted, nosotros, ustedes/ellos) in session 2; lessons unlock by session and replay from the book; Opus pass, speech (D-game-19) | planned | Sonnet 5.5 | S25, D-game-19 |
+| S26 | Verbs in the lessons: a yo/tú unit in session 1, lesson "Personas" (él/ella/usted, nosotros, ustedes/ellos) in session 2; lessons unlock by session and replay from the book; Opus pass, speech (D-game-19) | done (merged to `main` 2026-10-23, `7748348`, bundle `becd2669…`); **the owner listens to 62 new WAVs** | Sonnet 5.5 | S25, D-game-19 |
 | S27 | Verbs, session 3: "Ayer y mañana" (ir a + infinitive, a few preterite forms, time words) | planned | Sonnet 5.5 | S26, core M49 |
 | S28 | The book remade as a book (two-page spread, ribbons, page turn) with conjugation tables (used, taught, hidden until taught) | planned | Sonnet 5.5 | S20b, S27 |
 
@@ -1105,6 +1105,35 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     promotion inside the window is the likely cause. The fix (measure up to three times and take the least, so a real per-frame
     allocation still fails) goes into the next brief, S26.
   - **Not fixed:** the pace is distance-based (no run pace); lamps stand in for torches; fades run on frame time.
+- **S26, verbs in sessions 1 and 2 (2026-10-23, Sonnet 5.5; merged to `main` `7748348`, bundle `becd2669…`).**
+  - **Session 1.** A 5-step verb unit (`u4v-*`): quiero, tengo and necesito, answered with the yo form. The pattern is named once,
+    truthfully: -o for I and -as/-es for you, and "some verbs also change in the middle" (tengo against tienes).
+  - **Session 2.** "Personas", 20 steps:
+    - the villager: él/ella, nosotros and ellos, plus `es`, `somos`, `está` and `vamos` as chunks;
+    - a walk to the stall;
+    - the shopkeeper: usted and ustedes.
+    The conjugation of ir and estamos/están move to session 3.
+  - **Sessions, multi-NPC lessons and replay.**
+    - Lessons unlock by session (`session`, `objective`, `verbs` in lessons.json; `--session <n>`). A step may name its NPC (`npc`, `at`).
+    - Practise again from the book (a button or P; `--book-practise`).
+    - Save version 4 (`EverCompleted`, a pending replay); versions 1 to 3 load.
+  - **The person check** (added by the orchestrator, from the review). A verb step declares `person`. The runner reads the finite verb's
+    person from the turn's words, and a mismatch with no `conj.*` from the core is a Miss whose retry names the ending. `quieres madera`
+    at "¿Qué quieres?" was credited before.
+  - **The Opus pass applied**, with these fallbacks:
+    - `yo tieno` is `vocab.unknown` in the lexicon, so the error example stays `yo teno`;
+    - `quiero pan, por favor` collided with the stall's repair choices and was dropped;
+    - two variants rely on the keyword rule and are waived as `allowRuleOnly`.
+  - **Content fixes from the review.** Session 1 asks "¿Tienes una fruta?", not wood the learner does not have. "Ella está en el
+    campamento." replaces a false line. Six persons plus three irregular verbs was too much for one session, and is trimmed.
+  - **Speech.** 62 WAVs (31 lines). The check bank has 27 items. 13 rows are `llm-opus (provisional)`.
+  - **Measured from the real WAVs.** first-words is 37 steps: about 5.4 min quick, 8.7 min slow, about 9.7 min with the walk. Personas
+    is about 5.3 to 7.5 min with walks. To get under 10 minutes, `u3-table`, `u3-torch` and `u4v-i-have` were cut.
+  - **Checked by the orchestrator.** The gate: 4,595 passed, 5 skipped; both grammar steps clean. On merged `main`,
+    `--session 2 --lesson-run personas` completes 20 of 20.
+  - **For S27:**
+    - a wrong-person Miss is still credited as a phrase use in phrase tracking (`AfterTurn` runs before the lesson decides);
+    - the README's scripted `--playtest` answers are written for 20 check items, but there are now 27.
 
 ## 6. Definition of done (every milestone)
 
