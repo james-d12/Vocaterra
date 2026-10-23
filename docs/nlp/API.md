@@ -19,7 +19,7 @@ per error tag, and a digest of the rest of its state (`HostStateHash`). The core
 ```csharp
 using Vocaterra.Nlp.Content;
 
-ContentBundle bundle = ContentLoader.Load("content/v1");   // verifies every file's hash and the cross-references
+ContentBundle bundle = ContentLoader.Load("content/game-v1");   // verifies every file's hash and the cross-references
 Console.WriteLine(bundle.ContentHash);                      // the bundle hash, recorded in every verdict
 ```
 
@@ -69,7 +69,7 @@ above a CEFR level and example expectations that no longer hold. A host or a bui
 ```csharp
 using Vocaterra.Nlp.Content;
 
-ContentBundle bundle = ContentLoader.Load("content/v1", new ContentLoadOptions { VerifyHashes = false });   // lint before hashing
+ContentBundle bundle = ContentLoader.Load("content/game-v1", new ContentLoadOptions { VerifyHashes = false });   // lint before hashing
 LintReport report = ContentLinter.Lint(bundle, new LintOptions { Level = "a1", FailOnLevel = false });
 Console.Write(report.Format());                  // one finding per line, then "lint: 0 errors, 2 warnings, 8 info, 0 waived"
 string json = report.ToJson();                   // the same report as canonical JSON
@@ -170,10 +170,10 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Decision.Learning;
 using Vocaterra.Nlp.Pipeline;
 
-var agentState = bundle.Agents["blacksmith"].InitialState();   // the host persists the state between utterances
+var agentState = bundle.Agents["villager"].InitialState();   // the host persists the state between utterances
 ConversationContext context = ConversationContext.Create(
     worldSeed: 42,                                              // with the agent id and counter, seeds every random draw
-    agentId: "blacksmith",
+    agentId: "villager",
     agentState: agentState,
     now: new StoredTimestamp(1_760_000_000),                    // the host's clock, passed in; nothing in the core reads one
     learner: LearnerModel.New(),                                // the host persists this and passes it back next time
@@ -192,7 +192,7 @@ Two more inputs belong to one utterance. They are optional trailing parameters o
 using Vocaterra.Nlp.Core.Verdicts;
 
 ConversationContext context = ConversationContext.Create(
-    worldSeed: 42, agentId: "blacksmith", agentState: agentState, now: new StoredTimestamp(1_760_000_000), learner: learner,
+    worldSeed: 42, agentId: "villager", agentState: agentState, now: new StoredTimestamp(1_760_000_000), learner: learner,
     hostSlots: SlotMap.From([new("target", "árbol"), new("direction", "a la derecha"), new("distance", "12")]),
     extraSkills: ["word.árbol"]);
 ```
@@ -212,7 +212,7 @@ ConversationContext context = ConversationContext.Create(
   - *Empty map.* An empty `SlotMap` is stored as `null`.
 - **`ExtraSkills`** (`IReadOnlyList<string>?`): skill ids the utterance also exercised, such as `word.árbol`. The pipeline merges them with its
   own `intent.<id>` skill before its single `LearnerModel.Update` call, so each skill and each error family is stepped once: naming
-  `intent.offer_item` again, or an error family such as `conj`, changes nothing; a new id is added as one correct (or, for a family the
+  `intent.request_item` again, or an error family such as `conj`, changes nothing; a new id is added as one correct (or, for a family the
   verdict has errors in, incorrect) observation. The list is sorted ordinally and de-duplicated. An id must be non-empty and contain no
   whitespace (`LearnerModel.ValidateSkillId`); the context throws `ArgumentException` otherwise, at `Create` or when the property is set.
   A host that has no utterance (the learner met a word in the world) calls `learner.StepSkills(["word.árbol"], correct: true)`, which steps the
@@ -230,7 +230,7 @@ ConversationContext context = ConversationContext.Create(
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Verdicts;
 
-PromptSpec prompt = bundle.Prompts["offer-items-open"];
+PromptSpec prompt = bundle.Prompts["villager-open"];
 string? agentLine = prompt.Text;                                // the line the agent says before the player answers (null when there is none)
 PcmClip clip = PcmClip.FromSamples([]);                         // a real host passes the captured clip (16 kHz mono)
 PipelineResult result = pipeline.Evaluate(clip, prompt, context);

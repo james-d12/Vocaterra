@@ -56,6 +56,26 @@ public class NearFutureTenseTests
         Assert.Equal([expected], Described(sentence));
     }
 
+    // R02, found by the fuzz suite on the game's bundle ("va a vais a culpa ayer por favor"): a past-time marker and a finite verb after "ir a" were both
+    // reported for the same word, two conj.tense errors with one span. The verb after "ir a" is now reported once, with the infinitive as the expected form;
+    // the present "ir" before the past marker is a mistake of its own, on its own word.
+    [Theory]
+    [InlineData("ayer voy a como", "conj.tense|voy|fui;conj.tense|como|comer")]
+    [InlineData("voy a como ayer", "conj.tense|voy|fui;conj.tense|como|comer")]
+    [InlineData("ayer vamos a tenemos pan", "conj.tense|vamos|fuimos;conj.tense|tenemos|tener")]
+    public void AVerbAfterIrAWithAPastMarkerIsReportedOnce(string sentence, string expected)
+    {
+        Assert.Equal(expected, string.Join(';', Described(sentence)));
+    }
+
+    [Fact]
+    public void NoTwoErrorsShareATagAndASpanWhenAPastMarkerMeetsIrAAndAFiniteVerb()
+    {
+        var errors = Analyzer.Value.Analyze(TestTokens.From("va a vais a culpa ayer por favor"), []).Errors;
+
+        Assert.Equal(errors.Count, errors.Select(static e => (e.Tag, e.Span)).Distinct().Count());
+    }
+
     [Theory]
     [InlineData("ayer comeré pan", "conj.tense|comeré|comí")]
     [InlineData("ayer canto", "conj.tense|canto|canté")]

@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="Vocaterra.Nlp.Testing" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,9 +32,10 @@
     <ProjectReference Include="../../src/Vocaterra.Nlp.Response/Vocaterra.Nlp.Response.csproj" />
   </ItemGroup>
 
-  <!-- The committed bundle and the model manifest are copied next to the test assembly. -->
+  <!-- The bundle (content/game-v1, 38 MB) is found by walking up from the test assembly (Shared/GameBundleLocator.cs), not copied; the model manifest is copied next to it. -->
   <ItemGroup>
-    <None Include="../../content/v1/**/*" Link="content/v1/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Compile Include="../Shared/GameBundleLocator.cs" Link="Shared/GameBundleLocator.cs" />
+    <Compile Include="../Shared/TempBundle.cs" Link="Shared/TempBundle.cs" />
     <None Include="../../models/manifest.json" Link="models/manifest.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

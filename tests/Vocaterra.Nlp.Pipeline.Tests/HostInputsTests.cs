@@ -11,37 +11,30 @@ using Vocaterra.Nlp.Response.Templates;
 namespace Vocaterra.Nlp.Pipeline.Tests;
 
 /// <summary>Tests for the host inputs of an utterance: <see cref="ConversationContext.HostSlots"/> and <see cref="ConversationContext.ExtraSkills"/>.</summary>
-public sealed class HostInputsTests : IDisposable
+public sealed class HostInputsTests
 {
-    // Three variants of the offer reply and the conjugation recast, each reading host slots through the same formatters verdict slots use.
+    // Two variants of the villager's give reply (the pool has two) and of the conjugation recast, each reading host slots through the same formatters verdict
+    // slots use.
     private static readonly string[] OfferReplies =
     [
         "Mira {target:article(def)}, {direction}, a {distance:words(m)} metro.",
         "Fíjate en {target:article(def)}, {direction}, a {distance:words(m)} metro.",
-        "Allí está {target:article(def)}, {direction}, a {distance:words(m)} metro.",
     ];
 
-    private readonly DirectoryInfo _directory = Directory.CreateTempSubdirectory("vocaterra-host-inputs-");
     private readonly ContentBundle _bundle;
 
     public HostInputsTests()
     {
-        _bundle = EditedBundle(
-            _directory,
+        _bundle = FixtureBundle.Create(
             pools =>
             {
-                SetVariants(pools, "offer_item_reply", OfferReplies);
-                SetVariants(
+                TwoPhaseTests.SetVariants(pools, "villager_give", OfferReplies);
+                TwoPhaseTests.SetVariants(
                     pools,
                     "feedback.recast.conj.person",
                     "Ah, {verb:conj(2,sg,pres)} {qty:words(item)} {item:plural-if(qty)} cerca de {landmark:article(def)}.",
                     "Ah, ¿{verb:conj(2,sg,pres)} {qty:words(item)} {item:plural-if(qty)}? Junto a {landmark:article(def)}.");
             });
-    }
-
-    public void Dispose()
-    {
-        _directory.Delete(recursive: true);
     }
 
     private static SlotMap Slots(params (string Key, string Value)[] pairs)
@@ -51,15 +44,15 @@ public sealed class HostInputsTests : IDisposable
 
     private static SlotMap FullHost()
     {
-        return Slots(("target", "árbol"), ("direction", "a la derecha"), ("distance", "1"), ("landmark", "puente"));
+        return Slots(("target", "árbol"), ("direction", "a la derecha"), ("distance", "1"), ("landmark", "puente"), ("verb", "querer"));
     }
 
     private static ConversationContext Context(SlotMap? hostSlots = null, IReadOnlyList<string>? extraSkills = null)
     {
         return ConversationContext.Create(
             42,
-            "blacksmith",
-            new AgentState("blacksmith", "trading", 0),
+            "villager",
+            new AgentState("villager", "idle", 0),
             new StoredTimestamp(1_700_000_000),
             LearnerModel.New(),
             null,
@@ -77,7 +70,7 @@ public sealed class HostInputsTests : IDisposable
     private PipelineResult Run(ConversationContext context, string transcript = TestSupport.WorkedExample)
     {
         var supplied = context.HostSlots is null ? context with { HostSlots = FullHost() } : context;
-        return Pipeline(transcript).Evaluate(TestSupport.Clip(), _bundle.Prompts[TestSupport.OfferPrompt], supplied);
+        return Pipeline(transcript).Evaluate(TestSupport.Clip(), _bundle.Prompts[TestSupport.OpenPrompt], supplied);
     }
 
     [Fact]
@@ -85,7 +78,7 @@ public sealed class HostInputsTests : IDisposable
     {
         var result = Run(Context(FullHost()));
 
-        var reply = result.Response.Lines.Single(static line => line.LineId.StartsWith("offer_item_reply", StringComparison.Ordinal));
+        var reply = result.Response.Lines.Single(static line => line.LineId.StartsWith("villager_give", StringComparison.Ordinal));
         Assert.Contains("el árbol, a la derecha, a un metro.", reply.Text, StringComparison.Ordinal);
     }
 
@@ -134,12 +127,12 @@ public sealed class HostInputsTests : IDisposable
     public void AFeedbackTemplateNamingAMissingHostSlotFallsBackToTheGenericPoolLikeAMissingVerdictSlot()
     {
         // Without a "landmark" the specific recast pool cannot render; the generic feedback.recast pool answers and the reply is untouched.
-        var withoutLandmark = Run(Context(Slots(("target", "árbol"), ("direction", "al norte"), ("distance", "1"))));
+        var withoutLandmark = Run(Context(Slots(("target", "árbol"), ("direction", "al norte"), ("distance", "1"), ("verb", "querer"))));
 
         var recast = withoutLandmark.Response.Lines.Single(static line => line.IsRecast);
         Assert.StartsWith("feedback.recast.", recast.LineId, StringComparison.Ordinal);
         Assert.DoesNotContain("conj.person", recast.LineId, StringComparison.Ordinal);
-        Assert.Contains(withoutLandmark.Response.Lines, static line => line.LineId.StartsWith("offer_item_reply", StringComparison.Ordinal));
+        Assert.Contains(withoutLandmark.Response.Lines, static line => line.LineId.StartsWith("villager_give", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -147,7 +140,7 @@ public sealed class HostInputsTests : IDisposable
     {
         // No host slots at all: the same failure a missing verdict slot gives today.
         var ex = Assert.Throws<TemplateException>(() =>
-            Pipeline().Evaluate(TestSupport.Clip(), _bundle.Prompts[TestSupport.OfferPrompt], Context()));
+            Pipeline().Evaluate(TestSupport.Clip(), _bundle.Prompts[TestSupport.OpenPrompt], Context()));
 
         Assert.Contains("target", ex.Placeholder, StringComparison.Ordinal);
     }
@@ -157,7 +150,7 @@ public sealed class HostInputsTests : IDisposable
     {
         var pipeline = Pipeline();
         var context = Context(FullHost(), ["word.árbol", "word.puente"]);
-        var trace = pipeline.Trace(TestSupport.Clip(), _bundle.Prompts[TestSupport.OfferPrompt], context);
+        var trace = pipeline.Trace(TestSupport.Clip(), _bundle.Prompts[TestSupport.OpenPrompt], context);
         var envelope = ReplayEnvelope.From(trace, context);
 
         using var writer = new StringWriter();
@@ -179,8 +172,8 @@ public sealed class HostInputsTests : IDisposable
     {
         var pipeline = Pipeline();
         var context = Context(FullHost());
-        var envelope = ReplayEnvelope.From(pipeline.Trace(TestSupport.Clip(), _bundle.Prompts[TestSupport.OfferPrompt], context), context);
-        var changed = envelope with { Context = envelope.Context with { HostSlots = Slots(("target", "pozo"), ("direction", "a la derecha"), ("distance", "1"), ("landmark", "puente")) } };
+        var envelope = ReplayEnvelope.From(pipeline.Trace(TestSupport.Clip(), _bundle.Prompts[TestSupport.OpenPrompt], context), context);
+        var changed = envelope with { Context = envelope.Context with { HostSlots = Slots(("target", "pozo"), ("direction", "a la derecha"), ("distance", "1"), ("landmark", "puente"), ("verb", "querer")) } };
 
         var diff = Replayer.Replay(changed, pipeline, static hash => new Vocaterra.Nlp.Core.Audio.PcmClip([], Vocaterra.Nlp.Core.Audio.PcmClip.DefaultSampleRate, hash));
 
@@ -208,7 +201,7 @@ public sealed class HostInputsTests : IDisposable
         var plain = Context();
         var explicitEmpty = Context(SlotMap.Empty, []);
         var learner = LearnerModel.New();
-        var legacy = CanonicalJson.Hash(new LegacySnapshot(42, "blacksmith", new AgentState("blacksmith", "trading", 0), new StoredTimestamp(1_700_000_000), learner, new SortedDictionary<string, int>(StringComparer.Ordinal)));
+        var legacy = CanonicalJson.Hash(new LegacySnapshot(42, "villager", new AgentState("villager", "idle", 0), new StoredTimestamp(1_700_000_000), learner, new SortedDictionary<string, int>(StringComparer.Ordinal)));
 
         Assert.Equal(legacy, plain.HostStateHash);
         Assert.Equal(legacy, explicitEmpty.HostStateHash);
@@ -287,34 +280,6 @@ public sealed class HostInputsTests : IDisposable
     public void ANullSkillIdIsRejected()
     {
         Assert.Throws<ArgumentNullException>(() => Context(extraSkills: [null!]));
-    }
-
-    private static void SetVariants(JsonObject pools, string poolId, params string[] texts)
-    {
-        var variants = new JsonArray();
-        for (var i = 0; i < texts.Length; i++)
-        {
-            variants.Add(new JsonObject { ["lineId"] = $"{poolId}.{i + 1}", ["text"] = texts[i] });
-        }
-
-        pools[poolId] = new JsonObject { ["poolId"] = poolId, ["variants"] = variants };
-    }
-
-    // A copy of the committed bundle with edited dialogue pools; hashes are not verified because the copy was edited.
-    private static ContentBundle EditedBundle(DirectoryInfo directory, Action<JsonObject> edit)
-    {
-        foreach (var source in Directory.EnumerateFiles(TestSupport.BundleDir, "*", SearchOption.AllDirectories))
-        {
-            var target = Path.Combine(directory.FullName, Path.GetRelativePath(TestSupport.BundleDir, source));
-            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-            File.Copy(source, target);
-        }
-
-        var dialoguePath = Path.Combine(directory.FullName, "dialogue", "dialogue.json");
-        var root = JsonNode.Parse(File.ReadAllText(dialoguePath, Encoding.UTF8))!.AsObject();
-        edit(root["pools"]!.AsObject());
-        File.WriteAllText(dialoguePath, root.ToJsonString(), new UTF8Encoding(false));
-        return ContentLoader.Load(directory.FullName, new ContentLoadOptions { VerifyHashes = false });
     }
 
     private sealed record LegacySnapshot(

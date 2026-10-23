@@ -77,7 +77,7 @@ public class VoskPipelineTests
         var store = ModelGate.Store!;
         using var vosk = VoskWordRecognizer.FromStore(store, ModelGate.VoskId);
         var pipeline = new UtterancePipeline(new PipelineServices(vosk, null, null, null, TestSupport.Bundle));
-        var prompt = TestSupport.Bundle.Prompts["greet-blacksmith"];
+        var prompt = TestSupport.Bundle.Prompts["lesson-she"];
         var context = TestSupport.Context();
         var clip = Speechlike();
 

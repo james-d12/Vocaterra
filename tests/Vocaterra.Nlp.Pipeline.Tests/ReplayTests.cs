@@ -9,11 +9,11 @@ public class ReplayTests
 {
     private static readonly PcmClip Clip = TestSupport.Clip();
 
-    private static ReplayEnvelope Record(string transcript = TestSupport.WorkedExample, bool phonemes = true, string state = "trading")
+    private static ReplayEnvelope Record(string transcript = TestSupport.WorkedExample, bool phonemes = true, string state = "idle")
     {
         var pipeline = TestSupport.Pipeline(transcript, phonemes: phonemes);
         var context = TestSupport.Context(state: state, counter: 3);
-        var trace = pipeline.Trace(Clip, TestSupport.Bundle.Prompts[TestSupport.OfferPrompt], context);
+        var trace = pipeline.Trace(Clip, TestSupport.Bundle.Prompts[TestSupport.OpenPrompt], context);
         return ReplayEnvelope.From(trace, context);
     }
 

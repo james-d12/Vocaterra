@@ -339,8 +339,15 @@ public sealed class PatternCatalog
     /// <summary>The distinct grammars in catalog order (intents by id, grammars in authoring order).</summary>
     public IReadOnlyList<CatalogGrammar> Grammars { get; }
 
-    /// <summary>Builds the catalog from the grammars of an intent catalog.</summary>
-    public static PatternCatalog FromBundle(IntentCatalog catalog)
+    /// <summary>The intent id that the fixture grammars of <see cref="FromBundle"/> are listed under; no bundle has an intent of this name.</summary>
+    public const string FixtureIntent = "fixture";
+
+    /// <summary>
+    /// Builds the catalog from the grammars of an intent catalog and appends the fixture grammars: grammar shapes that the game's bundle does not use
+    /// (a name, <c>[WORD]</c>; an adjective, <c>[ADJ]</c>; a verb bound to a slot, <c>[VERB:lemma:slot]</c>) and that the sentence generators, the analyzer and the
+    /// serialization oracles must keep covering. The fixtures are only patterns: no intent of the bundle owns them, no prompt allows them.
+    /// </summary>
+    public static PatternCatalog FromBundle(IntentCatalog catalog, IEnumerable<string>? fixtures = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         var owners = new Dictionary<string, List<string>>(StringComparer.Ordinal);
@@ -358,8 +365,20 @@ public sealed class PatternCatalog
             }
         }
 
-        return new PatternCatalog(catalog.Grammars
+        var grammars = catalog.Grammars
             .Select(grammar => new CatalogGrammar(grammar.Id, GrammarPattern.Parse(grammar.Pattern), grammar, owners[grammar.Id]))
-            .ToArray());
+            .ToList();
+        var known = grammars.Select(static grammar => grammar.Id).ToHashSet(StringComparer.Ordinal);
+        foreach (var text in fixtures ?? [])
+        {
+            var parsed = GrammarPattern.Parse(text);
+            var compiled = SlotGrammarType.Parse(parsed.Render());
+            if (known.Add(compiled.Id))
+            {
+                grammars.Add(new CatalogGrammar(compiled.Id, parsed, compiled, [FixtureIntent]));
+            }
+        }
+
+        return new PatternCatalog(grammars);
     }
 }

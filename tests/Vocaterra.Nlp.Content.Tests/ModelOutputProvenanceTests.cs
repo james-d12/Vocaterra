@@ -3,7 +3,7 @@ namespace Vocaterra.Nlp.Content.Tests;
 /// <summary>M29g: the <c>model-output</c> provenance kind for host-owned files rendered by a model (pre-rendered speech).</summary>
 public class ModelOutputProvenanceTests
 {
-    private const string SpeechPath = "speech/shop_need.1.wav";
+    private const string SpeechPath = "speech/test_clip.1.wav";
     private const string Model = "kokoro-multi-lang-v1_0";
 
     private const string LexiconLine = "{ \"path\": \"lexicon/game.json\", ";
@@ -37,23 +37,23 @@ public class ModelOutputProvenanceTests
     [Fact]
     public void AHostFileWithAModelAndAVoiceIsAcceptedWithoutApproval()
     {
-        var item = "{ \"path\": \"speech/shop_need.1.wav\", \"generatedBy\": \"model-output\", \"approvedBy\": null, \"approvedOn\": null, "
-            + "\"model\": \"kokoro-multi-lang-v1_0\", \"voice\": \"af_bella\", \"speaker\": \"3\", \"source\": \"shop_need.1\" }";
+        var item = "{ \"path\": \"speech/test_clip.1.wav\", \"generatedBy\": \"model-output\", \"approvedBy\": null, \"approvedOn\": null, "
+            + "\"model\": \"kokoro-multi-lang-v1_0\", \"voice\": \"af_bella\", \"speaker\": \"3\", \"source\": \"test_clip.1\" }";
         using var bundle = BundleWithSpeechItem(item);
 
         var loaded = ContentLoader.Load(bundle.Directory);
 
-        Assert.Equal([SpeechPath], loaded.HostFilePaths);
+        Assert.Contains(SpeechPath, loaded.HostFilePaths);
         Assert.True(loaded.TryReadHostFile(SpeechPath, out _));
         Assert.Contains(
             loaded.Provenance.Items,
-            found => found == new ProvenanceItem(SpeechPath, GeneratedByKinds.ModelOutput, null, null, Model, "af_bella", "3", "shop_need.1"));
+            found => found == new ProvenanceItem(SpeechPath, GeneratedByKinds.ModelOutput, null, null, Model, "af_bella", "3", "test_clip.1"));
     }
 
     [Fact]
     public void AModelOutputWithOnlyTheModelIsAccepted()
     {
-        using var bundle = BundleWithSpeechItem("{ \"path\": \"speech/shop_need.1.wav\", \"generatedBy\": \"model-output\", \"approvedBy\": null, \"approvedOn\": null, \"model\": \"kokoro-multi-lang-v1_0\" }");
+        using var bundle = BundleWithSpeechItem("{ \"path\": \"speech/test_clip.1.wav\", \"generatedBy\": \"model-output\", \"approvedBy\": null, \"approvedOn\": null, \"model\": \"kokoro-multi-lang-v1_0\" }");
 
         var loaded = ContentLoader.Load(bundle.Directory);
 
@@ -61,22 +61,22 @@ public class ModelOutputProvenanceTests
     }
 
     [Theory]
-    [InlineData("{ \"path\": \"speech/shop_need.1.wav\", \"generatedBy\": \"model-output\", \"approvedBy\": null, \"approvedOn\": null }")]
-    [InlineData("{ \"path\": \"speech/shop_need.1.wav\", \"generatedBy\": \"model-output\", \"approvedBy\": null, \"approvedOn\": null, \"model\": \"\" }")]
-    [InlineData("{ \"path\": \"speech/shop_need.1.wav\", \"generatedBy\": \"model-output\", \"approvedBy\": null, \"approvedOn\": null, \"model\": \"  \" }")]
+    [InlineData("{ \"path\": \"speech/test_clip.1.wav\", \"generatedBy\": \"model-output\", \"approvedBy\": null, \"approvedOn\": null }")]
+    [InlineData("{ \"path\": \"speech/test_clip.1.wav\", \"generatedBy\": \"model-output\", \"approvedBy\": null, \"approvedOn\": null, \"model\": \"\" }")]
+    [InlineData("{ \"path\": \"speech/test_clip.1.wav\", \"generatedBy\": \"model-output\", \"approvedBy\": null, \"approvedOn\": null, \"model\": \"  \" }")]
     public void AModelOutputWithoutAModelIsRefusedWithAClearMessage(string item)
     {
         using var bundle = BundleWithSpeechItem(item);
 
         Assert.Contains(
             LoadFails(bundle.Directory).Problems,
-            problem => problem == "provenance.json: 'speech/shop_need.1.wav' is 'model-output' and needs a model: the id of the model that rendered the file, for example 'kokoro-multi-lang-v1_0'.");
+            problem => problem == "provenance.json: 'speech/test_clip.1.wav' is 'model-output' and needs a model: the id of the model that rendered the file, for example 'kokoro-multi-lang-v1_0'.");
     }
 
     [Fact]
     public void AModelWithLeadingOrTrailingWhitespaceIsRefused()
     {
-        using var bundle = BundleWithSpeechItem("{ \"path\": \"speech/shop_need.1.wav\", \"generatedBy\": \"model-output\", \"approvedBy\": null, \"approvedOn\": null, \"model\": \" kokoro \" }");
+        using var bundle = BundleWithSpeechItem("{ \"path\": \"speech/test_clip.1.wav\", \"generatedBy\": \"model-output\", \"approvedBy\": null, \"approvedOn\": null, \"model\": \" kokoro \" }");
 
         Assert.Contains(LoadFails(bundle.Directory).Problems, problem => problem.Contains("has a model with leading or trailing whitespace", StringComparison.Ordinal));
     }
@@ -88,23 +88,23 @@ public class ModelOutputProvenanceTests
     [InlineData("\"source\": \"  \"", "source")]
     public void AnEmptyOptionalFieldIsRefused(string field, string name)
     {
-        var item = "{ \"path\": \"speech/shop_need.1.wav\", \"generatedBy\": \"model-output\", \"approvedBy\": null, \"approvedOn\": null, "
+        var item = "{ \"path\": \"speech/test_clip.1.wav\", \"generatedBy\": \"model-output\", \"approvedBy\": null, \"approvedOn\": null, "
             + "\"model\": \"kokoro-multi-lang-v1_0\", " + field + " }";
         using var bundle = BundleWithSpeechItem(item);
 
         Assert.Contains(
             LoadFails(bundle.Directory).Problems,
-            problem => problem.StartsWith("provenance.json: 'speech/shop_need.1.wav' has a " + name + " that is empty", StringComparison.Ordinal));
+            problem => problem.StartsWith("provenance.json: 'speech/test_clip.1.wav' has a " + name + " that is empty", StringComparison.Ordinal));
     }
 
     [Theory]
     [InlineData("cefr/a1.txt")]
-    [InlineData("answer-sets/greetings.json")]
+    [InlineData("answer-sets/yes-no.json")]
     [InlineData("lexicon/seed.json")]
     [InlineData("intents/intents.json")]
     [InlineData("dialogue/dialogue.json")]
     [InlineData("prompts/prompts.json")]
-    [InlineData("agents/blacksmith.json")]
+    [InlineData("agents/guide.json")]
     [InlineData("ATTRIBUTION.md")]
     public void ModelOutputIsRefusedForLanguageData(string path)
     {
@@ -150,7 +150,7 @@ public class ModelOutputProvenanceTests
         Assert.Equal(
             "{\"items\":["
             + "{\"path\":\"cefr/a1.txt\",\"generatedBy\":\"hand-authored\",\"approvedBy\":null,\"approvedOn\":null},"
-            + "{\"path\":\"speech/shop_need.1.wav\",\"generatedBy\":\"model-output\",\"approvedBy\":null,\"approvedOn\":null,\"model\":\"kokoro-multi-lang-v1_0\",\"voice\":\"af_bella\"}"
+            + "{\"path\":\"speech/test_clip.1.wav\",\"generatedBy\":\"model-output\",\"approvedBy\":null,\"approvedOn\":null,\"model\":\"kokoro-multi-lang-v1_0\",\"voice\":\"af_bella\"}"
             + "]}",
             provenance.ToJson());
         Assert.Equal(provenance, ContentProvenance.FromJson(provenance.ToJson()));

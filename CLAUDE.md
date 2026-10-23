@@ -3,7 +3,7 @@
 This repository, `james-d12/Vocaterra` (locally `/home/james/Dev/Vocaterra`), holds both halves of the project in one root layout (`src/`, `tests/`, `tools/`, `docs/nlp/`, `docs/game/`, `content/`, `assets/`, `models/`, `scripts/`,
 one `Vocaterra.sln`; R01, 2026-10-23). The halves are told apart by project name:
 
-- **The core**: the `Vocaterra.Nlp.*` projects (with `content/v1`, `tests/golden`, `models/` and `docs/nlp/`), the language core (Spanish utterance to verdict, feedback, conversation step, response text, speech).
+- **The core**: the `Vocaterra.Nlp.*` projects (with `tests/golden`, `models/` and `docs/nlp/`), the language core (Spanish utterance to verdict, feedback, conversation step, response text, speech).
   Its plan is `docs/nlp/IMPLEMENTATION_PLAN.md` (section 5 the milestone table, 5b the findings log, 7 and 10 the expansion plans), its owner
   decisions `docs/nlp/DECISIONS.md` (D1 to D13), its boundary `docs/nlp/adr/0009-core-and-game-boundary.md`, its API `docs/nlp/API.md`.
   Licence Apache-2.0 (`LICENSE`, `NOTICE`).
@@ -34,8 +34,11 @@ Facts every session needs:
 - **Game content bundle `content/game-v1`:** `scripts/content.sh validate`. After any edit,
   `scripts/content.sh hash content/game-v1 --bundle-id game-v1` (rewrites `manifest.json`), then validate and test again. The tool is
   the core's ContentBuilder run from source. The sandbox refuses command lines that contain the words `eval` or `hash`; run such a
-  command from a wrapper script outside the repository. Core content edits (`content/v1`) follow `docs/nlp/CONTRIBUTING.md` (validate,
-  hash, re-pin, re-record goldens).
+  command from a wrapper script outside the repository. One bundle (R02): the core's tests, fuzz suite and demo CLI run on `content/game-v1`, so any edit of it re-runs the core
+  suite and a failing core test is wanted feedback. After `hash`, run the whole suite; re-record the end-to-end goldens if the edit moved them
+  (`VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests`) and put the new bundle hash into
+  `tests/Vocaterra.Game.Tests/Fixtures/save-v1.json`. No core test pins the hash (`docs/nlp/CONTRIBUTING.md`). Core demo:
+  `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1`.
 - **Never push to `main` or merge into it** (owner, 2026-10-23). Work lands on a feature branch and is pushed there; the owner merges
   feature branches into `main` by pull request.
 - **Merge gate:** `GATE_TARGET=<feature branch> scripts/merge-gate.sh "<label>:<branch>"`, run from that feature branch's checkout (it

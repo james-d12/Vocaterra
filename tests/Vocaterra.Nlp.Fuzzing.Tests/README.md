@@ -3,7 +3,7 @@
 Combinatorial, property-based fuzz testing for the voice pipeline, modelled on `CodeGuard.RuleFuzzing.Tests`. The design is
 `docs/nlp/FUZZING_PLAN.md` (generators, oracles O1 to O16, tolerances, iteration budgets). In short: every generator walks **our own
 catalogs** (the lexicon, the `IntentCatalog` grammars, `ErrorTags.All`, the `DialogueCatalog` templates, the `AnswerSet`s and the JSON files
-of `content/v1`, `PhoneInventory`, `DialectConfig.AllShipped`, the agent definitions), mixes benign and adversarial inputs 3 to 1, and runs them
+of `content/game-v1`, `PhoneInventory`, `DialectConfig.AllShipped`, the agent definitions), mixes benign and adversarial inputs 3 to 1, and runs them
 through the real stages looking for crashes, drift between components that must agree, and broken determinism. Because the generators read the
 catalogs, new content widens the coverage with no test edits. Everything runs in process with fakes for the model-backed stages
 (`ScriptedWordRecognizer`, `FakePhonemeRecognizer`, `FakeEmbeddingModel`, `SilentSynthesizer`); no model file is needed.
@@ -41,8 +41,8 @@ of the slowest chain, not the sum (about 70 s of test time in all). The slowest 
 | O11 | Decision layer: agent step agrees with the documented rules, lands in a declared state, draws variants in range, same seed same path, defective definitions rejected with `InvalidDataException`; BKT follows its formula; FSRS stays positive, schedules ahead and orders the ratings; feedback plans follow the rule precedence; the repeat counts after one verdict (`RepeatCounts.Next`) are exactly the verdict's tags plus `not_communicated`, each one more than before (1 when new, saturating at `int.MaxValue`), and do not depend on the order of the input | `DecisionFuzzTests` | 3 000 (seven facts) | `VOCATERRA_FUZZ_ITERATIONS` |
 | O12 | Every template renders clean text; only the missing-slot `TemplateException`; stable seeded selection; planner | `TemplateFuzzTests` | 2 000 (three facts) | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O13 | Audio front-end: `WavFile.Read` throws only `InvalidDataException` / `NotSupportedException` on damaged bytes; a valid clip reads back exactly and survives write and read; `Process` agrees with the stages composed by hand (downmix, resampled length, gain, VAD slice, hash) | `AudioFrontEndFuzzTests` | 1 000 (two facts) | `VOCATERRA_FUZZ_ITERATIONS_SIGNAL` |
-| O14 | Pipeline end to end: never throws, deterministic on fresh instances (and under the other recognizer scheduling), verdict and decision agree with the stages called by hand, the envelope round-trips and replays clean, changing one recorded output gives exactly that replay diff; about half the cases also run as `Analyze` on one pipeline and `Complete` (host facts given to phase 2) on another and must equal `Evaluate` with the recognizer called once (M28a, CR-017); about a third first take a host-initiated turn (`Advance`, in a copy of the bundle whose blacksmith handles `fuzz.ask` in every state), which must equal the machine step with the counter advanced, leave learner and counts alone, replay clean and be skipped by `Read`/`ReadEnvelopes` (M28a, CR-015) | `PipelineFuzzTests` | 300 (two facts) | `VOCATERRA_FUZZ_ITERATIONS_PIPELINE` |
-| O15 | A mutated copy of `content/v1` makes the loader throw `ContentValidationException` and nothing else, naming the damaged file; a byte flip changes the bundle hash; the unmutated bundle loads | `ContentSchemaFuzzTests` | 500 | `VOCATERRA_FUZZ_ITERATIONS_CONTENT` |
+| O14 | Pipeline end to end: never throws, deterministic on fresh instances (and under the other recognizer scheduling), verdict and decision agree with the stages called by hand, the envelope round-trips and replays clean, changing one recorded output gives exactly that replay diff; about half the cases also run as `Analyze` on one pipeline and `Complete` (host facts given to phase 2) on another and must equal `Evaluate` with the recognizer called once (M28a, CR-017); about a third first take a host-initiated turn (`Advance`, in a copy of the bundle whose agents handle `fuzz.ask` in every state), which must equal the machine step with the counter advanced, leave learner and counts alone, replay clean and be skipped by `Read`/`ReadEnvelopes` (M28a, CR-015) | `PipelineFuzzTests` | 300 (two facts) | `VOCATERRA_FUZZ_ITERATIONS_PIPELINE` |
+| O15 | A mutated copy of `content/game-v1` makes the loader throw `ContentValidationException` and nothing else, naming the damaged file; a byte flip changes the bundle hash; the unmutated bundle loads | `ContentSchemaFuzzTests` | 500 | `VOCATERRA_FUZZ_ITERATIONS_CONTENT` |
 | O16 | Everything that flows through `CanonicalJson` round-trips byte for byte | `SerializationRoundTripFuzzTests` | 3 000 stage records, 1 000 catalogs, 300 replay envelopes | `VOCATERRA_FUZZ_ITERATIONS`, `VOCATERRA_FUZZ_ITERATIONS_PIPELINE` |
 
 The mutations of O4 and O5 are `conj.person`, `noun.number` (singular after a plural determiner, and plural after a singular one),
@@ -186,7 +186,7 @@ content oracle writes each mutated bundle to its own directory under the system 
   - `AudioGen` - `WavData` at 8 000 to 96 000 Hz, mono and stereo, PCM16 and float32, three header layouts (canonical, odd-sized extra chunks, `WAVE_FORMAT_EXTENSIBLE`), 0 ms to 5 s, from silence to clipped noise; white noise is drawn from the CsCheck generator; byte damage (truncate, corrupt a header byte, wrong chunk size) of valid files. `WavBuilder` writes the files independently of `WavFile.Write`.
   - `PhoneGen` - phone sequences of one to twenty inventory phones and phrases from the lexicon, posteriors through `FakePhonemeRecognizer.FromPhones` and `FromMumbled`, confusions from the predicted-error table (`ɾ→ɹ`, `r→ɹ`, `a→ə`, `e→eɪ`, `o→oʊ`, an inserted `h`), frame layouts, mumbled frames, dialects.
   - `DecisionGen` - agent definitions (the bundle's, random valid ones, valid ones with one defect), BKT parameters, FSRS review scripts, feedback policies, repeat counts.
-  - `ContentMutationGen` - walks the JSON files of `content/v1` and applies exactly one mutation: remove a property, change a value's JSON kind, point a reference at a fresh id, give an enumerated field an unknown value, empty a required non-empty string (`EmptyRequiredString`: an effect's `effectId`, `intent` or `kind`, a prompt's `promptId`), duplicate an element that has an id, flip a byte without touching the manifest. The manifest is recomputed for every kind but the byte flip (the committed manifest with the entry of the one mutated file replaced), so the loader's schema and reference checks run and not only its hash check. Files over 1 MB (the imported lexicon) are not walked for structural mutations, because they have the schema of the small lexicon files and writing them back costs more than everything else; a flipped byte still reaches them.
+  - `ContentMutationGen` - walks the JSON files of `content/game-v1` and applies exactly one mutation: remove a property, change a value's JSON kind, point a reference at a fresh id, give an enumerated field an unknown value, empty a required non-empty string (`EmptyRequiredString`: an effect's `effectId`, `intent` or `kind`, a prompt's `promptId`), duplicate an element that has an id, flip a byte without touching the manifest. The manifest is recomputed for every kind but the byte flip (the committed manifest with the entry of the one mutated file replaced), so the loader's schema and reference checks run and not only its hash check. Files over 1 MB (the imported lexicon) are not walked for structural mutations, because they have the schema of the small lexicon files and writing them back costs more than everything else; a flipped byte still reaches them.
   - `PipelineGen` - one pipeline run: a transcript from a correct sentence of the prompt's own grammars, a mutated sentence, an answer, free text or an adversarial string, plus prompt, agent, state, counter, seeds, learner, repeat counts and options.
 - `Oracles/` - `PipelineHarness` (bundle plus fakes wired once, with builders for services, pipeline, `ConversationContext`, prompts), `KnownTolerances`, `Determinism`.
 - `*FuzzTests.cs` - one file per oracle.
@@ -259,6 +259,35 @@ step). The minimums scale down when a smaller iteration count is requested.
   takes 10 to 17 s alone.
 
 ## Bugs found and fixed while building this suite
+
+**R02 (2026-10-23): the suite moved from the core's sample bundle to the game's, `content/game-v1`.** The game's bundle is bigger (three agents, many more intents,
+the lessons' grammars with time adverbs and the near future, expectations and waivers in the intent file, host files, 433 speech clips) and its effect table
+is empty. Running the same oracles on it found one defect in the core, three gaps in the suite's own models, and some places the oracles needed a fixture. No oracle was
+weakened: each fix is at the source, or an independent model brought in line with documented behaviour, and has a regression test.
+
+- **Two `conj.tense` errors on one word** (`Vocaterra.Nlp.Language`, `AgreementChecker`; found by O2 with CsCheck seed `3KdllRVaJeE6`, input `va a vais a culpa ayer por favor`).
+  A finite verb right after `ir a` (`vais`) was reported by the near-future check (expected: the infinitive) and, when the sentence also had a past-time word
+  (`ayer`), once more by the past-tense check (expected: the preterite): two errors with one tag and one span. The verbs after `ir a` are now found in one place
+  (`FormsAfterIrA`) and the past-tense check leaves them to the near-future check. Regression: `NearFutureTenseTests.AVerbAfterIrAWithAPastMarkerIsReportedOnce` and
+  `NoTwoErrorsShareATagAndASpanWhenAPastMarkerMeetsIrAAndAFiniteVerb` in `tests/Vocaterra.Nlp.Language.Tests`.
+- **The sentence realiser did not know time adverbs written into a pattern** (the suite's own generator, `Generation/SentenceRealizer.cs`; found by O3, O4 and O5,
+  seeds `aT2NgQa-TLO9`, `0aWmfyhjNR41`, `3T-JO84wBeq9`). The game's grammars write `(mañana|ayer|hoy)? [VERB:ir] a [VERB:comer] ... (mañana|ayer|hoy)?`. The realiser
+  drew the tense at random, so it produced `ayer vas a la casa` and `mañana ... ayer` as "correct" sentences, and made the verb after `ir a` a conjugated form (`voy a
+  coméis`). It now gives every verb the preterite after `ayer`, the present after `mañana`, skips a sentence with both markers, and makes the verb behind `ir a` an infinitive.
+  The analyzer was right in each case. Regression: `OracleInfrastructureTests.SentencesOfPatternsWithTimeAdverbsAreCorrect`.
+- **O11's independent model of the agent step ignored host-event transitions** (`DecisionFuzzTests.ExpectedStep`; seed `emrSNsnDrkq5`, the bundle's villager). The documented rule
+  (CR-015) is that a transition waiting for a host event is never taken by a verdict, and `AgentStateMachine.Step` follows it; the model did not, because the sample bundle
+  had no such transition. The model now skips them, and the random agent definitions of `DecisionGen` now include host-event transitions (one in five), so the rule is exercised.
+- **O14's aim at effects** (`PipelineGen.Aimed`): a prompt of the game allows many intents and few resolve an effect, so aiming at "a prompt that allows an effect intent" left
+  `region:effects` at one mutation in a run. The aimed sentence is now drawn from the grammars of the effect intents the prompt allows.
+- **O15's list of documented tolerances** gained three entries that the game's bundle exercises, each with its reason in `KnownTolerances`: a whole dialogue pool that no agent
+  names is removable (`HostVoicedPool`: the game's guide voices its `guide.*` pools itself), the slot grammars of an intent that also has keyword rules are removable
+  (`RuleOnlyIntent`), and the lint expectation and waiver fields of the intent file are optional (`examples/*/prompt`, `examples/*/errors`, `lint/**`). Each is accepted only
+  where the content makes it valid, so removing the grammars of an intent without a rule, or a pool an agent names, is still rejected.
+- **What the game's bundle lacks, the suite builds** (no second bundle is kept on disk): `PipelineHarness.EffectsBundle` (the bundle plus an effect table, the one the pipeline
+  oracles run with; its hash is the repository bundle's because the copy keeps the manifest), `PipelineHarness.FixtureGrammars` (a name `[WORD]`, an adjective `[ADJ]`, a verb bound to a
+  slot), and `ContentMutationGen.WithEffects` (a rehashed copy with the effect table, so the loader's effect checks stay under mutation). The host-turn bundle gives every agent
+  the `fuzz.ask` transition. The game's host files are not mutated structurally (the loader does not read them), and the speech clips are linked, not copied, into each damaged copy.
 
 - **A name spelled like an irregular verb form was reported as `conj.irregular`** (`Vocaterra.Nlp.Language`, M17b). The regularization of an irregular
   form ran before the grammar matched, so a `[WORD]` name such as `sona` (the regularized form of `suena`) was a verb mistake. A name now carries no
@@ -349,7 +378,7 @@ Found and fixed in M19f:
   the mistake is reported on `tengo` (`tengo` -> `tuve`). Regression: `WordTokenAnalysisTests.AnOptionalNameDoesNotAbsorbAPastTimeAdverbAndItsTenseMistake`
   (`ayer tengo sufrir`); `WordTokenTests.WordDoesNotTakeNumbersOrPunctuation` no longer takes a spelled numeral (`dos`) as a name.
 
-Content fix (stage 1 follow-up): **`cuál` is now in `content/v1/lexicon/seed.json`** (a pronoun, like `qué` and `quién`), so the correct
+Content fix (stage 1 follow-up): **`cuál` is now in `content/game-v1/lexicon/seed.json`** (a pronoun, like `qué` and `quién`), so the correct
 `ask_price` utterance `cuál es el precio de ...` no longer gets `vocab.unknown`. The bundle was re-hashed (`b076558f...efb`), the pinned hash in
 `ManifestTests` and the three `contentHash` lines of the end-to-end golden file were updated (the committed golden manifest is untouched and stays
 synthetic), and O3 now realises the `ask_price` grammar (about 30 sentences per run).

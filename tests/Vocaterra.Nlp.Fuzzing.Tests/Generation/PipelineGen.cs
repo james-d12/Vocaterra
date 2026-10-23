@@ -16,7 +16,7 @@ namespace Vocaterra.Nlp.Fuzzing.Tests.Generation;
 /// <param name="Transcript">What the scripted word recognizer returns.</param>
 /// <param name="Source">Where the transcript came from: <c>correct</c>, <c>mutated:tag</c>, <c>answer</c> or <c>text</c>.</param>
 /// <param name="PromptId">A prompt of the bundle.</param>
-/// <param name="AgentId">The agent id of the context (the bundle's blacksmith, or one the bundle does not know).</param>
+/// <param name="AgentId">The agent id of the context (an agent of the bundle, or one the bundle does not know).</param>
 /// <param name="StateId">The agent's state.</param>
 /// <param name="Counter">The agent's interaction counter.</param>
 /// <param name="WorldSeed">The world seed.</param>
@@ -65,8 +65,11 @@ public sealed record PipelineCase(
 /// <summary>Generator of pipeline runs: transcripts from correct and mutated sentences of the prompt's own grammars, answers, free text and the adversarial corpus.</summary>
 public static class PipelineGen
 {
-    // Host skills: ids that clash with the pipeline's own skill and with error families, and ids the pipeline never produces.
-    private static readonly string[] HostSkillPool = ["word.árbol", "word.espada", "intent.offer_item", "intent.buy_item", "conj", "noun", "grammar.custom"];
+    // Host skills: ids that clash with the pipeline's own skill (an intent of the bundle) and with error families, and ids the pipeline never produces.
+    private static string[] HostSkillPool(PipelineHarness harness)
+    {
+        return ["word.árbol", "word.espada", .. harness.Bundle.Intents.Intents.Take(2).Select(static intent => "intent." + intent.Id.Value), "conj", "noun", "grammar.custom"];
+    }
 
     // Host slots whose values are valid for every formatter; the names include verdict slots (the verdict wins) and a reserved feedback name.
     private static readonly (string Name, string Value)[] HostSlotPool =
@@ -74,7 +77,11 @@ public static class PipelineGen
         ("target", "árbol"), ("direction", "al norte"), ("distance", "3"), ("item", "martillo"), ("qty", "4"), ("tag", "x"), ("landmark", "puente"),
     ];
 
-    private static readonly string[] SkillPool = ["conj", "noun", "gender", "vocab", "ser_estar", "word_order", "intent.buy_item", "intent.offer_item", "intent.ask_price"];
+    // The learner's skills before the utterance: the error families and the skills of the bundle's own intents.
+    private static string[] SkillPool(PipelineHarness harness)
+    {
+        return ["conj", "noun", "gender", "vocab", "ser_estar", "word_order", .. harness.Bundle.Intents.Intents.Select(static intent => "intent." + intent.Id.Value)];
+    }
 
     /// <summary>Draws a run from a seed.</summary>
     public static Gen<PipelineCase> Case(PipelineHarness harness)
@@ -94,12 +101,13 @@ public static class PipelineGen
             source += ":truncated";
         }
 
-        var blacksmith = harness.Bundle.Agents["blacksmith"].Definition;
-        var states = blacksmith.States.Select(static s => s.Id).ToArray();
+        var agents = harness.Bundle.Agents.Values.Select(static machine => machine.Definition).OrderBy(static definition => definition.AgentId, StringComparer.Ordinal).ToArray();
+        var agent = rng.Pick(agents);
+        var states = agent.States.Select(static s => s.Id).ToArray();
         var known = rng.NextInt(5) != 0;
-        var agentId = known ? blacksmith.AgentId : "nobody";
+        var agentId = known ? agent.AgentId : "nobody";
         var state = known ? rng.Pick(states) : "idle";
-        var skills = SkillPool.Where(_ => rng.NextInt(3) == 0)
+        var skills = SkillPool(harness).Where(_ => rng.NextInt(3) == 0)
             .Select(skill => new SkillMastery(skill, Math.Round(rng.NextDouble(), 6), 1 + rng.NextInt(9), rng.NextInt(5)))
             .ToArray();
         var learner = new LearnerModel(BktParameters.Default, skills);
@@ -117,10 +125,10 @@ public static class PipelineGen
             rng.NextInt(4) != 0,
             learner,
             DecisionGen.RandomRepeats(rng),
-            rng.NextInt(3) == 0 ? [.. HostSkillPool.Where(_ => rng.NextInt(3) == 0)] : null,
+            rng.NextInt(3) == 0 ? [.. HostSkillPool(harness).Where(_ => rng.NextInt(3) == 0)] : null,
             rng.NextInt(3) == 0 ? SlotMap.From(HostSlotPool.Where(_ => rng.NextInt(2) == 0).Select(static p => new KeyValuePair<string, string>(p.Name, p.Value))) : null);
 
-        // Drawn last so the draws above keep the values they had before these flags existed. A host turn goes to the bundle's blacksmith or to an
+        // Drawn last so the draws above keep the values they had before these flags existed. A host turn goes to an agent of the bundle or to an
         // agent the bundle does not know, one in two each: with the draw above alone, hostturn:none is one case in fifteen (a mean of 20 in 300 with
         // a standard deviation of 4.3, so the minimum of 10 is only 2.3 standard deviations below it, which made the suite flaky; README, bugs found
         // and fixed). The agent is drawn again only for a host turn, after the flags, so nothing drawn before a host turn changes.
@@ -129,22 +137,23 @@ public static class PipelineGen
         if (rng.NextInt(3) == 0)
         {
             var hostKnown = rng.NextInt(2) == 0;
+            var hostAgent = rng.Pick(agents);
             hosted = hosted with
             {
                 HostTurn = true,
-                AgentId = hostKnown ? blacksmith.AgentId : "nobody",
-                StateId = hostKnown ? rng.Pick(states) : "idle",
+                AgentId = hostKnown ? hostAgent.AgentId : "nobody",
+                StateId = hostKnown ? rng.Pick(hostAgent.States.Select(static s => s.Id).ToArray()) : "idle",
             };
         }
 
         return Aimed(harness, rng, hosted);
     }
 
-    // The verdict intents that resolve an effect (the bundle's effect table: an effect needs a communicated verdict of its intent). Only some
+    // The verdict intents that resolve an effect (the effects fixture's table, which the pipeline oracles run with: an effect needs a communicated verdict of its intent). Only some
     // prompts allow them, so the effects part of the replay envelope is rare unless a case is aimed at one.
     private static string[] EffectIntents(PipelineHarness harness)
     {
-        return harness.Bundle.Effects.Effects
+        return PipelineHarness.EffectsBundle.Effects.Effects
             .Select(static effect => effect.Intent)
             .Distinct(StringComparer.Ordinal)
             .OrderBy(static intent => intent, StringComparer.Ordinal)
@@ -173,7 +182,10 @@ public static class PipelineGen
         }
 
         var prompt = rng.Pick(prompts);
-        var sentence = CorrectSentence(harness, rng, prompt);
+
+        // A prompt of the game allows several intents (a request, a greeting, a plea for help), and only the effect intents' sentences resolve an effect,
+        // so the aimed sentence is drawn from the grammars of the effect intents the prompt allows.
+        var sentence = CorrectSentence(harness, rng, prompt, effectIntents);
         if (sentence is null)
         {
             return plan;
@@ -221,11 +233,12 @@ public static class PipelineGen
         return (SampleText(harness, rng), "text");
     }
 
-    // A correct sentence of one of the grammars the prompt's intents (or its own grammar ids) allow.
-    private static string? CorrectSentence(PipelineHarness harness, SeededRng rng, PromptSpec prompt)
+    // A correct sentence of one of the grammars the prompt's intents (or its own grammar ids) allow; with onlyIntents, of the grammars of those intents.
+    private static string? CorrectSentence(PipelineHarness harness, SeededRng rng, PromptSpec prompt, string[]? onlyIntents = null)
     {
         var grammars = harness.Grammars.Grammars
-            .Where(g => prompt.SlotGrammarIds.Contains(g.Id, StringComparer.Ordinal) || g.IntentIds.Any(intent => prompt.AllowedIntentIds.Contains(intent, StringComparer.Ordinal)))
+            .Where(g => prompt.SlotGrammarIds.Contains(g.Id, StringComparer.Ordinal)
+                || g.IntentIds.Any(intent => prompt.AllowedIntentIds.Contains(intent, StringComparer.Ordinal) && (onlyIntents is null || onlyIntents.Contains(intent, StringComparer.Ordinal))))
             .ToArray();
         if (grammars.Length == 0)
         {

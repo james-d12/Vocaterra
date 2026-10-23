@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Vocaterra.Nlp.ContentBuilder;
 using Vocaterra.Nlp.Language.Lexicon;
 using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
@@ -22,7 +23,8 @@ public class ProgramTests
 
         Assert.Equal(Program.ExitOk, code);
         Assert.Equal(string.Empty, error);
-        Assert.StartsWith($"OK: bundle 'v1' 1.0.0, {TestSupport.Bundle.Manifest.Files.Count} files, hash {TestSupport.Bundle.ContentHash}\n", output, StringComparison.Ordinal);
+        var manifest = TestSupport.Bundle.Manifest;
+        Assert.StartsWith($"OK: bundle '{manifest.BundleId}' {manifest.ContentVersion}, {manifest.Files.Count} files, hash {manifest.BundleHash}\n", output, StringComparison.Ordinal);
         Assert.Contains("\nlint: 0 errors, ", output, StringComparison.Ordinal);
     }
 
@@ -30,7 +32,7 @@ public class ProgramTests
     public void ValidateExitsWithOneAndListsTheProblems()
     {
         using var bundle = new TempBundle();
-        bundle.Edit("prompts/prompts.json", "\"greet-open\"", "\"greet-open2\"");
+        bundle.Touch("prompts/prompts.json");
         bundle.Delete("effects/effects.json");
 
         var (code, output, error) = Run("validate", bundle.Directory);
@@ -112,7 +114,8 @@ public class ProgramTests
     public void HashRewritesTheManifestFromTheFilesOnDisk()
     {
         using var bundle = new TempBundle();
-        bundle.Edit("effects/effects.json", "\"value\": 1.3", "\"value\": 1.35");
+        var before = ContentManifest.FromJson(bundle.Read("manifest.json")).BundleHash;
+        bundle.Touch("effects/effects.json");
         bundle.Write("extra/notes.txt", "new file");
         Assert.Equal(Program.ExitInvalid, Run("validate", bundle.Directory).Code);
 
@@ -123,7 +126,7 @@ public class ProgramTests
         var rewritten = ContentManifest.FromJson(File.ReadAllText(bundle.PathOf("manifest.json")));
         Assert.Equal($"wrote manifest.json: {rewritten.Files.Count} files, hash {rewritten.BundleHash}\n", output);
         Assert.Contains(rewritten.Files, file => file.Path == "extra/notes.txt");
-        Assert.NotEqual(TestSupport.Bundle.ContentHash, rewritten.BundleHash);
+        Assert.NotEqual(before, rewritten.BundleHash);
         Assert.Equal(rewritten, ContentManifest.Compute(bundle.Directory));
         Assert.Equal(rewritten.ToJson(), bundle.Read("manifest.json"));
     }
@@ -143,6 +146,7 @@ public class ProgramTests
     public void HashAcceptsAnIdentityOnTheCommandLine()
     {
         using var bundle = new TempBundle(full: true);
+        var expectedHash = ContentManifest.Compute(bundle.Directory).BundleHash;
 
         var (code, _, _) = Run("hash", bundle.Directory, "--bundle-id", "spanish", "--content-version=3.1.4");
 
@@ -150,7 +154,7 @@ public class ProgramTests
         var manifest = ContentManifest.FromJson(bundle.Read("manifest.json"));
         Assert.Equal("spanish", manifest.BundleId);
         Assert.Equal("3.1.4", manifest.ContentVersion);
-        Assert.Equal(TestSupport.Bundle.ContentHash, manifest.BundleHash);
+        Assert.Equal(expectedHash, manifest.BundleHash);
     }
 
     [Fact]
@@ -186,22 +190,24 @@ public class ProgramTests
         var (code, output, _) = Run("cefr-check", bundle.Directory, "--level=a1");
 
         Assert.Equal(Program.ExitOk, code);
-        Assert.Contains("herrería: cast_spell_reply.1, greet_reply.1", output, StringComparison.Ordinal);
+        Assert.Contains("farewell_reply.1", output, StringComparison.Ordinal);
         Assert.Contains("not in the list", output, StringComparison.Ordinal);
+        var loaded = ContentLoader.Load(bundle.Directory, new ContentLoadOptions { VerifyHashes = false });
+        Assert.Equal(CefrChecker.Format(CefrChecker.Check(loaded, "a1")), output);
     }
 
     [Fact]
     public void CefrCheckReportsPromptTextWithItsPromptId()
     {
         using var bundle = new TempBundle();
-        bundle.Edit("prompts/prompts.json", "\"text\": \"¿Qué quieres comprar?\"", "\"text\": \"¿Qué quieres comprar? Tengo una zzxq.\"");
+        bundle.EditJson("prompts/prompts.json", root => root.AsArray().Single(prompt => prompt!["promptId"]!.GetValue<string>() == "guide-offer")!["text"] = "¿Quieres agua? Tengo una zzxq.");
 
         var (code, output, error) = Run("cefr-check", bundle.Directory, "--level", "a1");
 
         Assert.Equal(Program.ExitOk, code);
         Assert.Equal(string.Empty, error);
         Assert.Contains("lemmas in prompt text, ", output, StringComparison.Ordinal);
-        Assert.Contains("  zzxq (not in lexicon): buy-item-constrained\n", output, StringComparison.Ordinal);
+        Assert.Contains("  zzxq (not in lexicon): guide-offer\n", output, StringComparison.Ordinal);
         var loaded = ContentLoader.Load(bundle.Directory, new ContentLoadOptions { VerifyHashes = false });
         Assert.Equal(CefrChecker.Format(CefrChecker.Check(loaded, "a1")), output);
     }

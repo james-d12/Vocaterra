@@ -202,6 +202,35 @@ public sealed class OracleInfrastructureTests
         Assert.Equal(7, perfect.Posteriors(fake).FrameCount);
     }
 
+    // R02: the game's grammars write time adverbs and the near future into the pattern ((mañana|ayer|hoy)? [VERB:ir] a [VERB:comer] ...). The realiser has to give the
+    // verbs the tense the adverb asks for and an infinitive after "ir a", or its "correct" sentences are not correct (voy a coméis, ayer vas a la casa).
+    [Theory]
+    [InlineData("(mañana|ayer|hoy)? [VERB:ir] a [VERB:comer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy)?")]
+    [InlineData("(mañana|ayer|hoy)? [VERB:ir] a [VERB:ir] a [ART]? [NOUN:place] (mañana|ayer|hoy)?")]
+    [InlineData("(sí)? (mañana|ayer|hoy)? [VERB:ir] a [ART]? [NOUN:place] (mañana|ayer|hoy)?")]
+    [InlineData("ayer [VERB:comer] [ART]? [NOUN:item]")]
+    public void SentencesOfPatternsWithTimeAdverbsAreCorrect(string pattern)
+    {
+        var harness = PipelineHarness.Shared;
+        var grammar = SlotGrammarType.Parse(GrammarPattern.Parse(pattern).Render());
+        var realised = 0;
+
+        for (ulong seed = 0; seed < 300; seed++)
+        {
+            var sentence = SentenceGen.Realize(harness, new SentenceRecipe("catalog", GrammarPattern.Parse(pattern), seed));
+            if (sentence is null)
+            {
+                continue;
+            }
+
+            realised++;
+            var errors = harness.Analyzer.Analyze(PipelineHarness.Normalize(sentence.Text), [grammar]).Errors;
+            Assert.True(errors.Count == 0, $"'{sentence.Text}' (seed {seed}) is not clean: {string.Join("; ", errors.Select(static e => e.Tag + " " + e.Actual))}");
+        }
+
+        Assert.True(realised >= 30, $"only {realised} of 300 recipes were realised");
+    }
+
     [Fact]
     public void ContentMutationsAreFoundInTheFilesThemselves()
     {

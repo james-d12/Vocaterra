@@ -47,17 +47,17 @@ public class TextGraderTests
     [Fact]
     public void ThePromptWithoutIntentsGradesAsAnAnswerOnly()
     {
-        var quiz = TestSupport.Bundle.Prompts["quiz-item-name"];
-        var expected = TestSupport.Pipeline("una espada", quiz.Mode).Evaluate(TestSupport.Clip(), quiz, TestSupport.Context(agentId: "player")).Verdict;
+        var quiz = TestSupport.QuizPrompt;
+        var expected = TestSupport.Pipeline("una piedra", quiz.Mode).Evaluate(TestSupport.Clip(), quiz, TestSupport.Context(agentId: "player")).Verdict;
 
-        Assert.Equal(TestSupport.Json(WithoutVersions(expected)), TestSupport.Json(WithoutVersions(Grader.Grade("una espada", quiz))));
-        Assert.True(Grader.Grade("una espada", quiz).Intent.IsUnknown);
+        Assert.Equal(TestSupport.Json(WithoutVersions(expected)), TestSupport.Json(WithoutVersions(Grader.Grade("una piedra", quiz))));
+        Assert.True(Grader.Grade("una piedra", quiz).Intent.IsUnknown);
     }
 
     [Fact]
     public void TheReadmeDemoGivesConjPersonAndNounNumber()
     {
-        var verdict = Grader.Grade(TestSupport.WorkedExample, TestSupport.Bundle.Prompts[TestSupport.OfferPrompt]);
+        var verdict = Grader.Grade(TestSupport.WorkedExample, TestSupport.Bundle.Prompts[TestSupport.OpenPrompt]);
 
         Assert.Equal(["conj.person", "noun.number"], verdict.Errors.Select(static e => e.Tag).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal));
     }

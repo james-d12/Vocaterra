@@ -1,6 +1,7 @@
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Response.Templates;
 
@@ -80,6 +81,55 @@ public static class KnownTolerances
         /// without a message. This is a gap in the loader (README, known findings), tolerated here so the oracle stays strict about everything else.
         /// </summary>
         SilentDefault,
+
+        /// <summary>
+        /// A whole dialogue pool that no agent of the bundle names (neither as a dialogue intent nor as a variant pool): the host voices it (the game's guide does,
+        /// <c>guide.find.found</c> and the like), so the loader has nothing to cross-check and a removed pool is a content change, not damage. A pool an agent names
+        /// is never on this list: removing it must be rejected.
+        /// </summary>
+        HostVoicedPool,
+
+        /// <summary>
+        /// The slot grammars of an intent that also has keyword rules: an intent may be matched by its rules alone (the game's intents have both, and the lint
+        /// reports an example only a rule covers), so the loader has no reason to refuse it. An intent without a keyword rule is never on this list: with no grammar
+        /// and no rule it can match nothing, and removing its grammars must be rejected.
+        /// </summary>
+        RuleOnlyIntent,
+    }
+
+    /// <summary>
+    /// O15: whether removing <c>slotGrammars</c> from the intent at the path leaves a bundle that is valid by design, because the intent has keyword rules in the
+    /// original <c>intents/intents.json</c>. Returns <see cref="ContentFieldReason.RuleOnlyIntent"/> then, otherwise null.
+    /// </summary>
+    public static ContentFieldReason? AcceptedRuleOnlyIntent(string file, IReadOnlyList<string> path, System.Text.Json.Nodes.JsonNode originalIntentsFile)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        ArgumentNullException.ThrowIfNull(originalIntentsFile);
+        if (file != "intents/intents.json" || path.Count != 3 || path[0] != "intents" || path[2] != "slotGrammars" || !int.TryParse(path[1], out var index))
+        {
+            return null;
+        }
+
+        return originalIntentsFile["intents"]![index]!["keywordRules"] is System.Text.Json.Nodes.JsonArray { Count: > 0 } ? ContentFieldReason.RuleOnlyIntent : null;
+    }
+
+    /// <summary>
+    /// O15: whether removing the dialogue pool at the path leaves a bundle that is valid by design, because no agent of the bundle names the pool. Returns
+    /// <see cref="ContentFieldReason.HostVoicedPool"/> then, otherwise null.
+    /// </summary>
+    public static ContentFieldReason? AcceptedHostVoicedPool(string file, IReadOnlyList<string> path, IEnumerable<AgentStateMachine> agents)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+        ArgumentNullException.ThrowIfNull(agents);
+        if (file != "dialogue/dialogue.json" || path.Count != 2 || path[0] != "pools")
+        {
+            return null;
+        }
+
+        var named = agents.SelectMany(static agent => agent.Definition.States)
+            .SelectMany(static state => state.Transitions.SelectMany(static transition => transition.Actions).Concat(state.Fallback?.Actions ?? []))
+            .Any(action => action.DialogueIntent == path[1] || action.VariantPoolId == path[1]);
+        return named ? null : ContentFieldReason.HostVoicedPool;
     }
 
     // File prefix, then a path pattern: '/' separates segments, '*' matches any one segment (array indexes included), 'name*' matches a prefix.
@@ -107,6 +157,14 @@ public static class KnownTolerances
         ("intents/intents.json", "intents/*/requiredSlots", ContentFieldReason.Optional),
         ("intents/intents.json", "intents/*/keywordRules/*/requiresSlots", ContentFieldReason.Optional),
         ("intents/intents.json", "intents/*/keywordRules/*/slotFromNumber", ContentFieldReason.Optional),
+
+        // The expectations and waivers of the content lint (IntentExample, IntentLintWaivers): an example given as an object may drop its prompt (the lint then picks
+        // the first open prompt that allows the intent) or its expected tags (it becomes a plain example), and an intent may drop its lint block or any waiver in it.
+        ("intents/intents.json", "intents/*/examples/*/prompt", ContentFieldReason.Optional),
+        ("intents/intents.json", "intents/*/examples/*/errors", ContentFieldReason.Optional),
+        ("intents/intents.json", "intents/*/lint", ContentFieldReason.Optional),
+        ("intents/intents.json", "intents/*/lint/*", ContentFieldReason.Optional),
+        ("intents/intents.json", "intents/*/lint/*/*", ContentFieldReason.Optional),
         ("lexicon/", "generated_by", ContentFieldReason.Optional),
         ("lexicon/", "entries/*/features/*", ContentFieldReason.Optional),
 

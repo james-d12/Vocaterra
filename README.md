@@ -26,9 +26,9 @@ Directory.Build.props      build settings: shared, then the groups keyed on the 
 Directory.Packages.props   one version list for both halves
 nuget.config               nuget.org only
 src/                       Vocaterra.Nlp.* (the core's libraries) and Vocaterra.Simulation, .Game, .MonoGame, .Host (the game)
-tests/                     one test project per project; tests/golden is the core's golden learner-audio manifest
+tests/                     one test project per project; tests/golden is the core's golden learner-audio manifest; tests/Shared has the two source files (bundle locator, temp-copy helper) linked into the core's test projects
 tools/                     Vocaterra.Nlp.{Cli,Bench,ContentBuilder}, Vocaterra.SpeechRender, manifest.json (the pinned grammar-check tools)
-content/                   game-v1 (the game's bundle), v1 (the core's sample bundle), grammar/ (the grammar-check caches), PHRASES.md, speech-index.json
+content/                   game-v1 (the one content bundle; the core runs on it too), grammar/ (the grammar-check caches), PHRASES.md, speech-index.json
 assets/                    the game's CC0 art, fonts and sounds
 models/                    the pinned speech-model manifest (the model files are fetched and ignored)
 docs/nlp/, docs/game/      each half's plan, decisions, README and documents
@@ -54,5 +54,5 @@ models (`models/manifest.json`). `dotnet build Vocaterra.Nlp.slnf` builds the co
 
 `CLAUDE.md` is the entry point for a Claude Code session. Each half keeps its own plan (`docs/nlp/IMPLEMENTATION_PLAN.md`,
 `docs/game/IMPLEMENTATION_PLAN.md`) and its own owner decisions (`docs/nlp/DECISIONS.md`, `docs/game/DECISIONS.md`); the ids in them are
-unchanged from the separate repositories. The game's content bundle is edited with `scripts/content.sh` (validate, hash, cefr-check);
-the core's sample bundle follows `docs/nlp/CONTRIBUTING.md`.
+unchanged from the separate repositories. The one content bundle, `content/game-v1`, is edited with `scripts/content.sh` (validate, lint, hash, cefr-check); the core's tests and its demo
+CLI run on it, so an edit of the game's content re-runs the core suite (`docs/nlp/CONTRIBUTING.md`).

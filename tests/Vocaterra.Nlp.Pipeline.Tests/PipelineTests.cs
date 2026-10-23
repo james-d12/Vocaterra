@@ -27,32 +27,48 @@ public class PipelineTests
     {
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
 
-        var verdict = pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context()).Verdict;
+        var verdict = pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context()).Verdict;
 
-        Assert.Equal("offer_item", verdict.Intent.Value);
+        Assert.Equal("request_item", verdict.Intent.Value);
         Assert.Equal("espada", verdict.Slots["item"]);
         Assert.Equal("2", verdict.Slots["qty"]);
         Assert.True(verdict.Communicated);
         Assert.Equal(ResolvedBy.Grammar, verdict.ResolvedBy);
         Assert.Equal([ErrorTags.ConjPerson, ErrorTags.NounNumber], verdict.Errors.Select(static error => error.Tag).ToArray());
+        Assert.Equal(("quiere", "quiero"), (verdict.Errors[0].Actual, verdict.Errors[0].Expected));
+        Assert.Equal(("espada", "espadas"), (verdict.Errors[1].Actual, verdict.Errors[1].Expected));
+        Assert.Equal(0.6, verdict.Correctness, 6);
+    }
+
+    [Fact]
+    public void TheDesignDocumentsWorkedExampleGivesExactlyConjPersonAndNounNumber()
+    {
+        // "yo tiene dos espada", the sentence of the high-level design (and the invariant of the orchestrator's notes): the verb form and the missing plural
+        // are the only two errors, and the item and the quantity are still understood. No prompt of the game answers it, so the prompt is built here.
+        var verdict = TestSupport.Pipeline(TestSupport.HldWorkedExample)
+            .Evaluate(TestSupport.Clip(), TestSupport.HldPrompt, TestSupport.Context()).Verdict;
+
+        Assert.Equal("state_have", verdict.Intent.Value);
+        Assert.Equal("espada", verdict.Slots["item"]);
+        Assert.Equal("2", verdict.Slots["qty"]);
+        Assert.True(verdict.Communicated);
+        Assert.Equal([ErrorTags.ConjPerson, ErrorTags.NounNumber], verdict.Errors.Select(static error => error.Tag).ToArray());
         Assert.Equal(("tiene", "tengo"), (verdict.Errors[0].Actual, verdict.Errors[0].Expected));
         Assert.Equal(("espada", "espadas"), (verdict.Errors[1].Actual, verdict.Errors[1].Expected));
-        Assert.Equal(0.5, verdict.Correctness, 6);
     }
 
     [Fact]
     public void WorkedExampleIsRecastFromThePlayersOwnSlots()
     {
         var result = TestSupport.Pipeline(TestSupport.WorkedExample)
-            .Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context());
+            .Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context());
 
         var recast = Assert.Single(result.Response.Lines, static line => line.IsRecast);
-        Assert.Contains("tienes dos espadas", recast.Text, StringComparison.Ordinal);
+        Assert.Contains("yo quiero dos espadas", recast.Text, StringComparison.OrdinalIgnoreCase);
         Assert.True(result.Response.Lines[0].IsRecast, "A recast is spoken before the reply.");
         Assert.Equal(2, result.Response.Lines.Count);
-        Assert.StartsWith("offer_item_reply.", result.Response.Lines[1].LineId, StringComparison.Ordinal);
-        Assert.Equal(Rating.Hard, result.Decision.Rating);
-        Assert.Equal("done", result.Decision.Agent!.Next.StateId);
+        Assert.StartsWith("villager_give.", result.Response.Lines[1].LineId, StringComparison.Ordinal);
+        Assert.Equal("idle", result.Decision.Agent!.Next.StateId);
         Assert.Equal(FeedbackType.Recast, result.Decision.Feedback.Items[0].Type);
     }
 
@@ -62,10 +78,10 @@ public class PipelineTests
         var clip = TestSupport.Clip();
         var context = TestSupport.Context();
 
-        var result = TestSupport.Pipeline(TestSupport.WorkedExample).Evaluate(clip, Prompt(TestSupport.OfferPrompt), context);
+        var result = TestSupport.Pipeline(TestSupport.WorkedExample).Evaluate(clip, Prompt(TestSupport.OpenPrompt), context);
 
         Assert.Equal(clip.ClipHash, result.Replay.ClipHash);
-        Assert.Equal(TestSupport.OfferPrompt, result.Replay.PromptId);
+        Assert.Equal(TestSupport.OpenPrompt, result.Replay.PromptId);
         Assert.Equal(context.HostStateHash, result.Replay.HostStateHash);
         Assert.Equal(result.Verdict, result.Replay.Verdict);
         Assert.Equal(TestSupport.Bundle.ContentHash, result.Replay.Versions.ContentHash);
@@ -76,7 +92,7 @@ public class PipelineTests
     {
         var clip = TestSupport.Clip();
         var context = TestSupport.Context(counter: 5);
-        var prompt = Prompt(TestSupport.OfferPrompt);
+        var prompt = Prompt(TestSupport.OpenPrompt);
 
         var first = TestSupport.Json(TestSupport.Pipeline(TestSupport.WorkedExample, phonemes: true).Evaluate(clip, prompt, context));
         var second = TestSupport.Json(TestSupport.Pipeline(TestSupport.WorkedExample, phonemes: true).Evaluate(clip, prompt, context));
@@ -90,7 +106,7 @@ public class PipelineTests
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample, phonemes: true);
         var clip = TestSupport.Clip();
         var context = TestSupport.Context();
-        var prompt = Prompt(TestSupport.OfferPrompt);
+        var prompt = Prompt(TestSupport.OpenPrompt);
 
         var first = pipeline.Evaluate(clip, prompt, context);
         var second = pipeline.Evaluate(clip, prompt, context);
@@ -104,7 +120,7 @@ public class PipelineTests
     {
         var clip = TestSupport.Clip();
         var context = TestSupport.Context();
-        var prompt = Prompt(TestSupport.OfferPrompt);
+        var prompt = Prompt(TestSupport.OpenPrompt);
 
         var concurrent = TestSupport.Pipeline(TestSupport.WorkedExample, phonemes: true, options: new PipelineOptions { RunRecognizersConcurrently = true });
         var sequential = TestSupport.Pipeline(TestSupport.WorkedExample, phonemes: true, options: new PipelineOptions { RunRecognizersConcurrently = false });
@@ -117,7 +133,7 @@ public class PipelineTests
     {
         var clip = TestSupport.Clip();
         var context = TestSupport.Context();
-        var prompt = Prompt(TestSupport.OfferPrompt);
+        var prompt = Prompt(TestSupport.OpenPrompt);
         var results = new string[8];
 
         Parallel.For(0, results.Length, i => results[i] = TestSupport.Json(TestSupport.Pipeline(TestSupport.WorkedExample, phonemes: true).Evaluate(clip, prompt, context)));
@@ -131,7 +147,7 @@ public class PipelineTests
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample, phonemes: true);
         var clip = TestSupport.Clip();
         var context = TestSupport.Context();
-        var prompt = Prompt(TestSupport.OfferPrompt);
+        var prompt = Prompt(TestSupport.OpenPrompt);
         var results = new string[8];
 
         Parallel.For(0, results.Length, i => results[i] = TestSupport.Json(pipeline.Evaluate(clip, prompt, context)));
@@ -142,8 +158,8 @@ public class PipelineTests
     [Fact]
     public void ADifferentInteractionCounterCanChangeOnlyTheDrawnVariants()
     {
-        var pipeline = TestSupport.Pipeline("quiero comprar una espada");
-        var prompt = Prompt("buy-item-open");
+        var pipeline = TestSupport.Pipeline("quiero agua");
+        var prompt = Prompt(TestSupport.OpenPrompt);
         var lineIds = new HashSet<string>(StringComparer.Ordinal);
 
         for (var counter = 0; counter < 16; counter++)
@@ -154,11 +170,11 @@ public class PipelineTests
             Assert.Empty(result.Verdict.Errors);
             var line = Assert.Single(result.Response.Lines);
             var variant = Assert.Single(result.Decision.Agent!.Actions).VariantIndex;
-            Assert.Equal($"confirm_prompt.{variant + 1}", line.LineId);
+            Assert.Equal($"villager_give.{variant + 1}", line.LineId);
             lineIds.Add(line.LineId);
         }
 
-        Assert.True(lineIds.Count > 1, "Sixteen interactions should draw more than one of the three variants.");
+        Assert.True(lineIds.Count > 1, "Sixteen interactions should draw more than one of the two variants.");
     }
 
     [Fact]
@@ -167,7 +183,7 @@ public class PipelineTests
         var recognizer = new ScriptedWordRecognizer(TestSupport.Asr(TestSupport.WorkedExample));
         var pipeline = new UtterancePipeline(new PipelineServices(recognizer, null, null, null, TestSupport.Bundle));
 
-        pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context());
+        pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context());
 
         Assert.Equal(1, recognizer.CallCount);
         Assert.Equal(RecognitionMode.Open, recognizer.LastRequest!.Mode);
@@ -177,9 +193,9 @@ public class PipelineTests
     [Fact]
     public void ConstrainedPromptsBuildTheGrammarFromTheAnswerSet()
     {
-        var recognizer = new ScriptedWordRecognizer(TestSupport.Asr("espada", RecognitionMode.Constrained));
+        var recognizer = new ScriptedWordRecognizer(TestSupport.Asr("piedra", RecognitionMode.Constrained));
         var pipeline = new UtterancePipeline(new PipelineServices(recognizer, null, null, null, TestSupport.Bundle));
-        var prompt = Prompt("quiz-item-name");
+        var prompt = TestSupport.QuizPrompt;
 
         pipeline.Evaluate(TestSupport.Clip(), prompt, TestSupport.Context());
 
@@ -188,7 +204,7 @@ public class PipelineTests
         var expected = GrammarBuilder.BuildList(TestSupport.Bundle.AnswerSets[prompt.AnswerSetId].GrammarPhrases());
         Assert.Equal(expected, request.GrammarPhrases);
         Assert.Equal(GrammarBuilder.UnknownToken, request.GrammarPhrases[^1]);
-        Assert.Contains("espada", request.GrammarPhrases);
+        Assert.Contains("piedra", request.GrammarPhrases);
     }
 
     [Fact]
@@ -201,7 +217,7 @@ public class PipelineTests
             new PipelineServices(words, phonemes, null, null, TestSupport.Bundle),
             new PipelineOptions { RunRecognizersConcurrently = false });
 
-        pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context());
+        pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context());
 
         Assert.Equal(["asr", "phoneme"], log);
     }
@@ -214,7 +230,7 @@ public class PipelineTests
         var phonemes = new LoggingPhonemeRecognizer(log, TestSupport.HearsCorrectly(TestSupport.WorkedExample));
         var pipeline = new UtterancePipeline(new PipelineServices(words, phonemes, null, null, TestSupport.Bundle));
 
-        pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context());
+        pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context());
 
         Assert.Equal(["asr", "phoneme"], log.Order(StringComparer.Ordinal).ToArray());
     }
@@ -224,14 +240,14 @@ public class PipelineTests
     {
         var pipeline = new UtterancePipeline(new PipelineServices(new ThrowingWordRecognizer(), TestSupport.HearsCorrectly("hola"), null, null, TestSupport.Bundle));
 
-        Assert.Throws<NotSupportedException>(() => pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context()));
+        Assert.Throws<NotSupportedException>(() => pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context()));
     }
 
     [Fact]
     public void PronunciationIsSkippedWithoutAPhonemeRecognizer()
     {
         var verdict = TestSupport.Pipeline(TestSupport.WorkedExample)
-            .Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context()).Verdict;
+            .Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context()).Verdict;
 
         Assert.Empty(verdict.Pronunciation);
         Assert.DoesNotContain(verdict.Errors, static error => ErrorTags.IsPronunciation(error.Tag));
@@ -244,7 +260,7 @@ public class PipelineTests
     {
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample, phonemes: true, options: new PipelineOptions { PronunciationMode = mode });
 
-        var verdict = pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context()).Verdict;
+        var verdict = pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context()).Verdict;
 
         Assert.NotEmpty(verdict.Pronunciation);
         Assert.All(verdict.Pronunciation, static score => Assert.Equal(1.0, score.Score, 6));
@@ -254,11 +270,11 @@ public class PipelineTests
     [Fact]
     public void ARolledToEnglishRSoundIsReportedAsPronR()
     {
-        const string text = "quiero comprar un arco";
+        const string text = "quiero un arco";
         var recognizer = TestSupport.HearsCorrectly(text, new Dictionary<string, string> { ["ɾ"] = "ɹ" });
         var services = TestSupport.Services(text, phonemeRecognizer: recognizer);
 
-        var verdict = new UtterancePipeline(services).Evaluate(TestSupport.Clip(), Prompt("buy-item-open"), TestSupport.Context()).Verdict;
+        var verdict = new UtterancePipeline(services).Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context()).Verdict;
 
         Assert.Contains(verdict.Errors, static error => error.Tag == ErrorTags.PronR);
         Assert.True(verdict.Communicated);
@@ -290,7 +306,7 @@ public class PipelineTests
     {
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample, phonemes: true);
 
-        var verdict = pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context()).Verdict;
+        var verdict = pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context()).Verdict;
 
         Assert.Equal(pipeline.Services.Versions, verdict.Versions);
     }
@@ -300,7 +316,7 @@ public class PipelineTests
     {
         var pipeline = TestSupport.Pipeline("xyzzy plugh");
 
-        var result = pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context());
+        var result = pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context());
 
         Assert.False(result.Verdict.Communicated);
         Assert.True(result.Verdict.Intent.IsUnknown);
@@ -319,7 +335,7 @@ public class PipelineTests
         var pipeline = TestSupport.Pipeline("xyzzy plugh", RecognitionMode.Constrained);
         var counts = new Dictionary<string, int> { [FeedbackPolicy.NotCommunicatedTag] = repeats };
 
-        var result = pipeline.Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), TestSupport.Context(repeats: counts));
+        var result = pipeline.Evaluate(TestSupport.Clip(), TestSupport.QuizPrompt, TestSupport.Context(repeats: counts));
 
         Assert.Equal(expected, result.Repair!.Kind);
         if (expected == RepairKind.OfferChoices)
@@ -332,15 +348,15 @@ public class PipelineTests
     [Fact]
     public void TheOfferedChoicesAreOneCanonicalPerAnswerInDeclaredOrder()
     {
-        // items-basic is declared sword, shield, bow, ...: the choices are their canonicals in that order, not the ordinal-sorted aliases («arco», «brebaje», «el arco»).
+        // places-basic is declared tree, stone, river: the choices are their canonicals in that order, not the ordinal-sorted aliases («el río», «el árbol», «la piedra»).
         var pipeline = TestSupport.Pipeline("xyzzy plugh", RecognitionMode.Constrained);
         var counts = new Dictionary<string, int> { [FeedbackPolicy.NotCommunicatedTag] = 2 };
 
-        var result = pipeline.Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), TestSupport.Context(repeats: counts));
+        var result = pipeline.Evaluate(TestSupport.Clip(), TestSupport.QuizPrompt, TestSupport.Context(repeats: counts));
 
         Assert.Equal(RepairKind.OfferChoices, result.Repair!.Kind);
-        Assert.Equal(["espada", "escudo", "arco"], result.Repair.RetryRequest!.GrammarPhrases);
-        Assert.Equal("¿Quieres decir «espada», «escudo» o «arco»?", result.Repair.AgentLine);
+        Assert.Equal(["árbol", "piedra", "río"], result.Repair.RetryRequest!.GrammarPhrases);
+        Assert.Equal("¿Quieres decir «árbol», «piedra» o «río»?", result.Repair.AgentLine);
     }
 
     [Fact]
@@ -349,17 +365,17 @@ public class PipelineTests
         var pipeline = TestSupport.Pipeline("xyzzy plugh", RecognitionMode.Constrained);
         var counts = new Dictionary<string, int> { [FeedbackPolicy.NotCommunicatedTag] = 0 };
 
-        var result = pipeline.Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), TestSupport.Context(repeats: counts));
+        var result = pipeline.Evaluate(TestSupport.Clip(), TestSupport.QuizPrompt, TestSupport.Context(repeats: counts));
 
         Assert.Equal(RepairKind.AskAgain, result.Repair!.Kind);
         Assert.Equal(RecognitionMode.Constrained, result.Repair.RetryRequest!.Mode);
-        Assert.Contains("el arco", result.Repair.RetryRequest.GrammarPhrases);
+        Assert.Contains("el río", result.Repair.RetryRequest.GrammarPhrases);
     }
 
     [Fact]
     public void ACommunicatedUtteranceHasNoRepairStep()
     {
-        var result = TestSupport.Pipeline(TestSupport.WorkedExample).Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context());
+        var result = TestSupport.Pipeline(TestSupport.WorkedExample).Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context());
 
         Assert.Null(result.Repair);
     }
@@ -372,7 +388,7 @@ public class PipelineTests
     {
         var pipeline = TestSupport.Pipeline(transcript, phonemes: true);
 
-        var result = pipeline.Evaluate(PcmClip.FromSamples([]), Prompt(TestSupport.OfferPrompt), TestSupport.Context());
+        var result = pipeline.Evaluate(PcmClip.FromSamples([]), Prompt(TestSupport.OpenPrompt), TestSupport.Context());
 
         Assert.False(result.Verdict.Communicated);
         Assert.Empty(result.Verdict.Errors);
@@ -384,7 +400,7 @@ public class PipelineTests
     [Fact]
     public void UnknownWordsAreReportedAsVocabUnknown()
     {
-        var result = TestSupport.Pipeline("yo tengo dos zorkmids").Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context());
+        var result = TestSupport.Pipeline("yo tengo dos zorkmids").Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context());
 
         Assert.Contains(result.Verdict.Errors, static error => error.Tag == ErrorTags.VocabUnknown && error.Actual == "zorkmids");
     }
@@ -392,10 +408,10 @@ public class PipelineTests
     [Fact]
     public void WithoutAnAgentAPerfectUtteranceIsAcknowledgedFromTheAnswerAcceptedPool()
     {
-        var prompt = Prompt("spell-cast-open");
+        var prompt = TestSupport.AgentlessOpenPrompt;
         var context = TestSupport.Context(state: "none", agentId: "player");
 
-        var result = TestSupport.Pipeline("lanzo fuego").Evaluate(TestSupport.Clip(), prompt, context);
+        var result = TestSupport.Pipeline("quiero agua", bundle: TestSupport.EffectsBundle).Evaluate(TestSupport.Clip(), prompt, context);
 
         Assert.Null(result.Decision.Agent);
         Assert.True(result.Verdict.Communicated);
@@ -404,7 +420,7 @@ public class PipelineTests
         Assert.StartsWith("answer_accepted.", line.LineId, StringComparison.Ordinal);
         Assert.False(line.IsRecast);
         var effect = Assert.Single(result.Effects);
-        Assert.Equal("spell_power", effect.Kind);
+        Assert.Equal("item_quality", effect.Kind);
         Assert.Equal(1.0, effect.Value, 6);
     }
 
@@ -412,10 +428,10 @@ public class PipelineTests
     public void WithoutAnAgentAPerfectUtteranceHasNoLinesWhenTheBundleHasNoAnswerAcceptedPool()
     {
         using var directory = new BundleWithoutAnswerAccepted();
-        var services = new PipelineServices(new ScriptedWordRecognizer(TestSupport.Asr("lanzo fuego")), null, null, null, directory.Bundle);
+        var services = new PipelineServices(new ScriptedWordRecognizer(TestSupport.Asr("quiero agua")), null, null, null, directory.Bundle);
         var context = TestSupport.Context(state: "none", agentId: "player");
 
-        var result = new UtterancePipeline(services).Evaluate(TestSupport.Clip(), directory.Bundle.Prompts["spell-cast-open"], context);
+        var result = new UtterancePipeline(services).Evaluate(TestSupport.Clip(), TestSupport.AgentlessOpenPrompt, context);
 
         Assert.True(result.Verdict.Communicated);
         Assert.Empty(result.Response.Lines);
@@ -426,7 +442,7 @@ public class PipelineTests
     {
         var context = TestSupport.Context(state: "none", agentId: "player");
 
-        var result = TestSupport.Pipeline("espada", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), context);
+        var result = TestSupport.Pipeline("piedra", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), TestSupport.QuizPrompt, context);
 
         var verdict = result.Verdict;
         Assert.True(verdict.Communicated);
@@ -440,19 +456,19 @@ public class PipelineTests
         Assert.Empty(result.Effects);
         var line = Assert.Single(result.Response.Lines);
         Assert.StartsWith("answer_accepted.", line.LineId, StringComparison.Ordinal);
-        Assert.Contains(line.Text, new[] { "¡Correcto!", "¡Muy bien!", "¡Exacto!" });
+        Assert.Contains(line.Text, TestSupport.Bundle.Dialogue.Pools["answer_accepted"].Variants.Select(static variant => variant.Text));
         Assert.Equal(Rating.Easy, result.Decision.Rating);
     }
 
     [Theory]
-    [InlineData("quiz-item-name", "la espada", ResolvedBy.Alias)]
-    [InlineData("quiz-spell-name", "fuego", ResolvedBy.Exact)]
-    [InlineData("quiz-greeting-name", "hola", ResolvedBy.Exact)]
-    public void QuizPromptsResolveThroughTheAnswerMatchAlone(string promptId, string transcript, ResolvedBy expected)
+    [InlineData("la piedra", ResolvedBy.Alias)]
+    [InlineData("un árbol", ResolvedBy.Alias)]
+    [InlineData("río", ResolvedBy.Exact)]
+    public void QuizPromptsResolveThroughTheAnswerMatchAlone(string transcript, ResolvedBy expected)
     {
         var context = TestSupport.Context(state: "none", agentId: "player");
 
-        var result = TestSupport.Pipeline(transcript, RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt(promptId), context);
+        var result = TestSupport.Pipeline(transcript, RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), TestSupport.QuizPrompt, context);
 
         Assert.True(result.Verdict.Communicated);
         Assert.True(result.Verdict.Intent.IsUnknown);
@@ -463,9 +479,9 @@ public class PipelineTests
     }
 
     [Fact]
-    public void AQuizAnswerIsAcknowledgedEvenWhenTheContextStillNamesTheSampleAgent()
+    public void AQuizAnswerIsAcknowledgedEvenWhenTheContextStillNamesAnAgent()
     {
-        var result = TestSupport.Pipeline("espada", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), TestSupport.Context());
+        var result = TestSupport.Pipeline("piedra", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), TestSupport.QuizPrompt, TestSupport.Context());
 
         Assert.True(result.Verdict.Communicated);
         Assert.StartsWith("answer_accepted.", Assert.Single(result.Response.Lines).LineId, StringComparison.Ordinal);
@@ -476,7 +492,7 @@ public class PipelineTests
     {
         var context = TestSupport.Context(state: "none", agentId: "player");
 
-        var result = TestSupport.Pipeline("una espadas", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), context);
+        var result = TestSupport.Pipeline("una piedras", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), TestSupport.QuizPrompt, context);
 
         Assert.True(result.Verdict.Communicated);
         Assert.Equal(ResolvedBy.Fuzzy, result.Verdict.ResolvedBy);
@@ -490,7 +506,7 @@ public class PipelineTests
     {
         var context = TestSupport.Context(state: "none", agentId: "player");
 
-        var result = TestSupport.Pipeline("perro", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), context);
+        var result = TestSupport.Pipeline("perro", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), TestSupport.QuizPrompt, context);
 
         Assert.False(result.Verdict.Communicated);
         Assert.Equal(ResolvedBy.Unresolved, result.Verdict.ResolvedBy);
@@ -501,60 +517,62 @@ public class PipelineTests
     [Fact]
     public void AFuzzyQuizAnswerAtTheBudgetsEdgeIsCommunicatedLikeEveryOtherNearMiss()
     {
-        // espado is one edit from espada, the whole Beginner budget for a six-letter answer. M17c: an edge match is communicated (ezpada is too).
+        // piedro is one edit from piedra, the whole Beginner budget for a six-letter answer. M17c: an edge match is communicated (pieszra is too).
         var context = TestSupport.Context(state: "none", agentId: "player");
 
-        var result = TestSupport.Pipeline("espado", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("quiz-item-name"), context);
+        var result = TestSupport.Pipeline("piedro", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), TestSupport.QuizPrompt, context);
 
         Assert.True(result.Verdict.Communicated);
         Assert.Equal(ResolvedBy.Fuzzy, result.Verdict.ResolvedBy);
         Assert.Null(result.Repair);
-        Assert.Contains("Ah, espada.", Assert.Single(result.Response.Lines, static line => line.IsRecast).Text, StringComparison.Ordinal);
+        Assert.Contains("«piedra»", Assert.Single(result.Response.Lines, static line => line.IsRecast).Text, StringComparison.Ordinal);
+    }
+
+    public static TheoryData<string, string> SuppliesPhrases()
+    {
+        // Every phrase of the three item answers of the "supplies" set, with the item lemma the request grammar must bind from it.
+        var lemmas = new Dictionary<string, string>(StringComparer.Ordinal) { ["water"] = "agua", ["bread"] = "pan", ["fruit"] = "fruta" };
+        var data = new TheoryData<string, string>();
+        foreach (var answer in TestSupport.Bundle.AnswerSets["supplies"].Answers.Where(answer => lemmas.ContainsKey(answer.AnswerId)))
+        {
+            foreach (var phrase in answer.Aliases.Prepend(answer.Canonical))
+            {
+                data.Add(phrase, lemmas[answer.AnswerId]);
+            }
+        }
+
+        return data;
     }
 
     [Fact]
-    public void ABareSampleNameOnTheConstrainedSamplePromptFillsTheSlot()
+    public void ABareAnswerOnTheConstrainedPromptFillsTheItemSlotAtFullPower()
     {
         var context = TestSupport.Context(state: "none", agentId: "player");
 
-        var result = TestSupport.Pipeline("fuego", RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("spell-cast-constrained"), context);
+        var result = TestSupport.Pipeline("quiero agua por favor", RecognitionMode.Constrained, bundle: TestSupport.EffectsBundle)
+            .Evaluate(TestSupport.Clip(), Prompt("stall-need"), context);
 
-        Assert.Equal("cast_spell", result.Verdict.Intent.Value);
-        Assert.Equal("fuego", result.Verdict.Slots["spell"]);
+        Assert.Equal("request_item", result.Verdict.Intent.Value);
+        Assert.Equal("agua", result.Verdict.Slots["item"]);
         Assert.True(result.Verdict.Communicated);
         Assert.Equal(1.0, result.Verdict.Correctness, 6);
         Assert.Empty(result.Verdict.Errors);
         var effect = Assert.Single(result.Effects);
-        Assert.Equal("spell_power", effect.Kind);
+        Assert.Equal("item_quality", effect.Kind);
         Assert.Equal(1.0, effect.Value, 6);
     }
 
     [Theory]
-    [InlineData("fuego", "fuego")]
-    [InlineData("el fuego", "fuego")]
-    [InlineData("bola de fuego", "fuego")]
-    [InlineData("una bola de fuego", "fuego")]
-    [InlineData("hielo", "hielo")]
-    [InlineData("el hielo", "hielo")]
-    [InlineData("lanza de hielo", "hielo")]
-    [InlineData("una lanza de hielo", "hielo")]
-    [InlineData("rayo", "rayo")]
-    [InlineData("el rayo", "rayo")]
-    [InlineData("un rayo", "rayo")]
-    [InlineData("relámpago", "relámpago")]
-    [InlineData("un relámpago", "relámpago")]
-    [InlineData("escudo mágico", "escudo")]
-    [InlineData("el escudo mágico", "escudo")]
-    [InlineData("un escudo mágico", "escudo")]
-    [InlineData("escudo de magia", "escudo")]
-    public void EveryPhraseOfTheSampleAnswerSetSatisfiesTheCastGrammar(string transcript, string spell)
+    [MemberData(nameof(SuppliesPhrases))]
+    public void EveryPhraseOfTheSuppliesAnswerSetSatisfiesTheRequestGrammar(string transcript, string item)
     {
         var context = TestSupport.Context(state: "none", agentId: "player");
 
-        var result = TestSupport.Pipeline(transcript, RecognitionMode.Constrained).Evaluate(TestSupport.Clip(), Prompt("spell-cast-constrained"), context);
+        var result = TestSupport.Pipeline(transcript, RecognitionMode.Constrained, bundle: TestSupport.EffectsBundle)
+            .Evaluate(TestSupport.Clip(), Prompt("stall-need"), context);
 
-        Assert.Equal("cast_spell", result.Verdict.Intent.Value);
-        Assert.Equal(spell, result.Verdict.Slots["spell"]);
+        Assert.Equal("request_item", result.Verdict.Intent.Value);
+        Assert.Equal(item, result.Verdict.Slots["item"]);
         Assert.True(result.Verdict.Communicated);
         Assert.Empty(result.Verdict.Errors);
         Assert.Equal(1.0, result.Verdict.Correctness, 6);
@@ -562,49 +580,40 @@ public class PipelineTests
     }
 
     [Theory]
-    [InlineData("lanzo fuego", "fuego")]
-    [InlineData("lanzo el fuego", "fuego")]
-    [InlineData("quiero lanzar hielo", "hielo")]
-    [InlineData("fuego", "fuego")]
-    [InlineData("el escudo mágico", "escudo")]
-    public void TheOpenSamplePromptAcceptsTheSampleNameWithOrWithoutTheVerb(string transcript, string spell)
+    [InlineData("quiero agua", "agua")]
+    [InlineData("quiero el pan", "pan")]
+    [InlineData("necesito fruta", "fruta")]
+    [InlineData("agua por favor", "agua")]
+    [InlineData("me da una fruta", "fruta")]
+    public void TheOpenPromptAcceptsTheItemWithOrWithoutTheVerb(string transcript, string item)
     {
         var context = TestSupport.Context(state: "none", agentId: "player");
 
-        var result = TestSupport.Pipeline(transcript).Evaluate(TestSupport.Clip(), Prompt("spell-cast-open"), context);
+        var result = TestSupport.Pipeline(transcript, bundle: TestSupport.EffectsBundle).Evaluate(TestSupport.Clip(), TestSupport.AgentlessOpenPrompt, context);
 
-        Assert.Equal("cast_spell", result.Verdict.Intent.Value);
-        Assert.Equal(spell, result.Verdict.Slots["spell"]);
+        Assert.Equal("request_item", result.Verdict.Intent.Value);
+        Assert.Equal(item, result.Verdict.Slots["item"]);
         Assert.True(result.Verdict.Communicated);
         Assert.Empty(result.Verdict.Errors);
         Assert.Equal(1.0, Assert.Single(result.Effects).Value, 6);
     }
 
-    [Fact]
-    public void TheSampleAnswerSetPhrasesAreCoveredByTheTheory()
-    {
-        var phrases = TestSupport.Bundle.AnswerSets["spells-basic"].GrammarPhrases();
-
-        Assert.Equal(
-            ["bola de fuego", "el escudo mágico", "el fuego", "el hielo", "el rayo", "escudo de magia", "escudo mágico", "fuego", "hielo", "lanza de hielo", "rayo", "relámpago", "un escudo mágico", "un rayo", "un relámpago", "una bola de fuego", "una lanza de hielo"],
-            phrases.Order(StringComparer.Ordinal).ToArray());
-    }
-
     [Theory]
-    [InlineData("yo tiene dos espada", "offer-items-open", "offer_item_reply.")]
-    [InlineData("quiero vender una espada", "sell-item-open", "sell_item_reply.")]
-    [InlineData("quiero comprar una espada", "buy-item-open", "buy_item_reply.")]
-    [InlineData("cuánto cuesta la espada", "ask-price-open", "ask_price_reply.")]
-    public void TheSampleAgentAnswersExchangeIntentsFromItsInitialIdleState(string transcript, string promptId, string replyPool)
+    [InlineData("quiero agua", "villager_give.", "idle")]
+    [InlineData("dónde está el río", "villager_point.", "pointing")]
+    [InlineData("hola", "villager_greet.", "idle")]
+    [InlineData("gracias", "villager_thank.", "idle")]
+    [InlineData("adiós", "villager_bye.", "idle")]
+    public void TheVillagerAnswersEachIntentFromItsInitialIdleState(string transcript, string replyPool, string nextState)
     {
-        var machine = TestSupport.Bundle.Agents["blacksmith"];
+        var machine = TestSupport.Bundle.Agents["villager"];
         var context = TestSupport.Context(state: machine.InitialState().StateId);
 
-        var result = TestSupport.Pipeline(transcript).Evaluate(TestSupport.Clip(), Prompt(promptId), context);
+        var result = TestSupport.Pipeline(transcript).Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), context);
 
         Assert.Equal("idle", context.AgentState.StateId);
         Assert.True(result.Verdict.Communicated);
-        Assert.Equal("trading", result.Decision.Agent!.Next.StateId);
+        Assert.Equal(nextState, result.Decision.Agent!.Next.StateId);
         Assert.DoesNotContain(result.Response.Lines, static line => line.LineId.StartsWith("not_understood.", StringComparison.Ordinal));
         Assert.Contains(result.Response.Lines, line => line.LineId.StartsWith(replyPool, StringComparison.Ordinal));
     }
@@ -612,10 +621,10 @@ public class PipelineTests
     [Fact]
     public void WithoutAnAgentOnlyFeedbackIsVoiced()
     {
-        var prompt = Prompt("spell-cast-open");
+        var prompt = TestSupport.AgentlessOpenPrompt;
         var context = TestSupport.Context(state: "none", agentId: "player");
 
-        var result = TestSupport.Pipeline("lanzo el fuegos").Evaluate(TestSupport.Clip(), prompt, context);
+        var result = TestSupport.Pipeline("yo quiere agua").Evaluate(TestSupport.Clip(), prompt, context);
 
         Assert.Null(result.Decision.Agent);
         Assert.NotEmpty(result.Verdict.Errors);
@@ -628,9 +637,9 @@ public class PipelineTests
     public void ThePlaceholderAnswerSetIdIsNeverSpokenAsAnExpectedForm()
     {
         var counts = new Dictionary<string, int> { [ErrorTags.VocabWrong] = 4 };
-        var prompt = Prompt("spell-cast-constrained");
+        var prompt = Prompt("stall-need");
 
-        var result = TestSupport.Pipeline("lanzo fuego", RecognitionMode.Constrained)
+        var result = TestSupport.Pipeline("quiero madera", RecognitionMode.Constrained)
             .Evaluate(TestSupport.Clip(), prompt, TestSupport.Context(state: "none", agentId: "player", repeats: counts));
 
         Assert.Contains(result.Verdict.Errors, static error => error.Tag == ErrorTags.VocabWrong);
@@ -641,11 +650,16 @@ public class PipelineTests
     [Fact]
     public void EffectsComeFromTheVerdictsCorrectness()
     {
-        var result = TestSupport.Pipeline("quiero comprar una espada").Evaluate(TestSupport.Clip(), Prompt("buy-item-open"), TestSupport.Context());
+        var perfect = TestSupport.Pipeline("quiero agua", bundle: TestSupport.EffectsBundle).Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context());
+        var flawed = TestSupport.Pipeline(TestSupport.WorkedExample, bundle: TestSupport.EffectsBundle).Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context());
 
-        var effect = Assert.Single(result.Effects);
-        Assert.Equal("trade_price", effect.Kind);
+        var effect = Assert.Single(perfect.Effects);
+        Assert.Equal("item_quality", effect.Kind);
         Assert.Equal(1.0, effect.Value, 6);
+
+        // The curve runs from 0.5 at correctness 0 to 1 at correctness 1, and the worked example's correctness is 0.6.
+        Assert.Equal(0.5 + (0.5 * flawed.Verdict.Correctness), Assert.Single(flawed.Effects).Value, 6);
+        Assert.Empty(TestSupport.Pipeline("quiero agua").Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context()).Effects);
     }
 
     [Fact]
@@ -653,12 +667,12 @@ public class PipelineTests
     {
         var context = TestSupport.Context();
 
-        var result = TestSupport.Pipeline(TestSupport.WorkedExample).Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), context);
+        var result = TestSupport.Pipeline(TestSupport.WorkedExample).Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), context);
 
         var skills = result.Decision.Learner.Skills.Select(static skill => skill.SkillId).ToArray();
-        Assert.Equal(["conj", "intent.offer_item", "noun"], skills);
+        Assert.Equal(["conj", "intent.request_item", "noun"], skills);
         Assert.Equal(1, result.Decision.Learner.Find("conj")!.Errors);
-        Assert.Equal(0, result.Decision.Learner.Find("intent.offer_item")!.Errors);
+        Assert.Equal(0, result.Decision.Learner.Find("intent.request_item")!.Errors);
         Assert.Empty(context.Learner.Skills);
     }
 
@@ -669,7 +683,7 @@ public class PipelineTests
         var counts = new Dictionary<string, int> { [ErrorTags.ConjPerson] = 1 };
 
         var result = TestSupport.Pipeline(TestSupport.WorkedExample)
-            .Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context(repeats: counts));
+            .Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context(repeats: counts));
 
         Assert.Equal(FeedbackType.Hint, result.Decision.Feedback.Items[0].Type);
         Assert.DoesNotContain(result.Response.Lines, static line => line.IsRecast);
@@ -679,12 +693,13 @@ public class PipelineTests
     [Fact]
     public void ThePromptsOwnGrammarsAreOptional()
     {
-        var constrained = Prompt("offer-items-constrained");
+        // "necesito dos panes" is no phrase of the answer set of stall-need, but the intent grammars still read it (they are optional extras to the set).
+        var constrained = Prompt("stall-need");
 
-        var result = TestSupport.Pipeline("tengo dos espadas", RecognitionMode.Constrained)
+        var result = TestSupport.Pipeline("necesito dos panes", RecognitionMode.Constrained)
             .Evaluate(TestSupport.Clip(), constrained, TestSupport.Context());
 
-        Assert.Equal("offer_item", result.Verdict.Intent.Value);
+        Assert.Equal("request_item", result.Verdict.Intent.Value);
         Assert.Equal("2", result.Verdict.Slots["qty"]);
     }
 
@@ -692,7 +707,7 @@ public class PipelineTests
     public void AnEmbeddingModelAddsItsHashAndKeepsTheResultDeterministic()
     {
         var clip = TestSupport.Clip();
-        var prompt = Prompt("trade-free-conversation");
+        var prompt = Prompt(TestSupport.OpenPrompt);
         var context = TestSupport.Context();
         var first = new UtterancePipeline(TestSupport.Services("hola", embeddings: true));
         var second = new UtterancePipeline(TestSupport.Services("hola", embeddings: true));
@@ -708,7 +723,7 @@ public class PipelineTests
     public void ResultsRoundTripThroughCanonicalJson()
     {
         var result = TestSupport.Pipeline(TestSupport.WorkedExample, phonemes: true)
-            .Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context());
+            .Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context());
 
         var json = TestSupport.Json(result);
         var back = Vocaterra.Nlp.Core.Determinism.CanonicalJson.Deserialize<PipelineResult>(json);
@@ -721,7 +736,7 @@ public class PipelineTests
     public void ASynthesizerSpeaksEveryResponseLine()
     {
         var pipeline = new UtterancePipeline(TestSupport.Services(TestSupport.WorkedExample, synthesizer: true));
-        var result = pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context());
+        var result = pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context());
 
         var audio = pipeline.Synthesize(result.Response, "agent-1");
 
@@ -733,7 +748,7 @@ public class PipelineTests
     public void SynthesizingWithoutASynthesizerThrows()
     {
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
-        var result = pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), TestSupport.Context());
+        var result = pipeline.Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), TestSupport.Context());
 
         Assert.Throws<InvalidOperationException>(() => pipeline.Synthesize(result.Response, "agent-1"));
     }
@@ -741,7 +756,7 @@ public class PipelineTests
     [Fact]
     public void APromptWithAnUnknownAnswerSetIsRejected()
     {
-        var prompt = Prompt(TestSupport.OfferPrompt) with { AnswerSetId = "no-such-set" };
+        var prompt = Prompt(TestSupport.OpenPrompt) with { AnswerSetId = "no-such-set" };
 
         var ex = Assert.Throws<ArgumentException>(() => TestSupport.Pipeline(TestSupport.WorkedExample).Evaluate(TestSupport.Clip(), prompt, TestSupport.Context()));
 
@@ -754,35 +769,69 @@ public class PipelineTests
         var context = TestSupport.Context() with { AgentState = new Vocaterra.Nlp.Decision.ConversationAgents.AgentState("wizard", "idle", 0) };
 
         Assert.Throws<ArgumentException>(() =>
-            TestSupport.Pipeline(TestSupport.WorkedExample).Evaluate(TestSupport.Clip(), Prompt(TestSupport.OfferPrompt), context));
+            TestSupport.Pipeline(TestSupport.WorkedExample).Evaluate(TestSupport.Clip(), Prompt(TestSupport.OpenPrompt), context));
     }
 
-    /// <summary>A copy of the committed bundle whose dialogue has no <c>answer_accepted</c> pool; hashes are not verified because the copy was edited.</summary>
+    /// <summary>
+    /// A copy of the bundle whose dialogue has no <c>answer_accepted</c> pool; hashes are not verified because the copy was edited. The game's agents use that
+    /// pool for their own acknowledgements, so in the copy their lines say <c>not_understood</c> instead, which keeps the copy valid.
+    /// </summary>
     private sealed class BundleWithoutAnswerAccepted : IDisposable
     {
-        private readonly DirectoryInfo _directory = Directory.CreateTempSubdirectory("vocaterra-bundle-");
+        private readonly TempBundle _copy = new();
 
         public BundleWithoutAnswerAccepted()
         {
-            foreach (var source in Directory.EnumerateFiles(TestSupport.BundleDir, "*", SearchOption.AllDirectories))
+            _copy.EditJson("dialogue/dialogue.json", root => Assert.True(root["pools"]!.AsObject().Remove(UtterancePipeline.AnswerAcceptedPool)));
+            foreach (var agent in Directory.EnumerateFiles(_copy.PathOf("agents"), "*.json").Select(path => "agents/" + Path.GetFileName(path)))
             {
-                var target = Path.Combine(_directory.FullName, Path.GetRelativePath(TestSupport.BundleDir, source));
-                Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-                File.Copy(source, target);
+                _copy.EditJson(agent, root =>
+                {
+                    Rename(root);
+                    var pools = root["variantPools"]!.AsArray();
+                    foreach (var pool in pools.Where(pool => pool!["id"]!.GetValue<string>() == UtterancePipeline.AnswerAcceptedPool).ToList())
+                    {
+                        pools.Remove(pool);
+                    }
+                });
             }
 
-            var dialoguePath = Path.Combine(_directory.FullName, "dialogue", "dialogue.json");
-            var root = JsonNode.Parse(File.ReadAllText(dialoguePath, Encoding.UTF8))!.AsObject();
-            Assert.True(root["pools"]!.AsObject().Remove(UtterancePipeline.AnswerAcceptedPool));
-            File.WriteAllText(dialoguePath, root.ToJsonString(), new UTF8Encoding(false));
-            Bundle = ContentLoader.Load(_directory.FullName, new ContentLoadOptions { VerifyHashes = false });
+            Bundle = _copy.Load();
+        }
+
+        private static void Rename(JsonNode? node)
+        {
+            switch (node)
+            {
+                case JsonObject obj:
+                    foreach (var key in obj.Select(pair => pair.Key).ToList())
+                    {
+                        if ((key is "dialogueIntent" or "variantPoolId") && obj[key]!.GetValue<string>() == UtterancePipeline.AnswerAcceptedPool)
+                        {
+                            obj[key] = "not_understood";
+                        }
+                        else
+                        {
+                            Rename(obj[key]);
+                        }
+                    }
+
+                    break;
+                case JsonArray array:
+                    foreach (var item in array)
+                    {
+                        Rename(item);
+                    }
+
+                    break;
+            }
         }
 
         public ContentBundle Bundle { get; }
 
         public void Dispose()
         {
-            _directory.Delete(recursive: true);
+            _copy.Dispose();
         }
     }
 

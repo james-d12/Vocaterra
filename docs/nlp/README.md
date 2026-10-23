@@ -8,12 +8,13 @@ Vocaterra.NLP is a standalone Spanish voice-and-language evaluation core, writte
 for development), it works out what the learner meant and how well they said it, and returns one deterministic **verdict**, with tagged
 errors such as `conj.person` or `pron.r`, a feedback plan, a conversation step and the response text. It is a library first: a host loads a
 content bundle, builds the services, evaluates utterances and plans responses; [docs/nlp/API.md](API.md) lists the calls in order. The
-`Vocaterra.Nlp.Cli` tool is a demo host that drives the same API from the command line. Hosts live outside the core; nothing host-specific (scenes, items, prices, rewards) is in the core. The Spanish sample content, a blacksmith's
-dialogue, stays here as the demo and the test fixture.
+`Vocaterra.Nlp.Cli` tool is a demo host that drives the same API from the command line. Hosts live outside the core; nothing host-specific (scenes, items, prices, rewards) is in the core. There is one content bundle in the
+repository, the game's `content/game-v1`; the core's demo CLI and its tests run on it (R02, [ADR 0009](adr/0009-core-and-game-boundary.md)), and a game edit that
+breaks the core fails a core test.
 
 The verdict separates whether the learner *communicated* (the agent understood) from whether they were *correct* (grammar, vocabulary,
 pronunciation). The guiding principle is to reward communication and coach correctness: if the learner was understood the conversation
-responds, and the correction rides along on the response, for example as a recast ("¿Tienes dos espadas?").
+responds, and the correction rides along on the response, for example as a recast ("Claro, «yo quiero dos espadas»").
 
 **Every runtime step is deterministic.** The same audio clip, host state and content version always produce the same verdict, feedback and outcome. Algorithmic stages are plain code with fixed-order math; the neural models (speech recognition, phoneme recognition, embeddings, speech synthesis) are frozen, run greedily on one CPU thread, and are pinned by SHA-256, with a margin on every threshold so floating-point drift cannot flip an outcome. Every graded interaction can be written to a replay log and re-checked later without the models. The libraries are engine-agnostic; the host engine is still an open decision ([docs/nlp/DECISIONS.md](DECISIONS.md)).
 
@@ -39,7 +40,7 @@ flowchart TD
         RESP[Vocaterra.Nlp.Response<br/>templates, TTS, effects]
     end
     CORE[Vocaterra.Nlp.Core<br/>contracts, determinism primitives, error taxonomy]
-    BUNDLE[(content/v1<br/>hashed JSON bundle)]
+    BUNDLE[(content/game-v1<br/>hashed JSON bundle)]
     MODELS[(models/<br/>fetched, pinned by SHA-256)]
 
     CLI --> PIPE
@@ -101,7 +102,7 @@ Tests that need a real model are skipped, not failed, unless `VOCATERRA_MODELS_D
 
 ### Fuzz tests
 
-`tests/Vocaterra.Nlp.Fuzzing.Tests` generates inputs from the lexicon, the intent grammars and `content/v1`, and checks sixteen oracles against the
+`tests/Vocaterra.Nlp.Fuzzing.Tests` generates inputs from the lexicon, the intent grammars and `content/game-v1`, and checks sixteen oracles against the
 real stages. It needs no model, and it runs at full depth as part of the normal test run:
 
 ```bash
@@ -132,29 +133,33 @@ The failure message also carries the generated input, which is what a regression
 
 ### Without models: `--transcript`
 
-Without `--models` the word recognizer is scripted from the text you give it, so no model and no audio are needed. This is the
-worked example from the design: at the blacksmith, the player says "yo tiene dos espada".
+Without `--models` the word recognizer is scripted from the text you give it, so no model and no audio are needed. The bundle is the game's, `content/game-v1`
+(the core's tests run on it too); the prompt `villager-open` is the open prompt of the villager. This is the worked example from the design, in the words of
+that bundle: the player asks for "yo quiere dos espada", with a wrong verb form and a noun left singular after a number.
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1
 ```
 
 ```text
-{"intent":"offer_item","slots":{"item":"espada","qty":"2","verb":"tener"},"communicated":true,"correctness":0.5,"errors":[{"tag":"conj.person","span":{"start":3,"length":5},"expected":"tengo","actual":"tiene"},{"tag":"noun.number","span":{"start":11,"length":6},"expected":"espadas","actual":"espada"}],"pronunciation":[],"confidence":1,"resolvedBy":"Grammar","versions":{"contentHash":"d45b8012dde06bdd54039c4857849709a88e96e11802b960f5c5b36795a26b3f","modelHashes":{"asr":"scripted-transcript"}}}
-agent: Ah, ¿tienes dos espadas? ¡Muy bien!
-agent: Vale, dos espadas. Gracias, amigo.
-decision: rating Hard, learner skills 3, feedback items 2
+{"intent":"request_item","slots":{"item":"espada","qty":"2"},"communicated":true,"correctness":0.6,"errors":[{"tag":"conj.person","span":{"start":3,"length":6},"expected":"quiero","actual":"quiere"},{"tag":"noun.number","span":{"start":12,"length":6},"expected":"espadas","actual":"espada"}],"pronunciation":[],"confidence":1,"resolvedBy":"Grammar","versions":{"contentHash":"<the bundle hash>","modelHashes":{"asr":"scripted-transcript"}}}
+agent: Claro, «yo quiero dos espadas». Muy bien.
+agent: Aquí tienes.
+decision: rating Good, learner skills 3, feedback items 2
 ```
 
 The first line is the verdict (the player was understood, and two grammar errors are tagged with the corrected forms); the rest is
-what the host does with it. [docs/nlp/PIPELINE.md](PIPELINE.md) explains every part.
+what the host does with it. [docs/nlp/PIPELINE.md](PIPELINE.md) explains every part. The `contentHash` is the hash of the bundle, so it changes with every
+edit of the game's content; the examples below show it as a placeholder or leave it out. The design document's own sentence, "yo tiene dos espada", needs a
+prompt that allows `tener` with an item and a quantity; no prompt of the game has one, so it runs in the tests (`TheDesignDocumentsWorkedExampleGivesExactlyConjPersonAndNounNumber`),
+which build that prompt in the test, and gives exactly `conj.person` and `noun.number`.
 
-Other prompts to try (the sample bundle has 14, listed in `content/v1/prompts/prompts.json`):
+Other prompts to try (the bundle's prompts are listed in `content/game-v1/prompts/prompts.json`):
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "espada" --prompt quiz-item-name --content content/v1
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "fuego" --prompt spell-cast-constrained --content content/v1
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "bla bla" --prompt offer-items-open --content content/v1 --repeat not_communicated=1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero agua por favor" --prompt stall-need --content content/game-v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "hola" --prompt lesson-hello --content content/game-v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "bla bla" --prompt villager-open --content content/game-v1 --repeat not_communicated=1
 ```
 
 The conversation context can be set from the command line: `--seed <n>` (world seed), `--now <unixSeconds>`, `--agent-state <id>`, `--counter <n>`
@@ -163,14 +168,14 @@ usage. Exit codes: 0 success, 1 failed evaluation or a replay that differs, 2 a 
 
 ### With models: `--wav`
 
-Real recognition needs a model and a recording. The small Spanish Vosk model is enough for constrained prompts (spells, item
-names, quizzes):
+Real recognition needs a model and a recording. The small Spanish Vosk model is enough for constrained prompts (the answer-set prompts of the stall
+and the lessons):
 
 ```bash
 scripts/fetch-models.sh --list                              # which models are present, missing or mismatching
 scripts/fetch-models.sh vosk-model-small-es-0.42            # download, verify the SHA-256 of the archive and of every file
 export VOCATERRA_MODELS_DIR="$PWD/models"                         # where the tests and tools look for models
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --wav clip.wav --prompt spell-cast-constrained --content content/v1 --models models
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --wav clip.wav --prompt stall-offer --agent-state offering --content content/game-v1 --models models
 ```
 
 `clip.wav` is any WAV file (16-bit PCM or 32-bit float, mono or stereo, any sample rate; the audio front end converts it to 16 kHz mono). Models are
@@ -182,156 +187,160 @@ pronunciation scoring when `wav2vec2-xlsr-53-espeak-cv-ft` is present. The last 
 
 ### More examples
 
-These are real runs against `content/v1`. Each verdict is abbreviated: `…` marks the cut fields (`pronunciation`, `confidence`,
+These are real runs against `content/game-v1`. Each verdict is abbreviated: `…` marks the cut fields (`pronunciation`, `confidence`,
 `resolvedBy` and `versions`, unless an example keeps them), and the closing `decision:` line is left out. Error spans count characters of the
-normalized text. Twelve more examples are in [docs/nlp/CLI_EXAMPLES.md](CLI_EXAMPLES.md): the other four intents, five more
-error tags, an exact quiz answer, the repair ladder and a replay log.
+normalized text. The bundle changes with the game's lessons, so the exact lines an agent says may change with it; the shape of the output does not. Twelve more
+examples are in [docs/nlp/CLI_EXAMPLES.md](CLI_EXAMPLES.md): the other intents, five more error tags, an exact answer, the repair ladder and a replay log.
 
-A correct utterance is understood in full: the slots are filled, there are no errors and the trade price factor is 1.
+A correct utterance is understood in full: the slots are filled and there are no errors.
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar dos pociones" --prompt buy-item-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero dos panes" --prompt villager-open --content content/game-v1
 ```
 
 ```text
-{"intent":"buy_item","slots":{"item":"poción","qty":"2"},"communicated":true,"correctness":1,"errors":[],…}
-agent: La poción es una buena elección.
-effect: buy_item_price trade_price 1
+{"intent":"request_item","slots":{"item":"pan","qty":"2"},"communicated":true,"correctness":1,"errors":[],…}
+agent: Aquí tienes.
 ```
 
-A slip does not stop the trade. `un espada` is a `gender.agree` error, so the agent recasts the sentence correctly and the price factor
-rises to 1.045, because the curve in `content/v1/effects/effects.json` runs from 1.3 at correctness 0 to 1 at correctness 1:
+The bundle's effect table is empty (the game derives its effects from its own host files), so the CLI prints no `effect:` line for it. The core's effect
+curves are covered by tests that build a table in the test (`EffectsFixtureTests`).
+
+A slip does not stop the conversation. `una pan` is a `gender.agree` error, so the agent recasts the sentence correctly and still hands the bread over:
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero una pan" --prompt villager-open --content content/game-v1
 ```
 
 ```text
-{"intent":"buy_item","slots":{"item":"espada"},"communicated":true,"correctness":0.85,
- "errors":[{"tag":"gender.agree","span":{"start":15,"length":2},"expected":"una","actual":"un"}],…}
-agent: Ah, quiero comprar una espada. ¡Perfecto!
-agent: La espada es una buena elección.
-effect: buy_item_price trade_price 1.045
+{"intent":"request_item","slots":{"item":"pan"},"communicated":true,"correctness":0.85,
+ "errors":[{"tag":"gender.agree","span":{"start":7,"length":3},"expected":"un","actual":"una"}],…}
+agent: Claro, «quiero un pan». Muy bien.
+agent: Aquí tienes.
 ```
 
-An answer-only quiz prompt has no intent (its `allowedIntentIds` is empty), so the answer set decides. A near miss still counts when the
-fuzzy match is close: "fuegos" for "fuego" is accepted, and `resolvedBy` and `confidence` show how:
+A constrained prompt expects one of the phrases of its answer set. A near miss still counts when the fuzzy match is close: "aguas" for "agua" is accepted, and
+`resolvedBy` and `confidence` show how:
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "una bola de fuegos" --prompt quiz-spell-name --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero aguas por favor" --prompt stall-need --content content/game-v1
 ```
 
 ```text
-{"intent":"unknown","slots":{},"communicated":true,"correctness":1,"errors":[],…,"confidence":0.9411764705882353,"resolvedBy":"Fuzzy",…}
-agent: ¡Muy bien!
+{"intent":"request_item","slots":{"item":"agua"},"communicated":true,"correctness":1,"errors":[],…,"confidence":0.9523809523809523,"resolvedBy":"Fuzzy",…}
+agent: Toma la botella. El agua está en el río.
+agent: ¿Quieres pan?
 ```
 
 A word the lexicon does not know is a `vocab.unknown` error, and when no intent can be resolved the player is not understood. The agent
 asks again, and the first repair step is `AskAgain`:
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar una zanahoria" --prompt buy-item-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero una zanahoria" --prompt villager-open --content content/game-v1
 ```
 
 ```text
 {"intent":"unknown","slots":{},"communicated":false,"correctness":0.6,
- "errors":[{"tag":"vocab.unknown","span":{"start":19,"length":9},"expected":"","actual":"zanahoria"}],…}
-agent: Perdón, ¿qué dices?
+ "errors":[{"tag":"vocab.unknown","span":{"start":11,"length":9},"expected":"","actual":"zanahoria"}],…}
+agent: No te entendí. ¿Me lo dices otra vez?
 repair: AskAgain ¿Cómo?
 ```
 
 `--repeat <tag>=<n>` says how many times in a row the learner had made that error before this utterance (the counts a host carries
 from `ConversationContext.Next`; the pipeline counts this utterance itself). A host keeps that count between utterances; the CLI takes it
-from the command line. The feedback policy (`content/v1/feedback/feedback-policy.json`) answers the first offence with a recast, the second
-and third with a hint and the fourth and later with an explicit correction. The same `un espada`, as the second and as the fourth offence
+from the command line. The feedback policy (`content/game-v1/feedback/feedback-policy.json`) answers the first offence with a recast, the second
+and third with a hint and the fourth and later with an explicit correction. The same `una pan`, as the second and as the fourth offence
 (so `--repeat gender.agree=1` and `=3`):
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1 --repeat gender.agree=1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero una pan" --prompt villager-open --content content/game-v1 --repeat gender.agree=1
 ```
 
 ```text
-{"intent":"buy_item","slots":{"item":"espada"},"communicated":true,"correctness":0.85,
- "errors":[{"tag":"gender.agree","span":{"start":15,"length":2},"expected":"una","actual":"un"}],…}
-agent: La espada es una buena elección.
-agent: Piensa en el género: ¿un?
-effect: buy_item_price trade_price 1.045
+{"intent":"request_item","slots":{"item":"pan"},"communicated":true,"correctness":0.85,
+ "errors":[{"tag":"gender.agree","span":{"start":7,"length":3},"expected":"un","actual":"una"}],…}
+agent: Aquí tienes.
+agent: ¿una? Piensa: ¿el o la?
 ```
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar un espada" --prompt buy-item-open --content content/v1 --repeat gender.agree=3
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero una pan" --prompt villager-open --content content/game-v1 --repeat gender.agree=3
 ```
 
 ```text
-{"intent":"buy_item","slots":{"item":"espada"},"communicated":true,"correctness":0.85,
- "errors":[{"tag":"gender.agree","span":{"start":15,"length":2},"expected":"una","actual":"un"}],…}
-agent: La espada es una buena elección.
-agent: Mejor así: «una».
-effect: buy_item_price trade_price 1.045
+{"intent":"request_item","slots":{"item":"pan"},"communicated":true,"correctness":0.85,
+ "errors":[{"tag":"gender.agree","span":{"start":7,"length":3},"expected":"un","actual":"una"}],…}
+agent: Aquí tienes.
+agent: Se dice así: «un».
 ```
 
-`--agent-state <id>` starts the agent in another state of its machine (the blacksmith in `content/v1/agents/blacksmith.json` has `idle`, the
-default, `trading` and `done`; an unknown id is an error). The open `trade-free-conversation` prompt accepts any of the four trade
-intents. In the default state the blacksmith answers a purchase like this:
+`--agent-state <id>` starts the agent in another state of its machine (the shopkeeper in `content/game-v1/agents/shopkeeper.json` has `idle`, the
+default, `asking`, `offering` and `done`; an unknown id is an error). The prompt `stall-offer` accepts a yes or a no. In the default state the
+shopkeeper has nothing to confirm, so a yes is understood by the grader but not by the agent:
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar dos pociones" --prompt trade-free-conversation --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "sí, por favor" --prompt stall-offer --content content/game-v1
 ```
 
 ```text
-{"intent":"buy_item","slots":{"item":"poción","qty":"2"},"communicated":true,"correctness":1,"errors":[],…}
-agent: La poción es una buena elección.
-effect: buy_item_price trade_price 1
+{"intent":"confirm","slots":{},"communicated":true,"correctness":1,"errors":[],…,"resolvedBy":"Exact",…}
+agent: No te entendí. ¿Me lo dices otra vez?
 ```
 
-Once the trade is `done` the same sentence is understood just as well, but the agent is already saying goodbye. The effect line does not
-change, because effects depend only on the verdict:
+Once the shopkeeper is `offering` bread, the same words finish the trade, and once it is `done` the agent is already saying goodbye. The verdict does not
+change, because it depends only on the utterance:
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "quiero comprar dos pociones" --prompt trade-free-conversation --content content/v1 --agent-state done
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "sí, por favor" --prompt stall-offer --content content/game-v1 --agent-state offering
 ```
 
 ```text
-{"intent":"buy_item","slots":{"item":"poción","qty":"2"},"communicated":true,"correctness":1,"errors":[],…}
-agent: Gracias por venir. ¡Vuelve pronto!
-effect: buy_item_price trade_price 1
+{"intent":"confirm","slots":{},"communicated":true,"correctness":1,"errors":[],…,"resolvedBy":"Exact",…}
+agent: Aquí tienes el pan.
+```
+
+```bash
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "sí, por favor" --prompt stall-offer --content content/game-v1 --agent-state done
+```
+
+```text
+{"intent":"confirm","slots":{},"communicated":true,"correctness":1,"errors":[],…,"resolvedBy":"Exact",…}
+agent: ¡Hasta luego!
 ```
 
 `--seed <n>` is the world seed. Together with the agent id and `--counter` (the interaction counter) it seeds the draw that picks one of the
-agent's variant lines, so the same inputs always give the same line and another seed can give another one. The `greet_reply` pool has
-three variants; the default seed 0 says "¡Hola, amigo! ¿Qué necesitas hoy?", and seeds 2 and 42 pick the other two (running seed 42 again
-prints the identical line):
+agent's variant lines, so the same inputs always give the same line and another seed can give another one. The `villager_thank` pool has
+two variants; the default seed 0 says "De nada.", and seed 2 picks the other (running seed 2 again prints the identical line):
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "hola" --prompt greet-blacksmith --content content/v1 --seed 2
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "gracias" --prompt villager-open --content content/game-v1 --seed 0
 ```
 
 ```text
-{"intent":"greet","slots":{},"communicated":true,"correctness":1,"errors":[],…}
-agent: Buenos días. ¿En qué puedo ayudarte?
+{"intent":"thank","slots":{},"communicated":true,"correctness":1,"errors":[],…}
+agent: De nada.
 ```
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "hola" --prompt greet-blacksmith --content content/v1 --seed 42
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "gracias" --prompt villager-open --content content/game-v1 --seed 2
 ```
 
 ```text
-{"intent":"greet","slots":{},"communicated":true,"correctness":1,"errors":[],…}
-agent: ¡Bienvenido a la herrería!
+{"intent":"thank","slots":{},"communicated":true,"correctness":1,"errors":[],…}
+agent: ¡Con gusto!
 ```
 
-With the Vosk model fetched, `--wav` runs the same pipeline on audio. Here `fuego.wav` is the word "fuego" synthesized with the
-Spanish voice of espeak-ng for this example; any recording of the word works. The constrained spell prompt recognizes it. The verdict now
-carries the recognizer's own confidence, and `versions.modelHashes.asr` holds the SHA-256 of the Vosk model instead of `scripted-transcript`:
+With the Vosk model fetched, `--wav` runs the same pipeline on audio. Here `si.wav` is the phrase "sí, por favor" synthesized with the Spanish voice of
+espeak-ng for this example (`espeak-ng -v es -s 120 -w si.wav "sí, por favor"`); any recording of the phrase works. The constrained prompt recognizes it.
+The verdict now carries the recognizer's own confidence, and `versions.modelHashes.asr` holds the SHA-256 of the Vosk model instead of `scripted-transcript`:
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --wav fuego.wav --prompt spell-cast-constrained --content content/v1 --models models
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --wav si.wav --prompt stall-offer --agent-state offering --content content/game-v1 --models models
 ```
 
 ```text
-{"intent":"cast_spell","slots":{"spell":"fuego"},"communicated":true,"correctness":1,"errors":[],"confidence":0.6071389421064182,"resolvedBy":"Exact",…}
-agent: ¡Muy bien!
-effect: cast_spell_power spell_power 1
+{"intent":"confirm","slots":{},"communicated":true,"correctness":1,"errors":[],…,"confidence":0.4248798411522463,"resolvedBy":"Alias",…}
+agent: Aquí tienes el pan.
 ```
 
 The pronunciation tags (`pron.*`) need the phoneme model, which has no ONNX export in the repository yet, so none of these commands can trigger them.
@@ -341,8 +350,8 @@ The pronunciation tags (`pron.*`) need the phoneme model, which has no ONNX expo
 `--replay-out <file>` appends one JSON line per utterance with everything needed to re-evaluate it without models or audio:
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1 --replay-out replay.jsonl
-dotnet run --project tools/Vocaterra.Nlp.Cli -- replay replay.jsonl --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1 --replay-out replay.jsonl
+dotnet run --project tools/Vocaterra.Nlp.Cli -- replay replay.jsonl --content content/game-v1
 ```
 
 The second command prints `OK`, or the JSON paths that differ (for example `DIFF entry 1: /verdict/correctness`) and exits 1.
@@ -350,21 +359,21 @@ Audio is never stored and logs are opt-in. The format, a real example and what a
 
 ## Content builder
 
-Content (answer sets, intents, prompts, agents, dialogue, lexicon, evaluation weights, effects) lives in `content/v1` as a hashed
-bundle. `tools/Vocaterra.Nlp.ContentBuilder` is the build-time tool:
+Content (answer sets, intents, prompts, agents, dialogue, lexicon, evaluation weights, effects, and the game's own host files) lives in `content/game-v1` as a hashed
+bundle, the one bundle of the repository. `tools/Vocaterra.Nlp.ContentBuilder` is the build-time tool (`scripts/content.sh` runs it from source):
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- validate content/v1                      # verify hashes and cross-references
-dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- hash content/v1                          # rewrite content/v1/manifest.json after an edit
-dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lint content/v1 --level a1               # check examples, overlaps, hazards, reachability, CEFR (run before hash; see TOOLS.md)
-dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- cefr-check content/v1 --level a1         # list lemmas of dialogue templates and of prompt text missing from the CEFR list (a1 or a2)
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- validate content/game-v1                 # verify hashes and cross-references
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- hash content/game-v1                     # rewrite content/game-v1/manifest.json after an edit
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lint content/game-v1 --level a1          # check examples, overlaps, hazards, reachability, CEFR (run before hash; see TOOLS.md)
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- cefr-check content/game-v1 --level a1    # list lemmas of dialogue templates and of prompt text missing from the CEFR list (a1 or a2)
 dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- import-lexicon kaikki.jsonl lexicon.json # wiktextract Spanish JSONL to a lexicon file (--max N limits it;
 #   --frequency es_50k.txt --top N keeps the N most frequent lemmas; --sidecar writes the source record; see docs/nlp/LEXICON.md)
-dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lexicon-report content/v1                # each lexicon file, how they overlap, the merged lexicon
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lexicon-report content/game-v1           # each lexicon file, how they overlap, the merged lexicon
 ```
 
-Any edit to a file in `content/v1` changes the bundle hash, so run `hash` afterwards and update the pinned value in the tests
-(see [CONTRIBUTING.md](CONTRIBUTING.md)). `validate` prints `OK: bundle 'v1' 1.0.0, 19 files, hash <sha256>`, then the errors and warnings of the content lint.
+Any edit to a file in `content/game-v1` changes the bundle hash, so run `hash` afterwards (see [CONTRIBUTING.md](CONTRIBUTING.md)); no test pins the hash,
+each compares the manifest with the hash computed from the files. `validate` prints `OK: bundle 'game-v1' <version>, <n> files, hash <sha256>`, then the errors and warnings of the content lint.
 
 ## Using the core from a host
 
@@ -379,7 +388,7 @@ Nothing is published. `ContentBuilder pack <bundleDir> <out.zip>` archives a bun
 transcript keep the mistake the learner made?) and latency:
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Bench -- --manifest tests/golden/manifest.jsonl --content content/v1 --models models
+dotnet run --project tools/Vocaterra.Nlp.Bench -- --manifest tests/golden/manifest.jsonl --content content/game-v1 --models models
 ```
 
 The three committed entries are synthetic, so the clips are reported as `missing-clip` on a plain checkout. The recording protocol,
@@ -405,9 +414,10 @@ consent rules and manifest schema are in [tests/golden/README.md](../../tests/go
 | `tools/Vocaterra.Nlp.Bench` | ASR benchmark over the golden manifest |
 | `tools/Vocaterra.Nlp.ContentBuilder` | `validate`, `hash`, `lint`, `cefr-check`, `import-lexicon`, `lexicon-report` |
 | `tests/Vocaterra.Nlp.<Project>.Tests` | One xUnit project per source project |
+| `tests/Shared` | `GameBundleLocator` (finds `content/game-v1` by walking up from the test assembly, so no test project copies the 38 MB bundle) and `TempBundle` (a writable copy of the bundle without the speech clips, for tests that damage or extend it), linked into the Content, Pipeline, Fuzzing and Golden test projects |
 | `tests/Vocaterra.Nlp.Golden.Tests` | G2P golden set, end-to-end worked example, golden manifest layout |
 | `tests/Vocaterra.Nlp.Fuzzing.Tests` | Combinatorial fuzz tests: CsCheck oracles over generators driven by the content catalogs ([README](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)) |
-| `content/v1` | The versioned, hashed content bundle (JSON) and its `ATTRIBUTION.md` |
+| `content/game-v1` | The repository's one content bundle: versioned, hashed JSON, the host files and speech clips of the game, and its `ATTRIBUTION.md` (R02: the core's sample bundle `content/v1` is gone) |
 | `tests/golden/` | Golden learner audio manifest and recording protocol; the audio itself is gitignored |
 | `models/` | `manifest.json` and a README are committed; the model files are fetched and gitignored |
 | `scripts/` | `fetch-models.sh`, `fetch-lexicon-sources.sh`, `license-scan.sh` and its allowlist and overrides, `check-links.sh` ([scripts/README.md](../../scripts/README.md)) |
@@ -433,9 +443,9 @@ The full rules, with where each is enforced, are in [ADR 0002](adr/0002-determin
 
 - **Code and hand-authored content** are licensed under the [Apache License 2.0](../../LICENSE). The copyright line and the statement about the
   third-party data are in [NOTICE](../../NOTICE).
-- **The Wiktionary-derived lexicon** `content/v1/lexicon/wiktionary-es.json` is derived from Wiktionary and is licensed under CC BY-SA 4.0, not
+- **The Wiktionary-derived lexicon** `content/game-v1/lexicon/wiktionary-es.json` is derived from Wiktionary and is licensed under CC BY-SA 4.0, not
   under Apache-2.0. Its attribution, and the terms of the frequency list it was selected with, are in
-  [content/v1/ATTRIBUTION.md](../../content/v1/ATTRIBUTION.md) and [docs/nlp/LEXICON.md](LEXICON.md).
+  [content/game-v1/ATTRIBUTION.md](../../content/game-v1/ATTRIBUTION.md) and [docs/nlp/LEXICON.md](LEXICON.md).
 - **Models** are downloaded, not committed. Each model's licence is recorded in [models/manifest.json](../../models/manifest.json).
 
 Third-party checks:
@@ -506,8 +516,9 @@ Milestones from `IMPLEMENTATION_PLAN.md`:
   ```
 
   Until then the cross-platform determinism check has not run anywhere but the development machine.
-- **Content.** The vocabulary is large (3 372 lemmas) but the sample is small: one agent, 18 prompts, eleven intents. Its dialogue uses lemmas that are
-  not in the A1 list (`cefr-check` prints them; it is advisory). `pron.stress` is recognized by the taxonomy but is not scored in v1.
+- **Content.** The vocabulary is large (3 372 lemmas) and the repository's one bundle is the game's: three agents, a few dozen prompts, the lessons' intents. The
+  core's tests run on it, so a lesson that breaks the core fails a core test. Its effect table is empty, and no intent binds a free name (`[WORD]`); the tests
+  build small fixtures for both. `pron.stress` is recognized by the taxonomy but is not scored in v1.
 - **Open decisions.** The sherpa-onnx native build (D2) and the terms of the frequency list (D4) decide what may be released publicly; the
   rest are in [docs/nlp/DECISIONS.md](DECISIONS.md).
 - **Build size.** A full build writes about 3 GB per checkout; trimming the runtime packs is a follow-up.

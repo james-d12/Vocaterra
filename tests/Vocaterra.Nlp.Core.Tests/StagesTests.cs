@@ -81,7 +81,7 @@ public class StagesTests
     [Fact]
     public void PromptSpecWithTextRoundTripsAndTextIsPartOfEquality()
     {
-        var spec = new PromptSpec("p1", RecognitionMode.Open, Difficulty.Beginner, "answers-1", ["greet"], "blacksmith", [], "¡Hola! ¿Cómo estás?");
+        var spec = new PromptSpec("p1", RecognitionMode.Open, Difficulty.Beginner, "answers-1", ["greet"], "villager", [], "¡Hola! ¿Cómo estás?");
         var json = CanonicalJson.Serialize(spec);
         Assert.EndsWith(",\"text\":\"¡Hola! ¿Cómo estás?\"}", json, StringComparison.Ordinal);
         var parsed = CanonicalJson.Deserialize<PromptSpec>(json);
@@ -92,7 +92,7 @@ public class StagesTests
         var other = spec with { Text = "Buenos días." };
         Assert.NotEqual(spec, other);
         Assert.NotEqual(spec.GetHashCode(), other.GetHashCode());
-        Assert.Null(new PromptSpec("p1", RecognitionMode.Open, Difficulty.Beginner, "answers-1", ["greet"], "blacksmith", []).Text);
+        Assert.Null(new PromptSpec("p1", RecognitionMode.Open, Difficulty.Beginner, "answers-1", ["greet"], "villager", []).Text);
     }
 
     [Fact]

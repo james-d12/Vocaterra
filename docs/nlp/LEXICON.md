@@ -1,22 +1,23 @@
 # The lexicon: what ships, where it comes from, how to regenerate it
 
-The analyzer knows only the words in the lexicon (every other word is `vocab.unknown`). The bundle `content/v1/lexicon/` holds four files:
+The analyzer knows only the words in the lexicon (every other word is `vocab.unknown`). The bundle `content/game-v1/lexicon/` holds five lexicon files and the sidecar of the generated one:
 
 | File | Origin | Entries | Lemmas |
 | --- | --- | --- | --- |
 | `seed.json` | hand-authored: 32 verbs with the present and preterite, articles, pronouns, numerals 1 to 20, about 150 nouns and 80 adjectives | 1 217 | 395 |
-| `game.json` | hand-authored: the sample bundle's own words (its spells and items) | 51 | 9 |
+| `game.json` | hand-authored: the words of the first game bundle (its spells and items) | 51 | 9 |
+| `world.json` | hand-authored: the words of the 3D world (blocks, lamp, river, mushroom) | 16 | 9 |
 | `supplement.json` | hand-authored: seven words that existing content uses and the other files lack (found by the coverage tests) | 7 | 5 |
 | `wiktionary-es.json` | **generated** from Wiktionary by `Vocaterra.Nlp.ContentBuilder import-lexicon`, marked `"generated_by": "wiktionary-import"` | 40 263 | 3 000 |
 | `wiktionary-es.source.json` | the **sidecar** of the generated file: sources, hashes, parameters, importer version, counts | - | - |
 
-Merged: 41 078 entries, 32 494 distinct forms, 3 372 lemmas (before: 1 268 entries, 404 lemmas). The generated file has, by part of speech
+Merged: 41 094 entries, 32 507 distinct forms, 3 379 lemmas (`lexicon-report content/game-v1`; the hand-authored files alone have 1 291 entries). The generated file has, by part of speech
 (lemmas / entries): nouns 1 847 / 4 513, verbs 680 / 33 066, adjectives 701 / 2 399, adverbs 137 / 137, interjections 92 / 92, pronouns 28 / 28, prepositions
 15 / 15, conjunctions 13 / 13. A verb brings about 50 forms (infinitive, present, preterite, imperfect, future and conditional indicative, present and
 imperfect subjunctive, the imperatives), which is why verbs are 80 % of the entries.
 
 Licence: the generated file and the selection of lemmas are CC BY-SA 4.0 (Wiktionary text; the frequency list's content licence is the same); the notice
-is `content/v1/ATTRIBUTION.md`. [ADR 0008](adr/0008-lexicon-sources-and-frequency-filter.md) records why each choice below was made.
+is `content/game-v1/ATTRIBUTION.md`. [ADR 0008](adr/0008-lexicon-sources-and-frequency-filter.md) records why each choice below was made.
 
 ## Sources
 
@@ -36,14 +37,14 @@ scripts/fetch-lexicon-sources.sh            # downloads into lexicon-sources/, v
 scripts/fetch-lexicon-sources.sh --check    # verifies what is there, downloads nothing
 
 dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- import-lexicon \
-  lexicon-sources/kaikki.org-dictionary-Spanish.jsonl content/v1/lexicon/wiktionary-es.json \
+  lexicon-sources/kaikki.org-dictionary-Spanish.jsonl content/game-v1/lexicon/wiktionary-es.json \
   --frequency lexicon-sources/es_50k.txt --top 3000 \
-  --hand-authored content/v1/lexicon \
-  --sidecar content/v1/lexicon/wiktionary-es.source.json
+  --hand-authored content/game-v1/lexicon \
+  --sidecar content/game-v1/lexicon/wiktionary-es.source.json
 
-dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- hash content/v1       # then the steps of "Recipe: add a prompt..." in CONTRIBUTING.md
-dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- validate content/v1
-dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lexicon-report content/v1
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- hash content/game-v1       # then the steps of "Recipe: add a prompt..." in CONTRIBUTING.md
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- validate content/game-v1
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lexicon-report content/game-v1
 ```
 
 The import reads 1 GB in about ten seconds and needs about 300 MB of memory (500 MB without `--top`, where it writes 585 151 entries, a 68 MB file). Two runs write byte-identical files (and the 5 000-lemma variant had the
@@ -97,13 +98,14 @@ reading and are stored once; entries that differ in any of the four all stay, an
 the files do not matter (tests: `LexiconLoadingTests`, `LexiconMergeTests`). The loader also checks that a file marked `wiktionary-import` is marked so in
 `provenance.json` and has its sidecar, and that the sidecar's entry and lemma counts match the file.
 
-Overlap in the shipped bundle (`lexicon-report content/v1`):
+Overlap in the shipped bundle (`lexicon-report content/game-v1`):
 
 | Pair | Shared lemmas | Shared forms | Identical readings (stored once) | Shared forms with different readings |
 | --- | --- | --- | --- | --- |
 | `seed.json` / `wiktionary-es.json` | 32 | 509 | 421 | 172 |
 | `game.json` / `wiktionary-es.json` | 3 | 41 | 39 | 9 |
 | `seed.json` / `game.json` | 0 | 2 | 0 | 2 |
+| `world.json` / `wiktionary-es.json` | 1 | 3 | 0 | 3 |
 | `supplement.json` / the others | 1 and 2 | 0 | 0 | 0 |
 
 The shared lemmas are verbs: the import defers to the hand-authored nouns, adjectives and function words, and adds the missing tenses to the hand-authored verbs.

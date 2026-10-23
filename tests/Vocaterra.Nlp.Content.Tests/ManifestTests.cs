@@ -7,16 +7,11 @@ namespace Vocaterra.Nlp.Content.Tests;
 /// <summary>Tests for the manifest, the per-file hashes and the bundle hash.</summary>
 public class ManifestTests
 {
-    /// <summary>
-    /// Self-recorded golden value of the committed bundle. When bundle content changes on purpose, run the ContentBuilder
-    /// <c>hash</c> command on <c>content/v1</c> and copy the new bundle hash here.
-    /// </summary>
-    private const string GoldenBundleHash = "1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2";
-
+    // No hash literal: the bundle changes with every lesson, so each check compares the manifest with a hash computed from the files.
     [Fact]
-    public void TheCommittedBundleHashMatchesTheGoldenValue()
+    public void TheCommittedManifestHashEqualsTheHashComputedFromTheFiles()
     {
-        Assert.Equal(GoldenBundleHash, TestSupport.Bundle.ContentHash);
+        Assert.Equal(ContentManifest.Compute(TestSupport.BundleDir).BundleHash, TestSupport.Bundle.ContentHash);
     }
 
     [Fact]
@@ -25,7 +20,6 @@ public class ManifestTests
         var recomputed = ContentManifest.Compute(TestSupport.BundleDir);
 
         Assert.Equal(TestSupport.Bundle.Manifest, recomputed);
-        Assert.Equal(GoldenBundleHash, recomputed.BundleHash);
     }
 
     [Fact]
@@ -47,7 +41,7 @@ public class ManifestTests
         Assert.DoesNotContain(manifest.Files, file => file.Path == ContentPaths.Manifest);
         Assert.Contains(manifest.Files, file => file.Path == "lexicon/seed.json");
         Assert.Contains(manifest.Files, file => file.Path == "provenance.json");
-        Assert.Equal("1.0.0", manifest.ContentVersion);
+        Assert.Matches(@"^\d+\.\d+\.\d+$", manifest.ContentVersion);
     }
 
     [Fact]
@@ -97,15 +91,16 @@ public class ManifestTests
     public void ComputeIsDeterministicAndKeepsTheExistingIdentity()
     {
         using var bundle = new TempBundle(full: true);
-        bundle.Edit("manifest.json", "\"contentVersion\":\"1.0.0\"", "\"contentVersion\":\"1.4.2\"");
+        var before = ContentManifest.Compute(bundle.Directory);
+        bundle.Edit("manifest.json", "\"contentVersion\":\"" + before.ContentVersion + "\"", "\"contentVersion\":\"1.4.2\"");
 
         var first = ContentManifest.Compute(bundle.Directory);
         var second = ContentManifest.Compute(bundle.Directory);
 
         Assert.Equal(first, second);
         Assert.Equal("1.4.2", first.ContentVersion);
-        Assert.Equal("v1", first.BundleId);
-        Assert.Equal(GoldenBundleHash, first.BundleHash);
+        Assert.Equal("game-v1", first.BundleId);
+        Assert.Equal(before.BundleHash, first.BundleHash);
     }
 
     [Fact]
@@ -134,11 +129,12 @@ public class ManifestTests
     public void ChangingOneByteChangesTheBundleHash()
     {
         using var bundle = new TempBundle();
-        bundle.Edit("effects/effects.json", "\"value\": 1.3", "\"value\": 1.4");
+        var before = ContentManifest.Compute(bundle.Directory);
+        bundle.Touch("effects/effects.json");
 
         var changed = bundle.Rehash();
 
-        Assert.NotEqual(GoldenBundleHash, changed.BundleHash);
+        Assert.NotEqual(before.BundleHash, changed.BundleHash);
         Assert.Equal(changed.BundleHash, ContentLoader.Load(bundle.Directory).ContentHash);
     }
 

@@ -204,10 +204,10 @@ public class VerdictAssemblerTests
         var inputs = Fixtures.WorkedExample();
         var verdict = VerdictAssembler.Assemble(inputs with
         {
-            Intent = Fixtures.Intent(slots: SlotMap.From([new("item", "escudo"), new("agent", "herrero")])),
+            Intent = Fixtures.Intent(slots: SlotMap.From([new("item", "escudo"), new("agent", "aldeano")])),
         });
 
-        Assert.Equal(SlotMap.From([new("item", "escudo"), new("agent", "herrero"), new("qty", "2")]), verdict.Slots);
+        Assert.Equal(SlotMap.From([new("item", "escudo"), new("agent", "aldeano"), new("qty", "2")]), verdict.Slots);
         Assert.Equal(["agent", "item", "qty"], verdict.Slots.Keys);
     }
 

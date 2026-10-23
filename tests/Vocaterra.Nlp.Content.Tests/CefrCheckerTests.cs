@@ -112,7 +112,7 @@ public class CefrCheckerTests
     }
 
     [Fact]
-    public void TheSampleBundleIsCheckedAgainstTheBundleLists()
+    public void TheBundleIsCheckedAgainstItsOwnLists()
     {
         var a1 = CefrChecker.Check(TestSupport.Bundle, "a1");
         var a2 = CefrChecker.Check(TestSupport.Bundle, "a2");
@@ -121,11 +121,11 @@ public class CefrCheckerTests
         Assert.Equal(a1.TotalLemmas, a1.CoveredLemmas + a1.Missing.Count);
         Assert.Equal(a2.TotalLemmas, a2.CoveredLemmas + a2.Missing.Count);
         Assert.True(a1.CoveredLemmas > a1.Missing.Count);
-        Assert.True(a2.Missing.Count < a1.Missing.Count);
-        Assert.True(a2.CoveredLemmas > a1.CoveredLemmas);
-        var herreria = a1.Missing.Single(missing => missing.Lemma == "herrería");
-        Assert.True(herreria.InLexicon);
-        Assert.Contains("greet_reply.1", herreria.LineIds);
+
+        // A higher level allows more lemmas, so it can only leave fewer of the same lines uncovered.
+        Assert.True(a2.Missing.Count <= a1.Missing.Count);
+        Assert.True(a2.CoveredLemmas >= a1.CoveredLemmas);
+        Assert.All(a1.Missing, missing => Assert.NotEmpty(missing.LineIds));
         Assert.DoesNotContain(a1.Missing, missing => missing.Lemma == "hola");
         Assert.DoesNotContain(a1.Missing, missing => missing.Lemma == "ayudar");
         Assert.Equal(a1, CefrChecker.Check(TestSupport.Bundle, "A1"));
@@ -245,7 +245,7 @@ public class CefrCheckerTests
     }
 
     [Fact]
-    public void TheSampleBundlesPromptTextIsCheckedWithTheDialogueTemplates()
+    public void TheBundlesPromptTextIsCheckedWithTheDialogueTemplates()
     {
         var a1 = CefrChecker.Check(TestSupport.Bundle, "a1");
 

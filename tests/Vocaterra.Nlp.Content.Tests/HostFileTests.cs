@@ -5,10 +5,10 @@ namespace Vocaterra.Nlp.Content.Tests;
 /// <summary>CR-007: host-owned files in a bundle are hashed by the manifest, listed in provenance, and readable as their verified bytes.</summary>
 public class HostFileTests
 {
-    private const string HostPath = "game/nouns.json";
+    private const string HostPath = "game/test-host-file.json";
     private const string HostText = "{\"nouns\":[\"espada\",\"escudo\"]}\n";
 
-    // A light bundle with one extra host file that the loader does not parse, listed in provenance and in the manifest.
+    // A light bundle with one extra host file that the loader does not parse, listed in provenance and in the manifest (next to the game's own).
     private static TempBundle BundleWithHostFile()
     {
         var bundle = new TempBundle();
@@ -16,7 +16,7 @@ public class HostFileTests
         bundle.Edit(
             "provenance.json",
             "{ \"path\": \"lexicon/game.json\", ",
-            "{ \"path\": \"game/nouns.json\", \"generatedBy\": \"hand-authored\", \"approvedBy\": null, \"approvedOn\": null },\n    { \"path\": \"lexicon/game.json\", ");
+            "{ \"path\": \"" + HostPath + "\", \"generatedBy\": \"hand-authored\", \"approvedBy\": null, \"approvedOn\": null },\n    { \"path\": \"lexicon/game.json\", ");
         bundle.Rehash();
         return bundle;
     }
@@ -28,7 +28,7 @@ public class HostFileTests
 
         var loaded = ContentLoader.Load(bundle.Directory);
 
-        Assert.Equal([HostPath], loaded.HostFilePaths);
+        Assert.Contains(HostPath, loaded.HostFilePaths);
         Assert.True(loaded.TryReadHostFile(HostPath, out var bytes));
         Assert.Equal(Encoding.UTF8.GetBytes(HostText), bytes.ToArray());
         Assert.Contains(loaded.Manifest.Files, file => file.Path == HostPath);
@@ -36,10 +36,21 @@ public class HostFileTests
     }
 
     [Fact]
-    public void TheCommittedBundleHasNoHostFiles()
+    public void TheCommittedBundleExposesItsGameAndSpeechFilesAsHostFiles()
     {
-        Assert.Empty(TestSupport.Bundle.HostFilePaths);
+        var hostFiles = TestSupport.Bundle.HostFilePaths;
+
+        Assert.Contains(hostFiles, path => path.StartsWith("game/", StringComparison.Ordinal));
+        Assert.Contains(hostFiles, path => path.StartsWith("speech/", StringComparison.Ordinal));
+        foreach (var path in hostFiles)
+        {
+            Assert.True(TestSupport.Bundle.TryReadHostFile(path, out var bytes), path);
+            Assert.Equal(new FileInfo(Path.Combine(TestSupport.BundleDir, path)).Length, bytes.Length);
+        }
+
+        Assert.DoesNotContain("lexicon/game.json", hostFiles);
         Assert.False(TestSupport.Bundle.TryReadHostFile("ATTRIBUTION.md", out _));
+        Assert.False(TestSupport.Bundle.TryReadHostFile("intents/intents.json", out _));
     }
 
     [Fact]

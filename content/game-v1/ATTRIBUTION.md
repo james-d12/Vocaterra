@@ -6,12 +6,12 @@ dialogue, agents, answer sets, CEFR lemma lists and the hand-authored lexicons `
 `lexicon/supplement.json` and `lexicon/world.json`) has no third-party text in it.
 
 The generic intents (`confirm`, `deny`, `farewell`, `thank`), the feedback and acknowledgement dialogue pools (`feedback.*`, `answer_accepted`,
-`farewell_reply`) and the feedback policy were copied from the sample bundle `content/v1` of the language core (Vocaterra.NLP, Apache-2.0), in
-places reworded to pass this bundle's A1 check, and stay credited to that sample under its Apache-2.0 licence. Since decision D-game-4
-(`docs/game/DECISIONS.md`, decided 2026-10-21) this bundle diverges from the sample: the game owns every file, nothing is re-synced when the
-core's sample changes, and a milestone that wants another piece of the sample copies only that piece and records it in `provenance.json`.
-The sample's blacksmith agent, its spells, items and trade intents, answer sets, prompts and effects were copied in the first milestones and
-left the bundle in S5 (they remain in the core's sample). Everything added since is written for the game and has no third-party text in it:
+`farewell_reply`) and the feedback policy were copied from the sample bundle of the language core (a blacksmith's dialogue, Vocaterra.NLP, Apache-2.0),
+in places reworded to pass this bundle's A1 check, and stay credited to that sample under its Apache-2.0 licence. Since decision D-game-4
+(`docs/game/DECISIONS.md`, decided 2026-10-21) this bundle diverged from the sample: the game owns every file. The sample's blacksmith agent, its
+spells, items and trade intents, answer sets, prompts and effects were copied in the first milestones and left the bundle in S5. In R02 (2026-10-23) the
+sample bundle itself was deleted (it remains in the git history before that commit), because the core's demo and tests now run on this bundle. Everything
+else is written for the game and has no third-party text in it:
 the guide (`agents/guide.json`, the intents `ask_directions`, `ask_what` and `ask_help`, the prompts `guide-open` and `guide-review`, and the
 guide's dialogue pools), `answer-sets/places-basic.json`, `lexicon/world.json`, the noun catalogue `game/nouns.json`, the intent `name_object`
 and the guide's name pools (P4), and, from S5, the shopkeeper and the villager (`agents/shopkeeper.json`, `agents/villager.json`), the intents

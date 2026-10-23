@@ -10,7 +10,7 @@ using Vocaterra.Nlp.Language.SlotGrammar;
 /// Sentences with words that the imported lexicon reads as several parts of speech (<c>libro</c> is a noun and a form of <c>librar</c>, <c>vino</c> a noun and a form
 /// of <c>venir</c>, <c>ayudas</c> a noun and a form of <c>ayudar</c>, <c>como</c> a conjunction and a form of <c>comer</c>). The analyzer resolves each word to one
 /// part of speech before the checks run (M18), so the correct sentences analyze clean and the mistakes in the incorrect ones are still found. The tests run on the
-/// lexicon of the bundle, <c>content/v1/lexicon/*.json</c> merged the way the content loader merges it, because the homograph rate is a property of that vocabulary.
+/// lexicon of the bundle, <c>content/game-v1/lexicon/*.json</c> merged the way the content loader merges it, because the homograph rate is a property of that vocabulary.
 /// </summary>
 public class HomographSentencesTests
 {

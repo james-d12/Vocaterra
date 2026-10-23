@@ -1,9 +1,0 @@
-{
-  "rules": [
-    { "tagPattern": "*", "minRepeat": 1, "maxRepeat": 1, "difficulty": null, "type": "Recast" },
-    { "tagPattern": "*", "minRepeat": 2, "maxRepeat": 3, "difficulty": null, "type": "Hint" },
-    { "tagPattern": "*", "minRepeat": 4, "maxRepeat": 2147483647, "difficulty": null, "type": "ExplicitCorrection" },
-    { "tagPattern": "pron.*", "minRepeat": 2, "maxRepeat": 2147483647, "difficulty": null, "type": "ModelPronunciation" }
-  ],
-  "notCommunicatedType": "SlowRepeat"
-}

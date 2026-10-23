@@ -52,9 +52,9 @@ tests/Vocaterra.Nlp.Fuzzing.Tests/
     PhoneGen.cs                     phone sequences from PhoneInventory; posterior matrices for the fake recognizer
     VerdictGen.cs                   random Verdict / stage results within contract ranges
     SlotMapGen.cs                   slot maps from lexicon nouns, verbs, numbers
-    ContentMutationGen.cs           structural mutations of content/v1 JSON (drop field, wrong type, dangling id)
+    ContentMutationGen.cs           structural mutations of content/game-v1 JSON (drop field, wrong type, dangling id)
   Oracles/
-    PipelineHarness.cs              content/v1 + fakes wired once; builders for ConversationContext and PromptSpec
+    PipelineHarness.cs              content/game-v1 (+ an effects fixture) + fakes wired once; builders for ConversationContext and PromptSpec
     KnownTolerances.cs              expected exception allow-list, one documented entry per case
     Determinism.cs                  helper: run twice, compare CanonicalJson, report first differing path
   *FuzzTests.cs                     one per oracle below
@@ -91,9 +91,14 @@ project. `CsCheck` (MIT) is added to `Directory.Packages.props` and must pass `s
 - **VerdictGen / stage-result generators.** Values within the §4 contracts: confidences in [0,1] (and a
   few adversarial exact-threshold values `t`, `t±ε`), spans inside the text, tags from `ErrorTags.All`
   plus a few unknown tags, slot maps with duplicate keys in different insertion orders.
-- **ContentMutationGen.** Loads `content/v1` JSON files as `JsonNode`, applies one structural mutation:
+- **ContentMutationGen.** Loads the loader-owned `content/game-v1` JSON files as `JsonNode` (the game's host files are hashed but not read by the loader, so only a
+  byte flip reaches them), applies one structural mutation:
   remove a required property, change a value's JSON kind, replace an id reference with a fresh one,
-  append an unknown enum value, duplicate an id, flip one byte of a file without updating the manifest.
+  append an unknown enum value, duplicate an id, flip one byte of a file without updating the manifest. The game's effect table is empty, so a second catalog
+  over a copy with an effects fixture keeps the loader's effect checks in the walk. The speech clips are linked into each copy, not written.
+- **Fixtures for what the game's bundle does not use (R02).** The oracles run on the repository's one bundle, the game's, so grammar shapes it lacks come from
+  `PipelineHarness.FixtureGrammars` (a name `[WORD]`, an adjective `[ADJ]`, a verb bound to a slot) and the effect table from `PipelineHarness.EffectsJson`; both are
+  in the test project, and no second bundle is kept on disk.
 
 ## 5. Oracles
 

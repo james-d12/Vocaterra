@@ -85,35 +85,34 @@ flowchart TD
 
 ## The worked example
 
-At the blacksmith, the player says "yo tiene dos espada" ("I has two sword": the verb is in the wrong person and the noun is
-singular after a number). The high-level design expects: intent `offer_item`, slots `item=espada, qty=2`, communicated `true`,
-errors `conj.person` (tiene to tengo) and `noun.number` (espada to espadas), and a recast from the player's own words:
-"¿Tienes dos espadas? ¡Perfecto!"
+At the villager of the game's bundle (`content/game-v1`), the player says "yo quiere dos espada" ("I wants two sword": the verb is in the wrong person
+and the noun is singular after a number). The high-level design's worked example is "yo tiene dos espada" at a blacksmith; the bundle has no blacksmith and no
+open prompt for `tener`, so this is the same shape of sentence in the bundle's words (the design's own sentence runs in the tests, on a prompt built there). The
+expectation: intent `request_item`, slots `item=espada, qty=2`, communicated `true`, errors `conj.person` (quiere to quiero) and `noun.number`
+(espada to espadas), and a recast from the player's own words, "Claro, «yo quiero dos espadas». Muy bien."
 
-The inputs, as the CLI builds them for `--prompt offer-items-open` with no other options:
+The inputs, as the CLI builds them for `--prompt villager-open` with no other options:
 
 ```json
 {
-  "promptId": "offer-items-open",
+  "promptId": "villager-open",
   "mode": "Open",
-  "difficulty": "Intermediate",
-  "answerSetId": "items-basic",
-  "allowedIntentIds": ["offer_item"],
-  "agentId": "blacksmith",
-  "slotGrammarIds": [
-    "[VERB:tener:verb] [NUM:qty] [NOUN:item]",
-    "[PRON]? [VERB:ofrecer:verb] [NUM:qty] [NOUN:item]"
-  ]
+  "difficulty": "Beginner",
+  "answerSetId": "places-basic",
+  "allowedIntentIds": ["ask_directions", "request_item", "greet", "thank", "farewell", "ask_help", "dont_know"],
+  "agentId": "villager",
+  "slotGrammarIds": [],
+  "text": "Hola."
 }
 ```
 
-The conversation context is: world seed 0, agent `blacksmith` in state `idle` with interaction counter 0, stored time 0, a fresh learner
+The conversation context is: world seed 0, agent `villager` in state `idle` with interaction counter 0, stored time 0, a fresh learner
 model, no repeat counts. The word recognizer is a `ScriptedWordRecognizer` that returns the text given with `--transcript`;
 the clip is empty, so there is no phoneme recognizer and no pronunciation scoring.
 
 ## Stage by stage
 
-The intermediate values below were printed by running each stage on the example with the shipped `content/v1` bundle.
+The intermediate values below were printed by running each stage on the example with the repository's `content/game-v1` bundle (the bundle changes with the game, so a number such as a count of phrases may differ after an edit of its content).
 
 ### 0. Recognition request
 
@@ -121,9 +120,9 @@ The intermediate values below were printed by running each stage on the example 
 recognizer is asked to do.
 
 - **Constrained** prompts get a closed phrase list: every canonical answer and alias of the answer set, lower-cased, NFC,
-  stripped of punctuation, de-duplicated and ordinal-sorted, followed by `[unk]`. For `spell-cast-constrained`:
-  `{"mode":"Constrained","grammarPhrases":["bola de fuego","el escudo mágico","el fuego","el hielo","el rayo","escudo de magia","escudo mágico","fuego","hielo","lanza de hielo","rayo","relámpago","un escudo mágico","un rayo","un relámpago","una bola de fuego","una lanza de hielo","[unk]"],"maxAlternatives":5}`.
-- **Open** prompts get no phrase list. `offer-items-open` is open: `{"mode":"Open","grammarPhrases":[],"maxAlternatives":5}`.
+  stripped of punctuation, de-duplicated and ordinal-sorted, followed by `[unk]`. For `stall-need` (the answer set `supplies`):
+  `{"mode":"Constrained","grammarPhrases":["agua por favor","ayuda","ayuda por favor","fruta por favor","me ayudas","me da agua","me da agua por favor","me da fruta","me da fruta por favor","me da pan","me da pan por favor","me das agua","me das agua por favor","me das fruta","me das fruta por favor","me das pan","me das pan por favor","me puedes ayudar","necesito agua","necesito agua por favor","necesito ayuda","necesito fruta","necesito fruta por favor","necesito pan","necesito pan por favor","no entiendo","no lo sé","no sé","pan por favor","quiero agua","quiero agua por favor","quiero fruta","quiero fruta por favor","quiero pan","quiero pan por favor","quiero un agua","quiero un pan","quiero una fruta","un agua por favor","un pan por favor","una fruta por favor","yo no sé","[unk]"],"maxAlternatives":5}`.
+- **Open** prompts get no phrase list. `villager-open` is open: `{"mode":"Open","grammarPhrases":[],"maxAlternatives":5}`.
 
 ### 1. Recognition (D1)
 
@@ -132,7 +131,7 @@ ones) returns an `AsrResult`: transcript, n-best list, word timings, confidence,
 present it runs on a second task at the same time and returns `PhonePosteriors`. Both results are consumed in a fixed order, so
 the scheduling cannot change the output (`PipelineOptions.RunRecognizersConcurrently` can turn the concurrency off).
 
-For the example: `{"transcript":"yo tiene dos espada", "nBest":[{"text":"yo tiene dos espada","score":1}], "words":[], "confidence":1, "modelHash":"scripted-transcript", "mode":"Open"}`.
+For the example: `{"transcript":"yo quiere dos espada", "nBest":[{"text":"yo quiere dos espada","score":1}], "words":[], "confidence":1, "modelHash":"scripted-transcript", "mode":"Open"}`.
 
 ### 2. Normalization (D0)
 
@@ -141,8 +140,8 @@ The transcript loses any `[unk]` markers, then `TextNormalizer.Normalize` lower-
 the normalizer's default would turn `una espada` into `1 espada`, which would hide the article from the agreement checks and the
 `[ART]` grammar tokens. Every token keeps its span in the normalized text and its original word.
 
-`yo tiene dos espada` becomes the text `yo tiene 2 espada` with four tokens: `yo` (0, 2), `tiene` (3, 5), `2` (9, 1, original `dos`)
-and `espada` (11, 6). The spans in the verdict's errors refer to this normalized text.
+`yo quiere dos espada` becomes the text `yo quiere 2 espada` with four tokens: `yo` (0, 2), `quiere` (3, 6), `2` (10, 1, original `dos`)
+and `espada` (12, 6). The spans in the verdict's errors refer to this normalized text.
 
 ### 3. Answer matching (D0)
 
@@ -152,9 +151,9 @@ the difficulty). A near miss with a distance of 0 on the phonetic key is flagged
 The rule for near misses (budget, confidence, communication and the expected word of an unknown word) is in [Near misses](#near-misses).
 
 
-For the example: `{"answerId":null,"type":"None","distance":9,"likelyPronunciation":false,"confidence":0}`. The sentence is
-not one of the five items on its own, which is expected for a sentence prompt. For a quiz answer such as `espada` on
-`quiz-item-name` the match is `Exact` with confidence 1.
+For the example: `{"answerId":null,"type":"None","distance":13,"likelyPronunciation":false,"confidence":0}`. The sentence is
+not one of the three places of `places-basic` on its own, which is expected for a sentence prompt. For an answer such as `piedra` on a prompt whose
+answer set is `places-basic` the match is `Exact` with confidence 1.
 
 ### Near misses
 
@@ -257,7 +256,7 @@ Not resolved: two verbs that share a form (`fue` is `ir` and `ser`) are one clas
 reading and correct under another, with nothing to prefer either, is read the charitable way (`ayer … intenciones parte`).
 
 Grammar matching works on lemmas and ignores agreement (agreement is what the rules check), and it allows a leading subject
-pronoun. So for the example the first grammar `[VERB:tener:verb] [NUM:qty] [NOUN:item]` fits `yo tiene 2 espada`, and the analysis is
+pronoun. So for the example the grammar `[VERB:querer] [ART]? [NUM:qty]? [NOUN:item] (por favor)?` of `request_item` fits `yo quiere 2 espada`, and the analysis is
 (readings abbreviated):
 
 ```json
@@ -265,46 +264,48 @@ pronoun. So for the example the first grammar `[VERB:tener:verb] [NUM:qty] [NOUN
   "tokens": [
     {"token": {"text": "yo", "span": {"start": 0, "length": 2}, "original": "yo"},
      "readings": [{"lemma": "yo", "pos": "pron", "person": "1", "number": "sg"}]},
-    {"token": {"text": "tiene", "span": {"start": 3, "length": 5}, "original": "tiene"},
-     "readings": [{"lemma": "tener", "pos": "verb", "person": "3", "number": "sg", "tense": "pres", "mood": "ind"}]},
-    {"token": {"text": "2", "span": {"start": 9, "length": 1}, "original": "dos"},
+    {"token": {"text": "quiere", "span": {"start": 3, "length": 6}, "original": "quiere"},
+     "readings": [{"lemma": "querer", "pos": "verb", "person": "2", "number": "sg", "mood": "imp"},
+                  {"lemma": "querer", "pos": "verb", "person": "3", "number": "sg", "tense": "pres", "mood": "ind"}]},
+    {"token": {"text": "2", "span": {"start": 10, "length": 1}, "original": "dos"},
      "readings": [{"lemma": "2", "pos": "num", "number": "pl"}]},
-    {"token": {"text": "espada", "span": {"start": 11, "length": 6}, "original": "espada"},
+    {"token": {"text": "espada", "span": {"start": 12, "length": 6}, "original": "espada"},
      "readings": [{"lemma": "espada", "pos": "noun", "number": "sg", "gender": "f"}]}
   ],
   "slots": [
-    {"name": "verb", "value": "tener", "span": {"start": 3, "length": 5}},
-    {"name": "qty", "value": "2", "span": {"start": 9, "length": 1}},
-    {"name": "item", "value": "espada", "span": {"start": 11, "length": 6}}
+    {"name": "qty", "value": "2", "span": {"start": 10, "length": 1}},
+    {"name": "item", "value": "espada", "span": {"start": 12, "length": 6}}
   ],
   "errors": [
-    {"tag": "conj.person", "span": {"start": 3, "length": 5}, "expected": "tengo", "actual": "tiene"},
-    {"tag": "noun.number", "span": {"start": 11, "length": 6}, "expected": "espadas", "actual": "espada"}
+    {"tag": "conj.person", "span": {"start": 3, "length": 6}, "expected": "quiero", "actual": "quiere"},
+    {"tag": "noun.number", "span": {"start": 12, "length": 6}, "expected": "espadas", "actual": "espada"}
   ],
-  "matchedGrammarId": "[VERB:tener:verb] [NUM:qty] [NOUN:item]",
+  "matchedGrammarId": "[VERB:querer] [ART]? [NUM:qty]? [NOUN:item] (por favor)?",
   "confidence": 1
 }
 ```
 
-`yo` is first person, so the third-person `tiene` is a `conj.person` error whose expected form comes from the morphology
-generator (`tengo`). The plural quantity `2` makes the singular `espada` a `noun.number` error (`espadas`).
+`yo` is first person, so the third-person `quiere` is a `conj.person` error whose expected form comes from the morphology
+generator (`quiero`). The plural quantity `2` makes the singular `espada` a `noun.number` error (`espadas`).
 
 ### 5. Intent resolution (D0 plus an optional D1 rung)
 
 `IntentResolver` tries three rungs in a fixed order and stops at the first that is confident: the slot grammar that matched in
-stage 4, then lemma keyword rules (lemma `comprar` plus an item gives `buy_item`), then the embedding nearest neighbour against
+stage 4, then lemma keyword rules (lemma `tener` plus an item gives `state_have`), then the embedding nearest neighbour against
 the authored example utterances, accepted only if `top1 >= t` and `top1 - top2 >= m` (both with margins). If nothing resolves,
 the intent is `unknown` with confidence 0.
 
-**Answer-only prompts skip this stage.** A prompt whose `allowedIntentIds` is empty (a quiz such as `quiz-item-name`) only asks
+**Answer-only prompts skip this stage.** A prompt whose `allowedIntentIds` is empty (a quiz; the game's prompts all allow intents, the tests build one) only asks
 for an answer; its answer match is its resolution, and no intent grammar may claim the utterance.
 
-For the example the grammar rung resolves it: `{"intent":"offer_item","slots":{"item":"espada","qty":"2","verb":"tener"},"rung":"Grammar","margin":1,"confidence":1}`.
-The catalog says `offer_item` needs the slots `item` and `qty`, both filled.
+For the example the grammar rung resolves it: `{"intent":"request_item","slots":{"item":"espada","qty":"2"},"rung":"Grammar","margin":1,"confidence":1}`.
+The catalog says `request_item` needs the slot `item`, filled; `qty` is an optional element of its grammar.
 
-A leading adverb defeats the grammars: they allow a leading subject pronoun only, so `ayer tengo dos espadas` matches no grammar. The
-`offer_item` intent therefore has a keyword rule for `ofrecer` and one for `tener`, each requiring `item` and `qty`. Such an utterance
-resolves on the `Rules` rung, and the analysis still reports the tense (`conj.tense`, `tengo` to `tuve`).
+A leading adverb defeats the grammars: they allow a leading subject pronoun only, so `ayer tengo dos frutas` matches no grammar. The
+`state_have` intent therefore has a keyword rule for `tener` that requires `item`. Such an utterance
+resolves on the `Rules` rung (`resolvedBy: Rules`), and the analysis still reports the tense (`conj.tense`, `tengo` to `tuve`). An intent without a keyword rule,
+such as `request_item`, is not understood after a leading adverb (`ayer quiero dos espadas` on `villager-open` has `communicated: false`, with the tense error
+`quiero` to `quise`).
 
 ### 6. Pronunciation scoring (D1 model, D0 scoring)
 
@@ -314,7 +315,7 @@ predicted English-speaker error variants are generated from them, and `Pronuncia
 pronunciation by default) scores each phone of the best-matching variant and turns low scores into `pron.*` errors with margins.
 
 In the CLI example there is no phoneme recognizer, so `pronunciation` is `[]`. The end-to-end golden test
-(`tests/Vocaterra.Nlp.Golden.Tests/Data/e2e-offer-items-open.golden.json`) runs the same utterance with a fake phoneme recognizer that
+(`tests/Vocaterra.Nlp.Golden.Tests/Data/e2e-villager-request.golden.json`) runs the same utterance with a fake phoneme recognizer that
 hears the correct phones: the verdict then lists one `PhoneScore` per content phone, each with score 1.
 
 ### 7. Verdict assembly (D0)
@@ -331,9 +332,9 @@ evaluation configuration and the version stamp:
   span start, then tag order in the taxonomy, then expected text. The derived `vocab.wrong` (a word the lexicon knows but the answer
   set does not contain) has as `expected` the answer set's canonical answer when the set has exactly one answer, and an empty
   `expected` otherwise; its `actual` is the word. A `vocab.unknown` of a fuzzy answer match already carries the canonical word.
-- **correctness**: 1 minus the sum of the error weights for the prompt's difficulty (`content/v1/evaluation/evaluation-config.json`),
-  clamped to [0, 1], rounded to 9 decimals. For the intermediate difficulty `conj.person` costs 0.3 and `noun.number` 0.2, so
-  1 - 0.3 - 0.2 = 0.5.
+- **correctness**: 1 minus the sum of the error weights for the prompt's difficulty (`content/game-v1/evaluation/evaluation-config.json`),
+  clamped to [0, 1], rounded to 9 decimals. For the beginner difficulty `conj.person` costs 0.25 and `noun.number` 0.15, so
+  1 - 0.25 - 0.15 = 0.6.
 - **confidence**: the minimum of the stage confidences (recognizer, answer match when something matched, analysis, intent, pronunciation).
 - **resolvedBy**: the answer match type when there was one, otherwise the intent rung (`Grammar`, `Rules`, `Embedding`), otherwise `Unresolved`.
 - **versions**: the content hash and the model hashes of the services.
@@ -342,15 +343,15 @@ evaluation configuration and the version stamp:
 
 `Decide` produces a `DecisionOutcome` with four parts:
 
-1. **agent step.** The agent's state machine (`content/v1/agents/blacksmith.json`) reads the verdict and the agent's current state and
+1. **agent step.** The agent's state machine (`content/game-v1/agents/villager.json`) reads the verdict and the agent's current state and
    returns the next state and a list of actions (dialogue intent, host event, variant index). The only randomness is the draw for
-   the variant, from `SeededRng.ForInteraction(worldSeed, agentId, interactionCounter)`. For the example: `idle` goes to `trading`,
-   with the action `offer_item_reply` and the host event `trade.offer`.
+   the variant, from `SeededRng.ForInteraction(worldSeed, agentId, interactionCounter)`. For the example: `idle` stays `idle`,
+   with the action `villager_give` and the host event `villager.give`.
 2. **Learner model.** One Bayesian knowledge tracing step per skill: the skill `intent.<intent>` and the family of each error tag
-   (`conj`, `noun`), plus any `ExtraSkills` the host named (all in the one update, so a skill named twice or equal to an error family is stepped once). Here `conj` and `noun` drop to a probability known of about 0.146 and `intent.offer_item` rises to about 0.693.
+   (`conj`, `noun`), plus any `ExtraSkills` the host named (all in the one update, so a skill named twice or equal to an error family is stepped once). Here `conj` and `noun` drop to a probability known of about 0.146 and `intent.request_item` rises to about 0.693.
 3. **FSRS rating.** `RatingMapper.FromVerdict`: not communicated is `Again`; otherwise correctness is compared with the 0.5 and
-   0.9 cut-offs (each with a 0.02 margin; an uncertain score rounds down). Correctness 0.5 is inside the band around 0.5, so the
-   rating is `Hard`.
+   0.9 cut-offs (each with a 0.02 margin; an uncertain score rounds down). Correctness 0.6 lies between the two bands, so the
+   rating is `Good`.
 4. **Feedback plan.** The pipeline first counts this utterance into the context's counts (`RepeatCounts.Next` of the counts before it), then
    `FeedbackPolicy.Plan` gives each error the most specific rule for (tag, repeat count after this utterance, difficulty). The first
    offence of anything is a recast, the second and third a hint, the fourth and later an explicit correction, and any `pron.*`
@@ -362,33 +363,35 @@ turn runs this stage's step alone: it advances the interaction counter and retur
 
 ### 9. Response realization (D0)
 
-`ResponsePlanner` renders the lines the agent says from the dialogue catalog (`content/v1/dialogue/dialogue.json`). The first
+`ResponsePlanner` renders the lines the agent says from the dialogue catalog (`content/game-v1/dialogue/dialogue.json`). The first
 feedback item is voiced; for a recast the pool is `feedback.recast.<tag>`, falling back to `feedback.recast`. The
-`feedback.recast.conj.person` templates (`¿{verb:conj(2,sg,pres):cap} {qty:words(item)} {item:plural-if(qty)}? ¡Perfecto!` and
-`Ah, ¿{verb:conj(2,sg,pres)} {qty:words(item)} {item:plural-if(qty)}? ¡Muy bien!`) take the player's own slots and inflect
-them with the morphology generator: the verb is conjugated for the second person and the noun is pluralized according to the
-quantity. Generic recast templates can instead use `{recast}`, the corrected sentence that `RecastBuilder` rebuilds from the
+`feedback.recast.conj.person` templates (`Sí: «{verb:conj(1,sg,pres):cap} {qty:words(item)} {item:plural-if(qty)}». ¡Muy bien!` and
+`Mira, ¿{verb:conj(2,sg,pres)} {qty:words(item)} {item:plural-if(qty)}? Se dice «{verb:conj(1,sg,pres)} {qty:words(item)} {item:plural-if(qty)}».`) take the player's own slots and inflect
+them with the morphology generator: the verb is conjugated and the noun is pluralized according to the
+quantity. They need a `verb` slot, which the grammar of `request_item` does not name (`[VERB:tener:verb]` would), so for the example the specific pool cannot render and the
+generic pool answers. Generic recast templates use `{recast}`, the corrected sentence that `RecastBuilder` rebuilds from the
 player's tokens and the expected forms in the analysis. The recast also restores accents: a word the lexicon knows only once its
 accents are ignored takes the lexicon's accented spelling (`dias` becomes `días`, so `buenas dias` is recast as `buenos días`). When
 several accented spellings fold alike the first in ordinal order is used. A word that is a lexicon form as spelled is kept, so `se`
-stays `se` (it is not `sé`), and `mas` stays `mas`. For the example the draw gives "Ah, ¿tienes dos espadas? ¡Muy bien!" with
-world seed 0 and with seed 42. If a feedback template needs a slot the verdict does not have, the pipeline falls back from the
+stays `se` (it is not `sé`), and `mas` stays `mas`. For the example the draw gives "Claro, «yo quiero dos espadas». Muy bien." with
+world seed 0 and "¡Eso es! «Yo quiero dos espadas»." with seed 42. If a feedback template needs a slot the verdict does not have, the pipeline falls back from the
 specific pool to the generic pool of the same kind, and then to no feedback, so a content gap never silences the agent.
 
-The agent's own reply comes from the action's pool (`offer_item_reply`), using the variant index drawn in stage 8: "Vale, dos
-espadas. Gracias, amigo." with world seed 0 and "¡Dos espadas! Trato hecho." with seed 42.
+The agent's own reply comes from the action's pool (`villager_give`), using the variant index drawn in stage 8: "Aquí tienes." with world seed 0
+and with seed 42 (the pool's other variant is "Toma.").
 
 A prompt without an agent is not a conversation: nobody replies, only feedback is voiced, except that an acceptable answer to such a
-prompt (a quiz) gets a line from the `answer_accepted` pool.
+prompt (a quiz) gets a line from the `answer_accepted` pool. (The game's agents use that pool for their own acknowledgements too.)
 
 ### 10. Effects (D0)
 
-`EffectResolver.Resolve` looks up the verdict's intent in the effect table (`content/v1/effects/effects.json`) and interpolates
-a value from the correctness curve: a spell's power, a trade's price factor. Partial credit gives a partial effect. The worked
-example has none (`offer_item` has no effect in the sample table), so `effects` is `[]`. Casting a spell does: see below.
+`EffectResolver.Resolve` looks up the verdict's intent in the effect table (`content/game-v1/effects/effects.json`) and interpolates
+a value from the correctness curve: a power, a price factor, whatever opaque kind the host gave it. Partial credit gives a partial effect. The effect table of
+the game's bundle is empty (the game derives its effects from its own host files), so `effects` is `[]` here; the tests build a table in the test
+(`EffectsFixtureTests`, `TestSupport.EffectsBundle`) to keep the curves covered.
 
-Effects depend on the verdict alone, not on the agent's state: a purchase in the blacksmith's `done` state still emits `buy_item_price`,
-so the host gates effects by state (the host decides whether a trade is allowed at that point).
+Effects depend on the verdict alone, not on the agent's state: the same verdict emits the same effect in every state of the agent,
+so the host gates effects by state (the host decides whether the effect is allowed at that point).
 
 ### 11. Repair (D0)
 
@@ -409,29 +412,28 @@ later attempts `GiveUp`. The retry at attempts 1 and 2 uses every phrase the ans
 This is the first line the CLI prints for the worked example, pretty-printed here (the CLI prints it on one line):
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1
 ```
 
 ```json
 {
-  "intent": "offer_item",
+  "intent": "request_item",
   "slots": {
     "item": "espada",
-    "qty": "2",
-    "verb": "tener"
+    "qty": "2"
   },
   "communicated": true,
-  "correctness": 0.5,
+  "correctness": 0.6,
   "errors": [
     {
       "tag": "conj.person",
-      "span": { "start": 3, "length": 5 },
-      "expected": "tengo",
-      "actual": "tiene"
+      "span": { "start": 3, "length": 6 },
+      "expected": "quiero",
+      "actual": "quiere"
     },
     {
       "tag": "noun.number",
-      "span": { "start": 11, "length": 6 },
+      "span": { "start": 12, "length": 6 },
       "expected": "espadas",
       "actual": "espada"
     }
@@ -440,7 +442,7 @@ dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos 
   "confidence": 1,
   "resolvedBy": "Grammar",
   "versions": {
-    "contentHash": "1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2",
+    "contentHash": "<the bundle hash>",
     "modelHashes": {
       "asr": "scripted-transcript"
     }
@@ -451,36 +453,37 @@ dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos 
 After the verdict the CLI prints the agent lines and a decision summary:
 
 ```text
-agent: Ah, ¿tienes dos espadas? ¡Muy bien!
-agent: Vale, dos espadas. Gracias, amigo.
-decision: rating Hard, learner skills 3, feedback items 2
+agent: Claro, «yo quiero dos espadas». Muy bien.
+agent: Aquí tienes.
+decision: rating Good, learner skills 3, feedback items 2
 ```
 
-It matches the high-level design: intent `offer_item`, `item=espada`, `qty=2`, communicated, and the two errors with the expected forms
-`tengo` and `espadas`. Two details differ from the sketch in the design document, both by design: the slot map also carries
-`verb=tener` (the matched grammar names its verb slot so that a recast can conjugate it), and the recast is one of two seeded
-variants, "¿Tienes dos espadas? ¡Perfecto!" (the design document's line, which the end-to-end golden test produces for its seed
-and interaction counter) or "Ah, ¿tienes dos espadas? ¡Muy bien!" (the draw for the CLI's default context).
+It matches the high-level design in the bundle's words: an intent, `item=espada`, `qty=2`, communicated, and the two errors with the expected forms
+`quiero` and `espadas`. The design's own sentence, "yo tiene dos espada" with `conj.person` (`tiene` to `tengo`) and `noun.number`, is a test
+(`TheDesignDocumentsWorkedExampleGivesExactlyConjPersonAndNounNumber` in the pipeline tests), because no prompt of the game answers `tener` openly. Two
+details differ from the sketch in the design document, both by design: the recast is one of the seeded variants of the generic pool (the design document's
+dedicated template needs a `verb` slot that this grammar does not name), and the agent is the villager of the game, not a blacksmith.
 
-The content hash is the hash of the `content/v1` bundle. It changes with any edit to the bundle (see `CONTRIBUTING.md`); the
-tests pin it in `tests/Vocaterra.Nlp.Content.Tests/ManifestTests.cs`.
+The content hash is the hash of the `content/game-v1` bundle, so it changes with every edit of the game's content. No test pins it: each compares the manifest
+with the hash computed from the files (`ManifestTests`), and the end-to-end goldens keep a placeholder instead of the hash.
 
 ## Other branches
 
-Each of these is a real run of the CLI on `content/v1` (verdict line shortened).
+Each of these is a real run of the CLI on `content/game-v1` (verdict line shortened).
 
 | Command (after `eval`) | Verdict | Printed after the verdict |
 | --- | --- | --- |
-| `--transcript "espada" --prompt quiz-item-name` | intent `unknown`, communicated, correctness 1, `resolvedBy: Exact`, no errors (answer-only prompt) | `agent: ¡Muy bien!` and `decision: rating Easy, learner skills 0, feedback items 0` |
-| `--transcript "fuego" --prompt spell-cast-constrained` | intent `cast_spell`, slot `spell=fuego`, communicated, correctness 1, `resolvedBy: Exact` | `agent: ¡Muy bien!`, `effect: cast_spell_power spell_power 1`, `decision: rating Easy, learner skills 1, feedback items 0` |
-| `--transcript "ezpada" --prompt quiz-item-name` | intent `unknown`, communicated, correctness 0.6, one `vocab.unknown` with expected `espada`, `resolvedBy: Fuzzy`, confidence 0.5 (a near miss, see [Near misses](#near-misses)) | `agent: Ah, espada. ¡Perfecto!` and `decision: rating Good, learner skills 1, feedback items 1` |
-| `--transcript "bla bla" --prompt offer-items-open` | intent `unknown`, not communicated, correctness 0.2, two `vocab.unknown` errors, `resolvedBy: Unresolved`, confidence 0 | `agent: Perdón, ¿qué dices?`, `repair: AskAgain ¿Cómo?`, `decision: rating Again, learner skills 1, feedback items 1` |
+| `--transcript "quiero agua por favor" --prompt stall-need` | intent `request_item`, slot `item=agua`, communicated, correctness 1, `resolvedBy: Exact` | `agent: Toma la botella. El agua está en el río.`, `agent: ¿Quieres pan?` and `decision: rating Easy, learner skills 1, feedback items 0` |
+| `--transcript "hola" --prompt lesson-hello` | intent `greet`, communicated, correctness 1, `resolvedBy: Exact` | `agent: ¡Hola! Soy la guía.` and `decision: rating Easy, learner skills 1, feedback items 0` |
+| `--transcript "quiero aguas por favor" --prompt stall-need` | intent `request_item`, `item=agua`, communicated, correctness 1, no errors, `resolvedBy: Fuzzy`, confidence 0.952 (a near miss, an inflected form of the answer; see [Near misses](#near-misses)) | the same two agent lines and `decision: rating Easy, learner skills 1, feedback items 0` |
+| `--transcript "ayer tengo dos frutas" --prompt lesson-have` | intent `state_have`, `item=fruta`, communicated, correctness 0.15, `vocab.wrong` (`ayer`, not an answer of the constrained prompt) and `conj.tense` (`tengo` to `tuve`), `resolvedBy: Rules`, confidence 0.9 | `agent: ¡Eso es! «Ayer tuve dos frutas».`, `agent: ¡Muy bien!` and `decision: rating Hard, learner skills 3, feedback items 2` |
+| `--transcript "bla bla" --prompt villager-open` | intent `unknown`, not communicated, correctness 0.2, two `vocab.unknown` errors, `resolvedBy: Unresolved`, confidence 0 | `agent: No te entendí. ¿Me lo dices otra vez?`, `repair: AskAgain ¿Cómo?`, `decision: rating Again, learner skills 1, feedback items 1` |
 | the same with `--repeat not_communicated=1` (the second failure) | as above | `repair: SlowRepeat Perdón, te lo repito más despacio.` |
-| the same with `--repeat not_communicated=2` (the third failure) | as above | `repair: OfferChoices ¿Quieres decir «espada», «escudo» o «arco»?` |
+| the same with `--repeat not_communicated=2` (the third failure) | as above | `repair: OfferChoices ¿Quieres decir «árbol», «piedra» o «río»?` |
 
-The first row shows the answer-only rule: a quiz answer with no intent is still `communicated`, because the answer set matched.
-The second shows a host effect, a spell cast at full power because correctness is 1 (the curve in `effects.json` gives 0.5 power at
-correctness 0.5).
+The first rows show a constrained prompt: the answer set matched, and the intent grammar reads the same words. The fourth shows what the same prompt makes of a
+sentence that is not one of its phrases: the intent is found by the keyword rule, the words outside the answer set are `vocab.wrong`, and the tense is still
+checked.
 
 ## Guarantees
 
@@ -499,12 +502,10 @@ correctness 0.5).
 ## Run it yourself
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1
 ```
 
 Add `--seed <n>` (world seed), `--now <unixSeconds>`, `--agent-state <id>` (start the agent in a given state), `--counter <n>`
 (interaction counter), `--repeat <tag>=<n>` (repeat counts before this utterance) and `--replay-out <file>` to control the conversation context and record the
-run. `dotnet run --project tools/Vocaterra.Nlp.Cli -- --help` prints the full usage. The prompt ids in the sample bundle are `ask-price-open`,
-`buy-item-constrained`, `buy-item-open`, `greet-blacksmith`, `greet-open`, `offer-items-constrained`, `offer-items-open`,
-`quiz-greeting-name`, `quiz-item-name`, `quiz-spell-name`, `sell-item-open`, `spell-cast-constrained`, `spell-cast-open` and
-`trade-free-conversation`.
+run. `dotnet run --project tools/Vocaterra.Nlp.Cli -- --help` prints the full usage. The prompt ids of the bundle are listed in
+`content/game-v1/prompts/prompts.json`.

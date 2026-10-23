@@ -12,7 +12,10 @@ data: does the recognizer keep the mistakes a learner makes, so the grader can s
 | `golden/manifest.jsonl` | yes | one JSON object per clip: the annotations, never the audio |
 | `golden/audio/*.wav` | **no** (gitignored) | the recordings; they stay on the machine that made them |
 
-The three entries committed today are **synthetic**. Their `synth` clips are one-second tones that `tests/Vocaterra.Nlp.Golden.Tests` writes into
+The three entries committed today are **synthetic**, and their `promptId`s are prompts of the repository's one bundle, `content/game-v1` (R02): a prompt that
+leaves the bundle fails `ManifestGoldenTests`, and the entry is rewritten to a prompt that exists. (The end-to-end goldens, `tests/Vocaterra.Nlp.Golden.Tests/Data/e2e-*.golden.json`,
+are a different thing: the core's whole result for two turns of the game's bundle. A game edit that moves one is re-recorded in the same change, with
+`VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests`.) Their `synth` clips are one-second tones that `tests/Vocaterra.Nlp.Golden.Tests` writes into
 its own test output directory so the manifest and the benchmark plumbing can be tested; no file is written to `golden/audio/`, and a
 tone does not recognize as words. Replace or extend them with real recordings only on your own machine.
 
@@ -22,16 +25,16 @@ One JSON object per line (JSON Lines, UTF-8, LF). Property names are camelCase a
 `expectedIntent` may be `null`.
 
 ```json
-{"clip":"audio/synth-offer-items-open-1.wav","promptId":"offer-items-open","speaker":"synth","l1":"en",
- "expectedTranscript":"yo tiene dos espada",
- "expectedErrors":[{"tag":"conj.person","actual":"tiene"},{"tag":"noun.number","actual":"espada"}],
- "expectedIntent":"offer_item"}
+{"clip":"audio/synth-villager-open-1.wav","promptId":"villager-open","speaker":"synth","l1":"en",
+ "expectedTranscript":"yo quiere dos espada",
+ "expectedErrors":[{"tag":"conj.person","actual":"quiere"},{"tag":"noun.number","actual":"espada"}],
+ "expectedIntent":"request_item"}
 ```
 
 | Property | Meaning |
 | --- | --- |
 | `clip` | Path of the WAV file, relative to the directory of `manifest.jsonl` (or to `--audio-dir`). Use `/` as the separator. |
-| `promptId` | A prompt id from the content bundle (`content/v1/prompts/prompts.json`). It selects the answer set and the default recognition mode. |
+| `promptId` | A prompt id from the content bundle (`content/game-v1/prompts/prompts.json`). It selects the answer set and the default recognition mode. |
 | `speaker` | An opaque label such as `s01`. Never a name, never anything that identifies the person. |
 | `l1` | The speaker's first language as a language code (`en`, `de`, ...). |
 | `expectedTranscript` | The words actually spoken, **mistakes included**. This is what a perfect recognizer returns, not the corrected sentence. |
@@ -50,7 +53,7 @@ One JSON object per line (JSON Lines, UTF-8, LF). Property names are camelCase a
    mono so the benchmark measures the recognizer and not the resampler.
 4. **Say what a learner would say.** For each prompt, record the natural learner answer, including its mistakes; the annotation
    records them. Say each prompt several times with different speakers, a quiet room and an ordinary headset or laptop microphone.
-5. **Naming.** `<speaker>-<prompt>-<n>.wav`, for example `s01-offer-items-open-2.wav`: the speaker label, the prompt id, and a counter
+5. **Naming.** `<speaker>-<prompt>-<n>.wav`, for example `s01-villager-open-2.wav`: the speaker label, the prompt id, and a counter
    starting at 1 for that speaker and prompt.
 6. **Annotate.** Add the manifest line for every clip. Write `expectedTranscript` from what you hear, not from what the prompt expects.
 
@@ -65,7 +68,7 @@ One JSON object per line (JSON Lines, UTF-8, LF). Property names are camelCase a
 ## Running the benchmark
 
 ```
-dotnet run --project tools/Vocaterra.Nlp.Bench -- --manifest tests/golden/manifest.jsonl --content content/v1 --models models [--mode constrained|open]
+dotnet run --project tools/Vocaterra.Nlp.Bench -- --manifest tests/golden/manifest.jsonl --content content/game-v1 --models models [--mode constrained|open]
 ```
 
 For every entry the benchmark runs the recognizer in the prompt's mode (or the forced `--mode`) and reports:

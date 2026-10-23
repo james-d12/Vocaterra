@@ -107,26 +107,26 @@ public class RepeatCountsTests
     {
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
         var context = TestSupport.Context();
-        var prompt = TestSupport.Bundle.Prompts[TestSupport.OfferPrompt];
+        var prompt = TestSupport.Bundle.Prompts[TestSupport.OpenPrompt];
         var now = new StoredTimestamp(1_700_000_050);
 
         var first = pipeline.Evaluate(TestSupport.Clip(), prompt, context);
         var next = context.Next(first, now);
 
         Assert.Equal(context.WorldSeed, next.WorldSeed);
-        Assert.Equal("blacksmith", next.AgentId);
+        Assert.Equal("villager", next.AgentId);
         Assert.Equal(first.Decision.Agent!.Next, next.AgentState);
         Assert.Equal(now, next.Now);
         Assert.Equal(first.Decision.Learner, next.Learner);
         Assert.Equal(Counts(("conj.person", 1), ("noun.number", 1)), next.RepeatCountsByTag);
-        Assert.Equal(ConversationContext.Create(context.WorldSeed, "blacksmith", first.Decision.Agent!.Next, now, first.Decision.Learner, Counts(("conj.person", 1), ("noun.number", 1))), next);
+        Assert.Equal(ConversationContext.Create(context.WorldSeed, "villager", first.Decision.Agent!.Next, now, first.Decision.Learner, Counts(("conj.person", 1), ("noun.number", 1))), next);
     }
 
     [Fact]
     public void ContextNextCountsRepeatsAcrossTurns()
     {
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
-        var prompt = TestSupport.Bundle.Prompts[TestSupport.OfferPrompt];
+        var prompt = TestSupport.Bundle.Prompts[TestSupport.OpenPrompt];
         var context = TestSupport.Context();
 
         var first = pipeline.Evaluate(TestSupport.Clip(), prompt, context);
@@ -141,8 +141,8 @@ public class RepeatCountsTests
     [Fact]
     public void ContextNextKeepsTheStateOfAnAgentWithoutAStateMachine()
     {
-        var pipeline = TestSupport.Pipeline("lanzar espada");
-        var prompt = TestSupport.Bundle.Prompts["spell-cast-open"];
+        var pipeline = TestSupport.Pipeline("quiero agua");
+        var prompt = TestSupport.AgentlessOpenPrompt;
         var context = TestSupport.Context(state: "none", agentId: "player");
 
         var result = pipeline.Evaluate(TestSupport.Clip(), prompt, context);
@@ -157,7 +157,7 @@ public class RepeatCountsTests
     public void ThreeRepetitionsOfTheSameMistakeEscalateAsThePolicyDefines()
     {
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
-        var prompt = TestSupport.Bundle.Prompts[TestSupport.OfferPrompt];
+        var prompt = TestSupport.Bundle.Prompts[TestSupport.OpenPrompt];
         var context = TestSupport.Context();
         var types = new List<FeedbackType>();
         var countsBefore = new List<int>();
@@ -179,7 +179,7 @@ public class RepeatCountsTests
     public void TheRepairLadderAdvancesOnTheSecondFailure()
     {
         var pipeline = TestSupport.Pipeline("xyzzy plugh", RecognitionMode.Constrained);
-        var prompt = TestSupport.Bundle.Prompts["quiz-item-name"];
+        var prompt = TestSupport.QuizPrompt;
         var context = TestSupport.Context();
         var kinds = new List<RepairKind>();
 
@@ -197,8 +197,8 @@ public class RepeatCountsTests
     public void AFreshContextGivesTheFirstOfferFeedbackForASingleUtterance()
     {
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
-        var prompt = TestSupport.Bundle.Prompts[TestSupport.OfferPrompt];
-        var fresh = ConversationContext.Create(42, "blacksmith", TestSupport.Context().AgentState, new StoredTimestamp(1_700_000_000), LearnerModel.New());
+        var prompt = TestSupport.Bundle.Prompts[TestSupport.OpenPrompt];
+        var fresh = ConversationContext.Create(42, "villager", TestSupport.Context().AgentState, new StoredTimestamp(1_700_000_000), LearnerModel.New());
 
         var result = pipeline.Evaluate(TestSupport.Clip(), prompt, fresh);
 

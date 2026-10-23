@@ -22,22 +22,25 @@ public class LintCommandTests
     }
 
     [Fact]
-    public void LintOfTheSamplePrintsOneLinePerFindingAndTheSummaryAndExitsZero()
+    public void LintOfTheBundlePrintsOneLinePerFindingAndTheSummaryAndExitsZero()
     {
+        // Without the gate's host pools the guide's pools (voiced by the game, named by no agent action) are warnings, so only the exit code and the shape are pinned.
         var (code, output, error) = Run("lint", TestSupport.BundleDir);
 
         Assert.Equal(Program.ExitOk, code);
         Assert.Equal(string.Empty, error);
         var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        Assert.StartsWith("lint: 0 errors, 2 warnings, ", lines[^1], StringComparison.Ordinal);
-        Assert.Contains(lines, line => line.StartsWith("info confusion.catalog intents/intents.json [thank, cast_spell] ", StringComparison.Ordinal));
-        Assert.Contains(lines, line => line.StartsWith("warning coverage.rule-only intents/intents.json [thank] ", StringComparison.Ordinal));
+        Assert.StartsWith("lint: 0 errors, ", lines[^1], StringComparison.Ordinal);
+        Assert.Contains(lines, line => line.StartsWith("info hazard.homograph intents/intents.json [ask_craft, hacer] ", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.StartsWith("waived confusion.catalog intents/intents.json [request_item, state_want] ", StringComparison.Ordinal));
+        Assert.Contains(lines, line => line.StartsWith("waived coverage.rule-only intents/intents.json [thank] ", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void StrictMakesWarningsFailTheCommand()
+    public void StrictFailsOnTheGuidePoolsUntilTheyAreDeclaredHostPoolsAsTheGateDoes()
     {
         Assert.Equal(Program.ExitInvalid, Run("lint", TestSupport.BundleDir, "--strict").Code);
+        Assert.Equal(Program.ExitOk, Run("lint", TestSupport.BundleDir, "--strict", "--host-pools", "guide.*").Code);
     }
 
     [Fact]
@@ -79,24 +82,29 @@ public class LintCommandTests
     [Fact]
     public void LevelAddsCefrFindingsAndFailOnLevelMakesThemFail()
     {
-        var warn = Run("lint", TestSupport.BundleDir, "--level", "a1");
-        var fail = Run("lint", TestSupport.BundleDir, "--level", "A1", "--fail-on-level");
+        // The bundle is clean at A1 (the gate), so the lists of a copy are cut down to show the findings.
+        using var fixture = new LintFixture().Write("cefr/a1.txt", "hola\n");
+        fixture.Load();
+
+        var warn = Run("lint", fixture.Directory, "--level", "a1", "--host-pools", "guide.*");
+        var fail = Run("lint", fixture.Directory, "--level", "A1", "--fail-on-level", "--host-pools", "guide.*");
 
         Assert.Equal(Program.ExitOk, warn.Code);
         Assert.Contains("warning cefr.dialogue dialogue/dialogue.json ", warn.Output, StringComparison.Ordinal);
         Assert.Equal(Program.ExitInvalid, fail.Code);
         Assert.Contains("error cefr.prompt prompts/prompts.json ", fail.Output, StringComparison.Ordinal);
+        Assert.Equal(Program.ExitOk, Run("lint", TestSupport.BundleDir, "--level", "A1", "--fail-on-level", "--host-pools", "guide.*").Code);
     }
 
     [Fact]
     public void PromptsAndHostPoolsSelectWhatReachabilityIsMeasuredFrom()
     {
-        var (code, output, _) = Run("lint", TestSupport.BundleDir, "--prompts", "spell-cast-open,quiz-spell-name", "--host-pools", "greet_*,trade_done");
+        var (code, output, _) = Run("lint", TestSupport.BundleDir, "--prompts", "villager-open", "--host-pools", "guide_a*,farewell_reply");
 
         Assert.Equal(Program.ExitOk, code);
-        Assert.Contains("reach.pool dialogue/dialogue.json [ask_price_reply, blacksmith]", output, StringComparison.Ordinal);
-        Assert.DoesNotContain("[greet_reply", output, StringComparison.Ordinal);
-        Assert.DoesNotContain("[trade_done", output, StringComparison.Ordinal);
+        Assert.Contains("reach.pool dialogue/dialogue.json [guide_craft, guide]", output, StringComparison.Ordinal);
+        Assert.DoesNotContain("[guide_again", output, StringComparison.Ordinal);
+        Assert.DoesNotContain("[farewell_reply", output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -142,10 +150,10 @@ public class LintCommandTests
         Assert.Equal(Program.ExitOk, code);
         Assert.Equal(string.Empty, error);
         var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        Assert.Equal($"OK: bundle 'v1' 1.0.0, {TestSupport.Bundle.Manifest.Files.Count} files, hash {TestSupport.Bundle.ContentHash}", lines[0]);
-        Assert.Equal(2, lines.Count(static line => line.StartsWith("warning coverage.rule-only ", StringComparison.Ordinal)));
+        var manifest = TestSupport.Bundle.Manifest;
+        Assert.Equal($"OK: bundle '{manifest.BundleId}' {manifest.ContentVersion}, {manifest.Files.Count} files, hash {manifest.BundleHash}", lines[0]);
         Assert.DoesNotContain(lines, static line => line.StartsWith("info ", StringComparison.Ordinal));
-        Assert.StartsWith("lint: 0 errors, 2 warnings, ", lines[^1], StringComparison.Ordinal);
+        Assert.StartsWith("lint: 0 errors, ", lines[^1], StringComparison.Ordinal);
     }
 
     [Fact]

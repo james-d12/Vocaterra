@@ -6,11 +6,11 @@ and the game alike, are licensed under the Apache License, Version 2.0 (see the 
 
 Third-party data
 
-content/v1/lexicon/wiktionary-es.json and content/game-v1/lexicon/wiktionary-es.json are derived from Wiktionary (https://en.wiktionary.org) through the Spanish extract
+content/game-v1/lexicon/wiktionary-es.json is derived from Wiktionary (https://en.wiktionary.org) through the Spanish extract
 that kaikki.org publishes. They are licensed under the Creative Commons Attribution-ShareAlike 4.0 International License
 (CC BY-SA 4.0), not under the Apache License 2.0, and they keep that licence wherever they are copied. The attribution they
 require, the source of their word frequency list and the licences of the models the project downloads are listed in
-content/v1/ATTRIBUTION.md, content/game-v1/ATTRIBUTION.md and models/manifest.json.
+content/game-v1/ATTRIBUTION.md and models/manifest.json.
 
 Development-time tools (not linked, not shipped)
 

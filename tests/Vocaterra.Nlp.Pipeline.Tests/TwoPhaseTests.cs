@@ -8,15 +8,8 @@ using Vocaterra.Nlp.Core.Verdicts;
 namespace Vocaterra.Nlp.Pipeline.Tests;
 
 /// <summary>Tests for the two-phase evaluation (CR-017): <see cref="UtterancePipeline.Analyze"/> then <see cref="UtterancePipeline.Complete(UtteranceAnalysis, ConversationContext)"/>.</summary>
-public sealed class TwoPhaseTests : IDisposable
+public sealed class TwoPhaseTests
 {
-    private readonly DirectoryInfo _directory = Directory.CreateTempSubdirectory("vocaterra-two-phase-");
-
-    public void Dispose()
-    {
-        _directory.Delete(recursive: true);
-    }
-
     // Every example sentence of every intent against every prompt that allows the intent (plus the answer-only prompts with their own answers).
     [Fact]
     public void EvaluateEqualsPhaseTwoOfPhaseOneForEveryExampleOnEveryAllowingPrompt()
@@ -58,7 +51,7 @@ public sealed class TwoPhaseTests : IDisposable
     public void TheReadmeDemoGivesTheSameTwoErrorsInBothPaths()
     {
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
-        var prompt = TestSupport.Bundle.Prompts[TestSupport.OfferPrompt];
+        var prompt = TestSupport.Bundle.Prompts[TestSupport.OpenPrompt];
         var context = TestSupport.Context();
 
         var analysis = pipeline.Analyze(TestSupport.Clip(), prompt);
@@ -72,7 +65,7 @@ public sealed class TwoPhaseTests : IDisposable
     public void PhaseOneExposesTheVerdictWordsAndAnswerThatThePhaseTwoResultCarries()
     {
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
-        var analysis = pipeline.Analyze(TestSupport.Clip(), TestSupport.Bundle.Prompts[TestSupport.OfferPrompt]);
+        var analysis = pipeline.Analyze(TestSupport.Clip(), TestSupport.Bundle.Prompts[TestSupport.OpenPrompt]);
 
         var result = pipeline.Complete(analysis, TestSupport.Context());
 
@@ -86,24 +79,24 @@ public sealed class TwoPhaseTests : IDisposable
     [Fact]
     public void HostSlotsComputedFromPhaseOneWordsRenderInThePhaseTwoReply()
     {
-        var bundle = EditedBundle(pools => SetVariants(pools, "offer_item_reply", "Qué {noun} tan buena, {mood}.", "Una {noun}, {mood}.", "{noun}, {mood}."));
+        var bundle = EditedBundle(pools => SetVariants(pools, "villager_give", "Qué {noun} tan buena, {mood}.", "Qué {noun} tan buena, {mood}. ¡Toma!"));
         var recognizer = new SwitchableRecognizer { Transcript = TestSupport.WorkedExample };
         var pipeline = new UtterancePipeline(new PipelineServices(recognizer, null, null, null, bundle));
-        var prompt = bundle.Prompts[TestSupport.OfferPrompt];
+        var prompt = bundle.Prompts[TestSupport.OpenPrompt];
 
         var analysis = pipeline.Analyze(TestSupport.Clip(), prompt);
         var noun = analysis.Words!.First(static w => w.Reading?.Pos == "noun").Token.Text;
         var host = SlotMap.From([new KeyValuePair<string, string>("noun", noun), new KeyValuePair<string, string>("mood", "bien")]);
-        var result = pipeline.Complete(analysis, TestSupport.Context(), host, ["word.espada", "intent.offer_item"]);
+        var result = pipeline.Complete(analysis, TestSupport.Context(), host, ["word.espada", "intent.request_item"]);
 
         Assert.Equal("espada", noun);
-        var reply = result.Response.Lines.Single(static line => line.LineId.StartsWith("offer_item_reply", StringComparison.Ordinal));
+        var reply = result.Response.Lines.Single(static line => line.LineId.StartsWith("villager_give", StringComparison.Ordinal));
         Assert.Contains("espada tan buena, bien.", reply.Text, StringComparison.Ordinal);
         Assert.NotNull(result.Decision.Learner.Find("word.espada"));
         Assert.Equal(1, recognizer.Calls);
 
         // The overload is the same as building the context with the facts and completing it.
-        var viaContext = pipeline.Complete(analysis, TestSupport.Context().WithHost(host, ["word.espada", "intent.offer_item"]));
+        var viaContext = pipeline.Complete(analysis, TestSupport.Context().WithHost(host, ["word.espada", "intent.request_item"]));
         Assert.Equal(result, viaContext);
         Assert.Equal(viaContext.Replay.HostStateHash, result.Replay.HostStateHash);
     }
@@ -111,10 +104,10 @@ public sealed class TwoPhaseTests : IDisposable
     [Fact]
     public void ThePhaseOneVerdictSlotWinsOverAHostSlotOfTheSameName()
     {
-        var bundle = EditedBundle(pools => SetVariants(pools, "offer_item_reply", "Una {item}.", "Una {item}.", "Una {item}."));
+        var bundle = EditedBundle(pools => SetVariants(pools, "villager_give", "Una {item}.", "Una {item}."));
         var recognizer = new SwitchableRecognizer { Transcript = TestSupport.WorkedExample };
         var pipeline = new UtterancePipeline(new PipelineServices(recognizer, null, null, null, bundle));
-        var analysis = pipeline.Analyze(TestSupport.Clip(), bundle.Prompts[TestSupport.OfferPrompt]);
+        var analysis = pipeline.Analyze(TestSupport.Clip(), bundle.Prompts[TestSupport.OpenPrompt]);
 
         var result = pipeline.Complete(analysis, TestSupport.Context(), SlotMap.From([new KeyValuePair<string, string>("item", "martillo")]));
 
@@ -127,7 +120,7 @@ public sealed class TwoPhaseTests : IDisposable
         var recognizer = new SwitchableRecognizer { Transcript = TestSupport.WorkedExample };
         var pipeline = new UtterancePipeline(new PipelineServices(recognizer, null, null, null, TestSupport.Bundle));
 
-        var analysis = pipeline.Analyze(TestSupport.Clip(), TestSupport.Bundle.Prompts[TestSupport.OfferPrompt]);
+        var analysis = pipeline.Analyze(TestSupport.Clip(), TestSupport.Bundle.Prompts[TestSupport.OpenPrompt]);
         var first = pipeline.Complete(analysis, TestSupport.Context());
         var second = pipeline.Complete(analysis, TestSupport.Context(counter: 5));
 
@@ -139,7 +132,7 @@ public sealed class TwoPhaseTests : IDisposable
     public void ReplayOfATwoPhaseEvaluationReproducesTheResult()
     {
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
-        var prompt = TestSupport.Bundle.Prompts[TestSupport.OfferPrompt];
+        var prompt = TestSupport.Bundle.Prompts[TestSupport.OpenPrompt];
         var context = TestSupport.Context().WithHost(SlotMap.From([new KeyValuePair<string, string>("noun", "espada")]), ["word.espada"]);
 
         var analysis = pipeline.Analyze(TestSupport.Clip(), prompt);
@@ -158,7 +151,7 @@ public sealed class TwoPhaseTests : IDisposable
     {
         var other = new UtterancePipeline(new PipelineServices(new SwitchableRecognizer { Transcript = "hola", Hash = "other" }, null, null, null, TestSupport.Bundle));
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
-        var analysis = other.Analyze(TestSupport.Clip(), TestSupport.Bundle.Prompts[TestSupport.OfferPrompt]);
+        var analysis = other.Analyze(TestSupport.Clip(), TestSupport.Bundle.Prompts[TestSupport.OpenPrompt]);
 
         Assert.Throws<ArgumentException>(() => pipeline.Complete(analysis, TestSupport.Context()));
     }
@@ -167,7 +160,7 @@ public sealed class TwoPhaseTests : IDisposable
     public async Task AnAnalysisCanBeCompletedFromAnotherThread()
     {
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
-        var analysis = pipeline.Analyze(TestSupport.Clip(), TestSupport.Bundle.Prompts[TestSupport.OfferPrompt]);
+        var analysis = pipeline.Analyze(TestSupport.Clip(), TestSupport.Bundle.Prompts[TestSupport.OpenPrompt]);
         var expected = pipeline.Complete(analysis, TestSupport.Context());
 
         var results = await Task.WhenAll(Enumerable.Range(0, 4).Select(_ => Task.Run(() => pipeline.Complete(analysis, TestSupport.Context()))));
@@ -179,9 +172,9 @@ public sealed class TwoPhaseTests : IDisposable
     public void NullArgumentsAreRejected()
     {
         var pipeline = TestSupport.Pipeline(TestSupport.WorkedExample);
-        var analysis = pipeline.Analyze(TestSupport.Clip(), TestSupport.Bundle.Prompts[TestSupport.OfferPrompt]);
+        var analysis = pipeline.Analyze(TestSupport.Clip(), TestSupport.Bundle.Prompts[TestSupport.OpenPrompt]);
 
-        Assert.Throws<ArgumentNullException>(() => pipeline.Analyze(null!, TestSupport.Bundle.Prompts[TestSupport.OfferPrompt]));
+        Assert.Throws<ArgumentNullException>(() => pipeline.Analyze(null!, TestSupport.Bundle.Prompts[TestSupport.OpenPrompt]));
         Assert.Throws<ArgumentNullException>(() => pipeline.Complete(null!, TestSupport.Context()));
         Assert.Throws<ArgumentNullException>(() => pipeline.Complete(analysis, null!));
     }
@@ -209,10 +202,10 @@ public sealed class TwoPhaseTests : IDisposable
         pools[poolId] = new JsonObject { ["poolId"] = poolId, ["variants"] = variants };
     }
 
-    // A copy of the committed bundle with edited dialogue pools; hashes are not verified because the copy was edited.
-    private ContentBundle EditedBundle(Action<JsonObject> editPools)
+    // A copy of the bundle with edited dialogue pools; hashes are not verified because the copy was edited.
+    private static ContentBundle EditedBundle(Action<JsonObject> editPools)
     {
-        return FixtureBundle.Create(_directory, editPools, null);
+        return FixtureBundle.Create(editPools);
     }
 
     private sealed class SwitchableRecognizer : IWordRecognizer
@@ -235,35 +228,25 @@ public sealed class TwoPhaseTests : IDisposable
     }
 }
 
-/// <summary>Builds a copy of the committed bundle with edited dialogue pools and/or agent files, for tests that need data the sample bundle lacks.</summary>
+/// <summary>
+/// A copy of the bundle (<c>content/game-v1</c>) with edited dialogue pools and/or one agent file, for tests that need data the game does not have. The copy
+/// keeps the repository bundle's manifest, so its bundle hash is the repository's, and it is loaded without hash verification because it was edited.
+/// </summary>
 internal static class FixtureBundle
 {
-    public static ContentBundle Create(DirectoryInfo directory, Action<JsonObject>? editPools, Action<JsonObject>? editBlacksmith)
+    public static ContentBundle Create(Action<JsonObject>? editPools, string? agentId = null, Action<JsonObject>? editAgent = null)
     {
-        foreach (var source in Directory.EnumerateFiles(TestSupport.BundleDir, "*", SearchOption.AllDirectories))
-        {
-            var target = Path.Combine(directory.FullName, Path.GetRelativePath(TestSupport.BundleDir, source));
-            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-            File.Copy(source, target);
-        }
-
+        using var copy = new TempBundle(rehash: false);
         if (editPools is not null)
         {
-            Edit(Path.Combine(directory.FullName, "dialogue", "dialogue.json"), root => editPools(root["pools"]!.AsObject()));
+            copy.EditJson("dialogue/dialogue.json", root => editPools(root["pools"]!.AsObject()));
         }
 
-        if (editBlacksmith is not null)
+        if (editAgent is not null)
         {
-            Edit(Path.Combine(directory.FullName, "agents", "blacksmith.json"), editBlacksmith);
+            copy.EditJson($"agents/{agentId}.json", root => editAgent(root.AsObject()));
         }
 
-        return ContentLoader.Load(directory.FullName, new ContentLoadOptions { VerifyHashes = false });
-    }
-
-    private static void Edit(string path, Action<JsonObject> edit)
-    {
-        var root = JsonNode.Parse(File.ReadAllText(path, Encoding.UTF8))!.AsObject();
-        edit(root);
-        File.WriteAllText(path, root.ToJsonString(), new UTF8Encoding(false));
+        return copy.Load();
     }
 }

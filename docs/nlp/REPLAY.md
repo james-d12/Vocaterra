@@ -54,9 +54,9 @@ public sealed record ReplayEnvelope(ReplayRecord Record, AsrResult Asr, PhonePos
 | Path | Type | Meaning |
 | --- | --- | --- |
 | `record.clipHash` | string | SHA-256 (hex) of the 16 kHz mono 16-bit samples of the clip, little-endian. Identifies the audio without storing it. A run with `--transcript` and no `--wav` has an empty clip, whose hash is the SHA-256 of zero bytes (`e3b0c442...b855`). |
-| `record.promptId` | string | The prompt that was asked (an id from `content/v1/prompts/prompts.json`). The replayer looks it up in the content bundle it is given. |
+| `record.promptId` | string | The prompt that was asked (an id from `content/game-v1/prompts/prompts.json`). The replayer looks it up in the content bundle it is given. |
 | `record.hostStateHash` | string | `CanonicalJson` hash of the conversation context (seed, agent, state, time, learner, repeat counts, and the host slots and extra skills when present). Equals `context.hostStateHash`. Two contexts that differ only in a host slot or an extra skill have different hashes. |
-| `record.versions.contentHash` | string | The content bundle hash (`content/v1/manifest.json`, `bundleHash`). |
+| `record.versions.contentHash` | string | The content bundle hash (`content/game-v1/manifest.json`, `bundleHash`). |
 | `record.versions.modelHashes` | map | One entry per model that took part, sorted: `asr`, `phoneme`, `embedding`, `tts`. A scripted recognizer reports its own label (`scripted-transcript`). |
 | `record.verdict` | object | The `Verdict`: intent, slots, communicated, correctness, errors, pronunciation, confidence, resolvedBy, versions. |
 | `asr` | object | What the word recognizer returned: transcript, n-best list, word timings, confidence, model hash, recognition mode. During a replay it is served back by a `ReplayWordRecognizer` keyed by the clip hash. |
@@ -71,64 +71,64 @@ up as a `/words` difference even when the verdict does not change.
 
 ## A real example
 
-This line was produced by running the CLI on the worked example from the high-level design ("yo tiene dos espada" at the
-blacksmith). No model is involved: the word recognizer is scripted from `--transcript`, so `asr.modelHash` is
+This line was produced by running the CLI on the worked example from the high-level design, in the words of the game's bundle ("yo quiere dos espada"
+said to the villager). No model is involved: the word recognizer is scripted from `--transcript`, so `asr.modelHash` is
 `scripted-transcript`.
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open --content content/v1 --seed 42 --now 1760000000 --replay-out replay.jsonl
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1 --seed 42 --now 1760000000 --replay-out replay.jsonl
 ```
 
-The command prints the verdict JSON, then the agent lines, then a decision summary:
+The command prints the verdict JSON, then the agent lines, then a decision summary (the long `contentHash` is cut to `<the bundle hash>`; it is the hash of
+`content/game-v1`, so it changes with every edit of the game's content, and so does a log's content hash):
 
 ```text
-{"intent":"offer_item","slots":{"item":"espada","qty":"2","verb":"tener"},"communicated":true,"correctness":0.5,"errors":[{"tag":"conj.person","span":{"start":3,"length":5},"expected":"tengo","actual":"tiene"},{"tag":"noun.number","span":{"start":11,"length":6},"expected":"espadas","actual":"espada"}],"pronunciation":[],"confidence":1,"resolvedBy":"Grammar","versions":{"contentHash":"1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2","modelHashes":{"asr":"scripted-transcript"}}}
-agent: Ah, ¿tienes dos espadas? ¡Muy bien!
-agent: ¡Dos espadas! Trato hecho.
-decision: rating Hard, learner skills 3, feedback items 2
+{"intent":"request_item","slots":{"item":"espada","qty":"2"},"communicated":true,"correctness":0.6,"errors":[{"tag":"conj.person","span":{"start":3,"length":6},"expected":"quiero","actual":"quiere"},{"tag":"noun.number","span":{"start":12,"length":6},"expected":"espadas","actual":"espada"}],"pronunciation":[],"confidence":1,"resolvedBy":"Grammar","versions":{"contentHash":"<the bundle hash>","modelHashes":{"asr":"scripted-transcript"}}}
+agent: ¡Eso es! «Yo quiero dos espadas».
+agent: Aquí tienes.
+decision: rating Good, learner skills 3, feedback items 2
 ```
 
-`replay.jsonl` now holds one line of 3,705 bytes. Here it is, pretty-printed for reading (the file itself has no
+`replay.jsonl` now holds one line of about 4.5 KB. Here it is, pretty-printed for reading (the file itself has no
 whitespace between tokens):
 
 <details>
-<summary>The complete envelope (257 lines when pretty-printed)</summary>
+<summary>The complete envelope (343 lines when pretty-printed)</summary>
 
 ```json
 {
   "record": {
     "clipHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "promptId": "offer-items-open",
-    "hostStateHash": "6b9e4914018ba5c025378256d2bc473fbab48e4db7cbf773baae073e42d76b21",
+    "promptId": "villager-open",
+    "hostStateHash": "ef1f6cd97924f568ad427c7713c811a5a780f61c0ebe52b323ea00c6e7100fc7",
     "versions": {
-      "contentHash": "1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2",
+      "contentHash": "<the bundle hash>",
       "modelHashes": {
         "asr": "scripted-transcript"
       }
     },
     "verdict": {
-      "intent": "offer_item",
+      "intent": "request_item",
       "slots": {
         "item": "espada",
-        "qty": "2",
-        "verb": "tener"
+        "qty": "2"
       },
       "communicated": true,
-      "correctness": 0.5,
+      "correctness": 0.6,
       "errors": [
         {
           "tag": "conj.person",
           "span": {
             "start": 3,
-            "length": 5
+            "length": 6
           },
-          "expected": "tengo",
-          "actual": "tiene"
+          "expected": "quiero",
+          "actual": "quiere"
         },
         {
           "tag": "noun.number",
           "span": {
-            "start": 11,
+            "start": 12,
             "length": 6
           },
           "expected": "espadas",
@@ -139,7 +139,7 @@ whitespace between tokens):
       "confidence": 1,
       "resolvedBy": "Grammar",
       "versions": {
-        "contentHash": "1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2",
+        "contentHash": "<the bundle hash>",
         "modelHashes": {
           "asr": "scripted-transcript"
         }
@@ -147,10 +147,10 @@ whitespace between tokens):
     }
   },
   "asr": {
-    "transcript": "yo tiene dos espada",
+    "transcript": "yo quiere dos espada",
     "nBest": [
       {
-        "text": "yo tiene dos espada",
+        "text": "yo quiere dos espada",
         "score": 1
       }
     ],
@@ -165,9 +165,9 @@ whitespace between tokens):
     "now": {
       "unixSeconds": 1760000000
     },
-    "agentId": "blacksmith",
+    "agentId": "villager",
     "agentState": {
-      "agentId": "blacksmith",
+      "agentId": "villager",
       "stateId": "idle",
       "interactionCounter": 0
     },
@@ -181,32 +181,31 @@ whitespace between tokens):
       "skills": []
     },
     "repeatCountsByTag": {},
-    "hostStateHash": "6b9e4914018ba5c025378256d2bc473fbab48e4db7cbf773baae073e42d76b21"
+    "hostStateHash": "ef1f6cd97924f568ad427c7713c811a5a780f61c0ebe52b323ea00c6e7100fc7"
   },
   "result": {
     "verdict": {
-      "intent": "offer_item",
+      "intent": "request_item",
       "slots": {
         "item": "espada",
-        "qty": "2",
-        "verb": "tener"
+        "qty": "2"
       },
       "communicated": true,
-      "correctness": 0.5,
+      "correctness": 0.6,
       "errors": [
         {
           "tag": "conj.person",
           "span": {
             "start": 3,
-            "length": 5
+            "length": 6
           },
-          "expected": "tengo",
-          "actual": "tiene"
+          "expected": "quiero",
+          "actual": "quiere"
         },
         {
           "tag": "noun.number",
           "span": {
-            "start": 11,
+            "start": 12,
             "length": 6
           },
           "expected": "espadas",
@@ -217,7 +216,7 @@ whitespace between tokens):
       "confidence": 1,
       "resolvedBy": "Grammar",
       "versions": {
-        "contentHash": "1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2",
+        "contentHash": "<the bundle hash>",
         "modelHashes": {
           "asr": "scripted-transcript"
         }
@@ -226,14 +225,14 @@ whitespace between tokens):
     "decision": {
       "agent": {
         "next": {
-          "agentId": "blacksmith",
-          "stateId": "trading",
+          "agentId": "villager",
+          "stateId": "idle",
           "interactionCounter": 1
         },
         "actions": [
           {
-            "dialogueIntent": "offer_item_reply",
-            "hostEvent": "trade.offer",
+            "dialogueIntent": "villager_give",
+            "hostEvent": "villager.give",
             "variantIndex": 0
           }
         ]
@@ -253,7 +252,7 @@ whitespace between tokens):
             "errors": 1
           },
           {
-            "skillId": "intent.offer_item",
+            "skillId": "intent.request_item",
             "pKnown": 0.6926829268292684,
             "attempts": 1,
             "errors": 0
@@ -266,14 +265,14 @@ whitespace between tokens):
           }
         ]
       },
-      "rating": "Hard",
+      "rating": "Good",
       "feedback": {
         "items": [
           {
             "tag": "conj.person",
             "type": "Recast",
-            "expected": "tengo",
-            "actual": "tiene"
+            "expected": "quiero",
+            "actual": "quiere"
           },
           {
             "tag": "noun.number",
@@ -287,13 +286,13 @@ whitespace between tokens):
     "response": {
       "lines": [
         {
-          "lineId": "feedback.recast.conj.person.2",
-          "text": "Ah, ¿tienes dos espadas? ¡Muy bien!",
+          "lineId": "feedback.recast.3",
+          "text": "¡Eso es! «Yo quiero dos espadas».",
           "isRecast": true
         },
         {
-          "lineId": "offer_item_reply.1",
-          "text": "¡Dos espadas! Trato hecho.",
+          "lineId": "villager_give.1",
+          "text": "Aquí tienes.",
           "isRecast": false
         }
       ]
@@ -302,37 +301,36 @@ whitespace between tokens):
     "repair": null,
     "replay": {
       "clipHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "promptId": "offer-items-open",
-      "hostStateHash": "6b9e4914018ba5c025378256d2bc473fbab48e4db7cbf773baae073e42d76b21",
+      "promptId": "villager-open",
+      "hostStateHash": "ef1f6cd97924f568ad427c7713c811a5a780f61c0ebe52b323ea00c6e7100fc7",
       "versions": {
-        "contentHash": "1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2",
+        "contentHash": "<the bundle hash>",
         "modelHashes": {
           "asr": "scripted-transcript"
         }
       },
       "verdict": {
-        "intent": "offer_item",
+        "intent": "request_item",
         "slots": {
           "item": "espada",
-          "qty": "2",
-          "verb": "tener"
+          "qty": "2"
         },
         "communicated": true,
-        "correctness": 0.5,
+        "correctness": 0.6,
         "errors": [
           {
             "tag": "conj.person",
             "span": {
               "start": 3,
-              "length": 5
+              "length": 6
             },
-            "expected": "tengo",
-            "actual": "tiene"
+            "expected": "quiero",
+            "actual": "quiere"
           },
           {
             "tag": "noun.number",
             "span": {
-              "start": 11,
+              "start": 12,
               "length": 6
             },
             "expected": "espadas",
@@ -343,12 +341,101 @@ whitespace between tokens):
         "confidence": 1,
         "resolvedBy": "Grammar",
         "versions": {
-          "contentHash": "1c2240c78d8a811afd4da12076b41055bab5a35bdc7d24b8d4b07fb16c9d38f2",
+          "contentHash": "<the bundle hash>",
           "modelHashes": {
             "asr": "scripted-transcript"
           }
         }
       }
+    },
+    "words": [
+      {
+        "token": {
+          "text": "yo",
+          "span": {
+            "start": 0,
+            "length": 2
+          },
+          "original": "yo"
+        },
+        "role": "Word",
+        "reading": {
+          "lemma": "yo",
+          "pos": "pron",
+          "person": "1",
+          "number": "sg",
+          "tense": null,
+          "mood": null,
+          "gender": null
+        }
+      },
+      {
+        "token": {
+          "text": "quiere",
+          "span": {
+            "start": 3,
+            "length": 6
+          },
+          "original": "quiere"
+        },
+        "role": "Word",
+        "reading": {
+          "lemma": "querer",
+          "pos": "verb",
+          "person": "3",
+          "number": "sg",
+          "tense": "pres",
+          "mood": "ind",
+          "gender": null
+        }
+      },
+      {
+        "token": {
+          "text": "2",
+          "span": {
+            "start": 10,
+            "length": 1
+          },
+          "original": "dos"
+        },
+        "role": "Word",
+        "reading": {
+          "lemma": "2",
+          "pos": "num",
+          "person": null,
+          "number": "pl",
+          "tense": null,
+          "mood": null,
+          "gender": null
+        }
+      },
+      {
+        "token": {
+          "text": "espada",
+          "span": {
+            "start": 12,
+            "length": 6
+          },
+          "original": "espada"
+        },
+        "role": "Word",
+        "reading": {
+          "lemma": "espada",
+          "pos": "noun",
+          "person": null,
+          "number": "sg",
+          "tense": null,
+          "mood": null,
+          "gender": "f"
+        }
+      }
+    ],
+    "answer": {
+      "answerId": null,
+      "type": "None",
+      "distance": 13,
+      "likelyPronunciation": false,
+      "confidence": 0
     }
   }
 }
@@ -362,12 +449,11 @@ What to notice:
   purpose: `record` is the contract that is also valid on its own, `result` is everything the pipeline produced.
 - `record.verdict.versions` and `record.versions` are identical; both carry the content hash.
 - `context.worldSeed` is 42 and `context.agentState.interactionCounter` is 0. Together with the agent id they seed the random
-  draw that chose the second agent line (`offer_item_reply.1`, "¡Dos espadas! Trato hecho."). Without `--seed`, the seed is 0 and the
-  same utterance gets a different variant ("Vale, dos espadas. Gracias, amigo."), which is why the seed is part of the log.
-- `decision.agent.next` moves the blacksmith from `idle` to `trading` and `decision.agent.actions` carries the host event
-  `trade.offer`. `decision.learner` is the learner model after this utterance (three skills touched: `conj`, `noun`,
-  `intent.offer_item`).
-- `response.lines[0]` is the recast ("Ah, ¿tienes dos espadas? ¡Muy bien!"), built from the player's own slots; `isRecast` is `true`.
+  draw that chose the recast line (`feedback.recast.3`) and the reply (`villager_give.1`, "Aquí tienes."). Without `--seed`, the seed is 0 and the
+  same utterance gets a different recast ("Claro, «yo quiero dos espadas». Muy bien."), which is why the seed is part of the log.
+- `decision.agent.next` keeps the villager in `idle` and `decision.agent.actions` carries the host event `villager.give`. `decision.learner` is the learner
+  model after this utterance (three skills touched: `conj`, `noun`, `intent.request_item`).
+- `response.lines[0]` is the recast ("¡Eso es! «Yo quiero dos espadas»."), built from the player's own sentence; `isRecast` is `true`.
 - `posteriors` is `null`: no phoneme recognizer ran, so `verdict.pronunciation` is empty.
 
 ## Writing a log
@@ -381,7 +467,7 @@ Nothing is written unless you ask for it, and the file is only ever appended to.
 ## Replaying a log
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- replay replay.jsonl --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- replay replay.jsonl --content content/game-v1
 ```
 
 ```text
@@ -403,14 +489,14 @@ Pointer paths (RFC 6901) of the values that differ, and exits 1:
 DIFF entry 1: /verdict/correctness
 ```
 
-(That output comes from editing `record.verdict.correctness` in the file from 0.5 to 0.9.)
+(That output comes from editing the correctness in the file from 0.6 to 0.9.)
 
 **Logs recorded before M26c** carry no `words` or `answer` in `result`. Replaying one reports `/words` and `/answer` as differing
 (the recorded value is absent, the new one is not); the verdict and the other downstream parts still compare as before. Re-record such a
 log to get a clean replay. No log is committed in the repository.
 
 The same thing happens when the content bundle is not the one the log was recorded with, because the content hash is part of the
-version stamp:
+version stamp (here the hash in the file was replaced by 64 zeros):
 
 ```text
 DIFF entry 1: /verdict/versions/contentHash, /versions/contentHash
@@ -423,7 +509,7 @@ What a difference means:
 - A **verdict or downstream difference with the same version stamp** is a regression in the code (or a nondeterminism bug).
   This is what the replay exists to catch.
 - A **version stamp difference** (`/versions/contentHash`) means the content bundle changed since the recording. Any edit to
-  `content/v1` changes the hash, so old logs report a difference until they are re-recorded. That is expected after an
+  `content/game-v1` changes the hash, so old logs report a difference until they are re-recorded. That is expected after an
   intentional content change; it is not expected otherwise.
 - The replay does not re-check the models. It trusts the recorded `asr` and `posteriors`. Whether a model still produces the
   same output is the job of the model-gated tests and of the golden audio set (`tests/golden/README.md`).
@@ -431,12 +517,12 @@ What a difference means:
 ## A model-backed log
 
 With the Vosk model fetched (`scripts/fetch-models.sh vosk-model-small-es-0.42`), `eval --wav ... --models models` records the
-real recognizer output. This is the `asr` part of an envelope recorded for a short English clip on the `spell-cast-constrained`
-prompt. The clip (`Front_Center.wav` from the `alsa-utils` sample sounds) is not Spanish, so the constrained recognizer finds
-nothing from the spell grammar and answers `[unk]`:
+real recognizer output. This is the `asr` part of an envelope recorded for a short English clip on the constrained prompt `lesson-hello`. The clip
+(`Front_Center.wav` from the `alsa-utils` sample sounds) is not Spanish, so the constrained recognizer finds nothing from the greeting's answer set and
+answers `[unk]`:
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --wav /usr/share/sounds/alsa/Front_Center.wav --prompt spell-cast-constrained --content content/v1 --models models --replay-out vosk-replay.jsonl
+dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --wav /usr/share/sounds/alsa/Front_Center.wav --prompt lesson-hello --content content/game-v1 --models models --replay-out vosk-replay.jsonl
 ```
 
 ```json
@@ -445,23 +531,23 @@ dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --wav /usr/share/sounds/als
   "nBest": [
     {
       "text": "[unk]",
-      "score": 0.6757861855264654
+      "score": 0.7808811578363563
     },
     {
-      "text": "el [unk]",
-      "score": 0.124123089736703
+      "text": "más [unk]",
+      "score": 0.07185390580557677
     },
     {
-      "text": "[unk] lanza",
-      "score": 0.07843825324564244
+      "text": "por [unk]",
+      "score": 0.058497087788082595
     },
     {
       "text": "[unk] [unk]",
-      "score": 0.07478697452210112
+      "score": 0.0514905333125128
     },
     {
-      "text": "[unk] lanza [unk]",
-      "score": 0.04686549696908803
+      "text": "sé [unk]",
+      "score": 0.03727731525747155
     }
   ],
   "words": [
@@ -472,7 +558,7 @@ dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --wav /usr/share/sounds/als
       "confidence": 1
     }
   ],
-  "confidence": 0.6757861855264654,
+  "confidence": 0.7808811578363563,
   "modelHash": "529f298625af25f8d94240c49ff87eaee8f925eeb0c55dcb16768268d6f80d0f",
   "mode": "Constrained"
 }
@@ -483,7 +569,7 @@ Here `modelHash` is the model hash from `models/manifest.json` (the combined has
 and the pipeline's repair step asked "¿Cómo?". This log replays with no model present:
 
 ```bash
-dotnet run --project tools/Vocaterra.Nlp.Cli -- replay vosk-replay.jsonl --content content/v1
+dotnet run --project tools/Vocaterra.Nlp.Cli -- replay vosk-replay.jsonl --content content/game-v1
 ```
 
 ```text

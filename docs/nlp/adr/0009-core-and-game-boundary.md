@@ -1,5 +1,12 @@
 # ADR 0009: The core and the game boundary
 
+> **Note (2026-10-23, R02):** there is one content bundle now, `content/game-v1`. The sample bundle `content/v1` that this record keeps in the core as its demo and
+> fixture (decision D7) was deleted; the core's tests, its fuzz suite, its demo CLI and its embedded seed lexicon read `content/game-v1`, found by walking up from the
+> test assembly (nothing is copied). The boundary is otherwise unchanged: the game still never reaches into core source, the core still names no scene, item, price or
+> reward, and effect kinds are still opaque (the game's effect table is empty today; the core's tests keep effects and curves covered with a table built in the
+> test). A game edit that breaks something the core relies on fails a core test, which is wanted. Where the text below says "the sample bundle" or `content/v1`, read the
+> game's bundle (D7 superseded; the owner's decision file records it).
+
 > **Note (M19e, 2026-10-21):** game-side matters in this record, such as the engine choice and the game's scenes, are now decided in the Vocaterra game repository, not in this one. The text below is unchanged.
 >
 > **Note (2026-10-21, later; game decision D-game-7):** the two repositories are one again, as sibling folders: this record's "core" is `nlp/`, the "game" is `game/`. The boundary is unchanged and is now a folder boundary: the game references the core's projects (no packages), never copies core source, and a core change the game needs is a core milestone. The text below is unchanged.

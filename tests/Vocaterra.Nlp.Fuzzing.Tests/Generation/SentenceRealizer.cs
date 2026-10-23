@@ -26,6 +26,7 @@ internal sealed class SentenceRealizer
     private readonly List<Item> _items = [];
     private string _detail = string.Empty;
     private string _tense = LexiconSchema.Present;
+    private bool _pastMarker;
 
     public SentenceRealizer(LexiconCatalog words, SeededRng rng, SentenceOptions options)
     {
@@ -101,6 +102,27 @@ internal sealed class SentenceRealizer
                 _detail = item.Surface!;
                 return null;
             }
+        }
+
+        // A time adverb written into the pattern (the game's grammars have (mañana|ayer|hoy) around a verb) fixes the tense of every verb of the sentence: a past marker
+        // wants the preterite, a future marker the present (near future: "mañana voy a comer"), and a past and a future marker in one sentence contradict each other.
+        // This is the realiser keeping its promise (a sentence correct by construction); without it "ayer vas a la casa" came out of the pattern as a correct sentence.
+        var literalWords = _items.Where(static i => i.Kind == Kind.Literal).Select(static i => i.Surface!.ToLowerInvariant()).ToArray();
+        _pastMarker = literalWords.Any(word => LexiconCatalog.PastTimeAdverbs.Contains(word));
+        var futureMarker = literalWords.Any(word => LexiconCatalog.FutureTimeAdverbs.Contains(word));
+        if (_pastMarker && futureMarker)
+        {
+            skip = "conflicting-time-markers";
+            return null;
+        }
+
+        if (_pastMarker)
+        {
+            _tense = LexiconSchema.Preterite;
+        }
+        else if (futureMarker)
+        {
+            _tense = LexiconSchema.Present;
         }
 
         AddImplicitElements();
@@ -300,6 +322,19 @@ internal sealed class SentenceRealizer
         return index < _items.Count ? index : -1;
     }
 
+    private int PreviousContentIndex(int from)
+    {
+        for (var index = from - 1; index >= 0; index--)
+        {
+            if (!IsSkippable(_items[index]))
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
     private Item? PreviousContent(int from)
     {
         for (var index = from - 1; index >= 0; index--)
@@ -467,8 +502,18 @@ internal sealed class SentenceRealizer
             }
 
             item.Lemma = lexeme.Lemma;
-            var previous = PreviousContent(i);
+            var previousIndex = PreviousContentIndex(i);
+            var previous = previousIndex >= 0 ? _items[previousIndex] : null;
             item.Infinitive = previous is not null && IsFiniteVerbItem(previous);
+
+            // The near future written into a pattern (the game's [VERB:ir] a [VERB:comer]): a verb behind a form of ir and the literal a is an infinitive (voy a comer).
+            if (!item.Infinitive
+                && previous is { Kind: Kind.Literal } && string.Equals(previous.Surface, "a", StringComparison.OrdinalIgnoreCase)
+                && PreviousContentIndex(previousIndex) is var beforeA and >= 0
+                && _items[beforeA] is { Kind: Kind.Verb, Infinitive: false, Lemma: "ir" })
+            {
+                item.Infinitive = true;
+            }
 
             // M51: ir followed directly by an infinitive without "a" (voy comer) is a conj.tense mistake now, so it is not a correct sentence; the draw is skipped, as M49 did for mañana.
             if (item.Infinitive && string.Equals(previous!.Lemma, "ir", StringComparison.Ordinal))
@@ -797,6 +842,12 @@ internal sealed class SentenceRealizer
             }
 
             var lexeme = _words.VerbOf(item.Lemma!)!;
+            if (_pastMarker && !lexeme.HasPreterite)
+            {
+                skip = "past-marker-without-preterite";
+                return false;
+            }
+
             var tense = lexeme.HasPreterite ? _tense : LexiconSchema.Present;
             var form = _words.Morphology.Conjugate(item.Lemma!, person, number, tense);
             if (form is null)

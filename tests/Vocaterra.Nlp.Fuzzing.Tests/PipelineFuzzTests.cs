@@ -205,7 +205,7 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
         }
     }
 
-    // CR-015: the host turn the case took before its utterance. The bundle's blacksmith handles the event in every state; any other agent does nothing.
+    // CR-015: the host turn the case took before its utterance. The agents of the host-turn bundle handle the event in every state; any other agent does nothing.
     private static void CheckHostTurn(PipelineCase c, UtterancePipeline pipeline, ConversationContext context)
     {
         var before = BaseContext(c);
@@ -232,7 +232,7 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
 
         if (turn is null)
         {
-            throw Determinism.Fail(Oracle, "The host-turn bundle's blacksmith handles the event in every state, but no turn happened.", c);
+            throw Determinism.Fail(Oracle, "The host-turn bundle's agents handle the event in every state, but no turn happened.", c);
         }
 
         var expected = machine!.StepHostEvent(before.AgentState, PipelineHarness.HostTurnEvent, SeededRng.ForInteraction(before.WorldSeed, before.AgentId, before.AgentState.InteractionCounter));

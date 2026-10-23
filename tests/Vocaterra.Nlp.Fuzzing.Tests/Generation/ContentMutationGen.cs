@@ -56,12 +56,13 @@ public sealed record ContentMutation(ContentMutationKind Kind, string File, IRea
 }
 
 /// <summary>
-/// Structural mutations of the <c>content/v1</c> JSON files, found by walking the files themselves (so a new file or a new field widens the
+/// Structural mutations of the <c>content/game-v1</c> JSON files, found by walking the files themselves (so a new file or a new field widens the
 /// coverage): remove a property, change a value's JSON kind, point a reference at an id that does not exist, give an enumerated field an unknown
 /// value, empty a required non-empty string (an effect's id, intent or kind, a prompt's id or text), duplicate an element that has an id, and flip a byte
 /// without touching the manifest. Every mutated bundle is written to a unique temporary
 /// directory, with the manifest recomputed from the mutated files (so the loader's schema and reference checks run, not just its hash check),
-/// except for the byte flip, which leaves the manifest alone on purpose.
+/// except for the byte flip, which leaves the manifest alone on purpose. The bundle's 433 speech clips (33 MB, host-owned audio the loader only hashes) are
+/// linked into each copy instead of written, so an iteration does not write 38 MB; a byte flip in a clip writes that one file.
 /// </summary>
 public sealed class ContentMutationGen
 {
@@ -106,9 +107,10 @@ public sealed class ContentMutationGen
     private readonly Dictionary<ContentMutationKind, (string File, string[] Path)[][]> _byFile = [];
     private readonly ContentMutationKind[] _kinds;
 
-    private ContentMutationGen(string directory)
+    private ContentMutationGen(string directory, IReadOnlyCollection<string> hostFiles)
     {
         Directory = directory;
+        var host = new HashSet<string>(hostFiles, StringComparer.Ordinal);
         foreach (var path in System.IO.Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories).Order(StringComparer.Ordinal))
         {
             var relative = Path.GetRelativePath(directory, path).Replace('\\', '/');
@@ -126,7 +128,9 @@ public sealed class ContentMutationGen
             // The imported lexicon (megabytes, tens of thousands of entries) has the schema of the small hand-authored lexicon files, so structural damage
             // is drawn from those; parsing and writing it back for every mutation would cost more than all the other files together. A flipped byte
             // still reaches it (the flip kind needs no parsing).
-            if (!relative.EndsWith(".json", StringComparison.Ordinal) || bytes.Length > MaxStructuralBytes)
+            // A host-owned file (the game's own JSON under game/, the speech clips) is hashed but not read by the loader, so damage to its structure is no
+            // defect of the loader's; only a flipped byte reaches it, through the hash.
+            if (!relative.EndsWith(".json", StringComparison.Ordinal) || bytes.Length > MaxStructuralBytes || host.Contains(relative))
             {
                 continue;
             }
@@ -154,8 +158,36 @@ public sealed class ContentMutationGen
         _kinds = Enum.GetValues<ContentMutationKind>().Where(kind => _candidates[kind].Count > 0).ToArray();
     }
 
-    /// <summary>The committed bundle copied next to the test assembly.</summary>
-    public static ContentMutationGen Shared { get; } = new(PipelineHarness.Shared.BundleDirectory);
+    /// <summary>The repository's bundle, <c>content/game-v1</c>.</summary>
+    public static ContentMutationGen Shared { get; } = new(PipelineHarness.Shared.BundleDirectory, PipelineHarness.Shared.Bundle.HostFilePaths);
+
+    /// <summary>
+    /// The same walk over a copy of the bundle that carries the effects fixture (<see cref="PipelineHarness.EffectsJson"/>), because the game's own effect table is
+    /// empty and the loader's effect checks (an effect's id, intent and kind, its curve, its intent reference) would never be mutated otherwise. The copy is
+    /// rehashed, so its bundle hash is its own (<see cref="BaseHash"/>) and not the repository bundle's; it lives in a temporary folder until the process ends.
+    /// </summary>
+    public static ContentMutationGen WithEffects => WithEffectsLazy.Value;
+
+    private static readonly Lazy<ContentMutationGen> WithEffectsLazy = new(() =>
+    {
+        var copy = new TempBundle(full: true);
+        copy.Write("effects/effects.json", PipelineHarness.EffectsJson);
+        copy.Rehash();
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => copy.Dispose();
+        return new ContentMutationGen(copy.Directory, PipelineHarness.Shared.Bundle.HostFilePaths);
+    });
+
+    /// <summary>The parsed, unmutated JSON of a file of the catalog (a file the walk parsed: loader-owned and under the size limit).</summary>
+    public JsonNode OriginalJson(string file)
+    {
+        return _parsed[file];
+    }
+
+    /// <summary>The bundle hash of the unmutated files this catalog was read from.</summary>
+    public string BaseHash => _original.BundleHash;
+
+    /// <summary>A generator over mutations of this catalog: the seed picks the kind, the file, the place and the new value.</summary>
+    public Gen<ContentMutation> Draws => Gen.ULong.Select(seed => Build(new SeededRng(seed)));
 
     /// <summary>The directory the catalog was read from.</summary>
     public string Directory { get; }
@@ -206,6 +238,11 @@ public sealed class ContentMutationGen
         {
             var target = Path.Combine(directory, relative);
             System.IO.Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            if (relative.StartsWith("speech/", StringComparison.Ordinal) && mutation?.File != relative && TryLink(target, Path.Combine(Directory, relative)))
+            {
+                continue;
+            }
+
             File.WriteAllBytes(target, bytes);
         }
 
@@ -234,6 +271,20 @@ public sealed class ContentMutationGen
         }
 
         return directory;
+    }
+
+    // A symbolic link to the original file; false where the platform or the account cannot make one (the caller then writes the bytes).
+    private static bool TryLink(string target, string source)
+    {
+        try
+        {
+            File.CreateSymbolicLink(target, source);
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or PlatformNotSupportedException)
+        {
+            return false;
+        }
     }
 
     // The manifest of the mutated copy: the committed manifest with the entry of the one file that changed recomputed from the file as written (the other
