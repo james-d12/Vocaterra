@@ -23,7 +23,7 @@ public static class HudLayout
 
     /// <summary>
     /// The checklist's pieces in rows: on one row when they fit <paramref name="oneRowMax"/> (the share of the canvas the checklist may take); otherwise the title on the first
-    /// row and the steps after it, and a steps row wider than <paramref name="maxWidth"/> (the canvas less its margins) goes on to a further row at a piece's edge. A piece is
+    /// row and the steps after it, and a steps row wider than <paramref name="maxWidth"/> (the canvas less its margins) goes on to a further row, at the start of a step (a step's word, its English and its count stay together). A piece is
     /// never cut, so a row is never wider than the canvas unless a single piece is.
     /// </summary>
     /// <typeparam name="T">The piece type.</typeparam>
@@ -60,22 +60,57 @@ public static class HudLayout
         var rows = new List<List<T>> { pieces.Take(firstStep).ToList() };
         var current = new List<T>();
         var used = 0f;
-        foreach (var piece in pieces.Skip(firstStep))
+        for (var i = firstStep; i < pieces.Count; i++)
         {
-            var w = width(piece);
-            if (current.Count > 0 && used + w > maxWidth && rows.Count < MaxObjectiveRows)
+            var piece = pieces[i];
+            if (isStep(piece))
             {
-                rows.Add(current);
-                current = [];
-                used = 0;
+                // The step's own width: its word, and the English and the count that follow it up to the next step.
+                var group = width(piece);
+                for (var j = i + 1; j < pieces.Count && !isStep(pieces[j]); j++)
+                {
+                    group += width(pieces[j]);
+                }
+
+                if (current.Count > 0 && used + group > maxWidth && rows.Count < MaxObjectiveRows)
+                {
+                    rows.Add(current);
+                    current = [];
+                    used = 0;
+                }
             }
 
             current.Add(piece);
-            used += w;
+            used += width(piece);
         }
 
         rows.Add(current);
         return rows;
+    }
+
+    /// <summary>The distance from the canvas's bottom to the top of the hotbar: the hotbar's slots are 48 tall with a 12 px margin.</summary>
+    public const int HotbarTop = 60;
+
+    /// <summary>
+    /// The workbench panel's box (X08): at the right, centred on the canvas a little high as before, but moved down under the checklist (which can be three rows tall) and up off the
+    /// hotbar, so it overlaps neither. The checklist wins when the canvas is too short for both (it is not: 533 x 400 holds 80 + 8 + 244 + 68).
+    /// </summary>
+    /// <param name="canvasWidth">The canvas's width.</param>
+    /// <param name="canvasHeight">The canvas's height.</param>
+    /// <param name="width">The panel's width.</param>
+    /// <param name="height">The panel's height.</param>
+    /// <param name="objectiveBottom">The bottom of the checklist, or 0 when it is not drawn.</param>
+    public static PixelBox RecipePanelBox(int canvasWidth, int canvasHeight, int width, int height, int objectiveBottom)
+    {
+        var y = (canvasHeight / 2) - (height / 2) - 30;
+        if (objectiveBottom > 0)
+        {
+            y = Math.Max(y, objectiveBottom + 8);
+        }
+
+        y = Math.Min(y, canvasHeight - HotbarTop - 8 - height);
+        y = Math.Max(y, Margin);
+        return new PixelBox(Math.Max(Margin, canvasWidth - width - 20), y, width, height);
     }
 
     /// <summary>The checklist's box.</summary>

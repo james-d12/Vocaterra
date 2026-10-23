@@ -703,7 +703,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         var eye = Vector3.Lerp(_previousEye, _currentEye, alpha);
         eye.Y += (float)(_previousEase + ((_currentEase - _previousEase) * alpha));
         var farPlane = VoxelRenderer.FarPlaneFor(_preset.ViewDistance);
-        _camera.Update(eye, _look.YawSteps, _look.PitchSteps, width, height, farPlane);
+        _camera.Update(eye, _look.YawSteps, _look.PitchSteps, width, height, farPlane, canvasWidth, canvasHeight); // the labels and the arrow are placed on the canvas of the 2D layers (X08)
         var shoulder = _viewMode.IsThirdPerson;
         if (shoulder)
         {
@@ -713,7 +713,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
                 (eye.X, eye.Y, eye.Z),
                 (_camera.Forward.X, _camera.Forward.Y, _camera.Forward.Z),
                 (_camera.Right.X, _camera.Right.Y, _camera.Right.Z));
-            _camera.Update(new Vector3(back.X, back.Y, back.Z), _look.YawSteps, _look.PitchSteps, width, height, farPlane);
+            _camera.Update(new Vector3(back.X, back.Y, back.Z), _look.YawSteps, _look.PitchSteps, width, height, farPlane, canvasWidth, canvasHeight);
         }
 
         view.Eye = eye;
@@ -739,7 +739,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         _renderer.DrawWorld(_camera, _sim.Target?.Block, Beacon.Target, _sim.Tick, shoulder ? PlayerAvatarNow() : null, shoulder ? null : ArmFrameNow(eye));
 
         var spriteBatch = _spriteBatch!;
-        spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: Matrix.CreateScale(width / (float)canvasWidth, height / (float)canvasHeight, 1f));
+        UiTransform.Set(width, height, canvasWidth, canvasHeight);
+        spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: UiTransform.Matrix);
         foreach (var layer in _layers)
         {
             layer.Draw(spriteBatch, view);

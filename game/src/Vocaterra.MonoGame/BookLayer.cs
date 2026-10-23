@@ -335,7 +335,7 @@ public sealed class BookLayer : IFrameLayer
                 : rightEdge - x - (int)DrawHelpers.Width(font, line.Text) - (Gutter * 2) - (int)DrawHelpers.Width(font, line.Aside) - Gutter;
             if (line.Aside is null || room >= MinNoteWidth)
             {
-                var fitted = Fit(font, rightText, room);
+                var fitted = FitNote(font, rightText, room);
                 var width = (int)DrawHelpers.Width(font, fitted);
                 InkText(spriteBatch, font, fitted, new Vector2(rightEdge - width, top + 2), line.Tone == BookTone.Gold ? InkKnown : InkHint);
                 reserved = width + Gutter;
@@ -702,6 +702,22 @@ public sealed class BookLayer : IFrameLayer
 
     // Shortens a text to fit a width with "..." at its end (a line never runs over its neighbour).
     private static string Fit(SpriteFontBase font, string text, int maxWidth) => DrawHelpers.Fit(font, text, maxWidth);
+
+    // A row's note on the right is columns three spaces apart ("used 1   correct 1"): on a narrow page it gives up its last columns before it is cut mid-word (X08).
+    private static string FitNote(SpriteFontBase font, string text, int maxWidth)
+    {
+        var columns = text.Split("   ", StringSplitOptions.RemoveEmptyEntries);
+        for (var count = columns.Length; count >= 1; count--)
+        {
+            var candidate = string.Join("   ", columns.Take(count));
+            if (DrawHelpers.Width(font, candidate) <= maxWidth)
+            {
+                return candidate;
+            }
+        }
+
+        return Fit(font, columns.Length == 0 ? text : columns[0], maxWidth);
+    }
 
     private static Color ToneColour(BookTone tone) => tone switch
     {

@@ -849,3 +849,24 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --session-d
 # a forced crash: the report and crash.save are written and the exit code is 1
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --session-dir /tmp/x05/crash --debug-crash-after 600 --screenshot /tmp/x05/crash.png --frames 900; echo "exit $?"
 ```
+
+## UI scale and readable text (X08, R09)
+
+The interface text has three sizes: 100, 125 and 150 percent (`SaveSettings.TextScaleLevels`). `--text-scale <n>` sets it for a run, **F9** steps through them in play
+(F9 had no other binding, and no text box reads it), and the choice is kept in the save's settings (`textScale`; a save from before has 100). 100 is the size the layouts
+were made at; 150 is the largest because an 800 x 600 window at 150 percent is a 533 x 400 canvas, the smallest the layouts are proven on (a smaller window uses a lower
+scale, `UiScale.Effective`).
+
+The 2D layers are drawn on a canvas of the window divided by the scale and magnified to the window (`UiScale`, `UiTransform`), so every engine-free layout model simply
+gets a smaller canvas; the mouse and the projected labels use the same canvas. Atlas pictures are drawn in window pixels so a 1.5 magnification leaves no light line under
+an icon. What each layout does when the canvas is short:
+
+- **Dialogue panel:** under 540 px tall it is about half the canvas; it gives up the key hints line, then the buttons' English, then the log (the bubble and the lesson strip carry the line).
+- **Lesson strip:** smaller padding and buttons; the English goes over pages (the `[M] More (1/2)` button), then the hint shrinks, then a second row of Spanish goes; buttons wrap to rows.
+- **Cards, bubble, beacon label:** the bubble stands in the band between the strip and the panel (or is left out); the label is left out when it has no free place; the cards collapse or hide as before.
+- **Check card:** compact rows; a heading of more than two rows takes the small font; a typed answer scrolls inside its box.
+- **Book:** the ribbons narrow, a row's note gives up its last column, a conjugation table stacks its tenses in blocks, the key hints shorten.
+- **Checklist, toast, workbench panel:** the checklist wraps by step (up to three rows) and gives way to the strip; a toast wraps; the workbench stands under the checklist.
+- **Report, mic check, inventory, crafting, F1 controls, closing card:** the report shows fewer text rows and wraps its hints; the inventory uses 44 x 56 slots; the crafting station column is left out when there is no room; the controls help scrolls (Up, Down, wheel); the closing card cuts the summary with an ellipsis.
+
+Contrast: the dim lines and the paper book's inks are in `UiPalette`, and `UiScaleLayoutTests` measures every pair (WCAG 2.x, 4.5 to 1 for body text, on the panel and where a bright sky shows through a translucent panel).

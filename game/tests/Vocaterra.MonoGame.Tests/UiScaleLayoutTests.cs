@@ -88,6 +88,21 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         Assert.Equal(100, SaveSettings.SnapTextScale(-5));
     }
 
+    [Fact]
+    public void TheTextScaleFlagTakesOneOfTheStepsAndNothingElse()
+    {
+        Assert.True(LaunchOptions.TryParse(["--screenshot", "a.png", "--text-scale", "150"], out var options, out var error), error);
+        Assert.Equal(150, options.TextScale);
+        Assert.True(LaunchOptions.TryParse(["--screenshot", "a.png"], out var plain, out _));
+        Assert.Null(plain.TextScale); // none: the save's, else 100
+
+        foreach (var bad in new[] { "110", "0", "200", "big", "-125" })
+        {
+            Assert.False(LaunchOptions.TryParse(["--screenshot", "a.png", "--text-scale", bad], out _, out error), bad);
+            Assert.Contains("--text-scale", error, StringComparison.Ordinal);
+        }
+    }
+
     // ---- The dialogue panel.
 
     [Theory]
@@ -691,17 +706,38 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
-        var pieces = new List<(string Text, int Width)>
+        // The checklist as the game builds it: the title, then each step as a word, its English and its count, with a dot between steps (6.1 px a character).
+        var pieces = new List<(string Text, int Width, bool Step)>
         {
-            ("Campamento (camp): ", 117), ("madera (wood) 0/5", 104), (" · ", 18), ("frutas (fruit) 0/3", 109), (" · ", 18), ("antorcha (torch) 0/1", 122), (" · ", 18), ("agua (water) 0/1", 98),
+            ("Campamento", 61, false), (" (camp):", 49, false),
+            ("madera", 37, true), (" (wood)", 43, false), (" 0/5", 24, false), (" · ", 18, false),
+            ("frutas", 37, true), (" (fruit)", 49, false), (" 0/3", 24, false), (" · ", 18, false),
+            ("antorcha", 49, true), (" (torch)", 49, false), (" 0/1", 24, false), (" · ", 18, false),
+            ("agua", 24, true), (" (water)", 49, false), (" 0/1", 24, false),
         };
-        var rows = HudLayout.ObjectiveRows(pieces, static p => p.Width, static p => p.Text.Contains('/'), (float)(canvas.Width * ObjectiveLayer.WidthShare), canvas.Width - (2 * HudLayout.Margin) - 16);
+        var rows = HudLayout.ObjectiveRows(pieces, static p => p.Width, static p => p.Step, (float)(canvas.Width * ObjectiveLayer.WidthShare), canvas.Width - (2 * HudLayout.Margin) - 16);
         Assert.True(rows.Count <= HudLayout.MaxObjectiveRows);
         Assert.Equal(pieces, rows.SelectMany(static r => r).ToList()); // no piece is lost
+        foreach (var row in rows.Skip(1))
+        {
+            Assert.True(row[0].Step, "a row after the title starts on a step: a step is not split from its English and its count");
+        }
+
         var widest = rows.Max(static r => r.Sum(static p => p.Width));
         var box = HudLayout.ObjectiveBox(canvas.Width, widest, rows.Count);
         Assert.True(Inside(box, window), $"the checklist {box} is outside the canvas {canvas}");
         Assert.True(widest + 16 <= canvas.Width - (2 * HudLayout.Margin), $"a checklist row of {widest} px does not fit the canvas");
+
+        // The workbench panel (168 x 244) stands under the checklist and above the hotbar, at every number of checklist rows.
+        var hotbar = new PixelBox((canvas.Width - 516) / 2, canvas.Height - HudLayout.HotbarTop, 516, 48);
+        foreach (var checklistRows in new[] { 1, 2, 3 })
+        {
+            var checklist = HudLayout.ObjectiveBox(canvas.Width, 400, checklistRows);
+            var recipe = HudLayout.RecipePanelBox(canvas.Width, canvas.Height, 168, 244, checklist.Bottom);
+            Assert.True(Inside(recipe, window), $"the workbench panel {recipe} is outside the canvas {canvas}");
+            Assert.True(Apart(recipe, checklist), $"the workbench panel overlaps a checklist of {checklistRows} rows");
+            Assert.True(Apart(recipe, hotbar), "the workbench panel overlaps the hotbar");
+        }
 
         foreach (var text in new[] { "¡Nueva palabra: el árbol!", "¡Nueva palabra: el árbol! Habla con la guía en el campamento y pídele agua, por favor." })
         {

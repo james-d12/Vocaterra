@@ -89,7 +89,7 @@ public sealed class InventoryLayer : IFrameLayer
 
         if (CountBadge.Text(stack.Count, showOne: true) is { } count)
         {
-            DrawHelpers.Badge(spriteBatch, pixel, font, count, new Point(box.Right - 3, box.Bottom - 3));
+            DrawHelpers.Badge(spriteBatch, pixel, font, count, new Point(box.Right - 3, compact ? box.Top + 36 : box.Bottom - 3)); // a short slot puts the count over the icon's corner, clear of the name (X08)
         }
     }
 }

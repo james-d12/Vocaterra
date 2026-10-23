@@ -25,22 +25,46 @@ public sealed class ObjectiveLayer : IFrameLayer
     private static readonly Color DoneEnglish = UiPalette.DoneEnglish.ToColor();
     private static readonly Color Back = new(10, 10, 20, 190);
 
-    /// <inheritdoc />
-    public void Draw(SpriteBatch spriteBatch, FrameView view)
+    // The checklist's rows and box for a frame, or null when there is no checklist.
+    private static (List<List<ObjectivePiece>> Rows, PixelBox Box)? PlanFor(FrameView view, FontStashSharp.SpriteFontBase font)
     {
         if (view.Objective is not { } objective)
         {
-            return;
+            return null;
         }
 
-        var font = view.Fonts.Get(FontProvider.NativeSize);
         var session = view.Session;
         var pieces = session is VoxelSession voxel
             ? voxel.ObjectiveHud() // the stage's line, or the checklist (S17)
             : session.English.ObjectivePieces(objective, lemma => session.Words.RecordOf(lemma).Known);
         var rows = HudLayout.ObjectiveRows(pieces, p => DrawHelpers.Width(font, p.Text), static p => p.Kind == ObjectivePieceKind.Word, (float)(view.ViewportWidth * WidthShare), view.ViewportWidth - (2 * Margin) - 16);
         var width = rows.Max(row => row.Sum(p => (int)DrawHelpers.Width(font, p.Text)));
-        var layoutBox = HudLayout.ObjectiveBox(view.ViewportWidth, width, rows.Count);
+        return (rows, HudLayout.ObjectiveBox(view.ViewportWidth, width, rows.Count));
+    }
+
+    /// <summary>The bottom of the checklist this frame, or 0 when it is not drawn: the workbench panel stands under it.</summary>
+    /// <param name="view">The frame's view.</param>
+    internal static int BottomOf(FrameView view)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+        if (PlanFor(view, view.Fonts.Get(FontProvider.NativeSize)) is not { } plan)
+        {
+            return 0;
+        }
+
+        return view.Dialogue.IsOpen && !HudLayout.ObjectiveVisible(plan.Box, ConversationBoxes(view)) ? 0 : plan.Box.Bottom;
+    }
+
+    /// <inheritdoc />
+    public void Draw(SpriteBatch spriteBatch, FrameView view)
+    {
+        var font = view.Fonts.Get(FontProvider.NativeSize);
+        if (PlanFor(view, font) is not { } plan)
+        {
+            return;
+        }
+
+        var (rows, layoutBox) = plan;
         if (view.Dialogue.IsOpen && !HudLayout.ObjectiveVisible(layoutBox, ConversationBoxes(view)))
         {
             return; // it gives way to the lesson strip and the bubble on a short canvas (X08)

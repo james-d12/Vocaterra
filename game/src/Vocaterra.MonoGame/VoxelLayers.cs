@@ -235,6 +235,9 @@ public sealed class VoxelDebugOverlay : IFrameLayer
     private const int Margin = 8;
     private const int LineHeight = 20;
 
+    /// <summary>The narrowest canvas the overlay is drawn on (X08): below it the overlay would run under the checklist.</summary>
+    public const int MinCanvasWidth = 900;
+
     /// <summary>Whether the overlay is shown.</summary>
     public bool Visible { get; set; } = true;
 
@@ -244,6 +247,11 @@ public sealed class VoxelDebugOverlay : IFrameLayer
         if (!Visible || view.Voxel is not { } sim)
         {
             return;
+        }
+
+        if (view.ViewportWidth < MinCanvasWidth || (view.Dialogue.IsOpen && DialogueLayout.IsCompact(view.ViewportHeight)))
+        {
+            return; // on a narrow or short canvas the developer's overlay gives way to the interface and the conversation (X08)
         }
 
         var lines = VoxelDebugText.Lines(view.Fps, sim, view.Seed, view.Look.Yaw, view.Look.Pitch, view.Session.PlaySession);
