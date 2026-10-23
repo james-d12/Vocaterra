@@ -445,6 +445,12 @@ public static class MutationGen
                     continue;
                 }
 
+                // M49: próximo/a in front of a time noun is correct ("los treinta próximos domingos"), so moving it there makes no mistake; the mutation looks for another sentence.
+                if (string.Equals(adjective.Lemma, "próximo", StringComparison.Ordinal) && LexiconCatalog.UpcomingTimeNouns.Contains(_tokens[h].Lemma!))
+                {
+                    continue;
+                }
+
                 // Moved in front of the noun the adjective must start or extend the phrase; right behind the noun or adjunct of an earlier
                 // phrase (or a literal word, which may be one) it would be read as belonging to that phrase instead.
                 if (h > 0 && _tokens[h - 1].Head != h && _tokens[h - 1].Role is TokenRole.Noun or TokenRole.Adjective or TokenRole.Literal)
