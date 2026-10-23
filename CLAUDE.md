@@ -36,7 +36,10 @@ Facts every session needs:
   the core's ContentBuilder run from source. The sandbox refuses command lines that contain the words `eval` or `hash`; run such a
   command from a wrapper script outside the repository. Core content edits (`content/v1`) follow `docs/nlp/CONTRIBUTING.md` (validate,
   hash, re-pin, re-record goldens).
-- **Merge gate:** `scripts/merge-gate.sh "<label>:<branch>"`, run from main only; logs land in `.claude/gate-logs/`. The fuzz suite is a
+- **Never push to `main` or merge into it** (owner, 2026-10-23). Work lands on a feature branch and is pushed there; the owner merges
+  feature branches into `main` by pull request.
+- **Merge gate:** `GATE_TARGET=<feature branch> scripts/merge-gate.sh "<label>:<branch>"`, run from that feature branch's checkout (it
+  refuses `main`); logs land in `.claude/gate-logs/`. The fuzz suite is a
   gate; never weaken an oracle to make it pass.
 - **Never write under `.github/workflows/`** until the owner says the token has the workflow scope. CI was reopened on 2026-10-23
   (core D1, game D-game-3) and is planned (see the orchestrator's handover); the old `.github/workflows-pending/ci.yml` is out of date.
@@ -48,6 +51,6 @@ Facts every session needs:
   reads the clock or draws random numbers; a `--transcript` run uses a fixed time.
 - **The prototype (D-game-8):** the owner's brief `docs/game/PROTOTYPE_BRIEF.md` (source: the `.docx` beside it) and its plan
   `docs/game/SCENARIO_PLAN.md`, milestones S0 to S12 (branch `S<nn>-<name>`, prefix `S<nn>:`): a 3D first-person voxel slice on MonoGame,
-  merged **directly into `main`** (owner, 2026-10-22; `feature/prototype` is retired) with `scripts/merge-gate.sh ...`. Content gate from S5:
+  merged into `main` until 2026-10-22 (`feature/prototype` is retired); new work goes to a feature branch, never `main`. Content gate from S5:
   `scripts/content.sh lint content/game-v1 --strict --level a1` clean, `content/PHRASES.md` the source of truth (D-game-10, D-game-12).
 - **Open owner decisions:** core D8 to D11 and D13 (`docs/nlp/DECISIONS.md`); D1 and D4 deferred, do not raise them.

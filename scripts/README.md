@@ -26,7 +26,8 @@ current commit. Needs bash and the .NET SDK (`~/.dotnet` is used when present).
 
 ## merge-gate.sh
 
-The orchestrator's gate, run from main: `scripts/merge-gate.sh "<label>:<branch>" ...` merges each branch with `--no-ff` (aborting that
+The orchestrator's gate, run from a feature branch's checkout (never `main`, which it refuses):
+`GATE_TARGET=<feature branch> scripts/merge-gate.sh "<label>:<branch>" ...` merges each branch into it with `--no-ff` (aborting that
 merge on a conflict), then runs on `Vocaterra.sln` the build with warnings as errors, the whole test suite (core and game; model-backed
 tests when `VOCATERRA_MODELS_DIR` is set or the shared models folder exists), the format check, `content.sh validate`, the game bundle's
 lint and CEFR checks and grammar check, and the core's `license-scan.sh --offline`. Each check's log is kept under `.claude/gate-logs/`.

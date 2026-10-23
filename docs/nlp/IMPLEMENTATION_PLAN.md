@@ -246,7 +246,8 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 
 Each parallel agent touches only its own `src/<project>` and `tests/<project>.Tests` directories
 (plus `content/` or `golden/` where the milestone says so). The orchestrator merges branches to
-`main` and pushes after each wave once `dotnet build` and `dotnet test` are green.
+`main` and pushes after each wave once `dotnet build` and `dotnet test` are green. (Since 2026-10-23, owner: never `main`; branches
+merge into a feature branch that is pushed, and the owner merges it into `main` by pull request.)
 
 ### Milestone specifications
 

@@ -18,7 +18,7 @@ This is the plan for the game: the game projects (`Vocaterra.Simulation`, `Vocat
 - **Model policy:** Haiku 5.5 by default, Sonnet 5.5 for design-heavy milestones, Opus only on the owner's request.
 - **The prototype brief** (D-game-8, owner, 2026-10-21): a 3D first-person voxel slice on MonoGame (forest, path, village stall, river; three
   NPCs; five target phrases), speech rules D-game-9, learning measurement D-game-10, full colour (D-game-6 amended), the Spanish reviewer
-  deferred with a provisional workaround (D-game-12). The S series was built on the integration branch `feature/prototype` until 2026-10-22; it now merges into `main`.
+  deferred with a provisional workaround (D-game-12). The S series was built on the integration branch `feature/prototype` until 2026-10-22; it then merged into `main` until 2026-10-23, and since then work goes to a feature branch, never `main`.
 
 ## 2. Repository layout
 
@@ -207,7 +207,9 @@ to `main`. Do not work on the German milestones (M31 to M48, D14); they wait unt
 and makes its own improvements to the game on a new branch, `feature/experiment` (not `main`).
 
 Each milestone ends with the gate in section 6 and a line in section 5. Since 2026-10-22 (owner) every milestone is gated with
-`scripts/merge-gate.sh "S<nn>:<branch>"` from the `main` checkout and pushed straight to `main`. S0 to S23 were merged into
+`scripts/merge-gate.sh "S<nn>:<branch>"` from the `main` checkout and pushed straight to `main`. Since 2026-10-23 (owner) nothing is
+merged into or pushed to `main`: milestones are gated with `GATE_TARGET=<feature branch>` and pushed to that branch, and the owner merges
+it into `main` by pull request. S0 to S23 were merged into
 `feature/prototype`, which `main` fast-forwarded to; that branch is retired.
 
 Prototype order (owner, 2026-10-21): G1 and G2 run alongside P1 and P2 (P1 and P2 do not use the packages); then P3, the smallest vertical

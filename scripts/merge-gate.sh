@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Orchestrator merge gate for the whole repository (the language core, the Vocaterra.Nlp.* projects, and the game).
 # Usage: scripts/merge-gate.sh "<label>:<branch>" ["<label>:<branch>" ...]
-# Merges each branch into the target branch (main, or $GATE_TARGET when set; every series merges into main since 2026-10-22) with --no-ff (aborting that merge on conflict), then runs the gate on Vocaterra.sln: build with warnings as
+# Merges each branch into the target branch $GATE_TARGET, a feature branch, never main (owner, 2026-10-23: nothing is merged into or pushed
+# to main; the owner merges feature branches by pull request), with --no-ff (aborting that merge on conflict), then runs the gate on
+# Vocaterra.sln: build with warnings as
 # errors, the whole test suite (the core's unit, golden and fuzz suites and the game's; model-backed tests run when VOCATERRA_MODELS_DIR is
 # set), the format check, the game bundle validation and the core's offline licence scan. Every check's log is kept under .claude/gate-logs/
 # so that an intermittent failure can be identified afterwards. Exit status is 0 only when every merge succeeded and every check passed.
@@ -19,7 +21,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
 
 [ "$#" -ge 1 ] || { echo "usage: scripts/merge-gate.sh \"<label>:<branch>\" [...]" >&2; exit 2; }
-TARGET="${GATE_TARGET:-main}"
+TARGET="${GATE_TARGET:-}"
+[ -n "$TARGET" ] || { echo "set GATE_TARGET to the feature branch to merge into (never main)" >&2; exit 2; }
+[ "$TARGET" != "main" ] || { echo "refusing to merge into main (owner, 2026-10-23); use a feature branch" >&2; exit 2; }
 [ "$(git branch --show-current)" = "$TARGET" ] || { echo "not on $TARGET"; exit 1; }
 [ -z "$(git status --short)" ] || { echo "$TARGET is dirty"; git status --short; exit 1; }
 
