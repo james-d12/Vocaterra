@@ -106,13 +106,11 @@ public static class SpeechLines
             }
         }
 
-        // A card is shown for a noun that comes in an item (the first pickup); the noun has the article the lexicon gives it.
+        // Every catalogue noun has a card (S20b): the card shows on the first pickup of a noun that comes in an item, and the book's Nouns page plays
+        // the card of any catalogue noun. The noun has the article the lexicon gives it.
         foreach (var noun in nouns.Nouns)
         {
-            if (noun.Items.Count > 0)
-            {
-                lines.Add(new SpeechLine("card." + noun.Lemma, SpeechSpeakers.Guide, noun.WithDefinite, SpeechKind.Word));
-            }
+            lines.Add(new SpeechLine(SpeechFiles.CardId(noun.Lemma), SpeechSpeakers.Guide, noun.WithDefinite, SpeechKind.Word));
         }
 
         foreach (var row in phrases.Rows)
@@ -171,6 +169,18 @@ public static class SpeechFiles
     /// <summary>The id of the slow file: <c>shop_need.1</c> gives <c>shop_need.1.slow</c>.</summary>
     /// <param name="lineId">The normal line id.</param>
     public static string SlowId(string lineId) => lineId + SlowSuffix;
+
+    /// <summary>
+    /// The id of a noun's word card (S20b): <c>card.madera</c>. The file name is plain ASCII, so the accents are folded: <c>río</c> gives <c>card.rio</c>
+    /// (the card's text keeps its accent: <c>el río</c>).
+    /// </summary>
+    /// <param name="lemma">The noun's lemma.</param>
+    public static string CardId(string lemma)
+    {
+        ArgumentNullException.ThrowIfNull(lemma);
+        var folded = new string(lemma.Normalize(System.Text.NormalizationForm.FormD).Where(static c => System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark).ToArray());
+        return "card." + folded;
+    }
 }
 
 /// <summary>

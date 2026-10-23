@@ -15,6 +15,23 @@
       "matches": []
     },
     {
+      "key": "06578e231eb2cb94ae7f4523f73a944dafe0ab65e10cf5edb7669f5d1cdf462e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la mesa",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "07d9adbc240133df8dc81e872ad2ac3f825f11f0c39e3b9b08df89b6572bf070",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Más despacio, por favor",
@@ -211,6 +228,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Eso es un árbol",
       "matches": []
+    },
+    {
+      "key": "18ee1c182c7a9b7b64a7e246575db1c6f0de4d83b04b3796d439c64d8787c274",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la arena",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
     },
     {
       "key": "19089c51ac90f10598cf486d3534a5565a343f0bb668dda11732a2043c6089cc",
@@ -479,6 +513,40 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No muchas gracias",
       "matches": []
+    },
+    {
+      "key": "311317726fb49e0730ebbff6cf509d0f2d2c4ff9e43330c0baabf4e40830bcc2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la puerta",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "321cd827b5e3f0ad24e9ea5d7c70860a69adbabb9a6932b35e17ef6c4492e7dc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la tierra",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
     },
     {
       "key": "328bcf5495b96dcb58dca3c3f08b6338b8d94284501612242a6c9ff5d4e1ecbf",
@@ -1122,6 +1190,23 @@
       "matches": []
     },
     {
+      "key": "69ccba49c89470b446a276677fa46359cecd225da661b77812fe785e6853ac9b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la tienda",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
+    },
+    {
       "key": "69d880eff4fdade7d8c3a7234afddeadf89f7e4eb805bb9dc1bc66c3f1750961",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Habla más despacio, por favor",
@@ -1251,6 +1336,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Mira, mira!",
       "matches": []
+    },
+    {
+      "key": "76d3bca05810f647c5f9856dac96a1037743d61ab5342c6c5649789843b6bac7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la hierba",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
     },
     {
       "key": "77086263e74beab745b5b612c1ab0206c323038307e534acb80f7e413f19a8b3",
@@ -1635,6 +1737,23 @@
       "matches": []
     },
     {
+      "key": "9f2fd4f4616ce184d9c4bb97a4e4e8dc07a3737ca09f05e5df2ccea7ea7772bb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el camino",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
+    },
+    {
       "key": "a07a4107972b9cf4d579e1bedfee0d9cf4382a694fd0ff87cd3da2c03164e17c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "dos libros",
@@ -1656,6 +1775,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me da agua",
       "matches": []
+    },
+    {
+      "key": "a12a48302de1bda3afa5ae5b7deecd4bada585e40e1c818157a427645f1e53a8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "el puente",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "El"
+          ]
+        }
+      ]
     },
     {
       "key": "a24d72e18b42fed0f3ad3926d87691687d723e9c018c2fa41612839cbabcbd9f",
@@ -1972,6 +2108,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Esto es una piedra",
       "matches": []
+    },
+    {
+      "key": "c3b907e42e077877ee069eb7b1d3594225c8a654072c8deceb18f71bcf2ad5e1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "la casa",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "La"
+          ]
+        }
+      ]
     },
     {
       "key": "c56b184c15d647c3161a85275140cce7366ce49d25ab648324dc29dde2653aa5",

@@ -352,7 +352,8 @@ public sealed record LaunchOptions
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
                 or "--check" or "--pick" or "--session-dir" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page"
-                or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"))
+                or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
+                or "--book-play" or "--book-play-slow"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -516,6 +517,16 @@ public sealed record LaunchOptions
                     }
 
                     script.Add(new ScriptStep(ScriptStepKind.Wav, Value: value));
+                    break;
+                case "--book-play":
+                case "--book-play-slow":
+                    if (value.Trim().Length == 0)
+                    {
+                        error = $"{arg} needs a noun (like madera) or a phrase (like phrase:pedir-agua), got '{value}'.";
+                        return false;
+                    }
+
+                    script.Add(new ScriptStep(arg == "--book-play" ? ScriptStepKind.BookPlay : ScriptStepKind.BookPlaySlow, Value: value.Trim()));
                     break;
                 case "--talk":
                     if (Array.IndexOf(TalkTargets, value.Trim()) < 0)
@@ -840,6 +851,12 @@ public enum ScriptStepKind
 
     /// <summary>Pick the option (1 to 4) in <see cref="ScriptStep.Value"/> of a listen step (S16).</summary>
     LessonPick,
+
+    /// <summary>Opens the book on the page of the target in <see cref="ScriptStep.Value"/> (a noun, or <c>phrase:&lt;id&gt;</c>) and plays its recording, as Enter does (S20b).</summary>
+    BookPlay,
+
+    /// <summary>As <see cref="BookPlay"/>, the slow recording, as Shift+Enter does (S20b).</summary>
+    BookPlaySlow,
 
     /// <summary>
     /// Run the whole lesson whose id is in <see cref="ScriptStep.Value"/> the way a learner who gets everything right would (S17): walk up to its NPC, then for each

@@ -18,16 +18,40 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | card.agua | speech/card.agua.wav | guide | 1.0 | el agua |  |
 | card.antorcha | speech/card.antorcha.slow.wav | guide | 0.8 | la antorcha |  |
 | card.antorcha | speech/card.antorcha.wav | guide | 1.0 | la antorcha |  |
+| card.arbol | speech/card.arbol.slow.wav | guide | 0.8 | el árbol |  |
+| card.arbol | speech/card.arbol.wav | guide | 1.0 | el árbol |  |
+| card.arena | speech/card.arena.slow.wav | guide | 0.8 | la arena |  |
+| card.arena | speech/card.arena.wav | guide | 1.0 | la arena |  |
 | card.botella | speech/card.botella.slow.wav | guide | 0.8 | la botella |  |
 | card.botella | speech/card.botella.wav | guide | 1.0 | la botella |  |
+| card.camino | speech/card.camino.slow.wav | guide | 0.8 | el camino |  |
+| card.camino | speech/card.camino.wav | guide | 1.0 | el camino |  |
+| card.casa | speech/card.casa.slow.wav | guide | 0.8 | la casa |  |
+| card.casa | speech/card.casa.wav | guide | 1.0 | la casa |  |
 | card.fruta | speech/card.fruta.slow.wav | guide | 0.8 | la fruta |  |
 | card.fruta | speech/card.fruta.wav | guide | 1.0 | la fruta |  |
+| card.hierba | speech/card.hierba.slow.wav | guide | 0.8 | la hierba |  |
+| card.hierba | speech/card.hierba.wav | guide | 1.0 | la hierba |  |
 | card.libro | speech/card.libro.slow.wav | guide | 0.8 | el libro |  |
 | card.libro | speech/card.libro.wav | guide | 1.0 | el libro |  |
 | card.madera | speech/card.madera.slow.wav | guide | 0.8 | la madera |  |
 | card.madera | speech/card.madera.wav | guide | 1.0 | la madera |  |
+| card.mesa | speech/card.mesa.slow.wav | guide | 0.8 | la mesa |  |
+| card.mesa | speech/card.mesa.wav | guide | 1.0 | la mesa |  |
 | card.pan | speech/card.pan.slow.wav | guide | 0.8 | el pan |  |
 | card.pan | speech/card.pan.wav | guide | 1.0 | el pan |  |
+| card.piedra | speech/card.piedra.slow.wav | guide | 0.8 | la piedra |  |
+| card.piedra | speech/card.piedra.wav | guide | 1.0 | la piedra |  |
+| card.puente | speech/card.puente.slow.wav | guide | 0.8 | el puente |  |
+| card.puente | speech/card.puente.wav | guide | 1.0 | el puente |  |
+| card.puerta | speech/card.puerta.slow.wav | guide | 0.8 | la puerta |  |
+| card.puerta | speech/card.puerta.wav | guide | 1.0 | la puerta |  |
+| card.rio | speech/card.rio.slow.wav | guide | 0.8 | el río |  |
+| card.rio | speech/card.rio.wav | guide | 1.0 | el río |  |
+| card.tienda | speech/card.tienda.slow.wav | guide | 0.8 | la tienda |  |
+| card.tienda | speech/card.tienda.wav | guide | 1.0 | la tienda |  |
+| card.tierra | speech/card.tierra.slow.wav | guide | 0.8 | la tierra |  |
+| card.tierra | speech/card.tierra.wav | guide | 1.0 | la tierra |  |
 | farewell_reply.1 | speech/farewell_reply.1.slow.wav | guide | 0.8 | ¡Adiós, amigo! Hasta luego. |  |
 | farewell_reply.1 | speech/farewell_reply.1.wav | guide | 1.0 | ¡Adiós, amigo! Hasta luego. |  |
 | farewell_reply.2 | speech/farewell_reply.2.slow.wav | guide | 0.8 | Hasta luego. ¡Buen día! |  |

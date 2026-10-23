@@ -742,8 +742,17 @@
 {"id":"checks.json:hear.de-nada","text":"De nada.","kind":"npc"}
 {"id":"speech:card.agua","text":"el agua","kind":"npc"}
 {"id":"speech:card.antorcha","text":"la antorcha","kind":"npc"}
+{"id":"speech:card.arena","text":"la arena","kind":"npc"}
 {"id":"speech:card.botella","text":"la botella","kind":"npc"}
+{"id":"speech:card.camino","text":"el camino","kind":"npc"}
+{"id":"speech:card.casa","text":"la casa","kind":"npc"}
 {"id":"speech:card.fruta","text":"la fruta","kind":"npc"}
+{"id":"speech:card.hierba","text":"la hierba","kind":"npc"}
 {"id":"speech:card.libro","text":"el libro","kind":"npc"}
 {"id":"speech:card.madera","text":"la madera","kind":"npc"}
+{"id":"speech:card.mesa","text":"la mesa","kind":"npc"}
 {"id":"speech:card.pan","text":"el pan","kind":"npc"}
+{"id":"speech:card.puente","text":"el puente","kind":"npc"}
+{"id":"speech:card.puerta","text":"la puerta","kind":"npc"}
+{"id":"speech:card.tienda","text":"la tienda","kind":"npc"}
+{"id":"speech:card.tierra","text":"la tierra","kind":"npc"}
