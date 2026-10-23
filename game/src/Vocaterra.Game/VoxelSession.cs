@@ -153,6 +153,9 @@ public sealed class VoxelSession : GuideSession
     /// <inheritdoc />
     internal override void LessonReplayAsked(string npc) => PointAtNpc(npc);
 
+    /// <summary>What the load of a save made from another content bundle did (X01): what was kept and what was dropped. <see langword="null"/> for a new game and for a save of this very bundle.</summary>
+    public SaveMigrationReport? Migration { get; internal set; }
+
     /// <summary>
     /// A new play session begins (S26): a save was loaded into it, or a run was started at a given session. When the session has a lesson that is unlocked and not begun, the beacon
     /// points at its NPC, and the objective line names the lesson (<see cref="ObjectiveHud"/>).

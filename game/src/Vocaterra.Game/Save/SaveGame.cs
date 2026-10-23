@@ -80,8 +80,9 @@ public static class SaveGame
     /// <param name="document">The save.</param>
     /// <param name="bundle">The content bundle of this run.</param>
     /// <param name="requestedSeed">The seed the run asked for, or <see langword="null"/> to take the save's.</param>
-    /// <exception cref="SaveException">The seed or the bundle differs.</exception>
-    public static void Check(SaveDocument document, ContentBundle bundle, ulong? requestedSeed = null)
+    /// <param name="migrate">Whether a save of another bundle is let through to be migrated (X01, the game's default). <see langword="false"/> is strict mode: the refusal of S10, which the playtest's recall sessions keep.</param>
+    /// <exception cref="SaveException">The seed differs, or the bundle differs and <paramref name="migrate"/> is off.</exception>
+    public static void Check(SaveDocument document, ContentBundle bundle, ulong? requestedSeed = null, bool migrate = false)
     {
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(bundle);
@@ -90,11 +91,12 @@ public static class SaveGame
             throw new SaveException($"The save is for world seed {document.WorldSeed}, not {seed}. Load it without --seed, or with --seed {document.WorldSeed}.");
         }
 
-        if (!string.Equals(document.BundleHash, bundle.ContentHash, StringComparison.Ordinal))
+        if (!migrate && !string.Equals(document.BundleHash, bundle.ContentHash, StringComparison.Ordinal))
         {
             throw new SaveException(
                 $"The save was made from content bundle {Short(document.BundleHash)}; this run has bundle {Short(bundle.ContentHash)}. "
-                + "The game's content changed since the save, so it cannot be loaded.");
+                + "The game's content changed since the save, and strict save mode does not carry progress across content versions, so it cannot be loaded. "
+                + "Load it with the bundle it was made from, or leave out --strict-save (and --playtest) to keep the progress in the updated game.");
         }
     }
 
@@ -156,7 +158,8 @@ public static class SaveGame
             session.Tips.Capture(),
             session.Learner.Capture(),
             BookGranted: true,
-            Settings: settings is null ? null : new SaveSettings(settings.Sound.Clamped()));
+            Settings: settings is null ? null : new SaveSettings(settings.Sound.Clamped()),
+            World: new WorldDims(session.Scene.Grid.ChunksX, session.Scene.Grid.ChunksY, session.Scene.Grid.ChunksZ));
     }
 
     /// <summary>Captures a session and serializes it: the text of the save file.</summary>
@@ -176,6 +179,7 @@ public static class SaveGame
     /// <param name="requestedSeed">The seed the run asked for, or <see langword="null"/> to take the save's.</param>
     /// <param name="credit">The credit rules of the run (the default when <see langword="null"/>).</param>
     /// <param name="bumpSession">Whether the run is the next play session (true for a real load; the tests also restore without it).</param>
+    /// <param name="migrate">Whether a save of another bundle is migrated into this one (X01) rather than refused (strict mode, the default here).</param>
     /// <exception cref="SaveException">The save cannot be loaded.</exception>
     public static VoxelSession Load(
         string json,
@@ -184,12 +188,13 @@ public static class SaveGame
         NounCatalog nouns,
         ulong? requestedSeed = null,
         CreditRules? credit = null,
-        bool bumpSession = true)
+        bool bumpSession = true,
+        bool migrate = false)
     {
         ArgumentNullException.ThrowIfNull(buildPristine);
         var document = Parse(json);
-        Check(document, bundle, requestedSeed);
-        return Restore(document, bundle, buildPristine(document.WorldSeed), nouns, credit, bumpSession);
+        Check(document, bundle, requestedSeed, migrate);
+        return Restore(document, bundle, buildPristine(document.WorldSeed), nouns, credit, bumpSession, migrate);
     }
 
     /// <summary>
@@ -203,6 +208,8 @@ public static class SaveGame
     /// <param name="nouns">The noun catalogue of the bundle.</param>
     /// <param name="credit">The credit rules of the run; the default when <see langword="null"/>.</param>
     /// <param name="bumpSession">Whether to start the next play session.</param>
+    /// <param name="migrate">Whether a save of another bundle is migrated (X01): the parts that name content are kept where their ids exist, the world edits are applied by position, and
+    /// the world's digest is reported rather than required (<see cref="VoxelSession.Migration"/> holds the report). A save of this very bundle is restored exactly as before, with or without it.</param>
     /// <exception cref="SaveException">The save does not fit the scene, the bundle or itself, or the restored world differs from its digest.</exception>
     public static VoxelSession Restore(
         SaveDocument document,
@@ -210,13 +217,16 @@ public static class SaveGame
         Scene scene,
         NounCatalog nouns,
         CreditRules? credit = null,
-        bool bumpSession = true)
+        bool bumpSession = true,
+        bool migrate = false)
     {
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(bundle);
         ArgumentNullException.ThrowIfNull(scene);
         ArgumentNullException.ThrowIfNull(nouns);
-        Check(document, bundle);
+        Check(document, bundle, null, migrate);
+        var migrating = migrate && !string.Equals(document.BundleHash, bundle.ContentHash, StringComparison.Ordinal);
+        var collector = migrating ? new SaveMigration.Collector() : null;
         if (document.Session < 1)
         {
             throw new SaveException($"The save's play session is {document.Session}; sessions start at 1.");
@@ -230,9 +240,27 @@ public static class SaveGame
         VoxelSession session;
         try
         {
-            VoxelGridDiff.Apply(scene.Grid, document.Chunks);
+            if (collector is null)
+            {
+                VoxelGridDiff.Apply(scene.Grid, document.Chunks);
+            }
+            else
+            {
+                SaveMigration.ApplyWorld(scene.Grid, document.Chunks, document.World, collector);
+            }
+
             session = new VoxelSession(bundle, document.WorldSeed, document.StartedAt, nouns, scene, credit);
-            RestoreParts(session, document);
+            var spawn = session.Simulation.CaptureState();
+            if (collector is not null)
+            {
+                document = SaveMigration.Adapt(document, session, collector);
+            }
+
+            RestoreParts(session, document, migrating);
+            if (collector is not null)
+            {
+                KeepPlayerOutOfWalls(session, spawn, collector);
+            }
         }
         catch (ArgumentException ex)
         {
@@ -245,9 +273,20 @@ public static class SaveGame
         }
 
         var digest = session.Simulation.ComputeStateDigest();
-        if (!string.Equals(digest, document.StateDigest, StringComparison.Ordinal))
+        var digestMatched = string.Equals(digest, document.StateDigest, StringComparison.Ordinal);
+        if (!digestMatched && collector is null)
         {
             throw new SaveException("The restored world does not match the save's digest: the save is damaged or was made by another build.");
+        }
+
+        if (collector is not null)
+        {
+            // The world's digest is the check of a save restored into the world it was made from. Across bundles the world generation may have changed, so the edits were
+            // applied by position and the digest is only reported (it still matches when the generation is the same and the player was not moved).
+            collector.Note(digestMatched
+                ? "the world's digest matches the save's: the world generation is unchanged and every edit was applied as saved"
+                : "the world's digest differs from the save's: the world generation changed (or the player was moved), so the edits were applied by position");
+            session.Migration = collector.Build(document.BundleHash, bundle.ContentHash, digestMatched);
         }
 
         // A save from before S20 has no book in its slots, because the learner was only given it when a new game started (S22): the load gives it once. Done after the
@@ -267,7 +306,7 @@ public static class SaveGame
     }
 
     // Every part of the save, put back in the order the parts depend on: the simulation, the time, the progress, the NPCs.
-    private static void RestoreParts(VoxelSession session, SaveDocument document)
+    private static void RestoreParts(VoxelSession session, SaveDocument document, bool migrating)
     {
         var slots = document.Inventory.Select(static slot => new ItemStack(slot.Item, slot.Count)).ToArray();
         session.Simulation.Restore(new VoxelSimulationState(
@@ -281,7 +320,7 @@ public static class SaveGame
             slots));
         session.RestoreSkippedSeconds(document.SkippedSeconds);
         session.Words.Restore(document.Words.Select(RecordOf));
-        RestorePhrases(session, document.Phrases);
+        RestorePhrases(session, document.Phrases, migrating);
         session.Objective.Restore(document.Objective.Select(static step => (step.Key, step.Count)));
         session.RestoreCarded(document.Carded);
         session.KeyWordsTaught = document.KeyWordsTaught;
@@ -290,7 +329,7 @@ public static class SaveGame
         session.RestoreDeferredSkills(document.DeferredSkills.Select(static step => (step.Npc, step.Skill)));
         session.RestoreLastRepairs(document.LastRepairs.Select(static step => (step.Npc, step.Repair)));
         session.NextTurnId = document.NextTurnId;
-        RestoreNpcs(session, document.Npcs);
+        RestoreNpcs(session, document.Npcs, migrating);
         if (document.Lessons is { } lessons)
         {
             session.Lessons.Restore(lessons);
@@ -309,8 +348,33 @@ public static class SaveGame
         session.RestoreStage(); // the stage of the objective area (S17) follows from the world and the progress just put back
     }
 
+    // A world that was generated differently may have a wall where the player stood: the player goes back to the new scene's start.
+    private static void KeepPlayerOutOfWalls(VoxelSession session, VoxelSimulationState spawn, SaveMigration.Collector collector)
+    {
+        const int U = VoxelPhysics.UnitsPerBlock;
+        var body = session.Simulation.Player;
+        var grid = session.Scene.Grid;
+        for (var x = FloorDiv(body.MinX, U); x <= FloorDiv(body.MaxX - 1, U); x++)
+        {
+            for (var y = FloorDiv(body.MinY, U); y <= FloorDiv(body.MaxY - 1, U); y++)
+            {
+                for (var z = FloorDiv(body.MinZ, U); z <= FloorDiv(body.MaxZ - 1, U); z++)
+                {
+                    if (grid.InBounds(x, y, z) && grid.IsSolid(x, y, z))
+                    {
+                        session.Simulation.Restore(session.Simulation.CaptureState() with { Player = spawn.Player });
+                        collector.Note("the saved position is inside a block of the new world: the player starts where a new game starts");
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    private static int FloorDiv(int value, int divisor) => (int)Math.Floor(value / (double)divisor);
+
     // The phrase sheet's rows, each exactly once: a save with an unknown or missing phrase is refused.
-    private static void RestorePhrases(VoxelSession session, IReadOnlyList<PhraseSave> phrases)
+    private static void RestorePhrases(VoxelSession session, IReadOnlyList<PhraseSave> phrases, bool migrating)
     {
         var rows = session.Phrases.Rows;
         var ids = new HashSet<string>(StringComparer.Ordinal);
@@ -322,7 +386,7 @@ public static class SaveGame
             }
         }
 
-        if (ids.Count != rows.Count)
+        if (!migrating && ids.Count != rows.Count) // across bundles a new row has no record yet: it starts empty
         {
             throw new ArgumentException($"The save has {ids.Count} phrase records; the sheet has {rows.Count}.", nameof(phrases));
         }
@@ -331,7 +395,7 @@ public static class SaveGame
     }
 
     // Each NPC exactly once; a missing NPC or one the game does not have is refused.
-    private static void RestoreNpcs(VoxelSession session, IReadOnlyList<NpcSave> npcs)
+    private static void RestoreNpcs(VoxelSession session, IReadOnlyList<NpcSave> npcs, bool migrating)
     {
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var npc in npcs)
@@ -342,7 +406,7 @@ public static class SaveGame
             }
         }
 
-        if (seen.Count != NpcService.AgentIds.Count)
+        if (!migrating && seen.Count != NpcService.AgentIds.Count)
         {
             throw new ArgumentException("The save does not hold every NPC.", nameof(npcs));
         }

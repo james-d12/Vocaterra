@@ -322,6 +322,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Playtest: options.Playtest);
         _log.SessionStart(_session.PlaySession, _session.WorldSeed, _session.Bundle.ContentHash, _session.StoredTime.UnixSeconds, profile);
         Console.WriteLine($"session log: {directory} ({SessionLog.SessionFileName}, {SessionLog.ReplayFileName})");
+        if (_session.Migration is { } migration)
+        {
+            // A save of an older bundle was carried into this one (X01): the log says what was dropped, and the player is told the game was updated.
+            _log.SaveMigrated(migration);
+            _toasts.Show(migration.Toast);
+        }
+
         _session.Applied += OnAppliedTurn;
         if (options.Playtest)
         {

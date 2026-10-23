@@ -44,6 +44,7 @@ namespace Vocaterra.Game;
 /// <param name="Learner">The learner's record (S19): the newest history entries and the word rows. A version 1 save has none (an empty history). A version 2 save's rows counted the check answers (S19b); they are taken out on the load.</param>
 /// <param name="BookGranted">Whether the book item has been granted (S22): a save written since S20 says so; a save from before S20 does not, and the load gives the learner the book once.</param>
 /// <param name="Settings">The player's settings (S24: the sound volumes), or <see langword="null"/> in a save from before S24 (the defaults then apply).</param>
+/// <param name="World">The grid's chunk counts (X01), or <see langword="null"/> in a save from before X01 (a load across bundles then assumes this build's grid).</param>
 public sealed record SaveDocument(
     string Format,
     int Version,
@@ -77,7 +78,14 @@ public sealed record SaveDocument(
     TipsSave? Tips = null,
     LearnerRecordSave? Learner = null,
     bool BookGranted = false,
-    SaveSettings? Settings = null);
+    SaveSettings? Settings = null,
+    WorldDims? World = null);
+
+/// <summary>The size of the world's grid in chunks (X01): a save across bundles decodes the scene diff's chunk indices with it, so a world that changed size still maps by position.</summary>
+/// <param name="ChunksX">Chunks along x.</param>
+/// <param name="ChunksY">Chunks along y.</param>
+/// <param name="ChunksZ">Chunks along z.</param>
+public sealed record WorldDims(int ChunksX, int ChunksY, int ChunksZ);
 
 /// <summary>The player's settings in a save (S24). Presentation only: nothing here reaches the simulation, a turn, a digest or the replay.</summary>
 /// <param name="Sound">The volume of each sound category.</param>

@@ -141,6 +141,45 @@ public sealed class SessionLog : IDisposable
         }));
     }
 
+    /// <summary>A save made from another content bundle was loaded into this one (X01): the bundles, and for each area how many records were kept and which were dropped.</summary>
+    /// <param name="report">The migration report.</param>
+    public void SaveMigrated(SaveMigrationReport report)
+    {
+        ArgumentNullException.ThrowIfNull(report);
+        WriteLine(Json("save_migration", w =>
+        {
+            w.WriteString("saved_bundle", report.SavedBundle);
+            w.WriteString("bundle", report.CurrentBundle);
+            w.WriteBoolean("world_digest_matched", report.WorldDigestMatched);
+            w.WriteNumber("kept", report.KeptCount);
+            w.WriteNumber("dropped", report.DroppedCount);
+            w.WriteStartArray("areas");
+            foreach (var area in report.Areas)
+            {
+                w.WriteStartObject();
+                w.WriteString("area", area.Area);
+                w.WriteNumber("kept", area.Kept);
+                w.WriteStartArray("dropped");
+                foreach (var id in area.Dropped)
+                {
+                    w.WriteStringValue(id);
+                }
+
+                w.WriteEndArray();
+                w.WriteEndObject();
+            }
+
+            w.WriteEndArray();
+            w.WriteStartArray("notes");
+            foreach (var note in report.Notes)
+            {
+                w.WriteStringValue(note);
+            }
+
+            w.WriteEndArray();
+        }));
+    }
+
     /// <summary>The start of a check battery: its kind, its session and its number of items.</summary>
     /// <param name="check">The check kind (<c>pre</c>...).</param>
     /// <param name="session">The play session number.</param>
