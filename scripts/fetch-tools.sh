@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Installs the development tools of the grammar check (nlp/tools/manifest.json): the Temurin JRE and LanguageTool, both pinned by URL and SHA-256,
-# below ${VOCATERRA_TOOLS_DIR:-$HOME/.local/share/vocaterra/tools}. They run as separate local processes (nlp/docs/DECISIONS.md D10): no LanguageTool
+# Installs the development tools of the grammar check (tools/manifest.json): the Temurin JRE and LanguageTool, both pinned by URL and SHA-256,
+# below ${VOCATERRA_TOOLS_DIR:-$HOME/.local/share/vocaterra/tools}. They run as separate local processes (docs/nlp/DECISIONS.md D10): no LanguageTool
 # code is linked or shipped, and no n-gram data is installed.
 #
 # Usage: scripts/fetch-tools.sh [--list] [--clean]
@@ -13,7 +13,7 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
-manifest="$repo_root/nlp/tools/manifest.json"
+manifest="$repo_root/tools/manifest.json"
 tools="${VOCATERRA_TOOLS_DIR:-$HOME/.local/share/vocaterra/tools}"
 archives="$tools/dl"
 
@@ -79,7 +79,7 @@ install_tool() {
     fi
     if [ "$(sha256_of "$partial")" != "$sha" ]; then
       rm -f "$partial"
-      fail "$id: the download does not match the pinned sha256 in nlp/tools/manifest.json (not installed)"
+      fail "$id: the download does not match the pinned sha256 in tools/manifest.json (not installed)"
     fi
     mv "$partial" "$archive"
   fi

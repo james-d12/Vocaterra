@@ -1,29 +1,33 @@
 #!/usr/bin/env bash
-# Checks the relative Markdown links in the language core's documents (every *.md under nlp/, build output excluded).
+# Checks the relative Markdown links in the repository's documents (every *.md in the working tree; build output, fetched models, agent worktrees and gate logs excluded).
 # A link is relative when it has no URL scheme and is not a bare #anchor. Its target is resolved from the file that holds it,
 # with any #fragment or ?query removed, and must exist as a file or a folder in the working tree. Links inside fenced code blocks
 # and inline code spans are ignored. Nothing is fetched over the network.
 #
-# Usage: nlp/scripts/check-links.sh [--quiet]
+# Usage: scripts/check-links.sh [--quiet]
 #   Prints one line per broken link (file:line: target) and a summary. Exits 1 when any link is broken, 0 otherwise.
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-NLP="$ROOT/nlp"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 quiet=0
 [ "${1:-}" = "--quiet" ] && quiet=1
 
-PYTHONDONTWRITEBYTECODE=1 python3 -I - "$ROOT" "$NLP" "$quiet" <<'PY'
+PYTHONDONTWRITEBYTECODE=1 python3 -I - "$ROOT" "$quiet" <<'PY'
 import os, re, sys
 
-root, nlp, quiet = sys.argv[1], sys.argv[2], sys.argv[3] == "1"
+root, quiet = sys.argv[1], sys.argv[2] == "1"
 link = re.compile(r'!?\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)')
 code_span = re.compile(r'`[^`]*`')
 scheme = re.compile(r'^[a-zA-Z][a-zA-Z0-9+.-]*:')
 
 checked = 0
 broken = []
-for dirpath, dirnames, filenames in os.walk(nlp):
-    dirnames[:] = [d for d in dirnames if d not in ("bin", "obj", "artifacts", ".git")]
+for dirpath, dirnames, filenames in os.walk(root):
+    rel_dir = os.path.relpath(dirpath, root).replace(os.sep, "/")
+    skip = ("bin", "obj", "artifacts", ".git", "TestResults", "lexicon-sources")
+    dirnames[:] = [d for d in dirnames
+                   if d not in skip
+                   and not (rel_dir == ".claude" and d in ("worktrees", "gate-logs"))
+                   and not (rel_dir == "models")]  # fetched model folders hold third-party Markdown
     for name in filenames:
         if not name.endswith(".md"):
             continue

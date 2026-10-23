@@ -3,8 +3,7 @@ bin/
 obj/
 TestResults/
 
-# Packages and bundle archives are rebuilt, never committed (nlp/.gitignore covers nlp/artifacts/, where the core's former pack step
-# wrote them); this entry covers an artifacts/ folder anywhere else.
+# Packages (dotnet pack) and the content bundle archives written by `ContentBuilder pack` are rebuilt, never committed
 artifacts/
 
 # IDE / user-specific
@@ -25,7 +24,18 @@ Thumbs.db
 .claude/gate-logs/
 .claude/settings.local.json
 
+# Models are fetched, not committed (manifest.json and the README are the exceptions)
+models/*
+!models/manifest.json
+!models/README.md
+
+# Golden learner audio is local-only
+tests/golden/audio/
+
+# Lexicon source data (kaikki.org Wiktionary extract, FrequencyWords) is fetched, not committed; see docs/nlp/LEXICON.md
+lexicon-sources/
+
 # Noun Town research (D-game-11, owner 2026-10-21): the raw Steam review JSON is third-party text and is never committed;
 # the summaries and the fetch scripts are. Both the current and the planned folder are covered.
 scripts/noun_town/*.json
-game/docs/research/noun-town/*.json
+docs/game/research/noun-town/*.json

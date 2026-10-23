@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Checks the license of every NuGet package in Vocaterra.Nlp.sln (direct and transitive). Prints a table and exits 1 when a
+# Checks the license of every NuGet package in Vocaterra.Nlp.slnf (direct and transitive). Prints a table and exits 1 when a
 # package is GPL/LGPL/AGPL/SSPL, is not on scripts/license-allowlist.txt, or has no license that can be determined.
 #
 # Usage: scripts/license-scan.sh [--offline] [-h|--help]
@@ -14,7 +14,7 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
-solution="$repo_root/Vocaterra.Nlp.sln"
+solution="$repo_root/Vocaterra.Nlp.slnf"
 allowlist="$script_dir/license-allowlist.txt"
 overrides="$script_dir/license-overrides.txt"
 
