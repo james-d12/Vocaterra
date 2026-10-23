@@ -111,7 +111,14 @@ public sealed class BookModelTests
             "completed in session 2", "in progress: 1 of 2 units done", "not started", "help used: 0   I don't know: 0   repeats asked: 0   turns: 0",
             "unit 1", "2 of 2 steps", "lesson First words with Luna, u1", "said, talk to The guide", "typed", "button", "used 1   correct 1", "forms: agua 1",
             "last: \"¿quieres pan?\" = Would you like bread?", "...", "Session 2",
+
+            // S28: the spread's headings, the empty pages and the conjugation table.
+            "Your book  -  Verbs", "Highlighted: said (x = times). Plain: taught. Dash: not yet.", "What you said", "Choose a verb on the left page.",
+            "No verbs yet. Use a verb in a sentence and it comes here.", "Nothing said yet.", "Nothing here yet.", "x12", "-",
         };
+        strings.AddRange(ConjugationTable.AllColumns.Select(static c => c.Title));
+        strings.AddRange(ConjugationTable.Persons.Select(static p => p.Label));
+        strings.AddRange(Enum.GetValues<BookPage>().Select(static page => $"{BookTabs.Title}  -  {BookTabs.LabelOf(page)}"));
         strings.AddRange(BookTabs.Labels);
         strings.AddRange(Enum.GetValues<BookPage>().Select(static page => BookTabs.LabelOf(page)));
         var missing = strings.SelectMany(static s => s).Where(c => !cmap.Covers(c)).Distinct().Select(static c => $"U+{(int)c:X4} {c}").ToList();
