@@ -188,7 +188,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S19 | The learner's record: every spoken and typed input, the nouns and verbs used (from the core's word readings), the lessons completed; save version 2 (D-game-16) | done (merged to `feature/prototype` 2026-10-22, `c92e486`) | Haiku 5.5 | S17, D-game-16 |
 | S19b | Check answers do not count in the word record (owner); old saves lose the check uses their history holds | done (merged to `main` 2026-10-23, `7fda074`) | Haiku 5.5 | S19, S24 |
 | S20 | The book: the journal as an openable book with Nouns, Verbs, Phrases, Lessons and What I said pages (D-game-16) | done (merged to `feature/prototype` 2026-10-22, `ee2ec79`) | Haiku 5.5 | S15, S19 |
-| S20b | Replay any noun or phrase from the book (speaker button, slow with Shift); card recordings for the 12 block nouns; heard-only phrases play their NPC line | planned (after S19b) | Haiku 5.5 | S20, S24 |
+| S20b | Replay any noun or phrase from the book (speaker button, slow with Shift); card recordings for the 12 block nouns; heard-only phrases play their NPC line | done (merged to `main` 2026-10-23, `b9c64de`, bundle `e244285b…`); **the owner listens to the 24 new card WAVs** | Haiku 5.5 | S20, S24 |
 | S21 | F8: the in-game bug and feature report, saved as Markdown with a screenshot, game state, recent turns and the session log tail; local only (D-game-17) | done (merged to `feature/prototype` 2026-10-22, `917d2c4`) | Haiku 5.5 | S19, S20, D-game-17 |
 | S18 | The playtest refresh (build, checklist, report, launcher message; the consent text mentions that the book keeps what the player said; the facilitator collects the F8 reports) | done (merged to `feature/prototype` 2026-10-22, `3c9a741`); **the owner's pre-flight** (`docs/PLAYTEST.md`) | Haiku 5.5 | S15, S17, S17b, S20, S21 |
 | S22 | The second pass's known issues: an uncrowded conversation screen, the F10 label, measured session durations, a Vosk route step and test, thin pergola posts, the book in greyscale, the book item for old saves | done (merged to `feature/prototype` 2026-10-22, `8609183`) | Sonnet 5.5 | S18 |
@@ -1075,6 +1075,20 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - `game/docs/research/PROTOTYPE_RESEARCH.md` (a dated snapshot) still cites the removed files;
     - the parked `.github/workflows-pending/ci.yml` still calls `pack.sh` and `sample-host.sh`. CI is deferred (D1), so it is noted for
       when CI returns.
+- **S20b, replay from the book (2026-10-23, Haiku 5.5; merged to `main` `b9c64de`, bundle `e244285b…`).**
+  - **Built.** A speaker button on every seen catalogue noun, every phrase, and each phrase a lesson taught. Click or Enter plays the
+    recording, Shift the slow one. Up and Down select rows. The logic is engine-free (`BookRecordings`, `BookSpeechControls`,
+    `BookSpeaker`). Playback goes through the NPC voice and the mixer's ducking, and `--mute` keeps it silent.
+  - **Recordings.** All 19 nouns and 21 phrases now resolve:
+    - the 12 block nouns got cards (24 WAVs, `ef_dora`);
+    - the 7 heard-only phrases play their NPC lines (`audioLineIds`);
+    - `card.río` is stored as `card.rio`, because line ids are ASCII (`SpeechFiles.CardId`).
+  - **Scripted flags:** `--book-play <noun|phrase:id>` and `--book-play-slow`.
+  - **Grammar refresh:** 758 strings and 9 new card-label waivers. Offline strict is clean.
+  - **Checked by the orchestrator:** the gate (4,493 passed, 5 skipped) and the Nouns screenshot (selected row and speaker buttons on seen
+    nouns only).
+  - **Note.** Every bundle change makes older saves refuse to load (the content-hash rule since S10). A candidate for the experiment
+    branch.
 
 ## 6. Definition of done (every milestone)
 
