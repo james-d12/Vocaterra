@@ -66,9 +66,19 @@ public sealed class CheckLayer : IFrameLayer
         var panel = PanelFor(view.ViewportWidth, view.ViewportHeight);
         spriteBatch.Draw(pixel, panel, new Color(18, 18, 34, 250));
         DrawHelpers.Border(spriteBatch, pixel, panel, 2, Gold);
-        DrawHelpers.Text(spriteBatch, title, TitleOf(check.Kind), new Vector2(panel.Left + 40, panel.Top + 18), Gold);
+        var box = new PixelBox(panel.X, panel.Y, panel.Width, panel.Height);
+        var side = CheckCardLayout.SideFor(box);
+        var compact = CheckCardLayout.IsCompact(box);
         var progress = check.IsDone ? "Done" : $"Item {check.Index + 1} of {check.Plan.Count}";
-        DrawHelpers.Text(spriteBatch, small, progress, new Vector2(panel.Right - 40 - DrawHelpers.Width(small, progress), panel.Top + 26), Dim);
+        var progressWidth = DrawHelpers.Width(small, progress);
+        var titleText = TitleOf(check.Kind);
+        if (side + DrawHelpers.Width(title, titleText) + 12 + progressWidth + side > panel.Width)
+        {
+            titleText = titleText.Replace("Check: ", string.Empty, StringComparison.Ordinal); // a narrow card drops "Check: " so the title and the count do not meet
+        }
+
+        DrawHelpers.Text(spriteBatch, title, titleText, new Vector2(panel.Left + side, panel.Top + (compact ? 12 : 18)), Gold);
+        DrawHelpers.Text(spriteBatch, small, progress, new Vector2(panel.Right - side - progressWidth, panel.Top + (compact ? 20 : 26)), Dim);
 
         if (check.Current is { } entry && !check.IsDone)
         {
@@ -85,27 +95,29 @@ public sealed class CheckLayer : IFrameLayer
         {
             var answered = check.Results.Count(static r => r.Input != CheckInput.Skipped);
             var skipped = check.Results.Count(static r => r.Input == CheckInput.Skipped);
-            DrawHelpers.Text(spriteBatch, title, "Thank you.", new Vector2(panel.Left + 40, panel.Top + 150), Good);
-            DrawHelpers.Text(spriteBatch, small, $"{answered} answered, {skipped} skipped.", new Vector2(panel.Left + 40, panel.Top + 200), Dim);
+            var doneTop = compact ? 90 : 150;
+            DrawHelpers.Text(spriteBatch, title, "Thank you.", new Vector2(panel.Left + side, panel.Top + doneTop), Good);
+            DrawHelpers.Text(spriteBatch, small, $"{answered} answered, {skipped} skipped.", new Vector2(panel.Left + side, panel.Top + doneTop + 50), Dim);
             if (check.Closing is { } closing)
             {
                 // The playtest's closing note (S12): one line per row of the text.
-                var rows = closing.Split('\n');
-                for (var i = 0; i < rows.Length; i++)
+                var rows = closing.Split('\n').SelectMany(row => TextWrap.Wrap(row, panel.Width - (2 * side), text => DrawHelpers.Width(small, text))).ToList();
+                var step = compact ? 20 : 28;
+                for (var i = 0; i < rows.Count; i++)
                 {
-                    DrawHelpers.Text(spriteBatch, small, rows[i], new Vector2(panel.Left + 40, panel.Top + 240 + (i * 28)), Ink);
+                    DrawHelpers.Text(spriteBatch, small, rows[i], new Vector2(panel.Left + side, panel.Top + doneTop + 90 + (i * step)), Ink);
                 }
             }
         }
 
         if (check.Notice is { } notice)
         {
-            DrawHelpers.Text(spriteBatch, small, notice, new Vector2(panel.Left + 40, panel.Bottom - 74), Warn);
+            DrawHelpers.Text(spriteBatch, small, DrawHelpers.Fit(small, notice, panel.Width - (2 * side)), new Vector2(panel.Left + side, CheckCardLayout.NoticeY(box)), Warn);
         }
 
         var thinking = check.Phase == CheckPhase.Thinking;
         var footer = thinking ? "Thinking..." : check.IsDone ? (check.Closing is null ? "The answers are in the session log." : "Esc: close the game") : "Esc: end the check (the rest is skipped)";
-        DrawHelpers.Text(spriteBatch, small, footer, new Vector2(panel.Left + 40, panel.Bottom - 40), thinking ? Gold : Dim);
+        DrawHelpers.Text(spriteBatch, small, DrawHelpers.Fit(small, footer, panel.Width - (2 * side)), new Vector2(panel.Left + side, CheckCardLayout.FooterY(box)), thinking ? Gold : Dim);
     }
 
     private static void DrawRows(SpriteBatch spriteBatch, SpriteFontBase font, IReadOnlyList<string> rows, int x, int y, int rowHeight, Color colour)
@@ -126,8 +138,9 @@ public sealed class CheckLayer : IFrameLayer
             shown.Select(static o => (o.Label, o.Icon is not null)).ToList(),
             t => DrawHelpers.Width(title, t),
             t => DrawHelpers.Width(small, t));
-        DrawRows(spriteBatch, title, layout.Heading, panel.Left + CheckCardLayout.Side, layout.HeadingY, CheckCardLayout.LargeRow, Ink);
-        DrawRows(spriteBatch, small, layout.Hint, panel.Left + CheckCardLayout.Side, layout.HintY, CheckCardLayout.SmallRow, Dim);
+        var side = CheckCardLayout.SideFor(new PixelBox(panel.X, panel.Y, panel.Width, panel.Height));
+        DrawRows(spriteBatch, title, layout.Heading, panel.Left + side, layout.HeadingY, CheckCardLayout.LargeRowFor(new PixelBox(panel.X, panel.Y, panel.Width, panel.Height)), Ink);
+        DrawRows(spriteBatch, small, layout.Hint, panel.Left + side, layout.HintY, CheckCardLayout.SmallRow, Dim);
         var mouse = view.Mouse;
         for (var i = 0; i < shown.Count; i++)
         {
@@ -138,16 +151,17 @@ public sealed class CheckLayer : IFrameLayer
             DrawHelpers.Border(spriteBatch, view.Pixel, row, 1, new Color(110, 110, 150));
             if (shown[i].Icon is { } name && Enum.TryParse<ItemId>(name, out var item))
             {
-                view.VoxelIcons.DrawIcon(spriteBatch, item, new Rectangle(row.Left + 12, row.Top + 8, 40, 40), 1);
+                var icon = Math.Min(40, row.Height - 8);
+                view.VoxelIcons.DrawIcon(spriteBatch, item, new Rectangle(row.Left + 12, row.Top + ((row.Height - icon) / 2), icon, icon), 1);
             }
 
             if (option.Large)
             {
-                DrawHelpers.Text(spriteBatch, title, option.Rows[0], new Vector2(option.TextX, row.Top + 12), Ink);
+                DrawHelpers.Text(spriteBatch, title, option.Rows[0], new Vector2(option.TextX, row.Top + ((row.Height - 32) / 2)), Ink);
             }
             else
             {
-                DrawRows(spriteBatch, small, option.Rows, option.TextX, row.Top + 8, CheckCardLayout.SmallRow, Ink);
+                DrawRows(spriteBatch, small, option.Rows, option.TextX, row.Top + ((row.Height - (option.Rows.Count * CheckCardLayout.SmallRow)) / 2), CheckCardLayout.SmallRow, Ink);
             }
         }
     }
@@ -161,20 +175,24 @@ public sealed class CheckLayer : IFrameLayer
             ProductionHint,
             t => DrawHelpers.Width(title, t),
             t => DrawHelpers.Width(small, t));
-        DrawRows(spriteBatch, small, layout.Preface, panel.Left + CheckCardLayout.Side, layout.PrefaceY, CheckCardLayout.SmallRow, Dim);
-        DrawRows(spriteBatch, title, layout.Heading, panel.Left + CheckCardLayout.Side, layout.HeadingY, CheckCardLayout.LargeRow, Ink);
-        DrawRows(spriteBatch, small, layout.Hint, panel.Left + CheckCardLayout.Side, layout.HintY, CheckCardLayout.SmallRow, Dim);
+        var card = new PixelBox(panel.X, panel.Y, panel.Width, panel.Height);
+        var side = CheckCardLayout.SideFor(card);
+        DrawRows(spriteBatch, small, layout.Preface, panel.Left + side, layout.PrefaceY, CheckCardLayout.SmallRow, Dim);
+        DrawRows(spriteBatch, title, layout.Heading, panel.Left + side, layout.HeadingY, CheckCardLayout.LargeRowFor(card), Ink);
+        DrawRows(spriteBatch, small, layout.Hint, panel.Left + side, layout.HintY, CheckCardLayout.SmallRow, Dim);
         var input = layout.Input!.Value;
         var box = new Rectangle(input.X, input.Y, input.Width, input.Height);
         spriteBatch.Draw(pixel, box, new Color(10, 10, 20, 255));
         var typed = check.Entry.Text;
         if (typed.Length > 0 || check.IsTyping)
         {
-            DrawHelpers.Text(spriteBatch, title, check.IsTyping ? typed + "|" : typed, new Vector2(box.Left + 12, box.Top + 6), Ink);
+            // The typed answer stays inside its box: the end of a long answer is shown, with the caret (the start scrolls out of view).
+            var (visible, _) = TextWrap.Window(check.IsTyping ? typed + "|" : typed, int.MaxValue, box.Width - 24, text => DrawHelpers.Width(title, text));
+            DrawHelpers.Text(spriteBatch, title, visible, new Vector2(box.Left + 12, box.Top + ((box.Height - 32) / 2)), Ink);
         }
         else
         {
-            DrawHelpers.Text(spriteBatch, small, check.Listening ? "Listening..." : "Your answer appears here.", new Vector2(box.Left + 12, box.Top + 12), Dim);
+            DrawHelpers.Text(spriteBatch, small, check.Listening ? "Listening..." : "Your answer appears here.", new Vector2(box.Left + 12, box.Top + ((box.Height - 16) / 2)), Dim);
         }
     }
 }

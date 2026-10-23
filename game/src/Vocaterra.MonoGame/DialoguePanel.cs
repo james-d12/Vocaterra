@@ -78,7 +78,7 @@ public sealed class DialoguePanel : IFrameLayer
     {
         ArgumentNullException.ThrowIfNull(dialogue);
         ArgumentNullException.ThrowIfNull(font);
-        return new DialogueLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), dialogue.Choices.Select(static c => c.Label).ToList(), dialogue.IsTyping, button => SpeechButtons.TextFor(button, session));
+        return new DialogueLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), dialogue.Choices.Select(static c => c.Label).ToList(), dialogue.IsTyping, button => SpeechButtons.TextFor(button, session), HintsFor(dialogue.IsTyping, dialogue.SpeechUnavailable));
     }
 
     /// <inheritdoc />
@@ -127,7 +127,13 @@ public sealed class DialoguePanel : IFrameLayer
             DrawInput(spriteBatch, view, font, dialogue, ToRectangle(inputBox));
         }
 
-        DrawHelpers.Text(spriteBatch, font, HintsFor(dialogue.IsTyping, dialogue.SpeechUnavailable), new Vector2(textLeft, layout.HintsY), NoteColor);
+        if (layout.HasHints)
+        {
+            for (var i = 0; i < layout.HintRows.Count; i++)
+            {
+                DrawHelpers.Text(spriteBatch, font, layout.HintRows[i], new Vector2(textLeft, layout.HintsY + (i * DialogueLayout.LineHeight)), NoteColor);
+            }
+        }
     }
 
     /// <summary>
@@ -247,7 +253,12 @@ public sealed class DialoguePanel : IFrameLayer
             }
         }
 
-        var capacity = Math.Max(1, (bottom - top) / DialogueLayout.LineHeight);
+        var capacity = (bottom - top) / DialogueLayout.LineHeight;
+        if (capacity <= 0)
+        {
+            return; // a compact panel with no room: the bubble and the lesson strip carry the line (X08)
+        }
+
         var first = Math.Max(0, rows.Count - capacity);
         var y = bottom - ((rows.Count - first) * DialogueLayout.LineHeight);
         for (var i = first; i < rows.Count; i++)

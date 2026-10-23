@@ -20,8 +20,11 @@ public sealed record BookGeometry(int ViewportWidth, int ViewportHeight)
     /// <summary>The height of one line of content, in pixels.</summary>
     public const int LineHeight = 19;
 
-    /// <summary>The width of one ribbon's click area, in pixels.</summary>
+    /// <summary>The widest a ribbon's click area is, in pixels (it narrows when the paper is too narrow for the ribbons side by side, X08).</summary>
     public const int TabWidth = 124;
+
+    /// <summary>The narrowest a ribbon is: the longest label (Phrases, Lessons) is seven letters, about 45 px in the font, with 8 px either side.</summary>
+    public const int MinTabWidth = 72;
 
     /// <summary>The gap between two ribbons.</summary>
     public const int TabGap = 6;
@@ -102,9 +105,20 @@ public sealed record BookGeometry(int ViewportWidth, int ViewportHeight)
     /// <summary>How many whole lines of the list fit (at least one).</summary>
     public int LinesVisible => Math.Max(1, (ContentBottom - ContentTop) / LineHeight);
 
+    /// <summary>The width of one ribbon: <see cref="TabWidth"/> when all of them fit along the paper (from its left padding), otherwise the share that does, never under <see cref="MinTabWidth"/>.</summary>
+    public int TabPixels
+    {
+        get
+        {
+            var count = Enum.GetValues<BookPage>().Length;
+            var room = Paper.Width - (2 * (TabsLeft - Paper.X)) - ((count - 1) * TabGap);
+            return Math.Clamp(room / count, MinTabWidth, TabWidth);
+        }
+    }
+
     /// <summary>The click area of a ribbon, by page.</summary>
     /// <param name="page">The page.</param>
-    public BookRect TabRect(BookPage page) => new(TabsLeft + ((int)page * (TabWidth + TabGap)), Panel.Y + 4, TabWidth, TabHeight);
+    public BookRect TabRect(BookPage page) => new(TabsLeft + ((int)page * (TabPixels + TabGap)), Panel.Y + 4, TabPixels, TabHeight);
 
     /// <summary>The page whose ribbon is at a point, or <see langword="null"/> when the point is on no ribbon.</summary>
     /// <param name="x">The x of the point.</param>

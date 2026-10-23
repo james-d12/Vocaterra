@@ -65,6 +65,7 @@ public sealed record LaunchOptions
         + "  --book                  open the book (J) once the steps are done: the same as --journal\n"
         + "  --book-page <page>      open the book on nouns, verbs, phrases, lessons or said (What I said) once the steps are done\n"
         + "  --size <W>x<H>          the window's size (default 1280x720; 800x600 is the smallest the book is made for)\n"
+        + "  --text-scale <n>        the size of the interface text in percent: 100, 125 or 150 (default: the save's, else 100; F9 steps through them; X08)\n"
         + "  --book-verb <verb>     open the book on the verbs page with this verb's conjugation table on the right page (S28)\n"
         + "  --book-detail <lines>  scroll the book's right page down by this many lines when it opens (a scripted run, X03)\n"
         + "  --inventory             open the inventory screen once the steps are done\n"
@@ -206,6 +207,9 @@ public sealed record LaunchOptions
     /// <summary>The window's height in pixels (<c>--size</c>, S28), or <see langword="null"/> for the default.</summary>
     public int? WindowHeight { get; init; }
 
+    /// <summary>The interface text size in percent (<c>--text-scale</c>, X08): 100, 125 or 150; <see langword="null"/> to take the save's, else 100.</summary>
+    public int? TextScale { get; init; }
+
     /// <summary>Whether the inventory screen is opened once the script is done (<c>--inventory</c>).</summary>
     public bool ShowInventory { get; init; }
 
@@ -306,6 +310,7 @@ public sealed record LaunchOptions
         var bookDetailLines = 0;
         int? windowWidth = null;
         int? windowHeight = null;
+        int? textScale = null;
         var inventory = false;
         var crafting = false;
         var greyscale = false;
@@ -397,7 +402,7 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
-                or "--check" or "--pick" or "--session-dir" or "--session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size"
+                or "--check" or "--pick" or "--session-dir" or "--session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
                 or "--book-play" or "--book-play-slow" or "--debug-crash-after"))
             {
@@ -716,6 +721,15 @@ public sealed record LaunchOptions
                     windowWidth = sizeW;
                     windowHeight = sizeH;
                     break;
+                case "--text-scale":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var scalePercent) || !SaveSettings.TextScaleLevels.Contains(scalePercent))
+                    {
+                        error = $"--text-scale needs one of {string.Join(", ", SaveSettings.TextScaleLevels)} (percent), got '{value}'.";
+                        return false;
+                    }
+
+                    textScale = scalePercent;
+                    break;
                 case "--book-detail":
                     if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var detailLines) || detailLines < 1)
                     {
@@ -892,6 +906,7 @@ public sealed record LaunchOptions
             BookDetailLines = bookDetailLines,
             WindowWidth = windowWidth,
             WindowHeight = windowHeight,
+            TextScale = textScale,
             ShowInventory = inventory,
             ShowCrafting = crafting,
             Greyscale = greyscale,

@@ -76,9 +76,12 @@ public sealed class LessonLayer : IFrameLayer
         var left = box.X + LessonStripLayout.Padding;
         var heading = step is not null ? LessonStripLayout.Heading(ui, step) : LessonStripLayout.Heading(ui, offer!);
         DrawHelpers.Text(spriteBatch, small, heading, new Vector2(left, layout.HeadingY), Gold);
-        if (layout.SpanishY is { } spanishY && step?.Spanish is { } spanish)
+        if (layout.SpanishY is { } spanishY)
         {
-            DrawHelpers.Text(spriteBatch, large, spanish, new Vector2(left, spanishY), Ink);
+            for (var i = 0; i < layout.SpanishRows.Count; i++)
+            {
+                DrawHelpers.Text(spriteBatch, large, layout.SpanishRows[i], new Vector2(left, spanishY + (i * LessonStripLayout.SpanishHeight)), Ink);
+            }
         }
 
         for (var i = 0; i < layout.EnglishRows.Count; i++)

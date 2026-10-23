@@ -38,10 +38,15 @@ public sealed class ObjectiveLayer : IFrameLayer
         var pieces = session is VoxelSession voxel
             ? voxel.ObjectiveHud() // the stage's line, or the checklist (S17)
             : session.English.ObjectivePieces(objective, lemma => session.Words.RecordOf(lemma).Known);
-        var rows = Rows(pieces, font, (int)(view.ViewportWidth * WidthShare));
+        var rows = HudLayout.ObjectiveRows(pieces, p => DrawHelpers.Width(font, p.Text), static p => p.Kind == ObjectivePieceKind.Word, (float)(view.ViewportWidth * WidthShare), view.ViewportWidth - (2 * Margin) - 16);
         var width = rows.Max(row => row.Sum(p => (int)DrawHelpers.Width(font, p.Text)));
-        var height = 8 + (rows.Count * 20);
-        var box = new Rectangle(view.ViewportWidth - width - (Margin * 2) - 8, Margin, width + 16, height);
+        var layoutBox = HudLayout.ObjectiveBox(view.ViewportWidth, width, rows.Count);
+        if (view.Dialogue.IsOpen && !HudLayout.ObjectiveVisible(layoutBox, ConversationBoxes(view)))
+        {
+            return; // it gives way to the lesson strip and the bubble on a short canvas (X08)
+        }
+
+        var box = new Rectangle(layoutBox.X, layoutBox.Y, layoutBox.Width, layoutBox.Height);
         spriteBatch.Draw(view.Pixel, box, Back);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, Gold);
         var y = box.Top + 6;
@@ -58,22 +63,21 @@ public sealed class ObjectiveLayer : IFrameLayer
         }
     }
 
-    // The checklist on one row when it fits; otherwise the title on the first row and the steps on the second.
-    private static List<List<ObjectivePiece>> Rows(IReadOnlyList<ObjectivePiece> pieces, FontStashSharp.SpriteFontBase font, int maxWidth)
+    // What the conversation puts on the canvas this frame: the lesson strip and the bubble.
+    private static List<PixelBox> ConversationBoxes(FrameView view)
     {
-        var whole = pieces.Sum(p => (int)DrawHelpers.Width(font, p.Text));
-        if (whole <= maxWidth)
+        var boxes = new List<PixelBox>();
+        if (view.LessonStripBox is { } strip)
         {
-            return [pieces.ToList()];
+            boxes.Add(strip);
         }
 
-        var firstStep = pieces.ToList().FindIndex(static p => p.Kind == ObjectivePieceKind.Word);
-        if (firstStep < 0)
+        if (ConversationFrame.For(view).Bubble is { } bubble)
         {
-            return [pieces.ToList()]; // a stage line is one piece of English (S17): it is short, and it is never split
+            boxes.Add(new PixelBox(bubble.Box.X, bubble.Box.Y, bubble.Box.Width, bubble.Box.Height + DialogueBubble.TailHeight));
         }
 
-        return [pieces.Take(firstStep).ToList(), pieces.Skip(firstStep).ToList()];
+        return boxes;
     }
 
     private static Color ColourOf(ObjectivePiece piece) => piece.Kind switch

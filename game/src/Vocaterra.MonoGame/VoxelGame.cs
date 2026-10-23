@@ -206,9 +206,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     /// <param name="pristine">Builds a fresh scene of the session seed.</param>
     /// <param name="savedVolumes">The sound volumes a loaded save holds (S24), or <see langword="null"/>; <c>--sfx-volume</c> and <c>--ambient-volume</c> override them.</param>
     /// <param name="layout">The scene's layout, whose places the ambient beds listen to (S25), or <see langword="null"/> (a run without one has no places).</param>
-    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SoundVolumes? savedVolumes = null, SceneLayout? layout = null)
+    /// <param name="savedTextScale">The interface text size in percent a loaded save holds (X08), or <see langword="null"/>; <c>--text-scale</c> overrides it.</param>
+    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SoundVolumes? savedVolumes = null, SceneLayout? layout = null, int? savedTextScale = null)
     {
         _options = options;
+        _textPercent = SaveSettings.SnapTextScale(options.TextScale ?? savedTextScale ?? 100);
         _session = session;
         _scene = scene;
         _voice = voice;
@@ -691,8 +693,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         var viewport = GraphicsDevice.PresentationParameters;
         var width = viewport.BackBufferWidth;
         var height = viewport.BackBufferHeight;
-        view.ViewportWidth = width;
-        view.ViewportHeight = height;
+        var (canvasWidth, canvasHeight) = UiScale.Canvas(_textPercent, width, height); // the 2D layers are laid out on this canvas and magnified to the window (X08)
+        view.ViewportWidth = canvasWidth;
+        view.ViewportHeight = canvasHeight;
         var drawStart = MonotonicClock.Milliseconds();
 
         var alpha = (float)_accumulator.Alpha;
@@ -723,7 +726,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         _dialogue.SpeechUnavailable = _session.Worker.IsReady && !_session.Worker.CanHear;
         view.LoadingFrame = _loadingFrames++;
         var mouse = Mouse.GetState();
-        view.Mouse = !_options.IsScreenshotRun && GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? mouse.Position : null;
+        view.Mouse = !_options.IsScreenshotRun && GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? CanvasPoint(mouse.Position) : null;
 
         view.LessonStripBox = LessonLayer.LayoutFor(view, _lesson) is { } lessonStrip ? lessonStrip.Box : null; // the cards keep clear of it (S22)
 
@@ -734,7 +737,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         _renderer.DrawWorld(_camera, _sim.Target?.Block, Beacon.Target, _sim.Tick, shoulder ? PlayerAvatarNow() : null, shoulder ? null : ArmFrameNow(eye));
 
         var spriteBatch = _spriteBatch!;
-        spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+        spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: Matrix.CreateScale(width / (float)canvasWidth, height / (float)canvasHeight, 1f));
         foreach (var layer in _layers)
         {
             layer.Draw(spriteBatch, view);
@@ -959,6 +962,27 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     // The crosshair is on the workbench (the mesa): E opens the crafting panel there, as C does anywhere.
     private bool AimedAtWorkbench() => _sim.Target is { } hit && hit.Id == BlockId.Table;
 
+    // The interface scale (X08): the canvas the 2D layers are laid out on is the window divided by the scale, and the mouse is brought onto it.
+    private int _textPercent = 100;
+
+    private int UiWidth => UiScale.Canvas(_textPercent, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height).Width;
+
+    private int UiHeight => UiScale.Canvas(_textPercent, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height).Height;
+
+    private SaveSettings CurrentSettings() => new(_sound.Mixer.Volumes, _textPercent); // the sound volumes (S24) and the text size (X08) ride in the save's settings
+
+    private Point CanvasPoint(Point window)
+    {
+        var (x, y) = UiScale.ToCanvas(window.X, window.Y, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, UiWidth, UiHeight);
+        return new Point(x, y);
+    }
+
+    private MouseState ScaledMouse(MouseState raw)
+    {
+        var point = CanvasPoint(raw.Position);
+        return new MouseState(point.X, point.Y, raw.ScrollWheelValue, raw.LeftButton, raw.MiddleButton, raw.RightButton, raw.XButton1, raw.XButton2);
+    }
+
     // Keys and mouse, once per frame, for the interactive run. The device state becomes this frame's commands (LiveVoxelInput) and the look.
     private void ReadInput()
     {
@@ -968,7 +992,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         }
 
         var keys = Keyboard.GetState();
-        var mouse = Mouse.GetState();
+        var mouse = ScaledMouse(Mouse.GetState()); // the pointer in the canvas the layers are laid out on (X08)
         bool Pressed(Keys key) => keys.IsKeyDown(key) && !_previousKeys.IsKeyDown(key);
 
         // The report panel (S21) takes every key and click while it is open; nothing else in the game reads the input then. F8 opens it from anywhere.
@@ -1013,6 +1037,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             if (Pressed(Keys.F6))
             {
                 SaveNow();
+            }
+
+            if (Pressed(Keys.F9))
+            {
+                _textPercent = UiScale.Next(_textPercent); // the interface text size: 100, 125, 150 percent (X08); no other F9 binding, and a text box never reads it
+                Console.WriteLine($"text scale: {_textPercent} percent (canvas {UiWidth} x {UiHeight})");
             }
 
             if (_micCheck is { IsActive: true })
@@ -1106,7 +1136,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         {
             // Over the right page the wheel scrolls that page (X03); over the list it scrolls the list.
             var notchLines = -(int)Math.Round((bookWheel - _previousWheel) / 40.0);
-            if (new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height).RightPage.Contains(mouse.X, mouse.Y))
+            if (new BookGeometry(UiWidth, UiHeight).RightPage.Contains(mouse.X, mouse.Y))
             {
                 _book.ScrollDetail(notchLines * BookGeometry.LineHeight);
             }
@@ -1119,20 +1149,20 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         _previousWheel = bookWheel;
         if (IsActive && _book.IsOpen && leftDown && !_previousLeftDown)
         {
-            if (new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height).TabAt(mouse.X, mouse.Y) is { } tab)
+            if (new BookGeometry(UiWidth, UiHeight).TabAt(mouse.X, mouse.Y) is { } tab)
             {
                 _book.Show(tab);
                 _sound.QueueClick(SoundCue.UiTab);
             }
-            else if (_bookControls.Click(new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), mouse.X, mouse.Y, ShiftDown(keys)))
+            else if (_bookControls.Click(new BookGeometry(UiWidth, UiHeight), mouse.X, mouse.Y, ShiftDown(keys)))
             {
                 _sound.QueueClick(SoundCue.UiClick);
             }
-            else if (_bookControls.ClickVerb(new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), mouse.X, mouse.Y))
+            else if (_bookControls.ClickVerb(new BookGeometry(UiWidth, UiHeight), mouse.X, mouse.Y))
             {
                 _sound.QueueClick(SoundCue.UiClick);
             }
-            else if (_bookControls.ClickPractise(new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), mouse.X, mouse.Y) is { } practise)
+            else if (_bookControls.ClickPractise(new BookGeometry(UiWidth, UiHeight), mouse.X, mouse.Y) is { } practise)
             {
                 _sound.QueueClick(SoundCue.UiClick);
                 PractiseAgain(practise);
@@ -1142,7 +1172,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         if (IsActive && _crafting.IsOpen && leftDown && !_previousLeftDown)
         {
             // A click on a row of the panel asks for one craft in the next tick (the same command a script sends).
-            var layout = new CraftingLayout(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, _session.Recipes.Entries.Count);
+            var layout = new CraftingLayout(UiWidth, UiHeight, _session.Recipes.Entries.Count);
             if (layout.RowAt(mouse.X, mouse.Y) is { } row)
             {
                 if (_sim.CanCraft(row) != CraftResult.Done)
@@ -1338,7 +1368,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
 
         var leftDown = mouse.LeftButton == ButtonState.Pressed;
         if (outcome == ReportOutcome.None && leftDown && !_previousLeftDown
-            && new ReportLayout(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height).ButtonAt(mouse.X, mouse.Y) is { } button)
+            && ReportLayer.LayoutFor(UiWidth, UiHeight, _view!.Fonts.Get(FontProvider.NativeSize)).ButtonAt(mouse.X, mouse.Y) is { } button)
         {
             outcome = _report.Click(button);
         }
@@ -1628,7 +1658,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         var font = _view!.Fonts.Get(FontProvider.NativeSize);
         if (_micCheck is { IsActive: true } check)
         {
-            var layout = MicCheckLayer.LayoutFor(check, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, font);
+            var layout = MicCheckLayer.LayoutFor(check, UiWidth, UiHeight, font);
             if (layout.ButtonAt(x, y) is { } button)
             {
                 PressMicButton(button);
@@ -1649,7 +1679,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
                 return;
             }
 
-            var layout = DialoguePanel.LayoutFor(_dialogue, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, font, _session);
+            var layout = DialoguePanel.LayoutFor(_dialogue, UiWidth, UiHeight, font, _session);
             if (layout.ActionAt(x, y) is { } action)
             {
                 PerformAction(action, null);
@@ -2487,7 +2517,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             return false;
         }
 
-        var document = SaveGame.Capture(_session, _pristine(), new SaveSettings(_sound.Mixer.Volumes)); // the sound volumes ride in the save's settings (S24)
+        var document = SaveGame.Capture(_session, _pristine(), CurrentSettings()); // the sound volumes ride in the save's settings (S24)
         var text = SaveGame.Serialize(document);
         SaveFile.Write(path, text);
         Console.WriteLine(
@@ -2521,7 +2551,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         try
         {
             var started = MonotonicClock.Milliseconds();
-            var document = SaveGame.Capture(_session, PristineScene(), new SaveSettings(_sound.Mixer.Volumes));
+            var document = SaveGame.Capture(_session, PristineScene(), CurrentSettings());
             var text = SaveGame.Serialize(document);
             SaveFile.Write(_autosavePath, text);
             Console.WriteLine(
@@ -2601,7 +2631,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
                 return "a dialogue was open, and a save holds no open dialogue";
             }
 
-            var document = SaveGame.Capture(_session, PristineScene(), new SaveSettings(_sound.Mixer.Volumes));
+            var document = SaveGame.Capture(_session, PristineScene(), CurrentSettings());
             SaveFile.Write(path, SaveGame.Serialize(document));
             return null;
         }
@@ -2756,7 +2786,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             _book.Turn(forward: true);
         }
 
-        var geometry = new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
+        var geometry = new BookGeometry(UiWidth, UiHeight);
         var lines = geometry.LinesVisible;
         var shift = ShiftDown(keys);
         if (shift && (pressed(Keys.Down) || pressed(Keys.Up)))
@@ -2778,13 +2808,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         }
         else if (pressed(Keys.Down) || pressed(Keys.Up))
         {
-            _bookControls.Move(pressed(Keys.Down) ? 1 : -1, new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height).LinesVisible);
+            _bookControls.Move(pressed(Keys.Down) ? 1 : -1, new BookGeometry(UiWidth, UiHeight).LinesVisible);
         }
         else if (pressed(Keys.Enter))
         {
             _ = _bookControls.Enter(ShiftDown(keys));
         }
-        else if (pressed(Keys.P) && _bookControls.PractiseFirst(new BookGeometry(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height)) is { } practise)
+        else if (pressed(Keys.P) && _bookControls.PractiseFirst(new BookGeometry(UiWidth, UiHeight)) is { } practise)
         {
             PractiseAgain(practise);
         }

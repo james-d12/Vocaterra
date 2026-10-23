@@ -123,7 +123,8 @@ public sealed class BookLayer : IFrameLayer
 
         DrawRibbons(spriteBatch, pixel, font, geometry, page); // over the leaf: the ribbons hang from the top edge whatever page is turning
 
-        var hints = Fit(font, BookTabs.KeyHints, geometry.Panel.Width - 56);
+        var hintRoom = geometry.Panel.Width - 56;
+        var hints = Fit(font, DrawHelpers.Width(font, BookTabs.KeyHints) <= hintRoom ? BookTabs.KeyHints : BookTabs.KeyHintsShort, hintRoom);
         DrawHelpers.Text(spriteBatch, font, hints, new Vector2(geometry.Panel.X + 28, geometry.Panel.Bottom - 24), Cream);
     }
 
@@ -697,21 +698,7 @@ public sealed class BookLayer : IFrameLayer
     }
 
     // Shortens a text to fit a width with "..." at its end (a line never runs over its neighbour).
-    private static string Fit(SpriteFontBase font, string text, int maxWidth)
-    {
-        if (DrawHelpers.Width(font, text) <= maxWidth)
-        {
-            return text;
-        }
-
-        var cut = text.Length;
-        while (cut > 0 && DrawHelpers.Width(font, text[..cut] + "...") > maxWidth)
-        {
-            cut--;
-        }
-
-        return text[..cut] + "...";
-    }
+    private static string Fit(SpriteFontBase font, string text, int maxWidth) => DrawHelpers.Fit(font, text, maxWidth);
 
     private static Color ToneColour(BookTone tone) => tone switch
     {

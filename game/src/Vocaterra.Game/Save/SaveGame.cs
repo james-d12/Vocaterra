@@ -158,7 +158,7 @@ public static class SaveGame
             session.Tips.Capture(),
             session.Learner.Capture(),
             BookGranted: true,
-            Settings: settings is null ? null : new SaveSettings(settings.Sound.Clamped()),
+            Settings: settings is null ? null : settings.Clamped(),
             World: new WorldDims(session.Scene.Grid.ChunksX, session.Scene.Grid.ChunksY, session.Scene.Grid.ChunksZ));
     }
 

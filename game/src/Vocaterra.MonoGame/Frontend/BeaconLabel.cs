@@ -16,6 +16,20 @@ public static class BeaconLabel
     /// <summary>The padding either side of the text.</summary>
     public const int Padding = 6;
 
+    /// <summary>
+    /// A box moved (and, if it is wider than the canvas, narrowed) so it lies inside the canvas less <see cref="Margin"/> (X08): the label of an on-screen target hangs at the
+    /// target, which may be near an edge, and a larger text scale makes the label wider.
+    /// </summary>
+    /// <param name="box">The box.</param>
+    /// <param name="viewportWidth">The canvas's width.</param>
+    /// <param name="viewportHeight">The canvas's height.</param>
+    public static PixelBox Clamp(PixelBox box, int viewportWidth, int viewportHeight)
+    {
+        var width = Math.Min(box.Width, viewportWidth - (2 * Margin));
+        var height = Math.Min(box.Height, viewportHeight - (2 * Margin));
+        return new PixelBox(Math.Clamp(box.X, Margin, viewportWidth - Margin - width), Math.Clamp(box.Y, Margin, viewportHeight - Margin - height), width, height);
+    }
+
     /// <summary>Places the label of an off-screen target next to its edge arrow.</summary>
     /// <param name="viewportWidth">The window's width.</param>
     /// <param name="viewportHeight">The window's height.</param>

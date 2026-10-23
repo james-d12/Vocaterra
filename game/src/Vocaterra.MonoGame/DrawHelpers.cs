@@ -69,6 +69,21 @@ public static class DrawHelpers
     }
 
     /// <summary>
+    /// Draws text with a one-pixel dark outline on all four sides (X08), for a label in the world that stands on whatever is behind it (the beacon's, an NPC's name):
+    /// the plate behind the label does most of the work, the outline keeps the letters whole where the plate is translucent over a bright sky or water.
+    /// </summary>
+    public static void Outlined(SpriteBatch spriteBatch, SpriteFontBase font, string text, Vector2 position, Color color)
+    {
+        var outline = new Color(0, 0, 0, (int)(color.A * 0.85));
+        foreach (var offset in new[] { new Vector2(-1, 0), new Vector2(1, 0), new Vector2(0, -1), new Vector2(0, 1), new Vector2(1, 1) })
+        {
+            spriteBatch.DrawString(font, text, position + offset, outline);
+        }
+
+        spriteBatch.DrawString(font, text, position, color);
+    }
+
+    /// <summary>
     /// Draws a stack count on its plate (<see cref="CountBadge"/>: white on an opaque dark plate, so it reads on any icon), with the plate's
     /// bottom-right corner at <paramref name="corner"/>.
     /// </summary>
@@ -80,6 +95,23 @@ public static class DrawHelpers
         var front = CountBadge.TextColour;
         spriteBatch.Draw(pixel, plate, new Color(back.R, back.G, back.B));
         spriteBatch.DrawString(font, text, new Vector2(plate.X + 3, plate.Y + 1), new Color(front.R, front.G, front.B));
+    }
+
+    /// <summary>The text cut to <paramref name="maxWidth"/> pixels, ending in "..." when it is cut (a last resort for one line that has no room to wrap).</summary>
+    public static string Fit(SpriteFontBase font, string text, int maxWidth)
+    {
+        if (Width(font, text) <= maxWidth)
+        {
+            return text;
+        }
+
+        var cut = text.Length;
+        while (cut > 0 && Width(font, text[..cut] + "...") > maxWidth)
+        {
+            cut--;
+        }
+
+        return text[..cut] + "...";
     }
 
     /// <summary>The width of a text in pixels.</summary>

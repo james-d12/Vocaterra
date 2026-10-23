@@ -84,10 +84,11 @@ public sealed class NpcLabelLayer : IFrameLayer
 
             var alpha = (float)Math.Clamp((FullDistance + FadeDistance - distance) / FadeDistance, 0.0, 1.0);
             var width = DrawHelpers.Width(font, figure.Label);
-            var box = new Rectangle((int)(point.X - (width / 2)) - 7, (int)point.Y - 12, (int)width + 14, 24);
+            var placed = BeaconLabel.Clamp(new PixelBox((int)(point.X - (width / 2)) - 7, (int)point.Y - 12, (int)width + 14, 24), view.ViewportWidth, view.ViewportHeight);
+            var box = new Rectangle(placed.X, placed.Y, placed.Width, placed.Height);
             spriteBatch.Draw(view.Pixel, box, new Color(0, 0, 0, 175) * alpha);
             DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, new Color(255, 214, 64) * alpha);
-            DrawHelpers.Text(spriteBatch, font, figure.Label, new Vector2(box.X + 7, box.Y + 3), Color.White * alpha);
+            DrawHelpers.Outlined(spriteBatch, font, figure.Label, new Vector2(box.X + 7, box.Y + 3), Color.White * alpha);
         }
     }
 
@@ -176,7 +177,7 @@ public sealed class BeaconArrowLayer : IFrameLayer
         var (arrow, text, _) = beacon;
         if (arrow.OnScreen)
         {
-            DrawLabel(spriteBatch, pixel, font, text, new Vector2((float)arrow.X, (float)arrow.Y));
+            DrawLabel(spriteBatch, pixel, font, text, new Vector2((float)arrow.X, (float)arrow.Y), view.ViewportWidth, view.ViewportHeight);
             return;
         }
 
@@ -196,16 +197,17 @@ public sealed class BeaconArrowLayer : IFrameLayer
 
         spriteBatch.Draw(pixel, box, new Color(0, 0, 0, 190));
         DrawHelpers.Border(spriteBatch, pixel, box, 1, Gold);
-        DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.X + BeaconLabel.Padding, box.Y + 2), Color.White);
+        DrawHelpers.Outlined(spriteBatch, font, text, new Vector2(box.X + BeaconLabel.Padding, box.Y + 2), Color.White);
     }
 
-    private static void DrawLabel(SpriteBatch spriteBatch, Texture2D pixel, FontStashSharp.SpriteFontBase font, string text, Vector2 centre)
+    private static void DrawLabel(SpriteBatch spriteBatch, Texture2D pixel, FontStashSharp.SpriteFontBase font, string text, Vector2 centre, int viewportWidth, int viewportHeight)
     {
         var width = DrawHelpers.Width(font, text);
-        var box = new Rectangle((int)(centre.X - (width / 2)) - 6, (int)centre.Y - 11, (int)width + 12, 22);
+        var placed = BeaconLabel.Clamp(new PixelBox((int)(centre.X - (width / 2)) - 6, (int)centre.Y - 11, (int)width + 12, 22), viewportWidth, viewportHeight);
+        var box = new Rectangle(placed.X, placed.Y, placed.Width, placed.Height);
         spriteBatch.Draw(pixel, box, new Color(0, 0, 0, 190));
         DrawHelpers.Border(spriteBatch, pixel, box, 1, Gold);
-        DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.X + 6, box.Y + 2), Color.White);
+        DrawHelpers.Outlined(spriteBatch, font, text, new Vector2(box.X + 6, box.Y + 2), Color.White);
     }
 
     private static void DrawArrow(SpriteBatch spriteBatch, Texture2D pixel, Vector2 from, float angle, float length)

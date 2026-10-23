@@ -44,6 +44,44 @@ public sealed class CheckCardLayout
     /// <summary>The icon's width plus its gap, before an option's text.</summary>
     public const int IconSpace = 52;
 
+    /// <summary>The card height under which the card is compact (X08): a canvas 480 or 400 tall (150 percent at 1280 x 720 and at 800 x 600) gives a card of 456 and 376.</summary>
+    public const int CompactBelow = 500;
+
+    /// <summary>Whether a card of this box is laid out compactly: tighter rows, boxes and side padding, so the same text fits a short canvas.</summary>
+    /// <param name="panel">The card.</param>
+    public static bool IsCompact(PixelBox panel) => panel.Height < CompactBelow;
+
+    /// <summary>The side padding of the card (<see cref="Side"/>; 28 when compact).</summary>
+    /// <param name="panel">The card.</param>
+    public static int SideFor(PixelBox panel) => IsCompact(panel) ? 28 : Side;
+
+    /// <summary>The height of a row of the large font on this card.</summary>
+    /// <param name="panel">The card.</param>
+    public static int LargeRowFor(PixelBox panel) => IsCompact(panel) ? 34 : LargeRow;
+
+    /// <summary>The height of an option's box on this card.</summary>
+    /// <param name="panel">The card.</param>
+    public static int OptionHeightFor(PixelBox panel) => IsCompact(panel) ? 40 : OptionHeight;
+
+    private static int OptionGapFor(PixelBox panel) => IsCompact(panel) ? 6 : OptionGap;
+
+    private static int InputHeightFor(PixelBox panel) => IsCompact(panel) ? 36 : InputHeight;
+
+    private static int TopFor(PixelBox panel) => IsCompact(panel) ? 58 : 66;
+
+    /// <summary>The y of the notice line (a warning under the content), from the card's bottom.</summary>
+    /// <param name="panel">The card.</param>
+    public static int NoticeY(PixelBox panel) => panel.Bottom - (IsCompact(panel) ? 58 : 74);
+
+    /// <summary>The y of the footer line, from the card's bottom.</summary>
+    /// <param name="panel">The card.</param>
+    public static int FooterY(PixelBox panel) => panel.Bottom - (IsCompact(panel) ? 28 : 40);
+
+    /// <summary>The x of an option's text: after the icon when it has one.</summary>
+    /// <param name="panel">The card.</param>
+    /// <param name="hasIcon">Whether the option has an icon.</param>
+    public static int OptionTextOffset(PixelBox panel, bool hasIcon) => hasIcon ? (IsCompact(panel) ? 54 : 64) : 16;
+
     private CheckCardLayout(IReadOnlyList<string> preface, int prefaceY, IReadOnlyList<string> heading, int headingY, IReadOnlyList<string> hint, int hintY, IReadOnlyList<CheckOptionLayout> options, PixelBox? input, int bottom)
     {
         Preface = preface;
@@ -89,14 +127,14 @@ public sealed class CheckCardLayout
     /// <param name="viewportHeight">The window's height.</param>
     public static PixelBox PanelFor(int viewportWidth, int viewportHeight)
     {
-        var width = Math.Min(MaxWidth, viewportWidth - 48);
-        var height = Math.Min(MaxHeight, viewportHeight - 24);
+        var width = Math.Min(MaxWidth, viewportWidth - (viewportWidth < 600 ? 24 : 48));
+        var height = Math.Min(MaxHeight, viewportHeight - (viewportHeight < 500 ? 16 : 24));
         return new PixelBox((viewportWidth - width) / 2, (viewportHeight - height) / 2, width, height);
     }
 
     /// <summary>The y below which the notice and the footer stand: the content must end above it.</summary>
     /// <param name="panel">The card.</param>
-    public static int ContentLimit(PixelBox panel) => panel.Bottom - FooterSpace;
+    public static int ContentLimit(PixelBox panel) => panel.Bottom - (IsCompact(panel) ? 68 : FooterSpace);
 
     /// <summary>Lays out a comprehension item: the question, the hint and the options.</summary>
     /// <param name="panel">The card.</param>
@@ -108,19 +146,20 @@ public sealed class CheckCardLayout
     public static CheckCardLayout ForComprehension(PixelBox panel, string question, string hint, IReadOnlyList<(string Label, bool HasIcon)> options, Func<string, float> large, Func<string, float> small)
     {
         ArgumentNullException.ThrowIfNull(options);
-        var inner = panel.Width - (2 * Side);
-        var y = panel.Y + 66;
+        var side = SideFor(panel);
+        var inner = panel.Width - (2 * side);
+        var y = panel.Y + TopFor(panel);
         var heading = TextWrap.Wrap(question, inner, large);
         var headingY = y;
-        y += (heading.Count * LargeRow) + 4;
+        y += (heading.Count * LargeRowFor(panel)) + 4;
         var hintRows = TextWrap.Wrap(hint, inner, small);
         var hintY = y;
         y += (hintRows.Count * SmallRow) + 10;
         var laid = new List<CheckOptionLayout>();
         for (var i = 0; i < options.Count; i++)
         {
-            var box = new PixelBox(panel.X + Side, y, inner, OptionHeight);
-            var textX = box.X + (options[i].HasIcon ? 64 : 16);
+            var box = new PixelBox(panel.X + side, y, inner, OptionHeightFor(panel));
+            var textX = box.X + OptionTextOffset(panel, options[i].HasIcon);
             var room = box.Right - 12 - textX;
             var label = $"{i + 1}  {options[i].Label}";
             if (large(label) <= room)
@@ -132,10 +171,10 @@ public sealed class CheckCardLayout
                 laid.Add(new CheckOptionLayout(box, TextWrap.Wrap(label, room, small), textX, false));
             }
 
-            y += OptionHeight + OptionGap;
+            y += OptionHeightFor(panel) + OptionGapFor(panel);
         }
 
-        return new CheckCardLayout([], 0, heading, headingY, hintRows, hintY, laid, null, y - OptionGap);
+        return new CheckCardLayout([], 0, heading, headingY, hintRows, hintY, laid, null, y - OptionGapFor(panel));
     }
 
     /// <summary>Lays out a production item: the line before, the situation, the hint and the text box.</summary>
@@ -147,18 +186,19 @@ public sealed class CheckCardLayout
     /// <param name="small">The width of a text in the small font.</param>
     public static CheckCardLayout ForProduction(PixelBox panel, string preface, string situation, string hint, Func<string, float> large, Func<string, float> small)
     {
-        var inner = panel.Width - (2 * Side);
-        var y = panel.Y + 66;
+        var side = SideFor(panel);
+        var inner = panel.Width - (2 * side);
+        var y = panel.Y + TopFor(panel);
         var prefaceRows = TextWrap.Wrap(preface, inner, small);
         var prefaceY = y;
         y += (prefaceRows.Count * SmallRow) + 8;
         var heading = TextWrap.Wrap(situation, inner, large);
         var headingY = y;
-        y += (heading.Count * LargeRow) + 6;
+        y += (heading.Count * LargeRowFor(panel)) + 6;
         var hintRows = TextWrap.Wrap(hint, inner, small);
         var hintY = y;
         y += (hintRows.Count * SmallRow) + 8;
-        var input = new PixelBox(panel.X + Side, y, inner, InputHeight);
+        var input = new PixelBox(panel.X + side, y, inner, InputHeightFor(panel));
         return new CheckCardLayout(prefaceRows, prefaceY, heading, headingY, hintRows, hintY, [], input, input.Bottom);
     }
 }

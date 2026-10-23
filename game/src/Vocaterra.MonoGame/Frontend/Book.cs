@@ -33,6 +33,9 @@ public static class BookTabs
     /// <summary>The key hints under the pages.</summary>
     public const string KeyHints = "J or Esc: close the book   Tab, Left, Right or click: turn the page   wheel: scroll   Shift+Up/Down: right page";
 
+    /// <summary>The key hints when the full line does not fit the cover's width (X08): the keys that matter, shorter.</summary>
+    public const string KeyHintsShort = "J or Esc: close   Tab or click: turn page   wheel: scroll";
+
     /// <summary>The label of a page.</summary>
     /// <param name="page">The page.</param>
     public static string LabelOf(BookPage page) => Labels[(int)page];
