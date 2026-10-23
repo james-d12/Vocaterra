@@ -379,16 +379,16 @@ speech WAVs are model output and the native code it runs is under core D2 (see t
 ## Content
 
 `content/game-v1` is the game's bundle, under the bundle id `game-v1`. **The game owns it** (decision D-game-4, decided 2026-10-21: the bundle
-diverges from the core's sample and is not re-synced). The core's sample bundle (`content/v1` in the core, a blacksmith with spells and items)
+diverges from the core's sample and is not re-synced). The core's former sample bundle (`content/v1`, a blacksmith with spells and items; deleted in R02, 2026-10-23, and kept in the git history)
 was the starting point: the generic intents (`confirm`, `deny`, `farewell`, `thank`), their dialogue pools and the first feedback pools were
 copied from it, reworded where they failed the game's A1 check, and stay credited to the sample (Apache-2.0) in `ATTRIBUTION.md`. Everything
 added since is the game's own, hand-authored: the guide (agent `guide`, intents `ask_directions`, `ask_what` and `ask_help`, prompt
 `guide-open`, the reply pools and the host-line pools the game renders itself), `answer-sets/places-basic.json` and `lexicon/world.json`, and
 since S5 the prototype's stall and village: the agents `shopkeeper` and `villager`, the intents `request_item` and `dont_know`, the answer set
-`supplies`, the prompts `stall-need`, `stall-offer`, `villager-open` and `guide-offer`. The blacksmith and the spells left the bundle in S5 (the
-core's sample keeps them). **The phrase sheet [content/PHRASES.md](../../content/PHRASES.md) is the source of truth for the Spanish the learner is
-taught** (decision D-game-10): every row is checked against the bundle by `tests/Vocaterra.Host.Tests/PhraseSheetTests.cs`. A milestone that
-wants something else from the sample copies only that piece and records it in `provenance.json`. The bundle has its own hash, which the loader
+`supplies`, the prompts `stall-need`, `stall-offer`, `villager-open` and `guide-offer`. The blacksmith and the spells left the bundle in S5 (they went with the core's former sample). **The phrase sheet [content/PHRASES.md](../../content/PHRASES.md) is the source of truth for the Spanish the learner is
+taught** (decision D-game-10): every row is checked against the bundle by `tests/Vocaterra.Host.Tests/PhraseSheetTests.cs`. Since R02 this is the repository's only bundle: the
+core's tests, its fuzz suite and its demo CLI run on it, so an edit of the game's content re-runs the core suite, and a core test that fails is the signal that the
+edit broke something the core relies on (`docs/nlp/CONTRIBUTING.md`). The bundle has its own hash, which the loader
 checks against `manifest.json`. After any edit, rewrite the manifest:
 
 ```bash
@@ -426,7 +426,7 @@ errors (a string with no cached result). The English support text is not checked
    waivers with the content change. The gate runs the offline command only and never needs the server.
 
 Since S4 the catalogue holds only the nouns of the 3D world (the ores, tools and furniture of the 2D slice are gone), and the recipes are the
-workbench's torch alone; the core's sample keeps the rest.
+workbench's torch alone.
 
 The content gate from S5 on: `lint --strict` at A1 clean (an example expectation for every phrase the learner says, in `intents/intents.json`),
 `cefr-check` clean at A1 and A2, and the phrase-sheet test green. `--host-pools 'guide.*'` tells the lint that the game voices the guide's

@@ -14,7 +14,7 @@ happens to one utterance, [docs/nlp/adr/](adr/) for why the rules exist, and [IM
 - [Definition of done](#definition-of-done)
 - [Fuzz tests](#fuzz-tests)
 - [Recipe: add an error tag](#recipe-add-an-error-tag)
-- [Recipe: add a prompt, answer set or intent to content/v1](#recipe-add-a-prompt-answer-set-or-intent-to-contentv1)
+- [Recipe: add a prompt, answer set or intent to content/game-v1](#recipe-add-a-prompt-answer-set-or-intent-to-contentgame-v1)
 - [Recipe: add a golden audio clip](#recipe-add-a-golden-audio-clip)
 - [Recipe: add a D1 model adapter](#recipe-add-a-d1-model-adapter)
 - [Gotchas](#gotchas)
@@ -64,7 +64,7 @@ happens to one utterance, [docs/nlp/adr/](adr/) for why the rules exist, and [IM
 - Work on a branch, never directly on `main`. A branch carries one milestone or one self-contained change. Maintainers merge
   to `main` once the whole solution builds and tests green.
 - Start the commit subject with the milestone id and a colon, then a short summary in the imperative mood:
-  `M13b: answer-match communication, spell grammars, blacksmith idle transitions`. Maintenance of the plan itself uses
+  `M13b: answer-match communication, spell grammars, idle transitions`. Maintenance of the plan itself uses
   `Plan:`. Work that belongs to no milestone uses a short area prefix (for example `Docs:` or `Content:`).
 - Add a blank line and a body when the why is not obvious. Say what changed in behaviour, not which files you touched.
 - Commits written with an AI assistant end with the assistant's `Co-Authored-By:` line and a `Claude-Session:` line.
@@ -100,7 +100,7 @@ item that does apply is not.
 - [ ] No non-deterministic (N-class) code, and no LLM package, in `src/`. Build-time LLM work stays in `tools/Vocaterra.Nlp.ContentBuilder` (Freeze pattern) and every generated content file is marked and approved in `provenance.json`.
 - [ ] Every model file has a SHA-256 in `models/manifest.json`; version stamps carry the content hash and the sorted model hashes; I recorded the license of every native binary I added, not only of its package.
 - [ ] Build hygiene: nullable on, warnings as errors, `dotnet format --verify-no-changes` clean, a one-line `///` summary on every new public type.
-- [ ] If I changed `content/v1`: I re-ran `hash`, updated the pinned hash in the tests and re-recorded the end-to-end golden (see the recipe below).
+- [ ] If I changed `content/game-v1`: I re-ran `hash`, ran the whole suite (the core's tests run on this bundle), re-recorded the end-to-end goldens if my change moved them, and updated the bundle hash in `tests/Vocaterra.Game.Tests/Fixtures/save-v1.json` (see the recipe below).
 - [ ] If I changed any stage: the same inputs still give byte-identical output, and replay logs recorded before my change still replay (or I explain why they cannot).
 ```
 
@@ -147,33 +147,40 @@ the dialogue and the learner model. Add it in this order:
 
    Add one positive and one negative test (`tests/Vocaterra.Nlp.Language.Tests/Analysis`, `tests/Vocaterra.Nlp.Phonology.Tests`, `tests/Vocaterra.Nlp.Pronunciation.Tests`).
 3. **Evaluation weights.** Add the tag to `errorWeights` for `beginner`, `intermediate` and `advanced` in
-   `content/v1/evaluation/evaluation-config.json` (pronunciation tags are 0 today, so they do not reduce `correctness`), and to the
+   `content/game-v1/evaluation/evaluation-config.json` (pronunciation tags are 0 today, so they do not reduce `correctness`), and to the
    built-in defaults in `src/Vocaterra.Nlp.Evaluation/EvaluationConfig.cs`. A grammar tag missing from the map costs `unknownTagWeight` (0.3);
    a missing `pron.*` tag costs 0. Extend `tests/Vocaterra.Nlp.Evaluation.Tests`.
-4. **Feedback rule.** The default rules in `content/v1/feedback/feedback-policy.json` match every tag with `*`: a recast on the first
+4. **Feedback rule.** The default rules in `content/game-v1/feedback/feedback-policy.json` match every tag with `*`: a recast on the first
    offence, a hint on the second and third, an explicit correction from the fourth (`pron.*` gets a model pronunciation from the
    second). Add a rule with the exact tag (`"tagPattern": "ser_estar"`) only if the new tag should be treated differently. The most
    specific pattern wins (exact tag, then family wildcard, then `*`).
-5. **Dialogue.** Add pools named `feedback.<kind>.<tag>` to `content/v1/dialogue/dialogue.json`, for the kinds `recast`, `hint`,
+5. **Dialogue.** Add pools named `feedback.<kind>.<tag>` to `content/game-v1/dialogue/dialogue.json`, for the kinds `recast`, `hint`,
    `explicit_correction`, `model_pronunciation` and `slow_repeat` (for example `feedback.hint.gender.agree`). If a specific pool is
    missing the pipeline falls back to `feedback.<kind>`. Templates can use the slots of the verdict plus `{tag}`, `{expected}`,
    `{actual}` and `{recast}`, and the template functions of the template engine (`{item:plural-if(qty)}`,
    `{verb:conj(2,sg,pres)}`); a template that needs a slot the verdict may not have falls back to the generic pool, so prefer slots the
    matching grammars always provide. Run `cefr-check` for the words you added.
-6. **Content hash.** Re-hash and update the pinned values (next recipe), then add or extend a pipeline test that shows the tag
+6. **Content hash.** Re-hash (next recipe), then add or extend a pipeline test that shows the tag
    all the way from a transcript to the agent's reply.
 
-## Recipe: add a prompt, answer set or intent to content/v1
+## Recipe: add a prompt, answer set or intent to content/game-v1
 
-The bundle is a folder of JSON files under `content/v1`, listed with SHA-256 hashes in `content/v1/manifest.json`. The loader
-refuses a bundle whose files differ from the manifest, and the bundle hash goes into every verdict, so every edit ends with a re-hash.
+There is one bundle in the repository (R02): `content/game-v1`, the game's. The core's demo CLI, its tests and its fuzz suite run on it, so a core change that
+needs content edits this bundle, and a game edit that breaks something the core relies on fails a core test; that is the feedback this arrangement is for. The
+game's own rules for editing it (the phrases of `content/PHRASES.md` are the source of truth for the Spanish the learner is taught, `scripts/content.sh` is the
+tool, and the gate runs `lint --strict --level a1 --host-pools 'guide.*'`) are in [docs/game/README.md](../game/README.md); this recipe is the core's side of the
+same workflow.
+
+The bundle is a folder of JSON files under `content/game-v1`, listed with SHA-256 hashes in `content/game-v1/manifest.json`. The loader
+refuses a bundle whose files differ from the manifest, and the bundle hash goes into every verdict, so every edit ends with a re-hash. The game's
+host-owned files (`game/*.json`, `speech/*.wav`) are hashed and listed in `provenance.json` like the rest and are ignored by the loader.
 
 Where things go:
 
 | You add | File | Notes |
 | --- | --- | --- |
 | An answer set | `answer-sets/<answerSetId>.json` | `{ "answerSetId", "answers": [{ "answerId", "canonical", "aliases": [], "dialects": [] }] }`. The file name is the id. Aliases carry synonyms and regional variants (`coche`, `carro`, `auto`); they also become the phrase list of constrained recognition. |
-| An intent | `intents/intents.json` | `intentId`, `requiredSlots`, `slotGrammars` (the DSL: `[ART]`, `[NUM:qty]`, `[NOUN:item]`, `[VERB:lemma:slot]`, `?` for optional, `(a\|b)`), `keywordRules` (all lemmas must be present), `examples` for the embedding rung (each a string, or an object `{ "text": "yo es Rosa", "errors": ["conj.person"] }` that the lint grades; see [Lint your content before you hash it](#lint-your-content-before-you-hash-it)) and optionally `lint` (waivers). |
+| An intent | `intents/intents.json` | `intentId`, `requiredSlots`, `slotGrammars` (the DSL: `[ART]`, `[NUM:qty]`, `[NOUN:item]`, `[VERB:lemma:slot]`, `?` for optional, `(a\|b)`), `keywordRules` (all lemmas must be present), `examples` for the embedding rung (each a string, or an object `{ "text": "yo tienes una fruta", "errors": ["conj.person"] }` that the lint grades; see [Lint your content before you hash it](#lint-your-content-before-you-hash-it)) and optionally `lint` (waivers). |
 | A prompt | `prompts/prompts.json` | `promptId`, `mode` (`Constrained` or `Open`), `difficulty`, `answerSetId`, `allowedIntentIds` (empty means an answer-only prompt such as a quiz), `agentId` or `null`, `slotGrammarIds` (each must be a grammar defined in `intents.json`), `text` (optional: the line the agent says before the player answers; not empty, no leading or trailing whitespace). |
 | agent behaviour | `agents/<agentId>.json` and `dialogue/dialogue.json` | Transitions keyed on intent and error tags; `variantPools` must have matching dialogue pools. |
 | Effects | `effects/effects.json` | Verdict to effect with a correctness curve (spell power, trade price). |
@@ -183,34 +190,46 @@ Steps:
 
 1. Edit or add the files. Keep text in NFC and write grammar only with the lemmas of the lexicon (a word the analyzer does not know
    becomes `vocab.unknown`).
-2. Add an item for every **new** file to `content/v1/provenance.json` (`generatedBy` is `hand-authored`, `llm-draft`,
+2. Add an item for every **new** file to `content/game-v1/provenance.json` (`generatedBy` is `hand-authored`, `llm-draft`,
    `wiktionary-import` or `model-output`; a language-model draft is refused until `approvedBy` and `approvedOn` are set). `model-output`
    (M29g) is for host-owned files a model rendered, such as pre-rendered speech: it needs a `model`, may carry `voice`, `speaker` and
    `source`, and is refused for any file the loader parses. If you import Wiktionary data, `ATTRIBUTION.md` must keep its CC BY-SA notice.
 3. Lint, then re-hash. `lint` does not need current hashes, so run it first and fix what it reports (next section). Re-hashing rewrites
-   `content/v1/manifest.json` from the files on disk and prints the new bundle hash:
+   `content/game-v1/manifest.json` from the files on disk and prints the new bundle hash:
 
    ```bash
-   dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- lint content/v1 --level a1
-   dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- hash content/v1
-   dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- validate content/v1
-   dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- cefr-check content/v1 --level a1
+   scripts/content.sh lint content/game-v1 --strict --level a1 --host-pools 'guide.*'
+   scripts/content.sh hash content/game-v1 --bundle-id game-v1
+   scripts/content.sh validate
+   scripts/content.sh cefr-check content/game-v1 --level a1
    ```
+
+   (`scripts/content.sh` runs `tools/Vocaterra.Nlp.ContentBuilder` from source; `dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- <command>` is the same.)
 
    Before `hash`, `validate` reports exactly what is out of date (`hash mismatch`, `file is not listed in manifest.json`,
    `no provenance item for ...`). `validate` also checks references: a prompt that names an unknown answer set, intent or grammar fails.
    `cefr-check` is advisory; it lists the lemmas of dialogue templates and of prompt text (`text`) that are not in `cefr/a1.txt` or
    `cefr/a2.txt`. Prompt findings are printed in their own section and name the prompt id.
-4. Try it: `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "..." --prompt <your-prompt> --content content/v1`.
-5. Update what pins the hash. After any content edit these tests fail until you do:
-   - in `tests/Vocaterra.Nlp.Content.Tests/ManifestTests.cs`, change `GoldenBundleHash` to the new bundle hash;
-   - re-record the end-to-end golden file and check that only the three `contentHash` lines changed (unless your change was meant to
-     alter the example):
+4. Try it: `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "..." --prompt <your-prompt> --content content/game-v1`.
+5. Run the whole suite. No test of the core pins the bundle hash (each compares the manifest with the hash computed from the files), so a plain
+   edit followed by `hash` needs no literal changed; but the core's tests do read the content, and they tell you what the edit broke:
+   - `GameBundleContractTests` (`tests/Vocaterra.Nlp.Content.Tests`) states what the core relies on: every prompt resolves its answer set, agent and intents, every
+     example resolves to its intent, every agent state machine is closed over the bundle's intents, the dialogue has the pools the planner and the agents name,
+     the CEFR lists and the lexicon load. A failure there is a defect in your edit, or a rule the core should change (then it is a core milestone).
+   - The fuzz suite (`tests/Vocaterra.Nlp.Fuzzing.Tests`) draws its agents, prompts, grammars and mutation targets from the bundle, so a new kind of grammar or
+     dialogue reaches it without a test edit; a failure there is a finding to fix at its source (see its README).
+   - The two end-to-end goldens (`tests/Vocaterra.Nlp.Golden.Tests/Data/e2e-*.golden.json`) hold the core's whole result for one villager turn and one
+     shopkeeper turn. If your edit moves one (a dialogue line, a grammar, an agent transition), re-record both in the same change and check that the diff shows
+     only what you meant to change (the bundle hash is a placeholder in the files, so it never shows):
 
      ```bash
      VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests
      ```
-6. Run the whole suite. Replay logs recorded earlier report `/versions/contentHash` as different after a content change; that is expected.
+   - `tests/Vocaterra.Game.Tests/Fixtures/save-v1.json` is a saved game and carries the bundle hash: after `hash`, put the new `bundleHash` of
+     `content/game-v1/manifest.json` into it.
+   - The grammar cache (`content/grammar/game-v1-*`, next section) when you added or changed Spanish text.
+
+   Replay logs recorded earlier report `/versions/contentHash` as different after a content change; that is expected.
 
 ### Lint your content before you hash it
 
@@ -235,7 +254,7 @@ What to do with a finding:
 - `reach.*`: a pool, intent, answer set, agent or agent state that nothing reaches. Delete it or wire it in.
 - `cefr.*`: a lemma above the level you asked for.
 - `expect.*`: an example with expected error tags whose verdict differs. Write one learner-error example per new intent as
-  `{ "text": "yo es Rosa", "errors": ["conj.person"] }`; the lint grades it against the first open-mode prompt that allows the intent (or the
+  `{ "text": "yo tienes una fruta", "errors": ["conj.person"] }`; the lint grades it against the first open-mode prompt that allows the intent (or the
   prompt named in `"prompt"`), and the tags must match exactly, so the example stays a regression test.
 
 Editing examples or adding `lint` waivers changes `intents/intents.json`, so re-hash afterwards like any content edit.
@@ -251,8 +270,8 @@ The scripts and the tool run from the repository root:
 ```bash
 scripts/fetch-tools.sh                     # once: the pinned Java runtime and LanguageTool, in ~/.local/share/vocaterra/tools
 scripts/languagetool.sh start              # the server, capped (2 GB, 200 % CPU); scripts/languagetool.sh stop when done
-dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- grammar content/v1 --strings <host.jsonl>   # online: adds to the cache
-dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- grammar content/v1                         # offline: the committed cache
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- grammar content/game-v1 --strings content/grammar/game-v1-strings.jsonl --strings-only   # online: adds to the cache
+dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- grammar content/game-v1 --strings content/grammar/game-v1-strings.jsonl --strings-only --offline --strict   # offline: the committed cache (the gate)
 ```
 
 - The strings are the dialogue lines (slot templates rendered from four sampled fillings, with the core's own template engine), prompts,
@@ -271,8 +290,8 @@ dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- grammar content/v1   
   server is wrong (waive it with a reason).
 - Exit codes: 0 pass, 1 errors (warnings too with `--strict`), 2 usage, 3 no server answered in online mode (skipped, not passed).
 
-The grammar check is advisory, as the lint was, until one round of waivers has been done. A clean run is not approval: a native speaker
-still reviews the text (`PHRASES.md`'s `reviewer` column).
+The grammar check is required by the merge gate (offline, `--strict`, from the committed cache), and `GrammarTests.TheCommittedCacheReplaysTheBundleOfflineWithItsWaivers`
+runs the same command in the test suite. A clean run is not approval: a native speaker still reviews the text (`PHRASES.md`'s `reviewer` column).
 
 ## Recipe: add a golden audio clip
 
@@ -284,24 +303,24 @@ protocol, consent text and manifest schema are in [tests/golden/README.md](../..
   never names. The committed `tests/golden/manifest.jsonl` holds synthetic entries only: a test (`ManifestGoldenTests`) requires every committed
   entry to have the speaker `synth`.
 - **To benchmark real clips**, record 16 kHz mono 16-bit WAV, one utterance per file, push-to-talk, unedited, named
-  `<speaker>-<prompt>-<n>.wav` (for example `s01-offer-items-open-2.wav`). Keep them and a manifest outside the repository or in the
+  `<speaker>-<prompt>-<n>.wav` (for example `s01-villager-open-2.wav`). Keep them and a manifest outside the repository or in the
   gitignored folder, with one annotation line per clip. `expectedTranscript` is what was actually said, mistakes included:
 
   ```json
-  {"clip":"audio/s01-offer-items-open-2.wav","promptId":"offer-items-open","speaker":"s01","l1":"en","expectedTranscript":"yo tiene dos espada","expectedErrors":[{"tag":"conj.person","actual":"tiene"},{"tag":"noun.number","actual":"espada"}],"expectedIntent":"offer_item"}
+  {"clip":"audio/s01-villager-open-2.wav","promptId":"villager-open","speaker":"s01","l1":"en","expectedTranscript":"yo quiere dos espada","expectedErrors":[{"tag":"conj.person","actual":"quiere"},{"tag":"noun.number","actual":"espada"}],"expectedIntent":"request_item"}
   ```
 
   Then run the benchmark with your own manifest (clips are looked up relative to the manifest, or in `--audio-dir`):
 
   ```bash
-  dotnet run --project tools/Vocaterra.Nlp.Bench -- --manifest ~/vocaterra-golden/manifest.jsonl --content content/v1 --models models
+  dotnet run --project tools/Vocaterra.Nlp.Bench -- --manifest ~/vocaterra-golden/manifest.jsonl --content content/game-v1 --models models
   ```
 
   It prints WER, learner-error preservation (the share of annotated wrong words that survive in the transcript) and p50/p95 latency per model and mode.
 - **To add a synthetic entry** to the committed manifest (for the tests, not for measuring a recognizer), add a line with
   `"speaker":"synth"` and the clip name `audio/synth-<promptId>-<n>.wav`. The golden tests generate a one-second tone for it under
   their own output folder, and `ThePipelineAgreesWithEveryAnnotation` fails unless the pipeline produces the annotated intent and
-  errors for `expectedTranscript`. Use a `promptId` that exists in `content/v1/prompts/prompts.json`.
+  errors for `expectedTranscript`. Use a `promptId` that exists in `content/game-v1/prompts/prompts.json`.
 - **G2P golden lines** are separate: add `{"text": "...", "dialect": "la" | "es", "ipa": "..."}` to
   `tests/Vocaterra.Nlp.Golden.Tests/Data/g2p-golden.jsonl` (Latin American neutral or Castilian). The IPA is written by hand from a pronunciation
   source, not copied from the converter's own output; espeak-ng may be used as a development-time cross-check only.
@@ -323,7 +342,7 @@ hash and gated in tests ([ADR 0004](adr/0004-model-pinning-and-gating.md)).
    `license`, `source`, an `archive` (`format` `zip` or `tar.bz2`, `sha256`, `bytes`) when it can be downloaded, the `files` the adapter loads
    (`path`, `sha256`, `bytes`) and `notes`. Fetch the model once, hash the files you load with `sha256sum`, and pin them; a `null` hash
    means "not pinned", and `ModelStore.ModelHash` refuses to produce a hash for it. Add a `FromStore(store, id)` factory that uses
-   `ModelStore.ModelHash(id)`. Update `content/v1/ATTRIBUTION.md` (license table) and `models/README.md`.
+   `ModelStore.ModelHash(id)`. Update `content/game-v1/ATTRIBUTION.md` (license table) and `models/README.md`.
 4. **Licenses.** Record the license of the model, of the NuGet package and of every native binary and data file it brings. Check that
    it is in `scripts/license-allowlist.txt` terms and that no GPL component (for example espeak-ng) rides along unseen
    ([ADR 0007](adr/0007-kokoro-phonemizer-licensing.md)); the license scan reads package metadata, not binaries. A new NuGet

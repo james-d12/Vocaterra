@@ -12,7 +12,10 @@ data: does the recognizer keep the mistakes a learner makes, so the grader can s
 | `golden/manifest.jsonl` | yes | one JSON object per clip: the annotations, never the audio |
 | `golden/audio/*.wav` | **no** (gitignored) | the recordings; they stay on the machine that made them |
 
-The three entries committed today are **synthetic**. Their `synth` clips are one-second tones that `tests/Vocaterra.Nlp.Golden.Tests` writes into
+The three entries committed today are **synthetic**, and their `promptId`s are prompts of the repository's one bundle, `content/game-v1` (R02): a prompt that
+leaves the bundle fails `ManifestGoldenTests`, and the entry is rewritten to a prompt that exists. (The end-to-end goldens, `tests/Vocaterra.Nlp.Golden.Tests/Data/e2e-*.golden.json`,
+are a different thing: the core's whole result for two turns of the game's bundle. A game edit that moves one is re-recorded in the same change, with
+`VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests`.) Their `synth` clips are one-second tones that `tests/Vocaterra.Nlp.Golden.Tests` writes into
 its own test output directory so the manifest and the benchmark plumbing can be tested; no file is written to `golden/audio/`, and a
 tone does not recognize as words. Replace or extend them with real recordings only on your own machine.
 
