@@ -315,11 +315,11 @@ not made. The German milestones stay parked (D14).
 | --- | --- | --- | --- | --- |
 | X00 | Research: a ranked backlog of improvements (learning effect, player experience, robustness, technical debt), with evidence from the code, plans, findings and screenshots | done (`game/docs/research/2026-10-23-improvement-backlog.md`, R01 to R18) | Sonnet 5.5 | S28 |
 | X01 | Saves survive content updates: a save made under an older bundle loads under a newer one (learner record, lessons, phrases, inventory and world edits kept where their ids still exist; the rest dropped and logged), instead of being refused; a strict mode keeps the refusal for the playtest's frozen bundle | done (merged to `feature/experiment` 2026-10-23, `bf90201`) | Sonnet 5.5 | S28 |
-| X02 | Core M51: `ir` + a bare infinitive (`voy comer`) flagged | planned | Sonnet 5.5 | M49 |
+| X02 | Core M51: `ir` + a bare infinitive (`voy comer`) flagged | in progress | Sonnet 5.5 | M49 |
 | X03 | Book polish: the right page scrolls; `vamos` glossed "we go" in What you said; ser and estar glossed apart ("to be: what", "to be: where or how") | planned | Haiku 5.5 | S28 |
 
 | X04 | Session summary card from the learner's record (R01), and a second try after "No sé" in the same session (R02) | done (merged to `feature/experiment` 2026-10-23, `6e14821`) | Haiku 5.5 | X01 |
-| X05 | Autosave at safe points, and a crash handler around `game.Run()` that writes a crash report next to the F8 reports (R04) | in progress | Haiku 5.5 | X01 |
+| X05 | Autosave at safe points, and a crash handler around `game.Run()` that writes a crash report next to the F8 reports (R04) | done (merged to `feature/experiment` 2026-10-23, `001d75a`) | Haiku 5.5 | X01 |
 | X06 | Review deck: a session warm-up of due items, a "Review now" button in the book, and a `review` lesson step that brings earlier phrases back inside later lessons (R06, R07) | planned | Sonnet 5.5 | X03, X04 |
 | X07 | Tools for the owner: `--mic-lab` (measure the real microphone path) and `--bench-route` (a real-GPU benchmark). Built only: the agent runs neither (R03 first half, R13) | planned | Haiku 5.5 | X05 |
 | X08 | UI scale and readable text: a text-scale setting and layouts that hold at larger sizes (R09) | planned | Sonnet 5.5 | X03 |
@@ -1252,6 +1252,29 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - the card is not shown on F6, F10 or quit;
     - the retry waits for a talk with the same NPC, never between lesson steps;
     - the retry does not step one rung lower on the support ladder.
+- **X05, autosave and a crash report (2026-10-23, Haiku 5.5; merged to `feature/experiment` `001d75a`).**
+  - **Autosave** (`AutosavePolicy`, engine-free).
+    - It saves when a lesson step, a lesson, an objective step or the session completes, and when a dialogue closes, plus every
+      18,000 ticks (5 minutes of play, never the wall clock). It waits for a frame at rest: no turn, dialogue, recording, check or panel.
+    - The file is `autosave.save` in the session folder (`playtest.save` in a playtest), written atomically: a temp file is flushed to disk,
+      then renamed over the save. A "Saved" toast shows.
+    - `--no-autosave` turns it off.
+    - Determinism: session logs with autosave on and off are identical apart from timestamps.
+  - **The crash handler** (`CrashHandler`, `CrashReport`).
+    - It covers `game.Run()`, AppDomain and unobserved tasks.
+    - It writes `reports/crash-s<n>-t<tick>.md` (the exception, the stack, the game state, 200 log lines, the build commit), then a
+      last-chance `crash.save` that never overwrites the good save. Then it exits 1. It never throws.
+    - The test-only hook is `--debug-crash-after <tick>`. `playtest-report.sh` lists crashes beside the F8 reports.
+  - **Bugs fixed:**
+    - a crash before the session folder existed lost `crash.save`;
+    - every autosave rebuilt the scene (about 600 ms hitch; now 12 to 22 ms after the first);
+    - a save was renamed without flushing to disk.
+  - **Checked by the orchestrator:** the gate (4,781 passed, 5 skipped); a forced crash on the merged branch (exit 1, the report and
+    `crash.save` written).
+  - **Not fixed:**
+    - the first autosave of a run costs about 0.7 s;
+    - saves run on the game loop;
+    - a crash inside a dialogue leaves no `crash.save` (the last autosave stands).
 
 ## 6. Definition of done (every milestone)
 
