@@ -392,6 +392,62 @@
       "situation": "A friend asks what you both need. You need water. Say it for the two of you.",
       "prompt": "lesson-we",
       "intent": "state_want"
+    },
+    {
+      "id": "hear.que-vas-a-comer",
+      "kind": "comprehension",
+      "phrase": "que-vas-a-comer",
+      "line": "guide.lesson.villager.plan.1",
+      "spanish": "¿Qué vas a comer mañana?",
+      "question": "A villager says this to you. What does it mean?",
+      "options": [
+        {
+          "label": "He asks what you are going to eat tomorrow."
+        },
+        {
+          "label": "He asks what you ate yesterday."
+        },
+        {
+          "label": "He says there is bread at the stall."
+        }
+      ],
+      "correct": 0
+    },
+    {
+      "id": "hear.que-comiste-ayer",
+      "kind": "comprehension",
+      "phrase": "que-comiste-ayer",
+      "line": "guide.lesson.shop.ate.1",
+      "spanish": "¿Qué comiste ayer?",
+      "question": "A shopkeeper says this to you. What does it mean?",
+      "options": [
+        {
+          "label": "She asks what you ate yesterday."
+        },
+        {
+          "label": "She asks what you are going to eat tomorrow."
+        },
+        {
+          "label": "She says the bread is ready."
+        }
+      ],
+      "correct": 0
+    },
+    {
+      "id": "say.voy-a-comer-pan",
+      "kind": "production",
+      "phrase": "voy-a-comer-pan",
+      "situation": "A villager asks what you are going to eat tomorrow. You will eat bread. Say so.",
+      "prompt": "lesson-plan",
+      "intent": "state_action"
+    },
+    {
+      "id": "say.ayer-comi-fruta",
+      "kind": "production",
+      "phrase": "ayer-comi-fruta",
+      "situation": "A shopkeeper asks what you ate yesterday. You ate fruit. Say so.",
+      "prompt": "lesson-ate",
+      "intent": "state_action"
     }
   ]
 }

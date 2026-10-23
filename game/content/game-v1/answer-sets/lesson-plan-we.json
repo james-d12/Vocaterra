@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-plan-we",
+  "answers": [
+    {
+      "answerId": "plan",
+      "canonical": "vamos a comer fruta",
+      "aliases": ["nosotros vamos a comer fruta", "mañana vamos a comer fruta", "vamos a comer pan", "vamos a comer una fruta", "vamos a comer frutas", "vamos a comer fruta mañana"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

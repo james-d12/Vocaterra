@@ -19,6 +19,7 @@ public sealed class PhraseSheetTests
         "me-llamo", "es-madera", "si", "no", "que-es-esto", "quieres-fruta", "de-nada", "otra-vez", "mas-despacio", "necesitas-madera",
         "que-quieres", "quiero-madera", "tienes-fruta", "tengo-fruta", "necesito-agua",
         "que-quiere-luna", "ella-quiere-fruta", "necesitamos-agua", "que-necesita-usted", "necesito-pan", "tengo-botella", "que-quieren-ustedes", "queremos-pan",
+        "que-vas-a-comer", "voy-a-comer-pan", "que-vamos-a-comer", "vamos-a-comer-fruta", "que-comiste-ayer", "ayer-comi-fruta", "fuiste-al-rio-ayer", "ayer-fui-al-rio", "bebiste-agua-ayer", "ayer-bebi-agua", "que-vas-a-hacer", "voy-a-ir-al-rio",
     ];
 
     private static readonly Lazy<IReadOnlyList<PhraseRow>> LoadedRows = new(ReadRows);
@@ -30,7 +31,7 @@ public sealed class PhraseSheetTests
     private static IEnumerable<PhraseRow> HeardRows => Rows.Where(static r => r.Says is "hears" or "both");
 
     [Fact]
-    public void TheSheetHoldsExactlyTheThirtyFourPhrasesInOrder()
+    public void TheSheetHoldsExactlyTheFortySixPhrasesInOrder()
     {
         Assert.Equal(ExpectedIds, Rows.Select(static r => r.Id));
         foreach (var row in Rows)
@@ -103,7 +104,8 @@ public sealed class PhraseSheetTests
             Assert.True(row.ErrorText is not null && row.ErrorCodes.Count > 0, $"{row.Id} has no learner error example.");
             var result = new ConversationSession(GameContent.Bundle).Evaluate(row.ErrorText!, row.Prompt, Now);
 
-            Assert.Equal(row.ErrorCodes.Order(StringComparer.Ordinal), result.Verdict.Errors.Select(static e => e.Tag).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal));
+            var given = result.Verdict.Errors.Select(static e => e.Tag).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToList();
+            Assert.True(row.ErrorCodes.Order(StringComparer.Ordinal).SequenceEqual(given), $"{row.Id}: '{row.ErrorText}' at {row.Prompt} gives [{string.Join(", ", given)}], the sheet names [{string.Join(", ", row.ErrorCodes)}].");
             Assert.True(result.Verdict.Intent.Value == row.Intent, $"{row.Id}: '{row.ErrorText}' resolved to {result.Verdict.Intent.Value}, not {row.Intent}.");
         }
     }

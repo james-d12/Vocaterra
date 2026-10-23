@@ -472,7 +472,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
             var text = Plain(LessonText(lesson));
             foreach (var form in lesson.TaughtVerbs)
             {
-                var word = TestGame.Bundle.Morphology.Conjugate(form.Lemma, form.Person, form.Number, form.Tense);
+                var word = form.Text(TestGame.Bundle.Morphology); // voy a comer for the near future (ir-a): ir's present, a and the infinitive
                 Assert.True(word is not null, $"{lesson.Id}: the core has no form for {Show(form)}.");
                 Assert.True(text.Contains(Plain(word), StringComparison.Ordinal), $"{lesson.Id} declares {Show(form)} ({word}) but never shows it.");
             }
@@ -485,8 +485,8 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         var book = Book;
 
         Assert.All(book.Lessons, static l => Assert.Equal(l.TaughtVerbs.Count, l.TaughtVerbs.Distinct().Count()));
-        Assert.Empty(book.Find("first-words")!.TaughtVerbs.Intersect(book.Find("personas")!.TaughtVerbs)); // each form belongs to one lesson
-        Assert.Equal([1, 2], book.Lessons.Select(static l => l.Session));
+        Assert.Equal(book.Lessons.Sum(static l => l.TaughtVerbs.Count), book.Lessons.SelectMany(static l => l.TaughtVerbs).Distinct().Count()); // each form belongs to one lesson
+        Assert.Equal([1, 2, 3], book.Lessons.Select(static l => l.Session));
     }
 
     [Fact]

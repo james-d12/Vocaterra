@@ -218,5 +218,65 @@
     "agentId": "shopkeeper",
     "slotGrammarIds": [],
     "text": "¿Qué quieren ustedes?"
+  },
+  {
+    "promptId": "lesson-plan",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-plan",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "villager",
+    "slotGrammarIds": [],
+    "text": "¿Qué vas a comer mañana?"
+  },
+  {
+    "promptId": "lesson-plan-we",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-plan-we",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "villager",
+    "slotGrammarIds": [],
+    "text": "¿Qué vamos a comer?"
+  },
+  {
+    "promptId": "lesson-ate",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-ate",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "shopkeeper",
+    "slotGrammarIds": [],
+    "text": "¿Qué comiste ayer?"
+  },
+  {
+    "promptId": "lesson-went",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-went",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "shopkeeper",
+    "slotGrammarIds": [],
+    "text": "¿Fuiste al río ayer?"
+  },
+  {
+    "promptId": "lesson-had",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-had",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "shopkeeper",
+    "slotGrammarIds": [],
+    "text": "¿Bebiste agua ayer?"
+  },
+  {
+    "promptId": "lesson-tomorrow",
+    "mode": "Constrained",
+    "difficulty": "Beginner",
+    "answerSetId": "lesson-tomorrow",
+    "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
+    "agentId": "shopkeeper",
+    "slotGrammarIds": [],
+    "text": "¿Qué vas a hacer mañana?"
   }
 ]

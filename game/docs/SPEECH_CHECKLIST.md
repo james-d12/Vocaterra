@@ -124,22 +124,42 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | guide.lesson.offer.1 | speech/guide.lesson.offer.1.wav | guide | 1.0 | ¿Quieres fruta? |  |
 | guide.lesson.shop.all.1 | speech/guide.lesson.shop.all.1.slow.wav | shopkeeper | 0.8 | ¿Qué quieren ustedes? |  |
 | guide.lesson.shop.all.1 | speech/guide.lesson.shop.all.1.wav | shopkeeper | 1.0 | ¿Qué quieren ustedes? |  |
+| guide.lesson.shop.ate.1 | speech/guide.lesson.shop.ate.1.slow.wav | shopkeeper | 0.8 | ¿Qué comiste ayer? |  |
+| guide.lesson.shop.ate.1 | speech/guide.lesson.shop.ate.1.wav | shopkeeper | 1.0 | ¿Qué comiste ayer? |  |
+| guide.lesson.shop.ayer.1 | speech/guide.lesson.shop.ayer.1.slow.wav | shopkeeper | 0.8 | Ayer comí pan. |  |
+| guide.lesson.shop.ayer.1 | speech/guide.lesson.shop.ayer.1.wav | shopkeeper | 1.0 | Ayer comí pan. |  |
 | guide.lesson.shop.bottle.1 | speech/guide.lesson.shop.bottle.1.slow.wav | shopkeeper | 0.8 | ¿Tiene usted una botella? |  |
 | guide.lesson.shop.bottle.1 | speech/guide.lesson.shop.bottle.1.wav | shopkeeper | 1.0 | ¿Tiene usted una botella? |  |
+| guide.lesson.shop.had.1 | speech/guide.lesson.shop.had.1.slow.wav | shopkeeper | 0.8 | ¿Bebiste agua ayer? |  |
+| guide.lesson.shop.had.1 | speech/guide.lesson.shop.had.1.wav | shopkeeper | 1.0 | ¿Bebiste agua ayer? |  |
 | guide.lesson.shop.need.1 | speech/guide.lesson.shop.need.1.slow.wav | shopkeeper | 0.8 | ¿Qué necesita usted? |  |
 | guide.lesson.shop.need.1 | speech/guide.lesson.shop.need.1.wav | shopkeeper | 1.0 | ¿Qué necesita usted? |  |
 | guide.lesson.shop.they.1 | speech/guide.lesson.shop.they.1.slow.wav | shopkeeper | 0.8 | Ellos quieren agua. |  |
 | guide.lesson.shop.they.1 | speech/guide.lesson.shop.they.1.wav | shopkeeper | 1.0 | Ellos quieren agua. |  |
+| guide.lesson.shop.tomorrow.1 | speech/guide.lesson.shop.tomorrow.1.slow.wav | shopkeeper | 0.8 | ¿Qué vas a hacer mañana? |  |
+| guide.lesson.shop.tomorrow.1 | speech/guide.lesson.shop.tomorrow.1.wav | shopkeeper | 1.0 | ¿Qué vas a hacer mañana? |  |
+| guide.lesson.shop.went.1 | speech/guide.lesson.shop.went.1.slow.wav | shopkeeper | 0.8 | ¿Fuiste al río ayer? |  |
+| guide.lesson.shop.went.1 | speech/guide.lesson.shop.went.1.wav | shopkeeper | 1.0 | ¿Fuiste al río ayer? |  |
+| guide.lesson.shop.you.1 | speech/guide.lesson.shop.you.1.slow.wav | shopkeeper | 0.8 | Ayer fuiste al río. |  |
+| guide.lesson.shop.you.1 | speech/guide.lesson.shop.you.1.wav | shopkeeper | 1.0 | Ayer fuiste al río. |  |
 | guide.lesson.take.1 | speech/guide.lesson.take.1.slow.wav | guide | 0.8 | Toma una fruta. |  |
 | guide.lesson.take.1 | speech/guide.lesson.take.1.wav | guide | 1.0 | Toma una fruta. |  |
 | guide.lesson.task.1 | speech/guide.lesson.task.1.slow.wav | guide | 0.8 | Necesitas madera y frutas. |  |
 | guide.lesson.task.1 | speech/guide.lesson.task.1.wav | guide | 1.0 | Necesitas madera y frutas. |  |
 | guide.lesson.villager.be.1 | speech/guide.lesson.villager.be.1.slow.wav | villager | 0.8 | Tú y yo somos amigos. |  |
 | guide.lesson.villager.be.1 | speech/guide.lesson.villager.be.1.wav | villager | 1.0 | Tú y yo somos amigos. |  |
+| guide.lesson.villager.eat.1 | speech/guide.lesson.villager.eat.1.slow.wav | villager | 0.8 | Ellos van a comer pan. |  |
+| guide.lesson.villager.eat.1 | speech/guide.lesson.villager.eat.1.wav | villager | 1.0 | Ellos van a comer pan. |  |
 | guide.lesson.villager.go.1 | speech/guide.lesson.villager.go.1.slow.wav | villager | 0.8 | Vamos a la tienda. |  |
 | guide.lesson.villager.go.1 | speech/guide.lesson.villager.go.1.wav | villager | 1.0 | Vamos a la tienda. |  |
+| guide.lesson.villager.goes.1 | speech/guide.lesson.villager.goes.1.slow.wav | villager | 0.8 | Hoy vas a la tienda. |  |
+| guide.lesson.villager.goes.1 | speech/guide.lesson.villager.goes.1.wav | villager | 1.0 | Hoy vas a la tienda. |  |
 | guide.lesson.villager.luna.1 | speech/guide.lesson.villager.luna.1.slow.wav | villager | 0.8 | ¿Qué quiere Luna? |  |
 | guide.lesson.villager.luna.1 | speech/guide.lesson.villager.luna.1.wav | villager | 1.0 | ¿Qué quiere Luna? |  |
+| guide.lesson.villager.plan.1 | speech/guide.lesson.villager.plan.1.slow.wav | villager | 0.8 | ¿Qué vas a comer mañana? |  |
+| guide.lesson.villager.plan.1 | speech/guide.lesson.villager.plan.1.wav | villager | 1.0 | ¿Qué vas a comer mañana? |  |
+| guide.lesson.villager.plan_we.1 | speech/guide.lesson.villager.plan_we.1.slow.wav | villager | 0.8 | ¿Qué vamos a comer? |  |
+| guide.lesson.villager.plan_we.1 | speech/guide.lesson.villager.plan_we.1.wav | villager | 1.0 | ¿Qué vamos a comer? |  |
 | guide.lesson.villager.she.1 | speech/guide.lesson.villager.she.1.slow.wav | villager | 0.8 | Luna es la guía. Ella es mi amiga. |  |
 | guide.lesson.villager.she.1 | speech/guide.lesson.villager.she.1.wav | villager | 1.0 | Luna es la guía. Ella es mi amiga. |  |
 | guide.lesson.villager.they.1 | speech/guide.lesson.villager.they.1.slow.wav | villager | 0.8 | Ellos tienen pan. |  |
@@ -254,6 +274,12 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | not_understood.2 | speech/not_understood.2.wav | guide | 1.0 | Perdón, ¿qué dices? |  |
 | phrase.adios | speech/phrase.adios.slow.wav | guide | 0.8 | Adiós. |  |
 | phrase.adios | speech/phrase.adios.wav | guide | 1.0 | Adiós. |  |
+| phrase.ayer-bebi-agua | speech/phrase.ayer-bebi-agua.slow.wav | guide | 0.8 | Ayer bebí agua. |  |
+| phrase.ayer-bebi-agua | speech/phrase.ayer-bebi-agua.wav | guide | 1.0 | Ayer bebí agua. |  |
+| phrase.ayer-comi-fruta | speech/phrase.ayer-comi-fruta.slow.wav | guide | 0.8 | Ayer comí fruta. |  |
+| phrase.ayer-comi-fruta | speech/phrase.ayer-comi-fruta.wav | guide | 1.0 | Ayer comí fruta. |  |
+| phrase.ayer-fui-al-rio | speech/phrase.ayer-fui-al-rio.slow.wav | guide | 0.8 | Ayer fui al río. |  |
+| phrase.ayer-fui-al-rio | speech/phrase.ayer-fui-al-rio.wav | guide | 1.0 | Ayer fui al río. |  |
 | phrase.ayuda | speech/phrase.ayuda.slow.wav | guide | 0.8 | Ayuda. |  |
 | phrase.ayuda | speech/phrase.ayuda.wav | guide | 1.0 | Ayuda. |  |
 | phrase.donde-esta-el-rio | speech/phrase.donde-esta-el-rio.slow.wav | guide | 0.8 | ¿Dónde está el río? |  |
@@ -296,14 +322,24 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | phrase.tengo-botella | speech/phrase.tengo-botella.wav | guide | 1.0 | Tengo una botella. |  |
 | phrase.tengo-fruta | speech/phrase.tengo-fruta.slow.wav | guide | 0.8 | Tengo una fruta. |  |
 | phrase.tengo-fruta | speech/phrase.tengo-fruta.wav | guide | 1.0 | Tengo una fruta. |  |
+| phrase.vamos-a-comer-fruta | speech/phrase.vamos-a-comer-fruta.slow.wav | guide | 0.8 | Vamos a comer fruta. |  |
+| phrase.vamos-a-comer-fruta | speech/phrase.vamos-a-comer-fruta.wav | guide | 1.0 | Vamos a comer fruta. |  |
+| phrase.voy-a-comer-pan | speech/phrase.voy-a-comer-pan.slow.wav | guide | 0.8 | Voy a comer pan. |  |
+| phrase.voy-a-comer-pan | speech/phrase.voy-a-comer-pan.wav | guide | 1.0 | Voy a comer pan. |  |
+| phrase.voy-a-ir-al-rio | speech/phrase.voy-a-ir-al-rio.slow.wav | guide | 0.8 | Mañana voy a ir al río. |  |
+| phrase.voy-a-ir-al-rio | speech/phrase.voy-a-ir-al-rio.wav | guide | 1.0 | Mañana voy a ir al río. |  |
 | prompt.guide-offer | speech/prompt.guide-offer.slow.wav | guide | 0.8 | ¿Quieres agua? |  |
 | prompt.guide-offer | speech/prompt.guide-offer.wav | guide | 1.0 | ¿Quieres agua? |  |
 | prompt.guide-open | speech/prompt.guide-open.slow.wav | guide | 0.8 | ¡Hola! Soy la guía. ¿En qué te ayudo? |  |
 | prompt.guide-open | speech/prompt.guide-open.wav | guide | 1.0 | ¡Hola! Soy la guía. ¿En qué te ayudo? |  |
 | prompt.guide-review | speech/prompt.guide-review.slow.wav | guide | 0.8 | ¿Qué es esto? |  |
 | prompt.guide-review | speech/prompt.guide-review.wav | guide | 1.0 | ¿Qué es esto? |  |
+| prompt.lesson-ate | speech/prompt.lesson-ate.slow.wav | shopkeeper | 0.8 | ¿Qué comiste ayer? |  |
+| prompt.lesson-ate | speech/prompt.lesson-ate.wav | shopkeeper | 1.0 | ¿Qué comiste ayer? |  |
 | prompt.lesson-bottle | speech/prompt.lesson-bottle.slow.wav | shopkeeper | 0.8 | ¿Tiene usted una botella? |  |
 | prompt.lesson-bottle | speech/prompt.lesson-bottle.wav | shopkeeper | 1.0 | ¿Tiene usted una botella? |  |
+| prompt.lesson-had | speech/prompt.lesson-had.slow.wav | shopkeeper | 0.8 | ¿Bebiste agua ayer? |  |
+| prompt.lesson-had | speech/prompt.lesson-had.wav | shopkeeper | 1.0 | ¿Bebiste agua ayer? |  |
 | prompt.lesson-have | speech/prompt.lesson-have.slow.wav | guide | 0.8 | ¿Tienes una fruta? |  |
 | prompt.lesson-have | speech/prompt.lesson-have.wav | guide | 1.0 | ¿Tienes una fruta? |  |
 | prompt.lesson-hello | speech/prompt.lesson-hello.slow.wav | guide | 0.8 | ¡Hola! |  |
@@ -314,12 +350,18 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | prompt.lesson-need | speech/prompt.lesson-need.wav | guide | 1.0 | ¿Qué necesitas? |  |
 | prompt.lesson-offer | speech/prompt.lesson-offer.slow.wav | guide | 0.8 | ¿Quieres fruta? |  |
 | prompt.lesson-offer | speech/prompt.lesson-offer.wav | guide | 1.0 | ¿Quieres fruta? |  |
+| prompt.lesson-plan | speech/prompt.lesson-plan.slow.wav | villager | 0.8 | ¿Qué vas a comer mañana? |  |
+| prompt.lesson-plan | speech/prompt.lesson-plan.wav | villager | 1.0 | ¿Qué vas a comer mañana? |  |
+| prompt.lesson-plan-we | speech/prompt.lesson-plan-we.slow.wav | villager | 0.8 | ¿Qué vamos a comer? |  |
+| prompt.lesson-plan-we | speech/prompt.lesson-plan-we.wav | villager | 1.0 | ¿Qué vamos a comer? |  |
 | prompt.lesson-she | speech/prompt.lesson-she.slow.wav | villager | 0.8 | ¿Qué quiere Luna? |  |
 | prompt.lesson-she | speech/prompt.lesson-she.wav | villager | 1.0 | ¿Qué quiere Luna? |  |
 | prompt.lesson-task | speech/prompt.lesson-task.slow.wav | guide | 0.8 | Necesitas madera y frutas. |  |
 | prompt.lesson-task | speech/prompt.lesson-task.wav | guide | 1.0 | Necesitas madera y frutas. |  |
 | prompt.lesson-thanks | speech/prompt.lesson-thanks.slow.wav | guide | 0.8 | ¡Muy bien! Tienes una fruta. |  |
 | prompt.lesson-thanks | speech/prompt.lesson-thanks.wav | guide | 1.0 | ¡Muy bien! Tienes una fruta. |  |
+| prompt.lesson-tomorrow | speech/prompt.lesson-tomorrow.slow.wav | shopkeeper | 0.8 | ¿Qué vas a hacer mañana? |  |
+| prompt.lesson-tomorrow | speech/prompt.lesson-tomorrow.wav | shopkeeper | 1.0 | ¿Qué vas a hacer mañana? |  |
 | prompt.lesson-unstuck | speech/prompt.lesson-unstuck.slow.wav | guide | 0.8 | Mira. ¿Qué es esto? |  |
 | prompt.lesson-unstuck | speech/prompt.lesson-unstuck.wav | guide | 1.0 | Mira. ¿Qué es esto? |  |
 | prompt.lesson-usted | speech/prompt.lesson-usted.slow.wav | shopkeeper | 0.8 | ¿Qué necesita usted? |  |
@@ -330,6 +372,8 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | prompt.lesson-want | speech/prompt.lesson-want.wav | guide | 1.0 | ¿Qué quieres? |  |
 | prompt.lesson-we | speech/prompt.lesson-we.slow.wav | villager | 0.8 | ¿Qué necesitamos? |  |
 | prompt.lesson-we | speech/prompt.lesson-we.wav | villager | 1.0 | ¿Qué necesitamos? |  |
+| prompt.lesson-went | speech/prompt.lesson-went.slow.wav | shopkeeper | 0.8 | ¿Fuiste al río ayer? |  |
+| prompt.lesson-went | speech/prompt.lesson-went.wav | shopkeeper | 1.0 | ¿Fuiste al río ayer? |  |
 | prompt.lesson-what | speech/prompt.lesson-what.slow.wav | guide | 0.8 | Mira. |  |
 | prompt.lesson-what | speech/prompt.lesson-what.wav | guide | 1.0 | Mira. |  |
 | prompt.lesson-yesno | speech/prompt.lesson-yesno.slow.wav | guide | 0.8 | ¿Es madera? |  |

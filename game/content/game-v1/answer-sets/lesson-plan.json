@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-plan",
+  "answers": [
+    {
+      "answerId": "plan",
+      "canonical": "voy a comer pan",
+      "aliases": ["mañana voy a comer pan", "yo voy a comer pan", "voy a comer fruta", "voy a comer el pan", "voy a comer una fruta", "mañana voy a comer fruta", "voy a comer pan mañana", "mañana como pan"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

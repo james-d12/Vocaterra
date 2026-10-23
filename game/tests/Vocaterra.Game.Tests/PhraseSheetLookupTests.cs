@@ -10,7 +10,7 @@ public sealed class PhraseSheetLookupTests
     private static PhraseSheet Sheet => PhraseSheet.Load(TestGame.Bundle);
 
     [Fact]
-    public void TheBundleHoldsTheThirtyFourPhrasesOfTheSheetInOrder()
+    public void TheBundleHoldsTheFortySixPhrasesOfTheSheetInOrder()
     {
         var sheet = Sheet;
 
@@ -18,7 +18,8 @@ public sealed class PhraseSheetLookupTests
             ["que-necesitas", "pedir-agua", "quieres-pan", "si-por-favor", "no-gracias", "donde-esta-el-rio", "hola", "gracias", "adios", "no-se", "ayuda",
                 "me-llamo", "es-madera", "si", "no", "que-es-esto", "quieres-fruta", "de-nada", "otra-vez", "mas-despacio", "necesitas-madera",
                 "que-quieres", "quiero-madera", "tienes-fruta", "tengo-fruta", "necesito-agua",
-                "que-quiere-luna", "ella-quiere-fruta", "necesitamos-agua", "que-necesita-usted", "necesito-pan", "tengo-botella", "que-quieren-ustedes", "queremos-pan"],
+                "que-quiere-luna", "ella-quiere-fruta", "necesitamos-agua", "que-necesita-usted", "necesito-pan", "tengo-botella", "que-quieren-ustedes", "queremos-pan",
+                "que-vas-a-comer", "voy-a-comer-pan", "que-vamos-a-comer", "vamos-a-comer-fruta", "que-comiste-ayer", "ayer-comi-fruta", "fuiste-al-rio-ayer", "ayer-fui-al-rio", "bebiste-agua-ayer", "ayer-bebi-agua", "que-vas-a-hacer", "voy-a-ir-al-rio"],
             sheet.Rows.Select(static r => r.Id));
         Assert.Equal("Quiero agua, por favor.", sheet.Find("pedir-agua")!.CardPhrase);
         Assert.Equal("¿Dónde está el río?", sheet.Find("donde-esta-el-rio")!.CardPhrase);

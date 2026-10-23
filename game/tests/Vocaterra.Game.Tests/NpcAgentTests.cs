@@ -25,7 +25,7 @@ public sealed class NpcAgentTests
     {
         Assert.Equal(["guide", "shopkeeper", "villager"], TestGame.Bundle.Agents.Keys.Order(StringComparer.Ordinal));
         Assert.Equal(
-            ["guide-offer", "guide-open", "guide-review", "lesson-bottle", "lesson-have", "lesson-hello", "lesson-name", "lesson-need", "lesson-offer", "lesson-she", "lesson-task", "lesson-thanks", "lesson-unstuck", "lesson-usted", "lesson-ustedes", "lesson-want", "lesson-we", "lesson-what", "lesson-yesno", "stall-need", "stall-offer", "villager-open"],
+            ["guide-offer", "guide-open", "guide-review", "lesson-ate", "lesson-bottle", "lesson-had", "lesson-have", "lesson-hello", "lesson-name", "lesson-need", "lesson-offer", "lesson-plan", "lesson-plan-we", "lesson-she", "lesson-task", "lesson-thanks", "lesson-tomorrow", "lesson-unstuck", "lesson-usted", "lesson-ustedes", "lesson-want", "lesson-we", "lesson-went", "lesson-what", "lesson-yesno", "stall-need", "stall-offer", "villager-open"],
             TestGame.Bundle.Prompts.Keys.Order(StringComparer.Ordinal));
     }
 

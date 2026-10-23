@@ -54,7 +54,7 @@ public sealed record LaunchOptions
         + "  --lesson-help           the lesson step's help path (its English hint, its model line again, the card and the English); a step\n"
         + "  --lesson-pick <n>       pick option n (1 to 4) of a listen step; a step\n"
         + "  --book-practise <id>    open the book on its Lessons page and press \"Practise again\" on the lesson (a completed one); it starts when the lesson's NPC is talked to; a step (S26)\n"
-        + "  --session <n>           start the run as play session n (1 to 99), so the lessons of session n are unlocked: `--session 2` unlocks the villager's lesson `personas` (S26)\n"
+        + "  --session <n>           start the run as play session n (1 to 99), so the lessons of session n are unlocked: `--session 2` unlocks the villager's lesson `personas` (S26), `--session 3` the villager's lesson `ayer-y-manana` (S27)\n"
         + "  --tips                  draw the first-time tips in a scripted run too (an interactive run always does; S16)\n"
         + "  --third-person          start in the behind-the-shoulder view (S15; F5 switches between it and first person)\n"
         + "  --dusk                  a lower, dimmer sun and lanterns that glow at full strength (S15)\n"
