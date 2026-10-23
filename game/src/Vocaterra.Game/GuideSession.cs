@@ -90,6 +90,7 @@ public abstract class GuideSession : IDisposable
     private long _keyWordsStart;
     private NpcOpening? _delayedOpening;
     private bool _talkOpen;
+    private PhraseReview? _retry;
 
     /// <summary>
     /// The shared part of a game, on a loaded bundle.
@@ -192,6 +193,17 @@ public abstract class GuideSession : IDisposable
     /// Fed on the caller's thread by <see cref="Apply"/>; the book reads it.
     /// </summary>
     public LearnerRecord Learner { get; } = new();
+
+    /// <summary>
+    /// The phrases said "no sé" to that wait for a second try in this session (X04, R02). Each is asked at most once, at the next talk with its NPC.
+    /// </summary>
+    public RetryQueue Retries { get; } = new();
+
+    /// <summary>
+    /// The English note for the second try asked at the talk just opened (<c>Let's try that one again: …</c>), or <see langword="null"/> when none was asked. The
+    /// front-end shows it above the guide's request (English, never spoken).
+    /// </summary>
+    public string? RetryNote { get; private set; }
 
     /// <summary>The first-time tips (S16): English text shown once each when something happens for the first time.</summary>
     public TipFeed Tips { get; }
@@ -457,6 +469,7 @@ public abstract class GuideSession : IDisposable
 
         Review = null;
         PhraseReview = null;
+        _retry = null;
     }
 
     /// <summary>
@@ -476,6 +489,7 @@ public abstract class GuideSession : IDisposable
     {
         ArgumentNullException.ThrowIfNull(npc);
         EndReview();
+        RetryNote = null;
         CurrentNpc = npc;
         _talkOpen = true;
         _delayedOpening = null;
@@ -492,7 +506,42 @@ public abstract class GuideSession : IDisposable
 
         var opening = OpenNow(npc, logOpened: true);
         Lessons.OnTalkOpened(npc); // a lesson attached to this NPC takes up where it stopped, or starts by itself when its file says so (S16)
+        OfferSecondTry(npc);
         return opening;
+    }
+
+    // The second try (X04, R02): at the talk with the NPC a "no sé" was said to, the phrase waiting for it is asked once, as the guide's review (the same request
+    // line and answer rules as a due phrase). Not while a review is open, a turn is on the worker, or a lesson holds the conversation: a review would then take
+    // the lesson's prompt (see RetryQueue). A phrase taken here is never queued again in this session.
+    private void OfferSecondTry(string npc)
+    {
+        if (PhraseReview is not null || Review is not null || PendingTurns > 0 || Lessons.Engaged
+            || !Retries.Pending.Any(item => string.Equals(item.Npc, npc, StringComparison.Ordinal)))
+        {
+            return;
+        }
+
+        if (Retries.TakeFor(npc) is not { } item || PhraseReviews.Create(item.PhraseId, Phrases, Bundle) is not { } review)
+        {
+            return;
+        }
+
+        _retry = review;
+        PhraseReview = review;
+        RetryNote = English.Ui("retryAgain", ("english", Phrases.Find(item.PhraseId)?.English ?? item.PhraseId));
+        Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.SecondTryAsked, npc, review.PhraseId));
+    }
+
+    // The learner said "no sé" to these phrases at this NPC: the first learner phrase the queue takes is asked again later (X04, R02).
+    private void ScheduleSecondTry(string npc, IEnumerable<string> phrases)
+    {
+        foreach (var id in phrases)
+        {
+            if (Phrases.IsPractisable(id) && Retries.Schedule(id, npc))
+            {
+                return;
+            }
+        }
     }
 
     // ---- The lessons' hooks (S16): the runner is in LessonRunner.cs; these are the parts of the session it needs.
@@ -571,6 +620,7 @@ public abstract class GuideSession : IDisposable
     internal void LogLessonDontKnow(string npc, string prompt, string phraseId)
     {
         Log(new PhraseUse(Tick, StoredTime.UnixSeconds, PhraseIds.DontKnow, PhraseUseKind.DontKnow, npc, prompt, DontKnowLine, null, InputKind.Button, true, PhraseProgress.LevelOf(phraseId), [phraseId]));
+        ScheduleSecondTry(npc, [phraseId]); // a lesson's "no sé" queues its phrase for a second try too (X04, R02)
     }
 
     // The first time the shopkeeper's panel opens, the key words (agua, pan) are taught before his question (brief step 4): their word cards stand alone for
@@ -1064,6 +1114,8 @@ public abstract class GuideSession : IDisposable
 
         // A lesson step that will count the answer as a miss for the person or the tense of its verb (S26, S27) does not credit the phrase: the learner did not say it.
         var formMiss = Lessons.IsFormMiss(turn);
+        var retryAnswer = phraseReview is not null && ReferenceEquals(phraseReview, _retry) && turn.Communicated && !IsHelpRequest(turn);
+        var recovered = false;
         if (turn.Communicated && !formMiss && (PhraseInPlayFor(turn, support) ?? PhraseIds.For(turn.Intent, turn.Slots)) is { } phrase)
         {
             var kind = Classify(turn, phrase, previousRepair, phraseReview, support);
@@ -1071,9 +1123,14 @@ public abstract class GuideSession : IDisposable
             var correct = turn.Errors.Count == 0;
             IReadOnlyList<string>? inPlay = kind == PhraseUseKind.DontKnow ? (phraseReview is not null ? [phraseReview.PhraseId] : support.InPlay) : null;
             Log(new PhraseUse(tick, time, phrase, kind, npc, turn.Prompt, turn.Line, detail, turn.Input, correct, PhraseProgress.LevelOf(phrase), inPlay));
+            recovered = retryAnswer && correct && string.Equals(phrase, phraseReview?.PhraseId, StringComparison.Ordinal) && kind is PhraseUseKind.Unaided or PhraseUseKind.Supported;
             if (kind == PhraseUseKind.DontKnow)
             {
                 RevealSupport(); // the NPC gave the model: its card is up and the next use counts as supported
+                if (string.Equals(turn.Intent, "dont_know", StringComparison.Ordinal) && inPlay is not null)
+                {
+                    ScheduleSecondTry(npc, inPlay); // "no sé" (not "ayuda") queues its phrase for a second try in this session (X04, R02)
+                }
             }
             else if (kind is PhraseUseKind.Supported or PhraseUseKind.Unaided or PhraseUseKind.Transfer)
             {
@@ -1086,6 +1143,14 @@ public abstract class GuideSession : IDisposable
                     }
                 }
             }
+        }
+
+        if (retryAnswer && phraseReview is { } answered)
+        {
+            // The answer to the second try (X04, R02): "recovered" when it was the same phrase said correctly, with or without the card. Its use was counted like any
+            // review answer, so the spacing gap (D-game-6) still decides any credit.
+            Log(new WorldEvent(tick, time, WorldEvents.SecondTryAnswered, npc, $"{answered.PhraseId}, {(recovered ? "recovered" : "not_yet")}"));
+            _retry = null;
         }
 
         if (turn.FailForward)

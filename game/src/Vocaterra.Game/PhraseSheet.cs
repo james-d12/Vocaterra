@@ -130,6 +130,13 @@ public sealed class PhraseSheet
     public PhraseRow? Find(string id) => _rows.FirstOrDefault(row => string.Equals(row.Id, id, StringComparison.Ordinal));
 
     /// <summary>
+    /// Whether a phrase is one the learner practises: a row the learner says, that is not a service line ("ayuda", "no sé", which are help, never a phrase to
+    /// practise). The second try (X04) and the session summary's practise list use it.
+    /// </summary>
+    /// <param name="id">The phrase sheet's id.</param>
+    public bool IsPractisable(string id) => Find(id) is { } row && row.IsLearnerPhrase && !IsService(row);
+
+    /// <summary>
     /// The learner phrases an NPC prompt asks for, in the sheet's order: the rows whose prompt is this prompt's, without the service words (help,
     /// "no sé"), which are possible at every prompt and are never what the prompt is waiting for. The guide's offer is answered with the stall's
     /// offer rows (the sheet's <c>si-por-favor</c> and <c>no-gracias</c> work for both).

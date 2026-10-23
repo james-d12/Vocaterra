@@ -558,7 +558,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         {
             // The session's ending (S17): the guide says her closing line, the card says "Session complete" in English and Spanish.
             _voice.Say(SpeechSpeakers.Guide, [_ending.Spanish]);
+            _log?.SessionSummary(_ending.Summary, _sim.Tick); // the session's summary card, in the log (X04, R01)
             Console.WriteLine($"session complete: {_ending.Spanish} ({_ending.English}); {_session.Objective.Summary}");
+            foreach (var line in _ending.Summary)
+            {
+                Console.WriteLine($"  {line}");
+            }
         }
 
         if (!_report.Paused)
@@ -1823,7 +1828,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private void OpenDialogueOn(string npc, char? openedBy)
     {
         var opening = _session.OpenTalk(npc, teachKeyWords: true);
-        _dialogue.Open(opening, NpcFigures.LabelOf(npc), _session.ReviewLine);
+        _dialogue.Open(opening, NpcFigures.LabelOf(npc), _session.ReviewLine, _session.RetryNote);
         _voice.Say(npc, opening.Lines);
         if (openedBy == 't')
         {
