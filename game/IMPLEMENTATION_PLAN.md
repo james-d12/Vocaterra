@@ -197,7 +197,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S25 | Ambient beds by place (birds, wind, river and waterfall, village, fire, dusk insects) and footsteps per surface | done (merged to `main` 2026-10-23, `6c73d63`); **the owner listens once** | Haiku 5.5 | S24 |
 | S26 | Verbs in the lessons: a yo/tú unit in session 1, lesson "Personas" (él/ella/usted, nosotros, ustedes/ellos) in session 2; lessons unlock by session and replay from the book; Opus pass, speech (D-game-19) | done (merged to `main` 2026-10-23, `7748348`, bundle `becd2669…`); **the owner listens to 62 new WAVs** | Sonnet 5.5 | S25, D-game-19 |
 | S27 | Verbs, session 3: "Ayer y mañana" (ir a + infinitive, a few preterite forms, time words) | done (merged to `main` 2026-10-23, `ca27650`, bundle `492cbe4b…`); **the owner listens to 44 new WAVs** | Sonnet 5.5 | S26, core M49 |
-| S28 | The book remade as a book (two-page spread, ribbons, page turn) with conjugation tables (used, taught, hidden until taught) | planned | Sonnet 5.5 | S20b, S27 |
+| S28 | The book remade as a book (two-page spread, ribbons, page turn) with conjugation tables (used, taught, hidden until taught) | done (merged to `main` 2026-10-23, `f966590`) | Sonnet 5.5 | S20b, S27 |
 
 **Standing direction (owner, 2026-10-22, late):** finish the queued milestones (M50, S19b, S20b, S25, S26, M49, S27, S28) and push each
 to `main`. Do not work on the German milestones (M31 to M48, D14); they wait until much later. After the queue, the orchestrator researches
@@ -1163,6 +1163,30 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - **Core finding:** `voy comer pan` (ir with a bare infinitive, no `a`) passes the core clean. The lesson's tense check still catches it.
     Proposed as core M51.
   - **For S28:** docs/PLAYTEST.md and playtest/README-tester.md still say 20 check items, but there are 31.
+- **S28, the book as a book, with conjugation tables (2026-10-23, Sonnet 5.5; merged to `main` `f966590`). This closes the owner's queue
+  for `main`.**
+  - **The spread.** A leather cover, cream paper, page edges and a stitched spine, all drawn in code (`Frontend/BookGeometry`). Five ribbon
+    bookmarks replace the tabs, with the same `TabRect`/`TabAt` API. A 0.3 s page-turn leaf plays S24's `book_page`. The left page lists;
+    the right page shows the selected item in full.
+  - **Conjugation tables** (`Frontend/ConjugationTable`, `ConjugationLayout`).
+    - Rows yo, tú, él/ella/usted, nosotros, ustedes/ellos; columns present, past, future (ir a).
+    - Used forms are highlighted with counts, taught forms are plain, and the rest are dashes. A column shows once that verb has a form in
+      it that was taught or said (per verb, a little stricter than the spec, so querer's table has no empty columns).
+    - Forms come from `Morphology` or `TaughtVerbForm.Text`. `vamos` is counted as ir present 1pl, which fixes S27's imperative-reading quirk.
+  - **Flags:** `--book-verb`, `--size WxH`.
+  - **The playtest docs now give the right counts:** 31 check items, 7 units and 37 steps.
+  - **Checked by the orchestrator:**
+    - the gate, 4,709 passed and 5 skipped;
+    - the before and after spreads;
+    - the ir table (voy ×2, fui ×1, voy a ir ×1, vamos ×1 highlighted; vas, va, van, fuiste plain);
+    - the Lessons spread;
+    - the comer table at 800 x 600.
+  - **Not fixed:**
+    - the right page does not scroll, so long blocks clip at 800 x 600;
+    - narrow rows drop their right-hand note;
+    - ir-a counts come from the bounded history;
+    - the "What you said" list glosses `vamos` as "let's go";
+    - ser and estar are both glossed "to be".
 
 ## 6. Definition of done (every milestone)
 
