@@ -47,8 +47,8 @@ public sealed class GrammarStringsExtractorTests
         ["vamos-a-comer-fruta"] = ["conj.tense"],
         ["ayer-comi-fruta"] = ["conj.tense"],
         ["ayer-fui-al-rio"] = ["conj.tense"],
-        ["ayer-tuve-agua"] = ["conj.tense", "vocab.wrong"],
-        ["voy-a-ir-al-rio"] = ["conj.tense", "vocab.wrong"],
+        ["ayer-bebi-agua"] = ["conj.tense"],
+        ["voy-a-ir-al-rio"] = ["conj.tense"],
     };
 
     [Fact]

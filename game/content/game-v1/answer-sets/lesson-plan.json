@@ -4,7 +4,7 @@
     {
       "answerId": "plan",
       "canonical": "voy a comer pan",
-      "aliases": ["mañana voy a comer pan", "yo voy a comer pan", "voy a comer fruta", "voy a comer el pan", "voy a comer una fruta", "mañana voy a comer fruta"],
+      "aliases": ["mañana voy a comer pan", "yo voy a comer pan", "voy a comer fruta", "voy a comer el pan", "voy a comer una fruta", "mañana voy a comer fruta", "voy a comer pan mañana", "mañana como pan"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {

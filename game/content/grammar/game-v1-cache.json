@@ -32,6 +32,12 @@
       "matches": []
     },
     {
+      "key": "023f94ef1a02781bcb2cc0331c3ca34c72f90176d8686fad1ef410a6b183167a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana voy a ir a la tienda",
+      "matches": []
+    },
+    {
       "key": "0240069b7e0cb5a541904e7dadb4f903fd307c12396235a0f9828839ef307bfe",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me da agua, por favor",
@@ -121,6 +127,12 @@
       "matches": []
     },
     {
+      "key": "0abc5248e9254a3912530a99585d7cc78b6c357738714e7bb0755d66188d528b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer fuiste al río.",
+      "matches": []
+    },
+    {
       "key": "0cec631344478d4df4dce3be2e4f3bc7bc468b04b9a6321323c702868f603ed3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Gracias no",
@@ -142,6 +154,12 @@
       "key": "0defbfd9d5250f45386efacfdd6299032f8b09ec56f9d437dffa6fb51ede070d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ella está en el campamento.",
+      "matches": []
+    },
+    {
+      "key": "0e24a8af8e95e523d062e9c7aed3563ec981a839e3cf3ce53ab99a1c7f404a91",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana voy a ir al río",
       "matches": []
     },
     {
@@ -195,6 +213,12 @@
       "key": "109d99350319f363a12fdce241f222ab44b7fad89b06af8b56130ab9d3db1521",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Claro, «yo tengo dos espadas». Muy bien.",
+      "matches": []
+    },
+    {
+      "key": "110ad414e7042ab18952a02c33f263ab1e6d0cc4d8712685bd4881175b1056ce",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Fui al río",
       "matches": []
     },
     {
@@ -258,9 +282,21 @@
       ]
     },
     {
+      "key": "15bfd46099c560c75af17656e6c1e00299be815a7d668107d320ebe0ca308185",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Nosotros vamos a comer fruta",
+      "matches": []
+    },
+    {
       "key": "15c906bca78ce31524a2d27a96f963007440896942aa49c10b877851a2a1a29e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Hola! Soy la guía.",
+      "matches": []
+    },
+    {
+      "key": "160221cd4350ba6f4d2e7804c162315baf9292999edfa1b491ad83c88431384d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer bebí agua.",
       "matches": []
     },
     {
@@ -435,6 +471,12 @@
       "matches": []
     },
     {
+      "key": "1d1ac5aed071b046cfcfc5b7dd1cbc3a844fad8a5ff9c3837437bbc0b93ea059",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo comí fruta",
+      "matches": []
+    },
+    {
       "key": "1d3dc32ea36fa992724771c46d1c0bb485f5926bb0c350a951f998c875d83393",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Necesito agua por favor",
@@ -468,6 +510,12 @@
       "key": "1eed04a111cb1b9afde385c725d1230a665318b55f0cf689d64e5984618c0d0e",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Eso es! Es un libro.",
+      "matches": []
+    },
+    {
+      "key": "20cc85935073f71583b0083f3b51bbaef45ea0a29c17592db2f51e2a75e3efad",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana comimos fruta",
       "matches": []
     },
     {
@@ -506,6 +554,12 @@
       ]
     },
     {
+      "key": "23174697c439e6cf4111bb48e6e619e5a806cbb9d17af512c3f6dfc27769a093",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, fui al río ayer",
+      "matches": []
+    },
+    {
       "key": "236f89312f284a98392bfb9ddb9ba032ba95ffb3fd08407a50910fc15ba9b3a5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mira, es un libro.",
@@ -530,9 +584,21 @@
       "matches": []
     },
     {
+      "key": "254233453a41bcc84270221539877541ed1f29d16d5f22b9ca7d2dc9d2a944b2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer comí una fruta",
+      "matches": []
+    },
+    {
       "key": "25dc9949e7f2ed8c5437bb2b9460687ff118eb29b8afd3289d6757552032ad17",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí tengo",
+      "matches": []
+    },
+    {
+      "key": "272ced8338ae8434e2269326010745165fa128425f0872457514fed971fab50d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana como pan",
       "matches": []
     },
     {
@@ -552,6 +618,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Queremos pan.",
       "matches": []
+    },
+    {
+      "key": "287b77536c4278deffaa28c2142dec68bfcf6a2291dba11aa91a0596c3542a10",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo va a comer pan",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «va».",
+          "offset": 3,
+          "length": 2,
+          "replacements": [
+            "voy"
+          ]
+        }
+      ]
     },
     {
       "key": "289af934695cfb5d27b31069d39286fb2c90ae2ea5eb4f56b4ca22450571a380",
@@ -619,6 +702,12 @@
       "matches": []
     },
     {
+      "key": "2ccae2cc703a7d3e84de4a74677bb7550411879b1a58e4589d770262742d2b4f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer fui al río",
+      "matches": []
+    },
+    {
       "key": "2d1a63dff370ad784a6bcf0d766e2678a00c5dd48c38f649f4eec3a91bda6d3b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Necesito pan",
@@ -634,6 +723,12 @@
       "key": "2f2069124ae9b6a2a01167824c5df112ff6cf4b19375cdd4f2329f2ee56e7045",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Es agua?",
+      "matches": []
+    },
+    {
+      "key": "2f54bdf1f67579589c4b08cf46c707be60a2e44faea684ef40ee42002dc5e2fe",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a comer una fruta",
       "matches": []
     },
     {
@@ -789,9 +884,32 @@
       ]
     },
     {
+      "key": "3772738acab1ebdda2537209a39e84471cce20a1205369eed93dd333f139aa82",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo fuiste al río",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «fuiste».",
+          "offset": 3,
+          "length": 6,
+          "replacements": [
+            "fui"
+          ]
+        }
+      ]
+    },
+    {
       "key": "3815fabb30cec7fbb9f68cb1a189e556987c743dad1fa1322b5ea404585747fe",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Claro",
+      "matches": []
+    },
+    {
+      "key": "3824cfefee5211baa4cd874e14ba3af018be8abbd07aa2119f8d08bd5d2a0249",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer comí fruta",
       "matches": []
     },
     {
@@ -1048,6 +1166,12 @@
       ]
     },
     {
+      "key": "4808a713edd93f39ebbf165332136dc884c1cd0a005b47b66b0f755fc2062b91",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana comí pan",
+      "matches": []
+    },
+    {
       "key": "4820f5bc5ff20c198d6df83f56ee70d6b110d3bd40fa429ba9a0cec4fe0ac749",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ella quiere frutas",
@@ -1064,6 +1188,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Quiero una fruta",
       "matches": []
+    },
+    {
+      "key": "4911d14bab2e7d75a02612584428bdae48065816d68ea5075797d4949914aeb6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vamos a comemos fruta",
+      "matches": [
+        {
+          "rule": "PREP_VERB",
+          "issueType": "grammar",
+          "message": "Construcción incorrecta.",
+          "offset": 6,
+          "length": 9,
+          "replacements": [
+            "a comer"
+          ]
+        }
+      ]
     },
     {
       "key": "4a3734d82d4274797d36f68faf4b24305c33cf43b97f214c081adfee17398be3",
@@ -1126,9 +1267,21 @@
       "matches": []
     },
     {
+      "key": "4d83b93ff7cd452cd87530a18aaa1a3b1daafe473c23244e6152f6498cdbc5d2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana vamos a comer fruta",
+      "matches": []
+    },
+    {
       "key": "4e9542f0a3a3c3dd3679b85e9f149838461c0b6b4648cc5947d8b26d068b6db0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me das pan por favor",
+      "matches": []
+    },
+    {
+      "key": "4eb1a0a05d35f8ac03228cde80446a6f42917f4571db758777427309f7898c01",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Comí fruta ayer",
       "matches": []
     },
     {
@@ -1149,6 +1302,41 @@
       ]
     },
     {
+      "key": "4fee8c0f9f03e0dbadca28af6b569e8c0d65767fb44cddaad3828465d578b432",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo fue al río",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «fue».",
+          "offset": 3,
+          "length": 3,
+          "replacements": [
+            "fui"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "506d982231beebf115173daa479803081c5b87cda76bf9394094834b3155e94b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Fuiste al río ayer?",
+      "matches": []
+    },
+    {
+      "key": "50a14dd157d6e7bfd7aec39960fbaf4a13e6257fbbabc3082a99312e6386fefd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vamos a comer pan",
+      "matches": []
+    },
+    {
+      "key": "5118ae460341bb11a124253efc0127217e90e59c759e4ecc34dda654c84035eb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Comí pan",
+      "matches": []
+    },
+    {
       "key": "512d7a9bad5321d2a4edef455795a9722ee084c5d25338a82a2efdbb5264f461",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Aquí tienes.",
@@ -1164,6 +1352,12 @@
       "key": "531a8f6f7fb3b3e0e23bcff70dbfbb81b7ccbe0fc0e362ca10b959bc7a862ca4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué necesitas?",
+      "matches": []
+    },
+    {
+      "key": "534916d0d1ac0660857171920f4cbdfd43ba3a09e3251b2b3f2d898ce465f178",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana voy a comer pan",
       "matches": []
     },
     {
@@ -1322,6 +1516,12 @@
       "matches": []
     },
     {
+      "key": "5f538224cc932e3be6b1a8d61611eadd0af0e9b1b55393d0e9fe8ccbd30ccc11",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué vas a hacer mañana?",
+      "matches": []
+    },
+    {
       "key": "5f87dca5928c8d783780c8c5b4e3c661f99fc423fb044428949674947d787a29",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, yo tiene una botella",
@@ -1366,6 +1566,12 @@
       "key": "63038d50ebd7cb1f90b745912b485ee96d5a6ecec281b3e8ff66baae4a1ff795",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, es madera",
+      "matches": []
+    },
+    {
+      "key": "632af8bd01e6d512aa6279d6d99f1a6d7c2938ab5ac742e36468e674f773dcdf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana fui al río",
       "matches": []
     },
     {
@@ -1442,6 +1648,12 @@
       "matches": []
     },
     {
+      "key": "66bef35e51c761d51a213d09067577e7d57d22d5af21eb24e05a92e899cd1285",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana voy a comer fruta",
+      "matches": []
+    },
+    {
       "key": "66f344546c48bf6806050dab36eabf4bf733ea4ac6cfc2bc43353bce92517998",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde encuentro la arena",
@@ -1451,6 +1663,12 @@
       "key": "67b40459fc4f15d2a1272f7f9af12abd24171c05b68fdb22d43c87437e1f64df",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No, es madera",
+      "matches": []
+    },
+    {
+      "key": "67c11333156edcdf2059bb074d8aaf4d13495d27c62a1e4cefd1a20bd98cf960",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a como pan",
       "matches": []
     },
     {
@@ -1578,9 +1796,49 @@
       ]
     },
     {
+      "key": "6fa83ee77e3e97ae31799a2fa5e34f6ba3d1895d5795d094e7910ad2a283baa4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo comiste fruta",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «comiste».",
+          "offset": 3,
+          "length": 7,
+          "replacements": [
+            "comí"
+          ]
+        }
+      ]
+    },
+    {
       "key": "70691c35cfec90abe5dd0b93b3f8092674991fb1b13f31a15ecd2326fd41a19a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "La espada está espada, a dos espadas.",
+      "matches": []
+    },
+    {
+      "key": "7201198e421a60dc74f431e085df720810cd41ec5c82ae19f5f1c1ab65e6053e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Nosotros va a comer fruta",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Nosotros» y «va».",
+          "offset": 9,
+          "length": 2,
+          "replacements": [
+            "vamos"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "72d907cbe333b98c0f0d4b03fdfaeab466dd45b0c54e5d3d3a2101c2caf4c224",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Comí fruta",
       "matches": []
     },
     {
@@ -1593,6 +1851,12 @@
       "key": "74333f12ff83759867e826670bbc5301dc96782b983721642400af1307e2d009",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No, gracias",
+      "matches": []
+    },
+    {
+      "key": "74be8261e1cbc9d1dbc84569dc0f8c922a1ed812ac3dd1b8a1ed016525c5b7a4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer comí fruta.",
       "matches": []
     },
     {
@@ -1719,6 +1983,12 @@
       "matches": []
     },
     {
+      "key": "7c8decfb5807dd1252a10dbcef71be54f955a761ed6f185843096c1f410498b2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer fui a la tienda",
+      "matches": []
+    },
+    {
       "key": "7d6850130cab38155ae189dd7d09570ce369f3bcab5ae88233fb40f098c1414d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ella quiere fruta",
@@ -1803,9 +2073,21 @@
       "matches": []
     },
     {
+      "key": "82d289e53d5a5d2b90b85edc55656b16e1a47d27e3098f8e85a2113ff71a9d57",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a ir al río",
+      "matches": []
+    },
+    {
       "key": "8305d52dfc0f7edf08539816e03fd7093c4cf065467b3ef50b9291480bc814fe",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Dónde encuentro madera",
+      "matches": []
+    },
+    {
+      "key": "839a3256f84b51a747933b7f3adddf79b53ce4baea3af10c92073ed441bd0177",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Bebí agua",
       "matches": []
     },
     {
@@ -1863,9 +2145,39 @@
       "matches": []
     },
     {
+      "key": "8b126f07391f4bef86131f34150b68d70ad50f4cfd4c1b35233a7ac466bee9c0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a ir a la tienda",
+      "matches": []
+    },
+    {
+      "key": "8bb9b375b6b0b5df8d7937a3e9557b8afa0e75e29be916d52a936f35fbb42c0c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a comer el pan",
+      "matches": []
+    },
+    {
+      "key": "8bf234e187073c8e81a93e257e50212d85896b664f5d583186cb52b918edf381",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer comí frutas",
+      "matches": []
+    },
+    {
       "key": "8c025a29f163d57fd4434a9952d312697856d1a043adc0121a461a1190232ff3",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Es una hierba",
+      "matches": []
+    },
+    {
+      "key": "8c5a858618b819f25da53cb22e1156f0571772b7131cb795578906176718cf0a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vamos a comer fruta mañana",
+      "matches": []
+    },
+    {
+      "key": "8d21e0e8b05bc985add3184452b49e9b3e1df998515d8ccc3b0e9e95c619c44d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, fui al río",
       "matches": []
     },
     {
@@ -2025,6 +2337,12 @@
       "matches": []
     },
     {
+      "key": "9666c7701c0823bf56c29b5e3028a6453bc44c2c16a660bf63e6f10687a90e13",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana voy al río",
+      "matches": []
+    },
+    {
       "key": "968135789bf920afb96980795879377db7eba5eb214cb747cf82b539f9f4b3b1",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Vamos a ver.",
@@ -2040,6 +2358,12 @@
       "key": "97e42c4f7dcf8e42b4e2b15afb7d853a34924bd31ff87b0eaed8c92fc161aaeb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Queremos pan",
+      "matches": []
+    },
+    {
+      "key": "99d5545dc0f470e1680c319a4946874c485de2e9cf0f4efc23cf94f523af7b16",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a comer fruta",
       "matches": []
     },
     {
@@ -2091,9 +2415,21 @@
       "matches": []
     },
     {
+      "key": "9c6788db9994f64bc694ae0a532eebe3800162c4e34780e997cc231145c44aff",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer bebo agua",
+      "matches": []
+    },
+    {
       "key": "9c6d50e3db5764f8a69d767dff7b3df23aeea6ae30f5b1e7624b40e1b3990554",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué buscas?",
+      "matches": []
+    },
+    {
+      "key": "9cc9a4c55096dced1c4bf1cbb0c6032ac596e405350bb10cded1ab7b1869372d",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué comiste ayer?",
       "matches": []
     },
     {
@@ -2196,6 +2532,29 @@
       ]
     },
     {
+      "key": "a157d91e7a8b3f2e22fec1b7c74e09ba8e1a16da3bdd605163a07aefd0e40406",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí bebí agua",
+      "matches": []
+    },
+    {
+      "key": "a1ddd7aaba9ec1e4e234473491ddd0b898c4a80844385027164d229279df42be",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo comió fruta",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «comió».",
+          "offset": 3,
+          "length": 5,
+          "replacements": [
+            "comí"
+          ]
+        }
+      ]
+    },
+    {
       "key": "a24d72e18b42fed0f3ad3926d87691687d723e9c018c2fa41612839cbabcbd9f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Más despasio, por favor",
@@ -2215,6 +2574,12 @@
       ]
     },
     {
+      "key": "a2a315bed6839655c751e980ed3c94bafe17bde150c098a994d915e99d0e2fbf",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer comí pan.",
+      "matches": []
+    },
+    {
       "key": "a2ba9fd5fd084c40035bd58936e6666226de598135000e33c08ccd45e63aa17c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Una piedra",
@@ -2224,6 +2589,12 @@
       "key": "a3591601d252b675abafe873f4a4827c35d15c800a60423302e582062ab626db",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, te ayudo.",
+      "matches": []
+    },
+    {
+      "key": "a39af45f719206a05e0029737a8a6fd9cc02c278b0139f6de036c599bc3d3eb7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Hoy vas a la tienda.",
       "matches": []
     },
     {
@@ -2352,6 +2723,18 @@
       "matches": []
     },
     {
+      "key": "ab5a3198726fbe9bccfa99376d5701a5c98a70389c30c454a8592ea7eaf5a2bc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer voy al río",
+      "matches": []
+    },
+    {
+      "key": "ab9a1946667043a5a1aad6e9b123efa460799ee63de9e026f8f39c7e3a92a13e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Bebí agua ayer",
+      "matches": []
+    },
+    {
       "key": "aca6a438d6bc866b4ee54eb1d2426b2e4af5dda2011c74064e8b983d2ae124fb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Más despacio",
@@ -2399,6 +2782,12 @@
       "matches": []
     },
     {
+      "key": "ae571b6eba2e19bc5c3424654adf2cedd903474d356a78524f863283ade15568",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vamos a comer fruta",
+      "matches": []
+    },
+    {
       "key": "af51ff67a0f316b114009274c9756b1b3729584afa5f11cf65c5cab39c236a1d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Claro! Te lo digo otra vez.",
@@ -2408,6 +2797,12 @@
       "key": "afa41c6a0283cd2b1844f0b5034b36a35d7d16a838aaa8db182965d44da48f5b",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Pregunta por una cosa. ¿Dónde está la piedra?",
+      "matches": []
+    },
+    {
+      "key": "afaa8c6c7e9743f71ea3bb9132f7ba08452d4d8d8bcdd9fb01f4b0cd99660552",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Fui a la tienda",
       "matches": []
     },
     {
@@ -2427,6 +2822,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mira, ¿eres una espada? Se dice «soy una espada».",
       "matches": []
+    },
+    {
+      "key": "b141e8069240ad8419b8750e3ac083ab3eb374183cddfdaebac116360fe73fa9",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo bebiste agua",
+      "matches": [
+        {
+          "rule": "AGREEMENT_PRONOUNSUBJECT_VERB",
+          "issueType": "inconsistency",
+          "message": "Posible falta de concordancia entre «Yo» y «bebiste».",
+          "offset": 3,
+          "length": 7,
+          "replacements": [
+            "bebí"
+          ]
+        }
+      ]
     },
     {
       "key": "b14e8045288af644fa7344a285d266fb615c205c30c0e48d4aa95c4b46bcf897",
@@ -2482,6 +2894,18 @@
       "matches": []
     },
     {
+      "key": "b6e5604d04c711759caa0e2b5c6eb61025ac862e6ff757d56399fc154f887e78",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a comer pan.",
+      "matches": []
+    },
+    {
+      "key": "b77e7c363c014dbf4fbc60af0e76d1e067b95cce841bc11779a14ff45eddeccc",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Comí una fruta",
+      "matches": []
+    },
+    {
       "key": "b7de5b0d5cd8a75d64c27c2d5310900a16e37dd4897bdf2a6e795f884d005f46",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No gracias",
@@ -2497,6 +2921,12 @@
       "key": "b8096f0b17288424fbd65ba96c16395f8d7bf70cd1ab4064a536410f0ade58ff",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Tiene usted una botella?",
+      "matches": []
+    },
+    {
+      "key": "b8d36047bd468f16301e9b0f6f247eb2ebc00dd3ce66157e29c7c911c0817ff7",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vamos a comer fruta.",
       "matches": []
     },
     {
@@ -2518,9 +2948,21 @@
       "matches": []
     },
     {
+      "key": "ba3db4e3374e31a7d216d484807fe95af62571b16f6a06aa404cacc08bd42151",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué vamos a comer?",
+      "matches": []
+    },
+    {
       "key": "bc054d5fff4732690b7695373cf3afe558057c5184907b6438d3d2090de826b4",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí: «Tengo un libro». ¡Muy bien!",
+      "matches": []
+    },
+    {
+      "key": "bc9341541188a6e34881fdc40a5505e9c4ee241fe274db6415efac96218d48ed",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a comer pan",
       "matches": []
     },
     {
@@ -2643,6 +3085,12 @@
       ]
     },
     {
+      "key": "c4dbefb425d5b72813240e5563f4c6daabc55d185e0209def6307e54b53ec06a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Fui al río ayer",
+      "matches": []
+    },
+    {
       "key": "c56b184c15d647c3161a85275140cce7366ce49d25ab648324dc29dde2653aa5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Piensa otra vez: ¿el o la?",
@@ -2658,6 +3106,12 @@
       "key": "c63247d261065554e1d3a0fabb0e81d44d07613b7110d2350ab748f2e5e06c0d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí quiero",
+      "matches": []
+    },
+    {
+      "key": "c6fd3bbd77d4394297470720b4c8284f3e897e13b084a527f260a5f183e5fbe0",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a comer pan mañana",
       "matches": []
     },
     {
@@ -2694,6 +3148,18 @@
       "key": "c89ea10bd2db5bb819c632fd4e8e3f7235b8777448c55b6cc8b5db76a4c73c2d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mira una cosa y dime qué es.",
+      "matches": []
+    },
+    {
+      "key": "c8ada3afcc958c8b48eadb7da4c412b240e7dcb534db8e01c2e4b34448618647",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ellos van a comer pan.",
+      "matches": []
+    },
+    {
+      "key": "c8f28e7e26de6d928d47319f7a78b93a66649d5f42eb45cfc122371dfe31c664",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo voy a comer pan",
       "matches": []
     },
     {
@@ -2786,6 +3252,12 @@
       "matches": []
     },
     {
+      "key": "cf8824a1201b15b7f960f8daa02a661b88e55ddb174bc6de3784b3d62bcc9d6c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Bebiste agua ayer?",
+      "matches": []
+    },
+    {
       "key": "cfbab6a6d5c95ef67406d85c072340225abe6ab1a9afbc592cea09536c6f7010",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Mira: el libro está libro, a dos libros.",
@@ -2807,6 +3279,12 @@
       "key": "d05562244d901cdcb92632339a9e2afbab254451872bff1d44435f5c96ca7580",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ella necesita madera",
+      "matches": []
+    },
+    {
+      "key": "d0a68b08d3867149573fd7b1c6cc5c3090675a6f9201cd9ddf3d5b8600fe2193",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer fui al río.",
       "matches": []
     },
     {
@@ -2855,6 +3333,12 @@
       "key": "d4b0b767e5b84b68d6c431ba7f7f981fdd5febbdfae364fb7a366a7fa4571fe7",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Mira! La espada está aquí.",
+      "matches": []
+    },
+    {
+      "key": "d4c7b4cd8c906943312e07b55ae60ff183e97bb98253af32ec7bc9f8a481de79",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer comí pan",
       "matches": []
     },
     {
@@ -2954,6 +3438,12 @@
       "matches": []
     },
     {
+      "key": "ddf3379f5abf2801daffefcf6fcb0324be48dc8c5cfaef3a42fc2fc129ba224f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, ayer bebí agua",
+      "matches": []
+    },
+    {
       "key": "de251829111b8c3e01d75f7d868d5c3ef9469725b157189f36eaf3e3e4da42ee",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Claro que sí",
@@ -3007,9 +3497,27 @@
       "matches": []
     },
     {
+      "key": "e10bd79f1142830a17d142aa8519ca662a5c9e6fdcde17bac35086ec617b11f6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Voy a ir al río mañana",
+      "matches": []
+    },
+    {
+      "key": "e158ca730a8e235db6fff248c97c30fd898569a6e06362904e63f1e7afab5877",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer voy a comer fruta",
+      "matches": []
+    },
+    {
       "key": "e18363348826eae79b1212f5bfc1779120e782458b21ecf13be7fee3da863b0d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Me das fruta",
+      "matches": []
+    },
+    {
+      "key": "e221b0acf6e83f3617880720a015b274f393b8d93498b905b98582556cf5519f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vamos a comer frutas",
       "matches": []
     },
     {
@@ -3028,6 +3536,12 @@
       "key": "e38f5a44b51cbf1fb6e34dd5cc30afc177649d7659d6380895da1ff6540bbb1f",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Casi. Mira: es una espada.",
+      "matches": []
+    },
+    {
+      "key": "e42a64d846201b02f7e8bfbce4b0543e32cce3fbaf95a850fc54ef56e4a518a3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, bebí agua",
       "matches": []
     },
     {
@@ -3058,6 +3572,12 @@
       "key": "e5ef8240ed00807b78c88df1c09b77f12c6381c50604791c928039c2ce95a7f0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No veo una espada cerca.",
+      "matches": []
+    },
+    {
+      "key": "e5ff332fd09313b39655ec028cc2b9e2ffdcc3383a542a3db48249b583cadffb",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Vamos a comer una fruta",
       "matches": []
     },
     {
@@ -3106,6 +3626,12 @@
       "key": "e8121177b3ab360642fc7a783d57fd8a70cb26e2929ef395b15880498cf41c1c",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No quiero",
+      "matches": []
+    },
+    {
+      "key": "e9fdf87ac30f8a54f16ef10b7fbfbc4b582d3bea2ee2160a9fe275f8bc1cb0ba",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo voy a ir al río",
       "matches": []
     },
     {
@@ -3169,6 +3695,18 @@
       "matches": []
     },
     {
+      "key": "ed48b376b7d1127d2ab661e188dea2d12d36d61d2c1ed6d1c3d3d115a3eb8370",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Qué vas a comer mañana?",
+      "matches": []
+    },
+    {
+      "key": "edabcfebb29b4c0e62b18f6c822a2886deafd019ef4becff56ba9d36bf259399",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo bebí agua",
+      "matches": []
+    },
+    {
       "key": "ee3f52c17fc70a0438caf8ec807119be069b018364eb73eb75f63cfa72e84b42",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hola otra vez. ¿Qué buscas?",
@@ -3226,6 +3764,18 @@
       "key": "f1485d55f4da7c5bece6ee39d8c177055c846b1fa6a26842595c22a1e5b47938",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Despacio",
+      "matches": []
+    },
+    {
+      "key": "f170fe60060d52b8042a61944b2037a6a464c06283eae592800a67c06fa5b1ec",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Mañana voy a ir al río.",
+      "matches": []
+    },
+    {
+      "key": "f1a9cb51f6c0c707739fa066cc2ef40c7f63d76ac246682db1bd130e86e3fc6c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Yo fui al río",
       "matches": []
     },
     {
@@ -3360,6 +3910,18 @@
       "matches": []
     },
     {
+      "key": "fd8c0c8eb981af77bd8e30c4f0b910ea8393b346d6ae7104f8e506faadc6613f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Sí, ayer fui al río",
+      "matches": []
+    },
+    {
+      "key": "fe016ceafb924b331d93e5147c4f99a653d5fdd511fe4e5aa80bc4576319502a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer como fruta",
+      "matches": []
+    },
+    {
       "key": "fe587bb2505fe3e574af90f6631aa82c1ef33308b774a055f6677ae4f80d5190",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡De nada, amigo!",
@@ -3387,6 +3949,12 @@
       "key": "fea925e9599fb5d1387914ac637f58a87df51c6d1b4ddcfbc8b5119022d8ae19",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Roca",
+      "matches": []
+    },
+    {
+      "key": "fedd95bbec6abb2557dd7648cb69093f4cc82a850322d169ded4209cc14bba09",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Ayer bebí agua",
       "matches": []
     },
     {

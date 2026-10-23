@@ -267,7 +267,7 @@
     "allowedIntentIds": ["state_action", "ask_help", "dont_know"],
     "agentId": "shopkeeper",
     "slotGrammarIds": [],
-    "text": "¿Tuviste agua ayer?"
+    "text": "¿Bebiste agua ayer?"
   },
   {
     "promptId": "lesson-tomorrow",

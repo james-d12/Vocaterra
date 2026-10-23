@@ -3,8 +3,8 @@
   "answers": [
     {
       "answerId": "had",
-      "canonical": "ayer tuve agua",
-      "aliases": ["tuve agua", "sí, tuve agua", "yo tuve agua", "ayer tuve madera", "tuve madera"],
+      "canonical": "ayer bebí agua",
+      "aliases": ["bebí agua", "sí bebí agua", "sí, ayer bebí agua", "yo bebí agua", "bebí agua ayer"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {

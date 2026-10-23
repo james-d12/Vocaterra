@@ -4,7 +4,7 @@
     {
       "answerId": "plan",
       "canonical": "vamos a comer fruta",
-      "aliases": ["nosotros vamos a comer fruta", "mañana vamos a comer fruta", "vamos a comer pan", "vamos a comer una fruta"],
+      "aliases": ["nosotros vamos a comer fruta", "mañana vamos a comer fruta", "vamos a comer pan", "vamos a comer una fruta", "vamos a comer frutas", "vamos a comer fruta mañana"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {

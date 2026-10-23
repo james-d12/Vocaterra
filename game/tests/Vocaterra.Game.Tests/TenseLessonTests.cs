@@ -78,7 +78,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         Assert.Contains("Ayer y mañana", lesson.Objective, StringComparison.Ordinal); // the objective names it
         Assert.StartsWith("Session 3", lesson.Objective, StringComparison.Ordinal);
         Assert.Equal(["villager", "shopkeeper"], lesson.Steps.Select(lesson.NpcOf).Distinct());
-        Assert.Equal(["voy-a-comer-pan", "vamos-a-comer-fruta", "ayer-comi-fruta", "ayer-fui-al-rio", "ayer-tuve-agua", "voy-a-ir-al-rio"], lesson.TaughtPhrases);
+        Assert.Equal(["voy-a-comer-pan", "vamos-a-comer-fruta", "ayer-comi-fruta", "ayer-fui-al-rio", "ayer-bebi-agua", "voy-a-ir-al-rio"], lesson.TaughtPhrases);
         var walk = Assert.Single(lesson.Steps, static s => s.Type == LessonStepType.Do);
         Assert.Equal(("talk_opened", "shopkeeper", "tienda"), (walk.Event, walk.At, walk.Point)); // the walk from the villager to the stall
         Assert.Equal(LessonStepType.Recap, lesson.Steps[^1].Type);
@@ -105,7 +105,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
             ["vamos-a-comer-fruta"] = ("1pl", "ir-a"),
             ["ayer-comi-fruta"] = ("1sg", "pret"),
             ["ayer-fui-al-rio"] = ("1sg", "pret"),
-            ["ayer-tuve-agua"] = ("1sg", "pret"),
+            ["ayer-bebi-agua"] = ("1sg", "pret"),
             ["voy-a-ir-al-rio"] = ("1sg", "ir-a"),
         };
 
@@ -205,7 +205,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         Assert.Equal(3, session.Lessons.Record.Single(static r => r.LessonId == LessonId).CompletedSession);
         Assert.All(done, static d => Assert.Equal(StepOutcome.Done, d.Outcome));
         var turns = done.Where(static d => d.Turn is not null).ToList();
-        Assert.Equal(["Voy a comer pan", "Vamos a comer fruta", "Ayer comí fruta", "Ayer fui al río", "Ayer tuve agua", "Mañana voy a ir al río"], turns.Select(static d => d.Sent));
+        Assert.Equal(["Voy a comer pan", "Vamos a comer fruta", "Ayer comí fruta", "Ayer fui al río", "Ayer bebí agua", "Mañana voy a ir al río"], turns.Select(static d => d.Sent));
         Assert.All(turns, static d =>
         {
             Assert.Equal("state_action", d.Turn!.Intent);
@@ -216,7 +216,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         });
         Assert.Equal(["villager", "villager", "shopkeeper", "shopkeeper", "shopkeeper", "shopkeeper"], turns.Select(static d => d.Turn!.Npc));
         Assert.Equal("personas", session.Lessons.OfferFor("villager")!.LessonId); // session 2's lesson, not done, is the only one left
-        Assert.Equal(6, session.Events.OfType<PhraseUse>().Count(static u => u.Kind != PhraseUseKind.DontKnow && u.PhraseId is "voy-a-comer-pan" or "vamos-a-comer-fruta" or "ayer-comi-fruta" or "ayer-fui-al-rio" or "ayer-tuve-agua" or "voy-a-ir-al-rio"));
+        Assert.Equal(6, session.Events.OfType<PhraseUse>().Count(static u => u.Kind != PhraseUseKind.DontKnow && u.PhraseId is "voy-a-comer-pan" or "vamos-a-comer-fruta" or "ayer-comi-fruta" or "ayer-fui-al-rio" or "ayer-bebi-agua" or "voy-a-ir-al-rio"));
     }
 
     [Fact]
@@ -254,7 +254,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     {
         var session = AtStep("f2-ask");
 
-        AssertMiss(session, said, "f2-ask", "wrong tense", "ir, then “a”");
+        AssertMiss(session, said, "f2-ask", "wrong tense", "then “a”, then the infinitive");
         _ = session.Say("Voy a comer pan");
 
         Assert.Equal("f2-we", session.Lessons.Current!.Id);
@@ -284,14 +284,14 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void FuiAndTuveAndVoyAIrAreEachChecked()
+    public void FuiAndBebiAndVoyAIrAreEachChecked()
     {
         var went = AtStep("y2-went");
         AssertMiss(went, "voy al río", "y2-went", "wrong tense", "“fui”");
         AssertMiss(AtStep("y2-went"), "fuiste al río", "y2-went", "wrong person", "“fui”");
 
         var had = AtStep("y3-had");
-        AssertMiss(had, "tengo agua", "y3-had", "wrong tense", "“tuve”");
+        AssertMiss(had, "bebo agua", "y3-had", "wrong tense", "“bebí”");
 
         var tomorrow = AtStep("y6-tomorrow");
         AssertMiss(tomorrow, "fui al río", "y6-tomorrow", "wrong tense", "voy a");
@@ -303,8 +303,8 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     [InlineData("mañana comí pan", "f2-ask", "f2-we")]
     [InlineData("voy a como pan", "f2-ask", "f2-we")]
     [InlineData("ayer como fruta", "y1-ate", "y2-ask")]
-    [InlineData("ayer voy al río", "y2-went", "y3-had")]
-    [InlineData("ayer tengo agua", "y3-had", "y4-you")]
+    [InlineData("ayer voy al río", "y2-went", "y4-you")]
+    [InlineData("ayer bebo agua", "y3-had", "y5-contrast")]
     [InlineData("mañana fui al río", "y6-tomorrow", "y7-table")]
     public void ATenseNextToATimeWordIsTheCoresSlipAndTheStepStillEnds(string said, string stepId, string next)
     {
@@ -358,6 +358,47 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
 
         Assert.Equal("end", session.Lessons.Current!.Id);
         Assert.Equal(StepOutcome.Done, session.Lessons.OutcomesOf("t")[^1].Outcome);
+    }
+
+    // ---- Correct Spanish is never a miss (S27 decision): a plan said in the present is credited, with a note
+
+    [Theory]
+    [InlineData("f2-ask", "mañana como pan", "voy-a-comer-pan", "f2-we", "That is right too. Here we practise “voy a comer”: Voy a comer pan.")]
+    [InlineData("f2-we", "mañana comemos fruta", "vamos-a-comer-fruta", "f2-they", "That is right too. Here we practise “vamos a comer”: Vamos a comer fruta.")]
+    [InlineData("y6-tomorrow", "mañana voy al río", "voy-a-ir-al-rio", "y7-table", "That is right too. Here we practise “voy a ir”: Mañana voy a ir al río.")]
+    public void ThePresentSaidForAPlanIsCreditedAndTheNextStepOpensWithAGentleNote(string stepId, string said, string phrase, string next, string note)
+    {
+        var session = AtStep(stepId);
+
+        var turn = session.Say(said);
+
+        Assert.True(turn.Communicated, said);
+        Assert.DoesNotContain(turn.Errors, static e => e.Tag.StartsWith("conj.", StringComparison.Ordinal));
+        Assert.Equal(next, session.Lessons.Current!.Id); // the step ends: not a retry
+        Assert.Equal(StepOutcome.Done, session.Lessons.OutcomesOf(LessonId)[^1].Outcome);
+        Assert.Equal(note, session.Lessons.View!.Hint);
+        var use = Assert.Single(Uses(session, phrase)); // credited as a use of the phrase
+        Assert.Equal(said, use.Line);
+        Assert.DoesNotContain(session.Events.OfType<LessonEvent>(), e => e.Kind == LessonEventKind.Retry && e.StepId == stepId);
+        Assert.Contains(session.Events.OfType<LessonEvent>(), e => e.Kind == LessonEventKind.StepDone && e.StepId == stepId && e.Detail == "present for a plan, credited"); // a distinct outcome in the log
+    }
+
+    [Fact]
+    public void ThePresentWithNoFutureWordIsStillAMissAndThePastAfterTomorrowIsStillTheCoresSlip()
+    {
+        var session = AtStep("y6-tomorrow");
+
+        AssertMiss(session, "voy al río", "y6-tomorrow", "wrong tense", "voy a");
+        Assert.Empty(Uses(session, "voy-a-ir-al-rio"));
+    }
+
+    [Fact]
+    public void YesterdaysYouFormComesRightAfterTheLearnerSaysFui()
+    {
+        var steps = Book.Find(LessonId)!.Steps.Select(static s => s.Id).ToList();
+
+        Assert.Equal(["y2-ask", "y2-went", "y4-you", "y3-had", "y5-contrast"], steps.Skip(steps.IndexOf("y2-ask")).Take(5));
+        Assert.DoesNotContain("f1-here", steps); // estamos and están left the lesson
     }
 
     // ---- A miss is not credited as a use of the phrase (S26 leftover)
@@ -438,9 +479,8 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         Assert.Equal(
             [
                 "ir 1 sg pres", "ir 2 sg pres", "ir 3 sg pres", "ir 3 pl pres",
-                "estar 1 pl pres", "estar 3 pl pres",
-                "comer 1 sg ir-a", "comer 1 pl ir-a", "comer 3 pl ir-a", "ir 1 sg ir-a",
-                "comer 1 sg pret", "comer 2 sg pret", "ir 1 sg pret", "ir 2 sg pret", "tener 1 sg pret", "tener 2 sg pret",
+                "comer 1 sg ir-a", "comer 2 sg ir-a", "comer 1 pl ir-a", "comer 3 pl ir-a", "ir 1 sg ir-a",
+                "comer 1 sg pret", "comer 2 sg pret", "ir 1 sg pret", "ir 2 sg pret", "beber 1 sg pret", "beber 2 sg pret",
             ],
             forms.Select(Show));
         Assert.DoesNotContain(forms, static f => f is { Person: "2", Number: "pl" }); // no vosotros
@@ -459,7 +499,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         Assert.Equal("voy a ir", new TaughtVerbForm("ir", "1", "sg", "ir-a").Text(morphology));
         Assert.Equal("comí", new TaughtVerbForm("comer", "1", "sg", "pret").Text(morphology));
         Assert.Equal("fuiste", new TaughtVerbForm("ir", "2", "sg", "pret").Text(morphology));
-        Assert.Equal("tuve", new TaughtVerbForm("tener", "1", "sg", "pret").Text(morphology));
+        Assert.Equal("bebí", new TaughtVerbForm("beber", "1", "sg", "pret").Text(morphology));
         Assert.Equal("voy", new TaughtVerbForm("ir", "1", "sg", "pres").Text(morphology));
     }
 
@@ -541,7 +581,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         var added = new[]
         {
             "que-vas-a-comer", "voy-a-comer-pan", "que-vamos-a-comer", "vamos-a-comer-fruta", "que-comiste-ayer", "ayer-comi-fruta",
-            "fuiste-al-rio-ayer", "ayer-fui-al-rio", "tuviste-agua-ayer", "ayer-tuve-agua", "que-vas-a-hacer", "voy-a-ir-al-rio",
+            "fuiste-al-rio-ayer", "ayer-fui-al-rio", "bebiste-agua-ayer", "ayer-bebi-agua", "que-vas-a-hacer", "voy-a-ir-al-rio",
         };
 
         Assert.All(added, id => Assert.NotNull(sheet.Find(id)));
@@ -575,7 +615,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         var lesson = Book.Find(LessonId)!;
         var text = string.Join(" ", lesson.Steps.Select(static s => s.English));
 
-        foreach (var form in new[] { "voy", "vas", "va", "vamos", "van", "estamos", "están", "comí", "comiste", "fui", "fuiste", "tuve", "tuviste" })
+        foreach (var form in new[] { "voy", "vas", "va", "vamos", "van", "comí", "comiste", "bebí", "bebiste", "fui", "fuiste" })
         {
             Assert.Contains(form, text, StringComparison.Ordinal);
         }

@@ -640,7 +640,7 @@
       "npc": "villager",
       "title": "Ayer y mañana: yesterday and tomorrow",
       "english": "Session 3: tomorrow with ir a and an infinitive, and a few past forms, with the villager and the shopkeeper.",
-      "summary": "You can say what you are going to eat or do tomorrow, and what you ate, had or did yesterday.",
+      "summary": "You can say what you are going to eat or do tomorrow, and what you ate, drank and where you went yesterday.",
       "autoStart": true,
       "session": 3,
       "objective": "Session 3: go to the village and talk to the villager to start the lesson “Ayer y mañana”",
@@ -670,20 +670,14 @@
           "tense": "pres"
         },
         {
-          "lemma": "estar",
+          "lemma": "comer",
           "person": "1",
-          "number": "pl",
-          "tense": "pres"
-        },
-        {
-          "lemma": "estar",
-          "person": "3",
-          "number": "pl",
-          "tense": "pres"
+          "number": "sg",
+          "tense": "ir-a"
         },
         {
           "lemma": "comer",
-          "person": "1",
+          "person": "2",
           "number": "sg",
           "tense": "ir-a"
         },
@@ -730,13 +724,13 @@
           "tense": "pret"
         },
         {
-          "lemma": "tener",
+          "lemma": "beber",
           "person": "1",
           "number": "sg",
           "tense": "pret"
         },
         {
-          "lemma": "tener",
+          "lemma": "beber",
           "person": "2",
           "number": "sg",
           "tense": "pret"
@@ -749,36 +743,29 @@
           "english": "Session 3: yesterday and tomorrow. Three little words: ayer (yesterday), hoy (today) and mañana (tomorrow). First the verb ir, “to go”, and then “ir a” plus a verb, which is how you say what you are going to do. After that, a few past forms at the stall. Enter goes on, H helps, K skips a step."
         },
         {
-          "id": "f1-here",
-          "type": "model",
-          "line": "guide.lesson.villager.today.1",
-          "translation": "Today we are here.",
-          "english": "“Hoy” is today. “Estamos” is “we are” (estar, for where we are); for “they are” it is “están”."
-        },
-        {
           "id": "f1-ir",
           "type": "explain",
-          "english": "The verb ir, “to go”, does not follow the pattern. I go: voy. You go: vas. He, she, you (polite): va. We go: vamos. They, you all: van. “A” after it is “to”: voy a la tienda is “I go to the shop”."
+          "english": "The verb ir, “to go”, does not follow the pattern. I go: voy. You go: vas. He, she, you (polite): va. We go: vamos. They, you all: van. “A” after it is “to”: voy a la tienda is “I go to the shop”. A and el join into al: voy al río."
         },
         {
           "id": "f1-you-go",
           "type": "listen",
           "line": "guide.lesson.villager.goes.1",
-          "translation": "Today you go to the shop.",
+          "translation": "Today you are going to the shop.",
           "english": "The villager says what you do today. Which one is it?",
           "options": [
-            "You go to the shop.",
-            "I go to the shop.",
-            "We go to the shop."
+            "You are going to the shop today.",
+            "I am going to the shop today.",
+            "We are going to the shop today."
           ],
           "correct": 0,
-          "help": "“Tú vas”: vas is “you go”.",
-          "retry": "Not quite. Listen again: tú vas."
+          "help": "“Vas” is “you go” or “you are going”: the -s is for tú.",
+          "retry": "Not quite. Listen again: vas."
         },
         {
           "id": "f2-intro",
           "type": "explain",
-          "english": "Now tomorrow. Take a form of ir, then “a”, then a verb that does not change (the infinitive): voy a comer is “I am going to eat”, vamos a comer is “we are going to eat”. Not “voy a como”. “Mañana” can go in front: mañana voy a comer pan."
+          "english": "Now plans: later today or tomorrow. Like English “going to”: a form of ir, then “a”, then the verb as it is in the dictionary, ending in -ar, -er or -ir (the infinitive). Voy a comer is “I am going to eat”; vamos a comer is “we are going to eat”. A place after “a” is where you go (voy a la tienda); a verb after “a” is what you are going to do. Not “voy a como” (como is “I eat”). “Mañana” can go in front: mañana voy a comer pan."
         },
         {
           "id": "f2-ask",
@@ -793,7 +780,8 @@
           "person": "1sg",
           "personRetry": "Say it about yourself: “voy a”, like “voy”.",
           "tense": "ir-a",
-          "tenseRetry": "Tomorrow uses a form of ir, then “a”, then the infinitive: “voy a comer”, not “como” or “comí”."
+          "tenseRetry": "For a plan, use voy, then “a”, then the infinitive: “voy a comer”.",
+          "presentNote": "That is right too. Here we practise “voy a comer”: Voy a comer pan."
         },
         {
           "id": "f2-we",
@@ -802,13 +790,14 @@
           "prompt": "lesson-plan-we",
           "line": "guide.lesson.villager.plan_we.1",
           "translation": "What are we going to eat?",
-          "english": "Now he asks about the two of you. Answer with “vamos a”: “Vamos a comer fruta”.",
+          "english": "Now he asks about the two of you. Answer with “vamos a”: “Vamos a comer fruta”. Said as a suggestion, vamos a comer also means “let's eat”.",
           "help": "Say: Vamos a comer fruta. It means we are going to eat fruit.",
           "retry": "Not quite. Say: Vamos a comer fruta.",
           "person": "1pl",
           "personRetry": "Say it for the two of you: “vamos a comer”, like “vamos”.",
           "tense": "ir-a",
-          "tenseRetry": "Tomorrow uses a form of ir, then “a”, then the infinitive: “voy a comer”, not “como” or “comí”."
+          "tenseRetry": "For a plan, use vamos, then “a”, then the infinitive: “vamos a comer”.",
+          "presentNote": "That is right too. Here we practise “vamos a comer”: Vamos a comer fruta."
         },
         {
           "id": "f2-they",
@@ -839,7 +828,7 @@
           "id": "y0-intro",
           "type": "explain",
           "npc": "shopkeeper",
-          "english": "Now yesterday: ayer. Something that is over uses another form, the past. A few are enough to start. I ate: comí. I went: fui. I had: tuve. You ate: comiste. You went: fuiste. You had: tuviste. With “ayer” use these, never “ayer como” or “ayer voy”."
+          "english": "Now yesterday: ayer. Something that is over uses another form, the past. First comer: I ate is comí, you ate is comiste. With “ayer” use the past, not “ayer como” or “ayer voy”."
         },
         {
           "id": "y1-model",
@@ -847,7 +836,7 @@
           "npc": "shopkeeper",
           "line": "guide.lesson.shop.ayer.1",
           "translation": "Yesterday I ate bread.",
-          "english": "She tells you what she ate. “Comí” is “I ate” (comer): the ending -í is for “I” and -iste is for “you”."
+          "english": "She tells you what she ate. “Comí” is “I ate” (comer). In the past, -í is for “I” and -iste is for “you”: comí, comiste."
         },
         {
           "id": "y1-ate",
@@ -871,7 +860,7 @@
           "npc": "shopkeeper",
           "line": "guide.lesson.shop.went.1",
           "translation": "Did you go to the river yesterday?",
-          "english": "She asks if you went to the river. “Fuiste” is “you went”: the past of ir, which does not follow the pattern. For “I” it is “fui”."
+          "english": "She asks if you went to the river. “Fuiste” is “you went”: the past of ir, which does not follow the pattern. For “I” it is “fui”. It still ends in -iste for “you”."
         },
         {
           "id": "y2-went",
@@ -888,22 +877,6 @@
           "tenseRetry": "Yesterday uses the past: “fui” (I went), not “voy”."
         },
         {
-          "id": "y3-had",
-          "type": "answer",
-          "npc": "shopkeeper",
-          "phrase": "ayer-tuve-agua",
-          "prompt": "lesson-had",
-          "line": "guide.lesson.shop.had.1",
-          "translation": "Did you have water yesterday?",
-          "english": "She asks if you had water yesterday. Say you did: “Ayer tuve agua”. “Tuve” is “I had”.",
-          "help": "Say: Ayer tuve agua. It means yesterday I had water.",
-          "retry": "Not quite. Say: Ayer tuve agua.",
-          "person": "1sg",
-          "personRetry": "Say it about yourself: “tuve”, not “tuviste”.",
-          "tense": "pret",
-          "tenseRetry": "Yesterday uses the past: “tuve” (I had), not “tengo”."
-        },
-        {
           "id": "y4-you",
           "type": "listen",
           "npc": "shopkeeper",
@@ -918,6 +891,22 @@
           "correct": 0,
           "help": "“Fuiste” is “you went”, and “ayer” is yesterday.",
           "retry": "Not quite. Listen again: ayer fuiste."
+        },
+        {
+          "id": "y3-had",
+          "type": "answer",
+          "npc": "shopkeeper",
+          "phrase": "ayer-bebi-agua",
+          "prompt": "lesson-had",
+          "line": "guide.lesson.shop.had.1",
+          "translation": "Did you drink water yesterday?",
+          "english": "She asks if you drank water yesterday. Say you did: “Ayer bebí agua”. Beber is “to drink”, and it works like comer: bebí, bebiste.",
+          "help": "Say: Ayer bebí agua. It means yesterday I drank water.",
+          "retry": "Say the whole sentence, in the past: Ayer bebí agua.",
+          "person": "1sg",
+          "personRetry": "Say it about yourself: “bebí”, not “bebiste”.",
+          "tense": "pret",
+          "tenseRetry": "Yesterday uses the past: “bebí” (I drank), not “bebo”."
         },
         {
           "id": "y5-contrast",
@@ -939,19 +928,20 @@
           "person": "1sg",
           "personRetry": "Say it about yourself: “voy a”, like “voy”.",
           "tense": "ir-a",
-          "tenseRetry": "Tomorrow uses “voy a” and the infinitive: “voy a ir”, not “fui”."
+          "tenseRetry": "Tomorrow uses “voy a” and the infinitive: “voy a ir”, not “fui”.",
+          "presentNote": "That is right too. Here we practise “voy a ir”: Mañana voy a ir al río."
         },
         {
           "id": "y7-table",
           "type": "explain",
           "npc": "shopkeeper",
-          "english": "Your new forms. ir: voy, vas, va, vamos, van. estar: estamos, están. Tomorrow: voy a comer, vamos a comer, van a comer, voy a ir. Yesterday: comí, comiste; fui, fuiste; tuve, tuviste. The book keeps them."
+          "english": "Your new forms. ir: voy, vas, va, vamos, van. Plans: voy a comer, vamos a comer, van a comer, voy a ir. Yesterday: comí, comiste; bebí, bebiste; fui, fuiste. Fui is also the past of ser (“I was”); here it means “I went”. The book keeps them."
         },
         {
           "id": "y8-recap",
           "type": "recap",
           "npc": "shopkeeper",
-          "english": "You can now say what you are going to eat or do tomorrow, and what you ate, had or did yesterday. Hoy is today."
+          "english": "You can now say what you are going to eat or do tomorrow, and what you ate, drank and where you went yesterday. Hoy is today."
         }
       ]
     }

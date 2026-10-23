@@ -533,16 +533,17 @@ DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute 
 
 ## Yesterday and tomorrow, the tense check (S27, D-game-19)
 
-- **Ayer y mañana** (session 3, the villager then the shopkeeper, 20 steps, `autoStart`): the present of `ir` (voy, vas, va, vamos, van, listed once), `estamos` and `están`, the near future with `ir a` + an infinitive
-  (`Voy a comer pan.`, `Vamos a comer fruta.`, `Mañana voy a ir al río.`; `Ellos van a comer pan.` is heard) and a few preterite forms, yo and tú (comí, fui, tuve; comiste, fuiste, tuviste), with the time words
+- **Ayer y mañana** (session 3, the villager then the shopkeeper, 20 steps, `autoStart`): the present of `ir` (voy, vas, va, vamos, van, listed once), the near future with `ir a` + an infinitive
+  (`Voy a comer pan.`, `Vamos a comer fruta.`, `Mañana voy a ir al río.`; `Ellos van a comer pan.` is heard) and a few preterite forms, yo and tú (comí, bebí, fui; comiste, bebiste, fuiste), with the time words
   `hoy`, `ayer` and `mañana`. The villager covers today and tomorrow, a walk to the stall (the same short walk as Personas) leads to the shopkeeper, who asks about yesterday: `¿Qué comiste ayer?`,
-  `¿Fuiste al río ayer?`, `¿Tuviste agua ayer?` and, last, `¿Qué vas a hacer mañana?`. The answers are statements about an action in any tense (the intent `state_action`), so nothing is handed over.
+  `¿Fuiste al río ayer?`, `¿Bebiste agua ayer?` and, last, `¿Qué vas a hacer mañana?`. The answers are statements about an action in any tense (the intent `state_action`), so nothing is handed over.
   The lesson of the newest session comes first at an NPC (a learner who reaches session 3 without session 2's `personas` is offered `ayer-y-manana`, and `personas` after it).
   `--session 3 --lesson-run ayer-y-manana` runs it with typed answers, walking from the player's camp to the villager and then the stall.
 - **The tense of the answer's verb.** A step may declare `tense` (`pres`, `pret` or `ir-a`) with a `tenseRetry` line, next to S26's `person`. The runner reads the answer's finite verbs from the turn's word readings:
   for `pret` and `pres` one finite verb with that tense is enough; for `ir-a` it looks for a finite form of `ir`, then `a`, then an infinitive (`voy a comer`; `vamos` is read as an imperative or a present, both count).
   A mismatch the core did not flag (a bare `como pan` or `comí pan` at `¿Qué vas a comer mañana?`, `voy a comer fruta` at `¿Qué comiste ayer?`) is a miss like a wrong person: the step stays, the retry names the form,
-  the log says `wrong tense: said pres, expected ir-a`, and after the attempts the step moves on. Person is judged first. A tense next to a time word is the core's `conj.tense` (M49: `mañana comí pan`,
+  the log says `wrong tense: said pres, expected ir-a`, and after the attempts the step moves on. Person is judged first. **Correct Spanish is never a miss:** a plan said in the present with `mañana` (`mañana voy al río`, `mañana como pan`) is credited (the step ends Done, the log says `present for a plan, credited`)
+  and the next step opens with a gentle English note naming the form the step practises (`That is right too. Here we practise “voy a ir”: Mañana voy a ir al río.`; the step's `presentNote`). A tense next to a time word is the core's `conj.tense` (M49: `mañana comí pan`,
   `ayer como fruta`, `voy a como pan`): a slip, the step ends. A miss shows none of the core's correction line (its recast would praise the learner's own wrong words).
 - **A miss is not a use.** A turn the lesson counts as a miss for the person or the tense is no use of the phrase: it adds no phrase use (so no credit, no support step, no word of the phrase's progress); the
   right answer after it is the phrase's one use.

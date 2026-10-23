@@ -63,7 +63,7 @@
 {"id":"dialogue:guide.lesson.shop.ate.1","text":"¿Qué comiste ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.ayer.1","text":"Ayer comí pan.","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.bottle.1","text":"¿Tiene usted una botella?","kind":"npc"}
-{"id":"dialogue:guide.lesson.shop.had.1","text":"¿Tuviste agua ayer?","kind":"npc"}
+{"id":"dialogue:guide.lesson.shop.had.1","text":"¿Bebiste agua ayer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.need.1","text":"¿Qué necesita usted?","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.they.1","text":"Ellos quieren agua.","kind":"npc"}
 {"id":"dialogue:guide.lesson.shop.tomorrow.1","text":"¿Qué vas a hacer mañana?","kind":"npc"}
@@ -74,13 +74,12 @@
 {"id":"dialogue:guide.lesson.villager.be.1","text":"Tú y yo somos amigos.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.eat.1","text":"Ellos van a comer pan.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.go.1","text":"Vamos a la tienda.","kind":"npc"}
-{"id":"dialogue:guide.lesson.villager.goes.1","text":"Hoy tú vas a la tienda.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.goes.1","text":"Hoy vas a la tienda.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.luna.1","text":"¿Qué quiere Luna?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.plan.1","text":"¿Qué vas a comer mañana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.plan_we.1","text":"¿Qué vamos a comer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.she.1","text":"Luna es la guía. Ella es mi amiga.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.they.1","text":"Ellos tienen pan.","kind":"npc"}
-{"id":"dialogue:guide.lesson.villager.today.1","text":"Hoy estamos aquí.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.want.1","text":"¿Qué quieres?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.we.1","text":"¿Qué necesitamos?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.where.1","text":"Ella está en el campamento.","kind":"npc"}
@@ -179,7 +178,7 @@
 {"id":"prompts:guide-review","text":"¿Qué es esto?","kind":"npc"}
 {"id":"prompts:lesson-ate","text":"¿Qué comiste ayer?","kind":"npc"}
 {"id":"prompts:lesson-bottle","text":"¿Tiene usted una botella?","kind":"npc"}
-{"id":"prompts:lesson-had","text":"¿Tuviste agua ayer?","kind":"npc"}
+{"id":"prompts:lesson-had","text":"¿Bebiste agua ayer?","kind":"npc"}
 {"id":"prompts:lesson-have","text":"¿Tienes una fruta?","kind":"npc"}
 {"id":"prompts:lesson-hello","text":"¡Hola!","kind":"npc"}
 {"id":"prompts:lesson-name","text":"Me llamo Luna.","kind":"npc"}
@@ -208,6 +207,9 @@
 {"id":"answer-sets/lesson-ate:ate.alias3","text":"ayer comí pan","kind":"learner"}
 {"id":"answer-sets/lesson-ate:ate.alias4","text":"comí pan","kind":"learner"}
 {"id":"answer-sets/lesson-ate:ate.alias5","text":"comí una fruta","kind":"learner"}
+{"id":"answer-sets/lesson-ate:ate.alias6","text":"ayer comí una fruta","kind":"learner"}
+{"id":"answer-sets/lesson-ate:ate.alias7","text":"comí fruta ayer","kind":"learner"}
+{"id":"answer-sets/lesson-ate:ate.alias8","text":"ayer comí frutas","kind":"learner"}
 {"id":"answer-sets/lesson-ate:help","text":"ayuda","kind":"learner"}
 {"id":"answer-sets/lesson-ate:help.alias1","text":"ayuda por favor","kind":"learner"}
 {"id":"answer-sets/lesson-ate:help.alias2","text":"necesito ayuda","kind":"learner"}
@@ -262,12 +264,12 @@
 {"id":"answer-sets/lesson-greet:slower.alias5","text":"despacio","kind":"learner"}
 {"id":"answer-sets/lesson-greet:slower.alias6","text":"más lento","kind":"learner"}
 {"id":"answer-sets/lesson-greet:slower.alias7","text":"más lento por favor","kind":"learner"}
-{"id":"answer-sets/lesson-had:had","text":"ayer tuve agua","kind":"learner"}
-{"id":"answer-sets/lesson-had:had.alias1","text":"tuve agua","kind":"learner"}
-{"id":"answer-sets/lesson-had:had.alias2","text":"sí, tuve agua","kind":"learner"}
-{"id":"answer-sets/lesson-had:had.alias3","text":"yo tuve agua","kind":"learner"}
-{"id":"answer-sets/lesson-had:had.alias4","text":"ayer tuve madera","kind":"learner"}
-{"id":"answer-sets/lesson-had:had.alias5","text":"tuve madera","kind":"learner"}
+{"id":"answer-sets/lesson-had:had","text":"ayer bebí agua","kind":"learner"}
+{"id":"answer-sets/lesson-had:had.alias1","text":"bebí agua","kind":"learner"}
+{"id":"answer-sets/lesson-had:had.alias2","text":"sí bebí agua","kind":"learner"}
+{"id":"answer-sets/lesson-had:had.alias3","text":"sí, ayer bebí agua","kind":"learner"}
+{"id":"answer-sets/lesson-had:had.alias4","text":"yo bebí agua","kind":"learner"}
+{"id":"answer-sets/lesson-had:had.alias5","text":"bebí agua ayer","kind":"learner"}
 {"id":"answer-sets/lesson-had:help","text":"ayuda","kind":"learner"}
 {"id":"answer-sets/lesson-had:help.alias1","text":"ayuda por favor","kind":"learner"}
 {"id":"answer-sets/lesson-had:help.alias2","text":"necesito ayuda","kind":"learner"}
@@ -346,6 +348,8 @@
 {"id":"answer-sets/lesson-plan:plan.alias4","text":"voy a comer el pan","kind":"learner"}
 {"id":"answer-sets/lesson-plan:plan.alias5","text":"voy a comer una fruta","kind":"learner"}
 {"id":"answer-sets/lesson-plan:plan.alias6","text":"mañana voy a comer fruta","kind":"learner"}
+{"id":"answer-sets/lesson-plan:plan.alias7","text":"voy a comer pan mañana","kind":"learner"}
+{"id":"answer-sets/lesson-plan:plan.alias8","text":"mañana como pan","kind":"learner"}
 {"id":"answer-sets/lesson-plan:help","text":"ayuda","kind":"learner"}
 {"id":"answer-sets/lesson-plan:help.alias1","text":"ayuda por favor","kind":"learner"}
 {"id":"answer-sets/lesson-plan:help.alias2","text":"necesito ayuda","kind":"learner"}
@@ -360,6 +364,8 @@
 {"id":"answer-sets/lesson-plan-we:plan.alias2","text":"mañana vamos a comer fruta","kind":"learner"}
 {"id":"answer-sets/lesson-plan-we:plan.alias3","text":"vamos a comer pan","kind":"learner"}
 {"id":"answer-sets/lesson-plan-we:plan.alias4","text":"vamos a comer una fruta","kind":"learner"}
+{"id":"answer-sets/lesson-plan-we:plan.alias5","text":"vamos a comer frutas","kind":"learner"}
+{"id":"answer-sets/lesson-plan-we:plan.alias6","text":"vamos a comer fruta mañana","kind":"learner"}
 {"id":"answer-sets/lesson-plan-we:help","text":"ayuda","kind":"learner"}
 {"id":"answer-sets/lesson-plan-we:help.alias1","text":"ayuda por favor","kind":"learner"}
 {"id":"answer-sets/lesson-plan-we:help.alias2","text":"necesito ayuda","kind":"learner"}
@@ -416,6 +422,8 @@
 {"id":"answer-sets/lesson-tomorrow:plan.alias2","text":"yo voy a ir al río","kind":"learner"}
 {"id":"answer-sets/lesson-tomorrow:plan.alias3","text":"mañana voy a ir a la tienda","kind":"learner"}
 {"id":"answer-sets/lesson-tomorrow:plan.alias4","text":"voy a ir a la tienda","kind":"learner"}
+{"id":"answer-sets/lesson-tomorrow:plan.alias5","text":"voy a ir al río mañana","kind":"learner"}
+{"id":"answer-sets/lesson-tomorrow:plan.alias6","text":"mañana voy al río","kind":"learner"}
 {"id":"answer-sets/lesson-tomorrow:help","text":"ayuda","kind":"learner"}
 {"id":"answer-sets/lesson-tomorrow:help.alias1","text":"ayuda por favor","kind":"learner"}
 {"id":"answer-sets/lesson-tomorrow:help.alias2","text":"necesito ayuda","kind":"learner"}
@@ -528,6 +536,9 @@
 {"id":"answer-sets/lesson-went:went.alias3","text":"yo fui al río","kind":"learner"}
 {"id":"answer-sets/lesson-went:went.alias4","text":"ayer fui a la tienda","kind":"learner"}
 {"id":"answer-sets/lesson-went:went.alias5","text":"fui a la tienda","kind":"learner"}
+{"id":"answer-sets/lesson-went:went.alias6","text":"sí, ayer fui al río","kind":"learner"}
+{"id":"answer-sets/lesson-went:went.alias7","text":"fui al río ayer","kind":"learner"}
+{"id":"answer-sets/lesson-went:went.alias8","text":"sí, fui al río ayer","kind":"learner"}
 {"id":"answer-sets/lesson-went:help","text":"ayuda","kind":"learner"}
 {"id":"answer-sets/lesson-went:help.alias1","text":"ayuda por favor","kind":"learner"}
 {"id":"answer-sets/lesson-went:help.alias2","text":"necesito ayuda","kind":"learner"}
@@ -836,39 +847,60 @@
 {"id":"intents:state_action.ex2","text":"yo voy a comer pan","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex3","text":"voy a comer fruta","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex4","text":"voy a comer el pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex5","text":"mañana comí pan","kind":"learner","errors":["conj.tense","vocab.wrong"]}
-{"id":"intents:state_action.ex6","text":"voy a como pan","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex7","text":"vamos a comer fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex8","text":"nosotros vamos a comer fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex9","text":"mañana vamos a comer fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex10","text":"vamos a comer pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex11","text":"mañana comimos fruta","kind":"learner","errors":["conj.tense","vocab.wrong"]}
-{"id":"intents:state_action.ex12","text":"vamos a comemos fruta","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex13","text":"ayer comí fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex14","text":"comí fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex15","text":"yo comí fruta","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex16","text":"ayer comí pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex17","text":"comí pan","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex18","text":"ayer como fruta","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex19","text":"yo comiste fruta","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex20","text":"ayer fui al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex21","text":"fui al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex22","text":"sí, fui al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex23","text":"yo fui al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex24","text":"ayer fui a la tienda","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex25","text":"ayer voy al río","kind":"learner","errors":["conj.tense"]}
-{"id":"intents:state_action.ex26","text":"yo fuiste al río","kind":"learner","errors":["conj.person"]}
-{"id":"intents:state_action.ex27","text":"ayer tuve agua","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex28","text":"tuve agua","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex29","text":"sí, tuve agua","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex30","text":"yo tuve agua","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex31","text":"ayer tuve madera","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex32","text":"ayer tengo agua","kind":"learner","errors":["conj.tense","vocab.wrong"]}
-{"id":"intents:state_action.ex33","text":"mañana voy a ir al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex34","text":"voy a ir al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex35","text":"yo voy a ir al río","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex36","text":"mañana voy a ir a la tienda","kind":"learner","errors":[]}
-{"id":"intents:state_action.ex37","text":"mañana fui al río","kind":"learner","errors":["conj.tense","vocab.wrong"]}
+{"id":"intents:state_action.ex5","text":"voy a comer pan mañana","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex6","text":"voy a comer una fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex7","text":"mañana como pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex8","text":"mañana comí pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex9","text":"voy a como pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex10","text":"yo va a comer pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex11","text":"vamos a comer fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex12","text":"nosotros vamos a comer fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex13","text":"mañana vamos a comer fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex14","text":"vamos a comer pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex15","text":"vamos a comer frutas","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex16","text":"vamos a comer fruta mañana","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex17","text":"vamos a comer una fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex18","text":"mañana comimos fruta","kind":"learner","errors":["conj.tense","vocab.wrong"]}
+{"id":"intents:state_action.ex19","text":"vamos a comemos fruta","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex20","text":"nosotros va a comer fruta","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex21","text":"ayer comí fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex22","text":"comí fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex23","text":"yo comí fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex24","text":"ayer comí pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex25","text":"comí pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex26","text":"comí fruta ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex27","text":"ayer comí una fruta","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex28","text":"ayer comí frutas","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex29","text":"ayer como fruta","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex30","text":"yo comiste fruta","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex31","text":"yo comió fruta","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex32","text":"ayer voy a comer fruta","kind":"learner","errors":["conj.tense","vocab.wrong"]}
+{"id":"intents:state_action.ex33","text":"ayer fui al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex34","text":"fui al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex35","text":"sí, fui al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex36","text":"yo fui al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex37","text":"ayer fui a la tienda","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex38","text":"sí, ayer fui al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex39","text":"fui al río ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex40","text":"sí, fui al río ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex41","text":"ayer voy al río","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex42","text":"yo fuiste al río","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex43","text":"yo fue al río","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex44","text":"ayer bebí agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex45","text":"bebí agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex46","text":"sí, bebí agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex47","text":"sí, ayer bebí agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex48","text":"yo bebí agua","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex49","text":"bebí agua ayer","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex50","text":"ayer bebo agua","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex51","text":"yo bebiste agua","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex52","text":"mañana voy a ir al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex53","text":"voy a ir al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex54","text":"yo voy a ir al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex55","text":"mañana voy a ir a la tienda","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex56","text":"voy a ir al río mañana","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex57","text":"mañana voy al río","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex58","text":"mañana fui al río","kind":"learner","errors":["conj.tense"]}
 {"id":"intents:state_have.ex0","text":"tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex1","text":"sí, tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex2","text":"sí, yo tengo una fruta","kind":"learner","errors":[]}
@@ -1072,12 +1104,17 @@
 {"id":"PHRASES.md:voy-a-comer-pan.variant2","text":"yo voy a comer pan","kind":"learner"}
 {"id":"PHRASES.md:voy-a-comer-pan.variant3","text":"voy a comer fruta","kind":"learner"}
 {"id":"PHRASES.md:voy-a-comer-pan.variant4","text":"voy a comer el pan","kind":"learner"}
+{"id":"PHRASES.md:voy-a-comer-pan.variant5","text":"voy a comer pan mañana","kind":"learner"}
+{"id":"PHRASES.md:voy-a-comer-pan.variant6","text":"voy a comer una fruta","kind":"learner"}
 {"id":"PHRASES.md:voy-a-comer-pan.error","text":"voy a como pan","kind":"learner","errors":["conj.tense"]}
 {"id":"PHRASES.md:que-vamos-a-comer.text","text":"¿Qué vamos a comer?","kind":"npc"}
 {"id":"PHRASES.md:vamos-a-comer-fruta.text","text":"Vamos a comer fruta.","kind":"learner"}
 {"id":"PHRASES.md:vamos-a-comer-fruta.variant1","text":"nosotros vamos a comer fruta","kind":"learner"}
 {"id":"PHRASES.md:vamos-a-comer-fruta.variant2","text":"mañana vamos a comer fruta","kind":"learner"}
 {"id":"PHRASES.md:vamos-a-comer-fruta.variant3","text":"vamos a comer pan","kind":"learner"}
+{"id":"PHRASES.md:vamos-a-comer-fruta.variant4","text":"vamos a comer frutas","kind":"learner"}
+{"id":"PHRASES.md:vamos-a-comer-fruta.variant5","text":"vamos a comer fruta mañana","kind":"learner"}
+{"id":"PHRASES.md:vamos-a-comer-fruta.variant6","text":"vamos a comer una fruta","kind":"learner"}
 {"id":"PHRASES.md:vamos-a-comer-fruta.error","text":"vamos a comemos fruta","kind":"learner","errors":["conj.tense"]}
 {"id":"PHRASES.md:que-comiste-ayer.text","text":"¿Qué comiste ayer?","kind":"npc"}
 {"id":"PHRASES.md:ayer-comi-fruta.text","text":"Ayer comí fruta.","kind":"learner"}
@@ -1085,6 +1122,9 @@
 {"id":"PHRASES.md:ayer-comi-fruta.variant2","text":"yo comí fruta","kind":"learner"}
 {"id":"PHRASES.md:ayer-comi-fruta.variant3","text":"ayer comí pan","kind":"learner"}
 {"id":"PHRASES.md:ayer-comi-fruta.variant4","text":"comí pan","kind":"learner"}
+{"id":"PHRASES.md:ayer-comi-fruta.variant5","text":"comí fruta ayer","kind":"learner"}
+{"id":"PHRASES.md:ayer-comi-fruta.variant6","text":"ayer comí una fruta","kind":"learner"}
+{"id":"PHRASES.md:ayer-comi-fruta.variant7","text":"ayer comí frutas","kind":"learner"}
 {"id":"PHRASES.md:ayer-comi-fruta.error","text":"ayer como fruta","kind":"learner","errors":["conj.tense"]}
 {"id":"PHRASES.md:fuiste-al-rio-ayer.text","text":"¿Fuiste al río ayer?","kind":"npc"}
 {"id":"PHRASES.md:ayer-fui-al-rio.text","text":"Ayer fui al río.","kind":"learner"}
@@ -1092,20 +1132,25 @@
 {"id":"PHRASES.md:ayer-fui-al-rio.variant2","text":"sí, fui al río","kind":"learner"}
 {"id":"PHRASES.md:ayer-fui-al-rio.variant3","text":"yo fui al río","kind":"learner"}
 {"id":"PHRASES.md:ayer-fui-al-rio.variant4","text":"ayer fui a la tienda","kind":"learner"}
+{"id":"PHRASES.md:ayer-fui-al-rio.variant5","text":"sí, ayer fui al río","kind":"learner"}
+{"id":"PHRASES.md:ayer-fui-al-rio.variant6","text":"fui al río ayer","kind":"learner"}
+{"id":"PHRASES.md:ayer-fui-al-rio.variant7","text":"sí, fui al río ayer","kind":"learner"}
 {"id":"PHRASES.md:ayer-fui-al-rio.error","text":"ayer voy al río","kind":"learner","errors":["conj.tense"]}
-{"id":"PHRASES.md:tuviste-agua-ayer.text","text":"¿Tuviste agua ayer?","kind":"npc"}
-{"id":"PHRASES.md:ayer-tuve-agua.text","text":"Ayer tuve agua.","kind":"learner"}
-{"id":"PHRASES.md:ayer-tuve-agua.variant1","text":"tuve agua","kind":"learner"}
-{"id":"PHRASES.md:ayer-tuve-agua.variant2","text":"sí, tuve agua","kind":"learner"}
-{"id":"PHRASES.md:ayer-tuve-agua.variant3","text":"yo tuve agua","kind":"learner"}
-{"id":"PHRASES.md:ayer-tuve-agua.variant4","text":"ayer tuve madera","kind":"learner"}
-{"id":"PHRASES.md:ayer-tuve-agua.error","text":"ayer tengo agua","kind":"learner","errors":["conj.tense","vocab.wrong"]}
+{"id":"PHRASES.md:bebiste-agua-ayer.text","text":"¿Bebiste agua ayer?","kind":"npc"}
+{"id":"PHRASES.md:ayer-bebi-agua.text","text":"Ayer bebí agua.","kind":"learner"}
+{"id":"PHRASES.md:ayer-bebi-agua.variant1","text":"bebí agua","kind":"learner"}
+{"id":"PHRASES.md:ayer-bebi-agua.variant2","text":"sí, bebí agua","kind":"learner"}
+{"id":"PHRASES.md:ayer-bebi-agua.variant3","text":"sí, ayer bebí agua","kind":"learner"}
+{"id":"PHRASES.md:ayer-bebi-agua.variant4","text":"yo bebí agua","kind":"learner"}
+{"id":"PHRASES.md:ayer-bebi-agua.variant5","text":"bebí agua ayer","kind":"learner"}
+{"id":"PHRASES.md:ayer-bebi-agua.error","text":"ayer bebo agua","kind":"learner","errors":["conj.tense"]}
 {"id":"PHRASES.md:que-vas-a-hacer.text","text":"¿Qué vas a hacer mañana?","kind":"npc"}
 {"id":"PHRASES.md:voy-a-ir-al-rio.text","text":"Mañana voy a ir al río.","kind":"learner"}
 {"id":"PHRASES.md:voy-a-ir-al-rio.variant1","text":"voy a ir al río","kind":"learner"}
 {"id":"PHRASES.md:voy-a-ir-al-rio.variant2","text":"yo voy a ir al río","kind":"learner"}
 {"id":"PHRASES.md:voy-a-ir-al-rio.variant3","text":"mañana voy a ir a la tienda","kind":"learner"}
-{"id":"PHRASES.md:voy-a-ir-al-rio.error","text":"mañana fui al río","kind":"learner","errors":["conj.tense","vocab.wrong"]}
+{"id":"PHRASES.md:voy-a-ir-al-rio.variant4","text":"voy a ir al río mañana","kind":"learner"}
+{"id":"PHRASES.md:voy-a-ir-al-rio.error","text":"mañana fui al río","kind":"learner","errors":["conj.tense"]}
 {"id":"english.json:lines[0]","text":"¡Hola! Soy la guía. ¿En qué te ayudo?","kind":"npc"}
 {"id":"english.json:lines[1]","text":"¿Qué es esto?","kind":"npc"}
 {"id":"english.json:lines[2]","text":"¿Qué necesitas?","kind":"npc"}
@@ -1223,17 +1268,16 @@
 {"id":"english.json:lines[114]","text":"¿Qué quieren ustedes?","kind":"npc"}
 {"id":"english.json:lines[115]","text":"Ellos quieren agua.","kind":"npc"}
 {"id":"english.json:lines[116]","text":"Ella está en el campamento.","kind":"npc"}
-{"id":"english.json:lines[117]","text":"Hoy estamos aquí.","kind":"npc"}
-{"id":"english.json:lines[118]","text":"Hoy tú vas a la tienda.","kind":"npc"}
-{"id":"english.json:lines[119]","text":"¿Qué vas a comer mañana?","kind":"npc"}
-{"id":"english.json:lines[120]","text":"¿Qué vamos a comer?","kind":"npc"}
-{"id":"english.json:lines[121]","text":"Ellos van a comer pan.","kind":"npc"}
-{"id":"english.json:lines[122]","text":"Ayer comí pan.","kind":"npc"}
-{"id":"english.json:lines[123]","text":"¿Qué comiste ayer?","kind":"npc"}
-{"id":"english.json:lines[124]","text":"¿Fuiste al río ayer?","kind":"npc"}
-{"id":"english.json:lines[125]","text":"¿Tuviste agua ayer?","kind":"npc"}
-{"id":"english.json:lines[126]","text":"Ayer fuiste al río.","kind":"npc"}
-{"id":"english.json:lines[127]","text":"¿Qué vas a hacer mañana?","kind":"npc"}
+{"id":"english.json:lines[117]","text":"Hoy vas a la tienda.","kind":"npc"}
+{"id":"english.json:lines[118]","text":"¿Qué vas a comer mañana?","kind":"npc"}
+{"id":"english.json:lines[119]","text":"¿Qué vamos a comer?","kind":"npc"}
+{"id":"english.json:lines[120]","text":"Ellos van a comer pan.","kind":"npc"}
+{"id":"english.json:lines[121]","text":"Ayer comí pan.","kind":"npc"}
+{"id":"english.json:lines[122]","text":"¿Qué comiste ayer?","kind":"npc"}
+{"id":"english.json:lines[123]","text":"¿Fuiste al río ayer?","kind":"npc"}
+{"id":"english.json:lines[124]","text":"¿Bebiste agua ayer?","kind":"npc"}
+{"id":"english.json:lines[125]","text":"Ayer fuiste al río.","kind":"npc"}
+{"id":"english.json:lines[126]","text":"¿Qué vas a hacer mañana?","kind":"npc"}
 {"id":"checks.json:hear.que-necesitas","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"checks.json:hear.quieres-pan","text":"¿Quieres pan?","kind":"npc"}
 {"id":"checks.json:hear.pedir-agua","text":"Quiero agua, por favor.","kind":"npc"}

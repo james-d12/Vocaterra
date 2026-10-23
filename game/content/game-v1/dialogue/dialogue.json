@@ -660,16 +660,10 @@
         { "lineId": "guide.lesson.villager.where.1", "text": "Ella está en el campamento." }
       ]
     },
-    "guide.lesson.villager.today": {
-      "poolId": "guide.lesson.villager.today",
-      "variants": [
-        { "lineId": "guide.lesson.villager.today.1", "text": "Hoy estamos aquí." }
-      ]
-    },
     "guide.lesson.villager.goes": {
       "poolId": "guide.lesson.villager.goes",
       "variants": [
-        { "lineId": "guide.lesson.villager.goes.1", "text": "Hoy tú vas a la tienda." }
+        { "lineId": "guide.lesson.villager.goes.1", "text": "Hoy vas a la tienda." }
       ]
     },
     "guide.lesson.villager.plan": {
@@ -711,7 +705,7 @@
     "guide.lesson.shop.had": {
       "poolId": "guide.lesson.shop.had",
       "variants": [
-        { "lineId": "guide.lesson.shop.had.1", "text": "¿Tuviste agua ayer?" }
+        { "lineId": "guide.lesson.shop.had.1", "text": "¿Bebiste agua ayer?" }
       ]
     },
     "guide.lesson.shop.you": {

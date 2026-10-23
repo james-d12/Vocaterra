@@ -715,7 +715,14 @@ public sealed class LessonRunner
             }
             else
             {
-                Finish(lesson, state, StepOutcome.Done, turn.Errors.Count == 0 ? null : "with a slip");
+                var plan = PresentForPlan(step, turn);
+                Finish(lesson, state, StepOutcome.Done, plan ? "present for a plan, credited" : turn.Errors.Count == 0 ? null : "with a slip");
+                if (plan && step.PresentNote is { } note && _activeId is not null)
+                {
+                    // Correct Spanish is never a miss (S27): the plan said in the present is credited, and the next step opens with a gentle note naming the form this lesson practises.
+                    state.Hint = note;
+                    _version++;
+                }
             }
         }
         else
@@ -939,6 +946,29 @@ public sealed class LessonRunner
         words.Where(static w => string.Equals(w.Pos, "verb", StringComparison.Ordinal) && w.Person is { Length: > 0 } && w.Number is { Length: > 0 }
             && !string.Equals(w.Mood, "inf", StringComparison.OrdinalIgnoreCase) && !string.Equals(w.Mood, "infinitive", StringComparison.OrdinalIgnoreCase)).ToList();
 
+    // Whether the answer of an ir-a step is a plan said in the present with a future-time word (S27): "mañana voy al río", "mañana como pan". It is correct Spanish, so it is no miss.
+    private static bool PresentForPlan(LessonStep step, GuideTurn turn) =>
+        string.Equals(step.Tense, TaughtVerbForm.NearFuture, StringComparison.Ordinal) && !turn.Errors.Any(static e => e.Tag.StartsWith("conj.", StringComparison.Ordinal))
+        && turn.Words is { } words && PresentForPlan(turn, words, FiniteVerbs(words)) && !HasNearFuture(words, FiniteVerbs(words));
+
+    private static bool PresentForPlan(GuideTurn turn, IReadOnlyList<GuideWord> words, List<GuideWord> finite) =>
+        words.Any(static w => string.Equals(w.Text, "mañana", StringComparison.Ordinal)) && finite.Count > 0 && finite.Any(static w => string.Equals(w.Tense, "pres", StringComparison.OrdinalIgnoreCase))
+        && !finite.Any(static w => string.Equals(w.Tense, "pret", StringComparison.OrdinalIgnoreCase) || string.Equals(w.Tense, "impf", StringComparison.OrdinalIgnoreCase));
+
+    private static bool HasNearFuture(IReadOnlyList<GuideWord> words, List<GuideWord> finite)
+    {
+        for (var i = 0; i + 2 < words.Count; i++)
+        {
+            if (string.Equals(words[i].Lemma, "ir", StringComparison.Ordinal) && finite.Contains(words[i]) && string.Equals(words[i + 1].Text, "a", StringComparison.Ordinal)
+                && string.Equals(words[i + 2].Pos, "verb", StringComparison.Ordinal) && (words[i + 2].Mood is "inf" or "infinitive" || words[i + 2].Person is not { Length: > 0 }))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // The tense (S27) of the answer's verb when it is not the expected one and the core found no error to flag, else null: the tense said (pres, pret, ...) or "none". The near future
     // (ir-a) is a finite form of ir, then "a", then an infinitive. A line with no finite verb is not judged. When the line has several verbs, one with the expected tense is enough.
     private static string? WrongTense(GuideTurn turn, string wanted)
@@ -956,6 +986,11 @@ public sealed class LessonRunner
 
         if (string.Equals(wanted, TaughtVerbForm.NearFuture, StringComparison.Ordinal))
         {
+            if (PresentForPlan(turn, words, finite))
+            {
+                return null; // right Spanish for a plan, said in the present: credited, with a note (see OnTurn)
+            }
+
             var nearFuture = false;
             for (var i = 0; i + 2 < words.Count; i++)
             {

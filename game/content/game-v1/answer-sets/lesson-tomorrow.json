@@ -4,7 +4,7 @@
     {
       "answerId": "plan",
       "canonical": "mañana voy a ir al río",
-      "aliases": ["voy a ir al río", "yo voy a ir al río", "mañana voy a ir a la tienda", "voy a ir a la tienda"],
+      "aliases": ["voy a ir al río", "yo voy a ir al río", "mañana voy a ir a la tienda", "voy a ir a la tienda", "voy a ir al río mañana", "mañana voy al río"],
       "dialects": ["es-MX", "es-CO", "es-AR"]
     },
     {
