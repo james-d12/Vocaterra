@@ -196,7 +196,7 @@ Until S0 is done, `docs/SCENARIO_PLAN.md` is the plan of record for the scenario
 | S24 | The audio system (mixer, ducking under the voices, silence while the microphone records), interaction and progress sounds; CC0 packs plus code, no music (D-game-18) | done (merged to `main` 2026-10-22, `9291bab`); **the owner listens to the cues once** (judged by name and length only) | Sonnet 5.5 | S23, D-game-18 |
 | S25 | Ambient beds by place (birds, wind, river and waterfall, village, fire, dusk insects) and footsteps per surface | done (merged to `main` 2026-10-23, `6c73d63`); **the owner listens once** | Haiku 5.5 | S24 |
 | S26 | Verbs in the lessons: a yo/tú unit in session 1, lesson "Personas" (él/ella/usted, nosotros, ustedes/ellos) in session 2; lessons unlock by session and replay from the book; Opus pass, speech (D-game-19) | done (merged to `main` 2026-10-23, `7748348`, bundle `becd2669…`); **the owner listens to 62 new WAVs** | Sonnet 5.5 | S25, D-game-19 |
-| S27 | Verbs, session 3: "Ayer y mañana" (ir a + infinitive, a few preterite forms, time words) | planned | Sonnet 5.5 | S26, core M49 |
+| S27 | Verbs, session 3: "Ayer y mañana" (ir a + infinitive, a few preterite forms, time words) | done (merged to `main` 2026-10-23, `ca27650`, bundle `492cbe4b…`); **the owner listens to 44 new WAVs** | Sonnet 5.5 | S26, core M49 |
 | S28 | The book remade as a book (two-page spread, ribbons, page turn) with conjugation tables (used, taught, hidden until taught) | planned | Sonnet 5.5 | S20b, S27 |
 
 **Standing direction (owner, 2026-10-22, late):** finish the queued milestones (M50, S19b, S20b, S25, S26, M49, S27, S28) and push each
@@ -1134,6 +1134,35 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - **For S27:**
     - a wrong-person Miss is still credited as a phrase use in phrase tracking (`AfterTurn` runs before the lesson decides);
     - the README's scripted `--playtest` answers are written for 20 check items, but there are now 27.
+- **S27, "Ayer y mañana", session 3 (2026-10-23, Sonnet 5.5; merged to `main` `ca27650`, bundle `492cbe4b…`).**
+  - **The lesson.** 19 steps, the villager then the shopkeeper:
+    - ir's present (voy, vas, va, vamos, van) and ir a + infinitive for plans;
+    - the preterite comí/comiste, bebí/bebiste and fui/fuiste;
+    - ayer, hoy, mañana.
+    About 5.2 to 7.6 minutes, measured from the real WAVs.
+  - **The tense check.** A step may declare `tense` (pres, pret, ir-a), as S26's person check does; a wrong tense with no core error is a
+    Miss. Present-for-plan is credited, as the orchestrator decided ("correct Spanish is never a Miss"): `mañana voy al río` at an ir-a
+    step ends Done, with a gentle `presentNote` naming the practised form.
+  - **Fixed along the way.**
+    - A form Miss no longer counts as a phrase use. This was S26's leftover.
+    - A form Miss no longer shows the core's praising recast (`¡Eso es! «Como pan».`), which also affected S26.
+    - The newest session's lesson now has priority at a shared NPC; session 3 was blocked by Personas.
+    - The README `--playtest` and `--check` answers now cover 31 items.
+  - **The Opus pass applied.**
+    - `tuve` became `bebí`: preterite possession is unnatural, and beber follows comer's -í/-iste. The plan's `tuve` was the orchestrator's
+      wording.
+    - estar left the lesson.
+    - `al` is explained, and fui = ir/ser is said once.
+    - Trailing time words are accepted (a trailing `(mañana|ayer|hoy)?` on every state_action grammar).
+    - The `tomé` variants were dropped: no grammar for tomar.
+  - **Taught forms for S28.** lessons.json declares `{lemma, person, number, tense}`, with `ir-a` periphrastic (ir's present + a +
+    infinitive) and built by `TaughtVerbForm.Text(morphology)`.
+  - **Speech.** 44 WAVs; 12 rows are `llm-opus (provisional)`; the check bank has 31 items.
+  - **Checked by the orchestrator.** The gate: 4,676 passed, 5 skipped. On merged `main`, `--session 3 --lesson-run ayer-y-manana`
+    completes.
+  - **Core finding:** `voy comer pan` (ir with a bare infinitive, no `a`) passes the core clean. The lesson's tense check still catches it.
+    Proposed as core M51.
+  - **For S28:** docs/PLAYTEST.md and playtest/README-tester.md still say 20 check items, but there are 31.
 
 ## 6. Definition of done (every milestone)
 
