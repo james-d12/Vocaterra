@@ -340,6 +340,29 @@ not made. The German milestones stay parked (D14).
 - the pilot's date.
 The rest of the backlog (R08 feedback audit, R16 technical debt, R17 small issues) follows the first batch.
 
+### 4.6 Repository milestones (R01, R02; owner, 2026-10-23)
+
+Two-digit `R01`, `R02` are repository-wide milestones (both halves at once), not the research items R1 or the backlog items R08 to R18
+above. They land on the feature branch `feature/flatten` (never `main`; the owner merges it by pull request). Plan:
+the owner-approved plan of 2026-10-23 (the flatten, then one bundle).
+
+| ID | What | Status |
+| --- | --- | --- |
+| R01 | Flatten `nlp/` and `game/` into one root layout (`src/`, `tests/`, `tools/`, `docs/nlp/`, `docs/game/`, `content/`, `assets/`, `models/`, `scripts/`); one `Directory.Build.props` keyed on project name; `Vocaterra.sln` regenerated (the three duplicated tool entries gone) plus `Vocaterra.Nlp.slnf`; Apache-2.0 everywhere (D-game-20); the gate refuses `main` | done (Sonnet), gated on `feature/flatten` 2026-10-23, pushed |
+| R02 | The core runs on `content/game-v1`; `content/v1` (the blacksmith sample, core D7) is deleted. Core tests break when game content breaks the core (the owner wants that signal); hash literals become computed checks; effects, quantity slots and the worked example get in-memory fixtures; goldens re-recorded on game-v1 | planned, after R01 is merged |
+
+**R01 findings.**
+- 1517 renames at 100% in the move commit; `git log --follow` reaches pre-move history on both sides. Test counts identical to the
+  pre-move baseline in all 17 test projects (no models). Gate with models: 4909 passed, 3 skipped, 1 failed (below); build 0 warnings,
+  format, content, grammar and licence scan clean.
+- **Pre-existing failure, not R01's:** `SpokenModelTests.AMistakeInASpokenLineIsHeardAsSaidAndTheCoreCorrectsIt` (needs Kokoro and Vosk)
+  hears `a dónde está la árbol` for the synthesized `dónde está la árbol` and expects the latter. It fails identically on the pre-move
+  commit `e0ab15a`; model-gated tests are skipped in agent runs without `VOCATERRA_MODELS_DIR`, so it went unnoticed. To be fixed in its
+  own game milestone (the constrained grammar now offers `a dónde`; decide whether the test or the recognizer's phrase set is wrong).
+- `tests/Vocaterra.Game.Tests/Fixtures/save-v1.json` stores the game-v1 bundle hash: every bundle re-hash must update it, or two save
+  tests fail.
+- `.github/workflows-pending/ci.yml` still uses the old `nlp/` paths (left untouched; the CI milestone rewrites it).
+
 ## 5. Findings log
 
 Facts that shape the plan. Each one names its source; the core's own findings stay in the core's plan.

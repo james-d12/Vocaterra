@@ -8,7 +8,7 @@ editing its status; the plan (`IMPLEMENTATION_PLAN.md`) and ADRs follow.
 | --- | --- | --- |
 | D1 | Workflow token scope (activate CI) | reopened (owner, 2026-10-23): CI planned with SonarCloud and a required LanguageTool step; waits for the owner to widen the token (workflow scope); see the orchestrator's handover |
 | D2 | espeak-ng GPL code inside sherpa-onnx (ADR 0007) | decided (owner, 2026-10-21): accepted for private development builds; the GPL-free sherpa-onnx pin is a blocker on any distribution |
-| D3 | A LICENSE file for the repository | decided (owner, 2026-10-21): Apache-2.0; repository stays private for now (M19e) |
+| D3 | A LICENSE file for the repository | decided (owner, 2026-10-21): Apache-2.0; repository stays private for now (M19e); since 2026-10-23 the whole repository, game included (game D-game-20, R01) |
 | D4 | OpenSubtitles terms behind the frequency list | deferred (owner, 2026-10-21): keep the entry, do not raise it until a public release is planned |
 | D5 | Package feed for the `Vocaterra.Nlp.*` packages | decided (owner, 2026-10-21): no hosted feed; superseded the same day for the game, which now lives in this repository (`game/`) and references the core's projects (game D-game-7) |
 | D6 | Conversation state-machine engine: core or game | decided (M19a): core, as a generic conversation agent |
@@ -42,6 +42,7 @@ isolate TTS in a separate GPL process; (c) accept GPL for a personal, non-distri
 **Waiting on it:** TTS milestone (M24's TTS part), any distribution of the game.
 
 ## D3. LICENSE file
+**Note (2026-10-23):** the game adopted the same licence (game D-game-20); `LICENSE` and `NOTICE` are at the repository root since R01.
 **Decided (2026-10-21, owner):** Apache-2.0 for the code and hand-authored content; the Wiktionary-derived lexicon stays CC BY-SA 4.0. The repository stays private for now. Implemented in M19e (`LICENSE`, `NOTICE`, `PackageLicenseExpression`).
 The repository has no LICENSE. The hand-authored content and code are the owner's; the generated
 lexicon is CC BY-SA (Wiktionary) and must stay so. **Options:** MIT or Apache-2.0 for the code with a

@@ -183,7 +183,7 @@ anything left undone and why.
 - License scan: `scripts/license-scan.sh --offline`; the allowlist refuses copyleft code dependencies; CC BY-SA accepted for derived data.
 - Core demo: `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "yo tiene dos espada" --prompt offer-items-open
   --content content/v1` must keep yielding exactly `conj.person` and `noun.number`.
-- Licences: the core is Apache-2.0 (core D3), the game too (D-game-2 MIT was superseded when the owner relicensed everything Apache-2.0 in R01); the prototype engine is MonoGame, the final engine open (D-game-1).
+- Licences: the core is Apache-2.0 (core D3), the game too (D-game-20, which superseded D-game-2 MIT in R01); the prototype engine is MonoGame, the final engine open (D-game-1).
 - Native assets: on Linux x64 the game builds for linux-x64 only (G7, the non-core group of the root `Directory.Build.props`); `-p:VocaterraAllRuntimes=true` on
   restore and build gives every platform. The game's executables and test projects that run speech reference `Vosk` directly and
   `Microsoft.ML.OnnxRuntime` with `ExcludeAssets="native"` (CR-021); keep both.
@@ -194,7 +194,7 @@ anything left undone and why.
 Core: online versus offline (D8); determinism strictness (D9); MPL-2.0 stance (D10); tutor cost cap (D11); pronunciation ambition (D13).
 Deferred by the owner on 2026-10-21, do not raise: D1 (workflow scope, CI), D4 (OpenSubtitles terms), D-game-3 (CI).
 Decided: D2 GPL accepted for private builds with the GPL-free sherpa-onnx pin blocking any distribution, D3 Apache-2.0, D5 superseded
-(no feed consumer in the repository), D6/D7 the core keeps the engine and the sample, D-game-1 MonoGame prototype, D-game-2 MIT (superseded by Apache-2.0 for the whole repository, R01),
+(no feed consumer in the repository), D6/D7 the core keeps the engine and the sample, D-game-1 MonoGame prototype, D-game-20 Apache-2.0 for the whole repository (R01; supersedes D-game-2 MIT),
 D-game-4 the game bundle diverges from the sample, D-game-5 CC0 assets, D-game-6 known nouns, D-game-7 one repository.
 
 ## Never

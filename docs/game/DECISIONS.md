@@ -7,7 +7,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | ID | Decision | Status | Blocks |
 | --- | --- | --- | --- |
 | D-game-1 | Game engine | decided for the prototype: MonoGame 3.8 DesktopGL (owner, 2026-10-21); final engine open, Godot .NET re-assessed after P10 | nothing in the prototype |
-| D-game-2 | Licence of this repository | decided: MIT (owner, 2026-10-21: "the most permissive for now"; the repository is private) | nothing |
+| D-game-2 | Licence of this repository | superseded by D-game-20 (was MIT, owner, 2026-10-21) | nothing |
 | D-game-3 | Continuous integration | reopened (owner, 2026-10-23): CI planned (full suite with models, LanguageTool required, SonarCloud `personal-james_vocaterra`), on main and feature/experiment; waits for the token's workflow scope | nothing |
 | D-game-4 | Whether `content/game-v1` tracks the core's sample bundle or diverges from it | decided: diverge fully (owner, 2026-10-21) | nothing |
 | D-game-5 | Art, font and sound sources while D-game-2 is open | decided: CC0 only (owner, 2026-10-21) | nothing |
@@ -25,6 +25,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-17 | In-game bug and feature reports | decided (owner, 2026-10-22): F8 saves a Markdown report with a screenshot, game state, recent turns and the session log tail; local files only, no upload | nothing |
 | D-game-18 | Sound | decided (owner, 2026-10-22): ambient, interaction and progress sounds; CC0 packs plus code-synthesized sounds; no music; ambient and effects duck under the voices and are silent while the microphone records | nothing |
 | D-game-19 | Verbs in the lessons | decided (owner, 2026-10-22): verbs early but gradual, across sessions (yo/tú in session 1, the other persons in session 2, ir a + infinitive and a few past forms in session 3), lessons replayable from the book; conjugation tables in the book | nothing |
+| D-game-20 | One licence for the whole repository | decided (owner, 2026-10-23): Apache-2.0 for the game as well as the core; one `LICENSE` and `NOTICE` at the root (R01) | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -38,7 +39,9 @@ engine), `src/Vocaterra.Game` (the `Vocaterra.Nlp.*` packages, no engine) and `s
 goes into `src/Vocaterra.Host`, `src/Vocaterra.Simulation` or `src/Vocaterra.Game`. The final engine stays open; P10 (an optional Godot spike)
 measures the cost of the move. G5 is replaced by P2.
 
-## D-game-2: the licence of this repository (decided: MIT)
+## D-game-2: the licence of this repository (decided: MIT; superseded by D-game-20)
+
+**Superseded (owner, 2026-10-23):** the game is Apache-2.0 like the core; see D-game-20. The text below is unchanged.
 
 **Owner, 2026-10-21.** "Just make it the most permissive for now, it's a private project so it doesn't matter much at the moment." The
 orchestrator chose **MIT** (the common permissive licence; 0BSD or MIT-0, which drop the notice requirement, are a one-file switch if the
@@ -222,6 +225,15 @@ orchestrators, two gates) are listed in `IMPLEMENTATION_PLAN.md`, section 4, the
 `CLAUDE.md`, orchestrator and gate at the root. The core's history was rewritten under `nlp/` and merged, so `git log` follows its files.
 Consumption: project references (no feed, no pack step). Ids on both sides are unchanged. Licences stay per folder; a single licence for the
 repository is open only if the owner wants one. The old `james-d12/Vocaterra.NLP` repository is to be archived by the owner.
+
+## D-game-20: one licence for the whole repository (decided: Apache-2.0)
+
+**Owner, 2026-10-23,** while planning R01 (the flatten of `nlp/` and `game/` into one root layout): with both halves sharing `src/`,
+`tests/` and `tools/`, a per-folder licence no longer fits. Asked "everything Apache-2.0, everything MIT, or keep both per project", the
+owner chose **everything Apache-2.0**. The owner is the sole author, so the game's code, content and docs are relicensed from MIT.
+Done in R01: the core's `LICENSE` and `NOTICE` moved to the root (NOTICE now names the whole project), the game's MIT `LICENSE` was
+removed, and the READMEs and `content/game-v1/ATTRIBUTION.md` say Apache-2.0. Third-party terms are unchanged: the Wiktionary lexicon
+stays CC BY-SA 4.0, assets stay CC0 only (D-game-5), and the models keep their own licences.
 
 ## Already decided
 

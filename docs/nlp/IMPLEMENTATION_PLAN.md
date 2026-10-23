@@ -456,6 +456,12 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
 
 ## 5b. Findings log (decisions made during implementation)
 
+- **R01 (2026-10-23, repository-wide; tracked in `docs/game/IMPLEMENTATION_PLAN.md` section 4.6):** the core's projects moved to the root
+  `src/`, `tests/`, `tools/`; `content/v1`, `tests/golden`, `models/`, `docs/nlp/`; `nlp/Vocaterra.Nlp.sln` replaced by the filter
+  `Vocaterra.Nlp.slnf` (licence scan, core-only build); one root `Directory.Build.props` keys the core's packing on project names
+  `Vocaterra.Nlp.*`. Bundle hash `1c2240c7...` and all goldens unchanged. Next, R02 moves the core's tests onto `content/game-v1` and
+  retires `content/v1` (supersedes D7 when done).
+
 - **Vosk dither (M9):** stock Vosk models apply time-seeded dither, so identical clips decoded
   differently run to run. `VoskWordRecognizer` loads a temp copy of the model with
   `--dither=0.0` in `conf/mfcc.conf`; results are now identical across runs and processes.
