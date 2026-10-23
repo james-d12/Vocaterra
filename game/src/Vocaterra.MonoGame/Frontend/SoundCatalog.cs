@@ -8,10 +8,11 @@ namespace Vocaterra.MonoGame.Frontend;
 /// <param name="Files">The files of the takes, relative to the audio folder; empty for a synthesized cue.</param>
 /// <param name="Gain">The cue's own level, 0 to 1, before the category volume and the duck.</param>
 /// <param name="PitchJitter">The most the pitch may change either way, in octaves (0.08 is about one semitone); 0 for a cue that is a note.</param>
-public sealed record SoundDefinition(SoundCue Cue, IReadOnlyList<string> Files, double Gain, double PitchJitter)
+/// <param name="SynthTakes">How many takes a synthesized cue has (S25: the footsteps, the birds and the crackle have several); one by default.</param>
+public sealed record SoundDefinition(SoundCue Cue, IReadOnlyList<string> Files, double Gain, double PitchJitter, int SynthTakes = 1)
 {
-    /// <summary>How many takes the cue has: the files, or one for a synthesized cue.</summary>
-    public int Takes => Files.Count == 0 ? 1 : Files.Count;
+    /// <summary>How many takes the cue has: the files, or the synthesized takes.</summary>
+    public int Takes => Files.Count == 0 ? SynthTakes : Files.Count;
 }
 
 /// <summary>
@@ -33,7 +34,7 @@ public static class SoundCatalog
     {
         var table = new Dictionary<SoundCue, SoundDefinition>();
         void File(SoundCue cue, double gain, double jitter, params string[] files) => table[cue] = new SoundDefinition(cue, files, gain, jitter);
-        void Synth(SoundCue cue, double gain) => table[cue] = new SoundDefinition(cue, [], gain, 0);
+        void Synth(SoundCue cue, double gain, int takes = 1) => table[cue] = new SoundDefinition(cue, [], gain, 0, takes);
 
         // Kenney "Impact Sounds" (kenney-impact_), "RPG Audio" (kenney-rpg_) and "Interface Sounds" (kenney-interface_): CC0, see SOURCES.md.
         File(SoundCue.GatherWood, 0.7, 0.06, "kenney-impact_impactWood_light_000.wav", "kenney-impact_impactWood_light_001.wav", "kenney-impact_impactWood_light_002.wav");
@@ -76,6 +77,21 @@ public static class SoundCatalog
         Synth(SoundCue.ObjectiveDone, 0.8);
         File(SoundCue.CheckAnswered, 0.6, 0.0, "kenney-interface_select_001.wav");
         Synth(SoundCue.SessionDone, 0.8);
+
+        // Movement (S25). Kenney "Impact Sounds" has footsteps on grass, snow, wood and concrete (kenney-impact_footstep_*); the dirt, gravel, sand and
+        // splash are made in code (SoundTextures). Concrete plays for stone.
+        File(SoundCue.FootGrass, 0.5, 0.05, "kenney-impact_footstep_grass_000.wav", "kenney-impact_footstep_grass_001.wav", "kenney-impact_footstep_grass_002.wav");
+        File(SoundCue.FootSnow, 0.5, 0.05, "kenney-impact_footstep_snow_000.wav", "kenney-impact_footstep_snow_001.wav");
+        File(SoundCue.FootWood, 0.5, 0.05, "kenney-impact_footstep_wood_000.wav", "kenney-impact_footstep_wood_001.wav");
+        File(SoundCue.FootStone, 0.5, 0.05, "kenney-impact_footstep_concrete_000.wav", "kenney-impact_footstep_concrete_001.wav");
+        File(SoundCue.Jump, 0.3, 0.05, "kenney-impact_impactGeneric_light_000.wav");
+        File(SoundCue.Land, 0.45, 0.05, "kenney-impact_impactSoft_heavy_000.wav");
+        Synth(SoundCue.FootDirt, 0.55, takes: 3);
+        Synth(SoundCue.FootGravel, 0.5, takes: 3);
+        Synth(SoundCue.FootSand, 0.4, takes: 3);
+        Synth(SoundCue.FootWater, 0.55, takes: 3);
+        Synth(SoundCue.BirdChirp, 0.3, takes: 4);
+        Synth(SoundCue.FireCrackle, 0.45, takes: 4);
         return table;
     }
 }

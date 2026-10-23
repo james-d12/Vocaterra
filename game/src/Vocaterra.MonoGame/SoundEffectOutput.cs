@@ -16,6 +16,8 @@ public sealed class SoundEffectOutput : ISoundOutput
     private readonly string _directory;
     private readonly Action<string> _log;
     private readonly Dictionary<(SoundCue Cue, int Take), SoundEffect> _effects = [];
+    private readonly Dictionary<string, SoundEffect> _loops = [];
+    private readonly Dictionary<string, SoundEffectInstance> _beds = [];
     private readonly List<SoundEffectInstance> _live = [];
     private bool _loaded;
     private bool _unavailable;
@@ -46,6 +48,7 @@ public sealed class SoundEffectOutput : ISoundOutput
             var instance = effect.CreateInstance();
             instance.Volume = (float)Math.Clamp(request.Gain, 0, 1);
             instance.Pitch = (float)Math.Clamp(request.Pitch, -1, 1);
+            instance.Pan = (float)Math.Clamp(request.Pan, -1, 1);
             instance.Play();
             _live.Add(instance);
         }
@@ -65,24 +68,79 @@ public sealed class SoundEffectOutput : ISoundOutput
         }
 
         _live.Clear();
+        foreach (var bed in _beds.Values)
+        {
+            bed.Volume = 0; // the microphone rule: the beds go silent too (they keep playing, so they resume without a click)
+        }
     }
 
     /// <inheritdoc />
     public void SetBeds(IReadOnlyList<BedLevel> levels)
     {
-        // S25 plays the beds through this call; S24 has none.
+        ArgumentNullException.ThrowIfNull(levels);
+        if (_unavailable || !EnsureLoaded())
+        {
+            return;
+        }
+
+        try
+        {
+            foreach (var bed in _beds.Keys.ToList())
+            {
+                if (!levels.Any(level => level.Bed == bed))
+                {
+                    _beds[bed].Volume = 0;
+                }
+            }
+
+            foreach (var level in levels)
+            {
+                if (!_loops.TryGetValue(level.Bed, out var loop))
+                {
+                    continue; // a scheduled bed (birds, fire) has no loop: its sounds are one-shots
+                }
+
+                if (!_beds.TryGetValue(level.Bed, out var instance))
+                {
+                    instance = loop.CreateInstance();
+                    instance.IsLooped = true;
+                    instance.Volume = 0;
+                    instance.Play();
+                    _beds[level.Bed] = instance;
+                }
+
+                instance.Volume = (float)Math.Clamp(level.Level, 0, 1);
+                instance.Pan = (float)Math.Clamp(level.Pan, -1, 1);
+            }
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            Fail($"sounds: off, {ex.GetType().Name}: {ex.Message}");
+        }
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
         StopAll();
+        foreach (var bed in _beds.Values)
+        {
+            bed.Dispose();
+        }
+
+        _beds.Clear();
         foreach (var effect in _effects.Values.Distinct())
         {
             effect.Dispose();
         }
 
         _effects.Clear();
+        foreach (var loop in _loops.Values.Distinct())
+        {
+            loop.Dispose();
+        }
+
+        _loops.Clear();
     }
 
     private bool EnsureLoaded()
@@ -98,7 +156,11 @@ public sealed class SoundEffectOutput : ISoundOutput
             {
                 if (SoundSynth.IsSynthesized(definition.Cue))
                 {
-                    _effects[(definition.Cue, 0)] = Make(SoundSynth.SampleRate, SoundSynth.Render(definition.Cue));
+                    for (var take = 0; take < definition.Takes; take++)
+                    {
+                        _effects[(definition.Cue, take)] = Make(SoundSynth.SampleRate, SoundSynth.Render(definition.Cue, take));
+                    }
+
                     continue;
                 }
 
@@ -107,6 +169,11 @@ public sealed class SoundEffectOutput : ISoundOutput
                     var wav = WavFile.Parse(File.ReadAllBytes(Path.Combine(_directory, definition.Files[take])));
                     _effects[(definition.Cue, take)] = Make(wav.SampleRate, wav.Samples);
                 }
+            }
+
+            foreach (var bed in AmbientLoops.Looping)
+            {
+                _loops[bed] = Make(SoundSynth.SampleRate, AmbientLoops.Render(bed));
             }
 
             _loaded = true;

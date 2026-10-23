@@ -575,7 +575,7 @@ The S17 route (`--lesson-run first-words` and the steps above it) still complete
 
 ## Sounds (S24)
 
-The sound system (D-game-18): interaction and progress sounds through a mixer with four categories, and no music. Every file is CC0 (Kenney's Impact Sounds, RPG Audio and
+The sound system (D-game-18): interaction, progress, movement and ambient sounds through a mixer with four categories, and no music. Every file is CC0 (Kenney's Impact Sounds, RPG Audio and
 Interface Sounds, listed in [assets/audio/SOURCES.md](assets/audio/SOURCES.md)); the chimes, the push-to-talk beeps, the sparkle, the bottle and the fire's whoosh are
 made in code at load from a fixed seed. The audio is under 1 MB (the budget is 15 MB for S24 and S25 together). Sounds react to events and never touch the simulation, a
 turn, a verdict, a state hash or the replay.
@@ -616,6 +616,23 @@ the scripted mic check stand for a push-to-talk: the start beep, 24 silent ticks
 | The objective complete | `objective_done` (ui) | synthesized |
 | A check item answered | `check_answered` (ui) | Kenney Interface Sounds |
 | Session complete, at the fire | `session_done` (ui) | synthesized |
+| Footsteps on grass, wood, stone (concrete), snow | `foot_grass`, `foot_wood`, `foot_stone`, `foot_snow` (sfx; a step every 2 blocks walked, so the pace follows the walk) | Kenney Impact Sounds |
+| Footsteps on dirt, gravel, sand; a splash in water | `foot_dirt`, `foot_gravel`, `foot_sand`, `foot_water` (sfx) | synthesized |
+| A jump, a landing | `jump`, `land` (sfx; a landing in water is a `foot_water` splash) | Kenney Impact Sounds |
+| The birds over the forest by day | `bird_chirp` (ambient; scheduled in clusters by the presentation generator, louder the nearer the forest) | synthesized |
+| The fire's crackle by the lit fire ring and the village lamps | `fire_crackle` (ambient; scheduled, louder the nearer the fire) | synthesized |
+| The beds: wind on the cliff and the heights, the river and the lake, the waterfall (louder near it), the village murmur, the evening insects with `--dusk` | beds (ambient, looping; cross-fade over 1.5 s by position, panned to the source) | synthesized (loops, seamless) |
+
+**Ambient beds and footsteps (S25).** The beds are `AmbientBeds` (`src/Vocaterra.MonoGame/Frontend/AmbientBeds.cs`): the weight of each bed is a
+function of the player's place (the scene's sites, the river's path, the lake, the waterfall, the fire rings and the lamps), so the same route gives the same
+weights at the same tick. Wind is full on the cliff (feet above y 68) and silent in the valley; birds sing in the lowland forest by day and the insects
+take over at `--dusk`; the river follows its path, the waterfall is louder near its lip, and the village murmur is full by the houses and the stall. The
+looping beds are made in code (`AmbientLoops.cs`): 10 seconds each, the tail faded into the head with an equal-power curve, so no click at the seam. The
+scheduled birds and crackles (`AmbientSound.cs`) draw their times from the presentation generator, in ticks, and follow the bed's weight. Pan is the bearing
+of the source from the way the player faces (simple stereo, not 3D). The footsteps (`Footsteps.cs`) read the block under the feet: every solid block kind
+has a surface, and a step is every 2 blocks walked on the ground (about two a second at the walking speed); the take of a step never repeats twice in a
+row. In water the steps splash. The beds and the scheduled sounds are silent while the microphone records and duck under a voice, like the other sounds.
+The sound log writes a `mark` line when the place or its weights change (`bed at village: village=1.0`).
 
 ```bash
 # the S17 route with the sound log: add --sound-log to the route above; the cues played are listed with their ticks, and the recording window of the --wav step is marked

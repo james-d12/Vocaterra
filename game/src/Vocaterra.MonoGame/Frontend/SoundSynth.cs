@@ -18,19 +18,27 @@ public static class SoundSynth
     /// <param name="cue">The cue.</param>
     public static bool IsSynthesized(SoundCue cue) => cue is SoundCue.PushToTalkStart or SoundCue.PushToTalkStop or SoundCue.StepDone or SoundCue.UnitDone
         or SoundCue.LessonDone or SoundCue.AnswerUnderstood or SoundCue.AnswerNeutral or SoundCue.WordLearnt or SoundCue.ObjectiveDone or SoundCue.SessionDone
-        or SoundCue.BottleFill or SoundCue.FireLight;
+        or SoundCue.BottleFill or SoundCue.FireLight or SoundCue.FootDirt or SoundCue.FootGravel or SoundCue.FootSand or SoundCue.FootWater
+        or SoundCue.BirdChirp or SoundCue.FireCrackle;
 
     /// <summary>The length in seconds of the push-to-talk start beep (the recording discards this much of its start, so the beep never reaches the recognizer).</summary>
     public const double StartBeepSeconds = 0.09;
 
     /// <summary>Renders a synthesized cue as 16-bit mono samples at <see cref="SampleRate"/>.</summary>
     /// <param name="cue">The cue.</param>
+    /// <param name="take">The take (S25: the footsteps, birds and crackle have several); 0 for the only take of the others.</param>
     /// <exception cref="ArgumentException">The cue is a file of the catalogue.</exception>
-    public static short[] Render(SoundCue cue)
+    public static short[] Render(SoundCue cue, int take = 0)
     {
-        var rng = new PresentationRng(Seed ^ (ulong)cue);
+        var rng = new PresentationRng(Seed ^ (ulong)cue ^ ((ulong)take << 32));
         var buffer = cue switch
         {
+            SoundCue.FootDirt => SoundTextures.Dirt(rng),
+            SoundCue.FootGravel => SoundTextures.Gravel(rng),
+            SoundCue.FootSand => SoundTextures.Sand(rng),
+            SoundCue.FootWater => SoundTextures.Splash(rng),
+            SoundCue.BirdChirp => SoundTextures.Chirp(take),
+            SoundCue.FireCrackle => SoundTextures.Crackle(rng),
             SoundCue.PushToTalkStart => Beep(880, StartBeepSeconds, 0.6),
             SoundCue.PushToTalkStop => Beep(587.33, 0.09, 0.6),
             SoundCue.StepDone => Bell(659.25, 0.5),
@@ -48,7 +56,7 @@ public static class SoundSynth
         return Normalize(buffer);
     }
 
-    private static float[] Silence(double seconds) => new float[(int)(seconds * SampleRate)];
+    internal static float[] Silence(double seconds) => new float[(int)(seconds * SampleRate)];
 
     // A sine (with partials) with a quick attack and an exponential decay, added into the buffer at the offset.
     private static void AddTone(float[] buffer, double frequency, double start, double length, double level, double decay, double[] partials)
@@ -171,7 +179,7 @@ public static class SoundSynth
         return buffer;
     }
 
-    private static short[] Normalize(float[] buffer)
+    internal static short[] Normalize(float[] buffer)
     {
         var peak = 0f;
         foreach (var sample in buffer)

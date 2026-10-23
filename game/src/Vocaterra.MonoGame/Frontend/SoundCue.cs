@@ -141,6 +141,46 @@ public enum SoundCue
 
     /// <summary>The session is complete: the closing cue at the fire.</summary>
     SessionDone,
+
+    // ---- movement (sfx, S25): appended, so the values of the cues above never change ----
+
+    /// <summary>A step on grass (or leaves, undergrowth and bushes, which the player stands in or beside).</summary>
+    FootGrass,
+
+    /// <summary>A step on dirt or farmland.</summary>
+    FootDirt,
+
+    /// <summary>A step on the gravel path or the village square.</summary>
+    FootGravel,
+
+    /// <summary>A step on stone, cobble, mossy stone, the fire ring or a house wall.</summary>
+    FootStone,
+
+    /// <summary>A step on wood: planks, a bridge, timber, a trunk, the stall, a crate.</summary>
+    FootWood,
+
+    /// <summary>A step on sand.</summary>
+    FootSand,
+
+    /// <summary>A step on snow (the high peaks).</summary>
+    FootSnow,
+
+    /// <summary>A step in water: a splash (the feet are in the water).</summary>
+    FootWater,
+
+    /// <summary>The player jumped (a short effort, not a step).</summary>
+    Jump,
+
+    /// <summary>The player landed after the air (a heavier thud; a splash when the landing is in water).</summary>
+    Land,
+
+    // ---- ambient (S25): the scheduled one-shots over the beds ----
+
+    /// <summary>A bird's chirp, scheduled by the presentation generator over the forest bed; its level follows the bed's weight.</summary>
+    BirdChirp,
+
+    /// <summary>A crackle of the fire, scheduled over the fire bed; its level follows the fire's weight.</summary>
+    FireCrackle,
 }
 
 /// <summary>The category and the wire name of each cue.</summary>
@@ -156,6 +196,9 @@ public static class SoundCues
         SoundCue.GatherWood or SoundCue.GatherStone or SoundCue.GatherLeaf or SoundCue.GatherSoft
             or SoundCue.BreakWood or SoundCue.BreakStone or SoundCue.BreakLeaf or SoundCue.BreakSoft
             or SoundCue.PlaceBlock or SoundCue.PickUp or SoundCue.CraftDone or SoundCue.BottleFill or SoundCue.FireLight => SoundCategory.Sfx,
+        SoundCue.FootGrass or SoundCue.FootDirt or SoundCue.FootGravel or SoundCue.FootStone or SoundCue.FootWood or SoundCue.FootSand or SoundCue.FootSnow
+            or SoundCue.FootWater or SoundCue.Jump or SoundCue.Land => SoundCategory.Sfx,
+        SoundCue.BirdChirp or SoundCue.FireCrackle => SoundCategory.Ambient,
         _ => SoundCategory.Ui,
     };
 
