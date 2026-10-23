@@ -106,4 +106,50 @@ public class NearFutureTenseTests
     {
         Assert.Contains("word_order|próximos salones|salones próximos", Described("unos seis próximos salones"));
     }
+
+    [Theory]
+    [InlineData("voy comer pan", "conj.tense|voy comer|voy a comer")]
+    [InlineData("vamos comer fruta", "conj.tense|vamos comer|vamos a comer")]
+    [InlineData("van tener agua", "conj.tense|van tener|van a tener")]
+    [InlineData("yo voy comprar pan", "conj.tense|voy comprar|voy a comprar")]
+    [InlineData("vas beber agua", "conj.tense|vas beber|vas a beber")]
+    [InlineData("mañana voy comer", "conj.tense|voy comer|voy a comer")]
+    public void IrWithABareInfinitiveExpectsIrAInfinitive(string sentence, string expected)
+    {
+        Assert.Equal([expected], Described(sentence));
+    }
+
+    [Theory]
+    [InlineData("voy a comer")]
+    [InlineData("quiero comer")]
+    [InlineData("necesito comer")]
+    [InlineData("vamos a la tienda")]
+    [InlineData("voy al río")]
+    [InlineData("ir a comer")]
+    [InlineData("fui comer")]
+    [InlineData("voy contento")]
+    [InlineData("vas a comer")]
+    [InlineData("vamos")]
+    [InlineData("voy")]
+    public void IrCasesThatAreNotAMissingAStayClean(string sentence)
+    {
+        Assert.Empty(Described(sentence));
+    }
+
+    [Fact]
+    public void AGerundAfterIrIsNotAMissingA()
+    {
+        // The lexicon has no gerunds, so "corriendo" is vocab.unknown as it always was; the point is that no tense error is added.
+        Assert.DoesNotContain(Described("voy corriendo"), static e => e.StartsWith("conj.tense", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ABareInfinitiveAfterIrKeepsTheFullSentenceIntact()
+    {
+        var result = Analyzer.Value.Analyze(TestTokens.From("voy comer pan"), []);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("conj.tense", error.Tag);
+        Assert.Equal(0, error.Span.Start);
+        Assert.Equal(9, error.Span.Length);
+    }
 }

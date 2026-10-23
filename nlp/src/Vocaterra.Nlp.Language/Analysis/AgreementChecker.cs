@@ -25,6 +25,7 @@ internal sealed class AgreementChecker
         CheckSubjectVerb();
         CheckTense();
         CheckNearFuture();
+        CheckIrWithoutA();
         CheckSerEstar();
         CheckNounPhrases();
     }
@@ -297,6 +298,33 @@ internal sealed class AgreementChecker
             }
 
             Add(ErrorTags.ConjTense, i, i, expected, TextOf(i));
+        }
+    }
+
+    // Rule M51 (ir + a bare infinitive). A present or imperfect form of "ir" directly followed by an infinitive drops the "a": "voy comer pan" -> "voy a comer".
+    // conj.tense (the same family as M49: the learner is building the near future), the span covers the pair so the expected text is the whole corrected phrase.
+    // Left clean: any word between the two ("voy a comer", "voy contento", "vamos a la tienda"), a gerund or participle (not infinitives), a next word that can
+    // also be a noun or adjective ("voy cantar" if cantar had a noun reading), and the preterite ("fui comer": fui is also ser, and the fix is not obvious).
+    private void CheckIrWithoutA()
+    {
+        for (var i = 0; i + 1 < _tokens.Count; i++)
+        {
+            var go = FirstReading(i, static r => IsDeclarativeFiniteVerb(r) && r.Lemma == "ir" && r.Tense is LexiconSchema.Present or LexiconSchema.Imperfect);
+            if (go is null)
+            {
+                continue;
+            }
+
+            var next = _tokens[i + 1].Readings;
+            if (next.Count == 0
+                || next.Any(static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective)
+                || !next.Any(static r => r.Pos == LexiconSchema.Verb && r.Person is null && r.Tense is null && r.Mood is null))
+            {
+                continue;
+            }
+
+            var infinitive = next.First(static r => r.Pos == LexiconSchema.Verb && r.Person is null && r.Tense is null && r.Mood is null);
+            Add(ErrorTags.ConjTense, i, i + 1, TextOf(i) + " a " + infinitive.Lemma, TextOf(i) + " " + TextOf(i + 1));
         }
     }
 

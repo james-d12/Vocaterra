@@ -288,9 +288,9 @@ if (result.Answer is { AnswerId: not null } answer)
 The pipeline always sets both members; they are nullable only so that a result built by hand (in a test) needs no analysis. Both are part of
 the result's `CanonicalJson`, but not of the replay record (see [REPLAY.md](REPLAY.md)).
 
-### Tense errors, `conj.tense` (M49)
+### Tense errors, `conj.tense` (M49, M51)
 
-`conj.tense` is reported by the analysis for four cases, each with `expected` and `actual` on the verb token:
+`conj.tense` is reported by the analysis for the cases below, each with `expected` and `actual` on the verb token (the last one on the verb and the infinitive together):
 
 - **Past marker with a non-past verb** (`ayer`, `anoche`, `anteayer`, a time noun with `pasado`): a present or simple future form expects the preterite
   (`ayer canto` gives expected `canté`, actual `canto`; `ayer comeré` gives `comí`).
@@ -303,6 +303,11 @@ the result's `CanonicalJson`, but not of the replay record (see [REPLAY.md](REPL
   a `que` is not checked either.
 - **A conjugated verb after `ir a`:** `voy a como` and `vamos a tenemos` expect the infinitive (`comer`, `tener`; the lemma). A noun phrase after `a`
   (`voy a la casa`, `vamos a la tienda`) and a word that can also be a noun are not checked.
+- **`ir` followed by a bare infinitive (M51):** `voy comer pan` gives expected `voy a comer`, actual `voy comer`, with the span on both words (the
+  error is the gap, so the span covers the pair and `expected` is the whole corrected phrase). `vamos comer fruta` gives `vamos a comer`, `van tener`
+  gives `van a tener`. Present and imperfect forms of `ir` are checked. Clean: `voy a comer`, `quiero comer`, `vamos a la tienda`, `voy al río`, `ir a comer`
+  (the infinitive `ir`), `voy contento`, `vamos` alone, and the preterite `fui comer`, which is left alone on purpose (`fui` is also `ser`, and the
+  repair is not `ir a`). A next word that can also be a noun or an adjective is not checked.
 
 The checks work on the whole utterance, not on clauses, and on the verb forms the lexicon lists.
 
