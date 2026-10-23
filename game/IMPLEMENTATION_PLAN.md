@@ -315,8 +315,8 @@ not made. The German milestones stay parked (D14).
 | --- | --- | --- | --- | --- |
 | X00 | Research: a ranked backlog of improvements (learning effect, player experience, robustness, technical debt), with evidence from the code, plans, findings and screenshots | done (`game/docs/research/2026-10-23-improvement-backlog.md`, R01 to R18) | Sonnet 5.5 | S28 |
 | X01 | Saves survive content updates: a save made under an older bundle loads under a newer one (learner record, lessons, phrases, inventory and world edits kept where their ids still exist; the rest dropped and logged), instead of being refused; a strict mode keeps the refusal for the playtest's frozen bundle | done (merged to `feature/experiment` 2026-10-23, `bf90201`) | Sonnet 5.5 | S28 |
-| X02 | Core M51: `ir` + a bare infinitive (`voy comer`) flagged | in progress | Sonnet 5.5 | M49 |
-| X03 | Book polish: the right page scrolls; `vamos` glossed "we go" in What you said; ser and estar glossed apart ("to be: what", "to be: where or how") | planned | Haiku 5.5 | S28 |
+| X02 | Core M51: `ir` + a bare infinitive (`voy comer`) flagged | done (merged to `feature/experiment` 2026-10-23, `e70441c`; see core §5b M51) | Sonnet 5.5 | M49 |
+| X03 | Book polish: the right page scrolls; `vamos` glossed "we go" in What you said; ser and estar glossed apart ("to be: what", "to be: where or how") | in progress | Haiku 5.5 | S28 |
 
 | X04 | Session summary card from the learner's record (R01), and a second try after "No sé" in the same session (R02) | done (merged to `feature/experiment` 2026-10-23, `6e14821`) | Haiku 5.5 | X01 |
 | X05 | Autosave at safe points, and a crash handler around `game.Run()` that writes a crash report next to the F8 reports (R04) | done (merged to `feature/experiment` 2026-10-23, `001d75a`) | Haiku 5.5 | X01 |
