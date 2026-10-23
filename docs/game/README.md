@@ -449,10 +449,10 @@ says so; the owner decides whether handing the private folder to testers counts 
 
 ## Licence
 
-- **This repository:** MIT (see [LICENSE](LICENSE); decision D-game-2 in [docs/DECISIONS.md](docs/DECISIONS.md)).
+- **This repository, the game and the language core alike:** Apache-2.0 (see [LICENSE](../../LICENSE) and [NOTICE](../../NOTICE)). The game was MIT until the owner relicensed the whole repository in R01 (D-game-2 superseded; recorded in [DECISIONS.md](DECISIONS.md)).
 - **Content bundle:** the Wiktionary lexicon in `content/game-v1` stays CC BY-SA 4.0; its notices are in
   [content/game-v1/ATTRIBUTION.md](content/game-v1/ATTRIBUTION.md).
-- **Language core:** `nlp/` is Apache-2.0 (core D3, [nlp/LICENSE](../nlp/LICENSE)). **MonoGame** is Ms-PL.
+- **Language core:** the `Vocaterra.Nlp.*` projects are Apache-2.0 too (core D3, [LICENSE](../../LICENSE)). **MonoGame** is Ms-PL.
 - **Art, font and sound:** CC0 only (D-game-5), each file listed in [assets/ATTRIBUTION.md](assets/ATTRIBUTION.md).
 - **Native libraries:** a build that includes the sherpa-onnx native libraries (GPL-3.0 code, core D2) is not distributed while D2 is open.
 

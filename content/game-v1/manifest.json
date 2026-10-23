@@ -1,5 +1,5 @@
 {"schemaVersion":1,"bundleId":"game-v1","contentVersion":"1.0.0","files":[
-{"path":"ATTRIBUTION.md","sha256":"a62d1759fe5308b8af448d13e694b3008b7548f0ef35e301f37c5190c7b91a31","bytes":7969},
+{"path":"ATTRIBUTION.md","sha256":"74136a08e6dc62a868078103af10a6c2716b9737b30ac4911fd627c353272de3","bytes":7989},
 {"path":"agents/guide.json","sha256":"3a2c65127561044a13557a11ab2f9362bc258d82ab5de842354a2c0f8622b5b5","bytes":13673},
 {"path":"agents/shopkeeper.json","sha256":"7800cf7fda55a959ea5d652b7fcc042d60ebdde0919b498a82ebf55e5deb12a3","bytes":8123},
 {"path":"agents/villager.json","sha256":"e5c3a349d2587047d4f1837ae31140d466b285d1caf630295a833b754a3a731d","bytes":4959},
@@ -479,4 +479,4 @@
 {"path":"speech/villager_thank.1.wav","sha256":"264a8166023475d7d7842d08050d562924cb4212881ad755cc67afd728d5f7bb","bytes":45644},
 {"path":"speech/villager_thank.2.slow.wav","sha256":"791dd1d9ba9a64ba04d5b734f0e8c91b4ab25fa869ec85a6e2a6937a5b794ea0","bytes":70844},
 {"path":"speech/villager_thank.2.wav","sha256":"0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3","bytes":54044}
-],"bundleHash":"2156744b86720b4e58a57bb749ba0501fc96f724323550b6c60c76443101b01f"}
+],"bundleHash":"38281e6c94d09892664d34059db7f81e7d9eda5a94a02d37cc6ae7462bdd4ea7"}

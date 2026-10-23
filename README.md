@@ -4,8 +4,8 @@ A Spanish-learning game and the language core that grades what the player says. 
 
 | Folder | What it is | Licence |
 | --- | --- | --- |
-| [`nlp/`](nlp/README.md) | The language core, the `Vocaterra.Nlp.*` libraries: audio, speech recognition, phonology, pronunciation, analysis, evaluation, decision, response, content tooling. Engine-agnostic, deterministic, fuzzed. | Apache-2.0 (`nlp/LICENSE`, `nlp/NOTICE`) |
-| [`game/`](game/README.md) | The game: a Minecraft-inspired 3D voxel prototype, played in the first person, where the player talks to villagers in Spanish to get supplies and directions (MonoGame), plus the engine-free simulation, the game layer and a console host. | MIT (`game/LICENSE`) |
+| [`nlp/`](nlp/README.md) | The language core, the `Vocaterra.Nlp.*` libraries: audio, speech recognition, phonology, pronunciation, analysis, evaluation, decision, response, content tooling. Engine-agnostic, deterministic, fuzzed. | Apache-2.0 |
+| [`game/`](game/README.md) | The game: a Minecraft-inspired 3D voxel prototype, played in the first person, where the player talks to villagers in Spanish to get supplies and directions (MonoGame), plus the engine-free simulation, the game layer and a console host. | Apache-2.0 (relicensed from MIT in R01) |
 
 The game references the core's projects directly. What the core owns and what the game owns is fixed in
 [`nlp/docs/adr/0009-core-and-game-boundary.md`](nlp/docs/adr/0009-core-and-game-boundary.md); the calls a host makes are in

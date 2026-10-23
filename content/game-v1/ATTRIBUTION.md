@@ -19,8 +19,8 @@ and the guide's name pools (P4), and, from S5, the shopkeeper and the villager (
 `guide-offer`, and their dialogue pools. The Spanish of the phrases the learner is taught is listed in `content/PHRASES.md` (beside this
 bundle).
 
-The licence of this repository is not chosen yet (decision D-game-2 in `docs/DECISIONS.md`). Until it is, the repository grants no
-permission to use, copy or modify its files. The language core is a separate work under its own licence.
+The code and the hand-authored content of this repository, the game and the language core alike, are licensed under the Apache License,
+Version 2.0 (`LICENSE` and `NOTICE` at the repository root). The third-party data below keeps the licence given for it.
 
 ## Wiktionary data (CC BY-SA)
 
