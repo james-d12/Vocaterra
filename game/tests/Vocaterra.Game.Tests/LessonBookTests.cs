@@ -42,7 +42,7 @@ public sealed class LessonBookTests
         Assert.Equal(
             ["hola", "si", "no", "que-es-esto", "si-por-favor", "gracias", "quiero-madera", "tengo-madera", "necesito-agua", "no-se", "otra-vez", "mas-despacio"],
             lesson.TaughtPhrases);
-        Assert.Equal(lesson.TaughtPhrases.Concat(book.Find("personas")!.TaughtPhrases), book.TaughtPhrases);
+        Assert.Equal(lesson.TaughtPhrases.Concat(book.Find("personas")!.TaughtPhrases).Distinct(), book.TaughtPhrases); // quiero-madera is asked again at the start of Personas
         Assert.All(lesson.TaughtPhrases, id => Assert.True(PhraseSheet.Load(TestGame.Bundle).Find(id)!.IsLearnerPhrase, id));
         foreach (var type in Enum.GetValues<LessonStepType>().Where(static t => t != LessonStepType.Recap))
         {

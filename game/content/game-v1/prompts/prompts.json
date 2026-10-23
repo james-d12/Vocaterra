@@ -144,7 +144,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "lesson-want",
-    "allowedIntentIds": ["request_item", "ask_help", "dont_know", "ask_repeat", "ask_slower"],
+    "allowedIntentIds": ["state_want", "ask_help", "dont_know", "ask_repeat", "ask_slower"],
     "agentId": "guide",
     "slotGrammarIds": [],
     "text": "¿Qué quieres?"
@@ -164,7 +164,7 @@
     "mode": "Constrained",
     "difficulty": "Beginner",
     "answerSetId": "lesson-need",
-    "allowedIntentIds": ["request_item", "ask_help", "dont_know", "ask_repeat", "ask_slower"],
+    "allowedIntentIds": ["state_want", "ask_help", "dont_know", "ask_repeat", "ask_slower"],
     "agentId": "guide",
     "slotGrammarIds": [],
     "text": "¿Qué necesitas?"

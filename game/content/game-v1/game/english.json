@@ -256,7 +256,9 @@
     { "spanish": "¿Tiene usted una botella?", "english": "Do you have a bottle?" },
     { "spanish": "¿Qué quieren ustedes?", "english": "What do you all want?" },
     { "spanish": "Ellos van a la casa.", "english": "They go to the house." },
-    { "spanish": "Estamos aquí.", "english": "We are here." }
+    { "spanish": "Estamos aquí.", "english": "We are here." },
+    { "spanish": "Ellos quieren agua.", "english": "They want water." },
+    { "spanish": "Ella está en la tienda.", "english": "She is at the shop." }
   ],
   "feedback": {
     "outcomes": {

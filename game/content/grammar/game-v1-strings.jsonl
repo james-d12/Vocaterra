@@ -44,7 +44,9 @@
 {"id":"dialogue:guide.lesson.end.1","text":"¡Muy bien! Ya tienes fuego.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fast.1","text":"Mira. La madera es para la antorcha.","kind":"npc"}
 {"id":"dialogue:guide.lesson.have.1","text":"¡Muy bien! Tienes una fruta.","kind":"npc"}
+{"id":"dialogue:guide.lesson.have_wood.1","text":"¿Tienes madera?","kind":"npc"}
 {"id":"dialogue:guide.lesson.hello.1","text":"¡Hola!","kind":"npc"}
+{"id":"dialogue:guide.lesson.i_have.1","text":"Tengo agua.","kind":"npc"}
 {"id":"dialogue:guide.lesson.is_water.1","text":"¿Es agua?","kind":"npc"}
 {"id":"dialogue:guide.lesson.is_wood.1","text":"¿Es madera?","kind":"npc"}
 {"id":"dialogue:guide.lesson.it_is.1","text":"Esto es madera.","kind":"npc"}
@@ -56,9 +58,25 @@
 {"id":"dialogue:guide.lesson.it_is.7","text":"Esto es una piedra.","kind":"npc"}
 {"id":"dialogue:guide.lesson.look.1","text":"Mira.","kind":"npc"}
 {"id":"dialogue:guide.lesson.name.1","text":"Me llamo Luna.","kind":"npc"}
+{"id":"dialogue:guide.lesson.need.1","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"dialogue:guide.lesson.offer.1","text":"¿Quieres fruta?","kind":"npc"}
+{"id":"dialogue:guide.lesson.shop.all.1","text":"¿Qué quieren ustedes?","kind":"npc"}
+{"id":"dialogue:guide.lesson.shop.bottle.1","text":"¿Tiene usted una botella?","kind":"npc"}
+{"id":"dialogue:guide.lesson.shop.go.1","text":"Ellos van a la casa.","kind":"npc"}
+{"id":"dialogue:guide.lesson.shop.here.1","text":"Estamos aquí.","kind":"npc"}
+{"id":"dialogue:guide.lesson.shop.need.1","text":"¿Qué necesita usted?","kind":"npc"}
+{"id":"dialogue:guide.lesson.shop.they.1","text":"Ellos quieren agua.","kind":"npc"}
 {"id":"dialogue:guide.lesson.take.1","text":"Toma una fruta.","kind":"npc"}
 {"id":"dialogue:guide.lesson.task.1","text":"Necesitas madera y frutas.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.be.1","text":"Nosotros somos amigos.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.go.1","text":"Vamos a la tienda.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.luna.1","text":"¿Qué quiere Luna?","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.she.1","text":"Ella es la guía.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.they.1","text":"Ellos tienen pan.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.want.1","text":"¿Qué quieres?","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.we.1","text":"¿Qué necesitamos?","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.where.1","text":"Ella está en la tienda.","kind":"npc"}
+{"id":"dialogue:guide.lesson.want.1","text":"¿Qué quieres?","kind":"npc"}
 {"id":"dialogue:guide.lesson.welcome.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:guide.name.correct.1","text":"¡Eso es! Es {target:article(indef)}.","kind":"template"}
 {"id":"dialogue:guide.name.correct.2","text":"¡Muy bien! Es {target:article(indef)}.","kind":"template"}
@@ -151,17 +169,39 @@
 {"id":"prompts:guide-offer","text":"¿Quieres agua?","kind":"npc"}
 {"id":"prompts:guide-open","text":"¡Hola! Soy la guía. ¿En qué te ayudo?","kind":"npc"}
 {"id":"prompts:guide-review","text":"¿Qué es esto?","kind":"npc"}
+{"id":"prompts:lesson-bottle","text":"¿Tiene usted una botella?","kind":"npc"}
+{"id":"prompts:lesson-have","text":"¿Tienes madera?","kind":"npc"}
 {"id":"prompts:lesson-hello","text":"¡Hola!","kind":"npc"}
 {"id":"prompts:lesson-name","text":"Me llamo Luna.","kind":"npc"}
+{"id":"prompts:lesson-need","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"prompts:lesson-offer","text":"¿Quieres fruta?","kind":"npc"}
+{"id":"prompts:lesson-she","text":"¿Qué quiere Luna?","kind":"npc"}
 {"id":"prompts:lesson-task","text":"Necesitas madera y frutas.","kind":"npc"}
 {"id":"prompts:lesson-thanks","text":"¡Muy bien! Tienes una fruta.","kind":"npc"}
 {"id":"prompts:lesson-unstuck","text":"Mira. ¿Qué es esto?","kind":"npc"}
+{"id":"prompts:lesson-usted","text":"¿Qué necesita usted?","kind":"npc"}
+{"id":"prompts:lesson-ustedes","text":"¿Qué quieren ustedes?","kind":"npc"}
+{"id":"prompts:lesson-want","text":"¿Qué quieres?","kind":"npc"}
+{"id":"prompts:lesson-we","text":"¿Qué necesitamos?","kind":"npc"}
 {"id":"prompts:lesson-what","text":"Mira.","kind":"npc"}
 {"id":"prompts:lesson-yesno","text":"¿Es madera?","kind":"npc"}
 {"id":"prompts:stall-need","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"prompts:stall-offer","text":"¿Quieres pan?","kind":"npc"}
 {"id":"prompts:villager-open","text":"Hola.","kind":"npc"}
+{"id":"answer-sets/lesson-bottle:have","text":"tengo una botella","kind":"learner"}
+{"id":"answer-sets/lesson-bottle:have.alias1","text":"sí tengo una botella","kind":"learner"}
+{"id":"answer-sets/lesson-bottle:have.alias2","text":"sí yo tengo una botella","kind":"learner"}
+{"id":"answer-sets/lesson-bottle:have.alias3","text":"sí tengo botella","kind":"learner"}
+{"id":"answer-sets/lesson-bottle:have.alias4","text":"tengo botella","kind":"learner"}
+{"id":"answer-sets/lesson-bottle:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-bottle:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-bottle:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-bottle:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-bottle:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-bottle:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-bottle:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-bottle:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-bottle:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-greet:hello","text":"hola","kind":"learner"}
 {"id":"answer-sets/lesson-greet:hello.alias1","text":"buen día","kind":"learner"}
 {"id":"answer-sets/lesson-greet:hello.alias2","text":"buenos días","kind":"learner"}
@@ -191,6 +231,78 @@
 {"id":"answer-sets/lesson-greet:slower.alias5","text":"despacio","kind":"learner"}
 {"id":"answer-sets/lesson-greet:slower.alias6","text":"más lento","kind":"learner"}
 {"id":"answer-sets/lesson-greet:slower.alias7","text":"más lento por favor","kind":"learner"}
+{"id":"answer-sets/lesson-have:have","text":"tengo madera","kind":"learner"}
+{"id":"answer-sets/lesson-have:have.alias1","text":"sí tengo madera","kind":"learner"}
+{"id":"answer-sets/lesson-have:have.alias2","text":"sí yo tengo madera","kind":"learner"}
+{"id":"answer-sets/lesson-have:have.alias3","text":"sí tengo","kind":"learner"}
+{"id":"answer-sets/lesson-have:have.alias4","text":"tengo","kind":"learner"}
+{"id":"answer-sets/lesson-have:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-have:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-have:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-have:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-have:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-have:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-have:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-have:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-have:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-have:again","text":"otra vez por favor","kind":"learner"}
+{"id":"answer-sets/lesson-have:again.alias1","text":"otra vez","kind":"learner"}
+{"id":"answer-sets/lesson-have:again.alias2","text":"repite por favor","kind":"learner"}
+{"id":"answer-sets/lesson-have:again.alias3","text":"repite","kind":"learner"}
+{"id":"answer-sets/lesson-have:again.alias4","text":"puedes repetir","kind":"learner"}
+{"id":"answer-sets/lesson-have:again.alias5","text":"puedes repetir por favor","kind":"learner"}
+{"id":"answer-sets/lesson-have:slower","text":"más despacio por favor","kind":"learner"}
+{"id":"answer-sets/lesson-have:slower.alias1","text":"más despacio","kind":"learner"}
+{"id":"answer-sets/lesson-have:slower.alias2","text":"habla más despacio","kind":"learner"}
+{"id":"answer-sets/lesson-have:slower.alias3","text":"habla más despacio por favor","kind":"learner"}
+{"id":"answer-sets/lesson-have:slower.alias4","text":"despacio por favor","kind":"learner"}
+{"id":"answer-sets/lesson-have:slower.alias5","text":"despacio","kind":"learner"}
+{"id":"answer-sets/lesson-have:slower.alias6","text":"más lento","kind":"learner"}
+{"id":"answer-sets/lesson-have:slower.alias7","text":"más lento por favor","kind":"learner"}
+{"id":"answer-sets/lesson-need:need","text":"necesito agua","kind":"learner"}
+{"id":"answer-sets/lesson-need:need.alias1","text":"necesito agua por favor","kind":"learner"}
+{"id":"answer-sets/lesson-need:need.alias2","text":"yo necesito agua","kind":"learner"}
+{"id":"answer-sets/lesson-need:need.alias3","text":"quiero agua","kind":"learner"}
+{"id":"answer-sets/lesson-need:need.alias4","text":"quiero agua por favor","kind":"learner"}
+{"id":"answer-sets/lesson-need:need.alias5","text":"necesito madera","kind":"learner"}
+{"id":"answer-sets/lesson-need:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-need:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-need:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-need:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-need:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-need:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-need:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-need:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-need:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-need:again","text":"otra vez por favor","kind":"learner"}
+{"id":"answer-sets/lesson-need:again.alias1","text":"otra vez","kind":"learner"}
+{"id":"answer-sets/lesson-need:again.alias2","text":"repite por favor","kind":"learner"}
+{"id":"answer-sets/lesson-need:again.alias3","text":"repite","kind":"learner"}
+{"id":"answer-sets/lesson-need:again.alias4","text":"puedes repetir","kind":"learner"}
+{"id":"answer-sets/lesson-need:again.alias5","text":"puedes repetir por favor","kind":"learner"}
+{"id":"answer-sets/lesson-need:slower","text":"más despacio por favor","kind":"learner"}
+{"id":"answer-sets/lesson-need:slower.alias1","text":"más despacio","kind":"learner"}
+{"id":"answer-sets/lesson-need:slower.alias2","text":"habla más despacio","kind":"learner"}
+{"id":"answer-sets/lesson-need:slower.alias3","text":"habla más despacio por favor","kind":"learner"}
+{"id":"answer-sets/lesson-need:slower.alias4","text":"despacio por favor","kind":"learner"}
+{"id":"answer-sets/lesson-need:slower.alias5","text":"despacio","kind":"learner"}
+{"id":"answer-sets/lesson-need:slower.alias6","text":"más lento","kind":"learner"}
+{"id":"answer-sets/lesson-need:slower.alias7","text":"más lento por favor","kind":"learner"}
+{"id":"answer-sets/lesson-she:she","text":"ella quiere fruta","kind":"learner"}
+{"id":"answer-sets/lesson-she:she.alias1","text":"quiere fruta","kind":"learner"}
+{"id":"answer-sets/lesson-she:she.alias2","text":"ella quiere una fruta","kind":"learner"}
+{"id":"answer-sets/lesson-she:she.alias3","text":"ella necesita fruta","kind":"learner"}
+{"id":"answer-sets/lesson-she:she.alias4","text":"ella necesita madera","kind":"learner"}
+{"id":"answer-sets/lesson-she:she.alias5","text":"ella quiere agua","kind":"learner"}
+{"id":"answer-sets/lesson-she:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-she:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-she:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-she:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-she:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-she:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-she:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-she:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-she:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-thanks:thanks","text":"gracias","kind":"learner"}
 {"id":"answer-sets/lesson-thanks:thanks.alias1","text":"muchas gracias","kind":"learner"}
 {"id":"answer-sets/lesson-thanks:help","text":"ayuda","kind":"learner"}
@@ -239,6 +351,80 @@
 {"id":"answer-sets/lesson-unstuck:help.alias2","text":"necesito ayuda","kind":"learner"}
 {"id":"answer-sets/lesson-unstuck:help.alias3","text":"me ayudas","kind":"learner"}
 {"id":"answer-sets/lesson-unstuck:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-usted:need","text":"necesito pan","kind":"learner"}
+{"id":"answer-sets/lesson-usted:need.alias1","text":"yo necesito pan","kind":"learner"}
+{"id":"answer-sets/lesson-usted:need.alias2","text":"necesito pan por favor","kind":"learner"}
+{"id":"answer-sets/lesson-usted:need.alias3","text":"quiero pan","kind":"learner"}
+{"id":"answer-sets/lesson-usted:need.alias4","text":"quiero pan por favor","kind":"learner"}
+{"id":"answer-sets/lesson-usted:need.alias5","text":"necesito agua","kind":"learner"}
+{"id":"answer-sets/lesson-usted:need.alias6","text":"quiero agua","kind":"learner"}
+{"id":"answer-sets/lesson-usted:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-usted:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-usted:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-usted:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-usted:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-usted:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-usted:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-usted:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-usted:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-ustedes:we","text":"queremos pan","kind":"learner"}
+{"id":"answer-sets/lesson-ustedes:we.alias1","text":"nosotros queremos pan","kind":"learner"}
+{"id":"answer-sets/lesson-ustedes:we.alias2","text":"queremos pan por favor","kind":"learner"}
+{"id":"answer-sets/lesson-ustedes:we.alias3","text":"queremos agua","kind":"learner"}
+{"id":"answer-sets/lesson-ustedes:we.alias4","text":"necesitamos pan","kind":"learner"}
+{"id":"answer-sets/lesson-ustedes:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-ustedes:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-ustedes:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-ustedes:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-ustedes:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-ustedes:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-ustedes:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-ustedes:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-ustedes:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-want:want","text":"quiero madera","kind":"learner"}
+{"id":"answer-sets/lesson-want:want.alias1","text":"quiero madera por favor","kind":"learner"}
+{"id":"answer-sets/lesson-want:want.alias2","text":"necesito madera","kind":"learner"}
+{"id":"answer-sets/lesson-want:want.alias3","text":"yo quiero madera","kind":"learner"}
+{"id":"answer-sets/lesson-want:want.alias4","text":"quiero agua","kind":"learner"}
+{"id":"answer-sets/lesson-want:want.alias5","text":"quiero fruta","kind":"learner"}
+{"id":"answer-sets/lesson-want:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-want:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-want:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-want:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-want:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-want:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-want:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-want:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-want:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-want:again","text":"otra vez por favor","kind":"learner"}
+{"id":"answer-sets/lesson-want:again.alias1","text":"otra vez","kind":"learner"}
+{"id":"answer-sets/lesson-want:again.alias2","text":"repite por favor","kind":"learner"}
+{"id":"answer-sets/lesson-want:again.alias3","text":"repite","kind":"learner"}
+{"id":"answer-sets/lesson-want:again.alias4","text":"puedes repetir","kind":"learner"}
+{"id":"answer-sets/lesson-want:again.alias5","text":"puedes repetir por favor","kind":"learner"}
+{"id":"answer-sets/lesson-want:slower","text":"más despacio por favor","kind":"learner"}
+{"id":"answer-sets/lesson-want:slower.alias1","text":"más despacio","kind":"learner"}
+{"id":"answer-sets/lesson-want:slower.alias2","text":"habla más despacio","kind":"learner"}
+{"id":"answer-sets/lesson-want:slower.alias3","text":"habla más despacio por favor","kind":"learner"}
+{"id":"answer-sets/lesson-want:slower.alias4","text":"despacio por favor","kind":"learner"}
+{"id":"answer-sets/lesson-want:slower.alias5","text":"despacio","kind":"learner"}
+{"id":"answer-sets/lesson-want:slower.alias6","text":"más lento","kind":"learner"}
+{"id":"answer-sets/lesson-want:slower.alias7","text":"más lento por favor","kind":"learner"}
+{"id":"answer-sets/lesson-we:we","text":"necesitamos agua","kind":"learner"}
+{"id":"answer-sets/lesson-we:we.alias1","text":"nosotros necesitamos agua","kind":"learner"}
+{"id":"answer-sets/lesson-we:we.alias2","text":"queremos agua","kind":"learner"}
+{"id":"answer-sets/lesson-we:we.alias3","text":"nosotros queremos agua","kind":"learner"}
+{"id":"answer-sets/lesson-we:we.alias4","text":"necesitamos pan","kind":"learner"}
+{"id":"answer-sets/lesson-we:we.alias5","text":"necesitamos madera","kind":"learner"}
+{"id":"answer-sets/lesson-we:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-we:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-we:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-we:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-we:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-we:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-we:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-we:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-we:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-what:what","text":"qué es esto","kind":"learner"}
 {"id":"answer-sets/lesson-what:what.alias1","text":"qué es eso","kind":"learner"}
 {"id":"answer-sets/lesson-what:what.alias2","text":"cómo se llama esto","kind":"learner"}
@@ -533,6 +719,52 @@
 {"id":"intents:request_item.ex14","text":"necesito pan","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex15","text":"me da pan","kind":"learner","errors":[]}
 {"id":"intents:request_item.ex16","text":"me das pan","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex0","text":"sí, tengo madera","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex1","text":"tengo madera","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex2","text":"sí, yo tengo madera","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex3","text":"sí, tengo una botella","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex4","text":"tengo una botella","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex5","text":"sí, yo tengo una botella","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex6","text":"sí, yo tienes madera","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_have.ex7","text":"yo teno madera","kind":"learner","errors":["conj.irregular"]}
+{"id":"intents:state_have.ex8","text":"sí, yo tienes una botella","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_have.ex9","text":"ella tiene madera","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex10","text":"nosotros tenemos agua","kind":"learner","errors":[]}
+{"id":"intents:state_have.ex11","text":"ellos tienen pan","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex0","text":"ella quiere fruta","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex1","text":"quiere fruta","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex2","text":"ella quiere una fruta","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex3","text":"ella necesita fruta","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex4","text":"necesitamos agua","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex5","text":"nosotros necesitamos agua","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex6","text":"queremos agua","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex7","text":"nosotros queremos agua","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex8","text":"necesito pan","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex9","text":"yo necesito pan","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex10","text":"necesito pan, por favor","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex11","text":"quiero pan","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex12","text":"queremos pan","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex13","text":"nosotros queremos pan","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex14","text":"queremos pan, por favor","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex15","text":"necesitamos pan","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex16","text":"ella quiero fruta","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_want.ex17","text":"nosotros necesita agua","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_want.ex18","text":"yo necesitas pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_want.ex19","text":"nosotros quiere pan","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_want.ex20","text":"quiero madera","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex21","text":"quiero madera, por favor","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex22","text":"necesito madera","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex23","text":"yo quiero madera","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex24","text":"yo quieres madera","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_want.ex25","text":"yo quero madera","kind":"learner","errors":["conj.irregular"]}
+{"id":"intents:state_want.ex26","text":"necesito agua","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex27","text":"necesito agua, por favor","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex28","text":"quiero agua","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex29","text":"yo necesito agua","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex30","text":"yo necesitas agua","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_want.ex31","text":"ella quere fruta","kind":"learner","errors":["conj.irregular"]}
+{"id":"intents:state_want.ex32","text":"ellos quieren agua","kind":"learner","errors":[]}
+{"id":"intents:state_want.ex33","text":"usted necesita pan","kind":"learner","errors":[]}
 {"id":"intents:thank.ex0","text":"gracias","kind":"learner","errors":[]}
 {"id":"intents:thank.ex1","text":"muchas gracias","kind":"learner","errors":[]}
 {"id":"intents:thank.ex2","text":"mucho gracias","kind":"learner","errors":["gender.agree","noun.number"]}
@@ -625,6 +857,49 @@
 {"id":"PHRASES.md:mas-despacio.variant5","text":"más lento, por favor","kind":"learner"}
 {"id":"PHRASES.md:mas-despacio.error","text":"más despasio, por favor","kind":"learner","errors":["vocab.unknown"]}
 {"id":"PHRASES.md:necesitas-madera.text","text":"Necesitas madera y frutas.","kind":"npc"}
+{"id":"PHRASES.md:que-quieres.text","text":"¿Qué quieres?","kind":"npc"}
+{"id":"PHRASES.md:quiero-madera.text","text":"Quiero madera.","kind":"learner"}
+{"id":"PHRASES.md:quiero-madera.variant1","text":"quiero madera, por favor","kind":"learner"}
+{"id":"PHRASES.md:quiero-madera.variant2","text":"necesito madera","kind":"learner"}
+{"id":"PHRASES.md:quiero-madera.variant3","text":"yo quiero madera","kind":"learner"}
+{"id":"PHRASES.md:quiero-madera.error","text":"yo quieres madera","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:tienes-madera.text","text":"¿Tienes madera?","kind":"npc"}
+{"id":"PHRASES.md:tengo-madera.text","text":"Tengo madera.","kind":"learner"}
+{"id":"PHRASES.md:tengo-madera.variant1","text":"sí, tengo madera","kind":"learner"}
+{"id":"PHRASES.md:tengo-madera.variant2","text":"sí, yo tengo madera","kind":"learner"}
+{"id":"PHRASES.md:tengo-madera.error","text":"yo teno madera","kind":"learner","errors":["conj.irregular"]}
+{"id":"PHRASES.md:necesito-agua.text","text":"Necesito agua.","kind":"learner"}
+{"id":"PHRASES.md:necesito-agua.variant1","text":"necesito agua, por favor","kind":"learner"}
+{"id":"PHRASES.md:necesito-agua.variant2","text":"quiero agua","kind":"learner"}
+{"id":"PHRASES.md:necesito-agua.variant3","text":"yo necesito agua","kind":"learner"}
+{"id":"PHRASES.md:necesito-agua.error","text":"yo necesitas agua","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:que-quiere-luna.text","text":"¿Qué quiere Luna?","kind":"npc"}
+{"id":"PHRASES.md:ella-quiere-fruta.text","text":"Ella quiere fruta.","kind":"learner"}
+{"id":"PHRASES.md:ella-quiere-fruta.variant1","text":"quiere fruta","kind":"learner"}
+{"id":"PHRASES.md:ella-quiere-fruta.variant2","text":"ella quiere una fruta","kind":"learner"}
+{"id":"PHRASES.md:ella-quiere-fruta.variant3","text":"ella necesita fruta","kind":"learner"}
+{"id":"PHRASES.md:ella-quiere-fruta.error","text":"ella quiero fruta","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:necesitamos-agua.text","text":"Necesitamos agua.","kind":"learner"}
+{"id":"PHRASES.md:necesitamos-agua.variant1","text":"nosotros necesitamos agua","kind":"learner"}
+{"id":"PHRASES.md:necesitamos-agua.variant2","text":"queremos agua","kind":"learner"}
+{"id":"PHRASES.md:necesitamos-agua.variant3","text":"nosotros queremos agua","kind":"learner"}
+{"id":"PHRASES.md:necesitamos-agua.error","text":"nosotros necesita agua","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:que-necesita-usted.text","text":"¿Qué necesita usted?","kind":"npc"}
+{"id":"PHRASES.md:necesito-pan.text","text":"Necesito pan.","kind":"learner"}
+{"id":"PHRASES.md:necesito-pan.variant1","text":"yo necesito pan","kind":"learner"}
+{"id":"PHRASES.md:necesito-pan.variant2","text":"necesito pan, por favor","kind":"learner"}
+{"id":"PHRASES.md:necesito-pan.variant3","text":"quiero pan","kind":"learner"}
+{"id":"PHRASES.md:necesito-pan.error","text":"yo necesitas pan","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:tengo-botella.text","text":"Tengo una botella.","kind":"learner"}
+{"id":"PHRASES.md:tengo-botella.variant1","text":"sí, tengo una botella","kind":"learner"}
+{"id":"PHRASES.md:tengo-botella.variant2","text":"sí, yo tengo una botella","kind":"learner"}
+{"id":"PHRASES.md:tengo-botella.error","text":"sí, yo tienes una botella","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:que-quieren-ustedes.text","text":"¿Qué quieren ustedes?","kind":"npc"}
+{"id":"PHRASES.md:queremos-pan.text","text":"Queremos pan.","kind":"learner"}
+{"id":"PHRASES.md:queremos-pan.variant1","text":"nosotros queremos pan","kind":"learner"}
+{"id":"PHRASES.md:queremos-pan.variant2","text":"queremos pan, por favor","kind":"learner"}
+{"id":"PHRASES.md:queremos-pan.variant3","text":"necesitamos pan","kind":"learner"}
+{"id":"PHRASES.md:queremos-pan.error","text":"nosotros quiere pan","kind":"learner","errors":["conj.person"]}
 {"id":"english.json:lines[0]","text":"¡Hola! Soy la guía. ¿En qué te ayudo?","kind":"npc"}
 {"id":"english.json:lines[1]","text":"¿Qué es esto?","kind":"npc"}
 {"id":"english.json:lines[2]","text":"¿Qué necesitas?","kind":"npc"}
@@ -729,6 +1004,22 @@
 {"id":"english.json:lines[101]","text":"Mira. La madera es para la antorcha.","kind":"npc"}
 {"id":"english.json:lines[102]","text":"Necesitas madera y frutas.","kind":"npc"}
 {"id":"english.json:lines[103]","text":"¡Muy bien! Ya tienes fuego.","kind":"npc"}
+{"id":"english.json:lines[104]","text":"¿Qué quieres?","kind":"npc"}
+{"id":"english.json:lines[105]","text":"¿Tienes madera?","kind":"npc"}
+{"id":"english.json:lines[106]","text":"Tengo agua.","kind":"npc"}
+{"id":"english.json:lines[107]","text":"Ella es la guía.","kind":"npc"}
+{"id":"english.json:lines[108]","text":"¿Qué quiere Luna?","kind":"npc"}
+{"id":"english.json:lines[109]","text":"¿Qué necesitamos?","kind":"npc"}
+{"id":"english.json:lines[110]","text":"Ellos tienen pan.","kind":"npc"}
+{"id":"english.json:lines[111]","text":"Nosotros somos amigos.","kind":"npc"}
+{"id":"english.json:lines[112]","text":"Vamos a la tienda.","kind":"npc"}
+{"id":"english.json:lines[113]","text":"¿Qué necesita usted?","kind":"npc"}
+{"id":"english.json:lines[114]","text":"¿Tiene usted una botella?","kind":"npc"}
+{"id":"english.json:lines[115]","text":"¿Qué quieren ustedes?","kind":"npc"}
+{"id":"english.json:lines[116]","text":"Ellos van a la casa.","kind":"npc"}
+{"id":"english.json:lines[117]","text":"Estamos aquí.","kind":"npc"}
+{"id":"english.json:lines[118]","text":"Ellos quieren agua.","kind":"npc"}
+{"id":"english.json:lines[119]","text":"Ella está en la tienda.","kind":"npc"}
 {"id":"checks.json:hear.que-necesitas","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"checks.json:hear.quieres-pan","text":"¿Quieres pan?","kind":"npc"}
 {"id":"checks.json:hear.pedir-agua","text":"Quiero agua, por favor.","kind":"npc"}
@@ -740,6 +1031,9 @@
 {"id":"checks.json:hear.me-llamo","text":"Me llamo Luna.","kind":"npc"}
 {"id":"checks.json:hear.es-madera","text":"¿Es madera?","kind":"npc"}
 {"id":"checks.json:hear.de-nada","text":"De nada.","kind":"npc"}
+{"id":"checks.json:hear.que-quieres","text":"¿Qué quieres?","kind":"npc"}
+{"id":"checks.json:hear.tienes-madera","text":"¿Tienes madera?","kind":"npc"}
+{"id":"checks.json:hear.que-quieren-ustedes","text":"¿Qué quieren ustedes?","kind":"npc"}
 {"id":"speech:card.agua","text":"el agua","kind":"npc"}
 {"id":"speech:card.antorcha","text":"la antorcha","kind":"npc"}
 {"id":"speech:card.arena","text":"la arena","kind":"npc"}

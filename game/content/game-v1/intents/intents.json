@@ -122,7 +122,7 @@
         "me [VERB:dar] [ART]? [NUM:qty]? [NOUN:item] (por favor)?",
         "[ART]? [NUM:qty]? [NOUN:item] por favor"
       ],
-      "lint": {"allowOverlap": ["ask_help", "state_want"]},
+      "lint": {"allowOverlap": ["ask_help"]},
       "examples": [
         {"text": "quiero agua, por favor", "errors": [], "prompt": "stall-need"},
         {"text": "agua, por favor", "errors": [], "prompt": "stall-need"},
@@ -140,18 +140,7 @@
         {"text": "pan, por favor", "errors": [], "prompt": "stall-need"},
         {"text": "necesito pan", "errors": [], "prompt": "stall-need"},
         {"text": "me da pan", "errors": [], "prompt": "stall-need"},
-        {"text": "me das pan", "errors": [], "prompt": "stall-need"},
-        {"text": "quiero madera", "errors": [], "prompt": "lesson-want"},
-        {"text": "quiero madera, por favor", "errors": [], "prompt": "lesson-want"},
-        {"text": "necesito madera", "errors": [], "prompt": "lesson-want"},
-        {"text": "yo quiero madera", "errors": [], "prompt": "lesson-want"},
-        {"text": "yo quieres madera", "errors": ["conj.person"], "prompt": "lesson-want"},
-        {"text": "yo quero madera", "errors": ["conj.irregular"], "prompt": "lesson-want"},
-        {"text": "necesito agua", "errors": [], "prompt": "lesson-need"},
-        {"text": "necesito agua, por favor", "errors": [], "prompt": "lesson-need"},
-        {"text": "quiero agua", "errors": [], "prompt": "lesson-need"},
-        {"text": "yo necesito agua", "errors": [], "prompt": "lesson-need"},
-        {"text": "yo necesitas agua", "errors": ["conj.person"], "prompt": "lesson-need"}
+        {"text": "me das pan", "errors": [], "prompt": "stall-need"}
       ]
     },
     {
@@ -332,6 +321,17 @@
         {"text": "nosotros necesita agua", "errors": ["conj.person"], "prompt": "lesson-we"},
         {"text": "yo necesitas pan", "errors": ["conj.person"], "prompt": "lesson-usted"},
         {"text": "nosotros quiere pan", "errors": ["conj.person"], "prompt": "lesson-ustedes"},
+        {"text": "quiero madera", "errors": [], "prompt": "lesson-want"},
+        {"text": "quiero madera, por favor", "errors": [], "prompt": "lesson-want"},
+        {"text": "necesito madera", "errors": [], "prompt": "lesson-want"},
+        {"text": "yo quiero madera", "errors": [], "prompt": "lesson-want"},
+        {"text": "yo quieres madera", "errors": ["conj.person"], "prompt": "lesson-want"},
+        {"text": "yo quero madera", "errors": ["conj.irregular"], "prompt": "lesson-want"},
+        {"text": "necesito agua", "errors": [], "prompt": "lesson-need"},
+        {"text": "necesito agua, por favor", "errors": [], "prompt": "lesson-need"},
+        {"text": "quiero agua", "errors": [], "prompt": "lesson-need"},
+        {"text": "yo necesito agua", "errors": [], "prompt": "lesson-need"},
+        {"text": "yo necesitas agua", "errors": ["conj.person"], "prompt": "lesson-need"},
         {"text": "ella quere fruta", "errors": ["conj.irregular"], "prompt": "lesson-she"},
         "ellos quieren agua",
         "usted necesita pan"

@@ -203,10 +203,10 @@ public sealed class LessonFrontendTests
         run.Go(120000);
 
         var done = run.Log.Where(static l => l.StartsWith("  event: lesson personas step ", StringComparison.Ordinal) && (l.EndsWith(" done", StringComparison.Ordinal) || l.Contains(" done (", StringComparison.Ordinal))).ToList();
-        Assert.Equal(19, done.Count);
-        Assert.Contains("  event: lesson personas completed (done 19, skipped 0, moved on 0)", run.Log);
+        Assert.Equal(22, done.Count);
+        Assert.Contains("  event: lesson personas completed (done 22, skipped 0, moved on 0)", run.Log);
         Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("personas"));
-        Assert.Equal(["ella-quiere-fruta", "necesitamos-agua", "necesito-pan", "tengo-botella", "queremos-pan"], run.Session.Events.OfType<PhraseUse>().Select(static u => u.PhraseId));
+        Assert.Equal(["quiero-madera", "ella-quiere-fruta", "necesitamos-agua", "necesito-pan", "tengo-botella", "queremos-pan"], run.Session.Events.OfType<PhraseUse>().Select(static u => u.PhraseId));
         var opened = run.Session.Events.OfType<WorldEvent>().Where(static e => e.Name == WorldEvents.TalkOpened).Select(static e => e.Npc).ToList();
         Assert.Equal("villager", opened[0]);
         Assert.Contains("shopkeeper", opened); // the run walked from the villager to the stall

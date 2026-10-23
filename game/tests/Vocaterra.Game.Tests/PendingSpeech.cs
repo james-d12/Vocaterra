@@ -13,7 +13,7 @@ internal static class PendingSpeech
         // the dialogue lines
         "guide.lesson.want.1", "guide.lesson.have_wood.1", "guide.lesson.need.1", "guide.lesson.i_have.1",
         "guide.lesson.villager.she.1", "guide.lesson.villager.luna.1", "guide.lesson.villager.we.1", "guide.lesson.villager.they.1", "guide.lesson.villager.be.1", "guide.lesson.villager.go.1",
-        "guide.lesson.shop.need.1", "guide.lesson.shop.bottle.1", "guide.lesson.shop.all.1", "guide.lesson.shop.go.1", "guide.lesson.shop.here.1",
+        "guide.lesson.shop.need.1", "guide.lesson.shop.bottle.1", "guide.lesson.shop.all.1", "guide.lesson.shop.go.1", "guide.lesson.shop.here.1", "guide.lesson.shop.they.1", "guide.lesson.villager.where.1", "guide.lesson.villager.want.1",
 
         // the prompts' texts
         "prompt.lesson-want", "prompt.lesson-have", "prompt.lesson-need", "prompt.lesson-she", "prompt.lesson-we", "prompt.lesson-usted", "prompt.lesson-bottle", "prompt.lesson-ustedes",

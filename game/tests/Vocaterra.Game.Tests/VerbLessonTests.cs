@@ -65,7 +65,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         }
 
         Assert.Equal(["Quiero madera", "Tengo madera", "Necesito agua"], unit.Where(static d => d.Sent is not null).Select(static d => d.Sent));
-        Assert.Equal(["request_item", "state_have", "request_item"], unit.Where(static d => d.Turn is not null).Select(static d => d.Turn!.Intent));
+        Assert.Equal(["state_want", "state_have", "state_want"], unit.Where(static d => d.Turn is not null).Select(static d => d.Turn!.Intent));
         Assert.All(unit.Where(static d => d.Turn is not null), static d =>
         {
             Assert.True(d.Turn!.Communicated, d.Id);
@@ -117,7 +117,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         Assert.Equal(("villager", 2, true), (personas.Npc, personas.Session, personas.AutoStart));
         Assert.Contains("Personas", personas.Objective, StringComparison.Ordinal); // the objective names it
         Assert.Equal(["villager", "shopkeeper"], personas.Steps.Select(personas.NpcOf).Distinct());
-        Assert.Equal(["ella-quiere-fruta", "necesitamos-agua", "necesito-pan", "tengo-botella", "queremos-pan"], personas.TaughtPhrases);
+        Assert.Equal(["quiero-madera", "ella-quiere-fruta", "necesitamos-agua", "necesito-pan", "tengo-botella", "queremos-pan"], personas.TaughtPhrases); // the first is the reminder of session 1
         var walk = Assert.Single(personas.Steps, static s => s.Type == LessonStepType.Do);
         Assert.Equal(("talk_opened", "shopkeeper", "tienda"), (walk.Event, walk.At, walk.Point)); // the walk from the villager to the stall
         Assert.Equal(LessonStepType.Recap, personas.Steps[^1].Type);
@@ -181,8 +181,8 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         Assert.Equal(2, session.Lessons.Record.Single(static r => r.LessonId == "personas").CompletedSession);
         Assert.All(done, static d => Assert.Equal(StepOutcome.Done, d.Outcome));
         var turns = done.Where(static d => d.Turn is not null).ToList();
-        Assert.Equal(["Ella quiere fruta", "Necesitamos agua", "Necesito pan", "Tengo una botella", "Queremos pan"], turns.Select(static d => d.Sent));
-        Assert.Equal(["state_want", "state_want", "state_want", "state_have", "state_want"], turns.Select(static d => d.Turn!.Intent));
+        Assert.Equal(["Quiero madera", "Ella quiere fruta", "Necesitamos agua", "Necesito pan", "Tengo una botella", "Queremos pan"], turns.Select(static d => d.Sent));
+        Assert.Equal(["state_want", "state_want", "state_want", "state_want", "state_have", "state_want"], turns.Select(static d => d.Turn!.Intent));
         Assert.All(turns, static d =>
         {
             Assert.True(d.Turn!.Communicated, d.Id);
@@ -190,8 +190,34 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
             Assert.Empty(d.Turn.HostEvents); // the stall hands nothing over, and the villager gives nothing
             Assert.True(d.Turn.LessonHandled, d.Id);
         });
-        Assert.Equal(["villager", "villager", "shopkeeper", "shopkeeper", "shopkeeper"], turns.Select(static d => d.Turn!.Npc));
+        Assert.Equal(["villager", "villager", "villager", "shopkeeper", "shopkeeper", "shopkeeper"], turns.Select(static d => d.Turn!.Npc));
         Assert.Null(session.Lessons.OfferFor("villager"));
+    }
+
+    [Fact]
+    public void TheStallsAndTheVillagersOwnPhraseCardsStayDownWhilePersonasRunsAndOnlyARepeatStepShowsItsCard()
+    {
+        var session = SessionTwoAtVillager();
+        Assert.Empty(session.Support.Cards); // not the villager's "¿Dónde está el río?"
+        while (session.Lessons.Current is { } step && step.Id != "p1-say-she")
+        {
+            Assert.Empty(session.Support.Cards);
+            _ = LessonDriver.DoStep(session);
+        }
+
+        Assert.Equal(["ella-quiere-fruta"], session.Support.Cards.Select(static c => c.PhraseId)); // a repeat step has its card up
+        _ = LessonDriver.DoStep(session);
+        while (session.Lessons.Current is { } step && step.Id != "p2-walk")
+        {
+            Assert.Empty(session.Support.Cards); // an answer step has none, and the explain, model and listen steps ask for no phrase
+            _ = LessonDriver.DoStep(session);
+        }
+
+        session.EndTalk();
+        Stage.TeleportToNpc(session, "shopkeeper");
+        _ = session.OpenTalk("shopkeeper");
+        Assert.Empty(session.Support.Cards); // not the stall's "Quiero agua, por favor."
+        Assert.Equal("p3-intro", session.Lessons.Current!.Id);
     }
 
     [Fact]
@@ -507,7 +533,8 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         Assert.Contains("state_want", prompts["lesson-usted"].AllowedIntentIds);
         Assert.DoesNotContain("request_item", prompts["lesson-usted"].AllowedIntentIds); // a request at the stall would hand over water
         Assert.Contains("state_have", prompts["lesson-bottle"].AllowedIntentIds);
-        Assert.Contains("request_item", prompts["lesson-want"].AllowedIntentIds);
+        Assert.Contains("state_want", prompts["lesson-want"].AllowedIntentIds);
+        Assert.DoesNotContain("request_item", prompts["lesson-want"].AllowedIntentIds); // at Luna and at the villager nothing is handed over either
         Assert.Equal("villager", prompts["lesson-she"].AgentId);
         Assert.Equal("shopkeeper", prompts["lesson-ustedes"].AgentId);
     }

@@ -32,7 +32,7 @@ public sealed class CheckBankTests
                 "say.quiero-madera", "say.tengo-madera", "say.ella-quiere-fruta", "say.necesitamos-agua"],
             bank.Where(static i => i.Kind == CheckItemKind.Production).Select(static i => i.Id));
         Assert.Equal(
-            ["request_item", "confirm", "deny", "ask_directions", "confirm", "deny", "ask_what", "ask_repeat", "ask_slower", "request_item", "state_have", "state_want", "state_want"],
+            ["request_item", "confirm", "deny", "ask_directions", "confirm", "deny", "ask_what", "ask_repeat", "ask_slower", "state_want", "state_have", "state_want", "state_want"],
             bank.Where(static i => i.Kind == CheckItemKind.Production).Select(static i => i.Intent));
     }
 

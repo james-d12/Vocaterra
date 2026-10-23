@@ -659,6 +659,24 @@
       "variants": [
         { "lineId": "guide.lesson.shop.here.1", "text": "Estamos aquí." }
       ]
+    },
+    "guide.lesson.shop.they": {
+      "poolId": "guide.lesson.shop.they",
+      "variants": [
+        { "lineId": "guide.lesson.shop.they.1", "text": "Ellos quieren agua." }
+      ]
+    },
+    "guide.lesson.villager.want": {
+      "poolId": "guide.lesson.villager.want",
+      "variants": [
+        { "lineId": "guide.lesson.villager.want.1", "text": "¿Qué quieres?" }
+      ]
+    },
+    "guide.lesson.villager.where": {
+      "poolId": "guide.lesson.villager.where",
+      "variants": [
+        { "lineId": "guide.lesson.villager.where.1", "text": "Ella está en la tienda." }
+      ]
     }
   }
 }

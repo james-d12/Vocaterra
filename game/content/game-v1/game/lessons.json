@@ -7,7 +7,7 @@
       "npc": "guide",
       "title": "First words with Luna",
       "english": "Seven short units: hello, yes and no, what is this, please and thank you, I and you with three verbs, getting unstuck, and what the camp needs.",
-      "summary": "You can greet, say yes and no, ask what something is, say please and thank you, say what you want, have and need, and say what the camp needs.",
+      "summary": "You can greet, say yes and no, ask what something is, be polite, and say what you want, have and need.",
       "autoStart": true,
       "verbs": [
         {
@@ -396,7 +396,7 @@
       "npc": "villager",
       "title": "Personas: he, she, we, they",
       "english": "Session 2: the verbs for he, she, you (polite), we and they, with the villager and the shopkeeper.",
-      "summary": "You can say what she wants and what we need or want, and you understand the verbs for he, she, you (polite), we and they.",
+      "summary": "You can say what she wants and what we need or want, and you know he, she, we and they.",
       "autoStart": true,
       "session": 2,
       "objective": "Session 2: go to the village and talk to the villager to start the lesson “Personas”",
@@ -514,7 +514,18 @@
         {
           "id": "p1-intro",
           "type": "explain",
-          "english": "Session 2: more people. You know “I” (yo) and “you” (tú). Now: he or she (él, ella), we (nosotros) and they (ellos). The verb ending changes with the person. The villager helps first, then you talk to the shopkeeper at the stall. Enter goes on, H helps, K skips a step."
+          "english": "Session 2: more people. You know “I” (yo) and “you” (tú). Now: he or she (él, ella), we (nosotros) and they (ellos). The verb ending changes with the person. First a reminder from last time: “Quiero madera” (I want wood). The villager helps first, then you talk to the shopkeeper at the stall. Enter goes on, H helps, K skips a step."
+        },
+        {
+          "id": "p1-recall",
+          "type": "answer",
+          "phrase": "quiero-madera",
+          "prompt": "lesson-want",
+          "line": "guide.lesson.villager.want.1",
+          "translation": "What do you want?",
+          "english": "He asks you what you want, with “tú” as Luna did. Answer about yourself.",
+          "help": "Say: Quiero madera. It means I want wood. Quieres is you want; quiero is I want.",
+          "retry": "Not quite. Say: Quiero madera."
         },
         {
           "id": "p1-she-is",
@@ -576,6 +587,21 @@
           "line": "guide.lesson.villager.be.1",
           "translation": "We are friends.",
           "english": "“Somos” is “we are”. “Ser” and “estar” both mean “to be”, and “ir” is “to go”. They do not follow the pattern, so you meet them one form at a time."
+        },
+        {
+          "id": "p2-where",
+          "type": "listen",
+          "line": "guide.lesson.villager.where.1",
+          "translation": "She is at the shop.",
+          "options": [
+            "She is at the shop.",
+            "We are at the shop.",
+            "They are at the shop."
+          ],
+          "correct": 0,
+          "english": "Luna is at the stall. “Está” is “is” (estar): the he or she form. What does he say?",
+          "help": "“Ella está” is she is.",
+          "retry": "Not quite. Listen again: ella está."
         },
         {
           "id": "p2-go",
@@ -673,6 +699,22 @@
           "english": "One more: “van” is “they go” (ir). What does she say?",
           "help": "“Ellos van” is they go.",
           "retry": "Not quite. Listen again: ellos van."
+        },
+        {
+          "id": "p4-they",
+          "type": "listen",
+          "npc": "shopkeeper",
+          "line": "guide.lesson.shop.they.1",
+          "translation": "They want water.",
+          "options": [
+            "They want water.",
+            "We want water.",
+            "She wants water."
+          ],
+          "correct": 0,
+          "english": "And the villagers? “Ellos quieren” is “they want”: -en again. What does she say?",
+          "help": "“Ellos quieren” is they want.",
+          "retry": "Not quite. Listen again: ellos quieren."
         },
         {
           "id": "p4-table",

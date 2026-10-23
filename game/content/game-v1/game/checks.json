@@ -367,7 +367,7 @@
       "phrase": "quiero-madera",
       "situation": "A guide asks what you want. You want wood. Say so.",
       "prompt": "lesson-want",
-      "intent": "request_item"
+      "intent": "state_want"
     },
     {
       "id": "say.tengo-madera",

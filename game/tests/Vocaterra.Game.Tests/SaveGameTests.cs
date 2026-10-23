@@ -128,7 +128,8 @@ public sealed class SaveGameTests
         var second = SaveOf(loaded);
 
         Assert.Equal(2, loaded.PlaySession);
-        Assert.Equal(SaveGame.Serialize(SaveGame.Parse(first) with { Session = 2 }), second);
+        // S26: the new session points the beacon at the NPC of its new lesson (Personas, the villager); nothing else differs.
+        Assert.Equal(SaveGame.Serialize(SaveGame.Parse(first) with { Session = 2, Pointer = new PointerSave(loaded.Pointer!.Place, loaded.Pointer.Target) }), second);
     }
 
     [Fact]
