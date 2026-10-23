@@ -87,6 +87,8 @@ public static class LessonStepTypes
 /// <param name="Npc">The NPC the step is said at (S26: a lesson may move from one NPC to another), or <see langword="null"/> for the lesson's own NPC.</param>
 /// <param name="Person">For <c>repeat</c> and <c>answer</c> (S26): the person and number of the finite verb the answer must have (<c>1sg</c>, <c>2sg</c>, <c>3sg</c>, <c>1pl</c>, <c>2pl</c> or <c>3pl</c>), or <see langword="null"/> to judge nothing of it.</param>
 /// <param name="PersonRetry">The English line shown when the answer's verb has another person than <see cref="Person"/> (it names the ending), or <see langword="null"/> for the step's retry line.</param>
+/// <param name="Tense">For <c>repeat</c> and <c>answer</c> (S27): the tense the answer's verb must have (<c>pres</c>, <c>pret</c> or <c>ir-a</c>, the near future: a form of <c>ir</c>, <c>a</c> and an infinitive), or <see langword="null"/> to judge nothing of it.</param>
+/// <param name="TenseRetry">The English line shown when the answer's verb has another tense than <see cref="Tense"/> (it names the form), or <see langword="null"/> for the step's retry line.</param>
 /// <param name="At">For <c>do</c> with the <c>talk_opened</c> event (S26): the NPC the learner is to walk up to and talk to; the step ends when the panel opens on that NPC.</param>
 public sealed record LessonStep(
     string Id,
@@ -109,7 +111,9 @@ public sealed record LessonStep(
     string? Npc = null,
     string? At = null,
     string? Person = null,
-    string? PersonRetry = null)
+    string? PersonRetry = null,
+    string? Tense = null,
+    string? TenseRetry = null)
 {
     /// <summary>The attempts a step allows when the file says nothing: one try and one retry, then the lesson moves on.</summary>
     public const int DefaultAttempts = 2;
@@ -125,8 +129,31 @@ public sealed record LessonStep(
 /// <param name="Lemma">The verb's infinitive.</param>
 /// <param name="Person">The person: <c>1</c>, <c>2</c> or <c>3</c>.</param>
 /// <param name="Number">The number: <c>sg</c> or <c>pl</c>.</param>
-/// <param name="Tense">The tense: <c>pres</c> now (S27 adds the preterite and the near future).</param>
-public sealed record TaughtVerbForm(string Lemma, string Person, string Number, string Tense);
+/// <param name="Tense">The tense: <c>pres</c> (present), <c>pret</c> (preterite, S27), <c>ir-a</c> (the near future, S27) or <c>fut</c> (the simple future, A2, not taught yet).</param>
+public sealed record TaughtVerbForm(string Lemma, string Person, string Number, string Tense)
+{
+    /// <summary>The tense of the near future, <c>ir a</c> + infinitive (S27).</summary>
+    public const string NearFuture = "ir-a";
+
+    /// <summary>
+    /// The form as the learner meets it. For the tenses the core's morphology generates (<c>pres</c>, <c>pret</c>, <c>fut</c>) it is the conjugated word (<c>comí</c>). The near future is a
+    /// <i>periphrastic</i> form (S27, for the book's conjugation tables, S28): it has no word of its own, so the form is <c>ir</c> in the present for that person and number, then
+    /// <c>a</c>, then the lemma as the infinitive: <c>comer</c> 1 sg <c>ir-a</c> is <c>voy a comer</c>. The lemma of an <c>ir-a</c> form is the verb that follows the <c>a</c>, so a table
+    /// of <c>comer</c> has a column "future (ir a)" whose cells are built from <c>ir</c>'s present column and the infinitive, never typed by hand.
+    /// </summary>
+    /// <param name="morphology">The bundle's morphology.</param>
+    /// <returns>The form's text, or <see langword="null"/> when the core cannot generate it.</returns>
+    public string? Text(Vocaterra.Nlp.Language.Morphology.MorphologyGenerator morphology)
+    {
+        ArgumentNullException.ThrowIfNull(morphology);
+        if (!string.Equals(Tense, NearFuture, StringComparison.Ordinal))
+        {
+            return morphology.Conjugate(Lemma, Person, Number, Tense);
+        }
+
+        return morphology.Conjugate("ir", Person, Number, "pres") is { } ir ? $"{ir} a {Lemma}" : null;
+    }
+}
 
 /// <summary>One lesson: a short sequence of steps attached to an NPC.</summary>
 /// <param name="Id">The lesson's id.</param>
@@ -187,7 +214,8 @@ public sealed record LessonDefinition(
 /// <item><c>recap</c>: optionally <c>phrases</c> (default: every phrase the lesson teaches).</item>
 /// </list>
 /// <para>A lesson may also carry <c>session</c> (the play session it unlocks in, default 1), <c>objective</c> (the English line that names it while it is unlocked and not begun; needed when <c>session</c> is above 1)
-/// and <c>verbs</c> (the verb forms it teaches: <c>lemma</c>, <c>person</c> 1 to 3, <c>number</c> sg or pl, <c>tense</c>; S26).</para>
+/// and <c>verbs</c> (the verb forms it teaches: <c>lemma</c>, <c>person</c> 1 to 3, <c>number</c> sg or pl, <c>tense</c> pres, pret, ir-a or fut; S26, S27). A repeat or answer step may declare the <c>person</c>
+/// of the verb it expects (<c>1sg</c>...) with a <c>personRetry</c>, and its <c>tense</c> (<c>pres</c>, <c>pret</c>, <c>ir-a</c>) with a <c>tenseRetry</c> (S27).</para>
 /// <para>The row's intent must be one the prompt allows, so the core can recognise the answer. Plain values, no clock, no random numbers.</para>
 /// </remarks>
 public sealed class LessonBook
@@ -349,7 +377,7 @@ public sealed class LessonBook
         foreach (var item in listed.EnumerateArray())
         {
             var form = new TaughtVerbForm(Text(item, "lemma"), Text(item, "person"), Text(item, "number"), Text(item, "tense"));
-            if (form.Person is not ("1" or "2" or "3") || form.Number is not ("sg" or "pl") || form.Tense is not ("pres" or "pret" or "fut" or "ir-a"))
+            if (form.Person is not ("1" or "2" or "3") || form.Number is not ("sg" or "pl") || form.Tense is not ("pres" or "pret" or "fut" or TaughtVerbForm.NearFuture))
             {
                 throw Bad(lesson, $"declares the verb form {form.Lemma} {form.Person} {form.Number} {form.Tense}, which is not a person 1 to 3, a number sg or pl and a tense pres, pret, fut or ir-a");
             }
@@ -464,7 +492,13 @@ public sealed class LessonBook
             throw Bad(lesson, $"step '{id}' expects the person '{person}': \"person\" is 1sg, 2sg, 3sg, 1pl, 2pl or 3pl and goes with a repeat or answer step");
         }
 
-        return new LessonStep(id, type, Text(element, "english"), Optional(element, "help"), Optional(element, "retry"), line, translation, phrase, prompt, options, correct, worldEvent, detail, phrases, attempts, type == LessonStepType.Do ? Optional(element, "point") : null, type == LessonStepType.Do ? Optional(element, "hud") : null, stepNpc, at, person, person is null ? null : Optional(element, "personRetry"));
+        var tense = Optional(element, "tense");
+        if (tense is not null && (type is not (LessonStepType.Repeat or LessonStepType.Answer) || tense is not ("pres" or "pret" or TaughtVerbForm.NearFuture)))
+        {
+            throw Bad(lesson, $"step '{id}' expects the tense '{tense}': \"tense\" is pres, pret or ir-a and goes with a repeat or answer step");
+        }
+
+        return new LessonStep(id, type, Text(element, "english"), Optional(element, "help"), Optional(element, "retry"), line, translation, phrase, prompt, options, correct, worldEvent, detail, phrases, attempts, type == LessonStepType.Do ? Optional(element, "point") : null, type == LessonStepType.Do ? Optional(element, "hud") : null, stepNpc, at, person, person is null ? null : Optional(element, "personRetry"), tense, tense is null ? null : Optional(element, "tenseRetry"));
     }
 
     private static (string Phrase, string Prompt) PhraseAndPrompt(string lesson, string step, JsonElement element, PhraseSheet sheet, IReadOnlyDictionary<string, PromptSpec> prompts)

@@ -19,6 +19,7 @@ public sealed class PhraseSheetTests
         "me-llamo", "es-madera", "si", "no", "que-es-esto", "quieres-fruta", "de-nada", "otra-vez", "mas-despacio", "necesitas-madera",
         "que-quieres", "quiero-madera", "tienes-fruta", "tengo-fruta", "necesito-agua",
         "que-quiere-luna", "ella-quiere-fruta", "necesitamos-agua", "que-necesita-usted", "necesito-pan", "tengo-botella", "que-quieren-ustedes", "queremos-pan",
+        "que-vas-a-comer", "voy-a-comer-pan", "que-vamos-a-comer", "vamos-a-comer-fruta", "que-comiste-ayer", "ayer-comi-fruta", "fuiste-al-rio-ayer", "ayer-fui-al-rio", "tuviste-agua-ayer", "ayer-tuve-agua", "que-vas-a-hacer", "voy-a-ir-al-rio",
     ];
 
     private static readonly Lazy<IReadOnlyList<PhraseRow>> LoadedRows = new(ReadRows);
@@ -30,7 +31,7 @@ public sealed class PhraseSheetTests
     private static IEnumerable<PhraseRow> HeardRows => Rows.Where(static r => r.Says is "hears" or "both");
 
     [Fact]
-    public void TheSheetHoldsExactlyTheThirtyFourPhrasesInOrder()
+    public void TheSheetHoldsExactlyTheFortySixPhrasesInOrder()
     {
         Assert.Equal(ExpectedIds, Rows.Select(static r => r.Id));
         foreach (var row in Rows)

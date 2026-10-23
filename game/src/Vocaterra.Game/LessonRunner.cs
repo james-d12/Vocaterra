@@ -248,7 +248,7 @@ public sealed class LessonRunner
     /// or <see langword="null"/> when there is none. Lessons of session 1 are not new lessons: the opening sends the player to the guide.
     /// </summary>
     public LessonDefinition? NewLesson =>
-        _activeId is not null ? null : _book.Lessons.FirstOrDefault(l => l.Session > 1 && l.Objective is not null && _states[l.Id].Status == LessonStatus.NotStarted && IsUnlocked(l));
+        _activeId is not null ? null : _book.Lessons.Where(l => l.Session > 1 && l.Objective is not null && _states[l.Id].Status == LessonStatus.NotStarted && IsUnlocked(l)).OrderByDescending(static l => l.Session).FirstOrDefault();
 
     /// <summary>
     /// Asks to practise a completed lesson again (the book's "Practise again", S26). The lesson starts when the learner talks to its NPC, from its first step; its progress
@@ -319,8 +319,8 @@ public sealed class LessonRunner
         return lesson is null ? null : new LessonOffer(lesson.Id, lesson.Title, lesson.English, StatusOf(lesson.Id) == LessonStatus.InProgress);
     }
 
-    // The lesson that can start at an NPC now (S26): the one the learner asked to practise again, else the first lesson attached to it that is not completed, whose session has
-    // come and whose earlier lesson is done.
+    // The lesson that can start at an NPC now (S26): the one the learner asked to practise again, else the lesson attached to it that is not completed, whose session has
+    // come and whose earlier lesson is done, the newest session first (S27).
     private LessonDefinition? Available(string npc)
     {
         if (_activeId is not null)
@@ -333,7 +333,12 @@ public sealed class LessonRunner
             return again;
         }
 
-        return _book.Lessons.FirstOrDefault(l => string.Equals(l.Npc, npc, StringComparison.Ordinal) && StatusOf(l.Id) != LessonStatus.Completed && IsUnlocked(l));
+        // The newest session's lesson first (S27): a learner who reaches session 3 without having done session 2's lesson is offered session 3's, and the older one stays on offer after it.
+        // Every lesson is written to stand on its own (it teaches the forms it uses).
+        return _book.Lessons
+            .Where(l => string.Equals(l.Npc, npc, StringComparison.Ordinal) && StatusOf(l.Id) != LessonStatus.Completed && IsUnlocked(l))
+            .OrderByDescending(static l => l.Session)
+            .FirstOrDefault();
     }
 
     // The NPC the active lesson's step in progress is said at.
@@ -701,11 +706,12 @@ public sealed class LessonRunner
         }
         else if (MatchesPhrase(turn, step.Phrase!))
         {
-            if (step.Person is { } wanted && WrongPerson(turn, wanted) is { } said)
+            if (FormMiss(step, turn) is { } miss)
             {
-                // The answer is the right phrase with another person's verb and no error for the core to flag (no subject pronoun said): quieres for quiero, or quiero at "¿Qué quieren
-                // ustedes?". It is a miss, and the retry names the ending (S26). A wrong person next to a pronoun (yo quieres) is the core's conj.person: a slip, the step ends.
-                Miss(lesson, state, step, $"wrong person: said {said}, expected {wanted}", step.PersonRetry);
+                // The answer is the right phrase with another person's or another tense's verb and no error for the core to flag (no subject pronoun said, no time word): quieres for quiero,
+                // or quiero at "¿Qué quieren ustedes?" (S26); comí at "¿Qué vas a comer?" (S27). It is a miss, and the retry names the ending or the form. A wrong person next to a
+                // pronoun (yo quieres) or a tense next to a time word (mañana comí) is the core's conj.*: a slip, the step ends.
+                Miss(lesson, state, step, miss.Reason, miss.Retry);
             }
             else
             {
@@ -718,6 +724,42 @@ public sealed class LessonRunner
         }
 
         return taken;
+    }
+
+    /// <summary>
+    /// Whether the lesson will count this turn as a miss for the person or the tense of its verb (S26, S27), without changing anything. The session asks before it credits the phrase
+    /// the turn used, so a wrong-person or wrong-tense answer is not credited as a use of the phrase it was not.
+    /// </summary>
+    /// <param name="turn">The turn the session applied.</param>
+    internal bool IsFormMiss(GuideTurn turn)
+    {
+        if (!Engaged || Active is not { } lesson || !string.Equals(turn.Npc, CurrentNpcOf(lesson), StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var step = lesson.Steps[_states[lesson.Id].Step];
+        return step.WaitsOnTurn
+            && turn.Communicated && !turn.Unsure && !turn.Uncertain && !turn.Choice
+            && !IsServiceIntent(turn.Intent)
+            && MatchesPhrase(turn, step.Phrase!)
+            && FormMiss(step, turn) is not null;
+    }
+
+    // The reason and the retry line when the answer is the step's phrase with the wrong person or tense of verb, else null. Person first, then tense.
+    private static (string Reason, string? Retry)? FormMiss(LessonStep step, GuideTurn turn)
+    {
+        if (step.Person is { } person && WrongPerson(turn, person) is { } said)
+        {
+            return ($"wrong person: said {said}, expected {person}", step.PersonRetry);
+        }
+
+        if (step.Tense is { } tense && WrongTense(turn, tense) is { } saidTense)
+        {
+            return ($"wrong tense: said {saidTense}, expected {tense}", step.TenseRetry);
+        }
+
+        return null;
     }
 
     // "Ayuda" and "no sé" ask for help and are never an attempt, except in the step that teaches the phrase itself (S17: "No sé" is a lesson phrase).
@@ -886,11 +928,45 @@ public sealed class LessonRunner
             return null;
         }
 
-        var verbs = words.Where(static w => string.Equals(w.Pos, "verb", StringComparison.Ordinal) && w.Person is { Length: > 0 } && w.Number is { Length: > 0 }
-            && !string.Equals(w.Mood, "inf", StringComparison.OrdinalIgnoreCase) && !string.Equals(w.Mood, "infinitive", StringComparison.OrdinalIgnoreCase))
+        var verbs = FiniteVerbs(words)
             .Select(static w => w.Person![0] + (w.Number![0] is 'p' or 'P' ? "pl" : "sg"))
             .ToList();
         return verbs.Count == 0 || verbs.Contains(wanted, StringComparer.Ordinal) ? null : verbs[0];
+    }
+
+    // The finite verbs of an answer: those with a person and a number that are not infinitives.
+    private static List<GuideWord> FiniteVerbs(IReadOnlyList<GuideWord> words) =>
+        words.Where(static w => string.Equals(w.Pos, "verb", StringComparison.Ordinal) && w.Person is { Length: > 0 } && w.Number is { Length: > 0 }
+            && !string.Equals(w.Mood, "inf", StringComparison.OrdinalIgnoreCase) && !string.Equals(w.Mood, "infinitive", StringComparison.OrdinalIgnoreCase)).ToList();
+
+    // The tense (S27) of the answer's verb when it is not the expected one and the core found no error to flag, else null: the tense said (pres, pret, ...) or "none". The near future
+    // (ir-a) is a finite form of ir, then "a", then an infinitive. A line with no finite verb is not judged. When the line has several verbs, one with the expected tense is enough.
+    private static string? WrongTense(GuideTurn turn, string wanted)
+    {
+        if (turn.Errors.Any(static e => e.Tag.StartsWith("conj.", StringComparison.Ordinal)) || turn.Words is not { } words)
+        {
+            return null;
+        }
+
+        var finite = FiniteVerbs(words);
+        if (finite.Count == 0)
+        {
+            return null;
+        }
+
+        if (string.Equals(wanted, TaughtVerbForm.NearFuture, StringComparison.Ordinal))
+        {
+            var nearFuture = false;
+            for (var i = 0; i + 2 < words.Count; i++)
+            {
+                nearFuture |= string.Equals(words[i].Lemma, "ir", StringComparison.Ordinal) && finite.Contains(words[i]) && string.Equals(words[i + 1].Text, "a", StringComparison.Ordinal)
+                    && string.Equals(words[i + 2].Pos, "verb", StringComparison.Ordinal) && (words[i + 2].Mood is "inf" or "infinitive" || words[i + 2].Person is not { Length: > 0 });
+            }
+
+            return nearFuture ? null : finite[0].Tense ?? "none";
+        }
+
+        return finite.Any(w => string.Equals(w.Tense, wanted, StringComparison.OrdinalIgnoreCase)) ? null : finite[0].Tense ?? "none";
     }
 
     private void Miss(LessonDefinition lesson, State state, LessonStep step, string reason, string? retry = null)

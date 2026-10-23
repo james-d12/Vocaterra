@@ -136,7 +136,19 @@
     "necesito-pan": "Answer about yourself. “Necesito” means “I need”.",
     "tengo-botella": "Say that you have a bottle. “Tengo” means “I have”.",
     "que-quieren-ustedes": "The shopkeeper asks you both. “Ustedes” means “you all”, and “quieren” ends in -en.",
-    "queremos-pan": "Say what you both want. “Queremos” means “we want”."
+    "queremos-pan": "Say what you both want. “Queremos” means “we want”.",
+    "que-vas-a-comer": "The villager asks what you will eat tomorrow. “Vas a comer” means “you are going to eat”: ir, a and an infinitive.",
+    "voy-a-comer-pan": "Say what you are going to eat. “Voy a comer” means “I am going to eat”: voy (from ir), a, and the infinitive comer.",
+    "que-vamos-a-comer": "The villager asks what the two of you will eat. “Vamos a comer” means “we are going to eat”.",
+    "vamos-a-comer-fruta": "Say what you will eat together. “Vamos a comer” means “we are going to eat”.",
+    "que-comiste-ayer": "The shopkeeper asks what you ate yesterday. “Comiste” means “you ate”: a past form for “you”.",
+    "ayer-comi-fruta": "Say what you ate yesterday. “Comí” means “I ate”: the past form for “I” of comer. “Ayer” is yesterday.",
+    "fuiste-al-rio-ayer": "She asks if you went to the river yesterday. “Fuiste” means “you went”: the past of ir.",
+    "ayer-fui-al-rio": "Say you went to the river yesterday. “Fui” means “I went”: the past of ir, which does not follow the pattern.",
+    "tuviste-agua-ayer": "She asks if you had water yesterday. “Tuviste” means “you had”: the past of tener.",
+    "ayer-tuve-agua": "Say you had water yesterday. “Tuve” means “I had”: the past of tener, which is irregular.",
+    "que-vas-a-hacer": "She asks what you are going to do tomorrow. “Vas a hacer” means “you are going to do”.",
+    "voy-a-ir-al-rio": "Say you will go to the river tomorrow: “voy a ir” is “I am going to go”. Yesterday it was “fui”."
   },
   "lines": [
     { "spanish": "¡Hola! Soy la guía. ¿En qué te ayudo?", "english": "Hello! I am the guide. How can I help you?" },
@@ -255,7 +267,18 @@
     { "spanish": "¿Tiene usted una botella?", "english": "Do you have a bottle?" },
     { "spanish": "¿Qué quieren ustedes?", "english": "What do you all want?" },
     { "spanish": "Ellos quieren agua.", "english": "They want water." },
-    { "spanish": "Ella está en el campamento.", "english": "She is at the camp." }
+    { "spanish": "Ella está en el campamento.", "english": "She is at the camp." },
+    { "spanish": "Hoy estamos aquí.", "english": "Today we are here." },
+    { "spanish": "Hoy tú vas a la tienda.", "english": "Today you go to the shop." },
+    { "spanish": "¿Qué vas a comer mañana?", "english": "What are you going to eat tomorrow?" },
+    { "spanish": "¿Qué vamos a comer?", "english": "What are we going to eat?" },
+    { "spanish": "Ellos van a comer pan.", "english": "They are going to eat bread." },
+    { "spanish": "Ayer comí pan.", "english": "Yesterday I ate bread." },
+    { "spanish": "¿Qué comiste ayer?", "english": "What did you eat yesterday?" },
+    { "spanish": "¿Fuiste al río ayer?", "english": "Did you go to the river yesterday?" },
+    { "spanish": "¿Tuviste agua ayer?", "english": "Did you have water yesterday?" },
+    { "spanish": "Ayer fuiste al río.", "english": "Yesterday you went to the river." },
+    { "spanish": "¿Qué vas a hacer mañana?", "english": "What are you going to do tomorrow?" }
   ],
   "feedback": {
     "outcomes": {

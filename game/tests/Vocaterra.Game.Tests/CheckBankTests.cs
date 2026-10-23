@@ -21,18 +21,18 @@ public sealed class CheckBankTests
     private static string Battery(params string[] items) => """{"schemaVersion":1,"items":[""" + string.Join(",", items) + "]}";
 
     [Fact]
-    public void TheBundleHoldsFourteenComprehensionItemsAndThirteenProductionItems()
+    public void TheBundleHoldsSixteenComprehensionItemsAndFifteenProductionItems()
     {
         var bank = Bank;
 
-        Assert.Equal(27, bank.Count);
-        Assert.Equal(14, bank.Count(static i => i.Kind == CheckItemKind.Comprehension));
+        Assert.Equal(31, bank.Count);
+        Assert.Equal(16, bank.Count(static i => i.Kind == CheckItemKind.Comprehension));
         Assert.Equal(
             ["say.pedir-agua", "say.si-por-favor", "say.no-gracias", "say.donde-esta-el-rio", "say.si", "say.no", "say.que-es-esto", "say.otra-vez", "say.mas-despacio",
-                "say.quiero-madera", "say.tengo-fruta", "say.ella-quiere-fruta", "say.necesitamos-agua"],
+                "say.quiero-madera", "say.tengo-fruta", "say.ella-quiere-fruta", "say.necesitamos-agua", "say.voy-a-comer-pan", "say.ayer-comi-fruta"],
             bank.Where(static i => i.Kind == CheckItemKind.Production).Select(static i => i.Id));
         Assert.Equal(
-            ["request_item", "confirm", "deny", "ask_directions", "confirm", "deny", "ask_what", "ask_repeat", "ask_slower", "state_want", "state_have", "state_want", "state_want"],
+            ["request_item", "confirm", "deny", "ask_directions", "confirm", "deny", "ask_what", "ask_repeat", "ask_slower", "state_want", "state_have", "state_want", "state_want", "state_action", "state_action"],
             bank.Where(static i => i.Kind == CheckItemKind.Production).Select(static i => i.Intent));
     }
 

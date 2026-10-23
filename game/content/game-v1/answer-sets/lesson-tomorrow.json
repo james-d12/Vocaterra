@@ -1,0 +1,23 @@
+{
+  "answerSetId": "lesson-tomorrow",
+  "answers": [
+    {
+      "answerId": "plan",
+      "canonical": "mañana voy a ir al río",
+      "aliases": ["voy a ir al río", "yo voy a ir al río", "mañana voy a ir a la tienda", "voy a ir a la tienda"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "help",
+      "canonical": "ayuda",
+      "aliases": ["ayuda por favor", "necesito ayuda", "me ayudas", "me puedes ayudar"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    },
+    {
+      "answerId": "dont-know",
+      "canonical": "no sé",
+      "aliases": ["no lo sé", "yo no sé", "no entiendo"],
+      "dialects": ["es-MX", "es-CO", "es-AR"]
+    }
+  ]
+}

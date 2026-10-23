@@ -19,8 +19,13 @@ public sealed class BookSpeechTests
     private static readonly Lazy<IReadOnlyList<SpeechLine>> Lines = new(() => SpeechLines.Enumerate(Bundle.Value, Nouns.Value, Sheet.Value));
     private static readonly Lazy<string> Folder = new(() => Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
 
-    // The phrases that have no recording of their own on purpose: none (every phrase plays its own file or an NPC line).
-    private static readonly string[] PhrasesWithoutARecording = [];
+    // The phrases that have no recording yet: S27 phase 1 wrote the twelve rows of "Ayer y mañana" and waits for the review pass (D-game-12 step 3) before pre-rendering them.
+    // Every other phrase plays its own file or an NPC line.
+    private static readonly string[] PhrasesWithoutARecording =
+    [
+        "que-vas-a-comer", "voy-a-comer-pan", "que-vamos-a-comer", "vamos-a-comer-fruta", "que-comiste-ayer", "ayer-comi-fruta",
+        "fuiste-al-rio-ayer", "ayer-fui-al-rio", "tuviste-agua-ayer", "ayer-tuve-agua", "que-vas-a-hacer", "voy-a-ir-al-rio",
+    ];
 
     private static readonly long Now = GuideSession.DefaultStartedAt;
 

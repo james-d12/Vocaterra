@@ -346,6 +346,61 @@
       ]
     },
     {
+      "intentId": "state_action",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "(mañana|ayer|hoy)? [VERB:ir] a [VERB:comer] [ART]? [NUM:qty]? [NOUN:item]",
+        "(mañana|ayer|hoy)? [VERB:comer] [ART]? [NUM:qty]? [NOUN:item]",
+        "(sí)? (mañana|ayer|hoy)? [VERB:tener] [ART]? [NUM:qty]? [NOUN:item]",
+        "(mañana|ayer|hoy)? [VERB:ir] a [VERB:ir] a [ART]? [NOUN:place]",
+        "(sí)? (mañana|ayer|hoy)? [VERB:ir] a [ART]? [NOUN:place]"
+      ],
+      "keywordRules": [
+        { "lemmas": ["ir"], "requiresSlots": [] },
+        { "lemmas": ["comer"], "requiresSlots": ["item"], "slotFromNoun": "item" }
+      ],
+      "examples": [
+        {"text": "voy a comer pan", "errors": [], "prompt": "lesson-plan"},
+        {"text": "mañana voy a comer pan", "errors": [], "prompt": "lesson-plan"},
+        {"text": "yo voy a comer pan", "errors": [], "prompt": "lesson-plan"},
+        {"text": "voy a comer fruta", "errors": [], "prompt": "lesson-plan"},
+        {"text": "voy a comer el pan", "errors": [], "prompt": "lesson-plan"},
+        {"text": "mañana comí pan", "errors": ["conj.tense", "vocab.wrong"], "prompt": "lesson-plan"},
+        {"text": "voy a como pan", "errors": ["conj.tense"], "prompt": "lesson-plan"},
+        {"text": "vamos a comer fruta", "errors": [], "prompt": "lesson-plan-we"},
+        {"text": "nosotros vamos a comer fruta", "errors": [], "prompt": "lesson-plan-we"},
+        {"text": "mañana vamos a comer fruta", "errors": [], "prompt": "lesson-plan-we"},
+        {"text": "vamos a comer pan", "errors": [], "prompt": "lesson-plan-we"},
+        {"text": "mañana comimos fruta", "errors": ["conj.tense", "vocab.wrong"], "prompt": "lesson-plan-we"},
+        {"text": "vamos a comemos fruta", "errors": ["conj.tense"], "prompt": "lesson-plan-we"},
+        {"text": "ayer comí fruta", "errors": [], "prompt": "lesson-ate"},
+        {"text": "comí fruta", "errors": [], "prompt": "lesson-ate"},
+        {"text": "yo comí fruta", "errors": [], "prompt": "lesson-ate"},
+        {"text": "ayer comí pan", "errors": [], "prompt": "lesson-ate"},
+        {"text": "comí pan", "errors": [], "prompt": "lesson-ate"},
+        {"text": "ayer como fruta", "errors": ["conj.tense"], "prompt": "lesson-ate"},
+        {"text": "yo comiste fruta", "errors": ["conj.person"], "prompt": "lesson-ate"},
+        {"text": "ayer fui al río", "errors": [], "prompt": "lesson-went"},
+        {"text": "fui al río", "errors": [], "prompt": "lesson-went"},
+        {"text": "sí, fui al río", "errors": [], "prompt": "lesson-went"},
+        {"text": "yo fui al río", "errors": [], "prompt": "lesson-went"},
+        {"text": "ayer fui a la tienda", "errors": [], "prompt": "lesson-went"},
+        {"text": "ayer voy al río", "errors": ["conj.tense"], "prompt": "lesson-went"},
+        {"text": "yo fuiste al río", "errors": ["conj.person"], "prompt": "lesson-went"},
+        {"text": "ayer tuve agua", "errors": [], "prompt": "lesson-had"},
+        {"text": "tuve agua", "errors": [], "prompt": "lesson-had"},
+        {"text": "sí, tuve agua", "errors": [], "prompt": "lesson-had"},
+        {"text": "yo tuve agua", "errors": [], "prompt": "lesson-had"},
+        {"text": "ayer tuve madera", "errors": [], "prompt": "lesson-had"},
+        {"text": "ayer tengo agua", "errors": ["conj.tense", "vocab.wrong"], "prompt": "lesson-had"},
+        {"text": "mañana voy a ir al río", "errors": [], "prompt": "lesson-tomorrow"},
+        {"text": "voy a ir al río", "errors": [], "prompt": "lesson-tomorrow"},
+        {"text": "yo voy a ir al río", "errors": [], "prompt": "lesson-tomorrow"},
+        {"text": "mañana voy a ir a la tienda", "errors": [], "prompt": "lesson-tomorrow"},
+        {"text": "mañana fui al río", "errors": ["conj.tense", "vocab.wrong"], "prompt": "lesson-tomorrow"}
+      ]
+    },
+    {
       "intentId": "ask_help",
       "requiredSlots": [],
       "slotGrammars": [

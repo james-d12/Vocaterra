@@ -314,13 +314,13 @@ prints the item order and the right option of each item on the console.
 ```bash
 # the pre-check, scripted (the console prints the order: "check order: ..."), a screenshot of the first comprehension item, then the world
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --check pre --session-dir /tmp/sess1 --wait 2 --shot /tmp/s11-check.png \
-  --pick 3 --pick 2 --pick 2 --say "¿Dónde está el río?" --pick 1 --say "No, gracias." --pick 3 --speak "Quiero agua, por favor." \
-  --say "Sí, por favor." --pick 3 --screenshot /tmp/s11-world.png --frames 60 --save /tmp/s11.save
+  --pick 1 --say "¿Qué es esto?" --say "Sí." --pick 3 --say "No, gracias." --pick 2 --say "Necesitamos agua." --say "¿Dónde está el río?" --say "No." --say "Más despacio, por favor." --say "Otra vez, por favor." --say "Ella quiere fruta." --say "Tengo una fruta." --pick 2 --pick 3 --pick 3 --say "Ayer comí fruta." --pick 3 --pick 2 --pick 3 --pick 3 --pick 2 --pick 1 --say "Sí, por favor." --pick 3 --pick 3 --pick 2 --pick 2 --say "Voy a comer pan." --say "Quiero madera." --say "Quiero agua, por favor." \
+  --screenshot /tmp/s11-world.png --frames 60 --save /tmp/s11.save
 # the S6 route into the same folder (a second run in the folder: another session_start and session_end)
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --session-dir /tmp/sess1 --talk shopkeeper --say "quiero agua, por favor" ...
 # the recall check on the saved game, in the next play session (the probe prints "check order:" first; the answers follow it)
 dotnet run --project game/src/Vocaterra.MonoGame -- --load /tmp/s11.save --check recall --session-dir /tmp/sess2 --wait 2 --shot /tmp/s11-recall.png \
-  --pick 1 --pick 1 --pick 1 --say "No, gracias." --pick 1 --say "Sí, por favor." --say "necesito agua" --pick 3 --say "no sé" --pick 1 \
+  --pick 2 --say "Otra vez, por favor." --pick 1 --pick 1 --pick 3 --pick 1 --pick 1 --say "Ella quiere fruta." --say "Más despacio, por favor." --pick 1 --pick 1 --say "¿Qué es esto?" --say "No, gracias." --pick 3 --pick 3 --say "Sí." --pick 3 --say "Voy a comer pan." --pick 1 --say "¿Dónde está el río?" --pick 3 --say "Quiero madera." --say "Ayer comí fruta." --say "Tengo una fruta." --pick 2 --pick 1 --say "Necesitamos agua." --pick 3 --say "No." --say "Sí, por favor." --say "Quiero agua, por favor." \
   --screenshot /tmp/s11-recall-end.png --frames 30
 # the report: per folder and in total, the completion, retries, support, ASR latency, the checks by item kind, transfer, and the gates' evidence
 bash scripts/playtest-report.sh /tmp/sess1 /tmp/sess2
@@ -345,15 +345,15 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --playtest --greyscale      
 # the next-day recall of a playtest's save: the recall check, then the thank-you; nothing is saved
 dotnet run --project game/src/Vocaterra.MonoGame -- --playtest --load ~/.local/share/vocaterra/sessions/<folder>/playtest.save
 # the same run, scripted (a screenshot needs a display; the pre-check's answers are --pick and --say; the post-check's answers come after the
-# transfer's --leave and the climb to the player's own fire, in the order the console prints as "check order:" (both lists below are for seed 42);
+# transfer's --leave and the climb to the player's own fire, in the order the console prints as "check order:" (both lists below are for seed 42 and the 31 items of the bank; when the bank changes, run once and read both orders from the console);
 # see the S11 lines above for the shape of a check's answers)
 DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --playtest --seed 42 --session-dir /tmp/playtest1 \
-  --say "No, gracias." --pick 2 --pick 1 --say "Más despacio." --say "Sí." --say "No." --say "Quiero agua, por favor." --say "¿Qué es esto?" --pick 3 --pick 3 --pick 3 --say "Sí, por favor." --pick 2 --pick 2 --pick 3 --pick 3 --pick 2 --say "Otra vez." --say "¿Dónde está el río?" --pick 3 \
+  --pick 1 --say "¿Qué es esto?" --say "Sí." --pick 3 --say "No, gracias." --pick 2 --say "Necesitamos agua." --say "¿Dónde está el río?" --say "No." --say "Más despacio, por favor." --say "Otra vez, por favor." --say "Ella quiere fruta." --say "Tengo una fruta." --pick 2 --pick 3 --pick 3 --say "Ayer comí fruta." --pick 3 --pick 2 --pick 3 --pick 3 --pick 2 --pick 1 --say "Sí, por favor." --pick 3 --pick 3 --pick 2 --pick 2 --say "Voy a comer pan." --say "Quiero madera." --say "Quiero agua, por favor." \
   --lesson-run first-words --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
   --talk shopkeeper --say "quiero agua, por favor" --say "sí, por favor" --talk villager --say "¿dónde está el río?" \
   --walk-to 234,222 --interact 233,34,222 --look 180,-14 --talk guide --say "sí, por favor" --leave \
   --walk-to 153,109 --look 330,-12 --place antorcha@153,74,105 --wait 1 \
-  --pick 2 --say "Más despacio." --say "¿Qué es esto?" --say "Sí." --say "Otra vez." --pick 1 --say "No." --pick 3 --say "No, gracias." --pick 1 --pick 1 --pick 2 --pick 2 --say "Quiero agua, por favor." --pick 2 --pick 1 --say "¿Dónde está el río?" --say "Sí, por favor." --pick 2 --pick 1 \
+  --say "Necesitamos agua." --say "Más despacio, por favor." --pick 1 --say "Sí, por favor." --say "Ella quiere fruta." --pick 2 --pick 1 --pick 1 --pick 3 --pick 1 --say "Voy a comer pan." --pick 1 --say "Ayer comí fruta." --say "¿Dónde está el río?" --pick 2 --say "Quiero madera." --pick 3 --say "No." --pick 1 --say "No, gracias." --pick 2 --pick 3 --pick 1 --pick 2 --say "Otra vez, por favor." --pick 2 --say "Sí." --say "Tengo una fruta." --say "¿Qué es esto?" --pick 2 --say "Quiero agua, por favor." \
   --screenshot /tmp/playtest1-thanks.png --frames 60
 ```
 
@@ -530,6 +530,27 @@ DISPLAY=:0 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute 
   `quiero fruta` at `¿Qué quiere Luna?`) is a miss, not a success: the step stays, the retry names the ending, and after the step's attempts it moves on (fail-forward). The log's retry line says
   `wrong person: said 2sg, expected 1sg`. A wrong person next to a pronoun (`yo quieres`) stays a slip the core grades. Every verb step of both lessons declares its person.
 - **The save** is version 4 (1 to 3 still load): each lesson keeps whether it was ever completed (`everCompleted`; a completed lesson of an older save counts) and the save keeps a replay that was asked for.
+
+## Yesterday and tomorrow, the tense check (S27, D-game-19)
+
+- **Ayer y mañana** (session 3, the villager then the shopkeeper, 20 steps, `autoStart`): the present of `ir` (voy, vas, va, vamos, van, listed once), `estamos` and `están`, the near future with `ir a` + an infinitive
+  (`Voy a comer pan.`, `Vamos a comer fruta.`, `Mañana voy a ir al río.`; `Ellos van a comer pan.` is heard) and a few preterite forms, yo and tú (comí, fui, tuve; comiste, fuiste, tuviste), with the time words
+  `hoy`, `ayer` and `mañana`. The villager covers today and tomorrow, a walk to the stall (the same short walk as Personas) leads to the shopkeeper, who asks about yesterday: `¿Qué comiste ayer?`,
+  `¿Fuiste al río ayer?`, `¿Tuviste agua ayer?` and, last, `¿Qué vas a hacer mañana?`. The answers are statements about an action in any tense (the intent `state_action`), so nothing is handed over.
+  The lesson of the newest session comes first at an NPC (a learner who reaches session 3 without session 2's `personas` is offered `ayer-y-manana`, and `personas` after it).
+  `--session 3 --lesson-run ayer-y-manana` runs it with typed answers, walking from the player's camp to the villager and then the stall.
+- **The tense of the answer's verb.** A step may declare `tense` (`pres`, `pret` or `ir-a`) with a `tenseRetry` line, next to S26's `person`. The runner reads the answer's finite verbs from the turn's word readings:
+  for `pret` and `pres` one finite verb with that tense is enough; for `ir-a` it looks for a finite form of `ir`, then `a`, then an infinitive (`voy a comer`; `vamos` is read as an imperative or a present, both count).
+  A mismatch the core did not flag (a bare `como pan` or `comí pan` at `¿Qué vas a comer mañana?`, `voy a comer fruta` at `¿Qué comiste ayer?`) is a miss like a wrong person: the step stays, the retry names the form,
+  the log says `wrong tense: said pres, expected ir-a`, and after the attempts the step moves on. Person is judged first. A tense next to a time word is the core's `conj.tense` (M49: `mañana comí pan`,
+  `ayer como fruta`, `voy a como pan`): a slip, the step ends. A miss shows none of the core's correction line (its recast would praise the learner's own wrong words).
+- **A miss is not a use.** A turn the lesson counts as a miss for the person or the tense is no use of the phrase: it adds no phrase use (so no credit, no support step, no word of the phrase's progress); the
+  right answer after it is the phrase's one use.
+- **The near future in the conjugation tables.** `lessons.json` declares a taught form as `lemma`, `person`, `number`, `tense`; the tenses are `pres`, `pret`, `ir-a` (the near future) and `fut` (the simple future, A2, not
+  taught yet). `ir-a` is a periphrastic form: it has no word of its own, so a form `{ "lemma": "comer", "person": "1", "number": "sg", "tense": "ir-a" }` is `voy a comer`: `ir` in the present for that person and
+  number, `a`, then the lemma as the infinitive. The lemma of an `ir-a` form is the verb that follows the `a`. The book's table for a verb (S28) therefore has a column "future (ir a)" whose cells are built from the
+  `ir` row of its present column and the verb's infinitive, never typed by hand; `TaughtVerbForm.Text(morphology)` gives the text of any declared form (`voy a comer`, `comí`, `fuiste`). The column and the preterite
+  column stay hidden until a lesson declares a form of that tense.
 
 ## The book (S20, D-game-16)
 

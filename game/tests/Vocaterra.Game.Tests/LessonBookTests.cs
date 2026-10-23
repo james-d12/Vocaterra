@@ -25,11 +25,11 @@ public sealed class LessonBookTests
         "{ \"schemaVersion\": 1, \"lessons\": [ { " + head + ", \"steps\": [ " + steps + " ] } ] }";
 
     [Fact]
-    public void TheShippedLessonsAreTheGuidesFirstWordsInSevenUnitsAndPersonasInSessionTwoAndTheSampleIsRetired()
+    public void TheShippedLessonsAreTheGuidesFirstWordsPersonasInSessionTwoAndAyerYMananaInSessionThree()
     {
         var book = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), TestGame.Speech);
 
-        Assert.Equal(["first-words", "personas"], book.Lessons.Select(static l => l.Id));
+        Assert.Equal(["first-words", "personas", "ayer-y-manana"], book.Lessons.Select(static l => l.Id));
         var lesson = book.Find("first-words")!;
         Assert.Equal(("first-words", "guide", true, 1), (lesson.Id, lesson.Npc, lesson.AutoStart, lesson.Session)); // it starts by itself when the player first talks to her
         Assert.Null(book.Find("sample"));
@@ -42,7 +42,7 @@ public sealed class LessonBookTests
         Assert.Equal(
             ["hola", "si", "no", "que-es-esto", "si-por-favor", "gracias", "quiero-madera", "tengo-fruta", "necesito-agua", "no-se", "otra-vez", "mas-despacio"],
             lesson.TaughtPhrases);
-        Assert.Equal(lesson.TaughtPhrases.Concat(book.Find("personas")!.TaughtPhrases).Distinct(), book.TaughtPhrases); // quiero-madera is asked again at the start of Personas
+        Assert.Equal(lesson.TaughtPhrases.Concat(book.Find("personas")!.TaughtPhrases).Concat(book.Find("ayer-y-manana")!.TaughtPhrases).Distinct(), book.TaughtPhrases); // quiero-madera is asked again at the start of Personas
         Assert.All(lesson.TaughtPhrases, id => Assert.True(PhraseSheet.Load(TestGame.Bundle).Find(id)!.IsLearnerPhrase, id));
         foreach (var type in Enum.GetValues<LessonStepType>().Where(static t => t != LessonStepType.Recap))
         {

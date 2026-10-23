@@ -43,6 +43,12 @@ public sealed class GrammarStringsExtractorTests
         ["necesito-pan"] = ["conj.person"],
         ["tengo-botella"] = ["conj.person"],
         ["queremos-pan"] = ["conj.person"],
+        ["voy-a-comer-pan"] = ["conj.tense"],
+        ["vamos-a-comer-fruta"] = ["conj.tense"],
+        ["ayer-comi-fruta"] = ["conj.tense"],
+        ["ayer-fui-al-rio"] = ["conj.tense"],
+        ["ayer-tuve-agua"] = ["conj.tense", "vocab.wrong"],
+        ["voy-a-ir-al-rio"] = ["conj.tense", "vocab.wrong"],
     };
 
     [Fact]

@@ -659,6 +659,72 @@
       "variants": [
         { "lineId": "guide.lesson.villager.where.1", "text": "Ella está en el campamento." }
       ]
+    },
+    "guide.lesson.villager.today": {
+      "poolId": "guide.lesson.villager.today",
+      "variants": [
+        { "lineId": "guide.lesson.villager.today.1", "text": "Hoy estamos aquí." }
+      ]
+    },
+    "guide.lesson.villager.goes": {
+      "poolId": "guide.lesson.villager.goes",
+      "variants": [
+        { "lineId": "guide.lesson.villager.goes.1", "text": "Hoy tú vas a la tienda." }
+      ]
+    },
+    "guide.lesson.villager.plan": {
+      "poolId": "guide.lesson.villager.plan",
+      "variants": [
+        { "lineId": "guide.lesson.villager.plan.1", "text": "¿Qué vas a comer mañana?" }
+      ]
+    },
+    "guide.lesson.villager.plan_we": {
+      "poolId": "guide.lesson.villager.plan_we",
+      "variants": [
+        { "lineId": "guide.lesson.villager.plan_we.1", "text": "¿Qué vamos a comer?" }
+      ]
+    },
+    "guide.lesson.villager.eat": {
+      "poolId": "guide.lesson.villager.eat",
+      "variants": [
+        { "lineId": "guide.lesson.villager.eat.1", "text": "Ellos van a comer pan." }
+      ]
+    },
+    "guide.lesson.shop.ayer": {
+      "poolId": "guide.lesson.shop.ayer",
+      "variants": [
+        { "lineId": "guide.lesson.shop.ayer.1", "text": "Ayer comí pan." }
+      ]
+    },
+    "guide.lesson.shop.ate": {
+      "poolId": "guide.lesson.shop.ate",
+      "variants": [
+        { "lineId": "guide.lesson.shop.ate.1", "text": "¿Qué comiste ayer?" }
+      ]
+    },
+    "guide.lesson.shop.went": {
+      "poolId": "guide.lesson.shop.went",
+      "variants": [
+        { "lineId": "guide.lesson.shop.went.1", "text": "¿Fuiste al río ayer?" }
+      ]
+    },
+    "guide.lesson.shop.had": {
+      "poolId": "guide.lesson.shop.had",
+      "variants": [
+        { "lineId": "guide.lesson.shop.had.1", "text": "¿Tuviste agua ayer?" }
+      ]
+    },
+    "guide.lesson.shop.you": {
+      "poolId": "guide.lesson.shop.you",
+      "variants": [
+        { "lineId": "guide.lesson.shop.you.1", "text": "Ayer fuiste al río." }
+      ]
+    },
+    "guide.lesson.shop.tomorrow": {
+      "poolId": "guide.lesson.shop.tomorrow",
+      "variants": [
+        { "lineId": "guide.lesson.shop.tomorrow.1", "text": "¿Qué vas a hacer mañana?" }
+      ]
     }
   }
 }

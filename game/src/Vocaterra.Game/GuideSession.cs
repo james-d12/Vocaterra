@@ -1062,7 +1062,9 @@ public abstract class GuideSession : IDisposable
             Log(new VoiceEvent(tick, time, VoiceEventKind.Uncertain, npc, turn.Line));
         }
 
-        if (turn.Communicated && (PhraseInPlayFor(turn, support) ?? PhraseIds.For(turn.Intent, turn.Slots)) is { } phrase)
+        // A lesson step that will count the answer as a miss for the person or the tense of its verb (S26, S27) does not credit the phrase: the learner did not say it.
+        var formMiss = Lessons.IsFormMiss(turn);
+        if (turn.Communicated && !formMiss && (PhraseInPlayFor(turn, support) ?? PhraseIds.For(turn.Intent, turn.Slots)) is { } phrase)
         {
             var kind = Classify(turn, phrase, previousRepair, phraseReview, support);
             var detail = turn.Slots.TryGetValue("item", out var item) ? item : turn.Slots.TryGetValue("place", out var place) ? place : null;
@@ -1128,7 +1130,8 @@ public abstract class GuideSession : IDisposable
         {
             if (handled)
             {
-                shown = turn with { LessonHandled = true };
+                // A miss for the person or the tense (S26, S27) shows no correction line of the core: its recast would echo the learner's own words with "¡Eso es!", against the lesson's retry.
+                shown = turn with { LessonHandled = true, Feedback = formMiss ? null : turn.Feedback };
             }
 
             if (!handled && shown.GuideLines.Count > 0)
