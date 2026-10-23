@@ -67,7 +67,7 @@ public sealed class GrammarStringsExtractorTests
         var committed = File.ReadAllText(StringsPath, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
         Assert.True(
             committed == GrammarStringsExtractor.ToJsonl(All),
-            "content/grammar/game-v1-strings.jsonl is out of date: run dotnet run --project game/src/Vocaterra.Host -- --content game/content/game-v1 --grammar-strings game/content/grammar/game-v1-strings.jsonl");
+            "content/grammar/game-v1-strings.jsonl is out of date: run dotnet run --project src/Vocaterra.Host -- --content content/game-v1 --grammar-strings content/grammar/game-v1-strings.jsonl");
     }
 
     [Fact]

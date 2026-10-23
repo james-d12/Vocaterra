@@ -10,7 +10,7 @@ internal static class GameContent
     /// <summary>The bundle, loaded and validated by the core's loader.</summary>
     public static ContentBundle Bundle => LoadedBundle.Value;
 
-    /// <summary>The folder <c>content/game-v1</c> of the game (<c>game/</c> in the repository), found by walking up from the test assembly.</summary>
+    /// <summary>The folder <c>content/game-v1</c> of the game, found by walking up from the test assembly.</summary>
     public static string BundleDirectory()
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)

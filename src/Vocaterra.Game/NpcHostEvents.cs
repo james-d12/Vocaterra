@@ -33,7 +33,7 @@ public sealed record NpcEffect(NpcEffectKind Kind, ItemId Item = ItemId.Wood, st
 /// <summary>
 /// The one table that maps the NPCs' host events to the world (S6). The core knows the events as opaque strings in the agents' files
 /// (<c>agents/*.json</c>); what each one means in the game (a bottle, a bread, the beacon on the river) is decided here and nowhere else, so the
-/// game's words stay in <c>game/</c>. The same table serves a turn the player's line caused and a host turn (<c>Advance</c>) such as the
+/// game's words stay in <c>content/game-v1</c>. The same table serves a turn the player's line caused and a host turn (<c>Advance</c>) such as the
 /// shopkeeper's fail-forward.
 /// </summary>
 /// <remarks>

@@ -501,7 +501,7 @@ public sealed class LearnerRecordTests
         return session;
     }
 
-    // The version 1 save written by the S18 code (game/tests/Vocaterra.Game.Tests/Fixtures/save-v1.json): a camp scene with the guide's whole lesson done.
+    // The version 1 save written by the S18 code (tests/Vocaterra.Game.Tests/Fixtures/save-v1.json): a camp scene with the guide's whole lesson done.
     private static string FixturePath(string name)
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)

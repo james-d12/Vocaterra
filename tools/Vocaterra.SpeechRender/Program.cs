@@ -13,12 +13,12 @@ namespace Vocaterra.SpeechRender;
 /// <summary>
 /// Renders the bundle's speakable lines with Kokoro (S9): <c>&lt;lineId&gt;.wav</c> at speed 1.0 and <c>&lt;lineId&gt;.slow.wav</c> at speed 0.8, in the
 /// bundle's <c>speech/</c> folder, as 16-bit mono PCM. The speakers are fixed here: the guide (28, <c>ef_dora</c>), the shopkeeper (29,
-/// <c>em_alex</c>) and the villager (53, <c>em_santa</c>), the ids of the core's Kokoro voice table (nlp/docs/API.md, section 6).
+/// <c>em_alex</c>) and the villager (53, <c>em_santa</c>), the ids of the core's Kokoro voice table (docs/nlp/API.md, section 6).
 /// </summary>
 /// <remarks>
-/// <b>Re-runs.</b> <c>game/content/speech-index.json</c> (outside the bundle, so it is not hashed) records for each file its text, speaker, speed,
+/// <b>Re-runs.</b> <c>content/speech-index.json</c> (outside the bundle, so it is not hashed) records for each file its text, speaker, speed,
 /// rate, the adapter's model hash and the file's SHA-256. A file whose inputs and bytes match is skipped; a line whose text changed is rendered
-/// again; a file of a line that no longer exists is deleted. <c>game/docs/SPEECH_CHECKLIST.md</c> is rewritten from the bundle, and the owner's
+/// again; a file of a line that no longer exists is deleted. <c>docs/game/SPEECH_CHECKLIST.md</c> is rewritten from the bundle, and the owner's
 /// marks in its last column are kept for every row whose text did not change. The bundle's <c>manifest.json</c> and <c>provenance.json</c> are
 /// then updated by the caller (the content tool's <c>hash</c> step, run by <c>scripts/prerender-speech.sh</c>).
 /// </remarks>
@@ -33,9 +33,9 @@ internal static class Program
     /// <summary>The speed of the <c>.slow</c> file (Más despacio).</summary>
     private const float SlowSpeed = 0.8f;
 
-    private const string DefaultBundle = "game/content/game-v1";
-    private const string DefaultIndex = "game/content/speech-index.json";
-    private const string DefaultChecklist = "game/docs/SPEECH_CHECKLIST.md";
+    private const string DefaultBundle = "content/game-v1";
+    private const string DefaultIndex = "content/speech-index.json";
+    private const string DefaultChecklist = "docs/game/SPEECH_CHECKLIST.md";
     /// <summary>The core's provenance kind for a host-owned file a model rendered (M29g).</summary>
     private const string GeneratedByModelOutput = "model-output";
     private const string ChecklistMarksHeader = "ok / cut-off / mismatch";
@@ -144,7 +144,7 @@ internal static class Program
         return 0;
     }
 
-    /// <summary>The Kokoro speaker and voice label of a speaker (the core's voice table, nlp/docs/API.md section 6).</summary>
+    /// <summary>The Kokoro speaker and voice label of a speaker (the core's voice table, docs/nlp/API.md section 6).</summary>
     /// <param name="speaker">One of the game's speakers.</param>
     private static (int SpeakerId, string Voice) VoiceOf(string speaker) => speaker switch
     {

@@ -9,7 +9,7 @@ internal static class Repo
 
     private static string FindRoot()
     {
-        // The game's folder (game/ in the repository): the first ancestor of the test output that holds content/game-v1.
+        // The repository root: the first ancestor of the test output that holds content/game-v1.
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
         {
             if (File.Exists(System.IO.Path.Combine(directory.FullName, "content", "game-v1", "manifest.json")))

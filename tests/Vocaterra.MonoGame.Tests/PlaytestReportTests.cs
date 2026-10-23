@@ -8,7 +8,7 @@ namespace Vocaterra.MonoGame.Tests;
 /// </summary>
 public sealed class PlaytestReportTests
 {
-    private static string Script => System.IO.Path.GetFullPath(Repo.Path("..", "scripts", "playtest-report.sh"));
+    private static string Script => System.IO.Path.GetFullPath(Repo.Path("scripts", "playtest-report.sh"));
 
     private static string Fixture(string name) => Repo.Path("tests", "Vocaterra.MonoGame.Tests", "Fixtures", name);
 

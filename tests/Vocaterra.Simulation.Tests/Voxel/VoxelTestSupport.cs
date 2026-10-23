@@ -12,7 +12,7 @@ internal static class VoxelTestSupport
 
     private static readonly Lazy<SceneLayout> Draft = new(() => SceneLayout.Load(RouteDraftPath()));
 
-    /// <summary>The layout of <c>game/content/game-v1/game/scene.json</c>.</summary>
+    /// <summary>The layout of <c>content/game-v1/game/scene.json</c>.</summary>
     public static SceneLayout RouteDraft => Draft.Value;
 
     /// <summary>Builds the draft route for a seed.</summary>

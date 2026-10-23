@@ -47,7 +47,7 @@ public sealed record ObjectivePiece(string Text, ObjectivePieceKind Kind, bool D
 /// <summary>
 /// The game's English text (S16, D-game-13), read from the bundle's host file <c>game/english.json</c>: the controls, the first-time tips, the bilingual
 /// objective line, the English under the NPCs' Spanish lines, the short English explanation of each phrase, the small interface words, and the plain-English
-/// feedback after a turn keyed by the core's error codes and by the outcome of the turn. It is content: the game's words live in <c>game/</c>, the core is
+/// feedback after a turn keyed by the core's error codes and by the outcome of the turn. It is content: the game's words live in <c>content/game-v1</c>, the core is
 /// not changed and keeps no English. Only Spanish is spoken; every word here is drawn, never voiced.
 /// </summary>
 /// <remarks>

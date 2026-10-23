@@ -29,7 +29,7 @@ public sealed class ArchitectureRulesTests
     [Fact]
     public void TheProjectReferencesTheSimulationAndTheCoreProjectsOnly()
     {
-        // The language core is the sibling folder nlp/ of this repository, referenced by project (D-game-7); the game layer takes no package
+        // The language core (the Vocaterra.Nlp.* projects in src/) is referenced by project (D-game-7, R01); the game layer takes no package
         // of its own and never copies core source.
         var project = File.ReadAllText(Path.Combine(GameRoot(), "src", "Vocaterra.Game", "Vocaterra.Game.csproj"));
 
@@ -37,7 +37,7 @@ public sealed class ArchitectureRulesTests
         Assert.Contains("../Vocaterra.Simulation/Vocaterra.Simulation.csproj", projects);
         var core = projects.Where(path => path != "../Vocaterra.Simulation/Vocaterra.Simulation.csproj").ToList();
         Assert.NotEmpty(core);
-        Assert.All(core, path => Assert.Matches("^\\.\\./\\.\\./\\.\\./nlp/src/Vocaterra\\.Nlp\\.[A-Za-z]+/Vocaterra\\.Nlp\\.[A-Za-z]+\\.csproj$", path));
+        Assert.All(core, path => Assert.Matches("^\\.\\./Vocaterra\\.Nlp\\.[A-Za-z]+/Vocaterra\\.Nlp\\.[A-Za-z]+\\.csproj$", path));
         Assert.DoesNotContain("<PackageReference", project, StringComparison.Ordinal);
         Assert.DoesNotContain("external", project, StringComparison.Ordinal);
     }
@@ -47,7 +47,7 @@ public sealed class ArchitectureRulesTests
     {
         // build/Vosk.targets (which copies libvosk.so) is imported only into a project that references Vosk itself, and the ONNX Runtime package's
         // native library would overwrite the one sherpa-onnx (Kokoro) needs, so the same projects exclude its native assets.
-        var props = File.ReadAllText(Path.Combine(Path.GetDirectoryName(GameRoot())!, "Directory.Packages.props"));
+        var props = File.ReadAllText(Path.Combine(GameRoot(), "Directory.Packages.props"));
         Assert.Contains("<PackageVersion Include=\"Vosk\" Version=\"0.3.38\" />", props, StringComparison.Ordinal);
         foreach (var project in new[]
         {
@@ -82,7 +82,7 @@ public sealed class ArchitectureRulesTests
         return index < 0 ? line : line[..index];
     }
 
-    /// <summary>The game's folder (<c>game/</c> in the repository; <c>Directory.Packages.props</c> is in its parent): the first ancestor of the test
+    /// <summary>The repository root (it holds <c>Directory.Packages.props</c>): the first ancestor of the test
     /// output that holds <c>content/game-v1</c>.</summary>
     private static string GameRoot()
     {

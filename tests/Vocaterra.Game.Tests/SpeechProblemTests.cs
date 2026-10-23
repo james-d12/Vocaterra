@@ -28,7 +28,7 @@ public sealed class SpeechProblemTests : IDisposable
 
         Assert.Null(store);
         Assert.Equal(
-            "Speech models not found: set VOCATERRA_MODELS_DIR (see nlp/scripts/fetch-models.sh). You can still type.",
+            "Speech models not found: set VOCATERRA_MODELS_DIR (see scripts/fetch-models.sh). You can still type.",
             problem);
         Assert.Equal(SpeechEngine.NoModelsFolder, problem);
     }

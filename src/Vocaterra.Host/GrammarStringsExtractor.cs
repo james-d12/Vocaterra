@@ -1,4 +1,4 @@
-// The strings of the game's Spanish, as the grammar check reads them (nlp/docs/API.md, "Grammar check the strings"). The host owns this list
+// The strings of the game's Spanish, as the grammar check reads them (docs/nlp/API.md, "Grammar check the strings"). The host owns this list
 // because the game owns its files: the bundle's dialogue, prompts, answer sets and intents (read through the core's loader), the phrase sheet
 // (content/PHRASES.md, with the learner-error examples), the Spanish sides of english.json and checks.json, and the speech index. The output is
 // one JSON object per line: id, text, kind (npc, learner or template) and, for an intent example or a learner-error example, errors.

@@ -31,7 +31,7 @@
   <!-- The committed bundle and the golden manifest are copied next to the test assembly. -->
   <ItemGroup>
     <None Include="../../content/v1/**/*" Link="content/v1/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../../golden/manifest.jsonl" Link="golden/manifest.jsonl" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../golden/manifest.jsonl" Link="golden/manifest.jsonl" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

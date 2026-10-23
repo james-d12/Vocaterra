@@ -130,12 +130,12 @@ public sealed class SpeechEngine : IDisposable
     public const string ManifestVariable = "VOCATERRA_MODELS_MANIFEST";
 
     /// <summary>The message when no models folder is named (S17b: English, and what to do; the player can still type).</summary>
-    public const string NoModelsFolder = "Speech models not found: set VOCATERRA_MODELS_DIR (see nlp/scripts/fetch-models.sh). You can still type.";
+    public const string NoModelsFolder = "Speech models not found: set VOCATERRA_MODELS_DIR (see scripts/fetch-models.sh). You can still type.";
 
     /// <summary>
     /// The manifest to read, when it is not <c>manifest.json</c> in the models folder (where the core's <see cref="ModelStore"/> looks, and
     /// where the core's fetch script does not put it: CR-019): the file named by <see cref="ManifestVariable"/>, else the core's
-    /// <c>nlp/models/manifest.json</c> found by walking up from the executable's folder and the current directory. <see langword="null"/> means
+    /// <c>models/manifest.json</c> found by walking up from the executable's folder and the current directory. <see langword="null"/> means
     /// the store reads the folder's own manifest.
     /// </summary>
     public static string? ManifestPath(string modelsRoot) => ManifestPath(modelsRoot, Environment.GetEnvironmentVariable);
@@ -160,7 +160,7 @@ public sealed class SpeechEngine : IDisposable
         {
             for (var directory = new DirectoryInfo(start); directory is not null; directory = directory.Parent)
             {
-                var candidate = Path.Combine(directory.FullName, "nlp", "models", ModelStore.ManifestFileName);
+                var candidate = Path.Combine(directory.FullName, "models", ModelStore.ManifestFileName);
                 if (File.Exists(candidate))
                 {
                     return candidate;

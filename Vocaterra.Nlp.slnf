@@ -1,0 +1,34 @@
+{
+  "solution": {
+    "path": "Vocaterra.sln",
+    "projects": [
+      "src\\Vocaterra.Nlp.Asr\\Vocaterra.Nlp.Asr.csproj",
+      "src\\Vocaterra.Nlp.Audio\\Vocaterra.Nlp.Audio.csproj",
+      "src\\Vocaterra.Nlp.Content\\Vocaterra.Nlp.Content.csproj",
+      "src\\Vocaterra.Nlp.Core\\Vocaterra.Nlp.Core.csproj",
+      "src\\Vocaterra.Nlp.Decision\\Vocaterra.Nlp.Decision.csproj",
+      "src\\Vocaterra.Nlp.Evaluation\\Vocaterra.Nlp.Evaluation.csproj",
+      "src\\Vocaterra.Nlp.Language\\Vocaterra.Nlp.Language.csproj",
+      "src\\Vocaterra.Nlp.Phonology\\Vocaterra.Nlp.Phonology.csproj",
+      "src\\Vocaterra.Nlp.Pipeline\\Vocaterra.Nlp.Pipeline.csproj",
+      "src\\Vocaterra.Nlp.Pronunciation\\Vocaterra.Nlp.Pronunciation.csproj",
+      "src\\Vocaterra.Nlp.Response\\Vocaterra.Nlp.Response.csproj",
+      "tests\\Vocaterra.Nlp.Asr.Tests\\Vocaterra.Nlp.Asr.Tests.csproj",
+      "tests\\Vocaterra.Nlp.Audio.Tests\\Vocaterra.Nlp.Audio.Tests.csproj",
+      "tests\\Vocaterra.Nlp.Content.Tests\\Vocaterra.Nlp.Content.Tests.csproj",
+      "tests\\Vocaterra.Nlp.Core.Tests\\Vocaterra.Nlp.Core.Tests.csproj",
+      "tests\\Vocaterra.Nlp.Decision.Tests\\Vocaterra.Nlp.Decision.Tests.csproj",
+      "tests\\Vocaterra.Nlp.Evaluation.Tests\\Vocaterra.Nlp.Evaluation.Tests.csproj",
+      "tests\\Vocaterra.Nlp.Fuzzing.Tests\\Vocaterra.Nlp.Fuzzing.Tests.csproj",
+      "tests\\Vocaterra.Nlp.Golden.Tests\\Vocaterra.Nlp.Golden.Tests.csproj",
+      "tests\\Vocaterra.Nlp.Language.Tests\\Vocaterra.Nlp.Language.Tests.csproj",
+      "tests\\Vocaterra.Nlp.Phonology.Tests\\Vocaterra.Nlp.Phonology.Tests.csproj",
+      "tests\\Vocaterra.Nlp.Pipeline.Tests\\Vocaterra.Nlp.Pipeline.Tests.csproj",
+      "tests\\Vocaterra.Nlp.Pronunciation.Tests\\Vocaterra.Nlp.Pronunciation.Tests.csproj",
+      "tests\\Vocaterra.Nlp.Response.Tests\\Vocaterra.Nlp.Response.Tests.csproj",
+      "tools\\Vocaterra.Nlp.Bench\\Vocaterra.Nlp.Bench.csproj",
+      "tools\\Vocaterra.Nlp.Cli\\Vocaterra.Nlp.Cli.csproj",
+      "tools\\Vocaterra.Nlp.ContentBuilder\\Vocaterra.Nlp.ContentBuilder.csproj"
+    ]
+  }
+}

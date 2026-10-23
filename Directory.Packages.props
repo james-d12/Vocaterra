@@ -1,7 +1,7 @@
 <Project>
 
-  <!-- One version list for both halves. The language core (nlp/) references the core's projects by ProjectReference, never as packages,
-       so no Vocaterra.Nlp.* version is listed. MonoGame DesktopGL and FontStashSharp are the game front-end's (game/src/Vocaterra.MonoGame only).
+  <!-- One version list for the whole repository. The language core (Vocaterra.Nlp.*) is referenced by ProjectReference, never as packages,
+       so no Vocaterra.Nlp.* version is listed. MonoGame DesktopGL and FontStashSharp are the game front-end's (src/Vocaterra.MonoGame only).
        The speech and test packages are shared. -->
   <ItemGroup>
     <!-- Test packages -->
