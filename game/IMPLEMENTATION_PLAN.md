@@ -318,8 +318,8 @@ not made. The German milestones stay parked (D14).
 | X02 | Core M51: `ir` + a bare infinitive (`voy comer`) flagged | planned | Sonnet 5.5 | M49 |
 | X03 | Book polish: the right page scrolls; `vamos` glossed "we go" in What you said; ser and estar glossed apart ("to be: what", "to be: where or how") | planned | Haiku 5.5 | S28 |
 
-| X04 | Session summary card from the learner's record (R01), and a second try after "No sé" in the same session (R02) | in progress | Haiku 5.5 | X01 |
-| X05 | Autosave at safe points, and a crash handler around `game.Run()` that writes a crash report next to the F8 reports (R04) | planned | Haiku 5.5 | X01 |
+| X04 | Session summary card from the learner's record (R01), and a second try after "No sé" in the same session (R02) | done (merged to `feature/experiment` 2026-10-23, `6e14821`) | Haiku 5.5 | X01 |
+| X05 | Autosave at safe points, and a crash handler around `game.Run()` that writes a crash report next to the F8 reports (R04) | in progress | Haiku 5.5 | X01 |
 | X06 | Review deck: a session warm-up of due items, a "Review now" button in the book, and a `review` lesson step that brings earlier phrases back inside later lessons (R06, R07) | planned | Sonnet 5.5 | X03, X04 |
 | X07 | Tools for the owner: `--mic-lab` (measure the real microphone path) and `--bench-route` (a real-GPU benchmark). Built only: the agent runs neither (R03 first half, R13) | planned | Haiku 5.5 | X05 |
 | X08 | UI scale and readable text: a text-scale setting and layouts that hold at larger sizes (R09) | planned | Sonnet 5.5 | X03 |
@@ -1239,6 +1239,19 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - **Not fixed:**
     - placeable items are listed in `SaveMigration.IsPlaceable`, so a new placeable needs adding there;
     - edits are not remapped when a layout moves.
+- **X04, the session summary card and a second try after "No sé" (2026-10-23, Haiku 5.5; merged to `feature/experiment` `6e14821`).**
+  - **The card** (`SessionSummary`, engine-free). The closing card adds a "This session" block: the lessons done; new words (nouns only);
+    the phrases said without help; the verb forms used; at most two to practise next time; how to replay. It has counts of things done,
+    no scores, and a `session_summary` session-log line. The card stays up 45 s or until Esc.
+  - **The second try** (`RetryQueue`). A "no sé" at a phrase or lesson step queues the phrase (at most 2), which is offered once at the next
+    talk with the same NPC as a review, with "Let's try that one again: …". It is never offered inside a check or for service lines. The
+    answer is logged as `second_try_answered recovered|not_yet`, a world event, not a new phrase-use kind, so D-game-10's measurement
+    is unchanged.
+  - **Checked by the orchestrator:** the gate (4,743 passed, 5 skipped) and the summary card screenshot.
+  - **Not fixed:**
+    - the card is not shown on F6, F10 or quit;
+    - the retry waits for a talk with the same NPC, never between lesson steps;
+    - the retry does not step one rung lower on the support ladder.
 
 ## 6. Definition of done (every milestone)
 
