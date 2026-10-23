@@ -303,6 +303,38 @@ blacksmith and spell material leaves `content/game-v1` in S5 (the core's sample 
 the riverbank (water, a bridge). The five phrases: "¿Qué necesitas?", "Quiero agua, por favor.", "¿Quieres pan?", "Sí, por favor." /
 "No, gracias.", "¿Dónde está el río?".
 
+### 4.5 Experiments on `feature/experiment` (the X series; owner's standing direction, 2026-10-22)
+
+The owner: "I want you to research and make improvements to the game against a new branch called feature/experiment for any changes you come
+up with." The X series is the orchestrator's own work. It is planned here, gated with `GATE_TARGET=feature/experiment` from a
+`feature/experiment` checkout, and pushed to that branch only, never `main`. The rules are the same as everywhere else: briefs, model
+policy, machine resources and the merge gate. A change that needs an owner decision (a licence, scope, a D-number) is brought to the owner,
+not made. The German milestones stay parked (D14).
+
+| ID | Experiment | Status | Model | Depends on |
+| --- | --- | --- | --- | --- |
+| X00 | Research: a ranked backlog of improvements (learning effect, player experience, robustness, technical debt), with evidence from the code, plans, findings and screenshots | done (`game/docs/research/2026-10-23-improvement-backlog.md`, R01 to R18) | Sonnet 5.5 | S28 |
+| X01 | Saves survive content updates: a save made under an older bundle loads under a newer one (learner record, lessons, phrases, inventory and world edits kept where their ids still exist; the rest dropped and logged), instead of being refused; a strict mode keeps the refusal for the playtest's frozen bundle | done (merged to `feature/experiment` 2026-10-23, `bf90201`) | Sonnet 5.5 | S28 |
+| X02 | Core M51: `ir` + a bare infinitive (`voy comer`) flagged | done (merged to `feature/experiment` 2026-10-23, `e70441c`; see core §5b M51) | Sonnet 5.5 | M49 |
+| X03 | Book polish: the right page scrolls; `vamos` glossed "we go" in What you said; ser and estar glossed apart ("to be: what", "to be: where or how") | done (merged to `feature/experiment` 2026-10-23, `08152fb`, bundle `2156744b…`) | Haiku 5.5 | S28 |
+
+| X04 | Session summary card from the learner's record (R01), and a second try after "No sé" in the same session (R02) | done (merged to `feature/experiment` 2026-10-23, `6e14821`) | Haiku 5.5 | X01 |
+| X05 | Autosave at safe points, and a crash handler around `game.Run()` that writes a crash report next to the F8 reports (R04) | done (merged to `feature/experiment` 2026-10-23, `001d75a`) | Haiku 5.5 | X01 |
+| X06 | Review deck: a session warm-up of due items, a "Review now" button in the book, and a `review` lesson step that brings earlier phrases back inside later lessons (R06, R07) | paused (2026-10-23, owner at the usage limit): unbuilt WIP `0ab3300` on branch `X06-review-wip`; resume there | Sonnet 5.5 | X03, X04 |
+| X07 | Tools for the owner: `--mic-lab` (measure the real microphone path) and `--bench-route` (a real-GPU benchmark). Built only: the agent runs neither (R03 first half, R13) | planned | Haiku 5.5 | X05 |
+| X08 | UI scale and readable text: a text-scale setting and layouts that hold at larger sizes (R09) | done (merged to `feature/experiment` 2026-10-23, `f3cf721`) | Sonnet 5.5 | X03 |
+| X09 | Playtest tooling: per-step evidence in the report, and a test that keeps the playtest documents' counts equal to the bundle (R10; the counts drifted in S26, S27 and S28) | planned | Haiku 5.5 | X04 |
+
+**Waiting on the owner** (from X00's open questions; not planned until answered):
+- R05: may the pre-check stop early for a lost beginner?
+- R12: may lessons adapt per learner?
+- R14, R15, R18: numbers, more NPCs and orders, before or after the first pilot?
+- R11: a title screen now?
+- the voices for new NPCs;
+- running the mic lab, the GPU bench and the pre-flight;
+- the pilot's date.
+The rest of the backlog (R08 feedback audit, R16 technical debt, R17 small issues) follows the first batch.
+
 ## 5. Findings log
 
 Facts that shape the plan. Each one names its source; the core's own findings stay in the core's plan.
@@ -1187,6 +1219,108 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - ir-a counts come from the bounded history;
     - the "What you said" list glosses `vamos` as "let's go";
     - ser and estar are both glossed "to be".
+- **X01, saves survive content updates (2026-10-23, Sonnet 5.5; merged to `feature/experiment` `bf90201`, with X00's backlog).**
+  - **Across bundles.** A save of another bundle now loads unless strict. These are kept wherever their ids still exist:
+    - the learner record (kept whole), settings, the session, words, phrase records, the objective and NPC states with their skills;
+    - tips and inventory;
+    - lessons, mapped by step id: a completed lesson stays completed, and an in-progress lesson keeps its longest finished run from the
+      first step.
+    Gone ids are dropped and logged. New rows start as in a fresh game.
+  - **World edits.** They are applied by position, and only where the player could have made them (a gathered block, or planks or a torch
+    placed). Other differences belong to the new generation and are kept. A player standing inside a new block starts at the spawn.
+  - **Reporting.** `SaveMigrationReport` (engine-free), `migrate:` console lines, a `save_migration` session-log line, and the toast "The
+    game was updated. Your progress was kept; N old records no longer in the game were dropped."
+  - **Strict mode** (`--strict-save`, implied by `--playtest`) keeps the refusal, which the frozen-bundle recall needs. A same-bundle load is
+    byte-identical to before.
+  - **Checked by the orchestrator.**
+    - The gate: 4,727 passed, 5 skipped.
+    - The agent's demo: a scratch bundle without `u6-recap` migrated 136 records and dropped 1; strict refused.
+    - The README's full scripted `--playtest` run on the merged branch: pre 31/31, session complete, post 31/31, save written.
+  - **Not fixed:**
+    - placeable items are listed in `SaveMigration.IsPlaceable`, so a new placeable needs adding there;
+    - edits are not remapped when a layout moves.
+- **X04, the session summary card and a second try after "No sé" (2026-10-23, Haiku 5.5; merged to `feature/experiment` `6e14821`).**
+  - **The card** (`SessionSummary`, engine-free). The closing card adds a "This session" block: the lessons done; new words (nouns only);
+    the phrases said without help; the verb forms used; at most two to practise next time; how to replay. It has counts of things done,
+    no scores, and a `session_summary` session-log line. The card stays up 45 s or until Esc.
+  - **The second try** (`RetryQueue`). A "no sé" at a phrase or lesson step queues the phrase (at most 2), which is offered once at the next
+    talk with the same NPC as a review, with "Let's try that one again: …". It is never offered inside a check or for service lines. The
+    answer is logged as `second_try_answered recovered|not_yet`, a world event, not a new phrase-use kind, so D-game-10's measurement
+    is unchanged.
+  - **Checked by the orchestrator:** the gate (4,743 passed, 5 skipped) and the summary card screenshot.
+  - **Not fixed:**
+    - the card is not shown on F6, F10 or quit;
+    - the retry waits for a talk with the same NPC, never between lesson steps;
+    - the retry does not step one rung lower on the support ladder.
+- **X05, autosave and a crash report (2026-10-23, Haiku 5.5; merged to `feature/experiment` `001d75a`).**
+  - **Autosave** (`AutosavePolicy`, engine-free).
+    - It saves when a lesson step, a lesson, an objective step or the session completes, and when a dialogue closes, plus every
+      18,000 ticks (5 minutes of play, never the wall clock). It waits for a frame at rest: no turn, dialogue, recording, check or panel.
+    - The file is `autosave.save` in the session folder (`playtest.save` in a playtest), written atomically: a temp file is flushed to disk,
+      then renamed over the save. A "Saved" toast shows.
+    - `--no-autosave` turns it off.
+    - Determinism: session logs with autosave on and off are identical apart from timestamps.
+  - **The crash handler** (`CrashHandler`, `CrashReport`).
+    - It covers `game.Run()`, AppDomain and unobserved tasks.
+    - It writes `reports/crash-s<n>-t<tick>.md` (the exception, the stack, the game state, 200 log lines, the build commit), then a
+      last-chance `crash.save` that never overwrites the good save. Then it exits 1. It never throws.
+    - The test-only hook is `--debug-crash-after <tick>`. `playtest-report.sh` lists crashes beside the F8 reports.
+  - **Bugs fixed:**
+    - a crash before the session folder existed lost `crash.save`;
+    - every autosave rebuilt the scene (about 600 ms hitch; now 12 to 22 ms after the first);
+    - a save was renamed without flushing to disk.
+  - **Checked by the orchestrator:** the gate (4,781 passed, 5 skipped); a forced crash on the merged branch (exit 1, the report and
+    `crash.save` written).
+  - **Not fixed:**
+    - the first autosave of a run costs about 0.7 s;
+    - saves run on the game loop;
+    - a crash inside a dialogue leaves no `crash.save` (the last autosave stands).
+- **X03, book polish (2026-10-23, Haiku 5.5; merged to `feature/experiment` `08152fb`, bundle `2156744b…`).**
+  - **Scrolling.** The right page scrolls: the wheel over it, Shift+Up/Down, Shift+PgUp/PgDn, a "more below" marker, and a reset on a new
+    selection or page (`--book-detail <lines>` for screenshots). Long blocks are readable at 800 x 600.
+  - **Glosses.** ser "to be: what", estar "to be: where or how" (glosses.json).
+  - **Narrow rows** shorten their note with "..." instead of dropping it.
+  - **One reading rule** (`VerbReading.Normalize`, engine-free, shared by the labels and the conjugation table, added after an orchestrator
+    review). A used form the core read as an imperative, or with no tense, whose text is an indicative present of the same verb is read
+    as that present: `está — he/she/it is`, `vamos — we go`, `come — he/she/it eats`. A form with no indicative twin keeps its command
+    label (`ven — come!`). This replaces S28's vamos-only special case.
+  - **Checked by the orchestrator:** the gate (4,816 passed, 5 skipped) and the scrolled lesson block at 800 x 600.
+  - **Not fixed:**
+    - `vamos a comer` is not labelled "we are going to"; the table's future column counts it;
+    - a genuine command that has an indicative twin reads as the present.
+- **X08, UI scale and readable text (2026-10-23, Sonnet 5.5; merged to `feature/experiment` `f3cf721`).**
+  - **The scale.** 100, 125 or 150 % (`--text-scale`, F9, and the save's `SaveSettings.TextScale`). The 2D layers lay out on a window/scale
+    canvas, so every engine-free layout model just gets a smaller canvas, down to 533 x 400. `UiScale.Effective` lowers the scale for a
+    window too small. Atlas pictures are drawn in window pixels. The font floor is 16 px.
+  - **Layouts degrade predictably.**
+    - Dialogue: drops its hints, then the buttons' English, then collapses the log.
+    - Lesson strip: pages long English (`[M] More`), wraps its buttons, and two rows of Spanish. The longest step is 431 characters, which
+      were silently cut before.
+    - Check card: compact metrics.
+    - Book: narrow ribbons and stacked tenses.
+    - Checklist and toast: wrap.
+    - F1 help: scrolls.
+    - Crafting: drops its station column.
+    - F3 overlay: hidden on small canvases.
+  - **Contrast.** `UiPalette` has 35 pairs, all at least 4.5 : 1 on their panel and over a bright sky (WCAG AA; tested). Raised: dialogue
+    notes 5.69 to 7.35, the book's unseen ink 3.25 to 5.04, the support card's hint about 2.7 to 7.35, and the ribbons.
+  - **Bugs fixed:**
+    - the check card's option 3 overlapped the footer at 800 x 600 and 150 %;
+    - a ribbon fell off the cover;
+    - the strip ran over the checklist and the panel;
+    - the beacon label crossed the strip;
+    - the workbench panel overlapped the checklist;
+    - F1 help overflowed even at 100 %;
+    - the hotbar icons bled.
+  - **Checked by the orchestrator:**
+    - the gate (4,908 passed, 5 skipped; 92 new tests on six canvases);
+    - the conversation at 800 x 600 and 150 %;
+    - the README route on the merged branch (38 lesson steps, the Vosk step, session complete).
+  - **Not fixed:**
+    - colour-only signals are only partly addressed;
+    - fractional magnification gives uneven pixel strokes;
+    - the word card and the workbench panel may overlap on the smallest canvas;
+    - `--report-open` does not end a scripted run, by S21's design.
 
 ## 6. Definition of done (every milestone)
 

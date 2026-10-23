@@ -141,6 +141,45 @@ public sealed class SessionLog : IDisposable
         }));
     }
 
+    /// <summary>A save made from another content bundle was loaded into this one (X01): the bundles, and for each area how many records were kept and which were dropped.</summary>
+    /// <param name="report">The migration report.</param>
+    public void SaveMigrated(SaveMigrationReport report)
+    {
+        ArgumentNullException.ThrowIfNull(report);
+        WriteLine(Json("save_migration", w =>
+        {
+            w.WriteString("saved_bundle", report.SavedBundle);
+            w.WriteString("bundle", report.CurrentBundle);
+            w.WriteBoolean("world_digest_matched", report.WorldDigestMatched);
+            w.WriteNumber("kept", report.KeptCount);
+            w.WriteNumber("dropped", report.DroppedCount);
+            w.WriteStartArray("areas");
+            foreach (var area in report.Areas)
+            {
+                w.WriteStartObject();
+                w.WriteString("area", area.Area);
+                w.WriteNumber("kept", area.Kept);
+                w.WriteStartArray("dropped");
+                foreach (var id in area.Dropped)
+                {
+                    w.WriteStringValue(id);
+                }
+
+                w.WriteEndArray();
+                w.WriteEndObject();
+            }
+
+            w.WriteEndArray();
+            w.WriteStartArray("notes");
+            foreach (var note in report.Notes)
+            {
+                w.WriteStringValue(note);
+            }
+
+            w.WriteEndArray();
+        }));
+    }
+
     /// <summary>The start of a check battery: its kind, its session and its number of items.</summary>
     /// <param name="check">The check kind (<c>pre</c>...).</param>
     /// <param name="session">The play session number.</param>
@@ -306,6 +345,25 @@ public sealed class SessionLog : IDisposable
             WriteNullable(w, "support", phrase is null ? null : SupportLevelNames.Of(phrase.Support));
         }));
         FlushEvents(session);
+    }
+
+    /// <summary>The session's summary card (X04, R01), written when the session is complete: one line per row of the card, as the learner saw it.</summary>
+    /// <param name="lines">The card's lines.</param>
+    /// <param name="tick">The simulation tick the card came up at.</param>
+    public void SessionSummary(IReadOnlyList<string> lines, long tick)
+    {
+        ArgumentNullException.ThrowIfNull(lines);
+        WriteLine(Json("session_summary", w =>
+        {
+            w.WriteNumber("tick", tick);
+            w.WriteStartArray("lines");
+            foreach (var line in lines)
+            {
+                w.WriteStringValue(line);
+            }
+
+            w.WriteEndArray();
+        }));
     }
 
     /// <summary>The end of a run: the objective, the phrase counts, the ticks and the wall time it took.</summary>

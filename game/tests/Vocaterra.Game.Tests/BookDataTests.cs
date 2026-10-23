@@ -24,6 +24,15 @@ public sealed class BookDataTests
     }
 
     [Fact]
+    public void SerAndEstarAreGlossedApartByWhatTheyAreAndWhereOrHow()
+    {
+        var glosses = VerbGlosses.Load(TestGame.Bundle);
+
+        Assert.Equal("to be: what", glosses.ForLemma("ser")!.English);
+        Assert.Equal("to be: where or how", glosses.ForLemma("estar")!.English);
+    }
+
+    [Fact]
     public void AGlossMustStartWithTo()
     {
         Assert.Throws<InvalidDataException>(() => VerbGlosses.Parse("""{ "schemaVersion": 1, "verbs": [ { "lemma": "querer", "english": "want" } ] }"""));

@@ -279,8 +279,8 @@ game changed), the player where they stood, the hotbar, the inventory, the objec
 stored time. A load is the **next play session** (the journal's header and the debug overlay read `Sesión 2`), and a new session lifts the spacing gaps
 of D-game-6, so a phrase or word whose ten-minute gap had not passed becomes creditable again. **Time rule:** a load adds nothing to the stored time (it
 continues from the save: start, plus the ticks, plus the skipped seconds); the next-day recall check moves the stored time with `--skip <seconds>` after the
-load when a scenario needs a day to pass. A load is refused, with the reason, when `--seed` names another world or when the content bundle is not the one
-the save was made from; a save whose restored world does not match its digest is refused too. The file is canonical JSON (sorted keys, no whitespace):
+load when a scenario needs a day to pass. A load is refused, with the reason, when `--seed` names another world; a save whose restored world does not match its digest is refused too. A save made
+from **another content bundle** is carried into this one (X01, below), unless the run is strict (`--strict-save`, or any `--playtest`), which refuses it. The file is canonical JSON (sorted keys, no whitespace):
 the same state gives the same bytes, and a load followed by a save gives the same file except for the session number. Not saved: the open dialogue,
 the review question, the word cards not yet shown, the replay records of the conversations (the session log is S11's).
 
@@ -306,7 +306,7 @@ plays it again), and four that ask the learner to say a phrase in Spanish for an
 hold the same items in other orders. **Esc** ends the battery (the rest is skipped). `pre` is followed by the world; `post` and `recall` end the
 run after the battery. A check never changes the learner model, the phrase progress, the conversations or the world. The answers go to the
 session log: **`--session-dir <dir>`** names the folder (default: a new folder named by the local date and time and the session number, under
-`~/.local/share/vocaterra/sessions/`), which holds `session.jsonl` (one JSON object per line: `session_start`, `turn`, `phrase`, `voice`, `world`,
+`~/.local/share/vocaterra/sessions/`), which holds `session.jsonl` (one JSON object per line: `session_start`, `turn`, `phrase`, `voice`, `world`, `session_summary` (X04: the closing card's lines),
 `check_start`, `check_result`, `check_end`, `session_end`) and the core's `replay.jsonl`. A folder that already has a log is appended to. Scripted:
 `--pick <n>` answers a comprehension item, `--say` and `--speak` answer a production item, `--shot` saves the screen where it stands; a scripted run
 prints the item order and the right option of each item on the console.
@@ -622,6 +622,78 @@ done
 
 The S17 route (`--lesson-run first-words` and the steps above it) still completes with `fire_lit` and `session_complete`.
 
+## Saves survive content updates (X01)
+
+Every content change used to make every save unloadable (the S10 rule: a save refuses another bundle hash), so a player lost all progress when the game
+updated. Now a `--load` of a save made from another bundle **migrates** it (`SaveMigration`, engine-free, in `Vocaterra.Game/Save`) unless the run is strict.
+
+- **Kept where the id still exists in this bundle:** the learner's record (history, word rows), the settings and the session number, the word records
+  (by lemma), the carded nouns, the phrase records (one per sheet row, by id), the objective's counts (by step key), each NPC's conversation state and its
+  learner-model skills (`word.<noun>` and `phrase.<id>` skills of content that is gone are dropped), the tips, the arrow, the inventory (items are an enum
+  of the code, not of the bundle) and the lessons. A **lesson** is mapped by step id: a completed lesson stays completed (and `EverCompleted` stays) with the
+  outcomes of the steps that still exist; a lesson in progress keeps the longest run of its steps, from the first, that are all among the finished ones,
+  goes on at the next step, and does again a finished step that follows one the lesson has not finished (the tries on the step in progress reset when
+  the step changed). A lesson that is gone is dropped, and so is an active mark or a replay that named it.
+- **Dropped and logged:** records whose phrase row, noun, lesson, step, tip or step key is not in this bundle. **New** content (a phrase row, a lesson, a
+  noun) starts empty, as in a fresh game.
+- **World edits are applied by position.** The save holds whole chunks of the world it was made from (and, since X01, the grid's chunk counts, so a grid that
+  changed size still maps by position). A saved cell is applied only if it is a change the player can make to the cell the new scene has: a gathered block
+  (the cell now holds what a gather leaves) or a placed block (planks or a torch) in air or undergrowth that touches a block. Anything else is the old world
+  generation, not the player's work: it is skipped and counted in the report. The world's digest is then **reported, not required** (it still matches, and
+  the log says so, when the generation did not change). A player who would stand inside a block of the new world starts where a new game starts. A save of
+  this very bundle is restored exactly as before: the exact diff and the digest check, which still refuses a damaged save.
+- **Told and logged:** the toast "The game was updated. Your progress was kept; N old records no longer in the game were dropped.", the console lines
+  `migrate: ...` (the areas, then each dropped id), and a `save_migration` line in the session log. `VoxelSession.Migration` holds the `SaveMigrationReport`.
+- **Strict mode.** `--strict-save` refuses a save of another bundle with the old message plus the reason; **`--playtest` implies it** (a playtest's recall
+  session needs the bundle frozen between the sessions, D-game-10; see `docs/PLAYTEST.md`). The library's `SaveGame.Load/Check/Restore` take
+  `migrate` (default off: strict), and the front-end passes `!StrictSave`.
+
+```bash
+# a save on the current bundle, then the same save under a changed copy of the bundle (a lesson step removed, a tip reworded; the copy is re-stamped with
+# scripts/content.sh): the strict run refuses, the default run keeps the progress and prints what was dropped; the toast is in the screenshot
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --save /tmp/x01.save --screenshot /tmp/x01-before.png --frames 30
+dotnet run --project game/src/Vocaterra.MonoGame -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --strict-save --screenshot /tmp/x01-strict.png --frames 5
+dotnet run --project game/src/Vocaterra.MonoGame -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
+```
+
+## The session summary and the second try (X04, R01 and R02)
+
+**The summary card.** When the session is complete (S17's closing card), the card shows **This session** under the closing line, in English: the lessons
+completed or begun (with the steps done), the new nouns the learner's own lines used for the first time, the phrases said correctly without help, the verb
+forms used (tense and person), up to two phrases to practise next time (a phrase said "no sé" first, then a slip, then a phrase whose help is still on), and
+a line on how to replay a lesson (press J for the book, choose a finished lesson, Practise again). The card stays up for 45 seconds (it was 12) or until Esc,
+and it fits at 1280 x 720 and 800 x 600. `SessionSummary` (engine-free, `Vocaterra.Game`) builds it from the learner's record and the run's events. It counts
+things done only: no score, no CEFR label, no count of failures (D-game-10). The lines are written to `session.jsonl` as a `session_summary` line. The card is
+not drawn when a session ends early (F6, F10, quit): that is left for later.
+
+**The second try.** A phrase the learner says "no sé" to (typed, spoken, the button, or a lesson step's phrase; "ayuda" is help, not "no sé") waits in
+`RetryQueue` for the next talk with its NPC. At that talk, when no lesson holds the conversation and no review is open, the guide asks it once more as her
+review (the same request line and answer rules as a due phrase), with the English note *Let's try that one again: …*. The answer is logged as a world event
+`second_try_answered`, detail `recovered` (the same phrase, said correctly, with or without the card) or `not_yet`. Why these rules:
+
+- **A talk, not the next step.** A review opened between two lesson steps would take the next step's prompt (the core evaluates the answer on the review's
+  prompt). So the retry waits for a talk, and never interrupts a lesson's own turn.
+- **Once per session, two waiting at most** (repetition fatigue, R02). A second "no sé" on the retry does not bring it back.
+- **Never in a check.** A check is graded and changes nothing else; a check's "no sé" queues nothing.
+- **No credit before the gap.** The retry's use is counted like any review answer, so the spacing gap (D-game-6) still decides any credit.
+- **Not saved.** A loaded game is a new play session, and the queue belongs to the session it came from.
+
+Not done (R02 as written in the backlog): the retry is not asked one rung lower on the support ladder, and a "miss" at a phrase is not queued (only "no sé").
+
+```bash
+# S17's route with a "no sé" at the villager's first talk, then a second talk: the villager asks the river question again with the English note (the
+# console prints second_try_asked and second_try_answered); the closing card, with its summary, is in the last PNG (--size 800x600 for the small window)
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --session-dir /tmp/x04/session --lesson-run first-words --shot /tmp/x04/lesson.png \
+  --talk guide --wav game/content/game-v1/speech/phrase.hola.wav \
+  --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
+  --talk shopkeeper --say "quiero agua, por favor" --shot /tmp/x04/stall.png --say "sí, por favor" \
+  --talk villager --say "no sé" --shot /tmp/x04/no-se.png --leave \
+  --talk villager --say "¿dónde está el río?" --shot /tmp/x04/second-try.png \
+  --walk-to 234,222 --interact 233,34,222 --look 180,-14 --shot /tmp/x04/river.png \
+  --talk guide --say "sí, por favor" --walk-to 153,109 --look 330,-12 --place antorcha@153,74,105 --wait 1 \
+  --screenshot /tmp/x04/summary-card.png --frames 90
+```
+
 ## The book as a book, with conjugation tables (S28, D-game-19)
 
 - **The spread.** The book is an open two-page book drawn in code (no image files, D-game-5): a leather cover with brass corners, the paper with page edges, the spine with
@@ -650,6 +722,18 @@ dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --load /tmp
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --load /tmp/s28-2.save --lesson-run ayer-y-manana --save /tmp/s28-3.save --screenshot /tmp/s28-3.png --frames 30
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --load /tmp/s28-3.save --book-verb ir --screenshot /tmp/s28-ir.png --frames 30
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --size 800x600 --load /tmp/s28-3.save --book-verb comer --screenshot /tmp/s28-comer-800.png --frames 30
+```
+
+## Book polish (X03)
+
+- **The right page scrolls.** The wheel over the right page scrolls that page, and over the list it scrolls the list (three lines a notch, as before). Shift with Up or Down moves the right page a line; Shift with Page Up or Page Down, a page of it. The list keeps Up, Down (the speaker rows), Page Up and Page Down. A "more below" marker shows while writing lies under the page. The right page goes back to its top when the selection or the page changes (`BookModel.DetailOffset`, `DetailScroll`, `BookModel.KeepDetail`). The detail is laid out as rows (`BookLayer.DetailSheet`), so a long block (a lesson with all its units and phrases) is read to its end at 800 x 600. `--book-detail <lines>` scrolls it when the book opens (a scripted run).
+- **An imperative that is a present is that present.** The core reads some forms as an imperative with no tense (S27: `vamos`, `está`, `come`). When such a form's text is also the indicative present of the same verb (the bundle's morphology), the labels and the conjugation tables read it as that present: `vamos` is "we go", `está` is "he/she/it is" (estar's 3 sg cell), `come` is "he/she/it eats" (`VerbReading`). A form with no indicative twin (`ven`) keeps its imperative label. `vamos a comer` is not labelled `we are going to …`: the labels are per form, not per sentence, and the future (ir a) column of the table already counts it.
+- **ser and estar.** The bundle's glosses (`game/glosses.json`) read `to be: what` (ser) and `to be: where or how` (estar), in the list and on the table's heading. The forms are still the forms of *to be* (`VerbLabels`). The lessons say the same (S26: "Estar is “to be” for where someone is; ser ... is for what someone is").
+- **A narrow row keeps its note.** A row with an English aside (a phrase) keeps its Spanish and its English whole; its right-hand note is shortened with "..." to what is left, and is left off only when less than 90 pixels would be left (`MinNoteWidth`).
+- **The hint line** now reads `wheel: scroll   Shift+Up/Down: right page`.
+
+```bash
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --size 800x600 --load /tmp/s28-3.save --book-page lessons --book-detail 9 --screenshot /tmp/x03-lessons.png --frames 30
 ```
 
 ## Sounds (S24)
@@ -717,3 +801,72 @@ The sound log writes a `mark` line when the place or its weights change (`bed at
 # the S17 route with the sound log: add --sound-log to the route above; the cues played are listed with their ticks, and the recording window of the --wav step is marked
 dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --sound-log /tmp/route-sounds.log --lesson-run first-words ...
 ```
+
+## Autosave and the crash report (X05, R04)
+
+The game saves itself at its safe points, and a crash leaves a report instead of losing the session.
+
+**Autosave.** `AutosavePolicy` (`src/Vocaterra.Game/Autosave.cs`, engine-free) decides the frames; the game writes them in `VoxelGame.AutosaveDue`.
+
+- **When.** A lesson step ends (done, skipped or moved on), a lesson completes, a camp objective step is done, the session completes, a dialogue closes, and
+  every **five minutes of play** (18000 simulation ticks at 60 a second; the wall clock is not read). Five minutes: a crash loses at most that much of play, and a save is
+  a few tens of kilobytes, so writing one every five minutes costs nothing a tester notices. An event that falls inside an open dialogue waits for the
+  dialogue to close (a lesson runs inside its guide's panel, so its saves come when the panel shuts).
+- **Only at rest.** Never while a turn is on the worker, key words are on show, a dialogue is open, the microphone is recording, a check battery or the mic check
+  is on, or the report panel is open. The save is the same document F6 writes, so `--load` reads it like any save, in the next play session.
+- **Where.** In the session folder: `autosave.save` (a playtest writes `playtest.save`, the file F6 writes, so its end-of-run save and its autosave are one file).
+  Its path is printed at the start (`autosave: <path> (...)`), and each write is printed (`autosave: <path> written at <reason> (session, tick, stored time, digest, bytes)`).
+- **How.** The document goes to `<file>.tmp`, is flushed to the disk, and is renamed over the save (`SaveFile.Write`). A crash or a failed write before the rename
+  leaves the last autosave intact; a stale `.tmp` is overwritten by the next write. The save is taken on the game loop (the state must not move during it):
+  the first one builds the fresh scene it is diffed against (about 0.7 s on the valley, once per run, then kept); later saves take about 20 ms.
+- **The feedback.** A small "Saved" toast, four seconds, as the other toasts show. Nothing else on the screen changes, and no save changes the world, the digest or the replay:
+  a save only reads the session.
+- **Off.** `--no-autosave` writes no autosave (a playtest still writes `playtest.save` at its end). Scripted and test runs write their autosave into their session folder
+  (`--session-dir` to choose it); use `--no-autosave` when a run must write nothing.
+
+**Crash report.** `Program.cs` runs the game inside a handler. A crash on the game loop, an unhandled exception on any thread, or an unobserved task exception writes
+`reports/crash-s<session>-t<tick>.md` in the session folder (`crash-<local time>.md` when the state cannot be read), beside the F8 reports, with:
+
+- the exception, its stack and its inner exceptions, and where it came out;
+- the game state the handler could read (the session, the tick, the bundle, the seed, where the player stands, the objective, the lesson, whether a dialogue is open),
+  each row on its own, so a row that fails says so and the others are shown;
+- the last-chance save: `crash.save` in the session folder, written only when the game is at rest and no dialogue is open. It never replaces the autosave or a player's save;
+- the newest 200 lines of `session.jsonl`, and the build commit.
+
+Then the handler prints both paths (`crash: report written to ...`, `crash: last-chance save written to ...`) and the process exits with code 1. An unobserved task
+exception writes a report and no save, and the game goes on. The handler never throws: a folder that cannot be made, or a read that fails, is said on the console.
+
+`scripts/playtest-report.sh` lists the crash reports with the F8 reports (kind `Crash`). For the facilitator, see `docs/PLAYTEST.md` section 10.
+
+`--debug-crash-after <tick>` is a **test-only** hook (not in `--help`): the game throws on the game loop once the simulation reaches that tick, so the crash handler
+can be seen working. Nothing in a playtest uses it.
+
+```bash
+# a lesson with autosave on (the saves are printed); the session folder is the scratch folder, so the user's own sessions are not touched
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --session-dir /tmp/x05/lesson --lesson-run first-words --leave --wait 2 --screenshot /tmp/x05/lesson.png --frames 30
+# the autosave loads: the objective and the lesson are where the save left them
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --session-dir /tmp/x05/load --load /tmp/x05/lesson/autosave.save --screenshot /tmp/x05/load.png --frames 30
+# a forced crash: the report and crash.save are written and the exit code is 1
+dotnet run --project game/src/Vocaterra.MonoGame -- --seed 42 --mute --session-dir /tmp/x05/crash --debug-crash-after 600 --screenshot /tmp/x05/crash.png --frames 900; echo "exit $?"
+```
+
+## UI scale and readable text (X08, R09)
+
+The interface text has three sizes: 100, 125 and 150 percent (`SaveSettings.TextScaleLevels`). `--text-scale <n>` sets it for a run, **F9** steps through them in play
+(F9 had no other binding, and no text box reads it), and the choice is kept in the save's settings (`textScale`; a save from before has 100). 100 is the size the layouts
+were made at; 150 is the largest because an 800 x 600 window at 150 percent is a 533 x 400 canvas, the smallest the layouts are proven on (a smaller window uses a lower
+scale, `UiScale.Effective`).
+
+The 2D layers are drawn on a canvas of the window divided by the scale and magnified to the window (`UiScale`, `UiTransform`), so every engine-free layout model simply
+gets a smaller canvas; the mouse and the projected labels use the same canvas. Atlas pictures are drawn in window pixels so a 1.5 magnification leaves no light line under
+an icon. What each layout does when the canvas is short:
+
+- **Dialogue panel:** under 540 px tall it is about half the canvas; it gives up the key hints line, then the buttons' English, then the log (the bubble and the lesson strip carry the line).
+- **Lesson strip:** smaller padding and buttons; the English goes over pages (the `[M] More (1/2)` button), then the hint shrinks, then a second row of Spanish goes; buttons wrap to rows.
+- **Cards, bubble, beacon label:** the bubble stands in the band between the strip and the panel (or is left out); the label is left out when it has no free place; the cards collapse or hide as before.
+- **Check card:** compact rows; a heading of more than two rows takes the small font; a typed answer scrolls inside its box.
+- **Book:** the ribbons narrow, a row's note gives up its last column, a conjugation table stacks its tenses in blocks, the key hints shorten.
+- **Checklist, toast, workbench panel:** the checklist wraps by step (up to three rows) and gives way to the strip; a toast wraps; the workbench stands under the checklist.
+- **Report, mic check, inventory, crafting, F1 controls, closing card:** the report shows fewer text rows and wraps its hints; the inventory uses 44 x 56 slots; the crafting station column is left out when there is no room; the controls help scrolls (Up, Down, wheel); the closing card cuts the summary with an ellipsis.
+
+Contrast: the dim lines and the paper book's inks are in `UiPalette`, and `UiScaleLayoutTests` measures every pair (WCAG 2.x, 4.5 to 1 for body text, on the panel and where a bright sky shows through a translucent panel).

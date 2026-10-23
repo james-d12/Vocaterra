@@ -469,6 +469,13 @@ internal sealed class SentenceRealizer
             item.Lemma = lexeme.Lemma;
             var previous = PreviousContent(i);
             item.Infinitive = previous is not null && IsFiniteVerbItem(previous);
+
+            // M51: ir followed directly by an infinitive without "a" (voy comer) is a conj.tense mistake now, so it is not a correct sentence; the draw is skipped, as M49 did for mañana.
+            if (item.Infinitive && string.Equals(previous!.Lemma, "ir", StringComparison.Ordinal))
+            {
+                skip = "ir-bare-infinitive";
+                return false;
+            }
         }
 
         return true;

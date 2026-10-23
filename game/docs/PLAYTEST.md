@@ -77,7 +77,10 @@ README's build steps are the reference; S12's fresh-clone check is in `game/READ
 **Before the tester sits down:** the microphone works (the mic check will tell you), the screen is at least 1280 x 720, and the session folder
 root is empty of old runs you do not want mixed in (each run makes its own folder anyway).
 
-**Freeze the bundle first.** A save refuses another bundle hash (the save would not load). Before the first tester, note the bundle hash
+**Freeze the bundle first.** A playtest run is **strict** (X01: `--playtest` implies `--strict-save`): its save refuses another bundle hash, with a message that
+names both hashes, and does not load. Outside a playtest a save of an older bundle is carried into the new one (progress kept where its ids exist, the rest
+dropped and logged), which is right for a player and wrong for a recall check: the recall battery assumes the bundle the tester learned from. Do not load a
+tester's save without `--playtest` to get round the freeze; the recall session must be `--playtest --load`, on the same bundle. Before the first tester, note the bundle hash
 from `game/content/game-v1/manifest.json` (`bundleHash`) and do not change `game/content/game-v1` until the last next-day recall is done. The
 hash recorded at S18 (the refresh, 2026-10-22) is `393548666329ed76cac52e5d37dbb249285a37b6e12314b23a0df735fdfdeb98` (bundle `game-v1`,
 300 speech files, 20-item battery). The owner's freeze is the hash in the owner's observer notes; if `manifest.json` shows another hash when
@@ -130,7 +133,8 @@ included), the post-check (about 7, 31 items), the thank-you and the debrief (10
    `playtest.save`, and `reports/` when the tester pressed F8 (each report is a `report-s<session>-t<tick>-<bug|feature>.md` with its
    `.png`). If the tester pressed F6 during the run, `playtest.save` is overwritten by the save at the end (F6 writes the session folder's
    `playtest.save`, not a file in the build folder). If the run ended before the post-check (F10 or closing the window), the save is still
-   written at the quit.
+   written at the quit. During the run the game also writes `playtest.save` by itself (X05, the autosave) at each lesson step, objective step, lesson end
+   and closed dialogue, and every five minutes of play, so a crash in the middle loses at most those minutes (section 10, crash reports).
 10. **Collect the reports** (see section 10): after each session, with the tester's agreement, run `scripts/playtest-report.sh --copy <collection
     folder> <session folder>`. Read each report's kind and title in the printed summary; note them in the observer notes.
 11. **Debrief** (see section 6). Ask the questions in the notes template before you show the report.
@@ -201,7 +205,7 @@ Run it the next day, or later, on the same build:
 The playtest profile implies `--check recall` on a load: the mic check (skip if you wish), the recall battery (thirty-one items, the same kinds as
 the pre- and post-checks, another order), then the thank-you screen, and the game ends on Esc. It saves nothing. Its log goes into a new
 session folder (`~/.local/share/vocaterra/sessions/...`). Use the same build folder and the same bundle: a save made against another bundle
-is refused.
+is refused (the playtest is strict, X01; a plain `--load` would migrate it instead, and a migrated save is not a recall of what the tester learned).
 
 From a checkout: `dotnet run --project game/src/Vocaterra.MonoGame -- --playtest --load <session folder>/playtest.save`.
 
@@ -233,6 +237,22 @@ To collect what the facilitator takes away, add `--copy <dir>`:
 
 It writes `<collection folder>/<session folder name>/summary.txt` (the printed summary of that folder) and `reports/` with every report and its
 picture. Give the collection folder with the observer notes; the session folders stay with the tester's machine unless the tester agreed.
+
+### Crash reports (X05, for the facilitator)
+
+If the game stops with an error, it does not just close. The game writes a Markdown **crash report** into the session folder's `reports/`, beside the
+F8 reports, named `crash-s<session>-t<tick>.md` (or `crash-<date and time>.md` when the game could not read its state). It holds the error and its stack,
+the game's state when it stopped (the bundle, the seed, where the player stood, the objective and the lesson step, whether a dialogue was open), the
+newest 200 lines of the session log, and the build's commit. It also tries a **last-chance save**, `crash.save` in the same folder, when the game was at
+rest. The autosave (`playtest.save`) and any save the tester made are never overwritten by it. The console then prints both paths and the game exits with
+code 1.
+
+- A crash report contains **no audio**. Its log lines hold what the tester typed or what the recogniser heard, as the session log does.
+  Nothing is sent: the files stay in the folder until you collect them.
+- `scripts/playtest-report.sh` lists the crash reports under each folder with the F8 reports (kind `Crash`), and `--copy` takes them too.
+- What to do: note the time, what the tester was doing, and the report's name in the observer notes. Keep `crash.save` with the folder. A crash during a
+  dialogue leaves no last-chance save, so the autosave (from the last closed dialogue or lesson step) is the one that holds the progress. A playtest
+  `--load` of a save is the next-day recall (section 8), not a resume: do not use it to carry on a run that crashed; note the crash instead.
 
 ## 11. The decision gates and the evidence that answers them
 

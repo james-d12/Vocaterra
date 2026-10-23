@@ -65,7 +65,9 @@ public sealed record LaunchOptions
         + "  --book                  open the book (J) once the steps are done: the same as --journal\n"
         + "  --book-page <page>      open the book on nouns, verbs, phrases, lessons or said (What I said) once the steps are done\n"
         + "  --size <W>x<H>          the window's size (default 1280x720; 800x600 is the smallest the book is made for)\n"
+        + "  --text-scale <n>        the size of the interface text in percent: 100, 125 or 150 (default: the save's, else 100; F9 steps through them; X08)\n"
         + "  --book-verb <verb>     open the book on the verbs page with this verb's conjugation table on the right page (S28)\n"
+        + "  --book-detail <lines>  scroll the book's right page down by this many lines when it opens (a scripted run, X03)\n"
         + "  --inventory             open the inventory screen once the steps are done\n"
         + "  --crafting              open the crafting panel once the steps are done\n"
         + "  --mic-check             show the mic check at the start (an interactive run shows it by default; a scripted run with --screenshot never does unless asked,\n"
@@ -77,6 +79,7 @@ public sealed record LaunchOptions
         + "  --check <pre|post|recall>  run the check battery (S11) first, outside the world: pre then the world; post or recall instead of the world (the run ends\n"
         + "                          after it). Its items are answered by the player, or by the script's --pick and --say/--speak steps\n"
         + "  --pick <n>              answer the check's comprehension item with the option n (1 to 3, as shown); a step, with --check\n"
+        + "  --no-autosave           do not autosave (X05): the autosave in the session folder is not written; a playtest's playtest.save is still written at its end\n"
         + "  --session-dir <dir>     write this run's session.jsonl and replay.jsonl here (default: a new folder under ~/.local/share/vocaterra/sessions/)\n"
         + "  --report <text>         open the report panel (F8), type the text and save the report (a Markdown file and a screenshot); a step (S21)\n"
         + "  --report-open <text>   open the report panel, type the text and leave the panel open (the screenshot of the panel); a step (S21)\n"
@@ -94,6 +97,8 @@ public sealed record LaunchOptions
         + "  --teleport <x,z>        put the player at this block column, standing on the ground (a debug step for screenshots); a step\n"
         + "  --greyscale             the playtest A/B switch (D-game-6): blocks whose noun is not known yet are grey, known ones in colour; default full colour\n"
         + "  --assume-known <nouns>  a test aid: the comma-separated catalogue nouns count as known from the start (their blocks are in colour)\n"
+        + "  --strict-save           refuse a save made from another content bundle (the playtest's frozen bundle, D-game-10); without it a --load across bundles keeps\n"
+     + "                          the progress where its ids still exist and drops the rest (X01); --playtest implies it\n"
         + "  --playtest              the playtest profile (S12): no debug overlay, the mic check, the session log in its own folder, the pre-check before the\n"
         + "                          world (a fresh start) or the recall check (with --load), the post-check when the camp is done and the transfer offered\n"
         + "                          (or F10 ends the run), then playtest.save in the session folder and the thank-you screen until Esc; --greyscale stays\n"
@@ -120,6 +125,12 @@ public sealed record LaunchOptions
 
     /// <summary>The check battery to run (<c>--check</c>), or <see langword="null"/> for none.</summary>
     public CheckKind? Check { get; init; }
+
+    /// <summary>Whether <c>--no-autosave</c> was given: the game writes no autosave (X05).</summary>
+    public bool NoAutosave { get; init; }
+
+    /// <summary>The tick at which the game throws on purpose (<c>--debug-crash-after</c>, a test-only hook of X05, not in the usage), or <see langword="null"/>.</summary>
+    public long? DebugCrashAfter { get; init; }
 
     /// <summary>The folder the session log is written to (<c>--session-dir</c>), or <see langword="null"/> for a new folder under the sessions folder.</summary>
     public string? SessionDir { get; init; }
@@ -187,11 +198,17 @@ public sealed record LaunchOptions
     /// <summary>The verb whose table the book opens on, with the verbs page (<c>--book-verb</c>, S28), or <see langword="null"/>.</summary>
     public string? BookVerb { get; init; }
 
+    /// <summary>The lines the right page is scrolled down when the book opens (<c>--book-detail</c>, X03), so a scripted run can show a long block scrolled; 0 for none.</summary>
+    public int BookDetailLines { get; init; }
+
     /// <summary>The window's width in pixels (<c>--size</c>, S28), or <see langword="null"/> for the default.</summary>
     public int? WindowWidth { get; init; }
 
     /// <summary>The window's height in pixels (<c>--size</c>, S28), or <see langword="null"/> for the default.</summary>
     public int? WindowHeight { get; init; }
+
+    /// <summary>The interface text size in percent (<c>--text-scale</c>, X08): 100, 125 or 150; <see langword="null"/> to take the save's, else 100.</summary>
+    public int? TextScale { get; init; }
 
     /// <summary>Whether the inventory screen is opened once the script is done (<c>--inventory</c>).</summary>
     public bool ShowInventory { get; init; }
@@ -237,6 +254,12 @@ public sealed record LaunchOptions
     /// recall check on a load), the post-check at the end, a save in the session folder and a thank-you screen.
     /// </summary>
     public bool Playtest { get; init; }
+
+    /// <summary>
+    /// Whether a save of another content bundle is refused (<c>--strict-save</c>, or <c>--playtest</c>, X01). Off, a <c>--load</c> across bundles keeps the progress where its ids still
+    /// exist and logs what was dropped. A playtest is strict because its recall check needs the bundle frozen between the sessions (D-game-10).
+    /// </summary>
+    public bool StrictSave { get; init; }
 
     /// <summary>Whether the run is the next-day recall of a playtest (<c>--playtest --load</c>): it runs the recall check and saves nothing.</summary>
     public bool IsPlaytestRecall => Playtest && Check == CheckKind.Recall;
@@ -284,13 +307,16 @@ public sealed record LaunchOptions
         var journalPhrases = false;
         BookPage? bookPage = null;
         string? bookVerb = null;
+        var bookDetailLines = 0;
         int? windowWidth = null;
         int? windowHeight = null;
+        int? textScale = null;
         var inventory = false;
         var crafting = false;
         var greyscale = false;
         var micCheck = MicCheckMode.Auto;
         var playtest = false;
+        var strictSave = false;
         for (var i = 0; i < args.Count; i++)
         {
             var arg = args[i];
@@ -300,8 +326,8 @@ public sealed record LaunchOptions
                 return false;
             }
 
-            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--leave" or "--mic-check" or "--no-mic-check"
-                    or "--playtest" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help")
+            if (arg is "--journal" or "--journal-phrases" or "--book" or "--inventory" or "--crafting" or "--no-speech" or "--mute" or "--no-sounds" or "--voxel" or "--greyscale" or "--strict-save" or "--leave" or "--mic-check" or "--no-mic-check"
+                    or "--playtest" or "--no-autosave" or "--tips" or "--third-person" or "--dusk" or "--lesson-next" or "--lesson-skip" or "--lesson-help")
             {
                 switch (arg)
                 {
@@ -361,6 +387,12 @@ public sealed record LaunchOptions
                     case "--playtest":
                         playtest = true;
                         break;
+                    case "--strict-save":
+                        strictSave = true;
+                        break;
+                    case "--no-autosave":
+                        result = result with { NoAutosave = true };
+                        break;
                     default:
                         break; // --voxel: accepted for old scripts, the 3D world is the only one
                 }
@@ -370,9 +402,9 @@ public sealed record LaunchOptions
 
             if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
-                or "--check" or "--pick" or "--session-dir" or "--session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--size"
+                or "--check" or "--pick" or "--session-dir" or "--session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
-                or "--book-play" or "--book-play-slow"))
+                or "--book-play" or "--book-play-slow" or "--debug-crash-after"))
             {
                 error = $"Unknown argument '{arg}'.";
                 return false;
@@ -480,6 +512,16 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { ReportDir = value };
+                    break;
+                case "--debug-crash-after":
+                    // A test hook (X05, not in the usage): the game throws on the game loop once the simulation reaches this tick, so the crash handler runs.
+                    if (!long.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var crashTick) || crashTick < 0)
+                    {
+                        error = $"--debug-crash-after needs a tick (0 or more), got '{value}'.";
+                        return false;
+                    }
+
+                    result = result with { DebugCrashAfter = crashTick };
                     break;
                 case "--session-dir":
                     if (value.Length == 0)
@@ -679,6 +721,24 @@ public sealed record LaunchOptions
                     windowWidth = sizeW;
                     windowHeight = sizeH;
                     break;
+                case "--text-scale":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var scalePercent) || !SaveSettings.TextScaleLevels.Contains(scalePercent))
+                    {
+                        error = $"--text-scale needs one of {string.Join(", ", SaveSettings.TextScaleLevels)} (percent), got '{value}'.";
+                        return false;
+                    }
+
+                    textScale = scalePercent;
+                    break;
+                case "--book-detail":
+                    if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var detailLines) || detailLines < 1)
+                    {
+                        error = $"--book-detail needs a positive number of lines, got '{value}'.";
+                        return false;
+                    }
+
+                    bookDetailLines = detailLines;
+                    break;
                 case "--book-verb":
                     bookVerb = value.Trim().ToLowerInvariant();
                     bookPage = BookPage.Verbs;
@@ -833,6 +893,7 @@ public sealed record LaunchOptions
         options = result with
         {
             Playtest = playtest,
+            StrictSave = strictSave || playtest,
             ScreenshotPath = screenshot,
             Says = says,
             VoxelSteps = steps,
@@ -842,8 +903,10 @@ public sealed record LaunchOptions
             JournalPhrases = journalPhrases,
             BookStart = bookPage ?? (journalPhrases ? BookPage.Phrases : null),
             BookVerb = bookVerb,
+            BookDetailLines = bookDetailLines,
             WindowWidth = windowWidth,
             WindowHeight = windowHeight,
+            TextScale = textScale,
             ShowInventory = inventory,
             ShowCrafting = crafting,
             Greyscale = greyscale,

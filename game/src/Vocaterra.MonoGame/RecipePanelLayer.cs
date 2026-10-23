@@ -66,7 +66,8 @@ public sealed class RecipePanelLayer : IFrameLayer
         var slots = Math.Max(1, model.Ingredients.Count);
         var width = Math.Max(2 * Slot, (slots * Slot) + ((slots - 1) * Gap)) + 48;
         var height = 34 + Slot + 36 + Slot + 22 + 32;
-        var panel = new Rectangle(view.ViewportWidth - width - 20, (view.ViewportHeight / 2) - (height / 2) - 30, width, height);
+        var placed = HudLayout.RecipePanelBox(view.ViewportWidth, view.ViewportHeight, width, height, ObjectiveLayer.BottomOf(view)); // under the checklist, above the hotbar (X08)
+        var panel = new Rectangle(placed.X, placed.Y, placed.Width, placed.Height);
         DrawHelpers.RoundedPanel(spriteBatch, pixel, panel, 8, Back, Edge, 2);
         DrawHelpers.Text(spriteBatch, font, Title, new Vector2(panel.X + 16, panel.Y + 8), Warm);
 

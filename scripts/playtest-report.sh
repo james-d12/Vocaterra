@@ -5,7 +5,8 @@
 # The gates are evidence, never a verdict on learning efficacy (the brief: a small pilot gives directional evidence only); "Enjoyable" needs
 # observer notes, which the script cannot measure.
 #
-# The bug and feature reports (S21, D-game-17) of each session folder: reports/report-s<session>-t<tick>-<bug|feature>.md with its screenshot. The
+# The bug and feature reports (S21, D-game-17) of each session folder: reports/report-s<session>-t<tick>-<bug|feature>.md with its screenshot, and the
+# crash reports (X05) reports/crash-*.md, which have no screenshot. The
 # script lists each report's kind and title under the folder's summary, and with --copy <dir> it copies the reports and the summary to
 # <dir>/<session folder name>/ (summary.txt, reports/), so that one folder of the playtest holds what the facilitator collects.
 #
@@ -400,6 +401,8 @@ def gates(summary, out, label):
 
 
 REPORT_FILE = re.compile(r"^report-s\d+-t\d+-(bug|feature)(-\d+)?\.md$")
+# The crash reports (X05, R04) sit beside the F8 reports: crash-s<session>-t<tick>.md, or crash-<yyyymmdd-hhmmss>.md when the state was not read.
+CRASH_FILE = re.compile(r"^crash-(s\d+-t\d+|\d{8}-\d{6})(-\d+)?\.md$")
 
 
 def reports_of(folder):
@@ -410,9 +413,10 @@ def reports_of(folder):
     found = []
     for name in sorted(os.listdir(directory)):
         match = REPORT_FILE.match(name)
-        if not match:
+        crash = CRASH_FILE.match(name)
+        if not match and not crash:
             continue
-        kind = "Feature request" if match.group(1) == "feature" else "Bug"
+        kind = "Crash" if crash else ("Feature request" if match.group(1) == "feature" else "Bug")
         title = "(no title)"
         with open(os.path.join(directory, name), encoding="utf-8") as handle:
             for line in handle:
@@ -426,7 +430,7 @@ def reports_of(folder):
 
 def report_lines(reports, folder, out):
     if not reports:
-        out.append("  Reports: none (no reports/ folder with report-*.md files)")
+        out.append("  Reports: none (no reports/ folder with report-*.md or crash-*.md files)")
         return
     out.append(f"  Reports: {len(reports)} ({os.path.join(folder, 'reports')})")
     for name, kind, title in reports:

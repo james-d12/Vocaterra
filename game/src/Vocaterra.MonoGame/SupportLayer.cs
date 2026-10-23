@@ -29,7 +29,7 @@ public sealed class SupportLayer : IFrameLayer
     private const int PhraseSize = 32;
     private static readonly Color Gold = new(255, 214, 64);
     private static readonly Color Ink = new(250, 246, 232);
-    private static readonly Color Dim = new(150, 150, 165);
+    private static readonly Color Dim = UiPalette.Muted.ToColor();
     private static readonly Color Empty = new(90, 90, 110);
     private static readonly Color Back = new(12, 16, 30, 226);
     private static readonly Color CardBorder = new(120, 220, 130);
@@ -110,22 +110,31 @@ public sealed class SupportLayer : IFrameLayer
         var slot = new Rectangle(box.Right - 62, box.Y + 6, 52, 22);
         spriteBatch.Draw(view.Pixel, slot, new Color(30, 30, 44));
         DrawHelpers.Border(spriteBatch, view.Pixel, slot, 1, Empty);
-        DrawHelpers.Text(spriteBatch, small, "audio", new Vector2(slot.X + 6, slot.Y + 3), Empty);
+        DrawHelpers.Text(spriteBatch, small, "audio", new Vector2(slot.X + 6, slot.Y + 3), Dim);
         var phraseFont = DrawHelpers.Width(large, card.Phrase) <= width ? large : small;
-        DrawHelpers.Text(spriteBatch, phraseFont, card.Phrase, new Vector2(left, box.Y + 22), Ink);
+        DrawHelpers.Text(spriteBatch, phraseFont, DrawHelpers.Fit(phraseFont, card.Phrase, width), new Vector2(left, box.Y + 22), Ink);
         if (!card.EnglishShown)
         {
             // Rung 2 of the ladder (S16): the Spanish card and its audio, the English on the help key.
-            DrawHelpers.Text(spriteBatch, small, EnglishOnHelp, new Vector2(left, box.Bottom - 22), Empty);
+            DrawHelpers.Text(spriteBatch, small, EnglishOnHelp, new Vector2(left, box.Bottom - 22), Dim); // it was the dim grey of the slot border, 2.7 to 1 (X08)
             return;
         }
 
         var english = DialoguePanel.EnglishColor;
-        DrawHelpers.Text(spriteBatch, small, DialoguePanel.EnglishPrefix + card.Meaning, new Vector2(left, box.Y + 58), english);
-        var y = box.Y + 76;
+        // The meaning wraps (a narrow card takes two rows), and the explanation or the glosses take the rows that are left above the card's bottom edge (X08).
+        var meaning = TextWrap.Wrap(DialoguePanel.EnglishPrefix + card.Meaning, width, t => DrawHelpers.Width(small, t)).Take(2).ToList();
+        var y = box.Y + 58;
+        foreach (var row in meaning)
+        {
+            DrawHelpers.Text(spriteBatch, small, row, new Vector2(left, y), english);
+            y += 16;
+        }
+
+        y += 2;
+        var room = Math.Max(0, (box.Bottom - 4 - y) / 16);
         if (card.Explanation is { } explanation)
         {
-            foreach (var row in TextWrap.Wrap(explanation, width, t => DrawHelpers.Width(small, t)).Take(2))
+            foreach (var row in TextWrap.Wrap(explanation, width, t => DrawHelpers.Width(small, t)).Take(Math.Min(2, room)))
             {
                 DrawHelpers.Text(spriteBatch, small, row, new Vector2(left, y), english);
                 y += 16;
@@ -134,7 +143,7 @@ public sealed class SupportLayer : IFrameLayer
         else if (card.Glosses.Count > 0)
         {
             var rows = TextWrap.Wrap(string.Join(" · ", card.Glosses), width, t => DrawHelpers.Width(small, t));
-            for (var i = 0; i < Math.Min(2, rows.Count); i++)
+            for (var i = 0; i < Math.Min(Math.Min(2, room), rows.Count); i++)
             {
                 DrawHelpers.Text(spriteBatch, small, rows[i], new Vector2(left, y + (i * 16)), Dim);
             }
@@ -151,10 +160,10 @@ public sealed class SupportLayer : IFrameLayer
             DrawHelpers.Text(spriteBatch, small, KeyWordsHeading, new Vector2(box.X + 14, box.Y + 6), Gold);
         }
 
-        DrawHelpers.Text(spriteBatch, large, card.Phrase, new Vector2(box.X + 14, box.Y + (alone ? 24 : 6)), Ink);
+        DrawHelpers.Text(spriteBatch, large, DrawHelpers.Fit(large, card.Phrase, box.Width - 28), new Vector2(box.X + 14, box.Y + (alone ? 24 : 6)), Ink);
         var slot = alone ? new Rectangle(box.X + 14, box.Y + 68, 52, 18) : new Rectangle(box.X + 14, box.Y + 42, 48, 16);
         spriteBatch.Draw(view.Pixel, slot, new Color(30, 30, 44));
         DrawHelpers.Border(spriteBatch, view.Pixel, slot, 1, Empty);
-        DrawHelpers.Text(spriteBatch, small, "audio", new Vector2(slot.X + 4, slot.Y + (alone ? 1 : 0)), Empty);
+        DrawHelpers.Text(spriteBatch, small, "audio", new Vector2(slot.X + 4, slot.Y + (alone ? 1 : 0)), Dim);
     }
 }

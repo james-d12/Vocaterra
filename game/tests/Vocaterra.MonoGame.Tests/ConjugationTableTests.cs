@@ -15,6 +15,16 @@ public sealed class ConjugationTableTests
 
     private static WordUse Use(long entry) => new(entry, 1, GuideSession.DefaultStartedAt + entry, "x");
 
+    [Fact]
+    public void TheTableCountsEstaraAsTheThirdPersonPresentOfEstar()
+    {
+        // The core reads "está" as the tú imperative of estar; it is the he/she/it present, so it fills that cell (X03).
+        var verb = Verb("estar", Form("está", "2", "sg", null, "imp", 1));
+        var table = ConjugationTable.Build(verb, [], [], Bundle.Value.Morphology, null);
+        Assert.Equal(new ConjugationCell("está", CellState.Used, 1), At(table, "3", "sg", "pres"));
+        Assert.Equal(new ConjugationCell(null, CellState.Locked, 0), At(table, "2", "sg", "pres")); // tú is not counted
+    }
+
     private static FormRow Form(string text, string? person, string? number, string? tense, string? mood, int times, bool question = false) =>
         new(text, person, number, tense, mood, times, times, question);
 

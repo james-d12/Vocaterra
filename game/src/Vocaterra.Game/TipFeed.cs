@@ -37,6 +37,10 @@ public sealed class TipFeed
     /// <param name="id">The tip's id.</param>
     public bool WasShown(string id) => _shown.Contains(id);
 
+    /// <summary>Whether the game's English text has a tip with this id (a save across bundles keeps only the tips that still exist, X01).</summary>
+    /// <param name="id">The tip's id.</param>
+    internal bool Knows(string id) => _english.Tips.Any(t => string.Equals(t.Id, id, StringComparison.Ordinal));
+
     /// <summary>Queues the tips of a trigger that were not shown yet, in the file's order. A tip is queued once.</summary>
     /// <param name="when">The trigger: <c>start</c>, <c>aimed_npc</c> or a world event's name.</param>
     public void Offer(string when)

@@ -9,8 +9,8 @@ namespace Vocaterra.MonoGame.Frontend;
 /// </summary>
 public sealed class SessionEnding
 {
-    /// <summary>How long the card stays up: twelve seconds of game time.</summary>
-    public const long ShowTicks = 12 * 60;
+    /// <summary>How long the card stays up: forty-five seconds of game time (S17 showed it for twelve; the session summary of X04 needs time to read).</summary>
+    public const long ShowTicks = 45 * 60;
 
     private long _since = -1;
     private bool _dismissed;
@@ -23,6 +23,9 @@ public sealed class SessionEnding
 
     /// <summary>The English of the closing line.</summary>
     public string English { get; private set; } = string.Empty;
+
+    /// <summary>The session summary's English lines (X04, R01), or none before the moment.</summary>
+    public IReadOnlyList<string> Summary { get; private set; } = [];
 
     /// <summary>
     /// Checks the session once per tick. Returns <see langword="true"/> on the tick the moment begins (the session is complete for the first time), so the game can
@@ -41,6 +44,7 @@ public sealed class SessionEnding
         _since = tick;
         Spanish = session.ClosingLine;
         English = session.English.ForLine(Spanish) ?? session.English.Ui("sessionCompleteLine");
+        Summary = SessionSummary.Lines(SummaryFacts.Of(session), session.English);
         return true;
     }
 

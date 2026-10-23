@@ -16,7 +16,7 @@ public sealed class MicCheckLayer : IFrameLayer
 
     private static readonly Color Gold = new(255, 214, 64);
     private static readonly Color Ink = new(250, 246, 232);
-    private static readonly Color Dim = new(140, 140, 150);
+    private static readonly Color Dim = UiPalette.Muted.ToColor();
     private static readonly Color Good = new(120, 220, 130);
     private static readonly Color Warn = new(255, 150, 120);
     private static readonly Color HeardColor = new(190, 225, 255);
@@ -62,7 +62,12 @@ public sealed class MicCheckLayer : IFrameLayer
             MicCheckPhase.Thinking => Gold,
             _ => Dim,
         };
-        DrawHelpers.Text(spriteBatch, small, status, new Vector2(panel.Left + 40, panel.Top + 100), statusColor);
+        var inner = panel.Width - 80;
+        var statusRows = Rows(small, status, inner);
+        for (var i = 0; i < statusRows.Count; i++)
+        {
+            DrawHelpers.Text(spriteBatch, small, statusRows[i], new Vector2(panel.Left + 40, panel.Top + 100 + (i * 20)), statusColor);
+        }
         if (check.Phase == MicCheckPhase.Listening && (view.Tick / 15) % 2 == 0)
         {
             spriteBatch.Draw(pixel, new Rectangle(panel.Left + 26, panel.Top + 105, 8, 8), new Color(255, 70, 70));
@@ -71,7 +76,11 @@ public sealed class MicCheckLayer : IFrameLayer
         DrawMeter(spriteBatch, pixel, layout.Meter, check.MeterFill);
         if (check.HeardText is { } heard)
         {
-            DrawHelpers.Text(spriteBatch, small, heard, new Vector2(panel.Left + 40, panel.Top + 192), HeardColor);
+            var heardRows = Rows(small, heard, inner);
+            for (var i = 0; i < heardRows.Count; i++)
+            {
+                DrawHelpers.Text(spriteBatch, small, heardRows[i], new Vector2(panel.Left + 40, panel.Top + 192 + (i * 20)), HeardColor);
+            }
         }
 
         var mouse = view.Mouse;
@@ -85,6 +94,13 @@ public sealed class MicCheckLayer : IFrameLayer
         }
 
         DrawHelpers.Text(spriteBatch, small, "Esc: skip", new Vector2(panel.Right - 40 - DrawHelpers.Width(small, "Esc: skip"), panel.Bottom - 44), Dim);
+    }
+
+    // A text wrapped to the panel's inner width, at most two rows (the second ends in an ellipsis when text is left out): a long recognised line stays on the panel (X08).
+    private static IReadOnlyList<string> Rows(FontStashSharp.SpriteFontBase font, string text, int width)
+    {
+        var rows = TextWrap.Wrap(text, width, t => DrawHelpers.Width(font, t));
+        return rows.Count <= 2 ? rows : [rows[0], rows[1].TrimEnd() + "…"];
     }
 
     // A row of segments that light up to the level: green, then yellow, then red for a very loud input.

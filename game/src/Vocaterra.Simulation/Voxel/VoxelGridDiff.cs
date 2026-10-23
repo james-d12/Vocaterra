@@ -92,6 +92,22 @@ public static class VoxelGridDiff
         }
     }
 
+    /// <summary>
+    /// Writes one block of a save onto a freshly built grid (X01: a save made from another content bundle applies its edits cell by cell, by position, see
+    /// <c>SaveMigration</c>). Only the save's load uses it, on a grid no simulation is running on.
+    /// </summary>
+    /// <param name="target">The grid.</param>
+    /// <param name="x">The x of the cell.</param>
+    /// <param name="y">The y of the cell.</param>
+    /// <param name="z">The z of the cell.</param>
+    /// <param name="block">The block to write.</param>
+    /// <exception cref="ArgumentOutOfRangeException">The cell lies outside the grid.</exception>
+    public static void SetCell(VoxelGrid target, int x, int y, int z, BlockId block)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        _ = target.SetBlock(x, y, z, block);
+    }
+
     private static List<BlockRun> Runs(ReadOnlySpan<BlockId> blocks)
     {
         var runs = new List<BlockRun>();

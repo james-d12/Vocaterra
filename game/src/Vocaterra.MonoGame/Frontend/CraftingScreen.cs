@@ -68,6 +68,25 @@ public readonly record struct CraftingLayout
         Y = Math.Max(8, (viewportHeight - Height) / 2);
     }
 
+    /// <summary>
+    /// Where the "Uses mesa" column of a row starts, from the row's left edge, or <see langword="null"/> when the row has no room for it (X08: on a narrow canvas the column is left
+    /// out; the status on the right still says <c>Needs mesa</c>). It goes at <see cref="StationColumn"/> when it fits there, else as far left as it can, never over the ingredients
+    /// or the status.
+    /// </summary>
+    /// <param name="rowWidth">The row's width.</param>
+    /// <param name="ingredientsEnd">Where the ingredients end, from the row's left edge.</param>
+    /// <param name="stationWidth">The width of the column's text.</param>
+    /// <param name="statusWidth">The width of the status text on the right.</param>
+    public static int? StationX(int rowWidth, int ingredientsEnd, int stationWidth, int statusWidth)
+    {
+        var limit = rowWidth - 10 - statusWidth - 12 - stationWidth;
+        var x = Math.Max(ingredientsEnd + 12, Math.Min(StationColumn, limit));
+        return x <= limit ? x : null;
+    }
+
+    /// <summary>The column the station text prefers, from the row's left edge.</summary>
+    public const int StationColumn = 470;
+
     /// <summary>The number of rows.</summary>
     public int RowCount { get; }
 

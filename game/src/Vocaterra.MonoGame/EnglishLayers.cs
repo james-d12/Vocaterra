@@ -45,7 +45,8 @@ public sealed class LessonLayer : IFrameLayer
             view.ViewportHeight,
             limit,
             text => DrawHelpers.Width(small, text),
-            text => DrawHelpers.Width(large, text));
+            text => DrawHelpers.Width(large, text),
+            lesson.EnglishPage);
     }
 
     private readonly LessonFrontend _lesson;
@@ -73,12 +74,15 @@ public sealed class LessonLayer : IFrameLayer
         var box = new Rectangle(layout.Box.X, layout.Box.Y, layout.Box.Width, layout.Box.Height);
         spriteBatch.Draw(view.Pixel, box, Back);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, DialoguePanel.EnglishColor);
-        var left = box.X + LessonStripLayout.Padding;
+        var left = box.X + layout.Pad;
         var heading = step is not null ? LessonStripLayout.Heading(ui, step) : LessonStripLayout.Heading(ui, offer!);
         DrawHelpers.Text(spriteBatch, small, heading, new Vector2(left, layout.HeadingY), Gold);
-        if (layout.SpanishY is { } spanishY && step?.Spanish is { } spanish)
+        if (layout.SpanishY is { } spanishY)
         {
-            DrawHelpers.Text(spriteBatch, large, spanish, new Vector2(left, spanishY), Ink);
+            for (var i = 0; i < layout.SpanishRows.Count; i++)
+            {
+                DrawHelpers.Text(spriteBatch, large, layout.SpanishRows[i], new Vector2(left, spanishY + (i * LessonStripLayout.SpanishHeight)), Ink);
+            }
         }
 
         for (var i = 0; i < layout.EnglishRows.Count; i++)
@@ -98,7 +102,7 @@ public sealed class LessonLayer : IFrameLayer
             var picked = LessonStripLayout.OptionIndex(action) is { } index && step is not null && index == step.Picked;
             spriteBatch.Draw(view.Pixel, rect, hovered ? ButtonHover : ButtonBack);
             DrawHelpers.Border(spriteBatch, view.Pixel, rect, hovered || picked ? 2 : 1, picked ? Right : hovered ? Gold : new Color(110, 110, 150));
-            DrawHelpers.Text(spriteBatch, small, text, new Vector2(rect.Left + LessonStripLayout.ButtonPadding, rect.Top + 5), new Color(236, 236, 246));
+            DrawHelpers.Text(spriteBatch, small, text, new Vector2(rect.Left + LessonStripLayout.ButtonPadding, rect.Top + ((rect.Height - 18) / 2)), new Color(236, 236, 246));
         }
     }
 }
@@ -115,7 +119,7 @@ public sealed class TipLayer : IFrameLayer
 
     private static readonly Color Gold = new(255, 214, 64);
     private static readonly Color Back = new(10, 10, 20, 205);
-    private static readonly Color Dim = new(180, 180, 200);
+    private static readonly Color Dim = UiPalette.TipDim.ToColor();
 
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
@@ -170,19 +174,16 @@ public sealed class ControlsLayer : IFrameLayer
 
         var font = view.Fonts.Get(FontProvider.NativeSize);
         var ui = view.Session.English;
-        var controls = view.Session.English.Controls;
-        var width = Math.Min(820, view.ViewportWidth - 32);
-        var keysWidth = Math.Min(300, width / 3);
-        var textWidth = width - keysWidth - 32;
-        var rows = controls.Select(c => (c, Text: TextWrap.Wrap(c.Text, textWidth, t => DrawHelpers.Width(font, t)), Keys: TextWrap.Wrap(c.Keys, keysWidth - 8, t => DrawHelpers.Width(font, t)))).ToList();
-        var height = 24 + 28 + rows.Sum(r => Math.Max(r.Text.Count, r.Keys.Count) * 20 + 6) + 30;
-        var box = new Rectangle((view.ViewportWidth - width) / 2, Math.Max(8, (view.ViewportHeight - height) / 2), width, height);
+        var (layout, rows) = LayoutFor(view, font, view.ControlsScroll);
+        var box = new Rectangle(layout.Panel.X, layout.Panel.Y, layout.Panel.Width, layout.Panel.Height);
         spriteBatch.Draw(view.Pixel, box, Back);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, DialoguePanel.EnglishColor);
         DrawHelpers.Text(spriteBatch, font, ui.Ui("controlsTitle"), new Vector2(box.X + 16, box.Y + 12), Gold);
-        var y = box.Y + 40;
-        foreach (var (control, text, keys) in rows)
+        var keysWidth = KeysWidth(layout.Panel.Width);
+        var y = box.Y + ControlsLayout.HeaderHeight;
+        for (var index = layout.First; index < layout.First + layout.Count; index++)
         {
+            var (keys, text) = (rows[index].Keys, rows[index].Text);
             for (var i = 0; i < keys.Count; i++)
             {
                 DrawHelpers.Text(spriteBatch, font, keys[i], new Vector2(box.X + 16, y + (i * 20)), Gold);
@@ -193,10 +194,44 @@ public sealed class ControlsLayer : IFrameLayer
                 DrawHelpers.Text(spriteBatch, font, text[i], new Vector2(box.X + 16 + keysWidth, y + (i * 20)), DialoguePanel.EnglishColor);
             }
 
-            y += (Math.Max(text.Count, keys.Count) * 20) + 6;
+            y += RowHeight(rows[index]);
         }
 
-        DrawHelpers.Text(spriteBatch, font, ui.Ui("controlsClose"), new Vector2(box.X + 16, box.Bottom - 26), Dim);
+        var close = layout.Scrolls ? ui.Ui("controlsClose") + "   " + ScrollHint : ui.Ui("controlsClose");
+        DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, close, box.Width - 32), new Vector2(box.X + 16, box.Bottom - 26), Dim);
+    }
+
+    /// <summary>What the footer adds when the controls do not all fit the canvas.</summary>
+    public const string ScrollHint = "Up and Down: scroll";
+
+    /// <summary>The key the help adds for the text size (X08); the other controls are the game's content.</summary>
+    public const string TextSizeKeys = "F9";
+
+    /// <summary>The help line for the text size key.</summary>
+    public const string TextSizeText = "Change the size of the text: 100, 125 or 150 percent. It is kept in the save.";
+
+    private static int KeysWidth(int panelWidth) => Math.Min(300, panelWidth / 3);
+
+    private static int RowHeight((IReadOnlyList<string> Keys, IReadOnlyList<string> Text) row) => (Math.Max(row.Text.Count, row.Keys.Count) * 20) + 6;
+
+    private static (ControlsLayout Layout, List<(IReadOnlyList<string> Keys, IReadOnlyList<string> Text)> Rows) LayoutFor(FrameView view, FontStashSharp.SpriteFontBase font, int scroll)
+    {
+        var width = Math.Min(820, view.ViewportWidth - 32);
+        var keysWidth = KeysWidth(width);
+        var textWidth = width - keysWidth - 32;
+        var controls = view.Session.English.Controls.Select(c => (Keys: c.Keys, Text: c.Text)).Append((Keys: TextSizeKeys, Text: TextSizeText)).ToList();
+        var rows = controls
+            .Select(c => (Keys: TextWrap.Wrap(c.Keys, keysWidth - 8, t => DrawHelpers.Width(font, t)), Text: TextWrap.Wrap(c.Text, textWidth, t => DrawHelpers.Width(font, t))))
+            .ToList();
+        return (new ControlsLayout(view.ViewportWidth, view.ViewportHeight, rows.Select(RowHeight).ToList(), scroll), rows);
+    }
+
+    /// <summary>How far the controls help can scroll on the frame's canvas (the game clamps the scroll with it).</summary>
+    /// <param name="view">The frame's view.</param>
+    public static int MaxScrollFor(FrameView view)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+        return LayoutFor(view, view.Fonts.Get(FontProvider.NativeSize), 0).Layout.MaxScroll;
     }
 }
 
@@ -227,8 +262,9 @@ public sealed class EndingLayer : IFrameLayer
         var width = Math.Min(760, view.ViewportWidth - 48);
         var spanish = TextWrap.Wrap(ending.Spanish, width - 40, t => DrawHelpers.Width(large, t));
         var english = TextWrap.Wrap(DialoguePanel.EnglishPrefix + ending.English, width - 40, t => DrawHelpers.Width(small, t));
-        var height = 18 + 40 + (spanish.Count * 40) + 8 + (english.Count * 22) + 30;
-        var box = new Rectangle((view.ViewportWidth - width) / 2, Math.Max(40, (view.ViewportHeight / 5) - (height / 2)), width, height);
+        var summary = ending.Summary.SelectMany(line => TextWrap.Wrap(line, width - 40, t => DrawHelpers.Width(small, t))).ToList();
+        var layout = new EndingLayout(view.ViewportWidth, view.ViewportHeight, spanish.Count, english.Count, summary.Count);
+        var box = new Rectangle(layout.Box.X, layout.Box.Y, layout.Box.Width, layout.Box.Height);
         spriteBatch.Draw(view.Pixel, box, Back);
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 3, Gold);
         var y = box.Y + 14;
@@ -245,6 +281,20 @@ public sealed class EndingLayer : IFrameLayer
         {
             DrawHelpers.Text(spriteBatch, small, row, new Vector2(box.X + 20, y), DialoguePanel.EnglishColor);
             y += 22;
+        }
+
+        if (layout.SummaryShown > 0)
+        {
+            // The session summary (X04, R01): what was done this session, in English, under the closing line. A short canvas gives up the last rows (X08), ending in an ellipsis.
+            y += 14;
+            DrawHelpers.Text(spriteBatch, small, ui.Ui("summaryTitle"), new Vector2(box.X + 20, y), Gold);
+            y += 22;
+            for (var i = 0; i < layout.SummaryShown; i++)
+            {
+                var row = layout.SummaryCut && i == layout.SummaryShown - 1 ? "…" : summary[i];
+                DrawHelpers.Text(spriteBatch, small, row, new Vector2(box.X + 20, y), Ink);
+                y += 20;
+            }
         }
 
         DrawHelpers.Text(spriteBatch, small, ui.Ui("sessionCompleteKeys"), new Vector2(box.X + 20, box.Bottom - 26), Dim);

@@ -16,20 +16,18 @@ public sealed class InventoryLayer : IFrameLayer
     /// <summary>The title over the slots.</summary>
     public const string Title = "Inventory";
 
+    /// <summary>The key hints when the full line does not fit the panel (X08).</summary>
+    public const string KeyHintsShort = "I or Esc: close   1 to 0 or wheel: choose   click: mine, place";
+
     /// <summary>The key hints under the slots.</summary>
     public const string KeyHints = "I or Esc: close   1 to 0 or wheel: choose   left click: mine   right click: place";
 
-    private const int Columns = Inventory.HotbarSize;
-    private const int Cell = 64;
-    private const int CellHeight = 80;
-    private const int Gap = 6;
-    private const int Padding = 16;
     private const int Icon = 32;
 
     private static readonly Color Gold = new(255, 214, 64);
-    private static readonly Color Unseen = new(150, 150, 165);
+    private static readonly Color Unseen = UiPalette.Unseen.ToColor();
     private static readonly Color Known = new(255, 240, 190);
-    private static readonly Color Hints = new(140, 140, 150);
+    private static readonly Color Hints = UiPalette.Muted.ToColor();
     private static readonly Color Empty = new(30, 30, 44, 230);
     private static readonly Color Filled = new(16, 16, 30, 240);
 
@@ -46,35 +44,29 @@ public sealed class InventoryLayer : IFrameLayer
         var viewport = new Rectangle(0, 0, view.ViewportWidth, view.ViewportHeight);
         spriteBatch.Draw(pixel, viewport, new Color(6, 6, 14, 150));
 
-        var rows = Inventory.SlotCount / Columns;
-        var width = Math.Min((Columns * Cell) + ((Columns - 1) * Gap) + (Padding * 2), viewport.Width - 32);
-        var height = (Padding * 2) + 36 + (rows * CellHeight) + ((rows - 1) * Gap) + 34;
-        var panel = new Rectangle((viewport.Width - width) / 2, Math.Max(8, (viewport.Height - height) / 2), width, height);
+        var layout = new InventoryLayout(viewport.Width, viewport.Height, Inventory.SlotCount);
+        var panel = new Rectangle(layout.Panel.X, layout.Panel.Y, layout.Panel.Width, layout.Panel.Height);
         spriteBatch.Draw(pixel, panel, new Color(18, 18, 34, 250));
         DrawHelpers.Border(spriteBatch, pixel, panel, 2, Gold);
 
-        var left = panel.Left + Padding;
-        var textWidth = panel.Width - (Padding * 2);
+        var left = panel.Left + InventoryLayout.Padding;
+        var textWidth = panel.Width - (InventoryLayout.Padding * 2);
         DrawHelpers.Text(spriteBatch, font, Title, new Vector2(left, panel.Top + 10), Gold);
         var used = view.Items.Slots.Count(static s => !s.IsEmpty);
         var summary = $"Slots used: {used} of {Inventory.SlotCount}";
-        DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - Padding - DrawHelpers.Width(font, summary), panel.Top + 10), Known);
+        DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - InventoryLayout.Padding - DrawHelpers.Width(font, summary), panel.Top + 10), Known);
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + 36, textWidth, 1), new Color(255, 214, 64, 120));
 
-        var gridLeft = left + ((textWidth - ((Columns * Cell) + ((Columns - 1) * Gap))) / 2);
-        var gridTop = panel.Top + 44;
         for (var slot = 0; slot < Inventory.SlotCount; slot++)
         {
-            var row = slot / Columns;
-            var column = slot % Columns;
-            var box = new Rectangle(gridLeft + (column * (Cell + Gap)), gridTop + (row * (CellHeight + Gap)), Cell, CellHeight);
-            DrawSlot(spriteBatch, view, font, box, view.Items.Slots[slot]);
+            var cell = layout.Cell(slot);
+            DrawSlot(spriteBatch, view, font, new Rectangle(cell.X, cell.Y, cell.Width, cell.Height), view.Items.Slots[slot], layout.Compact);
         }
 
-        DrawHelpers.Text(spriteBatch, font, KeyHints, new Vector2(left, panel.Bottom - 26), Hints);
+        DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, DrawHelpers.Width(font, KeyHints) <= textWidth ? KeyHints : KeyHintsShort, textWidth), new Vector2(left, panel.Bottom - 26), Hints);
     }
 
-    private static void DrawSlot(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, Rectangle box, ItemStack stack)
+    private static void DrawSlot(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, Rectangle box, ItemStack stack, bool compact)
     {
         var pixel = view.Pixel;
         spriteBatch.Draw(pixel, box, stack.IsEmpty ? Empty : Filled);
@@ -85,18 +77,19 @@ public sealed class InventoryLayer : IFrameLayer
         }
 
         var saturation = view.Session.Words.SaturationOf(stack.Item);
-        var icon = new Rectangle(box.Center.X - (Icon / 2), box.Top + 4, Icon, Icon);
+        var icon = new Rectangle(box.Center.X - (Icon / 2), box.Top + (compact ? 3 : 4), Icon, Icon);
         view.DrawIcon(spriteBatch, stack.Item, icon);
 
         var noun = view.Session.Nouns.ForItem(stack.Item);
         var label = noun?.Lemma ?? ItemDefinition.Get(stack.Item).Name;
         var colour = Color.Lerp(Unseen, Known, (float)saturation);
+        label = DrawHelpers.Fit(font, label, box.Width - 2); // a narrow slot cuts a long name with an ellipsis (X08)
         var labelWidth = DrawHelpers.Width(font, label);
-        DrawHelpers.Text(spriteBatch, font, label, new Vector2(box.Center.X - (labelWidth / 2), box.Top + 40), colour);
+        DrawHelpers.Text(spriteBatch, font, label, new Vector2(box.Center.X - (labelWidth / 2), box.Top + (compact ? 36 : 40)), colour);
 
         if (CountBadge.Text(stack.Count, showOne: true) is { } count)
         {
-            DrawHelpers.Badge(spriteBatch, pixel, font, count, new Point(box.Right - 3, box.Bottom - 3));
+            DrawHelpers.Badge(spriteBatch, pixel, font, count, new Point(box.Right - 3, compact ? box.Top + 36 : box.Bottom - 3)); // a short slot puts the count over the icon's corner, clear of the name (X08)
         }
     }
 }

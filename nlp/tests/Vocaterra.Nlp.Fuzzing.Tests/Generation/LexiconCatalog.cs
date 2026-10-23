@@ -58,6 +58,9 @@ public sealed class LexiconCatalog
     public static readonly IReadOnlyList<string> TimeNouns =
         ["semana", "mes", "año", "día", "noche", "vez", "hora", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"];
 
+    /// <summary>Nouns after which <c>próximo/a</c> may come first (mirror of <c>AnalysisTables.IsUpcomingTimeNoun</c>, M49): "los próximos domingos" is correct Spanish, so it is no word-order mistake.</summary>
+    public static readonly IReadOnlyList<string> UpcomingTimeNouns = [.. TimeNouns, "siglo", "verano", "invierno", "otoño", "primavera", "fin", "finde", "sábado"];
+
     /// <summary>Feminine nouns that take <c>el</c> and <c>un</c> (mirror of <c>WordClasses.FeminineNounsTakingEl</c>).</summary>
     public static readonly IReadOnlyList<string> FeminineNounsTakingEl =
         ["agua", "arma", "hacha", "águila", "alma", "aula", "hada", "hambre", "área", "ala"];

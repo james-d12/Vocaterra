@@ -57,7 +57,9 @@ public sealed class FirstPersonCamera
     /// <param name="width">The viewport width in pixels.</param>
     /// <param name="height">The viewport height in pixels.</param>
     /// <param name="farPlane">The far plane in blocks (the view distance and a little more).</param>
-    public void Update(Vector3 eye, double yawSteps, double pitchSteps, int width, int height, float farPlane = FarPlane)
+    /// <param name="screenWidth">The width of the canvas the 2D layers are drawn on (X08), for <see cref="Screen"/>; the viewport's by default.</param>
+    /// <param name="screenHeight">The height of that canvas; the viewport's by default.</param>
+    public void Update(Vector3 eye, double yawSteps, double pitchSteps, int width, int height, float farPlane = FarPlane, int? screenWidth = null, int? screenHeight = null)
     {
         Eye = eye;
         YawSteps = yawSteps;
@@ -70,7 +72,7 @@ public sealed class FirstPersonCamera
         var aspect = width / (float)Math.Max(1, height);
         Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(FieldOfViewDegrees), aspect, NearPlane, farPlane);
         Frustum = new BoundingFrustum(View * Projection);
-        Screen = new ScreenProjection(eye.X, eye.Y, eye.Z, yawSteps, pitchSteps, FieldOfViewDegrees, Math.Max(1, width), Math.Max(1, height));
+        Screen = new ScreenProjection(eye.X, eye.Y, eye.Z, yawSteps, pitchSteps, FieldOfViewDegrees, Math.Max(1, screenWidth ?? width), Math.Max(1, screenHeight ?? height));
     }
 
     private static Vector3 ToVector((double X, double Y, double Z) v) => new((float)v.X, (float)v.Y, (float)v.Z);

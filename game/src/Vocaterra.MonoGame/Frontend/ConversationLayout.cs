@@ -64,7 +64,7 @@ public sealed class ConversationLayout
     public const int Margin = 8;
 
     /// <summary>The top of a card column: below the facilitator's label and the objective strip.</summary>
-    public const int ColumnTop = 48;
+    public const int ColumnTop = 64;
 
     /// <summary>The widest a column of cards is.</summary>
     public const int MaxColumnWidth = 440;

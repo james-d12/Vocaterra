@@ -9,6 +9,17 @@ public static class ConjugationLayout
     /// <summary>The width of the column of persons (yo ... ustedes/ellos), in pixels.</summary>
     public const int LabelWidth = 112;
 
+    /// <summary>The narrowest a tense column is laid out (X08): a form like <c>necesitaste</c> is about 70 px.</summary>
+    public const int MinCellWidth = 72;
+
+    /// <summary>
+    /// How many tense columns stand side by side in one block of the table: as many as keep every column at <see cref="MinCellWidth"/> (at least one). A table with more tenses than
+    /// that stacks them in blocks, one under another, each with its own header row, and the right page scrolls over them (X03).
+    /// </summary>
+    /// <param name="width">The width of the area the table is written in.</param>
+    /// <param name="columns">The number of tenses.</param>
+    public static int ColumnsPerBlock(int width, int columns) => Math.Clamp((width - LabelWidth) / MinCellWidth, 1, Math.Max(1, columns));
+
     /// <summary>The height of the header row and of each person row, in pixels.</summary>
     public const int RowHeight = 34;
 

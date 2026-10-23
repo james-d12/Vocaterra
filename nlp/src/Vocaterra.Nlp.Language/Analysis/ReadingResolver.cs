@@ -300,6 +300,16 @@ internal static class ReadingResolver
                 }
             }
 
+            // M51: a form of ir that is also a noun (van) right before a word that can only be an infinitive (van tener) is the verb, so that the missing-a check sees it.
+            // After a determiner (la van) the noun phrase rules above have already decided.
+            if (next < Count
+                && !(i > 0 && IsCertainDeterminer(i - 1))
+                && HasReading(i, static r => ReadingClasses.IsFiniteVerb(r) && r.Lemma == "ir" && r.Mood != LexiconSchema.Imperative)
+                && All(next, static r => r.Pos == LexiconSchema.Verb && r.Person is null))
+            {
+                changed |= Narrow(i, static r => ReadingClasses.IsFiniteVerb(r) && r.Lemma == "ir");
+            }
+
             // A copula is followed by an adjective, a noun or an adverb, not by another finite verb.
             if (IsCertainCopula(i))
             {

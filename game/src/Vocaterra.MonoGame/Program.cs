@@ -1,8 +1,27 @@
+using System.Threading.Tasks;
 using Vocaterra.Game;
 using Vocaterra.MonoGame;
 using Vocaterra.MonoGame.Frontend;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Simulation.Voxel;
+
+// The crash handler (X05) is installed before anything else, so a crash at any point writes its report. The process-wide hooks cover what
+// the game loop's catch does not: an exception on another thread, or an unobserved task exception (the game goes on after that one).
+var crash = new CrashHandler(static () => WallClock.Now, Console.Error, BuildCommit.Read());
+AppDomain.CurrentDomain.UnhandledException += (_, eventArgs) =>
+{
+    if (eventArgs.ExceptionObject is Exception unhandled)
+    {
+        crash.Handle(unhandled, "an unhandled exception", stopped: true);
+    }
+
+    Environment.Exit(CrashHandler.ExitCode);
+};
+TaskScheduler.UnobservedTaskException += (_, eventArgs) =>
+{
+    crash.Handle(eventArgs.Exception, "an unobserved task exception", stopped: false);
+    eventArgs.SetObserved();
+};
 
 if (!LaunchOptions.TryParse(args, out var options, out var error))
 {
@@ -21,6 +40,7 @@ Scene scene;
 NpcVoice voice;
 Func<Scene> pristine;
 SoundVolumes? savedVolumes = null; // the volumes a loaded save holds (S24)
+int? savedTextScale = null; // the text size a loaded save holds (X08)
 SceneLayout? sceneLayout = null; // the scene's layout: the ambient beds read its places (S25)
 try
 {
@@ -37,13 +57,26 @@ try
     {
         // A save (S10): the seed is the save's unless --seed asked for another, the bundle must be the one it was made from, and the session is the next one.
         var document = SaveGame.Parse(SaveFile.Read(loadPath));
-        SaveGame.Check(document, bundle, options.SeedGiven ? options.Seed : null);
+        // A save of another bundle is refused in strict mode (--strict-save, and every --playtest: its recall check needs the frozen bundle, D-game-10); otherwise it is carried into this bundle (X01).
+        SaveGame.Check(document, bundle, options.SeedGiven ? options.Seed : null, migrate: !options.StrictSave);
         scene = buildFor(document.WorldSeed);
-        session = SaveGame.Restore(document, bundle, scene, nouns, options.Credit);
+        session = SaveGame.Restore(document, bundle, scene, nouns, options.Credit, migrate: !options.StrictSave);
         options = options with { Seed = document.WorldSeed };
         savedVolumes = document.Settings?.Sound.Clamped();
+        savedTextScale = document.Settings?.Clamped().TextScale;
         Console.WriteLine($"load: {loadPath}: saved in session {document.Session}, now session {session.PlaySession}; tick {document.Tick}, stored time {document.StoredTime}");
-        Console.WriteLine($"load: world digest {session.Simulation.ComputeStateDigest()[..16]} = the save's {document.StateDigest[..16]} (restored equal); bundle {bundle.ContentHash[..12]}");
+        if (session.Migration is { } migration)
+        {
+            Console.WriteLine($"load: world digest {session.Simulation.ComputeStateDigest()[..16]}, the save's {document.StateDigest[..16]} ({(migration.WorldDigestMatched ? "equal" : "differs: the content changed")}); bundle {bundle.ContentHash[..12]}, the save's {document.BundleHash[..12]}");
+            foreach (var line in migration.Lines())
+            {
+                Console.WriteLine(line);
+            }
+        }
+        else
+        {
+            Console.WriteLine($"load: world digest {session.Simulation.ComputeStateDigest()[..16]} = the save's {document.StateDigest[..16]} (restored equal); bundle {bundle.ContentHash[..12]}");
+        }
     }
     else
     {
@@ -81,6 +114,17 @@ catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundExcep
 }
 
 // The turn worker is started by the game itself (it warms the guide up and loads Vosk behind the loading screen).
-using var game = new VoxelGame(options, session, scene, voice, pristine, savedVolumes);
-game.Run();
+using var game = new VoxelGame(options, session, scene, voice, pristine, savedVolumes, savedTextScale: savedTextScale);
+crash.Attach(game); // the crash report, the last-chance save and the state come from the game (X05)
+try
+{
+    game.Run();
+}
+catch (Exception ex)
+{
+    // The game loop threw: the crash report and the last-chance save are written, the paths are printed, and the exit code is not zero (X05).
+    crash.Handle(ex, "the game loop", stopped: true);
+    return CrashHandler.ExitCode;
+}
+
 return game.ExitCode;
