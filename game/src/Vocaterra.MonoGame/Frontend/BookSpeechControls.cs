@@ -52,6 +52,42 @@ public sealed class BookSpeechControls
         return true;
     }
 
+    /// <summary>
+    /// A click at a point on a lesson's "Practise again" button (S26). Returns the lesson that was asked to be practised again, or <see langword="null"/> when the point
+    /// is on no such button (or the lesson refused: it was never completed).
+    /// </summary>
+    /// <param name="geometry">The book's geometry at the window's size.</param>
+    /// <param name="x">The x of the click.</param>
+    /// <param name="y">The y of the click.</param>
+    public string? ClickPractise(BookGeometry geometry, int x, int y)
+    {
+        ArgumentNullException.ThrowIfNull(geometry);
+        var lines = Lines;
+        var offset = BookScroll.Clamp(_book.Offset, lines.Count, geometry.LinesVisible);
+        return BookPractise.At(geometry, lines, offset, x, y) is { } lesson ? Practise(lesson) : null;
+    }
+
+    /// <summary>The P key (S26): "Practise again" on the first lesson with a button on screen. Returns the lesson asked for, or <see langword="null"/>.</summary>
+    /// <param name="geometry">The book's geometry.</param>
+    public string? PractiseFirst(BookGeometry geometry)
+    {
+        ArgumentNullException.ThrowIfNull(geometry);
+        var lines = Lines;
+        var offset = BookScroll.Clamp(_book.Offset, lines.Count, geometry.LinesVisible);
+        return BookPractise.FirstOnScreen(geometry, lines, offset) is { } lesson ? Practise(lesson) : null;
+    }
+
+    /// <summary>
+    /// Asks to practise a lesson again (S26): it starts when the learner talks to its NPC. Returns the lesson id when the lesson accepted, or <see langword="null"/> when
+    /// it was never completed, is unknown or another lesson is under way.
+    /// </summary>
+    /// <param name="lessonId">The lesson's id.</param>
+    public string? Practise(string lessonId)
+    {
+        ArgumentNullException.ThrowIfNull(lessonId);
+        return _session.Lessons.RequestReplay(lessonId) ? lessonId : null;
+    }
+
     /// <summary>Enter (Shift+Enter: the slow recording) plays the selected row; the first row when none has been chosen. Returns whether a clip was accepted.</summary>
     /// <param name="slow">Whether Shift is held.</param>
     public bool Enter(bool slow)

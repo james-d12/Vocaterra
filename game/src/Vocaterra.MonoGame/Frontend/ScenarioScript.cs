@@ -16,6 +16,7 @@ namespace Vocaterra.MonoGame.Frontend;
 /// <param name="Report">Opens the report panel (S21) and types the text in it; the flag says whether the panel stays open (<c>--report-open</c>) or the text is saved (<c>--report</c>).</param>
 /// <param name="ReportBusy">Whether the report panel is up or on its way (S21): a saved report closes it, and the script waits for that.</param>
 /// <param name="BookPlay">Opens the book on the target's page and plays its recording, normal or slow (S20b, <c>--book-play</c>).</param>
+/// <param name="BookPractise">Opens the book on its Lessons page and presses "Practise again" on the lesson (S26, <c>--book-practise</c>).</param>
 public sealed record ScenarioHooks(
     Action<string> OpenTalk,
     Action CloseTalk,
@@ -24,7 +25,8 @@ public sealed record ScenarioHooks(
     Action<ScriptStepKind, string>? Lesson = null,
     Action<string, bool>? Report = null,
     Func<bool>? ReportBusy = null,
-    Action<string, bool>? BookPlay = null);
+    Action<string, bool>? BookPlay = null,
+    Action<string>? BookPractise = null);
 
 /// <summary>
 /// The scripted run of the 3D game (<c>--screenshot</c> with steps): the body's steps (<see cref="VoxelScript"/>), the talk steps (S6) and the
@@ -308,15 +310,15 @@ public sealed class ScenarioScript
                     break;
                 }
 
-                if (_session.Lessons.StatusOf(runLesson.Id) == LessonStatus.Completed)
+                if (_session.Lessons.StatusOf(runLesson.Id) == LessonStatus.Completed && !string.Equals(_session.Lessons.ReplayPending, runLesson.Id, StringComparison.Ordinal))
                 {
-                    _index++; // done (the step is taken again after each interruption: a line sent, a walk to the fruit)
+                    _index++; // done (the step is taken again after each interruption: a line sent, a walk to the fruit); a lesson asked to be practised again runs again (S26)
                     break;
                 }
 
                 if (!_dialogue.IsOpen)
                 {
-                    StartTalk(runLesson.Npc); // walk up to the NPC and open the panel; the step itself is taken next
+                    StartTalk(_session.Lessons.TalkTarget ?? runLesson.Npc); // walk up to the NPC (the step's own, or the one a do step waits for, S26) and open the panel; the step itself is taken next
                     break;
                 }
 
@@ -337,6 +339,10 @@ public sealed class ScenarioScript
             case ScriptStepKind.BookPlay:
             case ScriptStepKind.BookPlaySlow:
                 _hooks.BookPlay?.Invoke(step.Value, step.Kind == ScriptStepKind.BookPlaySlow);
+                _index++;
+                break;
+            case ScriptStepKind.BookPractise:
+                _hooks.BookPractise?.Invoke(step.Value);
                 _index++;
                 break;
             case ScriptStepKind.Pick:
@@ -401,6 +407,12 @@ public sealed class ScenarioScript
                 return true;
             case LessonStepType.Do:
                 CloseIfOpen();
+                if (string.Equals(step.Event, WorldEvents.TalkOpened, StringComparison.Ordinal))
+                {
+                    _phase = Phase.Idle; // the step waits for the panel to open on another NPC (S26): the run walks up to that NPC next (LessonRun), not to the beacon
+                    return true;
+                }
+
                 if (_session.Pointer is { } target)
                 {
                     _walk = new VoxelScript(

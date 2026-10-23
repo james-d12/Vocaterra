@@ -64,7 +64,8 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
     }
 
     // The panel is open on the NPC the engaged lesson is attached to: a lesson that stays engaged (autoStart) is not drawn over another NPC's panel.
-    private bool AtLessonsNpc => session.Lessons.Active is { } lesson && string.Equals(lesson.Npc, dialogue.Npc, StringComparison.Ordinal);
+    // S26: a lesson may move from one NPC to another, so it is the step's NPC that counts.
+    private bool AtLessonsNpc => session.Lessons.CurrentNpc is { } npc && string.Equals(npc, dialogue.Npc, StringComparison.Ordinal);
 
     /// <summary>Whether a lesson key means something now (a lesson is engaged or on offer, and the text box is not typing): the game then does not give the key to the panel.</summary>
     /// <param name="key">The key.</param>

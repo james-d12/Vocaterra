@@ -226,6 +226,12 @@ public abstract class GuideSession : IDisposable
         }
     }
 
+    /// <summary>The learner asked to practise a lesson again from the book (S26): the 3D scene points the beacon at the lesson's NPC. The base game has no beacon.</summary>
+    /// <param name="npc">The lesson's NPC.</param>
+    internal virtual void LessonReplayAsked(string npc)
+    {
+    }
+
     /// <summary>The ticks the stall's key-word cards stand alone before the shopkeeper's first question (two and a half seconds).</summary>
     public const long KeyWordTicks = 150;
 
@@ -646,6 +652,10 @@ public abstract class GuideSession : IDisposable
                 {
                     _ = BeginTalk();
                 }
+            }
+            else if (!string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) && Lessons.OwnsConversation(npc))
+            {
+                opening = opening with { Lines = [] }; // the villager's or the shopkeeper's lesson speaks first (S26): the host turn's state change stays, its line is not said
             }
         }
 
@@ -1143,7 +1153,7 @@ public abstract class GuideSession : IDisposable
     // phrase skill step (LearnerModel.StepSkills), deferred while a turn is on the worker.
     private void RefreshSupport(string npc, string prompt)
     {
-        var change = Support.Show(npc, prompt, PhraseReview?.PhraseId, string.Equals(npc, Lessons.Active?.Npc, StringComparison.Ordinal) ? Lessons.Focus : null);
+        var change = Support.Show(npc, prompt, PhraseReview?.PhraseId, string.Equals(npc, Lessons.CurrentNpc, StringComparison.Ordinal) ? Lessons.Focus : null);
         foreach (var id in change.NewCards)
         {
             CardAppeared(npc, id, "level");

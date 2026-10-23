@@ -119,7 +119,8 @@ public sealed record TipsSave(IReadOnlyList<string> Shown, IReadOnlyList<string>
 /// <summary>The progress of the lessons (S16): each lesson's state, and the id of the one that has begun and not finished.</summary>
 /// <param name="Lessons">One entry per lesson of the game, in the file's order.</param>
 /// <param name="Active">The active lesson's id, or <see langword="null"/>.</param>
-public sealed record LessonsSave(IReadOnlyList<LessonProgressSave> Lessons, string? Active);
+/// <param name="Replay">The lesson the learner asked to practise again from the book, which starts at its NPC (S26; null for none, and in a save before version 4).</param>
+public sealed record LessonsSave(IReadOnlyList<LessonProgressSave> Lessons, string? Active, string? Replay = null);
 
 /// <summary>Where one lesson stands: its status, the step in progress, how the finished steps ended, and the tries and help used on the step in progress.</summary>
 /// <param name="Id">The lesson's id.</param>
@@ -133,6 +134,7 @@ public sealed record LessonsSave(IReadOnlyList<LessonProgressSave> Lessons, stri
 /// <param name="DontKnowUses">The "no sé" uses (S19; 0 in a version 1 save).</param>
 /// <param name="RepeatUses">The requests to say the line again (S19; 0 in a version 1 save).</param>
 /// <param name="CompletedSession">The session the lesson was last completed in (S19; null when never, or unknown in a version 1 save).</param>
+/// <param name="EverCompleted">Whether the lesson was ever completed, which stays true while a replay of it runs (S26; null in a save before version 4: then a completed lesson was done).</param>
 public sealed record LessonProgressSave(
     string Id,
     LessonStatus Status,
@@ -144,7 +146,8 @@ public sealed record LessonProgressSave(
     int HelpUses = 0,
     int DontKnowUses = 0,
     int RepeatUses = 0,
-    int? CompletedSession = null);
+    int? CompletedSession = null,
+    bool? EverCompleted = null);
 
 /// <summary>How one finished lesson step ended.</summary>
 /// <param name="StepId">The step's id.</param>

@@ -134,6 +134,15 @@ public sealed class BookLayer : IFrameLayer
             DrawSpeaker(spriteBatch, pixel, new Rectangle(right - BookSpeakers.ButtonSize, top + 2, BookSpeakers.ButtonSize, BookSpeakers.ButtonSize), selected);
             rightEdge = right - BookSpeakers.ButtonSize - BookSpeakers.Gap;
         }
+        else if (line.Practise is not null)
+        {
+            // The "Practise again" button of a completed lesson (S26), at the right edge of its heading.
+            var box = new Rectangle(right - BookPractise.ButtonWidth, top + 1, BookPractise.ButtonWidth, BookGeometry.LineHeight - 3);
+            DrawHelpers.Border(spriteBatch, pixel, box, 1, Gold);
+            var labelWidth = (int)DrawHelpers.Width(font, BookPractise.Label);
+            DrawHelpers.Text(spriteBatch, font, BookPractise.Label, new Vector2(box.X + ((box.Width - labelWidth) / 2), top + 1), Gold);
+            rightEdge = box.X - BookSpeakers.Gap;
+        }
 
         var x = left + (line.Indent ? IndentWidth : 0);
         if (line.Tick is { } ticked)
