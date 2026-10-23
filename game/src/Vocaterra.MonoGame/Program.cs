@@ -21,6 +21,7 @@ Scene scene;
 NpcVoice voice;
 Func<Scene> pristine;
 SoundVolumes? savedVolumes = null; // the volumes a loaded save holds (S24)
+SceneLayout? sceneLayout = null; // the scene's layout: the ambient beds read its places (S25)
 try
 {
     var started = MonotonicClock.Milliseconds();
@@ -29,6 +30,7 @@ try
     var sceneStarted = MonotonicClock.Milliseconds();
     var layoutFile = SceneLocator.Resolve(options.SceneFile, directory);
     var layout = SceneLayout.Load(layoutFile);
+    sceneLayout = layout;
     var nouns = NounCatalog.Load(bundle);
     Func<ulong, Scene> buildFor = seed => SceneBuilder.Build(layout, seed);
     if (options.LoadPath is { } loadPath)

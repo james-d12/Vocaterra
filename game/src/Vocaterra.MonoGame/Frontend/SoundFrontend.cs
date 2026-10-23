@@ -63,6 +63,8 @@ public sealed class ScriptedRecording
 public sealed class SoundFrontend
 {
     private readonly List<SoundCue> _frame = [];
+    private readonly Footsteps _steps = new();
+    private readonly AmbientSound? _ambient;
     private PanelState _panels;
     private int _eventCursor;
     private bool _skipPageTurn;
@@ -70,11 +72,13 @@ public sealed class SoundFrontend
     /// <summary>Creates the sound side.</summary>
     /// <param name="mixer">The mixer.</param>
     /// <param name="mapper">The event-to-cue mapping.</param>
-    public SoundFrontend(SoundMixer mixer, SoundEventMapper mapper)
+    /// <param name="ambient">The ambient beds and their scheduled sounds (S25), or <see langword="null"/> for none.</param>
+    public SoundFrontend(SoundMixer mixer, SoundEventMapper mapper, AmbientSound? ambient = null)
     {
         Mixer = mixer ?? throw new ArgumentNullException(nameof(mixer));
         Mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         Scripted = new ScriptedRecording(mixer);
+        _ambient = ambient;
     }
 
     /// <summary>The mixer.</summary>
@@ -115,6 +119,25 @@ public sealed class SoundFrontend
         {
             _frame.AddRange(Mapper.ForSimulation(e, blockAt));
         }
+    }
+
+    /// <summary>
+    /// Once per tick (S25): the footsteps of the player's movement (a step on the surface underfoot, a splash in water, a jump and a landing), queued for this
+    /// frame, and the ambient beds and their scheduled sounds for the player's place.
+    /// </summary>
+    /// <param name="tick">The tick.</param>
+    /// <param name="events">The events of the tick.</param>
+    /// <param name="player">The player's body.</param>
+    /// <param name="blockAt">Reads the block at a cell.</param>
+    /// <param name="fireLit">Whether the player's own fire is lit.</param>
+    public void ObserveWorld(long tick, IReadOnlyList<SimulationEvent> events, PlayerBody3D player, Func<int, int, int, BlockId> blockAt, bool fireLit)
+    {
+        ArgumentNullException.ThrowIfNull(events);
+        ArgumentNullException.ThrowIfNull(player);
+        var jumped = events.Any(static e => e.Kind == SimulationEventKind.PlayerJumped);
+        var landed = events.Any(static e => e.Kind == SimulationEventKind.PlayerLanded);
+        _frame.AddRange(_steps.Observe(Footsteps.StateOf(player, blockAt), jumped, landed));
+        _ambient?.Observe(tick, new Listener(player.CenterX / (double)VoxelPhysics.UnitsPerBlock, player.MinY / (double)VoxelPhysics.UnitsPerBlock, player.CenterZ / (double)VoxelPhysics.UnitsPerBlock, player.Yaw), fireLit);
     }
 
     /// <summary>Queues the cues of the session's game events that came since the last call.</summary>

@@ -9,17 +9,20 @@ namespace Vocaterra.MonoGame.Frontend;
 /// <param name="Take">The index of the take in <see cref="SoundDefinition.Files"/>.</param>
 /// <param name="Gain">The final gain, 0 to 1: the cue's own level, the category's volume and the duck.</param>
 /// <param name="Pitch">The pitch change in octaves (the engine's -1 to 1 pitch), a small random value from the presentation generator.</param>
-public readonly record struct SoundRequest(SoundCue Cue, SoundCategory Category, int Take, double Gain, double Pitch);
+/// <param name="Pan">The stereo pan, -1 (left) to 1 (right); 0 for a sound with no place (S25).</param>
+public readonly record struct SoundRequest(SoundCue Cue, SoundCategory Category, int Take, double Gain, double Pitch, double Pan = 0);
 
 /// <summary>One input of the ambient cross-fade (S25): a bed and how strongly the player's place calls for it, 0 to 1.</summary>
 /// <param name="Bed">The bed's id (S25 names them: <c>forest</c>, <c>river</c>, ...).</param>
 /// <param name="Weight">The target weight, 0 to 1; a bed that is not named is faded out.</param>
-public readonly record struct BedInput(string Bed, double Weight);
+/// <param name="Pan">The target pan, -1 (left) to 1 (right), eased like the weight (S25).</param>
+public readonly record struct BedInput(string Bed, double Weight, double Pan = 0);
 
 /// <summary>One bed's level as the output plays it: the cross-fade's level times the ambient volume, the duck and the microphone gate.</summary>
 /// <param name="Bed">The bed's id.</param>
 /// <param name="Level">The level, 0 to 1.</param>
-public readonly record struct BedLevel(string Bed, double Level);
+/// <param name="Pan">The pan, -1 (left) to 1 (right).</param>
+public readonly record struct BedLevel(string Bed, double Level, double Pan = 0);
 
 /// <summary>
 /// Where the sounds go (S24). The MonoGame implementation plays them through the engine; <see cref="NullSoundOutput"/> plays nothing and needs no device, and the
@@ -158,6 +161,8 @@ public sealed class SoundMixer : ITalkSounds
     private readonly Dictionary<string, int> _dropped = [];
     private readonly Dictionary<string, double> _targets = new(StringComparer.Ordinal);
     private readonly Dictionary<string, double> _levels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, double> _pans = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, double> _panTargets = new(StringComparer.Ordinal);
     private long _tick;
     private bool _bedsPushed;
     private bool _voiceActive;
@@ -180,6 +185,9 @@ public sealed class SoundMixer : ITalkSounds
 
     /// <summary>The volume of each category.</summary>
     public SoundVolumes Volumes { get; private set; }
+
+    /// <summary>The presentation generator: the takes, the pitches and the schedule of the ambient sounds (S25) draw from it.</summary>
+    public PresentationRng Rng => _rng;
 
     /// <summary>Whether every sound but the voices is off (<c>--no-sounds</c>).</summary>
     public bool SoundsOff { get; }
@@ -206,6 +214,10 @@ public sealed class SoundMixer : ITalkSounds
 
     /// <summary>The ambient beds' levels now (the cross-fade, before the ambient volume, the duck and the microphone gate), strongest first.</summary>
     public IReadOnlyList<BedLevel> BedLevels => _levels.Select(static pair => new BedLevel(pair.Key, pair.Value)).OrderByDescending(static b => b.Level).ThenBy(static b => b.Bed, StringComparer.Ordinal).ToList();
+
+    /// <summary>The target weight a bed was given (0 when it is not named), before the cross-fade: the ambient schedule reads this, so it follows the tick.</summary>
+    /// <param name="bed">The bed.</param>
+    public double BedTarget(string bed) => _targets.TryGetValue(bed, out var weight) ? weight : 0;
 
     /// <summary>Sets the simulation tick the log's lines are stamped with (the game's tick, never a clock).</summary>
     /// <param name="tick">The tick.</param>
@@ -271,7 +283,9 @@ public sealed class SoundMixer : ITalkSounds
     /// The take and the pitch are drawn either way, so the variation of the cues that follow does not depend on what was held back.
     /// </summary>
     /// <param name="cue">The cue.</param>
-    public SoundRequest? Play(SoundCue cue)
+    /// <param name="scale">A further gain, 0 to 1, for a cue that follows a level (a bird's chirp follows its bed's weight); 1 by default.</param>
+    /// <param name="pan">The stereo pan, -1 to 1 (S25); 0 by default.</param>
+    public SoundRequest? Play(SoundCue cue, double scale = 1.0, double pan = 0)
     {
         var definition = SoundCatalog.Of(cue);
         var category = SoundCues.CategoryOf(cue);
@@ -287,13 +301,13 @@ public sealed class SoundMixer : ITalkSounds
             return Drop("recording", cue); // the microphone rule: sfx, ambient and ui are all silent; the beeps play outside the window
         }
 
-        var gain = definition.Gain * Gain(category);
+        var gain = definition.Gain * Gain(category) * Math.Clamp(scale, 0, 1);
         if (gain <= 0)
         {
             return Drop("volume", cue);
         }
 
-        var request = new SoundRequest(cue, category, take, gain, pitch);
+        var request = new SoundRequest(cue, category, take, gain, pitch, Math.Clamp(double.IsNaN(pan) ? 0 : pan, -1, 1));
         _played[cue] = PlayedCount(cue) + 1;
         _log?.Write(FormatLine(_tick, request));
         _output.Play(request);
@@ -347,10 +361,13 @@ public sealed class SoundMixer : ITalkSounds
     {
         ArgumentNullException.ThrowIfNull(inputs);
         _targets.Clear();
+        _panTargets.Clear();
         foreach (var input in inputs)
         {
             _targets[input.Bed] = double.IsNaN(input.Weight) ? 0 : Math.Clamp(input.Weight, 0, 1);
+            _panTargets[input.Bed] = double.IsNaN(input.Pan) ? 0 : Math.Clamp(input.Pan, -1, 1);
             _levels.TryAdd(input.Bed, 0);
+            _pans.TryAdd(input.Bed, _panTargets[input.Bed]);
         }
     }
 
@@ -375,7 +392,7 @@ public sealed class SoundMixer : ITalkSounds
     /// <param name="tick">The tick.</param>
     /// <param name="request">What played.</param>
     public static string FormatLine(long tick, SoundRequest request) =>
-        string.Create(CultureInfo.InvariantCulture, $"{tick:D6} {SoundCues.NameOf(request.Category),-7} {SoundCues.NameOf(request.Cue),-17} take={request.Take} gain={request.Gain:0.00} pitch={request.Pitch:+0.00;-0.00;+0.00}");
+        string.Create(CultureInfo.InvariantCulture, $"{tick:D6} {SoundCues.NameOf(request.Category),-7} {SoundCues.NameOf(request.Cue),-17} take={request.Take} gain={request.Gain:0.00} pitch={request.Pitch:+0.00;-0.00;+0.00}{(request.Pan == 0 ? string.Empty : string.Create(CultureInfo.InvariantCulture, $" pan={request.Pan:+0.00;-0.00;+0.00}"))}");
 
     private SoundRequest? Drop(string reason, SoundCue cue)
     {
@@ -417,10 +434,14 @@ public sealed class SoundMixer : ITalkSounds
             if (level <= 0 && target <= 0)
             {
                 _ = _levels.Remove(bed);
+                _ = _pans.Remove(bed);
             }
             else
             {
                 _levels[bed] = level;
+                var panTarget = _panTargets.TryGetValue(bed, out var pan) ? pan : 0;
+                var current = _pans.TryGetValue(bed, out var p) ? p : panTarget;
+                _pans[bed] = panTarget > current ? Math.Min(panTarget, current + (2 * step)) : Math.Max(panTarget, current - (2 * step));
             }
         }
     }
@@ -434,6 +455,6 @@ public sealed class SoundMixer : ITalkSounds
 
         _bedsPushed = _levels.Count > 0;
         var gain = Gain(SoundCategory.Ambient);
-        _output.SetBeds(_levels.Select(pair => new BedLevel(pair.Key, pair.Value * gain)).ToList());
+        _output.SetBeds(_levels.Select(pair => new BedLevel(pair.Key, pair.Value * gain * AmbientBeds.Gain(pair.Key), _pans.TryGetValue(pair.Key, out var pan) ? pan : 0)).ToList());
     }
 }

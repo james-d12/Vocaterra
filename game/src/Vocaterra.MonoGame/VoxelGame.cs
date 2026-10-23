@@ -200,7 +200,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <param name="voice">The NPCs voices.</param>
     /// <param name="pristine">Builds a fresh scene of the session seed.</param>
     /// <param name="savedVolumes">The sound volumes a loaded save holds (S24), or <see langword="null"/>; <c>--sfx-volume</c> and <c>--ambient-volume</c> override them.</param>
-    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SoundVolumes? savedVolumes = null)
+    /// <param name="layout">The scene's layout, whose places the ambient beds listen to (S25), or <see langword="null"/> (a run without one has no places).</param>
+    public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SoundVolumes? savedVolumes = null, SceneLayout? layout = null)
     {
         _options = options;
         _session = session;
@@ -208,7 +209,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _voice = voice;
         _pristine = pristine;
         _sim = session.Simulation;
-        (_sound, _soundOutput, _soundLog) = CreateSound(options, session, savedVolumes);
+        (_sound, _soundOutput, _soundLog) = CreateSound(options, session, savedVolumes, layout);
         _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
         // The book's speaker buttons (S20b): a row plays the recording the speech folder has for it (the files are read once, here).
         _recordings = new BookRecordings(SpeechLines.Enumerate(session.Bundle, session.Nouns, session.Phrases).Select(static l => l.LineId).Where(voice.HasRecording), session.Phrases);
@@ -268,7 +269,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
     // The sound side (S24): scripted runs and --no-sounds play nothing aloud (the null output, no audio device needed); the sound log still records the cues of a
     // scripted run. The volumes are the save's, then the command line's. The presentation generator is seeded from the world seed and is the sound's alone.
-    private static (SoundFrontend Sound, ISoundOutput Output, SoundLogWriter? Log) CreateSound(LaunchOptions options, VoxelSession session, SoundVolumes? saved)
+    private static (SoundFrontend Sound, ISoundOutput Output, SoundLogWriter? Log) CreateSound(LaunchOptions options, VoxelSession session, SoundVolumes? saved, SceneLayout? layout)
     {
         var volumes = SoundSetup.VolumesFor(options, saved);
         ISoundOutput output = SoundSetup.UsesNullOutput(options) ? new NullSoundOutput() : new SoundEffectOutput(AssetPaths.Audio, Console.WriteLine);
@@ -281,7 +282,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             log.Write(string.Create(CultureInfo.InvariantCulture, $"# volumes: voice {clamped.Voice:0.00} sfx {clamped.Sfx:0.00} ui {clamped.Ui:0.00} ambient {clamped.Ambient:0.00}; sounds {(options.NoSounds ? "off (--no-sounds)" : "on")}; output {(output is NullSoundOutput ? "null (silent)" : "device")}"));
         }
 
-        var sound = new SoundFrontend(mixer, new SoundEventMapper(session.Lessons.Book));
+        // The ambient beds (S25) listen to the scene's places; a run without the layout (a test) has none of them, only the height and the day.
+        var places = layout is null ? new AmbientPlaces(null, null, null, [], null, [], []) : AmbientPlaces.From(layout);
+        var ambient = new AmbientSound(mixer, places, options.Dusk);
+        var sound = new SoundFrontend(mixer, new SoundEventMapper(session.Lessons.Book), ambient);
         sound.SkipEvents(session.Events.Count);
         return (sound, output, log);
     }
@@ -853,6 +857,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         // The sounds of the tick (S24): they read the tick's events and write nothing back.
         _sound.ObserveSimulation(_sim.Events, (x, y, z) => _sim.Grid.GetBlock(x, y, z));
+        _sound.ObserveWorld(_sim.Tick, _sim.Events, _sim.Player, (x, y, z) => _sim.Grid.GetBlock(x, y, z), _session.FireLit); // the footsteps and the beds (S25)
         _sound.Scripted.Tick(); // the cues of the frame play together in UpdateSound, so an answer's chime and a step's chime fold into one
 
         UpdateFigures();
