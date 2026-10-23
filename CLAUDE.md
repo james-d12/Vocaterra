@@ -36,8 +36,8 @@ Facts every session needs:
   hash, re-pin, re-record goldens).
 - **Merge gate:** `scripts/merge-gate.sh "<label>:<branch>"`, run from main only; logs land in `.claude/gate-logs/`. The fuzz suite is a
   gate; never weaken an oracle to make it pass.
-- **Never write under `.github/workflows/`.** The token lacks the workflow scope. CI is parked in `.github/workflows-pending/ci.yml` and
-  deferred by the owner (core D1, game D-game-3); do not raise it.
+- **Never write under `.github/workflows/`** until the owner says the token has the workflow scope. CI was reopened on 2026-10-23
+  (core D1, game D-game-3) and is planned (see the orchestrator's handover); the old `.github/workflows-pending/ci.yml` is out of date.
 - **Engine (D-game-1):** MonoGame for the prototype; engine code lives only in `game/src/Vocaterra.MonoGame`, never in `Vocaterra.Host`,
   `Vocaterra.Simulation` or `Vocaterra.Game`. Assets are CC0 only (D-game-5).
 - **Game words live in `game/`:** scenes, characters, items, spells, prices, rewards, dialogue and the meaning of each effect kind. The core
