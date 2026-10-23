@@ -8,7 +8,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | --- | --- | --- | --- |
 | D-game-1 | Game engine | decided for the prototype: MonoGame 3.8 DesktopGL (owner, 2026-10-21); final engine open, Godot .NET re-assessed after P10 | nothing in the prototype |
 | D-game-2 | Licence of this repository | decided: MIT (owner, 2026-10-21: "the most permissive for now"; the repository is private) | nothing |
-| D-game-3 | Continuous integration | deferred by the owner, 2026-10-21; do not raise | nothing in this plan |
+| D-game-3 | Continuous integration | reopened (owner, 2026-10-23): CI planned (full suite with models, LanguageTool required, SonarCloud `personal-james_vocaterra`), on main and feature/experiment; waits for the token's workflow scope | nothing |
 | D-game-4 | Whether `content/game-v1` tracks the core's sample bundle or diverges from it | decided: diverge fully (owner, 2026-10-21) | nothing |
 | D-game-5 | Art, font and sound sources while D-game-2 is open | decided: CC0 only (owner, 2026-10-21) | nothing |
 | D-game-7 | One repository for the game and the core | done (owner, 2026-10-21): `nlp/` and `game/` as sibling folders of `james-d12/Vocaterra`, project references, one orchestrator and one gate | nothing |

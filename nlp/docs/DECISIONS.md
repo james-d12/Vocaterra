@@ -6,7 +6,7 @@ editing its status; the plan (`IMPLEMENTATION_PLAN.md`) and ADRs follow.
 
 | # | Decision | Status |
 | --- | --- | --- |
-| D1 | Workflow token scope (activate CI) | deferred (owner, 2026-10-21): CI is not a requirement now; keep the entry, do not raise it again until the owner reopens it |
+| D1 | Workflow token scope (activate CI) | reopened (owner, 2026-10-23): CI planned with SonarCloud and a required LanguageTool step; waits for the owner to widen the token (workflow scope); see the orchestrator's handover |
 | D2 | espeak-ng GPL code inside sherpa-onnx (ADR 0007) | decided (owner, 2026-10-21): accepted for private development builds; the GPL-free sherpa-onnx pin is a blocker on any distribution |
 | D3 | A LICENSE file for the repository | decided (owner, 2026-10-21): Apache-2.0; repository stays private for now (M19e) |
 | D4 | OpenSubtitles terms behind the frequency list | deferred (owner, 2026-10-21): keep the entry, do not raise it until a public release is planned |

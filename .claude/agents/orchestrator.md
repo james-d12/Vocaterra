@@ -36,6 +36,44 @@ is a change to the boundary and updates that record.
     resource rules and gate.
   - Bring owner decisions (licences, scope, anything that changes D-numbers) to the owner rather than deciding them.
 
+## Handover (2026-10-23, paused by the owner at 94 % of the weekly usage)
+**Where things stand**
+- `main` (`1e3d2cc`) holds the owner's whole queue: S13 to S28, S17b, S19b, S20b, M29j, M30, M49 and M50, all gated and pushed.
+- `feature/experiment` holds the X series (see `game/IMPLEMENTATION_PLAN.md` section 4.5):
+  - merged and gated: X00 research, X01 saves across bundles, X04 the summary card and the "no sé" retry, X05 autosave and crash report,
+    X02/M51 `voy comer`, X03 book polish, X08 text scale;
+  - **X06 (the review deck) was stopped mid-work.** Its partial work is the unbuilt, ungated WIP commit `0ab3300` on the pushed branch
+    `X06-review-wip`, with its worktree `.claude/worktrees/agent-adc1cf0060b8dbf8d`. Resume by launching X06 again on that branch:
+    inspect the diff, finish it, gate it.
+  - queued after X06: X09 (playtest evidence), then X07 (`--mic-lab` and `--bench-route` for the owner to run).
+- `feature/prototype` is retired.
+
+**CI (owner, 2026-10-23: planned, NOT started; the owner said to wait)**
+- The owner reopened CI (core D1, game D-game-3) and will widen the token to the `workflow` scope, then say so. Until then, still never
+  write under `.github/workflows/`.
+- The owner's answers:
+  - the full test suite;
+  - **LanguageTool required** in CI, offline from the committed cache: every shipped Spanish string checked and none unwaived. On a cache
+    miss CI starts LanguageTool itself and prints what it flags. The owner is learning Spanish and has no native checker, so this matters
+    most;
+  - **SonarCloud** as in `james-d12/CodeGuard` `.github/workflows/ci.yml` (`dotnet-sonarscanner` begin/end around build and test,
+    Cobertura coverage), with organisation `personal-james`, project key `personal-james_vocaterra`, name `Vocaterra`, and a `SONAR_TOKEN`
+    secret the owner creates;
+  - speech models downloaded and cached in CI, so the model-gated tests run;
+  - CI runs on pushes and PRs to `main` and `feature/experiment`; the workflow lands on `main` and is merged into `feature/experiment`.
+- Not chosen: a "no pending rows" gate and a Claude review in CI.
+- The old `.github/workflows-pending/ci.yml` (core era, with an OS matrix and pack.sh) is out of date: plan a fresh workflow, ideally
+  with the checks shared with `scripts/merge-gate.sh` (one checks script).
+
+**Open owner questions**
+- Listening to the new WAVs and sounds (S17, S20b, S24, S25, S26, S27).
+- `Puedes decir` versus "You can say".
+- X00's questions: R05 early stop in the pre-check, R12 adaptive lessons, R14/R15/R18 content before or after the pilot, R11 title screen,
+  the mic lab, GPU bench and pre-flight runs, the pilot date, voices for new NPCs.
+- Whether and when `feature/experiment` goes to `main`. `main` still has a rare M49 fuzz flake (O4, seed `7oEL4lRaLMu2`) that X02's
+  one-file generator fix cures.
+- M27a2: fix or tag the three untagged learner errors in `nlp/content/v1`, so the core's grammar step can become required.
+
 ## Start of a session
 1. `git status`, `git log --oneline -8`, `git worktree list` (remove leftovers with `git worktree remove --force <path>` and
    `git branch -D <branch>`), `df -h /home` (each build is several GB), and the resource check below (`free -h`, `uptime`, stray
