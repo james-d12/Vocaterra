@@ -12,7 +12,7 @@ editing its status; the plan (`IMPLEMENTATION_PLAN.md`) and ADRs follow.
 | D4 | OpenSubtitles terms behind the frequency list | deferred (owner, 2026-10-21): keep the entry, do not raise it until a public release is planned |
 | D5 | Package feed for the `Vocaterra.Nlp.*` packages | decided (owner, 2026-10-21): no hosted feed; superseded the same day for the game, which now lives in this repository (`game/`) and references the core's projects (game D-game-7) |
 | D6 | Conversation state-machine engine: core or game | decided (M19a): core, as a generic conversation agent |
-| D7 | Blacksmith sample content stays as the core's demo | decided (M19a): kept as the sample and demo |
+| D7 | Blacksmith sample content stays as the core's demo | superseded (owner, 2026-10-23, R02): the sample is deleted; the core's tests, fuzz suite and demo run on the game's bundle `content/game-v1` |
 | D8 | Online or offline | open |
 | D9 | Determinism strictness (ADR 0010) | open |
 | D10 | Licence stance on MPL-2.0 and on GPL/LGPL dev-time processes | partly decided (owner, 2026-10-22): GPL/LGPL tools allowed as separate, local, development-time processes (LanguageTool, M30); MPL-2.0 still open |
@@ -72,6 +72,7 @@ content-driven interaction logic. **Recommendation:** keep the engine in the cor
 have the core stop at the verdict and feedback plan. **Decided (M19a, owner):** the engine stays in the core; see ADR 0009.
 
 ## D7. Sample content
+**Superseded (owner, 2026-10-23; done in R02):** the owner judged the sample old and wants the core to break when game content breaks it. `content/v1` is deleted; the core runs on `content/game-v1`, with in-memory fixtures for what the game does not use (effects, quantity slots, the design document's worked example). The text below is unchanged.
 The blacksmith bundle is exercised by the goldens, docs and fuzz suite. **Recommendation:** keep it
 as the core's sample and demo; the game repository holds the real bundle. **Alternative:** replace it
 with a neutral bundle (market stall) in M19c. **Decided (M19a, owner):** the sample stays; the game repository holds the real bundle.

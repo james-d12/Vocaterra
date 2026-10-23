@@ -349,7 +349,7 @@ the owner-approved plan of 2026-10-23 (the flatten, then one bundle).
 | ID | What | Status |
 | --- | --- | --- |
 | R01 | Flatten `nlp/` and `game/` into one root layout (`src/`, `tests/`, `tools/`, `docs/nlp/`, `docs/game/`, `content/`, `assets/`, `models/`, `scripts/`); one `Directory.Build.props` keyed on project name; `Vocaterra.sln` regenerated (the three duplicated tool entries gone) plus `Vocaterra.Nlp.slnf`; Apache-2.0 everywhere (D-game-20); the gate refuses `main` | done (Sonnet), gated on `feature/flatten` 2026-10-23, pushed |
-| R02 | The core runs on `content/game-v1`; `content/v1` (the blacksmith sample, core D7) is deleted. Core tests break when game content breaks the core (the owner wants that signal); hash literals become computed checks; effects, quantity slots and the worked example get in-memory fixtures; goldens re-recorded on game-v1 | planned, after R01 is merged |
+| R02 | The core runs on `content/game-v1`; `content/v1` (the blacksmith sample, core D7) is deleted. Core tests break when game content breaks the core (the owner wants that signal); hash literals become computed checks; effects, quantity slots and the worked example get in-memory fixtures; goldens re-recorded on game-v1 | done (Sonnet), gated on `feature/flatten` 2026-10-23, pushed |
 
 **R01 findings.**
 - 1517 renames at 100% in the move commit; `git log --follow` reaches pre-move history on both sides. Test counts identical to the
@@ -362,6 +362,24 @@ the owner-approved plan of 2026-10-23 (the flatten, then one bundle).
 - `tests/Vocaterra.Game.Tests/Fixtures/save-v1.json` stores the game-v1 bundle hash: every bundle re-hash must update it, or two save
   tests fail.
 - `.github/workflows-pending/ci.yml` still uses the old `nlp/` paths (left untouched; the CI milestone rewrites it).
+
+**R02 findings.**
+- Gate with models: 5196 passed, 3 skipped, 1 failed (the pre-existing `SpokenModelTests` failure above); build, format, content, grammar
+  and licence scan clean. No per-project count dropped; Content 606 -> 867 and Pipeline 244 -> 264 from data-driven cases over every
+  game-v1 intent example, prompt, agent and answer phrase; `GameBundleContractTests` replaces `SampleContentTests`.
+- A deliberate break (the prompt `villager-open` removed) fails 172 core tests (Content, Pipeline, Golden, Fuzzing): the coupling works.
+- Core bug found by the fuzz suite on game-v1 and fixed: `AgreementChecker` reported `conj.tense` twice on one span when a past marker
+  met `ir a` + a finite verb (O2, seed `3KdllRVaJeE6`); regression tests in `NearFutureTenseTests`. Generator and model fixes, no oracle
+  weakened: the sentence realiser respects time adverbs and the infinitive after `ir a`; O11's agent model skips host-event transitions
+  (CR-015); two conditional O15 tolerances (a dialogue pool no agent names; slot grammars of an intent with keyword rules) and the lint
+  fields as optional.
+- The core demo is now `eval --transcript "yo quiere dos espada" --prompt villager-open --content content/game-v1` (exactly `conj.person`,
+  `noun.number`, `qty=2`); the design document's `yo tiene dos espada` is a pipeline test on an in-memory prompt.
+- A model-gated test (`VoskPipelineTests.ARealRecognitionReplaysWithoutTheModel`) still named a v1 prompt; agent runs skip model tests, so
+  only the gate with models caught it. Briefs that touch content should ask for one with-models run of the affected projects.
+- Game-v1 content notes (reported, not changed): `cefr/a1.txt` and `a2.txt` share 7 lemmas; the `feedback.recast.conj.person` pool needs
+  a `verb` slot no game grammar names, so the generic recast answers; `quiero una azul espada` on `villager-open` is `word_order` but not
+  communicated (`request_item` has no adjective slot).
 
 ## 5. Findings log
 

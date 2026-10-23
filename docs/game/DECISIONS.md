@@ -9,7 +9,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-1 | Game engine | decided for the prototype: MonoGame 3.8 DesktopGL (owner, 2026-10-21); final engine open, Godot .NET re-assessed after P10 | nothing in the prototype |
 | D-game-2 | Licence of this repository | superseded by D-game-20 (was MIT, owner, 2026-10-21) | nothing |
 | D-game-3 | Continuous integration | reopened (owner, 2026-10-23): CI planned (full suite with models, LanguageTool required, SonarCloud `personal-james_vocaterra`), on main and feature/experiment; waits for the token's workflow scope | nothing |
-| D-game-4 | Whether `content/game-v1` tracks the core's sample bundle or diverges from it | decided: diverge fully (owner, 2026-10-21) | nothing |
+| D-game-4 | Whether `content/game-v1` tracks the core's sample bundle or diverges from it | superseded (owner, 2026-10-23, R02): there is one bundle; the core's sample is deleted and the core runs on `content/game-v1` | nothing |
 | D-game-5 | Art, font and sound sources while D-game-2 is open | decided: CC0 only (owner, 2026-10-21) | nothing |
 | D-game-7 | One repository for the game and the core | done (owner, 2026-10-21): `nlp/` and `game/` as sibling folders of `james-d12/Vocaterra`, project references, one orchestrator and one gate | nothing |
 | D-game-6 | When a noun counts as known (drawn in colour), and what typed input earns | decided (owner, 2026-10-21); amended the same day: spaced uses with growing gaps, the guide prompts due words; amended again for the prototype brief: the world in full colour, the grey atlas behind `--greyscale` | nothing |
@@ -57,7 +57,9 @@ force until the owner changes it.
 The owner deferred CI on 2026-10-21, with the core's D1. Do not raise it. The parked workflow stays in `.github/workflows-pending/ci.yml`;
 nothing under `.github/workflows/` is written, because the push token lacks the `workflow` scope.
 
-## D-game-4: does `content/game-v1` track the core's sample or diverge (decided: diverge)
+## D-game-4: does `content/game-v1` track the core's sample or diverge (decided: diverge; superseded)
+
+**Superseded (owner, 2026-10-23; done in R02):** one bundle. The core's tests, fuzz suite and demo run on `content/game-v1`, so a game content change that breaks the core fails the core's tests (the owner wants that signal); see core D7. The text below is unchanged.
 
 **Question.** The bundle began as a copy of the core's sample (`content/v1` in the core, a blacksmith, spells and items). The core keeps
 changing that sample (M17b-core added the generic intents `confirm`, `deny`, `farewell`, `thank` and `introduce_self`, a blacksmith

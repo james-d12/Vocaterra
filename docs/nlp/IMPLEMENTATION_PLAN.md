@@ -461,6 +461,7 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   `Vocaterra.Nlp.slnf` (licence scan, core-only build); one root `Directory.Build.props` keys the core's packing on project names
   `Vocaterra.Nlp.*`. Bundle hash `1c2240c7...` and all goldens unchanged. Next, R02 moves the core's tests onto `content/game-v1` and
   retires `content/v1` (supersedes D7 when done).
+- **R02 (2026-10-23, done):** the core's tests, fuzz suite, demo and embedded seed lexicon run on `content/game-v1`; `content/v1` deleted; D7 superseded. Fuzz found and fixed a duplicate `conj.tense` in `AgreementChecker` (ir a + past marker). Details in `docs/game/IMPLEMENTATION_PLAN.md` section 4.6.
 
 - **Vosk dither (M9):** stock Vosk models apply time-seeded dither, so identical clips decoded
   differently run to run. `VoskWordRecognizer` loads a temp copy of the model with
