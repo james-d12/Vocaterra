@@ -313,12 +313,27 @@ not made. The German milestones stay parked (D14).
 
 | ID | Experiment | Status | Model | Depends on |
 | --- | --- | --- | --- | --- |
-| X00 | Research: a ranked backlog of improvements (learning effect, player experience, robustness, technical debt), with evidence from the code, plans, findings and screenshots | in progress | Sonnet 5.5 | S28 |
+| X00 | Research: a ranked backlog of improvements (learning effect, player experience, robustness, technical debt), with evidence from the code, plans, findings and screenshots | done (`game/docs/research/2026-10-23-improvement-backlog.md`, R01 to R18) | Sonnet 5.5 | S28 |
 | X01 | Saves survive content updates: a save made under an older bundle loads under a newer one (learner record, lessons, phrases, inventory and world edits kept where their ids still exist; the rest dropped and logged), instead of being refused; a strict mode keeps the refusal for the playtest's frozen bundle | in progress | Sonnet 5.5 | S28 |
 | X02 | Core M51: `ir` + a bare infinitive (`voy comer`) flagged | planned | Sonnet 5.5 | M49 |
 | X03 | Book polish: the right page scrolls; `vamos` glossed "we go" in What you said; ser and estar glossed apart ("to be: what", "to be: where or how") | planned | Haiku 5.5 | S28 |
 
-More rows come from X00's backlog.
+| X04 | Session summary card from the learner's record (R01), and a second try after "No sé" in the same session (R02) | planned | Haiku 5.5 | X01 |
+| X05 | Autosave at safe points, and a crash handler around `game.Run()` that writes a crash report next to the F8 reports (R04) | planned | Haiku 5.5 | X01 |
+| X06 | Review deck: a session warm-up of due items, a "Review now" button in the book, and a `review` lesson step that brings earlier phrases back inside later lessons (R06, R07) | planned | Sonnet 5.5 | X03, X04 |
+| X07 | Tools for the owner: `--mic-lab` (measure the real microphone path) and `--bench-route` (a real-GPU benchmark). Built only: the agent runs neither (R03 first half, R13) | planned | Haiku 5.5 | X05 |
+| X08 | UI scale and readable text: a text-scale setting and layouts that hold at larger sizes (R09) | planned | Sonnet 5.5 | X03 |
+| X09 | Playtest tooling: per-step evidence in the report, and a test that keeps the playtest documents' counts equal to the bundle (R10; the counts drifted in S26, S27 and S28) | planned | Haiku 5.5 | X04 |
+
+**Waiting on the owner** (from X00's open questions; not planned until answered):
+- R05: may the pre-check stop early for a lost beginner?
+- R12: may lessons adapt per learner?
+- R14, R15, R18: numbers, more NPCs and orders, before or after the first pilot?
+- R11: a title screen now?
+- the voices for new NPCs;
+- running the mic lab, the GPU bench and the pre-flight;
+- the pilot's date.
+The rest of the backlog (R08 feedback audit, R16 technical debt, R17 small issues) follows the first batch.
 
 ## 5. Findings log
 
