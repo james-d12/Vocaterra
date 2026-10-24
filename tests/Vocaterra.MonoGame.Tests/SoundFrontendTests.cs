@@ -5,11 +5,10 @@ using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Save;
 using Vocaterra.Game.Session;
+using Vocaterra.Game.Voxel;
 using Vocaterra.MonoGame.Input;
 using Vocaterra.MonoGame.Sound;
 using Vocaterra.MonoGame.Utilities;
-using Vocaterra.Simulation;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Tests;
 

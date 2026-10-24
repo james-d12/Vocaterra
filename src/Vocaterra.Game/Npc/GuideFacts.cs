@@ -1,6 +1,6 @@
+using Vocaterra.Game.Voxel;
 using Vocaterra.Game.World;
 using Vocaterra.Nlp.Language.Normalization;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Npc;
 

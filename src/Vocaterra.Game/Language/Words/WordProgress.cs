@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Npc;
 using Vocaterra.Nlp.Language.Normalization;
-using Vocaterra.Simulation.Items;
 
 namespace Vocaterra.Game.Language.Words;
 

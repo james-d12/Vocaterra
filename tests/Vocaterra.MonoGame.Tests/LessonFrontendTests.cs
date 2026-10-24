@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Vocaterra.Game;
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Lessons;
 using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Language.Speech;
@@ -7,13 +8,13 @@ using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Session;
 using Vocaterra.Game.Tip;
+using Vocaterra.Game.Voxel;
 using Vocaterra.MonoGame.Graphics;
 using Vocaterra.MonoGame.Input;
 using Vocaterra.MonoGame.UI;
 using Vocaterra.MonoGame.UI.Dialogue;
 using Vocaterra.MonoGame.Utilities;
 using Vocaterra.Nlp.Content;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Tests;
 
@@ -221,7 +222,7 @@ public sealed class LessonFrontendTests
         var opened = run.Session.Events.OfType<WorldEvent>().Where(static e => e.Name == WorldEvents.TalkOpened).Select(static e => e.Npc).ToList();
         Assert.Equal("villager", opened[0]);
         Assert.Contains("shopkeeper", opened); // the run walked from the villager to the stall
-        Assert.Equal(0, run.Session.Simulation.Inventory.Count(Vocaterra.Simulation.Items.ItemId.Bottle)); // the stall handed nothing over: the statements are no requests
+        Assert.Equal(0, run.Session.Simulation.Inventory.Count(ItemId.Bottle)); // the stall handed nothing over: the statements are no requests
     }
 
     [Fact]

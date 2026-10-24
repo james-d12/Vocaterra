@@ -1,3 +1,4 @@
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
@@ -6,7 +7,6 @@ using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Intent;
-using Vocaterra.Simulation.Items;
 
 namespace Vocaterra.Game.Tests;
 

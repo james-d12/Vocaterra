@@ -1,8 +1,8 @@
 using System.Globalization;
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Session;
-using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Voxel;
+using Vocaterra.Game.Voxel;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Tests;

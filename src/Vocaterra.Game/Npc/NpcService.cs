@@ -618,7 +618,7 @@ public sealed partial class NpcService
         var hostEvents = HostEventsOf(result);
         Note(agent, string.Empty, hostEvents);
         var holdsBottle = scene.Inventory is { } inventory
-            && (inventory.Count(Simulation.Items.ItemId.Bottle) + inventory.Count(Simulation.Items.ItemId.WaterBottle)) > 0;
+            && (inventory.Count(ItemId.Bottle) + inventory.Count(ItemId.WaterBottle)) > 0;
         string? feedback = null;
         var replies = new List<string>();
         foreach (var responseLine in result.Response.Lines)

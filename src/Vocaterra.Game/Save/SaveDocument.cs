@@ -1,11 +1,11 @@
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Learner;
 using Vocaterra.Game.Language.Lessons;
 using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Session;
+using Vocaterra.Game.Voxel;
 using Vocaterra.Nlp.Language.Intent;
-using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Save;
 

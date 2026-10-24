@@ -1,5 +1,5 @@
-using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Voxel;
+using Vocaterra.Game.Items;
+using Vocaterra.Game.Voxel;
 
 namespace Vocaterra.MonoGame.UI;
 

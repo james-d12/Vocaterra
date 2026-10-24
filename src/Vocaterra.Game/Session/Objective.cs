@@ -1,4 +1,4 @@
-using Vocaterra.Simulation.Items;
+using Vocaterra.Game.Items;
 
 namespace Vocaterra.Game.Session;
 

@@ -1,7 +1,7 @@
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Voxel;
 using Vocaterra.Game.World;
-using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Tests;
 

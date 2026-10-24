@@ -4,6 +4,7 @@ using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Session;
+using Vocaterra.Game.Voxel;
 using Vocaterra.MonoGame.Graphics;
 using Vocaterra.MonoGame.Input;
 using Vocaterra.MonoGame.Sound;
@@ -73,7 +74,7 @@ public sealed class SpeechUxFrontendTests
 
     private static AppliedTurn Applied(GuideTurn turn, bool cancelled = false)
     {
-        var scene = new GuideScene(new GuideViewpoint(new Vocaterra.Simulation.Voxel.BlockPos(0, 0, 0), 0, 0, 0));
+        var scene = new GuideScene(new GuideViewpoint(new BlockPos(0, 0, 0), 0, 0, 0));
         var request = new TurnRequest(1, TurnSource.Clip, null, null, null, scene, new Vocaterra.Nlp.Core.Determinism.StoredTimestamp(1), "digest", null, 0, "shopkeeper");
         return new AppliedTurn(new TurnOutcome(request, cancelled ? null : turn, null, new TurnTimings(0, 0, 5, false), cancelled), null);
     }
@@ -672,7 +673,7 @@ public sealed class SpeechUxFrontendTests
             _ => { },
             () => false);
         var script = new ScenarioScript(session, look, dialogue, [new ScriptStep(ScriptStepKind.Talk, Value: "shopkeeper"), new ScriptStep(ScriptStepKind.Speak, Value: "quiero agua")], static _ => null, hooks, static _ => { });
-        var commands = new List<Vocaterra.Simulation.Voxel.VoxelCommand>();
+        var commands = new List<VoxelCommand>();
         SpeechRequest? asked = null;
         for (var tick = 0; tick < 20000 && asked is null; tick++)
         {

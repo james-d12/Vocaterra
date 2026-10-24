@@ -1,8 +1,8 @@
 using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Voxel;
 using Vocaterra.MonoGame.Utilities;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Graphics;
 

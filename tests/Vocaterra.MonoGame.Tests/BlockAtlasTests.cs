@@ -1,6 +1,6 @@
+using Vocaterra.Game.Items;
+using Vocaterra.Game.Voxel;
 using Vocaterra.MonoGame.Graphics;
-using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Tests;
 

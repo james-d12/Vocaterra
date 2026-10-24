@@ -5,8 +5,8 @@ using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Session;
+using Vocaterra.Game.Voxel;
 using Vocaterra.Nlp.Content;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Tests;
 

@@ -1,9 +1,9 @@
 using System.Text.Json;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Session;
+using Vocaterra.Game.Voxel;
 using Vocaterra.Game.World;
 using Vocaterra.Nlp.Language.Normalization;
-using Vocaterra.Simulation.Voxel;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Tests;

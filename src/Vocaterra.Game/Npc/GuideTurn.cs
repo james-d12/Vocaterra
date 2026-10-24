@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
@@ -7,7 +8,6 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Pipeline;
-using Vocaterra.Simulation.Items;
 
 namespace Vocaterra.Game.Npc;
 

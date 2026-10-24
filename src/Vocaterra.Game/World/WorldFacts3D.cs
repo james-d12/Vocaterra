@@ -1,6 +1,6 @@
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
-using Vocaterra.Simulation.Voxel;
+using Vocaterra.Game.Voxel;
 
 namespace Vocaterra.Game.World;
 

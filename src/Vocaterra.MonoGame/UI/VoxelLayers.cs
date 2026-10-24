@@ -2,9 +2,9 @@ using System.Globalization;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Voxel;
 using Vocaterra.MonoGame.Graphics;
 using Vocaterra.MonoGame.UI.Dialogue;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.UI;
 

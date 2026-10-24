@@ -1,7 +1,7 @@
 using Vocaterra.Game;
 using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Voxel;
 using Vocaterra.MonoGame.UI;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Graphics;
 

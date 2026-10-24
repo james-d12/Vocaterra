@@ -1,3 +1,4 @@
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
@@ -87,7 +88,7 @@ public sealed class EnglishTextTests
     {
         var english = English;
         var objective = Objective.Camp();
-        _ = objective.RecordPickup(Vocaterra.Simulation.Items.ItemId.Wood, 5);
+        _ = objective.RecordPickup(ItemId.Wood, 5);
 
         var pieces = english.ObjectivePieces(objective, static _ => false);
 

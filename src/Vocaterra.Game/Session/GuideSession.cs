@@ -7,13 +7,12 @@ using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Tip;
+using Vocaterra.Game.Voxel;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Morphology;
-using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Session;
 

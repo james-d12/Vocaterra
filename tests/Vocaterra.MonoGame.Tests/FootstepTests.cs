@@ -1,9 +1,8 @@
 using Vocaterra.Game;
 using Vocaterra.Game.Save;
+using Vocaterra.Game.Voxel;
 using Vocaterra.MonoGame.Sound;
 using Vocaterra.MonoGame.Utilities;
-using Vocaterra.Simulation;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Tests;
 

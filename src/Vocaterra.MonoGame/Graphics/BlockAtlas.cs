@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Vocaterra.Simulation.Items;
+using Vocaterra.Game.Items;
+using Vocaterra.Game.Voxel;
 
 namespace Vocaterra.MonoGame.Graphics;
 
@@ -11,7 +12,7 @@ public interface IItemIcons
     void DrawIcon(SpriteBatch spriteBatch, ItemId item, Rectangle destination, double saturation);
 
     /// <summary>Draws a side of a block as an icon (S22: the book's nouns that name a block and no item, <c>árbol</c> or <c>río</c>), grey at saturation 0.</summary>
-    void DrawBlock(SpriteBatch spriteBatch, Vocaterra.Simulation.Voxel.BlockId block, Rectangle destination, double saturation);
+    void DrawBlock(SpriteBatch spriteBatch, BlockId block, Rectangle destination, double saturation);
 }
 
 /// <summary>
@@ -51,8 +52,8 @@ public sealed class BlockAtlas : IItemIcons, IDisposable
     }
 
     /// <inheritdoc />
-    public void DrawBlock(SpriteBatch spriteBatch, Vocaterra.Simulation.Voxel.BlockId block, Rectangle destination, double saturation) =>
-        DrawCell(spriteBatch, BlockAtlasLayout.CellFor(block, Vocaterra.Simulation.Voxel.BlockFace.East), destination, saturation);
+    public void DrawBlock(SpriteBatch spriteBatch, BlockId block, Rectangle destination, double saturation) =>
+        DrawCell(spriteBatch, BlockAtlasLayout.CellFor(block, BlockFace.East), destination, saturation);
 
     private void DrawCell(SpriteBatch spriteBatch, BlockCell cell, Rectangle destination, double saturation)
     {

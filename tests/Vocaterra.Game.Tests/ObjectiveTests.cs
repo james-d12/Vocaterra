@@ -1,5 +1,5 @@
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Session;
-using Vocaterra.Simulation.Items;
 
 namespace Vocaterra.Game.Tests;
 

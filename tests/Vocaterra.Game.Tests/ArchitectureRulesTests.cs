@@ -34,7 +34,6 @@ public sealed class ArchitectureRulesTests
         var project = File.ReadAllText(Path.Combine(GameRoot(), "src", "Vocaterra.Game", "Vocaterra.Game.csproj"));
 
         var projects = Regex.Matches(project, "<ProjectReference Include=\"([^\"]+)\"").Select(m => m.Groups[1].Value).ToList();
-        Assert.Contains("../Vocaterra.Simulation/Vocaterra.Simulation.csproj", projects);
         var core = projects.Where(path => path != "../Vocaterra.Simulation/Vocaterra.Simulation.csproj").ToList();
         Assert.NotEmpty(core);
         Assert.All(core, path => Assert.Matches("^\\.\\./Vocaterra\\.Nlp\\.[A-Za-z]+/Vocaterra\\.Nlp\\.[A-Za-z]+\\.csproj$", path));
@@ -60,15 +59,6 @@ public sealed class ArchitectureRulesTests
             Assert.Contains("<PackageReference Include=\"Vosk\" />", text, StringComparison.Ordinal);
             Assert.Contains("<PackageReference Include=\"Microsoft.ML.OnnxRuntime\" ExcludeAssets=\"native\" />", text, StringComparison.Ordinal);
         }
-    }
-
-    [Fact]
-    public void TheSimulationStillTakesNoPackages()
-    {
-        var project = File.ReadAllText(Path.Combine(GameRoot(), "src", "Vocaterra.Simulation", "Vocaterra.Simulation.csproj"));
-
-        Assert.DoesNotContain("PackageReference", project, StringComparison.Ordinal);
-        Assert.DoesNotContain("ProjectReference", project, StringComparison.Ordinal);
     }
 
     private static IEnumerable<string> Sources() =>

@@ -1,14 +1,14 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game;
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Session;
+using Vocaterra.Game.Voxel;
 using Vocaterra.MonoGame.Graphics;
 using Vocaterra.MonoGame.Sound;
 using Vocaterra.MonoGame.UI.Book;
 using Vocaterra.MonoGame.Utilities;
-using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.UI;
 

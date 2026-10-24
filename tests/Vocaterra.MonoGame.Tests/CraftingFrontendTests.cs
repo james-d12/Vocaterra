@@ -1,10 +1,9 @@
 using Vocaterra.Game;
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Session;
 using Vocaterra.MonoGame.UI;
 using Vocaterra.Nlp.Content;
-using Vocaterra.Simulation.Crafting;
-using Vocaterra.Simulation.Items;
 
 namespace Vocaterra.MonoGame.Tests;
 

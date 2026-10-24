@@ -4,6 +4,7 @@ using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Session;
+using Vocaterra.Game.Voxel;
 using Vocaterra.MonoGame.Graphics;
 using Vocaterra.MonoGame.Input;
 using Vocaterra.MonoGame.Sound;
@@ -12,7 +13,6 @@ using Vocaterra.MonoGame.UI.Book;
 using Vocaterra.MonoGame.UI.Dialogue;
 using Vocaterra.MonoGame.Utilities;
 using Vocaterra.Nlp.Content;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Tests;
 

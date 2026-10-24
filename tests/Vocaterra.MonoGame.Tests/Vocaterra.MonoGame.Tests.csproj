@@ -22,7 +22,6 @@
   <!-- No GPU: the tests touch only the front-end logic (Frontend/), the committed font file and the project's sources. -->
   <ItemGroup>
     <ProjectReference Include="../../src/Vocaterra.MonoGame/Vocaterra.MonoGame.csproj" />
-    <ProjectReference Include="../../src/Vocaterra.Simulation/Vocaterra.Simulation.csproj" />
   </ItemGroup>
 
 </Project>

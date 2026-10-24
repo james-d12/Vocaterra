@@ -1,5 +1,5 @@
 using System.Globalization;
-using Vocaterra.Simulation.Voxel;
+using Vocaterra.Game.Voxel;
 
 namespace Vocaterra.MonoGame.Graphics;
 

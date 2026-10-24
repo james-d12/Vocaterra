@@ -4,9 +4,9 @@ using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Session;
+using Vocaterra.Game.Voxel;
 using Vocaterra.Game.World;
 using Vocaterra.Nlp.Content;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Tests;
 

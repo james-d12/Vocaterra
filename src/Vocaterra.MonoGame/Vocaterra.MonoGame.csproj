@@ -31,7 +31,6 @@
 
   <ItemGroup>
     <ProjectReference Include="../Vocaterra.Game/Vocaterra.Game.csproj" />
-    <ProjectReference Include="../Vocaterra.Simulation/Vocaterra.Simulation.csproj" />
   </ItemGroup>
 
   <!-- The playtest publish's last word on the sherpa-onnx and ONNX Runtime natives (S12): Microsoft.ML.OnnxRuntime's props add the Windows DLLs

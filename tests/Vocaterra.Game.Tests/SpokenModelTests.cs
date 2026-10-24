@@ -1,14 +1,15 @@
 using System.Buffers.Binary;
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Session;
+using Vocaterra.Game.Voxel;
 using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Pipeline;
-using Vocaterra.Simulation.Voxel;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Tests;
@@ -229,7 +230,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
         Assert.Equal("stall-need", turn.Prompt);
         Assert.Equal("request_item", turn.Intent);
         Assert.Contains("stall.give_water", turn.HostEvents);
-        Assert.Equal(1, session.Simulation.Inventory.Count(Vocaterra.Simulation.Items.ItemId.Bottle));
+        Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Bottle));
         Assert.Contains(session.Events.OfType<PhraseUse>(), static u => u is { PhraseId: PhraseIds.RequestWater, Kind: PhraseUseKind.Supported });
     }
 

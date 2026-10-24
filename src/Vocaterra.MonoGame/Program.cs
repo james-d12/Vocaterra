@@ -4,11 +4,11 @@ using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Save;
 using Vocaterra.Game.Session;
+using Vocaterra.Game.Voxel;
 using Vocaterra.MonoGame;
 using Vocaterra.MonoGame.Sound;
 using Vocaterra.MonoGame.Utilities;
 using Vocaterra.Nlp.Content;
-using Vocaterra.Simulation.Voxel;
 
 // The crash handler (X05) is installed before anything else, so a crash at any point writes its report. The process-wide hooks cover what
 // the game loop's catch does not: an exception on another thread, or an unobserved task exception (the game goes on after that one).

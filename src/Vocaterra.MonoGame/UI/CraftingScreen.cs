@@ -1,8 +1,7 @@
 using Vocaterra.Game;
 using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Words;
-using Vocaterra.Simulation.Crafting;
-using Vocaterra.Simulation.Voxel;
+using Vocaterra.Game.Voxel;
 
 namespace Vocaterra.MonoGame.UI;
 

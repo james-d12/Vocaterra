@@ -1,5 +1,5 @@
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Phrases;
-using Vocaterra.Simulation.Items;
 
 namespace Vocaterra.Game.Npc;
 

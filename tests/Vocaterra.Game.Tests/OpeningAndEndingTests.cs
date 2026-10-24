@@ -1,11 +1,11 @@
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Save;
 using Vocaterra.Game.Session;
 using Vocaterra.Game.Tip;
-using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Voxel;
+using Vocaterra.Game.Voxel;
 
 namespace Vocaterra.Game.Tests;
 

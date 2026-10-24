@@ -18,13 +18,10 @@
     <ProjectReference Include="../Vocaterra.Nlp.Response/Vocaterra.Nlp.Response.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="../Vocaterra.Simulation/Vocaterra.Simulation.csproj" />
-  </ItemGroup>
-
   <!-- The worker's settle step (a turn cancelled while it ran is rolled back) is internal, and tested by calling it between the evaluation and the settle. -->
   <ItemGroup>
     <InternalsVisibleTo Include="Vocaterra.Game.Tests" />
+    <InternalsVisibleTo Include="Vocaterra.MonoGame.Tests" />
   </ItemGroup>
 
 </Project>

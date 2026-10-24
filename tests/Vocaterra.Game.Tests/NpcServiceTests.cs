@@ -1,6 +1,8 @@
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Session;
+using Vocaterra.Game.Voxel;
 using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
@@ -8,8 +10,6 @@ using Vocaterra.Nlp.Language.Embeddings;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Response.Speech;
-using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Tests;
 

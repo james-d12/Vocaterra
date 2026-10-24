@@ -4,11 +4,9 @@ using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Save;
 using Vocaterra.Game.Tip;
+using Vocaterra.Game.Voxel;
 using Vocaterra.Game.World;
 using Vocaterra.Nlp.Content;
-using Vocaterra.Simulation;
-using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Session;
 

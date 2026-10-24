@@ -1,11 +1,11 @@
 using Vocaterra.Game;
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Lessons;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Session;
+using Vocaterra.Game.Voxel;
 using Vocaterra.MonoGame.Graphics;
 using Vocaterra.MonoGame.UI;
-using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Utilities;
 
@@ -355,7 +355,7 @@ public sealed class ScenarioScript
                 _index++;
                 break;
             case ScriptStepKind.Wait:
-                _wait = int.Parse(step.Value, System.Globalization.CultureInfo.InvariantCulture) * Vocaterra.Simulation.Voxel.VoxelSimulation.TicksPerSecond;
+                _wait = int.Parse(step.Value, System.Globalization.CultureInfo.InvariantCulture) * VoxelSimulation.TicksPerSecond;
                 _index++;
                 _phase = Phase.Gap;
                 break;

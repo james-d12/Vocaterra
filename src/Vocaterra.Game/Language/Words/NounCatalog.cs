@@ -1,10 +1,10 @@
 using System.Text;
 using System.Text.Json;
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Voxel;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Language.Morphology;
-using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Language.Words;
 

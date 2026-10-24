@@ -1,3 +1,4 @@
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Session;
@@ -107,7 +108,7 @@ public sealed class ConstrainedRecognitionTests(ITestOutputHelper output)
         Assert.DoesNotContain(events.OfType<PhraseUse>(), static u => u.Kind != PhraseUseKind.FailForward); // never a phrase use of any kind
         Assert.Equal([RepairKind.AskAgain, RepairKind.SlowRepeat, RepairKind.OfferChoices], turns.Select(static t => t.RepairKind));
         Assert.Equal(3, turns[2].Choices!.Count);
-        Assert.Equal(0, session.Simulation.Inventory.Count(Vocaterra.Simulation.Items.ItemId.Bottle));
+        Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Bottle));
     }
 
     private static AppliedTurn Drain(VoxelSession session)

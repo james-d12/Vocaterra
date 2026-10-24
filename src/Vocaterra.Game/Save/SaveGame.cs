@@ -1,12 +1,12 @@
 using System.Text.Json;
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Session;
+using Vocaterra.Game.Voxel;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
-using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Save;
 

@@ -1,9 +1,8 @@
 using System.Globalization;
+using Vocaterra.Game;
+using Vocaterra.Game.Items;
+using Vocaterra.Game.Voxel;
 using Vocaterra.MonoGame.Graphics;
-using Vocaterra.Simulation;
-using Vocaterra.Simulation.Crafting;
-using Vocaterra.Simulation.Items;
-using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Utilities;
 
