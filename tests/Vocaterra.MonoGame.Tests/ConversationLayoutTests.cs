@@ -1,4 +1,6 @@
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.Graphics;
+using Vocaterra.MonoGame.UI;
+using Vocaterra.MonoGame.UI.Dialogue;
 using Xunit.Abstractions;
 
 namespace Vocaterra.MonoGame.Tests;

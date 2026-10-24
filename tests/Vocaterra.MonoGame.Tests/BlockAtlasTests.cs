@@ -1,4 +1,4 @@
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.Graphics;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 

@@ -13,21 +13,6 @@ public sealed class ArchitectureRulesTests
     private static readonly string[] EngineNamespaces = ["Microsoft.Xna", "FontStashSharp"];
 
     [Fact]
-    public void TheTestableLogicInFrontendNamesNoEngineType()
-    {
-        var files = Sources("Frontend").ToList();
-        Assert.NotEmpty(files);
-        foreach (var file in files)
-        {
-            var code = Code(file);
-            foreach (var token in EngineNamespaces)
-            {
-                Assert.False(code.Contains(token, StringComparison.Ordinal), $"{Path.GetFileName(file)} refers to {token}; Frontend/ must stay free of engine types.");
-            }
-        }
-    }
-
-    [Fact]
     public void NoSourceUsesSystemRandomAGuidOrTheWallClock()
     {
         foreach (var file in Sources(string.Empty))

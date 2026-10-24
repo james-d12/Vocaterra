@@ -1,5 +1,5 @@
 using Vocaterra.Game;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.UI;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.MonoGame.Tests;

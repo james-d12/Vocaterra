@@ -1,5 +1,6 @@
 using Vocaterra.Game;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.Input;
+using Vocaterra.MonoGame.UI;
 
 namespace Vocaterra.MonoGame.Tests;
 

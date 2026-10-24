@@ -1,5 +1,5 @@
 using Vocaterra.Game;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.UI.Book;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;

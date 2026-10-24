@@ -1,5 +1,5 @@
 using Vocaterra.Game;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.Input;
 using Vocaterra.Nlp.Content;
 using Xunit.Abstractions;
 

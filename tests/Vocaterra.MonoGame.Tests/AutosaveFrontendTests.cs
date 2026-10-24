@@ -1,4 +1,4 @@
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.Utilities;
 
 namespace Vocaterra.MonoGame.Tests;
 

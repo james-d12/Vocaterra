@@ -1,6 +1,10 @@
 using System.Text.Json;
 using Vocaterra.Game;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.Graphics;
+using Vocaterra.MonoGame.Input;
+using Vocaterra.MonoGame.UI;
+using Vocaterra.MonoGame.UI.Dialogue;
+using Vocaterra.MonoGame.Utilities;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Simulation.Voxel;
 

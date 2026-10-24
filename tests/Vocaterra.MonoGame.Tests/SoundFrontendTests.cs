@@ -1,6 +1,8 @@
 using System.Text.RegularExpressions;
 using Vocaterra.Game;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.Input;
+using Vocaterra.MonoGame.Sound;
+using Vocaterra.MonoGame.Utilities;
 using Vocaterra.Simulation;
 using Vocaterra.Simulation.Voxel;
 

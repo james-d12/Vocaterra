@@ -1,5 +1,5 @@
 using Microsoft.Xna.Framework;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.Graphics;
 using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.MonoGame.Tests;

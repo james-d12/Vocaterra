@@ -1,5 +1,7 @@
 using Vocaterra.Game;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.Input;
+using Vocaterra.MonoGame.UI;
+using Vocaterra.MonoGame.Utilities;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;

@@ -4,10 +4,18 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game;
 using Vocaterra.Game.Reports;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.Graphics;
+using Vocaterra.MonoGame.Input;
+using Vocaterra.MonoGame.Sound;
+using Vocaterra.MonoGame.UI;
+using Vocaterra.MonoGame.UI.Book;
+using Vocaterra.MonoGame.UI.Dialogue;
+using Vocaterra.MonoGame.UI.English;
+using Vocaterra.MonoGame.Utilities;
 using Vocaterra.Simulation.Crafting;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
+using SoundEventMapper = Vocaterra.MonoGame.Sound.SoundEventMapper;
 
 namespace Vocaterra.MonoGame;
 

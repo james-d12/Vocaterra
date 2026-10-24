@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Vocaterra.Game;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.Utilities;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.MonoGame.Tests;

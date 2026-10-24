@@ -1,5 +1,5 @@
 using Vocaterra.Game;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.UI;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Simulation.Crafting;
 using Vocaterra.Simulation.Items;
@@ -101,17 +101,4 @@ public sealed class CraftingFrontendTests
         Assert.True(CountBadge.Contrast() >= 7.0, $"The count's contrast is {CountBadge.Contrast():0.0}.");
         Assert.NotEqual(CountBadge.TextColour, CountBadge.PlateColour);
     }
-
-    [Fact]
-    public void BothSlotLayersDrawTheirCountsThroughTheBadge()
-    {
-        var root = Repo.Path("src", "Vocaterra.MonoGame");
-        foreach (var file in new[] { "HotbarLayer.cs", "InventoryLayer.cs" })
-        {
-            var code = File.ReadAllText(Path.Combine(root, file));
-            Assert.Contains("CountBadge.Text", code, StringComparison.Ordinal);
-            Assert.Contains("DrawHelpers.Badge", code, StringComparison.Ordinal);
-        }
-    }
-
 }

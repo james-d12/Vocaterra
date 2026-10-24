@@ -1,5 +1,5 @@
 using Vocaterra.Game;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.Sound;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Response.Speech;
 

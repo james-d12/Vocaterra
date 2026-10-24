@@ -1,5 +1,6 @@
 using Vocaterra.Game;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.UI.Book;
+using Vocaterra.MonoGame.Utilities;
 
 namespace Vocaterra.MonoGame.Tests;
 
@@ -181,7 +182,7 @@ public sealed class BookModelTests
         var strings = new List<string>
         {
             BookTabs.Title, BookTabs.KeyHints, "lines 1 to 29 of 80   wheel, Page Up, Page Down", "Known: 3 of 18   ·   Session 1", "Without help: 0   ·   Session 1",
-            VerbLabels.Separator, "¿quieres? — do you want?", "¿estás? — are you?", "he/she/it wants", "you all want! (you all)", "let's want", "that I want",
+            BookVerbLabels.Separator, "¿quieres? — do you want?", "¿estás? — are you?", "he/she/it wants", "you all want! (you all)", "let's want", "that I want",
             "completed in session 2", "in progress: 1 of 2 units done", "not started", "help used: 0   I don't know: 0   repeats asked: 0   turns: 0",
             "unit 1", "2 of 2 steps", "lesson First words with Luna, u1", "said, talk to The guide", "typed", "button", "used 1   correct 1", "forms: agua 1",
             "last: \"¿quieres pan?\" = Would you like bread?", "...", "Session 2",

@@ -1,5 +1,5 @@
 using Vocaterra.Game;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.Sound;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Simulation;

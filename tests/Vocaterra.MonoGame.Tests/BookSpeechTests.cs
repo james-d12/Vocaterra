@@ -1,5 +1,8 @@
 using Vocaterra.Game;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.Sound;
+using Vocaterra.MonoGame.UI;
+using Vocaterra.MonoGame.UI.Book;
+using Vocaterra.MonoGame.Utilities;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Stages;

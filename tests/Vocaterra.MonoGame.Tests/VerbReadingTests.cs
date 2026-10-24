@@ -1,5 +1,6 @@
 using Vocaterra.Game;
-using Vocaterra.MonoGame.Frontend;
+using Vocaterra.MonoGame.UI.Book;
+using Vocaterra.MonoGame.Utilities;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.MonoGame.Tests;
@@ -39,7 +40,7 @@ public sealed class VerbReadingTests
         // "ven" is not a present of venir (vengo, vienes, viene...), so it stays the command the core read.
         var reading = VerbReading.Normalize("venir", "ven", "2", "sg", null, "imp", Bundle.Value.Morphology);
         Assert.Equal(("2", "sg", null, "imp"), reading);
-        Assert.Equal("ven — come!", VerbLabels.Label("ven", "venir", new VerbGloss("venir", "to come", null, null), "2", "sg", null, "imp", question: false));
+        Assert.Equal("ven — come!", BookVerbLabels.Label("ven", "venir", new VerbGloss("venir", "to come", null, null), "2", "sg", null, "imp", question: false));
     }
 
     [Fact]
@@ -52,6 +53,6 @@ public sealed class VerbReadingTests
     private static string Label(string form, string lemma, VerbGloss? gloss, Vocaterra.Nlp.Language.Morphology.MorphologyGenerator morphology, string? person, string? number, string? mood, bool question = false)
     {
         var (p, n, t, m) = VerbReading.Normalize(lemma, form, person, number, null, mood, morphology);
-        return VerbLabels.Label(form, lemma, gloss, p, n, t, m, question);
+        return BookVerbLabels.Label(form, lemma, gloss, p, n, t, m, question);
     }
 }
