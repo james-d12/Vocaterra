@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Starts, stops or reports the local LanguageTool server that `vocaterra-content grammar` calls (nlp/docs/DECISIONS.md D10). The server is a
+# Starts, stops or reports the local LanguageTool server that `vocaterra-content grammar` calls (docs/nlp/DECISIONS.md D10). The server is a
 # separate development-time process: the public API is never used, and no content leaves the machine.
 #
 # Usage: scripts/languagetool.sh start|stop|status
@@ -9,13 +9,13 @@
 #   stop    stops the server (and checks that the port is free).
 #   status  prints "running" or "stopped"; exit 0 when running, 1 when stopped.
 #
-# The Java runtime and LanguageTool come from scripts/fetch-tools.sh (nlp/tools/manifest.json). This script does not use scripts/limited.sh: the
+# The Java runtime and LanguageTool come from scripts/fetch-tools.sh (tools/manifest.json). This script does not use scripts/limited.sh: the
 # server is idle between runs and its own scope is the cap.
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
-manifest="$repo_root/nlp/tools/manifest.json"
+manifest="$repo_root/tools/manifest.json"
 tools="${VOCATERRA_TOOLS_DIR:-$HOME/.local/share/vocaterra/tools}"
 port="${VOCATERRA_LT_PORT:-8081}"
 min_free_mb="${VOCATERRA_LT_MIN_FREE_MB:-4096}"

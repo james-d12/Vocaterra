@@ -1,25 +1,64 @@
 # Scripts
 
-Repository-level helper scripts. All are bash and can be run from any directory. The language core's own scripts (pack, licence scan,
-model and lexicon fetching, the sample host) are in `nlp/scripts/` and documented there.
+Repository helper scripts, for the language core and the game. All are bash and can be run from any directory.
+
+Heavy commands (dotnet restore, build, test, format, run; `content.sh`; the speech prerender) are run through `limited.sh`, which
+serialises them machine-wide and caps their memory and CPU; see its header.
+
+## limited.sh
+
+`scripts/limited.sh <command> [args...]` runs one heavy command at a time on the machine (a lock shared by every worktree), waits while
+memory is short, and runs it in a systemd user scope with a 6 GB memory cap, no swap and 10 of 16 cores. Exit status 137 means the cap
+killed the command. Use `-m:4` for builds and `-m:2` for tests.
 
 ## content.sh
 
-Runs the language core's content tool on a game content bundle (default `game/content/game-v1`):
+Runs the language core's content tool on a game content bundle (default `content/game-v1`):
 
 - `validate` checks every file's hash and the cross-references, and prints the bundle hash.
 - `hash` rewrites `manifest.json` from the files on disk, the step after any edit. Options after the bundle directory are passed on, so a
-  new bundle id is set with `hash game/content/game-v1 --bundle-id game-v1`; without the option the manifest keeps its id.
-- `cefr-check` lists dialogue-template and prompt-text lemmas missing from a CEFR list (`cefr-check game/content/game-v1 --level a1`).
-- `lint`, `pack` and `verify-pack` are passed through as `nlp/TOOLS.md` describes.
+  new bundle id is set with `hash content/game-v1 --bundle-id game-v1`; without the option the manifest keeps its id.
+- `cefr-check` lists dialogue-template and prompt-text lemmas missing from a CEFR list (`cefr-check content/game-v1 --level a1`).
+- `lint`, `grammar`, `pack` and `verify-pack` are passed through as [docs/nlp/TOOLS.md](../docs/nlp/TOOLS.md) describes.
 
-The tool is the `Vocaterra.Nlp.ContentBuilder` project under `nlp/tools`, run from source with `dotnet run`, so it is always the core at
-the current commit. Needs bash and the .NET SDK (`~/.dotnet` is used when present).
+The tool is the `Vocaterra.Nlp.ContentBuilder` project under `tools/`, run from source with `dotnet run`, so it is always the core at the
+current commit. Needs bash and the .NET SDK (`~/.dotnet` is used when present).
 
 ## merge-gate.sh
 
-The orchestrator's gate, run from main: `scripts/merge-gate.sh "<label>:<branch>" ...` merges each branch with `--no-ff` (aborting that
+The orchestrator's gate, run from a feature branch's checkout (never `main`, which it refuses):
+`GATE_TARGET=<feature branch> scripts/merge-gate.sh "<label>:<branch>" ...` merges each branch into it with `--no-ff` (aborting that
 merge on a conflict), then runs on `Vocaterra.sln` the build with warnings as errors, the whole test suite (core and game; model-backed
-tests when `VOCATERRA_MODELS_DIR` is set or the shared models folder exists), the format check, `content.sh validate` and the core's
-`nlp/scripts/license-scan.sh --offline`. Each check's log is kept under `.claude/gate-logs/`. It prints the counts and `result: PASS` or
-`result: FAIL`, and exits non-zero on a failure.
+tests when `VOCATERRA_MODELS_DIR` is set or the shared models folder exists), the format check, `content.sh validate`, the game bundle's
+lint and CEFR checks and grammar check, and the core's `license-scan.sh --offline`. Each check's log is kept under `.claude/gate-logs/`.
+It prints the counts and `result: PASS` or `result: FAIL`, and exits non-zero on a failure.
+
+## fetch-models.sh
+
+Downloads the models listed in `models/manifest.json` into `${VOCATERRA_MODELS_DIR:-models}/<id>/`, checks the archive SHA-256, extracts it and verifies every listed file against its pinned hash. `--list` reports which models are present, missing, mismatching or unpinned without downloading anything, and model ids on the command line limit the work to those models. Entries without an archive are skipped with a warning because their ONNX export is manual. Needs bash, python3, curl, sha256sum (or shasum) and unzip or tar with bzip2. The optional `models` job in `.github/workflows-pending/ci.yml` runs it for the Vosk model only.
+
+## fetch-lexicon-sources.sh
+
+Downloads the two data sets the lexicon import reads into `${VOCATERRA_LEXICON_SOURCES_DIR:-lexicon-sources}/` (git-ignored): the kaikki.org Spanish extract of English Wiktionary (about 1 GB of JSONL) and `es_50k.txt` of hermitdave/FrequencyWords at a pinned commit. The URLs, byte sizes and SHA-256 hashes are pinned in the script; a file that is already there and matches is kept, a download that does not match is deleted and the script stops (the kaikki.org URL is not versioned, so a mismatch means upstream replaced the file; re-pinning is described in [docs/nlp/LEXICON.md](../docs/nlp/LEXICON.md)). It then writes `sources.json` next to the files with URL, hash, size, licence and retrieval date, which `Vocaterra.Nlp.ContentBuilder import-lexicon --sidecar` copies into the sidecar of the generated lexicon. `--check` verifies the files that are present and downloads nothing. Needs bash, python3, curl and sha256sum (or shasum). Downloaded files are data: nothing in them is ever executed.
+
+## fetch-tools.sh and languagetool.sh
+
+`fetch-tools.sh` installs the grammar check's development tools (the Temurin JRE and LanguageTool, pinned in `tools/manifest.json`) under
+`~/.local/share/vocaterra/tools`; `languagetool.sh start|stop|status` runs the local LanguageTool server that `content.sh grammar` calls.
+Both are described in [docs/nlp/TOOLS.md](../docs/nlp/TOOLS.md).
+
+## license-scan.sh
+
+Checks the licence of every NuGet package in `Vocaterra.Nlp.slnf` (the core projects), direct and transitive, as listed by `dotnet list package --include-transitive`. Each package's cached `.nuspec` is read first; packages without an SPDX expression there are looked up in the NuGet registration API unless `--offline` is given, which restricts the scan to the local cache (`NUGET_PACKAGES` or `~/.nuget/packages`). The solution must be restored first. The script prints a table with a status per package and exits 1 when any package is GPL, LGPL, AGPL or SSPL, is not on `license-allowlist.txt`, or has no determinable licence. The allowlist holds one SPDX identifier per line, matched as a whole token and case-insensitively, so `MIT` does not accept `MIT-0`; a line containing spaces is matched as a complete expression. Add an entry only after reading the licence text of the package it would accept. The `license` job in `.github/workflows-pending/ci.yml` runs the script. The game's own third-party packages (MonoGame, FontStashSharp) are not in the core filter.
+
+Packages whose metadata names no usable licence can be covered by `license-overrides.txt`, one `<package-id>|<version>|<spdx>|<evidence-url>|<reviewed-on>` line per package version. An override applies only to the exact id (case-insensitive) and version on its line, is used only after the nuspec and the API have failed to name a licence, and must cite an https evidence URL. Its SPDX value is still checked against the allowlist, and the table reports its source as `override`. Malformed lines stop the scan with exit status 2. When a package is updated, its override no longer matches and the scan reports it again.
+
+## check-links.sh
+
+Checks the relative Markdown links in every `.md` file of the repository (build output, fetched models, agent worktrees and gate logs excluded). A link is checked when it has no URL scheme and is not a bare `#anchor`; its target, without any `#fragment`, must exist in the working tree. Links inside code fences and code spans are ignored, and nothing is fetched. It prints each broken link as `file:line: target` and the count of links checked, and exits 1 when any link is broken. Run it as `scripts/check-links.sh` from anywhere in the repository; `--quiet` prints only the broken links and the summary when there are some.
+
+## The game's scripts
+
+- `prerender-speech.sh` renders the NPCs' speakable lines of `content/game-v1` with Kokoro (`tools/Vocaterra.SpeechRender`); `--check` reports what would be rendered and writes nothing.
+- `playtest-build.sh <folder>` builds the private linux-x64 playtest folder (the game, the bundle, the Vosk model, the tester's README and launcher from `scripts/playtest/`) and checks it.
+- `playtest-report.sh <session folders>` summarises the session logs the playtest writes.

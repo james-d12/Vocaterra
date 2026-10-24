@@ -1,3 +1,0 @@
-{"clip":"audio/synth-offer-items-open-1.wav","promptId":"offer-items-open","speaker":"synth","l1":"en","expectedTranscript":"yo tiene dos espada","expectedErrors":[{"tag":"conj.person","actual":"tiene"},{"tag":"noun.number","actual":"espada"}],"expectedIntent":"offer_item"}
-{"clip":"audio/synth-greet-blacksmith-1.wav","promptId":"greet-blacksmith","speaker":"synth","l1":"en","expectedTranscript":"hola amigo","expectedErrors":[],"expectedIntent":"greet"}
-{"clip":"audio/synth-buy-item-open-1.wav","promptId":"buy-item-open","speaker":"synth","l1":"en","expectedTranscript":"quiero comprar un espada","expectedErrors":[{"tag":"gender.agree","actual":"un"}],"expectedIntent":"buy_item"}

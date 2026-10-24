@@ -1,0 +1,161 @@
+{
+  "verdict": {
+    "intent": "confirm",
+    "slots": {},
+    "communicated": true,
+    "correctness": 1,
+    "errors": [],
+    "pronunciation": [],
+    "confidence": 1,
+    "resolvedBy": "Exact",
+    "versions": {
+      "contentHash": "<bundle-hash>",
+      "modelHashes": {
+        "asr": "scripted-golden"
+      }
+    }
+  },
+  "decision": {
+    "agent": {
+      "next": {
+        "agentId": "shopkeeper",
+        "stateId": "done",
+        "interactionCounter": 4
+      },
+      "actions": [
+        {
+          "dialogueIntent": "shop_give_bread",
+          "hostEvent": "stall.give_bread",
+          "variantIndex": 0
+        }
+      ]
+    },
+    "learner": {
+      "parameters": {
+        "priorKnown": 0.3,
+        "learn": 0.1,
+        "slip": 0.1,
+        "guess": 0.2
+      },
+      "skills": [
+        {
+          "skillId": "intent.confirm",
+          "pKnown": 0.6926829268292684,
+          "attempts": 1,
+          "errors": 0
+        }
+      ]
+    },
+    "rating": "Easy",
+    "feedback": {
+      "items": []
+    }
+  },
+  "response": {
+    "lines": [
+      {
+        "lineId": "shop_give_bread.1",
+        "text": "Aquí tienes el pan.",
+        "isRecast": false
+      }
+    ]
+  },
+  "effects": [],
+  "repair": null,
+  "replay": {
+    "clipHash": "6c745422b842acff0e81cf27cc255fcc508a67ac1a0837c2480c62646b7d5100",
+    "promptId": "stall-offer",
+    "hostStateHash": "d98b55c4ad0884ccc4fb1fe160f5c2b9e7a24f2f3b845ff92a479f09077d8eb3",
+    "versions": {
+      "contentHash": "<bundle-hash>",
+      "modelHashes": {
+        "asr": "scripted-golden"
+      }
+    },
+    "verdict": {
+      "intent": "confirm",
+      "slots": {},
+      "communicated": true,
+      "correctness": 1,
+      "errors": [],
+      "pronunciation": [],
+      "confidence": 1,
+      "resolvedBy": "Exact",
+      "versions": {
+        "contentHash": "<bundle-hash>",
+        "modelHashes": {
+          "asr": "scripted-golden"
+        }
+      }
+    }
+  },
+  "words": [
+    {
+      "token": {
+        "text": "sí",
+        "span": {
+          "start": 0,
+          "length": 2
+        },
+        "original": "sí"
+      },
+      "role": "Word",
+      "reading": {
+        "lemma": "sí",
+        "pos": "interj",
+        "person": null,
+        "number": null,
+        "tense": null,
+        "mood": null,
+        "gender": null
+      }
+    },
+    {
+      "token": {
+        "text": "por",
+        "span": {
+          "start": 3,
+          "length": 3
+        },
+        "original": "por"
+      },
+      "role": "Word",
+      "reading": {
+        "lemma": "por favor",
+        "pos": "interj",
+        "person": null,
+        "number": null,
+        "tense": null,
+        "mood": null,
+        "gender": null
+      }
+    },
+    {
+      "token": {
+        "text": "favor",
+        "span": {
+          "start": 7,
+          "length": 5
+        },
+        "original": "favor"
+      },
+      "role": "Word",
+      "reading": {
+        "lemma": "por favor",
+        "pos": "interj",
+        "person": null,
+        "number": null,
+        "tense": null,
+        "mood": null,
+        "gender": null
+      }
+    }
+  ],
+  "answer": {
+    "answerId": "yes",
+    "type": "Exact",
+    "distance": 0,
+    "likelyPronunciation": false,
+    "confidence": 1
+  }
+}

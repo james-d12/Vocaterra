@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <PackageReference Include="CsCheck" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Vocaterra.Nlp.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Asr/Vocaterra.Nlp.Asr.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Audio/Vocaterra.Nlp.Audio.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Content/Vocaterra.Nlp.Content.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Decision/Vocaterra.Nlp.Decision.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Evaluation/Vocaterra.Nlp.Evaluation.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Language/Vocaterra.Nlp.Language.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Phonology/Vocaterra.Nlp.Phonology.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Pipeline/Vocaterra.Nlp.Pipeline.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Pronunciation/Vocaterra.Nlp.Pronunciation.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Response/Vocaterra.Nlp.Response.csproj" />
+  </ItemGroup>
+
+  <!-- The bundle (content/game-v1, 38 MB) is found by walking up from the test assembly (Shared/GameBundleLocator.cs), not copied; the model manifest is copied next to it. -->
+  <ItemGroup>
+    <Compile Include="../Shared/GameBundleLocator.cs" Link="Shared/GameBundleLocator.cs" />
+    <Compile Include="../Shared/TempBundle.cs" Link="Shared/TempBundle.cs" />
+    <None Include="../../models/manifest.json" Link="models/manifest.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

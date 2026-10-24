@@ -7,8 +7,8 @@
 # Usage: scripts/playtest-build.sh <destination folder>
 #   The destination must be a new or empty folder outside the repository. It is private: the speech WAVs are model output and the game's
 #   native code is not GPL-free (core D2: private builds only until the GPL-free sherpa-onnx pin). The Vosk model is copied from
-#   VOCATERRA_MODELS_DIR (default ~/.local/share/vocaterra/models; fetch it with nlp/scripts/fetch-models.sh) after its SHA-256 sums and sizes
-#   are checked against nlp/models/manifest.json. Exit status is 0 only when the build and every check passed.
+#   VOCATERRA_MODELS_DIR (default ~/.local/share/vocaterra/models; fetch it with scripts/fetch-models.sh) after its SHA-256 sums and sizes
+#   are checked against models/manifest.json. Exit status is 0 only when the build and every check passed.
 set -euo pipefail
 if [ -d "$HOME/.dotnet" ]; then export DOTNET_ROOT="$HOME/.dotnet"; export PATH="$HOME/.dotnet:$PATH"; fi
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -30,11 +30,11 @@ fi
 mkdir -p "$DEST"
 
 MODELS="${VOCATERRA_MODELS_DIR:-$HOME/.local/share/vocaterra/models}"
-MANIFEST="$ROOT/nlp/models/manifest.json"
-BUNDLE="$ROOT/game/content/game-v1"
+MANIFEST="$ROOT/models/manifest.json"
+BUNDLE="$ROOT/content/game-v1"
 VOSK_ID="vosk-model-small-es-0.42"
 
-[ -d "$MODELS/$VOSK_ID" ] || { echo "scripts/playtest-build.sh: the Vosk model is not in $MODELS (run nlp/scripts/fetch-models.sh with VOCATERRA_MODELS_DIR set)." >&2; exit 1; }
+[ -d "$MODELS/$VOSK_ID" ] || { echo "scripts/playtest-build.sh: the Vosk model is not in $MODELS (run scripts/fetch-models.sh with VOCATERRA_MODELS_DIR set)." >&2; exit 1; }
 
 echo "== 1. the content bundle (validate before it is copied)"
 "$ROOT/scripts/content.sh" validate "$BUNDLE"
@@ -42,7 +42,7 @@ echo "== 1. the content bundle (validate before it is copied)"
 echo "== 2. publish the game for linux-x64 (self-contained; playtest: no sherpa-onnx or ONNX Runtime native library)"
 # The build's commit (S18): the in-game F8 report names it in its game-state table (the csproj reads VOCATERRA_BUILD_COMMIT, else "unknown").
 BUILD_COMMIT="$(git -C "$ROOT" rev-parse HEAD)"
-VOCATERRA_BUILD_COMMIT="$BUILD_COMMIT" dotnet publish "$ROOT/game/src/Vocaterra.MonoGame/Vocaterra.MonoGame.csproj" -c Release -r linux-x64 \
+VOCATERRA_BUILD_COMMIT="$BUILD_COMMIT" dotnet publish "$ROOT/src/Vocaterra.MonoGame/Vocaterra.MonoGame.csproj" -c Release -r linux-x64 \
   --self-contained true -p:VocaterraPlaytest=true -m:4 -o "$DEST" --nologo
 echo "build commit: $BUILD_COMMIT"
 
@@ -51,8 +51,8 @@ mkdir -p "$DEST/content" "$DEST/models"
 cp -r "$BUNDLE" "$DEST/content/game-v1"
 cp "$MANIFEST" "$DEST/models/manifest.json"
 cp -r "$MODELS/$VOSK_ID" "$DEST/models/$VOSK_ID"
-cp "$ROOT/game/playtest/README-tester.md" "$DEST/README.md"
-cp "$ROOT/game/playtest/playtest.sh" "$DEST/playtest.sh"
+cp "$ROOT/scripts/playtest/README-tester.md" "$DEST/README.md"
+cp "$ROOT/scripts/playtest/playtest.sh" "$DEST/playtest.sh"
 chmod +x "$DEST/playtest.sh" "$DEST/Vocaterra.MonoGame"
 
 echo "== 4. check the folder"

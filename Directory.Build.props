@@ -1,8 +1,9 @@
 <Project>
 
-  <!-- Build settings shared by both halves of the repository: the language core under nlp/ and the game under game/. Each half has its
-       own Directory.Build.props that imports this one and adds what only it needs (nlp/: package metadata and the packing rules for its
-       libraries; game/: the Linux-only native-asset trim). -->
+  <!-- Build settings for the whole repository. The language core is the projects named Vocaterra.Nlp.* (its libraries in src/, its tests in
+       tests/, its tools in tools/); the game is Vocaterra.Simulation, Vocaterra.Game, Vocaterra.MonoGame, Vocaterra.Host and
+       Vocaterra.SpeechRender, with their tests. The core/game boundary (docs/nlp/adr/0009-core-and-game-boundary.md) is by project name,
+       so what only the core needs is keyed on VocaterraCore below, and what only the game needs on its being false. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>
@@ -15,6 +16,69 @@
     <AnalysisLevel>latest</AnalysisLevel>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <IsPackable>false</IsPackable>
+    <VocaterraCore>$(MSBuildProjectName.StartsWith('Vocaterra.Nlp.'))</VocaterraCore>
+  </PropertyGroup>
+
+  <!-- The language core's own: its default namespace and the XML-doc warning switch. -->
+  <PropertyGroup Condition="'$(VocaterraCore)' == 'true'">
+    <RootNamespace Condition="'$(RootNamespace)' == ''">$(MSBuildProjectName)</RootNamespace>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- Only the library projects under src/ are packed (see the src group below), and the ContentBuilder tool, which sets IsPackable itself
+         in its project file. Tests and samples are never packages. -->
+  </PropertyGroup>
+
+  <!-- Package metadata shared by the core's libraries. The version is 0.1.0; nothing is published (the game references the projects directly). The licence is Apache-2.0
+       (LICENSE and NOTICE at the repository root; docs/nlp/DECISIONS.md D3). The Wiktionary-derived lexicon data is CC BY-SA 4.0 and is not in the packages. -->
+  <PropertyGroup Condition="'$(VocaterraCore)' == 'true'">
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <Authors>james-d12</Authors>
+    <PackageProjectUrl>https://github.com/james-d12/Vocaterra</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/james-d12/Vocaterra</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageTags>spanish;language-learning;speech;pronunciation;nlp;vocaterra</PackageTags>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <!-- Deterministic and, in CI, ContinuousIntegrationBuild make the packages reproducible from the same commit. -->
+  <PropertyGroup Condition="'$(CI)' != ''">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!-- Core library projects under src/ ship XML docs, expose internals to their test project and are the packages. The package id is the
+       project name. The game's projects in src/ (Host, MonoGame, ...) are not core and are never packable. -->
+  <PropertyGroup Condition="'$(VocaterraCore)' == 'true' And $(MSBuildProjectDirectory.StartsWith('$(MSBuildThisFileDirectory)src$(MSBuildDirectorySeparatorChar)'))">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <PackageId>$(MSBuildProjectName)</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <!-- MSBuildProjectName, not AssemblyName: AssemblyName is not yet defined while this file is evaluated. -->
+  <ItemGroup Condition="'$(VocaterraCore)' == 'true' And $(MSBuildProjectDirectory.StartsWith('$(MSBuildThisFileDirectory)src$(MSBuildDirectorySeparatorChar)'))">
+    <InternalsVisibleTo Include="$(MSBuildProjectName).Tests" />
+    <!-- One README for every package, shipped at the root of each as README.md. -->
+    <None Include="$(MSBuildThisFileDirectory)docs/nlp/PACKAGE_README.md" Pack="true" PackagePath="README.md" />
+  </ItemGroup>
+
+  <!-- The licence and the notice travel with every package that redistributes this code, the content tool's included (Apache-2.0,
+       section 4). Projects that are not packable ignore these items. -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="\" />
+    <None Include="$(MSBuildThisFileDirectory)NOTICE" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!-- Native-asset trim (G7), the game's only. The speech packages and MonoGame ship native libraries for every platform (sherpa-onnx, ONNX
+       Runtime, Vosk, SDL, about 400 MB in one project's bin/). On a Linux x64 build host the build targets linux-x64 only, so NuGet copies
+       just that runtime's natives (runtimes/linux-x64) and the output stays framework-dependent. AppendRuntimeIdentifierToOutputPath=false
+       keeps the output at bin/Debug/net10.0/, so every path in the README, the scripts and the screenshots is unchanged. Other build hosts,
+       and a release build that must carry every platform, set -p:VocaterraAllRuntimes=true to restore the full copy. The core's projects
+       are excluded, so its packable libraries are never built for one runtime. -->
+  <PropertyGroup Condition="'$(VocaterraCore)' != 'true' And '$(VocaterraAllRuntimes)' != 'true' And '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X64' And '$([MSBuild]::IsOSPlatform(Linux))'">
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
 
 </Project>

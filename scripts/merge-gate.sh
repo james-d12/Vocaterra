@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# Orchestrator merge gate for the whole repository (the language core under nlp/ and the game under game/).
+# Orchestrator merge gate for the whole repository (the language core, the Vocaterra.Nlp.* projects, and the game).
 # Usage: scripts/merge-gate.sh "<label>:<branch>" ["<label>:<branch>" ...]
-# Merges each branch into the target branch (main, or $GATE_TARGET when set; every series merges into main since 2026-10-22) with --no-ff (aborting that merge on conflict), then runs the gate on Vocaterra.sln: build with warnings as
+# Merges each branch into the target branch $GATE_TARGET, a feature branch, never main (owner, 2026-10-23: nothing is merged into or pushed
+# to main; the owner merges feature branches by pull request), with --no-ff (aborting that merge on conflict), then runs the gate on
+# Vocaterra.sln: build with warnings as
 # errors, the whole test suite (the core's unit, golden and fuzz suites and the game's; model-backed tests run when VOCATERRA_MODELS_DIR is
 # set), the format check, the game bundle validation and the core's offline licence scan. Every check's log is kept under .claude/gate-logs/
 # so that an intermittent failure can be identified afterwards. Exit status is 0 only when every merge succeeded and every check passed.
 #
-# The licence scan (nlp/scripts/license-scan.sh) covers nlp/Vocaterra.Nlp.sln, the core and everything it pulls in; the game's own
+# The licence scan (scripts/license-scan.sh) covers Vocaterra.Nlp.slnf (the core projects) and everything they pull in; the game's own
 # third-party packages (MonoGame, FontStashSharp) are not in it.
 set -uo pipefail
 if [ -d "$HOME/.dotnet" ]; then export DOTNET_ROOT="$HOME/.dotnet"; export PATH="$HOME/.dotnet:$PATH"; fi
@@ -19,17 +21,19 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
 
 [ "$#" -ge 1 ] || { echo "usage: scripts/merge-gate.sh \"<label>:<branch>\" [...]" >&2; exit 2; }
-TARGET="${GATE_TARGET:-main}"
+TARGET="${GATE_TARGET:-}"
+[ -n "$TARGET" ] || { echo "set GATE_TARGET to the feature branch to merge into (never main)" >&2; exit 2; }
+[ "$TARGET" != "main" ] || { echo "refusing to merge into main (owner, 2026-10-23); use a feature branch" >&2; exit 2; }
 [ "$(git branch --show-current)" = "$TARGET" ] || { echo "not on $TARGET"; exit 1; }
 [ -z "$(git status --short)" ] || { echo "$TARGET is dirty"; git status --short; exit 1; }
 
 # Speech models: the core's ModelStore reads VOCATERRA_MODELS_DIR. The pinned models are fetched once into a shared folder outside the
-# repository (nlp/scripts/fetch-models.sh with VOCATERRA_MODELS_DIR set), so tests that need a model run in the gate instead of being skipped.
+# repository (scripts/fetch-models.sh with VOCATERRA_MODELS_DIR set), so tests that need a model run in the gate instead of being skipped.
 if [ -z "${VOCATERRA_MODELS_DIR:-}" ]; then
   if [ -d "$HOME/.local/share/vocaterra/models" ]; then
     export VOCATERRA_MODELS_DIR="$HOME/.local/share/vocaterra/models"
-  elif [ -d "$ROOT/nlp/models/vosk-model-small-es-0.42" ]; then
-    export VOCATERRA_MODELS_DIR="$ROOT/nlp/models"
+  elif [ -d "$ROOT/models/vosk-model-small-es-0.42" ]; then
+    export VOCATERRA_MODELS_DIR="$ROOT/models"
   fi
 fi
 echo "models: ${VOCATERRA_MODELS_DIR:-none}"
@@ -72,33 +76,27 @@ content_rc=$?
 tail -1 "$CONTENTLOG"
 # The prototype's content gate (S5, D-game-10 and D-game-12): strict lint at A1 (the guide's host-voiced pools are rendered by the game) and
 # the CEFR check at A1 and A2.
-if [ -f game/content/PHRASES.md ]; then
-  { "$L" bash scripts/content.sh lint game/content/game-v1 --strict --level a1 --host-pools 'guide.*' &&
-    "$L" bash scripts/content.sh cefr-check game/content/game-v1 --level a1 &&
-    "$L" bash scripts/content.sh cefr-check game/content/game-v1 --level a2; } >> "$CONTENTLOG" 2>&1 || { content_rc=1; echo "content gate: FAIL (lint --strict or cefr-check)"; }
+if [ -f content/PHRASES.md ]; then
+  { "$L" bash scripts/content.sh lint content/game-v1 --strict --level a1 --host-pools 'guide.*' &&
+    "$L" bash scripts/content.sh cefr-check content/game-v1 --level a1 &&
+    "$L" bash scripts/content.sh cefr-check content/game-v1 --level a2; } >> "$CONTENTLOG" 2>&1 || { content_rc=1; echo "content gate: FAIL (lint --strict or cefr-check)"; }
   [ "$content_rc" -eq 0 ] && echo "content gate: lint --strict a1 and cefr-check a1/a2 clean"
 fi
 
-# The LanguageTool grammar check (core M30, D10's dev-time half): ADVISORY, offline from the committed cache, never fails the gate. It
-# becomes required after the first waiver round (owner, 2026-10-22); S23 adds the game bundle.
+# The LanguageTool grammar check (core M30, D10's dev-time half), on the repository's one bundle (R02: content/v1 and its advisory step are gone).
+# REQUIRED since the first waiver round (owner, 2026-10-22). --strict fails on any unwaived warning or a cache miss, offline from the committed
+# cache; after a content change, refresh the strings file and the cache (docs/game/README.md) with the local server, then rerun.
 GRAMMARLOG=".claude/gate-logs/grammar-$STAMP.log"
-if [ -f nlp/content/grammar/v1-cache.json ]; then
-  "$L" dotnet run --project nlp/tools/Vocaterra.Nlp.ContentBuilder --no-build -- grammar nlp/content/v1 --offline \
-    --cache nlp/content/grammar/v1-cache.json --waivers nlp/content/grammar/v1-waivers.json > "$GRAMMARLOG" 2>&1
-  echo "grammar (advisory, content/v1): $(grep -E '^grammar:' "$GRAMMARLOG" | tail -1)"
-fi
-# The game bundle (S23): REQUIRED since its first waiver round (owner, 2026-10-22). --strict fails on any unwaived warning or a cache miss;
-# after a content change, refresh the strings file and the cache (game/README.md) with the local server, then rerun.
 grammar_rc=0
-if [ -f game/content/grammar/game-v1-cache.json ]; then
-  { "$L" bash scripts/content.sh grammar game/content/game-v1 --strings game/content/grammar/game-v1-strings.jsonl --strings-only --offline \
+if [ -f content/grammar/game-v1-cache.json ]; then
+  { "$L" bash scripts/content.sh grammar content/game-v1 --strings content/grammar/game-v1-strings.jsonl --strings-only --offline \
       --strict; } >> "$GRAMMARLOG" 2>&1 || grammar_rc=1
   echo "grammar (required, game-v1): $(grep -E '^grammar:' "$GRAMMARLOG" | tail -1)"
   [ "$grammar_rc" -eq 0 ] || echo "grammar: FAIL (game-v1; see $GRAMMARLOG)"
 fi
 
 LICENSELOG=".claude/gate-logs/license-$STAMP.log"
-"$L" bash nlp/scripts/license-scan.sh --offline > "$LICENSELOG" 2>&1
+"$L" bash scripts/license-scan.sh --offline > "$LICENSELOG" 2>&1
 license_rc=$?
 tail -1 "$LICENSELOG"
 
