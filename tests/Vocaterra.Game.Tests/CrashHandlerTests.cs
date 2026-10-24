@@ -1,4 +1,5 @@
 using System.Text;
+using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game.Tests;

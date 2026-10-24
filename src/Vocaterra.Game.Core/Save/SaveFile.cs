@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Save;
 
 /// <summary>
 /// The file edge of the save (S10): the save's text goes to a file and a file's text comes back, as UTF-8 without a byte order mark. The write
