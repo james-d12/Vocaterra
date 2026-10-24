@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Vocaterra.Game.Language.Phrases;
 
 namespace Vocaterra.Host.Tests;
 
@@ -204,7 +205,7 @@ public sealed class GrammarStringsExtractorTests
     [Fact]
     public void ThePhraseSheetLinesAreTheRuntimePhrasesAndVariants()
     {
-        var runtime = Vocaterra.Game.PhraseSheet.Load(GameContent.Bundle);
+        var runtime = PhraseSheet.Load(GameContent.Bundle);
         var byId = All.ToDictionary(static line => line.Id, StringComparer.Ordinal);
         foreach (var row in runtime.Rows)
         {

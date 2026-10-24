@@ -1,3 +1,5 @@
+using Vocaterra.Game.Language.Phrases;
+
 namespace Vocaterra.Game.Tests;
 
 /// <summary>

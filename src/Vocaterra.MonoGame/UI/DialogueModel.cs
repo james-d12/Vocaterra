@@ -1,5 +1,9 @@
 using System.Globalization;
 using Vocaterra.Game;
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Language.Speech;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
 using Vocaterra.MonoGame.Input;
 
 namespace Vocaterra.MonoGame.UI;

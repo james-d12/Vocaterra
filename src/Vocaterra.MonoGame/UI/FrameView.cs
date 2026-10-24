@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game;
+using Vocaterra.Game.Npc;
 using Vocaterra.MonoGame.Graphics;
 using Vocaterra.MonoGame.Sound;
 using Vocaterra.MonoGame.UI.Book;

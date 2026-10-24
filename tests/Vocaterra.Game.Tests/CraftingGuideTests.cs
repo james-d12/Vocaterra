@@ -1,3 +1,4 @@
+using Vocaterra.Game.Npc;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;

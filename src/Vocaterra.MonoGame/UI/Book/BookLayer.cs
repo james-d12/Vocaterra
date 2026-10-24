@@ -2,6 +2,8 @@ using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game;
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Language.Words;
 using Vocaterra.MonoGame.Graphics;
 
 namespace Vocaterra.MonoGame.UI.Book;
@@ -18,7 +20,7 @@ public sealed class BookLayer : IFrameLayer
     private const int IconSize = 16;
     private const int IndentWidth = 24;
     private const int Pip = 10;
-    private const int WordPips = Vocaterra.Game.WordProgress.UsesToKnow;
+    private const int WordPips = WordProgress.UsesToKnow;
     private const int PipGap = 6;
     private const int Gutter = 10;
     private const int NotchDepth = 9;

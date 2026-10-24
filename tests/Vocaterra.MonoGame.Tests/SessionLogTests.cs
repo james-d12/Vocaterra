@@ -1,5 +1,8 @@
 using System.Text.Json;
 using Vocaterra.Game;
+using Vocaterra.Game.Language.Checks;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
 using Vocaterra.MonoGame.Utilities;
 using Vocaterra.Nlp.Content;
 

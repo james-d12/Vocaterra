@@ -1,3 +1,8 @@
+using Vocaterra.Game.Language.Checks;
+using Vocaterra.Game.Language.Lessons;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
+
 namespace Vocaterra.Game.Tests;
 
 /// <summary>

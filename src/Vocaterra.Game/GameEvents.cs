@@ -1,4 +1,8 @@
 using System.Globalization;
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Language.Speech;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
 
 namespace Vocaterra.Game;
 

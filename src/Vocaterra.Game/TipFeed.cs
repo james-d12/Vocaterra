@@ -1,3 +1,6 @@
+using Vocaterra.Game.Npc;
+using Vocaterra.Game.Save;
+
 namespace Vocaterra.Game;
 
 /// <summary>

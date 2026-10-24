@@ -4,6 +4,11 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using Vocaterra.Game;
+using Vocaterra.Game.Language.Checks;
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
+using Vocaterra.Game.Save;
 using Vocaterra.Nlp.Pipeline;
 
 namespace Vocaterra.MonoGame.Utilities;

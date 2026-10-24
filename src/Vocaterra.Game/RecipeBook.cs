@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Vocaterra.Game.Language.Words;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Simulation.Crafting;
 using Vocaterra.Simulation.Items;

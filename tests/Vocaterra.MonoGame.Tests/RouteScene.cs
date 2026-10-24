@@ -1,4 +1,9 @@
 using Vocaterra.Game;
+using Vocaterra.Game.Language.Lessons;
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Language.Speech;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Simulation.Voxel;
 

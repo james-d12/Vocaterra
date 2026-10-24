@@ -1,4 +1,5 @@
 using Vocaterra.Game;
+using Vocaterra.Game.Language.Speech;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;

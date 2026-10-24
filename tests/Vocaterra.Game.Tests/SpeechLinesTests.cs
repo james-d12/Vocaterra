@@ -1,3 +1,5 @@
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Language.Speech;
 using Vocaterra.Nlp.Response.Speech;
 
 namespace Vocaterra.Game.Tests;

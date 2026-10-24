@@ -1,3 +1,7 @@
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Language.Speech;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Simulation.Items;
 

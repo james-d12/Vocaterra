@@ -1,0 +1,345 @@
+using Vocaterra.Game.Npc;
+using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Core.Verdicts;
+
+namespace Vocaterra.Game.Language.Learner;
+
+/// <summary>One use of a word: the history entry it was in, the session and stored time of that entry, and the sentence (the entry's text).</summary>
+/// <param name="Entry">The entry's id in the history.</param>
+/// <param name="Session">The play session of the entry.</param>
+/// <param name="StoredTime">The stored game time of the entry, in Unix seconds.</param>
+/// <param name="Sentence">The line the word was in, as the core evaluated it.</param>
+public sealed record WordUse(long Entry, int Session, long StoredTime, string Sentence);
+
+/// <summary>
+/// One form of a word as the learner used it: the text (<c>aguas</c>, <c>quiero</c>) and the reading's person, number, tense and mood where they apply,
+/// with how many times it was used and how many of those were correct.
+/// </summary>
+/// <param name="Form">The token's text (normalized: accents kept, lower case).</param>
+/// <param name="Person">The person (<c>1</c>), or <see langword="null"/>.</param>
+/// <param name="Number">The number (<c>sg</c> or <c>pl</c>), or <see langword="null"/>.</param>
+/// <param name="Tense">The tense (<c>pres</c>, <c>pret</c>, <c>impf</c>, <c>fut</c> or <c>cond</c>), or <see langword="null"/>.</param>
+/// <param name="Mood">The mood, or <see langword="null"/>.</param>
+/// <param name="Times">The uses of this form.</param>
+/// <param name="TimesCorrect">Of those, the correct ones.</param>
+/// <param name="Question">Whether the form was used in a question (the line ends with a question mark): <c>¿quieres?</c> is a form of its own.</param>
+/// <param name="Last">The last use of this form, or <see langword="null"/> for a form read from a save that kept none (S20).</param>
+public sealed record FormRow(string Form, string? Person, string? Number, string? Tense, string? Mood, int Times, int TimesCorrect, bool Question = false, WordUse? Last = null);
+
+/// <summary>
+/// One row of the word record (S19): a lemma of one part of speech that the core read with a lexicon entry, with its gender (for a noun), the
+/// forms used, the counts, and its first and last use. <see cref="LastSentence"/> is the sentence of the last use.
+/// </summary>
+/// <param name="Lemma">The lemma: the noun (<c>agua</c>), the infinitive of a verb (<c>querer</c>).</param>
+/// <param name="Pos">The part of speech the core read (<c>noun</c>, <c>verb</c>, ...).</param>
+/// <param name="Gender">The lexicon's gender (<c>fem</c>), or <see langword="null"/>.</param>
+/// <param name="Times">The uses of the lemma: each token of it in a line that was not held back, not sent by a button and not a check answer (S19b).</param>
+/// <param name="TimesCorrect">Of those, the uses in a line the core understood with no error span over the token.</param>
+/// <param name="Forms">The forms used, ordered by text, then person, number, tense and mood.</param>
+/// <param name="First">The first use.</param>
+/// <param name="Last">The last use.</param>
+public sealed record WordRow(string Lemma, string Pos, string? Gender, int Times, int TimesCorrect, IReadOnlyList<FormRow> Forms, WordUse First, WordUse Last)
+{
+    /// <summary>The sentence of the last use.</summary>
+    public string LastSentence => Last.Sentence;
+}
+
+/// <summary>
+/// The word record (S19): a pure fold of the history. Each entry that is not held back, not sent by a button and not a check answer (S19b) adds its readings: a word the lexicon
+/// read (its role is <see cref="WordRole.Word"/>) counts one use of its lemma and of its form, correct when the line was understood and no error span
+/// covers the token. Names and unknown tokens are not in it. Replaying the history from the start gives the same record (<see cref="Fold"/>).
+/// </summary>
+/// <remarks>
+/// A row is kept per (lemma, part of speech), so a word read as two parts of speech has two rows. The rows and forms are sorted ordinally on
+/// read, so the order never depends on insertion.
+/// </remarks>
+public sealed class LearnerWords
+{
+    private readonly Dictionary<(string Lemma, string Pos), RowState> _rows = [];
+
+    /// <summary>The rows, sorted by lemma, then by part of speech (ordinal).</summary>
+    public IReadOnlyList<WordRow> Rows => _rows.Values
+        .OrderBy(static r => r.Lemma, StringComparer.Ordinal)
+        .ThenBy(static r => r.Pos, StringComparer.Ordinal)
+        .Select(static r => r.ToRow())
+        .ToList();
+
+    /// <summary>The record of a history, folded from its first entry.</summary>
+    /// <param name="entries">The entries, in the order the game took them.</param>
+    public static LearnerWords Fold(IEnumerable<InputEntry> entries)
+    {
+        ArgumentNullException.ThrowIfNull(entries);
+        var record = new LearnerWords();
+        foreach (var entry in entries)
+        {
+            record.Apply(entry);
+        }
+
+        return record;
+    }
+
+    /// <summary>Adds one entry's words to the record. A check answer (S11) adds none (S19b): it is in the history, and <see cref="LearnerRecord"/> shows it.</summary>
+    /// <param name="entry">The entry.</param>
+    public void Apply(InputEntry entry)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        if (!Counts(entry))
+        {
+            return;
+        }
+
+        foreach (var word in entry.Words)
+        {
+            if (!IsWord(word))
+            {
+                continue;
+            }
+
+            var correct = IsCorrect(entry, word);
+            var use = new WordUse(entry.Id, entry.Session, entry.StoredTime, entry.Text);
+            if (!_rows.TryGetValue((word.Lemma!, word.Pos!), out var row))
+            {
+                row = new RowState(word.Lemma!, word.Pos!);
+                _rows[(word.Lemma!, word.Pos!)] = row;
+            }
+
+            row.Times++;
+            if (correct)
+            {
+                row.TimesCorrect++;
+            }
+
+            if (word.Gender is not null)
+            {
+                row.Gender = word.Gender;
+            }
+
+            var key = KeyOf(entry, word);
+            row.Forms.TryGetValue(key, out var form);
+            form.Times++;
+            if (correct)
+            {
+                form.TimesCorrect++;
+            }
+
+            form.Last = use;
+            row.Forms[key] = form;
+            row.First ??= use;
+            row.Last = use;
+        }
+    }
+
+    /// <summary>Puts a saved record back (S10's load). A row given twice is refused.</summary>
+    /// <param name="rows">The rows of a save.</param>
+    internal void Restore(IEnumerable<WordRow> rows)
+    {
+        _rows.Clear();
+        foreach (var row in rows)
+        {
+            if (_rows.ContainsKey((row.Lemma, row.Pos)))
+            {
+                throw new ArgumentException($"The word record has the lemma '{row.Lemma}' ({row.Pos}) twice.", nameof(rows));
+            }
+
+            _rows[(row.Lemma, row.Pos)] = RowState.From(row);
+        }
+    }
+
+    /// <summary>The word record of a save's rows, as they are (a version 3 save).</summary>
+    /// <param name="rows">The rows.</param>
+    internal static LearnerWords FromRows(IEnumerable<WordRow> rows)
+    {
+        var record = new LearnerWords();
+        record.Restore(rows);
+        return record;
+    }
+
+    /// <summary>
+    /// The word record of a version 2 save (S19b). Version 2 counted the check answers (S11) in its rows; this takes them out. When the history holds every
+    /// entry (none was trimmed by the save's bound), the record is folded from it again, which is exact. Otherwise the check answers the history still holds
+    /// are taken out of the saved rows, and each first or last use that was one points at the row's (or form's) last non-check use in the history when there is
+    /// one. A check answer older than the history's bound cannot be taken out: the history no longer holds it.
+    /// </summary>
+    /// <param name="saved">The saved rows.</param>
+    /// <param name="history">The saved history, oldest first.</param>
+    /// <param name="nextId">The next entry's number in the save.</param>
+    internal static LearnerWords FromVersion2(IEnumerable<WordRow> saved, IReadOnlyList<InputEntry> history, long nextId)
+    {
+        if (history.Count == nextId - 1)
+        {
+            return Fold(history); // every entry is here: ids are increasing and below nextId, so none was trimmed
+        }
+
+        var record = new LearnerWords();
+        record.Restore(saved);
+        var removed = new HashSet<long>();
+        foreach (var entry in history.Where(static entry => !entry.Held && entry.Source != InputSource.Button && entry.Place == InputPlace.Check))
+        {
+            record.Uncount(entry);
+            removed.Add(entry.Id);
+        }
+
+        record.Repoint(history, removed);
+        return record;
+    }
+
+    // Takes one counted entry's uses back out of the record (a version 2 save's check answers): the counts, the form's counts, and a row or form with no use left.
+    private void Uncount(InputEntry entry)
+    {
+        foreach (var word in entry.Words.Where(IsWord))
+        {
+            var lemmaPos = (word.Lemma!, word.Pos!);
+            if (!_rows.TryGetValue(lemmaPos, out var row))
+            {
+                continue;
+            }
+
+            var correct = IsCorrect(entry, word);
+            row.Times--;
+            if (correct)
+            {
+                row.TimesCorrect--;
+            }
+
+            var key = KeyOf(entry, word);
+            if (row.Forms.TryGetValue(key, out var form))
+            {
+                form.Times--;
+                if (correct)
+                {
+                    form.TimesCorrect--;
+                }
+
+                if (form.Times <= 0)
+                {
+                    row.Forms.Remove(key);
+                }
+                else
+                {
+                    row.Forms[key] = form;
+                }
+            }
+
+            if (row.Times <= 0)
+            {
+                _rows.Remove(lemmaPos);
+            }
+        }
+    }
+
+    // The first and last uses that a removed entry was are replaced by the row's (or the form's) first and last use among the entries the history still holds.
+    private void Repoint(IReadOnlyList<InputEntry> history, HashSet<long> removed)
+    {
+        var uses = new List<(string Lemma, string Pos, FormKey Key, WordUse Use)>();
+        foreach (var entry in history.Where(Counts))
+        {
+            foreach (var word in entry.Words.Where(IsWord))
+            {
+                uses.Add((word.Lemma!, word.Pos!, KeyOf(entry, word), new WordUse(entry.Id, entry.Session, entry.StoredTime, entry.Text)));
+            }
+        }
+
+        foreach (var row in _rows.Values)
+        {
+            var rowUses = uses.Where(u => u.Lemma == row.Lemma && u.Pos == row.Pos).ToList();
+            if (row.First is { } first && removed.Contains(first.Entry))
+            {
+                row.First = rowUses.Select(static u => (WordUse?)u.Use).FirstOrDefault() ?? first;
+            }
+
+            if (row.Last is { } last && removed.Contains(last.Entry))
+            {
+                row.Last = rowUses.Select(static u => (WordUse?)u.Use).LastOrDefault() ?? last;
+            }
+
+            foreach (var key in row.Forms.Keys.ToList())
+            {
+                var form = row.Forms[key];
+                if (form.Last is { } formLast && removed.Contains(formLast.Entry))
+                {
+                    form.Last = rowUses.Where(u => u.Key == key).Select(static u => (WordUse?)u.Use).LastOrDefault() ?? formLast;
+                    row.Forms[key] = form;
+                }
+            }
+        }
+    }
+
+    // Whether an entry adds its words to the record: not held back, not sent by a button, and not a check answer (S19b).
+    private static bool Counts(InputEntry entry) => !entry.Held && entry.Source != InputSource.Button && entry.Place != InputPlace.Check;
+
+    // A token the record counts: one the lexicon read as a word, with a lemma and a part of speech (names and unknown tokens are not).
+    private static bool IsWord(GuideWord word) => word.Role == WordRole.Word && word.Lemma is not null && word.Pos is not null;
+
+    // A use is correct when the core understood the line and no error span covers the token.
+    private static bool IsCorrect(InputEntry entry, GuideWord word) => entry.Communicated && !entry.Errors.Any(error => Covers(word.Span, error.Span));
+
+    private static FormKey KeyOf(InputEntry entry, GuideWord word) => new(word.Text, word.Person, word.Number, word.Tense, word.Mood, IsQuestion(entry.Text));
+
+    // Whether an error's span covers a token: a zero-length error (a missing word) covers the token it starts in.
+    private static bool Covers(TextSpan word, TextSpan error) => error.Length == 0
+        ? error.Start >= word.Start && error.Start < word.End
+        : error.Start < word.End && word.Start < error.End;
+
+    // A line that asks something: the form was used in a question (S20).
+    private static bool IsQuestion(string text) => text.Contains('?', StringComparison.Ordinal) || text.Contains('¿', StringComparison.Ordinal);
+
+    private readonly record struct FormKey(string Form, string? Person, string? Number, string? Tense, string? Mood, bool Question);
+
+    private struct FormCount
+    {
+        public int Times;
+        public int TimesCorrect;
+        public WordUse? Last;
+    }
+
+    private sealed class RowState(string lemma, string pos)
+    {
+        public string Lemma { get; } = lemma;
+
+        public string Pos { get; } = pos;
+
+        public string? Gender { get; set; }
+
+        public int Times { get; set; }
+
+        public int TimesCorrect { get; set; }
+
+        public Dictionary<FormKey, FormCount> Forms { get; } = [];
+
+        public WordUse? First { get; set; }
+
+        public WordUse? Last { get; set; }
+
+        public static RowState From(WordRow row)
+        {
+            var state = new RowState(row.Lemma, row.Pos)
+            {
+                Gender = row.Gender,
+                Times = row.Times,
+                TimesCorrect = row.TimesCorrect,
+                First = row.First,
+                Last = row.Last,
+            };
+            foreach (var form in row.Forms)
+            {
+                state.Forms[new FormKey(form.Form, form.Person, form.Number, form.Tense, form.Mood, form.Question)] = new FormCount { Times = form.Times, TimesCorrect = form.TimesCorrect, Last = form.Last };
+            }
+
+            return state;
+        }
+
+        public WordRow ToRow()
+        {
+            var forms = Forms
+                .OrderBy(static f => f.Key.Form, StringComparer.Ordinal)
+                .ThenBy(static f => f.Key.Person ?? string.Empty, StringComparer.Ordinal)
+                .ThenBy(static f => f.Key.Number ?? string.Empty, StringComparer.Ordinal)
+                .ThenBy(static f => f.Key.Tense ?? string.Empty, StringComparer.Ordinal)
+                .ThenBy(static f => f.Key.Mood ?? string.Empty, StringComparer.Ordinal)
+                .ThenBy(static f => f.Key.Question)
+                .Select(static f => new FormRow(f.Key.Form, f.Key.Person, f.Key.Number, f.Key.Tense, f.Key.Mood, f.Value.Times, f.Value.TimesCorrect, f.Key.Question, f.Value.Last))
+                .ToList();
+            return new WordRow(Lemma, Pos, Gender, Times, TimesCorrect, forms, First ?? throw new InvalidOperationException("A word row has no use."), Last ?? First);
+        }
+    }
+}

@@ -1,3 +1,5 @@
+using Vocaterra.Game.Language.Learner;
+
 namespace Vocaterra.Game.Reports;
 
 /// <summary>The bounds of a report (S21): the last ten turns and the last 200 lines of the session log.</summary>

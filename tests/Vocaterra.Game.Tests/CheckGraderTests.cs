@@ -1,3 +1,6 @@
+using Vocaterra.Game.Language.Checks;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
 using Vocaterra.Nlp.Core.Determinism;
 
 namespace Vocaterra.Game.Tests;

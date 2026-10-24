@@ -1,3 +1,5 @@
+using Vocaterra.Game.Language.Checks;
+
 namespace Vocaterra.Game.Tests;
 
 /// <summary>The order of a check battery (S11): seeded by the world seed and the check kind, the same for the same pair, and the same content in every order.</summary>

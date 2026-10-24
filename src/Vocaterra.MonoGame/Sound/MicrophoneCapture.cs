@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Vocaterra.Game;
+using Vocaterra.Game.Language.Speech;
 using Vocaterra.MonoGame.Input;
 
 namespace Vocaterra.MonoGame.Sound;

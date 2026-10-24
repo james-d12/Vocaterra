@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Nlp.Core.Determinism;
 
 namespace Vocaterra.Host.Tests;
@@ -151,7 +152,7 @@ public sealed class PhraseSheetTests
     public void TheRuntimeCopyOfTheSheetAgreesWithThisFileRowByRow()
     {
         // game/phrases.json is the machine-readable copy the game reads (S7, S8); content/PHRASES.md stays the source of truth.
-        var runtime = Vocaterra.Game.PhraseSheet.Load(GameContent.Bundle);
+        var runtime = PhraseSheet.Load(GameContent.Bundle);
 
         Assert.Equal(Rows.Select(static r => r.Id), runtime.Rows.Select(static r => r.Id));
         foreach (var row in Rows)
@@ -171,7 +172,7 @@ public sealed class PhraseSheetTests
     [Fact]
     public void ThePhraseOfEachCardIsThePhraseAndTheRuntimeFileIsListedAsHandAuthoredInTheProvenance()
     {
-        var runtime = Vocaterra.Game.PhraseSheet.Load(GameContent.Bundle);
+        var runtime = PhraseSheet.Load(GameContent.Bundle);
         Assert.All(runtime.Rows, row => Assert.Equal(row.Spanish, row.CardPhrase));
 
         var provenance = File.ReadAllText(Path.Combine(GameContent.BundleDirectory(), "provenance.json"));

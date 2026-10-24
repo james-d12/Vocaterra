@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using Vocaterra.Game.Language.Learner;
 
 namespace Vocaterra.Game.Reports;
 

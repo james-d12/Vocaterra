@@ -1,4 +1,8 @@
 using Vocaterra.Game;
+using Vocaterra.Game.Language.Speech;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
+using Vocaterra.Game.Save;
 using Vocaterra.MonoGame;
 using Vocaterra.MonoGame.Sound;
 using Vocaterra.MonoGame.Utilities;

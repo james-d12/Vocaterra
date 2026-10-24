@@ -1,4 +1,5 @@
 using Vocaterra.Game;
+using Vocaterra.Game.Npc;
 
 namespace Vocaterra.MonoGame.UI.Book;
 

@@ -1,3 +1,5 @@
+using Vocaterra.Game.Npc;
+
 namespace Vocaterra.Game;
 
 /// <summary>

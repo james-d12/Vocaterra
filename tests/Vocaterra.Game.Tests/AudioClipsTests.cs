@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using Vocaterra.Game.Language.Speech;
 
 namespace Vocaterra.Game.Tests;
 

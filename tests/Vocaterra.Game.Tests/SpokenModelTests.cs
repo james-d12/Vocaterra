@@ -1,4 +1,7 @@
 using System.Buffers.Binary;
+using Vocaterra.Game.Language.Speech;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
 using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;

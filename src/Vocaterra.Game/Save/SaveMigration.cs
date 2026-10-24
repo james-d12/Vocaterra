@@ -1,7 +1,9 @@
 using System.Globalization;
+using Vocaterra.Game.Language.Lessons;
+using Vocaterra.Game.Npc;
 using Vocaterra.Simulation.Voxel;
 
-namespace Vocaterra.Game;
+namespace Vocaterra.Game.Save;
 
 /// <summary>What the load of one area of a save did across bundles: how many records were kept and which were dropped (X01).</summary>
 /// <param name="Area">The area (<c>phrases</c>, <c>lessons</c>, <c>words</c>, <c>world edits</c>...).</param>

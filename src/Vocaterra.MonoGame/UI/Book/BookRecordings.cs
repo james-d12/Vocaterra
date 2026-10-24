@@ -1,4 +1,6 @@
 using Vocaterra.Game;
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Language.Speech;
 
 namespace Vocaterra.MonoGame.UI.Book;
 

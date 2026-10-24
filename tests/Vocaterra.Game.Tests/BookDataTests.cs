@@ -1,3 +1,7 @@
+using Vocaterra.Game.Language.Learner;
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Simulation.Items;

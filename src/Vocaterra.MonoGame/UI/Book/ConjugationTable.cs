@@ -1,5 +1,8 @@
 using System.Globalization;
 using Vocaterra.Game;
+using Vocaterra.Game.Language.Learner;
+using Vocaterra.Game.Language.Lessons;
+using Vocaterra.Game.Language.Words;
 using Vocaterra.MonoGame.Utilities;
 using Vocaterra.Nlp.Language.Morphology;
 

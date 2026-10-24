@@ -1,10 +1,11 @@
+using Vocaterra.Game.Language.Phrases;
 using Vocaterra.MonoGame.UI.Dialogue;
 
 namespace Vocaterra.MonoGame.UI;
 
 /// <summary>
 /// The sizes of the support pieces of S8 that stand over the dialogue panel: the support cards (the phrase sheet's card of each phrase at
-/// <see cref="Vocaterra.Game.SupportLevel.CardAndAudio"/>), the audio-only chip and the key-word cards of the stall. Their places are
+/// <see cref="SupportLevel.CardAndAudio"/>), the audio-only chip and the key-word cards of the stall. Their places are
 /// <see cref="ConversationLayout"/>'s since S22 (the old row above the panel covered the speaker and the bubble); <see cref="ConversationCards"/> builds the requests from
 /// these sizes.
 /// </summary>

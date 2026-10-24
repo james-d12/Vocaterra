@@ -1,5 +1,7 @@
 using System.Globalization;
 using Vocaterra.Game;
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Language.Words;
 
 namespace Vocaterra.MonoGame.UI;
 

@@ -1,6 +1,10 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using Vocaterra.Game.Language.Learner;
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Taxonomy;
 

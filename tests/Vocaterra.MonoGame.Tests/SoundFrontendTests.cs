@@ -1,5 +1,9 @@
 using System.Text.RegularExpressions;
 using Vocaterra.Game;
+using Vocaterra.Game.Language.Speech;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
+using Vocaterra.Game.Save;
 using Vocaterra.MonoGame.Input;
 using Vocaterra.MonoGame.Sound;
 using Vocaterra.MonoGame.Utilities;
@@ -84,7 +88,7 @@ public sealed class SoundFrontendTests
     public void AFramesCuesAreFoldedBeforeTheyPlay()
     {
         var (sound, output, _) = Make();
-        sound.ObserveTurn(Turn(), new Vocaterra.Game.WordTurnResult([], [], []));
+        sound.ObserveTurn(Turn(), new WordTurnResult([], [], []));
         sound.Queue(SoundCue.StepDone);
         sound.Queue(SoundCue.StepDone);
         sound.Flush(3);

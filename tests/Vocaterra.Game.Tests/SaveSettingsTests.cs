@@ -1,3 +1,6 @@
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Save;
+
 namespace Vocaterra.Game.Tests;
 
 /// <summary>The save's settings (S24): the sound volumes are kept in the save, a save without settings still loads, and nothing about them reaches the world.</summary>

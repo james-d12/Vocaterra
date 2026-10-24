@@ -1,3 +1,5 @@
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 

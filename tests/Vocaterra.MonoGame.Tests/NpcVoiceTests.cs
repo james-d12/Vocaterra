@@ -1,4 +1,7 @@
 using Vocaterra.Game;
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Language.Speech;
+using Vocaterra.Game.Language.Words;
 using Vocaterra.MonoGame.Sound;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Response.Speech;

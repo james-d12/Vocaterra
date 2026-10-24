@@ -1,3 +1,6 @@
+using Vocaterra.Game.Language.Speech;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.Learning;

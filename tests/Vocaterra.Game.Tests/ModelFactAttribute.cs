@@ -1,3 +1,4 @@
+using Vocaterra.Game.Language.Speech;
 using Vocaterra.Nlp.Asr.Models;
 
 namespace Vocaterra.Game.Tests;

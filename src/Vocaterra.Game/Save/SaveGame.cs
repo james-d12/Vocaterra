@@ -1,10 +1,13 @@
 using System.Text.Json;
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 
-namespace Vocaterra.Game;
+namespace Vocaterra.Game.Save;
 
 /// <summary>A save that cannot be read, is for another world or bundle, or does not restore to the digest it was taken with.</summary>
 public sealed class SaveException : Exception

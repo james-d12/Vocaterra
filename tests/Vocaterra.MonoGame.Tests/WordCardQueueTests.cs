@@ -1,4 +1,5 @@
 using Vocaterra.Game;
+using Vocaterra.Game.Language.Words;
 using Vocaterra.MonoGame.Utilities;
 
 namespace Vocaterra.MonoGame.Tests;

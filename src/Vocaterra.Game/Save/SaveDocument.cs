@@ -1,8 +1,12 @@
+using Vocaterra.Game.Language.Learner;
+using Vocaterra.Game.Language.Lessons;
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Npc;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 
-namespace Vocaterra.Game;
+namespace Vocaterra.Game.Save;
 
 /// <summary>
 /// One saved game (format <c>vocaterra-save</c>, version 3; versions 1 and 2 still load), written as canonical JSON by <see cref="SaveGame"/>. It holds what a run needs to

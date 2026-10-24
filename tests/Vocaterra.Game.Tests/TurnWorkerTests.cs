@@ -1,3 +1,5 @@
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
 using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Tests;

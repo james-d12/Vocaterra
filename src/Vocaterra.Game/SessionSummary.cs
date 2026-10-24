@@ -1,4 +1,8 @@
 using System.Globalization;
+using Vocaterra.Game.Language.Learner;
+using Vocaterra.Game.Language.Lessons;
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Npc;
 using Vocaterra.Nlp.Core.Stages;
 
 namespace Vocaterra.Game;

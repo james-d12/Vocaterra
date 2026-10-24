@@ -1,3 +1,5 @@
+using Vocaterra.Game.Language.Learner;
+using Vocaterra.Game.Npc;
 using Vocaterra.Game.Reports;
 using Vocaterra.Nlp.Core.Verdicts;
 

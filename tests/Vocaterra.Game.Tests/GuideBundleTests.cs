@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Vocaterra.Game.Language.Speech;
+using Vocaterra.Game.Npc;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Verdicts;

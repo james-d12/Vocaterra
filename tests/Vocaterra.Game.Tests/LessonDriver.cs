@@ -1,4 +1,6 @@
 using System.Globalization;
+using Vocaterra.Game.Language.Lessons;
+using Vocaterra.Game.Npc;
 
 namespace Vocaterra.Game.Tests;
 

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Vocaterra.Game.Npc;
 using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Simulation.Voxel;
 using Xunit.Abstractions;

@@ -1,3 +1,7 @@
+using Vocaterra.Game.Language.Lessons;
+using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Save;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 

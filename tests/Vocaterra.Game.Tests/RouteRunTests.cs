@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Game.Npc;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 using Xunit.Abstractions;
