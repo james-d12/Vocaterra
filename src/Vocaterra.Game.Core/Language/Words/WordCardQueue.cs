@@ -1,6 +1,4 @@
-using Vocaterra.Game.Core.Language.Words;
-
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Language.Words;
 
 /// <summary>The card on screen and the tick it went up.</summary>
 /// <param name="Card">The word card (<c>la madera</c>).</param>

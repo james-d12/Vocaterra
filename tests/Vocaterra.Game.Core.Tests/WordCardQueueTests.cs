@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.Utilities;
 
-namespace Vocaterra.Game.Tests;
+namespace Vocaterra.Game.Core.Tests;
 
 /// <summary>The word cards of the first pickups: one at a time, in order, each for its own number of ticks.</summary>
 public sealed class WordCardQueueTests

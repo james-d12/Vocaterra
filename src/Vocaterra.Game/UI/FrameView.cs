@@ -1,12 +1,12 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Sound;
 using Vocaterra.Game.UI.Book;
-using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game.UI;
 
