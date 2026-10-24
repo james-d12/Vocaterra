@@ -1,6 +1,4 @@
-using Vocaterra.Game.Core.Voxel;
-
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Voxel;
 
 /// <summary>
 /// Plans a walk over the voxel world for the scripted run (S13): on a 384 x 384 map with a mountainside trail, a river and a forest, a straight line to
@@ -12,7 +10,7 @@ namespace Vocaterra.Game.Utilities;
 public static class WalkPlanner
 {
     /// <summary>The most cells the search expands before it gives up (a column with no way to it must not hang a run).</summary>
-    public const int MaxExpansions = 600_000;
+    private const int MaxExpansions = 600_000;
 
     private const int Straight = 10;
     private const int Diagonal = 14;
