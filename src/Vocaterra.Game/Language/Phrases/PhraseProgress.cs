@@ -1,6 +1,7 @@
 using System.Globalization;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 
 namespace Vocaterra.Game.Language.Phrases;
 

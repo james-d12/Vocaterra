@@ -1,7 +1,7 @@
-using Vocaterra.Game.Npc;
 using Vocaterra.Game.Save;
+using Vocaterra.Game.Session;
 
-namespace Vocaterra.Game;
+namespace Vocaterra.Game.Tip;
 
 /// <summary>
 /// The first-time tips of the game (S16, D-game-13): English text, from <c>game/english.json</c>, shown once each when something happens for the first time

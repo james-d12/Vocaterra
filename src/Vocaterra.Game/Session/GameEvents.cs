@@ -4,7 +4,7 @@ using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 
-namespace Vocaterra.Game;
+namespace Vocaterra.Game.Session;
 
 /// <summary>How a phrase of the phrase sheet (<c>content/PHRASES.md</c>) was used (D-game-10): the kinds S8 (phrase progress) and S11 (the session log) tell apart.</summary>
 public enum PhraseUseKind

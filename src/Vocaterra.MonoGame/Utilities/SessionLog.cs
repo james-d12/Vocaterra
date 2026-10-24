@@ -9,6 +9,7 @@ using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Save;
+using Vocaterra.Game.Session;
 using Vocaterra.Nlp.Pipeline;
 
 namespace Vocaterra.MonoGame.Utilities;

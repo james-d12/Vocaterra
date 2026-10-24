@@ -1,5 +1,6 @@
 using Vocaterra.Game;
 using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Session;
 using Vocaterra.MonoGame.UI.Book;
 using Vocaterra.MonoGame.Utilities;
 using Vocaterra.Nlp.Content;

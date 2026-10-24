@@ -1,5 +1,6 @@
 using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;

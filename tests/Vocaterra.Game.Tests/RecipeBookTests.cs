@@ -1,3 +1,4 @@
+using Vocaterra.Game.Items;
 using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Tests;

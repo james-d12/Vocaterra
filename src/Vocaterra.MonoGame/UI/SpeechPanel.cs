@@ -1,5 +1,6 @@
 using Vocaterra.Game;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 
 namespace Vocaterra.MonoGame.UI;
 

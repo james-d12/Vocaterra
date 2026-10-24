@@ -6,7 +6,7 @@ using Vocaterra.Simulation.Crafting;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 
-namespace Vocaterra.Game;
+namespace Vocaterra.Game.Items;
 
 /// <summary>One ingredient of a recipe with the noun that names it.</summary>
 /// <param name="Noun">The catalogue noun of the ingredient (<c>madera</c>).</param>

@@ -1,3 +1,5 @@
+using Vocaterra.Game.Npc;
+
 namespace Vocaterra.Game.Tests;
 
 /// <summary>The game's host digest covers the simulation digest, the host slots and the extra skills of an utterance (the core's contract).</summary>

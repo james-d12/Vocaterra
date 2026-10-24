@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Vocaterra.Game.Reports;
+namespace Vocaterra.Game.Reporting;
 
 /// <summary>
 /// The file names of a report (S21, D-game-17): <c>report-s&lt;session&gt;-t&lt;tick&gt;-&lt;bug|feature&gt;</c>, with the Markdown file (<c>.md</c>) and the

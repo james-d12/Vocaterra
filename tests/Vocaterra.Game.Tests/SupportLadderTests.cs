@@ -1,5 +1,7 @@
 using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Session;
+using Vocaterra.Game.Tip;
 
 namespace Vocaterra.Game.Tests;
 

@@ -7,6 +7,7 @@ using Vocaterra.Game;
 using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Session;
 using Vocaterra.Nlp.Asr.Models;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Response.Speech;

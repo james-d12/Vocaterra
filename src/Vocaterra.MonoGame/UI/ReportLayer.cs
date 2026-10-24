@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Vocaterra.Game.Reports;
+using Vocaterra.Game.Reporting;
 using Vocaterra.MonoGame.Graphics;
 using Vocaterra.MonoGame.UI.Dialogue;
 

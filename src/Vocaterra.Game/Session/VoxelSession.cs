@@ -1,13 +1,16 @@
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Lessons;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Save;
+using Vocaterra.Game.Tip;
+using Vocaterra.Game.World;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Simulation;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 
-namespace Vocaterra.Game;
+namespace Vocaterra.Game.Session;
 
 /// <summary>
 /// One running game of the 3D scene (the prototype's only world since S4): the voxel simulation over the bundle's scene, and the NPCs (the guide,

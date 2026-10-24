@@ -3,6 +3,7 @@ using Vocaterra.Game;
 using Vocaterra.Game.Language.Lessons;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 using Vocaterra.Simulation;
 using Vocaterra.Simulation.Voxel;
 

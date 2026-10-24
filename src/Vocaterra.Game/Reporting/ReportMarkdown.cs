@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text;
 using Vocaterra.Game.Language.Learner;
 
-namespace Vocaterra.Game.Reports;
+namespace Vocaterra.Game.Reporting;
 
 /// <summary>
 /// The Markdown of a report (S21, D-game-17): a title (the first line of the player's text) and the kind, the text, the linked screenshot, the

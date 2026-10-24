@@ -2,6 +2,7 @@ using Vocaterra.Game;
 using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 using Vocaterra.MonoGame.Input;
 using Vocaterra.Nlp.Content;
 using Xunit.Abstractions;

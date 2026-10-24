@@ -1,4 +1,5 @@
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 
 namespace Vocaterra.Game.Tests;
 

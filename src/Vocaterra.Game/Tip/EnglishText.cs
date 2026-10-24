@@ -5,10 +5,11 @@ using Vocaterra.Game.Language.Learner;
 using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Taxonomy;
 
-namespace Vocaterra.Game;
+namespace Vocaterra.Game.Tip;
 
 /// <summary>One line of the controls help: the keys and what they do (<c>game/english.json</c>).</summary>
 /// <param name="Id">A stable id.</param>

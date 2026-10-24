@@ -1,9 +1,12 @@
+using Vocaterra.Game.Items;
 using Vocaterra.Game.Language.Checks;
 using Vocaterra.Game.Language.Learner;
 using Vocaterra.Game.Language.Lessons;
 using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Npc;
+using Vocaterra.Game.Tip;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
@@ -12,7 +15,7 @@ using Vocaterra.Nlp.Language.Morphology;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 
-namespace Vocaterra.Game.Npc;
+namespace Vocaterra.Game.Session;
 
 /// <summary>
 /// An arrow the guide put out: it points at a place until the player gets there or closes it.

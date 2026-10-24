@@ -1,4 +1,5 @@
 using Vocaterra.Game;
+using Vocaterra.Game.Session;
 
 namespace Vocaterra.MonoGame.UI;
 

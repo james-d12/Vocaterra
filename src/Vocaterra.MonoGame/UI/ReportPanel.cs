@@ -1,4 +1,4 @@
-using Vocaterra.Game.Reports;
+using Vocaterra.Game.Reporting;
 
 namespace Vocaterra.MonoGame.UI;
 

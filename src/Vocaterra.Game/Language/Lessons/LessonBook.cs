@@ -4,6 +4,7 @@ using System.Text.Json;
 using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Prompts;
 

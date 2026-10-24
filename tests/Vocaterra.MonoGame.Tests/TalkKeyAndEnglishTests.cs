@@ -1,4 +1,5 @@
 using Vocaterra.Game;
+using Vocaterra.Game.Session;
 using Vocaterra.MonoGame.Input;
 using Vocaterra.MonoGame.Sound;
 using Vocaterra.MonoGame.UI;

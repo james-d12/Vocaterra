@@ -1,8 +1,7 @@
 using System.Globalization;
 using System.Text;
-using Vocaterra.Game.Reports;
 
-namespace Vocaterra.Game.Crash;
+namespace Vocaterra.Game.Reporting;
 
 /// <summary>
 /// What a crash report holds (X05, R04). Every value is text the caller has already read: the game layer reads no clock and no engine, so the

@@ -1,5 +1,4 @@
-using Vocaterra.Game.Crash;
-using Vocaterra.Game.Reports;
+using Vocaterra.Game.Reporting;
 
 namespace Vocaterra.Game.Tests;
 

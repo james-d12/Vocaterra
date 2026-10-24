@@ -1,4 +1,5 @@
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 

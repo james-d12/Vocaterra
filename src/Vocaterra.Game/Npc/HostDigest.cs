@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Vocaterra.Game;
+namespace Vocaterra.Game.Npc;
 
 /// <summary>
 /// The game's host state digest for an utterance that carries host slots or extra skills. The core's contract (docs/nlp/API.md, section 4): a host

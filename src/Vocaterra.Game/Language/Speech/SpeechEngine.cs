@@ -1,3 +1,4 @@
+using Vocaterra.Game.Session;
 using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Asr.Models;
 using Vocaterra.Nlp.Core.Audio;

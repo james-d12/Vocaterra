@@ -3,6 +3,7 @@ using Vocaterra.Game.Language.Learner;
 using Vocaterra.Game.Language.Lessons;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 using Vocaterra.MonoGame.UI.Book;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Stages;

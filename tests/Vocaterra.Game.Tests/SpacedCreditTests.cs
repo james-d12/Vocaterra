@@ -1,5 +1,6 @@
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 using Vocaterra.Nlp.Core.Verdicts;
 
 namespace Vocaterra.Game.Tests;

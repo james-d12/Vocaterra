@@ -1,4 +1,6 @@
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
+using Vocaterra.Game.World;
 using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Tests;

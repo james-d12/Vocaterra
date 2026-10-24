@@ -8,7 +8,7 @@ using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 
-namespace Vocaterra.Game;
+namespace Vocaterra.Game.Session;
 
 /// <summary>Where the audio of a submitted turn comes from.</summary>
 public enum TurnSource

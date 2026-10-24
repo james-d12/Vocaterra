@@ -1,6 +1,6 @@
 using Vocaterra.Game.Language.Learner;
 using Vocaterra.Game.Npc;
-using Vocaterra.Game.Reports;
+using Vocaterra.Game.Reporting;
 using Vocaterra.Nlp.Core.Verdicts;
 
 namespace Vocaterra.Game.Tests;

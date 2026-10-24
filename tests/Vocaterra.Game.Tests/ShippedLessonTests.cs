@@ -1,6 +1,7 @@
 using Vocaterra.Game.Language.Lessons;
 using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Tests;

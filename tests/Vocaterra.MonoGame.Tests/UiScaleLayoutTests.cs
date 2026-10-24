@@ -4,6 +4,8 @@ using Vocaterra.Game.Language.Checks;
 using Vocaterra.Game.Language.Lessons;
 using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Save;
+using Vocaterra.Game.Session;
+using Vocaterra.Game.Tip;
 using Vocaterra.MonoGame.Sound;
 using Vocaterra.MonoGame.UI;
 using Vocaterra.MonoGame.UI.Book;

@@ -4,6 +4,7 @@ using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 using Vocaterra.MonoGame.Sound;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Verdicts;

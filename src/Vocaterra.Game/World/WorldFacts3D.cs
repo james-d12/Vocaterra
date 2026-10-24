@@ -2,7 +2,7 @@ using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Simulation.Voxel;
 
-namespace Vocaterra.Game;
+namespace Vocaterra.Game.World;
 
 /// <summary>
 /// What the guide can say about the 3D scene (S3): the nearest block of a catalogue noun from where the player stands, the direction to it

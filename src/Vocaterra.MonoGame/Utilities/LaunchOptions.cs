@@ -2,6 +2,7 @@ using System.Globalization;
 using Vocaterra.Game;
 using Vocaterra.Game.Language.Checks;
 using Vocaterra.Game.Language.Words;
+using Vocaterra.Game.Reporting;
 using Vocaterra.Game.Save;
 using Vocaterra.MonoGame.Graphics;
 using Vocaterra.MonoGame.UI.Book;
@@ -144,7 +145,7 @@ public sealed record LaunchOptions
     public string? ReportDir { get; init; }
 
     /// <summary>The kind a report starts with (<c>--report-kind</c>): Bug unless given (S21).</summary>
-    public Vocaterra.Game.Reports.ReportKind ReportKind { get; init; } = Vocaterra.Game.Reports.ReportKind.Bug;
+    public ReportKind ReportKind { get; init; } = ReportKind.Bug;
 
     /// <summary>The content bundle folder, or <see langword="null"/> to search for <c>content/game-v1</c>.</summary>
     public string? ContentDirectory { get; init; }
@@ -482,7 +483,7 @@ public sealed record LaunchOptions
                     script.Add(new ScriptStep(ScriptStepKind.ReportOpen, Value: value));
                     break;
                 case "--report-kind":
-                    if (!Vocaterra.Game.Reports.ReportKinds.TryParse(value, out var reportKind))
+                    if (!ReportKinds.TryParse(value, out var reportKind))
                     {
                         error = $"--report-kind needs bug or feature, got '{value}'.";
                         return false;

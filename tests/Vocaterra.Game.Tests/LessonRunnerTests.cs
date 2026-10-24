@@ -4,6 +4,7 @@ using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Save;
+using Vocaterra.Game.Session;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Stages;
 

@@ -1,4 +1,5 @@
 using Vocaterra.Game.Save;
+using Vocaterra.Game.Session;
 using Vocaterra.Simulation.Voxel;
 
 namespace Vocaterra.Game.Tests;

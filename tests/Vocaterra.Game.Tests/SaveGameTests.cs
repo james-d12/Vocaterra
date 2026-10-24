@@ -2,6 +2,7 @@ using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
 using Vocaterra.Game.Save;
+using Vocaterra.Game.Session;
 using Vocaterra.Simulation.Items;
 using Vocaterra.Simulation.Voxel;
 

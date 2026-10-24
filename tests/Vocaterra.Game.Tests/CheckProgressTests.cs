@@ -1,6 +1,7 @@
 using Vocaterra.Game.Language.Checks;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 
 namespace Vocaterra.Game.Tests;
 

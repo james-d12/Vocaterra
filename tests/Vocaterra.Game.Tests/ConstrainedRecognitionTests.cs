@@ -1,5 +1,6 @@
 using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Language.Intent;
 using Xunit.Abstractions;

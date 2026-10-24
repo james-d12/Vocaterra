@@ -1,5 +1,6 @@
 using Vocaterra.Game;
 using Vocaterra.Game.Language.Lessons;
+using Vocaterra.Game.Tip;
 using Vocaterra.MonoGame.UI.Dialogue;
 
 namespace Vocaterra.MonoGame.UI;

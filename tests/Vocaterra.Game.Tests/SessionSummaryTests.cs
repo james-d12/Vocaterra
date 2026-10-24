@@ -3,6 +3,7 @@ using Vocaterra.Game.Language.Lessons;
 using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 

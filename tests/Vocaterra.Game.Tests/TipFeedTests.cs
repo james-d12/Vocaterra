@@ -1,6 +1,8 @@
 using Vocaterra.Game.Language.Lessons;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Save;
+using Vocaterra.Game.Session;
+using Vocaterra.Game.Tip;
 
 namespace Vocaterra.Game.Tests;
 

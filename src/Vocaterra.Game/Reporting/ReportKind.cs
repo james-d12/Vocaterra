@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Reports;
+namespace Vocaterra.Game.Reporting;
 
 /// <summary>What a player's report is about (S21, D-game-17): a bug, or a feature request.</summary>
 public enum ReportKind

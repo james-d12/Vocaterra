@@ -1,4 +1,5 @@
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Tip;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Language.Phrases;

@@ -4,6 +4,8 @@ using Vocaterra.Game.Language.Lessons;
 using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
+using Vocaterra.Game.Tip;
 using Vocaterra.MonoGame.Utilities;
 using Vocaterra.Nlp.Language.Morphology;
 

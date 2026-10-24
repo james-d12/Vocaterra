@@ -2,6 +2,8 @@ using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Language.Speech;
 using Vocaterra.Game.Language.Words;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Session;
+using Vocaterra.Game.Tip;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 

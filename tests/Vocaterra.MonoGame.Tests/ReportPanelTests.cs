@@ -1,4 +1,4 @@
-using Vocaterra.Game.Reports;
+using Vocaterra.Game.Reporting;
 using Vocaterra.MonoGame.UI;
 using Vocaterra.MonoGame.Utilities;
 

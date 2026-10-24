@@ -3,9 +3,10 @@ using Vocaterra.Game.Language.Learner;
 using Vocaterra.Game.Language.Lessons;
 using Vocaterra.Game.Language.Phrases;
 using Vocaterra.Game.Npc;
+using Vocaterra.Game.Tip;
 using Vocaterra.Nlp.Core.Stages;
 
-namespace Vocaterra.Game;
+namespace Vocaterra.Game.Session;
 
 /// <summary>
 /// What the session summary is built from (X04, R01): this session's lines and events, the lesson record, the phrase sheet and the phrase records. Plain values, so the

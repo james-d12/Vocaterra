@@ -1,6 +1,6 @@
-using Vocaterra.Game.Npc;
+using Vocaterra.Game.Tip;
 
-namespace Vocaterra.Game;
+namespace Vocaterra.Game.Session;
 
 /// <summary>
 /// Where the session stands, from the objective area's point of view (S17, D-game-15): the player wakes alone at their own camp and is sent down the trail to the

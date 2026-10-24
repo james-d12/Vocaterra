@@ -1,6 +1,6 @@
 using Vocaterra.Nlp.Content;
 
-namespace Vocaterra.Game;
+namespace Vocaterra.Game.Session;
 
 /// <summary>Finds and loads the game's content bundle, <c>content/game-v1</c>.</summary>
 public static class GameBundle
