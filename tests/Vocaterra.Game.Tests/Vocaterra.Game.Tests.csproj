@@ -9,7 +9,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
-    <!-- Direct, so that Vosk.targets copies libvosk.so into the test output (the model tests construct VoskWordRecognizer). -->
+    <!-- Direct, so that Vosk.targets copies libvosk.so into the test output (the scripted speech tests run the recognizer). -->
     <PackageReference Include="Vosk" />
     <!-- Kokoro (sherpa-onnx) needs its own libonnxruntime.so; this package's native copy would overwrite it (CR-021). -->
     <PackageReference Include="Microsoft.ML.OnnxRuntime" ExcludeAssets="native" />
@@ -19,15 +19,9 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
-  <!-- The version 1 save of S18 (the learner's record of S19 loads it with an empty history); the test finds it in this folder. -->
+  <!-- No GPU: the tests touch only the front-end logic (Frontend/), the committed font file and the project's sources. -->
   <ItemGroup>
-    <None Include="Fixtures/**" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
-  <!-- Headless, with the language core's packages (they come through Vocaterra.Game): guide turns with the scripted recognizer on a fixed
-       seed and a fixed stored time. -->
-  <ItemGroup>
-    <ProjectReference Include="../../src/Vocaterra.Game/Vocaterra.Game.csproj" />
+    <ProjectReference Include="..\..\src\Vocaterra.Game\Vocaterra.Game.csproj" />
   </ItemGroup>
 
 </Project>

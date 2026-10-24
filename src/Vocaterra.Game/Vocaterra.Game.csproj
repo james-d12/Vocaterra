@@ -1,27 +1,60 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- The engine-agnostic game layer (plan section 3 rule 3, D-game-1): the game session, the guide's turns and the facts about the world the
-       guide speaks of. It references the simulation and the language core's projects (src/Vocaterra.Nlp.*). No engine type belongs here. -->
+  <!-- The only engine code (plan section 3 rule 3, D-game-1): MonoGame DesktopGL, no content pipeline. Textures are made in code, the font
+       is a TTF read at run time through FontStashSharp. It references the engine-free game layer by project (which brings the simulation and
+       the language core's packages) and names no language-core package itself. -->
   <PropertyGroup>
-    <RootNamespace>Vocaterra.Game</RootNamespace>
-    <AssemblyName>Vocaterra.Game</AssemblyName>
+    <OutputType>Exe</OutputType>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>Vocaterra.Game</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Vocaterra.Nlp.Asr/Vocaterra.Nlp.Asr.csproj" />
-    <ProjectReference Include="../Vocaterra.Nlp.Content/Vocaterra.Nlp.Content.csproj" />
-    <ProjectReference Include="../Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
-    <ProjectReference Include="../Vocaterra.Nlp.Decision/Vocaterra.Nlp.Decision.csproj" />
-    <ProjectReference Include="../Vocaterra.Nlp.Language/Vocaterra.Nlp.Language.csproj" />
-    <ProjectReference Include="../Vocaterra.Nlp.Pipeline/Vocaterra.Nlp.Pipeline.csproj" />
-    <ProjectReference Include="../Vocaterra.Nlp.Response/Vocaterra.Nlp.Response.csproj" />
+    <PackageReference Include="MonoGame.Framework.DesktopGL" />
+    <PackageReference Include="FontStashSharp.MonoGame" />
+    <!-- Direct, so that Vosk.targets copies libvosk.so into the output (build/ assets of a package do not flow to the projects that reach it
+         through another package). The recognizer itself is the core's, loaded by the game layer. -->
+    <PackageReference Include="Vosk" />
+    <!-- Kokoro (sherpa-onnx) needs its own libonnxruntime.so next to the executable; this package's native copy would overwrite it. -->
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" ExcludeAssets="native" />
   </ItemGroup>
 
-  <!-- The worker's settle step (a turn cancelled while it ran is rolled back) is internal, and tested by calling it between the evaluation and the settle. -->
+  <!-- The playtest publish (scripts/playtest-build.sh, S12, -p:VocaterraPlaytest=true): no sherpa-onnx native library ships. Its native
+       runtime carries GPL code (espeak-ng, core D2) and its libonnxruntime.so is the one CR-021 is about. The playtest loads Vosk only (the
+       NPCs' voices are pre-rendered WAVs), so the managed sherpa-onnx assembly stays and no native sherpa call is made. A direct reference with
+       ExcludeAssets="native" is how the same native copy is dropped for the whole graph (the core's packages reach it transitively). -->
+  <ItemGroup Condition="'$(VocaterraPlaytest)' == 'true'">
+    <PackageReference Include="org.k2fsa.sherpa.onnx" ExcludeAssets="native" />
+    <PackageReference Include="org.k2fsa.sherpa.onnx.runtime.linux-x64" ExcludeAssets="native" />
+  </ItemGroup>
+
   <ItemGroup>
-    <InternalsVisibleTo Include="Vocaterra.Game.Tests" />
-    <InternalsVisibleTo Include="Vocaterra.MonoGame.Tests" />
+    <ProjectReference Include="..\Vocaterra.Game.Core\Vocaterra.Game.Core.csproj" />
+  </ItemGroup>
+
+  <!-- The playtest publish's last word on the sherpa-onnx and ONNX Runtime natives (S12): Microsoft.ML.OnnxRuntime's props add the Windows DLLs
+       (onnxruntime.dll, onnxruntime_providers_shared.dll) to an x64 build, whatever the RID, so they are dropped from the publish list too. The
+       shipped folder is then checked by scripts/playtest-build.sh. -->
+  <Target Name="VocaterraPlaytestWithoutSherpaNatives" AfterTargets="ComputeResolvedFilesToPublishList" Condition="'$(VocaterraPlaytest)' == 'true'">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+        Condition="$([System.String]::Copy('%(Filename)%(Extension)').StartsWith('libsherpa-onnx')) or $([System.String]::Copy('%(Filename)%(Extension)').StartsWith('libonnxruntime')) or $([System.String]::Copy('%(Filename)%(Extension)').StartsWith('sherpa-onnx-c-api')) or $([System.String]::Copy('%(Filename)%(Extension)').StartsWith('onnxruntime'))" />
+    </ItemGroup>
+  </Target>
+
+  <!-- The build's commit for the in-game report (S21): VOCATERRA_BUILD_COMMIT, empty (the report says unknown) when the build does not set it. -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>BuildCommit</_Parameter1>
+      <_Parameter2>$(VOCATERRA_BUILD_COMMIT)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <!-- Assets live at the repository root (assets/ATTRIBUTION.md records each file) and are copied next to the executable. -->
+  <ItemGroup>
+    <None Include="../../assets/fonts/pixel-operator/PixelOperator.ttf" Link="assets/fonts/PixelOperator.ttf" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The sounds (S24): 16-bit PCM WAV files, all CC0, each listed in assets/audio/SOURCES.md. -->
+    <None Include="../../assets/audio/*.wav" Link="assets/audio/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -1,337 +1,268 @@
-# Vocaterra.Game
+# Vocaterra.MonoGame
 
-The engine-agnostic game layer: one running game, the conversation with the guide and the facts about the world she speaks of. It references
-`Vocaterra.Simulation` by project and the language core only as the `Vocaterra.Nlp.*` packages (never its projects or source), and it knows no
-engine (plan section 3, rules 1 and 3). `Vocaterra.MonoGame` and the console host build on it.
+The game's window: the only engine code in the repository (plan section 3 rule 3, D-game-1). MonoGame 3.8.6 DesktopGL on `net10.0`, no
+content pipeline (no MGCB: textures are made in code, text is a TTF read at run time through FontStashSharp). It references
+`Vocaterra.Game` (the guide, the session, the word progress and the camp objective; it brings the language core's packages) and
+`Vocaterra.Simulation` by project and names no `Vocaterra.Nlp.*` package itself.
 
-Since S4 the running game is the 3D world (`VoxelSession`). Where this file says tiles, the 2D world or `GameSession`, it describes the guide's
-design from P1 to P7, when the 2D slice was the game; the 2D slice was retired at S4 (its code is tagged `2d-slice-p7`), and the guide's rules
-are the same in 3D with blocks for tiles. The camp objective and the word cards are in "The camp objective (S4)" below.
+The prototype's world is the first-person voxel scene (S2 to S4). The 2D slice (P1 to P7) was retired at S4; its last commit is tagged
+`2d-slice-p7`.
 
+## Run
 
-## The API
-
-```csharp
-var bundle  = GameBundle.Load();                         // content/game-v1, found above the executable or the current directory
-var session = new GameSession(bundle, worldSeed: 42);    // generates the world, places the guide, starts the conversation
-session.Conversation.WarmUp();                           // optional: pay the first-call costs behind a loading screen
-
-session.Step(commands);                                  // once per tick: the simulation step, then the arrow's reach check
-if (session.IsNearGuide) { /* show "Pulsa T para hablar" */ }
-GuideTurn turn = session.Say("¿dónde está el árbol?");   // between ticks, never inside Step
-foreach (var line in turn.GuideLines) Console.WriteLine(line);   // correction, reply, repair, then the world line
-var arrow = session.Pointer;                             // where the guide points, until the player gets there
+```bash
+PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/Vocaterra.MonoGame -- --seed 42
 ```
 
-| Type | Role |
+| Option | Meaning |
 | --- | --- |
-| `VoxelSession` (S4: the only session; `GuideSession` is its shared base) | owns the `VoxelSimulation` over the scene, the bundle, the world seed, the stored time, the NPCs and their conversations (`NpcService`), the word progress, the camp objective (`Objective`), the word cards (`TakeWordCards`), the hints (`TakeHints`), the arrow and the game events (`Events`, S6); `Step(commands)` feeds the objective and the cards from the tick's events; `HostEvent(name)` raises a named host event (`objective.water`); `OpenTalk(npc)` / `EndTalk()` start and end a talk with the guide, the shopkeeper or the villager (S6) and `Say` goes to the NPC the talk is with; the NPCs' host events act on the world through `NpcHostEvents` (a bottle, a bread, the beacon on the river), and the empty bottle is filled at the water by the simulation (`BottleFilled` raises `objective.water`) |
-| `TurnWorker`, `TurnRequest`, `TurnOutcome`, `TurnSource`, `SpeechLoad` | P5: the one thread that loads Vosk, owns it and the conversation, and evaluates submitted turns in order; a request carries every input fixed at submission (scene with a copy of the world around the player and of the inventory, stored time, state digest); outcomes come back in order through `TryTake` (`GameSession.Collect` applies them on the caller's thread) |
-| `SpeechEngine` | P5: the speech models from `VOCATERRA_MODELS_DIR` (`FindModels`, `TryCreate`): Vosk small Spanish, and Kokoro speaker 28 behind `CachedSynthesizer` with the cache in `~/.cache/vocaterra/tts` (`Synthesize`). Created, used and disposed by the worker thread only. The manifest comes from the folder, `VOCATERRA_MODELS_MANIFEST` or the core submodule (CR-019) |
-| `SpokenUtteranceEvaluator` | P5: the call sequence for one spoken clip: the pipeline over the real recognizer with one n-best hypothesis (`SingleBest`, CR-022); `Trace` returns the result and the recognizer's output, which the guide's second evaluation reuses (`TypedUtteranceEvaluator.EvaluateRecognized`) so the clip is decoded once |
-| `AudioClips` | P5: `Resample` (windowed sinc, any rate to 16 kHz), `TrimSilence`, `Prepare` (convert, trim, cap at 8 s, `null` for silence), `FromPcm16`, `ReadWav` (16-bit PCM, channels averaged) |
-| `NpcService` (S6; it generalised `GuideService`) | the conversations with the three NPCs, one `ConversationContext` each: `Open(npc, objectiveComplete, now, hash)` takes the NPC's opening host event through `UtterancePipeline.Advance` (the shopkeeper's "¿Qué necesitas?", the villager's "Hola.", the guide's transfer offer; the shopkeeper's second visit hands over the bottle) and returns an `NpcOpening`; `Say(npc, line, scene, now, hash)` evaluates a line in two phases (`Analyze` once, `Complete` with host slots, see step 2 below), carries the context with `ConversationContext.Next` and takes the world's digest again, and returns a `GuideTurn`; `SaySpoken(npc, clip, ...)` does the same from a clip (Vosk decodes it once; `AttachSpeech`, `WarmUpSpeech`). `Context`, `GuideState` and `ContextOf(npc)`, `PromptOf(npc)`, `Records` (every utterance and host turn as a replay entry), `WarmUp()`. The shopkeeper's fail-forward (the repair ladder gave up, help and then another line that is no request, four such lines, or a second visit) is a host turn (`shopkeeper.give`) with the core's own line, so the bottle is never withheld. The guide's own world lines are in `NpcService.Guide.cs` |
-| `NpcHostEvents`, `NpcEffect`, `PhraseIds` | S6: the one table that maps the NPCs' host events to the world (`stall.give_water` gives a `botella`, `stall.give_bread` and `villager.give` a `pan`, `villager.point` sets the beacon on the nearest `río` block, `guide.give_water` gives an `agua`), and the sheet's phrase ids the game logs (`PhraseIds.For(intent, slots)`, `HomeOf`) |
-| `GameEvent`, `PhraseUse`, `VoiceEvent`, `WorldEvent`, `PhraseUseKind` | S6: what the session logs for the phrase progress (S8) and the session log (S11): a `PhraseUse` with the sheet's phrase id and a kind (`supported`: answering the NPC's own question, `unaided`: said on one's own, `choice`: after the repair ladder offered choices, `dont_know`: "no sé" or help, `transfer`: with another NPC after the objective, `fail_forward`: the game carried on without the phrase), `VoiceEvent` (S7: an uncertain recognition, a cancel, the watchdog's timeout, the mic check and every speech-button press, with stable wire names in `VoiceEventNames`) and `WorldEvent` (item given, beacon set, bottle filled, `found_without_spanish`, objective steps, the transfer offer). `GuideSession.Events` is the in-memory list; ticks and stored time only, no clock |
-| `PhraseSheet`, `PhraseRow`, `ChoiceOption` | S7: `game/phrases.json` (a host-owned, hashed bundle file; the machine-readable copy of `content/PHRASES.md`, which stays the source of truth): `Rows`, `Find(id)`, `PhrasesAt(prompt)`, `Expected(prompt, intent, communicated, heard)` (the phrase the prompt waits for: the row of the intent that matched, else the closest row), `Match(phrase)` and `OptionsFor(phrases)` (the buttons for the choices the repair ladder offered, labelled with the sheet's phrase). S8 reads the same rows |
-| `UncertaintyRule`, `HeardLine`, `MicCheck` | S7: the uncertainty rule of D-game-9 (`ConfidenceThreshold` 0.55 on the per-word mean without `[unk]`; `IsUncertain`, `IsTooUnsure`); the `Heard: «…» · Expected: «…»` line of a spoken turn; the recognition half of the mic check (Constrained over "hola", then Open, and the level of the clip) |
-| `NpcStandOff` | S6: `Choose(grid, npcFeet, from)`: the cell about two blocks from an NPC, on standable ground with a clear line to its chest, nearest to where the player comes from; the scripted `--talk` stops there |
-| `GuideTurn` | the verdict in plain values (`Intent`, `Communicated`, `Correctness`, `Errors`, `Summary`), `Feedback` (the recast or hint), `Replies`, `Repair`, `AgentState`, `HostEvents`, `WorldLine` (the game's own line), `Pointer` (`GuidePointer`: place, target tile, blocks, direction), `IdentifiedNoun`, `Words` (`GuideWord`: each token with the reading the core's resolver chose, CR-002), `Input` (`InputKind.Typed`, `Spoken` or, since S7, `Button`: a choice, Ayuda or No sé, which earns no credit), `Choices`, `Uncertain`, `Choice` and `Confidence` (a spoken turn's mean Vosk word confidence), `Npc` and `Prompt` (who the line was said to and on which prompt), `RepairKind`, `FollowUp` and `FailForward` (S6), and `GuideLines` in the order shown (the follow-up last). For a spoken turn `Line` is what the recognizer heard. No time in it, so equal inputs give an equal turn |
-| `WorldFacts3D` | the nearest block of a noun from a viewpoint (`NearestOfNoun(from, "árbol")`), the direction in Spanish (`DirectionPhrase`), the distance in words, `Live(grid)` and `Snapshot(grid)` |
-| `GuideNpc` | `Place(world)`: a grass column 8 to 28 columns from the spawn with headroom, clear of trees if it can; `IsNear(player)` |
-| `TypedUtteranceEvaluator` | the call sequence over the packages for one typed line (scripted recognizer, fake embeddings, silent synthesizer); the console host uses it too. The pipeline counts each utterance's repeats itself (core M26a, CR-012), so the evaluation takes the carried context as it is |
-| `GameBundle` | `Locate()` and `Load()` for `content/game-v1` (`VOCATERRA_CONTENT_DIR` overrides) |
-| `GuideEvents` | the host event names the guide's state machine raises: `guide.point`, `guide.identify`, `guide.help`, `guide.name`, `guide.craft`, `guide.find`, `agent.greet`, `agent.farewell` |
-| `RecipeBook`, `RecipeEntry`, `RecipeIngredient` | the crafting recipes, `game/recipes.json`, read with `Load(bundle, nouns)` through `TryReadHostFile`: `Entries` (the nouns, for the guide and the panel), `Rules` (the plain `Recipe` values the simulation crafts with, same order), `ForOutput(lemma)`, `IndexOf(lemma)`. A lemma that is not a catalogue noun with an item, or a station that is not a placeable tile, is an `InvalidDataException` |
-| `NounCatalog` | the noun catalogue, `game/nouns.json` in the bundle, read with `Load(bundle)` through `ContentBundle.TryReadHostFile` (its bytes are the ones the load hashed, CR-007): `ForLemma`, `ForReading(lemma, pos)` (the catalogue noun a resolved reading names, CR-002), `ForTile`, `ForItem`, `IsColourless`, `Nouns` (lemma, gender, `el`/`un`, plural, tiles, items) |
-| `WordProgress` | the learner's counts per catalogue noun (`Records`, `RecordOf`, `SaturationOf(lemma)` and `SaturationOf(ItemId)`, `KnownLemmas`, `MarkRead`), the play `Session`, and `RecordTurn(turn, kind, rules, now)`, which counts one guide turn: heard, spoken, spoken correctly, credit (at most one per noun per turn, and only when its gap has passed), known. Also `DueWords(now, rules)` and `SecondsUntilNextCredit(lemma, now, rules)` |
-| `WordRecord`, `WordStage` | one noun's counts (`Known`, `Saturation` in thirds, `Stage`: Unseen, Encountered, Learning, Known) and the time and play session of its last credited use (`LastCreditedAt`, `LastCreditedSession`) |
-| `CreditRules` | the credit per kind of input (`Typed`, `Spoken`) and the gaps between credited uses (`Gaps`, default 10 min then 1 h; `GapAfter(n)`): the one place the owner's tuning changes (D-game-6). From P5 `Default` is typed half, spoken full (`FullTyped` is the setting behind `--typed-credit full`); a word then takes three spoken uses or six typed ones, the last gap repeating |
-| `CreditOutcome`, `WordCredit`, `DueWord` | what a turn did to a noun (`Credited`, `TooEarly` with the seconds left, `Wrong`, `NamedWrong`) and a word due for review (`Lemma`, `OverdueSeconds`) |
-| `GuideReview` | the review question in progress: the due word, the pointed tile and the question; `GuideSession.Review`, `BeginTalk()`, `EndReview()`, `SkipTime(seconds)` |
+| `--seed <ulong>` | the world seed (default 42) |
+| `--content <dir>` | the content bundle folder (default: `content/game-v1` found by walking up from the executable, then from the current directory; `VOCATERRA_CONTENT_DIR` also works) |
+| `--scene <file>` | the layout file (default: the bundle's `game/scene.json`) |
+| `--quality <low\|medium\|high>` | S13 and S14: the view distance in blocks (low 224, medium 304, high 400, the default; a real GPU), and what is drawn: **plant distance and share** (the undergrowth is drawn within 64, 112 or 192 blocks of the eye, 80, 100 or 100 percent of it built), **ambient occlusion** (on at all three; the preset says, so a slower machine can turn it off) and **clouds**. Only the chunks within the view distance are meshed and drawn, the fog is complete just inside it and the camera's far plane stops past it. Medians on this VM (software GL), 1280 x 720: low 42 ms from the camp and 32 ms in the forest, medium 52 ms, high 49 ms (see the S14 line of the plan's findings) |
+| `--view-distance <blocks>` | draw this far instead of the quality's distance (at least 48) |
+| `--screenshot <path.png>` | scripted run: fixed 60 Hz clock, the steps below in order, save the back buffer as a PNG, exit 0 (1 if the PNG cannot be written) |
+| `--frames <n>` | with `--screenshot`: run at least `n` ticks before the screenshot (default 120) |
+| `--look <yaw>,<pitch>` | a step: face this direction in degrees (yaw 0 north, 90 east, clockwise from above; pitch positive up, within 89) |
+| `--walk-to <x>,<z>` | a step: walk with `Move` commands to the middle of that block column, within half a block, or give up after 14 400 ticks (S13: the way is planned over the standable cells (`WalkPlanner`, A*: up one block, down three, no wading, no one-block gaps between trees, a dearer cell beside a trunk), so a walk follows the trail and the road, and the hops run along the eight directions); sidesteps and jumps when stuck. Prints `walk-to 60,52: arrived at (60.02, 52.41) after 800 ticks` |
+| `--teleport <x>,<z>` | a step (S13, a debug step for screenshots): stand the player on the ground of that column (the highest block that is not a tree, with room above it). Prints `teleport 230,222: standing at 230,35,222` or why not |
+| `--interact <x>,<y>,<z>` | a step: aim at the block and hold `Interact` until it is gathered or 600 ticks pass (the player must be within 4 blocks). Prints `interact 9,11,17: gathered trunk in 60 ticks (now air, +1 wood)` |
+| `--place <item>@<x>,<y>,<z>` | a step: place one item (`madera`, `antorcha`, or the item key `wood`, `torch`) in that empty cell next to a block, within reach |
+| `--select <n>` | a step: hotbar slot 1 to 10 |
+| `--craft <item>` | a step: craft the recipe that makes the item (`antorcha`), with the workbench in reach; prints `craft: antorcha made (antorcha 0 -> 1)` or why it was refused |
+| `--talk <npc>` | a step (S6): walk to the guide, shopkeeper or villager, stop at the stand-off (`NpcStandOff`, about two blocks, a clear line to its chest) facing it, open the dialogue panel on it; the NPC's opening is printed (`talk: shopkeeper (host turn, stall-need): ¿Qué necesitas?`) |
+| `--say "<line>"` | repeatable, a step: type the line into the panel and send it to the NPC it is open on, and wait for the reply; with no panel open it first talks to the guide (as in S3); each turn is printed (`turn 1 (guide, guide-open): ... -> ask_directions, entendido`, the NPC's lines, the arrow, then the game events it caused) |
+| `--leave` | a step: close the dialogue (a `--walk-to` or another `--talk` closes it as well) |
+| `--shot <png>` | a step: save the screen at this point of the script and go on (the final `--screenshot` is saved when the script is done) |
+| `--beacon <point>` | stand the beacon column on a named point of the scene (`camp.guide`, `camp.player`, `firering`, `workbench`, `stall`, `signpost`, `village`, `house1` to `house3`, `bridge`, `river`, `lake`, `waterfall`, `trail`); it clears when the player comes within 3 blocks. A new game starts with it on `camp.guide` (the walk down the trail from the player's own camp); `--beacon none` puts none up. The beacon is not fogged |
+| `--book`, `--book-page <page>`, `--journal`, `--journal-phrases`, `--inventory`, `--crafting` | open those screens once the steps are done (the panel stays open for the screenshot). S20: `--book` (the same as `--journal`) opens the book on its nouns page, `--book-page nouns\|verbs\|phrases\|lessons\|said` on the named page, and `--journal-phrases` on the phrases page (S8). Tab, Left and Right turn the page; the wheel, Page Up and Page Down scroll |
+| `--wait <seconds>`, `--skip <seconds>` | script steps (S8): run the game on that long; move the stored time on without waiting (so a spacing gap passes and the guide's phrase review is due) |
+| `--typed-credit <full\|half>` | the credit a correct typed use earns: `half` by default, `full` as before P5; spoken input always earns full |
+| `--no-speech` | do not load Vosk (an interactive run loads it unless this is given; a scripted run never does) |
+| `--third-person` | start in the behind-the-shoulder view (S15); **F5** switches between it and first person in an interactive run (first person is the default). The player's own figure is drawn with its backpack, and the arm is not |
+| `--dusk` | an evening (S15): an amber and rose sky and haze, a lower, warmer sun on the blocks, the figures and the arm, and the lanterns and the pergola's torch glowing at full strength (by day they glow at half) |
+| `--greyscale` | the playtest A/B switch (D-game-6 as amended): blocks whose noun is not known yet are grey, known ones in colour (`GreyscaleWorld`, `WordColours`; blocks no noun names, the figures, the sky and the UI stay in colour); a noun that becomes known during play regains its colour and toasts. Default: full colour |
+| `--assume-known <nouns>` | a test aid: the comma-separated catalogue nouns count as known from the start (`--assume-known árbol` colours the trunks for an A/B shot); not a play path |
+| `--voxel` | accepted and ignored (the 3D world is the only one since S4) |
 
-## Words (P4): the noun catalogue and the D-game-6 rule
+The steps run in the order given, one at a time, each at the simulation's fixed 60 Hz (one tick per frame on the fixed clock). The screenshot is
+saved after `--frames` ticks and once the last step has finished and 30 ticks have settled. `LookControl`, `VoxelScript` and `LiveVoxelInput` hold
+the logic; `VoxelGame` only wires it to MonoGame.
 
-- `content/game-v1/game/nouns.json` names the noun of each tile kind (`trunk`, `leaves` and the spruce and birch kinds of S14 are `árbol`, `stone`, `mossy-stone` and `cobble` are `piedra`, `dirt` is `tierra`, `grass` is `hierba`;
-  the undergrowth, the snow and the bushes of the 3D world are named by no noun and stay in colour) and lists `air` as colourless. Each noun also names its item kinds (`items`, P6: `madera` is `wood`, `hacha` is `axe`),
-  and may carry `"mass": true` (counted in `bloques de`) and `"sources"` (`madera` comes from `árbol`, for P6b's "where is it" answers). A test
-  checks that every tile and every item is a noun or colourless and every noun has a noun reading and a gender in the bundle's lexicon. The
-  core supplies the article and the plural (`Morphology.Article`, `Pluralize`).
-- A catalogue noun is **known** after three credited correct uses in three separate turns, spaced in time (below) (`WordProgress.UsesToKnow`). Each correct use adds credit in
-  units (`UnitsPerUse` = 6, so `UnitsToKnow` = 18); saturation is units over 18, so a typed noun is 1/3, 2/3, then 1. Nothing decays.
-- A use is **correct** when no verdict error's span overlaps the word or the article right before it. The uses of a turn are the catalogue nouns
-  the core's resolver chose for the line's words (`GuideTurn.Words`, from `PipelineResult.Words`, CR-002; `es un arbol` counts, `la árbol` does
-  not) and the catalogue nouns in the verdict's slot values. A turn that was not communicated counts nothing for use (it still counts as heard:
-  a word of the guide's lines that is a catalogue noun's singular or plural form).
-- `name_object` (`es un árbol`, `eso es una piedra`) names the cursor's tile: the guide says `¡Eso es! Es un árbol.` when the name is that tile's
-  noun and no error was found, and `No, es un árbol.` otherwise (the game checks it, CR-014; the result is `GuideTurn.Naming`: `NameCheck`). **A
-  name the guide marks wrong earns no colour for the noun named** (P4b; the orchestrator's default, the owner to confirm); it still counts as said.
-  **A naming with no tile to check (`NameCheck.NoTarget`, the cursor on nothing) earns no colour either** (`CreditOutcome.NoTarget`); other intents
-  that use a noun correctly (`¿dónde está el árbol?`) earn as before. **Lapse:** when the guide reveals a word (a wrong name, in a review or not),
-  that word's gap restarts from now (`Lapses` + 1, last credited time set to now) so copying her correction is `TooEarly`; no credit is removed,
-  a word with no credited use or a known word is untouched.
-- `GameSession.Say` and `GameSession.Collect` count every turn (`Words`, with `GameSession.Credit` for the turn's `Input` kind and the stored time of the turn, which for a submitted turn is the time at submission) and keep what the last
-  turn did (`LastWordTurn`: the nouns credited, the nouns that became known and the outcome per noun, for the toast and the hint).
+**Controls.** WASD or the arrows walk (`MoveRelative`), Space jumps, the mouse looks. The mouse is captured in SDL's relative mode (MonoGame 3.8 has no
+switch for it, so `MouseLook` calls `SDL_SetRelativeMouseMode` and `SDL_GetRelativeMouseState` in the SDL library MonoGame loaded, and warps the
+pointer to the middle of the window if that library cannot be reached); **Esc** frees the mouse and a click takes it back. Hold the **left
+button** on a gatherable block (a trunk, a berry bush) to gather it, the **right button** places the selected item in the cell in front of the
+face the crosshair is on, `1`..`0` and the wheel pick the hotbar slot, **I** or **E** the inventory, **C** (or **E** with the crosshair on the
+workbench) the crafting panel, **J** the book (S20; the selected book item, used with the right button, opens the same book), **F3** the debug overlay. The camera eases over a step-up (`CameraEase`: the eye lifts a block in
+one tick; the camera holds the old height and lets it go over 8 ticks).
 
-## Spaced colour and the guide's review (P4b, D-game-6 as amended)
+## What is drawn
 
-- **The rule.** A word's first correct use earns a third at any time. The second earns a third only if at least 10 minutes of stored time have
-  passed since the first credited use, or the play session differs; the third only after 1 hour since the second credited use, or in another
-  session. The gaps are one list, `CreditRules.DefaultGapSeconds` (`[600, 3600]`; the last gap repeats for the half-credit uses of P5). A word
-  with half credit (P5) takes more credited uses, each gated by the gap after the previous one.
-- **Early uses.** A correct use before its gap counts as said and correct (the journal's counts) and the guide answers as usual, but no credit
-  and no clock: the gap runs from the last *credited* use. `WordTurnResult.Outcomes` has one `WordCredit` per noun used: `Credited`,
-  `TooEarly` (with `SecondsRemaining`), `Wrong` (a verdict error on the word or its article) or `NamedWrong` (the guide's check failed).
-- **Time.** `GameSession.StoredTime` is the fixed start plus `Tick / 60` plus the seconds of `SkipTime` (the demo's `--skip` and the tests); no
-  clock. **Sessions.** `WordProgress.Session` (1 for a new game; `GameSession(..., playSession)`) is recorded with each credited use. A save (P9)
-  restores the records and sets a new number: a plain value change. A different session lifts the gap, and tests construct progress with an
-  earlier session (`Session = 2`) to show it.
-- **Due words.** A word is due when it has a credited use, is not known and its gap has passed (or the session changed): `DueWords(now, rules)`,
-  most overdue first, then the lemma in ordinal order (a session-bypassed word counts as overdue since its last credited use).
-- **The review.** When the player opens the dialogue the front-end calls `GameSession.BeginTalk()`. If a word is due and an example tile of it is
-  within `WorldFacts.DefaultRadius` of the player, the guide points at the nearest example (`Pointer`, with `Quiz` set so the arrow shows `¿?`
-  instead of the noun) and the dialogue says her question (`guide.review.ask`: `¿Qué es esto?` in three wordings; a host line outside the replay
-  record, CR-015). The words are tried in due order: one with no example in range is skipped for the next. The player's next understood line is
-  evaluated on the bundle prompt `guide-review` and a `name_object` in it is graded against **the pointed tile**, not the mouse cursor; a line the
-  guide does not understand leaves the question open. If nothing is due the greeting is unchanged and nothing is pointed.
-- Known gaps: `arbol` without the accent is read by the core as the noun with no error, so it counts (checked by a test); a bare noun with no
-  article (`arbol`) is not a sentence and no intent takes it.
+`ChunkMesher` (Frontend, no engine type) turns each 16 x 16 x 16 chunk into quads: a cube face is emitted unless the block next to it is an opaque
+cube (or the same kind of transparent block: leaves against leaves, of any tree; water against water), so a block shut in on all sides has no face. **The light (S14)
+is in the vertex colours**: each face is shaded by the sun, which stands high in the north-west (`ChunkMesher.SunDirection`; the sky's square sun is drawn there),
+so the top is full and warm (a tint of 1.0, 0.98, 0.92), the west and north faces about two thirds of the way to it, and the east, south and bottom faces dark and
+blue (the shade fills with sky); and every cube vertex is darkened by its **ambient occlusion** (0 to 3 of the three blocks that touch the corner: a vertex keeps 1.0, 0.82,
+0.66 or 0.5 of its light), the quad's diagonal turned to follow the darker corners. Stone is also tinted by height (`RockTint`: warm and earthy at the foot of the
+mountains, grey in the middle, cool on the peaks). The mesher reads the chunk and a border of one block once into an array, so the occlusion costs no more than a block lookup.
+Each chunk gives three meshes: the **opaque** one (cubes, leaves and bushes: their pictures have cut-out pixels), the **plants** (the undergrowth as two crossed quads, a stable
+pick by position when the preset builds only a share) and the **water**, which goes into a second mesh drawn after the opaque faces, chunk by chunk from the farthest
+to the nearest, reading but not writing depth, with its surface a sixteenth lower. The water's top face takes its picture by depth (a lighter, clearer one over the shallow bed, a
+deeper blue over deep water) and its transparency per corner (clearer where a solid block touches it), so the sand shows through at the shore; a column of water that falls
+(water above it, air beside it: the waterfall) shows the streaky foam picture, unshaded. The bush, the berry bush, the torch (a stick with a flame; the flame is the prototype's light),
+the open door and the fence are small shapes of their own. **The atlas** is `BlockArt` plus `BlockArtNature` (S14): 16 x 16 pixel art per cell (8 columns, 7 rows of colour cells, and below
+them a grey copy of each cell, the luma from `Greyscale`), drawn in code from a fixed integer hash and fixed palettes (CC0 by construction, no picture file): grass top and
+side (the green bleeding over the dirt), dirt, stone, mossy stone, cobble, snow top and side, sand, the gravel path, the bark and the rings of the oak, the spruce and the birch,
+planks, three kinds of leaves with cut-out holes, the bush, tall grass, ferns, reeds with cattails, a yellow and a white flower, shallow and deep water and the waterfall. The village's
+cells (the stall, the houses, the signpost, the workbench) and the item icons were redone in S15 (`BlockArtVillage`: timber, lantern, crates, chest, the red and white awning, canvas, farmland, wheat, the bread, apple and bottle piles, the five boards of the signpost in a 3 x 5 pixel font, the faces, cloth, skin and hair of the figures, the backpack and the torch icon; the atlas grew to 12 rows of colour cells). The texture is made with its mip chain (`BlockArt.MipLevel`, each
+level averaged cell by cell so no level ever mixes one cell with the next, and with the colours weighted by alpha so the leaves do not darken) and sampled with `PointMipLinear`: crisp
+pixels close up, smooth and in the right colours far away, no shimmer. `VoxelRenderer` uploads one vertex buffer per chunk and mesh and draws with MonoGame's own effects (no custom shader:
+`mgfxc` needs Wine on Linux): `AlphaTestEffect` for the opaque faces and the plants (texture times vertex colour, the cut-out pixels dropped at alpha 110, fog in the haze colour) and `BasicEffect`
+for the water and the small overlays. The order is the sky (`SkyRenderer`: a dome with a gradient from deep blue overhead to the pale haze at the horizon, which is the fog's colour, so the far mountains
+fade into haze instead of ending in a wall; a square sun with a stepped glow; and a layer of flat blocky clouds from `CloudField`, a hash of the grid cell, drifting east with the tick, melting into the haze
+with distance), then the opaque chunks, the plants of the chunks near the eye with no back-face culling, the figures and the highlight, the water and the beacon. At the scale of the 384 x 384 x 128 world (S13) the renderer meshes and draws only
+the chunks within the quality preset's view distance of the eye (`ChunkViewSet`, nearest first, rebuilt when the eye changes chunk or a block is edited): a chunk of air is never in the set,
+a chunk full of opaque blocks all round is skipped without meshing (`ChunkMesher.IsBuried`), the meshes are built on the main thread to a time budget a frame (in-frustum chunks first, so the view fills nearest and visible first; a scripted run builds everything it needs before the picture),
+and a mesh is let go when its chunk is more than two chunks beyond the view. The chunks drawn are culled against the camera's frustum. It meshes again a chunk whose version changed (`ChunkVersionTracker`: the chunk's own `Version`, plus a signature
+of the layer of each neighbour that touches it, so an edit in the middle of a chunk rebuilds one chunk and an edit on an edge rebuilds the
+neighbour across it; the occlusion at a chunk's corner looks at the diagonal neighbour too, which the signature does not track, so a corner vertex can keep a stale shade until its chunk is meshed again). Triangles run counter-clockwise seen from outside and the renderer culls clockwise ones. The NPCs are figures of textured boxes
+(`NpcFigures`, `FigureMesher`: the atlas's cloth, skin and hair cells tinted by the part, a face on the head, shaded with the blocks' sun table) at the scene's NPC placements. Each frame the mesher
+rebuilds a figure into one reused buffer (no allocation) from its pose (`FigureAnimation`: idle, talking, walking), and `FigureFacing` turns a figure in a conversation to the player. Their names hang over their heads
+(`NpcLabelLayer`, hidden when a solid block is in the way, and for the speaker, who has the bubble). `FirstPersonCamera` builds MonoGame's view and projection from `CameraBasis` (the same
+vectors as the simulation's look vector, and MonoGame is right-handed with a camera looking down -z, so x east, y up, z south need no flip);
+`ScreenProjection` is the same camera as plain maths for the labels and the beacon's arrow. **`--greyscale` (D-game-6)** keeps its meaning: a block whose noun is not known is drawn
+from the grey copy of its cell, a block no noun names stays in colour. The new trees are named by `árbol` and the new rock by `piedra` in `nouns.json`, so they go grey and regain colour with their words;
+the undergrowth, the snow and the bushes are named by no noun and stay in colour, as the bush always did.
 
-## One turn, step by step
+**The camp objective and the word cards (S4).** The checklist (`ObjectiveLayer`, top right) reads `Campamento: madera 5/5 · frutas 3/3 · antorcha
+1/1 · agua 0/1`: a done step in green, an open one in white. Each step that completes shows a toast (`Done: frutas 3/3`), and the whole checklist
+its own (`Campamento completo`). The first time an item enters the inventory (a pickup, a craft) its word card goes up (`WordCardLayer`, above the
+hotbar): `New word`, the noun with its article (`la antorcha`), and an empty slot where the audio comes with S9; it stays for five seconds
+(`WordCardQueue`, one at a time, by ticks). Pickups do not toast any more (the hotbar counts them; a toast each would queue behind the checklist).
 
-1. `GameSession.Say` builds a `GuideScene` (the player's centre tile, the cursor tile, whether an arrow is out) and the stored time
-   (`StartedAt + Tick / 60`, fixed start `DefaultStartedAt`; nothing reads the clock). The host state hash handed to the core is the
-   simulation's state digest (`ComputeStateDigest()`), not the core's default one.
-2. `NpcService.Say` reads the line once (`Analyze`, CR-017: the verdict and the words) and completes the analysis in the NPC's context (`Complete`);
-   the guide completes it twice, purely: once to see the host events. The host's facts for the line (`place`, `direction`, `count`, `unit`, `target`) and the learner skills of the catalogue nouns the
-   words are read as (`word.<lemma>`, CR-005) are then passed in `ConversationContext.Create(..., hostSlots, extraSkills)`, so the replay record
-   holds them and the learner is updated once. Their digest is `HostDigest.Of` (the simulation digest with the slots and skills, the core's
-   contract); with neither, the context keeps the bare simulation digest. Only the second result is used; `carried.Next(result, now)` carries the guide's state, the learner
-   model and the repeat counts. The repeat counts are the carried ones: the core adds this utterance's repeats itself (CR-012, core M26a).
-3. The response lines split into the correction (`IsRecast` or a `feedback.*` pool) and the guide's reply (the agent's pool). The host events come
-   from `Decision.Agent.Actions`.
-4. For `guide.point` the game finds the nearest tile of the noun in the verdict's slot `place` and renders `guide.point.found` ("El árbol está a la
-   derecha, a doce bloques."); for `guide.identify` it names the cursor tile (`guide.identify.found`); for `guide.help` it picks `guide.help.ask`
-   or, with an arrow out, `guide.help.walk`.
+**The crafting panel (S4).** `CraftingLayer` lists the bundle's recipes (`CraftingScreen.Rows` over the 3D simulation): the output's icon and word,
+each ingredient as `have/need word`, the station (`Uses mesa`, or `By hand`) and a status: `Make` when it can be made here, else `Missing material`,
+`Needs mesa` (the workbench is not within 6 blocks) or `Inventory full`. A click on a row queues one `Craft` command for the next tick (the same
+command a script sends), so a craft is deterministic. Opening the panel counts each shown word as read once.
 
-The game's own line is still **rendered by the game** (CR-003 adopted in part, core M26d; CR-016 open): the core cannot choose its template,
-because a transition is chosen by the verdict alone and a template that names a slot the host did not supply fails the whole evaluation. The
-three cases (`guide.point.found`, `.here`, `.none`) therefore stay three game renders with `bundle.TemplateEngine` from the bundle's dialogue
-pools. Their inputs are host slots of the second evaluation, so the replay record holds them. The variant is drawn from the core's
-`SeededRng.ForInteraction(worldSeed, "guide.host", counter)`, so it is a pure function of the seed, the world and the interaction counter.
+**The screens over the scene.** The hotbar, the toast, the inventory screen, the book and the crafting panel draw over the scene; `FrameView`
+carries the `VoxelSimulation`, the first-person camera, the beacon, the figures, the block atlas (`VoxelIcons`, full colour), the `Objective`, the word
+cards and the viewport size. New layers: the crosshair with a gather bar, the NPC labels, the beacon's label and
+edge arrow, and the 3D debug overlay.
 
-## Why the guide is here and not in the simulation
+**The guide (S3).** The turn worker starts with the game (typed and spoken, the loading screen until Vosk is ready), with a `VoxelSession` (in
+`Vocaterra.Game`, the shared part is `GuideSession`) over the scene's blocks: `WorldFacts3D` answers "where is it" with the nearest block of a noun,
+its direction from the facing and its distance in blocks. The panel (`DialogueModel`, `DialoguePanel`) is in the layer list; **E** (or **T**; **V**
+talks) opens it when the crosshair is on an NPC's figure, the guide's, the shopkeeper's or the villager's since S6 (`FigureAim` on the figure's chest, reach 8 blocks, no block in between through
+`NpcLabelLayer.Occluded`; the hint `E: talk` is `TalkHintLayer`). The panel takes the keyboard, the mouse is released and no walking happens while
+it is open (the keys are in the S7 paragraph below). The arrow of the session is the beacon: `SyncBeacon` puts `Beacon.Set` on the pointer's
+block (a review question shows `¿?`), and the beacon's own reach takes the arrow down. "¿qué es esto?" uses `VoxelSession.AimedCell`, the block under
+the crosshair (`sim.Target`). `--talk` and `--say` are `ScenarioScript` steps: a `VoxelScript` walk to the stand-off cell of the NPC, a look at it, then the panel opens (the
+NPC's host turn, or the guide's review question when one is due), each line is typed and sent, and the script waits for the turn to be applied. The
+signpost's words are on its boards (S15), so the `WorldLabel` over it is gone.
 
-The guide's position is a pure function of the generated world (`GuideNpc.Place`); she does not move or collide yet; and her conversation state
-belongs to the agent state machine in the context. Putting her in the simulation would add a record to its state digest and to the saves for
-nothing that ticks. When characters move, collide or are saved (the innkeeper, G3), they become entities of the simulation.
+**The shoulder view, the arm and the glow (S15).** `ViewModeState` holds the camera mode (first person at the start; **F5** flips it; `--third-person` starts in the shoulder view;
+the save moved to **F6**). In the shoulder view `ThirdPersonRig.Eye` puts the camera 3.4 blocks behind the head, 0.4 up and 0.55 to the right, walking the ray in 0.1-block steps and stopping a quarter of a
+block short of the first solid cell, and `VoxelRenderer.DrawWorld` draws the player's own figure (`PlayerAvatar`: the feet, the facing, the stride of the distance walked, the pitch for the head). In first
+person it draws the arm last, over a cleared depth buffer so it never sinks into a wall: `ArmMeshes` builds the sleeve, the cuff and the hand once (boxes of the cloth and skin cells, shaded by face, no
+outline) and the item the hand holds (`HeldItems.For`: a log, a torch with its flame drawn unlit, a bottle, a flat berry or loaf); the world matrix places it at the bottom right and applies
+`ArmMotion` (a sway while walking, a chop while `GatherProgress` grows, a dip for `ArmMotion.PlaceTicks` after a place command), and `ArmLight` tints it by the cover above the head and the lanterns and torch
+near it (the `DiffuseColor` of the alpha-test effect). Lanterns glow because `VoxelRenderer.FindLights` collects the lantern blocks (only the chunks whose kind mask holds one are searched) and
+`ChunkMesher` warms and brightens the vertices within `GlowRadius` (7 blocks) of one, with a falloff by the square of the distance and the most on faces that look at the lantern; `--dusk` gives
+the glow full strength and dims the sun. A lantern is a small unlit glass box (`BlockShape.Lantern`) and the stall's goods are low boxes (`BlockShape.Pile`).
 
-## The wider world of things (P6)
+**The HUD of S15.** `RecipePanelLayer` (model: `RecipePanelModel`, from the same crafting rows as the recipe book) shows the workbench's recipe at the right while the bench is in reach and no other panel is open;
+`DialogueBubbleLayer` hangs the speaker's newest line over its head (`DialogueBubble.Place` keeps it in the window and the pointer on the head); `DialoguePanel`, the hotbar and the panels use
+`DrawHelpers.RoundedPanel` (pixel-art rounded corners).
 
-- The catalogue now names the surface materials and the placed blocks: `arena` (sand), `flor`, `seta`, `madera` (planks; the item is wood), `puerta`,
-  `mesa`, `silla`, `cama`, `caja`, and the tools `hacha` and `pico` (items only). `tierra`, `piedra` and `hierba` are unchanged. `seta` is
-  new in `lexicon/world.json` (feminine, singular and plural).
-- `WorldFacts.NounOfTile` and `TilesOfNoun` cover every new tile, so the guide's "¿dónde está la arena?" points at sand and "¿qué es esto?" names
-  it. `WorldFacts` still says nothing about items: the guide's crafting and "where does it come from" answers are P6b.
-- `NounCatalog.ForItem(ItemId)` gives the noun of an item, `NounEntry.Mass` and `NounEntry.Sources` the two new fields;
-  `WordProgress.SaturationOf(ItemId)` colours an item by its noun, so the inventory and the hotbar use the same rule as the tiles.
-- Words added to the CEFR lists: none. `cefr-check` checks dialogue templates only, and no template uses the new nouns yet.
+**The flame of the torch.** The torch placed on the fire ring's rim (`antorcha` at `21,12,21` in the bundle's route) stands above the one-block
+ring, so its flame shows from the camp. A torch in the ring's centre would sit below the stones' top and be hidden from ground level, which is why
+the objective counts the rim (`VoxelSession.AtFireRing`: the three-by-three square of the ring, on its layer or on top of a stone).
 
-## Crafting and the guide's crafting answers (P6b)
+**The speech UX (S7).** The panel opens on its speech buttons (`SpeechButtons`: `[R] Repetir`, `[S] Más despacio`, `[H] Ayuda`, `[N] No sé`,
+`[W] Escribir`, and the offered choices `[1]` to `[3]`; `DialogueLayout` is the one layout the drawing and the mouse hit-test share, as `CraftingLayout`
+is for the crafting panel; `SpeechActionRunner` carries a press out and raises its voice event; `ILinePlayer` is the hook S9 fills to play the NPC's
+line again, `SilentLinePlayer` until then). Hold **V** or **Space** to talk (Tab no longer holds push-to-talk: it opens the text box with W); in the text
+box Enter sends and Tab or Esc return to the buttons. **Esc** undoes the newest thing: a recording, a turn that is "Thinking…" (`TurnWatchdog`'s five seconds of the
+frame clock offer typing, `¿Escribes?`, with the Escribir button focused), the text box, and last the panel. `DialogueModel` holds the persistent
+`Heard: «…» · Expected: «…»` line (`HeardLine`, from the phrase sheet) and the choices; `MicCheckModel` and `MicCheckLayer` are the mic-check screen (a live
+level meter from `PushToTalk.LastLevel`, `Say "hola"`, what was heard, pass, retry or skip). `--mic-check` forces the screen, `--no-mic-check` skips it, and a
+scripted run skips it unless asked (then the worker hears a synthesized "hola"). `--speak` and `--wav` are `ScenarioScript` steps like `--say`.
 
-- `game/recipes.json` holds the recipe table of plan section 4.3 (numbers in the file only); `GameSession.Recipes` loads it and hands `Rules` to the
-  simulation. `game/nouns.json` gained `horno`, `cristal` (mass), `ladrillo`, `espada`, and a `sources` entry for every material: `madera` from
-  `árbol`, `piedra`, `arena`, `tierra`, `flor`, `seta` from themselves. `lexicon/world.json` gained `ladrillo`.
-- **`ask_craft`** ("¿cómo hago una mesa?", "¿qué necesito para una puerta?", "¿cómo se hace un horno?", "quiero hacer una silla"; slot `item`): host
-  event `guide.craft`, state `talking`. The world line is up to three sentences from the bundle's `guide.craft.*` pools: the ingredients with
-  their numbers (a mass noun counted with "bloques de"), the station ("Usa la mesa.") or "No necesitas nada más.", and what the inventory lacks
-  ("Te faltan cinco bloques de madera." / "Te falta un bloque de madera." / "¡Ya lo tienes todo!"). An item with no recipe, or a noun that is not in the
-  catalogue, gets "Eso no se hace."
-- **`ask_find`** ("¿dónde hay arena?", "¿dónde encuentro madera?", "¿de dónde sale la madera?"; slot `material`): host event `guide.find`, state
-  `pointing`. When the player carries the material the line says so ("Tienes tres bloques de madera.", no arrow). Otherwise, for a material
-  that comes from something else (`madera` from `árbol`) it says where it comes from ("La madera sale de los árboles.") and then the nearest source
-  with the P3 line and arrow; a material that is its own tile (`arena`) gets just the nearest tile. **"Dónde hay" moved here from `ask_directions`**
-  (the two grammars cannot share it): `¿dónde hay piedra?` is `ask_find` now, with the same arrow.
-- **`ask_directions` for a thing the player carries** with no tile in the world ("¿dónde está el hacha?") says "Tienes un hacha." (P6 said "Aquí no hay un hacha").
-- The scene carries the inventory (`GuideScene.Inventory`); `GameSession.Say` fills it from the simulation. The facts of the answers are host slots of the
-  second evaluation (`thing`, `need`, `station`, `lack`, `source`, plus the P3 ones), so they are in the digest and the replay record. The line is the
-  game's render from the bundle's pools (CR-016) and each ingredient part is rendered and joined by the game (CR-018: a template cannot list).
-- Words added to the CEFR lists: none. Words in the new lines that `cefr-check --level a1` does not find in the A1 list: `faltar`/`falta` and
-  `nada` (both are in the A2 list; `cefr-check --level a2` is clean for the new lines). They are in the brief's wording; the owner may want them in the A1 list.
+**Not in 3D yet:** the Alt-accent shortcuts of the panel (typed `é`, `ñ` and the
+others come through the platform's text input).
 
-## Caves, ores and the torch (P7)
+**Where the pieces are:** `VoxelGame.cs` (the host: the worker, the panel and its keys, the beacon, the crafting panel, the objective, the script),
+`HudLayers.cs` (`ObjectiveLayer`, `WordCardLayer`), `CraftingLayer.cs`, `VoxelTalkLayers.cs` (`TalkHintLayer`, `WorldLabel`, `WorldLabelLayer`),
+`VoxelLayers.cs` (the crosshair, the NPC labels, the beacon arrow, the debug overlay), `Frontend/FigureAim.cs` (the crosshair test, plain
+maths), `Frontend/VoxelScript.cs` (the step machine over ticks: look, walk, interact, place, select, craft), `Frontend/VoxelSayScript.cs` (the
+`--say` state machine), `Frontend/WordCardQueue.cs`, `Frontend/CraftingScreen.cs` (the panel's rows and layout) and `Frontend/SceneLocator.cs` (the
+bundle's `game/scene.json`, or `--scene`).
 
-- **Catalogue** (`game/nouns.json`, hand-authored, in the content hash): `carbón`, `cobre`, `hierro`, `oro` (mass; tiles `coal-ore`, `copper-ore`,
-  `iron-ore`, `gold-ore`; items `coal`, `copper`, `iron`, `gold`; `sources` are themselves, so `ask_find` answers "¿dónde hay hierro?" with the
-  nearest ore), `antorcha` (tile `torch`, item `torch`), `lámpara`, `cubo`, `anillo` (items `lamp`, `bucket`, `ring`, no tile). `hierba` now also
-  names `tall-grass`. A new `"deep": true` flag marks the ores: when the guide's search finds none, it says "Está muy abajo." (pool
-  `guide.point.deep`) instead of "No veo …". `NounEntry.Deep` carries it.
-- **World facts** (`WorldFacts`): `carbón`, `cobre`, `hierro`, `oro` name the ore tiles, `antorcha` the torch, `hierba` the grass and tall grass;
-  `NounOfTile` is the inverse. The guide's search reads the turn's snapshot (radius 96) out to `WorldFacts.DefaultRadius` (64) on each axis, so
-  an ore that is not within 64 tiles of the player counts as "muy abajo".
-- **Recipes** (`game/recipes.json`, data only): `antorcha` by hand from `madera` 1 and `carbón` 1, four per craft; `lámpara` at the `mesa` from
-  `hierro` 1 and `cristal` 1; `cubo` at the `horno` from `hierro` 3; `anillo` at the `horno` from `oro` 2. The guide's `ask_craft` answers them like
-  any other recipe ("Para un cubo necesitas tres bloques de hierro. Usa el horno.").
-- **Single-word nouns**: the new ones are `carbón`, `cobre`, `hierro`, `oro`, `antorcha`, `lámpara`, `cubo`, `anillo`. `lexicon/world.json` gained the
-  noun readings with gender and plural that the bundle lacked: `carbón` (m, carbones), `cobre` (m, cobres), `cubo` (m, cubos), `lámpara` (f,
-  lámparas); `hierro`, `oro`, `antorcha`, `anillo` were already in `seed.json`.
-- **CEFR**: `abajo` added to `cefr/a1.txt`, because the new line "Está muy abajo." is template text and `cefr-check --level a1` reads it (`abajo`
-  is in the A2 list already, so this is the one A1 addition, and the owner may want to review it). `lámpara` and `anillo` are in the A2 list
-  already; `carbón`, `cobre`, `cubo` are in no CEFR list. They appear only in slots, recipes and catalogue entries, which the check does not read,
-  so no list was changed for them.
-- **Out of scope in P7**: metal tool tiers ("pico de hierro", "hacha de hierro"). A multi-word noun would need the `[NOUN]` slot to bind two tokens,
-  and the tool is one item kind per tier; both belong to a later milestone. The metals get a use through the three recipes above.
+## Architecture
 
-## Rules this layer keeps
+```
+Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or FontStashSharp appears here), tested without a GPU
+  TickAccumulator   real frame time -> whole ticks; integer micro-ticks, cap of 5 steps per frame, surplus dropped; Alpha for interpolation
+  IFrameClock       RealFrameClock (Stopwatch) and FixedFrameClock (one tick per frame, for --screenshot); the only timers in the project
+  LookControl       the look (yaw and pitch in angle steps), mouse look, the camera ease over a step-up
+  LiveVoxelInput    the device state of a tick as VoxelCommands (walk, jump, gather, place, the hotbar)
+  VoxelScript       the --look, --walk-to, --interact, --place, --select and --craft steps over ticks
+  ScenarioScript    the scripted run: the body's steps, --talk (walk to the stand-off, settle, open the panel), --say (type, send, wait for the reply), --leave, --shot
+  ChunkMesher, MeshVertex, BlockAtlasLayout, BlockArt, BlockArtNature, ChunkVersionTracker, NpcFigures, FigureMesher, FigureAnimation, FigureFacing, BlockArtVillage, ViewModeState, ThirdPersonRig, HeldItems, ArmMotion, ArmLight, ArmMeshes, RecipePanelModel, DialogueBubble, OverlayMeshes, ViewMath, PointLabels, FigureAim
+  SkyPalette, CloudField, CloudBox   the sky's colours (and the fog's) and the flat clouds as plain maths (S14)
+  QualityPreset     the view distance, the plant distance and share, the occlusion and the clouds of low, medium and high
+  CountBadge        the stack count on an opaque dark plate (contrast tested)
+  CraftingScreen    the panel's open state, its rows (CraftingRow) and the layout that drawing and clicks share (CraftingLayout)
+  DialogueModel     the panel as state: open or closed, the text box, the lines, a request to send; Submit shows the turn's lines
+  PushToTalk        the push-to-talk state over an ISpeechCapture (the device): Begin, Pump (collects, caps at 8 s), End (a trimmed 16 kHz clip or null)
+  TurnPump          Submit (the typed line and the spoken clip to the worker) and Apply (the finished turns, in order, to the session and the panel)
+  Journal           JournalRows (every catalogue noun: label, counts, pips, saturation; the nouns page builds on them)
+  Book              BookModel (open or closed, the five pages, the scroll; opening counts a read), BookTabs (the labels and their order), BookGeometry (the panel,
+                    the tabs and the lines at a viewport size: a click lands on the tab drawn there), BookScroll, BookPages (what each page lists: nouns, verbs,
+                    phrases, lessons, what I said, as BookLine values), VerbLabels (the English of a verb form from person, number, tense and mood)
+  PhraseJournal     PhraseJournalRows (every phrase of the sheet: Spanish, English, support level, counts)
+  ConversationLayout  (S22) the layout of the conversation screen: from the window, the speaker's projected head rectangle, the bubble, the panel and the cards (new-word toast,
+                    support cards, key words, the audio-only chip; newest first) it gives each card a rectangle, collapsed to one line or hidden. The cards stack in a column beside the
+                    head and the bubble (or in the strip under them), whole while they fit, then the older ones as one line; no card overlaps the head, the bubble, the panel or another
+                    card (tested at 1280 x 720 and 800 x 600). It also reserves the facilitator's F10 label (top left). ConversationFrame computes it for a frame; SupportLayer,
+                    DialogueBubbleLayer and WordCardLayer draw their pieces where it says. ConversationCards holds the card sizes and the head rectangle
+  SupportLayout     the sizes of the support cards, the audio-only chip and the key-word cards (S8; their places are ConversationLayout's since S22)
+  SupportFrontend   plays the session's audio cues through the line player, adds the shopkeeper's opening after the key words, words the console's phrase lines
+  InventoryScreen   the 40-slot screen (I or E): open, close, the lemmas it shows (counted as read once per opening)
+  Toasts            ToastQueue: lines shown one after another for 240 ticks each, by the simulation's tick (no clock)
+  WordCardQueue     the word cards: one at a time, 300 ticks each
+  TextEntry         the dialogue panel's text box: insert (Spanish letters and marks included), backspace, delete, caret, limits; AccentShortcuts
+  InputFocus        who has the keyboard (the panel, the book, the inventory, the crafting panel); KeyRepeater counts auto-repeat in frames
+  VoxelDebugText    the overlay's lines (FPS, tick, the pose, the target block)
+  SceneLocator      the bundle's scene file or --scene
+  FrameStats, BusyFrameStats, FrameClock (the frame numbers the overlay and the screenshot run print)
+(root)       the MonoGame wiring
+  Program           parses the command line, loads the bundle and the scene, runs VoxelGame, returns its ExitCode
+  VoxelGame         Game subclass: clock -> accumulator -> poll input -> Step the session (the simulation, the objective, the word cards); draw the world, then the layers
+  FrameView         what a layer may read for one frame (session, simulation, camera, viewport, fonts, the pixel, icons, objective, cards, mouse)
+  IFrameLayer       "draw after the world": the layers listed above, in the order VoxelGame adds them
+  HudLayers         ObjectiveLayer (the checklist) and WordCardLayer (the word card)
+  CraftingLayer     the crafting panel (C, or E at the workbench)
+  HotbarLayer, InventoryLayer, BookLayer (S20: the book drawn in code, its tabs, lines, icons, pips and scroll), ToastLayer, DialoguePanel, LoadingLayer
+  VoxelRenderer     the chunks: one vertex buffer per chunk and mesh, AlphaTestEffect and BasicEffect, the frustum, the re-mesh on a changed version
+  SkyRenderer       the sky dome, the sun and the clouds (S14)
+  VoxelLayers       the crosshair (with the gather bar), the NPC labels, the beacon's arrow, the 3D debug overlay
+  VoxelTalkLayers   the talk hint, the world labels (the signpost)
+  FirstPersonCamera the eye, the look and the projection (MonoGame's matrices from the simulation's vectors)
+  BlockAtlas        the block atlas texture and the item icons (IItemIcons)
+  MouseLook         the relative mouse through SDL (MonoGame 3.8 has no switch for it)
+  MicrophoneCapture MonoGame's Microphone as an ISpeechCapture (the only capture code; DesktopGL/OpenAL, 44.1 kHz mono, converted by AudioClips)
+  FontProvider      FontStashSharp over assets/fonts/PixelOperator.ttf
+  AssetPaths        the committed font's path
+  DrawHelpers       rectangles, borders, shadowed text over the 1 px texture and the font
+  ScreenshotWriter  back buffer -> PNG
+```
 
-Packages only; no engine type; no `System.Random`, clock, `Stopwatch` or `DateTime` (a test scans the sources); the stored time and the world seed
-come from the game; dictionaries that reach output are ordinal. The tests are in `tests/Vocaterra.Game.Tests`: guide turns on seed 42 with the
-fixed stored time (verdict, state, host event, target tile, world line, accent-less input, the repair path, determinism), `WorldFacts` tie-breaks,
-the guide's bundle content and the architecture rules. P4: `NounCatalog` (coverage of every tile, genders, articles and plurals, the
-readings of an unaccented form, the parse errors), `WordProgress` (three uses in three turns, thirds, one credit per turn, the article rule,
-the not-communicated turn, heard, read, the credit setting, determinism) and the real core on `es un árbol`, `la árbol` and `es un arbol`. P6b: `RecipeBookTests` (the table, catalogue coverage, stations, malformed files) and
-`CraftingGuideTests` (the intents, every answer branch through the real core, the carried line, determinism, the new pools). P7: `OresAndTorchTests`
-(each ore is a mass catalogue noun with its tile, item and source; the torch and the metal recipes and their stations; "¿dónde hay carbón?" points,
-"¿dónde hay oro?" says "Está muy abajo.", the carried coal is "Tienes dos bloques de carbón.").
+The frame is: `Update` reads the clock, reads the keyboard and the mouse once (the panel's keys, the crafting clicks), the accumulator returns 0 to 5
+ticks, and for each tick the commands are built (the script's or the device's, the queued crafts, the look first) and given to `VoxelSession.Step`
+(the simulation's step, then the objective and the word cards from its events). A line the player sent (Enter, a released push-to-talk key, or the
+script) is handed to the turn worker at the end of `Update`, after the tick loop and never inside a step; the frame goes on, and the start of a later
+`Update` applies the finished turns in the order they were submitted (evaluation runs on one dedicated thread that owns Vosk). While the models load
+the loading screen shows and the world does not step. `Draw` interpolates the eye between the last two ticks (`Alpha`), moves the camera, clears to
+sky, draws the chunks and the figures, then every layer. The clock never reaches the simulation: it sees only the commands.
+MonoGame's own fixed-step timer is off (`IsFixedTimeStep = false`) and MonoGame's initial extra `Update` is skipped, so a frame is one `Update` plus
+one `Draw`.
 
-## The camp objective and the word cards (S4)
+## Demos (S4)
 
-`Objective` (`Objective.cs`) is the checklist `Campamento`: `madera` 5, `frutas` 3, `antorcha` 1 (placed at the fire ring), `agua` 1 (the host
-event `objective.water`, which `VoxelSession` raises when the bottle is filled at the water, S6). It moves only on events: `RecordPickup(item, count)` for wood and berries,
-`RecordTorchPlaced(atFireRing)`, `RecordHostEvent(name)`; each returns the steps that this call completed. `Summary` is the line the HUD shows.
-`VoxelSession.Step` feeds it from the tick's events; `VoxelSession.AtFireRing` decides the ring. The first time an item enters the inventory the
-noun is counted as heard and read (`WordProgress.MarkHeard`, `MarkRead`) and its `WordCard` (`la madera`) waits in `TakeWordCards()`; a card is
-never a quiz and never a use.
+The camp, from the spawn (seed 42, `DISPLAY=:0`): gather two berries at the spawn, one more berry, five trunks, craft the torch at the workbench,
+place it on the fire ring's rim and look at it. The console prints each step and the checklist reads `3/4`; the screenshot shows the HUD and the flame:
 
+```
+dotnet run --project src/Vocaterra.MonoGame --no-build -- --seed 42 --interact 17,11,15 --interact 15,11,19 \
+  --walk-to 17,20 --interact 16,11,23 --walk-to 11,17 --interact 9,11,17 --interact 9,12,17 --interact 9,13,17 --interact 9,14,17 \
+  --walk-to 11,11 --interact 11,11,9 --walk-to 20,17 --craft antorcha \
+  --walk-to 20,19 --place antorcha@21,12,21 --walk-to 22,19 --look 180,-15 --screenshot s4-camp.png
+```
 
-## Phrase progress and fading scaffolds (S8)
+## Tests
 
-`PhraseProgress` (`PhraseProgress.cs`) keeps one `PhraseRecord` per row of the phrase sheet (the 11 rows of `game/phrases.json`) and is fed by
-`GuideSession.Log` from every `PhraseUse` (`GuideSession.PhraseProgress`). The mapping, which `PhraseProgressTests` pin: `Supported`, `Unaided` and
-`Transfer` uses add the credit of the input (spoken a full use, typed half, `CreditRules`, in units of `WordProgress.UnitsPerUse`; a typed use
-shows as `0.5`); a communicated use with a mistake (`PhraseUse.Correct` false) is a slip and counts nothing; `Choice` adds a choice-only use
-(recognition, no production credit); `DontKnow` adds one to each phrase in play (`PhraseUse.InPlay`, the prompt's phrases) and the service phrase
-itself (`no-se`, `ayuda`) counts as an unaided use when typed or said; `FailForward` adds one. **A use is `Supported` while help is on offer**
-(the card or the audio of its level, or the model just shown after Ayuda or "no sé") **and `Unaided` once the level is `None`**; after the
-objective a taught phrase used with another NPC is a `Transfer` (the guide's offer shows no card); the guide's review answer is `Unaided` unless
-Ayuda was asked first.
+`tests/Vocaterra.MonoGame.Tests` (no GPU, no window, no microphone): the first-person camera (the look vector, MonoGame's view matrix, the plain
+projection), the mesher and the block atlas (faces, winding, shade, UVs, every chunk of the route within the 16-bit limit), the look of S14 (`LookTests`: the code-drawn atlas and its mips, the sun and the ambient occlusion in the vertex colours, the crossed-quad plants and their share, the water's shore and the waterfall, the sky, the clouds, the quality presets and the greyscale switch with the new trees and plants), the beacon's arrow, the
+figure aim, the voxel script steps against a real simulation (walk-to, interact, place, select, craft, the tick limits, determinism), the
+`--talk` / `--say` / `--leave` / `--shot` script (`ScenarioScriptTests`: walk to the stand-off, open, type, send, close, determinism) and the NPC panel (`NpcFrontendTests`), the launch options (`VoxelLaunchOptionsTests`: the steps in order, the screen
+flags, the refusals, `--voxel` accepted and ignored), the word card queue (one at a time, by ticks), the crafting panel's rows, layout and reads,
+the dialogue model and its key repeat, the text box and the accent shortcuts, the push-to-talk state over a fake device, the turn pump against a
+real worker, the accumulator (exact ticks, uneven frames, the cap), the font (every character of the panel's, the HUD's and the bundle's texts is in
+the committed TTF, with the middle dot `·`), and the architecture rules (no engine type in `Frontend/`, no `System.Random`, clock or `Stopwatch`
+outside `FrameClock.cs`, project references only the game layer and the simulation, no engine code in the simulation, the game layer or the host).
 
-The support level (`SupportLevel`: `EnglishAndCard`, `CardAndAudio`, `AudioOnly`, `None`; S16 added the first rung, see "English and the lessons (S16)" below) steps down after a *credited* correct use: credited means the phrase has
-no credited use yet, or the D-game-6 gap (10 minutes after the first, 1 hour after the second and later) has passed since the last one, or the
-play session changed; a credited use adds its units toward one full use, which steps the level down (a spoken use steps at once, a typed one at half
-credit needs two). An early correct use is counted and logged and does not step. "No sé" or Ayuda, a choice and a fail-forward step the level up
-one and clear the credit toward the next step. Only the taught phrases (`PhraseIds.HasScaffold`: `pedir-agua`, `si-por-favor`, `no-gracias`,
-`donde-esta-el-rio`) have a level to move; `PhraseIds.FocusAt(prompt)` says which phrases a prompt asks for.
+## Notes
 
-`PhraseSupport` (`GuideSession.Support`) is what the panel shows for the prompt it is on: `Cards` (the sheet's card text broken into phrase,
-meaning and glosses, `SupportCard`) at `CardAndAudio`, `AudioOnly` (no card, the replay hook), nothing at `None` until Ayuda or "no sé" reveals the
-card, and the sounds to play (`TakeCues()`: the audio line of the phrase when its card appears or its prompt appears at audio-only; the front-end
-plays them through `ILinePlayer`, S9 makes them audible). A card that appears counts as shown (`PhraseRecord.CardShown`) and steps the NPC's
-learner skill `phrase.<id>` with `LearnerModel.StepSkills`; the turn passes `phrase.<id>` of the phrase used (and of the hears-row the prompt asked)
-through `extraSkills` when the line was understood and had no mistake (not for a choice, not for the service words). `OpenTalk(npc,
-teachKeyWords: true)` shows the key words `agua` and `pan` first (`KeyWordCards`, counted as heard and read, never a quiz) and runs the shopkeeper's
-question after `KeyWordTicks`; `TakeOpening()` returns it. The guide's due review (`BeginTalk`) asks a due phrase first (`PhraseReview`,
-`PhraseReviews`): the line is the bundle's pool `guide.review.phrase.<id with underscores>` when it exists, else a placeholder from an existing pool
-(the stall's own question for `pedir-agua`); the answer is evaluated on the phrase's own prompt (`GuideScene.PromptOverride`). What a save must keep
-(S10): the `PhraseRecord`s (`PhraseProgress.Records`, `Restore`), `PlaySession`, the carded nouns and the key-words-taught flag, and the NPCs'
-learner models (`phrase.*` skills).
-
-## English and the lessons (S16, D-game-13)
-
-English is on-screen text only; only Spanish is spoken. All of it is game content in the bundle, never code strings, and the core is not changed.
-
-- **The ladder** (`SupportLevel`, rules in the enum's remarks, pinned by `SupportLadderTests`): 1 `EnglishAndCard` (English under the Spanish card, with
-  its audio), 2 `CardAndAudio` (the English only on the help key), 3 `AudioOnly`, 4 `None`. A phrase with a scaffold starts at 1. A correct full-credit use
-  at rung 1 steps to 2 at once (no spacing gap, and it is the first credited use); rungs 2 and 3 step down on a credited use after the D-game-6 gap; two
-  typed half uses make one step; "no sé", Ayuda, a choice and a fail-forward step up one rung, never above 1. The help key (`PhraseSupport.Reveal`) shows the card
-  and the English at every rung (`PhraseSupport.EnglishUp`). The phrases with a scaffold are the four of `PhraseIds.HasScaffold` plus every phrase a lesson
-  teaches (`PhraseProgress` takes them as `scaffolds`; `HasScaffold(id)` is the instance question).
-- **`game/english.json`** (`EnglishText`): `ui` words, `npcNames`, `controls` (the F1 panel), `tips` (first-time tips: `when` is `start`, `aimed_npc` or a world
-  event name), `objective` and `nouns` (the bilingual camp line: `Campamento (camp): madera (wood) 0/5 · ...`, each English word dropped once its noun is
-  known, the title's once all are), `phrases` (a short English explanation per phrase, on the card at rung 1), `lines` (the English under each NPC line, by its
-  Spanish text without case, accents or punctuation; a templated world line has none) and `feedback` (plain English after a turn keyed by outcome and by the
-  core's `ErrorTags`, with `unknownError` as the fallback; `EnglishText.FeedbackFor(turn)`). It is checked at load and by `EnglishTextTests`: every outcome and
-  every core error code has a line, every speakable NPC line has its English.
-- **`TipFeed`** (`GuideSession.Tips`): the tips come one at a time for seven seconds of game ticks and never again; the saved game keeps which were shown, which
-  wait and which is up.
-- **`game/lessons.json`** (`LessonBook`, `LessonRunner`, `GuideSession.Lessons`): data-driven lessons attached to an NPC. A step has `id`, `type`, `english` and
-  optionally `help`, `retry`, `attempts` (1 to 5, default 2); the seven types are `explain`, `model` (`line`, `translation`), `listen` (`line`, `translation`,
-  `options`, `correct`), `repeat` (`phrase`, `prompt`), `answer` (`phrase`, `prompt`, `line`, `translation`), `do` (`event`, `detail`: a world event the game
-  raises, such as `item_picked_up`) and `recap` (`phrases`). `line` is a pre-rendered speech id (`phrase.hola`, `guide_offer_yes.1`); the file is checked at
-  load against the phrase sheet, the bundle's prompts (the prompt must allow the phrase's intent), the speech lines and the world-event names. A lesson
-  is offered at its NPC (`L` starts it) or, with `"autoStart": true`, starts at the first talk. **Rules:** every step can be skipped (`K`) and has a help path
-  (`H` or Ayuda: the English hint, the model line again, the card and the English); a `repeat` step keeps the card and audio up and counts a *supported* use of the
-  phrase, an `answer` step shows no card and counts as the guide's review does (*unaided*, *supported* after help); both are real turns at the step's prompt
-  (`GuideScene.PromptOverride`). A turn the core did not understand, an uncertain recognition or another phrase is an attempt that did not work, and after the
-  step's attempts the step moves on (`moved_on`, fail-forward, never a language failure, D-game-9); help and "no sé" are never attempts. Progress (`LessonsSave`,
-  `TipsSave`) is in the save; each step and its outcome is a `LessonEvent` (the console's `event: lesson ...` lines and the session log's `lesson` lines).
-  To add a lesson: edit the file, re-hash the bundle, run the tests (`LessonBookTests` loads the shipped file and checks that its WAVs exist).
-
-  **S17 additions.** A `do` step may carry `point` (a catalogue noun: the beacon goes to the nearest block of it when the step begins) and `hud` (the short line the
-  objective area shows while the step waits and the panel is closed). `LessonRunner.OnTurn` says whether the lesson *took* the turn (the core understood it):
-  `GuideTurn.LessonHandled` is then set on the copy the session returns (`GuideSession.AfterTurn`), and the guide's ordinary reply and world line are neither shown
-  nor played (`GuideTurn.GuideLines`, `DialogueModel`); help and "no sé" are the lesson's help path except in the step whose own phrase is `no-se` or `ayuda`.
-  `Otra vez, por favor` and `Más despacio, por favor` are intents (`ask_repeat`, `ask_slower`) of the guide's prompts; her state machine raises the host events
-  `guide.repeat` and `guide.repeat_slow`, and the session adds her last line (`LastLineOf`: her opening, a lesson step's line, or the last line of a turn the lesson
-  did not take) to the turn's follow-up, with `SlowFollowUp` set for the slow one so the front-end plays the slow recording. The credit of a phrase goes to the
-  phrase a step has in play before the fixed intent mapping (`Sí.` in the lesson, `Sí, por favor.` at an offer). Tips have a `delay` (seconds after their
-  trigger), so the opening tips come one at a time. `VoxelSession` adds the stage of the objective area (`SessionStage`: find the guide, the checklist, light your
-  fire, complete), the spare torch when the checklist is complete, the arrow to the player's own camp, the lit fire (a torch on the rim of the ring at
-  `firering.player`; the guide's ring still completes the checklist's torch step) and `SessionComplete`. The stage is worked out again after a load
-  (`RestoreStage`), so the save has no new field.
-
-## The learner's record (S19, D-game-16)
-
-The record of what the learner said and which lessons they finished, for the book (S20). It is game state on the player's machine: the save (version 2) and
-the session log; nothing is sent. Everything is plain values, with no clock and no random number.
-
-- **The history** (`LearnerRecord.History`, entries `InputEntry` in `Learner/InputEntry.cs`). One entry per line the game took and evaluated: every dialogue
-  turn (`GuideSession.Apply` for the worker's turns, `GuideSession.Say` for the synchronous path), every check answer (`CheckGrade`, with its words and errors),
-  every lesson line (`Place = Lesson`, `Unit = "lesson/step"`). Each has `Id` (1, 2, ... never repeated), `Session` and `StoredTime` (the stored game time,
-  Unix seconds), `Source` (`Voice`, `Typed`, `Button`: a repair choice, "ayuda", "no sé"), `Text` (what the core evaluated: the transcript for speech), `Npc`,
-  `Prompt`, `Place` (`Dialogue`, `Lesson`, `Check`), `Unit`, `Intent`, `Communicated`, `Held` (an unsure recognition, D-game-9), `Errors` (`GuideError`: tag,
-  expected, actual, span) and `Words` (`GuideWord`: text, span, lemma, `Pos`, `Role`, and the reading's `Person`, `Number`, `Tense`, `Mood`, `Gender`). A
-  failed or cancelled request and a mic check are not lines and are not entries. The session log's `turn` lines already carry every typed and spoken turn
-  (`input`), and `check_result` lines the check answers.
-- **The word record** (`LearnerWords`, rows `WordRow`, forms `FormRow`, first and last use `WordUse`). A pure fold of the history: `LearnerWords.Fold(History)`
-  gives the same rows as the live record. An entry adds its words when it is not `Held`, not `Button` and not a check answer (`Place == Check`, S19b): check
-  answers do not count in the nouns and verbs (D-game-16), though they stay in the history and in "What I said". A token with `Role == Word` and a lemma (names and
-  unknown tokens are not in it; numbers are, with their `Pos` `num`). `Times` counts the tokens of the lemma; `TimesCorrect` counts those in a line the core
-  understood with no error span over the token. Each form (`aguas`, `quiero` with its person, number, tense and mood) has its own counts. A row is per (lemma,
-  part of speech). The save keeps the rows whole, because the history is bounded: `LearnerRecord.SavedEntries` (500) is the newest entries kept in the save, and
-  `NextId` goes on from it, so a loaded record is the saved rows, not a fold of the saved history.
-- **The lesson record** (`LessonRunner.Record`, rows `LessonRecordRow`, units `LessonUnitRow`). Written by the runner's own events: the step outcomes (`Units`,
-  done, skipped or moved on), `Status`, `CompletedSession` (the session of the last completion), `Turns` (turns that reached a repeat or answer step),
-  `HelpUses` (the help path, the English shown), `DontKnowUses` ("no sé" said at a turn step or pressed), `RepeatUses` ("Otra vez" and "Más despacio" asked of
-  the lesson's NPC) and `Phrases`. The counts are over every run of the lesson. A version 1 save has none of the counts and no completion session: they load as
-  zero and null, and the units and status come from the saved runner state.
-- **Save version 2.** `SaveDocument.Learner` (`LearnerRecordSave`: `NextId`, the newest history entries, the word rows) and `LessonProgressSave` gets `Turns`,
-  `HelpUses`, `DontKnowUses`, `RepeatUses` and `CompletedSession`. A version 1 save loads with an empty history and an empty word record (its readings were
-  never kept). The fixture `Fixtures/save-v1.json` (in `tests/Vocaterra.Game.Tests`) is a real version 1 save of the S18 code, for `LearnerRecordTests`.
-- **Save version 3 (S19b).** `SaveGame.CurrentVersion` is 3; versions 1 to 3 load. Version 2 counted the check answers in its word rows. On a version 2 load,
-  `LearnerWords.FromVersion2` takes them out: when the saved history holds every entry (none trimmed by the bound), the rows are folded from it again; otherwise
-  the check answers the history still holds are subtracted from the saved rows, and a first or last use that was one is replaced by the row's last non-check use
-  in the history. A check answer older than the bound cannot be taken out (the history no longer holds it). The version bump keeps the migration from running
-  twice: a version 3 save's rows are loaded as they are. The fixture stays version 1 (its format did not change).
-
-**The read API for the book (S20).** Read it from the session; the lists are sorted, so the same record always gives the same order.
-
-- `session.Learner.Nouns`: the noun rows (`WordRow`), by lemma (ordinal). `Lemma`, `Gender` (the lexicon's, e.g. `f`), `Times`, `TimesCorrect`, `Forms` (by text,
-  then person, number, tense, mood), `First` and `Last` (`WordUse`: `Entry`, `Session`, `StoredTime`, `Sentence`) and `LastSentence`.
-- `session.Learner.Verbs`: the verb rows, by infinitive (`querer`), with the same fields; each `FormRow` has `Person`, `Number`, `Tense`, `Mood` (`1`, `sg`,
-  `pres`, `ind`). `session.Learner.Rows` is every row (by lemma, then `Pos`); the other parts of speech are there with their `Pos`.
-- `session.Learner.Recent(n)`: the newest `n` history entries, newest first (`InputEntry`); `session.Learner.History` is all of them, oldest first.
-- `session.Lessons.Record`: one `LessonRecordRow` per lesson in the bundle's `lessons.json` order: `LessonId`, `Title`, `English`, `Status`, `StepCount`,
-  `Units`, `CompletedSession`, `Turns`, `HelpUses`, `DontKnowUses`, `RepeatUses`, `Phrases`.
-- `LearnerSummary.Lines(learner, lessons, session, storedTime)`: the console summary the front-end prints at exit (`book: summary at exit`), as text.
-- **What the book (S20) adds to the record.** `FormRow.Question` (a form used in a question is a form of its own: `¿quieres?`) and `FormRow.Last` (the
-  form's last use, a `WordUse`); a version 2 save keeps both. `LessonDefinition.Summary` and `LessonRecordRow.Summary` (the English line of a completed lesson,
-  from the optional `summary` in `game/lessons.json`), `LessonRecordRow.StepIds` (the steps in order; the book groups them into units by their prefix).
-- **`game/glosses.json` (S20)**, `VerbGlosses` (`Load(bundle)`, `ForLemma`, `All`; `session.Glosses`): the English of a verb (`to want`), with optional
-  `third` and `past` for the irregular ones. The lexicon has no gloss, so a verb not in the file is shown by its infinitive alone. Read by the file's
-  manifest entry; a verb whose gloss does not start with `to` is a load error.
-- **`EnglishText.FeedbackFor(InputEntry)`** (S20): the feedback lines for a history entry (understood, understood with a mistake, not understood, uncertain,
-  "no sé", help), the same lines as `FeedbackFor(GuideTurn)`. `GuideSession.DefiniteArticle(gender, lemma)` gives a noun's article from the bundle's morphology.
-- **The book item (S20).** `ItemId.Book` (29, stack 1) is given by `VoxelSession` at a new game (`Simulation.GrantItems`); a loaded save puts its own slots back.
-  `btnHold` is gone from `english.json` and `EnglishText.UiKeys`.
-
+- The sandbox or CI may have no display: `--screenshot` then needs `xvfb-run -a dotnet run ...`. The Linux runtime needs `libSDL2`
+  and `libopenal` (the DesktopGL package ships its own copies; on a Linux x64 build they are copied next to the executable, see
+  `docs/game/ARCHITECTURE.md` for the native-asset trim).
+- The back buffer is read after the frame is drawn and before the swap; on DesktopGL it comes back upright (checked), not flipped.
+- **S17.** `GuideApproach` opens the panel on the guide when the player walks up to her and her lesson is waiting (or her transfer offer is, once the camp is
+  done); `SessionEnding` and `EndingLayer` are the closing card; `SpeechButtons.TextFor` and `HintsFor` add the English to the buttons and the hold-to-talk hint (a
+  second row of buttons when they do not fit the panel); `--lesson-run <id>` runs a whole lesson in a scripted run (walks to the NPC, types each answer, walks to the
+  fruit and back for a `do` step) and `--lesson` takes the guide's `first-words`; the recap ends on the book's phrases page (`LessonFrontend.OnRecapDone`; a
+  scripted run does not open it and asks for `--journal --journal-phrases` instead). The post-check of a playtest starts when the session is complete
+  (`PlaytestEnd.StartsOnItsOwn`: the camp done and the player's own fire lit) and the transfer offered.

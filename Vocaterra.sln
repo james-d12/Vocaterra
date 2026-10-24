@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Game", "src\Vocaterra.Game\Vocaterra.Game.csproj", "{D9F69FAC-9416-48A0-A50A-8D3DCBC64C6B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Game.Core", "src\Vocaterra.Game.Core\Vocaterra.Game.Core.csproj", "{D9F69FAC-9416-48A0-A50A-8D3DCBC64C6B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.Asr", "src\Vocaterra.Nlp.Asr\Vocaterra.Nlp.Asr.csproj", "{3D482AC3-0167-47A5-B4F1-9DBE0307F81C}"
 EndProject
@@ -31,15 +31,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.Pipeline", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Host", "src\Vocaterra.Host\Vocaterra.Host.csproj", "{44C21C97-F87B-4772-85F3-CC45620FE647}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.MonoGame", "src\Vocaterra.MonoGame\Vocaterra.MonoGame.csproj", "{F9B4BD9F-885C-4D4B-9EE5-10E77D61271C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Game", "src\Vocaterra.Game\Vocaterra.Game.csproj", "{F9B4BD9F-885C-4D4B-9EE5-10E77D61271C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Game.Tests", "tests\Vocaterra.Game.Tests\Vocaterra.Game.Tests.csproj", "{CF11FCD0-F46B-432A-8354-AB84668F822C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Game.Core.Tests", "tests\Vocaterra.Game.Core.Tests\Vocaterra.Game.Core.Tests.csproj", "{CF11FCD0-F46B-432A-8354-AB84668F822C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Host.Tests", "tests\Vocaterra.Host.Tests\Vocaterra.Host.Tests.csproj", "{E4559745-022C-40A4-9C21-D0A133A550B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.MonoGame.Tests", "tests\Vocaterra.MonoGame.Tests\Vocaterra.MonoGame.Tests.csproj", "{9246A061-EC71-49CE-93AF-363631D46B7E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Game.Tests", "tests\Vocaterra.Game.Tests\Vocaterra.Game.Tests.csproj", "{9246A061-EC71-49CE-93AF-363631D46B7E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vocaterra.Nlp.Asr.Tests", "tests\Vocaterra.Nlp.Asr.Tests\Vocaterra.Nlp.Asr.Tests.csproj", "{DDEA7F41-D3EB-45D5-9509-3D7173A2070F}"
 EndProject

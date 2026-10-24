@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Text;
-using Vocaterra.Game.Language.Phrases;
+using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Nlp.Core.Determinism;
 
 namespace Vocaterra.Host.Tests;
