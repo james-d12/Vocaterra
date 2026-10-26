@@ -110,7 +110,20 @@ The prototype is one engine-free library and one front-end, so that the engine c
     (the nearest block, the direction and the distance in Spanish), the aim at an NPC and the NPCs' shown names.
   - `Language/`, `Items/`, `Save/`, `Sound/`, `Event/`, `Reporting/`, `Tip/` and `Input/` for the rest; `Language/Speech/TypedUtteranceEvaluator`
     is the call sequence of the steps above, which the console host shares.
-- `src/Vocaterra.Game`: the MonoGame front-end and the only engine code: window, drawing, sound output, input, the panels.
+- `src/Vocaterra.Game`: the MonoGame front-end and the only engine code: window, drawing, sound output, input, the panels. `VoxelGame` is the
+  host and the composition root (R16): its constructor makes the components, and MonoGame's `Update` and `Draw` call them in the frame's order.
+  By folder:
+  - `Input/`: the frame's `InputSnapshot`, the `KeyBindings` of the `GameCommands` (the command pattern), `WorldInput` (look, walk, hotbar,
+    gather, place), `ListenSession` (push-to-talk), the text boxes' editing keys and the swallowed opening key.
+  - `Screens/`: the screens over the world, each an `IScreen` in the `ScreenStack` that gives the keys to the top one: the mic check, the
+    check battery, the dialogue, the controls help, the book, the inventory and the crafting panel.
+  - `Frame/`: `WorldStepper`, one tick of the world and its `ITickObserver`s (the observer pattern): the arm, the sounds, the figures, the
+    camera, the objective, the voice, the word cards and the hints.
+  - `Flow/`: the game's flows that span screens: the session's start and ending, the playtest, the guide's greeting, the beacon, the turns
+    applied, the objective's and the word cards' announcements.
+  - `Persistence/` (the saves, the autosave, the crash source), `Reporting/` (the F8 report), `Scripted/` (the end of a scripted run),
+    `Diagnostics/` (the console's event lines), `Graphics/` (the camera, the figures, the arm, the `SceneDrawer`), `Sound/` and `UI/` (the
+    models and the layers).
 
 How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md` for the steps):
 

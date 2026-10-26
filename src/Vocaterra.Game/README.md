@@ -153,7 +153,7 @@ scripted run skips it unless asked (then the worker hears a synthesized "hola").
 **Not in 3D yet:** the Alt-accent shortcuts of the panel (typed `é`, `ñ` and the
 others come through the platform's text input).
 
-**Where the pieces are:** `VoxelGame.cs` (the host: the worker, the panel and its keys, the beacon, the crafting panel, the objective, the script),
+**Where the pieces are:** `VoxelGame.cs` (the host and the composition root since R16: it wires the components of `Screens/`, `Flow/`, `Frame/`, `Input/`, `Persistence/`, `Reporting/` and `Scripted/`, see `docs/game/ARCHITECTURE.md`),
 `HudLayers.cs` (`ObjectiveLayer`, `WordCardLayer`), `CraftingLayer.cs`, `VoxelTalkLayers.cs` (`TalkHintLayer`, `WorldLabel`, `WorldLabelLayer`),
 `VoxelLayers.cs` (the crosshair, the NPC labels, the beacon arrow, the debug overlay), `Vocaterra.Game.Core/Npc/NpcAim.cs` (the crosshair test, plain
 maths), `Frontend/VoxelScript.cs` (the step machine over ticks: look, walk, interact, place, select, craft), `Frontend/VoxelSayScript.cs` (the

@@ -35,10 +35,13 @@ namespace Vocaterra.Game;
 using SoundEventMapper = SoundEventMapper;
 
 /// <summary>
-/// The engine host of the 3D first-person scene, the prototype's only world (S2 to S4). Each frame it turns the real clock into whole ticks, reads the
-/// keyboard and the mouse (or the scripted run) into <see cref="VoxelCommand"/>s and steps the <see cref="VoxelSession"/>'s simulation; then it
-/// places the <see cref="FirstPersonCamera"/> at the interpolated eye, draws the voxel world with <see cref="VoxelRenderer"/> and the layers
-/// over it. All rules live in <c>Vocaterra.Simulation</c>, <c>Vocaterra.Game.Core</c> and the plain classes under <c>Frontend/</c>.
+/// The engine host of the 3D first-person scene, the prototype's only world (S2 to S4), and the composition root of the front-end (R16): the
+/// constructor makes the components and wires them, and MonoGame's loop calls them in the frame's order. <see cref="Update"/> turns the real clock
+/// into whole ticks, reads the input (<see cref="InputDevices"/>: the report panel, the global keys, the top screen of the
+/// <see cref="ScreenStack"/> or the world's keys, then <see cref="WorldInput"/>), applies the finished turns (<see cref="TurnPresenter"/>) and
+/// steps the world (<see cref="WorldStepper"/> and its tick observers); <see cref="Draw"/> places the <see cref="PlayerCamera"/> and draws through
+/// the <see cref="SceneDrawer"/>. The rules live in <c>Vocaterra.Game.Core</c> and in the components under <c>Screens/</c>, <c>Flow/</c>,
+/// <c>Frame/</c>, <c>Input/</c>, <c>Persistence/</c>, <c>Reporting/</c> and <c>Scripted/</c>.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -95,7 +98,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly SpeechActionRunner _actions;
     private readonly SupportFrontend _support;
     private readonly SessionEnding _ending = new();
-    private bool _greetArmed = true;
+    private readonly GuideGreeting _greeting;
+    private readonly SessionEndingFlow _endingFlow;
     private readonly LessonFrontend _lesson;
     private readonly ControlsHelp _controls;
     private bool _aimedTipOffered;
@@ -374,6 +378,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _checks.Begin(battery, options.IsScreenshotRun, 0);
         }
 
+        _endingFlow = new SessionEndingFlow(_ending, session, voice, _log, Console.WriteLine);
+        _greeting = new GuideGreeting(session, npc => _dialogueScreen.Open(npc, null), Console.WriteLine);
+
         CrashSource = new CrashSource(_sessionDirectory, options.ReportDir, session, _dialogue, _report, _autosave, _saves);
         _session.StartWorker(MonotonicClock.Milliseconds, options.NeedsSpeech);
     }
@@ -489,17 +496,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _log?.Pump(_session); // the replay records and the events of this frame (S11)
         _ = _support.Pump(later => _voice.Say(later.Npc, later.Lines)); // the shopkeeper's question after the key words is spoken first
         _lesson.Pump(); // a lesson step's line goes on the panel (S16)
-        if (_ending.Update(_session, _sim.Tick))
-        {
-            // The session's ending (S17): the guide says her closing line, the card says "Session complete" in English and Spanish.
-            _voice.Say(SpeechSpeakers.Guide, [_ending.Spanish]);
-            _log?.SessionSummary(_ending.Summary, _sim.Tick); // the session's summary card, in the log (X04, R01)
-            Console.WriteLine($"session complete: {_ending.Spanish} ({_ending.English}); {_session.Objective.Summary}");
-            foreach (var line in _ending.Summary)
-            {
-                Console.WriteLine($"  {line}");
-            }
-        }
+        _endingFlow.Update(); // the session's ending (S17): the guide's closing line, the card and the summary
 
         if (!_report.Paused)
         {
@@ -538,12 +535,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         _beacon.Sync();
-        var free = _scenario is null && WorldRunning && !_screens.FreesMouse && _session.PendingTurns == 0;
-        if (GuideApproach.ShouldGreet(_session, ref _greetArmed, free))
-        {
-            Console.WriteLine("approach: the guide greets the player and her lesson begins");
-            _dialogueScreen.Open(NpcService.GuideAgent, null); // the player came up to her (S17): the same call the E key makes
-        }
+        _greeting.Update(free: _scenario is null && WorldRunning && !_screens.FreesMouse && _session.PendingTurns == 0); // the guide greets the player who comes up to her (S17)
 
         _aimed = _figures.Aimed(_camera.CurrentEye);
         if (_aimed is not null && !_aimedTipOffered)
