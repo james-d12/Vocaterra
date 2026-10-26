@@ -2,7 +2,6 @@ using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Checks;
@@ -32,7 +31,6 @@ using Vocaterra.Game.UI.Book;
 using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.English;
 using Vocaterra.Game.Utilities;
-using Vocaterra.Nlp.Core.Audio;
 
 namespace Vocaterra.Game;
 
@@ -70,24 +68,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <summary>The save file F6 writes when the run has no <c>--save</c> file.</summary>
     private const string DefaultSavePath = "vocaterra.save.json";
 
-    private static readonly (Keys Key, PanelKey Panel)[] PanelKeys =
-    [
-        (Keys.R, PanelKey.R), (Keys.S, PanelKey.S), (Keys.H, PanelKey.H), (Keys.N, PanelKey.N), (Keys.W, PanelKey.W), (Keys.Tab, PanelKey.Tab),
-        (Keys.D1, PanelKey.D1), (Keys.D2, PanelKey.D2), (Keys.D3, PanelKey.D3), (Keys.NumPad1, PanelKey.D1), (Keys.NumPad2, PanelKey.D2), (Keys.NumPad3, PanelKey.D3),
-    ];
-
     /// <summary>The thank-you note of the playtest's post-check (the screen's closing lines; the English is for the facilitator and the tester alike).</summary>
     private const string PlaytestThankYou = "Thank you for playing. Your answers are in the session log.";
 
     /// <summary>The thank-you note of the next-day recall of a playtest.</summary>
     private const string RecallThankYou = "Thank you. Your answers are in the session log.";
-
-    private static readonly (Keys Key, LessonKey Lesson)[] LessonKeys =
-    [
-        (Keys.Enter, LessonKey.Enter), (Keys.K, LessonKey.K), (Keys.L, LessonKey.L), (Keys.M, LessonKey.M),
-        (Keys.D1, LessonKey.D1), (Keys.D2, LessonKey.D2), (Keys.D3, LessonKey.D3), (Keys.D4, LessonKey.D4),
-        (Keys.NumPad1, LessonKey.D1), (Keys.NumPad2, LessonKey.D2), (Keys.NumPad3, LessonKey.D3), (Keys.NumPad4, LessonKey.D4),
-    ];
 
     private static readonly Keys[] SlotKeys = [Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9, Keys.D0];
 
@@ -128,7 +113,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private int _controlsScroll;
     private bool _aimedTipOffered;
     private readonly NpcVoice _voice;
-    private readonly TurnWatchdog _watchdog = new();
     private readonly MicCheckModel? _micCheck;
     private readonly MicCheckScreen _micScreen;
     private readonly InputDevices _devices;
@@ -167,6 +151,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // until Ctrl+Enter, and Esc keeps nothing. A scripted report (--report, --report-open) is typed and saved by the script's frame.
     private readonly ReportPanel _report = new();
     private readonly ReportScreen _reportScreen;
+    private readonly DialogueScreen _dialogueScreen;
     private string _sessionDirectory = string.Empty;
     private bool _microphoneFound;
 
@@ -244,17 +229,33 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _textEdits,
             Console.WriteLine,
             Console.Error.WriteLine);
+        _dialogueScreen = new DialogueScreen(
+            _dialogue,
+            session,
+            voice,
+            _actions,
+            _lesson,
+            _listen,
+            _swallow,
+            _textEdits,
+            _sound,
+            _canvas,
+            () => _view!.Fonts.Get(FontProvider.NativeSize),
+            () => _view!,
+            () => _aimed?.Name,
+            options.IsScreenshotRun,
+            Console.WriteLine);
         if (options.IsScreenshotRun)
         {
             _clock = new FixedFrameClock(VoxelSimulation.TicksPerSecond);
             if (options.Script.Count > 0)
             {
                 var hooks = new ScenarioHooks(
-                    npc => OpenDialogueOn(npc, null),
-                    CloseDialogue,
+                    npc => _dialogueScreen.Open(npc, null),
+                    _dialogueScreen.Close,
                     path => _shotPath = path,
                     () => _shotPath is not null,
-                    RunLessonStep,
+                    _dialogueScreen.RunLessonStep,
                     (text, keep) => _reportScreen.RequestScripted(text, keep, OpenScreenName()),
                     () => _report.Paused,
                     PlayBookTarget,
@@ -392,7 +393,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _playtestStarted = true;
         if (_dialogue.IsOpen)
         {
-            CloseDialogue();
+            _dialogueScreen.Close();
         }
 
         if (_book.IsOpen)
@@ -557,7 +558,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (!_report.Paused)
         {
-            RunWatchdog(seconds); // a paused world does not time a turn out (S21)
+            _dialogueScreen.RunWatchdog(seconds); // a paused world does not time a turn out (S21)
         }
 
         _micScreen.DriveScripted();
@@ -605,7 +606,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         if (GuideApproach.ShouldGreet(_session, ref _greetArmed, free))
         {
             Console.WriteLine("approach: the guide greets the player and her lesson begins");
-            OpenDialogueOn(NpcService.GuideAgent, null); // the player came up to her (S17): the same call the E key makes
+            _dialogueScreen.Open(NpcService.GuideAgent, null); // the player came up to her (S17): the same call the E key makes
         }
 
         _aimed = _figures.Aimed(_camera.CurrentEye);
@@ -959,7 +960,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
             else if (_dialogue.IsOpen)
             {
-                ReadDialogueKeys(input);
+                _dialogueScreen.HandleInput(input);
             }
             else if (_controlsOpen)
             {
@@ -1000,12 +1001,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 // The crosshair is on an NPC: E or T opens the panel; V opens it and starts listening.
                 if (input.Pressed(Keys.V))
                 {
-                    OpenDialogueOn(_aimed.Name, null);
-                    BeginListening(Keys.V);
+                    _dialogueScreen.Open(_aimed.Name, null);
+                    _dialogueScreen.BeginListening(Keys.V);
                 }
                 else
                 {
-                    OpenDialogueOn(_aimed.Name, input.Pressed(Keys.T) ? 't' : 'e');
+                    _dialogueScreen.Open(_aimed.Name, input.Pressed(Keys.T) ? 't' : 'e');
                 }
             }
             else if (input.Pressed(Keys.F1))
@@ -1164,7 +1165,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // F8: the game pauses. A recording in progress is dropped (the microphone is off), and the next frame is kept as the picture the player saw.
     private void RequestReport()
     {
-        CancelListening();
+        _dialogueScreen.CancelListening();
         if (_checks.Screen is { Listening: true })
         {
             _checks.CancelListening();
@@ -1219,161 +1220,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _devices.Commit(input);
     }
 
-    // The panel's keys while it is open. In the speech-button mode R, S, H, N, W (or Tab), 1 to 3 press the buttons, V or Space held talks and Enter
-    // presses the Escribir button when typing is on offer; in the typing mode Enter sends, Tab or Esc go back to the buttons and the editing keys repeat.
-    // Esc undoes the newest thing first: a recording, a turn that is thinking, the typing mode, and last the panel itself.
-    private void ReadDialogueKeys(InputSnapshot input)
-    {
-        _listen.ReleaseIfUp(input);
-        if (input.Pressed(Keys.Escape))
-        {
-            if (_listen.Listening)
-            {
-                CancelRecording();
-            }
-            else if (_actions.CancelThinking())
-            {
-                _watchdog.Reset();
-            }
-            else if (_dialogue.IsTyping)
-            {
-                _dialogue.EndTyping();
-            }
-            else
-            {
-                CloseDialogue();
-            }
-
-            return;
-        }
-
-        if (_dialogue.IsTyping)
-        {
-            if (input.Pressed(Keys.Tab))
-            {
-                _dialogue.EndTyping();
-                return;
-            }
-
-            if (input.Pressed(Keys.Enter))
-            {
-                _dialogue.RequestSubmit();
-            }
-
-            var entry = _dialogue.Entry;
-            var edits = _textEdits.Step(input.KeyboardState);
-            if (edits.Backspace)
-            {
-                _ = entry.Backspace();
-            }
-
-            if (edits.Delete)
-            {
-                _ = entry.Delete();
-            }
-
-            if (edits.Left)
-            {
-                entry.MoveLeft();
-            }
-
-            if (edits.Right)
-            {
-                entry.MoveRight();
-            }
-
-            return;
-        }
-
-        // The lesson strip's keys (S16): L starts the lesson on offer, Enter continues, K skips the step, 1 to 4 pick an answer of a listen step.
-        foreach (var (key, lessonKey) in LessonKeys)
-        {
-            if (input.Pressed(key) && _lesson.PressKey(lessonKey))
-            {
-                return;
-            }
-        }
-
-        if (input.Pressed(Keys.V) || input.Pressed(Keys.Space))
-        {
-            BeginListening(input.Pressed(Keys.V) ? Keys.V : Keys.Space);
-            return;
-        }
-
-        if (input.Pressed(Keys.Enter) && _dialogue.TypingOffered)
-        {
-            PerformAction(SpeechAction.Type, null);
-            return;
-        }
-
-        foreach (var (key, panelKey) in PanelKeys)
-        {
-            if (input.Pressed(key) && SpeechButtons.ForKey(panelKey) is { } action)
-            {
-                PerformAction(action, panelKey == PanelKey.W ? 'w' : null);
-                return;
-            }
-        }
-    }
-
-    // A button or a choice of the panel was pressed (key or mouse). Opening the text box with W would also type the W the platform delivers: swallow it.
-    private void PerformAction(SpeechAction action, char? typedByKey)
-    {
-        if (_actions.Perform(action))
-        {
-            _sound.QueueClick(SoundCue.UiClick);
-            if (action == SpeechAction.Type && typedByKey is { } typed)
-            {
-                _swallow.Arm(typed);
-            }
-
-            _watchdog.Reset();
-        }
-    }
-
     // The mouse went down at a point: a button of the mic check, or a button or choice of the panel.
     private void ClickOnScreens(int x, int y)
     {
-        var font = _view!.Fonts.Get(FontProvider.NativeSize);
         if (_micScreen.Active)
         {
             _micScreen.Click(x, y);
-            return;
         }
-
-        if (_dialogue.IsOpen)
+        else if (_dialogue.IsOpen)
         {
-            if (LessonLayer.LayoutFor(_view!, _lesson) is { } strip && strip.ActionAt(x, y) is { } lessonAction)
-            {
-                if (_lesson.Perform(lessonAction)) // a button of the lesson strip (S16)
-                {
-                    _sound.QueueClick(SoundCue.UiClick);
-                }
-
-                return;
-            }
-
-            var layout = DialoguePanel.LayoutFor(_dialogue, _canvas.Width, _canvas.Height, font, _session);
-            if (layout.ActionAt(x, y) is { } action)
-            {
-                PerformAction(action, null);
-            }
-        }
-    }
-
-    // The front-end's watchdog (S7): a turn that has been thinking for five seconds of the frame clock logs a timeout and offers typing. A scripted run
-    // has no real time, so it has no watchdog.
-    private void RunWatchdog(double seconds)
-    {
-        if (_options.IsScreenshotRun)
-        {
-            return;
-        }
-
-        if (_watchdog.Update(seconds, _dialogue.IsOpen && _dialogue.IsThinking))
-        {
-            _session.LogVoice(VoiceEventKind.Timeout, $"{TurnWatchdog.LimitSeconds:0} s");
-            _dialogue.OfferTyping();
+            _dialogueScreen.Click(x, y);
         }
     }
 
@@ -1392,79 +1248,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return;
         }
 
-        if (!_dialogue.IsTyping || char.IsControl(args.Character) || _listen.Listening)
-        {
-            if (_dialogue.IsOpen)
-            {
-                _ = _swallow.Take(args.Character);
-            }
-
-            return;
-        }
-
-        if (_swallow.Take(args.Character))
-        {
-            return;
-        }
-
-        _ = _dialogue.Entry.Insert(AccentShortcuts.ForTyped(args.Character, InputDevices.AltHeld())); // Alt plus a vowel is the accented letter (S21 wired the hints' keys)
-    }
-
-    // Opens the panel on an NPC: its opening is a core host turn when its state has one (the shopkeeper's question, the villager's hello, the
-    // guide's transfer offer), otherwise its prompt's text, and the guide's review question when one is due. The key that opened the panel is
-    // swallowed by the text event.
-    private void OpenDialogueOn(string npc, char? openedBy)
-    {
-        var opening = _session.OpenTalk(npc, teachKeyWords: true);
-        _dialogue.Open(opening, NpcNames.LabelOf(npc), _session.ReviewLine, _session.RetryNote);
-        _voice.Say(npc, opening.Lines);
-        if (openedBy == 't')
-        {
-            _dialogue.BeginTyping(); // T is "type": the text box has the keyboard from the start
-        }
-
-        _swallow.Arm(openedBy); // the platform types the key once, in the next frame at the latest
-        var how = opening.HostTurn ? "host turn" : "prompt";
-        Console.WriteLine($"talk: {npc} ({how}, {opening.Prompt}): {(_session.KeyWordsPending ? $"[key words: {string.Join(", ", _session.KeyWordCards.Select(static c => c.Phrase))}]" : string.Join(" / ", opening.Lines))}{(_session.ReviewLine is { } review ? $" / {review}" : string.Empty)}");
-    }
-
-    // A lesson step of the scripted run (S16): the same presses the strip's buttons make.
-    private void RunLessonStep(ScriptStepKind kind, string value)
-    {
-        switch (kind)
-        {
-            case ScriptStepKind.LessonStart:
-                if (!_session.Lessons.Start(value))
-                {
-                    Console.WriteLine($"lesson: cannot start '{value}' (unknown, or another lesson is active)");
-                    return;
-                }
-
-                _lesson.Pump();
-                break;
-            case ScriptStepKind.LessonContinue:
-                _ = _lesson.Perform(LessonAction.Continue);
-                break;
-            case ScriptStepKind.LessonSkip:
-                _ = _lesson.Perform(LessonAction.Skip);
-                break;
-            case ScriptStepKind.LessonHelp:
-                _ = _lesson.Perform(LessonAction.Help);
-                break;
-            default: // LessonPick
-                _ = _lesson.Perform(LessonAction.Option1 + (int.Parse(value, System.Globalization.CultureInfo.InvariantCulture) - 1));
-                break;
-        }
-    }
-
-    // The panel closes (Esc, or the script walks on): a recording in progress is dropped and the talk ends.
-    private void CloseDialogue()
-    {
-        CancelListening();
-        _watchdog.Reset();
-        _dialogue.Close();
-        _voice.Stop();
-        _session.EndTalk();
+        _dialogueScreen.Type(args.Character, InputDevices.AltHeld());
     }
 
     /// <inheritdoc />
@@ -1480,61 +1264,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
     // The tile for "¿qué es esto?": the block under the crosshair (the scripted run has the same crosshair).
     private GuideCell? CursorCell() => _session.AimedCell;
-
-    // The microphone: the key went down. The worker must have the recognizer, the machine a microphone; otherwise the panel says why.
-    private void BeginListening(Keys key)
-    {
-        var worker = _session.Worker!;
-        if (!_dialogue.IsOpen)
-        {
-            OpenDialogueOn(_aimed?.Name ?? NpcService.GuideAgent, null);
-        }
-
-        if (!worker.CanHear)
-        {
-            _dialogue.SpeechNotice = worker.Load?.Problem ?? "Speech is not available: type your answer.";
-            return;
-        }
-
-        if (_listen.Begin(new ListenTarget(HeardSpeech), key))
-        {
-            _dialogue.Listening = true;
-            _dialogue.SpeechNotice = null;
-        }
-        else
-        {
-            _dialogue.SpeechNotice = _listen.Problem;
-        }
-    }
-
-    // The key went up (or the recording reached its cap): the clip goes to the worker as a spoken turn.
-    private void HeardSpeech(PcmClip? clip)
-    {
-        _dialogue.Listening = false;
-        if (clip is null)
-        {
-            _dialogue.SpeechNotice = _listen.Problem;
-            return;
-        }
-
-        _ = _session.SubmitClip(clip, CursorCell());
-        _dialogue.BeginSpoken();
-        Console.WriteLine($"listened: {clip.DurationSeconds:0.00} s of speech sent to {_session.CurrentNpc}");
-    }
-
-    // Esc while the microphone records: the recording is dropped and nothing is sent (logged as a cancel).
-    private void CancelRecording()
-    {
-        CancelListening();
-        _session.LogVoice(VoiceEventKind.Cancel, "recording");
-    }
-
-    // The panel closed while recording: the clip is dropped.
-    private void CancelListening()
-    {
-        _listen.Cancel();
-        _dialogue.Listening = false;
-    }
 
     // Once per frame: the recording collects its samples and ends at its length cap (ListenSession); the mic check's meter falls back while
     // nothing is recorded.
@@ -1816,7 +1545,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (_dialogue.IsOpen)
         {
-            CloseDialogue();
+            _dialogueScreen.Close();
         }
 
         _book.Open(_session.Words);
