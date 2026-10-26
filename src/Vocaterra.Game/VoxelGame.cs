@@ -25,6 +25,7 @@ using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Persistence;
 using Vocaterra.Game.Reporting;
+using Vocaterra.Game.Screens;
 using Vocaterra.Game.Sound;
 using Vocaterra.Game.UI;
 using Vocaterra.Game.UI.Book;
@@ -75,9 +76,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         (Keys.D1, PanelKey.D1), (Keys.D2, PanelKey.D2), (Keys.D3, PanelKey.D3), (Keys.NumPad1, PanelKey.D1), (Keys.NumPad2, PanelKey.D2), (Keys.NumPad3, PanelKey.D3),
     ];
 
-    /// <summary>The frames a post- or recall-check's thank-you screen stays up before the run ends.</summary>
-    private const int CheckEndFrames = 90;
-
     /// <summary>The thank-you note of the playtest's post-check (the screen's closing lines; the English is for the facilitator and the tester alike).</summary>
     private const string PlaytestThankYou = "Thank you for playing. Your answers are in the session log.";
 
@@ -90,8 +88,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         (Keys.D1, LessonKey.D1), (Keys.D2, LessonKey.D2), (Keys.D3, LessonKey.D3), (Keys.D4, LessonKey.D4),
         (Keys.NumPad1, LessonKey.D1), (Keys.NumPad2, LessonKey.D2), (Keys.NumPad3, LessonKey.D3), (Keys.NumPad4, LessonKey.D4),
     ];
-
-    private static readonly (Keys Key, Keys Pad)[] CheckOptionKeys = [(Keys.D1, Keys.NumPad1), (Keys.D2, Keys.NumPad2), (Keys.D3, Keys.NumPad3)];
 
     private static readonly Keys[] SlotKeys = [Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9, Keys.D0];
 
@@ -165,13 +161,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private bool _micScriptedSent;
     private int _micShownTicks;
     private string? _shotPath;
-    private CheckScreen? _check;
-    private CheckScript? _checkScript;
+    private readonly CheckBattery _checks;
     private SessionLog? _log;
-    private bool _checkDone;
-    private bool _endAfterCheck;
-    private int _checkFramesLeft;
-    private int _checkPlayedAt = -1;
 
     // The report panel (S21, D-game-17): F8 pauses the world and the next frame is kept in memory (the picture the player saw); nothing is written
     // until Ctrl+Enter, and Esc keeps nothing. A scripted report (--report, --report-open) is typed and saved by the script's frame.
@@ -290,6 +281,18 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         Window.Title = _playtest ? $"Vocaterra playtest (seed {options.Seed})" : $"Vocaterra 3D (seed {options.Seed})";
         Window.TextInput += OnTextInput;
         _saves = new SaveService(session, pristine, () => new SaveSettings(_sound.Mixer.Volumes, _canvas.TextPercent), Console.WriteLine); // the sound volumes (S24) and the text size (X08) ride in the save's settings
+        _checks = new CheckBattery(
+            session,
+            () => _log,
+            _sound,
+            voice,
+            _listen,
+            _swallow,
+            options.Script,
+            options.IsScreenshotRun,
+            options.Playtest,
+            new CheckBatteryHooks(path => _shotPath = path, () => _shotPath is not null, () => _micCheck is { IsActive: true }, index => _scenario?.SkipTo(index), Exit, EndPlaytest),
+            Console.WriteLine);
         StartLogAndCheck(options);
         CrashSource = new CrashSource(_sessionDirectory, options.ReportDir, session, _dialogue, _report, _autosave, _saves);
         _session.StartWorker(MonotonicClock.Milliseconds, options.NeedsSpeech);
@@ -378,37 +381,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (options.Check is { } battery)
         {
-            BeginBattery(battery, options.IsScreenshotRun, 0);
+            _checks.Begin(battery, options.IsScreenshotRun, 0);
         }
-    }
-
-    // Starts a check battery: its plan from the bundle and the seed, its log line, and for a scripted run the script's answers from a step.
-    private void BeginBattery(CheckKind battery, bool scripted, int scriptIndex)
-    {
-        // A battery starts fresh: the pre-check's end (_checkDone) must not stand for the post-check (S12).
-        _checkDone = false;
-        _endAfterCheck = false;
-        _checkFramesLeft = 0;
-        _checkPlayedAt = -1;
-        var plan = CheckPlan.For(CheckBank.Load(_session.Bundle), battery, _session.WorldSeed);
-        _check = new CheckScreen(battery, plan, MonotonicClock.Milliseconds, result => _log!.CheckResult(result, CheckKinds.Of(battery), _session.PlaySession, _sim.Tick));
-        _log!.CheckStart(CheckKinds.Of(battery), _session.PlaySession, plan.Count);
-        Console.WriteLine($"check: {CheckKinds.Of(battery)}, {plan.Count} items");
-        if (!scripted)
-        {
-            return;
-        }
-
-        // A scripted run prints the order and the right option of each item, so that its --pick steps can be written (a console line only).
-        var order = plan.Select(static e => e.Item.Kind == CheckItemKind.Comprehension ? $"{e.Item.Id} (pick {e.ShownCorrect + 1})" : e.Item.Id);
-        Console.WriteLine($"check order: {string.Join(", ", order)}");
-        var hooks = new CheckScriptHooks(
-            picked => PickCheck(picked - 1),
-            SubmitTypedCheck,
-            SubmitSpeakCheck,
-            path => _shotPath = path,
-            () => _shotPath is not null);
-        _checkScript = new CheckScript(_options.Script, _check, hooks, Console.WriteLine, scriptIndex);
     }
 
     // The post-check of a playtest (S12): it starts when the camp is done and the transfer offered (Update), or at once with F10. The world stops
@@ -437,11 +411,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         Console.WriteLine($"playtest: the post-check starts ({why}) at tick {_sim.Tick}; {_session.Objective.Summary}");
-        BeginBattery(CheckKind.Post, _options.IsScreenshotRun, _scenario?.Index ?? 0);
+        _checks.Begin(CheckKind.Post, _options.IsScreenshotRun, _scenario?.Index ?? 0);
     }
 
     // The world is on screen: no check battery and no mic check (the playtest's triggers and its end key need that).
-    private bool WorldRunning => _check is null && _micCheck is not { IsActive: true };
+    private bool WorldRunning => _checks.Screen is null && _micCheck is not { IsActive: true };
 
     /// <summary>The crash handler's view of the game: its state and the last-chance save (X05).</summary>
     public ICrashSource CrashSource { get; }
@@ -602,9 +576,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         AutosaveDue(); // the autosave at its safe points (X05)
 
-        DriveCheck();
+        _checks.Drive();
         var steps = _accumulator.Advance(seconds);
-        if (_check is not null)
+        if (_checks.Screen is not null)
         {
             steps = 0; // the world does not run while the check battery is on (its time is not the game's)
         }
@@ -645,12 +619,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         // Settled: the world's script is done (or there is none) with no battery on screen, a battery that ends the run has shown its end, or a
         // battery's script rests. A pre-check is not an end: the world's script after it still has steps to take (S12, a screenshot waits for them).
-        if (_check is null && (_scenario is null || _scenario.IsDone) || _checkDone && _endAfterCheck || _checkScript is { Rests: true } && _check is { IsDone: false })
+        if (_checks.Screen is null && (_scenario is null || _scenario.IsDone) || _checks.Done && _checks.EndsRun || _checks.ScriptRests && _checks.Screen is { IsDone: false })
         {
             _settled++;
         }
 
-        if (_check is null && (_scenario is null || _scenario.IsDone))
+        if (_checks.Screen is null && (_scenario is null || _scenario.IsDone))
         {
             if (!_shown)
             {
@@ -700,7 +674,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.Look = (_look.YawSteps, _look.PitchSteps);
         view.Fps = _stats.Fps;
         view.Aimed = _aimed;
-        view.Check = _check;
+        view.Check = _checks.Screen;
         view.ControlsOpen = _controlsOpen;
         view.ControlsScroll = _controlsScroll;
         view.Report = _report;
@@ -759,7 +733,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             && ((_sim.Tick >= _options.Frames && _settled >= SettleTicks && _session.Worker!.IsReady && _session.PendingTurns == 0 && !_dialogue.SubmitRequested && _dialogue.PendingSpeech is null
                 && _micCheck is not { Phase: MicCheckPhase.Ready or MicCheckPhase.Listening or MicCheckPhase.Thinking })
                 || _sim.Tick > RunawayTicks
-                || (CheckRestsForShot && _settled >= SettleTicks)))
+                || (_checks.RestsForShot && _settled >= SettleTicks)))
         {
             ExitCode = ScreenshotWriter.TrySave(GraphicsDevice, path) ? 0 : 1;
             Console.WriteLine($"scene draw (voxel world, layers, flush): {_timings.DrawSummary()}");
@@ -946,7 +920,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (IsActive)
         {
-            if (_playtest && _endAfterCheck && _checkDone && input.Pressed(Keys.Escape))
+            if (_playtest && _checks.EndsRun && _checks.Done && input.Pressed(Keys.Escape))
             {
                 Exit(); // the playtest's thank-you screen: Esc closes the game (Esc always works)
                 _devices.CommitKeys(input);
@@ -979,9 +953,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             {
                 ReadMicCheckKeys(input);
             }
-            else if (_check is { IsDone: false })
+            else if (_checks.Screen is { IsDone: false })
             {
-                ReadCheckKeys(input);
+                _checks.HandleInput(input);
             }
             else if (_dialogue.IsOpen)
             {
@@ -1191,9 +1165,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private void RequestReport()
     {
         CancelListening();
-        if (_check is { Listening: true })
+        if (_checks.Screen is { Listening: true })
         {
-            CancelCheckListening();
+            _checks.CancelListening();
         }
 
         if (_micCheck is { Phase: MicCheckPhase.Listening } micCheck)
@@ -1208,9 +1182,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // What is open now, in the words the report's table uses.
     private string OpenScreenName()
     {
-        if (_check is { IsDone: false })
+        if (_checks.Screen is { IsDone: false } check)
         {
-            return $"check ({CheckKinds.Of(_check.Kind)})";
+            return $"check ({CheckKinds.Of(check.Kind)})";
         }
 
         if (_micCheck is { IsActive: true })
@@ -1511,7 +1485,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         // With steps to run after it (or a check battery waiting behind it, S12: the playtest's pre-check), the scripted check goes on by itself once
         // its result has been on screen for a moment; alone it stays up for the screenshot.
-        if (check.Phase is MicCheckPhase.Passed or MicCheckPhase.Failed && (_scenario is { IsDone: false } || _check is { IsDone: false }) && ++_micShownTicks >= 60)
+        if (check.Phase is MicCheckPhase.Passed or MicCheckPhase.Failed && (_scenario is { IsDone: false } || _checks.Screen is { IsDone: false }) && ++_micShownTicks >= 60)
         {
             check.Press(check.Phase == MicCheckPhase.Passed ? MicCheckButton.Continue : MicCheckButton.Skip);
         }
@@ -1542,19 +1516,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return;
         }
 
-        if (_check is { IsDone: false, IsTyping: true } typing)
+        if (_checks.TakesText)
         {
-            // The check's text box (S11): the key that opened it (W) is swallowed, the rest is typed.
-            if (_swallow.Take(args.Character))
-            {
-                return;
-            }
-
-            if (!char.IsControl(args.Character))
-            {
-                _ = typing.Entry.Insert(AccentShortcuts.ForTyped(args.Character, InputDevices.AltHeld()));
-            }
-
+            _checks.Type(args.Character, InputDevices.AltHeld()); // the check's text box (S11)
             return;
         }
 
@@ -1706,7 +1670,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // nothing is recorded.
     private void PumpTalk(double seconds)
     {
-        if (_check is not { Listening: true } && _micCheck is { IsActive: true } check && !_listen.Listening)
+        if (_checks.Screen is not { Listening: true } && _micCheck is { IsActive: true } check && !_listen.Listening)
         {
             check.Feed(0, seconds);
         }
@@ -1714,332 +1678,19 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _listen.Pump(seconds);
     }
 
-    // Applies the turns the worker finished, in order: the panel, the console, the arrow.
-    // ---- The check battery (S11): outside the world, its own screen, its own grades; nothing it does reaches the progress or the world. ----
-
-    // A finished turn of the session: a check answer grades the battery's item; any other turn goes to the session log.
+    // A finished turn of the session: a check answer grades the battery's item (CheckBattery); any other turn goes to the session log.
     private void OnAppliedTurn(AppliedTurn applied)
     {
-        if (applied.Outcome.Request.Check is not null)
+        if (!_checks.Graded(applied))
         {
-            if (_check is null)
-            {
-                return;
-            }
-
-            if (applied.Outcome.Grade is { } grade)
-            {
-                _check.Graded(grade);
-                _sound.ObserveTurn(null, null, isCheck: true);
-                Console.WriteLine($"check: {applied.Outcome.Request.Check.Id} heard \"{grade.Transcript}\" -> {grade.Intent}, {(grade.Correct ? "correct" : grade.DontKnow ? "no sé" : "not correct")}{(grade.ErrorTags.Count > 0 ? $" ({string.Join(", ", grade.ErrorTags)})" : string.Empty)}");
-            }
-            else
-            {
-                _check.Failed(applied.Outcome.Problem ?? "The answer was not graded.");
-            }
-
-            return;
-        }
-
-        _log?.Turn(applied, _session);
-    }
-
-    // The learner picked an option of the comprehension item on the screen (1 to 3, as shown).
-    private void PickCheck(int shown)
-    {
-        if (_check is not { } check)
-        {
-            Console.WriteLine("check: no battery is running");
-            return;
-        }
-
-        if (check.Pick(shown))
-        {
-            _sound.ObserveTurn(null, null, isCheck: true);
-            Console.WriteLine($"check: picked {shown + 1} ({(check.Results[^1].Correct ? "the right one" : "not the right one")}, {check.Results[^1].LatencyMs:0} ms)");
+            _log?.Turn(applied, _session);
         }
     }
 
-    // A typed answer of the production item (W, then Enter; or the scripted --say).
-    private void SubmitTypedCheck(string text)
+    // The playtest's end (S12): its post- or recall-check is over, the world script is done with its steps, and a post-check saves the run.
+    private void EndPlaytest(CheckScreen check)
     {
-        if (_check is not { } check || !check.Sent())
-        {
-            return;
-        }
-
-        var item = check.Plan[check.Index].Item;
-        _ = _session.SubmitCheck(item, TurnSource.Typed, text, null, null);
-        Console.WriteLine($"check: typed \"{text}\" for {item.Id}");
-    }
-
-    // A line to synthesize and answer as spoken (the scripted --speak).
-    private void SubmitSpeakCheck(string text)
-    {
-        if (_check is not { } check || !check.Sent())
-        {
-            return;
-        }
-
-        var item = check.Plan[check.Index].Item;
-        _ = _session.SubmitCheck(item, TurnSource.Speak, text, null, null);
-        Console.WriteLine($"check: spoken \"{text}\" for {item.Id}");
-    }
-
-    // The "No sé" button of a production item: graded as dont_know, never a failure.
-    private void SubmitButtonCheck()
-    {
-        if (_check is not { } check || !check.Sent())
-        {
-            return;
-        }
-
-        var item = check.Plan[check.Index].Item;
-        _ = _session.SubmitCheck(item, TurnSource.Button, GuideSession.DontKnowLine, null, null);
-        Console.WriteLine($"check: no sé for {item.Id}");
-    }
-
-    // The keys of the battery: the comprehension items (1 to 3, R to hear the line again), the production items (V held to speak, W to type,
-    // Enter to send, N for no sé) and Esc (end the battery; the rest is skipped, and an answer in the air is waited for).
-    private void ReadCheckKeys(InputSnapshot input)
-    {
-        var check = _check!;
-        if (input.Pressed(Keys.Escape))
-        {
-            if (check.IsTyping)
-            {
-                check.IsTyping = false;
-            }
-            else if (check.Listening)
-            {
-                CancelCheckListening();
-            }
-            else if (check.Phase != CheckPhase.Thinking)
-            {
-                SkipCheck();
-            }
-
-            return;
-        }
-
-        if (check.Phase != CheckPhase.Showing || check.Current is not { } entry)
-        {
-            return;
-        }
-
-        if (entry.Item.Kind == CheckItemKind.Comprehension)
-        {
-            for (var i = 0; i < CheckOptionKeys.Length; i++)
-            {
-                if (input.Pressed(CheckOptionKeys[i].Key) || input.Pressed(CheckOptionKeys[i].Pad))
-                {
-                    PickCheck(i);
-                    return;
-                }
-            }
-
-            if (input.Pressed(Keys.R))
-            {
-                PlayCheckLine(entry);
-            }
-
-            return;
-        }
-
-        if (check.IsTyping)
-        {
-            if (input.Pressed(Keys.Enter))
-            {
-                if (!check.Entry.IsBlank)
-                {
-                    SubmitTypedCheck(check.Entry.Text);
-                }
-            }
-            else if (input.Pressed(Keys.Back))
-            {
-                _ = check.Entry.Backspace();
-            }
-
-            return;
-        }
-
-        if (check.Listening)
-        {
-            _listen.ReleaseIfUp(input); // V held to speak
-            return;
-        }
-
-        if (input.Pressed(Keys.V))
-        {
-            BeginCheckListening();
-        }
-        else if (input.Pressed(Keys.W) || input.Pressed(Keys.Tab))
-        {
-            check.IsTyping = true;
-            if (input.Pressed(Keys.W))
-            {
-                _swallow.Arm('w'); // the platform types the key once more: the text event must not take it
-            }
-        }
-        else if (input.Pressed(Keys.N))
-        {
-            SubmitButtonCheck();
-        }
-    }
-
-    private void BeginCheckListening()
-    {
-        var check = _check!;
-        if (check.Phase != CheckPhase.Showing || check.Current is not { Item.Kind: CheckItemKind.Production })
-        {
-            return;
-        }
-
-        if (!_session.Worker!.CanHear)
-        {
-            check.Notice = _session.Worker.Load?.Problem ?? "The voice is not available: type your answer (W).";
-            return;
-        }
-
-        if (_listen.Begin(new ListenTarget(HeardCheckAnswer), Keys.V))
-        {
-            check.Listening = true;
-            check.Notice = null;
-        }
-        else
-        {
-            check.Notice = _listen.Problem;
-        }
-    }
-
-    // The key went up (or the recording reached its cap): the clip is the answer, sent to the worker as a spoken check answer.
-    private void HeardCheckAnswer(PcmClip? clip)
-    {
-        var check = _check!;
-        check.Listening = false;
-        if (clip is null)
-        {
-            check.Notice = _listen.Problem;
-            return;
-        }
-
-        if (!check.Sent())
-        {
-            return;
-        }
-
-        _ = _session.SubmitCheck(check.Plan[check.Index].Item, TurnSource.Clip, null, clip, null);
-        Console.WriteLine($"check: listened {clip.DurationSeconds:0.00} s for {check.Plan[check.Index].Item.Id}");
-    }
-
-    // Esc while the microphone records: the recording is dropped and nothing is sent.
-    private void CancelCheckListening()
-    {
-        _listen.Cancel();
-
-        if (_check is { } check)
-        {
-            check.Listening = false;
-        }
-    }
-
-    private void SkipCheck()
-    {
-        CancelCheckListening();
-        _check?.SkipRest();
-        Console.WriteLine("check: ended early (Esc); the rest is skipped");
-    }
-
-    // The comprehension item's line plays once when the item comes up, and again on R.
-    private void PlayCheckLine(CheckPlanEntry entry) => _voice.Play(CheckSpeaker(entry.Item.Line), entry.Item.Spanish, slow: false);
-
-    // The speaker of a check line: a prompt's line is said by the prompt's agent; a phrase's model line by the guide.
-    private string CheckSpeaker(string line)
-    {
-        const string PromptPrefix = "prompt.";
-        if (line.StartsWith(PromptPrefix, StringComparison.Ordinal) && _session.Bundle.Prompts.TryGetValue(line[PromptPrefix.Length..], out var prompt))
-        {
-            return prompt.AgentId ?? SpeechSpeakers.Guide;
-        }
-
-        return SpeechSpeakers.Guide;
-    }
-
-    // Once per frame while the battery runs: the scripted answers (screenshot runs), the first sound of an item, and the end of the battery.
-    private void DriveCheck()
-    {
-        if (_check is null)
-        {
-            return;
-        }
-
-        if (_checkDone)
-        {
-            if (_endAfterCheck && _checkFramesLeft > 0 && --_checkFramesLeft == 0 && !_options.IsScreenshotRun)
-            {
-                Exit(); // a post- or recall-check ends the run after its thank-you screen
-            }
-
-            return;
-        }
-
-        if (_check.IsDone)
-        {
-            FinishCheck();
-            return;
-        }
-
-        if (_micCheck is { IsActive: true })
-        {
-            return; // the mic check comes first
-        }
-
-        _checkScript?.Fill();
-        if (_check.Current is { Item.Kind: CheckItemKind.Comprehension } entry && _checkPlayedAt != _check.Index)
-        {
-            _checkPlayedAt = _check.Index;
-            PlayCheckLine(entry);
-        }
-    }
-
-    // The battery is done: the end is in the log, a pre-check hands over to the world (its script goes on from where the battery stopped), and a
-    // post- or recall-check shows its thank-you screen and ends the run.
-    private void FinishCheck()
-    {
-        var check = _check!;
-        _checkDone = true;
-        var answered = check.Results.Count(static r => r.Input != CheckInput.Skipped);
-        var skipped = check.Results.Count - answered;
-        var kind = CheckKinds.Of(check.Kind);
-        _log?.CheckEnd(kind, answered, skipped);
-        Console.WriteLine($"check {kind}: {answered} answered, {skipped} skipped");
-        if (check.Kind == CheckKind.Pre)
-        {
-            if (_checkScript is { } script && _scenario is not null)
-            {
-                _scenario.SkipTo(script.Index);
-            }
-
-            _checkScript = null;
-            _check = null;
-            return;
-        }
-
-        _checkScript = null;
-        _endAfterCheck = true;
-        if (!_playtest)
-        {
-            _checkFramesLeft = CheckEndFrames;
-            return;
-        }
-
-        // The playtest's end: the thank-you holds until Esc (no timer), the world script is done with its steps, and a post-check saves the run.
-        _checkFramesLeft = -1;
-        if (_scenario is not null)
-        {
-            _scenario.SkipTo(_options.Script.Count);
-        }
-
+        _scenario?.SkipTo(_options.Script.Count);
         if (_options.IsPlaytestRecall)
         {
             check.Closing = RecallThankYou;
@@ -2050,9 +1701,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         check.Closing = $"{PlaytestThankYou}\nSaved: {PlaytestEnd.SaveFileName} in the session folder {folder}.";
         _playtestSaveDue = true;
     }
-
-    // The battery is waiting for a learner's answer that the scripted run has not given, or it has ended and shows its thank-you screen.
-    private bool CheckRestsForShot => _check is { IsDone: false, Phase: CheckPhase.Showing } && _checkScript is { Rests: true } || (_checkDone && _endAfterCheck);
 
     // The save file of F6 (S10): the --save file, in a playtest the session folder's playtest.save (S18), or vocaterra.save.json in the working folder.
     // A turn still thinking means "not now".
