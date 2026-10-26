@@ -6,13 +6,13 @@ using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Tests;
 
-/// <summary>WorldFacts3D on small hand-made scenes: the eight directions relative to the facing, the distance in words, the nearest choice and its ties, the block-to-noun map.</summary>
-public sealed class WorldFacts3DTests
+/// <summary>WorldFacts on small hand-made scenes: the eight directions relative to the facing, the distance in words, the nearest choice and its ties, the block-to-noun map.</summary>
+public sealed class WorldFactsTests
 {
     private const int Unit = VoxelPhysics.UnitsPerBlock;
 
     // A 32 x 4 x 32 scene of air with the given blocks.
-    private static WorldFacts3D Facts(params (int X, int Y, int Z, BlockId Id)[] blocks)
+    private static WorldFacts Facts(params (int X, int Y, int Z, BlockId Id)[] blocks)
     {
         var grid = new Dictionary<(int, int, int), BlockId>();
         foreach (var (x, y, z, id) in blocks)
@@ -20,7 +20,7 @@ public sealed class WorldFacts3DTests
             grid[(x, y, z)] = id;
         }
 
-        return new WorldFacts3D(32, 4, 32, (x, y, z) => grid.GetValueOrDefault((x, y, z), BlockId.Air), TestGame.Nouns);
+        return new WorldFacts(32, 4, 32, (x, y, z) => grid.GetValueOrDefault((x, y, z), BlockId.Air), TestGame.Nouns);
     }
 
     // A player standing in the middle of block (x, z) and facing yaw degrees (0 north, 90 east), as the body reports it.
@@ -87,7 +87,7 @@ public sealed class WorldFacts3DTests
     [InlineData(12L * Unit * 12L * Unit, 12)]
     public void TheDistanceInBlocksRoundsToTheNearestWholeBlock(long squaredUnits, int blocks)
     {
-        Assert.Equal(blocks, WorldFacts3D.BlocksOf(squaredUnits));
+        Assert.Equal(blocks, WorldFacts.BlocksOf(squaredUnits));
     }
 
     [Theory]
@@ -99,7 +99,7 @@ public sealed class WorldFacts3DTests
     [InlineData(1_000_000_000_000L, 1_000_000L)]
     public void TheIntegerSquareRootIsTheFloorOfTheRoot(long value, long root)
     {
-        Assert.Equal(root, WorldFacts3D.IntegerSquareRoot(value));
+        Assert.Equal(root, WorldFacts.IntegerSquareRoot(value));
     }
 
     [Fact]
@@ -217,8 +217,8 @@ public sealed class WorldFacts3DTests
         var kinds = TestGame.Nouns.BlocksOf(noun).ToArray();
         var from = new GuideViewpoint(new GuideCell(point.X, point.Y + 1, point.Z), (point.X * (long)Unit) + (Unit / 2) + 1234, (point.Z * (long)Unit) + (Unit / 2) - 777, Angles.FromDegrees(135));
         var expected = Brute(scene.Grid, from, kinds);
-        var live = WorldFacts3D.Live(scene.Grid, TestGame.Nouns).NearestOfNoun(from, noun);
-        var snapshot = WorldFacts3D.Snapshot(scene.Grid, TestGame.Nouns).NearestOfNoun(from, noun);
+        var live = WorldFacts.Live(scene.Grid, TestGame.Nouns).NearestOfNoun(from, noun);
+        var snapshot = WorldFacts.Snapshot(scene.Grid, TestGame.Nouns).NearestOfNoun(from, noun);
 
         Assert.NotNull(live);
         Assert.Equal(expected.Cell, live.Cell.ToBlock());
@@ -232,7 +232,7 @@ public sealed class WorldFacts3DTests
         // From the player's camp the nearest water is the falls, the pool or the river, a hundred blocks and more away.
         var scene = TestGame.Route();
         var spawn = scene.Spawn.Feet;
-        var facts = WorldFacts3D.Live(scene.Grid, TestGame.Nouns);
+        var facts = WorldFacts.Live(scene.Grid, TestGame.Nouns);
         var viewpoint = new GuideViewpoint(spawn, (spawn.X * (long)Unit) + (Unit / 2), (spawn.Z * (long)Unit) + (Unit / 2), scene.Spawn.Yaw);
         var river = facts.NearestOfNoun(viewpoint, "río");
 
@@ -242,11 +242,11 @@ public sealed class WorldFacts3DTests
         Assert.Contains(river.Direction, new[] { "adelante", "a la izquierda", "adelante, a la izquierda", "a la derecha", "adelante, a la derecha", "detrás", "detrás, a la izquierda", "detrás, a la derecha" });
 
         // The direction words and the rounding hold at any distance: 250 blocks ahead and 130 to the right (the other side reaches half the lead), and the number in words.
-        Assert.Equal("adelante, a la derecha", WorldFacts3D.DirectionPhrase(250L * Unit, 130L * Unit));
-        Assert.Equal("detrás, a la izquierda", WorldFacts3D.DirectionPhrase(-300L * Unit, -200L * Unit));
-        Assert.Equal("a la derecha", WorldFacts3D.DirectionPhrase(10L * Unit, 300L * Unit));
-        Assert.Equal(250, WorldFacts3D.BlocksOf(250L * Unit * 250L * Unit));
-        Assert.Equal(361, WorldFacts3D.BlocksOf(((255L * Unit) * (255L * Unit)) * 2));
+        Assert.Equal("adelante, a la derecha", WorldFacts.DirectionPhrase(250L * Unit, 130L * Unit));
+        Assert.Equal("detrás, a la izquierda", WorldFacts.DirectionPhrase(-300L * Unit, -200L * Unit));
+        Assert.Equal("a la derecha", WorldFacts.DirectionPhrase(10L * Unit, 300L * Unit));
+        Assert.Equal(250, WorldFacts.BlocksOf(250L * Unit * 250L * Unit));
+        Assert.Equal(361, WorldFacts.BlocksOf(((255L * Unit) * (255L * Unit)) * 2));
         Assert.Equal("doscientos cincuenta", Vocaterra.Nlp.Language.Normalization.SpanishNumbers.ToWords(250));
     }
 
@@ -255,7 +255,7 @@ public sealed class WorldFacts3DTests
     {
         var scene = TestGame.Route();
         var watch = System.Diagnostics.Stopwatch.StartNew();
-        var snapshot = WorldFacts3D.Snapshot(scene.Grid, TestGame.Nouns);
+        var snapshot = WorldFacts.Snapshot(scene.Grid, TestGame.Nouns);
         var copied = watch.Elapsed.TotalMilliseconds;
         var spawn = scene.Spawn.Feet;
         var viewpoint = new GuideViewpoint(spawn, (spawn.X * (long)Unit) + (Unit / 2), (spawn.Z * (long)Unit) + (Unit / 2), 0);

@@ -190,7 +190,7 @@ public sealed class VoxelScript
         }
     }
 
-    private static (double X, double Z) FeetOf(PlayerBody3D body) =>
+    private static (double X, double Z) FeetOf(PlayerBody body) =>
         (body.CenterX / (double)VoxelPhysics.UnitsPerBlock, body.CenterZ / (double)VoxelPhysics.UnitsPerBlock);
 
     private void Begin(VoxelStep step)

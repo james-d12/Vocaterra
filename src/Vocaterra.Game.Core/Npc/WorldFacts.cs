@@ -32,7 +32,7 @@ namespace Vocaterra.Game.Core.Npc;
 /// a copy taken when a line is submitted (<see cref="Snapshot"/>, which the turn worker reads while the simulation keeps changing the world).
 /// </para>
 /// </remarks>
-public sealed class WorldFacts3D : IGuideFacts
+public sealed class WorldFacts : IGuideFacts
 {
     /// <summary>The units of one block (the body's fixed-point unit is 1/4096 block).</summary>
     public const int UnitsPerBlock = VoxelPhysics.UnitsPerBlock;
@@ -67,7 +67,7 @@ public sealed class WorldFacts3D : IGuideFacts
     /// 16 x 16 x 16 chunks that cannot hold the noun when <paramref name="chunkKinds"/> says which block kinds a chunk holds (one bit per kind, as
     /// <see cref="VoxelChunk.KindMask"/>); without it every block is read.
     /// </summary>
-    public WorldFacts3D(int sizeX, int sizeY, int sizeZ, Func<int, int, int, BlockId> blockAt, NounCatalog nouns, Func<int, int, int, ulong>? chunkKinds = null)
+    public WorldFacts(int sizeX, int sizeY, int sizeZ, Func<int, int, int, BlockId> blockAt, NounCatalog nouns, Func<int, int, int, ulong>? chunkKinds = null)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sizeX);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sizeY);
@@ -81,10 +81,10 @@ public sealed class WorldFacts3D : IGuideFacts
     }
 
     /// <summary>The facts over the live grid: every call reads the grid as it is now (the simulation's own thread).</summary>
-    public static WorldFacts3D Live(VoxelGrid grid, NounCatalog nouns)
+    public static WorldFacts Live(VoxelGrid grid, NounCatalog nouns)
     {
         ArgumentNullException.ThrowIfNull(grid);
-        return new WorldFacts3D(grid.SizeX, grid.SizeY, grid.SizeZ, grid.GetBlock, nouns, (cx, cy, cz) => grid.GetChunk(new VoxelChunkCoord(cx, cy, cz)).KindMask);
+        return new WorldFacts(grid.SizeX, grid.SizeY, grid.SizeZ, grid.GetBlock, nouns, (cx, cy, cz) => grid.GetChunk(new VoxelChunkCoord(cx, cy, cz)).KindMask);
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ public sealed class WorldFacts3D : IGuideFacts
     /// (a chunk of air costs nothing), with the block kinds each holds, so the copy is a few milliseconds and a search reads only the chunks that can
     /// hold the noun.
     /// </summary>
-    public static WorldFacts3D Snapshot(VoxelGrid grid, NounCatalog nouns)
+    public static WorldFacts Snapshot(VoxelGrid grid, NounCatalog nouns)
     {
         ArgumentNullException.ThrowIfNull(grid);
         var chunksX = grid.ChunksX;
@@ -113,7 +113,7 @@ public sealed class WorldFacts3D : IGuideFacts
         var sizeX = grid.SizeX;
         var sizeY = grid.SizeY;
         var sizeZ = grid.SizeZ;
-        return new WorldFacts3D(
+        return new WorldFacts(
             sizeX,
             sizeY,
             sizeZ,

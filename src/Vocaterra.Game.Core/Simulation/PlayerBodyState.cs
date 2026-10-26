@@ -3,7 +3,7 @@ using Vocaterra.Game.Core.Physics;
 namespace Vocaterra.Game.Core.Simulation;
 
 /// <summary>
-/// The player's body as plain values, in 1/4096-block units and 1/4096-turn angles (the fixed-point units of <see cref="PlayerBody3D"/>).
+/// The player's body as plain values, in 1/4096-block units and 1/4096-turn angles (the fixed-point units of <see cref="PlayerBody"/>).
 /// </summary>
 /// <param name="MinX">The west edge of the box.</param>
 /// <param name="MinY">The bottom of the box (the feet).</param>

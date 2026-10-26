@@ -46,7 +46,7 @@ public sealed class GuideTurnTests(ITestOutputHelper output)
 
         var dx = expected.X - player.X;
         var dz = expected.Z - player.Z;
-        Assert.Equal(WorldFacts3D.BlocksOf((long)((dx * dx) + (dz * dz)) * VoxelPhysics.UnitsPerBlock * VoxelPhysics.UnitsPerBlock), turn.Pointer.Blocks); // the horizontal distance, rounded
+        Assert.Equal(WorldFacts.BlocksOf((long)((dx * dx) + (dz * dz)) * VoxelPhysics.UnitsPerBlock * VoxelPhysics.UnitsPerBlock), turn.Pointer.Blocks); // the horizontal distance, rounded
         Assert.NotNull(turn.WorldLine);
         Assert.StartsWith("El árbol está", turn.WorldLine, StringComparison.Ordinal);
         Assert.Contains(turn.Pointer.Direction, turn.WorldLine, StringComparison.Ordinal); // the direction is relative to where the player faces

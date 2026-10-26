@@ -17,7 +17,7 @@ namespace Vocaterra.Game.Core.Session;
 /// One running game of the 3D scene (the prototype's only world since S4): the voxel simulation over the bundle's scene, and the NPCs (the guide,
 /// the shopkeeper and the villager), the word counts, the arrow, the camp objective, the word cards and the turn worker around it (the shared part
 /// is <see cref="GuideSession"/>). The guide's facts are the blocks of the scene: the nearest block of a noun and its direction from where the
-/// player faces (<see cref="WorldFacts3D"/>). Since S6 the NPCs' host events act on this world (<see cref="NpcHostEvents"/>): the shopkeeper hands
+/// player faces (<see cref="WorldFacts"/>). Since S6 the NPCs' host events act on this world (<see cref="NpcHostEvents"/>): the shopkeeper hands
 /// over the bottle, which the player fills at the river (the objective's water step), the villager points the beacon at the river.
 /// </summary>
 /// <remarks>
@@ -55,7 +55,7 @@ public sealed class VoxelSession : GuideSession
             worldSeed,
             startedAt,
             nouns,
-            WorldFacts3D.Live(scene?.Grid ?? throw new ArgumentNullException(nameof(scene)), nouns),
+            WorldFacts.Live(scene?.Grid ?? throw new ArgumentNullException(nameof(scene)), nouns),
             RecipeBook.Load(bundle, nouns),
             playSession: 1,
             credit,
@@ -219,7 +219,7 @@ public sealed class VoxelSession : GuideSession
     protected override Inventory LiveInventory => Simulation.Inventory;
 
     /// <inheritdoc />
-    protected override IGuideFacts SnapshotFacts() => WorldFacts3D.Snapshot(Scene.Grid, Nouns);
+    protected override IGuideFacts SnapshotFacts() => WorldFacts.Snapshot(Scene.Grid, Nouns);
 
     /// <inheritdoc />
     protected override string StateDigest() => Simulation.ComputeStateDigest();

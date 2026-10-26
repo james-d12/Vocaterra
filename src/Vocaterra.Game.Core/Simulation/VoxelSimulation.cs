@@ -41,7 +41,7 @@ public sealed class VoxelSimulation
         Scene = scene;
         Inventory = new Inventory();
         var spawn = scene.Spawn.Feet;
-        Player = new PlayerBody3D(scene.Grid, (spawn.X * U) + (U / 2), spawn.Y * U, (spawn.Z * U) + (U / 2), scene.Spawn.Yaw);
+        Player = new PlayerBody(scene.Grid, (spawn.X * U) + (U / 2), spawn.Y * U, (spawn.Z * U) + (U / 2), scene.Spawn.Yaw);
     }
 
     /// <summary>The scene (grid, spawn, NPCs, named points).</summary>
@@ -51,7 +51,7 @@ public sealed class VoxelSimulation
     public VoxelGrid Grid => Scene.Grid;
 
     /// <summary>The player's body: position, velocity, facing and the eye. Read only for a front-end.</summary>
-    public PlayerBody3D Player { get; }
+    public PlayerBody Player { get; }
 
     /// <summary>The player's inventory: 40 slots, the first 10 the hotbar. It starts empty.</summary>
     public Inventory Inventory { get; }

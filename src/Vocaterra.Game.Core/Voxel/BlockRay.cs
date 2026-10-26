@@ -18,7 +18,7 @@ public static class BlockRay
     public const int DefaultReachInBlocks = VoxelPhysics.ReachInBlocks;
 
     /// <summary>Casts a ray from the player's eye along the player's facing, with the default reach.</summary>
-    public static BlockRayHit? Cast(VoxelGrid grid, PlayerBody3D body, int reachInBlocks = DefaultReachInBlocks)
+    public static BlockRayHit? Cast(VoxelGrid grid, PlayerBody body, int reachInBlocks = DefaultReachInBlocks)
     {
         ArgumentNullException.ThrowIfNull(body);
         return Cast(grid, body.EyeX, body.EyeY, body.EyeZ, body.Yaw, body.Pitch, reachInBlocks);

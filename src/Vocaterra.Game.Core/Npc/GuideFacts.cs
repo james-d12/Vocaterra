@@ -52,7 +52,7 @@ public sealed record GuideNearest(GuideCell Cell, int Blocks, string Direction, 
 
 /// <summary>
 /// What the guide can say about the world: the nearest place of a noun, and the noun of the thing at a cell. The 3D scene implements it with
-/// <see cref="WorldFacts3D"/> (blocks); the guide service reads it through this interface only.
+/// <see cref="WorldFacts"/> (blocks); the guide service reads it through this interface only.
 /// </summary>
 public interface IGuideFacts
 {

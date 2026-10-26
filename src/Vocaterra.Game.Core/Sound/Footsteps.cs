@@ -209,7 +209,7 @@ public sealed class Footsteps
     /// <summary>Reads the player's state for the footsteps from the simulation's body and grid.</summary>
     /// <param name="player">The body.</param>
     /// <param name="blockAt">Reads the block at a cell.</param>
-    public static FootState StateOf(PlayerBody3D player, Func<int, int, int, BlockId> blockAt)
+    public static FootState StateOf(PlayerBody player, Func<int, int, int, BlockId> blockAt)
     {
         const int unitsPerBlock = VoxelPhysics.UnitsPerBlock;
         var cellX = FloorDiv(player.CenterX, unitsPerBlock);

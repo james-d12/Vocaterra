@@ -60,7 +60,7 @@ internal static class TestGame
     public static LessonBook Lessons(string json) => LessonBook.Parse(json, PhraseSheet.Load(Bundle), Speech, Bundle.Prompts);
 
     /// <summary>The live facts of a session's world (the blocks as they are now).</summary>
-    public static WorldFacts3D FactsOf(VoxelSession session) => WorldFacts3D.Live(session.Scene.Grid, Nouns);
+    public static WorldFacts FactsOf(VoxelSession session) => WorldFacts.Live(session.Scene.Grid, Nouns);
 
     /// <summary>Where the player stands as the guide's facts need it (the block under the body, the exact centre and the facing).</summary>
     public static GuideViewpoint ViewpointOf(VoxelSession session)

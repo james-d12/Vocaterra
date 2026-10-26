@@ -1,8 +1,8 @@
 namespace Vocaterra.Game.Core.Voxel;
 
 /// <summary>
-/// The block kinds of the 3D voxel world. The numeric values are stored in chunks, hashed into the world digest and (later) written to saves,
-/// so a value is never changed or reused: new kinds are appended, as with the 2D <c>TileId</c>.
+/// The block kinds of the voxel world. The numeric values are stored in chunks, hashed into the world digest and written to saves, so a
+/// value is never changed or reused: new kinds are appended.
 /// </summary>
 public enum BlockId : ushort
 {

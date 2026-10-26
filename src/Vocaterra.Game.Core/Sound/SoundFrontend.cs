@@ -133,7 +133,7 @@ public sealed class SoundFrontend
     /// <param name="player">The player's body.</param>
     /// <param name="blockAt">Reads the block at a cell.</param>
     /// <param name="fireLit">Whether the player's own fire is lit.</param>
-    public void ObserveWorld(long tick, IReadOnlyList<SimulationEvent> events, PlayerBody3D player, Func<int, int, int, BlockId> blockAt, bool fireLit)
+    public void ObserveWorld(long tick, IReadOnlyList<SimulationEvent> events, PlayerBody player, Func<int, int, int, BlockId> blockAt, bool fireLit)
     {
         ArgumentNullException.ThrowIfNull(events);
         ArgumentNullException.ThrowIfNull(player);

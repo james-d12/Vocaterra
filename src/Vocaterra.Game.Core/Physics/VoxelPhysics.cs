@@ -2,8 +2,8 @@ namespace Vocaterra.Game.Core.Physics;
 
 /// <summary>
 /// The 3D physics constants. Positions are integers in 1/4096 of a block ("units"), velocities are units per tick and accelerations units
-/// per tick squared, so a tick is exact integer arithmetic and replays are bit-identical on every platform. Y grows up here (the 2D
-/// physics has Y growing down). The box sizes are the nearest whole unit to the design values (0.6 x 1.8 blocks, eye at 1.62).
+/// per tick squared, so a tick is exact integer arithmetic and replays are bit-identical on every platform. Y grows up. The box sizes are
+/// the nearest whole unit to the design values (0.6 x 1.8 blocks, eye at 1.62).
 /// </summary>
 public static class VoxelPhysics
 {

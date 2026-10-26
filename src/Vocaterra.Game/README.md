@@ -112,10 +112,10 @@ cards and the viewport size. New layers: the crosshair with a gather bar, the NP
 edge arrow, and the 3D debug overlay.
 
 **The guide (S3).** The turn worker starts with the game (typed and spoken, the loading screen until Vosk is ready), with a `VoxelSession` (in
-`Vocaterra.Game`, the shared part is `GuideSession`) over the scene's blocks: `WorldFacts3D` answers "where is it" with the nearest block of a noun,
+`Vocaterra.Game`, the shared part is `GuideSession`) over the scene's blocks: `WorldFacts` answers "where is it" with the nearest block of a noun,
 its direction from the facing and its distance in blocks. The panel (`DialogueModel`, `DialoguePanel`) is in the layer list; **E** (or **T**; **V**
-talks) opens it when the crosshair is on an NPC's figure, the guide's, the shopkeeper's or the villager's since S6 (`FigureAim` on the figure's chest, reach 8 blocks, no block in between through
-`NpcLabelLayer.Occluded`; the hint `E: talk` is `TalkHintLayer`). The panel takes the keyboard, the mouse is released and no walking happens while
+talks) opens it when the crosshair is on an NPC's figure, the guide's, the shopkeeper's or the villager's since S6 (`NpcAim` on the figure's chest, reach 8 blocks, no block in between through
+`LineOfSight.Blocked`, both in `Vocaterra.Game.Core`; the hint `E: talk` is `TalkHintLayer`). The panel takes the keyboard, the mouse is released and no walking happens while
 it is open (the keys are in the S7 paragraph below). The arrow of the session is the beacon: `SyncBeacon` puts `Beacon.Set` on the pointer's
 block (a review question shows `¿?`), and the beacon's own reach takes the arrow down. "¿qué es esto?" uses `VoxelSession.AimedCell`, the block under
 the crosshair (`sim.Target`). `--talk` and `--say` are `ScenarioScript` steps: a `VoxelScript` walk to the stand-off cell of the NPC, a look at it, then the panel opens (the
@@ -155,7 +155,7 @@ others come through the platform's text input).
 
 **Where the pieces are:** `VoxelGame.cs` (the host: the worker, the panel and its keys, the beacon, the crafting panel, the objective, the script),
 `HudLayers.cs` (`ObjectiveLayer`, `WordCardLayer`), `CraftingLayer.cs`, `VoxelTalkLayers.cs` (`TalkHintLayer`, `WorldLabel`, `WorldLabelLayer`),
-`VoxelLayers.cs` (the crosshair, the NPC labels, the beacon arrow, the debug overlay), `Frontend/FigureAim.cs` (the crosshair test, plain
+`VoxelLayers.cs` (the crosshair, the NPC labels, the beacon arrow, the debug overlay), `Vocaterra.Game.Core/Npc/NpcAim.cs` (the crosshair test, plain
 maths), `Frontend/VoxelScript.cs` (the step machine over ticks: look, walk, interact, place, select, craft), `Frontend/VoxelSayScript.cs` (the
 `--say` state machine), `Frontend/WordCardQueue.cs`, `Frontend/CraftingScreen.cs` (the panel's rows and layout) and `Frontend/SceneLocator.cs` (the
 bundle's `game/scene.json`, or `--scene`).
@@ -166,11 +166,12 @@ bundle's `game/scene.json`, or `--scene`).
 Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or FontStashSharp appears here), tested without a GPU
   TickAccumulator   real frame time -> whole ticks; integer micro-ticks, cap of 5 steps per frame, surplus dropped; Alpha for interpolation
   IFrameClock       RealFrameClock (Stopwatch) and FixedFrameClock (one tick per frame, for --screenshot); the only timers in the project
-  LookControl       the look (yaw and pitch in angle steps), mouse look, the camera ease over a step-up
+  LookControl       the look (yaw and pitch in angle steps), mouse look (Input/)
+  CameraEase        the camera ease over a step-up
   LiveVoxelInput    the device state of a tick as VoxelCommands (walk, jump, gather, place, the hotbar)
   VoxelScript       the --look, --walk-to, --interact, --place, --select and --craft steps over ticks
   ScenarioScript    the scripted run: the body's steps, --talk (walk to the stand-off, settle, open the panel), --say (type, send, wait for the reply), --leave, --shot
-  ChunkMesher, MeshVertex, BlockAtlasLayout, BlockArt, BlockArtNature, ChunkVersionTracker, NpcFigures, FigureMesher, FigureAnimation, FigureFacing, BlockArtVillage, ViewModeState, ThirdPersonRig, HeldItems, ArmMotion, ArmLight, ArmMeshes, RecipePanelModel, DialogueBubble, OverlayMeshes, ViewMath, PointLabels, FigureAim
+  ChunkMesher, MeshVertex, BlockAtlasLayout, BlockArt, BlockArtNature, ChunkVersionTracker, NpcFigures, FigureMesher, FigureAnimation, FigureFacing, BlockArtVillage, ViewModeState, ThirdPersonRig, HeldItems, ArmMotion, ArmLight, ArmMeshes, RecipePanelModel, DialogueBubble, OverlayMeshes, ViewMath, PointLabels
   SkyPalette, CloudField, CloudBox   the sky's colours (and the fog's) and the flat clouds as plain maths (S14)
   QualityPreset     the view distance, the plant distance and share, the occlusion and the clouds of low, medium and high
   CountBadge        the stack count on an opaque dark plate (contrast tested)

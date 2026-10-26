@@ -10,13 +10,13 @@ namespace Vocaterra.Game.Core.Physics;
 /// <see cref="Angles"/>). A front-end reads it; <see cref="VoxelSimulation"/> steps it. All arithmetic is integer, so replays are
 /// bit-identical.
 /// </summary>
-public sealed class PlayerBody3D
+public sealed class PlayerBody
 {
     private const int U = VoxelPhysics.UnitsPerBlock;
     private const int W = VoxelPhysics.PlayerWidth;
     private const int H = VoxelPhysics.PlayerHeight;
 
-    internal PlayerBody3D(VoxelGrid grid, int centerX, int feetY, int centerZ, int yaw)
+    internal PlayerBody(VoxelGrid grid, int centerX, int feetY, int centerZ, int yaw)
     {
         MinX = centerX - (W / 2);
         MinY = feetY;

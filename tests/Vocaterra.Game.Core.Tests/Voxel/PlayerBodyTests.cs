@@ -8,7 +8,7 @@ using static Vocaterra.Game.Core.Tests.Voxel.VoxelTestSupport;
 namespace Vocaterra.Game.Core.Tests.Voxel;
 
 /// <summary>The player body on hand-built voxel worlds: landing, walls, steps, jumps, edges and the never-inside-a-solid property.</summary>
-public sealed class PlayerBody3DTests
+public sealed class PlayerBodyTests
 {
     private static int GroundFeet => (GroundTop + 1) * Units;
 
