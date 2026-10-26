@@ -31,6 +31,7 @@ using Vocaterra.Game.UI.Book;
 using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.English;
 using Vocaterra.Game.Utilities;
+using Vocaterra.Nlp.Core.Audio;
 
 namespace Vocaterra.Game;
 
@@ -118,7 +119,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly InputFocus _focus = new();
     private readonly DialogueModel _dialogue;
     private readonly TurnPump _pump;
-    private readonly PushToTalkSpeechCapture _talkSpeechCapture;
+    private readonly ListenSession _listen;
     private readonly SoundFrontend _sound;
     private readonly ISoundOutput _soundOutput;
     private readonly SoundLogWriter? _soundLog;
@@ -156,7 +157,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private bool _firstUpdateSeen;
     private int _settled;
     private bool _shown;
-    private Keys _listenKey = Keys.None;
     private NpcFigure? _aimed;
     private readonly WordCardQueue _cards = new();
     private readonly CraftingScreen _crafting = new();
@@ -222,7 +222,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _bookControls = new BookSpeechControls(_book, new BookSpeaker(voice, _sound.Mixer), session, _recordings);
         _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Phrases, session.English, showVerdictNotes: !options.Playtest);
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
-        _talkSpeechCapture = new PushToTalkSpeechCapture(microphone) { Sounds = _sound.Mixer };
+        _listen = new ListenSession(new PushToTalkSpeechCapture(microphone) { Sounds = _sound.Mixer });
         _microphoneFound = microphone is not null;
         _pump = new TurnPump(session, _dialogue, CursorCell);
         _actions = new SpeechActionRunner(session, _dialogue, voice, CursorCell);
@@ -1254,14 +1254,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // Esc undoes the newest thing first: a recording, a turn that is thinking, the typing mode, and last the panel itself.
     private void ReadDialogueKeys(InputSnapshot input)
     {
-        if (_talkSpeechCapture.Listening && !input.Down(_listenKey))
-        {
-            EndListening();
-        }
-
+        _listen.ReleaseIfUp(input);
         if (input.Pressed(Keys.Escape))
         {
-            if (_talkSpeechCapture.Listening)
+            if (_listen.Listening)
             {
                 CancelRecording();
             }
@@ -1404,18 +1400,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private void ReadMicCheckKeys(InputSnapshot input)
     {
         var check = _micCheck!;
-        if (_talkSpeechCapture.Listening && !input.Down(_listenKey))
-        {
-            EndMicListening();
-        }
-
+        _listen.ReleaseIfUp(input);
         if (input.Pressed(Keys.Escape))
         {
-            if (_talkSpeechCapture.Listening)
-            {
-                _ = _talkSpeechCapture.End();
-            }
-
+            _listen.Cancel();
             check.Skip();
             return;
         }
@@ -1449,9 +1437,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private void PressMicButton(MicCheckButton button)
     {
         _sound.QueueClick(SoundCue.UiClick);
-        if (button == MicCheckButton.Skip && _talkSpeechCapture.Listening)
+        if (button == MicCheckButton.Skip)
         {
-            _ = _talkSpeechCapture.End();
+            _listen.Cancel();
         }
 
         _micCheck!.Press(button);
@@ -1469,27 +1457,25 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return;
         }
 
-        if (_talkSpeechCapture.Begin())
+        if (_listen.Begin(new ListenTarget(HeardMicCheck, check.Feed), key))
         {
-            _listenKey = key;
             check.Notice = null;
             check.BeginListening();
         }
         else
         {
-            check.Notice = _talkSpeechCapture.Problem;
+            check.Notice = _listen.Problem;
         }
     }
 
     // The mic check: the key went up (or the recording hit its cap). The clip goes to the worker, which hears it and answers with what it heard.
-    private void EndMicListening()
+    private void HeardMicCheck(PcmClip? clip)
     {
         var check = _micCheck!;
-        var clip = _talkSpeechCapture.End();
         check.EndListening();
         if (clip is null)
         {
-            check.Notice = _talkSpeechCapture.Problem;
+            check.Notice = _listen.Problem;
             check.HeardNothing();
             return;
         }
@@ -1572,7 +1558,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return;
         }
 
-        if (!_dialogue.IsTyping || char.IsControl(args.Character) || _talkSpeechCapture.Listening)
+        if (!_dialogue.IsTyping || char.IsControl(args.Character) || _listen.Listening)
         {
             if (_dialogue.IsOpen)
             {
@@ -1676,26 +1662,24 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return;
         }
 
-        if (_talkSpeechCapture.Begin())
+        if (_listen.Begin(new ListenTarget(HeardSpeech), key))
         {
-            _listenKey = key;
             _dialogue.Listening = true;
             _dialogue.SpeechNotice = null;
         }
         else
         {
-            _dialogue.SpeechNotice = _talkSpeechCapture.Problem;
+            _dialogue.SpeechNotice = _listen.Problem;
         }
     }
 
     // The key went up (or the recording reached its cap): the clip goes to the worker as a spoken turn.
-    private void EndListening()
+    private void HeardSpeech(PcmClip? clip)
     {
         _dialogue.Listening = false;
-        var clip = _talkSpeechCapture.End();
         if (clip is null)
         {
-            _dialogue.SpeechNotice = _talkSpeechCapture.Problem;
+            _dialogue.SpeechNotice = _listen.Problem;
             return;
         }
 
@@ -1714,58 +1698,20 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // The panel closed while recording: the clip is dropped.
     private void CancelListening()
     {
-        if (_talkSpeechCapture.Listening)
-        {
-            _ = _talkSpeechCapture.End();
-        }
-
+        _listen.Cancel();
         _dialogue.Listening = false;
     }
 
-    // Once per frame while a key is held: collect the samples, and send the clip when the recording hits its length cap. The mic check's meter moves
-    // with the level of what was collected.
+    // Once per frame: the recording collects its samples and ends at its length cap (ListenSession); the mic check's meter falls back while
+    // nothing is recorded.
     private void PumpTalk(double seconds)
     {
-        if (_check is { Listening: true })
+        if (_check is not { Listening: true } && _micCheck is { IsActive: true } check && !_listen.Listening)
         {
-            _talkSpeechCapture.Pump();
-            if (_talkSpeechCapture.ReachedLimit && !_talkSpeechCapture.Listening)
-            {
-                EndCheckListening();
-            }
-
-            return;
+            check.Feed(0, seconds);
         }
 
-        if (_micCheck is { IsActive: true } check)
-        {
-            if (_talkSpeechCapture.Listening)
-            {
-                _talkSpeechCapture.Pump();
-                check.Feed(_talkSpeechCapture.LastLevel, seconds);
-                if (_talkSpeechCapture.ReachedLimit && !_talkSpeechCapture.Listening)
-                {
-                    EndMicListening();
-                }
-            }
-            else
-            {
-                check.Feed(0, seconds);
-            }
-
-            return;
-        }
-
-        if (!_talkSpeechCapture.Listening)
-        {
-            return;
-        }
-
-        _talkSpeechCapture.Pump();
-        if (_talkSpeechCapture.ReachedLimit && !_talkSpeechCapture.Listening)
-        {
-            EndListening();
-        }
+        _listen.Pump(seconds);
     }
 
     // Applies the turns the worker finished, in order: the panel, the console, the arrow.
@@ -1919,11 +1865,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (check.Listening)
         {
-            if (!input.Down(Keys.V))
-            {
-                EndCheckListening();
-            }
-
+            _listen.ReleaseIfUp(input); // V held to speak
             return;
         }
 
@@ -1959,26 +1901,25 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return;
         }
 
-        if (_talkSpeechCapture.Begin())
+        if (_listen.Begin(new ListenTarget(HeardCheckAnswer), Keys.V))
         {
             check.Listening = true;
             check.Notice = null;
         }
         else
         {
-            check.Notice = _talkSpeechCapture.Problem;
+            check.Notice = _listen.Problem;
         }
     }
 
     // The key went up (or the recording reached its cap): the clip is the answer, sent to the worker as a spoken check answer.
-    private void EndCheckListening()
+    private void HeardCheckAnswer(PcmClip? clip)
     {
         var check = _check!;
         check.Listening = false;
-        var clip = _talkSpeechCapture.End();
         if (clip is null)
         {
-            check.Notice = _talkSpeechCapture.Problem;
+            check.Notice = _listen.Problem;
             return;
         }
 
@@ -1994,10 +1935,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // Esc while the microphone records: the recording is dropped and nothing is sent.
     private void CancelCheckListening()
     {
-        if (_talkSpeechCapture.Listening)
-        {
-            _ = _talkSpeechCapture.End();
-        }
+        _listen.Cancel();
 
         if (_check is { } check)
         {
@@ -2133,7 +2071,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
     // The autosave (X05) at its safe points: only at rest, with no dialogue open, no voice being recorded, no check battery, mic check or report panel.
     private void AutosaveDue() =>
-        _autosave?.Run(_sim.Tick, _session.Events, atRest: _session.CanSave && !_dialogue.IsOpen && !_talkSpeechCapture.Listening && WorldRunning && !_report.Paused);
+        _autosave?.Run(_sim.Tick, _session.Events, atRest: _session.CanSave && !_dialogue.IsOpen && !_listen.Listening && WorldRunning && !_report.Paused);
 
     // At the quit, the turns still on the worker are applied first (up to five seconds), so that the save holds what the player said.
     private void DrainForSave()
