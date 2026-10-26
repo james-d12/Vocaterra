@@ -68,12 +68,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <summary>The save file F6 writes when the run has no <c>--save</c> file.</summary>
     private const string DefaultSavePath = "vocaterra.save.json";
 
-    /// <summary>The thank-you note of the playtest's post-check (the screen's closing lines; the English is for the facilitator and the tester alike).</summary>
-    private const string PlaytestThankYou = "Thank you for playing. Your answers are in the session log.";
-
-    /// <summary>The thank-you note of the next-day recall of a playtest.</summary>
-    private const string RecallThankYou = "Thank you. Your answers are in the session log.";
-
     private static readonly Keys[] SlotKeys = [Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9, Keys.D0];
 
     private readonly LaunchOptions _options;
@@ -159,10 +153,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // The playtest profile (S12): the post-check starts by itself or with F10, its save goes to the session folder, and the thank-you
     // screen waits for Esc. A screenshot waits for the wanted window size before it is taken (ScreenshotGate).
     private readonly bool _playtest;
-    private string? _playtestSavePath;
-    private bool _playtestStarted;
-    private bool _playtestSaveDue;
-    private bool _playtestSaved;
+    private readonly PlaytestFlow _playtestFlow;
     private int _sizeFrames;
     private bool _sizeWarned;
 
@@ -318,6 +309,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             new CheckBatteryHooks(path => _shotPath = path, () => _shotPath is not null, () => _micCheck is { IsActive: true }, index => _scenario?.SkipTo(index), Exit, EndPlaytest),
             Console.WriteLine);
         _micScreen = new MicCheckScreen(_micCheck, session, _listen, _sound, _canvas, () => _view!.Fonts.Get(FontProvider.NativeSize), options.IsScreenshotRun, () => _scenario is { IsDone: false } || _checks.Screen is { IsDone: false }, Console.WriteLine);
+        _playtestFlow = new PlaytestFlow(
+            options.Playtest,
+            options.IsPlaytestRecall,
+            options.IsScreenshotRun,
+            options.Script.Count,
+            session,
+            _checks,
+            _saves,
+            new PlaytestHooks(() => _scenario?.Index ?? 0, index => _scenario?.SkipTo(index), ClosePanels, DrainForSave),
+            Console.WriteLine);
         StartLogAndCheck(options);
         CrashSource = new CrashSource(_sessionDirectory, options.ReportDir, session, _dialogue, _report, _autosave, _saves);
         _session.StartWorker(MonotonicClock.Milliseconds, options.NeedsSpeech);
@@ -385,17 +386,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         _session.Applied += OnAppliedTurn;
-        if (options.Playtest)
-        {
-            _playtestSavePath = PlaytestEnd.SaveIn(directory);
-            Console.WriteLine(options.IsPlaytestRecall
-                ? $"playtest: the next-day recall of the save from session {_session.PlaySession - 1}; the run ends after the check"
-                : $"playtest: the pre-check, the run, then the post-check when the camp is done, the fire at the player's camp is lit and the transfer offered (or F10); the save is {_playtestSavePath}");
-        }
+        _playtestFlow.Prepare(directory);
 
         if (!options.NoAutosave)
         {
-            var autosavePath = options.Playtest && _playtestSavePath is not null ? _playtestSavePath : Path.Combine(directory, AutosaveFiles.FileName);
+            var autosavePath = _playtestFlow.SavePath ?? Path.Combine(directory, AutosaveFiles.FileName);
             _autosave = new AutosaveController(new AutosavePolicy(_sim.Tick, _session.Events.Count), autosavePath, _saves, Console.WriteLine, _toasts.Show);
             Console.WriteLine($"autosave: {autosavePath} (written on a lesson step, an objective step, a lesson's end, the session's end, a closed dialogue, and every {AutosavePolicy.IntervalSeconds / 60} minutes of play)");
         }
@@ -410,11 +405,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
     }
 
-    // The post-check of a playtest (S12): it starts when the camp is done and the transfer offered (Update), or at once with F10. The world stops
-    // while it runs; a scripted run answers it from the script's next step, so the world script is done with its steps when it ends.
-    private void StartPlaytestPost(string why)
+    // Closes the dialogue, the book, the inventory and the crafting panel, whichever is open (the playtest's post-check takes the screen, S12).
+    private void ClosePanels()
     {
-        _playtestStarted = true;
         if (_dialogue.IsOpen)
         {
             _dialogueScreen.Close();
@@ -434,9 +427,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         {
             _craftingPanel.Close();
         }
-
-        Console.WriteLine($"playtest: the post-check starts ({why}) at tick {_sim.Tick}; {_session.Objective.Summary}");
-        _checks.Begin(CheckKind.Post, _options.IsScreenshotRun, _scenario?.Index ?? 0);
     }
 
     // The world is on screen: no check battery and no mic check (the playtest's triggers and its end key need that).
@@ -587,17 +577,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         _micScreen.DriveScripted();
         _reportScreen.DriveScripted(); // a scripted report is typed and saved here, while its panel is up (S21)
-        if (_playtest && (_scenario is null || _scenario.AtStepBoundary)
-            && PlaytestEnd.StartsOnItsOwn(true, WorldRunning, _playtestStarted, _session.SessionComplete, PlaytestEnd.TransferOffered(_session.Events), _dialogue.IsOpen))
-        {
-            StartPlaytestPost("the camp is done, the player's fire is lit and the transfer offered");
-        }
-
-        if (_playtestSaveDue && _session.CanSave)
-        {
-            _playtestSaved = _saves.Write(_playtestSavePath!, "at the end of the playtest");
-            _playtestSaveDue = !_playtestSaved;
-        }
+        _playtestFlow.StartIfDue(atStepBoundary: _scenario is null || _scenario.AtStepBoundary, WorldRunning, _dialogue.IsOpen);
+        _playtestFlow.SaveIfDue();
 
         AutosaveDue(); // the autosave at its safe points (X05)
 
@@ -791,11 +772,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _ = _saves.Write(savePath, "at the end of the run");
         }
 
-        if (_playtest && !_options.IsPlaytestRecall && !_playtestSaved && _playtestSavePath is { } playtestSave)
-        {
-            DrainForSave();
-            _playtestSaved = _saves.Write(playtestSave, "at the quit (the playtest ended before its post-check)");
-        }
+        _playtestFlow.SaveAtQuit();
 
         if (_log is { } log)
         {
@@ -930,16 +907,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (IsActive)
         {
-            if (_playtest && _checks.EndsRun && _checks.Done && input.Pressed(Keys.Escape))
+            if (_playtestFlow.ShowsThankYou && input.Pressed(Keys.Escape))
             {
                 Exit(); // the playtest's thank-you screen: Esc closes the game (Esc always works)
                 _devices.CommitKeys(input);
                 return;
             }
 
-            if (_playtest && input.Pressed(Keys.F10) && PlaytestEnd.EndKeyStarts(true, WorldRunning, _playtestStarted))
+            if (input.Pressed(Keys.F10))
             {
-                StartPlaytestPost("the end key");
+                _playtestFlow.EndKey(WorldRunning); // the post-check at once (S12)
             }
 
             if (input.Pressed(Keys.F5))
@@ -1235,26 +1212,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
     }
 
-    // The playtest's end (S12): its post- or recall-check is over, the world script is done with its steps, and a post-check saves the run.
-    private void EndPlaytest(CheckScreen check)
-    {
-        _scenario?.SkipTo(_options.Script.Count);
-        if (_options.IsPlaytestRecall)
-        {
-            check.Closing = RecallThankYou;
-            return;
-        }
-
-        var folder = Path.GetFileName(Path.GetDirectoryName(_playtestSavePath!)) ?? string.Empty;
-        check.Closing = $"{PlaytestThankYou}\nSaved: {PlaytestEnd.SaveFileName} in the session folder {folder}.";
-        _playtestSaveDue = true;
-    }
+    // The battery's hook for the playtest's end (S12): the playtest is made after the battery, so the hook reaches it through this method.
+    private void EndPlaytest(CheckScreen check) => _playtestFlow.Ended(check);
 
     // The save file of F6 (S10): the --save file, in a playtest the session folder's playtest.save (S18), or vocaterra.save.json in the working folder.
     // A turn still thinking means "not now".
     private void SaveNow()
     {
-        var path = PlaytestEnd.ManualSavePath(_options.SavePath, _playtest ? _playtestSavePath : null, DefaultSavePath);
+        var path = PlaytestEnd.ManualSavePath(_options.SavePath, _playtestFlow.ManualSaveFile, DefaultSavePath);
         if (_saves.Write(path, "on F6"))
         {
             _toasts.Show($"Game saved (session {_session.PlaySession})");
