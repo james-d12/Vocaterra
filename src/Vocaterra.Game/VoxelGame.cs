@@ -9,10 +9,8 @@ using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Physics;
-using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
@@ -26,6 +24,7 @@ using Vocaterra.Game.Flow;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Persistence;
+using Vocaterra.Game.Reporting;
 using Vocaterra.Game.Sound;
 using Vocaterra.Game.UI;
 using Vocaterra.Game.UI.Book;
@@ -68,9 +67,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
     /// <summary>The save file F6 writes when the run has no <c>--save</c> file.</summary>
     private const string DefaultSavePath = "vocaterra.save.json";
-
-    /// <summary>The folder of the session folder that holds the reports (S21); <c>--report-dir</c> replaces it.</summary>
-    private const string ReportsFolder = "reports";
 
     private static readonly (Keys Key, PanelKey Panel)[] PanelKeys =
     [
@@ -188,10 +184,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // The report panel (S21, D-game-17): F8 pauses the world and the next frame is kept in memory (the picture the player saw); nothing is written
     // until Ctrl+Enter, and Esc keeps nothing. A scripted report (--report, --report-open) is typed and saved by the script's frame.
     private readonly ReportPanel _report = new();
-    private (Microsoft.Xna.Framework.Color[] Pixels, int Width, int Height)? _reportShot;
-    private long _reportTick;
-    private int _reportSession;
-    private (string Text, bool Keep)? _scriptReport;
+    private readonly ReportScreen _reportScreen;
     private string _sessionDirectory = string.Empty;
     private bool _microphoneFound;
 
@@ -253,6 +246,21 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _camera = new PlayerCamera(_sim, _look, _viewMode, _isSolid);
         _figures = new FigureDirector(scene, _sim, _look, _dialogue);
         _arm = new ArmPresenter(_sim, _isSolid, options.Dusk);
+        _reportScreen = new ReportScreen(
+            _report,
+            session,
+            options.ReportKind,
+            options.ReportDir,
+            () => _sessionDirectory,
+            open => ReportStateBuilder.Build(session, (_look.YawSteps, _look.PitchSteps), open, _preset.Name, options.Greyscale, options.NoSpeech, _microphoneFound, options.UsesMicrophone),
+            () => GraphicsDevice,
+            _canvas,
+            () => _view!.Fonts.Get(FontProvider.NativeSize),
+            _toasts,
+            _sound,
+            (_backspace, _delete, _left, _right),
+            Console.WriteLine,
+            Console.Error.WriteLine);
         if (options.IsScreenshotRun)
         {
             _clock = new FixedFrameClock(VoxelSimulation.TicksPerSecond);
@@ -264,7 +272,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     path => _shotPath = path,
                     () => _shotPath is not null,
                     RunLessonStep,
-                    RequestScriptReport,
+                    (text, keep) => _reportScreen.RequestScripted(text, keep, OpenScreenName()),
                     () => _report.Paused,
                     PlayBookTarget,
                     PractiseFromScript);
@@ -586,7 +594,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         DriveScriptedMicCheck();
-        DriveScriptedReport(); // a scripted report is typed and saved here, while its panel is up (S21)
+        _reportScreen.DriveScripted(); // a scripted report is typed and saved here, while its panel is up (S21)
         if (_playtest && (_scenario is null || _scenario.AtStepBoundary)
             && PlaytestEnd.StartsOnItsOwn(true, WorldRunning, _playtestStarted, _session.SessionComplete, PlaytestEnd.TransferOffered(_session.Events), _dialogue.IsOpen))
         {
@@ -726,11 +734,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         spriteBatch.End();
-        if (_report.Requested)
-        {
-            // F8's frame: the picture as the player saw it, before the report panel is drawn (the panel opens after this frame).
-            TakeReportPicture();
-        }
+        _reportScreen.TakePictureIfRequested(); // F8's frame: the picture as the player saw it, before the report panel is drawn (the panel opens after this frame)
 
         var drawEnd = MonotonicClock.Milliseconds();
         _timings.Record(drawStart, drawEnd, _sim.Tick);
@@ -938,7 +942,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         {
             if (IsActive)
             {
-                ReadReportInput(keys, mouse, Pressed);
+                _reportScreen.HandleInput(keys, mouse, Pressed, _previousLeftDown);
             }
 
             EndInput(keys, mouse);
@@ -1217,215 +1221,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             micCheck.HeardNothing();
         }
 
-        _report.Request(OpenScreenName());
-        Console.WriteLine($"report: F8 at tick {_sim.Tick} ({_report.OpenPanel})");
-    }
-
-    // Draw, after the frame of F8 has been drawn without the panel: the picture is kept in memory until the report is saved or cancelled.
-    private void TakeReportPicture()
-    {
-        _reportShot = ScreenshotWriter.Capture(GraphicsDevice);
-        _reportTick = _sim.Tick;
-        _reportSession = _session.PlaySession;
-        _report.Show(_options.ReportKind);
-    }
-
-    // A scripted report (--report, --report-open): the panel opens at the next frame and the text is typed there (DriveScriptedReport).
-    private void RequestScriptReport(string text, bool keep)
-    {
-        _report.Request(OpenScreenName());
-        _scriptReport = (text, keep);
-        Console.WriteLine($"report: scripted, {(keep ? "the panel is left open" : "saved")} ({_report.OpenPanel})");
-    }
-
-    // The scripted report's text, typed once the panel is up; a report that is not left open is saved at once.
-    private void DriveScriptedReport()
-    {
-        if (_scriptReport is not { } script || !_report.IsOpen)
-        {
-            return;
-        }
-
-        _scriptReport = null;
-        _report.TypeText(script.Text);
-        if (!script.Keep)
-        {
-            SaveReport();
-        }
-    }
-
-    // The panel's keys and clicks while it is open: Ctrl+Enter saves, Esc cancels (nothing is kept), Tab switches Bug and Feature request, and the
-    // keys edit the text. The repeats of the editing keys are the dialogue's (KeyRepeater).
-    private void ReadReportInput(KeyboardState keys, MouseState mouse, Func<Keys, bool> pressed)
-    {
-        if (_backspace.Step(keys.IsKeyDown(Keys.Back)))
-        {
-            _ = _report.Press(ReportKey.Backspace);
-        }
-
-        if (_delete.Step(keys.IsKeyDown(Keys.Delete)))
-        {
-            _ = _report.Press(ReportKey.Delete);
-        }
-
-        if (_left.Step(keys.IsKeyDown(Keys.Left)))
-        {
-            _ = _report.Press(ReportKey.Left);
-        }
-
-        if (_right.Step(keys.IsKeyDown(Keys.Right)))
-        {
-            _ = _report.Press(ReportKey.Right);
-        }
-
-        if (pressed(Keys.Up))
-        {
-            _ = _report.Press(ReportKey.Up);
-        }
-
-        if (pressed(Keys.Down))
-        {
-            _ = _report.Press(ReportKey.Down);
-        }
-
-        if (pressed(Keys.Home))
-        {
-            _ = _report.Press(ReportKey.Home);
-        }
-
-        if (pressed(Keys.End))
-        {
-            _ = _report.Press(ReportKey.End);
-        }
-
-        var outcome = ReportOutcome.None;
-        if (pressed(Keys.Escape))
-        {
-            outcome = _report.Press(ReportKey.Escape);
-        }
-        else if (pressed(Keys.Enter))
-        {
-            var ctrl = keys.IsKeyDown(Keys.LeftControl) || keys.IsKeyDown(Keys.RightControl);
-            outcome = _report.Press(ctrl ? ReportKey.Save : ReportKey.Enter);
-        }
-        else if (pressed(Keys.Tab))
-        {
-            _ = _report.Press(ReportKey.Tab);
-        }
-
-        var leftDown = mouse.LeftButton == ButtonState.Pressed;
-        if (outcome == ReportOutcome.None && leftDown && !_previousLeftDown
-            && ReportLayer.LayoutFor(_canvas.Width, _canvas.Height, _view!.Fonts.Get(FontProvider.NativeSize)).ButtonAt(mouse.X, mouse.Y) is { } button)
-        {
-            outcome = _report.Click(button);
-        }
-
-        switch (outcome)
-        {
-            case ReportOutcome.Save:
-                SaveReport();
-                break;
-            case ReportOutcome.Cancel:
-                CancelReport();
-                break;
-        }
-    }
-
-    // Esc: the report is dropped with its picture, and nothing is written.
-    private void CancelReport()
-    {
-        _report.Hide();
-        _reportShot = null;
-        Console.WriteLine("report: cancelled; nothing was kept");
-    }
-
-    // Ctrl+Enter (or the Save button): the Markdown and the PNG are written to the reports folder, named by the session, the tick and the kind. A
-    // write that fails keeps the panel open, with the reason on a toast.
-    private void SaveReport()
-    {
-        if (_reportShot is not { } shot)
-        {
-            _report.Hide();
-            return;
-        }
-
-        var kind = _report.Kind;
-        var directory = _options.ReportDir ?? Path.Combine(_sessionDirectory, ReportsFolder);
-        try
-        {
-            Directory.CreateDirectory(directory);
-            var stem = ReportNaming.Choose(_reportSession, _reportTick, kind, name => File.Exists(Path.Combine(directory, name)));
-            var picture = stem + ".png";
-            ScreenshotWriter.SaveImage(GraphicsDevice, shot.Pixels, shot.Width, shot.Height, Path.Combine(directory, picture));
-            var report = new ReportSnapshot(
-                kind,
-                _report.Text,
-                _reportSession,
-                _reportTick,
-                WallClock.LocalNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
-                picture,
-                BuildReportState(),
-                _session.Learner.Recent(ReportBounds.RecentTurns),
-                ReadSessionLogTail());
-            var markdownPath = Path.GetFullPath(Path.Combine(directory, stem + ".md"));
-            File.WriteAllText(markdownPath, ReportMarkdown.Build(report), new System.Text.UTF8Encoding(false));
-            _report.Hide();
-            _reportShot = null;
-            _toasts.Show($"Report saved: {markdownPath}");
-            _sound.Queue(SoundCue.ReportSaved);
-            Console.WriteLine($"report saved: {markdownPath} and {picture} ({ReportKinds.Word(kind)}, panel: {report.State.OpenPanel})");
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or NotSupportedException)
-        {
-            _toasts.Show($"Report not saved: {ex.Message}");
-            Console.Error.WriteLine($"report not saved: {ex.Message}");
-        }
-    }
-
-    // The game's state for the report's table: the build, the bundle, the seed, where the player stands and looks, the objective and the lesson, what
-    // was open, the settings and the speech.
-    private ReportGameState BuildReportState()
-    {
-        var body = _sim.Player;
-        var worker = _session.Worker;
-        var speech = _options.NoSpeech
-            ? "off (--no-speech)"
-            : worker is null || !worker.IsReady
-                ? "models still loading"
-                : worker.CanHear
-                    ? "models found, speech ready"
-                    : worker.Load?.Problem is { } problem
-                        ? $"models not loaded: {problem}"
-                        : "models not loaded in this run";
-        var microphone = _microphoneFound ? "found" : _options.UsesMicrophone ? "not found" : "not used in this run";
-        var lesson = _session.Lessons.Active is { } active
-            ? $"{active.Id}, step {_session.Lessons.StepNumber} of {active.Steps.Count}"
-            : "none";
-        return new ReportGameState(
-            BuildCommit.Read(),
-            _session.Bundle.Manifest.BundleId,
-            _session.Bundle.ContentHash,
-            _session.WorldSeed,
-            body.CenterX / (double)VoxelPhysics.UnitsPerBlock,
-            body.FeetY / (double)VoxelPhysics.UnitsPerBlock,
-            body.CenterZ / (double)VoxelPhysics.UnitsPerBlock,
-            _look.YawSteps * 360.0 / Angles.StepsPerTurn,
-            _look.PitchSteps * 360.0 / Angles.StepsPerTurn,
-            _session.Objective.Summary,
-            _session.Objective.Steps.Select(static step => (step.Text, step.Done)).ToList(),
-            lesson,
-            _report.OpenPanel,
-            _preset.Name,
-            _options.Greyscale,
-            speech,
-            microphone);
-    }
-
-    // The newest lines of this folder's session log (the file is flushed a line at a time, so it is complete up to the last turn).
-    private IReadOnlyList<string> ReadSessionLogTail()
-    {
-        var path = Path.Combine(_sessionDirectory, SessionLog.SessionFileName);
-        return File.Exists(path) ? File.ReadLines(path).TakeLast(ReportBounds.LogLines).ToList() : Array.Empty<string>();
+        _reportScreen.Request(OpenScreenName());
     }
 
     // What is open now, in the words the report's table uses.
@@ -1786,12 +1582,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     {
         if (_report.IsOpen)
         {
-            // The report's text box (S21): every letter, with the accents of Alt; the control characters (Enter, Tab, Ctrl+Enter) are keys.
-            if (!char.IsControl(args.Character))
-            {
-                _report.Type(args.Character, AltDown());
-            }
-
+            _reportScreen.Type(args.Character, AltDown()); // the report's text box (S21): the control characters (Enter, Tab, Ctrl+Enter) are keys
             return;
         }
 
