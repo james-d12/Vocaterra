@@ -19,7 +19,7 @@ editing its status; the plan (`IMPLEMENTATION_PLAN.md`) and ADRs follow.
 | D11 | Cloud cost cap for an optional tutor | open |
 | D12 | Game engine | moved (owner, 2026-10-21): a Vocaterra repository decision; not tracked here |
 | D13 | Pronunciation ambition | open, after the speech check |
-| D14 | German and a multi-language core | decided (owner, 2026-10-22): record the roadmap only (run nothing yet); German in the core only; Piper thorsten for private German speech; register per agent, Sie for strangers | nothing running |
+| D14 | German and a multi-language core | decided (owner, 2026-10-22): record the roadmap only (run nothing yet); German in the core only; Piper thorsten for private German speech; register per agent, Sie for strangers; amended (owner, 2026-10-26): one neutral engine plus language-pack projects, Phase A (M31 to M35) unblocked with M52 and M53 |
 
 ## D1. Workflow token scope
 **Status (2026-10-21):** deferred by the owner. CI is not a requirement at the moment; the workflow stays parked and the orchestrator does not raise this item until the owner reopens it.
@@ -133,6 +133,14 @@ registry, with Spanish kept byte-identical behind an identity guard. It also pro
 Still open: the variety (the research suggests de-DE, accepting Austrian and Swiss forms when grading); the tagger route (hand-written checks
 first, M47 only if M39 or M44 fail their false-positive gates; spaCy de, MIT, and Stanza de, Apache-2.0, avoid the MPL-2.0 question); German
 content trust (no reviewer; the Goethe A1 list has no licence, so it can only be a reference).
+
+**Amended, owner, 2026-10-26.** "Move all the `src/Vocaterra.Nlp.*` projects into one Nlp project", and "i want the NLP to become
+language agnostic kind of, so we have the current spanish implementation on top of the core shared NLP code". The owner chose
+(`docs/nlp/research/2026-10-26-engine-and-language-packs.md`):
+- **target shape:** one language-neutral engine `Vocaterra.Nlp` (today's 11 libraries, merged in M52) plus one project per language,
+  `Vocaterra.Nlp.Es` first (M53), then `Vocaterra.Nlp.De`. This supersedes research §4.7's advice to extract Spanish "only if a third
+  language arrives";
+- **Phase A unblocked:** M31 to M35 run, in the order M31, M52, M32 to M35, M53. M36 onward (German) stays recorded only.
 
 ## Already decided (for the record)
 - 2026-10-20: core repository renamed `Vocaterra.NLP`; game repository `Vocaterra` created; M19a

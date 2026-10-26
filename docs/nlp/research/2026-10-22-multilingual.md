@@ -343,6 +343,9 @@ its article helper and its English error table, and would add a German bundle. T
 
 ### 4.7 Project layout
 
+> **Superseded 2026-10-26** (D14 amendment): the core becomes one neutral `Vocaterra.Nlp` plus one project per language
+> (`Vocaterra.Nlp.Es`, later `Vocaterra.Nlp.De`). See `docs/nlp/research/2026-10-26-engine-and-language-packs.md`.
+
 Two steps, so that the risky one is small:
 
 1. **Phase A, in place.** The interfaces live in `Vocaterra.Nlp.Language` (namespace `Vocaterra.Nlp.Language.Packs`). `SpanishLanguagePack`

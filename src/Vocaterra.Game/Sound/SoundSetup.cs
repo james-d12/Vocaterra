@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Save;
-using Vocaterra.Game.Utilities;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>The decisions made once at start about the sound side (S24), apart from the engine so that they can be tested.</summary>
 public static class SoundSetup

@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Items;
 
-namespace Vocaterra.Game.Core.Session;
+namespace Vocaterra.Game.Core.Content;
 
 /// <summary>
 /// One step of the camp objective: its key, the word the checklist shows, how many it needs and how many the player has done.
