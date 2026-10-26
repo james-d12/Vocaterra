@@ -9,7 +9,6 @@ using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
-using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
@@ -26,6 +25,7 @@ using Vocaterra.Game.Input;
 using Vocaterra.Game.Persistence;
 using Vocaterra.Game.Reporting;
 using Vocaterra.Game.Screens;
+using Vocaterra.Game.Scripted;
 using Vocaterra.Game.Sound;
 using Vocaterra.Game.UI;
 using Vocaterra.Game.UI.Book;
@@ -63,8 +63,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 {
     private const int StartWidth = 1280;
     private const int StartHeight = 720;
-    private const int SettleTicks = 30;
-    private const int RunawayTicks = 60 * 60 * 5;
 
     /// <summary>The save file F6 writes when the run has no <c>--save</c> file.</summary>
     private const string DefaultSavePath = "vocaterra.save.json";
@@ -132,15 +130,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private FrameView? _view;
     private bool _captureWanted = true;
     private bool _firstUpdateSeen;
-    private int _settled;
-    private bool _shown;
     private NpcFigure? _aimed;
     private readonly WordCardQueue _cards = new();
     private readonly CraftingScreen _crafting = new();
     private readonly InventoryPanel _inventoryPanel;
     private readonly CraftingPanel _craftingPanel;
     private int _loadingFrames;
-    private string? _shotPath;
+    private readonly ShotRequest _shots = new();
+    private readonly ScriptedRunEnd _runEnd;
     private readonly CheckBattery _checks;
     private SessionLog? _log;
 
@@ -160,8 +157,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly KeyBindings _globalKeys;
     private readonly KeyBindings _worldKeys;
     private readonly IGameCommand _openBook;
-    private int _sizeFrames;
-    private bool _sizeWarned;
 
     // The autosave (X05, R04): the policy decides the frames; the file is the playtest's playtest.save, else autosave.save in the session folder.
     // A run with --no-autosave has neither.
@@ -274,14 +269,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 var hooks = new ScenarioHooks(
                     npc => _dialogueScreen.Open(npc, null),
                     _dialogueScreen.Close,
-                    path => _shotPath = path,
-                    () => _shotPath is not null,
+                    _shots.Request,
+                    () => _shots.Pending,
                     _dialogueScreen.RunLessonStep,
                     (text, keep) => _reportScreen.RequestScripted(text, keep, OpenScreenName()),
                     () => _report.Paused,
                     _bookScreen.PlayTarget,
                     _bookScreen.PractiseFromScript);
-                _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, ResolveItem, hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
+                _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, name => ScriptItemNames.Resolve(session.Nouns, name), hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
         else
@@ -339,7 +334,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             options.Script,
             options.IsScreenshotRun,
             options.Playtest,
-            new CheckBatteryHooks(path => _shotPath = path, () => _shotPath is not null, () => _micCheck is { IsActive: true }, index => _scenario?.SkipTo(index), Exit, EndPlaytest),
+            new CheckBatteryHooks(_shots.Request, () => _shots.Pending, () => _micCheck is { IsActive: true }, index => _scenario?.SkipTo(index), Exit, EndPlaytest),
             Console.WriteLine);
         _micScreen = new MicCheckScreen(_micCheck, session, _listen, _sound, _canvas, () => _view!.Fonts.Get(FontProvider.NativeSize), options.IsScreenshotRun, () => _scenario is { IsDone: false } || _checks.Screen is { IsDone: false }, Console.WriteLine);
         _playtestFlow = new PlaytestFlow(
@@ -352,6 +347,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _saves,
             new PlaytestHooks(() => _scenario?.Index ?? 0, index => _scenario?.SkipTo(index), ClosePanels, DrainForSave),
             Console.WriteLine);
+        _runEnd = new ScriptedRunEnd(options, session, _checks, _scenario, _dialogue, _micCheck, _shots, (_bookScreen.Open, _inventoryPanel.Open, _craftingPanel.Open), Exit, Console.WriteLine);
         _screens = new ScreenStack(
             [_micScreen, _checks, _dialogueScreen, _controls, _bookScreen, _inventoryPanel, _craftingPanel],
             [_checks, _micScreen, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _controls]);
@@ -498,7 +494,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     public ICrashSource CrashSource { get; }
 
     /// <summary>The process exit code: 0 unless the screenshot could not be saved.</summary>
-    public int ExitCode { get; private set; }
+    public int ExitCode => _runEnd.ExitCode;
 
     /// <inheritdoc />
     protected override void LoadContent()
@@ -685,34 +681,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         _events.Print();
 
-        // Settled: the world's script is done (or there is none) with no battery on screen, a battery that ends the run has shown its end, or a
-        // battery's script rests. A pre-check is not an end: the world's script after it still has steps to take (S12, a screenshot waits for them).
-        if (_checks.Screen is null && (_scenario is null || _scenario.IsDone) || _checks.Done && _checks.EndsRun || _checks.ScriptRests && _checks.Screen is { IsDone: false })
-        {
-            _settled++;
-        }
-
-        if (_checks.Screen is null && (_scenario is null || _scenario.IsDone))
-        {
-            if (!_shown)
-            {
-                _shown = true;
-                if (_options.Journal)
-                {
-                    _bookScreen.Open();
-                }
-
-                if (_options.ShowInventory)
-                {
-                    _inventoryPanel.Open();
-                }
-
-                if (_options.ShowCrafting)
-                {
-                    _craftingPanel.Open();
-                }
-            }
-        }
+        _runEnd.AfterUpdate(); // a scripted run counts its settled frames and opens the panels asked for at its end
 
         UpdateSound(seconds);
 
@@ -775,43 +744,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _timings.Record(drawStart, drawEnd, _sim.Tick);
         base.Draw(gameTime);
 
-        // A screenshot is taken at the size the game asked for (ScreenshotGate): a window's first frames can be drawn before its resize.
-        var sized = !_options.IsScreenshotRun || ScreenshotGate.IsFinalSize(width, height, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight, Window.ClientBounds.Width, Window.ClientBounds.Height);
-        if (!sized)
-        {
-            _sizeFrames++;
-            if (!_sizeWarned && ScreenshotGate.MayShoot(false, _sizeFrames))
-            {
-                _sizeWarned = true;
-                Console.WriteLine($"screenshot: the window stayed {width} x {height} (wanted {_graphics.PreferredBackBufferWidth} x {_graphics.PreferredBackBufferHeight}) for {_sizeFrames} frames; the picture is taken at this size");
-            }
-        }
-
-        var mayShoot = ScreenshotGate.MayShoot(sized, _sizeFrames);
-        if (_shotPath is { } shot && mayShoot)
-        {
-            // A --shot step: the screen as it is at this point of the script, then the script goes on.
-            var saved = ScreenshotWriter.TrySave(GraphicsDevice, shot);
-            Console.WriteLine($"shot: {shot} ({(saved ? "saved" : "FAILED")}) at tick {_sim.Tick}, {_session.Objective.Summary}");
-            ExitCode = saved ? ExitCode : 1;
-            _shotPath = null;
-        }
-
-        if (mayShoot && _options.ScreenshotPath is { } path
-            && ((_sim.Tick >= _options.Frames && _settled >= SettleTicks && _session.Worker!.IsReady && _session.PendingTurns == 0 && !_dialogue.SubmitRequested && _dialogue.PendingSpeech is null
-                && _micCheck is not { Phase: MicCheckPhase.Ready or MicCheckPhase.Listening or MicCheckPhase.Thinking })
-                || _sim.Tick > RunawayTicks
-                || (_checks.RestsForShot && _settled >= SettleTicks)))
-        {
-            ExitCode = ScreenshotWriter.TrySave(GraphicsDevice, path) ? 0 : 1;
-            Console.WriteLine($"scene draw (voxel world, layers, flush): {_timings.DrawSummary()}");
-            Console.WriteLine($"frame time (end of one draw to the next, no vsync): {_timings.FrameSummary()}");
-            Console.WriteLine($"voxel: {_renderer.Stats.Summary()}; {_renderer.DrawnChunks} chunks drawn this frame, {_renderer.DrawnFigureQuads} figure quads, {_renderer.DrawnPlantQuads} plant quads (within {_preset.PlantDistance} blocks, {_preset.PlantKeepPercent}% built), occlusion {(_preset.AmbientOcclusion ? "on" : "off")}, clouds {(_preset.Clouds ? "on" : "off")}");
-            var body = _sim.Player;
-            Console.WriteLine(string.Create(CultureInfo.InvariantCulture, $"player: ({body.CenterX / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.FeetY / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.CenterZ / (double)VoxelPhysics.UnitsPerBlock:0.00}), tick {_sim.Tick}, wood {_sim.Inventory.Count(ItemId.Wood)}, berries {_sim.Inventory.Count(ItemId.Berry)}, bottle {_sim.Inventory.Count(ItemId.Bottle)}, water {_sim.Inventory.Count(ItemId.WaterBottle)}, bread {_sim.Inventory.Count(ItemId.Bread)}"));
-            Console.WriteLine($"objective: {_session.Objective.Summary}");
-            Exit();
-        }
+        _runEnd.AfterDraw(
+            GraphicsDevice,
+            width,
+            height,
+            new WindowSizes(_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight, Window.ClientBounds.Width, Window.ClientBounds.Height),
+            _timings,
+            _renderer,
+            _preset);
     }
 
     /// <inheritdoc />
@@ -851,26 +791,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _pixel?.Dispose();
         _spriteBatch?.Dispose();
         base.UnloadContent();
-    }
-
-    // The scripted run names an item as a noun (madera) or as the item's key (wood).
-    private ItemId? ResolveItem(string name)
-    {
-        var noun = _session.Nouns.ForLemma(name);
-        if (noun is not null && noun.Items.Count > 0)
-        {
-            return noun.Items[0];
-        }
-
-        foreach (var definition in ItemDefinition.All)
-        {
-            if (string.Equals(definition.Name, name, StringComparison.OrdinalIgnoreCase))
-            {
-                return definition.Id;
-            }
-        }
-
-        return null;
     }
 
     // The crosshair is on the workbench (the mesa): E opens the crafting panel there, as C does anywhere.
