@@ -1,8 +1,8 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Save;
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Core.Utilities;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>One sound the mixer lets through: the cue, its take (the file index, 0 for a synthesized cue), its final gain and its pitch change in octaves.</summary>
 /// <param name="Cue">The cue.</param>

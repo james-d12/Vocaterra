@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
@@ -116,7 +117,7 @@ public sealed class RouteRunTests(ITestOutputHelper output)
         Assert.Equal(2, inventory.Count(ItemId.Bread)); // the stall's, and the villager's
         Assert.True(session.RiverPointedOut);
 
-        var uses = session.Events.OfType<PhraseUse>().Select(static u => $"{u.PhraseId}/{GameEventNames.Of(u.Kind)}/{u.Npc}").ToArray();
+        var uses = session.Events.OfType<PhraseUse>().Select(static u => $"{u.PhraseId}/{PhraseUseKindNames.Of(u.Kind)}/{u.Npc}").ToArray();
         Assert.Equal(
             [
                 "pedir-agua/supported/shopkeeper",

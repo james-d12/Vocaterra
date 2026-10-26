@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>The surface the player walks on, as the footsteps hear it (S25).</summary>
 public enum Surface

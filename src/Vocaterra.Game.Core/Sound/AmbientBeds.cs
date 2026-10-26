@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>A point on the ground, in blocks (x runs east, z runs south). The middle of a block is at its index plus one half.</summary>
 /// <param name="X">The east-west position.</param>

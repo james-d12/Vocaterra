@@ -1,27 +1,8 @@
 using Vocaterra.Game.Core.Language.Speech;
-using Vocaterra.Game.Sound;
+using Vocaterra.Game.Core.Sound;
 using Vocaterra.Nlp.Core.Audio;
 
-namespace Vocaterra.Game.Input;
-
-/// <summary>
-/// A microphone as the push-to-talk sees it: start recording, read what has been recorded since the last read, stop. The engine's
-/// implementation (<c>MicrophoneCapture</c>) is the only code that names a device API; the rest, and the tests, use this interface.
-/// </summary>
-public interface ISpeechCapture
-{
-    /// <summary>The sample rate of what <see cref="ReadAvailable"/> returns, in hertz (the device's own; <see cref="AudioClips.Prepare"/> converts).</summary>
-    int SampleRate { get; }
-
-    /// <summary>Starts recording. Throws <see cref="InvalidOperationException"/> when the device cannot be opened.</summary>
-    void Start();
-
-    /// <summary>The mono 16-bit samples recorded since the last call (possibly none).</summary>
-    short[] ReadAvailable();
-
-    /// <summary>Stops recording.</summary>
-    void Stop();
-}
+namespace Vocaterra.Game.Core.Input;
 
 /// <summary>
 /// The push-to-talk state: <see cref="Begin"/> when the key goes down starts the recording, <see cref="Pump"/> once per frame collects the
@@ -29,7 +10,7 @@ public interface ISpeechCapture
 /// recognizer gets (converted to 16 kHz, silence trimmed at both ends, at most 8 seconds), or <see langword="null"/> for silence. With no
 /// microphone, <see cref="Problem"/> says so in Spanish and typing is unaffected.
 /// </summary>
-public sealed class PushToTalk
+public sealed class PushToTalkSpeechCapture
 {
     /// <summary>The message when the machine has no microphone.</summary>
     public const string NoMicrophone = "No microphone: type your answer.";
@@ -44,7 +25,7 @@ public sealed class PushToTalk
     private int _discard;
 
     /// <summary>Creates the state over a capture device, or <see langword="null"/> when the machine has none.</summary>
-    public PushToTalk(ISpeechCapture? capture)
+    public PushToTalkSpeechCapture(ISpeechCapture? capture)
     {
         _capture = capture;
     }
@@ -53,7 +34,7 @@ public sealed class PushToTalk
     /// The sound side (S24): told before the recording starts (the start beep plays, and the recording discards the beep's length from its start), when it has started and
     /// when it has ended. <see langword="null"/> in the tests that do not care.
     /// </summary>
-    public ITalkSounds? Sounds { get; set; }
+    public ITalkSounds? Sounds { get; init; }
 
     /// <summary>Whether a microphone is there.</summary>
     public bool Available => _capture is not null;

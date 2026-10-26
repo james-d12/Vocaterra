@@ -1,8 +1,11 @@
+using Vocaterra.Game.Core.Event;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Input;
@@ -585,7 +588,7 @@ public sealed class SpeechUxFrontendTests
             loud[i] = (short)(i % 2 == 0 ? 8000 : -8000);
         }
 
-        var talk = new PushToTalk(new FakeMic(16000, quiet, loud));
+        var talk = new PushToTalkSpeechCapture(new FakeMic(16000, quiet, loud));
         Assert.True(talk.Begin());
         talk.Pump();
         Assert.Equal(0, talk.LastLevel);

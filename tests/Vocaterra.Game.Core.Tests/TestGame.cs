@@ -5,7 +5,6 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Core.World;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Tests;

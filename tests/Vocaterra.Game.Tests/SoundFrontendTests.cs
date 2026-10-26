@@ -1,14 +1,19 @@
 using System.Text.RegularExpressions;
 using Vocaterra.Game.Core;
+using Vocaterra.Game.Core.Event;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Sound;
+using Vocaterra.Game.Core.Utilities;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Sound;
 using Vocaterra.Game.Utilities;
+using SoundEventMapper = Vocaterra.Game.Core.Sound.SoundEventMapper;
 
 namespace Vocaterra.Game.Tests;
 
@@ -148,7 +153,7 @@ public sealed class SoundFrontendTests
         var lead = (int)Math.Round((SoundSynth.StartBeepSeconds + 0.05) * rate); // 0.14 s
         var loud = Enumerable.Repeat((short)8000, lead).ToArray(); // the beep, as the microphone hears it
         var speech = Enumerable.Repeat((short)4000, rate).ToArray(); // a second of speech
-        var talk = new PushToTalk(new FakeCapture(rate, loud, speech)) { Sounds = sound.Mixer };
+        var talk = new PushToTalkSpeechCapture(new FakeCapture(rate, loud, speech)) { Sounds = sound.Mixer };
 
         Assert.True(talk.Begin());
         Assert.True(sound.Mixer.Recording);
@@ -170,14 +175,14 @@ public sealed class SoundFrontendTests
     public void AnUnstartedOrFailedRecordingNeverLeavesTheMixerSilent()
     {
         var (sound, _, _) = Make();
-        var noMicrophone = new PushToTalk(null) { Sounds = sound.Mixer };
+        var noMicrophone = new PushToTalkSpeechCapture(null) { Sounds = sound.Mixer };
 
         Assert.False(noMicrophone.Begin());
         Assert.False(sound.Mixer.Recording);
         Assert.Null(noMicrophone.End());
         Assert.False(sound.Mixer.Recording);
 
-        var capped = new PushToTalk(new FakeCapture(100, new short[100 * AudioClips.MaxSeconds + 100])) { Sounds = sound.Mixer };
+        var capped = new PushToTalkSpeechCapture(new FakeCapture(100, new short[100 * AudioClips.MaxSeconds + 100])) { Sounds = sound.Mixer };
         Assert.True(capped.Begin());
         capped.Pump(); // the length cap stops the recording by itself: the window closes there, once
         Assert.True(capped.ReachedLimit);

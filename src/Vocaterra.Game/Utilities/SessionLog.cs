@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
@@ -345,7 +346,7 @@ public sealed class SessionLog : IDisposable
 
             w.WriteEndArray();
             WriteNullable(w, "phrase", phrase?.PhraseId);
-            WriteNullable(w, "classification", phrase is null ? null : GameEventNames.Of(phrase.Kind));
+            WriteNullable(w, "classification", phrase is null ? null : PhraseUseKindNames.Of(phrase.Kind));
             WriteNullable(w, "support", phrase is null ? null : SupportLevelNames.Of(phrase.Support));
         }));
         FlushEvents(session);
@@ -483,7 +484,7 @@ public sealed class SessionLog : IDisposable
                     w.WriteNumber("tick", use.Tick);
                     w.WriteNumber("stored_time", use.Time);
                     w.WriteString("phrase", use.PhraseId);
-                    w.WriteString("kind", GameEventNames.Of(use.Kind));
+                    w.WriteString("kind", PhraseUseKindNames.Of(use.Kind));
                     w.WriteString("npc", use.Npc);
                     w.WriteString("prompt", use.Prompt);
                     w.WriteString("line", use.Line);

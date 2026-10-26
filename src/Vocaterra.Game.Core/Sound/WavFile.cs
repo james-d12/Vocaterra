@@ -1,6 +1,6 @@
 using System.Buffers.Binary;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>A sound file read into memory: 16-bit PCM samples (mono, or interleaved if the file has more channels) and the format they came in.</summary>
 /// <param name="SampleRate">The sample rate in hertz.</param>

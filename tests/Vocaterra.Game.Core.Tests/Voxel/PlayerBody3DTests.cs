@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Voxel;
 using static Vocaterra.Game.Core.Tests.Voxel.VoxelTestSupport;
 

@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>
 /// The ambient sound of a tick (S25): it gives the mixer the beds' targets for the player's place, logs a line when the place's weights change, and schedules the

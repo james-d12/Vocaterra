@@ -1,5 +1,4 @@
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Core.World;
 using Vocaterra.Nlp.Language.Normalization;
 
 namespace Vocaterra.Game.Core.Npc;

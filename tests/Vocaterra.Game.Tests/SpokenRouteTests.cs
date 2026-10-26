@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
@@ -91,7 +92,7 @@ public sealed class SpokenRouteTests(ITestOutputHelper output)
     public void TheRecordedHolaIsHeardAsHolaFromThePushToTalkPathThroughTheWorker()
     {
         var (samples, rate) = AudioClips.ReadWav(File.ReadAllBytes(HolaWav));
-        var talk = new PushToTalk(new WavCapture(samples, rate));
+        var talk = new PushToTalkSpeechCapture(new WavCapture(samples, rate));
         Assert.True(talk.Begin());
         talk.Pump();
         var clip = talk.End();

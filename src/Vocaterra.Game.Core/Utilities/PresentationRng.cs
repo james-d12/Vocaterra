@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Utilities;
 
 /// <summary>
 /// The presentation's random numbers (S24): which take of a sound plays, and its small pitch change. It is seeded from the world seed and is a

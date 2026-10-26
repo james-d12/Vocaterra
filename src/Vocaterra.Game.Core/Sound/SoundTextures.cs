@@ -1,6 +1,6 @@
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Core.Utilities;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>
 /// The synthesized takes of S25: the footsteps that no CC0 pack in the catalogue covers (dirt, gravel, sand and the splash in water), the birds' chirps and

@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using Microsoft.Xna.Framework.Audio;
+using Vocaterra.Game.Core.Sound;
 using Vocaterra.Nlp.Core.Audio;
 
 namespace Vocaterra.Game.Sound;

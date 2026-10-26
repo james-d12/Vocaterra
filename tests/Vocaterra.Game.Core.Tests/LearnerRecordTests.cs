@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Lessons;

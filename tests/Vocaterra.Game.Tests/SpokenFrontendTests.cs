@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
@@ -99,7 +100,7 @@ public sealed class SpokenFrontendTests
     public void HoldingTheKeyRecordsAndLettingGoGivesATrimmed16KilohertzClip()
     {
         var capture = new FakeCapture(44100, new short[44100], Tone(1.0, 44100), new short[44100]);
-        var talk = new PushToTalk(capture);
+        var talk = new PushToTalkSpeechCapture(capture);
 
         Assert.True(talk.Begin());
         Assert.True(talk.Listening);
@@ -120,13 +121,13 @@ public sealed class SpokenFrontendTests
     [Fact]
     public void AClipOfSilenceGivesNoClipAndAMessage()
     {
-        var talk = new PushToTalk(new FakeCapture(16000, new short[32000]));
+        var talk = new PushToTalkSpeechCapture(new FakeCapture(16000, new short[32000]));
 
         talk.Begin();
         talk.Pump();
 
         Assert.Null(talk.End());
-        Assert.Equal(PushToTalk.Silence, talk.Problem);
+        Assert.Equal(PushToTalkSpeechCapture.Silence, talk.Problem);
     }
 
     [Fact]
@@ -134,7 +135,7 @@ public sealed class SpokenFrontendTests
     {
         var seconds = Enumerable.Range(0, 12).Select(_ => Tone(1.0, 16000)).ToArray();
         var capture = new FakeCapture(16000, seconds);
-        var talk = new PushToTalk(capture);
+        var talk = new PushToTalkSpeechCapture(capture);
 
         talk.Begin();
         var pumps = 0;
@@ -156,21 +157,21 @@ public sealed class SpokenFrontendTests
     [Fact]
     public void WithoutAMicrophoneThePanelGetsASpanishMessageAndNothingBreaks()
     {
-        var talk = new PushToTalk(null);
+        var talk = new PushToTalkSpeechCapture(null);
 
         Assert.False(talk.Available);
         Assert.False(talk.Begin());
-        Assert.Equal(PushToTalk.NoMicrophone, talk.Problem);
+        Assert.Equal(PushToTalkSpeechCapture.NoMicrophone, talk.Problem);
         Assert.False(talk.Listening);
         Assert.Null(talk.End());
         talk.Pump(); // harmless
-        Assert.Contains("microphone", PushToTalk.NoMicrophone, StringComparison.Ordinal);
+        Assert.Contains("microphone", PushToTalkSpeechCapture.NoMicrophone, StringComparison.Ordinal);
     }
 
     [Fact]
     public void ADeviceThatCannotOpenIsReportedAndLeavesNoRecording()
     {
-        var talk = new PushToTalk(new FakeCapture(16000) { FailToStart = true });
+        var talk = new PushToTalkSpeechCapture(new FakeCapture(16000) { FailToStart = true });
 
         Assert.False(talk.Begin());
         Assert.False(talk.Listening);

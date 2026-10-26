@@ -2,6 +2,8 @@ using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Vocaterra.Game.Core.Event;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Learner;
@@ -11,6 +13,8 @@ using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Sound;
+using Vocaterra.Game.Core.Utilities;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Input;
@@ -23,7 +27,7 @@ using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game;
 
-using SoundEventMapper = Sound.SoundEventMapper;
+using SoundEventMapper = SoundEventMapper;
 
 /// <summary>
 /// The engine host of the 3D first-person scene, the prototype's only world (S2 to S4). Each frame it turns the real clock into whole ticks, reads the
@@ -112,7 +116,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     private readonly InputFocus _focus = new();
     private readonly DialogueModel _dialogue;
     private readonly TurnPump _pump;
-    private readonly PushToTalk _talk;
+    private readonly PushToTalkSpeechCapture _talkSpeechCapture;
     private readonly SoundFrontend _sound;
     private readonly ISoundOutput _soundOutput;
     private readonly SoundLogWriter? _soundLog;
@@ -237,7 +241,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         _bookControls = new BookSpeechControls(_book, new BookSpeaker(voice, _sound.Mixer), session, _recordings);
         _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Phrases, session.English, showVerdictNotes: !options.Playtest);
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
-        _talk = new PushToTalk(microphone) { Sounds = _sound.Mixer };
+        _talkSpeechCapture = new PushToTalkSpeechCapture(microphone) { Sounds = _sound.Mixer };
         _microphoneFound = microphone is not null;
         _pump = new TurnPump(session, _dialogue, CursorCell);
         _actions = new SpeechActionRunner(session, _dialogue, voice, CursorCell);
@@ -1566,14 +1570,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     // Esc undoes the newest thing first: a recording, a turn that is thinking, the typing mode, and last the panel itself.
     private void ReadDialogueKeys(KeyboardState keys, Func<Keys, bool> pressed)
     {
-        if (_talk.Listening && !keys.IsKeyDown(_listenKey))
+        if (_talkSpeechCapture.Listening && !keys.IsKeyDown(_listenKey))
         {
             EndListening();
         }
 
         if (pressed(Keys.Escape))
         {
-            if (_talk.Listening)
+            if (_talkSpeechCapture.Listening)
             {
                 CancelRecording();
             }
@@ -1716,16 +1720,16 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     private void ReadMicCheckKeys(KeyboardState keys, Func<Keys, bool> pressed)
     {
         var check = _micCheck!;
-        if (_talk.Listening && !keys.IsKeyDown(_listenKey))
+        if (_talkSpeechCapture.Listening && !keys.IsKeyDown(_listenKey))
         {
             EndMicListening();
         }
 
         if (pressed(Keys.Escape))
         {
-            if (_talk.Listening)
+            if (_talkSpeechCapture.Listening)
             {
-                _ = _talk.End();
+                _ = _talkSpeechCapture.End();
             }
 
             check.Skip();
@@ -1761,9 +1765,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     private void PressMicButton(MicCheckButton button)
     {
         _sound.QueueClick(SoundCue.UiClick);
-        if (button == MicCheckButton.Skip && _talk.Listening)
+        if (button == MicCheckButton.Skip && _talkSpeechCapture.Listening)
         {
-            _ = _talk.End();
+            _ = _talkSpeechCapture.End();
         }
 
         _micCheck!.Press(button);
@@ -1781,7 +1785,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             return;
         }
 
-        if (_talk.Begin())
+        if (_talkSpeechCapture.Begin())
         {
             _listenKey = key;
             check.Notice = null;
@@ -1789,7 +1793,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         }
         else
         {
-            check.Notice = _talk.Problem;
+            check.Notice = _talkSpeechCapture.Problem;
         }
     }
 
@@ -1797,11 +1801,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     private void EndMicListening()
     {
         var check = _micCheck!;
-        var clip = _talk.End();
+        var clip = _talkSpeechCapture.End();
         check.EndListening();
         if (clip is null)
         {
-            check.Notice = _talk.Problem;
+            check.Notice = _talkSpeechCapture.Problem;
             check.HeardNothing();
             return;
         }
@@ -1890,7 +1894,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             return;
         }
 
-        if (!_dialogue.IsTyping || char.IsControl(args.Character) || _talk.Listening)
+        if (!_dialogue.IsTyping || char.IsControl(args.Character) || _talkSpeechCapture.Listening)
         {
             if (_dialogue.IsOpen && _swallowedOpenKey is { } pending && char.ToLowerInvariant(args.Character) == pending)
             {
@@ -2077,7 +2081,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             return;
         }
 
-        if (_talk.Begin())
+        if (_talkSpeechCapture.Begin())
         {
             _listenKey = key;
             _dialogue.Listening = true;
@@ -2085,7 +2089,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         }
         else
         {
-            _dialogue.SpeechNotice = _talk.Problem;
+            _dialogue.SpeechNotice = _talkSpeechCapture.Problem;
         }
     }
 
@@ -2093,10 +2097,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     private void EndListening()
     {
         _dialogue.Listening = false;
-        var clip = _talk.End();
+        var clip = _talkSpeechCapture.End();
         if (clip is null)
         {
-            _dialogue.SpeechNotice = _talk.Problem;
+            _dialogue.SpeechNotice = _talkSpeechCapture.Problem;
             return;
         }
 
@@ -2115,9 +2119,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     // The panel closed while recording: the clip is dropped.
     private void CancelListening()
     {
-        if (_talk.Listening)
+        if (_talkSpeechCapture.Listening)
         {
-            _ = _talk.End();
+            _ = _talkSpeechCapture.End();
         }
 
         _dialogue.Listening = false;
@@ -2129,8 +2133,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     {
         if (_check is { Listening: true })
         {
-            _talk.Pump();
-            if (_talk.ReachedLimit && !_talk.Listening)
+            _talkSpeechCapture.Pump();
+            if (_talkSpeechCapture.ReachedLimit && !_talkSpeechCapture.Listening)
             {
                 EndCheckListening();
             }
@@ -2140,11 +2144,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
 
         if (_micCheck is { IsActive: true } check)
         {
-            if (_talk.Listening)
+            if (_talkSpeechCapture.Listening)
             {
-                _talk.Pump();
-                check.Feed(_talk.LastLevel, seconds);
-                if (_talk.ReachedLimit && !_talk.Listening)
+                _talkSpeechCapture.Pump();
+                check.Feed(_talkSpeechCapture.LastLevel, seconds);
+                if (_talkSpeechCapture.ReachedLimit && !_talkSpeechCapture.Listening)
                 {
                     EndMicListening();
                 }
@@ -2157,13 +2161,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             return;
         }
 
-        if (!_talk.Listening)
+        if (!_talkSpeechCapture.Listening)
         {
             return;
         }
 
-        _talk.Pump();
-        if (_talk.ReachedLimit && !_talk.Listening)
+        _talkSpeechCapture.Pump();
+        if (_talkSpeechCapture.ReachedLimit && !_talkSpeechCapture.Listening)
         {
             EndListening();
         }
@@ -2361,14 +2365,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             return;
         }
 
-        if (_talk.Begin())
+        if (_talkSpeechCapture.Begin())
         {
             check.Listening = true;
             check.Notice = null;
         }
         else
         {
-            check.Notice = _talk.Problem;
+            check.Notice = _talkSpeechCapture.Problem;
         }
     }
 
@@ -2377,10 +2381,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     {
         var check = _check!;
         check.Listening = false;
-        var clip = _talk.End();
+        var clip = _talkSpeechCapture.End();
         if (clip is null)
         {
-            check.Notice = _talk.Problem;
+            check.Notice = _talkSpeechCapture.Problem;
             return;
         }
 
@@ -2396,9 +2400,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     // Esc while the microphone records: the recording is dropped and nothing is sent.
     private void CancelCheckListening()
     {
-        if (_talk.Listening)
+        if (_talkSpeechCapture.Listening)
         {
-            _ = _talk.End();
+            _ = _talkSpeechCapture.End();
         }
 
         if (_check is { } check)
@@ -2566,7 +2570,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             return;
         }
 
-        var atRest = _session.CanSave && !_dialogue.IsOpen && !_talk.Listening && WorldRunning && !_report.Paused;
+        var atRest = _session.CanSave && !_dialogue.IsOpen && !_talkSpeechCapture.Listening && WorldRunning && !_report.Paused;
         var decision = _autosave.Decide(_sim.Tick, _session.Events, atRest);
         if (!decision.Save)
         {

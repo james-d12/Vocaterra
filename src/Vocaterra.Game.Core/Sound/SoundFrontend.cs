@@ -1,10 +1,10 @@
-using Vocaterra.Game.Core;
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>Which panels are open, as the sound side watches them (S24): the sound for a panel opening or closing, and the book's page turn.</summary>
 /// <param name="Inventory">Whether the inventory is open.</param>

@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Core;
+namespace Vocaterra.Game.Core.Event;
 
 /// <summary>What happened during a tick.</summary>
 public enum SimulationEventKind

@@ -1,6 +1,6 @@
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Core.Utilities;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>
 /// The looping ambient beds of S25 (wind, the river, the waterfall, the village, the evening insects), made in code at load: no file, no licence, the same

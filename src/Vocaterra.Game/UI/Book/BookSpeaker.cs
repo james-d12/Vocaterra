@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Sound;
 
 namespace Vocaterra.Game.UI.Book;

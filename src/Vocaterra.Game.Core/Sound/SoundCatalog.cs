@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>
 /// How one cue sounds (S24): the takes (files under <c>assets/audio</c>, or none for a synthesized cue, which has one take), its gain before the category's volume

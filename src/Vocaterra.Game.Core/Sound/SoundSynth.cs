@@ -1,6 +1,6 @@
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Core.Utilities;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>
 /// The cues made in code (S24, D-game-18): the push-to-talk beeps, the progress chimes, the sparkle, the bottle and the fire's whoosh. They are rendered at load

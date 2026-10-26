@@ -1,9 +1,8 @@
 using Vocaterra.Game.Core.Language.Speech;
-using Vocaterra.Game.Utilities;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Response.Speech;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>
 /// The sound the NPC voices play through: one clip at a time. The MonoGame implementation is <c>DynamicSoundOutput</c>; the tests use a fake.

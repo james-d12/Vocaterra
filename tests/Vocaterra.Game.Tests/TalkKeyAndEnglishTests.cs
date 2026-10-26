@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Sound;
@@ -83,11 +84,11 @@ public sealed class TalkKeyAndEnglishTests
     [Fact]
     public void ANoMicrophoneMessageIsEnglishAndTheTypedFallbackIsNamed()
     {
-        var talk = new PushToTalk(null);
+        var talk = new PushToTalkSpeechCapture(null);
         Assert.False(talk.Begin());
         Assert.Equal("No microphone: type your answer.", talk.Problem);
-        Assert.Equal("No microphone: type your answer.", PushToTalk.NoMicrophone);
-        Assert.Equal("I didn't hear anything.", PushToTalk.Silence);
+        Assert.Equal("No microphone: type your answer.", PushToTalkSpeechCapture.NoMicrophone);
+        Assert.Equal("I didn't hear anything.", PushToTalkSpeechCapture.Silence);
     }
 
     [Fact]

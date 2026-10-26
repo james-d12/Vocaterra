@@ -1,12 +1,12 @@
 using System.Text.RegularExpressions;
-using Vocaterra.Game.Core;
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>What a block is made of, as far as the gathering sounds go.</summary>
 public enum SoundMaterial
