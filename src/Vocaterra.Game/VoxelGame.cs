@@ -64,8 +64,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <summary>The save file F6 writes when the run has no <c>--save</c> file.</summary>
     private const string DefaultSavePath = "vocaterra.save.json";
 
-    private static readonly Keys[] SlotKeys = [Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9, Keys.D0];
-
     private readonly LaunchOptions _options;
     private readonly VoxelSession _session;
     private readonly Scene _scene;
@@ -84,7 +82,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly ArmPresenter _arm;
     private readonly BeaconDirector _beacon;
     private readonly EventPrinter _events;
-    private readonly MouseLook _mouseLook = new();
     private readonly LiveVoxelInput _live = new();
     private readonly ScenarioScript? _scenario;
     private readonly InputFocus _focus = new();
@@ -119,7 +116,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly TurnPresenter _turns;
     private readonly VoxelDebugOverlay _debug = new();
     private readonly SceneDrawer _drawer;
-    private bool _captureWanted = true;
     private bool _firstUpdateSeen;
     private NpcFigure? _aimed;
     private readonly WordCardQueue _cards = new();
@@ -147,7 +143,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly ScreenStack _screens;
     private readonly KeyBindings _globalKeys;
     private readonly KeyBindings _worldKeys;
-    private readonly IGameCommand _openBook;
+    private readonly WorldInput _worldInput;
 
     // The autosave (X05, R04): the policy decides the frames; the file is the playtest's playtest.save, else autosave.save in the session folder.
     // A run with --no-autosave has neither.
@@ -344,6 +340,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _screens = new ScreenStack(
             [_micScreen, _checks, _dialogueScreen, _controls, _bookScreen, _inventoryPanel, _craftingPanel],
             [_checks, _micScreen, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _controls]);
+        var openBook = new DelegateCommand(_bookScreen.Open); // J and the book item (S20)
+        _worldInput = new WorldInput(_sim, _look, _live, openBook);
         var commands = new GameCommands(
             ToggleView: new DelegateCommand(ToggleView),
             Save: new DelegateCommand(SaveNow),
@@ -359,15 +357,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             TalkTo: new DelegateCommand(() => _dialogueScreen.Open(_aimed!.Name, 'e')),
             OpenControls: new DelegateCommand(_controls.Open),
             NextTip: new DelegateCommand(() => _session.Tips.Dismiss()),
-            OpenBook: new DelegateCommand(_bookScreen.Open),
+            OpenBook: openBook,
             OpenCrafting: new DelegateCommand(_craftingPanel.Open),
             OpenInventory: new DelegateCommand(_inventoryPanel.Open),
             ReleaseMouse: new DelegateCommand(() =>
             {
-                _captureWanted = false;
+                _worldInput.ReleaseMouse();
                 _ending.Dismiss(); // Esc takes the closing card down (S17)
             }));
-        _openBook = commands.OpenBook;
         _globalKeys = KeyBindings.Global(commands, options.Playtest);
         _worldKeys = KeyBindings.World(commands, () => _aimed is not null, () => _session.Tips.Current is not null, AimedAtWorkbench);
         // The session log (S11) is opened first, so the battery's start is in it; the battery's plan is the bundle's items in the seeded order of its kind.
@@ -714,63 +711,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             ClickOnScreens(mouse.X, mouse.Y);
         }
 
-        var swallowClick = false;
-        if (IsActive && !uiOpen && !_captureWanted && input.LeftClicked)
-        {
-            _captureWanted = true; // a click takes the mouse back; it does not gather
-            swallowClick = true;
-        }
-
-        var captured = IsActive && !uiOpen && _captureWanted;
-        _mouseLook.SetCaptured(captured, Window);
-        IsMouseVisible = !captured;
-        if (captured)
-        {
-            var (dx, dy) = _mouseLook.Read(Window);
-            _look.Turn(dx, dy);
-        }
-
-        var strafe = 0;
-        var forward = 0;
-        var jump = false;
-        int? slot = null;
-        if (captured)
-        {
-            strafe = (input.Down(Keys.D) || input.Down(Keys.Right) ? 1 : 0) - (input.Down(Keys.A) || input.Down(Keys.Left) ? 1 : 0);
-            forward = (input.Down(Keys.W) || input.Down(Keys.Up) ? 1 : 0) - (input.Down(Keys.S) || input.Down(Keys.Down) ? 1 : 0);
-            jump = input.Down(Keys.Space);
-        }
-
-        if (!uiOpen)
-        {
-            for (var i = 0; i < SlotKeys.Length; i++)
-            {
-                if (input.Pressed(SlotKeys[i]))
-                {
-                    slot = i;
-                }
-            }
-
-            var wheel = input.Wheel;
-            if (wheel != 0)
-            {
-                slot = (((_sim.SelectedSlot - Math.Sign(wheel)) % Inventory.HotbarSize) + Inventory.HotbarSize) % Inventory.HotbarSize;
-            }
-        }
-
-        var target = _sim.Target;
-        if (IsActive && BookItemUse.Applies(input, captured, _book.IsOpen, _sim.SelectedStack))
-        {
-            _openBook.Execute(); // the book item opens the book, as J does (S20)
-        }
-
-        _live.SetFrame(
-            strafe,
-            forward,
-            jump,
-            captured && input.LeftDown && !swallowClick ? LiveVoxelInput.GatherFor(target) : null,
-            captured && input.RightClicked ? LiveVoxelInput.PlacementFor(_sim.SelectedStack, target) : null,
-            slot);
+        IsMouseVisible = !_worldInput.Read(input, IsActive, uiOpen, _book.IsOpen, Window); // the pointer is hidden while the mouse is captured
         _devices.Commit(input);
     }
 
@@ -810,7 +751,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // The input of a frame the panel or F8 took: the mouse is free, and the states are kept for the next frame's presses and clicks.
     private void EndInput(InputSnapshot input)
     {
-        _mouseLook.SetCaptured(false, Window);
+        _worldInput.FreeMouse(Window);
         IsMouseVisible = true;
         _devices.Commit(input);
     }
