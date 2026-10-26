@@ -155,6 +155,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly bool _playtest;
     private readonly PlaytestFlow _playtestFlow;
     private readonly ScreenStack _screens;
+    private readonly KeyBindings _globalKeys;
+    private readonly KeyBindings _worldKeys;
+    private readonly IGameCommand _openBook;
     private int _sizeFrames;
     private bool _sizeWarned;
 
@@ -323,6 +326,32 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _screens = new ScreenStack(
             [_micScreen, _checks, _dialogueScreen, _controls, _bookScreen, _inventoryPanel, _craftingPanel],
             [_checks, _micScreen, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _controls]);
+        var commands = new GameCommands(
+            ToggleView: new DelegateCommand(ToggleView),
+            Save: new DelegateCommand(SaveNow),
+            CycleTextSize: new DelegateCommand(CycleTextSize),
+            EndPlaytest: new DelegateCommand(() => _playtestFlow.EndKey(WorldRunning)),
+            ToggleDebug: new DelegateCommand(() => _debug.Visible = !_debug.Visible),
+            Listen: new DelegateCommand(() =>
+            {
+                _dialogueScreen.Open(_aimed!.Name, null);
+                _dialogueScreen.BeginListening(Keys.V);
+            }),
+            TypeTo: new DelegateCommand(() => _dialogueScreen.Open(_aimed!.Name, 't')),
+            TalkTo: new DelegateCommand(() => _dialogueScreen.Open(_aimed!.Name, 'e')),
+            OpenControls: new DelegateCommand(_controls.Open),
+            NextTip: new DelegateCommand(() => _session.Tips.Dismiss()),
+            OpenBook: new DelegateCommand(_bookScreen.Open),
+            OpenCrafting: new DelegateCommand(_craftingPanel.Open),
+            OpenInventory: new DelegateCommand(_inventoryPanel.Open),
+            ReleaseMouse: new DelegateCommand(() =>
+            {
+                _captureWanted = false;
+                _ending.Dismiss(); // Esc takes the closing card down (S17)
+            }));
+        _openBook = commands.OpenBook;
+        _globalKeys = KeyBindings.Global(commands, options.Playtest);
+        _worldKeys = KeyBindings.World(commands, () => _aimed is not null, () => _session.Tips.Current is not null, AimedAtWorkbench);
         StartLogAndCheck(options);
         CrashSource = new CrashSource(_sessionDirectory, options.ReportDir, session, _dialogue, _report, _autosave, _saves);
         _session.StartWorker(MonotonicClock.Milliseconds, options.NeedsSpeech);
@@ -918,36 +947,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 return;
             }
 
-            if (input.Pressed(Keys.F10))
-            {
-                _playtestFlow.EndKey(WorldRunning); // the post-check at once (S12)
-            }
-
-            if (input.Pressed(Keys.F5))
-            {
-                var mode = _viewMode.Toggle(); // the behind-the-shoulder view and back (S15)
-                Console.WriteLine($"view: {(mode == CameraMode.ThirdPerson ? "behind the shoulder" : "first person")}");
-            }
-
-            if (input.Pressed(Keys.F6))
-            {
-                SaveNow();
-            }
-
-            if (input.Pressed(Keys.F9))
-            {
-                _ = _canvas.Next(); // the interface text size: 100, 125, 150 percent (X08); no other F9 binding, and a text box never reads it
-                Console.WriteLine($"text scale: {_canvas.TextPercent} percent (canvas {_canvas.Width} x {_canvas.Height})");
-            }
-
+            _globalKeys.RunEvery(input); // F10, F5, F6, F9 and F3, wherever the player is
             if (!_screens.HandleInput(input))
             {
-                ReadWorldKeys(input); // no screen is open: the keys are the world's
-            }
-
-            if (input.Pressed(Keys.F3) && !_playtest)
-            {
-                _debug.Visible = !_debug.Visible;
+                _ = _worldKeys.RunFirst(input); // no screen is open: the keys are the world's
             }
         }
 
@@ -1012,10 +1015,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         var target = _sim.Target;
-        // Using the book item (selected, right-click) opens the book, as J does (S20). The item is not placeable, so the press places nothing.
-        if (IsActive && captured && input.RightClicked && !_book.IsOpen && _sim.SelectedStack is { Item: ItemId.Book, Count: > 0 })
+        if (IsActive && BookItemUse.Applies(input, captured, _book.IsOpen, _sim.SelectedStack))
         {
-            _bookScreen.Open();
+            _openBook.Execute(); // the book item opens the book, as J does (S20)
         }
 
         _live.SetFrame(
@@ -1028,48 +1030,18 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _devices.Commit(input);
     }
 
-    // The world's keys when no screen is open: E, T or V on the NPC under the crosshair, F1 the controls help, Enter the next tip (S16), J the book,
-    // C (or E at the workbench) the crafting panel, I or E the inventory, Esc frees the mouse and takes the closing card down (S17).
-    private void ReadWorldKeys(InputSnapshot input)
+    // F5: the behind-the-shoulder view and back (S15).
+    private void ToggleView()
     {
-        if (_aimed is not null && (input.Pressed(Keys.E) || input.Pressed(Keys.T) || input.Pressed(Keys.V)))
-        {
-            // The crosshair is on an NPC: E or T opens the panel; V opens it and starts listening.
-            if (input.Pressed(Keys.V))
-            {
-                _dialogueScreen.Open(_aimed.Name, null);
-                _dialogueScreen.BeginListening(Keys.V);
-            }
-            else
-            {
-                _dialogueScreen.Open(_aimed.Name, input.Pressed(Keys.T) ? 't' : 'e');
-            }
-        }
-        else if (input.Pressed(Keys.F1))
-        {
-            _controls.Open();
-        }
-        else if (input.Pressed(Keys.Enter) && _session.Tips.Current is not null)
-        {
-            _session.Tips.Dismiss(); // Enter: next tip (S16)
-        }
-        else if (input.Pressed(Keys.J))
-        {
-            _bookScreen.Open();
-        }
-        else if (input.Pressed(Keys.C) || (input.Pressed(Keys.E) && AimedAtWorkbench()))
-        {
-            _craftingPanel.Open();
-        }
-        else if (input.Pressed(Keys.I) || input.Pressed(Keys.E))
-        {
-            _inventoryPanel.Open();
-        }
-        else if (input.Pressed(Keys.Escape))
-        {
-            _captureWanted = false;
-            _ending.Dismiss(); // Esc takes the closing card down (S17)
-        }
+        var mode = _viewMode.Toggle();
+        Console.WriteLine($"view: {(mode == CameraMode.ThirdPerson ? "behind the shoulder" : "first person")}");
+    }
+
+    // F9: the interface text size, 100, 125 and 150 percent (X08); no other F9 binding, and a text box never reads it.
+    private void CycleTextSize()
+    {
+        _ = _canvas.Next();
+        Console.WriteLine($"text scale: {_canvas.TextPercent} percent (canvas {_canvas.Width} x {_canvas.Height})");
     }
 
     // ---- The bug and feature report (S21, D-game-17): local files only, nothing is sent. ----
