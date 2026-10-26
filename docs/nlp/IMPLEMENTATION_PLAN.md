@@ -1012,6 +1012,24 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
     reran the seed on the merged branch. Gate: 4,800 passed, 5 skipped. Goldens and both demos are unchanged.
   - **Limits:** adjacency only; the preterite is not checked; no gerunds in the lexicon.
   - **Note for the owner:** `main` still carries the rare O4 flake until this branch, or the one-file generator fix, reaches it.
+- **M31, Spanish identity guard (2026-10-26, Haiku 5.5; merged to `feature/language-packs` `f4694ff`).**
+  - **Built.** `tests/Vocaterra.Nlp.Golden.Tests/SpanishIdentityTests.cs` with a frozen corpus (`Data/identity/corpus.jsonl`, 6,349
+    inputs: 103 homograph sentences, 108 regression sentences of M26b, M29c and M29j, 224 intent examples, 20 CLI examples, 894 G2P words,
+    3,000 correct and 2,000 mutated fuzz sentences drawn once at seed `6VTk-wxfywU1`) and a baseline (`baseline.jsonl`, 1.5 MB, 6,524
+    lines with the 175 rendered template variants). Each stage hash is the first 16 hex characters of a SHA-256 over canonical JSON. The
+    test runs in about 9 s and needs no models. It re-records only with `VOCATERRA_RECORD_IDENTITY=1`, never with the golden variable.
+    `scripts/identity-check.sh <base-ref>` checks the gate rules: the bundle hash is unchanged, and nothing under `tests/*/Data/`,
+    `tests/golden/` or `content/` changes except pure renames.
+  - **It bites.** One changed repair line (`¿Cómo?` to `¿Cómo??`) made 5,504 of 44,618 stage checks differ. A changed dialogue template
+    never reaches the guard, because the loader rejects the bundle on its hash first.
+  - **Base ref for Phase A.** M52 and every later Phase A branch run `scripts/identity-check.sh f4694ff`, not `main`. M31 itself adds the
+    baseline, so it cannot pass against `main`.
+  - **Limits.** M26b's 1,102-sentence corpus was never committed, so it is not included. The fuzz draw was a one-off and is not in the
+    repository; the committed corpus is its record. `PromptGrammars` and the sample-slot rule are internal to Content, so the test keeps
+    frozen copies of both.
+  - **Gate.** 5,254 passed, 3 skipped. Two failures were already on `main`: the licence scan (`Vocaterra.Nlp.slnf` is missing; M52
+    recreates it) and the game test `SpokenModelTests.AMistakeInASpokenLineIsHeardAsSaidAndTheCoreCorrectsIt` (with the real Vosk model the
+    recognizer hears "a dónde está la árbol", one extra leading word).
 
 ## 6. Definition of done (every milestone)
 
@@ -1313,7 +1331,7 @@ The research lists seven places that would break silently when a second language
 
 | ID | Milestone | Depends on | Tier | Status |
 | --- | --- | --- | --- | --- |
-| M31 | Spanish identity guard (`SpanishIdentityTests`) | M29j | H | planned (D14 amended 2026-10-26) |
+| M31 | Spanish identity guard (`SpanishIdentityTests`) | M29j | H | done (merged to `feature/language-packs` `f4694ff`) |
 | M32 | Language id in the manifest (absent = `es`, folded into the hash only when present), pack registry, `ContentBundle.Language`, ADR 0011 | M31, M52 | S | planned (D14 amended 2026-10-26) |
 | M33 | Text-side seams: normalizer, numbers, phonetic key, punctuation, repair lines, grammar defaults, lint, G2P call sites, Kokoro `lang` | M32 | H | planned (D14 amended 2026-10-26) |
 | M34 | Analysis-side seams and schema: `IMorphology`, `IAnalysisRules`, template functions, optional `LexicalFeatures` fields (Case, VerbForm, Declension, Particle, Register), per-pack tag sets (`ErrorTags.All` frozen as Spanish) | M33 | S | planned (D14 amended 2026-10-26) |
