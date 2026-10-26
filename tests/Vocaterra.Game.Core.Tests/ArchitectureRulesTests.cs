@@ -36,7 +36,8 @@ public sealed class ArchitectureRulesTests
         var projects = Regex.Matches(project, "<ProjectReference Include=\"([^\"]+)\"").Select(m => m.Groups[1].Value).ToList();
         var core = projects.Where(path => path != "../Vocaterra.Simulation/Vocaterra.Simulation.csproj").ToList();
         Assert.NotEmpty(core);
-        Assert.All(core, path => Assert.Matches("^\\.\\./Vocaterra\\.Nlp\\.[A-Za-z]+/Vocaterra\\.Nlp\\.[A-Za-z]+\\.csproj$", path));
+        // The core is the one engine project Vocaterra.Nlp (M52, ADR 0012), or a Vocaterra.Nlp.<Name> project for a pack or a tool.
+        Assert.All(core, path => Assert.Matches("^\\.\\./Vocaterra\\.Nlp(\\.[A-Za-z]+)?/Vocaterra\\.Nlp(\\.[A-Za-z]+)?\\.csproj$", path));
         Assert.DoesNotContain("<PackageReference", project, StringComparison.Ordinal);
         Assert.DoesNotContain("external", project, StringComparison.Ordinal);
     }

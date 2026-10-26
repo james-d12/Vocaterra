@@ -18,9 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/Vocaterra.Nlp.Pipeline/Vocaterra.Nlp.Pipeline.csproj" />
-    <ProjectReference Include="../../src/Vocaterra.Nlp.Phonology/Vocaterra.Nlp.Phonology.csproj" />
-    <ProjectReference Include="../../src/Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp/Vocaterra.Nlp.csproj" />
     <ProjectReference Include="../../tools/Vocaterra.Nlp.Bench/Vocaterra.Nlp.Bench.csproj" />
   </ItemGroup>
 

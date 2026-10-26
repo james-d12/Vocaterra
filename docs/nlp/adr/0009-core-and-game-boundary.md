@@ -13,6 +13,8 @@
 
 > **Note (2026-10-23, R01):** the repository now has one root layout (`src/`, `tests/`, `tools/`, `docs/nlp/`, `docs/game/`, `content/`, `assets/`, `models/`, `scripts/`) and one solution. The boundary is by project name, not by folder: the core is the `Vocaterra.Nlp.*` projects (with `content/v1`, `tests/golden` and `docs/nlp/`), the game is `Vocaterra.Simulation`, `Vocaterra.Game`, `Vocaterra.MonoGame`, `Vocaterra.Host` and `Vocaterra.SpeechRender` (with their tests, `content/game-v1`, `assets/` and `docs/game/`). The rules are unchanged: the game references the core's projects (no packages), never copies core source, and a core change the game needs is a core milestone. The text below is unchanged.
 
+> **Note (2026-10-26, M52):** the core is one engine assembly, `Vocaterra.Nlp` (`src/Vocaterra.Nlp`, one folder per former project), with language packs beside it (ADR 0012). Where this record says `Vocaterra.Nlp.*` projects, read the engine and its packs. The boundary is unchanged: the game references the core's one project and never copies core source. The table in section 1 is updated for that.
+
 - Status: accepted
 - Date: 2026-10-20
 - Deciders: the repository owner (repository names, the rename to `Vocaterra.Nlp.*`, and decisions D6 and D7 in [docs/nlp/DECISIONS.md](../DECISIONS.md)); the implementation plan (`IMPLEMENTATION_PLAN.md` section 8, milestone M19a)
@@ -31,7 +33,7 @@ is not in this repository. That needs a boundary the code can be checked against
 
 ### 1. What stays in the core and what moves to the game
 
-| Stays in the core (`Vocaterra.Nlp.*`) | Moves to the game repository (`Vocaterra`) |
+| Stays in the core (the engine `Vocaterra.Nlp` and its packs) | Moves to the game repository (`Vocaterra`) |
 | --- | --- |
 | The contracts: verdict, prompt spec, error tags, replay envelope | `SPECIFICATION.md` and the game design |
 | Audio, ASR, phonology, pronunciation, NLP, evaluation | Character definitions (blacksmith, innkeeper, captain) and their dialogue pools |
