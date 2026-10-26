@@ -130,6 +130,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly NpcVoice _voice;
     private readonly TurnWatchdog _watchdog = new();
     private readonly MicCheckModel? _micCheck;
+    private readonly MicCheckScreen _micScreen;
     private readonly InputDevices _devices;
     private readonly TextEditKeys _textEdits = new();
     private readonly OpenKeySwallow _swallow = new();
@@ -158,8 +159,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly CraftingScreen _crafting = new();
     private readonly Queue<int> _pendingCrafts = new();
     private int _loadingFrames;
-    private bool _micScriptedSent;
-    private int _micShownTicks;
     private string? _shotPath;
     private readonly CheckBattery _checks;
     private SessionLog? _log;
@@ -293,6 +292,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             options.Playtest,
             new CheckBatteryHooks(path => _shotPath = path, () => _shotPath is not null, () => _micCheck is { IsActive: true }, index => _scenario?.SkipTo(index), Exit, EndPlaytest),
             Console.WriteLine);
+        _micScreen = new MicCheckScreen(_micCheck, session, _listen, _sound, _canvas, () => _view!.Fonts.Get(FontProvider.NativeSize), options.IsScreenshotRun, () => _scenario is { IsDone: false } || _checks.Screen is { IsDone: false }, Console.WriteLine);
         StartLogAndCheck(options);
         CrashSource = new CrashSource(_sessionDirectory, options.ReportDir, session, _dialogue, _report, _autosave, _saves);
         _session.StartWorker(MonotonicClock.Milliseconds, options.NeedsSpeech);
@@ -560,7 +560,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             RunWatchdog(seconds); // a paused world does not time a turn out (S21)
         }
 
-        DriveScriptedMicCheck();
+        _micScreen.DriveScripted();
         _reportScreen.DriveScripted(); // a scripted report is typed and saved here, while its panel is up (S21)
         if (_playtest && (_scenario is null || _scenario.AtStepBoundary)
             && PlaytestEnd.StartsOnItsOwn(true, WorldRunning, _playtestStarted, _session.SessionComplete, PlaytestEnd.TransferOffered(_session.Events), _dialogue.IsOpen))
@@ -951,7 +951,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
             if (_micCheck is { IsActive: true })
             {
-                ReadMicCheckKeys(input);
+                _micScreen.HandleInput(input);
             }
             else if (_checks.Screen is { IsDone: false })
             {
@@ -1170,11 +1170,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _checks.CancelListening();
         }
 
-        if (_micCheck is { Phase: MicCheckPhase.Listening } micCheck)
-        {
-            micCheck.EndListening(); // the same as a clip too short to hear: the check asks for another try, and nothing is sent
-            micCheck.HeardNothing();
-        }
+        _micScreen.InterruptForReport(); // the same as a clip too short to hear: the check asks for another try, and nothing is sent
 
         _reportScreen.Request(OpenScreenName());
     }
@@ -1339,14 +1335,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private void ClickOnScreens(int x, int y)
     {
         var font = _view!.Fonts.Get(FontProvider.NativeSize);
-        if (_micCheck is { IsActive: true } check)
+        if (_micScreen.Active)
         {
-            var layout = MicCheckLayer.LayoutFor(check, _canvas.Width, _canvas.Height, font);
-            if (layout.ButtonAt(x, y) is { } button)
-            {
-                PressMicButton(button);
-            }
-
+            _micScreen.Click(x, y);
             return;
         }
 
@@ -1367,127 +1358,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             {
                 PerformAction(action, null);
             }
-        }
-    }
-
-    // The mic check's keys: hold V or Space to talk, Enter or Space to go on after a pass, Esc to skip.
-    private void ReadMicCheckKeys(InputSnapshot input)
-    {
-        var check = _micCheck!;
-        _listen.ReleaseIfUp(input);
-        if (input.Pressed(Keys.Escape))
-        {
-            _listen.Cancel();
-            check.Skip();
-            return;
-        }
-
-        switch (check.Phase)
-        {
-            case MicCheckPhase.Passed:
-                if (input.Pressed(Keys.Enter) || input.Pressed(Keys.Space))
-                {
-                    check.Continue();
-                }
-
-                break;
-            case MicCheckPhase.Ready:
-            case MicCheckPhase.Failed:
-                if (input.Pressed(Keys.V) || input.Pressed(Keys.Space))
-                {
-                    BeginMicListening(input.Pressed(Keys.V) ? Keys.V : Keys.Space);
-                }
-                else if (input.Pressed(Keys.Enter) && check.Phase == MicCheckPhase.Failed)
-                {
-                    check.Retry();
-                }
-
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void PressMicButton(MicCheckButton button)
-    {
-        _sound.QueueClick(SoundCue.UiClick);
-        if (button == MicCheckButton.Skip)
-        {
-            _listen.Cancel();
-        }
-
-        _micCheck!.Press(button);
-    }
-
-    // The mic check: the talk key went down. The recognizer must be loaded and the machine must have a microphone; otherwise the screen says why and
-    // the player can skip: nothing here ever stops the game.
-    private void BeginMicListening(Keys key)
-    {
-        var check = _micCheck!;
-        var worker = _session.Worker!;
-        if (!worker.CanHear)
-        {
-            check.Notice = worker.IsReady ? worker.Load?.Problem ?? "Speech is not available." : "Loading speech…";
-            return;
-        }
-
-        if (_listen.Begin(new ListenTarget(HeardMicCheck, check.Feed), key))
-        {
-            check.Notice = null;
-            check.BeginListening();
-        }
-        else
-        {
-            check.Notice = _listen.Problem;
-        }
-    }
-
-    // The mic check: the key went up (or the recording hit its cap). The clip goes to the worker, which hears it and answers with what it heard.
-    private void HeardMicCheck(PcmClip? clip)
-    {
-        var check = _micCheck!;
-        check.EndListening();
-        if (clip is null)
-        {
-            check.Notice = _listen.Problem;
-            check.HeardNothing();
-            return;
-        }
-
-        _ = _session.SubmitHear(clip);
-        Console.WriteLine($"mic check: {clip.DurationSeconds:0.00} s heard by the recognizer");
-    }
-
-    // A scripted mic check (no microphone): once the recognizer is loaded the worker synthesizes "hola" and hears it, as if it had been said.
-    private void DriveScriptedMicCheck()
-    {
-        if (_micCheck is not { IsActive: true } check || !_options.IsScreenshotRun)
-        {
-            return;
-        }
-
-        var worker = _session.Worker!;
-        if (!_micScriptedSent && worker.IsReady)
-        {
-            _micScriptedSent = true;
-            if (worker.CanHear)
-            {
-                _sound.Scripted.Begin(); // the scripted check stands for a recording: beep, silent window, beep (S24)
-                _ = _session.SubmitHearSpeak(MicCheck.Word);
-                check.BeginScripted();
-            }
-            else
-            {
-                check.BeginScripted();
-                check.Complete(new MicCheckResult(string.Empty, false, 0));
-            }
-        }
-
-        // With steps to run after it (or a check battery waiting behind it, S12: the playtest's pre-check), the scripted check goes on by itself once
-        // its result has been on screen for a moment; alone it stays up for the screenshot.
-        if (check.Phase is MicCheckPhase.Passed or MicCheckPhase.Failed && (_scenario is { IsDone: false } || _checks.Screen is { IsDone: false }) && ++_micShownTicks >= 60)
-        {
-            check.Press(check.Phase == MicCheckPhase.Passed ? MicCheckButton.Continue : MicCheckButton.Skip);
         }
     }
 
@@ -1670,9 +1540,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // nothing is recorded.
     private void PumpTalk(double seconds)
     {
-        if (_checks.Screen is not { Listening: true } && _micCheck is { IsActive: true } check && !_listen.Listening)
+        if (_checks.Screen is not { Listening: true })
         {
-            check.Feed(0, seconds);
+            _micScreen.FeedWhileIdle(seconds);
         }
 
         _listen.Pump(seconds);
