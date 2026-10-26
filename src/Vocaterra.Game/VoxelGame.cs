@@ -10,7 +10,6 @@ using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Mathematics;
-using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Reporting;
@@ -22,6 +21,8 @@ using Vocaterra.Game.Core.Utilities;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Layout;
+using Vocaterra.Game.Diagnostics;
+using Vocaterra.Game.Flow;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Sound;
@@ -59,9 +60,6 @@ using SoundEventMapper = SoundEventMapper;
 /// </remarks>
 public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
 {
-    /// <summary>The point the beacon stands on at the start of a new game: the guide's camp, at the foot of the trail from the player's own camp (S13).</summary>
-    public const string StartBeaconPoint = "camp.guide";
-
     private const int StartWidth = 1280;
     private const int StartHeight = 720;
     private const int SettleTicks = 30;
@@ -109,13 +107,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     private readonly FrameStats _stats = new();
     private readonly IFrameClock _clock;
     private readonly LookControl _look = new();
-    private readonly CameraEase _ease = new();
-    private readonly FirstPersonCamera _camera = new();
     private readonly ViewModeState _viewMode = new();
     private readonly Func<int, int, int, bool> _isSolid;
-    private long _lastPlaceTick = long.MinValue / 2;
-    private double _walkDistance;
-    private (double X, double Z)? _lastWalkPoint;
+    private readonly UiCanvas _canvas;
+    private readonly PlayerCamera _camera;
+    private readonly FigureDirector _figures;
+    private readonly ArmPresenter _arm;
+    private readonly BeaconDirector _beacon;
+    private readonly EventPrinter _events;
     private readonly MouseLook _mouseLook = new();
     private readonly LiveVoxelInput _live = new();
     private readonly ScenarioScript? _scenario;
@@ -146,12 +145,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     private readonly BookSpeechControls _bookControls;
     private readonly ToastQueue _toasts = new();
     private readonly InventoryScreen _inventory = new();
-    private readonly BusyFrameStats _draws = new();
-    private readonly BusyFrameStats _frames = new();
+    private readonly FrameTimings _timings = new();
     private readonly List<VoxelCommand> _commands = [];
     private readonly List<IFrameLayer> _layers = [];
     private readonly VoxelDebugOverlay _debug = new();
-    private IReadOnlyList<NpcFigure> _figures = [];
     private SpriteBatch? _spriteBatch;
     private Texture2D? _pixel;
     private BlockAtlas? _blockAtlas;
@@ -166,25 +163,18 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     private bool _previousRightDown;
     private bool _captureWanted = true;
     private bool _firstUpdateSeen;
-    private Vector3 _previousEye;
-    private Vector3 _currentEye;
-    private double _previousEase;
-    private double _currentEase;
     private int _settled;
     private bool _shown;
-    private double _lastDrawEnd = -1;
     private Keys _listenKey = Keys.None;
     private char? _swallowedOpenKey;
     private int _swallowFrames;
     private NpcFigure? _aimed;
-    private PointerMarker? _shownPointer;
     private readonly WordCardQueue _cards = new();
     private readonly CraftingScreen _crafting = new();
     private readonly Queue<int> _pendingCrafts = new();
     private int _loadingFrames;
     private bool _micScriptedSent;
     private int _micShownTicks;
-    private int _printedEvents;
     private string? _shotPath;
     private CheckScreen? _check;
     private CheckScript? _checkScript;
@@ -234,7 +224,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     public VoxelGame(LaunchOptions options, VoxelSession session, Scene scene, NpcVoice voice, Func<Scene> pristine, SoundVolumes? savedVolumes = null, SceneLayout? layout = null, int? savedTextScale = null)
     {
         _options = options;
-        _textPercent = SaveSettings.SnapTextScale(options.TextScale ?? savedTextScale ?? 100);
+        _canvas = new UiCanvas(SaveSettings.SnapTextScale(options.TextScale ?? savedTextScale ?? 100), () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
         _session = session;
         _scene = scene;
         _voice = voice;
@@ -252,6 +242,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         _pump = new TurnPump(session, _dialogue, CursorCell);
         _actions = new SpeechActionRunner(session, _dialogue, voice, CursorCell);
         _support = new SupportFrontend(session, _dialogue, _actions, Console.WriteLine);
+        _events = new EventPrinter(session.Events, _support.LinesFor, Console.WriteLine);
+        _beacon = new BeaconDirector(session, Console.WriteLine, Console.Error.WriteLine);
         _lesson = new LessonFrontend(session, _dialogue, Console.WriteLine);
         _lesson.OnRecapDone = ShowPhrasesBook; // the lesson's recap ends on the journal's phrases page (S17)
         _ending.MarkSeen(session); // a game loaded after its ending does not play it again
@@ -259,7 +251,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         _playtest = options.Playtest;
         _debug.Visible = !_playtest; // the playtest has no debug overlay (F3 is off there too)
         _look.Set(scene.Spawn.Yaw, scene.Spawn.Pitch);
-        _currentEye = _previousEye = EyeBlocks();
+        _camera = new PlayerCamera(_sim, _look, _viewMode, _isSolid);
+        _figures = new FigureDirector(scene, _sim, _look, _dialogue);
+        _arm = new ArmPresenter(_sim, _isSolid, options.Dusk);
         if (options.IsScreenshotRun)
         {
             _clock = new FixedFrameClock(VoxelSimulation.TicksPerSecond);
@@ -450,15 +444,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     /// <summary>The process exit code: 0 unless the screenshot could not be saved.</summary>
     public int ExitCode { get; private set; }
 
-    /// <summary>The beacon: set it to send the player somewhere (a column stands on the block and an arrow points to it from the screen edge).</summary>
-    public Beacon Beacon { get; } = new();
-
-    /// <summary>The 3D simulation (read it; commands go through the game's input).</summary>
-    public VoxelSimulation Simulation => _sim;
-
-    /// <summary>The 3D game's session: the guide, the words and the arrow.</summary>
-    public VoxelSession Session => _session;
-
     /// <inheritdoc />
     protected override void LoadContent()
     {
@@ -467,7 +452,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         _pixel = new Texture2D(GraphicsDevice, 1, 1);
         _pixel.SetData([Color.White]);
         _blockAtlas = new BlockAtlas(GraphicsDevice);
-        _figures = NpcFigures.FromScene(_scene);
         var started = MonotonicClock.Milliseconds();
         _preset = _options.QualityPreset;
         _renderer = new VoxelRenderer(GraphicsDevice, _blockAtlas, _sim.Grid, _preset, _options.Dusk);
@@ -476,7 +460,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             _viewMode.Set(CameraMode.ThirdPerson);
         }
 
-        _renderer.SetFigures(_figures);
+        _renderer.SetFigures(_figures.Figures);
         _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _options.AssumeKnown);
         Console.WriteLine($"voxel: quality {_preset.Name}, view distance {_preset.ViewDistance} blocks, fog from {VoxelRenderer.FogEndFor(_preset.ViewDistance) * VoxelRenderer.FogStartFraction:0} to {VoxelRenderer.FogEndFor(_preset.ViewDistance):0}, mesh budget {_preset.MeshBudgetMilliseconds:0} ms a frame (renderer ready in {MonotonicClock.Milliseconds() - started:0} ms)");
         Console.WriteLine($"graphics: {GraphicsAdapter.DefaultAdapter.Description}, depth {GraphicsDevice.PresentationParameters.DepthStencilFormat}");
@@ -485,23 +469,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             Console.WriteLine("greyscale: blocks whose noun is not known are grey (the playtest A/B, D-game-6); figures, sky and UI in colour");
         }
         Console.WriteLine($"scene: {_scene.Name}, seed {_scene.Seed}, {_scene.TreeCount} trees, spawn {_scene.Spawn.Feet.X},{_scene.Spawn.Feet.Y},{_scene.Spawn.Feet.Z}, digest {_scene.Grid.ComputeDigestHex()[..16]}");
-        if (_options.Beacon is { } point && !string.Equals(point, "none", StringComparison.Ordinal))
-        {
-            if (Beacon.SetPoint(_scene, point, PointLabels.For(point)))
-            {
-                Console.WriteLine($"beacon: {point} at {Beacon.Target!.Value.X},{Beacon.Target.Value.Y},{Beacon.Target.Value.Z}");
-            }
-            else
-            {
-                Console.Error.WriteLine($"beacon: the scene has no point '{point}' (it has {string.Join(", ", _scene.Points.Keys)})");
-            }
-        }
-
-        if (_options.Beacon is null && _options.LoadPath is null && Beacon.SetPoint(_scene, StartBeaconPoint, PointLabels.For(StartBeaconPoint)))
-        {
-            // The new game starts with a walk down the trail: the beacon stands on the guide's camp (until the opening of S17 says it in words).
-            Console.WriteLine($"beacon: {StartBeaconPoint} at {Beacon.Target!.Value.X},{Beacon.Target.Value.Y},{Beacon.Target.Value.Z} (the walk down the trail)");
-        }
+        _beacon.PlaceAtStart(_scene, _options.Beacon, loaded: _options.LoadPath is not null);
 
         _view = new FrameView
         {
@@ -516,9 +484,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             Inventory = _inventory,
             Crafting = _crafting,
             Voxel = _sim,
-            Camera3D = _camera,
-            Beacon = Beacon,
-            Figures = _figures,
+            Camera3D = _camera.Camera,
+            Beacon = _beacon.Beacon,
+            Figures = _figures.Figures,
             VoxelIcons = _blockAtlas,
             Objective = _session.Objective,
             Cards = _cards,
@@ -653,7 +621,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             _pump.Submit();
         }
 
-        SyncBeacon();
+        _beacon.Sync();
         var free = _scenario is null && WorldRunning && !_dialogue.IsOpen && !_book.IsOpen && !_inventory.IsOpen && !_crafting.IsOpen && !_controlsOpen && _session.PendingTurns == 0;
         if (GuideApproach.ShouldGreet(_session, ref _greetArmed, free))
         {
@@ -661,14 +629,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             OpenDialogueOn(NpcService.GuideAgent, null); // the player came up to her (S17): the same call the E key makes
         }
 
-        _aimed = AimedFigure();
+        _aimed = _figures.Aimed(_camera.CurrentEye);
         if (_aimed is not null && !_aimedTipOffered)
         {
             _aimedTipOffered = true;
             _session.Tips.Offer("aimed_npc"); // the first time the crosshair is on someone (S16)
         }
 
-        PrintEvents();
+        _events.Print();
 
         // Settled: the world's script is done (or there is none) with no battery on screen, a battery that ends the run has shown its end, or a
         // battery's script rests. A pre-check is not an end: the world's script after it still has steps to take (S12, a screenshot waits for them).
@@ -701,11 +669,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
 
         UpdateSound(seconds);
 
-        var label = Beacon.Label;
-        if (Beacon.ClearIfReached(_sim.Player.CenterX / (double)VoxelPhysics.UnitsPerBlock, _sim.Player.CenterZ / (double)VoxelPhysics.UnitsPerBlock))
-        {
-            Console.WriteLine($"beacon: reached {label} at tick {_sim.Tick}");
-        }
+        _beacon.ClearIfReached(_sim);
 
         base.Update(gameTime);
     }
@@ -717,27 +681,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         var viewport = GraphicsDevice.PresentationParameters;
         var width = viewport.BackBufferWidth;
         var height = viewport.BackBufferHeight;
-        var (canvasWidth, canvasHeight) = UiScale.Canvas(_textPercent, width, height); // the 2D layers are laid out on this canvas and magnified to the window (X08)
+        var (canvasWidth, canvasHeight) = _canvas.For(width, height); // the 2D layers are laid out on this canvas and magnified to the window (X08)
         view.ViewportWidth = canvasWidth;
         view.ViewportHeight = canvasHeight;
         var drawStart = MonotonicClock.Milliseconds();
 
         var alpha = (float)_accumulator.Alpha;
-        var eye = Vector3.Lerp(_previousEye, _currentEye, alpha);
-        eye.Y += (float)(_previousEase + ((_currentEase - _previousEase) * alpha));
         var farPlane = VoxelRenderer.FarPlaneFor(_preset.ViewDistance);
-        _camera.Update(eye, _look.YawSteps, _look.PitchSteps, width, height, farPlane, canvasWidth, canvasHeight); // the labels and the arrow are placed on the canvas of the 2D layers (X08)
-        var shoulder = _viewMode.IsThirdPerson;
-        if (shoulder)
-        {
-            // Over the right shoulder, three blocks back, and in front of any wall behind the player (S15).
-            var back = ThirdPersonRig.Eye(
-                _isSolid,
-                (eye.X, eye.Y, eye.Z),
-                (_camera.Forward.X, _camera.Forward.Y, _camera.Forward.Z),
-                (_camera.Right.X, _camera.Right.Y, _camera.Right.Z));
-            _camera.Update(new Vector3(back.X, back.Y, back.Z), _look.YawSteps, _look.PitchSteps, width, height, farPlane, canvasWidth, canvasHeight);
-        }
+        var eye = _camera.Place(alpha, width, height, farPlane, canvasWidth, canvasHeight);
+        var shoulder = _camera.Shoulder;
 
         view.Eye = eye;
         view.Look = (_look.YawSteps, _look.PitchSteps);
@@ -751,15 +703,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         _dialogue.SpeechUnavailable = _session.Worker.IsReady && !_session.Worker.CanHear;
         view.LoadingFrame = _loadingFrames++;
         var mouse = Mouse.GetState();
-        view.Mouse = !_options.IsScreenshotRun && GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? CanvasPoint(mouse.Position) : null;
+        view.Mouse = !_options.IsScreenshotRun && GraphicsDevice.Viewport.Bounds.Contains(mouse.Position) ? _canvas.ToCanvas(mouse.Position) : null;
 
         view.LessonStripBox = LessonLayer.LayoutFor(view, _lesson) is { } lessonStrip ? lessonStrip.Box : null; // the cards keep clear of it (S22)
 
         _colours!.Refresh();
         // A scripted run builds every mesh it needs before the picture; a live one spends its budget a frame (more while the world is still loading in).
-        _renderer!.Remesh(_camera.Eye, _camera.Frustum, _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? _preset.MeshBudgetMilliseconds : 30);
+        _renderer!.Remesh(_camera.Camera.Eye, _camera.Camera.Frustum, _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? _preset.MeshBudgetMilliseconds : 30);
         GraphicsDevice.Clear(_renderer.ClearColour);
-        _renderer.DrawWorld(_camera, _sim.Target?.Block, Beacon.Target, _sim.Tick, shoulder ? PlayerAvatarNow() : null, shoulder ? null : ArmFrameNow(eye));
+        _renderer.DrawWorld(_camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _renderer.Lights));
 
         var spriteBatch = _spriteBatch!;
         UiTransform.Set(width, height, canvasWidth, canvasHeight);
@@ -777,13 +729,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         }
 
         var drawEnd = MonotonicClock.Milliseconds();
-        _draws.Record(drawEnd - drawStart);
-        if (_lastDrawEnd >= 0 && _sim.Tick > 2)
-        {
-            _frames.Record(drawEnd - _lastDrawEnd);
-        }
-
-        _lastDrawEnd = drawEnd;
+        _timings.Record(drawStart, drawEnd, _sim.Tick);
         base.Draw(gameTime);
 
         // A screenshot is taken at the size the game asked for (ScreenshotGate): a window's first frames can be drawn before its resize.
@@ -815,8 +761,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
                 || (CheckRestsForShot && _settled >= SettleTicks)))
         {
             ExitCode = ScreenshotWriter.TrySave(GraphicsDevice, path) ? 0 : 1;
-            Console.WriteLine($"scene draw (voxel world, layers, flush): {_draws.Summary()}");
-            Console.WriteLine($"frame time (end of one draw to the next, no vsync): {_frames.Summary()}");
+            Console.WriteLine($"scene draw (voxel world, layers, flush): {_timings.DrawSummary()}");
+            Console.WriteLine($"frame time (end of one draw to the next, no vsync): {_timings.FrameSummary()}");
             Console.WriteLine($"voxel: {_renderer.Stats.Summary()}; {_renderer.DrawnChunks} chunks drawn this frame, {_renderer.DrawnFigureQuads} figure quads, {_renderer.DrawnPlantQuads} plant quads (within {_preset.PlantDistance} blocks, {_preset.PlantKeepPercent}% built), occlusion {(_preset.AmbientOcclusion ? "on" : "off")}, clouds {(_preset.Clouds ? "on" : "off")}");
             var body = _sim.Player;
             Console.WriteLine(string.Create(CultureInfo.InvariantCulture, $"player: ({body.CenterX / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.FeetY / (double)VoxelPhysics.UnitsPerBlock:0.00}, {body.CenterZ / (double)VoxelPhysics.UnitsPerBlock:0.00}), tick {_sim.Tick}, wood {_sim.Inventory.Count(ItemId.Wood)}, berries {_sim.Inventory.Count(ItemId.Berry)}, bottle {_sim.Inventory.Count(ItemId.Bottle)}, water {_sim.Inventory.Count(ItemId.WaterBottle)}, bread {_sim.Inventory.Count(ItemId.Bread)}"));
@@ -868,13 +814,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         base.UnloadContent();
     }
 
-    private Vector3 EyeBlocks()
-    {
-        var body = _sim.Player;
-        const float U = VoxelPhysics.UnitsPerBlock;
-        return new Vector3(body.EyeX / U, body.EyeY / U, body.EyeZ / U);
-    }
-
     // The scripted run names an item as a noun (madera) or as the item's key (wood).
     private ItemId? ResolveItem(string name)
     {
@@ -921,25 +860,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             // The test hook of the crash handler (X05, --debug-crash-after): the exception comes out of the game loop, as a real bug would.
             throw new InvalidOperationException($"debug crash: --debug-crash-after {crashAt} asked for it (a test hook, not a bug)");
         }
-        foreach (var command in _commands)
-        {
-            if (command.Kind == VoxelCommandKind.Place)
-            {
-                _lastPlaceTick = _sim.Tick; // the arm swings once (S15)
-            }
-        }
+        _arm.AfterTick(_commands); // a placement swings the arm once (S15)
 
         // The sounds of the tick (S24): they read the tick's events and write nothing back.
         _sound.ObserveSimulation(_sim.Events, (x, y, z) => _sim.Grid.GetBlock(x, y, z));
         _sound.ObserveWorld(_sim.Tick, _sim.Events, _sim.Player, (x, y, z) => _sim.Grid.GetBlock(x, y, z), _session.FireLit); // the footsteps and the beds (S25)
         _sound.Scripted.Tick(); // the cues of the frame play together in UpdateSound, so an answer's chime and a step's chime fold into one
 
-        UpdateFigures();
-        _ease.Tick(_sim.Player.SteppedUp);
-        _previousEye = _currentEye;
-        _currentEye = EyeBlocks();
-        _previousEase = _currentEase;
-        _currentEase = _ease.Offset;
+        _figures.AfterTick();
+        _camera.AfterTick();
         // Pickups show in the hotbar and, the first time, as a word card; they do not toast (a toast per pickup would queue behind the
         // checklist's completions for minutes).
         AnnounceObjective(_session.Completed);
@@ -988,26 +917,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     // The crosshair is on the workbench (the mesa): E opens the crafting panel there, as C does anywhere.
     private bool AimedAtWorkbench() => _sim.Target is { } hit && hit.Id == BlockId.Table;
 
-    // The interface scale (X08): the canvas the 2D layers are laid out on is the window divided by the scale, and the mouse is brought onto it.
-    private int _textPercent = 100;
-
-    private int UiWidth => UiScale.Canvas(_textPercent, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height).Width;
-
-    private int UiHeight => UiScale.Canvas(_textPercent, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height).Height;
-
-    private SaveSettings CurrentSettings() => new(_sound.Mixer.Volumes, _textPercent); // the sound volumes (S24) and the text size (X08) ride in the save's settings
-
-    private Point CanvasPoint(Point window)
-    {
-        var (x, y) = UiScale.ToCanvas(window.X, window.Y, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, UiWidth, UiHeight);
-        return new Point(x, y);
-    }
-
-    private MouseState ScaledMouse(MouseState raw)
-    {
-        var point = CanvasPoint(raw.Position);
-        return new MouseState(point.X, point.Y, raw.ScrollWheelValue, raw.LeftButton, raw.MiddleButton, raw.RightButton, raw.XButton1, raw.XButton2);
-    }
+    private SaveSettings CurrentSettings() => new(_sound.Mixer.Volumes, _canvas.TextPercent); // the sound volumes (S24) and the text size (X08) ride in the save's settings
 
     // Keys and mouse, once per frame, for the interactive run. The device state becomes this frame's commands (LiveVoxelInput) and the look.
     private void ReadInput()
@@ -1018,7 +928,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         }
 
         var keys = Keyboard.GetState();
-        var mouse = ScaledMouse(Mouse.GetState()); // the pointer in the canvas the layers are laid out on (X08)
+        var mouse = _canvas.ToCanvas(Mouse.GetState()); // the pointer in the canvas the layers are laid out on (X08)
         bool Pressed(Keys key) => keys.IsKeyDown(key) && !_previousKeys.IsKeyDown(key);
 
         // The report panel (S21) takes every key and click while it is open; nothing else in the game reads the input then. F8 opens it from anywhere.
@@ -1067,8 +977,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
 
             if (Pressed(Keys.F9))
             {
-                _textPercent = UiScale.Next(_textPercent); // the interface text size: 100, 125, 150 percent (X08); no other F9 binding, and a text box never reads it
-                Console.WriteLine($"text scale: {_textPercent} percent (canvas {UiWidth} x {UiHeight})");
+                _ = _canvas.Next(); // the interface text size: 100, 125, 150 percent (X08); no other F9 binding, and a text box never reads it
+                Console.WriteLine($"text scale: {_canvas.TextPercent} percent (canvas {_canvas.Width} x {_canvas.Height})");
             }
 
             if (_micCheck is { IsActive: true })
@@ -1171,7 +1081,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         {
             // Over the right page the wheel scrolls that page (X03); over the list it scrolls the list.
             var notchLines = -(int)Math.Round((bookWheel - _previousWheel) / 40.0);
-            if (new BookGeometry(UiWidth, UiHeight).RightPage.Contains(mouse.X, mouse.Y))
+            if (new BookGeometry(_canvas.Width, _canvas.Height).RightPage.Contains(mouse.X, mouse.Y))
             {
                 _book.ScrollDetail(notchLines * BookGeometry.LineHeight);
             }
@@ -1184,20 +1094,20 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         _previousWheel = bookWheel;
         if (IsActive && _book.IsOpen && leftDown && !_previousLeftDown)
         {
-            if (new BookGeometry(UiWidth, UiHeight).TabAt(mouse.X, mouse.Y) is { } tab)
+            if (new BookGeometry(_canvas.Width, _canvas.Height).TabAt(mouse.X, mouse.Y) is { } tab)
             {
                 _book.Show(tab);
                 _sound.QueueClick(SoundCue.UiTab);
             }
-            else if (_bookControls.Click(new BookGeometry(UiWidth, UiHeight), mouse.X, mouse.Y, ShiftDown(keys)))
+            else if (_bookControls.Click(new BookGeometry(_canvas.Width, _canvas.Height), mouse.X, mouse.Y, ShiftDown(keys)))
             {
                 _sound.QueueClick(SoundCue.UiClick);
             }
-            else if (_bookControls.ClickVerb(new BookGeometry(UiWidth, UiHeight), mouse.X, mouse.Y))
+            else if (_bookControls.ClickVerb(new BookGeometry(_canvas.Width, _canvas.Height), mouse.X, mouse.Y))
             {
                 _sound.QueueClick(SoundCue.UiClick);
             }
-            else if (_bookControls.ClickPractise(new BookGeometry(UiWidth, UiHeight), mouse.X, mouse.Y) is { } practise)
+            else if (_bookControls.ClickPractise(new BookGeometry(_canvas.Width, _canvas.Height), mouse.X, mouse.Y) is { } practise)
             {
                 _sound.QueueClick(SoundCue.UiClick);
                 PractiseAgain(practise);
@@ -1207,7 +1117,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         if (IsActive && _crafting.IsOpen && leftDown && !_previousLeftDown)
         {
             // A click on a row of the panel asks for one craft in the next tick (the same command a script sends).
-            var layout = new CraftingLayout(UiWidth, UiHeight, _session.Recipes.Entries.Count);
+            var layout = new CraftingLayout(_canvas.Width, _canvas.Height, _session.Recipes.Entries.Count);
             if (layout.RowAt(mouse.X, mouse.Y) is { } row)
             {
                 if (_sim.CanCraft(row) != CraftResult.Done)
@@ -1403,7 +1313,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
 
         var leftDown = mouse.LeftButton == ButtonState.Pressed;
         if (outcome == ReportOutcome.None && leftDown && !_previousLeftDown
-            && ReportLayer.LayoutFor(UiWidth, UiHeight, _view!.Fonts.Get(FontProvider.NativeSize)).ButtonAt(mouse.X, mouse.Y) is { } button)
+            && ReportLayer.LayoutFor(_canvas.Width, _canvas.Height, _view!.Fonts.Get(FontProvider.NativeSize)).ButtonAt(mouse.X, mouse.Y) is { } button)
         {
             outcome = _report.Click(button);
         }
@@ -1693,7 +1603,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         var font = _view!.Fonts.Get(FontProvider.NativeSize);
         if (_micCheck is { IsActive: true } check)
         {
-            var layout = MicCheckLayer.LayoutFor(check, UiWidth, UiHeight, font);
+            var layout = MicCheckLayer.LayoutFor(check, _canvas.Width, _canvas.Height, font);
             if (layout.ButtonAt(x, y) is { } button)
             {
                 PressMicButton(button);
@@ -1714,7 +1624,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
                 return;
             }
 
-            var layout = DialoguePanel.LayoutFor(_dialogue, UiWidth, UiHeight, font, _session);
+            var layout = DialoguePanel.LayoutFor(_dialogue, _canvas.Width, _canvas.Height, font, _session);
             if (layout.ActionAt(x, y) is { } action)
             {
                 PerformAction(action, null);
@@ -1938,26 +1848,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         Console.WriteLine($"talk: {npc} ({how}, {opening.Prompt}): {(_session.KeyWordsPending ? $"[key words: {string.Join(", ", _session.KeyWordCards.Select(static c => c.Phrase))}]" : string.Join(" / ", opening.Lines))}{(_session.ReviewLine is { } review ? $" / {review}" : string.Empty)}");
     }
 
-    // Once a tick (S15): the figures in a conversation face the player and gesture, the others stand as the scene put them, and the distance the player has walked
-    // (the stride of the figure seen over the shoulder) grows.
-    private void UpdateFigures()
-    {
-        var px = _sim.Player.CenterX / (double)VoxelPhysics.UnitsPerBlock;
-        var pz = _sim.Player.CenterZ / (double)VoxelPhysics.UnitsPerBlock;
-        foreach (var figure in _figures)
-        {
-            figure.Talking = _dialogue.IsOpen && string.Equals(_dialogue.Npc, figure.Name, StringComparison.Ordinal);
-            FigureFacing.Update(figure, px, pz);
-        }
-
-        if (_lastWalkPoint is { } last)
-        {
-            _walkDistance += Math.Sqrt(((px - last.X) * (px - last.X)) + ((pz - last.Z) * (pz - last.Z)));
-        }
-
-        _lastWalkPoint = (px, pz);
-    }
-
     // A lesson step of the scripted run (S16): the same presses the strip's buttons make.
     private void RunLessonStep(ScriptStepKind kind, string value)
     {
@@ -2008,69 +1898,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         base.Dispose(disposing);
     }
 
-    // The new game events since the last frame, one console line each (the phrase uses, the voice events, the world events).
-    private void PrintEvents()
-    {
-        var events = _session.Events;
-        for (; _printedEvents < events.Count; _printedEvents++)
-        {
-            Console.WriteLine($"  event: {events[_printedEvents].Text}");
-            foreach (var line in _support.LinesFor(events[_printedEvents]))
-            {
-                Console.WriteLine(line);
-            }
-        }
-    }
-
     // The tile for "¿qué es esto?": the block under the crosshair (the scripted run has the same crosshair).
     private GuideCell? CursorCell() => _session.AimedCell;
-
-    // The player's own figure for the behind-the-shoulder view: at the feet of the body, facing the look (S15).
-    private PlayerAvatar PlayerAvatarNow()
-    {
-        var body = _sim.Player;
-        var moving = body.VelocityX != 0 || body.VelocityZ != 0;
-        return new PlayerAvatar(
-            (float)(body.CenterX / (double)VoxelPhysics.UnitsPerBlock),
-            (float)(body.FeetY / (double)VoxelPhysics.UnitsPerBlock),
-            (float)(body.CenterZ / (double)VoxelPhysics.UnitsPerBlock),
-            (float)(_look.YawSteps * Math.Tau / Angles.StepsPerTurn),
-            (float)(_look.PitchSteps * Math.Tau / Angles.StepsPerTurn),
-            (float)(_walkDistance * 2.6),
-            moving);
-    }
-
-    // The first-person arm: what the hand holds, how it moves and the light on it (S15).
-    private ArmFrame ArmFrameNow(Vector3 eye)
-    {
-        var held = HeldItems.For(_sim.SelectedStack);
-        var moving = _sim.Player.VelocityX != 0 || _sim.Player.VelocityZ != 0;
-        var motion = ArmMotion.At(_sim.Tick, moving, _sim.GatherProgress, _sim.Tick - _lastPlaceTick);
-        var light = ArmLight.At(_isSolid, (eye.X, eye.Y, eye.Z), _renderer!.Lights, held.Kind == HeldKind.Torch, _options.Dusk);
-        return new ArmFrame(held, motion, light);
-    }
-
-    // The NPC figure under the crosshair, when it is within reach and no block is in the way: the one E talks to.
-    private NpcFigure? AimedFigure()
-    {
-        if (_dialogue.IsOpen)
-        {
-            return null;
-        }
-
-        var eye = (x: (double)_currentEye.X, y: (double)_currentEye.Y, z: (double)_currentEye.Z);
-        foreach (var figure in _figures)
-        {
-            var point = NpcAim.BodyOf(figure.Feet);
-            if (NpcAim.Hits(eye, _look.Yaw, _look.Pitch, point)
-                && !LineOfSight.Blocked(_sim.Grid, (_currentEye.X, _currentEye.Y, _currentEye.Z), ((float)point.X, (float)point.Y, (float)point.Z), NpcAim.Distance(eye, point)))
-            {
-                return figure;
-            }
-        }
-
-        return null;
-    }
 
     // The microphone: the key went down. The worker must have the recognizer, the machine a microphone; otherwise the panel says why.
     private void BeginListening(Keys key)
@@ -2772,31 +2601,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         }
     }
 
-    // The arrow of the session is the beacon: a new arrow stands the column on its block (a review question shows no name), and when the
-    // beacon's own reach takes it down, the arrow goes too.
-    private void SyncBeacon()
-    {
-        var pointer = _session.Pointer;
-        if (!ReferenceEquals(pointer, _shownPointer))
-        {
-            _shownPointer = pointer;
-            if (pointer is { } arrow)
-            {
-                Beacon.Set(arrow.Target.ToBlock(), arrow.Quiz ? "¿?" : arrow.Place);
-            }
-            else
-            {
-                Beacon.Clear();
-            }
-        }
-
-        if (pointer is not null && !Beacon.IsSet)
-        {
-            _session.DismissPointer();
-            _shownPointer = null;
-        }
-    }
-
     // The book's keys (S20, S20b): Escape or J closes it; Tab (Shift and Tab turns back), Left and Right turn the page; Page Up and Page Down scroll.
     // Up and Down move the selection among the rows with a speaker button (the selection is kept on screen); a page with none scrolls a line. Enter plays
     // the selected row, Shift+Enter its slow recording.
@@ -2821,7 +2625,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
             _book.Turn(forward: true);
         }
 
-        var geometry = new BookGeometry(UiWidth, UiHeight);
+        var geometry = new BookGeometry(_canvas.Width, _canvas.Height);
         var lines = geometry.LinesVisible;
         var shift = ShiftDown(keys);
         if (shift && (pressed(Keys.Down) || pressed(Keys.Up)))
@@ -2843,13 +2647,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         }
         else if (pressed(Keys.Down) || pressed(Keys.Up))
         {
-            _bookControls.Move(pressed(Keys.Down) ? 1 : -1, new BookGeometry(UiWidth, UiHeight).LinesVisible);
+            _bookControls.Move(pressed(Keys.Down) ? 1 : -1, new BookGeometry(_canvas.Width, _canvas.Height).LinesVisible);
         }
         else if (pressed(Keys.Enter))
         {
             _ = _bookControls.Enter(ShiftDown(keys));
         }
-        else if (pressed(Keys.P) && _bookControls.PractiseFirst(new BookGeometry(UiWidth, UiHeight)) is { } practise)
+        else if (pressed(Keys.P) && _bookControls.PractiseFirst(new BookGeometry(_canvas.Width, _canvas.Height)) is { } practise)
         {
             PractiseAgain(practise);
         }
