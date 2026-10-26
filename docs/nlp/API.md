@@ -2,7 +2,7 @@
 
 This is what a host calls, in order, to evaluate a learner's utterance and act on the result: load a content bundle, build the services,
 build a pipeline, build a conversation context, evaluate an utterance, plan the response, and record and replay a log. The snippets compile
-against the renamed projects (`Vocaterra.Nlp.*`); they are the shape of the calls, not a complete program. The boundary they respect is in
+against the renamed engine (`Vocaterra.Nlp`, one assembly, ADR 0012); they are the shape of the calls, not a complete program. The boundary they respect is in
 [ADR 0009](adr/0009-core-and-game-boundary.md). The calls are exercised by the demo CLI (`tools/Vocaterra.Nlp.Cli`) and by the game, which
 references the same projects; there is no packaged copy of the API to check.
 

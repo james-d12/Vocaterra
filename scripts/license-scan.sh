@@ -85,6 +85,7 @@ known_license_pages = {
     "apache.org/licenses/license-2.0": "Apache-2.0",
     "unlicense.org": "Unlicense",
     "creativecommons.org/publicdomain/zero/1.0": "CC0-1.0",
+    "opensource.org/licenses/mit-license.php": "MIT",
 }
 
 
@@ -257,12 +258,15 @@ def nuspec_license(package_id, version):
 def identifier_from_url(url):
     """The SPDX identifier named by a well-known license URL, or None."""
     text = url.strip()
+    # Known pages first: opensource.org also serves its MIT text at mit-license.php, which the id pattern below would read as an id.
+    page = re.sub(r"^https?://(www\.)?", "", text.lower()).rstrip("/")
+    if page in known_license_pages:
+        return known_license_pages[page]
     for pattern in license_url_patterns:
         match = pattern.match(text)
         if match:
             return match.group(1)
-    page = re.sub(r"^https?://(www\.)?", "", text.lower()).rstrip("/")
-    return known_license_pages.get(page)
+    return None
 
 
 def fetch_json(url):

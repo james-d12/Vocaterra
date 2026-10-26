@@ -1,6 +1,6 @@
 # Architecture: how the game consumes the language core
 
-Vocaterra is the game: the projects `Vocaterra.Simulation`, `Vocaterra.Game`, `Vocaterra.MonoGame`, `Vocaterra.Host` and `Vocaterra.SpeechRender` of the repository. The language core, Vocaterra.NLP (the `Vocaterra.Nlp.*` projects, Apache-2.0), is the other half of the same `src/`, `tests/` and `tools/` folders;
+Vocaterra is the game: the projects `Vocaterra.Simulation`, `Vocaterra.Game`, `Vocaterra.MonoGame`, `Vocaterra.Host` and `Vocaterra.SpeechRender` of the repository. The language core, Vocaterra.NLP (the engine project `Vocaterra.Nlp` and its `Vocaterra.Nlp.*` tests and tools, Apache-2.0), is the other half of the same `src/`, `tests/` and `tools/` folders;
 the two were separate repositories until 2026-10-21 (D-game-7) and sibling folders until the root layout of R01 (2026-10-23). The game references the core's library projects under `src` directly
 (`Vocaterra.Game` and `Vocaterra.Host` list them as `ProjectReference`s) and copies nothing of its source. This document says what the game
 takes from the core, what the game owns, and how the two meet. The core's contract is [docs/nlp/API.md](../nlp/API.md), and the
@@ -11,7 +11,7 @@ boundary is [ADR 0009](../nlp/adr/0009-core-and-game-boundary.md). The game desi
 The core takes a learner's utterance, from audio or a transcript, to a deterministic verdict, feedback, a conversation step and the agent's
 response text. The game takes that outcome and decides what it means in the world.
 
-| The core provides (`Vocaterra.Nlp.*`) | The game owns (this repository and its engine) |
+| The core provides (`Vocaterra.Nlp`) | The game owns (this repository and its engine) |
 | --- | --- |
 | The verdict contract: intent, communicated, correctness, tagged errors | Scenes, characters, dialogue pools and the agents' stories |
 | Speech recognition, phonology, pronunciation, NLP and evaluation (behind interfaces) | Items, spells, quests, prices and rewards, and the meaning of each effect kind |
@@ -68,11 +68,11 @@ The core cannot know these, so the host supplies them (API document, "The host o
 ## Versions and the build
 
 - The game and the core are built from the same commit by the root `Vocaterra.sln`: `Vocaterra.Game` and `Vocaterra.Host` reference the
-  core's projects (`../Vocaterra.Nlp.<X>/Vocaterra.Nlp.<X>.csproj`), so a core change is visible to the game in the same build. There is no
+  core's project (`../Vocaterra.Nlp/Vocaterra.Nlp.csproj`), so a core change is visible to the game in the same build. There is no
   package version to bump, no feed and no pack step (M50 retired the packaging scripts and the sample host; core D5 is superseded); the root
   `nuget.config` lists nuget.org only.
 - Third-party package versions for both halves are in the root `Directory.Packages.props`.
-- A core change the game needs is a core milestone in `docs/nlp/IMPLEMENTATION_PLAN.md`; a game milestone never edits the `Vocaterra.Nlp.*` projects.
+- A core change the game needs is a core milestone in `docs/nlp/IMPLEMENTATION_PLAN.md`; a game milestone never edits the engine `Vocaterra.Nlp` or its `Vocaterra.Nlp.*` projects.
 - The content tool is the core's `tools/Vocaterra.Nlp.ContentBuilder`, run from source by `scripts/content.sh`.
 - The core is Apache-2.0 (core D3); the game is Apache-2.0 too (the whole repository since R01; D-game-2 in [DECISIONS.md](DECISIONS.md) was MIT).
 - The core's sherpa-onnx dependency carries GPL-3.0 code in its native build (core D2). Nothing here ships the native libraries, and the

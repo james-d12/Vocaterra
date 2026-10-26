@@ -1,6 +1,6 @@
 # Vocaterra.NLP
 
-> This document covers the language core: the `Vocaterra.Nlp.*` projects of the Vocaterra repository (`src/`, `tests/`, `tools/`). The game
+> This document covers the language core: the engine `Vocaterra.Nlp` (one assembly, `src/Vocaterra.Nlp`, ADR 0012), its tests and its tools (`tests/`, `tools/`) in the Vocaterra repository. The game
 > (`docs/game/README.md`) sits beside it in the same solution and references the core's projects directly. Paths below are relative to the
 > repository root.
 
@@ -27,19 +27,19 @@ flowchart TD
         BENCH[Vocaterra.Nlp.Bench<br/>ASR benchmark]
         BUILDER[Vocaterra.Nlp.ContentBuilder<br/>validate, hash, lint, cefr-check,<br/>import-lexicon, lexicon-report]
     end
-    PIPE[Vocaterra.Nlp.Pipeline<br/>UtterancePipeline, replay log and replayer]
-    CONTENT[Vocaterra.Nlp.Content<br/>bundle loader, hashing, versioning]
-    subgraph STAGES[stage libraries, all built on Vocaterra.Nlp.Core]
-        AUDIO[Vocaterra.Nlp.Audio<br/>WAV IO, resampler, VAD, clip hash]
-        PHON[Vocaterra.Nlp.Phonology<br/>Spanish G2P, dialects]
-        NLP[Vocaterra.Nlp.Language<br/>normalization, matching, lexicon,<br/>analysis, intent]
-        PRON[Vocaterra.Nlp.Pronunciation<br/>alignment, GOP scoring]
-        ASR[Vocaterra.Nlp.Asr<br/>Vosk, sherpa-onnx, fakes, model store]
-        EVAL[Vocaterra.Nlp.Evaluation<br/>verdict assembly]
-        DEC[Vocaterra.Nlp.Decision<br/>agent state machines, learner model, feedback policy]
-        RESP[Vocaterra.Nlp.Response<br/>templates, TTS, effects]
+    PIPE[Pipeline<br/>UtterancePipeline, replay log and replayer]
+    CONTENT[Content<br/>bundle loader, hashing, versioning]
+    subgraph STAGES[stage folders of the engine, all built on Core]
+        AUDIO[Audio<br/>WAV IO, resampler, VAD, clip hash]
+        PHON[Phonology<br/>Spanish G2P, dialects]
+        NLP[Language<br/>normalization, matching, lexicon,<br/>analysis, intent]
+        PRON[Pronunciation<br/>alignment, GOP scoring]
+        ASR[Asr<br/>Vosk, sherpa-onnx, fakes, model store]
+        EVAL[Evaluation<br/>verdict assembly]
+        DEC[Decision<br/>agent state machines, learner model, feedback policy]
+        RESP[Response<br/>templates, TTS, effects]
     end
-    CORE[Vocaterra.Nlp.Core<br/>contracts, determinism primitives, error taxonomy]
+    CORE[Core<br/>contracts, determinism primitives, error taxonomy]
     BUNDLE[(content/game-v1<br/>hashed JSON bundle)]
     MODELS[(models/<br/>fetched, pinned by SHA-256)]
 
@@ -398,22 +398,22 @@ consent rules and manifest schema are in [tests/golden/README.md](../../tests/go
 
 | Path | Contents |
 | --- | --- |
-| `Directory.Build.props` | The repository's build rules: the shared settings, then the groups for the projects named `Vocaterra.Nlp.*` (package metadata, packing) and for the game; the pinned SDK (`global.json`) and the package versions (`Directory.Packages.props`) are beside it. `Vocaterra.sln` holds every project; `Vocaterra.Nlp.slnf` is the filter for the core alone |
-| `src/Vocaterra.Nlp.Core` | Contracts between stages (`Verdict`, stage records, interfaces), determinism primitives (`SeededRng`, `DeterministicHash`, `CanonicalJson`, `Margin`), error taxonomy |
-| `src/Vocaterra.Nlp.Audio` | WAV reading and writing, resampler, downmix, gain, energy VAD, push-to-talk session, clip hash |
-| `src/Vocaterra.Nlp.Phonology` | Spanish grapheme-to-phoneme converter, dialect presets, predicted learner-error variants |
-| `src/Vocaterra.Nlp.Language` | Text normalization, answer matching, lexicon and morphology, linguistic analysis, slot grammars, intent resolution, repair strategy |
-| `src/Vocaterra.Nlp.Pronunciation` | Phoneme alignment and scoring (greedy edit distance and CTC/GOP), wav2vec2 adapter |
-| `src/Vocaterra.Nlp.Asr` | Vosk and sherpa-onnx recognizer adapters, scripted and replay recognizers, model manifest and store |
-| `src/Vocaterra.Nlp.Evaluation` | Verdict assembly (pure) and evaluation configuration |
-| `src/Vocaterra.Nlp.Decision` | agent state machines, learner model (BKT), FSRS scheduling, feedback policy |
-| `src/Vocaterra.Nlp.Response` | Template engine with morphology, recasts, speech synthesis adapters and cache, effect tables |
-| `src/Vocaterra.Nlp.Content` | Content bundle schema, loader, validation, hashing |
-| `src/Vocaterra.Nlp.Pipeline` | `UtterancePipeline`, `ConversationContext`, replay log and replayer |
+| `Directory.Build.props` | The repository's build rules: the shared settings, then the groups for the engine `Vocaterra.Nlp` and the projects named `Vocaterra.Nlp.*` (package metadata, packing) and for the game; the pinned SDK (`global.json`) and the package versions (`Directory.Packages.props`) are beside it. `Vocaterra.sln` holds every project; `Vocaterra.Nlp.slnf` is the filter for the core alone |
+| `src/Vocaterra.Nlp/Core` | Contracts between stages (`Verdict`, stage records, interfaces), determinism primitives (`SeededRng`, `DeterministicHash`, `CanonicalJson`, `Margin`), error taxonomy |
+| `src/Vocaterra.Nlp/Audio` | WAV reading and writing, resampler, downmix, gain, energy VAD, push-to-talk session, clip hash |
+| `src/Vocaterra.Nlp/Phonology` | Spanish grapheme-to-phoneme converter, dialect presets, predicted learner-error variants |
+| `src/Vocaterra.Nlp/Language` | Text normalization, answer matching, lexicon and morphology, linguistic analysis, slot grammars, intent resolution, repair strategy |
+| `src/Vocaterra.Nlp/Pronunciation` | Phoneme alignment and scoring (greedy edit distance and CTC/GOP), wav2vec2 adapter |
+| `src/Vocaterra.Nlp/Asr` | Vosk and sherpa-onnx recognizer adapters, scripted and replay recognizers, model manifest and store |
+| `src/Vocaterra.Nlp/Evaluation` | Verdict assembly (pure) and evaluation configuration |
+| `src/Vocaterra.Nlp/Decision` | agent state machines, learner model (BKT), FSRS scheduling, feedback policy |
+| `src/Vocaterra.Nlp/Response` | Template engine with morphology, recasts, speech synthesis adapters and cache, effect tables |
+| `src/Vocaterra.Nlp/Content` | Content bundle schema, loader, validation, hashing |
+| `src/Vocaterra.Nlp/Pipeline` | `UtterancePipeline`, `ConversationContext`, replay log and replayer |
 | `tools/Vocaterra.Nlp.Cli` | Demo host: `eval` and `replay` |
 | `tools/Vocaterra.Nlp.Bench` | ASR benchmark over the golden manifest |
 | `tools/Vocaterra.Nlp.ContentBuilder` | `validate`, `hash`, `lint`, `cefr-check`, `import-lexicon`, `lexicon-report` |
-| `tests/Vocaterra.Nlp.<Project>.Tests` | One xUnit project per source project |
+| `tests/Vocaterra.Nlp.Tests` | The engine's unit tests, one folder per area, and `Architecture/` (the layering test, ADR 0012) |
 | `tests/Shared` | `GameBundleLocator` (finds `content/game-v1` by walking up from the test assembly, so no test project copies the 38 MB bundle) and `TempBundle` (a writable copy of the bundle without the speech clips, for tests that damage or extend it), linked into the Content, Pipeline, Fuzzing and Golden test projects |
 | `tests/Vocaterra.Nlp.Golden.Tests` | G2P golden set, end-to-end worked example, golden manifest layout |
 | `tests/Vocaterra.Nlp.Fuzzing.Tests` | Combinatorial fuzz tests: CsCheck oracles over generators driven by the content catalogs ([README](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md)) |
