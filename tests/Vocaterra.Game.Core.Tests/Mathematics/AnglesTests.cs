@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Mathematics;
 
-namespace Vocaterra.Game.Core.Tests.Voxel;
+namespace Vocaterra.Game.Core.Tests.Mathematics;
 
 /// <summary>The integer angle table: it must agree with the library sine (checked here, never in the simulation) and be exact where it matters.</summary>
 public sealed class AnglesTests

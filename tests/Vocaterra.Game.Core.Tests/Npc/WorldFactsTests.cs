@@ -4,7 +4,7 @@ using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.Core.Tests;
+namespace Vocaterra.Game.Core.Tests.Npc;
 
 /// <summary>WorldFacts on small hand-made scenes: the eight directions relative to the facing, the distance in words, the nearest choice and its ties, the block-to-noun map.</summary>
 public sealed class WorldFactsTests

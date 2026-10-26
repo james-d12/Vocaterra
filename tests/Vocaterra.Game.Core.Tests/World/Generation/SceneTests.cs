@@ -2,12 +2,13 @@ using System.Diagnostics;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.Voxel;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Layout;
 using Xunit.Abstractions;
 
-namespace Vocaterra.Game.Core.Tests.Voxel;
+namespace Vocaterra.Game.Core.Tests.World.Generation;
 
 /// <summary>The generated world (S13): the seed-42 golden, determinism, the promises of the layout (the heights, the sites, the river, the trail) and the forest.</summary>
 public sealed class SceneTests(ITestOutputHelper output)

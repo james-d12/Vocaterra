@@ -4,7 +4,7 @@ using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Layout;
 
-namespace Vocaterra.Game.Core.Tests.Voxel;
+namespace Vocaterra.Game.Core.Tests.World.Generation;
 
 /// <summary>
 /// The generator's parts on small 64 x 32 x 64 worlds (S13): the integer helpers, the noise, the polylines, and then the sites, stamps, paving, river,

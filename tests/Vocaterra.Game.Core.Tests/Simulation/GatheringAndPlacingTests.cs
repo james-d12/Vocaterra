@@ -4,7 +4,7 @@ using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using static Vocaterra.Game.Core.Tests.Voxel.VoxelTestSupport;
 
-namespace Vocaterra.Game.Core.Tests.Voxel;
+namespace Vocaterra.Game.Core.Tests.Simulation;
 
 /// <summary>Gathering trunks and berries, placing blocks, crafting at the workbench, and the events they raise.</summary>
 public sealed class GatheringAndPlacingTests

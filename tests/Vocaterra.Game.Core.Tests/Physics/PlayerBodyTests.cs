@@ -5,7 +5,7 @@ using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using static Vocaterra.Game.Core.Tests.Voxel.VoxelTestSupport;
 
-namespace Vocaterra.Game.Core.Tests.Voxel;
+namespace Vocaterra.Game.Core.Tests.Physics;
 
 /// <summary>The player body on hand-built voxel worlds: landing, walls, steps, jumps, edges and the never-inside-a-solid property.</summary>
 public sealed class PlayerBodyTests

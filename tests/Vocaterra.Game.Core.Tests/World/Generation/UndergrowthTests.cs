@@ -6,7 +6,7 @@ using Vocaterra.Game.Core.World.Layout;
 using Xunit.Abstractions;
 using static Vocaterra.Game.Core.Tests.Voxel.VoxelTestSupport;
 
-namespace Vocaterra.Game.Core.Tests.Voxel;
+namespace Vocaterra.Game.Core.Tests.World.Generation;
 
 /// <summary>
 /// The look's part of the world (S14): the undergrowth as blocks that nothing collides with and the block ray looks through, the three tree species,

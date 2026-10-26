@@ -2,10 +2,11 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.Voxel;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 
-namespace Vocaterra.Game.Core.Tests.Voxel;
+namespace Vocaterra.Game.Core.Tests.Simulation;
 
 /// <summary>The save's parts of the simulation (S10): the scene diff lists only the edited chunks and rebuilds them exactly, and the simulation's state (tick, body, hotbar, gathering, inventory) restores to the same digest and the same continuation.</summary>
 public sealed class VoxelSaveStateTests

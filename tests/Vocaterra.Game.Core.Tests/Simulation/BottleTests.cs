@@ -4,7 +4,7 @@ using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using static Vocaterra.Game.Core.Tests.Voxel.VoxelTestSupport;
 
-namespace Vocaterra.Game.Core.Tests.Voxel;
+namespace Vocaterra.Game.Core.Tests.Simulation;
 
 /// <summary>Filling the bottle at the water (S6): an empty bottle and half a second of holding make a bottle of water, and without a bottle nothing is blocked.</summary>
 public sealed class BottleTests
