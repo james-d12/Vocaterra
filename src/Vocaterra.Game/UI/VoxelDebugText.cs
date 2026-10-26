@@ -1,4 +1,7 @@
 using System.Globalization;
+using Vocaterra.Game.Core.Mathematics;
+using Vocaterra.Game.Core.Physics;
+using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.UI;

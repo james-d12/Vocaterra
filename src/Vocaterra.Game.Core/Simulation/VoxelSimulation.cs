@@ -2,8 +2,12 @@ using System.Buffers.Binary;
 using System.Security.Cryptography;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Mathematics;
+using Vocaterra.Game.Core.Physics;
+using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World;
 
-namespace Vocaterra.Game.Core.Voxel;
+namespace Vocaterra.Game.Core.Simulation;
 
 /// <summary>
 /// The 3D game world in motion: a built <see cref="Scene"/>, the player body, the inventory and a tick counter. A front-end owns a clock,
@@ -535,3 +539,5 @@ public sealed class VoxelSimulation
         && Player.MinY < (cell.Y + 1) * U && Player.MaxY > cell.Y * U
         && Player.MinZ < (cell.Z + 1) * U && Player.MaxZ > cell.Z * U;
 }
+
+

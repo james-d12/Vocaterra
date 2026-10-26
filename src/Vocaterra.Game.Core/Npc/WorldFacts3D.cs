@@ -1,7 +1,9 @@
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.Core.Npc;
+using Vocaterra.Game.Core.Mathematics;
+using Vocaterra.Game.Core.Physics;
+using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.Core.Voxel;
+namespace Vocaterra.Game.Core.Npc;
 
 /// <summary>
 /// What the guide can say about the 3D scene (S3): the nearest block of a catalogue noun from where the player stands, the direction to it
@@ -361,3 +363,5 @@ public sealed class WorldFacts3D : IGuideFacts
 
     private static string LateralPhrase(long lateral) => lateral < 0 ? Left : Right;
 }
+
+

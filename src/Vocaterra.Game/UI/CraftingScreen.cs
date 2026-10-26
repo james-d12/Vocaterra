@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Simulation;
 
 namespace Vocaterra.Game.UI;
 

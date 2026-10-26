@@ -1,4 +1,6 @@
-namespace Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Mathematics;
+
+namespace Vocaterra.Game.Core.World.Generation;
 
 /// <summary>
 /// A chain of straight segments over the ground plane, in 1/16 block units, used for the river and the paths: it knows the length along it and
@@ -119,3 +121,5 @@ internal sealed class Polyline
 
     private static long Sq(long v) => v * v;
 }
+
+

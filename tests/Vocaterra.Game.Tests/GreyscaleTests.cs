@@ -1,6 +1,8 @@
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World.Generation;
+using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.UI;
 using Vocaterra.Game.Utilities;

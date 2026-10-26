@@ -1,5 +1,8 @@
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Mathematics;
+using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World.Layout;
 using Xunit.Abstractions;
 using static Vocaterra.Game.Core.Tests.Voxel.VoxelTestSupport;
 

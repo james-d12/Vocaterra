@@ -1,4 +1,6 @@
-namespace Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Voxel;
+
+namespace Vocaterra.Game.Core.Physics;
 
 /// <summary>
 /// The player box (<see cref="VoxelPhysics.PlayerWidth"/> x <see cref="VoxelPhysics.PlayerHeight"/> x <see cref="VoxelPhysics.PlayerWidth"/>,
@@ -121,3 +123,5 @@ internal static class VoxelCollider
         return false;
     }
 }
+
+

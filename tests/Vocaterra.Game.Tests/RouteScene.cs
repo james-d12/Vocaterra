@@ -3,7 +3,9 @@ using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World;
+using Vocaterra.Game.Core.World.Generation;
+using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests;

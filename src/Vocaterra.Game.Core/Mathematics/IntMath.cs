@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Core.Voxel;
+namespace Vocaterra.Game.Core.Mathematics;
 
 /// <summary>
 /// Integer helpers for the terrain generator. Everything is exact integer arithmetic (no floating point), so the same seed gives the same
@@ -83,3 +83,5 @@ internal static class IntMath
         return (int)Math.Clamp(value, lo, hi);
     }
 }
+
+

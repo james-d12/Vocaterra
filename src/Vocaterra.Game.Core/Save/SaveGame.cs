@@ -3,8 +3,10 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
+using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.World;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
 

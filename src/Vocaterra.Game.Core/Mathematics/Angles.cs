@@ -1,4 +1,6 @@
-namespace Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World.Layout;
+
+namespace Vocaterra.Game.Core.Mathematics;
 
 /// <summary>
 /// Integer angles and their sine and cosine, with no floating point at all. An angle is a whole number of 1/4096 turns
@@ -98,3 +100,5 @@ public static class Angles
         return table;
     }
 }
+
+

@@ -1,4 +1,6 @@
-namespace Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Mathematics;
+
+namespace Vocaterra.Game.Core.World.Generation;
 
 /// <summary>
 /// Smooth value noise in integers, keyed by the world seed and a pass name (<see cref="WorldRng.For"/>): the lattice values are hashes
@@ -46,3 +48,5 @@ internal sealed class TerrainNoise
         return (int)(h >> 52);
     }
 }
+
+

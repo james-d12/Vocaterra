@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests.Voxel;

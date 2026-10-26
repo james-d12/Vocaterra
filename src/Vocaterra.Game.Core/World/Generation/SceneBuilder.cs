@@ -1,4 +1,9 @@
-namespace Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Mathematics;
+using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World;
+using Vocaterra.Game.Core.World.Layout;
+
+namespace Vocaterra.Game.Core.World.Generation;
 
 /// <summary>
 /// Builds a <see cref="Scene"/> from a <see cref="SceneLayout"/> and a world seed. It is a pure function of the two, in integers only: the
@@ -1387,3 +1392,5 @@ public static class SceneBuilder
         }
     }
 }
+
+

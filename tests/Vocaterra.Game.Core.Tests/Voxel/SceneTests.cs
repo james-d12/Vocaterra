@@ -1,5 +1,10 @@
 using System.Diagnostics;
+using Vocaterra.Game.Core.Mathematics;
+using Vocaterra.Game.Core.Physics;
+using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World.Generation;
+using Vocaterra.Game.Core.World.Layout;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests.Voxel;

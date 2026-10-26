@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World;
 
 namespace Vocaterra.Game.Graphics;
 

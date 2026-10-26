@@ -1,3 +1,6 @@
+using Vocaterra.Game.Core.Mathematics;
+using Vocaterra.Game.Core.Physics;
+using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using static Vocaterra.Game.Core.Tests.Voxel.VoxelTestSupport;
 

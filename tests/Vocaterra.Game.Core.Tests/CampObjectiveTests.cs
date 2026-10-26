@@ -2,6 +2,8 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.World.Generation;
+using Vocaterra.Game.Core.World.Layout;
 
 namespace Vocaterra.Game.Core.Tests;
 

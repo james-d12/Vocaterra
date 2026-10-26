@@ -1,4 +1,8 @@
-namespace Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Mathematics;
+using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Voxel;
+
+namespace Vocaterra.Game.Core.Physics;
 
 /// <summary>
 /// The player's body in the 3D world: an axis-aligned box of 0.6 x 1.8 x 0.6 blocks (<see cref="VoxelPhysics"/>), integer positions in
@@ -189,3 +193,5 @@ public sealed class PlayerBody3D
         return (jumped, Grounded && !wasGrounded);
     }
 }
+
+

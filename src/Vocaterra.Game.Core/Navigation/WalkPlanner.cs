@@ -1,4 +1,6 @@
-namespace Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Voxel;
+
+namespace Vocaterra.Game.Core.Navigation;
 
 /// <summary>
 /// Plans a walk over the voxel world for the scripted run (S13): on a 384 x 384 map with a mountainside trail, a river and a forest, a straight line to
@@ -234,3 +236,5 @@ public static class WalkPlanner
         return (x, rest / grid.SizeZ, rest % grid.SizeZ);
     }
 }
+
+

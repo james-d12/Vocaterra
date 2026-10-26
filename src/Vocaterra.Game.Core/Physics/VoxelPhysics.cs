@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Core.Voxel;
+namespace Vocaterra.Game.Core.Physics;
 
 /// <summary>
 /// The 3D physics constants. Positions are integers in 1/4096 of a block ("units"), velocities are units per tick and accelerations units
@@ -43,3 +43,5 @@ public static class VoxelPhysics
     /// <summary>How near a station block must be for a recipe to count it, in blocks from the middle of the body to the middle of the block.</summary>
     public const int StationReachInBlocks = 6;
 }
+
+

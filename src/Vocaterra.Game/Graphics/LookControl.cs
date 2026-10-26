@@ -1,5 +1,5 @@
 using System.Globalization;
-using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Mathematics;
 
 namespace Vocaterra.Game.Graphics;
 
