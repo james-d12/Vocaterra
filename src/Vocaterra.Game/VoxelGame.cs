@@ -121,6 +121,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly BookModel _book = new();
     private readonly BookRecordings _recordings;
     private readonly BookSpeechControls _bookControls;
+    private readonly BookScreen _bookScreen;
     private readonly ToastQueue _toasts = new();
     private readonly InventoryScreen _inventory = new();
     private readonly FrameTimings _timings = new();
@@ -205,7 +206,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _events = new EventPrinter(session.Events, _support.LinesFor, Console.WriteLine);
         _beacon = new BeaconDirector(session, Console.WriteLine, Console.Error.WriteLine);
         _lesson = new LessonFrontend(session, _dialogue, Console.WriteLine);
-        _lesson.OnRecapDone = ShowPhrasesBook; // the lesson's recap ends on the journal's phrases page (S17)
         _ending.MarkSeen(session); // a game loaded after its ending does not play it again
         _micCheck = options.ShowsMicCheck ? new MicCheckModel(session.LogMicCheck) : null;
         _playtest = options.Playtest;
@@ -245,6 +245,27 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             () => _aimed?.Name,
             options.IsScreenshotRun,
             Console.WriteLine);
+        _bookScreen = new BookScreen(
+            _book,
+            _bookControls,
+            _focus,
+            session,
+            options.BookStart,
+            options.BookVerb,
+            options.BookDetailLines,
+            scripted: options.IsScreenshotRun && options.Script.Count > 0,
+            _toasts,
+            _sound,
+            _canvas,
+            () =>
+            {
+                if (_dialogue.IsOpen)
+                {
+                    _dialogueScreen.Close();
+                }
+            },
+            Console.WriteLine);
+        _lesson.OnRecapDone = _bookScreen.ShowPhrases; // the lesson's recap ends on the journal's phrases page (S17)
         if (options.IsScreenshotRun)
         {
             _clock = new FixedFrameClock(VoxelSimulation.TicksPerSecond);
@@ -258,8 +279,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                     _dialogueScreen.RunLessonStep,
                     (text, keep) => _reportScreen.RequestScripted(text, keep, OpenScreenName()),
                     () => _report.Paused,
-                    PlayBookTarget,
-                    PractiseFromScript);
+                    _bookScreen.PlayTarget,
+                    _bookScreen.PractiseFromScript);
                 _scenario = new ScenarioScript(session, _look, _dialogue, options.Script, ResolveItem, hooks, Console.WriteLine, holdsCheckAnswers: options.Playtest);
             }
         }
@@ -398,7 +419,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (_book.IsOpen)
         {
-            CloseBook();
+            _bookScreen.Close();
         }
 
         if (_inventory.IsOpen)
@@ -632,7 +653,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 _shown = true;
                 if (_options.Journal)
                 {
-                    OpenBook();
+                    _bookScreen.Open();
                 }
 
                 if (_options.ShowInventory)
@@ -980,7 +1001,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
             else if (_book.IsOpen)
             {
-                ReadBookKeys(input);
+                _bookScreen.HandleKeys(input);
             }
             else if (_inventory.IsOpen)
             {
@@ -1019,7 +1040,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
             else if (input.Pressed(Keys.J))
             {
-                OpenBook();
+                _bookScreen.Open();
             }
             else if (input.Pressed(Keys.C) || (input.Pressed(Keys.E) && AimedAtWorkbench()))
             {
@@ -1042,41 +1063,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         var uiOpen = _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen || _crafting.IsOpen || _controlsOpen || _micCheck is { IsActive: true };
-        // The wheel scrolls the book (three lines a notch, up for a turn up); a click on a tab turns to that page (S20).
-        if (IsActive && _book.IsOpen && input.Wheel != 0)
+        if (IsActive && _book.IsOpen)
         {
-            // Over the right page the wheel scrolls that page (X03); over the list it scrolls the list.
-            var notchLines = -(int)Math.Round(input.Wheel / 40.0);
-            if (new BookGeometry(_canvas.Width, _canvas.Height).RightPage.Contains(mouse.X, mouse.Y))
-            {
-                _book.ScrollDetail(notchLines * BookGeometry.LineHeight);
-            }
-            else
-            {
-                _book.Scroll(notchLines);
-            }
-        }
-
-        if (IsActive && _book.IsOpen && input.LeftClicked)
-        {
-            if (new BookGeometry(_canvas.Width, _canvas.Height).TabAt(mouse.X, mouse.Y) is { } tab)
-            {
-                _book.Show(tab);
-                _sound.QueueClick(SoundCue.UiTab);
-            }
-            else if (_bookControls.Click(new BookGeometry(_canvas.Width, _canvas.Height), mouse.X, mouse.Y, input.Shift))
-            {
-                _sound.QueueClick(SoundCue.UiClick);
-            }
-            else if (_bookControls.ClickVerb(new BookGeometry(_canvas.Width, _canvas.Height), mouse.X, mouse.Y))
-            {
-                _sound.QueueClick(SoundCue.UiClick);
-            }
-            else if (_bookControls.ClickPractise(new BookGeometry(_canvas.Width, _canvas.Height), mouse.X, mouse.Y) is { } practise)
-            {
-                _sound.QueueClick(SoundCue.UiClick);
-                PractiseAgain(practise);
-            }
+            _bookScreen.HandleMouse(input); // the wheel scrolls the book, a click turns to a tab or presses a row's button (S20)
         }
 
         if (IsActive && _crafting.IsOpen && input.LeftClicked)
@@ -1147,7 +1136,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         // Using the book item (selected, right-click) opens the book, as J does (S20). The item is not placeable, so the press places nothing.
         if (IsActive && captured && input.RightClicked && !_book.IsOpen && _sim.SelectedStack is { Item: ItemId.Book, Count: > 0 })
         {
-            OpenBook();
+            _bookScreen.Open();
         }
 
         _live.SetFrame(
@@ -1414,149 +1403,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 Console.WriteLine($"  arrow: {arrow.Place} at {arrow.Target.X},{arrow.Target.Y},{arrow.Target.Z} ({arrow.Blocks} blocks, {arrow.Direction})");
             }
         }
-    }
-
-    // The book's keys (S20, S20b): Escape or J closes it; Tab (Shift and Tab turns back), Left and Right turn the page; Page Up and Page Down scroll.
-    // Up and Down move the selection among the rows with a speaker button (the selection is kept on screen); a page with none scrolls a line. Enter plays
-    // the selected row, Shift+Enter its slow recording.
-    private void ReadBookKeys(InputSnapshot input)
-    {
-        if (input.Pressed(Keys.Escape) || input.Pressed(Keys.J))
-        {
-            CloseBook();
-            return;
-        }
-
-        if (input.Pressed(Keys.Tab))
-        {
-            _book.Turn(forward: !(input.Shift));
-        }
-        else if (input.Pressed(Keys.Left))
-        {
-            _book.Turn(forward: false);
-        }
-        else if (input.Pressed(Keys.Right))
-        {
-            _book.Turn(forward: true);
-        }
-
-        var geometry = new BookGeometry(_canvas.Width, _canvas.Height);
-        var lines = geometry.LinesVisible;
-        var shift = input.Shift;
-        if (shift && (input.Pressed(Keys.Down) || input.Pressed(Keys.Up)))
-        {
-            // Shift with Up or Down scrolls the right page a line (X03); Shift with Page Up or Page Down, a page of it.
-            _book.ScrollDetail(input.Pressed(Keys.Down) ? BookGeometry.LineHeight : -BookGeometry.LineHeight);
-        }
-        else if (shift && (input.Pressed(Keys.PageDown) || input.Pressed(Keys.PageUp)))
-        {
-            _book.ScrollDetail(input.Pressed(Keys.PageDown) ? geometry.DetailHeight : -geometry.DetailHeight);
-        }
-        else if (input.Pressed(Keys.PageDown))
-        {
-            _book.Scroll(lines);
-        }
-        else if (input.Pressed(Keys.PageUp))
-        {
-            _book.Scroll(-lines);
-        }
-        else if (input.Pressed(Keys.Down) || input.Pressed(Keys.Up))
-        {
-            _bookControls.Move(input.Pressed(Keys.Down) ? 1 : -1, new BookGeometry(_canvas.Width, _canvas.Height).LinesVisible);
-        }
-        else if (input.Pressed(Keys.Enter))
-        {
-            _ = _bookControls.Enter(input.Shift);
-        }
-        else if (input.Pressed(Keys.P) && _bookControls.PractiseFirst(new BookGeometry(_canvas.Width, _canvas.Height)) is { } practise)
-        {
-            PractiseAgain(practise);
-        }
-    }
-
-    // "Practise again" in the book (S26): the lesson starts when the learner talks to its NPC. The book closes, the objective area says where to go and the beacon points there.
-    private void PractiseAgain(string lessonId)
-    {
-        CloseBook();
-        var line = _session.Lessons.ReplayHud ?? lessonId;
-        _toasts.Show(line);
-        Console.WriteLine($"book: practise again {lessonId}; {line}");
-    }
-
-    // The scripted run's book step (S26, --book-practise): opens the book on its Lessons page, then presses the lesson's button.
-    private void PractiseFromScript(string lessonId)
-    {
-        if (!_book.IsOpen)
-        {
-            OpenBook();
-        }
-
-        _book.Show(BookPage.Lessons);
-        if (_bookControls.Practise(lessonId) is { } asked)
-        {
-            PractiseAgain(asked);
-        }
-        else
-        {
-            Console.WriteLine($"book: '{lessonId}' cannot be practised again (it is not a completed lesson, or another lesson is under way)");
-            CloseBook();
-        }
-    }
-
-    // The scripted run's book step (S20b, --book-play and --book-play-slow): opens the book, then plays the target's row as Enter does.
-    private void PlayBookTarget(string target, bool slow)
-    {
-        if (!_book.IsOpen)
-        {
-            OpenBook();
-        }
-
-        Console.WriteLine(_bookControls.PlayTarget(target, slow));
-    }
-
-    private void OpenBook()
-    {
-        _book.Open(_session.Words);
-        if (_options.BookStart is { } start)
-        {
-            _book.Show(start, animate: false);
-        }
-
-        if (_options.BookVerb is { } verb)
-        {
-            Console.WriteLine(_bookControls.SelectVerb(verb) ? $"book: the table of {verb}" : $"book: no verb '{verb}' in the book");
-        }
-
-        if (_options.BookDetailLines > 0)
-        {
-            _book.ScrollDetail(_options.BookDetailLines * BookGeometry.LineHeight); // a scripted run's right page, scrolled down (X03)
-        }
-
-        _focus.BookOpen = true;
-    }
-
-    // The end of the lesson's recap (S17): the panel closes and the journal opens on its phrases page, where each phrase the lesson taught is listed with the help it has now.
-    private void ShowPhrasesBook()
-    {
-        if (_scenario is not null)
-        {
-            return; // a scripted run goes on with its steps and asks for the journal itself (--journal --journal-phrases); an overlay would cover its screenshots
-        }
-
-        if (_dialogue.IsOpen)
-        {
-            _dialogueScreen.Close();
-        }
-
-        _book.Open(_session.Words);
-        _book.Show(BookPage.Phrases);
-        _focus.BookOpen = true;
-    }
-
-    private void CloseBook()
-    {
-        _book.Close();
-        _focus.BookOpen = false;
     }
 
     private void OpenInventory()

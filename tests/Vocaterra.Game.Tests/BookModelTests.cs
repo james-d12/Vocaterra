@@ -247,19 +247,19 @@ public sealed class BookModelTests
         Assert.True(geometry.LinesVisible >= 20);
     }
 
-    // The book is opened by one method (VoxelGame.OpenBook), called by J and by the book item's use. The keys and the item are read by the game
-    // loop, which a test cannot drive, so the test reads the source as the architecture tests do: both paths reach OpenBook.
+    // The book is opened by one method (BookScreen.Open), called by J and by the book item's use. The keys and the item are read by the game
+    // loop, which a test cannot drive, so the test reads the source as the architecture tests do: both paths reach it.
     [Fact]
     public void JAndTheBookItemBothOpenTheSameBook()
     {
         var source = File.ReadAllText(Repo.Path("src", "Vocaterra.Game", "VoxelGame.cs"));
         var journal = source.IndexOf("Pressed(Keys.J))", StringComparison.Ordinal);
         Assert.True(journal >= 0, "the J key is read");
-        Assert.Contains("OpenBook();", source[journal..(journal + 120)], StringComparison.Ordinal);
+        Assert.Contains("_bookScreen.Open();", source[journal..(journal + 120)], StringComparison.Ordinal);
 
         var item = source.IndexOf("Item: ItemId.Book", StringComparison.Ordinal);
         Assert.True(item >= 0, "the book item is used");
-        Assert.Contains("OpenBook();", source[item..(item + 200)], StringComparison.Ordinal);
+        Assert.Contains("_bookScreen.Open();", source[item..(item + 200)], StringComparison.Ordinal);
     }
 
     private static BookModel OpenBook()
