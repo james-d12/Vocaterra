@@ -12,7 +12,7 @@ namespace Vocaterra.Game.Screens;
 /// keys and the wheel, a click on a tab turns to that page, the rows with a speaker button play their recordings, and "Practise again" starts a
 /// lesson over. The book's state is <see cref="BookModel"/>; the book takes the keyboard while it is open.
 /// </summary>
-public sealed class BookScreen
+public sealed class BookScreen : IScreen
 {
     private readonly BookModel _book;
     private readonly BookSpeechControls _controls;
@@ -72,6 +72,15 @@ public sealed class BookScreen
         _console = console;
     }
 
+    /// <inheritdoc />
+    public string Name => "book";
+
+    /// <inheritdoc />
+    public bool IsOpen => _book.IsOpen;
+
+    /// <inheritdoc />
+    public bool FreesMouse => true;
+
     /// <summary>Opens the book (J, or the book item); a scripted run's <c>--book-page</c>, <c>--book-verb</c> and <c>--book-detail</c> apply.</summary>
     public void Open()
     {
@@ -123,7 +132,7 @@ public sealed class BookScreen
     /// move the selection among the rows with a speaker button (the selection is kept on screen); a page with none scrolls a line. Enter plays the
     /// selected row, Shift+Enter its slow recording; P practises the first lesson on offer.
     /// </summary>
-    public void HandleKeys(InputSnapshot input)
+    public void HandleInput(InputSnapshot input)
     {
         if (input.Pressed(Keys.Escape) || input.Pressed(Keys.J))
         {

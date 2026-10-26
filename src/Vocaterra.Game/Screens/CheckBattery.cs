@@ -30,7 +30,7 @@ public sealed record CheckBatteryHooks(
 /// in the seeded order of the kind; a comprehension item is answered with 1 to 3 (R hears the line again), a production item by voice (V held),
 /// typed (W, then Enter) or with "No sé" (N), and Esc ends the battery (the rest is skipped). A scripted run answers from the script's steps.
 /// </summary>
-public sealed class CheckBattery
+public sealed class CheckBattery : IScreen
 {
     /// <summary>The frames a post- or recall-check's thank-you screen stays up before the run ends (outside a playtest).</summary>
     public const int EndFrames = 90;
@@ -95,6 +95,15 @@ public sealed class CheckBattery
 
     /// <summary>Whether the battery has finished (its end is in the log).</summary>
     public bool Done { get; private set; }
+
+    /// <inheritdoc />
+    public string Name => $"check ({CheckKinds.Of(Screen!.Kind)})";
+
+    /// <inheritdoc />
+    public bool IsOpen => Screen is { IsDone: false };
+
+    /// <summary>The battery holds the keyboard but not the world's mouse look (its own screen covers the world, which does not run).</summary>
+    public bool FreesMouse => false;
 
     /// <summary>Whether the finished battery ends the run (a post- or recall-check).</summary>
     public bool EndsRun { get; private set; }

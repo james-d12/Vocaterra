@@ -154,6 +154,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // screen waits for Esc. A screenshot waits for the wanted window size before it is taken (ScreenshotGate).
     private readonly bool _playtest;
     private readonly PlaytestFlow _playtestFlow;
+    private readonly ScreenStack _screens;
     private int _sizeFrames;
     private bool _sizeWarned;
 
@@ -319,6 +320,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _saves,
             new PlaytestHooks(() => _scenario?.Index ?? 0, index => _scenario?.SkipTo(index), ClosePanels, DrainForSave),
             Console.WriteLine);
+        _screens = new ScreenStack(
+            [_micScreen, _checks, _dialogueScreen, _controls, _bookScreen, _inventoryPanel, _craftingPanel],
+            [_checks, _micScreen, _dialogueScreen, _bookScreen, _inventoryPanel, _craftingPanel, _controls]);
         StartLogAndCheck(options);
         CrashSource = new CrashSource(_sessionDirectory, options.ReportDir, session, _dialogue, _report, _autosave, _saves);
         _session.StartWorker(MonotonicClock.Milliseconds, options.NeedsSpeech);
@@ -607,7 +611,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         _beacon.Sync();
-        var free = _scenario is null && WorldRunning && !_dialogue.IsOpen && !_book.IsOpen && !_inventory.IsOpen && !_crafting.IsOpen && !_controls.IsOpen && _session.PendingTurns == 0;
+        var free = _scenario is null && WorldRunning && !_screens.FreesMouse && _session.PendingTurns == 0;
         if (GuideApproach.ShouldGreet(_session, ref _greetArmed, free))
         {
             Console.WriteLine("approach: the guide greets the player and her lesson begins");
@@ -936,71 +940,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 Console.WriteLine($"text scale: {_canvas.TextPercent} percent (canvas {_canvas.Width} x {_canvas.Height})");
             }
 
-            if (_micCheck is { IsActive: true })
+            if (!_screens.HandleInput(input))
             {
-                _micScreen.HandleInput(input);
-            }
-            else if (_checks.Screen is { IsDone: false })
-            {
-                _checks.HandleInput(input);
-            }
-            else if (_dialogue.IsOpen)
-            {
-                _dialogueScreen.HandleInput(input);
-            }
-            else if (_controls.IsOpen)
-            {
-                _controls.HandleInput(input);
-            }
-            else if (_book.IsOpen)
-            {
-                _bookScreen.HandleKeys(input);
-            }
-            else if (_inventory.IsOpen)
-            {
-                _inventoryPanel.HandleKeys(input);
-            }
-            else if (_crafting.IsOpen)
-            {
-                _craftingPanel.HandleKeys(input);
-            }
-            else if (_aimed is not null && (input.Pressed(Keys.E) || input.Pressed(Keys.T) || input.Pressed(Keys.V)))
-            {
-                // The crosshair is on an NPC: E or T opens the panel; V opens it and starts listening.
-                if (input.Pressed(Keys.V))
-                {
-                    _dialogueScreen.Open(_aimed.Name, null);
-                    _dialogueScreen.BeginListening(Keys.V);
-                }
-                else
-                {
-                    _dialogueScreen.Open(_aimed.Name, input.Pressed(Keys.T) ? 't' : 'e');
-                }
-            }
-            else if (input.Pressed(Keys.F1))
-            {
-                _controls.Open();
-            }
-            else if (input.Pressed(Keys.Enter) && _session.Tips.Current is not null)
-            {
-                _session.Tips.Dismiss(); // Enter: next tip (S16)
-            }
-            else if (input.Pressed(Keys.J))
-            {
-                _bookScreen.Open();
-            }
-            else if (input.Pressed(Keys.C) || (input.Pressed(Keys.E) && AimedAtWorkbench()))
-            {
-                _craftingPanel.Open();
-            }
-            else if (input.Pressed(Keys.I) || input.Pressed(Keys.E))
-            {
-                _inventoryPanel.Open();
-            }
-            else if (input.Pressed(Keys.Escape))
-            {
-                _captureWanted = false;
-                _ending.Dismiss(); // Esc takes the closing card down (S17)
+                ReadWorldKeys(input); // no screen is open: the keys are the world's
             }
 
             if (input.Pressed(Keys.F3) && !_playtest)
@@ -1009,7 +951,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
         }
 
-        var uiOpen = _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen || _crafting.IsOpen || _controls.IsOpen || _micCheck is { IsActive: true };
+        var uiOpen = _screens.FreesMouse;
         if (IsActive && _book.IsOpen)
         {
             _bookScreen.HandleMouse(input); // the wheel scrolls the book, a click turns to a tab or presses a row's button (S20)
@@ -1086,6 +1028,50 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _devices.Commit(input);
     }
 
+    // The world's keys when no screen is open: E, T or V on the NPC under the crosshair, F1 the controls help, Enter the next tip (S16), J the book,
+    // C (or E at the workbench) the crafting panel, I or E the inventory, Esc frees the mouse and takes the closing card down (S17).
+    private void ReadWorldKeys(InputSnapshot input)
+    {
+        if (_aimed is not null && (input.Pressed(Keys.E) || input.Pressed(Keys.T) || input.Pressed(Keys.V)))
+        {
+            // The crosshair is on an NPC: E or T opens the panel; V opens it and starts listening.
+            if (input.Pressed(Keys.V))
+            {
+                _dialogueScreen.Open(_aimed.Name, null);
+                _dialogueScreen.BeginListening(Keys.V);
+            }
+            else
+            {
+                _dialogueScreen.Open(_aimed.Name, input.Pressed(Keys.T) ? 't' : 'e');
+            }
+        }
+        else if (input.Pressed(Keys.F1))
+        {
+            _controls.Open();
+        }
+        else if (input.Pressed(Keys.Enter) && _session.Tips.Current is not null)
+        {
+            _session.Tips.Dismiss(); // Enter: next tip (S16)
+        }
+        else if (input.Pressed(Keys.J))
+        {
+            _bookScreen.Open();
+        }
+        else if (input.Pressed(Keys.C) || (input.Pressed(Keys.E) && AimedAtWorkbench()))
+        {
+            _craftingPanel.Open();
+        }
+        else if (input.Pressed(Keys.I) || input.Pressed(Keys.E))
+        {
+            _inventoryPanel.Open();
+        }
+        else if (input.Pressed(Keys.Escape))
+        {
+            _captureWanted = false;
+            _ending.Dismiss(); // Esc takes the closing card down (S17)
+        }
+    }
+
     // ---- The bug and feature report (S21, D-game-17): local files only, nothing is sent. ----
 
     // F8: the game pauses. A recording in progress is dropped (the microphone is off), and the next frame is kept as the picture the player saw.
@@ -1103,40 +1089,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     }
 
     // What is open now, in the words the report's table uses.
-    private string OpenScreenName()
-    {
-        if (_checks.Screen is { IsDone: false } check)
-        {
-            return $"check ({CheckKinds.Of(check.Kind)})";
-        }
-
-        if (_micCheck is { IsActive: true })
-        {
-            return "mic check";
-        }
-
-        if (_dialogue.IsOpen)
-        {
-            return $"dialogue with {_dialogue.NpcName}";
-        }
-
-        if (_book.IsOpen)
-        {
-            return "book";
-        }
-
-        if (_inventory.IsOpen)
-        {
-            return "inventory";
-        }
-
-        if (_crafting.IsOpen)
-        {
-            return "crafting";
-        }
-
-        return _controls.IsOpen ? "controls (F1)" : "none (the world)";
-    }
+    private string OpenScreenName() => _screens.OpenScreenName();
 
     // The input of a frame the panel or F8 took: the mouse is free, and the states are kept for the next frame's presses and clicks.
     private void EndInput(InputSnapshot input)

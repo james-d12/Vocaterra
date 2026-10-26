@@ -1368,6 +1368,21 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - the word card and the workbench panel may overlap on the smallest canvas;
     - `--report-open` does not end a scripted run, by S21's design.
 
+- **R16, splitting `VoxelGame` (2026-10-26, Opus 5.5 with the owner; on `feature/organise`, in progress).**
+  - **Done so far:** the camera, figures, arm, beacon and canvas; the saves, autosave and crash source; the report; the frame's input
+    snapshot; push-to-talk; the check battery, mic check, dialogue, book, inventory, crafting, controls help and playtest flow; the screen
+    stack. `VoxelGame.cs` went from 2,957 lines to about 1,300. The checks are the three game test projects and the scripted runs of
+    `SCRIPTED_RUNS.md`, compared with a baseline taken before the first step.
+  - **Findings:**
+    - Every scripted run with a turn for the worker lands its turns 1 to 8 ticks apart from one capture to the next, with the same binary
+      (r02 to r06, r10, r11, r16, r17). A scripted run does not freeze the world exactly while a turn is out. Those runs compare only in
+      the order of what they print.
+    - The report's table names "check (pre)" while a playtest's mic check is on top and takes the keys: the report names screens in a
+      different order from the one that takes the keys. Kept as it was (`ScreenStack`'s name order), to fix later.
+    - F6 and `--save` rebuilt the fresh scene at every save (about 0.6 s); the autosave and the crash save used a cached one. All saves now
+      use the cache, and they come out the same (r09).
+    - The hotbar's and the panels' wheel baselines were two fields with the same value at every frame the panels can see; they are one.
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.

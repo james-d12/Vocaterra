@@ -15,7 +15,7 @@ namespace Vocaterra.Game.Screens;
 /// or Space goes on after a pass, Enter retries after a fail, Esc skips. The recognizer must be loaded and the machine must have a microphone,
 /// otherwise the screen says why: nothing here ever stops the game. A scripted run has the worker synthesize "hola" and hear it.
 /// </summary>
-public sealed class MicCheckScreen
+public sealed class MicCheckScreen : IScreen
 {
     private readonly VoxelSession _session;
     private readonly ListenSession _listen;
@@ -56,6 +56,15 @@ public sealed class MicCheckScreen
 
     /// <summary>Whether the check is on screen.</summary>
     public bool Active => Model is { IsActive: true };
+
+    /// <inheritdoc />
+    public string Name => "mic check";
+
+    /// <inheritdoc />
+    public bool IsOpen => Active;
+
+    /// <inheritdoc />
+    public bool FreesMouse => true;
 
     /// <summary>The check's keys: hold V or Space to talk, Enter or Space to go on after a pass, Esc to skip.</summary>
     public void HandleInput(InputSnapshot input)

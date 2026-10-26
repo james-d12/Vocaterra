@@ -29,7 +29,7 @@ public sealed class BookScreenTests
         Assert.True(book.IsOpen);
         Assert.True(focus.BookOpen);
 
-        screen.HandleKeys(Pressed(key));
+        screen.HandleInput(Pressed(key));
         Assert.False(book.IsOpen);
         Assert.False(focus.BookOpen);
     }

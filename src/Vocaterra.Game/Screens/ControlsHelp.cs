@@ -4,7 +4,7 @@ using Vocaterra.Game.Input;
 namespace Vocaterra.Game.Screens;
 
 /// <summary>The controls help (F1, S16): the list of keys; when it does not all fit the canvas (a large text size), Up, Down, Page Up, Page Down and the wheel scroll it (X08). Esc or F1 closes it.</summary>
-public sealed class ControlsHelp
+public sealed class ControlsHelp : IScreen
 {
     private readonly Func<int> _maxScroll;
 
@@ -14,6 +14,12 @@ public sealed class ControlsHelp
 
     /// <summary>Whether the help is open.</summary>
     public bool IsOpen { get; private set; }
+
+    /// <inheritdoc />
+    public string Name => "controls (F1)";
+
+    /// <inheritdoc />
+    public bool FreesMouse => true;
 
     /// <summary>How far the list is scrolled, in lines.</summary>
     public int Scroll { get; private set; }

@@ -19,7 +19,7 @@ namespace Vocaterra.Game.Screens;
 /// mouse), the text box, push-to-talk for a spoken turn, the lesson strip's keys and buttons, and the watchdog that offers typing when a turn
 /// thinks too long. The panel's state is <see cref="DialogueModel"/>; the panel takes the keyboard while it is open.
 /// </summary>
-public sealed class DialogueScreen
+public sealed class DialogueScreen : IScreen
 {
     private static readonly (Keys Key, PanelKey Panel)[] PanelKeys =
     [
@@ -100,6 +100,15 @@ public sealed class DialogueScreen
         _scriptedRun = scriptedRun;
         _console = console;
     }
+
+    /// <inheritdoc />
+    public string Name => $"dialogue with {_dialogue.NpcName}";
+
+    /// <inheritdoc />
+    public bool IsOpen => _dialogue.IsOpen;
+
+    /// <inheritdoc />
+    public bool FreesMouse => true;
 
     /// <summary>
     /// Opens the panel on an NPC: its opening is a core host turn when its state has one (the shopkeeper's question, the villager's hello, the

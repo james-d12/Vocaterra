@@ -12,7 +12,7 @@ namespace Vocaterra.Game.Screens;
 /// The crafting panel (C anywhere, or E at the workbench): a click on a row asks for one craft in the next tick, the same command a script sends;
 /// a craft whose ingredients are not there yet sounds a soft refusal (S24). Esc or C closes it.
 /// </summary>
-public sealed class CraftingPanel
+public sealed class CraftingPanel : IScreen
 {
     private readonly CraftingScreen _crafting;
     private readonly VoxelSession _session;
@@ -36,6 +36,15 @@ public sealed class CraftingPanel
         _otherPanelOpen = otherPanelOpen;
     }
 
+    /// <inheritdoc />
+    public string Name => "crafting";
+
+    /// <inheritdoc />
+    public bool IsOpen => _crafting.IsOpen;
+
+    /// <inheritdoc />
+    public bool FreesMouse => true;
+
     /// <summary>Opens the panel with the recipes' nouns, unless another panel is open.</summary>
     public void Open()
     {
@@ -51,7 +60,7 @@ public sealed class CraftingPanel
     public void Close() => _crafting.Close();
 
     /// <summary>The panel's keys while it is open: Esc or C closes it.</summary>
-    public void HandleKeys(InputSnapshot input)
+    public void HandleInput(InputSnapshot input)
     {
         if (input.Pressed(Keys.Escape) || input.Pressed(Keys.C))
         {

@@ -6,7 +6,7 @@ using Vocaterra.Game.UI;
 namespace Vocaterra.Game.Screens;
 
 /// <summary>The inventory panel (I, or E away from an NPC): every slot with its noun, the nouns the player carries learnt at a glance; Esc, I or E closes it.</summary>
-public sealed class InventoryPanel
+public sealed class InventoryPanel : IScreen
 {
     private readonly InventoryScreen _inventory;
     private readonly InputFocus _focus;
@@ -25,6 +25,15 @@ public sealed class InventoryPanel
         _session = session;
         _bookOpen = bookOpen;
     }
+
+    /// <inheritdoc />
+    public string Name => "inventory";
+
+    /// <inheritdoc />
+    public bool IsOpen => _inventory.IsOpen;
+
+    /// <inheritdoc />
+    public bool FreesMouse => true;
 
     /// <summary>Opens the panel with the nouns of the items carried, unless the book is open.</summary>
     public void Open()
@@ -51,7 +60,7 @@ public sealed class InventoryPanel
     }
 
     /// <summary>The panel's keys while it is open: Esc, I or E closes it.</summary>
-    public void HandleKeys(InputSnapshot input)
+    public void HandleInput(InputSnapshot input)
     {
         if (input.Pressed(Keys.Escape) || input.Pressed(Keys.I) || input.Pressed(Keys.E))
         {
