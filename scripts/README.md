@@ -57,6 +57,13 @@ Packages whose metadata names no usable licence can be covered by `license-overr
 
 Checks the relative Markdown links in every `.md` file of the repository (build output, fetched models, agent worktrees and gate logs excluded). A link is checked when it has no URL scheme and is not a bare `#anchor`; its target, without any `#fragment`, must exist in the working tree. Links inside code fences and code spans are ignored, and nothing is fetched. It prints each broken link as `file:line: target` and the count of links checked, and exits 1 when any link is broken. Run it as `scripts/check-links.sh` from anywhere in the repository; `--quiet` prints only the broken links and the summary when there are some.
 
+## identity-check.sh
+
+`scripts/identity-check.sh <base-ref>` checks the Phase A gate rules (research section 4.9) without building: the game bundle's
+`bundleHash` equals the one at `<base-ref>`, and no file under `tests/*/Data/`, `tests/golden/` or `content/` differs from it, except a
+pure rename (R100). Exit 0 when both hold; 1 names each failing rule and file. It runs no build, test or content tool. The Spanish
+identity test itself (`SpanishIdentityTests`) is run by the test suite; see `tests/golden/README.md`.
+
 ## The game's scripts
 
 - `prerender-speech.sh` renders the NPCs' speakable lines of `content/game-v1` with Kokoro (`tools/Vocaterra.SpeechRender`); `--check` reports what would be rendered and writes nothing.

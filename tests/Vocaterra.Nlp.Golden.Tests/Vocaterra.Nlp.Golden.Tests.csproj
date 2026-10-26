@@ -27,6 +27,7 @@
   <ItemGroup>
     <None Include="Data/g2p-golden.jsonl" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Data/e2e-*.golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Data/identity/*.jsonl" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- The bundle (content/game-v1) is found by walking up from the test assembly (Shared/GameBundleLocator.cs), not copied; the golden manifest is copied next to it. -->

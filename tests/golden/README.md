@@ -57,6 +57,30 @@ One JSON object per line (JSON Lines, UTF-8, LF). Property names are camelCase a
    starting at 1 for that speaker and prompt.
 6. **Annotate.** Add the manifest line for every clip. Write `expectedTranscript` from what you hear, not from what the prompt expects.
 
+## The Spanish identity guard
+
+`tests/Vocaterra.Nlp.Golden.Tests/SpanishIdentityTests.cs` freezes what Spanish does today. Its data is in `tests/Vocaterra.Nlp.Golden.Tests/Data/identity/`:
+
+- `corpus.jsonl`: one input per line (`id`, `source`, `text`, `prompt`, and `grammars` where a case gives its own). Sources: the homograph
+  sentences of `HomographSentencesTests`, the regression sentences of M26b, M29c and M29j, the intent examples and the CLI examples of
+  `content/game-v1`, the G2P golden words, and about 5,000 fuzz sentences and mutations drawn once at fixed seeds (the draw is a one-off
+  and its code is not kept; the file is the record).
+- `baseline.jsonl`: per input, the first 16 hex characters of the SHA-256 of each stage's canonical JSON: `normalize`, `analyze`
+  (with the prompt's grammars or the case's own), `match`, `grade` (`TextGrader`), `pipeline` (the full `PipelineResult`, scripted
+  recognizer, fixed context and time), `recast`, `g2p`. A stage that throws hashes its exception. Then one line per dialogue template of
+  `content/game-v1`, rendered with sample slots (`render`).
+
+The test recomputes every hash and fails on the first differences, naming the input, its source, the stage and the input text (up to 20).
+It needs no speech models and runs in about 10 seconds.
+
+**Re-recording** is `VOCATERRA_RECORD_IDENTITY=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests`. It is a separate variable from
+`VOCATERRA_RECORD_GOLDEN`, so re-recording the end-to-end goldens never touches the baseline.
+
+**The rule for Phase A** (M32 to M35, M52, M53, the refactor that moves Spanish behind language-pack interfaces): the baseline is never
+re-recorded there. A refactor that changes a hash has changed Spanish behaviour, and the fix is in the refactor. A deliberate Spanish
+behaviour change (a bug fix) re-records the baseline in its own commit, the way goldens are re-recorded, and says so in its message.
+`scripts/identity-check.sh <base-ref>` checks the gate rules that go with it (bundle hash unchanged; no data or content file changed).
+
 ## Privacy
 
 - Audio is **local only**: `golden/audio/` is gitignored, and nothing in this repository uploads recordings. Do not attach them to
