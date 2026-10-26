@@ -40,6 +40,12 @@ is a change to the boundary and updates that record.
     resource rules and gate.
   - Bring owner decisions (licences, scope, anything that changes D-numbers) to the owner rather than deciding them.
 
+## Handover (2026-10-26): the neutral engine and language packs
+The current work is D14 Phase A on `feature/language-packs`: M31 and M52 are done, and G8 is next, then M32 to M35 and M53. Its
+state, the gate's one known failure and the rules learnt so far are in
+`docs/nlp/research/2026-10-26-engine-and-language-packs.md` §7. Read that first. The X-series handover below is still valid for
+`feature/experiment`, which is paused.
+
 ## Handover (2026-10-23, paused by the owner at 94 % of the weekly usage)
 **Where things stand**
 - `main` (`1e3d2cc`) holds the owner's whole queue: S13 to S28, S17b, S19b, S20b, M29j, M30, M49 and M50, all gated and pushed.
