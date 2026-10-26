@@ -133,10 +133,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly NpcVoice _voice;
     private readonly TurnWatchdog _watchdog = new();
     private readonly MicCheckModel? _micCheck;
-    private readonly KeyRepeater _backspace = new();
-    private readonly KeyRepeater _delete = new();
-    private readonly KeyRepeater _left = new();
-    private readonly KeyRepeater _right = new();
+    private readonly InputDevices _devices;
+    private readonly TextEditKeys _textEdits = new();
+    private readonly OpenKeySwallow _swallow = new();
     private readonly BookModel _book = new();
     private readonly BookRecordings _recordings;
     private readonly BookSpeechControls _bookControls;
@@ -153,18 +152,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private QualityPreset _preset = QualityPreset.For(QualityLevel.High);
     private GreyscaleWorld? _colours;
     private FrameView? _view;
-    private KeyboardState _previousKeys;
-    private int _previousScroll;
-    private bool _previousLeftDown;
-    private int _previousWheel;
-    private bool _previousRightDown;
     private bool _captureWanted = true;
     private bool _firstUpdateSeen;
     private int _settled;
     private bool _shown;
     private Keys _listenKey = Keys.None;
-    private char? _swallowedOpenKey;
-    private int _swallowFrames;
     private NpcFigure? _aimed;
     private readonly WordCardQueue _cards = new();
     private readonly CraftingScreen _crafting = new();
@@ -218,6 +210,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     {
         _options = options;
         _canvas = new UiCanvas(SaveSettings.SnapTextScale(options.TextScale ?? savedTextScale ?? 100), () => (GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height));
+        _devices = new InputDevices(_canvas);
         _session = session;
         _scene = scene;
         _voice = voice;
@@ -258,7 +251,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             () => _view!.Fonts.Get(FontProvider.NativeSize),
             _toasts,
             _sound,
-            (_backspace, _delete, _left, _right),
+            _textEdits,
             Console.WriteLine,
             Console.Error.WriteLine);
         if (options.IsScreenshotRun)
@@ -460,7 +453,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-        _previousScroll = Mouse.GetState().ScrollWheelValue;
+        _devices.Start();
         _pixel = new Texture2D(GraphicsDevice, 1, 1);
         _pixel.SetData([Color.White]);
         _blockAtlas = new BlockAtlas(GraphicsDevice);
@@ -928,60 +921,55 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // Keys and mouse, once per frame, for the interactive run. The device state becomes this frame's commands (LiveVoxelInput) and the look.
     private void ReadInput()
     {
-        if (_swallowFrames > 0 && --_swallowFrames == 0)
-        {
-            _swallowedOpenKey = null;
-        }
-
-        var keys = Keyboard.GetState();
-        var mouse = _canvas.ToCanvas(Mouse.GetState()); // the pointer in the canvas the layers are laid out on (X08)
-        bool Pressed(Keys key) => keys.IsKeyDown(key) && !_previousKeys.IsKeyDown(key);
+        _swallow.Tick();
+        var input = _devices.Read(); // the pointer is on the canvas the layers are laid out on (X08)
+        var mouse = input.MouseState;
 
         // The report panel (S21) takes every key and click while it is open; nothing else in the game reads the input then. F8 opens it from anywhere.
         if (_report.IsOpen)
         {
             if (IsActive)
             {
-                _reportScreen.HandleInput(keys, mouse, Pressed, _previousLeftDown);
+                _reportScreen.HandleInput(input);
             }
 
-            EndInput(keys, mouse);
+            EndInput(input);
             return;
         }
 
-        if (IsActive && Pressed(Keys.F8))
+        if (IsActive && input.Pressed(Keys.F8))
         {
             RequestReport();
-            EndInput(keys, mouse);
+            EndInput(input);
             return;
         }
 
         if (IsActive)
         {
-            if (_playtest && _endAfterCheck && _checkDone && Pressed(Keys.Escape))
+            if (_playtest && _endAfterCheck && _checkDone && input.Pressed(Keys.Escape))
             {
                 Exit(); // the playtest's thank-you screen: Esc closes the game (Esc always works)
-                _previousKeys = keys;
+                _devices.CommitKeys(input);
                 return;
             }
 
-            if (_playtest && Pressed(Keys.F10) && PlaytestEnd.EndKeyStarts(true, WorldRunning, _playtestStarted))
+            if (_playtest && input.Pressed(Keys.F10) && PlaytestEnd.EndKeyStarts(true, WorldRunning, _playtestStarted))
             {
                 StartPlaytestPost("the end key");
             }
 
-            if (Pressed(Keys.F5))
+            if (input.Pressed(Keys.F5))
             {
                 var mode = _viewMode.Toggle(); // the behind-the-shoulder view and back (S15)
                 Console.WriteLine($"view: {(mode == CameraMode.ThirdPerson ? "behind the shoulder" : "first person")}");
             }
 
-            if (Pressed(Keys.F6))
+            if (input.Pressed(Keys.F6))
             {
                 SaveNow();
             }
 
-            if (Pressed(Keys.F9))
+            if (input.Pressed(Keys.F9))
             {
                 _ = _canvas.Next(); // the interface text size: 100, 125, 150 percent (X08); no other F9 binding, and a text box never reads it
                 Console.WriteLine($"text scale: {_canvas.TextPercent} percent (canvas {_canvas.Width} x {_canvas.Height})");
@@ -989,19 +977,19 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
             if (_micCheck is { IsActive: true })
             {
-                ReadMicCheckKeys(keys, Pressed);
+                ReadMicCheckKeys(input);
             }
             else if (_check is { IsDone: false })
             {
-                ReadCheckKeys(keys, Pressed);
+                ReadCheckKeys(input);
             }
             else if (_dialogue.IsOpen)
             {
-                ReadDialogueKeys(keys, Pressed);
+                ReadDialogueKeys(input);
             }
             else if (_controlsOpen)
             {
-                if (Pressed(Keys.Escape) || Pressed(Keys.F1))
+                if (input.Pressed(Keys.Escape) || input.Pressed(Keys.F1))
                 {
                     _controlsOpen = false; // the controls help (F1, S16)
                     _controlsScroll = 0;
@@ -1010,83 +998,80 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 {
                     // When the controls do not all fit the canvas (a large text size), Up and Down and the wheel scroll the list (X08).
                     var maxScroll = ControlsLayer.MaxScrollFor(_view!);
-                    var step = (Pressed(Keys.Down) ? 1 : 0) - (Pressed(Keys.Up) ? 1 : 0) + (Pressed(Keys.PageDown) ? 5 : 0) - (Pressed(Keys.PageUp) ? 5 : 0);
-                    var wheelNotches = -(int)Math.Round((mouse.ScrollWheelValue - _previousWheel) / 120.0);
+                    var step = (input.Pressed(Keys.Down) ? 1 : 0) - (input.Pressed(Keys.Up) ? 1 : 0) + (input.Pressed(Keys.PageDown) ? 5 : 0) - (input.Pressed(Keys.PageUp) ? 5 : 0);
+                    var wheelNotches = -(int)Math.Round(input.Wheel / 120.0);
                     _controlsScroll = Math.Clamp(_controlsScroll + step + wheelNotches, 0, maxScroll);
                 }
             }
             else if (_book.IsOpen)
             {
-                ReadBookKeys(keys, Pressed);
+                ReadBookKeys(input);
             }
             else if (_inventory.IsOpen)
             {
-                if (Pressed(Keys.Escape) || Pressed(Keys.I) || Pressed(Keys.E))
+                if (input.Pressed(Keys.Escape) || input.Pressed(Keys.I) || input.Pressed(Keys.E))
                 {
                     CloseInventory();
                 }
             }
             else if (_crafting.IsOpen)
             {
-                if (Pressed(Keys.Escape) || Pressed(Keys.C))
+                if (input.Pressed(Keys.Escape) || input.Pressed(Keys.C))
                 {
                     CloseCrafting();
                 }
             }
-            else if (_aimed is not null && (Pressed(Keys.E) || Pressed(Keys.T) || Pressed(Keys.V)))
+            else if (_aimed is not null && (input.Pressed(Keys.E) || input.Pressed(Keys.T) || input.Pressed(Keys.V)))
             {
                 // The crosshair is on an NPC: E or T opens the panel; V opens it and starts listening.
-                if (Pressed(Keys.V))
+                if (input.Pressed(Keys.V))
                 {
                     OpenDialogueOn(_aimed.Name, null);
                     BeginListening(Keys.V);
                 }
                 else
                 {
-                    OpenDialogueOn(_aimed.Name, Pressed(Keys.T) ? 't' : 'e');
+                    OpenDialogueOn(_aimed.Name, input.Pressed(Keys.T) ? 't' : 'e');
                 }
             }
-            else if (Pressed(Keys.F1))
+            else if (input.Pressed(Keys.F1))
             {
                 _controlsOpen = true;
             }
-            else if (Pressed(Keys.Enter) && _session.Tips.Current is not null)
+            else if (input.Pressed(Keys.Enter) && _session.Tips.Current is not null)
             {
                 _session.Tips.Dismiss(); // Enter: next tip (S16)
             }
-            else if (Pressed(Keys.J))
+            else if (input.Pressed(Keys.J))
             {
                 OpenBook();
             }
-            else if (Pressed(Keys.C) || (Pressed(Keys.E) && AimedAtWorkbench()))
+            else if (input.Pressed(Keys.C) || (input.Pressed(Keys.E) && AimedAtWorkbench()))
             {
                 OpenCrafting();
             }
-            else if (Pressed(Keys.I) || Pressed(Keys.E))
+            else if (input.Pressed(Keys.I) || input.Pressed(Keys.E))
             {
                 OpenInventory();
             }
-            else if (Pressed(Keys.Escape))
+            else if (input.Pressed(Keys.Escape))
             {
                 _captureWanted = false;
                 _ending.Dismiss(); // Esc takes the closing card down (S17)
             }
 
-            if (Pressed(Keys.F3) && !_playtest)
+            if (input.Pressed(Keys.F3) && !_playtest)
             {
                 _debug.Visible = !_debug.Visible;
             }
         }
 
         var uiOpen = _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen || _crafting.IsOpen || _controlsOpen || _micCheck is { IsActive: true };
-        var leftDown = mouse.LeftButton == ButtonState.Pressed;
-        var rightDown = mouse.RightButton == ButtonState.Pressed;
         // The wheel scrolls the book (three lines a notch, up for a turn up); a click on a tab turns to that page (S20).
-        var bookWheel = mouse.ScrollWheelValue;
-        if (IsActive && _book.IsOpen && bookWheel != _previousWheel)
+        if (IsActive && _book.IsOpen && input.Wheel != 0)
         {
             // Over the right page the wheel scrolls that page (X03); over the list it scrolls the list.
-            var notchLines = -(int)Math.Round((bookWheel - _previousWheel) / 40.0);
+            var notchLines = -(int)Math.Round(input.Wheel / 40.0);
             if (new BookGeometry(_canvas.Width, _canvas.Height).RightPage.Contains(mouse.X, mouse.Y))
             {
                 _book.ScrollDetail(notchLines * BookGeometry.LineHeight);
@@ -1097,15 +1082,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
         }
 
-        _previousWheel = bookWheel;
-        if (IsActive && _book.IsOpen && leftDown && !_previousLeftDown)
+        if (IsActive && _book.IsOpen && input.LeftClicked)
         {
             if (new BookGeometry(_canvas.Width, _canvas.Height).TabAt(mouse.X, mouse.Y) is { } tab)
             {
                 _book.Show(tab);
                 _sound.QueueClick(SoundCue.UiTab);
             }
-            else if (_bookControls.Click(new BookGeometry(_canvas.Width, _canvas.Height), mouse.X, mouse.Y, ShiftDown(keys)))
+            else if (_bookControls.Click(new BookGeometry(_canvas.Width, _canvas.Height), mouse.X, mouse.Y, input.Shift))
             {
                 _sound.QueueClick(SoundCue.UiClick);
             }
@@ -1120,7 +1104,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
         }
 
-        if (IsActive && _crafting.IsOpen && leftDown && !_previousLeftDown)
+        if (IsActive && _crafting.IsOpen && input.LeftClicked)
         {
             // A click on a row of the panel asks for one craft in the next tick (the same command a script sends).
             var layout = new CraftingLayout(_canvas.Width, _canvas.Height, _session.Recipes.Entries.Count);
@@ -1135,13 +1119,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
         }
 
-        if (IsActive && leftDown && !_previousLeftDown)
+        if (IsActive && input.LeftClicked)
         {
             ClickOnScreens(mouse.X, mouse.Y);
         }
 
         var swallowClick = false;
-        if (IsActive && !uiOpen && !_captureWanted && leftDown && !_previousLeftDown)
+        if (IsActive && !uiOpen && !_captureWanted && input.LeftClicked)
         {
             _captureWanted = true; // a click takes the mouse back; it does not gather
             swallowClick = true;
@@ -1162,22 +1146,22 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         int? slot = null;
         if (captured)
         {
-            strafe = (keys.IsKeyDown(Keys.D) || keys.IsKeyDown(Keys.Right) ? 1 : 0) - (keys.IsKeyDown(Keys.A) || keys.IsKeyDown(Keys.Left) ? 1 : 0);
-            forward = (keys.IsKeyDown(Keys.W) || keys.IsKeyDown(Keys.Up) ? 1 : 0) - (keys.IsKeyDown(Keys.S) || keys.IsKeyDown(Keys.Down) ? 1 : 0);
-            jump = keys.IsKeyDown(Keys.Space);
+            strafe = (input.Down(Keys.D) || input.Down(Keys.Right) ? 1 : 0) - (input.Down(Keys.A) || input.Down(Keys.Left) ? 1 : 0);
+            forward = (input.Down(Keys.W) || input.Down(Keys.Up) ? 1 : 0) - (input.Down(Keys.S) || input.Down(Keys.Down) ? 1 : 0);
+            jump = input.Down(Keys.Space);
         }
 
         if (!uiOpen)
         {
             for (var i = 0; i < SlotKeys.Length; i++)
             {
-                if (Pressed(SlotKeys[i]))
+                if (input.Pressed(SlotKeys[i]))
                 {
                     slot = i;
                 }
             }
 
-            var wheel = mouse.ScrollWheelValue - _previousScroll;
+            var wheel = input.Wheel;
             if (wheel != 0)
             {
                 slot = (((_sim.SelectedSlot - Math.Sign(wheel)) % Inventory.HotbarSize) + Inventory.HotbarSize) % Inventory.HotbarSize;
@@ -1186,7 +1170,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         var target = _sim.Target;
         // Using the book item (selected, right-click) opens the book, as J does (S20). The item is not placeable, so the press places nothing.
-        if (IsActive && captured && rightDown && !_previousRightDown && !_book.IsOpen && _sim.SelectedStack is { Item: ItemId.Book, Count: > 0 })
+        if (IsActive && captured && input.RightClicked && !_book.IsOpen && _sim.SelectedStack is { Item: ItemId.Book, Count: > 0 })
         {
             OpenBook();
         }
@@ -1195,13 +1179,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             strafe,
             forward,
             jump,
-            captured && leftDown && !swallowClick ? LiveVoxelInput.GatherFor(target) : null,
-            captured && rightDown && !_previousRightDown ? LiveVoxelInput.PlacementFor(_sim.SelectedStack, target) : null,
+            captured && input.LeftDown && !swallowClick ? LiveVoxelInput.GatherFor(target) : null,
+            captured && input.RightClicked ? LiveVoxelInput.PlacementFor(_sim.SelectedStack, target) : null,
             slot);
-        _previousLeftDown = leftDown;
-        _previousRightDown = rightDown;
-        _previousScroll = mouse.ScrollWheelValue;
-        _previousKeys = keys;
+        _devices.Commit(input);
     }
 
     // ---- The bug and feature report (S21, D-game-17): local files only, nothing is sent. ----
@@ -1261,35 +1242,24 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     }
 
     // The input of a frame the panel or F8 took: the mouse is free, and the states are kept for the next frame's presses and clicks.
-    private void EndInput(KeyboardState keys, MouseState mouse)
+    private void EndInput(InputSnapshot input)
     {
         _mouseLook.SetCaptured(false, Window);
         IsMouseVisible = true;
-        _previousKeys = keys;
-        _previousLeftDown = mouse.LeftButton == ButtonState.Pressed;
-        _previousRightDown = mouse.RightButton == ButtonState.Pressed;
-        _previousScroll = mouse.ScrollWheelValue;
-        _previousWheel = mouse.ScrollWheelValue;
-    }
-
-    // Whether Alt is held: an accent is Alt plus a vowel (AccentShortcuts), in every text box.
-    private static bool AltDown()
-    {
-        var keys = Keyboard.GetState();
-        return keys.IsKeyDown(Keys.LeftAlt) || keys.IsKeyDown(Keys.RightAlt);
+        _devices.Commit(input);
     }
 
     // The panel's keys while it is open. In the speech-button mode R, S, H, N, W (or Tab), 1 to 3 press the buttons, V or Space held talks and Enter
     // presses the Escribir button when typing is on offer; in the typing mode Enter sends, Tab or Esc go back to the buttons and the editing keys repeat.
     // Esc undoes the newest thing first: a recording, a turn that is thinking, the typing mode, and last the panel itself.
-    private void ReadDialogueKeys(KeyboardState keys, Func<Keys, bool> pressed)
+    private void ReadDialogueKeys(InputSnapshot input)
     {
-        if (_talkSpeechCapture.Listening && !keys.IsKeyDown(_listenKey))
+        if (_talkSpeechCapture.Listening && !input.Down(_listenKey))
         {
             EndListening();
         }
 
-        if (pressed(Keys.Escape))
+        if (input.Pressed(Keys.Escape))
         {
             if (_talkSpeechCapture.Listening)
             {
@@ -1313,34 +1283,35 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (_dialogue.IsTyping)
         {
-            if (pressed(Keys.Tab))
+            if (input.Pressed(Keys.Tab))
             {
                 _dialogue.EndTyping();
                 return;
             }
 
-            if (pressed(Keys.Enter))
+            if (input.Pressed(Keys.Enter))
             {
                 _dialogue.RequestSubmit();
             }
 
             var entry = _dialogue.Entry;
-            if (_backspace.Step(keys.IsKeyDown(Keys.Back)))
+            var edits = _textEdits.Step(input.KeyboardState);
+            if (edits.Backspace)
             {
                 _ = entry.Backspace();
             }
 
-            if (_delete.Step(keys.IsKeyDown(Keys.Delete)))
+            if (edits.Delete)
             {
                 _ = entry.Delete();
             }
 
-            if (_left.Step(keys.IsKeyDown(Keys.Left)))
+            if (edits.Left)
             {
                 entry.MoveLeft();
             }
 
-            if (_right.Step(keys.IsKeyDown(Keys.Right)))
+            if (edits.Right)
             {
                 entry.MoveRight();
             }
@@ -1351,19 +1322,19 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         // The lesson strip's keys (S16): L starts the lesson on offer, Enter continues, K skips the step, 1 to 4 pick an answer of a listen step.
         foreach (var (key, lessonKey) in LessonKeys)
         {
-            if (pressed(key) && _lesson.PressKey(lessonKey))
+            if (input.Pressed(key) && _lesson.PressKey(lessonKey))
             {
                 return;
             }
         }
 
-        if (pressed(Keys.V) || pressed(Keys.Space))
+        if (input.Pressed(Keys.V) || input.Pressed(Keys.Space))
         {
-            BeginListening(pressed(Keys.V) ? Keys.V : Keys.Space);
+            BeginListening(input.Pressed(Keys.V) ? Keys.V : Keys.Space);
             return;
         }
 
-        if (pressed(Keys.Enter) && _dialogue.TypingOffered)
+        if (input.Pressed(Keys.Enter) && _dialogue.TypingOffered)
         {
             PerformAction(SpeechAction.Type, null);
             return;
@@ -1371,7 +1342,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         foreach (var (key, panelKey) in PanelKeys)
         {
-            if (pressed(key) && SpeechButtons.ForKey(panelKey) is { } action)
+            if (input.Pressed(key) && SpeechButtons.ForKey(panelKey) is { } action)
             {
                 PerformAction(action, panelKey == PanelKey.W ? 'w' : null);
                 return;
@@ -1387,8 +1358,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _sound.QueueClick(SoundCue.UiClick);
             if (action == SpeechAction.Type && typedByKey is { } typed)
             {
-                _swallowedOpenKey = typed;
-                _swallowFrames = 2;
+                _swallow.Arm(typed);
             }
 
             _watchdog.Reset();
@@ -1431,15 +1401,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     }
 
     // The mic check's keys: hold V or Space to talk, Enter or Space to go on after a pass, Esc to skip.
-    private void ReadMicCheckKeys(KeyboardState keys, Func<Keys, bool> pressed)
+    private void ReadMicCheckKeys(InputSnapshot input)
     {
         var check = _micCheck!;
-        if (_talkSpeechCapture.Listening && !keys.IsKeyDown(_listenKey))
+        if (_talkSpeechCapture.Listening && !input.Down(_listenKey))
         {
             EndMicListening();
         }
 
-        if (pressed(Keys.Escape))
+        if (input.Pressed(Keys.Escape))
         {
             if (_talkSpeechCapture.Listening)
             {
@@ -1453,7 +1423,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         switch (check.Phase)
         {
             case MicCheckPhase.Passed:
-                if (pressed(Keys.Enter) || pressed(Keys.Space))
+                if (input.Pressed(Keys.Enter) || input.Pressed(Keys.Space))
                 {
                     check.Continue();
                 }
@@ -1461,11 +1431,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
                 break;
             case MicCheckPhase.Ready:
             case MicCheckPhase.Failed:
-                if (pressed(Keys.V) || pressed(Keys.Space))
+                if (input.Pressed(Keys.V) || input.Pressed(Keys.Space))
                 {
-                    BeginMicListening(pressed(Keys.V) ? Keys.V : Keys.Space);
+                    BeginMicListening(input.Pressed(Keys.V) ? Keys.V : Keys.Space);
                 }
-                else if (pressed(Keys.Enter) && check.Phase == MicCheckPhase.Failed)
+                else if (input.Pressed(Keys.Enter) && check.Phase == MicCheckPhase.Failed)
                 {
                     check.Retry();
                 }
@@ -1582,22 +1552,21 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     {
         if (_report.IsOpen)
         {
-            _reportScreen.Type(args.Character, AltDown()); // the report's text box (S21): the control characters (Enter, Tab, Ctrl+Enter) are keys
+            _reportScreen.Type(args.Character, InputDevices.AltHeld()); // the report's text box (S21): the control characters (Enter, Tab, Ctrl+Enter) are keys
             return;
         }
 
         if (_check is { IsDone: false, IsTyping: true } typing)
         {
             // The check's text box (S11): the key that opened it (W) is swallowed, the rest is typed.
-            if (_swallowedOpenKey is { } pendingKey && char.ToLowerInvariant(args.Character) == pendingKey)
+            if (_swallow.Take(args.Character))
             {
-                _swallowedOpenKey = null;
                 return;
             }
 
             if (!char.IsControl(args.Character))
             {
-                _ = typing.Entry.Insert(AccentShortcuts.ForTyped(args.Character, AltDown()));
+                _ = typing.Entry.Insert(AccentShortcuts.ForTyped(args.Character, InputDevices.AltHeld()));
             }
 
             return;
@@ -1605,21 +1574,20 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (!_dialogue.IsTyping || char.IsControl(args.Character) || _talkSpeechCapture.Listening)
         {
-            if (_dialogue.IsOpen && _swallowedOpenKey is { } pending && char.ToLowerInvariant(args.Character) == pending)
+            if (_dialogue.IsOpen)
             {
-                _swallowedOpenKey = null;
+                _ = _swallow.Take(args.Character);
             }
 
             return;
         }
 
-        if (_swallowedOpenKey is { } opener && char.ToLowerInvariant(args.Character) == opener)
+        if (_swallow.Take(args.Character))
         {
-            _swallowedOpenKey = null;
             return;
         }
 
-        _ = _dialogue.Entry.Insert(AccentShortcuts.ForTyped(args.Character, AltDown())); // Alt plus a vowel is the accented letter (S21 wired the hints' keys)
+        _ = _dialogue.Entry.Insert(AccentShortcuts.ForTyped(args.Character, InputDevices.AltHeld())); // Alt plus a vowel is the accented letter (S21 wired the hints' keys)
     }
 
     // Opens the panel on an NPC: its opening is a core host turn when its state has one (the shopkeeper's question, the villager's hello, the
@@ -1635,8 +1603,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _dialogue.BeginTyping(); // T is "type": the text box has the keyboard from the start
         }
 
-        _swallowedOpenKey = openedBy;
-        _swallowFrames = 2; // the platform types the key once, in the next frame at the latest
+        _swallow.Arm(openedBy); // the platform types the key once, in the next frame at the latest
         var how = opening.HostTurn ? "host turn" : "prompt";
         Console.WriteLine($"talk: {npc} ({how}, {opening.Prompt}): {(_session.KeyWordsPending ? $"[key words: {string.Join(", ", _session.KeyWordCards.Select(static c => c.Phrase))}]" : string.Join(" / ", opening.Lines))}{(_session.ReviewLine is { } review ? $" / {review}" : string.Empty)}");
     }
@@ -1888,10 +1855,10 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
     // The keys of the battery: the comprehension items (1 to 3, R to hear the line again), the production items (V held to speak, W to type,
     // Enter to send, N for no sé) and Esc (end the battery; the rest is skipped, and an answer in the air is waited for).
-    private void ReadCheckKeys(KeyboardState keys, Func<Keys, bool> pressed)
+    private void ReadCheckKeys(InputSnapshot input)
     {
         var check = _check!;
-        if (pressed(Keys.Escape))
+        if (input.Pressed(Keys.Escape))
         {
             if (check.IsTyping)
             {
@@ -1918,14 +1885,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         {
             for (var i = 0; i < CheckOptionKeys.Length; i++)
             {
-                if (pressed(CheckOptionKeys[i].Key) || pressed(CheckOptionKeys[i].Pad))
+                if (input.Pressed(CheckOptionKeys[i].Key) || input.Pressed(CheckOptionKeys[i].Pad))
                 {
                     PickCheck(i);
                     return;
                 }
             }
 
-            if (pressed(Keys.R))
+            if (input.Pressed(Keys.R))
             {
                 PlayCheckLine(entry);
             }
@@ -1935,14 +1902,14 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (check.IsTyping)
         {
-            if (pressed(Keys.Enter))
+            if (input.Pressed(Keys.Enter))
             {
                 if (!check.Entry.IsBlank)
                 {
                     SubmitTypedCheck(check.Entry.Text);
                 }
             }
-            else if (pressed(Keys.Back))
+            else if (input.Pressed(Keys.Back))
             {
                 _ = check.Entry.Backspace();
             }
@@ -1952,7 +1919,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (check.Listening)
         {
-            if (!keys.IsKeyDown(Keys.V))
+            if (!input.Down(Keys.V))
             {
                 EndCheckListening();
             }
@@ -1960,20 +1927,19 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return;
         }
 
-        if (pressed(Keys.V))
+        if (input.Pressed(Keys.V))
         {
             BeginCheckListening();
         }
-        else if (pressed(Keys.W) || pressed(Keys.Tab))
+        else if (input.Pressed(Keys.W) || input.Pressed(Keys.Tab))
         {
             check.IsTyping = true;
-            if (pressed(Keys.W))
+            if (input.Pressed(Keys.W))
             {
-                _swallowedOpenKey = 'w'; // the platform types the key once more: the text event must not take it
-                _swallowFrames = 2;
+                _swallow.Arm('w'); // the platform types the key once more: the text event must not take it
             }
         }
-        else if (pressed(Keys.N))
+        else if (input.Pressed(Keys.N))
         {
             SubmitButtonCheck();
         }
@@ -2268,56 +2234,56 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     // The book's keys (S20, S20b): Escape or J closes it; Tab (Shift and Tab turns back), Left and Right turn the page; Page Up and Page Down scroll.
     // Up and Down move the selection among the rows with a speaker button (the selection is kept on screen); a page with none scrolls a line. Enter plays
     // the selected row, Shift+Enter its slow recording.
-    private void ReadBookKeys(KeyboardState keys, Func<Keys, bool> pressed)
+    private void ReadBookKeys(InputSnapshot input)
     {
-        if (pressed(Keys.Escape) || pressed(Keys.J))
+        if (input.Pressed(Keys.Escape) || input.Pressed(Keys.J))
         {
             CloseBook();
             return;
         }
 
-        if (pressed(Keys.Tab))
+        if (input.Pressed(Keys.Tab))
         {
-            _book.Turn(forward: !(keys.IsKeyDown(Keys.LeftShift) || keys.IsKeyDown(Keys.RightShift)));
+            _book.Turn(forward: !(input.Shift));
         }
-        else if (pressed(Keys.Left))
+        else if (input.Pressed(Keys.Left))
         {
             _book.Turn(forward: false);
         }
-        else if (pressed(Keys.Right))
+        else if (input.Pressed(Keys.Right))
         {
             _book.Turn(forward: true);
         }
 
         var geometry = new BookGeometry(_canvas.Width, _canvas.Height);
         var lines = geometry.LinesVisible;
-        var shift = ShiftDown(keys);
-        if (shift && (pressed(Keys.Down) || pressed(Keys.Up)))
+        var shift = input.Shift;
+        if (shift && (input.Pressed(Keys.Down) || input.Pressed(Keys.Up)))
         {
             // Shift with Up or Down scrolls the right page a line (X03); Shift with Page Up or Page Down, a page of it.
-            _book.ScrollDetail(pressed(Keys.Down) ? BookGeometry.LineHeight : -BookGeometry.LineHeight);
+            _book.ScrollDetail(input.Pressed(Keys.Down) ? BookGeometry.LineHeight : -BookGeometry.LineHeight);
         }
-        else if (shift && (pressed(Keys.PageDown) || pressed(Keys.PageUp)))
+        else if (shift && (input.Pressed(Keys.PageDown) || input.Pressed(Keys.PageUp)))
         {
-            _book.ScrollDetail(pressed(Keys.PageDown) ? geometry.DetailHeight : -geometry.DetailHeight);
+            _book.ScrollDetail(input.Pressed(Keys.PageDown) ? geometry.DetailHeight : -geometry.DetailHeight);
         }
-        else if (pressed(Keys.PageDown))
+        else if (input.Pressed(Keys.PageDown))
         {
             _book.Scroll(lines);
         }
-        else if (pressed(Keys.PageUp))
+        else if (input.Pressed(Keys.PageUp))
         {
             _book.Scroll(-lines);
         }
-        else if (pressed(Keys.Down) || pressed(Keys.Up))
+        else if (input.Pressed(Keys.Down) || input.Pressed(Keys.Up))
         {
-            _bookControls.Move(pressed(Keys.Down) ? 1 : -1, new BookGeometry(_canvas.Width, _canvas.Height).LinesVisible);
+            _bookControls.Move(input.Pressed(Keys.Down) ? 1 : -1, new BookGeometry(_canvas.Width, _canvas.Height).LinesVisible);
         }
-        else if (pressed(Keys.Enter))
+        else if (input.Pressed(Keys.Enter))
         {
-            _ = _bookControls.Enter(ShiftDown(keys));
+            _ = _bookControls.Enter(input.Shift);
         }
-        else if (pressed(Keys.P) && _bookControls.PractiseFirst(new BookGeometry(_canvas.Width, _canvas.Height)) is { } practise)
+        else if (input.Pressed(Keys.P) && _bookControls.PractiseFirst(new BookGeometry(_canvas.Width, _canvas.Height)) is { } practise)
         {
             PractiseAgain(practise);
         }
@@ -2362,8 +2328,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         Console.WriteLine(_bookControls.PlayTarget(target, slow));
     }
-
-    private static bool ShiftDown(KeyboardState keys) => keys.IsKeyDown(Keys.LeftShift) || keys.IsKeyDown(Keys.RightShift);
 
     private void OpenBook()
     {

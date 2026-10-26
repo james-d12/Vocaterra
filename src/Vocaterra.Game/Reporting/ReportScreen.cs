@@ -35,7 +35,7 @@ public sealed class ReportScreen
     private readonly Func<SpriteFontBase> _font;
     private readonly ToastQueue _toasts;
     private readonly SoundFrontend _sound;
-    private readonly (KeyRepeater Backspace, KeyRepeater Delete, KeyRepeater Left, KeyRepeater Right) _repeat;
+    private readonly TextEditKeys _textEdits;
     private readonly Action<string> _log;
     private readonly Action<string> _error;
     private (Color[] Pixels, int Width, int Height)? _picture;
@@ -55,7 +55,7 @@ public sealed class ReportScreen
     /// <param name="font">The panel's font.</param>
     /// <param name="toasts">Where "Report saved" goes.</param>
     /// <param name="sound">Plays the saved cue.</param>
-    /// <param name="repeat">The repeats of the editing keys, shared with the dialogue's text box.</param>
+    /// <param name="textEdits">The repeats of the editing keys, shared with the dialogue's text box.</param>
     /// <param name="log">Where a line about the report goes (the console).</param>
     /// <param name="error">Where a report that could not be written is said.</param>
     public ReportScreen(
@@ -70,7 +70,7 @@ public sealed class ReportScreen
         Func<SpriteFontBase> font,
         ToastQueue toasts,
         SoundFrontend sound,
-        (KeyRepeater Backspace, KeyRepeater Delete, KeyRepeater Left, KeyRepeater Right) repeat,
+        TextEditKeys textEdits,
         Action<string> log,
         Action<string> error)
     {
@@ -85,7 +85,7 @@ public sealed class ReportScreen
         _font = font;
         _toasts = toasts;
         _sound = sound;
-        _repeat = repeat;
+        _textEdits = textEdits;
         _log = log;
         _error = error;
     }
@@ -143,54 +143,53 @@ public sealed class ReportScreen
     /// The panel's keys and clicks while it is open: Ctrl+Enter saves, Esc cancels (nothing is kept), Tab switches Bug and Feature request, and the
     /// keys edit the text.
     /// </summary>
-    public void HandleInput(KeyboardState keys, MouseState mouse, Func<Keys, bool> pressed, bool previousLeftDown)
+    public void HandleInput(InputSnapshot input)
     {
-        if (_repeat.Backspace.Step(keys.IsKeyDown(Keys.Back)))
+        var edits = _textEdits.Step(input.KeyboardState);
+        if (edits.Backspace)
         {
             _ = Panel.Press(ReportKey.Backspace);
         }
 
-        if (_repeat.Delete.Step(keys.IsKeyDown(Keys.Delete)))
+        if (edits.Delete)
         {
             _ = Panel.Press(ReportKey.Delete);
         }
 
-        if (_repeat.Left.Step(keys.IsKeyDown(Keys.Left)))
+        if (edits.Left)
         {
             _ = Panel.Press(ReportKey.Left);
         }
 
-        if (_repeat.Right.Step(keys.IsKeyDown(Keys.Right)))
+        if (edits.Right)
         {
             _ = Panel.Press(ReportKey.Right);
         }
 
         foreach (var (key, reportKey) in MoveKeys)
         {
-            if (pressed(key))
+            if (input.Pressed(key))
             {
                 _ = Panel.Press(reportKey);
             }
         }
 
         var outcome = ReportOutcome.None;
-        if (pressed(Keys.Escape))
+        if (input.Pressed(Keys.Escape))
         {
             outcome = Panel.Press(ReportKey.Escape);
         }
-        else if (pressed(Keys.Enter))
+        else if (input.Pressed(Keys.Enter))
         {
-            var ctrl = keys.IsKeyDown(Keys.LeftControl) || keys.IsKeyDown(Keys.RightControl);
-            outcome = Panel.Press(ctrl ? ReportKey.Save : ReportKey.Enter);
+            outcome = Panel.Press(input.Ctrl ? ReportKey.Save : ReportKey.Enter);
         }
-        else if (pressed(Keys.Tab))
+        else if (input.Pressed(Keys.Tab))
         {
             _ = Panel.Press(ReportKey.Tab);
         }
 
-        var leftDown = mouse.LeftButton == ButtonState.Pressed;
-        if (outcome == ReportOutcome.None && leftDown && !previousLeftDown
-            && ReportLayer.LayoutFor(_canvas.Width, _canvas.Height, _font()).ButtonAt(mouse.X, mouse.Y) is { } button)
+        if (outcome == ReportOutcome.None && input.LeftClicked
+            && ReportLayer.LayoutFor(_canvas.Width, _canvas.Height, _font()).ButtonAt(input.MouseState.X, input.MouseState.Y) is { } button)
         {
             outcome = Panel.Click(button);
         }
