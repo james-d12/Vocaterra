@@ -1,9 +1,7 @@
-using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
-using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
@@ -31,8 +29,6 @@ using Vocaterra.Game.UI.English;
 using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game;
-
-using SoundEventMapper = SoundEventMapper;
 
 /// <summary>
 /// The engine host of the 3D first-person scene, the prototype's only world (S2 to S4), and the composition root of the front-end (R16): the
