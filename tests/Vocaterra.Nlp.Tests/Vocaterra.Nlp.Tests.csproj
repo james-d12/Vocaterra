@@ -15,17 +15,23 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <!-- The managed ONNX Runtime's native library is not copied to the output folder: it would overwrite sherpa's libonnxruntime.so (CR-021), which
-         the Kokoro tests of this same project need. It is copied to ort-managed/ below, and NativeOnnxRuntimes.cs maps it in. -->
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" ExcludeAssets="native" />
+         the Kokoro tests of this same project need. It is copied to ort-managed/ below, and NativeOnnxRuntimes.cs maps it in.
+         GeneratePathProperty gives the package's install folder as $(PkgMicrosoft_ML_OnnxRuntime), whatever version Directory.Packages.props pins. -->
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" ExcludeAssets="native" GeneratePathProperty="true" />
   </ItemGroup>
 
-  <!-- The managed package's native library (the version Directory.Packages.props pins) in its own folder. Exists only after restore. -->
+  <!-- The managed package's native library in its own folder. The path comes from the restored package, so a version bump needs no edit here.
+       It is defined only after restore; on other operating systems or architectures the copy is skipped, and on Linux x64 a missing file is an error. -->
   <PropertyGroup>
-    <VocaterraOrtManagedNative>$(NuGetPackageRoot)microsoft.ml.onnxruntime/1.31.0/runtimes/linux-x64/native/libonnxruntime.so</VocaterraOrtManagedNative>
+    <VocaterraOrtManagedNative>$(PkgMicrosoft_ML_OnnxRuntime)/runtimes/linux-x64/native/libonnxruntime.so</VocaterraOrtManagedNative>
+    <VocaterraOrtManagedRequired Condition="'$([MSBuild]::IsOSPlatform(Linux))' == 'true' And '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'X64'">true</VocaterraOrtManagedRequired>
   </PropertyGroup>
   <ItemGroup>
     <None Include="$(VocaterraOrtManagedNative)" Condition="Exists('$(VocaterraOrtManagedNative)')" Link="ort-managed/libonnxruntime.so" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+  <Target Name="VocaterraRequireManagedOnnxRuntime" BeforeTargets="Build" Condition="'$(VocaterraOrtManagedRequired)' == 'true'">
+    <Error Condition="!Exists('$(VocaterraOrtManagedNative)')" Text="The managed ONNX Runtime native library was not found at '$(VocaterraOrtManagedNative)'. Without it the ort-managed copy is missing and the ONNX tests cannot load it. Restore the solution, or fix the path in this project." />
+  </Target>
 
   <ItemGroup>
     <Using Include="Xunit" />
