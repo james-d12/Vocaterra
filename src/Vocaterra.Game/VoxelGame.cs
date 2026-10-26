@@ -27,7 +27,6 @@ using Vocaterra.Game.Scripted;
 using Vocaterra.Game.Sound;
 using Vocaterra.Game.UI;
 using Vocaterra.Game.UI.Book;
-using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.English;
 using Vocaterra.Game.Utilities;
 
@@ -118,15 +117,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly FrameTimings _timings = new();
     private readonly WorldStepper _stepper;
     private readonly TurnPresenter _turns;
-    private readonly List<IFrameLayer> _layers = [];
     private readonly VoxelDebugOverlay _debug = new();
-    private SpriteBatch? _spriteBatch;
-    private Texture2D? _pixel;
-    private BlockAtlas? _blockAtlas;
-    private VoxelRenderer? _renderer;
-    private QualityPreset _preset = QualityPreset.For(QualityLevel.High);
-    private GreyscaleWorld? _colours;
-    private FrameView? _view;
+    private readonly SceneDrawer _drawer;
     private bool _captureWanted = true;
     private bool _firstUpdateSeen;
     private NpcFigure? _aimed;
@@ -206,16 +198,17 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _camera = new PlayerCamera(_sim, _look, _viewMode, _isSolid);
         _figures = new FigureDirector(scene, _sim, _look, _dialogue);
         _arm = new ArmPresenter(_sim, _isSolid, options.Dusk);
+        _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine);
         _reportScreen = new ReportScreen(
             _report,
             session,
             options.ReportKind,
             options.ReportDir,
             () => _sessionDirectory,
-            open => ReportStateBuilder.Build(session, (_look.YawSteps, _look.PitchSteps), open, _preset.Name, options.Greyscale, options.NoSpeech, _microphoneFound, options.UsesMicrophone),
+            open => ReportStateBuilder.Build(session, (_look.YawSteps, _look.PitchSteps), open, _drawer.Preset.Name, options.Greyscale, options.NoSpeech, _microphoneFound, options.UsesMicrophone),
             () => GraphicsDevice,
             _canvas,
-            () => _view!.Fonts.Get(FontProvider.NativeSize),
+            () => _drawer.View.Fonts.Get(FontProvider.NativeSize),
             _toasts,
             _sound,
             _textEdits,
@@ -232,8 +225,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _textEdits,
             _sound,
             _canvas,
-            () => _view!.Fonts.Get(FontProvider.NativeSize),
-            () => _view!,
+            () => _drawer.View.Fonts.Get(FontProvider.NativeSize),
+            () => _drawer.View,
             () => _aimed?.Name,
             options.IsScreenshotRun,
             Console.WriteLine);
@@ -258,7 +251,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             },
             Console.WriteLine);
         _lesson.OnRecapDone = _bookScreen.ShowPhrases; // the lesson's recap ends on the journal's phrases page (S17)
-        _controls = new ControlsHelp(() => ControlsLayer.MaxScrollFor(_view!));
+        _controls = new ControlsHelp(() => ControlsLayer.MaxScrollFor(_drawer.View));
         _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen);
         _craftingPanel = new CraftingPanel(_crafting, session, _sound, _canvas, () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen);
         if (options.IsScreenshotRun)
@@ -336,7 +329,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             options.Playtest,
             new CheckBatteryHooks(_shots.Request, () => _shots.Pending, () => _micCheck is { IsActive: true }, index => _scenario?.SkipTo(index), Exit, EndPlaytest),
             Console.WriteLine);
-        _micScreen = new MicCheckScreen(_micCheck, session, _listen, _sound, _canvas, () => _view!.Fonts.Get(FontProvider.NativeSize), options.IsScreenshotRun, () => _scenario is { IsDone: false } || _checks.Screen is { IsDone: false }, Console.WriteLine);
+        _micScreen = new MicCheckScreen(_micCheck, session, _listen, _sound, _canvas, () => _drawer.View.Fonts.Get(FontProvider.NativeSize), options.IsScreenshotRun, () => _scenario is { IsDone: false } || _checks.Screen is { IsDone: false }, Console.WriteLine);
         _playtestFlow = new PlaytestFlow(
             options.Playtest,
             options.IsPlaytestRecall,
@@ -424,85 +417,43 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <inheritdoc />
     protected override void LoadContent()
     {
-        _spriteBatch = new SpriteBatch(GraphicsDevice);
         _devices.Start();
-        _pixel = new Texture2D(GraphicsDevice, 1, 1);
-        _pixel.SetData([Color.White]);
-        _blockAtlas = new BlockAtlas(GraphicsDevice);
-        var started = MonotonicClock.Milliseconds();
-        _preset = _options.QualityPreset;
-        _renderer = new VoxelRenderer(GraphicsDevice, _blockAtlas, _sim.Grid, _preset, _options.Dusk);
         if (_options.ThirdPerson)
         {
             _viewMode.Set(CameraMode.ThirdPerson);
         }
 
-        _renderer.SetFigures(_figures.Figures);
-        _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _options.AssumeKnown);
-        Console.WriteLine($"voxel: quality {_preset.Name}, view distance {_preset.ViewDistance} blocks, fog from {VoxelRenderer.FogEndFor(_preset.ViewDistance) * VoxelRenderer.FogStartFraction:0} to {VoxelRenderer.FogEndFor(_preset.ViewDistance):0}, mesh budget {_preset.MeshBudgetMilliseconds:0} ms a frame (renderer ready in {MonotonicClock.Milliseconds() - started:0} ms)");
-        Console.WriteLine($"graphics: {GraphicsAdapter.DefaultAdapter.Description}, depth {GraphicsDevice.PresentationParameters.DepthStencilFormat}");
-        if (_options.Greyscale)
-        {
-            Console.WriteLine("greyscale: blocks whose noun is not known are grey (the playtest A/B, D-game-6); figures, sky and UI in colour");
-        }
+        _drawer.Load(GraphicsDevice, MakeView, LayerStack.Build(_debug, _lesson, _playtest));
         Console.WriteLine($"scene: {_scene.Name}, seed {_scene.Seed}, {_scene.TreeCount} trees, spawn {_scene.Spawn.Feet.X},{_scene.Spawn.Feet.Y},{_scene.Spawn.Feet.Z}, digest {_scene.Grid.ComputeDigestHex()[..16]}");
         _beacon.PlaceAtStart(_scene, _options.Beacon, loaded: _options.LoadPath is not null);
-
-        _view = new FrameView
-        {
-            Session = _session,
-            Dialogue = _dialogue,
-            Fonts = new FontProvider(AssetPaths.Font),
-            Pixel = _pixel,
-            Seed = _options.Seed,
-            Book = _book,
-            Recordings = _recordings,
-            Toasts = _toasts,
-            Inventory = _inventory,
-            Crafting = _crafting,
-            Voxel = _sim,
-            Camera3D = _camera.Camera,
-            Beacon = _beacon.Beacon,
-            Figures = _figures.Figures,
-            VoxelIcons = _blockAtlas,
-            Objective = _session.Objective,
-            Cards = _cards,
-            MicCheck = _micCheck,
-            ShowTips = _options.ShowsTips,
-            Playtest = _playtest,
-            Greyscale = _options.Greyscale,
-            Ending = _ending,
-        };
-        _layers.Add(new CrosshairLayer());
-        _layers.Add(new NpcLabelLayer());
-        _layers.Add(new BeaconArrowLayer());
-        _layers.Add(new TalkHintLayer());
-        _layers.Add(_debug);
-        _layers.Add(new HotbarLayer());
-        _layers.Add(new RecipePanelLayer());
-        _layers.Add(new ObjectiveLayer());
-        _layers.Add(new TipLayer());
-        _layers.Add(new SupportLayer());
-        _layers.Add(new LessonLayer(_lesson));
-        _layers.Add(new WordCardLayer());
-        _layers.Add(new DialogueBubbleLayer());
-        _layers.Add(new DialoguePanel());
-        _layers.Add(new ToastLayer());
-        _layers.Add(new EndingLayer());
-        _layers.Add(new BookLayer());
-        _layers.Add(new InventoryLayer());
-        _layers.Add(new CraftingLayer());
-        _layers.Add(new ControlsLayer());
-        _layers.Add(new CheckLayer());
-        _layers.Add(new MicCheckLayer());
-        _layers.Add(new ReportLayer()); // the report panel is the top of the screen (S21)
-        if (_playtest)
-        {
-            _layers.Add(new PlaytestHintLayer());
-        }
-
-        _layers.Add(new LoadingLayer());
     }
+
+    // The frame's view: what the layers draw from, the parts that stay for the run (the parts of each frame are set in Draw).
+    private FrameView MakeView(Texture2D pixel, BlockAtlas atlas) => new()
+    {
+        Session = _session,
+        Dialogue = _dialogue,
+        Fonts = new FontProvider(AssetPaths.Font),
+        Pixel = pixel,
+        Seed = _options.Seed,
+        Book = _book,
+        Recordings = _recordings,
+        Toasts = _toasts,
+        Inventory = _inventory,
+        Crafting = _crafting,
+        Voxel = _sim,
+        Camera3D = _camera.Camera,
+        Beacon = _beacon.Beacon,
+        Figures = _figures.Figures,
+        VoxelIcons = atlas,
+        Objective = _session.Objective,
+        Cards = _cards,
+        MicCheck = _micCheck,
+        ShowTips = _options.ShowsTips,
+        Playtest = _playtest,
+        Greyscale = _options.Greyscale,
+        Ending = _ending,
+    };
 
     /// <inheritdoc />
     protected override void Update(GameTime gameTime)
@@ -618,7 +569,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     /// <inheritdoc />
     protected override void Draw(GameTime gameTime)
     {
-        var view = _view!;
+        var view = _drawer.View;
         var viewport = GraphicsDevice.PresentationParameters;
         var width = viewport.BackBufferWidth;
         var height = viewport.BackBufferHeight;
@@ -628,7 +579,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var drawStart = MonotonicClock.Milliseconds();
 
         var alpha = (float)_accumulator.Alpha;
-        var farPlane = VoxelRenderer.FarPlaneFor(_preset.ViewDistance);
+        var farPlane = VoxelRenderer.FarPlaneFor(_drawer.Preset.ViewDistance);
         var eye = _camera.Place(alpha, width, height, farPlane, canvasWidth, canvasHeight);
         var shoulder = _camera.Shoulder;
 
@@ -648,21 +599,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         view.LessonStripBox = LessonLayer.LayoutFor(view, _lesson) is { } lessonStrip ? lessonStrip.Box : null; // the cards keep clear of it (S22)
 
-        _colours!.Refresh();
-        // A scripted run builds every mesh it needs before the picture; a live one spends its budget a frame (more while the world is still loading in).
-        _renderer!.Remesh(_camera.Camera.Eye, _camera.Camera.Frustum, _options.IsScreenshotRun ? null : _session.Worker!.IsReady ? _preset.MeshBudgetMilliseconds : 30);
-        GraphicsDevice.Clear(_renderer.ClearColour);
-        _renderer.DrawWorld(_camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _renderer.Lights));
-
-        var spriteBatch = _spriteBatch!;
-        UiTransform.Set(width, height, canvasWidth, canvasHeight);
-        spriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: UiTransform.Matrix);
-        foreach (var layer in _layers)
-        {
-            layer.Draw(spriteBatch, view);
-        }
-
-        spriteBatch.End();
+        _drawer.DrawWorld(GraphicsDevice, _camera.Camera, _sim.Target?.Block, _beacon.Beacon.Target, _sim.Tick, shoulder ? _figures.Avatar() : null, shoulder ? null : _arm.Frame(eye, _drawer.Renderer.Lights));
+        _drawer.DrawLayers(width, height, canvasWidth, canvasHeight);
         _reportScreen.TakePictureIfRequested(); // F8's frame: the picture as the player saw it, before the report panel is drawn (the panel opens after this frame)
 
         var drawEnd = MonotonicClock.Milliseconds();
@@ -675,8 +613,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             height,
             new WindowSizes(_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight, Window.ClientBounds.Width, Window.ClientBounds.Height),
             _timings,
-            _renderer,
-            _preset);
+            _drawer.Renderer,
+            _drawer.Preset);
     }
 
     /// <inheritdoc />
@@ -711,10 +649,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _sound.Mixer.WriteSummary();
         _soundLog?.Dispose();
         _soundOutput.Dispose();
-        _renderer?.Dispose();
-        _blockAtlas?.Dispose();
-        _pixel?.Dispose();
-        _spriteBatch?.Dispose();
+        _drawer.Dispose();
         base.UnloadContent();
     }
 
