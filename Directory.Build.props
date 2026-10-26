@@ -1,7 +1,7 @@
 <Project>
 
-  <!-- Build settings for the whole repository. The language core is the projects named Vocaterra.Nlp.* (its libraries in src/, its tests in
-       tests/, its tools in tools/); the game is Vocaterra.Simulation, Vocaterra.Game, Vocaterra.MonoGame, Vocaterra.Host and
+  <!-- Build settings for the whole repository. The language core is the engine project Vocaterra.Nlp (its library in src/Vocaterra.Nlp) and the
+       projects named Vocaterra.Nlp.* (its tests in tests/, its tools in tools/); the game is Vocaterra.Simulation, Vocaterra.Game, Vocaterra.MonoGame, Vocaterra.Host and
        Vocaterra.SpeechRender, with their tests. The core/game boundary (docs/nlp/adr/0009-core-and-game-boundary.md) is by project name,
        so what only the core needs is keyed on VocaterraCore below, and what only the game needs on its being false. -->
   <PropertyGroup>
@@ -16,7 +16,10 @@
     <AnalysisLevel>latest</AnalysisLevel>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <IsPackable>false</IsPackable>
+    <!-- The core is the engine project Vocaterra.Nlp (src/Vocaterra.Nlp, ADR 0012), its tests and tools (Vocaterra.Nlp.*). MSBuild has no
+         Or in a property value, so the engine's exact name is a second assignment. -->
     <VocaterraCore>$(MSBuildProjectName.StartsWith('Vocaterra.Nlp.'))</VocaterraCore>
+    <VocaterraCore Condition="'$(MSBuildProjectName)' == 'Vocaterra.Nlp'">true</VocaterraCore>
   </PropertyGroup>
 
   <!-- The language core's own: its default namespace and the XML-doc warning switch. -->

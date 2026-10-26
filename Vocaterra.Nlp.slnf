@@ -1,0 +1,14 @@
+{
+  "solution": {
+    "path": "Vocaterra.sln",
+    "projects": [
+      "src\\Vocaterra.Nlp\\Vocaterra.Nlp.csproj",
+      "tests\\Vocaterra.Nlp.Tests\\Vocaterra.Nlp.Tests.csproj",
+      "tests\\Vocaterra.Nlp.Fuzzing.Tests\\Vocaterra.Nlp.Fuzzing.Tests.csproj",
+      "tests\\Vocaterra.Nlp.Golden.Tests\\Vocaterra.Nlp.Golden.Tests.csproj",
+      "tools\\Vocaterra.Nlp.Cli\\Vocaterra.Nlp.Cli.csproj",
+      "tools\\Vocaterra.Nlp.Bench\\Vocaterra.Nlp.Bench.csproj",
+      "tools\\Vocaterra.Nlp.ContentBuilder\\Vocaterra.Nlp.ContentBuilder.csproj"
+    ]
+  }
+}

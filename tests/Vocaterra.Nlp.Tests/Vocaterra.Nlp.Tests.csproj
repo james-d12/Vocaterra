@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The engine's unit tests: the former eleven unit test projects, one folder per area (Asr, Audio, Content, Core, Decision, Evaluation,
+       Language, Phonology, Pipeline, Pronunciation, Response), plus Architecture/ (the layering test). They see the engine's internals through
+       InternalsVisibleTo (Directory.Build.props: Vocaterra.Nlp.Tests). The fuzz and golden suites stay separate projects. -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NetArchTest.Rules" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <!-- The managed ONNX Runtime's native library is not copied to the output folder: it would overwrite sherpa's libonnxruntime.so (CR-021), which
+         the Kokoro tests of this same project need. It is copied to ort-managed/ below, and NativeOnnxRuntimes.cs maps it in. -->
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" ExcludeAssets="native" />
+  </ItemGroup>
+
+  <!-- The managed package's native library (the version Directory.Packages.props pins) in its own folder. Exists only after restore. -->
+  <PropertyGroup>
+    <VocaterraOrtManagedNative>$(NuGetPackageRoot)microsoft.ml.onnxruntime/1.31.0/runtimes/linux-x64/native/libonnxruntime.so</VocaterraOrtManagedNative>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(VocaterraOrtManagedNative)" Condition="Exists('$(VocaterraOrtManagedNative)')" Link="ort-managed/libonnxruntime.so" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Vocaterra.Nlp.Testing" />
+    <Using Include="Vocaterra.Nlp.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Vocaterra.Nlp/Vocaterra.Nlp.csproj" />
+    <ProjectReference Include="../../tools/Vocaterra.Nlp.Bench/Vocaterra.Nlp.Bench.csproj" />
+    <ProjectReference Include="../../tools/Vocaterra.Nlp.Cli/Vocaterra.Nlp.Cli.csproj" />
+    <ProjectReference Include="../../tools/Vocaterra.Nlp.ContentBuilder/Vocaterra.Nlp.ContentBuilder.csproj" />
+  </ItemGroup>
+
+  <!-- The bundle (content/game-v1) and the grammar cache beside it are found by walking up from the test assembly, not copied. The importer
+       fixture (Content/Data) keeps its output path Data/, as the tests expect; the model manifest is copied next to the test assembly. -->
+  <ItemGroup>
+    <Compile Include="../Shared/GameBundleLocator.cs" Link="Shared/GameBundleLocator.cs" />
+    <Compile Include="../Shared/TempBundle.cs" Link="Shared/TempBundle.cs" />
+    <None Include="../../models/manifest.json" Link="models/manifest.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Content/Data/**/*" Link="Data/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- The Language tests read the bundle's lexicon files from content/lexicon beside the test assembly (the Language project's tests did so alone). -->
+  <ItemGroup>
+    <None Include="../../content/game-v1/lexicon/*.json" Exclude="../../content/game-v1/lexicon/*.source.json" Link="content/lexicon/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

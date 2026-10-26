@@ -269,7 +269,7 @@ weakened: each fix is at the source, or an independent model brought in line wit
   A finite verb right after `ir a` (`vais`) was reported by the near-future check (expected: the infinitive) and, when the sentence also had a past-time word
   (`ayer`), once more by the past-tense check (expected: the preterite): two errors with one tag and one span. The verbs after `ir a` are now found in one place
   (`FormsAfterIrA`) and the past-tense check leaves them to the near-future check. Regression: `NearFutureTenseTests.AVerbAfterIrAWithAPastMarkerIsReportedOnce` and
-  `NoTwoErrorsShareATagAndASpanWhenAPastMarkerMeetsIrAAndAFiniteVerb` in `tests/Vocaterra.Nlp.Language.Tests`.
+  `NoTwoErrorsShareATagAndASpanWhenAPastMarkerMeetsIrAAndAFiniteVerb` in `tests/Vocaterra.Nlp.Tests/Language`.
 - **The sentence realiser did not know time adverbs written into a pattern** (the suite's own generator, `Generation/SentenceRealizer.cs`; found by O3, O4 and O5,
   seeds `aT2NgQa-TLO9`, `0aWmfyhjNR41`, `3T-JO84wBeq9`). The game's grammars write `(mañana|ayer|hoy)? [VERB:ir] a [VERB:comer] ... (mañana|ayer|hoy)?`. The realiser
   drew the tense at random, so it produced `ayer vas a la casa` and `mañana ... ayer` as "correct" sentences, and made the verb after `ir a` a conjugated form (`voy a
@@ -299,22 +299,22 @@ weakened: each fix is at the source, or an independent model brought in line wit
   was recast as `una grande queso`, because the invariant adjective `grande` has a feminine reading that came first. The builder now looks
   through the adjectives to the noun the numeral quantifies and falls back to the next word only when there is no noun. Found by O5
   (CsCheck seed `2PhTP0PVr4W1`, input `ellos compran taberna 1 grande queso`). Regression: `RecastBuilderTests.DigitsAreSpelledOutBeforeSpeaking`
-  (`tengo 1 grande queso`, `tengo 1 buena espada`) in `tests/Vocaterra.Nlp.Response.Tests`.
+  (`tengo 1 grande queso`, `tengo 1 buena espada`) in `tests/Vocaterra.Nlp.Tests/Response`.
 - **`Accents.Strip` and `SpanishPhoneticKey.Compute` threw `ArgumentException` on a lone surrogate** (`Vocaterra.Nlp.Language`; the stage-1 known finding about
   ill-formed UTF-16). Both reached `string.Normalize`, which rejects ill-formed UTF-16, and a recognizer or a keyboard can deliver one. An internal
   `Utf16.ReplaceLoneSurrogates` now replaces each lone surrogate with U+FFFD at the entry of `TextNormalizer.Normalize` (which already treated it as
   a separator), `Accents.Strip` and `SpanishPhoneticKey.Compute`; valid pairs are untouched. The stage-1 generator guard is gone: the noise
   generator now splices the adversarial token in last and verbatim, and O1 feeds the raw text to all three entry points. Found by O1 (seed
-  `cA-a9vcyA8R1`). Regression: `IllFormedUtf16Tests` in `tests/Vocaterra.Nlp.Language.Tests/Normalization`.
+  `cA-a9vcyA8R1`). Regression: `IllFormedUtf16Tests` in `tests/Vocaterra.Nlp.Tests/Language/Normalization`.
 - **`SpanishG2p.Phonemize` threw `ArgumentException` on a lone surrogate** (`Vocaterra.Nlp.Phonology`). `G2pNormalizer` handed the text to `string.Normalize`
   as well; it now reads a lone surrogate as a word separator, like any other non-letter. Found by O8 (seed `4Y4ZiHH2bn31`). Regression:
-  `IllFormedUtf16Tests` in `tests/Vocaterra.Nlp.Phonology.Tests`.
+  `IllFormedUtf16Tests` in `tests/Vocaterra.Nlp.Tests/Phonology`.
 - **A lexicon entry without a `features` property, and a lexicon file without `entries`, made the content loader throw `NullReferenceException`**
   (`Vocaterra.Nlp.Language`). A missing property arrives as null although the records are non-nullable (`RespectNullableAnnotations` only rejects an explicit
   null); `LexiconSchema.Validate` dereferenced `Features` and `Lexicon.Load` enumerated `Entries`, so a damaged `lexicon/*.json` escaped the loader's
   `ContentValidationException` as an unhandled `NullReferenceException`. Both now fail with a `FormatException` that the loader reports as a
   problem naming the file. Found by O15 (seed `0003TzidR6n1`, a flipped bit in a key of `lexicon/seed.json`). Regression: four new cases of
-  `LexiconTests.InvalidDocumentsAreRejected` in `tests/Vocaterra.Nlp.Language.Tests`.
+  `LexiconTests.InvalidDocumentsAreRejected` in `tests/Vocaterra.Nlp.Tests/Language`.
 
 Found when the imported lexicon was added (M17a). The seeds belong to the lexicon of that moment and do not reproduce with the final one; the regression tests do.
 
@@ -322,7 +322,7 @@ Found when the imported lexicon was added (M17a). The seeds belong to the lexico
   (`habla`, `come`, `está`), so `tú habla` agreed with `tú`, and the correction of `ella está alta` was `eres` (the first reading of `está` is the imperative
   of `estar`, second person). The person check and the copula check now use the declarative readings. Found by O4 (seed `dU3ctY0Mvpx9`, a ser/estar mutation) and
   O5 (seed `4ybQyIqiaD61`). Regression: `AmbiguousReadingTests.AnImperativeThatIsSpelledLikeTheThirdPersonDoesNotExcuseAPersonMistake` and
-  `TheExpectedCopulaFormComesFromTheDeclarativeReadingNotFromTheImperative` in `tests/Vocaterra.Nlp.Language.Tests/Analysis`.
+  `TheExpectedCopulaFormComesFromTheDeclarativeReadingNotFromTheImperative` in `tests/Vocaterra.Nlp.Tests/Language/Analysis`.
 - **A form that is an adjective under two lemmas was classified by whichever sorts first** (`Vocaterra.Nlp.Language`, O5). `ocupada` is a lemma of its own ("pregnant") next to
   `ocupado`; `ella es ocupada` passed the ser/estar check because the first reading's lemma is not in the estar class. The ser/estar class and the prenominal
   check now look at every adjective reading. Found by O5 (seed `8Wkp2ivvMDP1`). Regression: `AFormThatIsAnAdjectiveUnderTwoLemmasIsClassifiedByAllOfThem`.
@@ -339,7 +339,7 @@ Found and fixed in M18 (the seeds belong to the code of that moment and do not r
   was `conj.tense` (`libro` is `librar` in the first person), `yo lanza` passed or failed by the order of the readings, `cuánto cuesta la espada` was `gender.agree` (`cuánto` the adjective
   agreeing with `cuesta` the noun), `tú ayudas` and `las ayudas` could not both be right. `ReadingResolver` now narrows each word to one reading from local syntax, the slot grammar and, last,
   the reading with the fewest errors, and every check runs on that reading (design in [docs/nlp/PIPELINE.md](../../docs/nlp/PIPELINE.md#4-linguistic-analysis-d0)). Regression:
-  `HomographSentencesTests` (47 correct sentences, 20 more under the grammars of the bundle, 26 incorrect ones that keep their mistake, the `cuánto cuesta` family) and `ReadingResolverTests` in `tests/Vocaterra.Nlp.Language.Tests/Analysis`, and the
+  `HomographSentencesTests` (47 correct sentences, 20 more under the grammars of the bundle, 26 incorrect ones that keep their mistake, the `cuánto cuesta` family) and `ReadingResolverTests` in `tests/Vocaterra.Nlp.Tests/Language/Analysis`, and the
   matcher bindings in `SlotGrammarTests`. With the CLI (`eval --transcript ... --prompt buy-item-open`) `ayer compré un libro` went from correctness 0.75 and `conj.tense` (`libro` -> `libré`) to
   correctness 1 and no errors, and so do the 19 homograph sentences checked on both `buy-item-open` and `offer-items-open` (`quiero comprar una lanza`, `ayer compré una lanza`,
   `el vino es bueno`, `él vino ayer`, `tú ayudas`, `nosotros comemos como siempre`, ...); `cuánto cuesta la espada`, `el escudo`, `la poción` and `la lanza` on `ask-price-open` are correctness 1

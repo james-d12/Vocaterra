@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The language core as one assembly (ADR 0012). Its folders are the former stage projects: Core, Audio, Asr, Phonology, Pronunciation,
+       Language, Evaluation, Decision, Response, Content and Pipeline. Their namespaces are unchanged (Vocaterra.Nlp.<Folder>). The layering
+       between the folders is no longer enforced by the compiler; tests/Vocaterra.Nlp.Tests/Architecture/LayeringTests.cs enforces it. -->
+  <PropertyGroup>
+    <Description>Language core of Vocaterra.NLP: contracts, audio front end, speech recognizer adapters, phonology, pronunciation scoring, language analysis, evaluation, learner decisions, responses, content bundles and the utterance pipeline, in one assembly.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Vosk" />
+    <PackageReference Include="org.k2fsa.sherpa.onnx" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" />
+  </ItemGroup>
+
+  <!-- The resources keep the logical names they had as separate projects; the paths are relative to this project, which sits at the same depth
+       as the old stage projects did. -->
+  <ItemGroup>
+    <EmbeddedResource Include="../../content/game-v1/lexicon/seed.json" LogicalName="Vocaterra.Nlp.Language.Lexicon.seed.json" />
+    <EmbeddedResource Include="Phonology/Data/exceptions.json" LogicalName="Vocaterra.Nlp.Phonology.Data.exceptions.json" />
+    <EmbeddedResource Include="Pronunciation/Data/espeak-to-vocaterra.json" LogicalName="Vocaterra.Nlp.Pronunciation.Data.espeak-to-vocaterra.json" />
+  </ItemGroup>
+
+</Project>
