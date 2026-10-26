@@ -20,11 +20,10 @@ tests are the check (section 7).
 - **Branch:** `feature/organise`, not pushed by the agent; the owner merges into `main` by pull request (never push to `main`, CLAUDE.md).
 - **Phase 1's commits:** `f7d1f6d` (the scripted-runs doc) and `5350c7d` (step 1) to `e5779e9` (steps 11e and 12), one per step; `fbc8ed6`
   in between is the owner's own clean-up.
-- **The owner's three staged files.** `src/Vocaterra.Game.Core/Session/GameBundle.cs`, `.../Session/Objective.cs` and
-  `src/Vocaterra.Game/Sound/SoundSetup.cs` are staged with namespace changes (GameBundle and Objective to `Vocaterra.Game.Core.Content`,
-  SoundSetup to `Vocaterra.Game.Core.Sound`) while the working copy is back at HEAD. They are the owner's experiment: never stage them, and
-  commit with explicit pathspecs that exclude them (`git commit -- <paths> ':(exclude)<file>'`). Ask the owner whether to finish or drop them
-  before batch 3 (SoundSetup is in it).
+- **The namespace moves that were tried and reverted.** `225c76a` moved `GameBundle` and `Objective` to `Vocaterra.Game.Core.Content` and
+  `SoundSetup` to `Vocaterra.Game.Core.Sound` without updating their users, and broke the build; the next commit reverted them. If they are
+  wanted, they belong in batch 3 (`SoundSetup`) or a batch of their own, done with their users. Commit with explicit pathspecs
+  (`git commit -- <paths>`) so that nothing staged by someone else goes into a commit.
 - **The owner works in the same tree** (Rider) while an agent works: a file can appear or change under you (an unused-using clean-up landed
   mid-session). Check `git status` and `git log` before each commit; Rider's builds and test runs do not go through `scripts/limited.sh`, so a
   heavy command may wait for them, and the machine may be busy (section 8).
@@ -141,7 +140,7 @@ They are presentation by the guideline; being engine-free, they stay unit-tested
 
 Each batch is a few commits; each commit builds, formats and passes `Vocaterra.Game.Tests`; each batch ends with the full check (section 7).
 
-0. **Before anything:** settle the owner's three staged files (section 2); build; take your own baseline:
+0. **Before anything:** check `git status` and `git log` (section 2); build; take your own baseline:
    `scripts/scripted-runs.sh /tmp/r16p2-base` (see `docs/game/SCRIPTED_RUNS.md`). Run `scripts/core-move-scan.py` to see the starting point.
 1. **Leaves with no Game dependency:** TickAccumulator, FrameStats, BusyFrameStats, TurnWatchdog, ScreenshotGate, ShotRequest,
    ScriptItemNames, PlaytestEnd, GuideApproach, VerbReading, ToastQueue, TextEntry and AccentShortcuts, InputFocus and KeyRepeater,
@@ -188,7 +187,7 @@ it misses names used only through members, so let the build confirm a removal); 
 - **Scripted runs:** nine of the sixteen land their turns a few ticks apart from one capture to the next, with the same binary (the worker's
   speed); `--report-open` never ends a run (by S21's design), so it is not in the set; a run that seems stuck may be waiting for `limited.sh`'s
   lock behind another heavy command (it says so on its first line).
-- **The owner's parallel edits** (section 2): commit with explicit pathspecs; never `git add -A` without excluding the owner's files.
+- **The owner's parallel edits** (section 2): commit with explicit pathspecs; check `git status` and `git log` first, as a commit can land under you.
 - **Shell:** quote heredocs (`<<'EOF'`) that carry Markdown: an unquoted one runs the backticked text as commands. The sandbox refuses command
   lines with the words `eval` or `hash` (CLAUDE.md).
 - **`dotnet format`** reported no IDE0005 (unused usings are not enforced), which is why `scripts/audit-usings.py` exists.
