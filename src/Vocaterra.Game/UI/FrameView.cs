@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Graphics;
@@ -65,7 +66,7 @@ public sealed class FrameView
     public required IItemIcons VoxelIcons { get; init; }
 
     /// <summary>The beacon (where the player is being sent), or <see langword="null"/>.</summary>
-    public VoxelBeacon? Beacon { get; init; }
+    public Beacon? Beacon { get; init; }
 
     /// <summary>The NPC figures, whose names the label layer draws.</summary>
     public IReadOnlyList<NpcFigure> Figures { get; init; } = [];

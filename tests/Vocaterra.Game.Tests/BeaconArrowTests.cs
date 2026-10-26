@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Mathematics;
+using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Layout;
@@ -150,7 +151,7 @@ public sealed class BeaconArrowTests
     [Fact]
     public void TheBeaconHoldsItsTargetAndClearsWhenThePlayerArrives()
     {
-        var beacon = new VoxelBeacon();
+        var beacon = new Beacon();
         Assert.False(beacon.IsSet);
         Assert.False(beacon.ClearIfReached(0, 0));
         beacon.Set(new BlockPos(60, 7, 82), "río");
@@ -158,8 +159,8 @@ public sealed class BeaconArrowTests
         Assert.Equal("río", beacon.Label);
         Assert.False(beacon.ClearIfReached(20, 20));
         Assert.True(beacon.IsSet);
-        Assert.False(beacon.ClearIfReached(60.5, 82.5 - VoxelBeacon.ReachedDistance - 0.5));
-        Assert.True(beacon.ClearIfReached(60.5, 82.5 - VoxelBeacon.ReachedDistance + 0.5));
+        Assert.False(beacon.ClearIfReached(60.5, 82.5 - Beacon.ReachedDistance - 0.5));
+        Assert.True(beacon.ClearIfReached(60.5, 82.5 - Beacon.ReachedDistance + 0.5));
         Assert.False(beacon.IsSet);
         beacon.Set(new BlockPos(1, 2, 3));
         beacon.Clear();
@@ -171,7 +172,7 @@ public sealed class BeaconArrowTests
     public void TheBeaconCanBeSetOnANamedPointOfTheScene()
     {
         var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), 42);
-        var beacon = new VoxelBeacon();
+        var beacon = new Beacon();
         Assert.True(beacon.SetPoint(scene, "river", PointLabels.For("river")));
         Assert.Equal(scene.Point("river"), beacon.Target);
         Assert.Equal("río", beacon.Label);

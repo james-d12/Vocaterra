@@ -6,7 +6,6 @@ using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
-using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Sound;
 using Vocaterra.Game.UI;
@@ -331,7 +330,7 @@ public sealed class PhraseSupportFrontendTests
         private void OpenTalk(string npc)
         {
             var opening = Session.OpenTalk(npc, teachKeyWords: true);
-            Dialogue.Open(opening, NpcFigures.LabelOf(npc), Session.ReviewLine);
+            Dialogue.Open(opening, NpcNames.LabelOf(npc), Session.ReviewLine);
         }
 
         private void CloseTalk()

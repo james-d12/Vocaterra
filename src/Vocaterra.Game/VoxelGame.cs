@@ -10,6 +10,7 @@ using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Mathematics;
+using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Reporting;
@@ -450,7 +451,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     public int ExitCode { get; private set; }
 
     /// <summary>The beacon: set it to send the player somewhere (a column stands on the block and an arrow points to it from the screen edge).</summary>
-    public VoxelBeacon Beacon { get; } = new();
+    public Beacon Beacon { get; } = new();
 
     /// <summary>The 3D simulation (read it; commands go through the game's input).</summary>
     public VoxelSimulation Simulation => _sim;
@@ -1924,7 +1925,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     private void OpenDialogueOn(string npc, char? openedBy)
     {
         var opening = _session.OpenTalk(npc, teachKeyWords: true);
-        _dialogue.Open(opening, NpcFigures.LabelOf(npc), _session.ReviewLine, _session.RetryNote);
+        _dialogue.Open(opening, NpcNames.LabelOf(npc), _session.ReviewLine, _session.RetryNote);
         _voice.Say(npc, opening.Lines);
         if (openedBy == 't')
         {
@@ -2060,9 +2061,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         var eye = (x: (double)_currentEye.X, y: (double)_currentEye.Y, z: (double)_currentEye.Z);
         foreach (var figure in _figures)
         {
-            var point = FigureAim.BodyOf(figure);
-            if (FigureAim.Hits(eye, _look.Yaw, _look.Pitch, point)
-                && !NpcLabelLayer.Occluded(_sim, _currentEye, ((float)point.X, (float)point.Y, (float)point.Z), FigureAim.Distance(eye, point)))
+            var point = NpcAim.BodyOf(figure.Feet);
+            if (NpcAim.Hits(eye, _look.Yaw, _look.Pitch, point)
+                && !LineOfSight.Blocked(_sim.Grid, (_currentEye.X, _currentEye.Y, _currentEye.Z), ((float)point.X, (float)point.Y, (float)point.Z), NpcAim.Distance(eye, point)))
             {
                 return figure;
             }

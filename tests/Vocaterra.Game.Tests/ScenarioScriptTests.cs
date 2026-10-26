@@ -5,7 +5,6 @@ using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
-using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.UI;
 using Vocaterra.Game.Utilities;
@@ -85,7 +84,7 @@ public sealed class ScenarioScriptTests
         {
             var opening = Session.OpenTalk(npc);
             Openings.Add(opening);
-            Dialogue.Open(opening, NpcFigures.LabelOf(npc), Session.Review?.Question);
+            Dialogue.Open(opening, NpcNames.LabelOf(npc), Session.Review?.Question);
         }
 
         private void CloseTalk()

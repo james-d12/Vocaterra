@@ -276,7 +276,7 @@ public static class ChunkMesher
     }
 
     /// <summary>The bit of a block kind in a kinds mask (one bit per <see cref="BlockId"/> value; every kind is below 64).</summary>
-    public static ulong KindBit(BlockId id) => 1UL << (int)id;
+    public static ulong KindBit(BlockId id) => BlockKinds.Bit(id);
 
     /// <summary>Whether a block kind is drawn grey: its bit is set in the grey mask (the greyscale A/B, see <see cref="GreyscaleWorld"/>).</summary>
     public static bool IsGrey(BlockId id, ulong greyKinds) => (greyKinds & KindBit(id)) != 0;

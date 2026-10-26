@@ -2,8 +2,6 @@ using System.Globalization;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Vocaterra.Game.Core.Mathematics;
-using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.UI.Dialogue;
@@ -82,7 +80,7 @@ public sealed class NpcLabelLayer : IFrameLayer
             var (x, y, z) = figure.LabelPosition;
             var point = camera.Screen.Project(x, y, z);
             var distance = Math.Sqrt(Math.Pow(x - eye.X, 2) + Math.Pow(y - eye.Y, 2) + Math.Pow(z - eye.Z, 2));
-            if (!point.InFront || distance > FullDistance + FadeDistance || Occluded(sim, eye, (x, y, z), distance))
+            if (!point.InFront || distance > FullDistance + FadeDistance || LineOfSight.Blocked(sim.Grid, (eye.X, eye.Y, eye.Z), (x, y, z), distance))
             {
                 continue;
             }
@@ -95,22 +93,6 @@ public sealed class NpcLabelLayer : IFrameLayer
             DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, new Color(255, 214, 64) * alpha);
             DrawHelpers.Outlined(spriteBatch, font, figure.Label, new Vector2(box.X + 7, box.Y + 3), Color.White * alpha);
         }
-    }
-
-    /// <summary>Whether a solid block lies between the eye and the point (both in blocks), measured with the simulation's own ray.</summary>
-    public static bool Occluded(VoxelSimulation sim, Vector3 eye, (float X, float Y, float Z) target, double distance)
-    {
-        if (distance < 0.5)
-        {
-            return false;
-        }
-
-        const double U = VoxelPhysics.UnitsPerBlock;
-        var dx = (int)Math.Round((target.X - eye.X) / distance * Angles.One);
-        var dy = (int)Math.Round((target.Y - eye.Y) / distance * Angles.One);
-        var dz = (int)Math.Round((target.Z - eye.Z) / distance * Angles.One);
-        var hit = BlockRay.Cast(sim.Grid, (int)(eye.X * U), (int)(eye.Y * U), (int)(eye.Z * U), dx, dy, dz, (long)((distance - 0.3) * U));
-        return hit is { } h && BlockDefinition.Get(h.Id).Solid;
     }
 }
 

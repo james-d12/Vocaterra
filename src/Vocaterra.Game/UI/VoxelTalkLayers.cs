@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics;
 
 namespace Vocaterra.Game.UI;
@@ -33,7 +34,7 @@ public sealed class TalkHintLayer : IFrameLayer
 
 /// <summary>
 /// A short label drawn over a fixed point of the scene (S3: the signpost's <c>Tienda / Río</c>). It is hidden when a solid block is in the way
-/// (<see cref="NpcLabelLayer.Occluded"/>), and fades like the NPC labels.
+/// (<see cref="LineOfSight.Blocked"/>), and fades like the NPC labels.
 /// </summary>
 /// <param name="Text">The label.</param>
 /// <param name="X">The point on x, in blocks.</param>
@@ -60,7 +61,7 @@ public sealed class WorldLabelLayer(IReadOnlyList<WorldLabel> labels) : IFrameLa
             var point = camera.Screen.Project(label.X, label.Y, label.Z);
             var distance = Math.Sqrt(Math.Pow(label.X - eye.X, 2) + Math.Pow(label.Y - eye.Y, 2) + Math.Pow(label.Z - eye.Z, 2));
             if (!point.InFront || distance > NpcLabelLayer.FullDistance + NpcLabelLayer.FadeDistance
-                || NpcLabelLayer.Occluded(sim, eye, (label.X, label.Y, label.Z), distance))
+                || LineOfSight.Blocked(sim.Grid, (eye.X, eye.Y, eye.Z), (label.X, label.Y, label.Z), distance))
             {
                 continue;
             }

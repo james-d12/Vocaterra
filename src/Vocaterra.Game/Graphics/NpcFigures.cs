@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Mathematics;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 
@@ -89,20 +90,11 @@ public static class NpcFigures
     /// <summary>The name of the player's figure for <see cref="PartsOf"/> (the figure drawn over the shoulder).</summary>
     public const string PlayerName = "player";
 
-    /// <summary>The Spanish name shown over an NPC.</summary>
-    public static string LabelOf(string npcName) => npcName switch
-    {
-        "guide" => "Guía",
-        "shopkeeper" => "Tendero",
-        "villager" => "Aldeano",
-        _ => npcName,
-    };
-
     /// <summary>The figures of a scene's NPCs, in the scene's order.</summary>
     public static IReadOnlyList<NpcFigure> FromScene(Scene scene)
     {
         ArgumentNullException.ThrowIfNull(scene);
-        return scene.Npcs.Select(static n => new NpcFigure(n.Name, LabelOf(n.Name), n.Feet, n.Yaw)).ToList();
+        return scene.Npcs.Select(static n => new NpcFigure(n.Name, NpcNames.LabelOf(n.Name), n.Feet, n.Yaw)).ToList();
     }
 
     /// <summary>The parts of a figure by its scene name (or <see cref="PlayerName"/>); an unknown name gets a plain grey figure. The array is shared: do not change it.</summary>

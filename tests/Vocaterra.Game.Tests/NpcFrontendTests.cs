@@ -153,18 +153,18 @@ public sealed class NpcFrontendTests
         Assert.Equal(["guide", "shopkeeper", "villager"], figures.Select(static f => f.Name).Order(StringComparer.Ordinal));
         foreach (var figure in figures)
         {
-            var chest = FigureAim.BodyOf(figure);
+            var chest = NpcAim.BodyOf(figure.Feet);
             var eye = (x: chest.X, y: chest.Y + 0.42, z: chest.Z + 2.0); // two blocks south of the figure at eye height (the stand-off of a player who comes from the south)
             const int north = 0; // yaw 0 looks north, towards -z
             const int east = Angles.StepsPerTurn / 4;
             var pitch = (int)Math.Round(Math.Atan2(-0.42, 2.0) * Angles.StepsPerTurn / (2 * Math.PI));
-            Assert.True(FigureAim.Hits(eye, north, pitch, chest), $"{figure.Name}: the crosshair on the chest hits");
-            Assert.False(FigureAim.Hits(eye, east, 0, chest), $"{figure.Name}: looking east misses");
+            Assert.True(NpcAim.Hits(eye, north, pitch, chest), $"{figure.Name}: the crosshair on the chest hits");
+            Assert.False(NpcAim.Hits(eye, east, 0, chest), $"{figure.Name}: looking east misses");
         }
 
-        Assert.Equal("Tendero", NpcFigures.LabelOf("shopkeeper"));
-        Assert.Equal("Aldeano", NpcFigures.LabelOf("villager"));
-        Assert.Equal("Guía", NpcFigures.LabelOf("guide"));
+        Assert.Equal("Tendero", NpcNames.LabelOf("shopkeeper"));
+        Assert.Equal("Aldeano", NpcNames.LabelOf("villager"));
+        Assert.Equal("Guía", NpcNames.LabelOf("guide"));
     }
 
     [Fact]

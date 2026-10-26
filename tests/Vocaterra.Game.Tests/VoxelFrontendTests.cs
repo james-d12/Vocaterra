@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Mathematics;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
@@ -350,7 +351,7 @@ public sealed class VoxelFrontendTests
         Assert.Equal(3, bodies.Distinct().Count());
         var heads = figures.Select(static f => NpcFigures.PartsOf(f.Name).Last().Colour).ToList();
         Assert.Equal(3, heads.Distinct().Count());
-        Assert.Equal("Otro", NpcFigures.LabelOf("Otro"));
+        Assert.Equal("Otro", NpcNames.LabelOf("Otro"));
     }
 
     [Fact]

@@ -1,7 +1,7 @@
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Sound;
 using Vocaterra.Game.UI;
@@ -41,7 +41,7 @@ public sealed class FontTests
         var cmap = TrueTypeCmap.Load(CommittedFont);
         var strings = new List<string>
         {
-            DialoguePanel.KeyHints, DialoguePanel.Title, Objective.Title, "New word", "audio", "Done: madera 5/5", "Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1", CraftingLayer.Title, CraftingLayer.KeyHints, "Make", "Needs mesa", "Inventory full", "Missing material", "A mano", "Usa", "You: ", "Guía: ", "Esc: quitar la flecha", "understood, not understood", VoxelSession.NeedBottleHint, NpcFigures.LabelOf("shopkeeper"), NpcFigures.LabelOf("villager"), NpcFigures.LabelOf("guide"), "Tendero: ", "Aldeano: ",
+            DialoguePanel.KeyHints, DialoguePanel.Title, Objective.Title, "New word", "audio", "Done: madera 5/5", "Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1", CraftingLayer.Title, CraftingLayer.KeyHints, "Make", "Needs mesa", "Inventory full", "Missing material", "A mano", "Usa", "You: ", "Guía: ", "Esc: quitar la flecha", "understood, not understood", VoxelSession.NeedBottleHint, NpcNames.LabelOf("shopkeeper"), NpcNames.LabelOf("villager"), NpcNames.LabelOf("guide"), "Tendero: ", "Aldeano: ",
             DialoguePanel.ListeningText, DialoguePanel.ThinkingText, DialoguePanel.SpokenPrefix, LoadingLayer.Text, PushToTalkSpeechCapture.NoMicrophone, PushToTalkSpeechCapture.Silence,
             "heard at 96 %, Could not open the microphone: ", "Speech model vosk-model-small-es-0.42 is missing from /ruta. You can still type.", "Speech off: the recogniser is not loaded. Type your answer.", "I didn't hear anything.",
             // S7: the speech UX (the buttons, the heard-versus-expected line, the mic check, the typing offer).

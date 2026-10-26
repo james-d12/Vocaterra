@@ -6,7 +6,7 @@ using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Graphics;
+using Vocaterra.Game.Input;
 using Vocaterra.Game.UI;
 
 namespace Vocaterra.Game.Utilities;
@@ -493,7 +493,7 @@ public sealed class ScenarioScript
         return _scratch.Count > 0 || !finished;
     }
 
-    // Turns the view to the NPC's chest, the point the crosshair aims at (FigureAim).
+    // Turns the view to the NPC's chest, the point the crosshair aims at (NpcAim).
     private void FaceNpc()
     {
         var feet = _session.Scene.Npc(_npc).Feet;

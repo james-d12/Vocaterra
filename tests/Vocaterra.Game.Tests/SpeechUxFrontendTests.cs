@@ -8,7 +8,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Sound;
 using Vocaterra.Game.UI;
@@ -667,7 +666,7 @@ public sealed class SpeechUxFrontendTests
         var look = new LookControl();
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases);
         var hooks = new ScenarioHooks(
-            npc => dialogue.Open(session.OpenTalk(npc), NpcFigures.LabelOf(npc)),
+            npc => dialogue.Open(session.OpenTalk(npc), NpcNames.LabelOf(npc)),
             () =>
             {
                 dialogue.Close();
