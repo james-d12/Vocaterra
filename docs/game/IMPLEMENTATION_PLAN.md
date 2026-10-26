@@ -1376,7 +1376,7 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     MonoGame's loop, which calls the components in the frame's order (a `FrameLoop` class was planned; it would only have taken every
     component to call them in the same order, so the order stays in `Update`). The checks are the three game test projects and the scripted
     runs of `SCRIPTED_RUNS.md`, compared with a baseline taken before the first step.
-  - **Not done (phase 2, a separate plan):** moving the engine-free components (the screens' flows, `ListenSession`'s logic, the report's state
+  - **Not done (phase 2, handed over in `docs/game/R16_PHASE2.md`):** moving the engine-free components (the screens' flows, `ListenSession`'s logic, the report's state
     and the like) to `Vocaterra.Game.Core`; renaming the test projects to `*.Unit.Tests` and `*.Component.Tests`.
   - **Findings:**
     - Every scripted run with a turn for the worker lands its turns 1 to 8 ticks apart from one capture to the next, with the same binary

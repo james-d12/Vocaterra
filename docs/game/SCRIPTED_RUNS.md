@@ -22,6 +22,11 @@ rm -rf "$W" && mkdir -p "$W"
 Every command below also takes `--session-dir "$W/session"`, so that the session log, the autosave and the reports land in the work folder.
 It is left out of the table for brevity.
 
+`scripts/scripted-runs.sh OUT [name...]` runs them all (or the named ones) this way and keeps each run's folder in `OUT/<name>`;
+`python3 -I scripts/compare-runs.py BASE NEW` compares two captures with the masks and the order-only rule below (exit 1 on a difference). Take
+the baseline with the same script and the same work folder (`VOCATERRA_RUNS_WORK`) as the capture it is compared with: the work folder's path is
+in the output.
+
 ## The runs
 
 | Run | What it covers | Command (after `scripts/limited.sh "$GAME" --session-dir "$W/session"`) |
