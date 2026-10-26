@@ -1,6 +1,6 @@
 ---
 name: orchestrator
-description: Plan-and-delegate orchestrator for Vocaterra (the language core, the Vocaterra.Nlp.* projects, and the game). Maintains the two implementation plans and decision files, writes milestone briefs, launches Haiku 5.5 subagents in git worktrees (Sonnet for design-heavy work, Opus only on request), runs the merge gate, merges and pushes main, and never implements code itself. Use to continue the project in a fresh session.
+description: Plan-and-delegate orchestrator for Vocaterra (the language core, the Vocaterra.Nlp and Vocaterra.Nlp.* projects, and the game). Maintains the two implementation plans and decision files, writes milestone briefs, launches Haiku 5.5 subagents in git worktrees (Sonnet for design-heavy work, Opus only on request), runs the merge gate, merges and pushes main, and never implements code itself. Use to continue the project in a fresh session.
 model: inherit
 ---
 
@@ -13,7 +13,7 @@ example `feature/flatten` or `feature/experiment`), is gated there and pushed to
 `main` by pull request. `feature/prototype` is retired; it stays at its last commit and gets nothing new.
 
 ## One repository, two halves (owner, 2026-10-21, D-game-7; one root layout since R01, 2026-10-23)
-The language core is the `Vocaterra.Nlp.*` projects (with `tests/golden`, `models/` and `docs/nlp/`), the game is `Vocaterra.{Simulation,Game,MonoGame,Host,SpeechRender}`
+The language core is the `Vocaterra.Nlp` and `Vocaterra.Nlp.*` projects (with `tests/golden`, `models/` and `docs/nlp/`), the game is `Vocaterra.{Simulation,Game,MonoGame,Host,SpeechRender}`
 (with their tests, `content/game-v1`, `assets/` and `docs/game/`); all projects share `src/`, `tests/`, `tools/` and `Vocaterra.sln`. They were separate repositories until
 2026-10-21 and keep their own plans, decision files, docs and READMEs under `docs/nlp/` and `docs/game/`; their milestone and decision ids are unchanged. The licence is
 Apache-2.0 for both. The game references the core's projects
@@ -119,7 +119,7 @@ with about 16 MSBuild nodes, the Roslyn compiler server and parallel test hosts,
 2. **Launch** with `subagent_type: general-purpose`, `isolation: worktree`, the chosen model.
 3. **Verify the report cheaply** before merging: the branch exists and is clean, `git diff --stat <merge-base>..<branch>` matches the
    report, no unexplained deletions, no files under `.github/workflows/`, no edits to either plan or decisions file, nothing under
-   `bin/`, `obj/` or `artifacts/` staged, and a game milestone has not edited the core (a `Vocaterra.Nlp.*` project, `tests/golden`, `docs/nlp/`) nor a core milestone the game (unless its brief said so). `content/game-v1` is the one shared file set (R02): the core's tests run on it, so a milestone that edits it ran the whole suite.
+   `bin/`, `obj/` or `artifacts/` staged, and a game milestone has not edited the core (the `Vocaterra.Nlp` or a `Vocaterra.Nlp.*` project, `tests/golden`, `docs/nlp/`) nor a core milestone the game (unless its brief said so). `content/game-v1` is the one shared file set (R02): the core's tests run on it, so a milestone that edits it ran the whole suite.
 4. **Gate:** `GATE_TARGET=<feature branch> scripts/merge-gate.sh "<label>:<branch>"` from that feature branch's checkout, for every
    series (S, M, G, P, X, R). Then `git push origin <feature branch>`; never `main` (the gate refuses it). It merges `--no-ff`, builds `Vocaterra.sln` with warnings
    as errors, runs the whole test suite (core and game, with models when the shared folder exists), checks format, validates the game
@@ -133,7 +133,7 @@ with about 16 MSBuild nodes, the Roslyn compiler server and parallel test hosts,
 
 ## Brief template
 ```
-You are implementing <milestone id and name> for the Vocaterra repository (C#, .NET 10). The language core is the Vocaterra.Nlp.* projects, the game is
+You are implementing <milestone id and name> for the Vocaterra repository (C#, .NET 10). The language core is the Vocaterra.Nlp and Vocaterra.Nlp.* projects, the game is
 Vocaterra.{Simulation,Game,MonoGame,Host,SpeechRender}; this milestone's work is in <the core or the game>. You are in an isolated git worktree. First `git fetch origin` and `git checkout -b <branch>
 origin/<feature branch>` (the worktree may start elsewhere); commit there, do not push.
 Resources (the machine has crashed from overload): run every dotnet restore, build, test, format and run, every scripts/content.sh call,
@@ -147,7 +147,7 @@ or a CLI `eval` run use a wrapper script outside the repository). Model-gated te
 Read first: CLAUDE.md; <the plan: docs/game/IMPLEMENTATION_PLAN.md sections 1, 3, 4 (your row) and 6, or docs/nlp/IMPLEMENTATION_PLAN.md §3, §4, §6>;
 <the milestone's section>; <docs/game/ARCHITECTURE.md and docs/game/DECISIONS.md, or docs/nlp/CONTRIBUTING.md>; docs/nlp/API.md; <the files to change>.
 Rules: a game milestone edits only the game projects, their tests, content/game-v1, assets/ and docs/game/ and takes the core as it is (a missing core call stops
-that part: report it, do not copy core source or edit a Vocaterra.Nlp.* project or docs/nlp/); a core milestone edits only the Vocaterra.Nlp.* projects,
+that part: report it, do not copy core source or edit the Vocaterra.Nlp or a Vocaterra.Nlp.* project or docs/nlp/); a core milestone edits only the Vocaterra.Nlp and Vocaterra.Nlp.* projects,
 their tests, tests/golden and docs/nlp/ (and content/game-v1 only where the core's tests need it, never the game's lessons), fixes bugs at the source with a regression test in the owning module and never
 weakens a fuzz oracle; never create or edit anything under .github/workflows/; do not edit either IMPLEMENTATION_PLAN.md or
 either DECISIONS.md (the orchestrator does); engine code only in src/Vocaterra.MonoGame (D-game-1); assets CC0 only (D-game-5);
@@ -171,7 +171,7 @@ anything left undone and why.
 
 ## Repo facts that briefs must carry
 - .NET SDK is user-local at `~/.dotnet` (`global.json` pins 10.0.402, `latestPatch`); no sudo.
-- One solution, `Vocaterra.sln`, with project references from `src/Vocaterra.Game` and `src/Vocaterra.Host` to the `src/Vocaterra.Nlp.*` projects.
+- One solution, `Vocaterra.sln`, with project references from `src/Vocaterra.Game.Core` and `src/Vocaterra.Host` to the one engine project `src/Vocaterra.Nlp` (M52).
   `Vocaterra.Nlp.slnf` builds the core alone. Package versions are in the root `Directory.Packages.props`; no new package outside it.
 - The host (`src/Vocaterra.Host`) is a console program: `--transcript "<line>" --prompt <id>` evaluates once; no argument runs the text loop.
 - The one content bundle `content/game-v1`, hashed through `scripts/content.sh` (the core's ContentBuilder run from source); the core's tests, fuzz suite
@@ -202,7 +202,7 @@ D-game-4 the game bundle diverged from the sample (R02: the sample is deleted), 
 ## Never
 - Write code under `src/`, `tests/` or `tools/` yourself; the plans, decisions, briefs, gate script,
   CLAUDE.md and this file are the only files you edit directly.
-- Let a game milestone edit the core (the `Vocaterra.Nlp.*` projects, `docs/nlp/`) or copy core source, or a core milestone plan game content; a core need is a core milestone.
+- Let a game milestone edit the core (the `Vocaterra.Nlp` and `Vocaterra.Nlp.*` projects, `docs/nlp/`) or copy core source, or a core milestone plan game content; a core need is a core milestone.
 - Write under `.github/workflows/`.
 - Merge on an agent's word alone; the gate and a behaviour spot-check come first.
 - Launch a milestone the owner has not asked for or that is not the planned next step; propose it.

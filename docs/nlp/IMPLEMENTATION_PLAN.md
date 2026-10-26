@@ -234,7 +234,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M49 | Game request (prototype S27, D-game-19): tense checks for the near future. (1) A future-time marker (`mañana`, `la próxima semana`, `luego`…) with a past form gives `conj.tense`, expected the `ir a` + infinitive or future form. (2) A conjugated verb after `ir a` (`voy a como`) gives `conj.tense`, expected the infinitive, unless the core's design finds a better existing tag. Mirror today's past-marker rule in `AgreementChecker.CheckTense`. Regression tests in the analysis module; no fuzz oracle weakened; goldens unchanged unless a reading changes; core demo unchanged. Waiting: game S27 | M29j | S | done (merged to `main` 2026-10-23, `dc53cbb`) |
 | M50 | Core folder cleanup (owner, 2026-10-22: "the nlp folder needs some cleanup"). `content/v1` stays (D7: the core's sample, tests, goldens, fuzz and demo depend on it). Retire what the two-repository era left behind: `scripts/pack.sh` and `docs/nlp/PACKAGING.md` (no pack step or feed since D5 was superseded); README, TOOLS.md and CONTRIBUTING passages about packages, feeds, submodules or the separate repository; `HIGH_LEVEL_DOCS.md` moved to `docs/nlp/history/` (it is the original design note). Refresh `TOOLS.md`, or fold it into the licence-scan docs. Decide whether `samples/HostConsole` and `scripts/sample-host.sh` still earn their keep (the game is the real host), and say why. Fix stale links. No behaviour change: the build, tests, goldens, licence scan and core demo are unchanged | — | H | done (merged to `main` 2026-10-23, `3bc525b`) |
 | M51 | Game finding (S27): `ir` + a bare infinitive with no `a` (`voy comer pan`) passes clean (state_action, no error). Flag it, expected `ir a` + infinitive (`voy a comer`), under `conj.tense` or a better-fitting tag; regression tests; no fuzz oracle weakened (check the generator does not produce `ir` + infinitive as a correct sentence) | M49 | S | done (merged to `feature/experiment` 2026-10-23, `e70441c`; experiment X02) |
-| M52 | Merge the 11 core libraries into one language-neutral `src/Vocaterra.Nlp` (owner, 2026-10-26; D14 amendment). Each old project becomes a folder and the namespaces do not change. The 11 unit test projects become `tests/Vocaterra.Nlp.Tests`; Fuzzing and Golden stay separate. `LayeringTests` (NetArchTest.Rules) enforces today's project graph; `VocaterraCore` in `Directory.Build.props` matches the new name; `Vocaterra.Nlp.slnf` is recreated (missing today, so the licence scan is broken); ADR 0012. No behaviour change: the identity guard is green, the `content/game-v1` hash and the goldens are unchanged. Spec: `docs/nlp/research/2026-10-26-engine-and-language-packs.md` §5.1 | M31 | H | planned |
+| M52 | Merge the 11 core libraries into one language-neutral `src/Vocaterra.Nlp` (owner, 2026-10-26; D14 amendment). Each old project becomes a folder and the namespaces do not change. The 11 unit test projects become `tests/Vocaterra.Nlp.Tests`; Fuzzing and Golden stay separate. `LayeringTests` (NetArchTest.Rules) enforces today's project graph; `VocaterraCore` in `Directory.Build.props` matches the new name; `Vocaterra.Nlp.slnf` is recreated (missing today, so the licence scan is broken); ADR 0012. No behaviour change: the identity guard is green, the `content/game-v1` hash and the goldens are unchanged. Spec: `docs/nlp/research/2026-10-26-engine-and-language-packs.md` §5.1 | M31 | H | done (merged to `feature/language-packs` `1976508`) |
 | M53 | Extract the Spanish pack into `src/Vocaterra.Nlp.Es` (+ `tests/Vocaterra.Nlp.Es.Tests`), namespace `Vocaterra.Nlp.Es.*`. Hosts register packs through `ContentLoadOptions.LanguagePacks` (the engine cannot reference a pack); `LayeringTests` adds the rule that the engine does not depend on Es; the toy pack runs against the engine alone. The identity guard stays byte-identical. Spec: same document, §5.2 | M35 | S | planned |
 
 ### Delegation waves
@@ -1030,6 +1030,25 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   - **Gate.** 5,254 passed, 3 skipped. Two failures were already on `main`: the licence scan (`Vocaterra.Nlp.slnf` is missing; M52
     recreates it) and the game test `SpokenModelTests.AMistakeInASpokenLineIsHeardAsSaidAndTheCoreCorrectsIt` (with the real Vosk model the
     recognizer hears "a dónde está la árbol", one extra leading word).
+- **M52, one engine assembly (2026-10-26, Haiku 5.5; merged to `feature/language-packs` `1976508`).**
+  - **Built.** `src/Vocaterra.Nlp` holds the 11 former libraries as folders, moved with `git mv`; namespaces and resource names are unchanged.
+    `tests/Vocaterra.Nlp.Tests` holds the 11 unit test projects as folders, with their `Data/` moved as pure renames. The 11 smoke tests are
+    now one. Fuzzing and Golden stay separate and reference only `Vocaterra.Nlp` (Golden also references Bench). `Vocaterra.Nlp.slnf` is
+    recreated, so the licence scan runs again. ADR 0012 is added; ADR 0003 and 0009 carry dated notes.
+  - **Layering.** `Architecture/LayeringTests` (NetArchTest.Rules 1.3.2, MIT) encodes the old project graph as namespace rules. It also
+    checks that every stage has types, and that a negative fixture is reported. A temporary Core to Pipeline reference made two cases fail.
+  - **`VocaterraCore`** is two assignments in `Directory.Build.props`: `StartsWith('Vocaterra.Nlp.')`, then `true` for `Vocaterra.Nlp`
+    itself. An MSBuild property value has no `Or`.
+  - **Two ONNX Runtimes in one test process (not foreseen).** sherpa-onnx and Microsoft.ML.OnnxRuntime each ship a `libonnxruntime.so` with
+    a different API version. In one output folder one overwrote the other. `NativeOnnxRuntimes.cs` (a module initializer) loads sherpa's copy
+    by full path and maps the managed package's `onnxruntime` to `ort-managed/`. The csproj copies that file from
+    `$(PkgMicrosoft_ML_OnnxRuntime)`, and the Linux x64 build fails if it is missing. The native and model tests share
+    `NativeRuntimeCollection` (not parallel). The merged project passed three runs in a row.
+  - **Licence scan.** Mono.Cecil, which NetArchTest brings in, names the MIT page by URL; `license-scan.sh` now knows that URL. NetArchTest
+    names no licence and has a reviewed MIT override; the orchestrator checked its LICENSE file.
+  - **Gate.** 5,258 passed (14 layering cases added, 10 smoke facts removed), 3 skipped. The licence scan passed. The only failure is the
+    pre-existing game speech test. `identity-check.sh f4694ff` passed, and the CLI demo output is byte-identical. One game test
+    (`ArchitectureRulesTests`) had its path regex widened to accept `Vocaterra.Nlp`.
 
 ## 6. Definition of done (every milestone)
 
