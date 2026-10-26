@@ -1,7 +1,6 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Lessons;
-using Vocaterra.Game.Core.Session;
 
 namespace Vocaterra.Game.Core.Language.Learner;
 

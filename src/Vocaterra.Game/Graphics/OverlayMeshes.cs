@@ -1,4 +1,3 @@
-using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Graphics;

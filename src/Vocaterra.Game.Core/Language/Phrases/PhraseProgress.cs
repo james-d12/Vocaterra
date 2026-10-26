@@ -2,7 +2,6 @@ using System.Globalization;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
-using Vocaterra.Game.Core.Session;
 
 namespace Vocaterra.Game.Core.Language.Phrases;
 

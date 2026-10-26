@@ -2,7 +2,6 @@ using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Physics;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Sound;

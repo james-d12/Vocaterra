@@ -1,4 +1,3 @@
-using Vocaterra.Game.Core;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Save;
@@ -8,8 +7,6 @@ using Vocaterra.Game.Core.Utilities;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Layout;
-using Vocaterra.Game.Sound;
-using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game.Tests;
 

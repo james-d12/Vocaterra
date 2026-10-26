@@ -1,7 +1,6 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Graphics;

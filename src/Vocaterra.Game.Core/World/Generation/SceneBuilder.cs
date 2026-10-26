@@ -1,6 +1,5 @@
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Layout;
 
 namespace Vocaterra.Game.Core.World.Generation;

@@ -2,8 +2,6 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Utilities;
 using Vocaterra.Game.Core.World.Layout;
-using Vocaterra.Game.Sound;
-using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game.Tests;
 

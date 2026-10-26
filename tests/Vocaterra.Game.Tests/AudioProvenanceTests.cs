@@ -1,6 +1,5 @@
 using System.Text.RegularExpressions;
 using Vocaterra.Game.Core.Sound;
-using Vocaterra.Game.Sound;
 using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game.Tests;

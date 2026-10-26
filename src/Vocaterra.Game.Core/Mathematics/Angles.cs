@@ -1,5 +1,3 @@
-using Vocaterra.Game.Core.World.Layout;
-
 namespace Vocaterra.Game.Core.Mathematics;
 
 /// <summary>
