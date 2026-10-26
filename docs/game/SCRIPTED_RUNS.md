@@ -63,11 +63,14 @@ There is no r13: `--report-open` leaves the report panel open, and a paused worl
 Mask before comparing: every number followed by `ms` (the draw and frame timings, the turns' latency), the wall-clock times and dates, and
 the session log's `wall_seconds`, `*_ms` and latency fields. Measured on 2026-10-26 by capturing the unchanged code twice:
 
-- **Exact (byte for byte after the masks, screenshots and saves included):** r01, r03, r04, r07, r08, r09, r11, r12, r14, r15.
-- **Order only:** r02, r05, r06, r10, r16, r17. Their turns land a few ticks apart from one capture to the next (1 to 8 ticks), and every
-  tick count, stored time, state digest and picture moves with them. Compare only `stdout.txt` and `session.jsonl`, with every number and
-  digest masked, and the session log's lines as a set (a turn's line can land before or after an event line of the same frame). That they
-  move at all is a finding: a scripted run does not freeze the world exactly while a turn is out.
+- **Exact (byte for byte after the masks, screenshots and saves included):** r01, r07, r08, r09, r11, r12, r14, r15. r09 writes a save, so
+  it also checks that a save comes out the same.
+- **Order only:** r02, r03, r04, r05, r06, r10, r16, r17, every run with a turn for the worker. When a turn is applied depends on how fast the
+  worker thread evaluates it (a busy machine, the models in the disk cache), so these runs land their turns a few ticks apart from one capture
+  to the next, and every tick count, stored time, state digest, save and picture after that moves with them. r03 and r04 matched in two
+  captures on a busy machine and moved by a tick on an idle one. Compare only `stdout.txt` and `session.jsonl`, with every number and digest
+  masked, and the session log's lines as a set (a turn's line can land before or after an event line of the same frame). That they move at all
+  is a finding: a scripted run does not freeze the world exactly while a turn is out.
 
 ## By hand (a live run)
 

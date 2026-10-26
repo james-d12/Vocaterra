@@ -121,7 +121,7 @@ catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundExcep
 
 // The turn worker is started by the game itself (it warms the guide up and loads Vosk behind the loading screen).
 using var game = new VoxelGame(options, session, scene, voice, pristine, savedVolumes, savedTextScale: savedTextScale);
-crash.Attach(game); // the crash report, the last-chance save and the state come from the game (X05)
+crash.Attach(game.CrashSource); // the crash report, the last-chance save and the state come from the game (X05)
 try
 {
     game.Run();

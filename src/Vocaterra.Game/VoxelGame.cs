@@ -25,6 +25,7 @@ using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Flow;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Input;
+using Vocaterra.Game.Persistence;
 using Vocaterra.Game.Sound;
 using Vocaterra.Game.UI;
 using Vocaterra.Game.UI.Book;
@@ -58,7 +59,7 @@ using SoundEventMapper = SoundEventMapper;
 /// <c>--journal</c>, <c>--inventory</c> and <c>--crafting</c> at the end (<see cref="ScenarioScript"/>).
 /// </para>
 /// </remarks>
-public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
+public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 {
     private const int StartWidth = 1280;
     private const int StartHeight = 720;
@@ -100,7 +101,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     private readonly LaunchOptions _options;
     private readonly VoxelSession _session;
     private readonly Scene _scene;
-    private readonly Func<Scene> _pristine;
+    private readonly SaveService _saves;
     private readonly VoxelSimulation _sim;
     private readonly GraphicsDeviceManager _graphics;
     private readonly TickAccumulator _accumulator = new(VoxelSimulation.TicksPerSecond);
@@ -206,8 +207,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
 
     // The autosave (X05, R04): the policy decides the frames; the file is the playtest's playtest.save, else autosave.save in the session folder.
     // A run with --no-autosave has neither.
-    private AutosavePolicy? _autosave;
-    private string? _autosavePath;
+    private AutosaveController? _autosave;
 
     /// <summary>
     /// Creates the 3D game for a started session (its simulation is the scene's), the built scene, the NPCs' voices (S9) and the builder of a fresh
@@ -228,7 +228,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         _session = session;
         _scene = scene;
         _voice = voice;
-        _pristine = pristine;
         _sim = session.Simulation;
         (_sound, _soundOutput, _soundLog) = CreateSound(options, session, savedVolumes, layout);
         _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
@@ -289,7 +288,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         Window.AllowUserResizing = true;
         Window.Title = _playtest ? $"Vocaterra playtest (seed {options.Seed})" : $"Vocaterra 3D (seed {options.Seed})";
         Window.TextInput += OnTextInput;
+        _saves = new SaveService(session, pristine, () => new SaveSettings(_sound.Mixer.Volumes, _canvas.TextPercent), Console.WriteLine); // the sound volumes (S24) and the text size (X08) ride in the save's settings
         StartLogAndCheck(options);
+        CrashSource = new CrashSource(_sessionDirectory, options.ReportDir, session, _dialogue, _report, _autosave, _saves);
         _session.StartWorker(MonotonicClock.Milliseconds, options.NeedsSpeech);
     }
 
@@ -365,9 +366,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
 
         if (!options.NoAutosave)
         {
-            _autosavePath = options.Playtest && _playtestSavePath is not null ? _playtestSavePath : Path.Combine(directory, AutosaveFiles.FileName);
-            _autosave = new AutosavePolicy(_sim.Tick, _session.Events.Count);
-            Console.WriteLine($"autosave: {_autosavePath} (written on a lesson step, an objective step, a lesson's end, the session's end, a closed dialogue, and every {AutosavePolicy.IntervalSeconds / 60} minutes of play)");
+            var autosavePath = options.Playtest && _playtestSavePath is not null ? _playtestSavePath : Path.Combine(directory, AutosaveFiles.FileName);
+            _autosave = new AutosaveController(new AutosavePolicy(_sim.Tick, _session.Events.Count), autosavePath, _saves, Console.WriteLine, _toasts.Show);
+            Console.WriteLine($"autosave: {autosavePath} (written on a lesson step, an objective step, a lesson's end, the session's end, a closed dialogue, and every {AutosavePolicy.IntervalSeconds / 60} minutes of play)");
         }
         else
         {
@@ -440,6 +441,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
 
     // The world is on screen: no check battery and no mic check (the playtest's triggers and its end key need that).
     private bool WorldRunning => _check is null && _micCheck is not { IsActive: true };
+
+    /// <summary>The crash handler's view of the game: its state and the last-chance save (X05).</summary>
+    public ICrashSource CrashSource { get; }
 
     /// <summary>The process exit code: 0 unless the screenshot could not be saved.</summary>
     public int ExitCode { get; private set; }
@@ -591,7 +595,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
 
         if (_playtestSaveDue && _session.CanSave)
         {
-            _playtestSaved = WriteSave(_playtestSavePath!, "at the end of the playtest");
+            _playtestSaved = _saves.Write(_playtestSavePath!, "at the end of the playtest");
             _playtestSaveDue = !_playtestSaved;
         }
 
@@ -788,13 +792,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         if (_options.SavePath is { } savePath)
         {
             DrainForSave();
-            _ = WriteSave(savePath, "at the end of the run");
+            _ = _saves.Write(savePath, "at the end of the run");
         }
 
         if (_playtest && !_options.IsPlaytestRecall && !_playtestSaved && _playtestSavePath is { } playtestSave)
         {
             DrainForSave();
-            _playtestSaved = WriteSave(playtestSave, "at the quit (the playtest ended before its post-check)");
+            _playtestSaved = _saves.Write(playtestSave, "at the quit (the playtest ended before its post-check)");
         }
 
         if (_log is { } log)
@@ -916,8 +920,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
 
     // The crosshair is on the workbench (the mesa): E opens the crafting panel there, as C does anywhere.
     private bool AimedAtWorkbench() => _sim.Target is { } hit && hit.Id == BlockId.Table;
-
-    private SaveSettings CurrentSettings() => new(_sound.Mixer.Volumes, _canvas.TextPercent); // the sound volumes (S24) and the text size (X08) ride in the save's settings
 
     // Keys and mouse, once per frame, for the interactive run. The device state becomes this frame's commands (LiveVoxelInput) and the look.
     private void ReadInput()
@@ -2362,7 +2364,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
     private void SaveNow()
     {
         var path = PlaytestEnd.ManualSavePath(_options.SavePath, _playtest ? _playtestSavePath : null, DefaultSavePath);
-        if (WriteSave(path, "on F6"))
+        if (_saves.Write(path, "on F6"))
         {
             _toasts.Show($"Game saved (session {_session.PlaySession})");
         }
@@ -2372,138 +2374,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game, ICrashSource
         }
     }
 
-    // Writes the save of the session as it is now (the capture refuses a session that is not at rest, and that is said, not thrown).
-    private bool WriteSave(string path, string why)
-    {
-        if (!_session.CanSave)
-        {
-            Console.WriteLine($"save: not written {why}: the guide is still thinking, or the key words are on show");
-            return false;
-        }
-
-        var document = SaveGame.Capture(_session, _pristine(), CurrentSettings()); // the sound volumes ride in the save's settings (S24)
-        var text = SaveGame.Serialize(document);
-        SaveFile.Write(path, text);
-        Console.WriteLine(
-            $"save: {path} written {why} (session {document.Session}, tick {document.Tick}, stored time {document.StoredTime}, world digest {document.StateDigest[..16]}, {System.Text.Encoding.UTF8.GetByteCount(text)} bytes)");
-        return true;
-    }
-
-    // The fresh scene the saves are diffed against (X05): built once, on the first save, and then only read (the save never changes it: the
-    // diff reads its grid). Building it is most of a save's time (about 0.6 s on the valley), so the autosave does not pay it at every safe point.
-    private Scene? _pristineScene;
-
-    private Scene PristineScene() => _pristineScene ??= _pristine();
-
-    // The autosave (X05): the policy says whether a save is due, and it is taken only at rest: no turn on the worker, no key words standing, no
-    // dialogue open, no voice being recorded, no check battery, mic check or report panel. The save is the document F6 writes, written to a
-    // temporary file and renamed over the old one (SaveFile.Write), so a crash during the write leaves the last autosave in place.
-    private void AutosaveDue()
-    {
-        if (_autosave is null || _autosavePath is null)
-        {
-            return;
-        }
-
-        var atRest = _session.CanSave && !_dialogue.IsOpen && !_talkSpeechCapture.Listening && WorldRunning && !_report.Paused;
-        var decision = _autosave.Decide(_sim.Tick, _session.Events, atRest);
-        if (!decision.Save)
-        {
-            return;
-        }
-
-        try
-        {
-            var started = MonotonicClock.Milliseconds();
-            var document = SaveGame.Capture(_session, PristineScene(), CurrentSettings());
-            var text = SaveGame.Serialize(document);
-            SaveFile.Write(_autosavePath, text);
-            Console.WriteLine(
-                $"autosave: {_autosavePath} written at {decision.Reason} (session {document.Session}, tick {document.Tick}, stored time {document.StoredTime}, world digest {document.StateDigest[..16]}, {System.Text.Encoding.UTF8.GetByteCount(text)} bytes, {MonotonicClock.Milliseconds() - started:0} ms)");
-            _toasts.Show("Saved");
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
-        {
-            // The game goes on: the next safe point, or the next five minutes, saves again.
-            Console.WriteLine($"autosave: not written at {decision.Reason}: {ex.GetType().Name}: {ex.Message}");
-        }
-    }
-
-    // ICrashSource (X05): the crash handler's view of the game. Both members run after an exception, so they catch what they read.
-    string ICrashSource.SessionDirectory => _sessionDirectory;
-
-    string? ICrashSource.ReportDirectory => _options.ReportDir;
-
-    // The state of the game as far as it can be read, row by row: a row that fails says so and the others are still shown.
-    CrashGameState ICrashSource.State()
-    {
-        var rows = new List<(string Item, string Value)>();
-        var notes = new List<string>();
-        void Row(string item, Func<string> value)
-        {
-            try
-            {
-                rows.Add((item, value()));
-            }
-            catch (Exception ex)
-            {
-                notes.Add($"{item} was not read ({ex.GetType().Name})");
-            }
-        }
-
-        int? session = null;
-        long? tick = null;
-        try
-        {
-            session = _session.PlaySession;
-            tick = _sim.Tick;
-        }
-        catch (Exception ex)
-        {
-            notes.Add($"the session and tick were not read ({ex.GetType().Name})");
-        }
-
-        Row("Bundle", () => $"{_session.Bundle.Manifest.BundleId}, hash {_session.Bundle.ContentHash}");
-        Row("Seed", () => _session.WorldSeed.ToString(CultureInfo.InvariantCulture));
-        Row("Position", () =>
-        {
-            var body = _sim.Player;
-            return string.Create(CultureInfo.InvariantCulture, $"column {body.CenterX / (double)VoxelPhysics.UnitsPerBlock:0.0}, row {body.CenterZ / (double)VoxelPhysics.UnitsPerBlock:0.0}, feet at height {body.FeetY / (double)VoxelPhysics.UnitsPerBlock:0.0} (blocks)");
-        });
-        Row("Objective", () => _session.Objective.Summary);
-        Row("Lesson", () => _session.Lessons.Active is { } active ? $"{active.Id}, step {_session.Lessons.StepNumber} of {active.Steps.Count}" : "none");
-        Row("Dialogue open", () => _dialogue.IsOpen ? "yes" : "no");
-        Row("Open panel", () => _report.OpenPanel);
-        Row("Turns on the worker", () => _session.PendingTurns.ToString(CultureInfo.InvariantCulture));
-        Row("Last autosave tick", () => _autosave is null ? "off" : _autosave.LastSavedTick.ToString(CultureInfo.InvariantCulture));
-        return new CrashGameState(session, tick, rows, notes.Count == 0 ? null : string.Join("; ", notes) + ".");
-    }
-
-    // The last-chance save (X05): the document F6 writes, to the crash file. Only at rest, and not with a dialogue open (the autosave's rule: a save
-    // holds no open dialogue). Returns null when written, else why not. Never throws.
-    string? ICrashSource.LastChanceSave(string path)
-    {
-        try
-        {
-            if (!_session.CanSave)
-            {
-                return "the game was not at rest (a turn was on the worker, or the key words were on show)";
-            }
-
-            if (_dialogue.IsOpen)
-            {
-                return "a dialogue was open, and a save holds no open dialogue";
-            }
-
-            var document = SaveGame.Capture(_session, PristineScene(), CurrentSettings());
-            SaveFile.Write(path, SaveGame.Serialize(document));
-            return null;
-        }
-        catch (Exception ex)
-        {
-            return $"{ex.GetType().Name}: {ex.Message}";
-        }
-    }
+    // The autosave (X05) at its safe points: only at rest, with no dialogue open, no voice being recorded, no check battery, mic check or report panel.
+    private void AutosaveDue() =>
+        _autosave?.Run(_sim.Tick, _session.Events, atRest: _session.CanSave && !_dialogue.IsOpen && !_talkSpeechCapture.Listening && WorldRunning && !_report.Paused);
 
     // At the quit, the turns still on the worker are applied first (up to five seconds), so that the save holds what the player said.
     private void DrainForSave()
