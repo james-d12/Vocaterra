@@ -20,6 +20,7 @@ using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Flow;
+using Vocaterra.Game.Frame;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Persistence;
@@ -118,7 +119,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly ToastQueue _toasts = new();
     private readonly InventoryScreen _inventory = new();
     private readonly FrameTimings _timings = new();
-    private readonly List<VoxelCommand> _commands = [];
+    private readonly WorldStepper _stepper;
+    private readonly TurnPresenter _turns;
     private readonly List<IFrameLayer> _layers = [];
     private readonly VoxelDebugOverlay _debug = new();
     private SpriteBatch? _spriteBatch;
@@ -286,6 +288,33 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         {
             _clock = new RealFrameClock();
         }
+
+        _stepper = new WorldStepper(
+            session,
+            _look,
+            _scenario,
+            _live,
+            () => _micCheck is { IsActive: true },
+            () => _dialogue.IsOpen,
+            _craftingPanel,
+            options.DebugCrashAfter,
+            [
+                _arm, // a placement swings the arm once (S15)
+                new SoundTickObserver(_sound, session),
+                _figures,
+                _camera,
+                new ObjectiveAnnouncer(session, _toasts, Console.WriteLine),
+                new DelegateTickObserver(_ => voice.Update()),
+                new WordCardPresenter(session, _cards, _sound, voice),
+                new DelegateTickObserver(_ =>
+                {
+                    foreach (var hint in session.TakeHints())
+                    {
+                        _toasts.Show(hint);
+                    }
+                }),
+            ]);
+        _turns = new TurnPresenter(_pump, _sound, voice, _dialogue, _micCheck, Console.WriteLine);
 
         _graphics = new GraphicsDeviceManager(this)
         {
@@ -585,7 +614,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         // The report panel pauses the world (S21): no turn is applied and no tick passes while it is open; the turns wait on the worker.
         if (!_report.Paused)
         {
-            ApplyFinishedTurns();
+            _turns.Apply();
         }
 
         _log?.Pump(_session); // the replay records and the events of this frame (S11)
@@ -625,7 +654,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         steps = _report.Gate(steps); // no tick passes while the report panel is open (S21)
         for (var i = 0; i < steps && !_report.Paused; i++)
         {
-            StepOnce(); // a script step may open the report panel: the rest of the ticks wait for it
+            _stepper.Step(); // a script step may open the report panel: the rest of the ticks wait for it
         }
 
         PumpTalk(seconds);
@@ -842,71 +871,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         return null;
-    }
-
-    private void StepOnce()
-    {
-        _commands.Clear();
-        if (_scenario is { IsDone: false } && _micCheck is not { IsActive: true })
-        {
-            _scenario.Fill(_commands);
-        }
-        else if (!_dialogue.IsOpen && _micCheck is not { IsActive: true })
-        {
-            _live.Fill(_commands);
-        }
-
-        // A craft clicked or typed this frame runs in this tick, after the gathering and the placing (the simulation's order).
-        _craftingPanel.TakeCrafts(_commands);
-
-        // The look goes first: it is absolute and every other command of the tick uses the facing it sets.
-        _commands.Insert(0, VoxelCommand.Look(_look.Yaw, _look.Pitch));
-        _session.Step(_commands);
-        if (_options.DebugCrashAfter is { } crashAt && _sim.Tick >= crashAt)
-        {
-            // The test hook of the crash handler (X05, --debug-crash-after): the exception comes out of the game loop, as a real bug would.
-            throw new InvalidOperationException($"debug crash: --debug-crash-after {crashAt} asked for it (a test hook, not a bug)");
-        }
-        _arm.AfterTick(_commands); // a placement swings the arm once (S15)
-
-        // The sounds of the tick (S24): they read the tick's events and write nothing back.
-        _sound.ObserveSimulation(_sim.Events, (x, y, z) => _sim.Grid.GetBlock(x, y, z));
-        _sound.ObserveWorld(_sim.Tick, _sim.Events, _sim.Player, (x, y, z) => _sim.Grid.GetBlock(x, y, z), _session.FireLit); // the footsteps and the beds (S25)
-        _sound.Scripted.Tick(); // the cues of the frame play together in UpdateSound, so an answer's chime and a step's chime fold into one
-
-        _figures.AfterTick();
-        _camera.AfterTick();
-        // Pickups show in the hotbar and, the first time, as a word card; they do not toast (a toast per pickup would queue behind the
-        // checklist's completions for minutes).
-        AnnounceObjective(_session.Completed);
-        _voice.Update();
-        foreach (var card in _session.TakeWordCards())
-        {
-            _cards.Add(card);
-            _sound.Queue(SoundCue.WordLearnt); // a new word: the sparkle (S24)
-            _voice.Say(SpeechSpeakers.Guide, [card.Phrase]); // a word card says its noun (S9)
-        }
-
-        foreach (var hint in _session.TakeHints())
-        {
-            _toasts.Show(hint);
-        }
-    }
-
-    // A step of the camp checklist that was just done: a toast with the step, and one for the whole checklist when it is complete.
-    private void AnnounceObjective(IReadOnlyList<ObjectiveStep> completed)
-    {
-        foreach (var step in completed)
-        {
-            _toasts.Show($"Done: {step.Text}");
-            Console.WriteLine($"objective: Done: {step.Text} -> {_session.Objective.Summary}");
-        }
-
-        if (completed.Count > 0 && _session.Objective.Complete)
-        {
-            _toasts.Show("Objective complete");
-            Console.WriteLine("objective: complete");
-        }
     }
 
     // The crosshair is on the workbench (the mesa): E opens the crafting panel there, as C does anywhere.
@@ -1165,94 +1129,17 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var until = MonotonicClock.Milliseconds() + 5000;
         while (_session.PendingTurns > 0 && MonotonicClock.Milliseconds() < until)
         {
-            ApplyFinishedTurns();
+            _turns.Apply();
             System.Threading.Thread.Sleep(10);
         }
 
-        ApplyFinishedTurns();
+        _turns.Apply();
         if (_session.KeyWordsPending)
         {
             _session.FinishKeyWords();
         }
 
         _ = _session.TakeOpening(); // an opening that waits is only what the panel says: the save holds the NPCs' states, not the lines
-    }
-
-    private void ApplyFinishedTurns()
-    {
-        foreach (var applied in _pump.Apply())
-        {
-            var turn = applied.Turn;
-            if (applied.Outcome.Request.Check is not null)
-            {
-                continue; // a check answer: the check screen took it when it was applied (OnAppliedTurn)
-            }
-
-            if (applied.Outcome.Cancelled)
-            {
-                if (!applied.Outcome.Request.IsMicCheck)
-                {
-                    Console.WriteLine("turn cancelled: the player pressed Esc while it was thinking; nothing of it was applied");
-                }
-
-                continue;
-            }
-
-            if (applied.Outcome.Request.IsMicCheck)
-            {
-                // The sound for a mic check's result comes with its voice event (passed or not), in the session's events (S24).
-                var result = applied.Outcome.MicCheck ?? new MicCheckResult(string.Empty, false, 0);
-                Console.WriteLine($"mic check: heard \"{result.Heard}\", level {result.Level:0.00}, {(result.Passed ? "passed" : "not passed")}{(applied.Outcome.Problem is null ? string.Empty : $" ({applied.Outcome.Problem})")}");
-                _micCheck?.Complete(result);
-                continue;
-            }
-
-            if (turn is null)
-            {
-                Console.WriteLine($"turn failed: {applied.Outcome.Problem}");
-                continue;
-            }
-
-            _sound.ObserveTurn(turn, applied.Words); // the answer's cue: understood, or the neutral one, and a new known word (S24)
-            var timings = applied.Outcome.Timings;
-            var detail = turn.Input == InputKind.Spoken
-                ? $"heard \"{turn.Line}\" (confidence {(int)Math.Round((turn.Confidence ?? 0) * 100)} %){(turn.Uncertain ? ", UNCERTAIN" : string.Empty)} -> {turn.Summary}, {timings.TotalMilliseconds:0} ms"
-                : $"\"{turn.Line}\" -> {turn.Summary}, {timings.TotalMilliseconds:0.0} ms";
-            Console.WriteLine($"turn {_dialogue.TurnCount} ({turn.Npc}, {turn.Prompt}): {(turn.Input == InputKind.Spoken ? "spoken " : string.Empty)}{detail}, state {turn.AgentState}{(turn.HostEvents.Count > 0 ? $", host events {string.Join(" ", turn.HostEvents)}" : string.Empty)}{(turn.FailForward ? ", FAIL-FORWARD" : string.Empty)}");
-            foreach (var line in turn.GuideLines)
-            {
-                Console.WriteLine($"  {turn.Npc}: {line}");
-            }
-
-            if (turn.SlowFollowUp && turn.FollowUp is { Count: > 0 } again)
-            {
-                // "Más despacio, por favor" (S17): her reply, then her last line again from the slow recordings.
-                _voice.Say(turn.Npc, turn.GuideLines.Take(turn.GuideLines.Count - again.Count));
-                foreach (var line in again)
-                {
-                    _voice.Append(turn.Npc, line, slow: true);
-                }
-            }
-            else
-            {
-                _voice.Say(turn.Npc, turn.GuideLines); // the NPC's lines, in the order the panel shows them (S9)
-            }
-
-            if (_dialogue.Heard is { } heard && turn.Input == InputKind.Spoken)
-            {
-                Console.WriteLine($"  panel: {heard.Text}");
-            }
-
-            if (turn.Choices is { Count: > 0 })
-            {
-                Console.WriteLine($"  choices: {string.Join(" | ", _dialogue.Choices.Select(static c => c.Label))}");
-            }
-
-            if (turn.Pointer is { } arrow)
-            {
-                Console.WriteLine($"  arrow: {arrow.Place} at {arrow.Target.X},{arrow.Target.Y},{arrow.Target.Z} ({arrow.Blocks} blocks, {arrow.Direction})");
-            }
-        }
     }
 
 }

@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Frame;
 using Vocaterra.Game.Input;
 
 namespace Vocaterra.Game.Graphics;
@@ -9,7 +10,7 @@ namespace Vocaterra.Game.Graphics;
 /// The camera that follows the player's eye: the eye of the last two ticks and the step-up ease between them (<see cref="CameraEase"/>), placed
 /// at the interpolated point each frame, first person or over the right shoulder (S15). The look is the player's (<see cref="LookControl"/>).
 /// </summary>
-public sealed class PlayerCamera
+public sealed class PlayerCamera : ITickObserver
 {
     private readonly VoxelSimulation _sim;
     private readonly LookControl _look;
@@ -52,6 +53,9 @@ public sealed class PlayerCamera
         _previousEase = _currentEase;
         _currentEase = _ease.Offset;
     }
+
+    /// <inheritdoc />
+    void ITickObserver.AfterTick(IReadOnlyList<VoxelCommand> commands) => AfterTick();
 
     /// <summary>
     /// Once a frame: places the camera at the eye between the last two ticks (<paramref name="alpha"/> of the way), or over the right shoulder,

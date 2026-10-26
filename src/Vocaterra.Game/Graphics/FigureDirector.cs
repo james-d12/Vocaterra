@@ -5,6 +5,7 @@ using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
+using Vocaterra.Game.Frame;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.UI;
 
@@ -14,7 +15,7 @@ namespace Vocaterra.Game.Graphics;
 /// The figures in the scene (S15): the NPCs, who face the player and gesture while they talk with them, the one under the crosshair, and the
 /// player's own figure for the view over the shoulder, whose stride follows the distance walked.
 /// </summary>
-public sealed class FigureDirector
+public sealed class FigureDirector : ITickObserver
 {
     private readonly VoxelSimulation _sim;
     private readonly LookControl _look;
@@ -59,6 +60,9 @@ public sealed class FigureDirector
 
         _lastWalkPoint = (px, pz);
     }
+
+    /// <inheritdoc />
+    void ITickObserver.AfterTick(IReadOnlyList<VoxelCommand> commands) => AfterTick();
 
     /// <summary>The NPC figure under the crosshair from <paramref name="eye"/>, within reach with no block in the way: the one E talks to.</summary>
     public NpcFigure? Aimed(Vector3 eye)
