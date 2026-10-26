@@ -4,7 +4,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
-using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
@@ -13,7 +12,6 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
-using Vocaterra.Game.Core.Utilities;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Layout;
@@ -97,6 +95,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly SoundFrontend _sound;
     private readonly ISoundOutput _soundOutput;
     private readonly SoundLogWriter? _soundLog;
+    private readonly SoundFrame _soundFrame;
     private readonly SpeechActionRunner _actions;
     private readonly SupportFrontend _support;
     private readonly SessionEnding _ending = new();
@@ -139,7 +138,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly ShotRequest _shots = new();
     private readonly ScriptedRunEnd _runEnd;
     private readonly CheckBattery _checks;
-    private SessionLog? _log;
+    private readonly SessionLog _log;
 
     // The report panel (S21, D-game-17): F8 pauses the world and the next frame is kept in memory (the picture the player saw); nothing is written
     // until Ctrl+Enter, and Esc keeps nothing. A scripted report (--report, --report-open) is typed and saved by the script's frame.
@@ -160,7 +159,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
     // The autosave (X05, R04): the policy decides the frames; the file is the playtest's playtest.save, else autosave.save in the session folder.
     // A run with --no-autosave has neither.
-    private AutosaveController? _autosave;
+    private readonly AutosaveController? _autosave;
 
     /// <summary>
     /// Creates the 3D game for a started session (its simulation is the scene's), the built scene, the NPCs' voices (S9) and the builder of a fresh
@@ -183,12 +182,13 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _scene = scene;
         _voice = voice;
         _sim = session.Simulation;
-        (_sound, _soundOutput, _soundLog) = CreateSound(options, session, savedVolumes, layout);
+        (_sound, _soundOutput, _soundLog) = SoundBootstrap.Create(options, session, savedVolumes, layout);
         _isSolid = (x, y, z) => _sim.Grid.IsSolid(x, y, z);
         // The book's speaker buttons (S20b): a row plays the recording the speech folder has for it (the files are read once, here).
         _recordings = new BookRecordings(SpeechLines.Enumerate(session.Bundle, session.Nouns, session.Phrases).Select(static l => l.LineId).Where(voice.HasRecording), session.Phrases);
         _bookControls = new BookSpeechControls(_book, new BookSpeaker(voice, _sound.Mixer), session, _recordings);
         _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Phrases, session.English, showVerdictNotes: !options.Playtest);
+        _soundFrame = new SoundFrame(_sound, voice, session, () => new PanelState(_inventory.IsOpen, _crafting.IsOpen, _book.IsOpen, (int)_book.Page, _dialogue.IsOpen));
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
         _listen = new ListenSession(new PushToTalkSpeechCapture(microphone) { Sounds = _sound.Mixer });
         _microphoneFound = microphone is not null;
@@ -377,90 +377,15 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _openBook = commands.OpenBook;
         _globalKeys = KeyBindings.Global(commands, options.Playtest);
         _worldKeys = KeyBindings.World(commands, () => _aimed is not null, () => _session.Tips.Current is not null, AimedAtWorkbench);
-        StartLogAndCheck(options);
-        CrashSource = new CrashSource(_sessionDirectory, options.ReportDir, session, _dialogue, _report, _autosave, _saves);
-        _session.StartWorker(MonotonicClock.Milliseconds, options.NeedsSpeech);
-    }
-
-    // The sound side (S24): scripted runs and --no-sounds play nothing aloud (the null output, no audio device needed); the sound log still records the cues of a
-    // scripted run. The volumes are the save's, then the command line's. The presentation generator is seeded from the world seed and is the sound's alone.
-    private static (SoundFrontend Sound, ISoundOutput Output, SoundLogWriter? Log) CreateSound(LaunchOptions options, VoxelSession session, SoundVolumes? saved, SceneLayout? layout)
-    {
-        var volumes = SoundSetup.VolumesFor(options, saved);
-        ISoundOutput output = SoundSetup.UsesNullOutput(options) ? new NullSoundOutput() : new SoundEffectOutput(AssetPaths.Audio, Console.WriteLine);
-        var log = options.SoundLogPath is { } path ? SoundLogWriter.Open(path) : null;
-        var mixer = new SoundMixer(output, volumes, new PresentationRng(session.WorldSeed), log, options.NoSounds);
-        if (log is not null)
-        {
-            var clamped = mixer.Volumes;
-            log.Write($"# vocaterra sound log, format 1: tick, category, cue, take, gain, pitch (marks: voice and recording windows); seed {session.WorldSeed}");
-            log.Write(string.Create(CultureInfo.InvariantCulture, $"# volumes: voice {clamped.Voice:0.00} sfx {clamped.Sfx:0.00} ui {clamped.Ui:0.00} ambient {clamped.Ambient:0.00}; sounds {(options.NoSounds ? "off (--no-sounds)" : "on")}; output {(output is NullSoundOutput ? "null (silent)" : "device")}"));
-        }
-
-        // The ambient beds (S25) listen to the scene's places; a run without the layout (a test) has none of them, only the height and the day.
-        var places = layout is null ? new AmbientPlaces(null, null, null, [], null, [], []) : AmbientPlaces.From(layout);
-        var ambient = new AmbientSound(mixer, places, options.Dusk);
-        var sound = new SoundFrontend(mixer, new SoundEventMapper(session.Lessons.Book), ambient);
-        sound.SkipEvents(session.Events.Count);
-        return (sound, output, log);
-    }
-
-    // Once per frame (S24): the voice's state ducks the other sounds, the game events, the panels and the frame's cues are played, and the duck and the beds move on.
-    private void UpdateSound(double seconds)
-    {
-        var mixer = _sound.Mixer;
-        mixer.SetTick(_sim.Tick);
-        mixer.SetVoice(_voice.Busy);
-        _voice.SetVolume(mixer.Gain(SoundCategory.Voice));
-        _sound.ObserveGameEvents(_session.Events);
-        _sound.ObservePanels(new PanelState(_inventory.IsOpen, _crafting.IsOpen, _book.IsOpen, (int)_book.Page, _dialogue.IsOpen));
-        _sound.Flush(_sim.Tick);
-        mixer.Advance(seconds);
-    }
-
-    // The session log (S11) and the check battery (S11): the log is opened first, so the battery's start is in it; the scripted answers of the
-    // battery are read here too. The battery's plan is the bundle's items in the seeded order of the check kind.
-    private void StartLogAndCheck(LaunchOptions options)
-    {
-        var directory = options.SessionDir ?? SessionLog.DefaultDirectory(WallClock.LocalNow, _session.PlaySession);
-        _sessionDirectory = directory;
-        _log = SessionLog.Open(directory, static () => WallClock.Now);
-        var profile = new SessionProfile(
-            MicCheck: _micCheck is not null,
-            Muted: options.Muted,
-            NoSpeech: options.NoSpeech,
-            Greyscale: options.Greyscale,
-            TypedCredit: options.Credit.TypedUnits < WordProgress.UnitsPerUse ? "half" : "full",
-            Check: options.Check is { } kind ? CheckKinds.Of(kind) : null,
-            Scripted: options.IsScreenshotRun,
-            Playtest: options.Playtest);
-        _log.SessionStart(_session.PlaySession, _session.WorldSeed, _session.Bundle.ContentHash, _session.StoredTime.UnixSeconds, profile);
-        Console.WriteLine($"session log: {directory} ({SessionLog.SessionFileName}, {SessionLog.ReplayFileName})");
-        if (_session.Migration is { } migration)
-        {
-            // A save of an older bundle was carried into this one (X01): the log says what was dropped, and the player is told the game was updated.
-            _log.SaveMigrated(migration);
-            _toasts.Show(migration.Toast);
-        }
-
-        _session.Applied += OnAppliedTurn;
-        _playtestFlow.Prepare(directory);
-
-        if (!options.NoAutosave)
-        {
-            var autosavePath = _playtestFlow.SavePath ?? Path.Combine(directory, AutosaveFiles.FileName);
-            _autosave = new AutosaveController(new AutosavePolicy(_sim.Tick, _session.Events.Count), autosavePath, _saves, Console.WriteLine, _toasts.Show);
-            Console.WriteLine($"autosave: {autosavePath} (written on a lesson step, an objective step, a lesson's end, the session's end, a closed dialogue, and every {AutosavePolicy.IntervalSeconds / 60} minutes of play)");
-        }
-        else
-        {
-            Console.WriteLine("autosave: off (--no-autosave)");
-        }
-
+        // The session log (S11) is opened first, so the battery's start is in it; the battery's plan is the bundle's items in the seeded order of its kind.
+        (_sessionDirectory, _log, _autosave) = SessionStart.Open(options, session, _micCheck is not null, _toasts, _playtestFlow, _saves, OnAppliedTurn, Console.WriteLine);
         if (options.Check is { } battery)
         {
             _checks.Begin(battery, options.IsScreenshotRun, 0);
         }
+
+        CrashSource = new CrashSource(_sessionDirectory, options.ReportDir, session, _dialogue, _report, _autosave, _saves);
+        _session.StartWorker(MonotonicClock.Milliseconds, options.NeedsSpeech);
     }
 
     // Closes the dialogue, the book, the inventory and the crafting panel, whichever is open (the playtest's post-check takes the screen, S12).
@@ -683,7 +608,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         _runEnd.AfterUpdate(); // a scripted run counts its settled frames and opens the panels asked for at its end
 
-        UpdateSound(seconds);
+        _soundFrame.Update(seconds);
 
         _beacon.ClearIfReached(_sim);
 
