@@ -94,13 +94,36 @@ out of the core.
 
 ## The game layer (P3)
 
-The prototype is three libraries and a front-end, so that the engine can change without rewriting the game:
+The prototype is one engine-free library and one front-end, so that the engine can change without rewriting the game (the old
+`Vocaterra.Simulation` and the engine-free half of the old `Vocaterra.Game` are now `Vocaterra.Game.Core`):
 
-- `src/Vocaterra.Simulation`: the 3D voxel world (the scene, the player body, gathering, placing, crafting) and a fixed 60 Hz tick. No packages, no engine.
-- `src/Vocaterra.Game`: `VoxelSession` (the simulation, the bundle, the world seed, the stored time, the guide, the conversation, the camp objective
-  and the word cards), `NpcService` (the three NPCs' conversations over the packages: a context per agent, host turns, two-phase turns, S6), `WorldFacts3D` (the nearest block, the direction and the distance in Spanish) and
-  `TypedUtteranceEvaluator`, the call sequence of the steps above, which the console host shares. No engine type.
-- `src/Vocaterra.MonoGame`: the only engine code: window, drawing, input, the dialogue panel. It names no `Vocaterra.Nlp.*` package.
+- `src/Vocaterra.Game.Core`: the game's rules and mechanics, with no engine type, no clock and no `System.Random` (`ArchitectureRulesTests`). By
+  folder:
+  - `Voxel/`: the blocks, the chunks and the grid, the block ray and the line of sight.
+  - `Mathematics/`: the integer angles and the fixed-point helpers. `Physics/`: the player's body and its collision with the grid.
+  - `Simulation/`: the fixed 60 Hz tick (`VoxelSimulation`: gathering, placing, crafting), its commands and its saved state.
+  - `World/`: the built `Scene`; `World/Layout/`: the layout file and its parser; `World/Generation/`: the terrain and the scene builder.
+  - `Navigation/`: the beacon and the scripted walk's path search.
+  - `Session/`: `VoxelSession` (the simulation, the bundle, the world seed, the stored time, the guide, the conversation, the camp objective and the
+    word cards).
+  - `Npc/`: `NpcService` (the three NPCs' conversations over the packages: a context per agent, host turns, two-phase turns, S6), `WorldFacts`
+    (the nearest block, the direction and the distance in Spanish), the aim at an NPC and the NPCs' shown names.
+  - `Language/`, `Items/`, `Save/`, `Sound/`, `Event/`, `Reporting/`, `Tip/` and `Input/` for the rest; `Language/Speech/TypedUtteranceEvaluator`
+    is the call sequence of the steps above, which the console host shares.
+- `src/Vocaterra.Game`: the MonoGame front-end and the only engine code: window, drawing, sound output, input, the panels. `VoxelGame` is the
+  host and the composition root (R16): its constructor makes the components, and MonoGame's `Update` and `Draw` call them in the frame's order.
+  By folder:
+  - `Input/`: the frame's `InputSnapshot`, the `KeyBindings` of the `GameCommands` (the command pattern), `WorldInput` (look, walk, hotbar,
+    gather, place), `ListenSession` (push-to-talk), the text boxes' editing keys and the swallowed opening key.
+  - `Screens/`: the screens over the world, each an `IScreen` in the `ScreenStack` that gives the keys to the top one: the mic check, the
+    check battery, the dialogue, the controls help, the book, the inventory and the crafting panel.
+  - `Frame/`: `WorldStepper`, one tick of the world and its `ITickObserver`s (the observer pattern): the arm, the sounds, the figures, the
+    camera, the objective, the voice, the word cards and the hints.
+  - `Flow/`: the game's flows that span screens: the session's start and ending, the playtest, the guide's greeting, the beacon, the turns
+    applied, the objective's and the word cards' announcements.
+  - `Persistence/` (the saves, the autosave, the crash source), `Reporting/` (the F8 report), `Scripted/` (the end of a scripted run),
+    `Diagnostics/` (the console's event lines), `Graphics/` (the camera, the figures, the arm, the `SceneDrawer`), `Sound/` and `UI/` (the
+    models and the layers).
 
 How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md` for the steps):
 
@@ -134,7 +157,7 @@ the same `NpcService` turn, and each turn records how it arrived (`GuideTurn.Inp
   `RunRecognizersConcurrently = false`, so Vosk is never called from a pool thread. The game thread never calls the recognizer or the guide.
 - **Submit, then apply.** The frame calls `GuideSession.SubmitTyped / SubmitClip / SubmitWav / SubmitSpeak` between ticks and goes on. Every
   input of the evaluation is fixed at that moment: the stored time, the simulation's state digest, a copy of the inventory and a copy of the
-  blocks around the player (`WorldFacts3D.Snapshot`), so the worker never reads a world that keeps changing and a turn does not depend on when
+  blocks around the player (`WorldFacts.Snapshot`), so the worker never reads a world that keeps changing and a turn does not depend on when
   the worker gets to it. `GuideSession.Collect` (called at the start of each frame through `TurnPump`) takes the finished turns in submission
   order and applies them on the game thread: the arrow, the review question, the word counts and the panel. The panel shows "Thinking…"
   while a turn is out and "Listening…" while the key is held. A scripted (`--screenshot`) run freezes the world while a turn is out, so its
@@ -184,7 +207,7 @@ the same `NpcService` turn, and each turn records how it arrived (`GuideTurn.Inp
   the manifest against the loader's, and checks that the conversation carries its counts and learner from one utterance to the next. It
   checks that a count at `int.MaxValue` stays there, and that the prompt's line is written under its header (`PromptReportTests`).
 - `tests/Vocaterra.Game.Tests` runs the guide's turns on a fixed seed and a fixed stored time with the scripted recognizer (the verdict, the
-  guide's state, the host event, the target tile and the world line; an unaccented line; the repair path; determinism), `WorldFacts3D` on the
+  guide's state, the host event, the target tile and the world line; an unaccented line; the repair path; determinism), `WorldFacts` on the
   route, the guide's content in the bundle, the layering rules of `Vocaterra.Game` (no clock, no `System.Random`, no engine type, packages only),
   the audio handling (`AudioClips`), the turn worker (order, fixed inputs, the snapshot), and the model tests: Kokoro speaks a line, Vosk
   recognizes it once, the guide answers it like the typed line. Those are skipped with a reason when `VOCATERRA_MODELS_DIR` is unset or a model

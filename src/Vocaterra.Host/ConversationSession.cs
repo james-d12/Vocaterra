@@ -1,4 +1,4 @@
-using Vocaterra.Game;
+using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
@@ -14,7 +14,7 @@ namespace Vocaterra.Host;
 /// </summary>
 /// <remarks>
 /// The word recognizer is the core's scripted one: the typed line is the transcript, so no model and no audio take part (the call
-/// sequence is <see cref="TypedUtteranceEvaluator"/> in <c>Vocaterra.Game</c>, shared with the guide). The host owns the state the core
+/// sequence is <see cref="TypedUtteranceEvaluator"/> in <c>Vocaterra.Game.Core</c>, shared with the guide). The host owns the state the core
 /// cannot know (the world seed, the stored time, the learner model and the repeat counts), as docs/nlp/API.md describes.
 /// </remarks>
 public sealed class ConversationSession

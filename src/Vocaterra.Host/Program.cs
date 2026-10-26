@@ -4,7 +4,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
-using Vocaterra.Game;
+using Vocaterra.Game.Core.Session;
 using Vocaterra.Host;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;

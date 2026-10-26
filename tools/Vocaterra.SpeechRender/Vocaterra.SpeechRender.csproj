@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/Vocaterra.Game/Vocaterra.Game.csproj" />
+    <ProjectReference Include="..\..\src\Vocaterra.Game.Core\Vocaterra.Game.Core.csproj" />
   </ItemGroup>
 
   <!-- Kokoro (sherpa-onnx) needs its own libonnxruntime.so next to the executable; this package's native copy would overwrite it (CR-021). -->
