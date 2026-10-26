@@ -109,8 +109,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private readonly SessionEnding _ending = new();
     private bool _greetArmed = true;
     private readonly LessonFrontend _lesson;
-    private bool _controlsOpen;
-    private int _controlsScroll;
+    private readonly ControlsHelp _controls;
     private bool _aimedTipOffered;
     private readonly NpcVoice _voice;
     private readonly MicCheckModel? _micCheck;
@@ -142,7 +141,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
     private NpcFigure? _aimed;
     private readonly WordCardQueue _cards = new();
     private readonly CraftingScreen _crafting = new();
-    private readonly Queue<int> _pendingCrafts = new();
+    private readonly InventoryPanel _inventoryPanel;
+    private readonly CraftingPanel _craftingPanel;
     private int _loadingFrames;
     private string? _shotPath;
     private readonly CheckBattery _checks;
@@ -266,6 +266,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             },
             Console.WriteLine);
         _lesson.OnRecapDone = _bookScreen.ShowPhrases; // the lesson's recap ends on the journal's phrases page (S17)
+        _controls = new ControlsHelp(() => ControlsLayer.MaxScrollFor(_view!));
+        _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen);
+        _craftingPanel = new CraftingPanel(_crafting, session, _sound, _canvas, () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen);
         if (options.IsScreenshotRun)
         {
             _clock = new FixedFrameClock(VoxelSimulation.TicksPerSecond);
@@ -424,12 +427,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (_inventory.IsOpen)
         {
-            CloseInventory();
+            _inventoryPanel.Close();
         }
 
         if (_crafting.IsOpen)
         {
-            CloseCrafting();
+            _craftingPanel.Close();
         }
 
         Console.WriteLine($"playtest: the post-check starts ({why}) at tick {_sim.Tick}; {_session.Objective.Summary}");
@@ -623,7 +626,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         _beacon.Sync();
-        var free = _scenario is null && WorldRunning && !_dialogue.IsOpen && !_book.IsOpen && !_inventory.IsOpen && !_crafting.IsOpen && !_controlsOpen && _session.PendingTurns == 0;
+        var free = _scenario is null && WorldRunning && !_dialogue.IsOpen && !_book.IsOpen && !_inventory.IsOpen && !_crafting.IsOpen && !_controls.IsOpen && _session.PendingTurns == 0;
         if (GuideApproach.ShouldGreet(_session, ref _greetArmed, free))
         {
             Console.WriteLine("approach: the guide greets the player and her lesson begins");
@@ -658,12 +661,12 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
                 if (_options.ShowInventory)
                 {
-                    OpenInventory();
+                    _inventoryPanel.Open();
                 }
 
                 if (_options.ShowCrafting)
                 {
-                    OpenCrafting();
+                    _craftingPanel.Open();
                 }
             }
         }
@@ -697,8 +700,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.Fps = _stats.Fps;
         view.Aimed = _aimed;
         view.Check = _checks.Screen;
-        view.ControlsOpen = _controlsOpen;
-        view.ControlsScroll = _controlsScroll;
+        view.ControlsOpen = _controls.IsOpen;
+        view.ControlsScroll = _controls.Scroll;
         view.Report = _report;
         view.Loading = _session.Worker!.IsReady ? null : LoadingLayer.Text;
         _dialogue.SpeechUnavailable = _session.Worker.IsReady && !_session.Worker.CanHear;
@@ -844,10 +847,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
 
         // A craft clicked or typed this frame runs in this tick, after the gathering and the placing (the simulation's order).
-        while (_pendingCrafts.Count > 0)
-        {
-            _commands.Add(VoxelCommand.Craft(_pendingCrafts.Dequeue()));
-        }
+        _craftingPanel.TakeCrafts(_commands);
 
         // The look goes first: it is absolute and every other command of the tick uses the facing it sets.
         _commands.Insert(0, VoxelCommand.Look(_look.Yaw, _look.Pitch));
@@ -898,18 +898,6 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Console.WriteLine("objective: complete");
         }
     }
-
-    private void OpenCrafting()
-    {
-        if (_book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen)
-        {
-            return;
-        }
-
-        _crafting.Open(_session.Words, CraftingScreen.LemmasShown(_session.Recipes));
-    }
-
-    private void CloseCrafting() => _crafting.Close();
 
     // The crosshair is on the workbench (the mesa): E opens the crafting panel there, as C does anywhere.
     private bool AimedAtWorkbench() => _sim.Target is { } hit && hit.Id == BlockId.Table;
@@ -983,21 +971,9 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             {
                 _dialogueScreen.HandleInput(input);
             }
-            else if (_controlsOpen)
+            else if (_controls.IsOpen)
             {
-                if (input.Pressed(Keys.Escape) || input.Pressed(Keys.F1))
-                {
-                    _controlsOpen = false; // the controls help (F1, S16)
-                    _controlsScroll = 0;
-                }
-                else
-                {
-                    // When the controls do not all fit the canvas (a large text size), Up and Down and the wheel scroll the list (X08).
-                    var maxScroll = ControlsLayer.MaxScrollFor(_view!);
-                    var step = (input.Pressed(Keys.Down) ? 1 : 0) - (input.Pressed(Keys.Up) ? 1 : 0) + (input.Pressed(Keys.PageDown) ? 5 : 0) - (input.Pressed(Keys.PageUp) ? 5 : 0);
-                    var wheelNotches = -(int)Math.Round(input.Wheel / 120.0);
-                    _controlsScroll = Math.Clamp(_controlsScroll + step + wheelNotches, 0, maxScroll);
-                }
+                _controls.HandleInput(input);
             }
             else if (_book.IsOpen)
             {
@@ -1005,17 +981,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
             else if (_inventory.IsOpen)
             {
-                if (input.Pressed(Keys.Escape) || input.Pressed(Keys.I) || input.Pressed(Keys.E))
-                {
-                    CloseInventory();
-                }
+                _inventoryPanel.HandleKeys(input);
             }
             else if (_crafting.IsOpen)
             {
-                if (input.Pressed(Keys.Escape) || input.Pressed(Keys.C))
-                {
-                    CloseCrafting();
-                }
+                _craftingPanel.HandleKeys(input);
             }
             else if (_aimed is not null && (input.Pressed(Keys.E) || input.Pressed(Keys.T) || input.Pressed(Keys.V)))
             {
@@ -1032,7 +1002,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
             else if (input.Pressed(Keys.F1))
             {
-                _controlsOpen = true;
+                _controls.Open();
             }
             else if (input.Pressed(Keys.Enter) && _session.Tips.Current is not null)
             {
@@ -1044,11 +1014,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
             else if (input.Pressed(Keys.C) || (input.Pressed(Keys.E) && AimedAtWorkbench()))
             {
-                OpenCrafting();
+                _craftingPanel.Open();
             }
             else if (input.Pressed(Keys.I) || input.Pressed(Keys.E))
             {
-                OpenInventory();
+                _inventoryPanel.Open();
             }
             else if (input.Pressed(Keys.Escape))
             {
@@ -1062,7 +1032,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             }
         }
 
-        var uiOpen = _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen || _crafting.IsOpen || _controlsOpen || _micCheck is { IsActive: true };
+        var uiOpen = _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen || _crafting.IsOpen || _controls.IsOpen || _micCheck is { IsActive: true };
         if (IsActive && _book.IsOpen)
         {
             _bookScreen.HandleMouse(input); // the wheel scrolls the book, a click turns to a tab or presses a row's button (S20)
@@ -1070,17 +1040,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
 
         if (IsActive && _crafting.IsOpen && input.LeftClicked)
         {
-            // A click on a row of the panel asks for one craft in the next tick (the same command a script sends).
-            var layout = new CraftingLayout(_canvas.Width, _canvas.Height, _session.Recipes.Entries.Count);
-            if (layout.RowAt(mouse.X, mouse.Y) is { } row)
-            {
-                if (_sim.CanCraft(row) != CraftResult.Done)
-                {
-                    _sound.Queue(SoundCue.CraftRefused); // soft: the ingredients are not there yet (S24)
-                }
-
-                _pendingCrafts.Enqueue(row);
-            }
+            _craftingPanel.Click(input); // a row asks for one craft in the next tick
         }
 
         if (IsActive && input.LeftClicked)
@@ -1198,7 +1158,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             return "crafting";
         }
 
-        return _controlsOpen ? "controls (F1)" : "none (the world)";
+        return _controls.IsOpen ? "controls (F1)" : "none (the world)";
     }
 
     // The input of a frame the panel or F8 took: the mouse is free, and the states are kept for the next frame's presses and clicks.
@@ -1405,25 +1365,4 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         }
     }
 
-    private void OpenInventory()
-    {
-        if (_book.IsOpen)
-        {
-            return;
-        }
-
-        var lemmas = _sim.Inventory.Slots
-            .Where(static s => !s.IsEmpty)
-            .Select(s => _session.Nouns.ForItem(s.Item)?.Lemma)
-            .OfType<string>()
-            .ToList();
-        _inventory.Open(_session.Words, lemmas);
-        _focus.InventoryOpen = true;
-    }
-
-    private void CloseInventory()
-    {
-        _inventory.Close();
-        _focus.InventoryOpen = false;
-    }
 }
