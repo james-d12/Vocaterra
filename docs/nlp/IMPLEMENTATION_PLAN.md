@@ -1049,6 +1049,28 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   - **Gate.** 5,258 passed (14 layering cases added, 10 smoke facts removed), 3 skipped. The licence scan passed. The only failure is the
     pre-existing game speech test. `identity-check.sh f4694ff` passed, and the CLI demo output is byte-identical. One game test
     (`ArchitectureRulesTests`) had its path regex widened to accept `Vocaterra.Nlp`.
+- **M32, language id and pack registry (2026-10-27, Sonnet 5.5; merged to `feature/language-packs` `ba85fe3`).**
+  - **Built.** `src/Vocaterra.Nlp/Language/Packs/` holds `ILanguagePack` (text side only: `LanguageId`, `Normalizer`, `Folding`, `Numbers`,
+    `PhoneticKey`, `Punctuation`, `G2p?`, `GrammarDefaults`, `Lint`, `RepairFallback`), `SpanishLanguagePack.Instance` and the
+    `LanguagePacks` registry (`Default` holds `es`; `Of`, `With`, `TryResolve` by the primary subtag, ASCII case-insensitive). The analysis
+    members (morphology, analysis rules, template functions, `LexiconProfile`, `ErrorTagSet`, recast policy) are left to M34 (ADR 0011).
+    The statics did not move and no call site is routed yet (M33).
+  - **Manifest.** `language` and `supportLanguage` (optional, omitted when null). With `language` the bundle hash is
+    `Combine("language", tag, path₁, sha₁, …)`, the tag as written; without it, the hash is today's. `supportLanguage` is not hashed: it
+    changes no output, and hashing it would change every stamp and replay record. The loader resolves the pack right after reading the
+    manifest (also with `VerifyHashes` off); an unknown or malformed tag is one `ContentValidationException` problem. `ContentLoadOptions.LanguagePacks`
+    lets a host pass its own registry; the ContentBuilder `hash` command takes `--language` and `--support-language`.
+  - **Layering.** `Language.Packs` has its own rule (Core, Language, Phonology, Response); the `Language` rule excludes it.
+  - **For M33.** The pack uses `Response` for `PunctuationFixer`, and `Response` may use `Language`, so a `Response` call site that takes an
+    `ILanguagePack` makes a namespace cycle the rules allow: ADR 0011 point 9 says to move the punctuation behind the interface or keep the
+    cycle on purpose. The pack repeats Spanish literals (`por`, `favor`, `un`, `una`) also found in `LintCoverage`, `SlotGrammarMatcher` and
+    `AnalysisSlotFinder`; M33 removes the duplicates. Two visibility-only edits: `WordClasses.SubjectPronounLemmas` (an ordered list) and
+    `LintCoverage.SubjectPronouns` (internal).
+  - **Not done.** The replay envelope's optional `language` field (research §4.6) is not added; it is optional and not in M32's scope.
+    `TextFolding.Normalize` throws on a lone surrogate (pre-existing, unreachable from the pipeline, which replaces lone surrogates first).
+  - **Gate.** 5,366 passed (109 new: pack, registry, manifest, ContentBuilder and four O15/O16 fuzz cases), 5 skipped (models not on this
+    machine), 0 failed; licence scan passed. Fuzz at 10,000 grammar iterations green. `identity-check.sh f4694ff` passed, and the CLI demo
+    gives `conj.person` and `noun.number` with content hash `aab525f9…`.
 
 ## 6. Definition of done (every milestone)
 
@@ -1351,7 +1373,7 @@ The research lists seven places that would break silently when a second language
 | ID | Milestone | Depends on | Tier | Status |
 | --- | --- | --- | --- | --- |
 | M31 | Spanish identity guard (`SpanishIdentityTests`) | M29j | H | done (merged to `feature/language-packs` `f4694ff`) |
-| M32 | Language id in the manifest (absent = `es`, folded into the hash only when present), pack registry, `ContentBundle.Language`, ADR 0011 | M31, M52 | S | in progress (2026-10-27, branch `M32-language-id`) |
+| M32 | Language id in the manifest (absent = `es`, folded into the hash only when present), pack registry, `ContentBundle.Language`, ADR 0011 | M31, M52 | S | done (merged to `feature/language-packs` `ba85fe3`, 2026-10-27) |
 | M33 | Text-side seams: normalizer, numbers, phonetic key, punctuation, repair lines, grammar defaults, lint, G2P call sites, Kokoro `lang` | M32 | H | planned (D14 amended 2026-10-26) |
 | M34 | Analysis-side seams and schema: `IMorphology`, `IAnalysisRules`, template functions, optional `LexicalFeatures` fields (Case, VerbForm, Declension, Particle, Register), per-pack tag sets (`ErrorTags.All` frozen as Spanish) | M33 | S | planned (D14 amended 2026-10-26) |
 | M35 | Per-language test harness, and a toy pack that proves no hidden Spanish dependency remains | M34 | H | planned (D14 amended 2026-10-26) |
