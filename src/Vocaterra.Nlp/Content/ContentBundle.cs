@@ -5,6 +5,7 @@ using Vocaterra.Nlp.Evaluation;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Morphology;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Response.Effects;
 using Vocaterra.Nlp.Response.Templates;
 using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
@@ -16,6 +17,7 @@ public sealed class ContentBundle
 {
     internal ContentBundle(
         ContentManifest manifest,
+        ILanguagePack language,
         ContentProvenance provenance,
         NlpLexicon lexicon,
         IReadOnlyDictionary<string, LexiconSourceInfo> lexiconSources,
@@ -31,6 +33,7 @@ public sealed class ContentBundle
         IReadOnlyDictionary<string, ReadOnlyMemory<byte>> hostFiles)
     {
         Manifest = manifest;
+        Language = language;
         Provenance = provenance;
         Lexicon = lexicon;
         LexiconSources = lexiconSources;
@@ -54,6 +57,12 @@ public sealed class ContentBundle
 
     /// <summary>The manifest the bundle was verified against.</summary>
     public ContentManifest Manifest { get; }
+
+    /// <summary>The language pack the manifest's <c>language</c> resolved to (Spanish when the manifest has none).</summary>
+    public ILanguagePack Language { get; }
+
+    /// <summary>The primary language subtag of <see cref="Language"/>, for example <c>es</c> (a manifest language of <c>es-MX</c> gives <c>es</c>).</summary>
+    public string LanguageId => Language.LanguageId;
 
     /// <summary>Who generated and approved each file.</summary>
     public ContentProvenance Provenance { get; }

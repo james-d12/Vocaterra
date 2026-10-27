@@ -9,6 +9,7 @@ using Vocaterra.Nlp.Evaluation;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Matching;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Response.Effects;
 using Vocaterra.Nlp.Response.Templates;
 using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
@@ -45,6 +46,12 @@ public static class ContentLoader
             throw new ContentValidationException(problems);
         }
 
+        var language = ResolveLanguage(manifest, options, problems);
+        if (language is null)
+        {
+            throw new ContentValidationException(problems);
+        }
+
         var files = new BundleFiles(bundleDir);
         if (options.VerifyHashes)
         {
@@ -60,6 +67,7 @@ public static class ContentLoader
 
         return new ContentBundle(
             manifest,
+            language,
             parts.Provenance!,
             parts.Lexicon!,
             parts.LexiconSources,
@@ -93,6 +101,25 @@ public static class ContentLoader
         }
 
         return hostFiles;
+    }
+
+    // An absent language is Spanish; a present one must be a well-formed BCP-47 tag whose primary subtag has a pack in the registry.
+    private static ILanguagePack? ResolveLanguage(ContentManifest manifest, ContentLoadOptions options, List<string> problems)
+    {
+        var tag = manifest.Language ?? ContentManifest.DefaultLanguage;
+        if (!LanguagePacks.TryGetPrimarySubtag(tag, out _))
+        {
+            problems.Add($"{ContentPaths.Manifest}: language '{tag}' is not a well-formed BCP-47 language tag (for example 'es' or 'de-DE').");
+            return null;
+        }
+
+        if (!options.LanguagePacks.TryResolve(tag, out var pack))
+        {
+            problems.Add($"{ContentPaths.Manifest}: no language pack is registered for language '{tag}' (registered: {string.Join(", ", options.LanguagePacks.Languages)}).");
+            return null;
+        }
+
+        return pack;
     }
 
     private static ContentManifest? ReadManifest(string bundleDir, List<string> problems)
@@ -167,7 +194,7 @@ public static class ContentLoader
             }
         }
 
-        var computed = ContentManifest.ComputeBundleHash(manifest.Files);
+        var computed = ContentManifest.ComputeBundleHash(manifest.Files, manifest.Language);
         if (!string.Equals(computed, manifest.BundleHash, StringComparison.Ordinal))
         {
             problems.Add($"{ContentPaths.Manifest}: bundleHash mismatch (manifest {manifest.BundleHash}, computed {computed}).");

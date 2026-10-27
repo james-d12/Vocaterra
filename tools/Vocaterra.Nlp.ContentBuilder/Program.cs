@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using Vocaterra.Nlp.Content;
+using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Nlp.ContentBuilder;
 
@@ -28,7 +29,7 @@ public static class Program
           validate <bundleDir> [--strict]                    verify hashes and cross-references; exit 1 with the problem list; then run
                                                              the lint and print its errors and warnings (they fail the command only
                                                              with --strict)
-          hash <bundleDir> [--bundle-id ID] [--content-version V]
+          hash <bundleDir> [--bundle-id ID] [--content-version V] [--language TAG] [--support-language TAG]
                                                              rewrite manifest.json from the files on disk
           pack <bundleDir> <out.zip>                         validate the bundle, then write it as a zip and <out.zip>.sha256 holding the
                                                              bundle hash; nothing is written for an invalid bundle
@@ -106,7 +107,7 @@ public static class Program
             return command switch
             {
                 "validate" => Validate(new ArgumentList(args, 1, [], ["--strict"]), output, error),
-                "hash" => Hash(new ArgumentList(args, 1, ["--bundle-id", "--content-version"]), output),
+                "hash" => Hash(new ArgumentList(args, 1, ["--bundle-id", "--content-version", "--language", "--support-language"]), output, error),
                 "pack" => Pack(new ArgumentList(args, 1, []), output, error),
                 "verify-pack" => VerifyPack(new ArgumentList(args, 1, []), output, error),
                 "lint" => Lint(new ArgumentList(args, 1, ["--level", "--prompts", "--host-pools"], ["--strict", "--fail-on-level", "--json"]), output, error),
@@ -213,10 +214,17 @@ public static class Program
         return value?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     }
 
-    private static int Hash(ArgumentList arguments, TextWriter output)
+    private static int Hash(ArgumentList arguments, TextWriter output, TextWriter error)
     {
         var dir = arguments.Positional(0, "bundleDir", exactly: 1);
-        var manifest = ContentManifest.Compute(dir, arguments.Option("--bundle-id"), arguments.Option("--content-version"));
+        var language = arguments.Option("--language");
+        if (language is not null && !LanguagePacks.TryGetPrimarySubtag(language, out _))
+        {
+            error.WriteLine($"--language '{language}' is not a well-formed BCP-47 language tag (for example 'es' or 'de-DE').");
+            return ExitInvalid;
+        }
+
+        var manifest = ContentManifest.Compute(dir, arguments.Option("--bundle-id"), arguments.Option("--content-version"), language, arguments.Option("--support-language"));
         File.WriteAllText(Path.Combine(dir, ContentPaths.Manifest), manifest.ToJson(), new UTF8Encoding(false));
         output.WriteLine(string.Create(
             CultureInfo.InvariantCulture,

@@ -47,6 +47,13 @@ public class LayeringTests
     }
 
     [Fact]
+    public void TheLanguagePacksHaveTypesAndARuleOfTheirOwn()
+    {
+        Assert.True(LayerRules.TypeCount(Engine, LayerRules.PacksNamespace) > 0, $"no type resides in {LayerRules.PacksNamespace}");
+        Assert.Contains(LayerRules.Rules(), rule => rule.Source == LayerRules.PacksNamespace);
+    }
+
+    [Fact]
     public void AViolationIsReportedThroughTheSameRule()
     {
         // The fixture is a core-like type in the test assembly that depends on the pipeline. The same check must report it.

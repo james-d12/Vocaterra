@@ -206,6 +206,9 @@ Steps:
 
    (`scripts/content.sh` runs `tools/Vocaterra.Nlp.ContentBuilder` from source; `dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- <command>` is the same.)
 
+   `hash` keeps the manifest's `bundleId`, `contentVersion`, `language` and `supportLanguage` when it rewrites the file. The game's bundle has no
+   `language` (it means Spanish) and must keep none: a `language` field is folded into the bundle hash (ADR 0011).
+
    Before `hash`, `validate` reports exactly what is out of date (`hash mismatch`, `file is not listed in manifest.json`,
    `no provenance item for ...`). `validate` also checks references: a prompt that names an unknown answer set, intent or grammar fails.
    `cefr-check` is advisory; it lists the lemmas of dialogue templates and of prompt text (`text`) that are not in `cefr/a1.txt` or
