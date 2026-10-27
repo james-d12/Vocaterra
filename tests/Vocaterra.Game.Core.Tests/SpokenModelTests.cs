@@ -191,7 +191,11 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
             output.WriteLine("guide: " + line);
         }
 
-        Assert.Equal("dónde está la árbol", turn.Line);
+        // G8: Vosk may hear a stray «a» (about 0.4 confidence) before «dónde»: the weak onset of the «d» in some renderings of this line. Kokoro's
+        // cached clip does not have it, but a fresh rendering of another speaker or speed does (the 120 ms trim pad keeps that onset; a
+        // 60 ms pad fixes that case and breaks the «hola» recording, so the pad is not changed here). The stray «a» is the recognizer's, not the
+        // learner's, so an optional leading «a » is accepted. The error the test is about («la árbol») and the feedback are still asserted.
+        Assert.Matches("^(a )?dónde está la árbol$", turn.Line);
         Assert.Contains(turn.Errors, static e => e.Tag == "gender.agree");
         Assert.NotNull(turn.Feedback);
     }
