@@ -186,7 +186,8 @@ text and the grammar it was built from) and its mutation kinds. `FuzzLanguage.Sp
   directory and loads it with `LanguagePacks.Of(XxLanguagePack.Instance)`, a registry without Spanish. `XxFuzzLanguage` is its record.
   `XxOracleTests` runs O1, O2, O7 and O14 on it, and checks that its results carry no Spanish error tag and no Spanish mark. The toy suite is
   in-process and uses no model. It is not a shipped language.
-- Which oracles run per language: O1, O2, O7 and O14 (neutral) run on Spanish and on the toy language. O3, O4 and O5 (realised grammar sentences, mutation
+- Which oracles run per language: O1, O2 and O7 run on Spanish and on the toy language. The neutral O14 body runs on the toy language; the Spanish O14 is the
+  full version (phonemes, two-phase, host turns, envelope mutations) and is not run on the toy language. O3, O4 and O5 (realised grammar sentences, mutation
   sets) run on Spanish only; they need a realiser and a mutation set for the language (German, M36 onward). O6, O8 to O13, O15 and O16 are Spanish or
   shared (O8, O9 and O13 need a G2P or the signal front end; O15 and O16 read the Spanish content bundle).
 - Golden files: a Spanish golden keeps `Data/<name>`; another language's goldens live in `Data/<lang>/<name>` (`GoldenFiles`, the same
