@@ -5,6 +5,7 @@ using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
 /// <summary>
@@ -18,20 +19,23 @@ public sealed class LinguisticAnalyzer
 
     private readonly Lexicon _lexicon;
     private readonly MorphologyGenerator _morphology;
+    private readonly ILanguagePack _language;
 
-    /// <summary>Creates an analyzer over a lexicon with a morphology generator built from the same lexicon.</summary>
-    public LinguisticAnalyzer(Lexicon lexicon)
-        : this(lexicon, new MorphologyGenerator(lexicon))
+    /// <summary>Creates an analyzer over a lexicon with a morphology generator built from the same lexicon, for the language of the pack.</summary>
+    public LinguisticAnalyzer(Lexicon lexicon, ILanguagePack language)
+        : this(lexicon, new MorphologyGenerator(lexicon), language)
     {
     }
 
-    /// <summary>Creates an analyzer with an explicit morphology generator.</summary>
-    public LinguisticAnalyzer(Lexicon lexicon, MorphologyGenerator morphology)
+    /// <summary>Creates an analyzer with an explicit morphology generator, for the language of the pack (the bundle's <c>Language</c>).</summary>
+    public LinguisticAnalyzer(Lexicon lexicon, MorphologyGenerator morphology, ILanguagePack language)
     {
         ArgumentNullException.ThrowIfNull(lexicon);
         ArgumentNullException.ThrowIfNull(morphology);
+        ArgumentNullException.ThrowIfNull(language);
         _lexicon = lexicon;
         _morphology = morphology;
+        _language = language;
     }
 
     /// <summary>Analyzes the text without any slot grammar.</summary>
@@ -135,12 +139,12 @@ public sealed class LinguisticAnalyzer
         return cost + (checker.HasPastTimeMarker() && !resolved.Any(static t => t.Readings.Any(ReadingClasses.IsFiniteVerb)) ? PastMarkerWithoutVerbCost : 0);
     }
 
-    private static SlotGrammarMatch? BestMatch(IReadOnlyList<AnalyzedToken> tokens, IReadOnlyList<SlotGrammar> grammars)
+    private SlotGrammarMatch? BestMatch(IReadOnlyList<AnalyzedToken> tokens, IReadOnlyList<SlotGrammar> grammars)
     {
         SlotGrammarMatch? best = null;
         foreach (var grammar in grammars)
         {
-            var match = SlotGrammarMatcher.Match(tokens, grammar);
+            var match = SlotGrammarMatcher.Match(tokens, grammar, _language);
             if (match is not null && (best is null || SlotGrammarMatch.Beats(match, best)))
             {
                 best = match;

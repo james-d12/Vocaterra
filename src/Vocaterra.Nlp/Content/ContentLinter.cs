@@ -57,8 +57,8 @@ internal sealed class LintContext
     {
         Bundle = bundle;
         Options = options;
-        _analyzer = new LinguisticAnalyzer(bundle.Lexicon, bundle.Morphology);
-        _resolver = new IntentResolver(bundle.Intents);
+        _analyzer = new LinguisticAnalyzer(bundle.Lexicon, bundle.Morphology, bundle.Language);
+        _resolver = new IntentResolver(bundle.Intents, bundle.Language);
         Prompts = [.. bundle.Prompts.Values.OrderBy(static prompt => prompt.PromptId, StringComparer.Ordinal)];
         if (options.RootPrompts is null)
         {
@@ -106,7 +106,7 @@ internal sealed class LintContext
         var key = (text, prompt.PromptId);
         if (!_cache.TryGetValue(key, out var evaluated))
         {
-            var normalized = TextNormalizer.Normalize(text, KeepArticles);
+            var normalized = Bundle.Language.Normalizer.Normalize(text, KeepArticles);
             var analysis = _analyzer.Analyze(normalized, PromptGrammars.For(Bundle.Intents, prompt));
             evaluated = new Evaluated(analysis, _resolver.Resolve(normalized, analysis, prompt));
             _cache.Add(key, evaluated);

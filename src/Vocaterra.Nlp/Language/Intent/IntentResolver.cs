@@ -7,6 +7,7 @@ namespace Vocaterra.Nlp.Language.Intent;
 
 using Vocaterra.Nlp.Language.Embeddings;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
 /// <summary>
@@ -47,15 +48,21 @@ public sealed class IntentResolver
     private static readonly IntentResolution Unresolved = new(IntentId.Unknown, SlotMap.Empty, IntentRung.Unresolved, 0.0, 0.0);
 
     private readonly IntentCatalog _catalog;
+    private readonly ILanguagePack _language;
     private readonly IEmbeddingModel? _embeddings;
     private readonly IntentResolverOptions _options;
     private readonly Lazy<Dictionary<string, double[][]>> _exampleVectors;
 
-    /// <summary>Creates a resolver; without an embedding model the third rung is skipped. Example vectors are computed on first use.</summary>
-    public IntentResolver(IntentCatalog catalog, IEmbeddingModel? embeddings = null, IntentResolverOptions? options = null)
+    /// <summary>
+    /// Creates a resolver for the language of the pack (the bundle's <c>Language</c>): examples are normalized and the slot grammars matched with it. Without
+    /// an embedding model the third rung is skipped. Example vectors are computed on first use.
+    /// </summary>
+    public IntentResolver(IntentCatalog catalog, ILanguagePack language, IEmbeddingModel? embeddings = null, IntentResolverOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
+        ArgumentNullException.ThrowIfNull(language);
         _catalog = catalog;
+        _language = language;
         _embeddings = embeddings;
         _options = options ?? IntentResolverOptions.Default;
         _exampleVectors = new Lazy<Dictionary<string, double[][]>>(BuildExampleVectors, LazyThreadSafetyMode.ExecutionAndPublication);
@@ -93,14 +100,14 @@ public sealed class IntentResolver
         return map;
     }
 
-    private static SlotMap DeclaredSlotsOf(IntentDefinition intent, AnalysisResult analysis)
+    private SlotMap DeclaredSlotsOf(IntentDefinition intent, AnalysisResult analysis)
     {
         var map = SlotMap.Empty;
         foreach (var declared in intent.DeclaredSlots)
         {
             var value = declared.Kind == SlotKind.Number
                 ? AnalysisSlotFinder.FirstNumber(analysis, null)
-                : AnalysisSlotFinder.FirstNoun(analysis, null);
+                : AnalysisSlotFinder.FirstNoun(analysis, null, _language);
             if (value is not null)
             {
                 map = map.With(declared.Name, value);
@@ -153,7 +160,7 @@ public sealed class IntentResolver
         {
             foreach (var grammar in candidate.Grammars)
             {
-                var match = SlotGrammarMatcher.Match(analysis.Tokens, grammar);
+                var match = SlotGrammarMatcher.Match(analysis.Tokens, grammar, _language);
                 if (match is not null && (best is null || SlotGrammarMatch.Beats(match, best)))
                 {
                     best = match;
@@ -218,7 +225,7 @@ public sealed class IntentResolver
         }
 
         var map = SlotMap.Empty;
-        if (rule.SlotFromNoun is { } nounSlot && AnalysisSlotFinder.FirstNoun(analysis, keywordIndexes) is { } noun)
+        if (rule.SlotFromNoun is { } nounSlot && AnalysisSlotFinder.FirstNoun(analysis, keywordIndexes, _language) is { } noun)
         {
             map = map.With(nounSlot, noun);
         }
@@ -325,7 +332,7 @@ public sealed class IntentResolver
             var vectors = new List<double[]>(intent.Examples.Count);
             foreach (var example in intent.Examples)
             {
-                var normalized = TextNormalizer.Normalize(example, _options.ExampleNormalization).Text;
+                var normalized = _language.Normalizer.Normalize(example, _options.ExampleNormalization).Text;
                 if (normalized.Length > 0)
                 {
                     vectors.Add(Unit(_embeddings!.Embed(normalized)));

@@ -3,6 +3,7 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
 namespace Vocaterra.Nlp.Response.Templates;
@@ -11,14 +12,27 @@ namespace Vocaterra.Nlp.Response.Templates;
 /// Rebuilds the player's sentence with every grammar error corrected, for example <c>yo tiene dos espada</c> becomes <c>yo tengo dos espadas</c>.
 /// Digit tokens are spelled out because the result is meant to be spoken.
 /// </summary>
+/// <remarks>
+/// The spelling of the words (digits as words, the restored accents) comes from the language pack: <see cref="Build(NormalizedText, AnalysisResult, NlpLexicon, ILanguagePack)"/>
+/// takes the bundle's pack. The overloads without a pack are the Spanish compatibility entry points (they use <see cref="SpanishLanguagePack.Instance"/>).
+/// </remarks>
 public static class RecastBuilder
 {
     /// <summary>
-    /// Builds the recast without a lexicon, so no accent is restored; see the overload that takes one.
+    /// Builds the Spanish recast without a lexicon, so no accent is restored; see the overload that takes one. Spanish compatibility entry point.
     /// </summary>
     public static string Build(NormalizedText playerText, AnalysisResult analysis)
     {
-        return Build(playerText, analysis, NlpLexicon.Empty);
+        return Build(playerText, analysis, NlpLexicon.Empty, SpanishLanguagePack.Instance);
+    }
+
+    /// <summary>
+    /// Builds the Spanish recast with the lexicon (see the overload with a pack). Spanish compatibility entry point: a bundle's recast is
+    /// <c>RecastBuilder.Build(text, analysis, bundle.Lexicon, bundle.Language)</c>.
+    /// </summary>
+    public static string Build(NormalizedText playerText, AnalysisResult analysis, NlpLexicon lexicon)
+    {
+        return Build(playerText, analysis, lexicon, SpanishLanguagePack.Instance);
     }
 
     /// <summary>
@@ -30,16 +44,16 @@ public static class RecastBuilder
     /// another word (<c>se</c>, <c>si</c>, <c>mas</c>) is corrected only when the analysis read it as the accented word that the words around it call for
     /// (<c>esta</c> in <c>dónde esta el árbol</c> is <c>está</c>; see <see cref="AccentRestoration"/>).
     /// </summary>
-    public static string Build(NormalizedText playerText, AnalysisResult analysis, NlpLexicon lexicon)
+    public static string Build(NormalizedText playerText, AnalysisResult analysis, NlpLexicon lexicon, ILanguagePack language)
     {
         ArgumentNullException.ThrowIfNull(playerText);
         ArgumentNullException.ThrowIfNull(analysis);
         ArgumentNullException.ThrowIfNull(lexicon);
+        ArgumentNullException.ThrowIfNull(language);
         var text = playerText.Text;
         var edits = ResolveErrorEdits(text, analysis);
-        AddAccentEdits(playerText, lexicon, edits);
-        AddReadAsAccentedEdits(playerText, analysis, lexicon, edits);
-        AddNumberEdits(playerText, analysis, edits);
+        AddRestoredSpellings(playerText, language.Recast.RestoredSpellings(playerText, analysis, lexicon), edits);
+        AddNumberEdits(playerText, analysis, language.Numbers, edits);
 
         edits.Sort(static (a, b) => b.Start.CompareTo(a.Start));
         foreach (var edit in edits)
@@ -100,38 +114,9 @@ public static class RecastBuilder
         return accepted;
     }
 
-    private static void AddAccentEdits(NormalizedText playerText, NlpLexicon lexicon, List<Edit> edits)
+    // The policy's restored spellings, applied where no error edit already covers the token (the same rule for every restoration).
+    private static void AddRestoredSpellings(NormalizedText playerText, IReadOnlyDictionary<int, string> spellings, List<Edit> edits)
     {
-        foreach (var token in playerText.Tokens)
-        {
-            var span = token.Span;
-            if (span.Start < 0
-                || span.Length <= 0
-                || span.End > playerText.Text.Length
-                || !string.Equals(playerText.Text.Substring(span.Start, span.Length), token.Text, StringComparison.Ordinal)
-                || edits.Exists(e => e.Start < span.End && span.Start < e.End))
-            {
-                continue;
-            }
-
-            var lookup = lexicon.Lookup(token.Text);
-            if (lookup.Count == 0 || !lookup.IsAccentInsensitive)
-            {
-                continue;
-            }
-
-            var spellings = lexicon.SpellingsIgnoringAccents(token.Text);
-            if (spellings.Count > 0 && !string.Equals(spellings[0], token.Text, StringComparison.Ordinal))
-            {
-                edits.Add(new Edit(span.Start, span.Length, spellings[0]));
-            }
-        }
-    }
-
-    // A word that is a lexicon form as spelled but that the analysis read as an accented word takes that spelling, the same treatment as a word the lexicon lacks as spelled.
-    private static void AddReadAsAccentedEdits(NormalizedText playerText, AnalysisResult analysis, NlpLexicon lexicon, List<Edit> edits)
-    {
-        var spellings = AccentRestoration.SpellingsFor(lexicon, analysis);
         foreach (var token in playerText.Tokens)
         {
             var span = token.Span;
@@ -163,7 +148,7 @@ public static class RecastBuilder
         return result[1..^1];
     }
 
-    private static void AddNumberEdits(NormalizedText playerText, AnalysisResult analysis, List<Edit> edits)
+    private static void AddNumberEdits(NormalizedText playerText, AnalysisResult analysis, INumberWords numbers, List<Edit> edits)
     {
         for (var i = 0; i < playerText.Tokens.Count; i++)
         {
@@ -178,10 +163,10 @@ public static class RecastBuilder
                 continue;
             }
 
-            var words = SpanishNumbers.ToWords(value);
+            var words = numbers.ToWords(value);
             if (i + 1 < playerText.Tokens.Count)
             {
-                words = NumberAgreement.Agree(words, GenderAfter(analysis, playerText, i));
+                words = numbers.Agree(words, GenderAfter(analysis, playerText, i));
             }
 
             edits.Add(new Edit(span.Start, span.Length, words));

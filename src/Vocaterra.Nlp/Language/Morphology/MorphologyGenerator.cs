@@ -6,6 +6,9 @@ using Vocaterra.Nlp.Language.Lexicon;
 internal sealed record RegularizedForm(string Lemma, string Expected, string Person, string Number, string Tense);
 
 /// <summary>Generates Spanish word forms: plurals, articles, adjective agreement and verb conjugation, lexicon first and rules second.</summary>
+/// <remarks>
+/// Spanish compatibility entry point (M33): the Spanish morphology of <c>bundle.Morphology</c>. It is not routed through the pack yet; the morphology seam (<c>IMorphology</c>) is M34.
+/// </remarks>
 public sealed class MorphologyGenerator
 {
     private static readonly string[] PresentAr = ["o", "as", "a", "amos", "áis", "an"];

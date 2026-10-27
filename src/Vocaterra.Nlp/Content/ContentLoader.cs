@@ -59,6 +59,7 @@ public static class ContentLoader
         }
 
         var parts = Parse(files, options, problems);
+        parts.Language = language;
         ContentValidator.Validate(parts, files, problems);
         if (problems.Count > 0)
         {
@@ -529,6 +530,9 @@ public static class ContentLoader
 internal sealed class LoadedParts
 {
     public ContentProvenance? Provenance { get; set; }
+
+    /// <summary>The language pack the manifest resolved to; set before validation.</summary>
+    public ILanguagePack? Language { get; set; }
 
     public NlpLexicon? Lexicon { get; set; }
 

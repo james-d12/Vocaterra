@@ -4,6 +4,7 @@ using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Nlp.Response.Templates;
 
@@ -20,20 +21,29 @@ public sealed class TemplateEngine
 
     private readonly Lexicon _lexicon;
     private readonly MorphologyGenerator _morphology;
+    private readonly ILanguagePack _language;
 
-    /// <summary>Creates an engine that inflects with the morphology generator and looks up genders in the lexicon.</summary>
-    public TemplateEngine(Lexicon lexicon, MorphologyGenerator morphology)
+    /// <summary>
+    /// Creates an engine that inflects with the morphology generator, looks up genders in the lexicon and reads numbers, punctuation and number
+    /// agreement through the language pack (the bundle's <c>Language</c>).
+    /// </summary>
+    public TemplateEngine(Lexicon lexicon, MorphologyGenerator morphology, ILanguagePack language)
     {
         ArgumentNullException.ThrowIfNull(lexicon);
         ArgumentNullException.ThrowIfNull(morphology);
+        ArgumentNullException.ThrowIfNull(language);
         _lexicon = lexicon;
         _morphology = morphology;
+        _language = language;
     }
 
-    /// <summary>Creates an engine over the embedded seed lexicon.</summary>
+    /// <summary>
+    /// Creates an engine over the embedded seed lexicon, in Spanish (<see cref="SpanishLanguagePack.Instance"/>): the Spanish compatibility entry point
+    /// for the seed. A bundle's engine is <c>bundle.TemplateEngine</c>.
+    /// </summary>
     public static TemplateEngine CreateDefault()
     {
-        return new TemplateEngine(Lexicon.Seed, new MorphologyGenerator(Lexicon.Seed));
+        return new TemplateEngine(Lexicon.Seed, new MorphologyGenerator(Lexicon.Seed), SpanishLanguagePack.Instance);
     }
 
     /// <summary>Renders the template with the slots; throws <see cref="TemplateException"/> for a malformed template or an unknown slot.</summary>
@@ -57,7 +67,7 @@ public sealed class TemplateEngine
             }
         }
 
-        return PunctuationFixer.Fix(builder.ToString().Normalize(NormalizationForm.FormC));
+        return _language.Punctuation.Fix(builder.ToString().Normalize(NormalizationForm.FormC));
     }
 
     /// <summary>Returns the distinct slot names a template reads (including slots named in filter arguments), in ordinal order.</summary>
@@ -322,12 +332,12 @@ public sealed class TemplateEngine
         {
             number = int.Parse(text, NumberStyles.None, CultureInfo.InvariantCulture);
         }
-        else if (!SpanishNumbers.TryParse(text.ToLowerInvariant(), out number))
+        else if (!_language.Numbers.TryParse(text.ToLowerInvariant(), out number))
         {
-            throw new TemplateException(placeholder.Source, $"'{text}' is not a number between 0 and {SpanishNumbers.MaxValue} in placeholder '{placeholder.Source}'.");
+            throw new TemplateException(placeholder.Source, $"'{text}' is not a number between 0 and {_language.Numbers.MaxValue} in placeholder '{placeholder.Source}'.");
         }
 
-        var spelled = SpanishNumbers.ToWords(number);
+        var spelled = _language.Numbers.ToWords(number);
         if (words.Args.Count == 0)
         {
             return spelled;
@@ -337,7 +347,7 @@ public sealed class TemplateEngine
         var gender = argument is "m" or "f"
             ? argument
             : NounGender(_morphology.InflectNoun(GetSlot(slots, argument, placeholder).Trim(), Singular));
-        return NumberAgreement.Agree(spelled, gender);
+        return _language.Numbers.Agree(spelled, gender);
     }
 
     private string RenderNoun(PlaceholderPart placeholder, TemplateFilter? plural, TemplateFilter? article, string value, SlotMap slots)
@@ -415,7 +425,7 @@ public sealed class TemplateEngine
             return !string.Equals(text.TrimStart('0'), "1", StringComparison.Ordinal);
         }
 
-        if (SpanishNumbers.TryParse(text, out var parsed))
+        if (_language.Numbers.TryParse(text, out var parsed))
         {
             return parsed != 1;
         }

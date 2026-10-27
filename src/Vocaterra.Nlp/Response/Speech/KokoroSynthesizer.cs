@@ -31,11 +31,13 @@ public sealed class KokoroSynthesizer : ISpeechSynthesizer, IDisposable
     private const string VoicesFile = "voices.bin";
     private const string TokensFile = "tokens.txt";
     private const string DataDirectory = "espeak-ng-data";
-    private const string SpanishVoiceLanguage = "es";
+    /// <summary>The voice language of the default, Spanish, adapter; a model hash folds in a language only when it is not this one.</summary>
+    public const string DefaultLanguage = "es";
 
     private readonly string _modelDirectory;
     private readonly int _speakerId;
     private readonly float _speed;
+    private readonly string _language;
     private readonly Lazy<string> _modelHash;
     private readonly object _gate = new();
     private bool _disposed;
@@ -43,11 +45,13 @@ public sealed class KokoroSynthesizer : ISpeechSynthesizer, IDisposable
     /// <summary>
     /// Creates the adapter for a model directory (as unpacked from <c>kokoro-multi-lang-v1_0</c>). The model files must exist.
     /// <paramref name="modelHash"/> is the manifest hash of the model; when null the files are hashed on first use of <see cref="ModelHash"/>.
+    /// <paramref name="lang"/> is the voice language the synthesizer is set to (<c>es</c> for Spanish, the default).
     /// </summary>
-    public KokoroSynthesizer(string modelDir, int speakerId, float speed = 1.0f, string? modelHash = null)
+    public KokoroSynthesizer(string modelDir, int speakerId, float speed = 1.0f, string? modelHash = null, string lang = DefaultLanguage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(modelDir);
         ArgumentOutOfRangeException.ThrowIfNegative(speakerId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(lang);
         if (!float.IsFinite(speed) || speed <= 0f)
         {
             throw new ArgumentOutOfRangeException(nameof(speed), speed, "Speed must be a positive finite number.");
@@ -69,6 +73,7 @@ public sealed class KokoroSynthesizer : ISpeechSynthesizer, IDisposable
         _modelDirectory = modelDir;
         _speakerId = speakerId;
         _speed = speed;
+        _language = lang;
         _modelHash = new Lazy<string>(() => ComputeModelHash(modelHash), LazyThreadSafetyMode.ExecutionAndPublication);
     }
 
@@ -81,10 +86,14 @@ public sealed class KokoroSynthesizer : ISpeechSynthesizer, IDisposable
     /// <param name="id">The manifest id of the model.</param>
     /// <param name="speakerId">The speaker id (see the remarks of this class for the Spanish voices).</param>
     /// <param name="speed">The speaking speed, a positive finite number.</param>
+    /// <param name="lang">
+    /// The voice language (default <c>es</c>). It is the language the model speaks, not a choice among its voices: it sets the synthesizer's language
+    /// and is folded into <see cref="ModelHash"/> only when it is not <c>es</c>, so the Spanish hash is the one it always was.
+    /// </param>
     /// <exception cref="KeyNotFoundException">The id is not in the manifest.</exception>
     /// <exception cref="InvalidOperationException">The entry lacks a file the adapter loads, or a file has no pinned SHA-256.</exception>
     /// <exception cref="FileNotFoundException">A required file is missing from the model directory.</exception>
-    public static KokoroSynthesizer FromStore(ModelStore store, string id, int speakerId, float speed = 1.0f)
+    public static KokoroSynthesizer FromStore(ModelStore store, string id, int speakerId, float speed = 1.0f, string lang = DefaultLanguage)
     {
         ArgumentNullException.ThrowIfNull(store);
         var entry = store.Manifest.Find(id) ?? throw new KeyNotFoundException($"Model '{id}' is not in the manifest.");
@@ -101,7 +110,7 @@ public sealed class KokoroSynthesizer : ISpeechSynthesizer, IDisposable
             throw new InvalidOperationException($"The manifest entry '{id}' does not list any file under '{DataDirectory}/', which the Kokoro adapter loads.");
         }
 
-        return new KokoroSynthesizer(store.ModelDirectory(id), speakerId, speed, store.ModelHash(id));
+        return new KokoroSynthesizer(store.ModelDirectory(id), speakerId, speed, store.ModelHash(id), lang);
     }
 
     /// <summary>Hash over the model, voices and tokens files (or the supplied manifest hash), the speaker id and the speed.</summary>
@@ -168,7 +177,7 @@ public sealed class KokoroSynthesizer : ISpeechSynthesizer, IDisposable
         config.Model.Kokoro.Voices = Path.Combine(_modelDirectory, VoicesFile);
         config.Model.Kokoro.Tokens = Path.Combine(_modelDirectory, TokensFile);
         config.Model.Kokoro.DataDir = Path.Combine(_modelDirectory, DataDirectory);
-        config.Model.Kokoro.Lang = SpanishVoiceLanguage;
+        config.Model.Kokoro.Lang = _language;
         config.Model.NumThreads = 1;
         config.Model.Provider = "cpu";
         config.Model.Debug = 0;
@@ -177,19 +186,28 @@ public sealed class KokoroSynthesizer : ISpeechSynthesizer, IDisposable
 
     private string ComputeModelHash(string? manifestHash)
     {
-        var speaker = _speakerId.ToString(CultureInfo.InvariantCulture);
-        var speed = _speed.ToString("R", CultureInfo.InvariantCulture);
+        var parts = new List<string> { "kokoro" };
         if (manifestHash is not null)
         {
-            return DeterministicHash.Combine("kokoro", manifestHash, speaker, speed);
+            parts.Add(manifestHash);
+        }
+        else
+        {
+            parts.Add(HashFile(Path.Combine(_modelDirectory, ModelFile)));
+            parts.Add(HashFile(Path.Combine(_modelDirectory, VoicesFile)));
+            parts.Add(HashFile(Path.Combine(_modelDirectory, TokensFile)));
         }
 
-        return DeterministicHash.Combine(
-            "kokoro",
-            HashFile(Path.Combine(_modelDirectory, ModelFile)),
-            HashFile(Path.Combine(_modelDirectory, VoicesFile)),
-            HashFile(Path.Combine(_modelDirectory, TokensFile)),
-            speaker,
-            speed);
+        parts.Add(_speakerId.ToString(CultureInfo.InvariantCulture));
+        parts.Add(_speed.ToString("R", CultureInfo.InvariantCulture));
+
+        // The language joins the hash only when it is not Spanish, so the Spanish hash is the one it always was.
+        if (!string.Equals(_language, DefaultLanguage, StringComparison.Ordinal))
+        {
+            parts.Add("lang");
+            parts.Add(_language);
+        }
+
+        return DeterministicHash.Combine([.. parts]);
     }
 }

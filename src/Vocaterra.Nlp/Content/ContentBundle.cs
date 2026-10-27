@@ -38,7 +38,7 @@ public sealed class ContentBundle
         Lexicon = lexicon;
         LexiconSources = lexiconSources;
         Morphology = new MorphologyGenerator(lexicon);
-        TemplateEngine = new TemplateEngine(lexicon, Morphology);
+        TemplateEngine = new TemplateEngine(lexicon, Morphology, language);
         AnswerSets = answerSets;
         Intents = intents;
         Prompts = prompts;

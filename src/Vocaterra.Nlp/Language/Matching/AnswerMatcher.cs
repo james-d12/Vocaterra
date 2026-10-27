@@ -2,6 +2,7 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 
 // System.IO.MatchType (implicit usings) would otherwise make the name ambiguous.
 using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
@@ -13,7 +14,7 @@ namespace Vocaterra.Nlp.Language.Matching;
 /// </summary>
 /// <remarks>
 /// All comparisons ignore accents on both sides. The fuzzy stage compares against every canonical and alias phrase twice, once
-/// as spelled and once as phonetic keys (see <see cref="SpanishPhoneticKey"/>), and takes the smaller Damerau-Levenshtein distance
+/// as spelled and once as phonetic keys (see <see cref="IPhoneticKey"/>), and takes the smaller Damerau-Levenshtein distance
 /// <c>d</c>. The budget is inclusive: the allowed distance is <c>floor(length / divisor)</c> with the phrase's length in characters and
 /// divisor 4, 5 or 6 for Beginner, Intermediate and Advanced, so a phrase of 4 to 7 characters allows one edit at Beginner. The decision
 /// runs through a <see cref="Margin"/> on the distance: <c>d</c> below the budget is an accepted fuzzy match, <c>d</c> exactly at the budget
@@ -27,8 +28,9 @@ public static class AnswerMatcher
     private const double LimitEpsilon = 0.5;
 
     /// <summary>
-    /// Matches the text against the answer set. <paramref name="options"/> normalizes the set's own phrases and should equal
-    /// the options used to normalize <paramref name="text"/> (default options when null).
+    /// Matches the text against the answer set. <paramref name="language"/> supplies the accent folding, the phonetic key and the normalizer of
+    /// the set's own phrases. <paramref name="options"/> normalizes the set's own phrases and should equal the options used to normalize
+    /// <paramref name="text"/> (default options when null).
     /// </summary>
     /// <returns>
     /// The match. For <see cref="MatchType.None"/> the answer id is null, confidence is 0 and the distance is the smallest one found.
@@ -39,14 +41,16 @@ public static class AnswerMatcher
         NormalizedText text,
         AnswerSet set,
         Difficulty difficulty,
+        ILanguagePack language,
         NormalizationOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(set);
+        ArgumentNullException.ThrowIfNull(language);
         var divisor = Divisor(difficulty);
 
-        var input = Accents.Strip(text.Text);
-        var candidates = BuildCandidates(set, options ?? NormalizationOptions.Default);
+        var input = language.Folding.MatchingKey(text.Text);
+        var candidates = BuildCandidates(set, language, options ?? NormalizationOptions.Default);
 
         if (input.Length > 0)
         {
@@ -67,7 +71,7 @@ public static class AnswerMatcher
             }
         }
 
-        return MatchFuzzy(input, candidates, divisor);
+        return MatchFuzzy(input, candidates, divisor, language.PhoneticKey);
     }
 
     /// <summary>Returns the largest edit distance that still counts as a fuzzy match for a phrase of the given length.</summary>
@@ -77,9 +81,9 @@ public static class AnswerMatcher
         return length / Divisor(difficulty);
     }
 
-    private static MatchResult MatchFuzzy(string input, List<Candidate> candidates, int divisor)
+    private static MatchResult MatchFuzzy(string input, List<Candidate> candidates, int divisor, IPhoneticKey phonetic)
     {
-        var inputKey = SpanishPhoneticKey.Compute(input);
+        var inputKey = phonetic.Compute(input);
         Candidate? best = null;
         var bestDistance = 0;
         var bestPhonetic = 0;
@@ -90,8 +94,8 @@ public static class AnswerMatcher
         foreach (var candidate in candidates)
         {
             var spelling = DamerauLevenshtein.Distance(input, candidate.Phrase);
-            var phonetic = DamerauLevenshtein.Distance(inputKey, SpanishPhoneticKey.Compute(candidate.Phrase));
-            var distance = Math.Min(spelling, phonetic);
+            var phoneticDistance = DamerauLevenshtein.Distance(inputKey, phonetic.Compute(candidate.Phrase));
+            var distance = Math.Min(spelling, phoneticDistance);
             smallest = Math.Min(smallest, distance);
 
             var limit = candidate.Phrase.Length / divisor;
@@ -105,7 +109,7 @@ public static class AnswerMatcher
                 best = candidate;
                 bestDistance = distance;
                 bestSpelling = spelling;
-                bestPhonetic = phonetic;
+                bestPhonetic = phoneticDistance;
             }
         }
 
@@ -136,15 +140,15 @@ public static class AnswerMatcher
         };
     }
 
-    private static List<Candidate> BuildCandidates(AnswerSet set, NormalizationOptions options)
+    private static List<Candidate> BuildCandidates(AnswerSet set, ILanguagePack language, NormalizationOptions options)
     {
         var candidates = new List<Candidate>();
         foreach (var answer in set.Answers)
         {
-            AddCandidate(candidates, answer.AnswerId, answer.Canonical, isAlias: false, options);
+            AddCandidate(candidates, answer.AnswerId, answer.Canonical, isAlias: false, language, options);
             foreach (var alias in answer.Aliases)
             {
-                AddCandidate(candidates, answer.AnswerId, alias, isAlias: true, options);
+                AddCandidate(candidates, answer.AnswerId, alias, isAlias: true, language, options);
             }
         }
 
@@ -156,9 +160,9 @@ public static class AnswerMatcher
             .ToList();
     }
 
-    private static void AddCandidate(List<Candidate> candidates, string answerId, string raw, bool isAlias, NormalizationOptions options)
+    private static void AddCandidate(List<Candidate> candidates, string answerId, string raw, bool isAlias, ILanguagePack language, NormalizationOptions options)
     {
-        var phrase = Accents.Strip(TextNormalizer.Normalize(raw, options).Text);
+        var phrase = language.Folding.MatchingKey(language.Normalizer.Normalize(raw, options).Text);
         if (phrase.Length > 0)
         {
             candidates.Add(new Candidate(answerId, phrase, isAlias));

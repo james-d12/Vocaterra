@@ -1,6 +1,7 @@
 using System.Text;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Nlp.Language.Intent;
 
@@ -56,36 +57,54 @@ public static class RepairStrategy
     }
 
     /// <summary>
+    /// The same ladder with the two lists apart, with the Spanish lines of this class (the compatibility entry point; see the overload that takes
+    /// <see cref="RepairLines"/>).
+    /// </summary>
+    public static RepairStep Next(int attempt, PromptSpec prompt, IReadOnlyList<string> retryPhrases, IReadOnlyList<string> choicePhrases)
+    {
+        return Next(attempt, prompt, retryPhrases, choicePhrases, new RepairLines(AskAgainLine, SlowRepeatLine, GiveUpLine));
+    }
+
+    /// <summary>
     /// The same ladder with the two lists apart: <paramref name="retryPhrases"/> is the grammar of a constrained retry at attempts 1 and 2 (the
     /// pipeline passes every phrase the answer set accepts, aliases included), and <paramref name="choicePhrases"/> are the phrases offered at
     /// attempt 3, in their order (the pipeline passes one canonical phrase per answer, in the set's declared order). The first three distinct
     /// non-blank choices are offered, and the constrained retry at attempt 3 is limited to exactly those.
     /// </summary>
-    public static RepairStep Next(int attempt, PromptSpec prompt, IReadOnlyList<string> retryPhrases, IReadOnlyList<string> choicePhrases)
+    /// <param name="attempt">The failed attempt, 1 for the first failure.</param>
+    /// <param name="prompt">The prompt the player answered.</param>
+    /// <param name="retryPhrases">The grammar of a constrained retry at attempts 1 and 2.</param>
+    /// <param name="choicePhrases">The phrases offered at attempt 3, in order.</param>
+    /// <param name="lines">
+    /// The agent lines of the step: the bundle's reserved pool lines where it has them, else the language pack's fallback (see
+    /// <see cref="RepairLines"/>).
+    /// </param>
+    public static RepairStep Next(int attempt, PromptSpec prompt, IReadOnlyList<string> retryPhrases, IReadOnlyList<string> choicePhrases, RepairLines lines)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(attempt, 1);
         ArgumentNullException.ThrowIfNull(prompt);
         ArgumentNullException.ThrowIfNull(retryPhrases);
         ArgumentNullException.ThrowIfNull(choicePhrases);
+        ArgumentNullException.ThrowIfNull(lines);
         switch (attempt)
         {
             case 1:
-                return new RepairStep(RepairKind.AskAgain, AskAgainLine, SameMode(prompt, retryPhrases));
+                return new RepairStep(RepairKind.AskAgain, lines.AskAgain, SameMode(prompt, retryPhrases));
             case 2:
-                return new RepairStep(RepairKind.SlowRepeat, SlowRepeatLine, SameMode(prompt, retryPhrases));
+                return new RepairStep(RepairKind.SlowRepeat, lines.SlowRepeat, SameMode(prompt, retryPhrases));
             case 3:
                 var choices = FirstChoices(choicePhrases);
                 return choices.Count == 0
-                    ? GiveUp()
+                    ? GiveUp(lines)
                     : new RepairStep(RepairKind.OfferChoices, OfferLine(choices), RecognitionRequest.Constrained(choices));
             default:
-                return GiveUp();
+                return GiveUp(lines);
         }
     }
 
-    private static RepairStep GiveUp()
+    private static RepairStep GiveUp(RepairLines lines)
     {
-        return new RepairStep(RepairKind.GiveUp, GiveUpLine, null);
+        return new RepairStep(RepairKind.GiveUp, lines.GiveUp, null);
     }
 
     private static RecognitionRequest SameMode(PromptSpec prompt, IReadOnlyList<string> retryPhrases)

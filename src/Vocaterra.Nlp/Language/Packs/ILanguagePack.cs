@@ -6,8 +6,8 @@ namespace Vocaterra.Nlp.Language.Packs;
 /// deterministic code (ADR 0002): ordinal comparison, invariant culture, no clock, no randomness.
 /// </summary>
 /// <remarks>
-/// This is the text-side half of the pack (milestone M32). The analysis-side members (morphology, analysis rules, template functions, the lexicon
-/// profile, the error tag set and the recast policy) join in M34. A host reaches the pack of a loaded bundle through
+/// This is the text-side half of the pack (milestones M32 and M33). The analysis-side members (morphology, analysis rules, template functions, the lexicon
+/// profile and the error tag set) join in M34. A host reaches the pack of a loaded bundle through
 /// <see cref="Vocaterra.Nlp.Content.ContentBundle.Language"/>. See ADR 0011.
 /// </remarks>
 public interface ILanguagePack
@@ -41,4 +41,7 @@ public interface ILanguagePack
 
     /// <summary>The agent lines the repair strategy falls back to when a bundle has no pool for them.</summary>
     RepairLines RepairFallback { get; }
+
+    /// <summary>The spelling policy of recasts (accent restoration). A narrow text-side member added in M33; the rest of the recast is neutral.</summary>
+    IRecastPolicy Recast { get; }
 }

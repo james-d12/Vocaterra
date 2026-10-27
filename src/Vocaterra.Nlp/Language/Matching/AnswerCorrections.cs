@@ -2,6 +2,7 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 
 namespace Vocaterra.Nlp.Language.Matching;
@@ -23,12 +24,14 @@ public static class AnswerCorrections
         NormalizedText text,
         MatchResult match,
         AnswerSet set,
+        ILanguagePack language,
         NormalizationOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(analysis);
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(match);
         ArgumentNullException.ThrowIfNull(set);
+        ArgumentNullException.ThrowIfNull(language);
         if (match.Type != MatchType.Fuzzy || match.AnswerId is null)
         {
             return analysis;
@@ -40,7 +43,7 @@ public static class AnswerCorrections
             return analysis;
         }
 
-        var canonical = TextNormalizer.Normalize(answer.Canonical, options ?? NormalizationOptions.Default).Text;
+        var canonical = language.Normalizer.Normalize(answer.Canonical, options ?? NormalizationOptions.Default).Text;
         var words = canonical.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (words.Length == 0)
         {
@@ -52,7 +55,7 @@ public static class AnswerCorrections
         foreach (var error in analysis.Errors)
         {
             var replacement = error.Tag == ErrorTags.VocabUnknown && error.Expected.Length == 0
-                ? ReplacementFor(error, text, words, canonical)
+                ? ReplacementFor(error, text, words, canonical, language.Folding)
                 : null;
             if (replacement is null)
             {
@@ -67,28 +70,28 @@ public static class AnswerCorrections
         return changed ? analysis with { Errors = errors } : analysis;
     }
 
-    private static string? ReplacementFor(ErrorTag error, NormalizedText text, string[] words, string canonical)
+    private static string? ReplacementFor(ErrorTag error, NormalizedText text, string[] words, string canonical, ILexiconFolding folding)
     {
         if (!IsToken(text, error.Span))
         {
             return null;
         }
 
-        var replacement = text.Tokens.Count == 1 ? canonical : NearestWord(error.Actual, words);
+        var replacement = text.Tokens.Count == 1 ? canonical : NearestWord(error.Actual, words, folding);
 
         // A word the player already spelled as the answer is not a vocabulary error to correct.
         return string.Equals(replacement, error.Actual, StringComparison.Ordinal) ? null : replacement;
     }
 
     // The canonical word the spelling is nearest to, comparing accent-stripped spellings; the earlier word wins a tie.
-    private static string NearestWord(string spelling, string[] words)
+    private static string NearestWord(string spelling, string[] words, ILexiconFolding folding)
     {
-        var plain = Accents.Strip(spelling);
+        var plain = folding.MatchingKey(spelling);
         var nearest = words[0];
         var nearestDistance = int.MaxValue;
         foreach (var word in words)
         {
-            var distance = DamerauLevenshtein.Distance(plain, Accents.Strip(word));
+            var distance = DamerauLevenshtein.Distance(plain, folding.MatchingKey(word));
             if (distance < nearestDistance)
             {
                 nearest = word;

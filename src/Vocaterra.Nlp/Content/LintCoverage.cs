@@ -3,17 +3,18 @@ using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Nlp.Content;
 
 /// <summary>Check 1: every intent example resolves to its own intent, and by which rung.</summary>
 internal static class LintCoverage
 {
-    internal static readonly string[] SubjectPronouns = ["yo", "tú", "él", "ella", "usted", "nosotros", "nosotras", "vosotros", "vosotras", "ellos", "ellas", "ustedes"];
     private static readonly NormalizationOptions KeepArticles = new(ConvertIndefiniteArticles: false);
 
     public static void Run(LintContext context)
     {
+        var language = context.Bundle.Language;
         foreach (var intent in context.Bundle.Intents.Intents)
         {
             var own = context.Only(intent.Id.Value);
@@ -29,7 +30,7 @@ internal static class LintCoverage
                         ContentPaths.Intents,
                         [intent.Id.Value],
                         $"example \"{example.Text}\" is not resolved by any grammar or keyword rule of the intent.",
-                        suggestion: Skeleton(intent, evaluated));
+                        suggestion: Skeleton(intent, evaluated, language));
                 }
                 else if (resolution.Rung == IntentRung.Rules)
                 {
@@ -63,26 +64,27 @@ internal static class LintCoverage
 
     // A hint for an uncovered example: closed-class words stay literal, open-class words become [POS] or [POS:lemma], nouns that vary between the
     // intent's examples take the intent's noun slot (the first required slot that is not the quantity), numerals the quantity slot.
-    private static string Skeleton(IntentDefinition intent, Evaluated evaluated)
+    private static string Skeleton(IntentDefinition intent, Evaluated evaluated, ILanguagePack language)
     {
         var words = evaluated.Analysis.Words ?? [];
         var nounSlot = intent.RequiredSlots.FirstOrDefault(static slot => !string.Equals(slot, IntentCatalog.QuantitySlot, StringComparison.Ordinal));
         var quantity = intent.RequiredSlots.Contains(IntentCatalog.QuantitySlot, StringComparer.Ordinal);
         var otherTokens = intent.Examples
-            .Select(example => TextNormalizer.Normalize(example, KeepArticles).Tokens.Select(static token => token.Text).ToHashSet(StringComparer.Ordinal))
+            .Select(example => language.Normalizer.Normalize(example, KeepArticles).Tokens.Select(static token => token.Text).ToHashSet(StringComparer.Ordinal))
             .ToList();
+        var politePhrase = language.Lint.PolitePhrase;
         var elements = new List<string>();
         var slotUsed = false;
         for (var i = 0; i < words.Count; i++)
         {
             var word = words[i];
             var text = word.Token.Text;
-            if (i == 0 && words.Count > 1 && Array.IndexOf(SubjectPronouns, text) >= 0)
+            if (i == 0 && words.Count > 1 && language.Lint.SubjectPronouns.Contains(text, StringComparer.Ordinal))
             {
                 continue;
             }
 
-            if (i == words.Count - 2 && words.Count > 2 && text == "por" && words[i + 1].Token.Text == "favor")
+            if (IsPolitePhraseAt(words, i, politePhrase))
             {
                 break;
             }
@@ -104,7 +106,7 @@ internal static class LintCoverage
                 case LexiconSchema.Adjective:
                     elements.Add("[ADJ]");
                     break;
-                case LexiconSchema.Numeral when text is "un" or "una":
+                case LexiconSchema.Numeral when language.Lint.ArticleNumeralHomographs.Contains(text, StringComparer.Ordinal):
                     elements.Add("[ART]");
                     break;
                 case LexiconSchema.Numeral:
@@ -121,6 +123,25 @@ internal static class LintCoverage
         }
 
         return string.Join(' ', elements);
+    }
+
+    // True when the words from the index on are the polite phrase and end the example (the phrase is the last thing the example says).
+    private static bool IsPolitePhraseAt(IReadOnlyList<ResolvedWord> words, int index, IReadOnlyList<string> phrase)
+    {
+        if (phrase.Count == 0 || index != words.Count - phrase.Count || words.Count <= phrase.Count)
+        {
+            return false;
+        }
+
+        for (var k = 0; k < phrase.Count; k++)
+        {
+            if (!string.Equals(words[index + k].Token.Text, phrase[k], StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static string WithSlot(string tag, ref bool slotUsed, string? slot)
