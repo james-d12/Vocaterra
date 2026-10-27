@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Nlp.Language.Matching;
 
@@ -106,17 +107,20 @@ public sealed record AnswerSet(string AnswerSetId, IReadOnlyList<Answer> Answers
 
     /// <summary>
     /// Returns every canonical and alias phrase, normalized, de-duplicated and ordinal-sorted, ready to be used as a constrained
-    /// recognizer grammar. Numbers are written as words (a recognizer emits <c>dos</c>, not <c>2</c>) and contractions are left intact.
+    /// recognizer grammar. Numbers are written as words of <paramref name="language"/> (a recognizer emits <c>dos</c>, not <c>2</c>) and contractions
+    /// are left intact.
     /// </summary>
-    public IReadOnlyList<string> GrammarPhrases()
+    /// <param name="language">The language of the phrases: the bundle's <c>Language</c>.</param>
+    public IReadOnlyList<string> GrammarPhrases(ILanguagePack language)
     {
+        ArgumentNullException.ThrowIfNull(language);
         var phrases = new SortedSet<string>(StringComparer.Ordinal);
         foreach (var answer in Answers)
         {
-            AddPhrase(phrases, answer.Canonical);
+            AddPhrase(phrases, answer.Canonical, language);
             foreach (var alias in answer.Aliases)
             {
-                AddPhrase(phrases, alias);
+                AddPhrase(phrases, alias, language);
             }
         }
 
@@ -128,13 +132,15 @@ public sealed record AnswerSet(string AnswerSetId, IReadOnlyList<Answer> Answers
     /// set's declared order (authoring order), not sorted; an answer whose canonical repeats an earlier phrase, or normalizes to nothing, is
     /// left out. The repair ladder offers these as its choices, so a host can show one button per answer.
     /// </summary>
-    public IReadOnlyList<string> CanonicalPhrases()
+    /// <param name="language">The language of the phrases: the bundle's <c>Language</c>.</param>
+    public IReadOnlyList<string> CanonicalPhrases(ILanguagePack language)
     {
+        ArgumentNullException.ThrowIfNull(language);
         var phrases = new List<string>(Answers.Count);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var answer in Answers)
         {
-            var text = GrammarPhrase(answer.Canonical);
+            var text = GrammarPhrase(answer.Canonical, language);
             if (text.Length > 0 && seen.Add(text))
             {
                 phrases.Add(text);
@@ -144,18 +150,18 @@ public sealed record AnswerSet(string AnswerSetId, IReadOnlyList<Answer> Answers
         return phrases;
     }
 
-    private static void AddPhrase(SortedSet<string> phrases, string raw)
+    private static void AddPhrase(SortedSet<string> phrases, string raw, ILanguagePack language)
     {
-        var text = GrammarPhrase(raw);
+        var text = GrammarPhrase(raw, language);
         if (text.Length > 0)
         {
             phrases.Add(text);
         }
     }
 
-    private static string GrammarPhrase(string raw)
+    private static string GrammarPhrase(string raw, ILanguagePack language)
     {
-        return SpanishNumbers.DigitsToWords(TextNormalizer.Normalize(raw, GrammarOptions).Text);
+        return language.Numbers.DigitsToWords(language.Normalizer.Normalize(raw, GrammarOptions).Text);
     }
 
     private sealed record AnswerSetDto(string AnswerSetId, IReadOnlyList<AnswerDto> Answers);

@@ -2,6 +2,7 @@ using System.Text;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Nlp.Content.Tests;
 
@@ -18,7 +19,7 @@ public class LexiconCoverageTests
     // The pipeline normalizes with indefinite articles kept, so the tests do too.
     private static readonly NormalizationOptions PipelineOptions = new(ConvertIndefiniteArticles: false);
 
-    private static readonly LinguisticAnalyzer Analyzer = new(Bundle.Lexicon, Bundle.Morphology);
+    private static readonly LinguisticAnalyzer Analyzer = new(Bundle.Lexicon, Bundle.Morphology, SpanishLanguagePack.Instance);
 
     private static bool Knows(string word)
     {

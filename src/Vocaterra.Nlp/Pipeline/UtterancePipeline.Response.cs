@@ -7,6 +7,7 @@ using Vocaterra.Nlp.Decision.Feedback;
 using Vocaterra.Nlp.Decision.Scheduling;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Matching;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Response.Templates;
 
 namespace Vocaterra.Nlp.Pipeline;
@@ -58,7 +59,7 @@ public sealed partial class UtterancePipeline
         ConversationContext context)
     {
         var content = _services.Content;
-        var (request, recast) = BuildFeedback(decision.Feedback, normalized, analysis, match, content.AnswerSets, content.Lexicon);
+        var (request, recast) = BuildFeedback(decision.Feedback, normalized, analysis, match, content.AnswerSets, content.Lexicon, content.Language);
         if (prompt.AgentId is null && IsAcceptedAnswer(verdict) && content.Dialogue.TryGetPool(AnswerAcceptedPool, out _))
         {
             return PlanWithFallback(verdict, request, recast, AnswerAcceptedPool, content.Dialogue, context);
@@ -162,7 +163,8 @@ public sealed partial class UtterancePipeline
         AnalysisResult analysis,
         MatchResult match,
         IReadOnlyDictionary<string, AnswerSet> answerSets,
-        Vocaterra.Nlp.Language.Lexicon.Lexicon lexicon)
+        Vocaterra.Nlp.Language.Lexicon.Lexicon lexicon,
+        ILanguagePack language)
     {
         if (plan.Items.Count == 0)
         {
@@ -183,7 +185,7 @@ public sealed partial class UtterancePipeline
             return (null, null);
         }
 
-        var recast = item.Type == FeedbackType.Recast ? RecastBuilder.Build(normalized, analysis, lexicon) : null;
+        var recast = item.Type == FeedbackType.Recast ? RecastBuilder.Build(normalized, analysis, lexicon, language) : null;
         return (new FeedbackRequest(item.Tag, expected, item.Actual, KindOf(item.Type)), recast);
     }
 
@@ -218,18 +220,36 @@ public sealed partial class UtterancePipeline
 
     // The counts are the ones after this utterance: a verdict that was not communicated always carries the not_communicated count, at 1 or more.
     // The retry grammar (attempts 1 and 2) is every phrase the set accepts; the offered choices (attempt 3) are one canonical phrase per answer, in declared order.
-    private static RepairStep? RepairFor(Verdict verdict, PromptSpec prompt, AnswerSet answerSet, IReadOnlyDictionary<string, int> counts)
+    private RepairStep? RepairFor(Verdict verdict, PromptSpec prompt, AnswerSet answerSet, IReadOnlyDictionary<string, int> counts, ConversationContext context)
     {
         if (verdict.Communicated)
         {
             return null;
         }
 
+        var attempt = counts[FeedbackPolicy.NotCommunicatedTag];
         return RepairStrategy.Next(
-            counts[FeedbackPolicy.NotCommunicatedTag],
+            attempt,
             prompt,
-            answerSet.GrammarPhrases(),
-            answerSet.CanonicalPhrases());
+            answerSet.GrammarPhrases(_services.Content.Language),
+            answerSet.CanonicalPhrases(_services.Content.Language),
+            RepairLinesFor(attempt, context));
+    }
+
+    // The lines of the attempt: the bundle's repair pool line for this attempt when the bundle has that pool, else the pack's fallback. Only the
+    // pool of this attempt is drawn from, with the interaction's seed, so a bundle without the pools draws nothing and keeps its lines.
+    private RepairLines RepairLinesFor(int attempt, ConversationContext context)
+    {
+        var content = _services.Content;
+        var fallback = content.Language.RepairFallback;
+        var askAgain = attempt == 1 ? PoolLine(content.Dialogue, ReservedPools.RepairAskAgain, context) : null;
+        var slowRepeat = attempt == 2 ? PoolLine(content.Dialogue, ReservedPools.RepairSlowRepeat, context) : null;
+        return new RepairLines(askAgain ?? fallback.AskAgain, slowRepeat ?? fallback.SlowRepeat, fallback.GiveUp);
+    }
+
+    private static string? PoolLine(DialogueCatalog dialogue, string poolId, ConversationContext context)
+    {
+        return dialogue.TryGetPool(poolId, out var pool) ? DialogueSelector.Select(pool, NewRng(context)).Text : null;
     }
 
     private static SeededRng NewRng(ConversationContext context)

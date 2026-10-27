@@ -7,6 +7,9 @@ namespace Vocaterra.Nlp.Phonology;
 /// normalize, group digraphs, syllabify, assign stress, map phones, apply allophone rules across words,
 /// with an exception lexicon for loanwords and irregular spellings.
 /// </summary>
+/// <remarks>
+/// Spanish compatibility entry point (M33): the Spanish G2P behind <c>SpanishLanguagePack.G2p</c>. Pronunciation scoring and speech requests call <c>bundle.Language.G2p</c> (null means no G2P for the language).
+/// </remarks>
 public static class SpanishG2p
 {
     /// <summary>

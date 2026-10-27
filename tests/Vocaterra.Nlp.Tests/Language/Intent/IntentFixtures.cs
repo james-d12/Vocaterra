@@ -5,6 +5,7 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 
 /// <summary>Shared catalog, analyzer and helpers for the intent tests.</summary>
 internal static class IntentFixtures
@@ -53,7 +54,7 @@ internal static class IntentFixtures
 
     public static IntentCatalog Catalog { get; } = IntentCatalog.Load(CatalogJson);
 
-    public static LinguisticAnalyzer Analyzer { get; } = new(Vocaterra.Nlp.Language.Lexicon.Lexicon.Seed);
+    public static LinguisticAnalyzer Analyzer { get; } = new(Vocaterra.Nlp.Language.Lexicon.Lexicon.Seed, SpanishLanguagePack.Instance);
 
     public static PromptSpec Prompt(params string[] allowedIntents)
     {
@@ -79,7 +80,7 @@ internal static class IntentFixtures
         IntentResolverOptions? options = null,
         params string[] allowedIntents)
     {
-        var resolver = new IntentResolver(Catalog, embeddings, options);
+        var resolver = new IntentResolver(Catalog, SpanishLanguagePack.Instance, embeddings, options);
         return resolver.Resolve(Normalize(text), Analyze(text, withCatalogGrammars), Prompt(allowedIntents));
     }
 }

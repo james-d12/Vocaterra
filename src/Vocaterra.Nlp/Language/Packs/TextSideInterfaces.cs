@@ -44,6 +44,14 @@ public interface INumberWords
 
     /// <summary>Replaces stand-alone digit runs with words.</summary>
     string DigitsToWords(string text);
+
+    /// <summary>
+    /// Makes a spelled number agree with the gender of the noun it quantifies (Spanish: <c>uno</c> becomes <c>un</c> or <c>una</c>). Returns the words
+    /// unchanged when the language has no such agreement for them.
+    /// </summary>
+    /// <param name="words">The number spelled by <see cref="ToWords"/>.</param>
+    /// <param name="gender">The gender of the noun, <c>m</c> or <c>f</c>.</param>
+    string Agree(string words, string gender);
 }
 
 /// <summary>A sound-alike key: words that sound alike share a key.</summary>
@@ -51,6 +59,22 @@ public interface IPhoneticKey
 {
     /// <summary>Computes the key of one word.</summary>
     string Compute(string word);
+}
+
+/// <summary>
+/// The spelling policy of recasts: the player's sentence is rebuilt with the errors corrected, and the words that the lexicon knows only with
+/// their marks (accents) take the marked spelling. Text-side only; the analysis-side rules of the language (M34) do not belong here.
+/// </summary>
+public interface IRecastPolicy
+{
+    /// <summary>
+    /// The restored spellings of the player's words, keyed by the span start of the token. A token takes at most one spelling; a token that the policy
+    /// does not restore is absent from the result. The caller decides whether a restoration applies (for example, not over an error edit).
+    /// </summary>
+    /// <param name="text">The normalized text of the player.</param>
+    /// <param name="analysis">The analysis of that text.</param>
+    /// <param name="lexicon">The lexicon the words are looked up in.</param>
+    IReadOnlyDictionary<int, string> RestoredSpellings(NormalizedText text, AnalysisResult analysis, Lexicon.Lexicon lexicon);
 }
 
 /// <summary>Cleans rendered text.</summary>

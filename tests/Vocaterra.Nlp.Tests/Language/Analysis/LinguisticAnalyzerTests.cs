@@ -6,6 +6,7 @@ using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
 public class LinguisticAnalyzerTests
@@ -544,8 +545,8 @@ public class LinguisticAnalyzerTests
         var grammars = new[] { SlotGrammar.Parse("[PRON]? [VERB:tener] [NUM:qty] [NOUN:item]") };
         var text = TestTokens.From("ayer yo tiene dos espada roja y soy cansado");
 
-        var first = new LinguisticAnalyzer(Lexicon.LoadSeed()).Analyze(text, grammars);
-        var second = new LinguisticAnalyzer(Lexicon.LoadSeed()).Analyze(text, grammars);
+        var first = new LinguisticAnalyzer(Lexicon.LoadSeed(), SpanishLanguagePack.Instance).Analyze(text, grammars);
+        var second = new LinguisticAnalyzer(Lexicon.LoadSeed(), SpanishLanguagePack.Instance).Analyze(text, grammars);
 
         Assert.Equal(first, second);
         Assert.Equal(CanonicalJson.Serialize(first), CanonicalJson.Serialize(second));

@@ -2,6 +2,7 @@ namespace Vocaterra.Nlp.Language.Tests.SlotGrammar;
 
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Language.Tests.Analysis;
 
@@ -14,7 +15,7 @@ public class SlotGrammarTests
 
     private static SlotGrammarMatch? Match(string text, string pattern)
     {
-        return SlotGrammarMatcher.Match(Tokens(text), SlotGrammar.Parse(pattern));
+        return SlotGrammarMatcher.Match(Tokens(text), SlotGrammar.Parse(pattern), SpanishLanguagePack.Instance);
     }
 
     private static string Slots(SlotGrammarMatch? match)
@@ -238,8 +239,8 @@ public class SlotGrammarTests
         var tokens = Tokens("yo quiero comprar dos espadas por favor");
         var grammar = SlotGrammar.Parse("[PRON]? querer [VERB:comprar:action] [NUM:qty]? [NOUN:item]");
 
-        var first = SlotGrammarMatcher.Match(tokens, grammar);
-        var second = SlotGrammarMatcher.Match(tokens, SlotGrammar.Parse(grammar.Pattern));
+        var first = SlotGrammarMatcher.Match(tokens, grammar, SpanishLanguagePack.Instance);
+        var second = SlotGrammarMatcher.Match(tokens, SlotGrammar.Parse(grammar.Pattern), SpanishLanguagePack.Instance);
 
         Assert.NotNull(first);
         Assert.NotNull(second);

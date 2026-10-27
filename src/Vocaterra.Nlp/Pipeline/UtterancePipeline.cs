@@ -11,6 +11,7 @@ using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Phonology;
 using Vocaterra.Nlp.Pronunciation;
@@ -53,8 +54,8 @@ public sealed partial class UtterancePipeline
         _services = services;
         _options = options ?? PipelineOptions.Default;
         var content = services.Content;
-        _analyzer = new LinguisticAnalyzer(content.Lexicon, content.Morphology);
-        _resolver = new IntentResolver(content.Intents, services.Embeddings);
+        _analyzer = new LinguisticAnalyzer(content.Lexicon, content.Morphology, content.Language);
+        _resolver = new IntentResolver(content.Intents, content.Language, services.Embeddings);
         _planner = new ResponsePlanner(content.TemplateEngine);
         _scorer = new PronunciationScorer();
         _catalogWithSilence = WithSilentPool(content.Dialogue);
@@ -96,13 +97,15 @@ public sealed partial class UtterancePipeline
         var request = BuildRequest(prompt, answerSet);
         var (asr, posteriors) = Recognize(clip, request);
 
-        var normalized = TextNormalizer.Normalize(CleanTranscript(asr.Transcript), Normalization);
-        var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, Normalization);
+        var language = _services.Content.Language;
+        var normalized = language.Normalizer.Normalize(CleanTranscript(asr.Transcript), Normalization);
+        var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, language, Normalization);
         var analysis = AnswerCorrections.WithCanonicalWords(
             _analyzer.Analyze(normalized, GrammarsFor(prompt)),
             normalized,
             match,
             answerSet,
+            language,
             Normalization);
         var intent = IsAnswerOnly(prompt) ? NoIntent : _resolver.Resolve(normalized, analysis, prompt);
         var pronunciation = ScorePronunciation(normalized, posteriors, prompt);
@@ -166,7 +169,7 @@ public sealed partial class UtterancePipeline
         var decision = Decide(verdict, prompt, context, counts);
         var response = Respond(verdict, prompt, decision, analysis.Normalized, analysis.Analysis, analysis.Match, context);
         var effects = EffectResolver.Resolve(verdict, content.Effects);
-        var repair = RepairFor(verdict, prompt, analysis.AnswerSet, counts);
+        var repair = RepairFor(verdict, prompt, analysis.AnswerSet, counts, context);
         var replay = new ReplayRecord(analysis.ClipHash, prompt.PromptId, context.HostStateHash, _services.Versions, verdict);
         var result = new PipelineResult(verdict, decision, response, effects, repair, replay, analysis.Words, analysis.Match);
         return new PipelineTrace(result, analysis.Asr, analysis.Posteriors);
@@ -182,7 +185,7 @@ public sealed partial class UtterancePipeline
         var buffers = new List<AudioBuffer>(plan.Lines.Count);
         foreach (var line in plan.Lines)
         {
-            buffers.Add(synthesizer.Synthesize(SpeechRequests.Create(line.Text, voiceId)));
+            buffers.Add(synthesizer.Synthesize(SpeechRequests.Create(line.Text, voiceId, _services.Content.Language)));
         }
 
         return buffers;
@@ -223,7 +226,7 @@ public sealed partial class UtterancePipeline
     private RecognitionRequest BuildRequest(PromptSpec prompt, AnswerSet answerSet)
     {
         return prompt.Mode == RecognitionMode.Constrained
-            ? RecognitionRequest.Constrained(GrammarBuilder.BuildList(answerSet.GrammarPhrases()), _options.MaxAlternatives)
+            ? RecognitionRequest.Constrained(GrammarBuilder.BuildList(answerSet.GrammarPhrases(_services.Content.Language)), _options.MaxAlternatives)
             : RecognitionRequest.Open(_options.MaxAlternatives);
     }
 
@@ -304,19 +307,21 @@ public sealed partial class UtterancePipeline
     private PronunciationResult? ScorePronunciation(NormalizedText normalized, PhonePosteriors? posteriors, PromptSpec prompt)
     {
         var recognizer = _services.PhonemeRecognizer;
-        if (recognizer is null || posteriors is null || posteriors.FrameCount == 0)
+        var language = _services.Content.Language;
+        if (recognizer is null || posteriors is null || posteriors.FrameCount == 0 || language.G2p is not { } g2p)
         {
+            // A language without a G2p has no pronunciation scoring (ILanguagePack.G2p is null).
             return null;
         }
 
         // The G2P drops digits, so numerals are spelled out before phonemizing.
-        var spoken = SpanishNumbers.DigitsToWords(normalized.Text);
+        var spoken = language.Numbers.DigitsToWords(normalized.Text);
         if (spoken.Length == 0)
         {
             return null;
         }
 
-        var variants = SpanishG2p.PhonemizeAll(spoken);
+        var variants = g2p.PhonemizeAll(spoken);
         var predicted = PronunciationScorer.PredictedErrorsFor(variants);
         return _scorer.Score(posteriors, variants, predicted, prompt.Difficulty, _options.PronunciationMode, recognizer.ModelHash);
     }

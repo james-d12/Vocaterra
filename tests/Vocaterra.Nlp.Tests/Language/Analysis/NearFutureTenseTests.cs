@@ -2,6 +2,7 @@ namespace Vocaterra.Nlp.Language.Tests.Analysis;
 
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Packs;
 
 /// <summary>
 /// M49: tense checks for the near future (conj.tense). A future-time marker with a preterite or imperfect form expects the ir a + infinitive form; a conjugated
@@ -20,7 +21,7 @@ public class NearFutureTenseTests
             entries.AddRange(Lexicon.ReadFile(File.ReadAllBytes(path)).Entries);
         }
 
-        return new LinguisticAnalyzer(Lexicon.FromEntries(entries));
+        return new LinguisticAnalyzer(Lexicon.FromEntries(entries), SpanishLanguagePack.Instance);
     }
 
     private static string[] Described(string sentence)

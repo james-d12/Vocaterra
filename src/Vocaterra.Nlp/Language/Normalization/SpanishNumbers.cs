@@ -4,6 +4,9 @@ using System.Text;
 namespace Vocaterra.Nlp.Language.Normalization;
 
 /// <summary>Conversion between Spanish cardinal number words and integers in the range 0 to 999 999.</summary>
+/// <remarks>
+/// Spanish compatibility entry point (M33): the Spanish number words behind <c>SpanishLanguagePack.Numbers</c>. The engine calls <c>bundle.Language.Numbers</c>; the game (<c>GuideFacts</c>) keeps calling this static for Spanish.
+/// </remarks>
 public static class SpanishNumbers
 {
     /// <summary>Largest value that can be written or parsed.</summary>

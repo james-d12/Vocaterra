@@ -15,6 +15,8 @@ namespace Vocaterra.Nlp.Language.Normalization;
 /// interpreted, so <c>1.000</c> becomes the two tokens <c>1</c> and <c>000</c>. Accents are never removed here; use <see cref="Accents.Strip"/> for matching.
 /// Ill-formed UTF-16 never throws: each lone surrogate is read as U+FFFD, which separates tokens.
 /// <see cref="Token.Original"/> is the NFC form of the source substring the token came from, so canonically equivalent inputs give equal results.
+///
+/// Spanish compatibility entry point (M33): the Spanish normalizer behind <c>SpanishLanguagePack.Normalizer</c>. The pipeline, the grader and the content tools call <c>bundle.Language.Normalizer</c>; this static keeps its Spanish meaning for the game and the tools.
 /// </remarks>
 public static class TextNormalizer
 {

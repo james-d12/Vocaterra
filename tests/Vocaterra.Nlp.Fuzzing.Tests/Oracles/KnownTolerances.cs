@@ -2,6 +2,7 @@ using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Response.Templates;
 
@@ -42,7 +43,7 @@ public static class KnownTolerances
     {
         ArgumentNullException.ThrowIfNull(analysis);
         ArgumentNullException.ThrowIfNull(grammar);
-        var match = SlotGrammarMatcher.Match(analysis.Tokens, grammar);
+        var match = SlotGrammarMatcher.Match(analysis.Tokens, grammar, SpanishLanguagePack.Instance);
         return match is not null
             && match.AmbiguousTokens.Any(index => analysis.Tokens[index].Readings.Select(static r => r.Pos).Distinct(StringComparer.Ordinal).Count() > 1);
     }

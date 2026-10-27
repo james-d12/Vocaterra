@@ -4,6 +4,7 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Packs;
 
 /// <summary>A successful grammar match: the grammar, the extracted slots and how many tokens the explicit grammar elements consumed.</summary>
 public sealed record SlotGrammarMatch(SlotGrammar Grammar, IReadOnlyList<SlotValue> Slots, int ExplicitTokenCount)
@@ -55,21 +56,34 @@ public static class SlotGrammarMatcher
 {
     private const int MaxSteps = 200_000;
 
-    private static readonly LiteralNode PorLiteral = new("por");
-    private static readonly LiteralNode FavorLiteral = new("favor");
-
     /// <summary>
-    /// Matches the whole token sequence against the grammar, allowing a leading subject pronoun and a trailing <c>por favor</c>.
+    /// Matches the whole token sequence against the grammar, allowing a leading subject pronoun (when the language allows one) and a trailing polite
+    /// phrase (the language's <see cref="GrammarDefaults.TrailingPoliteWords"/>, for Spanish <c>por favor</c>).
     /// Among all complete parses the one with the most tokens consumed by explicit grammar elements wins; ties go to the parse with more literal words, then to the first found.
     /// </summary>
-    public static SlotGrammarMatch? Match(IReadOnlyList<AnalyzedToken> tokens, SlotGrammar grammar)
+    /// <param name="tokens">The analyzed tokens.</param>
+    /// <param name="grammar">The grammar to match.</param>
+    /// <param name="language">The language whose grammar defaults apply.</param>
+    public static SlotGrammarMatch? Match(IReadOnlyList<AnalyzedToken> tokens, SlotGrammar grammar, ILanguagePack language)
     {
         ArgumentNullException.ThrowIfNull(tokens);
         ArgumentNullException.ThrowIfNull(grammar);
-        var search = new Search(tokens);
-        var frame = Frame.Prepend(
-            [new OptionalNode(new DefaultSubjectNode()), .. grammar.Nodes, new OptionalNode(new DefaultPoliteNode())],
-            null);
+        ArgumentNullException.ThrowIfNull(language);
+        var defaults = language.GrammarDefaults;
+        var search = new Search(tokens, defaults.TrailingPoliteWords);
+        var nodes = new List<GrammarNode>(grammar.Nodes.Count + 2);
+        if (defaults.OptionalSubjectPronoun)
+        {
+            nodes.Add(new OptionalNode(new DefaultSubjectNode()));
+        }
+
+        nodes.AddRange(grammar.Nodes);
+        if (defaults.TrailingPoliteWords.Count > 0)
+        {
+            nodes.Add(new OptionalNode(new DefaultPoliteNode()));
+        }
+
+        var frame = Frame.Prepend(nodes, null);
         search.Step(frame, 0, null, 0);
         return search.Best is { } best ? new SlotGrammarMatch(grammar, best.Slots, best.Score) { Bindings = search.Bindings } : null;
     }
@@ -96,18 +110,38 @@ public static class SlotGrammarMatcher
     private sealed class Search
     {
         private readonly IReadOnlyList<AnalyzedToken> _tokens;
+
+        // The trailing polite phrase, word by word, and the literal node of each word (the captures of a parse name them).
+        private readonly string[] _politeWords;
+        private readonly GrammarNode[] _politeNodes;
         private readonly Dictionary<int, List<GrammarNode>> _alternatives = [];
         private int _steps;
 
-        public Search(IReadOnlyList<AnalyzedToken> tokens)
+        public Search(IReadOnlyList<AnalyzedToken> tokens, IReadOnlyList<string> politeWords)
         {
             _tokens = tokens;
+            _politeWords = [.. politeWords];
+            _politeNodes = [.. _politeWords.Select(static word => (GrammarNode)new LiteralNode(word))];
         }
 
         public ParseResult? Best { get; private set; }
 
         // The elements that matched each token position, over every complete parse that ties for the best score.
         public IReadOnlyList<TokenBinding> Bindings => [.. _alternatives.OrderBy(static pair => pair.Key).Select(static pair => new TokenBinding(pair.Key, pair.Value))];
+
+        // True when the tokens from the position on read the trailing polite phrase word by word (the caller checked that they are there).
+        private bool MatchesPolite(int position)
+        {
+            for (var k = 0; k < _politeWords.Length; k++)
+            {
+                if (!TypedMatching.MatchesLiteral(_tokens[position + k], _politeWords[k]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         public void Step(Frame? frame, int position, Capture? captures, int score)
         {
@@ -172,11 +206,15 @@ public static class SlotGrammarMatcher
 
                     break;
                 case DefaultPoliteNode:
-                    if (position + 1 < _tokens.Count
-                        && TypedMatching.MatchesLiteral(_tokens[position], "por")
-                        && TypedMatching.MatchesLiteral(_tokens[position + 1], "favor"))
+                    if (_politeWords.Length > 0 && position + _politeWords.Length <= _tokens.Count && MatchesPolite(position))
                     {
-                        Step(rest, position + 2, new Capture(position + 1, FavorLiteral, null, new Capture(position, PorLiteral, null, captures)), score);
+                        var politeCaptures = captures;
+                        for (var k = 0; k < _politeWords.Length; k++)
+                        {
+                            politeCaptures = new Capture(position + k, _politeNodes[k], null, politeCaptures);
+                        }
+
+                        Step(rest, position + _politeWords.Length, politeCaptures, score);
                     }
 
                     break;

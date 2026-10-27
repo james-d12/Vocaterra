@@ -4,6 +4,7 @@ using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Response.Templates;
 using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
@@ -125,7 +126,7 @@ public static class CefrChecker
     public static CefrReport Check(ContentBundle bundle, string level)
     {
         ArgumentNullException.ThrowIfNull(bundle);
-        return Check(bundle.Dialogue, bundle.Lexicon, AllowedLemmas(bundle.Cefr, level), level, bundle.Prompts);
+        return Check(bundle.Dialogue, bundle.Lexicon, bundle.Language, AllowedLemmas(bundle.Cefr, level), level, bundle.Prompts);
     }
 
     /// <summary>
@@ -136,14 +137,15 @@ public static class CefrChecker
     {
         ArgumentNullException.ThrowIfNull(bundle);
         var allowed = AllowedLemmas(bundle.Cefr, level);
-        var analyzer = new LinguisticAnalyzer(bundle.Lexicon);
+        var language = bundle.Language;
+        var analyzer = new LinguisticAnalyzer(bundle.Lexicon, language);
         var covered = new SortedSet<string>(StringComparer.Ordinal);
         var missing = new SortedDictionary<string, (bool InLexicon, SortedSet<string> Lines)>(StringComparer.Ordinal);
         foreach (var set in bundle.AnswerSets.Values.OrderBy(static set => set.AnswerSetId, StringComparer.Ordinal))
         {
             foreach (var answer in set.Answers)
             {
-                Tally(analyzer, answer.Canonical, set.AnswerSetId, allowed, covered, missing);
+                Tally(analyzer, language, answer.Canonical, set.AnswerSetId, allowed, covered, missing);
             }
         }
 
@@ -181,21 +183,23 @@ public static class CefrChecker
     public static CefrReport Check(
         DialogueCatalog dialogue,
         NlpLexicon lexicon,
+        ILanguagePack language,
         IReadOnlySet<string> allowed,
         string level,
         IReadOnlyDictionary<string, PromptSpec>? prompts = null)
     {
         ArgumentNullException.ThrowIfNull(dialogue);
         ArgumentNullException.ThrowIfNull(lexicon);
+        ArgumentNullException.ThrowIfNull(language);
         ArgumentNullException.ThrowIfNull(allowed);
-        var analyzer = new LinguisticAnalyzer(lexicon);
+        var analyzer = new LinguisticAnalyzer(lexicon, language);
         var covered = new SortedSet<string>(StringComparer.Ordinal);
         var missing = new SortedDictionary<string, (bool InLexicon, SortedSet<string> Lines)>(StringComparer.Ordinal);
         foreach (var pool in dialogue.Pools.Values)
         {
             foreach (var variant in pool.Variants)
             {
-                Tally(analyzer, LiteralText(variant.Text), variant.LineId, allowed, covered, missing);
+                Tally(analyzer, language, LiteralText(variant.Text), variant.LineId, allowed, covered, missing);
             }
         }
 
@@ -209,7 +213,7 @@ public static class CefrChecker
             {
                 if (prompt.Text is { } text)
                 {
-                    Tally(analyzer, text, prompt.PromptId, allowed, promptCovered, promptMissing);
+                    Tally(analyzer, language, text, prompt.PromptId, allowed, promptCovered, promptMissing);
                 }
             }
 
@@ -253,13 +257,14 @@ public static class CefrChecker
     // Adds the lemmas of one text to the covered set or to the missing map; sourceId is a dialogue line id or a prompt id.
     private static void Tally(
         LinguisticAnalyzer analyzer,
+        ILanguagePack language,
         string text,
         string sourceId,
         IReadOnlySet<string> allowed,
         SortedSet<string> covered,
         SortedDictionary<string, (bool InLexicon, SortedSet<string> Lines)> missing)
     {
-        var analysis = analyzer.Analyze(TextNormalizer.Normalize(text, KeepArticles));
+        var analysis = analyzer.Analyze(language.Normalizer.Normalize(text, KeepArticles));
         foreach (var token in analysis.Tokens)
         {
             if (IsNumber(token.Token.Text))

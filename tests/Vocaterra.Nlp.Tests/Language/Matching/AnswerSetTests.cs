@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Vocaterra.Nlp.Language.Matching;
+using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Nlp.Language.Tests.Matching;
 
@@ -87,7 +88,7 @@ public class AnswerSetTests
                 new Answer("n", "2 espadas", ["veintidós espadas", "22 espadas"], []),
             ]);
 
-        var phrases = set.GrammarPhrases();
+        var phrases = set.GrammarPhrases(SpanishLanguagePack.Instance);
 
         Assert.Equal(["adiós", "dos espadas", "veintidós espadas", "zeta", "ñu"], phrases);
     }
@@ -95,7 +96,7 @@ public class AnswerSetTests
     [Fact]
     public void GrammarPhrasesAreEmptyForAnEmptySet()
     {
-        Assert.Empty(new AnswerSet("none", []).GrammarPhrases());
+        Assert.Empty(new AnswerSet("none", []).GrammarPhrases(SpanishLanguagePack.Instance));
     }
 
     [Fact]
@@ -110,8 +111,8 @@ public class AnswerSetTests
                 new Answer("dont-know", "no sé", ["no lo sé"], []),
             ]);
 
-        Assert.Equal(["quiero agua por favor", "ayuda", "no sé"], set.CanonicalPhrases());
-        Assert.Equal(set.CanonicalPhrases(), set.CanonicalPhrases());
+        Assert.Equal(["quiero agua por favor", "ayuda", "no sé"], set.CanonicalPhrases(SpanishLanguagePack.Instance));
+        Assert.Equal(set.CanonicalPhrases(SpanishLanguagePack.Instance), set.CanonicalPhrases(SpanishLanguagePack.Instance));
     }
 
     [Fact]
@@ -119,8 +120,8 @@ public class AnswerSetTests
     {
         var set = new AnswerSet("normalized", [new Answer("two", "¡2 Espadas!", [], []), new Answer("zeta", "Zeta", [], [])]);
 
-        Assert.Equal(["dos espadas", "zeta"], set.CanonicalPhrases());
-        Assert.Contains("dos espadas", set.GrammarPhrases());
+        Assert.Equal(["dos espadas", "zeta"], set.CanonicalPhrases(SpanishLanguagePack.Instance));
+        Assert.Contains("dos espadas", set.GrammarPhrases(SpanishLanguagePack.Instance));
     }
 
     [Fact]
@@ -135,9 +136,9 @@ public class AnswerSetTests
                 new Answer("d", "no", [], []),
             ]);
 
-        Assert.Equal(["sí", "no"], set.CanonicalPhrases());
-        Assert.Equal(["sí"], new AnswerSet("one", [new Answer("a", "sí", [], [])]).CanonicalPhrases());
-        Assert.Empty(new AnswerSet("none", []).CanonicalPhrases());
+        Assert.Equal(["sí", "no"], set.CanonicalPhrases(SpanishLanguagePack.Instance));
+        Assert.Equal(["sí"], new AnswerSet("one", [new Answer("a", "sí", [], [])]).CanonicalPhrases(SpanishLanguagePack.Instance));
+        Assert.Empty(new AnswerSet("none", []).CanonicalPhrases(SpanishLanguagePack.Instance));
     }
 
     [Fact]

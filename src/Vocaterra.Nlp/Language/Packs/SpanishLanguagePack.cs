@@ -3,7 +3,6 @@ using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Phonology;
-using Vocaterra.Nlp.Response.Templates;
 
 namespace Vocaterra.Nlp.Language.Packs;
 
@@ -17,6 +16,12 @@ public sealed class SpanishLanguagePack : ILanguagePack
     private SpanishLanguagePack()
     {
     }
+
+    // The Spanish polite phrase, once: the grammar defaults and the linter both read it from here (M33).
+    private static readonly string[] PolitePhrase = ["por", "favor"];
+
+    // The article and numeral homographs of the linter (un, una: the indefinite article and the numeral one), once.
+    private static readonly string[] ArticleNumeralHomographs = ["un", "una"];
 
     /// <summary>The one instance.</summary>
     public static SpanishLanguagePack Instance { get; } = new();
@@ -43,13 +48,16 @@ public sealed class SpanishLanguagePack : ILanguagePack
     public IG2p? G2p { get; } = new SpanishG2pAdapter();
 
     /// <inheritdoc />
-    public GrammarDefaults GrammarDefaults { get; } = new(true, WordClasses.SubjectPronounLemmas, ["por", "favor"]);
+    public GrammarDefaults GrammarDefaults { get; } = new(true, WordClasses.SubjectPronounLemmas, PolitePhrase);
 
     /// <inheritdoc />
-    public LintVocabulary Lint { get; } = new(WordClasses.SubjectPronounLemmas, ["por", "favor"], ["un", "una"]);
+    public LintVocabulary Lint { get; } = new(WordClasses.SubjectPronounLemmas, PolitePhrase, ArticleNumeralHomographs);
 
     /// <inheritdoc />
     public RepairLines RepairFallback { get; } = new(RepairStrategy.AskAgainLine, RepairStrategy.SlowRepeatLine, RepairStrategy.GiveUpLine);
+
+    /// <inheritdoc />
+    public IRecastPolicy Recast { get; } = new SpanishRecastPolicy();
 
     private sealed class SpanishNormalizer : ITextNormalizer
     {
@@ -78,6 +86,8 @@ public sealed class SpanishLanguagePack : ILanguagePack
         public int TryParsePrefix(IReadOnlyList<string> tokens, int start, out int value) => SpanishNumbers.TryParsePrefix(tokens, start, out value);
 
         public string DigitsToWords(string text) => SpanishNumbers.DigitsToWords(text);
+
+        public string Agree(string words, string gender) => NumberAgreement.Agree(words, gender);
     }
 
     private sealed class SpanishPhoneticKeyAdapter : IPhoneticKey

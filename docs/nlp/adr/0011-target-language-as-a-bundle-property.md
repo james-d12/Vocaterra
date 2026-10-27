@@ -56,13 +56,13 @@ engine finds the code for it. Spanish must stay byte-identical while this is don
    entry points, their behaviour and their Spanish meaning, so the game compiles unchanged. A test per member checks the forward returns exactly what the
    static returns. The pack does not own the Spanish word lists: the pronoun list comes from `WordClasses` (made enumerable, in listing order), and the
    polite words and homographs are literals in the pack beside the literals in `LintCoverage`, `SlotGrammarMatcher` and `AnalysisSlotFinder`. M33 removes
-   those duplicates when it routes the call sites. No call site uses the pack yet.
+   those duplicates when it routes the call sites. M33 routed the call sites (see the amendment below).
 9. **Layering.** The packs live in `Vocaterra.Nlp.Language.Packs`, in the `Language` folder, but wrap code of `Phonology` and `Response`, which
    `Language` may not use (ADR 0012). `LayerRules` therefore gives the packs a rule of their own (they may use `Core`, `Language`, `Phonology` and
    `Response`; nothing else, so not `Content` or `Pipeline`) and the `Language` rule no longer covers `Language.Packs`. `Content` already depends on
    everything but `Pipeline`, so `ContentLoader` and `ContentBundle` may use the registry. Note for M33: `Response` is allowed to depend on `Language`,
    and the pack depends on `Response` for the punctuation fixer, so a `Response` call site that takes an `ILanguagePack` makes a namespace cycle that the
-   rules permit; M33 should move the punctuation behind the interface, or keep the cycle on purpose, and say which.
+   rules permit; M33 should move the punctuation behind the interface, or keep the cycle on purpose, and say which. **Decided in M33: the cycle is removed** (see the amendment below).
 10. **Replay needs no new field.** The bundle hash identifies the bundle and the bundle names its language, as research 4.6 says. The envelope's
     optional `language` is not added in this milestone.
 
@@ -89,3 +89,60 @@ engine finds the code for it. Spanish must stay byte-identical while this is don
   bundles to a reader of the files, and the tag is data the bundle author controls. The tag is hashed as written.
 - **Interpret `supportLanguage` now** (support templates keyed by tag). Research 4.4 treats it as optional and later; nothing needs it.
 - **Include the analysis-side members in `ILanguagePack` now.** See decision 7.
+
+## Amendment, M33: the text-side seams (2026-10-27)
+
+M33 routed every text-side Spanish call site of the evaluation path, the response path and the content tools through `bundle.Language`, with
+Spanish output byte-identical (the identity guard `scripts/identity-check.sh f4694ff` passes, and the baseline was not re-recorded).
+
+**What M33 routed.**
+- *Pipeline* (`UtterancePipeline`): the normalizer, the answer matcher and the answer corrections (`Language.Folding.MatchingKey`, the phonetic key),
+  the intent resolver (`IntentResolver(catalog, language, embeddings, options)`), the analyzer (`LinguisticAnalyzer(lexicon, [morphology,] language)`),
+  the digits and G2P of pronunciation scoring (no pronunciation scoring when `G2p` is null), the speech requests (`SpeechRequests.Create(text, voice,
+  language)`), the recast (`RecastBuilder.Build(text, analysis, lexicon, language)`), the answer phrases of the recognizer grammar
+  (`AnswerSet.GrammarPhrases(language)`) and the repair lines.
+- *Response*: `TemplateEngine(lexicon, morphology, language)` reads numbers, number agreement and punctuation from the pack; `RecastBuilder` reads
+  the number words, the agreement and the accent policy from it.
+- *Grammar defaults*: `SlotGrammarMatcher.Match(tokens, grammar, language)` adds the implicit subject pronoun only when
+  `GrammarDefaults.OptionalSubjectPronoun` is set, and matches the trailing polite phrase word by word from `TrailingPoliteWords`.
+  `AnalysisSlotFinder.FirstNoun` skips that phrase through the pack.
+- *Content tools*: `TextGrader`, `ContentLinter` (its `LintContext`), `LintCoverage` (the subject pronouns, the polite phrase and the article and
+  numeral homographs of `Lint`), `CefrChecker` (`Check(dialogue, lexicon, language, allowed, level, prompts)`), `LintConfusion`, the validator's
+  template engine, and the ContentBuilder through them.
+- *Bench and CLI*: `BenchMetrics.Tokens` and `ErrorsKept` take the pack; the bundle's content supplies it.
+- *Kokoro*: `KokoroSynthesizer(modelDir, speakerId, speed, modelHash, lang = "es")` and `FromStore(..., lang = "es")`. `lang` is folded into the
+  model hash only when it is not `es`, so the Spanish `ModelHash` is unchanged.
+- *Model tables*: the CLI and Bench name the language of each model they run (`ModelLanguages`), and refuse a model whose language is not the
+  bundle's before opening it.
+
+**What M33 added to the pack (narrowest members).**
+- `IRecastPolicy` with `RestoredSpellings(text, analysis, lexicon)` and the member `ILanguagePack.Recast`. The Spanish policy (`SpanishRecastPolicy`)
+  holds the accent restoration that was in `RecastBuilder` (the lexicon's accented spelling of a folded word, then the analysis's accented reading);
+  the caller still drops a restoration that overlaps an error edit.
+- `INumberWords.Agree(words, gender)`: the number agreement (`uno` becomes `un` or `una`).
+
+**The repair lines (M33).** `RepairStrategy.Next(attempt, prompt, retry, choices, RepairLines lines)`. The pipeline gives attempt 1 the line of the
+reserved pool `repair.ask_again` and attempt 2 the line of `repair.slow_repeat` when the bundle has the pool (one variant drawn with the
+interaction's seed; a bundle without the pools draws nothing), else the pack's `RepairFallback`. The give-up line is always the pack's. The pool
+names are reserved (`ReservedPools.RepairAskAgain`, `RepairSlowRepeat`), so the linter does not call them unused. `content/game-v1` has no such
+pool and speaks the same lines.
+
+**The cycle decision (point 9).** The punctuation fixer moved from `Response/Templates` into `Language/Packs` (`PunctuationFixer`, internal, the
+implementation of the Spanish `IPunctuation`), and so did the number agreement (`NumberAgreement`, the implementation of `INumberWords.Agree`). The
+pack therefore uses no `Response` code; `Response` uses the packs (`Response` may use `Language`). The namespace cycle is removed, not kept.
+`LayerRules` gives the packs `Core`, `Language` and `Phonology` and no `Response`, and `LayeringTests` checks the absence of the cycle
+(`ThePacksAndTheResponseStageHaveNoCycle`).
+
+**The Spanish compatibility entry points.** `TextNormalizer`, `SpanishNumbers`, `SpanishPhoneticKey`, `SpanishG2p`, `MorphologyGenerator`,
+`RecastBuilder.Build(text, analysis[, lexicon])`, `SpeechRequests.Create(text, voice[, dialect])`, `TemplateEngine.CreateDefault()` keep their
+public signatures and their Spanish meaning; the game calls some of them (`GuideFacts`, `WordProgress`, `NounCatalog`, `GuideSession`) and compiles
+unchanged. Each carries an XML remark that names it as a Spanish compatibility entry point. `SpanishCallSiteTests` (the grep guard) allows the
+Spanish statics only in the pack, in their own files and in these entry points.
+
+**Left for M34 (listed by file in the guard's allowlist).** The morphology generator, the analysis rules (`ReadingResolver`, `AgreementChecker`,
+`ReportedReadings`, `AccentVariantChoice`, `ReadingClasses`, `AnalysisTables`), the typed matching of the slot grammar (`TextFolding` and
+`WordClasses` in `SlotGrammarMatcher` and `SlotGrammar`), and the lexicon's own Spanish fold (`Lexicon` and the intent catalog's lemma fold). These
+need `IMorphology`, `IAnalysisRules` and `LexiconProfile`: the lexicon's indexes are built with the Spanish fold at load, so its lookups cannot take a
+pack's fold before the lexicon has a profile. The offer line of the repair ladder ("¿Quieres decir «…» o «…»?") is Spanish text in `RepairStrategy`
+and is not a pack member yet, and the pronunciation scorer's Spanish-tuned predicted-error tags are M34's too (research 2026-10-22 section 1.2,
+item 14).

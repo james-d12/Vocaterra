@@ -35,8 +35,8 @@ public sealed class TextGrader
     {
         ArgumentNullException.ThrowIfNull(bundle);
         _bundle = bundle;
-        _analyzer = new LinguisticAnalyzer(bundle.Lexicon, bundle.Morphology);
-        _resolver = new IntentResolver(bundle.Intents);
+        _analyzer = new LinguisticAnalyzer(bundle.Lexicon, bundle.Morphology, bundle.Language);
+        _resolver = new IntentResolver(bundle.Intents, bundle.Language);
         _versions = new VersionStamp(bundle.ContentHash, ImmutableSortedDictionary<string, string>.Empty);
     }
 
@@ -52,13 +52,15 @@ public sealed class TextGrader
         }
 
         var asr = new AsrResult(text, [new AsrHypothesis(text, 1.0)], [], 1.0, ScriptedModelHash, prompt.Mode);
-        var normalized = TextNormalizer.Normalize(CleanTranscript(asr.Transcript), Normalization);
-        var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, Normalization);
+        var language = _bundle.Language;
+        var normalized = language.Normalizer.Normalize(CleanTranscript(asr.Transcript), Normalization);
+        var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, language, Normalization);
         var analysis = AnswerCorrections.WithCanonicalWords(
             _analyzer.Analyze(normalized, PromptGrammars.For(_bundle.Intents, prompt)),
             normalized,
             match,
             answerSet,
+            language,
             Normalization);
 
         // A prompt that allows no intent only asks for an answer, exactly as in the pipeline.

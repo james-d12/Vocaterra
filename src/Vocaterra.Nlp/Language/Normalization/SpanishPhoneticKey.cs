@@ -11,6 +11,8 @@ namespace Vocaterra.Nlp.Language.Normalization;
 /// <c>qu</c>, <c>k</c> and <c>c</c> elsewhere to <c>k</c>, <c>gu</c> before <c>e/i</c> to <c>g</c> (<c>gü</c> keeps its sound as <c>gw</c>),
 /// <c>j</c> and <c>g</c> before <c>e/i</c> to <c>x</c>, <c>x</c> to <c>ks</c>, <c>ñ</c> to <c>ny</c>, accents are stripped, and doubled
 /// letters collapse except <c>rr</c>. Digits are kept; any other character separates words, which are joined by a single space.
+///
+/// Spanish compatibility entry point (M33): the Spanish sound-alike key behind <c>SpanishLanguagePack.PhoneticKey</c>. Answer matching calls <c>bundle.Language.PhoneticKey</c>.
 /// </remarks>
 public static class SpanishPhoneticKey
 {

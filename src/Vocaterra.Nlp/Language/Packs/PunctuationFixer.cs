@@ -1,11 +1,16 @@
 using System.Text;
 
-namespace Vocaterra.Nlp.Response.Templates;
+namespace Vocaterra.Nlp.Language.Packs;
 
 /// <summary>
 /// Cleans rendered Spanish text: collapses whitespace, removes the space after an opening <c>¿</c> or <c>¡</c> and before closing
 /// punctuation, and balances the inverted marks so every <c>?</c> has a <c>¿</c> and every <c>!</c> has a <c>¡</c> in its sentence.
 /// </summary>
+/// <remarks>
+/// The implementation of the Spanish pack's <see cref="IPunctuation"/> (M33). The engine's rendering goes through
+/// <c>bundle.Language.Punctuation</c>; this class is the Spanish implementation behind that member and is not called by neutral code.
+/// It lives in the packs folder so that the packs depend on no stage of the response (ADR 0011, point 9).
+/// </remarks>
 internal static class PunctuationFixer
 {
     public static string Fix(string text)

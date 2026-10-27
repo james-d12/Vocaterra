@@ -42,7 +42,7 @@ internal static class LintConfusion
         SlotGrammarMatch? best = null;
         foreach (var grammar in other.Grammars)
         {
-            var match = SlotGrammarMatcher.Match(tokens, grammar);
+            var match = SlotGrammarMatcher.Match(tokens, grammar, context.Bundle.Language);
             if (match is not null && (best is null || match.ExplicitTokenCount > best.ExplicitTokenCount))
             {
                 best = match;

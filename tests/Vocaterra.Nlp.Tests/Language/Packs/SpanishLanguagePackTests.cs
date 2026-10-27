@@ -149,7 +149,7 @@ public class SpanishLanguagePackTests
         Assert.Equal(["por", "favor"], Pack.GrammarDefaults.TrailingPoliteWords);
         Assert.Equal(["por", "favor"], Pack.Lint.PolitePhrase);
         Assert.Equal(["un", "una"], Pack.Lint.ArticleNumeralHomographs);
-        Assert.Equal(LintCoverage.SubjectPronouns, Pack.Lint.SubjectPronouns);
+        Assert.Equal(WordClasses.SubjectPronounLemmas, Pack.Lint.SubjectPronouns);
         Assert.Equal(Pack.Lint.SubjectPronouns, Pack.GrammarDefaults.SubjectPronouns);
         Assert.All(Pack.GrammarDefaults.SubjectPronouns, pronoun => Assert.True(WordClasses.IsSubjectPronoun(pronoun)));
     }

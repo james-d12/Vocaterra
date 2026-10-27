@@ -13,6 +13,7 @@ using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Phonology;
 using Vocaterra.Nlp.Pipeline;
@@ -149,7 +150,7 @@ public class SpanishIdentityTests
         var analysis = Stage(() => CanonicalJson.Serialize(Analyze(row, prompt)));
         stages.Add(new("analyze", analysis.Hash));
 
-        var match = Stage(() => CanonicalJson.Serialize(AnswerMatcher.Match(TextNormalizer.Normalize(row.Text), Bundle.AnswerSets[prompt.AnswerSetId], prompt.Difficulty)));
+        var match = Stage(() => CanonicalJson.Serialize(AnswerMatcher.Match(TextNormalizer.Normalize(row.Text), Bundle.AnswerSets[prompt.AnswerSetId], prompt.Difficulty, SpanishLanguagePack.Instance)));
         stages.Add(new("match", match.Hash));
 
         var grade = Stage(() => CanonicalJson.Serialize(grader.Grade(row.Text, prompt)));
@@ -172,7 +173,7 @@ public class SpanishIdentityTests
         var grammars = row.Grammars is null
             ? PromptGrammarsOf(prompt)
             : row.Grammars.Select(static pattern => SlotGrammar.Parse(pattern)).ToList();
-        return new LinguisticAnalyzer(Bundle.Lexicon, Bundle.Morphology).Analyze(TextNormalizer.Normalize(row.Text), grammars);
+        return new LinguisticAnalyzer(Bundle.Lexicon, Bundle.Morphology, SpanishLanguagePack.Instance).Analyze(TextNormalizer.Normalize(row.Text), grammars);
     }
 
     private static PipelineResult RunPipeline(CorpusRow row, PromptSpec prompt)

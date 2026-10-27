@@ -14,6 +14,7 @@ using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Morphology;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Phonology;
 using Vocaterra.Nlp.Pipeline;
@@ -38,7 +39,7 @@ public sealed class PipelineHarness
         BundleDirectory = GameBundleLocator.Directory;
         Bundle = ContentLoader.Load(BundleDirectory);
         Words = new LexiconCatalog(Bundle.Lexicon, Bundle.Morphology);
-        Analyzer = new LinguisticAnalyzer(Bundle.Lexicon, Bundle.Morphology);
+        Analyzer = new LinguisticAnalyzer(Bundle.Lexicon, Bundle.Morphology, SpanishLanguagePack.Instance);
         Grammars = PatternCatalog.FromBundle(Bundle.Intents, FixtureGrammars);
     }
 
@@ -97,13 +98,13 @@ public sealed class PipelineHarness
     /// <summary>Creates a fresh analyzer with its own morphology generator, for oracles that compare two independent runs.</summary>
     public LinguisticAnalyzer NewAnalyzer()
     {
-        return new LinguisticAnalyzer(Lexicon, new MorphologyGenerator(Lexicon));
+        return new LinguisticAnalyzer(Lexicon, new MorphologyGenerator(Lexicon), SpanishLanguagePack.Instance);
     }
 
     /// <summary>Creates a fresh intent resolver over the bundle catalog, with or without the trigram embedder.</summary>
     public IntentResolver NewResolver(bool embeddings)
     {
-        return new IntentResolver(Bundle.Intents, embeddings ? new FakeEmbeddingModel() : null);
+        return new IntentResolver(Bundle.Intents, SpanishLanguagePack.Instance, embeddings ? new FakeEmbeddingModel() : null);
     }
 
     /// <summary>Returns the bundle prompt with the id (throws when the bundle has none).</summary>

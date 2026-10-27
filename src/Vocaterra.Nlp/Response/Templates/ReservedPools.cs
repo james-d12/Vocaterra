@@ -9,6 +9,18 @@ public static class ReservedPools
     /// <summary>The pool voiced when a prompt without an agent is answered acceptably (an answer-only prompt such as a quiz).</summary>
     public const string AnswerAccepted = "answer_accepted";
 
+    /// <summary>
+    /// The pool of the repair step's first line, <c>repair.ask_again</c> (the player is asked to say it again). When the bundle has it, its lines
+    /// replace the language pack's fallback (M33); a bundle without it keeps the fallback line.
+    /// </summary>
+    public const string RepairAskAgain = "repair.ask_again";
+
+    /// <summary>
+    /// The pool of the repair step's slow repetition, <c>repair.slow_repeat</c>. When the bundle has it, its lines replace the language pack's
+    /// fallback (M33); a bundle without it keeps the fallback line.
+    /// </summary>
+    public const string RepairSlowRepeat = "repair.slow_repeat";
+
     /// <summary>The prefix of feedback pools: <c>feedback.&lt;kind&gt;</c> or <c>feedback.&lt;kind&gt;.&lt;tag&gt;</c>, where the kind is one of <see cref="FeedbackKindNames"/>.</summary>
     public const string FeedbackPrefix = "feedback.";
 
@@ -22,12 +34,17 @@ public static class ReservedPools
         FeedbackKinds.SlowRepeat,
     ];
 
-    /// <summary>True for a pool the pipeline reaches by itself: <see cref="NotUnderstood"/>, <see cref="AnswerAccepted"/> and anything under <see cref="FeedbackPrefix"/>.</summary>
+    /// <summary>
+    /// True for a pool the pipeline reaches by itself: <see cref="NotUnderstood"/>, <see cref="AnswerAccepted"/>, the two repair pools and anything under
+    /// <see cref="FeedbackPrefix"/>.
+    /// </summary>
     public static bool IsReserved(string poolId)
     {
         ArgumentNullException.ThrowIfNull(poolId);
         return string.Equals(poolId, NotUnderstood, StringComparison.Ordinal)
             || string.Equals(poolId, AnswerAccepted, StringComparison.Ordinal)
+            || string.Equals(poolId, RepairAskAgain, StringComparison.Ordinal)
+            || string.Equals(poolId, RepairSlowRepeat, StringComparison.Ordinal)
             || poolId.StartsWith(FeedbackPrefix, StringComparison.Ordinal);
     }
 

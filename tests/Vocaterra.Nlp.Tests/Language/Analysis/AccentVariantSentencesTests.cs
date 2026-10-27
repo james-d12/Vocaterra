@@ -6,6 +6,7 @@ using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
 /// <summary>
@@ -21,7 +22,7 @@ public class AccentVariantSentencesTests
 
     private static LinguisticAnalyzer BuildAnalyzer()
     {
-        return new LinguisticAnalyzer(Words.Value, Morphology.Value);
+        return new LinguisticAnalyzer(Words.Value, Morphology.Value, SpanishLanguagePack.Instance);
     }
 
     private static Lexicon BuildLexicon()
@@ -328,7 +329,7 @@ public class AccentVariantSentencesTests
     public void TheAnalysisIsTheSameOnAFreshAnalyzer()
     {
         const string sentence = "donde esta el arbol grandes";
-        var fresh = new LinguisticAnalyzer(BuildLexicon()).Analyze(TestTokens.From(sentence));
+        var fresh = new LinguisticAnalyzer(BuildLexicon(), SpanishLanguagePack.Instance).Analyze(TestTokens.From(sentence));
 
         Assert.Equal(Describe(Analyzer.Value.Analyze(TestTokens.From(sentence)).Errors), Describe(fresh.Errors));
     }

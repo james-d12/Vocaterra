@@ -153,7 +153,7 @@ public static class Program
         }
         else
         {
-            models.Open(modelsDir, prompt.Mode);
+            models.Open(modelsDir, prompt.Mode, bundle.LanguageId);
             words = models.Words!;
             phonemes = models.Phonemes;
         }
@@ -304,18 +304,29 @@ public static class Program
         private const string ParakeetId = "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8";
         private const string PhonemeId = "wav2vec2-xlsr-53-espeak-cv-ft";
 
+        // The language each model of this tool is run for, by model id. A bundle of another language is refused before a model is opened, so
+        // a Spanish model never reads a bundle of another language. The multilingual models are named for the language the tool runs them for.
+        private static readonly IReadOnlyDictionary<string, string> ModelLanguages = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [VoskId] = "es",
+            [ParakeetId] = "es",
+            [PhonemeId] = "es",
+        };
+
         private readonly List<IDisposable> _owned = [];
 
         public IWordRecognizer? Words { get; private set; }
 
         public IPhonemeRecognizer? Phonemes { get; private set; }
 
-        public void Open(string modelsDir, RecognitionMode mode)
+        public void Open(string modelsDir, RecognitionMode mode, string language)
         {
+            ArgumentNullException.ThrowIfNull(language);
             var manifestPath = Path.Combine(modelsDir, ModelStore.ManifestFileName);
             var store = new ModelStore(modelsDir, File.Exists(manifestPath) ? ModelManifest.Load(manifestPath) : ModelManifest.Empty);
             if (mode == RecognitionMode.Open && Directory.Exists(store.ModelDirectory(ParakeetId)))
             {
+                RequireLanguage(ParakeetId, language);
                 var sherpa = Pinned(store, ParakeetId)
                     ? SherpaOnnxOfflineRecognizer.FromStore(store, ParakeetId)
                     : new SherpaOnnxOfflineRecognizer(store.ModelDirectory(ParakeetId));
@@ -329,6 +340,8 @@ public static class Program
                     throw new DirectoryNotFoundException($"No speech model found: '{store.ModelDirectory(VoskId)}' does not exist (run scripts/fetch-models.sh).");
                 }
 
+                RequireLanguage(VoskId, language);
+
                 var vosk = Pinned(store, VoskId)
                     ? VoskWordRecognizer.FromStore(store, VoskId)
                     : new VoskWordRecognizer(store.ModelDirectory(VoskId));
@@ -338,9 +351,19 @@ public static class Program
 
             if (Directory.Exists(store.ModelDirectory(PhonemeId)))
             {
+                RequireLanguage(PhonemeId, language);
                 var phoneme = new Wav2Vec2PhonemeRecognizer(store.ModelDirectory(PhonemeId));
                 _owned.Add(phoneme);
                 Phonemes = phoneme;
+            }
+        }
+
+        // The model of a language other than the bundle's is refused: its recognizer would read the bundle's grammar in the wrong language.
+        private static void RequireLanguage(string modelId, string language)
+        {
+            if (!string.Equals(ModelLanguages[modelId], language, StringComparison.Ordinal))
+            {
+                throw new UsageException($"The speech model '{modelId}' is for language '{ModelLanguages[modelId]}', and the bundle is in '{language}'.");
             }
         }
 

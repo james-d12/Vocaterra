@@ -331,12 +331,12 @@ internal static class ContentValidator
             problems.Add($"{ContentPaths.Dialogue}: the catalog needs a '{ResponsePlanner.NotUnderstoodIntent}' pool.");
         }
 
-        if (parts.Lexicon is null)
+        if (parts.Lexicon is null || parts.Language is null)
         {
             return;
         }
 
-        var engine = new TemplateEngine(parts.Lexicon, new Vocaterra.Nlp.Language.Morphology.MorphologyGenerator(parts.Lexicon));
+        var engine = new TemplateEngine(parts.Lexicon, new Vocaterra.Nlp.Language.Morphology.MorphologyGenerator(parts.Lexicon), parts.Language);
         foreach (var pair in dialogue.Pools)
         {
             foreach (var variant in pair.Value.Variants)

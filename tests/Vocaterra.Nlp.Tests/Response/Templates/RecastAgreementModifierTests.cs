@@ -4,6 +4,7 @@ using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Response.Templates;
 
 /// <summary>
@@ -20,7 +21,7 @@ public class RecastAgreementModifierTests
         new LexiconEntry("gracias", "gracia", "noun", new EntryFeatures(null, "pl", null, null, "f")),
     ]);
 
-    private static readonly LinguisticAnalyzer Analyzer = new(Words);
+    private static readonly LinguisticAnalyzer Analyzer = new(Words, SpanishLanguagePack.Instance);
 
     private static string Recast(string player)
     {
