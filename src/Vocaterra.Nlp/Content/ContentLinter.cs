@@ -57,8 +57,8 @@ internal sealed class LintContext
     {
         Bundle = bundle;
         Options = options;
-        _analyzer = new LinguisticAnalyzer(bundle.Lexicon, bundle.Morphology, bundle.Language);
-        _resolver = new IntentResolver(bundle.Intents, bundle.Language);
+        _analyzer = new LinguisticAnalyzer(bundle.Lexicon, bundle.LanguageMorphology, bundle.Language, bundle.AnalysisRules);
+        _resolver = new IntentResolver(bundle.Intents, bundle.Language, null, null, bundle.AnalysisRules);
         Prompts = [.. bundle.Prompts.Values.OrderBy(static prompt => prompt.PromptId, StringComparer.Ordinal)];
         if (options.RootPrompts is null)
         {

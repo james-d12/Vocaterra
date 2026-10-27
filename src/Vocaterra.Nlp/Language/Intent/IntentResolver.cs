@@ -5,6 +5,7 @@ using Vocaterra.Nlp.Core.Verdicts;
 
 namespace Vocaterra.Nlp.Language.Intent;
 
+using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Embeddings;
 using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Language.Packs;
@@ -49,6 +50,8 @@ public sealed class IntentResolver
 
     private readonly IntentCatalog _catalog;
     private readonly ILanguagePack _language;
+    private readonly IAnalysisRules _rules;
+    private readonly TypedMatching _typed;
     private readonly IEmbeddingModel? _embeddings;
     private readonly IntentResolverOptions _options;
     private readonly Lazy<Dictionary<string, double[][]>> _exampleVectors;
@@ -57,12 +60,19 @@ public sealed class IntentResolver
     /// Creates a resolver for the language of the pack (the bundle's <c>Language</c>): examples are normalized and the slot grammars matched with it. Without
     /// an embedding model the third rung is skipped. Example vectors are computed on first use.
     /// </summary>
-    public IntentResolver(IntentCatalog catalog, ILanguagePack language, IEmbeddingModel? embeddings = null, IntentResolverOptions? options = null)
+    /// <param name="catalog">The intent catalog.</param>
+    /// <param name="language">The language pack.</param>
+    /// <param name="embeddings">The embedding model, or null to skip the third rung.</param>
+    /// <param name="options">The thresholds, or null for the defaults.</param>
+    /// <param name="rules">The analysis rules of the language (the bundle's <c>AnalysisRules</c>), or null for the pack's rules over an empty lexicon (M34, additive).</param>
+    public IntentResolver(IntentCatalog catalog, ILanguagePack language, IEmbeddingModel? embeddings = null, IntentResolverOptions? options = null, IAnalysisRules? rules = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(language);
         _catalog = catalog;
         _language = language;
+        _rules = rules ?? AnalysisRules.For(language);
+        _typed = new TypedMatching(language.Folding, _rules);
         _embeddings = embeddings;
         _options = options ?? IntentResolverOptions.Default;
         _exampleVectors = new Lazy<Dictionary<string, double[][]>>(BuildExampleVectors, LazyThreadSafetyMode.ExecutionAndPublication);
@@ -160,7 +170,7 @@ public sealed class IntentResolver
         {
             foreach (var grammar in candidate.Grammars)
             {
-                var match = SlotGrammarMatcher.Match(analysis.Tokens, grammar, _language);
+                var match = SlotGrammarMatcher.Match(analysis.Tokens, grammar, _language, _rules);
                 if (match is not null && (best is null || SlotGrammarMatch.Beats(match, best)))
                 {
                     best = match;
@@ -247,11 +257,11 @@ public sealed class IntentResolver
         return true;
     }
 
-    private static int IndexOfLemma(AnalysisResult analysis, string lemma)
+    private int IndexOfLemma(AnalysisResult analysis, string lemma)
     {
         for (var i = 0; i < analysis.Tokens.Count; i++)
         {
-            if (TypedMatching.MatchesLiteral(analysis.Tokens[i], lemma))
+            if (_typed.MatchesLiteral(analysis.Tokens[i], lemma))
             {
                 return i;
             }

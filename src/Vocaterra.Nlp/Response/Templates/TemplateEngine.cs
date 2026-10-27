@@ -20,21 +20,44 @@ public sealed class TemplateEngine
     private const string Singular = "sg";
 
     private readonly Lexicon _lexicon;
-    private readonly MorphologyGenerator _morphology;
+    private readonly ITemplateFunctions _functions;
     private readonly ILanguagePack _language;
 
     /// <summary>
-    /// Creates an engine that inflects with the morphology generator, looks up genders in the lexicon and reads numbers, punctuation and number
+    /// Creates an engine that inflects with the pack's template functions over the morphology and the lexicon, and reads numbers, punctuation and number
     /// agreement through the language pack (the bundle's <c>Language</c>).
     /// </summary>
-    public TemplateEngine(Lexicon lexicon, MorphologyGenerator morphology, ILanguagePack language)
+    public TemplateEngine(Lexicon lexicon, IMorphology morphology, ILanguagePack language)
+        : this(lexicon, ValidMorphology(morphology), language, ValidPack(language).CreateTemplateFunctions(lexicon, morphology))
+    {
+    }
+
+    /// <summary>Creates an engine with explicit template functions (M34, additive).</summary>
+    /// <param name="lexicon">The lexicon.</param>
+    /// <param name="morphology">The morphology the functions were created over.</param>
+    /// <param name="language">The language pack.</param>
+    /// <param name="functions">The functions behind the filters.</param>
+    public TemplateEngine(Lexicon lexicon, IMorphology morphology, ILanguagePack language, ITemplateFunctions functions)
     {
         ArgumentNullException.ThrowIfNull(lexicon);
         ArgumentNullException.ThrowIfNull(morphology);
         ArgumentNullException.ThrowIfNull(language);
+        ArgumentNullException.ThrowIfNull(functions);
         _lexicon = lexicon;
-        _morphology = morphology;
         _language = language;
+        _functions = functions;
+    }
+
+    private static IMorphology ValidMorphology(IMorphology morphology)
+    {
+        ArgumentNullException.ThrowIfNull(morphology);
+        return morphology;
+    }
+
+    private static ILanguagePack ValidPack(ILanguagePack language)
+    {
+        ArgumentNullException.ThrowIfNull(language);
+        return language;
     }
 
     /// <summary>
@@ -43,7 +66,7 @@ public sealed class TemplateEngine
     /// </summary>
     public static TemplateEngine CreateDefault()
     {
-        return new TemplateEngine(Lexicon.Seed, new MorphologyGenerator(Lexicon.Seed), SpanishLanguagePack.Instance);
+        return new TemplateEngine(Lexicon.Seed, SpanishLanguagePack.Instance.CreateMorphology(Lexicon.Seed), SpanishLanguagePack.Instance);
     }
 
     /// <summary>Renders the template with the slots; throws <see cref="TemplateException"/> for a malformed template or an unknown slot.</summary>
@@ -173,20 +196,6 @@ public sealed class TemplateEngine
         return true;
     }
 
-    private static string HeuristicGender(string noun)
-    {
-        string[] feminineEndings = ["a", "ción", "sión", "dad", "tad", "tud", "umbre"];
-        foreach (var ending in feminineEndings)
-        {
-            if (noun.EndsWith(ending, StringComparison.Ordinal))
-            {
-                return LexiconSchema.Feminine;
-            }
-        }
-
-        return LexiconSchema.Masculine;
-    }
-
     private static void RejectDuplicates(PlaceholderPart placeholder)
     {
         for (var i = 0; i < placeholder.Filters.Count; i++)
@@ -289,13 +298,13 @@ public sealed class TemplateEngine
         var tense = conj.Args[2];
         if (person is not ("1" or "2" or "3")
             || number is not (Singular or Plural)
-            || !LexiconSchema.Tenses.Contains(tense))
+            || !_language.LexiconProfile.Tenses.Contains(tense))
         {
             throw new TemplateException(placeholder.Source, $"Invalid conj({person},{number},{tense}) in placeholder '{placeholder.Source}'.");
         }
 
         var lemma = ResolveVerbLemma(placeholder, value.Trim());
-        return _morphology.Conjugate(lemma, person, number, tense)
+        return _functions.Conjugate(lemma, person, number, tense)
             ?? throw new TemplateException(
                 placeholder.Source,
                 $"Cannot conjugate '{lemma}' for ({person},{number},{tense}) in placeholder '{placeholder.Source}'.");
@@ -308,20 +317,7 @@ public sealed class TemplateEngine
             throw new TemplateException(placeholder.Source, $"Slot '{placeholder.SlotName}' holds no verb lemma in placeholder '{placeholder.Source}'.");
         }
 
-        if (_lexicon.ContainsLemma(value))
-        {
-            return value;
-        }
-
-        foreach (var reading in _lexicon.Lookup(value))
-        {
-            if (reading.Pos == LexiconSchema.Verb)
-            {
-                return reading.Lemma;
-            }
-        }
-
-        return value;
+        return _functions.ResolveVerbLemma(value);
     }
 
     private string RenderWords(PlaceholderPart placeholder, TemplateFilter words, string value, SlotMap slots)
@@ -346,7 +342,7 @@ public sealed class TemplateEngine
         var argument = words.Args[0];
         var gender = argument is "m" or "f"
             ? argument
-            : NounGender(_morphology.InflectNoun(GetSlot(slots, argument, placeholder).Trim(), Singular));
+            : _functions.GenderOf(_functions.InflectNoun(GetSlot(slots, argument, placeholder).Trim(), Singular));
         return _language.Numbers.Agree(spelled, gender);
     }
 
@@ -371,50 +367,16 @@ public sealed class TemplateEngine
 
         var number = plural is not null
             ? (IsPluralQuantity(placeholder, plural.Args[0], GetSlot(slots, plural.Args[0], placeholder)) ? Plural : Singular)
-            : InferNumber(word);
-        var singular = _morphology.InflectNoun(word, Singular);
-        var form = number == Plural ? _morphology.InflectNoun(word, Plural) : singular;
+            : _functions.InferNumber(word);
+        var singular = _functions.InflectNoun(word, Singular);
+        var form = number == Plural ? _functions.InflectNoun(word, Plural) : singular;
         if (definiteness is null)
         {
             return form;
         }
 
-        var gender = NounGender(singular);
-        return _morphology.Article(definiteness.Value, gender, number, singular) + " " + form;
-    }
-
-    private string InferNumber(string word)
-    {
-        foreach (var reading in _lexicon.Lookup(word))
-        {
-            if (reading.Pos == LexiconSchema.Noun && reading.Number is { } number)
-            {
-                return number;
-            }
-        }
-
-        return Singular;
-    }
-
-    private string NounGender(string singular)
-    {
-        foreach (var reading in _lexicon.Lookup(singular))
-        {
-            if (reading.Pos == LexiconSchema.Noun && reading.Gender is { } gender)
-            {
-                return gender;
-            }
-        }
-
-        foreach (var entry in _lexicon.EntriesForLemma(singular))
-        {
-            if (entry.Pos == LexiconSchema.Noun && entry.Features.Gender is { } gender)
-            {
-                return gender;
-            }
-        }
-
-        return HeuristicGender(singular);
+        var gender = _functions.GenderOf(singular);
+        return _functions.Article(definiteness.Value, gender, number, singular) + " " + form;
     }
 
     private bool IsPluralQuantity(PlaceholderPart placeholder, string slotName, string quantity)

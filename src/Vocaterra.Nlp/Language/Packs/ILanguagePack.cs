@@ -1,3 +1,8 @@
+using Vocaterra.Nlp.Core.Taxonomy;
+using Vocaterra.Nlp.Language.Analysis;
+using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Morphology;
+
 namespace Vocaterra.Nlp.Language.Packs;
 
 /// <summary>
@@ -6,8 +11,8 @@ namespace Vocaterra.Nlp.Language.Packs;
 /// deterministic code (ADR 0002): ordinal comparison, invariant culture, no clock, no randomness.
 /// </summary>
 /// <remarks>
-/// This is the text-side half of the pack (milestones M32 and M33). The analysis-side members (morphology, analysis rules, template functions, the lexicon
-/// profile and the error tag set) join in M34. A host reaches the pack of a loaded bundle through
+/// The text-side members came in M32 and M33; the analysis-side members (the morphology, the analysis rules, the template functions, the lexicon profile and
+/// the error tag set) came in M34. A host reaches the pack of a loaded bundle through
 /// <see cref="Vocaterra.Nlp.Content.ContentBundle.Language"/>. See ADR 0011.
 /// </remarks>
 public interface ILanguagePack
@@ -44,4 +49,24 @@ public interface ILanguagePack
 
     /// <summary>The spelling policy of recasts (accent restoration). A narrow text-side member added in M33; the rest of the recast is neutral.</summary>
     IRecastPolicy Recast { get; }
+
+    /// <summary>The closed vocabularies of the language's lexicon files, which every lexicon entry is validated against (M34).</summary>
+    LexiconProfile LexiconProfile { get; }
+
+    /// <summary>The error tags of the language and their ranks (M34). Spanish: <see cref="ErrorTagSet.V1"/>.</summary>
+    ErrorTagSet ErrorTags { get; }
+
+    /// <summary>Creates the morphology of the language over a lexicon (M34).</summary>
+    /// <param name="lexicon">The bundle's lexicon, built with this pack's <see cref="Folding"/>.</param>
+    IMorphology CreateMorphology(Lexicon.Lexicon lexicon);
+
+    /// <summary>Creates the analysis rules of the language (M34). The word-class members must not depend on the lexicon.</summary>
+    /// <param name="lexicon">The bundle's lexicon.</param>
+    /// <param name="morphology">The morphology from <see cref="CreateMorphology"/> over the same lexicon.</param>
+    IAnalysisRules CreateAnalysisRules(Lexicon.Lexicon lexicon, IMorphology morphology);
+
+    /// <summary>Creates the functions behind the filters of dialogue templates (M34).</summary>
+    /// <param name="lexicon">The bundle's lexicon.</param>
+    /// <param name="morphology">The morphology from <see cref="CreateMorphology"/> over the same lexicon.</param>
+    ITemplateFunctions CreateTemplateFunctions(Lexicon.Lexicon lexicon, IMorphology morphology);
 }

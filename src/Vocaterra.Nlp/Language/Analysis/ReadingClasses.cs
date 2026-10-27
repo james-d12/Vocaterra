@@ -4,7 +4,7 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Lexicon;
 
 /// <summary>The coarse word classes the reading resolver chooses between. A token that has readings in more than one class is a part-of-speech homograph.</summary>
-internal enum WordClass
+public enum WordClass
 {
     /// <summary>A noun.</summary>
     Noun,
@@ -38,7 +38,7 @@ internal enum WordClass
 }
 
 /// <summary>Predicates over single readings that the resolver and the agreement checks share, so both always mean the same thing by "finite verb" and "skippable".</summary>
-internal static class ReadingClasses
+public static class ReadingClasses
 {
     /// <summary>How many adverbs, interjections or clitics may sit between a subject (or a copula) and the word it governs.</summary>
     public const int MaxSkippedBetween = 2;
@@ -67,31 +67,33 @@ internal static class ReadingClasses
     }
 
     /// <summary>True for an article, a numeral or a determiner adjective (possessive, demonstrative, quantifier).</summary>
-    public static bool IsDeterminerReading(LexicalFeatures reading)
+    public static bool IsDeterminerReading(LexicalFeatures reading, IAnalysisRules rules)
     {
+        ArgumentNullException.ThrowIfNull(rules);
         return reading.Pos is LexiconSchema.Article or LexiconSchema.Numeral
-            || (reading.Pos == LexiconSchema.Adjective && WordClasses.IsDeterminerAdjective(reading.Lemma));
+            || (reading.Pos == LexiconSchema.Adjective && rules.IsDeterminerAdjective(reading.Lemma));
     }
 
     /// <summary>
     /// True for a reading of a closed class: an article, numeral, determiner adjective, pronoun, preposition, conjunction, adverb or interjection. A word
     /// whose readings are all closed cannot be a <c>[WORD]</c> name (see <see cref="SlotGrammar.TypedMatching.CanBeName"/>).
     /// </summary>
-    public static bool IsClosedClassReading(LexicalFeatures reading)
+    public static bool IsClosedClassReading(LexicalFeatures reading, IAnalysisRules rules)
     {
-        return IsDeterminerReading(reading)
+        return IsDeterminerReading(reading, rules)
             || reading.Pos is LexiconSchema.Pronoun or LexiconSchema.Preposition or LexiconSchema.Conjunction or LexiconSchema.Adverb or LexiconSchema.Interjection;
     }
 
     /// <summary>True when a word with these readings can sit between a subject and its verb without being checked: every reading is an adverb or interjection, or every reading is a clitic.</summary>
-    public static bool IsSkippable(IReadOnlyList<LexicalFeatures> readings)
+    public static bool IsSkippable(IReadOnlyList<LexicalFeatures> readings, IAnalysisRules rules)
     {
+        ArgumentNullException.ThrowIfNull(rules);
         if (readings.Count == 0)
         {
             return false;
         }
 
         return readings.All(static r => r.Pos is LexiconSchema.Adverb or LexiconSchema.Interjection)
-            || readings.All(static r => r.Pos == LexiconSchema.Pronoun && WordClasses.IsClitic(r.Lemma));
+            || readings.All(r => r.Pos == LexiconSchema.Pronoun && rules.IsClitic(r.Lemma));
     }
 }

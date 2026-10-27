@@ -45,6 +45,9 @@ public static class RepairStrategy
     /// <summary>The agent line for <see cref="RepairKind.GiveUp"/>.</summary>
     public const string GiveUpLine = "Bueno, no importa.";
 
+    /// <summary>The wording of the line that offers choices, in Spanish (M34): «¿Quieres decir «a», «b» o «c»?». The Spanish pack's <see cref="RepairLines.Offer"/>.</summary>
+    public static OfferLineFormat OfferFormat { get; } = new("¿Quieres decir ", "«", "»", ", ", " o ", "?");
+
     /// <summary>
     /// Returns the repair step for the given failed attempt (1 for the first failure), with the same phrases for the retry and for the
     /// choices: attempts 1 and 2 keep the prompt's recognition mode (constrained retries use all <paramref name="choicePhrases"/>);
@@ -96,7 +99,7 @@ public static class RepairStrategy
                 var choices = FirstChoices(choicePhrases);
                 return choices.Count == 0
                     ? GiveUp(lines)
-                    : new RepairStep(RepairKind.OfferChoices, OfferLine(choices), RecognitionRequest.Constrained(choices));
+                    : new RepairStep(RepairKind.OfferChoices, (lines.Offer ?? OfferFormat).Format(choices), RecognitionRequest.Constrained(choices));
             default:
                 return GiveUp(lines);
         }
@@ -132,21 +135,5 @@ public static class RepairStrategy
         }
 
         return choices;
-    }
-
-    private static string OfferLine(List<string> choices)
-    {
-        var builder = new StringBuilder("¿Quieres decir ");
-        for (var i = 0; i < choices.Count; i++)
-        {
-            if (i > 0)
-            {
-                builder.Append(i == choices.Count - 1 ? " o " : ", ");
-            }
-
-            builder.Append('«').Append(choices[i]).Append('»');
-        }
-
-        return builder.Append('?').ToString();
     }
 }

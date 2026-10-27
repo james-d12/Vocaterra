@@ -26,7 +26,8 @@ public static class TextNormalizer
         ArgumentNullException.ThrowIfNull(input);
         options ??= NormalizationOptions.Default;
 
-        var words = Split(Utf16.ReplaceLoneSurrogates(input));
+        var clean = Utf16.ReplaceLoneSurrogates(input);
+        var words = Split(clean);
         if (options.NumbersToDigits)
         {
             words = ConvertNumbers(words, options);
@@ -37,7 +38,30 @@ public static class TextNormalizer
             words = ExpandContractions(words);
         }
 
-        return Build(words);
+        var built = Build(words);
+        return options.CaptureFinalMark ? built with { FinalMark = FinalMarkOf(clean) } : built;
+    }
+
+    // The last character that is neither white space nor a closing quote or bracket, when it is a question or exclamation mark (also the full-width forms).
+    private static string? FinalMarkOf(string input)
+    {
+        for (var i = input.Length - 1; i >= 0; i--)
+        {
+            var c = input[i];
+            if (char.IsWhiteSpace(c) || c is '"' or '\'' or ')' or ']' or '\u00BB' or '\u201D' or '\u2019')
+            {
+                continue;
+            }
+
+            return c switch
+            {
+                '?' or '\uFF1F' => "?",
+                '!' or '\uFF01' => "!",
+                _ => null,
+            };
+        }
+
+        return null;
     }
 
     /// <summary>Replaces stand-alone digit runs (up to 999 999) with Spanish words, for example <c>2 espadas</c> becomes <c>dos espadas</c>.</summary>

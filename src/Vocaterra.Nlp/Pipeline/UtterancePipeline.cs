@@ -54,8 +54,8 @@ public sealed partial class UtterancePipeline
         _services = services;
         _options = options ?? PipelineOptions.Default;
         var content = services.Content;
-        _analyzer = new LinguisticAnalyzer(content.Lexicon, content.Morphology, content.Language);
-        _resolver = new IntentResolver(content.Intents, content.Language, services.Embeddings);
+        _analyzer = new LinguisticAnalyzer(content.Lexicon, content.LanguageMorphology, content.Language, content.AnalysisRules);
+        _resolver = new IntentResolver(content.Intents, content.Language, services.Embeddings, null, content.AnalysisRules);
         _planner = new ResponsePlanner(content.TemplateEngine);
         _scorer = new PronunciationScorer();
         _catalogWithSilence = WithSilentPool(content.Dialogue);

@@ -2,6 +2,7 @@ using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Feedback;
 using Vocaterra.Nlp.Evaluation;
+using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Morphology;
@@ -37,8 +38,9 @@ public sealed class ContentBundle
         Provenance = provenance;
         Lexicon = lexicon;
         LexiconSources = lexiconSources;
-        Morphology = new MorphologyGenerator(lexicon);
-        TemplateEngine = new TemplateEngine(lexicon, Morphology, language);
+        LanguageMorphology = language.CreateMorphology(lexicon);
+        AnalysisRules = language.CreateAnalysisRules(lexicon, LanguageMorphology);
+        TemplateEngine = new TemplateEngine(lexicon, LanguageMorphology, language);
         AnswerSets = answerSets;
         Intents = intents;
         Prompts = prompts;
@@ -76,10 +78,21 @@ public sealed class ContentBundle
     /// <summary>The sidecars (<c>lexicon/*.source.json</c>) of generated lexicon files by bundle-relative path, in ordinal path order.</summary>
     public IReadOnlyDictionary<string, LexiconSourceInfo> LexiconSources { get; }
 
-    /// <summary>A morphology generator over <see cref="Lexicon"/>.</summary>
-    public MorphologyGenerator Morphology { get; }
+    /// <summary>The morphology of <see cref="Language"/> over <see cref="Lexicon"/> (M34, additive). The engine uses this one; it is the type every pack gives.</summary>
+    public IMorphology LanguageMorphology { get; }
 
-    /// <summary>A template engine over <see cref="Lexicon"/> and <see cref="Morphology"/>; use it for the response planner so templates inflect with bundle words.</summary>
+    /// <summary>The analysis rules of <see cref="Language"/> over <see cref="Lexicon"/> and <see cref="LanguageMorphology"/> (M34, additive).</summary>
+    public IAnalysisRules AnalysisRules { get; }
+
+    /// <summary>
+    /// The Spanish morphology generator over <see cref="Lexicon"/>: <see cref="LanguageMorphology"/> as a <see cref="MorphologyGenerator"/>, for hosts of a Spanish
+    /// bundle (the game's noun catalog and guide use it). Unchanged for a Spanish bundle.
+    /// </summary>
+    /// <exception cref="NotSupportedException">The bundle's language pack does not create a <see cref="MorphologyGenerator"/> (any pack but Spanish); use <see cref="LanguageMorphology"/>.</exception>
+    public MorphologyGenerator Morphology => LanguageMorphology as MorphologyGenerator
+        ?? throw new NotSupportedException($"ContentBundle.Morphology is the Spanish MorphologyGenerator; the language '{LanguageId}' has none. Use LanguageMorphology.");
+
+    /// <summary>A template engine over <see cref="Lexicon"/> and <see cref="LanguageMorphology"/>; use it for the response planner so templates inflect with bundle words.</summary>
     public TemplateEngine TemplateEngine { get; }
 
     /// <summary>The answer sets by id, enumerating in ordinal id order.</summary>

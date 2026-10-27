@@ -22,9 +22,17 @@ using Vocaterra.Nlp.Language.Lexicon;
 /// (<c>el esta aquí</c>: <c>está</c> is a verb, so <c>el</c> is <c>él</c>). A word that has been given its accented readings stays so, which is what makes the passes end.
 /// </para>
 /// </remarks>
-internal static class AccentVariantChoice
+internal sealed class AccentVariantChoice
 {
     private const int MaxPasses = 3;
+
+    private readonly IAnalysisRules _rules;
+
+    public AccentVariantChoice(IAnalysisRules rules)
+    {
+        ArgumentNullException.ThrowIfNull(rules);
+        _rules = rules;
+    }
 
     /// <summary>
     /// For each token, the accented readings it takes, or null to keep the readings as typed.
@@ -32,7 +40,7 @@ internal static class AccentVariantChoice
     /// <param name="tokens">The tokens with the readings as typed (a name has none).</param>
     /// <param name="variants">For each token, the readings of the accented spellings, or none.</param>
     /// <param name="isDecided">True for a token whose reading as typed is settled (a slot grammar matched it), which is then kept.</param>
-    public static IReadOnlyList<LexicalFeatures>?[] Choose(
+    public IReadOnlyList<LexicalFeatures>?[] Choose(
         IReadOnlyList<AnalyzedToken> tokens,
         IReadOnlyList<IReadOnlyList<LexicalFeatures>> variants,
         Func<int, bool> isDecided)
@@ -85,23 +93,23 @@ internal static class AccentVariantChoice
     }
 
     // The accented readings the word takes, or none to keep the readings as typed.
-    private static IReadOnlyList<LexicalFeatures>? ChosenFor(
+    private IReadOnlyList<LexicalFeatures>? ChosenFor(
         IReadOnlyList<AnalyzedToken> tokens,
         IReadOnlyList<LexicalFeatures>[] current,
         IReadOnlyList<LexicalFeatures> variants,
         int index)
     {
         var typed = tokens[index].Readings;
-        if (typed.All(ReadingClasses.IsDeterminerReading) && index > 0 && AnalysisTables.IsVerbSeekingQuestionWord(tokens[index - 1].Token.Text))
+        if (typed.All(r => ReadingClasses.IsDeterminerReading(r, _rules)) && index > 0 && _rules.IsVerbSeekingQuestionWord(tokens[index - 1].Token.Text))
         {
-            var verbs = variants.Where(static r => ReadingClasses.IsFiniteVerb(r) && r.Mood == LexiconSchema.Indicative).ToList();
+            var verbs = variants.Where(r => ReadingClasses.IsFiniteVerb(r) && r.Mood == LexiconSchema.Indicative).ToList();
             if (verbs.Count > 0)
             {
                 return verbs;
             }
         }
 
-        if (typed.Any(ReadingClasses.IsFiniteVerb) && variants.Any(static r => r.Pos is LexiconSchema.Adverb or LexiconSchema.Pronoun) && AsksAQuestion(current, index))
+        if (typed.Any(ReadingClasses.IsFiniteVerb) && variants.Any(r => r.Pos is LexiconSchema.Adverb or LexiconSchema.Pronoun) && AsksAQuestion(current, index))
         {
             return variants;
         }
@@ -112,9 +120,9 @@ internal static class AccentVariantChoice
     // A word that is a finite verb form as typed and has an interrogative sibling (como, cómo) is the question word when the next word starts a clause of its own and nothing
     // makes it the verb: a pronoun that stands before a verb and then the verb (como te llamas), or a finite verb that cannot be an object (como estás). It stays the verb right
     // after yo (yo como pan) and before a noun (como manzanas).
-    private static bool AsksAQuestion(IReadOnlyList<LexicalFeatures>[] current, int index)
+    private bool AsksAQuestion(IReadOnlyList<LexicalFeatures>[] current, int index)
     {
-        if (index > 0 && current[index - 1].Any(static r => r.Pos == LexiconSchema.Pronoun && r.Person == "1" && r.Number == LexiconSchema.Singular && WordClasses.IsSubjectPronoun(r.Lemma)))
+        if (index > 0 && current[index - 1].Any(r => r.Pos == LexiconSchema.Pronoun && r.Person == "1" && r.Number == LexiconSchema.Singular && _rules.IsSubjectPronoun(r.Lemma)))
         {
             return false;
         }
@@ -125,20 +133,20 @@ internal static class AccentVariantChoice
             return false;
         }
 
-        if (current[next].All(static r => r.Pos == LexiconSchema.Pronoun && AnalysisTables.IsPreverbalPronoun(r.Lemma)))
+        if (current[next].All(r => r.Pos == LexiconSchema.Pronoun && _rules.IsPreverbalPronoun(r.Lemma)))
         {
             return VerbFollows(current, next);
         }
 
         return current[next].Any(ReadingClasses.IsFiniteVerb)
-            && !current[next].Any(static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective || ReadingClasses.IsDeterminerReading(r));
+            && !current[next].Any(r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective || ReadingClasses.IsDeterminerReading(r, _rules));
     }
 
     // Whether a reading of the word as typed fits the words around it. Open classes always do; the closed classes below need a neighbour.
-    private static bool FitsContext(IReadOnlyList<LexicalFeatures>[] current, int index, LexicalFeatures reading)
+    private bool FitsContext(IReadOnlyList<LexicalFeatures>[] current, int index, LexicalFeatures reading)
     {
         var next = index + 1;
-        if (ReadingClasses.IsDeterminerReading(reading))
+        if (ReadingClasses.IsDeterminerReading(reading, _rules))
         {
             return reading.Pos == LexiconSchema.Adjective ? FormsNounPhrase(current, next) : ContinuesNounPhrase(current, next);
         }
@@ -148,7 +156,7 @@ internal static class AccentVariantChoice
             return next < current.Length;
         }
 
-        if (reading.Pos == LexiconSchema.Pronoun && AnalysisTables.IsPreverbalPronoun(reading.Lemma))
+        if (reading.Pos == LexiconSchema.Pronoun && _rules.IsPreverbalPronoun(reading.Lemma))
         {
             return VerbFollows(current, next);
         }
@@ -157,41 +165,41 @@ internal static class AccentVariantChoice
     }
 
     // An article is followed by a word that can go on a noun phrase: a noun, an adjective (el rojo) or a determiner; a name or an unknown word may be any.
-    private static bool ContinuesNounPhrase(IReadOnlyList<LexicalFeatures>[] current, int next)
+    private bool ContinuesNounPhrase(IReadOnlyList<LexicalFeatures>[] current, int next)
     {
         return next < current.Length
-            && (current[next].Count == 0 || current[next].Any(static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective || ReadingClasses.IsDeterminerReading(r)));
+            && (current[next].Count == 0 || current[next].Any(r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective || ReadingClasses.IsDeterminerReading(r, _rules)));
     }
 
     // A demonstrative or a possessive is followed, after further adjectives and determiners, by a noun (or a name); an article right after it is no noun phrase.
-    private static bool FormsNounPhrase(IReadOnlyList<LexicalFeatures>[] current, int next)
+    private bool FormsNounPhrase(IReadOnlyList<LexicalFeatures>[] current, int next)
     {
-        if (next < current.Length && current[next].Count > 0 && current[next].All(static r => r.Pos == LexiconSchema.Article))
+        if (next < current.Length && current[next].Count > 0 && current[next].All(r => r.Pos == LexiconSchema.Article))
         {
             return false;
         }
 
         var head = next;
-        while (head < current.Length && current[head].Count > 0 && current[head].All(static r => r.Pos == LexiconSchema.Adjective || ReadingClasses.IsDeterminerReading(r)))
+        while (head < current.Length && current[head].Count > 0 && current[head].All(r => r.Pos == LexiconSchema.Adjective || ReadingClasses.IsDeterminerReading(r, _rules)))
         {
             head++;
         }
 
-        return head < current.Length && (current[head].Count == 0 || current[head].Any(static r => r.Pos == LexiconSchema.Noun));
+        return head < current.Length && (current[head].Count == 0 || current[head].Any(r => r.Pos == LexiconSchema.Noun));
     }
 
     // A verb comes after the pronouns that stand before a verb (te lo doy), at most MaxSkippedBetween of them.
-    private static bool VerbFollows(IReadOnlyList<LexicalFeatures>[] current, int from)
+    private bool VerbFollows(IReadOnlyList<LexicalFeatures>[] current, int from)
     {
         var index = from;
         var skipped = 0;
         while (index < current.Length && skipped < ReadingClasses.MaxSkippedBetween && current[index].Count > 0
-            && current[index].All(static r => r.Pos == LexiconSchema.Pronoun && AnalysisTables.IsPreverbalPronoun(r.Lemma)))
+            && current[index].All(r => r.Pos == LexiconSchema.Pronoun && _rules.IsPreverbalPronoun(r.Lemma)))
         {
             index++;
             skipped++;
         }
 
-        return index < current.Length && current[index].Any(static r => r.Pos == LexiconSchema.Verb);
+        return index < current.Length && current[index].Any(r => r.Pos == LexiconSchema.Verb);
     }
 }

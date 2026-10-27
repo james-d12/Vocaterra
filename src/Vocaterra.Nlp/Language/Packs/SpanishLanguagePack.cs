@@ -1,6 +1,9 @@
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Core.Taxonomy;
+using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Morphology;
 using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Phonology;
 
@@ -9,7 +12,8 @@ namespace Vocaterra.Nlp.Language.Packs;
 /// <summary>
 /// The Spanish pack (Latin American default, ADR 0005). Every member wraps a static class that stays where it is and keeps meaning Spanish
 /// (<see cref="TextNormalizer"/>, <see cref="SpanishNumbers"/>, <see cref="SpanishPhoneticKey"/>, <see cref="SpanishG2p"/>, the punctuation fixer,
-/// <see cref="RepairStrategy"/>); a wrapper returns exactly what its static returns. M53 moves the pack out of the engine assembly.
+/// <see cref="RepairStrategy"/>); a wrapper returns exactly what its static returns. Since M34 it also creates the Spanish morphology
+/// (<see cref="MorphologyGenerator"/>), analysis rules and template functions, and lists the v1 lexicon profile and error tags. M53 moves the pack out of the engine assembly.
 /// </summary>
 public sealed class SpanishLanguagePack : ILanguagePack
 {
@@ -54,10 +58,25 @@ public sealed class SpanishLanguagePack : ILanguagePack
     public LintVocabulary Lint { get; } = new(WordClasses.SubjectPronounLemmas, PolitePhrase, ArticleNumeralHomographs);
 
     /// <inheritdoc />
-    public RepairLines RepairFallback { get; } = new(RepairStrategy.AskAgainLine, RepairStrategy.SlowRepeatLine, RepairStrategy.GiveUpLine);
+    public RepairLines RepairFallback { get; } = new(RepairStrategy.AskAgainLine, RepairStrategy.SlowRepeatLine, RepairStrategy.GiveUpLine, RepairStrategy.OfferFormat);
 
     /// <inheritdoc />
     public IRecastPolicy Recast { get; } = new SpanishRecastPolicy();
+
+    /// <inheritdoc />
+    public LexiconProfile LexiconProfile => LexiconProfile.V1;
+
+    /// <inheritdoc />
+    public ErrorTagSet ErrorTags => ErrorTagSet.V1;
+
+    /// <inheritdoc />
+    public IMorphology CreateMorphology(Lexicon.Lexicon lexicon) => new MorphologyGenerator(lexicon);
+
+    /// <inheritdoc />
+    public IAnalysisRules CreateAnalysisRules(Lexicon.Lexicon lexicon, IMorphology morphology) => new SpanishAnalysisRules(morphology);
+
+    /// <inheritdoc />
+    public ITemplateFunctions CreateTemplateFunctions(Lexicon.Lexicon lexicon, IMorphology morphology) => new SpanishTemplateFunctions(lexicon, morphology);
 
     private sealed class SpanishNormalizer : ITextNormalizer
     {

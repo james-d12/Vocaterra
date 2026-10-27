@@ -42,6 +42,18 @@ public class PackSeamTests
         public RepairLines RepairFallback => Spanish.RepairFallback;
 
         public IRecastPolicy Recast => Spanish.Recast;
+
+        public Vocaterra.Nlp.Language.Lexicon.LexiconProfile LexiconProfile => Spanish.LexiconProfile;
+
+        public Vocaterra.Nlp.Core.Taxonomy.ErrorTagSet ErrorTags => Spanish.ErrorTags;
+
+        public Vocaterra.Nlp.Language.Morphology.IMorphology CreateMorphology(Vocaterra.Nlp.Language.Lexicon.Lexicon lexicon) => Spanish.CreateMorphology(lexicon);
+
+        public Vocaterra.Nlp.Language.Analysis.IAnalysisRules CreateAnalysisRules(Vocaterra.Nlp.Language.Lexicon.Lexicon lexicon, Vocaterra.Nlp.Language.Morphology.IMorphology morphology) =>
+            Spanish.CreateAnalysisRules(lexicon, morphology);
+
+        public ITemplateFunctions CreateTemplateFunctions(Vocaterra.Nlp.Language.Lexicon.Lexicon lexicon, Vocaterra.Nlp.Language.Morphology.IMorphology morphology) =>
+            Spanish.CreateTemplateFunctions(lexicon, morphology);
     }
 
     private static IReadOnlyList<AnalyzedToken> Tokens(string text)

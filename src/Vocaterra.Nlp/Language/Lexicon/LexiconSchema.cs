@@ -103,50 +103,9 @@ public static class LexiconSchema
     /// <summary>All gender values.</summary>
     public static IReadOnlyList<string> Genders { get; } = Array.AsReadOnly(GendersArray);
 
-    /// <summary>Throws <see cref="FormatException"/> when the entry violates the schema.</summary>
+    /// <summary>Throws <see cref="FormatException"/> when the entry violates the schema of <see cref="LexiconProfile.V1"/> (the Spanish profile).</summary>
     public static void Validate(LexiconEntry entry)
     {
-        ArgumentNullException.ThrowIfNull(entry);
-        Require(!string.IsNullOrWhiteSpace(entry.Form), entry, "form must not be empty");
-        Require(!string.IsNullOrWhiteSpace(entry.Lemma), entry, "lemma must not be empty");
-        Require(Contains(PartsOfSpeech, entry.Pos), entry, $"unknown pos '{entry.Pos}'");
-
-        // A missing "features" property arrives as null although the record declares it non-nullable; an entry without features writes "features": {}.
-        if ((object?)entry.Features is null)
-        {
-            throw new FormatException($"Invalid lexicon entry '{entry.Form}' ({entry.Lemma}/{entry.Pos}): features must be present (use {{}} for none).");
-        }
-
-        RequireValue(entry, "person", entry.Features.Person, Persons);
-        RequireValue(entry, "number", entry.Features.Number, Numbers);
-        RequireValue(entry, "tense", entry.Features.Tense, Tenses);
-        RequireValue(entry, "mood", entry.Features.Mood, Moods);
-        RequireValue(entry, "gender", entry.Features.Gender, Genders);
-    }
-
-    private static void RequireValue(LexiconEntry entry, string name, string? value, IReadOnlyList<string> allowed)
-    {
-        Require(value is null || Contains(allowed, value), entry, $"unknown {name} '{value}'");
-    }
-
-    private static bool Contains(IReadOnlyList<string> values, string value)
-    {
-        for (var i = 0; i < values.Count; i++)
-        {
-            if (string.Equals(values[i], value, StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static void Require(bool condition, LexiconEntry entry, string message)
-    {
-        if (!condition)
-        {
-            throw new FormatException($"Invalid lexicon entry '{entry.Form}' ({entry.Lemma}/{entry.Pos}): {message}.");
-        }
+        LexiconProfile.V1.Validate(entry);
     }
 }

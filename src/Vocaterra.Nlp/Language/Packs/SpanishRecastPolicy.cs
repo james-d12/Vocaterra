@@ -22,7 +22,7 @@ internal sealed class SpanishRecastPolicy : IRecastPolicy
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(analysis);
         ArgumentNullException.ThrowIfNull(lexicon);
-        var analysed = AccentRestoration.SpellingsFor(lexicon, analysis);
+        var analysed = AccentRestoration.SpellingsFor(lexicon, analysis, new SpanishAnalysisRules(new Morphology.MorphologyGenerator(lexicon)));
         var result = new Dictionary<int, string>();
         foreach (var token in text.Tokens)
         {

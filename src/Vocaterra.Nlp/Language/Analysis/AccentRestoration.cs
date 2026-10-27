@@ -14,9 +14,13 @@ public static class AccentRestoration
     /// (<c>Token.Span.Start</c>) and that accented spelling. A token with two accented spellings among its readings (<c>este</c> as <c>esté</c> or <c>éste</c>) is left out. The
     /// choice is the one <see cref="ReadingResolver"/> makes, from the words around the token; a slot grammar that bound the word as typed is not known here.
     /// </summary>
-    public static IReadOnlyDictionary<int, string> SpellingsFor(Lexicon.Lexicon lexicon, AnalysisResult analysis)
+    /// <param name="lexicon">The lexicon the words are looked up in.</param>
+    /// <param name="analysis">The analysis of the text.</param>
+    /// <param name="rules">The language's analysis rules (<see cref="IAnalysisRules"/>).</param>
+    public static IReadOnlyDictionary<int, string> SpellingsFor(Lexicon.Lexicon lexicon, AnalysisResult analysis, IAnalysisRules rules)
     {
         ArgumentNullException.ThrowIfNull(lexicon);
+        ArgumentNullException.ThrowIfNull(rules);
         ArgumentNullException.ThrowIfNull(analysis);
         var found = new List<IReadOnlyList<Lexicon.AccentVariant>>(analysis.Tokens.Count);
         foreach (var token in analysis.Tokens)
@@ -25,7 +29,7 @@ public static class AccentRestoration
         }
 
         var readings = found.Select(static variants => (IReadOnlyList<LexicalFeatures>)[.. variants.Select(static v => v.Reading)]).ToList();
-        var chosen = AccentVariantChoice.Choose(analysis.Tokens, readings, static _ => false);
+        var chosen = new AccentVariantChoice(rules).Choose(analysis.Tokens, readings, _ => false);
         var spellings = new Dictionary<int, string>();
         for (var i = 0; i < analysis.Tokens.Count; i++)
         {

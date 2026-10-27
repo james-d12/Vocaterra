@@ -1,23 +1,26 @@
-namespace Vocaterra.Nlp.Language.Analysis;
+namespace Vocaterra.Nlp.Language.Packs;
 
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
 
-/// <summary>Runs the grammar checks (subject-verb, tense, ser/estar, noun phrase agreement, word order) over analyzed tokens.</summary>
-internal sealed class AgreementChecker
+/// <summary>Runs the Spanish grammar checks (subject-verb, tense, ser/estar, noun phrase agreement, word order) over analyzed tokens; part of the Spanish pack since M34.</summary>
+internal sealed class SpanishAgreementChecker : IAgreementChecker
 {
     private readonly IReadOnlyList<AnalyzedToken> _tokens;
-    private readonly MorphologyGenerator _morphology;
+    private readonly IMorphology _morphology;
     private readonly List<ErrorTag> _errors;
+    private readonly IAnalysisRules _rules;
 
-    public AgreementChecker(IReadOnlyList<AnalyzedToken> tokens, MorphologyGenerator morphology, List<ErrorTag> errors)
+    public SpanishAgreementChecker(IReadOnlyList<AnalyzedToken> tokens, IMorphology morphology, List<ErrorTag> errors, IAnalysisRules rules)
     {
         _tokens = tokens;
         _morphology = morphology;
         _errors = errors;
+        _rules = rules;
     }
 
     public void Run()
@@ -47,9 +50,9 @@ internal sealed class AgreementChecker
         return left is null || right is null || string.Equals(left, right, StringComparison.Ordinal);
     }
 
-    private static bool IsDeterminerReading(LexicalFeatures reading)
+    private bool IsDeterminerReading(LexicalFeatures reading)
     {
-        return ReadingClasses.IsDeterminerReading(reading);
+        return ReadingClasses.IsDeterminerReading(reading, _rules);
     }
 
     private static bool GenderCompatible(LexicalFeatures modifier, LexicalFeatures noun)
@@ -68,7 +71,7 @@ internal sealed class AgreementChecker
             && WordClasses.TakesElBeforeFeminine(noun.Lemma);
     }
 
-    private static string? DeterminerForm(MorphologyGenerator morphology, LexicalFeatures determiner, string gender, string number, string nounLemma)
+    private static string? DeterminerForm(IMorphology morphology, LexicalFeatures determiner, string gender, string number, string nounLemma)
     {
         switch (determiner.Pos)
         {
@@ -128,7 +131,7 @@ internal sealed class AgreementChecker
 
     private bool IsSkippable(int index)
     {
-        return ReadingClasses.IsSkippable(_tokens[index].Readings);
+        return ReadingClasses.IsSkippable(_tokens[index].Readings, _rules);
     }
 
     private int NextContentIndex(int from)
@@ -358,13 +361,13 @@ internal sealed class AgreementChecker
 
             if (i > 0
                 && FirstReading(i - 1, static r => r.Pos == LexiconSchema.Adjective && r.Lemma == "próximo") is not null
-                && FirstReading(i, static r => r.Pos == LexiconSchema.Noun && AnalysisTables.IsUpcomingTimeNoun(r.Lemma)) is not null)
+                && FirstReading(i, static r => r.Pos == LexiconSchema.Noun && SpanishAnalysisTables.IsUpcomingTimeNoun(r.Lemma)) is not null)
             {
                 return i;
             }
 
             if (i > 0
-                && FirstReading(i - 1, static r => r.Pos == LexiconSchema.Noun && AnalysisTables.IsTimeNoun(r.Lemma)) is not null
+                && FirstReading(i - 1, static r => r.Pos == LexiconSchema.Noun && SpanishAnalysisTables.IsTimeNoun(r.Lemma)) is not null
                 && string.Equals(TextOf(i), "que", StringComparison.Ordinal)
                 && i + 1 < _tokens.Count
                 && string.Equals(TextOf(i + 1), "viene", StringComparison.Ordinal))
@@ -381,14 +384,14 @@ internal sealed class AgreementChecker
     {
         for (var i = 0; i < _tokens.Count; i++)
         {
-            if (FirstReading(i, static r => r.Pos == LexiconSchema.Adverb && AnalysisTables.IsPastTimeAdverb(r.Lemma)) is not null)
+            if (FirstReading(i, static r => r.Pos == LexiconSchema.Adverb && SpanishAnalysisTables.IsPastTimeAdverb(r.Lemma)) is not null)
             {
                 return true;
             }
 
             if (i > 0
                 && FirstReading(i, static r => r.Pos == LexiconSchema.Adjective && r.Lemma == "pasado") is not null
-                && FirstReading(i - 1, static r => r.Pos == LexiconSchema.Noun && AnalysisTables.IsTimeNoun(r.Lemma)) is not null)
+                && FirstReading(i - 1, static r => r.Pos == LexiconSchema.Noun && SpanishAnalysisTables.IsTimeNoun(r.Lemma)) is not null)
             {
                 return true;
             }
@@ -421,8 +424,8 @@ internal sealed class AgreementChecker
                 continue;
             }
 
-            var takesEstar = adjectives.Exists(static a => AnalysisTables.TakesEstar(a.Lemma));
-            var takesSer = adjectives.Exists(static a => AnalysisTables.TakesSer(a.Lemma));
+            var takesEstar = adjectives.Exists(static a => SpanishAnalysisTables.TakesEstar(a.Lemma));
+            var takesSer = adjectives.Exists(static a => SpanishAnalysisTables.TakesSer(a.Lemma));
             var wrongCopula = copula.Lemma == "ser" && takesEstar && !takesSer;
             var wrongEstar = copula.Lemma == "estar" && takesSer && !takesEstar;
             if (!wrongCopula && !wrongEstar)
@@ -526,7 +529,7 @@ internal sealed class AgreementChecker
         var numberFromDeterminer = false;
         foreach (var determiner in phrase.Determiners)
         {
-            var numbered = FirstReading(determiner, static r => IsDeterminerReading(r) && r.Number is not null);
+            var numbered = FirstReading(determiner, r => IsDeterminerReading(r) && r.Number is not null);
             if (numbered is not null)
             {
                 effectiveNumber = numbered.Number;
@@ -560,7 +563,7 @@ internal sealed class AgreementChecker
         {
             foreach (var adjective in Readings(index, static r => r.Pos == LexiconSchema.Adjective))
             {
-                head = nounReadings.Find(n => AnalysisTables.IsFixedPluralExpression(adjective.Lemma, n.Lemma));
+                head = nounReadings.Find(n => SpanishAnalysisTables.IsFixedPluralExpression(adjective.Lemma, n.Lemma));
                 if (head is not null)
                 {
                     modifier = index;
@@ -692,13 +695,13 @@ internal sealed class AgreementChecker
 
         var adjectiveIndex = phrase.Before[^1];
         var adjectives = Readings(adjectiveIndex, static r => r.Pos == LexiconSchema.Adjective);
-        if (adjectives.Count == 0 || adjectives.Exists(static a => AnalysisTables.IsPrenominal(a.Lemma)))
+        if (adjectives.Count == 0 || adjectives.Exists(static a => SpanishAnalysisTables.IsPrenominal(a.Lemma)))
         {
             return;
         }
 
         // "la próxima semana", "el próximo año": próximo goes before a time noun (but "unos próximos salones" is still a word-order mistake).
-        if (adjectives.Exists(static a => a.Lemma == "próximo") && Readings(phrase.Head, static r => r.Pos == LexiconSchema.Noun && AnalysisTables.IsUpcomingTimeNoun(r.Lemma)).Count > 0)
+        if (adjectives.Exists(static a => a.Lemma == "próximo") && Readings(phrase.Head, static r => r.Pos == LexiconSchema.Noun && SpanishAnalysisTables.IsUpcomingTimeNoun(r.Lemma)).Count > 0)
         {
             return;
         }
