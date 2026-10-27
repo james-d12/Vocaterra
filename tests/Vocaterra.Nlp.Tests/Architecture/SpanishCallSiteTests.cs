@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 namespace Vocaterra.Nlp.Tests.Architecture;
 
 /// <summary>
-/// The grep guard of M33 (ADR 0011, point 8): the text-side Spanish static entry points are called only from the Spanish pack, from their own files
+/// The grep guard of M33, extended in M34 (ADR 0011, point 8): the Spanish static entry points (text side and, since M34, analysis side) are called only from the Spanish pack, from their own files
 /// and from the documented compatibility entry points. Neutral code reaches the Spanish behaviour through <c>bundle.Language</c>. The scan reads the
 /// source of <c>src/Vocaterra.Nlp</c> and <c>tools/</c> (not the tests), ignores comment lines, and fails on any hit that the allowlist does not cover.
 /// </summary>
@@ -24,11 +24,13 @@ public class SpanishCallSiteTests
         ["WordClasses"] = new(@"\bWordClasses\.", RegexOptions.CultureInvariant),
         ["SpanishOrthography"] = new(@"\bSpanishOrthography\.", RegexOptions.CultureInvariant),
         ["SpanishLanguagePack"] = new(@"\bSpanishLanguagePack\.", RegexOptions.CultureInvariant),
+        ["MorphologyGenerator"] = new(@"\bnew MorphologyGenerator\(", RegexOptions.CultureInvariant),
+        ["SpanishAnalysisTables"] = new(@"\bSpanishAnalysisTables\.", RegexOptions.CultureInvariant),
     };
 
     /// <summary>
     /// One allowed use. <see cref="Path"/> is a file (exact match) or a folder ending in <c>/</c>; a null <see cref="Pattern"/> allows every pattern.
-    /// <see cref="Reason"/> says why the use is allowed; an M34 reason marks a call that M34 routes (morphology and the analysis rules).
+    /// <see cref="Reason"/> says why the use is allowed.
     /// </summary>
     internal sealed record Allow(string Path, string? Pattern, string Reason);
 
@@ -42,22 +44,11 @@ public class SpanishCallSiteTests
         new("src/Vocaterra.Nlp/Response/Templates/RecastBuilder.cs", "SpanishLanguagePack", "Documented Spanish compatibility entry points RecastBuilder.Build(text, analysis[, lexicon]); the pack overload is the engine's."),
         new("src/Vocaterra.Nlp/Response/Speech/SpeechRequests.cs", "SpanishLanguagePack", "Documented Spanish compatibility entry point SpeechRequests.Create(text, voice[, dialect])."),
         new("src/Vocaterra.Nlp/Response/Templates/TemplateEngine.cs", "SpanishLanguagePack", "TemplateEngine.CreateDefault, the Spanish seed engine (a bundle's engine is bundle.TemplateEngine)."),
-        // M34: morphology, the analysis rules and the lexicon's Spanish fold. Not routed in M33 (IMorphology, IAnalysisRules, LexiconProfile).
-        new("src/Vocaterra.Nlp/Language/Analysis/ReadingResolver.cs", "TextFolding", "M34: the analysis rules (the literal fold of the resolver)."),
-        new("src/Vocaterra.Nlp/Language/Analysis/ReadingResolver.cs", "WordClasses", "M34: the analysis rules (subject pronouns, clitics, determiner adjectives)."),
-        new("src/Vocaterra.Nlp/Language/Analysis/AccentVariantChoice.cs", "WordClasses", "M34: the accent-variant rules (subject pronouns)."),
-        new("src/Vocaterra.Nlp/Language/Analysis/ReportedReadings.cs", "WordClasses", "M34: the reported readings (subject pronouns)."),
-        new("src/Vocaterra.Nlp/Language/Analysis/AnalysisTables.cs", "WordClasses", "M34: the analysis tables (determiner adjectives)."),
-        new("src/Vocaterra.Nlp/Language/Analysis/AgreementChecker.cs", "WordClasses", "M34: the agreement and error taxonomy checks (el before feminine, pronouns, adjectives)."),
-        new("src/Vocaterra.Nlp/Language/Analysis/ReadingClasses.cs", "WordClasses", "M34: the reading classes (determiner adjectives, clitics)."),
-        new("src/Vocaterra.Nlp/Language/SlotGrammar/SlotGrammar.cs", "TextFolding", "M34: the slot grammar's literal and lemma folding (the grammar parser)."),
-        new("src/Vocaterra.Nlp/Language/SlotGrammar/SlotGrammarMatcher.cs", "TextFolding", "M34: the matcher's literal and lemma folding (typed matching)."),
-        new("src/Vocaterra.Nlp/Language/SlotGrammar/SlotGrammarMatcher.cs", "WordClasses", "M34: typed matching of subject pronouns and determiner adjectives."),
-        new("src/Vocaterra.Nlp/Language/Morphology/MorphologyGenerator.cs", "TextFolding", "M34: morphology (the lexicon's Spanish fold of the forms it generates)."),
-        new("src/Vocaterra.Nlp/Language/Morphology/MorphologyGenerator.cs", "WordClasses", "M34: morphology (el before a stressed feminine noun)."),
-        new("src/Vocaterra.Nlp/Language/Morphology/MorphologyGenerator.cs", "SpanishOrthography", "M34: morphology (Spanish written accents and plurals)."),
-        new("src/Vocaterra.Nlp/Language/Lexicon/Lexicon.cs", "TextFolding", "M34: the lexicon's own Spanish fold, built into its indexes at load (LexiconProfile)."),
-        new("src/Vocaterra.Nlp/Language/Intent/IntentCatalog.cs", "TextFolding", "M34: the lemma fold of the intent catalog (keyword rules)."),
+        // M34 routed the analysis rules, the slot grammar, the intent catalog and the lexicon's fold through the pack (IAnalysisRules, ILexiconFolding, LexiconProfile). What is left:
+        new("src/Vocaterra.Nlp/Language/Morphology/MorphologyGenerator.cs", "TextFolding", "The Spanish IMorphology implementation: its own file, a Spanish static class (it moves into the Spanish pack project in M53)."),
+        new("src/Vocaterra.Nlp/Language/Morphology/MorphologyGenerator.cs", "WordClasses", "The Spanish IMorphology implementation (el before a stressed feminine noun); moves with the pack in M53."),
+        new("src/Vocaterra.Nlp/Language/Morphology/MorphologyGenerator.cs", "SpanishOrthography", "The Spanish IMorphology implementation (Spanish written accents and plurals); moves with the pack in M53."),
+        new("src/Vocaterra.Nlp/Language/Lexicon/Lexicon.cs", "SpanishLanguagePack", "The seed lexicon is Spanish (an embedded resource), so Lexicon.Seed, Lexicon.Empty and the overloads without a folding default to the Spanish folding. A bundle's lexicon is built with its pack's folding (FromEntries(entries, folding, profile))."),
     ];
 
     /// <summary>One source file: its path relative to the repository root, with forward slashes, and its lines.</summary>
@@ -173,7 +164,7 @@ public class SpanishCallSiteTests
     }
 
     [Fact]
-    public void AnM34CallIsAllowedOnlyForItsOwnPattern()
+    public void AnAllowlistEntryCoversOnlyItsOwnPattern()
     {
         var morphology = new SourceFile("src/Vocaterra.Nlp/Language/Morphology/MorphologyGenerator.cs", ["var w = SpanishOrthography.IsVowel(c);"]);
         var numbers = new SourceFile("src/Vocaterra.Nlp/Language/Morphology/MorphologyGenerator.cs", ["var n = SpanishNumbers.ToWords(2);"]);

@@ -64,13 +64,29 @@ public static class SlotGrammarMatcher
     /// <param name="tokens">The analyzed tokens.</param>
     /// <param name="grammar">The grammar to match.</param>
     /// <param name="language">The language whose grammar defaults apply.</param>
+    /// <remarks>
+    /// The typed elements (<c>[DET]</c>, the implicit subject pronoun, <c>[WORD]</c> names) use the word classes of <see cref="AnalysisRules.For"/> for the pack: the
+    /// rules of a pack created over an empty lexicon. Use the overload with explicit rules when the bundle's own rules are at hand.
+    /// </remarks>
     public static SlotGrammarMatch? Match(IReadOnlyList<AnalyzedToken> tokens, SlotGrammar grammar, ILanguagePack language)
+    {
+        ArgumentNullException.ThrowIfNull(language);
+        return Match(tokens, grammar, language, AnalysisRules.For(language));
+    }
+
+    /// <summary>The same as <see cref="Match(IReadOnlyList{AnalyzedToken}, SlotGrammar, ILanguagePack)"/> with the analysis rules given (M34, additive).</summary>
+    /// <param name="tokens">The analyzed tokens.</param>
+    /// <param name="grammar">The grammar to match.</param>
+    /// <param name="language">The language whose grammar defaults and folding apply.</param>
+    /// <param name="rules">The language's analysis rules, for the word classes of typed elements.</param>
+    public static SlotGrammarMatch? Match(IReadOnlyList<AnalyzedToken> tokens, SlotGrammar grammar, ILanguagePack language, IAnalysisRules rules)
     {
         ArgumentNullException.ThrowIfNull(tokens);
         ArgumentNullException.ThrowIfNull(grammar);
         ArgumentNullException.ThrowIfNull(language);
+        ArgumentNullException.ThrowIfNull(rules);
         var defaults = language.GrammarDefaults;
-        var search = new Search(tokens, defaults.TrailingPoliteWords);
+        var search = new Search(tokens, defaults.TrailingPoliteWords, new TypedMatching(language.Folding, rules));
         var nodes = new List<GrammarNode>(grammar.Nodes.Count + 2);
         if (defaults.OptionalSubjectPronoun)
         {
@@ -117,9 +133,12 @@ public static class SlotGrammarMatcher
         private readonly Dictionary<int, List<GrammarNode>> _alternatives = [];
         private int _steps;
 
-        public Search(IReadOnlyList<AnalyzedToken> tokens, IReadOnlyList<string> politeWords)
+        private readonly TypedMatching _typed;
+
+        public Search(IReadOnlyList<AnalyzedToken> tokens, IReadOnlyList<string> politeWords, TypedMatching typed)
         {
             _tokens = tokens;
+            _typed = typed;
             _politeWords = [.. politeWords];
             _politeNodes = [.. _politeWords.Select(static word => (GrammarNode)new LiteralNode(word))];
         }
@@ -134,7 +153,7 @@ public static class SlotGrammarMatcher
         {
             for (var k = 0; k < _politeWords.Length; k++)
             {
-                if (!TypedMatching.MatchesLiteral(_tokens[position + k], _politeWords[k]))
+                if (!_typed.MatchesLiteral(_tokens[position + k], _politeWords[k]))
                 {
                     return false;
                 }
@@ -164,14 +183,14 @@ public static class SlotGrammarMatcher
             switch (frame.Node)
             {
                 case LiteralNode literal:
-                    if (position < _tokens.Count && TypedMatching.MatchesLiteral(_tokens[position], literal.Word))
+                    if (position < _tokens.Count && _typed.MatchesLiteral(_tokens[position], literal.Word))
                     {
                         Step(rest, position + 1, new Capture(position, literal, null, captures), score + 1);
                     }
 
                     break;
                 case TypedNode typed:
-                    if (position < _tokens.Count && TypedMatching.TryMatch(_tokens[position], typed, out var value))
+                    if (position < _tokens.Count && _typed.TryMatch(_tokens[position], typed, out var value))
                     {
                         var slot = typed.Slot is null ? null : new SlotValue(typed.Slot, value, _tokens[position].Token.Span);
                         Step(rest, position + 1, new Capture(position, typed, slot, captures), score + 1);
@@ -179,7 +198,7 @@ public static class SlotGrammarMatcher
 
                     break;
                 case WordNode word:
-                    if (position < _tokens.Count && TypedMatching.CanBeName(_tokens[position]))
+                    if (position < _tokens.Count && _typed.CanBeName(_tokens[position]))
                     {
                         // A name binds the token as written in the normalized text, not a lemma: there is no lexicon reading to take one from.
                         var slot = word.Slot is null ? null : new SlotValue(word.Slot, _tokens[position].Token.Text, _tokens[position].Token.Span);
@@ -199,7 +218,7 @@ public static class SlotGrammarMatcher
 
                     break;
                 case DefaultSubjectNode:
-                    if (position < _tokens.Count && TypedMatching.IsSubjectPronoun(_tokens[position]))
+                    if (position < _tokens.Count && _typed.IsSubjectPronoun(_tokens[position]))
                     {
                         Step(rest, position + 1, new Capture(position, frame.Node, null, captures), score);
                     }
@@ -279,22 +298,33 @@ public static class SlotGrammarMatcher
 }
 
 /// <summary>Token-level matching rules shared by the grammar matcher.</summary>
-internal static class TypedMatching
+internal sealed class TypedMatching
 {
+    private readonly ILexiconFolding _folding;
+    private readonly IAnalysisRules _rules;
+
+    public TypedMatching(ILexiconFolding folding, IAnalysisRules rules)
+    {
+        ArgumentNullException.ThrowIfNull(folding);
+        ArgumentNullException.ThrowIfNull(rules);
+        _folding = folding;
+        _rules = rules;
+    }
+
     /// <summary>Pseudo part of speech for <c>[DET]</c>: an article or a determiner adjective (possessive, demonstrative, quantifier).</summary>
     public const string DeterminerPos = "det";
 
-    public static bool MatchesLiteral(AnalyzedToken token, string literal)
+    public bool MatchesLiteral(AnalyzedToken token, string literal)
     {
-        var folded = TextFolding.StripAccents(literal);
-        if (string.Equals(TextFolding.StripAccents(token.Token.Text), folded, StringComparison.Ordinal))
+        var folded = _folding.LenientKey(literal);
+        if (string.Equals(_folding.LenientKey(token.Token.Text), folded, StringComparison.Ordinal))
         {
             return true;
         }
 
         foreach (var reading in token.Readings)
         {
-            if (string.Equals(TextFolding.StripAccents(reading.Lemma), folded, StringComparison.Ordinal))
+            if (string.Equals(_folding.LenientKey(reading.Lemma), folded, StringComparison.Ordinal))
             {
                 return true;
             }
@@ -304,7 +334,7 @@ internal static class TypedMatching
     }
 
     /// <summary>True when the token is made of letters only (<c>ñ</c> and accented vowels included): not a number, not punctuation, not empty.</summary>
-    public static bool IsWord(AnalyzedToken token)
+    public bool IsWord(AnalyzedToken token)
     {
         var text = token.Token.Text;
         return text.Length > 0 && text.All(static c => char.IsLetter(c));
@@ -315,12 +345,12 @@ internal static class TypedMatching
     /// of a closed class. A name carries no reading, so a word whose every reading is closed (<c>ayer</c>, <c>yo</c>, <c>su</c>) cannot be one: an optional name in
     /// front of a sentence would otherwise absorb a tense marker or a possessive and hide the mistake that it carries.
     /// </summary>
-    public static bool CanBeName(AnalyzedToken token)
+    public bool CanBeName(AnalyzedToken token)
     {
-        return IsWord(token) && (token.Readings.Count == 0 || token.Readings.Any(static r => !ReadingClasses.IsClosedClassReading(r)));
+        return IsWord(token) && (token.Readings.Count == 0 || token.Readings.Any(r => !ReadingClasses.IsClosedClassReading(r, _rules)));
     }
 
-    public static bool TryMatch(AnalyzedToken token, TypedNode node, out string value)
+    public bool TryMatch(AnalyzedToken token, TypedNode node, out string value)
     {
         foreach (var reading in token.Readings)
         {
@@ -336,7 +366,7 @@ internal static class TypedMatching
     }
 
     /// <summary>True when the reading has the part of speech of the typed element and, for <c>[VERB:lemma]</c>, that lemma (accents ignored).</summary>
-    public static bool MatchesTyped(LexicalFeatures reading, TypedNode node)
+    public bool MatchesTyped(LexicalFeatures reading, TypedNode node)
     {
         if (!MatchesPos(reading, node.Pos))
         {
@@ -344,20 +374,20 @@ internal static class TypedMatching
         }
 
         return node.Lemma is null
-            || string.Equals(TextFolding.StripAccents(reading.Lemma), TextFolding.StripAccents(node.Lemma), StringComparison.Ordinal);
+            || string.Equals(_folding.LenientKey(reading.Lemma), _folding.LenientKey(node.Lemma), StringComparison.Ordinal);
     }
 
     /// <summary>True when the reading's lemma is the literal word, accents ignored.</summary>
-    public static bool HasLemma(LexicalFeatures reading, string literal)
+    public bool HasLemma(LexicalFeatures reading, string literal)
     {
-        return string.Equals(TextFolding.StripAccents(reading.Lemma), TextFolding.StripAccents(literal), StringComparison.Ordinal);
+        return string.Equals(_folding.LenientKey(reading.Lemma), _folding.LenientKey(literal), StringComparison.Ordinal);
     }
 
-    public static bool IsSubjectPronoun(AnalyzedToken token)
+    public bool IsSubjectPronoun(AnalyzedToken token)
     {
         foreach (var reading in token.Readings)
         {
-            if (reading.Pos == LexiconSchema.Pronoun && WordClasses.IsSubjectPronoun(reading.Lemma))
+            if (reading.Pos == LexiconSchema.Pronoun && _rules.IsSubjectPronoun(reading.Lemma))
             {
                 return true;
             }
@@ -366,12 +396,12 @@ internal static class TypedMatching
         return false;
     }
 
-    private static bool MatchesPos(LexicalFeatures reading, string pos)
+    private bool MatchesPos(LexicalFeatures reading, string pos)
     {
         if (pos == DeterminerPos)
         {
             return reading.Pos == LexiconSchema.Article
-                || (reading.Pos == LexiconSchema.Adjective && WordClasses.IsDeterminerAdjective(reading.Lemma));
+                || (reading.Pos == LexiconSchema.Adjective && _rules.IsDeterminerAdjective(reading.Lemma));
         }
 
         return string.Equals(reading.Pos, pos, StringComparison.Ordinal);

@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Nlp.Language.Lexicon;
 
@@ -21,10 +22,13 @@ public sealed class Lexicon
     private readonly Dictionary<string, LexiconEntry[]> _byLemma;
     private readonly ConcurrentDictionary<string, Lazy<object>> _derived = new(StringComparer.Ordinal);
 
-    private Lexicon(LexiconEntry[] sortedEntries, string? generatedBy)
+    private readonly ILexiconFolding _folding;
+
+    private Lexicon(LexiconEntry[] sortedEntries, string? generatedBy, ILexiconFolding folding)
     {
         _entries = sortedEntries;
         GeneratedBy = generatedBy;
+        _folding = folding;
         var count = sortedEntries.Length;
         var features = new LexicalFeatures[count];
         for (var i = 0; i < count; i++)
@@ -49,7 +53,7 @@ public sealed class Lexicon
 
             var run = features[start..end];
             _byForm.Add(form, run);
-            var key = TextFolding.StripAccents(form);
+            var key = folding.LenientKey(form);
             _byFoldedForm[key] = _byFoldedForm.TryGetValue(key, out var earlier) ? [.. earlier, .. run] : run;
             if (!string.Equals(key, form, StringComparison.Ordinal))
             {
@@ -99,7 +103,14 @@ public sealed class Lexicon
     }
 
     /// <summary>The lexicon with no entries.</summary>
-    public static Lexicon Empty { get; } = new([], null);
+    public static Lexicon Empty { get; } = new([], null, DefaultFolding);
+
+    // The lookup fold of the compatibility overloads and of the embedded seed: Spanish, because the seed lexicon is Spanish. A bundle's lexicon is built with
+    // the folding of the bundle's pack instead (FromEntries(entries, folding, profile)); see ADR 0011.
+    private static ILexiconFolding DefaultFolding => SpanishLanguagePack.Instance.Folding;
+
+    /// <summary>The folding this lexicon builds its indexes with and looks words up with (the Spanish folding unless a pack's folding was given at load).</summary>
+    public ILexiconFolding Folding => _folding;
 
     /// <summary>The seed lexicon embedded in this assembly; loaded once on first use.</summary>
     public static Lexicon Seed => SeedHolder.Instance;
@@ -117,27 +128,53 @@ public sealed class Lexicon
     public static Lexicon Load(string json)
     {
         var file = ReadFile(json);
-        return Create(file.Entries, file.GeneratedBy);
+        return Create(file.Entries, file.GeneratedBy, DefaultFolding, LexiconProfile.V1);
+    }
+
+    /// <summary>Parses and validates a lexicon JSON document under the given language profile and builds its indexes with the given folding (M34, additive).</summary>
+    /// <param name="json">The document.</param>
+    /// <param name="folding">The pack's folding, which the indexes and every lookup use.</param>
+    /// <param name="profile">The pack's closed vocabularies.</param>
+    public static Lexicon Load(string json, ILexiconFolding folding, LexiconProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(folding);
+        ArgumentNullException.ThrowIfNull(profile);
+        var file = ReadFile(json, profile);
+        return Create(file.Entries, file.GeneratedBy, folding, profile);
     }
 
     /// <summary>
     /// Parses a lexicon JSON document and checks its schema version, its <c>entries</c> array and every entry against the schema, without building the
-    /// indexes. The content loader reads each <c>lexicon/*.json</c> file this way and builds one lexicon from all of them with <see cref="FromEntries"/>.
+    /// indexes. The content loader reads each <c>lexicon/*.json</c> file this way and builds one lexicon from all of them with <see cref="FromEntries(IEnumerable{LexiconEntry})"/>.
     /// </summary>
     /// <exception cref="FormatException">The schema version is not supported, <c>entries</c> is missing, or an entry breaks the schema.</exception>
     public static LexiconFile ReadFile(string json)
     {
+        return ReadFile(json, LexiconProfile.V1);
+    }
+
+    /// <summary>The same as <see cref="ReadFile(string)"/> with the closed vocabularies of the given language profile (M34, additive).</summary>
+    public static LexiconFile ReadFile(string json, LexiconProfile profile)
+    {
         ArgumentNullException.ThrowIfNull(json);
-        return Validate(LexiconFileReader.Read(json));
+        ArgumentNullException.ThrowIfNull(profile);
+        return Validate(LexiconFileReader.Read(json), profile);
     }
 
     /// <summary>The same as <see cref="ReadFile(string)"/> for UTF-8 bytes (a byte order mark is skipped); invalid UTF-8 is a <see cref="System.Text.Json.JsonException"/>.</summary>
     public static LexiconFile ReadFile(ReadOnlySpan<byte> utf8)
     {
-        return Validate(LexiconFileReader.Read(utf8));
+        return Validate(LexiconFileReader.Read(utf8), LexiconProfile.V1);
     }
 
-    private static LexiconFile Validate(LexiconFile file)
+    /// <summary>The same as <see cref="ReadFile(ReadOnlySpan{byte})"/> with the closed vocabularies of the given language profile (M34, additive).</summary>
+    public static LexiconFile ReadFile(ReadOnlySpan<byte> utf8, LexiconProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        return Validate(LexiconFileReader.Read(utf8), profile);
+    }
+
+    private static LexiconFile Validate(LexiconFile file, LexiconProfile profile)
     {
         if (file.SchemaVersion != LexiconSchema.CurrentVersion)
         {
@@ -157,7 +194,7 @@ public sealed class Lexicon
                 throw new FormatException("The lexicon contains a null entry.");
             }
 
-            LexiconSchema.Validate(entry);
+            profile.Validate(entry);
         }
 
         return file;
@@ -172,7 +209,19 @@ public sealed class Lexicon
     public static Lexicon FromEntries(IEnumerable<LexiconEntry> entries)
     {
         ArgumentNullException.ThrowIfNull(entries);
-        return Create(entries, null);
+        return Create(entries, null, DefaultFolding, LexiconProfile.V1);
+    }
+
+    /// <summary>Builds a lexicon like <see cref="FromEntries(IEnumerable{LexiconEntry})"/> with a pack's folding and profile (M34, additive).</summary>
+    /// <param name="entries">The entries of all lexicon files.</param>
+    /// <param name="folding">The pack's folding: forms and lemmas are stored under <see cref="ILexiconFolding.Key"/>, and the accent-insensitive index under <see cref="ILexiconFolding.LenientKey"/>.</param>
+    /// <param name="profile">The pack's closed vocabularies, which every entry is validated against.</param>
+    public static Lexicon FromEntries(IEnumerable<LexiconEntry> entries, ILexiconFolding folding, LexiconProfile profile)
+    {
+        ArgumentNullException.ThrowIfNull(entries);
+        ArgumentNullException.ThrowIfNull(folding);
+        ArgumentNullException.ThrowIfNull(profile);
+        return Create(entries, null, folding, profile);
     }
 
     /// <summary>Reads the embedded seed lexicon JSON text.</summary>
@@ -193,13 +242,13 @@ public sealed class Lexicon
     /// <summary>Returns the readings of a surface form: exact matches first, else accent-insensitive matches flagged on the result.</summary>
     public LexiconLookupResult Lookup(string form)
     {
-        var key = TextFolding.Normalize(form);
+        var key = _folding.Key(form);
         if (_byForm.TryGetValue(key, out var exact))
         {
             return new LexiconLookupResult(key, exact, accentInsensitive: false);
         }
 
-        if (_byFoldedForm.TryGetValue(TextFolding.StripAccents(key), out var folded))
+        if (_byFoldedForm.TryGetValue(_folding.LenientKey(key), out var folded))
         {
             return new LexiconLookupResult(key, folded, accentInsensitive: true);
         }
@@ -233,7 +282,7 @@ public sealed class Lexicon
     {
         ArgumentNullException.ThrowIfNull(form);
         var index = Derive("spellings-by-folded-key", static lexicon => lexicon.BuildSpellingsByFoldedKey());
-        return index.TryGetValue(TextFolding.StripAccents(form), out var spellings) ? spellings : [];
+        return index.TryGetValue(_folding.LenientKey(form), out var spellings) ? spellings : [];
     }
 
     /// <summary>
@@ -251,14 +300,14 @@ public sealed class Lexicon
     public IReadOnlyList<LexiconEntry> EntriesForLemma(string lemma)
     {
         ArgumentNullException.ThrowIfNull(lemma);
-        return _byLemma.TryGetValue(TextFolding.Normalize(lemma), out var entries) ? entries : [];
+        return _byLemma.TryGetValue(_folding.Key(lemma), out var entries) ? entries : [];
     }
 
     /// <summary>Returns true when at least one entry has this lemma.</summary>
     public bool ContainsLemma(string lemma)
     {
         ArgumentNullException.ThrowIfNull(lemma);
-        return _byLemma.ContainsKey(TextFolding.Normalize(lemma));
+        return _byLemma.ContainsKey(_folding.Key(lemma));
     }
 
     /// <summary>Serializes the lexicon as canonical JSON (sorted entries, schema version 1).</summary>
@@ -280,7 +329,7 @@ public sealed class Lexicon
             }
 
             previous = entry.Form;
-            var key = TextFolding.StripAccents(entry.Form);
+            var key = _folding.LenientKey(entry.Form);
             if (!groups.TryGetValue(key, out var forms))
             {
                 forms = [];
@@ -301,15 +350,15 @@ public sealed class Lexicon
         return index;
     }
 
-    private static Lexicon Create(IEnumerable<LexiconEntry> entries, string? generatedBy)
+    private static Lexicon Create(IEnumerable<LexiconEntry> entries, string? generatedBy, ILexiconFolding folding, LexiconProfile profile)
     {
         var list = new List<LexiconEntry>();
         foreach (var raw in entries)
         {
             ArgumentNullException.ThrowIfNull(raw);
-            LexiconSchema.Validate(raw);
-            var form = TextFolding.Normalize(raw.Form);
-            var lemma = TextFolding.Normalize(raw.Lemma);
+            profile.Validate(raw);
+            var form = folding.Key(raw.Form);
+            var lemma = folding.Key(raw.Lemma);
             list.Add(ReferenceEquals(form, raw.Form) && ReferenceEquals(lemma, raw.Lemma) ? raw : raw with { Form = form, Lemma = lemma });
         }
 
@@ -323,7 +372,7 @@ public sealed class Lexicon
             }
         }
 
-        return new Lexicon([.. unique], generatedBy);
+        return new Lexicon([.. unique], generatedBy, folding);
     }
 
     private static int CompareEntries(LexiconEntry a, LexiconEntry b)
@@ -365,7 +414,38 @@ public sealed class Lexicon
         }
 
         cmp = CompareNullable(a.Features.Mood, b.Features.Mood);
-        return cmp != 0 ? cmp : CompareNullable(a.Features.Gender, b.Features.Gender);
+        if (cmp != 0)
+        {
+            return cmp;
+        }
+
+        cmp = CompareNullable(a.Features.Gender, b.Features.Gender);
+        if (cmp != 0)
+        {
+            return cmp;
+        }
+
+        // The M34 members come last, so entries that leave them null sort exactly as before.
+        cmp = CompareNullable(a.Features.Case, b.Features.Case);
+        if (cmp != 0)
+        {
+            return cmp;
+        }
+
+        cmp = CompareNullable(a.Features.VerbForm, b.Features.VerbForm);
+        if (cmp != 0)
+        {
+            return cmp;
+        }
+
+        cmp = CompareNullable(a.Features.Declension, b.Features.Declension);
+        if (cmp != 0)
+        {
+            return cmp;
+        }
+
+        cmp = CompareNullable(a.Features.Particle, b.Features.Particle);
+        return cmp != 0 ? cmp : CompareNullable(a.Features.Register, b.Features.Register);
     }
 
     private static int CompareNullable(string? a, string? b)

@@ -3,6 +3,7 @@ using System.Text;
 namespace Vocaterra.Nlp.Language.SlotGrammar;
 
 using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Packs;
 
 /// <summary>A parsed slot grammar pattern such as <c>[PRON]? [VERB:tener] [NUM:qty] [NOUN:item]</c>.</summary>
 public sealed class SlotGrammar
@@ -28,10 +29,16 @@ public sealed class SlotGrammar
     /// <c>[VERB:lemma]</c> and <c>[VERB:lemma:slot]</c>, <c>[WORD]</c> and <c>[WORD:slot]</c> (one token of letters that is not only closed-class words; a name); a <c>?</c>
     /// suffix makes an element optional; <c>(a|b c)</c> lists alternatives.
     /// </summary>
-    public static SlotGrammar Parse(string pattern, string? id = null)
+    /// <param name="pattern">The pattern text.</param>
+    /// <param name="id">The grammar id; the canonical pattern when null.</param>
+    /// <param name="folding">
+    /// The folding whose <see cref="ILexiconFolding.Key"/> lower-cases the literal words and lemmas (M34, additive); null for the language-neutral key (Unicode NFC
+    /// and invariant lower case, which is the Spanish key).
+    /// </param>
+    public static SlotGrammar Parse(string pattern, string? id = null, ILexiconFolding? folding = null)
     {
         ArgumentNullException.ThrowIfNull(pattern);
-        var nodes = new SlotGrammarParser(pattern).Parse();
+        var nodes = new SlotGrammarParser(pattern, folding).Parse();
         var canonical = Render(nodes);
         return new SlotGrammar(id ?? canonical, canonical, nodes);
     }
@@ -231,12 +238,16 @@ internal sealed class SlotGrammarParser
     };
 
     private readonly string _text;
+    private readonly ILexiconFolding? _folding;
     private int _index;
 
-    public SlotGrammarParser(string text)
+    public SlotGrammarParser(string text, ILexiconFolding? folding = null)
     {
         _text = text;
+        _folding = folding;
     }
+
+    private string Key(string text) => _folding is null ? TextKey.Of(text) : _folding.Key(text);
 
     public IReadOnlyList<GrammarNode> Parse()
     {
@@ -323,7 +334,7 @@ internal sealed class SlotGrammarParser
                 _index++;
             }
 
-            node = new LiteralNode(TextFolding.Normalize(_text[start.._index]));
+            node = new LiteralNode(Key(_text[start.._index]));
         }
         else
         {
@@ -400,7 +411,7 @@ internal sealed class SlotGrammarParser
                 throw Error($"too many arguments in '[{content}]'");
             }
 
-            lemma = args.Length > 0 ? TextFolding.Normalize(args[0]) : null;
+            lemma = args.Length > 0 ? Key(args[0]) : null;
             slot = args.Length > 1 ? args[1] : null;
             if (lemma is { Length: 0 })
             {

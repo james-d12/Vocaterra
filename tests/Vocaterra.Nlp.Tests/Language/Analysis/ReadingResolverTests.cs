@@ -93,6 +93,7 @@ public class ReadingResolverTests
     ]);
 
     private static readonly MorphologyGenerator Morphology = new(TestLexicon);
+    private static readonly IAnalysisRules Rules = SpanishLanguagePack.Instance.CreateAnalysisRules(TestLexicon, Morphology);
     private static readonly LinguisticAnalyzer Analyzer = new(TestLexicon, Morphology, SpanishLanguagePack.Instance);
 
     private static IReadOnlyList<ErrorTag> Errors(string text, params string[] grammarPatterns)
@@ -108,7 +109,7 @@ public class ReadingResolverTests
     private static int CountErrors(IReadOnlyList<AnalyzedToken> tokens)
     {
         var found = new List<ErrorTag>();
-        new AgreementChecker(tokens, Morphology, found).Run();
+        Rules.CreateAgreementChecker(tokens, found).Run();
         return found.Distinct().Count();
     }
 
@@ -126,7 +127,7 @@ public class ReadingResolverTests
             }
         }
 
-        return ReadingResolver.Resolve(tokens, tokens.Select(static _ => (IReadOnlyList<LexicalFeatures>)[]).ToList(), best, CountErrors);
+        return ReadingResolver.Resolve(tokens, tokens.Select(static _ => (IReadOnlyList<LexicalFeatures>)[]).ToList(), best, CountErrors, Rules, SpanishLanguagePack.Instance.Folding);
     }
 
     private static string PosOf(IReadOnlyList<AnalyzedToken> tokens, int index)
@@ -265,7 +266,7 @@ public class ReadingResolverTests
     public void ATokenWithOneClassIsReturnedAsItIsAndAnUnknownWordKeepsNoReadings()
     {
         var all = Analyzer.Analyze(TestTokens.From("un xyzzy")).Tokens;
-        var resolved = ReadingResolver.Resolve(all, all.Select(static _ => (IReadOnlyList<LexicalFeatures>)[]).ToList(), null, CountErrors);
+        var resolved = ReadingResolver.Resolve(all, all.Select(static _ => (IReadOnlyList<LexicalFeatures>)[]).ToList(), null, CountErrors, Rules, SpanishLanguagePack.Instance.Folding);
 
         Assert.Same(all[0], resolved[0]);
         Assert.Empty(resolved[1].Readings);

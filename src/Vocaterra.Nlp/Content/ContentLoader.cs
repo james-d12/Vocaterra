@@ -58,7 +58,7 @@ public static class ContentLoader
             VerifyHashes(manifest, files, problems);
         }
 
-        var parts = Parse(files, options, problems);
+        var parts = Parse(files, options, language, problems);
         parts.Language = language;
         ContentValidator.Validate(parts, files, problems);
         if (problems.Count > 0)
@@ -202,19 +202,19 @@ public static class ContentLoader
         }
     }
 
-    private static LoadedParts Parse(BundleFiles files, ContentLoadOptions options, List<string> problems)
+    private static LoadedParts Parse(BundleFiles files, ContentLoadOptions options, ILanguagePack language, List<string> problems)
     {
         var parts = new LoadedParts
         {
             Provenance = ParseRequired(files, ContentPaths.Provenance, ContentProvenance.FromJson, problems),
-            Intents = ParseRequired(files, ContentPaths.Intents, IntentCatalog.Load, problems),
+            Intents = ParseRequired(files, ContentPaths.Intents, json => IntentCatalog.Load(json, language.Folding), problems),
             Dialogue = ParseRequired(files, ContentPaths.Dialogue, DialogueCatalog.FromJson, problems),
             FeedbackPolicy = ParseRequired(files, ContentPaths.FeedbackPolicy, FeedbackPolicy.FromJson, problems),
             EvaluationConfig = ParseRequired(files, ContentPaths.EvaluationConfig, ParseEvaluationConfig, problems),
             Effects = ParseRequired(files, ContentPaths.Effects, EffectTable.FromJson, problems),
         };
 
-        parts.Lexicon = ParseLexicon(files, parts, options, problems);
+        parts.Lexicon = ParseLexicon(files, parts, options, language, problems);
         parts.Prompts = ParseRequired(files, ContentPaths.Prompts, ParsePrompts, problems) ?? LoadedParts.EmptyMap<PromptSpec>();
         parts.AnswerSets = ParseFolder(files, ContentPaths.AnswerSetFolder, ".json", AnswerSet.FromJson, static set => set.AnswerSetId, "answerSetId", problems);
         parts.Agents = ParseFolder(files, ContentPaths.AgentFolder, ".json", AgentStateMachine.FromJson, static machine => machine.AgentId, "agentId", problems);
@@ -229,7 +229,7 @@ public static class ContentLoader
     /// different readings of the form, they coexist, and the analyzer reads a token as all of them. File order does not matter: the merged entries are
     /// sorted ordinally. A file that fails to parse is reported with its path and left out.
     /// </summary>
-    private static NlpLexicon? ParseLexicon(BundleFiles files, LoadedParts parts, ContentLoadOptions options, List<string> problems)
+    private static NlpLexicon? ParseLexicon(BundleFiles files, LoadedParts parts, ContentLoadOptions options, ILanguagePack language, List<string> problems)
     {
         var paths = files.InFolder(ContentPaths.LexiconFolder, ".json").Where(static path => !LexiconSourceInfo.IsSidecarPath(path)).ToList();
         string? key = null;
@@ -238,14 +238,16 @@ public static class ContentLoader
         if (options.LexiconCache is { } cache && paths.Count > 0)
         {
             hashes = paths.ToDictionary(static path => path, path => DeterministicHash.Sha256Hex(files.Bytes(path)), StringComparer.Ordinal);
-            key = DeterministicHash.Combine([.. paths.SelectMany(path => new[] { path, hashes[path] })]);
+
+            // The same bytes read under another language's profile and folding are another lexicon, so the language is part of both keys.
+            key = DeterministicHash.Combine([language.LanguageId, .. paths.SelectMany(path => new[] { path, hashes[path] })]);
             loaded = cache.Find(key);
         }
 
         if (loaded is null)
         {
             var before = problems.Count;
-            loaded = ReadLexicons(files, paths, options.LexiconCache, hashes, problems);
+            loaded = ReadLexicons(files, paths, options.LexiconCache, hashes, language, problems);
             if (loaded?.Lexicon is not null && key is not null && problems.Count == before)
             {
                 options.LexiconCache!.Add(key, loaded);
@@ -268,18 +270,18 @@ public static class ContentLoader
         return loaded.Lexicon;
     }
 
-    private static LoadedLexicons? ReadLexicons(BundleFiles files, List<string> paths, LexiconCache? cache, Dictionary<string, string>? hashes, List<string> problems)
+    private static LoadedLexicons? ReadLexicons(BundleFiles files, List<string> paths, LexiconCache? cache, Dictionary<string, string>? hashes, ILanguagePack language, List<string> problems)
     {
         var before = problems.Count;
         var entries = new List<LexiconEntry>();
         var summaries = new SortedDictionary<string, LexiconFileSummary>(StringComparer.Ordinal);
         foreach (var path in paths)
         {
-            var sha = hashes?[path];
+            var sha = hashes?[path] is { } fileHash ? language.LanguageId + ":" + fileHash : null;
             var file = sha is null ? null : cache!.FindFile(sha);
             if (file is null)
             {
-                file = ParseBytes(files, path, NlpLexicon.ReadFile, problems);
+                file = ParseBytes(files, path, bytes => NlpLexicon.ReadFile(bytes, language.LexiconProfile), problems);
                 if (file is null)
                 {
                     continue;
@@ -296,7 +298,7 @@ public static class ContentLoader
         }
 
         // A damaged file is already reported with its path; merging and indexing the rest would only cost time and invite follow-on problems about a lexicon that is incomplete.
-        return summaries.Count == 0 ? null : new LoadedLexicons(problems.Count > before ? null : NlpLexicon.FromEntries(entries), summaries);
+        return summaries.Count == 0 ? null : new LoadedLexicons(problems.Count > before ? null : NlpLexicon.FromEntries(entries, language.Folding, language.LexiconProfile), summaries);
     }
 
     // A sidecar belongs to exactly one generated lexicon file in the same folder, and its entry and lemma counts must match that file.

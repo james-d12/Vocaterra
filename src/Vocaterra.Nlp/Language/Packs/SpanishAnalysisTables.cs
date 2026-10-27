@@ -1,9 +1,11 @@
 using System.Collections.Frozen;
 
-namespace Vocaterra.Nlp.Language.Analysis;
+using Vocaterra.Nlp.Language.Lexicon;
 
-/// <summary>Small hand-written word tables used by the linguistic analyzer.</summary>
-internal static class AnalysisTables
+namespace Vocaterra.Nlp.Language.Packs;
+
+/// <summary>Small hand-written Spanish word tables used by the Spanish analysis rules (M34: moved into the Spanish pack; the shared analysis reaches them through <see cref="Analysis.IAnalysisRules"/>).</summary>
+internal static class SpanishAnalysisTables
 {
     private static readonly FrozenSet<string> EstarAdjectives = new[]
     {
@@ -32,7 +34,7 @@ internal static class AnalysisTables
     }.ToFrozenSet(StringComparer.Ordinal);
 
     // Fixed expressions that are plural as a whole (buenos días, buenas tardes, buenas noches, muchas gracias): modifier lemma, then the noun lemmas it forms one with.
-    // "mucha gracia" (singular) is ordinary Spanish, so the table applies only once a plural shows up on either side (see AgreementChecker, rule M29c).
+    // "mucha gracia" (singular) is ordinary Spanish, so the table applies only once a plural shows up on either side (see SpanishAgreementChecker, rule M29c).
     private static readonly FrozenDictionary<string, FrozenSet<string>> FixedPluralExpressions = new Dictionary<string, FrozenSet<string>>(StringComparer.Ordinal)
     {
         ["bueno"] = new[] { "día", "tarde", "noche" }.ToFrozenSet(StringComparer.Ordinal),
@@ -90,7 +92,7 @@ internal static class AnalysisTables
     /// <summary>True for adjectives that normally precede their noun (grande, bueno, malo; determiner adjectives are handled elsewhere).</summary>
     public static bool IsPrenominal(string adjectiveLemma)
     {
-        return PrenominalAdjectives.Contains(adjectiveLemma) || Lexicon.WordClasses.IsDeterminerAdjective(adjectiveLemma);
+        return PrenominalAdjectives.Contains(adjectiveLemma) || WordClasses.IsDeterminerAdjective(adjectiveLemma);
     }
 
     /// <summary>True for adverbs that put the sentence in the past (ayer, anoche, anteayer).</summary>
@@ -99,7 +101,7 @@ internal static class AnalysisTables
         return PastTimeAdverbs.Contains(lemma);
     }
 
-    /// <summary>True for a word that is reported as an interjection unless an article or a numeral precedes it (<c>gracias</c>, but <c>las gracias</c>); see <see cref="ReportedReadings"/>.</summary>
+    /// <summary>True for a word that is reported as an interjection unless an article or a numeral precedes it (<c>gracias</c>, but <c>las gracias</c>); see <see cref="Analysis.ReportedReadings"/>.</summary>
     public static bool IsInterjectionFirst(string word)
     {
         return InterjectionFirstWords.Contains(word);

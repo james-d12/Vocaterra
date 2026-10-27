@@ -146,3 +146,77 @@ need `IMorphology`, `IAnalysisRules` and `LexiconProfile`: the lexicon's indexes
 pack's fold before the lexicon has a profile. The offer line of the repair ladder ("¿Quieres decir «…» o «…»?") is Spanish text in `RepairStrategy`
 and is not a pack member yet, and the pronunciation scorer's Spanish-tuned predicted-error tags are M34's too (research 2026-10-22 section 1.2,
 item 14).
+
+## Amendment, M34: the analysis-side seams (2026-10-27)
+
+M34 puts the analysis side of the language behind the pack. After it, no engine code outside the Spanish pack, the Spanish statics' own files and the
+documented compatibility entry points calls Spanish code (`SpanishCallSiteTests` checks it). Spanish output is byte-identical: `content/game-v1`
+(bundle hash `aab525f9...`), the goldens, the identity baseline and the 96 homograph sentences are unchanged. Everything below is additive except the
+signatures marked breaking in `API.md`; the game compiles and passes unchanged.
+
+**The pack grew five members.**
+- `LexiconProfile LexiconProfile` (`Vocaterra.Nlp.Language.Lexicon.LexiconProfile`): the closed vocabularies of the lexicon files (genders, numbers,
+  persons, tenses, moods) and, for later languages, `Cases`, `VerbForms`, `Declensions`, `Particles` and `Registers`. An empty list means the language does not
+  use the feature, and an entry that sets it is refused. `LexiconProfile.V1` is the schema v1 and the Spanish profile: a Spanish lexicon file with gender
+  `n` is still refused (`unknown gender 'n'`), and so is a `case` key (`feature 'case' is not used by this language`). The loader reads the file with the
+  pack's profile (`Lexicon.ReadFile(json | bytes, profile)`), and the lexicon cache keys carry the language id, so one file read under two languages is two entries.
+- `ErrorTagSet ErrorTags` (`Vocaterra.Nlp.Core.Taxonomy.ErrorTagSet`): the tags of a language and their ranks (`Rank(tag)`: the position, or `Count` for an unknown
+  tag). `ErrorTagSet.V1` lists `ErrorTags.All`, which stays the frozen v1 Spanish set in its order (the game's `EnglishText.MissingErrorTags` reads it). The analyzer
+  and the verdict assembler (through the new optional `VerdictInputs.ErrorTags`) order errors with the pack's ranks. The pronunciation scorer's predicted-error tags
+  are still Spanish-tuned (research item 14): `PredictedErrorMatcher` keeps `ErrorTags.All`, and a language with other `pron.*` tags needs its own scorer (M54+).
+- `IMorphology CreateMorphology(Lexicon)`: `IMorphology` (nouns, articles, adjectives, conjugation and regularized forms: `Pluralize`, `Singularize`, `InflectNoun`,
+  `Article` x2, `AgreeAdjective`, `Conjugate`, `IsRegularizedIrregular`, `TryGetRegularization`). `MorphologyGenerator` implements it; `RegularizedForm` is public.
+- `IAnalysisRules CreateAnalysisRules(Lexicon, IMorphology)`.
+- `ITemplateFunctions CreateTemplateFunctions(Lexicon, IMorphology)`.
+
+**What moved behind each.**
+- *`IAnalysisRules`*: the closed word classes and lists that the shared code consults (`IsDeterminerAdjective`, `IsSubjectPronoun`, `IsClitic`, `IsPreverbalPronoun`,
+  `IsVerbSeekingQuestionWord`, `IsNounModifyingAdverb`, `IsInterrogativeQuantifier`, `IsInterjectionFirst`, `IsNearFutureAuxiliary`, `IsNearFutureLinker`, `IsCopula`,
+  `IsCopulaOrAuxiliary`) and `CreateAgreementChecker(resolved, errors)`, which returns an `IAgreementChecker` (`Run`, `HasPastTimeMarker`). The Spanish tables
+  (`SpanishAnalysisTables`, from `AnalysisTables`) and the Spanish checks (`SpanishAgreementChecker`, from `AgreementChecker`) moved into `Language/Packs` with
+  `SpanishAnalysisRules`. `ReadingResolver`, `AccentVariantChoice`, `ReportedReadings`, `AccentRestoration`, `ReadingClasses`, the typed matching of the slot grammar and
+  `LinguisticAnalyzer` stay shared and take the rules (and the pack's folding) instead of calling the statics. `ReadingClasses` and `WordClass` are public, so a pack in
+  another assembly can write its checker with them. The shape of the resolver's local-syntax rules (what follows a determiner, a subject pronoun, a preposition) stays
+  shared: it is written over word classes, and the language-specific lemmas it needs are the predicates for the near future and the copula.
+- *`ITemplateFunctions`*: the inflection behind `article()`, `words()`, `conj()` and `plural-if()` (`ResolveVerbLemma`, `Conjugate`, `InflectNoun`, `InferNumber`, `GenderOf`,
+  `Article`). `TemplateEngine` still parses and validates placeholders and renders; the Spanish gender heuristic and the lexicon reads moved to
+  `SpanishTemplateFunctions`. The `conj` tense is checked against the pack's `LexiconProfile.Tenses`.
+- *The lexicon's fold*: `Lexicon.FromEntries(entries, folding, profile)` and `Lexicon.Load(json, folding, profile)` build the indexes with the pack's `ILexiconFolding`
+  (`Key` for forms and lemmas, `LenientKey` for the accent-insensitive index); `Lexicon.Folding` exposes it and every lookup uses it. `IntentCatalog.Load(json, folding)` and
+  `SlotGrammar.Parse(pattern, id, folding)` lower-case their lemmas and literals with the pack's `Key`; with no folding they use the language-neutral key (NFC and invariant
+  lower case, `TextKey`), which is the Spanish key. The loader passes the pack's folding to all three.
+- *The offer line*: `RepairLines` gained `Offer`, an `OfferLineFormat` (prefix, quotes, separators, suffix) with `Format(choices)`; `RepairStrategy.OfferFormat` is the Spanish
+  one and gives the same text as before. A `RepairLines` without `Offer` speaks Spanish. No reserved pool overrides it: a pool line is a template without a choices
+  placeholder, and the offer needs the list, so the wording is a pack member only.
+
+**`ContentBundle.Morphology` (the decision).** `bundle.LanguageMorphology` (`IMorphology`) is the new neutral property, and the engine (the analyzer, the template engine, the
+pipeline, the grader, the linter) uses it. `bundle.Morphology` keeps its type, `MorphologyGenerator`, because the game's `NounCatalog`, `GuideSession` and book pages call
+its Spanish members; it returns `LanguageMorphology` as a `MorphologyGenerator` and throws `NotSupportedException` for a bundle whose pack creates another
+implementation. It throws on access, not at load, so a non-Spanish bundle loads and runs; only a host that asks for the Spanish type fails, with a message that names
+`LanguageMorphology`. For a Spanish bundle both properties are the same object. `bundle.AnalysisRules` is the third new property.
+
+**Optional features of the reading and of the file.** `LexicalFeatures` and the file-side `EntryFeatures` gained trailing optional members `Case`, `VerbForm`, `Declension`,
+`Particle` and `Register`, all null by default and omitted from JSON while null (`JsonIgnore(WhenWritingNull)`), so Spanish readings, lexicon files, `Lexicon.ToJson()` and
+every hash serialize as before and record equality is unchanged while they are null. The lexicon reader accepts the keys `case`, `verbForm`, `declension`, `particle`
+and `register`, and the profile of the pack decides whether they are allowed. Sorting compares them last, so entries without them keep their order.
+
+**`NormalizedText.FinalMark`.** Added: `?`, `!` or null, set only when `NormalizationOptions.CaptureFinalMark` is true (default false), looked up after trailing white space and
+closing quotes or brackets (the full-width marks map to `?` and `!`). It is omitted from JSON while null, taken into equality always and into the hash only when set, so every
+Spanish result and hash is unchanged. The pipeline does not set the option (a later milestone that needs the mark does).
+
+**Left out, and why.**
+- A reserved dialogue pool for the offer line (above).
+- `PredictedErrorMatcher`'s tag order: pronunciation scoring is language-specific until a second language has a scorer.
+- The seed lexicon's Spanish default: `Lexicon.Seed`, `Lexicon.Empty` and the overloads without a folding use the Spanish folding, because the embedded seed is Spanish and 32
+  test files and the ContentBuilder call them. A bundle's lexicon never uses it. The guard allows exactly that one reference (`Lexicon.cs`, `SpanishLanguagePack`).
+- The shape of `ReadingResolver`'s rules is shared, not pluggable per language; a language whose syntax does not fit it (verb-second order, separable prefixes) needs the rule set
+  extended in M54+, with its own homograph sentences.
+
+**The guard after M34.** The allowlist lost every M34 entry: `ReadingResolver`, `AccentVariantChoice`, `ReportedReadings`, `AnalysisTables`, `AgreementChecker`, `ReadingClasses`,
+`SlotGrammar`, `SlotGrammarMatcher`, `IntentCatalog` and the `Lexicon.cs` fold. Two kinds remain, each with a reason in the test: the three `MorphologyGenerator.cs` entries (the Spanish
+`IMorphology` implementation is a Spanish static class in its own file, and moves into the Spanish pack project in M53) and `Lexicon.cs` for `SpanishLanguagePack` (the seed default).
+Two patterns were added (`new MorphologyGenerator(` and `SpanishAnalysisTables.`) so a neutral file cannot construct the Spanish morphology.
+
+**For M53 and M35.** Every seam a pack needs is a public type with a summary: no `internal` engine member is required to implement `ILanguagePack`. The Spanish classes the pack
+owns (`SpanishAnalysisRules`, `SpanishAgreementChecker`, `SpanishTemplateFunctions`, `SpanishAnalysisTables`, `WordClasses`) are internal to the engine assembly today and move with the
+pack. M35's toy pack implements all five new members to prove that nothing Spanish is left on the analysis path.

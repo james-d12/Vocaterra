@@ -15,6 +15,8 @@
 
 > **Note (2026-10-26, M52):** the core is one engine assembly, `Vocaterra.Nlp` (`src/Vocaterra.Nlp`, one folder per former project), with language packs beside it (ADR 0012). Where this record says `Vocaterra.Nlp.*` projects, read the engine and its packs. The boundary is unchanged: the game references the core's one project and never copies core source. The table in section 1 is updated for that.
 
+> **Note (2026-10-27, M34):** the analysis side of the language (morphology, analysis rules, template functions, lexicon profile, error tag ranks) is behind the language pack too (ADR 0011, amendment M34). The boundary is unchanged: the additions are public seams of the core, the game still calls `bundle.Morphology` (the Spanish `MorphologyGenerator`) as before, and no game word moved into the core.
+
 > **Note (2026-10-27, M32):** the target language is a property of the content bundle (`manifest.json` `language`, absent means `es`), resolved to an `ILanguagePack` through a registry; see [ADR 0011](0011-target-language-as-a-bundle-property.md). The changes are additive (`ContentManifest.Language`, `ContentBundle.Language`, `ContentLoadOptions.LanguagePacks`, the `Vocaterra.Nlp.Language.Packs` types) and the boundary is unchanged in kind: a language, like the lexicon, is content, and the core still names no game word. A Spanish bundle without `language` keeps its hash.
 
 - Status: accepted

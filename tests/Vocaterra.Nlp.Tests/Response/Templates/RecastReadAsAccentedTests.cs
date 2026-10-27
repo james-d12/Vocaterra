@@ -86,7 +86,7 @@ public class RecastReadAsAccentedTests
     {
         var (_, analysis) = Analyze("donde esta el arbol");
 
-        var spellings = AccentRestoration.SpellingsFor(Words, analysis);
+        var spellings = AccentRestoration.SpellingsFor(Words, analysis, AnalysisRules.For(SpanishLanguagePack.Instance));
 
         var only = Assert.Single(spellings);
         Assert.Equal(6, only.Key);

@@ -35,8 +35,8 @@ public sealed class TextGrader
     {
         ArgumentNullException.ThrowIfNull(bundle);
         _bundle = bundle;
-        _analyzer = new LinguisticAnalyzer(bundle.Lexicon, bundle.Morphology, bundle.Language);
-        _resolver = new IntentResolver(bundle.Intents, bundle.Language);
+        _analyzer = new LinguisticAnalyzer(bundle.Lexicon, bundle.LanguageMorphology, bundle.Language, bundle.AnalysisRules);
+        _resolver = new IntentResolver(bundle.Intents, bundle.Language, null, null, bundle.AnalysisRules);
         _versions = new VersionStamp(bundle.ContentHash, ImmutableSortedDictionary<string, string>.Empty);
     }
 
@@ -78,7 +78,8 @@ public sealed class TextGrader
             KnownWords(analysis),
             _bundle.EvaluationConfig,
             _versions,
-            [.. answerSet.Answers.Select(static answer => answer.Canonical)]));
+            [.. answerSet.Answers.Select(static answer => answer.Canonical)],
+            _bundle.Language.ErrorTags));
     }
 
     private static string CleanTranscript(string transcript)

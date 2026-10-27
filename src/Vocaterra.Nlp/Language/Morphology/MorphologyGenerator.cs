@@ -2,14 +2,13 @@ namespace Vocaterra.Nlp.Language.Morphology;
 
 using Vocaterra.Nlp.Language.Lexicon;
 
-/// <summary>A regularized irregular verb form (such as <c>sabo</c>) with the lexicon form the learner should have used.</summary>
-internal sealed record RegularizedForm(string Lemma, string Expected, string Person, string Number, string Tense);
-
 /// <summary>Generates Spanish word forms: plurals, articles, adjective agreement and verb conjugation, lexicon first and rules second.</summary>
 /// <remarks>
-/// Spanish compatibility entry point (M33): the Spanish morphology of <c>bundle.Morphology</c>. It is not routed through the pack yet; the morphology seam (<c>IMorphology</c>) is M34.
+/// The Spanish implementation of <see cref="IMorphology"/> (M34): the Spanish pack creates it (<c>SpanishLanguagePack.CreateMorphology</c>), and it is the
+/// type of <c>bundle.Morphology</c> for a Spanish bundle. The engine uses it only through the interface (<c>bundle.LanguageMorphology</c>). It moves out of the
+/// engine assembly with the Spanish pack in M53.
 /// </remarks>
-public sealed class MorphologyGenerator
+public sealed class MorphologyGenerator : IMorphology
 {
     private static readonly string[] PresentAr = ["o", "as", "a", "amos", "áis", "an"];
     private static readonly string[] PresentEr = ["o", "es", "e", "emos", "éis", "en"];
@@ -277,8 +276,8 @@ public sealed class MorphologyGenerator
         return word;
     }
 
-    /// <summary>Looks up a regularized form in the index of the lexicon's irregular verbs; known words are never reported.</summary>
-    internal bool TryGetRegularization(string form, out RegularizedForm result)
+    /// <inheritdoc />
+    public bool TryGetRegularization(string form, out RegularizedForm result)
     {
         ArgumentNullException.ThrowIfNull(form);
         var key = TextFolding.Normalize(form);

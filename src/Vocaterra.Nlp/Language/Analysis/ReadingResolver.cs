@@ -2,6 +2,7 @@ namespace Vocaterra.Nlp.Language.Analysis;
 
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
 /// <summary>
@@ -73,16 +74,22 @@ internal static class ReadingResolver
     /// <param name="match">The best slot grammar match over <paramref name="tokens"/>, or null when no grammar matched.</param>
     /// <param name="cost">The cost of a resolved reading of the whole sentence: the number of distinct errors the checks report for it, plus whatever the caller charges for a reading it finds implausible. The fallback takes the cheapest reading.</param>
     /// <param name="accentVariants">For each token, the readings of the accented spellings of a plain lexicon form, or none; the resolver replaces the readings of the token by them when the context calls for it (see the remarks).</param>
+    /// <param name="rules">The language's analysis rules: its closed word classes and word lists (M34).</param>
+    /// <param name="folding">The language's folding, which the resolver compares literals and surfaces with (M34).</param>
     public static IReadOnlyList<AnalyzedToken> Resolve(
         IReadOnlyList<AnalyzedToken> tokens,
         IReadOnlyList<IReadOnlyList<LexicalFeatures>> accentVariants,
         SlotGrammarMatch? match,
-        Func<IReadOnlyList<AnalyzedToken>, int> cost)
+        Func<IReadOnlyList<AnalyzedToken>, int> cost,
+        IAnalysisRules rules,
+        ILexiconFolding folding)
     {
         ArgumentNullException.ThrowIfNull(tokens);
         ArgumentNullException.ThrowIfNull(accentVariants);
         ArgumentNullException.ThrowIfNull(cost);
-        var state = new State(tokens, accentVariants);
+        ArgumentNullException.ThrowIfNull(rules);
+        ArgumentNullException.ThrowIfNull(folding);
+        var state = new State(tokens, accentVariants, rules, folding);
         if (match is not null)
         {
             // Names keep no reading before any rule looks at them, so a name's lexicon readings cannot narrow its neighbours.
@@ -106,11 +113,17 @@ internal static class ReadingResolver
         private readonly IReadOnlyList<AnalyzedToken> _tokens;
         private readonly IReadOnlyList<IReadOnlyList<LexicalFeatures>> _variants;
         private readonly List<LexicalFeatures>[] _candidates;
+        private readonly IAnalysisRules _rules;
+        private readonly ILexiconFolding _folding;
+        private readonly TypedMatching _typed;
 
-        public State(IReadOnlyList<AnalyzedToken> tokens, IReadOnlyList<IReadOnlyList<LexicalFeatures>> variants)
+        public State(IReadOnlyList<AnalyzedToken> tokens, IReadOnlyList<IReadOnlyList<LexicalFeatures>> variants, IAnalysisRules rules, ILexiconFolding folding)
         {
             _tokens = tokens;
             _variants = variants;
+            _rules = rules;
+            _folding = folding;
+            _typed = new TypedMatching(folding, rules);
             _candidates = new List<LexicalFeatures>[tokens.Count];
             for (var i = 0; i < tokens.Count; i++)
             {
@@ -125,7 +138,7 @@ internal static class ReadingResolver
         // Decides every token that has accent variants (see AccentVariantChoice) and gives it their readings in place of those as typed.
         public void ChooseAccentVariants(SlotGrammarMatch? match)
         {
-            var chosen = AccentVariantChoice.Choose(_tokens, _variants, index => GrammarBinds(match, index));
+            var chosen = new AccentVariantChoice(_rules).Choose(_tokens, _variants, index => GrammarBinds(match, index));
             for (var i = 0; i < Count; i++)
             {
                 if (chosen[i] is { Count: > 0 } readings)
@@ -171,24 +184,24 @@ internal static class ReadingResolver
                     continue;
                 }
 
-                var surface = TextFolding.StripAccents(_tokens[binding.TokenIndex].Token.Text);
+                var surface = _folding.LenientKey(_tokens[binding.TokenIndex].Token.Text);
                 Narrow(binding.TokenIndex, r => nodes.Any(node => Accepts(node, r, surface)));
             }
         }
 
-        private static bool Accepts(GrammarNode node, LexicalFeatures reading, string surface)
+        private bool Accepts(GrammarNode node, LexicalFeatures reading, string surface)
         {
             return node switch
             {
-                TypedNode typed => TypedMatching.MatchesTyped(reading, typed),
+                TypedNode typed => _typed.MatchesTyped(reading, typed),
 
                 // A name in a tied parse: the word may be the name whatever its readings are, so the other tied elements decide.
                 WordNode => true,
 
                 // A literal spelled like the word (lanza, muestra, tardes) says nothing about its part of speech: the author wrote a form, not a reading. A literal that
                 // matched through a lemma (querer for quiero) keeps the readings of that lemma.
-                LiteralNode literal => string.Equals(surface, TextFolding.StripAccents(literal.Word), StringComparison.Ordinal) || TypedMatching.HasLemma(reading, literal.Word),
-                DefaultSubjectNode => reading.Pos == LexiconSchema.Pronoun && WordClasses.IsSubjectPronoun(reading.Lemma),
+                LiteralNode literal => string.Equals(surface, _folding.LenientKey(literal.Word), StringComparison.Ordinal) || _typed.HasLemma(reading, literal.Word),
+                DefaultSubjectNode => reading.Pos == LexiconSchema.Pronoun && _rules.IsSubjectPronoun(reading.Lemma),
                 _ => true,
             };
         }
@@ -218,12 +231,12 @@ internal static class ReadingResolver
             var next = i + 1;
 
             // An interjection reading is the last resort: an imported lexicon lists sus and sé as interjections as well, and no check needs them.
-            changed |= Narrow(i, static r => r.Pos != LexiconSchema.Interjection);
+            changed |= Narrow(i, r => r.Pos != LexiconSchema.Interjection);
 
             // A determiner adjective that an imported lexicon also lists as an adjective of its own (sus beside su) is the determiner.
-            if (All(i, static r => ReadingClasses.IsDeterminerReading(r) || r.Pos == LexiconSchema.Adjective))
+            if (All(i, r => ReadingClasses.IsDeterminerReading(r, _rules) || r.Pos == LexiconSchema.Adjective))
             {
-                changed |= Narrow(i, ReadingClasses.IsDeterminerReading);
+                changed |= Narrow(i, IsDeterminer);
             }
 
             // A noun phrase that starts with a determiner, or with an adjective that starts the utterance (buenos días), has a noun as its head.
@@ -234,17 +247,17 @@ internal static class ReadingResolver
 
             // An adjective that does not follow a word that can be a noun (looking back over the adjectives before it) is prenominal, so a word after it that can be a
             // noun is one (correcto paseo, not correcto and a verb); behind a noun it is one of the adjectives of that noun (guapos prohibidos) and the next word is free.
-            if (next < Count && IsCertainAdjective(i) && !FollowsNoun(i) && HasReading(next, static r => r.Pos == LexiconSchema.Noun))
+            if (next < Count && IsCertainAdjective(i) && !FollowsNoun(i) && HasReading(next, r => r.Pos == LexiconSchema.Noun))
             {
-                changed |= Narrow(next, static r => r.Pos == LexiconSchema.Noun);
+                changed |= Narrow(next, r => r.Pos == LexiconSchema.Noun);
             }
 
             // A quantifier that is also an adverb (mucho, poco) before a noun, or before adjectives and a noun, is the determiner, because an adverb does not modify a
             // noun. The interrogative cuánto is left to the fallback when the next word can be a finite verb as well (cuánto cuesta: the adverb, then the verb;
             // cuánto dinero: the determiner).
             if (next < Count
-                && HasReading(i, static r => r.Pos == LexiconSchema.Adjective && WordClasses.IsDeterminerAdjective(r.Lemma))
-                && HasReading(i, static r => r.Pos == LexiconSchema.Adverb))
+                && HasReading(i, r => r.Pos == LexiconSchema.Adjective && _rules.IsDeterminerAdjective(r.Lemma))
+                && HasReading(i, r => r.Pos == LexiconSchema.Adverb))
             {
                 var head = next;
                 while (head < Count && IsCertainAdjective(head))
@@ -253,10 +266,10 @@ internal static class ReadingResolver
                 }
 
                 if (head < Count
-                    && HasReading(head, static r => r.Pos == LexiconSchema.Noun)
-                    && !(HasReading(i, static r => AnalysisTables.IsInterrogativeQuantifier(r.Lemma)) && HasReading(head, ReadingClasses.IsFiniteVerb)))
+                    && HasReading(head, r => r.Pos == LexiconSchema.Noun)
+                    && !(HasReading(i, r => _rules.IsInterrogativeQuantifier(r.Lemma)) && HasReading(head, ReadingClasses.IsFiniteVerb)))
                 {
-                    changed |= Narrow(i, static r => r.Pos == LexiconSchema.Adjective);
+                    changed |= Narrow(i, r => r.Pos == LexiconSchema.Adjective);
                 }
             }
 
@@ -264,13 +277,13 @@ internal static class ReadingResolver
             // before a noun that cannot be a verb. An adverb does not modify a noun and a pronoun does not take one, except the adverbs of IsNounModifyingAdverb
             // (solo agua, más agua).
             if (next < Count
-                && HasReading(i, static r => r.Pos == LexiconSchema.Adjective)
-                && !HasReading(i, static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Verb)
-                && !HasReading(i, static r => r.Pos == LexiconSchema.Adverb && AnalysisTables.IsNounModifyingAdverb(r.Lemma))
-                && HasReading(next, static r => r.Pos == LexiconSchema.Noun)
+                && HasReading(i, r => r.Pos == LexiconSchema.Adjective)
+                && !HasReading(i, r => r.Pos is LexiconSchema.Noun or LexiconSchema.Verb)
+                && !HasReading(i, r => r.Pos == LexiconSchema.Adverb && _rules.IsNounModifyingAdverb(r.Lemma))
+                && HasReading(next, r => r.Pos == LexiconSchema.Noun)
                 && !HasReading(next, ReadingClasses.IsFiniteVerb))
             {
-                changed |= Narrow(i, static r => r.Pos == LexiconSchema.Adjective);
+                changed |= Narrow(i, r => r.Pos == LexiconSchema.Adjective);
             }
 
             // After a subject pronoun or a clitic comes the verb (skipping adverbs and clitics).
@@ -279,7 +292,7 @@ internal static class ReadingResolver
                 var verb = NextContent(next);
                 if (verb >= 0)
                 {
-                    changed |= Narrow(verb, static r => r.Pos == LexiconSchema.Verb);
+                    changed |= Narrow(verb, r => r.Pos == LexiconSchema.Verb);
                 }
             }
 
@@ -290,13 +303,13 @@ internal static class ReadingResolver
                 // sees it; a word that can also be a noun, adjective or pronoun is still the noun phrase (voy a casa).
                 if (IsIrA(i)
                     && HasReading(next, ReadingClasses.IsFiniteVerb)
-                    && All(next, static r => ReadingClasses.IsFiniteVerb(r) || r.Pos is LexiconSchema.Conjunction or LexiconSchema.Adverb))
+                    && All(next, r => ReadingClasses.IsFiniteVerb(r) || r.Pos is LexiconSchema.Conjunction or LexiconSchema.Adverb))
                 {
                     changed |= Narrow(next, ReadingClasses.IsFiniteVerb);
                 }
                 else
                 {
-                    changed |= Narrow(next, static r => !ReadingClasses.IsFiniteVerb(r));
+                    changed |= Narrow(next, r => !ReadingClasses.IsFiniteVerb(r));
                 }
             }
 
@@ -304,10 +317,10 @@ internal static class ReadingResolver
             // After a determiner (la van) the noun phrase rules above have already decided.
             if (next < Count
                 && !(i > 0 && IsCertainDeterminer(i - 1))
-                && HasReading(i, static r => ReadingClasses.IsFiniteVerb(r) && r.Lemma == "ir" && r.Mood != LexiconSchema.Imperative)
-                && All(next, static r => r.Pos == LexiconSchema.Verb && r.Person is null))
+                && HasReading(i, r => ReadingClasses.IsFiniteVerb(r) && _rules.IsNearFutureAuxiliary(r.Lemma) && r.Mood != LexiconSchema.Imperative)
+                && All(next, r => r.Pos == LexiconSchema.Verb && r.Person is null))
             {
-                changed |= Narrow(i, static r => ReadingClasses.IsFiniteVerb(r) && r.Lemma == "ir");
+                changed |= Narrow(i, r => ReadingClasses.IsFiniteVerb(r) && _rules.IsNearFutureAuxiliary(r.Lemma));
             }
 
             // A copula is followed by an adjective, a noun or an adverb, not by another finite verb.
@@ -316,7 +329,7 @@ internal static class ReadingResolver
                 var complement = NextContent(next);
                 if (complement >= 0)
                 {
-                    changed |= Narrow(complement, static r => !ReadingClasses.IsFiniteVerb(r));
+                    changed |= Narrow(complement, r => !ReadingClasses.IsFiniteVerb(r));
                 }
             }
 
@@ -342,12 +355,12 @@ internal static class ReadingResolver
             var changed = false;
             if (head == determiner + 1)
             {
-                changed |= Narrow(head, static r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective || ReadingClasses.IsDeterminerReading(r));
+                changed |= Narrow(head, r => r.Pos is LexiconSchema.Noun or LexiconSchema.Adjective || ReadingClasses.IsDeterminerReading(r, _rules));
             }
 
-            if (HasReading(head, static r => r.Pos == LexiconSchema.Noun))
+            if (HasReading(head, r => r.Pos == LexiconSchema.Noun))
             {
-                changed |= Narrow(head, static r => r.Pos == LexiconSchema.Noun);
+                changed |= Narrow(head, r => r.Pos == LexiconSchema.Noun);
             }
 
             return changed;
@@ -362,48 +375,53 @@ internal static class ReadingResolver
                 before--;
             }
 
-            return before >= 0 && HasReading(before, static r => r.Pos == LexiconSchema.Noun);
+            return before >= 0 && HasReading(before, r => r.Pos == LexiconSchema.Noun);
         }
 
         // An article, numeral or determiner adjective: the word opens a noun phrase.
         private bool IsCertainDeterminer(int index)
         {
-            return All(index, ReadingClasses.IsDeterminerReading);
+            return All(index, IsDeterminer);
+        }
+
+        private bool IsDeterminer(LexicalFeatures reading)
+        {
+            return ReadingClasses.IsDeterminerReading(reading, _rules);
         }
 
         private bool IsCertainAdjective(int index)
         {
-            return All(index, static r => r.Pos == LexiconSchema.Adjective);
+            return All(index, r => r.Pos == LexiconSchema.Adjective);
         }
 
         private bool IsCertainSubjectPronoun(int index)
         {
-            return All(index, static r => r.Pos == LexiconSchema.Pronoun && WordClasses.IsSubjectPronoun(r.Lemma));
+            return All(index, r => r.Pos == LexiconSchema.Pronoun && _rules.IsSubjectPronoun(r.Lemma));
         }
 
         private bool IsCertainClitic(int index)
         {
-            return All(index, static r => r.Pos == LexiconSchema.Pronoun && WordClasses.IsClitic(r.Lemma));
+            return All(index, r => r.Pos == LexiconSchema.Pronoun && _rules.IsClitic(r.Lemma));
         }
 
         private bool IsCertainPreposition(int index)
         {
-            return All(index, static r => r.Pos == LexiconSchema.Preposition);
+            return All(index, r => r.Pos == LexiconSchema.Preposition);
         }
 
         // The preposition at index is the a of "ir a": the word before it is a finite form of ir (voy, vamos, iba).
         private bool IsIrA(int index)
         {
             return index > 0
-                && string.Equals(_candidates[index][0].Lemma, "a", StringComparison.Ordinal)
-                && All(index - 1, static r => ReadingClasses.IsFiniteVerb(r) && r.Lemma == "ir")
-                && HasReading(index - 1, static r => r.Mood != LexiconSchema.Imperative);
+                && _rules.IsNearFutureLinker(_candidates[index][0].Lemma)
+                && All(index - 1, r => ReadingClasses.IsFiniteVerb(r) && _rules.IsNearFutureAuxiliary(r.Lemma))
+                && HasReading(index - 1, r => r.Mood != LexiconSchema.Imperative);
         }
 
         private bool IsCertainCopula(int index)
         {
-            return All(index, static r => ReadingClasses.IsFiniteVerb(r) && r.Lemma is "ser" or "estar")
-                && HasReading(index, static r => r.Mood != LexiconSchema.Imperative);
+            return All(index, r => ReadingClasses.IsFiniteVerb(r) && _rules.IsCopula(r.Lemma))
+                && HasReading(index, r => r.Mood != LexiconSchema.Imperative);
         }
 
         private bool All(int index, Func<LexicalFeatures, bool> predicate)
@@ -422,7 +440,7 @@ internal static class ReadingResolver
         {
             var index = from;
             var skipped = 0;
-            while (index < Count && skipped < ReadingClasses.MaxSkippedBetween && ReadingClasses.IsSkippable(_candidates[index]))
+            while (index < Count && skipped < ReadingClasses.MaxSkippedBetween && ReadingClasses.IsSkippable(_candidates[index], _rules))
             {
                 index++;
                 skipped++;

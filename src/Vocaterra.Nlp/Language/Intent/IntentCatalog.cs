@@ -5,6 +5,7 @@ using Vocaterra.Nlp.Core.Verdicts;
 namespace Vocaterra.Nlp.Language.Intent;
 
 using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
 /// <summary>
@@ -61,7 +62,12 @@ public sealed class IntentCatalog
     public IReadOnlyList<SlotGrammar> Grammars { get; }
 
     /// <summary>Parses and validates a catalog JSON document. Throws <see cref="FormatException"/> for schema violations.</summary>
-    public static IntentCatalog Load(string json)
+    /// <param name="json">The document.</param>
+    /// <param name="folding">
+    /// The language's folding, whose <see cref="ILexiconFolding.Key"/> lower-cases the keyword-rule lemmas and the grammar literals (M34, additive); null for the
+    /// language-neutral key (Unicode NFC and invariant lower case, which is the Spanish key).
+    /// </param>
+    public static IntentCatalog Load(string json, ILexiconFolding? folding = null)
     {
         ArgumentNullException.ThrowIfNull(json);
         var file = CanonicalJson.Deserialize<IntentCatalogFile>(json);
@@ -80,7 +86,7 @@ public sealed class IntentCatalog
         var intents = new List<IntentDefinition>(file.Intents.Count);
         foreach (var entry in file.Intents)
         {
-            var definition = Build(entry);
+            var definition = Build(entry, folding);
             if (!seen.Add(definition.Id.Value))
             {
                 throw new FormatException($"Duplicate intentId '{definition.Id.Value}'.");
@@ -146,7 +152,7 @@ public sealed class IntentCatalog
         return DeterministicHash.OfText(ToJson());
     }
 
-    private static IntentDefinition Build(IntentEntry? entry)
+    private static IntentDefinition Build(IntentEntry? entry, ILexiconFolding? folding)
     {
         if ((object?)entry is null)
         {
@@ -165,8 +171,8 @@ public sealed class IntentCatalog
 
         var id = entry.IntentId;
         var required = SlotNames(entry.RequiredSlots, id, "requiredSlots");
-        var grammars = BuildGrammars(entry.SlotGrammars, id);
-        var rules = BuildRules(entry.KeywordRules, id);
+        var grammars = BuildGrammars(entry.SlotGrammars, id, folding);
+        var rules = BuildRules(entry.KeywordRules, id, folding);
         var examples = BuildExamples(entry.Examples, id);
         return new IntentDefinition(new IntentId(id), required, grammars, rules, examples, DeclareSlots(required, grammars, rules), BuildLint(entry.Lint, id));
     }
@@ -192,7 +198,7 @@ public sealed class IntentCatalog
         return name;
     }
 
-    private static List<SlotGrammar> BuildGrammars(IReadOnlyList<string>? patterns, string intentId)
+    private static List<SlotGrammar> BuildGrammars(IReadOnlyList<string>? patterns, string intentId, ILexiconFolding? folding)
     {
         var grammars = new List<SlotGrammar>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -203,7 +209,7 @@ public sealed class IntentCatalog
                 throw new FormatException($"Intent '{intentId}' has an empty slot grammar.");
             }
 
-            var grammar = SlotGrammar.Parse(pattern);
+            var grammar = SlotGrammar.Parse(pattern, null, folding);
             if (seen.Add(grammar.Id))
             {
                 grammars.Add(grammar);
@@ -213,7 +219,7 @@ public sealed class IntentCatalog
         return grammars;
     }
 
-    private static List<KeywordRule> BuildRules(IReadOnlyList<KeywordRuleEntry>? entries, string intentId)
+    private static List<KeywordRule> BuildRules(IReadOnlyList<KeywordRuleEntry>? entries, string intentId, ILexiconFolding? folding)
     {
         var rules = new List<KeywordRule>();
         foreach (var rule in entries ?? [])
@@ -231,7 +237,7 @@ public sealed class IntentCatalog
                     throw new FormatException($"Intent '{intentId}' has an empty keyword rule lemma.");
                 }
 
-                lemmas.Add(TextFolding.Normalize(lemma.Trim()));
+                lemmas.Add(folding is null ? TextKey.Of(lemma.Trim()) : folding.Key(lemma.Trim()));
             }
 
             var requires = SlotNames(rule.RequiresSlots, intentId, "keywordRules.requiresSlots");

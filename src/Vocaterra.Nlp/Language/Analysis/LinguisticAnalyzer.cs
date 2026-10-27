@@ -18,24 +18,43 @@ public sealed class LinguisticAnalyzer
     private const int PastMarkerWithoutVerbCost = 2;
 
     private readonly Lexicon _lexicon;
-    private readonly MorphologyGenerator _morphology;
+    private readonly IMorphology _morphology;
+    private readonly IAnalysisRules _rules;
     private readonly ILanguagePack _language;
 
-    /// <summary>Creates an analyzer over a lexicon with a morphology generator built from the same lexicon, for the language of the pack.</summary>
+    /// <summary>Creates an analyzer over a lexicon with the pack's morphology and analysis rules built over the same lexicon, for the language of the pack.</summary>
     public LinguisticAnalyzer(Lexicon lexicon, ILanguagePack language)
-        : this(lexicon, new MorphologyGenerator(lexicon), language)
+        : this(lexicon, ValidPack(language).CreateMorphology(lexicon), language)
     {
     }
 
-    /// <summary>Creates an analyzer with an explicit morphology generator, for the language of the pack (the bundle's <c>Language</c>).</summary>
-    public LinguisticAnalyzer(Lexicon lexicon, MorphologyGenerator morphology, ILanguagePack language)
+    /// <summary>Creates an analyzer with an explicit morphology, for the language of the pack (the bundle's <c>Language</c>); the analysis rules are the pack's over the same lexicon and morphology.</summary>
+    public LinguisticAnalyzer(Lexicon lexicon, IMorphology morphology, ILanguagePack language)
+        : this(lexicon, morphology, language, ValidPack(language).CreateAnalysisRules(lexicon, morphology))
+    {
+    }
+
+    /// <summary>Creates an analyzer with explicit morphology and analysis rules (M34, additive).</summary>
+    /// <param name="lexicon">The lexicon.</param>
+    /// <param name="morphology">The morphology of the language.</param>
+    /// <param name="language">The language pack.</param>
+    /// <param name="rules">The analysis rules of the language (the bundle's <c>AnalysisRules</c>).</param>
+    public LinguisticAnalyzer(Lexicon lexicon, IMorphology morphology, ILanguagePack language, IAnalysisRules rules)
     {
         ArgumentNullException.ThrowIfNull(lexicon);
         ArgumentNullException.ThrowIfNull(morphology);
         ArgumentNullException.ThrowIfNull(language);
+        ArgumentNullException.ThrowIfNull(rules);
         _lexicon = lexicon;
         _morphology = morphology;
         _language = language;
+        _rules = rules;
+    }
+
+    private static ILanguagePack ValidPack(ILanguagePack language)
+    {
+        ArgumentNullException.ThrowIfNull(language);
+        return language;
     }
 
     /// <summary>Analyzes the text without any slot grammar.</summary>
@@ -92,8 +111,8 @@ public sealed class LinguisticAnalyzer
             }
         }
 
-        var resolved = ReadingResolver.Resolve(analyzed, variants, match, Cost);
-        new AgreementChecker(resolved, _morphology, errors).Run();
+        var resolved = ReadingResolver.Resolve(analyzed, variants, match, Cost, _rules, _language.Folding);
+        _rules.CreateAgreementChecker(resolved, errors).Run();
         return new AnalysisResult(
             analyzed,
             match?.Slots ?? [],
@@ -107,7 +126,7 @@ public sealed class LinguisticAnalyzer
     private List<ResolvedWord> ResolvedWords(NormalizedText text, IReadOnlyList<AnalyzedToken> analyzed, IReadOnlyList<AnalyzedToken> resolved, IReadOnlySet<int> names)
     {
         var words = new List<ResolvedWord>(text.Tokens.Count);
-        var reported = ReportedReadings.Choose(text.Tokens, analyzed, resolved, names, _lexicon);
+        var reported = new ReportedReadings(_rules).Choose(text.Tokens, analyzed, resolved, names, _lexicon);
         for (var i = 0; i < text.Tokens.Count; i++)
         {
             if (names.Contains(i))
@@ -133,7 +152,7 @@ public sealed class LinguisticAnalyzer
     private int Cost(IReadOnlyList<AnalyzedToken> resolved)
     {
         var found = new List<ErrorTag>();
-        var checker = new AgreementChecker(resolved, _morphology, found);
+        var checker = _rules.CreateAgreementChecker(resolved, found);
         checker.Run();
         var cost = found.Distinct().Count();
         return cost + (checker.HasPastTimeMarker() && !resolved.Any(static t => t.Readings.Any(ReadingClasses.IsFiniteVerb)) ? PastMarkerWithoutVerbCost : 0);
@@ -144,7 +163,7 @@ public sealed class LinguisticAnalyzer
         SlotGrammarMatch? best = null;
         foreach (var grammar in grammars)
         {
-            var match = SlotGrammarMatcher.Match(tokens, grammar, _language);
+            var match = SlotGrammarMatcher.Match(tokens, grammar, _language, _rules);
             if (match is not null && (best is null || SlotGrammarMatch.Beats(match, best)))
             {
                 best = match;
@@ -154,14 +173,14 @@ public sealed class LinguisticAnalyzer
         return best;
     }
 
-    private static List<ErrorTag> OrderErrors(List<ErrorTag> errors)
+    private List<ErrorTag> OrderErrors(List<ErrorTag> errors)
     {
         var ordered = errors.Distinct().ToList();
         ordered.Sort(CompareErrors);
         return ordered;
     }
 
-    private static int CompareErrors(ErrorTag left, ErrorTag right)
+    private int CompareErrors(ErrorTag left, ErrorTag right)
     {
         var cmp = left.Span.Start.CompareTo(right.Span.Start);
         if (cmp != 0)
@@ -191,17 +210,10 @@ public sealed class LinguisticAnalyzer
         return cmp != 0 ? cmp : string.CompareOrdinal(left.Actual, right.Actual);
     }
 
-    private static int TagRank(string tag)
+    // The rank of the tag in the language's error tag set; a tag the set does not list sorts after all that it does.
+    private int TagRank(string tag)
     {
-        for (var i = 0; i < ErrorTags.All.Count; i++)
-        {
-            if (string.Equals(ErrorTags.All[i], tag, StringComparison.Ordinal))
-            {
-                return i;
-            }
-        }
-
-        return int.MaxValue;
+        return _language.ErrorTags.Rank(tag);
     }
 
     private static bool IsDigits(string text)

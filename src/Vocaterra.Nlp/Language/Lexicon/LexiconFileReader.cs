@@ -163,6 +163,11 @@ internal static class LexiconFileReader
         string? tense = null;
         string? mood = null;
         string? gender = null;
+        string? featureCase = null;
+        string? verbForm = null;
+        string? declension = null;
+        string? particle = null;
+        string? register = null;
         while (reader.Read() && reader.TokenType == JsonTokenType.PropertyName)
         {
             if (reader.ValueTextEquals("person"u8))
@@ -190,6 +195,31 @@ internal static class LexiconFileReader
                 reader.Read();
                 gender = ReadKnownOrNull(ref reader, LexiconSchema.GendersArray, "gender");
             }
+            else if (reader.ValueTextEquals("case"u8))
+            {
+                reader.Read();
+                featureCase = ReadStringOrNull(ref reader, "case");
+            }
+            else if (reader.ValueTextEquals("verbForm"u8))
+            {
+                reader.Read();
+                verbForm = ReadStringOrNull(ref reader, "verbForm");
+            }
+            else if (reader.ValueTextEquals("declension"u8))
+            {
+                reader.Read();
+                declension = ReadStringOrNull(ref reader, "declension");
+            }
+            else if (reader.ValueTextEquals("particle"u8))
+            {
+                reader.Read();
+                particle = ReadStringOrNull(ref reader, "particle");
+            }
+            else if (reader.ValueTextEquals("register"u8))
+            {
+                reader.Read();
+                register = ReadStringOrNull(ref reader, "register");
+            }
             else
             {
                 reader.Read();
@@ -202,7 +232,7 @@ internal static class LexiconFileReader
             throw new JsonException("features is not well formed.");
         }
 
-        return new EntryFeatures(person, number, tense, mood, gender);
+        return new EntryFeatures(person, number, tense, mood, gender, featureCase, verbForm, declension, particle, register);
     }
 
     private static string? ReadStringOrNull(ref Utf8JsonReader reader, string name)

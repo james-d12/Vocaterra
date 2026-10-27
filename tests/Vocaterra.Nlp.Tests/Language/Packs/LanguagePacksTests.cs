@@ -27,6 +27,18 @@ public class LanguagePacksTests
         public RepairLines RepairFallback => SpanishLanguagePack.Instance.RepairFallback;
 
         public IRecastPolicy Recast => SpanishLanguagePack.Instance.Recast;
+
+        public Vocaterra.Nlp.Language.Lexicon.LexiconProfile LexiconProfile => SpanishLanguagePack.Instance.LexiconProfile;
+
+        public Vocaterra.Nlp.Core.Taxonomy.ErrorTagSet ErrorTags => SpanishLanguagePack.Instance.ErrorTags;
+
+        public Vocaterra.Nlp.Language.Morphology.IMorphology CreateMorphology(Vocaterra.Nlp.Language.Lexicon.Lexicon lexicon) => SpanishLanguagePack.Instance.CreateMorphology(lexicon);
+
+        public Vocaterra.Nlp.Language.Analysis.IAnalysisRules CreateAnalysisRules(Vocaterra.Nlp.Language.Lexicon.Lexicon lexicon, Vocaterra.Nlp.Language.Morphology.IMorphology morphology) =>
+            SpanishLanguagePack.Instance.CreateAnalysisRules(lexicon, morphology);
+
+        public ITemplateFunctions CreateTemplateFunctions(Vocaterra.Nlp.Language.Lexicon.Lexicon lexicon, Vocaterra.Nlp.Language.Morphology.IMorphology morphology) =>
+            SpanishLanguagePack.Instance.CreateTemplateFunctions(lexicon, morphology);
     }
 
     [Fact]

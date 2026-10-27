@@ -59,8 +59,8 @@ ContentBundle german = ContentLoader.Load("content/my-german-bundle", options);
 - **`ILanguagePack`** (text side, M32): `LanguageId`, `Normalizer`, `Folding`, `Numbers`, `PhoneticKey`, `Punctuation`, `G2p` (null when pronunciation
   scoring is off for the language), `GrammarDefaults`, `Lint` and `RepairFallback`. `SpanishLanguagePack.Instance` wraps the static Spanish classes
   (`TextNormalizer`, `SpanishNumbers`, `SpanishPhoneticKey`, `SpanishG2p`, ...), which keep their entry points and their Spanish meaning; the
-  pipeline and the content tools call through the pack (M33, below). The analysis-side members (morphology, analysis rules, template functions,
-  lexicon profile, error tag set) join in M34.
+  pipeline and the content tools call through the pack (M33, below). The analysis-side members (`LexiconProfile`, `ErrorTags`, `CreateMorphology`,
+  `CreateAnalysisRules`, `CreateTemplateFunctions`) joined in M34 (see "The analysis side of the pack").
 - **Routed through the pack (M33).** The engine reads its text-side Spanish through `bundle.Language` (ADR 0011, amendment M33): the normalizer, the
   answer matcher and corrections, the intent resolver, the analyzer's grammar defaults, the template engine (numbers, agreement, punctuation), the
   recast (accent policy and number words), the speech requests (digits and phones; no phones when `G2p` is null), the pronunciation digits and G2P,
@@ -85,6 +85,35 @@ ContentBundle german = ContentLoader.Load("content/my-german-bundle", options);
 - New public members: `ContentManifest.Language`, `.SupportLanguage`, `.DefaultLanguage`, `ComputeBundleHash(files, language)`, two optional trailing
   parameters of `Compute` and of the record constructor; `ContentLoadOptions.LanguagePacks`; `ContentBundle.Language`, `.LanguageId`; the types of
   `Vocaterra.Nlp.Language.Packs`.
+
+### The analysis side of the pack (M34)
+
+All of this is additive unless it says breaking. The game compiles and passes unchanged.
+
+- **`ILanguagePack`** gained `LexiconProfile`, `ErrorTags`, `CreateMorphology(Lexicon)`, `CreateAnalysisRules(Lexicon, IMorphology)` and
+  `CreateTemplateFunctions(Lexicon, IMorphology)` (breaking for a host that implements `ILanguagePack`; the only pack is `SpanishLanguagePack`).
+- **`IMorphology`** (`Vocaterra.Nlp.Language.Morphology`): `Pluralize`, `Singularize`, `InflectNoun`, `Article(definiteness, gender, number[, nounLemma])`,
+  `AgreeAdjective`, `Conjugate`, `IsRegularizedIrregular`, `TryGetRegularization`. `MorphologyGenerator` implements it; `RegularizedForm` is public.
+- **`ContentBundle`**: new `LanguageMorphology` (`IMorphology`, what the engine uses) and `AnalysisRules` (`IAnalysisRules`). `Morphology` is unchanged for a Spanish
+  bundle (`MorphologyGenerator`) and throws `NotSupportedException` on access for a pack that creates another implementation.
+- **`IAnalysisRules`** and **`IAgreementChecker`** (`Vocaterra.Nlp.Language.Analysis`), `AnalysisRules.For(pack)` (the pack's rules over an empty lexicon, for callers
+  without a lexicon), and public `ReadingClasses` and `WordClass`. Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
+  take the rules (they were internal in effect: only the analysis used them); `AccentRestoration.SpellingsFor(lexicon, analysis, rules)`;
+  `SlotGrammarMatcher.Match(tokens, grammar, language[, rules])` (the 3-argument form still works and uses `AnalysisRules.For`).
+- **Constructors that take the interface** (source compatible, `MorphologyGenerator` is an `IMorphology`): `LinguisticAnalyzer(lexicon, IMorphology, language[, rules])`,
+  `TemplateEngine(lexicon, IMorphology, language[, ITemplateFunctions])`; `IntentResolver(catalog, language, embeddings = null, options = null, rules = null)`.
+- **`ITemplateFunctions`** (`Vocaterra.Nlp.Language.Packs`): `ResolveVerbLemma`, `Conjugate`, `InflectNoun`, `InferNumber`, `GenderOf`, `Article`.
+- **`LexiconProfile`** (`Vocaterra.Nlp.Language.Lexicon`): the closed vocabularies and the optional feature lists; `V1` is Spanish; `Validate(entry)`.
+  `Lexicon.ReadFile(json | bytes, profile)`, `Lexicon.Load(json, folding, profile)`, `Lexicon.FromEntries(entries, folding, profile)`, `Lexicon.Folding`.
+  `LexiconSchema.Validate(entry)` is the V1 check, as before.
+- **`LexicalFeatures`** and **`EntryFeatures`**: trailing optional `Case`, `VerbForm`, `Declension`, `Particle`, `Register` (null; omitted from JSON while null).
+  The record constructors take them as optional parameters, so the existing calls compile; a deconstruction of either record now has more elements.
+- **`ErrorTagSet`** (`Vocaterra.Nlp.Core.Taxonomy`): `All`, `Count`, `Rank`, `IsKnown`, `IsPronunciation`, `V1`. `ErrorTags.All` is unchanged. `VerdictInputs`
+  gained the optional trailing `ErrorTags`.
+- **`NormalizedText.FinalMark`** (init, null by default) and `NormalizationOptions.CaptureFinalMark` (default false).
+- **`RepairLines.Offer`** (optional, `OfferLineFormat`), `OfferLineFormat.Format(choices)`, `RepairStrategy.OfferFormat` (Spanish).
+- **`IntentCatalog.Load(json, folding = null)`** and **`SlotGrammar.Parse(pattern, id = null, folding = null)`**: a method group of either no longer converts to
+  `Func<string, T>`; use a lambda.
 
 ### Host-owned files
 

@@ -113,4 +113,37 @@ public sealed record LintVocabulary(IReadOnlyList<string> SubjectPronouns, IRead
 /// <param name="AskAgain">The line that asks the player to say it again.</param>
 /// <param name="SlowRepeat">The line that introduces a slower repetition.</param>
 /// <param name="GiveUp">The line that closes a failed repair.</param>
-public sealed record RepairLines(string AskAgain, string SlowRepeat, string GiveUp);
+/// <param name="Offer">How the line that offers up to three choices is worded (M34, additive); null for the Spanish wording.</param>
+public sealed record RepairLines(string AskAgain, string SlowRepeat, string GiveUp, OfferLineFormat? Offer = null);
+
+/// <summary>
+/// The wording of the repair step that offers the player up to three phrases to choose from, for example <c>¿Quieres decir «a», «b» o «c»?</c>. The text is
+/// the pack's: a pack of another language gives its own question, quotes and conjunction (M34, additive).
+/// </summary>
+/// <param name="Prefix">The text before the first choice, including the trailing space (Spanish: <c>¿Quieres decir </c>).</param>
+/// <param name="OpenQuote">The mark before each choice (Spanish: <c>«</c>).</param>
+/// <param name="CloseQuote">The mark after each choice (Spanish: <c>»</c>).</param>
+/// <param name="Separator">The text between two choices that are not the last pair (Spanish: <c>, </c>).</param>
+/// <param name="LastSeparator">The text before the last choice (Spanish: <c> o </c>).</param>
+/// <param name="Suffix">The text after the last choice (Spanish: <c>?</c>).</param>
+public sealed record OfferLineFormat(string Prefix, string OpenQuote, string CloseQuote, string Separator, string LastSeparator, string Suffix)
+{
+    /// <summary>Builds the offer line for the choices, in order.</summary>
+    /// <param name="choices">The offered phrases; at least one.</param>
+    public string Format(IReadOnlyList<string> choices)
+    {
+        ArgumentNullException.ThrowIfNull(choices);
+        var builder = new System.Text.StringBuilder(Prefix);
+        for (var i = 0; i < choices.Count; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(i == choices.Count - 1 ? LastSeparator : Separator);
+            }
+
+            builder.Append(OpenQuote).Append(choices[i]).Append(CloseQuote);
+        }
+
+        return builder.Append(Suffix).ToString();
+    }
+}

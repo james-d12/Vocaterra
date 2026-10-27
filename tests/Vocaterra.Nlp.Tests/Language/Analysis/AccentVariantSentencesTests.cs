@@ -18,6 +18,7 @@ public class AccentVariantSentencesTests
 {
     private static readonly Lazy<Lexicon> Words = new(BuildLexicon);
     private static readonly Lazy<MorphologyGenerator> Morphology = new(static () => new MorphologyGenerator(Words.Value));
+    private static readonly Lazy<IAnalysisRules> Rules = new(static () => SpanishLanguagePack.Instance.CreateAnalysisRules(Words.Value, Morphology.Value));
     private static readonly Lazy<LinguisticAnalyzer> Analyzer = new(BuildAnalyzer);
 
     private static LinguisticAnalyzer BuildAnalyzer()
@@ -341,13 +342,13 @@ public class AccentVariantSentencesTests
         var variants = tokens
             .Select(static t => (IReadOnlyList<LexicalFeatures>)[.. Words.Value.LookupWithAccentVariants(t.Token.Text).Variants.Select(static v => v.Reading)])
             .ToList();
-        return ReadingResolver.Resolve(tokens, variants, null, CountErrors);
+        return ReadingResolver.Resolve(tokens, variants, null, CountErrors, Rules.Value, SpanishLanguagePack.Instance.Folding);
     }
 
     private static int CountErrors(IReadOnlyList<AnalyzedToken> tokens)
     {
         var found = new List<ErrorTag>();
-        new AgreementChecker(tokens, Morphology.Value, found).Run();
+        Rules.Value.CreateAgreementChecker(tokens, found).Run();
         return found.Distinct().Count();
     }
 }
