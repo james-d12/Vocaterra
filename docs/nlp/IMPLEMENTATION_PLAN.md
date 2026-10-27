@@ -1071,6 +1071,35 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   - **Gate.** 5,366 passed (109 new: pack, registry, manifest, ContentBuilder and four O15/O16 fuzz cases), 5 skipped (models not on this
     machine), 0 failed; licence scan passed. Fuzz at 10,000 grammar iterations green. `identity-check.sh f4694ff` passed, and the CLI demo
     gives `conj.person` and `noun.number` with content hash `aab525f9…`.
+- **M33, text-side seams (2026-10-27, Haiku 5.5; merged to `feature/language-packs` `d677412`).**
+  - **Routed through the bundle's pack.** The pipeline (normalizer, answer matching, analysis, intent resolution, pronunciation numbers and
+    G2P, speech requests, recasts, the recognizer's grammar phrases), the response side (`TemplateEngine`, `SpeechRequests`,
+    `RecastBuilder`), the grammar defaults (`SlotGrammarMatcher`'s optional subject and trailing polite words, `AnalysisSlotFinder`), the
+    content tools (`TextGrader`, `ContentLinter`, `LintCoverage`, `CefrChecker`, `LintConfusion`, `ContentValidator`) and Bench and CLI.
+    Engine signatures such as `AnswerMatcher.Match`, `LinguisticAnalyzer`, `IntentResolver` and `SlotGrammarMatcher.Match` now take an
+    `ILanguagePack` (recorded in `API.md`); the game uses none of them and compiles unchanged.
+  - **Repair lines.** Reserved pools `repair.ask_again` and `repair.slow_repeat` override `RepairFallback` when a bundle has them (one
+    variant drawn with the interaction seed); `content/game-v1` has none, so the text is unchanged. The give-up line is always the pack's.
+  - **New pack members.** `ILanguagePack.Recast` (`IRecastPolicy.RestoredSpellings`, `SpanishRecastPolicy`: the accent rules moved out of
+    `RecastBuilder`) and `INumberWords.Agree`. ADR 0011 records both.
+  - **Kokoro.** `FromStore` takes `lang = "es"`, folded into `ModelHash` only when it is not `es`. The CLI and Bench name each model's
+    language and refuse a model whose language differs from the bundle's.
+  - **Cycle removed.** `PunctuationFixer` and `NumberAgreement` moved to `Language/Packs`, so the packs use only Core, Language and
+    Phonology; `LayeringTests.ThePacksAndTheResponseStageHaveNoCycle`. The duplicated `por`, `favor`, `un`, `una` literals now come from
+    the pack.
+  - **Guard.** `Architecture/SpanishCallSiteTests` scans `src/Vocaterra.Nlp` and `tools/Vocaterra.Nlp.*` for the Spanish statics and
+    fails outside an allowlist: the packs, the statics' own files, the compatibility entry points (`RecastBuilder.Build`,
+    `SpeechRequests.Create`, `TemplateEngine.CreateDefault`), and per-file M34 entries (`Lexicon`, `IntentCatalog`, `SlotGrammar`,
+    `SlotGrammarMatcher`, `MorphologyGenerator`, `ReadingResolver`, `AccentVariantChoice`, `ReportedReadings`, `AnalysisTables`,
+    `AgreementChecker`, `ReadingClasses`) that need `IMorphology`, `IAnalysisRules` or `LexiconProfile`. It has a negative test.
+  - **Left for M34 and later.** The lexicon builds its indexes with the Spanish fold at load. `RepairStrategy.OfferLine` («¿Quieres decir
+    «…»?») is still Spanish text in the engine, not a pack member. `PronunciationScorer`'s predicted-error tags are Spanish-tuned
+    (research item 14).
+  - **Bug caught in review.** The Spanish pack's instance initializers read word lists declared below `Instance`, before they were set; the
+    lists now come first.
+  - **Gate.** 5,385 passed (17 new; the 2 Parakeet tests run again now that the model is in the shared folder), 3 skipped, 0 failed;
+    licence scan passed; fuzz at 10,000 grammar iterations green; no existing expected value changed. `identity-check.sh f4694ff` passed,
+    and the CLI demo is unchanged.
 
 ## 6. Definition of done (every milestone)
 
@@ -1374,7 +1403,7 @@ The research lists seven places that would break silently when a second language
 | --- | --- | --- | --- | --- |
 | M31 | Spanish identity guard (`SpanishIdentityTests`) | M29j | H | done (merged to `feature/language-packs` `f4694ff`) |
 | M32 | Language id in the manifest (absent = `es`, folded into the hash only when present), pack registry, `ContentBundle.Language`, ADR 0011 | M31, M52 | S | done (merged to `feature/language-packs` `ba85fe3`, 2026-10-27) |
-| M33 | Text-side seams: normalizer, numbers, phonetic key, punctuation, repair lines, grammar defaults, lint, G2P call sites, Kokoro `lang` | M32 | H | in progress (2026-10-27, branch `M33-text-seams`) |
+| M33 | Text-side seams: normalizer, numbers, phonetic key, punctuation, repair lines, grammar defaults, lint, G2P call sites, Kokoro `lang` | M32 | H | done (merged to `feature/language-packs` `d677412`, 2026-10-27) |
 | M34 | Analysis-side seams and schema: `IMorphology`, `IAnalysisRules`, template functions, optional `LexicalFeatures` fields (Case, VerbForm, Declension, Particle, Register), per-pack tag sets (`ErrorTags.All` frozen as Spanish) | M33 | S | planned (D14 amended 2026-10-26) |
 | M35 | Per-language test harness, and a toy pack that proves no hidden Spanish dependency remains | M34 | H | planned (D14 amended 2026-10-26) |
 | M36 | German lexicon import (kaikki German, `de_50k`; D4 applies as for `es_50k`) | M35 | S | proposed |

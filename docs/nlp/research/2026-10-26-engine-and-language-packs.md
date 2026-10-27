@@ -216,8 +216,8 @@ merges it into `main` by pull request. The gate needs a clean checkout of that b
 | 2 | M52 | done | `1976508` | One `src/Vocaterra.Nlp`, one `tests/Vocaterra.Nlp.Tests`, `LayeringTests`, `Vocaterra.Nlp.slnf`, ADR 0012 |
 | - | G8 | done | `00ff1e5` | The spoken-mistake test accepts a stray leading «a» (an acoustic onset); game plan section 5 |
 | 3 | M32 | done | `ba85fe3` | Text-side `ILanguagePack`, `SpanishLanguagePack`, `LanguagePacks`, manifest `language`, ADR 0011 |
-| 3 | M33 | next | | Haiku |
-| 3 | M34 | planned | | Sonnet |
+| 3 | M33 | done | `d677412` | Text-side call sites through `bundle.Language`; `SpanishCallSiteTests` guard |
+| 3 | M34 | next | | Sonnet |
 | 3 | M35 | planned | | Haiku |
 | 4 | M53 | planned | | Sonnet |
 
