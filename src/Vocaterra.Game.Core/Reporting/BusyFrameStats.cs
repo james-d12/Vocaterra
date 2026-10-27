@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Reporting;
 
 /// <summary>
 /// The lengths of the frames drawn while the turn worker was busy (loading the models, or recognizing and evaluating a turn) or the

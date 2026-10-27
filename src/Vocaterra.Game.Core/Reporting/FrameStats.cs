@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Reporting;
 
 /// <summary>Counts frames and reports frames per second over a window of real time (half a second by default).</summary>
 public sealed class FrameStats

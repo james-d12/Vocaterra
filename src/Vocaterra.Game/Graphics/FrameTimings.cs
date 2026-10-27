@@ -1,4 +1,4 @@
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Core.Reporting;
 
 namespace Vocaterra.Game.Graphics;
 
