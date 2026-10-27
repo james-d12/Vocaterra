@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Event;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Session;
 
 /// <summary>
 /// The end of a playtest run (S12, the playtest profile of <c>--playtest</c>): when the post-check starts on its own, when the end key starts it,

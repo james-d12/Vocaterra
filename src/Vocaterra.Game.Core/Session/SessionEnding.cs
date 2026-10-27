@@ -1,6 +1,5 @@
-using Vocaterra.Game.Core.Session;
 
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Session;
 
 /// <summary>
 /// The closing moment of the session (S17, D-game-15): when the camp checklist is complete and the player's own fire is lit, a card says <c>Session complete</c> with

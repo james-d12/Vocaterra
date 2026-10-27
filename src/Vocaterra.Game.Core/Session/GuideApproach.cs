@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Npc;
-using Vocaterra.Game.Core.Session;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Session;
 
 /// <summary>
 /// The guide greets the player who walks up to her (S17, D-game-15): when the player comes within <see cref="Blocks"/> blocks of the guide and her lesson is waiting
