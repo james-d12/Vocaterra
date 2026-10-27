@@ -3,13 +3,13 @@ using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
+using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Embeddings;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Response.Speech;
-using Vocaterra.Nlp.Core.Taxonomy;
-using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests.Languages.Xx;
