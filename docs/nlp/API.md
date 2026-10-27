@@ -59,8 +59,29 @@ ContentBundle german = ContentLoader.Load("content/my-german-bundle", options);
 - **`ILanguagePack`** (text side, M32): `LanguageId`, `Normalizer`, `Folding`, `Numbers`, `PhoneticKey`, `Punctuation`, `G2p` (null when pronunciation
   scoring is off for the language), `GrammarDefaults`, `Lint` and `RepairFallback`. `SpanishLanguagePack.Instance` wraps the static Spanish classes
   (`TextNormalizer`, `SpanishNumbers`, `SpanishPhoneticKey`, `SpanishG2p`, ...), which keep their entry points and their Spanish meaning; the
-  pipeline does not call through the pack yet (M33). The analysis-side members (morphology, analysis rules, template functions, lexicon profile, error
-  tag set, recast policy) join in M34.
+  pipeline and the content tools call through the pack (M33, below). The analysis-side members (morphology, analysis rules, template functions,
+  lexicon profile, error tag set) join in M34.
+- **Routed through the pack (M33).** The engine reads its text-side Spanish through `bundle.Language` (ADR 0011, amendment M33): the normalizer, the
+  answer matcher and corrections, the intent resolver, the analyzer's grammar defaults, the template engine (numbers, agreement, punctuation), the
+  recast (accent policy and number words), the speech requests (digits and phones; no phones when `G2p` is null), the pronunciation digits and G2P,
+  the repair lines, and the content linter, `TextGrader`, `cefr-check` and `BenchMetrics`. Signatures that take a pack are listed in the next bullet.
+  A host that calls these itself passes `bundle.Language`, for example `TextNormalizer` becomes `bundle.Language.Normalizer.Normalize(text, options)`.
+- **Signatures that take the pack (M33; the core is not published, so these are breaking changes of the 0.x surface).**
+  `AnswerMatcher.Match(text, set, difficulty, language, options = null)`;
+  `AnswerCorrections.WithCanonicalWords(analysis, text, match, set, language, options = null)`;
+  `AnswerSet.GrammarPhrases(language)` and `CanonicalPhrases(language)`;
+  `IntentResolver(catalog, language, embeddings = null, options = null)`;
+  `LinguisticAnalyzer(lexicon, language)` and `LinguisticAnalyzer(lexicon, morphology, language)`;
+  `SlotGrammarMatcher.Match(tokens, grammar, language)`;
+  `TemplateEngine(lexicon, morphology, language)`;
+  `RecastBuilder.Build(text, analysis, lexicon, language)`;
+  `SpeechRequests.Create(text, voiceId, language, dialect = null)`;
+  `CefrChecker.Check(dialogue, lexicon, language, allowed, level, prompts = null)`.
+  `bundle.Language` is the pack of a loaded bundle; `bundle.TemplateEngine` and `bundle.Language` are what a host needs.
+- **Spanish compatibility entry points (M33).** These keep their signatures and their Spanish meaning, and the game calls some of them:
+  `TextNormalizer`, `SpanishNumbers`, `SpanishPhoneticKey`, `SpanishG2p`, `MorphologyGenerator`, `RecastBuilder.Build(text, analysis[, lexicon])`,
+  `SpeechRequests.Create(text, voiceId[, dialect])`, `TemplateEngine.CreateDefault()`, and the Spanish pack `SpanishLanguagePack.Instance`. Each one is
+  named in its XML remarks. A neutral caller uses the pack members instead; the grep guard (`SpanishCallSiteTests`) checks the engine for this.
 - New public members: `ContentManifest.Language`, `.SupportLanguage`, `.DefaultLanguage`, `ComputeBundleHash(files, language)`, two optional trailing
   parameters of `Compute` and of the record constructor; `ContentLoadOptions.LanguagePacks`; `ContentBundle.Language`, `.LanguageId`; the types of
   `Vocaterra.Nlp.Language.Packs`.
@@ -477,7 +498,13 @@ if (result.Repair is { } repair)
 ```
 
 The repair ladder (`RepairStrategy.Next`, M29f) is deterministic by failed attempt: attempt 1 `AskAgain`, attempt 2 `SlowRepeat`, attempt 3
-`OfferChoices`, later attempts `GiveUp`. A constrained prompt's retry at attempts 1 and 2 recognizes every phrase of the answer set
+`OfferChoices`, later attempts `GiveUp`.
+
+**Repair lines (M33).** The agent lines of attempts 1 and 2 come from the bundle's reserved dialogue pools `repair.ask_again` and
+`repair.slow_repeat` when the bundle has them (`ReservedPools.RepairAskAgain`, `RepairSlowRepeat`): one variant is drawn with the interaction's
+seed, and its text is spoken as written (no slots). Without the pools the lines are the language pack's `RepairFallback`, which for Spanish are
+`¿Cómo?` and `Perdón, te lo repito más despacio.`. The give-up line is always the pack's. A bundle without the pools (`content/game-v1`) speaks
+the same lines as before. The `OfferChoices` line (`¿Quieres decir «…»?`) is not a pool and is still Spanish text in the core. A constrained prompt's retry at attempts 1 and 2 recognizes every phrase of the answer set
 (`AnswerSet.GrammarPhrases()`, aliases included). The `OfferChoices` step offers one phrase per answer, the **canonical** phrase
 (`AnswerSet.CanonicalPhrases()`, normalized as the grammar is, no aliases), in the answer set's **declared order** (the order the answers
 are written in the content, not an ordinal sort), and the first three distinct ones are offered. The retry at attempt 3 is a constrained
@@ -514,6 +541,10 @@ on `em_santa`):
 | `28` | `ef_dora` | Spanish, female |
 | `29` | `em_alex` | Spanish, male |
 | `53` | `em_santa` | Spanish, male |
+
+**Voice language (M33).** `FromStore(store, id, speakerId, speed = 1.0, lang = "es")` and the constructor's `lang` name the voice language the model
+speaks. It is folded into `ModelHash` only when it is not `es`, so the Spanish hash is the one it always was; `KokoroSynthesizer.DefaultLanguage`
+is `es`. The game's `SpeechEngine` calls `FromStore` without `lang` and keeps the Spanish hash.
 
 Speed defaults to `1.0`. The engine is loaded for every `Synthesize` call and disposed at its end (see section 8), so wrap the
 synthesizer in `CachedSynthesizer` when the same lines repeat.

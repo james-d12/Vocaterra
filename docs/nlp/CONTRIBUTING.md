@@ -370,7 +370,12 @@ hash and gated in tests ([ADR 0004](adr/0004-model-pinning-and-gating.md)).
   `using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;`.
 - Inside `Vocaterra.Nlp.Language.*` the namespaces `Vocaterra.Nlp.Language.Lexicon` and `Vocaterra.Nlp.Language.SlotGrammar` share names with the types `Lexicon` and `SlotGrammar`;
   put `using` lines after the file-scoped namespace line or use aliases.
-- The G2P drops digits. Spell numbers out before phonemizing (`SpanishNumbers.DigitsToWords`).
+- The G2P drops digits. Spell numbers out before phonemizing (`bundle.Language.Numbers.DigitsToWords`; the Spanish static is
+  `SpanishNumbers.DigitsToWords`).
+- Do not call a Spanish static from the engine or the tools. Text-side Spanish goes through `bundle.Language` (ADR 0011, amendment M33); a new
+  call to `SpanishNumbers.`, `SpanishPhoneticKey.`, `SpanishG2p.`, `TextNormalizer.`, `PunctuationFixer.`, `Accents.` or the other names in
+  `tests/Vocaterra.Nlp.Tests/Architecture/SpanishCallSiteTests.cs` fails the guard. Add a file to its allowlist only when the call is one the
+  pack or a compatibility entry point owns, with the reason.
 - `CanonicalJson` rejects `null` for non-nullable members when reading (`RespectNullableAnnotations`); design JSON models with that in mind.
 - A prompt whose `allowedIntentIds` is empty is answer-only: the pipeline skips intent resolution, and an exact, alias or fuzzy answer match
   counts as `communicated`.
