@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Learner;
@@ -17,7 +18,6 @@ using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Layout;
-using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Flow;
 using Vocaterra.Game.Frame;
 using Vocaterra.Game.Graphics;

@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Event;
-using Vocaterra.Game.Diagnostics;
 
-namespace Vocaterra.Game.Tests.Diagnostics;
+namespace Vocaterra.Game.Core.Tests.Event;
 
 /// <summary>The console's event lines: each new event once, in order, with the support lines it adds after it.</summary>
 public sealed class EventPrinterTests
