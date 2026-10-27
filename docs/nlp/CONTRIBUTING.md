@@ -38,7 +38,7 @@ happens to one utterance, [docs/nlp/adr/](adr/) for why the rules exist, and [IM
    dotnet format --verify-no-changes
    ```
 
-   `dotnet test tests/Vocaterra.Nlp.Tests` runs the engine's unit tests; add `--filter "FullyQualifiedName~LinguisticAnalyzer"` for one class.
+   `dotnet test tests/Vocaterra.Nlp.Tests` runs the engine's unit tests and `dotnet test tests/Vocaterra.Nlp.Es.Tests` the Spanish pack's (M53); add `--filter "FullyQualifiedName~LinguisticAnalyzer"` for one class.
    `dotnet format` (without `--verify-no-changes`) fixes formatting.
 
 3. Models are optional. Without them the real-model tests are skipped, not failed. To run them:
@@ -78,7 +78,8 @@ happens to one utterance, [docs/nlp/adr/](adr/) for why the rules exist, and [IM
 
 - File-scoped namespaces; nullable reference types on; warnings are errors; small immutable `record` types.
 - Every public type has a one-line `/// <summary>`. Keep `src/Vocaterra.Nlp/AssemblyMarker.cs` in place (the one marker of the engine assembly; a test refers to it).
-- Add tests next to the code: tests in `tests/Vocaterra.Nlp.Tests`, one folder per engine area, plain `Assert`. Pure stages get a positive and a negative test and
+- Add tests next to the code: tests in `tests/Vocaterra.Nlp.Tests`, one folder per engine area, plain `Assert`; a test of Spanish behaviour (morphology, normalization, G2P, the seed
+  lexicon, the Spanish pack) goes in `tests/Vocaterra.Nlp.Es.Tests`, next to the code in `src/Vocaterra.Nlp.Es`. Pure stages get a positive and a negative test and
   a "same input, byte-identical `CanonicalJson` output" test.
 - Add no engine types, UI types or LLM packages to `src/`.
 
@@ -141,11 +142,12 @@ the dialogue and the learner model. Add it in this order:
    This is a change to the engine's `Core` folder: agree it with a maintainer first.
 2. **Analyzer.** Produce the tag where the error is detected, with the span in the normalized text and the expected form:
    - grammar and vocabulary tags: `src/Vocaterra.Nlp/Language/Analysis/AgreementChecker.cs` (agreement rules) or `LinguisticAnalyzer.cs`; the
-     expected form comes from `MorphologyGenerator`, never a hard-coded string;
+     expected form comes from the pack's morphology (Spanish: `MorphologyGenerator` in `src/Vocaterra.Nlp.Es/Morphology`), never a hard-coded string; the Spanish agreement
+     and analysis rules are in `src/Vocaterra.Nlp.Es/Analysis`;
    - pronunciation tags: a predicted variant in `src/Vocaterra.Nlp/Phonology/PredictedErrorVariants.cs` and its matching in
      `src/Vocaterra.Nlp/Pronunciation/PredictedErrorMatcher.cs`.
 
-   Add one positive and one negative test (`tests/Vocaterra.Nlp.Tests/Language/Analysis`, `tests/Vocaterra.Nlp.Tests/Phonology`, `tests/Vocaterra.Nlp.Tests/Pronunciation`).
+   Add one positive and one negative test (`tests/Vocaterra.Nlp.Es.Tests/Analysis`, `tests/Vocaterra.Nlp.Es.Tests/Phonology`, `tests/Vocaterra.Nlp.Tests/Pronunciation`).
 3. **Evaluation weights.** Add the tag to `errorWeights` for `beginner`, `intermediate` and `advanced` in
    `content/game-v1/evaluation/evaluation-config.json` (pronunciation tags are 0 today, so they do not reduce `correctness`), and to the
    built-in defaults in `src/Vocaterra.Nlp/Evaluation/EvaluationConfig.cs`. A grammar tag missing from the map costs `unknownTagWeight` (0.3);
@@ -328,7 +330,7 @@ protocol, consent text and manifest schema are in [tests/golden/README.md](../..
   their own output folder, and `ThePipelineAgreesWithEveryAnnotation` fails unless the pipeline produces the annotated intent and
   errors for `expectedTranscript`. Use a `promptId` that exists in `content/game-v1/prompts/prompts.json`.
 - **G2P golden lines** are separate: add `{"text": "...", "dialect": "la" | "es", "ipa": "..."}` to
-  `tests/Vocaterra.Nlp.Golden.Tests/Data/g2p-golden.jsonl` (Latin American neutral or Castilian). The IPA is written by hand from a pronunciation
+  `tests/Vocaterra.Nlp.Es.Tests/Data/g2p-golden.jsonl` (Latin American neutral or Castilian; it moved there in M53 with the Spanish G2P). The IPA is written by hand from a pronunciation
   source, not copied from the converter's own output; espeak-ng may be used as a development-time cross-check only.
 - When a model changes, run the benchmark on the same clips before and after and put the numbers in the pull request.
 
@@ -374,13 +376,14 @@ hash and gated in tests ([ADR 0004](adr/0004-model-pinning-and-gating.md)).
 - Inside `Vocaterra.Nlp.Language.*` the namespaces `Vocaterra.Nlp.Language.Lexicon` and `Vocaterra.Nlp.Language.SlotGrammar` share names with the types `Lexicon` and `SlotGrammar`;
   put `using` lines after the file-scoped namespace line or use aliases.
 - The G2P drops digits. Spell numbers out before phonemizing (`bundle.Language.Numbers.DigitsToWords`; the Spanish static is
-  `SpanishNumbers.DigitsToWords`).
-- Do not call a Spanish static from the engine or the tools. Text-side Spanish goes through `bundle.Language` (ADR 0011, amendment M33), and the
+  `SpanishNumbers.DigitsToWords` in `Vocaterra.Nlp.Es.Normalization`).
+- Do not name a Spanish type in the engine (`src/Vocaterra.Nlp`): the Spanish pack is the project `src/Vocaterra.Nlp.Es` (M53, ADR 0012), the engine cannot reference it, and
+  `SpanishCallSiteTests` (empty allowlist) and `LayeringTests` (no engine namespace depends on `Vocaterra.Nlp.Es`) enforce it. A host or a tool that loads a Spanish bundle
+  references the Es project and uses `SpanishContent.Load` or `LanguagePacks.Default.WithSpanish()`. Text-side Spanish goes through `bundle.Language` (ADR 0011, amendment M33), and the
   analysis side (morphology, word classes, agreement checks, template functions, the lexicon fold and profile, error tag ranks) through
-  `bundle.LanguageMorphology`, `bundle.AnalysisRules`, `bundle.TemplateEngine` and the pack (amendment M34). A new call to `SpanishNumbers.`,
-  `SpanishPhoneticKey.`, `SpanishG2p.`, `TextNormalizer.`, `PunctuationFixer.`, `Accents.`, `TextFolding.`, `WordClasses.`, `new MorphologyGenerator(` or the
-  other names in `tests/Vocaterra.Nlp.Tests/Architecture/SpanishCallSiteTests.cs` fails the guard. Add a file to its allowlist only when the call is one
-  the pack or a compatibility entry point owns, with the reason. A new lexicon feature value goes into the pack's `LexiconProfile`, not into
+  `bundle.LanguageMorphology`, `bundle.AnalysisRules`, `bundle.TemplateEngine` and the pack (amendment M34). A new use of `SpanishNumbers`,
+  `SpanishPhoneticKey`, `SpanishG2p`, `SpanishTextNormalizer`, `PunctuationFixer`, `WordClasses`, `MorphologyGenerator` or the
+  other names in `tests/Vocaterra.Nlp.Tests/Architecture/SpanishCallSiteTests.cs` in the engine source fails the guard. The allowlist is empty; an entry needs a reason a reviewer accepts. A new lexicon feature value goes into the pack's `LexiconProfile`, not into
   `LexiconSchema`.
 - `CanonicalJson` rejects `null` for non-nullable members when reading (`RespectNullableAnnotations`); design JSON models with that in mind.
 - A prompt whose `allowedIntentIds` is empty is answer-only: the pipeline skips intent resolution, and an exact, alias or fuzzy answer match

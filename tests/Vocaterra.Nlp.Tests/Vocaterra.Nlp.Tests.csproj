@@ -37,10 +37,16 @@
     <Using Include="Xunit" />
     <Using Include="Vocaterra.Nlp.Testing" />
     <Using Include="Vocaterra.Nlp.Tests" />
+    <Using Include="Vocaterra.Nlp.Es" />
+    <Using Include="Vocaterra.Nlp.Es.Morphology" />
+    <Using Include="Vocaterra.Nlp.Es.Normalization" />
+    <Using Include="Vocaterra.Nlp.Es.Phonology" />
+    <Using Include="Vocaterra.Nlp.Es.Text" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../../src/Vocaterra.Nlp/Vocaterra.Nlp.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Es/Vocaterra.Nlp.Es.csproj" />
     <ProjectReference Include="../../tools/Vocaterra.Nlp.Bench/Vocaterra.Nlp.Bench.csproj" />
     <ProjectReference Include="../../tools/Vocaterra.Nlp.Cli/Vocaterra.Nlp.Cli.csproj" />
     <ProjectReference Include="../../tools/Vocaterra.Nlp.ContentBuilder/Vocaterra.Nlp.ContentBuilder.csproj" />
@@ -49,6 +55,8 @@
   <!-- The bundle (content/game-v1) and the grammar cache beside it are found by walking up from the test assembly, not copied. The importer
        fixture (Content/Data) keeps its output path Data/, as the tests expect; the model manifest is copied next to the test assembly. -->
   <ItemGroup>
+    <!-- The Spanish analysis fixtures of the Es tests, for the three Analysis tests that stayed here because they use engine internals. -->
+    <Compile Include="../Vocaterra.Nlp.Es.Tests/Analysis/TestTokens.cs" Link="Shared/EsTestTokens.cs" />
     <Compile Include="../Shared/GameBundleLocator.cs" Link="Shared/GameBundleLocator.cs" />
     <Compile Include="../Shared/TempBundle.cs" Link="Shared/TempBundle.cs" />
     <None Include="../../models/manifest.json" Link="models/manifest.json" CopyToOutputDirectory="PreserveNewest" />

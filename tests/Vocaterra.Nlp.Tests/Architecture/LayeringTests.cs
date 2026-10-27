@@ -63,6 +63,39 @@ public class LayeringTests
     }
 
     [Fact]
+    public void NoEngineNamespaceDependsOnTheSpanishPack()
+    {
+        // M53 (ADR 0012): the Spanish pack is a project of its own. The compiler already stops the engine from using it; this rule names the namespace too.
+        var violations = LayerRules.Stages
+            .Concat([LayerRules.PacksNamespace.Substring(LayerRules.Root.Length + 1)])
+            .SelectMany(source => LayerRules.Violations(Engine, LayerRules.Root + "." + source, [LayerRules.SpanishPackNamespace]))
+            .ToList();
+
+        Assert.Empty(violations);
+        Assert.Equal(0, LayerRules.TypeCount(Engine, LayerRules.SpanishPackNamespace));
+    }
+
+    [Fact]
+    public void TheEngineAssemblyDoesNotReferenceTheSpanishPackAssembly()
+    {
+        var references = Engine.GetReferencedAssemblies().Select(static name => name.Name).ToList();
+
+        Assert.NotEmpty(references);
+        Assert.DoesNotContain(LayerRules.SpanishPackAssembly, references);
+    }
+
+    [Fact]
+    public void TheSpanishPackRuleBitesOnATypeThatDependsOnIt()
+    {
+        // The pack assembly is loaded here (this project references it), so a fixture in this assembly that uses a pack type shows the rule reports it.
+        var fixtures = typeof(Fixtures.CoreDependsOnSpanishPack).Assembly;
+
+        var violations = LayerRules.Violations(fixtures, typeof(Fixtures.CoreDependsOnSpanishPack).Namespace!, [LayerRules.SpanishPackNamespace]);
+
+        Assert.Contains(typeof(Fixtures.CoreDependsOnSpanishPack).FullName!, violations);
+    }
+
+    [Fact]
     public void AViolationIsReportedThroughTheSameRule()
     {
         // The fixture is a core-like type in the test assembly that depends on the pipeline. The same check must report it.

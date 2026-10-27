@@ -80,7 +80,7 @@ public class GameBundleContractTests
 
     private static IntentResolution Resolve(string text, IReadOnlyList<string> allowedIntents)
     {
-        var normalized = TextNormalizer.Normalize(text, KeepArticles);
+        var normalized = SpanishTextNormalizer.Normalize(text, KeepArticles);
         var analysis = new LinguisticAnalyzer(Bundle.Lexicon, SpanishLanguagePack.Instance).Analyze(normalized, Bundle.Intents.Grammars);
         var prompt = new PromptSpec("probe", RecognitionMode.Open, Difficulty.Beginner, Bundle.AnswerSets.Keys.First(), allowedIntents, null, []);
         return new IntentResolver(Bundle.Intents, SpanishLanguagePack.Instance).Resolve(normalized, analysis, prompt);
@@ -166,7 +166,7 @@ public class GameBundleContractTests
     [MemberData(nameof(AnswerPhrases))]
     public void EveryCanonicalPhraseMatchesItsOwnAnswerExactly(string setId, string spoken, string answerId, MatchType type)
     {
-        var result = AnswerMatcher.Match(TextNormalizer.Normalize(spoken, KeepArticles), Bundle.AnswerSets[setId], Difficulty.Beginner, SpanishLanguagePack.Instance, KeepArticles);
+        var result = AnswerMatcher.Match(SpanishTextNormalizer.Normalize(spoken, KeepArticles), Bundle.AnswerSets[setId], Difficulty.Beginner, SpanishLanguagePack.Instance, KeepArticles);
 
         Assert.Equal(answerId, result.AnswerId);
         Assert.Equal(type, result.Type);
@@ -180,7 +180,7 @@ public class GameBundleContractTests
 
         foreach (var alias in yes.Aliases)
         {
-            var result = AnswerMatcher.Match(TextNormalizer.Normalize(alias, KeepArticles), set, Difficulty.Beginner, SpanishLanguagePack.Instance, KeepArticles);
+            var result = AnswerMatcher.Match(SpanishTextNormalizer.Normalize(alias, KeepArticles), set, Difficulty.Beginner, SpanishLanguagePack.Instance, KeepArticles);
 
             Assert.Equal("yes", result.AnswerId);
         }
@@ -370,13 +370,13 @@ public class GameBundleContractTests
     [Fact]
     public void TheLexiconIsTheSeedPlusTheBundleWords()
     {
-        Assert.True(Bundle.Lexicon.Entries.Count > Vocaterra.Nlp.Language.Lexicon.Lexicon.Seed.Entries.Count);
+        Assert.True(Bundle.Lexicon.Entries.Count > SpanishLexicon.Seed.Entries.Count);
         foreach (var lemma in new[] { "espada", "lanzar", "hielo", "pócima", "bloque", "lámpara", "río" })
         {
             Assert.True(Bundle.Lexicon.ContainsLemma(lemma), lemma);
         }
 
-        Assert.Equal("lancé", Bundle.Morphology.Conjugate("lanzar", "1", "sg", "pret"));
+        Assert.Equal("lancé", Bundle.SpanishMorphology().Conjugate("lanzar", "1", "sg", "pret"));
     }
 
     [Fact]

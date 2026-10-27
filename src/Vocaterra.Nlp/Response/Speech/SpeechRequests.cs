@@ -27,12 +27,4 @@ public static class SpeechRequests
             : null;
         return new SynthesisRequest(spoken, voiceId, phones);
     }
-
-    /// <summary>
-    /// The Spanish compatibility entry point: <see cref="Create(string, string, ILanguagePack, DialectConfig?)"/> with <see cref="SpanishLanguagePack.Instance"/>.
-    /// </summary>
-    public static SynthesisRequest Create(string text, string voiceId, DialectConfig? dialect = null)
-    {
-        return Create(text, voiceId, SpanishLanguagePack.Instance, dialect);
-    }
 }

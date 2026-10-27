@@ -84,14 +84,6 @@ public sealed class ContentBundle
     /// <summary>The analysis rules of <see cref="Language"/> over <see cref="Lexicon"/> and <see cref="LanguageMorphology"/> (M34, additive).</summary>
     public IAnalysisRules AnalysisRules { get; }
 
-    /// <summary>
-    /// The Spanish morphology generator over <see cref="Lexicon"/>: <see cref="LanguageMorphology"/> as a <see cref="MorphologyGenerator"/>, for hosts of a Spanish
-    /// bundle (the game's noun catalog and guide use it). Unchanged for a Spanish bundle.
-    /// </summary>
-    /// <exception cref="NotSupportedException">The bundle's language pack does not create a <see cref="MorphologyGenerator"/> (any pack but Spanish); use <see cref="LanguageMorphology"/>.</exception>
-    public MorphologyGenerator Morphology => LanguageMorphology as MorphologyGenerator
-        ?? throw new NotSupportedException($"ContentBundle.Morphology is the Spanish MorphologyGenerator; the language '{LanguageId}' has none. Use LanguageMorphology.");
-
     /// <summary>A template engine over <see cref="Lexicon"/> and <see cref="LanguageMorphology"/>; use it for the response planner so templates inflect with bundle words.</summary>
     public TemplateEngine TemplateEngine { get; }
 

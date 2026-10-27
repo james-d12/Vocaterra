@@ -5,6 +5,8 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Utilities;
+using Vocaterra.Nlp.Es;
+using Vocaterra.Nlp.Es.Morphology;
 using Vocaterra.Nlp.Language.Morphology;
 
 namespace Vocaterra.Game.UI.Book;
@@ -96,7 +98,7 @@ public static class BookPages
         return page switch
         {
             BookPage.Nouns => Nouns(session.Words, session.Learner.Nouns, session.StoredTime.UnixSeconds, session.DefiniteArticle, session.Phrases, recordings),
-            BookPage.Verbs => Verbs(session.Learner.Verbs, session.Glosses, session.Phrases, session.Bundle.Morphology),
+            BookPage.Verbs => Verbs(session.Learner.Verbs, session.Glosses, session.Phrases, session.Bundle.SpanishMorphology()),
             BookPage.Phrases => Phrases(PhraseJournalRows.Build(session.PhraseProgress, session.StoredTime.UnixSeconds, session.Credit), recordings),
             BookPage.Lessons => Lessons(session.Lessons.Record, session.Phrases, recordings),
             _ => Said(session.Learner.Recent(LearnerRecord.SavedEntries), session.English, session.Lessons.Record),
@@ -135,7 +137,7 @@ public static class BookPages
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(lemma);
         var row = session.Learner.Verbs.FirstOrDefault(r => string.Equals(r.Lemma, lemma, StringComparison.Ordinal));
-        return row is null ? null : ConjugationTable.Build(row, session.Learner.History, TaughtForms(session), session.Bundle.Morphology, session.Glosses.ForLemma(lemma));
+        return row is null ? null : ConjugationTable.Build(row, session.Learner.History, TaughtForms(session), session.Bundle.SpanishMorphology(), session.Glosses.ForLemma(lemma));
     }
 
     /// <summary>

@@ -14,11 +14,11 @@ internal static class TestSupport
 {
     private static readonly NormalizationOptions KeepWords = new() { ConvertIndefiniteArticles = false };
 
-    public static MorphologyGenerator Morphology { get; } = new(Lexicon.Seed);
+    public static MorphologyGenerator Morphology { get; } = new(SpanishLexicon.Seed);
 
-    public static TemplateEngine Engine { get; } = new(Lexicon.Seed, new MorphologyGenerator(Lexicon.Seed), SpanishLanguagePack.Instance);
+    public static TemplateEngine Engine { get; } = new(SpanishLexicon.Seed, new MorphologyGenerator(SpanishLexicon.Seed), SpanishLanguagePack.Instance);
 
-    public static LinguisticAnalyzer Analyzer { get; } = new(Lexicon.Seed, SpanishLanguagePack.Instance);
+    public static LinguisticAnalyzer Analyzer { get; } = new(SpanishLexicon.Seed, SpanishLanguagePack.Instance);
 
     public static SlotMap Slots(params (string Key, string Value)[] pairs)
     {
@@ -32,7 +32,7 @@ internal static class TestSupport
 
     public static NormalizedText Normalize(string text, bool numbersToDigits = false)
     {
-        return TextNormalizer.Normalize(text, KeepWords with { NumbersToDigits = numbersToDigits });
+        return SpanishTextNormalizer.Normalize(text, KeepWords with { NumbersToDigits = numbersToDigits });
     }
 
     public static Verdict MakeVerdict(string intent, bool communicated = true, double correctness = 1.0, SlotMap? slots = null)

@@ -1,6 +1,7 @@
 namespace Vocaterra.Nlp.Language.Tests.Analysis;
 
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Es.Tests.Analysis;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Packs;
@@ -23,7 +24,7 @@ public class ReportedReadingsTests
             entries.AddRange(Lexicon.ReadFile(File.ReadAllBytes(path)).Entries);
         }
 
-        return new LinguisticAnalyzer(Lexicon.FromEntries(entries), SpanishLanguagePack.Instance);
+        return new LinguisticAnalyzer(SpanishLexicon.FromEntries(entries), SpanishLanguagePack.Instance);
     }
 
     private static IReadOnlyList<ResolvedWord> Words(string sentence)

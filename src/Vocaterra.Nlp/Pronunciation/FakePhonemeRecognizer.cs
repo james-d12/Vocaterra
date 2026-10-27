@@ -48,7 +48,7 @@ public sealed class FakePhonemeRecognizer : IPhonemeRecognizer
     }
 
     /// <summary>A fake over the whole Vocaterra.Nlp.Phonology inventory, including the learner phones.</summary>
-    public static FakePhonemeRecognizer ForSpanish()
+    public static FakePhonemeRecognizer ForPhoneInventory()
     {
         return new FakePhonemeRecognizer(PhoneInventory.All);
     }

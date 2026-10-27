@@ -28,7 +28,7 @@ A change to a public type in the core's API document is a change to this boundar
 The host in `src/Vocaterra.Host` makes the calls of the core's API document, in order, against the packages only (no project references
 to the core). Each step below names the call in the host.
 
-1. **Load a bundle.** `ContentLoader.Load(directory)` verifies every file's hash and the cross-references, and returns the bundle with its
+1. **Load a bundle.** `SpanishContent.Load(directory)` (the core's `ContentLoader.Load` with the Spanish pack registered) verifies every file's hash and the cross-references, and returns the bundle with its
    `ContentHash`. The game's bundle is `content/game-v1`. A bundle is hashed and its manifest rewritten by the core's content tool, through
    `scripts/content.sh`.
 2. **Build the services.** `PipelineServices` takes a word recognizer, an optional phoneme recognizer, an embedding model, a synthesizer and
@@ -68,7 +68,7 @@ The core cannot know these, so the host supplies them (API document, "The host o
 ## Versions and the build
 
 - The game and the core are built from the same commit by the root `Vocaterra.sln`: `Vocaterra.Game` and `Vocaterra.Host` reference the
-  core's project (`../Vocaterra.Nlp/Vocaterra.Nlp.csproj`), so a core change is visible to the game in the same build. There is no
+  core's projects (`../Vocaterra.Nlp/Vocaterra.Nlp.csproj` and, since M53, the Spanish pack `../Vocaterra.Nlp.Es/Vocaterra.Nlp.Es.csproj`, which `GameBundle` and the host register), so a core change is visible to the game in the same build. There is no
   package version to bump, no feed and no pack step (M50 retired the packaging scripts and the sample host; core D5 is superseded); the root
   `nuget.config` lists nuget.org only.
 - Third-party package versions for both halves are in the root `Directory.Packages.props`.

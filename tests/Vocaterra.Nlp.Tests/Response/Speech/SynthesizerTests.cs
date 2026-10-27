@@ -45,14 +45,14 @@ public class SynthesizerTests(ITestOutputHelper output)
     [Fact]
     public void SpeechRequestsAttachPhonesFromTheSpanishG2pAndSpellNumbers()
     {
-        var request = SpeechRequests.Create("Tengo 2 espadas", "voz");
+        var request = SpeechRequests.Create("Tengo 2 espadas", "voz", SpanishLanguagePack.Instance);
         Assert.Equal("Tengo dos espadas", request.Text);
         Assert.Equal("voz", request.VoiceId);
         Assert.Equal(SpanishG2p.Phonemize("tengo dos espadas", DialectConfig.LatinAmericanNeutral).Phones, request.Phones);
         Assert.NotEmpty(request.Phones!);
 
-        var castilian = SpeechRequests.Create("zapato", "voz", DialectConfig.CastilianStandard);
-        var latin = SpeechRequests.Create("zapato", "voz");
+        var castilian = SpeechRequests.Create("zapato", "voz", SpanishLanguagePack.Instance, DialectConfig.CastilianStandard);
+        var latin = SpeechRequests.Create("zapato", "voz", SpanishLanguagePack.Instance);
         Assert.NotEqual(castilian.Phones, latin.Phones);
     }
 
@@ -72,7 +72,7 @@ public class SynthesizerTests(ITestOutputHelper output)
     {
         var modelDir = RequiresModelFactAttribute.ModelPath(KokoroSynthesizer.ModelDirectoryName)!;
         using var synthesizer = new KokoroSynthesizer(modelDir, speakerId: 28);
-        var request = SpeechRequests.Create("¿Tienes dos espadas?", "kokoro-es");
+        var request = SpeechRequests.Create("¿Tienes dos espadas?", "kokoro-es", SpanishLanguagePack.Instance);
 
         var first = synthesizer.Synthesize(request);
         var second = synthesizer.Synthesize(request);
@@ -88,7 +88,7 @@ public class SynthesizerTests(ITestOutputHelper output)
     public void KokoroFromStoreSpeaksSpanishDeterministicallyWithTheSpanishVoices()
     {
         var store = CommittedStore();
-        var request = SpeechRequests.Create("Hola, ¿tienes dos espadas?", "kokoro-es");
+        var request = SpeechRequests.Create("Hola, ¿tienes dos espadas?", "kokoro-es", SpanishLanguagePack.Instance);
 
         using var female = KokoroSynthesizer.FromStore(store, KokoroSynthesizer.ModelDirectoryName, speakerId: 28);
         var firstWatch = Stopwatch.StartNew();

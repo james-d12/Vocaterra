@@ -43,7 +43,7 @@ public class SpanishIdentityTests
 
     private static readonly string[] StageOrder = ["normalize", "analyze", "match", "grade", "pipeline", "recast", "g2p"];
 
-    private static readonly Lazy<ContentBundle> BundleLazy = new(() => ContentLoader.Load(GameBundleLocator.Directory));
+    private static readonly Lazy<ContentBundle> BundleLazy = new(() => SpanishContent.Load(GameBundleLocator.Directory));
 
     private static readonly Lazy<PcmClip> ClipLazy = new(static () =>
     {
@@ -144,13 +144,13 @@ public class SpanishIdentityTests
         var prompt = Bundle.Prompts[row.Prompt];
         var stages = new List<KeyValuePair<string, string>>();
 
-        var normalize = Stage(() => CanonicalJson.Serialize(TextNormalizer.Normalize(row.Text)));
+        var normalize = Stage(() => CanonicalJson.Serialize(SpanishTextNormalizer.Normalize(row.Text)));
         stages.Add(new("normalize", normalize.Hash));
 
         var analysis = Stage(() => CanonicalJson.Serialize(Analyze(row, prompt)));
         stages.Add(new("analyze", analysis.Hash));
 
-        var match = Stage(() => CanonicalJson.Serialize(AnswerMatcher.Match(TextNormalizer.Normalize(row.Text), Bundle.AnswerSets[prompt.AnswerSetId], prompt.Difficulty, SpanishLanguagePack.Instance)));
+        var match = Stage(() => CanonicalJson.Serialize(AnswerMatcher.Match(SpanishTextNormalizer.Normalize(row.Text), Bundle.AnswerSets[prompt.AnswerSetId], prompt.Difficulty, SpanishLanguagePack.Instance)));
         stages.Add(new("match", match.Hash));
 
         var grade = Stage(() => CanonicalJson.Serialize(grader.Grade(row.Text, prompt)));
@@ -159,7 +159,7 @@ public class SpanishIdentityTests
         var pipeline = Stage(() => CanonicalJson.Serialize(RunPipeline(row, prompt)));
         stages.Add(new("pipeline", pipeline.Hash));
 
-        var recast = Stage(() => CanonicalJson.Serialize(RecastBuilder.Build(TextNormalizer.Normalize(row.Text), Analyze(row, prompt))));
+        var recast = Stage(() => CanonicalJson.Serialize(RecastBuilder.Build(SpanishTextNormalizer.Normalize(row.Text), Analyze(row, prompt), SpanishLexicon.Empty, SpanishLanguagePack.Instance)));
         stages.Add(new("recast", recast.Hash));
 
         var g2p = Stage(() => CanonicalJson.Serialize(SpanishG2p.PhonemizeAll(row.Text)));
@@ -173,7 +173,7 @@ public class SpanishIdentityTests
         var grammars = row.Grammars is null
             ? PromptGrammarsOf(prompt)
             : row.Grammars.Select(static pattern => SlotGrammar.Parse(pattern)).ToList();
-        return new LinguisticAnalyzer(Bundle.Lexicon, Bundle.Morphology, SpanishLanguagePack.Instance).Analyze(TextNormalizer.Normalize(row.Text), grammars);
+        return new LinguisticAnalyzer(Bundle.Lexicon, Bundle.SpanishMorphology(), SpanishLanguagePack.Instance).Analyze(SpanishTextNormalizer.Normalize(row.Text), grammars);
     }
 
     private static PipelineResult RunPipeline(CorpusRow row, PromptSpec prompt)

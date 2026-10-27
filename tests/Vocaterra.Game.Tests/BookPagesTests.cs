@@ -11,6 +11,7 @@ using Vocaterra.Game.UI.Book;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Es;
 
 namespace Vocaterra.Game.Tests;
 
@@ -96,7 +97,7 @@ public sealed class BookPagesTests
     [Fact]
     public void TheVersesPageGivesEachInfinitiveWithItsEnglishAndEachFormWithItsLabel()
     {
-        var lines = BookPages.Verbs(FixedRecord().Verbs, Glosses.Value, Sheet.Value, Bundle.Value.Morphology);
+        var lines = BookPages.Verbs(FixedRecord().Verbs, Glosses.Value, Sheet.Value, Bundle.Value.SpanishMorphology());
         var texts = lines.Select(static l => l.Text).ToList();
 
         Assert.Equal("querer — to want", texts[0]);
@@ -123,7 +124,7 @@ public sealed class BookPagesTests
         record.Append(Entry(3, "Está aquí.", [
             Word("está", "estar", "verb", 0, "2", "sg", null, "imp"),
         ]));
-        var texts = BookPages.Verbs(record.Verbs, Glosses.Value, Sheet.Value, Bundle.Value.Morphology).Select(static l => l.Text).ToList();
+        var texts = BookPages.Verbs(record.Verbs, Glosses.Value, Sheet.Value, Bundle.Value.SpanishMorphology()).Select(static l => l.Text).ToList();
 
         Assert.Contains("vamos — we go", texts);
         Assert.Contains("está — he/she/it is", texts); // an imperative reading that is the present of estar
@@ -137,7 +138,7 @@ public sealed class BookPagesTests
     [Fact]
     public void TheVersesPageNeverListsAFixedExpressionOrAnInterjection()
     {
-        var lines = BookPages.Verbs(FixedRecord().Verbs, Glosses.Value, Sheet.Value, Bundle.Value.Morphology);
+        var lines = BookPages.Verbs(FixedRecord().Verbs, Glosses.Value, Sheet.Value, Bundle.Value.SpanishMorphology());
         Assert.DoesNotContain(lines, static l => l.Text.StartsWith("por favor", StringComparison.Ordinal) || l.Text.StartsWith("gracias", StringComparison.Ordinal));
         Assert.DoesNotContain(lines, static l => l.Text.Contains(" — ", StringComparison.Ordinal) && (l.Text.StartsWith("por", StringComparison.Ordinal) || l.Text.StartsWith("gracias", StringComparison.Ordinal)));
     }
@@ -148,7 +149,7 @@ public sealed class BookPagesTests
         var sheetRow = Sheet.Value.Find("pedir-agua")!;
         var record = new LearnerRecord();
         record.Append(Entry(1, sheetRow.Spanish, [Word("quiero", "querer", "verb", 0, "1", "sg", "pres", "ind")]));
-        var verbs = BookPages.Verbs(record.Verbs, Glosses.Value, Sheet.Value, Bundle.Value.Morphology);
+        var verbs = BookPages.Verbs(record.Verbs, Glosses.Value, Sheet.Value, Bundle.Value.SpanishMorphology());
         Assert.Contains(verbs, line => line.Text == $"last: \"{sheetRow.Spanish}\" = {sheetRow.English}");
     }
 

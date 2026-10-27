@@ -9,7 +9,7 @@ internal static class TestSupport
 {
     public const string FakeHash = "test-model-hash";
 
-    public static FakePhonemeRecognizer Fake { get; } = FakePhonemeRecognizer.ForSpanish();
+    public static FakePhonemeRecognizer Fake { get; } = FakePhonemeRecognizer.ForPhoneInventory();
 
     /// <summary>The accepted variants for a text across every shipped dialect.</summary>
     public static IReadOnlyList<G2pResult> Variants(string text)

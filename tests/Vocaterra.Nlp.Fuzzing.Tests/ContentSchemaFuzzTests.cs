@@ -27,7 +27,7 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
 
     // Almost every damaged copy has the lexicon files of the committed bundle byte for byte (the damage is elsewhere), so the merged lexicon is parsed once.
     // A copy whose lexicon file is damaged has other bytes and is parsed and checked in full; nothing is served from the cache for it.
-    private static readonly ContentLoadOptions LoadOptions = new() { LexiconCache = new LexiconCache() };
+    private static readonly ContentLoadOptions LoadOptions = new() { LexiconCache = new LexiconCache(), LanguagePacks = LanguagePacks.Default.WithSpanish() };
 
     [Fact]
     public void MutatedBundles_AreRejectedWithContentValidationExceptions_NamingTheMutatedFile()
@@ -170,7 +170,7 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
         tags.Sample(
             tag =>
             {
-                var resolved = LanguagePacks.Default.TryResolve(tag, out var pack);
+                var resolved = LanguagePacks.Default.WithSpanish().TryResolve(tag, out var pack);
                 var wellFormed = LanguagePacks.TryGetPrimarySubtag(tag, out var primary);
                 if (resolved && (!wellFormed || primary != "es" || pack.LanguageId != "es"))
                 {

@@ -77,7 +77,7 @@ internal sealed class LintFixture : IDisposable
     {
         _bundle.Write("intents/intents.json", _intents.ToJsonString());
         _bundle.Write("prompts/prompts.json", _prompts.ToJsonString());
-        return ContentLoader.Load(_bundle.Directory, new ContentLoadOptions { VerifyHashes = false, LexiconCache = Cache });
+        return SpanishContent.Load(_bundle.Directory, new ContentLoadOptions { VerifyHashes = false, LexiconCache = Cache });
     }
 
     public LintReport Lint(LintOptions? options = null)
@@ -167,7 +167,7 @@ public class LintTests
     {
         var options = new LintOptions { Level = "a1" };
         var first = ContentLinter.Lint(TestSupport.Bundle, options);
-        var second = ContentLinter.Lint(ContentLoader.Load(TestSupport.BundleDir), options);
+        var second = ContentLinter.Lint(SpanishContent.Load(TestSupport.BundleDir), options);
 
         Assert.Equal(first.Format(), second.Format());
         Assert.Equal(first.ToJson(), second.ToJson());

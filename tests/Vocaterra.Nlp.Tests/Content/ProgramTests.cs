@@ -226,7 +226,7 @@ public class ProgramTests
         Assert.Equal(Program.ExitOk, code);
         Assert.Contains("farewell_reply.1", output, StringComparison.Ordinal);
         Assert.Contains("not in the list", output, StringComparison.Ordinal);
-        var loaded = ContentLoader.Load(bundle.Directory, new ContentLoadOptions { VerifyHashes = false });
+        var loaded = SpanishContent.Load(bundle.Directory, new ContentLoadOptions { VerifyHashes = false });
         Assert.Equal(CefrChecker.Format(CefrChecker.Check(loaded, "a1")), output);
     }
 
@@ -242,7 +242,7 @@ public class ProgramTests
         Assert.Equal(string.Empty, error);
         Assert.Contains("lemmas in prompt text, ", output, StringComparison.Ordinal);
         Assert.Contains("  zzxq (not in lexicon): guide-offer\n", output, StringComparison.Ordinal);
-        var loaded = ContentLoader.Load(bundle.Directory, new ContentLoadOptions { VerifyHashes = false });
+        var loaded = SpanishContent.Load(bundle.Directory, new ContentLoadOptions { VerifyHashes = false });
         Assert.Equal(CefrChecker.Format(CefrChecker.Check(loaded, "a1")), output);
     }
 
@@ -271,7 +271,7 @@ public class ProgramTests
         Assert.Equal(string.Empty, error);
         Assert.StartsWith("read 20 lines, 19 Spanish entries: 13 imported into 41 lexicon entries, 6 skipped\n", output, StringComparison.Ordinal);
         Assert.EndsWith($"wrote {outPath}\n", output, StringComparison.Ordinal);
-        var lexicon = NlpLexicon.Load(File.ReadAllText(outPath));
+        var lexicon = SpanishLexicon.Load(File.ReadAllText(outPath));
         Assert.Equal("wiktionary-import", lexicon.GeneratedBy);
         Assert.Equal(41, lexicon.Entries.Count);
         Assert.True(lexicon.ContainsLemma("espada"));
@@ -288,7 +288,7 @@ public class ProgramTests
 
         Assert.Equal(Program.ExitOk, code);
         Assert.StartsWith("read 3 lines, 2 Spanish entries: 2 imported into 11 lexicon entries, 0 skipped\n", output, StringComparison.Ordinal);
-        Assert.Equal(11, NlpLexicon.Load(File.ReadAllText(outPath)).Entries.Count);
+        Assert.Equal(11, SpanishLexicon.Load(File.ReadAllText(outPath)).Entries.Count);
     }
 
     [Fact]
@@ -341,7 +341,7 @@ public class ProgramTests
 
         Assert.Equal(string.Empty, error);
         Assert.Equal(Program.ExitOk, code);
-        var loaded = ContentLoader.Load(bundle.Directory);
+        var loaded = SpanishContent.Load(bundle.Directory);
         Assert.True(loaded.Lexicon.Entries.Count >= TestSupport.Bundle.Lexicon.Entries.Count);
         Assert.Contains(loaded.Provenance.Items, item => item.GeneratedBy == GeneratedByKinds.WiktionaryImport && item.Path == "lexicon/wiktionary.json");
         Assert.Contains("lexicon/wiktionary.source.json", loaded.LexiconSources.Keys);
@@ -352,7 +352,7 @@ public class ProgramTests
     {
         var entries = KaikkiImporter.ImportFile(TestSupport.KaikkiFixture).Entries;
 
-        var reloaded = NlpLexicon.Load(KaikkiImporter.ToJson(entries)).Entries;
+        var reloaded = SpanishLexicon.Load(KaikkiImporter.ToJson(entries)).Entries;
 
         Assert.All(reloaded, entry => Assert.IsType<LexiconEntry>(entry));
         Assert.Equal(entries, reloaded);

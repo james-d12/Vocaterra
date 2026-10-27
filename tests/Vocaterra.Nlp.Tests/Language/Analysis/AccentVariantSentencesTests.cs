@@ -3,6 +3,7 @@ namespace Vocaterra.Nlp.Language.Tests.Analysis;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Es.Tests.Analysis;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
@@ -35,7 +36,7 @@ public class AccentVariantSentencesTests
             entries.AddRange(Lexicon.ReadFile(File.ReadAllBytes(path)).Entries);
         }
 
-        return Lexicon.FromEntries(entries);
+        return SpanishLexicon.FromEntries(entries);
     }
 
     private static IReadOnlyList<ErrorTag> Errors(string sentence, params string[] grammarPatterns)

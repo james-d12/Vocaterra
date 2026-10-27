@@ -71,7 +71,7 @@ flowchart TD
 | --- | --- | --- | --- | --- |
 | 0 | Recognition request | D0 | `GrammarBuilder.BuildList` | never |
 | 1 | Word recognition; phoneme recognition | D1 | `IWordRecognizer`, `IPhonemeRecognizer` | no phoneme recognizer |
-| 2 | Normalization | D0 | `TextNormalizer.Normalize` | never |
+| 2 | Normalization | D0 | `bundle.Language.Normalizer.Normalize` (Spanish: `SpanishTextNormalizer`) | never |
 | 3 | Answer matching | D0 | `AnswerMatcher.Match` | never (result `None` if nothing matches) |
 | 4 | Linguistic analysis | D0 | `LinguisticAnalyzer.Analyze` | never |
 | 5 | Intent resolution | D0, plus one D1 rung | `IntentResolver.Resolve` | the prompt allows no intent (answer-only prompt) |
@@ -135,7 +135,7 @@ For the example: `{"transcript":"yo quiere dos espada", "nBest":[{"text":"yo qui
 
 ### 2. Normalization (D0)
 
-The transcript loses any `[unk]` markers, then `TextNormalizer.Normalize` lower-cases it, applies Unicode NFC, strips punctuation
+The transcript loses any `[unk]` markers, then the pack's normalizer (Spanish: `SpanishTextNormalizer.Normalize`, built on the engine's neutral `TextTokenizer`) lower-cases it, applies Unicode NFC, strips punctuation
 (keeping `ñ` and accents), and turns number words into digits. The pipeline passes `ConvertIndefiniteArticles = false`:
 the normalizer's default would turn `una espada` into `1 espada`, which would hide the article from the agreement checks and the
 `[ART]` grammar tokens. Every token keeps its span in the normalized text and its original word.
@@ -310,7 +310,7 @@ such as `request_item`, is not understood after a leading adverb (`ayer quiero d
 ### 6. Pronunciation scoring (D1 model, D0 scoring)
 
 Only when a phoneme recognizer produced frames. The normalized text has its digits spelled out (the G2P drops digits:
-`2` becomes `dos`), `SpanishG2p.PhonemizeAll` yields the accepted phone sequences for every shipped dialect (ADR 0005), the
+`2` becomes `dos`), the pack's G2P (Spanish: `SpanishG2p.PhonemizeAll`) yields the accepted phone sequences for every shipped dialect (ADR 0005), the
 predicted English-speaker error variants are generated from them, and `PronunciationScorer` (CTC forced alignment and goodness of
 pronunciation by default) scores each phone of the best-matching variant and turns low scores into `pron.*` errors with margins.
 
@@ -395,7 +395,7 @@ so the host gates effects by state (the host decides whether the effect is allow
 
 ### 11. Repair (D0)
 
-If the player was not understood, `RepairStrategy.Next(attempt, prompt, phrases)` returns the deterministic repair ladder step.
+If the player was not understood, `RepairStrategy.Next(attempt, prompt, retryPhrases, choicePhrases, lines)` (the lines are the bundle's pool lines, else the pack's `RepairFallback`) returns the deterministic repair ladder step.
 The attempt number is the count of the pseudo-tag `not_communicated` after this utterance (the context's count before it, plus one, so at least 1): attempt 1 is
 `AskAgain` ("¿Cómo?"), attempt 2 `SlowRepeat`, attempt 3 `OfferChoices` (one canonical phrase per answer of the answer set, in its declared
 order, the first three distinct ones, with a constrained retry request limited to them; see [API.md](API.md#6-plan-the-response-d0-with-d1-for-speech)),

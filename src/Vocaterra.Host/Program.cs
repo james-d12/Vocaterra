@@ -8,6 +8,7 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Host;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
+using Vocaterra.Nlp.Es;
 
 const int ExitOk = 0;
 const int ExitInvalidContent = 1;
@@ -48,7 +49,7 @@ if (contentDirectory == HostOptions.DefaultContentDirectory && !Directory.Exists
 
 try
 {
-    bundle = ContentLoader.Load(contentDirectory);
+    bundle = SpanishContent.Load(contentDirectory);
 }
 catch (Exception ex) when (ex is ContentValidationException or IOException or UnauthorizedAccessException or JsonException)
 {

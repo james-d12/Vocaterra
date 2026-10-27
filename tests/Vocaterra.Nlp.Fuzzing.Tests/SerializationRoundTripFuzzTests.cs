@@ -132,7 +132,7 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
 
         DialogueCatalogRoundTrip(bundle.Dialogue);
         LexiconRoundTrip(bundle.Lexicon);
-        LexiconRoundTrip(NlpLexicon.Seed);
+        LexiconRoundTrip(SpanishLexicon.Seed);
 
         var catalog = IntentCatalog.Load(bundle.Intents.ToJson());
         if (catalog.ToJson() != bundle.Intents.ToJson() || catalog.ContentHash() != bundle.Intents.ContentHash())
@@ -342,7 +342,7 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
     private static void LexiconRoundTrip(NlpLexicon lexicon)
     {
         var json = lexicon.ToJson();
-        var back = NlpLexicon.Load(json);
+        var back = SpanishLexicon.Load(json);
         if (back.ToJson() != json || back.Entries.Count != lexicon.Entries.Count)
         {
             throw Determinism.Fail(Oracle, "The lexicon does not round-trip through ToJson and Load.", json.Length > 3000 ? json[..3000] : json);
@@ -406,6 +406,6 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
                     rng.NextInt(2) == 0 ? null : rng.Pick(LexiconSchema.Genders))));
         }
 
-        return NlpLexicon.FromEntries(entries);
+        return SpanishLexicon.FromEntries(entries);
     }
 }

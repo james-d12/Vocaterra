@@ -360,6 +360,22 @@ public class PipelineTests
     }
 
     [Fact]
+    public void ThePacksOwnOfferWordingReachesTheOfferedChoices()
+    {
+        // Regression (M53): the pipeline built the repair lines without the pack's offer format, so every pack offered choices in the engine's default wording.
+        var english = new RepairLines("again?", "slower", "never mind", new OfferLineFormat("Do you mean ", "\"", "\"", ", ", " or ", "?"));
+        var options = new ContentLoadOptions { LanguagePacks = LanguagePacks.Of(new Vocaterra.Nlp.Language.Packs.Tests.LanguagePacksTests.StubPack("es", english)) };
+        var bundle = ContentLoader.Load(TestSupport.BundleDir, options);
+        var pipeline = TestSupport.Pipeline("xyzzy plugh", RecognitionMode.Constrained, bundle: bundle);
+        var counts = new Dictionary<string, int> { [FeedbackPolicy.NotCommunicatedTag] = 2 };
+
+        var result = pipeline.Evaluate(TestSupport.Clip(), TestSupport.QuizPrompt, TestSupport.Context(repeats: counts));
+
+        Assert.Equal(RepairKind.OfferChoices, result.Repair!.Kind);
+        Assert.Equal("Do you mean \"árbol\", \"piedra\" or \"río\"?", result.Repair.AgentLine);
+    }
+
+    [Fact]
     public void TheRetryBeforeTheChoicesStillRecognizesTheAliases()
     {
         var pipeline = TestSupport.Pipeline("xyzzy plugh", RecognitionMode.Constrained);

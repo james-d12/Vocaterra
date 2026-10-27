@@ -1,6 +1,7 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using Vocaterra.Nlp.Content;
+using Vocaterra.Nlp.Es;
 
 namespace Vocaterra.Nlp.ContentBuilder;
 
@@ -64,7 +65,7 @@ internal static class GrammarCommand
         try
         {
             // Hashes are not verified, so the check runs while content is being edited; run validate before shipping.
-            bundle = ContentLoader.Load(dir, new ContentLoadOptions { VerifyHashes = false });
+            bundle = SpanishContent.Load(dir, new ContentLoadOptions { VerifyHashes = false });
         }
         catch (ContentValidationException ex)
         {

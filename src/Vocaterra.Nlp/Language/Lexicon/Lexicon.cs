@@ -9,9 +9,6 @@ namespace Vocaterra.Nlp.Language.Lexicon;
 /// <summary>An immutable word list with an ordinal-sorted index from surface form to readings.</summary>
 public sealed class Lexicon
 {
-    /// <summary>Manifest resource name under which the seed lexicon is embedded in this assembly.</summary>
-    public const string SeedResourceName = "Vocaterra.Nlp.Language.Lexicon.seed.json";
-
     private static readonly LexicalFeatures[] NoReadings = [];
 
     private readonly LexiconEntry[] _entries;
@@ -102,18 +99,11 @@ public sealed class Lexicon
         _lemmas = lemmas;
     }
 
-    /// <summary>The lexicon with no entries.</summary>
-    public static Lexicon Empty { get; } = new([], null, DefaultFolding);
+    /// <summary>The lexicon with no entries, with the language-neutral <see cref="InvariantLexiconFolding"/>. A language's empty lexicon is its pack's (the Spanish pack: <c>SpanishLexicon.Empty</c>).</summary>
+    public static Lexicon Empty { get; } = new([], null, InvariantLexiconFolding.Instance);
 
-    // The lookup fold of the compatibility overloads and of the embedded seed: Spanish, because the seed lexicon is Spanish. A bundle's lexicon is built with
-    // the folding of the bundle's pack instead (FromEntries(entries, folding, profile)); see ADR 0011.
-    private static ILexiconFolding DefaultFolding => SpanishLanguagePack.Instance.Folding;
-
-    /// <summary>The folding this lexicon builds its indexes with and looks words up with (the Spanish folding unless a pack's folding was given at load).</summary>
+    /// <summary>The folding this lexicon builds its indexes with and looks words up with: the folding of the pack it was loaded with.</summary>
     public ILexiconFolding Folding => _folding;
-
-    /// <summary>The seed lexicon embedded in this assembly; loaded once on first use.</summary>
-    public static Lexicon Seed => SeedHolder.Instance;
 
     /// <summary>The provenance string of the source file (for example <c>hand-authored</c>), or null when built from entries.</summary>
     public string? GeneratedBy { get; }
@@ -123,13 +113,6 @@ public sealed class Lexicon
 
     /// <summary>The distinct lemmas in ordinal order.</summary>
     public IReadOnlyList<string> Lemmas => _lemmas;
-
-    /// <summary>Parses and validates a lexicon JSON document (schema version 1).</summary>
-    public static Lexicon Load(string json)
-    {
-        var file = ReadFile(json);
-        return Create(file.Entries, file.GeneratedBy, DefaultFolding, LexiconProfile.V1);
-    }
 
     /// <summary>Parses and validates a lexicon JSON document under the given language profile and builds its indexes with the given folding (M34, additive).</summary>
     /// <param name="json">The document.</param>
@@ -145,7 +128,7 @@ public sealed class Lexicon
 
     /// <summary>
     /// Parses a lexicon JSON document and checks its schema version, its <c>entries</c> array and every entry against the schema, without building the
-    /// indexes. The content loader reads each <c>lexicon/*.json</c> file this way and builds one lexicon from all of them with <see cref="FromEntries(IEnumerable{LexiconEntry})"/>.
+    /// indexes. The content loader reads each <c>lexicon/*.json</c> file this way and builds one lexicon from all of them with <see cref="FromEntries(IEnumerable{LexiconEntry}, ILexiconFolding, LexiconProfile)"/>.
     /// </summary>
     /// <exception cref="FormatException">The schema version is not supported, <c>entries</c> is missing, or an entry breaks the schema.</exception>
     public static LexiconFile ReadFile(string json)
@@ -201,18 +184,11 @@ public sealed class Lexicon
     }
 
     /// <summary>
-    /// Builds a lexicon from entries, normalizing forms and lemmas (NFC, lowercase), validating and sorting them.
+    /// Builds a lexicon from entries with a pack's folding and profile, normalizing forms and lemmas (NFC, lowercase), validating and sorting them.
     /// This is also the merge policy for several lexicon files: pass the entries of all of them. Entries are unioned; two entries with the same
     /// form, lemma, part of speech and features are one reading and appear once, and different readings of one form (another lemma, another
     /// part of speech, other features) all stay and are all returned by <see cref="Lookup"/>.
     /// </summary>
-    public static Lexicon FromEntries(IEnumerable<LexiconEntry> entries)
-    {
-        ArgumentNullException.ThrowIfNull(entries);
-        return Create(entries, null, DefaultFolding, LexiconProfile.V1);
-    }
-
-    /// <summary>Builds a lexicon like <see cref="FromEntries(IEnumerable{LexiconEntry})"/> with a pack's folding and profile (M34, additive).</summary>
     /// <param name="entries">The entries of all lexicon files.</param>
     /// <param name="folding">The pack's folding: forms and lemmas are stored under <see cref="ILexiconFolding.Key"/>, and the accent-insensitive index under <see cref="ILexiconFolding.LenientKey"/>.</param>
     /// <param name="profile">The pack's closed vocabularies, which every entry is validated against.</param>
@@ -222,21 +198,6 @@ public sealed class Lexicon
         ArgumentNullException.ThrowIfNull(folding);
         ArgumentNullException.ThrowIfNull(profile);
         return Create(entries, null, folding, profile);
-    }
-
-    /// <summary>Reads the embedded seed lexicon JSON text.</summary>
-    public static string ReadSeedJson()
-    {
-        using var stream = typeof(Lexicon).Assembly.GetManifestResourceStream(SeedResourceName)
-            ?? throw new InvalidOperationException($"Embedded resource '{SeedResourceName}' is missing.");
-        using var reader = new StreamReader(stream, Encoding.UTF8);
-        return reader.ReadToEnd();
-    }
-
-    /// <summary>Parses the embedded seed lexicon into a fresh instance.</summary>
-    public static Lexicon LoadSeed()
-    {
-        return Load(ReadSeedJson());
     }
 
     /// <summary>Returns the readings of a surface form: exact matches first, else accent-insensitive matches flagged on the result.</summary>
@@ -288,9 +249,12 @@ public sealed class Lexicon
     /// <summary>
     /// Returns a read-only structure derived from this lexicon alone (for example the index of regularized irregular forms), built on first use and
     /// shared by everything that uses this lexicon. The lexicon is immutable, so the structure is a pure function of it and every caller would build
-    /// the same one; building it once keeps a second morphology generator over the same lexicon from repeating the work.
+    /// the same one; building it once keeps a second morphology generator over the same lexicon from repeating the work. Public since M53, for the language packs.
     /// </summary>
-    internal T Derive<T>(string key, Func<Lexicon, T> build)
+    /// <typeparam name="T">The derived structure.</typeparam>
+    /// <param name="key">The name of the structure; one build per key per lexicon.</param>
+    /// <param name="build">Builds the structure from the lexicon.</param>
+    public T Derive<T>(string key, Func<Lexicon, T> build)
         where T : class
     {
         return (T)_derived.GetOrAdd(key, _ => new Lazy<object>(() => build(this), LazyThreadSafetyMode.ExecutionAndPublication)).Value;
@@ -456,10 +420,5 @@ public sealed class Lexicon
         }
 
         return b is null ? 1 : string.CompareOrdinal(a, b);
-    }
-
-    private static class SeedHolder
-    {
-        internal static readonly Lexicon Instance = LoadSeed();
     }
 }

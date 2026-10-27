@@ -106,7 +106,7 @@ internal sealed class TempBundle : IDisposable
     /// <summary>Loads the copy. By default the hashes are not verified, because the copy is usually edited and not rehashed.</summary>
     public ContentBundle Load(bool verifyHashes = false)
     {
-        return ContentLoader.Load(Directory, new ContentLoadOptions { VerifyHashes = verifyHashes });
+        return SpanishContent.Load(Directory, new ContentLoadOptions { VerifyHashes = verifyHashes });
     }
 
     public void Dispose()

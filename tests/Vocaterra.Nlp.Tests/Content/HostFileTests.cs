@@ -26,7 +26,7 @@ public class HostFileTests
     {
         using var bundle = BundleWithHostFile();
 
-        var loaded = ContentLoader.Load(bundle.Directory);
+        var loaded = SpanishContent.Load(bundle.Directory);
 
         Assert.Contains(HostPath, loaded.HostFilePaths);
         Assert.True(loaded.TryReadHostFile(HostPath, out var bytes));
@@ -59,7 +59,7 @@ public class HostFileTests
         using var bundle = BundleWithHostFile();
         File.WriteAllText(bundle.PathOf(HostPath), "{\"nouns\":[\"lanza\"]}\n", new UTF8Encoding(false));
 
-        var ex = Assert.Throws<ContentValidationException>(() => ContentLoader.Load(bundle.Directory));
+        var ex = Assert.Throws<ContentValidationException>(() => SpanishContent.Load(bundle.Directory));
 
         Assert.Contains(ex.Problems, problem => problem.StartsWith(HostPath + ": hash mismatch", StringComparison.Ordinal));
     }
@@ -68,7 +68,7 @@ public class HostFileTests
     public void AHostFileChangedAfterTheLoadStillReadsItsVerifiedBytes()
     {
         using var bundle = BundleWithHostFile();
-        var loaded = ContentLoader.Load(bundle.Directory);
+        var loaded = SpanishContent.Load(bundle.Directory);
 
         File.WriteAllText(bundle.PathOf(HostPath), "changed after the load", new UTF8Encoding(false));
 
@@ -80,7 +80,7 @@ public class HostFileTests
     public void AnUnlistedPathIsRefused()
     {
         using var bundle = BundleWithHostFile();
-        var loaded = ContentLoader.Load(bundle.Directory);
+        var loaded = SpanishContent.Load(bundle.Directory);
         bundle.Write("game/other.json", "{}");
 
         Assert.False(loaded.TryReadHostFile("game/other.json", out _));
@@ -91,7 +91,7 @@ public class HostFileTests
     public void ALoaderOwnedFileIsRefused()
     {
         using var bundle = BundleWithHostFile();
-        var loaded = ContentLoader.Load(bundle.Directory);
+        var loaded = SpanishContent.Load(bundle.Directory);
 
         Assert.False(loaded.TryReadHostFile("lexicon/game.json", out _));
         Assert.False(loaded.TryReadHostFile("prompts/prompts.json", out _));
@@ -110,7 +110,7 @@ public class HostFileTests
     public void APathThatIsNotRelativeWithForwardSlashesIsRefused(string path)
     {
         using var bundle = BundleWithHostFile();
-        var loaded = ContentLoader.Load(bundle.Directory);
+        var loaded = SpanishContent.Load(bundle.Directory);
 
         Assert.False(loaded.TryReadHostFile(path, out var bytes));
         Assert.True(bytes.IsEmpty);
@@ -120,7 +120,7 @@ public class HostFileTests
     public void AnAbsolutePathToTheRealFileIsRefused()
     {
         using var bundle = BundleWithHostFile();
-        var loaded = ContentLoader.Load(bundle.Directory);
+        var loaded = SpanishContent.Load(bundle.Directory);
 
         Assert.False(loaded.TryReadHostFile(bundle.PathOf(HostPath), out _));
     }
@@ -129,7 +129,7 @@ public class HostFileTests
     public void WithoutHashVerificationNoHostFileIsExposed()
     {
         using var bundle = BundleWithHostFile();
-        var loaded = ContentLoader.Load(bundle.Directory, new ContentLoadOptions { VerifyHashes = false });
+        var loaded = SpanishContent.Load(bundle.Directory, new ContentLoadOptions { VerifyHashes = false });
 
         Assert.Empty(loaded.HostFilePaths);
         Assert.False(loaded.TryReadHostFile(HostPath, out _));

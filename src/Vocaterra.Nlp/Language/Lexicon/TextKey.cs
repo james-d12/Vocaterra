@@ -7,7 +7,7 @@ namespace Vocaterra.Nlp.Language.Lexicon;
 /// The language-neutral lookup key: Unicode NFC and invariant lower case. It is what <see cref="Packs.ILexiconFolding.Key"/> returns for Spanish, and what the
 /// parsers of slot grammars and intent catalogs use when no pack's folding is given (M34).
 /// </summary>
-internal static class TextKey
+public static class TextKey
 {
     /// <summary>
     /// Returns the NFC form of the text, lowercased with the invariant culture. A lone surrogate reads as U+FFFD first, so the key of any string is

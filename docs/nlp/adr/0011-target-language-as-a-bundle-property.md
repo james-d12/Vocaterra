@@ -245,3 +245,10 @@ run on it, and the Spanish suite runs the same bodies on Spanish (`FuzzLanguage`
 
 **For M53.** The toy pack is the proof that the engine runs without the Spanish pack. M53 moves the Spanish pack out of the engine assembly; the toy suite then
 needs no change, and `LayeringTests` should keep the engine free of a reference to `Vocaterra.Nlp.Es`.
+
+## Note, M53: the Spanish pack is a project of its own (2026-10-27)
+
+`SpanishLanguagePack` and the Spanish rules behind it moved to `src/Vocaterra.Nlp.Es` (namespaces `Vocaterra.Nlp.Es.*`; [ADR 0012](0012-one-engine-assembly-and-language-packs.md), amendment M53). Where this record says
+that `LanguagePacks.Default` holds `es` or that the engine's compatibility entry points keep their Spanish meaning, read: the default registry is empty, a host registers the pack
+(`LanguagePacks.Default.WithSpanish()`, `SpanishContent.Load`), and the entry points are the pack project's. An absent manifest `language` still means `es`, resolved from the host's registry;
+an unregistered `es` is the usual `ContentValidationException`. The seams, the hash rule and the toy language are unchanged.

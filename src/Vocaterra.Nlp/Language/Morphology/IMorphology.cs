@@ -11,7 +11,7 @@ public sealed record RegularizedForm(string Lemma, string Expected, string Perso
 /// <summary>
 /// Generates and recognizes the word forms of one language: nouns, articles, adjectives, verbs and regularized irregular forms, lexicon first and rules
 /// second. A language pack creates one over its lexicon (<see cref="Packs.ILanguagePack.CreateMorphology"/>); the engine and the template functions use it
-/// through this interface (M34, ADR 0011). <see cref="MorphologyGenerator"/> is the Spanish implementation. Pure and deterministic.
+/// through this interface (M34, ADR 0011). The Spanish implementation is the Spanish pack's <c>MorphologyGenerator</c>. Pure and deterministic.
 /// </summary>
 public interface IMorphology
 {

@@ -36,7 +36,7 @@ public class EndToEndGoldenTests
     private const string Transcript = "yo quiere dos espada";
     private const string ConfirmTranscript = "sí, por favor";
 
-    private static ContentBundle Bundle { get; } = ContentLoader.Load(GameBundleLocator.Directory);
+    private static ContentBundle Bundle { get; } = SpanishContent.Load(GameBundleLocator.Directory);
 
     private static PcmClip Clip()
     {
@@ -64,7 +64,7 @@ public class EndToEndGoldenTests
     private static PipelineResult Run()
     {
         var asr = new AsrResult(Transcript, [new AsrHypothesis(Transcript, 1.0)], [], 1.0, "scripted-golden", RecognitionMode.Open);
-        var fake = FakePhonemeRecognizer.ForSpanish();
+        var fake = FakePhonemeRecognizer.ForPhoneInventory();
         var phones = SpanishG2p.Phonemize(Transcript, DialectConfig.LatinAmericanNeutral).Phones;
         fake.Returns(fake.FromPhones(phones));
         var pipeline = new UtterancePipeline(new PipelineServices(new ScriptedWordRecognizer(asr), fake, null, null, Bundle));

@@ -18,7 +18,7 @@ public class RecastReadAsAccentedTests
         return new LexiconEntry(form, lemma, pos, new EntryFeatures(person, number, tense, mood, gender));
     }
 
-    private static readonly Lexicon Words = Lexicon.FromEntries(
+    private static readonly Lexicon Words = SpanishLexicon.FromEntries(
     [
         Entry("el", "el", "art", number: "sg", gender: "m"),
         Entry("la", "el", "art", number: "sg", gender: "f"),
@@ -36,14 +36,14 @@ public class RecastReadAsAccentedTests
 
     private static (NormalizedText Text, AnalysisResult Analysis) Analyze(string sentence)
     {
-        var text = TextNormalizer.Normalize(sentence, new NormalizationOptions { NumbersToDigits = false, ConvertIndefiniteArticles = false });
+        var text = SpanishTextNormalizer.Normalize(sentence, new NormalizationOptions { NumbersToDigits = false, ConvertIndefiniteArticles = false });
         return (text, new LinguisticAnalyzer(Words, SpanishLanguagePack.Instance).Analyze(text));
     }
 
     private static string Recast(string sentence)
     {
         var (text, analysis) = Analyze(sentence);
-        return RecastBuilder.Build(text, analysis, Words);
+        return RecastBuilder.Build(text, analysis, Words, SpanishLanguagePack.Instance);
     }
 
     [Fact]
@@ -98,6 +98,6 @@ public class RecastReadAsAccentedTests
     {
         var (text, analysis) = Analyze("donde esta el arbol");
 
-        Assert.Equal("donde esta el arbol", RecastBuilder.Build(text, analysis));
+        Assert.Equal("donde esta el arbol", RecastBuilder.Build(text, analysis, SpanishLexicon.Empty, SpanishLanguagePack.Instance));
     }
 }

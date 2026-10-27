@@ -38,7 +38,7 @@ is the one between the language-neutral engine and each language pack, not betwe
    `Phonology`, `Language` and the bundle's lexicon) are to move out in the later milestones: the pack seams come in M32 to M35 (under
    `src/Vocaterra.Nlp/Language/Packs/`), and the Spanish pack is extracted to `src/Vocaterra.Nlp.Es` (`ILanguagePack`, research section 5.2,
    milestone M53). A German pack, if started, goes to `src/Vocaterra.Nlp.De`. This record does not move any Spanish code; M52 moves none
-   between projects either. The engine must not depend on a pack, and `LayeringTests` gains that rule with the first pack.
+   between projects either. The engine must not depend on a pack, and `LayeringTests` gains that rule with the first pack. (M53 did the extraction: see the amendment at the end.)
 4. **Build settings follow the name.** `VocaterraCore` in `Directory.Build.props` is true for the engine `Vocaterra.Nlp` and for every project
    named `Vocaterra.Nlp.*` (tests and tools), so the XML documentation, `CS1591`, the package metadata and the native-trim exclusion still apply.
    The engine's `InternalsVisibleTo` is `Vocaterra.Nlp.Tests`.
@@ -63,3 +63,66 @@ is the one between the language-neutral engine and each language pack, not betwe
 - ADR 0003's layering bullet is superseded by this record. Its other points (the engine-agnostic contracts, the interfaces for models and
   capture devices, the thin host) stand.
 - ADR 0009's boundary is unchanged: the core is the `Vocaterra.Nlp` engine and its packs, and the game is still the other side of it.
+
+## Amendment, M53: the Spanish pack as built (2026-10-27)
+
+M53 extracts the Spanish pack. Point 3 above ("the engine must not depend on a pack") is now true by construction: `src/Vocaterra.Nlp.Es` references `src/Vocaterra.Nlp`, and the
+engine references nothing of it. Behaviour is unchanged: the bundle hash, the goldens, the identity baseline and the core demo are the same as before the move.
+
+**The project boundary as built.**
+
+- `src/Vocaterra.Nlp.Es` (assembly and namespace root `Vocaterra.Nlp.Es`, folders `Analysis`, `Morphology`, `Normalization`, `Phonology`, `Text`) holds `SpanishLanguagePack` and the
+  Spanish rules and data behind it: the normalizer (`SpanishTextNormalizer`), `SpanishNumbers`, `SpanishPhoneticKey`, the accent folding (`Accents`, `TextFolding`),
+  `MorphologyGenerator` and `SpanishOrthography`, `SpanishAnalysisRules`, `SpanishAgreementChecker`, `SpanishAnalysisTables` and `WordClasses`, `SpanishTemplateFunctions`,
+  `SpanishRecastPolicy`, `PunctuationFixer` (the `¿ ¡` balancing) and `NumberAgreement`, the repair lines (`SpanishRepairLines`, the constants of the former `RepairStrategy`), the whole
+  Spanish G2P (`SpanishG2p`, `G2pNormalizer`, `DigraphGrouper`, `Syllabifier`, `StressAssigner`, `PhoneMapper`, `AllophoneRules`, `WordPipeline`, `ExceptionLexicon` and `exceptions.json`), and the
+  seed lexicon resource (`../../content/game-v1/lexicon/seed.json`, same logical name as before). New in the pack: `SpanishLexicon` (the seed and the Spanish-default `Load` and
+  `FromEntries`) and `SpanishContent` (`WithSpanish`, `Load`, `SpanishMorphology`, `CreateTemplateEngine`), the host-facing entry points (API.md, "The Spanish pack project (M53)").
+- `tests/Vocaterra.Nlp.Es.Tests` holds the Spanish tests (Analysis, Lexicon, Morphology, Normalization, Phonology, the pack seams and the G2P golden with its data file, moved with `git mv`-equivalent
+  renames). `VocaterraCore` already covers the name, so the pack has XML docs, `CS1591` and package metadata, and its tests see the pack's internals through `InternalsVisibleTo $(MSBuildProjectName).Tests`.
+  There is **no** `InternalsVisibleTo` from the engine to the pack: every engine member the pack needed was made public with XML docs (`Utf16`, `TextKey`, `Lexicon.Derive`, and the new `TextTokenizer`,
+  `TokenizedWord` and `InvariantLexiconFolding`).
+- Both projects are in `Vocaterra.sln` and `Vocaterra.Nlp.slnf`; the licence scan reads the filter, so it covers them (the pack adds no package).
+
+**What stayed in the engine, and why.**
+
+- `DialectConfig`, `G2pResult`, `PhoneInventory` and `PredictedErrorVariants` (`Phonology`): the pronunciation scorer, the fake recognizer and `IG2p` read them. `PhoneInventory` is the shared IPA
+  phone set that the CTC and GOP scoring work in, not a set of Spanish rules; a language that needs more phones extends it.
+- `ErrorTags` and `ErrorTagSet.V1`: the frozen v1 taxonomy, listed by every pack and used by the verdict assembler as the default. `LexiconProfile.V1` and `LexiconSchema`: the frozen v1 closed
+  vocabularies and the default of `Lexicon.ReadFile(json)`. Both are the contract of the content format, not Spanish rules; the pack picks them (`ErrorTags => ErrorTagSet.V1`).
+- `NormalizationOptions`, `Token`/`NormalizedText`, and the engine's neutral `OfferFormat` of `RepairStrategy` (used when a pack gives none).
+- `Lexicon.Empty` stays, now with the neutral `InvariantLexiconFolding`; the Spanish empty lexicon is `SpanishLexicon.Empty`.
+- Remaining mentions of "Spanish" in `src/Vocaterra.Nlp` are comments, XML documentation examples (`Spanish: ...`) and one data field, `LexiconSourceInfo.SpanishEntries`, which names a
+  JSON field of the importer's sidecar (the importer reads the Spanish Wiktionary extract); `SpanishCallSiteTests` scans the code (not the comments) and its allowlist is empty.
+
+**The espeak phone map is neutral.** `espeak-to-vocaterra.json` and `EspeakPhoneMap` map the labels of the multilingual `wav2vec2-xlsr-53-espeak-cv-ft` vocabulary (length marks, vowel and
+liquid variants) onto the shared `PhoneInventory`. Nothing in it names a Spanish rule or word, the model that produces the labels is multilingual, and the scorer and `VocabularyMapping` read it
+without a pack. It stays in the engine with its logical name. A pack whose phones fall outside the inventory would add its own map; that is a later milestone's decision.
+
+**`TextNormalizer` is split.** The old class mixed neutral tokenization with two Spanish rules. The neutral part is the engine's `TextTokenizer`: `Clean` (lone surrogates to U+FFFD), `Split` (letters,
+digits and combining marks; hyphens between word characters; NFC and invariant lower case), `FinalMarkOf` (the final `?` or `!`) and `Build` (the single-space text and the tokens with their spans). The Spanish
+part is `SpanishTextNormalizer`, which composes them with the number-word conversion (`SpanishNumbers`) and the `al`/`del` contraction expansion. `SpanishTextNormalizer.Normalize` returns exactly what
+`TextNormalizer.Normalize` returned. `TextTokenizer.Tokenize(text, options)` normalizes with no language rule (it reads only `CaptureFinalMark`); the toy `xx` pack could use it.
+
+**The registry.** `LanguagePacks.Default` is empty (`Default => Empty`). A manifest with no `language` still means `es` and is resolved from the host's registry; a registry without `es` gives the usual
+`ContentValidationException`. Hosts register the pack through `ContentLoadOptions.LanguagePacks`: `LanguagePacks.Default.WithSpanish()` (an extension of the pack project),
+`LanguagePacks.Default.With(SpanishLanguagePack.Instance)`, or `SpanishContent.Load(dir[, options])`. This breaks a bare `ContentLoader.Load(dir)` of a Spanish bundle; every caller in the repository (tools, tests, the game's
+`GameBundle` and `Host`) was updated.
+
+**Removals instead of Spanish defaults.** `ContentBundle.Morphology` (typed `MorphologyGenerator`) is removed; a host of a Spanish bundle calls `bundle.SpanishMorphology()` and any host uses
+`bundle.LanguageMorphology`. `Lexicon.Seed`, `LoadSeed`, `ReadSeedJson`, `Load(json)` and `FromEntries(entries)` without a folding, `TemplateEngine.CreateDefault`, the pack-less overloads of `RecastBuilder.Build`
+and `SpeechRequests.Create`, `ResponsePlanner()` and the pack-less `RepairStrategy.Next` overloads are removed from the engine; their Spanish forms are in the pack project. The M33 and M34 amendments' "Spanish
+compatibility entry points" are therefore the pack's own members now.
+
+**A bug found on the way.** `UtterancePipeline` built its `RepairLines` from the bundle pools and the pack fallback but left out the pack's `RepairLines.Offer`, so the offer line always used the engine's
+default wording. It was invisible while the default was Spanish. The pipeline passes `fallback.Offer` now (regression test `ThePacksOwnOfferWordingReachesTheOfferedChoices`).
+
+**Guards.** `LayeringTests` gained "no engine namespace depends on `Vocaterra.Nlp.Es`" (with a fixture that must be reported), and "the engine assembly's referenced assemblies exclude `Vocaterra.Nlp.Es`".
+`SpanishCallSiteTests` now scans only `src/Vocaterra.Nlp`, looks for every moved name and the `Vocaterra.Nlp.Es` namespace, and its allowlist is empty. The toy `xx` pack
+(`tests/Vocaterra.Nlp.Fuzzing.Tests/Languages/Xx`) is checked by `XxIndependenceTests`: a scan of its source files for any pack type and a reflection scan of every xx type's signatures. The fuzz project
+references the pack because its Spanish suites need it; the scan is what keeps `xx` independent.
+
+**Which test projects reference the pack, and why.** `Vocaterra.Nlp.Es.Tests` (it tests the pack). `Vocaterra.Nlp.Tests`, `Vocaterra.Nlp.Fuzzing.Tests` and `Vocaterra.Nlp.Golden.Tests` reference it because their tests
+run the Spanish bundle `content/game-v1` (one bundle, R02) and must register the Spanish pack to load it; three engine tests that use engine internals with Spanish fixtures (`ReadingResolverTests`,
+`ReportedReadingsTests`, `AccentVariantSentencesTests`) stayed in `Vocaterra.Nlp.Tests` and link the Es tests' `TestTokens.cs` fixture. The tools `Cli`, `Bench` and `ContentBuilder` reference it because they load and
+build Spanish bundles (the importer is Spanish-specific).

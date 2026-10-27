@@ -77,7 +77,7 @@ internal static class TestSupport
     public static string ModelManifest { get; } = Path.Combine(AppContext.BaseDirectory, "models", "manifest.json");
 
     /// <summary>The bundle, loaded once with hash verification.</summary>
-    public static ContentBundle Bundle { get; } = ContentLoader.Load(BundleDir);
+    public static ContentBundle Bundle { get; } = SpanishContent.Load(BundleDir);
 
     /// <summary>A one-second 440 Hz tone; the scripted recognizers ignore its content, only its hash matters.</summary>
     public static PcmClip Clip(double frequency = 440.0)
@@ -111,7 +111,7 @@ internal static class TestSupport
     /// <summary>A fake phoneme recognizer that hears exactly the phones of the text (every pronunciation correct).</summary>
     public static FakePhonemeRecognizer HearsCorrectly(string text, IReadOnlyDictionary<string, string>? confusions = null)
     {
-        var fake = FakePhonemeRecognizer.ForSpanish();
+        var fake = FakePhonemeRecognizer.ForPhoneInventory();
         var phones = SpanishG2p.Phonemize(text, DialectConfig.LatinAmericanNeutral).Phones;
         return fake.Returns(fake.FromPhones(phones, confusions: confusions));
     }

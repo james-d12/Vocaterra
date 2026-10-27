@@ -60,15 +60,6 @@ public sealed class TemplateEngine
         return language;
     }
 
-    /// <summary>
-    /// Creates an engine over the embedded seed lexicon, in Spanish (<see cref="SpanishLanguagePack.Instance"/>): the Spanish compatibility entry point
-    /// for the seed. A bundle's engine is <c>bundle.TemplateEngine</c>.
-    /// </summary>
-    public static TemplateEngine CreateDefault()
-    {
-        return new TemplateEngine(Lexicon.Seed, SpanishLanguagePack.Instance.CreateMorphology(Lexicon.Seed), SpanishLanguagePack.Instance);
-    }
-
     /// <summary>Renders the template with the slots; throws <see cref="TemplateException"/> for a malformed template or an unknown slot.</summary>
     public string Render(DialogueTemplate template, SlotMap slots)
     {

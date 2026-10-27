@@ -1,9 +1,9 @@
 namespace Vocaterra.Nlp.Language.Tests.SlotGrammar;
 
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Es.Tests.Analysis;
 using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
-using Vocaterra.Nlp.Language.Tests.Analysis;
 
 /// <summary>The <c>[WORD:slot]</c> grammar token: parsing, matching and binding (the analyzer side is in <c>WordTokenAnalysisTests</c>).</summary>
 public class WordTokenTests

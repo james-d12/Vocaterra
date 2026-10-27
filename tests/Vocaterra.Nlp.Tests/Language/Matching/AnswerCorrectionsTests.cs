@@ -127,7 +127,7 @@ public class AnswerCorrectionsTests
 
     private static NormalizedText Norm(string text)
     {
-        return TextNormalizer.Normalize(text, Options);
+        return SpanishTextNormalizer.Normalize(text, Options);
     }
 
     private static ErrorTag Unknown(int start, int length, string actual)

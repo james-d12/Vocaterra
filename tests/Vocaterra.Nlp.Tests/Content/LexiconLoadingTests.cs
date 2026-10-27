@@ -28,7 +28,7 @@ public class LexiconLoadingTests
 
     private static ContentValidationException LoadFails(TempBundle bundle)
     {
-        return Assert.Throws<ContentValidationException>(() => ContentLoader.Load(bundle.Directory));
+        return Assert.Throws<ContentValidationException>(() => SpanishContent.Load(bundle.Directory));
     }
 
     // ---- The merge policy -----------------------------------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ public class LexiconLoadingTests
         AddExtraLexicon(bundle, "dup.json", Extra("{\"form\":\"espada\",\"lemma\":\"espada\",\"pos\":\"noun\",\"features\":{\"number\":\"sg\",\"gender\":\"f\"}}"));
         bundle.Rehash();
 
-        var loaded = ContentLoader.Load(bundle.Directory);
+        var loaded = SpanishContent.Load(bundle.Directory);
 
         Assert.Equal(seedHas, loaded.Lexicon.Lookup("espada").Count);
         Assert.Equal(TestSupport.Bundle.Lexicon.Entries.Count, loaded.Lexicon.Entries.Count);
@@ -57,7 +57,7 @@ public class LexiconLoadingTests
             Extra("{\"form\":\"espada\",\"lemma\":\"espada\",\"pos\":\"noun\",\"features\":{\"number\":\"sg\",\"gender\":\"m\"}}", "{\"form\":\"espada\",\"lemma\":\"espadar\",\"pos\":\"verb\",\"features\":{\"person\":\"3\",\"number\":\"sg\",\"tense\":\"pres\",\"mood\":\"ind\"}}"));
         bundle.Rehash();
 
-        var readings = ContentLoader.Load(bundle.Directory).Lexicon.Lookup("espada");
+        var readings = SpanishContent.Load(bundle.Directory).Lexicon.Lookup("espada");
 
         Assert.Equal(TestSupport.Bundle.Lexicon.Lookup("espada").Count + 2, readings.Count);
         Assert.Contains(readings, reading => reading.Pos == "noun" && reading.Gender == "f");
@@ -73,11 +73,11 @@ public class LexiconLoadingTests
         {
             if (!path.EndsWith(".source.json", StringComparison.Ordinal))
             {
-                all.AddRange(NlpLexicon.Load(File.ReadAllText(path)).Entries);
+                all.AddRange(SpanishLexicon.Load(File.ReadAllText(path)).Entries);
             }
         }
 
-        var union = NlpLexicon.FromEntries(all);
+        var union = SpanishLexicon.FromEntries(all);
 
         Assert.Equal(union.Entries, TestSupport.Bundle.Lexicon.Entries);
         Assert.Equal(all.Distinct().Count(), TestSupport.Bundle.Lexicon.Entries.Count);
@@ -94,7 +94,7 @@ public class LexiconLoadingTests
         first.Rehash();
         second.Rehash();
 
-        Assert.Equal(ContentLoader.Load(first.Directory).Lexicon.Entries, ContentLoader.Load(second.Directory).Lexicon.Entries);
+        Assert.Equal(SpanishContent.Load(first.Directory).Lexicon.Entries, SpanishContent.Load(second.Directory).Lexicon.Entries);
     }
 
     // ---- Sidecars -------------------------------------------------------------------------------------------------------------------
@@ -221,10 +221,10 @@ public class LexiconLoadingTests
         using var bundle = new TempBundle(full: true);
         var options = new ContentLoadOptions { LexiconCache = new LexiconCache() };
 
-        var first = ContentLoader.Load(bundle.Directory, options);
+        var first = SpanishContent.Load(bundle.Directory, options);
         bundle.Touch("effects/effects.json");
         bundle.Rehash();
-        var second = ContentLoader.Load(bundle.Directory, options);
+        var second = SpanishContent.Load(bundle.Directory, options);
 
         Assert.NotEqual(first.ContentHash, second.ContentHash);
         Assert.Same(first.Lexicon, second.Lexicon);
@@ -236,11 +236,11 @@ public class LexiconLoadingTests
     {
         using var bundle = new TempBundle();
         var options = new ContentLoadOptions { LexiconCache = new LexiconCache() };
-        var first = ContentLoader.Load(bundle.Directory, options);
+        var first = SpanishContent.Load(bundle.Directory, options);
 
         AddExtraLexicon(bundle, "extra.json", Extra("{\"form\":\"yelmo\",\"lemma\":\"yelmo\",\"pos\":\"noun\",\"features\":{\"number\":\"sg\",\"gender\":\"m\"}}"));
         bundle.Rehash();
-        var changed = ContentLoader.Load(bundle.Directory, options);
+        var changed = SpanishContent.Load(bundle.Directory, options);
         bundle.Write("lexicon/extra.json", "{\"schemaVersion\":1,\"entries\":[{\"form\":\"yelmo\"}]}");
         bundle.Rehash();
         var damaged = LoadFails(bundle, options);
@@ -258,15 +258,15 @@ public class LexiconLoadingTests
         var cache = new LexiconCache(1);
         using var bundle = new TempBundle();
         var options = new ContentLoadOptions { LexiconCache = cache };
-        var first = ContentLoader.Load(bundle.Directory, options);
+        var first = SpanishContent.Load(bundle.Directory, options);
         AddExtraLexicon(bundle, "extra.json", Extra("{\"form\":\"yelmo\",\"lemma\":\"yelmo\",\"pos\":\"noun\",\"features\":{\"number\":\"sg\",\"gender\":\"m\"}}"));
         bundle.Rehash();
-        _ = ContentLoader.Load(bundle.Directory, options);
+        _ = SpanishContent.Load(bundle.Directory, options);
         bundle.Delete("lexicon/extra.json");
         bundle.Edit("provenance.json", "    { \"path\": \"lexicon/extra.json\", \"generatedBy\": \"hand-authored\", \"approvedBy\": null, \"approvedOn\": null },\n", string.Empty);
         bundle.Rehash();
 
-        var again = ContentLoader.Load(bundle.Directory, options);
+        var again = SpanishContent.Load(bundle.Directory, options);
 
         // The cache forgot the first lexicon when it took the second, so the first set of files is parsed again: equal, but not the same object.
         Assert.NotSame(first.Lexicon, again.Lexicon);
@@ -275,6 +275,6 @@ public class LexiconLoadingTests
 
     private static ContentValidationException LoadFails(TempBundle bundle, ContentLoadOptions options)
     {
-        return Assert.Throws<ContentValidationException>(() => ContentLoader.Load(bundle.Directory, options));
+        return Assert.Throws<ContentValidationException>(() => SpanishContent.Load(bundle.Directory, options));
     }
 }

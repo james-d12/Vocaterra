@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using Vocaterra.Nlp.Content;
+using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Language.Lexicon;
 
 namespace Vocaterra.Nlp.ContentBuilder;
@@ -88,7 +89,7 @@ public static class LexiconReport
             }
         }
 
-        var merged = Lexicon.FromEntries(files.SelectMany(static f => f.File.Entries));
+        var merged = SpanishLexicon.FromEntries(files.SelectMany(static f => f.File.Entries));
         var forms = merged.Entries.GroupBy(static entry => entry.Form, StringComparer.Ordinal).ToList();
         var homographs = forms.Count(static group => group.Select(static entry => entry.Lemma).Distinct(StringComparer.Ordinal).Skip(1).Any());
         var ambiguous = forms.Count(static group => group.Skip(1).Any());
@@ -134,7 +135,7 @@ public static class LexiconReport
 
     private static IEnumerable<LexiconEntry> Normalize(IEnumerable<LexiconEntry> entries)
     {
-        return Lexicon.FromEntries(entries).Entries;
+        return SpanishLexicon.FromEntries(entries).Entries;
     }
 
     private static LexiconFileStats Stats(string path, LexiconFile file, Dictionary<string, HashSet<LexiconEntry>> byForm)

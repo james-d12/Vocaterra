@@ -180,7 +180,7 @@ public class ResponsePlannerTests
     [Fact]
     public void DefaultPlannerUsesTheSeedLexicon()
     {
-        var plan = new ResponsePlanner().Plan(
+        var plan = new ResponsePlanner(SpanishContent.CreateTemplateEngine()).Plan(
             TestSupport.MakeVerdict("buy_item", slots: BuySlots()),
             null,
             new DialogueCatalog([new("buy_item", new VariantPool("buy_item", [new DialogueTemplate("x.1", "¿Tienes {item:article(indef):plural-if(qty)}?")]))]),

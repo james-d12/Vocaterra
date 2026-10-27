@@ -3,7 +3,9 @@
     "path": "Vocaterra.sln",
     "projects": [
       "src\\Vocaterra.Nlp\\Vocaterra.Nlp.csproj",
+      "src\\Vocaterra.Nlp.Es\\Vocaterra.Nlp.Es.csproj",
       "tests\\Vocaterra.Nlp.Tests\\Vocaterra.Nlp.Tests.csproj",
+      "tests\\Vocaterra.Nlp.Es.Tests\\Vocaterra.Nlp.Es.Tests.csproj",
       "tests\\Vocaterra.Nlp.Fuzzing.Tests\\Vocaterra.Nlp.Fuzzing.Tests.csproj",
       "tests\\Vocaterra.Nlp.Golden.Tests\\Vocaterra.Nlp.Golden.Tests.csproj",
       "tools\\Vocaterra.Nlp.Cli\\Vocaterra.Nlp.Cli.csproj",

@@ -20,7 +20,7 @@ public class AnswerMatcherTests
 
     private static NormalizedText Norm(string text, NormalizationOptions? options = null)
     {
-        return TextNormalizer.Normalize(text, options);
+        return SpanishTextNormalizer.Normalize(text, options);
     }
 
     private static AnswerSet Single(string phrase, params string[] aliases)

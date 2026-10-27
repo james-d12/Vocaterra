@@ -55,7 +55,7 @@ public sealed class RecastLoopFuzzTests(ITestOutputHelper output)
                 string recast;
                 try
                 {
-                    recast = RecastBuilder.Build(normalized, analysis);
+                    recast = RecastBuilder.Build(normalized, analysis, SpanishLexicon.Empty, SpanishLanguagePack.Instance);
                 }
                 catch (Exception ex)
                 {
@@ -64,8 +64,8 @@ public sealed class RecastLoopFuzzTests(ITestOutputHelper output)
 
                 // The target is the corrected sentence; for a non-word there is nothing to correct to, so the recast must leave the words alone.
                 var target = mutation.CorrectedNormalized ?? mutation.Mutated.NormalizedText;
-                var wanted = TextNormalizer.Normalize(target, Permissive).Text;
-                var actual = TextNormalizer.Normalize(recast, Permissive).Text;
+                var wanted = SpanishTextNormalizer.Normalize(target, Permissive).Text;
+                var actual = SpanishTextNormalizer.Normalize(recast, Permissive).Text;
                 if (!string.Equals(wanted, actual, StringComparison.Ordinal) && KnownTolerances.IsTiedParse(analysis, grammar))
                 {
                     diagnostics.Count($"excused:tied-parse:{mutation.Kind}");

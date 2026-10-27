@@ -238,7 +238,7 @@ public sealed class WorldFactsTests
 
         Assert.NotNull(river);
         Assert.InRange(river.Blocks, 80, 400);
-        Assert.Equal(Vocaterra.Nlp.Language.Normalization.SpanishNumbers.ToWords(river.Blocks), river.BlocksInWords);
+        Assert.Equal(Vocaterra.Nlp.Es.Normalization.SpanishNumbers.ToWords(river.Blocks), river.BlocksInWords);
         Assert.Contains(river.Direction, new[] { "adelante", "a la izquierda", "adelante, a la izquierda", "a la derecha", "adelante, a la derecha", "detrás", "detrás, a la izquierda", "detrás, a la derecha" });
 
         // The direction words and the rounding hold at any distance: 250 blocks ahead and 130 to the right (the other side reaches half the lead), and the number in words.
@@ -247,7 +247,7 @@ public sealed class WorldFactsTests
         Assert.Equal("a la derecha", WorldFacts.DirectionPhrase(10L * Unit, 300L * Unit));
         Assert.Equal(250, WorldFacts.BlocksOf(250L * Unit * 250L * Unit));
         Assert.Equal(361, WorldFacts.BlocksOf(((255L * Unit) * (255L * Unit)) * 2));
-        Assert.Equal("doscientos cincuenta", Vocaterra.Nlp.Language.Normalization.SpanishNumbers.ToWords(250));
+        Assert.Equal("doscientos cincuenta", Vocaterra.Nlp.Es.Normalization.SpanishNumbers.ToWords(250));
     }
 
     [Fact]

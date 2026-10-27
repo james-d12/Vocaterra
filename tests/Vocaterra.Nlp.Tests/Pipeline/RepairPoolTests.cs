@@ -55,8 +55,8 @@ public class RepairPoolTests
 
         Assert.Equal(SpanishLanguagePack.Instance.RepairFallback.AskAgain, ask.Repair!.AgentLine);
         Assert.Equal(SpanishLanguagePack.Instance.RepairFallback.SlowRepeat, slow.Repair!.AgentLine);
-        Assert.Equal(RepairStrategy.AskAgainLine, ask.Repair.AgentLine);
-        Assert.Equal(RepairStrategy.SlowRepeatLine, slow.Repair.AgentLine);
+        Assert.Equal(SpanishRepairLines.AskAgainLine, ask.Repair.AgentLine);
+        Assert.Equal(SpanishRepairLines.SlowRepeatLine, slow.Repair.AgentLine);
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class RepairPoolTests
         var askOnly = FixtureBundle.Create(pools => TwoPhaseTests.SetVariants(pools, "repair.ask_again", PoolAskAgain));
 
         Assert.Equal(PoolAskAgain, Miss(askOnly, repeats: 0).Repair!.AgentLine);
-        Assert.Equal(RepairStrategy.SlowRepeatLine, Miss(askOnly, repeats: 1).Repair!.AgentLine);
+        Assert.Equal(SpanishRepairLines.SlowRepeatLine, Miss(askOnly, repeats: 1).Repair!.AgentLine);
     }
 
     [Fact]

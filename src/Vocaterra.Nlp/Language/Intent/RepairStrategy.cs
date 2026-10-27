@@ -8,7 +8,7 @@ namespace Vocaterra.Nlp.Language.Intent;
 /// <summary>What the agent does after an utterance could not be resolved.</summary>
 public enum RepairKind
 {
-    /// <summary>The agent asks the player to say it again ("¿Cómo?").</summary>
+    /// <summary>The agent asks the player to say it again (for example "¿Cómo?" in Spanish).</summary>
     AskAgain,
 
     /// <summary>The agent repeats its line more slowly and the player tries again.</summary>
@@ -23,7 +23,7 @@ public enum RepairKind
 
 /// <summary>One repair step: what to do, the agent line to speak and the recognition request for the retry (null when giving up).</summary>
 /// <param name="Kind">The kind of repair step.</param>
-/// <param name="AgentLine">The Spanish line for the agent; for <see cref="RepairKind.SlowRepeat"/> it introduces the slow repetition of the original line.</param>
+/// <param name="AgentLine">The line for the agent; for <see cref="RepairKind.SlowRepeat"/> it introduces the slow repetition of the original line.</param>
 /// <param name="RetryRequest">The request to recognize the player's next attempt with, or null when giving up.</param>
 public sealed record RepairStep(RepairKind Kind, string AgentLine, RecognitionRequest? RetryRequest);
 
@@ -36,37 +36,11 @@ public static class RepairStrategy
     /// <summary>The most choices offered at once.</summary>
     public const int MaxChoices = 3;
 
-    /// <summary>The agent line for <see cref="RepairKind.AskAgain"/>.</summary>
-    public const string AskAgainLine = "¿Cómo?";
-
-    /// <summary>The agent line for <see cref="RepairKind.SlowRepeat"/>.</summary>
-    public const string SlowRepeatLine = "Perdón, te lo repito más despacio.";
-
-    /// <summary>The agent line for <see cref="RepairKind.GiveUp"/>.</summary>
-    public const string GiveUpLine = "Bueno, no importa.";
-
-    /// <summary>The wording of the line that offers choices, in Spanish (M34): «¿Quieres decir «a», «b» o «c»?». The Spanish pack's <see cref="RepairLines.Offer"/>.</summary>
-    public static OfferLineFormat OfferFormat { get; } = new("¿Quieres decir ", "«", "»", ", ", " o ", "?");
-
     /// <summary>
-    /// Returns the repair step for the given failed attempt (1 for the first failure), with the same phrases for the retry and for the
-    /// choices: attempts 1 and 2 keep the prompt's recognition mode (constrained retries use all <paramref name="choicePhrases"/>);
-    /// attempt 3 offers the first three distinct non-blank phrases as a constrained request, or gives up when there are none; attempts
-    /// of 4 and more give up.
+    /// The wording of the offer line when a pack gives none (<see cref="RepairLines.Offer"/> is null): the choices in plain quotes, separated by commas, with no
+    /// question around them. The Spanish pack gives its own (<c>¿Quieres decir «a», «b» o «c»?</c>).
     /// </summary>
-    public static RepairStep Next(int attempt, PromptSpec prompt, IReadOnlyList<string> choicePhrases)
-    {
-        return Next(attempt, prompt, choicePhrases, choicePhrases);
-    }
-
-    /// <summary>
-    /// The same ladder with the two lists apart, with the Spanish lines of this class (the compatibility entry point; see the overload that takes
-    /// <see cref="RepairLines"/>).
-    /// </summary>
-    public static RepairStep Next(int attempt, PromptSpec prompt, IReadOnlyList<string> retryPhrases, IReadOnlyList<string> choicePhrases)
-    {
-        return Next(attempt, prompt, retryPhrases, choicePhrases, new RepairLines(AskAgainLine, SlowRepeatLine, GiveUpLine));
-    }
+    public static OfferLineFormat OfferFormat { get; } = new(string.Empty, "\"", "\"", ", ", ", ", string.Empty);
 
     /// <summary>
     /// The same ladder with the two lists apart: <paramref name="retryPhrases"/> is the grammar of a constrained retry at attempts 1 and 2 (the
