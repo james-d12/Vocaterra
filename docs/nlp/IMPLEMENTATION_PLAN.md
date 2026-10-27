@@ -1436,7 +1436,7 @@ The research lists seven places that would break silently when a second language
 | M32 | Language id in the manifest (absent = `es`, folded into the hash only when present), pack registry, `ContentBundle.Language`, ADR 0011 | M31, M52 | S | done (merged to `feature/language-packs` `ba85fe3`, 2026-10-27) |
 | M33 | Text-side seams: normalizer, numbers, phonetic key, punctuation, repair lines, grammar defaults, lint, G2P call sites, Kokoro `lang` | M32 | H | done (merged to `feature/language-packs` `d677412`, 2026-10-27) |
 | M34 | Analysis-side seams and schema: `IMorphology`, `IAnalysisRules`, template functions, optional `LexicalFeatures` fields (Case, VerbForm, Declension, Particle, Register), per-pack tag sets (`ErrorTags.All` frozen as Spanish) | M33 | S | done (merged to `feature/language-packs` `2161c6e`, 2026-10-27) |
-| M35 | Per-language test harness, and a toy pack that proves no hidden Spanish dependency remains | M34 | H | planned (D14 amended 2026-10-26) |
+| M35 | Per-language test harness, and a toy pack that proves no hidden Spanish dependency remains | M34 | H | in progress (2026-10-27, branch `M35-language-harness`) |
 | M36 | German lexicon import (kaikki German, `de_50k`; D4 applies as for `es_50k`) | M35 | S | proposed |
 | M37 | German text layer: umlaut and ß folding (ae, oe, ue), contractions, numbers, phonetic key, noun capitals | M36 | S | proposed |
 | M38 | German morphology | M36 | S | proposed |
