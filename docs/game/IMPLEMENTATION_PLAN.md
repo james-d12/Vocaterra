@@ -351,6 +351,7 @@ the owner-approved plan of 2026-10-23 (the flatten, then one bundle).
 | --- | --- | --- |
 | R01 | Flatten `nlp/` and `game/` into one root layout (`src/`, `tests/`, `tools/`, `docs/nlp/`, `docs/game/`, `content/`, `assets/`, `models/`, `scripts/`); one `Directory.Build.props` keyed on project name; `Vocaterra.sln` regenerated (the three duplicated tool entries gone) plus `Vocaterra.Nlp.slnf`; Apache-2.0 everywhere (D-game-20); the gate refuses `main` | done (Sonnet), gated on `feature/flatten` 2026-10-23, pushed |
 | R02 | The core runs on `content/game-v1`; `content/v1` (the blacksmith sample, core D7) is deleted. Core tests break when game content breaks the core (the owner wants that signal); hash literals become computed checks; effects, quantity slots and the worked example get in-memory fixtures; goldens re-recorded on game-v1 | done (Sonnet), gated on `feature/flatten` 2026-10-23, pushed |
+| R16p2 | R16 phase 2 and the game's folders (`docs/game/GAME_PROJECTS_LAYOUT.md`): engine-free logic to `Vocaterra.Game.Core`, `GameKey`/`IInputFrame` (D-p2-1a), Game regrouped by area and feature, tests mirror source folders, stale project names fixed. Batches 1 to 8 on `feature/game_refactor` | in progress (2026-10-27) |
 
 **R01 findings.**
 - 1517 renames at 100% in the move commit; `git log --follow` reaches pre-move history on both sides. Test counts identical to the
