@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Physics;
+using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Screens;

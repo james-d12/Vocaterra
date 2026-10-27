@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Scripted;
 
 /// <summary>
 /// When a scripted screenshot may be taken (S12). A window's first frames can be drawn at the default 800 x 480 before the resize to the size the

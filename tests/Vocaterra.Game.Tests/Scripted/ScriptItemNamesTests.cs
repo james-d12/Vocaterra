@@ -5,7 +5,7 @@ using Vocaterra.Game.Scripted;
 
 namespace Vocaterra.Game.Tests.Scripted;
 
-/// <summary>A scripted run names an item as a catalogue noun or as the item's key; a waiting <c>--shot</c> is taken once.</summary>
+/// <summary>A scripted run names an item as a catalogue noun or as the item's key.</summary>
 public sealed class ScriptItemNamesTests
 {
     private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(GameBundle.Load()));
@@ -19,16 +19,4 @@ public sealed class ScriptItemNamesTests
 
     [Fact]
     public void ANameThatIsNeitherIsNoItem() => Assert.Null(ScriptItemNames.Resolve(Nouns.Value, "zzz"));
-
-    [Fact]
-    public void AWaitingShotIsTakenOnce()
-    {
-        var shots = new ShotRequest();
-        Assert.False(shots.Pending);
-        Assert.Null(shots.Take());
-        shots.Request("/tmp/a.png");
-        Assert.True(shots.Pending);
-        Assert.Equal("/tmp/a.png", shots.Take());
-        Assert.False(shots.Pending);
-    }
 }

@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Scripted;
+namespace Vocaterra.Game.Core.Scripted;
 
 /// <summary>A <c>--shot</c> step of a scripted run (the world's script or a check battery's): the picture waits for the next frame that may be taken.</summary>
 public sealed class ShotRequest
