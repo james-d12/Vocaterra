@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 namespace Vocaterra.Nlp.Language.Packs;
 
 /// <summary>
-/// A registry of language packs by primary language subtag. <see cref="Default"/> holds the packs the engine ships with; <see cref="With"/> and
+/// A registry of language packs by primary language subtag. <see cref="Default"/> is empty (the engine ships no language, ADR 0012); <see cref="With"/> and
 /// <see cref="Of"/> build a custom set, which a host passes through <see cref="Vocaterra.Nlp.Content.ContentLoadOptions.LanguagePacks"/>.
 /// Immutable and thread-safe.
 /// </summary>
@@ -19,8 +19,12 @@ public sealed class LanguagePacks
     /// <summary>A registry with no pack.</summary>
     public static LanguagePacks Empty { get; } = new(ImmutableSortedDictionary.Create<string, ILanguagePack>(StringComparer.Ordinal));
 
-    /// <summary>The packs the engine ships with: Spanish (<c>es</c>).</summary>
-    public static LanguagePacks Default { get; } = Of(SpanishLanguagePack.Instance);
+    /// <summary>
+    /// The registry a host gets when it passes none: no pack, because the engine cannot reference a language (M53). A host registers the packs it
+    /// loads, for example <c>LanguagePacks.Default.With(SpanishLanguagePack.Instance)</c> or <c>LanguagePacks.Default.WithSpanish()</c> from the Spanish pack project.
+    /// A bundle with no <c>language</c> in its manifest still means <c>es</c>, so loading one needs the Spanish pack registered.
+    /// </summary>
+    public static LanguagePacks Default => Empty;
 
     /// <summary>The language ids registered, in ordinal order.</summary>
     public IReadOnlyList<string> Languages => [.. _packs.Keys];

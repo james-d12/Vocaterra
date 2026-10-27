@@ -239,8 +239,8 @@ public class FrequencyFilterTests
 
         var json = KaikkiImporter.ToJson(result.Entries);
 
-        Assert.Equal(result.Entries, NlpLexicon.Load(json).Entries);
-        Assert.Equal(json, KaikkiImporter.ToJson(NlpLexicon.Load(json).Entries));
+        Assert.Equal(result.Entries, SpanishLexicon.Load(json).Entries);
+        Assert.Equal(json, KaikkiImporter.ToJson(SpanishLexicon.Load(json).Entries));
     }
 
     [Fact]

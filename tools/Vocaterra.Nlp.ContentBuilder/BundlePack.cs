@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Text;
 using Vocaterra.Nlp.Content;
+using Vocaterra.Nlp.Es;
 
 namespace Vocaterra.Nlp.ContentBuilder;
 
@@ -26,7 +27,7 @@ public static class BundlePack
     {
         ArgumentException.ThrowIfNullOrEmpty(bundleDir);
         ArgumentException.ThrowIfNullOrEmpty(archivePath);
-        var bundle = ContentLoader.Load(bundleDir);
+        var bundle = SpanishContent.Load(bundleDir);
         var entries = BundleEntries(bundleDir);
         var root = Path.GetFullPath(bundleDir);
 
@@ -78,7 +79,7 @@ public static class BundlePack
                 Extract(archive, folder);
             }
 
-            var bundle = ContentLoader.Load(folder);
+            var bundle = SpanishContent.Load(folder);
             if (!string.Equals(bundle.ContentHash, expected, StringComparison.Ordinal))
             {
                 throw new BundlePackException($"The sidecar names bundle hash {expected}, but the archive's bundle hashes to {bundle.ContentHash}.");

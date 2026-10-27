@@ -338,6 +338,6 @@ public class KaikkiImporterRulesTests
         var second = KaikkiImporter.ToJson(Import(lines.Reverse().ToArray()).Entries);
 
         Assert.Equal(first, second);
-        Assert.Equal(Import(lines).Entries, NlpLexicon.Load(first).Entries);
+        Assert.Equal(Import(lines).Entries, SpanishLexicon.Load(first).Entries);
     }
 }

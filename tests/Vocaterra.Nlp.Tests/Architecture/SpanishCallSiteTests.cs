@@ -3,29 +3,36 @@ using System.Text.RegularExpressions;
 namespace Vocaterra.Nlp.Tests.Architecture;
 
 /// <summary>
-/// The grep guard of M33, extended in M34 (ADR 0011, point 8): the Spanish static entry points (text side and, since M34, analysis side) are called only from the Spanish pack, from their own files
-/// and from the documented compatibility entry points. Neutral code reaches the Spanish behaviour through <c>bundle.Language</c>. The scan reads the
-/// source of <c>src/Vocaterra.Nlp</c> and <c>tools/</c> (not the tests), ignores comment lines, and fails on any hit that the allowlist does not cover.
+/// The grep guard of M33, extended in M34 (ADR 0011, point 8) and shrunk in M53 (ADR 0012): the engine source (<c>src/Vocaterra.Nlp</c>) names no Spanish
+/// type. Until M53 the Spanish statics sat in the engine and the allowlist listed the documented compatibility entry points; since M53 they live in
+/// <c>src/Vocaterra.Nlp.Es</c>, the engine cannot reference that project, and <see cref="Allowlist"/> is empty. A new entry needs a reason a reviewer accepts.
+/// The scan ignores comment lines (including XML documentation) and fails on any hit that the allowlist does not cover. Neutral code reaches a language
+/// through <c>bundle.Language</c>.
 /// </summary>
 public class SpanishCallSiteTests
 {
-    /// <summary>A Spanish static's call pattern, by name: a hit is one line that matches it.</summary>
+    /// <summary>A Spanish name's pattern: a hit is one line of code that matches it.</summary>
     internal static readonly IReadOnlyDictionary<string, Regex> Patterns = new Dictionary<string, Regex>(StringComparer.Ordinal)
     {
-        ["SpanishNumbers"] = new(@"\bSpanishNumbers\.", RegexOptions.CultureInvariant),
-        ["SpanishPhoneticKey"] = new(@"\bSpanishPhoneticKey\.", RegexOptions.CultureInvariant),
-        ["SpanishG2p"] = new(@"\bSpanishG2p\.", RegexOptions.CultureInvariant),
-        ["TextNormalizer"] = new(@"\bTextNormalizer\.", RegexOptions.CultureInvariant),
-        ["PunctuationFixer"] = new(@"\bPunctuationFixer\.", RegexOptions.CultureInvariant),
-        ["NumberAgreement"] = new(@"\bNumberAgreement\.", RegexOptions.CultureInvariant),
-        ["Accents"] = new(@"\bAccents\.", RegexOptions.CultureInvariant),
-        ["AccentRestoration"] = new(@"\bAccentRestoration\.", RegexOptions.CultureInvariant),
-        ["TextFolding"] = new(@"\bTextFolding\.", RegexOptions.CultureInvariant),
-        ["WordClasses"] = new(@"\bWordClasses\.", RegexOptions.CultureInvariant),
-        ["SpanishOrthography"] = new(@"\bSpanishOrthography\.", RegexOptions.CultureInvariant),
-        ["SpanishLanguagePack"] = new(@"\bSpanishLanguagePack\.", RegexOptions.CultureInvariant),
-        ["MorphologyGenerator"] = new(@"\bnew MorphologyGenerator\(", RegexOptions.CultureInvariant),
-        ["SpanishAnalysisTables"] = new(@"\bSpanishAnalysisTables\.", RegexOptions.CultureInvariant),
+        ["SpanishNumbers"] = new(@"\bSpanishNumbers\b", RegexOptions.CultureInvariant),
+        ["SpanishPhoneticKey"] = new(@"\bSpanishPhoneticKey\b", RegexOptions.CultureInvariant),
+        ["SpanishG2p"] = new(@"\bSpanishG2p\b", RegexOptions.CultureInvariant),
+        ["SpanishTextNormalizer"] = new(@"\bSpanishTextNormalizer\b", RegexOptions.CultureInvariant),
+        ["PunctuationFixer"] = new(@"\bPunctuationFixer\b", RegexOptions.CultureInvariant),
+        ["NumberAgreement"] = new(@"\bNumberAgreement\b", RegexOptions.CultureInvariant),
+        ["WordClasses"] = new(@"\bWordClasses\b", RegexOptions.CultureInvariant),
+        ["SpanishOrthography"] = new(@"\bSpanishOrthography\b", RegexOptions.CultureInvariant),
+        ["SpanishLanguagePack"] = new(@"\bSpanishLanguagePack\b", RegexOptions.CultureInvariant),
+        ["SpanishLexicon"] = new(@"\bSpanishLexicon\b", RegexOptions.CultureInvariant),
+        ["SpanishContent"] = new(@"\bSpanishContent\b", RegexOptions.CultureInvariant),
+        ["SpanishRepairLines"] = new(@"\bSpanishRepairLines\b", RegexOptions.CultureInvariant),
+        ["MorphologyGenerator"] = new(@"\bMorphologyGenerator\b", RegexOptions.CultureInvariant),
+        ["SpanishAnalysisRules"] = new(@"\bSpanishAnalysisRules\b", RegexOptions.CultureInvariant),
+        ["SpanishAnalysisTables"] = new(@"\bSpanishAnalysisTables\b", RegexOptions.CultureInvariant),
+        ["SpanishAgreementChecker"] = new(@"\bSpanishAgreementChecker\b", RegexOptions.CultureInvariant),
+        ["SpanishTemplateFunctions"] = new(@"\bSpanishTemplateFunctions\b", RegexOptions.CultureInvariant),
+        ["SpanishRecastPolicy"] = new(@"\bSpanishRecastPolicy\b", RegexOptions.CultureInvariant),
+        ["EsNamespace"] = new(@"\bVocaterra\.Nlp\.Es\b", RegexOptions.CultureInvariant),
     };
 
     /// <summary>
@@ -34,22 +41,8 @@ public class SpanishCallSiteTests
     /// </summary>
     internal sealed record Allow(string Path, string? Pattern, string Reason);
 
-    /// <summary>The allowlist. Anything else that matches a pattern fails the test.</summary>
-    internal static readonly IReadOnlyList<Allow> Allowlist =
-    [
-        new("src/Vocaterra.Nlp/Language/Packs/", null, "The Spanish pack and the Spanish implementations it owns (SpanishLanguagePack, SpanishRecastPolicy, PunctuationFixer, NumberAgreement)."),
-        new("src/Vocaterra.Nlp/Language/Normalization/TextNormalizer.cs", null, "The Spanish static normalizer: its own file."),
-        new("src/Vocaterra.Nlp/Language/Normalization/SpanishNumbers.cs", null, "The Spanish static number words: its own file (it uses Accents.Strip)."),
-        new("src/Vocaterra.Nlp/Language/Normalization/SpanishPhoneticKey.cs", null, "The Spanish static phonetic key: its own file (it uses Accents.Strip)."),
-        new("src/Vocaterra.Nlp/Response/Templates/RecastBuilder.cs", "SpanishLanguagePack", "Documented Spanish compatibility entry points RecastBuilder.Build(text, analysis[, lexicon]); the pack overload is the engine's."),
-        new("src/Vocaterra.Nlp/Response/Speech/SpeechRequests.cs", "SpanishLanguagePack", "Documented Spanish compatibility entry point SpeechRequests.Create(text, voice[, dialect])."),
-        new("src/Vocaterra.Nlp/Response/Templates/TemplateEngine.cs", "SpanishLanguagePack", "TemplateEngine.CreateDefault, the Spanish seed engine (a bundle's engine is bundle.TemplateEngine)."),
-        // M34 routed the analysis rules, the slot grammar, the intent catalog and the lexicon's fold through the pack (IAnalysisRules, ILexiconFolding, LexiconProfile). What is left:
-        new("src/Vocaterra.Nlp/Language/Morphology/MorphologyGenerator.cs", "TextFolding", "The Spanish IMorphology implementation: its own file, a Spanish static class (it moves into the Spanish pack project in M53)."),
-        new("src/Vocaterra.Nlp/Language/Morphology/MorphologyGenerator.cs", "WordClasses", "The Spanish IMorphology implementation (el before a stressed feminine noun); moves with the pack in M53."),
-        new("src/Vocaterra.Nlp/Language/Morphology/MorphologyGenerator.cs", "SpanishOrthography", "The Spanish IMorphology implementation (Spanish written accents and plurals); moves with the pack in M53."),
-        new("src/Vocaterra.Nlp/Language/Lexicon/Lexicon.cs", "SpanishLanguagePack", "The seed lexicon is Spanish (an embedded resource), so Lexicon.Seed, Lexicon.Empty and the overloads without a folding default to the Spanish folding. A bundle's lexicon is built with its pack's folding (FromEntries(entries, folding, profile))."),
-    ];
+    /// <summary>The allowlist. Empty since M53: the engine has no Spanish type to name. Anything that matches a pattern fails the test.</summary>
+    internal static readonly IReadOnlyList<Allow> Allowlist = [];
 
     /// <summary>One source file: its path relative to the repository root, with forward slashes, and its lines.</summary>
     internal sealed record SourceFile(string Path, IReadOnlyList<string> Lines);
@@ -91,24 +84,20 @@ public class SpanishCallSiteTests
         return inPath && (entry.Pattern is null || string.Equals(entry.Pattern, pattern, StringComparison.Ordinal));
     }
 
-    /// <summary>The engine's and the tools' source files, read from the repository root.</summary>
+    /// <summary>The engine's source files, read from the repository root.</summary>
     internal static IReadOnlyList<SourceFile> ReadSources(string root)
     {
         var files = new List<SourceFile>();
-        var folders = new List<string> { Path.Combine(root, "src", "Vocaterra.Nlp") };
-        folders.AddRange(Directory.EnumerateDirectories(Path.Combine(root, "tools"), "Vocaterra.Nlp.*"));
-        foreach (var full in folders)
+        var folder = Path.Combine(root, "src", "Vocaterra.Nlp");
+        foreach (var file in Directory.EnumerateFiles(folder, "*.cs", SearchOption.AllDirectories))
         {
-            foreach (var file in Directory.EnumerateFiles(full, "*.cs", SearchOption.AllDirectories))
+            var relative = Path.GetRelativePath(root, file).Replace('\\', '/');
+            if (relative.Split('/').Any(static part => part is "bin" or "obj"))
             {
-                var relative = Path.GetRelativePath(root, file).Replace('\\', '/');
-                if (relative.Split('/').Any(static part => part is "bin" or "obj"))
-                {
-                    continue;
-                }
-
-                files.Add(new SourceFile(relative, File.ReadAllLines(file)));
+                continue;
             }
+
+            files.Add(new SourceFile(relative, File.ReadAllLines(file)));
         }
 
         return files;
@@ -127,7 +116,7 @@ public class SpanishCallSiteTests
     }
 
     [Fact]
-    public void NoSpanishStaticIsCalledOutsideTheAllowlist()
+    public void TheEngineSourceNamesNoSpanishType()
     {
         var sources = ReadSources(RepositoryRoot());
         Assert.NotEmpty(sources); // a vacuous scan would pass for nothing
@@ -136,8 +125,14 @@ public class SpanishCallSiteTests
 
         Assert.True(
             violations.Count == 0,
-            "Spanish statics are called outside the pack and the allowlist (route them through bundle.Language):\n"
+            "The engine names a Spanish type (route it through bundle.Language, or move it into src/Vocaterra.Nlp.Es):\n"
             + string.Join("\n", violations.Select(static hit => $"  {hit.Path}:{hit.Line} [{hit.Pattern}] {hit.Text}")));
+    }
+
+    [Fact]
+    public void TheAllowlistIsEmpty()
+    {
+        Assert.Empty(Allowlist);
     }
 
     [Fact]
@@ -151,25 +146,30 @@ public class SpanishCallSiteTests
     }
 
     [Fact]
-    public void AComment_AndTheCompatibilityEntryPoints_AreNotViolations()
+    public void TheGuardBitesOnEveryNameOfThePackAndNotOnACommentOrALongerName()
     {
         var files = new[]
         {
-            new SourceFile("src/Vocaterra.Nlp/Response/Templates/Example.cs", ["// SpanishNumbers.ToWords(2) in a comment", "    /// TextNormalizer.Normalize(x)"]),
-            new SourceFile("src/Vocaterra.Nlp/Response/Speech/SpeechRequests.cs", ["return Create(text, voiceId, SpanishLanguagePack.Instance, dialect);"]),
-            new SourceFile("src/Vocaterra.Nlp/Language/Packs/SpanishLanguagePack.cs", ["public string Fix(string text) => PunctuationFixer.Fix(text);"]),
+            new SourceFile("src/Vocaterra.Nlp/Response/Example.cs", ["var pack = SpanishLanguagePack.Instance;", "var m = new MorphologyGenerator(lexicon);", "using Vocaterra.Nlp.Es.Text;"]),
+            new SourceFile("src/Vocaterra.Nlp/Response/Comments.cs", ["// SpanishNumbers.ToWords(2) in a comment", "    /// <see cref=\"SpanishTextNormalizer\"/>", "var x = ISpanishNumbersLike.Value;"]),
         };
 
-        Assert.Empty(Violations(files, Allowlist));
+        var hits = Violations(files, Allowlist);
+
+        Assert.Equal(["SpanishLanguagePack", "MorphologyGenerator", "EsNamespace"], hits.Select(static hit => hit.Pattern));
+        Assert.All(hits, static hit => Assert.Equal("src/Vocaterra.Nlp/Response/Example.cs", hit.Path));
     }
 
     [Fact]
-    public void AnAllowlistEntryCoversOnlyItsOwnPattern()
+    public void AnAllowlistEntryCoversOnlyItsOwnPatternAndPath()
     {
-        var morphology = new SourceFile("src/Vocaterra.Nlp/Language/Morphology/MorphologyGenerator.cs", ["var w = SpanishOrthography.IsVowel(c);"]);
-        var numbers = new SourceFile("src/Vocaterra.Nlp/Language/Morphology/MorphologyGenerator.cs", ["var n = SpanishNumbers.ToWords(2);"]);
+        Allow[] allow = [new("src/Vocaterra.Nlp/Example/", "SpanishOrthography", "a test entry")];
+        var covered = new SourceFile("src/Vocaterra.Nlp/Example/A.cs", ["var w = SpanishOrthography.IsVowel(c);"]);
+        var otherPattern = new SourceFile("src/Vocaterra.Nlp/Example/A.cs", ["var n = SpanishNumbers.ToWords(2);"]);
+        var otherPath = new SourceFile("src/Vocaterra.Nlp/Other/A.cs", ["var w = SpanishOrthography.IsVowel(c);"]);
 
-        Assert.Empty(Violations([morphology], Allowlist));
-        Assert.Equal(["SpanishNumbers"], Violations([numbers], Allowlist).Select(static hit => hit.Pattern));
+        Assert.Empty(Violations([covered], allow));
+        Assert.Equal(["SpanishNumbers"], Violations([otherPattern], allow).Select(static hit => hit.Pattern));
+        Assert.Equal(["SpanishOrthography"], Violations([otherPath], allow).Select(static hit => hit.Pattern));
     }
 }

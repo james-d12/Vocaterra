@@ -135,7 +135,7 @@ public class ManifestTests
         var changed = bundle.Rehash();
 
         Assert.NotEqual(before.BundleHash, changed.BundleHash);
-        Assert.Equal(changed.BundleHash, ContentLoader.Load(bundle.Directory).ContentHash);
+        Assert.Equal(changed.BundleHash, SpanishContent.Load(bundle.Directory).ContentHash);
     }
 
     [Fact]

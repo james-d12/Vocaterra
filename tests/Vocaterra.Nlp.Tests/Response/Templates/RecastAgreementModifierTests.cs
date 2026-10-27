@@ -14,9 +14,9 @@ using Vocaterra.Nlp.Response.Templates;
 /// </summary>
 public class RecastAgreementModifierTests
 {
-    private static readonly Lexicon Words = Lexicon.FromEntries(
+    private static readonly Lexicon Words = SpanishLexicon.FromEntries(
     [
-        .. Lexicon.Seed.Entries,
+        .. SpanishLexicon.Seed.Entries,
         new LexiconEntry("gracia", "gracia", "noun", new EntryFeatures(null, "sg", null, null, "f")),
         new LexiconEntry("gracias", "gracia", "noun", new EntryFeatures(null, "pl", null, null, "f")),
     ]);
@@ -25,8 +25,8 @@ public class RecastAgreementModifierTests
 
     private static string Recast(string player)
     {
-        var text = TextNormalizer.Normalize(player, new NormalizationOptions { NumbersToDigits = false, ConvertIndefiniteArticles = false });
-        return RecastBuilder.Build(text, Analyzer.Analyze(text), Words);
+        var text = SpanishTextNormalizer.Normalize(player, new NormalizationOptions { NumbersToDigits = false, ConvertIndefiniteArticles = false });
+        return RecastBuilder.Build(text, Analyzer.Analyze(text), Words, SpanishLanguagePack.Instance);
     }
 
     [Theory]
@@ -71,7 +71,7 @@ public class RecastAgreementModifierTests
     [Fact]
     public void TheExpectedFormOfAModifierErrorIsTheFormTheRecastUses()
     {
-        var text = TextNormalizer.Normalize("no mucho gracias", new NormalizationOptions { NumbersToDigits = false, ConvertIndefiniteArticles = false });
+        var text = SpanishTextNormalizer.Normalize("no mucho gracias", new NormalizationOptions { NumbersToDigits = false, ConvertIndefiniteArticles = false });
         var errors = Analyzer.Analyze(text).Errors;
         Assert.Contains(errors, static e => e.Tag == ErrorTags.GenderAgree && e.Expected == "muchas" && e.Actual == "mucho");
         Assert.DoesNotContain(errors, static e => e.Expected is "gracia" or "mucha");

@@ -20,7 +20,7 @@ public class ModelOutputProvenanceTests
 
     private static ContentValidationException LoadFails(string dir)
     {
-        return Assert.Throws<ContentValidationException>(() => ContentLoader.Load(dir));
+        return Assert.Throws<ContentValidationException>(() => SpanishContent.Load(dir));
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class ModelOutputProvenanceTests
             + "\"model\": \"kokoro-multi-lang-v1_0\", \"voice\": \"af_bella\", \"speaker\": \"3\", \"source\": \"test_clip.1\" }";
         using var bundle = BundleWithSpeechItem(item);
 
-        var loaded = ContentLoader.Load(bundle.Directory);
+        var loaded = SpanishContent.Load(bundle.Directory);
 
         Assert.Contains(SpeechPath, loaded.HostFilePaths);
         Assert.True(loaded.TryReadHostFile(SpeechPath, out _));
@@ -55,7 +55,7 @@ public class ModelOutputProvenanceTests
     {
         using var bundle = BundleWithSpeechItem("{ \"path\": \"speech/test_clip.1.wav\", \"generatedBy\": \"model-output\", \"approvedBy\": null, \"approvedOn\": null, \"model\": \"kokoro-multi-lang-v1_0\" }");
 
-        var loaded = ContentLoader.Load(bundle.Directory);
+        var loaded = SpanishContent.Load(bundle.Directory);
 
         Assert.Contains(loaded.Provenance.Items, item => item.Path == SpeechPath && item.Model == Model && item.Voice is null);
     }

@@ -3,6 +3,7 @@ namespace Vocaterra.Nlp.Language.Tests.Analysis;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Es.Tests.Analysis;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
@@ -20,7 +21,7 @@ public class ReadingResolverTests
         return new LexiconEntry(form, lemma, pos, new EntryFeatures(person, number, tense, mood, gender));
     }
 
-    private static readonly Lexicon TestLexicon = Lexicon.FromEntries(
+    private static readonly Lexicon TestLexicon = SpanishLexicon.FromEntries(
     [
         // Articles, a numeral, pronouns and the closed classes.
         Entry("el", "el", "art", number: "sg", gender: "m"),

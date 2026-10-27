@@ -177,7 +177,7 @@ public class ManifestLanguageTests
         using var bundle = new TempBundle();
         WriteManifest(bundle, "xx-YY");
         var stub = new LanguagePacksTests.StubPack("xx");
-        var options = new ContentLoadOptions { LanguagePacks = LanguagePacks.Default.With(stub) };
+        var options = new ContentLoadOptions { LanguagePacks = LanguagePacks.Default.WithSpanish().With(stub) };
 
         var loaded = ContentLoader.Load(bundle.Directory, options);
 
@@ -199,8 +199,11 @@ public class ManifestLanguageTests
     }
 
     [Fact]
-    public void TheDefaultOptionsUseTheDefaultRegistry()
+    public void TheDefaultOptionsUseTheDefaultRegistryAndABundleWithoutAHostRegistryIsRefusedForWantingSpanish()
     {
+        using var bundle = new TempBundle();
+        var ex = Assert.Throws<ContentValidationException>(() => ContentLoader.Load(bundle.Directory));
+        Assert.Contains("no language pack is registered for language 'es' (registered: )", ex.Message, StringComparison.Ordinal);
         Assert.Same(LanguagePacks.Default, ContentLoadOptions.Default.LanguagePacks);
         Assert.Same(LanguagePacks.Default, new ContentLoadOptions().LanguagePacks);
     }

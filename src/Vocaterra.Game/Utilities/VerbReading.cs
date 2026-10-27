@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Nlp.Es.Morphology;
 using Vocaterra.Nlp.Language.Morphology;
 
 namespace Vocaterra.Game.Utilities;

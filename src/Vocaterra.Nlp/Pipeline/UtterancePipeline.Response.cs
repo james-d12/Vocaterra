@@ -244,7 +244,7 @@ public sealed partial class UtterancePipeline
         var fallback = content.Language.RepairFallback;
         var askAgain = attempt == 1 ? PoolLine(content.Dialogue, ReservedPools.RepairAskAgain, context) : null;
         var slowRepeat = attempt == 2 ? PoolLine(content.Dialogue, ReservedPools.RepairSlowRepeat, context) : null;
-        return new RepairLines(askAgain ?? fallback.AskAgain, slowRepeat ?? fallback.SlowRepeat, fallback.GiveUp);
+        return new RepairLines(askAgain ?? fallback.AskAgain, slowRepeat ?? fallback.SlowRepeat, fallback.GiveUp, fallback.Offer);
     }
 
     private static string? PoolLine(DialogueCatalog dialogue, string poolId, ConversationContext context)

@@ -143,7 +143,7 @@ public sealed class AnswerMatchFuzzTests(ITestOutputHelper output)
 
     private static MatchResult Check(MatchCase input, AnswerSet set, List<Candidate> candidates, string text, string what)
     {
-        var normalized = TextNormalizer.Normalize(text, PipelineHarness.Normalization);
+        var normalized = SpanishTextNormalizer.Normalize(text, PipelineHarness.Normalization);
         var context = new { input.SetId, text, what, input.Difficulty };
         MatchResult actual;
         try
@@ -254,7 +254,7 @@ public sealed class AnswerMatchFuzzTests(ITestOutputHelper output)
 
     private static string Stripped(string raw)
     {
-        return Accents.Strip(TextNormalizer.Normalize(raw, PipelineHarness.Normalization).Text);
+        return Accents.Strip(SpanishTextNormalizer.Normalize(raw, PipelineHarness.Normalization).Text);
     }
 
     // Applies up to two edits that keep the spelling's sound: b and v swapped, ll to y, s and z swapped, c before e or i to s or z, and a dropped

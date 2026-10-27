@@ -7,7 +7,7 @@ namespace Vocaterra.Nlp.Language.Normalization;
 /// on a lone surrogate, and a recognizer or a player's keyboard can deliver one; the entry points therefore replace each lone surrogate
 /// with U+FFFD (the Unicode replacement character, which separates words like any other symbol) before any BCL normalization sees the text.
 /// </summary>
-internal static class Utf16
+public static class Utf16
 {
     private const char Replacement = (char)0xFFFD;
 

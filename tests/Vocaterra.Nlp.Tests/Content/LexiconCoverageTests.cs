@@ -19,7 +19,7 @@ public class LexiconCoverageTests
     // The pipeline normalizes with indefinite articles kept, so the tests do too.
     private static readonly NormalizationOptions PipelineOptions = new(ConvertIndefiniteArticles: false);
 
-    private static readonly LinguisticAnalyzer Analyzer = new(Bundle.Lexicon, Bundle.Morphology, SpanishLanguagePack.Instance);
+    private static readonly LinguisticAnalyzer Analyzer = new(Bundle.Lexicon, Bundle.SpanishMorphology(), SpanishLanguagePack.Instance);
 
     private static bool Knows(string word)
     {
@@ -29,7 +29,7 @@ public class LexiconCoverageTests
     // The words of a text that the analyzer does not know; digits are numerals and are always known.
     private static IEnumerable<string> UnknownWords(string text)
     {
-        var analysis = Analyzer.Analyze(TextNormalizer.Normalize(text, PipelineOptions));
+        var analysis = Analyzer.Analyze(SpanishTextNormalizer.Normalize(text, PipelineOptions));
         return analysis.Tokens.Where(static token => token.Readings.Count == 0).Select(static token => token.Token.Text);
     }
 
@@ -121,7 +121,7 @@ public class LexiconCoverageTests
                 }
 
                 var example = spec.Text;
-                var analysis = Analyzer.Analyze(TextNormalizer.Normalize(example, PipelineOptions));
+                var analysis = Analyzer.Analyze(SpanishTextNormalizer.Normalize(example, PipelineOptions));
                 foreach (var error in analysis.Errors.Where(static error => error.Tag == ErrorTags.VocabUnknown))
                 {
                     missing.Add($"word '{error.Actual}' in the example \"{example}\" of intent '{intent.Id.Value}' is {ErrorTags.VocabUnknown}");

@@ -40,7 +40,7 @@ public sealed class PronunciationFuzzTests(ITestOutputHelper output)
         PhoneGen.SequenceCase.Sample(
             c =>
             {
-                var fake = FakePhonemeRecognizer.ForSpanish();
+                var fake = FakePhonemeRecognizer.ForPhoneInventory();
                 var reference = c.Reference;
                 var posteriors = c.Posteriors(fake);
                 var predicted = PronunciationScorer.PredictedErrorsFor([reference]);
@@ -54,7 +54,7 @@ public sealed class PronunciationFuzzTests(ITestOutputHelper output)
                     "Pronunciation scoring",
                     c,
                     () => result,
-                    () => new PronunciationScorer().Score(c.Posteriors(FakePhonemeRecognizer.ForSpanish()), [c.Reference], PronunciationScorer.PredictedErrorsFor([c.Reference]), c.Difficulty, c.Mode, "fuzz-phoneme"));
+                    () => new PronunciationScorer().Score(c.Posteriors(FakePhonemeRecognizer.ForPhoneInventory()), [c.Reference], PronunciationScorer.PredictedErrorsFor([c.Reference]), c.Difficulty, c.Mode, "fuzz-phoneme"));
 
                 // Posteriors that spell the reference score 1 everywhere, in both modes.
                 if (c.IsPerfect || (c.Confusion == 0 && c.Mumble is { } m && m.TargetMass > 0.5 + MassMargin && !c.CollapsesEqualNeighbours))
@@ -111,7 +111,7 @@ public sealed class PronunciationFuzzTests(ITestOutputHelper output)
                     return;
                 }
 
-                var fake = FakePhonemeRecognizer.ForSpanish();
+                var fake = FakePhonemeRecognizer.ForPhoneInventory();
                 var predicted = PronunciationScorer.PredictedErrorsFor(variants);
 
                 // The error the learner makes: one of the spoken variant's own predicted errors (pron.stress is not audible in phone posteriors).
@@ -240,7 +240,7 @@ public sealed class PronunciationFuzzTests(ITestOutputHelper output)
             return;
         }
 
-        var fake = FakePhonemeRecognizer.ForSpanish();
+        var fake = FakePhonemeRecognizer.ForPhoneInventory();
         var scorer = new PronunciationScorer();
         foreach (var characters in new[] { 25, 50, 100, 200, 400, 800 })
         {

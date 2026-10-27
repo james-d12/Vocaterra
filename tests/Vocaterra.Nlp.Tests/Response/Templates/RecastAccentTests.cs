@@ -13,7 +13,7 @@ using Vocaterra.Nlp.Response.Templates;
 /// </summary>
 public class RecastAccentTests
 {
-    private static readonly Lexicon Words = Lexicon.FromEntries(
+    private static readonly Lexicon Words = SpanishLexicon.FromEntries(
     [
         new LexiconEntry("buenos", "bueno", "adj", new EntryFeatures(null, "pl", null, null, "m")),
         new LexiconEntry("días", "día", "noun", new EntryFeatures(null, "pl", null, null, "m")),
@@ -27,7 +27,7 @@ public class RecastAccentTests
 
     private static NormalizedText Plain(string text)
     {
-        return TextNormalizer.Normalize(text, new NormalizationOptions { NumbersToDigits = false, ConvertIndefiniteArticles = false });
+        return SpanishTextNormalizer.Normalize(text, new NormalizationOptions { NumbersToDigits = false, ConvertIndefiniteArticles = false });
     }
 
     private static AnalysisResult NoErrors()
@@ -38,7 +38,7 @@ public class RecastAccentTests
     [Fact]
     public void AnAccentlessWordTakesTheLexiconsAccentedSpelling()
     {
-        Assert.Equal("buenos días", RecastBuilder.Build(Plain("buenos dias"), NoErrors(), Words));
+        Assert.Equal("buenos días", RecastBuilder.Build(Plain("buenos dias"), NoErrors(), Words, SpanishLanguagePack.Instance));
     }
 
     [Fact]
@@ -52,33 +52,33 @@ public class RecastAccentTests
             null,
             1.0);
 
-        Assert.Equal("buenos días", RecastBuilder.Build(Plain("buenas dias"), analysis, Words));
+        Assert.Equal("buenos días", RecastBuilder.Build(Plain("buenas dias"), analysis, Words, SpanishLanguagePack.Instance));
     }
 
     [Fact]
     public void AWordThatIsAnotherValidWordAsSpelledIsNotCorrected()
     {
         // se is a lexicon form (the pronoun), so it stays even though sé (the verb) folds to the same letters.
-        Assert.Equal("yo se", RecastBuilder.Build(Plain("yo se"), NoErrors(), Words));
-        Assert.Equal("mas", RecastBuilder.Build(Plain("mas"), NoErrors(), Words));
+        Assert.Equal("yo se", RecastBuilder.Build(Plain("yo se"), NoErrors(), Words, SpanishLanguagePack.Instance));
+        Assert.Equal("mas", RecastBuilder.Build(Plain("mas"), NoErrors(), Words, SpanishLanguagePack.Instance));
     }
 
     [Fact]
     public void WhenSeveralAccentedSpellingsFoldAlikeTheFirstInOrdinalOrderIsUsed()
     {
         // sólo and sóló fold to solo; the ordinal order puts sólo first.
-        Assert.Equal("sólo", RecastBuilder.Build(Plain("solo"), NoErrors(), Words));
+        Assert.Equal("sólo", RecastBuilder.Build(Plain("solo"), NoErrors(), Words, SpanishLanguagePack.Instance));
     }
 
     [Fact]
     public void AWordTheLexiconDoesNotKnowIsLeftAsSpokenWhileItsNeighbourIsRestored()
     {
-        Assert.Equal("zanahoria días", RecastBuilder.Build(Plain("zanahoria dias"), NoErrors(), Words));
+        Assert.Equal("zanahoria días", RecastBuilder.Build(Plain("zanahoria dias"), NoErrors(), Words, SpanishLanguagePack.Instance));
     }
 
     [Fact]
     public void WithoutALexiconNoAccentIsRestored()
     {
-        Assert.Equal("buenos dias", RecastBuilder.Build(Plain("buenos dias"), NoErrors()));
+        Assert.Equal("buenos dias", RecastBuilder.Build(Plain("buenos dias"), NoErrors(), SpanishLexicon.Empty, SpanishLanguagePack.Instance));
     }
 }

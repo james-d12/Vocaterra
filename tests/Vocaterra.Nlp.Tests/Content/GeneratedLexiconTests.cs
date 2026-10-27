@@ -29,7 +29,7 @@ public class GeneratedLexiconTests(ITestOutputHelper output)
     // The generated file is parsed once for all the tests of this class.
     private static readonly string GeneratedText = Read(GeneratedPath);
 
-    private static readonly NlpLexicon Imported = NlpLexicon.Load(GeneratedText);
+    private static readonly NlpLexicon Imported = SpanishLexicon.Load(GeneratedText);
 
     [Fact]
     public void TheFileIsExactlyWhatTheImporterWritesForItsOwnEntries()
@@ -171,7 +171,7 @@ public class GeneratedLexiconTests(ITestOutputHelper output)
         for (var run = 0; run < 3; run++)
         {
             var watch = Stopwatch.StartNew();
-            _ = ContentLoader.Load(TestSupport.BundleDir, new ContentLoadOptions { VerifyHashes = true });
+            _ = SpanishContent.Load(TestSupport.BundleDir, new ContentLoadOptions { VerifyHashes = true });
             timings.Add(watch.ElapsedMilliseconds);
         }
 

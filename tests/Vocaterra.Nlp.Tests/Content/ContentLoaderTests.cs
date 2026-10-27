@@ -9,13 +9,13 @@ public class ContentLoaderTests
 {
     private static ContentValidationException LoadFails(string dir, ContentLoadOptions? options = null)
     {
-        return Assert.Throws<ContentValidationException>(() => ContentLoader.Load(dir, options));
+        return Assert.Throws<ContentValidationException>(() => SpanishContent.Load(dir, options));
     }
 
     [Fact]
     public void LoadsTheSampleBundleWithHashVerification()
     {
-        var bundle = ContentLoader.Load(TestSupport.BundleDir, new ContentLoadOptions { VerifyHashes = true });
+        var bundle = SpanishContent.Load(TestSupport.BundleDir, new ContentLoadOptions { VerifyHashes = true });
 
         Assert.Equal(bundle.Manifest.BundleHash, bundle.ContentHash);
         Assert.Equal("game-v1", bundle.Manifest.BundleId);
@@ -37,8 +37,8 @@ public class ContentLoaderTests
     [Fact]
     public void LoadingTwiceGivesTheSameContent()
     {
-        var first = ContentLoader.Load(TestSupport.BundleDir);
-        var second = ContentLoader.Load(TestSupport.BundleDir);
+        var first = SpanishContent.Load(TestSupport.BundleDir);
+        var second = SpanishContent.Load(TestSupport.BundleDir);
 
         Assert.Equal(first.Manifest, second.Manifest);
         Assert.Equal(first.Intents.ContentHash(), second.Intents.ContentHash());
@@ -57,7 +57,7 @@ public class ContentLoaderTests
             bundle.Write(path, bundle.Read(path).Replace("\n", "\r\n", StringComparison.Ordinal));
         }
 
-        var loaded = ContentLoader.Load(bundle.Directory);
+        var loaded = SpanishContent.Load(bundle.Directory);
 
         Assert.Equal(before, loaded.ContentHash);
     }
@@ -101,7 +101,7 @@ public class ContentLoaderTests
         using var bundle = new TempBundle();
         bundle.EditJson("answer-sets/yes-no.json", root => root["answers"]![0]!["aliases"]!.AsArray().Add("claro amigo"));
 
-        var loaded = ContentLoader.Load(bundle.Directory, new ContentLoadOptions { VerifyHashes = false });
+        var loaded = SpanishContent.Load(bundle.Directory, new ContentLoadOptions { VerifyHashes = false });
 
         Assert.Contains("claro amigo", loaded.AnswerSets["yes-no"].GrammarPhrases(SpanishLanguagePack.Instance));
     }
@@ -137,7 +137,7 @@ public class ContentLoaderTests
 
         var expected = ContentManifest.Compute(bundle.Directory).BundleHash;
 
-        Assert.Equal(expected, ContentLoader.Load(bundle.Directory).ContentHash);
+        Assert.Equal(expected, SpanishContent.Load(bundle.Directory).ContentHash);
     }
 
     [Fact]
@@ -268,7 +268,7 @@ public class ContentLoaderTests
         var text = bundle.Read("effects/effects.json");
         File.WriteAllBytes(bundle.PathOf("effects/effects.json"), [.. new byte[] { 0xEF, 0xBB, 0xBF }, .. Encoding.UTF8.GetBytes(text)]);
 
-        var loaded = ContentLoader.Load(bundle.Directory);
+        var loaded = SpanishContent.Load(bundle.Directory);
 
         Assert.Equal(TestSupport.Bundle.Effects, loaded.Effects);
     }
@@ -417,7 +417,7 @@ public class ContentLoaderTests
         bundle.EditJson("prompts/prompts.json", root => PromptNamed(root, "guide-offer")["text"] = null);
         bundle.Rehash();
 
-        var loaded = ContentLoader.Load(bundle.Directory);
+        var loaded = SpanishContent.Load(bundle.Directory);
 
         Assert.Null(loaded.Prompts["guide-offer"].Text);
         Assert.False(string.IsNullOrWhiteSpace(TestSupport.Bundle.Prompts["guide-offer"].Text));
@@ -479,7 +479,7 @@ public class ContentLoaderTests
             "{ \"path\": \"cefr/a1.txt\", \"generatedBy\": \"llm-draft\", \"approvedBy\": \"Ana\", \"approvedOn\": \"2026-10-20\" }");
         bundle.Rehash();
 
-        var loaded = ContentLoader.Load(bundle.Directory);
+        var loaded = SpanishContent.Load(bundle.Directory);
 
         Assert.Contains(loaded.Provenance.Items, item => item.Path == "cefr/a1.txt" && item.ApprovedBy == "Ana" && item.ApprovedOn == "2026-10-20");
     }
@@ -522,7 +522,7 @@ public class ContentLoaderTests
             "{ \"path\": \"lexicon/extra.json\", \"generatedBy\": \"hand-authored\", \"approvedBy\": null, \"approvedOn\": null },\n    { \"path\": \"lexicon/game.json\", ");
         bundle.Rehash();
 
-        var loaded = ContentLoader.Load(bundle.Directory);
+        var loaded = SpanishContent.Load(bundle.Directory);
 
         Assert.True(loaded.Lexicon.ContainsLemma("yelmo"));
         Assert.True(loaded.Lexicon.ContainsLemma("espada"));

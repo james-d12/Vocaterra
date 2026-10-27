@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Nlp.Content;
+using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Language.Morphology;
 
 namespace Vocaterra.Game.Core.Language.Words;
@@ -217,7 +218,7 @@ public sealed class NounCatalog
             .Select(static e => e.ToFeatures())
             .FirstOrDefault(static f => f.Pos == "noun" && f.Gender is not null)?.Gender
             ?? throw new InvalidDataException($"{RelativePath}: '{lemma}' has no noun reading with a gender in the lexicon.");
-        var morphology = bundle.Morphology;
+        var morphology = bundle.SpanishMorphology();
         return new NounEntry(
             lemma,
             gender,

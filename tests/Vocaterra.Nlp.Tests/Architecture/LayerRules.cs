@@ -12,6 +12,12 @@ public static class LayerRules
     /// <summary>The namespace of the engine's root, and the prefix of every stage.</summary>
     public const string Root = "Vocaterra.Nlp";
 
+    /// <summary>The namespace of the Spanish pack project (<c>src/Vocaterra.Nlp.Es</c>, M53): no engine type may depend on it, and the engine assembly does not reference it.</summary>
+    public const string SpanishPackNamespace = Root + ".Es";
+
+    /// <summary>The assembly name of the Spanish pack project.</summary>
+    public const string SpanishPackAssembly = "Vocaterra.Nlp.Es";
+
     /// <summary>The engine's stages, in pipeline order: one folder and one namespace each.</summary>
     public static readonly string[] Stages =
     [
@@ -38,8 +44,8 @@ public static class LayerRules
     };
 
     /// <summary>
-    /// The language packs (<c>Vocaterra.Nlp.Language.Packs</c>) sit in the Language folder but wrap Spanish code of other stages, so they have a
-    /// rule of their own and the Language rule does not cover them. A pack may use Core, Language and Phonology, nothing else. Not Response: the
+    /// The language pack contracts (<c>Vocaterra.Nlp.Language.Packs</c>, the interfaces and the registry) sit in the Language folder but use types of other
+    /// stages, so they have a rule of their own and the Language rule does not cover them. They may use Core, Language and Phonology, nothing else. Not Response: the
     /// punctuation fixer and the number agreement moved into the packs in M33 (ADR 0011, point 9), so Response may use the packs and the packs do
     /// not use Response. There is no cycle between the two stages.
     /// </summary>

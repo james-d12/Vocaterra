@@ -1,11 +1,12 @@
 using Vocaterra.Nlp.Content;
+using Vocaterra.Nlp.Es;
 
 namespace Vocaterra.Host.Tests;
 
 /// <summary>The game's content bundle in this repository, loaded once for the whole test run.</summary>
 internal static class GameContent
 {
-    private static readonly Lazy<ContentBundle> LoadedBundle = new(() => ContentLoader.Load(BundleDirectory()));
+    private static readonly Lazy<ContentBundle> LoadedBundle = new(() => SpanishContent.Load(BundleDirectory()));
 
     /// <summary>The bundle, loaded and validated by the core's loader.</summary>
     public static ContentBundle Bundle => LoadedBundle.Value;

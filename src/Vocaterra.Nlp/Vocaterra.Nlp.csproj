@@ -2,7 +2,8 @@
 
   <!-- The language core as one assembly (ADR 0012). Its folders are the former stage projects: Core, Audio, Asr, Phonology, Pronunciation,
        Language, Evaluation, Decision, Response, Content and Pipeline. Their namespaces are unchanged (Vocaterra.Nlp.<Folder>). The layering
-       between the folders is no longer enforced by the compiler; tests/Vocaterra.Nlp.Tests/Architecture/LayeringTests.cs enforces it. -->
+       between the folders is no longer enforced by the compiler; tests/Vocaterra.Nlp.Tests/Architecture/LayeringTests.cs enforces it. The engine is
+       language-neutral: since M53 Spanish lives in src/Vocaterra.Nlp.Es, which references this project and not the other way round. -->
   <PropertyGroup>
     <Description>Language core of Vocaterra.NLP: contracts, audio front end, speech recognizer adapters, phonology, pronunciation scoring, language analysis, evaluation, learner decisions, responses, content bundles and the utterance pipeline, in one assembly.</Description>
   </PropertyGroup>
@@ -13,11 +14,9 @@
     <PackageReference Include="Microsoft.ML.OnnxRuntime" />
   </ItemGroup>
 
-  <!-- The resources keep the logical names they had as separate projects; the paths are relative to this project, which sits at the same depth
-       as the old stage projects did. -->
+  <!-- The one embedded resource keeps the logical name it had as a separate project. The seed lexicon and the Spanish G2P exceptions moved to
+       src/Vocaterra.Nlp.Es in M53 (ADR 0012); the espeak phone map stays because it maps a multilingual vocabulary onto the shared phone inventory. -->
   <ItemGroup>
-    <EmbeddedResource Include="../../content/game-v1/lexicon/seed.json" LogicalName="Vocaterra.Nlp.Language.Lexicon.seed.json" />
-    <EmbeddedResource Include="Phonology/Data/exceptions.json" LogicalName="Vocaterra.Nlp.Phonology.Data.exceptions.json" />
     <EmbeddedResource Include="Pronunciation/Data/espeak-to-vocaterra.json" LogicalName="Vocaterra.Nlp.Pronunciation.Data.espeak-to-vocaterra.json" />
   </ItemGroup>
 

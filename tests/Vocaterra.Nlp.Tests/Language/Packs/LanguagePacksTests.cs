@@ -4,7 +4,7 @@ namespace Vocaterra.Nlp.Language.Packs.Tests;
 public class LanguagePacksTests
 {
     /// <summary>A pack under another id, built from the Spanish members, for the registry tests.</summary>
-    internal sealed class StubPack(string id) : ILanguagePack
+    internal sealed class StubPack(string id, RepairLines? repair = null) : ILanguagePack
     {
         public string LanguageId => id;
 
@@ -24,7 +24,7 @@ public class LanguagePacksTests
 
         public LintVocabulary Lint => SpanishLanguagePack.Instance.Lint;
 
-        public RepairLines RepairFallback => SpanishLanguagePack.Instance.RepairFallback;
+        public RepairLines RepairFallback => repair ?? SpanishLanguagePack.Instance.RepairFallback;
 
         public IRecastPolicy Recast => SpanishLanguagePack.Instance.Recast;
 
@@ -43,12 +43,17 @@ public class LanguagePacksTests
             SpanishLanguagePack.Instance.CreateTemplateFunctions(lexicon, morphology);
     }
 
+    // The engine ships no language (M53): the default registry is empty, and a host registers the Spanish pack of the Es project.
+    private static LanguagePacks WithSpanish => LanguagePacks.Default.WithSpanish();
+
     [Fact]
-    public void TheDefaultRegistryHoldsSpanishOnly()
+    public void TheDefaultRegistryHoldsNoPackAndTheSpanishPackIsRegisteredByTheHost()
     {
-        Assert.Equal(["es"], LanguagePacks.Default.Languages);
+        Assert.Empty(LanguagePacks.Default.Languages);
         Assert.Empty(LanguagePacks.Empty.Languages);
-        Assert.True(LanguagePacks.Default.TryResolve("es", out var pack));
+        Assert.False(LanguagePacks.Default.TryResolve("es", out _));
+        Assert.Equal(["es"], WithSpanish.Languages);
+        Assert.True(WithSpanish.TryResolve("es", out var pack));
         Assert.Same(SpanishLanguagePack.Instance, pack);
     }
 
@@ -62,7 +67,7 @@ public class LanguagePacksTests
     [InlineData("es-Latn-MX")]
     public void ASpanishTagResolvesByItsPrimarySubtag(string tag)
     {
-        Assert.True(LanguagePacks.Default.TryResolve(tag, out var pack));
+        Assert.True(WithSpanish.TryResolve(tag, out var pack));
         Assert.Same(SpanishLanguagePack.Instance, pack);
     }
 
@@ -84,7 +89,7 @@ public class LanguagePacksTests
     [InlineData("ès")]
     public void ATagWithoutAPackOrNotWellFormedDoesNotResolve(string? tag)
     {
-        Assert.False(LanguagePacks.Default.TryResolve(tag, out _));
+        Assert.False(WithSpanish.TryResolve(tag, out _));
     }
 
     [Theory]
@@ -113,10 +118,10 @@ public class LanguagePacksTests
     public void WithBuildsANewRegistryAndLeavesTheOldOneUnchanged()
     {
         var german = new StubPack("de");
-        var custom = LanguagePacks.Default.With(german);
+        var custom = WithSpanish.With(german);
 
         Assert.Equal(["de", "es"], custom.Languages);
-        Assert.Equal(["es"], LanguagePacks.Default.Languages);
+        Assert.Equal(["es"], WithSpanish.Languages);
         Assert.True(custom.TryResolve("de-DE", out var found));
         Assert.Same(german, found);
         Assert.True(custom.TryResolve("es-MX", out found));

@@ -10,7 +10,7 @@ namespace Vocaterra.Nlp.Content.Tests;
 public class KaikkiImporterTests
 {
     private static readonly KaikkiImportResult Result = KaikkiImporter.ImportFile(TestSupport.KaikkiFixture);
-    private static readonly NlpLexicon Imported = NlpLexicon.FromEntries(Result.Entries);
+    private static readonly NlpLexicon Imported = SpanishLexicon.FromEntries(Result.Entries);
 
     private static LexicalFeatures Only(string form)
     {
@@ -178,7 +178,7 @@ public class KaikkiImporterTests
     {
         var json = KaikkiImporter.ToJson(Result.Entries);
 
-        var reloaded = NlpLexicon.Load(json);
+        var reloaded = SpanishLexicon.Load(json);
 
         Assert.Equal("wiktionary-import", reloaded.GeneratedBy);
         Assert.Equal(Result.Entries, reloaded.Entries);

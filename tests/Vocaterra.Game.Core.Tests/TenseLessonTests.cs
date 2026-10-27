@@ -7,6 +7,7 @@ using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
+using Vocaterra.Nlp.Es;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests;
@@ -498,7 +499,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     [Fact]
     public void TheNearFutureIsAPeriphrasticFormBuiltFromIrAndTheInfinitive()
     {
-        var morphology = TestGame.Bundle.Morphology;
+        var morphology = TestGame.Bundle.SpanishMorphology();
 
         Assert.Equal("voy a comer", new TaughtVerbForm("comer", "1", "sg", "ir-a").Text(morphology));
         Assert.Equal("vamos a comer", new TaughtVerbForm("comer", "1", "pl", "ir-a").Text(morphology));

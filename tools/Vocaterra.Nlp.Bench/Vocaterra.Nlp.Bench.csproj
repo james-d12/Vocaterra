@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Vocaterra.Nlp/Vocaterra.Nlp.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Es/Vocaterra.Nlp.Es.csproj" />
   </ItemGroup>
 
 </Project>

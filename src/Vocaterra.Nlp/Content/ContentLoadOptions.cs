@@ -14,6 +14,6 @@ public sealed record ContentLoadOptions
     /// <summary>An optional cache of parsed lexicon files, for callers that load many bundles whose lexicon files are the same; null (the default) parses every file.</summary>
     public LexiconCache? LexiconCache { get; init; }
 
-    /// <summary>The language packs a bundle's <c>language</c> is resolved against; <see cref="Vocaterra.Nlp.Language.Packs.LanguagePacks.Default"/> unless a host passes its own.</summary>
+    /// <summary>The language packs a bundle's <c>language</c> is resolved against; empty by default (<see cref="Vocaterra.Nlp.Language.Packs.LanguagePacks.Default"/>), so a host registers the packs of the languages it loads (M53; the Spanish pack project offers <c>WithSpanish()</c>).</summary>
     public LanguagePacks LanguagePacks { get; init; } = LanguagePacks.Default;
 }

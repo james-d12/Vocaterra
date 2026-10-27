@@ -8,6 +8,7 @@ using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Es;
 
 namespace Vocaterra.Nlp.Bench;
 
@@ -78,7 +79,7 @@ public static class Program
                 entries = ManifestReader.Read(reader);
             }
 
-            var content = ContentLoader.Load(contentDir);
+            var content = SpanishContent.Load(contentDir);
             using var models = new ModelSet(line.Value("--models"), content.LanguageId);
             var report = BenchRunner.Run(entries, content, models.For, entry => LoadClip(audioDir, entry), mode);
             ReportWriter.Write(report, output);

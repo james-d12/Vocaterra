@@ -7,7 +7,7 @@ namespace Vocaterra.Nlp.Fuzzing.Tests;
 /// <summary>
 /// O1: the normalizer never crashes, is idempotent, and returns well-formed tokens whose spans index into the text and whose
 /// <c>Original</c> strings come from the input, in order. The generators feed raw ill-formed UTF-16 (lone surrogates) on purpose: the
-/// normalization entry points (<c>TextNormalizer.Normalize</c>, <c>Accents.Strip</c>, <c>SpanishPhoneticKey.Compute</c>) must read them as
+/// normalization entry points (<c>SpanishTextNormalizer.Normalize</c>, <c>Accents.Strip</c>, <c>SpanishPhoneticKey.Compute</c>) must read them as
 /// U+FFFD instead of throwing. The body is <see cref="LanguageOracles.Normalizer"/>, run on the Spanish language (M35); the Spanish entry points
 /// are checked here as well.
 /// </summary>
@@ -22,7 +22,7 @@ public sealed class NormalizerFuzzTests(ITestOutputHelper output)
     [Fact]
     public void Normalize_RejectsNull_WithArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => TextNormalizer.Normalize(null!));
+        Assert.Throws<ArgumentNullException>(() => SpanishTextNormalizer.Normalize(null!));
     }
 
     private static bool HasLoneSurrogate(string text)
@@ -47,8 +47,8 @@ public sealed class NormalizerFuzzTests(ITestOutputHelper output)
     {
         try
         {
-            var stripped = Vocaterra.Nlp.Language.Normalization.Accents.Strip(text);
-            var key = Vocaterra.Nlp.Language.Normalization.SpanishPhoneticKey.Compute(text);
+            var stripped = Vocaterra.Nlp.Es.Normalization.Accents.Strip(text);
+            var key = Vocaterra.Nlp.Es.Normalization.SpanishPhoneticKey.Compute(text);
             if (HasLoneSurrogate(stripped))
             {
                 throw Determinism.Fail("O1", "Accents.Strip left a lone surrogate in its result.", text);

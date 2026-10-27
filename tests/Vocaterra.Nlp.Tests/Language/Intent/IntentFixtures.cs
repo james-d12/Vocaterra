@@ -54,7 +54,7 @@ internal static class IntentFixtures
 
     public static IntentCatalog Catalog { get; } = IntentCatalog.Load(CatalogJson);
 
-    public static LinguisticAnalyzer Analyzer { get; } = new(Vocaterra.Nlp.Language.Lexicon.Lexicon.Seed, SpanishLanguagePack.Instance);
+    public static LinguisticAnalyzer Analyzer { get; } = new(SpanishLexicon.Seed, SpanishLanguagePack.Instance);
 
     public static PromptSpec Prompt(params string[] allowedIntents)
     {
@@ -63,7 +63,7 @@ internal static class IntentFixtures
 
     public static NormalizedText Normalize(string text)
     {
-        return TextNormalizer.Normalize(text, KeepArticles);
+        return SpanishTextNormalizer.Normalize(text, KeepArticles);
     }
 
     /// <summary>Analyzes the text with the given grammars (none by default, as when the pipeline passed no grammars to the analyzer).</summary>

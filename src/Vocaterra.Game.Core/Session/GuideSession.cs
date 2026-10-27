@@ -12,6 +12,7 @@ using Vocaterra.Game.Core.Tip;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
+using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Morphology;
 
@@ -195,7 +196,7 @@ public abstract class GuideSession : IDisposable
     /// <summary>The definite article of a noun from its gender and lemma (<c>el</c> for the feminine <c>agua</c>), as the bundle's morphology gives it (S20).</summary>
     /// <param name="gender">The lexicon's gender (<c>m</c> or <c>f</c>).</param>
     /// <param name="lemma">The noun.</param>
-    public string DefiniteArticle(string gender, string lemma) => Bundle.Morphology.Article(Definiteness.Definite, gender, "sg", lemma);
+    public string DefiniteArticle(string gender, string lemma) => Bundle.SpanishMorphology().Article(Definiteness.Definite, gender, "sg", lemma);
 
     /// <summary>
     /// The learner's record (S19): every line the game took (a dialogue turn, a lesson line, a check answer), in order, and the word record folded from them.

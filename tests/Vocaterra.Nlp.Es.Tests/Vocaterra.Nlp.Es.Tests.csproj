@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The Spanish pack's unit tests (M53): the Language and Phonology tests that moved out of Vocaterra.Nlp.Tests, the Spanish pack's own tests and the G2P
+       golden (Data/g2p-golden.jsonl). They see the pack's internals through InternalsVisibleTo (Directory.Build.props: Vocaterra.Nlp.Es.Tests) and the
+       engine's public API only. None of them loads a native runtime or a model, so there is no NativeRuntimeCollection and no ort-managed copy here; a
+       test of this project that does must follow tests/Vocaterra.Nlp.Tests (NativeOnnxRuntimes.cs, the ort-managed copy). -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Vocaterra.Nlp.Testing" />
+    <Using Include="Vocaterra.Nlp.Core.Stages" />
+    <Using Include="Vocaterra.Nlp.Core.Taxonomy" />
+    <Using Include="Vocaterra.Nlp.Core.Verdicts" />
+    <Using Include="Vocaterra.Nlp.Es" />
+    <Using Include="Vocaterra.Nlp.Es.Analysis" />
+    <Using Include="Vocaterra.Nlp.Es.Morphology" />
+    <Using Include="Vocaterra.Nlp.Es.Normalization" />
+    <Using Include="Vocaterra.Nlp.Es.Phonology" />
+    <Using Include="Vocaterra.Nlp.Es.Text" />
+    <Using Include="Vocaterra.Nlp.Language.Packs" />
+    <Using Include="Vocaterra.Nlp.Phonology" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Vocaterra.Nlp/Vocaterra.Nlp.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Es/Vocaterra.Nlp.Es.csproj" />
+  </ItemGroup>
+
+  <!-- The bundle (content/game-v1) is found by walking up from the test assembly, not copied. The golden is copied next to the test assembly as Data/g2p-golden.jsonl. -->
+  <ItemGroup>
+    <Compile Include="../Shared/GameBundleLocator.cs" Link="Shared/GameBundleLocator.cs" />
+    <Compile Include="../Shared/TempBundle.cs" Link="Shared/TempBundle.cs" />
+    <None Include="Data/g2p-golden.jsonl" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- The Language tests read the bundle's lexicon files from content/lexicon beside the test assembly. -->
+  <ItemGroup>
+    <None Include="../../content/game-v1/lexicon/*.json" Exclude="../../content/game-v1/lexicon/*.source.json" Link="content/lexicon/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

@@ -11,6 +11,7 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.ConversationAgents;
 using Vocaterra.Nlp.Decision.Learning;
+using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Pronunciation;
 
@@ -136,7 +137,7 @@ public static class Program
         var hostSlots = ParseHostSlots(line.Values("--host-slot"));
         var hostSkills = line.Values("--host-skill");
 
-        var bundle = ContentLoader.Load(contentDir);
+        var bundle = SpanishContent.Load(contentDir);
         if (!bundle.Prompts.TryGetValue(promptId, out var prompt))
         {
             error.WriteLine($"error: unknown prompt '{promptId}'. Known prompts: {string.Join(", ", bundle.Prompts.Keys)}.");
@@ -187,7 +188,7 @@ public static class Program
         }
 
         var path = line.Positionals[0];
-        var bundle = ContentLoader.Load(line.Required("--content"));
+        var bundle = SpanishContent.Load(line.Required("--content"));
         IReadOnlyList<ReplayEntry> entries;
         using (var reader = new StreamReader(path, Encoding.UTF8))
         {

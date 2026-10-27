@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Npc;
+using Vocaterra.Nlp.Es.Normalization;
 using Vocaterra.Nlp.Language.Normalization;
 
 namespace Vocaterra.Game.Core.Language.Words;
@@ -224,7 +225,7 @@ public sealed class WordProgress
         {
             foreach (var form in new[] { noun.Lemma, noun.Plural })
             {
-                foreach (var token in TextNormalizer.Normalize(form).Tokens)
+                foreach (var token in SpanishTextNormalizer.Normalize(form).Tokens)
                 {
                     _formToLemma.TryAdd(token.Text, noun.Lemma);
                 }
@@ -483,7 +484,7 @@ public sealed class WordProgress
     private IEnumerable<string> NounsIn(string text)
     {
         var lemmas = new SortedSet<string>(StringComparer.Ordinal);
-        foreach (var token in TextNormalizer.Normalize(text).Tokens)
+        foreach (var token in SpanishTextNormalizer.Normalize(text).Tokens)
         {
             if (_formToLemma.TryGetValue(token.Text, out var lemma))
             {

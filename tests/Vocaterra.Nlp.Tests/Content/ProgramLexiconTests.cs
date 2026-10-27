@@ -46,7 +46,7 @@ public class ProgramLexiconTests : IDisposable
         Assert.Equal(Program.ExitOk, code);
         Assert.Equal(string.Empty, error);
         Assert.Contains("lemmas: 13 considered, 5 with a frequency, 2 kept (top 2: 2 below the cutoff of 30,", text, StringComparison.Ordinal);
-        Assert.Equal(["espada", "gato"], NlpLexicon.Load(File.ReadAllText(output)).Lemmas);
+        Assert.Equal(["espada", "gato"], SpanishLexicon.Load(File.ReadAllText(output)).Lemmas);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class ProgramLexiconTests : IDisposable
 
         Assert.Equal(Program.ExitOk, code);
         Assert.Contains("13 kept\n", text, StringComparison.Ordinal);
-        Assert.Equal(13, NlpLexicon.Load(File.ReadAllText(output)).Lemmas.Count);
+        Assert.Equal(13, SpanishLexicon.Load(File.ReadAllText(output)).Lemmas.Count);
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class ProgramLexiconTests : IDisposable
         Assert.Equal(a.Report.LemmasKept, b.Report.LemmasKept);
         Assert.Equal(a.Sources, b.Sources);
         Assert.Equal(3, a.Parameters.Top);
-        Assert.Equal(a.OutputEntries, NlpLexicon.Load(File.ReadAllText(_directory.PathOf("a.json"))).Entries.Count);
+        Assert.Equal(a.OutputEntries, SpanishLexicon.Load(File.ReadAllText(_directory.PathOf("a.json"))).Entries.Count);
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public class ProgramLexiconTests : IDisposable
 
         Assert.Equal(Program.ExitOk, code);
         Assert.Contains(KaikkiImporter.HandAuthoredReason, text, StringComparison.Ordinal);
-        Assert.DoesNotContain("espada", NlpLexicon.Load(File.ReadAllText(_directory.PathOf("out.json"))).Lemmas);
+        Assert.DoesNotContain("espada", SpanishLexicon.Load(File.ReadAllText(_directory.PathOf("out.json"))).Lemmas);
     }
 
     [Fact]

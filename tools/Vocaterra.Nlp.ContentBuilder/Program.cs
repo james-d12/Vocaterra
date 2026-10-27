@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using Vocaterra.Nlp.Content;
+using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Nlp.ContentBuilder;
@@ -140,7 +141,7 @@ public static class Program
         var dir = arguments.Positional(0, "bundleDir", exactly: 1);
         try
         {
-            var bundle = ContentLoader.Load(dir);
+            var bundle = SpanishContent.Load(dir);
             output.WriteLine(string.Create(
                 CultureInfo.InvariantCulture,
                 $"OK: bundle '{bundle.Manifest.BundleId}' {bundle.Manifest.ContentVersion}, {bundle.Manifest.Files.Count} files, hash {bundle.ContentHash}"));
@@ -180,7 +181,7 @@ public static class Program
         try
         {
             // Hashes are not verified so the lint can run while content is being edited, before hash; run validate before shipping.
-            bundle = ContentLoader.Load(dir, new ContentLoadOptions { VerifyHashes = false });
+            bundle = SpanishContent.Load(dir, new ContentLoadOptions { VerifyHashes = false });
         }
         catch (ContentValidationException ex)
         {
@@ -279,7 +280,7 @@ public static class Program
         try
         {
             // Hashes are not verified so the check can run while content is being edited; run validate before shipping.
-            bundle = ContentLoader.Load(dir, new ContentLoadOptions { VerifyHashes = false });
+            bundle = SpanishContent.Load(dir, new ContentLoadOptions { VerifyHashes = false });
         }
         catch (ContentValidationException ex)
         {

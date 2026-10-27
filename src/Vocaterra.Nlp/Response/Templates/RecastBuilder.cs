@@ -14,27 +14,10 @@ namespace Vocaterra.Nlp.Response.Templates;
 /// </summary>
 /// <remarks>
 /// The spelling of the words (digits as words, the restored accents) comes from the language pack: <see cref="Build(NormalizedText, AnalysisResult, NlpLexicon, ILanguagePack)"/>
-/// takes the bundle's pack. The overloads without a pack are the Spanish compatibility entry points (they use <see cref="SpanishLanguagePack.Instance"/>).
+/// takes the bundle's pack. There is no overload without a pack since M53; a bundle's recast is <c>RecastBuilder.Build(text, analysis, bundle.Lexicon, bundle.Language)</c>.
 /// </remarks>
 public static class RecastBuilder
 {
-    /// <summary>
-    /// Builds the Spanish recast without a lexicon, so no accent is restored; see the overload that takes one. Spanish compatibility entry point.
-    /// </summary>
-    public static string Build(NormalizedText playerText, AnalysisResult analysis)
-    {
-        return Build(playerText, analysis, NlpLexicon.Empty, SpanishLanguagePack.Instance);
-    }
-
-    /// <summary>
-    /// Builds the Spanish recast with the lexicon (see the overload with a pack). Spanish compatibility entry point: a bundle's recast is
-    /// <c>RecastBuilder.Build(text, analysis, bundle.Lexicon, bundle.Language)</c>.
-    /// </summary>
-    public static string Build(NormalizedText playerText, AnalysisResult analysis, NlpLexicon lexicon)
-    {
-        return Build(playerText, analysis, lexicon, SpanishLanguagePack.Instance);
-    }
-
     /// <summary>
     /// Applies every error tag that has a non-empty <c>Expected</c> to the normalized text by span, from the last span to the first.
     /// Pronunciation tags are skipped. Where spans overlap, the wider edit wins and narrower edits inside it are merged into its replacement;

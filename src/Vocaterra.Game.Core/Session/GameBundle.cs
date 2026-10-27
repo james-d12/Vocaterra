@@ -1,4 +1,5 @@
 using Vocaterra.Nlp.Content;
+using Vocaterra.Nlp.Es;
 
 namespace Vocaterra.Game.Core.Session;
 
@@ -35,7 +36,7 @@ public static class GameBundle
     /// <summary>Loads the bundle from <paramref name="directory"/>, or from <see cref="Locate"/> when it is <see langword="null"/>.</summary>
     /// <exception cref="DirectoryNotFoundException">No bundle folder was found.</exception>
     /// <exception cref="ContentValidationException">The bundle fails the core's validation.</exception>
-    public static ContentBundle Load(string? directory = null) => ContentLoader.Load(ResolveDirectory(directory));
+    public static ContentBundle Load(string? directory = null) => SpanishContent.Load(ResolveDirectory(directory));
 
     private static string? Search(string start)
     {

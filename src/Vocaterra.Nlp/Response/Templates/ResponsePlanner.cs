@@ -24,12 +24,6 @@ public sealed class ResponsePlanner
         _engine = engine;
     }
 
-    /// <summary>Creates a planner over the embedded seed lexicon.</summary>
-    public ResponsePlanner()
-        : this(TemplateEngine.CreateDefault())
-    {
-    }
-
     /// <summary>
     /// Plans the response. The reply pool is <paramref name="dialogueIntent"/>, else the verdict's intent when it was communicated and known,
     /// else <see cref="NotUnderstoodIntent"/>; a missing reply pool throws <see cref="KeyNotFoundException"/>. The generator is drawn once for the reply,

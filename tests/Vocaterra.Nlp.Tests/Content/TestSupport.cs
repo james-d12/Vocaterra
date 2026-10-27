@@ -16,7 +16,7 @@ internal static class TestSupport
     public static string ModelManifest { get; } = Path.Combine(AppContext.BaseDirectory, "models", "manifest.json");
 
     /// <summary>The bundle, loaded once with hash verification.</summary>
-    public static ContentBundle Bundle { get; } = ContentLoader.Load(BundleDir, new ContentLoadOptions { VerifyHashes = true });
+    public static ContentBundle Bundle { get; } = SpanishContent.Load(BundleDir, new ContentLoadOptions { VerifyHashes = true });
 
     /// <summary>
     /// Writes a <c>sources.json</c> for the given files into the directory, with their real size and SHA-256 (so the importer's check against the file

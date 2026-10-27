@@ -15,15 +15,19 @@
   <ItemGroup>
     <Using Include="Xunit" />
     <Using Include="Vocaterra.Nlp.Testing" />
+    <Using Include="Vocaterra.Nlp.Es" />
+    <Using Include="Vocaterra.Nlp.Es.Morphology" />
+    <Using Include="Vocaterra.Nlp.Es.Normalization" />
+    <Using Include="Vocaterra.Nlp.Es.Phonology" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../../src/Vocaterra.Nlp/Vocaterra.Nlp.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Es/Vocaterra.Nlp.Es.csproj" />
     <ProjectReference Include="../../tools/Vocaterra.Nlp.Bench/Vocaterra.Nlp.Bench.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Data/g2p-golden.jsonl" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Data/e2e-*.golden.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Data/identity/*.jsonl" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

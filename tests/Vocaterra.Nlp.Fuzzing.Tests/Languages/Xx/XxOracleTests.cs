@@ -81,8 +81,8 @@ public sealed class XxOracleTests(ITestOutputHelper output)
             }
         }
 
-        // The toy bundle has no Spanish morphology: the Spanish generator is never the bundle's (ContentBundle.Morphology refuses).
-        Assert.Throws<NotSupportedException>(() => bundle.Morphology);
+        // The toy bundle has no Spanish morphology: the morphology is the toy pack's, a type of this assembly.
+        Assert.Same(typeof(XxLanguagePack).Assembly, bundle.LanguageMorphology.GetType().Assembly);
     }
 
     // One utterance of the toy bundle, scripted to hear the transcript, in the context of the toy agent.
