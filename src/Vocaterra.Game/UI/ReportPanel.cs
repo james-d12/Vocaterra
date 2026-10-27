@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Reporting;
 
 namespace Vocaterra.Game.UI;

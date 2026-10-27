@@ -2,6 +2,7 @@ using System.Globalization;
 using FontStashSharp;
 using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Event;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;

@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.UI;

@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework.Input;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Session;

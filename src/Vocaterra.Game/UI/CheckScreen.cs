@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Words;
 

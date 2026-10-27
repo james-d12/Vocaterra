@@ -1,6 +1,6 @@
-using Vocaterra.Game.UI;
+using Vocaterra.Game.Core.Input;
 
-namespace Vocaterra.Game.Tests;
+namespace Vocaterra.Game.Core.Tests.Input;
 
 /// <summary>The dialogue panel's text box, its Spanish characters and the accent shortcuts, without a window.</summary>
 public sealed class TextEntryTests
