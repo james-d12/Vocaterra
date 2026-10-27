@@ -164,7 +164,8 @@ public static class VerdictAssembler
         }
 
         var sorted = unique.Values.ToArray();
-        Array.Sort(sorted, CompareErrors);
+        var tags = inputs.ErrorTags ?? ErrorTagSet.V1;
+        Array.Sort(sorted, (left, right) => CompareErrors(left, right, tags));
         return sorted;
     }
 
@@ -184,7 +185,7 @@ public static class VerdictAssembler
         return byExpected != 0 ? byExpected : string.CompareOrdinal(left.Actual, right.Actual);
     }
 
-    private static int CompareErrors(ErrorTag left, ErrorTag right)
+    private static int CompareErrors(ErrorTag left, ErrorTag right, ErrorTagSet tags)
     {
         var byStart = left.Span.Start.CompareTo(right.Span.Start);
         if (byStart != 0)
@@ -192,7 +193,7 @@ public static class VerdictAssembler
             return byStart;
         }
 
-        var byRank = TagRank(left.Tag).CompareTo(TagRank(right.Tag));
+        var byRank = tags.Rank(left.Tag).CompareTo(tags.Rank(right.Tag));
         if (byRank != 0)
         {
             return byRank;
@@ -213,21 +214,6 @@ public static class VerdictAssembler
 
         var byTag = string.CompareOrdinal(left.Tag, right.Tag);
         return byTag != 0 ? byTag : string.CompareOrdinal(left.Actual, right.Actual);
-    }
-
-    // Known tags rank by their position in ErrorTags.All; unknown tags sort after all known ones.
-    private static int TagRank(string tag)
-    {
-        var all = ErrorTags.All;
-        for (var i = 0; i < all.Count; i++)
-        {
-            if (string.Equals(all[i], tag, StringComparison.Ordinal))
-            {
-                return i;
-            }
-        }
-
-        return all.Count;
     }
 
     private static ErrorTag? DeriveVocabWrong(VerdictInputs inputs)

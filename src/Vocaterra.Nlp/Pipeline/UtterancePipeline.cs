@@ -122,7 +122,8 @@ public sealed partial class UtterancePipeline
             KnownWords(analysis),
             content.EvaluationConfig,
             _services.Versions,
-            CanonicalAnswersOf(answerSet)));
+            CanonicalAnswersOf(answerSet),
+            content.Language.ErrorTags));
         return new UtteranceAnalysis(clip.ClipHash, prompt, asr, posteriors, normalized, analysis, match, answerSet, verdict);
     }
 

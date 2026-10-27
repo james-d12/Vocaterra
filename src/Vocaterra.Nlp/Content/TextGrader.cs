@@ -78,7 +78,8 @@ public sealed class TextGrader
             KnownWords(analysis),
             _bundle.EvaluationConfig,
             _versions,
-            [.. answerSet.Answers.Select(static answer => answer.Canonical)]));
+            [.. answerSet.Answers.Select(static answer => answer.Canonical)],
+            _bundle.Language.ErrorTags));
     }
 
     private static string CleanTranscript(string transcript)
