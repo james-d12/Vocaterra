@@ -1100,6 +1100,37 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   - **Gate.** 5,385 passed (17 new; the 2 Parakeet tests run again now that the model is in the shared folder), 3 skipped, 0 failed;
     licence scan passed; fuzz at 10,000 grammar iterations green; no existing expected value changed. `identity-check.sh f4694ff` passed,
     and the CLI demo is unchanged.
+- **M34, analysis-side seams (2026-10-27, Sonnet 5.5; merged to `feature/language-packs` `2161c6e`).**
+  - **New pack members.** `LexiconProfile`, `ErrorTags` (`ErrorTagSet`: ranks, `IsKnown`, `IsPronunciation`; `V1` is today's Spanish
+    set), `CreateMorphology` (`IMorphology`; `MorphologyGenerator` implements it), `CreateAnalysisRules` (`IAnalysisRules`: word-class
+    predicates and `CreateAgreementChecker`) and `CreateTemplateFunctions` (`ITemplateFunctions`). `RepairLines.Offer` (`OfferLineFormat`)
+    carries «¿Quieres decir «…»?», with the same text; it has no pool override, because a pool line has no placeholder for the choices.
+  - **Moved into `Language/Packs`.** `SpanishAnalysisTables` (was `AnalysisTables`), `SpanishAgreementChecker` (was `AgreementChecker`),
+    `SpanishAnalysisRules`, `SpanishTemplateFunctions`. `ReadingResolver`, `AccentVariantChoice`, `ReportedReadings`,
+    `AccentRestoration`, `ReadingClasses` and `LinguisticAnalyzer` stay shared and take the rules and the pack's folding. `ReadingClasses`,
+    `WordClass` and `RegularizedForm` are public so a pack in another assembly can implement the seams (M53).
+  - **Lexicon.** Indexes are built with the pack's `ILexiconFolding`; lexicon files are checked against the pack's profile (a Spanish `n`
+    gender is still refused with the same message); the lexicon cache key includes the language id. `IntentCatalog.Load` and
+    `SlotGrammar.Parse` take an optional folding; without one they use `TextKey.Of` (NFC plus invariant lower case: the code of
+    `TextFolding.Normalize`, moved, so the key is the same).
+  - **`ContentBundle.Morphology`.** The engine uses the new `bundle.LanguageMorphology` (`IMorphology`) and `bundle.AnalysisRules`.
+    `bundle.Morphology` keeps its type for the game and returns the same object for Spanish; for another pack it throws
+    `NotSupportedException` on access, not at load.
+  - **Schema.** `LexicalFeatures` and `EntryFeatures` gain optional `Case`, `VerbForm`, `Declension`, `Particle`, `Register` (null, left out
+    of JSON). `NormalizedText.FinalMark` exists behind `NormalizationOptions.CaptureFinalMark` (default off; the pipeline does not set it).
+    The analyzer and `VerdictAssembler` order errors by the pack's ranks through an optional `VerdictInputs.ErrorTags`.
+  - **Guard.** The M34 allowlist went from 16 entries to 4: `MorphologyGenerator.cs` (3 patterns; the Spanish `IMorphology`, moves in
+    M53) and `Lexicon.cs` (`Lexicon.Seed`, `Lexicon.Empty` and the overloads without a folding default to Spanish; the embedded seed is
+    Spanish and 32 test files and the ContentBuilder use them; a bundle's lexicon never does).
+  - **Breaking API, none used by the game:** the five new `ILanguagePack` members; `ReadingClasses` predicates and
+    `AccentRestoration.SpellingsFor` take the rules; `IntentCatalog.Load` and `SlotGrammar.Parse` no longer convert to `Func<string, T>`;
+    deconstructing `LexicalFeatures` or `EntryFeatures` yields more elements. `API.md` lists them.
+  - **Left out.** `ReadingResolver`'s local-syntax rules are shared, not pluggable: verb-second order or separable prefixes need the rule
+    set extended (M54 onward; ADR 0011). `PredictedErrorMatcher` still reads `ErrorTags.All` (pronunciation stays Spanish-tuned,
+    research item 14).
+  - **Gate.** 5,419 passed (34 new, in `AnalysisSideSeamTests`: a pack that changes one member and the engine following it), 3 skipped,
+    0 failed; no assertion removed, Fuzzing and Golden untouched; fuzz at 10,000 grammar iterations green; `HomographSentencesTests` green;
+    `identity-check.sh f4694ff` passed, and the CLI demo is unchanged.
 
 ## 6. Definition of done (every milestone)
 
@@ -1404,7 +1435,7 @@ The research lists seven places that would break silently when a second language
 | M31 | Spanish identity guard (`SpanishIdentityTests`) | M29j | H | done (merged to `feature/language-packs` `f4694ff`) |
 | M32 | Language id in the manifest (absent = `es`, folded into the hash only when present), pack registry, `ContentBundle.Language`, ADR 0011 | M31, M52 | S | done (merged to `feature/language-packs` `ba85fe3`, 2026-10-27) |
 | M33 | Text-side seams: normalizer, numbers, phonetic key, punctuation, repair lines, grammar defaults, lint, G2P call sites, Kokoro `lang` | M32 | H | done (merged to `feature/language-packs` `d677412`, 2026-10-27) |
-| M34 | Analysis-side seams and schema: `IMorphology`, `IAnalysisRules`, template functions, optional `LexicalFeatures` fields (Case, VerbForm, Declension, Particle, Register), per-pack tag sets (`ErrorTags.All` frozen as Spanish) | M33 | S | in progress (2026-10-27, branch `M34-analysis-seams`) |
+| M34 | Analysis-side seams and schema: `IMorphology`, `IAnalysisRules`, template functions, optional `LexicalFeatures` fields (Case, VerbForm, Declension, Particle, Register), per-pack tag sets (`ErrorTags.All` frozen as Spanish) | M33 | S | done (merged to `feature/language-packs` `2161c6e`, 2026-10-27) |
 | M35 | Per-language test harness, and a toy pack that proves no hidden Spanish dependency remains | M34 | H | planned (D14 amended 2026-10-26) |
 | M36 | German lexicon import (kaikki German, `de_50k`; D4 applies as for `es_50k`) | M35 | S | proposed |
 | M37 | German text layer: umlaut and ß folding (ae, oe, ue), contractions, numbers, phonetic key, noun capitals | M36 | S | proposed |
