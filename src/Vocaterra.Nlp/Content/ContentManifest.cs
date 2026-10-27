@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Vocaterra.Nlp.Core.Determinism;
 
 namespace Vocaterra.Nlp.Content;
@@ -18,15 +19,32 @@ public sealed record ManifestFile(string Path, string Sha256, long Bytes);
 /// Text files (<c>.json</c>, <c>.jsonl</c>, <c>.md</c>, <c>.txt</c>) are hashed as UTF-8 after Unicode NFC normalization and
 /// CRLF to LF conversion (the same canonical form as <see cref="DeterministicHash.OfText(string)"/>), so a checkout with
 /// different line endings still verifies; every other file is hashed as raw bytes. <c>Bytes</c> is the size of the hashed form.
-/// The bundle hash is <see cref="DeterministicHash.Combine(string[])"/> over <c>path, sha256</c> of every file in ordinal path order.
+/// The bundle hash is <see cref="DeterministicHash.Combine(string[])"/> over <c>path, sha256</c> of every file in ordinal path order; when
+/// <see cref="Language"/> is present it is over <c>"language", tag, path, sha256, ...</c> instead, so a bundle of another language never shares
+/// a hash with a Spanish one while a bundle without the field keeps the hash it always had. <see cref="SupportLanguage"/> is not hashed.
 /// </remarks>
+/// <param name="SchemaVersion">The manifest schema version.</param>
+/// <param name="BundleId">The bundle id.</param>
+/// <param name="ContentVersion">The content version.</param>
+/// <param name="Files">Every file of the bundle except the manifest, in ordinal path order.</param>
+/// <param name="BundleHash">The bundle hash.</param>
+/// <param name="Language">
+/// The BCP-47 tag of the language the bundle teaches (for example <c>es</c>, <c>de-DE</c>); the pack is chosen by its primary subtag.
+/// Absent (null) means Spanish and keeps the pre-language hash.
+/// </param>
+/// <param name="SupportLanguage">The BCP-47 tag of the learner's support language. Recorded and passed through, never interpreted, not hashed.</param>
 public sealed record ContentManifest(
     int SchemaVersion,
     string BundleId,
     string ContentVersion,
     IReadOnlyList<ManifestFile> Files,
-    string BundleHash)
+    string BundleHash,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Language = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? SupportLanguage = null)
 {
+    /// <summary>The primary subtag of a bundle whose manifest has no <c>language</c>.</summary>
+    public const string DefaultLanguage = "es";
+
     /// <summary>The only manifest schema version this library reads and writes.</summary>
     public const int CurrentSchemaVersion = 1;
 
@@ -62,8 +80,23 @@ public sealed record ContentManifest(
     /// <summary>Computes the bundle hash over the files in ordinal path order (the given order does not matter).</summary>
     public static string ComputeBundleHash(IEnumerable<ManifestFile> files)
     {
+        return ComputeBundleHash(files, null);
+    }
+
+    /// <summary>
+    /// Computes the bundle hash over the language (when present) and the files in ordinal path order: <c>Combine("language", tag, path, sha, ...)</c>
+    /// for a non-null <paramref name="language"/> (the tag exactly as written in the manifest), otherwise exactly <c>Combine(path, sha, ...)</c>.
+    /// </summary>
+    public static string ComputeBundleHash(IEnumerable<ManifestFile> files, string? language)
+    {
         ArgumentNullException.ThrowIfNull(files);
         var parts = new List<string>();
+        if (language is not null)
+        {
+            parts.Add("language");
+            parts.Add(language);
+        }
+
         foreach (var file in files.OrderBy(static file => file.Path, StringComparer.Ordinal))
         {
             parts.Add(file.Path);
@@ -75,9 +108,9 @@ public sealed record ContentManifest(
 
     /// <summary>
     /// Builds a manifest from the files on disk (every file under the directory except <c>manifest.json</c> and dot-files).
-    /// Identity fields come from an existing manifest when it parses, else from the arguments, else the directory name and <see cref="DefaultContentVersion"/>.
+    /// Identity fields and the language fields come from the arguments, else from an existing manifest when it parses, else the directory name and <see cref="DefaultContentVersion"/> (the language fields stay absent).
     /// </summary>
-    public static ContentManifest Compute(string bundleDir, string? bundleId = null, string? contentVersion = null)
+    public static ContentManifest Compute(string bundleDir, string? bundleId = null, string? contentVersion = null, string? language = null, string? supportLanguage = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(bundleDir);
         if (!Directory.Exists(bundleDir))
@@ -107,7 +140,8 @@ public sealed record ContentManifest(
 
         var id = bundleId ?? existing?.BundleId ?? new DirectoryInfo(Path.GetFullPath(bundleDir)).Name;
         var version = contentVersion ?? existing?.ContentVersion ?? DefaultContentVersion;
-        return new ContentManifest(CurrentSchemaVersion, id, version, files, ComputeBundleHash(files));
+        var targetLanguage = language ?? existing?.Language;
+        return new ContentManifest(CurrentSchemaVersion, id, version, files, ComputeBundleHash(files, targetLanguage), targetLanguage, supportLanguage ?? existing?.SupportLanguage);
     }
 
     /// <summary>
@@ -120,6 +154,16 @@ public sealed record ContentManifest(
         builder.Append("{\"schemaVersion\":").Append(SchemaVersion.ToString(CultureInfo.InvariantCulture));
         builder.Append(",\"bundleId\":").Append(CanonicalJson.Serialize(BundleId));
         builder.Append(",\"contentVersion\":").Append(CanonicalJson.Serialize(ContentVersion));
+        if (Language is not null)
+        {
+            builder.Append(",\"language\":").Append(CanonicalJson.Serialize(Language));
+        }
+
+        if (SupportLanguage is not null)
+        {
+            builder.Append(",\"supportLanguage\":").Append(CanonicalJson.Serialize(SupportLanguage));
+        }
+
         builder.Append(",\"files\":[");
         for (var i = 0; i < Files.Count; i++)
         {
@@ -140,6 +184,8 @@ public sealed record ContentManifest(
             && string.Equals(BundleId, other.BundleId, StringComparison.Ordinal)
             && string.Equals(ContentVersion, other.ContentVersion, StringComparison.Ordinal)
             && string.Equals(BundleHash, other.BundleHash, StringComparison.Ordinal)
+            && string.Equals(Language, other.Language, StringComparison.Ordinal)
+            && string.Equals(SupportLanguage, other.SupportLanguage, StringComparison.Ordinal)
             && Files.SequenceEqual(other.Files);
     }
 
@@ -151,6 +197,8 @@ public sealed record ContentManifest(
         hash.Add(BundleId, StringComparer.Ordinal);
         hash.Add(ContentVersion, StringComparer.Ordinal);
         hash.Add(BundleHash, StringComparer.Ordinal);
+        hash.Add(Language, StringComparer.Ordinal);
+        hash.Add(SupportLanguage, StringComparer.Ordinal);
         foreach (var file in Files)
         {
             hash.Add(file);

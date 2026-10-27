@@ -9,7 +9,7 @@ namespace Vocaterra.Nlp.Content;
 /// <summary>Check 1: every intent example resolves to its own intent, and by which rung.</summary>
 internal static class LintCoverage
 {
-    private static readonly string[] SubjectPronouns = ["yo", "tú", "él", "ella", "usted", "nosotros", "nosotras", "vosotros", "vosotras", "ellos", "ellas", "ustedes"];
+    internal static readonly string[] SubjectPronouns = ["yo", "tú", "él", "ella", "usted", "nosotros", "nosotras", "vosotros", "vosotras", "ellos", "ellas", "ustedes"];
     private static readonly NormalizationOptions KeepArticles = new(ConvertIndefiniteArticles: false);
 
     public static void Run(LintContext context)

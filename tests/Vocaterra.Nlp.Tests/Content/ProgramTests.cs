@@ -131,6 +131,41 @@ public class ProgramTests
     }
 
     [Fact]
+    public void HashWritesTheLanguageFieldsFollowsTheHashRuleAndKeepsThemOnTheNextRun()
+    {
+        using var bundle = new TempBundle();
+        var plain = ContentManifest.Compute(bundle.Directory).BundleHash;
+
+        var (code, _, error) = Run("hash", bundle.Directory, "--language", "es-MX", "--support-language", "en");
+
+        Assert.Equal(Program.ExitOk, code);
+        Assert.Equal(string.Empty, error);
+        var written = ContentManifest.FromJson(File.ReadAllText(bundle.PathOf("manifest.json")));
+        Assert.Equal("es-MX", written.Language);
+        Assert.Equal("en", written.SupportLanguage);
+        Assert.NotEqual(plain, written.BundleHash);
+        Assert.Equal(ContentManifest.ComputeBundleHash(written.Files, "es-MX"), written.BundleHash);
+        Assert.Equal("es", bundle.Load(verifyHashes: true).LanguageId);
+
+        // A second run without the options keeps what the manifest says.
+        Assert.Equal(Program.ExitOk, Run("hash", bundle.Directory).Code);
+        Assert.Equal(written, ContentManifest.FromJson(File.ReadAllText(bundle.PathOf("manifest.json"))));
+    }
+
+    [Fact]
+    public void HashRefusesAMalformedLanguageAndWritesNothing()
+    {
+        using var bundle = new TempBundle();
+        var before = bundle.Read("manifest.json");
+
+        var (code, _, error) = Run("hash", bundle.Directory, "--language", "es_MX");
+
+        Assert.Equal(Program.ExitInvalid, code);
+        Assert.Contains("--language 'es_MX' is not a well-formed BCP-47 language tag", error, StringComparison.Ordinal);
+        Assert.Equal(before, bundle.Read("manifest.json"));
+    }
+
+    [Fact]
     public void HashIsIdempotentAndKeepsTheIdentity()
     {
         using var bundle = new TempBundle();

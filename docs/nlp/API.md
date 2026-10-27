@@ -26,6 +26,45 @@ Console.WriteLine(bundle.ContentHash);                      // the bundle hash, 
 `ContentLoader.Load` throws `ContentValidationException` for a bundle that fails validation. The bundle carries the prompts
 (`bundle.Prompts`), the agents (`bundle.Agents`), the effect table (`bundle.Effects`) and the lexicon; nothing is read again after loading.
 
+### The bundle's language
+
+A bundle teaches one language. `manifest.json` may carry `"language"` (a BCP-47 tag such as `es`, `es-MX` or `de-DE`) and `"supportLanguage"`
+(the learner's own language, for example `en`). Both are optional; an absent `language` means Spanish (`es`), so existing bundles need no edit.
+All of this is additive ([ADR 0011](adr/0011-target-language-as-a-bundle-property.md)).
+
+```csharp
+using Vocaterra.Nlp.Language.Packs;
+
+ContentBundle bundle = ContentLoader.Load("content/game-v1");
+ILanguagePack pack = bundle.Language;          // SpanishLanguagePack.Instance for a bundle without "language"
+string id = bundle.LanguageId;                 // "es" (the primary subtag; also "es" for a manifest language of "es-MX")
+string? tag = bundle.Manifest.Language;        // null when the manifest has none; the tag as written otherwise
+string? support = bundle.Manifest.SupportLanguage;   // recorded and passed through, never interpreted
+
+// A host with its own packs passes its own registry.
+var options = new ContentLoadOptions { LanguagePacks = LanguagePacks.Default.With(myGermanPack) };
+ContentBundle german = ContentLoader.Load("content/my-german-bundle", options);
+```
+
+- **Hash rule.** With `language` present the bundle hash is `Combine("language", tag, path1, sha1, ...)`; without it, exactly `Combine(path1, sha1, ...)`
+  as before. `supportLanguage` is not hashed. `ContentManifest.ComputeBundleHash(files, language)` implements it, and the ContentBuilder's
+  `hash <dir> [--language TAG] [--support-language TAG]` follows it, keeping the fields of an existing manifest unless an option overrides them.
+  Adding `language` to a manifest therefore changes its bundle hash.
+- **Resolution.** `LanguagePacks.TryResolve(tag, out pack)` reads the primary subtag of a well-formed tag and finds the pack, ordinal and
+  case-insensitive on the subtag. `LanguagePacks.Default` holds `es`; `LanguagePacks.Empty`, `Of(...)` and `With(...)` build other sets;
+  `Languages` lists the ids. `LanguagePacks.TryGetPrimarySubtag` is the syntax check (RFC 5646 shape, not the IANA registry).
+- **Refusal.** A malformed `language` or one with no registered pack makes `ContentLoader.Load` throw `ContentValidationException` with a problem
+  `manifest.json: language '...' is not a well-formed BCP-47 language tag ...` or `manifest.json: no language pack is registered for language '...'
+  (registered: ...)`, with or without hash verification.
+- **`ILanguagePack`** (text side, M32): `LanguageId`, `Normalizer`, `Folding`, `Numbers`, `PhoneticKey`, `Punctuation`, `G2p` (null when pronunciation
+  scoring is off for the language), `GrammarDefaults`, `Lint` and `RepairFallback`. `SpanishLanguagePack.Instance` wraps the static Spanish classes
+  (`TextNormalizer`, `SpanishNumbers`, `SpanishPhoneticKey`, `SpanishG2p`, ...), which keep their entry points and their Spanish meaning; the
+  pipeline does not call through the pack yet (M33). The analysis-side members (morphology, analysis rules, template functions, lexicon profile, error
+  tag set, recast policy) join in M34.
+- New public members: `ContentManifest.Language`, `.SupportLanguage`, `.DefaultLanguage`, `ComputeBundleHash(files, language)`, two optional trailing
+  parameters of `Compute` and of the record constructor; `ContentLoadOptions.LanguagePacks`; `ContentBundle.Language`, `.LanguageId`; the types of
+  `Vocaterra.Nlp.Language.Packs`.
+
 ### Host-owned files
 
 A bundle may hold files that the loader does not parse, such as the host's own data (`game/nouns.json`). Such a file is hashed in

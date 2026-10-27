@@ -10,10 +10,12 @@ internal static class WordClasses
         "mucho", "poco", "otro", "varios", "todo", "cuánto", "mi", "tu", "su", "nuestro", "vuestro", "este", "ese", "aquel",
     }.ToFrozenSet(StringComparer.Ordinal);
 
-    private static readonly FrozenSet<string> SubjectPronouns = new[]
-    {
+    private static readonly string[] SubjectPronounList =
+    [
         "yo", "tú", "él", "ella", "usted", "nosotros", "nosotras", "vosotros", "vosotras", "ellos", "ellas", "ustedes",
-    }.ToFrozenSet(StringComparer.Ordinal);
+    ];
+
+    private static readonly FrozenSet<string> SubjectPronouns = SubjectPronounList.ToFrozenSet(StringComparer.Ordinal);
 
     private static readonly FrozenSet<string> Clitics = new[] { "me", "te", "lo", "le", "nos", "les" }.ToFrozenSet(StringComparer.Ordinal);
 
@@ -27,6 +29,9 @@ internal static class WordClasses
     {
         return DeterminerAdjectives.Contains(lemma);
     }
+
+    /// <summary>The personal pronouns that can be the explicit subject of a verb, in listing order.</summary>
+    public static IReadOnlyList<string> SubjectPronounLemmas => SubjectPronounList;
 
     /// <summary>True for personal pronouns that can be the explicit subject of a verb.</summary>
     public static bool IsSubjectPronoun(string lemma)

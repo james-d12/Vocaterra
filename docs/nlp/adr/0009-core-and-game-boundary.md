@@ -15,6 +15,8 @@
 
 > **Note (2026-10-26, M52):** the core is one engine assembly, `Vocaterra.Nlp` (`src/Vocaterra.Nlp`, one folder per former project), with language packs beside it (ADR 0012). Where this record says `Vocaterra.Nlp.*` projects, read the engine and its packs. The boundary is unchanged: the game references the core's one project and never copies core source. The table in section 1 is updated for that.
 
+> **Note (2026-10-27, M32):** the target language is a property of the content bundle (`manifest.json` `language`, absent means `es`), resolved to an `ILanguagePack` through a registry; see [ADR 0011](0011-target-language-as-a-bundle-property.md). The changes are additive (`ContentManifest.Language`, `ContentBundle.Language`, `ContentLoadOptions.LanguagePacks`, the `Vocaterra.Nlp.Language.Packs` types) and the boundary is unchanged in kind: a language, like the lexicon, is content, and the core still names no game word. A Spanish bundle without `language` keeps its hash.
+
 - Status: accepted
 - Date: 2026-10-20
 - Deciders: the repository owner (repository names, the rename to `Vocaterra.Nlp.*`, and decisions D6 and D7 in [docs/nlp/DECISIONS.md](../DECISIONS.md)); the implementation plan (`IMPLEMENTATION_PLAN.md` section 8, milestone M19a)

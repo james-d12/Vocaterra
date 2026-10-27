@@ -38,6 +38,14 @@ public static class LayerRules
     };
 
     /// <summary>
+    /// The language packs (<c>Vocaterra.Nlp.Language.Packs</c>) sit in the Language folder but wrap Spanish code of other stages, so they have a
+    /// rule of their own and the Language rule does not cover them. A pack may use Core, Language, Phonology and Response, nothing else.
+    /// </summary>
+    public const string PacksNamespace = Root + ".Language.Packs";
+
+    private static readonly string[] PacksMayDependOn = ["Core", "Language", "Phonology", "Response"];
+
+    /// <summary>
     /// One rule per stage except Pipeline: the stage's namespace must not depend on any stage it is not allowed to use. Nothing but Pipeline
     /// therefore depends on Pipeline.
     /// </summary>
@@ -52,6 +60,10 @@ public static class LayerRules
                 .ToArray();
             yield return (Root + "." + stage, forbidden);
         }
+
+        yield return (
+            PacksNamespace,
+            Stages.Where(other => !PacksMayDependOn.Contains(other, StringComparer.Ordinal)).Select(other => Root + "." + other).ToArray());
     }
 
     /// <summary>
@@ -60,8 +72,14 @@ public static class LayerRules
     /// </summary>
     public static IReadOnlyList<string> Violations(Assembly assembly, string sourceNamespace, IEnumerable<string> forbiddenNamespaces)
     {
-        var result = Types.InAssembly(assembly)
-            .That().ResideInNamespaceStartingWith(sourceNamespace)
+        var types = Types.InAssembly(assembly).That().ResideInNamespaceStartingWith(sourceNamespace);
+        if (!string.Equals(sourceNamespace, PacksNamespace, StringComparison.Ordinal))
+        {
+            // The packs have a rule of their own (see PacksNamespace).
+            types = types.And().DoNotResideInNamespaceStartingWith(PacksNamespace);
+        }
+
+        var result = types
             .ShouldNot().HaveDependencyOnAny(forbiddenNamespaces.ToArray())
             .GetResult();
         return result.FailingTypeNames?.ToList() ?? [];
