@@ -1398,11 +1398,12 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     as «a» (0.38 to 0.42). The cached clip and speaker 28 at 1.0 are heard right (0.82 to 0.95).
   - Pad sweep: 105 and 75 ms clear the four clips tried, 90 ms does not, and 60 ms breaks `hola.wav` (0.42, intent unknown, 3 failures in
     `SpokenRouteTests`). The curve is not monotone, so the pad was not changed. Choosing it is a playtest question.
-  - Fix: the test accepts an optional leading «a » (`^(a )?dónde está la árbol$`) and still asserts `gender.agree` and the feedback.
+  - Fix: the test accepts an optional leading «a » (`^(a )?dónde está la árbol$`) and still asserts `gender.agree` and the feedback. Accepted
+    by the owner on 2026-10-27, although the cause is acoustic and not the bundle's phrasing (the brief's condition for loosening the test).
   - **Core finding (no milestone planned):** `KokoroSynthesizer.Synthesize` (sherpa-onnx `OfflineTts`, CPU, one thread) gives the same
     audio within a process but different audio across processes (SHA-256 prefixes `736AD51E…` and `F93AD1C0…`, same code and model). So a
     `DirectorySynthesisCache` entry cannot be checked against a fresh render. The cached clip for this line matches no fresh rendering.
-    It is proposed to the owner as a core milestone.
+    Owner, 2026-10-27: keep it logged for later; no milestone now.
 
 ## 6. Definition of done (every milestone)
 
