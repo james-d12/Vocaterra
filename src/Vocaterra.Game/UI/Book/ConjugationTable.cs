@@ -2,9 +2,7 @@ using System.Globalization;
 using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.Utilities;
 using Vocaterra.Nlp.Es.Morphology;
-using Vocaterra.Nlp.Language.Morphology;
 
 namespace Vocaterra.Game.UI.Book;
 

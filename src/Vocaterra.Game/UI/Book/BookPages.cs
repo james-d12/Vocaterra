@@ -4,10 +4,8 @@ using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
-using Vocaterra.Game.Utilities;
 using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Es.Morphology;
-using Vocaterra.Nlp.Language.Morphology;
 
 namespace Vocaterra.Game.UI.Book;
 

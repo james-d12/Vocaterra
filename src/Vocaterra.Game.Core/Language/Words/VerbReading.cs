@@ -1,8 +1,7 @@
 using System.Globalization;
 using Vocaterra.Nlp.Es.Morphology;
-using Vocaterra.Nlp.Language.Morphology;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Language.Words;
 
 /// <summary>
 /// The game's reading of a used verb form (X03), shared by the book's labels and its conjugation tables so they agree. The core reads some forms as an
