@@ -1,9 +1,8 @@
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Scripted;
 
-namespace Vocaterra.Game.Tests.Scripted;
+namespace Vocaterra.Game.Core.Tests.Items;
 
 /// <summary>A scripted run names an item as a catalogue noun or as the item's key.</summary>
 public sealed class ScriptItemNamesTests

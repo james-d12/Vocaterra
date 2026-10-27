@@ -1,7 +1,6 @@
-using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Words;
 
-namespace Vocaterra.Game.Scripted;
+namespace Vocaterra.Game.Core.Items;
 
 /// <summary>How a scripted run names an item: as a noun of the catalogue (<c>madera</c>) or as the item's own key (<c>wood</c>).</summary>
 public static class ScriptItemNames

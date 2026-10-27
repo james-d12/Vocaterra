@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
