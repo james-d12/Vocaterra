@@ -1,5 +1,5 @@
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Npc;
-using Vocaterra.Game.Input;
 using Vocaterra.Game.UI;
 
 namespace Vocaterra.Game.Tests;

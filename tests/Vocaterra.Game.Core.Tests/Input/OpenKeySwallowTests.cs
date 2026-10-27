@@ -1,6 +1,6 @@
-using Vocaterra.Game.Input;
+using Vocaterra.Game.Core.Input;
 
-namespace Vocaterra.Game.Tests.Input;
+namespace Vocaterra.Game.Core.Tests.Input;
 
 /// <summary>The key that opened a text box is swallowed once, by its first matching letter, and forgotten after two frames.</summary>
 public sealed class OpenKeySwallowTests

@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Input;
+namespace Vocaterra.Game.Core.Input;
 
 /// <summary>
 /// The key that opened a text box (T or E on an NPC, W for Escribir) is typed by the platform as well, once, in the next frame at the latest: the

@@ -1,6 +1,6 @@
-namespace Vocaterra.Game.Input;
+namespace Vocaterra.Game.Core.Input;
 
-/// <summary>The commands the keys are bound to (<see cref="KeyBindings"/>); one object per thing the player can ask for.</summary>
+/// <summary>The commands the keys are bound to (<c>KeyBindings</c>, in the game); one object per thing the player can ask for.</summary>
 /// <param name="ToggleView">F5: first person and over the shoulder (S15).</param>
 /// <param name="Save">F6: saves the game (S10).</param>
 /// <param name="CycleTextSize">F9: the interface text size, 100, 125 and 150 percent (X08).</param>

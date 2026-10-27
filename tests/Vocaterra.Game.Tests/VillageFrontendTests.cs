@@ -1,10 +1,10 @@
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics;
-using Vocaterra.Game.Input;
 using Vocaterra.Game.UI;
 using Vocaterra.Game.Utilities;
 using Vocaterra.Nlp.Content;

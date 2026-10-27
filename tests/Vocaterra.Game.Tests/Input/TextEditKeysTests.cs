@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework.Input;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Input;
 
 namespace Vocaterra.Game.Tests.Input;
