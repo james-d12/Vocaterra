@@ -1131,6 +1131,31 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   - **Gate.** 5,419 passed (34 new, in `AnalysisSideSeamTests`: a pack that changes one member and the engine following it), 3 skipped,
     0 failed; no assertion removed, Fuzzing and Golden untouched; fuzz at 10,000 grammar iterations green; `HomographSentencesTests` green;
     `identity-check.sh f4694ff` passed, and the CLI demo is unchanged.
+- **M35, per-language test infrastructure and a toy pack (2026-10-27, Haiku 5.5; merged to `feature/language-packs` `dd8eaa7`).**
+  - **Harness.** `Oracles/FuzzLanguage` (pack, bundle, free-text generator, sentence generator, mutation kinds) and
+    `Oracles/LanguageOracles` (the bodies of O1, O2, O7 and a neutral O14). The Spanish classes keep their names, seeds and iteration counts
+    and call those bodies; the Spanish O14 (`PipelineFuzzTests`) is unchanged. The orchestrator compared the old and new failure checks: all
+    are kept, and the error-tag check now reads the pack's set (Spanish: `ErrorTagSet.V1`, built from `ErrorTags.All`).
+    `FuzzLanguageStreamTests` pins the first case at 400 fixed seeds (SHA-256 over the stream), from the unchanged generators: CsCheck seeds
+    only the first iteration of a sample, so later iterations are not reproducible across runs.
+  - **Toy pack.** `Languages/Xx/` in the Fuzzing project, public API only: `XxLanguagePack` (every member, non-Spanish), a three-word bundle
+    written to a temp directory at test time with `"language": "xx"`, loaded through a registry without Spanish (the default registry
+    refuses it). O1, O2, O7 and the neutral O14 pass on it, also at 20,000 general, 10,000 grammar and 3,000 pipeline iterations. No result
+    carries a non-toy tag or a Spanish mark, and `bundle.Morphology` throws `NotSupportedException`.
+  - **Hidden Spanish dependencies found and fixed**, each with a regression test:
+    1. `TextKey.Of` (the fold behind `TextFolding` and the no-folding parsers) threw on a lone surrogate; it now reads it as U+FFFD, as
+       `Accents.Strip` does. Valid text is unchanged. `SpanishLanguagePackTests` had pinned the throw; it now pins the new contract.
+    2. `SampleSlots` filled templates for the validator with Spanish words (`tener`, `espada`, `yo tengo dos espadas`, …). New
+       `ILanguagePack.Samples` (`SampleWords`); the Spanish values are the same. Breaking for any other `ILanguagePack` implementer.
+    3. `RecastBuilder.AddNumberEdits` spelled any digit run up to six digits; it now skips values above the pack's `Numbers.MaxValue`, the
+       rule `TemplateEngine` already used. Spanish is unaffected (its bound is 999,999).
+  - **Goldens.** `GoldenFiles` reads and records another language's goldens under `Data/<lang>/`; Spanish keeps `Data/<name>`. Code only;
+    no file under a `Data/` folder was added.
+  - **Not done.** O3, O4 and O5 do not run on xx (no grammar realiser or mutation set for it). The xx run cannot prove directly that
+    `SpanishLanguagePack` is never initialised; the registry without Spanish, the result checks and `SpanishCallSiteTests` cover it
+    (ADR 0011).
+  - **Gate.** 5,438 passed (19 new), 3 skipped, 0 failed; fuzz at 10,000 grammar iterations green; `identity-check.sh f4694ff` passed, and
+    the CLI demo is unchanged.
 
 ## 6. Definition of done (every milestone)
 
@@ -1436,7 +1461,7 @@ The research lists seven places that would break silently when a second language
 | M32 | Language id in the manifest (absent = `es`, folded into the hash only when present), pack registry, `ContentBundle.Language`, ADR 0011 | M31, M52 | S | done (merged to `feature/language-packs` `ba85fe3`, 2026-10-27) |
 | M33 | Text-side seams: normalizer, numbers, phonetic key, punctuation, repair lines, grammar defaults, lint, G2P call sites, Kokoro `lang` | M32 | H | done (merged to `feature/language-packs` `d677412`, 2026-10-27) |
 | M34 | Analysis-side seams and schema: `IMorphology`, `IAnalysisRules`, template functions, optional `LexicalFeatures` fields (Case, VerbForm, Declension, Particle, Register), per-pack tag sets (`ErrorTags.All` frozen as Spanish) | M33 | S | done (merged to `feature/language-packs` `2161c6e`, 2026-10-27) |
-| M35 | Per-language test harness, and a toy pack that proves no hidden Spanish dependency remains | M34 | H | in progress (2026-10-27, branch `M35-language-harness`) |
+| M35 | Per-language test harness, and a toy pack that proves no hidden Spanish dependency remains | M34 | H | done (merged to `feature/language-packs` `dd8eaa7`, 2026-10-27) |
 | M36 | German lexicon import (kaikki German, `de_50k`; D4 applies as for `es_50k`) | M35 | S | proposed |
 | M37 | German text layer: umlaut and ß folding (ae, oe, ue), contractions, numbers, phonetic key, noun capitals | M36 | S | proposed |
 | M38 | German morphology | M36 | S | proposed |

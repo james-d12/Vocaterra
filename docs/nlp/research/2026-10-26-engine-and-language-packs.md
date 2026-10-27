@@ -218,8 +218,8 @@ merges it into `main` by pull request. The gate needs a clean checkout of that b
 | 3 | M32 | done | `ba85fe3` | Text-side `ILanguagePack`, `SpanishLanguagePack`, `LanguagePacks`, manifest `language`, ADR 0011 |
 | 3 | M33 | done | `d677412` | Text-side call sites through `bundle.Language`; `SpanishCallSiteTests` guard |
 | 3 | M34 | done | `2161c6e` | Morphology, analysis rules, template functions, lexicon profile, error tag set behind the pack |
-| 3 | M35 | next | | Haiku |
-| 4 | M53 | planned | | Sonnet |
+| 3 | M35 | done | `dd8eaa7` | `FuzzLanguage` harness; toy `xx` pack in the Fuzzing project; three hidden Spanish dependencies fixed |
+| 4 | M53 | next | | Sonnet |
 
 The details and numbers of M31 and M52 are in `docs/nlp/IMPLEMENTATION_PLAN.md` §5b.
 
