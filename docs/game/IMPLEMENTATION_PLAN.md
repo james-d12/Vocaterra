@@ -167,7 +167,7 @@ Until S0 is done, `docs/game/SCENARIO_PLAN.md` is the plan of record for the sce
 | G4 | Quest-giver scene (section 4.2) | superseded by S5 and S6 (2026-10-21, D-game-8) | Haiku 5.5 | G3 |
 | G6 | Core bump to `53c52b7` (M26a to M26e) and adoption: drop the CR-012 double evaluation, the CR-013 `esta` lexicon entry if no longer needed, read `nouns.json` with `TryReadHostFile` (CR-007), word lists from `PipelineResult.Words` (CR-002), the guide's world line through host slots (CR-003), the named answer through `PipelineResult.Answer` where it fits (CR-004), `word.<lemma>` extra skills (CR-005) | done (merged 2026-10-21; core pin `53c52b7`) | Haiku 5.5 | P6 |
 | G7 | Build trim and licence: Linux-only native assets (owner, 2026-10-21; about 1.5 GB less per build), `LICENSE` (MIT, D-game-2) and README licence lines | done (merged 2026-10-21) | Haiku 5.5 | P6b |
-| G8 | The spoken-mistake test (`SpokenModelTests.AMistakeInASpokenLineIsHeardAsSaidAndTheCoreCorrectsIt`, section 4.6 R01 findings): Vosk hears `a dónde está la árbol` for Kokoro's `dónde está la árbol`. Fix the cause if it is the game's (stale cache clip, synthesis settings) with a regression test; a core Asr cause is reported as a core gap; if the recognizer only prefers the bundle's own `a dónde`, allow an optional leading `a ` and keep the `la árbol` assertion. No edit to `content/game-v1`. Owner-approved 2026-10-26; branch `G8-spoken-mistake`, gated into `feature/language-packs` | in progress (2026-10-27) | Haiku 5.5 | R01 |
+| G8 | The spoken-mistake test (`SpokenModelTests.AMistakeInASpokenLineIsHeardAsSaidAndTheCoreCorrectsIt`, section 4.6 R01 findings): Vosk hears `a dónde está la árbol` for Kokoro's `dónde está la árbol`. Fix the cause if it is the game's (stale cache clip, synthesis settings) with a regression test; a core Asr cause is reported as a core gap; if the recognizer only prefers the bundle's own `a dónde`, allow an optional leading `a ` and keep the `la árbol` assertion. No edit to `content/game-v1`. Owner-approved 2026-10-26; branch `G8-spoken-mistake`, gated into `feature/language-packs` | done (merged to `feature/language-packs` 2026-10-27, `00ff1e5`) | Haiku 5.5 | R01 |
 | R1 | Research: Terraria-inspired prototype (guide NPC by text and speech, mining, building, movement, forest biome, map and cave generation, language progress tracking, known nouns in colour and unknown in greyscale, inventory) on MonoGame; findings in `docs/game/research/` | done (merged 2026-10-21, `0e8d601`); proposals await the owner | Opus 5.5 (owner's request) | G0 |
 | S0 | Plan and docs for the prototype brief: D-game-8 to D-game-12, D-game-6 amended, this section, the brief as Markdown, READMEs, Noun Town research moved | done (merged to `feature/prototype` 2026-10-21, `0a60928`) | Haiku 5.5 (docs) | `docs/game/SCENARIO_PLAN.md` |
 | S1 | 3D voxel simulation, headless (`Vocaterra.Simulation.Voxel`, `scene.json`, `PlayerBody3D`, `BlockRay`) | done (merged to `feature/prototype` 2026-10-21, `d2329cb`) | Sonnet 5.5 | S0 |
@@ -1388,6 +1388,21 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - F6 and `--save` rebuilt the fresh scene at every save (about 0.6 s); the autosave and the crash save used a cached one. All saves now
       use the cache, and they come out the same (r09).
     - The hotbar's and the panels' wheel baselines were two fields with the same value at every frame the panels can see; they are one.
+- **G8 (2026-10-27, Haiku 5.5, merged to `feature/language-packs` `00ff1e5`): the spoken-mistake test.**
+  - Gate with models: 5257 passed, 5 skipped, 0 failed (5262 in all, as at M52); build, format, content, grammar and licence scan clean.
+    The two extra skips are the Parakeet tests: `sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8` is not in the shared models folder on this
+    machine (only Kokoro and Vosk are); `scripts/fetch-models.sh` restores it.
+  - **Cause: an acoustic onset, not the cache and not a phrase set.** The guide's prompt is open (`RecognitionRequest.Open`, no grammar),
+    and `content/game-v1` has no `a dónde`. Some Kokoro renderings (speaker 28 at 0.9, speaker 53 at 1.0) start with about 80 ms of
+    silence and then a weak «d» onset at 80 to 120 ms, which the 120 ms trim pad (`AudioClips.PaddingMilliseconds`) keeps and Vosk hears
+    as «a» (0.38 to 0.42). The cached clip and speaker 28 at 1.0 are heard right (0.82 to 0.95).
+  - Pad sweep: 105 and 75 ms clear the four clips tried, 90 ms does not, and 60 ms breaks `hola.wav` (0.42, intent unknown, 3 failures in
+    `SpokenRouteTests`). The curve is not monotone, so the pad was not changed. Choosing it is a playtest question.
+  - Fix: the test accepts an optional leading «a » (`^(a )?dónde está la árbol$`) and still asserts `gender.agree` and the feedback.
+  - **Core finding (no milestone planned):** `KokoroSynthesizer.Synthesize` (sherpa-onnx `OfflineTts`, CPU, one thread) gives the same
+    audio within a process but different audio across processes (SHA-256 prefixes `736AD51E…` and `F93AD1C0…`, same code and model). So a
+    `DirectorySynthesisCache` entry cannot be checked against a fresh render. The cached clip for this line matches no fresh rendering.
+    It is proposed to the owner as a core milestone.
 
 ## 6. Definition of done (every milestone)
 

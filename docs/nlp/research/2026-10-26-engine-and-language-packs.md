@@ -214,8 +214,8 @@ merges it into `main` by pull request. The gate needs a clean checkout of that b
 | --- | --- | --- | --- | --- |
 | 1 | M31 | done | `f4694ff` | Identity guard: `SpanishIdentityTests` (Golden.Tests, about 9 s, no models), `Data/identity/`, `scripts/identity-check.sh` |
 | 2 | M52 | done | `1976508` | One `src/Vocaterra.Nlp`, one `tests/Vocaterra.Nlp.Tests`, `LayeringTests`, `Vocaterra.Nlp.slnf`, ADR 0012 |
-| - | G8 | next; stopped before any commit | | Game fix for the speech test (below); owner-approved, 2026-10-26 |
-| 3 | M32 | planned | | Sonnet. Interfaces in `src/Vocaterra.Nlp/Language/Packs/` |
+| - | G8 | done | `00ff1e5` | The spoken-mistake test accepts a stray leading «a» (an acoustic onset); game plan section 5 |
+| 3 | M32 | next | | Sonnet. Interfaces in `src/Vocaterra.Nlp/Language/Packs/` |
 | 3 | M33 | planned | | Haiku |
 | 3 | M34 | planned | | Sonnet |
 | 3 | M35 | planned | | Haiku |
@@ -225,8 +225,8 @@ The details and numbers of M31 and M52 are in `docs/nlp/IMPLEMENTATION_PLAN.md` 
 
 **Gate state.** The last gate (M52) gave 5,258 passed, 3 skipped and 1 failed, with build, format, content, grammar and licence scan clean.
 The one failure is `Vocaterra.Game.Core.Tests.SpokenModelTests.AMistakeInASpokenLineIsHeardAsSaidAndTheCoreCorrectsIt`. It also fails on
-`main` and has since before R01 (game plan §4.6). The merge gate therefore reports `result: FAIL` until G8 lands. Check each gate log to
-confirm that this test is the only failure; never wave through anything else.
+`main` and has since before R01 (game plan §4.6). G8 fixed it: since `00ff1e5` the gate passes (5,257 passed, 5 skipped, 0 failed; the two extra skips are the
+Parakeet tests, its model is missing from the shared folder on this machine).
 
 **G8 (the spoken-mistake test).** Only model runs show it: Kokoro synthesizes "dónde está la árbol", and Vosk hears "a dónde está la
 árbol" (0.83). The intent, the `gender.agree` error and the feedback are all right; only the line differs.
@@ -247,7 +247,7 @@ confirm that this test is the only failure; never wave through anything else.
 - **Locked worktrees.** A stopped agent's worktree is locked. Remove it with `git worktree remove -f -f <path>`, then delete both the
   milestone branch and the `worktree-agent-*` branch.
 - **Rider's processes.** The owner's Rider keeps about 17 MSBuild node-reuse processes and a VBCSCompiler alive. They are not the agents';
-  leave them. `scripts/limited.sh` copes. The machine now has 31 GiB of RAM; the 11 GiB in the orchestrator file is out of date.
+  leave them. `scripts/limited.sh` copes. The machine has 11 GiB of RAM (owner, 2026-10-27), as the orchestrator file says; keep its limits.
 - **ONNX Runtime in the merged tests.** `tests/Vocaterra.Nlp.Tests` loads both sherpa's and the managed `libonnxruntime.so`, through
   `NativeOnnxRuntimes.cs` and the `ort-managed/` copy taken from `$(PkgMicrosoft_ML_OnnxRuntime)`. Tests that load natives or models
   belong in `NativeRuntimeCollection`. M53 must keep this working when tests move to `Vocaterra.Nlp.Es.Tests`.
