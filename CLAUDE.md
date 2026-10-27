@@ -4,7 +4,7 @@ This repository, `james-d12/Vocaterra` (locally `/home/james/Dev/Vocaterra`), ho
 one `Vocaterra.sln`; R01, 2026-10-23). The halves are told apart by project name:
 
 - **The core**: the `Vocaterra.Nlp` engine (one project since M52, `src/Vocaterra.Nlp`, its stages as folders; layering enforced by
-  `LayeringTests`, ADR 0012) and the `Vocaterra.Nlp.*` test, tool and (from M53) language-pack projects (with `tests/golden`, `models/` and `docs/nlp/`), the language core (Spanish utterance to verdict, feedback, conversation step, response text, speech).
+  `LayeringTests`, ADR 0012) and the `Vocaterra.Nlp.*` test, tool and language-pack projects (the Spanish pack `src/Vocaterra.Nlp.Es` since M53; hosts register it with `SpanishContent`, ADR 0012) (with `tests/golden`, `models/` and `docs/nlp/`), the language core (Spanish utterance to verdict, feedback, conversation step, response text, speech).
   Its plan is `docs/nlp/IMPLEMENTATION_PLAN.md` (section 5 the milestone table, 5b the findings log, 7 and 10 the expansion plans), its owner
   decisions `docs/nlp/DECISIONS.md` (D1 to D13), its boundary `docs/nlp/adr/0009-core-and-game-boundary.md`, its API `docs/nlp/API.md`.
   Licence Apache-2.0 (`LICENSE`, `NOTICE`).

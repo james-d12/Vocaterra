@@ -235,7 +235,7 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M50 | Core folder cleanup (owner, 2026-10-22: "the nlp folder needs some cleanup"). `content/v1` stays (D7: the core's sample, tests, goldens, fuzz and demo depend on it). Retire what the two-repository era left behind: `scripts/pack.sh` and `docs/nlp/PACKAGING.md` (no pack step or feed since D5 was superseded); README, TOOLS.md and CONTRIBUTING passages about packages, feeds, submodules or the separate repository; `HIGH_LEVEL_DOCS.md` moved to `docs/nlp/history/` (it is the original design note). Refresh `TOOLS.md`, or fold it into the licence-scan docs. Decide whether `samples/HostConsole` and `scripts/sample-host.sh` still earn their keep (the game is the real host), and say why. Fix stale links. No behaviour change: the build, tests, goldens, licence scan and core demo are unchanged | — | H | done (merged to `main` 2026-10-23, `3bc525b`) |
 | M51 | Game finding (S27): `ir` + a bare infinitive with no `a` (`voy comer pan`) passes clean (state_action, no error). Flag it, expected `ir a` + infinitive (`voy a comer`), under `conj.tense` or a better-fitting tag; regression tests; no fuzz oracle weakened (check the generator does not produce `ir` + infinitive as a correct sentence) | M49 | S | done (merged to `feature/experiment` 2026-10-23, `e70441c`; experiment X02) |
 | M52 | Merge the 11 core libraries into one language-neutral `src/Vocaterra.Nlp` (owner, 2026-10-26; D14 amendment). Each old project becomes a folder and the namespaces do not change. The 11 unit test projects become `tests/Vocaterra.Nlp.Tests`; Fuzzing and Golden stay separate. `LayeringTests` (NetArchTest.Rules) enforces today's project graph; `VocaterraCore` in `Directory.Build.props` matches the new name; `Vocaterra.Nlp.slnf` is recreated (missing today, so the licence scan is broken); ADR 0012. No behaviour change: the identity guard is green, the `content/game-v1` hash and the goldens are unchanged. Spec: `docs/nlp/research/2026-10-26-engine-and-language-packs.md` §5.1 | M31 | H | done (merged to `feature/language-packs` `1976508`) |
-| M53 | Extract the Spanish pack into `src/Vocaterra.Nlp.Es` (+ `tests/Vocaterra.Nlp.Es.Tests`), namespace `Vocaterra.Nlp.Es.*`. Hosts register packs through `ContentLoadOptions.LanguagePacks` (the engine cannot reference a pack); `LayeringTests` adds the rule that the engine does not depend on Es; the toy pack runs against the engine alone. The identity guard stays byte-identical. Spec: same document, §5.2 | M35 | S | in progress (2026-10-27, branch `M53-spanish-pack`) |
+| M53 | Extract the Spanish pack into `src/Vocaterra.Nlp.Es` (+ `tests/Vocaterra.Nlp.Es.Tests`), namespace `Vocaterra.Nlp.Es.*`. Hosts register packs through `ContentLoadOptions.LanguagePacks` (the engine cannot reference a pack); `LayeringTests` adds the rule that the engine does not depend on Es; the toy pack runs against the engine alone. The identity guard stays byte-identical. Spec: same document, §5.2 | M35 | S | done (merged to `feature/language-packs` `65de544`, 2026-10-27) |
 
 ### Delegation waves
 
@@ -1156,6 +1156,42 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
     (ADR 0011).
   - **Gate.** 5,438 passed (19 new), 3 skipped, 0 failed; fuzz at 10,000 grammar iterations green; `identity-check.sh f4694ff` passed, and
     the CLI demo is unchanged.
+- **M53, the Spanish pack project (2026-10-27, Sonnet 5.5; merged to `feature/language-packs` `65de544`). Phase A is complete.**
+  - **Moved** (61 renames) into `src/Vocaterra.Nlp.Es` (namespace root `Vocaterra.Nlp.Es`): `SpanishLanguagePack`; `Es.Text`
+    (`SpanishRecastPolicy`, `SpanishTemplateFunctions`, `PunctuationFixer`, `NumberAgreement`, the new `SpanishRepairLines`); `Es.Analysis`
+    (`SpanishAnalysisRules`, `SpanishAgreementChecker`, `SpanishAnalysisTables`, `WordClasses`); `Es.Normalization` (`SpanishNumbers`,
+    `SpanishPhoneticKey`, `Accents`, `TextFolding`, and `TextNormalizer` renamed `SpanishTextNormalizer`); `Es.Morphology`
+    (`MorphologyGenerator`, `SpanishOrthography`); `Es.Phonology` (`SpanishG2p` and its stages, `exceptions.json`); the seed-lexicon
+    resource. The LogicalNames are unchanged.
+  - **Stayed neutral:** `DialectConfig`, `G2pResult`, `PhoneInventory`, `PredictedErrorVariants`, `ErrorTags`/`ErrorTagSet.V1`,
+    `LexiconProfile.V1` (the frozen v1 contract every pack may pick), and the espeak phone map (it maps the multilingual xlsr-53 vocabulary
+    onto the shared inventory; ADR 0012). The engine keeps a neutral `TextTokenizer`; `SpanishTextNormalizer` adds the number words and
+    `al`/`del` on top, with identical output. No `InternalsVisibleTo` from the engine to the pack: `Utf16`, `TextKey`, `Lexicon.Derive`,
+    `TextTokenizer` and `InvariantLexiconFolding` became public.
+  - **Host-facing (API.md, ADR 0012).** `LanguagePacks.Default` is empty; a manifest with no `language` still means `es`, resolved from
+    the host's registry, so a bare `ContentLoader.Load` of a Spanish bundle now throws. `SpanishContent.Load`, `.Options`,
+    `LanguagePacks.WithSpanish()` and `CreateTemplateEngine()` register it. `ContentBundle.Morphology` is removed: use
+    `bundle.SpanishMorphology()` or `bundle.LanguageMorphology`. The Spanish seed is `SpanishLexicon.Seed` (and `Load`, `FromEntries`,
+    `Empty`); `Lexicon.Empty` stays with the neutral folding. The pack-less Spanish overloads (`RecastBuilder.Build`,
+    `SpeechRequests.Create`, `TemplateEngine.CreateDefault`, `ResponsePlanner()`, `RepairStrategy.Next`'s short forms) are gone;
+    `FakePhonemeRecognizer.ForSpanish` is `ForPhoneInventory`.
+  - **Game edits (allowed by the brief, no behaviour change):** a project reference to `Vocaterra.Nlp.Es` in `Game.Core` and `Host`;
+    `SpanishContent.Load` at the two load sites (`GameBundle.cs`, `Host/Program.cs`); `.SpanishMorphology()` for `.Morphology` (four
+    files); moved names (`SpanishTextNormalizer`, namespaces) in five files and their tests.
+  - **Guards.** `LayeringTests`: no engine namespace depends on `Vocaterra.Nlp.Es`, and the engine assembly does not reference it.
+    `SpanishCallSiteTests` scans `src/Vocaterra.Nlp` with an empty allowlist (asserted). `XxIndependenceTests` (source and reflection
+    scans) keep the toy pack free of Es types, since the Fuzzing project now references Es. `git grep Spanish src/Vocaterra.Nlp` finds only
+    comments, doc examples and the sidecar field `LexiconSourceInfo.SpanishEntries` (a JSON field name; renaming it changes the format).
+  - **Test projects referencing Es:** Es.Tests; Nlp.Tests, Fuzzing and Golden (they run `content/game-v1`); the three tools. Three
+    resolver tests stay in Nlp.Tests because they use engine internals, and link the Es tests' `TestTokens.cs`.
+  - **Bug found and fixed.** `UtterancePipeline.RepairLinesFor` dropped the pack's `RepairLines.Offer`, so every pack got the engine's
+    default offer wording (hidden while that default was Spanish). Regression test
+    `PipelineTests.ThePacksOwnOfferWordingReachesTheOfferedChoices`.
+  - **Not done.** `DialectConfig.LatinAmericanNeutral` is still `SpeechRequests.Create`'s default dialect (a per-pack default is a later
+    decision). A pack with phones outside `PhoneInventory` needs its own espeak map (ADR 0012).
+  - **Gate.** 5,445 passed (Nlp 2,452, Es 1,129, Fuzzing 76, Golden 17, Game.Core 863, Game 872, Host 36; 7 new, none lost), 3 skipped,
+    0 failed; licence scan passed (30 packages); fuzz at 10,000 grammar iterations green; `identity-check.sh f4694ff` passed (the G2P golden
+    and `exceptions.json` are pure renames); the CLI demo and the host demo are unchanged.
 
 ## 6. Definition of done (every milestone)
 

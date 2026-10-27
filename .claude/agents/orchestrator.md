@@ -41,7 +41,9 @@ is a change to the boundary and updates that record.
   - Bring owner decisions (licences, scope, anything that changes D-numbers) to the owner rather than deciding them.
 
 ## Handover (2026-10-26): the neutral engine and language packs
-The current work is D14 Phase A on `feature/language-packs`: M31 and M52 are done, and G8 is next, then M32 to M35 and M53. Its
+D14 Phase A on `feature/language-packs` is complete (2026-10-27): M31, M52, G8, M32 to M35 and M53 are gated and pushed, awaiting the
+owner's pull request into `main`. Proposed next, not started (owner to choose the order): R16 phase 2 (`docs/game/GAME_PROJECTS_LAYOUT.md`) and
+the C series (`docs/game/CONTENT_PLAN.md`; it edits `content/game-v1`, so it runs after Phase A). Its
 state, the gate's one known failure and the rules learnt so far are in
 `docs/nlp/research/2026-10-26-engine-and-language-packs.md` §7. Read that first. The X-series handover below is still valid for
 `feature/experiment`, which is paused.
@@ -177,7 +179,8 @@ anything left undone and why.
 
 ## Repo facts that briefs must carry
 - .NET SDK is user-local at `~/.dotnet` (`global.json` pins 10.0.402, `latestPatch`); no sudo.
-- One solution, `Vocaterra.sln`, with project references from `src/Vocaterra.Game.Core` and `src/Vocaterra.Host` to the one engine project `src/Vocaterra.Nlp` (M52).
+- One solution, `Vocaterra.sln`, with project references from `src/Vocaterra.Game.Core` and `src/Vocaterra.Host` to the one engine project `src/Vocaterra.Nlp` (M52) and the Spanish pack `src/Vocaterra.Nlp.Es` (M53;
+  load a Spanish bundle with `SpanishContent.Load`, since `LanguagePacks.Default` is empty).
   `Vocaterra.Nlp.slnf` builds the core alone. Package versions are in the root `Directory.Packages.props`; no new package outside it.
 - The host (`src/Vocaterra.Host`) is a console program: `--transcript "<line>" --prompt <id>` evaluates once; no argument runs the text loop.
 - The one content bundle `content/game-v1`, hashed through `scripts/content.sh` (the core's ContentBuilder run from source); the core's tests, fuzz suite

@@ -205,7 +205,10 @@ Whether the espeak phone map is Spanish or neutral is decided during the milesto
 
 ## 7. Progress and handover (2026-10-26, end of session)
 
-**Where things stand.** The integration branch is `feature/language-packs` (off `main` at `2f70d31`), pushed to origin. Every milestone of
+**Phase A is complete (2026-10-27).** Every row below is gated into `feature/language-packs` and pushed; the owner merges it into
+`main` by pull request. M36 onward (German) stays recorded only.
+
+**Where things stood.** The integration branch is `feature/language-packs` (off `main` at `2f70d31`), pushed to origin. Every milestone of
 this plan is gated into it with `GATE_TARGET=feature/language-packs scripts/merge-gate.sh "<label>:<branch>"` and pushed there; the owner
 merges it into `main` by pull request. The gate needs a clean checkout of that branch. The main checkout holds the owner's untracked
 `lines.sh`, so do not use it: run `git worktree add .claude/worktrees/language-packs feature/language-packs` and gate from there.
@@ -219,7 +222,7 @@ merges it into `main` by pull request. The gate needs a clean checkout of that b
 | 3 | M33 | done | `d677412` | Text-side call sites through `bundle.Language`; `SpanishCallSiteTests` guard |
 | 3 | M34 | done | `2161c6e` | Morphology, analysis rules, template functions, lexicon profile, error tag set behind the pack |
 | 3 | M35 | done | `dd8eaa7` | `FuzzLanguage` harness; toy `xx` pack in the Fuzzing project; three hidden Spanish dependencies fixed |
-| 4 | M53 | next | | Sonnet |
+| 4 | M53 | done | `65de544` | `src/Vocaterra.Nlp.Es` and `tests/Vocaterra.Nlp.Es.Tests`; hosts register the pack (`SpanishContent`) |
 
 The details and numbers of M31 and M52 are in `docs/nlp/IMPLEMENTATION_PLAN.md` §5b.
 
