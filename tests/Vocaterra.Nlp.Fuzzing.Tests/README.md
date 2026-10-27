@@ -166,6 +166,36 @@ All `Sample` calls run with `threads: 1`, so a determinism oracle compares two r
 parallel; the shared fixtures (`PipelineHarness.Shared`, `ContentMutationGen.Shared`) hold only immutable data and thread-safe lazy indexes. The
 content oracle writes each mutated bundle to its own directory under the system temporary folder (`vocaterra-fuzz-content-<pid>-<n>`) and deletes it.
 
+## Per-language harness (M35)
+
+The oracles are language-neutral in their statement and Spanish in their generators. M35 splits the two. `Oracles/FuzzLanguage.cs` is the record one
+language runs with: its pack (`ILanguagePack`), its bundle, a free-text generator, a sentence realiser (`Sentences`, which yields a `FuzzSentence`: the
+text and the grammar it was built from) and its mutation kinds. `FuzzLanguage.Spanish` holds the generators the Spanish suite has always used.
+
+- `Oracles/LanguageOracles.cs` holds the bodies of O1 (normalizer), O2 (analyzer), O7 (intent resolver) and O14 (a neutral pipeline run: never throws,
+  deterministic, verdict by hand through the pack, decision, replay round trip). Each takes a `FuzzLanguage`. The Spanish classes (`NormalizerFuzzTests`,
+  `AnalyzerFuzzTests`, `IntentResolverFuzzTests`) call the same bodies with their own coverage facts, and `NormalizerFuzzTests` also calls the Spanish static
+  entry points (`Accents.Strip`, `SpanishPhoneticKey`). The Spanish O14 (`PipelineFuzzTests`) stays as it was: it also covers phonemes, two-phase runs,
+  host turns and the envelope mutations, which need Spanish inputs.
+- The same seed gives the same Spanish cases. CsCheck seeds only the first iteration of a sample, so `FuzzLanguageStreamTests` compares the first case of
+  400 fixed seeds, for the text stream and the sentence stream, with a digest recorded from the unchanged generator expressions. A changed generator or a
+  changed realisation fails that test.
+- `Languages/Xx/` is the toy language (M35): `XxLanguagePack` implements every `ILanguagePack` member with trivial, non-Spanish behaviour (no accent, no
+  inverted mark, no subject pronoun, numbers 0 to 3 as invented words, no G2P, its own three error tags); `XxBundle` writes a three-word bundle
+  (`ka`, `mo`, `ti`; two intents; two prompts, one of them constrained; an agent; a dialogue; an effect table) with `"language": "xx"` into a temporary
+  directory and loads it with `LanguagePacks.Of(XxLanguagePack.Instance)`, a registry without Spanish. `XxFuzzLanguage` is its record.
+  `XxOracleTests` runs O1, O2, O7 and O14 on it, and checks that its results carry no Spanish error tag and no Spanish mark. The toy suite is
+  in-process and uses no model. It is not a shipped language.
+- Which oracles run per language: O1, O2 and O7 run on Spanish and on the toy language. The neutral O14 body runs on the toy language; the Spanish O14 is the
+  full version (phonemes, two-phase, host turns, envelope mutations) and is not run on the toy language. O3, O4 and O5 (realised grammar sentences, mutation
+  sets) run on Spanish only; they need a realiser and a mutation set for the language (German, M36 onward). O6, O8 to O13, O15 and O16 are Spanish or
+  shared (O8, O9 and O13 need a G2P or the signal front end; O15 and O16 read the Spanish content bundle).
+- Golden files: a Spanish golden keeps `Data/<name>`; another language's goldens live in `Data/<lang>/<name>` (`GoldenFiles`, the same
+  `VOCATERRA_RECORD_GOLDEN` variable). The layout is in code; no file under a `Data` folder was added for it.
+
+Bugs the toy language found in the core (M35, fixed at the source with regression tests, see the findings log of the plan): the Spanish fold threw on a lone
+surrogate; the content validator filled templates with Spanish sample words; the recast spelled digit runs above the pack's number bound.
+
 ## Layout
 
 - `FuzzOptions.cs` - iteration defaults and env-var overrides; the 3-in-4 benign, 1-in-4 adversarial weights.

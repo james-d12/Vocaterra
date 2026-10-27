@@ -92,6 +92,9 @@ All of this is additive unless it says breaking. The game compiles and passes un
 
 - **`ILanguagePack`** gained `LexiconProfile`, `ErrorTags`, `CreateMorphology(Lexicon)`, `CreateAnalysisRules(Lexicon, IMorphology)` and
   `CreateTemplateFunctions(Lexicon, IMorphology)` (breaking for a host that implements `ILanguagePack`; the only pack is `SpanishLanguagePack`).
+- **`ILanguagePack.Samples`** (M35, breaking for a host that implements `ILanguagePack`): a `SampleWords` record (`Noun`, `Verb`, `Spell`, `Expected`, `Actual`,
+  `Recast`, `Tag`) that the content validator fills dialogue slots with when it proves a template renders. Spanish: `espada`, `tener`, `fuego`, `tengo`,
+  `tiene`, `yo tengo dos espadas`, `gender.agree`, the values the validator always used. A pack of another language gives its own words.
 - **`IMorphology`** (`Vocaterra.Nlp.Language.Morphology`): `Pluralize`, `Singularize`, `InflectNoun`, `Article(definiteness, gender, number[, nounLemma])`,
   `AgreeAdjective`, `Conjugate`, `IsRegularizedIrregular`, `TryGetRegularization`. `MorphologyGenerator` implements it; `RegularizedForm` is public.
 - **`ContentBundle`**: new `LanguageMorphology` (`IMorphology`, what the engine uses) and `AnalysisRules` (`IAnalysisRules`). `Morphology` is unchanged for a Spanish

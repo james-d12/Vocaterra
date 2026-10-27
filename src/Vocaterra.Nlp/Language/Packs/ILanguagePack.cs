@@ -50,6 +50,12 @@ public interface ILanguagePack
     /// <summary>The spelling policy of recasts (accent restoration). A narrow text-side member added in M33; the rest of the recast is neutral.</summary>
     IRecastPolicy Recast { get; }
 
+    /// <summary>
+    /// The words the content validator renders every dialogue template with (a noun, a verb, a spelling and the reserved feedback samples), so a template
+    /// is checked in the language it is written in (M35). Spanish: the values the validator always used.
+    /// </summary>
+    SampleWords Samples { get; }
+
     /// <summary>The closed vocabularies of the language's lexicon files, which every lexicon entry is validated against (M34).</summary>
     LexiconProfile LexiconProfile { get; }
 

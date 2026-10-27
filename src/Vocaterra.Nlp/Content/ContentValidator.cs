@@ -343,7 +343,7 @@ internal static class ContentValidator
             {
                 try
                 {
-                    engine.Render(variant, SampleSlots.For(variant));
+                    engine.Render(variant, SampleSlots.For(variant, parts.Language.Samples));
                 }
                 catch (Exception ex) when (ContentLoader.IsContentError(ex))
                 {

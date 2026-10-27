@@ -28,6 +28,8 @@ public class LanguagePacksTests
 
         public IRecastPolicy Recast => SpanishLanguagePack.Instance.Recast;
 
+        public SampleWords Samples => SpanishLanguagePack.Instance.Samples;
+
         public Vocaterra.Nlp.Language.Lexicon.LexiconProfile LexiconProfile => SpanishLanguagePack.Instance.LexiconProfile;
 
         public Vocaterra.Nlp.Core.Taxonomy.ErrorTagSet ErrorTags => SpanishLanguagePack.Instance.ErrorTags;

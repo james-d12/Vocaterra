@@ -156,11 +156,11 @@ public class EndToEndGoldenTests
 
         if (string.Equals(EnvironmentSettings.Get(RecordVariable, LegacyRecordVariable), "1", StringComparison.Ordinal))
         {
-            File.WriteAllText(SourceGoldenPath(goldenName), Format(actual, indented: true) + "\n", new UTF8Encoding(false));
+            File.WriteAllText(GoldenFiles.SourcePath(Bundle.LanguageId, goldenName), Format(actual, indented: true) + "\n", new UTF8Encoding(false));
             return;
         }
 
-        var goldenPath = Path.Combine(AppContext.BaseDirectory, "Data", goldenName);
+        var goldenPath = GoldenFiles.RunPath(Bundle.LanguageId, goldenName);
         Assert.True(File.Exists(goldenPath), $"Golden file '{goldenName}' is missing; run the tests once with {RecordVariable}=1 to record it.");
         var expected = Format(File.ReadAllText(goldenPath, Encoding.UTF8), indented: false);
         Assert.Equal(expected, actual);
@@ -184,17 +184,4 @@ public class EndToEndGoldenTests
         return Encoding.UTF8.GetString(stream.ToArray());
     }
 
-    private static string SourceGoldenPath(string goldenName)
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            var data = Path.Combine(directory.FullName, "tests", "Vocaterra.Nlp.Golden.Tests", "Data");
-            if (Directory.Exists(data))
-            {
-                return Path.Combine(data, goldenName);
-            }
-        }
-
-        throw new DirectoryNotFoundException("Could not find tests/Vocaterra.Nlp.Golden.Tests/Data above the test binaries.");
-    }
 }

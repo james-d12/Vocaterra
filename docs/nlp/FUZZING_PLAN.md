@@ -57,6 +57,10 @@ tests/Vocaterra.Nlp.Fuzzing.Tests/
     PipelineHarness.cs              content/game-v1 (+ an effects fixture) + fakes wired once; builders for ConversationContext and PromptSpec
     KnownTolerances.cs              expected exception allow-list, one documented entry per case
     Determinism.cs                  helper: run twice, compare CanonicalJson, report first differing path
+    FuzzLanguage.cs                 (M35) the per-language record: pack, bundle, free-text generator, sentence realiser, mutation kinds; `Spanish`
+    LanguageOracles.cs              (M35) the per-language bodies of O1, O2, O7 and a neutral O14, run on any FuzzLanguage
+  Languages/Xx/                     (M35) the toy language xx: its pack, its three-word bundle (written to a temp folder, language "xx"), its record and its oracle tests
+  FuzzLanguageStreamTests.cs        (M35) the Spanish generator streams at 400 fixed seeds equal the digests recorded before the per-language harness
   *FuzzTests.cs                     one per oracle below
 ```
 
