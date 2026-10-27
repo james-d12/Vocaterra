@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.UI;
+using Vocaterra.Game.Core.Tip;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests;

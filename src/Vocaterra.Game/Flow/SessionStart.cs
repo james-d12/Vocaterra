@@ -2,8 +2,8 @@ using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Persistence;
-using Vocaterra.Game.UI;
 using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game.Flow;

@@ -1,9 +1,4 @@
-namespace Vocaterra.Game.UI;
-
-/// <summary>One line shown across the top of the screen for a while, for example <c>¡Nueva palabra: el árbol!</c>.</summary>
-/// <param name="Text">The line.</param>
-/// <param name="StartTick">The simulation tick it appeared at.</param>
-public sealed record Toast(string Text, long StartTick);
+namespace Vocaterra.Game.Core.Tip;
 
 /// <summary>
 /// The toasts waiting to be shown, in order. A toast lasts <see cref="Duration"/> ticks and the next one starts when the current one ends.

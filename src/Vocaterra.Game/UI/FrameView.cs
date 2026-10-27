@@ -5,6 +5,7 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Sound;
 using Vocaterra.Game.UI.Book;

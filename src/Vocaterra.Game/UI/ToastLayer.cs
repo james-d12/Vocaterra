@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Graphics;
 
 namespace Vocaterra.Game.UI;

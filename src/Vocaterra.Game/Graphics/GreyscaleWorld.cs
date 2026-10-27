@@ -1,5 +1,5 @@
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.UI;
+using Vocaterra.Game.Core.Tip;
 
 namespace Vocaterra.Game.Graphics;
 

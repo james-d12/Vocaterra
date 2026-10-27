@@ -1,7 +1,7 @@
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Frame;
-using Vocaterra.Game.UI;
 
 namespace Vocaterra.Game.Flow;
 

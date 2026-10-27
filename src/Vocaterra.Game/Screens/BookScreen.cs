@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
+using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.UI;
 using Vocaterra.Game.UI.Book;

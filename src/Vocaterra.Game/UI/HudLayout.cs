@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.UI.Dialogue;
 
 namespace Vocaterra.Game.UI;
