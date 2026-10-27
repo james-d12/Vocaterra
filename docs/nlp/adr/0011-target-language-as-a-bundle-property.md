@@ -220,3 +220,28 @@ Two patterns were added (`new MorphologyGenerator(` and `SpanishAnalysisTables.`
 **For M53 and M35.** Every seam a pack needs is a public type with a summary: no `internal` engine member is required to implement `ILanguagePack`. The Spanish classes the pack
 owns (`SpanishAnalysisRules`, `SpanishAgreementChecker`, `SpanishTemplateFunctions`, `SpanishAnalysisTables`, `WordClasses`) are internal to the engine assembly today and move with the
 pack. M35's toy pack implements all five new members to prove that nothing Spanish is left on the analysis path.
+
+## Amendment, M35: the toy language (2026-10-27)
+
+M35 wrote a toy pack, `xx`, against the engine's public API only (`tests/Vocaterra.Nlp.Fuzzing.Tests/Languages/Xx`), with a three-word bundle loaded through a
+registry that holds no Spanish pack. Every member is trivial and non-Spanish. The pipeline, the loader and the neutral oracles (O1, O2, O7 and a neutral O14)
+run on it, and the Spanish suite runs the same bodies on Spanish (`FuzzLanguage`, research 4.8). What the toy proved, and what it found:
+
+- **The seams hold, on the paths the oracles reach.** A pack that implements every member, with no Spanish code behind it, loads and runs the pipeline, the
+  validator and the replay, and the neutral oracles pass on it. The toy run does not prove the absence of Spanish code on every path: the Spanish statics are
+  still guarded by name (`SpanishCallSiteTests`), and a Spanish literal in neutral code is caught only when a path reaches it.
+- **Three hidden dependencies, fixed at the source** (regression tests named in the findings log, section 5b):
+  1. *The Spanish fold threw on a lone surrogate.* `TextKey.Of` (behind `TextFolding` and the parsers that take no folding) called `string.Normalize` on raw text.
+     It now reads a lone surrogate as U+FFFD, as `Accents.Strip` does. Valid text is unchanged; the Spanish identity guard is green.
+  2. *The content validator rendered every dialogue template with Spanish words.* The sample slots (`tener`, `espada`, `fuego`, `tengo`, `tiene`, `gender.agree`)
+     were fixed in `SampleSlots`. `ILanguagePack.Samples` (`SampleWords`) now gives the validator the pack's words; the Spanish values are unchanged.
+  3. *The recast spelled any digit run of up to six digits.* The bound was the Spanish one (999 999), not `INumberWords.MaxValue`. A digit run above the pack's
+     bound now stays as digits, the same rule `TemplateEngine` applies to template numbers.
+- **Not a dependency, recorded.** A transcript with a lone surrogate does not survive canonical JSON byte for byte (the known finding of the Spanish O14, README).
+  The neutral O14 replays it in memory and does not round-trip it.
+- **Not fixed, by design.** `ReadingResolver`'s local-syntax rules are still shared, not pluggable (M54 onward, as M34 recorded); the toy language's analysis
+  rules say no word is a clitic or a copula, so the shared rules see nothing to do. The pronunciation scorer's predicted-error tags stay Spanish-tuned: the toy
+  has no G2P, so the path is off for it, and the Spanish O9 covers the scorer.
+
+**For M53.** The toy pack is the proof that the engine runs without the Spanish pack. M53 moves the Spanish pack out of the engine assembly; the toy suite then
+needs no change, and `LayeringTests` should keep the engine free of a reference to `Vocaterra.Nlp.Es`.
