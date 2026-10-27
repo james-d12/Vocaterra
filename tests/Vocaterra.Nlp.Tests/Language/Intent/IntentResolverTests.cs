@@ -5,6 +5,7 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Embeddings;
 using Vocaterra.Nlp.Language.Intent;
+using Vocaterra.Nlp.Language.Packs;
 
 public class IntentResolverTests
 {
@@ -37,7 +38,7 @@ public class IntentResolverTests
     public void GrammarRungUsesTheAnalyzersMatchWhenItWasGivenTheGrammars()
     {
         var analysis = IntentFixtures.Analyze("tú tienes dos espadas", withCatalogGrammars: true);
-        var resolver = new IntentResolver(IntentFixtures.Catalog);
+        var resolver = new IntentResolver(IntentFixtures.Catalog, SpanishLanguagePack.Instance);
 
         var resolution = resolver.Resolve(IntentFixtures.Normalize("tú tienes dos espadas"), analysis, IntentFixtures.Prompt());
 
@@ -73,7 +74,7 @@ public class IntentResolverTests
     {
         var analysis = IntentFixtures.Analyze("tengo dos espadas", withCatalogGrammars: true);
         Assert.NotNull(analysis.MatchedGrammarId);
-        var resolver = new IntentResolver(IntentFixtures.Catalog);
+        var resolver = new IntentResolver(IntentFixtures.Catalog, SpanishLanguagePack.Instance);
 
         var resolution = resolver.Resolve(IntentFixtures.Normalize("tengo dos espadas"), analysis, IntentFixtures.Prompt("buy_item", "greet"));
 
@@ -135,7 +136,7 @@ public class IntentResolverTests
               { "intentId": "buy", "keywordRules": [
                 { "lemmas": ["comprar"], "requiresSlots": ["item", "qty"], "slotFromNoun": "item" } ] } ] }
             """);
-        var resolver = new IntentResolver(catalog);
+        var resolver = new IntentResolver(catalog, SpanishLanguagePack.Instance);
 
         var withQuantity = resolver.Resolve(
             IntentFixtures.Normalize("compro dos espadas"),
@@ -159,7 +160,7 @@ public class IntentResolverTests
               { "intentId": "price", "keywordRules": [
                 { "lemmas": ["precio"], "requiresSlots": ["item"], "slotFromNoun": "item" } ] } ] }
             """);
-        var resolver = new IntentResolver(catalog);
+        var resolver = new IntentResolver(catalog, SpanishLanguagePack.Instance);
 
         var resolution = resolver.Resolve(
             IntentFixtures.Normalize("cuál es el precio de la espada"),
@@ -180,7 +181,7 @@ public class IntentResolverTests
               { "intentId": "c_tie", "keywordRules": [ { "lemmas": ["querer", "escudo"] } ] },
               { "intentId": "d_tie", "keywordRules": [ { "lemmas": ["comprar", "escudo"] } ] } ] }
             """);
-        var resolver = new IntentResolver(catalog);
+        var resolver = new IntentResolver(catalog, SpanishLanguagePack.Instance);
 
         IntentResolution Run(string text) =>
             resolver.Resolve(IntentFixtures.Normalize(text), IntentFixtures.Analyze(text), IntentFixtures.Prompt());
@@ -198,7 +199,7 @@ public class IntentResolverTests
               { "intentId": "a_rule", "keywordRules": [ { "lemmas": ["tener"] } ] },
               { "intentId": "z_grammar", "slotGrammars": ["tengo [NUM:qty] [NOUN:item]"] } ] }
             """);
-        var resolver = new IntentResolver(catalog);
+        var resolver = new IntentResolver(catalog, SpanishLanguagePack.Instance);
 
         var resolution = resolver.Resolve(
             IntentFixtures.Normalize("tengo dos espadas"),
@@ -423,8 +424,8 @@ public class IntentResolverTests
             "el dragón vuela sobre la montaña",
             string.Empty,
         ];
-        var resolverA = new IntentResolver(IntentFixtures.Catalog, new FakeEmbeddingModel());
-        var resolverB = new IntentResolver(IntentCatalog.Load(IntentFixtures.Catalog.ToJson()), new FakeEmbeddingModel());
+        var resolverA = new IntentResolver(IntentFixtures.Catalog, SpanishLanguagePack.Instance, new FakeEmbeddingModel());
+        var resolverB = new IntentResolver(IntentCatalog.Load(IntentFixtures.Catalog.ToJson()), SpanishLanguagePack.Instance, new FakeEmbeddingModel());
 
         foreach (var text in texts)
         {

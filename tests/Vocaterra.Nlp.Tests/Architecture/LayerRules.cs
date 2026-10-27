@@ -39,11 +39,13 @@ public static class LayerRules
 
     /// <summary>
     /// The language packs (<c>Vocaterra.Nlp.Language.Packs</c>) sit in the Language folder but wrap Spanish code of other stages, so they have a
-    /// rule of their own and the Language rule does not cover them. A pack may use Core, Language, Phonology and Response, nothing else.
+    /// rule of their own and the Language rule does not cover them. A pack may use Core, Language and Phonology, nothing else. Not Response: the
+    /// punctuation fixer and the number agreement moved into the packs in M33 (ADR 0011, point 9), so Response may use the packs and the packs do
+    /// not use Response. There is no cycle between the two stages.
     /// </summary>
     public const string PacksNamespace = Root + ".Language.Packs";
 
-    private static readonly string[] PacksMayDependOn = ["Core", "Language", "Phonology", "Response"];
+    private static readonly string[] PacksMayDependOn = ["Core", "Language", "Phonology"];
 
     /// <summary>
     /// One rule per stage except Pipeline: the stage's namespace must not depend on any stage it is not allowed to use. Nothing but Pipeline

@@ -17,6 +17,7 @@ using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Phonology;
 using Vocaterra.Nlp.Pipeline;
 using Vocaterra.Nlp.Pronunciation;
@@ -389,14 +390,14 @@ public sealed class PipelineFuzzTests(ITestOutputHelper output)
         var answerSet = bundle.AnswerSets[prompt.AnswerSetId];
 
         var normalized = TextNormalizer.Normalize(asr.Transcript.Replace(GrammarBuilder.UnknownToken, " ", StringComparison.Ordinal), PipelineHarness.Normalization);
-        var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, PipelineHarness.Normalization);
+        var match = AnswerMatcher.Match(normalized, answerSet, prompt.Difficulty, SpanishLanguagePack.Instance, PipelineHarness.Normalization);
         var analysis = AnswerCorrections.WithCanonicalWords(
-            new LinguisticAnalyzer(bundle.Lexicon, bundle.Morphology).Analyze(normalized, GrammarsFor(bundle, prompt)),
+            new LinguisticAnalyzer(bundle.Lexicon, bundle.Morphology, SpanishLanguagePack.Instance).Analyze(normalized, GrammarsFor(bundle, prompt)),
             normalized,
             match,
-            answerSet,
+            answerSet, SpanishLanguagePack.Instance,
             PipelineHarness.Normalization);
-        var intent = prompt.AllowedIntentIds.Count == 0 ? NoIntent : new IntentResolver(bundle.Intents, services.Embeddings).Resolve(normalized, analysis, prompt);
+        var intent = prompt.AllowedIntentIds.Count == 0 ? NoIntent : new IntentResolver(bundle.Intents, SpanishLanguagePack.Instance, services.Embeddings).Resolve(normalized, analysis, prompt);
 
         PronunciationResult? pronunciation = null;
         if (services.PhonemeRecognizer is { } recognizer)

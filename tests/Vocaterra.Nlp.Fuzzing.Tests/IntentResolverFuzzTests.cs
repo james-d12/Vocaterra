@@ -5,6 +5,7 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Intent;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 using Xunit.Abstractions;
 
@@ -134,7 +135,7 @@ public sealed class IntentResolverFuzzTests(ITestOutputHelper output)
             throw Determinism.Fail(Oracle, $"The resolved intent '{resolution.Intent}' is not one of the allowed intents.", context);
         }
 
-        var someGrammarMatches = grammars.Any(g => SlotGrammarMatcher.Match(analysis.Tokens, g) is not null);
+        var someGrammarMatches = grammars.Any(g => SlotGrammarMatcher.Match(analysis.Tokens, g, SpanishLanguagePack.Instance) is not null);
         switch (resolution.Rung)
         {
             case IntentRung.Grammar:

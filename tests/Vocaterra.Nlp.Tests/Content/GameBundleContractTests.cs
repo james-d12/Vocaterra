@@ -9,6 +9,7 @@ using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Response.Templates;
 using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 
@@ -80,9 +81,9 @@ public class GameBundleContractTests
     private static IntentResolution Resolve(string text, IReadOnlyList<string> allowedIntents)
     {
         var normalized = TextNormalizer.Normalize(text, KeepArticles);
-        var analysis = new LinguisticAnalyzer(Bundle.Lexicon).Analyze(normalized, Bundle.Intents.Grammars);
+        var analysis = new LinguisticAnalyzer(Bundle.Lexicon, SpanishLanguagePack.Instance).Analyze(normalized, Bundle.Intents.Grammars);
         var prompt = new PromptSpec("probe", RecognitionMode.Open, Difficulty.Beginner, Bundle.AnswerSets.Keys.First(), allowedIntents, null, []);
-        return new IntentResolver(Bundle.Intents).Resolve(normalized, analysis, prompt);
+        return new IntentResolver(Bundle.Intents, SpanishLanguagePack.Instance).Resolve(normalized, analysis, prompt);
     }
 
     // ---- Intents -----------------------------------------------------------------------------------------------------------------
@@ -156,7 +157,7 @@ public class GameBundleContractTests
         Assert.NotEmpty(Bundle.AnswerSets);
         foreach (var set in Bundle.AnswerSets.Values)
         {
-            Assert.NotEmpty(set.GrammarPhrases());
+            Assert.NotEmpty(set.GrammarPhrases(SpanishLanguagePack.Instance));
             Assert.Equal(set.Answers.Count, set.Answers.Select(answer => answer.AnswerId).Distinct(StringComparer.Ordinal).Count());
         }
     }
@@ -165,7 +166,7 @@ public class GameBundleContractTests
     [MemberData(nameof(AnswerPhrases))]
     public void EveryCanonicalPhraseMatchesItsOwnAnswerExactly(string setId, string spoken, string answerId, MatchType type)
     {
-        var result = AnswerMatcher.Match(TextNormalizer.Normalize(spoken, KeepArticles), Bundle.AnswerSets[setId], Difficulty.Beginner, KeepArticles);
+        var result = AnswerMatcher.Match(TextNormalizer.Normalize(spoken, KeepArticles), Bundle.AnswerSets[setId], Difficulty.Beginner, SpanishLanguagePack.Instance, KeepArticles);
 
         Assert.Equal(answerId, result.AnswerId);
         Assert.Equal(type, result.Type);
@@ -179,7 +180,7 @@ public class GameBundleContractTests
 
         foreach (var alias in yes.Aliases)
         {
-            var result = AnswerMatcher.Match(TextNormalizer.Normalize(alias, KeepArticles), set, Difficulty.Beginner, KeepArticles);
+            var result = AnswerMatcher.Match(TextNormalizer.Normalize(alias, KeepArticles), set, Difficulty.Beginner, SpanishLanguagePack.Instance, KeepArticles);
 
             Assert.Equal("yes", result.AnswerId);
         }
@@ -202,7 +203,7 @@ public class GameBundleContractTests
         var prompt = Bundle.Prompts[promptId];
 
         Assert.Equal(promptId, prompt.PromptId);
-        Assert.NotEmpty(Bundle.AnswerSets[prompt.AnswerSetId].GrammarPhrases());
+        Assert.NotEmpty(Bundle.AnswerSets[prompt.AnswerSetId].GrammarPhrases(SpanishLanguagePack.Instance));
         Assert.False(string.IsNullOrWhiteSpace(prompt.Text));
         if (prompt.AgentId is not null)
         {

@@ -3,6 +3,7 @@ namespace Vocaterra.Nlp.Language.Tests.Analysis;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Packs;
 
 /// <summary>
 /// M29j: the reading that <c>result.Words</c> reports. The mood of a form that is both imperative and indicative follows its position, <c>gracias</c> is the
@@ -22,7 +23,7 @@ public class ReportedReadingsTests
             entries.AddRange(Lexicon.ReadFile(File.ReadAllBytes(path)).Entries);
         }
 
-        return new LinguisticAnalyzer(Lexicon.FromEntries(entries));
+        return new LinguisticAnalyzer(Lexicon.FromEntries(entries), SpanishLanguagePack.Instance);
     }
 
     private static IReadOnlyList<ResolvedWord> Words(string sentence)

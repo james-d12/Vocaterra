@@ -2,6 +2,7 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Nlp.Language.Tests.Normalization;
 
@@ -97,7 +98,7 @@ public class NormalizationRobustnessTests
             var text = TextNormalizer.Normalize(input);
             foreach (var difficulty in Enum.GetValues<Difficulty>())
             {
-                var result = AnswerMatcher.Match(text, set, difficulty);
+                var result = AnswerMatcher.Match(text, set, difficulty, SpanishLanguagePack.Instance);
                 Assert.InRange(result.Confidence, 0.0, 1.0);
                 Assert.True(result.Distance >= 0);
                 Assert.Equal(result.AnswerId is null, result.Type == Vocaterra.Nlp.Core.Stages.MatchType.None);

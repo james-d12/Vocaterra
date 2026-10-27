@@ -3,6 +3,7 @@ using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 
 namespace Vocaterra.Nlp.Language.Tests.Matching;
@@ -79,7 +80,7 @@ public class AnswerCorrectionsTests
         var analysis = Analysis([Unknown(0, 6, "ezpada")]);
         var text = Norm("ezpada");
 
-        var result = AnswerCorrections.WithCanonicalWords(analysis, text, new MatchResult("sword", type, 0, false, 1.0), Items, Options);
+        var result = AnswerCorrections.WithCanonicalWords(analysis, text, new MatchResult("sword", type, 0, false, 1.0), Items, SpanishLanguagePack.Instance, Options);
 
         Assert.Same(analysis, result);
     }
@@ -94,7 +95,7 @@ public class AnswerCorrectionsTests
         };
         var analysis = Analysis(errors);
 
-        var result = AnswerCorrections.WithCanonicalWords(analysis, Norm("ezpada"), new MatchResult("sword", MatchType.Fuzzy, 0, true, 1.0), Items, Options);
+        var result = AnswerCorrections.WithCanonicalWords(analysis, Norm("ezpada"), new MatchResult("sword", MatchType.Fuzzy, 0, true, 1.0), Items, SpanishLanguagePack.Instance, Options);
 
         Assert.Same(analysis, result);
     }
@@ -104,7 +105,7 @@ public class AnswerCorrectionsTests
     {
         var analysis = Analysis([Unknown(0, 6, "espada")]);
 
-        var result = AnswerCorrections.WithCanonicalWords(analysis, Norm("espada"), new MatchResult("sword", MatchType.Fuzzy, 0, false, 1.0), Items, Options);
+        var result = AnswerCorrections.WithCanonicalWords(analysis, Norm("espada"), new MatchResult("sword", MatchType.Fuzzy, 0, false, 1.0), Items, SpanishLanguagePack.Instance, Options);
 
         Assert.Same(analysis, result);
     }
@@ -114,14 +115,14 @@ public class AnswerCorrectionsTests
     {
         var analysis = Analysis([Unknown(0, 6, "ezpada")]);
 
-        var result = AnswerCorrections.WithCanonicalWords(analysis, Norm("ezpada"), new MatchResult("missing", MatchType.Fuzzy, 0, true, 1.0), Items, Options);
+        var result = AnswerCorrections.WithCanonicalWords(analysis, Norm("ezpada"), new MatchResult("missing", MatchType.Fuzzy, 0, true, 1.0), Items, SpanishLanguagePack.Instance, Options);
 
         Assert.Same(analysis, result);
     }
 
     private static AnalysisResult Correct(string text, MatchResult match, IReadOnlyList<ErrorTag> errors)
     {
-        return AnswerCorrections.WithCanonicalWords(Analysis(errors), Norm(text), match, Items, Options);
+        return AnswerCorrections.WithCanonicalWords(Analysis(errors), Norm(text), match, Items, SpanishLanguagePack.Instance, Options);
     }
 
     private static NormalizedText Norm(string text)

@@ -4,6 +4,7 @@ using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Response.Templates;
 
 namespace Vocaterra.Nlp.Response.Tests;
@@ -15,9 +16,9 @@ internal static class TestSupport
 
     public static MorphologyGenerator Morphology { get; } = new(Lexicon.Seed);
 
-    public static TemplateEngine Engine { get; } = new(Lexicon.Seed, new MorphologyGenerator(Lexicon.Seed));
+    public static TemplateEngine Engine { get; } = new(Lexicon.Seed, new MorphologyGenerator(Lexicon.Seed), SpanishLanguagePack.Instance);
 
-    public static LinguisticAnalyzer Analyzer { get; } = new(Lexicon.Seed);
+    public static LinguisticAnalyzer Analyzer { get; } = new(Lexicon.Seed, SpanishLanguagePack.Instance);
 
     public static SlotMap Slots(params (string Key, string Value)[] pairs)
     {

@@ -4,6 +4,7 @@ using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Matching;
+using Vocaterra.Nlp.Language.Packs;
 
 public class RepairStrategyTests
 {
@@ -161,9 +162,9 @@ public class RepairStrategyTests
     public void TheStallNeedOffersOneCanonicalPerItemNotTheSortedAliases()
     {
         var set = SuppliesFixture();
-        var step = RepairStrategy.Next(3, PromptOf(RecognitionMode.Constrained), set.GrammarPhrases(), set.CanonicalPhrases());
+        var step = RepairStrategy.Next(3, PromptOf(RecognitionMode.Constrained), set.GrammarPhrases(SpanishLanguagePack.Instance), set.CanonicalPhrases(SpanishLanguagePack.Instance));
 
-        // The old choices were the first three of GrammarPhrases(): «agua por favor», «ayuda», «ayuda por favor».
+        // The old choices were the first three of GrammarPhrases(SpanishLanguagePack.Instance): «agua por favor», «ayuda», «ayuda por favor».
         Assert.Equal(RepairKind.OfferChoices, step.Kind);
         Assert.Equal(["quiero agua por favor", "quiero pan por favor", "quiero fruta por favor"], step.RetryRequest!.GrammarPhrases);
         Assert.Equal("¿Quieres decir «quiero agua por favor», «quiero pan por favor» o «quiero fruta por favor»?", step.AgentLine);
@@ -173,7 +174,7 @@ public class RepairStrategyTests
     public void TheStallOfferAlwaysOffersTheConfirmAndTheDenyCanonicals()
     {
         var set = YesNoFixture();
-        var step = RepairStrategy.Next(3, PromptOf(RecognitionMode.Constrained), set.GrammarPhrases(), set.CanonicalPhrases());
+        var step = RepairStrategy.Next(3, PromptOf(RecognitionMode.Constrained), set.GrammarPhrases(SpanishLanguagePack.Instance), set.CanonicalPhrases(SpanishLanguagePack.Instance));
 
         // The old choices were «ayuda», «ayuda por favor», «claro»; «no gracias» was never offered.
         Assert.Equal(["sí por favor", "no gracias", "ayuda"], step.RetryRequest!.GrammarPhrases);
@@ -184,9 +185,9 @@ public class RepairStrategyTests
     public void ARetryAtAttemptOneStillRecognizesEveryAcceptedPhrase()
     {
         var set = YesNoFixture();
-        var step = RepairStrategy.Next(1, PromptOf(RecognitionMode.Constrained), set.GrammarPhrases(), set.CanonicalPhrases());
+        var step = RepairStrategy.Next(1, PromptOf(RecognitionMode.Constrained), set.GrammarPhrases(SpanishLanguagePack.Instance), set.CanonicalPhrases(SpanishLanguagePack.Instance));
 
-        Assert.Equal(RecognitionRequest.Constrained(set.GrammarPhrases().ToArray()), step.RetryRequest);
+        Assert.Equal(RecognitionRequest.Constrained(set.GrammarPhrases(SpanishLanguagePack.Instance).ToArray()), step.RetryRequest);
         Assert.Contains("claro", step.RetryRequest!.GrammarPhrases);
     }
 
@@ -194,7 +195,7 @@ public class RepairStrategyTests
     public void AnAnswerSetWithFewerThanThreeAnswersOffersEveryCanonical()
     {
         var set = new AnswerSet("two", [new Answer("yes", "sí", ["si"], []), new Answer("no", "no", [], [])]);
-        var step = RepairStrategy.Next(3, PromptOf(RecognitionMode.Constrained), set.GrammarPhrases(), set.CanonicalPhrases());
+        var step = RepairStrategy.Next(3, PromptOf(RecognitionMode.Constrained), set.GrammarPhrases(SpanishLanguagePack.Instance), set.CanonicalPhrases(SpanishLanguagePack.Instance));
 
         Assert.Equal(["sí", "no"], step.RetryRequest!.GrammarPhrases);
         Assert.Equal("¿Quieres decir «sí» o «no»?", step.AgentLine);
@@ -204,8 +205,8 @@ public class RepairStrategyTests
     public void TheChoicesFollowTheGivenOrderAndAreTheSameForEqualInputs()
     {
         var set = SuppliesFixture();
-        var first = RepairStrategy.Next(3, PromptOf(RecognitionMode.Constrained), set.GrammarPhrases(), set.CanonicalPhrases());
-        var second = RepairStrategy.Next(3, PromptOf(RecognitionMode.Constrained), set.GrammarPhrases(), set.CanonicalPhrases());
+        var first = RepairStrategy.Next(3, PromptOf(RecognitionMode.Constrained), set.GrammarPhrases(SpanishLanguagePack.Instance), set.CanonicalPhrases(SpanishLanguagePack.Instance));
+        var second = RepairStrategy.Next(3, PromptOf(RecognitionMode.Constrained), set.GrammarPhrases(SpanishLanguagePack.Instance), set.CanonicalPhrases(SpanishLanguagePack.Instance));
 
         Assert.Equal(first, second);
         Assert.Equal(["quiero agua por favor", "quiero pan por favor", "quiero fruta por favor"], first.RetryRequest!.GrammarPhrases);

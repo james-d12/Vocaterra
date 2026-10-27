@@ -25,6 +25,8 @@ public class LanguagePacksTests
         public LintVocabulary Lint => SpanishLanguagePack.Instance.Lint;
 
         public RepairLines RepairFallback => SpanishLanguagePack.Instance.RepairFallback;
+
+        public IRecastPolicy Recast => SpanishLanguagePack.Instance.Recast;
     }
 
     [Fact]

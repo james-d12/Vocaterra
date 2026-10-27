@@ -5,6 +5,7 @@ using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
 /// <summary>Builds hand-made normalized text from a space-separated string, standing in for the real normalizer.</summary>
@@ -44,7 +45,7 @@ internal static class Fixtures
 
     public static MorphologyGenerator RulesOnly { get; } = new(Lexicon.Empty);
 
-    public static LinguisticAnalyzer Analyzer { get; } = new(Lexicon.Seed);
+    public static LinguisticAnalyzer Analyzer { get; } = new(Lexicon.Seed, SpanishLanguagePack.Instance);
 
     public static AnalysisResult Analyze(string text, params string[] grammarPatterns)
     {

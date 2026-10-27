@@ -4,6 +4,7 @@ using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
 /// <summary>
@@ -25,7 +26,7 @@ public class HomographSentencesTests
             entries.AddRange(Lexicon.ReadFile(File.ReadAllBytes(path)).Entries);
         }
 
-        return new LinguisticAnalyzer(Lexicon.FromEntries(entries));
+        return new LinguisticAnalyzer(Lexicon.FromEntries(entries), SpanishLanguagePack.Instance);
     }
 
     private static IReadOnlyList<ErrorTag> Errors(string sentence, params string[] grammarPatterns)

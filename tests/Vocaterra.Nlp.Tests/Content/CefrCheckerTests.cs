@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Vocaterra.Nlp.Core.Prompts;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Response.Templates;
 using NlpLexicon = Vocaterra.Nlp.Language.Lexicon.Lexicon;
 
@@ -25,7 +26,7 @@ public class CefrCheckerTests
     {
         var catalog = Catalog(("offer", "Hola, ¿quieres una espada?"), ("bye", "Adiós, amigo."));
 
-        var report = CefrChecker.Check(catalog, NlpLexicon.Seed, Set("hola", "querer", "amigo"), "A1");
+        var report = CefrChecker.Check(catalog, NlpLexicon.Seed, SpanishLanguagePack.Instance, Set("hola", "querer", "amigo"), "A1");
 
         Assert.Equal("a1", report.Level);
         Assert.Equal(["adiós", "espada", "un"], report.Missing.Select(missing => missing.Lemma));
@@ -41,7 +42,7 @@ public class CefrCheckerTests
     {
         var catalog = Catalog(("sell", "Vendo {qty} {item} por 5 monedas {{ya}}."));
 
-        var report = CefrChecker.Check(catalog, NlpLexicon.Seed, Set("vender", "por"), "a1");
+        var report = CefrChecker.Check(catalog, NlpLexicon.Seed, SpanishLanguagePack.Instance, Set("vender", "por"), "a1");
 
         Assert.Equal(["moneda", "ya"], report.Missing.Select(missing => missing.Lemma));
         Assert.Equal(2, report.CoveredLemmas);
@@ -52,7 +53,7 @@ public class CefrCheckerTests
     {
         var catalog = Catalog(("odd", "Hola zzxq."));
 
-        var report = CefrChecker.Check(catalog, NlpLexicon.Seed, Set("hola"), "a1");
+        var report = CefrChecker.Check(catalog, NlpLexicon.Seed, SpanishLanguagePack.Instance, Set("hola"), "a1");
 
         var missing = Assert.Single(report.Missing);
         Assert.Equal("zzxq", missing.Lemma);
@@ -66,9 +67,9 @@ public class CefrCheckerTests
         // "como" is both the conjunction/adverb "como" and a form of the verb "comer".
         var catalog = Catalog(("eat", "Como pan."));
 
-        var asVerb = CefrChecker.Check(catalog, NlpLexicon.Seed, Set("comer", "pan"), "a1");
-        var asWord = CefrChecker.Check(catalog, NlpLexicon.Seed, Set("como", "pan"), "a1");
-        var neither = CefrChecker.Check(catalog, NlpLexicon.Seed, Set("pan"), "a1");
+        var asVerb = CefrChecker.Check(catalog, NlpLexicon.Seed, SpanishLanguagePack.Instance, Set("comer", "pan"), "a1");
+        var asWord = CefrChecker.Check(catalog, NlpLexicon.Seed, SpanishLanguagePack.Instance, Set("como", "pan"), "a1");
+        var neither = CefrChecker.Check(catalog, NlpLexicon.Seed, SpanishLanguagePack.Instance, Set("pan"), "a1");
 
         Assert.Empty(asVerb.Missing);
         Assert.Empty(asWord.Missing);
@@ -80,7 +81,7 @@ public class CefrCheckerTests
     {
         var catalog = Catalog(("a", "Quiero espada."), ("b", "Una espada."));
 
-        var report = CefrChecker.Check(catalog, NlpLexicon.Seed, Set("querer"), "a1");
+        var report = CefrChecker.Check(catalog, NlpLexicon.Seed, SpanishLanguagePack.Instance, Set("querer"), "a1");
 
         var espada = report.Missing.Single(missing => missing.Lemma == "espada");
         Assert.Equal(["a.1", "b.1"], espada.LineIds);
@@ -89,7 +90,7 @@ public class CefrCheckerTests
     [Fact]
     public void AnEmptyCatalogHasNothingToReport()
     {
-        var report = CefrChecker.Check(DialogueCatalog.Empty, NlpLexicon.Seed, Set("hola"), "a1");
+        var report = CefrChecker.Check(DialogueCatalog.Empty, NlpLexicon.Seed, SpanishLanguagePack.Instance, Set("hola"), "a1");
 
         Assert.Equal(0, report.TotalLemmas);
         Assert.Empty(report.Missing);
@@ -169,7 +170,7 @@ public class CefrCheckerTests
             Prompt("alpha", "Hola, amigo. ¿Quieres una espada?"),
             Prompt("silent", null));
 
-        var report = CefrChecker.Check(DialogueCatalog.Empty, NlpLexicon.Seed, Set("hola", "amigo"), "a1", prompts);
+        var report = CefrChecker.Check(DialogueCatalog.Empty, NlpLexicon.Seed, SpanishLanguagePack.Instance, Set("hola", "amigo"), "a1", prompts);
 
         Assert.NotNull(report.Prompts);
         Assert.Equal(["espada", "querer", "tener", "un"], report.Prompts.Missing.Select(missing => missing.Lemma));
@@ -187,8 +188,8 @@ public class CefrCheckerTests
     {
         var catalog = Catalog(("offer", "Hola, ¿quieres una espada?"));
 
-        var without = CefrChecker.Check(catalog, NlpLexicon.Seed, Set("hola"), "a1");
-        var with = CefrChecker.Check(catalog, NlpLexicon.Seed, Set("hola"), "a1", Prompts(Prompt("p", "Adiós.")));
+        var without = CefrChecker.Check(catalog, NlpLexicon.Seed, SpanishLanguagePack.Instance, Set("hola"), "a1");
+        var with = CefrChecker.Check(catalog, NlpLexicon.Seed, SpanishLanguagePack.Instance, Set("hola"), "a1", Prompts(Prompt("p", "Adiós.")));
 
         Assert.Null(without.Prompts);
         Assert.Equal(without.TotalLemmas, with.TotalLemmas);
@@ -199,10 +200,10 @@ public class CefrCheckerTests
     [Fact]
     public void ANullPromptListLeavesThePromptFindingsOut()
     {
-        var report = CefrChecker.Check(DialogueCatalog.Empty, NlpLexicon.Seed, Set("hola"), "a1", null);
+        var report = CefrChecker.Check(DialogueCatalog.Empty, NlpLexicon.Seed, SpanishLanguagePack.Instance, Set("hola"), "a1", null);
 
         Assert.Null(report.Prompts);
-        Assert.Equal(report, CefrChecker.Check(DialogueCatalog.Empty, NlpLexicon.Seed, Set("hola"), "a1"));
+        Assert.Equal(report, CefrChecker.Check(DialogueCatalog.Empty, NlpLexicon.Seed, SpanishLanguagePack.Instance, Set("hola"), "a1"));
     }
 
     [Fact]
@@ -210,7 +211,7 @@ public class CefrCheckerTests
     {
         var prompts = Prompts(Prompt("p", "Vendo un oro."));
 
-        var report = CefrChecker.Check(DialogueCatalog.Empty, NlpLexicon.Seed, Set("vender", "oro"), "a1", prompts);
+        var report = CefrChecker.Check(DialogueCatalog.Empty, NlpLexicon.Seed, SpanishLanguagePack.Instance, Set("vender", "oro"), "a1", prompts);
 
         Assert.Equal(["un"], report.Prompts!.Missing.Select(missing => missing.Lemma));
         Assert.Equal(["p"], report.Prompts.Missing[0].LineIds);

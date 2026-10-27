@@ -2,7 +2,7 @@ using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Normalization;
-
+using Vocaterra.Nlp.Language.Packs;
 // System.IO.MatchType (implicit usings) would otherwise make the name ambiguous.
 using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 
@@ -31,7 +31,7 @@ public class AnswerMatcherTests
     [Fact]
     public void CanonicalPhraseIsAnExactMatch()
     {
-        var result = AnswerMatcher.Match(Norm("¡Coche!"), CarAndSword, Difficulty.Beginner);
+        var result = AnswerMatcher.Match(Norm("¡Coche!"), CarAndSword, Difficulty.Beginner, SpanishLanguagePack.Instance);
 
         Assert.Equal(new MatchResult("car", MatchType.Exact, 0, false, 1.0), result);
     }
@@ -44,7 +44,7 @@ public class AnswerMatcherTests
     {
         foreach (var difficulty in Enum.GetValues<Difficulty>())
         {
-            var result = AnswerMatcher.Match(Norm(spoken), CarAndSword, difficulty);
+            var result = AnswerMatcher.Match(Norm(spoken), CarAndSword, difficulty, SpanishLanguagePack.Instance);
 
             Assert.Equal(new MatchResult("car", MatchType.Alias, 0, false, 1.0), result);
         }
@@ -54,7 +54,7 @@ public class AnswerMatcherTests
     public void CocheCarroAndAutoAllResolveToOneAnswer()
     {
         var ids = new[] { "coche", "carro", "auto" }
-            .Select(word => AnswerMatcher.Match(Norm(word), CarAndSword, Difficulty.Intermediate).AnswerId)
+            .Select(word => AnswerMatcher.Match(Norm(word), CarAndSword, Difficulty.Intermediate, SpanishLanguagePack.Instance).AnswerId)
             .Distinct()
             .ToArray();
 
@@ -70,8 +70,8 @@ public class AnswerMatcherTests
         var withAccent = Single("camión");
         var withoutAccent = Single("camion");
 
-        Assert.Equal(MatchType.Exact, AnswerMatcher.Match(Norm(spoken), withAccent, Difficulty.Advanced).Type);
-        Assert.Equal(MatchType.Exact, AnswerMatcher.Match(Norm(spoken), withoutAccent, Difficulty.Advanced).Type);
+        Assert.Equal(MatchType.Exact, AnswerMatcher.Match(Norm(spoken), withAccent, Difficulty.Advanced, SpanishLanguagePack.Instance).Type);
+        Assert.Equal(MatchType.Exact, AnswerMatcher.Match(Norm(spoken), withoutAccent, Difficulty.Advanced, SpanishLanguagePack.Instance).Type);
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public class AnswerMatcherTests
                 new Answer("b", "can", [], []),
             ]);
 
-        var result = AnswerMatcher.Match(Norm("can"), set, Difficulty.Beginner);
+        var result = AnswerMatcher.Match(Norm("can"), set, Difficulty.Beginner, SpanishLanguagePack.Instance);
 
         Assert.Equal(new MatchResult("b", MatchType.Exact, 0, false, 1.0), result);
     }
@@ -96,7 +96,7 @@ public class AnswerMatcherTests
     public void EspadoMatchesEspadaFuzzyAtDistanceOneWhichIsExactlyTheBudget(Difficulty difficulty)
     {
         // Six characters allow one edit at every difficulty, so the match sits on the budget's edge and is still a match.
-        var result = AnswerMatcher.Match(Norm("espado"), CarAndSword, difficulty);
+        var result = AnswerMatcher.Match(Norm("espado"), CarAndSword, difficulty, SpanishLanguagePack.Instance);
 
         Assert.Equal(new MatchResult("sword", MatchType.Fuzzy, 1, false, 1.0 - (1.0 / 6.0)), result);
     }
@@ -106,8 +106,8 @@ public class AnswerMatcherTests
     {
         var set = Single("caballero");
 
-        var inside = AnswerMatcher.Match(Norm("cabalero"), set, Difficulty.Beginner);
-        var atBudget = AnswerMatcher.Match(Norm("cabalero"), set, Difficulty.Advanced);
+        var inside = AnswerMatcher.Match(Norm("cabalero"), set, Difficulty.Beginner, SpanishLanguagePack.Instance);
+        var atBudget = AnswerMatcher.Match(Norm("cabalero"), set, Difficulty.Advanced, SpanishLanguagePack.Instance);
 
         Assert.Equal(MatchType.Fuzzy, inside.Type);
         Assert.Equal(1, inside.Distance);
@@ -121,7 +121,7 @@ public class AnswerMatcherTests
         // Three characters at Beginner allow no edit, so a distance of 0 is exactly the budget's edge; the sound-alike is still a full-confidence match.
         var set = new AnswerSet("sayings", [new Answer("today", "hoy", [], [])]);
 
-        var result = AnswerMatcher.Match(Norm("oy"), set, Difficulty.Beginner);
+        var result = AnswerMatcher.Match(Norm("oy"), set, Difficulty.Beginner, SpanishLanguagePack.Instance);
 
         Assert.Equal(new MatchResult("today", MatchType.Fuzzy, 0, true, 1.0), result);
     }
@@ -131,8 +131,8 @@ public class AnswerMatcherTests
     {
         var set = Single("caballero");
 
-        var beginner = AnswerMatcher.Match(Norm("caballo"), set, Difficulty.Beginner);
-        var intermediate = AnswerMatcher.Match(Norm("caballo"), set, Difficulty.Intermediate);
+        var beginner = AnswerMatcher.Match(Norm("caballo"), set, Difficulty.Beginner, SpanishLanguagePack.Instance);
+        var intermediate = AnswerMatcher.Match(Norm("caballo"), set, Difficulty.Intermediate, SpanishLanguagePack.Instance);
 
         Assert.Equal(new MatchResult("only", MatchType.Fuzzy, 2, false, 1.0 - (2.0 / 9.0)), beginner);
         Assert.Equal(new MatchResult(null, MatchType.None, 2, false, 0.0), intermediate);
@@ -155,8 +155,8 @@ public class AnswerMatcherTests
     {
         var vaca = Single("vaca");
 
-        var beginner = AnswerMatcher.Match(Norm("baca"), vaca, Difficulty.Beginner);
-        var intermediate = AnswerMatcher.Match(Norm("baca"), vaca, Difficulty.Intermediate);
+        var beginner = AnswerMatcher.Match(Norm("baca"), vaca, Difficulty.Beginner, SpanishLanguagePack.Instance);
+        var intermediate = AnswerMatcher.Match(Norm("baca"), vaca, Difficulty.Intermediate, SpanishLanguagePack.Instance);
 
         Assert.Equal(new MatchResult("only", MatchType.Fuzzy, 0, true, 1.0), beginner);
         // Four characters at Intermediate allow no edit, so the sound-alike sits on the budget's edge and keeps full confidence.
@@ -166,7 +166,7 @@ public class AnswerMatcherTests
     [Fact]
     public void LongerSoundAlikeSpellingStaysWithinTheLimitEvenWhenSpellingDiffersALot()
     {
-        var result = AnswerMatcher.Match(Norm("serbesa"), Single("cerveza"), Difficulty.Beginner);
+        var result = AnswerMatcher.Match(Norm("serbesa"), Single("cerveza"), Difficulty.Beginner, SpanishLanguagePack.Instance);
 
         Assert.Equal(new MatchResult("only", MatchType.Fuzzy, 0, true, 1.0), result);
     }
@@ -174,7 +174,7 @@ public class AnswerMatcherTests
     [Fact]
     public void ASpellingSlipThatChangesTheSoundIsNotALikelyPronunciationMatch()
     {
-        var result = AnswerMatcher.Match(Norm("espado"), Single("espada"), Difficulty.Beginner);
+        var result = AnswerMatcher.Match(Norm("espado"), Single("espada"), Difficulty.Beginner, SpanishLanguagePack.Instance);
 
         Assert.False(result.LikelyPronunciation);
     }
@@ -186,7 +186,7 @@ public class AnswerMatcherTests
     [InlineData("¿?")]
     public void NonsenseAndEmptyInputMatchNothing(string spoken)
     {
-        var result = AnswerMatcher.Match(Norm(spoken), CarAndSword, Difficulty.Beginner);
+        var result = AnswerMatcher.Match(Norm(spoken), CarAndSword, Difficulty.Beginner, SpanishLanguagePack.Instance);
 
         Assert.Null(result.AnswerId);
         Assert.Equal(MatchType.None, result.Type);
@@ -197,7 +197,7 @@ public class AnswerMatcherTests
     [Fact]
     public void AliasesTakePartInFuzzyMatching()
     {
-        var result = AnswerMatcher.Match(Norm("carra"), CarAndSword, Difficulty.Beginner);
+        var result = AnswerMatcher.Match(Norm("carra"), CarAndSword, Difficulty.Beginner, SpanishLanguagePack.Instance);
 
         // carro has five characters: one edit is the whole budget at Beginner, and the confidence is the distance's 1 - 1/5.
         Assert.Equal(new MatchResult("car", MatchType.Fuzzy, 1, false, 1.0 - (1.0 / 5.0)), result);
@@ -214,7 +214,7 @@ public class AnswerMatcherTests
                 new Answer("beta", "rato", [], []),
             ]);
 
-        var result = AnswerMatcher.Match(Norm("dato"), set, Difficulty.Beginner);
+        var result = AnswerMatcher.Match(Norm("dato"), set, Difficulty.Beginner, SpanishLanguagePack.Instance);
 
         Assert.Equal("alfa", result.AnswerId);
         Assert.Equal(MatchType.Fuzzy, result.Type);
@@ -231,7 +231,7 @@ public class AnswerMatcherTests
                 new Answer("b", "mariposa nocturna", [], []),
             ]);
 
-        var result = AnswerMatcher.Match(Norm("mariposa nocturno"), set, Difficulty.Beginner);
+        var result = AnswerMatcher.Match(Norm("mariposa nocturno"), set, Difficulty.Beginner, SpanishLanguagePack.Instance);
 
         Assert.Equal("b", result.AnswerId);
         Assert.Equal(1, result.Distance);
@@ -247,7 +247,7 @@ public class AnswerMatcherTests
                 new Answer("a", "casa", [], []),
             ]);
 
-        Assert.Equal("a", AnswerMatcher.Match(Norm("casa"), set, Difficulty.Beginner).AnswerId);
+        Assert.Equal("a", AnswerMatcher.Match(Norm("casa"), set, Difficulty.Beginner, SpanishLanguagePack.Instance).AnswerId);
     }
 
     [Fact]
@@ -255,9 +255,9 @@ public class AnswerMatcherTests
     {
         var set = new AnswerSet("numbers", [new Answer("n", "dos espadas", ["22 espadas"], [])]);
 
-        Assert.Equal(MatchType.Exact, AnswerMatcher.Match(Norm("2 espadas"), set, Difficulty.Beginner).Type);
-        Assert.Equal(MatchType.Exact, AnswerMatcher.Match(Norm("dos espadas"), set, Difficulty.Beginner).Type);
-        Assert.Equal(MatchType.Alias, AnswerMatcher.Match(Norm("veintidós espadas"), set, Difficulty.Beginner).Type);
+        Assert.Equal(MatchType.Exact, AnswerMatcher.Match(Norm("2 espadas"), set, Difficulty.Beginner, SpanishLanguagePack.Instance).Type);
+        Assert.Equal(MatchType.Exact, AnswerMatcher.Match(Norm("dos espadas"), set, Difficulty.Beginner, SpanishLanguagePack.Instance).Type);
+        Assert.Equal(MatchType.Alias, AnswerMatcher.Match(Norm("veintidós espadas"), set, Difficulty.Beginner, SpanishLanguagePack.Instance).Type);
     }
 
     [Fact]
@@ -267,8 +267,8 @@ public class AnswerMatcherTests
         var set = Single("voy al mercado");
         var spoken = Norm("voy al mercado", expand);
 
-        var withMatchingOptions = AnswerMatcher.Match(spoken, set, Difficulty.Advanced, expand);
-        var withDefaultOptions = AnswerMatcher.Match(spoken, set, Difficulty.Advanced);
+        var withMatchingOptions = AnswerMatcher.Match(spoken, set, Difficulty.Advanced, SpanishLanguagePack.Instance, expand);
+        var withDefaultOptions = AnswerMatcher.Match(spoken, set, Difficulty.Advanced, SpanishLanguagePack.Instance);
 
         Assert.Equal(MatchType.Exact, withMatchingOptions.Type);
         Assert.NotEqual(MatchType.Exact, withDefaultOptions.Type);
@@ -279,13 +279,13 @@ public class AnswerMatcherTests
     {
         var set = new AnswerSet("dialects", [new Answer("car", "coche", ["carro"], ["es-ES"])]);
 
-        Assert.Equal(MatchType.Alias, AnswerMatcher.Match(Norm("carro"), set, Difficulty.Beginner).Type);
+        Assert.Equal(MatchType.Alias, AnswerMatcher.Match(Norm("carro"), set, Difficulty.Beginner, SpanishLanguagePack.Instance).Type);
     }
 
     [Fact]
     public void EmptySetMatchesNothing()
     {
-        var result = AnswerMatcher.Match(Norm("hola"), new AnswerSet("empty", []), Difficulty.Beginner);
+        var result = AnswerMatcher.Match(Norm("hola"), new AnswerSet("empty", []), Difficulty.Beginner, SpanishLanguagePack.Instance);
 
         Assert.Equal(new MatchResult(null, MatchType.None, 0, false, 0.0), result);
     }
@@ -298,8 +298,8 @@ public class AnswerMatcherTests
         foreach (var spoken in new[] { "coche", "auto", "espado", "carra", "xyzzy" })
         {
             Assert.Equal(
-                AnswerMatcher.Match(Norm(spoken), CarAndSword, Difficulty.Beginner),
-                AnswerMatcher.Match(Norm(spoken), reversed, Difficulty.Beginner));
+                AnswerMatcher.Match(Norm(spoken), CarAndSword, Difficulty.Beginner, SpanishLanguagePack.Instance),
+                AnswerMatcher.Match(Norm(spoken), reversed, Difficulty.Beginner, SpanishLanguagePack.Instance));
         }
     }
 
@@ -311,7 +311,7 @@ public class AnswerMatcherTests
             foreach (var spoken in new[] { "coche", "carro", "espado", "baca", "xyzzy" })
             {
                 var text = Norm(spoken);
-                Assert.Equal(AnswerMatcher.Match(text, CarAndSword, difficulty), AnswerMatcher.Match(text, CarAndSword, difficulty));
+                Assert.Equal(AnswerMatcher.Match(text, CarAndSword, difficulty, SpanishLanguagePack.Instance), AnswerMatcher.Match(text, CarAndSword, difficulty, SpanishLanguagePack.Instance));
             }
         }
     }
@@ -321,9 +321,9 @@ public class AnswerMatcherTests
     {
         var text = Norm("hola");
 
-        Assert.Throws<ArgumentNullException>(() => AnswerMatcher.Match(null!, CarAndSword, Difficulty.Beginner));
-        Assert.Throws<ArgumentNullException>(() => AnswerMatcher.Match(text, null!, Difficulty.Beginner));
-        Assert.Throws<ArgumentOutOfRangeException>(() => AnswerMatcher.Match(text, CarAndSword, (Difficulty)99));
+        Assert.Throws<ArgumentNullException>(() => AnswerMatcher.Match(null!, CarAndSword, Difficulty.Beginner, SpanishLanguagePack.Instance));
+        Assert.Throws<ArgumentNullException>(() => AnswerMatcher.Match(text, null!, Difficulty.Beginner, SpanishLanguagePack.Instance));
+        Assert.Throws<ArgumentOutOfRangeException>(() => AnswerMatcher.Match(text, CarAndSword, (Difficulty)99, SpanishLanguagePack.Instance));
         Assert.Throws<ArgumentOutOfRangeException>(() => AnswerMatcher.MaxDistance(-1, Difficulty.Beginner));
     }
 }

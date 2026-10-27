@@ -1,6 +1,7 @@
 namespace Vocaterra.Nlp.Language.Tests.SlotGrammar;
 
 using Vocaterra.Nlp.Core.Verdicts;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Language.Tests.Analysis;
 
@@ -9,7 +10,7 @@ public class WordTokenTests
 {
     private static SlotGrammarMatch? Match(string text, string pattern)
     {
-        return SlotGrammarMatcher.Match(Fixtures.Analyzer.Analyze(TestTokens.From(text)).Tokens, SlotGrammar.Parse(pattern));
+        return SlotGrammarMatcher.Match(Fixtures.Analyzer.Analyze(TestTokens.From(text)).Tokens, SlotGrammar.Parse(pattern), SpanishLanguagePack.Instance);
     }
 
     private static string Slots(SlotGrammarMatch? match)

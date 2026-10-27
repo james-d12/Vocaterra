@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json.Nodes;
+using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Nlp.Content.Tests;
 
@@ -102,7 +103,7 @@ public class ContentLoaderTests
 
         var loaded = ContentLoader.Load(bundle.Directory, new ContentLoadOptions { VerifyHashes = false });
 
-        Assert.Contains("claro amigo", loaded.AnswerSets["yes-no"].GrammarPhrases());
+        Assert.Contains("claro amigo", loaded.AnswerSets["yes-no"].GrammarPhrases(SpanishLanguagePack.Instance));
     }
 
     [Fact]

@@ -4,6 +4,7 @@ using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Response.Templates;
 
 /// <summary>
@@ -36,7 +37,7 @@ public class RecastReadAsAccentedTests
     private static (NormalizedText Text, AnalysisResult Analysis) Analyze(string sentence)
     {
         var text = TextNormalizer.Normalize(sentence, new NormalizationOptions { NumbersToDigits = false, ConvertIndefiniteArticles = false });
-        return (text, new LinguisticAnalyzer(Words).Analyze(text));
+        return (text, new LinguisticAnalyzer(Words, SpanishLanguagePack.Instance).Analyze(text));
     }
 
     private static string Recast(string sentence)

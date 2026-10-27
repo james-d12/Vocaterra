@@ -54,6 +54,15 @@ public class LayeringTests
     }
 
     [Fact]
+    public void ThePacksAndTheResponseStageHaveNoCycle()
+    {
+        // ADR 0011, point 9: Response may use the packs (through bundle.Language), and the packs may not use Response back.
+        Assert.Contains(LayerRules.Root + ".Response", LayerRules.Rules().Single(rule => rule.Source == LayerRules.PacksNamespace).Forbidden);
+        Assert.Empty(LayerRules.Violations(Engine, LayerRules.PacksNamespace, [LayerRules.Root + ".Response"]));
+        Assert.DoesNotContain(LayerRules.PacksNamespace, LayerRules.Rules().Single(rule => rule.Source == LayerRules.Root + ".Response").Forbidden);
+    }
+
+    [Fact]
     public void AViolationIsReportedThroughTheSameRule()
     {
         // The fixture is a core-like type in the test assembly that depends on the pipeline. The same check must report it.

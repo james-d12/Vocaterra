@@ -9,6 +9,7 @@ using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.Feedback;
 using Vocaterra.Nlp.Decision.Scheduling;
 using Vocaterra.Nlp.Language.Intent;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Pronunciation;
 
 namespace Vocaterra.Nlp.Pipeline.Tests;
@@ -200,7 +201,7 @@ public class PipelineTests
 
         var request = recognizer.LastRequest!;
         Assert.Equal(RecognitionMode.Constrained, request.Mode);
-        var expected = GrammarBuilder.BuildList(TestSupport.Bundle.AnswerSets[prompt.AnswerSetId].GrammarPhrases());
+        var expected = GrammarBuilder.BuildList(TestSupport.Bundle.AnswerSets[prompt.AnswerSetId].GrammarPhrases(SpanishLanguagePack.Instance));
         Assert.Equal(expected, request.GrammarPhrases);
         Assert.Equal(GrammarBuilder.UnknownToken, request.GrammarPhrases[^1]);
         Assert.Contains("piedra", request.GrammarPhrases);

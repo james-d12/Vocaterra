@@ -6,6 +6,7 @@ using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using Xunit.Abstractions;
 using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 
@@ -147,7 +148,7 @@ public sealed class AnswerMatchFuzzTests(ITestOutputHelper output)
         MatchResult actual;
         try
         {
-            actual = AnswerMatcher.Match(normalized, set, input.Difficulty, PipelineHarness.Normalization);
+            actual = AnswerMatcher.Match(normalized, set, input.Difficulty, SpanishLanguagePack.Instance, PipelineHarness.Normalization);
         }
         catch (Exception ex)
         {
@@ -159,7 +160,7 @@ public sealed class AnswerMatchFuzzTests(ITestOutputHelper output)
             throw Determinism.Fail(Oracle, $"Confidence {actual.Confidence} is outside [0, 1].", context);
         }
 
-        Determinism.AssertSame(Oracle, "AnswerMatcher.Match", context, () => actual, () => AnswerMatcher.Match(normalized, set, input.Difficulty, PipelineHarness.Normalization));
+        Determinism.AssertSame(Oracle, "AnswerMatcher.Match", context, () => actual, () => AnswerMatcher.Match(normalized, set, input.Difficulty, SpanishLanguagePack.Instance, PipelineHarness.Normalization));
 
         var expected = Model(Accents.Strip(normalized.Text), candidates, input.Difficulty);
         if (expected != actual)

@@ -6,6 +6,7 @@ using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
 using Vocaterra.Nlp.Language.Morphology;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 
 /// <summary>
@@ -92,7 +93,7 @@ public class ReadingResolverTests
     ]);
 
     private static readonly MorphologyGenerator Morphology = new(TestLexicon);
-    private static readonly LinguisticAnalyzer Analyzer = new(TestLexicon, Morphology);
+    private static readonly LinguisticAnalyzer Analyzer = new(TestLexicon, Morphology, SpanishLanguagePack.Instance);
 
     private static IReadOnlyList<ErrorTag> Errors(string text, params string[] grammarPatterns)
     {
@@ -118,7 +119,7 @@ public class ReadingResolverTests
         SlotGrammarMatch? best = null;
         foreach (var pattern in grammarPatterns)
         {
-            var match = SlotGrammarMatcher.Match(tokens, SlotGrammar.Parse(pattern));
+            var match = SlotGrammarMatcher.Match(tokens, SlotGrammar.Parse(pattern), SpanishLanguagePack.Instance);
             if (match is not null && (best is null || match.ExplicitTokenCount > best.ExplicitTokenCount))
             {
                 best = match;

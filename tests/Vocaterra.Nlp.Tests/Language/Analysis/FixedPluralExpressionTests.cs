@@ -2,6 +2,7 @@ namespace Vocaterra.Nlp.Language.Tests.Analysis;
 
 using Vocaterra.Nlp.Language.Analysis;
 using Vocaterra.Nlp.Language.Lexicon;
+using Vocaterra.Nlp.Language.Packs;
 
 /// <summary>
 /// M29c: an agreement error on a modifier must not "correct" a noun that is right. In a fixed plural expression (muchas gracias, buenos días, buenas tardes, buenas
@@ -22,7 +23,7 @@ public class FixedPluralExpressionTests
             entries.AddRange(Lexicon.ReadFile(File.ReadAllBytes(path)).Entries);
         }
 
-        return new LinguisticAnalyzer(Lexicon.FromEntries(entries));
+        return new LinguisticAnalyzer(Lexicon.FromEntries(entries), SpanishLanguagePack.Instance);
     }
 
     private static string[] Described(string sentence)

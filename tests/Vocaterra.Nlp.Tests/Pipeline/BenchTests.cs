@@ -5,6 +5,7 @@ using Vocaterra.Nlp.Bench;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Language.Packs;
 using BenchProgram = Vocaterra.Nlp.Bench.Program;
 
 namespace Vocaterra.Nlp.Pipeline.Tests;
@@ -45,7 +46,7 @@ public class BenchTests
     [InlineData("yo tiene dos espada", "yo tengo dos espadas", 2)]
     public void WordEditsIsTheWordLevelLevenshteinDistance(string reference, string hypothesis, int expected)
     {
-        var edits = BenchMetrics.WordEdits(BenchMetrics.Tokens(reference), BenchMetrics.Tokens(hypothesis));
+        var edits = BenchMetrics.WordEdits(BenchMetrics.Tokens(reference, SpanishLanguagePack.Instance), BenchMetrics.Tokens(hypothesis, SpanishLanguagePack.Instance));
 
         Assert.Equal(expected, edits);
     }
@@ -53,9 +54,9 @@ public class BenchTests
     [Fact]
     public void TokensAreNormalizedAndDropTheUnknownMarker()
     {
-        Assert.Equal(["yo", "tiene", "2", "espada"], BenchMetrics.Tokens("¡Yo  TIENE dos [unk] espada!"));
-        Assert.Equal(["una", "espada"], BenchMetrics.Tokens("una espada"));
-        Assert.Empty(BenchMetrics.Tokens("[unk]"));
+        Assert.Equal(["yo", "tiene", "2", "espada"], BenchMetrics.Tokens("¡Yo  TIENE dos [unk] espada!", SpanishLanguagePack.Instance));
+        Assert.Equal(["una", "espada"], BenchMetrics.Tokens("una espada", SpanishLanguagePack.Instance));
+        Assert.Empty(BenchMetrics.Tokens("[unk]", SpanishLanguagePack.Instance));
     }
 
     [Theory]
@@ -73,12 +74,12 @@ public class BenchTests
     {
         ExpectedError[] errors = [new("conj.person", "tiene"), new("noun.number", "espada")];
 
-        Assert.Equal(2, BenchMetrics.ErrorsKept(errors, BenchMetrics.Tokens("yo tiene dos espada")));
-        Assert.Equal(1, BenchMetrics.ErrorsKept(errors, BenchMetrics.Tokens("yo tiene dos espadas")));
-        Assert.Equal(0, BenchMetrics.ErrorsKept(errors, BenchMetrics.Tokens("yo tengo dos espadas")));
-        Assert.Equal(0, BenchMetrics.ErrorsKept(errors, []));
-        Assert.Equal(1, BenchMetrics.ErrorsKept([new("gender.agree", "un espada")], BenchMetrics.Tokens("quiero un espada")));
-        Assert.Equal(0, BenchMetrics.ErrorsKept([new("gender.agree", "")], BenchMetrics.Tokens("quiero un espada")));
+        Assert.Equal(2, BenchMetrics.ErrorsKept(errors, BenchMetrics.Tokens("yo tiene dos espada", SpanishLanguagePack.Instance), SpanishLanguagePack.Instance));
+        Assert.Equal(1, BenchMetrics.ErrorsKept(errors, BenchMetrics.Tokens("yo tiene dos espadas", SpanishLanguagePack.Instance), SpanishLanguagePack.Instance));
+        Assert.Equal(0, BenchMetrics.ErrorsKept(errors, BenchMetrics.Tokens("yo tengo dos espadas", SpanishLanguagePack.Instance), SpanishLanguagePack.Instance));
+        Assert.Equal(0, BenchMetrics.ErrorsKept(errors, [], SpanishLanguagePack.Instance));
+        Assert.Equal(1, BenchMetrics.ErrorsKept([new("gender.agree", "un espada")], BenchMetrics.Tokens("quiero un espada", SpanishLanguagePack.Instance), SpanishLanguagePack.Instance));
+        Assert.Equal(0, BenchMetrics.ErrorsKept([new("gender.agree", "")], BenchMetrics.Tokens("quiero un espada", SpanishLanguagePack.Instance), SpanishLanguagePack.Instance));
     }
 
     [Theory]
