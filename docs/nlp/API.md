@@ -18,31 +18,34 @@ per error tag, and a digest of the rest of its state (`HostStateHash`). The core
 
 ```csharp
 using Vocaterra.Nlp.Content;
+using Vocaterra.Nlp.Es;
 
-ContentBundle bundle = ContentLoader.Load("content/game-v1");   // verifies every file's hash and the cross-references
-Console.WriteLine(bundle.ContentHash);                      // the bundle hash, recorded in every verdict
+ContentBundle bundle = SpanishContent.Load("content/game-v1");   // verifies every file's hash and the cross-references
+Console.WriteLine(bundle.ContentHash);                           // the bundle hash, recorded in every verdict
 ```
 
-`ContentLoader.Load` throws `ContentValidationException` for a bundle that fails validation. The bundle carries the prompts
+Since M53 the engine (`Vocaterra.Nlp`) contains no language, so a host registers the language packs it loads (see "The Spanish pack project (M53)" below). `SpanishContent.Load`
+is `ContentLoader.Load` with the Spanish pack in the registry. `ContentLoader.Load` throws `ContentValidationException` for a bundle that fails validation. The bundle carries the prompts
 (`bundle.Prompts`), the agents (`bundle.Agents`), the effect table (`bundle.Effects`) and the lexicon; nothing is read again after loading.
 
 ### The bundle's language
 
 A bundle teaches one language. `manifest.json` may carry `"language"` (a BCP-47 tag such as `es`, `es-MX` or `de-DE`) and `"supportLanguage"`
-(the learner's own language, for example `en`). Both are optional; an absent `language` means Spanish (`es`), so existing bundles need no edit.
+(the learner's own language, for example `en`). Both are optional; an absent `language` means Spanish (`es`), so existing bundles need no edit. Since M53 the host's
+registry must hold the `es` pack for such a bundle (an empty registry gives the usual `no language pack is registered for language 'es'`).
 All of this is additive ([ADR 0011](adr/0011-target-language-as-a-bundle-property.md)).
 
 ```csharp
 using Vocaterra.Nlp.Language.Packs;
 
-ContentBundle bundle = ContentLoader.Load("content/game-v1");
+ContentBundle bundle = SpanishContent.Load("content/game-v1");
 ILanguagePack pack = bundle.Language;          // SpanishLanguagePack.Instance for a bundle without "language"
 string id = bundle.LanguageId;                 // "es" (the primary subtag; also "es" for a manifest language of "es-MX")
 string? tag = bundle.Manifest.Language;        // null when the manifest has none; the tag as written otherwise
 string? support = bundle.Manifest.SupportLanguage;   // recorded and passed through, never interpreted
 
-// A host with its own packs passes its own registry.
-var options = new ContentLoadOptions { LanguagePacks = LanguagePacks.Default.With(myGermanPack) };
+// A host registers the packs it loads; the engine's default registry is empty (M53).
+var options = new ContentLoadOptions { LanguagePacks = LanguagePacks.Default.WithSpanish().With(myGermanPack) };
 ContentBundle german = ContentLoader.Load("content/my-german-bundle", options);
 ```
 
@@ -51,21 +54,21 @@ ContentBundle german = ContentLoader.Load("content/my-german-bundle", options);
   `hash <dir> [--language TAG] [--support-language TAG]` follows it, keeping the fields of an existing manifest unless an option overrides them.
   Adding `language` to a manifest therefore changes its bundle hash.
 - **Resolution.** `LanguagePacks.TryResolve(tag, out pack)` reads the primary subtag of a well-formed tag and finds the pack, ordinal and
-  case-insensitive on the subtag. `LanguagePacks.Default` holds `es`; `LanguagePacks.Empty`, `Of(...)` and `With(...)` build other sets;
+  case-insensitive on the subtag. `LanguagePacks.Default` is empty since M53 (it held `es` before); `LanguagePacks.Empty`, `Of(...)` and `With(...)` build other sets, and the Spanish pack project adds `WithSpanish()`;
   `Languages` lists the ids. `LanguagePacks.TryGetPrimarySubtag` is the syntax check (RFC 5646 shape, not the IANA registry).
 - **Refusal.** A malformed `language` or one with no registered pack makes `ContentLoader.Load` throw `ContentValidationException` with a problem
   `manifest.json: language '...' is not a well-formed BCP-47 language tag ...` or `manifest.json: no language pack is registered for language '...'
   (registered: ...)`, with or without hash verification.
 - **`ILanguagePack`** (text side, M32): `LanguageId`, `Normalizer`, `Folding`, `Numbers`, `PhoneticKey`, `Punctuation`, `G2p` (null when pronunciation
-  scoring is off for the language), `GrammarDefaults`, `Lint` and `RepairFallback`. `SpanishLanguagePack.Instance` wraps the static Spanish classes
-  (`TextNormalizer`, `SpanishNumbers`, `SpanishPhoneticKey`, `SpanishG2p`, ...), which keep their entry points and their Spanish meaning; the
+  scoring is off for the language), `GrammarDefaults`, `Lint` and `RepairFallback`. `SpanishLanguagePack.Instance` (project `Vocaterra.Nlp.Es` since M53) wraps the static Spanish classes
+  (`SpanishTextNormalizer`, `SpanishNumbers`, `SpanishPhoneticKey`, `SpanishG2p`, ...); the
   pipeline and the content tools call through the pack (M33, below). The analysis-side members (`LexiconProfile`, `ErrorTags`, `CreateMorphology`,
   `CreateAnalysisRules`, `CreateTemplateFunctions`) joined in M34 (see "The analysis side of the pack").
 - **Routed through the pack (M33).** The engine reads its text-side Spanish through `bundle.Language` (ADR 0011, amendment M33): the normalizer, the
   answer matcher and corrections, the intent resolver, the analyzer's grammar defaults, the template engine (numbers, agreement, punctuation), the
   recast (accent policy and number words), the speech requests (digits and phones; no phones when `G2p` is null), the pronunciation digits and G2P,
   the repair lines, and the content linter, `TextGrader`, `cefr-check` and `BenchMetrics`. Signatures that take a pack are listed in the next bullet.
-  A host that calls these itself passes `bundle.Language`, for example `TextNormalizer` becomes `bundle.Language.Normalizer.Normalize(text, options)`.
+  A host that calls these itself passes `bundle.Language`, for example the Spanish normalizer becomes `bundle.Language.Normalizer.Normalize(text, options)`.
 - **Signatures that take the pack (M33; the core is not published, so these are breaking changes of the 0.x surface).**
   `AnswerMatcher.Match(text, set, difficulty, language, options = null)`;
   `AnswerCorrections.WithCanonicalWords(analysis, text, match, set, language, options = null)`;
@@ -78,10 +81,9 @@ ContentBundle german = ContentLoader.Load("content/my-german-bundle", options);
   `SpeechRequests.Create(text, voiceId, language, dialect = null)`;
   `CefrChecker.Check(dialogue, lexicon, language, allowed, level, prompts = null)`.
   `bundle.Language` is the pack of a loaded bundle; `bundle.TemplateEngine` and `bundle.Language` are what a host needs.
-- **Spanish compatibility entry points (M33).** These keep their signatures and their Spanish meaning, and the game calls some of them:
-  `TextNormalizer`, `SpanishNumbers`, `SpanishPhoneticKey`, `SpanishG2p`, `MorphologyGenerator`, `RecastBuilder.Build(text, analysis[, lexicon])`,
-  `SpeechRequests.Create(text, voiceId[, dialect])`, `TemplateEngine.CreateDefault()`, and the Spanish pack `SpanishLanguagePack.Instance`. Each one is
-  named in its XML remarks. A neutral caller uses the pack members instead; the grep guard (`SpanishCallSiteTests`) checks the engine for this.
+- **Spanish entry points (M33, moved in M53).** The Spanish statics keep their signatures and their Spanish meaning, in the Spanish pack project: `SpanishTextNormalizer`
+  (the former `TextNormalizer`), `SpanishNumbers`, `SpanishPhoneticKey`, `SpanishG2p`, `Accents`, `MorphologyGenerator`, and the pack `SpanishLanguagePack.Instance`. The M33
+  engine overloads that defaulted to Spanish are gone (below). A neutral caller uses the pack members; the grep guard (`SpanishCallSiteTests`) checks that the engine names no Spanish type.
 - New public members: `ContentManifest.Language`, `.SupportLanguage`, `.DefaultLanguage`, `ComputeBundleHash(files, language)`, two optional trailing
   parameters of `Compute` and of the record constructor; `ContentLoadOptions.LanguagePacks`; `ContentBundle.Language`, `.LanguageId`; the types of
   `Vocaterra.Nlp.Language.Packs`.
@@ -97,8 +99,9 @@ All of this is additive unless it says breaking. The game compiles and passes un
   `tiene`, `yo tengo dos espadas`, `gender.agree`, the values the validator always used. A pack of another language gives its own words.
 - **`IMorphology`** (`Vocaterra.Nlp.Language.Morphology`): `Pluralize`, `Singularize`, `InflectNoun`, `Article(definiteness, gender, number[, nounLemma])`,
   `AgreeAdjective`, `Conjugate`, `IsRegularizedIrregular`, `TryGetRegularization`. `MorphologyGenerator` implements it; `RegularizedForm` is public.
-- **`ContentBundle`**: new `LanguageMorphology` (`IMorphology`, what the engine uses) and `AnalysisRules` (`IAnalysisRules`). `Morphology` is unchanged for a Spanish
-  bundle (`MorphologyGenerator`) and throws `NotSupportedException` on access for a pack that creates another implementation.
+- **`ContentBundle`**: new `LanguageMorphology` (`IMorphology`, what the engine uses) and `AnalysisRules` (`IAnalysisRules`). `Morphology` (the Spanish
+  `MorphologyGenerator`) was removed in M53 together with the generator's move; a host of a Spanish bundle calls the extension `bundle.SpanishMorphology()` (project `Vocaterra.Nlp.Es`,
+  `using Vocaterra.Nlp.Es;`), which throws `NotSupportedException` for a pack that creates another implementation.
 - **`IAnalysisRules`** and **`IAgreementChecker`** (`Vocaterra.Nlp.Language.Analysis`), `AnalysisRules.For(pack)` (the pack's rules over an empty lexicon, for callers
   without a lexicon), and public `ReadingClasses` and `WordClass`. Breaking signatures: `ReadingClasses.IsDeterminerReading`, `IsClosedClassReading` and `IsSkippable`
   take the rules (they were internal in effect: only the analysis used them); `AccentRestoration.SpellingsFor(lexicon, analysis, rules)`;
@@ -106,7 +109,7 @@ All of this is additive unless it says breaking. The game compiles and passes un
 - **Constructors that take the interface** (source compatible, `MorphologyGenerator` is an `IMorphology`): `LinguisticAnalyzer(lexicon, IMorphology, language[, rules])`,
   `TemplateEngine(lexicon, IMorphology, language[, ITemplateFunctions])`; `IntentResolver(catalog, language, embeddings = null, options = null, rules = null)`.
 - **`ITemplateFunctions`** (`Vocaterra.Nlp.Language.Packs`): `ResolveVerbLemma`, `Conjugate`, `InflectNoun`, `InferNumber`, `GenderOf`, `Article`.
-- **`LexiconProfile`** (`Vocaterra.Nlp.Language.Lexicon`): the closed vocabularies and the optional feature lists; `V1` is Spanish; `Validate(entry)`.
+- **`LexiconProfile`** (`Vocaterra.Nlp.Language.Lexicon`): the closed vocabularies and the optional feature lists; `V1` is the frozen v1 profile that the Spanish pack uses; `Validate(entry)`.
   `Lexicon.ReadFile(json | bytes, profile)`, `Lexicon.Load(json, folding, profile)`, `Lexicon.FromEntries(entries, folding, profile)`, `Lexicon.Folding`.
   `LexiconSchema.Validate(entry)` is the V1 check, as before.
 - **`LexicalFeatures`** and **`EntryFeatures`**: trailing optional `Case`, `VerbForm`, `Declension`, `Particle`, `Register` (null; omitted from JSON while null).
@@ -114,9 +117,60 @@ All of this is additive unless it says breaking. The game compiles and passes un
 - **`ErrorTagSet`** (`Vocaterra.Nlp.Core.Taxonomy`): `All`, `Count`, `Rank`, `IsKnown`, `IsPronunciation`, `V1`. `ErrorTags.All` is unchanged. `VerdictInputs`
   gained the optional trailing `ErrorTags`.
 - **`NormalizedText.FinalMark`** (init, null by default) and `NormalizationOptions.CaptureFinalMark` (default false).
-- **`RepairLines.Offer`** (optional, `OfferLineFormat`), `OfferLineFormat.Format(choices)`, `RepairStrategy.OfferFormat` (Spanish).
+- **`RepairLines.Offer`** (optional, `OfferLineFormat`), `OfferLineFormat.Format(choices)`, `RepairStrategy.OfferFormat` (the plain wording the engine uses when a pack gives none: `"a", "b", "c"`; M53, it was the Spanish question before and the pack's
+  `SpanishRepairLines.OfferFormat` carries that now).
 - **`IntentCatalog.Load(json, folding = null)`** and **`SlotGrammar.Parse(pattern, id = null, folding = null)`**: a method group of either no longer converts to
   `Func<string, T>`; use a lambda.
+
+### The Spanish pack project (M53)
+
+Host-facing. The engine `Vocaterra.Nlp` is language-neutral: it cannot reference the Spanish pack, and `src/Vocaterra.Nlp.Es` (`Vocaterra.Nlp.Es`, namespaces
+`Vocaterra.Nlp.Es.*`) references the engine. A host that loads a Spanish bundle references both projects (the game's `Game.Core` and `Host` do).
+
+```csharp
+using Vocaterra.Nlp.Es;
+
+ContentBundle bundle = SpanishContent.Load("content/game-v1");                       // the Spanish pack is registered for you
+// or, with options and a registry of your own:
+var options = new ContentLoadOptions { LanguagePacks = LanguagePacks.Default.WithSpanish() };
+ContentBundle same = ContentLoader.Load("content/game-v1", options);
+MorphologyGenerator morphology = bundle.SpanishMorphology();                         // was bundle.Morphology
+Lexicon seed = SpanishLexicon.Seed;                                                  // was Lexicon.Seed
+```
+
+- **Registry shape.** `LanguagePacks.Default` is empty. A manifest with no `language` still means `es`; it resolves from the host's registry, and a registry without `es`
+  gives the usual `ContentValidationException` (`no language pack is registered for language 'es' (registered: ...)`). `ContentLoadOptions.LanguagePacks` defaults to
+  `LanguagePacks.Default`, so a bare `ContentLoader.Load(dir)` of a Spanish bundle now throws; use `SpanishContent.Load(dir[, options])` or register the pack.
+- **`SpanishContent`** (`Vocaterra.Nlp.Es`): `Options` (default load options with Spanish registered), `WithSpanish(this LanguagePacks)`, `Load(dir, options = null)` (adds the Spanish pack to
+  the given options), `SpanishMorphology(this ContentBundle)` and `CreateTemplateEngine()` (the former `TemplateEngine.CreateDefault()`).
+- **`SpanishLexicon`** (`Vocaterra.Nlp.Es`): `Seed`, `LoadSeed()`, `ReadSeedJson()`, `SeedResourceName`, `Empty`, `Folding`, `Load(json)` and `FromEntries(entries)`. The seed
+  lexicon (`content/game-v1/lexicon/seed.json`) is embedded in the Es assembly under the same logical name as before.
+- **Removed from the engine** (breaking, 0.x): `Lexicon.Seed`, `LoadSeed`, `ReadSeedJson`, `SeedResourceName`, `Lexicon.Load(json)` and `Lexicon.FromEntries(entries)` without a folding
+  (use `SpanishLexicon` or the overloads that take `folding, profile`; `Lexicon.Empty` stays and has the neutral `InvariantLexiconFolding`); `TextNormalizer` and `Accents` (now
+  `SpanishTextNormalizer` and `Accents` in `Vocaterra.Nlp.Es.Normalization`); the `RepairStrategy.AskAgainLine`, `SlowRepeatLine` and `GiveUpLine` constants and the
+  `RepairStrategy.Next` overloads without `RepairLines` (the constants are `SpanishRepairLines` in `Vocaterra.Nlp.Es.Text`); `RecastBuilder.Build(text, analysis[, lexicon])` and
+  `SpeechRequests.Create(text, voiceId[, dialect])` without a pack; `TemplateEngine.CreateDefault()` and `new ResponsePlanner()`; `ContentBundle.Morphology`;
+  `FakePhonemeRecognizer.ForSpanish()` (renamed `ForPhoneInventory()`: it is the whole shared phone inventory).
+- **Added to the engine** (public, for the packs): `TextTokenizer` (`Tokenize`, `Clean`, `Split`, `Build`, `FinalMarkOf`) and `TokenizedWord`, the neutral part of text normalization;
+  `InvariantLexiconFolding`; `Utf16.ReplaceLoneSurrogates` and `TextKey.Of` (were internal); `Lexicon.Derive` (was internal). There is no `InternalsVisibleTo` from the engine to the pack.
+- **Fixed on the way.** The pipeline built the repair lines without the pack's `RepairLines.Offer`, so a pack's own offer wording was ignored; it is passed now (regression test
+  `ThePacksOwnOfferWordingReachesTheOfferedChoices`).
+
+Types that moved (the project is `src/Vocaterra.Nlp.Es`; the old namespaces are `Vocaterra.Nlp.*` of the engine):
+
+| Type | Old namespace | New namespace |
+| --- | --- | --- |
+| `SpanishLanguagePack` | `Language.Packs` | `Vocaterra.Nlp.Es` |
+| `SpanishRecastPolicy`, `SpanishTemplateFunctions`, `PunctuationFixer`, `NumberAgreement` (internal), new `SpanishRepairLines` | `Language.Packs` (the repair lines: `Language.Intent.RepairStrategy`) | `Vocaterra.Nlp.Es.Text` |
+| `SpanishAnalysisRules`, `SpanishAgreementChecker`, `SpanishAnalysisTables`, `WordClasses` (all internal) | `Language.Packs`, `Language.Lexicon` | `Vocaterra.Nlp.Es.Analysis` |
+| `SpanishNumbers`, `SpanishPhoneticKey`, `Accents`, `TextFolding` (internal), `SpanishTextNormalizer` (was `TextNormalizer`) | `Language.Normalization`, `Language.Lexicon` | `Vocaterra.Nlp.Es.Normalization` |
+| `MorphologyGenerator`, `SpanishOrthography` (internal) | `Language.Morphology` | `Vocaterra.Nlp.Es.Morphology` |
+| `SpanishG2p`; internal: `AllophoneRules`, `DigraphGrouper`, `ExceptionLexicon` (+ `exceptions.json`), `G2pNormalizer`, `PhoneMapper`, `StressAssigner`, `Syllabifier`, `WordPipeline` | `Phonology` | `Vocaterra.Nlp.Es.Phonology` |
+| `SpanishLexicon`, `SpanishContent` (new) | - | `Vocaterra.Nlp.Es` |
+
+Stayed in the engine as neutral: `DialectConfig`, `G2pResult`, `PhoneInventory`, `PredictedErrorVariants` (the shared phone inventory and the result types the scorer reads), `EspeakPhoneMap`
+and its JSON (see ADR 0012), `ErrorTags` and `ErrorTagSet.V1` (the frozen v1 taxonomy that every pack lists), `LexiconProfile.V1` and `LexiconSchema` (the frozen v1 vocabularies),
+`NormalizationOptions` and the new `TextTokenizer`.
 
 ### Host-owned files
 
@@ -161,7 +215,7 @@ above a CEFR level and example expectations that no longer hold. A host or a bui
 ```csharp
 using Vocaterra.Nlp.Content;
 
-ContentBundle bundle = ContentLoader.Load("content/game-v1", new ContentLoadOptions { VerifyHashes = false });   // lint before hashing
+ContentBundle bundle = SpanishContent.Load("content/game-v1", new ContentLoadOptions { VerifyHashes = false });   // lint before hashing
 LintReport report = ContentLinter.Lint(bundle, new LintOptions { Level = "a1", FailOnLevel = false });
 Console.Write(report.Format());                  // one finding per line, then "lint: 0 errors, 2 warnings, 8 info, 0 waived"
 string json = report.ToJson();                   // the same report as canonical JSON
@@ -344,7 +398,7 @@ normalized text, the expected form and what was heard. A host gates its own reac
 that text; `Original`, the surface as typed), a `Role` and the `Reading` the resolver chose. The role is `Word` (the lexicon knows it),
 `Name` (the best slot grammar binds it to a `[WORD]` element; it has no reading) or `Unknown` (no reading, no grammar). A reading is the
 `LexicalFeatures` record (`Lemma`, `Pos`, `Person`, `Number`, `Tense`, `Mood`, `Gender`; null where a feature does not apply). It is the
-reading the agreement checks used, so its lemma agrees with the error spans; a host need not run `TextNormalizer` or `LinguisticAnalyzer`
+reading the agreement checks used, so its lemma agrees with the error spans; a host need not run the normalizer or `LinguisticAnalyzer`
 again. Where the resolver left several readings of one word, the first in lexicon order is reported, except in three cases (M29j; the agreement
 checks read the resolver's readings and are not affected):
 
