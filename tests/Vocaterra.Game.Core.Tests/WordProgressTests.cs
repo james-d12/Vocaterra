@@ -7,6 +7,7 @@ using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Decision.Learning;
+using Vocaterra.Nlp.Es.Normalization;
 using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Pipeline;
 
@@ -62,7 +63,7 @@ public sealed class WordProgressTests
     // The span of a word in a normalized line, as the core reports it.
     private static TextSpan SpanOf(string line, string word)
     {
-        foreach (var token in TextNormalizer.Normalize(line).Tokens)
+        foreach (var token in SpanishTextNormalizer.Normalize(line).Tokens)
         {
             if (token.Text == word)
             {

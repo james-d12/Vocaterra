@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The Spanish language pack (M53, ADR 0012): SpanishLanguagePack and everything behind it (normalizer, numbers, phonetic key, accent folding,
+       morphology, analysis rules and tables, template functions, recast policy, punctuation, G2P with its exception lexicon, the seed lexicon). It
+       references the engine; the engine does not reference it (LayeringTests guards that). Namespaces are Vocaterra.Nlp.Es.<Folder>. -->
+  <PropertyGroup>
+    <Description>Spanish language pack of Vocaterra.NLP: the ILanguagePack for es with its normalizer, numbers, morphology, analysis rules, template functions, grapheme-to-phoneme rules and seed lexicon.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Vocaterra.Nlp/Vocaterra.Nlp.csproj" />
+  </ItemGroup>
+
+  <!-- The engine namespaces the pack's files use; the pack's own sit under Vocaterra.Nlp.Es. -->
+  <ItemGroup>
+    <Using Include="Vocaterra.Nlp.Core.Stages" />
+    <Using Include="Vocaterra.Nlp.Core.Taxonomy" />
+    <Using Include="Vocaterra.Nlp.Core.Verdicts" />
+    <Using Include="Vocaterra.Nlp.Language.Analysis" />
+    <Using Include="Vocaterra.Nlp.Language.Intent" />
+    <Using Include="Vocaterra.Nlp.Language.Lexicon" />
+    <Using Include="Vocaterra.Nlp.Language.Morphology" />
+    <Using Include="Vocaterra.Nlp.Language.Normalization" />
+    <Using Include="Vocaterra.Nlp.Language.Packs" />
+    <Using Include="Vocaterra.Nlp.Phonology" />
+  </ItemGroup>
+
+  <!-- The resources keep the logical names they had in the engine. -->
+  <ItemGroup>
+    <EmbeddedResource Include="../../content/game-v1/lexicon/seed.json" LogicalName="Vocaterra.Nlp.Language.Lexicon.seed.json" />
+    <EmbeddedResource Include="Phonology/Data/exceptions.json" LogicalName="Vocaterra.Nlp.Phonology.Data.exceptions.json" />
+  </ItemGroup>
+
+</Project>

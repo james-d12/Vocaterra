@@ -49,13 +49,20 @@ Both are described in [docs/nlp/TOOLS.md](../docs/nlp/TOOLS.md).
 
 ## license-scan.sh
 
-Checks the licence of every NuGet package in `Vocaterra.Nlp.slnf` (the core projects), direct and transitive, as listed by `dotnet list package --include-transitive`. Each package's cached `.nuspec` is read first; packages without an SPDX expression there are looked up in the NuGet registration API unless `--offline` is given, which restricts the scan to the local cache (`NUGET_PACKAGES` or `~/.nuget/packages`). The solution must be restored first. The script prints a table with a status per package and exits 1 when any package is GPL, LGPL, AGPL or SSPL, is not on `license-allowlist.txt`, or has no determinable licence. The allowlist holds one SPDX identifier per line, matched as a whole token and case-insensitively, so `MIT` does not accept `MIT-0`; a line containing spaces is matched as a complete expression. Add an entry only after reading the licence text of the package it would accept. The `license` job in `.github/workflows-pending/ci.yml` runs the script. The game's own third-party packages (MonoGame, FontStashSharp) are not in the core filter.
+Checks the licence of every NuGet package in `Vocaterra.Nlp.slnf` (the core projects: the engine `Vocaterra.Nlp`, the Spanish pack `Vocaterra.Nlp.Es`, their tests and the three tools), direct and transitive, as listed by `dotnet list package --include-transitive`. Each package's cached `.nuspec` is read first; packages without an SPDX expression there are looked up in the NuGet registration API unless `--offline` is given, which restricts the scan to the local cache (`NUGET_PACKAGES` or `~/.nuget/packages`). The solution must be restored first. The script prints a table with a status per package and exits 1 when any package is GPL, LGPL, AGPL or SSPL, is not on `license-allowlist.txt`, or has no determinable licence. The allowlist holds one SPDX identifier per line, matched as a whole token and case-insensitively, so `MIT` does not accept `MIT-0`; a line containing spaces is matched as a complete expression. Add an entry only after reading the licence text of the package it would accept. The `license` job in `.github/workflows-pending/ci.yml` runs the script. The game's own third-party packages (MonoGame, FontStashSharp) are not in the core filter.
 
 Packages whose metadata names no usable licence can be covered by `license-overrides.txt`, one `<package-id>|<version>|<spdx>|<evidence-url>|<reviewed-on>` line per package version. An override applies only to the exact id (case-insensitive) and version on its line, is used only after the nuspec and the API have failed to name a licence, and must cite an https evidence URL. Its SPDX value is still checked against the allowlist, and the table reports its source as `override`. Malformed lines stop the scan with exit status 2. When a package is updated, its override no longer matches and the scan reports it again.
 
 ## check-links.sh
 
 Checks the relative Markdown links in every `.md` file of the repository (build output, fetched models, agent worktrees and gate logs excluded). A link is checked when it has no URL scheme and is not a bare `#anchor`; its target, without any `#fragment`, must exist in the working tree. Links inside code fences and code spans are ignored, and nothing is fetched. It prints each broken link as `file:line: target` and the count of links checked, and exits 1 when any link is broken. Run it as `scripts/check-links.sh` from anywhere in the repository; `--quiet` prints only the broken links and the summary when there are some.
+
+## identity-check.sh
+
+`scripts/identity-check.sh <base-ref>` checks the Phase A gate rules (research section 4.9) without building: the game bundle's
+`bundleHash` equals the one at `<base-ref>`, and no file under `tests/*/Data/`, `tests/golden/` or `content/` differs from it, except a
+pure rename (R100). Exit 0 when both hold; 1 names each failing rule and file. It runs no build, test or content tool. The Spanish
+identity test itself (`SpanishIdentityTests`) is run by the test suite; see `tests/golden/README.md`.
 
 ## The game's scripts
 

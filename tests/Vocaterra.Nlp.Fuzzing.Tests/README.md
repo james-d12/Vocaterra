@@ -42,8 +42,8 @@ of the slowest chain, not the sum (about 70 s of test time in all). The slowest 
 | O12 | Every template renders clean text; only the missing-slot `TemplateException`; stable seeded selection; planner | `TemplateFuzzTests` | 2 000 (three facts) | `VOCATERRA_FUZZ_ITERATIONS_GRAMMAR` |
 | O13 | Audio front-end: `WavFile.Read` throws only `InvalidDataException` / `NotSupportedException` on damaged bytes; a valid clip reads back exactly and survives write and read; `Process` agrees with the stages composed by hand (downmix, resampled length, gain, VAD slice, hash) | `AudioFrontEndFuzzTests` | 1 000 (two facts) | `VOCATERRA_FUZZ_ITERATIONS_SIGNAL` |
 | O14 | Pipeline end to end: never throws, deterministic on fresh instances (and under the other recognizer scheduling), verdict and decision agree with the stages called by hand, the envelope round-trips and replays clean, changing one recorded output gives exactly that replay diff; about half the cases also run as `Analyze` on one pipeline and `Complete` (host facts given to phase 2) on another and must equal `Evaluate` with the recognizer called once (M28a, CR-017); about a third first take a host-initiated turn (`Advance`, in a copy of the bundle whose agents handle `fuzz.ask` in every state), which must equal the machine step with the counter advanced, leave learner and counts alone, replay clean and be skipped by `Read`/`ReadEnvelopes` (M28a, CR-015) | `PipelineFuzzTests` | 300 (two facts) | `VOCATERRA_FUZZ_ITERATIONS_PIPELINE` |
-| O15 | A mutated copy of `content/game-v1` makes the loader throw `ContentValidationException` and nothing else, naming the damaged file; a byte flip changes the bundle hash; the unmutated bundle loads | `ContentSchemaFuzzTests` | 500 | `VOCATERRA_FUZZ_ITERATIONS_CONTENT` |
-| O16 | Everything that flows through `CanonicalJson` round-trips byte for byte | `SerializationRoundTripFuzzTests` | 3 000 stage records, 1 000 catalogs, 300 replay envelopes | `VOCATERRA_FUZZ_ITERATIONS`, `VOCATERRA_FUZZ_ITERATIONS_PIPELINE` |
+| O15 | A mutated copy of `content/game-v1` makes the loader throw `ContentValidationException` and nothing else, naming the damaged file; a byte flip changes the bundle hash; the unmutated bundle loads; (M32) a manifest `language` is hashed only when present, an unregistered one is refused, and a random tag resolves only when well-formed and Spanish | `ContentSchemaFuzzTests` | 500 | `VOCATERRA_FUZZ_ITERATIONS_CONTENT` |
+| O16 | Everything that flows through `CanonicalJson` round-trips byte for byte (M32: including the manifest's `language` and `supportLanguage`, present or null) | `SerializationRoundTripFuzzTests` | 3 000 stage records, 1 000 catalogs, 300 replay envelopes | `VOCATERRA_FUZZ_ITERATIONS`, `VOCATERRA_FUZZ_ITERATIONS_PIPELINE` |
 
 The mutations of O4 and O5 are `conj.person`, `noun.number` (singular after a plural determiner, and plural after a singular one),
 `gender.agree` (article and adjective), `ser_estar`, `word_order`, `conj.irregular`, `conj.tense` and `vocab.unknown`. O5 closes the loop for all
@@ -166,6 +166,36 @@ All `Sample` calls run with `threads: 1`, so a determinism oracle compares two r
 parallel; the shared fixtures (`PipelineHarness.Shared`, `ContentMutationGen.Shared`) hold only immutable data and thread-safe lazy indexes. The
 content oracle writes each mutated bundle to its own directory under the system temporary folder (`vocaterra-fuzz-content-<pid>-<n>`) and deletes it.
 
+## Per-language harness (M35)
+
+The oracles are language-neutral in their statement and Spanish in their generators. M35 splits the two. `Oracles/FuzzLanguage.cs` is the record one
+language runs with: its pack (`ILanguagePack`), its bundle, a free-text generator, a sentence realiser (`Sentences`, which yields a `FuzzSentence`: the
+text and the grammar it was built from) and its mutation kinds. `FuzzLanguage.Spanish` holds the generators the Spanish suite has always used.
+
+- `Oracles/LanguageOracles.cs` holds the bodies of O1 (normalizer), O2 (analyzer), O7 (intent resolver) and O14 (a neutral pipeline run: never throws,
+  deterministic, verdict by hand through the pack, decision, replay round trip). Each takes a `FuzzLanguage`. The Spanish classes (`NormalizerFuzzTests`,
+  `AnalyzerFuzzTests`, `IntentResolverFuzzTests`) call the same bodies with their own coverage facts, and `NormalizerFuzzTests` also calls the Spanish static
+  entry points (`Accents.Strip`, `SpanishPhoneticKey`). The Spanish O14 (`PipelineFuzzTests`) stays as it was: it also covers phonemes, two-phase runs,
+  host turns and the envelope mutations, which need Spanish inputs.
+- The same seed gives the same Spanish cases. CsCheck seeds only the first iteration of a sample, so `FuzzLanguageStreamTests` compares the first case of
+  400 fixed seeds, for the text stream and the sentence stream, with a digest recorded from the unchanged generator expressions. A changed generator or a
+  changed realisation fails that test.
+- `Languages/Xx/` is the toy language (M35): `XxLanguagePack` implements every `ILanguagePack` member with trivial, non-Spanish behaviour (no accent, no
+  inverted mark, no subject pronoun, numbers 0 to 3 as invented words, no G2P, its own three error tags); `XxBundle` writes a three-word bundle
+  (`ka`, `mo`, `ti`; two intents; two prompts, one of them constrained; an agent; a dialogue; an effect table) with `"language": "xx"` into a temporary
+  directory and loads it with `LanguagePacks.Of(XxLanguagePack.Instance)`, a registry without Spanish. `XxFuzzLanguage` is its record.
+  `XxOracleTests` runs O1, O2, O7 and O14 on it, and checks that its results carry no Spanish error tag and no Spanish mark. The toy suite is
+  in-process and uses no model. It is not a shipped language.
+- Which oracles run per language: O1, O2 and O7 run on Spanish and on the toy language. The neutral O14 body runs on the toy language; the Spanish O14 is the
+  full version (phonemes, two-phase, host turns, envelope mutations) and is not run on the toy language. O3, O4 and O5 (realised grammar sentences, mutation
+  sets) run on Spanish only; they need a realiser and a mutation set for the language (German, M36 onward). O6, O8 to O13, O15 and O16 are Spanish or
+  shared (O8, O9 and O13 need a G2P or the signal front end; O15 and O16 read the Spanish content bundle).
+- Golden files: a Spanish golden keeps `Data/<name>`; another language's goldens live in `Data/<lang>/<name>` (`GoldenFiles`, the same
+  `VOCATERRA_RECORD_GOLDEN` variable). The layout is in code; no file under a `Data` folder was added for it.
+
+Bugs the toy language found in the core (M35, fixed at the source with regression tests, see the findings log of the plan): the Spanish fold threw on a lone
+surrogate; the content validator filled templates with Spanish sample words; the recast spelled digit runs above the pack's number bound.
+
 ## Layout
 
 - `FuzzOptions.cs` - iteration defaults and env-var overrides; the 3-in-4 benign, 1-in-4 adversarial weights.
@@ -269,7 +299,7 @@ weakened: each fix is at the source, or an independent model brought in line wit
   A finite verb right after `ir a` (`vais`) was reported by the near-future check (expected: the infinitive) and, when the sentence also had a past-time word
   (`ayer`), once more by the past-tense check (expected: the preterite): two errors with one tag and one span. The verbs after `ir a` are now found in one place
   (`FormsAfterIrA`) and the past-tense check leaves them to the near-future check. Regression: `NearFutureTenseTests.AVerbAfterIrAWithAPastMarkerIsReportedOnce` and
-  `NoTwoErrorsShareATagAndASpanWhenAPastMarkerMeetsIrAAndAFiniteVerb` in `tests/Vocaterra.Nlp.Language.Tests`.
+  `NoTwoErrorsShareATagAndASpanWhenAPastMarkerMeetsIrAAndAFiniteVerb` in `tests/Vocaterra.Nlp.Tests/Language`.
 - **The sentence realiser did not know time adverbs written into a pattern** (the suite's own generator, `Generation/SentenceRealizer.cs`; found by O3, O4 and O5,
   seeds `aT2NgQa-TLO9`, `0aWmfyhjNR41`, `3T-JO84wBeq9`). The game's grammars write `(mañana|ayer|hoy)? [VERB:ir] a [VERB:comer] ... (mañana|ayer|hoy)?`. The realiser
   drew the tense at random, so it produced `ayer vas a la casa` and `mañana ... ayer` as "correct" sentences, and made the verb after `ir a` a conjugated form (`voy a
@@ -299,22 +329,22 @@ weakened: each fix is at the source, or an independent model brought in line wit
   was recast as `una grande queso`, because the invariant adjective `grande` has a feminine reading that came first. The builder now looks
   through the adjectives to the noun the numeral quantifies and falls back to the next word only when there is no noun. Found by O5
   (CsCheck seed `2PhTP0PVr4W1`, input `ellos compran taberna 1 grande queso`). Regression: `RecastBuilderTests.DigitsAreSpelledOutBeforeSpeaking`
-  (`tengo 1 grande queso`, `tengo 1 buena espada`) in `tests/Vocaterra.Nlp.Response.Tests`.
+  (`tengo 1 grande queso`, `tengo 1 buena espada`) in `tests/Vocaterra.Nlp.Tests/Response`.
 - **`Accents.Strip` and `SpanishPhoneticKey.Compute` threw `ArgumentException` on a lone surrogate** (`Vocaterra.Nlp.Language`; the stage-1 known finding about
   ill-formed UTF-16). Both reached `string.Normalize`, which rejects ill-formed UTF-16, and a recognizer or a keyboard can deliver one. An internal
   `Utf16.ReplaceLoneSurrogates` now replaces each lone surrogate with U+FFFD at the entry of `TextNormalizer.Normalize` (which already treated it as
   a separator), `Accents.Strip` and `SpanishPhoneticKey.Compute`; valid pairs are untouched. The stage-1 generator guard is gone: the noise
   generator now splices the adversarial token in last and verbatim, and O1 feeds the raw text to all three entry points. Found by O1 (seed
-  `cA-a9vcyA8R1`). Regression: `IllFormedUtf16Tests` in `tests/Vocaterra.Nlp.Language.Tests/Normalization`.
+  `cA-a9vcyA8R1`). Regression: `IllFormedUtf16Tests` in `tests/Vocaterra.Nlp.Tests/Language/Normalization`.
 - **`SpanishG2p.Phonemize` threw `ArgumentException` on a lone surrogate** (`Vocaterra.Nlp.Phonology`). `G2pNormalizer` handed the text to `string.Normalize`
   as well; it now reads a lone surrogate as a word separator, like any other non-letter. Found by O8 (seed `4Y4ZiHH2bn31`). Regression:
-  `IllFormedUtf16Tests` in `tests/Vocaterra.Nlp.Phonology.Tests`.
+  `IllFormedUtf16Tests` in `tests/Vocaterra.Nlp.Tests/Phonology`.
 - **A lexicon entry without a `features` property, and a lexicon file without `entries`, made the content loader throw `NullReferenceException`**
   (`Vocaterra.Nlp.Language`). A missing property arrives as null although the records are non-nullable (`RespectNullableAnnotations` only rejects an explicit
   null); `LexiconSchema.Validate` dereferenced `Features` and `Lexicon.Load` enumerated `Entries`, so a damaged `lexicon/*.json` escaped the loader's
   `ContentValidationException` as an unhandled `NullReferenceException`. Both now fail with a `FormatException` that the loader reports as a
   problem naming the file. Found by O15 (seed `0003TzidR6n1`, a flipped bit in a key of `lexicon/seed.json`). Regression: four new cases of
-  `LexiconTests.InvalidDocumentsAreRejected` in `tests/Vocaterra.Nlp.Language.Tests`.
+  `LexiconTests.InvalidDocumentsAreRejected` in `tests/Vocaterra.Nlp.Tests/Language`.
 
 Found when the imported lexicon was added (M17a). The seeds belong to the lexicon of that moment and do not reproduce with the final one; the regression tests do.
 
@@ -322,7 +352,7 @@ Found when the imported lexicon was added (M17a). The seeds belong to the lexico
   (`habla`, `come`, `está`), so `tú habla` agreed with `tú`, and the correction of `ella está alta` was `eres` (the first reading of `está` is the imperative
   of `estar`, second person). The person check and the copula check now use the declarative readings. Found by O4 (seed `dU3ctY0Mvpx9`, a ser/estar mutation) and
   O5 (seed `4ybQyIqiaD61`). Regression: `AmbiguousReadingTests.AnImperativeThatIsSpelledLikeTheThirdPersonDoesNotExcuseAPersonMistake` and
-  `TheExpectedCopulaFormComesFromTheDeclarativeReadingNotFromTheImperative` in `tests/Vocaterra.Nlp.Language.Tests/Analysis`.
+  `TheExpectedCopulaFormComesFromTheDeclarativeReadingNotFromTheImperative` in `tests/Vocaterra.Nlp.Tests/Language/Analysis`.
 - **A form that is an adjective under two lemmas was classified by whichever sorts first** (`Vocaterra.Nlp.Language`, O5). `ocupada` is a lemma of its own ("pregnant") next to
   `ocupado`; `ella es ocupada` passed the ser/estar check because the first reading's lemma is not in the estar class. The ser/estar class and the prenominal
   check now look at every adjective reading. Found by O5 (seed `8Wkp2ivvMDP1`). Regression: `AFormThatIsAnAdjectiveUnderTwoLemmasIsClassifiedByAllOfThem`.
@@ -339,7 +369,7 @@ Found and fixed in M18 (the seeds belong to the code of that moment and do not r
   was `conj.tense` (`libro` is `librar` in the first person), `yo lanza` passed or failed by the order of the readings, `cuánto cuesta la espada` was `gender.agree` (`cuánto` the adjective
   agreeing with `cuesta` the noun), `tú ayudas` and `las ayudas` could not both be right. `ReadingResolver` now narrows each word to one reading from local syntax, the slot grammar and, last,
   the reading with the fewest errors, and every check runs on that reading (design in [docs/nlp/PIPELINE.md](../../docs/nlp/PIPELINE.md#4-linguistic-analysis-d0)). Regression:
-  `HomographSentencesTests` (47 correct sentences, 20 more under the grammars of the bundle, 26 incorrect ones that keep their mistake, the `cuánto cuesta` family) and `ReadingResolverTests` in `tests/Vocaterra.Nlp.Language.Tests/Analysis`, and the
+  `HomographSentencesTests` (47 correct sentences, 20 more under the grammars of the bundle, 26 incorrect ones that keep their mistake, the `cuánto cuesta` family) and `ReadingResolverTests` in `tests/Vocaterra.Nlp.Tests/Language/Analysis`, and the
   matcher bindings in `SlotGrammarTests`. With the CLI (`eval --transcript ... --prompt buy-item-open`) `ayer compré un libro` went from correctness 0.75 and `conj.tense` (`libro` -> `libré`) to
   correctness 1 and no errors, and so do the 19 homograph sentences checked on both `buy-item-open` and `offer-items-open` (`quiero comprar una lanza`, `ayer compré una lanza`,
   `el vino es bueno`, `él vino ayer`, `tú ayudas`, `nosotros comemos como siempre`, ...); `cuánto cuesta la espada`, `el escudo`, `la poción` and `la lanza` on `ask-price-open` are correctness 1

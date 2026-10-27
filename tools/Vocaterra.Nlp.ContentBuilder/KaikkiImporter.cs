@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Vocaterra.Nlp.Core.Determinism;
+using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Language.Lexicon;
 
 namespace Vocaterra.Nlp.ContentBuilder;
@@ -357,7 +358,7 @@ public static partial class KaikkiImporter
             entries.RemoveAll(entry => entry.Pos == LexiconSchema.Noun && lookalikes.Contains(entry.Lemma));
         }
 
-        var lexicon = Lexicon.FromEntries(entries);
+        var lexicon = SpanishLexicon.FromEntries(entries);
         return new KaikkiImportResult(lexicon.Entries, lines, spanish, imported, skipped, report) { PluralLookalikeLemmas = lookalikes.Count };
     }
 

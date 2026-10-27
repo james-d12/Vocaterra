@@ -8,6 +8,7 @@ using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
+using Vocaterra.Nlp.Es;
 
 namespace Vocaterra.Nlp.Bench;
 
@@ -78,8 +79,8 @@ public static class Program
                 entries = ManifestReader.Read(reader);
             }
 
-            var content = ContentLoader.Load(contentDir);
-            using var models = new ModelSet(line.Value("--models"));
+            var content = SpanishContent.Load(contentDir);
+            using var models = new ModelSet(line.Value("--models"), content.LanguageId);
             var report = BenchRunner.Run(entries, content, models.For, entry => LoadClip(audioDir, entry), mode);
             ReportWriter.Write(report, output);
             return ExitOk;
@@ -116,10 +117,18 @@ public static class Program
     }
 
     /// <summary>Opens the recognizers on demand, so a manifest without entries needs no model.</summary>
-    private sealed class ModelSet(string? modelsDir) : IDisposable
+    private sealed class ModelSet(string? modelsDir, string language) : IDisposable
     {
         private const string VoskId = "vosk-model-small-es-0.42";
         private const string ParakeetId = "sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8";
+
+        // The language each model of this tool is run for, by model id (the multilingual Parakeet is run for Spanish here). A bundle of another
+        // language is refused before a model is opened.
+        private static readonly IReadOnlyDictionary<string, string> ModelLanguages = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [VoskId] = "es",
+            [ParakeetId] = "es",
+        };
 
         private readonly Dictionary<string, IWordRecognizer> _opened = new(StringComparer.Ordinal);
 
@@ -133,6 +142,11 @@ public static class Program
             var manifestPath = Path.Combine(modelsDir, ModelStore.ManifestFileName);
             var store = new ModelStore(modelsDir, File.Exists(manifestPath) ? ModelManifest.Load(manifestPath) : ModelManifest.Empty);
             var id = mode == RecognitionMode.Open && Directory.Exists(store.ModelDirectory(ParakeetId)) ? ParakeetId : VoskId;
+            if (!string.Equals(ModelLanguages[id], language, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"The speech model '{id}' is for language '{ModelLanguages[id]}', and the bundle is in '{language}'.");
+            }
+
             if (_opened.TryGetValue(id, out var existing))
             {
                 return existing;

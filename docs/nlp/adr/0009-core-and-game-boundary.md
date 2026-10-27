@@ -13,6 +13,14 @@
 
 > **Note (2026-10-23, R01):** the repository now has one root layout (`src/`, `tests/`, `tools/`, `docs/nlp/`, `docs/game/`, `content/`, `assets/`, `models/`, `scripts/`) and one solution. The boundary is by project name, not by folder: the core is the `Vocaterra.Nlp.*` projects (with `content/v1`, `tests/golden` and `docs/nlp/`), the game is `Vocaterra.Simulation`, `Vocaterra.Game`, `Vocaterra.MonoGame`, `Vocaterra.Host` and `Vocaterra.SpeechRender` (with their tests, `content/game-v1`, `assets/` and `docs/game/`). The rules are unchanged: the game references the core's projects (no packages), never copies core source, and a core change the game needs is a core milestone. The text below is unchanged.
 
+> **Note (2026-10-26, M52):** the core is one engine assembly, `Vocaterra.Nlp` (`src/Vocaterra.Nlp`, one folder per former project), with language packs beside it (ADR 0012). Where this record says `Vocaterra.Nlp.*` projects, read the engine and its packs. The boundary is unchanged: the game references the core's one project and never copies core source. The table in section 1 is updated for that.
+
+> **Note (2026-10-27, M34):** the analysis side of the language (morphology, analysis rules, template functions, lexicon profile, error tag ranks) is behind the language pack too (ADR 0011, amendment M34). The boundary is unchanged: the additions are public seams of the core, the game still calls `bundle.Morphology` (the Spanish `MorphologyGenerator`) as before, and no game word moved into the core.
+
+> **Note (2026-10-27, M53):** the Spanish pack is the core project `Vocaterra.Nlp.Es` (`src/Vocaterra.Nlp.Es`, ADR 0012 amendment M53). The boundary is unchanged: it is core code, the game references it by project (`Game.Core` and `Host`, as it references the engine) and registers it where it loads its bundle (`SpanishContent.Load`); the game keeps the words, scenes and effect meanings.
+
+> **Note (2026-10-27, M32):** the target language is a property of the content bundle (`manifest.json` `language`, absent means `es`), resolved to an `ILanguagePack` through a registry; see [ADR 0011](0011-target-language-as-a-bundle-property.md). The changes are additive (`ContentManifest.Language`, `ContentBundle.Language`, `ContentLoadOptions.LanguagePacks`, the `Vocaterra.Nlp.Language.Packs` types) and the boundary is unchanged in kind: a language, like the lexicon, is content, and the core still names no game word. A Spanish bundle without `language` keeps its hash.
+
 - Status: accepted
 - Date: 2026-10-20
 - Deciders: the repository owner (repository names, the rename to `Vocaterra.Nlp.*`, and decisions D6 and D7 in [docs/nlp/DECISIONS.md](../DECISIONS.md)); the implementation plan (`IMPLEMENTATION_PLAN.md` section 8, milestone M19a)
@@ -31,7 +39,7 @@ is not in this repository. That needs a boundary the code can be checked against
 
 ### 1. What stays in the core and what moves to the game
 
-| Stays in the core (`Vocaterra.Nlp.*`) | Moves to the game repository (`Vocaterra`) |
+| Stays in the core (the engine `Vocaterra.Nlp` and its packs: `Vocaterra.Nlp.Es`) | Moves to the game repository (`Vocaterra`) |
 | --- | --- |
 | The contracts: verdict, prompt spec, error tags, replay envelope | `SPECIFICATION.md` and the game design |
 | Audio, ASR, phonology, pronunciation, NLP, evaluation | Character definitions (blacksmith, innkeeper, captain) and their dialogue pools |
@@ -40,6 +48,7 @@ is not in this repository. That needs a boundary the code can be checked against
 | Content: bundle format, loader, validator, provenance, lexicon import, CEFR lists | Engine integration (Unity, Godot or MonoGame), rendering, device audio capture |
 | The pipeline with a game-agnostic `ConversationContext` | Glue that maps outcomes to prices, spell power and quest state |
 | Tools (Cli, Bench, ContentBuilder), fuzz and golden suites, a sample bundle | |
+| The Spanish language pack `Vocaterra.Nlp.Es` (M53): the Spanish normalizer, numbers, morphology, analysis rules, G2P and seed lexicon, and the host helpers `SpanishContent` and `SpanishLexicon` | The game references it (`Game.Core`, `Host`) and registers it where it loads its bundle |
 
 The sample bundle in `content/v1` (a blacksmith's dialogue, spells and items) stays in the core as its demo and as the fixture the goldens,
 the fuzz suite and the docs run against (decision D7). The game keeps its own bundle.

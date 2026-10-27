@@ -234,8 +234,8 @@ algorithms). Status: `todo | in-progress | done | blocked`.
 | M49 | Game request (prototype S27, D-game-19): tense checks for the near future. (1) A future-time marker (`mañana`, `la próxima semana`, `luego`…) with a past form gives `conj.tense`, expected the `ir a` + infinitive or future form. (2) A conjugated verb after `ir a` (`voy a como`) gives `conj.tense`, expected the infinitive, unless the core's design finds a better existing tag. Mirror today's past-marker rule in `AgreementChecker.CheckTense`. Regression tests in the analysis module; no fuzz oracle weakened; goldens unchanged unless a reading changes; core demo unchanged. Waiting: game S27 | M29j | S | done (merged to `main` 2026-10-23, `dc53cbb`) |
 | M50 | Core folder cleanup (owner, 2026-10-22: "the nlp folder needs some cleanup"). `content/v1` stays (D7: the core's sample, tests, goldens, fuzz and demo depend on it). Retire what the two-repository era left behind: `scripts/pack.sh` and `docs/nlp/PACKAGING.md` (no pack step or feed since D5 was superseded); README, TOOLS.md and CONTRIBUTING passages about packages, feeds, submodules or the separate repository; `HIGH_LEVEL_DOCS.md` moved to `docs/nlp/history/` (it is the original design note). Refresh `TOOLS.md`, or fold it into the licence-scan docs. Decide whether `samples/HostConsole` and `scripts/sample-host.sh` still earn their keep (the game is the real host), and say why. Fix stale links. No behaviour change: the build, tests, goldens, licence scan and core demo are unchanged | — | H | done (merged to `main` 2026-10-23, `3bc525b`) |
 | M51 | Game finding (S27): `ir` + a bare infinitive with no `a` (`voy comer pan`) passes clean (state_action, no error). Flag it, expected `ir a` + infinitive (`voy a comer`), under `conj.tense` or a better-fitting tag; regression tests; no fuzz oracle weakened (check the generator does not produce `ir` + infinitive as a correct sentence) | M49 | S | done (merged to `feature/experiment` 2026-10-23, `e70441c`; experiment X02) |
-| M52 | Merge the 11 core libraries into one language-neutral `src/Vocaterra.Nlp` (owner, 2026-10-26; D14 amendment). Each old project becomes a folder and the namespaces do not change. The 11 unit test projects become `tests/Vocaterra.Nlp.Tests`; Fuzzing and Golden stay separate. `LayeringTests` (NetArchTest.Rules) enforces today's project graph; `VocaterraCore` in `Directory.Build.props` matches the new name; `Vocaterra.Nlp.slnf` is recreated (missing today, so the licence scan is broken); ADR 0012. No behaviour change: the identity guard is green, the `content/game-v1` hash and the goldens are unchanged. Spec: `docs/nlp/research/2026-10-26-engine-and-language-packs.md` §5.1 | M31 | H | planned |
-| M53 | Extract the Spanish pack into `src/Vocaterra.Nlp.Es` (+ `tests/Vocaterra.Nlp.Es.Tests`), namespace `Vocaterra.Nlp.Es.*`. Hosts register packs through `ContentLoadOptions.LanguagePacks` (the engine cannot reference a pack); `LayeringTests` adds the rule that the engine does not depend on Es; the toy pack runs against the engine alone. The identity guard stays byte-identical. Spec: same document, §5.2 | M35 | S | planned |
+| M52 | Merge the 11 core libraries into one language-neutral `src/Vocaterra.Nlp` (owner, 2026-10-26; D14 amendment). Each old project becomes a folder and the namespaces do not change. The 11 unit test projects become `tests/Vocaterra.Nlp.Tests`; Fuzzing and Golden stay separate. `LayeringTests` (NetArchTest.Rules) enforces today's project graph; `VocaterraCore` in `Directory.Build.props` matches the new name; `Vocaterra.Nlp.slnf` is recreated (missing today, so the licence scan is broken); ADR 0012. No behaviour change: the identity guard is green, the `content/game-v1` hash and the goldens are unchanged. Spec: `docs/nlp/research/2026-10-26-engine-and-language-packs.md` §5.1 | M31 | H | done (merged to `feature/language-packs` `1976508`) |
+| M53 | Extract the Spanish pack into `src/Vocaterra.Nlp.Es` (+ `tests/Vocaterra.Nlp.Es.Tests`), namespace `Vocaterra.Nlp.Es.*`. Hosts register packs through `ContentLoadOptions.LanguagePacks` (the engine cannot reference a pack); `LayeringTests` adds the rule that the engine does not depend on Es; the toy pack runs against the engine alone. The identity guard stays byte-identical. Spec: same document, §5.2 | M35 | S | done (merged to `feature/language-packs` `65de544`, 2026-10-27) |
 
 ### Delegation waves
 
@@ -1012,6 +1012,186 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
     reran the seed on the merged branch. Gate: 4,800 passed, 5 skipped. Goldens and both demos are unchanged.
   - **Limits:** adjacency only; the preterite is not checked; no gerunds in the lexicon.
   - **Note for the owner:** `main` still carries the rare O4 flake until this branch, or the one-file generator fix, reaches it.
+- **M31, Spanish identity guard (2026-10-26, Haiku 5.5; merged to `feature/language-packs` `f4694ff`).**
+  - **Built.** `tests/Vocaterra.Nlp.Golden.Tests/SpanishIdentityTests.cs` with a frozen corpus (`Data/identity/corpus.jsonl`, 6,349
+    inputs: 103 homograph sentences, 108 regression sentences of M26b, M29c and M29j, 224 intent examples, 20 CLI examples, 894 G2P words,
+    3,000 correct and 2,000 mutated fuzz sentences drawn once at seed `6VTk-wxfywU1`) and a baseline (`baseline.jsonl`, 1.5 MB, 6,524
+    lines with the 175 rendered template variants). Each stage hash is the first 16 hex characters of a SHA-256 over canonical JSON. The
+    test runs in about 9 s and needs no models. It re-records only with `VOCATERRA_RECORD_IDENTITY=1`, never with the golden variable.
+    `scripts/identity-check.sh <base-ref>` checks the gate rules: the bundle hash is unchanged, and nothing under `tests/*/Data/`,
+    `tests/golden/` or `content/` changes except pure renames.
+  - **It bites.** One changed repair line (`¿Cómo?` to `¿Cómo??`) made 5,504 of 44,618 stage checks differ. A changed dialogue template
+    never reaches the guard, because the loader rejects the bundle on its hash first.
+  - **Base ref for Phase A.** M52 and every later Phase A branch run `scripts/identity-check.sh f4694ff`, not `main`. M31 itself adds the
+    baseline, so it cannot pass against `main`.
+  - **Limits.** M26b's 1,102-sentence corpus was never committed, so it is not included. The fuzz draw was a one-off and is not in the
+    repository; the committed corpus is its record. `PromptGrammars` and the sample-slot rule are internal to Content, so the test keeps
+    frozen copies of both.
+  - **Gate.** 5,254 passed, 3 skipped. Two failures were already on `main`: the licence scan (`Vocaterra.Nlp.slnf` is missing; M52
+    recreates it) and the game test `SpokenModelTests.AMistakeInASpokenLineIsHeardAsSaidAndTheCoreCorrectsIt` (with the real Vosk model the
+    recognizer hears "a dónde está la árbol", one extra leading word).
+- **M52, one engine assembly (2026-10-26, Haiku 5.5; merged to `feature/language-packs` `1976508`).**
+  - **Built.** `src/Vocaterra.Nlp` holds the 11 former libraries as folders, moved with `git mv`; namespaces and resource names are unchanged.
+    `tests/Vocaterra.Nlp.Tests` holds the 11 unit test projects as folders, with their `Data/` moved as pure renames. The 11 smoke tests are
+    now one. Fuzzing and Golden stay separate and reference only `Vocaterra.Nlp` (Golden also references Bench). `Vocaterra.Nlp.slnf` is
+    recreated, so the licence scan runs again. ADR 0012 is added; ADR 0003 and 0009 carry dated notes.
+  - **Layering.** `Architecture/LayeringTests` (NetArchTest.Rules 1.3.2, MIT) encodes the old project graph as namespace rules. It also
+    checks that every stage has types, and that a negative fixture is reported. A temporary Core to Pipeline reference made two cases fail.
+  - **`VocaterraCore`** is two assignments in `Directory.Build.props`: `StartsWith('Vocaterra.Nlp.')`, then `true` for `Vocaterra.Nlp`
+    itself. An MSBuild property value has no `Or`.
+  - **Two ONNX Runtimes in one test process (not foreseen).** sherpa-onnx and Microsoft.ML.OnnxRuntime each ship a `libonnxruntime.so` with
+    a different API version. In one output folder one overwrote the other. `NativeOnnxRuntimes.cs` (a module initializer) loads sherpa's copy
+    by full path and maps the managed package's `onnxruntime` to `ort-managed/`. The csproj copies that file from
+    `$(PkgMicrosoft_ML_OnnxRuntime)`, and the Linux x64 build fails if it is missing. The native and model tests share
+    `NativeRuntimeCollection` (not parallel). The merged project passed three runs in a row.
+  - **Licence scan.** Mono.Cecil, which NetArchTest brings in, names the MIT page by URL; `license-scan.sh` now knows that URL. NetArchTest
+    names no licence and has a reviewed MIT override; the orchestrator checked its LICENSE file.
+  - **Gate.** 5,258 passed (14 layering cases added, 10 smoke facts removed), 3 skipped. The licence scan passed. The only failure is the
+    pre-existing game speech test. `identity-check.sh f4694ff` passed, and the CLI demo output is byte-identical. One game test
+    (`ArchitectureRulesTests`) had its path regex widened to accept `Vocaterra.Nlp`.
+- **M32, language id and pack registry (2026-10-27, Sonnet 5.5; merged to `feature/language-packs` `ba85fe3`).**
+  - **Built.** `src/Vocaterra.Nlp/Language/Packs/` holds `ILanguagePack` (text side only: `LanguageId`, `Normalizer`, `Folding`, `Numbers`,
+    `PhoneticKey`, `Punctuation`, `G2p?`, `GrammarDefaults`, `Lint`, `RepairFallback`), `SpanishLanguagePack.Instance` and the
+    `LanguagePacks` registry (`Default` holds `es`; `Of`, `With`, `TryResolve` by the primary subtag, ASCII case-insensitive). The analysis
+    members (morphology, analysis rules, template functions, `LexiconProfile`, `ErrorTagSet`, recast policy) are left to M34 (ADR 0011).
+    The statics did not move and no call site is routed yet (M33).
+  - **Manifest.** `language` and `supportLanguage` (optional, omitted when null). With `language` the bundle hash is
+    `Combine("language", tag, path₁, sha₁, …)`, the tag as written; without it, the hash is today's. `supportLanguage` is not hashed: it
+    changes no output, and hashing it would change every stamp and replay record. The loader resolves the pack right after reading the
+    manifest (also with `VerifyHashes` off); an unknown or malformed tag is one `ContentValidationException` problem. `ContentLoadOptions.LanguagePacks`
+    lets a host pass its own registry; the ContentBuilder `hash` command takes `--language` and `--support-language`.
+  - **Layering.** `Language.Packs` has its own rule (Core, Language, Phonology, Response); the `Language` rule excludes it.
+  - **For M33.** The pack uses `Response` for `PunctuationFixer`, and `Response` may use `Language`, so a `Response` call site that takes an
+    `ILanguagePack` makes a namespace cycle the rules allow: ADR 0011 point 9 says to move the punctuation behind the interface or keep the
+    cycle on purpose. The pack repeats Spanish literals (`por`, `favor`, `un`, `una`) also found in `LintCoverage`, `SlotGrammarMatcher` and
+    `AnalysisSlotFinder`; M33 removes the duplicates. Two visibility-only edits: `WordClasses.SubjectPronounLemmas` (an ordered list) and
+    `LintCoverage.SubjectPronouns` (internal).
+  - **Not done.** The replay envelope's optional `language` field (research §4.6) is not added; it is optional and not in M32's scope.
+    `TextFolding.Normalize` throws on a lone surrogate (pre-existing, unreachable from the pipeline, which replaces lone surrogates first).
+  - **Gate.** 5,366 passed (109 new: pack, registry, manifest, ContentBuilder and four O15/O16 fuzz cases), 5 skipped (models not on this
+    machine), 0 failed; licence scan passed. Fuzz at 10,000 grammar iterations green. `identity-check.sh f4694ff` passed, and the CLI demo
+    gives `conj.person` and `noun.number` with content hash `aab525f9…`.
+- **M33, text-side seams (2026-10-27, Haiku 5.5; merged to `feature/language-packs` `d677412`).**
+  - **Routed through the bundle's pack.** The pipeline (normalizer, answer matching, analysis, intent resolution, pronunciation numbers and
+    G2P, speech requests, recasts, the recognizer's grammar phrases), the response side (`TemplateEngine`, `SpeechRequests`,
+    `RecastBuilder`), the grammar defaults (`SlotGrammarMatcher`'s optional subject and trailing polite words, `AnalysisSlotFinder`), the
+    content tools (`TextGrader`, `ContentLinter`, `LintCoverage`, `CefrChecker`, `LintConfusion`, `ContentValidator`) and Bench and CLI.
+    Engine signatures such as `AnswerMatcher.Match`, `LinguisticAnalyzer`, `IntentResolver` and `SlotGrammarMatcher.Match` now take an
+    `ILanguagePack` (recorded in `API.md`); the game uses none of them and compiles unchanged.
+  - **Repair lines.** Reserved pools `repair.ask_again` and `repair.slow_repeat` override `RepairFallback` when a bundle has them (one
+    variant drawn with the interaction seed); `content/game-v1` has none, so the text is unchanged. The give-up line is always the pack's.
+  - **New pack members.** `ILanguagePack.Recast` (`IRecastPolicy.RestoredSpellings`, `SpanishRecastPolicy`: the accent rules moved out of
+    `RecastBuilder`) and `INumberWords.Agree`. ADR 0011 records both.
+  - **Kokoro.** `FromStore` takes `lang = "es"`, folded into `ModelHash` only when it is not `es`. The CLI and Bench name each model's
+    language and refuse a model whose language differs from the bundle's.
+  - **Cycle removed.** `PunctuationFixer` and `NumberAgreement` moved to `Language/Packs`, so the packs use only Core, Language and
+    Phonology; `LayeringTests.ThePacksAndTheResponseStageHaveNoCycle`. The duplicated `por`, `favor`, `un`, `una` literals now come from
+    the pack.
+  - **Guard.** `Architecture/SpanishCallSiteTests` scans `src/Vocaterra.Nlp` and `tools/Vocaterra.Nlp.*` for the Spanish statics and
+    fails outside an allowlist: the packs, the statics' own files, the compatibility entry points (`RecastBuilder.Build`,
+    `SpeechRequests.Create`, `TemplateEngine.CreateDefault`), and per-file M34 entries (`Lexicon`, `IntentCatalog`, `SlotGrammar`,
+    `SlotGrammarMatcher`, `MorphologyGenerator`, `ReadingResolver`, `AccentVariantChoice`, `ReportedReadings`, `AnalysisTables`,
+    `AgreementChecker`, `ReadingClasses`) that need `IMorphology`, `IAnalysisRules` or `LexiconProfile`. It has a negative test.
+  - **Left for M34 and later.** The lexicon builds its indexes with the Spanish fold at load. `RepairStrategy.OfferLine` («¿Quieres decir
+    «…»?») is still Spanish text in the engine, not a pack member. `PronunciationScorer`'s predicted-error tags are Spanish-tuned
+    (research item 14).
+  - **Bug caught in review.** The Spanish pack's instance initializers read word lists declared below `Instance`, before they were set; the
+    lists now come first.
+  - **Gate.** 5,385 passed (17 new; the 2 Parakeet tests run again now that the model is in the shared folder), 3 skipped, 0 failed;
+    licence scan passed; fuzz at 10,000 grammar iterations green; no existing expected value changed. `identity-check.sh f4694ff` passed,
+    and the CLI demo is unchanged.
+- **M34, analysis-side seams (2026-10-27, Sonnet 5.5; merged to `feature/language-packs` `2161c6e`).**
+  - **New pack members.** `LexiconProfile`, `ErrorTags` (`ErrorTagSet`: ranks, `IsKnown`, `IsPronunciation`; `V1` is today's Spanish
+    set), `CreateMorphology` (`IMorphology`; `MorphologyGenerator` implements it), `CreateAnalysisRules` (`IAnalysisRules`: word-class
+    predicates and `CreateAgreementChecker`) and `CreateTemplateFunctions` (`ITemplateFunctions`). `RepairLines.Offer` (`OfferLineFormat`)
+    carries «¿Quieres decir «…»?», with the same text; it has no pool override, because a pool line has no placeholder for the choices.
+  - **Moved into `Language/Packs`.** `SpanishAnalysisTables` (was `AnalysisTables`), `SpanishAgreementChecker` (was `AgreementChecker`),
+    `SpanishAnalysisRules`, `SpanishTemplateFunctions`. `ReadingResolver`, `AccentVariantChoice`, `ReportedReadings`,
+    `AccentRestoration`, `ReadingClasses` and `LinguisticAnalyzer` stay shared and take the rules and the pack's folding. `ReadingClasses`,
+    `WordClass` and `RegularizedForm` are public so a pack in another assembly can implement the seams (M53).
+  - **Lexicon.** Indexes are built with the pack's `ILexiconFolding`; lexicon files are checked against the pack's profile (a Spanish `n`
+    gender is still refused with the same message); the lexicon cache key includes the language id. `IntentCatalog.Load` and
+    `SlotGrammar.Parse` take an optional folding; without one they use `TextKey.Of` (NFC plus invariant lower case: the code of
+    `TextFolding.Normalize`, moved, so the key is the same).
+  - **`ContentBundle.Morphology`.** The engine uses the new `bundle.LanguageMorphology` (`IMorphology`) and `bundle.AnalysisRules`.
+    `bundle.Morphology` keeps its type for the game and returns the same object for Spanish; for another pack it throws
+    `NotSupportedException` on access, not at load.
+  - **Schema.** `LexicalFeatures` and `EntryFeatures` gain optional `Case`, `VerbForm`, `Declension`, `Particle`, `Register` (null, left out
+    of JSON). `NormalizedText.FinalMark` exists behind `NormalizationOptions.CaptureFinalMark` (default off; the pipeline does not set it).
+    The analyzer and `VerdictAssembler` order errors by the pack's ranks through an optional `VerdictInputs.ErrorTags`.
+  - **Guard.** The M34 allowlist went from 16 entries to 4: `MorphologyGenerator.cs` (3 patterns; the Spanish `IMorphology`, moves in
+    M53) and `Lexicon.cs` (`Lexicon.Seed`, `Lexicon.Empty` and the overloads without a folding default to Spanish; the embedded seed is
+    Spanish and 32 test files and the ContentBuilder use them; a bundle's lexicon never does).
+  - **Breaking API, none used by the game:** the five new `ILanguagePack` members; `ReadingClasses` predicates and
+    `AccentRestoration.SpellingsFor` take the rules; `IntentCatalog.Load` and `SlotGrammar.Parse` no longer convert to `Func<string, T>`;
+    deconstructing `LexicalFeatures` or `EntryFeatures` yields more elements. `API.md` lists them.
+  - **Left out.** `ReadingResolver`'s local-syntax rules are shared, not pluggable: verb-second order or separable prefixes need the rule
+    set extended (M54 onward; ADR 0011). `PredictedErrorMatcher` still reads `ErrorTags.All` (pronunciation stays Spanish-tuned,
+    research item 14).
+  - **Gate.** 5,419 passed (34 new, in `AnalysisSideSeamTests`: a pack that changes one member and the engine following it), 3 skipped,
+    0 failed; no assertion removed, Fuzzing and Golden untouched; fuzz at 10,000 grammar iterations green; `HomographSentencesTests` green;
+    `identity-check.sh f4694ff` passed, and the CLI demo is unchanged.
+- **M35, per-language test infrastructure and a toy pack (2026-10-27, Haiku 5.5; merged to `feature/language-packs` `dd8eaa7`).**
+  - **Harness.** `Oracles/FuzzLanguage` (pack, bundle, free-text generator, sentence generator, mutation kinds) and
+    `Oracles/LanguageOracles` (the bodies of O1, O2, O7 and a neutral O14). The Spanish classes keep their names, seeds and iteration counts
+    and call those bodies; the Spanish O14 (`PipelineFuzzTests`) is unchanged. The orchestrator compared the old and new failure checks: all
+    are kept, and the error-tag check now reads the pack's set (Spanish: `ErrorTagSet.V1`, built from `ErrorTags.All`).
+    `FuzzLanguageStreamTests` pins the first case at 400 fixed seeds (SHA-256 over the stream), from the unchanged generators: CsCheck seeds
+    only the first iteration of a sample, so later iterations are not reproducible across runs.
+  - **Toy pack.** `Languages/Xx/` in the Fuzzing project, public API only: `XxLanguagePack` (every member, non-Spanish), a three-word bundle
+    written to a temp directory at test time with `"language": "xx"`, loaded through a registry without Spanish (the default registry
+    refuses it). O1, O2, O7 and the neutral O14 pass on it, also at 20,000 general, 10,000 grammar and 3,000 pipeline iterations. No result
+    carries a non-toy tag or a Spanish mark, and `bundle.Morphology` throws `NotSupportedException`.
+  - **Hidden Spanish dependencies found and fixed**, each with a regression test:
+    1. `TextKey.Of` (the fold behind `TextFolding` and the no-folding parsers) threw on a lone surrogate; it now reads it as U+FFFD, as
+       `Accents.Strip` does. Valid text is unchanged. `SpanishLanguagePackTests` had pinned the throw; it now pins the new contract.
+    2. `SampleSlots` filled templates for the validator with Spanish words (`tener`, `espada`, `yo tengo dos espadas`, …). New
+       `ILanguagePack.Samples` (`SampleWords`); the Spanish values are the same. Breaking for any other `ILanguagePack` implementer.
+    3. `RecastBuilder.AddNumberEdits` spelled any digit run up to six digits; it now skips values above the pack's `Numbers.MaxValue`, the
+       rule `TemplateEngine` already used. Spanish is unaffected (its bound is 999,999).
+  - **Goldens.** `GoldenFiles` reads and records another language's goldens under `Data/<lang>/`; Spanish keeps `Data/<name>`. Code only;
+    no file under a `Data/` folder was added.
+  - **Not done.** O3, O4 and O5 do not run on xx (no grammar realiser or mutation set for it). The xx run cannot prove directly that
+    `SpanishLanguagePack` is never initialised; the registry without Spanish, the result checks and `SpanishCallSiteTests` cover it
+    (ADR 0011).
+  - **Gate.** 5,438 passed (19 new), 3 skipped, 0 failed; fuzz at 10,000 grammar iterations green; `identity-check.sh f4694ff` passed, and
+    the CLI demo is unchanged.
+- **M53, the Spanish pack project (2026-10-27, Sonnet 5.5; merged to `feature/language-packs` `65de544`). Phase A is complete.**
+  - **Moved** (61 renames) into `src/Vocaterra.Nlp.Es` (namespace root `Vocaterra.Nlp.Es`): `SpanishLanguagePack`; `Es.Text`
+    (`SpanishRecastPolicy`, `SpanishTemplateFunctions`, `PunctuationFixer`, `NumberAgreement`, the new `SpanishRepairLines`); `Es.Analysis`
+    (`SpanishAnalysisRules`, `SpanishAgreementChecker`, `SpanishAnalysisTables`, `WordClasses`); `Es.Normalization` (`SpanishNumbers`,
+    `SpanishPhoneticKey`, `Accents`, `TextFolding`, and `TextNormalizer` renamed `SpanishTextNormalizer`); `Es.Morphology`
+    (`MorphologyGenerator`, `SpanishOrthography`); `Es.Phonology` (`SpanishG2p` and its stages, `exceptions.json`); the seed-lexicon
+    resource. The LogicalNames are unchanged.
+  - **Stayed neutral:** `DialectConfig`, `G2pResult`, `PhoneInventory`, `PredictedErrorVariants`, `ErrorTags`/`ErrorTagSet.V1`,
+    `LexiconProfile.V1` (the frozen v1 contract every pack may pick), and the espeak phone map (it maps the multilingual xlsr-53 vocabulary
+    onto the shared inventory; ADR 0012). The engine keeps a neutral `TextTokenizer`; `SpanishTextNormalizer` adds the number words and
+    `al`/`del` on top, with identical output. No `InternalsVisibleTo` from the engine to the pack: `Utf16`, `TextKey`, `Lexicon.Derive`,
+    `TextTokenizer` and `InvariantLexiconFolding` became public.
+  - **Host-facing (API.md, ADR 0012).** `LanguagePacks.Default` is empty; a manifest with no `language` still means `es`, resolved from
+    the host's registry, so a bare `ContentLoader.Load` of a Spanish bundle now throws. `SpanishContent.Load`, `.Options`,
+    `LanguagePacks.WithSpanish()` and `CreateTemplateEngine()` register it. `ContentBundle.Morphology` is removed: use
+    `bundle.SpanishMorphology()` or `bundle.LanguageMorphology`. The Spanish seed is `SpanishLexicon.Seed` (and `Load`, `FromEntries`,
+    `Empty`); `Lexicon.Empty` stays with the neutral folding. The pack-less Spanish overloads (`RecastBuilder.Build`,
+    `SpeechRequests.Create`, `TemplateEngine.CreateDefault`, `ResponsePlanner()`, `RepairStrategy.Next`'s short forms) are gone;
+    `FakePhonemeRecognizer.ForSpanish` is `ForPhoneInventory`.
+  - **Game edits (allowed by the brief, no behaviour change):** a project reference to `Vocaterra.Nlp.Es` in `Game.Core` and `Host`;
+    `SpanishContent.Load` at the two load sites (`GameBundle.cs`, `Host/Program.cs`); `.SpanishMorphology()` for `.Morphology` (four
+    files); moved names (`SpanishTextNormalizer`, namespaces) in five files and their tests.
+  - **Guards.** `LayeringTests`: no engine namespace depends on `Vocaterra.Nlp.Es`, and the engine assembly does not reference it.
+    `SpanishCallSiteTests` scans `src/Vocaterra.Nlp` with an empty allowlist (asserted). `XxIndependenceTests` (source and reflection
+    scans) keep the toy pack free of Es types, since the Fuzzing project now references Es. `git grep Spanish src/Vocaterra.Nlp` finds only
+    comments, doc examples and the sidecar field `LexiconSourceInfo.SpanishEntries` (a JSON field name; renaming it changes the format).
+  - **Test projects referencing Es:** Es.Tests; Nlp.Tests, Fuzzing and Golden (they run `content/game-v1`); the three tools. Three
+    resolver tests stay in Nlp.Tests because they use engine internals, and link the Es tests' `TestTokens.cs`.
+  - **Bug found and fixed.** `UtterancePipeline.RepairLinesFor` dropped the pack's `RepairLines.Offer`, so every pack got the engine's
+    default offer wording (hidden while that default was Spanish). Regression test
+    `PipelineTests.ThePacksOwnOfferWordingReachesTheOfferedChoices`.
+  - **Not done.** `DialectConfig.LatinAmericanNeutral` is still `SpeechRequests.Create`'s default dialect (a per-pack default is a later
+    decision). A pack with phones outside `PhoneInventory` needs its own espeak map (ADR 0012).
+  - **Gate.** 5,445 passed (Nlp 2,452, Es 1,129, Fuzzing 76, Golden 17, Game.Core 863, Game 872, Host 36; 7 new, none lost), 3 skipped,
+    0 failed; licence scan passed (30 packages); fuzz at 10,000 grammar iterations green; `identity-check.sh f4694ff` passed (the G2P golden
+    and `exceptions.json` are pure renames); the CLI demo and the host demo are unchanged.
 
 ## 6. Definition of done (every milestone)
 
@@ -1313,11 +1493,11 @@ The research lists seven places that would break silently when a second language
 
 | ID | Milestone | Depends on | Tier | Status |
 | --- | --- | --- | --- | --- |
-| M31 | Spanish identity guard (`SpanishIdentityTests`) | M29j | H | planned (D14 amended 2026-10-26) |
-| M32 | Language id in the manifest (absent = `es`, folded into the hash only when present), pack registry, `ContentBundle.Language`, ADR 0011 | M31, M52 | S | planned (D14 amended 2026-10-26) |
-| M33 | Text-side seams: normalizer, numbers, phonetic key, punctuation, repair lines, grammar defaults, lint, G2P call sites, Kokoro `lang` | M32 | H | planned (D14 amended 2026-10-26) |
-| M34 | Analysis-side seams and schema: `IMorphology`, `IAnalysisRules`, template functions, optional `LexicalFeatures` fields (Case, VerbForm, Declension, Particle, Register), per-pack tag sets (`ErrorTags.All` frozen as Spanish) | M33 | S | planned (D14 amended 2026-10-26) |
-| M35 | Per-language test harness, and a toy pack that proves no hidden Spanish dependency remains | M34 | H | planned (D14 amended 2026-10-26) |
+| M31 | Spanish identity guard (`SpanishIdentityTests`) | M29j | H | done (merged to `feature/language-packs` `f4694ff`) |
+| M32 | Language id in the manifest (absent = `es`, folded into the hash only when present), pack registry, `ContentBundle.Language`, ADR 0011 | M31, M52 | S | done (merged to `feature/language-packs` `ba85fe3`, 2026-10-27) |
+| M33 | Text-side seams: normalizer, numbers, phonetic key, punctuation, repair lines, grammar defaults, lint, G2P call sites, Kokoro `lang` | M32 | H | done (merged to `feature/language-packs` `d677412`, 2026-10-27) |
+| M34 | Analysis-side seams and schema: `IMorphology`, `IAnalysisRules`, template functions, optional `LexicalFeatures` fields (Case, VerbForm, Declension, Particle, Register), per-pack tag sets (`ErrorTags.All` frozen as Spanish) | M33 | S | done (merged to `feature/language-packs` `2161c6e`, 2026-10-27) |
+| M35 | Per-language test harness, and a toy pack that proves no hidden Spanish dependency remains | M34 | H | done (merged to `feature/language-packs` `dd8eaa7`, 2026-10-27) |
 | M36 | German lexicon import (kaikki German, `de_50k`; D4 applies as for `es_50k`) | M35 | S | proposed |
 | M37 | German text layer: umlaut and ß folding (ae, oe, ue), contractions, numbers, phonetic key, noun capitals | M36 | S | proposed |
 | M38 | German morphology | M36 | S | proposed |

@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Graphics;
+using Vocaterra.Nlp.Es;
 
 namespace Vocaterra.Game.UI.Book;
 
@@ -456,7 +457,7 @@ public sealed class BookLayer : IFrameLayer
 
         // What the learner said, as the verbs page listed it (S20): each form with its English, its count and the last sentence it was said in.
         var row = view.Session.Learner.Verbs.First(r => string.Equals(r.Lemma, lemma, StringComparison.Ordinal));
-        var said = BookPages.Verbs([row], view.Session.Glosses, view.Session.Phrases, view.Session.Bundle.Morphology).Skip(1).Where(static l => l.Text.Length > 0).ToList();
+        var said = BookPages.Verbs([row], view.Session.Glosses, view.Session.Phrases, view.Session.Bundle.SpanishMorphology()).Skip(1).Where(static l => l.Text.Length > 0).ToList();
         sheet.Add(8, static _ => { });
         if (said.Count > 0)
         {

@@ -14,6 +14,7 @@ using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Morphology;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Phonology;
 using Vocaterra.Nlp.Pipeline;
@@ -36,9 +37,9 @@ public sealed class PipelineHarness
     private PipelineHarness()
     {
         BundleDirectory = GameBundleLocator.Directory;
-        Bundle = ContentLoader.Load(BundleDirectory);
-        Words = new LexiconCatalog(Bundle.Lexicon, Bundle.Morphology);
-        Analyzer = new LinguisticAnalyzer(Bundle.Lexicon, Bundle.Morphology);
+        Bundle = SpanishContent.Load(BundleDirectory);
+        Words = new LexiconCatalog(Bundle.Lexicon, Bundle.SpanishMorphology());
+        Analyzer = new LinguisticAnalyzer(Bundle.Lexicon, Bundle.SpanishMorphology(), SpanishLanguagePack.Instance);
         Grammars = PatternCatalog.FromBundle(Bundle.Intents, FixtureGrammars);
     }
 
@@ -71,13 +72,13 @@ public sealed class PipelineHarness
     public NlpLexicon Lexicon => Bundle.Lexicon;
 
     /// <summary>The bundle's morphology generator.</summary>
-    public MorphologyGenerator Morphology => Bundle.Morphology;
+    public MorphologyGenerator Morphology => Bundle.SpanishMorphology();
 
     /// <summary>
     /// A morphology generator over an empty lexicon: it can only apply the regular -ar/-er/-ir paradigm, which is how the suite obtains the
     /// regularized form of an irregular verb cell without reaching into internals.
     /// </summary>
-    public MorphologyGenerator RegularParadigm { get; } = new(NlpLexicon.Empty);
+    public MorphologyGenerator RegularParadigm { get; } = new(SpanishLexicon.Empty);
 
     /// <summary>The lexicon seen through the generators' eyes.</summary>
     public LexiconCatalog Words { get; }
@@ -91,19 +92,19 @@ public sealed class PipelineHarness
     /// <summary>Normalizes text exactly as the pipeline does.</summary>
     public static NormalizedText Normalize(string text)
     {
-        return TextNormalizer.Normalize(text, Normalization);
+        return SpanishTextNormalizer.Normalize(text, Normalization);
     }
 
     /// <summary>Creates a fresh analyzer with its own morphology generator, for oracles that compare two independent runs.</summary>
     public LinguisticAnalyzer NewAnalyzer()
     {
-        return new LinguisticAnalyzer(Lexicon, new MorphologyGenerator(Lexicon));
+        return new LinguisticAnalyzer(Lexicon, new MorphologyGenerator(Lexicon), SpanishLanguagePack.Instance);
     }
 
     /// <summary>Creates a fresh intent resolver over the bundle catalog, with or without the trigram embedder.</summary>
     public IntentResolver NewResolver(bool embeddings)
     {
-        return new IntentResolver(Bundle.Intents, embeddings ? new FakeEmbeddingModel() : null);
+        return new IntentResolver(Bundle.Intents, SpanishLanguagePack.Instance, embeddings ? new FakeEmbeddingModel() : null);
     }
 
     /// <summary>Returns the bundle prompt with the id (throws when the bundle has none).</summary>
@@ -131,7 +132,7 @@ public sealed class PipelineHarness
         IPhonemeRecognizer? phoneRecognizer = null;
         if (phonemes)
         {
-            var fake = FakePhonemeRecognizer.ForSpanish();
+            var fake = FakePhonemeRecognizer.ForPhoneInventory();
 
             // The fake hears exactly the phones of the transcript; a transcript with no letters still gets some audio-independent phones.
             var spoken = SpanishNumbers.DigitsToWords(Normalize(transcript).Text);

@@ -149,7 +149,7 @@ public sealed record TaughtVerbForm(string Lemma, string Person, string Number, 
     /// </summary>
     /// <param name="morphology">The bundle's morphology.</param>
     /// <returns>The form's text, or <see langword="null"/> when the core cannot generate it.</returns>
-    public string? Text(Vocaterra.Nlp.Language.Morphology.MorphologyGenerator morphology)
+    public string? Text(Vocaterra.Nlp.Es.Morphology.MorphologyGenerator morphology)
     {
         ArgumentNullException.ThrowIfNull(morphology);
         if (!string.Equals(Tense, NearFuture, StringComparison.Ordinal))

@@ -6,6 +6,7 @@ using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
 using Vocaterra.Nlp.Language.Matching;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 using Xunit.Abstractions;
 using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;
 
@@ -142,12 +143,12 @@ public sealed class AnswerMatchFuzzTests(ITestOutputHelper output)
 
     private static MatchResult Check(MatchCase input, AnswerSet set, List<Candidate> candidates, string text, string what)
     {
-        var normalized = TextNormalizer.Normalize(text, PipelineHarness.Normalization);
+        var normalized = SpanishTextNormalizer.Normalize(text, PipelineHarness.Normalization);
         var context = new { input.SetId, text, what, input.Difficulty };
         MatchResult actual;
         try
         {
-            actual = AnswerMatcher.Match(normalized, set, input.Difficulty, PipelineHarness.Normalization);
+            actual = AnswerMatcher.Match(normalized, set, input.Difficulty, SpanishLanguagePack.Instance, PipelineHarness.Normalization);
         }
         catch (Exception ex)
         {
@@ -159,7 +160,7 @@ public sealed class AnswerMatchFuzzTests(ITestOutputHelper output)
             throw Determinism.Fail(Oracle, $"Confidence {actual.Confidence} is outside [0, 1].", context);
         }
 
-        Determinism.AssertSame(Oracle, "AnswerMatcher.Match", context, () => actual, () => AnswerMatcher.Match(normalized, set, input.Difficulty, PipelineHarness.Normalization));
+        Determinism.AssertSame(Oracle, "AnswerMatcher.Match", context, () => actual, () => AnswerMatcher.Match(normalized, set, input.Difficulty, SpanishLanguagePack.Instance, PipelineHarness.Normalization));
 
         var expected = Model(Accents.Strip(normalized.Text), candidates, input.Difficulty);
         if (expected != actual)
@@ -253,7 +254,7 @@ public sealed class AnswerMatchFuzzTests(ITestOutputHelper output)
 
     private static string Stripped(string raw)
     {
-        return Accents.Strip(TextNormalizer.Normalize(raw, PipelineHarness.Normalization).Text);
+        return Accents.Strip(SpanishTextNormalizer.Normalize(raw, PipelineHarness.Normalization).Text);
     }
 
     // Applies up to two edits that keep the spelling's sound: b and v swapped, ll to y, s and z swapped, c before e or i to s or z, and a dropped

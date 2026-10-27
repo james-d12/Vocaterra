@@ -1,4 +1,5 @@
 using CsCheck;
+using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Evaluation;
@@ -131,7 +132,7 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
 
         DialogueCatalogRoundTrip(bundle.Dialogue);
         LexiconRoundTrip(bundle.Lexicon);
-        LexiconRoundTrip(NlpLexicon.Seed);
+        LexiconRoundTrip(SpanishLexicon.Seed);
 
         var catalog = IntentCatalog.Load(bundle.Intents.ToJson());
         if (catalog.ToJson() != bundle.Intents.ToJson() || catalog.ContentHash() != bundle.Intents.ContentHash())
@@ -144,6 +145,14 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
         RoundTrip(bundle.Effects, "EffectTable", "bundle effects");
         RoundTrip(bundle.Provenance, "ContentProvenance", "bundle provenance");
         RoundTrip(bundle.Manifest, "ContentManifest", "bundle manifest");
+
+        // M32: the manifest's language fields round-trip when present, and are absent from the JSON when null.
+        foreach (var (language, support) in new (string?, string?)[] { ("es", null), ("de-DE", "en"), (null, "en"), ("es-419", string.Empty) })
+        {
+            var manifest = bundle.Manifest with { Language = language, SupportLanguage = support, BundleHash = ContentManifest.ComputeBundleHash(bundle.Manifest.Files, language) };
+            RoundTrip(manifest, "ContentManifest", $"manifest language {language} support {support}");
+            RoundTripManifestText(manifest);
+        }
         foreach (var agent in bundle.Agents.Values)
         {
             // AgentDefinition is a plain record over lists, so it has reference equality for its members; only the JSON can be compared.
@@ -212,6 +221,22 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
             writeLine: output.WriteLine,
             iter: iterations,
             threads: 1);
+    }
+
+    private static void RoundTripManifestText(ContentManifest manifest)
+    {
+        // The manifest has its own writer (one file per line) next to CanonicalJson; both must carry the language fields.
+        var text = manifest.ToJson();
+        var back = ContentManifest.FromJson(text);
+        if (!manifest.Equals(back) || !string.Equals(text, back.ToJson(), StringComparison.Ordinal))
+        {
+            throw Determinism.Fail(Oracle, "The manifest does not survive its own ToJson and FromJson with its language fields.", text);
+        }
+
+        if (text.Contains("\"language\"", StringComparison.Ordinal) != (manifest.Language is not null) || text.Contains("\"supportLanguage\"", StringComparison.Ordinal) != (manifest.SupportLanguage is not null))
+        {
+            throw Determinism.Fail(Oracle, "The manifest JSON writes a language field that is null, or leaves out one that is set.", text);
+        }
     }
 
     private static void RoundTrip<T>(T value, string label, object? input, bool compareValues = true)
@@ -317,7 +342,7 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
     private static void LexiconRoundTrip(NlpLexicon lexicon)
     {
         var json = lexicon.ToJson();
-        var back = NlpLexicon.Load(json);
+        var back = SpanishLexicon.Load(json);
         if (back.ToJson() != json || back.Entries.Count != lexicon.Entries.Count)
         {
             throw Determinism.Fail(Oracle, "The lexicon does not round-trip through ToJson and Load.", json.Length > 3000 ? json[..3000] : json);
@@ -381,6 +406,6 @@ public sealed class SerializationRoundTripFuzzTests(ITestOutputHelper output)
                     rng.NextInt(2) == 0 ? null : rng.Pick(LexiconSchema.Genders))));
         }
 
-        return NlpLexicon.FromEntries(entries);
+        return SpanishLexicon.FromEntries(entries);
     }
 }

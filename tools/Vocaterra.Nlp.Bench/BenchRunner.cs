@@ -6,6 +6,7 @@ using Vocaterra.Nlp.Core.Determinism;
 using Vocaterra.Nlp.Core.Prompts;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Language.Normalization;
+using Vocaterra.Nlp.Language.Packs;
 
 namespace Vocaterra.Nlp.Bench;
 
@@ -14,12 +15,13 @@ public static class BenchMetrics
 {
     private static readonly NormalizationOptions Options = new(ConvertIndefiniteArticles: false);
 
-    /// <summary>Normalizes text with the pipeline's options and returns its tokens; the recognizer's <c>[unk]</c> marker is dropped.</summary>
-    public static IReadOnlyList<string> Tokens(string text)
+    /// <summary>Normalizes text with the pipeline's options, in the language of the pack, and returns its tokens; the recognizer's <c>[unk]</c> marker is dropped.</summary>
+    public static IReadOnlyList<string> Tokens(string text, ILanguagePack language)
     {
         ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(language);
         var cleaned = text.Replace(GrammarBuilder.UnknownToken, " ", StringComparison.Ordinal);
-        return TextNormalizer.Normalize(cleaned, Options).Tokens.Select(static token => token.Text).ToArray();
+        return language.Normalizer.Normalize(cleaned, Options).Tokens.Select(static token => token.Text).ToArray();
     }
 
     /// <summary>The word-level Levenshtein distance (insertions, deletions and substitutions all cost 1).</summary>
@@ -56,14 +58,15 @@ public static class BenchMetrics
     }
 
     /// <summary>Counts the annotated errors whose wrong word (or word sequence) still appears, contiguously, in the hypothesis.</summary>
-    public static int ErrorsKept(IReadOnlyList<ExpectedError> errors, IReadOnlyList<string> hypothesisTokens)
+    public static int ErrorsKept(IReadOnlyList<ExpectedError> errors, IReadOnlyList<string> hypothesisTokens, ILanguagePack language)
     {
+        ArgumentNullException.ThrowIfNull(language);
         ArgumentNullException.ThrowIfNull(errors);
         ArgumentNullException.ThrowIfNull(hypothesisTokens);
         var kept = 0;
         foreach (var error in errors)
         {
-            var actual = Tokens(error.Actual);
+            var actual = Tokens(error.Actual, language);
             if (actual.Count > 0 && ContainsSequence(hypothesisTokens, actual))
             {
                 kept++;
@@ -211,14 +214,14 @@ public static class BenchRunner
 
         var recognizer = recognizerFor(mode);
         var request = mode == RecognitionMode.Constrained
-            ? RecognitionRequest.Constrained(GrammarBuilder.BuildList(answerSet.GrammarPhrases()))
+            ? RecognitionRequest.Constrained(GrammarBuilder.BuildList(answerSet.GrammarPhrases(content.Language)))
             : RecognitionRequest.Open();
         var stopwatch = Stopwatch.StartNew();
         var asr = recognizer.Recognize(clip, request);
         stopwatch.Stop();
 
-        var reference = BenchMetrics.Tokens(entry.ExpectedTranscript);
-        var hypothesis = BenchMetrics.Tokens(asr.Transcript);
+        var reference = BenchMetrics.Tokens(entry.ExpectedTranscript, content.Language);
+        var hypothesis = BenchMetrics.Tokens(asr.Transcript, content.Language);
         var edits = BenchMetrics.WordEdits(reference, hypothesis);
         return new EntryResult(
             entry.Clip,
@@ -231,7 +234,7 @@ public static class BenchRunner
             edits,
             Math.Round(BenchMetrics.Wer(edits, reference.Count), Decimals),
             errorCount,
-            BenchMetrics.ErrorsKept(entry.ExpectedErrors, hypothesis),
+            BenchMetrics.ErrorsKept(entry.ExpectedErrors, hypothesis, content.Language),
             Math.Round(stopwatch.Elapsed.TotalMilliseconds, 3));
     }
 

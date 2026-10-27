@@ -1,0 +1,72 @@
+using System.Security.Cryptography;
+using System.Text;
+using CsCheck;
+using Vocaterra.Nlp.Fuzzing.Tests.Generation;
+using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
+using Vocaterra.Nlp.Language.Packs;
+
+namespace Vocaterra.Nlp.Fuzzing.Tests;
+
+/// <summary>
+/// Proof that the Spanish suite generates the cases it generated before the per-language harness (M35). CsCheck seeds only its first iteration (the
+/// later ones draw from its own state), so a stream is compared one case per seed: for each of <see cref="Seeds"/> fixed seeds, the first case of the
+/// old generator expression and the first case of <see cref="FuzzLanguage.Spanish"/> must be the same, and both must hash to the digest recorded
+/// from the unchanged generators (<c>SpanishTextGen.Text</c>, <c>SentenceGen.Recipe</c> with <c>Realize</c>). A changed generator, a changed draw order
+/// or a changed realisation fails here, not as a silent change of what the oracles test.
+/// </summary>
+public sealed class FuzzLanguageStreamTests
+{
+    private const int Seeds = 400;
+
+    // Digests of the first case at each fixed seed, from the generator expressions the Spanish classes used before M35.
+    private const string OldTextDigest = "019F28C692D453581C03EB6D1446AF99DFCF4D2741F5413FCBA80FE1BFB18AA2";
+    private const string OldSentenceDigest = "5120B9DE4CAB42CDD4483B0F5E73FF1B54BEE615352DB3548CCCDB65AC1CF889";
+
+    [Fact]
+    public void TheSpanishRecordUsesTheSpanishPackAndTheWholeMutationSet()
+    {
+        Assert.Same(SpanishLanguagePack.Instance, FuzzLanguage.Spanish.Pack);
+        Assert.Equal(Enum.GetValues<MutationKind>().Length, FuzzLanguage.Spanish.Mutations.Count);
+    }
+
+    [Fact]
+    public void TheTextStreamOfTheSpanishRecordIsTheOldOne()
+    {
+        var words = PipelineHarness.Shared.Words;
+        Pinned(OldTextDigest, FirstCases(SpanishTextGen.Text(words), static text => text, "text"));
+        Pinned(OldTextDigest, FirstCases(FuzzLanguage.Spanish.FreeText, static text => text, "text"));
+    }
+
+    [Fact]
+    public void TheSentenceStreamOfTheSpanishRecordIsTheOldOne()
+    {
+        var harness = PipelineHarness.Shared;
+        var old = SentenceGen.Recipe(harness).Select(recipe => SentenceGen.Realize(harness, recipe));
+        Pinned(OldSentenceDigest, FirstCases(old, static s => Render(s?.Text, s?.PatternSource, s?.PatternText), "sentence"));
+        Pinned(OldSentenceDigest, FirstCases(FuzzLanguage.Spanish.Sentences, static s => Render(s?.Text, s?.PatternSource, s?.PatternText), "sentence"));
+    }
+
+    private static string Render(string? text, string? source, string? pattern) => text is null ? "<null>" : text + "|" + source + "|" + pattern;
+
+    // A pinned digest, compared in full (xUnit truncates long strings in its messages, and the digest is the evidence).
+    private static void Pinned(string expected, string actual)
+    {
+        if (!string.Equals(expected, actual, StringComparison.Ordinal))
+        {
+            Assert.Fail($"The stream digest is {actual}, not the recorded {expected}.");
+        }
+    }
+
+    // The first case of the generator at each fixed seed, as one line each, hashed.
+    private static string FirstCases<T>(Gen<T> gen, Func<T, string> render, string stream)
+    {
+        var builder = new StringBuilder();
+        for (var i = 0; i < Seeds; i++)
+        {
+            var seed = "M35" + stream[..1].ToUpperInvariant() + i.ToString("D8", System.Globalization.CultureInfo.InvariantCulture);
+            gen.Sample(value => builder.Append(render(value)).Append('\n'), iter: 1, threads: 1, seed: seed);
+        }
+
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(builder.ToString())));
+    }
+}

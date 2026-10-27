@@ -189,7 +189,7 @@ public sealed class OracleInfrastructureTests
     [Fact]
     public void ThePhoneCasesDescribeWhatTheRecognizerHears()
     {
-        var fake = FakePhonemeRecognizer.ForSpanish();
+        var fake = FakePhonemeRecognizer.ForPhoneInventory();
         var perfect = new PhoneSequenceCase([PhoneInventory.A, PhoneInventory.Tap], new FrameShape(3, 1, 0), 0, 0, null, ScoringMode.Gop, Difficulty.Beginner);
         var confused = perfect with { Confusion = 1 };
         var inserted = perfect with { Confusion = 6, InsertAt = 1 };
@@ -242,7 +242,7 @@ public sealed class OracleInfrastructureTests
         try
         {
             Assert.Equal(catalog.Files, Directory.EnumerateFiles(pristine, "*", SearchOption.AllDirectories).Select(path => Path.GetRelativePath(pristine, path).Replace('\\', '/')).Order(StringComparer.Ordinal).ToArray());
-            Assert.Equal(ContentLoader.Load(pristine).ContentHash, PipelineHarness.Shared.Bundle.ContentHash);
+            Assert.Equal(SpanishContent.Load(pristine).ContentHash, PipelineHarness.Shared.Bundle.ContentHash);
 
             var rng = new SeededRng(7);
             var kinds = Enumerable.Range(0, 400).Select(_ => catalog.Build(rng).Kind).Distinct().Order().ToArray();

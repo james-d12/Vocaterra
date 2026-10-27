@@ -166,8 +166,8 @@ between two nouns and not between parts of speech.
 
 ## Analyzer fixes found by the fuzz oracles
 
-The oracles drew thousands of lemmas for the first time and found four weaknesses of the analyzer's first-reading logic, fixed in `src/Vocaterra.Nlp.Language`
-with regression tests in `tests/Vocaterra.Nlp.Language.Tests/Analysis/AmbiguousReadingTests.cs`: (1) `tú habla` passed the person check because `habla` is also the imperative of
+The oracles drew thousands of lemmas for the first time and found four weaknesses of the analyzer's first-reading logic, fixed in `src/Vocaterra.Nlp/Language`
+with regression tests in `tests/Vocaterra.Nlp.Tests/Language/Analysis/AmbiguousReadingTests.cs`: (1) `tú habla` passed the person check because `habla` is also the imperative of
 `hablar`, so a subject pronoun is now checked against the declarative readings; (2) `ella está alta` was corrected to `eres` because the first reading of
 `está` is the imperative; (3) `ella es ocupada` passed because `ocupada` is a lemma of its own that sorts before `ocupado`, so the ser/estar class and the
 prenominal check consider every adjective reading; (4) `malos corazones` was a number mistake because `corazones` also reads as a singular noun, so an

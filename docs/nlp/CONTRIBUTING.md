@@ -38,7 +38,7 @@ happens to one utterance, [docs/nlp/adr/](adr/) for why the rules exist, and [IM
    dotnet format --verify-no-changes
    ```
 
-   `dotnet test tests/Vocaterra.Nlp.Language.Tests` runs one project; add `--filter "FullyQualifiedName~LinguisticAnalyzer"` for one class.
+   `dotnet test tests/Vocaterra.Nlp.Tests` runs the engine's unit tests and `dotnet test tests/Vocaterra.Nlp.Es.Tests` the Spanish pack's (M53); add `--filter "FullyQualifiedName~LinguisticAnalyzer"` for one class.
    `dotnet format` (without `--verify-no-changes`) fixes formatting.
 
 3. Models are optional. Without them the real-model tests are skipped, not failed. To run them:
@@ -71,14 +71,15 @@ happens to one utterance, [docs/nlp/adr/](adr/) for why the rules exist, and [IM
 - One logical change per commit. Do not mix reformatting of untouched code with a feature.
 - Milestone work touches its own `src/<Project>` and `tests/<Project>.Tests` folders, plus the extra paths the milestone names.
   Cross-cutting files (`Directory.Build.props`, `Directory.Packages.props`, the `.sln`, CI, `IMPLEMENTATION_PLAN.md`) and
-  `src/Vocaterra.Nlp.Core` change only with the maintainers' agreement, because everything else compiles against them.
+  `src/Vocaterra.Nlp/Core` change only with the maintainers' agreement, because everything else in the engine compiles against them.
 - Do not push to `main`. Do not commit models, recordings or replay logs from real people (all gitignored or local, see below).
 
 ## Code conventions
 
 - File-scoped namespaces; nullable reference types on; warnings are errors; small immutable `record` types.
-- Every public type has a one-line `/// <summary>`. Keep existing `AssemblyMarker.cs` files in place (a test refers to some of them).
-- Add tests next to the code: one xUnit project per source project, plain `Assert`. Pure stages get a positive and a negative test and
+- Every public type has a one-line `/// <summary>`. Keep `src/Vocaterra.Nlp/AssemblyMarker.cs` in place (the one marker of the engine assembly; a test refers to it).
+- Add tests next to the code: tests in `tests/Vocaterra.Nlp.Tests`, one folder per engine area, plain `Assert`; a test of Spanish behaviour (morphology, normalization, G2P, the seed
+  lexicon, the Spanish pack) goes in `tests/Vocaterra.Nlp.Es.Tests`, next to the code in `src/Vocaterra.Nlp.Es`. Pure stages get a positive and a negative test and
   a "same input, byte-identical `CanonicalJson` output" test.
 - Add no engine types, UI types or LLM packages to `src/`.
 
@@ -121,8 +122,8 @@ Before you ask for review, in this order, from a clean tree:
 in [docs/nlp/FUZZING_PLAN.md](FUZZING_PLAN.md); the oracles, the bugs found so far and the known findings are in
 [tests/Vocaterra.Nlp.Fuzzing.Tests/README.md](../../tests/Vocaterra.Nlp.Fuzzing.Tests/README.md).
 
-- Before you open a pull request that touches `Vocaterra.Nlp.Language`, `Vocaterra.Nlp.Evaluation`, `Vocaterra.Nlp.Response`, `Vocaterra.Nlp.Audio`, `Vocaterra.Nlp.Phonology`,
-  `Vocaterra.Nlp.Pronunciation`, `Vocaterra.Nlp.Decision`, `Vocaterra.Nlp.Content` or `Vocaterra.Nlp.Pipeline`, run `dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests`.
+- Before you open a pull request that touches the engine folders `Language`, `Evaluation`, `Response`, `Audio`, `Phonology`,
+  `Pronunciation`, `Decision`, `Content` or `Pipeline`, run `dotnet test tests/Vocaterra.Nlp.Fuzzing.Tests`.
 - A bug the fuzzer finds is fixed in the owning module, with a regression test in that module's test project. List the bug with its
   CsCheck seed in the "Bugs found and fixed" section of the fuzz README.
 - A documented exception may be waved through only in `tests/Vocaterra.Nlp.Fuzzing.Tests/Oracles/KnownTolerances.cs`, and it needs a reason.
@@ -133,23 +134,24 @@ in [docs/nlp/FUZZING_PLAN.md](FUZZING_PLAN.md); the oracles, the bugs found so f
 An error tag is a stable id (`conj.person`, `pron.r`, ...) that flows through the analyzer, the verdict weights, the feedback policy,
 the dialogue and the learner model. Add it in this order:
 
-1. **Taxonomy** (`src/Vocaterra.Nlp.Core/Taxonomy/ErrorTags.cs`). Add a constant, document it with a summary, and append it to the `AllTags`
+1. **Taxonomy** (`src/Vocaterra.Nlp/Core/Taxonomy/ErrorTags.cs`). Add a constant, document it with a summary, and append it to the `AllTags`
    array. Append at the end: errors in a verdict are sorted by position and then by the tag's index in `ErrorTags.All`, so inserting
    in the middle changes the order of existing verdicts and breaks golden files. Tags are `family.name`; the family (the text before
    the first dot) is also the learner-model skill id, so `conj.person` and `conj.tense` train the same skill `conj`.
-   Update `tests/Vocaterra.Nlp.Core.Tests/ErrorTagsTests.cs` (it pins the count and the order) and the taxonomy table in `docs/nlp/history/HIGH_LEVEL_DOCS.md`.
-   This is a change to `Vocaterra.Nlp.Core`: agree it with a maintainer first.
+   Update `tests/Vocaterra.Nlp.Tests/Core/ErrorTagsTests.cs` (it pins the count and the order) and the taxonomy table in `docs/nlp/history/HIGH_LEVEL_DOCS.md`.
+   This is a change to the engine's `Core` folder: agree it with a maintainer first.
 2. **Analyzer.** Produce the tag where the error is detected, with the span in the normalized text and the expected form:
-   - grammar and vocabulary tags: `src/Vocaterra.Nlp.Language/Analysis/AgreementChecker.cs` (agreement rules) or `LinguisticAnalyzer.cs`; the
-     expected form comes from `MorphologyGenerator`, never a hard-coded string;
-   - pronunciation tags: a predicted variant in `src/Vocaterra.Nlp.Phonology/PredictedErrorVariants.cs` and its matching in
-     `src/Vocaterra.Nlp.Pronunciation/PredictedErrorMatcher.cs`.
+   - grammar and vocabulary tags: `src/Vocaterra.Nlp/Language/Analysis/AgreementChecker.cs` (agreement rules) or `LinguisticAnalyzer.cs`; the
+     expected form comes from the pack's morphology (Spanish: `MorphologyGenerator` in `src/Vocaterra.Nlp.Es/Morphology`), never a hard-coded string; the Spanish agreement
+     and analysis rules are in `src/Vocaterra.Nlp.Es/Analysis`;
+   - pronunciation tags: a predicted variant in `src/Vocaterra.Nlp/Phonology/PredictedErrorVariants.cs` and its matching in
+     `src/Vocaterra.Nlp/Pronunciation/PredictedErrorMatcher.cs`.
 
-   Add one positive and one negative test (`tests/Vocaterra.Nlp.Language.Tests/Analysis`, `tests/Vocaterra.Nlp.Phonology.Tests`, `tests/Vocaterra.Nlp.Pronunciation.Tests`).
+   Add one positive and one negative test (`tests/Vocaterra.Nlp.Es.Tests/Analysis`, `tests/Vocaterra.Nlp.Es.Tests/Phonology`, `tests/Vocaterra.Nlp.Tests/Pronunciation`).
 3. **Evaluation weights.** Add the tag to `errorWeights` for `beginner`, `intermediate` and `advanced` in
    `content/game-v1/evaluation/evaluation-config.json` (pronunciation tags are 0 today, so they do not reduce `correctness`), and to the
-   built-in defaults in `src/Vocaterra.Nlp.Evaluation/EvaluationConfig.cs`. A grammar tag missing from the map costs `unknownTagWeight` (0.3);
-   a missing `pron.*` tag costs 0. Extend `tests/Vocaterra.Nlp.Evaluation.Tests`.
+   built-in defaults in `src/Vocaterra.Nlp/Evaluation/EvaluationConfig.cs`. A grammar tag missing from the map costs `unknownTagWeight` (0.3);
+   a missing `pron.*` tag costs 0. Extend `tests/Vocaterra.Nlp.Tests/Evaluation`.
 4. **Feedback rule.** The default rules in `content/game-v1/feedback/feedback-policy.json` match every tag with `*`: a recast on the first
    offence, a hint on the second and third, an explicit correction from the fourth (`pron.*` gets a model pronunciation from the
    second). Add a rule with the exact tag (`"tagPattern": "ser_estar"`) only if the new tag should be treated differently. The most
@@ -206,6 +208,9 @@ Steps:
 
    (`scripts/content.sh` runs `tools/Vocaterra.Nlp.ContentBuilder` from source; `dotnet run --project tools/Vocaterra.Nlp.ContentBuilder -- <command>` is the same.)
 
+   `hash` keeps the manifest's `bundleId`, `contentVersion`, `language` and `supportLanguage` when it rewrites the file. The game's bundle has no
+   `language` (it means Spanish) and must keep none: a `language` field is folded into the bundle hash (ADR 0011).
+
    Before `hash`, `validate` reports exactly what is out of date (`hash mismatch`, `file is not listed in manifest.json`,
    `no provenance item for ...`). `validate` also checks references: a prompt that names an unknown answer set, intent or grammar fails.
    `cefr-check` is advisory; it lists the lemmas of dialogue templates and of prompt text (`text`) that are not in `cefr/a1.txt` or
@@ -213,7 +218,7 @@ Steps:
 4. Try it: `dotnet run --project tools/Vocaterra.Nlp.Cli -- eval --transcript "..." --prompt <your-prompt> --content content/game-v1`.
 5. Run the whole suite. No test of the core pins the bundle hash (each compares the manifest with the hash computed from the files), so a plain
    edit followed by `hash` needs no literal changed; but the core's tests do read the content, and they tell you what the edit broke:
-   - `GameBundleContractTests` (`tests/Vocaterra.Nlp.Content.Tests`) states what the core relies on: every prompt resolves its answer set, agent and intents, every
+   - `GameBundleContractTests` (`tests/Vocaterra.Nlp.Tests/Content`) states what the core relies on: every prompt resolves its answer set, agent and intents, every
      example resolves to its intent, every agent state machine is closed over the bundle's intents, the dialogue has the pools the planner and the agents name,
      the CEFR lists and the lexicon load. A failure there is a defect in your edit, or a rule the core should change (then it is a core milestone).
    - The fuzz suite (`tests/Vocaterra.Nlp.Fuzzing.Tests`) draws its agents, prompts, grammars and mutation targets from the bundle, so a new kind of grammar or
@@ -225,6 +230,9 @@ Steps:
      ```bash
      VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests
      ```
+
+     A golden of another language (a bundle whose manifest has `"language"`) is read and recorded under `Data/<lang>/` (`GoldenFiles.cs`, M35); the Spanish
+     goldens keep their paths.
    - `tests/Vocaterra.Game.Tests/Fixtures/save-v1.json` is a saved game and carries the bundle hash: after `hash`, put the new `bundleHash` of
      `content/game-v1/manifest.json` into it.
    - The grammar cache (`content/grammar/game-v1-*`, next section) when you added or changed Spanish text.
@@ -322,7 +330,7 @@ protocol, consent text and manifest schema are in [tests/golden/README.md](../..
   their own output folder, and `ThePipelineAgreesWithEveryAnnotation` fails unless the pipeline produces the annotated intent and
   errors for `expectedTranscript`. Use a `promptId` that exists in `content/game-v1/prompts/prompts.json`.
 - **G2P golden lines** are separate: add `{"text": "...", "dialect": "la" | "es", "ipa": "..."}` to
-  `tests/Vocaterra.Nlp.Golden.Tests/Data/g2p-golden.jsonl` (Latin American neutral or Castilian). The IPA is written by hand from a pronunciation
+  `tests/Vocaterra.Nlp.Es.Tests/Data/g2p-golden.jsonl` (Latin American neutral or Castilian; it moved there in M53 with the Spanish G2P). The IPA is written by hand from a pronunciation
   source, not copied from the converter's own output; espeak-ng may be used as a development-time cross-check only.
 - When a model changes, run the benchmark on the same clips before and after and put the numbers in the pull request.
 
@@ -335,7 +343,7 @@ hash and gated in tests ([ADR 0004](adr/0004-model-pinning-and-gating.md)).
    `ISpeechSynthesizer`. Configure it for determinism: one intra-op thread, CPU execution provider, greedy decoding or a fixed
    voice and speed, no sampling, no clock. Expose `ModelHash`. If the runtime has its own sources of variation, remove them as
    `VoskWordRecognizer` does for dithering, and write the finding down (`IMPLEMENTATION_PLAN.md` section 5b). Put the adapter in the
-   project that owns the role (`Vocaterra.Nlp.Asr`, `Vocaterra.Nlp.Pronunciation`, `Vocaterra.Nlp.Language`, `Vocaterra.Nlp.Response`).
+   folder that owns the role (`Asr`, `Pronunciation`, `Language`, `Response`).
 2. **Fake.** Add or extend a deterministic fake for the same interface (`ScriptedWordRecognizer`, `FakePhonemeRecognizer`,
    `FakeEmbeddingModel`, `SilentSynthesizer` are the patterns). Everything else in the test suite uses the fake.
 3. **Manifest entry** in `models/manifest.json`: `id` (also the directory name under `VOCATERRA_MODELS_DIR`), `role`, `name`, `version`,
@@ -350,7 +358,7 @@ hash and gated in tests ([ADR 0004](adr/0004-model-pinning-and-gating.md)).
 5. **Pipeline wiring.** Add the model to `PipelineServices` (or reuse its slot) so its hash appears in `VersionStamp.ModelHashes`
    (`asr`, `phoneme`, `embedding`, `tts`), and to the CLI's `ModelSet` if it should be selectable with `--models`.
 6. **Gating.** Real-model tests must be skipped, not failed, when the model is absent. Follow `ModelGate` and `VoskModelFactAttribute`
-   in `tests/Vocaterra.Nlp.Pipeline.Tests/VoskPipelineTests.cs` (and `tests/Vocaterra.Nlp.Asr.Tests/TestSupport.cs`): skip unless `VOCATERRA_MODELS_DIR` is set and
+   in `tests/Vocaterra.Nlp.Tests/Pipeline/VoskPipelineTests.cs` (and `tests/Vocaterra.Nlp.Tests/Asr/TestSupport.cs`): skip unless `VOCATERRA_MODELS_DIR` is set and
    `ModelStore.Verify(id)` reports the files as ok.
 7. **Golden test.** With the model present, a gated test must show: the same clip decoded twice (in one process, and ideally in two)
    gives identical output; the result equals the recorded expectation for a small committed clip or a synthetic signal; a record
@@ -367,7 +375,16 @@ hash and gated in tests ([ADR 0004](adr/0004-model-pinning-and-gating.md)).
   `using MatchType = Vocaterra.Nlp.Core.Stages.MatchType;`.
 - Inside `Vocaterra.Nlp.Language.*` the namespaces `Vocaterra.Nlp.Language.Lexicon` and `Vocaterra.Nlp.Language.SlotGrammar` share names with the types `Lexicon` and `SlotGrammar`;
   put `using` lines after the file-scoped namespace line or use aliases.
-- The G2P drops digits. Spell numbers out before phonemizing (`SpanishNumbers.DigitsToWords`).
+- The G2P drops digits. Spell numbers out before phonemizing (`bundle.Language.Numbers.DigitsToWords`; the Spanish static is
+  `SpanishNumbers.DigitsToWords` in `Vocaterra.Nlp.Es.Normalization`).
+- Do not name a Spanish type in the engine (`src/Vocaterra.Nlp`): the Spanish pack is the project `src/Vocaterra.Nlp.Es` (M53, ADR 0012), the engine cannot reference it, and
+  `SpanishCallSiteTests` (empty allowlist) and `LayeringTests` (no engine namespace depends on `Vocaterra.Nlp.Es`) enforce it. A host or a tool that loads a Spanish bundle
+  references the Es project and uses `SpanishContent.Load` or `LanguagePacks.Default.WithSpanish()`. Text-side Spanish goes through `bundle.Language` (ADR 0011, amendment M33), and the
+  analysis side (morphology, word classes, agreement checks, template functions, the lexicon fold and profile, error tag ranks) through
+  `bundle.LanguageMorphology`, `bundle.AnalysisRules`, `bundle.TemplateEngine` and the pack (amendment M34). A new use of `SpanishNumbers`,
+  `SpanishPhoneticKey`, `SpanishG2p`, `SpanishTextNormalizer`, `PunctuationFixer`, `WordClasses`, `MorphologyGenerator` or the
+  other names in `tests/Vocaterra.Nlp.Tests/Architecture/SpanishCallSiteTests.cs` in the engine source fails the guard. The allowlist is empty; an entry needs a reason a reviewer accepts. A new lexicon feature value goes into the pack's `LexiconProfile`, not into
+  `LexiconSchema`.
 - `CanonicalJson` rejects `null` for non-nullable members when reading (`RespectNullableAnnotations`); design JSON models with that in mind.
 - A prompt whose `allowedIntentIds` is empty is answer-only: the pipeline skips intent resolution, and an exact, alias or fuzzy answer match
   counts as `communicated`.

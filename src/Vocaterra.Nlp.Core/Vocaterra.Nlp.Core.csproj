@@ -1,7 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <Description>Contracts, determinism primitives and taxonomy of the Vocaterra.NLP language core: verdicts, prompt specs, error tags and replay envelopes.</Description>
-  </PropertyGroup>
-
-</Project>

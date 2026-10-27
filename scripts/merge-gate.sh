@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Orchestrator merge gate for the whole repository (the language core, the Vocaterra.Nlp.* projects, and the game).
+# Orchestrator merge gate for the whole repository (the language core, the engine Vocaterra.Nlp and its Vocaterra.Nlp.* projects, and the game).
 # Usage: scripts/merge-gate.sh "<label>:<branch>" ["<label>:<branch>" ...]
 # Merges each branch into the target branch $GATE_TARGET, a feature branch, never main (owner, 2026-10-23: nothing is merged into or pushed
 # to main; the owner merges feature branches by pull request), with --no-ff (aborting that merge on conflict), then runs the gate on

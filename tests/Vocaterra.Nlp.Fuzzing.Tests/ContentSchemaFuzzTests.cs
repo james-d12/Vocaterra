@@ -2,6 +2,7 @@ using CsCheck;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Fuzzing.Tests.Generation;
 using Vocaterra.Nlp.Fuzzing.Tests.Oracles;
+using Vocaterra.Nlp.Language.Packs;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Nlp.Fuzzing.Tests;
@@ -26,7 +27,7 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
 
     // Almost every damaged copy has the lexicon files of the committed bundle byte for byte (the damage is elsewhere), so the merged lexicon is parsed once.
     // A copy whose lexicon file is damaged has other bytes and is parsed and checked in full; nothing is served from the cache for it.
-    private static readonly ContentLoadOptions LoadOptions = new() { LexiconCache = new LexiconCache() };
+    private static readonly ContentLoadOptions LoadOptions = new() { LexiconCache = new LexiconCache(), LanguagePacks = LanguagePacks.Default.WithSpanish() };
 
     [Fact]
     public void MutatedBundles_AreRejectedWithContentValidationExceptions_NamingTheMutatedFile()
@@ -120,6 +121,75 @@ public sealed class ContentSchemaFuzzTests(ITestOutputHelper output)
 
         Assert.Equal(Harness.Bundle.ContentHash, ContentMutationGen.Shared.BaseHash);
         Assert.NotEmpty(ContentLoader.Load(ContentMutationGen.WithEffects.Directory, LoadOptions).Effects.Effects);
+    }
+
+    // M32: the manifest's language fields. An absent language keeps the committed hash; a present one is part of the hash; the loader resolves a pack for
+    // a registered language and refuses an unregistered or malformed one with a ContentValidationException that names manifest.json.
+    [Fact]
+    public void TheLanguageField_IsPartOfTheHashOnlyWhenPresent_AndAnUnknownLanguageIsRefused()
+    {
+        foreach (var catalog in new[] { ContentMutationGen.Shared, ContentMutationGen.WithEffects })
+        {
+            var directory = catalog.Materialize(null);
+            try
+            {
+                Assert.Equal(catalog.BaseHash, ContentManifest.Compute(directory).BundleHash);
+                var hashes = new HashSet<string>(StringComparer.Ordinal) { catalog.BaseHash };
+                foreach (var tag in new[] { "es", "es-MX", "ES", "de-DE", "xx" })
+                {
+                    var manifest = ContentManifest.Compute(directory, language: tag, supportLanguage: "en");
+                    Assert.True(hashes.Add(manifest.BundleHash), $"language '{tag}' gave a hash that another language (or none) already gave.");
+                    Assert.Equal(manifest, ContentManifest.FromJson(manifest.ToJson()));
+                    Assert.Equal(manifest.BundleHash, ContentManifest.Compute(directory, language: tag).BundleHash);
+                    File.WriteAllText(Path.Combine(directory, ContentPaths.Manifest), manifest.ToJson());
+                    if (tag is "de-DE" or "xx")
+                    {
+                        var ex = Assert.Throws<ContentValidationException>(() => ContentLoader.Load(directory, LoadOptions));
+                        Assert.Contains(ex.Problems, static problem => problem.StartsWith(ContentPaths.Manifest + ": no language pack is registered", StringComparison.Ordinal));
+                        continue;
+                    }
+
+                    var bundle = ContentLoader.Load(directory, LoadOptions);
+                    Assert.Equal("es", bundle.LanguageId);
+                    Assert.Equal(tag, bundle.Manifest.Language);
+                    Assert.Equal(manifest.BundleHash, bundle.ContentHash);
+                }
+            }
+            finally
+            {
+                DeleteQuietly(directory);
+            }
+        }
+    }
+
+    [Fact]
+    public void ARandomLanguageTag_IsResolvedOnlyWhenWellFormedAndSpanish()
+    {
+        var alphabet = "abcxyzESXYZ019_- é".ToCharArray();
+        var tags = Gen.OneOfConst(alphabet).List[0, 10].Select(static chars => new string([.. chars]));
+        tags.Sample(
+            tag =>
+            {
+                var resolved = LanguagePacks.Default.WithSpanish().TryResolve(tag, out var pack);
+                var wellFormed = LanguagePacks.TryGetPrimarySubtag(tag, out var primary);
+                if (resolved && (!wellFormed || primary != "es" || pack.LanguageId != "es"))
+                {
+                    throw Determinism.Fail(Oracle, $"The tag '{tag}' resolved to pack '{pack.LanguageId}' (well-formed: {wellFormed}, primary '{primary}').", tag);
+                }
+
+                if (wellFormed && primary == "es" && !resolved)
+                {
+                    throw Determinism.Fail(Oracle, $"The well-formed Spanish tag '{tag}' did not resolve.", tag);
+                }
+
+                var badSyntax = tag.Contains(' ') || tag.Contains('_') || tag.Contains('é') || tag.StartsWith('-') || tag.EndsWith('-') || tag.Contains("--", StringComparison.Ordinal);
+                if (wellFormed && badSyntax)
+                {
+                    throw Determinism.Fail(Oracle, $"The malformed tag '{tag}' was accepted.", tag);
+                }
+            },
+            writeLine: output.WriteLine,
+            iter: 2000);
     }
 
     private static void CheckMutation(ContentMutation mutation, string directory, ContentMutationGen catalog, FuzzDiagnostics diagnostics)

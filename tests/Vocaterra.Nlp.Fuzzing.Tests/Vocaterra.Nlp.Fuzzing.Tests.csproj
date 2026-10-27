@@ -16,20 +16,15 @@
   <ItemGroup>
     <Using Include="Xunit" />
     <Using Include="Vocaterra.Nlp.Testing" />
+    <Using Include="Vocaterra.Nlp.Es" />
+    <Using Include="Vocaterra.Nlp.Es.Morphology" />
+    <Using Include="Vocaterra.Nlp.Es.Normalization" />
+    <Using Include="Vocaterra.Nlp.Es.Phonology" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/Vocaterra.Nlp.Asr/Vocaterra.Nlp.Asr.csproj" />
-    <ProjectReference Include="../../src/Vocaterra.Nlp.Audio/Vocaterra.Nlp.Audio.csproj" />
-    <ProjectReference Include="../../src/Vocaterra.Nlp.Content/Vocaterra.Nlp.Content.csproj" />
-    <ProjectReference Include="../../src/Vocaterra.Nlp.Core/Vocaterra.Nlp.Core.csproj" />
-    <ProjectReference Include="../../src/Vocaterra.Nlp.Decision/Vocaterra.Nlp.Decision.csproj" />
-    <ProjectReference Include="../../src/Vocaterra.Nlp.Evaluation/Vocaterra.Nlp.Evaluation.csproj" />
-    <ProjectReference Include="../../src/Vocaterra.Nlp.Language/Vocaterra.Nlp.Language.csproj" />
-    <ProjectReference Include="../../src/Vocaterra.Nlp.Phonology/Vocaterra.Nlp.Phonology.csproj" />
-    <ProjectReference Include="../../src/Vocaterra.Nlp.Pipeline/Vocaterra.Nlp.Pipeline.csproj" />
-    <ProjectReference Include="../../src/Vocaterra.Nlp.Pronunciation/Vocaterra.Nlp.Pronunciation.csproj" />
-    <ProjectReference Include="../../src/Vocaterra.Nlp.Response/Vocaterra.Nlp.Response.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp/Vocaterra.Nlp.csproj" />
+    <ProjectReference Include="../../src/Vocaterra.Nlp.Es/Vocaterra.Nlp.Es.csproj" />
   </ItemGroup>
 
   <!-- The bundle (content/game-v1, 38 MB) is found by walking up from the test assembly (Shared/GameBundleLocator.cs), not copied; the model manifest is copied next to it. -->

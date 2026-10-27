@@ -4,6 +4,8 @@
 
 > **Note (M19a, 2026-10-20):** this record names the project `Slg.*` (and the `SLG_*` variables). Those names are now `Vocaterra.Nlp.*` and `VOCATERRA_*` (the old variable names are read for one release); see [ADR 0009](0009-core-and-game-boundary.md). The text below is unchanged.
 
+> **Note (M52, 2026-10-26):** the layering bullet below (the stage libraries and what each depends on) is superseded by [ADR 0012](0012-one-engine-assembly-and-language-packs.md). The stages are folders of one engine assembly, `Vocaterra.Nlp`; the layering is the same and is enforced by `LayeringTests`, not by the compiler. The text below is unchanged.
+
 - Status: accepted
 - Date: 2026-10-20
 - Deciders: repository owner and the implementation plan (`IMPLEMENTATION_PLAN.md` section 1, "Engine")
