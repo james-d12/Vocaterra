@@ -65,6 +65,8 @@ public class AnalysisSideSeamTests
 
         public IRecastPolicy Recast => Spanish.Recast;
 
+        public SampleWords Samples => Spanish.Samples;
+
         public LexiconProfile LexiconProfile => Profile ?? Spanish.LexiconProfile;
 
         public ErrorTagSet ErrorTags => Tags ?? Spanish.ErrorTags;

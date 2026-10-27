@@ -6,6 +6,7 @@ using Vocaterra.Nlp.Language.Normalization;
 using Vocaterra.Nlp.Language.SlotGrammar;
 using Vocaterra.Nlp.Language.Tests.Analysis;
 using Vocaterra.Nlp.Response.Speech;
+using Vocaterra.Nlp.Response.Templates;
 using SlotGrammarType = Vocaterra.Nlp.Language.SlotGrammar.SlotGrammar;
 
 namespace Vocaterra.Nlp.Language.Packs.Tests;
@@ -17,7 +18,7 @@ namespace Vocaterra.Nlp.Language.Packs.Tests;
 public class PackSeamTests
 {
     /// <summary>The Spanish pack with one member replaced; the other members are Spanish.</summary>
-    private sealed class OverriddenPack(GrammarDefaults? grammar = null, IG2p? g2p = null, bool noG2p = false) : ILanguagePack
+    private sealed class OverriddenPack(GrammarDefaults? grammar = null, IG2p? g2p = null, bool noG2p = false, INumberWords? numbers = null) : ILanguagePack
     {
         private static readonly ILanguagePack Spanish = SpanishLanguagePack.Instance;
 
@@ -27,7 +28,7 @@ public class PackSeamTests
 
         public ILexiconFolding Folding => Spanish.Folding;
 
-        public INumberWords Numbers => Spanish.Numbers;
+        public INumberWords Numbers => numbers ?? Spanish.Numbers;
 
         public IPhoneticKey PhoneticKey => Spanish.PhoneticKey;
 
@@ -42,6 +43,8 @@ public class PackSeamTests
         public RepairLines RepairFallback => Spanish.RepairFallback;
 
         public IRecastPolicy Recast => Spanish.Recast;
+
+        public SampleWords Samples => Spanish.Samples;
 
         public Vocaterra.Nlp.Language.Lexicon.LexiconProfile LexiconProfile => Spanish.LexiconProfile;
 
@@ -106,6 +109,44 @@ public class PackSeamTests
         Assert.Equal("Tengo dos espadas", request.Text);
         Assert.Null(request.Phones);
         Assert.NotNull(SpeechRequests.Create("Tengo 2 espadas", "voz", SpanishLanguagePack.Instance).Phones);
+    }
+
+    /// <summary>Number words for 0 to 3 only (a toy language's), which the pack's Spanish members do not use.</summary>
+    private sealed class SmallNumbers : INumberWords
+    {
+        private static readonly string[] Words = ["nu", "ko", "lo", "ri"];
+
+        public int MaxValue => 3;
+
+        public string ToWords(int value) => value is >= 0 and <= 3 ? Words[value] : throw new ArgumentOutOfRangeException(nameof(value), value, "0 to 3 only.");
+
+        public bool TryParse(IReadOnlyList<string> tokens, out int value)
+        {
+            value = Array.IndexOf(Words, tokens.Count == 1 ? tokens[0] : string.Empty);
+            return value >= 0;
+        }
+
+        public bool TryParse(string text, out int value) => TryParse(text.Split(' '), out value);
+
+        public int TryParsePrefix(IReadOnlyList<string> tokens, int start, out int value)
+        {
+            value = start < tokens.Count ? Array.IndexOf(Words, tokens[start]) : -1;
+            return value >= 0 ? 1 : 0;
+        }
+
+        public string DigitsToWords(string text) => text;
+
+        public string Agree(string words, string gender) => words;
+    }
+
+    [Fact]
+    public void ARecastSpellsOnlyTheNumbersThePackCanSpell()
+    {
+        // M35: a digit run above the pack's MaxValue (7 for a language spelled to 3) stays as digits, and does not throw. The 2 is spelled.
+        var pack = new OverriddenPack(numbers: new SmallNumbers());
+        var text = TextNormalizer.Normalize("tengo 2 espadas 7", new NormalizationOptions { NumbersToDigits = false, ConvertIndefiniteArticles = false });
+        var recast = RecastBuilder.Build(text, new AnalysisResult([], [], [], null, 1.0), Vocaterra.Nlp.Language.Lexicon.Lexicon.Empty, pack);
+        Assert.Equal("tengo lo espadas 7", recast);
     }
 
     [Fact]

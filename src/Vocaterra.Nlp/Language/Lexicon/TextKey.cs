@@ -1,4 +1,5 @@
 using System.Text;
+using Vocaterra.Nlp.Language.Normalization;
 
 namespace Vocaterra.Nlp.Language.Lexicon;
 
@@ -8,7 +9,10 @@ namespace Vocaterra.Nlp.Language.Lexicon;
 /// </summary>
 internal static class TextKey
 {
-    /// <summary>Returns the NFC form of the text, lowercased with the invariant culture.</summary>
+    /// <summary>
+    /// Returns the NFC form of the text, lowercased with the invariant culture. A lone surrogate reads as U+FFFD first, so the key of any string is
+    /// computed (NFC throws on a lone surrogate; the pack members are total, as the O1 oracle requires; M35).
+    /// </summary>
     public static string Of(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -24,6 +28,6 @@ internal static class TextKey
             }
         }
 
-        return plain ? text : text.Normalize(NormalizationForm.FormC).ToLowerInvariant();
+        return plain ? text : Utf16.ReplaceLoneSurrogates(text).Normalize(NormalizationForm.FormC).ToLowerInvariant();
     }
 }

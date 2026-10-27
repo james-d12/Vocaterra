@@ -154,7 +154,9 @@ public static class RecastBuilder
         {
             var token = playerText.Tokens[i];
             var span = token.Span;
+            // A digit run the language cannot spell (above INumberWords.MaxValue, which a toy language sets at 3; M35) stays as digits.
             if (!IsSpellableNumber(token.Text, out var value)
+                || value > numbers.MaxValue
                 || span.Start < 0
                 || span.Length <= 0
                 || span.End > playerText.Text.Length

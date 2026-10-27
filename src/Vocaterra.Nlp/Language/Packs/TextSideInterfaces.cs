@@ -109,6 +109,21 @@ public sealed record GrammarDefaults(bool OptionalSubjectPronoun, IReadOnlyList<
 /// <param name="ArticleNumeralHomographs">Words that are both an indefinite article and the numeral one.</param>
 public sealed record LintVocabulary(IReadOnlyList<string> SubjectPronouns, IReadOnlyList<string> PolitePhrase, IReadOnlyList<string> ArticleNumeralHomographs);
 
+/// <summary>
+/// The sample words the content validator fills the slots of a dialogue template with, when it proves the template renders (M35). A slot read as a verb
+/// takes <paramref name="Verb"/>, one read as a number takes the digit 2, and any other slot takes <paramref name="Noun"/>, except the reserved
+/// feedback slots, which take <paramref name="Expected"/>, <paramref name="Actual"/>, <paramref name="Recast"/> and <paramref name="Tag"/>, and the
+/// <c>spell</c> slot, which takes <paramref name="Spell"/>.
+/// </summary>
+/// <param name="Noun">A noun of the language (Spanish: <c>espada</c>).</param>
+/// <param name="Verb">A verb of the language, in its citation form (Spanish: <c>tener</c>).</param>
+/// <param name="Spell">A word to spell (Spanish: <c>fuego</c>).</param>
+/// <param name="Expected">The expected form in a correction line (Spanish: <c>tengo</c>).</param>
+/// <param name="Actual">The form the learner said in a correction line (Spanish: <c>tiene</c>).</param>
+/// <param name="Recast">A short sentence of the language (Spanish: <c>yo tengo dos espadas</c>).</param>
+/// <param name="Tag">An error tag of the language's set (Spanish: <c>gender.agree</c>).</param>
+public sealed record SampleWords(string Noun, string Verb, string Spell, string Expected, string Actual, string Recast, string Tag);
+
 /// <summary>The agent lines of the repair strategy, used when the bundle has no pool for them.</summary>
 /// <param name="AskAgain">The line that asks the player to say it again.</param>
 /// <param name="SlowRepeat">The line that introduces a slower repetition.</param>

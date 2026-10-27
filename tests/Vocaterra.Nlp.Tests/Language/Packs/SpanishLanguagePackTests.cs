@@ -43,12 +43,13 @@ public class SpanishLanguagePackTests
     }
 
     [Fact]
-    public void TheFoldingKeysThrowOnIllFormedTextLikeTheStatics()
+    public void TheFoldingKeysReadALoneSurrogateAsReplacementLikeTheNormalizers()
     {
-        // The lexicon keys are built from normalized text, which has no lone surrogate; the statics have always thrown here and the wrapper does not hide it.
-        Assert.Throws<ArgumentException>(() => TextFolding.Normalize("a\ud800b"));
-        Assert.Throws<ArgumentException>(() => Pack.Folding.Key("a\ud800b"));
-        Assert.Throws<ArgumentException>(() => Pack.Folding.LenientKey("a\ud800b"));
+        // M35: the keys are total (O1 requires every pack member to be, on raw text). They used to throw here, because NFC throws on a lone surrogate;
+        // now a lone surrogate reads as U+FFFD, as Accents.Strip reads it. The pack's keys and the statics agree.
+        Assert.Equal("a�b", TextFolding.Normalize("a\ud800b"));
+        Assert.Equal("a�b", Pack.Folding.Key("a\ud800b"));
+        Assert.Equal(TextFolding.StripAccents("a\ud800b"), Pack.Folding.LenientKey("a\ud800b"));
         Assert.Equal(Accents.Strip("a\ud800b"), Pack.Folding.MatchingKey("a\ud800b"));
     }
 
