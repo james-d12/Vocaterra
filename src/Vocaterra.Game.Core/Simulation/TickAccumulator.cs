@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Simulation;
 
 /// <summary>
 /// Turns real frame time into whole simulation ticks. The front-end owns the clock; the simulation only ever sees "step once". Time is kept

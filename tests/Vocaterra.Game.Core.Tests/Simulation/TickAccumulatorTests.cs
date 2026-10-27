@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Simulation;
-using Vocaterra.Game.Utilities;
 
-namespace Vocaterra.Game.Tests;
+namespace Vocaterra.Game.Core.Tests.Simulation;
 
 public sealed class TickAccumulatorTests
 {

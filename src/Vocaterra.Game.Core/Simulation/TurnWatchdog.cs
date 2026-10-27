@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Simulation;
 
 /// <summary>
 /// The front-end's watchdog on a turn (S7, D-game-9: "a timeout"): when a turn has been "Pensando…" for <see cref="LimitSeconds"/> it fires once, and
