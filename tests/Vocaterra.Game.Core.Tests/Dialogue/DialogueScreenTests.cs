@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Lessons;
@@ -9,11 +8,10 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Game.Input;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 
-namespace Vocaterra.Game.Tests.Screens;
+namespace Vocaterra.Game.Core.Tests.Dialogue;
 
 /// <summary>The dialogue panel's behaviour: T opens the text box and its letter is not typed, Esc undoes the newest thing first, and closing ends the talk.</summary>
 public sealed class DialogueScreenTests
@@ -41,11 +39,11 @@ public sealed class DialogueScreenTests
     {
         var (screen, dialogue, session, _) = Make();
         screen.Open("villager", 't');
-        screen.HandleInput(Pressed(Keys.Escape));
+        screen.HandleInput(Pressed(GameKey.Escape));
         Assert.True(dialogue.IsOpen);
         Assert.False(dialogue.IsTyping);
 
-        screen.HandleInput(Pressed(Keys.Escape));
+        screen.HandleInput(Pressed(GameKey.Escape));
         Assert.False(dialogue.IsOpen);
         Assert.NotEqual("villager", session.CurrentNpc); // the talk ended (the session falls back to the guide)
     }
@@ -86,7 +84,7 @@ public sealed class DialogueScreenTests
         return (screen, dialogue, session, lines);
     }
 
-    private static InputSnapshot Pressed(params Keys[] keys) => new(new KeyboardState(keys), default, new KeyboardState(), false, false, 0);
+    private static TestInputFrame Pressed(params GameKey[] keys) => TestInputFrame.Pressing(keys);
 
     private sealed class SilentOutput : IAudioOutput
     {

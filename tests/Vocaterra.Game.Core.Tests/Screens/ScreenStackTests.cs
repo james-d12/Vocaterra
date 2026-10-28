@@ -1,9 +1,8 @@
-using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Screens;
-using Vocaterra.Game.Input;
+using Vocaterra.Game.Core.Tests.TestSupport;
 
-namespace Vocaterra.Game.Tests.Screens;
+namespace Vocaterra.Game.Core.Tests.Screens;
 
 /// <summary>The screens over the world: the first open one takes the keys, the world has them when none is open, and the report names the open one in its own order.</summary>
 public sealed class ScreenStackTests
@@ -13,7 +12,7 @@ public sealed class ScreenStackTests
     {
         var (mic, check, book) = (new FakeScreen("mic check", freesMouse: true), new FakeScreen("check (pre)", freesMouse: false), new FakeScreen("book", freesMouse: true));
         var stack = new ScreenStack([mic, check, book], [check, mic, book]);
-        var input = new InputSnapshot(new KeyboardState(Keys.Escape), default, new KeyboardState(), false, false, 0);
+        var input = TestInputFrame.Pressing(GameKey.Escape);
 
         Assert.False(stack.HandleInput(input));
         Assert.Null(stack.Top);

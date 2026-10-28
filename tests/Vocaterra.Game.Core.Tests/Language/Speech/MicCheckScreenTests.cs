@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
@@ -7,10 +6,9 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Game.Input;
 using Vocaterra.Nlp.Content;
 
-namespace Vocaterra.Game.Tests.Screens;
+namespace Vocaterra.Game.Core.Tests.Language.Speech;
 
 /// <summary>The mic check's screen: Esc skips it, F8 during a recording counts as nothing heard, and the meter falls back while nothing is recorded.</summary>
 public sealed class MicCheckScreenTests
@@ -23,7 +21,7 @@ public sealed class MicCheckScreenTests
     {
         var screen = Make();
         Assert.True(screen.Active);
-        screen.HandleInput(Pressed(Keys.Escape));
+        screen.HandleInput(Pressed(GameKey.Escape));
         Assert.False(screen.Active);
     }
 
@@ -68,5 +66,5 @@ public sealed class MicCheckScreenTests
 
     private static SoundFrontend Sound() => new(new SoundMixer(new NullSoundOutput(), new SoundVolumes(), new PresentationRng(1)), new SoundEventMapper());
 
-    private static InputSnapshot Pressed(params Keys[] keys) => new(new KeyboardState(keys), default, new KeyboardState(), false, false, 0);
+    private static TestInputFrame Pressed(params GameKey[] keys) => TestInputFrame.Pressing(keys);
 }

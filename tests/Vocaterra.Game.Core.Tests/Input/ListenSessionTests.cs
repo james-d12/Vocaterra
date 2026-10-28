@@ -1,9 +1,8 @@
-using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
-using Vocaterra.Game.Input;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Nlp.Core.Audio;
 
-namespace Vocaterra.Game.Tests.Input;
+namespace Vocaterra.Game.Core.Tests.Input;
 
 /// <summary>Push-to-talk: a recording for one target, ended by its key going up or by the length cap, the level while it runs, and a cancel that sends nothing.</summary>
 public sealed class ListenSessionTests
@@ -20,7 +19,7 @@ public sealed class ListenSessionTests
         Assert.True(listen.Listening);
 
         listen.Pump(1 / 60.0);
-        listen.ReleaseIfUp(Held(Keys.V));
+        listen.ReleaseIfUp(Held(GameKey.V));
         Assert.Empty(heard);
         Assert.Single(levels);
         Assert.True(levels[0] > 0);
@@ -73,7 +72,7 @@ public sealed class ListenSessionTests
         Assert.Empty(heard);
     }
 
-    private static InputSnapshot Held(params Keys[] keys) => new(new KeyboardState(keys), default, new KeyboardState(keys), false, false, 0);
+    private static TestInputFrame Held(params GameKey[] keys) => TestInputFrame.Holding(keys);
 
     private static short[] Tone(double seconds)
     {

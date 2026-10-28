@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Speech;
@@ -9,23 +8,20 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tip;
-using Vocaterra.Game.Input;
-using Vocaterra.Game.UI.Common;
 using Vocaterra.Nlp.Content;
 
-namespace Vocaterra.Game.Tests.Screens;
+namespace Vocaterra.Game.Core.Tests.Language.Book;
 
 /// <summary>The book's behaviour: it takes the keyboard while open, J and Esc close it, and the recap's phrases page waits for a live run.</summary>
 public sealed class BookScreenTests
 {
     private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
     private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-    private static readonly UiCanvas Canvas = new(100, static () => (1280, 720));
 
     [Theory]
-    [InlineData(Keys.J)]
-    [InlineData(Keys.Escape)]
-    public void TheBookTakesTheKeyboardWhileOpenAndJOrEscClosesIt(Keys key)
+    [InlineData(GameKey.J)]
+    [InlineData(GameKey.Escape)]
+    public void TheBookTakesTheKeyboardWhileOpenAndJOrEscClosesIt(GameKey key)
     {
         var (screen, book, focus, _) = Make(scripted: false);
         screen.Open();
@@ -65,9 +61,9 @@ public sealed class BookScreenTests
         return (screen, book, focus, closed);
     }
 
-    private static BookGeometry Geometry() => new(Canvas.Width, Canvas.Height);
+    private static BookGeometry Geometry() => new(1280, 720); // the canvas of a 1280x720 window at 100 % text
 
-    private static InputSnapshot Pressed(params Keys[] keys) => new(new KeyboardState(keys), default, new KeyboardState(), false, false, 0);
+    private static TestInputFrame Pressed(params GameKey[] keys) => TestInputFrame.Pressing(keys);
 
     private sealed class Counter
     {
