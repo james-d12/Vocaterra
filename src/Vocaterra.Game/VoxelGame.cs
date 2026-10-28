@@ -359,7 +359,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             Listen: new DelegateCommand(() =>
             {
                 _dialogueScreen.Open(_aimed!.Name, null);
-                _dialogueScreen.BeginListening(Keys.V);
+                _dialogueScreen.BeginListening(GameKey.V);
             }),
             TypeTo: new DelegateCommand(() => _dialogueScreen.Open(_aimed!.Name, 't')),
             TalkTo: new DelegateCommand(() => _dialogueScreen.Open(_aimed!.Name, 'e')),

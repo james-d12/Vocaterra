@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Nlp.Core.Audio;
 
@@ -18,7 +17,7 @@ public sealed class ListenSession
 {
     private readonly PushToTalkSpeechCapture _capture;
     private ListenTarget? _target;
-    private Keys _key = Keys.None;
+    private GameKey _key = GameKey.None;
 
     /// <summary>Creates push-to-talk over a capture.</summary>
     public ListenSession(PushToTalkSpeechCapture capture) => _capture = capture;
@@ -30,7 +29,7 @@ public sealed class ListenSession
     public string? Problem => _capture.Problem;
 
     /// <summary>Starts a recording for <paramref name="target"/> while <paramref name="key"/> is held. Returns whether it started (else see <see cref="Problem"/>).</summary>
-    public bool Begin(ListenTarget target, Keys key)
+    public bool Begin(ListenTarget target, GameKey key)
     {
         if (!_capture.Begin())
         {
@@ -43,7 +42,7 @@ public sealed class ListenSession
     }
 
     /// <summary>Once a frame, from the keys: the recording ends when its key is no longer held.</summary>
-    public void ReleaseIfUp(InputSnapshot input)
+    public void ReleaseIfUp(IInputFrame input)
     {
         if (_capture.Listening && !input.Down(_key))
         {

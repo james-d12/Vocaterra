@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Input;
 
 namespace Vocaterra.Game.Screens;
@@ -30,7 +31,7 @@ public sealed class ScreenStack
     public bool FreesMouse => _inputOrder.Any(static s => s.IsOpen && s.FreesMouse);
 
     /// <summary>Gives the frame's input to the top screen. Returns whether a screen took it.</summary>
-    public bool HandleInput(InputSnapshot input)
+    public bool HandleInput(IInputFrame input)
     {
         if (Top is not { } top)
         {

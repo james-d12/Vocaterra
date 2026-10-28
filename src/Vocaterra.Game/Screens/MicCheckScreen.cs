@@ -1,5 +1,5 @@
 using FontStashSharp;
-using Microsoft.Xna.Framework.Input;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
@@ -66,11 +66,11 @@ public sealed class MicCheckScreen : IScreen
     public bool FreesMouse => true;
 
     /// <summary>The check's keys: hold V or Space to talk, Enter or Space to go on after a pass, Esc to skip.</summary>
-    public void HandleInput(InputSnapshot input)
+    public void HandleInput(IInputFrame input)
     {
         var check = Model!;
         _listen.ReleaseIfUp(input);
-        if (input.Pressed(Keys.Escape))
+        if (input.Pressed(GameKey.Escape))
         {
             _listen.Cancel();
             check.Skip();
@@ -80,7 +80,7 @@ public sealed class MicCheckScreen : IScreen
         switch (check.Phase)
         {
             case MicCheckPhase.Passed:
-                if (input.Pressed(Keys.Enter) || input.Pressed(Keys.Space))
+                if (input.Pressed(GameKey.Enter) || input.Pressed(GameKey.Space))
                 {
                     check.Continue();
                 }
@@ -88,11 +88,11 @@ public sealed class MicCheckScreen : IScreen
                 break;
             case MicCheckPhase.Ready:
             case MicCheckPhase.Failed:
-                if (input.Pressed(Keys.V) || input.Pressed(Keys.Space))
+                if (input.Pressed(GameKey.V) || input.Pressed(GameKey.Space))
                 {
-                    BeginListening(input.Pressed(Keys.V) ? Keys.V : Keys.Space);
+                    BeginListening(input.Pressed(GameKey.V) ? GameKey.V : GameKey.Space);
                 }
-                else if (input.Pressed(Keys.Enter) && check.Phase == MicCheckPhase.Failed)
+                else if (input.Pressed(GameKey.Enter) && check.Phase == MicCheckPhase.Failed)
                 {
                     check.Retry();
                 }
@@ -176,7 +176,7 @@ public sealed class MicCheckScreen : IScreen
     }
 
     // The talk key went down. The recognizer must be loaded and the machine must have a microphone; otherwise the screen says why.
-    private void BeginListening(Keys key)
+    private void BeginListening(GameKey key)
     {
         var check = Model!;
         var worker = _session.Worker!;

@@ -16,7 +16,7 @@ public sealed class ListenSessionTests
         var listen = new ListenSession(new PushToTalkSpeechCapture(new FakeCapture(Tone(1.0), Tone(0.5))));
         var heard = new List<PcmClip?>();
         var levels = new List<double>();
-        Assert.True(listen.Begin(new ListenTarget(heard.Add, (level, _) => levels.Add(level)), Keys.V));
+        Assert.True(listen.Begin(new ListenTarget(heard.Add, (level, _) => levels.Add(level)), GameKey.V));
         Assert.True(listen.Listening);
 
         listen.Pump(1 / 60.0);
@@ -38,7 +38,7 @@ public sealed class ListenSessionTests
         var seconds = Enumerable.Range(0, 12).Select(_ => Tone(1.0)).ToArray();
         var listen = new ListenSession(new PushToTalkSpeechCapture(new FakeCapture(seconds)));
         var heard = new List<PcmClip?>();
-        Assert.True(listen.Begin(new ListenTarget(heard.Add), Keys.Space));
+        Assert.True(listen.Begin(new ListenTarget(heard.Add), GameKey.Space));
         for (var frame = 0; frame < 12 && heard.Count == 0; frame++)
         {
             listen.Pump(1 / 60.0);
@@ -53,7 +53,7 @@ public sealed class ListenSessionTests
     {
         var listen = new ListenSession(new PushToTalkSpeechCapture(new FakeCapture(Tone(1.0))));
         var heard = new List<PcmClip?>();
-        Assert.True(listen.Begin(new ListenTarget(heard.Add), Keys.V));
+        Assert.True(listen.Begin(new ListenTarget(heard.Add), GameKey.V));
         listen.Pump(1 / 60.0);
         listen.Cancel();
         Assert.False(listen.Listening);
@@ -67,7 +67,7 @@ public sealed class ListenSessionTests
     {
         var listen = new ListenSession(new PushToTalkSpeechCapture(null));
         var heard = new List<PcmClip?>();
-        Assert.False(listen.Begin(new ListenTarget(heard.Add), Keys.V));
+        Assert.False(listen.Begin(new ListenTarget(heard.Add), GameKey.V));
         Assert.Equal(PushToTalkSpeechCapture.NoMicrophone, listen.Problem);
         listen.Pump(1 / 60.0);
         Assert.Empty(heard);

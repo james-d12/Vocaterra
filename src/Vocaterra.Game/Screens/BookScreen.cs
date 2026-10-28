@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Session;
@@ -134,54 +133,54 @@ public sealed class BookScreen : IScreen
     /// move the selection among the rows with a speaker button (the selection is kept on screen); a page with none scrolls a line. Enter plays the
     /// selected row, Shift+Enter its slow recording; P practises the first lesson on offer.
     /// </summary>
-    public void HandleInput(InputSnapshot input)
+    public void HandleInput(IInputFrame input)
     {
-        if (input.Pressed(Keys.Escape) || input.Pressed(Keys.J))
+        if (input.Pressed(GameKey.Escape) || input.Pressed(GameKey.J))
         {
             Close();
             return;
         }
 
-        if (input.Pressed(Keys.Tab))
+        if (input.Pressed(GameKey.Tab))
         {
             _book.Turn(forward: !input.Shift);
         }
-        else if (input.Pressed(Keys.Left))
+        else if (input.Pressed(GameKey.Left))
         {
             _book.Turn(forward: false);
         }
-        else if (input.Pressed(Keys.Right))
+        else if (input.Pressed(GameKey.Right))
         {
             _book.Turn(forward: true);
         }
 
         var geometry = new BookGeometry(_canvas.Width, _canvas.Height);
-        if (input.Shift && (input.Pressed(Keys.Down) || input.Pressed(Keys.Up)))
+        if (input.Shift && (input.Pressed(GameKey.Down) || input.Pressed(GameKey.Up)))
         {
             // Shift with Up or Down scrolls the right page a line (X03); Shift with Page Up or Page Down, a page of it.
-            _book.ScrollDetail(input.Pressed(Keys.Down) ? BookGeometry.LineHeight : -BookGeometry.LineHeight);
+            _book.ScrollDetail(input.Pressed(GameKey.Down) ? BookGeometry.LineHeight : -BookGeometry.LineHeight);
         }
-        else if (input.Shift && (input.Pressed(Keys.PageDown) || input.Pressed(Keys.PageUp)))
+        else if (input.Shift && (input.Pressed(GameKey.PageDown) || input.Pressed(GameKey.PageUp)))
         {
-            _book.ScrollDetail(input.Pressed(Keys.PageDown) ? geometry.DetailHeight : -geometry.DetailHeight);
+            _book.ScrollDetail(input.Pressed(GameKey.PageDown) ? geometry.DetailHeight : -geometry.DetailHeight);
         }
-        else if (input.Pressed(Keys.PageDown))
+        else if (input.Pressed(GameKey.PageDown))
         {
             _book.Scroll(geometry.LinesVisible);
         }
-        else if (input.Pressed(Keys.PageUp))
+        else if (input.Pressed(GameKey.PageUp))
         {
             _book.Scroll(-geometry.LinesVisible);
         }
-        else if (input.Pressed(Keys.Down) || input.Pressed(Keys.Up))
+        else if (input.Pressed(GameKey.Down) || input.Pressed(GameKey.Up))
         {
-            _controls.Move(input.Pressed(Keys.Down) ? 1 : -1, geometry.LinesVisible);
+            _controls.Move(input.Pressed(GameKey.Down) ? 1 : -1, geometry.LinesVisible);
         }
-        else if (input.Pressed(Keys.Enter))
+        else if (input.Pressed(GameKey.Enter))
         {
             _ = _controls.Enter(input.Shift);
         }
-        else if (input.Pressed(Keys.P) && _controls.PractiseFirst(geometry) is { } practise)
+        else if (input.Pressed(GameKey.P) && _controls.PractiseFirst(geometry) is { } practise)
         {
             PractiseAgain(practise);
         }
@@ -191,10 +190,10 @@ public sealed class BookScreen : IScreen
     /// The book's mouse: the wheel scrolls the right page when the pointer is over it (X03) and the list otherwise (three lines a notch, up for a
     /// turn up); a click on a tab turns to that page, and a click on a row's speaker, a verb or a practise button presses it.
     /// </summary>
-    public void HandleMouse(InputSnapshot input)
+    public void HandleMouse(IInputFrame input)
     {
         var geometry = new BookGeometry(_canvas.Width, _canvas.Height);
-        var (x, y) = (input.MouseState.X, input.MouseState.Y);
+        var (x, y) = (input.PointerX, input.PointerY);
         if (input.Wheel != 0)
         {
             var notchLines = -(int)Math.Round(input.Wheel / 40.0);

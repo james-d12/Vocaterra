@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Input;
 
 namespace Vocaterra.Game.Screens;
@@ -15,5 +16,5 @@ public interface IScreen
     bool FreesMouse { get; }
 
     /// <summary>The frame's keys (and, for some, the wheel) while the screen is the top one.</summary>
-    void HandleInput(InputSnapshot input);
+    void HandleInput(IInputFrame input);
 }

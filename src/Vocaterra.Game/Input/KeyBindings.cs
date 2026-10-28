@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
 
 namespace Vocaterra.Game.Input;
@@ -7,7 +6,7 @@ namespace Vocaterra.Game.Input;
 /// <param name="Key">The key.</param>
 /// <param name="Command">What it runs.</param>
 /// <param name="When">The condition, or <see langword="null"/> for always.</param>
-public sealed record KeyBinding(Keys Key, IGameCommand Command, Func<bool>? When = null);
+public sealed record KeyBinding(GameKey Key, IGameCommand Command, Func<bool>? When = null);
 
 /// <summary>
 /// The game's keys as commands (the command pattern): the global keys, each one on its own, and the world's keys, of which the first that
@@ -26,11 +25,11 @@ public sealed class KeyBindings
     /// <param name="playtest">Whether the run is a playtest (F3 is off there).</param>
     public static KeyBindings Global(GameCommands commands, bool playtest) => new(
     [
-        new(Keys.F10, commands.EndPlaytest),
-        new(Keys.F5, commands.ToggleView),
-        new(Keys.F6, commands.Save),
-        new(Keys.F9, commands.CycleTextSize),
-        new(Keys.F3, commands.ToggleDebug, () => !playtest),
+        new(GameKey.F10, commands.EndPlaytest),
+        new(GameKey.F5, commands.ToggleView),
+        new(GameKey.F6, commands.Save),
+        new(GameKey.F9, commands.CycleTextSize),
+        new(GameKey.F3, commands.ToggleDebug, () => !playtest),
     ]);
 
     /// <summary>The world's keys when no screen is open, in their order: the first that applies runs.</summary>
@@ -40,21 +39,21 @@ public sealed class KeyBindings
     /// <param name="atWorkbench">Whether the crosshair is on the workbench.</param>
     public static KeyBindings World(GameCommands commands, Func<bool> aimedAtNpc, Func<bool> tipShown, Func<bool> atWorkbench) => new(
     [
-        new(Keys.V, commands.Listen, aimedAtNpc),
-        new(Keys.T, commands.TypeTo, aimedAtNpc),
-        new(Keys.E, commands.TalkTo, aimedAtNpc),
-        new(Keys.F1, commands.OpenControls),
-        new(Keys.Enter, commands.NextTip, tipShown),
-        new(Keys.J, commands.OpenBook),
-        new(Keys.C, commands.OpenCrafting),
-        new(Keys.E, commands.OpenCrafting, atWorkbench),
-        new(Keys.I, commands.OpenInventory),
-        new(Keys.E, commands.OpenInventory),
-        new(Keys.Escape, commands.ReleaseMouse),
+        new(GameKey.V, commands.Listen, aimedAtNpc),
+        new(GameKey.T, commands.TypeTo, aimedAtNpc),
+        new(GameKey.E, commands.TalkTo, aimedAtNpc),
+        new(GameKey.F1, commands.OpenControls),
+        new(GameKey.Enter, commands.NextTip, tipShown),
+        new(GameKey.J, commands.OpenBook),
+        new(GameKey.C, commands.OpenCrafting),
+        new(GameKey.E, commands.OpenCrafting, atWorkbench),
+        new(GameKey.I, commands.OpenInventory),
+        new(GameKey.E, commands.OpenInventory),
+        new(GameKey.Escape, commands.ReleaseMouse),
     ]);
 
     /// <summary>Runs every binding whose key went down this frame and whose condition holds, in order.</summary>
-    public void RunEvery(InputSnapshot input)
+    public void RunEvery(IInputFrame input)
     {
         foreach (var binding in Bindings)
         {
@@ -66,7 +65,7 @@ public sealed class KeyBindings
     }
 
     /// <summary>Runs the first binding whose key went down this frame and whose condition holds. Returns whether one ran.</summary>
-    public bool RunFirst(InputSnapshot input)
+    public bool RunFirst(IInputFrame input)
     {
         foreach (var binding in Bindings)
         {
@@ -80,5 +79,5 @@ public sealed class KeyBindings
         return false;
     }
 
-    private static bool Applies(KeyBinding binding, InputSnapshot input) => input.Pressed(binding.Key) && (binding.When?.Invoke() ?? true);
+    private static bool Applies(KeyBinding binding, IInputFrame input) => input.Pressed(binding.Key) && (binding.When?.Invoke() ?? true);
 }

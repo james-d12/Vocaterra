@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
 
 namespace Vocaterra.Game.Input;
@@ -10,6 +11,6 @@ public static class BookItemUse
     /// <param name="captured">Whether the mouse is captured (the world has the input).</param>
     /// <param name="bookOpen">Whether the book is already open.</param>
     /// <param name="selected">The hotbar's selected stack.</param>
-    public static bool Applies(InputSnapshot input, bool captured, bool bookOpen, ItemStack selected) =>
+    public static bool Applies(IInputFrame input, bool captured, bool bookOpen, ItemStack selected) =>
         captured && input.RightClicked && !bookOpen && selected is { Item: ItemId.Book, Count: > 0 };
 }

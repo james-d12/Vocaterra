@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Session;
@@ -61,9 +60,9 @@ public sealed class InventoryPanel : IScreen
     }
 
     /// <summary>The panel's keys while it is open: Esc, I or E closes it.</summary>
-    public void HandleInput(InputSnapshot input)
+    public void HandleInput(IInputFrame input)
     {
-        if (input.Pressed(Keys.Escape) || input.Pressed(Keys.I) || input.Pressed(Keys.E))
+        if (input.Pressed(GameKey.Escape) || input.Pressed(GameKey.I) || input.Pressed(GameKey.E))
         {
             Close();
         }

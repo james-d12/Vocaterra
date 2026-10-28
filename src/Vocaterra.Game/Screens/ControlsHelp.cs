@@ -1,4 +1,4 @@
-using Microsoft.Xna.Framework.Input;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Input;
 
 namespace Vocaterra.Game.Screens;
@@ -28,16 +28,16 @@ public sealed class ControlsHelp : IScreen
     public void Open() => IsOpen = true;
 
     /// <summary>The help's keys and wheel while it is open.</summary>
-    public void HandleInput(InputSnapshot input)
+    public void HandleInput(IInputFrame input)
     {
-        if (input.Pressed(Keys.Escape) || input.Pressed(Keys.F1))
+        if (input.Pressed(GameKey.Escape) || input.Pressed(GameKey.F1))
         {
             IsOpen = false;
             Scroll = 0;
             return;
         }
 
-        var step = (input.Pressed(Keys.Down) ? 1 : 0) - (input.Pressed(Keys.Up) ? 1 : 0) + (input.Pressed(Keys.PageDown) ? 5 : 0) - (input.Pressed(Keys.PageUp) ? 5 : 0);
+        var step = (input.Pressed(GameKey.Down) ? 1 : 0) - (input.Pressed(GameKey.Up) ? 1 : 0) + (input.Pressed(GameKey.PageDown) ? 5 : 0) - (input.Pressed(GameKey.PageUp) ? 5 : 0);
         var wheelNotches = -(int)Math.Round(input.Wheel / 120.0);
         Scroll = Math.Clamp(Scroll + step + wheelNotches, 0, _maxScroll());
     }

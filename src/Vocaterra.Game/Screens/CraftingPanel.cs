@@ -1,4 +1,4 @@
-using Microsoft.Xna.Framework.Input;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
@@ -60,19 +60,19 @@ public sealed class CraftingPanel : IScreen
     public void Close() => _crafting.Close();
 
     /// <summary>The panel's keys while it is open: Esc or C closes it.</summary>
-    public void HandleInput(InputSnapshot input)
+    public void HandleInput(IInputFrame input)
     {
-        if (input.Pressed(Keys.Escape) || input.Pressed(Keys.C))
+        if (input.Pressed(GameKey.Escape) || input.Pressed(GameKey.C))
         {
             Close();
         }
     }
 
     /// <summary>A click on a row of the open panel asks for one craft of its recipe in the next tick.</summary>
-    public void Click(InputSnapshot input)
+    public void Click(IInputFrame input)
     {
         var layout = new CraftingLayout(_canvas.Width, _canvas.Height, _session.Recipes.Entries.Count);
-        if (layout.RowAt(input.MouseState.X, input.MouseState.Y) is not { } row)
+        if (layout.RowAt(input.PointerX, input.PointerY) is not { } row)
         {
             return;
         }

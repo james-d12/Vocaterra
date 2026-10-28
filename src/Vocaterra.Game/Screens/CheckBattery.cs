@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Speech;
@@ -36,7 +35,7 @@ public sealed class CheckBattery : IScreen
     /// <summary>The frames a post- or recall-check's thank-you screen stays up before the run ends (outside a playtest).</summary>
     public const int EndFrames = 90;
 
-    private static readonly (Keys Key, Keys Pad)[] OptionKeys = [(Keys.D1, Keys.NumPad1), (Keys.D2, Keys.NumPad2), (Keys.D3, Keys.NumPad3)];
+    private static readonly (GameKey Key, GameKey Pad)[] OptionKeys = [(GameKey.D1, GameKey.NumPad1), (GameKey.D2, GameKey.NumPad2), (GameKey.D3, GameKey.NumPad3)];
 
     private readonly VoxelSession _session;
     private readonly Func<SessionLog?> _log;
@@ -176,10 +175,10 @@ public sealed class CheckBattery : IScreen
     /// The keys of the battery: the comprehension items (1 to 3, R to hear the line again), the production items (V held to speak, W to type,
     /// Enter to send, N for no sé) and Esc (end the battery; the rest is skipped, and an answer in the air is waited for).
     /// </summary>
-    public void HandleInput(InputSnapshot input)
+    public void HandleInput(IInputFrame input)
     {
         var check = Screen!;
-        if (input.Pressed(Keys.Escape))
+        if (input.Pressed(GameKey.Escape))
         {
             if (check.IsTyping)
             {
@@ -213,7 +212,7 @@ public sealed class CheckBattery : IScreen
                 }
             }
 
-            if (input.Pressed(Keys.R))
+            if (input.Pressed(GameKey.R))
             {
                 PlayLine(entry);
             }
@@ -223,14 +222,14 @@ public sealed class CheckBattery : IScreen
 
         if (check.IsTyping)
         {
-            if (input.Pressed(Keys.Enter))
+            if (input.Pressed(GameKey.Enter))
             {
                 if (!check.Entry.IsBlank)
                 {
                     SubmitTyped(check.Entry.Text);
                 }
             }
-            else if (input.Pressed(Keys.Back))
+            else if (input.Pressed(GameKey.Back))
             {
                 _ = check.Entry.Backspace();
             }
@@ -244,19 +243,19 @@ public sealed class CheckBattery : IScreen
             return;
         }
 
-        if (input.Pressed(Keys.V))
+        if (input.Pressed(GameKey.V))
         {
             BeginListening();
         }
-        else if (input.Pressed(Keys.W) || input.Pressed(Keys.Tab))
+        else if (input.Pressed(GameKey.W) || input.Pressed(GameKey.Tab))
         {
             check.IsTyping = true;
-            if (input.Pressed(Keys.W))
+            if (input.Pressed(GameKey.W))
             {
                 _swallow.Arm('w'); // the platform types the key once more: the text event must not take it
             }
         }
-        else if (input.Pressed(Keys.N))
+        else if (input.Pressed(GameKey.N))
         {
             SubmitDontKnow();
         }
@@ -374,7 +373,7 @@ public sealed class CheckBattery : IScreen
             return;
         }
 
-        if (_listen.Begin(new ListenTarget(Heard), Keys.V))
+        if (_listen.Begin(new ListenTarget(Heard), GameKey.V))
         {
             check.Listening = true;
             check.Notice = null;

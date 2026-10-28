@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
 
 namespace Vocaterra.Game.Input;
@@ -19,6 +18,6 @@ public sealed class TextEditKeys
     private readonly KeyRepeater _right = new();
 
     /// <summary>One frame of the editing keys: each one fires when it goes down and again while it is held, at the repeat's rate.</summary>
-    public TextEdits Step(KeyboardState keys) =>
-        new(_backspace.Step(keys.IsKeyDown(Keys.Back)), _delete.Step(keys.IsKeyDown(Keys.Delete)), _left.Step(keys.IsKeyDown(Keys.Left)), _right.Step(keys.IsKeyDown(Keys.Right)));
+    public TextEdits Step(IInputFrame keys) =>
+        new(_backspace.Step(keys.Down(GameKey.Back)), _delete.Step(keys.Down(GameKey.Delete)), _left.Step(keys.Down(GameKey.Left)), _right.Step(keys.Down(GameKey.Right)));
 }

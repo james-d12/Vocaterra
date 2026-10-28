@@ -1,6 +1,5 @@
 using System.Globalization;
 using FontStashSharp;
-using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
@@ -25,17 +24,17 @@ namespace Vocaterra.Game.Screens;
 /// </summary>
 public sealed class DialogueScreen : IScreen
 {
-    private static readonly (Keys Key, PanelKey Panel)[] PanelKeys =
+    private static readonly (GameKey Key, PanelKey Panel)[] PanelKeys =
     [
-        (Keys.R, PanelKey.R), (Keys.S, PanelKey.S), (Keys.H, PanelKey.H), (Keys.N, PanelKey.N), (Keys.W, PanelKey.W), (Keys.Tab, PanelKey.Tab),
-        (Keys.D1, PanelKey.D1), (Keys.D2, PanelKey.D2), (Keys.D3, PanelKey.D3), (Keys.NumPad1, PanelKey.D1), (Keys.NumPad2, PanelKey.D2), (Keys.NumPad3, PanelKey.D3),
+        (GameKey.R, PanelKey.R), (GameKey.S, PanelKey.S), (GameKey.H, PanelKey.H), (GameKey.N, PanelKey.N), (GameKey.W, PanelKey.W), (GameKey.Tab, PanelKey.Tab),
+        (GameKey.D1, PanelKey.D1), (GameKey.D2, PanelKey.D2), (GameKey.D3, PanelKey.D3), (GameKey.NumPad1, PanelKey.D1), (GameKey.NumPad2, PanelKey.D2), (GameKey.NumPad3, PanelKey.D3),
     ];
 
-    private static readonly (Keys Key, LessonKey Lesson)[] LessonKeys =
+    private static readonly (GameKey Key, LessonKey Lesson)[] LessonKeys =
     [
-        (Keys.Enter, LessonKey.Enter), (Keys.K, LessonKey.K), (Keys.L, LessonKey.L), (Keys.M, LessonKey.M),
-        (Keys.D1, LessonKey.D1), (Keys.D2, LessonKey.D2), (Keys.D3, LessonKey.D3), (Keys.D4, LessonKey.D4),
-        (Keys.NumPad1, LessonKey.D1), (Keys.NumPad2, LessonKey.D2), (Keys.NumPad3, LessonKey.D3), (Keys.NumPad4, LessonKey.D4),
+        (GameKey.Enter, LessonKey.Enter), (GameKey.K, LessonKey.K), (GameKey.L, LessonKey.L), (GameKey.M, LessonKey.M),
+        (GameKey.D1, LessonKey.D1), (GameKey.D2, LessonKey.D2), (GameKey.D3, LessonKey.D3), (GameKey.D4, LessonKey.D4),
+        (GameKey.NumPad1, LessonKey.D1), (GameKey.NumPad2, LessonKey.D2), (GameKey.NumPad3, LessonKey.D3), (GameKey.NumPad4, LessonKey.D4),
     ];
 
     private readonly DialogueModel _dialogue;
@@ -149,10 +148,10 @@ public sealed class DialogueScreen : IScreen
     /// Enter presses the Escribir button when typing is on offer; in the typing mode Enter sends, Tab or Esc go back to the buttons and the editing
     /// keys repeat. Esc undoes the newest thing first: a recording, a turn that is thinking, the typing mode, and last the panel itself.
     /// </summary>
-    public void HandleInput(InputSnapshot input)
+    public void HandleInput(IInputFrame input)
     {
         _listen.ReleaseIfUp(input);
-        if (input.Pressed(Keys.Escape))
+        if (input.Pressed(GameKey.Escape))
         {
             if (_listen.Listening)
             {
@@ -177,19 +176,19 @@ public sealed class DialogueScreen : IScreen
 
         if (_dialogue.IsTyping)
         {
-            if (input.Pressed(Keys.Tab))
+            if (input.Pressed(GameKey.Tab))
             {
                 _dialogue.EndTyping();
                 return;
             }
 
-            if (input.Pressed(Keys.Enter))
+            if (input.Pressed(GameKey.Enter))
             {
                 _dialogue.RequestSubmit();
             }
 
             var entry = _dialogue.Entry;
-            var edits = _textEdits.Step(input.KeyboardState);
+            var edits = _textEdits.Step(input);
             if (edits.Backspace)
             {
                 _ = entry.Backspace();
@@ -222,13 +221,13 @@ public sealed class DialogueScreen : IScreen
             }
         }
 
-        if (input.Pressed(Keys.V) || input.Pressed(Keys.Space))
+        if (input.Pressed(GameKey.V) || input.Pressed(GameKey.Space))
         {
-            BeginListening(input.Pressed(Keys.V) ? Keys.V : Keys.Space);
+            BeginListening(input.Pressed(GameKey.V) ? GameKey.V : GameKey.Space);
             return;
         }
 
-        if (input.Pressed(Keys.Enter) && _dialogue.TypingOffered)
+        if (input.Pressed(GameKey.Enter) && _dialogue.TypingOffered)
         {
             Perform(SpeechAction.Type, null);
             return;
@@ -286,7 +285,7 @@ public sealed class DialogueScreen : IScreen
     }
 
     /// <summary>The microphone: the key went down. The worker must have the recognizer, the machine a microphone; otherwise the panel says why.</summary>
-    public void BeginListening(Keys key)
+    public void BeginListening(GameKey key)
     {
         var worker = _session.Worker!;
         if (!_dialogue.IsOpen)

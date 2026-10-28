@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework.Input;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Screens;
 
@@ -53,6 +54,6 @@ public sealed class ScreenStackTests
 
         public int Inputs { get; private set; }
 
-        public void HandleInput(InputSnapshot input) => Inputs++;
+        public void HandleInput(IInputFrame input) => Inputs++;
     }
 }

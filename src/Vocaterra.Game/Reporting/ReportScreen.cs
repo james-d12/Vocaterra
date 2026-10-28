@@ -146,7 +146,7 @@ public sealed class ReportScreen
     /// </summary>
     public void HandleInput(InputSnapshot input)
     {
-        var edits = _textEdits.Step(input.KeyboardState);
+        var edits = _textEdits.Step(input);
         if (edits.Backspace)
         {
             _ = Panel.Press(ReportKey.Backspace);
