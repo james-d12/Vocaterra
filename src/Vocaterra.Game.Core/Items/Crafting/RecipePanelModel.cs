@@ -1,7 +1,7 @@
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Items.Crafting;
 
 /// <summary>
 /// The workbench's recipe panel (S15, reference C): the item the recipe makes at the top, and below it the ingredients, each as an icon with its <c>have/need</c>

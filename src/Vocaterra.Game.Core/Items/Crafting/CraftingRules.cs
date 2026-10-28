@@ -1,40 +1,6 @@
-using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Core.Items;
 
-namespace Vocaterra.Game.Core.Items;
-
-/// <summary>An ingredient of a recipe: a number of one item kind.</summary>
-/// <param name="Item">The item kind.</param>
-/// <param name="Count">How many are used up (positive).</param>
-public readonly record struct Ingredient(ItemId Item, int Count);
-
-/// <summary>
-/// A crafting recipe as plain values. The game layer reads them from the bundle's <c>game/recipes.json</c> and hands them to the simulation,
-/// which has no JSON and no packages; the numbers live in the data, never in code.
-/// </summary>
-/// <param name="Output">The item made.</param>
-/// <param name="OutputCount">How many of it one craft gives (positive).</param>
-/// <param name="Ingredients">What one craft uses up.</param>
-/// <param name="Station">The placed block kind (the workbench is <see cref="BlockId.Table"/>) that must be within reach, or <see langword="null"/> when the hands do.</param>
-public sealed record Recipe(ItemId Output, int OutputCount, IReadOnlyList<Ingredient> Ingredients, BlockId? Station);
-
-/// <summary>Why a craft did or did not happen.</summary>
-public enum CraftResult
-{
-    /// <summary>The craft happened (or, for a query, can happen).</summary>
-    Done = 0,
-
-    /// <summary>The recipe index is not in the recipe list.</summary>
-    NoSuchRecipe = 1,
-
-    /// <summary>The inventory lacks an ingredient.</summary>
-    MissingIngredients = 2,
-
-    /// <summary>The recipe needs a station and none is within reach.</summary>
-    MissingStation = 3,
-
-    /// <summary>The output would not fit after the ingredients are taken out.</summary>
-    InventoryFull = 4,
-}
+namespace Vocaterra.Game.Core.Items.Crafting;
 
 /// <summary>The pure crafting rule over an inventory: no world, no clock, integer arithmetic.</summary>
 public static class CraftingRules

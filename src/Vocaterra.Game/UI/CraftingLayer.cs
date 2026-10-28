@@ -1,6 +1,7 @@
 using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Graphics;
 
 namespace Vocaterra.Game.UI;

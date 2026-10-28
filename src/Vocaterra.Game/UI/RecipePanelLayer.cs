@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics;
 

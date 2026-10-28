@@ -1,31 +1,11 @@
 using System.Text;
 using System.Text.Json;
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Nlp.Content;
 
-namespace Vocaterra.Game.Core.Items;
-
-/// <summary>One ingredient of a recipe with the noun that names it.</summary>
-/// <param name="Noun">The catalogue noun of the ingredient (<c>madera</c>).</param>
-/// <param name="Item">The item kind it stands for.</param>
-/// <param name="Count">How many one craft uses.</param>
-public sealed record RecipeIngredient(NounEntry Noun, ItemId Item, int Count);
-
-/// <summary>
-/// One recipe as the game knows it: the nouns for the guide and the panel, and the plain <see cref="Rule"/> the simulation crafts with.
-/// </summary>
-/// <param name="Output">The noun of the item made (<c>mesa</c>).</param>
-/// <param name="OutputCount">How many one craft gives.</param>
-/// <param name="Ingredients">What one craft uses up, in the file's order.</param>
-/// <param name="Station">The noun of the station (<c>mesa</c>), or <see langword="null"/> when the hands do.</param>
-/// <param name="Rule">The simulation's value for the same recipe.</param>
-public sealed record RecipeEntry(
-    NounEntry Output,
-    int OutputCount,
-    IReadOnlyList<RecipeIngredient> Ingredients,
-    NounEntry? Station,
-    Recipe Rule);
+namespace Vocaterra.Game.Core.Items.Crafting;
 
 /// <summary>
 /// The crafting recipes of the bundle: the host-owned file <c>game/recipes.json</c> (read with the bytes the load hashed against the

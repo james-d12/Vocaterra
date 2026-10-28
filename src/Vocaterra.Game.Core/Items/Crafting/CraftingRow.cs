@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Items;
 
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Items.Crafting;
 
 /// <summary>One line of the crafting panel: a recipe, what the player has of each ingredient and whether it can be made now.</summary>
 /// <param name="Index">The recipe's index in the book and the simulation (the argument of <c>PlayerCommand.Craft</c>).</param>

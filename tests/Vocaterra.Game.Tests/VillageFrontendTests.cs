@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Session;

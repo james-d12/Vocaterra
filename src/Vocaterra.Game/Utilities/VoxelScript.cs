@@ -1,6 +1,7 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;

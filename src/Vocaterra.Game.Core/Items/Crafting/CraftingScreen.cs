@@ -1,8 +1,7 @@
-using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Simulation;
 
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Items.Crafting;
 
 /// <summary>
 /// The crafting panel (key C): open or closed, its rows and the words it shows. Opening it counts each shown noun as read once (the same rule

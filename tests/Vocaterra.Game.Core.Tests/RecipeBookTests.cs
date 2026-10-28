@@ -1,4 +1,4 @@
-using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Tests;

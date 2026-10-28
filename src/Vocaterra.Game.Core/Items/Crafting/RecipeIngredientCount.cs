@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Items;
 
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Items.Crafting;
 
 /// <summary>One ingredient of the workbench's recipe panel (S15): its icon's item and how many the player has of the number the recipe needs.</summary>
 /// <param name="Item">The ingredient.</param>
