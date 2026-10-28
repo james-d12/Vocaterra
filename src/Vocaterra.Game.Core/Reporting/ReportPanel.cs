@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Input;
-using Vocaterra.Game.Core.Reporting;
 
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Reporting;
 
 /// <summary>
 /// The report panel's state (S21, D-game-17) as plain logic: whether it is open (or about to be, after F8), the kind, the text, and what the keys

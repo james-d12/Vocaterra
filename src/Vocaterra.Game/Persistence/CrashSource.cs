@@ -1,9 +1,9 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Physics;
+using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.UI;
 using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game.Persistence;

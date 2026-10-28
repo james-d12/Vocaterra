@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Reporting;
 
 /// <summary>The keys the report panel takes (S21), named by what they do; the game maps the keyboard to them.</summary>
 public enum ReportKey

@@ -1,7 +1,7 @@
 using System.Text;
 using Vocaterra.Game.Core.Input;
 
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Reporting;
 
 /// <summary>
 /// The multi-line text box of the report panel as plain logic (S21): the text with a caret, edited by characters and the editing keys. A new line

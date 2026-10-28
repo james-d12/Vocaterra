@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Reporting;
 
 /// <summary>What a key or a click asks of the game (S21): nothing, save the report, or drop it.</summary>
 public enum ReportOutcome

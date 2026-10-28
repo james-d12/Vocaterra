@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Reporting;
 
 /// <summary>
 /// Breaks a text into the rows the box shows (S21): each logical line is split where it no longer fits, at a space when there is one. A row is a

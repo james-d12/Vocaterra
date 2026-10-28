@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Reporting;
 
 /// <summary>The clickable parts of the report panel (S21).</summary>
 public enum ReportButton
