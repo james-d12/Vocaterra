@@ -3,17 +3,6 @@ using Vocaterra.Game.Core.Language.Checks;
 namespace Vocaterra.Game.Utilities;
 
 /// <summary>
-/// What the scripted check asks of the game around it: pick an option, send a typed or a spoken answer, take a screenshot. The game supplies
-/// these (the check screen, the worker and the back buffer are its), so the script stays free of the engine.
-/// </summary>
-/// <param name="Pick">Picks the option at the position given (1 to 3, as shown).</param>
-/// <param name="Typed">Sends the line as a typed production answer.</param>
-/// <param name="Speak">Synthesizes the line and sends it as a spoken production answer.</param>
-/// <param name="TakeShot">Asks for a screenshot of the next drawn frame.</param>
-/// <param name="ShotPending">Whether the last requested screenshot has not been saved yet.</param>
-public sealed record CheckScriptHooks(Action<int> Pick, Action<string> Typed, Action<string> Speak, Action<string> TakeShot, Func<bool> ShotPending);
-
-/// <summary>
 /// The scripted answers of a check battery (<c>--check</c> with <c>--pick</c>, <c>--say</c>, <c>--speak</c> and <c>--shot</c> steps; S11). It takes
 /// the script's steps in order while the battery runs: a pick answers a comprehension item, a say or a speak answers a production item, a shot
 /// saves the screen and a wait waits. It stops (<see cref="Rests"/>) at a step that is not a check step, or at the end of the steps, or when the
