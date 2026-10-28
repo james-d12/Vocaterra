@@ -164,7 +164,7 @@ Content edits (game): scripts/content.sh validate, then scripts/content.sh hash 
 wrapper if the sandbox refuses the word), validate again, cefr-check at a1 and a2 for new templates; keep the Wiktionary notice in
 ATTRIBUTION.md. One bundle since R02, so a game content edit also runs the core suite: after hash, run the whole test suite (a failing core test is the signal that the edit broke
 something the core relies on), re-record the end-to-end goldens if the edit moved them (VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests),
-put the new bundleHash into tests/Vocaterra.Game.Tests/Fixtures/save-v1.json, and keep cefr-check clean. No core test pins the hash itself.
+put the new bundleHash into tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json, and keep cefr-check clean. No core test pins the hash itself.
 Deliverables: <numbered list>.
 Gate (from the repository root, each through scripts/limited.sh): dotnet build Vocaterra.sln -warnaserror -m:4 (0 warnings); dotnet test
 Vocaterra.sln -m:2 (<current count> passed); dotnet format Vocaterra.sln --verify-no-changes clean; scripts/content.sh validate passes; <core: bash scripts/license-scan.sh

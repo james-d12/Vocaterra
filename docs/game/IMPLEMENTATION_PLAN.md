@@ -360,7 +360,7 @@ the owner-approved plan of 2026-10-23 (the flatten, then one bundle).
   hears `a dónde está la árbol` for the synthesized `dónde está la árbol` and expects the latter. It fails identically on the pre-move
   commit `e0ab15a`; model-gated tests are skipped in agent runs without `VOCATERRA_MODELS_DIR`, so it went unnoticed. To be fixed in its
   own game milestone (the constrained grammar now offers `a dónde`; decide whether the test or the recognizer's phrase set is wrong).
-- `tests/Vocaterra.Game.Tests/Fixtures/save-v1.json` stores the game-v1 bundle hash: every bundle re-hash must update it, or two save
+- `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json` stores the game-v1 bundle hash: every bundle re-hash must update it, or two save
   tests fail.
 - `.github/workflows-pending/ci.yml` still uses the old `nlp/` paths (left untouched; the CI milestone rewrites it).
 
