@@ -1,8 +1,8 @@
 using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
+using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Input;
-using Vocaterra.Game.UI;
 
 namespace Vocaterra.Game.Screens;
 

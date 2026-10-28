@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Language.Words;
 
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Items;
 
 /// <summary>
 /// The inventory screen (I or E): open or closed, and the words it shows. Opening it counts each shown item's word as read once (the journal's
