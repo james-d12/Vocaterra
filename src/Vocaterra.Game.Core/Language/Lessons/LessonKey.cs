@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Language.Lessons;
 
 /// <summary>The keys of the lesson strip, without the engine's key type (the game maps its keys to these).</summary>
 public enum LessonKey

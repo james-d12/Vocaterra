@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
+using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;

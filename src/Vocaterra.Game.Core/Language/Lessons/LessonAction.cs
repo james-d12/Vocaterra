@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Language.Lessons;
 
 /// <summary>What a button of the lesson strip does (S16). The strip's mouse hit-test, its keys and the code that carries them out all use these.</summary>
 public enum LessonAction
