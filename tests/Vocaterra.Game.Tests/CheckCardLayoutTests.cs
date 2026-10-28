@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.UI;
+using Vocaterra.Game.UI.Checks;
 using Vocaterra.Nlp.Content;
 using Xunit.Abstractions;
 

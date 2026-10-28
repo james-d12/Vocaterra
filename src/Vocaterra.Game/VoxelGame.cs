@@ -33,13 +33,17 @@ using Vocaterra.Game.Graphics.Camera;
 using Vocaterra.Game.Graphics.Figures;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Input;
-using Vocaterra.Game.Reporting;
 using Vocaterra.Game.Scripted;
 using Vocaterra.Game.Sound;
 using Vocaterra.Game.Startup;
-using Vocaterra.Game.UI;
+using Vocaterra.Game.UI.Checks;
+using Vocaterra.Game.UI.Common;
+using Vocaterra.Game.UI.Crafting;
 using Vocaterra.Game.UI.Dialogue;
-using Vocaterra.Game.UI.English;
+using Vocaterra.Game.UI.Hud;
+using Vocaterra.Game.UI.Lesson;
+using Vocaterra.Game.UI.Overlays;
+using Vocaterra.Game.UI.Report;
 
 namespace Vocaterra.Game;
 

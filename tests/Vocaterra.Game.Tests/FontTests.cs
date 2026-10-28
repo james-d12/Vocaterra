@@ -4,8 +4,9 @@ using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Startup;
-using Vocaterra.Game.UI;
+using Vocaterra.Game.UI.Crafting;
 using Vocaterra.Game.UI.Dialogue;
+using Vocaterra.Game.UI.Overlays;
 
 namespace Vocaterra.Game.Tests;
 

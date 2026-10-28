@@ -1,7 +1,7 @@
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Vocaterra.Game.UI;
+using Vocaterra.Game.UI.Common;
 
 namespace Vocaterra.Game.Graphics;
 

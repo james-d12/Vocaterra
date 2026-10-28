@@ -7,7 +7,7 @@ using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Startup;
-using Vocaterra.Game.UI;
+using Vocaterra.Game.UI.Common;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests;

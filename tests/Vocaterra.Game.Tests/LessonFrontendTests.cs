@@ -16,8 +16,8 @@ using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Startup;
-using Vocaterra.Game.UI;
 using Vocaterra.Game.UI.Dialogue;
+using Vocaterra.Game.UI.Lesson;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests;

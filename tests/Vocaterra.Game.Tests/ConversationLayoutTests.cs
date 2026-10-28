@@ -1,6 +1,7 @@
 using Vocaterra.Game.Graphics.Camera;
-using Vocaterra.Game.UI;
+using Vocaterra.Game.UI.Common;
 using Vocaterra.Game.UI.Dialogue;
+using Vocaterra.Game.UI.Hud;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Tests;

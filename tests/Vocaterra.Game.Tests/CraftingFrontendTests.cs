@@ -2,7 +2,8 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.UI;
+using Vocaterra.Game.UI.Common;
+using Vocaterra.Game.UI.Crafting;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests;

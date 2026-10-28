@@ -3,7 +3,7 @@ using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Startup;
-using Vocaterra.Game.UI;
+using Vocaterra.Game.UI.Report;
 
 namespace Vocaterra.Game.Tests;
 
