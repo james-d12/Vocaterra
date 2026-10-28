@@ -1,8 +1,7 @@
 using Vocaterra.Game.Core.Event;
-using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Session;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Language.Speech;
 
 /// <summary>
 /// The mic check at the start (D-game-9, S7) as plain state: a live level meter from the capture's RMS while the talk key is held, the instruction

@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
+using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;

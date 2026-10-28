@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Language.Speech;
 
 /// <summary>The buttons of the mic-check screen.</summary>
 public enum MicCheckButton

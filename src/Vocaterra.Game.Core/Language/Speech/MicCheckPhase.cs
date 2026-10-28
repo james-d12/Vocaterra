@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Language.Speech;
 
 /// <summary>Where the mic check is.</summary>
 public enum MicCheckPhase
