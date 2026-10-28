@@ -1,5 +1,4 @@
 using System.Globalization;
-using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Lessons;
@@ -11,7 +10,7 @@ using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Nlp.Core.Audio;
 
-namespace Vocaterra.Game.Screens;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>
 /// The dialogue panel's behaviour (S3, S7, S16): a talk opened on an NPC and closed again, the speech buttons and the choices (keys or the

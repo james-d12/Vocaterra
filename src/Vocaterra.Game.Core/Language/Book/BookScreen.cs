@@ -1,11 +1,10 @@
 using Vocaterra.Game.Core.Input;
-using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Screens;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tip;
 
-namespace Vocaterra.Game.Screens;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>
 /// The book (S20, S20b, S26): J or the book item opens it, Esc or J closes it; its pages turn with Tab and the arrows, its lists scroll with the

@@ -1,11 +1,10 @@
 using Vocaterra.Game.Core.Input;
-using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Screens;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Nlp.Core.Audio;
 
-namespace Vocaterra.Game.Screens;
+namespace Vocaterra.Game.Core.Language.Speech;
 
 /// <summary>
 /// The mic check (S7) before the world: hold V or Space and say "hola", the meter moves with the level, the recognizer says what it heard; Enter

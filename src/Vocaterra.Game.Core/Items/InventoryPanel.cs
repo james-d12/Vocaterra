@@ -1,9 +1,8 @@
 using Vocaterra.Game.Core.Input;
-using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Screens;
 using Vocaterra.Game.Core.Session;
 
-namespace Vocaterra.Game.Screens;
+namespace Vocaterra.Game.Core.Items;
 
 /// <summary>The inventory panel (I, or E away from an NPC): every slot with its noun, the nouns the player carries learnt at a glance; Esc, I or E closes it.</summary>
 public sealed class InventoryPanel : IScreen

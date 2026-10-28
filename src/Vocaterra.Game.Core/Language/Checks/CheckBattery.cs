@@ -1,5 +1,4 @@
 using Vocaterra.Game.Core.Input;
-using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Screens;
 using Vocaterra.Game.Core.Scripted;
@@ -7,7 +6,7 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Nlp.Core.Audio;
 
-namespace Vocaterra.Game.Screens;
+namespace Vocaterra.Game.Core.Language.Checks;
 
 /// <summary>
 /// The check battery (S11): outside the world, its own screen, its own grades; nothing it does reaches the progress or the world. The items come

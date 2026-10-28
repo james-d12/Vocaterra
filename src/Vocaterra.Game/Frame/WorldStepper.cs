@@ -1,7 +1,7 @@
+using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
-using Vocaterra.Game.Screens;
 
 namespace Vocaterra.Game.Frame;
 

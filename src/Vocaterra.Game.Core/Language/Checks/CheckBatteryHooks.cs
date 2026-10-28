@@ -1,6 +1,4 @@
-using Vocaterra.Game.Core.Language.Checks;
-
-namespace Vocaterra.Game.Screens;
+namespace Vocaterra.Game.Core.Language.Checks;
 
 /// <summary>What the check battery needs from the game around it.</summary>
 /// <param name="TakeShot">A <c>--shot</c> step of the battery's script: the screen at this point.</param>

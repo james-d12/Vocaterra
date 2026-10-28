@@ -1,11 +1,10 @@
 using Vocaterra.Game.Core.Input;
-using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Screens;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
 
-namespace Vocaterra.Game.Screens;
+namespace Vocaterra.Game.Core.Items.Crafting;
 
 /// <summary>
 /// The crafting panel (C anywhere, or E at the workbench): a click on a row asks for one craft in the next tick, the same command a script sends;
