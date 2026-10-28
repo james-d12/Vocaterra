@@ -38,7 +38,8 @@ public sealed class CheckBattery : IScreen
     private static readonly (GameKey Key, GameKey Pad)[] OptionKeys = [(GameKey.D1, GameKey.NumPad1), (GameKey.D2, GameKey.NumPad2), (GameKey.D3, GameKey.NumPad3)];
 
     private readonly VoxelSession _session;
-    private readonly Func<SessionLog?> _log;
+    private readonly Func<ICheckLog?> _log;
+    private readonly Func<double> _milliseconds;
     private readonly SoundFrontend _sound;
     private readonly NpcVoice _voice;
     private readonly ListenSession _listen;
@@ -55,6 +56,7 @@ public sealed class CheckBattery : IScreen
     /// <summary>Creates the battery of a run (none is running until <see cref="Begin"/>).</summary>
     /// <param name="session">The session the answers are graded by.</param>
     /// <param name="log">The session log (S11), once it is open.</param>
+    /// <param name="milliseconds">The host's monotonic clock in milliseconds (only differences mean anything): how long an answer took.</param>
     /// <param name="sound">Plays an answer's cue.</param>
     /// <param name="voice">Says a comprehension item's line.</param>
     /// <param name="listen">The push-to-talk of the run.</param>
@@ -66,7 +68,8 @@ public sealed class CheckBattery : IScreen
     /// <param name="console">Where the battery's lines go.</param>
     public CheckBattery(
         VoxelSession session,
-        Func<SessionLog?> log,
+        Func<ICheckLog?> log,
+        Func<double> milliseconds,
         SoundFrontend sound,
         NpcVoice voice,
         ListenSession listen,
@@ -79,6 +82,7 @@ public sealed class CheckBattery : IScreen
     {
         _session = session;
         _log = log;
+        _milliseconds = milliseconds;
         _sound = sound;
         _voice = voice;
         _listen = listen;
@@ -129,7 +133,7 @@ public sealed class CheckBattery : IScreen
         _framesLeft = 0;
         _playedAt = -1;
         var plan = CheckPlan.For(CheckBank.Load(_session.Bundle), kind, _session.WorldSeed);
-        Screen = new CheckScreen(kind, plan, MonotonicClock.Milliseconds, result => _log()!.CheckResult(result, CheckKinds.Of(kind), _session.PlaySession, _session.Simulation.Tick));
+        Screen = new CheckScreen(kind, plan, _milliseconds, result => _log()!.CheckResult(result, CheckKinds.Of(kind), _session.PlaySession, _session.Simulation.Tick));
         _log()!.CheckStart(CheckKinds.Of(kind), _session.PlaySession, plan.Count);
         _console($"check: {CheckKinds.Of(kind)}, {plan.Count} items");
         if (!scripted)

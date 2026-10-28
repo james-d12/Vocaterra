@@ -97,7 +97,7 @@ public sealed class CheckBatteryTests : IDisposable
         var sound = new SoundFrontend(new SoundMixer(new NullSoundOutput(), new SoundVolumes(), new PresentationRng(1)), new SoundEventMapper());
         var voice = new NpcVoice(_folder, new SpeechIndex([]), new SilentOutput(), muted: true, _ => { });
         var hooks = new CheckBatteryHooks(_ => { }, static () => false, static () => false, _ => { }, () => _exits++, _playtestEnds.Add);
-        return new CheckBattery(session, () => _log, sound, voice, new ListenSession(new PushToTalkSpeechCapture(null)), new OpenKeySwallow(), [], scriptedRun: false, playtest, hooks, _lines.Add);
+        return new CheckBattery(session, () => _log, MonotonicClock.Milliseconds, sound, voice, new ListenSession(new PushToTalkSpeechCapture(null)), new OpenKeySwallow(), [], scriptedRun: false, playtest, hooks, _lines.Add);
     }
 
     private sealed class SilentOutput : IAudioOutput

@@ -35,7 +35,7 @@ public sealed record SessionProfile(bool MicCheck, bool Muted, bool NoSpeech, bo
 /// report can follow a turn to its recorded evaluation. A folder that already has a log is appended to: a later run in the same folder is another
 /// <c>session_start</c> and <c>session_end</c> pair, and the report reads them all.
 /// </remarks>
-public sealed class SessionLog : IDisposable
+public sealed class SessionLog : IDisposable, ICheckLog
 {
     /// <summary>The session log's file name in the session folder.</summary>
     public const string SessionFileName = "session.jsonl";

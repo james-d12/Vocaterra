@@ -8,6 +8,7 @@ using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Flow;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Screens;
+using Vocaterra.Game.Utilities;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Flow;
@@ -49,7 +50,7 @@ public sealed class PlaytestFlowTests
         var lines = new List<string>();
         var sound = new SoundFrontend(new SoundMixer(new NullSoundOutput(), new SoundVolumes(), new PresentationRng(1)), new SoundEventMapper());
         var voice = new NpcVoice(Path.GetTempPath(), new SpeechIndex([]), new NoOutput(), muted: true, _ => { });
-        var checks = new CheckBattery(session, static () => null, sound, voice, new ListenSession(new PushToTalkSpeechCapture(null)), new OpenKeySwallow(), [], false, enabled,
+        var checks = new CheckBattery(session, static () => null, MonotonicClock.Milliseconds, sound, voice, new ListenSession(new PushToTalkSpeechCapture(null)), new OpenKeySwallow(), [], false, enabled,
             new CheckBatteryHooks(_ => { }, static () => false, static () => false, _ => { }, () => { }, _ => { }), _ => { });
         var saves = new SaveService(session, () => RouteScene.Build(), () => new SaveSettings(new SoundVolumes()), lines.Add);
         var flow = new PlaytestFlow(enabled, recall: false, scriptedRun: false, scriptLength: 0, session, checks, saves, new PlaytestHooks(static () => 0, _ => { }, () => { }, () => { }), lines.Add);

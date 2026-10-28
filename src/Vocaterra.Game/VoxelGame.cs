@@ -324,6 +324,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _checks = new CheckBattery(
             session,
             () => _log,
+            MonotonicClock.Milliseconds,
             _sound,
             voice,
             _listen,
