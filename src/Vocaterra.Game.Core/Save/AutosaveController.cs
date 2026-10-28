@@ -1,8 +1,6 @@
 using Vocaterra.Game.Core.Event;
-using Vocaterra.Game.Core.Save;
-using Vocaterra.Game.Utilities;
 
-namespace Vocaterra.Game.Persistence;
+namespace Vocaterra.Game.Core.Save;
 
 /// <summary>
 /// The autosave (X05): the policy says whether a save is due, and it is taken only at rest. The save is the document F6 writes, written to a
@@ -15,6 +13,7 @@ public sealed class AutosaveController
     private readonly SaveService _saves;
     private readonly Action<string> _log;
     private readonly Action<string> _toast;
+    private readonly Func<double> _milliseconds;
 
     /// <summary>Creates the autosave of a run.</summary>
     /// <param name="policy">When a save is due.</param>
@@ -22,13 +21,15 @@ public sealed class AutosaveController
     /// <param name="saves">The game's saves.</param>
     /// <param name="log">Where a line about the autosave goes (the console).</param>
     /// <param name="toast">Shows the player that the game was saved.</param>
-    public AutosaveController(AutosavePolicy policy, string path, SaveService saves, Action<string> log, Action<string> toast)
+    /// <param name="milliseconds">The host's monotonic clock in milliseconds (only differences mean anything): how long a save took, for its log line.</param>
+    public AutosaveController(AutosavePolicy policy, string path, SaveService saves, Action<string> log, Action<string> toast, Func<double> milliseconds)
     {
         _policy = policy;
         Path = path;
         _saves = saves;
         _log = log;
         _toast = toast;
+        _milliseconds = milliseconds;
     }
 
     /// <summary>The autosave file.</summary>
@@ -51,11 +52,11 @@ public sealed class AutosaveController
 
         try
         {
-            var started = MonotonicClock.Milliseconds();
+            var started = _milliseconds();
             var document = _saves.Capture();
             var text = SaveGame.Serialize(document);
             SaveFile.Write(Path, text);
-            _log($"autosave: {Path} written at {decision.Reason} (session {document.Session}, tick {document.Tick}, stored time {document.StoredTime}, world digest {document.StateDigest[..16]}, {System.Text.Encoding.UTF8.GetByteCount(text)} bytes, {MonotonicClock.Milliseconds() - started:0} ms)");
+            _log($"autosave: {Path} written at {decision.Reason} (session {document.Session}, tick {document.Tick}, stored time {document.StoredTime}, world digest {document.StateDigest[..16]}, {System.Text.Encoding.UTF8.GetByteCount(text)} bytes, {_milliseconds() - started:0} ms)");
             _toast("Saved");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)

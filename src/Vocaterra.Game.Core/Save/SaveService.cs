@@ -1,8 +1,7 @@
-using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.World;
 
-namespace Vocaterra.Game.Persistence;
+namespace Vocaterra.Game.Core.Save;
 
 /// <summary>
 /// The game's saves (S10, X05): one capture of the session against the fresh scene of its seed, for F6, the <c>--save</c> at the end of a run,

@@ -3,7 +3,6 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
-using Vocaterra.Game.Persistence;
 using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game.Flow;
@@ -58,7 +57,7 @@ public static class SessionStart
         if (!options.NoAutosave)
         {
             var autosavePath = playtest.SavePath ?? Path.Combine(directory, AutosaveFiles.FileName);
-            autosave = new AutosaveController(new AutosavePolicy(session.Simulation.Tick, session.Events.Count), autosavePath, saves, console, toasts.Show);
+            autosave = new AutosaveController(new AutosavePolicy(session.Simulation.Tick, session.Events.Count), autosavePath, saves, console, toasts.Show, MonotonicClock.Milliseconds);
             console($"autosave: {autosavePath} (written on a lesson step, an objective step, a lesson's end, the session's end, a closed dialogue, and every {AutosavePolicy.IntervalSeconds / 60} minutes of play)");
         }
         else

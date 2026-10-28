@@ -2,7 +2,7 @@ using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Persistence;
+using Vocaterra.Game.Utilities;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Persistence;
@@ -60,6 +60,6 @@ public sealed class AutosaveControllerTests : IDisposable
         var lines = new List<string>();
         var toasts = new List<string>();
         var saves = new SaveService(session, () => RouteScene.Build(), () => new SaveSettings(new SoundVolumes()), lines.Add);
-        return (new AutosaveController(new AutosavePolicy(0, 0), path, saves, lines.Add, toasts.Add), lines, toasts);
+        return (new AutosaveController(new AutosavePolicy(0, 0), path, saves, lines.Add, toasts.Add, MonotonicClock.Milliseconds), lines, toasts);
     }
 }

@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Persistence;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Persistence;
