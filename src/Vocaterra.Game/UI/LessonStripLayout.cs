@@ -4,65 +4,6 @@ using Vocaterra.Game.UI.Dialogue;
 
 namespace Vocaterra.Game.UI;
 
-/// <summary>What a button of the lesson strip does (S16). The strip's mouse hit-test, its keys and the code that carries them out all use these.</summary>
-public enum LessonAction
-{
-    /// <summary><c>L</c>: starts the lesson on offer, or takes the paused one up again.</summary>
-    Start,
-
-    /// <summary><c>Enter</c>: ends the step that waits for it (explain, model, recap, a picked listen step).</summary>
-    Continue,
-
-    /// <summary><c>K</c>: skips the step.</summary>
-    Skip,
-
-    /// <summary><c>H</c>: the step's help path (the panel's Ayuda button does the same while a lesson is engaged).</summary>
-    Help,
-
-    /// <summary><c>1</c>: the first option of a listen step.</summary>
-    Option1,
-
-    /// <summary><c>2</c>: the second option of a listen step.</summary>
-    Option2,
-
-    /// <summary><c>3</c>: the third option of a listen step.</summary>
-    Option3,
-
-    /// <summary><c>4</c>: the fourth option of a listen step.</summary>
-    Option4,
-
-    /// <summary><c>M</c>: the next page of the step's English, when it is too long for the strip at this size (X08).</summary>
-    More,
-}
-
-/// <summary>The keys of the lesson strip, without the engine's key type (the game maps its keys to these).</summary>
-public enum LessonKey
-{
-    /// <summary>Enter.</summary>
-    Enter,
-
-    /// <summary>K.</summary>
-    K,
-
-    /// <summary>L.</summary>
-    L,
-
-    /// <summary>The key 1.</summary>
-    D1,
-
-    /// <summary>The key 2.</summary>
-    D2,
-
-    /// <summary>The key 3.</summary>
-    D3,
-
-    /// <summary>The key 4.</summary>
-    D4,
-
-    /// <summary>M.</summary>
-    M,
-}
-
 /// <summary>
 /// Where the pieces of the lesson strip are, in window pixels, so the drawing, the mouse hit-test and the tests share one set of numbers (S16). The strip stands
 /// above the support cards and the dialogue panel while the guide's panel is open: a heading (<c>Lesson · A first hello · step 1 of 2 · Say it</c>), the Spanish line

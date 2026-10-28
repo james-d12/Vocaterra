@@ -6,57 +6,8 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
-using Vocaterra.Game.Input;
 
 namespace Vocaterra.Game.UI;
-
-/// <summary>Who a line of the dialogue panel belongs to; the panel colours them differently.</summary>
-public enum DialogueSpeaker
-{
-    /// <summary>What the player typed.</summary>
-    Player,
-
-    /// <summary>What the player said, as the recognizer heard it.</summary>
-    PlayerSpoken,
-
-    /// <summary>The verdict summary and the time of the turn (developer information, dim).</summary>
-    Note,
-
-    /// <summary>The guide's correction of the player's line (a recast, a hint or a correction).</summary>
-    Correction,
-
-    /// <summary>The NPC's own reply (the guide's, the shopkeeper's or the villager's: the panel's title says whose).</summary>
-    Guide,
-
-    /// <summary>The game's line with the world facts.</summary>
-    World,
-
-    /// <summary>A hint from the game about the player's progress (for example why a word did not gain colour).</summary>
-    Hint,
-
-    /// <summary>The plain-English feedback after a turn (S16, D-game-13): what happened and what to do, drawn in its own colour and marked as English. Never spoken.</summary>
-    English,
-}
-
-/// <summary>A scripted spoken line waiting to be sent (<c>--wav</c>, <c>--speak</c>): the game submits it to the worker between ticks.</summary>
-/// <param name="Source">A WAV file or a line to synthesize.</param>
-/// <param name="Value">The file path, or the text to speak.</param>
-public sealed record SpeechRequest(TurnSource Source, string Value);
-
-/// <summary>What the dialogue panel is doing with the keyboard: showing the speech buttons (the keys R, S, H, N, W, 1 to 3 press them, V or Space talks) or the text box.</summary>
-public enum PanelMode
-{
-    /// <summary>The speech buttons; the keys are shortcuts, nothing is typed.</summary>
-    Buttons,
-
-    /// <summary>The text box has the keyboard (the Escribir button, Tab or W opened it).</summary>
-    Typing,
-}
-
-/// <summary>One line of the dialogue panel.</summary>
-/// <param name="Speaker">Whose line it is.</param>
-/// <param name="Text">The text.</param>
-public sealed record DialogueLine(DialogueSpeaker Speaker, string Text);
 
 /// <summary>
 /// The dialogue panel as plain state, with no engine type: whether it is open, the text box, the lines shown so far and a request to send.
@@ -612,78 +563,5 @@ public sealed class DialogueModel
             _lines.RemoveRange(0, dropped);
             HighlightedLine = HighlightedLine < dropped ? -1 : HighlightedLine - dropped;
         }
-    }
-}
-
-/// <summary>Breaks text into lines that fit a width, measured by a function the engine layer supplies (the font), so the logic is testable.</summary>
-public static class TextWrap
-{
-    /// <summary>
-    /// Wraps <paramref name="text"/> at spaces so that no line measures wider than <paramref name="maxWidth"/>; a single word wider than the
-    /// width is cut where it no longer fits. An empty text gives one empty line.
-    /// </summary>
-    public static IReadOnlyList<string> Wrap(string text, float maxWidth, Func<string, float> measure)
-    {
-        ArgumentNullException.ThrowIfNull(text);
-        ArgumentNullException.ThrowIfNull(measure);
-        var lines = new List<string>();
-        var current = string.Empty;
-        foreach (var word in text.Split(' ', StringSplitOptions.RemoveEmptyEntries))
-        {
-            var candidate = current.Length == 0 ? word : current + " " + word;
-            if (measure(candidate) <= maxWidth)
-            {
-                current = candidate;
-                continue;
-            }
-
-            if (current.Length > 0)
-            {
-                lines.Add(current);
-                current = string.Empty;
-            }
-
-            var rest = word;
-            while (measure(rest) > maxWidth && rest.Length > 1)
-            {
-                var cut = rest.Length - 1;
-                while (cut > 1 && measure(rest[..cut]) > maxWidth)
-                {
-                    cut--;
-                }
-
-                lines.Add(rest[..cut]);
-                rest = rest[cut..];
-            }
-
-            current = rest;
-        }
-
-        lines.Add(current);
-        return lines;
-    }
-
-    /// <summary>
-    /// The part of a one-line text that fits <paramref name="maxWidth"/> and keeps the caret in view, with the caret's place in it: the
-    /// text is cut at the start so that everything before the caret fits, then at the end so that the rest fits.
-    /// </summary>
-    public static (string Visible, int CaretOffset) Window(string text, int caret, float maxWidth, Func<string, float> measure)
-    {
-        ArgumentNullException.ThrowIfNull(text);
-        ArgumentNullException.ThrowIfNull(measure);
-        caret = Math.Clamp(caret, 0, text.Length);
-        var start = 0;
-        while (start < caret && measure(text[start..caret]) > maxWidth)
-        {
-            start++;
-        }
-
-        var end = text.Length;
-        while (end > caret && measure(text[start..end]) > maxWidth)
-        {
-            end--;
-        }
-
-        return (text[start..end], caret - start);
     }
 }

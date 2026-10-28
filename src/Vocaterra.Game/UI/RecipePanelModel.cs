@@ -3,19 +3,6 @@ using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.UI;
 
-/// <summary>One ingredient of the workbench's recipe panel (S15): its icon's item and how many the player has of the number the recipe needs.</summary>
-/// <param name="Item">The ingredient.</param>
-/// <param name="Have">How many the player carries.</param>
-/// <param name="Need">How many one craft takes.</param>
-public readonly record struct RecipeIngredientCount(ItemId Item, int Have, int Need)
-{
-    /// <summary>Whether the player has enough of it.</summary>
-    public bool Enough => Have >= Need;
-
-    /// <summary>The count as the panel writes it under the icon: <c>have/need</c>.</summary>
-    public string Counts => string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{Have}/{Need}");
-}
-
 /// <summary>
 /// The workbench's recipe panel (S15, reference C): the item the recipe makes at the top, and below it the ingredients, each as an icon with its <c>have/need</c>
 /// count. It is drawn whenever the player stands at a station that a recipe needs, so the player sees what to bring without opening the recipe book (C). A pure

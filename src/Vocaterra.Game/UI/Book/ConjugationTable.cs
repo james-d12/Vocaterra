@@ -6,37 +6,6 @@ using Vocaterra.Nlp.Es.Morphology;
 
 namespace Vocaterra.Game.UI.Book;
 
-/// <summary>How a cell of a conjugation table is shown (S28, D-game-19).</summary>
-public enum CellState
-{
-    /// <summary>The learner has used this form: highlighted, with its count.</summary>
-    Used,
-
-    /// <summary>A lesson that is completed or under way has taught this form and the learner has not used it yet: shown plainly.</summary>
-    Taught,
-
-    /// <summary>Neither taught nor used: the cell is empty (a dash), so nothing overwhelms.</summary>
-    Locked,
-}
-
-/// <summary>One cell of a conjugation table.</summary>
-/// <param name="Text">The form, from the core's morphology (<c>quiero</c>, <c>voy a comer</c>), or <see langword="null"/> for a locked cell.</param>
-/// <param name="State">How the cell is shown.</param>
-/// <param name="Uses">How many times the learner has used the form (0 unless <see cref="CellState.Used"/>).</param>
-public sealed record ConjugationCell(string? Text, CellState State, int Uses);
-
-/// <summary>One row of a conjugation table: a person (yo, tú, él/ella/usted, nosotros, ustedes/ellos).</summary>
-/// <param name="Label">The Spanish pronoun.</param>
-/// <param name="Person">The grammatical person, <c>1</c> to <c>3</c>.</param>
-/// <param name="Number"><c>sg</c> or <c>pl</c>.</param>
-/// <param name="Cells">One cell per visible column, in column order.</param>
-public sealed record ConjugationRow(string Label, string Person, string Number, IReadOnlyList<ConjugationCell> Cells);
-
-/// <summary>One visible column of a conjugation table: a tense.</summary>
-/// <param name="Tense">The tense code: <c>pres</c>, <c>pret</c> or <c>ir-a</c> (the near future, <c>ir</c> + <c>a</c> + the infinitive).</param>
-/// <param name="Title">The English heading: present, past or future (ir a).</param>
-public sealed record ConjugationColumn(string Tense, string Title);
-
 /// <summary>
 /// The conjugation table of one verb the learner has met (S28, D-game-19): five rows (yo, tú, él/ella/usted, nosotros, ustedes/ellos; there is no
 /// vosotros row) and the columns the verb has earned: a tense once a lesson that is completed or under way has taught
