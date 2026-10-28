@@ -1,7 +1,7 @@
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Diagnostics;
 
 namespace Vocaterra.Game.Flow;
 

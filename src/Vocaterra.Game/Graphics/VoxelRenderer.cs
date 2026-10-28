@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Diagnostics;
 
 namespace Vocaterra.Game.Graphics;
 

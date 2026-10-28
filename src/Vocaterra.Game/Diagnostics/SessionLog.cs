@@ -11,7 +11,7 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Nlp.Pipeline;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Diagnostics;
 
 /// <summary>What a session starts with: the run's profile flags, written into its <c>session_start</c> line (S11).</summary>
 /// <param name="MicCheck">Whether the mic check is shown at the start.</param>

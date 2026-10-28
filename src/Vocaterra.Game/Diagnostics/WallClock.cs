@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Diagnostics;
 
 /// <summary>
 /// The one place of the front-end that reads the wall clock: the time stamps of the session log and the name of its folder (S11, D-game-10).

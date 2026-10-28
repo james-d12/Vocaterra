@@ -7,8 +7,8 @@ using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics;
+using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI;
-using Vocaterra.Game.Utilities;
 using Vocaterra.Nlp.Content;
 using Xunit.Abstractions;
 

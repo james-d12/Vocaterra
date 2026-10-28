@@ -10,10 +10,10 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Sound;
+using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI;
 using Vocaterra.Game.UI.Book;
 using Vocaterra.Game.UI.Dialogue;
-using Vocaterra.Game.Utilities;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Tests;

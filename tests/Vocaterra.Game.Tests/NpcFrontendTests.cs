@@ -9,7 +9,7 @@ using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Graphics;
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Startup;
 
 namespace Vocaterra.Game.Tests;
 

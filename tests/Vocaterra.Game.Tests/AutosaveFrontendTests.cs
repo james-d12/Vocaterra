@@ -1,5 +1,5 @@
 using Vocaterra.Game.Core.Save;
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Startup;
 
 namespace Vocaterra.Game.Tests;
 

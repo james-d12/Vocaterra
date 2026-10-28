@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Diagnostics;
 
 /// <summary>The front-end's clock: the real time since the previous frame. The simulation never sees it, only the ticks it produces.</summary>
 public interface IFrameClock

@@ -2,7 +2,7 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics;
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Startup;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests;

@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Startup;
 
 /// <summary>Where the run-time assets are: next to the executable, copied from the repository's <c>assets/</c> folder by the project file.</summary>
 public static class AssetPaths

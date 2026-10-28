@@ -8,10 +8,10 @@ using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tip;
+using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.UI;
-using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game.Reporting;
 

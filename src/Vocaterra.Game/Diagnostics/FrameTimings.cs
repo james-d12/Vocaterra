@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Reporting;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Diagnostics;
 
 /// <summary>The time each frame's drawing took and the time from one draw's end to the next, for the summary a scripted run prints at its end.</summary>
 public sealed class FrameTimings

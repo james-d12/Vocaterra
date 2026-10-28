@@ -2,8 +2,8 @@ using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI;
-using Vocaterra.Game.Utilities;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Pipeline;
 

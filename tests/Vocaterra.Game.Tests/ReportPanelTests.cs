@@ -2,8 +2,8 @@ using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI;
-using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game.Tests;
 

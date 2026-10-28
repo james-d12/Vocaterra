@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Startup;
 
 /// <summary>Finds the scene layout file of a 3D run: the one named with <c>--scene</c>, or the bundle's own (<c>game/scene.json</c>, S3).</summary>
 public static class SceneLocator

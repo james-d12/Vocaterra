@@ -8,7 +8,7 @@ using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Startup;
 using SoundEventMapper = Vocaterra.Game.Core.Sound.SoundEventMapper;
 
 namespace Vocaterra.Game.Tests;

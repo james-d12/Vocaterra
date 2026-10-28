@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Startup;
 
 /// <summary>Whether the mic check is shown at the start.</summary>
 public enum MicCheckMode

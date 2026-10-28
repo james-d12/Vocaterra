@@ -9,7 +9,7 @@ using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Graphics;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Startup;
 
 /// <summary>
 /// The command line of the game (the 3D first-person scene, the prototype's only world since S4): <c>--seed &lt;ulong&gt;</c> (default 42), the

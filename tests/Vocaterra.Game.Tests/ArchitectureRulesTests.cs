@@ -1,3 +1,5 @@
+using Vocaterra.Game.Diagnostics;
+
 namespace Vocaterra.Game.Tests;
 
 /// <summary>The layering rules of plan section 3, checked on the front-end's sources and project file.</summary>

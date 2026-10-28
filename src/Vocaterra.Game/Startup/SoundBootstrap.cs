@@ -4,9 +4,9 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.World.Layout;
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Sound;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Startup;
 
 /// <summary>The sound side of a run, as made at its start: the front-end the game plays through, the output it plays to, and the sound log, if any.</summary>
 /// <param name="Sound">The front-end: the mixer, the cues and the ambient beds.</param>

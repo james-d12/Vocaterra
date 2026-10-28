@@ -6,7 +6,7 @@ using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Diagnostics;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Flow;

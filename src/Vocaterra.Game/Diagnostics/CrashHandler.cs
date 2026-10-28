@@ -3,7 +3,7 @@ using System.Text;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Diagnostics;
 
 /// <summary>
 /// The crash handler (X05, R04): on an exception it writes a Markdown crash report into the session folder's <c>reports/</c> (beside the F8

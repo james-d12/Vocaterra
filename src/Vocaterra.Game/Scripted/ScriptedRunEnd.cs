@@ -7,8 +7,9 @@ using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Graphics;
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Startup;
 
 namespace Vocaterra.Game.Scripted;
 

@@ -1,7 +1,7 @@
 using System.Text;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Diagnostics;
 
 namespace Vocaterra.Game.Tests;
 

@@ -1,7 +1,7 @@
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Startup;
 
 namespace Vocaterra.Game.Tests;
 
