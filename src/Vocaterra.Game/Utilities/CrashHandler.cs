@@ -5,39 +5,6 @@ using Vocaterra.Game.Core.Save;
 
 namespace Vocaterra.Game.Utilities;
 
-/// <summary>The state of the game a crash report can show: the session and tick, the rows of the state table, and a note when it is partial.</summary>
-/// <param name="Session">The play session, or <see langword="null"/>.</param>
-/// <param name="Tick">The simulation tick, or <see langword="null"/>.</param>
-/// <param name="Rows">The state's name and value rows.</param>
-/// <param name="Note">Why the state is partial, or <see langword="null"/>.</param>
-public sealed record CrashGameState(int? Session, long? Tick, IReadOnlyList<(string Item, string Value)> Rows, string? Note);
-
-/// <summary>
-/// What the crash handler needs from the running game (X05). Both members are called after an exception, so they must never throw: each one
-/// catches what it reads and says so in its result.
-/// </summary>
-public interface ICrashSource
-{
-    /// <summary>The session folder: the session log and the autosave are in it. Empty when the game has none.</summary>
-    string SessionDirectory { get; }
-
-    /// <summary>Where the reports go (<c>--report-dir</c>), or <see langword="null"/> for the session folder's <c>reports/</c>.</summary>
-    string? ReportDirectory { get; }
-
-    /// <summary>The game's state as far as it can be read, never throwing.</summary>
-    CrashGameState State();
-
-    /// <summary>Writes the last-chance save to <paramref name="path"/>. Returns <see langword="null"/> when it was written, else why it was not. Never throws.</summary>
-    /// <param name="path">The file (<c>crash.save</c> in the session folder).</param>
-    string? LastChanceSave(string path);
-}
-
-/// <summary>What the handler wrote: the report's file and the last-chance save's file (each <see langword="null"/> when it was not written), and the save's note.</summary>
-/// <param name="ReportPath">The Markdown report, or <see langword="null"/>.</param>
-/// <param name="SavePath">The last-chance save, or <see langword="null"/>.</param>
-/// <param name="SaveNote">What the last-chance save did, in words.</param>
-public sealed record CrashOutcome(string? ReportPath, string? SavePath, string SaveNote);
-
 /// <summary>
 /// The crash handler (X05, R04): on an exception it writes a Markdown crash report into the session folder's <c>reports/</c> (beside the F8
 /// reports), tries a last-chance save to <c>crash.save</c> (never over the autosave or a player's save), and prints where both went. It is
