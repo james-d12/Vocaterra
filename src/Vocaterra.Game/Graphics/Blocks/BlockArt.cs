@@ -1,4 +1,6 @@
-namespace Vocaterra.Game.Graphics;
+using Vocaterra.Game.Graphics.World;
+
+namespace Vocaterra.Game.Graphics.Blocks;
 
 /// <summary>
 /// The art of the block atlas, drawn in code (no picture file) (D-game-5: nothing third-party, so the pictures

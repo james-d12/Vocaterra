@@ -4,8 +4,13 @@ using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Diagnostics;
+using Vocaterra.Game.Graphics;
+using Vocaterra.Game.Graphics.Blocks;
+using Vocaterra.Game.Graphics.Camera;
+using Vocaterra.Game.Graphics.Figures;
+using Vocaterra.Game.Graphics.Sky;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.World;
 
 /// <summary>What building the chunk meshes cost and produced, for the run's report.</summary>
 /// <param name="Chunks">The chunks in the grid.</param>

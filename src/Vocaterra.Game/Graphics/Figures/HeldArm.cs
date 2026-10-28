@@ -1,7 +1,9 @@
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Graphics.Blocks;
+using Vocaterra.Game.Graphics.World;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Figures;
 
 /// <summary>What the first-person hand holds: nothing, a log, a torch, a bottle or a flat picture of a small item.</summary>
 public enum HeldKind

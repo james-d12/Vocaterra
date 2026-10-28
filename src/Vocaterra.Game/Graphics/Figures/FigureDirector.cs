@@ -6,8 +6,9 @@ using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
+using Vocaterra.Game.Graphics.World;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Figures;
 
 /// <summary>
 /// The figures in the scene (S15): the NPCs, who face the player and gesture while they talk with them, the one under the crosshair, and the

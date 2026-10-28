@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Dialogue;
+using Vocaterra.Game.Graphics.World;
 
 namespace Vocaterra.Game.UI;
 

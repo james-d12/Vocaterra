@@ -1,8 +1,9 @@
 using Microsoft.Xna.Framework;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Graphics.World;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Figures;
 
 /// <summary>The first-person arm (S15): what the hand holds, how it moves (the walk, the gathering, one swing for each block placed) and the light on it.</summary>
 public sealed class ArmPresenter : ITickObserver

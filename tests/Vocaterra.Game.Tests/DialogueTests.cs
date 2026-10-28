@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Npc;
+using Vocaterra.Game.Graphics.World;
 
 namespace Vocaterra.Game.Tests;
 

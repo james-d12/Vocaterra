@@ -1,7 +1,8 @@
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Graphics.Blocks;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.World;
 
 /// <summary>Read access to the blocks of a world for the mesher; anything outside the world reads as air unless the source says otherwise.</summary>
 public interface IBlockSource

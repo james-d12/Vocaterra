@@ -1,7 +1,7 @@
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Blocks;
 
 /// <summary>The cells of the block atlas: one 16 x 16 picture each, in this order, row by row (eight to a row).</summary>
 public enum BlockCell

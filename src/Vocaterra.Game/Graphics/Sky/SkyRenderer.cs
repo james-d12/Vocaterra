@@ -1,7 +1,9 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Graphics.Camera;
+using Vocaterra.Game.Graphics.World;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Sky;
 
 /// <summary>
 /// Draws the sky behind the world (S14): a dome round the eye with a gradient (deep blue overhead, pale at the horizon, where it meets the fog), a square

@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.World;
 
 /// <summary>
 /// Which chunks of a large world are worth meshing and drawing from where the eye is (S13): the ones whose box is within the view distance of the

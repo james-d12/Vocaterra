@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Camera;
 
 /// <summary>Where the camera is (S15): in the player's eyes (the default) or behind the player's shoulder.</summary>
 public enum CameraMode

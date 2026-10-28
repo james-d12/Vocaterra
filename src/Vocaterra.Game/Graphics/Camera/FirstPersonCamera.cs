@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
+using Vocaterra.Game.Graphics.World;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Camera;
 
 /// <summary>
 /// The first-person camera: the player's eye, yaw and pitch as the simulation gives them, turned into MonoGame's view and projection matrices.

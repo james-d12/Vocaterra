@@ -1,6 +1,8 @@
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Graphics.Blocks;
+using Vocaterra.Game.Graphics.World;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Figures;
 
 /// <summary>
 /// The pose of a figure at one moment (S15), in radians and figure pixels: each group of parts turns about its own joint. Plain values, so the idle, talking

@@ -2,6 +2,9 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics;
+using Vocaterra.Game.Graphics.Blocks;
+using Vocaterra.Game.Graphics.Sky;
+using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Startup;
 using Vocaterra.Nlp.Content;
 

@@ -12,7 +12,10 @@ using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tip;
-using Vocaterra.Game.Graphics;
+using Vocaterra.Game.Graphics.Blocks;
+using Vocaterra.Game.Graphics.Camera;
+using Vocaterra.Game.Graphics.Figures;
+using Vocaterra.Game.Graphics.World;
 
 namespace Vocaterra.Game.UI;
 

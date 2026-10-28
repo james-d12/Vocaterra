@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.UI.Common;
 
 /// <summary>
 /// The matrix the 2D layers are drawn under (X08): the window over the canvas, set by the game for each frame (the identity at 100 percent). A picture from the block atlas is

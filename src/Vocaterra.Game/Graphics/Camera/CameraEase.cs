@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Camera;
 
 /// <summary>
 /// Eases the camera over a step-up. When the body climbs a block in one tick the eye jumps a block; the camera holds the old height and lets

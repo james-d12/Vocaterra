@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Simulation;
-using Vocaterra.Game.Graphics;
+using Vocaterra.Game.Graphics.Figures;
 
 namespace Vocaterra.Game.Tests.Graphics;
 

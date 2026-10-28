@@ -2,8 +2,10 @@ using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
+using Vocaterra.Game.Graphics.Blocks;
+using Vocaterra.Game.Graphics.World;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Figures;
 
 /// <summary>The moving group a part of a figure belongs to: the pose turns each group about its own joint.</summary>
 public enum FigureGroup

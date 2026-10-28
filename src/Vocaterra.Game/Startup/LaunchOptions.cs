@@ -8,6 +8,7 @@ using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Graphics;
+using Vocaterra.Game.Graphics.World;
 
 namespace Vocaterra.Game.Startup;
 

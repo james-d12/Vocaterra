@@ -4,9 +4,10 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Graphics.Camera;
+using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.UI.Dialogue;
 using DrawHelpers = Vocaterra.Game.Graphics.DrawHelpers;
-using EdgeArrow = Vocaterra.Game.Graphics.EdgeArrow;
 
 namespace Vocaterra.Game.UI;
 
@@ -98,7 +99,7 @@ public sealed class NpcLabelLayer : IFrameLayer
 
 /// <summary>
 /// The pointer's screen half: a label over the beacon column when it is on screen, and an arrow on the screen edge when it is not (the column
-/// itself is drawn in the scene). The arrow math is <see cref="Graphics.EdgeArrow"/>.
+/// itself is drawn in the scene). The arrow math is <see cref="EdgeArrow"/>.
 /// </summary>
 public sealed class BeaconArrowLayer : IFrameLayer
 {

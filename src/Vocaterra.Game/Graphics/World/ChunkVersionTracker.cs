@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.World;
 
 /// <summary>
 /// What a chunk's mesh was built from: the chunk's own <see cref="VoxelChunk.Version"/> and, for each of the six chunks next to it, a signature

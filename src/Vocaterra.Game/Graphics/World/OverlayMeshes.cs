@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.Graphics.Blocks;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.World;
 
 /// <summary>
 /// The small meshes drawn over the world each frame, in plain values: the frame around the block the crosshair is on, and the beacon column.

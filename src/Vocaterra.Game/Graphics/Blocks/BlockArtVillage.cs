@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Blocks;
 
 /// <summary>
 /// The pixel art of the village's cells (S15), drawn in code like the rest of the atlas (D-game-5: CC0 by construction, no picture file): the timber, the

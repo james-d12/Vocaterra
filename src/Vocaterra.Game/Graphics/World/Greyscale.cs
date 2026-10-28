@@ -1,4 +1,6 @@
-namespace Vocaterra.Game.Graphics;
+using Vocaterra.Game.Graphics.Blocks;
+
+namespace Vocaterra.Game.Graphics.World;
 
 /// <summary>
 /// The greyscale copy of an RGBA picture, made on the CPU (the 2D slice did the same at load, research section 7.3): each pixel's colour becomes

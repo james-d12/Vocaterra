@@ -2,8 +2,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Voxel;
+using Vocaterra.Game.UI.Common;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Blocks;
 
 /// <summary>Draws an item as a small icon (the hotbar, the inventory screen, the held item).</summary>
 public interface IItemIcons

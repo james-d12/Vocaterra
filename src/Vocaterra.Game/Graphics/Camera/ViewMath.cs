@@ -1,7 +1,7 @@
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Simulation;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Camera;
 
 /// <summary>
 /// The camera's orientation as plain numbers. The player's look is whole <see cref="Angles"/> steps (yaw 0 north, 1 024 east, pitch positive

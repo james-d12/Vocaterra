@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.World;
 
 /// <summary>
 /// One vertex of a voxel mesh, in plain values: a position in blocks (x east, y up, z south, the simulation's axes), a packed colour (red in

@@ -1,4 +1,6 @@
-namespace Vocaterra.Game.Graphics;
+using Vocaterra.Game.Graphics.Blocks;
+
+namespace Vocaterra.Game.Graphics.Sky;
 
 /// <summary>
 /// The colours of the sky (S14) and the one place the fog colour comes from: a deep blue overhead that grows paler towards the horizon, where it meets

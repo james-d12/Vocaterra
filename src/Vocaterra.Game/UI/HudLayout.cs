@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Tip;
+using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.UI.Dialogue;
 
 namespace Vocaterra.Game.UI;

@@ -9,6 +9,7 @@ using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
+using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Sound;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI;

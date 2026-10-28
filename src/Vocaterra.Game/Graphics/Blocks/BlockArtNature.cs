@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Blocks;
 
 /// <summary>
 /// The pixel art of the natural cells of the block atlas (S14), drawn in code: grass, dirt, stone and its mossy and cobbled forms, snow, sand, the

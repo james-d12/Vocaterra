@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Mathematics;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Figures;
 
 /// <summary>
 /// Which way a figure faces (S15): the NPCs stand where the scene put them and turn to face the player when spoken to, and turn back to their own facing

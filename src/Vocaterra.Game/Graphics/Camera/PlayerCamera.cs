@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Graphics.Camera;
 
 /// <summary>
 /// The camera that follows the player's eye: the eye of the last two ticks and the step-up ease between them (<see cref="CameraEase"/>), placed

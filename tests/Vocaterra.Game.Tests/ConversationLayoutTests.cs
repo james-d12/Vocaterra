@@ -1,4 +1,4 @@
-using Vocaterra.Game.Graphics;
+using Vocaterra.Game.Graphics.Camera;
 using Vocaterra.Game.UI;
 using Vocaterra.Game.UI.Dialogue;
 using Xunit.Abstractions;
