@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Language.Words;
 
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>
 /// The plain-English label of a Spanish verb form (S20, the book's Verbs page): <c>quiero — I want</c>, <c>¿quieres? — do you want?</c>,

@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>A rectangle in pixels (the engine's own type is not used in Frontend/, D-game-1).</summary>
 /// <param name="X">The left edge.</param>

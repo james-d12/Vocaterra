@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
+using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
@@ -12,7 +13,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Graphics;
-using Vocaterra.Game.UI.Book;
 
 namespace Vocaterra.Game.UI;
 

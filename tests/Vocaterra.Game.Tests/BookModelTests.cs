@@ -1,6 +1,6 @@
+using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.UI.Book;
 using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game.Tests;

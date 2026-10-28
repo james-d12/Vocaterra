@@ -1,7 +1,7 @@
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>
 /// Which recording a row of the book plays (S20b). A noun plays its word card (<c>card.madera</c>); a phrase plays its own recording (<c>phrase.hola</c>)

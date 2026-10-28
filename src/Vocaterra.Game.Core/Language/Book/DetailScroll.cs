@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>
 /// The right page's scroll (X03): the detail is drawn in pixels from its top, and it moves in whole lines. The page's writing is <c>content</c> pixels

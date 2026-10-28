@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>How a cell of a conjugation table is shown (S28, D-game-19).</summary>
 public enum CellState

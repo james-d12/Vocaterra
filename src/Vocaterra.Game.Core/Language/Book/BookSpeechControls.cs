@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Session;
 
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>
 /// The book's speaker controls (S20b): a click on a row's button, Enter and Shift+Enter on the selected row, Up and Down among the rows that have a

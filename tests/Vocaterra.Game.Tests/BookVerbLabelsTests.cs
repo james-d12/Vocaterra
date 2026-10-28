@@ -1,5 +1,5 @@
+using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.UI.Book;
 
 namespace Vocaterra.Game.Tests;
 

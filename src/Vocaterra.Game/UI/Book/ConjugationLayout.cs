@@ -1,3 +1,5 @@
+using Vocaterra.Game.Core.Language.Book;
+
 namespace Vocaterra.Game.UI.Book;
 
 /// <summary>

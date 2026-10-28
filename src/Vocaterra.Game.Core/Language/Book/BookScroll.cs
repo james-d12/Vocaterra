@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>The book's scroll position in lines: moved by the wheel and the keys, kept inside the page's lines.</summary>
 public static class BookScroll

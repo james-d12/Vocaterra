@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>
 /// The book's "Practise again" buttons (S26): a completed lesson's heading on the Lessons page has one at its right edge. The layer draws the button where

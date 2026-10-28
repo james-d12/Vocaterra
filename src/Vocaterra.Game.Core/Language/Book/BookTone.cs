@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>The colour family of a book line: the layer maps it to a colour.</summary>
 public enum BookTone

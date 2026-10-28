@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Language.Words;
 
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>
 /// The book (J): which page is on screen, whether it is open, and the scroll. It takes the keyboard while it is open (the player does not walk).

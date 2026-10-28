@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
+using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Mathematics;
@@ -10,7 +11,6 @@ using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Screens;
 using Vocaterra.Game.UI;
-using Vocaterra.Game.UI.Book;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Screens;

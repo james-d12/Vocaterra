@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Sound;
 
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>
 /// The book's speaker (S20b): plays the recording of a row through the NPC voice, so it goes through the mixer as voice (the other sounds duck under

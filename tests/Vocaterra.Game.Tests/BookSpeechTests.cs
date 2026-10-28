@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
@@ -7,7 +8,6 @@ using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
-using Vocaterra.Game.UI.Book;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Stages;

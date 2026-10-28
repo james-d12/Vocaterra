@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>
 /// One line of a book page (S20). A page is a list of these, drawn from the top with the scroll applied; a heading line may carry a noun's icon, its

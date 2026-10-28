@@ -4,7 +4,7 @@ using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Nlp.Es.Morphology;
 
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>
 /// The conjugation table of one verb the learner has met (S28, D-game-19): five rows (yo, tú, él/ella/usted, nosotros, ustedes/ellos; there is no

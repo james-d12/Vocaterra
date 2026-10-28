@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>One row of a conjugation table: a person (yo, tú, él/ella/usted, nosotros, ustedes/ellos).</summary>
 /// <param name="Label">The Spanish pronoun.</param>

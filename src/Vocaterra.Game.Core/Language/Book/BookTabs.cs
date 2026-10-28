@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>The labels of the book's pages, in tab order. English only (D-game-13).</summary>
 public static class BookTabs

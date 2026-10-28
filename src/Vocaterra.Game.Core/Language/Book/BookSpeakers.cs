@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>
 /// The book's speaker buttons (S20b): which rows have one, and the geometry of the button at a row. A row with no recording (<see cref="BookLine.Speak"/>

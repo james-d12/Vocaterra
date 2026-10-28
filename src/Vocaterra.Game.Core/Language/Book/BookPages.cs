@@ -7,7 +7,7 @@ using Vocaterra.Game.Core.Tip;
 using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Es.Morphology;
 
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>
 /// The lines of the book's pages (S20), built from the learner's record, the word progress, the phrase progress, the lessons and the English text.

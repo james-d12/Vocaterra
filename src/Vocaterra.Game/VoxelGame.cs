@@ -6,6 +6,7 @@ using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
+using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Speech;
@@ -31,7 +32,6 @@ using Vocaterra.Game.Screens;
 using Vocaterra.Game.Scripted;
 using Vocaterra.Game.Sound;
 using Vocaterra.Game.UI;
-using Vocaterra.Game.UI.Book;
 using Vocaterra.Game.UI.English;
 using Vocaterra.Game.Utilities;
 

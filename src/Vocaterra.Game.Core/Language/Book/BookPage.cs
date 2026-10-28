@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>The book's five pages (S20, D-game-16), in tab order.</summary>
 public enum BookPage

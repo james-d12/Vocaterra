@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI.Book;
+namespace Vocaterra.Game.Core.Language.Book;
 
 /// <summary>
 /// The book's screen geometry at a viewport size (S28): the cover, the paper of the open book as two pages with the spine between them, the ribbon
