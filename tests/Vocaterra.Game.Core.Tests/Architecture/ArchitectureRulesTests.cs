@@ -27,14 +27,14 @@ public sealed class ArchitectureRulesTests
     }
 
     [Fact]
-    public void TheProjectReferencesTheSimulationAndTheCoreProjectsOnly()
+    public void TheProjectReferencesTheCoreProjectsOnly()
     {
         // The language core (the Vocaterra.Nlp.* projects in src/) is referenced by project (D-game-7, R01); the game layer takes no package
         // of its own and never copies core source.
         var project = File.ReadAllText(Path.Combine(GameRoot(), "src", "Vocaterra.Game.Core", "Vocaterra.Game.Core.csproj"));
 
         var projects = Regex.Matches(project, "<ProjectReference Include=\"([^\"]+)\"").Select(m => m.Groups[1].Value).ToList();
-        var core = projects.Where(path => path != "../Vocaterra.Simulation/Vocaterra.Simulation.csproj").ToList();
+        var core = projects;
         Assert.NotEmpty(core);
         // The core is the one engine project Vocaterra.Nlp (M52, ADR 0012), or a Vocaterra.Nlp.<Name> project for a pack or a tool.
         Assert.All(core, path => Assert.Matches("^\\.\\./Vocaterra\\.Nlp(\\.[A-Za-z]+)?/Vocaterra\\.Nlp(\\.[A-Za-z]+)?\\.csproj$", path));

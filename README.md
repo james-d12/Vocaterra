@@ -25,7 +25,7 @@ Vocaterra.Nlp.slnf         the core alone (a solution filter; the licence scan a
 Directory.Build.props      build settings: shared, then the groups keyed on the project name (Vocaterra.Nlp.* packing; the game's native trim)
 Directory.Packages.props   one version list for both halves
 nuget.config               nuget.org only
-src/                       Vocaterra.Nlp.* (the core's libraries) and Vocaterra.Simulation, .Game, .MonoGame, .Host (the game)
+src/                       Vocaterra.Nlp.* (the core's libraries) and Vocaterra.Game.Core, .Game, .Host (the game)
 tests/                     one test project per project; tests/golden is the core's golden learner-audio manifest; tests/Shared has the two source files (bundle locator, temp-copy helper) linked into the core's test projects
 tools/                     Vocaterra.Nlp.{Cli,Bench,ContentBuilder}, Vocaterra.SpeechRender, manifest.json (the pinned grammar-check tools)
 content/                   game-v1 (the one content bundle; the core runs on it too), grammar/ (the grammar-check caches), PHRASES.md, speech-index.json
@@ -44,7 +44,7 @@ The .NET SDK is pinned in `global.json` (10.0.402, `latestPatch`); a user-local 
 ```bash
 dotnet build Vocaterra.sln -warnaserror
 dotnet test Vocaterra.sln            # the core's unit, golden and fuzz suites and the game's tests
-dotnet run --project src/Vocaterra.MonoGame
+dotnet run --project src/Vocaterra.Game
 ```
 
 Tests that need the speech models read `VOCATERRA_MODELS_DIR` and are skipped without it; `scripts/fetch-models.sh` fetches the pinned

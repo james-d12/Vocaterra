@@ -1,5 +1,9 @@
 # R16 phase 2: moving the engine-free game logic to `Vocaterra.Game.Core`
 
+> **Status: done (2026-10-28, on `feature/game_refactor`).** Batches 1 to 8 are complete; what was done, the seams and the findings are in
+> the R16 phase 2 entry of `docs/game/IMPLEMENTATION_PLAN.md` section 5, and both projects' folders in `docs/game/ARCHITECTURE.md`. The
+> live run by hand (section 7) is left for the owner.
+
 A handover for the agent that takes R16 on (written 2026-10-26, at the end of phase 1, branch `feature/organise`, commit `e5779e9`). Read it
 with `docs/code_guidelines.md` (the owner's rules), `CLAUDE.md` (the machine and repository rules), `docs/game/ARCHITECTURE.md` (the two
 projects and their folders) and the R16 entry of `docs/game/IMPLEMENTATION_PLAN.md` section 5 (what phase 1 did and found).

@@ -2,7 +2,7 @@
 
 > **Layout note (R01, 2026-10-23):** the repository now has one root layout. `nlp/src`, `nlp/tests`, `nlp/tools` and `game/src`, `game/tests`, `game/tools` are `src/`, `tests/` and `tools/`; `nlp/docs` is `docs/nlp/`, `game/docs` is `docs/game/`; `nlp/content/v1` is `content/v1`, `game/content/*` is `content/`, `nlp/golden` is `tests/golden`, `nlp/models` is `models/`, `game/assets` is `assets/`, `nlp/scripts` is `scripts/`, `game/playtest` is `scripts/playtest`; `LICENSE` and `NOTICE` are at the root and cover the whole repository (Apache-2.0). The core is the `Vocaterra.Nlp.*` projects, the game is `Vocaterra.{Simulation,Game,MonoGame,Host,SpeechRender}`; `Vocaterra.Nlp.slnf` builds the core alone. Paths and links below were updated to match; the narrative is otherwise unchanged. `.github/workflows-pending/ci.yml` still uses the old `nlp/` paths.
 
-This is the plan for the game: the game projects (`Vocaterra.Simulation`, `Vocaterra.Game`, `Vocaterra.MonoGame`, `Vocaterra.Host`, `Vocaterra.SpeechRender`), `content/game-v1`, `assets/` and `docs/game/`. The language core (`Vocaterra.Nlp.*`) has its own plan
+This is the plan for the game: the game projects (`Vocaterra.Game.Core`, `Vocaterra.Game`, `Vocaterra.Host`, `Vocaterra.SpeechRender`), `content/game-v1`, `assets/` and `docs/game/`. The language core (`Vocaterra.Nlp.*`) has its own plan
 (`docs/nlp/IMPLEMENTATION_PLAN.md`) and decisions; this file never plans core internals. Since 2026-10-21 (D-game-7) one orchestrator runs both. Owner decisions are in `docs/game/DECISIONS.md`. Status values: `planned`, `in progress`,
 `in review` (on its branch, not yet merged), `done` (merged to main and gated; for the S series, merged to `feature/prototype` and gated), `blocked` (names the blocker).
 
@@ -29,12 +29,12 @@ Directory.Build.props         shared build settings (net10.0, nullable, warnings
 Directory.Packages.props      central versions for both halves (third-party packages only)
 nuget.config                  nuget.org only
 global.json                   the .NET SDK pin (10.0.402, latestPatch)
-src/Vocaterra.Simulation/     the world and physics (no packages, no engine; net8.0 and net10.0)
-src/Vocaterra.Game/           the engine-free game layer (references the core's projects and the simulation)
-src/Vocaterra.MonoGame/       the MonoGame front-end (the only engine code)
+src/Vocaterra.Game.Core/      the game's engine-free systems: the world and its tick, the session, the guide, the language systems, the screens'
+                              models and their keys (references the core's projects, no package, no engine; folders in ARCHITECTURE.md)
+src/Vocaterra.Game/           the MonoGame front-end (the only engine code): the window, the drawing, the devices, the UI's layers
 src/Vocaterra.Host/           the console host: loads a bundle, evaluates lines, runs the text loop
 src/Vocaterra.Nlp.*/          the language core (its own plan, decisions and docs under docs/nlp/)
-tests/                        one test project per source project
+tests/                        one test project per source project, their folders mirroring the sources' (R16)
 tools/Vocaterra.SpeechRender/ the speech prerender tool (the core's tools are beside it)
 content/game-v1/              the game's content bundle (diverged from the core's sample, D-game-4)
 assets/                       CC0 art, fonts and sounds (assets/ATTRIBUTION.md)
@@ -45,7 +45,7 @@ scripts/merge-gate.sh         the orchestrator's merge gate (both halves)
 .github/workflows-pending/    the parked CI job (D-game-3, deferred)
 ```
 
-The S series adds `src/Vocaterra.Simulation/Voxel/` (S1; the 2D simulation, generator and light map are removed at S4),
+The S series adds `src/Vocaterra.Simulation/Voxel/` (S1; now `src/Vocaterra.Game.Core/Voxel/`; the 2D simulation, generator and light map are removed at S4),
 `content/game-v1/game/scene.json` (the hand-authored route), `content/PHRASES.md` (the phrase sheet, S5), `content/game-v1/speech/` (pre-rendered
 lines, S9), `docs/game/PROTOTYPE_BRIEF.md` and `docs/game/SCENARIO_PLAN.md` (the brief and its plan) and `docs/game/research/noun-town/` (D-game-11).
 
@@ -55,11 +55,12 @@ lines, S9), `docs/game/PROTOTYPE_BRIEF.md` and `docs/game/SCENARIO_PLAN.md` (the
    the core is reported in the milestone's report with the call and the reason, and the orchestrator plans it as a core milestone.
 2. **Determinism is the host's job.** The core is deterministic when the host supplies its inputs: the world seed, the stored time (Unix
    seconds, passed in), the learner model and the repeat counts (`RepeatCounts.Next`, core M19d). The host never draws its own random
-   numbers, except world generation in `Vocaterra.Simulation`, which is a pure function of the world seed through its own seeded generator
+   numbers, except world generation in `Vocaterra.Game.Core` (`World/Generation/`), which is a pure function of the world seed through its own seeded generator
    (`WorldRng`); never `System.Random`, never the clock, and no `Math.Sin` or `Math.Pow` in generation. Only the interactive text loop reads the clock; a `--transcript` run uses a fixed time. Dictionaries that reach output are
    ordered with `StringComparer.Ordinal`. Culture is invariant.
-3. **Engine code only in `src/Vocaterra.MonoGame`** (D-game-1, later a Godot front-end of its own). Never in `src/Vocaterra.Host`,
-   `src/Vocaterra.Simulation` or `src/Vocaterra.Game`. `Vocaterra.Simulation` takes no packages at all.
+3. **Engine code only in `src/Vocaterra.Game`** (D-game-1, later a Godot front-end of its own). Never in `src/Vocaterra.Host` or
+   `src/Vocaterra.Game.Core`, which takes no packages at all and holds the game's logic (`docs/code_guidelines.md`; its
+   `ArchitectureRulesTests` gate it). A screen in Core names keys as `GameKey` and reads the frame as `IInputFrame` (D-p2-1a).
 4. **Content procedure.** Every edit to `content/game-v1` (from the repository root): `scripts/content.sh validate`, then
    `scripts/content.sh hash content/game-v1 --bundle-id game-v1` (rewrites `manifest.json`), then `scripts/content.sh validate` and the tests.
    Files that come from the Wiktionary import keep `generatedBy: wiktionary-import` in `provenance.json` and their CC BY-SA notice in
@@ -351,7 +352,7 @@ the owner-approved plan of 2026-10-23 (the flatten, then one bundle).
 | --- | --- | --- |
 | R01 | Flatten `nlp/` and `game/` into one root layout (`src/`, `tests/`, `tools/`, `docs/nlp/`, `docs/game/`, `content/`, `assets/`, `models/`, `scripts/`); one `Directory.Build.props` keyed on project name; `Vocaterra.sln` regenerated (the three duplicated tool entries gone) plus `Vocaterra.Nlp.slnf`; Apache-2.0 everywhere (D-game-20); the gate refuses `main` | done (Sonnet), gated on `feature/flatten` 2026-10-23, pushed |
 | R02 | The core runs on `content/game-v1`; `content/v1` (the blacksmith sample, core D7) is deleted. Core tests break when game content breaks the core (the owner wants that signal); hash literals become computed checks; effects, quantity slots and the worked example get in-memory fixtures; goldens re-recorded on game-v1 | done (Sonnet), gated on `feature/flatten` 2026-10-23, pushed |
-| R16p2 | R16 phase 2 and the game's folders (`docs/game/GAME_PROJECTS_LAYOUT.md`): engine-free logic to `Vocaterra.Game.Core`, `GameKey`/`IInputFrame` (D-p2-1a), Game regrouped by area and feature, tests mirror source folders, stale project names fixed. Batches 1 to 8 on `feature/game_refactor` | in progress (2026-10-27) |
+| R16p2 | R16 phase 2 and the game's folders (`docs/game/GAME_PROJECTS_LAYOUT.md`): engine-free logic to `Vocaterra.Game.Core`, `GameKey`/`IInputFrame` (D-p2-1a), Game regrouped by area and feature, tests mirror source folders, stale project names fixed. Batches 1 to 8 on `feature/game_refactor` | done (2026-10-28, on `feature/game_refactor`; see the R16 phase 2 entry in section 5) |
 
 **R01 findings.**
 - 1517 renames at 100% in the move commit; `git log --follow` reaches pre-move history on both sides. Test counts identical to the
@@ -1389,6 +1390,36 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - F6 and `--save` rebuilt the fresh scene at every save (about 0.6 s); the autosave and the crash save used a cached one. All saves now
       use the cache, and they come out the same (r09).
     - The hotbar's and the panels' wheel baselines were two fields with the same value at every frame the panels can see; they are one.
+- **R16 phase 2 and the game's folders (2026-10-28, Opus 5.5; on `feature/game_refactor`, `docs/game/GAME_PROJECTS_LAYOUT.md`).**
+  - **Done, batches 1 to 8:** the leaves, the screens' models, the flows and the scripts moved to `Vocaterra.Game.Core` (batches 1 to 4);
+    `GameKey`, `IInputFrame` and Game's `KeyMap` (D-p2-1a), the screens, the key bindings, the push-to-talk, `WorldStepper`, `PlaytestFlow`
+    and `CheckBattery` after it (batch 5); Game regrouped into `Startup/`, `Diagnostics/`, `Graphics/` and `UI/` by feature (batch 6); the
+    tests mirroring the sources, with `Component/`, `TestSupport/` and `Architecture/` (batch 7); the docs and the stale project names
+    (batch 8). One commit per step, each built with warnings as errors, format-checked and tested; `Utilities/`, `Screens/`, `Frame/`,
+    `Persistence/`, `Reporting/` and `UI/English/` are gone from Game, `Utilities/` and the root-level file from Core.
+  - **Seams (small code changes, each in its commit's body):** `AutosaveController` and `CheckBattery` take the clock as `Func<double>`;
+    `CheckBattery` writes to the new Core interface `ICheckLog` (`SessionLog` implements it); `SoundSetup` takes a `SoundOptions` record
+    (`LaunchOptions.Sound`); `LookControl` owns `RadiansPerStep` (`CameraBasis` reads it); the strip's key rules are `LessonActions`; the
+    screens' click hit-tests are delegates from Game (the lesson strip, the speech buttons, the mic check's buttons, the crafting rows, the
+    book's geometry). `BookGeometry` and `BookRect` went to Core with the book (integer arithmetic on the viewport, needed by the book's clicks).
+  - **Checks:** the scripted runs of every batch against a baseline of `e932b20`: `compare-runs.py` exit 0 for batches 1 to 6 (batch 7 moved
+    tests only, batch 8 docs only). Tests: Game.Core.Tests 863 -> 1208, Game.Tests 872 -> 529, Host.Tests 36 (with the models; two new tests,
+    `KeyMapTests` and an `InputSnapshotTests` case, so the total went from 1735 to 1737). `core-move-scan.py`: 45 MOVABLE, 49 BLOCKED-self,
+    7 BLOCKED-deps in Game (172 files at the start, 101 now); every MOVABLE file left is a layout, a mesher, graphics or the command line,
+    which section 5.2 of `R16_PHASE2.md` and D-p2-3 keep in Game.
+  - **Not done:** the live run by hand of `SCRIPTED_RUNS.md` (no scripted run presses a key, and batch 5 moved the keys): for the owner.
+    The batch branches were not gated one by one into `feature/game_refactor` (the owner asked for all the work on that one branch); the
+    gate's checks ran once at the end.
+  - **Findings:**
+    - `compare-runs.py` masks no path: a baseline taken from another checkout differs in the scene's path, and a capture taken while a build
+      waits on `limited.sh` has its queue line in `stdout.txt`. Both were masked by hand here before the comparison.
+    - The namespace `Vocaterra.Game.UI.Inventory` hides Core's `Inventory` type from code under `UI/`: `FrameView`, `HotbarLayer` and
+      `InventoryLayer` write `Core.Items.Inventory`.
+    - `scripts/playtest-build.sh` and `scripts/playtest/playtest.sh` still publish `src/Vocaterra.MonoGame/Vocaterra.MonoGame.csproj` and run
+      `./Vocaterra.MonoGame`, which no longer exist (since the projects were renamed, before R16): the playtest folder cannot be built until
+      they name `src/Vocaterra.Game` and `Vocaterra.Game`. Not changed here.
+    - A worktree's `obj/` was left corrupt by an earlier session (a generated `AssemblyInfo.cs` and a reference assembly of binary garbage):
+      the build failed with CS1056 and CS0009 until `bin/` and `obj/` were deleted.
 - **G8 (2026-10-27, Haiku 5.5, merged to `feature/language-packs` `00ff1e5`): the spoken-mistake test.**
   - Gate with models: 5257 passed, 5 skipped, 0 failed (5262 in all, as at M52); build, format, content, grammar and licence scan clean.
     The two extra skips are the Parakeet tests: `sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8` is not in the shared models folder on this

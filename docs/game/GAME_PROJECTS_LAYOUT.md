@@ -1,5 +1,9 @@
 # Game and Game.Core: keep the two projects; finish R16 phase 2 and regroup the folders (report, 2026-10-27)
 
+> **Status: done (2026-10-28, on `feature/game_refactor`).** Both trees below are in place, with the placements that differ recorded in
+> the commits and in the R16 phase 2 entry of `docs/game/IMPLEMENTATION_PLAN.md` (`PixelBox` in `UI/Common/`, `BookGeometry` in Core,
+> `MicCheckLayout` in `UI/Checks/`). The per-batch merge gate was replaced by one run of its checks (all work on the one branch).
+
 ## Context
 
 The owner asked whether `src/Vocaterra.Game` and `src/Vocaterra.Game.Core` should be merged into one project, and what the folders
