@@ -3,7 +3,6 @@ using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Game.Input;
 using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game.Tests;

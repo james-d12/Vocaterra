@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Mathematics;
+using Vocaterra.Game.Core.Simulation;
 
 namespace Vocaterra.Game.Graphics;
 
@@ -12,8 +13,8 @@ namespace Vocaterra.Game.Graphics;
 /// <param name="Up">The camera's up.</param>
 public readonly record struct CameraBasis((double X, double Y, double Z) Forward, (double X, double Y, double Z) Right, (double X, double Y, double Z) Up)
 {
-    /// <summary>The radians of one angle step.</summary>
-    public const double RadiansPerStep = 2 * Math.PI / Angles.StepsPerTurn;
+    /// <summary>The radians of one angle step (<see cref="LookControl.RadiansPerStep"/>).</summary>
+    public const double RadiansPerStep = LookControl.RadiansPerStep;
 
     /// <summary>The basis for a yaw and a pitch in angle steps.</summary>
     public static CameraBasis From(double yawSteps, double pitchSteps)

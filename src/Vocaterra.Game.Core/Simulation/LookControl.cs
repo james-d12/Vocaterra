@@ -1,8 +1,7 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Mathematics;
-using Vocaterra.Game.Graphics;
 
-namespace Vocaterra.Game.Input;
+namespace Vocaterra.Game.Core.Simulation;
 
 /// <summary>
 /// The player's look as the front-end holds it: a yaw and a pitch that mouse movement turns and that scripts set, in <see cref="Angles"/> steps
@@ -12,6 +11,9 @@ namespace Vocaterra.Game.Input;
 /// </summary>
 public sealed class LookControl
 {
+    /// <summary>The radians of one angle step.</summary>
+    public const double RadiansPerStep = 2 * Math.PI / Angles.StepsPerTurn;
+
     /// <summary>The steps one pixel of mouse movement turns the view: about 0.14 degrees, 1.6 steps.</summary>
     public const double StepsPerPixel = 1.6;
 
@@ -62,8 +64,8 @@ public sealed class LookControl
         var dz = z - eyeZ;
         var horizontal = Math.Sqrt((dx * dx) + (dz * dz));
         // Yaw 0 faces -z and grows clockwise: the bearing is atan2(east, north) with north = -dz.
-        var yaw = Math.Atan2(dx, -dz) / CameraBasis.RadiansPerStep;
-        var pitch = Math.Atan2(dy, horizontal) / CameraBasis.RadiansPerStep;
+        var yaw = Math.Atan2(dx, -dz) / RadiansPerStep;
+        var pitch = Math.Atan2(dy, horizontal) / RadiansPerStep;
         Set(horizontal < 1e-6 ? _yaw : yaw, pitch);
     }
 

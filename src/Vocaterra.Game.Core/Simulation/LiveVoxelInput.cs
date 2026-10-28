@@ -1,8 +1,7 @@
 using Vocaterra.Game.Core.Items;
-using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.Input;
+namespace Vocaterra.Game.Core.Simulation;
 
 /// <summary>
 /// The keyboard and mouse of the 3D run as simulation commands, in plain values. Once per frame the game sets what the devices show: the

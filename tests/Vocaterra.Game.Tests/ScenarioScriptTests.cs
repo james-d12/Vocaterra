@@ -7,7 +7,6 @@ using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
-using Vocaterra.Game.Input;
 using Vocaterra.Game.Utilities;
 using Vocaterra.Nlp.Content;
 

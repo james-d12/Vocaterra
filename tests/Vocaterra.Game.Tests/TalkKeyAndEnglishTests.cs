@@ -2,7 +2,6 @@ using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Input;
 using Vocaterra.Game.UI;
 using Vocaterra.Game.UI.Dialogue;
 

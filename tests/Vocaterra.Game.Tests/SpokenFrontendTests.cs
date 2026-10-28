@@ -3,7 +3,6 @@ using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Input;
 using Vocaterra.Game.Utilities;
 using Vocaterra.Nlp.Content;
 
