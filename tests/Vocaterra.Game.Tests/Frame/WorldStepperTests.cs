@@ -5,7 +5,6 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
-using Vocaterra.Game.Frame;
 using Vocaterra.Game.UI;
 using Vocaterra.Nlp.Content;
 

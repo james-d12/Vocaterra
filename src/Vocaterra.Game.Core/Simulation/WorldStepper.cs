@@ -1,9 +1,8 @@
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Core.Simulation;
 
-namespace Vocaterra.Game.Frame;
+namespace Vocaterra.Game.Core.Simulation;
 
 /// <summary>
 /// One tick of the world: the tick's commands (the script's, or the player's while no panel holds the keys), the crafts asked for, the look

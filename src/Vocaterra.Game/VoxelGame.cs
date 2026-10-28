@@ -26,7 +26,6 @@ using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Game.Flow;
-using Vocaterra.Game.Frame;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Reporting;

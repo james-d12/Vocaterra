@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Frame;
 
 namespace Vocaterra.Game.Graphics;
 

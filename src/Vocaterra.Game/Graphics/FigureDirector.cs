@@ -6,7 +6,6 @@ using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Game.Frame;
 
 namespace Vocaterra.Game.Graphics;
 
