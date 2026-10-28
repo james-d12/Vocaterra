@@ -1415,9 +1415,11 @@ Facts that shape the plan. Each one names its source; the core's own findings st
       waits on `limited.sh` has its queue line in `stdout.txt`. Both were masked by hand here before the comparison.
     - The namespace `Vocaterra.Game.UI.Inventory` hides Core's `Inventory` type from code under `UI/`: `FrameView`, `HotbarLayer` and
       `InventoryLayer` write `Core.Items.Inventory`.
-    - `scripts/playtest-build.sh` and `scripts/playtest/playtest.sh` still publish `src/Vocaterra.MonoGame/Vocaterra.MonoGame.csproj` and run
-      `./Vocaterra.MonoGame`, which no longer exist (since the projects were renamed, before R16): the playtest folder cannot be built until
-      they name `src/Vocaterra.Game` and `Vocaterra.Game`. Not changed here.
+    - `scripts/playtest-build.sh` and `scripts/playtest/playtest.sh` still published `src/Vocaterra.MonoGame/Vocaterra.MonoGame.csproj` and ran
+      `./Vocaterra.MonoGame`, which no longer existed (since the projects were renamed, before R16), so no playtest folder could be built.
+      They now name `src/Vocaterra.Game` and `Vocaterra.Game` (and its `deps.json`). Checked 2026-10-28 at `bc6ee39`: the build's checks all
+      pass (773 files, 210.7 MiB, 430 speech WAVs, no sherpa-onnx or ONNX Runtime native library), and `./playtest.sh` with a scripted
+      screenshot opens the pre-check, writes the session log and the playtest save, and exits 0.
     - A worktree's `obj/` was left corrupt by an earlier session (a generated `AssemblyInfo.cs` and a reference assembly of binary garbage):
       the build failed with CS1056 and CS0009 until `bin/` and `obj/` were deleted.
 - **G8 (2026-10-27, Haiku 5.5, merged to `feature/language-packs` `00ff1e5`): the spoken-mistake test.**
