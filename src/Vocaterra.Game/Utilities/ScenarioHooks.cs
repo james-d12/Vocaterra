@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Language.Book;
+using Vocaterra.Game.Core.Scripted;
 
 namespace Vocaterra.Game.Utilities;
 

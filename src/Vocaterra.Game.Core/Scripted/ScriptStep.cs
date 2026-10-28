@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Scripted;
 
 /// <summary>One step of the scripted run, in the order given on the command line.</summary>
 /// <param name="Kind">What the step does.</param>

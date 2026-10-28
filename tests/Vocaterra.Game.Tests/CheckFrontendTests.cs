@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.UI;
 using Vocaterra.Game.Utilities;

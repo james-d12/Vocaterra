@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Npc;
+using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;

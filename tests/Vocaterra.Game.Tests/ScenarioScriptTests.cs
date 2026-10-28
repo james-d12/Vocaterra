@@ -5,6 +5,7 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Physics;
+using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Utilities;

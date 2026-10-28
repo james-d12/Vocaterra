@@ -9,6 +9,7 @@ using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
+using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;

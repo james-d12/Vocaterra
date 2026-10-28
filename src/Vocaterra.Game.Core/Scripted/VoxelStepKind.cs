@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Navigation;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Scripted;
 
 /// <summary>The kinds of step the scripted 3D run takes.</summary>
 public enum VoxelStepKind

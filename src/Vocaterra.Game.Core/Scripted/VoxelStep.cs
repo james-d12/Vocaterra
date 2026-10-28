@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Scripted;
 
 /// <summary>One step of the scripted 3D run, in plain values.</summary>
 /// <param name="Kind">What the step does.</param>
