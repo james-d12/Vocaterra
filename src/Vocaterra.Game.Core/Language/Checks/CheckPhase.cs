@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Language.Checks;
 
 /// <summary>Where the check battery stands: an item is showing, a production answer is with the worker, or the battery is done.</summary>
 public enum CheckPhase

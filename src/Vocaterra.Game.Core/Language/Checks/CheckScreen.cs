@@ -1,12 +1,11 @@
 using Vocaterra.Game.Core.Input;
-using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Words;
 
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Language.Checks;
 
 /// <summary>
 /// The check battery's state as the screen shows it (S11): the items in their planned order, the answer of each, the typed line, the notice and
-/// the phase. It is a plain model (no engine): the game draws it (<see cref="CheckLayer"/>), feeds it the picks and the worker's grades, and reads
+/// the phase. It is a plain model (no engine): the game draws it (<c>CheckLayer</c>), feeds it the picks and the worker's grades, and reads
 /// the results. Nothing here touches the conversations, the learner model, the phrase progress or the world.
 /// </summary>
 public sealed class CheckScreen
