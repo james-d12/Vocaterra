@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Tests.Voxel;

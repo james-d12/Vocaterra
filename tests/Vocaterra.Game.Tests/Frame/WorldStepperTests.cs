@@ -1,9 +1,9 @@
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
-using Vocaterra.Game.Core.Utilities;
 using Vocaterra.Game.Frame;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Screens;

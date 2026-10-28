@@ -1,6 +1,6 @@
+using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Sound;
-using Vocaterra.Game.Core.Utilities;
 
 namespace Vocaterra.Game.Tests;
 

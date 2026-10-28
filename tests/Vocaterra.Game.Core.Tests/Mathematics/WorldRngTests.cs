@@ -1,4 +1,6 @@
-namespace Vocaterra.Game.Core.Tests;
+using Vocaterra.Game.Core.Mathematics;
+
+namespace Vocaterra.Game.Core.Tests.Mathematics;
 
 /// <summary>The SplitMix64 generator, its derivation per pass and chunk, and the integer value noise.</summary>
 public sealed class WorldRngTests
