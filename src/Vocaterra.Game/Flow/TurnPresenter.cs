@@ -1,9 +1,9 @@
+using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Sound;
-using Vocaterra.Game.UI;
 using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game.Flow;

@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>One of the five fixed speech buttons: what it does, what it says and its key.</summary>
 /// <param name="Action">What it does.</param>

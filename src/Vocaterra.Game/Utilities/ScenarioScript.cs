@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Lessons;
@@ -7,7 +8,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Input;
-using Vocaterra.Game.UI;
 
 namespace Vocaterra.Game.Utilities;
 

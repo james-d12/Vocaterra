@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>What the dialogue panel is doing with the keyboard: showing the speech buttons (the keys R, S, H, N, W, 1 to 3 press them, V or Space talks) or the text box.</summary>
 public enum PanelMode

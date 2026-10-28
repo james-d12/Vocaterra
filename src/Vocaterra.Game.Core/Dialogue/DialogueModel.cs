@@ -7,7 +7,7 @@ using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
 
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>
 /// The dialogue panel as plain state, with no engine type: whether it is open, the text box, the lines shown so far and a request to send.

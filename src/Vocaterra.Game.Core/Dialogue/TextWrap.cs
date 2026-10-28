@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>Breaks text into lines that fit a width, measured by a function the engine layer supplies (the font), so the logic is testable.</summary>
 public static class TextWrap

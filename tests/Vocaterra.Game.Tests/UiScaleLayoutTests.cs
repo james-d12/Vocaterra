@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;

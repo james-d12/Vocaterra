@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Mathematics;
@@ -8,7 +9,6 @@ using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Input;
-using Vocaterra.Game.UI;
 using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game.Tests;

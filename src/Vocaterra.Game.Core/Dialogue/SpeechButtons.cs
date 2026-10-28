@@ -1,7 +1,7 @@
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Session;
 
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>The speech buttons of the dialogue panel, their keys and the voice event each press raises (S7, D-game-9: replay, slower audio, help, "no sé" and the typed fallback are always available).</summary>
 public static class SpeechButtons

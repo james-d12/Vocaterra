@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>What a speech button of the dialogue panel does (S7). The panel's mouse hit-test, its keys and the logic that carries them out all use these.</summary>
 public enum SpeechAction

@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>The keys the dialogue panel's buttons answer to, without the engine's key type (the game maps its keys to these).</summary>
 public enum PanelKey

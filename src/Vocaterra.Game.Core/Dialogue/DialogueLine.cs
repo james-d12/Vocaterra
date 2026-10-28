@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>One line of the dialogue panel.</summary>
 /// <param name="Speaker">Whose line it is.</param>

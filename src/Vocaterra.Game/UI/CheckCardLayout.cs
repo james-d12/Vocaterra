@@ -1,3 +1,5 @@
+using Vocaterra.Game.Core.Dialogue;
+
 namespace Vocaterra.Game.UI;
 
 /// <summary>One option of a comprehension item as laid out: its box and the rows of its label, in the font the layout chose.</summary>

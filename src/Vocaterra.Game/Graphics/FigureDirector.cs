@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Physics;
@@ -7,7 +8,6 @@ using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Frame;
 using Vocaterra.Game.Input;
-using Vocaterra.Game.UI;
 
 namespace Vocaterra.Game.Graphics;
 

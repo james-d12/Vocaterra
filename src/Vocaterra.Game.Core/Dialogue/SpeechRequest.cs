@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Session;
 
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>A scripted spoken line waiting to be sent (<c>--wav</c>, <c>--speak</c>): the game submits it to the worker between ticks.</summary>
 /// <param name="Source">A WAV file or a line to synthesize.</param>

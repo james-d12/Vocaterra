@@ -1,3 +1,5 @@
+using Vocaterra.Game.Core.Dialogue;
+
 namespace Vocaterra.Game.UI;
 
 /// <summary>

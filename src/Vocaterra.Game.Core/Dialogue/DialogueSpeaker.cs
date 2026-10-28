@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>Who a line of the dialogue panel belongs to; the panel colours them differently.</summary>
 public enum DialogueSpeaker

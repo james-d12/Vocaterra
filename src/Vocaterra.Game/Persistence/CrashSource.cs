@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;

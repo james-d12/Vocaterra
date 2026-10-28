@@ -1,3 +1,5 @@
+using Vocaterra.Game.Core.Dialogue;
+
 namespace Vocaterra.Game.UI;
 
 /// <summary>Where the speaker's bubble goes on the screen (S15): its box, and where its little pointer touches the box and points at the speaker.</summary>
