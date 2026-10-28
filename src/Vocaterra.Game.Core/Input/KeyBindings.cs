@@ -1,12 +1,4 @@
-using Vocaterra.Game.Core.Input;
-
-namespace Vocaterra.Game.Input;
-
-/// <summary>A key that runs a command when it goes down, while its condition holds.</summary>
-/// <param name="Key">The key.</param>
-/// <param name="Command">What it runs.</param>
-/// <param name="When">The condition, or <see langword="null"/> for always.</param>
-public sealed record KeyBinding(GameKey Key, IGameCommand Command, Func<bool>? When = null);
+namespace Vocaterra.Game.Core.Input;
 
 /// <summary>
 /// The game's keys as commands (the command pattern): the global keys, each one on its own, and the world's keys, of which the first that

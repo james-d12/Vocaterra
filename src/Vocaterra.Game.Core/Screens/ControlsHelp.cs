@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Input;
 
-namespace Vocaterra.Game.Screens;
+namespace Vocaterra.Game.Core.Screens;
 
 /// <summary>The controls help (F1, S16): the list of keys; when it does not all fit the canvas (a large text size), Up, Down, Page Up, Page Down and the wheel scroll it (X08). Esc or F1 closes it.</summary>
 public sealed class ControlsHelp : IScreen

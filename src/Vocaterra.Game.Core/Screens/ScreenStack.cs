@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Input;
 
-namespace Vocaterra.Game.Screens;
+namespace Vocaterra.Game.Core.Screens;
 
 /// <summary>
 /// The screens over the world in the order they take the keyboard: the first open one is on top and gets the frame's keys, and the world gets

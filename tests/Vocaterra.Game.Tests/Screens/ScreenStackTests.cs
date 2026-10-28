@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Input;
+using Vocaterra.Game.Core.Screens;
 using Vocaterra.Game.Input;
-using Vocaterra.Game.Screens;
 
 namespace Vocaterra.Game.Tests.Screens;
 

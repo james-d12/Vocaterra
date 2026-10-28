@@ -16,6 +16,7 @@ using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
+using Vocaterra.Game.Core.Screens;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;

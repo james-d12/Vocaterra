@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Input;
 
-namespace Vocaterra.Game.Screens;
+namespace Vocaterra.Game.Core.Screens;
 
 /// <summary>A screen over the world that takes the keyboard while it is open: a check, a panel, the book, the help.</summary>
 public interface IScreen

@@ -1,7 +1,6 @@
-using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
 
-namespace Vocaterra.Game.Input;
+namespace Vocaterra.Game.Core.Input;
 
 /// <summary>Using the book item (S20): selected and right-clicked with the mouse captured, it opens the book as J does. The item is not placeable, so the press places nothing.</summary>
 public static class BookItemUse

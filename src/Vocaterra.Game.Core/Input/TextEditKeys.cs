@@ -1,13 +1,4 @@
-using Vocaterra.Game.Core.Input;
-
-namespace Vocaterra.Game.Input;
-
-/// <summary>The editing keys of a text box held this frame, after their repeats: Backspace, Delete and the two arrows.</summary>
-/// <param name="Backspace">Backspace fires.</param>
-/// <param name="Delete">Delete fires.</param>
-/// <param name="Left">Left fires.</param>
-/// <param name="Right">Right fires.</param>
-public readonly record struct TextEdits(bool Backspace, bool Delete, bool Left, bool Right);
+namespace Vocaterra.Game.Core.Input;
 
 /// <summary>The repeats of the text boxes' editing keys (<see cref="KeyRepeater"/>), one set for the dialogue's and the report's text boxes: only one is open at a time.</summary>
 public sealed class TextEditKeys
