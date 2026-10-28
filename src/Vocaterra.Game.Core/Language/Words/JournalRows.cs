@@ -1,6 +1,4 @@
-using Vocaterra.Game.Core.Language.Words;
-
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Language.Words;
 
 /// <summary>
 /// The journal's rows, built from the learner's counts: every catalogue noun, the known ones first, then the ones learned in part, the ones met

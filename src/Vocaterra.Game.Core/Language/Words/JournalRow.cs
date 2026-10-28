@@ -1,6 +1,4 @@
-using Vocaterra.Game.Core.Language.Words;
-
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Language.Words;
 
 /// <summary>One line of the journal: a catalogue noun, what the learner has done with it, and how far it is known.</summary>
 /// <param name="Lemma">The noun (<c>árbol</c>), or the lemma of an unseen noun.</param>

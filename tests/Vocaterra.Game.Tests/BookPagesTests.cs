@@ -6,7 +6,6 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
-using Vocaterra.Game.UI;
 using Vocaterra.Game.UI.Book;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Stages;

@@ -1,8 +1,7 @@
 using System.Globalization;
-using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
 
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Language.Phrases;
 
 /// <summary>
 /// The rows of the journal's phrases page, built from the learner's phrase progress in the phrase sheet's order. Plain values; the only time is the

@@ -1,6 +1,4 @@
-using Vocaterra.Game.Core.Language.Phrases;
-
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Language.Phrases;
 
 /// <summary>One line of the journal's phrases page (S8): a phrase of the phrase sheet, how much help the learner has with it and what they have done with it.</summary>
 /// <param name="Id">The phrase sheet's id.</param>
