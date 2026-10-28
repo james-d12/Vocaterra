@@ -6,6 +6,7 @@ using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Graphics.Figures;

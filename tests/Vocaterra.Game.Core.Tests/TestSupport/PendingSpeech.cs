@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Core.Tests;
+namespace Vocaterra.Game.Core.Tests.TestSupport;
 
 /// <summary>
 /// The speech lines a milestone added to the bundle whose recordings are not rendered yet: phase 1 of the milestone writes the Spanish and waits for the review pass (D-game-12

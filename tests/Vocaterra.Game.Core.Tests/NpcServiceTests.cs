@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Core.Prompts;

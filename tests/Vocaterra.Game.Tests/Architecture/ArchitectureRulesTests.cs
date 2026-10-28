@@ -1,6 +1,7 @@
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Diagnostics;
 
-namespace Vocaterra.Game.Tests;
+namespace Vocaterra.Game.Tests.Architecture;
 
 /// <summary>The layering rules of plan section 3, checked on the front-end's sources and project file.</summary>
 public sealed class ArchitectureRulesTests

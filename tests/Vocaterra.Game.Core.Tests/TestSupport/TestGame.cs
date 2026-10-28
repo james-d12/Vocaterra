@@ -10,7 +10,7 @@ using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Nlp.Content;
 
-namespace Vocaterra.Game.Core.Tests;
+namespace Vocaterra.Game.Core.Tests.TestSupport;
 
 /// <summary>Shared set-up: the game bundle loaded once, and sessions on the bundle's route for a fixed seed and a fixed stored time.</summary>
 internal static class TestGame

@@ -1,6 +1,6 @@
 using System.Buffers.Binary;
 
-namespace Vocaterra.Game.Tests;
+namespace Vocaterra.Game.Tests.TestSupport;
 
 /// <summary>
 /// A minimal TrueType 'cmap' reader (formats 0, 4, 6 and 12 of the Unicode subtables), just enough to ask which code points a font maps to a

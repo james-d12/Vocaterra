@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Vocaterra.Game.Core.Tests;
+namespace Vocaterra.Game.Core.Tests.Architecture;
 
 /// <summary>The layering and determinism rules of plan section 3, checked on the sources and the project file of <c>Vocaterra.Game.Core</c>.</summary>
 public sealed class ArchitectureRulesTests

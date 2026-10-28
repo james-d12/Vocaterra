@@ -8,7 +8,7 @@ using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Nlp.Content;
 
-namespace Vocaterra.Game.Tests;
+namespace Vocaterra.Game.Core.Tests.TestSupport;
 
 /// <summary>The bundle's route as a test session: the scene built from a seed, and a voxel session over it at the fixed start time.</summary>
 internal static class RouteScene

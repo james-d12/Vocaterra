@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Nlp.Response.Speech;
 
 namespace Vocaterra.Game.Core.Tests;

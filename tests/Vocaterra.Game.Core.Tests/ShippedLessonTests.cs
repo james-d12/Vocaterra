@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests;

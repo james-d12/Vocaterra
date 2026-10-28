@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Tests;
+namespace Vocaterra.Game.Core.Tests.TestSupport;
 
 /// <summary>Finds files in the checkout from the test's output folder (the tests read the committed font and the project's sources).</summary>
 internal static class Repo

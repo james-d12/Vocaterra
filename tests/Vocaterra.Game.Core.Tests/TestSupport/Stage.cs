@@ -6,7 +6,7 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.Core.Tests;
+namespace Vocaterra.Game.Core.Tests.TestSupport;
 
 /// <summary>Moves a headless player about the route for the tests of the NPCs: next to an NPC, next to the water, and the fill itself.</summary>
 internal static class Stage

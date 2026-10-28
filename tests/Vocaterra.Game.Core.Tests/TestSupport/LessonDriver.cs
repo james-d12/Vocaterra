@@ -4,7 +4,7 @@ using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 
-namespace Vocaterra.Game.Core.Tests;
+namespace Vocaterra.Game.Core.Tests.TestSupport;
 
 /// <summary>
 /// Drives the shipped lesson the way a learner who does everything right would, step by step, for the tests of the whole lesson (S17): the runner's own calls

@@ -1,7 +1,7 @@
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Nlp.Asr.Models;
 
-namespace Vocaterra.Game.Core.Tests;
+namespace Vocaterra.Game.Core.Tests.TestSupport;
 
 /// <summary>
 /// A fact that needs the speech models (<c>vosk-model-small-es-0.42</c>, and <c>kokoro-multi-lang-v1_0</c> when asked): it is skipped, with the

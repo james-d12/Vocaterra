@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Graphics.Camera;
 
 namespace Vocaterra.Game.Tests.Graphics;

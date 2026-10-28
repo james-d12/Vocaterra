@@ -5,7 +5,7 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.Core.Tests;
+namespace Vocaterra.Game.Core.Tests.TestSupport;
 
 /// <summary>
 /// A headless stand-in for the player in the tests of the 3D scene: it walks a body along the shortest path over standable cells (a breadth
