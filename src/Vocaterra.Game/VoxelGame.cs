@@ -9,6 +9,7 @@ using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Learner;
+using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;

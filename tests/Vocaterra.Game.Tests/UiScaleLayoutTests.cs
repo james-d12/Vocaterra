@@ -306,8 +306,8 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         Assert.Equal(1, onTall.EnglishPages);
         Assert.True(onShort.EnglishPages > 1, "a 533 x 400 canvas has no room for it on one page");
         Assert.Equal("[M] More (1/" + onShort.EnglishPages + ")", onShort.Buttons.Single(static b => b.Action == LessonAction.More).Text);
-        Assert.Equal(LessonAction.More, LessonStripLayout.ForKey(LessonKey.M));
-        Assert.Equal("M", LessonStripLayout.KeyLabel(LessonAction.More));
+        Assert.Equal(LessonAction.More, LessonActions.ForKey(LessonKey.M));
+        Assert.Equal("M", LessonActions.KeyLabel(LessonAction.More));
         var wrapped = onShort.EnglishPages;
         Assert.Equal(onShort.EnglishRows, LessonStripLayout.For(English.Value, view, null, short_.Width, short_.Height, DialogueLayout.PanelBox(short_.Width, short_.Height).Y, Small, Large, wrapped)!.EnglishRows); // the pages wrap round
     }

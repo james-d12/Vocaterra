@@ -1,9 +1,8 @@
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Event;
-using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Session;
 
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Language.Lessons;
 
 /// <summary>
 /// The front-end's part of the lessons (S16), as plain code the game calls once per frame and for each key or click, and the tests call the same way: it puts the
@@ -84,7 +83,7 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
         }
 
         var (view, offer) = State();
-        return LessonStripLayout.ForKey(key) switch
+        return LessonActions.ForKey(key) switch
         {
             LessonAction.Start => offer is not null,
             LessonAction.Continue => view is { CanContinue: true },
@@ -97,7 +96,7 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
 
     /// <summary>A key of the strip was pressed. Returns whether it did something.</summary>
     /// <param name="key">The key.</param>
-    public bool PressKey(LessonKey key) => Handles(key) && LessonStripLayout.ForKey(key) is { } action && Perform(action);
+    public bool PressKey(LessonKey key) => Handles(key) && LessonActions.ForKey(key) is { } action && Perform(action);
 
     /// <summary>Carries out a press of the strip (key or mouse). Returns whether it did something.</summary>
     /// <param name="action">What was pressed.</param>
@@ -137,7 +136,7 @@ public sealed class LessonFrontend(GuideSession session, DialogueModel dialogue,
                 EnglishPage++; // the strip wraps the page round
                 return runner.View is not null;
             default:
-                done = LessonStripLayout.OptionIndex(action) is { } index && runner.Pick(index);
+                done = LessonActions.OptionIndex(action) is { } index && runner.Pick(index);
                 break;
         }
 

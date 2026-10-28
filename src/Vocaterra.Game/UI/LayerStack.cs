@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.UI.Book;
 using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.English;

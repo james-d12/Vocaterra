@@ -355,12 +355,12 @@ public sealed class LessonFrontendTests
     [Fact]
     public void TheKeysOfTheStripMapToTheirActions()
     {
-        Assert.Equal(LessonAction.Continue, LessonStripLayout.ForKey(LessonKey.Enter));
-        Assert.Equal(LessonAction.Skip, LessonStripLayout.ForKey(LessonKey.K));
-        Assert.Equal(LessonAction.Start, LessonStripLayout.ForKey(LessonKey.L));
-        Assert.Equal([0, 1, 2, 3], new[] { LessonKey.D1, LessonKey.D2, LessonKey.D3, LessonKey.D4 }.Select(static k => LessonStripLayout.OptionIndex(LessonStripLayout.ForKey(k)!.Value)!.Value));
-        Assert.Null(LessonStripLayout.OptionIndex(LessonAction.Skip));
-        Assert.Equal(["L", "Enter", "K", "H", "1", "2", "3", "4", "M"], Enum.GetValues<LessonAction>().Select(LessonStripLayout.KeyLabel));
+        Assert.Equal(LessonAction.Continue, LessonActions.ForKey(LessonKey.Enter));
+        Assert.Equal(LessonAction.Skip, LessonActions.ForKey(LessonKey.K));
+        Assert.Equal(LessonAction.Start, LessonActions.ForKey(LessonKey.L));
+        Assert.Equal([0, 1, 2, 3], new[] { LessonKey.D1, LessonKey.D2, LessonKey.D3, LessonKey.D4 }.Select(static k => LessonActions.OptionIndex(LessonActions.ForKey(k)!.Value)!.Value));
+        Assert.Null(LessonActions.OptionIndex(LessonAction.Skip));
+        Assert.Equal(["L", "Enter", "K", "H", "1", "2", "3", "4", "M"], Enum.GetValues<LessonAction>().Select(LessonActions.KeyLabel));
     }
 
     // ---- The front-end.

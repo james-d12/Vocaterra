@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.UI.Dialogue;
 
@@ -99,7 +100,7 @@ public sealed class LessonLayer : IFrameLayer
         {
             var rect = new Rectangle(buttonBox.X, buttonBox.Y, buttonBox.Width, buttonBox.Height);
             var hovered = view.Mouse is { } at && buttonBox.Contains(at.X, at.Y);
-            var picked = LessonStripLayout.OptionIndex(action) is { } index && step is not null && index == step.Picked;
+            var picked = LessonActions.OptionIndex(action) is { } index && step is not null && index == step.Picked;
             spriteBatch.Draw(view.Pixel, rect, hovered ? ButtonHover : ButtonBack);
             DrawHelpers.Border(spriteBatch, view.Pixel, rect, hovered || picked ? 2 : 1, picked ? Right : hovered ? Gold : new Color(110, 110, 150));
             DrawHelpers.Text(spriteBatch, small, text, new Vector2(rect.Left + LessonStripLayout.ButtonPadding, rect.Top + ((rect.Height - 18) / 2)), new Color(236, 236, 246));

@@ -117,47 +117,6 @@ public sealed class LessonStripLayout
         return null;
     }
 
-    /// <summary>The key a button answers to, as the button's text shows it.</summary>
-    /// <param name="action">The button.</param>
-    public static string KeyLabel(LessonAction action) => action switch
-    {
-        LessonAction.Start => "L",
-        LessonAction.Continue => "Enter",
-        LessonAction.Skip => "K",
-        LessonAction.Help => "H",
-        LessonAction.More => "M",
-        LessonAction.Option1 => "1",
-        LessonAction.Option2 => "2",
-        LessonAction.Option3 => "3",
-        _ => "4",
-    };
-
-    /// <summary>The lesson action a key presses, or <see langword="null"/>.</summary>
-    /// <param name="key">The key.</param>
-    public static LessonAction? ForKey(LessonKey key) => key switch
-    {
-        LessonKey.Enter => LessonAction.Continue,
-        LessonKey.K => LessonAction.Skip,
-        LessonKey.L => LessonAction.Start,
-        LessonKey.D1 => LessonAction.Option1,
-        LessonKey.D2 => LessonAction.Option2,
-        LessonKey.D3 => LessonAction.Option3,
-        LessonKey.D4 => LessonAction.Option4,
-        LessonKey.M => LessonAction.More,
-        _ => null,
-    };
-
-    /// <summary>The index of an option action (0 to 3), or <see langword="null"/> for the other buttons.</summary>
-    /// <param name="action">The action.</param>
-    public static int? OptionIndex(LessonAction action) => action switch
-    {
-        LessonAction.Option1 => 0,
-        LessonAction.Option2 => 1,
-        LessonAction.Option3 => 2,
-        LessonAction.Option4 => 3,
-        _ => null,
-    };
-
     /// <summary>
     /// The layout of the strip for a lesson step, or for a lesson on offer when <paramref name="view"/> is <see langword="null"/>; <see langword="null"/> when there
     /// is neither. The strip stands above <paramref name="limitTop"/> (the top of the support cards, or of the panel).
@@ -281,7 +240,7 @@ public sealed class LessonStripLayout
     {
         _ = perPage;
         var labels = new List<(LessonAction Action, string Text)>();
-        void Label(LessonAction action, string label) => labels.Add((action, $"[{KeyLabel(action)}] {label}"));
+        void Label(LessonAction action, string label) => labels.Add((action, $"[{LessonActions.KeyLabel(action)}] {label}"));
         if (view.Type == LessonStepType.Listen)
         {
             for (var i = 0; i < view.Options.Count && i < 4; i++)
@@ -353,7 +312,7 @@ public sealed class LessonStripLayout
         var y = Math.Max(4, limitTop - Gap - height);
         var box = new PixelBox(panel.X, y, panel.Width, height);
         var headingY = y + Padding - 4;
-        var text = $"[{KeyLabel(LessonAction.Start)}] {ui.Ui("startLesson")}";
+        var text = $"[{LessonActions.KeyLabel(LessonAction.Start)}] {ui.Ui("startLesson")}";
         var buttonWidth = (int)Math.Ceiling(measure(text)) + (ButtonPadding * 2);
         var button = new PixelBox(panel.X + Padding, box.Bottom - Padding - ButtonHeight, buttonWidth, ButtonHeight);
         return new LessonStripLayout(box, Padding, headingY, null, [], headingY + LineHeight, rows, 0, 1, box.Bottom, [], [(LessonAction.Start, button, text)]);

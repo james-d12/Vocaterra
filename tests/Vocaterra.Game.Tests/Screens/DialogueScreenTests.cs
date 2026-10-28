@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework.Input;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Input;
+using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Mathematics;
