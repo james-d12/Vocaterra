@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Language.Checks;
-using Vocaterra.Game.Core.Scripted;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Scripted;
 
 /// <summary>
 /// The scripted answers of a check battery (<c>--check</c> with <c>--pick</c>, <c>--say</c>, <c>--speak</c> and <c>--shot</c> steps; S11). It takes

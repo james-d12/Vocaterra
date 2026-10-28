@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Language.Book;
-using Vocaterra.Game.Core.Scripted;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Scripted;
 
 /// <summary>
 /// What the scripted run asks of the game around it: open and close the dialogue panel on an NPC, and save a screenshot. The game supplies

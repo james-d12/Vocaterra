@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Scripted;
 
 /// <summary>
 /// What the scripted check asks of the game around it: pick an option, send a typed or a spoken answer, take a screenshot. The game supplies

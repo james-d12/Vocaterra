@@ -4,12 +4,11 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Physics;
-using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Scripted;
 
 /// <summary>
 /// The scripted run of the 3D game (<c>--screenshot</c> with steps): the body's steps (<see cref="VoxelScript"/>), the talk steps (S6) and the

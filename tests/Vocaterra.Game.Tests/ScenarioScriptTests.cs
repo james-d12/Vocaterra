@@ -8,7 +8,6 @@ using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
-using Vocaterra.Game.Utilities;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests;

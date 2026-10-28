@@ -4,11 +4,10 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Physics;
-using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Scripted;
 
 /// <summary>
 /// The scripted 3D run: the steps of <c>--look</c>, <c>--walk-to</c>, <c>--interact</c>, <c>--place</c> and <c>--select</c> in the order given, one
