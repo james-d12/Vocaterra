@@ -1,8 +1,7 @@
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Utilities;
 
-namespace Vocaterra.Game.Flow;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>
 /// The guide greets the player who comes up to her (S17) and her lesson begins: the same opening the E key makes, once the world is free (no

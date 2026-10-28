@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Sound;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>The line player of S7: it plays nothing (the panel highlights the line instead).</summary>
 public sealed class SilentLinePlayer : ILinePlayer

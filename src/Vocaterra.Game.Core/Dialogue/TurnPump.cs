@@ -1,8 +1,7 @@
-using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>
 /// The two hand-overs between the dialogue panel and the turn worker, as plain code the game calls once per frame and the tests call the same

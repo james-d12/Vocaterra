@@ -1,11 +1,10 @@
-using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>
 /// The front-end's part of the phrase support (S8), as plain code the game calls once per frame and the tests call the same way: it plays the sounds

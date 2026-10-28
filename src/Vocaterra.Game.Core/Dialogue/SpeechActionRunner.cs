@@ -1,10 +1,9 @@
-using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>
 /// Carries out the presses of the dialogue panel's speech buttons and choices (S7), as plain code the game calls for a key or a mouse click and the

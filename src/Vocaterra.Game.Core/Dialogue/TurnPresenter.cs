@@ -1,12 +1,10 @@
-using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
-using Vocaterra.Game.Utilities;
 
-namespace Vocaterra.Game.Flow;
+namespace Vocaterra.Game.Core.Dialogue;
 
 /// <summary>
 /// The turns the worker finished, applied in order (S5, S7, S9): the panel (through <see cref="TurnPump"/>), the answer's cue, the NPC's lines

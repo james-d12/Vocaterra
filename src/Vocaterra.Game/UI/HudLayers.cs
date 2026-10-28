@@ -5,7 +5,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.UI.Dialogue;
-using Vocaterra.Game.Utilities;
 
 namespace Vocaterra.Game.UI;
 
