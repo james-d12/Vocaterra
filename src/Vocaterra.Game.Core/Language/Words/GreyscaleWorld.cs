@@ -1,7 +1,6 @@
-using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Tip;
 
-namespace Vocaterra.Game.Graphics;
+namespace Vocaterra.Game.Core.Language.Words;
 
 /// <summary>
 /// The colours of the 3D world as the learner's words change. <see cref="Refresh"/> (once a frame) recomputes the grey set and hands it to the
@@ -26,7 +25,7 @@ public sealed class GreyscaleWorld
     /// <param name="nouns">The catalogue (the block to noun map and the nouns' words).</param>
     /// <param name="words">The learner's progress, which the game changes.</param>
     /// <param name="toasts">Where the new-word toast goes.</param>
-    /// <param name="setGreyKinds">Receives the grey set when it changes (the renderer's <see cref="VoxelRenderer.SetGreyKinds"/>).</param>
+    /// <param name="setGreyKinds">Receives the grey set when it changes (the renderer's <c>VoxelRenderer.SetGreyKinds</c>).</param>
     /// <param name="assumeKnown">Nouns counted as known from the start (<c>--assume-known</c>), or <see langword="null"/>.</param>
     public GreyscaleWorld(bool enabled, NounCatalog nouns, WordProgress words, ToastQueue toasts, Action<ulong> setGreyKinds, IReadOnlyList<string>? assumeKnown = null)
     {
