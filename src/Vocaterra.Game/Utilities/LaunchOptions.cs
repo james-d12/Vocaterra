@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
+using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.Input;
 
@@ -272,6 +273,9 @@ public sealed record LaunchOptions
 
     /// <summary>Whether the run is the scripted screenshot run.</summary>
     public bool IsScreenshotRun => ScreenshotPath is not null;
+
+    /// <summary>The options the sound side's start-up reads (<see cref="SoundSetup"/>).</summary>
+    public SoundOptions Sound => new(IsScreenshotRun, NoSounds, SfxVolume, AmbientVolume);
 
     /// <summary>Whether the script has a spoken step (<c>--speak</c> or <c>--wav</c>): it needs Vosk, and Kokoro for <c>--speak</c>.</summary>
     public bool HasSpokenSteps => Script.Any(static step => step.Kind is ScriptStepKind.Speak or ScriptStepKind.Wav);

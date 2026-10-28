@@ -1,9 +1,7 @@
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
-using Vocaterra.Game.Core.Sound;
-using Vocaterra.Game.Frame;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>The sounds of a tick (S24, S25): the simulation's events, the footsteps and the ambient beds; they read the tick and write nothing back.</summary>
 public sealed class SoundTickObserver(SoundFrontend sound, VoxelSession session) : ITickObserver

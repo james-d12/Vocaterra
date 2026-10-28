@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Core.Sound;
 
-namespace Vocaterra.Game.Sound;
+namespace Vocaterra.Game.Core.Sound;
 
 /// <summary>Once a frame (S24): the voice's state ducks the other sounds, the game events, the panels and the frame's cues are played, and the duck and the beds move on.</summary>
 public sealed class SoundFrame(SoundFrontend sound, NpcVoice voice, VoxelSession session, Func<PanelState> panels)

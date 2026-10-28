@@ -8,7 +8,6 @@ using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Sound;
 using Vocaterra.Game.Utilities;
 using SoundEventMapper = Vocaterra.Game.Core.Sound.SoundEventMapper;
 
@@ -260,18 +259,18 @@ public sealed class SoundFrontendTests
     public void AScriptedRunAndNoSoundsUseTheNullOutputAndTheCommandLineOverridesTheSavedVolumes()
     {
         Assert.True(LaunchOptions.TryParse(["--screenshot", "x.png"], out var scripted, out _));
-        Assert.True(SoundSetup.UsesNullOutput(scripted)); // silent, and no audio device is opened
+        Assert.True(SoundSetup.UsesNullOutput(scripted.Sound)); // silent, and no audio device is opened
         Assert.True(LaunchOptions.TryParse(["--no-sounds"], out var quiet, out _));
-        Assert.True(SoundSetup.UsesNullOutput(quiet));
+        Assert.True(SoundSetup.UsesNullOutput(quiet.Sound));
         Assert.True(LaunchOptions.TryParse([], out var live, out _));
-        Assert.False(SoundSetup.UsesNullOutput(live));
+        Assert.False(SoundSetup.UsesNullOutput(live.Sound));
         Assert.False(new NullSoundOutput().Available);
 
         var saved = new SoundVolumes(0.5, 0.4, 0.3, 0.2);
-        Assert.Equal(saved, SoundSetup.VolumesFor(live, saved));
-        Assert.Equal(SoundVolumes.Default, SoundSetup.VolumesFor(live, null));
+        Assert.Equal(saved, SoundSetup.VolumesFor(live.Sound, saved));
+        Assert.Equal(SoundVolumes.Default, SoundSetup.VolumesFor(live.Sound, null));
         Assert.True(LaunchOptions.TryParse(["--sfx-volume", "1", "--ambient-volume", "0.9"], out var loud, out _));
-        Assert.Equal(new SoundVolumes(0.5, 1.0, 0.3, 0.9), SoundSetup.VolumesFor(loud, saved));
+        Assert.Equal(new SoundVolumes(0.5, 1.0, 0.3, 0.9), SoundSetup.VolumesFor(loud.Sound, saved));
     }
 
     [Fact]

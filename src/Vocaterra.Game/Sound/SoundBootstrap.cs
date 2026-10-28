@@ -29,8 +29,8 @@ public static class SoundBootstrap
     /// <param name="layout">The scene's layout, or <see langword="null"/>.</param>
     public static SoundParts Create(LaunchOptions options, VoxelSession session, SoundVolumes? saved, SceneLayout? layout)
     {
-        var volumes = SoundSetup.VolumesFor(options, saved);
-        ISoundOutput output = SoundSetup.UsesNullOutput(options) ? new NullSoundOutput() : new SoundEffectOutput(AssetPaths.Audio, Console.WriteLine);
+        var volumes = SoundSetup.VolumesFor(options.Sound, saved);
+        ISoundOutput output = SoundSetup.UsesNullOutput(options.Sound) ? new NullSoundOutput() : new SoundEffectOutput(AssetPaths.Audio, Console.WriteLine);
         var log = options.SoundLogPath is { } path ? SoundLogWriter.Open(path) : null;
         var mixer = new SoundMixer(output, volumes, new PresentationRng(session.WorldSeed), log, options.NoSounds);
         if (log is not null)
