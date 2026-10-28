@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Reporting;
 
 /// <summary>
 /// The commit the running game was built from (S21, the report's first row). The build stamps it as the assembly's <c>BuildCommit</c> metadata

@@ -1,12 +1,10 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Physics;
-using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Utilities;
 
-namespace Vocaterra.Game.Persistence;
+namespace Vocaterra.Game.Core.Reporting;
 
 /// <summary>The crash handler's view of the game (X05): the game's state row by row, and the last-chance save. Both run after an exception, so they catch what they read.</summary>
 public sealed class CrashSource : ICrashSource

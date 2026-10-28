@@ -1,8 +1,8 @@
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Physics;
+using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Reporting;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Reporting;

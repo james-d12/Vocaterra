@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.Utilities;
+namespace Vocaterra.Game.Core.Reporting;
 
 /// <summary>
 /// What the crash handler needs from the running game (X05). Both members are called after an exception, so they must never throw: each one

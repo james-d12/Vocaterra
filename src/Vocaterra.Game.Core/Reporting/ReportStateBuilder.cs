@@ -1,10 +1,8 @@
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Physics;
-using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Utilities;
 
-namespace Vocaterra.Game.Reporting;
+namespace Vocaterra.Game.Core.Reporting;
 
 /// <summary>
 /// The game's state for a report's table (S21): the build, the bundle, the seed, where the player stands and looks, the objective and the lesson,
