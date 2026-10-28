@@ -8,7 +8,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Screens;
-using Vocaterra.Game.UI;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Screens;
@@ -53,7 +52,7 @@ public sealed class MicCheckScreenTests
     [Fact]
     public void ARunWithoutTheCheckHasNoScreen()
     {
-        var screen = new MicCheckScreen(null, RouteScene.NewSession(Bundle.Value, Nouns.Value), new ListenSession(new PushToTalkSpeechCapture(null)), Sound(), new UiCanvas(100, static () => (1280, 720)), static () => throw new InvalidOperationException("no font in this test"), false, static () => false, _ => { });
+        var screen = new MicCheckScreen(null, RouteScene.NewSession(Bundle.Value, Nouns.Value), new ListenSession(new PushToTalkSpeechCapture(null)), Sound(), static (_, _, _) => throw new InvalidOperationException("no font in this test"), false, static () => false, _ => { });
         Assert.False(screen.Active);
         screen.FeedWhileIdle(0.1);
         screen.InterruptForReport();
@@ -64,7 +63,7 @@ public sealed class MicCheckScreenTests
     {
         var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
         var model = new MicCheckModel(session.LogMicCheck);
-        return new MicCheckScreen(model, session, new ListenSession(new PushToTalkSpeechCapture(null)), Sound(), new UiCanvas(100, static () => (1280, 720)), static () => throw new InvalidOperationException("no font in this test"), false, static () => false, _ => { });
+        return new MicCheckScreen(model, session, new ListenSession(new PushToTalkSpeechCapture(null)), Sound(), static (_, _, _) => throw new InvalidOperationException("no font in this test"), false, static () => false, _ => { });
     }
 
     private static SoundFrontend Sound() => new(new SoundMixer(new NullSoundOutput(), new SoundVolumes(), new PresentationRng(1)), new SoundEventMapper());

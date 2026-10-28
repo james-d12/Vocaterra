@@ -1,10 +1,8 @@
-using FontStashSharp;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Input;
-using Vocaterra.Game.UI;
 using Vocaterra.Nlp.Core.Audio;
 
 namespace Vocaterra.Game.Screens;
@@ -19,8 +17,7 @@ public sealed class MicCheckScreen : IScreen
     private readonly VoxelSession _session;
     private readonly ListenSession _listen;
     private readonly SoundFrontend _sound;
-    private readonly UiCanvas _canvas;
-    private readonly Func<SpriteFontBase> _font;
+    private readonly Func<MicCheckModel, int, int, MicCheckButton?> _buttonAt;
     private readonly bool _scriptedRun;
     private readonly Func<bool> _moreToCome;
     private readonly Action<string> _console;
@@ -32,19 +29,17 @@ public sealed class MicCheckScreen : IScreen
     /// <param name="session">The session whose worker hears the clip.</param>
     /// <param name="listen">The push-to-talk of the run.</param>
     /// <param name="sound">Plays the buttons' clicks and the scripted recording's beeps.</param>
-    /// <param name="canvas">The interface canvas the screen is laid out on.</param>
-    /// <param name="font">The screen's font.</param>
+    /// <param name="buttonAt">The screen's button at a point of the canvas for a check, or <see langword="null"/> (the screen's layout, from the game).</param>
     /// <param name="scriptedRun">Whether the run is scripted.</param>
     /// <param name="moreToCome">Whether a scripted run has steps (or a battery) after the check, so the check goes on by itself.</param>
     /// <param name="console">Where the check's lines go.</param>
-    public MicCheckScreen(MicCheckModel? model, VoxelSession session, ListenSession listen, SoundFrontend sound, UiCanvas canvas, Func<SpriteFontBase> font, bool scriptedRun, Func<bool> moreToCome, Action<string> console)
+    public MicCheckScreen(MicCheckModel? model, VoxelSession session, ListenSession listen, SoundFrontend sound, Func<MicCheckModel, int, int, MicCheckButton?> buttonAt, bool scriptedRun, Func<bool> moreToCome, Action<string> console)
     {
         Model = model;
         _session = session;
         _listen = listen;
         _sound = sound;
-        _canvas = canvas;
-        _font = font;
+        _buttonAt = buttonAt;
         _scriptedRun = scriptedRun;
         _moreToCome = moreToCome;
         _console = console;
@@ -107,7 +102,7 @@ public sealed class MicCheckScreen : IScreen
     public void Click(int x, int y)
     {
         var check = Model!;
-        if (MicCheckLayer.LayoutFor(check, _canvas.Width, _canvas.Height, _font()).ButtonAt(x, y) is not { } button)
+        if (_buttonAt(check, x, y) is not { } button)
         {
             return;
         }

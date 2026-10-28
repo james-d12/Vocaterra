@@ -10,7 +10,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Input;
 using Vocaterra.Game.Screens;
-using Vocaterra.Game.UI;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 
@@ -79,9 +78,8 @@ public sealed class DialogueScreenTests
             new OpenKeySwallow(),
             new TextEditKeys(),
             sound,
-            new UiCanvas(100, static () => (1280, 720)),
-            static () => throw new InvalidOperationException("no font in this test"),
-            static () => throw new InvalidOperationException("no view in this test"),
+            static (_, _) => throw new InvalidOperationException("no view in this test"),
+            static (_, _) => throw new InvalidOperationException("no font in this test"),
             static () => null,
             scriptedRun: true,
             lines.Add);

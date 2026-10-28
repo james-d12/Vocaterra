@@ -3,8 +3,6 @@ using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
-using Vocaterra.Game.Input;
-using Vocaterra.Game.UI;
 
 namespace Vocaterra.Game.Screens;
 
@@ -17,7 +15,7 @@ public sealed class CraftingPanel : IScreen
     private readonly CraftingScreen _crafting;
     private readonly VoxelSession _session;
     private readonly SoundFrontend _sound;
-    private readonly UiCanvas _canvas;
+    private readonly Func<int, int, int?> _rowAt;
     private readonly Func<bool> _otherPanelOpen;
     private readonly Queue<int> _pending = new();
 
@@ -25,14 +23,14 @@ public sealed class CraftingPanel : IScreen
     /// <param name="crafting">The panel's state.</param>
     /// <param name="session">The session whose recipes and words the panel shows.</param>
     /// <param name="sound">Plays the refusal.</param>
-    /// <param name="canvas">The interface canvas the panel is laid out on.</param>
+    /// <param name="rowAt">The panel's recipe row at a point of the canvas, or <see langword="null"/> (the panel's layout, from the game).</param>
     /// <param name="otherPanelOpen">Whether the book, the inventory or the dialogue is open (the crafting panel does not open over them).</param>
-    public CraftingPanel(CraftingScreen crafting, VoxelSession session, SoundFrontend sound, UiCanvas canvas, Func<bool> otherPanelOpen)
+    public CraftingPanel(CraftingScreen crafting, VoxelSession session, SoundFrontend sound, Func<int, int, int?> rowAt, Func<bool> otherPanelOpen)
     {
         _crafting = crafting;
         _session = session;
         _sound = sound;
-        _canvas = canvas;
+        _rowAt = rowAt;
         _otherPanelOpen = otherPanelOpen;
     }
 
@@ -71,8 +69,7 @@ public sealed class CraftingPanel : IScreen
     /// <summary>A click on a row of the open panel asks for one craft of its recipe in the next tick.</summary>
     public void Click(IInputFrame input)
     {
-        var layout = new CraftingLayout(_canvas.Width, _canvas.Height, _session.Recipes.Entries.Count);
-        if (layout.RowAt(input.PointerX, input.PointerY) is not { } row)
+        if (_rowAt(input.PointerX, input.PointerY) is not { } row)
         {
             return;
         }

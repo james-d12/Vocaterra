@@ -3,8 +3,6 @@ using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tip;
-using Vocaterra.Game.Input;
-using Vocaterra.Game.UI;
 
 namespace Vocaterra.Game.Screens;
 
@@ -25,7 +23,7 @@ public sealed class BookScreen : IScreen
     private readonly bool _scripted;
     private readonly ToastQueue _toasts;
     private readonly SoundFrontend _sound;
-    private readonly UiCanvas _canvas;
+    private readonly Func<BookGeometry> _geometry;
     private readonly Action _closeDialogue;
     private readonly Action<string> _console;
 
@@ -40,7 +38,7 @@ public sealed class BookScreen : IScreen
     /// <param name="scripted">Whether a script drives the run (it asks for the journal itself).</param>
     /// <param name="toasts">Where "Practise again" says where to go.</param>
     /// <param name="sound">Plays the clicks.</param>
-    /// <param name="canvas">The interface canvas the book is laid out on.</param>
+    /// <param name="geometry">The book's geometry on the interface canvas now (from the game).</param>
     /// <param name="closeDialogue">Closes the dialogue panel when it is open.</param>
     /// <param name="console">Where the book's lines go.</param>
     public BookScreen(
@@ -54,7 +52,7 @@ public sealed class BookScreen : IScreen
         bool scripted,
         ToastQueue toasts,
         SoundFrontend sound,
-        UiCanvas canvas,
+        Func<BookGeometry> geometry,
         Action closeDialogue,
         Action<string> console)
     {
@@ -68,7 +66,7 @@ public sealed class BookScreen : IScreen
         _scripted = scripted;
         _toasts = toasts;
         _sound = sound;
-        _canvas = canvas;
+        _geometry = geometry;
         _closeDialogue = closeDialogue;
         _console = console;
     }
@@ -154,7 +152,7 @@ public sealed class BookScreen : IScreen
             _book.Turn(forward: true);
         }
 
-        var geometry = new BookGeometry(_canvas.Width, _canvas.Height);
+        var geometry = _geometry();
         if (input.Shift && (input.Pressed(GameKey.Down) || input.Pressed(GameKey.Up)))
         {
             // Shift with Up or Down scrolls the right page a line (X03); Shift with Page Up or Page Down, a page of it.
@@ -192,7 +190,7 @@ public sealed class BookScreen : IScreen
     /// </summary>
     public void HandleMouse(IInputFrame input)
     {
-        var geometry = new BookGeometry(_canvas.Width, _canvas.Height);
+        var geometry = _geometry();
         var (x, y) = (input.PointerX, input.PointerY);
         if (input.Wheel != 0)
         {

@@ -1,7 +1,6 @@
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Session;
-using Vocaterra.Game.Input;
 
 namespace Vocaterra.Game.Screens;
 

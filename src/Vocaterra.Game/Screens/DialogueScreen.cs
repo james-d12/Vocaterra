@@ -1,5 +1,4 @@
 using System.Globalization;
-using FontStashSharp;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
@@ -10,9 +9,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Input;
-using Vocaterra.Game.UI;
-using Vocaterra.Game.UI.Dialogue;
-using Vocaterra.Game.UI.English;
 using Vocaterra.Nlp.Core.Audio;
 
 namespace Vocaterra.Game.Screens;
@@ -46,9 +42,8 @@ public sealed class DialogueScreen : IScreen
     private readonly OpenKeySwallow _swallow;
     private readonly TextEditKeys _textEdits;
     private readonly SoundFrontend _sound;
-    private readonly UiCanvas _canvas;
-    private readonly Func<SpriteFontBase> _font;
-    private readonly Func<FrameView> _view;
+    private readonly Func<int, int, LessonAction?> _lessonActionAt;
+    private readonly Func<int, int, SpeechAction?> _speechActionAt;
     private readonly Func<string?> _aimedNpc;
     private readonly bool _scriptedRun;
     private readonly Action<string> _console;
@@ -64,9 +59,8 @@ public sealed class DialogueScreen : IScreen
     /// <param name="swallow">The key that opened the text box is not typed.</param>
     /// <param name="textEdits">The repeats of the text box's editing keys.</param>
     /// <param name="sound">Plays the buttons' clicks.</param>
-    /// <param name="canvas">The interface canvas the panel is laid out on.</param>
-    /// <param name="font">The panel's font.</param>
-    /// <param name="view">The frame's view, which the lesson strip is laid out from.</param>
+    /// <param name="lessonActionAt">The lesson strip's button at a point of the canvas, or <see langword="null"/> (the strip's layout, from the game).</param>
+    /// <param name="speechActionAt">The panel's speech button at a point of the canvas, or <see langword="null"/> (the panel's layout, from the game).</param>
     /// <param name="aimedNpc">The NPC under the crosshair, or <see langword="null"/>.</param>
     /// <param name="scriptedRun">Whether the run is scripted (it has no real time, so no watchdog).</param>
     /// <param name="console">Where the panel's lines go.</param>
@@ -80,9 +74,8 @@ public sealed class DialogueScreen : IScreen
         OpenKeySwallow swallow,
         TextEditKeys textEdits,
         SoundFrontend sound,
-        UiCanvas canvas,
-        Func<SpriteFontBase> font,
-        Func<FrameView> view,
+        Func<int, int, LessonAction?> lessonActionAt,
+        Func<int, int, SpeechAction?> speechActionAt,
         Func<string?> aimedNpc,
         bool scriptedRun,
         Action<string> console)
@@ -96,9 +89,8 @@ public sealed class DialogueScreen : IScreen
         _swallow = swallow;
         _textEdits = textEdits;
         _sound = sound;
-        _canvas = canvas;
-        _font = font;
-        _view = view;
+        _lessonActionAt = lessonActionAt;
+        _speechActionAt = speechActionAt;
         _aimedNpc = aimedNpc;
         _scriptedRun = scriptedRun;
         _console = console;
@@ -246,7 +238,7 @@ public sealed class DialogueScreen : IScreen
     /// <summary>The mouse went down at a point of the canvas: a button of the lesson strip, or a button or choice of the panel.</summary>
     public void Click(int x, int y)
     {
-        if (LessonLayer.LayoutFor(_view(), _lesson) is { } strip && strip.ActionAt(x, y) is { } lessonAction)
+        if (_lessonActionAt(x, y) is { } lessonAction)
         {
             if (_lesson.Perform(lessonAction)) // a button of the lesson strip (S16)
             {
@@ -256,8 +248,7 @@ public sealed class DialogueScreen : IScreen
             return;
         }
 
-        var layout = DialoguePanel.LayoutFor(_dialogue, _canvas.Width, _canvas.Height, _font(), _session);
-        if (layout.ActionAt(x, y) is { } action)
+        if (_speechActionAt(x, y) is { } action)
         {
             Perform(action, null);
         }

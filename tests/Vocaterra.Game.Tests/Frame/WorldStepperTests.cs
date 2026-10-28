@@ -17,6 +17,7 @@ public sealed class WorldStepperTests
 {
     private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
     private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
+    private static readonly UiCanvas Canvas = new(100, static () => (1280, 720));
 
     [Fact]
     public void TheLookGoesFirstAndTheObserversFollowTheStepInTheirOrder()
@@ -42,7 +43,7 @@ public sealed class WorldStepperTests
     private static WorldStepper Make(VoxelSession session, long? crashAfter, params ITickObserver[] observers)
     {
         var sound = new SoundFrontend(new SoundMixer(new NullSoundOutput(), new SoundVolumes(), new PresentationRng(1)), new SoundEventMapper());
-        var crafting = new CraftingPanel(new CraftingScreen(), session, sound, new UiCanvas(100, static () => (1280, 720)), static () => false);
+        var crafting = new CraftingPanel(new CraftingScreen(), session, sound, (x, y) => new CraftingLayout(Canvas.Width, Canvas.Height, session.Recipes.Entries.Count).RowAt(x, y), static () => false);
         return new WorldStepper(session, new LookControl(), null, new LiveVoxelInput(), static () => false, static () => false, crafting, crashAfter, observers);
     }
 }

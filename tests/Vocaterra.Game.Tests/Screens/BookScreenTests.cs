@@ -20,6 +20,7 @@ public sealed class BookScreenTests
 {
     private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
     private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
+    private static readonly UiCanvas Canvas = new(100, static () => (1280, 720));
 
     [Theory]
     [InlineData(Keys.J)]
@@ -60,9 +61,11 @@ public sealed class BookScreenTests
         var voice = new NpcVoice(Path.GetTempPath(), new SpeechIndex([]), new SilentOutput(), muted: true, _ => { });
         var controls = new BookSpeechControls(book, new BookSpeaker(voice, mixer), session, new BookRecordings([], session.Phrases));
         var closed = new Counter();
-        var screen = new BookScreen(book, controls, focus, session, null, null, 0, scripted, new ToastQueue(), new SoundFrontend(mixer, new SoundEventMapper()), new UiCanvas(100, static () => (1280, 720)), () => closed.Count++, _ => { });
+        var screen = new BookScreen(book, controls, focus, session, null, null, 0, scripted, new ToastQueue(), new SoundFrontend(mixer, new SoundEventMapper()), Geometry, () => closed.Count++, _ => { });
         return (screen, book, focus, closed);
     }
+
+    private static BookGeometry Geometry() => new(Canvas.Width, Canvas.Height);
 
     private static InputSnapshot Pressed(params Keys[] keys) => new(new KeyboardState(keys), default, new KeyboardState(), false, false, 0);
 

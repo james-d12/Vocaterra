@@ -33,6 +33,7 @@ using Vocaterra.Game.Screens;
 using Vocaterra.Game.Scripted;
 using Vocaterra.Game.Sound;
 using Vocaterra.Game.UI;
+using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.English;
 using Vocaterra.Game.Utilities;
 
@@ -228,9 +229,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             _swallow,
             _textEdits,
             _sound,
-            _canvas,
-            () => _drawer.View.Fonts.Get(FontProvider.NativeSize),
-            () => _drawer.View,
+            (x, y) => LessonLayer.LayoutFor(_drawer.View, _lesson)?.ActionAt(x, y),
+            (x, y) => DialoguePanel.LayoutFor(_dialogue, _canvas.Width, _canvas.Height, _drawer.View.Fonts.Get(FontProvider.NativeSize), session).ActionAt(x, y),
             () => _aimed?.Name,
             options.IsScreenshotRun,
             Console.WriteLine);
@@ -245,7 +245,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             scripted: options.IsScreenshotRun && options.Script.Count > 0,
             _toasts,
             _sound,
-            _canvas,
+            () => new BookGeometry(_canvas.Width, _canvas.Height),
             () =>
             {
                 if (_dialogue.IsOpen)
@@ -257,7 +257,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _lesson.OnRecapDone = _bookScreen.ShowPhrases; // the lesson's recap ends on the journal's phrases page (S17)
         _controls = new ControlsHelp(() => ControlsLayer.MaxScrollFor(_drawer.View));
         _inventoryPanel = new InventoryPanel(_inventory, _focus, session, () => _book.IsOpen);
-        _craftingPanel = new CraftingPanel(_crafting, session, _sound, _canvas, () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen);
+        _craftingPanel = new CraftingPanel(_crafting, session, _sound, (x, y) => new CraftingLayout(_canvas.Width, _canvas.Height, session.Recipes.Entries.Count).RowAt(x, y), () => _book.IsOpen || _inventory.IsOpen || _dialogue.IsOpen);
         if (options.IsScreenshotRun)
         {
             _clock = new FixedFrameClock(VoxelSimulation.TicksPerSecond);
@@ -333,7 +333,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             options.Playtest,
             new CheckBatteryHooks(_shots.Request, () => _shots.Pending, () => _micCheck is { IsActive: true }, index => _scenario?.SkipTo(index), Exit, EndPlaytest),
             Console.WriteLine);
-        _micScreen = new MicCheckScreen(_micCheck, session, _listen, _sound, _canvas, () => _drawer.View.Fonts.Get(FontProvider.NativeSize), options.IsScreenshotRun, () => _scenario is { IsDone: false } || _checks.Screen is { IsDone: false }, Console.WriteLine);
+        _micScreen = new MicCheckScreen(_micCheck, session, _listen, _sound, (check, x, y) => MicCheckLayer.LayoutFor(check, _canvas.Width, _canvas.Height, _drawer.View.Fonts.Get(FontProvider.NativeSize)).ButtonAt(x, y), options.IsScreenshotRun, () => _scenario is { IsDone: false } || _checks.Screen is { IsDone: false }, Console.WriteLine);
         _playtestFlow = new PlaytestFlow(
             options.Playtest,
             options.IsPlaytestRecall,
