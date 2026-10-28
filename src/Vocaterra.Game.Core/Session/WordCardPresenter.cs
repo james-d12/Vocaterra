@@ -1,11 +1,9 @@
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Sound;
-using Vocaterra.Game.Frame;
 
-namespace Vocaterra.Game.Flow;
+namespace Vocaterra.Game.Core.Session;
 
 /// <summary>A word met for the first time in a tick (S4, S9, S24): its card on screen, the sparkle, and the guide saying the noun.</summary>
 public sealed class WordCardPresenter(VoxelSession session, WordCardQueue cards, SoundFrontend sound, NpcVoice voice) : ITickObserver

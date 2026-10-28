@@ -1,11 +1,9 @@
-using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Game.UI;
 
-namespace Vocaterra.Game.Flow;
+namespace Vocaterra.Game.Core.Navigation;
 
 /// <summary>
 /// Where the beacon stands: on a named point at the start (<c>--beacon</c>, or the guide's camp for a new game, S13), on the session's arrow while

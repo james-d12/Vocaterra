@@ -4,7 +4,6 @@ using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Game.Graphics;
-using Vocaterra.Game.UI;
 
 namespace Vocaterra.Game.Tests;
 

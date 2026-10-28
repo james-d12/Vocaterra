@@ -1,4 +1,4 @@
-namespace Vocaterra.Game.UI;
+namespace Vocaterra.Game.Core.Navigation;
 
 /// <summary>
 /// The Spanish word shown with the beacon for a named point of the scene (<c>river</c> shows <c>río</c>). These are provisional display words for

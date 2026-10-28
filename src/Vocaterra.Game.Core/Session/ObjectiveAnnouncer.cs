@@ -1,9 +1,7 @@
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tip;
-using Vocaterra.Game.Frame;
 
-namespace Vocaterra.Game.Flow;
+namespace Vocaterra.Game.Core.Session;
 
 /// <summary>
 /// The camp checklist's steps done in a tick (S4): a toast with each, and one for the whole checklist when it is complete. Pickups show in the
