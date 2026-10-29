@@ -82,6 +82,11 @@
             "minLength": 1
           },
           "description": "The speech lines that say the phrase."
+        },
+        "reviewLine": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The dialogue line the guide's review asks the phrase with when the bundle has no review pool for it (C08)."
         }
       }
     }

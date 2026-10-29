@@ -157,7 +157,7 @@ public sealed class BookPagesTests
     [Fact]
     public void ThePhrasesPageListsEveryPhraseWithItsEnglishAndItsHelp()
     {
-        var progress = new PhraseProgress(Sheet.Value);
+        var progress = new PhraseProgress(Sheet.Value, 1, TestGame.Data.Npcs.ScaffoldPhrases);
         var rows = PhraseJournalRows.Build(progress, 0, CreditRules.Default);
         var lines = BookPages.Phrases(rows);
         var first = rows[0];

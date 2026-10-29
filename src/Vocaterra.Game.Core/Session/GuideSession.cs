@@ -137,8 +137,8 @@ public abstract class GuideSession : IDisposable
         Locale = data.Locale;
         Glosses = data.Glosses;
         var book = Data.Lessons;
-        PhraseProgress = new PhraseProgress(Phrases, playSession, book.TaughtPhrases);
-        Support = new PhraseSupport(Phrases, PhraseProgress, Bundle, Locale);
+        PhraseProgress = new PhraseProgress(Phrases, playSession, data.Npcs.ScaffoldPhrases.Concat(book.TaughtPhrases));
+        Support = new PhraseSupport(Phrases, PhraseProgress, Bundle, data.Npcs, Locale);
         Lessons = new LessonRunner(this, book, Locale);
         Tips = new TipFeed(this, Data.Tips);
         _liveFacts = liveFacts;
@@ -1128,7 +1128,7 @@ public abstract class GuideSession : IDisposable
         var formMiss = Lessons.IsFormMiss(turn);
         var retryAnswer = phraseReview is not null && ReferenceEquals(phraseReview, _retry) && turn.Communicated && !IsHelpRequest(turn);
         var recovered = false;
-        if (turn.Communicated && !formMiss && (PhraseInPlayFor(turn, support) ?? PhraseIds.For(turn.Intent, turn.Slots)) is { } phrase)
+        if (turn.Communicated && !formMiss && (PhraseInPlayFor(turn, support) ?? PhraseIds.For(turn.Intent, turn.Slots, Data.Words.Noun("river"))) is { } phrase)
         {
             var kind = Classify(turn, phrase, previousRepair, phraseReview, support);
             var detail = turn.Slots.TryGetValue("item", out var item) ? item : turn.Slots.TryGetValue("place", out var place) ? place : null;
@@ -1311,13 +1311,13 @@ public abstract class GuideSession : IDisposable
             return PhraseUseKind.Choice;
         }
 
-        if (phraseReview is not null && PhraseIds.FocusAt(phraseReview.Prompt).Contains(phrase, StringComparer.Ordinal))
+        if (phraseReview is not null && Data.Npcs.FocusAt(phraseReview.Prompt).Contains(phrase, StringComparer.Ordinal))
         {
             // The guide's review of a due phrase (S8): no card is shown, so the answer is unaided unless help was asked for first.
             return support.Scaffolded.Count > 0 ? PhraseUseKind.Supported : PhraseUseKind.Unaided;
         }
 
-        if (ObjectiveComplete && PhraseIds.HomeOf(phrase) is { } home && !string.Equals(home, turn.Npc, StringComparison.Ordinal))
+        if (ObjectiveComplete && Data.Npcs.HomeOf(phrase) is { } home && !string.Equals(home, turn.Npc, StringComparison.Ordinal))
         {
             return PhraseUseKind.Transfer;
         }

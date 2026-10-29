@@ -184,7 +184,7 @@ public sealed class VoxelSession : GuideSession
         }
     }
 
-    // The beacon goes to an NPC, where a lesson starts (S26). The label is the NPC's name: Luna, or the villager's or the shopkeeper's role.
+    // The beacon goes to an NPC, where a lesson starts (S26). The label is the NPC's name (Luna) or label (Tendero, Aldeano); before C08 it was the raw id for any but the guide.
     private void PointAtNpc(string npc)
     {
         if (!Scene.Npcs.Any(placed => string.Equals(placed.Name, npc, StringComparison.Ordinal)))
@@ -193,7 +193,7 @@ public sealed class VoxelSession : GuideSession
         }
 
         var feet = Scene.Npc(npc).Feet;
-        var label = string.Equals(npc, NpcService.GuideAgent, StringComparison.Ordinal) ? "Luna" : npc;
+        var label = Data.Npcs.Find(npc)?.BeaconLabel ?? npc; // C08: the NPC's name (Luna) or label (Tendero), from game/npcs/<id>.json
         Pointer = new PointerMarker(label, new GuideCell(feet.X, feet.Y, feet.Z));
         LogWorld(WorldEvents.BeaconSet, npc, $"{label} at {feet.X},{feet.Y},{feet.Z}");
     }
@@ -458,7 +458,7 @@ public sealed class VoxelSession : GuideSession
     {
         foreach (var hostEvent in hostEvents)
         {
-            var effect = NpcHostEvents.Of(npc, hostEvent);
+            var effect = Data.HostEvents.Of(npc, hostEvent);
             switch (effect.Kind)
             {
                 case NpcEffectKind.GiveItem:

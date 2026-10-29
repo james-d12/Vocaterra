@@ -141,8 +141,8 @@ public sealed partial class NpcService
     /// <summary>The bundle's prompt for the villager.</summary>
     public const string VillagerPrompt = "villager-open";
 
-    /// <summary>The NPC agents, in ordinal order.</summary>
-    public static IReadOnlyList<string> AgentIds { get; } = [GuideAgent, ShopkeeperAgent, VillagerAgent];
+    /// <summary>The NPC agents, in the order of <c>game/npcs.json</c> (C08; the saves keep the NPCs in this order).</summary>
+    public IReadOnlyList<string> AgentIds { get; }
 
     /// <summary>The random stream of the game's own lines is keyed by this id (the core's own draws use the agent's id).</summary>
     private const string HostLineStream = "guide.host";
@@ -233,6 +233,7 @@ public sealed partial class NpcService
         _typed = new TypedUtteranceEvaluator(bundle);
         _phrases = data.Phrases;
         _words = data.Words;
+        AgentIds = data.Npcs.Ids;
         foreach (var id in AgentIds)
         {
             if (!bundle.Agents.TryGetValue(id, out var machine))
@@ -839,7 +840,7 @@ public sealed partial class NpcService
             return skills;
         }
 
-        if (PhraseIds.For(verdict.Intent.Value, verdict.Slots) is { } used)
+        if (PhraseIds.For(verdict.Intent.Value, verdict.Slots, _words.Noun("river")) is { } used)
         {
             skills.Add(PhraseSkillPrefix + used);
         }

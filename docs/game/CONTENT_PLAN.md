@@ -574,10 +574,10 @@ section 4's status column.
 | C02 | `GameData` + `GameDataValidator`: one load of every host file (the scene from the verified bytes; `GrammarStringsExtractor` reads through it), the cross-checks moved there, host `--validate-content` | C01 | done, gated with C01 and C03 (2026-10-29, `9e7960d`) |
 | C03 | The locale bundle (`content/locale/`, `en` only, its own manifest, checked at load, its hash in the log and the report); game-v1's `supportLanguage`; the turn path keeps line ids; `LocaleText` replaces `EnglishText`; glosses keyed by speech-line ids; the L1 fields leave lessons, phrases, glosses and checks; verb forms listed | C02 | done, gated with C01 and C02 (2026-10-29, `9e7960d`) |
 | C04 | The English literals of Game and Game.Core into the locale (section 2.2); `{key:…}` from R16's `KeyBindings`, `{npc:…}`, plurals; the no-literal scan; the glyph test | C03 | planned |
-| C05 | Target-language words out of code (`game/words.json`, place labels into the scene; section 2.3); the grammar extractor reads them | C03 | planned |
-| C06 | One trigger model shared by tips and lesson `do` steps (exact `detail`, ready for objectives); the `torch_at_ring` world event; lessons split one file each | C02 | planned |
+| C05 | Target-language words out of code (`game/words.json`, place labels into the scene; section 2.3); the grammar extractor reads them 
+| C06 | One trigger model shared by tips and lesson `do` steps (exact `detail`, ready for objectives); the `torch_at_ring` world event; lessons split one file each | C02 | done, gated with C05 and C08 (2026-10-29) |
 | C07 | Objectives and the session from data (`game/objectives/`, `game/session.json`, named hooks); `Objective.Camp()` and the `SessionStage` logic retired; save v5 with the v4 keys mapped; a v4 fixture and the out-of-order test | C05, C06 | planned |
-| C08 | NPC data (`npcs/*.json`: label, name, figure key, phrase tables), `host-events.json`, `NpcService.AgentIds` from data; `NpcNames`, the `NpcHostEvents` table and `PhraseReview`'s table retired; the beacon label fixed | C05 | planned |
+| C08 | NPC data (`npcs/*.json`: label, name, figure key, phrase tables), `host-events.json`, `NpcService.AgentIds` from data; `NpcNames`, the `NpcHostEvents` table and `PhraseReview`'s table retired; the beacon label fixed | C05 | done, gated with C05 and C06 (2026-10-29) |
 | C09 | Items, blocks, sounds and signs as data (assess first; parts may stay code). Enum names stay stable because saves store them; signs need a sign mechanism | C08 | proposed |
 | C10 | Authoring CLI: scaffold, references, check (the first custom tool) | C07, C08 | proposed |
 
@@ -604,6 +604,23 @@ no-literal scan is easiest once every other milestone has moved its strings.
     manifest tests no longer assume that game-v1 names no support language).
   - **Runs.** The scripted runs differ from the baseline only by the new `locale:` line in `stdout.txt`, the `locale` and `locale_bundle`
     fields of `session_start`, and the report's Locale row.
+
+**What C05, C06 and C08 did, and how it differs from section 3 (2026-10-29).**
+- **C05.** `game/words.json` (`GameWords`) holds the target-language words the code held: the guide's directions, the block unit and the list
+  joiner, the speech buttons, the offer to type, the support headings, the unseen label, the conjugation tables' pronouns, the stall's key
+  words, the help and no-sé lines, the near future, the greeting and the river noun. The validator checks them against the catalogue, the
+  lexicon and the sheet, and the grammar check reads them (26 new strings). The articles are the lexicon's `art` readings. `PointLabels` is
+  gone: sites, points and named props carry a `label` in the scene. The runs did not change.
+- **C06.** `Trigger` (`Event/Trigger.cs`) is one matcher for the tips and the lessons' `do` steps, with an exact `detail`; `count` was not
+  added, since an objective step's `target` does the counting (C07). The session raises `torch_at_ring` with the ring's name. The lessons are
+  one file each under `game/lessons/`, listed in order by `game/lessons.json`. The runs differ only by the new `torch_at_ring` lines (r01 and
+  r10).
+- **C08.** `game/npcs.json` lists the NPCs in order, and `game/npcs/<id>.json` gives each one's label, name, figure key and `focus` (the
+  phrases each of its prompts practises). The home NPCs and the scaffolded phrases are derived from the focus. `game/host-events.json`
+  (`HostEventTable`) replaces the code's table; `NpcHostEvents` keeps only the event names the code waits for. The review placeholder lines are
+  each phrase row's `reviewLine`. The lesson loader checks its NPCs against the roster; the validator checks the roster against the agents and
+  the prompts, and the tips' and host events' NPCs against the roster. The beacon on an NPC shows the NPC's name or label (`Tendero`), where it
+  used to show the raw id. The NPCs' labels and names joined the grammar strings (4 new, all clean).
 
 **Every content-moving milestone:**
 - runs `content.sh refresh` (hash, provenance, validate, lint, cefr-check, the game validator and the grammar check), then the whole

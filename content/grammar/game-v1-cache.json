@@ -1337,6 +1337,12 @@
       ]
     },
     {
+      "key": "4f59d1cd8073e7670bb107f35c5444214e3cc4bdf314d5965df5ce9cd01ddf94",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Guía",
+      "matches": []
+    },
+    {
       "key": "4fee8c0f9f03e0dbadca28af6b569e8c0d65767fb44cddaad3828465d578b432",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Yo fue al río",
@@ -1428,6 +1434,12 @@
       "key": "5589b37a9e891c4894697eda8c9efd86919a9f1a03ebcd8befc46467c9c22698",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Pan por favor",
+      "matches": []
+    },
+    {
+      "key": "56ccaf46a5d66545aabc73ff92674996b749342442e75801d2f90f8d4305f27a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Luna",
       "matches": []
     },
     {
@@ -1926,6 +1938,12 @@
       "key": "74333f12ff83759867e826670bbc5301dc96782b983721642400af1307e2d009",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No, gracias",
+      "matches": []
+    },
+    {
+      "key": "7453ffbbec582e04128b6367010fa6c75e8a3dd00486ea21cbfe280960078dc2",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Tendero",
       "matches": []
     },
     {
@@ -3365,6 +3383,12 @@
       "key": "cc01da7dc63f000176ac63973b3547a342755be052d0adc6a5f8bb1f68a95d87",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Es un árbol",
+      "matches": []
+    },
+    {
+      "key": "cc743829803400710dbdbbbc83ccbd2195e2002cffe0b6008114b19ef7f76334",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Aldeano",
       "matches": []
     },
     {

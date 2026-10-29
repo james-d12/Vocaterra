@@ -93,6 +93,8 @@ public sealed class ContentSchemaTests
         var definitions = ReadJson(Path.Combine(SchemaFolder, "nouns.schema.json"))["definitions"]!;
         Assert.Equal(ItemDefinition.All.Select(static d => d.Name), Names(definitions["item"]!));
         Assert.Equal(BlockDefinition.All.Select(static d => d.Name), Names(definitions["block"]!));
+        var give = ReadJson(Path.Combine(SchemaFolder, "host-events.schema.json"))["properties"]!["events"]!["items"]!["properties"]!["action"]!["oneOf"]![0]!;
+        Assert.Equal(ItemDefinition.All.Select(static d => d.Name), Names(give["properties"]!["item"]!)); // C08: a host event gives an item by the same names
     }
 
     // Schemas written before the files that use them (none at present).

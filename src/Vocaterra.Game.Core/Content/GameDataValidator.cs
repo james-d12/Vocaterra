@@ -6,6 +6,7 @@ using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Tip;
 using Vocaterra.Nlp.Core.Taxonomy;
 
 namespace Vocaterra.Game.Core.Content;
@@ -41,6 +42,7 @@ public static class GameDataValidator
         CheckChecks(data, problems);
         CheckScene(data, problems);
         CheckWords(data, problems);
+        CheckNpcs(data, problems);
         return problems;
     }
 
@@ -53,7 +55,7 @@ public static class GameDataValidator
         required.AddRange(LocaleText.OutcomeKeys.Select(static key => "feedback.outcome." + key));
         required.Add("feedback.unknownError");
         required.Add("objective." + LocaleText.CampObjective + ".title");
-        required.AddRange(NpcService.AgentIds.Select(static npc => "npc." + npc + ".role"));
+        required.AddRange(data.Npcs.Ids.Select(static npc => "npc." + npc + ".role"));
         required.AddRange(Objective.Camp().Steps.Select(static step => "noun." + step.Noun));
         required.AddRange(data.Phrases.Rows.Select(static row => PhraseSheet.LocaleId(row.Id, "explain")));
         required.AddRange(data.Speech.Where(static line => line.Kind is SpeechKind.Dialogue or SpeechKind.Prompt).Select(static line => "line." + line.LineId));
@@ -167,13 +169,63 @@ public static class GameDataValidator
         }
     }
 
+    private static void CheckNpcs(GameData data, List<string> problems)
+    {
+        // C08: the NPCs of game/npcs.json are the core's agents, their focus is the phrases and prompts of the bundle, and every NPC a tip or a host event names
+        // is one of them (the lesson loader checks the lessons' own).
+        foreach (var npc in data.Npcs.All)
+        {
+            var file = NpcRoster.Folder + npc.Id + ".json";
+            if (!data.Bundle.Agents.ContainsKey(npc.Id))
+            {
+                problems.Add($"{file}: the NPC has no agent (agents/{npc.Id}.json).");
+            }
+
+            foreach (var (prompt, phrases) in npc.Focus)
+            {
+                if (!data.Bundle.Prompts.TryGetValue(prompt, out var spec) || !string.Equals(spec.AgentId ?? NpcService.GuideAgent, npc.Id, StringComparison.Ordinal))
+                {
+                    problems.Add($"{file}: the focus names the prompt '{prompt}', which is not one of this NPC's prompts.");
+                }
+
+                foreach (var phrase in phrases.Where(phrase => data.Phrases.Find(phrase) is not { IsLearnerPhrase: true }))
+                {
+                    problems.Add($"{file}: the focus at '{prompt}' names '{phrase}', which is not a phrase the learner says.");
+                }
+            }
+        }
+
+        foreach (var agent in data.Bundle.Agents.Keys.Where(agent => data.Npcs.Find(agent) is null).Order(StringComparer.Ordinal))
+        {
+            problems.Add($"{NpcRoster.IndexPath}: the agent '{agent}' has no NPC file.");
+        }
+
+        foreach (var tip in data.Tips.Where(tip => tip.Trigger.Npc is { } npc && data.Npcs.Find(npc) is null))
+        {
+            problems.Add($"{TipBook.TipsPath}: the tip '{tip.Id}' waits at the NPC '{tip.Trigger.Npc}', which is not one of the NPCs.");
+        }
+
+        foreach (var (npc, hostEvent) in data.HostEvents.Mapped().Where(entry => data.Npcs.Find(entry.Npc) is null))
+        {
+            problems.Add($"{HostEventTable.RelativePath}: '{hostEvent}' is raised by '{npc}', which is not one of the NPCs.");
+        }
+
+        foreach (var (npc, hostEvent) in data.HostEvents.Mapped())
+        {
+            if (data.HostEvents.Of(npc, hostEvent) is { Kind: NpcEffectKind.PointAtNoun, Noun: var noun } && data.Nouns.ForLemma(noun) is null)
+            {
+                problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' points at '{noun}', which is not a catalogue noun.");
+            }
+        }
+    }
+
     private static void CheckScene(GameData data, List<string> problems)
     {
         const string File = "game/scene.json";
         var placed = data.Scene.Npcs.Select(static npc => npc.Name).ToList();
-        foreach (var name in placed.Where(name => !NpcService.AgentIds.Contains(name, StringComparer.Ordinal)))
+        foreach (var name in placed.Where(name => !data.Npcs.Ids.Contains(name, StringComparer.Ordinal)))
         {
-            problems.Add($"{File}: the scene places the NPC '{name}', which is not one of the NPCs ({string.Join(", ", NpcService.AgentIds)}).");
+            problems.Add($"{File}: the scene places the NPC '{name}', which is not one of the NPCs ({string.Join(", ", data.Npcs.Ids)}).");
         }
 
         foreach (var name in placed.GroupBy(static name => name, StringComparer.Ordinal).Where(static group => group.Count() > 1).Select(static group => group.Key))
@@ -181,7 +233,7 @@ public static class GameDataValidator
             problems.Add($"{File}: the scene places the NPC '{name}' more than once.");
         }
 
-        foreach (var agent in NpcService.AgentIds.Where(agent => !placed.Contains(agent, StringComparer.Ordinal)))
+        foreach (var agent in data.Npcs.Ids.Where(agent => !placed.Contains(agent, StringComparer.Ordinal)))
         {
             problems.Add($"{File}: the scene does not place the NPC '{agent}'.");
         }

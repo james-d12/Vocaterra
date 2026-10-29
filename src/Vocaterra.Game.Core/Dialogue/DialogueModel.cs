@@ -27,6 +27,7 @@ public sealed class DialogueModel
     private readonly PhraseSheet? _phrases;
     private readonly LocaleText? _locale;
     private readonly GameWords _words;
+    private readonly NpcRoster _npcs;
     private readonly bool _showVerdictNotes;
     private int _cancelled;
 
@@ -42,17 +43,20 @@ public sealed class DialogueModel
     /// <summary>Creates a closed panel.</summary>
     /// <param name="focus">Who has the keyboard; the model sets <see cref="InputFocus.TextEntryActive"/> while it is open.</param>
     /// <param name="openingLine">What the guide says the first time the panel opens (the prompt's text).</param>
-    /// <param name="words">The target-language words the panel draws: the buttons' labels and the offer to type (<c>game/words.json</c>).</param>
+    /// <param name="data">The game's content: the target-language words the panel draws (the buttons' labels, the offer to type) and the NPCs' labels.</param>
     /// <param name="phrases">The phrase sheet, for the heard-versus-expected line and the labels of the offered choices; without it neither is shown.</param>
     /// <param name="english">The game's English text, for the plain-English feedback after a turn (S16); without it no feedback line is added.</param>
     /// <param name="showVerdictNotes">Whether each turn adds its verdict line (the core's summary, the confidence and the milliseconds, for example
     /// <c>greet, understood, 100 %, 3.5 ms</c>). A playtest hides it (S18); scripted and developer runs keep it.</param>
-    public DialogueModel(InputFocus focus, string openingLine, GameWords words, PhraseSheet? phrases = null, LocaleText? english = null, bool showVerdictNotes = true)
+    public DialogueModel(InputFocus focus, string openingLine, GameData data, PhraseSheet? phrases = null, LocaleText? english = null, bool showVerdictNotes = true)
     {
         ArgumentNullException.ThrowIfNull(focus);
         ArgumentNullException.ThrowIfNull(openingLine);
-        _words = words ?? throw new ArgumentNullException(nameof(words));
-        Buttons = SpeechButtons.For(words.Buttons);
+        ArgumentNullException.ThrowIfNull(data);
+        _words = data.Words;
+        _npcs = data.Npcs;
+        NpcName = _npcs.LabelOf(NpcService.GuideAgent);
+        Buttons = SpeechButtons.For(_words.Buttons);
         _focus = focus;
         _openingLine = openingLine;
         _phrases = phrases;
@@ -67,7 +71,7 @@ public sealed class DialogueModel
     public string Npc { get; private set; } = NpcService.GuideAgent;
 
     /// <summary>The name of that NPC as the panel's title shows it (<c>Guía</c>, <c>Tendero</c>, <c>Aldeano</c>).</summary>
-    public string NpcName { get; private set; } = "Guía";
+    public string NpcName { get; private set; }
 
     /// <summary>The text box.</summary>
     public TextEntry Entry { get; } = new();
@@ -144,7 +148,7 @@ public sealed class DialogueModel
             return;
         }
 
-        SwitchTo(NpcService.GuideAgent, "Guía");
+        SwitchTo(NpcService.GuideAgent, _npcs.LabelOf(NpcService.GuideAgent));
         IsOpen = true;
         Mode = PanelMode.Buttons;
         _focus.TextEntryActive = true;

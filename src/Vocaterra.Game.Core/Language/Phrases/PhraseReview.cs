@@ -16,23 +16,12 @@ public sealed record PhraseReview(string PhraseId, string Prompt, string Request
 
 /// <summary>
 /// How the guide asks a due phrase (S8). The bundle's pool <see cref="PoolOf"/> holds the request line when the content has it (for example
-/// <c>¿Qué necesitas?</c>); until then the placeholder is a line the bundle already has that makes the same situation: the stall's own question for
+/// <c>¿Qué necesitas?</c>); until then the placeholder is the phrase row's <c>reviewLine</c> (C08), a line the bundle already has that makes the same situation: the stall's own question for
 /// <c>pedir-agua</c> (the guide asks what the player needs, so the transfer is to a different speaker), the guide's offer for <c>sí, por favor</c>
 /// and <c>no, gracias</c>, and the villager's greeting question for the river question.
 /// </summary>
 public static class PhraseReviews
 {
-    private static readonly Dictionary<string, string> Placeholders = new(StringComparer.Ordinal)
-    {
-        [PhraseIds.RequestWater] = "shop_need.1",
-        [PhraseIds.YesPlease] = "guide_offer.1",
-        [PhraseIds.NoThanks] = "guide_offer.1",
-        [PhraseIds.WhereIsTheRiver] = "villager_greet.1",
-        [PhraseIds.Hello] = "guide.lesson.hello.1", // S17: the lesson's phrases (Rosa says "¡Hola!", offers fruit) are asked again with the lines of the lesson
-        [PhraseIds.Yes] = "guide.lesson.offer.1",
-        [PhraseIds.No] = "guide.lesson.offer.1",
-    };
-
     /// <summary>The bundle pool that holds the request line of a phrase's review: <c>guide.review.phrase.pedir_agua</c> (hyphens become underscores).</summary>
     /// <param name="phraseId">The phrase sheet's id.</param>
     public static string PoolOf(string phraseId)
@@ -60,7 +49,7 @@ public static class PhraseReviews
             return new PhraseReview(phraseId, prompt, pool.Variants[0].Text, true);
         }
 
-        return Placeholders.TryGetValue(phraseId, out var lineId) && TextOf(bundle, lineId) is { } text
+        return sheet.Find(phraseId)?.ReviewLine is { } lineId && TextOf(bundle, lineId) is { } text
             ? new PhraseReview(phraseId, prompt, text, false)
             : null;
     }

@@ -254,7 +254,7 @@ public sealed class OpeningFrontendTests
     {
         var session = Session();
         TeleportToNpc(session, "guide");
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data.Words, session.Phrases, session.Locale);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases, session.Locale);
         dialogue.Open(session.OpenTalk("guide"), "Guía");
         _ = session.Lessons.Continue();
         _ = session.Lessons.Continue();
@@ -270,7 +270,7 @@ public sealed class OpeningFrontendTests
 
         var ordinary = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped); // no lesson: the same words get her reply
         TeleportToNpc(ordinary, "guide");
-        var panel = new DialogueModel(new InputFocus(), ordinary.OpeningLine, ordinary.Data.Words, ordinary.Phrases, ordinary.Locale);
+        var panel = new DialogueModel(new InputFocus(), ordinary.OpeningLine, ordinary.Data, ordinary.Phrases, ordinary.Locale);
         panel.Open(ordinary.OpenTalk("guide"), "Guía");
         var ordinaryBefore = panel.Lines.Count(static l => l.Speaker == DialogueSpeaker.Guide);
         _ = panel.Entry.Insert("hola");
@@ -299,7 +299,7 @@ public sealed class OpeningFrontendTests
     {
         var session = Session();
         TeleportToNpc(session, "guide");
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data.Words, session.Phrases, session.Locale);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases, session.Locale);
         dialogue.Open(session.OpenTalk("guide"), "Guía");
         var opened = 0;
         var lesson = new LessonFrontend(session, dialogue, static _ => { }) { OnRecapDone = () => opened++ };

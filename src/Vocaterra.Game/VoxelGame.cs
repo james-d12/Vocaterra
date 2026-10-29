@@ -192,7 +192,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         // The book's speaker buttons (S20b): a row plays the recording the speech folder has for it (the files are read once, here).
         _recordings = new BookRecordings(SpeechLines.Enumerate(session.Bundle, session.Nouns, session.Phrases).Select(static l => l.LineId).Where(voice.HasRecording), session.Phrases);
         _bookControls = new BookSpeechControls(_book, new BookSpeaker(voice, _sound.Mixer), session, _recordings);
-        _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Data.Words, session.Phrases, session.Locale, showVerdictNotes: !options.Playtest);
+        _dialogue = new DialogueModel(_focus, session.OpeningLine, session.Data, session.Phrases, session.Locale, showVerdictNotes: !options.Playtest);
         _soundFrame = new SoundFrame(_sound, voice, session, () => new PanelState(_inventory.IsOpen, _crafting.IsOpen, _book.IsOpen, (int)_book.Page, _dialogue.IsOpen));
         var microphone = options.UsesMicrophone ? MicrophoneCapture.TryOpen() : null;
         _listen = new ListenSession(new PushToTalkSpeechCapture(microphone) { Sounds = _sound.Mixer });
@@ -209,7 +209,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _debug.Visible = !_playtest; // the playtest has no debug overlay (F3 is off there too)
         _look.Set(scene.Spawn.Yaw, scene.Spawn.Pitch);
         _camera = new PlayerCamera(_sim, _look, _viewMode, _isSolid);
-        _figures = new FigureDirector(scene, _sim, _look, _dialogue);
+        _figures = new FigureDirector(scene, _sim, _look, _dialogue, session.Data.Npcs);
         _arm = new ArmPresenter(_sim, _isSolid, options.Dusk);
         _drawer = new SceneDrawer(options, session, _toasts, _figures.Figures, Console.WriteLine);
         _reportScreen = new ReportScreen(

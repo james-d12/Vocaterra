@@ -40,9 +40,6 @@ public sealed class DialoguePanel : IFrameLayer
     /// <summary>The prefix of a line the player said, as the recognizer heard it.</summary>
     public const string SpokenPrefix = "You (voice): ";
 
-    /// <summary>The guide's name in the panel's title bar (the title shows the name of the NPC the panel is open on, <see cref="DialogueModel.NpcName"/>).</summary>
-    public const string Title = "Guía";
-
     /// <summary>The mark before every line of English in the panel (S16): the English is never spoken, so the panel says which line it is.</summary>
     public const string SupportPrefix = "English: ";
 

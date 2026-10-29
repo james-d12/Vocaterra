@@ -34,6 +34,9 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/tips.json` | `tips.schema.json` | `TipBook` |
   | `game/controls.json` | `controls.schema.json` | `TipBook` |
   | `game/words.json` | `words.schema.json` | `GameWords` (the target-language words the game itself uses: the guide's directions, the buttons, the pronouns, the key words, the greeting...) |
+  | `game/npcs.json` | `npcs.schema.json` (the NPCs' ids, in order; the saves keep this order) | `NpcRoster` |
+  | `game/npcs/<id>.json` | `npc.schema.json` (one NPC each, C08: its label, name, figure and the phrases its prompts practise) | `NpcRoster` |
+  | `game/host-events.json` | `host-events.schema.json` (what each NPC host event does: give an item, point the beacon at a noun) | `HostEventTable` |
   | `game/scene.json` | `scene.schema.json` (the file is JSON with `//` comments) | `SceneLayout` |
 
 ## The support language: `locale/`
@@ -102,9 +105,15 @@ Everything the game says, shows and builds its world from, outside the code. The
   `locale/en/lessons.json` (`lesson.<id>.title`, `.text`, and each step's `lesson.<id>.<step>.text`, ...). Its phrases must be rows of
   `game/phrases.json`, its lines recorded speech lines, and its `do` events world events (`WorldEvents`).
 - **A phrase.** Add the row to `PHRASES.md` first (D-game-10), then to `game-v1/game/phrases.json`, and its meaning, card and explanation to
-  `locale/en/phrases.json`. Render its recordings (`scripts/prerender-speech.sh`).
+  `locale/en/phrases.json`. Render its recordings (`scripts/prerender-speech.sh`). A phrase the guide reviews may name a `reviewLine`, the dialogue
+  line she asks it with while the bundle has no review pool for it (`guide.review.phrase.<id>`).
 - **A noun.** Add it to `game-v1/game/nouns.json` and its word to `locale/en/nouns.json` (`noun.<lemma>`). The lexicon must have a noun
   reading of it with a gender.
 - **A place the beacon names.** Give the site, the point or the named prop a `label` in `game/scene.json` (`"label": "río"`); a place with no label shows
   its own name.
+- **An NPC.** The core's `agents/<id>.json` and its prompts (each prompt's `agentId`) come first. Then add `game-v1/game/npcs/<id>.json` (its label over the
+  head, its name if it has one, its figure key, and `focus`: the learner phrases each of its prompts practises), its id to `game-v1/game/npcs.json`
+  (at the end: the saves keep the NPCs in this order), its place to `game/scene.json` `npcs`, its role to `locale/en/ui.json` (`npc.<id>.role`) and a
+  provenance item. A figure key the game does not draw yet gets a plain grey figure. What its host events do in the world goes in
+  `game/host-events.json`; an event not listed there changes nothing. The validator checks the NPC against the agents, the prompts and the phrases.
 - **An NPC line.** Add it to `game-v1/dialogue/dialogue.json` (the core's file) and its gloss to `locale/en/lines.json` (`line.<lineId>`).

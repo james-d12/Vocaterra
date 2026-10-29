@@ -69,10 +69,10 @@ internal static class RouteScene
         var data = DataOf(bundle);
         if (!LocaleFixture.TrySplitLessons(json, out var file, out var strings))
         {
-            return LessonBook.Parse(json, data.Phrases, data.Speech, bundle.Prompts, data.Locale); // malformed: the loader names the problem
+            return LessonBook.Parse(json, data.Phrases, data.Speech, bundle.Prompts, data.Locale, data.Npcs.Ids); // malformed: the loader names the problem
         }
 
-        return LessonBook.Parse(file, data.Phrases, data.Speech, bundle.Prompts, data.Locale.With(strings));
+        return LessonBook.Parse(file, data.Phrases, data.Speech, bundle.Prompts, data.Locale.With(strings), data.Npcs.Ids);
     }
 
     /// <summary>The support language of the repository's locale bundle (<c>content/locale</c>, its default locale), loaded once.</summary>

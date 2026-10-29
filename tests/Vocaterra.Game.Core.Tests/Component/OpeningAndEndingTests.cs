@@ -55,7 +55,7 @@ public sealed class OpeningAndEndingTests
         Assert.Equal(ObjectivePieceKind.Support, Assert.Single(session.ObjectiveHud()).Kind); // English only, in its own colour
         Assert.False(session.GuideMet);
         Assert.InRange(session.Simulation.Player.FeetBlock.X, session.Scene.Point("camp.player").X - 6, session.Scene.Point("camp.player").X + 6); // the spawn is the player's camp, alone: no NPC within a long walk
-        Assert.All(NpcService.AgentIds, npc =>
+        Assert.All(TestGame.Data.Npcs.Ids, npc =>
         {
             var feet = session.Scene.Npc(npc).Feet;
             var me = session.Simulation.Player.FeetBlock;

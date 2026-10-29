@@ -308,7 +308,7 @@ public static class SaveMigration
         var keptSkills = 0;
         foreach (var npc in npcs)
         {
-            if (!NpcService.AgentIds.Contains(npc.Agent, StringComparer.Ordinal) || !seen.Add(npc.Agent))
+            if (!session.Data.Npcs.Ids.Contains(npc.Agent, StringComparer.Ordinal) || !seen.Add(npc.Agent))
             {
                 droppedNpcs.Add(npc.Agent);
                 continue;

@@ -55,7 +55,7 @@ public sealed class TalkKeyAndEnglishTests
         Assert.Equal("Listening…", DialoguePanel.ListeningText);
         Assert.Equal("Thinking…", DialoguePanel.ThinkingText);
         Assert.Equal("You (voice): ", DialoguePanel.SpokenPrefix);
-        Assert.False(new DialogueModel(new InputFocus(), "Hola.", RouteScene.Shipped.Words).SpeechUnavailable);
+        Assert.False(new DialogueModel(new InputFocus(), "Hola.", RouteScene.Shipped).SpeechUnavailable);
     }
 
     [Fact]

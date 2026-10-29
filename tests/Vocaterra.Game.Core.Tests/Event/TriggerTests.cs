@@ -50,7 +50,6 @@ public sealed class TriggerTests
 
     [Theory]
     [InlineData("""{ "event": "the_moon_landed" }""", "not an event the game raises")]
-    [InlineData("""{ "event": "talk_opened", "npc": "miller" }""", "is not one of the NPCs")]
     [InlineData("""{ "event": "talk_opened", "at": "guide" }""", "'at'")]
     [InlineData("""{ "detail": "fruta" }""", "names no event")]
     [InlineData("\"item_picked_up\"", "must be an object")]

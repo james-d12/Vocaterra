@@ -159,7 +159,7 @@ public static class SaveGame
             session.DeferredSkills.Select(static step => new DeferredSkillSave(step.Npc, step.Skill)).ToArray(),
             session.LastRepairs().Select(static step => new LastRepairSave(step.Npc, step.Repair)).ToArray(),
             session.NextTurnId,
-            NpcService.AgentIds.Select(session.Conversation.CaptureAgent).ToArray(),
+            session.Data.Npcs.Ids.Select(session.Conversation.CaptureAgent).ToArray(),
             VoxelGridDiff.Capture(session.Scene.Grid, pristine.Grid),
             session.Lessons.Capture(),
             session.Tips.Capture(),
@@ -404,13 +404,13 @@ public static class SaveGame
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var npc in npcs)
         {
-            if (!NpcService.AgentIds.Contains(npc.Agent, StringComparer.Ordinal) || !seen.Add(npc.Agent))
+            if (!session.Data.Npcs.Ids.Contains(npc.Agent, StringComparer.Ordinal) || !seen.Add(npc.Agent))
             {
                 throw new ArgumentException($"The NPC '{npc.Agent}' is not one of the game's, or is given twice.", nameof(npcs));
             }
         }
 
-        if (!migrating && seen.Count != NpcService.AgentIds.Count)
+        if (!migrating && seen.Count != session.Data.Npcs.Ids.Count)
         {
             throw new ArgumentException("The save does not hold every NPC.", nameof(npcs));
         }

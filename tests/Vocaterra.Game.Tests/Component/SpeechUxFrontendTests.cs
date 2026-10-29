@@ -86,7 +86,7 @@ public sealed class SpeechUxFrontendTests
     private static DialogueModel OpenPanel(out InputFocus focus)
     {
         focus = new InputFocus();
-        var dialogue = new DialogueModel(focus, "¡Hola! Soy la guía.", RouteScene.Shipped.Words, Sheet.Value);
+        var dialogue = new DialogueModel(focus, "¡Hola! Soy la guía.", RouteScene.Shipped, Sheet.Value);
         dialogue.Open(new NpcOpening("shopkeeper", "stall-need", ["¿Qué necesitas?"], true, [], false), "Tendero");
         return dialogue;
     }
@@ -216,7 +216,7 @@ public sealed class SpeechUxFrontendTests
     public void AnOpenPromptWithSeveralPhrasesExpectsTheOneOfTheIntentThatMatched()
     {
         var focus = new InputFocus();
-        var dialogue = new DialogueModel(focus, "Hola.", RouteScene.Shipped.Words, Sheet.Value);
+        var dialogue = new DialogueModel(focus, "Hola.", RouteScene.Shipped, Sheet.Value);
         dialogue.Open(new NpcOpening("villager", "villager-open", ["Hola."], true, [], false), "Aldeano");
 
         _ = dialogue.Complete(Applied(Spoken("dónde está el río", intent: "ask_directions", prompt: "villager-open")));
@@ -256,7 +256,7 @@ public sealed class SpeechUxFrontendTests
             Assert.True(Session.StartWorker(loadSpeech: false).WaitUntilReady(30000));
             Session.Simulation.TeleportTo(NpcStandOff.Choose(Session.Scene.Grid, Session.Scene.Npc("shopkeeper").Feet, Session.Simulation.Player.FeetBlock)!.Value);
             var opening = Session.OpenTalk("shopkeeper");
-            Dialogue = new DialogueModel(new InputFocus(), Session.OpeningLine, Session.Data.Words, Session.Phrases);
+            Dialogue = new DialogueModel(new InputFocus(), Session.OpeningLine, Session.Data, Session.Phrases);
             Dialogue.Open(opening, "Tendero");
             Player = new RecordingPlayer();
             Actions = new SpeechActionRunner(Session, Dialogue, Player, () => null);
@@ -666,9 +666,9 @@ public sealed class SpeechUxFrontendTests
         using var session = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
         Assert.True(session.StartWorker(loadSpeech: false).WaitUntilReady(30000));
         var look = new LookControl();
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data.Words, session.Phrases);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases);
         var hooks = new ScenarioHooks(
-            npc => dialogue.Open(session.OpenTalk(npc), NpcNames.LabelOf(npc)),
+            npc => dialogue.Open(session.OpenTalk(npc), session.Data.Npcs.LabelOf(npc)),
             () =>
             {
                 dialogue.Close();
@@ -698,7 +698,7 @@ public sealed class SpeechUxFrontendTests
     {
         Assert.DoesNotContain("Tab (mantener)", DialoguePanel.KeyHints, StringComparison.Ordinal);
         Assert.Contains("Hold V or Space", DialoguePanel.ButtonHints, StringComparison.Ordinal);
-        Assert.Equal("¿Escribes?", new DialogueModel(new InputFocus(), "Hola.", RouteScene.Shipped.Words).TypeOfferText);
+        Assert.Equal("¿Escribes?", new DialogueModel(new InputFocus(), "Hola.", RouteScene.Shipped).TypeOfferText);
         Assert.Equal("(nothing)", HeardLine.NothingHeard);
         Assert.Equal("Heard: ", HeardLine.HeardLabel);
         Assert.Equal("Expected: ", HeardLine.ExpectedLabel);

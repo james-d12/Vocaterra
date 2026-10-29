@@ -82,6 +82,7 @@ public sealed record SupportChange(IReadOnlyList<string> NewCards, IReadOnlyList
 /// </remarks>
 public sealed class PhraseSupport
 {
+    private readonly NpcRoster _npcs;
     private readonly PhraseSheet _sheet;
     private readonly PhraseProgress _progress;
     private readonly LocaleText? _locale;
@@ -102,12 +103,14 @@ public sealed class PhraseSupport
     /// <param name="sheet">The phrase sheet.</param>
     /// <param name="progress">The phrase progress.</param>
     /// <param name="bundle">The bundle whose dialogue lines hold the model audio's text.</param>
+    /// <param name="npcs">The NPCs, whose prompts name the phrases in play (C08).</param>
     /// <param name="english">The game's English text (the explanations on the cards), or <see langword="null"/> for cards without them.</param>
-    public PhraseSupport(PhraseSheet sheet, PhraseProgress progress, ContentBundle bundle, LocaleText? english = null)
+    public PhraseSupport(PhraseSheet sheet, PhraseProgress progress, ContentBundle bundle, NpcRoster npcs, LocaleText? english = null)
     {
         ArgumentNullException.ThrowIfNull(sheet);
         ArgumentNullException.ThrowIfNull(progress);
         ArgumentNullException.ThrowIfNull(bundle);
+        _npcs = npcs ?? throw new ArgumentNullException(nameof(npcs));
         _sheet = sheet;
         _progress = progress;
         _locale = english;
@@ -133,10 +136,10 @@ public sealed class PhraseSupport
     /// <summary>Whether help was given on this prompt (Ayuda or "no sé" and the NPC's model line), so the next use is supported, not unaided.</summary>
     public bool HelpGiven => _help;
 
-    /// <summary>The phrases in play on this prompt: the review's phrase during a review, otherwise the prompt's focus (<see cref="PhraseIds.FocusAt"/>).</summary>
+    /// <summary>The phrases in play on this prompt: the review's phrase during a review, otherwise the prompt's focus (its NPC's, <see cref="NpcRoster.FocusAt"/>).</summary>
     public IReadOnlyList<string> InPlay => _npc is null
         ? []
-        : _forcedPhrase is not null ? [_forcedPhrase] : _reviewPhrase is not null ? [_reviewPhrase] : PhraseIds.FocusAt(_prompt ?? string.Empty);
+        : _forcedPhrase is not null ? [_forcedPhrase] : _reviewPhrase is not null ? [_reviewPhrase] : _npcs.FocusAt(_prompt ?? string.Empty);
 
     /// <summary>The support cards to draw now, in the phrase sheet's order; each says whether its English is drawn (<see cref="SupportCard.EnglishShown"/>).</summary>
     public IReadOnlyList<SupportCard> Cards => _npc is null

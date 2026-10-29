@@ -63,6 +63,7 @@ public static class GrammarStringsExtractor
         AddPhraseSheet(lines, Path.Combine(contentDirectory, "PHRASES.md"));
         AddChecks(lines, data);
         AddWords(lines, data);
+        AddNpcs(lines, data);
         AddSpeechIndex(lines, Path.Combine(contentDirectory, "speech-index.json"));
 
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -199,6 +200,19 @@ public static class GrammarStringsExtractor
         foreach (var (path, text) in data.Words.All())
         {
             lines.Add(Line("words.json:" + path, text, Npc));
+        }
+    }
+
+    // The NPCs' labels and names (game/npcs/<id>.json, C08), which were constants in the code.
+    private static void AddNpcs(List<GrammarStringLine> lines, GameData data)
+    {
+        foreach (var npc in data.Npcs.All)
+        {
+            lines.Add(Line("npcs/" + npc.Id + ".json:label", npc.Label, Npc));
+            if (npc.Name is { } name)
+            {
+                lines.Add(Line("npcs/" + npc.Id + ".json:name", name, Npc));
+            }
         }
     }
 

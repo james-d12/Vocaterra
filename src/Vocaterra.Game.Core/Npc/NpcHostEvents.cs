@@ -32,16 +32,10 @@ public sealed record NpcEffect(NpcEffectKind Kind, ItemId Item = ItemId.Wood, st
 }
 
 /// <summary>
-/// The one table that maps the NPCs' host events to the world (S6). The core knows the events as opaque strings in the agents' files
-/// (<c>agents/*.json</c>); what each one means in the game (a bottle, a bread, the beacon on the river) is decided here and nowhere else, so the
-/// game's words stay in <c>content/game-v1</c>. The same table serves a turn the player's line caused and a host turn (<c>Advance</c>) such as the
-/// shopkeeper's fail-forward.
+/// The names of the NPCs' host events the game's code reacts to (S6). The core knows the events as opaque strings in the agents' files (<c>agents/*.json</c>);
+/// what an event does in the world (a bottle, a bread, the beacon on the river) is data since C08, <c>game/host-events.json</c> (<see cref="HostEventTable"/>).
+/// The names here are the ones the code itself waits for (the guide's offer, the shopkeeper's openings).
 /// </summary>
-/// <remarks>
-/// The core's transitions are chosen by the intent alone, so an event does not know what the player asked for: <c>stall.give_water</c> hands
-/// over the bottle whatever the request was (the stall has nothing else to give but the bread, which it offers next), and
-/// <c>villager.give</c> gives bread whatever was asked. A content change that splits the intents would split these rows.
-/// </remarks>
 public static class NpcHostEvents
 {
     /// <summary>The shopkeeper opens with "¿Qué necesitas?" (host turn).</summary>
@@ -76,29 +70,6 @@ public static class NpcHostEvents
 
     /// <summary>The player accepted the guide's offer: she gives water.</summary>
     public const string GuideGiveWater = "guide.give_water";
-
-    private static readonly Dictionary<(string Npc, string HostEvent), NpcEffect> Table = new()
-    {
-        [(NpcService.ShopkeeperAgent, GiveWater)] = NpcEffect.Give(ItemId.Bottle),
-        [(NpcService.ShopkeeperAgent, GiveBread)] = NpcEffect.Give(ItemId.Bread),
-        [(NpcService.VillagerAgent, VillagerPoint)] = NpcEffect.PointAt("río"),
-        [(NpcService.VillagerAgent, VillagerGive)] = NpcEffect.Give(ItemId.Bread),
-        [(NpcService.GuideAgent, GuideGiveWater)] = NpcEffect.Give(ItemId.WaterBottle),
-    };
-
-    /// <summary>The world effect of a host event of an NPC; <see cref="NpcEffectKind.None"/> for an event the table does not know.</summary>
-    /// <param name="npc">The NPC's agent id.</param>
-    /// <param name="hostEvent">The host event name.</param>
-    public static NpcEffect Of(string npc, string hostEvent)
-    {
-        ArgumentNullException.ThrowIfNull(npc);
-        ArgumentNullException.ThrowIfNull(hostEvent);
-        return Table.TryGetValue((npc, hostEvent), out var effect) ? effect : new NpcEffect(NpcEffectKind.None);
-    }
-
-    /// <summary>The (NPC, event) pairs the table maps, in ordinal order (for the tests that check the table against the agents' files).</summary>
-    public static IReadOnlyList<(string Npc, string HostEvent)> Mapped() =>
-        Table.Keys.OrderBy(static k => k.Npc, StringComparer.Ordinal).ThenBy(static k => k.HostEvent, StringComparer.Ordinal).ToList();
 }
 
 /// <summary>
@@ -160,16 +131,18 @@ public static class PhraseIds
     /// </summary>
     /// <param name="intent">The intent the core resolved.</param>
     /// <param name="slots">The slots the core filled.</param>
-    public static string? For(string intent, IReadOnlyDictionary<string, string> slots)
+    /// <param name="river">The river's noun (<c>río</c>, <c>game/words.json</c>).</param>
+    public static string? For(string intent, IReadOnlyDictionary<string, string> slots, string river)
     {
         ArgumentNullException.ThrowIfNull(intent);
         ArgumentNullException.ThrowIfNull(slots);
+        ArgumentNullException.ThrowIfNull(river);
         return intent switch
         {
             "request_item" => RequestWater,
             "confirm" => YesPlease,
             "deny" => NoThanks,
-            "ask_directions" => slots.TryGetValue("place", out var place) && string.Equals(place, "río", StringComparison.Ordinal) ? WhereIsTheRiver : null,
+            "ask_directions" => slots.TryGetValue("place", out var place) && string.Equals(place, river, StringComparison.Ordinal) ? WhereIsTheRiver : null,
             "greet" => Hello,
             "thank" => Thanks,
             "farewell" => Goodbye,
@@ -178,38 +151,4 @@ public static class PhraseIds
             _ => null,
         };
     }
-
-    /// <summary>
-    /// The learner phrases an NPC prompt is waiting for and shows support for (S8): the stall's question is answered with <see cref="RequestWater"/>, its
-    /// bread offer with <see cref="YesPlease"/> or <see cref="NoThanks"/>, and at the villager the taught phrase is <see cref="WhereIsTheRiver"/>.
-    /// The guide's transfer offer has none: the transfer is meant to be unaided, with a different NPC. The pleasantries (<c>hola</c>, <c>gracias</c>,
-    /// <c>adios</c>) and the service words have no scaffold.
-    /// </summary>
-    /// <param name="prompt">The prompt id (<c>stall-need</c>).</param>
-    public static IReadOnlyList<string> FocusAt(string prompt)
-    {
-        ArgumentNullException.ThrowIfNull(prompt);
-        return prompt switch
-        {
-            NpcService.StallNeedPrompt => [RequestWater],
-            NpcService.StallOfferPrompt => [YesPlease, NoThanks],
-            NpcService.VillagerPrompt => [WhereIsTheRiver],
-            _ => [],
-        };
-    }
-
-    /// <summary>Whether a phrase has a support scaffold to fade: a phrase some prompt shows a card for (<see cref="FocusAt"/>). Every other phrase stays at <see cref="SupportLevel.None"/>.</summary>
-    /// <param name="phraseId">The sheet's id.</param>
-    public static bool HasScaffold(string phraseId) => phraseId is RequestWater or YesPlease or NoThanks or WhereIsTheRiver;
-
-    /// <summary>
-    /// The NPC a phrase was taught with, or <see langword="null"/> when it has no home (the service words, which are used with anyone). Using a
-    /// phrase with another NPC after the objective is a transfer.
-    /// </summary>
-    public static string? HomeOf(string phraseId) => phraseId switch
-    {
-        RequestWater or YesPlease or NoThanks => NpcService.ShopkeeperAgent,
-        WhereIsTheRiver => NpcService.VillagerAgent,
-        _ => null,
-    };
 }

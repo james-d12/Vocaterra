@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Vocaterra.Game.Core.Npc;
 
 namespace Vocaterra.Game.Core.Event;
 
@@ -40,7 +39,7 @@ public sealed record Trigger(string Event, string? Npc = null, string? Detail = 
     /// <param name="element">The object.</param>
     /// <param name="events">The events this file's triggers may name.</param>
     /// <param name="where">Where the trigger is, for the messages (<c>game/tips.json: the tip 'look'</c>).</param>
-    /// <exception cref="InvalidDataException">The object is not a trigger, the event is not one of <paramref name="events"/>, or the NPC is not one of the game's.</exception>
+    /// <exception cref="InvalidDataException">The object is not a trigger, or the event is not one of <paramref name="events"/>.</exception>
     public static Trigger Parse(JsonElement element, IReadOnlyList<string> events, string where)
     {
         ArgumentNullException.ThrowIfNull(events);
@@ -55,11 +54,7 @@ public sealed record Trigger(string Event, string? Npc = null, string? Detail = 
             throw new InvalidDataException($"{where}: the trigger waits for '{name}', which is not an event the game raises ({string.Join(", ", events)}).");
         }
 
-        var npc = Text(element, "npc");
-        if (npc is not null && !NpcService.AgentIds.Contains(npc, StringComparer.Ordinal))
-        {
-            throw new InvalidDataException($"{where}: the trigger's NPC '{npc}' is not one of the NPCs ({string.Join(", ", NpcService.AgentIds)}).");
-        }
+        var npc = Text(element, "npc"); // an NPC of game/npcs.json: GameDataValidator checks it (C08)
 
         foreach (var property in element.EnumerateObject())
         {

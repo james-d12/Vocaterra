@@ -266,8 +266,9 @@ public sealed class LessonBook
     /// <param name="sheet">The phrase sheet.</param>
     /// <param name="speech">The bundle's speakable lines (<see cref="SpeechLines.Enumerate"/>).</param>
     /// <param name="locale">The support language, which holds the lessons' text (<c>lesson.&lt;id&gt;.*</c>).</param>
+    /// <param name="npcs">The NPCs' ids (<c>game/npcs.json</c>): a lesson, a step and a trigger may name only these.</param>
     /// <exception cref="InvalidDataException">The bundle has no such host file, a lesson file is missing, not listed or names another id, or a lesson is malformed or does not fit the bundle.</exception>
-    public static LessonBook Load(ContentBundle bundle, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, LocaleText locale)
+    public static LessonBook Load(ContentBundle bundle, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, LocaleText locale, IReadOnlyList<string> npcs)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         var ids = new List<string>();
@@ -308,7 +309,7 @@ public sealed class LessonBook
             throw new InvalidDataException($"{RelativePath} does not list the lesson file {string.Join(", ", unlisted)}.");
         }
 
-        return Parse("{ \"schemaVersion\": 1, \"lessons\": [" + string.Join(",", files) + "] }", sheet, speech, bundle.Prompts, locale);
+        return Parse("{ \"schemaVersion\": 1, \"lessons\": [" + string.Join(",", files) + "] }", sheet, speech, bundle.Prompts, locale, npcs);
     }
 
     /// <summary>Builds the lessons from a book's text, checking that each one holds together: <c>{ "schemaVersion": 1, "lessons": [ { lesson }, ... ] }</c>, the lessons in order (the shipped lessons are one file each, which <see cref="Load"/> puts together).</summary>
@@ -317,9 +318,11 @@ public sealed class LessonBook
     /// <param name="speech">The bundle's speakable lines.</param>
     /// <param name="prompts">The bundle's prompts.</param>
     /// <param name="locale">The support language, which holds the lessons' text (<c>lesson.&lt;id&gt;.*</c>).</param>
+    /// <param name="npcs">The NPCs' ids (<c>game/npcs.json</c>): a lesson, a step and a trigger may name only these.</param>
     /// <exception cref="InvalidDataException">The text is malformed or a lesson does not hold together.</exception>
-    public static LessonBook Parse(string json, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts, LocaleText locale)
+    public static LessonBook Parse(string json, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts, LocaleText locale, IReadOnlyList<string> npcs)
     {
+        ArgumentNullException.ThrowIfNull(npcs);
         ArgumentNullException.ThrowIfNull(json);
         ArgumentNullException.ThrowIfNull(sheet);
         ArgumentNullException.ThrowIfNull(speech);
@@ -338,7 +341,7 @@ public sealed class LessonBook
             var ids = new HashSet<string>(StringComparer.Ordinal);
             foreach (var element in root.GetProperty("lessons").EnumerateArray())
             {
-                var lesson = ParseLesson(element, sheet, speech, prompts, locale, ids);
+                var lesson = ParseLesson(element, sheet, speech, prompts, locale, npcs, ids);
                 if (!ids.Add(lesson.Id))
                 {
                     throw new InvalidDataException($"{RelativePath}: the lesson id '{lesson.Id}' is used twice.");
@@ -355,13 +358,13 @@ public sealed class LessonBook
         }
     }
 
-    private static LessonDefinition ParseLesson(JsonElement element, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts, LocaleText locale, ISet<string> earlier)
+    private static LessonDefinition ParseLesson(JsonElement element, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts, LocaleText locale, IReadOnlyList<string> npcs, ISet<string> earlier)
     {
         var id = Text(element, "id");
         var npc = Text(element, "npc");
-        if (!NpcService.AgentIds.Contains(npc, StringComparer.Ordinal))
+        if (!npcs.Contains(npc, StringComparer.Ordinal))
         {
-            throw Bad(id, $"is attached to '{npc}', which is not one of the NPCs ({string.Join(", ", NpcService.AgentIds)})");
+            throw Bad(id, $"is attached to '{npc}', which is not one of the NPCs ({string.Join(", ", npcs)})");
         }
 
         var after = Optional(element, "after");
@@ -374,7 +377,7 @@ public sealed class LessonBook
         var stepIds = new HashSet<string>(StringComparer.Ordinal);
         foreach (var stepElement in element.GetProperty("steps").EnumerateArray())
         {
-            var step = ParseStep(id, stepElement, sheet, speech, prompts, locale);
+            var step = ParseStep(id, stepElement, sheet, speech, prompts, locale, npcs);
             if (!stepIds.Add(step.Id))
             {
                 throw Bad(id, $"has the step id '{step.Id}' twice");
@@ -453,7 +456,7 @@ public sealed class LessonBook
         return forms;
     }
 
-    private static LessonStep ParseStep(string lesson, JsonElement element, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts, LocaleText locale)
+    private static LessonStep ParseStep(string lesson, JsonElement element, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts, LocaleText locale, IReadOnlyList<string> npcs)
     {
         var id = Text(element, "id");
         string? Say(string field) => locale.Find(StepId(lesson, id, field));
@@ -512,6 +515,11 @@ public sealed class LessonBook
                 }
 
                 trigger = Trigger.Parse(triggerElement, WorldEvents.All, $"{RelativePath}: the lesson '{lesson}', step '{id}'");
+                if (trigger.Npc is { } waitedAt && !npcs.Contains(waitedAt, StringComparer.Ordinal))
+                {
+                    throw Bad(lesson, $"step '{id}' waits at '{waitedAt}', which is not one of the NPCs ({string.Join(", ", npcs)})");
+                }
+
                 break;
             case LessonStepType.Recap:
                 if (element.TryGetProperty("phrases", out var listed))
@@ -534,11 +542,10 @@ public sealed class LessonBook
         }
 
         var stepNpc = Optional(element, "npc");
-        if (stepNpc is not null && !NpcService.AgentIds.Contains(stepNpc, StringComparer.Ordinal))
+        if (stepNpc is not null && !npcs.Contains(stepNpc, StringComparer.Ordinal))
         {
-            throw Bad(lesson, $"step '{id}' is said at '{stepNpc}', which is not one of the NPCs ({string.Join(", ", NpcService.AgentIds)})");
+            throw Bad(lesson, $"step '{id}' is said at '{stepNpc}', which is not one of the NPCs ({string.Join(", ", npcs)})");
         }
-
 
         var person = Optional(element, "person");
         if (person is not null && (type is not (LessonStepType.Repeat or LessonStepType.Answer) || !System.Text.RegularExpressions.Regex.IsMatch(person, "^[123](sg|pl)$")))

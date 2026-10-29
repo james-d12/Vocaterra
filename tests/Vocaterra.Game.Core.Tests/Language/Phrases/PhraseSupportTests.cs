@@ -475,9 +475,9 @@ public sealed class PhraseSupportTests
         var index = new SpeechIndex(SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, sheet));
         var store = new Vocaterra.Nlp.Response.Speech.StaticLineStore(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
         var texts = new List<(string Speaker, string Text)> { ("guide", "el agua"), ("guide", "el pan") };
-        foreach (var id in PhraseIds.All.Where(PhraseIds.HasScaffold))
+        foreach (var id in PhraseIds.All.Where(TestGame.Data.Npcs.HasScaffold))
         {
-            var support = new PhraseSupport(sheet, new PhraseProgress(sheet), TestGame.Bundle);
+            var support = new PhraseSupport(sheet, new PhraseProgress(sheet, 1, TestGame.Data.Npcs.ScaffoldPhrases), TestGame.Bundle, TestGame.Data.Npcs);
             _ = support.Show("shopkeeper", Prompt(id));
             texts.AddRange(support.TakeCues().Select(static c => (c.Npc, c.Text)));
         }

@@ -62,7 +62,7 @@ public sealed class SaveGameTests
         Assert.Equal(session.CardedLemmas(), loaded.CardedLemmas());
         Assert.Equal(session.RiverPointedOut, loaded.RiverPointedOut);
         Assert.Equal(session.NextTurnId, loaded.NextTurnId);
-        foreach (var npc in NpcService.AgentIds)
+        foreach (var npc in TestGame.Data.Npcs.Ids)
         {
             Assert.Equal(session.Conversation.ContextOf(npc).AgentState, loaded.Conversation.ContextOf(npc).AgentState);
             Assert.Equal(session.Conversation.ContextOf(npc).Learner, loaded.Conversation.ContextOf(npc).Learner);

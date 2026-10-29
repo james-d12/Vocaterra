@@ -20,6 +20,8 @@ namespace Vocaterra.Game.Core.Language.Phrases;
 /// <param name="Variants">Other things the game accepts as the same phrase.</param>
 /// <param name="Card">The support card text, <c>phrase = meaning · word = gloss</c> (<c>phrase.&lt;id&gt;.card</c> in the locale).</param>
 /// <param name="AudioLineIds">The bundle dialogue line ids whose NPC audio speaks the phrase (S9).</param>
+/// <param name="ReviewLine">The dialogue line the guide's review of the phrase asks with when the bundle has no review pool for it (S8; C08: it was a table in the
+/// code), or <see langword="null"/> for none.</param>
 public sealed record PhraseRow(
     string Id,
     string Says,
@@ -29,7 +31,8 @@ public sealed record PhraseRow(
     string? Prompt,
     IReadOnlyList<string> Variants,
     string Card,
-    IReadOnlyList<string> AudioLineIds)
+    IReadOnlyList<string> AudioLineIds,
+    string? ReviewLine = null)
 {
     /// <summary>Whether the learner says the phrase (<c>says</c> or <c>both</c>).</summary>
     public bool IsLearnerPhrase => string.Equals(Says, "says", StringComparison.Ordinal) || string.Equals(Says, "both", StringComparison.Ordinal);
@@ -119,7 +122,8 @@ public sealed class PhraseSheet
                     Optional(element, "prompt"),
                     Strings(element, "variants"),
                     Required(locale, id, "card"),
-                    Strings(element, "audioLineIds"));
+                    Strings(element, "audioLineIds"),
+                    Optional(element, "reviewLine"));
                 if (!ids.Add(row.Id))
                 {
                     throw new InvalidDataException($"{RelativePath}: the phrase id '{row.Id}' appears twice.");

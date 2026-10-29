@@ -1196,6 +1196,10 @@
 {"id":"words.json:keyWords[1]","text":"pan","kind":"npc"}
 {"id":"words.json:nearFuture.timeWords[0]","text":"mañana","kind":"npc"}
 {"id":"words.json:nouns.river","text":"río","kind":"npc"}
+{"id":"npcs/guide.json:label","text":"Guía","kind":"npc"}
+{"id":"npcs/guide.json:name","text":"Luna","kind":"npc"}
+{"id":"npcs/shopkeeper.json:label","text":"Tendero","kind":"npc"}
+{"id":"npcs/villager.json:label","text":"Aldeano","kind":"npc"}
 {"id":"speech:card.agua","text":"el agua","kind":"npc"}
 {"id":"speech:card.antorcha","text":"la antorcha","kind":"npc"}
 {"id":"speech:card.arena","text":"la arena","kind":"npc"}

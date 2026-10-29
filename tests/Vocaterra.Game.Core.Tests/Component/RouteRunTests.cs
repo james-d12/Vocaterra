@@ -266,7 +266,7 @@ public sealed class RouteRunTests(ITestOutputHelper output)
     public void TheStandOffIsAboutTwoBlocksFromEachNpcWithAClearLineToIt()
     {
         var session = TestGame.NewSession();
-        foreach (var npc in NpcService.AgentIds)
+        foreach (var npc in TestGame.Data.Npcs.Ids)
         {
             var feet = session.Scene.Npc(npc).Feet;
             var stand = Stage.StandOffOf(session, npc);

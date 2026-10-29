@@ -28,7 +28,7 @@ public sealed class DialogueTests
     private static DialogueModel Model(out InputFocus focus)
     {
         focus = new InputFocus();
-        return new DialogueModel(focus, "¡Hola! Soy la guía.", RouteScene.Shipped.Words);
+        return new DialogueModel(focus, "¡Hola! Soy la guía.", RouteScene.Shipped);
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public sealed class DialogueTests
     public void APlaytestHidesTheVerdictNoteButKeepsTheTurnsOtherLines()
     {
         var focus = new InputFocus();
-        var playtest = new DialogueModel(focus, "¡Hola! Soy la guía.", RouteScene.Shipped.Words, showVerdictNotes: false);
+        var playtest = new DialogueModel(focus, "¡Hola! Soy la guía.", RouteScene.Shipped, showVerdictNotes: false);
         playtest.Open();
         playtest.Entry.Insert("hola");
         playtest.RequestSubmit();
@@ -109,7 +109,7 @@ public sealed class DialogueTests
         Assert.Equal(2.2, playtest.LastTurnMilliseconds);
 
         // The default (scripted and developer runs) keeps the verdict line, with its confidence and milliseconds.
-        var developer = new DialogueModel(new InputFocus(), "¡Hola! Soy la guía.", RouteScene.Shipped.Words);
+        var developer = new DialogueModel(new InputFocus(), "¡Hola! Soy la guía.", RouteScene.Shipped);
         developer.Open();
         developer.Entry.Insert("hola");
         developer.RequestSubmit();

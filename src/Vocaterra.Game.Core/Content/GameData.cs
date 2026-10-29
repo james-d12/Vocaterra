@@ -5,6 +5,7 @@ using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Nlp.Content;
@@ -45,10 +46,14 @@ public sealed class GameData
         LessonBook lessons,
         IReadOnlyList<CheckItem> checks,
         SceneLayout scene,
-        GameWords words)
+        GameWords words,
+        NpcRoster npcs,
+        HostEventTable hostEvents)
     {
         Bundle = bundle;
         Words = words;
+        Npcs = npcs;
+        HostEvents = hostEvents;
         Locale = locale;
         Nouns = nouns;
         Recipes = recipes;
@@ -113,6 +118,12 @@ public sealed class GameData
     /// <summary>The target-language words the game itself uses (<c>game/words.json</c>, C05): directions, button labels, pronouns, key words and the like.</summary>
     public GameWords Words { get; }
 
+    /// <summary>The NPCs (<c>game/npcs.json</c> and <c>game/npcs/&lt;id&gt;.json</c>, C08): their ids in order, labels, names, figures and the phrases they practise.</summary>
+    public NpcRoster Npcs { get; }
+
+    /// <summary>What each NPC host event does in the world (<c>game/host-events.json</c>, C08).</summary>
+    public HostEventTable HostEvents { get; }
+
     /// <summary>Reads every game file of a bundle, with the support language, and checks them against each other.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
     /// <param name="locale">The support language (<see cref="LocaleBundle.Text"/>).</param>
@@ -148,6 +159,7 @@ public sealed class GameData
         var nouns = NounCatalog.Load(bundle);
         var phrases = PhraseSheet.Load(bundle, locale);
         var speech = SpeechLines.Enumerate(bundle, nouns, phrases);
+        var npcs = NpcRoster.Load(bundle);
         return new GameData(
             bundle,
             locale,
@@ -157,10 +169,12 @@ public sealed class GameData
             TipBook.LoadTips(bundle, locale),
             TipBook.LoadControls(bundle, locale),
             speech,
-            LessonBook.Load(bundle, phrases, speech, locale),
+            LessonBook.Load(bundle, phrases, speech, locale, npcs.Ids),
             CheckBank.Load(bundle, locale),
             SceneLayout.Parse(HostText(bundle, ScenePath)),
-            GameWords.Load(bundle));
+            GameWords.Load(bundle),
+            npcs,
+            HostEventTable.Load(bundle));
     }
 
     /// <summary>
@@ -195,24 +209,36 @@ public sealed class GameData
     public GameData WithLessons(LessonBook lessons)
     {
         ArgumentNullException.ThrowIfNull(lessons);
-        return new GameData(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, lessons, Checks, Scene, Words);
+        return new GameData(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, lessons, Checks, Scene, Words, Npcs, HostEvents);
     }
 
     /// <summary>The same parts with another check battery (the validator's tests).</summary>
     /// <param name="checks">The items.</param>
-    internal GameData WithChecks(IReadOnlyList<CheckItem> checks) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, checks, Scene, Words);
+    internal GameData WithChecks(IReadOnlyList<CheckItem> checks) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, checks, Scene, Words, Npcs, HostEvents);
 
     /// <summary>The same parts with another support language (the validator's tests).</summary>
     /// <param name="locale">The locale.</param>
-    internal GameData WithLocale(LocaleText locale) => new(Bundle, locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words);
+    internal GameData WithLocale(LocaleText locale) => new(Bundle, locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents);
 
     /// <summary>The same parts with another scene layout (the validator's tests).</summary>
     /// <param name="scene">The layout.</param>
-    internal GameData WithScene(SceneLayout scene) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, scene, Words);
+    internal GameData WithScene(SceneLayout scene) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, scene, Words, Npcs, HostEvents);
 
     /// <summary>The same parts with other target-language words (the validator's tests).</summary>
     /// <param name="words">The words.</param>
-    internal GameData WithWords(GameWords words) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, words);
+    internal GameData WithWords(GameWords words) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, words, Npcs, HostEvents);
+
+    /// <summary>The same parts with other NPCs (the validator's tests).</summary>
+    /// <param name="npcs">The NPCs.</param>
+    internal GameData WithNpcs(NpcRoster npcs) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, npcs, HostEvents);
+
+    /// <summary>The same parts with another host-event table (the validator's tests).</summary>
+    /// <param name="hostEvents">The table.</param>
+    internal GameData WithHostEvents(HostEventTable hostEvents) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, hostEvents);
+
+    /// <summary>The same parts with other tips (the validator's tests).</summary>
+    /// <param name="tips">The tips.</param>
+    internal GameData WithTips(IReadOnlyList<TipSpec> tips) => new(Bundle, Locale, Nouns, Recipes, Phrases, tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents);
 
     /// <summary>The text of one of the bundle's verified host files.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>

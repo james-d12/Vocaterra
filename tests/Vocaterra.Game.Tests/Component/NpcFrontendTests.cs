@@ -63,7 +63,7 @@ public sealed class NpcFrontendTests
     public void ThePanelShowsTheNpcsNameItsHostTurnLinesAndAFollowUp()
     {
         var focus = new InputFocus();
-        var dialogue = new DialogueModel(focus, "¡Hola! Soy la guía.", RouteScene.Shipped.Words);
+        var dialogue = new DialogueModel(focus, "¡Hola! Soy la guía.", RouteScene.Shipped);
         var opening = new NpcOpening("shopkeeper", "stall-need", ["¿Qué necesitas?"], true, [], false);
 
         dialogue.Open(opening, "Tendero");
@@ -82,7 +82,7 @@ public sealed class NpcFrontendTests
     [Fact]
     public void APromptOpeningIsShownOnceAndAnotherNpcStartsACleanPage()
     {
-        var dialogue = new DialogueModel(new InputFocus(), "¡Hola! Soy la guía.", RouteScene.Shipped.Words);
+        var dialogue = new DialogueModel(new InputFocus(), "¡Hola! Soy la guía.", RouteScene.Shipped);
         var villager = new NpcOpening("villager", "villager-open", ["Hola."], false, [], false);
 
         dialogue.Open(villager, "Aldeano");
@@ -99,7 +99,7 @@ public sealed class NpcFrontendTests
     [Fact]
     public void ComingBackToAnNpcAfterAnotherOneStillShowsItsPromptOnAnEmptyPage()
     {
-        var dialogue = new DialogueModel(new InputFocus(), "hola", RouteScene.Shipped.Words);
+        var dialogue = new DialogueModel(new InputFocus(), "hola", RouteScene.Shipped);
         var villager = new NpcOpening("villager", "villager-open", ["Hola."], false, [], false);
         var offer = new NpcOpening("guide", "guide-offer", ["¿Quieres agua?"], false, [], false);
         dialogue.Open(villager, "Aldeano");
@@ -115,7 +115,7 @@ public sealed class NpcFrontendTests
     [Fact]
     public void ATurnsFollowUpLinesAreShownAfterTheRest()
     {
-        var dialogue = new DialogueModel(new InputFocus(), "hola", RouteScene.Shipped.Words);
+        var dialogue = new DialogueModel(new InputFocus(), "hola", RouteScene.Shipped);
         dialogue.Open(new NpcOpening("shopkeeper", "stall-need", ["¿Qué necesitas?"], true, [], false), "Tendero");
         var turn = new GuideTurn(
             "no sé",
@@ -151,7 +151,7 @@ public sealed class NpcFrontendTests
     public void EveryFigureCanBeAimedAtAndTalkedToNotOnlyTheGuide()
     {
         var scene = RouteScene.Clearing();
-        var figures = NpcFigures.FromScene(scene);
+        var figures = NpcFigures.FromScene(scene, RouteScene.Shipped.Npcs);
         Assert.Equal(["guide", "shopkeeper", "villager"], figures.Select(static f => f.Name).Order(StringComparer.Ordinal));
         foreach (var figure in figures)
         {
@@ -164,9 +164,7 @@ public sealed class NpcFrontendTests
             Assert.False(NpcAim.Hits(eye, east, 0, chest), $"{figure.Name}: looking east misses");
         }
 
-        Assert.Equal("Tendero", NpcNames.LabelOf("shopkeeper"));
-        Assert.Equal("Aldeano", NpcNames.LabelOf("villager"));
-        Assert.Equal("Guía", NpcNames.LabelOf("guide"));
+        Assert.Equal(["Tendero", "Aldeano", "Guía"], new[] { "shopkeeper", "villager", "guide" }.Select(id => figures.Single(f => f.Name == id).Label));
     }
 
     [Fact]
