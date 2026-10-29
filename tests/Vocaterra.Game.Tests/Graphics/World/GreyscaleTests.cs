@@ -3,8 +3,6 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Core.World.Generation;
-using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Game.Graphics.Blocks;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Startup;
@@ -177,7 +175,7 @@ public sealed class GreyscaleTests
             Assert.True(AllVertices(meshes.Alpha, v => !IsGreyVertex(v)), $"{definition.Id} is grey by default");
         }
 
-        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), 42);
+        var scene = RouteScene.Build();
         var source = new GridBlockSource(scene.Grid);
         foreach (var chunk in scene.Grid.Chunks)
         {
@@ -198,7 +196,7 @@ public sealed class GreyscaleTests
     [Fact]
     public void ChangingTheGreySetMakesDueOnlyTheChunksThatHoldAChangedKind()
     {
-        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), 42);
+        var scene = RouteScene.Build();
         var source = new GridBlockSource(scene.Grid);
         var tracker = new ChunkVersionTracker(scene.Grid);
         var trunk = ChunkMesher.KindBit(BlockId.Trunk);

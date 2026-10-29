@@ -77,13 +77,38 @@ public sealed class SceneTests(ITestOutputHelper output)
     [Fact]
     public void TheSceneBuildsIdenticallyTwice()
     {
-        var a = VoxelTestSupport.BuildRoute(Seed);
-        var b = VoxelTestSupport.BuildRoute(Seed);
+        // Two builds, not the test process's copies of one (VoxelTestSupport.BuildRoute): this is the builder's own determinism.
+        var a = SceneBuilder.Build(VoxelTestSupport.RouteDraft, Seed);
+        var b = SceneBuilder.Build(VoxelTestSupport.RouteDraft, Seed);
         Assert.Equal(a.Grid.ComputeDigestHex(), b.Grid.ComputeDigestHex());
         Assert.Equal(a.Spawn, b.Spawn);
         Assert.Equal(a.Npcs, b.Npcs);
         Assert.Equal(a.Points.Select(p => (p.Key, p.Value)), b.Points.Select(p => (p.Key, p.Value)));
         Assert.Equal(a.TreeCount, b.TreeCount);
+    }
+
+    [Fact]
+    public void TheTestsCopyOfTheRouteIsAFreshBuildAndItsEditsStayInIt()
+    {
+        var fresh = SceneBuilder.Build(VoxelTestSupport.RouteDraft, Seed);
+        var copy = VoxelTestSupport.BuildRoute(Seed);
+        Assert.Equal(GoldenDigest, copy.Grid.ComputeDigestHex());
+        Assert.Equal(fresh.Grid.ComputeDigestHex(), copy.Grid.ComputeDigestHex());
+        Assert.Equal(fresh.Grid.EditCount, copy.Grid.EditCount);
+        Assert.Equal(fresh.Grid.Chunks.Select(static c => c.Version), copy.Grid.Chunks.Select(static c => c.Version));
+        Assert.Equal((fresh.Name, fresh.Seed, fresh.Spawn, fresh.TreeCount, fresh.PlantCount, fresh.WaterLevel), (copy.Name, copy.Seed, copy.Spawn, copy.TreeCount, copy.PlantCount, copy.WaterLevel));
+        Assert.Equal(fresh.Npcs, copy.Npcs);
+        Assert.Equal(fresh.Points.Select(p => (p.Key, p.Value)), copy.Points.Select(p => (p.Key, p.Value)));
+
+        // A block placed in the copy is in no other copy, and Scene.Clone gives the same separation for any scene.
+        var feet = copy.Spawn.Feet;
+        Assert.True(copy.Grid.SetBlock(feet.X, feet.Y, feet.Z, BlockId.Stone));
+        Assert.NotEqual(fresh.Grid.ComputeDigestHex(), copy.Grid.ComputeDigestHex());
+        Assert.Equal(GoldenDigest, VoxelTestSupport.BuildRoute(Seed).Grid.ComputeDigestHex());
+        var clone = fresh.Clone();
+        Assert.True(clone.Grid.SetBlock(feet.X, feet.Y, feet.Z, BlockId.Stone));
+        Assert.Equal(GoldenDigest, fresh.Grid.ComputeDigestHex());
+        Assert.Equal(copy.Grid.ComputeDigestHex(), clone.Grid.ComputeDigestHex());
     }
 
     [Theory]

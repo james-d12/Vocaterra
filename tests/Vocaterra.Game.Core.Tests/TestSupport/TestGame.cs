@@ -6,8 +6,6 @@ using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Game.Core.World.Generation;
-using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Tests.TestSupport;
@@ -20,6 +18,10 @@ internal static class TestGame
 
     private static readonly Lazy<ContentBundle> LoadedBundle = new(() => GameBundle.Load());
     private static readonly Lazy<NounCatalog> LoadedNouns = new(() => NounCatalog.Load(Bundle));
+    private static readonly Lazy<PhraseSheet> LoadedPhrases = new(() => PhraseSheet.Load(Bundle));
+    private static readonly Lazy<IReadOnlyList<SpeechLine>> LoadedSpeech = new(() => SpeechLines.Enumerate(Bundle, Nouns, Phrases));
+    private static readonly Lazy<LessonBook> LoadedNoLessons = new(() => Lessons("{ \"schemaVersion\": 1, \"lessons\": [] }"));
+    private static readonly Lazy<LessonBook> LoadedShippedLessons = new(() => LessonBook.Load(Bundle, Phrases, Speech));
 
     /// <summary>The bundle, loaded and validated by the core's loader.</summary>
     public static ContentBundle Bundle => LoadedBundle.Value;
@@ -27,9 +29,11 @@ internal static class TestGame
     /// <summary>The noun catalogue of the bundle.</summary>
     public static NounCatalog Nouns => LoadedNouns.Value;
 
-    /// <summary>The bundle's route scene built from a seed.</summary>
-    public static Scene Route(ulong seed = Seed) =>
-        SceneBuilder.Build(SceneLayout.Load(Path.Combine(GameBundle.ResolveDirectory(), "game", "scene.json")), seed);
+    /// <summary>The phrase sheet of the bundle.</summary>
+    public static PhraseSheet Phrases => LoadedPhrases.Value;
+
+    /// <summary>The bundle's route scene for a seed: a copy of the one built in this test process (<see cref="RouteScene.Build"/>), for the test to edit.</summary>
+    public static Scene Route(ulong seed = Seed) => RouteScene.Build(seed);
 
     /// <summary>
     /// A new session on the route for a seed, with the fixed start time. The guide has no lesson unless the test asks for one (S17: the shipped lesson starts by itself
@@ -40,10 +44,10 @@ internal static class TestGame
 
     /// <summary>A new session on the route with the lessons of the bundle (the guide's <c>first-words</c> lesson).</summary>
     public static VoxelSession NewSessionWithShippedLessons(ulong seed = Seed, CreditRules? credit = null) =>
-        new(Bundle, seed, GuideSession.DefaultStartedAt, Nouns, Route(seed), credit ?? CreditRules.FullTyped, LessonBook.Load(Bundle, PhraseSheet.Load(Bundle), Speech));
+        new(Bundle, seed, GuideSession.DefaultStartedAt, Nouns, Route(seed), credit ?? CreditRules.FullTyped, LoadedShippedLessons.Value);
 
     /// <summary>A book without lessons.</summary>
-    public static LessonBook NoLessons => Lessons("{ \"schemaVersion\": 1, \"lessons\": [] }");
+    public static LessonBook NoLessons => LoadedNoLessons.Value;
 
     /// <summary>The two-step sample lesson of S16 (hola, gracias), which S17 retired from the bundle and the runner's tests keep: the same text, the same ids.</summary>
     public const string SampleLesson = """
@@ -54,10 +58,10 @@ internal static class TestGame
         """;
 
     /// <summary>The bundle's speakable lines (the lessons' lines are checked against them).</summary>
-    public static IReadOnlyList<SpeechLine> Speech => SpeechLines.Enumerate(Bundle, Nouns, PhraseSheet.Load(Bundle));
+    public static IReadOnlyList<SpeechLine> Speech => LoadedSpeech.Value;
 
     /// <summary>Lessons from a file's text, checked against the bundle as the game checks its own.</summary>
-    public static LessonBook Lessons(string json) => LessonBook.Parse(json, PhraseSheet.Load(Bundle), Speech, Bundle.Prompts);
+    public static LessonBook Lessons(string json) => LessonBook.Parse(json, Phrases, Speech, Bundle.Prompts);
 
     /// <summary>The live facts of a session's world (the blocks as they are now).</summary>
     public static WorldFacts FactsOf(VoxelSession session) => WorldFacts.Live(session.Scene.Grid, Nouns);

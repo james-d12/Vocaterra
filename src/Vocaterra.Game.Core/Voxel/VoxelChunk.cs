@@ -95,6 +95,21 @@ public sealed class VoxelChunk
     /// <summary>The chunk digest as 64 lowercase hex characters.</summary>
     public string ComputeDigestHex() => Convert.ToHexString(ComputeDigest()).ToLowerInvariant();
 
+    /// <summary>
+    /// A copy with its own blocks and the same version and counts. The cached digest is shared: an edit replaces it and never writes into it.
+    /// </summary>
+    internal VoxelChunk Clone()
+    {
+        var copy = new VoxelChunk(Coord);
+        _blocks.CopyTo(copy._blocks, 0);
+        copy._digest = _digest;
+        copy._nonAir = _nonAir;
+        copy._kinds = _kinds;
+        copy._kindsValid = _kindsValid;
+        copy.Version = Version;
+        return copy;
+    }
+
     internal bool Set(int localX, int localY, int localZ, BlockId block)
     {
         var index = Index(localX, localY, localZ);
