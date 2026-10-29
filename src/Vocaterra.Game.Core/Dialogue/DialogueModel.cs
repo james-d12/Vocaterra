@@ -105,6 +105,9 @@ public sealed class DialogueModel
     /// <summary>The persistent <c>Heard: «…» · Expected: «…»</c> line of the last spoken turn, or <see langword="null"/> (no spoken turn yet at this NPC, or the last turn was typed).</summary>
     public HeardLine? Heard { get; private set; }
 
+    /// <summary>The heard line as the panel shows it, in the support language (<see cref="HeardLine.Text"/>), or <see langword="null"/>.</summary>
+    public string? HeardText => Heard?.Text(_ui);
+
     /// <summary>The choices the repair ladder offered with the last turn, as buttons; empty when none.</summary>
     public IReadOnlyList<ChoiceOption> Choices { get; private set; } = [];
 

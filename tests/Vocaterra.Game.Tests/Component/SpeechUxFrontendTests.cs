@@ -187,6 +187,7 @@ public sealed class SpeechUxFrontendTests
         _ = dialogue.Complete(Applied(Spoken("quiero agua")));
 
         Assert.Equal("Heard: «quiero agua» · Expected: «Quiero agua, por favor.»", dialogue.Heard!.Text(RouteScene.Shipped.Locale));
+        Assert.Equal("Heard: «quiero agua» · Expected: «Quiero agua, por favor.»", dialogue.HeardText); // the console's "panel:" line (C04: it once printed the method)
         Assert.Equal("pedir-agua", dialogue.Heard.ExpectedId);
 
         // It stays through the next turn until a spoken one replaces it; a typed turn clears it (nothing was heard).

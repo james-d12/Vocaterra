@@ -1498,6 +1498,8 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - The speech and microphone problem messages are made where no locale is at hand (the worker, the engine, the capture), and the English
       verb labels are grammar rules. Both are open points on the scan's allowlist.
     - The beacon now says "1 block", not "1 blocks".
+    - The scripted runs caught a console line that interpolated a property turned method (`{heard.Text}` printed `System.Func…`); it compiled
+      because a method group has a natural type. Fixed with `DialogueModel.HeardText`; the runs are then all the same as after C07.
 
 ## 6. Definition of done (every milestone)
 

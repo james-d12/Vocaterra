@@ -665,7 +665,8 @@ no-literal scan is easiest once every other milestone has moved its strings.
   - `BookVerbLabels`' English verb grammar (do/does, am/is/are, will, used to): rules over the listed forms, which a second locale needs
     its own version of;
   - the saved report's and crash file's headings, and the strict-save refusal on the console: these are developer text.
-- **Runs.** The text on screen is unchanged; the runs' stdout and session logs (developer text) are the same.
+- **Runs.** All 16 are the same as after C07, screenshots included. The first capture found one slip: the console's `panel:` line printed
+  the heard line's new `Text` method instead of calling it (a method group has a natural type, so it compiled); `DialogueModel.HeardText` fixed it.
 
 **C09: the assessment (2026-10-29; no code, it awaits the owner).**
 - **Sounds (32 cues in `SoundCatalog`).** This is the easiest and safest move: a `game/sounds.json` mapping each cue to a file, a volume and
