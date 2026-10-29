@@ -384,6 +384,12 @@ the owner-approved plan of 2026-10-23 (the flatten, then one bundle).
   a `verb` slot no game grammar names, so the generic recast answers; `quiero una azul espada` on `villager-open` is `word_order` but not
   communicated (`request_item` has no adjective slot).
 
+### 4.7 Content as data and the L1 locale layer (the C series; owner, 2026-10-29, D-game-21)
+
+The plan, the milestones C01 to C10 and their states are in `docs/game/CONTENT_PLAN.md` (section 4). The series runs on `feature/content`
+(made from `main` at `604903f`, after R16 phase 2 landed), each `C<nn>` branch gated into it and pushed there, never `main`. On the owner's
+instruction one session (Opus 5.5) does every milestone itself, with no subagents. The findings of each milestone go into section 5.
+
 ## 5. Findings log
 
 Facts that shape the plan. Each one names its source; the core's own findings stay in the core's plan.
@@ -1438,6 +1444,17 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     audio within a process but different audio across processes (SHA-256 prefixes `736AD51E…` and `F93AD1C0…`, same code and model). So a
     `DirectorySynthesisCache` entry cannot be checked against a fresh render. The cached clip for this line matches no fresh rendering.
     Owner, 2026-10-27: keep it logged for later; no milestone now.
+
+- **The C series begins (2026-10-29, Opus 5.5; on `feature/content`, `docs/game/CONTENT_PLAN.md`, D-game-21).**
+  - The plan was checked against `main` at `604903f`, and its paths were moved onto R16's layout (section 2 of the plan).
+  - Baseline with the models at `604903f`: 5447 passed, 3 skipped, 0 failed. The per-project counts are Host 36, Game 529, Game.Core 1208,
+    Nlp 2452 (3 skipped), Nlp.Es 1129, Fuzzing 76 and Golden 17. The build has 0 warnings.
+  - Found while planning, and left for the series to fix:
+    - the guide is "Luna" in code and content, but "Rosa" in two comments (`PhraseReview.cs:31`, `LessonRunner.cs:444`);
+    - the scene is read twice: once hashed in the bundle, then again from disk by `SceneLayout.Load`, and `--scene` skips the check;
+    - a non-guide NPC's beacon label is its raw agent id ("shopkeeper"), not its label (`VoxelSession.cs:189`).
+  - The main checkout held 4.5 GB of stale `game/` and `nlp/` build output from before R01, and the merged worktree `game_refactor-work`
+    held 3.5 GB of `bin/` and `obj/`. Both were deleted to make room for the series' worktree; the free disk had fallen to 9.8 GB.
 
 ## 6. Definition of done (every milestone)
 
