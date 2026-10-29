@@ -42,6 +42,9 @@ internal static class TestGame
     public static VoxelSession NewSession(ulong seed = Seed, CreditRules? credit = null, LessonBook? lessons = null) =>
         new(Data, seed, GuideSession.DefaultStartedAt, Route(seed), credit ?? CreditRules.FullTyped, lessons ?? NoLessons);
 
+    /// <summary>The camp checklist of the shipped session, with nothing done (<c>game/objectives/camp.json</c>, C07).</summary>
+    public static Objective Camp() => new(Data.Objectives.Find("camp")!);
+
     /// <summary>A new session on the route with the lessons of the bundle (the guide's <c>first-words</c> lesson).</summary>
     public static VoxelSession NewSessionWithShippedLessons(ulong seed = Seed, CreditRules? credit = null) =>
         new(Data, seed, GuideSession.DefaultStartedAt, Route(seed), credit ?? CreditRules.FullTyped);

@@ -34,6 +34,8 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/tips.json` | `tips.schema.json` | `TipBook` |
   | `game/controls.json` | `controls.schema.json` | `TipBook` |
   | `game/words.json` | `words.schema.json` | `GameWords` (the target-language words the game itself uses: the guide's directions, the buttons, the pronouns, the key words, the greeting...) |
+  | `game/session.json` | `session.schema.json` (the objectives in the HUD's order, the closing line's pool, the starting items, the beacon's start) | `ObjectiveBook` |
+  | `game/objectives/<id>.json` | `objective.schema.json` (one objective each, C07: its steps and their triggers, its hooks) | `ObjectiveBook` |
   | `game/npcs.json` | `npcs.schema.json` (the NPCs' ids, in order; the saves keep this order) | `NpcRoster` |
   | `game/npcs/<id>.json` | `npc.schema.json` (one NPC each, C08: its label, name, figure and the phrases its prompts practise) | `NpcRoster` |
   | `game/host-events.json` | `host-events.schema.json` (what each NPC host event does: give an item, point the beacon at a noun) | `HostEventTable` |
@@ -97,7 +99,7 @@ Everything the game says, shows and builds its world from, outside the code. The
 
 ## Adding things
 
-- **A trigger.** A tip, a lesson's `do` step and (from C07) an objective's step wait for a trigger: `{ "event": "<world event>", "npc": "<agent>", "detail":
+- **A trigger.** A tip, a lesson's `do` step and an objective's step wait for a trigger: `{ "event": "<world event>", "npc": "<agent>", "detail":
   "<exact detail>" }` (only `event` is required; a tip may also wait for `start` or `aimed_npc`). The events are `WorldEvents` (`Event/WorldEvent.cs`), and the
   session log shows each one with its NPC and detail.
 - **A lesson.** Add a file `game-v1/game/lessons/<id>.json` (`lesson.schema.json` lists each step type's fields), its id to `game-v1/game/lessons.json`
@@ -111,6 +113,14 @@ Everything the game says, shows and builds its world from, outside the code. The
   reading of it with a gender.
 - **A place the beacon names.** Give the site, the point or the named prop a `label` in `game/scene.json` (`"label": "río"`); a place with no label shows
   its own name.
+- **An objective.** Add `game-v1/game/objectives/<id>.json` and its id to `game-v1/game/session.json` where the HUD should show it (the order gates
+  nothing: every objective counts from the start). A checklist has a `title` (target language) and steps that name a catalogue `noun`; its gloss is
+  `objective.<id>.title` in `locale/en/ui.json`, and each step's label is the noun's lemma for a mass noun or a target of 1, otherwise its plural (a
+  `label` overrides it). Another objective is shown by one line, `objective.<id>.hud`. Each step counts the world events its `trigger` matches, up to
+  its `target`. What the data cannot say is a named hook the code implements: `onComplete` (`guide-met`, `spare-torch`, `point-own-camp`) and a step's
+  `restore` (`lesson-begun`, `scan-fire-ring`), which works the step out again from a loaded world, so the save does not keep it. `alsoDoneBy` lists
+  objectives whose progress completes this one. The validator refuses an unknown hook. A save keys a step `<objective>.<step>`, so renaming one
+  drops its count from older saves.
 - **An NPC.** The core's `agents/<id>.json` and its prompts (each prompt's `agentId`) come first. Then add `game-v1/game/npcs/<id>.json` (its label over the
   head, its name if it has one, its figure key, and `focus`: the learner phrases each of its prompts practises), its id to `game-v1/game/npcs.json`
   (at the end: the saves keep the NPCs in this order), its place to `game/scene.json` `npcs`, its role to `locale/en/ui.json` (`npc.<id>.role`) and a

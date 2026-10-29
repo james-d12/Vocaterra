@@ -119,14 +119,15 @@ Language/         Book/ (the book's model, pages, tables, recordings, speakers, 
                   MicCheckScreen), Words/ (the noun catalogue, word progress, JournalRows, VerbReading, GreyscaleWorld)
 Mathematics/      Angles, WorldRng, PresentationRng
 Navigation/       Beacon, the walk's path search, BeaconDirector, PointLabels
-Npc/              NpcService, WorldFacts, the aim at an NPC, the guide's turns and events
+Npc/              NpcService, WorldFacts, the aim at an NPC, the guide's turns and events, the NPCs' data (NpcRoster) and HostEventTable
 Physics/          the player's body and its collision with the grid
 Reporting/        the F8 report (ReportPanel, ReportEntry, ReportWrap, ReportStateBuilder, BuildCommit), FrameStats, BusyFrameStats, the crash
                   report and its source (ICrashSource, CrashGameState, CrashSource)
 Save/             the save document, its migrations, SaveService and AutosaveController (its clock injected)
 Screens/          IScreen, ScreenStack (the top open screen takes the keys), ControlsHelp
 Scripted/         the scripts' steps (ScriptStep, VoxelStep and their kinds), VoxelScript, ScenarioScript, CheckScript, ScreenshotGate, ShotRequest
-Session/          VoxelSession, GuideSession, TurnWorker, the objective, PlaytestEnd, GuideApproach, SessionEnding, ObjectiveAnnouncer,
+Session/          VoxelSession, GuideSession, TurnWorker, the objectives (ObjectiveBook reads game/session.json and game/objectives/), PlaytestEnd,
+                  GuideApproach, SessionEnding, ObjectiveAnnouncer,
                   WordCardPresenter, PlaytestFlow
 Simulation/       VoxelSimulation (the fixed 60 Hz tick: gathering, placing, crafting) and its commands, TickAccumulator, TurnWatchdog, the
                   observer pattern (ITickObserver, DelegateTickObserver), LiveVoxelInput, LookControl, WorldStepper

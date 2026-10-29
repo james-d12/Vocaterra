@@ -576,7 +576,7 @@ section 4's status column.
 | C04 | The English literals of Game and Game.Core into the locale (section 2.2); `{key:…}` from R16's `KeyBindings`, `{npc:…}`, plurals; the no-literal scan; the glyph test | C03 | planned |
 | C05 | Target-language words out of code (`game/words.json`, place labels into the scene; section 2.3); the grammar extractor reads them 
 | C06 | One trigger model shared by tips and lesson `do` steps (exact `detail`, ready for objectives); the `torch_at_ring` world event; lessons split one file each | C02 | done, gated with C05 and C08 (2026-10-29, `19a328e`) |
-| C07 | Objectives and the session from data (`game/objectives/`, `game/session.json`, named hooks); `Objective.Camp()` and the `SessionStage` logic retired; save v5 with the v4 keys mapped; a v4 fixture and the out-of-order test | C05, C06 | planned |
+| C07 | Objectives and the session from data (`game/objectives/`, `game/session.json`, named hooks); `Objective.Camp()` and the `SessionStage` logic retired; save v5 with the v4 keys mapped; a v4 fixture and the out-of-order test | C05, C06 | done (2026-10-29) |
 | C08 | NPC data (`npcs/*.json`: label, name, figure key, phrase tables), `host-events.json`, `NpcService.AgentIds` from data; `NpcNames`, the `NpcHostEvents` table and `PhraseReview`'s table retired; the beacon label fixed | C05 | done, gated with C05 and C06 (2026-10-29, `19a328e`) |
 | C09 | Items, blocks, sounds and signs as data (assess first; parts may stay code). Enum names stay stable because saves store them; signs need a sign mechanism | C08 | proposed |
 | C10 | Authoring CLI: scaffold, references, check (the first custom tool) | C07, C08 | proposed |
@@ -621,6 +621,25 @@ no-literal scan is easiest once every other milestone has moved its strings.
   each phrase row's `reviewLine`. The lesson loader checks its NPCs against the roster; the validator checks the roster against the agents and
   the prompts, and the tips' and host events' NPCs against the roster. The beacon on an NPC shows the NPC's name or label (`Tendero`), where it
   used to show the raw id. The NPCs' labels and names joined the grammar strings (4 new, all clean).
+
+**What C07 did, and how it differs from section 3 (2026-10-29).**
+- `game/session.json` orders `meet-guide`, `camp` and `light-fire`, and names the closing pool, the starting book and the beacon's start
+  (`camp.guide`). Each objective is `game/objectives/<id>.json`, read by `ObjectiveBook`. The camp's labels follow the rule in 3.5 and match
+  the old words.
+- **Triggers.** `light-fire` waits for `fire_lit`, not `torch_at_ring` with `firering.player`: the code still lights the fire and logs
+  `fire_lit`, and the session-complete line must follow it. `meet-guide` waits for `guide_met`; `alsoDoneBy: ["camp"]` completes it once the
+  checklist moves, and its `guide-met` hook logs `guide_met` then, as the code did.
+- **Hooks.** Completion hooks: `guide-met`, `spare-torch`, `point-own-camp`. Restore hooks: `lesson-begun` (the guide is met once a lesson was
+  begun) and `scan-fire-ring`. On load the completion hooks put their state back without acting.
+- **Logging.** Only a checklist logs `objective_step` and `objective_complete`. The other objectives complete silently: their events are
+  already in the log.
+- **Stage.** `SessionStage` and `Stage` are gone; `CurrentObjective` (the first not done, `null` when all are) picks the HUD line. The tests
+  of `OpeningAndEndingTests` keep every assertion, written against the objective's id.
+- **The locale.** `ui.objectiveFindGuide` and `ui.objectiveLightFire` became `objective.meet-guide.hud` and `objective.light-fire.hud`.
+- **Save v5.** Steps are keyed `<objective>.<step>`, and only steps without a restore hook are kept. A save older than v5 has its dotless keys
+  mapped to `camp.<step>` before the migration. `Fixtures/save-v4.json`, written by the C08 code (fire lit first, then wood 5 and fruit 2),
+  loads, keeps its counts across bundles, and still ends when the checklist is done. The test API changed too: `Objective.RecordPickup` and its
+  kind became `Objective.Record(event, detail, amount)`, and `HostEvent` takes a world event's name.
 
 **Every content-moving milestone:**
 - runs `content.sh refresh` (hash, provenance, validate, lint, cefr-check, the game validator and the grammar check), then the whole

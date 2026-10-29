@@ -155,9 +155,9 @@ public sealed class SaveGameTests
         var bundle = Assert.Throws<SaveException>(() => SaveGame.Load(SaveGame.Serialize(document with { BundleHash = new string('0', 64) }), TestGame.Data, Pristine));
         Assert.Contains("content bundle", bundle.Message, StringComparison.Ordinal);
 
-        var version = Assert.Throws<SaveException>(() => SaveGame.Parse(SaveGame.Serialize(document with { Version = 5 })));
-        Assert.Contains("version 5", version.Message, StringComparison.Ordinal);
-        Assert.Contains("versions 1 to 4", version.Message, StringComparison.Ordinal);
+        var version = Assert.Throws<SaveException>(() => SaveGame.Parse(SaveGame.Serialize(document with { Version = 6 })));
+        Assert.Contains("version 6", version.Message, StringComparison.Ordinal);
+        Assert.Contains("versions 1 to 5", version.Message, StringComparison.Ordinal);
 
         var format = Assert.Throws<SaveException>(() => SaveGame.Parse("{\"format\":\"something-else\",\"version\":1}"));
         Assert.Contains("not a vocaterra-save", format.Message, StringComparison.Ordinal);
@@ -274,7 +274,7 @@ public sealed class SaveGameTests
     [Fact]
     public void ObjectiveAndWordRestoresRefuseWhatIsNotInTheGame()
     {
-        var objective = Objective.Camp();
+        var objective = TestGame.Camp();
 
         Assert.Throws<ArgumentException>(() => objective.Restore([("nope", 1)]));
         Assert.Throws<ArgumentException>(() => objective.Restore([("wood", 1), ("wood", 2)]));

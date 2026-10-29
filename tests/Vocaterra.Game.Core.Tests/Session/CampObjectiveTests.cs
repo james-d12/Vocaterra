@@ -103,7 +103,7 @@ public sealed class CampObjectiveTests
     {
         var (session, _, _) = PlayCamp();
 
-        var completed = session.HostEvent(Objective.WaterEvent);
+        var completed = session.HostEvent(WorldEvents.BottleFilled);
 
         Assert.Single(completed);
         Assert.Equal("agua", completed[0].Label);

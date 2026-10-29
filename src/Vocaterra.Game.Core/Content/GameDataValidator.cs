@@ -43,6 +43,7 @@ public static class GameDataValidator
         CheckScene(data, problems);
         CheckWords(data, problems);
         CheckNpcs(data, problems);
+        CheckObjectives(data, problems);
         return problems;
     }
 
@@ -54,9 +55,9 @@ public static class GameDataValidator
         required.AddRange(LocaleText.UiKeys.Select(static key => "ui." + key));
         required.AddRange(LocaleText.OutcomeKeys.Select(static key => "feedback.outcome." + key));
         required.Add("feedback.unknownError");
-        required.Add("objective." + LocaleText.CampObjective + ".title");
+        required.AddRange(data.Objectives.Objectives.Select(static o => "objective." + o.Id + (o.IsChecklist ? ".title" : ".hud")));
         required.AddRange(data.Npcs.Ids.Select(static npc => "npc." + npc + ".role"));
-        required.AddRange(Objective.Camp().Steps.Select(static step => "noun." + step.Noun));
+        required.AddRange(data.Objectives.Objectives.Where(static o => o.IsChecklist).SelectMany(static o => o.Steps).Select(static step => "noun." + step.Noun));
         required.AddRange(data.Phrases.Rows.Select(static row => PhraseSheet.LocaleId(row.Id, "explain")));
         required.AddRange(data.Speech.Where(static line => line.Kind is SpeechKind.Dialogue or SpeechKind.Prompt).Select(static line => "line." + line.LineId));
         foreach (var id in required.Where(id => !locale.Has(id)))
@@ -166,6 +167,49 @@ public static class GameDataValidator
         if (data.Phrases.Find(data.Words.Greeting) is null)
         {
             problems.Add($"{File}: the greeting '{data.Words.Greeting}' is not a phrase of the sheet (its id is the greeting).");
+        }
+    }
+
+    private static void CheckObjectives(GameData data, List<string> problems)
+    {
+        // C07: the hooks an objective names are the code's, the objectives it is also done by exist, its triggers' NPCs are the roster's, and the session's closing
+        // pool and beacon start are the bundle's and the scene's.
+        var book = data.Objectives;
+        foreach (var objective in book.Objectives)
+        {
+            var file = ObjectiveBook.Folder + objective.Id + ".json";
+            foreach (var hook in objective.OnComplete.Where(static hook => !ObjectiveBook.CompleteHooks.Contains(hook, StringComparer.Ordinal)))
+            {
+                problems.Add($"{file}: onComplete names the hook '{hook}', which the game does not have ({string.Join(", ", ObjectiveBook.CompleteHooks)}).");
+            }
+
+            foreach (var step in objective.Steps)
+            {
+                if (step.Restore is { } hook && !ObjectiveBook.RestoreHooks.Contains(hook, StringComparer.Ordinal))
+                {
+                    problems.Add($"{file}: the step '{step.Id}' names the restore hook '{hook}', which the game does not have ({string.Join(", ", ObjectiveBook.RestoreHooks)}).");
+                }
+
+                if (step.Trigger.Npc is { } npc && data.Npcs.Find(npc) is null)
+                {
+                    problems.Add($"{file}: the step '{step.Id}' waits at the NPC '{npc}', which is not one of the NPCs.");
+                }
+            }
+
+            foreach (var other in objective.AlsoDoneBy.Where(other => string.Equals(other, objective.Id, StringComparison.Ordinal) || book.Find(other) is null))
+            {
+                problems.Add($"{file}: alsoDoneBy names '{other}', which is not another objective of the session.");
+            }
+        }
+
+        if (!data.Bundle.Dialogue.TryGetPoolById(book.ClosingPool, out var pool) || pool.Variants.Count == 0)
+        {
+            problems.Add($"{ObjectiveBook.SessionPath}: the closing pool '{book.ClosingPool}' is not a dialogue pool with a line.");
+        }
+
+        if (!data.Scene.Sites.Any(site => site.Name == book.BeaconStart) && !data.Scene.Points.Any(point => point.Name == book.BeaconStart))
+        {
+            problems.Add($"{ObjectiveBook.SessionPath}: the beacon starts on '{book.BeaconStart}', which is not a site or a point of the scene.");
         }
     }
 

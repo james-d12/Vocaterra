@@ -44,9 +44,13 @@
 {"path":"game/npcs/guide.json","sha256":"302ce3b2d9c24b8f49e60ac6a3b5f16c596176d78f0dd56ed7dc40e7598a416d","bytes":164},
 {"path":"game/npcs/shopkeeper.json","sha256":"d0a471b4808c4c6e8a62d385b45b9dc8500140bc1b6fa94d6f08df4210377064","bytes":275},
 {"path":"game/npcs/villager.json","sha256":"ed47c31f85a535df6dcb09b9c8df45dca72ca4cef0853bed11c2afb74b75e31d","bytes":212},
+{"path":"game/objectives/camp.json","sha256":"9d7c288525549385473a8e2781c6cd4936aad5a8501bec3eaf95b70cffb6b18a","bytes":873},
+{"path":"game/objectives/light-fire.json","sha256":"4527e79482a59f2c04a0b7a642b882ae03a4272278b7c2befd55a38c7f5d80bd","bytes":389},
+{"path":"game/objectives/meet-guide.json","sha256":"9f719299b1906c04f69ff62d6d673a308229de6541aa14c744681c466224b445","bytes":521},
 {"path":"game/phrases.json","sha256":"e93bf263bcf7468577a5a7a1661db066526748ae0e5c8bece08dfa5166bbc6e7","bytes":10607},
 {"path":"game/recipes.json","sha256":"2e4d0ad97236189771e0adc4994dafa28be162ad3c5cefc9e1cd847263d708bb","bytes":240},
 {"path":"game/scene.json","sha256":"a7eea30b789b8b711e20e0c82b7e779af25dec303f8938eab83cdeb488013e66","bytes":12170},
+{"path":"game/session.json","sha256":"e8f2c4ceb8554055e25860fe9543a028d06fa7994cf28ec36d640b8121178e39","bytes":586},
 {"path":"game/tips.json","sha256":"92a7b632ed478e066020adef1c993b33fbe9f65ba0584962a560809b98f55bb9","bytes":1222},
 {"path":"game/words.json","sha256":"97537cb182da377db17c4f0ab70968de4a5868a7af053fe4c5ac3cbf932220bc","bytes":1770},
 {"path":"intents/intents.json","sha256":"efa4a3c4e6b35ce647ca90aa744a5c781e0786609523e35d5f6d02a177657d3b","bytes":24054},
@@ -57,7 +61,7 @@
 {"path":"lexicon/wiktionary-es.source.json","sha256":"9cecd4bd49f21bfb153b69aeaaa1118740e8649ba5dce61a9dc925e557134b70","bytes":3640},
 {"path":"lexicon/world.json","sha256":"5f4621688b17027f1925fb9c6504753a7abc8d2a4d9f6ef114150085b22e11d5","bytes":1579},
 {"path":"prompts/prompts.json","sha256":"7c3af5826c49a90f35cb7ce52e88bd9a041de80e63a8a0d1951710f51f387c07","bytes":8486},
-{"path":"provenance.json","sha256":"0d2d262a3940d2d85f8cae3defb2f49179c984fd5ef317fde0d925c3accebe33","bytes":108897},
+{"path":"provenance.json","sha256":"90af65d5457e6cff1fb488fd38daffe4f99459f3cc081ad1ead9a3b830992baf","bytes":109369},
 {"path":"speech/answer_accepted.1.slow.wav","sha256":"51451a86215f94bde2697ddfa526b537a85838d7ebf0a45d585b04cb6a5cf546","bytes":58844},
 {"path":"speech/answer_accepted.1.wav","sha256":"db65f6b943a2968a335da25fcef1199971ed172c65a393d461a8a47b525fa6fe","bytes":46844},
 {"path":"speech/answer_accepted.2.slow.wav","sha256":"f1e6aad21a2bfcd911e843c8e6b634e5853df1544b1b1ddefb52cfb23b5554d7","bytes":43244},
@@ -488,4 +492,4 @@
 {"path":"speech/villager_thank.1.wav","sha256":"264a8166023475d7d7842d08050d562924cb4212881ad755cc67afd728d5f7bb","bytes":45644},
 {"path":"speech/villager_thank.2.slow.wav","sha256":"791dd1d9ba9a64ba04d5b734f0e8c91b4ab25fa869ec85a6e2a6937a5b794ea0","bytes":70844},
 {"path":"speech/villager_thank.2.wav","sha256":"0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3","bytes":54044}
-],"bundleHash":"85b3b67931e25ede4463fecddecbfab3d58b440b75a940c49f80cf5951d3b1a1"}
+],"bundleHash":"73fd43db9ee77d5f0b3772a994c8cee2cbb0b02540582a88ef05c4449eb298a4"}

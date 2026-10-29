@@ -39,8 +39,14 @@ public static class SaveGame
     /// <summary>The format name every save carries.</summary>
     public const string FormatName = "vocaterra-save";
 
-    /// <summary>The format version this code writes (version 2 adds the learner's record, S19; version 3 keeps the check answers out of its word rows, S19b).</summary>
-    public const int CurrentVersion = 4;
+    /// <summary>
+    /// The format version this code writes (version 2 adds the learner's record, S19; version 3 keeps the check answers out of its word rows, S19b; version 5 keys
+    /// the objective's steps <c>&lt;objective&gt;.&lt;step&gt;</c>, C07).
+    /// </summary>
+    public const int CurrentVersion = 5;
+
+    /// <summary>The objective the steps of a save before version 5 belong to: those saves held the camp checklist alone, keyed by the step (<c>wood</c>).</summary>
+    public const string UnqualifiedObjective = "camp";
 
     /// <summary>The oldest format version this code still reads (version 1, before S19: no learner's record, so an empty history).</summary>
     public const int OldestReadableVersion = 1;
@@ -149,7 +155,7 @@ public static class SaveGame
             state.NoBottleHint,
             state.Player,
             state.Slots.Select(static slot => new SlotSave(slot.Item, slot.Count)).ToArray(),
-            session.Objective.Steps.Select(static step => new ObjectiveSave(step.Key, step.Count)).ToArray(),
+            session.ObjectiveCounts().Select(static step => new ObjectiveSave(step.Key, step.Count)).ToArray(),
             session.Words.Records.Values.OrderBy(static record => record.Lemma, StringComparer.Ordinal).Select(WordSaveOf).ToArray(),
             session.PhraseProgress.Records.Select(PhraseSaveOf).ToArray(),
             session.CardedLemmas(),
@@ -229,6 +235,16 @@ public static class SaveGame
         ArgumentNullException.ThrowIfNull(scene);
         var bundle = data.Bundle;
         Check(document, bundle, null, migrate);
+        if (document.Version < 5)
+        {
+            // Before version 5 the save held the camp checklist alone, keyed by the step; the keys are the objective's now (C07). Mapped here, before the migration,
+            // which would drop a key it does not know. An old key has no dot, so a key that has one is left as it is.
+            document = document with
+            {
+                Objective = document.Objective.Select(static step => step.Key.Contains('.', StringComparison.Ordinal) ? step : step with { Key = UnqualifiedObjective + "." + step.Key }).ToArray(),
+            };
+        }
+
         var migrating = migrate && !string.Equals(document.BundleHash, bundle.ContentHash, StringComparison.Ordinal);
         var collector = migrating ? new SaveMigration.Collector() : null;
         if (document.Session < 1)
@@ -325,7 +341,7 @@ public static class SaveGame
         session.RestoreSkippedSeconds(document.SkippedSeconds);
         session.Words.Restore(document.Words.Select(RecordOf));
         RestorePhrases(session, document.Phrases, migrating);
-        session.Objective.Restore(document.Objective.Select(static step => (step.Key, step.Count)));
+        session.RestoreObjectiveCounts(document.Objective.Select(static step => (step.Key, step.Count)));
         session.RestoreCarded(document.Carded);
         session.KeyWordsTaught = document.KeyWordsTaught;
         session.RiverPointedState = document.RiverPointed;

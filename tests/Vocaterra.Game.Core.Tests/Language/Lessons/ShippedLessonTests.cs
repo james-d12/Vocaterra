@@ -32,7 +32,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
         Assert.False(session.Lessons.Engaged);
         Assert.Null(session.PhraseReview);
         Assert.Null(session.Review);
-        Assert.Equal(SessionStage.FindGuide, session.Stage);
+        Assert.Equal("meet-guide", session.CurrentObjective?.Id);
         Assert.Empty(session.Events.OfType<PhraseUse>());
         Assert.Equal("start", session.Data.Tips[0].When); // the opening is the support-language tips (the first is "look")
     }
@@ -49,7 +49,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
         Assert.True(session.Lessons.Engaged);
         Assert.Equal("u1-welcome", session.Lessons.Current!.Id);
         Assert.True(session.GuideMet);
-        Assert.Equal(SessionStage.Camp, session.Stage);
+        Assert.Equal("camp", session.CurrentObjective?.Id);
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.GuideMet);
         Assert.Contains("Luna", session.Lessons.View!.English, StringComparison.Ordinal);
     }

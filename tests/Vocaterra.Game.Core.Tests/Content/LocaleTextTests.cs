@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
@@ -88,7 +89,7 @@ public sealed class LocaleTextTests
     public void TheObjectiveIsBilingualAtFirstAndEachEnglishWordGoesOnceItsNounIsKnown()
     {
         var english = English;
-        var objective = Objective.Camp();
+        var objective = TestGame.Camp();
 
         Assert.Equal(
             "Campamento (camp): madera (wood) 0/5 · frutas (fruit) 0/3 · antorcha (torch) 0/1 · agua (water) 0/1",
@@ -109,8 +110,8 @@ public sealed class LocaleTextTests
     public void TheObjectivePiecesCarryTheKindForTheColoursAndTheDoneFlag()
     {
         var english = English;
-        var objective = Objective.Camp();
-        _ = objective.RecordPickup(ItemId.Wood, 5);
+        var objective = TestGame.Camp();
+        _ = objective.Record(WorldEvents.ItemPickedUp, "madera", 5);
 
         var pieces = english.ObjectivePieces(objective, static _ => false);
 

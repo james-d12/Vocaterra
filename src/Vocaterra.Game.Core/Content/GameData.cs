@@ -6,6 +6,7 @@ using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
+using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Nlp.Content;
@@ -48,9 +49,11 @@ public sealed class GameData
         SceneLayout scene,
         GameWords words,
         NpcRoster npcs,
-        HostEventTable hostEvents)
+        HostEventTable hostEvents,
+        ObjectiveBook objectives)
     {
         Bundle = bundle;
+        Objectives = objectives;
         Words = words;
         Npcs = npcs;
         HostEvents = hostEvents;
@@ -124,6 +127,9 @@ public sealed class GameData
     /// <summary>What each NPC host event does in the world (<c>game/host-events.json</c>, C08).</summary>
     public HostEventTable HostEvents { get; }
 
+    /// <summary>The session's objectives, their order, the closing pool, the starting items and the beacon's start (<c>game/session.json</c>, <c>game/objectives/</c>, C07).</summary>
+    public ObjectiveBook Objectives { get; }
+
     /// <summary>Reads every game file of a bundle, with the support language, and checks them against each other.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
     /// <param name="locale">The support language (<see cref="LocaleBundle.Text"/>).</param>
@@ -174,7 +180,8 @@ public sealed class GameData
             SceneLayout.Parse(HostText(bundle, ScenePath)),
             GameWords.Load(bundle),
             npcs,
-            HostEventTable.Load(bundle));
+            HostEventTable.Load(bundle),
+            ObjectiveBook.Load(bundle, nouns));
     }
 
     /// <summary>
@@ -209,36 +216,40 @@ public sealed class GameData
     public GameData WithLessons(LessonBook lessons)
     {
         ArgumentNullException.ThrowIfNull(lessons);
-        return new GameData(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, lessons, Checks, Scene, Words, Npcs, HostEvents);
+        return new GameData(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives);
     }
 
     /// <summary>The same parts with another check battery (the validator's tests).</summary>
     /// <param name="checks">The items.</param>
-    internal GameData WithChecks(IReadOnlyList<CheckItem> checks) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, checks, Scene, Words, Npcs, HostEvents);
+    internal GameData WithChecks(IReadOnlyList<CheckItem> checks) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, checks, Scene, Words, Npcs, HostEvents, Objectives);
 
     /// <summary>The same parts with another support language (the validator's tests).</summary>
     /// <param name="locale">The locale.</param>
-    internal GameData WithLocale(LocaleText locale) => new(Bundle, locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents);
+    internal GameData WithLocale(LocaleText locale) => new(Bundle, locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives);
 
     /// <summary>The same parts with another scene layout (the validator's tests).</summary>
     /// <param name="scene">The layout.</param>
-    internal GameData WithScene(SceneLayout scene) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, scene, Words, Npcs, HostEvents);
+    internal GameData WithScene(SceneLayout scene) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, scene, Words, Npcs, HostEvents, Objectives);
 
     /// <summary>The same parts with other target-language words (the validator's tests).</summary>
     /// <param name="words">The words.</param>
-    internal GameData WithWords(GameWords words) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, words, Npcs, HostEvents);
+    internal GameData WithWords(GameWords words) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, words, Npcs, HostEvents, Objectives);
 
     /// <summary>The same parts with other NPCs (the validator's tests).</summary>
     /// <param name="npcs">The NPCs.</param>
-    internal GameData WithNpcs(NpcRoster npcs) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, npcs, HostEvents);
+    internal GameData WithNpcs(NpcRoster npcs) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, npcs, HostEvents, Objectives);
 
     /// <summary>The same parts with another host-event table (the validator's tests).</summary>
     /// <param name="hostEvents">The table.</param>
-    internal GameData WithHostEvents(HostEventTable hostEvents) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, hostEvents);
+    internal GameData WithHostEvents(HostEventTable hostEvents) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, hostEvents, Objectives);
+
+    /// <summary>The same parts with other objectives (the validator's tests).</summary>
+    /// <param name="objectives">The objectives.</param>
+    internal GameData WithObjectives(ObjectiveBook objectives) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, objectives);
 
     /// <summary>The same parts with other tips (the validator's tests).</summary>
     /// <param name="tips">The tips.</param>
-    internal GameData WithTips(IReadOnlyList<TipSpec> tips) => new(Bundle, Locale, Nouns, Recipes, Phrases, tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents);
+    internal GameData WithTips(IReadOnlyList<TipSpec> tips) => new(Bundle, Locale, Nouns, Recipes, Phrases, tips, Controls, Speech, Lessons, Checks, Scene, Words, Npcs, HostEvents, Objectives);
 
     /// <summary>The text of one of the bundle's verified host files.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>

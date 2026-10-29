@@ -46,7 +46,7 @@ public sealed class LocaleText
     [
         "english", "lesson", "stepOf", "continue", "skip", "help", "startLesson", "lessonDone", "retry", "helpDefault", "recapTitle", "controlsTitle", "controlsClose",
         "tipNext", "controlsHint", "stepExplain", "stepModel", "stepListen", "stepRepeat", "stepAnswer", "stepDo", "stepRecap", "outcomeDone", "outcomeSkipped", "outcomeMovedOn",
-        "objectiveFindGuide", "objectiveLightFire", "objectiveComplete", "spareTorch", "sessionCompleteTitle", "sessionCompleteLine", "sessionCompleteKeys",
+        "objectiveComplete", "spareTorch", "sessionCompleteTitle", "sessionCompleteLine", "sessionCompleteKeys",
         "btnRepeat", "btnSlower", "btnHelp", "btnDontKnow", "btnType",
         "summaryTitle", "summaryLessons", "summaryLessonDone", "summaryLessonAdvanced", "summaryWords", "summaryUnaided", "summaryForms", "summaryPractise",
         "summaryPractiseNoSe", "summaryPractiseSlip", "summaryPractiseSupport", "summaryPractiseNone", "summaryReplay", "summaryNone", "summaryMore",
@@ -55,9 +55,6 @@ public sealed class LocaleText
 
     /// <summary>The most error lines one turn's feedback carries.</summary>
     public const int MaxErrorLines = 2;
-
-    /// <summary>The objective whose title the checklist glosses (the camp of the prototype; CONTENT_PLAN C07 makes objectives data).</summary>
-    public const string CampObjective = "camp";
 
     private readonly Dictionary<string, string> _strings;
     private readonly Dictionary<string, VerbForms> _verbs;
@@ -209,17 +206,11 @@ public sealed class LocaleText
     public string ButtonSupport(string button) => Ui("btn" + char.ToUpperInvariant(button[0]) + button[1..]);
 
     /// <summary>
-    /// The line the objective area shows at a stage that has one instead of the checklist (S17): before the guide is met, once the checklist is complete, and once
-    /// the fire is lit; <see langword="null"/> while the checklist is the objective.
+    /// The line the objective area shows for an objective that is no checklist (S17, C07): <c>objective.&lt;id&gt;.hud</c> ("Go down the trail and find the guide").
+    /// Once every objective is done it shows <c>ui.objectiveComplete</c>.
     /// </summary>
-    /// <param name="stage">The session's stage.</param>
-    public string? StageLine(SessionStage stage) => stage switch
-    {
-        SessionStage.FindGuide => Ui("objectiveFindGuide"),
-        SessionStage.LightFire => Ui("objectiveLightFire"),
-        SessionStage.Complete => Ui("objectiveComplete"),
-        _ => null,
-    };
+    /// <param name="objectiveId">The objective's id (<c>meet-guide</c>).</param>
+    public string ObjectiveHudLine(string objectiveId) => Text("objective." + objectiveId + ".hud");
 
     /// <summary>The explanation of a phrase (<c>phrase.&lt;id&gt;.explain</c>), or <see langword="null"/> when no locale has one.</summary>
     /// <param name="phraseId">The phrase sheet's id.</param>
@@ -240,8 +231,8 @@ public sealed class LocaleText
     // ---- The objective line.
 
     /// <summary>
-    /// The camp checklist as coloured pieces: <c>Campamento (camp): madera (wood) 0/5 · frutas (fruit) 0/3 · ...</c>. A step's gloss is its noun's
-    /// (<c>noun.&lt;lemma&gt;</c>) and is left out once the noun is known (<paramref name="isKnown"/>, D-game-6); the title's once every step's is.
+    /// A checklist as coloured pieces: <c>Campamento (camp): madera (wood) 0/5 · frutas (fruit) 0/3 · ...</c>. A step's gloss is its noun's
+    /// (<c>noun.&lt;lemma&gt;</c>) and is left out once the noun is known (<paramref name="isKnown"/>, D-game-6); the title's (<c>objective.&lt;id&gt;.title</c>) once every step's is.
     /// </summary>
     /// <param name="objective">The checklist.</param>
     /// <param name="isKnown">Whether a noun (<c>madera</c>) counts as known (D-game-6).</param>
@@ -251,10 +242,10 @@ public sealed class LocaleText
         ArgumentNullException.ThrowIfNull(isKnown);
         var pieces = new List<ObjectivePiece>();
         var allKnown = objective.Steps.All(step => isKnown(step.Noun));
-        pieces.Add(new ObjectivePiece(Objective.Title, ObjectivePieceKind.Title));
+        pieces.Add(new ObjectivePiece(objective.Title, ObjectivePieceKind.Title));
         if (!allKnown)
         {
-            pieces.Add(new ObjectivePiece(" (" + Text("objective." + CampObjective + ".title") + ")", ObjectivePieceKind.Support));
+            pieces.Add(new ObjectivePiece(" (" + Text("objective." + objective.Id + ".title") + ")", ObjectivePieceKind.Support));
         }
 
         pieces.Add(new ObjectivePiece(": ", ObjectivePieceKind.Plain));

@@ -1,6 +1,6 @@
 {
   "$schema": "../../schema/locale.schema.json",
-  "about": "The interface words (ui.*), the NPCs' roles (npc.<id>.role) and the objectives' titles (objective.<id>.title).",
+  "about": "The interface words (ui.*), the NPCs' roles (npc.<id>.role), the checklists' titles (objective.<id>.title) and the other objectives' lines (objective.<id>.hud).",
   "strings": {
     "ui.english": "English",
     "ui.lesson": "Lesson",
@@ -27,8 +27,6 @@
     "ui.outcomeDone": "done",
     "ui.outcomeSkipped": "skipped",
     "ui.outcomeMovedOn": "moved on",
-    "ui.objectiveFindGuide": "Go down the trail and find the guide",
-    "ui.objectiveLightFire": "Go back up the trail and light your own fire",
     "ui.objectiveComplete": "Session complete: your fire is lit",
     "ui.spareTorch": "A spare torch is in your bag. Take it up the trail and light your own fire.",
     "ui.sessionCompleteTitle": "Session complete",
@@ -67,6 +65,8 @@
     "npc.guide.role": "The guide",
     "npc.shopkeeper.role": "The shopkeeper",
     "npc.villager.role": "The villager",
-    "objective.camp.title": "camp"
+    "objective.camp.title": "camp",
+    "objective.meet-guide.hud": "Go down the trail and find the guide",
+    "objective.light-fire.hud": "Go back up the trail and light your own fire"
   }
 }

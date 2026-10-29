@@ -42,10 +42,10 @@ public sealed class OpeningFrontendTests
 
     private static void CompleteTheChecklist(VoxelSession session)
     {
-        _ = session.Objective.RecordPickup(ItemId.Wood, 5);
-        _ = session.Objective.RecordPickup(ItemId.Berry, 3);
-        _ = session.Objective.RecordTorchPlaced(atFireRing: true);
-        _ = session.HostEvent(Objective.WaterEvent);
+        _ = session.Objective.Record(WorldEvents.ItemPickedUp, "madera", 5);
+        _ = session.Objective.Record(WorldEvents.ItemPickedUp, "fruta", 3);
+        _ = session.Objective.Record(WorldEvents.TorchAtRing, "firering");
+        _ = session.HostEvent(WorldEvents.BottleFilled);
     }
 
     private static void LightThePlayersFire(VoxelSession session)

@@ -597,7 +597,7 @@ public sealed class LessonRunnerTests
         Assert.False(loaded.Lessons.Engaged); // a load does not take the conversation over
         Assert.Equal(session.PhraseProgress.Records, loaded.PhraseProgress.Records);
         Assert.True(loaded.GuideMet); // worked out again from the progress that came back (S17)
-        Assert.Equal(SessionStage.Camp, loaded.Stage);
+        Assert.Equal("camp", loaded.CurrentObjective?.Id);
 
         Stage.TeleportToNpc(loaded, "guide");
         _ = loaded.OpenTalk("guide");

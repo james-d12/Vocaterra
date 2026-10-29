@@ -529,7 +529,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-
   The runner reads the finite verb's person and number from the turn's word readings; a mismatch the core did not flag (no subject pronoun, so no `conj.person`: `quieres madera` at `¿Qué quieres?`,
   `quiero fruta` at `¿Qué quiere Luna?`) is a miss, not a success: the step stays, the retry names the ending, and after the step's attempts it moves on (fail-forward). The log's retry line says
   `wrong person: said 2sg, expected 1sg`. A wrong person next to a pronoun (`yo quieres`) stays a slip the core grades. Every verb step of both lessons declares its person.
-- **The save** is version 4 (1 to 3 still load): each lesson keeps whether it was ever completed (`everCompleted`; a completed lesson of an older save counts) and the save keeps a replay that was asked for.
+- **The save** is version 4 (1 to 3 still load): each lesson keeps whether it was ever completed (`everCompleted`; a completed lesson of an older save counts) and the save keeps a replay that was asked for. Since C07 it is version 5 (1 to 4 still load): the objective's steps are keyed `<objective>.<step>` (`camp.wood`), and an older save's keys are mapped on load.
 
 ## Yesterday and tomorrow, the tense check (S27, D-game-19)
 

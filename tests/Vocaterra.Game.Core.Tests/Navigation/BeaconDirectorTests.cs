@@ -21,8 +21,8 @@ public sealed class BeaconDirectorTests
         var lines = new List<string>();
         var fresh = new BeaconDirector(session, lines.Add, lines.Add);
         fresh.PlaceAtStart(session.Scene, requested: null, loaded: false);
-        Assert.Equal(session.Scene.Point(BeaconDirector.StartPoint), fresh.Beacon.Target);
-        Assert.StartsWith($"beacon: {BeaconDirector.StartPoint} at ", Assert.Single(lines));
+        Assert.Equal(session.Scene.Point(fresh.StartPoint), fresh.Beacon.Target);
+        Assert.StartsWith($"beacon: {fresh.StartPoint} at ", Assert.Single(lines));
 
         var loaded = new BeaconDirector(session, lines.Add, lines.Add);
         loaded.PlaceAtStart(session.Scene, requested: null, loaded: true);

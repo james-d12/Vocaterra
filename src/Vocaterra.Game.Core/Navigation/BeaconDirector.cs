@@ -11,8 +11,8 @@ namespace Vocaterra.Game.Core.Navigation;
 /// </summary>
 public sealed class BeaconDirector
 {
-    /// <summary>The point the beacon stands on at the start of a new game: the guide's camp, at the foot of the trail from the player's own camp (S13).</summary>
-    public const string StartPoint = "camp.guide";
+    /// <summary>The point the beacon stands on at the start of a new game: the guide's camp, at the foot of the trail from the player's own camp (S13; <c>game/session.json</c>'s <c>beaconStart</c>, C07).</summary>
+    public string StartPoint => _session.Data.Objectives.BeaconStart;
 
     private readonly GuideSession _session;
     private readonly Action<string> _log;

@@ -40,7 +40,7 @@ public sealed class ObjectiveLayer : IFrameLayer
 
         var session = view.Session;
         var pieces = session is VoxelSession voxel
-            ? voxel.ObjectiveHud() // the stage's line, or the checklist (S17)
+            ? voxel.ObjectiveHud() // the current objective's line, or the checklist (S17, C07)
             : session.Locale.ObjectivePieces(objective, lemma => session.Words.RecordOf(lemma).Known);
         var rows = HudLayout.ObjectiveRows(pieces, p => DrawHelpers.Width(font, p.Text), static p => p.Kind == ObjectivePieceKind.Word, (float)(view.ViewportWidth * WidthShare), view.ViewportWidth - (2 * Margin) - 16);
         var width = rows.Max(row => row.Sum(p => (int)DrawHelpers.Width(font, p.Text)));

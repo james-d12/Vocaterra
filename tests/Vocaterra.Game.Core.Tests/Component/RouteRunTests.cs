@@ -154,7 +154,7 @@ public sealed class RouteRunTests(ITestOutputHelper output)
         Assert.Equal([VoxelSession.NeedBottleHint], session.TakeHints());
         session.Step([VoxelCommand.Look(yaw, pitch), VoxelCommand.Interact(water.X, water.Y, water.Z)]);
         Assert.Empty(session.TakeHints());
-        Assert.Equal(0, session.Objective.Step(Objective.WaterKey)!.Count);
+        Assert.Equal(0, session.Objective.Step("water")!.Count);
         Assert.Contains(session.Events, static e => e is WorldEvent { Name: WorldEvents.WaterWithoutBottle });
 
         // With a bottle: half a second, and the bottle of water, and the step, and no Spanish was needed to find the river.
@@ -247,7 +247,7 @@ public sealed class RouteRunTests(ITestOutputHelper output)
     public void ADeclinedTransferOfferGivesNothingAndStillCountsAsATransferUse()
     {
         var (session, _, _) = CampObjectiveTests.PlayCamp();
-        session.HostEvent(Objective.WaterEvent); // the objective is complete (the fill itself is tested above)
+        session.HostEvent(WorldEvents.BottleFilled); // the objective is complete (the fill itself is tested above)
         Stage.TeleportToNpc(session, "guide");
 
         var opening = session.OpenTalk("guide");

@@ -1,26 +1,4 @@
-using Vocaterra.Game.Core.Tip;
-
 namespace Vocaterra.Game.Core.Session;
-
-/// <summary>
-/// Where the session stands, from the objective area's point of view (S17, D-game-15): the player wakes alone at their own camp and is sent down the trail to the
-/// guide; the guide's lesson and the camp checklist follow; once the checklist is complete the player is sent back up the trail to light their own fire; the lit
-/// fire ends the session. The stage only picks the line the objective area shows. It gates nothing (rule 8): every action works in every stage.
-/// </summary>
-public enum SessionStage
-{
-    /// <summary>The player has not met the guide yet: "Go down the trail and find the guide".</summary>
-    FindGuide,
-
-    /// <summary>The guide has been met (or the first step of the checklist is done): the camp checklist is the objective.</summary>
-    Camp,
-
-    /// <summary>The camp checklist is complete and the player's own fire is not lit: "Go back up the trail and light your own fire".</summary>
-    LightFire,
-
-    /// <summary>The checklist is complete and the player's own fire is lit: the session is complete.</summary>
-    Complete,
-}
 
 /// <summary>
 /// The keys of the speech buttons and of the hold-to-talk hint as the support language knows them (S17): <see cref="GuideSession.ButtonEnglishUp"/> says whether the

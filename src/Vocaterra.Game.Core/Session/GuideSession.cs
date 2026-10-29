@@ -1103,7 +1103,14 @@ public abstract class GuideSession : IDisposable
         {
             Tips.Offer(world); // a first-time tip waits for the event it explains (S16), with its filters (C06)
             Lessons.OnEvent(world); // a lesson's do step waits for a world event (S16)
+            OnWorldEvent(world);
         }
+    }
+
+    /// <summary>A world event was logged (after the tips and the lessons saw it): the 3D session counts it for its objectives (C07).</summary>
+    /// <param name="world">The event.</param>
+    protected virtual void OnWorldEvent(WorldEvent world)
+    {
     }
 
     // What follows an applied turn: the phrase it used, the voice event it was, and what its host events do in the world. Returns the turn as the player is to see
