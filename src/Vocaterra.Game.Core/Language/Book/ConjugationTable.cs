@@ -30,9 +30,9 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
     /// <summary>The columns a table can have, in order: present, past, future (ir a).</summary>
     public static IReadOnlyList<ConjugationColumn> AllColumns { get; } =
     [
-        new("pres", "present"),
-        new("pret", "past"),
-        new(TaughtVerbForm.NearFuture, "future (ir a)"),
+        new("pres", "bookColumnPresent"),
+        new("pret", "bookColumnPast"),
+        new(TaughtVerbForm.NearFuture, "bookColumnNearFuture"),
     ];
 
     /// <summary>

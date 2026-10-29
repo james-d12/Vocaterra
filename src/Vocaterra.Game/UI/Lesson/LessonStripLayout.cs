@@ -159,8 +159,8 @@ public sealed class LessonStripLayout
             return offer is null ? null : ForOffer(ui, offer, panel, limitTop, inner, measure);
         }
 
-        var englishAll = TextWrap.Wrap(DialoguePanel.SupportPrefix + view.English, inner, measure);
-        var hintAll = view.Hint is { } text ? TextWrap.Wrap(DialoguePanel.SupportPrefix + text, inner, measure) : [];
+        var englishAll = TextWrap.Wrap(DialoguePanel.SupportPrefix(ui) + view.English, inner, measure);
+        var hintAll = view.Hint is { } text ? TextWrap.Wrap(DialoguePanel.SupportPrefix(ui) + text, inner, measure) : [];
         var hint = Cut(hintAll, MaxHintRows, measure, inner);
         var showsSpanish = view.Spanish is not null;
         var spanishAll = showsSpanish ? TextWrap.Wrap(view.Spanish!, inner, measureLarge) : [];
@@ -310,7 +310,7 @@ public sealed class LessonStripLayout
 
     private static LessonStripLayout ForOffer(LocaleText ui, LessonOffer offer, PixelBox panel, int limitTop, int inner, Func<string, float> measure)
     {
-        var rows = TextWrap.Wrap(DialoguePanel.SupportPrefix + offer.English, inner, measure).Take(2).ToList();
+        var rows = TextWrap.Wrap(DialoguePanel.SupportPrefix(ui) + offer.English, inner, measure).Take(2).ToList();
         var height = Padding + LineHeight + (rows.Count * LineHeight) + Gap + ButtonHeight + Padding;
         var y = Math.Max(4, limitTop - Gap - height);
         var box = new PixelBox(panel.X, y, panel.Width, height);

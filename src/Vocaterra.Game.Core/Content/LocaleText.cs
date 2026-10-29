@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Learner;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
@@ -25,7 +27,9 @@ public sealed record VerbForms(string Gloss, string Base, string Third, string P
 /// <para>
 /// <b>Lookup.</b> A string is looked for in this locale, then in the fallback locale (<c>en</c>), and a string neither has is the visible marker
 /// <c>⟦id⟧</c>, so a missing string shows on screen and is never empty (<see cref="Content.GameDataValidator"/> refuses a shipped locale that lacks one).
-/// Placeholders are <c>{name}</c>, filled by the caller.
+/// Placeholders are <c>{name}</c>, filled by the caller; <c>{npc:&lt;id&gt;}</c> is what the NPC is called (<c>{npc:guide}</c> is <c>Luna</c>, from the NPC data) and
+/// <c>{key:&lt;command&gt;}</c> the key bound to a command (<see cref="InputKeys"/>), spelled as the locale's <c>key.&lt;GameKey&gt;</c> (C04). A string with a count
+/// has two ids, <c>&lt;id&gt;.one</c> and <c>&lt;id&gt;.other</c> (<see cref="Plural"/>).
 /// </para>
 /// <para>
 /// <b>The game's own use of the strings.</b> The feedback after a turn (<see cref="FeedbackFor(GuideTurn)"/>), the objective line
@@ -51,6 +55,18 @@ public sealed class LocaleText
         "summaryTitle", "summaryLessons", "summaryLessonDone", "summaryLessonAdvanced", "summaryWords", "summaryUnaided", "summaryForms", "summaryPractise",
         "summaryPractiseNoSe", "summaryPractiseSlip", "summaryPractiseSupport", "summaryPractiseNone", "summaryReplay", "summaryNone", "summaryMore",
         "tensePres", "tensePret", "tenseImpf", "tenseFut", "person1", "person2", "person3", "singular", "plural", "retryAgain",
+        "dialogueKeyHints", "dialogueButtonHints", "dialogueSpeechOffButtonHints", "dialogueSpeechOffKeyHints", "dialogueListening", "dialogueThinking",
+        "dialogueYou", "dialogueYouSpoken", "supportPrefix", "supportOnHelp", "talkHint", "tipHeading", "newWord", "newWordToast", "audioSlot", "beaconDistance.one",
+        "beaconDistance.other", "loadingSpeech", "controlsScroll", "controlsTextSizeKeys", "controlsTextSize", "gameSaved", "saveLater", "inventoryTitle",
+        "inventoryHintsShort", "inventoryHints", "inventoryUsed", "craftingTitle", "craftingHints", "craftingCanMake", "craftingUses", "craftingByHand",
+        "workbenchTitle", "workbenchReady", "workbenchMissing", "playtestEndHint", "bookTabNouns", "bookTabVerbs", "bookTabPhrases", "bookTabLessons",
+        "bookTabSaid", "bookTitle", "bookHints", "bookHintsShort", "bookLines", "bookKnownNouns", "bookWithoutHelp", "bookSession", "bookNoVerbs", "bookNothingSaid",
+        "bookNothing", "bookChooseVerb", "bookVerbKey", "bookWhatYouSaid", "bookMoreBelow", "dueNow", "dueSeconds", "dueMinutes", "dueHours", "phraseHeard",
+        "phraseHelpEnglishAndCard", "phraseHelpCardAndAudio", "phraseHelpAudioOnly", "phraseHelpNone", "phraseHeardCounts", "phraseCounts", "bookKnown",
+        "bookNounCounts", "bookUsed", "bookUses.one", "bookUses.other", "bookFormCounts", "bookLast", "bookMeaning", "bookForms", "bookLessonCompletedIn",
+        "bookLessonCompleted", "bookLessonInProgress", "bookLessonNotStarted", "bookUnit", "bookUnitSteps", "bookLessonCounts", "bookSaidSession", "bookSaidWhere",
+        "bookSaidVoice", "bookSaidTyped", "bookSaidButton", "bookSaidLessonStep", "bookSaidLesson", "bookSaidCheck", "bookSaidTalk", "bookSaidTalkTo",
+        "bookPractise", "bookColumnPresent", "bookColumnPast", "bookColumnNearFuture",
     ];
 
     /// <summary>The most error lines one turn's feedback carries.</summary>
@@ -60,13 +76,27 @@ public sealed class LocaleText
     private readonly Dictionary<string, VerbForms> _verbs;
     private readonly LocaleText? _fallback;
 
-    private LocaleText(string code, string bundleHash, Dictionary<string, string> strings, Dictionary<string, VerbForms> verbs, LocaleText? fallback)
+    private static readonly Regex NamePlaceholder = new(@"\{(npc|key):([^{}]+)\}", RegexOptions.CultureInvariant);
+
+    private readonly IReadOnlyDictionary<string, string> _npcs;
+    private readonly IReadOnlyDictionary<string, GameKey> _keys;
+
+    private LocaleText(
+        string code,
+        string bundleHash,
+        Dictionary<string, string> strings,
+        Dictionary<string, VerbForms> verbs,
+        LocaleText? fallback,
+        IReadOnlyDictionary<string, string>? npcs = null,
+        IReadOnlyDictionary<string, GameKey>? keys = null)
     {
         Code = code;
         BundleHash = bundleHash;
         _strings = strings;
         _verbs = verbs;
         _fallback = fallback;
+        _npcs = npcs ?? new Dictionary<string, string>(StringComparer.Ordinal);
+        _keys = keys ?? new Dictionary<string, GameKey>();
     }
 
     /// <summary>The locale's code (BCP-47: <c>en</c>).</summary>
@@ -147,18 +177,62 @@ public sealed class LocaleText
             merged[id] = text;
         }
 
-        return new LocaleText(Code, BundleHash, merged, _verbs, _fallback);
+        return new LocaleText(Code, BundleHash, merged, _verbs, _fallback, _npcs, _keys);
     }
+
+    /// <summary>
+    /// This locale with the names its placeholders take (C04): <c>{npc:&lt;id&gt;}</c> becomes what the NPC is called, <c>{key:&lt;command&gt;}</c> the name of the
+    /// command's key. <see cref="GameData.Load"/> gives the shipped NPCs and <see cref="InputKeys.Defaults"/>; a locale without them leaves the placeholders as written.
+    /// </summary>
+    /// <param name="npcs">What each NPC is called, by agent id.</param>
+    /// <param name="keys">The key of each command, by name.</param>
+    public LocaleText WithNames(IReadOnlyDictionary<string, string> npcs, IReadOnlyDictionary<string, GameKey> keys)
+    {
+        ArgumentNullException.ThrowIfNull(npcs);
+        ArgumentNullException.ThrowIfNull(keys);
+        return new LocaleText(Code, BundleHash, _strings, _verbs, _fallback, npcs, keys);
+    }
+
+    /// <summary>The name of a key in this locale (<c>key.Space</c>: <c>Space</c>), or the key's own name when the locale has none.</summary>
+    /// <param name="key">The key.</param>
+    public string KeyName(GameKey key) => Raw("key." + key.ToString()) ?? key.ToString();
+
+    /// <summary>The placeholders <c>{npc:…}</c> and <c>{key:…}</c> of a string (the validator checks that each names an NPC or a command).</summary>
+    /// <param name="text">A string as the locale writes it.</param>
+    public static IReadOnlyList<(string Kind, string Name)> NamePlaceholders(string text) =>
+        NamePlaceholder.Matches(text ?? string.Empty).Select(static m => (m.Groups[1].Value, m.Groups[2].Value)).ToList();
+
+    /// <summary>A string as the locale writes it, placeholders and all, or <see langword="null"/> (the checks between files read it).</summary>
+    /// <param name="id">The id.</param>
+    public string? Raw(string id)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+        return _strings.TryGetValue(id, out var text) ? text : _fallback?.Raw(id);
+    }
+
+    /// <summary>
+    /// A string with a count (C04): <c>&lt;id&gt;.one</c> when the count is one, otherwise <c>&lt;id&gt;.other</c>, with <c>{count}</c> and the other placeholders
+    /// filled (<c>ui.bookUses</c>: <c>1 time</c>, <c>3 times</c>).
+    /// </summary>
+    /// <param name="id">The id without its <c>.one</c> or <c>.other</c>.</param>
+    /// <param name="count">The count.</param>
+    /// <param name="values">The other placeholder values.</param>
+    public string Plural(string id, int count, params (string Name, string Value)[] values) =>
+        Fill(Text(id + (count == 1 ? ".one" : ".other")), [("count", count.ToString(CultureInfo.InvariantCulture)), .. values]);
+
+    // The names a string's {npc:…} and {key:…} placeholders take; one that names nothing known is left as written (the validator refuses it in a shipped locale).
+    private string Resolve(string text) =>
+        text.Contains('{', StringComparison.Ordinal)
+            ? NamePlaceholder.Replace(text, m => m.Groups[1].Value == "npc"
+                ? _npcs.TryGetValue(m.Groups[2].Value, out var name) ? name : m.Value
+                : _keys.TryGetValue(m.Groups[2].Value, out var key) ? KeyName(key) : m.Value)
+            : text;
 
     // ---- Lookup.
 
     /// <summary>The string with this id, from this locale or its fallback, or <see langword="null"/> when neither has it.</summary>
     /// <param name="id">The id (<c>ui.continue</c>).</param>
-    public string? Find(string id)
-    {
-        ArgumentNullException.ThrowIfNull(id);
-        return _strings.TryGetValue(id, out var text) ? text : _fallback?.Find(id);
-    }
+    public string? Find(string id) => Raw(id) is { } text ? Resolve(text) : null;
 
     /// <summary>Whether this locale or its fallback has the string.</summary>
     /// <param name="id">The id.</param>

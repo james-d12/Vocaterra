@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -593,7 +594,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         view.ControlsOpen = _controls.IsOpen;
         view.ControlsScroll = _controls.Scroll;
         view.Report = _report;
-        view.Loading = _session.Worker!.IsReady ? null : LoadingLayer.Text;
+        view.Loading = _session.Worker!.IsReady ? null : LoadingLayer.Text(_session.Locale);
         _dialogue.SpeechUnavailable = _session.Worker.IsReady && !_session.Worker.CanHear;
         view.LoadingFrame = _loadingFrames++;
         var mouse = Mouse.GetState();
@@ -837,11 +838,11 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         var path = PlaytestEnd.ManualSavePath(_options.SavePath, _playtestFlow.ManualSaveFile, DefaultSavePath);
         if (_saves.Write(path, "on F6"))
         {
-            _toasts.Show($"Game saved (session {_session.PlaySession})");
+            _toasts.Show(_session.Locale.Ui("gameSaved", ("session", _session.PlaySession.ToString(CultureInfo.InvariantCulture))));
         }
         else
         {
-            _toasts.Show("Wait a moment, then press F6 again.");
+            _toasts.Show(_session.Locale.Ui("saveLater"));
         }
     }
 

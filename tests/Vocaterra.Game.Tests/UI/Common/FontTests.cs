@@ -43,18 +43,18 @@ public sealed class FontTests
         var cmap = TrueTypeCmap.Load(CommittedFont);
         var strings = new List<string>
         {
-            DialoguePanel.KeyHints, RouteScene.Shipped.Objectives.Find("camp")!.Title!, "New word", "audio", "Done: madera 5/5", "Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1", CraftingLayer.Title, CraftingLayer.KeyHints, "Make", "Needs mesa", "Inventory full", "Missing material", "A mano", "Usa", "You: ", "Guía: ", "Esc: quitar la flecha", "understood, not understood", VoxelSession.NeedBottleHint, "Tendero: ", "Aldeano: ",
-            DialoguePanel.ListeningText, DialoguePanel.ThinkingText, DialoguePanel.SpokenPrefix, LoadingLayer.Text, PushToTalkSpeechCapture.NoMicrophone, PushToTalkSpeechCapture.Silence,
+            DialoguePanel.KeyHints(RouteScene.Shipped.Locale), RouteScene.Shipped.Objectives.Find("camp")!.Title!, "New word", "audio", "Done: madera 5/5", "Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1", RouteScene.Shipped.Locale.Ui("craftingTitle"), RouteScene.Shipped.Locale.Ui("craftingHints"), "Make", "Needs mesa", "Inventory full", "Missing material", "A mano", "Usa", "You: ", "Guía: ", "Esc: quitar la flecha", "understood, not understood", VoxelSession.NeedBottleHint, "Tendero: ", "Aldeano: ",
+            DialoguePanel.ListeningText(RouteScene.Shipped.Locale), DialoguePanel.ThinkingText(RouteScene.Shipped.Locale), DialoguePanel.SpokenPrefix(RouteScene.Shipped.Locale), LoadingLayer.Text(RouteScene.Shipped.Locale), PushToTalkSpeechCapture.NoMicrophone, PushToTalkSpeechCapture.Silence,
             "heard at 96 %, Could not open the microphone: ", "Speech model vosk-model-small-es-0.42 is missing from /ruta. You can still type.", "Speech off: the recogniser is not loaded. Type your answer.", "I didn't hear anything.",
             // S7: the speech UX (the buttons, the heard-versus-expected line, the mic check, the typing offer).
-            DialoguePanel.ButtonHints, DialoguePanel.SpeechOffButtonHints, DialoguePanel.SpeechOffKeyHints, RouteScene.Shipped.Words.TypeOffer, HeardLine.HeardLabel, HeardLine.ExpectedLabel, HeardLine.NothingHeard, HeardLine.SomethingHeard, "not understood",
+            DialoguePanel.ButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffKeyHints(RouteScene.Shipped.Locale), RouteScene.Shipped.Words.TypeOffer, HeardLine.HeardLabel, HeardLine.ExpectedLabel, HeardLine.NothingHeard, HeardLine.SomethingHeard, "not understood",
             MicCheckModel.Instruction, MicCheckModel.Title, MicCheckModel.TalkHint, MicCheckModel.PassedText, MicCheckModel.FailedText, MicCheckModel.ContinueLabel, MicCheckModel.RetryLabel,
             MicCheckModel.SkipLabel, "Esc: skip", "Loading speech…", "Speech is not available.",
             string.Join(' ', SpeechButtons.For(RouteScene.Shipped.Words.Buttons).Select(static b => b.Text)), "[1] Quiero agua, por favor. [2] Ayuda. [3] Sí, por favor. No, gracias. Adiós. «…»",
         };
 
         // C08: the NPCs' labels and names (the panel's title, the label over the head, the beacon).
-        strings.AddRange(RouteScene.Shipped.Npcs.All.SelectMany(static npc => new[] { npc.Label, npc.BeaconLabel }));
+        strings.AddRange(RouteScene.Shipped.Npcs.All.SelectMany(static npc => new[] { npc.Label, npc.Called }));
 
         // Every template and prompt of the bundle, as written (the slot words are plain nouns the font covers as letters).
         var bundle = Repo.Path("content", "game-v1");

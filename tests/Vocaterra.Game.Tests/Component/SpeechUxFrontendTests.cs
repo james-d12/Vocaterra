@@ -696,8 +696,8 @@ public sealed class SpeechUxFrontendTests
     [Fact]
     public void TheOldTabHoldToTalkHintIsReplacedByTheButtonKeysAndTheSpanishStringsAreListedForTheReview()
     {
-        Assert.DoesNotContain("Tab (mantener)", DialoguePanel.KeyHints, StringComparison.Ordinal);
-        Assert.Contains("Hold V or Space", DialoguePanel.ButtonHints, StringComparison.Ordinal);
+        Assert.DoesNotContain("Tab (mantener)", DialoguePanel.KeyHints(RouteScene.Shipped.Locale), StringComparison.Ordinal);
+        Assert.Contains("Hold V or Space", DialoguePanel.ButtonHints(RouteScene.Shipped.Locale), StringComparison.Ordinal);
         Assert.Equal("¿Escribes?", new DialogueModel(new InputFocus(), "Hola.", RouteScene.Shipped).TypeOfferText);
         Assert.Equal("(nothing)", HeardLine.NothingHeard);
         Assert.Equal("Heard: ", HeardLine.HeardLabel);

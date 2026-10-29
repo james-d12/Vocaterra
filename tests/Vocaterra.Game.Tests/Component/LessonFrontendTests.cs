@@ -304,7 +304,7 @@ public sealed class LessonFrontendTests
         Assert.Equal(DialogueLayout.PanelBox(1280, 720).X, layout.Box.X);
         Assert.NotNull(layout.SpanishY);
         Assert.True(layout.SpanishY < layout.EnglishY); // the English is under the Spanish
-        Assert.StartsWith(DialoguePanel.SupportPrefix, layout.EnglishRows[0], StringComparison.Ordinal);
+        Assert.StartsWith(DialoguePanel.SupportPrefix(RouteScene.Shipped.Locale), layout.EnglishRows[0], StringComparison.Ordinal);
         Assert.Contains("Say hello.", layout.EnglishRows[0], StringComparison.Ordinal);
         Assert.Empty(layout.HintRows);
         Assert.All(layout.Buttons, b => Assert.True(layout.Box.Contains(b.Box.X, b.Box.Y) && b.Box.Bottom <= layout.Box.Bottom));
@@ -607,7 +607,7 @@ public sealed class LessonFrontendTests
         var cmap = TrueTypeCmap.Load(Repo.Path("assets", "fonts", "pixel-operator", "PixelOperator.ttf"));
         var strings = new List<string>
         {
-            DialoguePanel.SupportPrefix, SupportLayer.EnglishOnHelp, PhraseJournalRows.EnglishAndCardText, "Lesson · A first hello · step 1 of 2 · Say it", "[Enter] [K] [L] [H] [1] [2] [3] [4]",
+            DialoguePanel.SupportPrefix(RouteScene.Shipped.Locale), SupportLayer.EnglishOnHelp(RouteScene.Shipped.Locale), RouteScene.Shipped.Locale.Ui("phraseHelpEnglishAndCard"), "Lesson · A first hello · step 1 of 2 · Say it", "[Enter] [K] [L] [H] [1] [2] [3] [4]",
         };
         // The support language's strings (the locale, C03) and the lessons' own file (its Spanish).
         foreach (var file in Directory.GetFiles(Repo.Path("content", "locale", "en"), "*.json").Append(Repo.Path("content", "game-v1", "game", "lessons.json")))

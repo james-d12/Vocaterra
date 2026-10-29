@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
@@ -60,6 +61,7 @@ public static class GameDataValidator
         required.AddRange(data.Objectives.Objectives.Where(static o => o.IsChecklist).SelectMany(static o => o.Steps).Select(static step => "noun." + step.Noun));
         required.AddRange(data.Phrases.Rows.Select(static row => PhraseSheet.LocaleId(row.Id, "explain")));
         required.AddRange(data.Speech.Where(static line => line.Kind is SpeechKind.Dialogue or SpeechKind.Prompt).Select(static line => "line." + line.LineId));
+        required.AddRange(InputKeys.Defaults.Values.Distinct().Select(static key => "key." + key.ToString())); // C04: {key:…} spells a command's key with these
         foreach (var id in required.Where(id => !locale.Has(id)))
         {
             problems.Add($"{file}: the string '{id}' is missing.");
@@ -90,6 +92,18 @@ public static class GameDataValidator
         foreach (var id in locale.Ids.Where(id => !allowed.Contains(id) && !id.StartsWith("verb.", StringComparison.Ordinal)))
         {
             problems.Add($"{file}: the string '{id}' is asked for by no content or code (an orphan).");
+        }
+
+        // C04: a {npc:…} names an NPC of game/npcs.json and a {key:…} a command of InputKeys, or the text would show the placeholder itself.
+        foreach (var id in locale.Ids.Where(static id => !id.StartsWith("verb.", StringComparison.Ordinal)))
+        {
+            foreach (var (kind, name) in LocaleText.NamePlaceholders(locale.Raw(id) ?? string.Empty))
+            {
+                if (kind == "npc" ? data.Npcs.Find(name) is null : !InputKeys.Defaults.ContainsKey(name))
+                {
+                    problems.Add($"{file}: the string '{id}' names {{{kind}:{name}}}, which is not {(kind == "npc" ? "one of the NPCs" : "a command with a key")}.");
+                }
+            }
         }
     }
 

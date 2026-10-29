@@ -1,4 +1,5 @@
 using System.Text;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
@@ -162,10 +163,11 @@ public sealed class GameData
     {
         ArgumentNullException.ThrowIfNull(bundle);
         ArgumentNullException.ThrowIfNull(locale);
+        var npcs = NpcRoster.Load(bundle);
+        locale = locale.WithNames(npcs.All.ToDictionary(static n => n.Id, static n => n.Called, StringComparer.Ordinal), InputKeys.Defaults); // {npc:…} and {key:…} (C04)
         var nouns = NounCatalog.Load(bundle);
         var phrases = PhraseSheet.Load(bundle, locale);
         var speech = SpeechLines.Enumerate(bundle, nouns, phrases);
-        var npcs = NpcRoster.Load(bundle);
         return new GameData(
             bundle,
             locale,

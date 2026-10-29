@@ -244,7 +244,7 @@ public sealed class VoxelSession : GuideSession
         }
 
         var feet = Scene.Npc(npc).Feet;
-        var label = Data.Npcs.Find(npc)?.BeaconLabel ?? npc; // C08: the NPC's name (Luna) or label (Tendero), from game/npcs/<id>.json
+        var label = Data.Npcs.Find(npc)?.Called ?? npc; // C08: the NPC's name (Luna) or label (Tendero), from game/npcs/<id>.json
         Pointer = new PointerMarker(label, new GuideCell(feet.X, feet.Y, feet.Z));
         LogWorld(WorldEvents.BeaconSet, npc, $"{label} at {feet.X},{feet.Y},{feet.Z}");
     }

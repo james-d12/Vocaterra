@@ -82,9 +82,9 @@ public sealed class MicCheckScreen : IScreen
                 break;
             case MicCheckPhase.Ready:
             case MicCheckPhase.Failed:
-                if (input.Pressed(GameKey.V) || input.Pressed(GameKey.Space))
+                if (input.Pressed(InputKeys.Of("listen")) || input.Pressed(InputKeys.Of("listenAlt")))
                 {
-                    BeginListening(input.Pressed(GameKey.V) ? GameKey.V : GameKey.Space);
+                    BeginListening(input.Pressed(InputKeys.Of("listen")) ? InputKeys.Of("listen") : InputKeys.Of("listenAlt"));
                 }
                 else if (input.Pressed(GameKey.Enter) && check.Phase == MicCheckPhase.Failed)
                 {

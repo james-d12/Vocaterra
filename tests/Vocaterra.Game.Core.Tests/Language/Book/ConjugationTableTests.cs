@@ -105,7 +105,7 @@ public sealed class ConjugationTableTests
         var later = ConjugationTable.Build(querer, [], [.. first, Taught("querer", "1", "sg", "pret")], Bundle.Value.SpanishMorphology(), null, TestGame.Data.Words);
         Assert.Equal(["pres", "pret"], later.Columns.Select(static c => c.Tense));
         Assert.Equal(new ConjugationCell("quise", CellState.Taught, 0), At(later, "1", "sg", "pret"));
-        Assert.Equal(["present", "past"], later.Columns.Select(static c => c.Title));
+        Assert.Equal(["present", "past"], later.Columns.Select(static c => TestGame.Data.Locale.Ui(c.TitleId)));
     }
 
     [Fact]
@@ -134,7 +134,7 @@ public sealed class ConjugationTableTests
 
         Assert.Equal(["ir-a", "pret"], table.Columns.Select(static c => c.Tense).OrderBy(static t => t, StringComparer.Ordinal));
         var future = table.Columns.ToList().FindIndex(static c => c.Tense == "ir-a");
-        Assert.Equal("future (ir a)", table.Columns[future].Title);
+        Assert.Equal("future (ir a)", TestGame.Data.Locale.Ui(table.Columns[future].TitleId));
         Assert.Equal(new ConjugationCell("voy a comer", CellState.Used, 2), At(table, "1", "sg", "ir-a"));
         Assert.Equal(new ConjugationCell("vas a comer", CellState.Taught, 0), At(table, "2", "sg", "ir-a"));
         Assert.Equal(new ConjugationCell(null, CellState.Locked, 0), At(table, "3", "sg", "ir-a"));

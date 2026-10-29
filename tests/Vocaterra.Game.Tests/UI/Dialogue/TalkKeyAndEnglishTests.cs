@@ -17,16 +17,16 @@ public sealed class TalkKeyAndEnglishTests
     [Fact]
     public void TheButtonsStateNamesTheTalkKeyWhenSpeechIsOn()
     {
-        Assert.Equal("Hold V or Space: speak   Esc: cancel or close", DialoguePanel.HintsFor(typing: false, speechUnavailable: false));
-        Assert.Equal(DialoguePanel.ButtonHints, DialoguePanel.HintsFor(false, false));
+        Assert.Equal("Hold V or Space: speak   Esc: cancel or close", DialoguePanel.HintsFor(RouteScene.Shipped.Locale, typing: false, speechUnavailable: false));
+        Assert.Equal(DialoguePanel.ButtonHints(RouteScene.Shipped.Locale), DialoguePanel.HintsFor(RouteScene.Shipped.Locale, false, false));
     }
 
     [Fact]
     public void TheTypingStateNamesTheTalkKeyWhenSpeechIsOn()
     {
         // V types a letter in the text box, so the typing hint gives the way back to the talk key rather than a hold that would do nothing.
-        var hints = DialoguePanel.HintsFor(typing: true, speechUnavailable: false);
-        Assert.Equal(DialoguePanel.KeyHints, hints);
+        var hints = DialoguePanel.HintsFor(RouteScene.Shipped.Locale, typing: true, speechUnavailable: false);
+        Assert.Equal(DialoguePanel.KeyHints(RouteScene.Shipped.Locale), hints);
         Assert.Contains("hold V or Space: speak", hints, StringComparison.Ordinal);
         Assert.Contains("Enter: send", hints, StringComparison.Ordinal);
     }
@@ -34,16 +34,16 @@ public sealed class TalkKeyAndEnglishTests
     [Fact]
     public void WithSpeechOffBothStatesSayToTypeTheAnswerInEnglish()
     {
-        Assert.Equal(DialoguePanel.SpeechOffButtonHints, DialoguePanel.HintsFor(typing: false, speechUnavailable: true));
-        Assert.StartsWith("Speech off: type your answer", DialoguePanel.HintsFor(false, true), StringComparison.Ordinal);
-        Assert.StartsWith("Speech off: type your answer", DialoguePanel.HintsFor(true, true), StringComparison.Ordinal);
-        Assert.DoesNotContain("hold V", DialoguePanel.HintsFor(false, true), StringComparison.Ordinal);
+        Assert.Equal(DialoguePanel.SpeechOffButtonHints(RouteScene.Shipped.Locale), DialoguePanel.HintsFor(RouteScene.Shipped.Locale, typing: false, speechUnavailable: true));
+        Assert.StartsWith("Speech off: type your answer", DialoguePanel.HintsFor(RouteScene.Shipped.Locale, false, true), StringComparison.Ordinal);
+        Assert.StartsWith("Speech off: type your answer", DialoguePanel.HintsFor(RouteScene.Shipped.Locale, true, true), StringComparison.Ordinal);
+        Assert.DoesNotContain("hold V", DialoguePanel.HintsFor(RouteScene.Shipped.Locale, false, true), StringComparison.Ordinal);
     }
 
     [Fact]
     public void TheDialogueHintsHaveNoSpanish()
     {
-        foreach (var hint in new[] { DialoguePanel.KeyHints, DialoguePanel.ButtonHints, DialoguePanel.SpeechOffButtonHints, DialoguePanel.SpeechOffKeyHints })
+        foreach (var hint in new[] { DialoguePanel.KeyHints(RouteScene.Shipped.Locale), DialoguePanel.ButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffKeyHints(RouteScene.Shipped.Locale) })
         {
             Assert.DoesNotMatch("Mantén|Espacio|hablar|cancelar|cerrar|enviar|botones", hint);
         }
@@ -52,9 +52,9 @@ public sealed class TalkKeyAndEnglishTests
     [Fact]
     public void TheDialogueStatusWordsAreEnglish()
     {
-        Assert.Equal("Listening…", DialoguePanel.ListeningText);
-        Assert.Equal("Thinking…", DialoguePanel.ThinkingText);
-        Assert.Equal("You (voice): ", DialoguePanel.SpokenPrefix);
+        Assert.Equal("Listening…", DialoguePanel.ListeningText(RouteScene.Shipped.Locale));
+        Assert.Equal("Thinking…", DialoguePanel.ThinkingText(RouteScene.Shipped.Locale));
+        Assert.Equal("You (voice): ", DialoguePanel.SpokenPrefix(RouteScene.Shipped.Locale));
         Assert.False(new DialogueModel(new InputFocus(), "Hola.", RouteScene.Shipped).SpeechUnavailable);
     }
 
@@ -95,8 +95,8 @@ public sealed class TalkKeyAndEnglishTests
     [Fact]
     public void TheBeaconsDistanceIsInBlocksAndItsNounStaysSpanish()
     {
-        Assert.Equal("campamento  74 blocks", BeaconArrowLayer.BeaconText("campamento", 74.4));
-        Assert.Equal("74 blocks", BeaconArrowLayer.BeaconText(null, 73.6));
-        Assert.Equal("río  12 blocks", BeaconArrowLayer.BeaconText("río", 12));
+        Assert.Equal("campamento  74 blocks", BeaconArrowLayer.BeaconText(RouteScene.Shipped.Locale, "campamento", 74.4));
+        Assert.Equal("74 blocks", BeaconArrowLayer.BeaconText(RouteScene.Shipped.Locale, null, 73.6));
+        Assert.Equal("río  12 blocks", BeaconArrowLayer.BeaconText(RouteScene.Shipped.Locale, "río", 12));
     }
 }

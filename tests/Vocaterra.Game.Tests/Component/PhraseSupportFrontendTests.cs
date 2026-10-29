@@ -56,7 +56,7 @@ public sealed class PhraseSupportFrontendTests
         progress.NoteHeard("que-necesitas");
         progress.NoteAnswered("que-necesitas");
 
-        var rows = PhraseJournalRows.Build(progress, 1000 + 1200, CreditRules.Default);
+        var rows = PhraseJournalRows.Build(progress, 1000 + 1200, CreditRules.Default, RouteScene.Shipped.Locale);
 
         Assert.Equal(46, rows.Count);
         Assert.Equal(progress.Sheet.Rows.Select(static r => r.Id).Order(StringComparer.Ordinal), rows.Select(static r => r.Id).Order(StringComparer.Ordinal));
@@ -404,8 +404,8 @@ public sealed class PhraseSupportFrontendTests
         var cmap = TrueTypeCmap.Load(Repo.Path("assets", "fonts", "pixel-operator", "PixelOperator.ttf"));
         var strings = new List<string>
         {
-            RouteScene.Shipped.Words.Support.CardTag, SupportLayer.ChipText(RouteScene.Shipped.Words), RouteScene.Shipped.Words.Support.KeyWordsHeading, BookTabs.Title, BookTabs.KeyHints, BookTabs.LabelOf(BookPage.Phrases),
-            PhraseJournalRows.HearsText, PhraseJournalRows.CardAndAudioText, PhraseJournalRows.AudioOnlyText, PhraseJournalRows.NoneText,
+            RouteScene.Shipped.Words.Support.CardTag, SupportLayer.ChipText(RouteScene.Shipped.Words), RouteScene.Shipped.Words.Support.KeyWordsHeading, BookTabs.Title(RouteScene.Shipped.Locale), BookTabs.KeyHints(RouteScene.Shipped.Locale), BookTabs.LabelOf(RouteScene.Shipped.Locale, BookPage.Phrases),
+            RouteScene.Shipped.Locale.Ui("phraseHeard"), RouteScene.Shipped.Locale.Ui("phraseHelpCardAndAudio"), RouteScene.Shipped.Locale.Ui("phraseHelpAudioOnly"), RouteScene.Shipped.Locale.Ui("phraseHelpNone"),
             "with help 1   without help 0.5   choices 0   don't know 0   other situation 0", "heard 1   answered 1", "Without help: 1 of 4", "and 3 more", "audio",
         };
         var sheet = RouteScene.DataOf(Bundle.Value).Phrases;

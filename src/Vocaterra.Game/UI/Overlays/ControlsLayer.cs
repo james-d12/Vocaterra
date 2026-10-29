@@ -50,18 +50,10 @@ public sealed class ControlsLayer : IFrameLayer
             y += RowHeight(rows[index]);
         }
 
-        var close = layout.Scrolls ? ui.Ui("controlsClose") + "   " + ScrollHint : ui.Ui("controlsClose");
+        var close = layout.Scrolls ? ui.Ui("controlsClose") + "   " + ui.Ui("controlsScroll") : ui.Ui("controlsClose");
         DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, close, box.Width - 32), new Vector2(box.X + 16, box.Bottom - 26), Dim);
     }
 
-    /// <summary>What the footer adds when the controls do not all fit the canvas.</summary>
-    public const string ScrollHint = "Up and Down: scroll";
-
-    /// <summary>The key the help adds for the text size (X08); the other controls are the game's content.</summary>
-    public const string TextSizeKeys = "F9";
-
-    /// <summary>The help line for the text size key.</summary>
-    public const string TextSizeText = "Change the size of the text: 100, 125 or 150 percent. It is kept in the save.";
 
     private static int KeysWidth(int panelWidth) => Math.Min(300, panelWidth / 3);
 
@@ -72,7 +64,7 @@ public sealed class ControlsLayer : IFrameLayer
         var width = Math.Min(820, view.ViewportWidth - 32);
         var keysWidth = KeysWidth(width);
         var textWidth = width - keysWidth - 32;
-        var controls = view.Session.Data.Controls.Select(c => (Keys: c.Keys, Text: c.Text)).Append((Keys: TextSizeKeys, Text: TextSizeText)).ToList();
+        var controls = view.Session.Data.Controls.Select(c => (Keys: c.Keys, Text: c.Text)).Append((Keys: view.Session.Locale.Ui("controlsTextSizeKeys"), Text: view.Session.Locale.Ui("controlsTextSize"))).ToList(); // the text size is the game's own key (X08)
         var rows = controls
             .Select(c => (Keys: TextWrap.Wrap(c.Keys, keysWidth - 8, t => DrawHelpers.Width(font, t)), Text: TextWrap.Wrap(c.Text, textWidth, t => DrawHelpers.Width(font, t))))
             .ToList();

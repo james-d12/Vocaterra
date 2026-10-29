@@ -12,8 +12,8 @@ namespace Vocaterra.Game.Core.Npc;
 /// <param name="Focus">The phrases each of the NPC's prompts practises, by prompt (<c>stall-need</c> gives <c>pedir-agua</c>): the phrases that are at home with this NPC.</param>
 public sealed record NpcEntry(string Id, string Label, string? Name, string Figure, IReadOnlyDictionary<string, IReadOnlyList<string>> Focus)
 {
-    /// <summary>The word the beacon shows for the NPC: their name, or their label when they have none (C08: before it the raw id for any NPC but the guide).</summary>
-    public string BeaconLabel => Name ?? Label;
+    /// <summary>What the NPC is called: their name, or their label when they have none (the beacon shows it, C08; <c>{npc:&lt;id&gt;}</c> in the support language, C04).</summary>
+    public string Called => Name ?? Label;
 }
 
 /// <summary>

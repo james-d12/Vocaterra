@@ -10,7 +10,8 @@ public static class BookPractise
     public const int ButtonWidth = 132;
 
     /// <summary>The label on the button.</summary>
-    public const string Label = "Practise again";
+    /// <param name="ui">The support language (<c>ui.bookPractise</c>, C04).</param>
+    public static string Label(Content.LocaleText ui) => (ui ?? throw new ArgumentNullException(nameof(ui))).Ui("bookPractise");
 
     /// <summary>The button of a heading whose text starts at <paramref name="rowTop"/>: at the content's right edge.</summary>
     /// <param name="geometry">The book's geometry.</param>

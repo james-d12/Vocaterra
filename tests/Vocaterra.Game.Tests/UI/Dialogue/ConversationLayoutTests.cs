@@ -177,7 +177,7 @@ public sealed class ConversationLayoutTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void TheBeaconLabelStaysInsideTheWindowClearOfThePanelAndTheSpeakerAndTheCardsKeepClearOfIt()
+    public void TheCalledStaysInsideTheWindowClearOfThePanelAndTheSpeakerAndTheCardsKeepClearOfIt()
     {
         // (right, up) of an off-screen target in the camera's frame: right, left, up, down, and the corners.
         var directions = new (double Right, double Up)[] { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, 1), (1, -1), (-1, -1), (1, 0.2), (-1, -0.2) };
@@ -192,7 +192,7 @@ public sealed class ConversationLayoutTests(ITestOutputHelper output)
                 Assert.False(arrow.OnScreen);
                 foreach (var textWidth in new[] { 120.0, 190.0 }) // "campamento 111 blocks" is about 190 px
                 {
-                    var label = BeaconLabel.Place(width, height, arrow.X, arrow.Y, textWidth, [panel, speaker]);
+                    var label = Called.Place(width, height, arrow.X, arrow.Y, textWidth, [panel, speaker]);
                     var where = $"{width}x{height} target ({right}, {up}), arrow ({arrow.X:0}, {arrow.Y:0})";
                     Assert.True(label.X >= 0 && label.Y >= 0 && label.Right <= width && label.Bottom <= height, $"{where}: label {label} leaves the window");
                     Assert.False(ConversationLayout.Overlaps(label, panel), $"{where}: label {label} overlaps the panel");

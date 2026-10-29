@@ -138,7 +138,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         {
             foreach (var choices in new[] { Array.Empty<string>(), ["agua por favor", "ayuda", "ayuda por favor"] })
             {
-                foreach (var hints in new[] { DialoguePanel.KeyHints, DialoguePanel.SpeechOffKeyHints, DialoguePanel.ButtonHints, DialoguePanel.SpeechOffButtonHints })
+                foreach (var hints in new[] { DialoguePanel.KeyHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffKeyHints(RouteScene.Shipped.Locale), DialoguePanel.ButtonHints(RouteScene.Shipped.Locale), DialoguePanel.SpeechOffButtonHints(RouteScene.Shipped.Locale) })
                 {
                     var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, choices, SpeechButtons.For(RouteScene.Shipped.Words.Buttons), typing, static b => $"{b.Text} ({English.Value.ButtonSupport(SpeechButtons.KeyOf(b.Action)!)})", hints);
                     var where = $"{windowWidth}x{windowHeight} at {scale}%, typing {typing}, {choices.Length} choices";
@@ -192,7 +192,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     public void ThePlainPanelKeepsRoomForAtLeastOneLineOfConversationAtEveryScale(int windowWidth, int windowHeight, int scale)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
-        var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, [], SpeechButtons.For(RouteScene.Shipped.Words.Buttons), typing: false, static b => $"{b.Text} ({English.Value.ButtonSupport(SpeechButtons.KeyOf(b.Action)!)})", DialoguePanel.ButtonHints);
+        var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, [], SpeechButtons.For(RouteScene.Shipped.Words.Buttons), typing: false, static b => $"{b.Text} ({English.Value.ButtonSupport(SpeechButtons.KeyOf(b.Action)!)})", DialoguePanel.ButtonHints(RouteScene.Shipped.Locale));
 
         Assert.True(layout.LinesBottom - layout.LinesTop >= DialogueLayout.LineHeight, $"{canvas.Width}x{canvas.Height}: {layout.LinesBottom - layout.LinesTop} px for the conversation");
     }
@@ -276,7 +276,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
             Assert.True(textBottom <= buttons.Min(static b => b.Box.Y), $"{where}: the text reaches {textBottom}, into the buttons at {buttons.Min(static b => b.Box.Y)}");
 
             // No English is left out: the pages together are the whole text.
-            var wrapped = TextWrap.Wrap(DialoguePanel.SupportPrefix + view.English, inner, Small);
+            var wrapped = TextWrap.Wrap(DialoguePanel.SupportPrefix(RouteScene.Shipped.Locale) + view.English, inner, Small);
             var all = new List<string>();
             for (var page = 0; page < layout.EnglishPages; page++)
             {
@@ -330,7 +330,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void TheConversationScreenKeepsTheStripTheBubbleTheCardsTheBeaconLabelAndThePanelApartAtEveryScale(int windowWidth, int windowHeight, int scale)
+    public void TheConversationScreenKeepsTheStripTheBubbleTheCardsTheCalledAndThePanelApartAtEveryScale(int windowWidth, int windowHeight, int scale)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
@@ -366,7 +366,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
                         hard.Add(st);
                     }
 
-                    var label = BeaconLabel.TryPlace(canvas.Width, canvas.Height, canvas.Width - 56, canvas.Height * 0.45, Small("campamento  111 blocks"), hard, [ConversationLayout.Union(head, bubbleBox)]);
+                    var label = Called.TryPlace(canvas.Width, canvas.Height, canvas.Width - 56, canvas.Height * 0.45, Small("campamento  111 blocks"), hard, [ConversationLayout.Union(head, bubbleBox)]);
                     var extra = new List<PixelBox>();
                     if (label is { } placedLabel)
                     {
@@ -532,7 +532,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
             }
         }
 
-        var longest = BookTabs.Labels.Max(static l => l.Length);
+        var longest = BookTabs.Labels(RouteScene.Shipped.Locale).Max(static l => l.Length);
         Assert.True((longest * 7) + 8 <= g.TabPixels, $"a label of {longest} characters in a ribbon of {g.TabPixels} px");
 
         // The list and the detail are written inside their pages, and at least a few lines are visible.
@@ -772,7 +772,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void ABeaconLabelAndAnNpcLabelStayInsideTheCanvasAtEveryScale(int windowWidth, int windowHeight, int scale)
+    public void ACalledAndAnNpcLabelStayInsideTheCanvasAtEveryScale(int windowWidth, int windowHeight, int scale)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
@@ -780,11 +780,11 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         var text = Small("campamento  111 blocks");
         foreach (var (ax, ay) in new[] { (0.0, 0.0), (canvas.Width * 1.0, canvas.Height * 1.0), (canvas.Width * 0.5, 4.0), (4.0, canvas.Height * 0.5), (canvas.Width - 4.0, canvas.Height * 0.9) })
         {
-            var label = BeaconLabel.Place(canvas.Width, canvas.Height, ax, ay, text, [panel]);
+            var label = Called.Place(canvas.Width, canvas.Height, ax, ay, text, [panel]);
             Assert.True(Inside(label, window), $"the label {label} for an arrow at {ax},{ay} is outside the canvas");
             Assert.True(Apart(label, panel), "the label overlaps the panel");
 
-            var onScreen = BeaconLabel.Clamp(new PixelBox((int)ax - 90, (int)ay - 11, (int)text + 12, 22), canvas.Width, canvas.Height);
+            var onScreen = Called.Clamp(new PixelBox((int)ax - 90, (int)ay - 11, (int)text + 12, 22), canvas.Width, canvas.Height);
             Assert.True(Inside(onScreen, window), $"the on-screen label {onScreen} is outside the canvas");
         }
     }
@@ -826,7 +826,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
             Assert.True(UiPalette.RibbonLabel.ContrastWith(ribbon.Lighten(UiPalette.ActiveRibbonLighten)) >= 4.5, $"lit ribbon {page} {UiPalette.RibbonLabel.ContrastWith(ribbon.Lighten(UiPalette.ActiveRibbonLighten)):0.00}");
         }
 
-        Assert.Equal(BookTabs.Labels.Count, UiPalette.Ribbons.Count);
+        Assert.Equal(BookTabs.Labels(RouteScene.Shipped.Locale).Count, UiPalette.Ribbons.Count);
     }
 
     [Fact]

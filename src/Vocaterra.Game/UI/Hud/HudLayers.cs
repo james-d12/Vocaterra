@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;
@@ -124,8 +125,9 @@ public sealed class ObjectiveLayer : IFrameLayer
 /// </summary>
 public sealed class PlaytestHintLayer : IFrameLayer
 {
-    /// <summary>The label the layer draws.</summary>
-    public const string Text = PlaytestEnd.EndKeyName + ": end the run (facilitator)";
+    /// <summary>The label the layer draws (<c>ui.playtestEndHint</c>, C04).</summary>
+    /// <param name="ui">The support language.</param>
+    public static string Text(LocaleText ui) => (ui ?? throw new ArgumentNullException(nameof(ui))).Ui("playtestEndHint");
 
     private static readonly Color Dim = new(200, 200, 215);
 
@@ -139,10 +141,11 @@ public sealed class PlaytestHintLayer : IFrameLayer
 
         var font = view.Fonts.Get(FontProvider.NativeSize);
         // The place the conversation layout reserves (S22): top left, clear of the dialogue footer, the cards and the bubble.
-        var label = ConversationLayout.FacilitatorLabel((int)DrawHelpers.Width(font, Text));
+        var text = Text(view.Session.Locale);
+        var label = ConversationLayout.FacilitatorLabel((int)DrawHelpers.Width(font, text));
         var box = new Rectangle(label.X, label.Y, label.Width, label.Height);
         spriteBatch.Draw(view.Pixel, box, new Color(10, 10, 20, 170));
-        DrawHelpers.Text(spriteBatch, font, Text, new Vector2(box.Left + 8, box.Top + 4), Dim);
+        DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.Left + 8, box.Top + 4), Dim);
     }
 }
 
@@ -199,14 +202,14 @@ public sealed class WordCardLayer : IFrameLayer
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, Gold * alpha);
 
         var large = view.Fonts.Get(PhraseSize);
-        DrawHelpers.Text(spriteBatch, small, "New word", new Vector2(box.Left + 14, box.Top + 8), Gold * alpha);
+        DrawHelpers.Text(spriteBatch, small, view.Session.Locale.Ui("newWord"), new Vector2(box.Left + 14, box.Top + 8), Gold * alpha);
         DrawHelpers.Text(spriteBatch, large, shown.Card.Phrase, new Vector2(box.Left + 14, box.Top + 28), Ink * alpha);
 
         // The audio slot: an empty placeholder until S9 records the word.
         var slot = new Rectangle(box.Right - 86, box.Top + 26, 72, 40);
         spriteBatch.Draw(view.Pixel, slot, new Color(30, 30, 44) * alpha);
         DrawHelpers.Border(spriteBatch, view.Pixel, slot, 1, Empty * alpha);
-        DrawHelpers.Text(spriteBatch, small, "audio", new Vector2(slot.Left + 12, slot.Top + 11), UiPalette.Muted.ToColor() * alpha);
+        DrawHelpers.Text(spriteBatch, small, view.Session.Locale.Ui("audioSlot"), new Vector2(slot.Left + 12, slot.Top + 11), UiPalette.Muted.ToColor() * alpha);
     }
 
     private static void DrawToast(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase small, string phrase, Rectangle box, bool collapsed, float alpha)
@@ -215,11 +218,11 @@ public sealed class WordCardLayer : IFrameLayer
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, Gold * alpha);
         if (collapsed)
         {
-            DrawHelpers.Text(spriteBatch, small, "New word: " + phrase, new Vector2(box.X + 8, box.Y + 4), Ink * alpha);
+            DrawHelpers.Text(spriteBatch, small, view.Session.Locale.Ui("newWordToast", ("word", phrase)), new Vector2(box.X + 8, box.Y + 4), Ink * alpha);
             return;
         }
 
-        DrawHelpers.Text(spriteBatch, small, "New word", new Vector2(box.X + 12, box.Y + 6), Gold * alpha);
+        DrawHelpers.Text(spriteBatch, small, view.Session.Locale.Ui("newWord"), new Vector2(box.X + 12, box.Y + 6), Gold * alpha);
         DrawHelpers.Text(spriteBatch, view.Fonts.Get(ToastPhraseSize), phrase, new Vector2(box.X + 12, box.Y + 22), Ink * alpha);
     }
 }

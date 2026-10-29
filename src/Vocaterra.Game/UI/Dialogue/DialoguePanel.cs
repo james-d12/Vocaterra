@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Graphics;
@@ -20,28 +21,36 @@ public sealed class DialoguePanel : IFrameLayer
     /// The key hints under the text box while typing (S17b). V types a letter in the text box, so the talk key is named with the way back to the buttons: the
     /// talk key works from the buttons, and Tab or Esc returns there.
     /// </summary>
-    public const string KeyHints = "Enter: send   Tab or Esc: buttons, then hold V or Space: speak   Alt+vowel: á é í ó ú   Alt+N: ñ   Alt+/: ¿   Alt+1: ¡";
+    /// <param name="ui">The support language (<c>ui.dialogueKeyHints</c>, C04).</param>
+    public static string KeyHints(LocaleText ui) => Ui(ui).Ui("dialogueKeyHints");
 
     /// <summary>The key hints while the speech buttons are shown (S17b): the talk key is named in both states.</summary>
-    public const string ButtonHints = "Hold V or Space: speak   Esc: cancel or close";
+    /// <param name="ui">The support language.</param>
+    public static string ButtonHints(LocaleText ui) => Ui(ui).Ui("dialogueButtonHints");
 
     /// <summary>The key hints when speech is unavailable, while the speech buttons are shown (S17b): the typed answer is the way to answer.</summary>
-    public const string SpeechOffButtonHints = "Speech off: type your answer (W or Tab)   Esc: close";
+    /// <param name="ui">The support language.</param>
+    public static string SpeechOffButtonHints(LocaleText ui) => Ui(ui).Ui("dialogueSpeechOffButtonHints");
 
     /// <summary>The key hints when speech is unavailable, while typing (S17b).</summary>
-    public const string SpeechOffKeyHints = "Speech off: type your answer   Enter: send   Tab or Esc: buttons   Alt+vowel: á é í ó ú   Alt+N: ñ   Alt+/: ¿   Alt+1: ¡";
+    /// <param name="ui">The support language.</param>
+    public static string SpeechOffKeyHints(LocaleText ui) => Ui(ui).Ui("dialogueSpeechOffKeyHints");
 
     /// <summary>The status while the push-to-talk key is held and the microphone records.</summary>
-    public const string ListeningText = "Listening…";
+    /// <param name="ui">The support language.</param>
+    public static string ListeningText(LocaleText ui) => Ui(ui).Ui("dialogueListening");
 
     /// <summary>The status while a turn is on the worker (recognizing and evaluating).</summary>
-    public const string ThinkingText = "Thinking…";
+    /// <param name="ui">The support language.</param>
+    public static string ThinkingText(LocaleText ui) => Ui(ui).Ui("dialogueThinking");
 
     /// <summary>The prefix of a line the player said, as the recognizer heard it.</summary>
-    public const string SpokenPrefix = "You (voice): ";
+    /// <param name="ui">The support language.</param>
+    public static string SpokenPrefix(LocaleText ui) => Ui(ui).Ui("dialogueYouSpoken");
 
     /// <summary>The mark before every line of English in the panel (S16): the English is never spoken, so the panel says which line it is.</summary>
-    public const string SupportPrefix = "English: ";
+    /// <param name="ui">The support language.</param>
+    public static string SupportPrefix(LocaleText ui) => Ui(ui).Ui("supportPrefix");
 
     private static readonly Color Background = new(16, 16, 24, 236);
     private static readonly Color PanelEdge = new(112, 114, 136);
@@ -77,7 +86,7 @@ public sealed class DialoguePanel : IFrameLayer
     {
         ArgumentNullException.ThrowIfNull(dialogue);
         ArgumentNullException.ThrowIfNull(font);
-        return new DialogueLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), dialogue.Choices.Select(static c => c.Label).ToList(), dialogue.Buttons, dialogue.IsTyping, button => SpeechButtons.TextFor(button, session), HintsFor(dialogue.IsTyping, dialogue.SpeechUnavailable));
+        return new DialogueLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), dialogue.Choices.Select(static c => c.Label).ToList(), dialogue.Buttons, dialogue.IsTyping, button => SpeechButtons.TextFor(button, session), HintsFor(session?.Locale ?? throw new ArgumentNullException(nameof(session)), dialogue.IsTyping, dialogue.SpeechUnavailable));
     }
 
     /// <inheritdoc />
@@ -138,15 +147,18 @@ public sealed class DialoguePanel : IFrameLayer
     /// <summary>
     /// The key hints line (S17b): it names the talk key in both states, and says that speech is off, with the typed answer, when the models are not loaded.
     /// </summary>
+    /// <param name="ui">The support language.</param>
     /// <param name="typing">Whether the text box has the keys.</param>
     /// <param name="speechUnavailable">Whether the speech models are not loaded (the talk key does nothing).</param>
-    public static string HintsFor(bool typing, bool speechUnavailable) => (typing, speechUnavailable) switch
+    public static string HintsFor(LocaleText ui, bool typing, bool speechUnavailable) => (typing, speechUnavailable) switch
     {
-        (true, false) => KeyHints,
-        (true, true) => SpeechOffKeyHints,
-        (false, false) => ButtonHints,
-        _ => SpeechOffButtonHints,
+        (true, false) => KeyHints(ui),
+        (true, true) => SpeechOffKeyHints(ui),
+        (false, false) => ButtonHints(ui),
+        _ => SpeechOffButtonHints(ui),
     };
+
+    private static LocaleText Ui(LocaleText ui) => ui ?? throw new ArgumentNullException(nameof(ui));
 
     private static Rectangle ToRectangle(PixelBox box) => new(box.X, box.Y, box.Width, box.Height);
 
@@ -183,9 +195,9 @@ public sealed class DialoguePanel : IFrameLayer
     private static void DrawStatus(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, DialogueModel dialogue, Rectangle panel)
     {
         var (text, color) = dialogue.Listening
-            ? (ListeningText, ListeningColor)
+            ? (ListeningText(view.Session.Locale), ListeningColor)
             : dialogue.IsThinking
-                ? (ThinkingText, HintColor)
+                ? (ThinkingText(view.Session.Locale), HintColor)
                 : dialogue.SpeechNotice is { } notice ? (notice, NoticeColor) : (string.Empty, Color.White);
         if (text.Length == 0)
         {
@@ -218,10 +230,10 @@ public sealed class DialoguePanel : IFrameLayer
             var line = dialogue.Lines[index];
             var prefix = line.Speaker switch
             {
-                DialogueSpeaker.Player => "You: ",
-                DialogueSpeaker.PlayerSpoken => SpokenPrefix,
+                DialogueSpeaker.Player => view.Session.Locale.Ui("dialogueYou"),
+                DialogueSpeaker.PlayerSpoken => SpokenPrefix(view.Session.Locale),
                 DialogueSpeaker.Guide or DialogueSpeaker.World or DialogueSpeaker.Correction => dialogue.NpcName + ": ",
-                DialogueSpeaker.English => SupportPrefix,
+                DialogueSpeaker.English => SupportPrefix(view.Session.Locale),
                 _ => string.Empty,
             };
             var color = line.Speaker switch
@@ -245,7 +257,7 @@ public sealed class DialoguePanel : IFrameLayer
             // English rung or the help key was pressed, and always for a line no phrase is practising.
             if (line.Speaker == DialogueSpeaker.Guide && view.Session.SupportForNpcLine(dialogue.Npc, line.Text) is { } english)
             {
-                foreach (var row in TextWrap.Wrap(SupportPrefix + english, width, t => DrawHelpers.Width(font, t)))
+                foreach (var row in TextWrap.Wrap(SupportPrefix(view.Session.Locale) + english, width, t => DrawHelpers.Width(font, t)))
                 {
                     rows.Add((row, EnglishColor, false));
                 }

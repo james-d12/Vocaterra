@@ -212,9 +212,9 @@ public sealed class DialogueScreen : IScreen
             }
         }
 
-        if (input.Pressed(GameKey.V) || input.Pressed(GameKey.Space))
+        if (input.Pressed(InputKeys.Of("listen")) || input.Pressed(InputKeys.Of("listenAlt")))
         {
-            BeginListening(input.Pressed(GameKey.V) ? GameKey.V : GameKey.Space);
+            BeginListening(input.Pressed(InputKeys.Of("listen")) ? InputKeys.Of("listen") : InputKeys.Of("listenAlt"));
             return;
         }
 

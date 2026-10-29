@@ -34,7 +34,7 @@ public sealed class NpcRosterTests
     {
         Assert.Equal(["guide", "shopkeeper", "villager"], Npcs.Ids);
         Assert.Equal(["Guía", "Tendero", "Aldeano"], Npcs.All.Select(static n => n.Label));
-        Assert.Equal(["Luna", "Tendero", "Aldeano"], Npcs.All.Select(static n => n.BeaconLabel));
+        Assert.Equal(["Luna", "Tendero", "Aldeano"], Npcs.All.Select(static n => n.Called));
         Assert.Equal(["guide", "shopkeeper", "villager"], Npcs.All.Select(static n => n.Figure));
         Assert.Equal("otro", Npcs.LabelOf("otro"));
     }

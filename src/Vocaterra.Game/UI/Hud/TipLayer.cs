@@ -41,7 +41,7 @@ public sealed class TipLayer : IFrameLayer
             var box = new Rectangle(Margin, y, width, height);
             spriteBatch.Draw(view.Pixel, box, Back);
             DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, DialoguePanel.EnglishColor);
-            DrawHelpers.Text(spriteBatch, font, ui.Ui("english") + " · tip", new Vector2(box.X + 8, box.Y + 6), Gold);
+            DrawHelpers.Text(spriteBatch, font, ui.Ui("tipHeading", ("english", ui.Ui("english"))), new Vector2(box.X + 8, box.Y + 6), Gold);
             for (var i = 0; i < rows.Count; i++)
             {
                 DrawHelpers.Text(spriteBatch, font, rows[i], new Vector2(box.X + 8, box.Y + 26 + (i * 20)), DialoguePanel.EnglishColor);
