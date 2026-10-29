@@ -570,9 +570,9 @@ section 4's status column.
 
 | ID | What | Depends | Status |
 | --- | --- | --- | --- |
-| C01 | Content contract: JSON Schemas for every game file and the locale format, `$schema` refs, the schema test (test-only library), `content/README.md`, `content.sh refresh`, the bundle hash masked in `scripts/compare-runs.py` | R16 phase 2 | planned |
-| C02 | `GameData` + `GameDataValidator`: one load of every host file (the scene from the verified bytes; `GrammarStringsExtractor` reads through it), the cross-checks moved there, host `--validate-content` | C01 | planned |
-| C03 | The locale bundle (`content/locale/`, `en` only, its own manifest, checked at load, its hash in the log and the report); game-v1's `supportLanguage`; the turn path keeps line ids; `LocaleText` replaces `EnglishText`; glosses keyed by speech-line ids; the L1 fields leave lessons, phrases, glosses and checks; verb forms listed | C02 | planned |
+| C01 | Content contract: JSON Schemas for every game file and the locale format, `$schema` refs, the schema test (test-only library), `content/README.md`, `content.sh refresh`, the bundle hash masked in `scripts/compare-runs.py` | R16 phase 2 | done, gated with C02 and C03 (2026-10-29, `9e7960d`) |
+| C02 | `GameData` + `GameDataValidator`: one load of every host file (the scene from the verified bytes; `GrammarStringsExtractor` reads through it), the cross-checks moved there, host `--validate-content` | C01 | done, gated with C01 and C03 (2026-10-29, `9e7960d`) |
+| C03 | The locale bundle (`content/locale/`, `en` only, its own manifest, checked at load, its hash in the log and the report); game-v1's `supportLanguage`; the turn path keeps line ids; `LocaleText` replaces `EnglishText`; glosses keyed by speech-line ids; the L1 fields leave lessons, phrases, glosses and checks; verb forms listed | C02 | done, gated with C01 and C02 (2026-10-29, `9e7960d`) |
 | C04 | The English literals of Game and Game.Core into the locale (section 2.2); `{key:…}` from R16's `KeyBindings`, `{npc:…}`, plurals; the no-literal scan; the glyph test | C03 | planned |
 | C05 | Target-language words out of code (`game/words.json`, place labels into the scene; section 2.3); the grammar extractor reads them | C03 | planned |
 | C06 | One trigger model shared by tips and lesson `do` steps (exact `detail`, ready for objectives); the `torch_at_ring` world event; lessons split one file each | C02 | planned |
@@ -580,6 +580,30 @@ section 4's status column.
 | C08 | NPC data (`npcs/*.json`: label, name, figure key, phrase tables), `host-events.json`, `NpcService.AgentIds` from data; `NpcNames`, the `NpcHostEvents` table and `PhraseReview`'s table retired; the beacon label fixed | C05 | planned |
 | C09 | Items, blocks, sounds and signs as data (assess first; parts may stay code). Enum names stay stable because saves store them; signs need a sign mechanism | C08 | proposed |
 | C10 | Authoring CLI: scaffold, references, check (the first custom tool) | C07, C08 | proposed |
+
+**The order of the rest (2026-10-29).** C05, C06, C08 and C07, then C04 last: its `{npc:…}` placeholder is filled from C08's NPC data, and its
+no-literal scan is easiest once every other milestone has moved its strings.
+
+**What C01 to C03 did, and how it differs from section 3 (2026-10-29).**
+- **C01.** Draft-07 schemas for every game file and the locale format, in `content/schema/`. Each step type's required fields are written as
+  `anyOf` with `not`, because NJsonSchema does not apply `if`/`then`. The licence scan takes `--target`, and the gate scans
+  `tests/Vocaterra.Game.Core.Tests` too. `compare-runs.py` masks the bundles' hashes, the checkout's path and the lines `limited.sh` prints
+  while it waits.
+- **C02.** `GameData.Load` reads every game file once, from the verified bytes, scene included. `GameDataValidator` reports every problem
+  between files at once. The reference checks moved there from `EnglishText` and `CheckBank`; `LessonBook` keeps its own, because it resolves
+  them into its model. The grammar strings came out byte-identical.
+- **C03.** `content/locale/en` holds 815 strings in 10 files, keyed by id, with its own manifest, which `LocaleBundle` checks at load. A new
+  locale needs only its strings: the ids and the fallback are fixed.
+  - **Lines.** The data keys each gloss by speech-line id (`line.<lineId>`), so a Spanish edit keeps it. The panel still finds the line from
+    its text, through the bundle's own speech lines and without case, accents or punctuation. The turn records were not given line ids, which
+    3.2 asked for; the effect is the same, and a test checks that every NPC line has a gloss.
+  - **The rest.** The model types keep their `English` property names (`PhraseRow.English`, `LessonStep.English`); C04 may rename them.
+    `english.json` and `glosses.json` left game-v1, and `game/tips.json` and `game/controls.json` keep the tips' timing and the controls'
+    order. The orphan gloss "Necesitas una botella." was dropped.
+  - **Core.** Two core findings became core milestones: M54 (the identity guard masks the bundle's hash, which it had pinned) and M55 (the
+    manifest tests no longer assume that game-v1 names no support language).
+  - **Runs.** The scripted runs differ from the baseline only by the new `locale:` line in `stdout.txt`, the `locale` and `locale_bundle`
+    fields of `session_start`, and the report's Locale row.
 
 **Every content-moving milestone:**
 - runs `content.sh refresh` (hash, provenance, validate, lint, cefr-check, the game validator and the grammar check), then the whole

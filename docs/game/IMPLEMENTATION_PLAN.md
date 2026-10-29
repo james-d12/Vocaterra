@@ -1457,6 +1457,20 @@ Facts that shape the plan. Each one names its source; the core's own findings st
   - The main checkout held 4.5 GB of stale `game/` and `nlp/` build output from before R01, and the merged worktree `game_refactor-work`
     held 3.5 GB of `bin/` and `obj/`. Both were deleted to make room for the series' worktree; the free disk had fallen to 9.8 GB.
 
+- **C01 to C03: the content contract, one load and the locale bundle (2026-10-29, Opus 5.5; gated on `feature/content` at `9e7960d`).**
+  - **Gate:** 5482 passed, 3 skipped, 0 failed, with the models; the build has 0 warnings; format, content, grammar and both licence scans are
+    clean. That is 35 new tests: Game.Core 1208 to 1243, the rest unchanged.
+  - **Scripted runs.** After C01 and C02 all 16 runs are the same as the baseline once the hash is masked (`compare-runs.py` now masks it).
+    After C03 they differ only where expected: the new `locale:` line in `stdout.txt` and the `session_start` locale fields (all 16), and the
+    report's Locale row (r12).
+  - **Found:**
+    - The core's identity guard pinned game-v1's bytes, because the verdicts stamp the bundle's hash. It is fixed as core milestone M54.
+    - The core's manifest tests assumed game-v1 names no support language; fixed as M55.
+    - NJsonSchema ignores draft-07 `if`/`then`, so the schemas write those rules as `anyOf` with `not`.
+    - JsonSchema.Net 9.x has no licence expression, so the schema test uses NJsonSchema (MIT).
+    - The old `english.json` held one orphan gloss, "Necesitas una botella.".
+  - **Disk:** the stale `game/` and `nlp/` build output of the main checkout (4.5 GB from before R01) was deleted.
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.
