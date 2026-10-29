@@ -105,10 +105,12 @@ namespace (`src/Vocaterra.Game.Core/Language/Book/` is `Vocaterra.Game.Core.Lang
 ```
 Content/          GameData (every game file of the bundle, read once from its verified bytes), GameDataValidator (the checks between the files,
                   CONTENT_PLAN C02), LocaleBundle and LocaleText (the learner's support language from content/locale, C03)
-Event/            the game's events (WorldEvents, GameEvent) and EventPrinter (the console's event lines)
+Event/            the game's events (WorldEvents, GameEvent), EventPrinter (the console's event lines) and Trigger (what a tip, a lesson step
+                  or an objective waits for, C06)
 Input/            the keys without the engine (GameKey, IInputFrame, D-p2-1a), the command pattern (IGameCommand, DelegateCommand,
-                  GameCommands, KeyBinding, KeyBindings), InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits,
-                  TextEditKeys, the push-to-talk (PushToTalkSpeechCapture, ListenSession, ListenTarget), BookItemUse
+                  GameCommands, KeyBinding, KeyBindings, InputKeys: the commands' keys by name, which the locale's {key:…} spells),
+                  InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits, TextEditKeys, the push-to-talk
+                  (PushToTalkSpeechCapture, ListenSession, ListenTarget), BookItemUse
 Items/            Inventory, ItemDefinition, ScriptItemNames, InventoryScreen and its panel (InventoryPanel)
   Crafting/       Recipe, RecipeBook and their records, CraftingRules, CraftingScreen, CraftingRow, RecipePanelModel, CraftingPanel
 Dialogue/         DialogueModel and its records, the speech buttons, TextWrap, the turn flow (TurnPump, SpeechActionRunner, SupportFrontend,

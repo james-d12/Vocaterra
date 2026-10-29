@@ -1483,6 +1483,22 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - The NPCs' labels and names were not grammar-checked; they are now (4 strings, clean). C05's 26 words gave 5 capitalisation infos on
       fragments, none an error.
 
+- **C07 and C04: the objectives as data, save v5, and the player's English in the locale (2026-10-29, Opus 5.5; on `feature/content`).**
+  - **C07.** `game/session.json` and `game/objectives/<id>.json` replace `Objective.Camp()` and the `SessionStage` rules. The HUD's line is the
+    first objective not done. Hooks name the code's behaviour (`guide-met`, `spare-torch`, `point-own-camp`; `lesson-begun`,
+    `scan-fire-ring`). Save v5 keys the steps by objective, and an older save's keys are mapped before the migration. `Fixtures/save-v4.json`
+    tests the out-of-order ending. The runs differ only by the saves' version and keys.
+  - **C04.** About 150 player strings moved to `locale/en/ui.json`, with `{npc:…}`, `{key:…}` (`InputKeys`, which `KeyBindings` reads) and
+    plurals. `NoLiteralTextTests` and the locale glyph test keep it that way.
+  - **Found:**
+    - The light-fire objective has to wait for `fire_lit`, not the torch at the ring, or the session-complete line would come before the
+      fire's.
+    - The tests made older saves by relabelling a new one, so the v4 key map leaves a key that has a dot.
+    - Three comments, not literals, held Spanish (`"Hola."`, `"¿En qué te ayudo?"`, `"Otra vez, por favor"`); the scan skips comments.
+    - The speech and microphone problem messages are made where no locale is at hand (the worker, the engine, the capture), and the English
+      verb labels are grammar rules. Both are open points on the scan's allowlist.
+    - The beacon now says "1 block", not "1 blocks".
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.
