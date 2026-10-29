@@ -1,8 +1,8 @@
 # Test suite performance plan
 
 Written 2026-10-28. It covers both halves of the repository. On 2026-10-29 it was checked against `main` at `604903f` (after R16 moved the
-game's tests between projects) and carried out on the branch `feature/test-performance`: T0 to T4 are done, T5 waits on the owner, and the
-items of T6 are open. The results are in the next section; each phase below says what was done and where it differs from the first plan.
+game's tests between projects) and carried out on the branch `feature/test-performance`: T0 to T4 are done (T3b on the owner's word), the owner
+declined T5's local fuzz pass, and the items of T6 are open. The results are in the next section; each phase below says what was done and where it differs from the first plan.
 
 ## Results
 
@@ -10,27 +10,29 @@ Each run is `dotnet test Vocaterra.sln --no-build -m:2 --logger trx` through `sc
 11 GiB, the run capped at 10 cores and 6 GB), measured with `scripts/test-timings.py`. The run's wall time is the span from the first test
 assembly's start to the last one's finish, so the time a run waits for another heavy command is not counted.
 
-| Assembly | T0, models | T0, no models | After T1 to T3, models | Branch, full, models | Branch, full, no models | Branch, fast, models |
-|---|---|---|---|---|---|---|
-| Game.Core.Tests | 146.1 s | 141.2 s | 66.5 s | 40.8 s | 35.4 s | 26.1 s |
-| Game.Tests | 39.3 s | 37.7 s | 18.6 s | 15.1 s | 15.4 s | 5.8 s |
-| Nlp.Tests | 63.1 s | 35.9 s | 59.4 s | 53.5 s | 34.7 s | 11.3 s |
-| Nlp.Fuzzing.Tests | 64.6 s | 63.0 s | 49.5 s | 39.2 s | 41.0 s | left out |
-| Nlp.Golden.Tests | 16.1 s | 13.8 s | 13.2 s | 13.0 s | 13.2 s | 1.5 s |
-| Nlp.Es.Tests | 3.4 s | 3.5 s | 3.9 s | 4.0 s | 4.0 s | 3.6 s |
-| Host.Tests | 1.7 s | 1.4 s | 1.3 s | 1.2 s | 1.2 s | 1.3 s |
-| **The run** | **186.3 s** | **153.2 s** | **130.0 s** | **108.1 s** | **84.3 s** | **26.1 s** |
-| Passed / skipped | 5,447 / 3 | 5,419 / 31 | 5,449 / 3 | 5,449 / 3 | 5,421 / 31 | 5,142 / 0 |
+| Assembly | T0, models | T0, no models | After T1 to T3, models | T4, full, models | Branch, full, models | T4, full, no models | T4, fast, models |
+|---|---|---|---|---|---|---|---|
+| Game.Core.Tests | 146.1 s | 141.2 s | 66.5 s | 40.8 s | 36.8 s | 35.4 s | 26.1 s |
+| Game.Tests | 39.3 s | 37.7 s | 18.6 s | 15.1 s | 15.2 s | 15.4 s | 5.8 s |
+| Nlp.Tests | 63.1 s | 35.9 s | 59.4 s | 53.5 s | 35.7 s | 34.7 s | 11.3 s |
+| Nlp.Fuzzing.Tests | 64.6 s | 63.0 s | 49.5 s | 39.2 s | 40.6 s | 41.0 s | left out |
+| Nlp.Golden.Tests | 16.1 s | 13.8 s | 13.2 s | 13.0 s | 13.2 s | 13.2 s | 1.5 s |
+| Nlp.Es.Tests | 3.4 s | 3.5 s | 3.9 s | 4.0 s | 4.2 s | 4.0 s | 3.6 s |
+| Host.Tests | 1.7 s | 1.4 s | 1.3 s | 1.2 s | 1.3 s | 1.2 s | 1.3 s |
+| **The run** | **186.3 s** | **153.2 s** | **130.0 s** | **108.1 s** | **86.5 s** | **84.3 s** | **26.1 s** |
+| Passed / skipped | 5,447 / 3 | 5,419 / 31 | 5,449 / 3 | 5,449 / 3 | 5,449 / 3 | 5,421 / 31 | 5,142 / 0 |
 
-The two extra passes from T1 on are the two clone tests it adds; no test was removed, skipped or weakened, and no golden changed. The
-"branch" columns are the final state (T1 to T4 and the warmed scene of T1). Runs of the same code differ by 10 s or more an assembly
-with what runs beside them and the machine's other load: the fuzz suite, whose tests no phase changed, took 64.6, 49.5 and 39.2 s in the
-three runs with models, so the step from 66.5 to 40.8 s for Game.Core.Tests is partly the warmed scene and partly that variance (the two
-were not measured apart). The fast tier runs 94 percent of the tests in a quarter of the full run's time (26 s against 108 s). With `-m:2` two test assemblies run at
-once, so the run's wall time is set by the longer of the two lanes. At T0 that was Game.Core.Tests (146 s) beside everything else (188 s).
-On the branch the lanes are Host, Game, Fuzzing and Es (ending after 61 s) and Game.Core, Golden and Nlp.Tests (108 s): Nlp.Tests starts
-last, and its serial collection (about 20 s with models) runs alone at its end. T3b removes that tail (Nlp.Tests 53.5 s to 34.4 s); O15 (T6)
-is the next lever after it.
+The two extra passes from T1 on are the two clone tests it adds; no test was removed, skipped or weakened, and no golden changed. "T4" is T1
+to T4 with the warmed scene of T1; "branch" adds T3b and the timing collection (T1), and is the state of the branch (three runs: 86.5, 87.9
+and 86.7 s). The no-models and the fast columns were measured at T4; T3b and the timing collection change little there (without models the
+collection's model tests skip, and the fast tier leaves them and the timing tests out). Runs of the same code differ by 10 s or more an
+assembly with what runs beside them and the machine's other load: the fuzz suite, whose tests no phase changed, took 64.6, 49.5 and 39.2 s
+in three runs with models, so the step from 66.5 to 40.8 s for Game.Core.Tests is partly the warmed scene and partly that variance (the two
+were not measured apart). The fast tier runs 94 percent of the tests in under a third of the full run's time (26 s against 87 s). With
+`-m:2` two test assemblies run at once, so the run's wall time is set by the longer of the two lanes. At T0 that was Game.Core.Tests (146 s)
+beside everything else (188 s). On the branch the lanes are Host, Game, Fuzzing and Es (ending after 62 s) and Game.Core, Golden and
+Nlp.Tests (86 s); the assemblies hold about 148 s of work, so an even split would end near 75 s, and the order in which `dotnet test` starts
+them is the remaining lever on the run as a whole (T6).
 
 ## Context
 
@@ -102,7 +104,7 @@ lowered an oracle's depth or changed a golden.
   `TestGame.Route` and `VoxelTestSupport.BuildRoute` (and its `RouteDraft`) go through it; so do `RouteScene.Clearing` and the direct
   builds in `FootstepTests`, `ChunkMesherTests`, `GreyscaleTests`, `FirstPersonCameraTests`, `BeaconArrowTests`, `CampObjectiveTests` and
   `VoxelSessionTests`.
-- **Still built for real:** `SceneTests.Seed42SceneMatchesTheGoldenAndLoadsInUnderThreeSeconds` and `TheSceneBuildsIdenticallyTwice` (two
+- **Still built for real:** `Seed42SceneMatchesTheGoldenAndLoadsInUnderThreeSeconds` and `SceneTests.TheSceneBuildsIdenticallyTwice` (two
   builds, no longer two copies of one), and the small layouts of `TerrainTests`. The other generation tests only read a scene of a given
   seed, and a clone is that scene, so they share the copies (the first plan kept all of `World/Generation` on real builds).
 - **New tests:** `VoxelGridTests.ACloneReadsLikeItsOriginalAndEditsApartFromIt` and
@@ -113,6 +115,12 @@ lowered an oracle's depth or changed a golden.
 - The built scenes stay in memory for the test process: one per seed the tests use (ten in Game.Core.Tests, about 38 MB each). Even so the
   peak memory fell with T1 and T2 together: Game.Core.Tests alone peaked at 3.61 GB on `main` and 2.80 GB on the branch (the test host's
   peak resident set, sampled), since each test process now holds one bundle instead of up to 21.
+- **The timing tests run on their own.** With the route built once per seed, a run's first seconds build it for every seed the tests use,
+  many at once, and the seed-42 timing test (three timed builds, the fastest under 3 s) measured that crowd: it failed in two of the fifteen runs
+  of Game.Core.Tests that included it (3.5 to 4.0 s at the fastest attempt; about 0.6 s alone), and very likely in a third whose log was
+  not kept. It moved, unchanged, from `SceneTests` to its own
+  class `SceneBuildTimeTests` in a new serial collection, `TimingCollection` (Game.Core.Tests' `TestSupport/`), which runs after the rest of
+  the assembly. `ChunkIndexTests` (six small tests, one with a 100 ms budget) is in it too. The budgets are unchanged. In three full runs since, the timed build took 0.66 to 0.75 s and every run passed.
 
 ### T2: Load each bundle once per test assembly (game and core test projects), done
 - **Game:** the 34 per-class loads and the five uncached calls use `TestGame.Bundle`, `TestGame.Nouns` and `TestGame.Phrases`. `TestGame`
@@ -123,25 +131,25 @@ lowered an oracle's depth or changed a golden.
   Recorded for T6; T4 leaves them out of the fast tier instead.
 - Every load still verifies the hashes, so what the tests check is the same.
 
-### T3: Model gates and the serial collection (core test projects), done in part
+### T3: Model gates and the serial collection (core test projects), done
 - `ModelGate.IsAvailable` keeps its verdict per model id (`ConcurrentDictionary<string, Lazy<bool>>`). `VoskPipelineTests`' copy of the
   gate is removed; it uses the ASR tests' gate, so the cache is shared. The model tests run, not skip, with models present (3 skipped, as at
   T0: the wav2vec2 and e5 models are not in the shared folder).
 - **Not done: moving the collection's plain facts out.** T0 measured them at 0.2 s in all (item 4), so the move would gain nothing for the
   risk the collection's comment describes.
-- **T3b, proposed (owner decision): let the collection run beside the assembly's other tests.** Removing `DisableParallelization = true`
-  from `NativeRuntimeCollection` keeps its own tests one at a time (one xUnit collection always runs in order) but no longer holds them until
-  the rest of Nlp.Tests has finished. Measured on this branch with models, Nlp.Tests alone: 53.4 and 53.7 s as it is, 34.3, 34.3 and 34.5 s
-  without the flag, all green with the same counts (2,452 passed, 3 skipped). The collection's comment asks that its tests never run
-  beside another test of the assembly; no reason beyond the shared native state is recorded (M52, 2026-10-26), and every test that touches
-  a native runtime is in the collection. The change is one line; it is not made here because it reverses that choice.
+- **T3b, done (owner, 2026-10-29): the collection runs beside the assembly's other tests.** `NativeRuntimeCollection` no longer sets
+  `DisableParallelization = true`: its own tests still run one at a time (an xUnit collection always runs in order), but no longer wait
+  until the rest of Nlp.Tests has finished. Measured with models, Nlp.Tests alone: 53.4 and 53.7 s with the flag, 34.3, 34.3 and 34.5 s
+  without it, all green with the same counts (2,452 passed, 3 skipped). It reverses M52's choice that these tests never run beside another
+  test of the assembly; no reason beyond the shared native state was recorded, and every test that loads a native runtime is in the
+  collection (its comment now says that a new one belongs there). In the full run with models, Nlp.Tests took 34.9 to 36.3 s in five runs (53.5 s at T4).
 
 ### T4: A fast tier for daily work (both halves), done
 - `[Trait(TestSpeed.Trait, TestSpeed.Slow)]` (the constant in `tests/Shared/TestSpeed.cs` for the core and
   `tests/Vocaterra.Game.Core.Tests/TestSupport/TestSpeed.cs` for the game) marks:
   - the fuzz suite, as an assembly trait (`FuzzOptions.cs`);
   - the 31 model-gated facts (14 of the game's, 17 of the core's);
-  - the world-generation classes `SceneTests`, `VillageTests` and `UndergrowthTests` (real builds, the timing test, and scenes of seeds the
+  - the world-generation classes `SceneTests`, `SceneBuildTimeTests`, `VillageTests` and `UndergrowthTests` (real builds, the timing test, and scenes of seeds the
     session tests do not use), and `PlayerBodyTests.TheBodyNeverEndsATickInsideASolidOnTheRealRouteEither` (six seeds, 3,000 ticks each);
   - `PlaytestReportTests`, which starts processes;
   - the content tool's full-bundle classes `CliTests`, `ProgramTests`, `LintTests` and `LintCommandTests`;
@@ -158,19 +166,21 @@ lowered an oracle's depth or changed a golden.
 - The gate (`scripts/merge-gate.sh`) and CI (`.github/workflows/ci.yml`, which exists since 2026-10-29 and runs the full suite without
   models) still run the full suite.
 
-### T5: Fuzz depth for local runs (owner decision first), open
-- `FuzzOptions` deliberately has no shallower tier, and T4 already leaves the whole fuzz suite out of `fast`. That is enough unless the owner
-  also wants a cheap local fuzz pass.
-- If they do, `scripts/test.sh fuzz-quick` would set the existing `VOCATERRA_FUZZ_*` variables to a tenth of the defaults for local use only.
-  The gate's depth never changes.
+### T5: Fuzz depth for local runs, declined (owner, 2026-10-29)
+- `FuzzOptions` keeps its one full depth, and T4 leaves the whole fuzz suite out of `fast`. The owner chose that over a cheap local pass
+  (`scripts/test.sh fuzz-quick` at a tenth of the default depths), so the fuzz suite runs in full in `full`, the gate and CI, and nowhere
+  shallower.
 - O15 (`ContentSchemaFuzzTests.MutatedBundles_...`) is the suite's longest test (52 to 55 s of its 63 s at T0). It already shares the
   parsed lexicon (`LexiconCache`), hard-links the speech clips and runs four threads; what is left is the oracle itself: every one of its 666
   iterations writes, hashes and fully loads a bundle copy. A cheaper equivalent with the same oracle needs the loader to read from an
   in-memory file source, which it cannot today (`ContentLoader.Load` takes a directory). That is a core API change: its own milestone (T6).
 
 ### T6: Follow-ups, judged on the numbers above, open
+- **The order of the assemblies.** `dotnet test Vocaterra.sln -m:2` starts them in its own order; on the branch one lane ends after 62 s and
+  the other after 86 s, of about 148 s of work. Starting Nlp.Tests before Golden.Tests and the fuzz suite, for example by testing two
+  ordered lists of projects in the gate, would bring the run near 75 s. A gate-script change; measure it before adopting it.
 - **An in-memory file source for `ContentLoader`** (core milestone): O15, `TempBundle` users and the CLI tests could then load damaged or
-  edited copies without writing them to disk. It is the biggest lever left on the core's lane.
+  edited copies without writing them to disk. O15 is most of the fuzz suite's 40 s, which sits on the shorter lane now.
 - **A `LexiconCache` for the CLI entry points**, or the CLI tests on the light `TempBundle`: `CliTests`, `LintCommandTests` and
   `ProgramTests` parse the full lexicon on each call (about 52 s of test time at T0). A core change to the tools.
 - **Don't keep speech WAV bytes in memory.** The core loader would read `speech/*.wav` lazily, or hash it as a stream without holding it.
@@ -205,4 +215,4 @@ Every phase:
 Phase-specific checks, as run:
 - **T1:** the two clone tests pass and the seed-42 golden (`8048644059674b5335ef2c32e230defbbe8402a32f72f7ee10324a36fc80cb47`) is unchanged.
 - **T3:** with models present the model-gated tests ran (3 skipped, the same as at T0).
-- **T4:** `scripts/test.sh fast` ran in 26 s against 108 s for the full suite (46 s before the warmed scene), and named every test it left out.
+- **T4:** `scripts/test.sh fast` ran in 26 s against 87 s for the full suite (46 s before the warmed scene), and named every test it left out.

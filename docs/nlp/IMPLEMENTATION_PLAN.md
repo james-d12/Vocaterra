@@ -1197,16 +1197,16 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
     Nlp.Tests' two loads and Golden.Tests' three use it. The CLI tests still load through `--content` (the CLI takes no `LexiconCache`).
   - **The model gate verifies each model once.** `ModelGate.IsAvailable` keeps its verdict per id; the pipeline tests' copy of the gate is
     gone. Measured: the gates hash Vosk (58 MB) and Parakeet (641 MB) at about 1 GB/s, so the saving is seconds.
-  - **The serial collection was left as it is.** Its 33 plain facts take 0.2 s in all; its cost is the model tests themselves (23.7 s with
-    models, at the end of Nlp.Tests), which is why Nlp.Tests takes 59 s with models and 36 s without. T3b in the plan proposes letting the
+  - **The serial collection.** Its 33 plain facts were not moved out: they take 0.2 s in all. Its cost is the model tests themselves (23.7 s with
+    models, at the end of Nlp.Tests), which is why Nlp.Tests takes 59 s with models and 36 s without. T3b (owner, 2026-10-29) lets the
     collection run beside the assembly's other tests (its own tests still one at a time): Nlp.Tests alone with models went from 53.5 s
-    to 34.4 s in three green runs. It reverses M52's choice, so it is the owner's decision.
+    to 34.4 s in three green runs. It reverses M52's choice that these tests never run beside another test.
   - **Fast tier:** `scripts/test.sh fast` leaves out the fuzz suite (an assembly trait), the 17 model-gated facts, `CliTests`, `ProgramTests`,
     `LintTests`, `LintCommandTests`, `SpanishIdentityTests` and three long single tests; Nlp.Tests runs 2,313 of 2,455 tests in 11 s. The
     gate, CI and `scripts/test.sh full` run the whole suite at its full depth; no oracle changed.
   - **O15 is the fuzz suite's longest test** (52 to 55 s of 63 s). It already shares the lexicon and hard-links the speech; a cheaper
-    equivalent with the same oracle needs `ContentLoader` to read an in-memory file source, a core API change (T6). A shallower local fuzz
-    pass (T5) is the owner's call.
+    equivalent with the same oracle needs `ContentLoader` to read an in-memory file source, a core API change (T6). The owner declined a shallower local
+    fuzz pass (T5): the suite runs at its one full depth.
 
 ## 6. Definition of done (every milestone)
 

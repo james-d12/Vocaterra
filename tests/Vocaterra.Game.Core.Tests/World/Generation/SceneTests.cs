@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
@@ -12,60 +11,16 @@ using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests.World.Generation;
 
-/// <summary>The generated world (S13): the seed-42 golden, determinism, the promises of the layout (the heights, the sites, the river, the trail) and the forest.</summary>
+/// <summary>The generated world (S13): the seed-42 golden (built and timed in <see cref="SceneBuildTimeTests"/>), determinism, the promises of the layout (the heights, the sites, the river, the trail) and the forest.</summary>
 [Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class SceneTests(ITestOutputHelper output)
 {
     private const ulong Seed = 42;
 
-    private const string GoldenDigest = "8048644059674b5335ef2c32e230defbbe8402a32f72f7ee10324a36fc80cb47";
+    /// <summary>The world digest of the bundle's route at seed 42 (its timing test is <see cref="SceneBuildTimeTests"/>).</summary>
+    internal const string GoldenDigest = "8048644059674b5335ef2c32e230defbbe8402a32f72f7ee10324a36fc80cb47";
 
     private const int Units = VoxelTestSupport.Units;
-
-    [Fact]
-    public void Seed42SceneMatchesTheGoldenAndLoadsInUnderThreeSeconds()
-    {
-        var layout = VoxelTestSupport.RouteDraft; // parsed once, outside the timing
-
-        // The test failed in a loaded parallel run and on the CI runner (3 084 and 3 446 ms): other test assemblies share the cores, and a build that is
-        // fast enough alone falls over the budget. So the build and digest are timed up to three times and the fastest is the one asserted: a machine
-        // that is only busy passes on a later attempt, while a real slowdown is in every attempt and fails all three.
-        const double Budget = 3000;
-        const int Attempts = 3;
-        Scene scene = null!;
-        var digest = "";
-        var (built, digested) = (double.MaxValue, double.MaxValue);
-        for (var attempt = 0; attempt < Attempts && built + digested >= Budget; attempt++)
-        {
-            var stopwatch = Stopwatch.StartNew();
-            scene = SceneBuilder.Build(layout, Seed);
-            var buildTime = stopwatch.Elapsed.TotalMilliseconds;
-            digest = scene.Grid.ComputeDigestHex();
-            var digestTime = stopwatch.Elapsed.TotalMilliseconds - buildTime;
-            output.WriteLine($"attempt {attempt + 1}: build time {buildTime:F1} ms (layout already parsed), first world digest {digestTime:F1} ms");
-            if (buildTime + digestTime < built + digested)
-            {
-                (built, digested) = (buildTime, digestTime);
-            }
-        }
-
-        output.WriteLine($"scene: {scene.Name}, seed {scene.Seed}, {scene.Grid.SizeX} x {scene.Grid.SizeY} x {scene.Grid.SizeZ} blocks, {scene.Grid.Chunks.Count} chunks ({scene.Grid.Chunks.Count(c => c.IsEmpty)} empty), {scene.TreeCount} trees");
-        output.WriteLine($"fastest: build time {built:F1} ms, first world digest {digested:F1} ms");
-        output.WriteLine($"golden digest: {digest}");
-        output.WriteLine($"spawn {scene.Spawn.Feet} yaw {scene.Spawn.Yaw}");
-        foreach (var npc in scene.Npcs)
-        {
-            output.WriteLine($"npc {npc.Name} at {npc.Feet} yaw {npc.Yaw}");
-        }
-
-        foreach (var (name, point) in scene.Points)
-        {
-            output.WriteLine($"point {name} = {point}");
-        }
-
-        Assert.Equal(GoldenDigest, digest);
-        Assert.True(built + digested < Budget, $"the world takes {built + digested:F0} ms to build and digest at the fastest of {Attempts} attempts (the budget is 3 000 ms)");
-    }
 
     [Fact]
     public void TheSceneIsBuiltFromAFixedChunkGrid()

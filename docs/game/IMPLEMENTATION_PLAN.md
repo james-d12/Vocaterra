@@ -1445,13 +1445,17 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     direct builds go through it. The builder's own determinism test and the seed-42 golden still build for real; two new tests pin the clone.
   - **34 test classes loaded the bundle themselves** (since R16 most of them in Game.Core.Tests), plus five uncached calls: they use
     `TestGame.Bundle`, `Nouns` and `Phrases` (`TestGame` is linked into Game.Tests).
-  - **Effect (with models):** Game.Core.Tests 146 s to 41 s, Game.Tests 39 s to 15 s, the whole run 186 s to 108 s (153 s to 84 s
-    without models); 5,449 passed (two new), 3 skipped, as before. Game.Core.Tests' peak memory fell from 3.6 to 2.8 GB.
+  - **Effect (with models):** Game.Core.Tests 146 s to 37 s, Game.Tests 39 s to 15 s, the whole run 186 s to 87 s with the core's half
+    (153 s to 84 s without models); 5,449 passed (two new), 3 skipped, as before. Game.Core.Tests' peak memory fell from 3.6 to 2.8 GB.
   - **Fast tier:** `scripts/test.sh fast` (26 s) leaves out the tests marked `[Trait(TestSpeed.Trait, TestSpeed.Slow)]`: for the game the
     world-generation classes, the 14 model-gated facts, `PlaytestReportTests` and seven long single tests. `full`, the gate and CI run all.
   - **Finding:** xUnit runs a class's tests one after another, so Game.Core.Tests now ends with its largest classes (`VillageTests`,
     `SceneTests`, `SaveMigrationTests`, `GuideTurnTests`) while most of its cores are idle; splitting them by topic is the next lever (T6).
     `docs/game/README.md` said five model-gated tests are skipped without models; it is fourteen.
+  - **The seed-42 timing test failed under the new load pattern** (two of fifteen runs, very likely a third whose log was not kept: the fastest
+    of three builds 3.5 to 4.0 s against a 3 s budget, about 0.6 s alone), because a run now starts by building the route for every seed at once. It moved unchanged to
+    `SceneBuildTimeTests` in a serial `TimingCollection` that runs after the rest of Game.Core.Tests, with `ChunkIndexTests` (a 100 ms
+    budget); the budgets are unchanged.
 
 ## 6. Definition of done (every milestone)
 
