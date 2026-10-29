@@ -29,6 +29,7 @@ namespace Vocaterra.Nlp.Golden.Tests;
 /// deliberate Spanish behaviour change, in its own commit. Re-recording the end-to-end goldens never touches the baseline (they use a different variable).
 /// Phase A of the language-pack work (M32 to M35, M52, M53) must not re-record it. See <c>tests/golden/README.md</c>.
 /// </summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public class SpanishIdentityTests
 {
     private const string RecordVariable = "VOCATERRA_RECORD_IDENTITY";

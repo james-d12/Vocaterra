@@ -274,6 +274,7 @@ public sealed class ChunkMesherTests
     }
 
     [Fact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TheMesherOnTheRealRouteBuildsEveryChunkWithinTheSixteenBitLimit()
     {
         var scene = RouteScene.Build();

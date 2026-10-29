@@ -53,6 +53,8 @@ def read_run(path):
     tests = []
     for trx in trx_files(path):
         root = ET.parse(trx).getroot()
+        if root.find(NS + "Results") is None:
+            continue  # an assembly whose tests were all filtered out (the fast tier's fuzz suite) has no results and names no assembly
         classes = {}
         storage = None
         for unit in root.iter(NS + "UnitTest"):

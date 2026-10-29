@@ -29,6 +29,7 @@ public class VoskPipelineTests
     }
 
     [VoskModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ConstrainedPromptsRunOnTheRealModelDeterministically()
     {
         var store = ModelGate.Store!;
@@ -48,6 +49,7 @@ public class VoskPipelineTests
     }
 
     [VoskModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ARealRecognitionReplaysWithoutTheModel()
     {
         var store = ModelGate.Store!;

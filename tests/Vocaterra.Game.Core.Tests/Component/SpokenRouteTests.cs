@@ -69,6 +69,7 @@ public sealed class SpokenRouteTests(ITestOutputHelper output)
     }
 
     [ModelFact(needsKokoro: false)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TheRecordedHolaIsHeardAsHolaFromAWavFileThroughTheWorker()
     {
         using var session = AtTheGuide();
@@ -85,6 +86,7 @@ public sealed class SpokenRouteTests(ITestOutputHelper output)
     }
 
     [ModelFact(needsKokoro: false)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TheRecordedHolaIsHeardAsHolaFromThePushToTalkPathThroughTheWorker()
     {
         var (samples, rate) = AudioClips.ReadWav(File.ReadAllBytes(HolaWav));

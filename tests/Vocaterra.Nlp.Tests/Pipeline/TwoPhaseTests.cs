@@ -11,6 +11,7 @@ public sealed class TwoPhaseTests
 {
     // Every example sentence of every intent against every prompt that allows the intent (plus the answer-only prompts with their own answers).
     [Fact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void EvaluateEqualsPhaseTwoOfPhaseOneForEveryExampleOnEveryAllowingPrompt()
     {
         var bundle = TestSupport.Bundle;

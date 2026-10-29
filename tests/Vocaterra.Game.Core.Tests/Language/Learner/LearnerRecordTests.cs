@@ -84,6 +84,7 @@ public sealed class LearnerRecordTests
     }
 
     [ModelFact(needsKokoro: true)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ASpokenTurnLandsInTheHistoryAsVoice()
     {
         using var session = TestGame.NewSession(credit: CreditRules.Default);

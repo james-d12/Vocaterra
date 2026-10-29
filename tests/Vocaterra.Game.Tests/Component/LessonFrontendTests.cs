@@ -227,6 +227,7 @@ public sealed class LessonFrontendTests
     }
 
     [Fact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void APractiseAgainStepStartsACompletedLessonAtItsNpcAndTheRunRunsItAgain()
     {
         var shipped = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, PhraseSheet.Load(TestGame.Bundle)));

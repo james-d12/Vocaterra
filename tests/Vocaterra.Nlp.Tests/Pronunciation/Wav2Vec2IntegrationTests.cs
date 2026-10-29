@@ -60,6 +60,7 @@ public class Wav2Vec2IntegrationTests
     }
 
     [Wav2Vec2ModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TheRealModelProducesStableLogProbabilities()
     {
         using var recognizer = new Wav2Vec2PhonemeRecognizer(ModelLocation.Directory!);
@@ -89,6 +90,7 @@ public class Wav2Vec2IntegrationTests
     }
 
     [Wav2Vec2ModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TheRealModelDecodesWithoutThrowingOnAShortClip()
     {
         using var recognizer = new Wav2Vec2PhonemeRecognizer(ModelLocation.Directory!);

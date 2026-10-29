@@ -151,6 +151,7 @@ public sealed class ScenarioScriptTests
     }
 
     [Fact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void WalkingOnClosesThePanelAndTheNextNpcStartsACleanPage()
     {
         var steps = new[]

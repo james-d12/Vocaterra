@@ -161,6 +161,7 @@ public sealed class GreyscaleTests
     }
 
     [Fact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void DefaultModeNeverPicksAGreyCopy()
     {
         foreach (var definition in BlockDefinition.All.Where(static d => d.Id != BlockId.Air))
@@ -189,6 +190,7 @@ public sealed class GreyscaleTests
     }
 
     [Fact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ChangingTheGreySetMakesDueOnlyTheChunksThatHoldAChangedKind()
     {
         var scene = RouteScene.Build();

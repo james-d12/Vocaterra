@@ -19,6 +19,7 @@ public class VoskTests
     }
 
     [VoskModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ConstrainedSilenceIsUnknownOrEmptyAndRepeatable()
     {
         using var recognizer = VoskWordRecognizer.FromStore(ModelGate.Store!, ModelGate.VoskId);
@@ -37,6 +38,7 @@ public class VoskTests
     }
 
     [VoskModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TwoSeparateRecognizersGiveIdenticalResults()
     {
         var clip = TestData.VowelClip();
@@ -57,6 +59,7 @@ public class VoskTests
     }
 
     [VoskModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void RepeatedDecodesOfSpeechLikeAudioAreBitIdentical()
     {
         // Stock Vosk models dither with a time-seeded generator, so without the adapter's dither-free runtime copy
@@ -76,6 +79,7 @@ public class VoskTests
     }
 
     [VoskModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void AlternativesAreReturnedInScoreOrderAndKeepTheBestPathWords()
     {
         using var recognizer = VoskWordRecognizer.FromStore(ModelGate.Store!, ModelGate.VoskId);
@@ -95,6 +99,7 @@ public class VoskTests
     }
 
     [VoskModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void OpenModeRunsWithoutAGrammarAndKeepsTheRequestedMode()
     {
         using var recognizer = VoskWordRecognizer.FromStore(ModelGate.Store!, ModelGate.VoskId);
@@ -107,6 +112,7 @@ public class VoskTests
     }
 
     [VoskModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ClipsAtAnotherSampleRateAndEmptyGrammarsAreRejected()
     {
         using var recognizer = VoskWordRecognizer.FromStore(ModelGate.Store!, ModelGate.VoskId);
@@ -117,6 +123,7 @@ public class VoskTests
     }
 
     [VoskModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void DisposedRecognizerRefusesFurtherCalls()
     {
         var recognizer = VoskWordRecognizer.FromStore(ModelGate.Store!, ModelGate.VoskId);
@@ -127,6 +134,7 @@ public class VoskTests
     }
 
     [VoskModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void FetchedVoskModelMatchesTheCommittedManifest()
     {
         var store = ModelGate.Store!;

@@ -24,11 +24,12 @@
     <ProjectReference Include="..\..\src\Vocaterra.Game\Vocaterra.Game.csproj" />
   </ItemGroup>
 
-  <!-- The helpers both test projects use (the repository's root, the bundle loaded once, the route's test session), kept once in Core's tests' TestSupport/. -->
+  <!-- The helpers both test projects use (the repository's root, the bundle loaded once, the route's test session, the slow-test trait), kept once in Core's tests' TestSupport/. -->
   <ItemGroup>
     <Compile Include="..\Vocaterra.Game.Core.Tests\TestSupport\Repo.cs" Link="TestSupport\Repo.cs" />
     <Compile Include="..\Vocaterra.Game.Core.Tests\TestSupport\RouteScene.cs" Link="TestSupport\RouteScene.cs" />
     <Compile Include="..\Vocaterra.Game.Core.Tests\TestSupport\TestGame.cs" Link="TestSupport\TestGame.cs" />
+    <Compile Include="..\Vocaterra.Game.Core.Tests\TestSupport\TestSpeed.cs" Link="TestSupport\TestSpeed.cs" />
   </ItemGroup>
 
 </Project>

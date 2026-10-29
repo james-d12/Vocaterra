@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Simulation;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.Voxel;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
@@ -12,6 +13,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.World.Generation;
 
 /// <summary>The generated world (S13): the seed-42 golden, determinism, the promises of the layout (the heights, the sites, the river, the trail) and the forest.</summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class SceneTests(ITestOutputHelper output)
 {
     private const ulong Seed = 42;

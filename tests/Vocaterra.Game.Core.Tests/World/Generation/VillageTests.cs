@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tests.Voxel;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
@@ -6,6 +7,7 @@ using Xunit.Abstractions;
 namespace Vocaterra.Game.Core.Tests.World.Generation;
 
 /// <summary>The village, the stall, the two camps and the signposts (S15): what is built where, that it comes from the layout and the seed alone, and its digests.</summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class VillageTests(ITestOutputHelper output)
 {
     private const ulong Seed = 42;
