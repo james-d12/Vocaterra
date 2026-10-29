@@ -171,18 +171,18 @@ public sealed class LessonRunner
 
     private readonly GuideSession _session;
     private readonly LessonBook _book;
-    private readonly EnglishText _english;
+    private readonly LocaleText _locale;
     private readonly Dictionary<string, State> _states = new(StringComparer.Ordinal);
     private string? _activeId;
     private string? _replayId;
     private bool _engaged;
     private int _version;
 
-    internal LessonRunner(GuideSession session, LessonBook book, EnglishText english)
+    internal LessonRunner(GuideSession session, LessonBook book, LocaleText english)
     {
         _session = session;
         _book = book;
-        _english = english;
+        _locale = english;
         foreach (var lesson in book.Lessons)
         {
             _states[lesson.Id] = new State();
@@ -284,7 +284,7 @@ public sealed class LessonRunner
 
     /// <summary>The English objective line for a lesson practised again (S26): where to go and which lesson, or <see langword="null"/> when none is pending.</summary>
     public string? ReplayHud => _replayId is { } id && _book.Find(id) is { } lesson && _activeId is null
-        ? string.Create(CultureInfo.InvariantCulture, $"Practise again: talk to {_english.NpcName(lesson.Npc).ToLowerInvariant()} to start \u201c{lesson.Title}\u201d")
+        ? string.Create(CultureInfo.InvariantCulture, $"Practise again: talk to {_locale.NpcName(lesson.Npc).ToLowerInvariant()} to start \u201c{lesson.Title}\u201d")
         : null;
 
     /// <summary>The NPC the step in progress is said at: the step's own, or its lesson's; <see langword="null"/> when no lesson is active.</summary>
@@ -409,7 +409,7 @@ public sealed class LessonRunner
             var state = _states[lesson.Id];
             var step = lesson.Steps[state.Step];
             var spanish = step.Line?.Text ?? (step.Phrase is { } phrase ? _session.Phrases.Find(phrase)?.Spanish : null);
-            var heading = _english.Ui(step.Type switch
+            var heading = _locale.Ui(step.Type switch
             {
                 LessonStepType.Explain => "stepExplain",
                 LessonStepType.Model => "stepModel",
@@ -520,7 +520,7 @@ public sealed class LessonRunner
         var step = lesson.Steps[state.Step];
         state.Helped = true;
         state.HelpUses++;
-        state.Hint = step.Help ?? _english.Ui("helpDefault");
+        state.Hint = step.Help ?? _locale.Ui("helpDefault");
         Emit(LessonEventKind.Help, lesson, state, step, null, null);
         if (step.Line is { } line)
         {
@@ -594,7 +594,7 @@ public sealed class LessonRunner
             else
             {
                 state.Picked = -1;
-                state.Hint = step.Retry ?? _english.Ui("retry");
+                state.Hint = step.Retry ?? _locale.Ui("retry");
             }
 
             Emit(LessonEventKind.Retry, lesson, state, step, null, $"pick {(option + 1).ToString(CultureInfo.InvariantCulture)}");
@@ -703,7 +703,7 @@ public sealed class LessonRunner
         {
             state.Helped = true;
             state.HelpUses++;
-            state.Hint = step.Help ?? _english.Ui("helpDefault");
+            state.Hint = step.Help ?? _locale.Ui("helpDefault");
             Emit(LessonEventKind.Help, lesson, state, step, null, turn.Intent);
             _version++;
         }
@@ -1020,7 +1020,7 @@ public sealed class LessonRunner
             return;
         }
 
-        state.Hint = retry ?? step.Retry ?? _english.Ui("retry");
+        state.Hint = retry ?? step.Retry ?? _locale.Ui("retry");
         Emit(LessonEventKind.Retry, lesson, state, step, null, reason);
         _version++;
     }

@@ -10,7 +10,7 @@ namespace Vocaterra.Game.Core.Tests.Language.Words;
 public sealed class VerbReadingTests
 {
     private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<VerbGlosses> Glosses = new(() => VerbGlosses.Load(Bundle.Value));
+    private static readonly Lazy<VerbGlosses> Glosses = new(() => RouteScene.DataOf(Bundle.Value).Glosses);
 
     [Theory]
     [InlineData("está", "estar", "2", "sg", "3", "sg")] // the core's tú imperative; estar's he/she/it present

@@ -134,13 +134,13 @@ public abstract class GuideSession : IDisposable
         Recipes = data.Recipes;
         Words = new WordProgress(Nouns, playSession);
         Phrases = data.Phrases;
-        English = data.English;
+        Locale = data.Locale;
         Glosses = data.Glosses;
         var book = Data.Lessons;
         PhraseProgress = new PhraseProgress(Phrases, playSession, book.TaughtPhrases);
-        Support = new PhraseSupport(Phrases, PhraseProgress, Bundle, English);
-        Lessons = new LessonRunner(this, book, English);
-        Tips = new TipFeed(this, English);
+        Support = new PhraseSupport(Phrases, PhraseProgress, Bundle, Locale);
+        Lessons = new LessonRunner(this, book, Locale);
+        Tips = new TipFeed(this, Data.Tips);
         _liveFacts = liveFacts;
         _npcs = new NpcService(Data, liveFacts, worldSeed, new StoredTimestamp(startedAt));
     }
@@ -184,8 +184,8 @@ public abstract class GuideSession : IDisposable
     /// <summary>What the dialogue panel shows by way of support for the prompt it is on: the cards, the audio-only state and the sounds to play (S8).</summary>
     public PhraseSupport Support { get; }
 
-    /// <summary>The game's English text (S16, D-game-13): the controls, the tips, the bilingual objective, the English under the NPCs' lines and the feedback after a turn.</summary>
-    public EnglishText English { get; }
+    /// <summary>The learner's support language (S16, D-game-13; the locale bundle since C03): the controls, the tips, the bilingual objective, the glosses under the NPCs' lines and the feedback after a turn.</summary>
+    public LocaleText Locale { get; }
 
     /// <summary>The lessons (S16): the data-driven sequences attached to the NPCs, and the runner that walks the learner through them.</summary>
     public LessonRunner Lessons { get; }
@@ -219,16 +219,18 @@ public abstract class GuideSession : IDisposable
     public TipFeed Tips { get; }
 
     /// <summary>
-    /// The English to draw under an NPC's Spanish line, or <see langword="null"/> when there is none or it is not due: the file's English for the line (or the
-    /// lesson's translation of it), shown while the phrase in play is at the English rung or the help key was pressed, and always for a line no phrase of the
-    /// prompt is practising (S16, <see cref="PhraseSupport.EnglishForLines"/>).
+    /// The support language to draw under an NPC's line, or <see langword="null"/> when there is none or it is not due: the locale's gloss of the line (by its
+    /// speech-line id, or the lesson's translation of it), shown while the phrase in play is at the support rung or the help key was pressed, and always for
+    /// a line no phrase of the prompt is practising (S16, <see cref="PhraseSupport.EnglishForLines"/>).
     /// </summary>
+    /// <param name="npc">The NPC that says the line.</param>
     /// <param name="spanish">The line as the panel shows it.</param>
-    public string? EnglishForNpcLine(string spanish)
+    public string? SupportForNpcLine(string npc, string spanish)
     {
+        ArgumentNullException.ThrowIfNull(npc);
         ArgumentNullException.ThrowIfNull(spanish);
-        var english = English.ForLine(spanish) ?? Lessons.TranslationOf(spanish);
-        return english is not null && Support.EnglishForLines ? english : null;
+        var support = Data.SupportForLine(npc, spanish) ?? Lessons.TranslationOf(spanish);
+        return support is not null && Support.EnglishForLines ? support : null;
     }
 
     /// <summary>The guide's review of a due phrase in progress (S8), or <see langword="null"/>.</summary>
@@ -538,7 +540,7 @@ public abstract class GuideSession : IDisposable
 
         _retry = review;
         PhraseReview = review;
-        RetryNote = English.Ui("retryAgain", ("english", Phrases.Find(item.PhraseId)?.English ?? item.PhraseId));
+        RetryNote = Locale.Ui("retryAgain", ("english", Phrases.Find(item.PhraseId)?.English ?? item.PhraseId));
         Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.SecondTryAsked, npc, review.PhraseId));
     }
 

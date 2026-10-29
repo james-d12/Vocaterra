@@ -36,10 +36,11 @@ public sealed record LaunchOptions
 
     /// <summary>The usage text printed on a command-line error or <c>--help</c>.</summary>
     public const string Usage =
-        "usage: Vocaterra.Game [--seed <ulong>] [--content <dir>] [--scene <file>] [--screenshot <path.png> [--frames <n>] [--say <line>]...]\n"
+        "usage: Vocaterra.Game [--seed <ulong>] [--content <dir>] [--locale <code>] [--scene <file>] [--screenshot <path.png> [--frames <n>] [--say <line>]...]\n"
         + "  --seed <ulong>          the world seed (default 42)\n"
         + "  --content <dir>         the content bundle folder (default: content/game-v1 found above the executable or the current directory)\n"
-        + "  --scene <file>          the scene layout (default: game/scene.json in the bundle)\n"
+        + "  --locale <code>         the learner's support language, a locale of content/locale (default: the bundle's supportLanguage, en)\n"
+        + "  --scene <file>          the scene layout (default: game/scene.json in the bundle; a file of its own skips the bundle's hash check)\n"
         + "  --screenshot <path>     run on a fixed clock, run the steps below in order, save the back buffer as a PNG and exit\n"
         + "  --frames <n>            with --screenshot: run at least n ticks before the screenshot (default 120)\n"
         + "  --look <yaw,pitch>      face this direction in degrees (yaw 0 north, 90 east; pitch positive up); a step\n"
@@ -152,6 +153,9 @@ public sealed record LaunchOptions
 
     /// <summary>The content bundle folder, or <see langword="null"/> to search for <c>content/game-v1</c>.</summary>
     public string? ContentDirectory { get; init; }
+
+    /// <summary>The support-language locale named by <c>--locale</c> (CONTENT_PLAN C03), or <see langword="null"/> for the bundle's <c>supportLanguage</c>.</summary>
+    public string? Locale { get; init; }
 
     /// <summary>The scene layout file named by <c>--scene</c>, or <see langword="null"/> for the bundle's <c>game/scene.json</c>.</summary>
     public string? SceneFile { get; init; }
@@ -412,7 +416,7 @@ public sealed record LaunchOptions
                 continue;
             }
 
-            if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--scene" or "--look" or "--walk-to" or "--interact"
+            if (arg is not ("--seed" or "--save" or "--load" or "--screenshot" or "--frames" or "--say" or "--content" or "--locale" or "--scene" or "--look" or "--walk-to" or "--interact"
                 or "--place" or "--select" or "--craft" or "--beacon" or "--typed-credit" or "--assume-known" or "--talk" or "--shot" or "--speak" or "--wav" or "--wait" or "--skip"
                 or "--check" or "--pick" or "--session-dir" or "--session" or "--book-practise" or "--lesson" or "--lesson-run" or "--lesson-pick" or "--quality" or "--view-distance" or "--teleport" or "--book-page" or "--book-verb" or "--book-detail" or "--size" or "--text-scale"
                 or "--report" or "--report-open" or "--report-kind" or "--report-dir" or "--sfx-volume" or "--ambient-volume" or "--sound-log"
@@ -682,6 +686,15 @@ public sealed record LaunchOptions
                     }
 
                     result = result with { ContentDirectory = value };
+                    break;
+                case "--locale":
+                    if (value.Length == 0)
+                    {
+                        error = "--locale needs a locale code (en).";
+                        return false;
+                    }
+
+                    result = result with { Locale = value };
                     break;
                 case "--scene":
                     if (value.Length == 0)

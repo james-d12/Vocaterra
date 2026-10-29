@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Content;
 
@@ -13,11 +14,11 @@ namespace Vocaterra.Game.Core.Language.Phrases;
 /// <param name="Id">The row's id (<c>pedir-agua</c>), the key the phrase tracking uses (<c>phrase.&lt;id&gt;</c>).</param>
 /// <param name="Says">Who says the phrase: <c>says</c> (the learner), <c>hears</c> (an NPC) or <c>both</c>.</param>
 /// <param name="Spanish">The phrase as taught, with its accents and inverted marks.</param>
-/// <param name="English">The intended meaning.</param>
+/// <param name="English">The intended meaning, in the support language (<c>phrase.&lt;id&gt;.meaning</c> in the locale).</param>
 /// <param name="Intent">For a learner row, the bundle intent every variant resolves to; <see langword="null"/> for a <c>hears</c> row.</param>
 /// <param name="Prompt">The prompt the phrase is said at (a <c>hears</c> row: the prompt whose text it is).</param>
 /// <param name="Variants">Other things the game accepts as the same phrase.</param>
-/// <param name="Card">The support card text, <c>phrase = meaning · word = gloss</c>.</param>
+/// <param name="Card">The support card text, <c>phrase = meaning · word = gloss</c> (<c>phrase.&lt;id&gt;.card</c> in the locale).</param>
 /// <param name="AudioLineIds">The bundle dialogue line ids whose NPC audio speaks the phrase (S9).</param>
 public sealed record PhraseRow(
     string Id,
@@ -69,8 +70,9 @@ public sealed class PhraseSheet
 
     /// <summary>Reads the sheet from the bundle's verified host file.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
-    /// <exception cref="InvalidDataException">The bundle has no such host file, or the file is malformed.</exception>
-    public static PhraseSheet Load(ContentBundle bundle)
+    /// <param name="locale">The support language, which holds each row's meaning and card (<c>phrase.&lt;id&gt;.meaning</c>, <c>.card</c>).</param>
+    /// <exception cref="InvalidDataException">The bundle has no such host file, or the file is malformed, or a row's meaning or card is not in the locale.</exception>
+    public static PhraseSheet Load(ContentBundle bundle, LocaleText locale)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         if (!bundle.TryReadHostFile(RelativePath, out var bytes))
@@ -78,15 +80,22 @@ public sealed class PhraseSheet
             throw new InvalidDataException($"The bundle has no host file {RelativePath}: it is missing from the manifest, or the bundle was loaded without hash verification.");
         }
 
-        return Parse(Encoding.UTF8.GetString(bytes.Span));
+        return Parse(Encoding.UTF8.GetString(bytes.Span), locale);
     }
 
-    /// <summary>Builds the sheet from the file's text.</summary>
+    /// <summary>The locale id of a row's support-language text: <c>phrase.&lt;id&gt;.&lt;field&gt;</c> (meaning, card, explain).</summary>
+    /// <param name="id">The row's id.</param>
+    /// <param name="field">The field.</param>
+    public static string LocaleId(string id, string field) => "phrase." + id + "." + field;
+
+    /// <summary>Builds the sheet from the file's text and the support language.</summary>
     /// <param name="json">The contents of <c>game/phrases.json</c>.</param>
-    /// <exception cref="InvalidDataException">The text is malformed.</exception>
-    public static PhraseSheet Parse(string json)
+    /// <param name="locale">The support language, which holds each row's meaning and card.</param>
+    /// <exception cref="InvalidDataException">The text is malformed, or a row's meaning or card is not in the locale.</exception>
+    public static PhraseSheet Parse(string json, LocaleText locale)
     {
         ArgumentNullException.ThrowIfNull(json);
+        ArgumentNullException.ThrowIfNull(locale);
         try
         {
             using var document = JsonDocument.Parse(json);
@@ -100,15 +109,16 @@ public sealed class PhraseSheet
             var ids = new HashSet<string>(StringComparer.Ordinal);
             foreach (var element in root.GetProperty("phrases").EnumerateArray())
             {
+                var id = element.GetProperty("id").GetString()!;
                 var row = new PhraseRow(
-                    element.GetProperty("id").GetString()!,
+                    id,
                     element.GetProperty("says").GetString()!,
                     element.GetProperty("spanish").GetString()!,
-                    element.GetProperty("english").GetString()!,
+                    Required(locale, id, "meaning"),
                     Optional(element, "intent"),
                     Optional(element, "prompt"),
                     Strings(element, "variants"),
-                    element.GetProperty("card").GetString()!,
+                    Required(locale, id, "card"),
                     Strings(element, "audioLineIds"));
                 if (!ids.Add(row.Id))
                 {
@@ -290,6 +300,9 @@ public sealed class PhraseSheet
 
     private static string Capitalize(string phrase) =>
         phrase.Length == 0 ? phrase : string.Create(CultureInfo.InvariantCulture, $"{char.ToUpperInvariant(phrase[0])}{phrase[1..]}.");
+
+    private static string Required(LocaleText locale, string id, string field) =>
+        locale.Find(LocaleId(id, field)) ?? throw new InvalidDataException($"{RelativePath}: the phrase '{id}' has no {field} in the locale {locale.Code} ({LocaleId(id, field)}).");
 
     private static string? Optional(JsonElement element, string name) =>
         element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;

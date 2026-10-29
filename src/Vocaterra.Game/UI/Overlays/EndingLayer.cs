@@ -31,10 +31,10 @@ public sealed class EndingLayer : IFrameLayer
 
         var small = view.Fonts.Get(FontProvider.NativeSize);
         var large = view.Fonts.Get(LargeSize);
-        var ui = view.Session.English;
+        var ui = view.Session.Locale;
         var width = Math.Min(760, view.ViewportWidth - 48);
         var spanish = TextWrap.Wrap(ending.Spanish, width - 40, t => DrawHelpers.Width(large, t));
-        var english = TextWrap.Wrap(DialoguePanel.EnglishPrefix + ending.English, width - 40, t => DrawHelpers.Width(small, t));
+        var english = TextWrap.Wrap(DialoguePanel.SupportPrefix + ending.English, width - 40, t => DrawHelpers.Width(small, t));
         var summary = ending.Summary.SelectMany(line => TextWrap.Wrap(line, width - 40, t => DrawHelpers.Width(small, t))).ToList();
         var layout = new EndingLayout(view.ViewportWidth, view.ViewportHeight, spanish.Count, english.Count, summary.Count);
         var box = new Rectangle(layout.Box.X, layout.Box.Y, layout.Box.Width, layout.Box.Height);

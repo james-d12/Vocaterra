@@ -275,7 +275,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         Assert.Equal("personas", session.Lessons.NewLesson!.Id);
         var piece = Assert.Single(session.ObjectiveHud());
         Assert.Equal("Session 2: go to the village and talk to the villager to start the lesson “Personas”", piece.Text);
-        Assert.Equal(ObjectivePieceKind.English, piece.Kind);
+        Assert.Equal(ObjectivePieceKind.Support, piece.Kind);
     }
 
     [Fact]
@@ -648,7 +648,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     [Fact]
     public void TheNewRowsAreMarkedPendingAndTheNewLinesAreInTheSpeechList()
     {
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
         var added = new[]
         {
             "que-quieres", "quiero-madera", "tienes-fruta", "tengo-fruta", "necesito-agua",
@@ -685,7 +685,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
     // Everything a lesson shows or says: the Spanish of its lines and phrases, and its English (which quotes the forms), one string of words between spaces.
     private static string LessonText(LessonDefinition lesson)
     {
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
         var text = new StringBuilder(" ");
         foreach (var step in lesson.Steps)
         {

@@ -23,7 +23,7 @@ public sealed class BookSpeechTests
 {
     private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
     private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-    private static readonly Lazy<PhraseSheet> Sheet = new(() => PhraseSheet.Load(Bundle.Value));
+    private static readonly Lazy<PhraseSheet> Sheet = new(() => RouteScene.DataOf(Bundle.Value).Phrases);
     private static readonly Lazy<IReadOnlyList<SpeechLine>> Lines = new(() => SpeechLines.Enumerate(Bundle.Value, Nouns.Value, Sheet.Value));
     private static readonly Lazy<string> Folder = new(() => Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
 

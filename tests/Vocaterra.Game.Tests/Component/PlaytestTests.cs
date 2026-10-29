@@ -86,7 +86,7 @@ public sealed class PlaytestTests
     [Fact]
     public void ACheckScriptStartsFromTheStepGivenAndRefusesAStepOutsideTheScript()
     {
-        var bank = CheckBank.Load(GameBundle.Load());
+        var bank = RouteScene.DataOf(GameBundle.Load()).Checks;
         var plan = CheckPlan.For(bank, CheckKind.Post, 42);
         var steps = new List<ScriptStep> { new(ScriptStepKind.Leave), new(ScriptStepKind.Pick, Value: "1") };
         var hooks = new CheckScriptHooks(_ => { }, _ => { }, _ => { }, _ => { }, () => false);

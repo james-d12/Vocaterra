@@ -21,8 +21,8 @@ public sealed class SoundEventMapperTests
     private static readonly Lazy<LessonBook> Book = new(() =>
     {
         var nouns = NounCatalog.Load(Bundle.Value);
-        var sheet = PhraseSheet.Load(Bundle.Value);
-        return LessonBook.Load(Bundle.Value, sheet, SpeechLines.Enumerate(Bundle.Value, nouns, sheet));
+        var sheet = RouteScene.DataOf(Bundle.Value).Phrases;
+        return RouteScene.DataOf(Bundle.Value).Lessons;
     });
 
     private static readonly SoundEventMapper Mapper = new(Book.Value);

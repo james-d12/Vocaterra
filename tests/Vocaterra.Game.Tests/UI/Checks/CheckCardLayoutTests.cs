@@ -25,7 +25,7 @@ public sealed class CheckCardLayoutTests(ITestOutputHelper output)
     [Fact]
     public void EveryItemOfTheCheckBankFitsTheCardAtBothWindowSizes()
     {
-        var bank = CheckBank.Load(Bundle.Value);
+        var bank = RouteScene.DataOf(Bundle.Value).Checks;
         Assert.True(bank.Count >= 20);
         var rowsSeen = 0;
         foreach (var (width, height) in Sizes)

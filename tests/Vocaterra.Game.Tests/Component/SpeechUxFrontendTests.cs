@@ -30,7 +30,7 @@ public sealed class SpeechUxFrontendTests
 {
     private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
     private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-    private static readonly Lazy<PhraseSheet> Sheet = new(() => PhraseSheet.Load(Bundle.Value));
+    private static readonly Lazy<PhraseSheet> Sheet = new(() => RouteScene.DataOf(Bundle.Value).Phrases);
 
     private sealed class RecordingPlayer : ILinePlayer
     {

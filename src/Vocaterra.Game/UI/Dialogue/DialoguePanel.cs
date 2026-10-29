@@ -44,7 +44,7 @@ public sealed class DialoguePanel : IFrameLayer
     public const string Title = "Guía";
 
     /// <summary>The mark before every line of English in the panel (S16): the English is never spoken, so the panel says which line it is.</summary>
-    public const string EnglishPrefix = "English: ";
+    public const string SupportPrefix = "English: ";
 
     private static readonly Color Background = new(16, 16, 24, 236);
     private static readonly Color PanelEdge = new(112, 114, 136);
@@ -224,7 +224,7 @@ public sealed class DialoguePanel : IFrameLayer
                 DialogueSpeaker.Player => "You: ",
                 DialogueSpeaker.PlayerSpoken => SpokenPrefix,
                 DialogueSpeaker.Guide or DialogueSpeaker.World or DialogueSpeaker.Correction => dialogue.NpcName + ": ",
-                DialogueSpeaker.English => EnglishPrefix,
+                DialogueSpeaker.English => SupportPrefix,
                 _ => string.Empty,
             };
             var color = line.Speaker switch
@@ -246,9 +246,9 @@ public sealed class DialoguePanel : IFrameLayer
 
             // The English under an NPC's Spanish line (S16, D-game-13): in its own colour and marked as English, while the phrase in play is at the
             // English rung or the help key was pressed, and always for a line no phrase is practising.
-            if (line.Speaker == DialogueSpeaker.Guide && view.Session.EnglishForNpcLine(line.Text) is { } english)
+            if (line.Speaker == DialogueSpeaker.Guide && view.Session.SupportForNpcLine(dialogue.Npc, line.Text) is { } english)
             {
-                foreach (var row in TextWrap.Wrap(EnglishPrefix + english, width, t => DrawHelpers.Width(font, t)))
+                foreach (var row in TextWrap.Wrap(SupportPrefix + english, width, t => DrawHelpers.Width(font, t)))
                 {
                     rows.Add((row, EnglishColor, false));
                 }

@@ -125,7 +125,7 @@ public sealed class SupportLayer : IFrameLayer
 
         var english = DialoguePanel.EnglishColor;
         // The meaning wraps (a narrow card takes two rows), and the explanation or the glosses take the rows that are left above the card's bottom edge (X08).
-        var meaning = TextWrap.Wrap(DialoguePanel.EnglishPrefix + card.Meaning, width, t => DrawHelpers.Width(small, t)).Take(2).ToList();
+        var meaning = TextWrap.Wrap(DialoguePanel.SupportPrefix + card.Meaning, width, t => DrawHelpers.Width(small, t)).Take(2).ToList();
         var y = box.Y + 58;
         foreach (var row in meaning)
         {

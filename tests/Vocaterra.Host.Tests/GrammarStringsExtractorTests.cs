@@ -205,7 +205,7 @@ public sealed class GrammarStringsExtractorTests
     [Fact]
     public void ThePhraseSheetLinesAreTheRuntimePhrasesAndVariants()
     {
-        var runtime = PhraseSheet.Load(GameContent.Bundle);
+        var runtime = RouteScene.DataOf(GameContent.Bundle).Phrases;
         var byId = All.ToDictionary(static line => line.Id, StringComparer.Ordinal);
         foreach (var row in runtime.Rows)
         {

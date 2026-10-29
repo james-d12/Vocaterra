@@ -18,7 +18,7 @@ public sealed class NpcVoiceTests
     private static readonly Lazy<(string Speech, IReadOnlyList<SpeechLine> Lines)> Committed = new(() =>
     {
         var bundle = GameBundle.Load();
-        var lines = SpeechLines.Enumerate(bundle, NounCatalog.Load(bundle), PhraseSheet.Load(bundle));
+        var lines = SpeechLines.Enumerate(bundle, NounCatalog.Load(bundle), RouteScene.DataOf(bundle).Phrases);
         return (Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName), lines);
     });
 

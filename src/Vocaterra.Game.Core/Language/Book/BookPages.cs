@@ -43,7 +43,7 @@ public static class BookPages
             BookPage.Verbs => Verbs(session.Learner.Verbs, session.Glosses, session.Phrases, session.Bundle.SpanishMorphology()),
             BookPage.Phrases => Phrases(PhraseJournalRows.Build(session.PhraseProgress, session.StoredTime.UnixSeconds, session.Credit), recordings),
             BookPage.Lessons => Lessons(session.Lessons.Record, session.Phrases, recordings),
-            _ => Said(session.Learner.Recent(LearnerRecord.SavedEntries), session.English, session.Lessons.Record),
+            _ => Said(session.Learner.Recent(LearnerRecord.SavedEntries), session.Locale, session.Lessons.Record),
         };
     }
 
@@ -273,7 +273,7 @@ public static class BookPages
     /// <param name="recent">The entries, newest first.</param>
     /// <param name="english">The English text (the feedback and the NPCs' names).</param>
     /// <param name="lessons">The lesson record, for a lesson line's title.</param>
-    public static IReadOnlyList<BookLine> Said(IReadOnlyList<InputEntry> recent, EnglishText english, IReadOnlyList<LessonRecordRow> lessons)
+    public static IReadOnlyList<BookLine> Said(IReadOnlyList<InputEntry> recent, LocaleText english, IReadOnlyList<LessonRecordRow> lessons)
     {
         ArgumentNullException.ThrowIfNull(recent);
         ArgumentNullException.ThrowIfNull(english);
@@ -343,7 +343,7 @@ public static class BookPages
         _ => "button",
     };
 
-    private static string PlaceText(InputEntry entry, EnglishText english, IReadOnlyList<LessonRecordRow> lessons)
+    private static string PlaceText(InputEntry entry, LocaleText english, IReadOnlyList<LessonRecordRow> lessons)
     {
         switch (entry.Place)
         {

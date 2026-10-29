@@ -18,7 +18,7 @@ namespace Vocaterra.Game.Core.Tests.Tip;
 /// </summary>
 public sealed class EnglishTextTests
 {
-    private static EnglishText English => EnglishText.Load(TestGame.Bundle);
+    private static LocaleText English => RouteScene.DataOf(TestGame.Bundle).Locale;
 
     [Fact]
     public void TheFileLoadsAndHasTheControlsTheTipsAndEveryInterfaceWord()
@@ -32,9 +32,9 @@ public sealed class EnglishTextTests
         Assert.Equal(["look", "walk", "jump", "note", "gather"], english.Tips.Where(static t => t.When == "start").Select(static t => t.Id)); // the opening (S17)
         Assert.Equal([0, 9, 18, 28, 50], english.Tips.Where(static t => t.When == "start").Select(static t => t.DelaySeconds)); // paced so they do not stack up
         Assert.Contains(english.Tips, static t => t.When == "aimed_npc");
-        Assert.All(EnglishText.UiKeys, key => Assert.False(string.IsNullOrWhiteSpace(english.Ui(key)), key));
+        Assert.All(LocaleText.UiKeys, key => Assert.False(string.IsNullOrWhiteSpace(english.Ui(key)), key));
         Assert.Equal("step 2 of 7", english.Ui("stepOf", ("n", "2"), ("total", "7")));
-        Assert.All(english.Tips, static t => Assert.Contains(t.When, EnglishText.TipTriggers));
+        Assert.All(english.Tips, static t => Assert.Contains(t.When, TipBook.TipTriggers));
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public sealed class EnglishTextTests
     public void EveryPhraseTheGameTeachesHasAnEnglishExplanationAndTheOnesWithoutAScaffoldToo()
     {
         var english = English;
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
 
         Assert.All(sheet.Rows, row => Assert.False(string.IsNullOrWhiteSpace(english.Explanation(row.Id)), row.Id));
         Assert.Null(english.Explanation("no-such-phrase"));
@@ -93,8 +93,8 @@ public sealed class EnglishTextTests
 
         var pieces = english.ObjectivePieces(objective, static _ => false);
 
-        Assert.Contains(pieces, static p => p is { Text: " (wood)", Kind: ObjectivePieceKind.English, Done: true });
-        Assert.Contains(pieces, static p => p is { Text: " (fruit)", Kind: ObjectivePieceKind.English, Done: false });
+        Assert.Contains(pieces, static p => p is { Text: " (wood)", Kind: ObjectivePieceKind.Support, Done: true });
+        Assert.Contains(pieces, static p => p is { Text: " (fruit)", Kind: ObjectivePieceKind.Support, Done: false });
         Assert.Equal(ObjectivePieceKind.Title, pieces[0].Kind);
     }
 
@@ -102,11 +102,11 @@ public sealed class EnglishTextTests
     public void TheObjectiveInASessionDropsAnEnglishWordWhenTheWordsRecordIsKnown()
     {
         var session = TestGame.NewSession();
-        Assert.Contains("madera (wood)", session.English.ObjectiveLine(session.Objective, lemma => session.Words.RecordOf(lemma).Known), StringComparison.Ordinal);
+        Assert.Contains("madera (wood)", session.Locale.ObjectiveLine(session.Objective, lemma => session.Words.RecordOf(lemma).Known), StringComparison.Ordinal);
 
         session.Words.Restore([new WordRecord("madera", CreditUnits: WordProgress.UnitsToKnow)]);
 
-        var line = session.English.ObjectiveLine(session.Objective, lemma => session.Words.RecordOf(lemma).Known);
+        var line = session.Locale.ObjectiveLine(session.Objective, lemma => session.Words.RecordOf(lemma).Known);
         Assert.StartsWith("Campamento (camp): madera 0/5 · frutas (fruit)", line, StringComparison.Ordinal);
     }
 
@@ -142,12 +142,12 @@ public sealed class EnglishTextTests
         Assert.False(english.HasErrorLine("zzz.new_code"));
     }
 
-    private static (VoxelSession Session, EnglishText English) AtStall()
+    private static (VoxelSession Session, LocaleText English) AtStall()
     {
         var session = TestGame.NewSession();
         Stage.TeleportToNpc(session, "shopkeeper");
         _ = session.OpenTalk("shopkeeper");
-        return (session, session.English);
+        return (session, session.Locale);
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public sealed class EnglishTextTests
         var slipLines = english.FeedbackFor(slipSession.Say("yo quieres agua, por favor"));
         Assert.Equal("The shopkeeper understood you, but there was a small mistake. That is fine: keep going.", slipLines[0]);
         Assert.Contains(slipLines, static l => l.StartsWith("The verb ending must match who is speaking", StringComparison.Ordinal));
-        Assert.True(slipLines.Count <= 1 + EnglishText.MaxErrorLines);
+        Assert.True(slipLines.Count <= 1 + LocaleText.MaxErrorLines);
 
         var (lostSession, _) = AtStall();
         Assert.Equal(["The shopkeeper did not understand that. Try again, press H for help, or press W to type."], english.FeedbackFor(lostSession.Say("zzz qqq")));
@@ -175,7 +175,7 @@ public sealed class EnglishTextTests
         var session = TestGame.NewSession();
         Stage.TeleportToNpc(session, "villager");
         _ = session.OpenTalk("villager");
-        var english = session.English;
+        var english = session.Locale;
         var turn = session.Say("¿dónde está el río?");
         Assert.Equal(["Good. The villager understood you."], english.FeedbackFor(turn with { Pointer = null }));
 
@@ -199,10 +199,10 @@ public sealed class EnglishTextTests
         // A phrase the sheet lacks is the validator's to find (GameDataValidatorTests): the file alone cannot know the sheet.
         var json = File.ReadAllText(Path.Combine(GameBundle.ResolveDirectory(), "game", "english.json"));
 
-        Assert.Throws<InvalidDataException>(() => EnglishText.Parse(json.Replace("\"uncertain\":", "\"uncertain_x\":", StringComparison.Ordinal)));
-        Assert.Throws<InvalidDataException>(() => EnglishText.Parse(json.Replace("\"when\": \"start\"", "\"when\": \"never_happens\"", StringComparison.Ordinal)));
-        Assert.Throws<InvalidDataException>(() => EnglishText.Parse(json.Replace("\"schemaVersion\": 1", "\"schemaVersion\": 2", StringComparison.Ordinal)));
-        Assert.Throws<InvalidDataException>(() => EnglishText.Parse("{ not json"));
-        _ = EnglishText.Parse(json);
+        Assert.Throws<InvalidDataException>(() => LocaleText.Parse(json.Replace("\"uncertain\":", "\"uncertain_x\":", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => LocaleText.Parse(json.Replace("\"when\": \"start\"", "\"when\": \"never_happens\"", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => LocaleText.Parse(json.Replace("\"schemaVersion\": 1", "\"schemaVersion\": 2", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => LocaleText.Parse("{ not json"));
+        _ = LocaleText.Parse(json);
     }
 }

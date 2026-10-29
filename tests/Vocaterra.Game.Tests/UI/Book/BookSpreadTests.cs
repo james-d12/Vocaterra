@@ -268,7 +268,7 @@ public sealed class BookSpreadTests
         var recordings = BookRecordings.None;
         Assert.Empty(BookPages.ListFor(session, BookPage.Verbs, recordings)); // no verbs met yet: an empty list, and the layer says so
 
-        var full = BookPages.Verbs(VerbsOfAFixedRecord(), VerbGlosses.Load(Bundle.Value), PhraseSheet.Load(Bundle.Value), Bundle.Value.SpanishMorphology());
+        var full = BookPages.Verbs(VerbsOfAFixedRecord(), RouteScene.DataOf(Bundle.Value).Glosses, RouteScene.DataOf(Bundle.Value).Phrases, Bundle.Value.SpanishMorphology());
         var list = full.Where(static l => l.Verb is not null).ToList();
         Assert.Equal(["beber", "ir"], list.Select(static l => l.Verb));
         Assert.True(full.Count > list.Count, "the page's own lines (the forms and their last sentences) are still built, for the right page");

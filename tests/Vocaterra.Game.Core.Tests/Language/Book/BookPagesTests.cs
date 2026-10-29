@@ -19,9 +19,9 @@ public sealed class BookPagesTests
 {
     private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
     private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-    private static readonly Lazy<PhraseSheet> Sheet = new(() => PhraseSheet.Load(Bundle.Value));
-    private static readonly Lazy<EnglishText> English = new(() => EnglishText.Load(Bundle.Value));
-    private static readonly Lazy<VerbGlosses> Glosses = new(() => VerbGlosses.Load(Bundle.Value));
+    private static readonly Lazy<PhraseSheet> Sheet = new(() => RouteScene.DataOf(Bundle.Value).Phrases);
+    private static readonly Lazy<LocaleText> English = new(() => RouteScene.DataOf(Bundle.Value).Locale);
+    private static readonly Lazy<VerbGlosses> Glosses = new(() => RouteScene.DataOf(Bundle.Value).Glosses);
 
     private static InputEntry Entry(long id, string text, IReadOnlyList<GuideWord> words, InputSource source = InputSource.Voice, string? npc = "guide",
         InputPlace place = InputPlace.Dialogue, string? unit = null, bool communicated = true, IReadOnlyList<GuideError>? errors = null, string intent = "ask_directions") =>

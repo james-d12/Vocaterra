@@ -1,0 +1,11 @@
+{
+  "$schema": "../schema/locales.schema.json",
+  "about": "The support-language locales of the locale bundle (CONTENT_PLAN 3.1). The default is game-v1's supportLanguage.",
+  "locales": [
+    {
+      "code": "en",
+      "name": "English",
+      "glyphs": "·¿áéíñóú“”…"
+    }
+  ]
+}

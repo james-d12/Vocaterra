@@ -102,7 +102,7 @@ public sealed class SessionLogTests
     {
         var (log, session, _) = Memory();
         var grade = new CheckGrader(Bundle.Value, 42).GradeTyped(
-            CheckBank.Load(Bundle.Value).Single(static i => i.Id == "say.pedir-agua"),
+            RouteScene.DataOf(Bundle.Value).Checks.Single(static i => i.Id == "say.pedir-agua"),
             "Quiero agua, por favor.",
             InputKind.Typed,
             new Vocaterra.Nlp.Core.Determinism.StoredTimestamp(GuideSession.DefaultStartedAt),

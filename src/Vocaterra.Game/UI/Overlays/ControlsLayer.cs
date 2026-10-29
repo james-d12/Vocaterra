@@ -26,7 +26,7 @@ public sealed class ControlsLayer : IFrameLayer
         }
 
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var ui = view.Session.English;
+        var ui = view.Session.Locale;
         var (layout, rows) = LayoutFor(view, font, view.ControlsScroll);
         var box = new Rectangle(layout.Panel.X, layout.Panel.Y, layout.Panel.Width, layout.Panel.Height);
         spriteBatch.Draw(view.Pixel, box, Back);
@@ -72,7 +72,7 @@ public sealed class ControlsLayer : IFrameLayer
         var width = Math.Min(820, view.ViewportWidth - 32);
         var keysWidth = KeysWidth(width);
         var textWidth = width - keysWidth - 32;
-        var controls = view.Session.English.Controls.Select(c => (Keys: c.Keys, Text: c.Text)).Append((Keys: TextSizeKeys, Text: TextSizeText)).ToList();
+        var controls = view.Session.Locale.Controls.Select(c => (Keys: c.Keys, Text: c.Text)).Append((Keys: TextSizeKeys, Text: TextSizeText)).ToList();
         var rows = controls
             .Select(c => (Keys: TextWrap.Wrap(c.Keys, keysWidth - 8, t => DrawHelpers.Width(font, t)), Text: TextWrap.Wrap(c.Text, textWidth, t => DrawHelpers.Width(font, t))))
             .ToList();

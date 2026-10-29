@@ -14,7 +14,7 @@ public sealed class CheckFrontendTests
 {
     private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
 
-    private static IReadOnlyList<CheckItem> Bank => CheckBank.Load(Bundle.Value);
+    private static IReadOnlyList<CheckItem> Bank => RouteScene.DataOf(Bundle.Value).Checks;
 
     // The seeded plan of a kind (the order is the world seed's; the tests that need a particular first item use Ordered or ProductionFirst).
     private static IReadOnlyList<CheckPlanEntry> Plan(CheckKind kind = CheckKind.Pre) => CheckPlan.For(Bank, kind, 42);

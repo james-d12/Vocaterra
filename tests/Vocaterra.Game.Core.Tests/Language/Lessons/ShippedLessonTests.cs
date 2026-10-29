@@ -34,7 +34,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
         Assert.Null(session.Review);
         Assert.Equal(SessionStage.FindGuide, session.Stage);
         Assert.Empty(session.Events.OfType<PhraseUse>());
-        Assert.Equal("start", session.English.Tips[0].When); // the opening is the English tips (the first is "look")
+        Assert.Equal("start", session.Locale.Tips[0].When); // the opening is the English tips (the first is "look")
     }
 
     [Fact]
@@ -294,7 +294,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
     public void TheGuideNeverAsksTheLearnerForTheirName()
     {
         var lesson = TestGame.NewSessionWithShippedLessons().Lessons.Book.Find("first-words")!;
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
 
         // "Me llamo Luna." is heard, not said (core finding M29d): no step has the learner say a name.
         Assert.Contains(lesson.Steps, static s => s.Line?.Text == "Me llamo Luna.");

@@ -9,9 +9,9 @@ namespace Vocaterra.Game.Core.Tests.Language.Checks;
 /// <summary>The check battery's items (<c>game/checks.json</c>, S11): what is in the bundle, and that a bad item is refused when it is read.</summary>
 public sealed class CheckBankTests
 {
-    private static IReadOnlyList<CheckItem> Bank => CheckBank.Load(TestGame.Bundle);
+    private static IReadOnlyList<CheckItem> Bank => RouteScene.DataOf(TestGame.Bundle).Checks;
 
-    private static PhraseSheet Sheet => PhraseSheet.Load(TestGame.Bundle);
+    private static PhraseSheet Sheet => RouteScene.DataOf(TestGame.Bundle).Phrases;
 
     // One comprehension item and one production item, valid on their own; the tests break one thing at a time.
     private const string Comprehension =

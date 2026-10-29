@@ -67,7 +67,7 @@ internal static class Program
         }
 
         var bundle = GameBundle.Load(bundleDir);
-        var lines = GameData.Load(bundle).Speech;
+        var lines = GameData.Load(bundle, LocaleBundle.Load(LocaleBundle.DirectoryBeside(bundleDir)).Text(LocaleBundle.DefaultCode)).Speech;
         var speechDir = Path.Combine(bundleDir, SpeechLines.FolderName);
         Directory.CreateDirectory(speechDir);
 

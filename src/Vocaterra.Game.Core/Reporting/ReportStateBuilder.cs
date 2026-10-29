@@ -53,6 +53,7 @@ public static class ReportStateBuilder
             quality,
             greyscale,
             speech,
-            microphone);
+            microphone,
+            $"{session.Locale.Code}, hash {session.Locale.BundleHash}");
     }
 }

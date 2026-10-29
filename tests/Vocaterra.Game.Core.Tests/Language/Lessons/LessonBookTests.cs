@@ -34,7 +34,7 @@ public sealed class LessonBookTests
     [Fact]
     public void TheShippedLessonsAreTheGuidesFirstWordsPersonasInSessionTwoAndAyerYMananaInSessionThree()
     {
-        var book = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), TestGame.Speech);
+        var book = RouteScene.DataOf(TestGame.Bundle).Lessons;
 
         Assert.Equal(["first-words", "personas", "ayer-y-manana"], book.Lessons.Select(static l => l.Id));
         var lesson = book.Find("first-words")!;
@@ -50,7 +50,7 @@ public sealed class LessonBookTests
             ["hola", "si", "no", "que-es-esto", "si-por-favor", "gracias", "quiero-madera", "tengo-fruta", "necesito-agua", "no-se", "otra-vez", "mas-despacio"],
             lesson.TaughtPhrases);
         Assert.Equal(lesson.TaughtPhrases.Concat(book.Find("personas")!.TaughtPhrases).Concat(book.Find("ayer-y-manana")!.TaughtPhrases).Distinct(), book.TaughtPhrases); // quiero-madera is asked again at the start of Personas
-        Assert.All(lesson.TaughtPhrases, id => Assert.True(PhraseSheet.Load(TestGame.Bundle).Find(id)!.IsLearnerPhrase, id));
+        Assert.All(lesson.TaughtPhrases, id => Assert.True(RouteScene.DataOf(TestGame.Bundle).Phrases.Find(id)!.IsLearnerPhrase, id));
         foreach (var type in Enum.GetValues<LessonStepType>().Where(static t => t != LessonStepType.Recap))
         {
             Assert.Contains(lesson.Steps, s => s.Type == type); // built from the runner's step types: explain, model, listen, repeat, answer and do
@@ -64,12 +64,12 @@ public sealed class LessonBookTests
     [Fact]
     public void TheFirstUseOfAPhraseHasItsCardAndTheEnglishThinsAfterIt()
     {
-        var book = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), TestGame.Speech);
+        var book = RouteScene.DataOf(TestGame.Bundle).Lessons;
         var lesson = book.Find("first-words")!;
 
         // The first time a phrase is asked it is a repeat step (the card is up) unless an explain step has named it in English just before (the card is not
         // needed for a word the learner has just read); every later use is an answer step (no card), with fewer words of English. The same holds in Personas (S26).
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
         foreach (var each in book.Lessons)
         {
             foreach (var phrase in each.TaughtPhrases)
@@ -80,7 +80,7 @@ public sealed class LessonBookTests
                     var spanish = sheet.Find(phrase)!.Spanish.TrimEnd('.').Split(',')[0];
                     // an explain step before names it in English, or the step itself quotes the words it asks for (S26: "say “Tengo una fruta”")
                     var named = each.Steps.Take(each.Steps.ToList().IndexOf(uses[0]) + 1).Where(static s => s.Type is LessonStepType.Explain or LessonStepType.Answer);
-                    Assert.Contains(named, s => s.English.Contains("“" + spanish + "”", StringComparison.OrdinalIgnoreCase));
+                    Assert.Contains(named, s => s.Locale.Contains("“" + spanish + "”", StringComparison.OrdinalIgnoreCase));
                 }
 
                 Assert.All(uses.Skip(1), static s => Assert.Equal(LessonStepType.Answer, s.Type));
@@ -96,9 +96,9 @@ public sealed class LessonBookTests
     [Fact]
     public void EveryLineOfEveryStepOfTheShippedLessonsHasItsFilesAndTheirEnglish()
     {
-        var book = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), TestGame.Speech);
+        var book = RouteScene.DataOf(TestGame.Bundle).Lessons;
         var store = new Vocaterra.Nlp.Response.Speech.StaticLineStore(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
-        var english = EnglishText.Load(TestGame.Bundle);
+        var english = RouteScene.DataOf(TestGame.Bundle).Locale;
 
         foreach (var step in book.Lessons.SelectMany(static l => l.Steps))
         {
@@ -187,9 +187,9 @@ public sealed class LessonBookTests
         var bundle = TestGame.Bundle;
 
         Assert.True(bundle.TryReadHostFile(LessonBook.RelativePath, out _));
-        Assert.True(bundle.TryReadHostFile(EnglishText.RelativePath, out _));
+        Assert.True(bundle.TryReadHostFile(LocaleText.RelativePath, out _));
         Assert.Contains(LessonBook.RelativePath, bundle.HostFilePaths);
-        Assert.Contains(EnglishText.RelativePath, bundle.HostFilePaths);
+        Assert.Contains(LocaleText.RelativePath, bundle.HostFilePaths);
         var provenance = File.ReadAllText(Path.Combine(GameBundle.ResolveDirectory(), "provenance.json"));
         Assert.Contains("\"path\": \"game/lessons.json\", \"generatedBy\": \"hand-authored\"", provenance, StringComparison.Ordinal);
         Assert.Contains("\"path\": \"game/english.json\", \"generatedBy\": \"hand-authored\"", provenance, StringComparison.Ordinal);

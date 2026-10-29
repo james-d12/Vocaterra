@@ -64,11 +64,18 @@ if (options.ValidateContent || options.GrammarStringsOut is not null)
     // The game's content (CONTENT_PLAN C02): every game file read once from the verified bundle and checked against the others. The ContentBuilder
     // cannot run this check (it references only the core), so the host does.
     GameData data;
+    LocaleBundle locales;
     try
     {
-        data = GameData.Load(bundle);
+        // The support language comes from the locale bundle beside the game's (CONTENT_PLAN C03); every shipped locale is checked, the default one loaded.
+        locales = LocaleBundle.Load(LocaleBundle.DirectoryBeside(contentDirectory));
+        data = GameData.Load(bundle, locales.Text(LocaleBundle.ChooseCode(null, bundle)));
+        foreach (var other in locales.Locales.Where(locale => !string.Equals(locale.Code, data.Locale.Code, StringComparison.Ordinal)))
+        {
+            GameData.Load(bundle, locales.Text(other.Code));
+        }
     }
-    catch (Exception ex) when (ex is InvalidDataException or SceneLayoutException or JsonException)
+    catch (Exception ex) when (ex is InvalidDataException or SceneLayoutException or JsonException or DirectoryNotFoundException or ArgumentException)
     {
         Console.Error.WriteLine(ex.Message);
         return ExitInvalidContent;
@@ -86,7 +93,7 @@ if (options.ValidateContent || options.GrammarStringsOut is not null)
 
     Console.WriteLine(string.Create(
         CultureInfo.InvariantCulture,
-        $"content: {bundle.Manifest.BundleId} {bundle.ContentHash[..12]}: the game files hold together ({data.Nouns.Nouns.Count} nouns, {data.Phrases.Rows.Count} phrases, {data.Lessons.Lessons.Count} lessons, {data.Checks.Count} check items, {data.Speech.Count} speech lines)"));
+        $"content: {bundle.Manifest.BundleId} {bundle.ContentHash[..12]} and locale {locales.BundleHash[..12]} ({string.Join(", ", locales.Locales.Select(static l => l.Code))}): the game files hold together ({data.Nouns.Nouns.Count} nouns, {data.Phrases.Rows.Count} phrases, {data.Lessons.Lessons.Count} lessons, {data.Checks.Count} check items, {data.Speech.Count} speech lines, {data.Locale.Ids.Count} strings)"));
     return ExitOk;
 }
 

@@ -18,7 +18,7 @@ public sealed class PhraseProgressTests
 
     private static readonly CreditRules Default = CreditRules.Default; // spoken full, typed half
 
-    private static PhraseProgress New(int session = 1) => new(PhraseSheet.Load(TestGame.Bundle), session);
+    private static PhraseProgress New(int session = 1) => new(RouteScene.DataOf(TestGame.Bundle).Phrases, session);
 
     private static PhraseUse Use(
         string phrase,

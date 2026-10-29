@@ -3,13 +3,14 @@ using Vocaterra.Game.Core.Items;
 namespace Vocaterra.Game.Core.Session;
 
 /// <summary>
-/// One step of the camp objective: its key, the word the checklist shows, how many it needs and how many the player has done.
+/// One step of the camp objective: its key, the word the checklist shows, the noun it is about, how many it needs and how many the player has done.
 /// </summary>
 /// <param name="Key">A stable key (<c>wood</c>, <c>berry</c>, <c>torch</c>, <c>water</c>), ordinal, never shown.</param>
 /// <param name="Label">The word the checklist shows (<c>madera</c>, <c>frutas</c>, <c>antorcha</c>, <c>agua</c>).</param>
+/// <param name="Noun">The catalogue noun the step is about (<c>madera</c>, <c>fruta</c>): its support-language word glosses the step until the noun is known.</param>
 /// <param name="Target">How many make the step done (positive).</param>
 /// <param name="Count">How many the player has done so far (it may pass the target; the step shows the target at most).</param>
-public sealed record ObjectiveStep(string Key, string Label, int Target, int Count)
+public sealed record ObjectiveStep(string Key, string Label, string Noun, int Target, int Count)
 {
     /// <summary>Whether the step is done.</summary>
     public bool Done => Count >= Target;
@@ -58,10 +59,10 @@ public sealed class Objective
     public static Objective Camp() =>
         new(
         [
-            new ObjectiveStep(WoodKey, "madera", 5, 0),
-            new ObjectiveStep(BerryKey, "frutas", 3, 0),
-            new ObjectiveStep(TorchKey, "antorcha", 1, 0),
-            new ObjectiveStep(WaterKey, "agua", 1, 0),
+            new ObjectiveStep(WoodKey, "madera", "madera", 5, 0),
+            new ObjectiveStep(BerryKey, "frutas", "fruta", 3, 0),
+            new ObjectiveStep(TorchKey, "antorcha", "antorcha", 1, 0),
+            new ObjectiveStep(WaterKey, "agua", "agua", 1, 0),
         ]);
 
     /// <summary>The steps in checklist order.</summary>

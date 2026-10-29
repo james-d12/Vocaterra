@@ -13,7 +13,7 @@ namespace Vocaterra.Game.UI.Hud;
 /// <summary>
 /// The camp checklist, top right: <c>Campamento (camp): madera (wood) 0/5 · frutas (fruit) 0/3 · antorcha (torch) 0/1 · agua (water) 0/1</c> (S16, D-game-13).
 /// A done step is drawn in green, an open one in white, the title in gold and the English in its own colour; the English of a step goes once its noun is known
-/// (D-game-6) and the title's once every step's has. The text comes from <see cref="EnglishText.ObjectivePieces"/>, so the line is the one the content gives; a line
+/// (D-game-6) and the title's once every step's has. The text comes from <see cref="LocaleText.ObjectivePieces"/>, so the line is the one the content gives; a line
 /// wider than the window's share wraps to a second row, the title first.
 /// </summary>
 public sealed class ObjectiveLayer : IFrameLayer
@@ -41,7 +41,7 @@ public sealed class ObjectiveLayer : IFrameLayer
         var session = view.Session;
         var pieces = session is VoxelSession voxel
             ? voxel.ObjectiveHud() // the stage's line, or the checklist (S17)
-            : session.English.ObjectivePieces(objective, lemma => session.Words.RecordOf(lemma).Known);
+            : session.Locale.ObjectivePieces(objective, lemma => session.Words.RecordOf(lemma).Known);
         var rows = HudLayout.ObjectiveRows(pieces, p => DrawHelpers.Width(font, p.Text), static p => p.Kind == ObjectivePieceKind.Word, (float)(view.ViewportWidth * WidthShare), view.ViewportWidth - (2 * Margin) - 16);
         var width = rows.Max(row => row.Sum(p => (int)DrawHelpers.Width(font, p.Text)));
         return (rows, HudLayout.ObjectiveBox(view.ViewportWidth, width, rows.Count));
@@ -112,7 +112,7 @@ public sealed class ObjectiveLayer : IFrameLayer
     private static Color ColourOf(ObjectivePiece piece) => piece.Kind switch
     {
         ObjectivePieceKind.Title => Gold,
-        ObjectivePieceKind.English => piece.Done ? DoneEnglish : DialoguePanel.EnglishColor,
+        ObjectivePieceKind.Support => piece.Done ? DoneEnglish : DialoguePanel.EnglishColor,
         ObjectivePieceKind.Word or ObjectivePieceKind.Count => piece.Done ? Done : Open,
         _ => Open,
     };

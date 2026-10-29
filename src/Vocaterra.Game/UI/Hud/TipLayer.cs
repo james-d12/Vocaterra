@@ -31,7 +31,7 @@ public sealed class TipLayer : IFrameLayer
         }
 
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var ui = view.Session.English;
+        var ui = view.Session.Locale;
         var y = Margin;
         if (view.Session.Tips.Current is { } tip)
         {

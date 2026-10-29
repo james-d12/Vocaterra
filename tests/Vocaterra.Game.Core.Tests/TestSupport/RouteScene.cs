@@ -42,7 +42,7 @@ internal static class RouteScene
         {
             if (!Loaded.TryGetValue(bundle, out var data))
             {
-                data = GameData.Load(bundle);
+                data = GameData.Load(bundle, LocaleOf(bundle));
                 Loaded.Add(bundle, data);
             }
 
@@ -53,8 +53,24 @@ internal static class RouteScene
     private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<ContentBundle, GameData> Loaded = new();
 
     /// <summary>A book without lessons.</summary>
-    public static LessonBook NoLessons(ContentBundle bundle, NounCatalog nouns) =>
-        LessonBook.Parse("{ \"schemaVersion\": 1, \"lessons\": [] }", PhraseSheet.Load(bundle), SpeechLines.Enumerate(bundle, nouns, PhraseSheet.Load(bundle)), bundle.Prompts);
+    public static LessonBook NoLessons(ContentBundle bundle, NounCatalog nouns) => Lessons("{ \"schemaVersion\": 1, \"lessons\": [] }", bundle);
+
+    /// <summary>
+    /// Lessons from a fixture with its text inline (<c>"english"</c>, <c>"title"</c>, ...), checked against the bundle as the game checks its own: the text
+    /// becomes locale strings over the bundle's locale (<see cref="LocaleFixture"/>).
+    /// </summary>
+    public static LessonBook Lessons(string json, ContentBundle bundle)
+    {
+        var (file, strings) = LocaleFixture.SplitLessons(json);
+        var data = DataOf(bundle);
+        return LessonBook.Parse(file, data.Phrases, data.Speech, bundle.Prompts, data.Locale.With(strings));
+    }
+
+    /// <summary>The support language of the repository's locale bundle (<c>content/locale</c>, its default locale), loaded once.</summary>
+    public static LocaleText LocaleOf(ContentBundle bundle) => LoadedLocale.Value;
+
+    private static readonly Lazy<LocaleText> LoadedLocale =
+        new(() => LocaleBundle.Load(LocaleBundle.DirectoryBeside(GameBundle.ResolveDirectory())).Text(LocaleBundle.DefaultCode));
 
     /// <summary>The two-step sample lesson of S16 (hola, gracias), retired from the bundle in S17 and kept as the plain lesson the front-end tests run.</summary>
     public const string SampleLesson = """
@@ -65,6 +81,5 @@ internal static class RouteScene
         """;
 
     /// <summary>The sample lesson as a book.</summary>
-    public static LessonBook Sample(ContentBundle bundle, NounCatalog nouns) =>
-        LessonBook.Parse(SampleLesson, PhraseSheet.Load(bundle), SpeechLines.Enumerate(bundle, nouns, PhraseSheet.Load(bundle)), bundle.Prompts);
+    public static LessonBook Sample(ContentBundle bundle, NounCatalog nouns) => Lessons(SampleLesson, bundle);
 }

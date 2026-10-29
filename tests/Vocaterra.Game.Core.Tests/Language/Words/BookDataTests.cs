@@ -19,7 +19,7 @@ public sealed class BookDataTests
     [Fact]
     public void TheVerbGlossesGiveTheInfinitiveEnglishAndTheIrregularForms()
     {
-        var glosses = VerbGlosses.Load(TestGame.Bundle);
+        var glosses = RouteScene.DataOf(TestGame.Bundle).Glosses;
 
         Assert.Equal("to want", glosses.ForLemma("querer")!.English);
         Assert.Equal("has", glosses.ForLemma("tener")!.Third);
@@ -32,7 +32,7 @@ public sealed class BookDataTests
     [Fact]
     public void SerAndEstarAreGlossedApartByWhatTheyAreAndWhereOrHow()
     {
-        var glosses = VerbGlosses.Load(TestGame.Bundle);
+        var glosses = RouteScene.DataOf(TestGame.Bundle).Glosses;
 
         Assert.Equal("to be: what", glosses.ForLemma("ser")!.English);
         Assert.Equal("to be: where or how", glosses.ForLemma("estar")!.English);
@@ -60,8 +60,8 @@ public sealed class BookDataTests
     [Fact]
     public void TheEnglishTextNoLongerCarriesTheUnusedHoldKey()
     {
-        Assert.DoesNotContain("btnHold", EnglishText.UiKeys);
-        var english = EnglishText.Load(TestGame.Bundle);
+        Assert.DoesNotContain("btnHold", LocaleText.UiKeys);
+        var english = RouteScene.DataOf(TestGame.Bundle).Locale;
         Assert.Throws<KeyNotFoundException>(() => english.Ui("btnHold"));
     }
 

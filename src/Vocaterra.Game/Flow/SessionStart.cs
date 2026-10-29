@@ -44,7 +44,7 @@ public static class SessionStart
             Check: options.Check is { } kind ? CheckKinds.Of(kind) : null,
             Scripted: options.IsScreenshotRun,
             Playtest: options.Playtest);
-        log.SessionStart(session.PlaySession, session.WorldSeed, session.Bundle.ContentHash, session.StoredTime.UnixSeconds, profile);
+        log.SessionStart(session.PlaySession, session.WorldSeed, session.Bundle.ContentHash, session.StoredTime.UnixSeconds, profile, session.Locale.Code, session.Locale.BundleHash);
         console($"session log: {directory} ({SessionLog.SessionFileName}, {SessionLog.ReplayFileName})");
         if (session.Migration is { } migration)
         {

@@ -279,7 +279,7 @@ public sealed class LearnerRecordTests
         using var session = TestGame.NewSession(credit: CreditRules.Default);
         session.OpenTalk("shopkeeper");
         Assert.True(session.StartWorker(loadSpeech: false).WaitUntilReady(30000), "The worker did not load.");
-        var item = CheckBank.Load(TestGame.Bundle).Single(static i => i.Id == "say.pedir-agua");
+        var item = RouteScene.DataOf(TestGame.Bundle).Checks.Single(static i => i.Id == "say.pedir-agua");
 
         _ = session.SubmitCheck(item, TurnSource.Typed, "Quiero agua, por favor.", null, null);
         var applied = Drain(session, 1).Single();

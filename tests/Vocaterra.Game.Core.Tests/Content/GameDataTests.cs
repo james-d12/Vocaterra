@@ -52,7 +52,7 @@ public sealed class GameDataTests
             .Replace("\"npcNames\": {", "\"npcNames\": { \"innkeeper\": \"The innkeeper\",", StringComparison.Ordinal);
         var scene = File.ReadAllText(Repo.Path("content", "game-v1", "game", "scene.json"))
             .Replace("\"name\": \"villager\"", "\"name\": \"miller\"", StringComparison.Ordinal);
-        var data = TestGame.Data.WithEnglish(EnglishText.Parse(json)).WithScene(SceneLayout.Parse(scene));
+        var data = TestGame.Data.WithEnglish(LocaleText.Parse(json)).WithScene(SceneLayout.Parse(scene));
 
         var problems = GameDataValidator.Validate(data);
 

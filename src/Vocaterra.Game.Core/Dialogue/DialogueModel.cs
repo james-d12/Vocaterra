@@ -24,7 +24,7 @@ public sealed class DialogueModel
     private readonly string _openingLine;
     private readonly HashSet<string> _opened = new(StringComparer.Ordinal);
     private readonly PhraseSheet? _phrases;
-    private readonly EnglishText? _english;
+    private readonly LocaleText? _locale;
     private readonly bool _showVerdictNotes;
     private int _cancelled;
 
@@ -41,14 +41,14 @@ public sealed class DialogueModel
     /// <param name="english">The game's English text, for the plain-English feedback after a turn (S16); without it no feedback line is added.</param>
     /// <param name="showVerdictNotes">Whether each turn adds its verdict line (the core's summary, the confidence and the milliseconds, for example
     /// <c>greet, understood, 100 %, 3.5 ms</c>). A playtest hides it (S18); scripted and developer runs keep it.</param>
-    public DialogueModel(InputFocus focus, string openingLine, PhraseSheet? phrases = null, EnglishText? english = null, bool showVerdictNotes = true)
+    public DialogueModel(InputFocus focus, string openingLine, PhraseSheet? phrases = null, LocaleText? english = null, bool showVerdictNotes = true)
     {
         ArgumentNullException.ThrowIfNull(focus);
         ArgumentNullException.ThrowIfNull(openingLine);
         _focus = focus;
         _openingLine = openingLine;
         _phrases = phrases;
-        _english = english;
+        _locale = english;
         _showVerdictNotes = showVerdictNotes;
     }
 
@@ -540,9 +540,9 @@ public sealed class DialogueModel
             }
         }
 
-        if (_english is not null)
+        if (_locale is not null)
         {
-            foreach (var line in _english.FeedbackFor(turn))
+            foreach (var line in _locale.FeedbackFor(turn))
             {
                 Add(DialogueSpeaker.English, line); // the plain-English feedback after the turn (S16, D-game-13)
             }

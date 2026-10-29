@@ -53,7 +53,7 @@ public static class SpeechButtons
     {
         ArgumentNullException.ThrowIfNull(button);
         return session is not null && KeyOf(button.Action) is { } key && session.ButtonEnglishUp(key)
-            ? $"{button.Text} ({session.English.ButtonEnglish(key)})"
+            ? $"{button.Text} ({session.Locale.ButtonSupport(key)})"
             : button.Text;
     }
 

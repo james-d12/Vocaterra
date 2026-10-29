@@ -58,7 +58,9 @@ try
     var bundle = GameBundle.Load(directory);
     // Every game file is read once, from the bytes the bundle's load verified, and checked against the others (CONTENT_PLAN C02): the scene too,
     // unless --scene names a file of its own, which is read from disk and skips the bundle's check.
-    var data = GameData.Load(bundle);
+    var locales = LocaleBundle.Load(LocaleBundle.DirectoryBeside(directory));
+    var data = GameData.Load(bundle, locales.Text(LocaleBundle.ChooseCode(options.Locale, bundle)));
+    Console.WriteLine($"locale: {data.Locale.Code}, bundle {locales.BundleHash[..12]} ({string.Join(", ", locales.Locales.Select(static l => l.Code))} shipped)");
     var sceneStarted = MonotonicClock.Milliseconds();
     var layoutFile = SceneLocator.Resolve(options.SceneFile, directory);
     var layout = options.SceneFile is null ? data.Scene : SceneLayout.Load(layoutFile);
@@ -123,7 +125,7 @@ try
         Console.WriteLine("voice: muted (--mute)");
     }
 }
-catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundException or IOException or UnauthorizedAccessException or ContentValidationException or System.Text.Json.JsonException or InvalidDataException or SceneLayoutException or SaveException)
+catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundException or IOException or UnauthorizedAccessException or ContentValidationException or System.Text.Json.JsonException or InvalidDataException or SceneLayoutException or SaveException or ArgumentException)
 {
     Console.Error.WriteLine(ex.Message);
     return 1;

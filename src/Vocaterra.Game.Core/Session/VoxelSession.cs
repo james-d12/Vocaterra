@@ -101,22 +101,22 @@ public sealed class VoxelSession : GuideSession
     {
         if (Lessons.HudLine is { } hud)
         {
-            return [new ObjectivePiece(hud, ObjectivePieceKind.English)];
+            return [new ObjectivePiece(hud, ObjectivePieceKind.Support)];
         }
 
         if (Lessons.ReplayHud is { } replay)
         {
-            return [new ObjectivePiece(replay, ObjectivePieceKind.English)]; // the learner asked to practise a lesson again from the book (S26)
+            return [new ObjectivePiece(replay, ObjectivePieceKind.Support)]; // the learner asked to practise a lesson again from the book (S26)
         }
 
         if (Stage is SessionStage.Complete or SessionStage.FindGuide && Lessons.NewLesson is { Objective: { } objective })
         {
-            return [new ObjectivePiece(objective, ObjectivePieceKind.English)]; // a new session's lesson is unlocked and not begun: the objective names it (S26)
+            return [new ObjectivePiece(objective, ObjectivePieceKind.Support)]; // a new session's lesson is unlocked and not begun: the objective names it (S26)
         }
 
-        return English.StageLine(Stage) is { } line
-            ? [new ObjectivePiece(line, ObjectivePieceKind.English, Stage == SessionStage.Complete)]
-            : English.ObjectivePieces(Objective, lemma => Words.RecordOf(lemma).Known);
+        return Locale.StageLine(Stage) is { } line
+            ? [new ObjectivePiece(line, ObjectivePieceKind.Support, Stage == SessionStage.Complete)]
+            : Locale.ObjectivePieces(Objective, lemma => Words.RecordOf(lemma).Known);
     }
 
     /// <summary>Whether the player has met the guide (the panel opened on her, or the first step of the checklist was done).</summary>
@@ -133,6 +133,9 @@ public sealed class VoxelSession : GuideSession
 
     /// <summary>The guide's closing line in Spanish (<c>¡Muy bien! Ya tienes fuego.</c>), or an empty text when the bundle has none.</summary>
     public string ClosingLine => Bundle.Dialogue.TryGetPoolById(ClosingPool, out var pool) && pool.Variants.Count > 0 ? pool.Variants[0].Text : string.Empty;
+
+    /// <summary>The speech-line id of <see cref="ClosingLine"/> (its gloss is the locale's <c>line.&lt;id&gt;</c>), or <see langword="null"/> when the bundle has none.</summary>
+    public string? ClosingLineId => Bundle.Dialogue.TryGetPoolById(ClosingPool, out var pool) && pool.Variants.Count > 0 ? pool.Variants[0].LineId : null;
 
     /// <summary>
     /// Whether the scene has a fire ring at the player's own camp, where the closing fire is lit (the flat test clearing has none, and its sessions never reach
@@ -430,7 +433,7 @@ public sealed class VoxelSession : GuideSession
         }
 
         LogWorld(WorldEvents.SpareTorch, null, "antorcha");
-        _hints.Add(English.Ui("spareTorch"));
+        _hints.Add(Locale.Ui("spareTorch"));
     }
 
     /// <inheritdoc />

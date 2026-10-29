@@ -133,7 +133,7 @@ public sealed class LessonStripLayout
     /// <param name="measureLarge">The width of a text in pixels in the large font (the Spanish line).</param>
     /// <param name="englishPage">The page of the English to show (it wraps round): a step's English longer than the strip has room for goes over several pages, and the <c>[M] More</c> button turns them.</param>
     public static LessonStripLayout? For(
-        EnglishText ui,
+        LocaleText ui,
         LessonView? view,
         LessonOffer? offer,
         int viewportWidth,
@@ -158,8 +158,8 @@ public sealed class LessonStripLayout
             return offer is null ? null : ForOffer(ui, offer, panel, limitTop, inner, measure);
         }
 
-        var englishAll = TextWrap.Wrap(DialoguePanel.EnglishPrefix + view.English, inner, measure);
-        var hintAll = view.Hint is { } text ? TextWrap.Wrap(DialoguePanel.EnglishPrefix + text, inner, measure) : [];
+        var englishAll = TextWrap.Wrap(DialoguePanel.SupportPrefix + view.English, inner, measure);
+        var hintAll = view.Hint is { } text ? TextWrap.Wrap(DialoguePanel.SupportPrefix + text, inner, measure) : [];
         var hint = Cut(hintAll, MaxHintRows, measure, inner);
         var showsSpanish = view.Spanish is not null;
         var spanishAll = showsSpanish ? TextWrap.Wrap(view.Spanish!, inner, measureLarge) : [];
@@ -238,7 +238,7 @@ public sealed class LessonStripLayout
     }
 
     // The buttons of a step, left to right: the options of a listen step, Continue, More (when the English goes over pages), Help and Skip.
-    private static List<(LessonAction Action, string Text)> ButtonLabels(EnglishText ui, LessonView view, int pages, int englishPage, int perPage)
+    private static List<(LessonAction Action, string Text)> ButtonLabels(LocaleText ui, LessonView view, int pages, int englishPage, int perPage)
     {
         _ = perPage;
         var labels = new List<(LessonAction Action, string Text)>();
@@ -307,9 +307,9 @@ public sealed class LessonStripLayout
         return cut;
     }
 
-    private static LessonStripLayout ForOffer(EnglishText ui, LessonOffer offer, PixelBox panel, int limitTop, int inner, Func<string, float> measure)
+    private static LessonStripLayout ForOffer(LocaleText ui, LessonOffer offer, PixelBox panel, int limitTop, int inner, Func<string, float> measure)
     {
-        var rows = TextWrap.Wrap(DialoguePanel.EnglishPrefix + offer.English, inner, measure).Take(2).ToList();
+        var rows = TextWrap.Wrap(DialoguePanel.SupportPrefix + offer.English, inner, measure).Take(2).ToList();
         var height = Padding + LineHeight + (rows.Count * LineHeight) + Gap + ButtonHeight + Padding;
         var y = Math.Max(4, limitTop - Gap - height);
         var box = new PixelBox(panel.X, y, panel.Width, height);
@@ -323,7 +323,7 @@ public sealed class LessonStripLayout
     /// <summary>The heading of a strip for a lesson step: <c>Lesson · A first hello · step 1 of 2 · Say it</c>.</summary>
     /// <param name="ui">The game's English text.</param>
     /// <param name="view">The lesson step in progress.</param>
-    public static string Heading(EnglishText ui, LessonView view)
+    public static string Heading(LocaleText ui, LessonView view)
     {
         ArgumentNullException.ThrowIfNull(ui);
         ArgumentNullException.ThrowIfNull(view);
@@ -334,7 +334,7 @@ public sealed class LessonStripLayout
     /// <summary>The heading of the strip of a lesson on offer: <c>Lesson · A first hello</c>.</summary>
     /// <param name="ui">The game's English text.</param>
     /// <param name="offer">The offer.</param>
-    public static string Heading(EnglishText ui, LessonOffer offer)
+    public static string Heading(LocaleText ui, LessonOffer offer)
     {
         ArgumentNullException.ThrowIfNull(ui);
         ArgumentNullException.ThrowIfNull(offer);

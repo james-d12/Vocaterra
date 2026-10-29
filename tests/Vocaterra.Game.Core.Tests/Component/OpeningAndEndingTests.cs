@@ -52,7 +52,7 @@ public sealed class OpeningAndEndingTests
 
         Assert.Equal(SessionStage.FindGuide, session.Stage);
         Assert.Equal("Go down the trail and find the guide", Hud(session));
-        Assert.Equal(ObjectivePieceKind.English, Assert.Single(session.ObjectiveHud()).Kind); // English only, in its own colour
+        Assert.Equal(ObjectivePieceKind.Support, Assert.Single(session.ObjectiveHud()).Kind); // English only, in its own colour
         Assert.False(session.GuideMet);
         Assert.InRange(session.Simulation.Player.FeetBlock.X, session.Scene.Point("camp.player").X - 6, session.Scene.Point("camp.player").X + 6); // the spawn is the player's camp, alone: no NPC within a long walk
         Assert.All(NpcService.AgentIds, npc =>
@@ -141,7 +141,7 @@ public sealed class OpeningAndEndingTests
         Assert.Equal(1, names.Count(static n => n == WorldEvents.SessionComplete));
         Assert.True(names.IndexOf(WorldEvents.FireLit) < names.IndexOf(WorldEvents.SessionComplete));
         Assert.Equal("¡Muy bien! Ya tienes fuego.", session.ClosingLine);
-        Assert.Equal("Very good! Now you have a fire.", session.English.ForLine(session.ClosingLine));
+        Assert.Equal("Very good! Now you have a fire.", session.Locale.ForLine(session.ClosingLine));
     }
 
     [Fact]

@@ -17,7 +17,7 @@ namespace Vocaterra.Game.Core.Tests.Language.Book;
 public sealed class ConjugationTableTests
 {
     private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<VerbGlosses> Glosses = new(() => VerbGlosses.Load(Bundle.Value));
+    private static readonly Lazy<VerbGlosses> Glosses = new(() => RouteScene.DataOf(Bundle.Value).Glosses);
 
     private static WordUse Use(long entry) => new(entry, 1, GuideSession.DefaultStartedAt + entry, "x");
 

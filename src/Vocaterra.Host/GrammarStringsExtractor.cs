@@ -1,6 +1,6 @@
 // The strings of the game's Spanish, as the grammar check reads them (docs/nlp/API.md, "Grammar check the strings"). The host owns this list
 // because the game owns its files: the bundle's dialogue, prompts, answer sets and intents (read through the core's loader), the phrase sheet
-// (content/PHRASES.md, with the learner-error examples), the Spanish sides of english.json and checks.json, and the speech index. The output is
+// (content/PHRASES.md, with the learner-error examples), the Spanish side of checks.json, and the speech index. The output is
 // one JSON object per line: id, text, kind (npc, learner or template) and, for an intent example or a learner-error example, errors.
 using System.Text;
 using System.Text.Encodings.Web;
@@ -8,7 +8,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Checks;
-using Vocaterra.Game.Core.Tip;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Host;
@@ -43,7 +42,9 @@ public static class GrammarStringsExtractor
 
     /// <summary>
     /// Every Spanish string of the bundle in <paramref name="bundleDirectory"/> and of its game files (the phrase sheet and the speech index sit beside
-    /// the bundle, in <c>content/</c>). The order is fixed: dialogue, prompts, answer sets, intents, phrases, english.json, checks.json, speech.
+    /// the bundle, in <c>content/</c>). The order is fixed: dialogue, prompts, answer sets, intents, phrases, checks.json, speech. The support language is
+    /// not checked (the owner's decision), so the locale bundle is not read; before C03 the Spanish keys of english.json's glosses were listed too, and they
+    /// repeated the dialogue's and the prompts' texts.
     /// A duplicate id is an error (the file would be refused by the core).
     /// </summary>
     public static IReadOnlyList<GrammarStringLine> Extract(GameData data, string bundleDirectory)
@@ -60,7 +61,6 @@ public static class GrammarStringsExtractor
         AddAnswerSets(lines, bundle);
         AddIntents(lines, bundle);
         AddPhraseSheet(lines, Path.Combine(contentDirectory, "PHRASES.md"));
-        AddEnglishLines(lines, bundle);
         AddChecks(lines, data);
         AddSpeechIndex(lines, Path.Combine(contentDirectory, "speech-index.json"));
 
@@ -179,19 +179,6 @@ public static class GrammarStringsExtractor
                 var tags = match.Groups["tags"].Value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 lines.Add(Line("PHRASES.md:" + row.Id + ".error", match.Groups["text"].Value, Learner, tags));
             }
-        }
-    }
-
-    private static void AddEnglishLines(List<GrammarStringLine> lines, ContentBundle bundle)
-    {
-        // Only the Spanish side of each line: the English side and the English text that quotes Spanish are the owner's English support text, not checked.
-        // The file is read from the bytes the bundle's load verified (CONTENT_PLAN C02), as the game reads it.
-        using var document = JsonDocument.Parse(GameData.HostText(bundle, EnglishText.RelativePath));
-        var index = 0;
-        foreach (var line in document.RootElement.GetProperty("lines").EnumerateArray())
-        {
-            lines.Add(Line("english.json:lines[" + index + "]", line.GetProperty("spanish").GetString()!, Npc));
-            index++;
         }
     }
 

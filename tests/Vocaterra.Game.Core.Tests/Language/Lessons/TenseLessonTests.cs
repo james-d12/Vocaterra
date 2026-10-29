@@ -98,7 +98,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
             Assert.Equal(lesson.NpcOf(step), step.Line!.Speaker);
         }
 
-        var all = string.Join(" ", lesson.Steps.Select(static s => s.English + " " + s.Line?.Text));
+        var all = string.Join(" ", lesson.Steps.Select(static s => s.Locale + " " + s.Line?.Text));
         Assert.DoesNotContain("vosotros", all, StringComparison.OrdinalIgnoreCase);
         foreach (var time in new[] { "ayer", "hoy", "mañana" })
         {
@@ -141,7 +141,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         Assert.Equal(LessonId, session.Lessons.NewLesson!.Id);
         var piece = Assert.Single(session.ObjectiveHud());
         Assert.Equal("Session 3: go to the village and talk to the villager to start the lesson “Ayer y mañana”", piece.Text);
-        Assert.Equal(ObjectivePieceKind.English, piece.Kind);
+        Assert.Equal(ObjectivePieceKind.Support, piece.Kind);
         session.BeginPlaySession();
         var villager = session.Scene.Npc("villager").Feet;
         Assert.Equal(new GuideCell(villager.X, villager.Y, villager.Z), session.Pointer!.Target);
@@ -587,7 +587,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     [Fact]
     public void TheNewRowsAreInTheSheetAndTheNewLinesAreInTheSpeechList()
     {
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
         var added = new[]
         {
             "que-vas-a-comer", "voy-a-comer-pan", "que-vamos-a-comer", "vamos-a-comer-fruta", "que-comiste-ayer", "ayer-comi-fruta",
@@ -623,7 +623,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     public void TheLessonsEnglishNeverHandsOverVosotrosAndNamesTheFormsItDeclares()
     {
         var lesson = Book.Find(LessonId)!;
-        var text = string.Join(" ", lesson.Steps.Select(static s => s.English));
+        var text = string.Join(" ", lesson.Steps.Select(static s => s.Locale));
 
         foreach (var form in new[] { "voy", "vas", "va", "vamos", "van", "comí", "comiste", "bebí", "bebiste", "fui", "fuiste" })
         {

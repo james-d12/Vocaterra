@@ -18,8 +18,9 @@ MASKS = [
     (re.compile(r"Duration: [^,]+"), "Duration: <d>"),
     (re.compile(r"\"(wall|at|time|started|ended|unix|wall_seconds|\w*_ms|\w*latency\w*)\":\s?[\d.]+"), r'"\1": <n>'),
     (re.compile(r"(p50|p90|p95|p99|max|min|mean|avg|median)[ =:]+[\d.]+"), r"\1 <n>"),
-    (re.compile(r'"(bundle|bundleHash|contentHash|locale|localeHash)":\s?"[0-9a-f]{12,64}"'), r'"\1": "<hash>"'),
+    (re.compile(r'"(bundle|bundleHash|contentHash|locale_bundle|localeHash)":\s?"[0-9a-f]{12,64}"'), r'"\1": "<hash>"'),
     (re.compile(r"\b(bundle|locale) [0-9a-f]{12}\b"), r"\1 <hash>"),
+    (re.compile(r"\b(hash) [0-9a-f]{64}\b"), r"\1 <hash>"),
     (re.compile(r"(\S*/)?(content|src|tests|assets)/(game-v1|locale|Vocaterra\.)"), r"<repo>/\2/\3"),
     (re.compile(r"^limited\.sh: .*\n", re.M), ""),
 ]

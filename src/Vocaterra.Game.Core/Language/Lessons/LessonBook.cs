@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
@@ -247,8 +248,9 @@ public sealed class LessonBook
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
     /// <param name="sheet">The phrase sheet.</param>
     /// <param name="speech">The bundle's speakable lines (<see cref="SpeechLines.Enumerate"/>).</param>
+    /// <param name="locale">The support language, which holds the lessons' text (<c>lesson.&lt;id&gt;.*</c>).</param>
     /// <exception cref="InvalidDataException">The bundle has no such host file, or a lesson is malformed or does not fit the bundle.</exception>
-    public static LessonBook Load(ContentBundle bundle, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech)
+    public static LessonBook Load(ContentBundle bundle, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, LocaleText locale)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         if (!bundle.TryReadHostFile(RelativePath, out var bytes))
@@ -256,7 +258,7 @@ public sealed class LessonBook
             throw new InvalidDataException($"The bundle has no host file {RelativePath}: it is missing from the manifest, or the bundle was loaded without hash verification.");
         }
 
-        return Parse(Encoding.UTF8.GetString(bytes.Span), sheet, speech, bundle.Prompts);
+        return Parse(Encoding.UTF8.GetString(bytes.Span), sheet, speech, bundle.Prompts, locale);
     }
 
     /// <summary>Builds the lessons from the file's text, checking that each one holds together.</summary>
@@ -264,13 +266,15 @@ public sealed class LessonBook
     /// <param name="sheet">The phrase sheet.</param>
     /// <param name="speech">The bundle's speakable lines.</param>
     /// <param name="prompts">The bundle's prompts.</param>
+    /// <param name="locale">The support language, which holds the lessons' text (<c>lesson.&lt;id&gt;.*</c>).</param>
     /// <exception cref="InvalidDataException">The text is malformed or a lesson does not hold together.</exception>
-    public static LessonBook Parse(string json, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts)
+    public static LessonBook Parse(string json, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts, LocaleText locale)
     {
         ArgumentNullException.ThrowIfNull(json);
         ArgumentNullException.ThrowIfNull(sheet);
         ArgumentNullException.ThrowIfNull(speech);
         ArgumentNullException.ThrowIfNull(prompts);
+        ArgumentNullException.ThrowIfNull(locale);
         try
         {
             using var document = JsonDocument.Parse(json);
@@ -284,7 +288,7 @@ public sealed class LessonBook
             var ids = new HashSet<string>(StringComparer.Ordinal);
             foreach (var element in root.GetProperty("lessons").EnumerateArray())
             {
-                var lesson = ParseLesson(element, sheet, speech, prompts, ids);
+                var lesson = ParseLesson(element, sheet, speech, prompts, locale, ids);
                 if (!ids.Add(lesson.Id))
                 {
                     throw new InvalidDataException($"{RelativePath}: the lesson id '{lesson.Id}' is used twice.");
@@ -301,7 +305,7 @@ public sealed class LessonBook
         }
     }
 
-    private static LessonDefinition ParseLesson(JsonElement element, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts, ISet<string> earlier)
+    private static LessonDefinition ParseLesson(JsonElement element, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts, LocaleText locale, ISet<string> earlier)
     {
         var id = Text(element, "id");
         var npc = Text(element, "npc");
@@ -320,7 +324,7 @@ public sealed class LessonBook
         var stepIds = new HashSet<string>(StringComparer.Ordinal);
         foreach (var stepElement in element.GetProperty("steps").EnumerateArray())
         {
-            var step = ParseStep(id, stepElement, sheet, speech, prompts);
+            var step = ParseStep(id, stepElement, sheet, speech, prompts, locale);
             if (!stepIds.Add(step.Id))
             {
                 throw Bad(id, $"has the step id '{step.Id}' twice");
@@ -350,13 +354,13 @@ public sealed class LessonBook
             throw Bad(id, $"unlocks in session {session.ToString(CultureInfo.InvariantCulture)}; sessions start at 1");
         }
 
-        var objective = Optional(element, "objective");
+        var objective = locale.Find(LessonId(id, "objective"));
         if (session > 1 && objective is null)
         {
-            throw Bad(id, "unlocks in a later session and needs an English \"objective\" line that names it");
+            throw Bad(id, $"unlocks in a later session and needs an objective line that names it ({LessonId(id, "objective")} in the locale)");
         }
 
-        var lesson = new LessonDefinition(id, npc, Text(element, "title"), Text(element, "english"), autoStart, after, steps, Optional(element, "summary"), session, objective, ParseVerbs(id, element));
+        var lesson = new LessonDefinition(id, npc, Required(locale, id, LessonId(id, "title")), Required(locale, id, LessonId(id, "text")), autoStart, after, steps, locale.Find(LessonId(id, "summary")), session, objective, ParseVerbs(id, element));
         foreach (var recap in steps.Where(static s => s.Type == LessonStepType.Recap))
         {
             foreach (var phrase in recap.Phrases)
@@ -399,9 +403,10 @@ public sealed class LessonBook
         return forms;
     }
 
-    private static LessonStep ParseStep(string lesson, JsonElement element, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts)
+    private static LessonStep ParseStep(string lesson, JsonElement element, PhraseSheet sheet, IReadOnlyList<SpeechLine> speech, IReadOnlyDictionary<string, PromptSpec> prompts, LocaleText locale)
     {
         var id = Text(element, "id");
+        string? Say(string field) => locale.Find(StepId(lesson, id, field));
         var typeName = Text(element, "type");
         var type = LessonStepTypes.Parse(typeName) ?? throw Bad(lesson, $"step '{id}' has the type '{typeName}', which is not one of explain, model, listen, repeat, answer, do, recap");
         var attempts = element.TryGetProperty("attempts", out var count) ? count.GetInt32() : LessonStep.DefaultAttempts;
@@ -425,7 +430,7 @@ public sealed class LessonBook
             case LessonStepType.Listen:
             case LessonStepType.Answer:
                 line = LineOf(lesson, id, Text(element, "line"), speech);
-                translation = Text(element, "translation");
+                translation = Required(locale, lesson, StepId(lesson, id, "translation"));
                 break;
             default:
                 break;
@@ -434,11 +439,11 @@ public sealed class LessonBook
         switch (type)
         {
             case LessonStepType.Listen:
-                options = element.GetProperty("options").EnumerateArray().Select(static o => o.GetString() ?? string.Empty).ToList();
+                options = Options(locale, lesson, id);
                 correct = element.GetProperty("correct").GetInt32();
-                if (options.Count is < 2 or > 4 || options.Any(static o => o.Length == 0))
+                if (options.Count is < 2 or > MaxOptions)
                 {
-                    throw Bad(lesson, $"step '{id}' needs two to four non-empty options");
+                    throw Bad(lesson, $"step '{id}' needs two to four options ({StepId(lesson, id, "option.<n>")} in the locale)");
                 }
 
                 if (correct < 0 || correct >= options.Count)
@@ -504,7 +509,7 @@ public sealed class LessonBook
             throw Bad(lesson, $"step '{id}' expects the tense '{tense}': \"tense\" is pres, pret or ir-a and goes with a repeat or answer step");
         }
 
-        return new LessonStep(id, type, Text(element, "english"), Optional(element, "help"), Optional(element, "retry"), line, translation, phrase, prompt, options, correct, worldEvent, detail, phrases, attempts, type == LessonStepType.Do ? Optional(element, "point") : null, type == LessonStepType.Do ? Optional(element, "hud") : null, stepNpc, at, person, person is null ? null : Optional(element, "personRetry"), tense, tense is null ? null : Optional(element, "tenseRetry"), tense == TaughtVerbForm.NearFuture ? Optional(element, "presentNote") : null);
+        return new LessonStep(id, type, Required(locale, lesson, StepId(lesson, id, "text")), Say("help"), Say("retry"), line, translation, phrase, prompt, options, correct, worldEvent, detail, phrases, attempts, type == LessonStepType.Do ? Optional(element, "point") : null, type == LessonStepType.Do ? Say("hud") : null, stepNpc, at, person, person is null ? null : Say("personRetry"), tense, tense is null ? null : Say("tenseRetry"), tense == TaughtVerbForm.NearFuture ? Say("presentNote") : null);
     }
 
     private static (string Phrase, string Prompt) PhraseAndPrompt(string lesson, string step, JsonElement element, PhraseSheet sheet, IReadOnlyDictionary<string, PromptSpec> prompts)
@@ -535,6 +540,35 @@ public sealed class LessonBook
         ?? throw Bad(lesson, $"step '{step}' plays the line '{lineId}', which has no pre-rendered speech line in the bundle");
 
     private static InvalidDataException Bad(string lesson, string problem) => new($"{RelativePath}: the lesson '{lesson}' {problem}.");
+
+    /// <summary>The locale id of a lesson's own text: <c>lesson.&lt;id&gt;.&lt;field&gt;</c> (title, text, summary, objective).</summary>
+    /// <param name="lesson">The lesson's id.</param>
+    /// <param name="field">The field.</param>
+    public static string LessonId(string lesson, string field) => "lesson." + lesson + "." + field;
+
+    /// <summary>The locale id of a step's text: <c>lesson.&lt;id&gt;.&lt;step&gt;.&lt;field&gt;</c> (text, translation, help, retry, personRetry, tenseRetry, presentNote, hud, option.&lt;n&gt;).</summary>
+    /// <param name="lesson">The lesson's id.</param>
+    /// <param name="step">The step's id.</param>
+    /// <param name="field">The field.</param>
+    public static string StepId(string lesson, string step, string field) => "lesson." + lesson + "." + step + "." + field;
+
+    /// <summary>The most options a listen step offers (<c>option.1</c> to <c>option.4</c>).</summary>
+    public const int MaxOptions = 4;
+
+    private static string Required(LocaleText locale, string lesson, string id) =>
+        locale.Find(id) ?? throw Bad(lesson, $"has no text '{id}' in the locale {locale.Code}");
+
+    // A listen step's options: option.1, option.2, ... in the locale, as many as follow one another.
+    private static List<string> Options(LocaleText locale, string lesson, string step)
+    {
+        var options = new List<string>();
+        while (options.Count < MaxOptions + 1 && locale.Find(StepId(lesson, step, "option." + (options.Count + 1).ToString(CultureInfo.InvariantCulture))) is { } option)
+        {
+            options.Add(option);
+        }
+
+        return options;
+    }
 
     private static string Text(JsonElement element, string name)
     {

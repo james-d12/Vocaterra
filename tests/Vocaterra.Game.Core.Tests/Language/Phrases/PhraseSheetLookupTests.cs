@@ -10,7 +10,7 @@ namespace Vocaterra.Game.Core.Tests.Language.Phrases;
 /// </summary>
 public sealed class PhraseSheetLookupTests
 {
-    private static PhraseSheet Sheet => PhraseSheet.Load(TestGame.Bundle);
+    private static PhraseSheet Sheet => RouteScene.DataOf(TestGame.Bundle).Phrases;
 
     [Fact]
     public void TheBundleHoldsTheFortySixPhrasesOfTheSheetInOrder()

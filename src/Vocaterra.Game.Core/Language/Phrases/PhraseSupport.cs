@@ -83,7 +83,7 @@ public sealed class PhraseSupport
 {
     private readonly PhraseSheet _sheet;
     private readonly PhraseProgress _progress;
-    private readonly EnglishText? _english;
+    private readonly LocaleText? _locale;
     private readonly Dictionary<string, string> _lineText = new(StringComparer.Ordinal);
     private readonly HashSet<string> _revealed = new(StringComparer.Ordinal);
     private readonly HashSet<string> _counted = new(StringComparer.Ordinal);
@@ -102,14 +102,14 @@ public sealed class PhraseSupport
     /// <param name="progress">The phrase progress.</param>
     /// <param name="bundle">The bundle whose dialogue lines hold the model audio's text.</param>
     /// <param name="english">The game's English text (the explanations on the cards), or <see langword="null"/> for cards without them.</param>
-    public PhraseSupport(PhraseSheet sheet, PhraseProgress progress, ContentBundle bundle, EnglishText? english = null)
+    public PhraseSupport(PhraseSheet sheet, PhraseProgress progress, ContentBundle bundle, LocaleText? english = null)
     {
         ArgumentNullException.ThrowIfNull(sheet);
         ArgumentNullException.ThrowIfNull(progress);
         ArgumentNullException.ThrowIfNull(bundle);
         _sheet = sheet;
         _progress = progress;
-        _english = english;
+        _locale = english;
         var wanted = new HashSet<string>(sheet.Rows.SelectMany(static r => r.AudioLineIds), StringComparer.Ordinal);
         foreach (var pool in bundle.Dialogue.Pools.Values)
         {
@@ -172,7 +172,7 @@ public sealed class PhraseSupport
     private SupportCard CardOf(string phraseId)
     {
         var card = SupportCard.From(_sheet.Find(phraseId)!);
-        return card with { EnglishShown = EnglishUp(phraseId), Explanation = _english?.Explanation(phraseId) };
+        return card with { EnglishShown = EnglishUp(phraseId), Explanation = _locale?.Explanation(phraseId) };
     }
 
     /// <summary>The sound <c>Repetir</c> replays while a phrase's help is on offer (its card is up, or it is at audio-only), or <see langword="null"/> to replay the NPC's last line.</summary>

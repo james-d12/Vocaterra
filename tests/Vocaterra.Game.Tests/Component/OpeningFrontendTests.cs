@@ -254,7 +254,7 @@ public sealed class OpeningFrontendTests
     {
         var session = Session();
         TeleportToNpc(session, "guide");
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases, session.English);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases, session.Locale);
         dialogue.Open(session.OpenTalk("guide"), "Guía");
         _ = session.Lessons.Continue();
         _ = session.Lessons.Continue();
@@ -299,7 +299,7 @@ public sealed class OpeningFrontendTests
     {
         var session = Session();
         TeleportToNpc(session, "guide");
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases, session.English);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases, session.Locale);
         dialogue.Open(session.OpenTalk("guide"), "Guía");
         var opened = 0;
         var lesson = new LessonFrontend(session, dialogue, static _ => { }) { OnRecapDone = () => opened++ };

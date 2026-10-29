@@ -40,7 +40,7 @@ public sealed class LessonLayer : IFrameLayer
         var large = view.Fonts.Get(LargeSize);
         var limit = DialogueLayout.PanelBox(view.ViewportWidth, view.ViewportHeight).Y; // the strip stands on the panel; the cards are placed clear of it (ConversationFrame)
         return LessonStripLayout.For(
-            view.Session.English,
+            view.Session.Locale,
             step,
             offer,
             view.ViewportWidth,
@@ -70,7 +70,7 @@ public sealed class LessonLayer : IFrameLayer
         }
 
         var (step, offer) = _lesson.State();
-        var ui = view.Session.English;
+        var ui = view.Session.Locale;
         var small = view.Fonts.Get(FontProvider.NativeSize);
         var large = view.Fonts.Get(LargeSize);
         var box = new Rectangle(layout.Box.X, layout.Box.Y, layout.Box.Width, layout.Box.Height);

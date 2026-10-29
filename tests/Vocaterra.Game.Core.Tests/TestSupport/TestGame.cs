@@ -58,10 +58,13 @@ internal static class TestGame
         """;
 
     /// <summary>The bundle's speakable lines (the lessons' lines are checked against them).</summary>
-    public static IReadOnlyList<SpeechLine> Speech => SpeechLines.Enumerate(Bundle, Nouns, PhraseSheet.Load(Bundle));
+    public static IReadOnlyList<SpeechLine> Speech => Data.Speech;
 
     /// <summary>Lessons from a file's text, checked against the bundle as the game checks its own.</summary>
-    public static LessonBook Lessons(string json) => LessonBook.Parse(json, PhraseSheet.Load(Bundle), Speech, Bundle.Prompts);
+    public static LessonBook Lessons(string json) => RouteScene.Lessons(json, Bundle);
+
+    /// <summary>The support language of the repository's locale bundle (its default locale).</summary>
+    public static LocaleText Locale => RouteScene.LocaleOf(Bundle);
 
     /// <summary>The live facts of a session's world (the blocks as they are now).</summary>
     public static WorldFacts FactsOf(VoxelSession session) => WorldFacts.Live(session.Scene.Grid, Nouns);

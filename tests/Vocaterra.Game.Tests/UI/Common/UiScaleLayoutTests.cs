@@ -41,10 +41,10 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
 
     private static float Large(string text) => text.Length * 14f;
 
-    private static readonly Lazy<EnglishText> English = new(() =>
+    private static readonly Lazy<LocaleText> English = new(() =>
     {
         var bundle = GameBundle.Load();
-        return EnglishText.Load(bundle);
+        return RouteScene.DataOf(bundle).Locale;
     });
 
     /// <summary>Every window size and scale: the case's canvas is the window divided by the scale.</summary>
@@ -139,7 +139,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
             {
                 foreach (var hints in new[] { DialoguePanel.KeyHints, DialoguePanel.SpeechOffKeyHints, DialoguePanel.ButtonHints, DialoguePanel.SpeechOffButtonHints })
                 {
-                    var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, choices, typing, static b => $"{b.Text} ({English.Value.ButtonEnglish(SpeechButtons.KeyOf(b.Action)!)})", hints);
+                    var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, choices, typing, static b => $"{b.Text} ({English.Value.ButtonSupport(SpeechButtons.KeyOf(b.Action)!)})", hints);
                     var where = $"{windowWidth}x{windowHeight} at {scale}%, typing {typing}, {choices.Length} choices";
                     Assert.True(Inside(layout.Panel, window), $"{where}: the panel is outside the canvas");
 
@@ -191,7 +191,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     public void ThePlainPanelKeepsRoomForAtLeastOneLineOfConversationAtEveryScale(int windowWidth, int windowHeight, int scale)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
-        var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, [], typing: false, static b => $"{b.Text} ({English.Value.ButtonEnglish(SpeechButtons.KeyOf(b.Action)!)})", DialoguePanel.ButtonHints);
+        var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, [], typing: false, static b => $"{b.Text} ({English.Value.ButtonSupport(SpeechButtons.KeyOf(b.Action)!)})", DialoguePanel.ButtonHints);
 
         Assert.True(layout.LinesBottom - layout.LinesTop >= DialogueLayout.LineHeight, $"{canvas.Width}x{canvas.Height}: {layout.LinesBottom - layout.LinesTop} px for the conversation");
     }
@@ -276,7 +276,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
             Assert.True(textBottom <= buttons.Min(static b => b.Box.Y), $"{where}: the text reaches {textBottom}, into the buttons at {buttons.Min(static b => b.Box.Y)}");
 
             // No English is left out: the pages together are the whole text.
-            var wrapped = TextWrap.Wrap(DialoguePanel.EnglishPrefix + view.English, inner, Small);
+            var wrapped = TextWrap.Wrap(DialoguePanel.SupportPrefix + view.English, inner, Small);
             var all = new List<string>();
             for (var page = 0; page < layout.EnglishPages; page++)
             {
@@ -450,7 +450,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
-        var bank = CheckBank.Load(GameBundle.Load());
+        var bank = RouteScene.DataOf(GameBundle.Load()).Checks;
         var panel = CheckCardLayout.PanelFor(canvas.Width, canvas.Height);
         Assert.True(Inside(panel, window));
         var side = CheckCardLayout.SideFor(panel);

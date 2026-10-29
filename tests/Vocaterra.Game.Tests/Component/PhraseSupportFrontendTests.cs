@@ -35,7 +35,7 @@ public sealed class PhraseSupportFrontendTests
         public void Play(string npc, string line, bool slow) => Played.Add((npc, line, slow));
     }
 
-    private static PhraseProgress NewProgress() => new(PhraseSheet.Load(Bundle.Value));
+    private static PhraseProgress NewProgress() => new(RouteScene.DataOf(Bundle.Value).Phrases);
 
     private static PhraseUse Use(string phrase, PhraseUseKind kind, long time, InputKind input = InputKind.Spoken, IReadOnlyList<string>? inPlay = null) =>
         new(time * 60, time, phrase, kind, "shopkeeper", "stall-need", "line", null, input, true, SupportLevel.None, inPlay);
@@ -217,7 +217,7 @@ public sealed class PhraseSupportFrontendTests
     public void TheKeyWordAndSupportCardCuesPlayThePreRenderedFilesOfS9()
     {
         var bundle = Bundle.Value;
-        var lines = SpeechLines.Enumerate(bundle, Nouns.Value, PhraseSheet.Load(bundle));
+        var lines = SpeechLines.Enumerate(bundle, Nouns.Value, RouteScene.DataOf(bundle).Phrases);
         var logs = new List<string>();
         var output = new FakeOutput();
         using var voice = new NpcVoice(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName), new SpeechIndex(lines), output, muted: false, logs.Add);
@@ -408,7 +408,7 @@ public sealed class PhraseSupportFrontendTests
             PhraseJournalRows.HearsText, PhraseJournalRows.CardAndAudioText, PhraseJournalRows.AudioOnlyText, PhraseJournalRows.NoneText,
             "with help 1   without help 0.5   choices 0   don't know 0   other situation 0", "heard 1   answered 1", "Without help: 1 of 4", "and 3 more", "audio",
         };
-        var sheet = PhraseSheet.Load(Bundle.Value);
+        var sheet = RouteScene.DataOf(Bundle.Value).Phrases;
         strings.AddRange(sheet.Rows.SelectMany(static r => new[] { r.Spanish, r.English, r.Card }));
 
         var missing = strings.SelectMany(static s => s).Where(c => !cmap.Covers(c)).Distinct().Select(static c => $"U+{(int)c:X4} {c}").ToList();

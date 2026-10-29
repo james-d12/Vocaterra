@@ -18,7 +18,7 @@ public sealed class SupportLadderTests
 
     private static readonly CreditRules Rules = CreditRules.Default;
 
-    private static PhraseSheet Sheet => PhraseSheet.Load(TestGame.Bundle);
+    private static PhraseSheet Sheet => RouteScene.DataOf(TestGame.Bundle).Phrases;
 
     private static PhraseUse Use(PhraseUseKind kind, long time, InputKind input = InputKind.Spoken, string phrase = "pedir-agua") =>
         new(time * 60, time, phrase, kind, "shopkeeper", "stall-need", "line", null, input, true, SupportLevel.None, null);
@@ -35,7 +35,7 @@ public sealed class SupportLadderTests
         }
 
         Assert.Equal(rung, progress.LevelOf("pedir-agua"));
-        var support = new PhraseSupport(sheet, progress, TestGame.Bundle, EnglishText.Load(TestGame.Bundle));
+        var support = new PhraseSupport(sheet, progress, TestGame.Bundle, RouteScene.DataOf(TestGame.Bundle).Locale);
         _ = support.Show("shopkeeper", "stall-need");
         return (progress, support);
     }

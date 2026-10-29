@@ -1,6 +1,11 @@
 using System.Globalization;
 using Vocaterra.Game.Core.Language.Checks;
+using Vocaterra.Game.Core.Language.Lessons;
+using Vocaterra.Game.Core.Language.Phrases;
+using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Npc;
+using Vocaterra.Game.Core.Session;
+using Vocaterra.Nlp.Core.Taxonomy;
 
 namespace Vocaterra.Game.Core.Content;
 
@@ -11,8 +16,8 @@ namespace Vocaterra.Game.Core.Content;
 /// <remarks>
 /// <para>What is checked:</para>
 /// <list type="bullet">
-/// <item>the English text: every explained phrase is a row of the sheet, every noun it glosses (and every noun of the objective) is a catalogue noun,
-/// and every NPC it names is one of the game's agents;</item>
+/// <item>the support language (the locale, C03): every string the content or the code asks for is there (the interface words, the outcomes, the NPCs'
+/// roles, the objective's nouns, each phrase's explanation, each NPC line's gloss), and every string it holds is asked for (no orphans);</item>
 /// <item>the phrase sheet: every prompt a row names is a bundle prompt, and every recording a row names is a line of the bundle's dialogue;</item>
 /// <item>the check battery: every item's phrase is a row of the sheet, a comprehension item plays a speakable line, and a production item is graded at a
 /// bundle prompt on a phrase the learner says;</item>
@@ -28,34 +33,56 @@ public static class GameDataValidator
     {
         ArgumentNullException.ThrowIfNull(data);
         var problems = new List<string>();
-        CheckEnglish(data, problems);
+        CheckLocale(data, problems);
         CheckPhrases(data, problems);
         CheckChecks(data, problems);
         CheckScene(data, problems);
         return problems;
     }
 
-    private static void CheckEnglish(GameData data, List<string> problems)
+    private static void CheckLocale(GameData data, List<string> problems)
     {
-        const string File = "game/english.json";
-        foreach (var id in data.English.ExplainedPhrases.Where(id => data.Phrases.Find(id) is null))
+        var locale = data.Locale;
+        var file = $"locale {locale.Code}";
+        var required = new List<string>();
+        required.AddRange(LocaleText.UiKeys.Select(static key => "ui." + key));
+        required.AddRange(LocaleText.OutcomeKeys.Select(static key => "feedback.outcome." + key));
+        required.Add("feedback.unknownError");
+        required.Add("objective." + LocaleText.CampObjective + ".title");
+        required.AddRange(NpcService.AgentIds.Select(static npc => "npc." + npc + ".role"));
+        required.AddRange(Objective.Camp().Steps.Select(static step => "noun." + step.Noun));
+        required.AddRange(data.Phrases.Rows.Select(static row => PhraseSheet.LocaleId(row.Id, "explain")));
+        required.AddRange(data.Speech.Where(static line => line.Kind is SpeechKind.Dialogue or SpeechKind.Prompt).Select(static line => "line." + line.LineId));
+        foreach (var id in required.Where(id => !locale.Has(id)))
         {
-            problems.Add($"{File}: the explanation names the phrase '{id}', which is not in the phrase sheet.");
+            problems.Add($"{file}: the string '{id}' is missing.");
         }
 
-        foreach (var lemma in data.English.GlossedNouns.Where(lemma => data.Nouns.ForLemma(lemma) is null))
+        // An orphan is a string the locale holds that no content or code asks for: a renamed id leaves one behind.
+        var allowed = new HashSet<string>(required, StringComparer.Ordinal);
+        allowed.UnionWith(ErrorTags.All.Select(static tag => "feedback.error." + tag));
+        allowed.UnionWith(data.Nouns.Nouns.Select(static noun => "noun." + noun.Lemma));
+        allowed.UnionWith(data.Phrases.Rows.SelectMany(static row => new[] { PhraseSheet.LocaleId(row.Id, "meaning"), PhraseSheet.LocaleId(row.Id, "card") }));
+        allowed.UnionWith(data.Tips.Select(static tip => "tip." + tip.Id));
+        allowed.UnionWith(data.Controls.SelectMany(static control => new[] { "control." + control.Id + ".keys", "control." + control.Id + ".text" }));
+        foreach (var lesson in data.Lessons.Lessons)
         {
-            problems.Add($"{File}: the noun '{lemma}' has English but is not a catalogue noun.");
+            allowed.UnionWith(new[] { "title", "text", "summary", "objective" }.Select(field => LessonBook.LessonId(lesson.Id, field)));
+            foreach (var step in lesson.Steps)
+            {
+                allowed.UnionWith(new[] { "text", "translation", "help", "retry", "personRetry", "tenseRetry", "presentNote", "hud" }.Select(field => LessonBook.StepId(lesson.Id, step.Id, field)));
+                allowed.UnionWith(Enumerable.Range(1, LessonBook.MaxOptions).Select(n => LessonBook.StepId(lesson.Id, step.Id, "option." + n.ToString(CultureInfo.InvariantCulture))));
+            }
         }
 
-        foreach (var (step, lemma) in data.English.ObjectiveNouns.Where(entry => data.Nouns.ForLemma(entry.Noun) is null))
+        foreach (var item in data.Checks)
         {
-            problems.Add($"{File}: the objective step '{step}' names the noun '{lemma}', which is not a catalogue noun.");
+            allowed.UnionWith(new[] { "question", "situation", "option.1", "option.2", "option.3" }.Select(field => CheckBank.LocaleId(item.Id, field)));
         }
 
-        foreach (var npc in data.English.NamedNpcs.Where(npc => !NpcService.AgentIds.Contains(npc, StringComparer.Ordinal)))
+        foreach (var id in locale.Ids.Where(id => !allowed.Contains(id) && !id.StartsWith("verb.", StringComparison.Ordinal)))
         {
-            problems.Add($"{File}: npcNames names '{npc}', which is not one of the NPCs ({string.Join(", ", NpcService.AgentIds)}).");
+            problems.Add($"{file}: the string '{id}' is asked for by no content or code (an orphan).");
         }
     }
 

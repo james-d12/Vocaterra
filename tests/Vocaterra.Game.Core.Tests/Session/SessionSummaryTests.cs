@@ -64,7 +64,7 @@ public sealed class SessionSummaryTests
     {
         var session = TestGame.NewSession();
 
-        var lines = SessionSummary.Lines(FixedFacts(session.Phrases), session.English);
+        var lines = SessionSummary.Lines(FixedFacts(session.Phrases), session.Locale);
 
         Assert.Equal(
         [
@@ -75,7 +75,7 @@ public sealed class SessionSummaryTests
             "Next time, practise: ¿Dónde está el río? (you said I don't know); Sí, por favor (a slip to fix)",
             "Replay a lesson: press J for the book, choose a finished lesson, press Practise again, then talk to its guide.",
         ], lines);
-        Assert.Equal(lines, SessionSummary.Lines(FixedFacts(session.Phrases), session.English)); // the same record, the same text
+        Assert.Equal(lines, SessionSummary.Lines(FixedFacts(session.Phrases), session.Locale)); // the same record, the same text
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public sealed class SessionSummaryTests
         var session = TestGame.NewSession();
         var facts = new SummaryFacts(1, [], [], [Lesson("first-words", "First words with Luna")], session.Phrases, []);
 
-        var lines = SessionSummary.Lines(facts, session.English);
+        var lines = SessionSummary.Lines(facts, session.Locale);
 
         Assert.Equal(
         [
@@ -109,7 +109,7 @@ public sealed class SessionSummaryTests
             session.Phrases,
             []);
 
-        var practise = SessionSummary.Lines(facts, session.English).Single(static l => l.StartsWith("Next time, practise:", StringComparison.Ordinal));
+        var practise = SessionSummary.Lines(facts, session.Locale).Single(static l => l.StartsWith("Next time, practise:", StringComparison.Ordinal));
 
         Assert.Equal("Next time, practise: nothing is flagged from this session", practise);
     }
@@ -119,7 +119,7 @@ public sealed class SessionSummaryTests
     {
         var session = TestGame.NewSession();
 
-        var text = string.Join("\n", SessionSummary.Lines(FixedFacts(session.Phrases), session.English));
+        var text = string.Join("\n", SessionSummary.Lines(FixedFacts(session.Phrases), session.Locale));
 
         foreach (var banned in new[] { "dont_know", "help uses", "score", "CEFR", "A1", "%", "wrong", "failed", "mistake" })
         {
@@ -131,7 +131,7 @@ public sealed class SessionSummaryTests
     public void ThePractiseLineNamesAtMostTwoPhrasesAndNoSeComesFirst()
     {
         var session = TestGame.NewSession();
-        var lines = SessionSummary.Lines(FixedFacts(session.Phrases), session.English);
+        var lines = SessionSummary.Lines(FixedFacts(session.Phrases), session.Locale);
         var practise = lines.Single(static l => l.StartsWith("Next time, practise:", StringComparison.Ordinal));
 
         Assert.Equal(2, practise.Split("; ").Length);

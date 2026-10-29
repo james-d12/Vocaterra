@@ -42,8 +42,8 @@ public sealed class SessionEnding
 
         _since = tick;
         Spanish = session.ClosingLine;
-        English = session.English.ForLine(Spanish) ?? session.English.Ui("sessionCompleteLine");
-        Summary = SessionSummary.Lines(SummaryFacts.Of(session), session.English);
+        English = session.ClosingLineId is { } closing && session.Locale.Line(closing) is { } gloss ? gloss : session.Locale.Ui("sessionCompleteLine");
+        Summary = SessionSummary.Lines(SummaryFacts.Of(session), session.Locale);
         return true;
     }
 
