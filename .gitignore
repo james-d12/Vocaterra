@@ -19,9 +19,10 @@ Thumbs.db
 # LibreOffice lock files
 .~lock.*#
 
-# Claude Code: agent worktrees and gate logs are local; agents/ is committed
+# Claude Code: agent worktrees, gate logs and test timing runs are local; agents/ is committed
 .claude/worktrees/
 .claude/gate-logs/
+.claude/test-timings/
 .claude/settings.local.json
 
 # Models are fetched, not committed (manifest.json and the README are the exceptions)
