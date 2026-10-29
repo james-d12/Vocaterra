@@ -1192,6 +1192,21 @@ merge into a feature branch that is pushed, and the owner merges it into `main` 
   - **Gate.** 5,445 passed (Nlp 2,452, Es 1,129, Fuzzing 76, Golden 17, Game.Core 863, Game 872, Host 36; 7 new, none lost), 3 skipped,
     0 failed; licence scan passed (30 packages); fuzz at 10,000 grammar iterations green; `identity-check.sh f4694ff` passed (the G2P golden
     and `exceptions.json` are pure renames); the CLI demo and the host demo are unchanged.
+- **Test performance, the core's half (2026-10-29, Opus 5.5, `feature/test-performance`; plan `docs/TEST_PERFORMANCE_PLAN.md`, T2, T3, T4).**
+  - **One bundle load per test process.** `GameBundleLocator.Bundle` (tests/Shared) loads `content/game-v1` once with every hash verified;
+    Nlp.Tests' two loads and Golden.Tests' three use it. The CLI tests still load through `--content` (the CLI takes no `LexiconCache`).
+  - **The model gate verifies each model once.** `ModelGate.IsAvailable` keeps its verdict per id; the pipeline tests' copy of the gate is
+    gone. Measured: the gates hash Vosk (58 MB) and Parakeet (641 MB) at about 1 GB/s, so the saving is seconds.
+  - **The serial collection was left as it is.** Its 33 plain facts take 0.2 s in all; its cost is the model tests themselves (23.7 s with
+    models, at the end of Nlp.Tests), which is why Nlp.Tests takes 59 s with models and 36 s without. T3b in the plan proposes letting the
+    collection run beside the assembly's other tests (its own tests still one at a time): Nlp.Tests alone with models went from 53.5 s
+    to 34.4 s in three green runs. It reverses M52's choice, so it is the owner's decision.
+  - **Fast tier:** `scripts/test.sh fast` leaves out the fuzz suite (an assembly trait), the 17 model-gated facts, `CliTests`, `ProgramTests`,
+    `LintTests`, `LintCommandTests`, `SpanishIdentityTests` and three long single tests; Nlp.Tests runs 2,313 of 2,455 tests in 11 s. The
+    gate, CI and `scripts/test.sh full` run the whole suite at its full depth; no oracle changed.
+  - **O15 is the fuzz suite's longest test** (52 to 55 s of 63 s). It already shares the lexicon and hard-links the speech; a cheaper
+    equivalent with the same oracle needs `ContentLoader` to read an in-memory file source, a core API change (T6). A shallower local fuzz
+    pass (T5) is the owner's call.
 
 ## 6. Definition of done (every milestone)
 

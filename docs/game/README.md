@@ -68,7 +68,15 @@ dotnet test Vocaterra.sln
 The .NET SDK is pinned in `global.json` (10.0.402, `latestPatch`). A user-local install is enough. The core's projects are built from the
 same commit; there is no pack step and no local feed.
 
-The speech models are not in the repository. Without them five model-gated tests are skipped, and the speech runs (the mic check, `--speak`,
+On the development machine the tests run through `scripts/test.sh` ([scripts/README.md](../../scripts/README.md)), which keeps them inside
+`scripts/limited.sh`'s caps. `scripts/test.sh fast` (under a minute) is the check after every step: it leaves out the tests marked
+`[Trait(TestSpeed.Trait, TestSpeed.Slow)]` (the world-generation classes, the model-gated tests, the playtest report's process tests, the
+whole-route meshing and a few other long single tests, and the core's fuzz suite and CLI tests). `scripts/test.sh full` is the whole suite, as
+the merge gate and CI run it, and `scripts/test.sh project Vocaterra.Game.Core.Tests` one project. The tests share one bundle load
+(`TestGame.Bundle`) and one build of the route per seed (`RouteScene.Build`, `TestGame.Route`: each test gets a clone it may edit); a test of
+the scene builder itself calls `SceneBuilder.Build`.
+
+The speech models are not in the repository. Without them fourteen model-gated tests are skipped, and the speech runs (the mic check, `--speak`,
 `--playtest`) cannot hear. Fetch the pinned Vosk model and the Kokoro model once into a folder outside the repository, then point
 `VOCATERRA_MODELS_DIR` at it for the tests and the runs:
 

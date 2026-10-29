@@ -1,156 +1,208 @@
 # Test suite performance plan
 
-Written 2026-10-28. It covers both halves of the repository. Nothing in it has been carried out yet.
+Written 2026-10-28. It covers both halves of the repository. On 2026-10-29 it was checked against `main` at `604903f` (after R16 moved the
+game's tests between projects) and carried out on the branch `feature/test-performance`: T0 to T4 are done, T5 waits on the owner, and the
+items of T6 are open. The results are in the next section; each phase below says what was done and where it differs from the first plan.
+
+## Results
+
+Each run is `dotnet test Vocaterra.sln --no-build -m:2 --logger trx` through `scripts/limited.sh`, on the development machine (16 cores,
+11 GiB, the run capped at 10 cores and 6 GB), measured with `scripts/test-timings.py`. The run's wall time is the span from the first test
+assembly's start to the last one's finish, so the time a run waits for another heavy command is not counted.
+
+| Assembly | T0, models | T0, no models | After T1 to T3, models | Branch, full, models | Branch, full, no models | Branch, fast, models |
+|---|---|---|---|---|---|---|
+| Game.Core.Tests | 146.1 s | 141.2 s | 66.5 s | 40.8 s | 35.4 s | 26.1 s |
+| Game.Tests | 39.3 s | 37.7 s | 18.6 s | 15.1 s | 15.4 s | 5.8 s |
+| Nlp.Tests | 63.1 s | 35.9 s | 59.4 s | 53.5 s | 34.7 s | 11.3 s |
+| Nlp.Fuzzing.Tests | 64.6 s | 63.0 s | 49.5 s | 39.2 s | 41.0 s | left out |
+| Nlp.Golden.Tests | 16.1 s | 13.8 s | 13.2 s | 13.0 s | 13.2 s | 1.5 s |
+| Nlp.Es.Tests | 3.4 s | 3.5 s | 3.9 s | 4.0 s | 4.0 s | 3.6 s |
+| Host.Tests | 1.7 s | 1.4 s | 1.3 s | 1.2 s | 1.2 s | 1.3 s |
+| **The run** | **186.3 s** | **153.2 s** | **130.0 s** | **108.1 s** | **84.3 s** | **26.1 s** |
+| Passed / skipped | 5,447 / 3 | 5,419 / 31 | 5,449 / 3 | 5,449 / 3 | 5,421 / 31 | 5,142 / 0 |
+
+The two extra passes from T1 on are the two clone tests it adds; no test was removed, skipped or weakened, and no golden changed. The
+"branch" columns are the final state (T1 to T4 and the warmed scene of T1). Runs of the same code differ by 10 s or more an assembly
+with what runs beside them and the machine's other load: the fuzz suite, whose tests no phase changed, took 64.6, 49.5 and 39.2 s in the
+three runs with models, so the step from 66.5 to 40.8 s for Game.Core.Tests is partly the warmed scene and partly that variance (the two
+were not measured apart). The fast tier runs 94 percent of the tests in a quarter of the full run's time (26 s against 108 s). With `-m:2` two test assemblies run at
+once, so the run's wall time is set by the longer of the two lanes. At T0 that was Game.Core.Tests (146 s) beside everything else (188 s).
+On the branch the lanes are Host, Game, Fuzzing and Es (ending after 61 s) and Game.Core, Golden and Nlp.Tests (108 s): Nlp.Tests starts
+last, and its serial collection (about 20 s with models) runs alone at its end. T3b removes that tail (Nlp.Tests 53.5 s to 34.4 s); O15 (T6)
+is the next lever after it.
 
 ## Context
 
-`dotnet test Vocaterra.sln` runs seven test projects with about 3,300 test methods. Theory rows add more on top of that. The full set "takes ages" (owner, 2026-10-26), so day-to-day work runs only `Vocaterra.Game.Tests`, and the full set waits for milestones.
+`dotnet test Vocaterra.sln` runs seven test projects with about 3,360 test methods, 5,450 tests with the theory rows. R16 (2026-10-28) moved
+most of the game's session tests from Game.Tests to Game.Core.Tests, which now has 1,210 tests (983 methods) on the same route scene;
+Game.Tests has 529. The full set "takes ages" (owner, 2026-10-26), so day-to-day work ran only `Vocaterra.Game.Tests` and the full set waited
+for milestones.
 
-The newest timings are from the gate logs of 2026-10-23, from before the projects were merged. In those, Game.Tests alone took 1 m 46 s to 2 m 3 s, the fuzz suite 28–30 s and content 18–31 s. Since then, Game.Core.Tests has grown to about 740 tests built on the same route scene.
+Everything runs under `scripts/limited.sh`: one heavy command at a time, 10 of 16 cores, 6 GB of RAM and `-m:2`. Under those limits, wasted
+CPU and memory turn straight into extra minutes. The goal was to cut that waste without weakening any test or oracle, and then give
+developers a fast tier to run on every step.
 
-Everything runs under `scripts/limited.sh`: one heavy command at a time, 10 of 16 cores, 6 GB of RAM and `-m:2`. Under those limits, wasted CPU and memory turn straight into extra minutes. The goal is to cut that waste without weakening any test or oracle, and then give developers a fast tier to run on every step.
+## What made the suite slow
 
-## What makes the suite slow
+The first plan found these by reading the code; T0 measured them. Each item says what the measurement showed.
 
-All of these were found by reading the code. Nothing has been measured yet; phase T0 does that.
+1. **The route scene was rebuilt for almost every game test.** The scene is 384×128×384 (4,608 chunks, 38 MB of blocks); one build takes
+   about 0.6 s alone and 0.8 to 2.5 s beside the other tests (`SceneTests` prints it). `TestGame.Route` and `NewSession`
+   (`tests/Vocaterra.Game.Core.Tests/TestSupport/TestGame.cs`), `RouteScene.Build`, `Clearing` and `NewSession` (`TestSupport/RouteScene.cs`,
+   linked into Game.Tests since R16), `VoxelTestSupport.BuildRoute` and seven direct `SceneBuilder.Build` calls built and re-read
+   `scene.json` every time. The rebuild existed only because `VoxelSimulation` edits the grid in place (`Scene`'s summary called a build
+   cheap). Confirmed: it was the largest cost. With T2, T1 took Game.Core.Tests from 146 s to 41 s and Game.Tests from 39 s to 15 s.
+2. **The content bundle was loaded about 45 times.** Each `GameBundle.Load()` / `SpanishContent.Load` reads all 481 files with their 33 MB of
+   speech WAVs, computes the SHA-256 of every file, parses the 4.5 MB lexicon and keeps the WAV bytes alive. After R16 the copies were:
+   20 classes of Game.Core.Tests and 14 of Game.Tests with their own `Lazy<ContentBundle>` (most with their own `NounCatalog`), five
+   uncached calls (`NpcVoiceTests`, `BookModelTests`, `PlaytestTests`, `UiScaleLayoutTests` twice), two loads in Nlp.Tests
+   (`Content/TestSupport`, `Pipeline/TestSupport`) and three in Golden.Tests. Host.Tests, Es.Tests and the fuzz harness load once. The first
+   plan's "already fine: Game.Core.Tests" stopped being true when R16 moved the classes there.
+3. **Model files were hashed again for every model attribute.** `ModelGate.IsAvailable` ran `ModelStore.Verify` from each
+   `[VoskModelFact]` / `[ParakeetModelFact]` constructor, during discovery; `Pipeline/VoskPipelineTests.cs` had a second copy of the gate.
+   Measured: the gates verify Vosk (58 MB) and Parakeet (641 MB) only, not 1.9 GB (Kokoro, 387 MB, has no hashing gate), and SHA-256 runs at
+   about 1 GB/s here, so this cost seconds, not minutes. It is fixed anyway (T3).
+4. **The serial collection.** `NativeRuntimeCollection` sets `DisableParallelization = true`, so its tests run alone after the rest of
+   Nlp.Tests. Measured: its 33 plain facts (no model) take 0.2 s in all, so moving them out gains nothing; the collection's cost is its
+   model tests (23.7 s with models, run one at a time at the end of the assembly). That is what the gap between Nlp.Tests with models
+   (63 s) and without (36 s) is. See T3b.
+5. **Smaller waste on every session:** `RouteScene.NoLessons` loaded `PhraseSheet` twice and enumerated the speech lines on every
+   `NewSession`; `TestGame.Speech`, `Lessons` and the shipped lesson book were recomputed on every access. Fixed in T1. The polling loops
+   that sleep 1 to 5 ms while waiting for the turn worker (`LearnerRecordTests`, `SessionLogTests`, ...) do not show among the slow tests;
+   left as they are (T6).
+6. **No fast/slow split existed.** There were no `[Trait]`s, no `xunit.runner.json` and no `.runsettings`. Fixed in T4.
 
-1. **The route scene is rebuilt about 380 times.**
-   - The scene is 384×128×384, which is 4,608 chunks. One build takes about 0.4 s alone and 3 s or more under parallel load (`SceneTests.cs:28`).
-   - These helpers call `SceneBuilder.Build` every time, and re-read `scene.json` each time:
-     - `TestGame.Route`, `NewSession` and `NewSessionWithShippedLessons` (`tests/Vocaterra.Game.Core.Tests/TestGame.cs:31-43`)
-     - `RouteScene.Build`, `NewSession` and `NewSessionWithShippedLessons` (`tests/Vocaterra.Game.Tests/RouteScene.cs:23-35`)
-     - `VoxelTestSupport.BuildRoute` (`tests/Vocaterra.Game.Core.Tests/Voxel/VoxelTestSupport.cs:24`)
-     - about 10 direct builds
-   - The rebuild exists only because `VoxelSimulation` edits the grid in place (`src/Vocaterra.Game.Core/World/Scene.cs:7-11`: "build a new scene for a fresh run (it is cheap)"). It is no longer cheap.
+Not a cost: coverlet is referenced but never collects, because nothing passes `--collect`. CsCheck depth is fixed by `FuzzOptions` and is a
+deliberate decision (T5).
 
-2. **The content bundle is loaded about 45 times.** Each `GameBundle.Load()` / `SpanishContent.Load` does three expensive things:
-   - reads all 481 files, including 33 MB of speech WAVs
-   - computes the SHA-256 of every file
-   - parses the 4.5 MB lexicon
-
-   Where the loads happen:
-   - **Game.Tests:** about 30 classes each hold their own `static Lazy<ContentBundle>`, often with their own `Lazy<NounCatalog>`, for example `LessonFrontendTests.cs:28` and `BookSpeechTests.cs:24-27`. Five more calls have no cache: `BookModelTests.cs:252`, `UiScaleLayoutTests.cs:34,441`, `PlaytestTests.cs:156` and `NpcVoiceTests.cs:20`. Every loaded copy keeps its WAV bytes alive, about 33 MB each, under a 6 GB cap.
-   - **Nlp.Tests:** two static loads (`Content/TestSupport.cs:19`, `Pipeline/TestSupport.cs:80`), plus repeat loads in `ContentLoaderTests` and in the in-process CLI tests (`CliTests`, `LintCommandTests`, `ProgramTests`).
-   - **Golden.Tests:** three static loads (`EndToEndGoldenTests.cs:39`, `ManifestGoldenTests.cs:22`, `SpanishIdentityTests.cs:46`).
-   - **Already fine:** Game.Core.Tests (`TestGame.LoadedBundle`), Host.Tests and the fuzz harness each load once.
-
-3. **Model files are hashed again for every test.**
-   - `ModelGate.IsAvailable` (`tests/Vocaterra.Nlp.Tests/Asr/TestSupport.cs:99`) is not cached. It runs `ModelStore.Verify`, which hashes every model file, from inside each `[VoskModelFact]` / `[ParakeetModelFact]` constructor, so the cost lands during test discovery.
-   - When `VOCATERRA_MODELS_DIR` is set, as it always is in the gate, that is about 1.9 GB hashed before the first test runs.
-   - `Pipeline/VoskPipelineTests.cs:17-19,39-44` does the same.
-
-4. **The serial collection holds tests that don't need it.**
-   - `NativeRuntimeCollection` (`tests/Vocaterra.Nlp.Tests/NativeRuntimeCollection.cs`) sets `DisableParallelization = true`, so its tests run alone after the rest of the assembly finishes.
-   - About 33 of its plain `[Fact]`s run without any model and never touch a native runtime.
-
-5. **Smaller waste on every session:**
-   - `RouteScene.NoLessons` loads `PhraseSheet.Load` twice and enumerates the speech lines on every `NewSession`.
-   - `TestGame.Speech` and `TestGame.Lessons` are recomputed on every access.
-   - Many polling loops sleep 1–5 ms while waiting for the turn worker, for example `LearnerRecordTests.cs:26-36` and `SessionLogTests.cs:40-50`.
-
-6. **No fast/slow split exists.** There are no `[Trait]`s, no `xunit.runner.json` and no `.runsettings`. Developers can only run whole projects.
-
-Not a cost today: coverlet is referenced but never collects, because nothing passes `--collect`. CsCheck depth is fixed by `FuzzOptions` and is a deliberate decision (see T5).
+A finding the first plan did not have: **inside one test class xUnit runs the tests one after another**, and a test assembly's
+classes run in parallel, so an assembly cannot finish before its largest class. Alone, Game.Core.Tests now uses about 2.4 of its 10 cores on
+average; its wall time is set by its biggest classes (`VillageTests`, `SceneTests`, `SaveMigrationTests`, `GuideTurnTests`), not by the CPU.
 
 ## Phases
 
-Each phase is one milestone on its own branch, through the usual merge gate. The work splits by half:
-- T2 changes core test projects, and T3 needs an owner decision on the fuzz suite. Both count as core milestones.
-- The scene and bundle helpers in T1 are game work.
+The work splits by half: T1 and the game's part of T2 are game work, the core's part of T2, T3 and T5 are core work. They landed as one
+commit each on `feature/test-performance` (one worktree, at the owner's request) instead of one branch each. No phase removed an assertion,
+lowered an oracle's depth or changed a golden.
 
-No phase removes an assertion, lowers an oracle's depth in the gate, or changes a golden.
+### T0: Baseline measurement (tooling only), done
+- `scripts/test-timings.py RUN [BASE] [--top N]` reads a run's TRX files and prints each assembly's wall time and counts, the run's wall time
+  (first start to last finish), the N slowest tests and the N classes with the most test time; with `BASE` it prints both runs side by side.
+- The baseline was recorded twice, with `VOCATERRA_MODELS_DIR` set (the gate's case) and without (the CI case), into
+  `.claude/test-timings/` (git-ignored). The table is in Results.
 
-### T0: Baseline measurement (tooling only)
-- Add `scripts/test-timings.py`, which parses TRX files and prints three things:
-  - the 30 slowest tests
-  - total time per class
-  - wall time per assembly
-- Record a baseline with `scripts/limited.sh dotnet test Vocaterra.sln --no-build -m:2 --logger trx --results-directory .claude/test-timings/<stamp>`. Run it twice: once with `VOCATERRA_MODELS_DIR` set (the gate's case) and once without (the CI case).
-- Put the baseline table in this document. Every later phase reports against it. The table also checks the estimates in the section above.
+### T1: Build the route scene once and give each test a copy (game), done
+- **Production code:** `internal VoxelChunk Clone()`, `VoxelGrid Clone()` and `Scene Clone()`. A clone copies the blocks (38 MB for the
+  route) and keeps the version, the edit count, the non-air count, the kind mask and the cached digests (an edit replaces a cached digest and
+  never writes into it, so the arrays are shared); the spawn, the NPCs and the points are read-only and shared. The `Scene` summary no
+  longer calls a build cheap. `Vocaterra.Game.Core` already had `InternalsVisibleTo` for both test projects.
+- **Test helpers:** `RouteScene` keeps one built scene per layout and seed in a `ConcurrentDictionary<(layout, seed), Lazy<Scene>>`, with
+  each layout parsed once, and hands out clones; the built scene computes its digests and kind masks once, so the clones carry them.
+  `TestGame.Route` and `VoxelTestSupport.BuildRoute` (and its `RouteDraft`) go through it; so do `RouteScene.Clearing` and the direct
+  builds in `FootstepTests`, `ChunkMesherTests`, `GreyscaleTests`, `FirstPersonCameraTests`, `BeaconArrowTests`, `CampObjectiveTests` and
+  `VoxelSessionTests`.
+- **Still built for real:** `SceneTests.Seed42SceneMatchesTheGoldenAndLoadsInUnderThreeSeconds` and `TheSceneBuildsIdenticallyTwice` (two
+  builds, no longer two copies of one), and the small layouts of `TerrainTests`. The other generation tests only read a scene of a given
+  seed, and a clone is that scene, so they share the copies (the first plan kept all of `World/Generation` on real builds).
+- **New tests:** `VoxelGridTests.ACloneReadsLikeItsOriginalAndEditsApartFromIt` and
+  `SceneTests.TheTestsCopyOfTheRouteIsAFreshBuildAndItsEditsStayInIt` (the copy has the golden digest, the fresh build's counts, versions,
+  NPCs and points, and an edit to it reaches no other copy).
+- The per-session extras are made once: `TestGame.Phrases`, `Speech`, `NoLessons` and the shipped lesson book as `Lazy`, and
+  `RouteScene.NoLessons` per bundle (a `ConditionalWeakTable`). All of them are read-only.
+- The built scenes stay in memory for the test process: one per seed the tests use (ten in Game.Core.Tests, about 38 MB each). Even so the
+  peak memory fell with T1 and T2 together: Game.Core.Tests alone peaked at 3.61 GB on `main` and 2.80 GB on the branch (the test host's
+  peak resident set, sampled), since each test process now holds one bundle instead of up to 21.
 
-### T1: Build the route scene once and give each test a copy (game; biggest win)
-- **Production code:**
-  - Add `internal VoxelGrid Clone()` to `src/Vocaterra.Game.Core/Voxel/VoxelGrid.cs`. It copies each chunk's `BlockId[]` (ushort, about 38 MB for the route) and clears the digest caches.
-  - Add `internal Scene Clone()` to `World/Scene.cs`. The NPC list and the points are read-only, so they can be shared.
-  - `Vocaterra.Game.Core` already has `InternalsVisibleTo` set for both test projects.
-  - Update the "it is cheap" remark in the `Scene` summary.
-- **Test helpers:**
-  - Add a process-wide `ConcurrentDictionary<ulong, Lazy<Scene>>` template cache, with the parsed `SceneLayout` cached alongside.
-  - `TestGame.Route`, `RouteScene.Build` and `VoxelTestSupport.BuildRoute` return `template.Clone()`. The same applies to `RouteScene.Clearing`.
-  - Point the direct `SceneBuilder.Build` call sites at the helpers. These are `FootstepTests`, `ChunkMesherTests`, `GreyscaleTests`, `FirstPersonCameraTests`, `BeaconArrowTests`, `CampObjectiveTests` and `VoxelSessionTests`.
-- **Tests that must keep building for real** (they test the builder itself):
-  - `SceneTests.Seed42SceneMatchesTheGoldenAndLoadsInUnderThreeSeconds`
-  - `SceneTests.TheSceneBuildsIdenticallyTwice`
-  - the generation tests under `World/Generation`
-- **New tests:**
-  - A clone has the same world digest as a fresh build.
-  - An edit to a clone leaves the template unchanged.
-- Cache the per-session extras: `NoLessons` and the phrase sheet per bundle, and `TestGame.Speech` / `Lessons` as `Lazy`.
+### T2: Load each bundle once per test assembly (game and core test projects), done
+- **Game:** the 34 per-class loads and the five uncached calls use `TestGame.Bundle`, `TestGame.Nouns` and `TestGame.Phrases`. `TestGame`
+  is linked into Game.Tests as `RouteScene` is, instead of a new `TestBundle` class: since R16 both projects need it.
+- **Core:** `GameBundleLocator` (tests/Shared, linked into the core's test projects) has a `Bundle`, loaded on first use with every hash
+  verified. Nlp.Tests' two loads and Golden.Tests' three use it.
+- The CLI tests (`CliTests`, `LintCommandTests`, `ProgramTests`) still load the bundle through `--content`: the CLI takes no `LexiconCache`.
+  Recorded for T6; T4 leaves them out of the fast tier instead.
+- Every load still verifies the hashes, so what the tests check is the same.
 
-### T2: Load each bundle once per test assembly (game and core test projects)
-- **Game.Tests:** add one `TestBundle` (bundle and `NounCatalog`, static `Lazy`), like Game.Core's `TestGame`. Replace the roughly 30 per-class `Lazy` loads and the 5 uncached calls with it.
-- **Nlp.Tests:**
-  - Combine `Content/TestSupport` and `Pipeline/TestSupport` into one shared load.
-  - Have the CLI tests that only read `--content BundleDir` go through a process-wide `LexiconCache`, where the CLI entry point accepts one. If it does not, leave them as they are and record the case for T6.
-- **Golden.Tests:** one shared load instead of three.
-- Every load still verifies hashes, so what the tests check stays the same.
+### T3: Model gates and the serial collection (core test projects), done in part
+- `ModelGate.IsAvailable` keeps its verdict per model id (`ConcurrentDictionary<string, Lazy<bool>>`). `VoskPipelineTests`' copy of the
+  gate is removed; it uses the ASR tests' gate, so the cache is shared. The model tests run, not skip, with models present (3 skipped, as at
+  T0: the wav2vec2 and e5 models are not in the shared folder).
+- **Not done: moving the collection's plain facts out.** T0 measured them at 0.2 s in all (item 4), so the move would gain nothing for the
+  risk the collection's comment describes.
+- **T3b, proposed (owner decision): let the collection run beside the assembly's other tests.** Removing `DisableParallelization = true`
+  from `NativeRuntimeCollection` keeps its own tests one at a time (one xUnit collection always runs in order) but no longer holds them until
+  the rest of Nlp.Tests has finished. Measured on this branch with models, Nlp.Tests alone: 53.4 and 53.7 s as it is, 34.3, 34.3 and 34.5 s
+  without the flag, all green with the same counts (2,452 passed, 3 skipped). The collection's comment asks that its tests never run
+  beside another test of the assembly; no reason beyond the shared native state is recorded (M52, 2026-10-26), and every test that touches
+  a native runtime is in the collection. The change is one line; it is not made here because it reverses that choice.
 
-### T3: Model gates and the serial collection (core test projects)
-- Cache `ModelGate.IsAvailable` per model ID with a static `ConcurrentDictionary<string, Lazy<bool>>`. Do the same for the gate in `VoskPipelineTests`. Each model is then hashed once per process instead of once per attribute.
-- Move the facts in `NativeRuntimeCollection` that never load a native runtime into ordinary, parallel classes. Check each one against the collection's stated reason (Vosk's process-wide log level, native libraries, gate caches); when in doubt, keep it serial.
+### T4: A fast tier for daily work (both halves), done
+- `[Trait(TestSpeed.Trait, TestSpeed.Slow)]` (the constant in `tests/Shared/TestSpeed.cs` for the core and
+  `tests/Vocaterra.Game.Core.Tests/TestSupport/TestSpeed.cs` for the game) marks:
+  - the fuzz suite, as an assembly trait (`FuzzOptions.cs`);
+  - the 31 model-gated facts (14 of the game's, 17 of the core's);
+  - the world-generation classes `SceneTests`, `VillageTests` and `UndergrowthTests` (real builds, the timing test, and scenes of seeds the
+    session tests do not use), and `PlayerBodyTests.TheBodyNeverEndsATickInsideASolidOnTheRealRouteEither` (six seeds, 3,000 ticks each);
+  - `PlaytestReportTests`, which starts processes;
+  - the content tool's full-bundle classes `CliTests`, `ProgramTests`, `LintTests` and `LintCommandTests`;
+  - `SpanishIdentityTests` (the frozen identity hashes, 12 to 15 s). The other golden tests stay in the fast tier: they take about 1.5 s in
+    all, and the first plan's "golden end-to-end tests" are among them;
+  - the other single tests over about 4 s in the full run: the whole-route meshing and greyscale tests, two scripted-run tests, a lesson
+    replay, `TextGraderTests` and `TwoPhaseTests` over every example, and `GeneratedLexiconTests.LoadingTheBundleIsFastEnough` (a timing
+    budget, better run on a quiet machine).
+- `scripts/test.sh fast|full|project <name>` builds with `-m:4` and tests with `-m:2` through `limited.sh`, sets `VOCATERRA_MODELS_DIR`
+  to the shared folder when it exists (as the gate does), writes the TRX files to `.claude/test-timings/<mode>-<stamp>/`, names the tests
+  the fast tier left out and ends with each assembly's wall time. `fast` is `--filter "Speed!=Slow"`; a `--filter` given to it is combined.
+- The tiers are documented in `docs/nlp/CONTRIBUTING.md`, `docs/game/README.md`, `scripts/README.md` and the orchestrator's brief template
+  and resource rules: `fast` per step, `full` at a milestone and in the gate.
+- The gate (`scripts/merge-gate.sh`) and CI (`.github/workflows/ci.yml`, which exists since 2026-10-29 and runs the full suite without
+  models) still run the full suite.
 
-### T4: A fast tier for daily work (both halves)
-- Add `[Trait("Speed", "Slow")]`, with the constant in each project's test support, to these:
-  - the scene-builder timing and generation tests
-  - the fuzz suite (at assembly level)
-  - the golden end-to-end tests
-  - `PlaytestReportTests`, which spawns processes
-  - the full-bundle CLI tests
-  - `LintTests`, which copies the full bundle 26 times
-  - model-gated facts
-- Add `scripts/test.sh` with three modes, all going through `limited.sh` with `-m:2`:
-  - `fast`: `--filter "Speed!=Slow"`
-  - `full`: the whole suite, the same as the gate
-  - `project <name>`
-- Document the tiers in `docs/nlp/CONTRIBUTING.md` and `docs/game/README.md`. Update the orchestrator's verification guidance: `fast` per step, `full` at milestones and in the gate.
-- The gate and CI keep running the full suite.
+### T5: Fuzz depth for local runs (owner decision first), open
+- `FuzzOptions` deliberately has no shallower tier, and T4 already leaves the whole fuzz suite out of `fast`. That is enough unless the owner
+  also wants a cheap local fuzz pass.
+- If they do, `scripts/test.sh fuzz-quick` would set the existing `VOCATERRA_FUZZ_*` variables to a tenth of the defaults for local use only.
+  The gate's depth never changes.
+- O15 (`ContentSchemaFuzzTests.MutatedBundles_...`) is the suite's longest test (52 to 55 s of its 63 s at T0). It already shares the
+  parsed lexicon (`LexiconCache`), hard-links the speech clips and runs four threads; what is left is the oracle itself: every one of its 666
+  iterations writes, hashes and fully loads a bundle copy. A cheaper equivalent with the same oracle needs the loader to read from an
+  in-memory file source, which it cannot today (`ContentLoader.Load` takes a directory). That is a core API change: its own milestone (T6).
 
-### T5: Fuzz depth for local runs (owner decision first)
-- `FuzzOptions` deliberately has "no separate fast tier". T4 already leaves the fuzz suite out of `fast`. That is enough unless the owner also wants a cheap local fuzz pass.
-- If they do, `scripts/test.sh fuzz-quick` sets the existing `VOCATERRA_FUZZ_*` variables to a tenth of the defaults for local use only. The gate's depth never changes.
-- Separately, O15 (`ContentSchemaFuzzTests`) writes, hashes and loads a full bundle copy on every iteration, 666 times per run. Look for a cheaper equivalent that keeps the oracle unchanged, such as an in-memory file source, if the loader can take one. If that needs a loader change, it is a core milestone.
+### T6: Follow-ups, judged on the numbers above, open
+- **An in-memory file source for `ContentLoader`** (core milestone): O15, `TempBundle` users and the CLI tests could then load damaged or
+  edited copies without writing them to disk. It is the biggest lever left on the core's lane.
+- **A `LexiconCache` for the CLI entry points**, or the CLI tests on the light `TempBundle`: `CliTests`, `LintCommandTests` and
+  `ProgramTests` parse the full lexicon on each call (about 52 s of test time at T0). A core change to the tools.
+- **Don't keep speech WAV bytes in memory.** The core loader would read `speech/*.wav` lazily, or hash it as a stream without holding it.
+  A core API change with its own milestone and ADR note. Less urgent now that each test process holds one bundle instead of up to 21.
+- **The game's largest classes** bound Game.Core.Tests (see the end of "What made the suite slow"). Splitting `VillageTests`, `SceneTests`,
+  `SaveMigrationTests` or `GuideTurnTests` into classes by topic would let them run in parallel; it is a readability call for the game.
+- **The `Thread.Sleep` polling** in the turn-worker tests: not among the slow tests; leave unless a later measurement says otherwise.
+- **CI:** a fast job beside the full one, or the test projects as a matrix. Both write under `.github/workflows/`, which needs the
+  owner's word (CLAUDE.md).
+- **xUnit v3 / Microsoft.Testing.Platform:** test-host start-up is about a second per assembly here, so a move is not justified by speed.
 
-### T6: Optional follow-ups, judged on T0–T4 numbers
-- **Don't keep speech WAV bytes in memory.** The core loader would read `speech/*.wav` lazily, or hash it as a stream without holding it. This is a core API change and needs its own milestone and ADR note.
-- **Replace the `Thread.Sleep` polling** in the turn-worker tests with a completion signal, if T0 shows those waits matter.
-- **Possible CI changes:**
-  - Split CI into a fast job and a full job.
-  - Run the test projects as a matrix.
-  - Both need the workflow-scope token (CLAUDE.md), so nothing under `.github/workflows/` is written until the owner says so.
-- **Possibly move to xUnit v3 / Microsoft.Testing.Platform** for faster startup and better parallelism. This is a large change, so only if T0 shows test-host startup is significant.
-
-## Files touched (all phases)
-- **New:** `scripts/test-timings.py` and `scripts/test.sh`
-- **Production (game):** `src/Vocaterra.Game.Core/Voxel/VoxelGrid.cs` and `VoxelChunk.cs`, which get `Clone`, and `src/Vocaterra.Game.Core/World/Scene.cs`
-- **Test helpers:**
-  - `tests/Vocaterra.Game.Core.Tests/TestGame.cs` and `Voxel/VoxelTestSupport.cs`
-  - `tests/Vocaterra.Game.Tests/RouteScene.cs`, plus a new `TestBundle.cs`
-  - `tests/Vocaterra.Nlp.Tests/Asr/TestSupport.cs`, `Content/TestSupport.cs`, `Pipeline/TestSupport.cs` and `NativeRuntimeCollection.cs`
-  - the Golden.Tests loaders
-- **Call sites:** about 30 Game.Tests classes that drop their own `Lazy<ContentBundle>`, and the direct scene builds listed in T1
-- **Docs:**
-  - `docs/nlp/CONTRIBUTING.md`, `docs/game/README.md`, the orchestrator's verification notes, and this plan's results table
-  - the core plan's findings log (`docs/nlp/IMPLEMENTATION_PLAN.md` 5b) and the game plan's findings log (`docs/game/IMPLEMENTATION_PLAN.md` section 5), each recording its own half
+## Files touched
+- **New:** `scripts/test-timings.py`, `scripts/test.sh`, `tests/Shared/TestSpeed.cs`, `tests/Vocaterra.Game.Core.Tests/TestSupport/TestSpeed.cs`
+- **Production (game):** `src/Vocaterra.Game.Core/Voxel/VoxelGrid.cs`, `VoxelChunk.cs` and `World/Scene.cs` (`Clone`)
+- **Test helpers:** `TestSupport/TestGame.cs` and `RouteScene.cs`, `Voxel/VoxelTestSupport.cs` (Game.Core.Tests; `TestGame.cs` and
+  `TestSpeed.cs` newly linked into Game.Tests), `tests/Shared/GameBundleLocator.cs`, `tests/Vocaterra.Nlp.Tests/Asr/TestSupport.cs`,
+  `Content/TestSupport.cs`, `Pipeline/TestSupport.cs`, the Golden.Tests loaders
+- **Call sites:** the 34 game test classes and five calls that dropped their own load, the seven direct scene builds, and the classes and
+  methods marked slow
+- **Docs:** this plan, `docs/nlp/CONTRIBUTING.md`, `docs/game/README.md`, `scripts/README.md`, `.claude/agents/orchestrator.md`, and the
+  findings logs of both plans (`docs/nlp/IMPLEMENTATION_PLAN.md` 5b and `docs/game/IMPLEMENTATION_PLAN.md` section 5), each for its half
 
 ## Verification
 Every phase:
 1. `scripts/limited.sh dotnet build Vocaterra.sln -warnaserror -m:4`
-2. `scripts/limited.sh dotnet test Vocaterra.sln --no-build -m:2 --logger trx`, then compare with the T0 baseline using `scripts/test-timings.py`:
-   - The pass count and the skip count must be the same as the baseline, or higher only by the tests the phase adds.
-   - The wall time must go down.
-3. `dotnet format Vocaterra.sln --verify-no-changes`, then the merge gate (`GATE_TARGET=<branch> scripts/merge-gate.sh ...`), with `VOCATERRA_MODELS_DIR` set so the model tests run.
+2. `scripts/limited.sh dotnet test Vocaterra.sln --no-build -m:2 --logger trx --results-directory <dir>`, then
+   `python3 -I scripts/test-timings.py <dir> <baseline>`: the passed and skipped counts must match the baseline, or rise only by the tests
+   the phase adds, and the wall time must go down.
+3. `dotnet format Vocaterra.sln --verify-no-changes`, then the merge gate (`GATE_TARGET=<branch> scripts/merge-gate.sh ...`), with
+   `VOCATERRA_MODELS_DIR` set so the model tests run.
 
-Phase-specific checks:
-- **T1:** the new clone tests and the unchanged Seed-42 golden.
-- **T3:** the model-gated tests run, not skip, with models present.
-- **T4:** `scripts/test.sh fast` runs in a fraction of the time of `full`, and the slow tests it leaves out appear in its summary.
+Phase-specific checks, as run:
+- **T1:** the two clone tests pass and the seed-42 golden (`8048644059674b5335ef2c32e230defbbe8402a32f72f7ee10324a36fc80cb47`) is unchanged.
+- **T3:** with models present the model-gated tests ran (3 skipped, the same as at T0).
+- **T4:** `scripts/test.sh fast` ran in 26 s against 108 s for the full suite (46 s before the warmed scene), and named every test it left out.
