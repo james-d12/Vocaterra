@@ -285,7 +285,7 @@ public sealed class LessonRunner
 
     /// <summary>The English objective line for a lesson practised again (S26): where to go and which lesson, or <see langword="null"/> when none is pending.</summary>
     public string? ReplayHud => _replayId is { } id && _book.Find(id) is { } lesson && _activeId is null
-        ? string.Create(CultureInfo.InvariantCulture, $"Practise again: talk to {_locale.NpcName(lesson.Npc).ToLowerInvariant()} to start \u201c{lesson.Title}\u201d")
+        ? _locale.Ui("replayHud", ("npc", _locale.NpcName(lesson.Npc).ToLowerInvariant()), ("title", lesson.Title))
         : null;
 
     /// <summary>The NPC the step in progress is said at: the step's own, or its lesson's; <see langword="null"/> when no lesson is active.</summary>

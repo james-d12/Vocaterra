@@ -113,7 +113,7 @@ public sealed class DialoguePanel : IFrameLayer
 
         if (dialogue.Heard is { } heard)
         {
-            var wrapped = TextWrap.Wrap(heard.Text, textWidth, t => DrawHelpers.Width(font, t));
+            var wrapped = TextWrap.Wrap(heard.Text(view.Session.Locale), textWidth, t => DrawHelpers.Width(font, t));
             DrawHelpers.Text(spriteBatch, font, wrapped[0], new Vector2(textLeft, layout.HeardY), HeardColor);
         }
 

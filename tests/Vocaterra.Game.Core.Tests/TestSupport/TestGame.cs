@@ -66,8 +66,8 @@ internal static class TestGame
     /// <summary>Lessons from a file's text, checked against the bundle as the game checks its own.</summary>
     public static LessonBook Lessons(string json) => RouteScene.Lessons(json, Bundle);
 
-    /// <summary>The support language of the repository's locale bundle (its default locale).</summary>
-    public static LocaleText Locale => RouteScene.LocaleOf(Bundle);
+    /// <summary>The support language of the repository's locale bundle (its default locale), with the names its placeholders take (C04).</summary>
+    public static LocaleText Locale => Data.Locale; // with the names its {npc:…} and {key:…} take (C04)
 
     /// <summary>The live facts of a session's world (the blocks as they are now).</summary>
     public static WorldFacts FactsOf(VoxelSession session) => WorldFacts.Live(session.Scene.Grid, Nouns, TestGame.Data.Words.Directions);

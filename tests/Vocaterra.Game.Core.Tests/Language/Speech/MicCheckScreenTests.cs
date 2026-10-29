@@ -60,7 +60,7 @@ public sealed class MicCheckScreenTests
     private static MicCheckScreen Make()
     {
         var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
-        var model = new MicCheckModel(session.LogMicCheck);
+        var model = new MicCheckModel(session.LogMicCheck, session.Locale, session.Data.Words.Greeting);
         return new MicCheckScreen(model, session, new ListenSession(new PushToTalkSpeechCapture(null)), Sound(), static (_, _, _) => throw new InvalidOperationException("no font in this test"), false, static () => false, _ => { });
     }
 

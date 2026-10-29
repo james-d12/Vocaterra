@@ -1,3 +1,4 @@
+using System.Globalization;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Language.Lessons;
@@ -260,7 +261,7 @@ public sealed class LessonStripLayout
         if (pages > 1)
         {
             var page = ((englishPage % pages) + pages) % pages;
-            Label(LessonAction.More, $"More ({page + 1}/{pages})");
+            Label(LessonAction.More, ui.Ui("lessonMore", ("page", (page + 1).ToString(CultureInfo.InvariantCulture)), ("pages", pages.ToString(CultureInfo.InvariantCulture))));
         }
 
         Label(LessonAction.Help, ui.Ui("help"));

@@ -573,13 +573,13 @@ section 4's status column.
 | C01 | Content contract: JSON Schemas for every game file and the locale format, `$schema` refs, the schema test (test-only library), `content/README.md`, `content.sh refresh`, the bundle hash masked in `scripts/compare-runs.py` | R16 phase 2 | done, gated with C02 and C03 (2026-10-29, `9e7960d`) |
 | C02 | `GameData` + `GameDataValidator`: one load of every host file (the scene from the verified bytes; `GrammarStringsExtractor` reads through it), the cross-checks moved there, host `--validate-content` | C01 | done, gated with C01 and C03 (2026-10-29, `9e7960d`) |
 | C03 | The locale bundle (`content/locale/`, `en` only, its own manifest, checked at load, its hash in the log and the report); game-v1's `supportLanguage`; the turn path keeps line ids; `LocaleText` replaces `EnglishText`; glosses keyed by speech-line ids; the L1 fields leave lessons, phrases, glosses and checks; verb forms listed | C02 | done, gated with C01 and C02 (2026-10-29, `9e7960d`) |
-| C04 | The English literals of Game and Game.Core into the locale (section 2.2); `{key:…}` from R16's `KeyBindings`, `{npc:…}`, plurals; the no-literal scan; the glyph test | C03 | planned |
+| C04 | The English literals of Game and Game.Core into the locale (section 2.2); `{key:…}` from R16's `KeyBindings`, `{npc:…}`, plurals; the no-literal scan; the glyph test | C03 | done (2026-10-29) |
 | C05 | Target-language words out of code (`game/words.json`, place labels into the scene; section 2.3); the grammar extractor reads them 
 | C06 | One trigger model shared by tips and lesson `do` steps (exact `detail`, ready for objectives); the `torch_at_ring` world event; lessons split one file each | C02 | done, gated with C05 and C08 (2026-10-29, `19a328e`) |
 | C07 | Objectives and the session from data (`game/objectives/`, `game/session.json`, named hooks); `Objective.Camp()` and the `SessionStage` logic retired; save v5 with the v4 keys mapped; a v4 fixture and the out-of-order test | C05, C06 | done (2026-10-29) |
 | C08 | NPC data (`npcs/*.json`: label, name, figure key, phrase tables), `host-events.json`, `NpcService.AgentIds` from data; `NpcNames`, the `NpcHostEvents` table and `PhraseReview`'s table retired; the beacon label fixed | C05 | done, gated with C05 and C06 (2026-10-29, `19a328e`) |
-| C09 | Items, blocks, sounds and signs as data (assess first; parts may stay code). Enum names stay stable because saves store them; signs need a sign mechanism | C08 | proposed |
-| C10 | Authoring CLI: scaffold, references, check (the first custom tool) | C07, C08 | proposed |
+| C09 | Items, blocks, sounds and signs as data (assess first; parts may stay code). Enum names stay stable because saves store them; signs need a sign mechanism | C08 | assessed (2026-10-29), awaits the owner |
+| C10 | Authoring CLI: scaffold, references, check (the first custom tool) | C07, C08 | proposed, awaits the owner |
 
 **The order of the rest (2026-10-29).** C05, C06, C08 and C07, then C04 last: its `{npc:…}` placeholder is filled from C08's NPC data, and its
 no-literal scan is easiest once every other milestone has moved its strings.
@@ -642,6 +642,43 @@ no-literal scan is easiest once every other milestone has moved its strings.
   kind became `Objective.Record(event, detail, amount)`, and `HostEvent` takes a world event's name.
 - **Runs (C07 and C08 against C06).** The only differences are the saves: version 5 with `camp.*` keys (r01's autosave, r09's save), and the
   stdout lines that report them, 20 bytes longer. C08 changed no run: none points the beacon at an NPC other than the guide.
+
+**What C04 did, and how it differs from section 3 (2026-10-29).**
+- **Moved to the locale.** About 150 of the player's English strings are now `ui.*` strings in `locale/en/ui.json`, each listed in
+  `LocaleText.UiKeys`, which the validator holds every locale to. They cover the dialogue panel, the HUD (the talk and playtest hints, the
+  tips' heading, the new-word card and toasts, the beacon's distance, the loading line, the save toasts), the inventory, the recipes and the
+  workbench, the book (its tabs, pages, journal rows and tense columns), the checks, the mic check, the report panel, the crafting rows, the
+  bottle hint and the playtest's thanks. The constants that held them became methods that take the locale.
+- **Placeholders.** `{npc:<id>}` is what the NPC is called, from C08's data; `GameData` gives the locale the shipped NPCs. Only the support
+  language's own text uses it (26 lesson strings, a tip, a check situation). A gloss of a Spanish line that says "Luna" keeps the name written
+  out, because the Spanish does. `{key:<command>}` comes from `InputKeys`, a table that `KeyBindings` and the push-to-talk keys now read, and is
+  spelled with `locale/en/keys.json`. The tips, the controls help, three lesson texts and the hints use it. A screen's own keys (the dialogue
+  panel's Enter and Tab, the lesson strip's letters) stay written out: those screens fix them.
+- **Plurals.** `LocaleText.Plural` picks `<id>.one` or `<id>.other`. The beacon now says "1 block".
+- **Tests.**
+  - `NoLiteralTextTests` scans the two projects. Its allowlist names each file of developer text with its reason, and a second test fails
+    an entry that is no longer needed.
+  - The font test reads every string of every locale, and checks the glyph list of `locales.json` (`¡`, `«` and `»` joined it).
+  - The validator refuses a `{npc:…}` or `{key:…}` that names nothing.
+- **Open points (left in code, on the allowlist):**
+  - the speech and microphone problem messages: they come from the turn worker, the speech engine and the capture, which have no locale;
+  - `BookVerbLabels`' English verb grammar (do/does, am/is/are, will, used to): rules over the listed forms, which a second locale needs
+    its own version of;
+  - the saved report's and crash file's headings, and the strict-save refusal on the console: these are developer text.
+- **Runs.** The text on screen is unchanged; the runs' stdout and session logs (developer text) are the same.
+
+**C09: the assessment (2026-10-29; no code, it awaits the owner).**
+- **Sounds (32 cues in `SoundCatalog`).** This is the easiest and safest move: a `game/sounds.json` mapping each cue to a file, a volume and
+  a pan, checked against the files and the provenance. The cues stay an enum, because the code raises them. It is worth doing first: it lets
+  a sound be swapped without code.
+- **Items (8 in `ItemDefinition.All`).** The behaviour stays code: the bottle fills, the torch lights, the book opens. A data file could hold
+  only the stack limits and the icon keys, and `nouns.json` already ties each item to its noun. That is little gain for the risk to the saves,
+  which store the enum names, so it is not recommended now.
+- **Blocks (52 in `BlockDefinition`).** Hardness, drops and the atlas are tied to the meshing and to five `BlockArt*` painters in the game.
+  Data would need the art as data too (a texture atlas file), which is a project of its own. Not recommended before the art pipeline.
+- **Signs.** There is no sign block or text yet. That is a world feature first (a block, its text by id, target language or locale), then
+  data. It needs a design decision.
+- **Recommendation.** Do C09a, the sounds as data, alone; leave items and blocks in code; design signs separately.
 
 **Every content-moving milestone:**
 - runs `content.sh refresh` (hash, provenance, validate, lint, cefr-check, the game validator and the grammar check), then the whole

@@ -139,7 +139,7 @@ public sealed class VoxelSession : GuideSession
     public IReadOnlyList<ObjectiveStep> Completed => _completed;
 
     /// <summary>The hint shown when the player works on water with no bottle (a toast; nothing is blocked).</summary>
-    public const string NeedBottleHint = "You need a bottle.";
+    public const string NeedBottleHint = "needBottle";
 
     /// <summary>
     /// What the objective area (top right) says now, as coloured pieces (S17): a lesson's short line while its <c>do</c> step waits ("Pick a fruit from a berry bush, then go
@@ -342,7 +342,7 @@ public sealed class VoxelSession : GuideSession
                     break;
                 case SimulationEventKind.WaterWithoutBottle:
                     LogWorld(WorldEvents.WaterWithoutBottle, null, null);
-                    _hints.Add(NeedBottleHint);
+                    _hints.Add(Locale.Ui(NeedBottleHint));
                     break;
                 default:
                     break;

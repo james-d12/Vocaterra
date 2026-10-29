@@ -205,7 +205,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _beacon = new BeaconDirector(session, Console.WriteLine, Console.Error.WriteLine);
         _lesson = new LessonFrontend(session, _dialogue, Console.WriteLine);
         _ending.MarkSeen(session); // a game loaded after its ending does not play it again
-        _micCheck = options.ShowsMicCheck ? new MicCheckModel(session.LogMicCheck) : null;
+        _micCheck = options.ShowsMicCheck ? new MicCheckModel(session.LogMicCheck, session.Locale, session.Data.Words.Greeting) : null;
         _playtest = options.Playtest;
         _debug.Visible = !_playtest; // the playtest has no debug overlay (F3 is off there too)
         _look.Set(scene.Spawn.Yaw, scene.Spawn.Pitch);
@@ -343,7 +343,7 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
             options.Playtest,
             new CheckBatteryHooks(_shots.Request, () => _shots.Pending, () => _micCheck is { IsActive: true }, index => _scenario?.SkipTo(index), Exit, EndPlaytest),
             Console.WriteLine);
-        _micScreen = new MicCheckScreen(_micCheck, session, _listen, _sound, (check, x, y) => MicCheckLayer.LayoutFor(check, _canvas.Width, _canvas.Height, _drawer.View.Fonts.Get(FontProvider.NativeSize)).ButtonAt(x, y), options.IsScreenshotRun, () => _scenario is { IsDone: false } || _checks.Screen is { IsDone: false }, Console.WriteLine);
+        _micScreen = new MicCheckScreen(_micCheck, session, _listen, _sound, (check, x, y) => MicCheckLayer.LayoutFor(check, _canvas.Width, _canvas.Height, _drawer.View.Fonts.Get(FontProvider.NativeSize), session.Locale).ButtonAt(x, y), options.IsScreenshotRun, () => _scenario is { IsDone: false } || _checks.Screen is { IsDone: false }, Console.WriteLine);
         _playtestFlow = new PlaytestFlow(
             options.Playtest,
             options.IsPlaytestRecall,

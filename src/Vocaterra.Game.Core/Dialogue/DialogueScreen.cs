@@ -285,7 +285,7 @@ public sealed class DialogueScreen : IScreen
 
         if (!worker.CanHear)
         {
-            _dialogue.SpeechNotice = worker.Load?.Problem ?? "Speech is not available: type your answer.";
+            _dialogue.SpeechNotice = worker.Load?.Problem ?? _session.Locale.Ui("speechUnavailable");
             return;
         }
 

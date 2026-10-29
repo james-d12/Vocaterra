@@ -59,7 +59,7 @@ public static class SessionStart
         if (!options.NoAutosave)
         {
             var autosavePath = playtest.SavePath ?? Path.Combine(directory, AutosaveFiles.FileName);
-            autosave = new AutosaveController(new AutosavePolicy(session.Simulation.Tick, session.Events.Count), autosavePath, saves, console, toasts.Show, MonotonicClock.Milliseconds);
+            autosave = new AutosaveController(new AutosavePolicy(session.Simulation.Tick, session.Events.Count), autosavePath, saves, console, id => toasts.Show(session.Locale.Ui(id)), MonotonicClock.Milliseconds);
             console($"autosave: {autosavePath} (written on a lesson step, an objective step, a lesson's end, the session's end, a closed dialogue, and every {AutosavePolicy.IntervalSeconds / 60} minutes of play)");
         }
         else

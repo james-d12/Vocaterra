@@ -459,8 +459,8 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
         foreach (var item in bank)
         {
             var layout = item.Kind == CheckItemKind.Comprehension
-                ? CheckCardLayout.ForComprehension(panel, item.Question, CheckLayer.ComprehensionHint, item.Options.Select(static o => (o.Label, o.Icon is not null)).ToList(), Large, Small)
-                : CheckCardLayout.ForProduction(panel, CheckLayer.ProductionPreface, item.Situation, CheckLayer.ProductionHint, Large, Small);
+                ? CheckCardLayout.ForComprehension(panel, item.Question, CheckLayer.ComprehensionHint(RouteScene.Shipped.Locale), item.Options.Select(static o => (o.Label, o.Icon is not null)).ToList(), Large, Small)
+                : CheckCardLayout.ForProduction(panel, CheckLayer.ProductionPreface(RouteScene.Shipped.Locale), item.Situation, CheckLayer.ProductionHint(RouteScene.Shipped.Locale), Large, Small);
             var where = $"{canvas.Width}x{canvas.Height} {item.Id}";
             Assert.All(layout.Preface, row => Assert.True(Small(row) <= inner, $"{where}: preface row '{row}' is wider than the card"));
             Assert.All(layout.Heading, row => Assert.True((layout.HeadingLarge ? Large(row) : Small(row)) <= inner, $"{where}: heading row '{row}' is wider than the card"));
@@ -572,7 +572,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
-        var layout = new ReportLayout(canvas.Width, canvas.Height, Small, ReportLayer.HintsFirst, ReportLayer.HintsSecond);
+        var layout = new ReportLayout(canvas.Width, canvas.Height, Small, ReportLayer.HintsFirst(RouteScene.Shipped.Locale), ReportLayer.HintsSecond(RouteScene.Shipped.Locale));
         Assert.True(Inside(layout.Panel, window), $"the panel {layout.Panel} is outside the canvas {canvas}");
         var pieces = new List<(string Name, PixelBox Box)>
         {
@@ -605,7 +605,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
-        var layout = new MicCheckLayout(canvas.Width, canvas.Height, [MicCheckButton.Continue, MicCheckButton.Retry, MicCheckButton.Skip], Small);
+        var layout = new MicCheckLayout(canvas.Width, canvas.Height, [MicCheckButton.Continue, MicCheckButton.Retry, MicCheckButton.Skip], Small, RouteScene.Shipped.Locale);
 
         Assert.True(Inside(layout.Panel, window));
         Assert.True(Inside(layout.Meter, layout.Panel));

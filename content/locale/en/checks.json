@@ -69,7 +69,7 @@
     "check.say.mas-despacio.situation": "A guide spoke too fast. Ask her to say it again more slowly.",
     "check.say.quiero-madera.situation": "A guide asks what you want. You want wood. Say so.",
     "check.say.tengo-fruta.situation": "A guide asks if you have a fruit. You do. Say yes and say that you have one.",
-    "check.say.ella-quiere-fruta.situation": "A friend asks what Luna wants. She wants fruit. Say what she wants.",
+    "check.say.ella-quiere-fruta.situation": "A friend asks what {npc:guide} wants. She wants fruit. Say what she wants.",
     "check.say.necesitamos-agua.situation": "A friend asks what you both need. You need water. Say it for the two of you.",
     "check.hear.que-vas-a-comer.question": "A villager says this to you. What does it mean?",
     "check.hear.que-vas-a-comer.option.1": "He asks what you are going to eat tomorrow.",

@@ -61,25 +61,26 @@ public sealed class TalkKeyAndEnglishTests
     [Fact]
     public void TheMicCheckScreenIsEnglishAndShowsTheWordToSay()
     {
-        Assert.Equal("Microphone check", MicCheckModel.Title);
-        Assert.Equal("Say \"hola\"", MicCheckModel.Instruction);
-        Assert.Equal("Hold V or Space and say \"hola\"", MicCheckModel.TalkHint);
-        Assert.Equal("Got it, I can hear you.", MicCheckModel.PassedText);
-        Assert.Equal("I didn't catch that. Try again?", MicCheckModel.FailedText);
-        Assert.Equal(["Continue", "Try again", "Skip"], new[] { MicCheckModel.ContinueLabel, MicCheckModel.RetryLabel, MicCheckModel.SkipLabel });
+        var model = new MicCheckModel((_, _) => { }, RouteScene.Shipped.Locale, "hola");
+        Assert.Equal("Microphone check", model.Title);
+        Assert.Equal("Say \"hola\"", model.Instruction);
+        Assert.Equal("Hold V or Space and say \"hola\"", model.TalkHint); // {key:listen} and {key:listenAlt} spelled from the bindings (C04)
+        Assert.Equal("Got it, I can hear you.", model.PassedText);
+        Assert.Equal("I didn't catch that. Try again?", model.FailedText);
+        Assert.Equal(["Continue", "Try again", "Skip"], new[] { model.ContinueLabel, model.RetryLabel, model.SkipLabel });
     }
 
     [Fact]
     public void TheMicCheckStatusLinesFollowThePhase()
     {
-        var check = new MicCheckModel((_, _) => { });
-        Assert.Equal(MicCheckModel.TalkHint, check.StatusText);
+        var check = new MicCheckModel((_, _) => { }, RouteScene.Shipped.Locale, "hola");
+        Assert.Equal(check.TalkHint, check.StatusText);
         check.BeginListening();
         Assert.Equal("Listening…", check.StatusText);
         check.EndListening();
         Assert.Equal("Thinking…", check.StatusText);
         check.Complete(new MicCheckResult("gola", false, 0.2));
-        Assert.Equal(MicCheckModel.FailedText, check.StatusText);
+        Assert.Equal(check.FailedText, check.StatusText);
     }
 
     [Fact]

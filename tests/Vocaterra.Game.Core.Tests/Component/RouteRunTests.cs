@@ -151,7 +151,7 @@ public sealed class RouteRunTests(ITestOutputHelper output)
         // No bottle yet: holding on the water gives the hint once, blocks nothing, and the step stays open.
         var (yaw, pitch) = VoxelWalker.AimAt(session, water);
         session.Step([VoxelCommand.Look(yaw, pitch), VoxelCommand.Interact(water.X, water.Y, water.Z)]);
-        Assert.Equal([VoxelSession.NeedBottleHint], session.TakeHints());
+        Assert.Equal([session.Locale.Ui(VoxelSession.NeedBottleHint)], session.TakeHints());
         session.Step([VoxelCommand.Look(yaw, pitch), VoxelCommand.Interact(water.X, water.Y, water.Z)]);
         Assert.Empty(session.TakeHints());
         Assert.Equal(0, session.Objective.Step("water")!.Count);

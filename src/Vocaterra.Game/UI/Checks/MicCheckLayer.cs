@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Graphics;
@@ -29,11 +30,12 @@ public sealed class MicCheckLayer : IFrameLayer
     /// <param name="viewportWidth">The window's width.</param>
     /// <param name="viewportHeight">The window's height.</param>
     /// <param name="font">The font the buttons are drawn with.</param>
-    public static MicCheckLayout LayoutFor(MicCheckModel model, int viewportWidth, int viewportHeight, FontStashSharp.SpriteFontBase font)
+    /// <param name="ui">The support language (the buttons' labels).</param>
+    public static MicCheckLayout LayoutFor(MicCheckModel model, int viewportWidth, int viewportHeight, FontStashSharp.SpriteFontBase font, LocaleText ui)
     {
         ArgumentNullException.ThrowIfNull(model);
         ArgumentNullException.ThrowIfNull(font);
-        return new MicCheckLayout(viewportWidth, viewportHeight, model.Buttons, text => DrawHelpers.Width(font, text));
+        return new MicCheckLayout(viewportWidth, viewportHeight, model.Buttons, text => DrawHelpers.Width(font, text), ui);
     }
 
     /// <inheritdoc />
@@ -49,13 +51,13 @@ public sealed class MicCheckLayer : IFrameLayer
         var small = view.Fonts.Get(FontProvider.NativeSize);
         var large = view.Fonts.Get(InstructionSize);
         spriteBatch.Draw(pixel, new Rectangle(0, 0, view.ViewportWidth, view.ViewportHeight), new Color(6, 6, 14, 170));
-        var layout = LayoutFor(check, view.ViewportWidth, view.ViewportHeight, small);
+        var layout = LayoutFor(check, view.ViewportWidth, view.ViewportHeight, small, view.Session.Locale);
         var panel = new Rectangle(layout.Panel.X, layout.Panel.Y, layout.Panel.Width, layout.Panel.Height);
         spriteBatch.Draw(pixel, panel, new Color(18, 18, 34, 250));
         DrawHelpers.Border(spriteBatch, pixel, panel, 2, Gold);
 
-        DrawHelpers.Text(spriteBatch, small, MicCheckModel.Title, new Vector2(panel.Left + 40, panel.Top + 16), Gold);
-        DrawHelpers.Text(spriteBatch, large, MicCheckModel.Instruction, new Vector2(panel.Left + 40, panel.Top + 46), Ink);
+        DrawHelpers.Text(spriteBatch, small, check.Title, new Vector2(panel.Left + 40, panel.Top + 16), Gold);
+        DrawHelpers.Text(spriteBatch, large, check.Instruction, new Vector2(panel.Left + 40, panel.Top + 46), Ink);
         var status = check.StatusText;
         var statusColor = check.Phase switch
         {
@@ -93,10 +95,11 @@ public sealed class MicCheckLayer : IFrameLayer
             var hovered = mouse is { } at && box.Contains(at.X, at.Y);
             spriteBatch.Draw(pixel, rect, hovered ? new Color(60, 60, 96, 245) : new Color(34, 34, 58, 235));
             DrawHelpers.Border(spriteBatch, pixel, rect, hovered ? 2 : 1, button == MicCheckButton.Skip ? new Color(110, 110, 150) : Good);
-            DrawHelpers.Text(spriteBatch, small, MicCheckModel.LabelOf(button), new Vector2(rect.Left + 14, rect.Top + 8), Ink);
+            DrawHelpers.Text(spriteBatch, small, check.LabelOf(button), new Vector2(rect.Left + 14, rect.Top + 8), Ink);
         }
 
-        DrawHelpers.Text(spriteBatch, small, "Esc: skip", new Vector2(panel.Right - 40 - DrawHelpers.Width(small, "Esc: skip"), panel.Bottom - 44), Dim);
+        var skip = view.Session.Locale.Ui("micEscSkip");
+        DrawHelpers.Text(spriteBatch, small, skip, new Vector2(panel.Right - 40 - DrawHelpers.Width(small, skip), panel.Bottom - 44), Dim);
     }
 
     // A text wrapped to the panel's inner width, at most two rows (the second ends in an ellipsis when text is left out): a long recognised line stays on the panel (X08).

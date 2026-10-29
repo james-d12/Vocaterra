@@ -75,7 +75,7 @@ public sealed class SceneDrawer : IDisposable
         Preset = _options.QualityPreset;
         _renderer = new VoxelRenderer(device, _blockAtlas, _session.Simulation.Grid, Preset, _options.Dusk);
         _renderer.SetFigures(_figures);
-        _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _options.AssumeKnown);
+        _colours = new GreyscaleWorld(_options.Greyscale, _session.Nouns, _session.Words, _toasts, _renderer.SetGreyKinds, _session.Locale, _options.AssumeKnown);
         _console($"voxel: quality {Preset.Name}, view distance {Preset.ViewDistance} blocks, fog from {VoxelRenderer.FogEndFor(Preset.ViewDistance) * VoxelRenderer.FogStartFraction:0} to {VoxelRenderer.FogEndFor(Preset.ViewDistance):0}, mesh budget {Preset.MeshBudgetMilliseconds:0} ms a frame (renderer ready in {MonotonicClock.Milliseconds() - started:0} ms)");
         _console($"graphics: {GraphicsAdapter.DefaultAdapter.Description}, depth {device.PresentationParameters.DepthStencilFormat}");
         if (_options.Greyscale)

@@ -616,7 +616,7 @@ public sealed class LessonFrontendTests
             CollectStrings(document.RootElement, strings);
         }
 
-        var missing = strings.SelectMany(static s => s).Where(c => !cmap.Covers(c)).Distinct().Select(static c => $"U+{(int)c:X4} {c}").ToList();
+        var missing = strings.SelectMany(static s => s).Where(c => c is not ('\n' or '\r') && !cmap.Covers(c)).Distinct().Select(static c => $"U+{(int)c:X4} {c}").ToList();
 
         Assert.True(missing.Count == 0, "The font has no glyph for: " + string.Join(", ", missing));
     }

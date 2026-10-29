@@ -152,7 +152,7 @@ public sealed class CheckBattery : IScreen
         }
         else
         {
-            Screen.Failed(applied.Outcome.Problem ?? "The answer was not graded.");
+            Screen.Failed(applied.Outcome.Problem ?? _session.Locale.Ui("checkNotGraded"));
         }
 
         return true;
@@ -356,7 +356,7 @@ public sealed class CheckBattery : IScreen
 
         if (!_session.Worker!.CanHear)
         {
-            check.Notice = _session.Worker.Load?.Problem ?? "The voice is not available: type your answer (W).";
+            check.Notice = _session.Worker.Load?.Problem ?? _session.Locale.Ui("checkVoiceOff");
             return;
         }
 

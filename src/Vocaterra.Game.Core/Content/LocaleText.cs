@@ -67,6 +67,13 @@ public sealed class LocaleText
         "bookLessonCompleted", "bookLessonInProgress", "bookLessonNotStarted", "bookUnit", "bookUnitSteps", "bookLessonCounts", "bookSaidSession", "bookSaidWhere",
         "bookSaidVoice", "bookSaidTyped", "bookSaidButton", "bookSaidLessonStep", "bookSaidLesson", "bookSaidCheck", "bookSaidTalk", "bookSaidTalkTo",
         "bookPractise", "bookColumnPresent", "bookColumnPast", "bookColumnNearFuture",
+        "reportTitle", "reportHintsFirst", "reportHintsSecond", "reportPlaceholder", "reportCancel", "reportSave", "reportBug", "reportFeature", "reportBlank",
+        "reportSaved", "reportNotSaved", "checkTitle", "checkPre", "checkPost", "checkRecall", "checkComprehensionHint", "checkProductionPreface", "checkProductionHint",
+        "checkDone", "checkItem", "checkThanks", "checkCounts", "checkThinking", "checkInLog", "checkCloseGame", "checkEnd", "checkListening", "checkAnswerHere",
+        "checkNotGraded", "checkVoiceOff", "heard", "heardSomething", "heardNothing", "heardExpected", "micSay", "micTitle", "micTalkHint", "micPassed",
+        "micFailed", "micContinue", "micRetry", "micSkip", "micEscSkip", "lessonMore", "replayHud", "craftMake", "craftNeeds", "craftNeedsStation", "craftFull",
+        "craftMissing", "needBottle", "playtestThanks", "playtestRecallThanks", "playtestSaved", "speechUnavailable", "turnNotChecked",
+        "autosaved", "greyNewWord",
     ];
 
     /// <summary>The most error lines one turn's feedback carries.</summary>

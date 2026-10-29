@@ -28,6 +28,7 @@ public sealed class DialogueModel
     private readonly LocaleText? _locale;
     private readonly GameWords _words;
     private readonly NpcRoster _npcs;
+    private readonly LocaleText _ui;
     private readonly bool _showVerdictNotes;
     private int _cancelled;
 
@@ -55,6 +56,7 @@ public sealed class DialogueModel
         ArgumentNullException.ThrowIfNull(data);
         _words = data.Words;
         _npcs = data.Npcs;
+        _ui = data.Locale;
         NpcName = _npcs.LabelOf(NpcService.GuideAgent);
         Buttons = SpeechButtons.For(_words.Buttons);
         _focus = focus;
@@ -462,7 +464,7 @@ public sealed class DialogueModel
         TypingOffered = false;
         if (applied.Turn is not { } turn)
         {
-            Add(DialogueSpeaker.Hint, applied.Outcome.Problem ?? "I couldn't check that line. Try again.");
+            Add(DialogueSpeaker.Hint, applied.Outcome.Problem ?? _ui.Ui("turnNotChecked"));
             return null;
         }
 

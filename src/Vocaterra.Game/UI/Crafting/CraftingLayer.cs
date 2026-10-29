@@ -91,9 +91,9 @@ public sealed class CraftingLayer : IFrameLayer
             x = DrawWord(spriteBatch, font, part.Noun.Lemma, wordX, middle, words.SaturationOf(part.Noun.Lemma), 0) + 14;
         }
 
-        var status = row.Status;
+        var status = row.Status(view.Session.Locale);
         var statusWidth = (int)DrawHelpers.Width(font, status);
-        var stationText = row.Recipe.Station is not null ? "Uses" : "By hand";
+        var stationText = view.Session.Locale.Ui(row.Recipe.Station is not null ? "craftingUses" : "craftingByHand");
         var stationWord = row.Recipe.Station?.Lemma;
         var stationWidth = (int)DrawHelpers.Width(font, stationText) + (stationWord is null ? 0 : 34 - (int)DrawHelpers.Width(font, stationText) + (int)DrawHelpers.Width(font, stationWord));
         if (CraftingLayout.StationX(layout.RowWidth, x - box.Left, stationWidth, statusWidth) is { } offset)

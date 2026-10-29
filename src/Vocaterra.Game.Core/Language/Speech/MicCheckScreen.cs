@@ -176,7 +176,7 @@ public sealed class MicCheckScreen : IScreen
         var worker = _session.Worker!;
         if (!worker.CanHear)
         {
-            check.Notice = worker.IsReady ? worker.Load?.Problem ?? "Speech is not available." : "Loading speech…";
+            check.Notice = worker.IsReady ? worker.Load?.Problem ?? _session.Locale.Ui("speechUnavailable") : _session.Locale.Ui("loadingSpeech");
             return;
         }
 

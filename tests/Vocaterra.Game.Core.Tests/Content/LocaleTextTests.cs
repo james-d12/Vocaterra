@@ -1,6 +1,8 @@
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
@@ -234,6 +236,49 @@ public sealed class LocaleTextTests
         Assert.Throws<InvalidDataException>(() => TipBook.ParseTips(tips.Replace("\"id\": \"look\"", "\"id\": \"look-x\"", StringComparison.Ordinal), English));
         Assert.Throws<InvalidDataException>(() => TipBook.ParseTips(tips.Replace("\"schemaVersion\": 1", "\"schemaVersion\": 2", StringComparison.Ordinal), English));
         Assert.Equal(TestGame.Data.Tips, TipBook.ParseTips(tips, English));
+    }
+
+    [Fact]
+    public void ANameIsAPlaceholderFilledFromTheNpcDataAndAKeyFromTheBindings()
+    {
+        // C04: {npc:guide} is what the guide is called (game/npcs/guide.json: Luna), {key:listen} the key bound to listening, spelled as keys.json spells it.
+        var ui = TestGame.Data.Locale;
+
+        Assert.Equal("First words with {npc:guide}", ui.Raw(LessonBook.LessonId("first-words", "title")));
+        Assert.Equal("First words with Luna", ui.Text(LessonBook.LessonId("first-words", "title")));
+        Assert.Equal("Hold V or Space: speak   Esc: cancel or close", ui.Ui("dialogueButtonHints"));
+        Assert.Equal(["V", "Space", "Esc"], new[] { GameKey.V, GameKey.Space, GameKey.Escape }.Select(ui.KeyName));
+        Assert.Equal("F11", ui.KeyName(GameKey.F11)); // a key the locale does not name keeps its own name
+
+        var renamed = ui.WithNames(new Dictionary<string, string>(StringComparer.Ordinal) { ["guide"] = "Rosa" }, new Dictionary<string, GameKey>(StringComparer.Ordinal) { ["listen"] = GameKey.B, ["listenAlt"] = GameKey.Enter });
+        Assert.Equal("First words with Rosa", renamed.Text(LessonBook.LessonId("first-words", "title")));
+        Assert.Equal("Hold B or Enter: speak   Esc: cancel or close", renamed.Ui("dialogueButtonHints")); // a rebound key shows in every text that names it
+        Assert.Equal("Talk to {npc:nobody}", LocaleText.Parse("xx", "h", [("x.json", """{ "strings": { "x": "Talk to {npc:nobody}" } }""")]).Text("x")); // an unknown name stays as written
+    }
+
+    [Fact]
+    public void AStringWithACountHasAOneAndAnOtherForm()
+    {
+        var ui = TestGame.Data.Locale;
+
+        Assert.Equal(["1 time", "2 times", "0 times"], new[] { 1, 2, 0 }.Select(n => ui.Plural("ui.bookUses", n)));
+        Assert.Equal("río  1 block", ui.Plural("ui.beaconDistance", 1, ("label", "río")));
+        Assert.Equal("⟦ui.nothing.other⟧", ui.Plural("ui.nothing", 3)); // a missing form shows its id, like any missing string
+    }
+
+    [Fact]
+    public void APlaceholderThatNamesNoNpcOrNoCommandIsAProblem()
+    {
+        var data = TestGame.Data.WithLocale(TestGame.Data.Locale.With(new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["tip.look"] = "Ask {npc:miller} or press {key:fly}.",
+        }));
+
+        var problems = GameDataValidator.Validate(data);
+
+        Assert.Contains("locale en: the string 'tip.look' names {npc:miller}, which is not one of the NPCs.", problems);
+        Assert.Contains("locale en: the string 'tip.look' names {key:fly}, which is not a command with a key.", problems);
+        Assert.DoesNotContain(GameDataValidator.Validate(TestGame.Data), static p => p.Contains("names {", StringComparison.Ordinal));
     }
 
     [Fact]

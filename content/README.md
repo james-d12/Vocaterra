@@ -48,7 +48,7 @@ Everything the game says, shows and builds its world from, outside the code. The
   | Id | What | File of `en/` |
   | --- | --- | --- |
   | `ui.<key>` | an interface word (`LocaleText.UiKeys`) | `ui.json` |
-  | `npc.<id>.role`, `objective.<id>.title` | an NPC's role, an objective's title | `ui.json` |
+  | `npc.<id>.role`, `objective.<id>.title`, `objective.<id>.hud` | an NPC's role, a checklist's title, another objective's line | `ui.json` |
   | `tip.<id>`, `control.<id>.keys`, `control.<id>.text` | a tip; a line of the controls help | `tips.json`, `controls.json` |
   | `feedback.outcome.<key>`, `feedback.error.<tag>`, `feedback.unknownError` | the feedback after a turn | `feedback.json` |
   | `noun.<lemma>` | a catalogue noun's word | `nouns.json` |
@@ -57,11 +57,20 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `lesson.<id>.title`, `.text`, `.summary`, `.objective`; `lesson.<id>.<step>.text`, `.translation`, `.help`, `.retry`, `.option.<n>`, `.hud`, ... | a lesson's text | `lessons.json` |
   | `check.<id>.question`, `.option.<n>`, `.situation` | a check item's text | `checks.json` |
   | `verb.<lemma>` | `{ "gloss", "base", "third", "past" }`: a verb's forms, listed | `verbs.json` |
+  | `key.<GameKey>` | a key's name (`key.Escape`: `Esc`), for `{key:…}` | `keys.json` |
 
-- **Placeholders.** `{name}` is filled by the code (`{npc}`, `{count}`, `{noun}` ...).
+- **Placeholders.** `{name}` is filled by the code (`{npc}`, `{count}`, `{noun}` ...). Two are filled from data (C04):
+  - `{npc:<id>}` is what the NPC is called (`{npc:guide}` is `Luna`, `game/npcs/guide.json`'s name, else its label). Use it in the support
+    language's own text (a lesson's text, a tip); a gloss of a Spanish line that says the name keeps it written out, as the Spanish does.
+  - `{key:<command>}` is the key bound to a command (`InputKeys`: `listen`, `talk`, `book`, `inventory`, `crafting`, `save`, ...), spelled with
+    `key.<GameKey>`; a rebound key then shows in every text. A screen's own keys (the dialogue panel's Enter and Tab) are written out.
+- **Plurals.** A string with a count has two ids, `<id>.one` and `<id>.other` (`ui.bookUses.one`: `{count} time`).
+- **The code holds no player-facing English** (C04): `NoLiteralTextTests` scans `Vocaterra.Game` and `Vocaterra.Game.Core`, with an allowlist for
+  developer text. A new on-screen text is a `ui.<key>` string (and its key in `LocaleText.UiKeys`).
+- **Glyphs.** `locales.json` lists each locale's characters beyond ASCII; a test checks that the font draws every character of every string.
 - **Lookup.** The chosen locale (`--locale <code>`; default game-v1's `supportLanguage`), then `en`, then the marker `⟦id⟧` on screen.
-- **Checks.** `--validate-content` (and so the refresh and the tests) refuses a string the content or the code asks for that a locale lacks, and a
-  string no content or code asks for (an orphan, left behind by a renamed id).
+- **Checks.** `--validate-content` (and so the refresh and the tests) refuses a string the content or the code asks for that a locale lacks, a
+  string no content or code asks for (an orphan, left behind by a renamed id), and a `{npc:…}` or `{key:…}` that names no NPC or command.
 - **A new locale.** Add a folder `locale/<code>/` with the same ids, list it in `locales.json` (with the characters beyond ASCII it needs in `glyphs`),
   and run the refresh. A string it lacks falls back to `en`.
 

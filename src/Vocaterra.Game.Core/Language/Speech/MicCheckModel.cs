@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Session;
 
@@ -10,42 +11,49 @@ namespace Vocaterra.Game.Core.Language.Speech;
 /// </summary>
 public sealed class MicCheckModel
 {
-    /// <summary>The instruction the screen shows.</summary>
-    public const string Instruction = "Say \"hola\"";
-
-    /// <summary>The title of the screen (S17b: English; the word the player says, <c>hola</c>, stays Spanish).</summary>
-    public const string Title = "Microphone check";
-
-    /// <summary>How to talk (the held key).</summary>
-    public const string TalkHint = "Hold V or Space and say \"hola\"";
-
-    /// <summary>The result line after a pass.</summary>
-    public const string PassedText = "Got it, I can hear you.";
-
-    /// <summary>The result line after a failed try.</summary>
-    public const string FailedText = "I didn't catch that. Try again?";
-
-    /// <summary>The label of the button that leaves the screen after a pass.</summary>
-    public const string ContinueLabel = "Continue";
-
-    /// <summary>The label of the button that tries again.</summary>
-    public const string RetryLabel = "Try again";
-
-    /// <summary>The label of the button that skips the check.</summary>
-    public const string SkipLabel = "Skip";
 
     /// <summary>How fast the meter falls back, per second (a fraction of full scale).</summary>
     public const double FallPerSecond = 1.5;
 
     private readonly Action<VoiceEventKind, string?> _log;
+    private readonly LocaleText _ui;
+    private readonly string _word;
 
     /// <summary>Creates the check, ready for the first try.</summary>
     /// <param name="log">Where the check's voice events go (the session's <see cref="GuideSession.LogMicCheck"/>).</param>
-    public MicCheckModel(Action<VoiceEventKind, string?> log)
+    /// <param name="ui">The support language (<c>ui.mic*</c>, C04).</param>
+    /// <param name="word">The word the player says (<c>hola</c>, the greeting of <c>game/words.json</c>); it stays the target language.</param>
+    public MicCheckModel(Action<VoiceEventKind, string?> log, LocaleText ui, string word)
     {
         ArgumentNullException.ThrowIfNull(log);
         _log = log;
+        _ui = ui ?? throw new ArgumentNullException(nameof(ui));
+        _word = word ?? throw new ArgumentNullException(nameof(word));
     }
+
+    /// <summary>The instruction the screen shows (<c>Say "hola"</c>).</summary>
+    public string Instruction => _ui.Ui("micSay", ("word", _word));
+
+    /// <summary>The title of the screen (S17b: English; the word the player says, <c>hola</c>, stays Spanish).</summary>
+    public string Title => _ui.Ui("micTitle");
+
+    /// <summary>How to talk (the held key).</summary>
+    public string TalkHint => _ui.Ui("micTalkHint", ("word", _word));
+
+    /// <summary>The result line after a pass.</summary>
+    public string PassedText => _ui.Ui("micPassed");
+
+    /// <summary>The result line after a failed try.</summary>
+    public string FailedText => _ui.Ui("micFailed");
+
+    /// <summary>The label of the button that leaves the screen after a pass.</summary>
+    public string ContinueLabel => _ui.Ui("micContinue");
+
+    /// <summary>The label of the button that tries again.</summary>
+    public string RetryLabel => _ui.Ui("micRetry");
+
+    /// <summary>The label of the button that skips the check.</summary>
+    public string SkipLabel => _ui.Ui("micSkip");
 
     /// <summary>Where the check is.</summary>
     public MicCheckPhase Phase { get; private set; } = MicCheckPhase.Ready;
@@ -78,15 +86,15 @@ public sealed class MicCheckModel
     /// <summary>The line under the instruction for the phase: how to talk, or the result.</summary>
     public string StatusText => Notice is not null && Phase is MicCheckPhase.Ready or MicCheckPhase.Failed ? Notice : Phase switch
     {
-        MicCheckPhase.Listening => "Listening…",
-        MicCheckPhase.Thinking => "Thinking…",
+        MicCheckPhase.Listening => _ui.Ui("dialogueListening"),
+        MicCheckPhase.Thinking => _ui.Ui("dialogueThinking"),
         MicCheckPhase.Passed => PassedText,
         MicCheckPhase.Failed => FailedText,
         _ => TalkHint,
     };
 
     /// <summary>The line <c>Heard: «…»</c> once something was heard, or <see langword="null"/>.</summary>
-    public string? HeardText => Heard is null ? null : $"{HeardLine.HeardLabel}{(Heard.Length == 0 ? HeardLine.NothingHeard : $"«{Heard}»")}";
+    public string? HeardText => Heard is null ? null : Heard.Length == 0 ? _ui.Ui("heardNothing") : _ui.Ui("heard", ("heard", Heard));
 
     /// <summary>The talk key went down: the meter starts to move. Does nothing unless the check is ready (or failed: a new try starts).</summary>
     public void BeginListening()
@@ -214,10 +222,15 @@ public sealed class MicCheckModel
 
     /// <summary>The label of a button.</summary>
     /// <param name="button">The button.</param>
-    public static string LabelOf(MicCheckButton button) => button switch
+    public string LabelOf(MicCheckButton button) => LabelOf(_ui, button);
+
+    /// <summary>The label of a button in a support language (<c>ui.micContinue</c>, <c>ui.micRetry</c>, <c>ui.micSkip</c>).</summary>
+    /// <param name="ui">The support language.</param>
+    /// <param name="button">The button.</param>
+    public static string LabelOf(LocaleText ui, MicCheckButton button) => (ui ?? throw new ArgumentNullException(nameof(ui))).Ui(button switch
     {
-        MicCheckButton.Continue => ContinueLabel,
-        MicCheckButton.Retry => RetryLabel,
-        _ => SkipLabel,
-    };
+        MicCheckButton.Continue => "micContinue",
+        MicCheckButton.Retry => "micRetry",
+        _ => "micSkip",
+    });
 }

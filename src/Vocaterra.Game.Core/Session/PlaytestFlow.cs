@@ -10,11 +10,6 @@ namespace Vocaterra.Game.Core.Session;
 /// </summary>
 public sealed class PlaytestFlow
 {
-    /// <summary>The thank-you note of the playtest's post-check (the screen's closing lines; the English is for the facilitator and the tester alike).</summary>
-    public const string ThankYou = "Thank you for playing. Your answers are in the session log.";
-
-    /// <summary>The thank-you note of the next-day recall of a playtest.</summary>
-    public const string RecallThankYou = "Thank you. Your answers are in the session log.";
 
     private readonly bool _recall;
     private readonly bool _scriptedRun;
@@ -112,12 +107,12 @@ public sealed class PlaytestFlow
         _hooks.SkipScenarioTo(_scriptLength);
         if (_recall)
         {
-            check.Closing = RecallThankYou;
+            check.Closing = _session.Locale.Ui("playtestRecallThanks");
             return;
         }
 
         var folder = Path.GetFileName(Path.GetDirectoryName(SavePath!)) ?? string.Empty;
-        check.Closing = $"{ThankYou}\nSaved: {PlaytestEnd.SaveFileName} in the session folder {folder}.";
+        check.Closing = _session.Locale.Ui("playtestSaved", ("thanks", _session.Locale.Ui("playtestThanks")), ("file", PlaytestEnd.SaveFileName), ("folder", folder));
         _saveDue = true;
     }
 

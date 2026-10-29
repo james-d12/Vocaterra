@@ -280,8 +280,8 @@ public sealed class CheckFrontendTests
     [Fact]
     public void TheCheckLayerNamesEachKindOfBattery()
     {
-        Assert.Equal("Check: before the game", CheckLayer.TitleOf(CheckKind.Pre));
-        Assert.Equal("Check: after the game", CheckLayer.TitleOf(CheckKind.Post));
-        Assert.Equal("Check: recall", CheckLayer.TitleOf(CheckKind.Recall));
+        Assert.Equal("Check: before the game", CheckLayer.TitleOf(RouteScene.Shipped.Locale, CheckKind.Pre));
+        Assert.Equal("Check: after the game", CheckLayer.TitleOf(RouteScene.Shipped.Locale, CheckKind.Post));
+        Assert.Equal("Check: recall", CheckLayer.TitleOf(RouteScene.Shipped.Locale, CheckKind.Recall));
     }
 }
