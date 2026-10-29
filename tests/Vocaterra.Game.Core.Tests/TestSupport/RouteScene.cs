@@ -15,7 +15,7 @@ namespace Vocaterra.Game.Core.Tests.TestSupport;
 /// <summary>
 /// The bundle's route as a test session: the scene built from a seed, and a voxel session over it at the fixed start time. Each scene is built once per
 /// layout and seed in a test process and every caller gets a clone of it (<see cref="Scene.Clone"/>), because a run edits its grid in place and a build of
-/// the route takes about half a second alone and several seconds beside the other tests. A test of the builder itself builds with <see cref="SceneBuilder"/>.
+/// the route takes about 0.6 s alone and up to 2.5 s beside the other tests. A test of the builder itself builds with <see cref="SceneBuilder"/>.
 /// </summary>
 internal static class RouteScene
 {
@@ -71,5 +71,18 @@ internal static class RouteScene
         LessonBook.Parse(SampleLesson, PhraseSheet.Load(bundle), SpeechLines.Enumerate(bundle, nouns, PhraseSheet.Load(bundle)), bundle.Prompts);
 
     private static Scene CloneOf(Lazy<SceneLayout> layout, ulong seed) =>
-        Built.GetOrAdd((layout, seed), static key => new Lazy<Scene>(() => SceneBuilder.Build(key.Layout.Value, key.Seed))).Value.Clone();
+        Built.GetOrAdd((layout, seed), static key => new Lazy<Scene>(() => Warmed(SceneBuilder.Build(key.Layout.Value, key.Seed)))).Value.Clone();
+
+    // The world digest, the chunk digests and the chunks' kind masks are worked out once, on the built scene: a clone copies them, so a test that hashes or
+    // searches the world does not redo it over the 4 608 chunks (an edit drops the edited chunk's own, as in any grid).
+    private static Scene Warmed(Scene scene)
+    {
+        scene.Grid.ComputeDigest();
+        foreach (var chunk in scene.Grid.Chunks)
+        {
+            _ = chunk.KindMask;
+        }
+
+        return scene;
+    }
 }

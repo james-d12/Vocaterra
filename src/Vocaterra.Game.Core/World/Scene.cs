@@ -8,8 +8,8 @@ namespace Vocaterra.Game.Core.World;
 /// A built scene: the voxel grid, the player's spawn, the NPC placements and the named points (<c>camp</c>, <c>stall</c>, <c>river</c> ...).
 /// A named point is the block on top of the terrain at that column (the ground block, or the water surface block over a river), so its Y is
 /// one lower than the feet cell of someone standing there. <see cref="VoxelSimulation"/> edits the grid in place; build a new scene for a
-/// fresh run, or <see cref="Clone"/> one that no run has touched (a build of the bundle's 384 x 128 x 384 route takes about half a second, a
-/// clone copies its 38 MB of blocks).
+/// fresh run, or <see cref="Clone"/> one that no run has touched (a build of the bundle's 384 x 128 x 384 route takes about 0.6 s, a clone
+/// copies its 38 MB of blocks).
 /// </summary>
 public sealed class Scene
 {
