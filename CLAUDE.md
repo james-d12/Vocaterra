@@ -8,7 +8,7 @@ one `Vocaterra.sln`; R01, 2026-10-23). The halves are told apart by project name
   Its plan is `docs/nlp/IMPLEMENTATION_PLAN.md` (section 5 the milestone table, 5b the findings log, 7 and 10 the expansion plans), its owner
   decisions `docs/nlp/DECISIONS.md` (D1 to D13), its boundary `docs/nlp/adr/0009-core-and-game-boundary.md`, its API `docs/nlp/API.md`.
   Licence Apache-2.0 (`LICENSE`, `NOTICE`).
-- **The game**: `Vocaterra.Simulation`, `Vocaterra.Game`, `Vocaterra.MonoGame`, `Vocaterra.Host` and `Vocaterra.SpeechRender` (with their tests, `content/game-v1`,
+- **The game**: `Vocaterra.Game.Core` (the engine-free systems), `Vocaterra.Game` (MonoGame), `Vocaterra.Host` and `tools/Vocaterra.SpeechRender` (with their tests, `content/game-v1`,
   `assets/` and `docs/game/`). Its plan is
   `docs/game/IMPLEMENTATION_PLAN.md` (section 4 status, section 5 findings), its decisions `docs/game/DECISIONS.md` (D-game-1 to D-game-7).
   Licence Apache-2.0 like the core (one `LICENSE` and `NOTICE` at the root; the game was MIT until R01).
@@ -47,8 +47,9 @@ Facts every session needs:
   gate; never weaken an oracle to make it pass.
 - **Never write under `.github/workflows/`** until the owner says the token has the workflow scope. CI was reopened on 2026-10-23
   (core D1, game D-game-3) and is planned (see the orchestrator's handover); the old `.github/workflows-pending/ci.yml` is out of date.
-- **Engine (D-game-1):** MonoGame for the prototype; engine code lives only in `src/Vocaterra.MonoGame`, never in `Vocaterra.Host`,
-  `Vocaterra.Simulation` or `Vocaterra.Game`. Assets are CC0 only (D-game-5).
+- **Engine (D-game-1):** MonoGame for the prototype; engine code lives only in `src/Vocaterra.Game`, never in `Vocaterra.Host` or
+  `Vocaterra.Game.Core` (which references no package; its `ArchitectureRulesTests` gate it). Core holds the game's logic, Game the drawing,
+  the devices, the layers and the host (`docs/code_guidelines.md`, `docs/game/ARCHITECTURE.md`). Assets are CC0 only (D-game-5).
 - **Game words live in the game (`content/game-v1` and the game projects):** scenes, characters, items, spells, prices, rewards, dialogue and the meaning of each effect kind. The core
   needs only opaque effect kinds and host event names.
 - **Determinism:** the host owns the world seed, the stored time, the learner model and the repeat counts. Nothing in the evaluation path

@@ -1,9 +1,11 @@
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Graphics;
+using Vocaterra.Game.UI.Common;
 using Vocaterra.Nlp.Es;
 
 namespace Vocaterra.Game.UI.Book;

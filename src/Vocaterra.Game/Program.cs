@@ -1,14 +1,16 @@
 using Vocaterra.Game;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.World;
 using Vocaterra.Game.Core.World.Generation;
 using Vocaterra.Game.Core.World.Layout;
+using Vocaterra.Game.Diagnostics;
 using Vocaterra.Game.Sound;
-using Vocaterra.Game.Utilities;
+using Vocaterra.Game.Startup;
 using Vocaterra.Nlp.Content;
 
 // The crash handler (X05) is installed before anything else, so a crash at any point writes its report. The process-wide hooks cover what

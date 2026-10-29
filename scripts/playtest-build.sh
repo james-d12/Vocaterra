@@ -42,7 +42,7 @@ echo "== 1. the content bundle (validate before it is copied)"
 echo "== 2. publish the game for linux-x64 (self-contained; playtest: no sherpa-onnx or ONNX Runtime native library)"
 # The build's commit (S18): the in-game F8 report names it in its game-state table (the csproj reads VOCATERRA_BUILD_COMMIT, else "unknown").
 BUILD_COMMIT="$(git -C "$ROOT" rev-parse HEAD)"
-VOCATERRA_BUILD_COMMIT="$BUILD_COMMIT" dotnet publish "$ROOT/src/Vocaterra.MonoGame/Vocaterra.MonoGame.csproj" -c Release -r linux-x64 \
+VOCATERRA_BUILD_COMMIT="$BUILD_COMMIT" dotnet publish "$ROOT/src/Vocaterra.Game/Vocaterra.Game.csproj" -c Release -r linux-x64 \
   --self-contained true -p:VocaterraPlaytest=true -m:4 -o "$DEST" --nologo
 echo "build commit: $BUILD_COMMIT"
 
@@ -53,7 +53,7 @@ cp "$MANIFEST" "$DEST/models/manifest.json"
 cp -r "$MODELS/$VOSK_ID" "$DEST/models/$VOSK_ID"
 cp "$ROOT/scripts/playtest/README-tester.md" "$DEST/README.md"
 cp "$ROOT/scripts/playtest/playtest.sh" "$DEST/playtest.sh"
-chmod +x "$DEST/playtest.sh" "$DEST/Vocaterra.MonoGame"
+chmod +x "$DEST/playtest.sh" "$DEST/Vocaterra.Game"
 
 echo "== 4. check the folder"
 python3 -I - "$DEST" "$MANIFEST" "$VOSK_ID" <<'PY'
@@ -105,7 +105,7 @@ report(not hits, "no sherpa-onnx, ONNX Runtime, espeak-ng or ONNX model file in 
 
 # The managed sherpa-onnx assembly (Apache-2.0 wrapper) may stay; it must be a managed assembly named in deps.json's runtime section, not a native
 # library, and no native entry of deps.json may name sherpa or ONNX Runtime.
-with open(os.path.join(dest, "Vocaterra.MonoGame.deps.json"), encoding="utf-8") as handle:
+with open(os.path.join(dest, "Vocaterra.Game.deps.json"), encoding="utf-8") as handle:
     deps = json.load(handle)
 managed, native_entries = set(), []
 for library in deps.get("targets", {}).values():

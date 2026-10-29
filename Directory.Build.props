@@ -1,7 +1,7 @@
 <Project>
 
   <!-- Build settings for the whole repository. The language core is the engine project Vocaterra.Nlp (its library in src/Vocaterra.Nlp) and the
-       projects named Vocaterra.Nlp.* (its tests in tests/, its tools in tools/); the game is Vocaterra.Simulation, Vocaterra.Game, Vocaterra.MonoGame, Vocaterra.Host and
+       projects named Vocaterra.Nlp.* (its tests in tests/, its tools in tools/); the game is Vocaterra.Game.Core, Vocaterra.Game, Vocaterra.Host and
        Vocaterra.SpeechRender, with their tests. The core/game boundary (docs/nlp/adr/0009-core-and-game-boundary.md) is by project name,
        so what only the core needs is keyed on VocaterraCore below, and what only the game needs on its being false. -->
   <PropertyGroup>

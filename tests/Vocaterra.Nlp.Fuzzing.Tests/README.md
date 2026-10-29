@@ -437,6 +437,13 @@ synthetic), and O3 now realises the `ask_price` grammar (about 30 sentences per 
   pipeline test every asserted key stayed well above its minimum of 10 (`hostturn:none` minimum 50; the lowest minimum was `hostturn:step`, 38).
   The count of mutations with no valid replacement (skipped, not failed) rose from 24 to 119 in one run each; most likely a null leaf, such as an
   absent repair, has no replacement that deserializes. This was not measured by region.
+- **The same assertion failed again after R02: the pipeline's bundle lacked the generator's words** (`Oracles/PipelineHarness.cs`, `BuildCopy`). CI on
+  `feature/game_refactor` (run 40776714320) failed with "No mutation reached the effects part of the envelope". `EffectsBundle` and `HostTurnBundle`
+  were built from the light `TempBundle` copy, without the imported lexicon, while the generators draw their nouns from `Bundle`, the full bundle; so
+  a correct sentence of an effect intent's grammar with an imported noun (`sí él tiene el cuchillo`, `las carreteras por favor`) resolved to
+  `unknown` and was not communicated. Measured before: 66 of 85 aimed cases unknown, 7 of 300 cases with effects, `region:effects` 0, 1, 2 and 6 in
+  four runs (main the same). The fixture bundles are now built from the full copy; the oracle and the minimum are unchanged. After: every aimed case
+  communicated, 81 of 300 cases with effects, `region:effects` 42.
 
 ## Known, deliberately not fixed
 

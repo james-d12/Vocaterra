@@ -1,3 +1,6 @@
+using Vocaterra.Game.Graphics.World;
+using Vocaterra.Game.UI.Common;
+
 namespace Vocaterra.Game.UI.Dialogue;
 
 /// <summary>The kinds of card that stand over the dialogue panel (S22): what the conversation layout places.</summary>

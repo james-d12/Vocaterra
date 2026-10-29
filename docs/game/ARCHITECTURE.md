@@ -1,8 +1,8 @@
 # Architecture: how the game consumes the language core
 
-Vocaterra is the game: the projects `Vocaterra.Simulation`, `Vocaterra.Game`, `Vocaterra.MonoGame`, `Vocaterra.Host` and `Vocaterra.SpeechRender` of the repository. The language core, Vocaterra.NLP (the engine project `Vocaterra.Nlp` and its `Vocaterra.Nlp.*` tests and tools, Apache-2.0), is the other half of the same `src/`, `tests/` and `tools/` folders;
+Vocaterra is the game: the projects `Vocaterra.Game.Core`, `Vocaterra.Game`, `Vocaterra.Host` and `tools/Vocaterra.SpeechRender` of the repository. The language core, Vocaterra.NLP (the engine project `Vocaterra.Nlp` and its `Vocaterra.Nlp.*` tests and tools, Apache-2.0), is the other half of the same `src/`, `tests/` and `tools/` folders;
 the two were separate repositories until 2026-10-21 (D-game-7) and sibling folders until the root layout of R01 (2026-10-23). The game references the core's library projects under `src` directly
-(`Vocaterra.Game` and `Vocaterra.Host` list them as `ProjectReference`s) and copies nothing of its source. This document says what the game
+(`Vocaterra.Game.Core` and `Vocaterra.Host` list them as `ProjectReference`s) and copies nothing of its source. This document says what the game
 takes from the core, what the game owns, and how the two meet. The core's contract is [docs/nlp/API.md](../nlp/API.md), and the
 boundary is [ADR 0009](../nlp/adr/0009-core-and-game-boundary.md). The game design is [SPECIFICATION.md](SPECIFICATION.md).
 
@@ -79,7 +79,7 @@ The core cannot know these, so the host supplies them (API document, "The host o
   game does not distribute a build that includes them until D2 is settled in the core.
 
 **Native-asset trim (G7).** The speech packages and MonoGame ship native libraries for every platform, and a plain build copied all of them
-(about 400 MB in `src/Vocaterra.MonoGame/bin` alone). `Directory.Build.props` therefore sets `RuntimeIdentifier=linux-x64` (with
+(about 400 MB in the front-end's `bin` alone). `Directory.Build.props` therefore sets `RuntimeIdentifier=linux-x64` (with
 `SelfContained=false` and `AppendRuntimeIdentifierToOutputPath=false`, so the output stays at `bin/Debug/net10.0/`) when the build host is
 Linux x64. NuGet then copies only that runtime's natives, and the same `dotnet build`, `dotnet test` and `dotnet run` commands work. The
 property `VocaterraAllRuntimes=true` turns the condition off, so a release build that must carry every platform restores the full copy; other
@@ -89,41 +89,92 @@ build hosts never get the trim. Restore again after changing the property, becau
 
 The engine is MonoGame for the prototype and the final engine is open (D-game-1 in [DECISIONS.md](DECISIONS.md)); a Godot .NET front-end is a
 later spike. The console host stays as the cheapest way to exercise the core's calls and the content. A front-end references the same packages
-(through `Vocaterra.Game`), calls the same sequence and renders the outcome itself. Audio capture and playback belong to the front-end and stay
+(through `Vocaterra.Game.Core`), calls the same sequence and renders the outcome itself. Audio capture and playback belong to the front-end and stay
 out of the core.
 
 ## The game layer (P3)
 
-The prototype is one engine-free library and one front-end, so that the engine can change without rewriting the game (the old
-`Vocaterra.Simulation` and the engine-free half of the old `Vocaterra.Game` are now `Vocaterra.Game.Core`):
+The game is one engine-free library and one front-end (`docs/code_guidelines.md`, R16), so that the engine can change without rewriting the
+game: `Vocaterra.Game.Core` holds the systems and mechanics, `Vocaterra.Game` what needs MonoGame or draws. The old `Vocaterra.Simulation` and
+the engine-free half of the old `Vocaterra.Game` are `Vocaterra.Game.Core`; R16 phase 2 (2026-10-28, `R16_PHASE2.md`,
+`GAME_PROJECTS_LAYOUT.md`) moved the screens' models, the screens and their keys, the turn flow, the scripts and the tick there. A folder is a
+namespace (`src/Vocaterra.Game.Core/Language/Book/` is `Vocaterra.Game.Core.Language.Book`), and a file holds one type.
 
-- `src/Vocaterra.Game.Core`: the game's rules and mechanics, with no engine type, no clock and no `System.Random` (`ArchitectureRulesTests`). By
-  folder:
-  - `Voxel/`: the blocks, the chunks and the grid, the block ray and the line of sight.
-  - `Mathematics/`: the integer angles and the fixed-point helpers. `Physics/`: the player's body and its collision with the grid.
-  - `Simulation/`: the fixed 60 Hz tick (`VoxelSimulation`: gathering, placing, crafting), its commands and its saved state.
-  - `World/`: the built `Scene`; `World/Layout/`: the layout file and its parser; `World/Generation/`: the terrain and the scene builder.
-  - `Navigation/`: the beacon and the scripted walk's path search.
-  - `Session/`: `VoxelSession` (the simulation, the bundle, the world seed, the stored time, the guide, the conversation, the camp objective and the
-    word cards).
-  - `Npc/`: `NpcService` (the three NPCs' conversations over the packages: a context per agent, host turns, two-phase turns, S6), `WorldFacts`
-    (the nearest block, the direction and the distance in Spanish), the aim at an NPC and the NPCs' shown names.
-  - `Language/`, `Items/`, `Save/`, `Sound/`, `Event/`, `Reporting/`, `Tip/` and `Input/` for the rest; `Language/Speech/TypedUtteranceEvaluator`
-    is the call sequence of the steps above, which the console host shares.
-- `src/Vocaterra.Game`: the MonoGame front-end and the only engine code: window, drawing, sound output, input, the panels. `VoxelGame` is the
-  host and the composition root (R16): its constructor makes the components, and MonoGame's `Update` and `Draw` call them in the frame's order.
-  By folder:
-  - `Input/`: the frame's `InputSnapshot`, the `KeyBindings` of the `GameCommands` (the command pattern), `WorldInput` (look, walk, hotbar,
-    gather, place), `ListenSession` (push-to-talk), the text boxes' editing keys and the swallowed opening key.
-  - `Screens/`: the screens over the world, each an `IScreen` in the `ScreenStack` that gives the keys to the top one: the mic check, the
-    check battery, the dialogue, the controls help, the book, the inventory and the crafting panel.
-  - `Frame/`: `WorldStepper`, one tick of the world and its `ITickObserver`s (the observer pattern): the arm, the sounds, the figures, the
-    camera, the objective, the voice, the word cards and the hints.
-  - `Flow/`: the game's flows that span screens: the session's start and ending, the playtest, the guide's greeting, the beacon, the turns
-    applied, the objective's and the word cards' announcements.
-  - `Persistence/` (the saves, the autosave, the crash source), `Reporting/` (the F8 report), `Scripted/` (the end of a scripted run),
-    `Diagnostics/` (the console's event lines), `Graphics/` (the camera, the figures, the arm, the `SceneDrawer`), `Sound/` and `UI/` (the
-    models and the layers).
+**`src/Vocaterra.Game.Core`**, folders by system: no package, no engine type, no clock and no `System.Random` (its `ArchitectureRulesTests`).
+
+```
+Event/            the game's events (WorldEvents, GameEvent) and EventPrinter (the console's event lines)
+Input/            the keys without the engine (GameKey, IInputFrame, D-p2-1a), the command pattern (IGameCommand, DelegateCommand,
+                  GameCommands, KeyBinding, KeyBindings), InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits,
+                  TextEditKeys, the push-to-talk (PushToTalkSpeechCapture, ListenSession, ListenTarget), BookItemUse
+Items/            Inventory, ItemDefinition, ScriptItemNames, InventoryScreen and its panel (InventoryPanel)
+  Crafting/       Recipe, RecipeBook and their records, CraftingRules, CraftingScreen, CraftingRow, RecipePanelModel, CraftingPanel
+Dialogue/         DialogueModel and its records, the speech buttons, TextWrap, the turn flow (TurnPump, SpeechActionRunner, SupportFrontend,
+                  TurnPresenter, GuideGreeting) and DialogueScreen
+Language/         Book/ (the book's model, pages, tables, recordings, speakers, geometry and BookScreen), Checks/ (the battery's bank, plan,
+                  grader, CheckScreen, CheckBattery and ICheckLog), Learner/, Lessons/ (LessonRunner, LessonFrontend, LessonActions),
+                  Phrases/ (phrase progress, the support ladder, PhraseJournalRows), Speech/ (the evaluators, MicCheck, MicCheckModel,
+                  MicCheckScreen), Words/ (the noun catalogue, word progress, JournalRows, VerbReading, GreyscaleWorld)
+Mathematics/      Angles, WorldRng, PresentationRng
+Navigation/       Beacon, the walk's path search, BeaconDirector, PointLabels
+Npc/              NpcService, WorldFacts, the aim at an NPC, the guide's turns and events
+Physics/          the player's body and its collision with the grid
+Reporting/        the F8 report (ReportPanel, ReportEntry, ReportWrap, ReportStateBuilder, BuildCommit), FrameStats, BusyFrameStats, the crash
+                  report and its source (ICrashSource, CrashGameState, CrashSource)
+Save/             the save document, its migrations, SaveService and AutosaveController (its clock injected)
+Screens/          IScreen, ScreenStack (the top open screen takes the keys), ControlsHelp
+Scripted/         the scripts' steps (ScriptStep, VoxelStep and their kinds), VoxelScript, ScenarioScript, CheckScript, ScreenshotGate, ShotRequest
+Session/          VoxelSession, GuideSession, TurnWorker, the objective, PlaytestEnd, GuideApproach, SessionEnding, ObjectiveAnnouncer,
+                  WordCardPresenter, PlaytestFlow
+Simulation/       VoxelSimulation (the fixed 60 Hz tick: gathering, placing, crafting) and its commands, TickAccumulator, TurnWatchdog, the
+                  observer pattern (ITickObserver, DelegateTickObserver), LiveVoxelInput, LookControl, WorldStepper
+Sound/            the mixer, the cues and their mapping, the ambient beds, the footsteps, the NPC voice, SoundFrame, SoundTickObserver,
+                  SoundSetup with its SoundOptions
+Tip/              the tips, EnglishText, ToastQueue
+Voxel/            the blocks, the chunks and the grid, the block ray and the line of sight
+World/            the built Scene; Layout/ (the layout file), Generation/ (the terrain and the scene builder)
+```
+
+**`src/Vocaterra.Game`**, folders by area with feature subfolders: the window, the drawing, the devices and the layers, and the only engine
+code. `VoxelGame` is the composition root (its constructor makes the components, MonoGame's `Update` and `Draw` call them in the frame's
+order) and `Program` starts it.
+
+```
+Startup/          LaunchOptions (the command line, D-p2-3) and MicCheckMode, AssetPaths, SceneLocator, SoundBootstrap
+Diagnostics/      SessionLog (it implements Core's ICheckLog), CrashHandler, CrashOutcome, WallClock, FrameClock, FrameTimings
+Flow/             SessionStart, SessionEndingFlow (they read the wall clock, D-p2-2)
+Input/            InputDevices, InputSnapshot (it implements IInputFrame), KeyMap (Keys to GameKey, one table), MouseLook, WorldInput
+Sound/            SoundEffectOutput, DynamicSoundOutput, MicrophoneCapture
+Scripted/         ScriptedRunEnd (it saves the pictures)
+Graphics/         SceneDrawer, DrawHelpers, QualityPreset, ScreenshotWriter
+  Camera/         FirstPersonCamera, PlayerCamera, CameraEase, ViewMath (CameraBasis, EdgeArrow), PlayerView
+  Blocks/         BlockArt, BlockArtNature, BlockArtVillage, BlockAtlas, BlockAtlasLayout
+  World/          VoxelRenderer, ChunkMesher, ChunkVersionTracker, ChunkViewSet, MeshVertex, OverlayMeshes, Greyscale
+  Figures/        FigureMesher, FigureFacing, FigureDirector, NpcFigures, HeldArm, ArmPresenter
+  Sky/            SkyModel, SkyRenderer
+UI/
+  Common/         UiCanvas, UiTransform, UiPalette, UiScale, FontProvider, FrameView, LayerStack, CountBadge, NounIcons, PixelBox
+  Hud/            HudLayers, HudLayout, HotbarLayer, ToastLayer, TipLayer, BeaconLabel, VoxelLayers, VoxelDebugText
+  Overlays/       OverlayLayouts, LoadingLayer, ControlsLayer, EndingLayer
+  Dialogue/       DialoguePanel, DialogueLayout, DialogueBubble, DialogueBubbleLayer, ConversationFrame, ConversationLayout, ConversationCards,
+                  VoxelTalkLayers, SupportLayer, SupportLayout
+  Book/           BookLayer, ConjugationLayout
+  Checks/         CheckLayer, CheckCardLayout, MicCheckLayer, MicCheckLayout
+  Crafting/       CraftingLayer, CraftingLayout, RecipePanelLayer
+  Inventory/      InventoryLayer, InventoryLayout
+  Lesson/         LessonLayer, LessonStripLayout
+  Report/         ReportLayer, ReportLayout, ReportScreen (it reads the frame's pixels)
+```
+
+How a screen meets the engine: the screens in Core read the frame as an `IInputFrame` and name keys as `GameKey`; Game's `InputSnapshot`
+answers through `KeyMap`. Where a screen hit-tests a click against a layout that needs the font or the canvas, Game gives it the layout as a
+delegate (the dialogue's lesson strip and speech buttons, the mic check's buttons, the crafting rows, the book's geometry). A Game type that
+names Core's `Inventory` under `UI/` writes `Core.Items.Inventory`: the namespace `Vocaterra.Game.UI.Inventory` hides the type there.
+
+The tests mirror the sources: `tests/Vocaterra.Game.Core.Tests/<folder>/` for Core's classes and `tests/Vocaterra.Game.Tests/<folder>/` for
+Game's, with `Component/` in each for the tests that drive several classes together (the `*FrontendTests`, the route and session runs),
+`TestSupport/` for the shared helpers (Core's `Repo.cs` and `RouteScene.cs` are compiled into Game's tests too) and `Architecture/` for the
+layering rules.
 
 How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md` for the steps):
 
@@ -151,7 +202,7 @@ A turn is either typed (the line is the transcript, the core's scripted recogniz
 the same `NpcService` turn, and each turn records how it arrived (`GuideTurn.Input`) so that word progress applies the credit of that kind
 (`CreditRules`: typed input half, spoken full, D-game-6; `--typed-credit full` switches typed back to full).
 
-- **One worker thread owns the recognizer.** `TurnWorker` (in `Vocaterra.Game`, no engine type) is the only thread that loads the Vosk model
+- **One worker thread owns the recognizer.** `TurnWorker` (in `Vocaterra.Game.Core`, no engine type) is the only thread that loads the Vosk model
   (`VoskWordRecognizer`, one instance), decodes with it, runs the guide's evaluations and disposes it, as the core's thread rules require
   (API document section 8: Vosk is not safe for concurrent calls and must not be disposed while a call may run). The pipeline is built with
   `RunRecognizersConcurrently = false`, so Vosk is never called from a pool thread. The game thread never calls the recognizer or the guide.
@@ -185,7 +236,7 @@ the same `NpcService` turn, and each turn records how it arrived (`GuideTurn.Inp
   `Directory.Packages.props`. The same projects name `Microsoft.ML.OnnxRuntime` 1.31.0 with `ExcludeAssets="native"` because its
   `libonnxruntime.so` would overwrite sherpa-onnx's in the same folder and Kokoro would fail to load (CR-021); the game uses the core's fake
   embeddings, so it never needs that copy.
-- **Push-to-talk and the microphone** (`src/Vocaterra.MonoGame` only). MonoGame's `Microphone` (OpenAL capture) records at the device's own rate
+- **Push-to-talk and the microphone** (the device in `src/Vocaterra.Game/Sound/`, the session in Core's `Input/ListenSession`). MonoGame's `Microphone` (OpenAL capture) records at the device's own rate
   (44.1 kHz mono on the development machine) and `AudioClips.Prepare` converts to 16 kHz, trims the silence at both ends and cuts at 8 seconds.
   Hold **V** or **Space** while the dialogue is open (S7: **Tab** now opens the text box), or hold **V** with the crosshair on an NPC to open it and listen; letting go sends the clip. No PortAudio was
   needed. MonoGame 3.8.6 only fills the buffer `GetData` reads while something subscribes to `BufferReady`, so `MicrophoneCapture` subscribes an
@@ -206,11 +257,14 @@ the same `NpcService` turn, and each turn records how it arrived (`GuideTurn.Inp
 - `tests/Vocaterra.Host.Tests` runs the two demo utterances through the host's evaluation path on `content/game-v1`, checks the bundle hash in
   the manifest against the loader's, and checks that the conversation carries its counts and learner from one utterance to the next. It
   checks that a count at `int.MaxValue` stays there, and that the prompt's line is written under its header (`PromptReportTests`).
-- `tests/Vocaterra.Game.Tests` runs the guide's turns on a fixed seed and a fixed stored time with the scripted recognizer (the verdict, the
+- `tests/Vocaterra.Game.Core.Tests` runs the guide's turns on a fixed seed and a fixed stored time with the scripted recognizer (the verdict, the
   guide's state, the host event, the target tile and the world line; an unaccented line; the repair path; determinism), `WorldFacts` on the
-  route, the guide's content in the bundle, the layering rules of `Vocaterra.Game` (no clock, no `System.Random`, no engine type, packages only),
+  route, the guide's content in the bundle, the layering rules of `Vocaterra.Game.Core` (no clock, no `System.Random`, no engine type, no package),
   the audio handling (`AudioClips`), the turn worker (order, fixed inputs, the snapshot), and the model tests: Kokoro speaks a line, Vosk
   recognizes it once, the guide answers it like the typed line. Those are skipped with a reason when `VOCATERRA_MODELS_DIR` is unset or a model
   is missing.
+- `tests/Vocaterra.Game.Tests` runs what needs Game's types without a GPU: the meshers, the layouts, the device input, the session log and the
+  `Component/` tests; its `ArchitectureRulesTests` keep `System.Random` and `Guid` out, the wall clock in `WallClock.cs` and the `Stopwatch` in
+  `FrameClock.cs`.
 - The core's own suites (fuzzing, goldens, replay) test the core; the game's tests cover only what the game does with it.
 - The continuous integration job is parked in `.github/workflows-pending/ci.yml` (D-game-3, deferred by the owner).

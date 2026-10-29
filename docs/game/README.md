@@ -9,7 +9,7 @@ agent's response text. The game references the core's projects directly and copi
 [docs/game/ARCHITECTURE.md](ARCHITECTURE.md) says what the game takes from the core and what the game owns.
 
 The prototype is the 3D scenario in the next section. The engine for it is MonoGame (decision D-game-1 in [docs/game/DECISIONS.md](DECISIONS.md);
-the final engine is open), and all engine code lives in `src/Vocaterra.MonoGame`. The console host stays as the cheapest way to exercise the
+the final engine is open), and all engine code lives in `src/Vocaterra.Game`. The console host stays as the cheapest way to exercise the
 core's calls and the content. The 2D slice (P1 to P7) was retired at S4; its code is tagged `2d-slice-p7` (the last commit that holds it).
 
 ## The prototype scenario
@@ -40,11 +40,11 @@ The game is one half of the repository: the projects below, `content/game-v1`, `
 
 ```
 Directory.Build.props            (at the root) the shared build settings, with the game's Linux-only native trim
-src/Vocaterra.Simulation/        the 3D voxel world and the player body: the scene, gathering, crafting, a fixed 60 Hz tick (no packages, no engine)
-src/Vocaterra.Game/              the 3D session, the guide's turns, the word progress, the camp objective and the facts about the world (no engine)
-src/Vocaterra.MonoGame/          the MonoGame DesktopGL front-end: the first-person window, drawing, input, the HUD (the only engine code)
+src/Vocaterra.Game.Core/         the game's engine-free systems: the voxel world and its 60 Hz tick, the session, the guide's turns, the
+                                 language systems, the screens' models and their keys (no packages, no engine; docs/game/ARCHITECTURE.md)
+src/Vocaterra.Game/              the MonoGame DesktopGL front-end: the window, the drawing, the devices, the UI's layers (the only engine code)
 src/Vocaterra.Host/              the console host: loads the bundle, evaluates lines, runs the text loop
-tests/                           one test project per source project (Simulation, Game, MonoGame, Host)
+tests/                           one test project per source project (Game.Core, Game, Host), their folders mirroring the sources'
 tools/Vocaterra.SpeechRender/    the speech prerender tool
 content/game-v1/                 the game's content bundle (see below)
 assets/                          CC0 art, fonts and sounds, each listed in assets/ATTRIBUTION.md (sounds: assets/audio/SOURCES.md)
@@ -111,14 +111,14 @@ three timber-framed houses with stepped roofs and chimneys, a stone tower, a fen
 `Tienda`, `Río` and `Montaña` (S15), and the player's own camp on a cliff ledge at the top of a switchback trail) at `--seed` (default 42; the
 seed changes the land between the sites and the forest, never a site), and shows it from the player's eyes. A new game starts at the player's camp
 (facing south-east, a canvas tent, a chest and a cold fire ring beside it) with the beacon on the guide's camp: the first thing to do is the walk down the trail.
-`--quality low|medium|high` sets how far the world is drawn and how much is drawn of the undergrowth, the occlusion and the clouds (see `src/Vocaterra.MonoGame/README.md`); the default, high, is for a real graphics card, and
+`--quality low|medium|high` sets how far the world is drawn and how much is drawn of the undergrowth, the occlusion and the clouds (see `src/Vocaterra.Game/README.md`); the default, high, is for a real graphics card, and
 **on a machine with software GL (this VM) pass `--quality low`**. S14 gave it its look: code-drawn pixel-art textures (a 16 x 16 atlas, deterministic, CC0 by construction), oaks, spruces and birches,
 tall grass, ferns, reeds and flowers that nothing collides with and the block ray looks through, sun shading and ambient occlusion in the vertex colours, a blue sky with a square sun and flat clouds,
 haze that fades the far mountains into the horizon, translucent water with a lighter shore, and a waterfall. The player wakes on the ledge looking down (pitch -10) over a valley whose forest, river, village and lake are in the
 picture; the trees in front of the ledge are cleared (a sight cone), the banks and the village are meadow and the ledge's foreground holds only low flowers. (`--voxel`, which selected the 3D world until S4, is accepted and ignored.)
 
 ```bash
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42
+dotnet run --project src/Vocaterra.Game -- --seed 42
 ```
 
 **S13 demos** (the large world; `--quality low`, 1280 x 720; each prints the frame times and the mesh counts; `--teleport` and `--look` only set the
@@ -126,28 +126,28 @@ camera for a picture):
 
 ```bash
 # from the player's camp (the spawn) looking south-east over the valley
-DISPLAY=:0 dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --look 128,-13 --screenshot /tmp/s13-camp.png --frames 3
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --look 128,-13 --screenshot /tmp/s13-camp.png --frames 3
 # from the valley (the guide's clearing) looking north at the peaks, the cliffs and the waterfall
-DISPLAY=:0 dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --teleport 176,200 --look 25,8 --screenshot /tmp/s13-peaks.png --frames 3
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --teleport 176,200 --look 25,8 --screenshot /tmp/s13-peaks.png --frames 3
 # the village, from the road: the stall, the signpost, a house and the villager
-DISPLAY=:0 dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --teleport 272,224 --look 75,-4 --screenshot /tmp/s13-village.png --frames 3
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --teleport 272,224 --look 75,-4 --screenshot /tmp/s13-village.png --frames 3
 # the village from its entrance, with the boards Tienda, Río and Montaña on the signpost, the stall's awning, the houses and the tower (S15)
-DISPLAY=:0 dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --teleport 266,223 --look 80,2 --screenshot /tmp/s15-village.png --frames 60
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --teleport 266,223 --look 80,2 --screenshot /tmp/s15-village.png --frames 60
 ```
 
 **S14 demos** (the look; `--quality low`, 1280 x 720; the default spawn look is yaw 135, pitch -10):
 
 ```bash
 # the camp vista at the default spawn look (add --quality high for the whole valley and the far walls), then the sun and the clouds
-DISPLAY=:0 dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --screenshot /tmp/s14-camp-low.png --frames 60
-DISPLAY=:0 dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --look 314,36 --screenshot /tmp/s14-sun.png --frames 60
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --screenshot /tmp/s14-camp-low.png --frames 60
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --look 314,36 --screenshot /tmp/s14-sun.png --frames 60
 # the valley looking north at the peaks and the waterfall, the forest, the riverbank (reeds, sand, clear water) and the falls close up
-DISPLAY=:0 dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --teleport 176,200 --look 25,8 --screenshot /tmp/s14-valley-north.png --frames 60
-DISPLAY=:0 dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --teleport 196,206 --look 100,-3 --screenshot /tmp/s14-forest.png --frames 60
-DISPLAY=:0 dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --teleport 222,222 --look 80,-16 --screenshot /tmp/s14-riverbank.png --frames 60
-DISPLAY=:0 dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --teleport 258,136 --look 0,14 --screenshot /tmp/s14-waterfall.png --frames 60
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --teleport 176,200 --look 25,8 --screenshot /tmp/s14-valley-north.png --frames 60
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --teleport 196,206 --look 100,-3 --screenshot /tmp/s14-forest.png --frames 60
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --teleport 222,222 --look 80,-16 --screenshot /tmp/s14-riverbank.png --frames 60
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --teleport 258,136 --look 0,14 --screenshot /tmp/s14-waterfall.png --frames 60
 # the riverbank in greyscale: the trees, the grass and the water are grey (their nouns are not known), the reeds and the flowers stay in colour
-DISPLAY=:0 dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --quality low --beacon none --greyscale --teleport 222,222 --look 80,-16 --screenshot /tmp/s14-greyscale.png --frames 60
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --quality low --beacon none --greyscale --teleport 222,222 --look 80,-16 --screenshot /tmp/s14-greyscale.png --frames 60
 ```
 
 `--greyscale` is the playtest A/B switch (D-game-6 as amended): a block whose noun is not known yet is drawn grey, a known one in full colour, and
@@ -155,7 +155,7 @@ a noun that becomes known during play gets its blocks back in colour with the to
 without the flag; the figures, the sky, the undergrowth, the snow and the UI are always in colour.
 
 ```bash
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --greyscale --look 120,-5 --screenshot /tmp/s4b-grey.png --frames 120
+dotnet run --project src/Vocaterra.Game -- --seed 42 --greyscale --look 120,-5 --screenshot /tmp/s4b-grey.png --frames 120
 ```
 
 WASD or the arrows walk, Space jumps, the mouse looks (Esc lets the mouse go, a click takes it back). **Hold the left button** on a trunk
@@ -180,15 +180,15 @@ To check it without playing, script it and save a screenshot (needs a display; e
 
 ```bash
 # the camp (S4): gather, craft at the workbench, place the torch on the fire ring's rim, look at it: the checklist reads 3/4
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --walk-to 176,186 --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 --walk-to 176,184 --look 180,-15 --screenshot /tmp/s4-camp.png
+dotnet run --project src/Vocaterra.Game -- --seed 42 --walk-to 176,186 --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 --walk-to 176,184 --look 180,-15 --screenshot /tmp/s4-camp.png
 # the guide answers "where is the river?": the console prints the verdict, her line and the arrow; the PNG shows the panel and the arrow
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --say "¿dónde está el río?" --screenshot /tmp/s3-river.png --frames 300
+dotnet run --project src/Vocaterra.Game -- --seed 42 --look 120,-5 --say "¿dónde está el río?" --screenshot /tmp/s3-river.png --frames 300
 # the village: walk to the square's north side and look at the stall: the shopkeeper behind the counter facing the player, with his label
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --beacon none --teleport 282,211 --look 90,-8 --screenshot /tmp/s3-stall.png --frames 150
+dotnet run --project src/Vocaterra.Game -- --seed 42 --beacon none --teleport 282,211 --look 90,-8 --screenshot /tmp/s3-stall.png --frames 150
 # the signpost, from the road on its west side (S15): the boards Tienda, Río and Montaña with their arrows, in the letters of the block texture
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --beacon none --teleport 272,222 --look 90,2 --screenshot /tmp/s3-sign.png --frames 150
+dotnet run --project src/Vocaterra.Game -- --seed 42 --beacon none --teleport 272,222 --look 90,2 --screenshot /tmp/s3-sign.png --frames 150
 # the camp from the player's eyes at spawn: the guide's figure and label, the beacon on the river (an arrow at the edge when it is off screen)
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --beacon river --screenshot /tmp/s2-camp.png --frames 240
+dotnet run --project src/Vocaterra.Game -- --seed 42 --look 120,-5 --beacon river --screenshot /tmp/s2-camp.png --frames 240
 # S17, the whole route in one run, from the player's own camp: the walk down the trail to the guide, her lesson (`--lesson-run` does every step with typed
 # answers and picks the fruit she offers from a bush), the camp (wood, fruit, the torch at her fire ring), the stall (the shopkeeper's "¿Qué necesitas?" is a
 # core host turn, the bottle comes with his answer), the villager (the beacon on the river), the river (hold the button on the water: the bottle fills and the
@@ -197,7 +197,7 @@ dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --look 120,-5 --beacon 
 # outcome, each turn, each game event and the objective's steps; the PNGs show the lesson's end, the stall, the river and the lit fire. One step is spoken
 # (S22): after the lesson the route greets the guide with `--wav` and the bundle's recorded "Hola." (the Kokoro line), so the step goes through Vosk (the
 # console prints "heard "hola"" and the greet intent). It needs the Vosk model in VOCATERRA_MODELS_DIR; the other steps are typed.
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute \
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute \
   --lesson-run first-words --shot /tmp/s17-lesson.png \
   --talk guide --wav content/game-v1/speech/phrase.hola.wav \
   --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
@@ -208,9 +208,9 @@ dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute \
   --walk-to 153,109 --look 330,-12 --place antorcha@153,74,105 --wait 1 \
   --screenshot /tmp/s17-fire.png --frames 90
 # the lesson alone, with its steps printed (the player is walked down the trail to the guide first); the book's phrases page at the end shows what was learnt
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --journal --journal-phrases --screenshot /tmp/s17-journal.png --frames 30
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-run first-words --journal --journal-phrases --screenshot /tmp/s17-journal.png --frames 30
 # the opening: the objective line and the first tip at the spawn (a scripted run draws no tips unless --tips is given)
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --tips --screenshot /tmp/s17-opening.png --frames 90
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --tips --screenshot /tmp/s17-opening.png --frames 90
 dotnet run --project src/Vocaterra.Host -- --transcript "quiero agua, por favor" --prompt stall-need
 ```
 
@@ -218,15 +218,15 @@ The steps `--look yaw,pitch` (degrees, yaw 0 north and 90 east), `--walk-to x,z`
 `--craft item` run in the order given, and so do the talk steps (S6): `--talk <npc>` (`guide`, `shopkeeper`, `villager`: walk up to the figure, stop about
 two blocks away facing it, open the panel), `--say <line>` (type and send a line to the NPC the panel is open on and wait for the reply; with no
 panel open it first talks to the guide, as in S3), `--leave` (close the panel; walking on or talking to someone else closes it too) and `--shot
-<png>` (save the screen at that point and go on); `--beacon <point>` stands the beacon column on a named point of the scene. Details are in `src/Vocaterra.MonoGame/README.md`.
+<png>` (save the screen at that point and go on); `--beacon <point>` stands the beacon column on a named point of the scene. Details are in `src/Vocaterra.Game/README.md`.
 Spoken input (push-to-talk) works in the interactive game. The scripted spoken path (S7): `--speak "<line>"` synthesizes the line with Kokoro and
 says it to the NPC the panel is open on as if spoken (Vosk hears it, in the core's Constrained mode at the stall's and the guide's offer prompts), `--wav
 <file>` does the same from a recording, and `--mic-check --screenshot <png>` runs the mic check on a synthesized "hola" when there is no microphone:
 
 ```bash
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --talk shopkeeper --speak "quiero agua" --screenshot /tmp/s7-stall.png
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --talk shopkeeper --speak "agua agua mesa" --speak "agua agua mesa" --speak "agua agua mesa" --screenshot /tmp/s7-choices.png
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mic-check --screenshot /tmp/s7-mic.png
+dotnet run --project src/Vocaterra.Game -- --seed 42 --talk shopkeeper --speak "quiero agua" --screenshot /tmp/s7-stall.png
+dotnet run --project src/Vocaterra.Game -- --seed 42 --talk shopkeeper --speak "agua agua mesa" --speak "agua agua mesa" --speak "agua agua mesa" --screenshot /tmp/s7-choices.png
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mic-check --screenshot /tmp/s7-mic.png
 ```
 
 **Phrase progress and the fading support (S8).** The panel shows the phrase the NPC's prompt asks for: at the stall a card above the panel
@@ -241,7 +241,7 @@ opens the phrases page, `--wait <seconds>` runs the game on, `--skip <seconds>` 
 
 ```bash
 # the stall's key words, then the question with the card (the two PNGs), a use, ten minutes later the guide asks for it, the book's phrases page
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --typed-credit full --no-speech --talk shopkeeper --shot /tmp/s8-intro.png --wait 3 --shot /tmp/s8-stall.png \
+dotnet run --project src/Vocaterra.Game -- --seed 42 --typed-credit full --no-speech --talk shopkeeper --shot /tmp/s8-intro.png --wait 3 --shot /tmp/s8-stall.png \
   --say "quiero agua, por favor" --skip 660 --talk guide --say "quiero agua, por favor" --journal-phrases --screenshot /tmp/s8-journal.png --frames 60
 ```
 
@@ -286,7 +286,7 @@ the review question, the word cards not yet shown, the replay records of the con
 
 ```bash
 # S6's whole route, then the game saved at its end: the console prints the file, the session, the tick, the stored time and the world digest
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 \
+dotnet run --project src/Vocaterra.Game -- --seed 42 \
   --walk-to 176,186 --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
   --talk shopkeeper --say "quiero agua, por favor" --say "sí, por favor" \
   --talk villager --say "¿dónde está el río?" \
@@ -294,9 +294,9 @@ dotnet run --project src/Vocaterra.MonoGame -- --seed 42 \
   --talk guide --say "sí, por favor" --talk villager --say "quiero pan, por favor" \
   --screenshot /tmp/s10-end.png --frames 60 --save /tmp/s10.save
 # the same world in the next session: "load:" prints the saved and the next session and the digest check; the journal's phrase page reads "Sesión 2"
-dotnet run --project src/Vocaterra.MonoGame -- --load /tmp/s10.save --journal-phrases --screenshot /tmp/s10-load.png
+dotnet run --project src/Vocaterra.Game -- --load /tmp/s10.save --journal-phrases --screenshot /tmp/s10-load.png
 # refused: the save is for world seed 42 (the message says so and nothing starts)
-dotnet run --project src/Vocaterra.MonoGame -- --load /tmp/s10.save --seed 7
+dotnet run --project src/Vocaterra.Game -- --load /tmp/s10.save --seed 7
 ```
 
 **Checks, the session log and the report (S11).** `--check pre|post|recall` runs the check battery outside the world, on its own screen (the
@@ -313,13 +313,13 @@ prints the item order and the right option of each item on the console.
 
 ```bash
 # the pre-check, scripted (the console prints the order: "check order: ..."), a screenshot of the first comprehension item, then the world
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --check pre --session-dir /tmp/sess1 --wait 2 --shot /tmp/s11-check.png \
+dotnet run --project src/Vocaterra.Game -- --seed 42 --check pre --session-dir /tmp/sess1 --wait 2 --shot /tmp/s11-check.png \
   --pick 1 --say "¿Qué es esto?" --say "Sí." --pick 3 --say "No, gracias." --pick 2 --say "Necesitamos agua." --say "¿Dónde está el río?" --say "No." --say "Más despacio, por favor." --say "Otra vez, por favor." --say "Ella quiere fruta." --say "Tengo una fruta." --pick 2 --pick 3 --pick 3 --say "Ayer comí fruta." --pick 3 --pick 2 --pick 3 --pick 3 --pick 2 --pick 1 --say "Sí, por favor." --pick 3 --pick 3 --pick 2 --pick 2 --say "Voy a comer pan." --say "Quiero madera." --say "Quiero agua, por favor." \
   --screenshot /tmp/s11-world.png --frames 60 --save /tmp/s11.save
 # the S6 route into the same folder (a second run in the folder: another session_start and session_end)
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --session-dir /tmp/sess1 --talk shopkeeper --say "quiero agua, por favor" ...
+dotnet run --project src/Vocaterra.Game -- --seed 42 --session-dir /tmp/sess1 --talk shopkeeper --say "quiero agua, por favor" ...
 # the recall check on the saved game, in the next play session (the probe prints "check order:" first; the answers follow it)
-dotnet run --project src/Vocaterra.MonoGame -- --load /tmp/s11.save --check recall --session-dir /tmp/sess2 --wait 2 --shot /tmp/s11-recall.png \
+dotnet run --project src/Vocaterra.Game -- --load /tmp/s11.save --check recall --session-dir /tmp/sess2 --wait 2 --shot /tmp/s11-recall.png \
   --pick 2 --say "Otra vez, por favor." --pick 1 --pick 1 --pick 3 --pick 1 --pick 1 --say "Ella quiere fruta." --say "Más despacio, por favor." --pick 1 --pick 1 --say "¿Qué es esto?" --say "No, gracias." --pick 3 --pick 3 --say "Sí." --pick 3 --say "Voy a comer pan." --pick 1 --say "¿Dónde está el río?" --pick 3 --say "Quiero madera." --say "Ayer comí fruta." --say "Tengo una fruta." --pick 2 --pick 1 --say "Necesitamos agua." --pick 3 --say "No." --say "Sí, por favor." --say "Quiero agua, por favor." \
   --screenshot /tmp/s11-recall-end.png --frames 30
 # the report: per folder and in total, the completion, retries, support, ASR latency, the checks by item kind, transfer, and the gates' evidence
@@ -340,14 +340,14 @@ then the game saves to `playtest.save` in the session folder and shows the thank
 
 ```bash
 # a playtest in a checkout (the speech models in VOCATERRA_MODELS_DIR; the pre-check first, then the world, then the post-check)
-dotnet run --project src/Vocaterra.MonoGame -- --playtest
-dotnet run --project src/Vocaterra.MonoGame -- --playtest --greyscale           # arm B of the A/B
+dotnet run --project src/Vocaterra.Game -- --playtest
+dotnet run --project src/Vocaterra.Game -- --playtest --greyscale           # arm B of the A/B
 # the next-day recall of a playtest's save: the recall check, then the thank-you; nothing is saved
-dotnet run --project src/Vocaterra.MonoGame -- --playtest --load ~/.local/share/vocaterra/sessions/<folder>/playtest.save
+dotnet run --project src/Vocaterra.Game -- --playtest --load ~/.local/share/vocaterra/sessions/<folder>/playtest.save
 # the same run, scripted (a screenshot needs a display; the pre-check's answers are --pick and --say; the post-check's answers come after the
 # transfer's --leave and the climb to the player's own fire, in the order the console prints as "check order:" (both lists below are for seed 42 and the 31 items of the bank; when the bank changes, run once and read both orders from the console);
 # see the S11 lines above for the shape of a check's answers)
-DISPLAY=:0 dotnet run --project src/Vocaterra.MonoGame -- --playtest --seed 42 --session-dir /tmp/playtest1 \
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --playtest --seed 42 --session-dir /tmp/playtest1 \
   --pick 1 --say "¿Qué es esto?" --say "Sí." --pick 3 --say "No, gracias." --pick 2 --say "Necesitamos agua." --say "¿Dónde está el río?" --say "No." --say "Más despacio, por favor." --say "Otra vez, por favor." --say "Ella quiere fruta." --say "Tengo una fruta." --pick 2 --pick 3 --pick 3 --say "Ayer comí fruta." --pick 3 --pick 2 --pick 3 --pick 3 --pick 2 --pick 1 --say "Sí, por favor." --pick 3 --pick 3 --pick 2 --pick 2 --say "Voy a comer pan." --say "Quiero madera." --say "Quiero agua, por favor." \
   --lesson-run first-words --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
   --talk shopkeeper --say "quiero agua, por favor" --say "sí, por favor" --talk villager --say "¿dónde está el río?" \
@@ -362,7 +362,7 @@ folder (a tester needs no .NET install), copies the bundle with its speech WAVs,
 `VOCATERRA_MODELS_DIR`, after its checksums are checked), the tester's README (`scripts/playtest/README-tester.md`) and the launcher
 (`scripts/playtest/playtest.sh`, which runs `--playtest` with the folder's own models). Then it checks the folder: no sherpa-onnx or ONNX Runtime native
 library, no espeak-ng, no sherpa model file, the Vosk model's checksums, 226 speech files; the build fails if one check does not pass. The
-sherpa-onnx native library is left out by the build property `VocaterraPlaytest=true` (in `src/Vocaterra.MonoGame/Vocaterra.MonoGame.csproj`:
+sherpa-onnx native library is left out by the build property `VocaterraPlaytest=true` (in `src/Vocaterra.Game/Vocaterra.Game.csproj`:
 the native assets of the linux-x64 runtime pack are excluded, and the ONNX Runtime Windows DLLs that its props add are dropped from the publish).
 The managed `sherpa-onnx.dll` stays, because the core's assemblies reference it. The playtest loads Vosk only; the NPCs' voices are the
 pre-rendered WAVs (S9), and a developer build keeps Kokoro for `--speak`.
@@ -475,7 +475,7 @@ guide's lesson (L starts it, Enter continues, K skips a step, H helps; S16 shipp
 through it prints each step and its outcome:
 
 ```bash
-DISPLAY=:0 dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --talk guide --lesson first-words --lesson-next --lesson-next --say hola --screenshot /tmp/s16.png --frames 60
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --talk guide --lesson first-words --lesson-next --lesson-next --say hola --screenshot /tmp/s16.png --frames 60
 ```
 
 ## The opening, the guide's lesson and the ending (S17)
@@ -500,7 +500,7 @@ DISPLAY=:0 dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --tal
 
 ```bash
 # the whole lesson with typed answers (every step and its outcome is printed), then the book's phrases page
-DISPLAY=:0 dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --journal --journal-phrases --screenshot /tmp/s17-journal.png --frames 30
+DISPLAY=:0 dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-run first-words --journal --journal-phrases --screenshot /tmp/s17-journal.png --frames 30
 ```
 
 
@@ -589,10 +589,10 @@ screen and takes the keyboard while it is open. Every title, tab, label and key 
   log: `000123 mark    speak card.madera slow`. The rules are in `Frontend/BookRecordings.cs` (which recording a row plays and the button's
   geometry), `Frontend/BookSpeechControls.cs` (the click, Enter, the arrows and the scripted step) and `Frontend/BookSpeaker.cs`; tested in `BookSpeechTests`.
 
-**Page models.** `src/Vocaterra.MonoGame/Frontend/BookPages.cs` (what each page lists, as `BookLine` values: a tone, a text, an aside, a right-hand text,
+**Page models.** `src/Vocaterra.Game.Core/Language/Book/BookPages.cs` (what each page lists, as `BookLine` values: a tone, a text, an aside, a right-hand text,
 an icon, pips, lamps or a tick), `VerbLabels.cs` (the English table of a verb form: person, number, tense and mood), `Book.cs` (`BookModel`, the pages in
 `BookTabs`, `BookGeometry` for the panel, the tabs and the lines at a size, `BookScroll`). They are engine-free and tested in
-`BookPagesTests`, `VerbLabelsTests` and `BookModelTests`; the drawing is `src/Vocaterra.MonoGame/BookLayer.cs`.
+`BookPagesTests`, `VerbLabelsTests` and `BookModelTests`; the drawing is `src/Vocaterra.Game/UI/Book/BookLayer.cs`.
 
 **The record and the bundle (what the book reads).** The learner's record gains, per form, the question flag and the last use (`FormRow.Question`,
 `FormRow.Last`; a save of version 2 keeps them). Lessons gain `summary` (optional) and the step ids (`LessonRecordRow.StepIds`, from which the book groups
@@ -607,16 +607,16 @@ word or a phrase and take a screenshot in the same run. A target with no button 
 
 ```bash
 # S20b: after the S17 lesson route, play a noun from the book (normal) and a phrase (slow), with the sound log (the plays are the "speak" marks)
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --sound-log /tmp/s20b.log --lesson-run first-words --book-play fruta --shot /tmp/s20b-noun.png --book-play-slow phrase:pedir-agua --shot /tmp/s20b-phrase.png --screenshot /tmp/s20b-final.png --frames 30
+dotnet run --project src/Vocaterra.Game -- --seed 42 --sound-log /tmp/s20b.log --lesson-run first-words --book-play fruta --shot /tmp/s20b-noun.png --book-play-slow phrase:pedir-agua --shot /tmp/s20b-phrase.png --screenshot /tmp/s20b-final.png --frames 30
 # the Nouns and Phrases pages with their buttons (the speaker at each row's right edge; the selected row is gold)
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --book-page nouns --screenshot /tmp/s20b-nouns.png --frames 30
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --book-page phrases --screenshot /tmp/s20b-phrases.png --frames 30
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-run first-words --book-page nouns --screenshot /tmp/s20b-nouns.png --frames 30
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-run first-words --book-page phrases --screenshot /tmp/s20b-phrases.png --frames 30
 ```
 
 ```bash
 # the five pages after the S17 lesson route (the lesson is walked first, then the book opens on the page named)
 for page in nouns verbs phrases lessons said; do
-  dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --book-page $page --screenshot /tmp/s20-$page.png --frames 30
+  dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-run first-words --book-page $page --screenshot /tmp/s20-$page.png --frames 30
 done
 ```
 
@@ -651,9 +651,9 @@ updated. Now a `--load` of a save made from another bundle **migrates** it (`Sav
 ```bash
 # a save on the current bundle, then the same save under a changed copy of the bundle (a lesson step removed, a tip reworded; the copy is re-stamped with
 # scripts/content.sh): the strict run refuses, the default run keeps the progress and prints what was dropped; the toast is in the screenshot
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --save /tmp/x01.save --screenshot /tmp/x01-before.png --frames 30
-dotnet run --project src/Vocaterra.MonoGame -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --strict-save --screenshot /tmp/x01-strict.png --frames 5
-dotnet run --project src/Vocaterra.MonoGame -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-run first-words --save /tmp/x01.save --screenshot /tmp/x01-before.png --frames 30
+dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --strict-save --screenshot /tmp/x01-strict.png --frames 5
+dotnet run --project src/Vocaterra.Game -- --content /tmp/x01-bundle --mute --load /tmp/x01.save --screenshot /tmp/x01-migrated.png --frames 30
 ```
 
 ## The session summary and the second try (X04, R01 and R02)
@@ -683,7 +683,7 @@ Not done (R02 as written in the backlog): the retry is not asked one rung lower 
 ```bash
 # S17's route with a "no sé" at the villager's first talk, then a second talk: the villager asks the river question again with the English note (the
 # console prints second_try_asked and second_try_answered); the closing card, with its summary, is in the last PNG (--size 800x600 for the small window)
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --session-dir /tmp/x04/session --lesson-run first-words --shot /tmp/x04/lesson.png \
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --session-dir /tmp/x04/session --lesson-run first-words --shot /tmp/x04/lesson.png \
   --talk guide --wav content/game-v1/speech/phrase.hola.wav \
   --walk-to 172,187 --interact 170,43,189 --interact 169,43,185 --walk-to 173,183 --interact 171,43,181 --walk-to 155,187 --interact 153,42,186 --interact 153,43,186 --interact 153,44,186 --interact 153,45,186 --interact 153,41,189 --walk-to 177,185 --craft antorcha --walk-to 174,185 --place antorcha@175,44,187 \
   --talk shopkeeper --say "quiero agua, por favor" --shot /tmp/x04/stall.png --say "sí, por favor" \
@@ -717,11 +717,11 @@ dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --session-dir /t
 
 ```bash
 # the table of ir after the three lessons: the S17 lesson, then each later session on the previous save (a load is the next session)
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --lesson-run first-words --save /tmp/s28-1.save --screenshot /tmp/s28-1.png --frames 30
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --load /tmp/s28-1.save --lesson-run personas --save /tmp/s28-2.save --screenshot /tmp/s28-2.png --frames 30
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --load /tmp/s28-2.save --lesson-run ayer-y-manana --save /tmp/s28-3.save --screenshot /tmp/s28-3.png --frames 30
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --load /tmp/s28-3.save --book-verb ir --screenshot /tmp/s28-ir.png --frames 30
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --size 800x600 --load /tmp/s28-3.save --book-verb comer --screenshot /tmp/s28-comer-800.png --frames 30
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --lesson-run first-words --save /tmp/s28-1.save --screenshot /tmp/s28-1.png --frames 30
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --load /tmp/s28-1.save --lesson-run personas --save /tmp/s28-2.save --screenshot /tmp/s28-2.png --frames 30
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --load /tmp/s28-2.save --lesson-run ayer-y-manana --save /tmp/s28-3.save --screenshot /tmp/s28-3.png --frames 30
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --load /tmp/s28-3.save --book-verb ir --screenshot /tmp/s28-ir.png --frames 30
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --size 800x600 --load /tmp/s28-3.save --book-verb comer --screenshot /tmp/s28-comer-800.png --frames 30
 ```
 
 ## Book polish (X03)
@@ -733,7 +733,7 @@ dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --size 800x600 -
 - **The hint line** now reads `wheel: scroll   Shift+Up/Down: right page`.
 
 ```bash
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --size 800x600 --load /tmp/s28-3.save --book-page lessons --book-detail 9 --screenshot /tmp/x03-lessons.png --frames 30
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --size 800x600 --load /tmp/s28-3.save --book-page lessons --book-detail 9 --screenshot /tmp/x03-lessons.png --frames 30
 ```
 
 ## Sounds (S24)
@@ -743,7 +743,7 @@ Interface Sounds, listed in [assets/audio/SOURCES.md](../../assets/audio/SOURCES
 made in code at load from a fixed seed. The audio is under 1 MB (the budget is 15 MB for S24 and S25 together). Sounds react to events and never touch the simulation, a
 turn, a verdict, a state hash or the replay.
 
-**The mixer** (`src/Vocaterra.MonoGame/Frontend/SoundMixer.cs`, engine free; the engine output is `src/Vocaterra.MonoGame/SoundEffectOutput.cs`):
+**The mixer** (`src/Vocaterra.Game.Core/Sound/SoundMixer.cs`, engine free; the engine output is `src/Vocaterra.Game/Sound/SoundEffectOutput.cs`):
 - Categories: voice (the NPCs' Spanish, S9), sfx, ui (panels, buttons, progress, the beeps) and ambient (S25's beds), each with a volume (defaults 1.0, 0.8, 0.8, 0.6).
 - Ducking: sfx and ambient dip to 35 % under any NPC voice line (eased in over 0.08 s, back over 0.6 s), so the ear stays on the Spanish.
 - The microphone rule: while push-to-talk or the mic check records, sfx, ambient and ui are all silent and what plays is stopped. The start beep plays just before the
@@ -786,7 +786,7 @@ the scripted mic check stand for a push-to-talk: the start beep, 24 silent ticks
 | The fire's crackle by the lit fire ring and the village lamps | `fire_crackle` (ambient; scheduled, louder the nearer the fire) | synthesized |
 | The beds: wind on the cliff and the heights, the river and the lake, the waterfall (louder near it), the village murmur, the evening insects with `--dusk` | beds (ambient, looping; cross-fade over 1.5 s by position, panned to the source) | synthesized (loops, seamless) |
 
-**Ambient beds and footsteps (S25).** The beds are `AmbientBeds` (`src/Vocaterra.MonoGame/Frontend/AmbientBeds.cs`): the weight of each bed is a
+**Ambient beds and footsteps (S25).** The beds are `AmbientBeds` (`src/Vocaterra.Game.Core/Sound/AmbientBeds.cs`): the weight of each bed is a
 function of the player's place (the scene's sites, the river's path, the lake, the waterfall, the fire rings and the lamps), so the same route gives the same
 weights at the same tick. Wind is full on the cliff (feet above y 68) and silent in the valley; birds sing in the lowland forest by day and the insects
 take over at `--dusk`; the river follows its path, the waterfall is louder near its lip, and the village murmur is full by the houses and the stall. The
@@ -799,7 +799,7 @@ The sound log writes a `mark` line when the place or its weights change (`bed at
 
 ```bash
 # the S17 route with the sound log: add --sound-log to the route above; the cues played are listed with their ticks, and the recording window of the --wav step is marked
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --sound-log /tmp/route-sounds.log --lesson-run first-words ...
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --sound-log /tmp/route-sounds.log --lesson-run first-words ...
 ```
 
 ## Autosave and the crash report (X05, R04)
@@ -843,11 +843,11 @@ can be seen working. Nothing in a playtest uses it.
 
 ```bash
 # a lesson with autosave on (the saves are printed); the session folder is the scratch folder, so the user's own sessions are not touched
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --session-dir /tmp/x05/lesson --lesson-run first-words --leave --wait 2 --screenshot /tmp/x05/lesson.png --frames 30
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --session-dir /tmp/x05/lesson --lesson-run first-words --leave --wait 2 --screenshot /tmp/x05/lesson.png --frames 30
 # the autosave loads: the objective and the lesson are where the save left them
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --session-dir /tmp/x05/load --load /tmp/x05/lesson/autosave.save --screenshot /tmp/x05/load.png --frames 30
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --session-dir /tmp/x05/load --load /tmp/x05/lesson/autosave.save --screenshot /tmp/x05/load.png --frames 30
 # a forced crash: the report and crash.save are written and the exit code is 1
-dotnet run --project src/Vocaterra.MonoGame -- --seed 42 --mute --session-dir /tmp/x05/crash --debug-crash-after 600 --screenshot /tmp/x05/crash.png --frames 900; echo "exit $?"
+dotnet run --project src/Vocaterra.Game -- --seed 42 --mute --session-dir /tmp/x05/crash --debug-crash-after 600 --screenshot /tmp/x05/crash.png --frames 900; echo "exit $?"
 ```
 
 ## UI scale and readable text (X08, R09)
