@@ -103,6 +103,8 @@ namespace (`src/Vocaterra.Game.Core/Language/Book/` is `Vocaterra.Game.Core.Lang
 **`src/Vocaterra.Game.Core`**, folders by system: no package, no engine type, no clock and no `System.Random` (its `ArchitectureRulesTests`).
 
 ```
+Content/          GameData (every game file of the bundle, read once from its verified bytes), GameDataValidator (the checks between the files,
+                  CONTENT_PLAN C02), LocaleBundle and LocaleText (the learner's support language from content/locale, C03)
 Event/            the game's events (WorldEvents, GameEvent) and EventPrinter (the console's event lines)
 Input/            the keys without the engine (GameKey, IInputFrame, D-p2-1a), the command pattern (IGameCommand, DelegateCommand,
                   GameCommands, KeyBinding, KeyBindings), InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits,
@@ -130,7 +132,7 @@ Simulation/       VoxelSimulation (the fixed 60 Hz tick: gathering, placing, cra
                   observer pattern (ITickObserver, DelegateTickObserver), LiveVoxelInput, LookControl, WorldStepper
 Sound/            the mixer, the cues and their mapping, the ambient beds, the footsteps, the NPC voice, SoundFrame, SoundTickObserver,
                   SoundSetup with its SoundOptions
-Tip/              the tips, EnglishText, ToastQueue
+Tip/              the tips (TipFeed, TipBook, TipSpec), the controls help's lines (ControlHelp), the objective line's pieces, ToastQueue
 Voxel/            the blocks, the chunks and the grid, the block ray and the line of sight
 World/            the built Scene; Layout/ (the layout file), Generation/ (the terrain and the scene builder)
 ```

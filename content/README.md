@@ -7,7 +7,8 @@ Everything the game says, shows and builds its world from, outside the code. The
 
 | Path | What it is | Hashed |
 | --- | --- | --- |
-| `game-v1/` | The content bundle: the core's files and the game's files. Its `manifest.json` pins the sha256 of every file; a save records the bundle's hash. | yes, by its manifest |
+| `game-v1/` | The content bundle: the core's files and the game's files, in the target language (Spanish), with ids for everything the learner reads in their own language. Its `manifest.json` pins the sha256 of every file; a save records the bundle's hash. | yes, by its manifest |
+| `locale/` | The learner's support language (L1): `locales.json` and one folder per locale (`en/` only), every string by its id. Outside game-v1's hash, so an edit here touches no save, fixture or golden; game-v1's `supportLanguage` names the default locale. | yes, by its own manifest |
 | `schema/` | The JSON Schemas of the game's files (draft-07), for editors and for one test. | no |
 | `grammar/` | The grammar check's strings, its committed LanguageTool cache and its waivers (`docs/game/README.md`). | no |
 | `PHRASES.md` | The phrase sheet's source of truth (D-game-10); `PhraseSheetTests` keeps `game-v1/game/phrases.json` in step with it. | no |
@@ -29,9 +30,33 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/phrases.json` | `phrases.schema.json` | `PhraseSheet` |
   | `game/lessons.json` | `lessons.schema.json` | `LessonBook` |
   | `game/checks.json` | `checks.schema.json` | `CheckBank` |
-  | `game/glosses.json` | `glosses.schema.json` | `VerbGlosses` |
-  | `game/english.json` | `english.schema.json` | `EnglishText` |
+  | `game/tips.json` | `tips.schema.json` | `TipBook` |
+  | `game/controls.json` | `controls.schema.json` | `TipBook` |
   | `game/scene.json` | `scene.schema.json` (the file is JSON with `//` comments) | `SceneLayout` |
+
+## The support language: `locale/`
+
+- **One id per string.** Each file of `locale/<code>/` is `{ "$schema", "about", "strings": { "<id>": "<text>" } }` (`locale.schema.json`). The ids:
+
+  | Id | What | File of `en/` |
+  | --- | --- | --- |
+  | `ui.<key>` | an interface word (`LocaleText.UiKeys`) | `ui.json` |
+  | `npc.<id>.role`, `objective.<id>.title` | an NPC's role, an objective's title | `ui.json` |
+  | `tip.<id>`, `control.<id>.keys`, `control.<id>.text` | a tip; a line of the controls help | `tips.json`, `controls.json` |
+  | `feedback.outcome.<key>`, `feedback.error.<tag>`, `feedback.unknownError` | the feedback after a turn | `feedback.json` |
+  | `noun.<lemma>` | a catalogue noun's word | `nouns.json` |
+  | `phrase.<id>.meaning`, `.card`, `.explain` | a phrase's meaning, support card and explanation | `phrases.json` |
+  | `line.<lineId>` | the gloss of an NPC line, by its speech-line id (`line.prompt.<promptId>` for a prompt's text) | `lines.json` |
+  | `lesson.<id>.title`, `.text`, `.summary`, `.objective`; `lesson.<id>.<step>.text`, `.translation`, `.help`, `.retry`, `.option.<n>`, `.hud`, ... | a lesson's text | `lessons.json` |
+  | `check.<id>.question`, `.option.<n>`, `.situation` | a check item's text | `checks.json` |
+  | `verb.<lemma>` | `{ "gloss", "base", "third", "past" }`: a verb's forms, listed | `verbs.json` |
+
+- **Placeholders.** `{name}` is filled by the code (`{npc}`, `{count}`, `{noun}` ...).
+- **Lookup.** The chosen locale (`--locale <code>`; default game-v1's `supportLanguage`), then `en`, then the marker `⟦id⟧` on screen.
+- **Checks.** `--validate-content` (and so the refresh and the tests) refuses a string the content or the code asks for that a locale lacks, and a
+  string no content or code asks for (an orphan, left behind by a renamed id).
+- **A new locale.** Add a folder `locale/<code>/` with the same ids, list it in `locales.json` (with the characters beyond ASCII it needs in `glyphs`),
+  and run the refresh. A string it lacks falls back to `en`.
 
 ## Schemas
 
@@ -46,9 +71,10 @@ Everything the game says, shows and builds its world from, outside the code. The
 ## The edit loop
 
 1. Edit the files (the schema checks them in the editor).
-2. A new file in `game-v1/` needs a provenance item in `game-v1/provenance.json` (`generatedBy`, `approvedBy`, `approvedOn`).
+2. A new file in `game-v1/` needs a provenance item in `game-v1/provenance.json` (`generatedBy`, `approvedBy`, `approvedOn`). The locale bundle
+   has no provenance file.
 3. Run `scripts/limited.sh scripts/content.sh refresh`. In order, it:
-   - rewrites `game-v1/manifest.json`;
+   - rewrites `game-v1/manifest.json` and `locale/manifest.json`;
    - lists any file with no provenance item;
    - validates;
    - runs the gate's lint (`--strict --level a1 --host-pools 'guide.*'`) and the CEFR check at A1 and A2;
@@ -60,14 +86,17 @@ Everything the game says, shows and builds its world from, outside the code. The
 4. Run the whole test suite. The core's tests run on `game-v1` too (R02), so a failing core test is the signal that the edit broke
    something the core relies on.
 5. If the end-to-end goldens moved, record them again (`VOCATERRA_RECORD_GOLDEN=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests`).
-   Then put the new bundle hash into `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json`.
+   When `game-v1` changed, put its new bundle hash into `tests/Vocaterra.Game.Core.Tests/Fixtures/save-v1.json`; an edit of `locale/` alone
+   needs neither.
 6. Commit the edit with the manifest, the grammar strings and the cache.
 
 ## Adding things
 
-- **A lesson.** Add it to `game-v1/game/lessons.json` (`lessons.schema.json` lists each step type's fields). Its phrases must be rows of
+- **A lesson.** Add it to `game-v1/game/lessons.json` (`lessons.schema.json` lists each step type's fields) and its text to
+  `locale/en/lessons.json` (`lesson.<id>.title`, `.text`, and each step's `lesson.<id>.<step>.text`, ...). Its phrases must be rows of
   `game/phrases.json`, its lines recorded speech lines, and its `do` events world events (`WorldEvents`).
-- **A phrase.** Add the row to `PHRASES.md` first (D-game-10), then to `game-v1/game/phrases.json`. Render its recordings
-  (`scripts/prerender-speech.sh`).
-- **A noun.** Add it to `game-v1/game/nouns.json` and its English to `game-v1/game/english.json` (`nouns`). The lexicon must have a noun
+- **A phrase.** Add the row to `PHRASES.md` first (D-game-10), then to `game-v1/game/phrases.json`, and its meaning, card and explanation to
+  `locale/en/phrases.json`. Render its recordings (`scripts/prerender-speech.sh`).
+- **A noun.** Add it to `game-v1/game/nouns.json` and its word to `locale/en/nouns.json` (`noun.<lemma>`). The lexicon must have a noun
   reading of it with a gender.
+- **An NPC line.** Add it to `game-v1/dialogue/dialogue.json` (the core's file) and its gloss to `locale/en/lines.json` (`line.<lineId>`).
