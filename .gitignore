@@ -16,6 +16,9 @@ artifacts/
 .DS_Store
 Thumbs.db
 
+# Python bytecode (the scripts' Python is run with python3 -I; importing one from another writes a cache)
+__pycache__/
+
 # LibreOffice lock files
 .~lock.*#
 
