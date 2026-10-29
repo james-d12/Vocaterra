@@ -9,7 +9,8 @@
 #
 # `refresh` is the whole loop after an edit of the game's content (CONTENT_PLAN 3.7, C01), with no step to forget and without the words the
 #   sandbox refuses: it rewrites the manifest of content/game-v1 (keeping its bundle id and its supportLanguage), lists the files that have no
-#   provenance item, validates, runs the gate's lint and the CEFR check at A1 and A2, writes the grammar strings again (the host's
+#   provenance item, validates, runs the gate's lint and the CEFR check at A1 and A2, runs the game's own checks between its files (the host's
+#   --validate-content, CONTENT_PLAN C02; the ContentBuilder references only the core and cannot), writes the grammar strings again (the host's
 #   --grammar-strings) and runs the grammar check offline from the committed cache. A cache miss means new Spanish: the message names the
 #   LanguageTool steps. Run it through scripts/limited.sh (it runs several tools one after the other; it never calls limited.sh itself).
 #
@@ -80,6 +81,9 @@ tool lint "$GAME" --strict --level a1 --host-pools 'guide.*'
 step "cefr-check a1 and a2"
 tool cefr-check "$GAME" --level a1
 tool cefr-check "$GAME" --level a2
+
+step "the game's own checks (the host's --validate-content: every game file, and the checks between them)"
+dotnet run --project "$HOST" -- --content "$GAME" --validate-content
 
 step "grammar strings"
 dotnet run --project "$HOST" -- --content "$GAME" --grammar-strings "$STRINGS"

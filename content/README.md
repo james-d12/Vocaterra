@@ -19,7 +19,8 @@ Everything the game says, shows and builds its world from, outside the code. The
   is an agent), `answer-sets/`, `lexicon/`, `cefr/`, `effects/`, `feedback/`, `evaluation/`, `provenance.json` and `ATTRIBUTION.md`. Their formats
   are the core's (`docs/nlp/`); they carry no `$schema`.
 - **The game's files (host files).** Any other file in the manifest is the game's. The core hashes it and hands its verified bytes over
-  (`ContentBundle.TryReadHostFile`). They are `game/*.json` and the speech WAVs in `speech/`. Each game file names its schema:
+  (`ContentBundle.TryReadHostFile`). They are `game/*.json` and the speech WAVs in `speech/`. The game reads them all once, from those bytes, in
+  `GameData.Load` (`Vocaterra.Game.Core/Content/`), which also checks them against each other. Each game file names its schema:
 
   | File | Schema | Loaded by (`Vocaterra.Game.Core`) |
   | --- | --- | --- |
@@ -51,6 +52,8 @@ Everything the game says, shows and builds its world from, outside the code. The
    - lists any file with no provenance item;
    - validates;
    - runs the gate's lint (`--strict --level a1 --host-pools 'guide.*'`) and the CEFR check at A1 and A2;
+   - runs the game's own checks between its files (`dotnet run --project src/Vocaterra.Host -- --validate-content`): a phrase, line, prompt,
+     noun or NPC that one file names and another lacks, every problem at once (`GameDataValidator`);
    - writes the grammar strings again and runs the grammar check offline from the committed cache.
 
    New Spanish text misses the cache. The message then names the LanguageTool steps (`docs/game/README.md`, "Refreshing the cache").
