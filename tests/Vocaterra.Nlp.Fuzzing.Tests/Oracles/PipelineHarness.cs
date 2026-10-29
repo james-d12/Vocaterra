@@ -217,9 +217,12 @@ public sealed class PipelineHarness
     /// </summary>
     public static ContentBundle EffectsBundle => EffectsBundleLazy.Value;
 
+    // The full copy, with the imported lexicon: the generators draw their words from Bundle, so the pipeline must know every one of them. On the
+    // light copy most correct sentences of the game's grammars (a noun such as "cuchillo" or "carretera") resolved to no intent, and the replay
+    // test's effects region got 0 to 6 mutations in 300 iterations instead of about 25 (it failed on CI with 0).
     private static ContentBundle BuildCopy(Action<TempBundle> edit)
     {
-        using var copy = new TempBundle(rehash: false);
+        using var copy = new TempBundle(full: true, rehash: false);
         edit(copy);
         return copy.Load();
     }
