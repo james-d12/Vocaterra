@@ -280,75 +280,92 @@
       },
       "allOf": [
         {
-          "if": {
-            "properties": {
-              "type": {
-                "enum": [
-                  "model",
-                  "listen",
-                  "answer"
-                ]
+          "anyOf": [
+            {
+              "properties": {
+                "type": {
+                  "not": {
+                    "enum": [
+                      "model",
+                      "listen",
+                      "answer"
+                    ]
+                  }
+                }
               }
+            },
+            {
+              "required": [
+                "line",
+                "translation"
+              ]
             }
-          },
-          "then": {
-            "required": [
-              "line",
-              "translation"
-            ]
-          }
+          ]
         },
         {
-          "if": {
-            "properties": {
-              "type": {
-                "enum": [
-                  "listen"
-                ]
+          "anyOf": [
+            {
+              "properties": {
+                "type": {
+                  "not": {
+                    "enum": [
+                      "listen"
+                    ]
+                  }
+                }
               }
+            },
+            {
+              "required": [
+                "options",
+                "correct"
+              ]
             }
-          },
-          "then": {
-            "required": [
-              "options",
-              "correct"
-            ]
-          }
+          ]
         },
         {
-          "if": {
-            "properties": {
-              "type": {
-                "enum": [
-                  "repeat",
-                  "answer"
-                ]
+          "anyOf": [
+            {
+              "properties": {
+                "type": {
+                  "not": {
+                    "enum": [
+                      "repeat",
+                      "answer"
+                    ]
+                  }
+                }
               }
+            },
+            {
+              "required": [
+                "phrase"
+              ]
             }
-          },
-          "then": {
-            "required": [
-              "phrase"
-            ]
-          }
+          ]
         },
         {
-          "if": {
-            "properties": {
-              "type": {
-                "enum": [
-                  "do"
-                ]
+          "anyOf": [
+            {
+              "properties": {
+                "type": {
+                  "not": {
+                    "enum": [
+                      "do"
+                    ]
+                  }
+                }
               }
+            },
+            {
+              "required": [
+                "event"
+              ]
             }
-          },
-          "then": {
-            "required": [
-              "event"
-            ]
-          }
+          ]
         }
-      ]
+      ],
+      "$comment": "Each rule of allOf reads: when the type is one of these, these fields are required (an implication, written with anyOf and not so that every validator reads it)."
     }
   }
 }

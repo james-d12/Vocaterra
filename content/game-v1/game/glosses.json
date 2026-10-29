@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schema/glosses.schema.json",
   "schemaVersion": 1,
   "about": "The English of the verbs the learner meets (S20, the book's Verbs page): the infinitive's English gloss (to want). The lexicon has none, so this file gives one per verb. third and past are optional: the English third person singular and past, where the regular rule (wants, wanted) does not give them. A verb not listed here is shown by its infinitive alone. Edit here, then re-hash the bundle.",
   "verbs": [

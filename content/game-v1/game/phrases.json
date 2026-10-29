@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schema/phrases.schema.json",
   "schemaVersion": 1,
   "source": "content/PHRASES.md",
   "phrases": [

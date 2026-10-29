@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schema/checks.schema.json",
   "schemaVersion": 1,
   "about": "The check battery (S11, D-game-10): run with --check pre|post|recall, outside the world; it never changes the learner model, the phrase progress or the world. Production items are graded by the core at the row's prompt (communicated and the row's intent = correct; errors are recorded; no sé is allowed and recorded as dont_know). Comprehension items play the row's pre-rendered line (speech index id: the line id) and offer three options; the options are shown in an order drawn from the world seed and the check kind, so pre and post differ in order but not in content. The item's id is hear.<row> (comprehension) or say.<row> (production).",
   "items": [

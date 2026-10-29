@@ -73,7 +73,7 @@ public sealed class ContentSchemaTests
     [Fact]
     public async Task AStepTypeRequiresItsOwnFields()
     {
-        // The lessons schema says what each step type needs with if/then: a listen step without its options is refused, and so is a do step without its event.
+        // The lessons schema says what each step type needs (anyOf with not: NJsonSchema does not apply if/then): a listen step without its options is refused, and so is a do step without its event.
         var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "lessons.schema.json"));
         static string Lesson(string step) =>
             $$"""{ "schemaVersion": 1, "lessons": [{ "id": "a", "npc": "guide", "title": "A", "english": "A", "steps": [{{step}}] }] }""";

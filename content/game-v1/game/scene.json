@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schema/scene.schema.json",
   // The prototype's world (SCENARIO_PLAN S13): a 384 x 384 x 128 valley, generated from these parameters and the world seed, not listed block by
   // block. x runs east, z runs south, y is up. High mountains close the north and the west, with lower peaks along the east and the south; the
   // player's camp is a ledge on the northern mountainside, a switchback trail leads down to the guide's camp in the forest, a road crosses the river

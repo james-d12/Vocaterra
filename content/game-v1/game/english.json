@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schema/english.schema.json",
   "schemaVersion": 1,
   "about": "The game's English text (S16, D-game-13): everything a player with no Spanish reads in English. English is on-screen text only; only Spanish is spoken. The core is not changed: the feedback below is keyed by the core's error codes (nlp ErrorTags) and by the outcome of a turn, with a fallback for a code the game does not know. Placeholders: {expected} and {actual} (the core's forms), {npc}, {noun}, {blocks}, {tag}. Edit here, then re-hash the bundle.",
   "ui": {
