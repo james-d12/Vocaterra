@@ -1483,7 +1483,9 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - The NPCs' labels and names were not grammar-checked; they are now (4 strings, clean). C05's 26 words gave 5 capitalisation infos on
       fragments, none an error.
 
-- **C07 and C04: the objectives as data, save v5, and the player's English in the locale (2026-10-29, Opus 5.5; on `feature/content`).**
+- **C07 and C04: the objectives as data, save v5, and the player's English in the locale (2026-10-29, Opus 5.5; gated on `feature/content` at `59b7f01`).**
+  - **Gate:** 5554 passed, 3 skipped, 0 failed, with the models; the build has 0 warnings; format, content, grammar and both licence scans are
+    clean. That is 34 new tests: Game.Core 1281 to 1314, Game 529 to 530.
   - **C07.** `game/session.json` and `game/objectives/<id>.json` replace `Objective.Camp()` and the `SessionStage` rules. The HUD's line is the
     first objective not done. Hooks name the code's behaviour (`guide-met`, `spare-torch`, `point-own-camp`; `lesson-begun`,
     `scan-fire-ring`). Save v5 keys the steps by objective, and an older save's keys are mapped before the migration. `Fixtures/save-v4.json`
