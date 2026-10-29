@@ -44,7 +44,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     private static readonly Lazy<EnglishText> English = new(() =>
     {
         var bundle = GameBundle.Load();
-        return EnglishText.Load(bundle, PhraseSheet.Load(bundle));
+        return EnglishText.Load(bundle);
     });
 
     /// <summary>Every window size and scale: the case's canvas is the window divided by the scale.</summary>

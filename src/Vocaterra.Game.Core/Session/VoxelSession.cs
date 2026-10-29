@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
@@ -41,23 +42,20 @@ public sealed class VoxelSession : GuideSession
     private bool _sessionComplete;
 
     /// <summary>
-    /// Starts a 3D game on a loaded bundle and a built scene.
+    /// Starts a 3D game on the game's loaded content and a built scene.
     /// </summary>
-    /// <param name="bundle">The content bundle (<c>content/game-v1</c>).</param>
+    /// <param name="data">The game's content (<see cref="GameData.Load"/>).</param>
     /// <param name="worldSeed">The world seed: the guide's random draws are keyed by it (the scene itself is built by the caller from the same seed).</param>
     /// <param name="startedAt">The stored time at tick 0, in Unix seconds.</param>
-    /// <param name="nouns">The noun catalogue of the same bundle.</param>
     /// <param name="scene">The built scene; the simulation starts with the player at its spawn.</param>
     /// <param name="credit">The credit per kind of input and the gaps; <see cref="CreditRules.Default"/> when <see langword="null"/>.</param>
     /// <param name="lessons">The lessons to run instead of the bundle's <c>game/lessons.json</c> (the tests' own lessons), or <see langword="null"/> for the bundle's.</param>
-    public VoxelSession(ContentBundle bundle, ulong worldSeed, long startedAt, NounCatalog nouns, Scene scene, CreditRules? credit = null, LessonBook? lessons = null)
+    public VoxelSession(GameData data, ulong worldSeed, long startedAt, Scene scene, CreditRules? credit = null, LessonBook? lessons = null)
         : base(
-            bundle,
+            data,
             worldSeed,
             startedAt,
-            nouns,
-            WorldFacts.Live(scene?.Grid ?? throw new ArgumentNullException(nameof(scene)), nouns),
-            RecipeBook.Load(bundle, nouns),
+            WorldFacts.Live(scene?.Grid ?? throw new ArgumentNullException(nameof(scene)), (data ?? throw new ArgumentNullException(nameof(data))).Nouns),
             playSession: 1,
             credit,
             lessons)

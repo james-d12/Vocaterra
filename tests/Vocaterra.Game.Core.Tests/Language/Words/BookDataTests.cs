@@ -61,7 +61,7 @@ public sealed class BookDataTests
     public void TheEnglishTextNoLongerCarriesTheUnusedHoldKey()
     {
         Assert.DoesNotContain("btnHold", EnglishText.UiKeys);
-        var english = EnglishText.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle));
+        var english = EnglishText.Load(TestGame.Bundle);
         Assert.Throws<KeyNotFoundException>(() => english.Ui("btnHold"));
     }
 

@@ -560,7 +560,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         CompletePersonasSilently(session);
         var text = SaveGame.Save(session, TestGame.Route());
 
-        var loaded = SaveGame.Load(text, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped);
+        var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
 
         Assert.Equal(3, loaded.PlaySession);
         Assert.Equal(LessonId, loaded.Lessons.NewLesson!.Id);
@@ -575,7 +575,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
 
         loaded.EndTalk();
         var half = SaveGame.Save(loaded, TestGame.Route());
-        var again = SaveGame.Load(half, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: false);
+        var again = SaveGame.Load(half, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Equal(LessonStatus.InProgress, again.Lessons.StatusOf(LessonId));
         Assert.Equal(6, again.Lessons.OutcomesOf(LessonId).Count);

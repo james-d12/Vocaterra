@@ -3,9 +3,8 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Vocaterra.Game.Core.Language.Phrases;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Speech;
-using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Nlp.Asr.Models;
 using Vocaterra.Nlp.Core.Stages;
@@ -68,9 +67,7 @@ internal static class Program
         }
 
         var bundle = GameBundle.Load(bundleDir);
-        var nouns = NounCatalog.Load(bundle);
-        var phrases = PhraseSheet.Load(bundle);
-        var lines = SpeechLines.Enumerate(bundle, nouns, phrases);
+        var lines = GameData.Load(bundle).Speech;
         var speechDir = Path.Combine(bundleDir, SpeechLines.FolderName);
         Directory.CreateDirectory(speechDir);
 

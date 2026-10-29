@@ -585,7 +585,7 @@ public sealed class LessonRunnerTests
         _ = LessonDriver.DoStep(session); // u1-say-hola: a typed "Hola"
         var saved = SaveGame.Save(session, TestGame.Route());
 
-        var loaded = SaveGame.Load(saved, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: false);
+        var loaded = SaveGame.Load(saved, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Equal(saved, SaveGame.Save(loaded, TestGame.Route()));
         Assert.Equal(LessonStatus.InProgress, loaded.Lessons.StatusOf("first-words"));
@@ -615,7 +615,7 @@ public sealed class LessonRunnerTests
         Stage.TeleportToNpc(session, "guide");
         _ = session.OpenTalk("guide");
         _ = LessonDriver.CompleteAll(session);
-        var loaded = SaveGame.Load(SaveGame.Save(session, TestGame.Route()), TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped);
+        var loaded = SaveGame.Load(SaveGame.Save(session, TestGame.Route()), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
 
         Assert.Equal(LessonStatus.Completed, loaded.Lessons.StatusOf("first-words"));
         Assert.Null(loaded.Lessons.Active);
@@ -634,8 +634,8 @@ public sealed class LessonRunnerTests
         var unknown = doc with { Lessons = new LessonsSave([new LessonProgressSave("nope", LessonStatus.NotStarted, 0, [], 0, false)], null) };
         var beyond = doc with { Lessons = new LessonsSave([new LessonProgressSave("sample", LessonStatus.InProgress, 5, [], 0, false)], "sample") };
 
-        Assert.Throws<SaveException>(() => SaveGame.Restore(unknown, TestGame.Bundle, TestGame.Route(), TestGame.Nouns));
-        Assert.Throws<SaveException>(() => SaveGame.Restore(beyond, TestGame.Bundle, TestGame.Route(), TestGame.Nouns));
+        Assert.Throws<SaveException>(() => SaveGame.Restore(unknown, TestGame.Data, TestGame.Route()));
+        Assert.Throws<SaveException>(() => SaveGame.Restore(beyond, TestGame.Data, TestGame.Route()));
     }
 
     // ---- Determinism.

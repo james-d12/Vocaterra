@@ -98,7 +98,7 @@ public sealed class LessonBookTests
     {
         var book = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), TestGame.Speech);
         var store = new Vocaterra.Nlp.Response.Speech.StaticLineStore(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
-        var english = EnglishText.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle));
+        var english = EnglishText.Load(TestGame.Bundle);
 
         foreach (var step in book.Lessons.SelectMany(static l => l.Steps))
         {

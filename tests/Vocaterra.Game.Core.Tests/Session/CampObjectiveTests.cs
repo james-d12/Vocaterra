@@ -20,7 +20,7 @@ public sealed class CampObjectiveTests
     internal static (VoxelSession Session, List<WordCard> Cards, string Digest) PlayCamp(ulong seed = TestGame.Seed)
     {
         var scene = SceneBuilder.Build(SceneLayout.Load(Path.Combine(GameBundle.ResolveDirectory(), "game", "scene.json")), seed);
-        var session = new VoxelSession(TestGame.Bundle, seed, GuideSession.DefaultStartedAt, TestGame.Nouns, scene, CreditRules.FullTyped);
+        var session = new VoxelSession(TestGame.Data, seed, GuideSession.DefaultStartedAt, scene, CreditRules.FullTyped);
         var cards = new List<WordCard>();
         var grid = scene.Grid;
 

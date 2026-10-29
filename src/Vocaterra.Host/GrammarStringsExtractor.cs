@@ -6,6 +6,9 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Vocaterra.Game.Core.Content;
+using Vocaterra.Game.Core.Language.Checks;
+using Vocaterra.Game.Core.Tip;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Host;
@@ -43,10 +46,11 @@ public static class GrammarStringsExtractor
     /// the bundle, in <c>content/</c>). The order is fixed: dialogue, prompts, answer sets, intents, phrases, english.json, checks.json, speech.
     /// A duplicate id is an error (the file would be refused by the core).
     /// </summary>
-    public static IReadOnlyList<GrammarStringLine> Extract(ContentBundle bundle, string bundleDirectory)
+    public static IReadOnlyList<GrammarStringLine> Extract(GameData data, string bundleDirectory)
     {
-        ArgumentNullException.ThrowIfNull(bundle);
+        ArgumentNullException.ThrowIfNull(data);
         ArgumentException.ThrowIfNullOrEmpty(bundleDirectory);
+        var bundle = data.Bundle;
         var contentDirectory = Directory.GetParent(Path.GetFullPath(bundleDirectory))?.FullName
             ?? throw new InvalidOperationException($"{bundleDirectory} has no parent folder for the content sheets.");
 
@@ -56,8 +60,8 @@ public static class GrammarStringsExtractor
         AddAnswerSets(lines, bundle);
         AddIntents(lines, bundle);
         AddPhraseSheet(lines, Path.Combine(contentDirectory, "PHRASES.md"));
-        AddEnglishLines(lines, Path.Combine(bundleDirectory, "game", "english.json"));
-        AddChecks(lines, Path.Combine(bundleDirectory, "game", "checks.json"));
+        AddEnglishLines(lines, bundle);
+        AddChecks(lines, data);
         AddSpeechIndex(lines, Path.Combine(contentDirectory, "speech-index.json"));
 
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -87,9 +91,9 @@ public static class GrammarStringsExtractor
     }
 
     /// <summary>Extracts the strings and writes them to <paramref name="outputPath"/> (UTF-8, no byte order mark). Returns the lines written.</summary>
-    public static IReadOnlyList<GrammarStringLine> Write(ContentBundle bundle, string bundleDirectory, string outputPath)
+    public static IReadOnlyList<GrammarStringLine> Write(GameData data, string bundleDirectory, string outputPath)
     {
-        var lines = Extract(bundle, bundleDirectory);
+        var lines = Extract(data, bundleDirectory);
         var directory = Path.GetDirectoryName(Path.GetFullPath(outputPath));
         if (!string.IsNullOrEmpty(directory))
         {
@@ -178,10 +182,11 @@ public static class GrammarStringsExtractor
         }
     }
 
-    private static void AddEnglishLines(List<GrammarStringLine> lines, string englishPath)
+    private static void AddEnglishLines(List<GrammarStringLine> lines, ContentBundle bundle)
     {
         // Only the Spanish side of each line: the English side and the English text that quotes Spanish are the owner's English support text, not checked.
-        var document = ReadJson(englishPath);
+        // The file is read from the bytes the bundle's load verified (CONTENT_PLAN C02), as the game reads it.
+        using var document = JsonDocument.Parse(GameData.HostText(bundle, EnglishText.RelativePath));
         var index = 0;
         foreach (var line in document.RootElement.GetProperty("lines").EnumerateArray())
         {
@@ -190,18 +195,12 @@ public static class GrammarStringsExtractor
         }
     }
 
-    private static void AddChecks(List<GrammarStringLine> lines, string checksPath)
+    private static void AddChecks(List<GrammarStringLine> lines, GameData data)
     {
-        var document = ReadJson(checksPath);
-        foreach (var item in document.RootElement.GetProperty("items").EnumerateArray())
+        // Only a comprehension item carries Spanish (the line the NPC says); a production item's Spanish is its phrase's, which the sheet holds.
+        foreach (var item in data.Checks.Where(static item => item.Kind == CheckItemKind.Comprehension))
         {
-            // Only a comprehension item carries Spanish (the line the NPC says); a production item's Spanish is its phrase's, which the sheet holds.
-            if (!item.TryGetProperty("spanish", out var spanish))
-            {
-                continue;
-            }
-
-            lines.Add(Line("checks.json:" + item.GetProperty("id").GetString()!, spanish.GetString()!, Npc));
+            lines.Add(Line("checks.json:" + item.Id, item.Spanish, Npc));
         }
     }
 

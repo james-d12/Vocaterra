@@ -18,7 +18,7 @@ namespace Vocaterra.Game.Core.Tests.Tip;
 /// </summary>
 public sealed class EnglishTextTests
 {
-    private static EnglishText English => EnglishText.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle));
+    private static EnglishText English => EnglishText.Load(TestGame.Bundle);
 
     [Fact]
     public void TheFileLoadsAndHasTheControlsTheTipsAndEveryInterfaceWord()
@@ -194,16 +194,15 @@ public sealed class EnglishTextTests
     }
 
     [Fact]
-    public void AFileWithoutAnOutcomeOrWithAnUnknownTipTriggerOrPhraseIsRefused()
+    public void AFileWithoutAnOutcomeOrWithAnUnknownTipTriggerIsRefused()
     {
+        // A phrase the sheet lacks is the validator's to find (GameDataValidatorTests): the file alone cannot know the sheet.
         var json = File.ReadAllText(Path.Combine(GameBundle.ResolveDirectory(), "game", "english.json"));
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
 
-        Assert.Throws<InvalidDataException>(() => EnglishText.Parse(json.Replace("\"uncertain\":", "\"uncertain_x\":", StringComparison.Ordinal), sheet));
-        Assert.Throws<InvalidDataException>(() => EnglishText.Parse(json.Replace("\"when\": \"start\"", "\"when\": \"never_happens\"", StringComparison.Ordinal), sheet));
-        Assert.Throws<InvalidDataException>(() => EnglishText.Parse(json.Replace("\"hola\": \"Say this", "\"hola-x\": \"Say this", StringComparison.Ordinal), sheet));
-        Assert.Throws<InvalidDataException>(() => EnglishText.Parse(json.Replace("\"schemaVersion\": 1", "\"schemaVersion\": 2", StringComparison.Ordinal), sheet));
-        Assert.Throws<InvalidDataException>(() => EnglishText.Parse("{ not json", sheet));
-        _ = EnglishText.Parse(json, sheet);
+        Assert.Throws<InvalidDataException>(() => EnglishText.Parse(json.Replace("\"uncertain\":", "\"uncertain_x\":", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => EnglishText.Parse(json.Replace("\"when\": \"start\"", "\"when\": \"never_happens\"", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => EnglishText.Parse(json.Replace("\"schemaVersion\": 1", "\"schemaVersion\": 2", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => EnglishText.Parse("{ not json"));
+        _ = EnglishText.Parse(json);
     }
 }

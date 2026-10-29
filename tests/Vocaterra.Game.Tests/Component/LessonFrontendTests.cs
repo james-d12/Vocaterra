@@ -53,7 +53,7 @@ public sealed class LessonFrontendTests
 
         public Harness(IReadOnlyList<ScriptStep> steps, LessonBook? lessons = null)
         {
-            Session = new VoxelSession(Bundle.Value, 42, GuideSession.DefaultStartedAt, Nouns.Value, RouteScene.Build(), CreditRules.FullTyped, lessons ?? RouteScene.Sample(Bundle.Value, Nouns.Value));
+            Session = new VoxelSession(RouteScene.DataOf(Bundle.Value), 42, GuideSession.DefaultStartedAt, RouteScene.Build(), CreditRules.FullTyped, lessons ?? RouteScene.Sample(Bundle.Value, Nouns.Value));
             Session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
             Look = new LookControl();
             Look.Set(Session.Scene.Spawn.Yaw, 0);
@@ -155,7 +155,7 @@ public sealed class LessonFrontendTests
         return options;
     }
 
-    private static EnglishText English => EnglishText.Load(Bundle.Value, PhraseSheet.Load(Bundle.Value));
+    private static EnglishText English => EnglishText.Load(Bundle.Value);
 
     private static float Measure(string text) => text.Length * 8f;
 
@@ -370,7 +370,7 @@ public sealed class LessonFrontendTests
 
     private static (VoxelSession Session, DialogueModel Dialogue, LessonFrontend Lesson, RecordingPlayer Player, SpeechActionRunner Actions) AtGuide(LessonBook? lessons = null)
     {
-        var session = new VoxelSession(Bundle.Value, 42, GuideSession.DefaultStartedAt, Nouns.Value, RouteScene.Build(), CreditRules.FullTyped, lessons ?? RouteScene.Sample(Bundle.Value, Nouns.Value));
+        var session = new VoxelSession(RouteScene.DataOf(Bundle.Value), 42, GuideSession.DefaultStartedAt, RouteScene.Build(), CreditRules.FullTyped, lessons ?? RouteScene.Sample(Bundle.Value, Nouns.Value));
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("guide").Feet, session.Simulation.Player.FeetBlock)!.Value);
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases, session.English);
         var player = new RecordingPlayer();

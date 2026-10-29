@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
@@ -179,9 +180,8 @@ public static class SaveGame
     /// the session (see <see cref="Restore"/>).
     /// </summary>
     /// <param name="json">The save's text.</param>
-    /// <param name="bundle">The content bundle of this run.</param>
+    /// <param name="data">The game's content of this run (its bundle is checked against the save).</param>
     /// <param name="buildPristine">Builds the scene of a seed from the layout (a new scene each call).</param>
-    /// <param name="nouns">The noun catalogue of the bundle.</param>
     /// <param name="requestedSeed">The seed the run asked for, or <see langword="null"/> to take the save's.</param>
     /// <param name="credit">The credit rules of the run (the default when <see langword="null"/>).</param>
     /// <param name="bumpSession">Whether the run is the next play session (true for a real load; the tests also restore without it).</param>
@@ -189,18 +189,18 @@ public static class SaveGame
     /// <exception cref="SaveException">The save cannot be loaded.</exception>
     public static VoxelSession Load(
         string json,
-        ContentBundle bundle,
+        GameData data,
         Func<ulong, Scene> buildPristine,
-        NounCatalog nouns,
         ulong? requestedSeed = null,
         CreditRules? credit = null,
         bool bumpSession = true,
         bool migrate = false)
     {
+        ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(buildPristine);
         var document = Parse(json);
-        Check(document, bundle, requestedSeed, migrate);
-        return Restore(document, bundle, buildPristine(document.WorldSeed), nouns, credit, bumpSession, migrate);
+        Check(document, data.Bundle, requestedSeed, migrate);
+        return Restore(document, data, buildPristine(document.WorldSeed), credit, bumpSession, migrate);
     }
 
     /// <summary>
@@ -209,9 +209,8 @@ public static class SaveGame
     /// save is refused. The play session is the save's plus one when <paramref name="bumpSession"/> (a load), the save's own when not.
     /// </summary>
     /// <param name="document">The save.</param>
-    /// <param name="bundle">The content bundle of this run (checked against the save).</param>
+    /// <param name="data">The game's content of this run (its bundle is checked against the save).</param>
     /// <param name="scene">A freshly built scene of the save's seed and layout; it is changed by the diff and then becomes the session's scene.</param>
-    /// <param name="nouns">The noun catalogue of the bundle.</param>
     /// <param name="credit">The credit rules of the run; the default when <see langword="null"/>.</param>
     /// <param name="bumpSession">Whether to start the next play session.</param>
     /// <param name="migrate">Whether a save of another bundle is migrated (X01): the parts that name content are kept where their ids exist, the world edits are applied by position, and
@@ -219,17 +218,16 @@ public static class SaveGame
     /// <exception cref="SaveException">The save does not fit the scene, the bundle or itself, or the restored world differs from its digest.</exception>
     public static VoxelSession Restore(
         SaveDocument document,
-        ContentBundle bundle,
+        GameData data,
         Scene scene,
-        NounCatalog nouns,
         CreditRules? credit = null,
         bool bumpSession = true,
         bool migrate = false)
     {
         ArgumentNullException.ThrowIfNull(document);
-        ArgumentNullException.ThrowIfNull(bundle);
+        ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(scene);
-        ArgumentNullException.ThrowIfNull(nouns);
+        var bundle = data.Bundle;
         Check(document, bundle, null, migrate);
         var migrating = migrate && !string.Equals(document.BundleHash, bundle.ContentHash, StringComparison.Ordinal);
         var collector = migrating ? new SaveMigration.Collector() : null;
@@ -255,7 +253,7 @@ public static class SaveGame
                 SaveMigration.ApplyWorld(scene.Grid, document.Chunks, document.World, collector);
             }
 
-            session = new VoxelSession(bundle, document.WorldSeed, document.StartedAt, nouns, scene, credit);
+            session = new VoxelSession(data, document.WorldSeed, document.StartedAt, scene, credit);
             var spawn = session.Simulation.CaptureState();
             if (collector is not null)
             {

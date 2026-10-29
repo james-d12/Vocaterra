@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
@@ -28,11 +29,28 @@ internal static class RouteScene
     /// conversation, which the tests of her ordinary conversation, of the stall and of the checks do not want); <paramref name="lessons"/> gives it lessons of its own.
     /// </summary>
     public static VoxelSession NewSession(ContentBundle bundle, NounCatalog nouns, CreditRules? credit = null, ulong seed = 42, LessonBook? lessons = null) =>
-        new(bundle, seed, GuideSession.DefaultStartedAt, nouns, Build(seed), credit ?? CreditRules.Default, lessons ?? NoLessons(bundle, nouns));
+        new(DataOf(bundle), seed, GuideSession.DefaultStartedAt, Build(seed), credit ?? CreditRules.Default, lessons ?? NoLessons(bundle, nouns));
 
     /// <summary>A new session on the route with the lessons of the bundle (the guide's <c>first-words</c>).</summary>
     public static VoxelSession NewSessionWithShippedLessons(ContentBundle bundle, NounCatalog nouns, CreditRules? credit = null, ulong seed = 42) =>
-        new(bundle, seed, GuideSession.DefaultStartedAt, nouns, Build(seed), credit ?? CreditRules.Default);
+        new(DataOf(bundle), seed, GuideSession.DefaultStartedAt, Build(seed), credit ?? CreditRules.Default);
+
+    /// <summary>The game's content of a loaded bundle, loaded once per bundle and shared, as the game shares it between its sessions.</summary>
+    public static GameData DataOf(ContentBundle bundle)
+    {
+        lock (Loaded)
+        {
+            if (!Loaded.TryGetValue(bundle, out var data))
+            {
+                data = GameData.Load(bundle);
+                Loaded.Add(bundle, data);
+            }
+
+            return data;
+        }
+    }
+
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<ContentBundle, GameData> Loaded = new();
 
     /// <summary>A book without lessons.</summary>
     public static LessonBook NoLessons(ContentBundle bundle, NounCatalog nouns) =>

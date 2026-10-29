@@ -223,7 +223,7 @@ public sealed class LearnerRecordTests
         Assert.Equal(511, document.Learner.NextId);
         Assert.Equal(510, Assert.Single(document.Learner.Words, static w => w.Lemma == "agua").Times);
 
-        var loaded = SaveGame.Load(text, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.Default, bumpSession: false);
+        var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
         Assert.Equal(500, loaded.Learner.History.Count);
         Assert.Equal(511, loaded.Learner.NextId);
         Assert.Equal(510, Assert.Single(loaded.Learner.Nouns).Times);
@@ -252,7 +252,7 @@ public sealed class LearnerRecordTests
         Assert.NotEmpty(replayed);
 
         // Saved and loaded, the record is the saved one; folding the loaded history (the whole of it, since this one is short) gives it too.
-        var loaded = SaveGame.Load(SaveGame.Save(session, TestGame.Route()), TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.Default, bumpSession: false);
+        var loaded = SaveGame.Load(SaveGame.Save(session, TestGame.Route()), TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
         Assert.Equal(Show(session.Learner.Rows), Show(loaded.Learner.Rows));
         Assert.Equal(Show(session.Learner.Rows), Show(LearnerWords.Fold(loaded.Learner.History).Rows));
     }
@@ -331,7 +331,7 @@ public sealed class LearnerRecordTests
         };
         Assert.Equal(3, Assert.Single(old.Learner!.Words, static w => w.Lemma == "agua").Times);
 
-        var loaded = SaveGame.Load(SaveGame.Serialize(old), TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.Default, bumpSession: false);
+        var loaded = SaveGame.Load(SaveGame.Serialize(old), TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
 
         Assert.Equal(before, Show(loaded.Learner.Rows));
         Assert.Equal(1, Assert.Single(loaded.Learner.Nouns).Times);
@@ -341,7 +341,7 @@ public sealed class LearnerRecordTests
         // Saved again (version 3) and loaded again, the record is the same: the check answers are not taken out twice.
         var resaved = SaveGame.Save(loaded, TestGame.Route());
         Assert.Equal(SaveGame.CurrentVersion, SaveGame.Parse(resaved).Version);
-        var again = SaveGame.Load(resaved, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.Default, bumpSession: false);
+        var again = SaveGame.Load(resaved, TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
         Assert.Equal(before, Show(again.Learner.Rows));
     }
 
@@ -365,7 +365,7 @@ public sealed class LearnerRecordTests
         Assert.Equal(510, Assert.Single(old.Learner!.Words, static w => w.Lemma == "agua").Times);
         Assert.Equal(11, old.Learner.History[0].Id);
 
-        var loaded = SaveGame.Load(SaveGame.Serialize(old), TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.Default, bumpSession: false);
+        var loaded = SaveGame.Load(SaveGame.Serialize(old), TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
 
         // The history holds 500 entries of 510: it can take out entry 11 only. Entry 10 was counted, is not held, and stays counted.
         Assert.Equal(509, Assert.Single(loaded.Learner.Nouns).Times);
@@ -382,7 +382,7 @@ public sealed class LearnerRecordTests
         var replayed = LearnerWords.Fold(session.Learner.History).Rows;
         Assert.Equal(Show(session.Learner.Rows), Show(replayed));
 
-        var loaded = SaveGame.Load(SaveGame.Save(session, TestGame.Route()), TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.Default, bumpSession: false);
+        var loaded = SaveGame.Load(SaveGame.Save(session, TestGame.Route()), TestGame.Data, TestGame.Route, credit: CreditRules.Default, bumpSession: false);
         Assert.Equal(Show(replayed), Show(loaded.Learner.Rows));
         Assert.Equal(Show(replayed), Show(LearnerWords.Fold(loaded.Learner.History).Rows));
     }
@@ -395,7 +395,7 @@ public sealed class LearnerRecordTests
         Assert.Equal(1, document.Version);
         Assert.Null(document.Learner);
 
-        var loaded = SaveGame.Load(text, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped);
+        var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
 
         Assert.Empty(loaded.Learner.History);
         Assert.Empty(loaded.Learner.Rows);
@@ -441,7 +441,7 @@ public sealed class LearnerRecordTests
 
         // The save is taken mid-lesson: the load carries the counts and the lesson goes on where it stopped.
         var text = SaveGame.Save(session, TestGame.Route());
-        var resumed = SaveGame.Load(text, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped);
+        var resumed = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
         Assert.Equal(Show(session.Lessons.Record), Show(resumed.Lessons.Record));
         Stage.TeleportToNpc(resumed, "guide");
         _ = resumed.OpenTalk("guide");

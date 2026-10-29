@@ -11,7 +11,7 @@ namespace Vocaterra.Host.Tests;
 public sealed class GrammarStringsExtractorTests
 {
     private static readonly Lazy<IReadOnlyList<GrammarStringLine>> Extracted =
-        new(() => GrammarStringsExtractor.Extract(GameContent.Bundle, GameContent.BundleDirectory()));
+        new(() => GrammarStringsExtractor.Extract(GameContent.Data, GameContent.BundleDirectory()));
 
     private static IReadOnlyList<GrammarStringLine> All => Extracted.Value;
 
@@ -58,7 +58,7 @@ public sealed class GrammarStringsExtractorTests
         Assert.Equal(ids.Count, ids.Distinct(StringComparer.Ordinal).Count());
         Assert.All(ids, static id => Assert.Matches("^[^:\\s]+:\\S+$", id));
 
-        var again = GrammarStringsExtractor.Extract(GameContent.Bundle, GameContent.BundleDirectory());
+        var again = GrammarStringsExtractor.Extract(GameContent.Data, GameContent.BundleDirectory());
         Assert.Equal(GrammarStringsExtractor.ToJsonl(All), GrammarStringsExtractor.ToJsonl(again));
     }
 

@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
@@ -104,53 +105,51 @@ public abstract class GuideSession : IDisposable
     private PhraseReview? _retry;
 
     /// <summary>
-    /// The shared part of a game, on a loaded bundle.
+    /// The shared part of a game, on the game's loaded content.
     /// </summary>
-    /// <param name="bundle">The content bundle (<c>content/game-v1</c>).</param>
+    /// <param name="data">The game's content (<see cref="GameData.Load"/>): the bundle and every game file read from it.</param>
     /// <param name="worldSeed">The world seed: it generates the world and seeds the conversation's random draws.</param>
     /// <param name="startedAt">The stored time at tick 0, in Unix seconds.</param>
-    /// <param name="nouns">The noun catalogue of the same bundle (<see cref="NounCatalog.Load"/>).</param>
     /// <param name="liveFacts">What the guide can say about the world as it is now (read on the simulation's thread).</param>
-    /// <param name="recipes">The crafting recipes of the bundle.</param>
     /// <param name="playSession">The number of this play session (1 for a new game; the saves of S10 will bump it on each load).</param>
     /// <param name="credit">The credit per kind of input and the gaps; <see cref="CreditRules.Default"/> (typed half, spoken full) when <see langword="null"/>.</param>
     /// <param name="lessons">The lessons to run instead of the bundle's <c>game/lessons.json</c> (the tests' own), or <see langword="null"/> for the bundle's.</param>
     protected GuideSession(
-        ContentBundle bundle,
+        GameData data,
         ulong worldSeed,
         long startedAt,
-        NounCatalog nouns,
         IGuideFacts liveFacts,
-        RecipeBook recipes,
         int playSession,
         CreditRules? credit,
         LessonBook? lessons = null)
     {
-        ArgumentNullException.ThrowIfNull(bundle);
-        ArgumentNullException.ThrowIfNull(nouns);
+        ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(liveFacts);
-        ArgumentNullException.ThrowIfNull(recipes);
-        Bundle = bundle;
-        Nouns = nouns;
+        Data = lessons is null ? data : data.WithLessons(lessons);
+        Bundle = data.Bundle;
+        Nouns = data.Nouns;
         Credit = credit ?? CreditRules.Default;
         WorldSeed = worldSeed;
         StartedAt = startedAt;
-        Recipes = recipes;
-        Words = new WordProgress(nouns, playSession);
-        Phrases = PhraseSheet.Load(bundle);
-        English = EnglishText.Load(bundle, Phrases);
-        Glosses = VerbGlosses.Load(bundle);
-        var book = lessons ?? LessonBook.Load(bundle, Phrases, SpeechLines.Enumerate(bundle, nouns, Phrases));
+        Recipes = data.Recipes;
+        Words = new WordProgress(Nouns, playSession);
+        Phrases = data.Phrases;
+        English = data.English;
+        Glosses = data.Glosses;
+        var book = Data.Lessons;
         PhraseProgress = new PhraseProgress(Phrases, playSession, book.TaughtPhrases);
-        Support = new PhraseSupport(Phrases, PhraseProgress, bundle, English);
+        Support = new PhraseSupport(Phrases, PhraseProgress, Bundle, English);
         Lessons = new LessonRunner(this, book, English);
         Tips = new TipFeed(this, English);
         _liveFacts = liveFacts;
-        _npcs = new NpcService(bundle, liveFacts, nouns, worldSeed, new StoredTimestamp(startedAt), recipes);
+        _npcs = new NpcService(Data, liveFacts, worldSeed, new StoredTimestamp(startedAt));
     }
 
     /// <summary>Raised on the caller's thread after each finished turn is applied by <see cref="Collect"/>, once its events are in <see cref="Events"/> (the session log, S11).</summary>
     public event Action<AppliedTurn>? Applied;
+
+    /// <summary>The game's content: the bundle and every game file read from it (the session's own lessons when a test gave some).</summary>
+    public GameData Data { get; }
 
     /// <summary>The content bundle.</summary>
     public ContentBundle Bundle { get; }

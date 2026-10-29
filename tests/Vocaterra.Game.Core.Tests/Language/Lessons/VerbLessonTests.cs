@@ -309,7 +309,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
 
         var text = SaveGame.Save(session, TestGame.Route());
         var document = SaveGame.Parse(text);
-        var loaded = SaveGame.Load(text, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped);
+        var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
 
         Assert.Equal(SaveGame.CurrentVersion, document.Version);
         Assert.Equal(1, document.Session);
@@ -400,7 +400,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
         Assert.True(session.Lessons.RequestReplay("first-words"));
         var asked = SaveGame.Save(session, TestGame.Route());
 
-        var restored = SaveGame.Load(asked, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: false);
+        var restored = SaveGame.Load(asked, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Equal("first-words", restored.Lessons.ReplayPending);
         Assert.True(restored.Lessons.IsDone("first-words"));
@@ -416,7 +416,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
 
         restored.EndTalk();
         var half = SaveGame.Save(restored, TestGame.Route());
-        var again = SaveGame.Load(half, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: false);
+        var again = SaveGame.Load(half, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Equal(LessonStatus.InProgress, again.Lessons.StatusOf("first-words"));
         Assert.True(again.Lessons.IsDone("first-words"));
@@ -442,7 +442,7 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
             },
         };
 
-        var loaded = SaveGame.Load(SaveGame.Serialize(old), TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: false);
+        var loaded = SaveGame.Load(SaveGame.Serialize(old), TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.True(loaded.Lessons.IsDone("first-words"));
         Assert.False(loaded.Lessons.IsDone("personas"));

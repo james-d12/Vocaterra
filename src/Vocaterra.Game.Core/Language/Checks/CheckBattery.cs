@@ -115,7 +115,7 @@ public sealed class CheckBattery : IScreen
         EndsRun = false;
         _framesLeft = 0;
         _playedAt = -1;
-        var plan = CheckPlan.For(CheckBank.Load(_session.Bundle), kind, _session.WorldSeed);
+        var plan = CheckPlan.For(_session.Data.Checks, kind, _session.WorldSeed);
         Screen = new CheckScreen(kind, plan, _milliseconds, result => _log()!.CheckResult(result, CheckKinds.Of(kind), _session.PlaySession, _session.Simulation.Tick));
         _log()!.CheckStart(CheckKinds.Of(kind), _session.PlaySession, plan.Count);
         _console($"check: {CheckKinds.Of(kind)}, {plan.Count} items");

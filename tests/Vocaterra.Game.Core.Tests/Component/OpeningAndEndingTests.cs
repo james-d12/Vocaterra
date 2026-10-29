@@ -216,7 +216,7 @@ public sealed class OpeningAndEndingTests
         session.Step([]);
         var saved = SaveGame.Save(session, TestGame.Route());
 
-        var loaded = SaveGame.Load(saved, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: false);
+        var loaded = SaveGame.Load(saved, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.True(loaded.FireLit);
         Assert.True(loaded.SessionComplete);
@@ -230,7 +230,7 @@ public sealed class OpeningAndEndingTests
         var session = CompletedCamp();
         var saved = SaveGame.Save(session, TestGame.Route());
 
-        var loaded = SaveGame.Load(saved, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: false);
+        var loaded = SaveGame.Load(saved, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Equal(SessionStage.LightFire, loaded.Stage);
         Assert.False(loaded.FireLit);

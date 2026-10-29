@@ -35,7 +35,7 @@ public sealed class SupportLadderTests
         }
 
         Assert.Equal(rung, progress.LevelOf("pedir-agua"));
-        var support = new PhraseSupport(sheet, progress, TestGame.Bundle, EnglishText.Load(TestGame.Bundle, sheet));
+        var support = new PhraseSupport(sheet, progress, TestGame.Bundle, EnglishText.Load(TestGame.Bundle));
         _ = support.Show("shopkeeper", "stall-need");
         return (progress, support);
     }

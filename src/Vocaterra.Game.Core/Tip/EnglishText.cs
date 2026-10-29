@@ -140,11 +140,10 @@ public sealed class EnglishText
     /// <summary>The first-time tips, in the file's order.</summary>
     public IReadOnlyList<TipSpec> Tips { get; }
 
-    /// <summary>Reads the English text from the bundle's verified host file.</summary>
+    /// <summary>Reads the English text from the bundle's verified host file. The names it uses from other files (phrases, nouns, NPCs) are checked by <see cref="Content.GameDataValidator"/>.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
-    /// <param name="sheet">The phrase sheet the explanations are checked against, or <see langword="null"/> to skip that check.</param>
     /// <exception cref="InvalidDataException">The bundle has no such host file, or the file is malformed.</exception>
-    public static EnglishText Load(ContentBundle bundle, PhraseSheet? sheet = null)
+    public static EnglishText Load(ContentBundle bundle)
     {
         ArgumentNullException.ThrowIfNull(bundle);
         if (!bundle.TryReadHostFile(RelativePath, out var bytes))
@@ -152,14 +151,13 @@ public sealed class EnglishText
             throw new InvalidDataException($"The bundle has no host file {RelativePath}: it is missing from the manifest, or the bundle was loaded without hash verification.");
         }
 
-        return Parse(Encoding.UTF8.GetString(bytes.Span), sheet);
+        return Parse(Encoding.UTF8.GetString(bytes.Span));
     }
 
     /// <summary>Builds the English text from the file's text, checking that it holds together.</summary>
     /// <param name="json">The contents of <c>game/english.json</c>.</param>
-    /// <param name="sheet">The phrase sheet the explanations are checked against (each explained id must be a row), or <see langword="null"/> to skip that check.</param>
-    /// <exception cref="InvalidDataException">The text is malformed, lacks a required entry, or names a phrase that is not in the sheet.</exception>
-    public static EnglishText Parse(string json, PhraseSheet? sheet = null)
+    /// <exception cref="InvalidDataException">The text is malformed or lacks a required entry.</exception>
+    public static EnglishText Parse(string json)
     {
         ArgumentNullException.ThrowIfNull(json);
         try
@@ -218,16 +216,6 @@ public sealed class EnglishText
 
             var nouns = Map(root, "nouns");
             var phrases = Map(root, "phrases");
-            if (sheet is not null)
-            {
-                foreach (var id in phrases.Keys)
-                {
-                    if (sheet.Find(id) is null)
-                    {
-                        throw new InvalidDataException($"{RelativePath}: the explanation names the phrase '{id}', which is not in the phrase sheet.");
-                    }
-                }
-            }
 
             var lines = new Dictionary<string, string>(StringComparer.Ordinal);
             foreach (var element in root.GetProperty("lines").EnumerateArray())
@@ -307,6 +295,19 @@ public sealed class EnglishText
     /// <summary>The English word of a catalogue noun (<c>fruta</c> gives <c>fruit</c>), or <see langword="null"/> when the file has none.</summary>
     /// <param name="lemma">The noun.</param>
     public string? NounEnglish(string lemma) => _nouns.TryGetValue(lemma, out var english) ? english : null;
+
+    /// <summary>The ids of the phrases the file explains (<see cref="Content.GameDataValidator"/> checks them against the sheet).</summary>
+    internal IEnumerable<string> ExplainedPhrases => _phrases.Keys;
+
+    /// <summary>The catalogue nouns the file glosses.</summary>
+    internal IEnumerable<string> GlossedNouns => _nouns.Keys;
+
+    /// <summary>The objective's steps and the nouns their glosses go with.</summary>
+    internal IEnumerable<(string Step, string Noun)> ObjectiveNouns =>
+        _objective.Where(static entry => entry.Value.Noun is not null).Select(static entry => (entry.Key, entry.Value.Noun!));
+
+    /// <summary>The NPCs the file names.</summary>
+    internal IEnumerable<string> NamedNpcs => _npcNames.Keys;
 
     /// <summary>The name of an NPC for the feedback (<c>The guide</c>); the agent's id when the file has none.</summary>
     /// <param name="npc">The agent id.</param>

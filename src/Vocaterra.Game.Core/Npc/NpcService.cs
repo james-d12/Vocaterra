@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Language.Phrases;
@@ -204,18 +205,17 @@ public sealed partial class NpcService
     }
 
     /// <summary>Starts the conversations: each NPC in its initial state, a learner model with no evidence and no repeat counts.</summary>
-    /// <param name="bundle">The content bundle; it must hold the three agents and their prompts.</param>
+    /// <param name="data">The game's content; its bundle must hold the three agents and their prompts. The nouns a turn exercises get their learner
+    /// skills, and the recipes give the crafting answers.</param>
     /// <param name="facts">The world the guide speaks of.</param>
-    /// <param name="nouns">The noun catalogue of the same bundle: the nouns a turn exercises get their learner skills.</param>
     /// <param name="worldSeed">The world seed, which seeds every random draw with the agent id and the interaction counter.</param>
     /// <param name="start">The stored time before the first turn.</param>
-    /// <param name="recipes">The bundle's recipes, for the crafting answers; read from the bundle when <see langword="null"/>.</param>
     /// <exception cref="ArgumentException">The bundle lacks an agent or a prompt of the route.</exception>
-    public NpcService(ContentBundle bundle, IGuideFacts facts, NounCatalog nouns, ulong worldSeed, StoredTimestamp start, RecipeBook? recipes = null)
+    public NpcService(GameData data, IGuideFacts facts, ulong worldSeed, StoredTimestamp start)
     {
-        ArgumentNullException.ThrowIfNull(bundle);
+        ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(facts);
-        ArgumentNullException.ThrowIfNull(nouns);
+        var bundle = data.Bundle;
         foreach (var prompt in new[] { GuidePrompt, GuideReviewPrompt, GuideOfferPrompt, StallNeedPrompt, StallOfferPrompt, VillagerPrompt })
         {
             if (!bundle.Prompts.ContainsKey(prompt))
@@ -227,10 +227,10 @@ public sealed partial class NpcService
         _bundle = bundle;
         _worldFacts = facts;
         _facts = facts;
-        _nouns = nouns;
-        _recipes = recipes ?? RecipeBook.Load(bundle, nouns);
+        _nouns = data.Nouns;
+        _recipes = data.Recipes;
         _typed = new TypedUtteranceEvaluator(bundle);
-        _phrases = PhraseSheet.Load(bundle);
+        _phrases = data.Phrases;
         foreach (var id in AgentIds)
         {
             if (!bundle.Agents.TryGetValue(id, out var machine))

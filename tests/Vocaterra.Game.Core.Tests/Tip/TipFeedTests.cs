@@ -148,7 +148,7 @@ public sealed class TipFeedTests
         session.Tips.Offer("aimed_npc");
         var saved = SaveGame.Save(session, TestGame.Route());
 
-        var loaded = SaveGame.Load(saved, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: false);
+        var loaded = SaveGame.Load(saved, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Equal(saved, SaveGame.Save(loaded, TestGame.Route()));
         Assert.Equal(["look", "walk"], loaded.Tips.Shown.Where(static id => id is "look" or "walk"));
@@ -167,7 +167,7 @@ public sealed class TipFeedTests
         var doc = SaveGame.Parse(SaveGame.Save(session, TestGame.Route()));
         var bad = doc with { Tips = new TipsSave(["no-such-tip"], [], null, 0) };
 
-        Assert.Throws<SaveException>(() => SaveGame.Restore(bad, TestGame.Bundle, TestGame.Route(), TestGame.Nouns));
+        Assert.Throws<SaveException>(() => SaveGame.Restore(bad, TestGame.Data, TestGame.Route()));
     }
 
     [Fact]
@@ -176,7 +176,7 @@ public sealed class TipFeedTests
         var session = TestGame.NewSession();
         var doc = SaveGame.Parse(SaveGame.Save(session, TestGame.Route())) with { Lessons = null, Tips = null };
 
-        var loaded = SaveGame.Restore(doc, TestGame.Bundle, TestGame.Route(), TestGame.Nouns, CreditRules.FullTyped, bumpSession: false);
+        var loaded = SaveGame.Restore(doc, TestGame.Data, TestGame.Route(), CreditRules.FullTyped, bumpSession: false);
 
         Assert.Equal(LessonStatus.NotStarted, loaded.Lessons.StatusOf("sample"));
         Assert.Empty(loaded.Tips.Shown);
