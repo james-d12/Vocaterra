@@ -1,9 +1,10 @@
-# Vocaterra.MonoGame
+# Vocaterra.Game
 
 The game's window: the only engine code in the repository (plan section 3 rule 3, D-game-1). MonoGame 3.8.6 DesktopGL on `net10.0`, no
 content pipeline (no MGCB: textures are made in code, text is a TTF read at run time through FontStashSharp). It references
-`Vocaterra.Game` (the guide, the session, the word progress and the camp objective; it brings the language core's packages) and
-`Vocaterra.Simulation` by project and names no `Vocaterra.Nlp.*` package itself.
+`Vocaterra.Game.Core` (the game's engine-free systems: the world and its tick, the session, the guide, the word progress, the screens' models;
+it brings the language core's projects) by project and names no `Vocaterra.Nlp.*` package itself. Its folders are in
+`docs/game/ARCHITECTURE.md`.
 
 The prototype's world is the first-person voxel scene (S2 to S4). The 2D slice (P1 to P7) was retired at S4; its last commit is tagged
 `2d-slice-p7`.
@@ -11,7 +12,7 @@ The prototype's world is the first-person voxel scene (S2 to S4). The 2D slice (
 ## Run
 
 ```bash
-PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/Vocaterra.MonoGame -- --seed 42
+PATH="$HOME/.dotnet:$PATH" DOTNET_ROOT="$HOME/.dotnet" dotnet run --project src/Vocaterra.Game -- --seed 42
 ```
 
 | Option | Meaning |
@@ -153,73 +154,17 @@ scripted run skips it unless asked (then the worker hears a synthesized "hola").
 **Not in 3D yet:** the Alt-accent shortcuts of the panel (typed `é`, `ñ` and the
 others come through the platform's text input).
 
-**Where the pieces are:** `VoxelGame.cs` (the host and the composition root since R16: it wires the components of `Screens/`, `Flow/`, `Frame/`, `Input/`, `Persistence/`, `Reporting/` and `Scripted/`, see `docs/game/ARCHITECTURE.md`),
-`HudLayers.cs` (`ObjectiveLayer`, `WordCardLayer`), `CraftingLayer.cs`, `VoxelTalkLayers.cs` (`TalkHintLayer`, `WorldLabel`, `WorldLabelLayer`),
-`VoxelLayers.cs` (the crosshair, the NPC labels, the beacon arrow, the debug overlay), `Vocaterra.Game.Core/Npc/NpcAim.cs` (the crosshair test, plain
-maths), `Frontend/VoxelScript.cs` (the step machine over ticks: look, walk, interact, place, select, craft), `Frontend/VoxelSayScript.cs` (the
-`--say` state machine), `Frontend/WordCardQueue.cs`, `Frontend/CraftingScreen.cs` (the panel's rows and layout) and `Frontend/SceneLocator.cs` (the
-bundle's `game/scene.json`, or `--scene`).
+**Where the pieces are:** `VoxelGame.cs` is the composition root and MonoGame's loop; the rules it wires live in `Vocaterra.Game.Core`
+(the screens, the turn flow, the scripts, the tick and the session). This project keeps what needs MonoGame or draws: `Startup/` (the command
+line, `SceneLocator`, the asset paths), `Diagnostics/` (the session log, the crash handler, the clocks), `Input/` (the devices, `InputSnapshot` and
+`KeyMap`, Keys to `GameKey`), `Sound/` (the outputs and the microphone), `Graphics/` (the renderers and the meshers, by feature) and `UI/` (the
+layers and their layouts, by feature). Both trees are in `docs/game/ARCHITECTURE.md`.
 
 ## Architecture
 
-```
-Frontend/    plain classes, no engine type (a test fails if Microsoft.Xna or FontStashSharp appears here), tested without a GPU
-  TickAccumulator   real frame time -> whole ticks; integer micro-ticks, cap of 5 steps per frame, surplus dropped; Alpha for interpolation
-  IFrameClock       RealFrameClock (Stopwatch) and FixedFrameClock (one tick per frame, for --screenshot); the only timers in the project
-  LookControl       the look (yaw and pitch in angle steps), mouse look (Input/)
-  CameraEase        the camera ease over a step-up
-  LiveVoxelInput    the device state of a tick as VoxelCommands (walk, jump, gather, place, the hotbar)
-  VoxelScript       the --look, --walk-to, --interact, --place, --select and --craft steps over ticks
-  ScenarioScript    the scripted run: the body's steps, --talk (walk to the stand-off, settle, open the panel), --say (type, send, wait for the reply), --leave, --shot
-  ChunkMesher, MeshVertex, BlockAtlasLayout, BlockArt, BlockArtNature, ChunkVersionTracker, NpcFigures, FigureMesher, FigureAnimation, FigureFacing, BlockArtVillage, ViewModeState, ThirdPersonRig, HeldItems, ArmMotion, ArmLight, ArmMeshes, RecipePanelModel, DialogueBubble, OverlayMeshes, ViewMath, PointLabels
-  SkyPalette, CloudField, CloudBox   the sky's colours (and the fog's) and the flat clouds as plain maths (S14)
-  QualityPreset     the view distance, the plant distance and share, the occlusion and the clouds of low, medium and high
-  CountBadge        the stack count on an opaque dark plate (contrast tested)
-  CraftingScreen    the panel's open state, its rows (CraftingRow) and the layout that drawing and clicks share (CraftingLayout)
-  DialogueModel     the panel as state: open or closed, the text box, the lines, a request to send; Submit shows the turn's lines
-  PushToTalk        the push-to-talk state over an ISpeechCapture (the device): Begin, Pump (collects, caps at 8 s), End (a trimmed 16 kHz clip or null)
-  TurnPump          Submit (the typed line and the spoken clip to the worker) and Apply (the finished turns, in order, to the session and the panel)
-  Journal           JournalRows (every catalogue noun: label, counts, pips, saturation; the nouns page builds on them)
-  Book              BookModel (open or closed, the five pages, the scroll; opening counts a read), BookTabs (the labels and their order), BookGeometry (the panel,
-                    the tabs and the lines at a viewport size: a click lands on the tab drawn there), BookScroll, BookPages (what each page lists: nouns, verbs,
-                    phrases, lessons, what I said, as BookLine values), VerbLabels (the English of a verb form from person, number, tense and mood)
-  PhraseJournal     PhraseJournalRows (every phrase of the sheet: Spanish, English, support level, counts)
-  ConversationLayout  (S22) the layout of the conversation screen: from the window, the speaker's projected head rectangle, the bubble, the panel and the cards (new-word toast,
-                    support cards, key words, the audio-only chip; newest first) it gives each card a rectangle, collapsed to one line or hidden. The cards stack in a column beside the
-                    head and the bubble (or in the strip under them), whole while they fit, then the older ones as one line; no card overlaps the head, the bubble, the panel or another
-                    card (tested at 1280 x 720 and 800 x 600). It also reserves the facilitator's F10 label (top left). ConversationFrame computes it for a frame; SupportLayer,
-                    DialogueBubbleLayer and WordCardLayer draw their pieces where it says. ConversationCards holds the card sizes and the head rectangle
-  SupportLayout     the sizes of the support cards, the audio-only chip and the key-word cards (S8; their places are ConversationLayout's since S22)
-  SupportFrontend   plays the session's audio cues through the line player, adds the shopkeeper's opening after the key words, words the console's phrase lines
-  InventoryScreen   the 40-slot screen (I or E): open, close, the lemmas it shows (counted as read once per opening)
-  Toasts            ToastQueue: lines shown one after another for 240 ticks each, by the simulation's tick (no clock)
-  WordCardQueue     the word cards: one at a time, 300 ticks each
-  TextEntry         the dialogue panel's text box: insert (Spanish letters and marks included), backspace, delete, caret, limits; AccentShortcuts
-  InputFocus        who has the keyboard (the panel, the book, the inventory, the crafting panel); KeyRepeater counts auto-repeat in frames
-  VoxelDebugText    the overlay's lines (FPS, tick, the pose, the target block)
-  SceneLocator      the bundle's scene file or --scene
-  FrameStats, BusyFrameStats, FrameClock (the frame numbers the overlay and the screenshot run print)
-(root)       the MonoGame wiring
-  Program           parses the command line, loads the bundle and the scene, runs VoxelGame, returns its ExitCode
-  VoxelGame         Game subclass: clock -> accumulator -> poll input -> Step the session (the simulation, the objective, the word cards); draw the world, then the layers
-  FrameView         what a layer may read for one frame (session, simulation, camera, viewport, fonts, the pixel, icons, objective, cards, mouse)
-  IFrameLayer       "draw after the world": the layers listed above, in the order VoxelGame adds them
-  HudLayers         ObjectiveLayer (the checklist) and WordCardLayer (the word card)
-  CraftingLayer     the crafting panel (C, or E at the workbench)
-  HotbarLayer, InventoryLayer, BookLayer (S20: the book drawn in code, its tabs, lines, icons, pips and scroll), ToastLayer, DialoguePanel, LoadingLayer
-  VoxelRenderer     the chunks: one vertex buffer per chunk and mesh, AlphaTestEffect and BasicEffect, the frustum, the re-mesh on a changed version
-  SkyRenderer       the sky dome, the sun and the clouds (S14)
-  VoxelLayers       the crosshair (with the gather bar), the NPC labels, the beacon's arrow, the 3D debug overlay
-  VoxelTalkLayers   the talk hint, the world labels (the signpost)
-  FirstPersonCamera the eye, the look and the projection (MonoGame's matrices from the simulation's vectors)
-  BlockAtlas        the block atlas texture and the item icons (IItemIcons)
-  MouseLook         the relative mouse through SDL (MonoGame 3.8 has no switch for it)
-  MicrophoneCapture MonoGame's Microphone as an ISpeechCapture (the only capture code; DesktopGL/OpenAL, 44.1 kHz mono, converted by AudioClips)
-  FontProvider      FontStashSharp over assets/fonts/PixelOperator.ttf
-  AssetPaths        the committed font's path
-  DrawHelpers       rectangles, borders, shadowed text over the 1 px texture and the font
-  ScreenshotWriter  back buffer -> PNG
-```
+The game's code is in two projects (R16, `docs/code_guidelines.md`): `Vocaterra.Game.Core` holds the systems and the mechanics (no package,
+no engine type, no clock: its `ArchitectureRulesTests` fail on one), and this project holds the window, the drawing, the devices and the
+layers. `docs/game/ARCHITECTURE.md` lists both trees, folder by folder.
 
 The frame is: `Update` reads the clock, reads the keyboard and the mouse once (the panel's keys, the crafting clicks), the accumulator returns 0 to 5
 ticks, and for each tick the commands are built (the script's or the device's, the queued crafts, the look first) and given to `VoxelSession.Step`
@@ -237,7 +182,7 @@ The camp, from the spawn (seed 42, `DISPLAY=:0`): gather two berries at the spaw
 place it on the fire ring's rim and look at it. The console prints each step and the checklist reads `3/4`; the screenshot shows the HUD and the flame:
 
 ```
-dotnet run --project src/Vocaterra.MonoGame --no-build -- --seed 42 --interact 17,11,15 --interact 15,11,19 \
+dotnet run --project src/Vocaterra.Game --no-build -- --seed 42 --interact 17,11,15 --interact 15,11,19 \
   --walk-to 17,20 --interact 16,11,23 --walk-to 11,17 --interact 9,11,17 --interact 9,12,17 --interact 9,13,17 --interact 9,14,17 \
   --walk-to 11,11 --interact 11,11,9 --walk-to 20,17 --craft antorcha \
   --walk-to 20,19 --place antorcha@21,12,21 --walk-to 22,19 --look 180,-15 --screenshot s4-camp.png
@@ -245,15 +190,12 @@ dotnet run --project src/Vocaterra.MonoGame --no-build -- --seed 42 --interact 1
 
 ## Tests
 
-`tests/Vocaterra.MonoGame.Tests` (no GPU, no window, no microphone): the first-person camera (the look vector, MonoGame's view matrix, the plain
-projection), the mesher and the block atlas (faces, winding, shade, UVs, every chunk of the route within the 16-bit limit), the look of S14 (`LookTests`: the code-drawn atlas and its mips, the sun and the ambient occlusion in the vertex colours, the crossed-quad plants and their share, the water's shore and the waterfall, the sky, the clouds, the quality presets and the greyscale switch with the new trees and plants), the beacon's arrow, the
-figure aim, the voxel script steps against a real simulation (walk-to, interact, place, select, craft, the tick limits, determinism), the
-`--talk` / `--say` / `--leave` / `--shot` script (`ScenarioScriptTests`: walk to the stand-off, open, type, send, close, determinism) and the NPC panel (`NpcFrontendTests`), the launch options (`VoxelLaunchOptionsTests`: the steps in order, the screen
-flags, the refusals, `--voxel` accepted and ignored), the word card queue (one at a time, by ticks), the crafting panel's rows, layout and reads,
-the dialogue model and its key repeat, the text box and the accent shortcuts, the push-to-talk state over a fake device, the turn pump against a
-real worker, the accumulator (exact ticks, uneven frames, the cap), the font (every character of the panel's, the HUD's and the bundle's texts is in
-the committed TTF, with the middle dot `·`), and the architecture rules (no engine type in `Frontend/`, no `System.Random`, clock or `Stopwatch`
-outside `FrameClock.cs`, project references only the game layer and the simulation, no engine code in the simulation, the game layer or the host).
+`tests/Vocaterra.Game.Tests` (no GPU, no window, no microphone) tests this project's classes, its folders mirroring the sources': the cameras,
+the meshers and the block atlas (`Graphics/`), the layers' layouts and the font (`UI/`), the session log, the crash handler and the frame timings
+(`Diagnostics/`), the launch options (`Startup/`), the device input and `KeyMap` (`Input/`), and in `Component/` the tests that drive Core's
+classes with this project's (the `*FrontendTests`, the check battery with the real session log). The architecture rules (`Architecture/`): no
+`System.Random`, no `Guid`, no wall clock outside `WallClock.cs` and no `Stopwatch` outside `FrameClock.cs`. The tests of Core's classes are
+in `tests/Vocaterra.Game.Core.Tests`, in the same folders as their classes (R16).
 
 ## Notes
 

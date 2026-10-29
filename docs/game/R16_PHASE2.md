@@ -1,5 +1,9 @@
 # R16 phase 2: moving the engine-free game logic to `Vocaterra.Game.Core`
 
+> **Status: done (2026-10-28, on `feature/game_refactor`).** Batches 1 to 8 are complete; what was done, the seams and the findings are in
+> the R16 phase 2 entry of `docs/game/IMPLEMENTATION_PLAN.md` section 5, and both projects' folders in `docs/game/ARCHITECTURE.md`. The
+> live run by hand (section 7) is left for the owner.
+
 A handover for the agent that takes R16 on (written 2026-10-26, at the end of phase 1, branch `feature/organise`, commit `e5779e9`). Read it
 with `docs/code_guidelines.md` (the owner's rules), `CLAUDE.md` (the machine and repository rules), `docs/game/ARCHITECTURE.md` (the two
 projects and their folders) and the R16 entry of `docs/game/IMPLEMENTATION_PLAN.md` section 5 (what phase 1 did and found).
@@ -121,7 +125,16 @@ They are presentation by the guideline; being engine-free, they stay unit-tested
 | `UI/LessonStrip.cs`, `UI/LessonFrontend.cs` | `LessonStrip` uses `DialoguePanel.EnglishPrefix` (a layer's constant) for its wrapped lines, and holds the strip's layout beside `LessonAction` and `LessonKey` | Move the constant to the model side, split the strip's layout (stays) from `LessonAction`/`LessonKey`/`LessonFrontend` (move) |
 | `UI/Dialogue/ConversationFrame.cs`, `UI/LayerStack.cs` | Drawing | Stay |
 
-### 5.4 Decisions for the owner (ask before batch 5; do not guess)
+### 5.4 Decisions for the owner (answered 2026-10-27; see `GAME_PROJECTS_LAYOUT.md`)
+
+**The owner's answers (2026-10-27):** D-p2-1 **(a)**: `GameKey` and `IInputFrame` in Core, `KeyMap` (`Keys` to `GameKey`) in Game,
+`InputSnapshot` implements `IInputFrame`, and the click hit-tests take a layout delegate from Game instead of a `SpriteFontBase`.
+D-p2-2: the default (`SessionLog`, `CrashHandler`, `WallClock` stay in Game; Core's rule unchanged). D-p2-3: the default (`LaunchOptions`
+stays in Game; the step types go to Core's `Scripted/`; small option records such as `SoundOptions`). D-p2-4: test folders mirror source
+folders now; project names and sentence-style test names stay. Game keeps top-level folders by area with feature subfolders.
+`GAME_PROJECTS_LAYOUT.md` holds the target trees and wins where it differs from 5.1. Work lands on `feature/game_refactor`.
+
+The questions as they were put:
 
 - **D-p2-1, the keys in Core.** (a) Core gets an engine-free key vocabulary: a `GameKey` enum and an input-frame interface (pressed, held,
   Shift, Ctrl, the clicks, the wheel, the pointer on the canvas); Game's `InputSnapshot` implements it with one `Keys` to `GameKey` table. The

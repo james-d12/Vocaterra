@@ -1,0 +1,79 @@
+using Vocaterra.Game.Core.Input;
+using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Tests.TestSupport;
+
+namespace Vocaterra.Game.Core.Tests.Input;
+
+/// <summary>The keys as commands: the world's first applicable key runs (E means three things), the global keys each run, and J and the book item open the same book.</summary>
+public sealed class KeyBindingsTests
+{
+    [Fact]
+    public void JAndTheBookItemBothRunTheOpenBookCommand()
+    {
+        var (commands, ran) = Commands();
+        var world = KeyBindings.World(commands, static () => false, static () => false, static () => false);
+        Assert.True(world.RunFirst(Pressed(GameKey.J)));
+        Assert.Equal(["OpenBook"], ran);
+
+        var book = new ItemStack(ItemId.Book, 1);
+        var rightClick = new TestInputFrame { RightDown = true };
+        Assert.True(BookItemUse.Applies(rightClick, captured: true, bookOpen: false, book));
+        Assert.False(BookItemUse.Applies(rightClick, captured: false, bookOpen: false, book));
+        Assert.False(BookItemUse.Applies(rightClick, captured: true, bookOpen: true, book));
+        Assert.False(BookItemUse.Applies(rightClick, captured: true, bookOpen: false, new ItemStack(ItemId.Wood, 3)));
+        var held = new TestInputFrame { RightDown = true, PreviousRightDown = true };
+        Assert.False(BookItemUse.Applies(held, captured: true, bookOpen: false, book));
+    }
+
+    [Theory]
+    [InlineData(true, false, "TalkTo")]
+    [InlineData(false, true, "OpenCrafting")]
+    [InlineData(false, false, "OpenInventory")]
+    [InlineData(true, true, "TalkTo")]
+    public void ETalksToTheNpcElseOpensTheWorkbenchElseTheInventory(bool aimed, bool atWorkbench, string expected)
+    {
+        var (commands, ran) = Commands();
+        Assert.True(KeyBindings.World(commands, () => aimed, static () => false, () => atWorkbench).RunFirst(Pressed(GameKey.E)));
+        Assert.Equal([expected], ran);
+    }
+
+    [Fact]
+    public void VAndTOnAnNpcListenOrTypeAndOnlyTheFirstApplicableKeyRuns()
+    {
+        var (commands, ran) = Commands();
+        var aimed = KeyBindings.World(commands, static () => true, static () => false, static () => false);
+        Assert.True(aimed.RunFirst(Pressed(GameKey.V, GameKey.T, GameKey.E, GameKey.J)));
+        Assert.True(aimed.RunFirst(Pressed(GameKey.T, GameKey.E)));
+        Assert.Equal(["Listen", "TypeTo"], ran);
+
+        ran.Clear();
+        var away = KeyBindings.World(commands, static () => false, static () => false, static () => false);
+        Assert.False(away.RunFirst(Pressed(GameKey.V)));
+        Assert.False(away.RunFirst(Pressed(GameKey.Enter))); // no tip on screen
+        Assert.Empty(ran);
+    }
+
+    [Fact]
+    public void TheGlobalKeysEachRunAndF3IsOffInAPlaytest()
+    {
+        var (commands, ran) = Commands();
+        KeyBindings.Global(commands, playtest: false).RunEvery(Pressed(GameKey.F5, GameKey.F6, GameKey.F3));
+        Assert.Equal(["ToggleView", "Save", "ToggleDebug"], ran);
+
+        ran.Clear();
+        KeyBindings.Global(commands, playtest: true).RunEvery(Pressed(GameKey.F3, GameKey.F10, GameKey.F9));
+        Assert.Equal(["EndPlaytest", "CycleTextSize"], ran);
+    }
+
+    private static (GameCommands Commands, List<string> Ran) Commands()
+    {
+        var ran = new List<string>();
+        IGameCommand Named(string name) => new DelegateCommand(() => ran.Add(name));
+        return (new GameCommands(
+            Named("ToggleView"), Named("Save"), Named("CycleTextSize"), Named("EndPlaytest"), Named("ToggleDebug"), Named("Listen"), Named("TypeTo"), Named("TalkTo"),
+            Named("OpenControls"), Named("NextTip"), Named("OpenBook"), Named("OpenCrafting"), Named("OpenInventory"), Named("ReleaseMouse")), ran);
+    }
+
+    private static TestInputFrame Pressed(params GameKey[] keys) => TestInputFrame.Pressing(keys);
+
+}

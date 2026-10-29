@@ -68,7 +68,7 @@ facilitator records the build folder's commit in the observer notes.
 The tester runs `./playtest.sh` in that folder. The launcher sets `VOCATERRA_MODELS_DIR` to the folder's own `models/`. If the folder has no
 game in it (not built), the launcher says so and asks for `scripts/playtest-build.sh` first; it does not start.
 
-**A checkout** (for the owner or a developer): `dotnet run --project src/Vocaterra.MonoGame -- --playtest` from the repository root, with
+**A checkout** (for the owner or a developer): `dotnet run --project src/Vocaterra.Game -- --playtest` from the repository root, with
 `VOCATERRA_MODELS_DIR` set. The developer build also carries Kokoro (`--speak`), which the playtest build does not.
 
 **Fresh clone.** A clone needs the .NET 10 SDK, the speech models (`scripts/fetch-models.sh`) and `dotnet build Vocaterra.sln`. The
@@ -207,7 +207,7 @@ the pre- and post-checks, another order), then the thank-you screen, and the gam
 session folder (`~/.local/share/vocaterra/sessions/...`). Use the same build folder and the same bundle: a save made against another bundle
 is refused (the playtest is strict, X01; a plain `--load` would migrate it instead, and a migrated save is not a recall of what the tester learned).
 
-From a checkout: `dotnet run --project src/Vocaterra.MonoGame -- --playtest --load <session folder>/playtest.save`.
+From a checkout: `dotnet run --project src/Vocaterra.Game -- --playtest --load <session folder>/playtest.save`.
 
 ## 9. The A/B arm (`--greyscale`)
 

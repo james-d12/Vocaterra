@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework.Input;
+using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Input;
 
 namespace Vocaterra.Game.Tests.Input;
@@ -41,6 +42,17 @@ public sealed class InputSnapshotTests
     {
         Assert.Equal(-240, Snapshot(new KeyboardState(), mouse: Mouse(wheel: 120), previousWheel: 360).Wheel);
         Assert.Equal(0, Snapshot(new KeyboardState(), mouse: Mouse(wheel: 120), previousWheel: 120).Wheel);
+    }
+
+    [Fact]
+    public void TheFrameAnswersTheGameKeysAsTheEngineKeysOfTheSameNameAndThePointerIsTheMouseOnTheCanvas()
+    {
+        IInputFrame frame = Snapshot(new KeyboardState(Keys.V, Keys.NumPad2), previousKeys: new KeyboardState(Keys.V), mouse: Mouse());
+        Assert.True(frame.Down(GameKey.V));
+        Assert.False(frame.Pressed(GameKey.V));
+        Assert.True(frame.Pressed(GameKey.NumPad2));
+        Assert.False(frame.Down(GameKey.None));
+        Assert.Equal((10, 20), (frame.PointerX, frame.PointerY));
     }
 
     private static InputSnapshot Snapshot(KeyboardState keys, KeyboardState previousKeys = default, MouseState mouse = default, bool previousLeftDown = false, bool previousRightDown = false, int previousWheel = 0) =>

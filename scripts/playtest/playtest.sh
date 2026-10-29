@@ -5,10 +5,10 @@
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 export VOCATERRA_MODELS_DIR="$here/models"
-if [ ! -f "$here/Vocaterra.MonoGame" ]; then
-  echo "playtest.sh: the game (Vocaterra.MonoGame) is not in this folder ($here)." >&2
+if [ ! -f "$here/Vocaterra.Game" ]; then
+  echo "playtest.sh: the game (Vocaterra.Game) is not in this folder ($here)." >&2
   echo "Build this folder with scripts/playtest-build.sh first (run it from the repository with a new, empty folder), then run ./playtest.sh from that folder." >&2
   exit 1
 fi
 cd "$here"
-exec ./Vocaterra.MonoGame --playtest "$@"
+exec ./Vocaterra.Game --playtest "$@"

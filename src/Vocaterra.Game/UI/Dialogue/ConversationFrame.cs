@@ -1,4 +1,6 @@
 using Vocaterra.Game.Graphics;
+using Vocaterra.Game.UI.Common;
+using Vocaterra.Game.UI.Hud;
 
 namespace Vocaterra.Game.UI.Dialogue;
 

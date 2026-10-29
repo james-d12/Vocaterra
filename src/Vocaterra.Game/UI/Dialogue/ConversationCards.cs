@@ -1,3 +1,5 @@
+using Vocaterra.Game.UI.Common;
+
 namespace Vocaterra.Game.UI.Dialogue;
 
 /// <summary>The sizes of the cards of the conversation screen (S22), as requests for <see cref="ConversationLayout"/>, and the head rectangle of a speaker.</summary>

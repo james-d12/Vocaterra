@@ -1,4 +1,4 @@
-using Vocaterra.Game.Core.Utilities;
+using Vocaterra.Game.Core.Mathematics;
 
 namespace Vocaterra.Game.Core.Sound;
 

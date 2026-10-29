@@ -12,7 +12,7 @@
     <ProjectReference Include="../Vocaterra.Nlp.Es/Vocaterra.Nlp.Es.csproj" />
   </ItemGroup>
 
-  <!-- The typed-line call sequence is shared with the guide: Vocaterra.Game (which brings the simulation along, unused by the host). -->
+  <!-- The typed-line call sequence is shared with the guide: Vocaterra.Game.Core (the game's engine-free logic; its world and screens go unused by the host). -->
   <ItemGroup>
     <ProjectReference Include="..\Vocaterra.Game.Core\Vocaterra.Game.Core.csproj" />
   </ItemGroup>

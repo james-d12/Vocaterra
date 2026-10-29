@@ -361,7 +361,7 @@ sim.Step([VoxelCommand.Look(Angles.FromDegrees(90), 0), VoxelCommand.MoveRelativ
 | `BlockRay`, `BlockRayHit`, `LineOfSight` (`Voxel/`) | the 3D DDA: `Cast(grid, body)` or `Cast(grid, eye, yaw, pitch, reach)`; the first block within 4 blocks that is not air and not undergrowth (S14), its face and the cell in front of the face; `LineOfSight.Blocked` (whether a solid block stands between the eye and an NPC) |
 | `Beacon`, `WalkPlanner` (`Navigation/`) | the point the player is sent to, and the scripted walk's A* search over the cells a body can stand in |
 
-Shared with the rest of the game: `WorldRng` (the project's root, the scene's tree scatter), `Inventory` and `ItemDefinition` (three item kinds:
+Shared with the rest of the game: `WorldRng` (in `Mathematics/`, the scene's tree scatter), `Inventory` and `ItemDefinition` (three item kinds:
 `Wood`, `Torch` and `Berry`; the numbers of the 2D kinds retired at S4 are not reused), `Recipe` and `CraftingRules` (a recipe's station is a
 `BlockId`, the workbench `Table`), and `SimulationEvent` (`X, Y, Z, Detail, Amount` and the kinds `PlayerJumped`, `PlayerLanded`, `ItemCrafted`,
 `GatherProgress` 5, `BlockRemoved` 6, `ItemPickedUp` 7, `BlockPlaced` 8). The 2D world (tiles, the generator, the light map, the 2D physics and the

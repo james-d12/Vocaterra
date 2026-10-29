@@ -1,3 +1,5 @@
+using Vocaterra.Game.Core.Mathematics;
+
 namespace Vocaterra.Game.Core.Language.Checks;
 
 /// <summary>When a check battery runs (D-game-10): before the game, right after it, or on a later day.</summary>

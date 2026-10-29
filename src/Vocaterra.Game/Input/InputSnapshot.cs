@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework.Input;
+using Vocaterra.Game.Core.Input;
 
 namespace Vocaterra.Game.Input;
 
@@ -6,7 +7,7 @@ namespace Vocaterra.Game.Input;
 /// The keyboard and the mouse of one frame beside the last frame's (<see cref="InputDevices"/>): what is held, what was pressed this frame, the
 /// clicks and the turn of the wheel. The pointer is on the interface canvas (X08).
 /// </summary>
-public sealed class InputSnapshot
+public sealed class InputSnapshot : IInputFrame
 {
     private readonly KeyboardState _previousKeys;
     private readonly bool _previousLeftDown;
@@ -57,9 +58,21 @@ public sealed class InputSnapshot
     /// <summary>How far the wheel turned since the last frame, in the platform's units (120 a notch on most mice; up is positive).</summary>
     public int Wheel => MouseState.ScrollWheelValue - _previousWheel;
 
+    /// <inheritdoc />
+    public int PointerX => MouseState.X;
+
+    /// <inheritdoc />
+    public int PointerY => MouseState.Y;
+
     /// <summary>Whether <paramref name="key"/> is held.</summary>
     public bool Down(Keys key) => KeyboardState.IsKeyDown(key);
 
     /// <summary>Whether <paramref name="key"/> went down this frame.</summary>
     public bool Pressed(Keys key) => KeyboardState.IsKeyDown(key) && !_previousKeys.IsKeyDown(key);
+
+    /// <inheritdoc />
+    public bool Down(GameKey key) => Down(KeyMap.ToKeys(key));
+
+    /// <inheritdoc />
+    public bool Pressed(GameKey key) => Pressed(KeyMap.ToKeys(key));
 }
