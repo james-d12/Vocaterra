@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/nouns.json",
+  "description": "The noun catalogue: each target-language noun the game names, the item kinds and block kinds it stands for. Loaded by NounCatalog (Vocaterra.Game.Core).",
+  "type": "object",
+  "required": ["schemaVersion", "nouns"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "generated_by": { "type": "string", "description": "Who or what wrote the file (hand-authored)." },
+    "nouns": { "type": "array", "items": { "$ref": "#/definitions/noun" } }
+  },
+  "definitions": {
+    "noun": {
+      "type": "object",
+      "required": ["lemma", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "lemma": { "type": "string", "minLength": 1, "description": "The noun's lemma; the lexicon must have a noun reading of it with a gender." },
+        "items": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/definitions/item" }, "description": "The item kinds the noun names; each item kind belongs to one noun." },
+        "blocks": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/definitions/block" }, "description": "The block kinds the noun names." },
+        "mass": { "type": "boolean", "description": "A mass noun: the checklist shows the lemma, never the plural." },
+        "sources": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "The catalogue nouns this one is gathered from (madera from árbol)." }
+      }
+    },
+    "item": {
+      "description": "An item kind, by its stable name (ItemDefinition).",
+      "enum": ["wood", "torch", "berry", "bottle", "water-bottle", "bread", "book"]
+    },
+    "block": {
+      "description": "A block kind, by its stable name (BlockDefinition).",
+      "enum": [
+        "air", "grass", "dirt", "stone", "sand", "trunk", "leaves", "bush", "berry-bush", "water", "path", "planks", "door", "table", "torch", "stall",
+        "roof", "fence", "wall", "fire-ring", "sign", "bridge", "snow", "spruce-trunk", "birch-trunk", "spruce-leaves", "birch-leaves", "tall-grass",
+        "fern", "reeds", "yellow-flower", "white-flower", "mossy-stone", "cobble", "timber", "lantern", "crate", "awning-red", "awning-white",
+        "canvas", "chest", "farmland", "wheat", "loaves", "apples", "bottles", "sign-tienda-a", "sign-tienda-b", "sign-rio", "sign-montana-a",
+        "sign-montana-b", "post-torch"
+      ]
+    }
+  }
+}

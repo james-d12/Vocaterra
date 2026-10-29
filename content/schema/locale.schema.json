@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "content/locale/<code>/*.json",
+  "description": "One file of a support-language locale (CONTENT_PLAN 3.1): strings by id. Placeholders: {name} filled by the code, {npc:<id>} an NPC's name, {key:<command>} the key bound to a command. A plural is two ids, <id>.one and <id>.other. A verb's forms are an object.",
+  "type": "object",
+  "required": ["strings"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "about": { "type": "string" },
+    "strings": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[A-Za-z0-9_]+([.:-][A-Za-z0-9_áéíóúñü¿¡]+)*$" },
+      "additionalProperties": { "oneOf": [{ "$ref": "#/definitions/text" }, { "$ref": "#/definitions/verbForms" }] }
+    }
+  },
+  "definitions": {
+    "text": { "type": "string", "minLength": 1, "pattern": "\\S" },
+    "verbForms": {
+      "type": "object",
+      "required": ["base"],
+      "additionalProperties": false,
+      "properties": {
+        "base": { "$ref": "#/definitions/text", "description": "The infinitive's gloss (to have)." },
+        "third": { "$ref": "#/definitions/text", "description": "The third person singular (has)." },
+        "past": { "$ref": "#/definitions/text", "description": "The past (had)." }
+      }
+    }
+  }
+}

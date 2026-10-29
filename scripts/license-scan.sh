@@ -2,8 +2,9 @@
 # Checks the license of every NuGet package in Vocaterra.Nlp.slnf (direct and transitive). Prints a table and exits 1 when a
 # package is GPL/LGPL/AGPL/SSPL, is not on scripts/license-allowlist.txt, or has no license that can be determined.
 #
-# Usage: scripts/license-scan.sh [--offline] [-h|--help]
+# Usage: scripts/license-scan.sh [--offline] [--target <sln|slnf|csproj>] [-h|--help]
 #   --offline   read license metadata only from the local NuGet cache (${NUGET_PACKAGES:-~/.nuget/packages}); no network calls
+#   --target    scan another solution or project instead of Vocaterra.Nlp.slnf (the gate also scans the content schema test's project, C01)
 #
 # Per package, the cached .nuspec is read first (<license type="expression">, then a licenseUrl that names an SPDX id). Unless
 # --offline is given, packages still without a license are looked up in the NuGet registration API (licenseExpression, then a
@@ -20,8 +21,9 @@ overrides="$script_dir/license-overrides.txt"
 
 usage() {
   cat <<'EOF'
-Usage: scripts/license-scan.sh [--offline] [-h|--help]
+Usage: scripts/license-scan.sh [--offline] [--target <sln|slnf|csproj>] [-h|--help]
   --offline   read license metadata only from the local NuGet cache (${NUGET_PACKAGES:-~/.nuget/packages}); no network calls
+  --target    the solution or project to scan (default: Vocaterra.Nlp.slnf, the core)
   Reviewed per-version entries in scripts/license-overrides.txt apply only when the metadata names no license.
 
 Exit status: 0 when every package passes, 1 when any package fails or has an unknown license, 2 on usage or tool errors.
@@ -29,9 +31,15 @@ EOF
 }
 
 offline=0
-for arg in "$@"; do
+while [ "$#" -gt 0 ]; do
+  arg="$1"; shift
   case "$arg" in
     --offline) offline=1 ;;
+    --target)
+      [ "$#" -gt 0 ] || { printf 'error: --target needs a path\n' >&2; usage >&2; exit 2; }
+      case "$1" in /*) solution="$1" ;; *) solution="$repo_root/$1" ;; esac
+      shift
+      ;;
     -h | --help)
       usage
       exit 0

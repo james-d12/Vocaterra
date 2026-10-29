@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/checks.json",
+  "description": "The check battery (pre, post and recall): comprehension items (hear a line, pick its meaning) and production items (say a phrase for a situation). Loaded by CheckBank (Vocaterra.Game.Core).",
+  "type": "object",
+  "required": ["schemaVersion", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "enum": [1] },
+    "about": { "type": "string" },
+    "items": { "type": "array", "minItems": 1, "items": { "$ref": "#/definitions/item" } }
+  },
+  "definitions": {
+    "item": {
+      "type": "object",
+      "required": ["id", "kind", "phrase"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "description": "A stable id; the session log and the saves name it." },
+        "kind": { "enum": ["comprehension", "production"] },
+        "phrase": { "type": "string", "minLength": 1, "description": "The phrase-sheet row the item checks." },
+        "line": { "type": "string", "minLength": 1, "description": "comprehension: the speech line played." },
+        "spanish": { "type": "string", "description": "comprehension: the line's text, shown after the answer." },
+        "question": { "type": "string", "description": "comprehension: the question in the support language." },
+        "options": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "required": ["label"],
+            "additionalProperties": false,
+            "properties": {
+              "label": { "type": "string", "minLength": 1 },
+              "icon": { "type": "string", "minLength": 1, "description": "A noun whose icon is drawn on the option." }
+            }
+          },
+          "description": "comprehension: three options."
+        },
+        "correct": { "type": "integer", "minimum": 0, "maximum": 2, "description": "comprehension: the index of the right option." },
+        "situation": { "type": "string", "minLength": 1, "description": "production: the situation in the support language." },
+        "prompt": { "type": "string", "minLength": 1, "description": "production: the bundle prompt the answer is graded at." },
+        "intent": { "type": "string", "minLength": 1, "description": "production: the intent a right answer has." }
+      },
+      "allOf": [
+        { "if": { "properties": { "kind": { "enum": ["comprehension"] } } }, "then": { "required": ["line", "spanish", "question", "options", "correct"] } },
+        { "if": { "properties": { "kind": { "enum": ["production"] } } }, "then": { "required": ["situation", "prompt", "intent"] } }
+      ]
+    }
+  }
+}

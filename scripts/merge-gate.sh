@@ -8,8 +8,8 @@
 # set), the format check, the game bundle validation and the core's offline licence scan. Every check's log is kept under .claude/gate-logs/
 # so that an intermittent failure can be identified afterwards. Exit status is 0 only when every merge succeeded and every check passed.
 #
-# The licence scan (scripts/license-scan.sh) covers Vocaterra.Nlp.slnf (the core projects) and everything they pull in; the game's own
-# third-party packages (MonoGame, FontStashSharp) are not in it.
+# The licence scan (scripts/license-scan.sh) covers Vocaterra.Nlp.slnf (the core projects) and everything they pull in, and the content schema
+# test's project (tests/Vocaterra.Game.Core.Tests, with NJsonSchema); the game's own third-party packages (MonoGame, FontStashSharp) are not in it.
 set -uo pipefail
 if [ -d "$HOME/.dotnet" ]; then export DOTNET_ROOT="$HOME/.dotnet"; export PATH="$HOME/.dotnet:$PATH"; fi
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -99,6 +99,9 @@ LICENSELOG=".claude/gate-logs/license-$STAMP.log"
 "$L" bash scripts/license-scan.sh --offline > "$LICENSELOG" 2>&1
 license_rc=$?
 tail -1 "$LICENSELOG"
+# The content schema test's project (CONTENT_PLAN C01) is scanned too: it is the one game test project with a package of its own (NJsonSchema).
+{ echo "=== tests/Vocaterra.Game.Core.Tests"; "$L" bash scripts/license-scan.sh --offline --target tests/Vocaterra.Game.Core.Tests/Vocaterra.Game.Core.Tests.csproj; } >> "$LICENSELOG" 2>&1 || license_rc=1
+echo "licence scan (Game.Core.Tests): $(tail -1 "$LICENSELOG")"
 
 ok=1
 [ "$build_rc" -eq 0 ] || ok=0
