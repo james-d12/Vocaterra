@@ -1471,6 +1471,18 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - The old `english.json` held one orphan gloss, "Necesitas una botella.".
   - **Disk:** the stale `game/` and `nlp/` build output of the main checkout (4.5 GB from before R01) was deleted.
 
+- **C05, C06 and C08: the game's words, one trigger model and the NPCs as data (2026-10-29, Opus 5.5; gated on `feature/content` at `19a328e`).**
+  - **Gate:** 5520 passed, 3 skipped, 0 failed, with the models; the build has 0 warnings; format, content, grammar and both licence scans are
+    clean. That is 38 new tests, all in Game.Core (1243 to 1281).
+  - **Scripted runs.** After C05 all 16 runs are the same as after C03. After C06 they differ only by the new `torch_at_ring` lines in
+    `session.jsonl` and `stdout.txt` (r01: one, at the camp's ring; r10: two, the camp's and the player's).
+  - **Found:**
+    - The beacon on a non-guide NPC showed the raw agent id (`shopkeeper`); it now shows the NPC's label (`Tendero`).
+    - The four scaffolded phrases were wired into `PhraseProgress` itself; they now come from the NPCs' `focus`, so a test that builds a
+      progress passes them in.
+    - The NPCs' labels and names were not grammar-checked; they are now (4 strings, clean). C05's 26 words gave 5 capitalisation infos on
+      fragments, none an error.
+
 ## 6. Definition of done (every milestone)
 
 1. `dotnet build Vocaterra.sln -warnaserror` with 0 warnings and `dotnet test Vocaterra.sln` green, with the test count in the report.
