@@ -23,8 +23,8 @@ public enum SessionStage
 }
 
 /// <summary>
-/// The keys of the speech buttons and of the hold-to-talk hint as the English text knows them (S17): <see cref="GuideSession.ButtonEnglishUp"/> says whether the
-/// English next to one is drawn, and <see cref="LocaleText.ButtonSupport"/> gives it.
+/// The keys of the speech buttons and of the hold-to-talk hint as the support language knows them (S17): <see cref="GuideSession.ButtonEnglishUp"/> says whether the
+/// support language next to one is drawn, and <see cref="Content.LocaleText.ButtonSupport"/> gives it.
 /// </summary>
 public static class SpeechButtonKeys
 {

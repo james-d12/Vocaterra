@@ -98,7 +98,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
             Assert.Equal(lesson.NpcOf(step), step.Line!.Speaker);
         }
 
-        var all = string.Join(" ", lesson.Steps.Select(static s => s.Locale + " " + s.Line?.Text));
+        var all = string.Join(" ", lesson.Steps.Select(static s => s.English + " " + s.Line?.Text));
         Assert.DoesNotContain("vosotros", all, StringComparison.OrdinalIgnoreCase);
         foreach (var time in new[] { "ayer", "hoy", "mañana" })
         {
@@ -623,7 +623,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     public void TheLessonsEnglishNeverHandsOverVosotrosAndNamesTheFormsItDeclares()
     {
         var lesson = Book.Find(LessonId)!;
-        var text = string.Join(" ", lesson.Steps.Select(static s => s.Locale));
+        var text = string.Join(" ", lesson.Steps.Select(static s => s.English));
 
         foreach (var form in new[] { "voy", "vas", "va", "vamos", "van", "comí", "comiste", "bebí", "bebiste", "fui", "fuiste" })
         {

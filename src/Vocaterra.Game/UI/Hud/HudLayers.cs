@@ -13,7 +13,7 @@ namespace Vocaterra.Game.UI.Hud;
 /// <summary>
 /// The camp checklist, top right: <c>Campamento (camp): madera (wood) 0/5 · frutas (fruit) 0/3 · antorcha (torch) 0/1 · agua (water) 0/1</c> (S16, D-game-13).
 /// A done step is drawn in green, an open one in white, the title in gold and the English in its own colour; the English of a step goes once its noun is known
-/// (D-game-6) and the title's once every step's has. The text comes from <see cref="LocaleText.ObjectivePieces"/>, so the line is the one the content gives; a line
+/// (D-game-6) and the title's once every step's has. The text comes from <see cref="Core.Content.LocaleText.ObjectivePieces"/>, so the line is the one the content gives; a line
 /// wider than the window's share wraps to a second row, the title first.
 /// </summary>
 public sealed class ObjectiveLayer : IFrameLayer

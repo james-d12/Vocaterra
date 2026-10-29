@@ -1,6 +1,5 @@
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Core.World.Layout;
 
 namespace Vocaterra.Game.Core.Tests.Content;
@@ -14,7 +13,7 @@ public sealed class GameDataTests
     [Fact]
     public void TheBundlesContentLoadsAndHoldsTogether()
     {
-        var data = GameData.Load(TestGame.Bundle);
+        var data = GameData.Load(TestGame.Bundle, TestGame.Locale);
 
         Assert.Empty(GameDataValidator.Validate(data));
         Assert.Equal(19, data.Nouns.Nouns.Count);
@@ -46,20 +45,20 @@ public sealed class GameDataTests
     [Fact]
     public void EveryProblemIsReportedAtOnceWithItsFile()
     {
-        // Two problems in the English text and one in the scene, which the lessons at the villager feel too: every one is listed, in the files' order.
-        var json = File.ReadAllText(Repo.Path("content", "game-v1", "game", "english.json"))
-            .Replace("\"hola\": \"Say this", "\"hola-x\": \"Say this", StringComparison.Ordinal)
-            .Replace("\"npcNames\": {", "\"npcNames\": { \"innkeeper\": \"The innkeeper\",", StringComparison.Ordinal);
+        // A missing phrase explanation in the locale and a scene that places another NPC, which the lessons at the villager feel too: every problem is
+        // listed, in the files' order.
+        var files = Directory.GetFiles(Repo.Path("content", "locale", "en"), "*.json").Order(StringComparer.Ordinal)
+            .Select(static f => (Path.GetFileName(f), File.ReadAllText(f).Replace("\"phrase.hola.explain\":", "\"phrase.hola-x.explain\":", StringComparison.Ordinal)));
         var scene = File.ReadAllText(Repo.Path("content", "game-v1", "game", "scene.json"))
             .Replace("\"name\": \"villager\"", "\"name\": \"miller\"", StringComparison.Ordinal);
-        var data = TestGame.Data.WithEnglish(LocaleText.Parse(json)).WithScene(SceneLayout.Parse(scene));
+        var data = TestGame.Data.WithLocale(LocaleText.Parse("en", "h", files)).WithScene(SceneLayout.Parse(scene));
 
         var problems = GameDataValidator.Validate(data);
 
         Assert.Collection(
             problems,
-            static p => Assert.Equal("game/english.json: the explanation names the phrase 'hola-x', which is not in the phrase sheet.", p),
-            static p => Assert.StartsWith("game/english.json: npcNames names 'innkeeper'", p, StringComparison.Ordinal),
+            static p => Assert.Equal("locale en: the string 'phrase.hola.explain' is missing.", p),
+            static p => Assert.Equal("locale en: the string 'phrase.hola-x.explain' is asked for by no content or code (an orphan).", p),
             static p => Assert.StartsWith("game/scene.json: the scene places the NPC 'miller'", p, StringComparison.Ordinal),
             static p => Assert.Equal("game/scene.json: the scene does not place the NPC 'villager'.", p),
             static p => Assert.Equal("game/lessons.json: the lesson 'personas' is said at 'villager', whom the scene does not place.", p),

@@ -34,7 +34,7 @@ public sealed class ShippedLessonTests(ITestOutputHelper output)
         Assert.Null(session.Review);
         Assert.Equal(SessionStage.FindGuide, session.Stage);
         Assert.Empty(session.Events.OfType<PhraseUse>());
-        Assert.Equal("start", session.Locale.Tips[0].When); // the opening is the English tips (the first is "look")
+        Assert.Equal("start", session.Data.Tips[0].When); // the opening is the support-language tips (the first is "look")
     }
 
     [Fact]

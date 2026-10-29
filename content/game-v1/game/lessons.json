@@ -1,14 +1,11 @@
 {
   "$schema": "../../schema/lessons.schema.json",
   "schemaVersion": 1,
-  "about": "The guide's lessons (S16, S17): data the lesson runner walks the learner through, attached to an NPC. Step types: explain, model, listen, repeat, answer, do, recap (see LessonBook for the fields of each; a do step may name a noun to point the beacon at). Every step has a skip and a help path; a failed or uncertain turn moves on after the step's attempts (fail-forward, D-game-9). Lines are pre-rendered speech ids (speech/<id>.wav); phrases are rows of content/PHRASES.md; a repeat or answer step's prompt must allow the phrase's intent. S17 retired the two-step sample: this is the guide's first lesson, six short units (about eight minutes), and it starts by itself when the player first talks to her. The English thins from a phrase's second use. S26 (verbs): a lesson may carry session (the play session it unlocks in), objective (the English line that names it) and verbs (the forms it teaches: lemma, person, number, tense); a step may carry npc (the lesson moves from the villager to the shopkeeper); a do step may wait for talk_opened at an npc.",
+  "about": "The guide's lessons (S16, S17): data the lesson runner walks the learner through, attached to an NPC. Step types: explain, model, listen, repeat, answer, do, recap (see LessonBook for the fields of each; a do step may name a noun to point the beacon at). Every step has a skip and a help path; a failed or uncertain turn moves on after the step's attempts (fail-forward, D-game-9). Lines are pre-rendered speech ids (speech/<id>.wav); phrases are rows of content/PHRASES.md; a repeat or answer step's prompt must allow the phrase's intent. S17 retired the two-step sample: this is the guide's first lesson, six short units (about eight minutes), and it starts by itself when the player first talks to her. The English thins from a phrase's second use. S26 (verbs): a lesson may carry session (the play session it unlocks in; its objective line is the locale's) and verbs (the forms it teaches: lemma, person, number, tense); a step may carry npc (the lesson moves from the villager to the shopkeeper); a do step may wait for talk_opened at an npc. The lessons' text (titles, the steps' words, translations, hints and options) is the locale's (content/locale/<code>/lessons.json, lesson.<id>.*) since C03.",
   "lessons": [
     {
       "id": "first-words",
       "npc": "guide",
-      "title": "First words with Luna",
-      "english": "Seven short units: hello, yes and no, what is this, please and thank you, I and you with three verbs, getting unstuck, and what the camp needs.",
-      "summary": "You can greet, say yes and no, ask what something is, be polite, and say what you want, have and need.",
       "autoStart": true,
       "verbs": [
         {
@@ -51,206 +48,144 @@
       "steps": [
         {
           "id": "u1-welcome",
-          "type": "explain",
-          "english": "This is Luna, the guide. She teaches you Spanish one phrase at a time. Nothing here is a test. Enter goes on, H helps, K skips a step."
+          "type": "explain"
         },
         {
           "id": "u1-hello",
           "type": "model",
-          "line": "guide.lesson.hello.1",
-          "translation": "Hello.",
-          "english": "Luna waves and says hello."
+          "line": "guide.lesson.hello.1"
         },
         {
           "id": "u1-say-hola",
           "type": "repeat",
           "phrase": "hola",
-          "prompt": "lesson-hello",
-          "english": "Say hello back: “Hola” (OH-lah). Hold V to speak into the microphone, or press W to type.",
-          "help": "Say: Hola (OH-lah). It means hello. The letter h is silent in Spanish.",
-          "retry": "Not quite. Say: Hola. It means hello."
+          "prompt": "lesson-hello"
         },
         {
           "id": "u1-name",
           "type": "model",
-          "line": "guide.lesson.name.1",
-          "translation": "My name is Luna.",
-          "english": "Luna tells you her name. “Me llamo” means “my name is”. You only need to understand this one, not say it."
+          "line": "guide.lesson.name.1"
         },
         {
           "id": "u2-intro",
-          "type": "explain",
-          "english": "Next: yes and no. Luna holds things up and asks about them. Answer “Sí” for yes or “No” for no."
+          "type": "explain"
         },
         {
           "id": "u2-ask-wood",
           "type": "model",
-          "line": "guide.lesson.is_wood.1",
-          "translation": "Is it wood?",
-          "english": "Luna holds up a log of wood and asks if it is wood. “Madera” means wood."
+          "line": "guide.lesson.is_wood.1"
         },
         {
           "id": "u2-yes",
           "type": "repeat",
           "phrase": "si",
-          "prompt": "lesson-yesno",
-          "english": "It is wood, so the answer is yes. Say “Sí” (SEE).",
-          "help": "Say: Sí (SEE). It means yes. It is written sí, with an accent; si without the accent means “if”.",
-          "retry": "Not quite. It is wood, so say: Sí."
+          "prompt": "lesson-yesno"
         },
         {
           "id": "u2-no",
           "type": "answer",
           "phrase": "no",
           "prompt": "lesson-yesno",
-          "line": "guide.lesson.is_water.1",
-          "translation": "Is it water?",
-          "english": "She holds up the same log and asks if it is water. It is not: answer “No”.",
-          "help": "Say: No. It means no.",
-          "retry": "Not quite. A log is not water, so say: No."
+          "line": "guide.lesson.is_water.1"
         },
         {
           "id": "u3-intro",
-          "type": "explain",
-          "english": "Now ask what things are. “¿Qué es esto?” means “What is this?”. Luna points at something and names it."
+          "type": "explain"
         },
         {
           "id": "u3-ask-1",
           "type": "repeat",
           "phrase": "que-es-esto",
-          "prompt": "lesson-what",
-          "english": "Luna points at a log. Ask her: “¿Qué es esto?” (keh ehs EHS-toh).",
-          "help": "Say: ¿Qué es esto? It means what is this?",
-          "retry": "Not quite. Say: ¿Qué es esto?"
+          "prompt": "lesson-what"
         },
         {
           "id": "u3-is-1",
           "type": "model",
-          "line": "guide.lesson.it_is.1",
-          "translation": "This is wood.",
-          "english": "“Esto es” means “this is”. “Madera” is wood."
+          "line": "guide.lesson.it_is.1"
         },
         {
           "id": "u3-ask-2",
           "type": "answer",
           "phrase": "que-es-esto",
           "prompt": "lesson-what",
-          "line": "guide.lesson.look.1",
-          "translation": "Look.",
-          "english": "Luna points at some fruit. Ask again.",
-          "help": "Say: ¿Qué es esto?",
-          "retry": "Not quite. Say: ¿Qué es esto?"
+          "line": "guide.lesson.look.1"
         },
         {
           "id": "u3-is-2",
           "type": "model",
-          "line": "guide.lesson.it_is.2",
-          "translation": "This is a fruit.",
-          "english": "“Una fruta” is “a fruit”: una means a. Madera and agua need no una, just like wood and water in English."
+          "line": "guide.lesson.it_is.2"
         },
         {
           "id": "u3-ask-3",
           "type": "answer",
           "phrase": "que-es-esto",
           "prompt": "lesson-what",
-          "line": "guide.lesson.look.1",
-          "translation": "Look.",
-          "english": "Luna holds up a bottle of water.",
-          "help": "Say: ¿Qué es esto?",
-          "retry": "Say: ¿Qué es esto?"
+          "line": "guide.lesson.look.1"
         },
         {
           "id": "u3-is-3",
           "type": "model",
-          "line": "guide.lesson.it_is.3",
-          "translation": "This is water.",
-          "english": "Agua is water."
+          "line": "guide.lesson.it_is.3"
         },
         {
           "id": "u3-bottle",
           "type": "model",
-          "line": "guide.lesson.it_is.4",
-          "translation": "This is a bottle.",
-          "english": "She taps the bottle: botella."
+          "line": "guide.lesson.it_is.4"
         },
         {
           "id": "u4-intro",
-          "type": "explain",
-          "english": "Good manners. When someone offers you something, “Sí, por favor” means “yes, please”, and “Gracias” means “thank you”."
+          "type": "explain"
         },
         {
           "id": "u4-offer",
           "type": "model",
-          "line": "guide.lesson.offer.1",
-          "translation": "Would you like some fruit?",
-          "english": "Luna offers you some fruit. “¿Quieres…?” means “do you want…?”."
+          "line": "guide.lesson.offer.1"
         },
         {
           "id": "u4-yes",
           "type": "repeat",
           "phrase": "si-por-favor",
-          "prompt": "lesson-offer",
-          "english": "You would like some. Say: “Sí, por favor” (SEE, por fah-VOR).",
-          "help": "Say: Sí, por favor. It means yes, please.",
-          "retry": "Not quite. Say: Sí, por favor."
+          "prompt": "lesson-offer"
         },
         {
           "id": "u4-take",
           "type": "model",
-          "line": "guide.lesson.take.1",
-          "translation": "Take a fruit.",
-          "english": "Luna nods at the berry bushes. You pick the fruit yourself."
+          "line": "guide.lesson.take.1"
         },
         {
           "id": "u4-pick",
           "type": "do",
           "event": "item_picked_up",
           "detail": "fruta",
-          "point": "fruta",
-          "hud": "Pick a fruit from a berry bush, then go back to Luna",
-          "english": "Press Esc to close this panel. Aim the dot at a berry bush (the arrow shows one) and hold the left mouse button to pick a fruit. Then walk back to Luna and press E.",
-          "help": "A berry bush is a green bush with red berries. Hold the left mouse button until the fruit drops into your bar."
+          "point": "fruta"
         },
         {
           "id": "u4-thanks",
           "type": "answer",
           "phrase": "gracias",
           "prompt": "lesson-thanks",
-          "line": "guide.lesson.have.1",
-          "translation": "Very good! You have a fruit.",
-          "english": "You have the fruit. Thank Luna: say “Gracias” (GRAH-see-ahs).",
-          "help": "Say: Gracias. It means thank you.",
-          "retry": "Not quite. Say: Gracias. It means thank you."
+          "line": "guide.lesson.have.1"
         },
         {
           "id": "u4-welcome",
           "type": "model",
-          "line": "guide.lesson.welcome.1",
-          "translation": "You are welcome.",
-          "english": "“De nada” is the polite answer to “gracias”."
+          "line": "guide.lesson.welcome.1"
         },
         {
           "id": "u4v-intro",
-          "type": "explain",
-          "english": "Spanish verbs change their ending for who does them. For “I” (yo) the ending is -o; for “you” (tú) it is -as or -es: “quiero” is “I want”, “quieres” is “you want”. Some verbs also change in the middle: “tienes” (you have), but “tengo” (I have). Luna asks about you; answer about yourself, with -o."
+          "type": "explain"
         },
         {
           "id": "u4v-ask-want",
           "type": "model",
-          "line": "guide.lesson.want.1",
-          "translation": "What do you want?",
-          "english": "Luna asks what you want. “Quieres” is “you want”: the ending -es is for you."
+          "line": "guide.lesson.want.1"
         },
         {
           "id": "u4v-say-want",
           "type": "repeat",
           "phrase": "quiero-madera",
           "prompt": "lesson-want",
-          "english": "You want wood. Say it: “Quiero madera” (kee-EH-roh mah-DEH-rah). “Quiero” is “I want”: the ending -o is for I.",
-          "help": "Say: Quiero madera. It means I want wood.",
-          "retry": "Not quite. Say: Quiero madera.",
-          "person": "1sg",
-          "personRetry": "Answer about yourself: the ending -o, like “quiero”, “tengo”, “necesito”."
+          "person": "1sg"
         },
         {
           "id": "u4v-ask-have",
@@ -258,12 +193,7 @@
           "phrase": "tengo-fruta",
           "prompt": "lesson-have",
           "line": "guide.lesson.have_fruit.1",
-          "translation": "Do you have a fruit?",
-          "english": "Luna asks if you have a fruit: “tienes” is “you have”. You do: say “Tengo una fruta”. Tener changes in the middle: tienes, but tengo.",
-          "help": "Say: Tengo una fruta. It means I have a fruit. Tengo is I have; tienes is you have.",
-          "retry": "Not quite. Say: Tengo una fruta.",
-          "person": "1sg",
-          "personRetry": "Answer about yourself: the ending -o, like “quiero”, “tengo”, “necesito”."
+          "person": "1sg"
         },
         {
           "id": "u4v-ask-need",
@@ -271,97 +201,62 @@
           "phrase": "necesito-agua",
           "prompt": "lesson-need",
           "line": "guide.lesson.need.1",
-          "translation": "What do you need?",
-          "english": "Now she asks what you need. Answer about yourself, with the -o ending: “Necesito agua”.",
-          "help": "Say: Necesito agua. It means I need water.",
-          "retry": "Not quite. Say: Necesito agua.",
-          "person": "1sg",
-          "personRetry": "Answer about yourself: the ending -o, like “quiero”, “tengo”, “necesito”."
+          "person": "1sg"
         },
         {
           "id": "u5-intro",
-          "type": "explain",
-          "english": "Everyone gets stuck. Three phrases help: “No sé” (I don't know), “Otra vez, por favor” (again, please) and “Más despacio, por favor” (more slowly, please). The buttons R, S and N do the same."
+          "type": "explain"
         },
         {
           "id": "u5-quiz",
           "type": "answer",
           "phrase": "no-se",
           "prompt": "lesson-unstuck",
-          "line": "guide.review.ask.1",
-          "translation": "Look. What is this?",
-          "english": "Luna points at something new. You don't know the word yet, so say “No sé” (noh SEH). It is never wrong.",
-          "help": "Say: No sé. It means I don't know.",
-          "retry": "Say: No sé. It means I don't know."
+          "line": "guide.review.ask.1"
         },
         {
           "id": "u5-answer",
           "type": "model",
-          "line": "guide.lesson.it_is.7",
-          "translation": "This is a stone.",
-          "english": "When you say “No sé”, Luna tells you the answer."
+          "line": "guide.lesson.it_is.7"
         },
         {
           "id": "u5-fast",
           "type": "model",
-          "line": "guide.lesson.fast.1",
-          "translation": "Look. The wood is for the torch.",
-          "english": "Luna says something longer. Did you catch it?"
+          "line": "guide.lesson.fast.1"
         },
         {
           "id": "u5-again",
           "type": "repeat",
           "phrase": "otra-vez",
-          "prompt": "lesson-unstuck",
-          "english": "Ask her to say it again: “Otra vez, por favor” (OH-trah behs, por fah-VOR). She will repeat her last line.",
-          "help": "Say: Otra vez, por favor. It means again, please.",
-          "retry": "Not quite. Say: Otra vez, por favor."
+          "prompt": "lesson-unstuck"
         },
         {
           "id": "u5-slow",
           "type": "repeat",
           "phrase": "mas-despacio",
-          "prompt": "lesson-unstuck",
-          "english": "Now ask for it more slowly: “Más despacio, por favor” (mahs dehs-PAH-syoh). She will say it slowly.",
-          "help": "Say: Más despacio, por favor. It means more slowly, please.",
-          "retry": "Not quite. Say: Más despacio, por favor."
+          "prompt": "lesson-unstuck"
         },
         {
           "id": "u6-task",
           "type": "listen",
           "line": "guide.lesson.task.1",
-          "translation": "You need wood and fruit.",
-          "english": "Luna explains what the camp needs. What does she say?",
-          "options": [
-            "You need wood and fruit.",
-            "You need water and bread.",
-            "You need a torch and a bottle."
-          ],
-          "correct": 0,
-          "help": "“Necesitas” is “you need”. “Madera” is wood and “frutas” is fruit.",
-          "retry": "Not quite. Listen again: madera and frutas."
+          "correct": 0
         },
         {
           "id": "u6-explain",
-          "type": "explain",
-          "english": "Your list is at the top right. Hold the left mouse button on trees and bushes to collect wood and fruit, make a torch at the workbench (press E) and set it on the fire ring. The village has water."
+          "type": "explain"
         },
         {
           "id": "u6-recap",
-          "type": "recap",
-          "english": "You can already say or understand all of this."
+          "type": "recap"
         }
       ]
     },
     {
       "id": "personas",
       "npc": "villager",
-      "title": "Personas: he, she, we, they",
-      "english": "Session 2: the verbs for he, she, you (polite), we, you all and they, with the villager and the shopkeeper.",
-      "summary": "You can say what she wants and what we need or want, and you know he, she, we and they.",
       "autoStart": true,
       "session": 2,
-      "objective": "Session 2: go to the village and talk to the villager to start the lesson “Personas”",
       "verbs": [
         {
           "lemma": "querer",
@@ -439,8 +334,7 @@
       "steps": [
         {
           "id": "p1-intro",
-          "type": "explain",
-          "english": "Session 2: more people. You know “I” (yo) and “you” (tú). Now: he or she (él, ella), we (nosotros) and they (ellos). The verb ending changes with the person. First a reminder from last time: “Quiero madera” (I want wood). The villager helps first, then you talk to the shopkeeper at the stall. Enter goes on, H helps, K skips a step."
+          "type": "explain"
         },
         {
           "id": "p1-recall",
@@ -448,49 +342,33 @@
           "phrase": "quiero-madera",
           "prompt": "lesson-want",
           "line": "guide.lesson.villager.want.1",
-          "translation": "What do you want?",
-          "english": "He asks you what you want, with “tú” as Luna did. Answer about yourself.",
-          "help": "Say: Quiero madera. It means I want wood. Quieres is you want; quiero is I want.",
-          "retry": "Not quite. Say: Quiero madera.",
-          "person": "1sg",
-          "personRetry": "Answer about yourself: the ending -o, like “quiero”, “tengo”, “necesito”."
+          "person": "1sg"
         },
         {
           "id": "p1-she-is",
           "type": "model",
-          "line": "guide.lesson.villager.she.1",
-          "translation": "Luna is the guide. She is my friend.",
-          "english": "The villager is talking about Luna. “Ella” is “she” and “es” is “is”."
+          "line": "guide.lesson.villager.she.1"
         },
         {
           "id": "p1-ask-luna",
           "type": "model",
-          "line": "guide.lesson.villager.luna.1",
-          "translation": "What does Luna want?",
-          "english": "He asks what Luna wants. “Quiere” is “he or she wants”. For he or she the ending is -e or -a (quiere, necesita), with no -s."
+          "line": "guide.lesson.villager.luna.1"
         },
         {
           "id": "p1-say-she",
           "type": "repeat",
           "phrase": "ella-quiere-fruta",
           "prompt": "lesson-she",
-          "english": "Say what she wants: “Ella quiere fruta” (EH-yah kee-EH-reh FROO-tah).",
-          "help": "Say: Ella quiere fruta. It means she wants fruit. Ella is she, so quiere ends in -e.",
-          "retry": "Not quite. Say: Ella quiere fruta.",
-          "person": "3sg",
-          "personRetry": "Say it about her: the ending -e, like “quiere”, with no -s."
+          "person": "3sg"
         },
         {
           "id": "p2-intro",
-          "type": "explain",
-          "english": "Now “we”: nosotros. The ending is -amos or -emos: necesitamos (we need), queremos (we want), tenemos (we have). No -ie- for we: quiero, but queremos."
+          "type": "explain"
         },
         {
           "id": "p2-go",
           "type": "model",
-          "line": "guide.lesson.villager.go.1",
-          "translation": "Let's go to the shop.",
-          "english": "“Vamos” is “we go” (the verb ir, which does not follow the pattern). Said alone, it means “let's go”. He wants to go to the stall with you."
+          "line": "guide.lesson.villager.go.1"
         },
         {
           "id": "p2-ask-we",
@@ -498,65 +376,36 @@
           "phrase": "necesitamos-agua",
           "prompt": "lesson-we",
           "line": "guide.lesson.villager.we.1",
-          "translation": "What do we need?",
-          "english": "On the way, he asks what the two of you need. Water is on your list. Answer with “we”: “Necesitamos agua”.",
-          "help": "Say: Necesitamos agua. It means we need water.",
-          "retry": "Not quite. Say: Necesitamos agua.",
-          "person": "1pl",
-          "personRetry": "Say it for the two of you: the ending -amos or -emos, like “necesitamos”, “queremos”."
+          "person": "1pl"
         },
         {
           "id": "p2-they",
           "type": "listen",
           "line": "guide.lesson.villager.they.1",
-          "translation": "They have bread.",
-          "english": "He points at the houses of the village. Now “they”: ellos. The ending is -an or -en: tienen (they have). What does he say?",
-          "options": [
-            "They have bread.",
-            "We have bread.",
-            "She has bread."
-          ],
-          "correct": 0,
-          "help": "“Ellos” is they, and “tienen” is they have.",
-          "retry": "Not quite. Listen again: ellos tienen."
+          "correct": 0
         },
         {
           "id": "p2-be",
           "type": "model",
-          "line": "guide.lesson.villager.be.1",
-          "translation": "You and I are friends.",
-          "english": "“Somos” is “we are”: tú y yo (you and I) make nosotros. Somos is from ser, “to be”, which does not follow the pattern."
+          "line": "guide.lesson.villager.be.1"
         },
         {
           "id": "p2-where",
           "type": "listen",
           "line": "guide.lesson.villager.where.1",
-          "translation": "She is at the camp.",
-          "options": [
-            "She is at the camp.",
-            "We are at the camp.",
-            "They are at the camp."
-          ],
-          "correct": 0,
-          "english": "Where is Luna? “Está” is “is” (estar), as in “¿Dónde está el río?”. Estar is “to be” for where someone is; ser (es, somos) is for what someone is. What does he say?",
-          "help": "“Ella está” is she is.",
-          "retry": "Not quite. Listen again: ella está."
+          "correct": 0
         },
         {
           "id": "p2-walk",
           "type": "do",
           "at": "shopkeeper",
           "event": "talk_opened",
-          "point": "tienda",
-          "hud": "Walk to the stall and talk to the shopkeeper",
-          "english": "Press Esc to close this panel. Walk to the stall (the arrow shows it) and press E to talk to the shopkeeper.",
-          "help": "The stall is the one with the red and white awning in the village."
+          "point": "tienda"
         },
         {
           "id": "p3-intro",
           "type": "explain",
-          "npc": "shopkeeper",
-          "english": "The shopkeeper says “usted”: the polite “you”, for someone you do not know well. Its verb ends like he or she: “necesita”, “tiene”. You still answer about yourself, with the -o of “yo”: “Necesito pan” and “Tengo una botella”. Many shopkeepers say “usted” to customers; she said “tú” last time, and both are normal."
+          "npc": "shopkeeper"
         },
         {
           "id": "p3-need",
@@ -565,12 +414,7 @@
           "phrase": "necesito-pan",
           "prompt": "lesson-usted",
           "line": "guide.lesson.shop.need.1",
-          "translation": "What do you need?",
-          "english": "She asks what you need. Answer about yourself.",
-          "help": "Say: Necesito pan. It means I need bread.",
-          "retry": "Not quite. Say: Necesito pan.",
-          "person": "1sg",
-          "personRetry": "Answer about yourself: the ending -o, like “quiero”, “tengo”, “necesito”."
+          "person": "1sg"
         },
         {
           "id": "p3-bottle",
@@ -579,20 +423,13 @@
           "phrase": "tengo-botella",
           "prompt": "lesson-bottle",
           "line": "guide.lesson.shop.bottle.1",
-          "translation": "Do you have a bottle?",
-          "english": "She asks if you have a bottle. Say you do.",
-          "help": "Say: Tengo una botella. It means I have a bottle.",
-          "retry": "Not quite. Say: Tengo una botella.",
-          "person": "1sg",
-          "personRetry": "Answer about yourself: the ending -o, like “quiero”, “tengo”, “necesito”."
+          "person": "1sg"
         },
         {
           "id": "p4-all",
           "type": "model",
           "npc": "shopkeeper",
-          "line": "guide.lesson.shop.all.1",
-          "translation": "What do you all want?",
-          "english": "Now she speaks to you and the villager together: “ustedes”, “you” for more than one person. In Latin America it is the only plural “you”, for friends and strangers alike. The ending is -en, like ellos: quieren."
+          "line": "guide.lesson.shop.all.1"
         },
         {
           "id": "p4-say-we",
@@ -600,51 +437,32 @@
           "npc": "shopkeeper",
           "phrase": "queremos-pan",
           "prompt": "lesson-ustedes",
-          "english": "Answer for the two of you: “Queremos pan” (keh-REH-mohs pahn).",
-          "help": "Say: Queremos pan. It means we want bread.",
-          "retry": "Not quite. Say: Queremos pan.",
-          "person": "1pl",
-          "personRetry": "Say it for the two of you: the ending -amos or -emos, like “necesitamos”, “queremos”."
+          "person": "1pl"
         },
         {
           "id": "p4-they",
           "type": "listen",
           "npc": "shopkeeper",
           "line": "guide.lesson.shop.they.1",
-          "translation": "They want water.",
-          "options": [
-            "They want water.",
-            "We want water.",
-            "She wants water."
-          ],
-          "correct": 0,
-          "english": "And the people of the village? “Ellos quieren” is “they want”: -en again. What does she say?",
-          "help": "“Ellos quieren” is they want.",
-          "retry": "Not quite. Listen again: ellos quieren."
+          "correct": 0
         },
         {
           "id": "p4-table",
           "type": "explain",
-          "npc": "shopkeeper",
-          "english": "Your new forms. querer: quiere, queremos, quieren. tener: tiene, tenemos, tienen. necesitar: necesita, necesitamos. ser: es, somos. estar: está. ir: vamos. Usted takes the he or she form; ustedes takes the they form. The book keeps them."
+          "npc": "shopkeeper"
         },
         {
           "id": "p4-recap",
           "type": "recap",
-          "npc": "shopkeeper",
-          "english": "You can now say what she wants, what we need and what we want, and you understand he, she, you (polite), we and they."
+          "npc": "shopkeeper"
         }
       ]
     },
     {
       "id": "ayer-y-manana",
       "npc": "villager",
-      "title": "Ayer y mañana: yesterday and tomorrow",
-      "english": "Session 3: tomorrow with ir a and an infinitive, and a few past forms, with the villager and the shopkeeper.",
-      "summary": "You can say what you are going to eat or do tomorrow, and what you ate, drank and where you went yesterday.",
       "autoStart": true,
       "session": 3,
-      "objective": "Session 3: go to the village and talk to the villager to start the lesson “Ayer y mañana”",
       "verbs": [
         {
           "lemma": "ir",
@@ -740,33 +558,21 @@
       "steps": [
         {
           "id": "f0-intro",
-          "type": "explain",
-          "english": "Session 3: yesterday and tomorrow. Three little words: ayer (yesterday), hoy (today) and mañana (tomorrow). First the verb ir, “to go”, and then “ir a” plus a verb, which is how you say what you are going to do. After that, a few past forms at the stall. Enter goes on, H helps, K skips a step."
+          "type": "explain"
         },
         {
           "id": "f1-ir",
-          "type": "explain",
-          "english": "The verb ir, “to go”, does not follow the pattern. I go: voy. You go: vas. He, she, you (polite): va. We go: vamos. They, you all: van. “A” after it is “to”: voy a la tienda is “I go to the shop”. A and el join into al: voy al río."
+          "type": "explain"
         },
         {
           "id": "f1-you-go",
           "type": "listen",
           "line": "guide.lesson.villager.goes.1",
-          "translation": "Today you are going to the shop.",
-          "english": "The villager says what you do today. Which one is it?",
-          "options": [
-            "You are going to the shop today.",
-            "I am going to the shop today.",
-            "We are going to the shop today."
-          ],
-          "correct": 0,
-          "help": "“Vas” is “you go” or “you are going”: the -s is for tú.",
-          "retry": "Not quite. Listen again: vas."
+          "correct": 0
         },
         {
           "id": "f2-intro",
-          "type": "explain",
-          "english": "Now plans: later today or tomorrow. Like English “going to”: a form of ir, then “a”, then the verb as it is in the dictionary, ending in -ar, -er or -ir (the infinitive). Voy a comer is “I am going to eat”; vamos a comer is “we are going to eat”. A place after “a” is where you go (voy a la tienda); a verb after “a” is what you are going to do. Not “voy a como” (como is “I eat”). “Mañana” can go in front: mañana voy a comer pan."
+          "type": "explain"
         },
         {
           "id": "f2-ask",
@@ -774,15 +580,8 @@
           "phrase": "voy-a-comer-pan",
           "prompt": "lesson-plan",
           "line": "guide.lesson.villager.plan.1",
-          "translation": "What are you going to eat tomorrow?",
-          "english": "He asks what you will eat tomorrow. Answer about yourself, with “voy a”: “Voy a comer pan”.",
-          "help": "Say: Voy a comer pan. It means I am going to eat bread.",
-          "retry": "Not quite. Say: Voy a comer pan.",
           "person": "1sg",
-          "personRetry": "Say it about yourself: “voy a”, like “voy”.",
-          "tense": "ir-a",
-          "tenseRetry": "For a plan, use voy, then “a”, then the infinitive: “voy a comer”.",
-          "presentNote": "That is right too. Here we practise “voy a comer”: Voy a comer pan."
+          "tense": "ir-a"
         },
         {
           "id": "f2-we",
@@ -790,54 +589,32 @@
           "phrase": "vamos-a-comer-fruta",
           "prompt": "lesson-plan-we",
           "line": "guide.lesson.villager.plan_we.1",
-          "translation": "What are we going to eat?",
-          "english": "Now he asks about the two of you. Answer with “vamos a”: “Vamos a comer fruta”. Said as a suggestion, vamos a comer also means “let's eat”.",
-          "help": "Say: Vamos a comer fruta. It means we are going to eat fruit.",
-          "retry": "Not quite. Say: Vamos a comer fruta.",
           "person": "1pl",
-          "personRetry": "Say it for the two of you: “vamos a comer”, like “vamos”.",
-          "tense": "ir-a",
-          "tenseRetry": "For a plan, use vamos, then “a”, then the infinitive: “vamos a comer”.",
-          "presentNote": "That is right too. Here we practise “vamos a comer”: Vamos a comer fruta."
+          "tense": "ir-a"
         },
         {
           "id": "f2-they",
           "type": "listen",
           "line": "guide.lesson.villager.eat.1",
-          "translation": "They are going to eat bread.",
-          "english": "He points at the houses. “Van a comer” is “they are going to eat”. What does he say?",
-          "options": [
-            "They are going to eat bread.",
-            "They ate bread.",
-            "We are going to eat bread."
-          ],
-          "correct": 0,
-          "help": "“Van a comer”: ir, a and an infinitive.",
-          "retry": "Not quite. Listen again: van a comer."
+          "correct": 0
         },
         {
           "id": "f3-walk",
           "type": "do",
           "at": "shopkeeper",
           "event": "talk_opened",
-          "point": "tienda",
-          "hud": "Walk to the stall and talk to the shopkeeper",
-          "english": "Press Esc to close this panel. Walk to the stall (the arrow shows it) and press E to talk to the shopkeeper. She will ask about yesterday.",
-          "help": "The stall is the one with the red and white awning in the village."
+          "point": "tienda"
         },
         {
           "id": "y0-intro",
           "type": "explain",
-          "npc": "shopkeeper",
-          "english": "Now yesterday: ayer. Something that is over uses another form, the past. First comer: I ate is comí, you ate is comiste. With “ayer” use the past, not “ayer como” or “ayer voy”."
+          "npc": "shopkeeper"
         },
         {
           "id": "y1-model",
           "type": "model",
           "npc": "shopkeeper",
-          "line": "guide.lesson.shop.ayer.1",
-          "translation": "Yesterday I ate bread.",
-          "english": "She tells you what she ate. “Comí” is “I ate” (comer). In the past, -í is for “I” and -iste is for “you”: comí, comiste."
+          "line": "guide.lesson.shop.ayer.1"
         },
         {
           "id": "y1-ate",
@@ -846,22 +623,14 @@
           "phrase": "ayer-comi-fruta",
           "prompt": "lesson-ate",
           "line": "guide.lesson.shop.ate.1",
-          "translation": "What did you eat yesterday?",
-          "english": "She asks what you ate yesterday. Answer about yourself, in the past: “Ayer comí fruta”.",
-          "help": "Say: Ayer comí fruta. It means yesterday I ate fruit.",
-          "retry": "Not quite. Say: Ayer comí fruta.",
           "person": "1sg",
-          "personRetry": "Say it about yourself: the ending -í, like “comí”, not “comiste”.",
-          "tense": "pret",
-          "tenseRetry": "Yesterday uses the past form: “comí” (I ate), not “como” or “voy a comer”."
+          "tense": "pret"
         },
         {
           "id": "y2-ask",
           "type": "model",
           "npc": "shopkeeper",
-          "line": "guide.lesson.shop.went.1",
-          "translation": "Did you go to the river yesterday?",
-          "english": "She asks if you went to the river. “Fuiste” is “you went”: the past of ir, which does not follow the pattern. For “I” it is “fui”. It still ends in -iste for “you”."
+          "line": "guide.lesson.shop.went.1"
         },
         {
           "id": "y2-went",
@@ -869,29 +638,15 @@
           "npc": "shopkeeper",
           "phrase": "ayer-fui-al-rio",
           "prompt": "lesson-went",
-          "english": "Say that you went: “Ayer fui al río” (ah-YEHR fwee ahl REE-oh).",
-          "help": "Say: Ayer fui al río. It means yesterday I went to the river.",
-          "retry": "Not quite. Say: Ayer fui al río.",
           "person": "1sg",
-          "personRetry": "Say it about yourself: “fui”, not “fuiste”.",
-          "tense": "pret",
-          "tenseRetry": "Yesterday uses the past: “fui” (I went), not “voy”."
+          "tense": "pret"
         },
         {
           "id": "y4-you",
           "type": "listen",
           "npc": "shopkeeper",
           "line": "guide.lesson.shop.you.1",
-          "translation": "Yesterday you went to the river.",
-          "english": "Now a form for “you”. What does she say?",
-          "options": [
-            "Yesterday you went to the river.",
-            "Yesterday I went to the river.",
-            "Tomorrow you are going to the river."
-          ],
-          "correct": 0,
-          "help": "“Fuiste” is “you went”, and “ayer” is yesterday.",
-          "retry": "Not quite. Listen again: ayer fuiste."
+          "correct": 0
         },
         {
           "id": "y3-had",
@@ -900,20 +655,13 @@
           "phrase": "ayer-bebi-agua",
           "prompt": "lesson-had",
           "line": "guide.lesson.shop.had.1",
-          "translation": "Did you drink water yesterday?",
-          "english": "She asks if you drank water yesterday. Say you did: “Ayer bebí agua”. Beber is “to drink”, and it works like comer: bebí, bebiste.",
-          "help": "Say: Ayer bebí agua. It means yesterday I drank water.",
-          "retry": "Say the whole sentence, in the past: Ayer bebí agua.",
           "person": "1sg",
-          "personRetry": "Say it about yourself: “bebí”, not “bebiste”.",
-          "tense": "pret",
-          "tenseRetry": "Yesterday uses the past: “bebí” (I drank), not “bebo”."
+          "tense": "pret"
         },
         {
           "id": "y5-contrast",
           "type": "explain",
-          "npc": "shopkeeper",
-          "english": "Yesterday and tomorrow side by side. “Ayer fui al río” has a past form, “I went”. “Mañana voy a ir al río” has voy a and the infinitive, “I am going to go”. The usual slip is to mix them: “mañana fui” or “ayer voy”. The game will tell you."
+          "npc": "shopkeeper"
         },
         {
           "id": "y6-tomorrow",
@@ -922,27 +670,18 @@
           "phrase": "voy-a-ir-al-rio",
           "prompt": "lesson-tomorrow",
           "line": "guide.lesson.shop.tomorrow.1",
-          "translation": "What are you going to do tomorrow?",
-          "english": "Last question: tomorrow. Say you are going to go to the river. Not “fui”: that was yesterday.",
-          "help": "Say: Mañana voy a ir al río. It means tomorrow I am going to go to the river.",
-          "retry": "Not quite. Say: Mañana voy a ir al río.",
           "person": "1sg",
-          "personRetry": "Say it about yourself: “voy a”, like “voy”.",
-          "tense": "ir-a",
-          "tenseRetry": "Tomorrow uses “voy a” and the infinitive: “voy a ir”, not “fui”.",
-          "presentNote": "That is right too. Here we practise “voy a ir”: Mañana voy a ir al río."
+          "tense": "ir-a"
         },
         {
           "id": "y7-table",
           "type": "explain",
-          "npc": "shopkeeper",
-          "english": "Your new forms. ir: voy, vas, va, vamos, van. Plans: voy a comer, vamos a comer, van a comer, voy a ir. Yesterday: comí, comiste; bebí, bebiste; fui, fuiste. Fui is also the past of ser (“I was”); here it means “I went”. The book keeps them."
+          "npc": "shopkeeper"
         },
         {
           "id": "y8-recap",
           "type": "recap",
-          "npc": "shopkeeper",
-          "english": "You can now say what you are going to eat or do tomorrow, and what you ate, drank and where you went yesterday. Hoy is today."
+          "npc": "shopkeeper"
         }
       ]
     }

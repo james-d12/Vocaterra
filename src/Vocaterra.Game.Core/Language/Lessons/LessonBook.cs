@@ -209,20 +209,23 @@ public sealed record LessonDefinition(
 /// speech lines and the world-event names, so a bad lesson is a load error, not a surprise in a playtest.
 /// </summary>
 /// <remarks>
-/// <para>The file is <c>{ "schemaVersion": 1, "lessons": [ { "id", "npc", "title", "english", "autoStart"?, "after"?, "steps": [ ... ] } ] }</c>. A step has an <c>id</c>, a
-/// <c>type</c> and <c>english</c> always, and optionally <c>help</c> (the hint of the help path), <c>retry</c>, <c>attempts</c> (1 to 5, default 2) and <c>npc</c> (S26: the NPC the step is said at, when the lesson moves from one NPC to another), plus:</para>
+/// <para>The file is <c>{ "schemaVersion": 1, "lessons": [ { "id", "npc", "autoStart"?, "after"?, "steps": [ ... ] } ] }</c>. It carries ids only: every word the
+/// learner reads is the support language's, in the locale (CONTENT_PLAN C03): the lesson's <c>lesson.&lt;id&gt;.title</c> and <c>.text</c> (and <c>.summary</c>, <c>.objective</c>),
+/// and each step's <c>lesson.&lt;id&gt;.&lt;step&gt;.text</c> (and <c>.help</c>, <c>.retry</c>, <c>.translation</c>, <c>.option.&lt;n&gt;</c>, <c>.hud</c>, <c>.personRetry</c>,
+/// <c>.tenseRetry</c>, <c>.presentNote</c>). A step has an <c>id</c> and a <c>type</c> always, and optionally <c>attempts</c> (1 to 5, default 2) and <c>npc</c> (S26: the
+/// NPC the step is said at, when the lesson moves from one NPC to another), plus:</para>
 /// <list type="bullet">
 /// <item><c>explain</c>: nothing more.</item>
-/// <item><c>model</c>: <c>line</c> (a speech id such as <c>phrase.hola</c> or <c>guide_greet.1</c>) and <c>translation</c>.</item>
-/// <item><c>listen</c>: <c>line</c>, <c>translation</c>, <c>options</c> (two to four English strings) and <c>correct</c> (the index).</item>
+/// <item><c>model</c>: <c>line</c> (a speech id such as <c>phrase.hola</c> or <c>guide_greet.1</c>); its translation is the locale's.</item>
+/// <item><c>listen</c>: <c>line</c> and <c>correct</c> (the index of the right one of the locale's two to four options).</item>
 /// <item><c>repeat</c>: <c>phrase</c> (a row the learner says) and optionally <c>prompt</c> (default: the row's).</item>
-/// <item><c>answer</c>: <c>phrase</c>, <c>line</c>, <c>translation</c> and optionally <c>prompt</c>.</item>
-/// <item><c>do</c>: <c>event</c> (a world event name) and optionally <c>detail</c>, <c>point</c> (a noun the beacon goes to when the step begins), <c>hud</c> (the short line the objective area shows while the step waits) and, with the event <c>talk_opened</c>, <c>at</c> (the NPC to walk up to; S26).</item>
+/// <item><c>answer</c>: <c>phrase</c>, <c>line</c> and optionally <c>prompt</c>.</item>
+/// <item><c>do</c>: <c>event</c> (a world event name) and optionally <c>detail</c>, <c>point</c> (a noun the beacon goes to when the step begins) and, with the event <c>talk_opened</c>, <c>at</c> (the NPC to walk up to; S26).</item>
 /// <item><c>recap</c>: optionally <c>phrases</c> (default: every phrase the lesson teaches).</item>
 /// </list>
-/// <para>A lesson may also carry <c>session</c> (the play session it unlocks in, default 1), <c>objective</c> (the English line that names it while it is unlocked and not begun; needed when <c>session</c> is above 1)
+/// <para>A lesson may also carry <c>session</c> (the play session it unlocks in, default 1; above 1 the locale needs its objective line)
 /// and <c>verbs</c> (the verb forms it teaches: <c>lemma</c>, <c>person</c> 1 to 3, <c>number</c> sg or pl, <c>tense</c> pres, pret, ir-a or fut; S26, S27). A repeat or answer step may declare the <c>person</c>
-/// of the verb it expects (<c>1sg</c>...) with a <c>personRetry</c>, and its <c>tense</c> (<c>pres</c>, <c>pret</c>, <c>ir-a</c>) with a <c>tenseRetry</c> (S27).</para>
+/// of the verb it expects (<c>1sg</c>...) and its <c>tense</c> (<c>pres</c>, <c>pret</c>, <c>ir-a</c>), with their retry lines in the locale (S27).</para>
 /// <para>The row's intent must be one the prompt allows, so the core can recognise the answer. Plain values, no clock, no random numbers.</para>
 /// </remarks>
 public sealed class LessonBook

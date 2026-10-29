@@ -1,0 +1,47 @@
+{
+  "$schema": "../../schema/tips.schema.json",
+  "schemaVersion": 1,
+  "about": "The first-time tips (S16): when each comes up (start, aimed_npc or a world event) and how long it waits. Their text is the locale's (content/locale/<code>/tips.json, tip.<id>).",
+  "tips": [
+    {
+      "id": "look",
+      "when": "start"
+    },
+    {
+      "id": "walk",
+      "when": "start",
+      "delay": 9
+    },
+    {
+      "id": "jump",
+      "when": "start",
+      "delay": 18
+    },
+    {
+      "id": "note",
+      "when": "start",
+      "delay": 28
+    },
+    {
+      "id": "gather",
+      "when": "start",
+      "delay": 50
+    },
+    {
+      "id": "pickup",
+      "when": "item_picked_up"
+    },
+    {
+      "id": "npc",
+      "when": "aimed_npc"
+    },
+    {
+      "id": "speak",
+      "when": "talk_opened"
+    },
+    {
+      "id": "objective",
+      "when": "objective_step"
+    }
+  ]
+}

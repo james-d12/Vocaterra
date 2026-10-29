@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Nlp.Content;

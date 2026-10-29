@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/tips.json",
+  "description": "The first-time tips: when each comes up and how long it waits. Their text is the locale's (tip.<id>). Loaded by TipBook (Vocaterra.Game.Core).",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "tips"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "enum": [
+        1
+      ]
+    },
+    "about": {
+      "type": "string"
+    },
+    "tips": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "when"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A stable id; the save keeps which tips were shown."
+          },
+          "when": {
+            "type": "string",
+            "minLength": 1,
+            "description": "start, aimed_npc, or a world event name."
+          },
+          "delay": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 300,
+            "description": "Seconds of game time after the trigger before the tip may show."
+          }
+        }
+      }
+    }
+  }
+}

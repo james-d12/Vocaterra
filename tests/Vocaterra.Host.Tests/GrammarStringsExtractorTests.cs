@@ -107,11 +107,14 @@ public sealed class GrammarStringsExtractorTests
             }
         }
 
-        // Each game file the strings come from has at least one line in the file.
-        foreach (var prefix in new[] { "english.json:", "checks.json:", "PHRASES.md:", "speech:" })
+        // Each game file the strings come from has at least one line in the file. The support language (the locale, C03) is not checked, so no
+        // english.json line is listed: its Spanish keys repeated the dialogue's and the prompts' texts.
+        foreach (var prefix in new[] { "checks.json:", "PHRASES.md:", "speech:" })
         {
             Assert.Contains(All, line => line.Id.StartsWith(prefix, StringComparison.Ordinal));
         }
+
+        Assert.DoesNotContain(All, static line => line.Id.StartsWith("english.json:", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -171,7 +174,7 @@ public sealed class GrammarStringsExtractorTests
         Assert.Equal("npc", byId["PHRASES.md:quieres-pan.text"].Kind);
         Assert.Equal("learner", byId["PHRASES.md:pedir-agua.text"].Kind);
         Assert.Equal("learner", byId["PHRASES.md:pedir-agua.variant1"].Kind);
-        Assert.Equal("npc", byId["english.json:lines[0]"].Kind);
+        Assert.Equal("npc", byId["checks.json:hear.que-necesitas"].Kind);
     }
 
     [Fact]
@@ -205,7 +208,7 @@ public sealed class GrammarStringsExtractorTests
     [Fact]
     public void ThePhraseSheetLinesAreTheRuntimePhrasesAndVariants()
     {
-        var runtime = RouteScene.DataOf(GameContent.Bundle).Phrases;
+        var runtime = GameContent.Data.Phrases;
         var byId = All.ToDictionary(static line => line.Id, StringComparer.Ordinal);
         foreach (var row in runtime.Rows)
         {

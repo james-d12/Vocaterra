@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/lessons.json",
-  "description": "The lessons: each a list of steps of seven types, so a new lesson needs no code. Loaded by LessonBook (Vocaterra.Game.Core), which also checks the phrases, prompts, speech lines, NPCs and world events named here.",
+  "description": "The lessons: each a list of steps of seven types, so a new lesson needs no code. Loaded by LessonBook (Vocaterra.Game.Core), which also checks the phrases, prompts, speech lines, NPCs and world events named here. The support-language text is the locale's (content/locale/<code>/*.json) since C03; this file carries ids only.",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -28,11 +28,6 @@
     }
   },
   "definitions": {
-    "text": {
-      "type": "string",
-      "minLength": 1,
-      "pattern": "\\S"
-    },
     "npc": {
       "type": "string",
       "minLength": 1,
@@ -43,8 +38,6 @@
       "required": [
         "id",
         "npc",
-        "title",
-        "english",
         "steps"
       ],
       "additionalProperties": false,
@@ -58,17 +51,6 @@
           "$ref": "#/definitions/npc",
           "description": "The NPC the lesson starts at."
         },
-        "title": {
-          "$ref": "#/definitions/text"
-        },
-        "english": {
-          "$ref": "#/definitions/text",
-          "description": "What the lesson is about, in the support language."
-        },
-        "summary": {
-          "$ref": "#/definitions/text",
-          "description": "The line the book's lessons page shows once the lesson is done."
-        },
         "autoStart": {
           "type": "boolean",
           "description": "The lesson starts when the player first talks to its NPC."
@@ -81,11 +63,7 @@
         "session": {
           "type": "integer",
           "minimum": 1,
-          "description": "The play session it unlocks in (default 1)."
-        },
-        "objective": {
-          "$ref": "#/definitions/text",
-          "description": "The line that names the lesson while it is unlocked and not begun; needed when session is above 1."
+          "description": "The play session it unlocks in (default 1); above 1 the locale needs its objective line (lesson.<id>.objective)."
         },
         "verbs": {
           "type": "array",
@@ -144,8 +122,7 @@
       "type": "object",
       "required": [
         "id",
-        "type",
-        "english"
+        "type"
       ],
       "additionalProperties": false,
       "properties": {
@@ -165,18 +142,6 @@
             "recap"
           ]
         },
-        "english": {
-          "$ref": "#/definitions/text",
-          "description": "What the step says, in the support language."
-        },
-        "help": {
-          "$ref": "#/definitions/text",
-          "description": "The hint of the help path."
-        },
-        "retry": {
-          "$ref": "#/definitions/text",
-          "description": "The line after a miss."
-        },
         "attempts": {
           "type": "integer",
           "minimum": 1,
@@ -192,24 +157,11 @@
           "minLength": 1,
           "description": "model, listen, answer: a speech line id (phrase.hola, guide.lesson.hello.1)."
         },
-        "translation": {
-          "$ref": "#/definitions/text",
-          "description": "model, listen, answer: the line's meaning."
-        },
-        "options": {
-          "type": "array",
-          "minItems": 2,
-          "maxItems": 4,
-          "items": {
-            "$ref": "#/definitions/text"
-          },
-          "description": "listen: two to four meanings to pick from."
-        },
         "correct": {
           "type": "integer",
           "minimum": 0,
           "maximum": 3,
-          "description": "listen: the index of the right option."
+          "description": "listen: the index of the right option (the options are the locale's lesson.<id>.<step>.option.<n>)."
         },
         "phrase": {
           "type": "string",
@@ -224,11 +176,7 @@
         "person": {
           "type": "string",
           "pattern": "^[123](sg|pl)$",
-          "description": "repeat, answer: the person of the verb the step expects."
-        },
-        "personRetry": {
-          "$ref": "#/definitions/text",
-          "description": "The line after an answer in another person."
+          "description": "repeat, answer: the person of the verb the step expects (its retry line is the locale's lesson.<id>.<step>.personRetry)."
         },
         "tense": {
           "enum": [
@@ -236,15 +184,7 @@
             "pret",
             "ir-a"
           ],
-          "description": "repeat, answer: the tense the step expects."
-        },
-        "tenseRetry": {
-          "$ref": "#/definitions/text",
-          "description": "The line after an answer in another tense."
-        },
-        "presentNote": {
-          "$ref": "#/definitions/text",
-          "description": "ir-a: the note after a plan said in the present with a time word."
+          "description": "repeat, answer: the tense the step expects (its retry line is the locale's lesson.<id>.<step>.tenseRetry)."
         },
         "event": {
           "type": "string",
@@ -263,11 +203,7 @@
         "point": {
           "type": "string",
           "minLength": 1,
-          "description": "do: a noun the beacon points at when the step begins."
-        },
-        "hud": {
-          "$ref": "#/definitions/text",
-          "description": "do: the short line the objective area shows while the step waits."
+          "description": "do: a noun the beacon points at when the step begins (the step's HUD line is the locale's lesson.<id>.<step>.hud)."
         },
         "phrases": {
           "type": "array",
@@ -296,8 +232,7 @@
             },
             {
               "required": [
-                "line",
-                "translation"
+                "line"
               ]
             }
           ]
@@ -317,7 +252,6 @@
             },
             {
               "required": [
-                "options",
                 "correct"
               ]
             }

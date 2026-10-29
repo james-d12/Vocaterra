@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Input;
@@ -188,7 +189,7 @@ public sealed class LessonFrontendTests
         Assert.Contains(("guide", "Hola.", false), run.Player.Played); // the repeat step's card plays the model WAV
         Assert.Contains(("guide", "¡Claro! Aquí tienes.", false), run.Player.Played); // the answer step's line plays too
         Assert.Contains(run.Dialogue.Lines, static l => l is { Speaker: DialogueSpeaker.Guide, Text: "¡Claro! Aquí tienes." }); // and is on the panel, glossed in English
-        Assert.Equal("Of course! Here you are.", run.Session.SupportForNpcLine("¡Claro! Aquí tienes."));
+        Assert.Equal("Of course! Here you are.", run.Session.SupportForNpcLine("guide", "¡Claro! Aquí tienes."));
         Assert.Contains(run.Dialogue.Lines, static l => l is { Speaker: DialogueSpeaker.English, Text: "Good. The guide understood you." });
     }
 
@@ -463,7 +464,7 @@ public sealed class LessonFrontendTests
         lesson.Pump();
 
         Assert.Equal((DialogueSpeaker.Guide, "Hola."), (dialogue.Lines[^1].Speaker, dialogue.Lines[^1].Text));
-        Assert.Equal("Hello.", session.SupportForNpcLine("Hola."));
+        Assert.Equal("Hello.", session.SupportForNpcLine("guide", "Hola."));
         lesson.Pump();
         Assert.Equal(before, dialogue.Lines.Count); // once per step
         Assert.Equal("Hola.", dialogue.LastNpcLine); // so Repetir plays it again
@@ -508,7 +509,7 @@ public sealed class LessonFrontendTests
         Assert.Equal(DialogueSpeaker.English, last.Speaker); // after the NPC's lines
         Assert.Equal("Tendero", dialogue.NpcName);
         Assert.True(dialogue.Lines.Count(static l => l.Speaker == DialogueSpeaker.Guide) >= 1);
-        Assert.NotNull(session.SupportForNpcLine("¿Qué necesitas?"));
+        Assert.NotNull(session.SupportForNpcLine("shopkeeper", "¿Qué necesitas?"));
     }
 
     [Fact]
@@ -541,10 +542,10 @@ public sealed class LessonFrontendTests
 
         Assert.NotEmpty(cues);
         Assert.All(spoken, text => Assert.True(index.Find("guide", text) is not null, $"\"{text}\" is a Spanish line with a pre-rendered voice"));
-        using var document = JsonDocument.Parse(File.ReadAllText(Repo.Path("content", "game-v1", "game", "english.json")));
-        foreach (var line in document.RootElement.GetProperty("lines").EnumerateArray())
+        var locale = RouteScene.LocaleOf(Bundle.Value);
+        foreach (var id in locale.Ids.Where(static id => id.StartsWith("line.", StringComparison.Ordinal)))
         {
-            Assert.Null(index.Find("guide", line.GetProperty("english").GetString()!)); // no English text has a voice: only Spanish is spoken
+            Assert.Null(index.Find("guide", locale.Text(id))); // no gloss has a voice: only Spanish is spoken
         }
     }
 
@@ -608,9 +609,10 @@ public sealed class LessonFrontendTests
         {
             DialoguePanel.SupportPrefix, SupportLayer.EnglishOnHelp, PhraseJournalRows.EnglishAndCardText, "Lesson · A first hello · step 1 of 2 · Say it", "[Enter] [K] [L] [H] [1] [2] [3] [4]",
         };
-        foreach (var file in new[] { "english.json", "lessons.json" })
+        // The support language's strings (the locale, C03) and the lessons' own file (its Spanish).
+        foreach (var file in Directory.GetFiles(Repo.Path("content", "locale", "en"), "*.json").Append(Repo.Path("content", "game-v1", "game", "lessons.json")))
         {
-            using var document = JsonDocument.Parse(File.ReadAllText(Repo.Path("content", "game-v1", "game", file)));
+            using var document = JsonDocument.Parse(File.ReadAllText(file));
             CollectStrings(document.RootElement, strings);
         }
 

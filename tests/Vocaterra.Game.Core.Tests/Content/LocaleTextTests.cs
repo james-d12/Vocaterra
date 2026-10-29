@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
@@ -9,48 +10,68 @@ using Vocaterra.Game.Core.Tip;
 using Vocaterra.Nlp.Core.Taxonomy;
 using Vocaterra.Nlp.Core.Verdicts;
 
-namespace Vocaterra.Game.Core.Tests.Tip;
+namespace Vocaterra.Game.Core.Tests.Content;
 
 /// <summary>
-/// The English of S16 (D-game-13), which is game content in <c>game/english.json</c>: the file loads and is complete, every Spanish line an NPC can say has its
-/// English, the controls and tips are there, the objective line is bilingual and drops each English word once its noun is known, and the feedback after a turn is
-/// keyed by the core's error codes and by the outcome, with a fallback for a code the file does not know. The core is not changed.
+/// The support language of S16 (D-game-13), in the locale bundle since C03 (<c>content/locale/en</c>): it loads and is complete, every line an NPC can say has its
+/// gloss by its speech-line id, the controls and tips are there, the objective line is bilingual and drops each gloss once its noun is known, and the feedback
+/// after a turn is keyed by the core's error codes and by the outcome, with a fallback for a code the locale does not know. A missing string shows as its marker.
 /// </summary>
-public sealed class EnglishTextTests
+public sealed class LocaleTextTests
 {
-    private static LocaleText English => RouteScene.DataOf(TestGame.Bundle).Locale;
+    private static LocaleText English => TestGame.Locale;
 
     [Fact]
     public void TheFileLoadsAndHasTheControlsTheTipsAndEveryInterfaceWord()
     {
         var english = English;
+        var data = TestGame.Data;
 
-        Assert.True(english.Controls.Count >= 10);
-        Assert.Contains(english.Controls, static c => c.Id == "look" && c.Text.StartsWith("Look around", StringComparison.Ordinal));
-        Assert.Contains(english.Controls, static c => c.Id == "help" && c.Keys.Contains('H', StringComparison.Ordinal));
-        Assert.Contains(english.Tips, static t => t is { When: "start", Text: "Move the mouse to look around. The valley below is where you are headed." });
-        Assert.Equal(["look", "walk", "jump", "note", "gather"], english.Tips.Where(static t => t.When == "start").Select(static t => t.Id)); // the opening (S17)
-        Assert.Equal([0, 9, 18, 28, 50], english.Tips.Where(static t => t.When == "start").Select(static t => t.DelaySeconds)); // paced so they do not stack up
-        Assert.Contains(english.Tips, static t => t.When == "aimed_npc");
-        Assert.All(LocaleText.UiKeys, key => Assert.False(string.IsNullOrWhiteSpace(english.Ui(key)), key));
+        Assert.True(data.Controls.Count >= 10);
+        Assert.Contains(data.Controls, static c => c.Id == "look" && c.Text.StartsWith("Look around", StringComparison.Ordinal));
+        Assert.Contains(data.Controls, static c => c.Id == "help" && c.Keys.Contains('H', StringComparison.Ordinal));
+        Assert.Contains(data.Tips, static t => t is { When: "start", Text: "Move the mouse to look around. The valley below is where you are headed." });
+        Assert.Equal(["look", "walk", "jump", "note", "gather"], data.Tips.Where(static t => t.When == "start").Select(static t => t.Id)); // the opening (S17)
+        Assert.Equal([0, 9, 18, 28, 50], data.Tips.Where(static t => t.When == "start").Select(static t => t.DelaySeconds)); // paced so they do not stack up
+        Assert.Contains(data.Tips, static t => t.When == "aimed_npc");
+        Assert.All(LocaleText.UiKeys, key => Assert.False(english.Ui(key).StartsWith('\u27e6'), key));
         Assert.Equal("step 2 of 7", english.Ui("stepOf", ("n", "2"), ("total", "7")));
-        Assert.All(english.Tips, static t => Assert.Contains(t.When, TipBook.TipTriggers));
+        Assert.All(data.Tips, static t => Assert.Contains(t.When, TipBook.TipTriggers));
     }
 
     [Fact]
-    public void EveryLineAnNpcCanSayHasItsEnglishInTheFile()
+    public void EveryLineAnNpcCanSayHasItsGlossByItsSpeechLineId()
     {
         var english = English;
         var missing = TestGame.Speech
             .Where(static l => l.Kind is SpeechKind.Dialogue or SpeechKind.Prompt)
-            .Where(l => english.ForLine(l.Text) is null)
+            .Where(l => english.Line(l.LineId) is null)
             .Select(static l => $"{l.LineId}: {l.Text}")
             .ToList();
 
         Assert.Empty(missing);
-        Assert.Equal("What do you need?", english.ForLine("¿Qué necesitas?"));
-        Assert.Equal("What do you need?", english.ForLine("que necesitas")); // without accents, capitals or marks
-        Assert.Null(english.ForLine("El río está allí, a la izquierda, a sesenta bloques.")); // a templated world line has no fixed English
+        Assert.Equal("What do you need?", english.Line("prompt.stall-need"));
+        Assert.Equal("What do you need?", TestGame.Data.SupportForLine("shopkeeper", "¿Qué necesitas?"));
+        Assert.Equal("What do you need?", TestGame.Data.SupportForLine("shopkeeper", "que necesitas")); // the panel's text finds its line without accents, capitals or marks
+        Assert.Null(TestGame.Data.SupportForLine("guide", "El río está allí, a la izquierda, a sesenta bloques.")); // a templated world line has no fixed gloss
+    }
+
+    [Fact]
+    public void AStringIsLookedForInTheLocaleThenItsFallbackAndAMissingOneShowsItsMarker()
+    {
+        var english = English;
+        var overlay = english.With(new Dictionary<string, string>(StringComparer.Ordinal) { ["ui.continue"] = "Go on", ["test.only"] = "only here" });
+
+        Assert.Equal("Continue", english.Ui("continue"));
+        Assert.Equal("Go on", overlay.Ui("continue"));
+        Assert.Equal("only here", overlay.Text("test.only"));
+        Assert.Equal("Skip", overlay.Ui("skip")); // the locale's own strings stay under the overlay
+        Assert.Null(english.Find("no.such.id"));
+        Assert.Equal("\u27e6no.such.id\u27e7", english.Text("no.such.id"));
+        Assert.Equal("en", english.Code);
+        Assert.Null(english.Fallback);
+        Assert.Equal(new VerbForms("to have", "have", "has", "had"), english.Verb("tener"));
+        Assert.Equal(new VerbForms("to want", "want", "wants", "wanted"), english.Verb("querer"));
     }
 
     [Fact]
@@ -194,15 +215,86 @@ public sealed class EnglishTextTests
     }
 
     [Fact]
-    public void AFileWithoutAnOutcomeOrWithAnUnknownTipTriggerIsRefused()
+    public void ALocaleFileThatIsMalformedOrGivesAnIdTwiceIsRefused()
     {
-        // A phrase the sheet lacks is the validator's to find (GameDataValidatorTests): the file alone cannot know the sheet.
-        var json = File.ReadAllText(Path.Combine(GameBundle.ResolveDirectory(), "game", "english.json"));
+        Assert.Throws<InvalidDataException>(() => LocaleText.Parse("xx", "h", [("a.json", "{ not json")]));
+        Assert.Throws<InvalidDataException>(() => LocaleText.Parse("xx", "h", [("a.json", """{ "strings": { "ui.x": "" } }""")]));
+        Assert.Throws<InvalidDataException>(() => LocaleText.Parse("xx", "h", [("a.json", """{ "strings": { "ui.x": "A" } }"""), ("b.json", """{ "strings": { "ui.x": "B" } }""")]));
+        Assert.Throws<InvalidDataException>(() => LocaleText.Parse("xx", "h", [("a.json", """{ "strings": { "verb.ir": { "gloss": "to go" } } }""")]));
+        Assert.Equal("A", LocaleText.Parse("xx", "h", [("a.json", """{ "strings": { "ui.x": "A" } }""")]).Text("ui.x"));
+    }
 
-        Assert.Throws<InvalidDataException>(() => LocaleText.Parse(json.Replace("\"uncertain\":", "\"uncertain_x\":", StringComparison.Ordinal)));
-        Assert.Throws<InvalidDataException>(() => LocaleText.Parse(json.Replace("\"when\": \"start\"", "\"when\": \"never_happens\"", StringComparison.Ordinal)));
-        Assert.Throws<InvalidDataException>(() => LocaleText.Parse(json.Replace("\"schemaVersion\": 1", "\"schemaVersion\": 2", StringComparison.Ordinal)));
-        Assert.Throws<InvalidDataException>(() => LocaleText.Parse("{ not json"));
-        _ = LocaleText.Parse(json);
+    [Fact]
+    public void AnUnknownTipTriggerAndAMissingTipTextAreRefused()
+    {
+        var tips = File.ReadAllText(Repo.Path("content", "game-v1", "game", "tips.json"));
+
+        Assert.Throws<InvalidDataException>(() => TipBook.ParseTips(tips.Replace("\"when\": \"start\"", "\"when\": \"never_happens\"", StringComparison.Ordinal), English));
+        Assert.Throws<InvalidDataException>(() => TipBook.ParseTips(tips.Replace("\"id\": \"look\"", "\"id\": \"look-x\"", StringComparison.Ordinal), English));
+        Assert.Throws<InvalidDataException>(() => TipBook.ParseTips(tips.Replace("\"schemaVersion\": 1", "\"schemaVersion\": 2", StringComparison.Ordinal), English));
+        Assert.Equal(TestGame.Data.Tips, TipBook.ParseTips(tips, English));
+    }
+
+    [Fact]
+    public void TheLocaleBundleRefusesAFileThatDiffersFromItsManifest()
+    {
+        var copy = Path.Combine(Path.GetTempPath(), "vocaterra-locale-" + Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture) + "-" + nameof(TheLocaleBundleRefusesAFileThatDiffersFromItsManifest));
+        try
+        {
+            CopyDirectory(Repo.Path("content", "locale"), copy);
+            Assert.Equal(TestGame.Locale.BundleHash, LocaleBundle.Load(copy).BundleHash);
+
+            File.AppendAllText(Path.Combine(copy, "en", "ui.json"), " ");
+            var changed = Assert.Throws<InvalidDataException>(() => LocaleBundle.Load(copy));
+            Assert.Contains("en/ui.json: differs from the manifest", changed.Message, StringComparison.Ordinal);
+
+            File.WriteAllText(Path.Combine(copy, "en", "extra.json"), """{ "strings": {} }""");
+            var extra = Assert.Throws<InvalidDataException>(() => LocaleBundle.Load(copy));
+            Assert.Contains("en/extra.json: on disk, not in the manifest", extra.Message, StringComparison.Ordinal);
+        }
+        finally
+        {
+            if (Directory.Exists(copy))
+            {
+                Directory.Delete(copy, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public void TheShippedLocalesAreTheDefaultOneAndItIsGameV1sSupportLanguage()
+    {
+        var locales = LocaleBundle.Load(Repo.Path("content", "locale"));
+
+        Assert.Equal(["en"], locales.Locales.Select(static l => l.Code));
+        Assert.Equal("en", TestGame.Bundle.Manifest.SupportLanguage);
+        Assert.Equal("en", LocaleBundle.ChooseCode(null, TestGame.Bundle));
+        Assert.Equal("fr", LocaleBundle.ChooseCode("fr", TestGame.Bundle));
+        Assert.Throws<ArgumentException>(() => locales.Text("fr"));
+    }
+
+    [Fact]
+    public void AStringNoContentAsksForAndAStringTheContentNeedsAreProblems()
+    {
+        var withOrphan = TestGame.Locale.With(new Dictionary<string, string>(StringComparer.Ordinal) { ["lesson.first-words.no-such-step.text"] = "Orphan." });
+        Assert.Contains("locale en: the string 'lesson.first-words.no-such-step.text' is asked for by no content or code (an orphan).", GameDataValidator.Validate(TestGame.Data.WithLocale(withOrphan)));
+
+        var strings = Repo.Path("content", "locale", "en");
+        var files = Directory.GetFiles(strings, "*.json").Order(StringComparer.Ordinal)
+            .Select(static f => (Path.GetFileName(f), File.ReadAllText(f).Replace("\"line.prompt.stall-need\":", "\"line.prompt.stall-need-x\":", StringComparison.Ordinal)));
+        var renamed = LocaleText.Parse("en", "h", files);
+        var problems = GameDataValidator.Validate(TestGame.Data.WithLocale(renamed));
+        Assert.Contains("locale en: the string 'line.prompt.stall-need' is missing.", problems);
+        Assert.Contains("locale en: the string 'line.prompt.stall-need-x' is asked for by no content or code (an orphan).", problems);
+    }
+
+    private static void CopyDirectory(string from, string to)
+    {
+        foreach (var file in Directory.GetFiles(from, "*", SearchOption.AllDirectories))
+        {
+            var target = Path.Combine(to, Path.GetRelativePath(from, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(file, target, overwrite: true);
+        }
     }
 }

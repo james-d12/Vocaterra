@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/checks.json",
-  "description": "The check battery (pre, post and recall): comprehension items (hear a line, pick its meaning) and production items (say a phrase for a situation). Loaded by CheckBank (Vocaterra.Game.Core).",
+  "description": "The check battery (pre, post and recall): comprehension items (hear a line, pick its meaning) and production items (say a phrase for a situation). Loaded by CheckBank (Vocaterra.Game.Core). The support-language text is the locale's (content/locale/<code>/*.json) since C03; this file carries ids only.",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -63,25 +63,14 @@
           "type": "string",
           "description": "comprehension: the line's text, shown after the answer."
         },
-        "question": {
-          "type": "string",
-          "description": "comprehension: the question in the support language."
-        },
         "options": {
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
           "items": {
             "type": "object",
-            "required": [
-              "label"
-            ],
             "additionalProperties": false,
             "properties": {
-              "label": {
-                "type": "string",
-                "minLength": 1
-              },
               "icon": {
                 "type": "string",
                 "minLength": 1,
@@ -89,18 +78,13 @@
               }
             }
           },
-          "description": "comprehension: three options."
+          "description": "comprehension: three options, in order (their labels are the locale's check.<id>.option.<n>)."
         },
         "correct": {
           "type": "integer",
           "minimum": 0,
           "maximum": 2,
           "description": "comprehension: the index of the right option."
-        },
-        "situation": {
-          "type": "string",
-          "minLength": 1,
-          "description": "production: the situation in the support language."
         },
         "prompt": {
           "type": "string",
@@ -131,7 +115,6 @@
               "required": [
                 "line",
                 "spanish",
-                "question",
                 "options",
                 "correct"
               ]
@@ -153,7 +136,6 @@
             },
             {
               "required": [
-                "situation",
                 "prompt",
                 "intent"
               ]

@@ -270,7 +270,7 @@ public sealed class OpeningFrontendTests
 
         var ordinary = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped); // no lesson: the same words get her reply
         TeleportToNpc(ordinary, "guide");
-        var panel = new DialogueModel(new InputFocus(), ordinary.OpeningLine, ordinary.Phrases, ordinary.English);
+        var panel = new DialogueModel(new InputFocus(), ordinary.OpeningLine, ordinary.Phrases, ordinary.Locale);
         panel.Open(ordinary.OpenTalk("guide"), "Guía");
         var ordinaryBefore = panel.Lines.Count(static l => l.Speaker == DialogueSpeaker.Guide);
         _ = panel.Entry.Insert("hola");

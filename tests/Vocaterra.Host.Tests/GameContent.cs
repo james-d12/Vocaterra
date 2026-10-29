@@ -8,7 +8,8 @@ namespace Vocaterra.Host.Tests;
 internal static class GameContent
 {
     private static readonly Lazy<ContentBundle> LoadedBundle = new(() => SpanishContent.Load(BundleDirectory()));
-    private static readonly Lazy<GameData> LoadedData = new(() => GameData.Load(Bundle));
+    private static readonly Lazy<GameData> LoadedData =
+        new(() => GameData.Load(Bundle, LocaleBundle.Load(LocaleBundle.DirectoryBeside(BundleDirectory())).Text(LocaleBundle.DefaultCode)));
 
     /// <summary>The bundle, loaded and validated by the core's loader.</summary>
     public static ContentBundle Bundle => LoadedBundle.Value;

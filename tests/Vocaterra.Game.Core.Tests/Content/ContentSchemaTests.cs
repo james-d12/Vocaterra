@@ -71,15 +71,17 @@ public sealed class ContentSchemaTests
     }
 
     [Fact]
-    public async Task AStepTypeRequiresItsOwnFields()
+    public async Task AStepTypeRequiresItsOwnFieldsAndCarriesNoSupportLanguage()
     {
-        // The lessons schema says what each step type needs (anyOf with not: NJsonSchema does not apply if/then): a listen step without its options is refused, and so is a do step without its event.
+        // The lessons schema says what each step type needs (anyOf with not: NJsonSchema does not apply if/then): a listen step without its answer is refused,
+        // and so is a do step without its event. A step's text belongs to the locale since C03, so a step that carries "english" is refused too.
         var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "lessons.schema.json"));
         static string Lesson(string step) =>
-            $$"""{ "schemaVersion": 1, "lessons": [{ "id": "a", "npc": "guide", "title": "A", "english": "A", "steps": [{{step}}] }] }""";
-        Assert.Empty(schema.Validate(Lesson("""{ "id": "s", "type": "listen", "english": "E", "line": "phrase.hola", "translation": "T", "options": ["a", "b"], "correct": 0 }""")));
-        Assert.NotEmpty(schema.Validate(Lesson("""{ "id": "s", "type": "listen", "english": "E", "line": "phrase.hola", "translation": "T" }""")));
-        Assert.NotEmpty(schema.Validate(Lesson("""{ "id": "s", "type": "do", "english": "E" }""")));
+            $$"""{ "schemaVersion": 1, "lessons": [{ "id": "a", "npc": "guide", "steps": [{{step}}] }] }""";
+        Assert.Empty(schema.Validate(Lesson("""{ "id": "s", "type": "listen", "line": "phrase.hola", "correct": 0 }""")));
+        Assert.NotEmpty(schema.Validate(Lesson("""{ "id": "s", "type": "listen", "line": "phrase.hola" }""")));
+        Assert.NotEmpty(schema.Validate(Lesson("""{ "id": "s", "type": "do" }""")));
+        Assert.NotEmpty(schema.Validate(Lesson("""{ "id": "s", "type": "explain", "english": "E" }""")));
     }
 
     [Fact]
@@ -91,8 +93,8 @@ public sealed class ContentSchemaTests
         Assert.Equal(BlockDefinition.All.Select(static d => d.Name), Names(definitions["block"]!));
     }
 
-    // Schemas written before the files that use them (the locale files arrive with C03).
-    private static readonly HashSet<string> Pending = new(StringComparer.Ordinal) { "locale.schema.json", "locales.schema.json" };
+    // Schemas written before the files that use them (none at present).
+    private static readonly HashSet<string> Pending = new(StringComparer.Ordinal);
 
     private static string SchemaFolder => Repo.Path("content", "schema") + Path.DirectorySeparatorChar;
 

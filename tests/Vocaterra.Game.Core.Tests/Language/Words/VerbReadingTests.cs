@@ -1,6 +1,7 @@
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Es;
 
@@ -41,7 +42,7 @@ public sealed class VerbReadingTests
         // "ven" is not a present of venir (vengo, vienes, viene...), so it stays the command the core read.
         var reading = VerbReading.Normalize("venir", "ven", "2", "sg", null, "imp", Bundle.Value.SpanishMorphology());
         Assert.Equal(("2", "sg", null, "imp"), reading);
-        Assert.Equal("ven — come!", BookVerbLabels.Label("ven", "venir", new VerbGloss("venir", "to come", null, null), "2", "sg", null, "imp", question: false));
+        Assert.Equal("ven — come!", BookVerbLabels.Label("ven", "venir", new VerbGloss("venir", "to come", "come", "comes", "came"), "2", "sg", null, "imp", question: false));
     }
 
     [Fact]

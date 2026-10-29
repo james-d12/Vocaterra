@@ -60,6 +60,24 @@ internal static class LocaleFixture
         return (root.ToJsonString(), strings);
     }
 
+    /// <summary>
+    /// <see cref="SplitLessons"/> for a fixture that may be malformed on purpose: false when it is not a lessons object the splitter can read, so the
+    /// test hands the text to the loader as it is and the loader names the problem.
+    /// </summary>
+    public static bool TrySplitLessons(string json, out string file, out Dictionary<string, string> strings)
+    {
+        try
+        {
+            (file, strings) = SplitLessons(json);
+            return true;
+        }
+        catch (Exception ex) when (ex is System.Text.Json.JsonException or InvalidOperationException or NullReferenceException or FormatException)
+        {
+            (file, strings) = (json, new Dictionary<string, string>(StringComparer.Ordinal));
+            return false;
+        }
+    }
+
     /// <summary>A check battery with its text inline, split into the file the loader reads and the locale strings of its text.</summary>
     /// <param name="json">The fixture.</param>
     public static (string Json, Dictionary<string, string> Strings) SplitChecks(string json)

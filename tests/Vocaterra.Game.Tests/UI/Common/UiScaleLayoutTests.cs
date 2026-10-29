@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Checks;
@@ -203,16 +204,15 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
 
     private static IReadOnlyList<LessonView> StripCases()
     {
-        var path = Repo.Path("content", "game-v1", "game", "lessons.json");
-        using var document = JsonDocument.Parse(File.ReadAllText(path));
+        // Every step of the shipped lessons, with its text from the locale (C03).
         var views = new List<LessonView>();
-        foreach (var lesson in document.RootElement.GetProperty("lessons").EnumerateArray())
+        foreach (var lesson in RouteScene.DataOf(GameBundle.Load()).Lessons.Lessons)
         {
-            foreach (var step in lesson.GetProperty("steps").EnumerateArray())
+            foreach (var step in lesson.Steps)
             {
-                var english = step.GetProperty("english").GetString()!;
-                var type = step.GetProperty("type").GetString() == "listen" ? LessonStepType.Listen : LessonStepType.Explain;
-                IReadOnlyList<string> options = type == LessonStepType.Listen && step.TryGetProperty("options", out var o) ? o.EnumerateArray().Select(static x => x.GetString()!).ToList() : [];
+                var english = step.English;
+                var type = step.Type == LessonStepType.Listen ? LessonStepType.Listen : LessonStepType.Explain;
+                IReadOnlyList<string> options = type == LessonStepType.Listen ? step.Options : [];
                 views.Add(Step(type, english, "¿Dónde está el río, por favor?", "Listen again, then say it slowly. The phrase is on the card.", type != LessonStepType.Listen, options));
                 views.Add(Step(LessonStepType.Explain, english, null));
             }

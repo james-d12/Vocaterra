@@ -8,7 +8,8 @@
 #   It needs a local LanguageTool server (scripts/languagetool.sh start) unless `--offline` replays the committed cache.
 #
 # `refresh` is the whole loop after an edit of the game's content (CONTENT_PLAN 3.7, C01), with no step to forget and without the words the
-#   sandbox refuses: it rewrites the manifest of content/game-v1 (keeping its bundle id and its supportLanguage), lists the files that have no
+#   sandbox refuses: it rewrites the manifests of content/game-v1 (keeping its bundle id and its supportLanguage) and of the locale bundle
+#   content/locale (CONTENT_PLAN C03), lists the files that have no
 #   provenance item, validates, runs the gate's lint and the CEFR check at A1 and A2, runs the game's own checks between its files (the host's
 #   --validate-content, CONTENT_PLAN C02; the ContentBuilder references only the core and cannot), writes the grammar strings again (the host's
 #   --grammar-strings) and runs the grammar check offline from the committed cache. A cache miss means new Spanish: the message names the
@@ -50,12 +51,16 @@ fi
 
 # ---- refresh: every step after an edit, in order; the first failure stops it.
 GAME=content/game-v1
+LOCALE=content/locale
 STRINGS=content/grammar/game-v1-strings.jsonl
 tool() { dotnet run --project "$PROJECT" -- "$@"; }
 step() { printf '\n== refresh: %s\n' "$*"; }
 
 step "manifest of $GAME"
 tool hash "$GAME"
+# The support-language bundle beside it (CONTENT_PLAN C03): its own manifest, outside game-v1's hash, so an L1 edit touches no save or golden.
+step "manifest of $LOCALE"
+tool hash "$LOCALE" --bundle-id locale
 
 step "provenance"
 python3 -I - "$GAME" <<'EOF'

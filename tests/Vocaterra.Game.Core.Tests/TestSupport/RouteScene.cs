@@ -61,8 +61,12 @@ internal static class RouteScene
     /// </summary>
     public static LessonBook Lessons(string json, ContentBundle bundle)
     {
-        var (file, strings) = LocaleFixture.SplitLessons(json);
         var data = DataOf(bundle);
+        if (!LocaleFixture.TrySplitLessons(json, out var file, out var strings))
+        {
+            return LessonBook.Parse(json, data.Phrases, data.Speech, bundle.Prompts, data.Locale); // malformed: the loader names the problem
+        }
+
         return LessonBook.Parse(file, data.Phrases, data.Speech, bundle.Prompts, data.Locale.With(strings));
     }
 

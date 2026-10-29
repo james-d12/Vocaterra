@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using Vocaterra.Game.Core.Language.Learner;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tip;

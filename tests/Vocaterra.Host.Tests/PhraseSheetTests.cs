@@ -151,8 +151,9 @@ public sealed class PhraseSheetTests
     [Fact]
     public void TheRuntimeCopyOfTheSheetAgreesWithThisFileRowByRow()
     {
-        // game/phrases.json is the machine-readable copy the game reads (S7, S8); content/PHRASES.md stays the source of truth.
-        var runtime = RouteScene.DataOf(GameContent.Bundle).Phrases;
+        // game/phrases.json is the machine-readable copy the game reads (S7, S8), with each row's meaning and card from the locale since C03
+        // (content/locale/en/phrases.json); content/PHRASES.md stays the source of truth.
+        var runtime = GameContent.Data.Phrases;
 
         Assert.Equal(Rows.Select(static r => r.Id), runtime.Rows.Select(static r => r.Id));
         foreach (var row in Rows)
@@ -172,7 +173,7 @@ public sealed class PhraseSheetTests
     [Fact]
     public void ThePhraseOfEachCardIsThePhraseAndTheRuntimeFileIsListedAsHandAuthoredInTheProvenance()
     {
-        var runtime = RouteScene.DataOf(GameContent.Bundle).Phrases;
+        var runtime = GameContent.Data.Phrases;
         Assert.All(runtime.Rows, row => Assert.Equal(row.Spanish, row.CardPhrase));
 
         var provenance = File.ReadAllText(Path.Combine(GameContent.BundleDirectory(), "provenance.json"));

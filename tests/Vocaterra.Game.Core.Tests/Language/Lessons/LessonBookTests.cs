@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
@@ -80,7 +81,7 @@ public sealed class LessonBookTests
                     var spanish = sheet.Find(phrase)!.Spanish.TrimEnd('.').Split(',')[0];
                     // an explain step before names it in English, or the step itself quotes the words it asks for (S26: "say “Tengo una fruta”")
                     var named = each.Steps.Take(each.Steps.ToList().IndexOf(uses[0]) + 1).Where(static s => s.Type is LessonStepType.Explain or LessonStepType.Answer);
-                    Assert.Contains(named, s => s.Locale.Contains("“" + spanish + "”", StringComparison.OrdinalIgnoreCase));
+                    Assert.Contains(named, s => s.English.Contains("“" + spanish + "”", StringComparison.OrdinalIgnoreCase));
                 }
 
                 Assert.All(uses.Skip(1), static s => Assert.Equal(LessonStepType.Answer, s.Type));
@@ -112,7 +113,7 @@ public sealed class LessonBookTests
                 }
 
                 Assert.False(string.IsNullOrWhiteSpace(step.Translation), step.Id);
-                Assert.Equal(step.Translation, english.ForLine(line.Text)); // the English under the line is the same in the file's lines and in the step
+                Assert.Equal(step.Translation, english.Line(line.LineId)); // the gloss under the line is the same in the locale's lines and in the step
             }
         }
     }
@@ -157,7 +158,7 @@ public sealed class LessonBookTests
     [InlineData("{ \"id\": \"s\", \"type\": \"listen\", \"line\": \"phrase.hola\", \"translation\": \"x\", \"english\": \"x\", \"options\": [\"a\"], \"correct\": 0 }", "two to four")]
     [InlineData("{ \"id\": \"s\", \"type\": \"do\", \"event\": \"the_moon_landed\", \"english\": \"x\" }", "not a world event")]
     [InlineData("{ \"id\": \"s\", \"type\": \"explain\", \"english\": \"x\", \"attempts\": 9 }", "1 to 5")]
-    [InlineData("{ \"id\": \"s\", \"type\": \"explain\" }", "english")]
+    [InlineData("{ \"id\": \"s\", \"type\": \"explain\" }", "lesson.t.s.text")]
     [InlineData("{ \"id\": \"s\", \"type\": \"recap\", \"phrases\": [\"adios\"], \"english\": \"x\" }", "no repeat or answer step")]
     public void ALessonThatDoesNotHoldTogetherIsALoadError(string step, string problem)
     {
@@ -182,16 +183,16 @@ public sealed class LessonBookTests
     }
 
     [Fact]
-    public void TheLessonsAndTheEnglishAreHashedHostFilesOfTheBundle()
+    public void TheLessonsAreAHashedHostFileOfTheBundleAndTheirTextIsTheLocalesOutsideIt()
     {
         var bundle = TestGame.Bundle;
 
         Assert.True(bundle.TryReadHostFile(LessonBook.RelativePath, out _));
-        Assert.True(bundle.TryReadHostFile(LocaleText.RelativePath, out _));
         Assert.Contains(LessonBook.RelativePath, bundle.HostFilePaths);
-        Assert.Contains(LocaleText.RelativePath, bundle.HostFilePaths);
+        Assert.DoesNotContain("game/english.json", bundle.HostFilePaths); // the support language left the bundle (C03)
         var provenance = File.ReadAllText(Path.Combine(GameBundle.ResolveDirectory(), "provenance.json"));
         Assert.Contains("\"path\": \"game/lessons.json\", \"generatedBy\": \"hand-authored\"", provenance, StringComparison.Ordinal);
-        Assert.Contains("\"path\": \"game/english.json\", \"generatedBy\": \"hand-authored\"", provenance, StringComparison.Ordinal);
+        Assert.DoesNotContain("english", File.ReadAllText(Repo.Path("content", "game-v1", "game", "lessons.json")).Split('"').Where(static token => token is "english" or "title" or "translation" or "help" or "retry"));
+        Assert.Equal("First words with Luna", TestGame.Locale.Text(LessonBook.LessonId("first-words", "title")));
     }
 }

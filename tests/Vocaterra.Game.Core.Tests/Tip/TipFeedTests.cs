@@ -78,7 +78,7 @@ public sealed class TipFeedTests
     [Fact]
     public void TheNoteSaysTheGuidesCampIsDownTheTrailInEnglishWithOneSpanishWord()
     {
-        var note = Assert.Single(TestGame.NewSession().English.Tips, static t => t.Id == "note");
+        var note = Assert.Single(TestGame.Data.Tips, static t => t.Id == "note");
 
         Assert.Contains("down the trail", note.Text, StringComparison.Ordinal);
         Assert.Contains("camino", note.Text, StringComparison.Ordinal); // the one Spanish word, glossed in brackets
