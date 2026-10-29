@@ -250,6 +250,8 @@ ground for custom authoring tools. The answers, in `docs/game/CONTENT_PLAN.md`:
 - R16 phase 2 runs first, and the series starts on its layout (2026-10-28).
 - Proceed (2026-10-29): one session (Opus 5.5) does every milestone itself, with no subagents, on `feature/content`, made from `main` after
   R16 phase 2 landed there.
+- Close (2026-10-29: "work for content is done"): C01 to C08 are done (pull request #16). C09 is assessed and C10, the authoring CLI the
+  request looked towards, is specified in `CONTENT_PLAN.md` section 3.8. Neither is built until the owner asks.
 
 ## Already decided
 

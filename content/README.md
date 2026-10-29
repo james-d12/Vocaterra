@@ -108,6 +108,9 @@ Everything the game says, shows and builds its world from, outside the code. The
 
 ## Adding things
 
+These steps are by hand. An authoring CLI that does them (`new npc|objective|lesson`, `refs <id>` to find an id's uses, and `check`) is
+specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not built.
+
 - **A trigger.** A tip, a lesson's `do` step and an objective's step wait for a trigger: `{ "event": "<world event>", "npc": "<agent>", "detail":
   "<exact detail>" }` (only `event` is required; a tip may also wait for `start` or `aimed_npc`). The events are `WorldEvents` (`Event/WorldEvent.cs`), and the
   session log shows each one with its NPC and detail.

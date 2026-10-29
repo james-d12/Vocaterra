@@ -5,8 +5,9 @@ A plan written on 2026-10-27, at the owner's request, and revised on 2026-10-28 
 - move the learner's native language (L1) out of the code and the target-language data, into locale data;
 - build objectives, NPCs and target-language words from content data, as the ground for custom authoring tools later.
 
-**Status:** adopted on 2026-10-29 and in progress on `feature/content` (section 4 has each milestone's state). It is D-game-21 in
-`DECISIONS.md` and section 4.7 of `IMPLEMENTATION_PLAN.md`.
+**Status:** adopted on 2026-10-29 and done the same day on `feature/content`. C01 to C08 are done, C09 is assessed, and C10 (the authoring
+CLI) is specified in section 3.8 for later; the owner closed the series there (section 4). It is D-game-21 in `DECISIONS.md` and section
+4.7 of `IMPLEMENTATION_PLAN.md`.
 
 **The owner's answers:**
 - English moves into a locale layer, but no second locale is added yet (2026-10-27).
@@ -559,6 +560,47 @@ The schemas, `GameData` and the validator are the contract any tool builds on.
 - **Later:** a GUI editor (objectives, NPCs, lessons), whose technology stays open. It reads and writes the same files through the same
   schemas.
 
+#### The authoring CLI (C10): the specification, for later
+
+Written on 2026-10-29, after C01 to C08, against the content as it is now. It is not built: the owner closed the series without it ("work
+for content is done", 2026-10-29). It is a milestone of its own when the owner asks for it, and it depends only on what C07 and C08 left.
+
+- **Why.** Adding an NPC, an objective or a lesson is now data alone, but it touches four to six files by hand: `content/README.md`'s
+  "Adding things" lists them. One missed step (an index entry, a locale string, a provenance item) fails the refresh, and renaming an id
+  means hunting for its uses. The CLI does the steps, and shows the uses.
+- **Where.**
+  - A console project of the game, `tools/Vocaterra.Authoring`, referencing `Vocaterra.Game.Core` and the Spanish pack, no engine.
+  - It runs through `scripts/content.sh author <command>` under `scripts/limited.sh`.
+  - It is the game's tool, beside the core's ContentBuilder, which plans no game content (ADR 0009). It never writes the core's files
+    (`agents/`, `prompts/`, `dialogue/`, `intents/`, `lexicon/`). When the core needs something first, it names it and stops.
+- **The contract.**
+  - It reads with `GameData.Load` and checks with `GameDataValidator`.
+  - It writes only the game's host files (`game-v1/game/`), the locale (`locale/en/`) and `provenance.json`.
+  - It edits text in place: an id appended to an index, a string added to a locale file at the end of its group. Every byte it does not
+    change stays as it is, and it refuses a file whose layout it cannot place an edit in.
+  - It never hashes. After a write it prints the next steps: `scripts/content.sh refresh`, the LanguageTool step when it wrote Spanish,
+    then the whole suite. (The refresh holds the hashing, and the sandbox refuses the word.)
+- **Commands.**
+
+  | Command | What it writes or does |
+  | --- | --- |
+  | `new npc <id> --label <Label> --role <English> [--name <Name>] [--figure <key>]` | `game/npcs/<id>.json` (no focus yet), the id at the end of `game/npcs.json` (the saves keep this order), `npc.<id>.role` in `locale/en/ui.json`, a provenance item. It refuses when `agents/<id>.json` is missing (the core's file comes first), and it reminds you to place the NPC in `game/scene.json` `npcs` (coordinates are a by-hand edit). |
+  | `new objective <id> (--title <Spanish> --gloss <English> \| --hud <English>) --step <id> --event <world event> [--detail <d>] [--noun <lemma>] [--target <n>]` | `game/objectives/<id>.json` with that one step; the id at the end of `game/session.json`'s `objectives`; `objective.<id>.title` for a checklist or `.hud` for a line. A checklist step needs `--noun`, a catalogue noun. Hooks are added by hand, from the list the validator knows. |
+  | `new lesson <id> --npc <npc> --title <English> --text <English> [--after <lesson>]` | `game/lessons/<id>.json` with one `explain` step; the id in `game/lessons.json`; `lesson.<id>.title`, `.text` and the step's text in `locale/en/lessons.json`; a provenance item. |
+  | `refs <id>` | Every use of an id, from the loaded model rather than a text search, as `file: where` lines. NPC: the scene, lessons, steps, triggers, tips, host events, objectives, `{npc:<id>}` in the locale. Phrase: the sheet, NPC focus, lesson steps and recaps, review lines. Noun: the catalogue, `words.json`, objective steps, host events, scene labels, `noun.<lemma>`. Objective or step: `session.json`, `alsoDoneBy`, and the save key `<objective>.<step>` (renaming it drops its count from older saves). Locale string: which content or code asks for it. Exit 0 when found, 1 when not. |
+  | `check` | `GameData.Load` and the validator, as the host's `--validate-content` does today, plus each game file against its schema. Exit 0 clean, 1 problems, 2 usage. Schema checks at run time put NJsonSchema (MIT) into a shipped tool, so the licence scan's `--target` covers the tool too. |
+
+- **Tests.**
+  - A test project runs each command on a copy of `content/` in a temporary folder.
+  - Each written file validates against its schema, `GameData.Load` accepts the result, and every byte the command did not mean to change
+    is unchanged.
+  - `refs` finds the shipped uses (`refs guide`, `refs fruta`, `refs camp.wood`).
+- **Out of scope.**
+  - The core's files: an agent and its prompts, dialogue lines and intents stay ContentBuilder's area and the core's formats.
+  - Speech: `scripts/prerender-speech.sh` stays its own step.
+  - The scene's coordinates.
+  - A GUI editor, which comes later and builds on the same contract.
+
 ## 4. Milestones
 
 Every milestone's work is committed straight to `feature/content` with the prefix `C<nn>:`, and pushed often, never to `main` (the owner,
@@ -578,8 +620,14 @@ section 4's status column.
 | C06 | One trigger model shared by tips and lesson `do` steps (exact `detail`, ready for objectives); the `torch_at_ring` world event; lessons split one file each | C02 | done, gated with C05 and C08 (2026-10-29, `19a328e`) |
 | C07 | Objectives and the session from data (`game/objectives/`, `game/session.json`, named hooks); `Objective.Camp()` and the `SessionStage` logic retired; save v5 with the v4 keys mapped; a v4 fixture and the out-of-order test | C05, C06 | done, gated with C04 (2026-10-29, `59b7f01`) |
 | C08 | NPC data (`npcs/*.json`: label, name, figure key, phrase tables), `host-events.json`, `NpcService.AgentIds` from data; `NpcNames`, the `NpcHostEvents` table and `PhraseReview`'s table retired; the beacon label fixed | C05 | done, gated with C05 and C06 (2026-10-29, `19a328e`) |
-| C09 | Items, blocks, sounds and signs as data (assess first; parts may stay code). Enum names stay stable because saves store them; signs need a sign mechanism | C08 | assessed (2026-10-29), awaits the owner |
-| C10 | Authoring CLI: scaffold, references, check (the first custom tool) | C07, C08 | proposed, awaits the owner |
+| C09 | Items, blocks, sounds and signs as data (assess first; parts may stay code). Enum names stay stable because saves store them; signs need a sign mechanism | C08 | assessed (2026-10-29), not built: the series closed |
+| C10 | Authoring CLI: scaffold, references, check (the first custom tool) | C07, C08 | specified (section 3.8, 2026-10-29), not built: the series closed |
+
+**The series is closed (owner, 2026-10-29: "work for content is done").**
+- C01 to C08 are done and gated, and go to `main` by pull request #16.
+- C09 is assessed: sounds first, items, blocks and signs left as they are. C10 is specified in section 3.8. Neither is built; each would be a
+  milestone of its own when the owner asks for it.
+- The open points of C04 stay open: the speech and microphone problem messages, and the English verb labels.
 
 **The order of the rest (2026-10-29).** C05, C06, C08 and C07, then C04 last: its `{npc:…}` placeholder is filled from C08's NPC data, and its
 no-literal scan is easiest once every other milestone has moved its strings.

@@ -391,6 +391,12 @@ The plan, the milestones C01 to C10 and their states are in `docs/game/CONTENT_P
 gate runs on it at the end of each milestone. On the owner's
 instruction one session (Opus 5.5) does every milestone itself, with no subagents. The findings of each milestone go into section 5.
 
+**Closed (owner, 2026-10-29: "work for content is done").**
+- C01 to C08 are done and gated on `feature/content`, and go to `main` by pull request #16.
+- C09 (items, blocks, sounds and signs as data) is assessed: sounds first.
+- C10, the authoring CLI (`new npc|objective|lesson`, `refs <id>`, `check`), is specified in `CONTENT_PLAN.md` section 3.8.
+- Neither C09 nor C10 is built; each becomes a milestone when the owner asks for it.
+
 ## 5. Findings log
 
 Facts that shape the plan. Each one names its source; the core's own findings stay in the core's plan.
