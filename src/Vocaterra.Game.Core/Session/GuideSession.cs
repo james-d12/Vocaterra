@@ -1101,7 +1101,7 @@ public abstract class GuideSession : IDisposable
         }
         else if (gameEvent is WorldEvent world)
         {
-            Tips.Offer(world.Name); // a first-time tip waits for the event it explains (S16)
+            Tips.Offer(world); // a first-time tip waits for the event it explains (S16), with its filters (C06)
             Lessons.OnEvent(world); // a lesson's do step waits for a world event (S16)
         }
     }

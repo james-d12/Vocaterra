@@ -45,14 +45,27 @@ public sealed class TipFeed
     /// <param name="id">The tip's id.</param>
     internal bool Knows(string id) => _tips.Any(t => string.Equals(t.Id, id, StringComparison.Ordinal));
 
-    /// <summary>Queues the tips of a trigger that were not shown yet, in the file's order. A tip is queued once.</summary>
-    /// <param name="when">The trigger: <c>start</c>, <c>aimed_npc</c> or a world event's name.</param>
-    public void Offer(string when)
+    /// <summary>Queues the tips of a moment that is no world event (<c>start</c>, <c>aimed_npc</c>) that were not shown yet, in the file's order. A tip is queued once.</summary>
+    /// <param name="moment">The moment: <c>start</c> or <c>aimed_npc</c>.</param>
+    public void Offer(string moment)
     {
-        ArgumentNullException.ThrowIfNull(when);
+        ArgumentNullException.ThrowIfNull(moment);
+        Offer(tip => tip.Trigger.Matches(moment));
+    }
+
+    /// <summary>Queues the tips whose trigger the world event matches (C06: the event, and its NPC and detail when the trigger names them).</summary>
+    /// <param name="world">The world event.</param>
+    public void Offer(WorldEvent world)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+        Offer(tip => tip.Trigger.Matches(world));
+    }
+
+    private void Offer(Func<TipSpec, bool> matches)
+    {
         foreach (var tip in _tips)
         {
-            if (string.Equals(tip.When, when, StringComparison.Ordinal) && !_shown.Contains(tip.Id) && !_queue.Contains(tip) && !Equals(_current, tip))
+            if (matches(tip) && !_shown.Contains(tip.Id) && !_queue.Contains(tip) && !Equals(_current, tip))
             {
                 _queue.Add(tip);
                 _readyAt[tip.Id] = _session.CurrentTick + (tip.DelaySeconds * VoxelTicksPerSecond); // a delayed tip waits (S17: the opening tips come one at a time)

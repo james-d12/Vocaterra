@@ -28,7 +28,8 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/nouns.json` | `nouns.schema.json` | `NounCatalog` |
   | `game/recipes.json` | `recipes.schema.json` | `RecipeBook` |
   | `game/phrases.json` | `phrases.schema.json` | `PhraseSheet` |
-  | `game/lessons.json` | `lessons.schema.json` | `LessonBook` |
+  | `game/lessons.json` | `lessons.schema.json` (the lessons' ids, in order) | `LessonBook` |
+  | `game/lessons/<id>.json` | `lesson.schema.json` (one lesson each, C06) | `LessonBook` |
   | `game/checks.json` | `checks.schema.json` | `CheckBank` |
   | `game/tips.json` | `tips.schema.json` | `TipBook` |
   | `game/controls.json` | `controls.schema.json` | `TipBook` |
@@ -93,7 +94,11 @@ Everything the game says, shows and builds its world from, outside the code. The
 
 ## Adding things
 
-- **A lesson.** Add it to `game-v1/game/lessons.json` (`lessons.schema.json` lists each step type's fields) and its text to
+- **A trigger.** A tip, a lesson's `do` step and (from C07) an objective's step wait for a trigger: `{ "event": "<world event>", "npc": "<agent>", "detail":
+  "<exact detail>" }` (only `event` is required; a tip may also wait for `start` or `aimed_npc`). The events are `WorldEvents` (`Event/WorldEvent.cs`), and the
+  session log shows each one with its NPC and detail.
+- **A lesson.** Add a file `game-v1/game/lessons/<id>.json` (`lesson.schema.json` lists each step type's fields), its id to `game-v1/game/lessons.json`
+  where it should come, a provenance item, and its text to
   `locale/en/lessons.json` (`lesson.<id>.title`, `.text`, and each step's `lesson.<id>.<step>.text`, ...). Its phrases must be rows of
   `game/phrases.json`, its lines recorded speech lines, and its `do` events world events (`WorldEvents`).
 - **A phrase.** Add the row to `PHRASES.md` first (D-game-10), then to `game-v1/game/phrases.json`, and its meaning, card and explanation to

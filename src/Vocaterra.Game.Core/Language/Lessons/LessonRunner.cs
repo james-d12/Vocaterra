@@ -791,17 +791,9 @@ public sealed class LessonRunner
 
         var state = _states[lesson.Id];
         var step = lesson.Steps[state.Step];
-        if (step.Type != LessonStepType.Do || !string.Equals(step.Event, world.Name, StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        if (step.At is { } wantedNpc && world.Npc is not null && !string.Equals(world.Npc, wantedNpc, StringComparison.Ordinal))
-        {
-            return; // a do step that waits for the panel to open on an NPC (S26: the walk from the villager to the stall) ignores another NPC's
-        }
-
-        if (step.Detail is { } wanted && (world.Detail is null || !world.Detail.Contains(wanted, StringComparison.OrdinalIgnoreCase)))
+        // The step's trigger (C06): its event, and the NPC (S26: the walk from the villager to the stall ignores another NPC's panel) and the exact detail
+        // when it names them.
+        if (step.Type != LessonStepType.Do || step.Trigger is not { } trigger || !trigger.Matches(world))
         {
             return;
         }

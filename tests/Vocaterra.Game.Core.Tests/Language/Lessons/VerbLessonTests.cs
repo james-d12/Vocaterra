@@ -512,7 +512,8 @@ public sealed class VerbLessonTests(ITestOutputHelper output)
             "\"verbs\": [ { \"lemma\": \"ir\", \"person\": \"1\", \"number\": \"sg\", \"tense\": \"pres\" }, { \"lemma\": \"ir\", \"person\": \"1\", \"number\": \"sg\", \"tense\": \"pres\" } ],"))).Message, StringComparison.Ordinal);
         Assert.Contains("NPC", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"explain\", \"english\": \"E\", \"npc\": \"baker\" }"))).Message, StringComparison.Ordinal);
         Assert.Contains("spoken by", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"model\", \"line\": \"shop_need.1\", \"translation\": \"T\", \"english\": \"E\" }"))).Message, StringComparison.Ordinal);
-        Assert.Contains("talk_opened", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"do\", \"event\": \"item_picked_up\", \"at\": \"shopkeeper\", \"english\": \"E\" }"))).Message, StringComparison.Ordinal);
+        // C06: a do step's NPC is its trigger's npc; the old field "at" is refused, so a lesson cannot wait at an NPC by a name the matcher does not read.
+        Assert.Contains("'at'", Assert.Throws<InvalidDataException>(() => TestGame.Lessons(Lesson("", "{ \"id\": \"a\", \"type\": \"do\", \"trigger\": { \"event\": \"talk_opened\", \"at\": \"shopkeeper\" }, \"english\": \"E\" }"))).Message, StringComparison.Ordinal);
     }
 
     // ---- The person of the answer's verb (S26 part 2)

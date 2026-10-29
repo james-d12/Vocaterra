@@ -464,7 +464,7 @@ public sealed class LessonRunnerTests
     [Fact]
     public void ADoStepWaitsOnTheWorldEventTheGameRaisesAndEndsWithIt()
     {
-        var session = TestGame.NewSession(lessons: TestGame.Lessons(LessonWith("{ \"id\": \"get\", \"type\": \"do\", \"event\": \"item_picked_up\", \"detail\": \"madera\", \"english\": \"Collect some wood.\" }," + Explain)));
+        var session = TestGame.NewSession(lessons: TestGame.Lessons(LessonWith("{ \"id\": \"get\", \"type\": \"do\", \"trigger\": { \"event\": \"item_picked_up\", \"detail\": \"madera\" }, \"english\": \"Collect some wood.\" }," + Explain)));
         Stage.TeleportToNpc(session, "guide");
         _ = session.OpenTalk("guide");
         _ = session.Lessons.Start("t");

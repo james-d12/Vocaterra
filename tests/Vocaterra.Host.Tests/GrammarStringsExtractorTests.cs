@@ -132,13 +132,14 @@ public sealed class GrammarStringsExtractorTests
     [Fact]
     public void EveryLessonLineIsADialogueLineSoItIsCheckedWithTheDialogue()
     {
-        // lessons.json names its spoken lines by dialogue id; their text is checked once, as the dialogue line (no second copy in the strings file).
+        // The lessons (one file each since C06, game/lessons/<id>.json) name their spoken lines by dialogue id; their text is checked once, as the dialogue
+        // line (no second copy in the strings file).
         var lineIds = GameContent.Bundle.Dialogue.Pools.Values.SelectMany(static pool => pool.Variants).Select(static variant => variant.LineId).ToHashSet(StringComparer.Ordinal);
-        using var lessons = JsonDocument.Parse(File.ReadAllText(Path.Combine(GameContent.BundleDirectory(), "game", "lessons.json"), Encoding.UTF8));
         var spoken = 0;
-        foreach (var lesson in lessons.RootElement.GetProperty("lessons").EnumerateArray())
+        foreach (var file in Directory.GetFiles(Path.Combine(GameContent.BundleDirectory(), "game", "lessons"), "*.json").Order(StringComparer.Ordinal))
         {
-            foreach (var step in lesson.GetProperty("steps").EnumerateArray())
+            using var lesson = JsonDocument.Parse(File.ReadAllText(file, Encoding.UTF8));
+            foreach (var step in lesson.RootElement.GetProperty("steps").EnumerateArray())
             {
                 if (step.TryGetProperty("line", out var line))
                 {

@@ -128,6 +128,9 @@ public sealed class VoxelSession : GuideSession
     /// <summary>Whether the session is complete: the camp checklist is done and the player's own fire is lit. The front-end then shows the closing moment.</summary>
     public bool SessionComplete => _sessionComplete;
 
+    /// <summary>The scene's name for the fire ring at the guide's camp, where the checklist's torch goes (S5).</summary>
+    public const string CampFireRing = "firering";
+
     /// <summary>The scene's name for the fire ring at the player's own camp, where the closing fire is lit (S17).</summary>
     public const string PlayerFireRing = "firering.player";
 
@@ -261,6 +264,16 @@ public sealed class VoxelSession : GuideSession
                     if ((BlockId)e.Detail == BlockId.Torch)
                     {
                         var cell = new BlockPos(e.X, e.Y, e.Z);
+                        if (AtFireRing(cell))
+                        {
+                            LogWorld(WorldEvents.TorchAtRing, null, CampFireRing); // C06: the camp's ring (or, in a scene that names none, any ring but the player's)
+                        }
+
+                        if (AtPlayerFireRing(cell))
+                        {
+                            LogWorld(WorldEvents.TorchAtRing, null, PlayerFireRing);
+                        }
+
                         completed.AddRange(Objective.RecordTorchPlaced(AtFireRing(cell)));
                         if (AtPlayerFireRing(cell))
                         {
@@ -394,7 +407,7 @@ public sealed class VoxelSession : GuideSession
 
         _fireLit = true;
         Pointer = null; // the way back is walked: the arrow to the player's camp (or any earlier one) goes
-        LogWorld(WorldEvents.FireLit, null, "firering.player");
+        LogWorld(WorldEvents.FireLit, null, PlayerFireRing);
         CheckSessionComplete();
     }
 
@@ -532,8 +545,8 @@ public sealed class VoxelSession : GuideSession
     // "firering.player") is for the end of the session: a torch set on it does not complete the camp's step. A scene without the point counts every ring.
     private void ScanFireRing(Scene scene)
     {
-        var hasCampRing = scene.Points.TryGetValue("firering", out var centre);
-        var hasOwnRing = scene.Points.TryGetValue("firering.player", out var own);
+        var hasCampRing = scene.Points.TryGetValue(CampFireRing, out var centre);
+        var hasOwnRing = scene.Points.TryGetValue(PlayerFireRing, out var own);
         foreach (var stone in scene.Grid.BlocksOfKind(BlockId.FireRing))
         {
             if (hasOwnRing && Math.Abs(stone.X - own.X) <= 1 && Math.Abs(stone.Z - own.Z) <= 1)

@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
@@ -71,6 +72,18 @@ public sealed class CampObjectiveTests
         Assert.True(VoxelWalker.Place(session, ItemId.Torch, rim));
         Assert.Equal(BlockId.Torch, grid.GetBlock(rim.X, rim.Y, rim.Z));
         return (session, cards, session.Simulation.ComputeStateDigest());
+    }
+
+    [Fact]
+    public void TheTorchAtTheCampsRingRaisesTorchAtRingWithTheRingsName()
+    {
+        // C06: the camp step's trigger is { "event": "torch_at_ring", "detail": "firering" }; the session raises the event, so every trigger can be seen in the log.
+        var (session, _, _) = PlayCamp();
+
+        var rings = session.Events.OfType<WorldEvent>().Where(static e => e.Name == WorldEvents.TorchAtRing).ToList();
+
+        Assert.Equal(["firering"], rings.Select(static e => e.Detail));
+        Assert.True(rings[0].Tick <= session.Events.OfType<WorldEvent>().First(static e => e.Name == WorldEvents.ObjectiveStep && e.Detail!.StartsWith("antorcha", StringComparison.Ordinal)).Tick);
     }
 
     [Fact]

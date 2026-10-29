@@ -81,10 +81,18 @@ public static class WorldEvents
     /// <summary>The camp's checklist was complete and the player was given a spare torch for their own fire (S17; the detail says how, or that the bag was full).</summary>
     public const string SpareTorch = "spare_torch";
 
-    /// <summary>Every world event name, in the order above (the English text and the lessons check the names they use against it).</summary>
+    /// <summary>
+    /// A torch was placed at a fire ring (CONTENT_PLAN C06): in the three-by-three square around a ring stone, on its layer or on top of a stone. The detail is
+    /// the ring's prop name (<c>firering</c> at the guide's camp, <c>firering.player</c> at the player's own); in a scene that names no camp ring, every ring
+    /// that is not the player's counts as <c>firering</c>. The camp's checklist step waits for it.
+    /// </summary>
+    public const string TorchAtRing = "torch_at_ring";
+
+    /// <summary>Every world event name, in the order above (the tips, the lessons and the objectives check the names they use against it).</summary>
     public static IReadOnlyList<string> All { get; } =
     [
         TalkOpened, TalkClosed, ItemGiven, BeaconSet, BottleFilled, WaterWithoutBottle, FoundWithoutSpanish, ObjectiveStep, ObjectiveComplete, TransferOffered,
         KeyWordsShown, PhraseReviewAsked, SupportCardShown, ItemPickedUp, TipShown, GuideMet, FireLit, SessionComplete, SpareTorch, SecondTryAsked, SecondTryAnswered,
+        TorchAtRing,
     ];
 }

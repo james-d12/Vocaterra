@@ -26,7 +26,7 @@
         "type": "object",
         "required": [
           "id",
-          "when"
+          "trigger"
         ],
         "additionalProperties": false,
         "properties": {
@@ -35,10 +35,8 @@
             "minLength": 1,
             "description": "A stable id; the save keeps which tips were shown."
           },
-          "when": {
-            "type": "string",
-            "minLength": 1,
-            "description": "start, aimed_npc, or a world event name."
+          "trigger": {
+            "$ref": "#/definitions/trigger"
           },
           "delay": {
             "type": "integer",
@@ -48,6 +46,33 @@
           }
         }
       }
+    }
+  },
+  "definitions": {
+    "trigger": {
+      "type": "object",
+      "required": [
+        "event"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "event": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The event waited for: a world event (WorldEvents), or for a tip start or aimed_npc."
+        },
+        "npc": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The NPC the event must be about (an agent id)."
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The detail the event must have, exactly (item_picked_up: the noun; torch_at_ring: the ring's name)."
+        }
+      },
+      "description": "What the step or tip waits for (CONTENT_PLAN C06)."
     }
   }
 }

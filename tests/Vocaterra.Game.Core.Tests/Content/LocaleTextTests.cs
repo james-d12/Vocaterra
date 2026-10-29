@@ -229,7 +229,7 @@ public sealed class LocaleTextTests
     {
         var tips = File.ReadAllText(Repo.Path("content", "game-v1", "game", "tips.json"));
 
-        Assert.Throws<InvalidDataException>(() => TipBook.ParseTips(tips.Replace("\"when\": \"start\"", "\"when\": \"never_happens\"", StringComparison.Ordinal), English));
+        Assert.Throws<InvalidDataException>(() => TipBook.ParseTips(tips.Replace("\"event\": \"start\"", "\"event\": \"never_happens\"", StringComparison.Ordinal), English));
         Assert.Throws<InvalidDataException>(() => TipBook.ParseTips(tips.Replace("\"id\": \"look\"", "\"id\": \"look-x\"", StringComparison.Ordinal), English));
         Assert.Throws<InvalidDataException>(() => TipBook.ParseTips(tips.Replace("\"schemaVersion\": 1", "\"schemaVersion\": 2", StringComparison.Ordinal), English));
         Assert.Equal(TestGame.Data.Tips, TipBook.ParseTips(tips, English));

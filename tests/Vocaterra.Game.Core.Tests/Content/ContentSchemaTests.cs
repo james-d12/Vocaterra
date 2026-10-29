@@ -75,12 +75,14 @@ public sealed class ContentSchemaTests
     {
         // The lessons schema says what each step type needs (anyOf with not: NJsonSchema does not apply if/then): a listen step without its answer is refused,
         // and so is a do step without its event. A step's text belongs to the locale since C03, so a step that carries "english" is refused too.
-        var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "lessons.schema.json"));
+        var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "lesson.schema.json"));
         static string Lesson(string step) =>
-            $$"""{ "schemaVersion": 1, "lessons": [{ "id": "a", "npc": "guide", "steps": [{{step}}] }] }""";
+            $$"""{ "schemaVersion": 1, "id": "a", "npc": "guide", "steps": [{{step}}] }""";
         Assert.Empty(schema.Validate(Lesson("""{ "id": "s", "type": "listen", "line": "phrase.hola", "correct": 0 }""")));
+        Assert.Empty(schema.Validate(Lesson("""{ "id": "s", "type": "do", "trigger": { "event": "item_picked_up", "detail": "fruta" } }""")));
         Assert.NotEmpty(schema.Validate(Lesson("""{ "id": "s", "type": "listen", "line": "phrase.hola" }""")));
         Assert.NotEmpty(schema.Validate(Lesson("""{ "id": "s", "type": "do" }""")));
+        Assert.NotEmpty(schema.Validate(Lesson("""{ "id": "s", "type": "do", "event": "item_picked_up" }"""))); // C06: the event is the trigger's
         Assert.NotEmpty(schema.Validate(Lesson("""{ "id": "s", "type": "explain", "english": "E" }""")));
     }
 

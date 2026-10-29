@@ -289,7 +289,7 @@ public sealed class LessonFrontendTests
           { "id": "pick", "type": "listen", "line": "phrase.hola", "translation": "Hello.", "english": "What does she say?", "options": ["Goodbye", "Hello", "Thank you"], "correct": 1 },
           { "id": "say", "type": "repeat", "phrase": "hola", "prompt": "guide-open", "english": "Say it." },
           { "id": "reply", "type": "answer", "phrase": "gracias", "prompt": "guide-open", "line": "guide_offer_yes.1", "translation": "Of course! Here you are.", "english": "Thank her." },
-          { "id": "get", "type": "do", "event": "item_picked_up", "detail": "fruta", "english": "Pick a fruit." },
+          { "id": "get", "type": "do", "trigger": { "event": "item_picked_up", "detail": "fruta" }, "english": "Pick a fruit." },
           { "id": "sum", "type": "recap", "english": "Well done." } ] } ] }
         """;
 

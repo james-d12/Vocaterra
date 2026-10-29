@@ -23,7 +23,7 @@ public sealed class LessonBookTests
           { "id": "pick", "type": "listen", "line": "phrase.hola", "translation": "Hello.", "english": "What does she say?", "options": ["Hello", "Goodbye", "Thank you"], "correct": 0 },
           { "id": "say", "type": "repeat", "phrase": "hola", "prompt": "guide-open", "english": "Say it." },
           { "id": "reply", "type": "answer", "phrase": "gracias", "prompt": "guide-open", "line": "guide_offer_yes.1", "translation": "Of course! Here you are.", "english": "Thank her." },
-          { "id": "get", "type": "do", "event": "item_picked_up", "detail": "fruta", "english": "Pick a fruit." },
+          { "id": "get", "type": "do", "trigger": { "event": "item_picked_up", "detail": "fruta" }, "english": "Pick a fruit." },
           { "id": "sum", "type": "recap", "english": "Well done." } ] } ] }
         """;
 
@@ -156,7 +156,9 @@ public sealed class LessonBookTests
     [InlineData("{ \"id\": \"s\", \"type\": \"model\", \"line\": \"phrase.hola\", \"english\": \"x\" }", "translation")]
     [InlineData("{ \"id\": \"s\", \"type\": \"listen\", \"line\": \"phrase.hola\", \"translation\": \"x\", \"english\": \"x\", \"options\": [\"a\", \"b\"], \"correct\": 2 }", "outside the options")]
     [InlineData("{ \"id\": \"s\", \"type\": \"listen\", \"line\": \"phrase.hola\", \"translation\": \"x\", \"english\": \"x\", \"options\": [\"a\"], \"correct\": 0 }", "two to four")]
-    [InlineData("{ \"id\": \"s\", \"type\": \"do\", \"event\": \"the_moon_landed\", \"english\": \"x\" }", "not a world event")]
+    [InlineData("{ \"id\": \"s\", \"type\": \"do\", \"trigger\": { \"event\": \"the_moon_landed\" }, \"english\": \"x\" }", "not an event the game raises")]
+    [InlineData("{ \"id\": \"s\", \"type\": \"do\", \"english\": \"x\" }", "no trigger")]
+    [InlineData("{ \"id\": \"s\", \"type\": \"do\", \"trigger\": { \"event\": \"talk_opened\", \"npc\": \"miller\" }, \"english\": \"x\" }", "is not one of the NPCs")]
     [InlineData("{ \"id\": \"s\", \"type\": \"explain\", \"english\": \"x\", \"attempts\": 9 }", "1 to 5")]
     [InlineData("{ \"id\": \"s\", \"type\": \"explain\" }", "lesson.t.s.text")]
     [InlineData("{ \"id\": \"s\", \"type\": \"recap\", \"phrases\": [\"adios\"], \"english\": \"x\" }", "no repeat or answer step")]
