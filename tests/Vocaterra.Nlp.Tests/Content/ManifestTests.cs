@@ -141,7 +141,8 @@ public class ManifestTests
     [Fact]
     public void TheManifestSerializesOneFilePerLineAndRoundTrips()
     {
-        var manifest = TestSupport.Bundle.Manifest;
+        // The bundle's manifest without its optional support language (game-v1 names one; ManifestLanguageTests covers the optional fields).
+        var manifest = TestSupport.Bundle.Manifest with { SupportLanguage = null };
 
         var json = manifest.ToJson();
 
