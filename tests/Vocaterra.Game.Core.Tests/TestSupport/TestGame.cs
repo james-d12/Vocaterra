@@ -67,7 +67,7 @@ internal static class TestGame
     public static LocaleText Locale => RouteScene.LocaleOf(Bundle);
 
     /// <summary>The live facts of a session's world (the blocks as they are now).</summary>
-    public static WorldFacts FactsOf(VoxelSession session) => WorldFacts.Live(session.Scene.Grid, Nouns);
+    public static WorldFacts FactsOf(VoxelSession session) => WorldFacts.Live(session.Scene.Grid, Nouns, TestGame.Data.Words.Directions);
 
     /// <summary>Where the player stands as the guide's facts need it (the block under the body, the exact centre and the facing).</summary>
     public static GuideViewpoint ViewpointOf(VoxelSession session)

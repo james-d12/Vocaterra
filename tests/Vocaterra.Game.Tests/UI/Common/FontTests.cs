@@ -47,10 +47,10 @@ public sealed class FontTests
             DialoguePanel.ListeningText, DialoguePanel.ThinkingText, DialoguePanel.SpokenPrefix, LoadingLayer.Text, PushToTalkSpeechCapture.NoMicrophone, PushToTalkSpeechCapture.Silence,
             "heard at 96 %, Could not open the microphone: ", "Speech model vosk-model-small-es-0.42 is missing from /ruta. You can still type.", "Speech off: the recogniser is not loaded. Type your answer.", "I didn't hear anything.",
             // S7: the speech UX (the buttons, the heard-versus-expected line, the mic check, the typing offer).
-            DialoguePanel.ButtonHints, DialoguePanel.SpeechOffButtonHints, DialoguePanel.SpeechOffKeyHints, DialogueModel.TypeOfferText, HeardLine.HeardLabel, HeardLine.ExpectedLabel, HeardLine.NothingHeard, HeardLine.SomethingHeard, "not understood",
+            DialoguePanel.ButtonHints, DialoguePanel.SpeechOffButtonHints, DialoguePanel.SpeechOffKeyHints, RouteScene.Shipped.Words.TypeOffer, HeardLine.HeardLabel, HeardLine.ExpectedLabel, HeardLine.NothingHeard, HeardLine.SomethingHeard, "not understood",
             MicCheckModel.Instruction, MicCheckModel.Title, MicCheckModel.TalkHint, MicCheckModel.PassedText, MicCheckModel.FailedText, MicCheckModel.ContinueLabel, MicCheckModel.RetryLabel,
             MicCheckModel.SkipLabel, "Esc: skip", "Loading speech…", "Speech is not available.",
-            string.Join(' ', SpeechButtons.All.Select(static b => b.Text)), "[1] Quiero agua, por favor. [2] Ayuda. [3] Sí, por favor. No, gracias. Adiós. «…»",
+            string.Join(' ', SpeechButtons.For(RouteScene.Shipped.Words.Buttons).Select(static b => b.Text)), "[1] Quiero agua, por favor. [2] Ayuda. [3] Sí, por favor. No, gracias. Adiós. «…»",
         };
 
         // Every template and prompt of the bundle, as written (the slot words are plain nouns the font covers as letters).

@@ -762,7 +762,7 @@ public sealed class LessonRunner
     }
 
     // The reason and the retry line when the answer is the step's phrase with the wrong person or tense of verb, else null. Person first, then tense.
-    private static (string Reason, string? Retry)? FormMiss(LessonStep step, GuideTurn turn)
+    private (string Reason, string? Retry)? FormMiss(LessonStep step, GuideTurn turn)
     {
         if (step.Person is { } person && WrongPerson(turn, person) is { } said)
         {
@@ -955,20 +955,19 @@ public sealed class LessonRunner
             && !string.Equals(w.Mood, "inf", StringComparison.OrdinalIgnoreCase) && !string.Equals(w.Mood, "infinitive", StringComparison.OrdinalIgnoreCase)).ToList();
 
     // Whether the answer of an ir-a step is a plan said in the present with a future-time word (S27): "mañana voy al río", "mañana como pan". It is correct Spanish, so it is no miss.
-    private static bool PresentForPlan(LessonStep step, GuideTurn turn) =>
+    private bool PresentForPlan(LessonStep step, GuideTurn turn) =>
         string.Equals(step.Tense, TaughtVerbForm.NearFuture, StringComparison.Ordinal) && !turn.Errors.Any(static e => e.Tag.StartsWith("conj.", StringComparison.Ordinal))
         && turn.Words is { } words && PresentForPlan(turn, words, FiniteVerbs(words)) && !HasNearFuture(words, FiniteVerbs(words));
 
-    private static bool PresentForPlan(GuideTurn turn, IReadOnlyList<GuideWord> words, List<GuideWord> finite) =>
-        words.Any(static w => string.Equals(w.Text, "mañana", StringComparison.Ordinal)) && finite.Count > 0 && finite.Any(static w => string.Equals(w.Tense, "pres", StringComparison.OrdinalIgnoreCase))
+    private bool PresentForPlan(GuideTurn turn, IReadOnlyList<GuideWord> words, List<GuideWord> finite) =>
+        words.Any(w => _session.Data.Words.NearFuture.TimeWords.Contains(w.Text, StringComparer.Ordinal)) && finite.Count > 0 && finite.Any(static w => string.Equals(w.Tense, "pres", StringComparison.OrdinalIgnoreCase))
         && !finite.Any(static w => string.Equals(w.Tense, "pret", StringComparison.OrdinalIgnoreCase) || string.Equals(w.Tense, "impf", StringComparison.OrdinalIgnoreCase));
 
-    private static bool HasNearFuture(IReadOnlyList<GuideWord> words, List<GuideWord> finite)
+    private bool HasNearFuture(IReadOnlyList<GuideWord> words, List<GuideWord> finite)
     {
         for (var i = 0; i + 2 < words.Count; i++)
         {
-            if (string.Equals(words[i].Lemma, "ir", StringComparison.Ordinal) && finite.Contains(words[i]) && string.Equals(words[i + 1].Text, "a", StringComparison.Ordinal)
-                && string.Equals(words[i + 2].Pos, "verb", StringComparison.Ordinal) && (words[i + 2].Mood is "inf" or "infinitive" || words[i + 2].Person is not { Length: > 0 }))
+            if (IsNearFutureAt(words, finite, i))
             {
                 return true;
             }
@@ -977,9 +976,17 @@ public sealed class LessonRunner
         return false;
     }
 
+    // The near future at a word: a finite form of its verb (ir), then its joiner (a), then an infinitive (game/words.json, C05).
+    private bool IsNearFutureAt(IReadOnlyList<GuideWord> words, List<GuideWord> finite, int i)
+    {
+        var nearFuture = _session.Data.Words.NearFuture;
+        return string.Equals(words[i].Lemma, nearFuture.Verb, StringComparison.Ordinal) && finite.Contains(words[i]) && string.Equals(words[i + 1].Text, nearFuture.Joiner, StringComparison.Ordinal)
+            && string.Equals(words[i + 2].Pos, "verb", StringComparison.Ordinal) && (words[i + 2].Mood is "inf" or "infinitive" || words[i + 2].Person is not { Length: > 0 });
+    }
+
     // The tense (S27) of the answer's verb when it is not the expected one and the core found no error to flag, else null: the tense said (pres, pret, ...) or "none". The near future
     // (ir-a) is a finite form of ir, then "a", then an infinitive. A line with no finite verb is not judged. When the line has several verbs, one with the expected tense is enough.
-    private static string? WrongTense(GuideTurn turn, string wanted)
+    private string? WrongTense(GuideTurn turn, string wanted)
     {
         if (turn.Errors.Any(static e => e.Tag.StartsWith("conj.", StringComparison.Ordinal)) || turn.Words is not { } words)
         {
@@ -1002,8 +1009,7 @@ public sealed class LessonRunner
             var nearFuture = false;
             for (var i = 0; i + 2 < words.Count; i++)
             {
-                nearFuture |= string.Equals(words[i].Lemma, "ir", StringComparison.Ordinal) && finite.Contains(words[i]) && string.Equals(words[i + 1].Text, "a", StringComparison.Ordinal)
-                    && string.Equals(words[i + 2].Pos, "verb", StringComparison.Ordinal) && (words[i + 2].Mood is "inf" or "infinitive" || words[i + 2].Person is not { Length: > 0 });
+                nearFuture |= IsNearFutureAt(words, finite, i);
             }
 
             return nearFuture ? null : finite[0].Tense ?? "none";

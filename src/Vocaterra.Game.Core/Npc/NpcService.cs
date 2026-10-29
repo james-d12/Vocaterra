@@ -171,6 +171,7 @@ public sealed partial class NpcService
     private readonly NounCatalog _nouns;
     private readonly RecipeBook _recipes;
     private readonly PhraseSheet _phrases;
+    private readonly GameWords _words;
     private readonly Dictionary<string, Agent> _agents = new(StringComparer.Ordinal);
     private readonly List<ReplayEntry> _records = [];
     private volatile SpokenUtteranceEvaluator? _spoken;
@@ -231,6 +232,7 @@ public sealed partial class NpcService
         _recipes = data.Recipes;
         _typed = new TypedUtteranceEvaluator(bundle);
         _phrases = data.Phrases;
+        _words = data.Words;
         foreach (var id in AgentIds)
         {
             if (!bundle.Agents.TryGetValue(id, out var machine))
@@ -242,6 +244,9 @@ public sealed partial class NpcService
             _agents.Add(id, new Agent(id, context));
         }
     }
+
+    /// <summary>The target-language words the game uses (<c>game/words.json</c>): the guide's units and joiner, the greeting.</summary>
+    public GameWords Words => _words;
 
     /// <summary>How many replay entries the conversations have recorded so far (the session log numbers them; S11).</summary>
     public int RecordCount
@@ -322,7 +327,7 @@ public sealed partial class NpcService
     public void WarmUp()
     {
         var context = _agents[GuideAgent].Context;
-        var analysis = _typed.Analyze("hola", _bundle.Prompts[GuidePrompt]);
+        var analysis = _typed.Analyze(_words.Greeting, _bundle.Prompts[GuidePrompt]);
         _ = _typed.CompleteTrace(analysis, context);
     }
 

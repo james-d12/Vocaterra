@@ -191,7 +191,7 @@ public sealed class SecondTryTests
         Assert.True(worker.WaitUntilReady(30000), "The worker did not load.");
         var item = RouteScene.DataOf(TestGame.Bundle).Checks.Single(static i => i.Id == "say.donde-esta-el-rio");
 
-        _ = session.SubmitCheck(item, TurnSource.Button, GuideSession.DontKnowLine, null, null);
+        _ = session.SubmitCheck(item, TurnSource.Button, TestGame.Data.Words.DontKnowLine, null, null);
         var applied = Drain(session, 1).Single();
 
         Assert.True(applied.Outcome.Grade!.DontKnow);

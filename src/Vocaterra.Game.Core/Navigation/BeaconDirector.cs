@@ -44,7 +44,7 @@ public sealed class BeaconDirector
     {
         if (requested is { } point && !string.Equals(point, "none", StringComparison.Ordinal))
         {
-            if (Beacon.SetPoint(scene, point, PointLabels.For(point)))
+            if (Beacon.SetPoint(scene, point, scene.LabelOf(point)))
             {
                 _log($"beacon: {point} at {Beacon.Target!.Value.X},{Beacon.Target.Value.Y},{Beacon.Target.Value.Z}");
             }
@@ -54,7 +54,7 @@ public sealed class BeaconDirector
             }
         }
 
-        if (requested is null && !loaded && Beacon.SetPoint(scene, StartPoint, PointLabels.For(StartPoint)))
+        if (requested is null && !loaded && Beacon.SetPoint(scene, StartPoint, scene.LabelOf(StartPoint)))
         {
             _log($"beacon: {StartPoint} at {Beacon.Target!.Value.X},{Beacon.Target.Value.Y},{Beacon.Target.Value.Z} (the walk down the trail)");
         }
@@ -72,7 +72,7 @@ public sealed class BeaconDirector
             _shownPointer = pointer;
             if (pointer is { } arrow)
             {
-                Beacon.Set(arrow.Target.ToBlock(), arrow.Quiz ? "¿?" : arrow.Place);
+                Beacon.Set(arrow.Target.ToBlock(), arrow.Quiz ? _session.Data.Words.Unseen : arrow.Place);
             }
             else
             {

@@ -80,7 +80,7 @@ public sealed class DialoguePanel : IFrameLayer
     {
         ArgumentNullException.ThrowIfNull(dialogue);
         ArgumentNullException.ThrowIfNull(font);
-        return new DialogueLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), dialogue.Choices.Select(static c => c.Label).ToList(), dialogue.IsTyping, button => SpeechButtons.TextFor(button, session), HintsFor(dialogue.IsTyping, dialogue.SpeechUnavailable));
+        return new DialogueLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), dialogue.Choices.Select(static c => c.Label).ToList(), dialogue.Buttons, dialogue.IsTyping, button => SpeechButtons.TextFor(button, session), HintsFor(dialogue.IsTyping, dialogue.SpeechUnavailable));
     }
 
     /// <inheritdoc />
@@ -114,7 +114,7 @@ public sealed class DialoguePanel : IFrameLayer
         var mouse = view.Mouse;
         foreach (var (action, box) in layout.Buttons)
         {
-            var button = SpeechButtons.All.First(b => b.Action == action);
+            var button = dialogue.Buttons.First(b => b.Action == action);
             var focused = dialogue.TypingOffered && action == SpeechAction.Type;
             DrawButton(spriteBatch, view, font, box, layout.ButtonsGlossed ? SpeechButtons.TextFor(button, view.Session) : button.Text, mouse, focused ? HintColor : null, ButtonBack);
         }

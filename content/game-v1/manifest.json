@@ -38,8 +38,9 @@
 {"path":"game/nouns.json","sha256":"638f910d16b4d67ac06406f7e453afdcabe9073034f26de16f485bdaf78cda19","bytes":1570},
 {"path":"game/phrases.json","sha256":"0beeef3e2a536108d11a9a2a029ae3b68f3f8a3c2f8f95072eb2864cc396a2c0","bytes":10368},
 {"path":"game/recipes.json","sha256":"2e4d0ad97236189771e0adc4994dafa28be162ad3c5cefc9e1cd847263d708bb","bytes":240},
-{"path":"game/scene.json","sha256":"e0a48d463efff135112dfdeddb8a235e82967489b993779ae8ca9a674150dc45","bytes":11842},
+{"path":"game/scene.json","sha256":"a7eea30b789b8b711e20e0c82b7e779af25dec303f8938eab83cdeb488013e66","bytes":12170},
 {"path":"game/tips.json","sha256":"dfbedcd2607b1d6bf65d3365e1b5358fbca889d36db3fc08daa7b4c8338eca5a","bytes":885},
+{"path":"game/words.json","sha256":"97537cb182da377db17c4f0ab70968de4a5868a7af053fe4c5ac3cbf932220bc","bytes":1770},
 {"path":"intents/intents.json","sha256":"efa4a3c4e6b35ce647ca90aa744a5c781e0786609523e35d5f6d02a177657d3b","bytes":24054},
 {"path":"lexicon/game.json","sha256":"16c4dcbc4f190f6dc7ca68aa4b42a435f8517f71699668f439a37a7f17243eb7","bytes":5802},
 {"path":"lexicon/seed.json","sha256":"c6d3c0348339015ab9693cfcb9089935fddd997f5cf2d1d64237e4ae8ed11eb0","bytes":119541},
@@ -48,7 +49,7 @@
 {"path":"lexicon/wiktionary-es.source.json","sha256":"9cecd4bd49f21bfb153b69aeaaa1118740e8649ba5dce61a9dc925e557134b70","bytes":3640},
 {"path":"lexicon/world.json","sha256":"5f4621688b17027f1925fb9c6504753a7abc8d2a4d9f6ef114150085b22e11d5","bytes":1579},
 {"path":"prompts/prompts.json","sha256":"7c3af5826c49a90f35cb7ce52e88bd9a041de80e63a8a0d1951710f51f387c07","bytes":8486},
-{"path":"provenance.json","sha256":"e8e969c3cf1b86668271bd6696c01bf33520ca5b9a0ac462ed7d497a83dc5eb6","bytes":107865},
+{"path":"provenance.json","sha256":"202550f81be664d6932b4df359bdcb703d623dc45a52087029c01ae598dd1140","bytes":107972},
 {"path":"speech/answer_accepted.1.slow.wav","sha256":"51451a86215f94bde2697ddfa526b537a85838d7ebf0a45d585b04cb6a5cf546","bytes":58844},
 {"path":"speech/answer_accepted.1.wav","sha256":"db65f6b943a2968a335da25fcef1199971ed172c65a393d461a8a47b525fa6fe","bytes":46844},
 {"path":"speech/answer_accepted.2.slow.wav","sha256":"f1e6aad21a2bfcd911e843c8e6b634e5853df1544b1b1ddefb52cfb23b5554d7","bytes":43244},
@@ -479,4 +480,4 @@
 {"path":"speech/villager_thank.1.wav","sha256":"264a8166023475d7d7842d08050d562924cb4212881ad755cc67afd728d5f7bb","bytes":45644},
 {"path":"speech/villager_thank.2.slow.wav","sha256":"791dd1d9ba9a64ba04d5b734f0e8c91b4ab25fa869ec85a6e2a6937a5b794ea0","bytes":70844},
 {"path":"speech/villager_thank.2.wav","sha256":"0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3","bytes":54044}
-],"bundleHash":"01f88b6658acf791c7bc6575c5de687b9de05e826dd193b1252fbeaa23fd0011"}
+],"bundleHash":"8e84f7abbdbbd5f85ab5ef854733b736bb4839743acbabf8d3e1fc785c38e64f"}

@@ -38,7 +38,7 @@ public sealed class VoxelSessionTests
         Assert.Equal(BlockId.Water, scene.Grid.GetBlock(turn.Pointer.Target.X, turn.Pointer.Target.Y, turn.Pointer.Target.Z));
 
         // The same answer as the facts give from the spawn: the nearest water block, its distance and its direction.
-        var expected = WorldFacts.Live(scene.Grid, TestGame.Nouns).NearestOfNoun(AtSpawn(scene), "río");
+        var expected = WorldFacts.Live(scene.Grid, TestGame.Nouns, TestGame.Data.Words.Directions).NearestOfNoun(AtSpawn(scene), "río");
         Assert.NotNull(expected);
         Assert.Equal(expected.Cell, turn.Pointer.Target);
         Assert.Equal(expected.Blocks, turn.Pointer.Blocks);

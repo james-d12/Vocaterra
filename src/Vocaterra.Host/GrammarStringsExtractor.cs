@@ -42,7 +42,7 @@ public static class GrammarStringsExtractor
 
     /// <summary>
     /// Every Spanish string of the bundle in <paramref name="bundleDirectory"/> and of its game files (the phrase sheet and the speech index sit beside
-    /// the bundle, in <c>content/</c>). The order is fixed: dialogue, prompts, answer sets, intents, phrases, checks.json, speech. The support language is
+    /// the bundle, in <c>content/</c>). The order is fixed: dialogue, prompts, answer sets, intents, phrases, checks.json, words.json, speech. The support language is
     /// not checked (the owner's decision), so the locale bundle is not read; before C03 the Spanish keys of english.json's glosses were listed too, and they
     /// repeated the dialogue's and the prompts' texts.
     /// A duplicate id is an error (the file would be refused by the core).
@@ -62,6 +62,7 @@ public static class GrammarStringsExtractor
         AddIntents(lines, bundle);
         AddPhraseSheet(lines, Path.Combine(contentDirectory, "PHRASES.md"));
         AddChecks(lines, data);
+        AddWords(lines, data);
         AddSpeechIndex(lines, Path.Combine(contentDirectory, "speech-index.json"));
 
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -188,6 +189,16 @@ public static class GrammarStringsExtractor
         foreach (var item in data.Checks.Where(static item => item.Kind == CheckItemKind.Comprehension))
         {
             lines.Add(Line("checks.json:" + item.Id, item.Spanish, Npc));
+        }
+    }
+
+    // The target-language words the game itself uses (game/words.json, CONTENT_PLAN C05): the guide's directions, the buttons, the headings, the pronouns
+    // and the rest, which were constants in the code and so went unchecked. The letters of the typing help are not words, so they are left out.
+    private static void AddWords(List<GrammarStringLine> lines, GameData data)
+    {
+        foreach (var (path, text) in data.Words.All())
+        {
+            lines.Add(Line("words.json:" + path, text, Npc));
         }
     }
 

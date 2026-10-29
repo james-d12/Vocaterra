@@ -30,7 +30,6 @@ public sealed partial class NpcService
     private const string HaveOne = "guide.find.have.one";
     private const string HaveMany = "guide.find.have.many";
     private const string HaveMass = "guide.find.have.mass";
-    private const string BlockUnit = "bloque";
     private const string HelpAsk = "guide.help.ask";
     private const string HelpWalk = "guide.help.walk";
     private const string NameRight = "guide.name.correct";
@@ -72,7 +71,7 @@ public sealed partial class NpcService
 
         values["direction"] = found.Direction;
         values["count"] = found.Blocks.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        values["unit"] = BlockUnit;
+        values["unit"] = _words.BlockUnit;
         Merge(facts, values);
         return (Render(PointFound, SlotMap.From(values), rng), new GuidePointer(place, found.Cell, found.Blocks, found.Direction));
     }
@@ -97,7 +96,7 @@ public sealed partial class NpcService
         {
             ["thing"] = lemma,
             ["count"] = count.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            ["unit"] = BlockUnit,
+            ["unit"] = _words.BlockUnit,
         };
         Merge(facts, values);
         var pool = noun.Mass ? HaveMass : count == 1 ? HaveOne : HaveMany;
@@ -197,13 +196,13 @@ public sealed partial class NpcService
             var values = SlotMap.Empty
                 .With("count", count.ToString(System.Globalization.CultureInfo.InvariantCulture))
                 .With("noun", noun.Lemma)
-                .With("unit", BlockUnit);
+                .With("unit", _words.BlockUnit);
             rendered.Add(Render(noun.Mass ? CraftPartMass : CraftPartCount, values, rng));
         }
 
         return rendered.Count == 1
             ? rendered[0]
-            : string.Join(", ", rendered.Take(rendered.Count - 1)) + " y " + rendered[^1];
+            : string.Join(", ", rendered.Take(rendered.Count - 1)) + " " + _words.ListJoiner + " " + rendered[^1];
     }
 
     private (string Line, string? Noun) Identify(GuideScene scene, SeededRng rng, Dictionary<string, string> facts)

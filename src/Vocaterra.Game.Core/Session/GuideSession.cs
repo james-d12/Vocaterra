@@ -76,11 +76,11 @@ public sealed record AppliedTurn(TurnOutcome Outcome, WordTurnResult? Words)
 /// </remarks>
 public abstract class GuideSession : IDisposable
 {
-    /// <summary>The line the <c>Ayuda</c> button sends (the intent <c>ask_help</c> is allowed at every prompt).</summary>
-    public const string HelpLine = "ayuda";
+    /// <summary>The line the help button sends (<c>ayuda</c>, <c>game/words.json</c>; the intent <c>ask_help</c> is allowed at every prompt).</summary>
+    public string HelpLine => Data.Words.HelpLine;
 
-    /// <summary>The line the <c>No sé</c> button sends (the intent <c>dont_know</c> is allowed at every prompt).</summary>
-    public const string DontKnowLine = "no sé";
+    /// <summary>The line the "I don't know" button sends (<c>no sé</c>, <c>game/words.json</c>; the intent <c>dont_know</c> is allowed at every prompt).</summary>
+    public string DontKnowLine => Data.Words.DontKnowLine;
 
     /// <summary>The start time used when a caller gives none: 2025-10-09 08:53:20 UTC, the time the console host's one-shot runs use.</summary>
     public const long DefaultStartedAt = 1_760_000_000;
@@ -262,8 +262,8 @@ public abstract class GuideSession : IDisposable
     // The prompt the support follows while a lesson step of the villager or the shopkeeper asks for no phrase (S26): the guide's open prompt, which no phrase row uses.
     private const string QuietPrompt = "guide-open";
 
-    /// <summary>The key words of the stall, taught before the first exchange (brief step 4): the nouns of the first request and the bread.</summary>
-    public static IReadOnlyList<string> KeyWords { get; } = ["agua", "pan"];
+    /// <summary>The key words of the stall, taught before the first exchange (brief step 4): the nouns of the first request and the bread (<c>game/words.json</c>).</summary>
+    public IReadOnlyList<string> KeyWords => Data.Words.KeyWords;
 
     /// <summary>The key-word cards on show: from the first time the shopkeeper's panel opens (S8) until that talk ends; empty otherwise.</summary>
     public IReadOnlyList<WordCard> KeyWordCards => _keyWordCards;
@@ -745,7 +745,7 @@ public abstract class GuideSession : IDisposable
 
         if (opening.HostTurn && opening.HostEvents.Contains(NpcHostEvents.GuideOffered, StringComparer.Ordinal))
         {
-            Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.TransferOffered, npc, "¿Quieres agua?"));
+            Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.TransferOffered, npc, Bundle.Prompts[NpcService.GuideOfferPrompt].Text));
         }
 
         RefreshSupport(npc, opening.Prompt);

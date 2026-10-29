@@ -153,7 +153,7 @@ public sealed class MicCheckScreen : IScreen
             if (worker.CanHear)
             {
                 _sound.Scripted.Begin(); // the scripted check stands for a recording: beep, silent window, beep (S24)
-                _ = _session.SubmitHearSpeak(MicCheck.Word);
+                _ = _session.SubmitHearSpeak(_session.Data.Words.Greeting);
                 check.BeginScripted();
             }
             else

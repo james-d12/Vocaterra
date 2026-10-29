@@ -332,7 +332,7 @@ public sealed class CheckBattery : IScreen
     private void SubmitSpoken(string text) => Submit(TurnSource.Speak, text, null, item => $"check: spoken \"{text}\" for {item}");
 
     // The "No sé" button of a production item: graded as dont_know, never a failure.
-    private void SubmitDontKnow() => Submit(TurnSource.Button, GuideSession.DontKnowLine, null, item => $"check: no sé for {item}");
+    private void SubmitDontKnow() => Submit(TurnSource.Button, _session.DontKnowLine, null, item => $"check: no sé for {item}");
 
     private void Submit(TurnSource source, string? text, PcmClip? clip, Func<string, string> line)
     {

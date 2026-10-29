@@ -104,12 +104,12 @@ public sealed class BookSpeechTests
     public void AnUnmetNounHasNoButtonAndASeenOneHasItsCard()
     {
         var words = new WordProgress(Nouns.Value);
-        var none = BookPages.Nouns(words, [], Now, Definite, Sheet.Value, Committed());
+        var none = BookPages.Nouns(words, [], Now, Definite, Sheet.Value, TestGame.Data.Words.Unseen, Committed());
         Assert.All(none.Where(static l => l.Lemma is not null), static l => Assert.Null(l.Speak)); // ¿? rows: nothing is given away
-        Assert.Contains(none, static l => l.Text == JournalRows.UnseenLabel);
+        Assert.Contains(none, static l => l.Text == TestGame.Data.Words.Unseen);
 
         words.MarkHeard("madera");
-        var seen = BookPages.Nouns(words, [], Now, Definite, Sheet.Value, Committed());
+        var seen = BookPages.Nouns(words, [], Now, Definite, Sheet.Value, TestGame.Data.Words.Unseen, Committed());
         var row = seen.Single(static l => l.Lemma == "madera" && l.Speak is not null);
         Assert.Equal("card.madera", row.Speak);
         Assert.Equal(1, seen.Count(static l => l.Speak is not null)); // no other noun is seen
@@ -122,7 +122,7 @@ public sealed class BookSpeechTests
         record.Append(new InputEntry(1, 1, GuideSession.DefaultStartedAt + 1, InputSource.Voice, "fue el vaso", "guide", "guide-open", InputPlace.Dialogue, null, "ask_directions", true, false, [],
             [new GuideWord("vaso", new TextSpan(7, 4), "vaso", "noun", WordRole.Word, null, "sg", null, null, "m")]));
         var words = new WordProgress(Nouns.Value);
-        var lines = BookPages.Nouns(words, record.Nouns, Now, Definite, Sheet.Value, Committed());
+        var lines = BookPages.Nouns(words, record.Nouns, Now, Definite, Sheet.Value, TestGame.Data.Words.Unseen, Committed());
         Assert.Contains(lines, static l => l.Lemma == "vaso");
         Assert.All(lines, static l => Assert.Null(l.Speak));
     }

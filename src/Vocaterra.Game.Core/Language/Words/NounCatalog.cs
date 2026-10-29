@@ -58,8 +58,9 @@ public sealed class NounCatalog
     private readonly Dictionary<ItemId, NounEntry> _byItem;
     private readonly Dictionary<BlockId, List<NounEntry>> _byBlock;
 
-    private NounCatalog(IReadOnlyList<NounEntry> nouns)
+    private NounCatalog(IReadOnlyList<NounEntry> nouns, IReadOnlySet<string> articles)
     {
+        Articles = articles;
         _byLemma = new Dictionary<string, NounEntry>(StringComparer.Ordinal);
         _byItem = [];
         _byBlock = [];
@@ -91,6 +92,9 @@ public sealed class NounCatalog
 
     /// <summary>The catalogue's nouns, ordinal by lemma.</summary>
     public IReadOnlyList<NounEntry> Nouns { get; }
+
+    /// <summary>The target language's articles, the forms the lexicon reads as <c>art</c> (<c>el</c>, <c>la</c>, <c>un</c>, ...): a word's article is part of it when an error is checked.</summary>
+    public IReadOnlySet<string> Articles { get; }
 
     /// <summary>
     /// Builds the catalogue from the bundle's host file <see cref="RelativePath"/>, whose bytes are the ones the load hashed against the
@@ -159,7 +163,9 @@ public sealed class NounCatalog
             }
         }
 
-        return new NounCatalog(nouns);
+        // The articles are the lexicon's (its art readings: el, la, los, las, un, una, unos, unas), not a list in the code (CONTENT_PLAN C05).
+        var articles = bundle.Lexicon.Entries.Where(static e => string.Equals(e.Pos, "art", StringComparison.Ordinal)).Select(static e => e.Form).ToHashSet(StringComparer.Ordinal);
+        return new NounCatalog(nouns, articles);
     }
 
     /// <summary>The catalogue entry for a lemma, or <see langword="null"/> when the lemma is not a catalogue noun.</summary>

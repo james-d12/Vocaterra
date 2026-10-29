@@ -6,9 +6,6 @@ namespace Vocaterra.Game.Core.Language.Words;
 /// </summary>
 public static class JournalRows
 {
-    /// <summary>The label of a noun the learner has not met.</summary>
-    public const string UnseenLabel = "¿?";
-
     /// <summary>The text of a word that can earn colour now.</summary>
     public const string DueNow = "due for review";
 
@@ -37,17 +34,23 @@ public static class JournalRows
     }
 
     /// <summary>Builds the rows for the words' catalogue, without the time of the next review.</summary>
-    public static IReadOnlyList<JournalRow> Build(WordProgress words) => Build(words, null);
+    /// <param name="words">The learner's words.</param>
+    /// <param name="unseen">The label of a noun the learner has not met (<c>¿?</c>, <c>game/words.json</c>).</param>
+    public static IReadOnlyList<JournalRow> Build(WordProgress words, string unseen) => Build(words, null, unseen);
 
     /// <summary>
     /// Builds the rows for the words' catalogue. With a stored time (Unix seconds), a word that has a credited use and is not known shows when
     /// its next credited use is possible.
     /// </summary>
-    public static IReadOnlyList<JournalRow> Build(WordProgress words, long now) => Build(words, (long?)now);
+    /// <param name="words">The learner's words.</param>
+    /// <param name="now">The stored time, in Unix seconds.</param>
+    /// <param name="unseen">The label of a noun the learner has not met (<c>¿?</c>, <c>game/words.json</c>).</param>
+    public static IReadOnlyList<JournalRow> Build(WordProgress words, long now, string unseen) => Build(words, (long?)now, unseen);
 
-    private static IReadOnlyList<JournalRow> Build(WordProgress words, long? now)
+    private static IReadOnlyList<JournalRow> Build(WordProgress words, long? now, string unseen)
     {
         ArgumentNullException.ThrowIfNull(words);
+        ArgumentNullException.ThrowIfNull(unseen);
         var rows = new List<JournalRow>();
         foreach (var noun in words.Catalogue.Nouns)
         {
@@ -55,7 +58,7 @@ public static class JournalRows
             var wait = now is { } at ? words.SecondsUntilNextCredit(noun.Lemma, at, CreditRules.Default) : null;
             rows.Add(new JournalRow(
                 noun.Lemma,
-                record.Seen ? noun.WithDefinite : UnseenLabel,
+                record.Seen ? noun.WithDefinite : unseen,
                 record.Seen,
                 record,
                 record.Pips,

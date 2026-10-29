@@ -9,6 +9,12 @@
       "matches": []
     },
     {
+      "key": "00a8133e364f61f0235fa4b15a9308cc0d0ecad93654b4352c77cfecc559c096",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Repetir",
+      "matches": []
+    },
+    {
       "key": "00eee0a15442e5e678f53a9c87c611719ee5df9af4b91f2d36b394b0dd89b700",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, yo tienes una fruta",
@@ -65,6 +71,12 @@
       "key": "05a7dfeb101c9f001ea34804385bbf01c89e2496bcfdf016dd771a03dbe84387",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ella tiene madera",
+      "matches": []
+    },
+    {
+      "key": "060d88a760784ceb4f1c460b2dbda2ed0847286ae9d965db9625528cfd6faad4",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "pan",
       "matches": []
     },
     {
@@ -222,12 +234,6 @@
       "matches": []
     },
     {
-      "key": "118a3145e29e90ad574251874586f32234898dbe04d41561b3c59d35b784f249",
-      "settings": "language=es;level=picky;motherTongue=en",
-      "text": "Necesitas una botella.",
-      "matches": []
-    },
-    {
       "key": "12c7b966e6d9f740a2ee7d199bf47f2db7b5533433dca6d2afefc69712f6b746",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Es la tierra",
@@ -297,6 +303,12 @@
       "key": "160221cd4350ba6f4d2e7804c162315baf9292999edfa1b491ad83c88431384d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ayer bebí agua.",
+      "matches": []
+    },
+    {
+      "key": "1633b44e729bab45f2e2fb11cbe075ba64a5bd998a514ea60d915b491ad8e30f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "nosotros",
       "matches": []
     },
     {
@@ -1019,6 +1031,12 @@
       "matches": []
     },
     {
+      "key": "3f67a04588f2ed8953ea921785d948af92e8e549f322c1df19d2631ec38f80ca",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Puedes decir",
+      "matches": []
+    },
+    {
       "key": "3f9f5db7f9bd2d30917a00a7ac0a817b8fafeaab07b52fc14f00c98ac8831a28",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Adiós",
@@ -1102,6 +1120,23 @@
           "length": 3,
           "replacements": [
             "Dos"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "44324d4dc78f17e5c332f8d1f3aef719bc29637014fbd060ffb3a5af6bdec04e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "él/ella/usted",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "Él"
           ]
         }
       ]
@@ -1331,6 +1366,23 @@
       "matches": []
     },
     {
+      "key": "50c3300058bdc919fabd457fd1bace90ebdc4c23483eca9485bcb5bc1512eb8c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "ustedes/ellos",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 7,
+          "replacements": [
+            "Ustedes"
+          ]
+        }
+      ]
+    },
+    {
       "key": "5118ae460341bb11a124253efc0127217e90e59c759e4ecc34dda654c84035eb",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Comí pan",
@@ -1430,6 +1482,12 @@
       "key": "5be09ba5382116ad2d1a3e72958a26156ef7e13e2883fb01aa1f1f17c21388a7",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¡Hola! Soy la guía. ¿En qué te ayudo?",
+      "matches": []
+    },
+    {
+      "key": "5c1597182f7b1945fab9786c2923ddd560106f7bce92fafa9233297cf2d3d23a",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "tú",
       "matches": []
     },
     {
@@ -1561,6 +1619,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Otra vez, por favor.",
       "matches": []
+    },
+    {
+      "key": "62cb412c665966dd568d8975e2d522db74e91e2bf292b83a00a4f0d5d6fda074",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "no sé",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 2,
+          "replacements": [
+            "No"
+          ]
+        }
+      ]
     },
     {
       "key": "63038d50ebd7cb1f90b745912b485ee96d5a6ecec281b3e8ff66baae4a1ff795",
@@ -2175,6 +2250,12 @@
       "matches": []
     },
     {
+      "key": "8ca9d397d755d956a5db11553631e6bf4764d411c274b56ae26981adef9ce6a1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "detrás",
+      "matches": []
+    },
+    {
       "key": "8d21e0e8b05bc985add3184452b49e9b3e1df998515d8ccc3b0e9e95c619c44d",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, fui al río",
@@ -2265,6 +2346,12 @@
       "matches": []
     },
     {
+      "key": "916132f34348f06b0f06c82c58d335beb12f2b265e9feb1ac0b8a342692cf3c1",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "a",
+      "matches": []
+    },
+    {
       "key": "9178f6428fb673858e185f7ed38302584e55baa428656ae7982c97d74aeb3240",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "A ver, busco.",
@@ -2286,6 +2373,12 @@
       "key": "91f5bb6f457edae2003171b29b36560f8bf926cc9b447d4b501a3f967ee368da",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No lo sé",
+      "matches": []
+    },
+    {
+      "key": "9208893d3d9ee2c6728a95929c88069ce9ce579677cf1b59f223df2884b0001f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Escribir",
       "matches": []
     },
     {
@@ -2455,6 +2548,23 @@
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Para una espada necesitas espada.",
       "matches": []
+    },
+    {
+      "key": "9e06ef16db3c7b958e3fc398192fe36330e3413bd45e02f232282d2b03a7c5fa",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "a la izquierda",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 1,
+          "replacements": [
+            "A"
+          ]
+        }
+      ]
     },
     {
       "key": "9e2999c94a0c9ebe84a08b7e28eb7375269def53feb514404539073e6884e446",
@@ -2776,6 +2886,12 @@
       "matches": []
     },
     {
+      "key": "adbd1cf8d77df00aed307c014bbed1481f07a559ac83c95a0c45460504a550cd",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "ayuda",
+      "matches": []
+    },
+    {
       "key": "ae362f0bc061ad55777bba33d84d5cce1ae676ef7b9c3bb2188ad892fd27934a",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Cómo se hace una antorcha",
@@ -2876,6 +2992,12 @@
       "matches": []
     },
     {
+      "key": "b2bf015437b83300ee74cbda29634fe6e7facac7113e04a33983091b9147b31b",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "agua",
+      "matches": []
+    },
+    {
       "key": "b31222584e8bf1b4632291a16131b3584b96b14ff685926bc91865a118abba52",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Aquí no hay un libro.",
@@ -2924,6 +3046,12 @@
       "matches": []
     },
     {
+      "key": "b841d2b46684ad15d76986221b06b9b4a4fdf485e45fd980cfd45226bc3abbe6",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "¿Escribes?",
+      "matches": []
+    },
+    {
       "key": "b8d36047bd468f16301e9b0f6f247eb2ebc00dd3ce66157e29c7c911c0817ff7",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Vamos a comer fruta.",
@@ -2951,6 +3079,12 @@
       "key": "ba3db4e3374e31a7d216d484807fe95af62571b16f6a06aa404cacc08bd42151",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué vamos a comer?",
+      "matches": []
+    },
+    {
+      "key": "bae6b3dad6fbe2eb73589d46bafe312ad18b52bd8776babe024436b949fcd213",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "río",
       "matches": []
     },
     {
@@ -3091,6 +3225,12 @@
       "matches": []
     },
     {
+      "key": "c5027ebe12372fb651f74a26f918595a641a6ec240a7ed121654a83fca4ddbec",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "y",
+      "matches": []
+    },
+    {
       "key": "c56b184c15d647c3161a85275140cce7366ce49d25ab648324dc29dde2653aa5",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Piensa otra vez: ¿el o la?",
@@ -3178,6 +3318,12 @@
       "key": "ca71fe7c23db38223f47d6cf149c536b024b50b6d7726083fa2dfc7f526acdc0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Una fruta por favor",
+      "matches": []
+    },
+    {
+      "key": "caa33bf237334f388434e576845c0770bb04a7740369621c2f6a8e86f9da0bf3",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "mañana",
       "matches": []
     },
     {
@@ -3270,6 +3416,23 @@
       "matches": []
     },
     {
+      "key": "cfef13ed02bb3f608b35fc5b570c20c74c59cee57b2b0d4d84245d1285d92f0c",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "a la derecha",
+      "matches": [
+        {
+          "rule": "UPPERCASE_SENTENCE_START",
+          "issueType": "typographical",
+          "message": "Esta frase no empieza con mayúscula.",
+          "offset": 0,
+          "length": 1,
+          "replacements": [
+            "A"
+          ]
+        }
+      ]
+    },
+    {
       "key": "d022f91d788f3584b25b4c1a9689b4b39d7acdedef8c8d6b5807735e18f2a6f9",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí tengo una botella",
@@ -3354,6 +3517,12 @@
       "matches": []
     },
     {
+      "key": "d5e1995b5a1406d75ce5a7f6a9830f40d2efe7cd39097fa8b3bf2335bcabed5e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "yo",
+      "matches": []
+    },
+    {
       "key": "d628309a2a88fc8d327c88768bae190487d8bbdadb178858a980b48291dab845",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Ve hasta la flecha.",
@@ -3417,6 +3586,12 @@
       "key": "db3023c83f5b0b37eb29c33703849a5abca90b7209971fbbac32208b423a3613",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Hola",
+      "matches": []
+    },
+    {
+      "key": "dc6e759ea74898c9d6f5d70be48dfe517fd3ca166992fb68657c5b1a4d152603",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Escuchar la frase",
       "matches": []
     },
     {
@@ -3569,6 +3744,12 @@
       "matches": []
     },
     {
+      "key": "e5a415082c3a95bd9a615384a92888ed3f129e784777718790085cde123cbc3f",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "adelante",
+      "matches": []
+    },
+    {
       "key": "e5ef8240ed00807b78c88df1c09b77f12c6381c50604791c928039c2ce95a7f0",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "No veo una espada cerca.",
@@ -3641,6 +3822,12 @@
       "matches": []
     },
     {
+      "key": "ea6a84379a3fc31564407a3fa22c3ae403e68fff91d0172ef117934de96a5c15",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "hola",
+      "matches": []
+    },
+    {
       "key": "eabc33981295ae6b87a4f665ce12def714dd3e29648ec0b8fdafdd3c14ae2838",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Sí, tengo una fruta",
@@ -3698,6 +3885,12 @@
       "key": "ed48b376b7d1127d2ab661e188dea2d12d36d61d2c1ed6d1c3d3d115a3eb8370",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "¿Qué vas a comer mañana?",
+      "matches": []
+    },
+    {
+      "key": "ed86acfe4489cfbdbd041eda734ec563e4b792de92943c7bc9bbf56e09c8d6b8",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "bloque",
       "matches": []
     },
     {
@@ -3850,6 +4043,12 @@
       "matches": []
     },
     {
+      "key": "f7eb083c6d2848b73aa7253aa2ccd497da7250d0b68e535135973f38d3ca7a1e",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "Palabras nuevas",
+      "matches": []
+    },
+    {
       "key": "f85571d8e061709c9ab74816ee8cc582d54ebce171d7ac47115d559f0db626d7",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Gracias",
@@ -3961,6 +4160,12 @@
       "key": "ff4dae364e391bb9e59e8bd5f59150a1f60798c00e197c5dc6cb98a1b44065da",
       "settings": "language=es;level=picky;motherTongue=en",
       "text": "Tengo",
+      "matches": []
+    },
+    {
+      "key": "fff93b815a79b9f339644c809be34d55a0e6c88141f83ac211a67c042fe07223",
+      "settings": "language=es;level=picky;motherTongue=en",
+      "text": "ir",
       "matches": []
     }
   ]

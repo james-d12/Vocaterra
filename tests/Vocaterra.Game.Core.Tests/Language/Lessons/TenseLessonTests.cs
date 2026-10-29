@@ -502,15 +502,15 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     {
         var morphology = TestGame.Bundle.SpanishMorphology();
 
-        Assert.Equal("voy a comer", new TaughtVerbForm("comer", "1", "sg", "ir-a").Text(morphology));
-        Assert.Equal("vamos a comer", new TaughtVerbForm("comer", "1", "pl", "ir-a").Text(morphology));
-        Assert.Equal("van a comer", new TaughtVerbForm("comer", "3", "pl", "ir-a").Text(morphology));
-        Assert.Equal("vas a hacer", new TaughtVerbForm("hacer", "2", "sg", "ir-a").Text(morphology));
-        Assert.Equal("voy a ir", new TaughtVerbForm("ir", "1", "sg", "ir-a").Text(morphology));
-        Assert.Equal("comí", new TaughtVerbForm("comer", "1", "sg", "pret").Text(morphology));
-        Assert.Equal("fuiste", new TaughtVerbForm("ir", "2", "sg", "pret").Text(morphology));
-        Assert.Equal("bebí", new TaughtVerbForm("beber", "1", "sg", "pret").Text(morphology));
-        Assert.Equal("voy", new TaughtVerbForm("ir", "1", "sg", "pres").Text(morphology));
+        Assert.Equal("voy a comer", new TaughtVerbForm("comer", "1", "sg", "ir-a").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("vamos a comer", new TaughtVerbForm("comer", "1", "pl", "ir-a").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("van a comer", new TaughtVerbForm("comer", "3", "pl", "ir-a").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("vas a hacer", new TaughtVerbForm("hacer", "2", "sg", "ir-a").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("voy a ir", new TaughtVerbForm("ir", "1", "sg", "ir-a").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("comí", new TaughtVerbForm("comer", "1", "sg", "pret").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("fuiste", new TaughtVerbForm("ir", "2", "sg", "pret").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("bebí", new TaughtVerbForm("beber", "1", "sg", "pret").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("voy", new TaughtVerbForm("ir", "1", "sg", "pres").Text(morphology, TestGame.Data.Words.NearFuture));
     }
 
     [Fact]

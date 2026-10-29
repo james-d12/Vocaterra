@@ -1167,6 +1167,35 @@
 {"id":"checks.json:hear.que-quieren-ustedes","text":"¿Qué quieren ustedes?","kind":"npc"}
 {"id":"checks.json:hear.que-vas-a-comer","text":"¿Qué vas a comer mañana?","kind":"npc"}
 {"id":"checks.json:hear.que-comiste-ayer","text":"¿Qué comiste ayer?","kind":"npc"}
+{"id":"words.json:directions.ahead","text":"adelante","kind":"npc"}
+{"id":"words.json:directions.behind","text":"detrás","kind":"npc"}
+{"id":"words.json:directions.left","text":"a la izquierda","kind":"npc"}
+{"id":"words.json:directions.right","text":"a la derecha","kind":"npc"}
+{"id":"words.json:blockUnit","text":"bloque","kind":"npc"}
+{"id":"words.json:listJoiner","text":"y","kind":"npc"}
+{"id":"words.json:buttons.repeat","text":"Repetir","kind":"npc"}
+{"id":"words.json:buttons.slower","text":"Más despacio","kind":"npc"}
+{"id":"words.json:buttons.help","text":"Ayuda","kind":"npc"}
+{"id":"words.json:buttons.dontKnow","text":"No sé","kind":"npc"}
+{"id":"words.json:buttons.type","text":"Escribir","kind":"npc"}
+{"id":"words.json:typeOffer","text":"¿Escribes?","kind":"npc"}
+{"id":"words.json:support.cardTag","text":"Puedes decir","kind":"npc"}
+{"id":"words.json:support.listenChip","text":"Escuchar la frase","kind":"npc"}
+{"id":"words.json:support.keyWordsHeading","text":"Palabras nuevas","kind":"npc"}
+{"id":"words.json:helpLine","text":"ayuda","kind":"npc"}
+{"id":"words.json:dontKnowLine","text":"no sé","kind":"npc"}
+{"id":"words.json:greeting","text":"hola","kind":"npc"}
+{"id":"words.json:nearFuture.verb","text":"ir","kind":"npc"}
+{"id":"words.json:nearFuture.joiner","text":"a","kind":"npc"}
+{"id":"words.json:pronouns.1sg","text":"yo","kind":"npc"}
+{"id":"words.json:pronouns.2sg","text":"tú","kind":"npc"}
+{"id":"words.json:pronouns.3sg","text":"él/ella/usted","kind":"npc"}
+{"id":"words.json:pronouns.1pl","text":"nosotros","kind":"npc"}
+{"id":"words.json:pronouns.3pl","text":"ustedes/ellos","kind":"npc"}
+{"id":"words.json:keyWords[0]","text":"agua","kind":"npc"}
+{"id":"words.json:keyWords[1]","text":"pan","kind":"npc"}
+{"id":"words.json:nearFuture.timeWords[0]","text":"mañana","kind":"npc"}
+{"id":"words.json:nouns.river","text":"río","kind":"npc"}
 {"id":"speech:card.agua","text":"el agua","kind":"npc"}
 {"id":"speech:card.antorcha","text":"la antorcha","kind":"npc"}
 {"id":"speech:card.arena","text":"la arena","kind":"npc"}

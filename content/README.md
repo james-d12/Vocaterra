@@ -32,6 +32,7 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/checks.json` | `checks.schema.json` | `CheckBank` |
   | `game/tips.json` | `tips.schema.json` | `TipBook` |
   | `game/controls.json` | `controls.schema.json` | `TipBook` |
+  | `game/words.json` | `words.schema.json` | `GameWords` (the target-language words the game itself uses: the guide's directions, the buttons, the pronouns, the key words, the greeting...) |
   | `game/scene.json` | `scene.schema.json` (the file is JSON with `//` comments) | `SceneLayout` |
 
 ## The support language: `locale/`
@@ -99,4 +100,6 @@ Everything the game says, shows and builds its world from, outside the code. The
   `locale/en/phrases.json`. Render its recordings (`scripts/prerender-speech.sh`).
 - **A noun.** Add it to `game-v1/game/nouns.json` and its word to `locale/en/nouns.json` (`noun.<lemma>`). The lexicon must have a noun
   reading of it with a gender.
+- **A place the beacon names.** Give the site, the point or the named prop a `label` in `game/scene.json` (`"label": "río"`); a place with no label shows
+  its own name.
 - **An NPC line.** Add it to `game-v1/dialogue/dialogue.json` (the core's file) and its gloss to `locale/en/lines.json` (`line.<lineId>`).

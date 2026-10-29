@@ -73,7 +73,7 @@ public sealed class CheckProgressTests
         var item = RouteScene.DataOf(TestGame.Bundle).Checks.Single(static i => i.Id == "say.donde-esta-el-rio");
         var records = session.Conversation.Records.Count;
 
-        _ = session.SubmitCheck(item, TurnSource.Button, GuideSession.DontKnowLine, null, null);
+        _ = session.SubmitCheck(item, TurnSource.Button, TestGame.Data.Words.DontKnowLine, null, null);
         var applied = Drain(session, 1).Single();
 
         Assert.True(applied.Outcome.Grade!.DontKnow);

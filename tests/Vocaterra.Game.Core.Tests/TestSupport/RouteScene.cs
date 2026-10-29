@@ -35,6 +35,11 @@ internal static class RouteScene
     public static VoxelSession NewSessionWithShippedLessons(ContentBundle bundle, NounCatalog nouns, CreditRules? credit = null, ulong seed = 42) =>
         new(DataOf(bundle), seed, GuideSession.DefaultStartedAt, Build(seed), credit ?? CreditRules.Default);
 
+    /// <summary>The game's content of the repository's bundle, loaded once (a test with no bundle of its own reads the shipped words and strings here).</summary>
+    public static GameData Shipped => DataOf(ShippedBundle.Value);
+
+    private static readonly Lazy<ContentBundle> ShippedBundle = new(() => GameBundle.Load());
+
     /// <summary>The game's content of a loaded bundle, loaded once per bundle and shared, as the game shares it between its sessions.</summary>
     public static GameData DataOf(ContentBundle bundle)
     {

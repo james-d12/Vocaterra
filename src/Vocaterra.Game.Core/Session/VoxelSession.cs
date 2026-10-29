@@ -55,7 +55,7 @@ public sealed class VoxelSession : GuideSession
             data,
             worldSeed,
             startedAt,
-            WorldFacts.Live(scene?.Grid ?? throw new ArgumentNullException(nameof(scene)), (data ?? throw new ArgumentNullException(nameof(data))).Nouns),
+            WorldFacts.Live(scene?.Grid ?? throw new ArgumentNullException(nameof(scene)), (data ?? throw new ArgumentNullException(nameof(data))).Nouns, data.Words.Directions),
             playSession: 1,
             credit,
             lessons)
@@ -127,6 +127,9 @@ public sealed class VoxelSession : GuideSession
 
     /// <summary>Whether the session is complete: the camp checklist is done and the player's own fire is lit. The front-end then shows the closing moment.</summary>
     public bool SessionComplete => _sessionComplete;
+
+    /// <summary>The scene's name for the fire ring at the player's own camp, where the closing fire is lit (S17).</summary>
+    public const string PlayerFireRing = "firering.player";
 
     /// <summary>The bundle pool that holds the guide's closing line, said when the player's own fire is lit (S17).</summary>
     public const string ClosingPool = "guide.lesson.end";
@@ -221,7 +224,7 @@ public sealed class VoxelSession : GuideSession
     protected override Inventory LiveInventory => Simulation.Inventory;
 
     /// <inheritdoc />
-    protected override IGuideFacts SnapshotFacts() => WorldFacts.Snapshot(Scene.Grid, Nouns);
+    protected override IGuideFacts SnapshotFacts() => WorldFacts.Snapshot(Scene.Grid, Nouns, Data.Words.Directions);
 
     /// <inheritdoc />
     protected override string StateDigest() => Simulation.ComputeStateDigest();
@@ -233,7 +236,7 @@ public sealed class VoxelSession : GuideSession
     /// </summary>
     public void Step(IReadOnlyList<VoxelCommand> commands)
     {
-        if (Pointer is { Quiz: false, Place: "río" })
+        if (Pointer is { Quiz: false } pointed && string.Equals(pointed.Place, Data.Words.Noun("river"), StringComparison.Ordinal))
         {
             _riverPointed = true; // an NPC (the guide, or the villager through the table) has sent the player to the river
         }
@@ -267,10 +270,10 @@ public sealed class VoxelSession : GuideSession
 
                     break;
                 case SimulationEventKind.BottleFilled:
-                    LogWorld(WorldEvents.BottleFilled, null, "agua");
+                    LogWorld(WorldEvents.BottleFilled, null, Nouns.ForItem(ItemId.WaterBottle)?.Lemma);
                     if (!_riverPointed)
                     {
-                        LogWorld(WorldEvents.FoundWithoutSpanish, null, "río");
+                        LogWorld(WorldEvents.FoundWithoutSpanish, null, Data.Words.Noun("river"));
                     }
 
                     completed.AddRange(Objective.RecordHostEvent(Objective.WaterEvent));
@@ -398,13 +401,14 @@ public sealed class VoxelSession : GuideSession
     // The arrow sends the player up the trail to their own camp, where the cold ring waits (S17).
     private void PointAtOwnCamp()
     {
-        if (_fireLit || !Scene.Points.TryGetValue("firering.player", out var ring))
+        if (_fireLit || !Scene.Points.TryGetValue(PlayerFireRing, out var ring))
         {
             return;
         }
 
-        Pointer = new PointerMarker("fuego", new GuideCell(ring.X, ring.Y, ring.Z));
-        LogWorld(WorldEvents.BeaconSet, null, $"fuego at {ring.X},{ring.Y},{ring.Z}");
+        var label = Scene.LabelOf(PlayerFireRing);
+        Pointer = new PointerMarker(label, new GuideCell(ring.X, ring.Y, ring.Z));
+        LogWorld(WorldEvents.BeaconSet, null, $"{label} at {ring.X},{ring.Y},{ring.Z}");
     }
 
     private void CheckSessionComplete()
@@ -432,7 +436,7 @@ public sealed class VoxelSession : GuideSession
             return;
         }
 
-        LogWorld(WorldEvents.SpareTorch, null, "antorcha");
+        LogWorld(WorldEvents.SpareTorch, null, Nouns.ForItem(ItemId.Torch)?.Lemma);
         _hints.Add(Locale.Ui("spareTorch"));
     }
 
@@ -484,7 +488,7 @@ public sealed class VoxelSession : GuideSession
         }
 
         Pointer = new PointerMarker(noun, found.Cell);
-        if (string.Equals(noun, "río", StringComparison.Ordinal))
+        if (string.Equals(noun, Data.Words.Noun("river"), StringComparison.Ordinal))
         {
             _riverPointed = true;
         }

@@ -17,14 +17,14 @@ namespace Vocaterra.Game.Core.Language.Book;
 /// <param name="Rows">The five rows.</param>
 public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList<ConjugationColumn> Columns, IReadOnlyList<ConjugationRow> Rows)
 {
-    /// <summary>The persons of the rows, in order: label, person, number.</summary>
-    public static IReadOnlyList<(string Label, string Person, string Number)> Persons { get; } =
+    /// <summary>The persons of the rows, in order: person and number (their labels are the target language's pronouns, <see cref="GameWords.Pronoun"/>).</summary>
+    public static IReadOnlyList<(string Person, string Number)> Persons { get; } =
     [
-        ("yo", "1", "sg"),
-        ("tú", "2", "sg"),
-        ("él/ella/usted", "3", "sg"),
-        ("nosotros", "1", "pl"),
-        ("ustedes/ellos", "3", "pl"),
+        ("1", "sg"),
+        ("2", "sg"),
+        ("3", "sg"),
+        ("1", "pl"),
+        ("3", "pl"),
     ];
 
     /// <summary>The columns a table can have, in order: present, past, future (ir a).</summary>
@@ -47,23 +47,25 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
     /// <param name="taught">The verb forms taught by the lessons that are completed or under way.</param>
     /// <param name="morphology">The bundle's morphology (every form comes from here).</param>
     /// <param name="gloss">The verb's English, or <see langword="null"/>.</param>
-    public static ConjugationTable Build(WordRow verb, IReadOnlyList<InputEntry> history, IReadOnlyList<TaughtVerbForm> taught, MorphologyGenerator morphology, VerbGloss? gloss)
+    /// <param name="words">The target-language words: the rows' pronouns and the near future's verb and joiner (<c>game/words.json</c>).</param>
+    public static ConjugationTable Build(WordRow verb, IReadOnlyList<InputEntry> history, IReadOnlyList<TaughtVerbForm> taught, MorphologyGenerator morphology, VerbGloss? gloss, GameWords words)
     {
         ArgumentNullException.ThrowIfNull(verb);
         ArgumentNullException.ThrowIfNull(history);
         ArgumentNullException.ThrowIfNull(taught);
         ArgumentNullException.ThrowIfNull(morphology);
+        ArgumentNullException.ThrowIfNull(words);
         var lemma = verb.Lemma;
-        var nearFutureUses = NearFutureUses(history, lemma, morphology);
+        var nearFutureUses = NearFutureUses(history, lemma, morphology, words.NearFuture);
 
         var cellsByTense = new Dictionary<string, List<ConjugationCell>>(StringComparer.Ordinal);
         foreach (var column in AllColumns)
         {
             var cells = new List<ConjugationCell>();
-            foreach (var (_, person, number) in Persons)
+            foreach (var (person, number) in Persons)
             {
                 var form = new TaughtVerbForm(lemma, person, number, column.Tense);
-                var text = form.Text(morphology);
+                var text = form.Text(morphology, words.NearFuture);
                 var uses = column.Tense == TaughtVerbForm.NearFuture
                     ? nearFutureUses.GetValueOrDefault((person, number))
                     : WordRecordUses(verb, person, number, column.Tense, morphology);
@@ -85,8 +87,8 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
         var rows = new List<ConjugationRow>();
         for (var i = 0; i < Persons.Count; i++)
         {
-            var (label, person, number) = Persons[i];
-            rows.Add(new ConjugationRow(label, person, number, visible.Select(column => cellsByTense[column.Tense][i]).ToList()));
+            var (person, number) = Persons[i];
+            rows.Add(new ConjugationRow(words.Pronoun(person, number) ?? person + number, person, number, visible.Select(column => cellsByTense[column.Tense][i]).ToList()));
         }
 
         return new ConjugationTable(lemma, gloss?.English, visible, rows);
@@ -112,13 +114,13 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
     /// is read from the history's words in order, over the lines the word record counts (not held, not a button, not a check answer). <c>vamos a comer</c> counts
     /// for <c>comer</c>, 1 pl, whatever the core made of <c>vamos</c>.
     /// </summary>
-    private static Dictionary<(string Person, string Number), int> NearFutureUses(IReadOnlyList<InputEntry> history, string lemma, MorphologyGenerator morphology)
+    private static Dictionary<(string Person, string Number), int> NearFutureUses(IReadOnlyList<InputEntry> history, string lemma, MorphologyGenerator morphology, NearFutureWords nearFuture)
     {
         var uses = new Dictionary<(string, string), int>();
         var irForms = new Dictionary<string, (string Person, string Number)>(StringComparer.Ordinal);
-        foreach (var (_, person, number) in Persons)
+        foreach (var (person, number) in Persons)
         {
-            if (morphology.Conjugate("ir", person, number, "pres") is { } ir)
+            if (morphology.Conjugate(nearFuture.Verb, person, number, "pres") is { } ir)
             {
                 irForms[Plain(ir)] = (person, number);
             }
@@ -130,7 +132,7 @@ public sealed record ConjugationTable(string Lemma, string? Gloss, IReadOnlyList
             for (var i = 0; i + 2 < words.Count; i++)
             {
                 if (irForms.TryGetValue(Plain(words[i].Text), out var key)
-                    && string.Equals(Plain(words[i + 1].Text), "a", StringComparison.Ordinal)
+                    && string.Equals(Plain(words[i + 1].Text), nearFuture.Joiner, StringComparison.Ordinal)
                     && string.Equals(words[i + 2].Lemma, lemma, StringComparison.Ordinal))
                 {
                     uses[key] = uses.GetValueOrDefault(key) + 1;

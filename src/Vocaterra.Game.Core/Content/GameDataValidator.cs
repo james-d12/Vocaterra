@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Nlp.Core.Taxonomy;
@@ -21,6 +22,8 @@ namespace Vocaterra.Game.Core.Content;
 /// <item>the phrase sheet: every prompt a row names is a bundle prompt, and every recording a row names is a line of the bundle's dialogue;</item>
 /// <item>the check battery: every item's phrase is a row of the sheet, a comprehension item plays a speakable line, and a production item is graded at a
 /// bundle prompt on a phrase the learner says;</item>
+/// <item>the target-language words (C05): the key words and the river are catalogue nouns, the near future's verb is in the lexicon, and the greeting is a
+/// phrase of the sheet;</item>
 /// <item>the scene: every NPC it places is an agent the game drives, and every agent is placed once; every NPC a lesson is said or waits at is placed.</item>
 /// </list>
 /// <para>Plain values, ordinal comparisons; the order of the problems is the order of the files above.</para>
@@ -37,6 +40,7 @@ public static class GameDataValidator
         CheckPhrases(data, problems);
         CheckChecks(data, problems);
         CheckScene(data, problems);
+        CheckWords(data, problems);
         return problems;
     }
 
@@ -136,6 +140,30 @@ public static class GameDataValidator
                 default:
                     break;
             }
+        }
+    }
+
+    private static void CheckWords(GameData data, List<string> problems)
+    {
+        const string File = "game/words.json";
+        foreach (var lemma in data.Words.KeyWords.Where(lemma => data.Nouns.ForLemma(lemma) is null))
+        {
+            problems.Add($"{File}: the key word '{lemma}' is not a catalogue noun.");
+        }
+
+        foreach (var role in GameWords.NounRoles.Where(role => data.Nouns.ForLemma(data.Words.Noun(role)) is null))
+        {
+            problems.Add($"{File}: the {role} noun '{data.Words.Noun(role)}' is not a catalogue noun.");
+        }
+
+        if (!data.Bundle.Lexicon.ContainsLemma(data.Words.NearFuture.Verb))
+        {
+            problems.Add($"{File}: the near future's verb '{data.Words.NearFuture.Verb}' is not in the lexicon.");
+        }
+
+        if (data.Phrases.Find(data.Words.Greeting) is null)
+        {
+            problems.Add($"{File}: the greeting '{data.Words.Greeting}' is not a phrase of the sheet (its id is the greeting).");
         }
     }
 

@@ -205,11 +205,6 @@ public sealed class WordProgress
     /// <summary>Credit units that make a noun known.</summary>
     public const int UnitsToKnow = UnitsPerUse * UsesToKnow;
 
-    private static readonly HashSet<string> Articles = new(StringComparer.Ordinal)
-    {
-        "el", "la", "los", "las", "un", "una", "unos", "unas",
-    };
-
     private readonly NounCatalog _catalog;
     private readonly Dictionary<string, string> _formToLemma = new(StringComparer.Ordinal);
     private ImmutableSortedDictionary<string, WordRecord> _records = ImmutableSortedDictionary.Create<string, WordRecord>(StringComparer.Ordinal);
@@ -496,11 +491,11 @@ public sealed class WordProgress
     }
 
     // A word is wrong when an error's span overlaps the word, or the article right before it (research section 7.5).
-    private static bool OverlapsError(IReadOnlyList<GuideWord> words, int index, IReadOnlyList<GuideError> errors)
+    private bool OverlapsError(IReadOnlyList<GuideWord> words, int index, IReadOnlyList<GuideError> errors)
     {
         var start = words[index].Span.Start;
         var end = words[index].Span.End;
-        if (index > 0 && Articles.Contains(words[index - 1].Text))
+        if (index > 0 && _catalog.Articles.Contains(words[index - 1].Text))
         {
             start = words[index - 1].Span.Start;
         }

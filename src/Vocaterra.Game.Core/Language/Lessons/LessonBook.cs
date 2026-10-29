@@ -5,6 +5,7 @@ using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Prompts;
@@ -149,16 +150,18 @@ public sealed record TaughtVerbForm(string Lemma, string Person, string Number, 
     /// of <c>comer</c> has a column "future (ir a)" whose cells are built from <c>ir</c>'s present column and the infinitive, never typed by hand.
     /// </summary>
     /// <param name="morphology">The bundle's morphology.</param>
+    /// <param name="nearFuture">The near future's verb and joiner (<c>ir</c>, <c>a</c>; <c>game/words.json</c>, C05).</param>
     /// <returns>The form's text, or <see langword="null"/> when the core cannot generate it.</returns>
-    public string? Text(Vocaterra.Nlp.Es.Morphology.MorphologyGenerator morphology)
+    public string? Text(Vocaterra.Nlp.Es.Morphology.MorphologyGenerator morphology, NearFutureWords nearFuture)
     {
         ArgumentNullException.ThrowIfNull(morphology);
+        ArgumentNullException.ThrowIfNull(nearFuture);
         if (!string.Equals(Tense, NearFuture, StringComparison.Ordinal))
         {
             return morphology.Conjugate(Lemma, Person, Number, Tense);
         }
 
-        return morphology.Conjugate("ir", Person, Number, "pres") is { } ir ? $"{ir} a {Lemma}" : null;
+        return morphology.Conjugate(nearFuture.Verb, Person, Number, "pres") is { } ir ? $"{ir} {nearFuture.Joiner} {Lemma}" : null;
     }
 }
 

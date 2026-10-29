@@ -195,7 +195,7 @@ public sealed class BookModelTests
             "No verbs yet. Use a verb in a sentence and it comes here.", "Nothing said yet.", "Nothing here yet.", "x12", "-", "more below",
         };
         strings.AddRange(ConjugationTable.AllColumns.Select(static c => c.Title));
-        strings.AddRange(ConjugationTable.Persons.Select(static p => p.Label));
+        strings.AddRange(ConjugationTable.Persons.Select(static p => RouteScene.Shipped.Words.Pronoun(p.Person, p.Number)!));
         strings.AddRange(Enum.GetValues<BookPage>().Select(static page => $"{BookTabs.Title}  -  {BookTabs.LabelOf(page)}"));
         strings.AddRange(BookTabs.Labels);
         strings.AddRange(Enum.GetValues<BookPage>().Select(static page => BookTabs.LabelOf(page)));

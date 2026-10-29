@@ -35,7 +35,7 @@ public sealed class ScenarioScriptTests
             Session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
             Look = new LookControl();
             Look.Set(Session.Scene.Spawn.Yaw, 0);
-            Dialogue = new DialogueModel(new InputFocus(), Session.OpeningLine);
+            Dialogue = new DialogueModel(new InputFocus(), Session.OpeningLine, Session.Data.Words);
             _pump = new TurnPump(Session, Dialogue, () => Session.AimedCell);
             var hooks = new ScenarioHooks(OpenTalk, CloseTalk, path => Shots.Add($"{path}@{Session.Simulation.Tick}"), () => false);
             Script = new ScenarioScript(Session, Look, Dialogue, steps, name => name == "antorcha" ? ItemId.Torch : name == "madera" ? ItemId.Wood : null, hooks, Log.Add);

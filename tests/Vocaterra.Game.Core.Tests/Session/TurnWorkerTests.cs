@@ -171,13 +171,13 @@ public sealed class TurnWorkerTests
         var camp = session.Scene.Point("camp.guide");
         var bush = new BlockPos(camp.X - 6, camp.Y + 1, camp.Z + 3); // a berry bush of the guide's camp: the fruta of the route
         session.Simulation.TeleportTo(new BlockPos(bush.X + 2, bush.Y, bush.Z));
-        var before = WorldFacts.Snapshot(session.Scene.Grid, TestGame.Nouns);
+        var before = WorldFacts.Snapshot(session.Scene.Grid, TestGame.Nouns, TestGame.Data.Words.Directions);
         Assert.Equal(["fruta"], before.NounsAt(bush));
 
         Assert.True(VoxelWalker.Gather(session, bush));
 
         Assert.Equal(["fruta"], before.NounsAt(bush)); // the copy still has the bush with its berry
-        Assert.Empty(WorldFacts.Snapshot(session.Scene.Grid, TestGame.Nouns).NounsAt(bush));
+        Assert.Empty(WorldFacts.Snapshot(session.Scene.Grid, TestGame.Nouns, TestGame.Data.Words.Directions).NounsAt(bush));
     }
 
     [Fact]
@@ -186,7 +186,7 @@ public sealed class TurnWorkerTests
         var session = TestGame.NewSession();
         var live = TestGame.FactsOf(session);
         var viewpoint = TestGame.ViewpointOf(session);
-        var snapshot = WorldFacts.Snapshot(session.Scene.Grid, TestGame.Nouns);
+        var snapshot = WorldFacts.Snapshot(session.Scene.Grid, TestGame.Nouns, TestGame.Data.Words.Directions);
 
         foreach (var noun in new[] { "árbol", "hierba", "tierra", "piedra", "arena" })
         {

@@ -288,8 +288,8 @@ public sealed class SpeechUxTests
         _ = session.SubmitDontKnow();
         var unknown = Drain(session, 1).Single().Turn!;
 
-        Assert.Equal((GuideSession.HelpLine, "ask_help", InputKind.Button, false), (help.Line, help.Intent, help.Input, help.Choice));
-        Assert.Equal((GuideSession.DontKnowLine, "dont_know", InputKind.Button, false), (unknown.Line, unknown.Intent, unknown.Input, unknown.Choice));
+        Assert.Equal((TestGame.Data.Words.HelpLine, "ask_help", InputKind.Button, false), (help.Line, help.Intent, help.Input, help.Choice));
+        Assert.Equal((TestGame.Data.Words.DontKnowLine, "dont_know", InputKind.Button, false), (unknown.Line, unknown.Intent, unknown.Input, unknown.Choice));
         Assert.All(new[] { help, unknown }, static t => Assert.True(t.Communicated));
         var uses = session.Events.OfType<PhraseUse>().ToList();
         Assert.Equal(["ayuda", "no-se"], uses.Where(static u => u.Kind == PhraseUseKind.DontKnow).Select(static u => u.PhraseId));

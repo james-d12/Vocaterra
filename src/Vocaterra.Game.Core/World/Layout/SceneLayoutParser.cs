@@ -76,8 +76,61 @@ internal static class SceneLayoutParser
             var points = ParsePoints(root);
             var trees = ParseTrees(root, byName);
             var undergrowth = ParseUndergrowth(root);
-            return new SceneLayout(name, sizeX, sizeY, sizeZ, waterLevel, terrain, sites, waterfall, lake, river, paths, stamps, props, npcs, spawn, points, trees, undergrowth);
+            return new SceneLayout(name, sizeX, sizeY, sizeZ, waterLevel, terrain, sites, waterfall, lake, river, paths, stamps, props, npcs, spawn, points, trees, undergrowth)
+            {
+                Labels = ParseLabels(root),
+            };
         }
+    }
+
+    // The words the beacon shows for the named places (CONTENT_PLAN C05): a site's, a point's or a named prop's optional "label", in the target language.
+    private static Dictionary<string, string> ParseLabels(JsonElement root)
+    {
+        var labels = new Dictionary<string, string>(StringComparer.Ordinal);
+        void Add(string name, JsonElement owner, string where)
+        {
+            if (owner.TryGetProperty("label", out var value))
+            {
+                var label = value.ValueKind == JsonValueKind.String ? value.GetString() : null;
+                if (string.IsNullOrWhiteSpace(label))
+                {
+                    throw new SceneLayoutException($"{where}: the label must be a word.");
+                }
+
+                if (!labels.TryAdd(name, label))
+                {
+                    throw new SceneLayoutException($"{where}: the place '{name}' has a label twice.");
+                }
+            }
+        }
+
+        foreach (var section in new[] { "sites", "points" })
+        {
+            if (root.TryGetProperty(section, out var places) && places.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var place in places.EnumerateObject())
+                {
+                    Add(place.Name, place.Value, $"{section[..^1]} '{place.Name}'");
+                }
+            }
+        }
+
+        if (root.TryGetProperty("props", out var props))
+        {
+            foreach (var prop in props.EnumerateArray())
+            {
+                if (GetString(prop, "name") is { } name)
+                {
+                    Add(name, prop, $"prop '{name}'");
+                }
+                else if (prop.TryGetProperty("label", out _))
+                {
+                    throw new SceneLayoutException($"prop '{GetString(prop, "type")}': a label needs the prop's name.");
+                }
+            }
+        }
+
+        return labels;
     }
 
     private static TerrainSpec ParseTerrain(JsonElement element, int sizeX, int sizeY, int sizeZ)

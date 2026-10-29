@@ -1,0 +1,227 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/words.json",
+  "description": "The target-language words the game itself uses (CONTENT_PLAN 3.3, C05): the guide's directions, the units and joiners, the button labels, the support headings, the pronouns, the key words, the help lines, the near future, the greeting, the typing help's letters and the nouns the logic is about. Loaded by GameWords (Vocaterra.Game.Core); the grammar check reads them.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "directions",
+    "blockUnit",
+    "listJoiner",
+    "buttons",
+    "typeOffer",
+    "support",
+    "unseen",
+    "pronouns",
+    "keyWords",
+    "helpLine",
+    "dontKnowLine",
+    "nearFuture",
+    "greeting",
+    "letters",
+    "nouns"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "enum": [
+        1
+      ]
+    },
+    "about": {
+      "type": "string"
+    },
+    "directions": {
+      "type": "object",
+      "required": [
+        "ahead",
+        "behind",
+        "left",
+        "right"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "ahead": {
+          "$ref": "#/definitions/word"
+        },
+        "behind": {
+          "$ref": "#/definitions/word"
+        },
+        "left": {
+          "$ref": "#/definitions/word"
+        },
+        "right": {
+          "$ref": "#/definitions/word"
+        }
+      },
+      "description": "The direction phrases of the guide's answers."
+    },
+    "blockUnit": {
+      "$ref": "#/definitions/word",
+      "description": "The unit of a distance (bloque); the template pluralises it."
+    },
+    "listJoiner": {
+      "$ref": "#/definitions/word",
+      "description": "The word between the last two parts of a list (y)."
+    },
+    "buttons": {
+      "type": "object",
+      "required": [
+        "repeat",
+        "slower",
+        "help",
+        "dontKnow",
+        "type"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "repeat": {
+          "$ref": "#/definitions/word"
+        },
+        "slower": {
+          "$ref": "#/definitions/word"
+        },
+        "help": {
+          "$ref": "#/definitions/word"
+        },
+        "dontKnow": {
+          "$ref": "#/definitions/word"
+        },
+        "type": {
+          "$ref": "#/definitions/word"
+        }
+      },
+      "description": "The speech buttons' labels."
+    },
+    "typeOffer": {
+      "$ref": "#/definitions/word",
+      "description": "The panel's offer to type (¿Escribes?)."
+    },
+    "support": {
+      "type": "object",
+      "required": [
+        "cardTag",
+        "listenChip",
+        "keyWordsHeading"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "cardTag": {
+          "$ref": "#/definitions/word"
+        },
+        "listenChip": {
+          "$ref": "#/definitions/word"
+        },
+        "keyWordsHeading": {
+          "$ref": "#/definitions/word"
+        }
+      },
+      "description": "The support cards' headings."
+    },
+    "unseen": {
+      "$ref": "#/definitions/word",
+      "description": "The label of a thing not seen yet (¿?)."
+    },
+    "pronouns": {
+      "type": "object",
+      "required": [
+        "1sg",
+        "2sg",
+        "3sg",
+        "1pl",
+        "3pl"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "1sg": {
+          "$ref": "#/definitions/word"
+        },
+        "2sg": {
+          "$ref": "#/definitions/word"
+        },
+        "3sg": {
+          "$ref": "#/definitions/word"
+        },
+        "1pl": {
+          "$ref": "#/definitions/word"
+        },
+        "3pl": {
+          "$ref": "#/definitions/word"
+        }
+      },
+      "description": "The subject pronoun of each row of the conjugation tables."
+    },
+    "keyWords": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/word"
+      },
+      "description": "The key words the shopkeeper shows before his first question (catalogue nouns)."
+    },
+    "helpLine": {
+      "$ref": "#/definitions/word",
+      "description": "The line the help button says."
+    },
+    "dontKnowLine": {
+      "$ref": "#/definitions/word",
+      "description": "The line the I-don't-know button says."
+    },
+    "nearFuture": {
+      "type": "object",
+      "required": [
+        "verb",
+        "joiner",
+        "timeWords"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "verb": {
+          "$ref": "#/definitions/word"
+        },
+        "joiner": {
+          "$ref": "#/definitions/word"
+        },
+        "timeWords": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/word"
+          }
+        }
+      },
+      "description": "ir a + infinitive: the verb, its joiner, and the time words that make a present a plan."
+    },
+    "greeting": {
+      "$ref": "#/definitions/word",
+      "description": "The greeting the mic check asks for (hola)."
+    },
+    "letters": {
+      "$ref": "#/definitions/word",
+      "description": "The letters the typing help lists."
+    },
+    "nouns": {
+      "type": "object",
+      "required": [
+        "river"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "river": {
+          "$ref": "#/definitions/word"
+        }
+      },
+      "description": "The catalogue nouns the game's logic is about, by role."
+    }
+  },
+  "definitions": {
+    "word": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    }
+  }
+}

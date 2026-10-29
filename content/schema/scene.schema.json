@@ -3,85 +3,236 @@
   "title": "game/scene.json",
   "description": "The scene layout (S13): a valley generated from these parameters and the world seed. JSON with // comments (JSONC). x runs east, z south, y up. Loaded by SceneLayout.Parse (Vocaterra.Game.Core), which checks that the layout can be built.",
   "type": "object",
-  "required": ["schemaVersion", "size", "waterLevel", "terrain", "sites", "spawn", "trees"],
+  "required": [
+    "schemaVersion",
+    "size",
+    "waterLevel",
+    "terrain",
+    "sites",
+    "spawn",
+    "trees"
+  ],
   "additionalProperties": false,
   "properties": {
-    "$schema": { "type": "string" },
-    "schemaVersion": { "enum": [2] },
-    "name": { "type": "string" },
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "enum": [
+        2
+      ]
+    },
+    "name": {
+      "type": "string"
+    },
     "size": {
       "type": "object",
-      "required": ["x", "y", "z"],
-      "additionalProperties": false,
-      "properties": { "x": { "$ref": "#/definitions/chunks" }, "y": { "$ref": "#/definitions/chunks" }, "z": { "$ref": "#/definitions/chunks" } },
-      "description": "The grid's size in blocks, each a multiple of 16."
-    },
-    "waterLevel": { "type": "integer", "minimum": 0, "description": "The y of the lake's water surface." },
-    "terrain": {
-      "type": "object",
-      "required": ["relief"],
+      "required": [
+        "x",
+        "y",
+        "z"
+      ],
       "additionalProperties": false,
       "properties": {
-        "relief": { "type": "array", "items": { "type": "string", "pattern": "^[0-9a-v]+$" }, "description": "One string per chunk row from the north: each character is the height at a chunk corner divided by 4, in base 32." },
-        "valley": { "type": "integer" },
-        "rockLine": { "type": "integer" },
-        "snowLine": { "type": "integer" },
-        "terrace": { "type": "integer" },
-        "ceiling": { "type": "integer" }
+        "x": {
+          "$ref": "#/definitions/chunks"
+        },
+        "y": {
+          "$ref": "#/definitions/chunks"
+        },
+        "z": {
+          "$ref": "#/definitions/chunks"
+        }
+      },
+      "description": "The grid's size in blocks, each a multiple of 16."
+    },
+    "waterLevel": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The y of the lake's water surface."
+    },
+    "terrain": {
+      "type": "object",
+      "required": [
+        "relief"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "relief": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9a-v]+$"
+          },
+          "description": "One string per chunk row from the north: each character is the height at a chunk corner divided by 4, in base 32."
+        },
+        "valley": {
+          "type": "integer"
+        },
+        "rockLine": {
+          "type": "integer"
+        },
+        "snowLine": {
+          "type": "integer"
+        },
+        "terrace": {
+          "type": "integer"
+        },
+        "ceiling": {
+          "type": "integer"
+        }
       }
     },
     "sites": {
       "type": "object",
       "additionalProperties": {
         "type": "object",
-        "required": ["x", "z"],
+        "required": [
+          "x",
+          "z"
+        ],
         "additionalProperties": false,
         "properties": {
-          "x": { "type": "integer" },
-          "z": { "type": "integer" },
-          "y": { "type": "integer", "description": "The flattened ground height." },
-          "radius": { "type": "integer", "minimum": 0 },
-          "blend": { "type": "integer", "minimum": 0 }
+          "x": {
+            "type": "integer"
+          },
+          "z": {
+            "type": "integer"
+          },
+          "y": {
+            "type": "integer",
+            "description": "The flattened ground height."
+          },
+          "radius": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "blend": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The word the beacon shows for the place (river shows río; C05)."
+          }
         }
       },
       "description": "The named sites at fixed places whatever the seed."
     },
     "waterfall": {
       "type": "object",
-      "required": ["site"],
+      "required": [
+        "site"
+      ],
       "additionalProperties": false,
-      "properties": { "site": { "type": "string" }, "top": { "type": "integer" }, "width": { "type": "integer" }, "plateau": { "type": "integer" }, "pool": { "type": "integer" } }
+      "properties": {
+        "site": {
+          "type": "string"
+        },
+        "top": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "plateau": {
+          "type": "integer"
+        },
+        "pool": {
+          "type": "integer"
+        }
+      }
     },
     "lake": {
       "type": "object",
-      "required": ["site"],
+      "required": [
+        "site"
+      ],
       "additionalProperties": false,
-      "properties": { "site": { "type": "string" }, "rx": { "type": "integer" }, "rz": { "type": "integer" }, "depth": { "type": "integer" } }
+      "properties": {
+        "site": {
+          "type": "string"
+        },
+        "rx": {
+          "type": "integer"
+        },
+        "rz": {
+          "type": "integer"
+        },
+        "depth": {
+          "type": "integer"
+        }
+      }
     },
     "river": {
       "type": "object",
-      "required": ["path"],
+      "required": [
+        "path"
+      ],
       "additionalProperties": false,
       "properties": {
-        "halfWidth": { "type": "integer", "minimum": 0 },
-        "depth": { "type": "integer", "minimum": 0 },
-        "bank": { "type": "integer", "minimum": 0 },
-        "path": { "type": "array", "items": { "$ref": "#/definitions/column" } }
+        "halfWidth": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "depth": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "bank": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "path": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/column"
+          }
+        }
       }
     },
     "paths": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name", "from", "to"],
+        "required": [
+          "name",
+          "from",
+          "to"
+        ],
         "additionalProperties": false,
         "properties": {
-          "name": { "type": "string", "minLength": 1 },
-          "from": { "type": "string", "minLength": 1, "description": "A site." },
-          "to": { "type": "string", "minLength": 1, "description": "A site." },
-          "via": { "type": "array", "items": { "$ref": "#/definitions/column" } },
-          "halfWidth": { "type": "integer", "minimum": 0 },
-          "mode": { "enum": ["grade", "follow"] }
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "from": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A site."
+          },
+          "to": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A site."
+          },
+          "via": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/column"
+            }
+          },
+          "halfWidth": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "mode": {
+            "enum": [
+              "grade",
+              "follow"
+            ]
+          }
         }
       }
     },
@@ -89,11 +240,29 @@
       "type": "object",
       "additionalProperties": {
         "type": "object",
-        "required": ["legend", "layers"],
+        "required": [
+          "legend",
+          "layers"
+        ],
         "additionalProperties": false,
         "properties": {
-          "legend": { "type": "object", "additionalProperties": { "type": "string" }, "description": "A character of the layers and the block it stands for." },
-          "layers": { "type": "array", "items": { "type": "array", "items": { "type": "string" } }, "description": "The layers from the ground up, each a list of rows." }
+          "legend": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "A character of the layers and the block it stands for."
+          },
+          "layers": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "The layers from the ground up, each a list of rows."
+          }
         }
       }
     },
@@ -101,26 +270,84 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["type"],
+        "required": [
+          "type"
+        ],
         "additionalProperties": false,
         "properties": {
           "type": {
-            "enum": ["workbench", "fire_ring", "stall", "house", "signpost", "lamp", "block", "pergola", "field", "fence_line", "bush", "berry_bush", "tree", "bridge", "paving", "stamp"]
+            "enum": [
+              "workbench",
+              "fire_ring",
+              "stall",
+              "house",
+              "signpost",
+              "lamp",
+              "block",
+              "pergola",
+              "field",
+              "fence_line",
+              "bush",
+              "berry_bush",
+              "tree",
+              "bridge",
+              "paving",
+              "stamp"
+            ]
           },
-          "site": { "type": "string" },
-          "dx": { "type": "integer" },
-          "dz": { "type": "integer" },
-          "x": { "type": "integer" },
-          "z": { "type": "integer" },
-          "name": { "type": "string", "minLength": 1, "description": "A point name for the prop (firering.player); the beacon and the objective find it by it." },
-          "width": { "type": "integer" },
-          "depth": { "type": "integer" },
-          "height": { "type": "integer" },
-          "length": { "type": "integer" },
-          "facing": { "$ref": "#/definitions/facing" },
-          "axis": { "enum": ["x", "z"] },
-          "stamp": { "type": "string" },
-          "block": { "type": "string", "description": "A block kind by its stable name (nouns.schema.json lists them)." }
+          "site": {
+            "type": "string"
+          },
+          "dx": {
+            "type": "integer"
+          },
+          "dz": {
+            "type": "integer"
+          },
+          "x": {
+            "type": "integer"
+          },
+          "z": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A point name for the prop (firering.player); the beacon and the objective find it by it."
+          },
+          "width": {
+            "type": "integer"
+          },
+          "depth": {
+            "type": "integer"
+          },
+          "height": {
+            "type": "integer"
+          },
+          "length": {
+            "type": "integer"
+          },
+          "facing": {
+            "$ref": "#/definitions/facing"
+          },
+          "axis": {
+            "enum": [
+              "x",
+              "z"
+            ]
+          },
+          "stamp": {
+            "type": "string"
+          },
+          "block": {
+            "type": "string",
+            "description": "A block kind by its stable name (nouns.schema.json lists them)."
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The word the beacon shows for the prop's place (needs a name; C05)."
+          }
         }
       }
     },
@@ -128,16 +355,34 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "additionalProperties": false,
         "properties": {
-          "name": { "type": "string", "minLength": 1, "description": "The NPC's agent id." },
-          "site": { "type": "string" },
-          "dx": { "type": "integer" },
-          "dz": { "type": "integer" },
-          "x": { "type": "integer" },
-          "z": { "type": "integer" },
-          "facing": { "$ref": "#/definitions/facing" }
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The NPC's agent id."
+          },
+          "site": {
+            "type": "string"
+          },
+          "dx": {
+            "type": "integer"
+          },
+          "dz": {
+            "type": "integer"
+          },
+          "x": {
+            "type": "integer"
+          },
+          "z": {
+            "type": "integer"
+          },
+          "facing": {
+            "$ref": "#/definitions/facing"
+          }
         }
       }
     },
@@ -145,22 +390,51 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "site": { "type": "string" },
-        "dx": { "type": "integer" },
-        "dz": { "type": "integer" },
-        "x": { "type": "integer" },
-        "z": { "type": "integer" },
-        "facing": { "$ref": "#/definitions/facing" },
-        "pitch": { "type": "integer" }
+        "site": {
+          "type": "string"
+        },
+        "dx": {
+          "type": "integer"
+        },
+        "dz": {
+          "type": "integer"
+        },
+        "x": {
+          "type": "integer"
+        },
+        "z": {
+          "type": "integer"
+        },
+        "facing": {
+          "$ref": "#/definitions/facing"
+        },
+        "pitch": {
+          "type": "integer"
+        }
       }
     },
     "points": {
       "type": "object",
       "additionalProperties": {
         "type": "object",
-        "required": ["x", "z"],
+        "required": [
+          "x",
+          "z"
+        ],
         "additionalProperties": false,
-        "properties": { "x": { "type": "integer" }, "z": { "type": "integer" } }
+        "properties": {
+          "x": {
+            "type": "integer"
+          },
+          "z": {
+            "type": "integer"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The word the beacon shows for the place (river shows río; C05)."
+          }
+        }
       },
       "description": "Named points beside the sites."
     },
@@ -168,35 +442,98 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "cell": { "type": "integer" },
-        "chance": { "type": "integer" },
-        "spacing": { "type": "integer" },
-        "margin": { "type": "integer" },
-        "minTrunk": { "type": "integer" },
-        "maxTrunk": { "type": "integer" },
-        "treeLine": { "type": "integer" },
-        "spruceFrom": { "type": "integer" },
-        "birch": { "type": "integer" },
-        "birchAway": { "type": "integer" },
-        "shoreClear": { "type": "integer" },
-        "shoreFade": { "type": "integer" },
-        "shoreKeep": { "type": "integer" },
+        "cell": {
+          "type": "integer"
+        },
+        "chance": {
+          "type": "integer"
+        },
+        "spacing": {
+          "type": "integer"
+        },
+        "margin": {
+          "type": "integer"
+        },
+        "minTrunk": {
+          "type": "integer"
+        },
+        "maxTrunk": {
+          "type": "integer"
+        },
+        "treeLine": {
+          "type": "integer"
+        },
+        "spruceFrom": {
+          "type": "integer"
+        },
+        "birch": {
+          "type": "integer"
+        },
+        "birchAway": {
+          "type": "integer"
+        },
+        "shoreClear": {
+          "type": "integer"
+        },
+        "shoreFade": {
+          "type": "integer"
+        },
+        "shoreKeep": {
+          "type": "integer"
+        },
         "clearings": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["site", "radius"],
+            "required": [
+              "site",
+              "radius"
+            ],
             "additionalProperties": false,
-            "properties": { "site": { "type": "string" }, "radius": { "type": "integer" }, "fade": { "type": "integer" }, "keep": { "type": "integer" } }
+            "properties": {
+              "site": {
+                "type": "string"
+              },
+              "radius": {
+                "type": "integer"
+              },
+              "fade": {
+                "type": "integer"
+              },
+              "keep": {
+                "type": "integer"
+              }
+            }
           }
         },
         "vistas": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["site", "yaw", "half", "radius"],
+            "required": [
+              "site",
+              "yaw",
+              "half",
+              "radius"
+            ],
             "additionalProperties": false,
-            "properties": { "site": { "type": "string" }, "yaw": { "type": "integer" }, "half": { "type": "integer" }, "radius": { "type": "integer" }, "down": { "type": "integer" } }
+            "properties": {
+              "site": {
+                "type": "string"
+              },
+              "yaw": {
+                "type": "integer"
+              },
+              "half": {
+                "type": "integer"
+              },
+              "radius": {
+                "type": "integer"
+              },
+              "down": {
+                "type": "integer"
+              }
+            }
           }
         }
       }
@@ -205,17 +542,54 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "grass": { "type": "integer" },
-        "fern": { "type": "integer" },
-        "flowers": { "type": "integer" },
-        "reeds": { "type": "integer" },
-        "routeMargin": { "type": "integer" }
+        "grass": {
+          "type": "integer"
+        },
+        "fern": {
+          "type": "integer"
+        },
+        "flowers": {
+          "type": "integer"
+        },
+        "reeds": {
+          "type": "integer"
+        },
+        "routeMargin": {
+          "type": "integer"
+        }
       }
     }
   },
   "definitions": {
-    "chunks": { "type": "integer", "minimum": 16, "multipleOf": 16 },
-    "column": { "type": "array", "items": { "type": "integer" }, "minItems": 2, "maxItems": 2, "description": "[x, z]." },
-    "facing": { "oneOf": [{ "enum": ["north", "east", "south", "west"] }, { "type": "integer" }], "description": "A compass word or whole degrees." }
+    "chunks": {
+      "type": "integer",
+      "minimum": 16,
+      "multipleOf": 16
+    },
+    "column": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "[x, z]."
+    },
+    "facing": {
+      "oneOf": [
+        {
+          "enum": [
+            "north",
+            "east",
+            "south",
+            "west"
+          ]
+        },
+        {
+          "type": "integer"
+        }
+      ],
+      "description": "A compass word or whole degrees."
+    }
   }
 }

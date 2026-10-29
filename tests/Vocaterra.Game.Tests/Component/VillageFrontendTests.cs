@@ -461,7 +461,7 @@ public sealed class VillageFrontendTests(ITestOutputHelper output)
     [Fact]
     public void TheBubbleShowsTheSpeakersNewestLineCutToThreeRows()
     {
-        var dialogue = new DialogueModel(new InputFocus(), "¡Hola! Soy la guía.");
+        var dialogue = new DialogueModel(new InputFocus(), "¡Hola! Soy la guía.", RouteScene.Shipped.Words);
         Assert.Null(DialogueBubble.LineOf(dialogue)); // nothing said yet
         dialogue.Open();
         Assert.Equal("¡Hola! Soy la guía.", DialogueBubble.LineOf(dialogue));

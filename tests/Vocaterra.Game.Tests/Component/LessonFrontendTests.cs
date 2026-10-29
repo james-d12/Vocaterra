@@ -58,7 +58,7 @@ public sealed class LessonFrontendTests
             Session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
             Look = new LookControl();
             Look.Set(Session.Scene.Spawn.Yaw, 0);
-            Dialogue = new DialogueModel(new InputFocus(), Session.OpeningLine, Session.Phrases, Session.Locale);
+            Dialogue = new DialogueModel(new InputFocus(), Session.OpeningLine, Session.Data.Words, Session.Phrases, Session.Locale);
             _pump = new TurnPump(Session, Dialogue, () => Session.AimedCell);
             var actions = new SpeechActionRunner(Session, Dialogue, Player, () => Session.AimedCell);
             _support = new SupportFrontend(Session, Dialogue, actions, Log.Add);
@@ -373,7 +373,7 @@ public sealed class LessonFrontendTests
     {
         var session = new VoxelSession(RouteScene.DataOf(Bundle.Value), 42, GuideSession.DefaultStartedAt, RouteScene.Build(), CreditRules.FullTyped, lessons ?? RouteScene.Sample(Bundle.Value, Nouns.Value));
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("guide").Feet, session.Simulation.Player.FeetBlock)!.Value);
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases, session.Locale);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data.Words, session.Phrases, session.Locale);
         var player = new RecordingPlayer();
         var actions = new SpeechActionRunner(session, dialogue, player, () => null);
         var lesson = new LessonFrontend(session, dialogue, _ => { });
@@ -496,7 +496,7 @@ public sealed class LessonFrontendTests
     {
         var session = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("shopkeeper").Feet, session.Simulation.Player.FeetBlock)!.Value);
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases, session.Locale);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data.Words, session.Phrases, session.Locale);
         dialogue.Open(session.OpenTalk("shopkeeper"), "Tendero");
         _ = dialogue.Entry.Insert("yo quieres agua, por favor");
 
@@ -517,7 +517,7 @@ public sealed class LessonFrontendTests
     {
         var session = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("shopkeeper").Feet, session.Simulation.Player.FeetBlock)!.Value);
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data.Words, session.Phrases);
         dialogue.Open(session.OpenTalk("shopkeeper"), "Tendero");
         _ = dialogue.Entry.Insert("quiero agua, por favor");
 

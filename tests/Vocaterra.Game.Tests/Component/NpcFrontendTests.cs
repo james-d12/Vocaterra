@@ -63,7 +63,7 @@ public sealed class NpcFrontendTests
     public void ThePanelShowsTheNpcsNameItsHostTurnLinesAndAFollowUp()
     {
         var focus = new InputFocus();
-        var dialogue = new DialogueModel(focus, "¡Hola! Soy la guía.");
+        var dialogue = new DialogueModel(focus, "¡Hola! Soy la guía.", RouteScene.Shipped.Words);
         var opening = new NpcOpening("shopkeeper", "stall-need", ["¿Qué necesitas?"], true, [], false);
 
         dialogue.Open(opening, "Tendero");
@@ -82,7 +82,7 @@ public sealed class NpcFrontendTests
     [Fact]
     public void APromptOpeningIsShownOnceAndAnotherNpcStartsACleanPage()
     {
-        var dialogue = new DialogueModel(new InputFocus(), "¡Hola! Soy la guía.");
+        var dialogue = new DialogueModel(new InputFocus(), "¡Hola! Soy la guía.", RouteScene.Shipped.Words);
         var villager = new NpcOpening("villager", "villager-open", ["Hola."], false, [], false);
 
         dialogue.Open(villager, "Aldeano");
@@ -99,7 +99,7 @@ public sealed class NpcFrontendTests
     [Fact]
     public void ComingBackToAnNpcAfterAnotherOneStillShowsItsPromptOnAnEmptyPage()
     {
-        var dialogue = new DialogueModel(new InputFocus(), "hola");
+        var dialogue = new DialogueModel(new InputFocus(), "hola", RouteScene.Shipped.Words);
         var villager = new NpcOpening("villager", "villager-open", ["Hola."], false, [], false);
         var offer = new NpcOpening("guide", "guide-offer", ["¿Quieres agua?"], false, [], false);
         dialogue.Open(villager, "Aldeano");
@@ -115,7 +115,7 @@ public sealed class NpcFrontendTests
     [Fact]
     public void ATurnsFollowUpLinesAreShownAfterTheRest()
     {
-        var dialogue = new DialogueModel(new InputFocus(), "hola");
+        var dialogue = new DialogueModel(new InputFocus(), "hola", RouteScene.Shipped.Words);
         dialogue.Open(new NpcOpening("shopkeeper", "stall-need", ["¿Qué necesitas?"], true, [], false), "Tendero");
         var turn = new GuideTurn(
             "no sé",

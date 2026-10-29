@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Event;
+using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 
 namespace Vocaterra.Game.Core.Dialogue;
@@ -6,30 +7,20 @@ namespace Vocaterra.Game.Core.Dialogue;
 /// <summary>The speech buttons of the dialogue panel, their keys and the voice event each press raises (S7, D-game-9: replay, slower audio, help, "no sé" and the typed fallback are always available).</summary>
 public static class SpeechButtons
 {
-    /// <summary>The label of <see cref="SpeechAction.Repeat"/>.</summary>
-    public const string RepeatLabel = "Repetir";
-
-    /// <summary>The label of <see cref="SpeechAction.Slower"/>.</summary>
-    public const string SlowerLabel = "Más despacio";
-
-    /// <summary>The label of <see cref="SpeechAction.Help"/>.</summary>
-    public const string HelpLabel = "Ayuda";
-
-    /// <summary>The label of <see cref="SpeechAction.DontKnow"/>.</summary>
-    public const string DontKnowLabel = "No sé";
-
-    /// <summary>The label of <see cref="SpeechAction.Type"/>.</summary>
-    public const string TypeLabel = "Escribir";
-
-    /// <summary>The fixed buttons, left to right.</summary>
-    public static IReadOnlyList<SpeechButton> All { get; } =
-    [
-        new(SpeechAction.Repeat, RepeatLabel, "R"),
-        new(SpeechAction.Slower, SlowerLabel, "S"),
-        new(SpeechAction.Help, HelpLabel, "H"),
-        new(SpeechAction.DontKnow, DontKnowLabel, "N"),
-        new(SpeechAction.Type, TypeLabel, "W"),
-    ];
+    /// <summary>The fixed buttons, left to right, with their labels in the target language (<c>game/words.json</c>, CONTENT_PLAN C05).</summary>
+    /// <param name="words">The labels.</param>
+    public static IReadOnlyList<SpeechButton> For(ButtonWords words)
+    {
+        ArgumentNullException.ThrowIfNull(words);
+        return
+        [
+            new(SpeechAction.Repeat, words.Repeat, "R"),
+            new(SpeechAction.Slower, words.Slower, "S"),
+            new(SpeechAction.Help, words.Help, "H"),
+            new(SpeechAction.DontKnow, words.DontKnow, "N"),
+            new(SpeechAction.Type, words.Type, "W"),
+        ];
+    }
 
     /// <summary>The English-text key of a fixed button (<see cref="SpeechButtonKeys"/>), or <see langword="null"/> for a choice.</summary>
     /// <param name="action">The button.</param>

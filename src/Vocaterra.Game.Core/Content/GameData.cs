@@ -44,9 +44,11 @@ public sealed class GameData
         IReadOnlyList<SpeechLine> speech,
         LessonBook lessons,
         IReadOnlyList<CheckItem> checks,
-        SceneLayout scene)
+        SceneLayout scene,
+        GameWords words)
     {
         Bundle = bundle;
+        Words = words;
         Locale = locale;
         Nouns = nouns;
         Recipes = recipes;
@@ -108,6 +110,9 @@ public sealed class GameData
     /// <summary>The scene's layout (<c>game/scene.json</c>), parsed from the verified bytes.</summary>
     public SceneLayout Scene { get; }
 
+    /// <summary>The target-language words the game itself uses (<c>game/words.json</c>, C05): directions, button labels, pronouns, key words and the like.</summary>
+    public GameWords Words { get; }
+
     /// <summary>Reads every game file of a bundle, with the support language, and checks them against each other.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
     /// <param name="locale">The support language (<see cref="LocaleBundle.Text"/>).</param>
@@ -154,7 +159,8 @@ public sealed class GameData
             speech,
             LessonBook.Load(bundle, phrases, speech, locale),
             CheckBank.Load(bundle, locale),
-            SceneLayout.Parse(HostText(bundle, ScenePath)));
+            SceneLayout.Parse(HostText(bundle, ScenePath)),
+            GameWords.Load(bundle));
     }
 
     /// <summary>
@@ -189,20 +195,24 @@ public sealed class GameData
     public GameData WithLessons(LessonBook lessons)
     {
         ArgumentNullException.ThrowIfNull(lessons);
-        return new GameData(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, lessons, Checks, Scene);
+        return new GameData(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, lessons, Checks, Scene, Words);
     }
 
     /// <summary>The same parts with another check battery (the validator's tests).</summary>
     /// <param name="checks">The items.</param>
-    internal GameData WithChecks(IReadOnlyList<CheckItem> checks) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, checks, Scene);
+    internal GameData WithChecks(IReadOnlyList<CheckItem> checks) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, checks, Scene, Words);
 
     /// <summary>The same parts with another support language (the validator's tests).</summary>
     /// <param name="locale">The locale.</param>
-    internal GameData WithLocale(LocaleText locale) => new(Bundle, locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene);
+    internal GameData WithLocale(LocaleText locale) => new(Bundle, locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, Words);
 
     /// <summary>The same parts with another scene layout (the validator's tests).</summary>
     /// <param name="scene">The layout.</param>
-    internal GameData WithScene(SceneLayout scene) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, scene);
+    internal GameData WithScene(SceneLayout scene) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, scene, Words);
+
+    /// <summary>The same parts with other target-language words (the validator's tests).</summary>
+    /// <param name="words">The words.</param>
+    internal GameData WithWords(GameWords words) => new(Bundle, Locale, Nouns, Recipes, Phrases, Tips, Controls, Speech, Lessons, Checks, Scene, words);
 
     /// <summary>The text of one of the bundle's verified host files.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>

@@ -140,7 +140,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
             {
                 foreach (var hints in new[] { DialoguePanel.KeyHints, DialoguePanel.SpeechOffKeyHints, DialoguePanel.ButtonHints, DialoguePanel.SpeechOffButtonHints })
                 {
-                    var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, choices, typing, static b => $"{b.Text} ({English.Value.ButtonSupport(SpeechButtons.KeyOf(b.Action)!)})", hints);
+                    var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, choices, SpeechButtons.For(RouteScene.Shipped.Words.Buttons), typing, static b => $"{b.Text} ({English.Value.ButtonSupport(SpeechButtons.KeyOf(b.Action)!)})", hints);
                     var where = $"{windowWidth}x{windowHeight} at {scale}%, typing {typing}, {choices.Length} choices";
                     Assert.True(Inside(layout.Panel, window), $"{where}: the panel is outside the canvas");
 
@@ -192,7 +192,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     public void ThePlainPanelKeepsRoomForAtLeastOneLineOfConversationAtEveryScale(int windowWidth, int windowHeight, int scale)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
-        var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, [], typing: false, static b => $"{b.Text} ({English.Value.ButtonSupport(SpeechButtons.KeyOf(b.Action)!)})", DialoguePanel.ButtonHints);
+        var layout = new DialogueLayout(canvas.Width, canvas.Height, Small, [], SpeechButtons.For(RouteScene.Shipped.Words.Buttons), typing: false, static b => $"{b.Text} ({English.Value.ButtonSupport(SpeechButtons.KeyOf(b.Action)!)})", DialoguePanel.ButtonHints);
 
         Assert.True(layout.LinesBottom - layout.LinesTop >= DialogueLayout.LineHeight, $"{canvas.Width}x{canvas.Height}: {layout.LinesBottom - layout.LinesTop} px for the conversation");
     }

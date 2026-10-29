@@ -40,7 +40,7 @@ public static class BookPages
         ArgumentNullException.ThrowIfNull(recordings);
         return page switch
         {
-            BookPage.Nouns => Nouns(session.Words, session.Learner.Nouns, session.StoredTime.UnixSeconds, session.DefiniteArticle, session.Phrases, recordings),
+            BookPage.Nouns => Nouns(session.Words, session.Learner.Nouns, session.StoredTime.UnixSeconds, session.DefiniteArticle, session.Phrases, session.Data.Words.Unseen, recordings),
             BookPage.Verbs => Verbs(session.Learner.Verbs, session.Glosses, session.Phrases, session.Bundle.SpanishMorphology()),
             BookPage.Phrases => Phrases(PhraseJournalRows.Build(session.PhraseProgress, session.StoredTime.UnixSeconds, session.Credit), recordings),
             BookPage.Lessons => Lessons(session.Lessons.Record, session.Phrases, recordings),
@@ -80,7 +80,7 @@ public static class BookPages
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(lemma);
         var row = session.Learner.Verbs.FirstOrDefault(r => string.Equals(r.Lemma, lemma, StringComparison.Ordinal));
-        return row is null ? null : ConjugationTable.Build(row, session.Learner.History, TaughtForms(session), session.Bundle.SpanishMorphology(), session.Glosses.ForLemma(lemma));
+        return row is null ? null : ConjugationTable.Build(row, session.Learner.History, TaughtForms(session), session.Bundle.SpanishMorphology(), session.Glosses.ForLemma(lemma), session.Data.Words);
     }
 
     /// <summary>
@@ -122,8 +122,9 @@ public static class BookPages
     /// <param name="now">The stored time in Unix seconds (the due text).</param>
     /// <param name="definite">The definite article of a noun from its gender and lemma (<c>el</c> for <c>agua</c>).</param>
     /// <param name="sheet">The phrase sheet (for the English of a sentence that is a phrase).</param>
+    /// <param name="unseen">The label of a noun not met yet (<c>¿?</c>, <c>game/words.json</c>).</param>
     /// <param name="recordings">The recordings (S20b): a seen catalogue noun gets a speaker button for its word card. An unmet noun (<c>¿?</c>) and a noun outside the catalogue get none.</param>
-    public static IReadOnlyList<BookLine> Nouns(WordProgress words, IReadOnlyList<WordRow> learnerNouns, long now, Func<string, string, string> definite, PhraseSheet sheet, BookRecordings? recordings = null)
+    public static IReadOnlyList<BookLine> Nouns(WordProgress words, IReadOnlyList<WordRow> learnerNouns, long now, Func<string, string, string> definite, PhraseSheet sheet, string unseen, BookRecordings? recordings = null)
     {
         ArgumentNullException.ThrowIfNull(words);
         ArgumentNullException.ThrowIfNull(learnerNouns);
@@ -132,7 +133,7 @@ public static class BookPages
         var lines = new List<BookLine>();
         var learner = learnerNouns.Where(static row => !row.Lemma.Contains(' ', StringComparison.Ordinal)).ToDictionary(static row => row.Lemma, StringComparer.Ordinal);
         var catalogue = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var row in JournalRows.Build(words, now))
+        foreach (var row in JournalRows.Build(words, now, unseen))
         {
             catalogue.Add(row.Lemma);
             var tone = row.Known ? BookTone.Known : row.Record.CreditUnits > 0 ? BookTone.Learning : row.Seen ? BookTone.Seen : BookTone.Unseen;

@@ -140,7 +140,7 @@ public sealed class PhraseSupportFrontendTests
     public void TheCardsSoundsGoThroughTheLinePlayerHook()
     {
         var session = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data.Words, session.Phrases);
         var player = new RecordingPlayer();
         var actions = new SpeechActionRunner(session, dialogue, player, () => null);
         var lines = new List<string>();
@@ -160,7 +160,7 @@ public sealed class PhraseSupportFrontendTests
     public void AnAudioOnlyPromptPlaysItsSoundAndRepetirPlaysTheQuestionThenTheModel()
     {
         var session = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data.Words, session.Phrases);
         var player = new RecordingPlayer();
         var actions = new SpeechActionRunner(session, dialogue, player, () => null);
         var frontend = new SupportFrontend(session, dialogue, actions, _ => { });
@@ -222,7 +222,7 @@ public sealed class PhraseSupportFrontendTests
         var output = new FakeOutput();
         using var voice = new NpcVoice(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName), new SpeechIndex(lines), output, muted: false, logs.Add);
         var session = RouteScene.NewSession(bundle, Nouns.Value, CreditRules.FullTyped);
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data.Words, session.Phrases);
         var actions = new SpeechActionRunner(session, dialogue, voice, () => null);
         var frontend = new SupportFrontend(session, dialogue, actions, _ => { });
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("shopkeeper").Feet, session.Simulation.Player.FeetBlock)!.Value);
@@ -253,7 +253,7 @@ public sealed class PhraseSupportFrontendTests
     public void ThePhraseProgressLinesFollowAPhraseUseAndTheSummaryListsWhatWasSeen()
     {
         var session = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data.Words, session.Phrases);
         var actions = new SpeechActionRunner(session, dialogue, SilentLinePlayer.Instance, () => null);
         var frontend = new SupportFrontend(session, dialogue, actions, _ => { });
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("shopkeeper").Feet, session.Simulation.Player.FeetBlock)!.Value);
@@ -282,7 +282,7 @@ public sealed class PhraseSupportFrontendTests
             Session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
             Look = new LookControl();
             Look.Set(Session.Scene.Spawn.Yaw, 0);
-            Dialogue = new DialogueModel(new InputFocus(), Session.OpeningLine, Session.Phrases);
+            Dialogue = new DialogueModel(new InputFocus(), Session.OpeningLine, Session.Data.Words, Session.Phrases);
             _pump = new TurnPump(Session, Dialogue, () => Session.AimedCell);
             var actions = new SpeechActionRunner(Session, Dialogue, Player, () => Session.AimedCell);
             _support = new SupportFrontend(Session, Dialogue, actions, Log.Add);
@@ -404,7 +404,7 @@ public sealed class PhraseSupportFrontendTests
         var cmap = TrueTypeCmap.Load(Repo.Path("assets", "fonts", "pixel-operator", "PixelOperator.ttf"));
         var strings = new List<string>
         {
-            SupportLayer.CardTag, SupportLayer.ChipText, SupportLayer.KeyWordsHeading, BookTabs.Title, BookTabs.KeyHints, BookTabs.LabelOf(BookPage.Phrases),
+            RouteScene.Shipped.Words.Support.CardTag, SupportLayer.ChipText(RouteScene.Shipped.Words), RouteScene.Shipped.Words.Support.KeyWordsHeading, BookTabs.Title, BookTabs.KeyHints, BookTabs.LabelOf(BookPage.Phrases),
             PhraseJournalRows.HearsText, PhraseJournalRows.CardAndAudioText, PhraseJournalRows.AudioOnlyText, PhraseJournalRows.NoneText,
             "with help 1   without help 0.5   choices 0   don't know 0   other situation 0", "heard 1   answered 1", "Without help: 1 of 4", "and 3 more", "audio",
         };

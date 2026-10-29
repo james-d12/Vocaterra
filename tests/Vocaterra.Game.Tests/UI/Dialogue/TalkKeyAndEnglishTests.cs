@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.Hud;
 
@@ -54,7 +55,7 @@ public sealed class TalkKeyAndEnglishTests
         Assert.Equal("Listening…", DialoguePanel.ListeningText);
         Assert.Equal("Thinking…", DialoguePanel.ThinkingText);
         Assert.Equal("You (voice): ", DialoguePanel.SpokenPrefix);
-        Assert.False(new DialogueModel(new InputFocus(), "Hola.").SpeechUnavailable);
+        Assert.False(new DialogueModel(new InputFocus(), "Hola.", RouteScene.Shipped.Words).SpeechUnavailable);
     }
 
     [Fact]

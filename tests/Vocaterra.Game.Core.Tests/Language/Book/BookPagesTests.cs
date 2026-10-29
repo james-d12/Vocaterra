@@ -71,7 +71,7 @@ public sealed class BookPagesTests
     public void TheNounsPageListsTheCatalogueWordsAndThenTheOtherNounsWithTheirArticlesAndUses()
     {
         var record = FixedRecord();
-        var lines = BookPages.Nouns(Words(), record.Nouns, 0, Article, Sheet.Value);
+        var lines = BookPages.Nouns(Words(), record.Nouns, 0, Article, Sheet.Value, "¿?");
         var texts = lines.Select(static l => l.Text).ToList();
 
         Assert.Contains("el agua", texts); // a catalogue noun, seen: its article from the catalogue
@@ -89,7 +89,7 @@ public sealed class BookPagesTests
     [Fact]
     public void TheNounsPageNeverListsAFixedExpressionOrAnInterjection()
     {
-        var lines = BookPages.Nouns(Words(), FixedRecord().Nouns, 0, Article, Sheet.Value);
+        var lines = BookPages.Nouns(Words(), FixedRecord().Nouns, 0, Article, Sheet.Value, "¿?");
         // No heading is the expression, and no form of it is listed; a last sentence may quote it, as any sentence does.
         Assert.DoesNotContain(lines, static l => l.Text.StartsWith("por favor", StringComparison.Ordinal) || l.Text.StartsWith("gracias", StringComparison.Ordinal));
         Assert.DoesNotContain(lines, static l => l.Text.StartsWith("forms: ", StringComparison.Ordinal) && (l.Text.Contains("favor", StringComparison.Ordinal) || l.Text.Contains("gracias", StringComparison.Ordinal)));
