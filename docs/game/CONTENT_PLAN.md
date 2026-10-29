@@ -561,10 +561,12 @@ The schemas, `GameData` and the validator are the contract any tool builds on.
 
 ## 4. Milestones
 
-Branch `C<nn>-<name>`, commit prefix `C<nn>:`, gated into the feature branch `feature/content`, never `main`. R16 phase 2 landed on `main`
-by pull request #12 (2026-10-29), and `feature/content` starts from `main` at `604903f`. On the owner's instruction of 2026-10-29 one
-session (Opus 5.5) does every milestone itself, with no subagents. The gate is unchanged: each `C<nn>` branch is gated into
-`feature/content` with `scripts/merge-gate.sh` and pushed there.
+Every milestone's work is committed straight to `feature/content` with the prefix `C<nn>:`, and pushed often, never to `main` (the owner,
+2026-10-29: "make sure all work is to feature/content"; there are no `C<nn>-<name>` branches). R16 phase 2 landed on `main` by pull request
+#12 (2026-10-29), and `feature/content` starts from `main` at `604903f`. On the owner's instruction one session (Opus 5.5) does every
+milestone itself, with no subagents. At the end of each milestone the gate runs on `feature/content` itself
+(`GATE_TARGET=feature/content scripts/merge-gate.sh "C<nn>:feature/content"`, where the merge is a no-op), and its result goes into
+section 4's status column.
 
 | ID | What | Depends | Status |
 | --- | --- | --- | --- |

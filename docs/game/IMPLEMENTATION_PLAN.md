@@ -387,7 +387,8 @@ the owner-approved plan of 2026-10-23 (the flatten, then one bundle).
 ### 4.7 Content as data and the L1 locale layer (the C series; owner, 2026-10-29, D-game-21)
 
 The plan, the milestones C01 to C10 and their states are in `docs/game/CONTENT_PLAN.md` (section 4). The series runs on `feature/content`
-(made from `main` at `604903f`, after R16 phase 2 landed), each `C<nn>` branch gated into it and pushed there, never `main`. On the owner's
+(made from `main` at `604903f`, after R16 phase 2 landed): every commit goes straight to it and is pushed there, never `main`, and the
+gate runs on it at the end of each milestone. On the owner's
 instruction one session (Opus 5.5) does every milestone itself, with no subagents. The findings of each milestone go into section 5.
 
 ## 5. Findings log
