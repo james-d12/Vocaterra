@@ -2,13 +2,11 @@ using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Speech;
-using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 
 namespace Vocaterra.Game.Core.Tests.Dialogue;
@@ -16,9 +14,6 @@ namespace Vocaterra.Game.Core.Tests.Dialogue;
 /// <summary>The dialogue panel's behaviour: T opens the text box and its letter is not typed, Esc undoes the newest thing first, and closing ends the talk.</summary>
 public sealed class DialogueScreenTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
     [Fact]
     public void TOpensTheTextBoxAndItsLetterIsSwallowedOnce()
     {
@@ -61,7 +56,7 @@ public sealed class DialogueScreenTests
 
     private static (DialogueScreen Screen, DialogueModel Dialogue, VoxelSession Session, List<string> Lines) Make()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases, session.English);
         var voice = new NpcVoice(Path.GetTempPath(), new SpeechIndex([]), new SilentOutput(), muted: true, _ => { });
         var lines = new List<string>();

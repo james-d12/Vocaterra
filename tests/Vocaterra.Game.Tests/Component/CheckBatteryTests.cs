@@ -1,14 +1,11 @@
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Speech;
-using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Save;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Diagnostics;
-using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 
 namespace Vocaterra.Game.Tests.Component;
@@ -16,8 +13,6 @@ namespace Vocaterra.Game.Tests.Component;
 /// <summary>The end of a check battery: a pre-check hands over to the world, a post-check ends the run after its thank-you frames, and a playtest's waits for Esc.</summary>
 public sealed class CheckBatteryTests : IDisposable
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
     private readonly string _folder = Path.Combine(Path.GetTempPath(), "vocaterra-checks-" + Path.GetRandomFileName());
     private readonly List<string> _lines = [];
     private readonly List<CheckScreen> _playtestEnds = [];
@@ -92,7 +87,7 @@ public sealed class CheckBatteryTests : IDisposable
     {
         Directory.CreateDirectory(_folder);
         _log = SessionLog.Open(_folder, static () => new DateTimeOffset(2026, 10, 26, 12, 0, 0, TimeSpan.Zero));
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var sound = new SoundFrontend(new SoundMixer(new NullSoundOutput(), new SoundVolumes(), new PresentationRng(1)), new SoundEventMapper());
         var voice = new NpcVoice(_folder, new SpeechIndex([]), new SilentOutput(), muted: true, _ => { });
         var hooks = new CheckBatteryHooks(_ => { }, static () => false, static () => false, _ => { }, () => _exits++, _playtestEnds.Add);

@@ -5,17 +5,13 @@ using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.UI.Common;
 using Vocaterra.Game.UI.Crafting;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Component;
 
 /// <summary>The P6b front-end pieces that need no GPU: the crafting panel's model and layout, the command line, the scripted craft step, the stack counts and the new art.</summary>
 public sealed class CraftingFrontendTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
-    private static VoxelSession NewSession() => RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
+    private static VoxelSession NewSession() => RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
 
     [Fact]
     public void TheRowsFollowTheInventoryAndTheStationsOfTheWorkbench()

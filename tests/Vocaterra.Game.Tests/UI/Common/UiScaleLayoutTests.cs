@@ -3,11 +3,9 @@ using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
-using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Graphics.World;
@@ -41,11 +39,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
 
     private static float Large(string text) => text.Length * 14f;
 
-    private static readonly Lazy<EnglishText> English = new(() =>
-    {
-        var bundle = GameBundle.Load();
-        return EnglishText.Load(bundle, PhraseSheet.Load(bundle));
-    });
+    private static readonly Lazy<EnglishText> English = new(() => EnglishText.Load(TestGame.Bundle, TestGame.Phrases));
 
     /// <summary>Every window size and scale: the case's canvas is the window divided by the scale.</summary>
     public static TheoryData<int, int, int> Cases
@@ -450,7 +444,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
-        var bank = CheckBank.Load(GameBundle.Load());
+        var bank = CheckBank.Load(TestGame.Bundle);
         var panel = CheckCardLayout.PanelFor(canvas.Width, canvas.Height);
         Assert.True(Inside(panel, window));
         var side = CheckCardLayout.SideFor(panel);

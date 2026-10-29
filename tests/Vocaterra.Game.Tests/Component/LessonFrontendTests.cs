@@ -20,7 +20,6 @@ using Vocaterra.Game.Startup;
 using Vocaterra.Game.Tests.TestSupport;
 using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.Lesson;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Component;
 
@@ -31,10 +30,6 @@ namespace Vocaterra.Game.Tests.Component;
 /// </summary>
 public sealed class LessonFrontendTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
     private static readonly DateTimeOffset Stamp = DateTimeOffset.Parse("2026-10-22T09:30:00+01:00", System.Globalization.CultureInfo.InvariantCulture);
 
     private sealed class RecordingPlayer : ILinePlayer
@@ -53,7 +48,7 @@ public sealed class LessonFrontendTests
 
         public Harness(IReadOnlyList<ScriptStep> steps, LessonBook? lessons = null)
         {
-            Session = new VoxelSession(Bundle.Value, 42, GuideSession.DefaultStartedAt, Nouns.Value, RouteScene.Build(), CreditRules.FullTyped, lessons ?? RouteScene.Sample(Bundle.Value, Nouns.Value));
+            Session = new VoxelSession(TestGame.Bundle, 42, GuideSession.DefaultStartedAt, TestGame.Nouns, RouteScene.Build(), CreditRules.FullTyped, lessons ?? RouteScene.Sample(TestGame.Bundle, TestGame.Nouns));
             Session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
             Look = new LookControl();
             Look.Set(Session.Scene.Spawn.Yaw, 0);
@@ -155,7 +150,7 @@ public sealed class LessonFrontendTests
         return options;
     }
 
-    private static EnglishText English => EnglishText.Load(Bundle.Value, PhraseSheet.Load(Bundle.Value));
+    private static EnglishText English => EnglishText.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle));
 
     private static float Measure(string text) => text.Length * 8f;
 
@@ -195,7 +190,7 @@ public sealed class LessonFrontendTests
     [Fact]
     public void ALessonRunStepDoesTheWholeFirstWordsLessonWithTypedAnswersAndWalksToPickTheFruit()
     {
-        var shipped = LessonBook.Load(Bundle.Value, PhraseSheet.Load(Bundle.Value), SpeechLines.Enumerate(Bundle.Value, Nouns.Value, PhraseSheet.Load(Bundle.Value)));
+        var shipped = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, PhraseSheet.Load(TestGame.Bundle)));
         using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "first-words")], shipped);
 
         run.Go(60000);
@@ -214,7 +209,7 @@ public sealed class LessonFrontendTests
     [Fact]
     public void ALessonRunStepDoesPersonasFromTheVillagerToTheStallAndTheShopkeeper()
     {
-        var shipped = LessonBook.Load(Bundle.Value, PhraseSheet.Load(Bundle.Value), SpeechLines.Enumerate(Bundle.Value, Nouns.Value, PhraseSheet.Load(Bundle.Value)));
+        var shipped = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, PhraseSheet.Load(TestGame.Bundle)));
         using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "personas")], shipped);
         run.Session.PlaySession = 2; // the lesson of the second session
 
@@ -234,7 +229,7 @@ public sealed class LessonFrontendTests
     [Fact]
     public void APractiseAgainStepStartsACompletedLessonAtItsNpcAndTheRunRunsItAgain()
     {
-        var shipped = LessonBook.Load(Bundle.Value, PhraseSheet.Load(Bundle.Value), SpeechLines.Enumerate(Bundle.Value, Nouns.Value, PhraseSheet.Load(Bundle.Value)));
+        var shipped = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, PhraseSheet.Load(TestGame.Bundle)));
         using var run = new Harness(
         [
             new(ScriptStepKind.LessonRun, Value: "first-words"),
@@ -254,7 +249,7 @@ public sealed class LessonFrontendTests
     [Fact]
     public void TheLessonStepsOfTheScriptSkipHelpPickAndContinueLikeTheButtons()
     {
-        var lessons = LessonBook.Parse(LessonBookTestsRich, PhraseSheet.Load(Bundle.Value), SpeechLines.Enumerate(Bundle.Value, Nouns.Value, PhraseSheet.Load(Bundle.Value)), Bundle.Value.Prompts);
+        var lessons = LessonBook.Parse(LessonBookTestsRich, PhraseSheet.Load(TestGame.Bundle), SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, PhraseSheet.Load(TestGame.Bundle)), TestGame.Bundle.Prompts);
         using var run = new Harness(
         [
             new(ScriptStepKind.LessonStart, Value: "rich"),
@@ -370,7 +365,7 @@ public sealed class LessonFrontendTests
 
     private static (VoxelSession Session, DialogueModel Dialogue, LessonFrontend Lesson, RecordingPlayer Player, SpeechActionRunner Actions) AtGuide(LessonBook? lessons = null)
     {
-        var session = new VoxelSession(Bundle.Value, 42, GuideSession.DefaultStartedAt, Nouns.Value, RouteScene.Build(), CreditRules.FullTyped, lessons ?? RouteScene.Sample(Bundle.Value, Nouns.Value));
+        var session = new VoxelSession(TestGame.Bundle, 42, GuideSession.DefaultStartedAt, TestGame.Nouns, RouteScene.Build(), CreditRules.FullTyped, lessons ?? RouteScene.Sample(TestGame.Bundle, TestGame.Nouns));
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("guide").Feet, session.Simulation.Player.FeetBlock)!.Value);
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases, session.English);
         var player = new RecordingPlayer();
@@ -429,7 +424,7 @@ public sealed class LessonFrontendTests
     }
 
     private static LessonBook TestBook(string json) =>
-        LessonBook.Parse(json, PhraseSheet.Load(Bundle.Value), SpeechLines.Enumerate(Bundle.Value, Nouns.Value, PhraseSheet.Load(Bundle.Value)), Bundle.Value.Prompts);
+        LessonBook.Parse(json, PhraseSheet.Load(TestGame.Bundle), SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, PhraseSheet.Load(TestGame.Bundle)), TestGame.Bundle.Prompts);
 
     [Fact]
     public void ALessonThatStaysEngagedIsNotDrawnOverAnotherNpcsPanel()
@@ -493,7 +488,7 @@ public sealed class LessonFrontendTests
     [Fact]
     public void ATurnOnThePanelGetsItsPlainEnglishFeedbackAfterTheNpcsLines()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("shopkeeper").Feet, session.Simulation.Player.FeetBlock)!.Value);
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases, session.English);
         dialogue.Open(session.OpenTalk("shopkeeper"), "Tendero");
@@ -514,7 +509,7 @@ public sealed class LessonFrontendTests
     [Fact]
     public void ThePanelAddsNoEnglishFeedbackWithoutTheEnglishTextAndEnglishIsNeverWhatRepetirPlays()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("shopkeeper").Feet, session.Simulation.Player.FeetBlock)!.Value);
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases);
         dialogue.Open(session.OpenTalk("shopkeeper"), "Tendero");
@@ -548,7 +543,7 @@ public sealed class LessonFrontendTests
         }
     }
 
-    private static SpeechIndex TestSpeechIndex() => new(SpeechLines.Enumerate(Bundle.Value, Nouns.Value, PhraseSheet.Load(Bundle.Value)));
+    private static SpeechIndex TestSpeechIndex() => new(SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, PhraseSheet.Load(TestGame.Bundle)));
 
     // ---- Options, the log and the font.
 

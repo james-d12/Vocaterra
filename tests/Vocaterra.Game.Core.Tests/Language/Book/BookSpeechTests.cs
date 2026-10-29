@@ -9,7 +9,6 @@ using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Stages;
 using Vocaterra.Nlp.Core.Verdicts;
@@ -21,10 +20,8 @@ namespace Vocaterra.Game.Core.Tests.Language.Book;
 // speak the heard-only phrases, no button on an unmet noun, the click, Enter and Shift+Enter, the mute, and the sound log's marks of the plays.
 public sealed class BookSpeechTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-    private static readonly Lazy<PhraseSheet> Sheet = new(() => PhraseSheet.Load(Bundle.Value));
-    private static readonly Lazy<IReadOnlyList<SpeechLine>> Lines = new(() => SpeechLines.Enumerate(Bundle.Value, Nouns.Value, Sheet.Value));
+    private static readonly Lazy<PhraseSheet> Sheet = new(() => PhraseSheet.Load(TestGame.Bundle));
+    private static readonly Lazy<IReadOnlyList<SpeechLine>> Lines = new(() => SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, Sheet.Value));
     private static readonly Lazy<string> Folder = new(() => Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
 
     // The phrases that have no recording of their own on purpose: none (every phrase plays its own file or an NPC line).
@@ -44,7 +41,7 @@ public sealed class BookSpeechTests
     public void EveryCatalogueNounResolvesToItsWordCard()
     {
         var recordings = Committed();
-        foreach (var noun in Nouns.Value.Nouns)
+        foreach (var noun in TestGame.Nouns.Nouns)
         {
             var card = recordings.ForNoun(noun.Lemma);
             Assert.NotNull(card);
@@ -103,7 +100,7 @@ public sealed class BookSpeechTests
     [Fact]
     public void AnUnmetNounHasNoButtonAndASeenOneHasItsCard()
     {
-        var words = new WordProgress(Nouns.Value);
+        var words = new WordProgress(TestGame.Nouns);
         var none = BookPages.Nouns(words, [], Now, Definite, Sheet.Value, Committed());
         Assert.All(none.Where(static l => l.Lemma is not null), static l => Assert.Null(l.Speak)); // ¿? rows: nothing is given away
         Assert.Contains(none, static l => l.Text == JournalRows.UnseenLabel);
@@ -121,7 +118,7 @@ public sealed class BookSpeechTests
         var record = new LearnerRecord();
         record.Append(new InputEntry(1, 1, GuideSession.DefaultStartedAt + 1, InputSource.Voice, "fue el vaso", "guide", "guide-open", InputPlace.Dialogue, null, "ask_directions", true, false, [],
             [new GuideWord("vaso", new TextSpan(7, 4), "vaso", "noun", WordRole.Word, null, "sg", null, null, "m")]));
-        var words = new WordProgress(Nouns.Value);
+        var words = new WordProgress(TestGame.Nouns);
         var lines = BookPages.Nouns(words, record.Nouns, Now, Definite, Sheet.Value, Committed());
         Assert.Contains(lines, static l => l.Lemma == "vaso");
         Assert.All(lines, static l => Assert.Null(l.Speak));
@@ -130,7 +127,7 @@ public sealed class BookSpeechTests
     [Fact]
     public void TheVerbsPageHasNoButtonsAndThePhrasesPageHasOneForEveryPhrase()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var verbs = BookPages.ForPage(session, BookPage.Verbs, Committed());
         Assert.All(verbs, static l => Assert.Null(l.Speak));
 
@@ -161,7 +158,7 @@ public sealed class BookSpeechTests
     public void TheSelectionStartsOnTheFirstRowAndMovesAndStaysInside()
     {
         var model = new BookModel();
-        model.Open(new WordProgress(Nouns.Value));
+        model.Open(new WordProgress(TestGame.Nouns));
         Assert.Equal(-1, model.SelectedIndex(0));
         Assert.Equal(0, model.SelectedIndex(3));
         model.MoveSelection(1, 3);
@@ -314,8 +311,8 @@ public sealed class BookSpeechTests
 
         public Bench(IReadOnlyList<SpeechLine> lines, bool muted, bool shippedLessons = false)
         {
-            var bundle = Bundle.Value;
-            Session = shippedLessons ? RouteScene.NewSessionWithShippedLessons(bundle, Nouns.Value) : RouteScene.NewSession(bundle, Nouns.Value);
+            var bundle = TestGame.Bundle;
+            Session = shippedLessons ? RouteScene.NewSessionWithShippedLessons(bundle, TestGame.Nouns) : RouteScene.NewSession(bundle, TestGame.Nouns);
             Book = new BookModel();
             Log = [];
             var mixer = new SoundMixer(new NullSoundOutput(), new SoundVolumes(), new PresentationRng(42), new ListLog(Log));

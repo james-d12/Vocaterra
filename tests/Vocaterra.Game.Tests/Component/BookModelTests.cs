@@ -1,6 +1,5 @@
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.Tests.TestSupport;
@@ -251,7 +250,7 @@ public sealed class BookModelTests
 
     private static BookModel OpenBook()
     {
-        var words = new WordProgress(NounCatalog.Load(GameBundle.Load()));
+        var words = new WordProgress(TestGame.Nouns);
         var model = new BookModel();
         model.Open(words);
         return model;

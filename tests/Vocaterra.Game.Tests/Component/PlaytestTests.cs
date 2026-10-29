@@ -1,6 +1,6 @@
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Scripted;
-using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Startup;
 
 namespace Vocaterra.Game.Tests.Component;
@@ -86,7 +86,7 @@ public sealed class PlaytestTests
     [Fact]
     public void ACheckScriptStartsFromTheStepGivenAndRefusesAStepOutsideTheScript()
     {
-        var bank = CheckBank.Load(GameBundle.Load());
+        var bank = CheckBank.Load(TestGame.Bundle);
         var plan = CheckPlan.For(bank, CheckKind.Post, 42);
         var steps = new List<ScriptStep> { new(ScriptStepKind.Leave), new(ScriptStepKind.Pick, Value: "1") };
         var hooks = new CheckScriptHooks(_ => { }, _ => { }, _ => { }, _ => { }, () => false);
