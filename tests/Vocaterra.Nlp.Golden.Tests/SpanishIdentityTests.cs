@@ -43,8 +43,6 @@ public class SpanishIdentityTests
 
     private static readonly string[] StageOrder = ["normalize", "analyze", "match", "grade", "pipeline", "recast", "g2p"];
 
-    private static readonly Lazy<ContentBundle> BundleLazy = new(() => SpanishContent.Load(GameBundleLocator.Directory));
-
     private static readonly Lazy<PcmClip> ClipLazy = new(static () =>
     {
         // A fixed one-second tone. The recognizer is scripted, so only the clip's presence matters.
@@ -57,7 +55,7 @@ public class SpanishIdentityTests
         return PcmClip.FromSamples(samples);
     });
 
-    private static ContentBundle Bundle => BundleLazy.Value;
+    private static ContentBundle Bundle => GameBundleLocator.Bundle;
 
     [Fact]
     public void TheHashesMatchTheFrozenBaseline()
