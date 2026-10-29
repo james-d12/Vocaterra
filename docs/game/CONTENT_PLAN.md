@@ -640,6 +640,8 @@ no-literal scan is easiest once every other milestone has moved its strings.
   mapped to `camp.<step>` before the migration. `Fixtures/save-v4.json`, written by the C08 code (fire lit first, then wood 5 and fruit 2),
   loads, keeps its counts across bundles, and still ends when the checklist is done. The test API changed too: `Objective.RecordPickup` and its
   kind became `Objective.Record(event, detail, amount)`, and `HostEvent` takes a world event's name.
+- **Runs (C07 and C08 against C06).** The only differences are the saves: version 5 with `camp.*` keys (r01's autosave, r09's save), and the
+  stdout lines that report them, 20 bytes longer. C08 changed no run: none points the beacon at an NPC other than the guide.
 
 **Every content-moving milestone:**
 - runs `content.sh refresh` (hash, provenance, validate, lint, cefr-check, the game validator and the grammar check), then the whole
