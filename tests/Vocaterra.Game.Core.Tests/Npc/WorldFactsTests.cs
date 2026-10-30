@@ -148,6 +148,26 @@ public sealed class WorldFactsTests
     }
 
     [Fact]
+    public void TheNearestOfABodyIsTheNearestOfTheBlocksJoinedToItAndNotOfAnotherBody()
+    {
+        // VILLAGE_PLAN V04: a river three blocks long at x 4 to 6 (two deep at x 5) and a well of one block at x 20, beside the player at x 18.
+        var facts = Facts((4, 1, 16, BlockId.Water), (5, 1, 16, BlockId.Water), (5, 0, 16, BlockId.Water), (6, 1, 16, BlockId.Water), (20, 1, 16, BlockId.Water));
+        var player = Standing(18, 16, 90);
+
+        Assert.Equal(new GuideCell(20, 1, 16), facts.NearestOfNoun(player, "río")!.Cell); // the catalogue's nearest water is the well's
+
+        var river = facts.NearestOfNounJoinedTo(player, "río", new GuideCell(4, 1, 16)); // the water joined to the river's block: its east end
+        Assert.NotNull(river);
+        Assert.Equal(new GuideCell(6, 1, 16), river.Cell);
+        Assert.Equal(12, river.Blocks);
+        Assert.Equal("detrás", river.Direction); // the player faces east, the river is to the west
+        Assert.Equal(new GuideCell(5, 0, 16), facts.NearestOfNounJoinedTo(Standing(5, 16, 0), "río", new GuideCell(4, 1, 16))!.Cell); // a column's lowest block, as NearestOfNoun
+        Assert.Equal(new GuideCell(20, 1, 16), facts.NearestOfNounJoinedTo(player, "agua", new GuideCell(20, 1, 16))!.Cell);
+        Assert.Null(facts.NearestOfNounJoinedTo(player, "río", new GuideCell(10, 1, 16))); // no water at the body's block
+        Assert.Null(facts.NearestOfNounJoinedTo(player, "árbol", new GuideCell(4, 1, 16))); // the block there is not the noun
+    }
+
+    [Fact]
     public void TheNounsOfAThingAreListedInLemmaOrder()
     {
         var facts = Facts((5, 1, 5, BlockId.Water), (6, 1, 5, BlockId.Trunk), (7, 1, 5, BlockId.Air));

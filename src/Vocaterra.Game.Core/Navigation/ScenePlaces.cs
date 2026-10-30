@@ -15,8 +15,8 @@ public sealed record FoundPlace(string Name, string Label, GuideCell Cell);
 /// <c>río</c>, <c>tienda</c>). An NPC's directions to the place the learner asked for are resolved here (<see cref="NpcEffectKind.PointAtSlot"/>):
 /// <list type="number">
 /// <item>a word a label shows names the labelled point nearest the player (three houses show <c>casa</c>); when the word is also a catalogue noun of the block at
-/// that point, the place is made of those blocks (the river's point lies in its water) and the beacon goes to the nearest of them, as the villager's
-/// <c>point_at_noun</c> sent it to the river before V02;</item>
+/// that point, the place is made of those blocks (the river's point lies in its water) and the beacon goes to the nearest of the blocks joined to the point, as the
+/// villager's <c>point_at_noun</c> sent it to the river before V02 (since V04 the village's well holds water too, and is not the river);</item>
 /// <item>a catalogue noun no label shows is the nearest block of the noun (<c>árbol</c>);</item>
 /// <item>any other word, or a noun the world has none of, is no place: the NPC answers <c>&lt;npc&gt;.unknown_place</c>.</item>
 /// </list>
@@ -84,9 +84,9 @@ public sealed class ScenePlaces
         {
             var name = Nearest(names, from.Cell);
             var point = (GuideCell)_points[name];
-            if (facts.NounsAt(point).Contains(word, StringComparer.Ordinal) && facts.NearestOfNoun(from, word) is { } block)
+            if (facts.NounsAt(point).Contains(word, StringComparer.Ordinal) && facts.NearestOfNounJoinedTo(from, word, point) is { } block)
             {
-                return new FoundPlace(name, word, block.Cell); // the river is its water: the nearest of it, not its one point
+                return new FoundPlace(name, word, block.Cell); // the river is its water: the nearest of the water its point lies in, not its one point nor a well's
             }
 
             return new FoundPlace(name, word, point);

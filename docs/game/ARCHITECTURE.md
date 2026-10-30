@@ -199,8 +199,8 @@ an NPC".
 gives each (NPC, event) an action and `VoxelSession.ApplyHostEvents` carries it out on the game's thread, with the slots of the learner's line: `give_item` (a
 count, or the number the learner said, `qty`, from 1 to 5; all of the items or none, the bottle once), `point_at_noun` (a noun's nearest block),
 `point_at_place` (a named place of the scene, through `Beacon`'s points), `point_at_slot` (the place a slot names, resolved by `Navigation/ScenePlaces`: a
-label of the scene, the nearest of the points that share it, the nearest block of a place made of its word's blocks such as the river, else a catalogue noun's
-nearest block), and since V03 `take_item` (all or none, through `VoxelSimulation.TakeItems`) and `sell` (the number asked for, at a price in coins: the coins
+label of the scene, the nearest of the points that share it, the nearest block of a place made of its word's blocks such as the river (of the blocks joined to its point: the village well's water, V04, is not the
+river), else a catalogue noun's nearest block), and since V03 `take_item` (all or none, through `VoxelSimulation.TakeItems`) and `sell` (the number asked for, at a price in coins: the coins
 go and the items come, or nothing changes hands). What the world of a turn cannot do is decided on the worker, on the turn's own copy of the world and
 inventory, because only there may the NPC's conversation move: `NpcService` drops the line of the action that raised the event and raises
 `<npc>.unknown_place` (a place the scene does not have) or `<npc>.cant_pay` (too few coins) to the agent as a host turn, whose lines follow the turn's and

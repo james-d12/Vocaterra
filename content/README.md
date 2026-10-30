@@ -136,8 +136,8 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
   - `point_at_place` (`place`): the beacon goes to a named place of the scene (a site, a point or a named prop: `stall`). The validator refuses a place the
     scene does not have.
   - `point_at_slot` (`slot`, `"place"`): the beacon goes to the place a slot of the learner's line names. The word is looked up among the scene's labels
-    (`tienda` is the stall; of several points with one label, the nearest: `casa`); a labelled place made of its word's blocks is its nearest block (the river,
-    `río`); a catalogue noun no label shows is its nearest block (`árbol`); any other word is no place. Then the NPC does not say the line of the action
+    (`tienda` is the stall; of several points with one label, the nearest: `casa`); a labelled place made of its word's blocks is its nearest block joined to its point (the river,
+    `río`: its water, not the well's, V04); a catalogue noun no label shows is its nearest block (`árbol`); any other word is no place. Then the NPC does not say the line of the action
     that pointed (`Mira, está allí.`) and is raised `<npc>.unknown_place` as a host turn, so its agent needs that transition (`villager.unknown_place`:
     `No sé dónde está.`; the validator checks one state takes it). Every answer logs `place_asked` with the place found (`stall`, `river`, `árbol`) or
     `unknown`.

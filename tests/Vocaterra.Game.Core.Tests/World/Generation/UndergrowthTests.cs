@@ -444,7 +444,7 @@ public sealed class UndergrowthTests(ITestOutputHelper output)
         }
 
         output.WriteLine($"{oaks} oaks, {spruces} spruces (the lowest on ground {lowest}), {birches} birches; the scene counts {scene.TreeCount} trees");
-        Assert.Equal(scene.TreeCount, oaks + spruces + birches);
+        Assert.Equal(scene.TreeCount + SceneTests.ExplicitTrees, oaks + spruces + birches); // the orchard's three oaks are the layout's (V04)
         Assert.True(oaks > 600 && spruces > 300 && birches > 80, "all three species make a forest");
         Assert.True(oaks > spruces && oaks > birches * 3, "the valley is mostly oaks, with a few birches");
         Assert.Equal(0, lowSpruces); // no spruce below where they start

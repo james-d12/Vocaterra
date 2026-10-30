@@ -55,7 +55,8 @@ public sealed class GameWordsTests
         Assert.Equal("casa", scene.Labels["house2"]);
         Assert.Equal("campamento", scene.Labels["camp"]);
         Assert.Equal("fuego", scene.Labels["firering.player"]);
-        Assert.Equal(17, scene.Labels.Count);
+        Assert.Equal("panadería", scene.Labels["bakery"]); // VILLAGE_PLAN V04: the bakery, the smithy, the well, the tower and the field
+        Assert.Equal(22, scene.Labels.Count);
     }
 
     [Fact]

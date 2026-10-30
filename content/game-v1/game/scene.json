@@ -58,7 +58,7 @@
     "camp.guide": { "x": 176, "z": 186, "y": 42, "radius": 12, "blend": 8, "label": "campamento" },
     "bridge.west": { "x": 226, "z": 205, "y": 37, "radius": 3, "blend": 3 },
     "bridge.east": { "x": 238, "z": 205, "y": 37, "radius": 3, "blend": 3 },
-    "village": { "x": 292, "z": 218, "y": 37, "radius": 20, "blend": 8, "label": "pueblo" },
+    "village": { "x": 292, "z": 218, "y": 37, "radius": 24, "blend": 8, "label": "pueblo" },
     "river": { "x": 230, "z": 222, "label": "río" },
     "waterfall": { "x": 258, "z": 112, "label": "cascada" },
     "lake": { "x": 212, "z": 294, "label": "lago" }
@@ -118,7 +118,38 @@
         [" R R ", " R R ", " R R ", " R R "],
         ["  R  ", "  R  ", "  R  ", "  R  "]
       ]
-    }
+    },
+
+    // The bakery's oven (VILLAGE_PLAN V04): a cobble vault three wide and two deep, its mouth on the south row with the fire in it (a torch of the scenery,
+    // not the item's torch) and a chimney at the back.
+    "oven": {
+      "legend": { "C": "cobble", "T": "post-torch" },
+      "layers": [
+        ["CCC", "CTC"],
+        ["CCC", "CCC"],
+        ["C  ", "   "],
+        ["C  ", "   "],
+        ["C  ", "   "]
+      ]
+    },
+
+    // The village well (V04): a cobble ring two blocks high round one block of water, so the water lies below the rim (no one on the ground can reach it:
+    // the river stays the place to fill the bottle), and a roof on four fence posts.
+    "well": {
+      "legend": { "C": "cobble", "W": "water", "F": "fence", "R": "roof" },
+      "layers": [
+        ["CCC", "CWC", "CCC"],
+        ["CCC", "C C", "CCC"],
+        ["F F", "   ", "F F"],
+        ["F F", "   ", "F F"],
+        ["RRR", "RRR", "RRR"],
+        ["   ", " R ", "   "]
+      ]
+    },
+
+    // A crate with its goods on top (V04): the baker's loaves and the farmer's apples.
+    "crate_loaves": { "legend": { "C": "crate", "L": "loaves" }, "layers": [["C"], ["L"]] },
+    "crate_apples": { "legend": { "C": "crate", "A": "apples" }, "layers": [["C"], ["A"]] }
   },
 
   "props": [
@@ -156,8 +187,8 @@
 
     // The village's furnishing (S15): the stone tower behind the square, the crop field between the houses, fences, crates beside the stall and lanterns on
     // posts by the doors, the square's corners and the road.
-    {"type": "stamp", "stamp": "tower", "site": "village", "dx": 2, "dz": -16, "facing": "north", "name": "tower"},
-    {"type": "field", "site": "village", "dx": 9, "dz": -2, "width": 7, "depth": 6, "name": "field"},
+    {"type": "stamp", "stamp": "tower", "site": "village", "dx": 2, "dz": -16, "facing": "north", "name": "tower", "label": "torre"},
+    {"type": "field", "site": "village", "dx": 9, "dz": -2, "width": 7, "depth": 6, "name": "field", "label": "campo"},
     {"type": "fence_line", "site": "village", "dx": -8, "dz": 7, "length": 7},
     {"type": "fence_line", "site": "village", "dx": 1, "dz": 7, "length": 7},
     {"type": "block", "block": "crate", "site": "village", "dx": -6, "dz": -3, "height": 2},
@@ -167,7 +198,42 @@
     {"type": "lamp", "site": "village", "dx": 8, "dz": 4, "name": "lamp.house2"},
     {"type": "lamp", "site": "village", "dx": -8, "dz": 8, "name": "lamp.house3"},
     {"type": "lamp", "site": "village", "dx": -12, "dz": 1, "name": "lamp.road"},
-    {"type": "lamp", "site": "village", "dx": 0, "dz": -6, "name": "lamp.square"}
+    {"type": "lamp", "site": "village", "dx": 0, "dz": -6, "name": "lamp.square"},
+
+    // The village grows (VILLAGE_PLAN V04, inside the levelled disc of radius 24). The bakery in the north-west quarter, next to the stall whose bread it
+    // bakes: a timber house with its door to the south, the oven against its east wall, a crate of loaves by the door, a lamp, and a paved strip down to the square.
+    {"type": "house", "site": "village", "dx": -13, "dz": -16, "width": 6, "depth": 5, "height": 3, "facing": "south", "name": "bakery", "label": "panadería"},
+    {"type": "stamp", "stamp": "oven", "site": "village", "dx": -7, "dz": -15, "facing": "north", "name": "oven"},
+    {"type": "stamp", "stamp": "crate_loaves", "site": "village", "dx": -11, "dz": -11, "facing": "north", "name": "crate.loaves"},
+    {"type": "lamp", "site": "village", "dx": -13, "dz": -11, "name": "lamp.bakery"},
+    {"type": "paving", "site": "village", "dx": -10, "dz": -11, "width": 1, "depth": 5, "block": "path"},
+    {"type": "paving", "site": "village", "dx": -10, "dz": -6, "width": 2, "depth": 1, "block": "path"},
+
+    // The smithy in the north-east quarter, the tower between it and the bakery (the landmark of the directions): its door to the west, the forge outside it
+    // (a fire ring with a fire in it), a stone for the anvil, crates, a lamp, and a paved strip from the door round to the square's corner.
+    {"type": "house", "site": "village", "dx": 12, "dz": -16, "width": 5, "depth": 5, "height": 3, "facing": "west", "name": "smithy", "label": "herrería"},
+    {"type": "fire_ring", "site": "village", "dx": 9, "dz": -14, "name": "forge"},
+    {"type": "block", "block": "post-torch", "site": "village", "dx": 9, "dz": -14},
+    {"type": "block", "block": "stone", "site": "village", "dx": 9, "dz": -12, "name": "anvil"},
+    {"type": "block", "block": "crate", "site": "village", "dx": 13, "dz": -11, "height": 2},
+    {"type": "block", "block": "crate", "site": "village", "dx": 14, "dz": -11},
+    {"type": "lamp", "site": "village", "dx": 12, "dz": -11, "name": "lamp.smithy"},
+    {"type": "paving", "site": "village", "dx": 11, "dz": -14, "width": 1, "depth": 4, "block": "path"},
+    {"type": "paving", "site": "village", "dx": 7, "dz": -11, "width": 4, "depth": 1, "block": "path"},
+    {"type": "paving", "site": "village", "dx": 7, "dz": -10, "width": 1, "depth": 4, "block": "path"},
+
+    // The well in the empty south, behind the gate between the fences; the farmer's crate of apples by the field, and three trees east of it as his orchard
+    // (at x 19, not the plan's 17: a crown reaches three columns, and at 17 it would hang over the field's fence).
+    {"type": "stamp", "stamp": "well", "site": "village", "dx": 3, "dz": 10, "facing": "north", "name": "well", "label": "pozo"},
+    {"type": "stamp", "stamp": "crate_apples", "site": "village", "dx": 8, "dz": -3, "facing": "north", "name": "crate.apples"},
+    {"type": "tree", "site": "village", "dx": 19, "dz": -4},
+    {"type": "tree", "site": "village", "dx": 19, "dz": 0},
+    {"type": "tree", "site": "village", "dx": 19, "dz": 4},
+
+    // The fisher's bank: on the bridge's east landing, south of the road, two crates and a lamp beside the place he will stand (npc.fisher).
+    {"type": "block", "block": "crate", "site": "bridge.east", "dx": 3, "dz": 3},
+    {"type": "block", "block": "crate", "site": "bridge.east", "dx": 3, "dz": 4},
+    {"type": "lamp", "site": "bridge.east", "dx": 2, "dz": 5, "name": "lamp.fisher"}
   ],
 
   "npcs": [
@@ -181,7 +247,14 @@
 
   // Other names the scene answers to: the guide's clearing is also "camp" (the name the first prototype used).
   "points": {
-    "camp": { "x": 176, "z": 186, "label": "campamento" }
+    "camp": { "x": 176, "z": 186, "label": "campamento" },
+    // Where the village's new people will stand (VILLAGE_PLAN V04; the NPCs themselves come with their lessons, V10 to V12, as placements in "npcs"): the baker
+    // in front of her crate of loaves, facing the square; the smith between his forge and the strip, facing south; the farmer at the field's west fence,
+    // facing the wheat (east); the fisher on the bank south of the bridge's east landing, facing the river (west).
+    "npc.baker": { "x": 281, "z": 208 },
+    "npc.smith": { "x": 302, "z": 206 },
+    "npc.farmer": { "x": 300, "z": 218 },
+    "npc.fisher": { "x": 240, "z": 208 }
   },
 
   // The forest: a tree tried in every 3 x 3 square, kept on the valley floor with this chance, thinner higher up and gone above the tree line.
