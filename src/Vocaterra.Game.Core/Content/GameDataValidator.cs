@@ -24,8 +24,11 @@ namespace Vocaterra.Game.Core.Content;
 /// <item>the phrase sheet: every prompt a row names is a bundle prompt, and every recording a row names is a line of the bundle's dialogue;</item>
 /// <item>the check battery: every item's phrase is a row of the sheet, a comprehension item plays a speakable line, and a production item is graded at a
 /// bundle prompt on a phrase the learner says;</item>
-/// <item>the target-language words (C05): the key words and the river are catalogue nouns, the near future's verb is in the lexicon, and the greeting is a
-/// phrase of the sheet;</item>
+/// <item>the target-language words (C05): the river is a catalogue noun, the near future's verb is in the lexicon, and the greeting is a phrase of the
+/// sheet;</item>
+/// <item>the NPCs (C08, schema 2 since VILLAGE_PLAN V01): each is an agent of the bundle; its focus, its prompts by state and its review prompt are prompts of
+/// that agent, the states it names are the agent's, and its initial state has a prompt; its opening event is one a state of the agent takes; it has a voice
+/// with a name; its key words are catalogue nouns; no two share a pool prefix;</item>
 /// <item>the scene: every NPC it places is an agent the game drives, and every agent is placed once; every NPC a lesson is said or waits at is placed.</item>
 /// </list>
 /// <para>Plain values, ordinal comparisons; the order of the problems is the order of the files above.</para>
@@ -163,11 +166,6 @@ public static class GameDataValidator
     private static void CheckWords(GameData data, List<string> problems)
     {
         const string File = "game/words.json";
-        foreach (var lemma in data.Words.KeyWords.Where(lemma => data.Nouns.ForLemma(lemma) is null))
-        {
-            problems.Add($"{File}: the key word '{lemma}' is not a catalogue noun.");
-        }
-
         foreach (var role in GameWords.NounRoles.Where(role => data.Nouns.ForLemma(data.Words.Noun(role)) is null))
         {
             problems.Add($"{File}: the {role} noun '{data.Words.Noun(role)}' is not a catalogue noun.");
@@ -251,6 +249,13 @@ public static class GameDataValidator
                     problems.Add($"{file}: the focus at '{prompt}' names '{phrase}', which is not a phrase the learner says.");
                 }
             }
+
+            CheckNpcBehaviour(data, npc, file, problems);
+        }
+
+        foreach (var group in data.Npcs.All.GroupBy(static npc => npc.PoolPrefix, StringComparer.Ordinal).Where(static group => group.Count() > 1))
+        {
+            problems.Add($"{NpcRoster.Folder}{group.Last().Id}.json: the pool prefix '{group.Key}' is also {group.First().Id}'s, so its pools would speak with one voice.");
         }
 
         foreach (var agent in data.Bundle.Agents.Keys.Where(agent => data.Npcs.Find(agent) is null).Order(StringComparer.Ordinal))
@@ -274,6 +279,66 @@ public static class GameDataValidator
             {
                 problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' points at '{noun}', which is not a catalogue noun.");
             }
+        }
+    }
+
+    // Schema 2 (VILLAGE_PLAN V01): what the NPC file says the NPC does. Before it, an NPC the code did not know waited on the villager's prompt and opened with his
+    // greeting, with no error; now a missing or unknown prompt, an opening event no state takes and a voice with no name are problems.
+    private static void CheckNpcBehaviour(GameData data, NpcEntry npc, string file, List<string> problems)
+    {
+        data.Bundle.Agents.TryGetValue(npc.Id, out var machine);
+        var states = machine?.Definition.States.Select(static state => state.Id).ToHashSet(StringComparer.Ordinal);
+        if (npc.Prompts.Count == 0)
+        {
+            problems.Add($"{file}: the NPC has no prompts (prompts: the prompt it waits on in each state of its agent).");
+        }
+
+        var named = npc.Prompts.Select(static pair => (State: pair.Key, Prompt: pair.Value)).ToList();
+        if (npc.ReviewPrompt is { } review)
+        {
+            named.Add((NpcEntry.ReviewKey, review));
+        }
+
+        foreach (var (state, prompt) in named)
+        {
+            if (!data.Bundle.Prompts.TryGetValue(prompt, out var spec))
+            {
+                problems.Add($"{file}: the prompts name '{prompt}' at '{state}', which is not a prompt of the bundle.");
+            }
+            else if (!string.Equals(spec.AgentId ?? NpcService.GuideAgent, npc.Id, StringComparison.Ordinal))
+            {
+                problems.Add($"{file}: the prompts name '{prompt}' at '{state}', which is the prompt of '{spec.AgentId ?? NpcService.GuideAgent}', not of this NPC.");
+            }
+
+            if (states is not null && !string.Equals(state, NpcEntry.ReviewKey, StringComparison.Ordinal) && !states.Contains(state))
+            {
+                problems.Add($"{file}: the prompts name the state '{state}', which agents/{npc.Id}.json does not have.");
+            }
+        }
+
+        if (machine is not null && npc.Prompts.Count > 0 && !npc.Prompts.ContainsKey(machine.Definition.InitialState))
+        {
+            problems.Add($"{file}: the prompts name none for the initial state '{machine.Definition.InitialState}', which a state with none of its own waits on.");
+        }
+
+        var takes = machine?.Definition.States.SelectMany(static state => state.Transitions).Select(static t => t.OnHostEvent).OfType<string>().ToHashSet(StringComparer.Ordinal);
+        if (npc.Opening.Event is { } opening && takes is not null && !takes.Contains(opening))
+        {
+            problems.Add($"{file}: the opening event '{opening}' is taken by no state of agents/{npc.Id}.json (onHostEvent), so the talk would open with the prompt's text.");
+        }
+
+        if (npc.Voice is not { } voice)
+        {
+            problems.Add($"{file}: the NPC has no voice (voice: the Kokoro speaker and name its lines are recorded with).");
+        }
+        else if (voice.Name.Length == 0)
+        {
+            problems.Add(string.Create(CultureInfo.InvariantCulture, $"{file}: the voice (speaker {voice.Speaker}) has no name."));
+        }
+
+        foreach (var lemma in npc.KeyWords.Where(lemma => data.Nouns.ForLemma(lemma) is null))
+        {
+            problems.Add($"{file}: the key word '{lemma}' is not a catalogue noun.");
         }
     }
 

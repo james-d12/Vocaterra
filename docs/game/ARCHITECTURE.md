@@ -121,7 +121,8 @@ Language/         Book/ (the book's model, pages, tables, recordings, speakers, 
                   MicCheckScreen), Words/ (the noun catalogue, word progress, JournalRows, VerbReading, GreyscaleWorld)
 Mathematics/      Angles, WorldRng, PresentationRng
 Navigation/       Beacon, the walk's path search, BeaconDirector, PointLabels
-Npc/              NpcService, WorldFacts, the aim at an NPC, the guide's turns and events, the NPCs' data (NpcRoster) and HostEventTable
+Npc/              NpcService, WorldFacts, the aim at an NPC, the guide's turns and events, the NPCs' data (NpcRoster: since V01 also the prompt of
+                  each state, the opening, the voice and the key words) and HostEventTable
 Physics/          the player's body and its collision with the grid
 Reporting/        the F8 report (ReportPanel, ReportEntry, ReportWrap, ReportStateBuilder, BuildCommit), FrameStats, BusyFrameStats, the crash
                   report and its source (ICrashSource, CrashGameState, CrashSource)
@@ -180,6 +181,19 @@ The tests mirror the sources: `tests/Vocaterra.Game.Core.Tests/<folder>/` for Co
 Game's, with `Component/` in each for the tests that drive several classes together (the `*FrontendTests`, the route and session runs),
 `TestSupport/` for the shared helpers (Core's `Repo.cs` and `RouteScene.cs` are compiled into Game's tests too) and `Architecture/` for the
 layering rules.
+
+**The NPCs as data** (CONTENT_PLAN 3.6, C08; schema 2 since VILLAGE_PLAN V01). `NpcRoster` reads `game/npcs.json` and one `game/npcs/<id>.json` per NPC:
+its label, name and figure key, the phrases its prompts practise, and what it does that was code until V01: the prompt it waits on in each state of
+its agent (a state not listed waits on the initial state's; the guide's `review` prompt), the host event it opens a talk with and when (`always`,
+`first`, `never`), its Kokoro voice (speaker id, name, speed), its key words and the prefix of its dialogue pools. `NpcService` takes the prompts and
+the opening from it (`PromptAfter`, the constructor's check of every prompt an NPC file names); `SpeechSpeakers.OfPool` gives a pool to the NPC whose
+prefix it carries (`<prefix>_*`, `guide.lesson.<prefix>.*`; every other pool is the guide's); the speech renderer (`tools/Vocaterra.SpeechRender`)
+records each speaker with its file's voice and stops on a speaker with none; `GuideSession` shows the talking NPC's key words; the phrase sheet answers
+an NPC's prompt that no row names with the rows of another NPC's prompt that accepts the same answers (the guide's offer, the stall's offer rows); and
+`--talk` accepts any NPC of the roster, checked once it has loaded. `GameDataValidator` reports an NPC with no prompts, a prompt the bundle lacks or
+of another agent, a state its agent lacks, an opening event no state takes and a voice with no name. What the data cannot say stays code, by id: the
+shopkeeper's fail-forward and later visits, and the guide's review, transfer offer and world lines. Adding an NPC is `content/README.md`'s "Adding
+an NPC".
 
 How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md` for the steps):
 

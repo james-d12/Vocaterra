@@ -52,7 +52,7 @@ public sealed class CheckBankTests
     [Fact]
     public void EveryComprehensionLineIsAPrerenderedSpeechLine()
     {
-        var lines = SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, Sheet).Select(static l => l.LineId).ToHashSet(StringComparer.Ordinal);
+        var lines = SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, Sheet, TestGame.Data.Npcs).Select(static l => l.LineId).ToHashSet(StringComparer.Ordinal);
 
         foreach (var item in Bank.Where(static i => i.Kind == CheckItemKind.Comprehension))
         {

@@ -4,6 +4,7 @@ using System.Text.Json;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Nlp.Content;
+using Vocaterra.Nlp.Core.Prompts;
 
 namespace Vocaterra.Game.Core.Language.Phrases;
 
@@ -65,8 +66,13 @@ public sealed class PhraseSheet
     public const string RelativePath = "game/phrases.json";
 
     private readonly List<PhraseRow> _rows;
+    private readonly IReadOnlyDictionary<string, string> _answeredAs;
 
-    private PhraseSheet(List<PhraseRow> rows) => _rows = rows;
+    private PhraseSheet(List<PhraseRow> rows, IReadOnlyDictionary<string, string>? answeredAs = null)
+    {
+        _rows = rows;
+        _answeredAs = answeredAs ?? new Dictionary<string, string>(StringComparer.Ordinal);
+    }
 
     /// <summary>The rows in the sheet's order.</summary>
     public IReadOnlyList<PhraseRow> Rows => _rows;
@@ -74,16 +80,19 @@ public sealed class PhraseSheet
     /// <summary>Reads the sheet from the bundle's verified host file.</summary>
     /// <param name="bundle">The bundle, loaded with hash verification.</param>
     /// <param name="locale">The support language, which holds each row's meaning and card (<c>phrase.&lt;id&gt;.meaning</c>, <c>.card</c>).</param>
+    /// <param name="npcs">The NPCs: the prompts they wait on that no row names are answered with the rows of one that accepts the same answers (<see cref="PhrasesAt"/>).</param>
     /// <exception cref="InvalidDataException">The bundle has no such host file, or the file is malformed, or a row's meaning or card is not in the locale.</exception>
-    public static PhraseSheet Load(ContentBundle bundle, LocaleText locale)
+    public static PhraseSheet Load(ContentBundle bundle, LocaleText locale, NpcRoster npcs)
     {
         ArgumentNullException.ThrowIfNull(bundle);
+        ArgumentNullException.ThrowIfNull(npcs);
         if (!bundle.TryReadHostFile(RelativePath, out var bytes))
         {
             throw new InvalidDataException($"The bundle has no host file {RelativePath}: it is missing from the manifest, or the bundle was loaded without hash verification.");
         }
 
-        return Parse(Encoding.UTF8.GetString(bytes.Span), locale);
+        var rows = Parse(Encoding.UTF8.GetString(bytes.Span), locale)._rows;
+        return new PhraseSheet(rows, AnsweredAlike(rows, bundle, npcs));
     }
 
     /// <summary>The locale id of a row's support-language text: <c>phrase.&lt;id&gt;.&lt;field&gt;</c> (meaning, card, explain).</summary>
@@ -153,15 +162,16 @@ public sealed class PhraseSheet
 
     /// <summary>
     /// The learner phrases an NPC prompt asks for, in the sheet's order: the rows whose prompt is this prompt's, without the service words (help,
-    /// "no sé"), which are possible at every prompt and are never what the prompt is waiting for. The guide's offer is answered with the stall's
-    /// offer rows (the sheet's <c>si-por-favor</c> and <c>no-gracias</c> work for both).
+    /// "no sé"), which are possible at every prompt and are never what the prompt is waiting for. A prompt an NPC waits on that no row names is answered
+    /// with the rows of another NPC's prompt that accepts the same answers (VILLAGE_PLAN V01): the guide's offer with the stall's offer rows (the sheet's
+    /// <c>si-por-favor</c> and <c>no-gracias</c> work for both).
     /// </summary>
     /// <param name="prompt">The prompt id (<c>stall-need</c>).</param>
     public IReadOnlyList<PhraseRow> PhrasesAt(string prompt)
     {
         ArgumentNullException.ThrowIfNull(prompt);
-        var group = GroupOf(prompt);
-        return _rows.Where(row => row.IsLearnerPhrase && !IsService(row) && string.Equals(row.Prompt, group, StringComparison.Ordinal)).ToList();
+        var group = _answeredAs.GetValueOrDefault(prompt, prompt);
+        return _rows.Where(row => IsAsked(row) && string.Equals(row.Prompt, group, StringComparison.Ordinal)).ToList();
     }
 
     /// <summary>
@@ -248,8 +258,31 @@ public sealed class PhraseSheet
         return string.Join(' ', builder.ToString().Split(' ', StringSplitOptions.RemoveEmptyEntries));
     }
 
-    private static string GroupOf(string prompt) =>
-        string.Equals(prompt, NpcService.GuideOfferPrompt, StringComparison.Ordinal) ? NpcService.StallOfferPrompt : prompt;
+    // The prompts the NPC files say the NPCs wait on (by state, and the review) that no row names, each with the first such prompt, in the roster's order, that has
+    // rows and accepts exactly the same answers: the same answer set and the same allowed intents, so the same phrases answer both. It was one pair in the code
+    // (the guide's offer graded as the stall's); a lesson's prompt is left out, because its step names its own phrase.
+    private static Dictionary<string, string> AnsweredAlike(IReadOnlyList<PhraseRow> rows, ContentBundle bundle, NpcRoster npcs)
+    {
+        var standing = npcs.All.SelectMany(static npc => npc.Prompts.Values.Append(npc.ReviewPrompt)).OfType<string>()
+            .Distinct(StringComparer.Ordinal).Where(bundle.Prompts.ContainsKey).ToList();
+        var withRows = standing.Where(prompt => rows.Any(row => IsAsked(row) && string.Equals(row.Prompt, prompt, StringComparison.Ordinal))).ToList();
+        var answeredAs = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var prompt in standing.Except(withRows, StringComparer.Ordinal))
+        {
+            if (withRows.FirstOrDefault(other => AcceptTheSame(bundle.Prompts[prompt], bundle.Prompts[other])) is { } alike)
+            {
+                answeredAs[prompt] = alike;
+            }
+        }
+
+        return answeredAs;
+    }
+
+    private static bool AcceptTheSame(PromptSpec a, PromptSpec b) =>
+        string.Equals(a.AnswerSetId, b.AnswerSetId, StringComparison.Ordinal) && a.AllowedIntentIds.ToHashSet(StringComparer.Ordinal).SetEquals(b.AllowedIntentIds);
+
+    // A row the prompt can be waiting for: a phrase the learner says, not a service word.
+    private static bool IsAsked(PhraseRow row) => row.IsLearnerPhrase && !IsService(row);
 
     private static bool IsService(PhraseRow row) =>
         string.Equals(row.Intent, "ask_help", StringComparison.Ordinal) || string.Equals(row.Intent, "dont_know", StringComparison.Ordinal);

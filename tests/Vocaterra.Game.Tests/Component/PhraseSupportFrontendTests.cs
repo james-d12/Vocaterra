@@ -213,7 +213,7 @@ public sealed class PhraseSupportFrontendTests
     public void TheKeyWordAndSupportCardCuesPlayThePreRenderedFilesOfS9()
     {
         var bundle = TestGame.Bundle;
-        var lines = SpeechLines.Enumerate(bundle, TestGame.Nouns, RouteScene.DataOf(bundle).Phrases);
+        var lines = SpeechLines.Enumerate(bundle, TestGame.Nouns, RouteScene.DataOf(bundle).Phrases, RouteScene.DataOf(bundle).Npcs);
         var logs = new List<string>();
         var output = new FakeOutput();
         using var voice = new NpcVoice(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName), new SpeechIndex(lines), output, muted: false, logs.Add);

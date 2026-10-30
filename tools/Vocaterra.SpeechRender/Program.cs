@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Nlp.Asr.Models;
 using Vocaterra.Nlp.Core.Stages;
@@ -13,9 +14,10 @@ using Vocaterra.Nlp.Response.Speech;
 namespace Vocaterra.SpeechRender;
 
 /// <summary>
-/// Renders the bundle's speakable lines with Kokoro (S9): <c>&lt;lineId&gt;.wav</c> at speed 1.0 and <c>&lt;lineId&gt;.slow.wav</c> at speed 0.8, in the
-/// bundle's <c>speech/</c> folder, as 16-bit mono PCM. The speakers are fixed here: the guide (28, <c>ef_dora</c>), the shopkeeper (29,
-/// <c>em_alex</c>) and the villager (53, <c>em_santa</c>), the ids of the core's Kokoro voice table (docs/nlp/API.md, section 6).
+/// Renders the bundle's speakable lines with Kokoro (S9): <c>&lt;lineId&gt;.wav</c> at the speaker's speed (1.0) and <c>&lt;lineId&gt;.slow.wav</c> at 0.8 of it,
+/// in the bundle's <c>speech/</c> folder, as 16-bit mono PCM. A speaker is an NPC, and its Kokoro speaker id, voice name and speed are its NPC file's
+/// <c>voice</c> (VILLAGE_PLAN V01; they were fixed here): the guide 28 <c>ef_dora</c>, the shopkeeper 29 <c>em_alex</c>, the villager 53 <c>em_santa</c>, the ids of
+/// the core's Kokoro voice table (docs/nlp/API.md, section 6). A speaker with no NPC file or no voice stops the run before anything is rendered.
 /// </summary>
 /// <remarks>
 /// <b>Re-runs.</b> <c>content/speech-index.json</c> (outside the bundle, so it is not hashed) records for each file its text, speaker, speed,
@@ -29,11 +31,8 @@ internal static class Program
     /// <summary>Kokoro's own sample rate (the core's adapter returns it).</summary>
     private const int NativeRate = 24000;
 
-    /// <summary>The speed of the normal file and of the slow file.</summary>
-    private const float NormalSpeed = 1.0f;
-
-    /// <summary>The speed of the <c>.slow</c> file (Más despacio).</summary>
-    private const float SlowSpeed = 0.8f;
+    /// <summary>The speed of the <c>.slow</c> file (Más despacio), as a fraction of the speaker's own speed (0.8 of 1.0 for every voice so far).</summary>
+    private const float SlowFactor = 0.8f;
 
     private const string DefaultBundle = "content/game-v1";
     private const string DefaultIndex = "content/speech-index.json";
@@ -67,7 +66,14 @@ internal static class Program
         }
 
         var bundle = GameBundle.Load(bundleDir);
-        var lines = GameData.Load(bundle, LocaleBundle.Load(LocaleBundle.DirectoryBeside(bundleDir)).Text(LocaleBundle.DefaultCode)).Speech;
+        var data = GameData.Load(bundle, LocaleBundle.Load(LocaleBundle.DirectoryBeside(bundleDir)).Text(LocaleBundle.DefaultCode));
+        var lines = data.Speech;
+        if (UnvoicedSpeaker(lines, data.Npcs) is { } unvoiced)
+        {
+            Console.Error.WriteLine(unvoiced);
+            return 2;
+        }
+
         var speechDir = Path.Combine(bundleDir, SpeechLines.FolderName);
         Directory.CreateDirectory(speechDir);
 
@@ -84,16 +90,16 @@ internal static class Program
         {
             foreach (var line in lines)
             {
-                foreach (var variant in new[] { ("", NormalSpeed), (SpeechFiles.SlowSuffix, SlowSpeed) })
+                var spec = VoiceOf(line.Speaker, data.Npcs);
+                foreach (var variant in new[] { ("", spec.Speed), (SpeechFiles.SlowSuffix, spec.Speed * SlowFactor) })
                 {
                     var fileName = line.LineId + variant.Item1 + ".wav";
                     var relative = SpeechLines.FolderName + "/" + fileName;
                     var target = Path.Combine(speechDir, fileName);
-                    var (speakerId, voice) = VoiceOf(line.Speaker);
-                    var synth = Synthesizer(store, speakerId, variant.Item2, synthesizers);
-                    var wanted = new IndexEntry(line.Text, line.Speaker, speakerId, voice, variant.Item2, rate, synth.ModelHash, string.Empty, 0);
+                    var synth = Synthesizer(store, spec.Speaker, variant.Item2, synthesizers);
+                    var wanted = new IndexEntry(line.Text, line.Speaker, spec.Speaker, spec.Name, variant.Item2, rate, synth.ModelHash, string.Empty, 0);
                     expected.Add(fileName);
-                    checklist.Add((line.LineId, relative, line.Speaker, variant.Item2 == NormalSpeed ? "1.0" : "0.8", line.Text));
+                    checklist.Add((line.LineId, relative, line.Speaker, variant.Item2.ToString("0.0#", CultureInfo.InvariantCulture), line.Text));
 
                     if (!force && index.Files.TryGetValue(relative, out var previous) && SameInputs(previous, wanted)
                         && File.Exists(target) && Sha256(File.ReadAllBytes(target)) == previous.Sha256)
@@ -110,13 +116,13 @@ internal static class Program
                         continue;
                     }
 
-                    var audio = synth.Synthesize(new SynthesisRequest(line.Text, voice, null));
+                    var audio = synth.Synthesize(new SynthesisRequest(line.Text, spec.Name, null));
                     var samples = rate == audio.SampleRate ? audio.Samples : AudioClips.Resample(audio.Samples, audio.SampleRate, rate);
                     var bytes = WavBytes(samples, rate);
                     WriteAtomically(target, bytes);
                     kept[relative] = wanted with { Sha256 = Sha256(bytes), Bytes = bytes.Length };
                     rendered++;
-                    Console.WriteLine($"rendered: {relative} ({voice}, speed {variant.Item2.ToString("0.0", CultureInfo.InvariantCulture)}) {line.Text}");
+                    Console.WriteLine($"rendered: {relative} ({spec.Name}, speed {variant.Item2.ToString("0.0#", CultureInfo.InvariantCulture)}) {line.Text}");
                 }
             }
         }
@@ -138,21 +144,32 @@ internal static class Program
         Console.WriteLine($"renderer: {lines.Count} lines, {expected.Count} files; rendered {rendered}, unchanged {skipped}, deleted {deleted}");
 
         WriteIndex(indexPath, new IndexFile(1, SpeechEngine.KokoroModelId, kept));
-        WriteChecklist(checklistPath, checklist);
+        WriteChecklist(checklistPath, checklist, data.Npcs);
         WriteProvenance(Path.Combine(bundleDir, "provenance.json"), kept);
         Console.WriteLine($"speech folder: {speechDir} ({ReadableSize(FolderBytes(speechDir))})");
         return 0;
     }
 
-    /// <summary>The Kokoro speaker and voice label of a speaker (the core's voice table, docs/nlp/API.md section 6).</summary>
-    /// <param name="speaker">One of the game's speakers.</param>
-    private static (int SpeakerId, string Voice) VoiceOf(string speaker) => speaker switch
-    {
-        SpeechSpeakers.Guide => (28, "ef_dora"),
-        SpeechSpeakers.Shopkeeper => (29, "em_alex"),
-        SpeechSpeakers.Villager => (53, "em_santa"),
-        _ => throw new InvalidOperationException($"No Kokoro voice for the speaker '{speaker}'."),
-    };
+    /// <summary>The Kokoro speaker, voice name and speed of a speaker: its NPC file's voice (the core's voice table, docs/nlp/API.md section 6).</summary>
+    /// <param name="speaker">One of the game's speakers (an NPC's id).</param>
+    /// <param name="npcs">The NPCs.</param>
+    /// <exception cref="InvalidOperationException">The speaker is no NPC, or its file gives no voice with a name (<see cref="UnvoicedSpeaker"/> says so first).</exception>
+    private static NpcVoiceSpec VoiceOf(string speaker, NpcRoster npcs) =>
+        npcs.Find(speaker)?.Voice is { Name.Length: > 0 } voice
+            ? voice
+            : throw new InvalidOperationException(NoVoice(speaker, npcs));
+
+    /// <summary>The message for the first speaker of the lines that has no voice to record it with, or <see langword="null"/> when every speaker has one.</summary>
+    /// <param name="lines">The speakable lines.</param>
+    /// <param name="npcs">The NPCs.</param>
+    private static string? UnvoicedSpeaker(IReadOnlyList<SpeechLine> lines, NpcRoster npcs) =>
+        lines.Select(static line => line.Speaker).Distinct(StringComparer.Ordinal).Where(speaker => npcs.Find(speaker)?.Voice is not { Name.Length: > 0 })
+            .Select(speaker => NoVoice(speaker, npcs)).FirstOrDefault();
+
+    private static string NoVoice(string speaker, NpcRoster npcs) =>
+        npcs.Find(speaker) is null
+            ? $"No Kokoro voice for the speaker '{speaker}': it is not an NPC of {NpcRoster.IndexPath} ({string.Join(", ", npcs.Ids)}), so nothing says which voice records its lines."
+            : $"No Kokoro voice for the speaker '{speaker}': {NpcRoster.Folder}{speaker}.json has no voice with a name (voice: {{ \"speaker\", \"name\", \"speed\" }}).";
 
     private static KokoroSynthesizer Synthesizer(ModelStore store, int speakerId, float speed, Dictionary<(string, float), KokoroSynthesizer> cache)
     {
@@ -256,7 +273,7 @@ internal static class Program
     {
         var name = Path.GetFileNameWithoutExtension(relative);
         var lineId = name.EndsWith(SpeechFiles.SlowSuffix, StringComparison.Ordinal) ? name[..^SpeechFiles.SlowSuffix.Length] : name;
-        var speed = entry.Speed.ToString("0.0", CultureInfo.InvariantCulture);
+        var speed = entry.Speed.ToString("0.0#", CultureInfo.InvariantCulture);
         var speaker = entry.SpeakerId.ToString(CultureInfo.InvariantCulture);
         return $"{{ \"path\": \"{relative}\", \"generatedBy\": \"{GeneratedByModelOutput}\", \"approvedBy\": null, \"approvedOn\": null, \"model\": \"{SpeechEngine.KokoroModelId}\", \"voice\": \"{entry.Voice}\", \"speaker\": \"{speaker}\", \"source\": \"{lineId} (speed {speed})\" }}";
     }
@@ -287,7 +304,7 @@ internal static class Program
     /// Writes the listening table. The owner's marks in the last column are kept for every row whose file and Spanish text are unchanged, so a
     /// re-render does not erase them.
     /// </summary>
-    private static void WriteChecklist(string path, List<(string LineId, string File, string Speaker, string Speed, string Text)> rows)
+    private static void WriteChecklist(string path, List<(string LineId, string File, string Speaker, string Speed, string Text)> rows, NpcRoster npcs)
     {
         var marks = ReadMarks(path);
         var builder = new StringBuilder();
@@ -296,7 +313,7 @@ internal static class Program
         builder.Append("D-game-12). Mark each row `ok`, `cut-off` or `mismatch` in the last column, with a note after it if needed. The table is written by\n");
         builder.Append("`scripts/prerender-speech.sh` from the bundle: the marks of a row are kept while its file and its text are unchanged, and a row whose\n");
         builder.Append("text changed is listed again without a mark. The files are Kokoro model output (kokoro-multi-lang-v1_0); the voices are\n");
-        builder.Append("`ef_dora` (the guide, and the word cards and model answers), `em_alex` (the shopkeeper) and `em_santa` (the villager).\n\n");
+        builder.Append(VoiceList(npcs)).Append(".\n\n");
         builder.Append($"| Line id | File | Speaker | Speed | Spanish | {ChecklistMarksHeader} |\n");
         builder.Append("| --- | --- | --- | --- | --- | --- |\n");
         foreach (var row in rows.OrderBy(static r => r.LineId, StringComparer.Ordinal).ThenBy(static r => r.Speed, StringComparer.Ordinal))
@@ -307,6 +324,15 @@ internal static class Program
 
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         File.WriteAllText(path, builder.ToString(), new UTF8Encoding(false));
+    }
+
+    // The NPC files' voices in the roster's order: "`ef_dora` (the guide, and the word cards and model answers), `em_alex` (the shopkeeper) and `em_santa` (the villager)".
+    private static string VoiceList(NpcRoster npcs)
+    {
+        var voices = npcs.All.Where(static npc => npc.Voice is not null)
+            .Select(static npc => $"`{npc.Voice!.Name}` (the {npc.Id}{(npc.Id == SpeechSpeakers.Guide ? ", and the word cards and model answers" : string.Empty)})")
+            .ToList();
+        return voices.Count < 2 ? string.Concat(voices) : string.Join(", ", voices.Take(voices.Count - 1)) + " and " + voices[^1];
     }
 
     private static Dictionary<string, (string Text, string Mark)> ReadMarks(string path)

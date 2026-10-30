@@ -1,13 +1,16 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/npcs/<id>.json",
-  "description": "One NPC (CONTENT_PLAN C08): only what no other file holds. Loaded by NpcRoster (Vocaterra.Game.Core).",
+  "description": "One NPC (CONTENT_PLAN C08; schema 2, VILLAGE_PLAN V01): only what no other file holds, and what it does that was code: the prompt it waits on in each state, the host event it opens a talk with, its voice and the key words it shows first. Loaded by NpcRoster (Vocaterra.Game.Core).",
   "type": "object",
   "required": [
     "schemaVersion",
     "id",
     "label",
-    "figure"
+    "figure",
+    "prompts",
+    "opening",
+    "voice"
   ],
   "additionalProperties": false,
   "properties": {
@@ -16,7 +19,7 @@
     },
     "schemaVersion": {
       "enum": [
-        1
+        2
       ]
     },
     "id": {
@@ -49,6 +52,80 @@
         }
       },
       "description": "By prompt of this NPC: the learner phrases it practises (they are at home with this NPC and have a scaffold to fade)."
+    },
+    "prompts": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "By state of the NPC's agent: the prompt it waits on in that state (idle: stall-need, offering: stall-offer). A state not listed waits on the prompt of the agent's initial state. The key review is no state: it names the prompt of the guide's review question (guide-review)."
+    },
+    "opening": {
+      "type": "object",
+      "required": [
+        "when"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "event": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The host event the game raises to the agent when the talk opens (villager.greet); a state of agents/<id>.json takes it with onHostEvent. A state that does not take it opens with the prompt's text."
+        },
+        "when": {
+          "enum": [
+            "always",
+            "first",
+            "never"
+          ],
+          "description": "always: at every opening; first: at the first talk only, while the agent is in its initial state; never: the prompt's text opens every talk (the event is then not raised)."
+        }
+      },
+      "description": "How the NPC opens a talk. Behaviour the data cannot say stays code, by id: the guide's transfer offer and the shopkeeper's later visits (the bottle is never withheld)."
+    },
+    "voice": {
+      "type": "object",
+      "required": [
+        "speaker",
+        "name"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "speaker": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 53,
+          "description": "The Kokoro speaker id (kokoro-multi-lang-v1_0 has 54 speakers, 0 to 53; docs/nlp/API.md section 6): 28 ef_dora, 29 em_alex, 53 em_santa."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The voice's name in the model's table (em_alex), written into the speech index and the provenance."
+        },
+        "speed": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "The speed of the normal recordings (default 1.0); the slow ones are 0.8 of it."
+        }
+      },
+      "description": "The voice the speech renderer records the NPC's lines with (tools/Vocaterra.SpeechRender)."
+    },
+    "keyWords": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      },
+      "description": "The key words (catalogue nouns) whose cards the NPC shows alone before its first question (the shopkeeper's agua and pan); moved here from game/words.json."
+    },
+    "poolPrefix": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The name the NPC's dialogue pools carry when it is not the id (the shopkeeper's are shop_* and guide.lesson.shop.*): its pools are <poolPrefix>_* and guide.lesson.<poolPrefix>.*, and they speak with its voice."
     }
   }
 }

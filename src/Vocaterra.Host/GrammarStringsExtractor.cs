@@ -2,6 +2,7 @@
 // because the game owns its files: the bundle's dialogue, prompts, answer sets and intents (read through the core's loader), the phrase sheet
 // (content/PHRASES.md, with the learner-error examples), the Spanish side of checks.json, and the speech index. The output is
 // one JSON object per line: id, text, kind (npc, learner or template) and, for an intent example or a learner-error example, errors.
+using System.Globalization;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -203,7 +204,7 @@ public static class GrammarStringsExtractor
         }
     }
 
-    // The NPCs' labels and names (game/npcs/<id>.json, C08), which were constants in the code.
+    // The NPCs' labels and names (game/npcs/<id>.json, C08), which were constants in the code, and their key words (schema 2, V01: they were words.json's).
     private static void AddNpcs(List<GrammarStringLine> lines, GameData data)
     {
         foreach (var npc in data.Npcs.All)
@@ -212,6 +213,11 @@ public static class GrammarStringsExtractor
             if (npc.Name is { } name)
             {
                 lines.Add(Line("npcs/" + npc.Id + ".json:name", name, Npc));
+            }
+
+            for (var i = 0; i < npc.KeyWords.Count; i++)
+            {
+                lines.Add(Line("npcs/" + npc.Id + ".json:keyWords[" + i.ToString(CultureInfo.InvariantCulture) + "]", npc.KeyWords[i], Npc));
             }
         }
     }

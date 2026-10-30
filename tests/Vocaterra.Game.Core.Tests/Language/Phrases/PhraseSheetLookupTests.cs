@@ -1,4 +1,5 @@
 using Vocaterra.Game.Core.Language.Phrases;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Tests.TestSupport;
 
 namespace Vocaterra.Game.Core.Tests.Language.Phrases;
@@ -57,6 +58,28 @@ public sealed class PhraseSheetLookupTests
         // The guide's offer at the camp is answered with the same two phrases.
         Assert.Equal("no-gracias", sheet.Expected("guide-offer", "deny", true, "no")!.Id);
         Assert.Equal(["si-por-favor", "no-gracias"], sheet.PhrasesAt("guide-offer").Select(static r => r.Id));
+    }
+
+    [Fact]
+    public void APromptAnNpcWaitsOnWithNoRowsIsAnsweredLikeAnotherNpcPromptThatAcceptsTheSame()
+    {
+        // V01: the guide's offer took the stall's offer rows by name in the code. Now any prompt an NPC file names (guide-offer: the yes-no answer set, confirm, deny,
+        // help, "no sé") that no row names takes the rows of another NPC's prompt that accepts exactly the same answers (stall-offer). The guide's open prompt
+        // and her review share an answer set with the villager's but not its intents, so they stay without rows; a lesson's prompt is not an NPC's.
+        Assert.Empty(Sheet.PhrasesAt("guide-open"));
+        Assert.Empty(Sheet.PhrasesAt("guide-review"));
+        Assert.Empty(Sheet.PhrasesAt("lesson-name"));
+
+        // The rule comes from the data: NPCs that waited on lesson-name and lesson-unstuck (one answer set, the same intents) would share lesson-unstuck's rows.
+        var npcs = TestGame.Data.Npcs;
+        var roster = NpcRoster.Of(
+        [
+            npcs.Find("guide")! with { Prompts = new Dictionary<string, string>(StringComparer.Ordinal) { ["idle"] = "lesson-name" }, ReviewPrompt = null },
+            npcs.Find("villager")! with { Prompts = new Dictionary<string, string>(StringComparer.Ordinal) { ["idle"] = "lesson-unstuck" } },
+        ]);
+        var sheet = PhraseSheet.Load(TestGame.Bundle, TestGame.Locale, roster);
+        Assert.Equal(["otra-vez", "mas-despacio"], sheet.PhrasesAt("lesson-name").Select(static r => r.Id));
+        Assert.Empty(sheet.PhrasesAt("guide-offer")); // no NPC waits on it here
     }
 
     [Fact]

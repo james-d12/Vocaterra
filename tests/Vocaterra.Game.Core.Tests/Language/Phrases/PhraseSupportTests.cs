@@ -78,7 +78,7 @@ public sealed class PhraseSupportTests
         var record = session.PhraseProgress.RecordOf("pedir-agua");
         Assert.Equal((SupportLevel.CardAndAudio, 6, 1), (record.Level, record.Supported, record.CreditedUses));
         Assert.Equal(1, session.PhraseProgress.RecordOf("que-necesitas").Answered);
-        Assert.Equal("stall-offer", NpcService.PromptAfter("shopkeeper", turn.AgentState));
+        Assert.Equal("stall-offer", session.Conversation.PromptAfter("shopkeeper", turn.AgentState));
         Assert.Equal(["si-por-favor", "no-gracias"], session.Support.Cards.Select(static c => c.PhraseId)); // the bread offer: both answers
         Assert.Equal(["shop_help_offer.1", "shop_help_offer.1"], session.Support.TakeCues().Select(static c => c.LineId));
         Assert.Equal(1, session.PhraseProgress.RecordOf("quieres-pan").Heard);
@@ -330,6 +330,33 @@ public sealed class PhraseSupportTests
     }
 
     [Fact]
+    public void TheKeyWordsAreTheTalkingNpcsOwnFromItsFile()
+    {
+        // V01: the cards come from the NPC file's keyWords (they were words.json's, shown at the shopkeeper by id): the villager's file has none.
+        var shipped = TestGame.NewSession();
+        Stage.TeleportToNpc(shipped, "villager");
+        Assert.Equal(["Hola."], shipped.OpenTalk("villager", teachKeyWords: true).Lines);
+        Assert.False(shipped.KeyWordsPending);
+        Assert.Empty(shipped.KeyWordsOf("villager"));
+
+        // Any NPC whose file names key words teaches them before its first question; a shopkeeper without them asks at once.
+        var npcs = TestGame.Data.Npcs;
+        var roster = NpcRoster.Of([npcs.Find("guide")!, npcs.Find("shopkeeper")! with { KeyWords = [] }, npcs.Find("villager")! with { KeyWords = ["río"] }]);
+        var session = new VoxelSession(TestGame.Data.WithNpcs(roster), TestGame.Seed, GuideSession.DefaultStartedAt, TestGame.Route(), CreditRules.Default, TestGame.NoLessons);
+        Stage.TeleportToNpc(session, "shopkeeper");
+        Assert.Equal(["¿Qué necesitas?"], session.OpenTalk("shopkeeper", teachKeyWords: true).Lines);
+        session.EndTalk();
+
+        Stage.TeleportToNpc(session, "villager");
+        Assert.Empty(session.OpenTalk("villager", teachKeyWords: true).Lines);
+        Assert.True(session.KeyWordsPending);
+        Assert.Equal(["el río"], session.KeyWordCards.Select(static c => c.Phrase));
+        Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e is { Name: WorldEvents.KeyWordsShown, Npc: "villager", Detail: "río" });
+        session.FinishKeyWords();
+        Assert.Equal(["Hola."], session.TakeOpening()!.Lines);
+    }
+
+    [Fact]
     public void TheKeyWordsDoNotShowASecondCardWhenTheBreadIsPickedUp()
     {
         var session = TestGame.NewSession();
@@ -472,7 +499,7 @@ public sealed class PhraseSupportTests
     {
         // The cues go to the line player by text: each text must be a speakable line of the bundle with its normal and its slow file in speech/.
         var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
-        var index = new SpeechIndex(SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, sheet));
+        var index = new SpeechIndex(SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, sheet, TestGame.Data.Npcs));
         var store = new Vocaterra.Nlp.Response.Speech.StaticLineStore(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
         var texts = new List<(string Speaker, string Text)> { ("guide", "el agua"), ("guide", "el pan") };
         foreach (var id in PhraseIds.All.Where(TestGame.Data.Npcs.HasScaffold))

@@ -1,9 +1,22 @@
 {
   "$schema": "../../../schema/npc.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "guide",
   "label": "Guía",
   "name": "Luna",
   "figure": "guide",
-  "focus": {}
+  "focus": {},
+  "prompts": {
+    "idle": "guide-open",
+    "offering": "guide-offer",
+    "review": "guide-review"
+  },
+  "opening": {
+    "when": "never"
+  },
+  "voice": {
+    "speaker": 28,
+    "name": "ef_dora",
+    "speed": 1.0
+  }
 }

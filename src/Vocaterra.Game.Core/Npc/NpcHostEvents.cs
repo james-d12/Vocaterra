@@ -34,7 +34,8 @@ public sealed record NpcEffect(NpcEffectKind Kind, ItemId Item = ItemId.Wood, st
 /// <summary>
 /// The names of the NPCs' host events the game's code reacts to (S6). The core knows the events as opaque strings in the agents' files (<c>agents/*.json</c>);
 /// what an event does in the world (a bottle, a bread, the beacon on the river) is data since C08, <c>game/host-events.json</c> (<see cref="HostEventTable"/>).
-/// The names here are the ones the code itself waits for (the guide's offer, the shopkeeper's openings).
+/// The names here are the ones the code itself waits for (the guide's offer, the shopkeeper's later visits); an NPC's ordinary opening event is its NPC file's
+/// (<see cref="NpcEntry.Opening"/>, VILLAGE_PLAN V01).
 /// </summary>
 public static class NpcHostEvents
 {
@@ -52,9 +53,6 @@ public static class NpcHostEvents
 
     /// <summary>The shopkeeper hands over the bread.</summary>
     public const string GiveBread = "stall.give_bread";
-
-    /// <summary>The villager greets first (host turn).</summary>
-    public const string VillagerGreet = "villager.greet";
 
     /// <summary>The villager points at the river.</summary>
     public const string VillagerPoint = "villager.point";

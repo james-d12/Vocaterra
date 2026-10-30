@@ -21,7 +21,7 @@ namespace Vocaterra.Game.Core.Tests.Language.Book;
 public sealed class BookSpeechTests
 {
     private static readonly Lazy<PhraseSheet> Sheet = new(() => TestGame.Data.Phrases);
-    private static readonly Lazy<IReadOnlyList<SpeechLine>> Lines = new(() => SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, Sheet.Value));
+    private static readonly Lazy<IReadOnlyList<SpeechLine>> Lines = new(() => SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, Sheet.Value, TestGame.Data.Npcs));
     private static readonly Lazy<string> Folder = new(() => Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
 
     // The phrases that have no recording of their own on purpose: none (every phrase plays its own file or an NPC line).

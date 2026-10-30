@@ -166,8 +166,8 @@ public sealed class GameData
         var npcs = NpcRoster.Load(bundle);
         locale = locale.WithNames(npcs.All.ToDictionary(static n => n.Id, static n => n.Called, StringComparer.Ordinal), InputKeys.Defaults); // {npc:…} and {key:…} (C04)
         var nouns = NounCatalog.Load(bundle);
-        var phrases = PhraseSheet.Load(bundle, locale);
-        var speech = SpeechLines.Enumerate(bundle, nouns, phrases);
+        var phrases = PhraseSheet.Load(bundle, locale, npcs);
+        var speech = SpeechLines.Enumerate(bundle, nouns, phrases, npcs);
         return new GameData(
             bundle,
             locale,
