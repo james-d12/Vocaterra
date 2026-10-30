@@ -7,8 +7,9 @@ bigger village with more people, each with a reason to be spoken to, and a conne
 every verb the player meets is used in the present, the past and the future (section 2.9 and the ladder in 3.5; added the same day on the
 owner's second line).
 
-**Status:** proposed; it awaits the owner's answers in section 6 (D-game-22). Its milestones are V01 to V17 (section 4), on the feature
-branch `feature/village` (never `main`; the owner merges by pull request). Commit prefix `V<nn>:`.
+**Status:** phase A in progress (owner, 2026-10-30, D-game-22: phase A now, the proposals of section 6 accepted, the farmer León,
+provisional voices recorded now and heard afterwards, phase B held; every milestone by Opus 5.5 at xhigh effort). Its milestones are V01
+to V17 (section 4), on the feature branch `feature/village` (never `main`; the owner merges by pull request). Commit prefix `V<nn>:`.
 
 **The owner's brief (2026-10-30):** take the current map and make the village bigger, with more NPCs (a blacksmith, a baker, and so on) and
 more lessons; avoid making the map larger unless an objective or a lesson genuinely justifies it; make the NPCs interlink; use the map's
@@ -562,7 +563,7 @@ Today's gate demands A1 bundle-wide (section 2.5). The rule this plan proposes, 
 
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
-| V00 | This plan; D-game-22 proposed; the row in `IMPLEMENTATION_PLAN.md` 4.8; revised the same day for the three times (section 2.9, the ladder in 3.5, V16, V17) | | | orchestrator | written 2026-10-30, awaiting the owner |
+| V00 | This plan; D-game-22 proposed; the row in `IMPLEMENTATION_PLAN.md` 4.8; revised the same day for the three times (section 2.9, the ladder in 3.5, V16, V17) | | | orchestrator | written 2026-10-30; answered the same day (D-game-22: phase A now) |
 | V01 | NPC behaviour from data: prompts by state, the opening event, the voice and the key words in `game/npcs/<id>.json`; the speaker of a pool by NPC id; `--talk` from the roster | | M | Sonnet 5.5 | planned |
 | V02 | Host actions and the beacon by place: `give_item` with a count, `point_at_place`, `point_at_slot`, `beacon_reached`, a `do` step's `pointPlace` | V01 | M | Sonnet 5.5 | planned |
 | V03 | Items and orders: the coin, the apple and the axe; `take_item` and `sell`; objectives with `session` and `deliverTo`; `order_delivered` | V02 | M | Sonnet 5.5 | planned |
@@ -581,7 +582,9 @@ Today's gate demands A1 bundle-wide (section 2.5). The rule this plan proposes, 
 | V17 | Session 9 "Mañana en el pueblo": the simple future (-é, -ás, -á, -emos, -án; `iré`; `hará`, `tendré` heard) against `ir a`; the later markers; the day of tomorrow | V14, V16 | M | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
 | V15 | Session 10 "El mercado": 11 to 20, `¿Cuánto es todo?`, `más … que`, `poder`; `offer_item` and `buy`; the market told in three times | V17 | M/L | Sonnet 5.5 / Haiku 5.5 | planned (phase B) |
 
-**Order.** V01, V02, then V04, V05 and V07 (independent, one agent at a time), V06 with the owner, V10; then V03, V11, V12 and V09. That is
+**Order** (revised 2026-10-30 when phase A started: V03 moves before V10, because the fisher's order pays in coins and every order needs
+`deliverTo`; and every milestone is Opus 5.5 at xhigh, D-game-22). V01, V02, V03, then V04, V05 and V07 (independent, one agent at a
+time), V06 (the trial rendered, the owner listens afterwards), V10, V11, V12 and V09. That is
 **phase A: sessions 4 to 6, A1 complete, every verb in three times** (about 10 milestones; 3 Sonnet M, the rest Haiku S/M, plus three
 content M). The gate runs on `feature/village` after each. **Phase B** (V08, V13, V14, V16, V17, V15, V09 again: sessions 7 to 10, A2, the
 simple future last but one) waits for the owner's word after listening to phase A, or for the pilot's data if the owner prefers the brief's

@@ -27,7 +27,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-19 | Verbs in the lessons | decided (owner, 2026-10-22): verbs early but gradual, across sessions (yo/tú in session 1, the other persons in session 2, ir a + infinitive and a few past forms in session 3), lessons replayable from the book; conjugation tables in the book | nothing |
 | D-game-20 | One licence for the whole repository | decided (owner, 2026-10-23): Apache-2.0 for the game as well as the core; one `LICENSE` and `NOTICE` at the root (R01) | nothing |
 | D-game-21 | Content as data and the L1 locale layer (the C series, `docs/game/CONTENT_PLAN.md`) | decided (owner, 2026-10-27 to 2026-10-29): English moves into a locale bundle `content/locale/` outside game-v1's hash (`en` only); content stays JSON with JSON Schema; objectives, NPCs and target-language words become data; the series runs after R16 phase 2, on `feature/content` | nothing |
-| D-game-22 | The village and the lessons (the V series, `docs/game/VILLAGE_PLAN.md`) | proposed (2026-10-30), awaiting the owner's answers to the plan's section 6: phase A now or after the pilot; the A2 ceiling with a per-lesson A1 check; the NPC set, names and voices; the shopkeeper's pronoun; coins and orders or comprehension only; phase B; the speech folder's rate; the tenses (one past, two futures, seven lessons) | the V series |
+| D-game-22 | The village and the lessons (the V series, `docs/game/VILLAGE_PLAN.md`) | decided for phase A (owner, 2026-10-30): phase A now (sessions 4 to 6), phase B held; the plan's proposals for (b), (c), (e), (f), (h) and (i); the farmer is León; voices provisional (the plan's first candidates) and recorded, the owner listens afterwards; all work by Opus 5.5 at xhigh effort | the V series |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -254,7 +254,7 @@ ground for custom authoring tools. The answers, in `docs/game/CONTENT_PLAN.md`:
 - Close (2026-10-29: "work for content is done"): C01 to C08 are done (pull request #16). C09 is assessed and C10, the authoring CLI the
   request looked towards, is specified in `CONTENT_PLAN.md` section 3.8. Neither is built until the owner asks.
 
-## D-game-22: the village and the lessons (proposed)
+## D-game-22: the village and the lessons (decided for phase A, 2026-10-30)
 
 **Owner, 2026-10-30.** "Take the current map, make the village bigger with more NPCs (blacksmith, baker, etc.) and have more lessons. Avoid
 making the map larger unless an objective or lesson genuinely justifies it. Make the NPCs interlink, and use the map space intelligently.
@@ -273,6 +273,21 @@ use of verbs." The plan is `docs/game/VILLAGE_PLAN.md` (the V series); its secti
 - (i) the tenses: the preterite as the one past (yo and tú from session 3, the regular `-ar` pattern in session 5, every person in
   session 8), two futures (`ir a` in every lesson from session 3; the simple future in session 9, at A2, with a small code milestone for the
   runner and the book), the imperfect and the perfect left to a later series; seven lessons rather than six.
+
+**Owner's answers, 2026-10-30 (the same day, when asking for the plan to be built on a new worktree).**
+- (a) **Phase A now**, before the pilot: V01 to V07, V10 to V12 and V09 (sessions 4 to 6, A1 complete). Phase B is not started.
+- (b) **The plan's gate**: an A2 ceiling bundle-wide with a per-lesson A1 check, world words in `cefr/a1.txt` under a marked block. The gate's
+  change itself is V08 (phase B); phase A's lessons are all `a1`, so today's A1 gate holds for them.
+- (c) **The fisher Mar, the baker Luz, the smith Domingo, the farmer León** (a masculine noun, as section 3.3 asks); the villager stays unnamed.
+- (d) **Provisional voices, recorded now**: the plan's first candidates (`if_sara` the baker, `im_nicola` the smith, `em_santa` at 0.9 the
+  fisher, `pm_santa` the farmer); V06 renders the trial for the owner to hear afterwards, and a rejected voice is re-rendered.
+- (e) **The shopkeeper is "he"** in the locale and the sheet (the label and the voice are male).
+- (f) **The economy**: coins, apples, the axe and the orders (V03).
+- (g) **Phase B held** until the owner has heard phase A.
+- (h) **The speech folder stays at 24 kHz.**
+- (i) **The tenses as proposed**: one past (the preterite), two futures (`ir a`, and the simple future in session 9 at A2).
+- **Models:** every V milestone is implemented by Opus 5.5 at xhigh effort (the owner's instruction for this series; it replaces the plan's
+  Haiku and Sonnet column), with cheaper agents only where necessary.
 
 ## Already decided
 
