@@ -447,7 +447,7 @@ public sealed class LessonRunner
 
     /// <summary>
     /// The short English line the objective area shows while an engaged lesson waits on a <c>do</c> step that has one (S17: "Pick a fruit from a berry bush, then
-    /// go back to Rosa"), or <see langword="null"/>.
+    /// go back to Luna"), or <see langword="null"/>.
     /// </summary>
     public string? HudLine => Engaged && Current is { Type: LessonStepType.Do, Hud: { } hud } ? hud : null;
 

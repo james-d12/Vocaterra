@@ -22,7 +22,6 @@ public sealed class GameWordsTests
         Assert.Equal(("¿Escribes?", "¿?"), (Words.TypeOffer, Words.Unseen));
         Assert.Equal(new SupportWords("Puedes decir", "Escuchar la frase", "Palabras nuevas"), Words.Support);
         Assert.Equal(["yo", "tú", "él/ella/usted", "nosotros", "ustedes/ellos"], GameWords.PronounKeys.Select(key => Words.Pronoun(key[..1], key[1..])));
-        Assert.Equal(["agua", "pan"], Words.KeyWords);
         Assert.Equal(("ayuda", "no sé", "hola"), (Words.HelpLine, Words.DontKnowLine, Words.Greeting));
         Assert.Equal(("ir", "a"), (Words.NearFuture.Verb, Words.NearFuture.Joiner));
         Assert.Equal(["mañana"], Words.NearFuture.TimeWords);
@@ -35,8 +34,8 @@ public sealed class GameWordsTests
         var json = File.ReadAllText(Repo.Path("content", "game-v1", "game", "words.json"));
 
         Assert.Throws<InvalidDataException>(() => GameWords.Parse(json.Replace("\"blockUnit\": \"bloque\",", string.Empty, StringComparison.Ordinal)));
-        Assert.Throws<InvalidDataException>(() => GameWords.Parse(json.Replace("\"keyWords\": [\n    \"agua\",\n    \"pan\"\n  ]", "\"keyWords\": []", StringComparison.Ordinal)));
-        Assert.Throws<InvalidDataException>(() => GameWords.Parse(json.Replace("\"schemaVersion\": 1", "\"schemaVersion\": 2", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => GameWords.Parse(json.Replace("\"timeWords\": [\n      \"mañana\"\n    ]", "\"timeWords\": []", StringComparison.Ordinal)));
+        Assert.Throws<InvalidDataException>(() => GameWords.Parse(json.Replace("\"schemaVersion\": 2", "\"schemaVersion\": 1", StringComparison.Ordinal))); // schema 2: the key words left for the NPC files (V01)
         Assert.Equal(Words.Directions, GameWords.Parse(json).Directions);
     }
 
@@ -69,14 +68,13 @@ public sealed class GameWordsTests
     }
 
     [Fact]
-    public void AKeyWordOrARiverThatIsNoCatalogueNounIsAProblem()
+    public void ARiverThatIsNoCatalogueNounIsAProblem()
     {
+        // The key words are the NPC files' since V01 (NpcRosterTests checks them).
         var json = File.ReadAllText(Repo.Path("content", "game-v1", "game", "words.json"))
-            .Replace("\"pan\"", "\"queso\"", StringComparison.Ordinal)
             .Replace("\"river\": \"río\"", "\"river\": \"mar\"", StringComparison.Ordinal);
         var problems = GameDataValidator.Validate(TestGame.Data.WithWords(GameWords.Parse(json)));
 
-        Assert.Contains("game/words.json: the key word 'queso' is not a catalogue noun.", problems);
         Assert.Contains("game/words.json: the river noun 'mar' is not a catalogue noun.", problems);
     }
 }

@@ -53,10 +53,25 @@ public sealed class NpcFrontendTests
         var s3 = Parse("--seed", "42", "--look", "120,-5", "--say", "¿dónde está el río?", "--screenshot", "s3.png", "--frames", "300");
         Assert.Equal([ScriptStepKind.Move, ScriptStepKind.Say], s3.Script.Select(static s => s.Kind));
 
-        Assert.Contains("--talk needs an NPC", Refuse("--screenshot", "a.png", "--talk", "dragon"), StringComparison.Ordinal);
+        Assert.Contains("--talk needs an NPC", Refuse("--screenshot", "a.png", "--talk", " "), StringComparison.Ordinal);
         Assert.Contains("need --screenshot", Refuse("--talk", "guide"), StringComparison.Ordinal);
         Assert.Contains("need --screenshot", Refuse("--leave"), StringComparison.Ordinal);
         Assert.Contains("--shot needs", Refuse("--screenshot", "a.png", "--shot", ""), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ATalkStepMustNameAnNpcOfTheRosterOnceItHasLoaded()
+    {
+        // V01: the NPCs --talk accepts are game/npcs.json's, not a list in the code, so the parser takes any name and the game checks it after the load.
+        var options = Parse("--screenshot", "a.png", "--talk", "shopkeeper", "--leave", "--talk", "fisher");
+        var shipped = RouteScene.Shipped.Npcs.Ids;
+
+        Assert.False(options.CheckTalkTargets(shipped, out var error));
+        Assert.Equal("--talk needs an NPC (guide, shopkeeper, villager), got 'fisher'.", error);
+
+        Assert.True(options.CheckTalkTargets([.. shipped, "fisher"], out error)); // a fourth NPC in the roster can be talked to with no code change
+        Assert.Empty(error);
+        Assert.True(Parse("--screenshot", "a.png").CheckTalkTargets(shipped, out _)); // no talk step, nothing to check
     }
 
     [Fact]

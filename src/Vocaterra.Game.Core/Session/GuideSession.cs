@@ -263,13 +263,17 @@ public abstract partial class GuideSession : IDisposable
     // The prompt the support follows while a lesson step of the villager or the shopkeeper asks for no phrase (S26): the guide's open prompt, which no phrase row uses.
     private const string QuietPrompt = "guide-open";
 
-    /// <summary>The key words of the stall, taught before the first exchange (brief step 4): the nouns of the first request and the bread (<c>game/words.json</c>).</summary>
-    public IReadOnlyList<string> KeyWords => Data.Words.KeyWords;
+    /// <summary>
+    /// The key words an NPC teaches before its first exchange (brief step 4), from its NPC file (VILLAGE_PLAN V01; <c>game/words.json</c> before): the shopkeeper's are the
+    /// nouns of the first request and the bread. Empty for an NPC that has none, or no such NPC.
+    /// </summary>
+    /// <param name="npc">The NPC's agent id.</param>
+    public IReadOnlyList<string> KeyWordsOf(string npc) => Data.Npcs.Find(npc)?.KeyWords ?? [];
 
-    /// <summary>The key-word cards on show: from the first time the shopkeeper's panel opens (S8) until that talk ends; empty otherwise.</summary>
+    /// <summary>The key-word cards on show: from the first time the panel of an NPC with key words opens (S8) until that talk ends; empty otherwise.</summary>
     public IReadOnlyList<WordCard> KeyWordCards => _keyWordCards;
 
-    /// <summary>Whether the key-word cards are on show alone, before the shopkeeper's first question (the opening follows by itself after <see cref="KeyWordTicks"/>).</summary>
+    /// <summary>Whether the key-word cards are on show alone, before the NPC's first question (the opening follows by itself after <see cref="KeyWordTicks"/>).</summary>
     public bool KeyWordsPending => _keyWordsPending;
 
     /// <summary>The nouns whose word card has been shown (a pickup, a craft or the key words): a card is shown once per noun.</summary>
@@ -493,9 +497,9 @@ public abstract partial class GuideSession : IDisposable
     /// </summary>
     /// <param name="npc">The NPC's agent id.</param>
     /// <param name="teachKeyWords">
-    /// Whether the front-end wants the key words of the stall taught first (S8): the first time the shopkeeper's panel opens with this set, his opening
-    /// waits while the word cards for <c>agua</c> and <c>pan</c> stand alone for <see cref="KeyWordTicks"/> (the returned opening has no lines; the real
-    /// one arrives from <see cref="TakeOpening"/>). Headless callers leave it off and get the opening at once.
+    /// Whether the front-end wants an NPC's key words taught first (S8): the first time the panel of an NPC with key words (<see cref="KeyWordsOf"/>; the
+    /// shopkeeper's <c>agua</c> and <c>pan</c>) opens with this set, its opening waits while the word cards stand alone for <see cref="KeyWordTicks"/> (the
+    /// returned opening has no lines; the real one arrives from <see cref="TakeOpening"/>). Headless callers leave it off and get the opening at once.
     /// </param>
     /// <returns>What the NPC says first.</returns>
     public NpcOpening OpenTalk(string npc, bool teachKeyWords = false)
@@ -513,7 +517,7 @@ public abstract partial class GuideSession : IDisposable
         }
 
         FlushSkills();
-        if (teachKeyWords && PendingTurns == 0 && !_keyWordsTaught && string.Equals(npc, NpcService.ShopkeeperAgent, StringComparison.Ordinal))
+        if (teachKeyWords && PendingTurns == 0 && !_keyWordsTaught && KeyWordsOf(npc).Count > 0)
         {
             return BeginKeyWords(npc);
         }
@@ -639,15 +643,16 @@ public abstract partial class GuideSession : IDisposable
         ScheduleSecondTry(npc, [phraseId]); // a lesson's "no sé" queues its phrase for a second try too (X04, R02)
     }
 
-    // The first time the shopkeeper's panel opens, the key words (agua, pan) are taught before his question (brief step 4): their word cards stand alone for
-    // KeyWordTicks, counted as heard and read (never a quiz), and the real opening follows (FinishKeyWords).
+    // The first time the panel of an NPC with key words opens (the shopkeeper's agua and pan), they are taught before its question (brief step 4): their word cards
+    // stand alone for KeyWordTicks, counted as heard and read (never a quiz), and the real opening follows (FinishKeyWords). The save keeps one flag (KeyWordsTaught),
+    // so the key words are taught once a game, at the first NPC that has them; a second NPC with key words would need the flag per NPC (a save field).
     private NpcOpening BeginKeyWords(string npc)
     {
         _keyWordsTaught = true;
         _keyWordsPending = true;
         _keyWordsStart = Tick;
         var cards = new List<WordCard>();
-        foreach (var lemma in KeyWords)
+        foreach (var lemma in KeyWordsOf(npc))
         {
             if (Nouns.ForLemma(lemma) is not { } noun)
             {
@@ -668,7 +673,7 @@ public abstract partial class GuideSession : IDisposable
     }
 
     /// <summary>
-    /// Ends the key-word cards standing alone and runs the shopkeeper's real opening now (the player pressed a key, or sent a line, before the
+    /// Ends the key-word cards standing alone and runs the NPC's real opening now (the player pressed a key, or sent a line, before the
     /// time was up). Does nothing when the key words are not pending. The opening is then waiting in <see cref="TakeOpening"/>.
     /// </summary>
     public void FinishKeyWords()
@@ -682,7 +687,7 @@ public abstract partial class GuideSession : IDisposable
         _delayedOpening = OpenNow(CurrentNpc, logOpened: false);
     }
 
-    /// <summary>The shopkeeper's opening that followed the key-word cards (his question), once; <see langword="null"/> when there is none waiting.</summary>
+    /// <summary>The NPC's opening that followed the key-word cards (the shopkeeper's question), once; <see langword="null"/> when there is none waiting.</summary>
     public NpcOpening? TakeOpening()
     {
         var opening = _delayedOpening;
@@ -1246,7 +1251,7 @@ public abstract partial class GuideSession : IDisposable
 
         if (_talkOpen && string.Equals(Support.Npc, npc, StringComparison.Ordinal) && !turn.Unsure)
         {
-            RefreshSupport(npc, NpcService.PromptAfter(npc, turn.AgentState)); // the prompt may have moved on (the bread offer), and a level may have changed
+            RefreshSupport(npc, _npcs.PromptAfter(npc, turn.AgentState)); // the prompt may have moved on (the bread offer), and a level may have changed
         }
 
         return shown;

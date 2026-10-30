@@ -1,6 +1,6 @@
 {
   "$schema": "../../../schema/npc.schema.json",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "shopkeeper",
   "label": "Tendero",
   "figure": "shopkeeper",
@@ -12,5 +12,23 @@
       "si-por-favor",
       "no-gracias"
     ]
-  }
+  },
+  "prompts": {
+    "idle": "stall-need",
+    "offering": "stall-offer"
+  },
+  "opening": {
+    "event": "shopkeeper.ask",
+    "when": "first"
+  },
+  "voice": {
+    "speaker": 29,
+    "name": "em_alex",
+    "speed": 1.0
+  },
+  "keyWords": [
+    "agua",
+    "pan"
+  ],
+  "poolPrefix": "shop"
 }

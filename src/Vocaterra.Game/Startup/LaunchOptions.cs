@@ -25,9 +25,6 @@ namespace Vocaterra.Game.Startup;
 /// </summary>
 public sealed record LaunchOptions
 {
-    /// <summary>The NPCs <c>--talk</c> accepts: the scene's names for them.</summary>
-    public static readonly string[] TalkTargets = ["guide", "shopkeeper", "villager"];
-
     /// <summary>The seed used when <c>--seed</c> is absent.</summary>
     public const ulong DefaultSeed = 42;
 
@@ -49,7 +46,7 @@ public sealed record LaunchOptions
         + "  --place <item>@<x,y,z>  place one item (madera, antorcha, wood, torch...) in this empty cell, within reach; a step\n"
         + "  --select <n>            select a hotbar slot, 1 to 10; a step\n"
         + "  --craft <item>          craft the recipe that makes the item (antorcha) with the mesa in reach; a step\n"
-        + "  --talk <npc>            walk up to the NPC (guide, shopkeeper, villager), stop about two blocks away facing it and open the dialogue; a step\n"
+        + "  --talk <npc>            walk up to the NPC (an id of game/npcs.json: guide, shopkeeper, villager), stop about two blocks away facing it and open the dialogue; a step\n"
         + "  --say <line>            type and send the line to the NPC the dialogue is open on (the guide when none is: walk to her and open it) and wait for the reply; a step\n"
         + "  --speak <line>          synthesize the line with Kokoro and say it to the NPC the dialogue is open on as if spoken (Vosk hears it); a step\n"
         + "  --wav <file>            say a recorded WAV file to the NPC the dialogue is open on (16-bit PCM, any rate); a step\n"
@@ -174,6 +171,21 @@ public sealed record LaunchOptions
 
     /// <summary>Every step of the scripted run in the order given: the body's steps, <c>--talk</c>, <c>--say</c>, <c>--leave</c> and <c>--shot</c>.</summary>
     public IReadOnlyList<ScriptStep> Script { get; init; } = [];
+
+    /// <summary>
+    /// Checks the NPCs the <c>--talk</c> steps name against the bundle's NPCs, once the roster has loaded (VILLAGE_PLAN V01; a fixed list of three before): a fourth NPC
+    /// in <c>game/npcs.json</c> can be talked to with no code change.
+    /// </summary>
+    /// <param name="npcs">The NPCs' ids, in the roster's order.</param>
+    /// <param name="error">The message for the first unknown NPC, or empty.</param>
+    /// <returns>Whether every <c>--talk</c> names one of the NPCs.</returns>
+    public bool CheckTalkTargets(IReadOnlyList<string> npcs, out string error)
+    {
+        ArgumentNullException.ThrowIfNull(npcs);
+        var unknown = Script.FirstOrDefault(step => step.Kind == ScriptStepKind.Talk && !npcs.Contains(step.Value, StringComparer.Ordinal));
+        error = unknown is null ? string.Empty : $"--talk needs an NPC ({string.Join(", ", npcs)}), got '{unknown.Value}'.";
+        return unknown is null;
+    }
 
     /// <summary>The credit a correct use earns per kind of input (<c>--typed-credit</c>); typed input earns half by default.</summary>
     public CreditRules Credit { get; init; } = CreditRules.Default;
@@ -624,9 +636,10 @@ public sealed record LaunchOptions
                     script.Add(new ScriptStep(arg == "--book-play" ? ScriptStepKind.BookPlay : ScriptStepKind.BookPlaySlow, Value: value.Trim()));
                     break;
                 case "--talk":
-                    if (Array.IndexOf(TalkTargets, value.Trim()) < 0)
+                    // Which NPCs there are is the bundle's (game/npcs.json): CheckTalkTargets refuses an unknown one once the roster has loaded (VILLAGE_PLAN V01).
+                    if (value.Trim().Length == 0)
                     {
-                        error = $"--talk needs an NPC ({string.Join(", ", TalkTargets)}), got '{value}'.";
+                        error = $"--talk needs an NPC, got '{value}'.";
                         return false;
                     }
 

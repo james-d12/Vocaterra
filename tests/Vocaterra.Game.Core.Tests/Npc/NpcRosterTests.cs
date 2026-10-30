@@ -11,7 +11,8 @@ namespace Vocaterra.Game.Core.Tests.Npc;
 /// <summary>
 /// The NPCs as data (CONTENT_PLAN 3.6, C08): <c>game/npcs.json</c>, one file per NPC, and <c>game/host-events.json</c>. They were tables in the code
 /// (<c>NpcService.AgentIds</c>, <c>NpcNames</c>, <c>PhraseIds.FocusAt</c> and <c>HomeOf</c>, <c>NpcHostEvents</c>'s table); the data gives the same answers,
-/// and the validator checks it against the core's agents and prompts.
+/// and the validator checks it against the core's agents and prompts. Since schema 2 (VILLAGE_PLAN V01) the file also holds the prompt of each state, the
+/// opening, the voice, the key words and the pool prefix, which were switches in <c>NpcService</c>, the renderer and <c>SpeechSpeakers</c>.
 /// </summary>
 public sealed class NpcRosterTests
 {
@@ -37,6 +38,90 @@ public sealed class NpcRosterTests
         Assert.Equal(["Luna", "Tendero", "Aldeano"], Npcs.All.Select(static n => n.Called));
         Assert.Equal(["guide", "shopkeeper", "villager"], Npcs.All.Select(static n => n.Figure));
         Assert.Equal("otro", Npcs.LabelOf("otro"));
+    }
+
+    [Fact]
+    public void TheShippedNpcsBehaveAsTheCodeDid()
+    {
+        var guide = Npcs.Find("guide")!;
+        var shopkeeper = Npcs.Find("shopkeeper")!;
+        var villager = Npcs.Find("villager")!;
+
+        // NpcService.PromptAfter's switch: the guide's offer and review, the stall's offer in "offering", and every other state the initial state's prompt.
+        Assert.Equal(("guide-open", "guide-offer", "guide-review", "guide-open"), (guide.PromptIn("idle", "idle"), guide.PromptIn("offering", "idle"), guide.PromptIn("offering", "idle", review: true), guide.PromptIn("pointing", "idle")));
+        Assert.Equal(("stall-need", "stall-need", "stall-offer", "stall-need"), (shopkeeper.PromptIn("idle", "idle"), shopkeeper.PromptIn("asking", "idle"), shopkeeper.PromptIn("offering", "idle"), shopkeeper.PromptIn("done", "idle", review: true)));
+        Assert.Equal(("villager-open", "villager-open"), (villager.PromptIn("idle", "idle"), villager.PromptIn("pointing", "idle")));
+
+        // NpcService.OpeningEvent's switch: the guide never (her transfer offer stays code), the stall's question at the first talk, the villager's greeting always.
+        Assert.Equal(NpcOpeningRule.Never, guide.Opening);
+        Assert.Equal(new NpcOpeningRule("shopkeeper.ask", OpeningWhen.First), shopkeeper.Opening);
+        Assert.Equal(new NpcOpeningRule("villager.greet", OpeningWhen.Always), villager.Opening);
+
+        // The renderer's table (docs/nlp/API.md section 6), the key words that were words.json's, and the pools' names.
+        Assert.Equal([new NpcVoiceSpec(28, "ef_dora", 1.0f), new NpcVoiceSpec(29, "em_alex", 1.0f), new NpcVoiceSpec(53, "em_santa", 1.0f)], Npcs.All.Select(static n => n.Voice));
+        Assert.Equal(["agua", "pan"], shopkeeper.KeyWords);
+        Assert.Empty(guide.KeyWords.Concat(villager.KeyWords));
+        Assert.Equal(["guide", "shop", "villager"], Npcs.All.Select(static n => n.PoolPrefix));
+    }
+
+    [Fact]
+    public void ASchemaTwoFileGivesDefaultsForWhatItLeavesOut()
+    {
+        var bare = NpcRoster.Parse("game/npcs/miller.json", """{ "schemaVersion": 2, "id": "miller", "label": "Molinero", "figure": "miller", "voice": { "speaker": 53, "name": " " } }""", "miller");
+
+        Assert.Empty(bare.Prompts); // the validator says so: an NPC with no prompts
+        Assert.Null(bare.ReviewPrompt);
+        Assert.Equal(NpcOpeningRule.Never, bare.Opening);
+        Assert.Equal(new NpcVoiceSpec(53, string.Empty, 1.0f), bare.Voice); // no name: the validator says so too
+        Assert.Equal("miller", bare.PoolPrefix);
+        Assert.Null(bare.PromptIn("idle", "idle"));
+        Assert.True(bare.OwnsPool("miller_hello") && bare.OwnsPool("guide.lesson.miller.flour") && !bare.OwnsPool("millers_hello") && !bare.OwnsPool("guide.lesson.end"));
+    }
+
+    [Theory]
+    [InlineData("\"when\": \"first\"", "\"when\": \"sometimes\"", "not always, first or never")]
+    [InlineData("\"event\": \"shopkeeper.ask\",", "", "'event'")]
+    [InlineData("\"speaker\": 29", "\"speaker\": -1", "must be 0 or more")]
+    [InlineData("\"speed\": 1.0", "\"speed\": 0", "more than 0")]
+    [InlineData("\"speaker\": 29", "\"speaker\": \"29\"", "is malformed")]
+    public void AnOpeningOrAVoiceOfTheWrongShapeIsRefused(string from, string to, string problem)
+    {
+        var json = NpcFile("shopkeeper");
+        Assert.Contains(from, json, StringComparison.Ordinal);
+
+        var error = Assert.Throws<InvalidDataException>(() => NpcRoster.Parse("game/npcs/shopkeeper.json", json.Replace(from, to, StringComparison.Ordinal), "shopkeeper"));
+
+        Assert.Contains(problem, error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AnNpcWhoseBehaviourDoesNotFitTheBundleIsAProblem()
+    {
+        // V01 (VILLAGE_PLAN 2.8): an NPC the code did not know used to wait on the villager's prompt with no error.
+        var shopkeeper = Npcs.Find("shopkeeper")!;
+        var villager = Npcs.Find("villager")!;
+        var guide = Npcs.Find("guide")! with { Voice = null, KeyWords = ["queso"] };
+        var wrongShop = shopkeeper with
+        {
+            Prompts = new Dictionary<string, string>(StringComparer.Ordinal) { ["asking"] = "stall-ask", ["selling"] = "stall-offer", ["done"] = "villager-open" },
+            Opening = new NpcOpeningRule("shopkeeper.hello", OpeningWhen.First),
+            Voice = new NpcVoiceSpec(29, string.Empty, 1.0f),
+            PoolPrefix = "villager",
+        };
+        var mute = villager with { Prompts = new Dictionary<string, string>(StringComparer.Ordinal) };
+
+        var problems = GameDataValidator.Validate(TestGame.Data.WithNpcs(NpcRoster.Of([guide, wrongShop, mute])));
+
+        Assert.Contains("game/npcs/villager.json: the NPC has no prompts (prompts: the prompt it waits on in each state of its agent).", problems);
+        Assert.Contains("game/npcs/shopkeeper.json: the prompts name 'stall-ask' at 'asking', which is not a prompt of the bundle.", problems);
+        Assert.Contains("game/npcs/shopkeeper.json: the prompts name 'villager-open' at 'done', which is the prompt of 'villager', not of this NPC.", problems);
+        Assert.Contains("game/npcs/shopkeeper.json: the prompts name the state 'selling', which agents/shopkeeper.json does not have.", problems);
+        Assert.Contains("game/npcs/shopkeeper.json: the prompts name none for the initial state 'idle', which a state with none of its own waits on.", problems);
+        Assert.Contains("game/npcs/shopkeeper.json: the opening event 'shopkeeper.hello' is taken by no state of agents/shopkeeper.json (onHostEvent), so the talk would open with the prompt's text.", problems);
+        Assert.Contains("game/npcs/shopkeeper.json: the voice (speaker 29) has no name.", problems);
+        Assert.Contains("game/npcs/guide.json: the NPC has no voice (voice: the Kokoro speaker and name its lines are recorded with).", problems);
+        Assert.Contains("game/npcs/guide.json: the key word 'queso' is not a catalogue noun.", problems);
+        Assert.Contains("game/npcs/villager.json: the pool prefix 'villager' is also shopkeeper's, so its pools would speak with one voice.", problems);
     }
 
     [Fact]
@@ -72,7 +157,7 @@ public sealed class NpcRosterTests
     [InlineData("\"id\": \"shopkeeper\"", "\"id\": \"tendero\"", "its file's name")]
     [InlineData("\"label\": \"Tendero\",", "", "'label'")]
     [InlineData("\"figure\": \"shopkeeper\"", "\"figure\": \"\"", "'figure'")]
-    [InlineData("\"schemaVersion\": 1", "\"schemaVersion\": 2", "schemaVersion 1")]
+    [InlineData("\"schemaVersion\": 2", "\"schemaVersion\": 1", "schemaVersion 2")]
     public void AnNpcFileThatDoesNotHoldTogetherIsRefused(string from, string to, string problem)
     {
         var json = NpcFile("shopkeeper");

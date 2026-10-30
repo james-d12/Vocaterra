@@ -87,6 +87,24 @@ public sealed class ContentSchemaTests
     }
 
     [Fact]
+    public async Task AnNpcFileOfSchemaTwoNamesItsPromptsOpeningAndVoice()
+    {
+        // V01: game/npcs/<id>.json says what the NPC does that was code (the prompts by state, the opening, the voice); a file of schema 1 lacks them.
+        var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "npc.schema.json"));
+        static string Npc(string schemaVersion = "2", string prompts = "\"prompts\": { \"idle\": \"fisher-open\" },", string opening = "{ \"event\": \"fisher.greet\", \"when\": \"first\" }", string voice = "{ \"speaker\": 53, \"name\": \"em_santa\", \"speed\": 0.9 }") =>
+            $$"""{ "schemaVersion": {{schemaVersion}}, "id": "fisher", "label": "Pescador", "figure": "fisher", {{prompts}} "opening": {{opening}}, "voice": {{voice}} }""";
+        Assert.Empty(schema.Validate(Npc()));
+        Assert.Empty(schema.Validate(Npc(opening: "{ \"when\": \"never\" }", voice: "{ \"speaker\": 28, \"name\": \"ef_dora\" }")));
+        Assert.NotEmpty(schema.Validate(Npc(schemaVersion: "1")));
+        Assert.NotEmpty(schema.Validate(Npc(prompts: string.Empty)));
+        Assert.NotEmpty(schema.Validate(Npc(prompts: "\"prompts\": {},")));
+        Assert.NotEmpty(schema.Validate(Npc(opening: "{ \"event\": \"fisher.greet\", \"when\": \"sometimes\" }")));
+        Assert.NotEmpty(schema.Validate(Npc(voice: "{ \"speaker\": 54, \"name\": \"em_santa\" }")));
+        Assert.NotEmpty(schema.Validate(Npc(voice: "{ \"speaker\": 53 }")));
+        Assert.NotEmpty(schema.Validate(Npc(voice: "{ \"speaker\": 53, \"name\": \"em_santa\", \"pitch\": 2 }")));
+    }
+
+    [Fact]
     public void TheItemAndBlockNamesOfTheNounSchemaAreTheGamesTables()
     {
         // The schema lists the stable names for the editors' completion; the code's tables are the authority.

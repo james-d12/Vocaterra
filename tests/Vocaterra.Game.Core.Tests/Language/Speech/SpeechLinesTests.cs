@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
+using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Nlp.Response.Speech;
@@ -13,7 +14,7 @@ namespace Vocaterra.Game.Core.Tests.Language.Speech;
 public sealed class SpeechLinesTests
 {
     private static readonly Lazy<IReadOnlyList<SpeechLine>> LoadedLines = new(() =>
-        SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, RouteScene.DataOf(TestGame.Bundle).Phrases));
+        SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, RouteScene.DataOf(TestGame.Bundle).Phrases, TestGame.Data.Npcs));
 
     private static IReadOnlyList<SpeechLine> Lines => LoadedLines.Value;
 
@@ -42,13 +43,30 @@ public sealed class SpeechLinesTests
     [Fact]
     public void TheSpeakerIsTheAgentOfTheLine()
     {
-        Assert.Equal(SpeechSpeakers.Shopkeeper, Line("shop_need.1").Speaker);
-        Assert.Equal(SpeechSpeakers.Villager, Line("villager_hello.1").Speaker);
+        Assert.Equal(NpcService.ShopkeeperAgent, Line("shop_need.1").Speaker);
+        Assert.Equal(NpcService.VillagerAgent, Line("villager_hello.1").Speaker);
         Assert.Equal(SpeechSpeakers.Guide, Line("guide_greet.1").Speaker);
-        Assert.Equal(SpeechSpeakers.Shopkeeper, Line("prompt.stall-need").Speaker);
-        Assert.Equal(SpeechSpeakers.Villager, Line("prompt.villager-open").Speaker);
+        Assert.Equal(NpcService.ShopkeeperAgent, Line("prompt.stall-need").Speaker);
+        Assert.Equal(NpcService.VillagerAgent, Line("prompt.villager-open").Speaker);
         Assert.Equal("¿Qué necesitas?", Line("prompt.stall-need").Text);
         Assert.Equal("Quiero agua, por favor.", Line("phrase.pedir-agua").Text);
+    }
+
+    [Fact]
+    public void EveryPoolOfTheShippedBundleKeepsTheSpeakerItHadBeforeV01()
+    {
+        // The rule V01 replaced, as it was in SpeechSpeakers.OfPool: the speaker of a pool now comes from the NPC files (<id>_* and guide.lesson.<id>.*, the
+        // shopkeeper's pools by his poolPrefix "shop"), and no pool of the shipped bundle may change voice: the recordings stay as they are.
+        static string Before(string pool) =>
+            pool.StartsWith("guide.lesson.villager.", StringComparison.Ordinal) || pool.StartsWith("villager_", StringComparison.Ordinal) ? "villager"
+            : pool.StartsWith("guide.lesson.shop.", StringComparison.Ordinal) || pool.StartsWith("shop_", StringComparison.Ordinal) ? "shopkeeper"
+            : "guide";
+
+        var pools = TestGame.Bundle.Dialogue.Pools.Keys.Order(StringComparer.Ordinal).ToList();
+
+        Assert.Equal(109, pools.Count);
+        Assert.All(pools, pool => Assert.Equal((pool, Before(pool)), (pool, SpeechSpeakers.OfPool(pool, TestGame.Data.Npcs))));
+        Assert.Equal([("guide", 70), ("shopkeeper", 20), ("villager", 19)], pools.GroupBy(pool => SpeechSpeakers.OfPool(pool, TestGame.Data.Npcs)).Select(static g => (g.Key, g.Count())).OrderBy(static g => g.Key, StringComparer.Ordinal));
     }
 
     [Fact]
@@ -88,9 +106,9 @@ public sealed class SpeechLinesTests
     {
         var index = new SpeechIndex(Lines);
 
-        Assert.Equal("villager_hello.1", index.Find(SpeechSpeakers.Villager, "Hola.")!.LineId);
+        Assert.Equal("villager_hello.1", index.Find(NpcService.VillagerAgent, "Hola.")!.LineId);
         Assert.Equal("phrase.hola", index.Find(SpeechSpeakers.Guide, "Hola.")!.LineId);
-        Assert.Equal("shop_need.1", index.Find(SpeechSpeakers.Shopkeeper, "¿Qué necesitas?")!.LineId);
+        Assert.Equal("shop_need.1", index.Find(NpcService.ShopkeeperAgent, "¿Qué necesitas?")!.LineId);
         Assert.Null(index.Find(SpeechSpeakers.Guide, "El río está allí, a la izquierda, a sesenta bloques."));
     }
 

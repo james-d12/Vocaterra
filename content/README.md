@@ -33,11 +33,11 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/checks.json` | `checks.schema.json` | `CheckBank` |
   | `game/tips.json` | `tips.schema.json` | `TipBook` |
   | `game/controls.json` | `controls.schema.json` | `TipBook` |
-  | `game/words.json` | `words.schema.json` | `GameWords` (the target-language words the game itself uses: the guide's directions, the buttons, the pronouns, the key words, the greeting...) |
+  | `game/words.json` | `words.schema.json` | `GameWords` (the target-language words the game itself uses: the guide's directions, the buttons, the pronouns, the greeting...; the key words moved to the NPC files in schema 2) |
   | `game/session.json` | `session.schema.json` (the objectives in the HUD's order, the closing line's pool, the starting items, the beacon's start) | `ObjectiveBook` |
   | `game/objectives/<id>.json` | `objective.schema.json` (one objective each, C07: its steps and their triggers, its hooks) | `ObjectiveBook` |
   | `game/npcs.json` | `npcs.schema.json` (the NPCs' ids, in order; the saves keep this order) | `NpcRoster` |
-  | `game/npcs/<id>.json` | `npc.schema.json` (one NPC each, C08: its label, name, figure and the phrases its prompts practise) | `NpcRoster` |
+  | `game/npcs/<id>.json` | `npc.schema.json` (one NPC each, C08: its label, name, figure and the phrases its prompts practise; schema 2, V01: the prompt of each state, the opening, the voice, the key words, the pool prefix) | `NpcRoster` |
   | `game/host-events.json` | `host-events.schema.json` (what each NPC host event does: give an item, point the beacon at a noun) | `HostEventTable` |
   | `game/scene.json` | `scene.schema.json` (the file is JSON with `//` comments) | `SceneLayout` |
 
@@ -133,9 +133,55 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
   `restore` (`lesson-begun`, `scan-fire-ring`), which works the step out again from a loaded world, so the save does not keep it. `alsoDoneBy` lists
   objectives whose progress completes this one. The validator refuses an unknown hook. A save keys a step `<objective>.<step>`, so renaming one
   drops its count from older saves.
-- **An NPC.** The core's `agents/<id>.json` and its prompts (each prompt's `agentId`) come first. Then add `game-v1/game/npcs/<id>.json` (its label over the
-  head, its name if it has one, its figure key, and `focus`: the learner phrases each of its prompts practises), its id to `game-v1/game/npcs.json`
-  (at the end: the saves keep the NPCs in this order), its place to `game/scene.json` `npcs`, its role to `locale/en/ui.json` (`npc.<id>.role`) and a
-  provenance item. A figure key the game does not draw yet gets a plain grey figure. What its host events do in the world goes in
-  `game/host-events.json`; an event not listed there changes nothing. The validator checks the NPC against the agents, the prompts and the phrases.
-- **An NPC line.** Add it to `game-v1/dialogue/dialogue.json` (the core's file) and its gloss to `locale/en/lines.json` (`line.<lineId>`).
+- **An NPC.** See "Adding an NPC" below: since schema 2 (V01) an NPC needs data only.
+- **An NPC line.** Add it to `game-v1/dialogue/dialogue.json` (the core's file) and its gloss to `locale/en/lines.json` (`line.<lineId>`). The line
+  speaks with the voice of the NPC whose pool it is in (`<id>_*`, or `guide.lesson.<id>.*` for a lesson line; every other pool is the guide's).
+
+## Adding an NPC
+
+An NPC is data alone since schema 2 of `game/npcs/<id>.json` (VILLAGE_PLAN V01): no code names it. A fisher, `fisher`, takes these files, in this order:
+
+1. **The core's agent and prompts** (`game-v1/agents/fisher.json`, `game-v1/prompts/prompts.json`): the agent's states and transitions, with an
+   `onHostEvent` transition for the event it opens a talk with (`fisher.greet`) in each state that greets; one prompt per state it waits in
+   (`fisher-open`, ...), each with `"agentId": "fisher"`, an answer set and the allowed intents. Its lines go in `game-v1/dialogue/dialogue.json`
+   as pools named `fisher_*` (its own) and `guide.lesson.fisher.*` (its lesson lines, which the content lint counts as the game's).
+2. **`game-v1/game/npcs/fisher.json`** (`npc.schema.json`, schema 2):
+
+   ```json
+   {
+     "$schema": "../../../schema/npc.schema.json",
+     "schemaVersion": 2,
+     "id": "fisher",
+     "label": "Pescador",
+     "name": "Mar",
+     "figure": "fisher",
+     "focus": { "fisher-open": [ "donde-esta-la-panaderia" ] },
+     "prompts": { "idle": "fisher-open", "pointing": "fisher-more" },
+     "opening": { "event": "fisher.greet", "when": "always" },
+     "voice": { "speaker": 53, "name": "em_santa", "speed": 0.9 }
+   }
+   ```
+
+   - `prompts`: by state of the agent, the prompt the NPC waits on there; a state not listed waits on the initial state's, which must be listed.
+     The key `review` is no state: it names the prompt of the guide's review question (only the guide has one).
+   - `opening`: `always` raises the event at every talk (the villager's "Hola."), `first` at the first talk only, while the agent is in its
+     initial state (the shopkeeper's "¿Qué necesitas?"), `never` opens with the prompt's text (the guide; no `event`).
+   - `voice`: the Kokoro speaker id and the voice's name (`docs/nlp/API.md` section 6: 28 `ef_dora`, 29 `em_alex`, 53 `em_santa`), and the speed of
+     the normal recordings (the slow ones are 0.8 of it). The renderer records every line of the NPC with it.
+   - `keyWords` (optional): catalogue nouns whose cards the NPC shows alone before its first question (the shopkeeper's `agua` and `pan`). The save
+     keeps one flag, so the key words are taught once a game, at the first NPC that has them.
+   - `poolPrefix` (optional): the name its pools carry when it is not the id (the shopkeeper's pools are `shop_*` and `guide.lesson.shop.*`).
+   - `focus` (optional): the learner phrases each of its prompts practises (their home, with a scaffold to fade).
+3. **`game-v1/game/npcs.json`**: its id **at the end** (the saves keep the NPCs in this order).
+4. **The scene placement**: `game/scene.json` `npcs` (where it stands and faces).
+5. **The locale role**: `npc.fisher.role` in `locale/en/ui.json`, and each new line's gloss in `locale/en/lines.json`.
+6. **The figure**: the figure key is drawn by `Graphics/Figures/NpcFigures.cs` (its colours, geometry and face cell); a key the game does not draw
+   yet gets a plain grey figure until a milestone adds it.
+7. **What its host events do** in the world (`game/host-events.json`; an event not listed changes nothing), a provenance item for each new file,
+   the recordings (`scripts/prerender-speech.sh`, which reads the voice from the NPC file), and the refresh.
+
+`--validate-content` (and so the refresh and the tests) refuses an NPC with no agent or no prompts, a prompt the bundle lacks or that is another
+agent's, a state its agent lacks, no prompt for the initial state, an opening event no state of its agent takes, no voice or a voice with no name, a
+key word that is no catalogue noun, and a pool prefix another NPC has. `--talk fisher` then walks up to it in a scripted run. Behaviour the data
+cannot say stays code, by id: the shopkeeper's fail-forward (the bottle after four misses, and on a later visit) and the guide's review, transfer
+offer and world lines (`docs/game/CONTENT_PLAN.md` section 3.6).

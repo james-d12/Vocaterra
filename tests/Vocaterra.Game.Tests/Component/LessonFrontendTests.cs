@@ -545,7 +545,7 @@ public sealed class LessonFrontendTests
         }
     }
 
-    private static SpeechIndex TestSpeechIndex() => new(SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, TestGame.Data.Phrases));
+    private static SpeechIndex TestSpeechIndex() => new(SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, TestGame.Data.Phrases, TestGame.Data.Npcs));
 
     // ---- Options, the log and the font.
 
