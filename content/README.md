@@ -30,7 +30,7 @@ Everything the game says, shows and builds its world from, outside the code. The
   | `game/phrases.json` | `phrases.schema.json` | `PhraseSheet` |
   | `game/lessons.json` | `lessons.schema.json` (the lessons' ids, in order) | `LessonBook` |
   | `game/lessons/<id>.json` | `lesson.schema.json` (one lesson each, C06) | `LessonBook` |
-  | `game/checks.json` | `checks.schema.json` | `CheckBank` |
+  | `game/checks.json` | `checks.schema.json` (schema 2, VILLAGE_PLAN V07: each item's `lesson`, null for none; a battery asks the items of the lessons its play session has unlocked, and always those of the first `coreSessions`) | `CheckBank` |
   | `game/tips.json` | `tips.schema.json` | `TipBook` |
   | `game/controls.json` | `controls.schema.json` | `TipBook` |
   | `game/words.json` | `words.schema.json` | `GameWords` (the target-language words the game itself uses: the guide's directions, the buttons, the pronouns, the greeting...; the key words moved to the NPC files in schema 2) |
@@ -136,8 +136,8 @@ specified for later in `docs/game/CONTENT_PLAN.md` section 3.8 (C10); it is not 
   - `point_at_place` (`place`): the beacon goes to a named place of the scene (a site, a point or a named prop: `stall`). The validator refuses a place the
     scene does not have.
   - `point_at_slot` (`slot`, `"place"`): the beacon goes to the place a slot of the learner's line names. The word is looked up among the scene's labels
-    (`tienda` is the stall; of several points with one label, the nearest: `casa`); a labelled place made of its word's blocks is its nearest block (the river,
-    `río`); a catalogue noun no label shows is its nearest block (`árbol`); any other word is no place. Then the NPC does not say the line of the action
+    (`tienda` is the stall; of several points with one label, the nearest: `casa`); a labelled place made of its word's blocks is its nearest block joined to its point (the river,
+    `río`: its water, not the well's, V04); a catalogue noun no label shows is its nearest block (`árbol`); any other word is no place. Then the NPC does not say the line of the action
     that pointed (`Mira, está allí.`) and is raised `<npc>.unknown_place` as a host turn, so its agent needs that transition (`villager.unknown_place`:
     `No sé dónde está.`; the validator checks one state takes it). Every answer logs `place_asked` with the place found (`stall`, `river`, `árbol`) or
     `unknown`.
@@ -208,7 +208,8 @@ An NPC is data alone since schema 2 of `game/npcs/<id>.json` (VILLAGE_PLAN V01):
    - `opening`: `always` raises the event at every talk (the villager's "Hola."), `first` at the first talk only, while the agent is in its
      initial state (the shopkeeper's "¿Qué necesitas?"), `never` opens with the prompt's text (the guide; no `event`).
    - `voice`: the Kokoro speaker id and the voice's name (`docs/nlp/API.md` section 6: 28 `ef_dora`, 29 `em_alex`, 53 `em_santa`), and the speed of
-     the normal recordings (the slow ones are 0.8 of it). The renderer records every line of the NPC with it.
+     the normal recordings (the slow ones are 0.8 of it). The renderer records every line of the NPC with it. The other voices of the model that read
+     Spanish, and the village's provisional choices, are in the voice trial, `docs/game/voice-trial/` (VILLAGE_PLAN V06), with their speaker ids.
    - `keyWords` (optional): catalogue nouns whose cards the NPC shows alone before its first question (the shopkeeper's `agua` and `pan`). The save
      keeps one flag, so the key words are taught once a game, at the first NPC that has them.
    - `poolPrefix` (optional): the name its pools carry when it is not the id (the shopkeeper's pools are `shop_*` and `guide.lesson.shop.*`).
@@ -216,8 +217,9 @@ An NPC is data alone since schema 2 of `game/npcs/<id>.json` (VILLAGE_PLAN V01):
 3. **`game-v1/game/npcs.json`**: its id **at the end** (the saves keep the NPCs in this order).
 4. **The scene placement**: `game/scene.json` `npcs` (where it stands and faces).
 5. **The locale role**: `npc.fisher.role` in `locale/en/ui.json`, and each new line's gloss in `locale/en/lines.json`.
-6. **The figure**: the figure key is drawn by `Graphics/Figures/NpcFigures.cs` (its colours, geometry and face cell); a key the game does not draw
-   yet gets a plain grey figure until a milestone adds it.
+6. **The figure**: the figure key is drawn by `Graphics/Figures/NpcFigures.cs` (its colours, geometry and face cell); the keys drawn are `guide`,
+   `shopkeeper`, `villager` and, since VILLAGE_PLAN V05, `fisher`, `baker`, `smith` and `farmer`. A key the game does not draw yet gets a plain grey
+   figure until a milestone adds it.
 7. **What its host events do** in the world (`game/host-events.json`; an event not listed changes nothing), a provenance item for each new file,
    the recordings (`scripts/prerender-speech.sh`, which reads the voice from the NPC file), and the refresh.
 

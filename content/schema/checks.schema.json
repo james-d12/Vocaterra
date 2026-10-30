@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/checks.json",
-  "description": "The check battery (pre, post and recall): comprehension items (hear a line, pick its meaning) and production items (say a phrase for a situation). Loaded by CheckBank (Vocaterra.Game.Core). The support-language text is the locale's (content/locale/<code>/*.json) since C03; this file carries ids only.",
+  "description": "The check battery (pre, post and recall): comprehension items (hear a line, pick its meaning) and production items (say a phrase for a situation). Loaded by CheckBank (Vocaterra.Game.Core). The support-language text is the locale's (content/locale/<code>/*.json) since C03; this file carries ids only. Schema 2 (VILLAGE_PLAN V07): each item names its lesson, and a battery asks the items of the lessons its play session has unlocked, with coreSessions asked from the first session.",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -14,11 +14,16 @@
     },
     "schemaVersion": {
       "enum": [
-        1
+        2
       ]
     },
     "about": {
       "type": "string"
+    },
+    "coreSessions": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The play sessions, from the first, whose lessons' items every battery asks (3: the pilot's battery of 31 items); a later lesson's items join from the session it opens in. Default 1."
     },
     "items": {
       "type": "array",
@@ -34,7 +39,8 @@
       "required": [
         "id",
         "kind",
-        "phrase"
+        "phrase",
+        "lesson"
       ],
       "additionalProperties": false,
       "properties": {
@@ -53,6 +59,14 @@
           "type": "string",
           "minLength": 1,
           "description": "The phrase-sheet row the item checks."
+        },
+        "lesson": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "description": "The lesson the item belongs to (its id in game/lessons.json), or null for an item of no lesson (the free run's stall and villager). The battery asks it once the play session has unlocked the lesson (VILLAGE_PLAN V07)."
         },
         "line": {
           "type": "string",

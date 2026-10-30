@@ -3,8 +3,28 @@
 The owner listens to every file for cut-offs and for text and audio that do not match (the interim content-trust check of
 D-game-12). Mark each row `ok`, `cut-off` or `mismatch` in the last column, with a note after it if needed. The table is written by
 `scripts/prerender-speech.sh` from the bundle: the marks of a row are kept while its file and its text are unchanged, and a row whose
-text changed is listed again without a mark. The files are Kokoro model output (kokoro-multi-lang-v1_0); the voices are
-`ef_dora` (the guide, and the word cards and model answers), `em_alex` (the shopkeeper) and `em_santa` (the villager).
+text changed is listed again without a mark. The files are Kokoro model output (kokoro-multi-lang-v1_0), in the voices below.
+
+## Speakers
+
+| Speaker | Voice | Kokoro speaker | Speed (slow) | Says |
+| --- | --- | --- | --- | --- |
+| guide (Luna) | `ef_dora` | 28 | 1.0 (0.8) | every pool no other NPC has, its prompts, the word cards and the model answers |
+| shopkeeper (Tendero) | `em_alex` | 29 | 1.0 (0.8) | the pools `shop_*` and `guide.lesson.shop.*`, and its prompts |
+| villager (Aldeano) | `em_santa` | 53 | 1.0 (0.8) | the pools `villager_*` and `guide.lesson.villager.*`, and its prompts |
+
+Provisional voices of the NPCs to come (VILLAGE_PLAN V06, D-game-22 (d)): their lines are recorded in these voices when their files come.
+The owner hears each in the voice trial, `docs/game/voice-trial/` (its README); a voice the owner rejects is changed in the NPC's file and its
+lines are rendered again.
+
+| NPC | Voice | Kokoro speaker | Speed | Trial file |
+| --- | --- | --- | --- | --- |
+| baker (Luz) | `if_sara` | 35 | 1.0 | `voice-trial/if_sara-1.0.wav` |
+| smith (Domingo) | `im_nicola` | 36 | 1.0 | `voice-trial/im_nicola-1.0.wav` |
+| farmer (León) | `pm_santa` | 44 | 1.0 | `voice-trial/pm_santa-1.0.wav` |
+| fisher (Mar) | `em_santa` | 53 | 0.9 | `voice-trial/em_santa-0.9.wav` |
+
+## Lines
 
 | Line id | File | Speaker | Speed | Spanish | ok / cut-off / mismatch |
 | --- | --- | --- | --- | --- | --- |

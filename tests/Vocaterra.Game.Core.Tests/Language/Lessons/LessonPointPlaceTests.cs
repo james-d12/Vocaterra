@@ -70,11 +70,11 @@ public sealed class LessonPointPlaceTests
     [Fact]
     public void APlaceALessonPointsAtThatTheSceneDoesNotHaveIsAProblem()
     {
-        var lessons = TestGame.Lessons(Walk.Replace("\"pointPlace\": \"stall\"", "\"pointPlace\": \"bakery\"", StringComparison.Ordinal));
+        var lessons = TestGame.Lessons(Walk.Replace("\"pointPlace\": \"stall\"", "\"pointPlace\": \"mill\"", StringComparison.Ordinal));
 
         var problems = GameDataValidator.Validate(TestGame.Data.WithLessons(lessons));
 
-        Assert.Contains("game/lessons/walk.json: the step 'go' points at the place 'bakery', which is not a point of the scene.", problems);
+        Assert.Contains("game/lessons/walk.json: the step 'go' points at the place 'mill', which is not a point of the scene.", problems);
         Assert.DoesNotContain(GameDataValidator.Validate(TestGame.Data.WithLessons(TestGame.Lessons(Walk))), static p => p.Contains("point of the scene", StringComparison.Ordinal));
     }
 

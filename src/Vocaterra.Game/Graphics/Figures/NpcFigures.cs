@@ -83,14 +83,18 @@ public sealed record NpcFigure(string Name, string Label, BlockPos Feet, int Yaw
 /// <summary>
 /// The look of the figures, as textured boxes (S15): the guide Luna with long hair, a green jacket, a yellow scarf and a pack; the shopkeeper in a white
 /// shirt with rolled sleeves, a leather apron, a beard and a baker's hat; the villager in a blue tunic and a straw hat; and the player in a blue shirt with a
-/// leather backpack, seen over the shoulder when F5 is pressed. They are drawn in code (D-game-5): the faces, the cloth, the skin and the hair are cells of
-/// the block atlas (<see cref="BlockArtVillage"/>), tinted by the part's colour.
+/// leather backpack, seen over the shoulder when F5 is pressed. VILLAGE_PLAN V05 adds the village's four: the fisher in a blue coat, tall boots and a knitted
+/// cap, with a grey beard; the baker, a woman in a rose dress with flour-white sleeves, a white apron and a white cap; the smith in a rust shirt with rolled
+/// sleeves and a long dark apron, bareheaded, with a moustache; and the farmer in a green shirt and the villager's straw hat in tan. They are drawn in code
+/// (D-game-5): the faces, the cloth, the skin and the hair are cells of the block atlas (<see cref="BlockArtVillage"/>), tinted by the part's colour.
 /// </summary>
 public static class NpcFigures
 {
     private static readonly (byte R, byte G, byte B) Skin = (244, 200, 154);
     private static readonly (byte R, byte G, byte B) Leather = (140, 92, 50);
     private static readonly (byte R, byte G, byte B) Boot = (74, 50, 34);
+    private static readonly (byte R, byte G, byte B) Rubber = (40, 52, 44);
+    private static readonly (byte R, byte G, byte B) StrawTan = (196, 150, 84);
     private static readonly Dictionary<string, FigurePart[]> Cache = new(StringComparer.Ordinal);
 
     /// <summary>The name of the player's figure for <see cref="PartsOf"/> (the figure drawn over the shoulder).</summary>
@@ -139,10 +143,15 @@ public static class NpcFigures
             "shopkeeper" => (C(250, 244, 230), C(196, 164, 112), C(60, 40, 26), BlockCell.FaceShopkeeper),
             "villager" => (C(58, 110, 224), C(108, 112, 124), C(176, 120, 60), BlockCell.FaceVillager),
             PlayerName => (C(64, 112, 208), C(104, 72, 48), C(92, 56, 34), BlockCell.FacePlayer),
+            "fisher" => (C(44, 78, 146), C(92, 84, 72), C(156, 156, 162), BlockCell.FaceFisher),
+            "baker" => (C(204, 108, 104), C(126, 92, 70), C(150, 66, 34), BlockCell.FaceBaker),
+            "smith" => (C(150, 72, 52), C(62, 58, 56), C(34, 28, 26), BlockCell.FaceSmith),
+            "farmer" => (C(70, 146, 62), C(116, 94, 64), C(212, 174, 92), BlockCell.FaceFarmer),
             _ => (C(160, 160, 160), C(110, 110, 110), C(90, 90, 90), BlockCell.FaceVillager),
         };
-        var rolled = name == "shopkeeper";
+        var rolled = name is "shopkeeper" or "smith";
         var sleeveBottom = rolled ? 17f : 14.5f;
+        var sleeves = name == "baker" ? C(248, 246, 238) : shirt; // the baker's sleeves are white with flour
         var parts = new List<FigurePart>
         {
             // Legs and boots (indices 0 and 1 are the legs: the body is the third part, index 2).
@@ -152,8 +161,8 @@ public static class NpcFigures
             new(new Box(-3.9f, 0f, -2.4f, -0.1f, 3f, 2.6f), Boot, BlockCell.Cloth, FigureGroup.LegLeft), // boots
             new(new Box(0.1f, 0f, -2.4f, 3.9f, 3f, 2.6f), Boot, BlockCell.Cloth, FigureGroup.LegRight),
             new(new Box(-4.1f, 9.4f, -2.6f, 4.1f, 10.4f, 2.6f), C(70, 48, 30), BlockCell.Cloth, FigureGroup.Body), // belt
-            new(new Box(-7f, sleeveBottom, -2f, -4.05f, 22f, 2f), shirt, BlockCell.Cloth, FigureGroup.ArmLeft), // sleeves
-            new(new Box(4.05f, sleeveBottom, -2f, 7f, 22f, 2f), shirt, BlockCell.Cloth, FigureGroup.ArmRight),
+            new(new Box(-7f, sleeveBottom, -2f, -4.05f, 22f, 2f), sleeves, BlockCell.Cloth, FigureGroup.ArmLeft), // sleeves
+            new(new Box(4.05f, sleeveBottom, -2f, 7f, 22f, 2f), sleeves, BlockCell.Cloth, FigureGroup.ArmRight),
             new(new Box(-6.9f, 10.8f, -1.9f, -4.15f, sleeveBottom, 1.9f), Skin, BlockCell.Skin, FigureGroup.ArmLeft), // hands and forearms
             new(new Box(4.15f, 10.8f, -1.9f, 6.9f, sleeveBottom, 1.9f), Skin, BlockCell.Skin, FigureGroup.ArmRight),
             new(new Box(-1.6f, 21.8f, -1.8f, 1.6f, 23f, 1.8f), Skin, BlockCell.Skin, FigureGroup.Head), // neck
@@ -184,6 +193,35 @@ public static class NpcFigures
                 parts.Add(new FigurePart(new Box(-3.6f, 11f, -2.8f, 3.6f, 14f, -2.4f), C(220, 214, 196), BlockCell.Cloth, FigureGroup.Body)); // a pale shirt front
                 parts.Add(new FigurePart(new Box(-8f, 31.4f, -8f, 8f, 32.7f, 8f), C(238, 208, 76), BlockCell.Hair, FigureGroup.Head)); // the brim of the straw hat
                 parts.Add(new FigurePart(new Box(-5.1f, 32.7f, -5.1f, 5.1f, 36.4f, 5.1f), C(238, 208, 76), BlockCell.Hair, FigureGroup.Head)); // the crown
+                break;
+            case "fisher":
+                parts.Add(new FigurePart(new Box(-4.4f, 7f, -2.9f, 4.4f, 12f, 2.9f), shirt, BlockCell.Cloth, FigureGroup.Body)); // the coat's skirt over the hips
+                parts.Add(new FigurePart(new Box(-4.3f, 20.2f, -2.9f, 4.3f, 22.6f, 2.9f), C(36, 62, 120), BlockCell.Cloth, FigureGroup.Body)); // its turned-up collar
+                parts.Add(new FigurePart(new Box(-0.6f, 10.5f, -3f, 0.6f, 20f, -2.6f), C(212, 196, 150), BlockCell.Cloth, FigureGroup.Body)); // the toggles' line
+                parts.Add(new FigurePart(new Box(-4.1f, 0f, -2.6f, -0.05f, 7f, 2.8f), Rubber, BlockCell.Cloth, FigureGroup.LegLeft)); // tall boots
+                parts.Add(new FigurePart(new Box(0.05f, 0f, -2.6f, 4.1f, 7f, 2.8f), Rubber, BlockCell.Cloth, FigureGroup.LegRight));
+                parts.Add(new FigurePart(new Box(-4.95f, 29.4f, -4.95f, 4.95f, 31.2f, 4.95f), C(150, 36, 34), BlockCell.Cloth, FigureGroup.Head)); // the knitted cap's band
+                parts.Add(new FigurePart(new Box(-4.9f, 31.2f, -4.9f, 4.9f, 33.4f, 4.9f), C(178, 46, 42), BlockCell.Hair, FigureGroup.Head)); // its crown
+                parts.Add(new FigurePart(new Box(-3.6f, 33.4f, -3.6f, 3.6f, 34.4f, 3.6f), C(178, 46, 42), BlockCell.Hair, FigureGroup.Head)); // and its top
+                break;
+            case "baker":
+                parts.Add(new FigurePart(new Box(-4.6f, 5.5f, -2.9f, 4.6f, 11f, 2.9f), shirt, BlockCell.Cloth, FigureGroup.Body)); // the dress's skirt
+                parts.Add(new FigurePart(new Box(-3.8f, 5f, -3.4f, 3.8f, 19.5f, -2.6f), C(244, 238, 222), BlockCell.Cloth, FigureGroup.Body)); // the white apron
+                parts.Add(new FigurePart(new Box(-3.4f, 19.5f, -3.3f, -2.3f, 22.1f, -2.4f), C(244, 238, 222), BlockCell.Cloth, FigureGroup.Body)); // its straps
+                parts.Add(new FigurePart(new Box(2.3f, 19.5f, -3.3f, 3.4f, 22.1f, -2.4f), C(244, 238, 222), BlockCell.Cloth, FigureGroup.Body));
+                parts.Add(new FigurePart(new Box(-4.85f, 19.5f, 3.9f, 4.85f, 24.5f, 4.85f), hair, BlockCell.Hair, FigureGroup.Head)); // hair down to the shoulders
+                parts.Add(new FigurePart(new Box(-5f, 30.8f, -5f, 5f, 33.6f, 5f), C(250, 250, 246), BlockCell.Cloth, FigureGroup.Head)); // the white cap
+                break;
+            case "smith":
+                parts.Add(new FigurePart(new Box(-4.2f, 3.5f, -3.4f, 4.2f, 20.5f, -2.5f), C(58, 42, 32), BlockCell.Cloth, FigureGroup.Body)); // the long dark apron
+                parts.Add(new FigurePart(new Box(-3.6f, 20.5f, -3.4f, -2.4f, 22.1f, -2.4f), C(58, 42, 32), BlockCell.Cloth, FigureGroup.Body)); // its straps
+                parts.Add(new FigurePart(new Box(2.4f, 20.5f, -3.4f, 3.6f, 22.1f, -2.4f), C(58, 42, 32), BlockCell.Cloth, FigureGroup.Body));
+                parts.Add(new FigurePart(new Box(-4.3f, 11.4f, -3.6f, 4.3f, 12.4f, -3.3f), C(40, 30, 24), BlockCell.Cloth, FigureGroup.Body)); // the apron's belt
+                break;
+            case "farmer":
+                parts.Add(new FigurePart(new Box(-8f, 31.4f, -8f, 8f, 32.7f, 8f), StrawTan, BlockCell.Hair, FigureGroup.Head)); // the villager's straw hat, in tan: the brim
+                parts.Add(new FigurePart(new Box(-5.1f, 32.7f, -5.1f, 5.1f, 36.4f, 5.1f), StrawTan, BlockCell.Hair, FigureGroup.Head)); // the crown
+                parts.Add(new FigurePart(new Box(-5.2f, 32.7f, -5.2f, 5.2f, 33.7f, 5.2f), C(120, 74, 40), BlockCell.Cloth, FigureGroup.Head)); // its band
                 break;
             case PlayerName:
                 parts.Add(new FigurePart(new Box(-4.2f, 10.5f, 2.6f, 4.2f, 22.5f, 7.2f), Leather, BlockCell.Cloth, FigureGroup.Body, BlockCell.Backpack, BlockFace.South)); // the backpack

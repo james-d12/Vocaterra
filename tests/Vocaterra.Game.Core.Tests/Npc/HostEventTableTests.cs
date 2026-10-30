@@ -90,14 +90,14 @@ public sealed class HostEventTableTests
     {
         var root = JsonNode.Parse(System.IO.File.ReadAllText(Repo.Path("content", "game-v1", "game", "host-events.json")))!;
         var events = root["events"]!.AsArray();
-        events.Add(Event("villager", "villager.go", new JsonObject { ["kind"] = "point_at_place", ["place"] = "bakery" }));
+        events.Add(Event("villager", "villager.go", new JsonObject { ["kind"] = "point_at_place", ["place"] = "mill" }));
         events.Add(Event("villager", "villager.show", new JsonObject { ["kind"] = "point_at_place", ["place"] = "signpost" }));
         events.Add(Event("shopkeeper", "stall.point", new JsonObject { ["kind"] = "point_at_slot", ["slot"] = "place" }));
         events.Add(Event("shopkeeper", "stall.sell", new JsonObject { ["kind"] = "sell", ["item"] = "bread", ["price"] = 2 }));
 
         var problems = GameDataValidator.Validate(TestGame.Data.WithHostEvents(HostEventTable.Parse(root.ToJsonString())));
 
-        Assert.Contains("game/host-events.json: villager's 'villager.go' points at the place 'bakery', which is not a point of the scene.", problems);
+        Assert.Contains("game/host-events.json: villager's 'villager.go' points at the place 'mill', which is not a point of the scene.", problems);
         Assert.Contains(
             "game/host-events.json: shopkeeper's 'stall.point' points at the place the learner names, and no state of agents/shopkeeper.json takes 'shopkeeper.unknown_place' to say it does not know one.",
             problems);

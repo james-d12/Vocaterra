@@ -18,7 +18,7 @@ public sealed class CheckScreen
 
     /// <summary>Starts a battery on its plan. The first item is shown at once.</summary>
     /// <param name="kind">Pre, post or recall.</param>
-    /// <param name="plan">The items in the order shown (<see cref="CheckPlan.For"/>).</param>
+    /// <param name="plan">The items in the order shown (<see cref="CheckPlan.For(CheckBank, Lessons.LessonBook, int, CheckKind, ulong)"/>).</param>
     /// <param name="clockMilliseconds">The front-end's clock, for the latency of each answer.</param>
     /// <param name="onResult">Called with each answer as it is recorded (the session log writes it).</param>
     public CheckScreen(CheckKind kind, IReadOnlyList<CheckPlanEntry> plan, Func<double> clockMilliseconds, Action<CheckResult>? onResult = null)

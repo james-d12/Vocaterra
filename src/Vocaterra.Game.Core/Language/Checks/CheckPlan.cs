@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Mathematics;
 
 namespace Vocaterra.Game.Core.Language.Checks;
@@ -60,11 +61,24 @@ public sealed record CheckPlanEntry(CheckItem Item, int Position, IReadOnlyList<
 /// <summary>
 /// The order of a check battery: which items come in which order and how each comprehension item's options are shown, drawn from the world seed
 /// and the check kind (<see cref="WorldRng"/>, never <c>System.Random</c>). A pre-check and a post-check have the same items and options, in other
-/// orders; the same seed and kind always give the same plan.
+/// orders; the same seed and kind always give the same plan. Since VILLAGE_PLAN V07 a battery asks the items of the lessons its play session has unlocked
+/// (<see cref="CheckBank.AskedIn"/>); with every item asked, the plan is the one the whole bank gave before.
 /// </summary>
 public static class CheckPlan
 {
-    /// <summary>Builds the plan of a battery for a kind and a world seed.</summary>
+    /// <summary>Builds the plan of a battery in a play session: the items of the lessons the session has unlocked, for a kind and a world seed.</summary>
+    /// <param name="bank">The battery's items.</param>
+    /// <param name="lessons">The lessons, for the session each opens in.</param>
+    /// <param name="playSession">The play session the battery runs in.</param>
+    /// <param name="kind">The check kind.</param>
+    /// <param name="worldSeed">The world seed.</param>
+    public static IReadOnlyList<CheckPlanEntry> For(CheckBank bank, LessonBook lessons, int playSession, CheckKind kind, ulong worldSeed)
+    {
+        ArgumentNullException.ThrowIfNull(bank);
+        return For(bank.AskedIn(playSession, lessons), kind, worldSeed);
+    }
+
+    /// <summary>Builds the plan of a battery of these items for a kind and a world seed.</summary>
     /// <param name="bank">The items, in the bundle's order.</param>
     /// <param name="kind">The check kind.</param>
     /// <param name="worldSeed">The world seed.</param>

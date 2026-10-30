@@ -198,6 +198,8 @@ public sealed class FourthNpcTests
     {
         public GuideNearest? NearestOfNoun(GuideViewpoint from, string lemma) => null;
 
+        public GuideNearest? NearestOfNounJoinedTo(GuideViewpoint from, string lemma, GuideCell body) => null;
+
         public IReadOnlyList<string> NounsAt(GuideCell cell) => [];
     }
 }

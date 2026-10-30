@@ -25,7 +25,7 @@ public static class BlockArtVillage
             or BlockCell.Loaves or BlockCell.Apples or BlockCell.Bottles or BlockCell.SignTiendaA or BlockCell.SignTiendaB or BlockCell.SignRio
             or BlockCell.SignMontanaA or BlockCell.SignMontanaB or BlockCell.SignBoard or BlockCell.FaceGuide or BlockCell.FaceShopkeeper
             or BlockCell.FaceVillager or BlockCell.FacePlayer or BlockCell.Cloth or BlockCell.Skin or BlockCell.Hair or BlockCell.Backpack
-            or BlockCell.IconTorch or BlockCell.SignBlank => true,
+            or BlockCell.IconTorch or BlockCell.SignBlank or BlockCell.FaceFisher or BlockCell.FaceBaker or BlockCell.FaceSmith or BlockCell.FaceFarmer => true,
         _ => false,
     };
 
@@ -226,6 +226,14 @@ public static class BlockArtVillage
                 return FacePixel(x, y, n, hair: new Rgba(176, 120, 60), longHair: false, beard: false, cheeks: true, eyes: new Rgba(40, 60, 110));
             case BlockCell.FacePlayer:
                 return FacePixel(x, y, n, hair: new Rgba(92, 56, 34), longHair: false, beard: false, cheeks: false, eyes: new Rgba(36, 36, 48));
+            case BlockCell.FaceFisher:
+                return FacePixel(x, y, n, hair: new Rgba(156, 156, 162), longHair: false, beard: true, cheeks: false, eyes: new Rgba(60, 96, 140));
+            case BlockCell.FaceBaker:
+                return FacePixel(x, y, n, hair: new Rgba(150, 66, 34), longHair: true, beard: false, cheeks: true, eyes: new Rgba(92, 60, 36));
+            case BlockCell.FaceSmith:
+                return FacePixel(x, y, n, hair: new Rgba(34, 28, 26), longHair: false, beard: false, cheeks: false, eyes: new Rgba(44, 34, 30), moustache: true);
+            case BlockCell.FaceFarmer:
+                return FacePixel(x, y, n, hair: new Rgba(212, 174, 92), longHair: false, beard: false, cheeks: true, eyes: new Rgba(96, 112, 48), freckles: true);
             case BlockCell.Cloth:
                 {
                     var weave = (x + y) % 2 == 0 ? 0 : -9;
@@ -416,8 +424,9 @@ public static class BlockArtVillage
         return y < 4 ? Clear : Jit(104, 66, 34, n, 2);
     }
 
-    // A face of the 16 x 16 cell the head's front shows: skin, brows, eyes, nose, mouth, a fringe of hair, long hair beside the cheeks, a beard.
-    private static Rgba FacePixel(int x, int y, uint n, Rgba hair, bool longHair, bool beard, bool cheeks, Rgba eyes)
+    // A face of the 16 x 16 cell the head's front shows: skin, brows, eyes, nose, mouth, a fringe of hair, long hair beside the cheeks, a beard, or only a moustache,
+    // and freckles over the nose (VILLAGE_PLAN V05).
+    private static Rgba FacePixel(int x, int y, uint n, Rgba hair, bool longHair, bool beard, bool cheeks, Rgba eyes, bool moustache = false, bool freckles = false)
     {
         var skin = Jit(240, 196, 150, n, 2);
         var hairPixel = Jit(hair.R, hair.G, hair.B, n, 3);
@@ -468,9 +477,19 @@ public static class BlockArtVillage
             return Jit(hair.R, hair.G, hair.B, n, 3);
         }
 
-        if (beard && y == 10 && x is >= 4 and <= 11 && x is not 7 and not 8)
+        if ((beard || moustache) && y == 10 && x is >= 4 and <= 11 && x is not 7 and not 8)
         {
             return Jit(hair.R, hair.G, hair.B, n, 3); // the moustache
+        }
+
+        if (moustache && y == 11 && x is 4 or 11)
+        {
+            return Jit(hair.R, hair.G, hair.B, n, 3); // its ends, turned down
+        }
+
+        if (freckles && (x, y) is (4, 8) or (6, 9) or (9, 9) or (11, 8) or (5, 10) or (10, 10))
+        {
+            return Jit(198, 132, 92, n, 2);
         }
 
         if (y == 12 && x is >= 6 and <= 9)

@@ -146,6 +146,11 @@ public static class GameDataValidator
                 problems.Add($"{File}: item '{item.Id}' names the phrase '{item.Phrase}', which is not in the phrase sheet.");
             }
 
+            if (item.Lesson is { } lesson && data.Lessons.Find(lesson) is null)
+            {
+                problems.Add($"{File}: item '{item.Id}' belongs to the lesson '{lesson}', which is not a lesson ({string.Join(", ", data.Lessons.Lessons.Select(static l => l.Id))}).");
+            }
+
             switch (item.Kind)
             {
                 case CheckItemKind.Comprehension when !speech.Contains(item.Line):

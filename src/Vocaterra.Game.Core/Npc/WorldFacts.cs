@@ -46,6 +46,9 @@ public sealed class WorldFacts : IGuideFacts
     private const int ChunkShift = VoxelChunk.Shift;
     private const int ChunkSize = VoxelChunk.Size;
 
+    // The six faces a body of blocks is joined through (NearestOfNounJoinedTo).
+    private static readonly (int X, int Y, int Z)[] JoinedSteps = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)];
+
     private readonly Func<int, int, int, BlockId> _blockAt;
     private readonly Func<int, int, int, ulong>? _chunkKinds;
     private readonly NounCatalog _nouns;
@@ -238,11 +241,56 @@ public sealed class WorldFacts : IGuideFacts
             }
         }
 
-        if (!found)
+        return found ? Answer(from, bestX, bestY, bestZ, bestDistance) : null;
+    }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// A walk over the blocks of the noun from <paramref name="body"/>, face to face (the river and the lake it runs into are one body of water, some tens of
+    /// thousands of blocks; a well's water touches none of them). Of each column it keeps the lowest block of the body, as <see cref="NearestOfNoun"/> keeps the
+    /// lowest of the noun, and the nearest column wins by the same rule: the smallest squared horizontal distance, then the smaller z, x and y.
+    /// </remarks>
+    public GuideNearest? NearestOfNounJoinedTo(GuideViewpoint from, string lemma, GuideCell body)
+    {
+        ArgumentNullException.ThrowIfNull(lemma);
+        var wanted = new HashSet<BlockId>(_nouns.BlocksOf(lemma));
+        if (!wanted.Contains(BlockAt(body)))
         {
             return null;
         }
 
+        var seen = new HashSet<(int X, int Y, int Z)> { (body.X, body.Y, body.Z) };
+        var open = new Queue<(int X, int Y, int Z)>();
+        open.Enqueue((body.X, body.Y, body.Z));
+        long bestDistance = long.MaxValue;
+        (int X, int Y, int Z) best = default;
+        while (open.TryDequeue(out var cell))
+        {
+            var dx = ((long)cell.X * UnitsPerBlock) + HalfBlock - from.CentreX;
+            var dz = ((long)cell.Z * UnitsPerBlock) + HalfBlock - from.CentreZ;
+            var horizontal = (dx * dx) + (dz * dz);
+            if (horizontal < bestDistance || (horizontal == bestDistance && (cell.Z, cell.X, cell.Y).CompareTo((best.Z, best.X, best.Y)) < 0))
+            {
+                bestDistance = horizontal;
+                best = cell;
+            }
+
+            foreach (var (sx, sy, sz) in JoinedSteps)
+            {
+                var next = (X: cell.X + sx, Y: cell.Y + sy, Z: cell.Z + sz);
+                if (wanted.Contains(BlockAt(new GuideCell(next.X, next.Y, next.Z))) && seen.Add(next))
+                {
+                    open.Enqueue(next);
+                }
+            }
+        }
+
+        return Answer(from, best.X, best.Y, best.Z, bestDistance);
+    }
+
+    // The answer for the block found: its distance in blocks and the direction to it from the viewpoint's facing.
+    private GuideNearest Answer(GuideViewpoint from, int bestX, int bestY, int bestZ, long bestDistance)
+    {
         var offsetX = ((long)bestX * UnitsPerBlock) + HalfBlock - from.CentreX;
         var offsetZ = ((long)bestZ * UnitsPerBlock) + HalfBlock - from.CentreZ;
         var yaw = Angles.Wrap(from.Yaw);

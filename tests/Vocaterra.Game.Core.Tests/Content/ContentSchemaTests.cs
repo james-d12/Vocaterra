@@ -71,6 +71,21 @@ public sealed class ContentSchemaTests
     }
 
     [Fact]
+    public async Task ACheckItemNamesItsLessonInSchemaTwo()
+    {
+        // VILLAGE_PLAN V07: every item names the lesson it belongs to, or null for none; the battery may say its core sessions.
+        var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "checks.schema.json"));
+        static string Checks(string version, string lesson, string core = "") =>
+            $$"""{ "schemaVersion": {{version}}, {{core}} "items": [ { "id": "say.x", "kind": "production", "phrase": "pedir-agua", {{lesson}} "prompt": "stall-need", "intent": "request_item" } ] }""";
+
+        Assert.Empty(schema.Validate(Checks("2", "\"lesson\": \"first-words\",", "\"coreSessions\": 3,")));
+        Assert.Empty(schema.Validate(Checks("2", "\"lesson\": null,")));
+        Assert.NotEmpty(schema.Validate(Checks("2", string.Empty))); // no lesson
+        Assert.NotEmpty(schema.Validate(Checks("1", "\"lesson\": null,"))); // the schema before V07
+        Assert.NotEmpty(schema.Validate(Checks("2", "\"lesson\": null,", "\"coreSessions\": 0,")));
+    }
+
+    [Fact]
     public async Task AStepTypeRequiresItsOwnFieldsAndCarriesNoSupportLanguage()
     {
         // The lessons schema says what each step type needs (anyOf with not: NJsonSchema does not apply if/then): a listen step without its answer is refused,
