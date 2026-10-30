@@ -188,7 +188,8 @@ its agent (a state not listed waits on the initial state's; the guide's `review`
 `first`, `never`), its Kokoro voice (speaker id, name, speed), its key words and the prefix of its dialogue pools. `NpcService` takes the prompts and
 the opening from it (`PromptAfter`, the constructor's check of every prompt an NPC file names); `SpeechSpeakers.OfPool` gives a pool to the NPC whose
 prefix it carries (`<prefix>_*`, `guide.lesson.<prefix>.*`; every other pool is the guide's); the speech renderer (`tools/Vocaterra.SpeechRender`)
-records each speaker with its file's voice and stops on a speaker with none; `GuideSession` shows the talking NPC's key words; the phrase sheet answers
+records each speaker with its file's voice and stops on a speaker with none (and, with `--trial`, renders the voice trial of `docs/game/voice-trial/`,
+VILLAGE_PLAN V06); `GuideSession` shows the talking NPC's key words; the phrase sheet answers
 an NPC's prompt that no row names with the rows of another NPC's prompt that accepts the same answers (the guide's offer, the stall's offer rows); and
 `--talk` accepts any NPC of the roster, checked once it has loaded. `GameDataValidator` reports an NPC with no prompts, a prompt the bundle lacks or
 of another agent, a state its agent lacks, an opening event no state takes and a voice with no name. What the data cannot say stays code, by id: the

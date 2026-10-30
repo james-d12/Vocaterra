@@ -208,7 +208,8 @@ An NPC is data alone since schema 2 of `game/npcs/<id>.json` (VILLAGE_PLAN V01):
    - `opening`: `always` raises the event at every talk (the villager's "Hola."), `first` at the first talk only, while the agent is in its
      initial state (the shopkeeper's "¿Qué necesitas?"), `never` opens with the prompt's text (the guide; no `event`).
    - `voice`: the Kokoro speaker id and the voice's name (`docs/nlp/API.md` section 6: 28 `ef_dora`, 29 `em_alex`, 53 `em_santa`), and the speed of
-     the normal recordings (the slow ones are 0.8 of it). The renderer records every line of the NPC with it.
+     the normal recordings (the slow ones are 0.8 of it). The renderer records every line of the NPC with it. The other voices of the model that read
+     Spanish, and the village's provisional choices, are in the voice trial, `docs/game/voice-trial/` (VILLAGE_PLAN V06), with their speaker ids.
    - `keyWords` (optional): catalogue nouns whose cards the NPC shows alone before its first question (the shopkeeper's `agua` and `pan`). The save
      keeps one flag, so the key words are taught once a game, at the first NPC that has them.
    - `poolPrefix` (optional): the name its pools carry when it is not the id (the shopkeeper's pools are `shop_*` and `guide.lesson.shop.*`).

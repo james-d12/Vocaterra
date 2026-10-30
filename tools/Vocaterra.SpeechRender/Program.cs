@@ -25,6 +25,11 @@ namespace Vocaterra.SpeechRender;
 /// again; a file of a line that no longer exists is deleted. <c>docs/game/SPEECH_CHECKLIST.md</c> is rewritten from the bundle, and the owner's
 /// marks in its last column are kept for every row whose text did not change. The bundle's <c>manifest.json</c> and <c>provenance.json</c> are
 /// then updated by the caller (the content tool's <c>hash</c> step, run by <c>scripts/prerender-speech.sh</c>).
+/// <para>
+/// <b>The voice trial</b> (VILLAGE_PLAN V06). <c>--trial &lt;folder&gt;</c> renders the folder's <c>trial.json</c> instead of the bundle: one line for every candidate
+/// voice and speed, as <c>&lt;folder&gt;/&lt;file&gt;</c> at Kokoro's own rate (24 kHz mono), for the owner to hear before an NPC's lines are recorded with it. It
+/// writes nothing else. The checklist names the trial's provisional voices, those of the NPCs the bundle does not have yet.
+/// </para>
 /// </remarks>
 internal static class Program
 {
@@ -37,11 +42,14 @@ internal static class Program
     private const string DefaultBundle = "content/game-v1";
     private const string DefaultIndex = "content/speech-index.json";
     private const string DefaultChecklist = "docs/game/SPEECH_CHECKLIST.md";
+    private const string DefaultTrial = "docs/game/voice-trial";
+    private const string TrialFileName = "trial.json";
     /// <summary>The core's provenance kind for a host-owned file a model rendered (M29g).</summary>
     private const string GeneratedByModelOutput = "model-output";
     private const string ChecklistMarksHeader = "ok / cut-off / mismatch";
 
     private static readonly JsonSerializerOptions IndexJson = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions TrialJson = new(JsonSerializerDefaults.Web);
 
     /// <summary>One rendered file as recorded in the index.</summary>
     private sealed record IndexEntry(string Text, string Speaker, int SpeakerId, string Voice, float Speed, int Rate, string ModelHash, string Sha256, int Bytes);
@@ -49,8 +57,22 @@ internal static class Program
     /// <summary>The index file: the model id and every file of the speech folder, keyed by its bundle-relative path.</summary>
     private sealed record IndexFile(int SchemaVersion, string Model, SortedDictionary<string, IndexEntry> Files);
 
+    /// <summary>
+    /// One recording of the voice trial: its file in the trial folder, the Kokoro voice (its name and its speaker id in the model's list), the speed, the line it
+    /// says (a key of <see cref="Trial.Lines"/>) and, for a provisional choice, the NPC it is for and that NPC's name.
+    /// </summary>
+    private sealed record TrialVoice(string File, string Voice, int Speaker, float Speed, string Line, string? Npc = null, string? Name = null);
+
+    /// <summary>The voice trial's file (<c>docs/game/voice-trial/trial.json</c>): what it is for, the lines by key, and the recordings.</summary>
+    private sealed record Trial(string About, Dictionary<string, string> Lines, List<TrialVoice> Voices);
+
     private static int Main(string[] args)
     {
+        if (Option(args, "--trial") is { } trialFolder)
+        {
+            return RenderTrial(Path.GetFullPath(trialFolder));
+        }
+
         var bundleDir = Path.GetFullPath(Option(args, "--bundle") ?? DefaultBundle);
         var indexPath = Path.GetFullPath(Option(args, "--index") ?? DefaultIndex);
         var checklistPath = Path.GetFullPath(Option(args, "--checklist") ?? DefaultChecklist);
@@ -144,7 +166,7 @@ internal static class Program
         Console.WriteLine($"renderer: {lines.Count} lines, {expected.Count} files; rendered {rendered}, unchanged {skipped}, deleted {deleted}");
 
         WriteIndex(indexPath, new IndexFile(1, SpeechEngine.KokoroModelId, kept));
-        WriteChecklist(checklistPath, checklist, data.Npcs);
+        WriteChecklist(checklistPath, checklist, data.Npcs, LoadTrial(Path.GetFullPath(Option(args, "--trial-folder") ?? DefaultTrial)));
         WriteProvenance(Path.Combine(bundleDir, "provenance.json"), kept);
         Console.WriteLine($"speech folder: {speechDir} ({ReadableSize(FolderBytes(speechDir))})");
         return 0;
@@ -170,6 +192,46 @@ internal static class Program
         npcs.Find(speaker) is null
             ? $"No Kokoro voice for the speaker '{speaker}': it is not an NPC of {NpcRoster.IndexPath} ({string.Join(", ", npcs.Ids)}), so nothing says which voice records its lines."
             : $"No Kokoro voice for the speaker '{speaker}': {NpcRoster.Folder}{speaker}.json has no voice with a name (voice: {{ \"speaker\", \"name\", \"speed\" }}).";
+
+    /// <summary>Renders the voice trial of a folder (its <c>trial.json</c>), one file a recording at Kokoro's own rate; returns the exit code.</summary>
+    private static int RenderTrial(string folder)
+    {
+        if (LoadTrial(folder) is not { } trial)
+        {
+            Console.Error.WriteLine($"--trial: there is no {TrialFileName} in {folder}.");
+            return 2;
+        }
+
+        if (trial.Voices.FirstOrDefault(voice => !trial.Lines.ContainsKey(voice.Line)) is { } lineless)
+        {
+            Console.Error.WriteLine($"--trial: {lineless.File} says the line '{lineless.Line}', which {TrialFileName} does not have ({string.Join(", ", trial.Lines.Keys)}).");
+            return 2;
+        }
+
+        var store = SpeechEngine.FindModels(out var problem)
+            ?? throw new InvalidOperationException(problem ?? "No models folder.");
+        foreach (var voice in trial.Voices)
+        {
+            var text = trial.Lines[voice.Line];
+            using var synth = KokoroSynthesizer.FromStore(store, SpeechEngine.KokoroModelId, voice.Speaker, voice.Speed);
+            var audio = synth.Synthesize(new SynthesisRequest(text, voice.Voice, null));
+            var samples = audio.SampleRate == NativeRate ? audio.Samples : AudioClips.Resample(audio.Samples, audio.SampleRate, NativeRate);
+            WriteAtomically(Path.Combine(folder, voice.File), WavBytes(samples, NativeRate));
+            Console.WriteLine($"trial: {voice.File} ({voice.Voice}, speaker {voice.Speaker}, speed {voice.Speed.ToString("0.0#", CultureInfo.InvariantCulture)}) {text}");
+        }
+
+        Console.WriteLine($"trial folder: {folder} ({trial.Voices.Count} files, {ReadableSize(FolderBytes(folder))})");
+        return 0;
+    }
+
+    /// <summary>The voice trial of a folder, or <see langword="null"/> when it has no <c>trial.json</c>.</summary>
+    private static Trial? LoadTrial(string folder)
+    {
+        var path = Path.Combine(folder, TrialFileName);
+        return File.Exists(path)
+            ? JsonSerializer.Deserialize<Trial>(File.ReadAllText(path, Encoding.UTF8), TrialJson) ?? throw new InvalidDataException($"The voice trial '{path}' is empty.")
+            : null;
+    }
 
     private static KokoroSynthesizer Synthesizer(ModelStore store, int speakerId, float speed, Dictionary<(string, float), KokoroSynthesizer> cache)
     {
@@ -302,9 +364,9 @@ internal static class Program
 
     /// <summary>
     /// Writes the listening table. The owner's marks in the last column are kept for every row whose file and Spanish text are unchanged, so a
-    /// re-render does not erase them.
+    /// re-render does not erase them. The speakers come first: each NPC's voice, then the trial's provisional voices of the NPCs the bundle does not have yet.
     /// </summary>
-    private static void WriteChecklist(string path, List<(string LineId, string File, string Speaker, string Speed, string Text)> rows, NpcRoster npcs)
+    private static void WriteChecklist(string path, List<(string LineId, string File, string Speaker, string Speed, string Text)> rows, NpcRoster npcs, Trial? trial)
     {
         var marks = ReadMarks(path);
         var builder = new StringBuilder();
@@ -312,8 +374,9 @@ internal static class Program
         builder.Append("The owner listens to every file for cut-offs and for text and audio that do not match (the interim content-trust check of\n");
         builder.Append("D-game-12). Mark each row `ok`, `cut-off` or `mismatch` in the last column, with a note after it if needed. The table is written by\n");
         builder.Append("`scripts/prerender-speech.sh` from the bundle: the marks of a row are kept while its file and its text are unchanged, and a row whose\n");
-        builder.Append("text changed is listed again without a mark. The files are Kokoro model output (kokoro-multi-lang-v1_0); the voices are\n");
-        builder.Append(VoiceList(npcs)).Append(".\n\n");
+        builder.Append("text changed is listed again without a mark. The files are Kokoro model output (kokoro-multi-lang-v1_0), in the voices below.\n\n");
+        AppendSpeakers(builder, npcs, trial);
+        builder.Append("## Lines\n\n");
         builder.Append($"| Line id | File | Speaker | Speed | Spanish | {ChecklistMarksHeader} |\n");
         builder.Append("| --- | --- | --- | --- | --- | --- |\n");
         foreach (var row in rows.OrderBy(static r => r.LineId, StringComparer.Ordinal).ThenBy(static r => r.Speed, StringComparer.Ordinal))
@@ -326,14 +389,43 @@ internal static class Program
         File.WriteAllText(path, builder.ToString(), new UTF8Encoding(false));
     }
 
-    // The NPC files' voices in the roster's order: "`ef_dora` (the guide, and the word cards and model answers), `em_alex` (the shopkeeper) and `em_santa` (the villager)".
-    private static string VoiceList(NpcRoster npcs)
+    // The speakers: each NPC of the roster with its file's voice and what it says, then the voice trial's provisional
+    // choices for the NPCs the roster does not have yet (VILLAGE_PLAN V06), and the trial folder the owner hears them in.
+    private static void AppendSpeakers(StringBuilder builder, NpcRoster npcs, Trial? trial)
     {
-        var voices = npcs.All.Where(static npc => npc.Voice is not null)
-            .Select(static npc => $"`{npc.Voice!.Name}` (the {npc.Id}{(npc.Id == SpeechSpeakers.Guide ? ", and the word cards and model answers" : string.Empty)})")
-            .ToList();
-        return voices.Count < 2 ? string.Concat(voices) : string.Join(", ", voices.Take(voices.Count - 1)) + " and " + voices[^1];
+        builder.Append("## Speakers\n\n");
+        builder.Append("| Speaker | Voice | Kokoro speaker | Speed (slow) | Says |\n");
+        builder.Append("| --- | --- | --- | --- | --- |\n");
+        foreach (var npc in npcs.All.Where(static npc => npc.Voice is not null))
+        {
+            var voice = npc.Voice!;
+            var says = npc.Id == SpeechSpeakers.Guide
+                ? "every pool no other NPC has, its prompts, the word cards and the model answers"
+                : $"the pools `{npc.PoolPrefix}_*` and `guide.lesson.{npc.PoolPrefix}.*`, and its prompts";
+            builder.Append(CultureInfo.InvariantCulture, $"| {npc.Id} ({npc.Called}) | `{voice.Name}` | {voice.Speaker} | {Speed(voice.Speed)} ({Speed(voice.Speed * SlowFactor)}) | {says} |\n");
+        }
+
+        builder.Append('\n');
+        var provisional = trial?.Voices.Where(voice => voice.Npc is { } id && npcs.Find(id) is null).ToList() ?? [];
+        if (provisional.Count == 0)
+        {
+            return;
+        }
+
+        builder.Append("Provisional voices of the NPCs to come (VILLAGE_PLAN V06, D-game-22 (d)): their lines are recorded in these voices when their files come.\n");
+        builder.Append($"The owner hears each in the voice trial, `{DefaultTrial}/` (its README); a voice the owner rejects is changed in the NPC's file and its\n");
+        builder.Append("lines are rendered again.\n\n");
+        builder.Append("| NPC | Voice | Kokoro speaker | Speed | Trial file |\n");
+        builder.Append("| --- | --- | --- | --- | --- |\n");
+        foreach (var voice in provisional)
+        {
+            builder.Append(CultureInfo.InvariantCulture, $"| {voice.Npc} ({voice.Name}) | `{voice.Voice}` | {voice.Speaker} | {Speed(voice.Speed)} | `voice-trial/{voice.File}` |\n");
+        }
+
+        builder.Append('\n');
     }
+
+    private static string Speed(float speed) => speed.ToString("0.0#", CultureInfo.InvariantCulture);
 
     private static Dictionary<string, (string Text, string Mark)> ReadMarks(string path)
     {
@@ -345,14 +437,10 @@ internal static class Program
 
         foreach (var raw in File.ReadLines(path, Encoding.UTF8))
         {
-            if (!raw.StartsWith("| speech/", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            // The row is "| line | file | speaker | speed | Spanish | mark |": the file is the second cell.
+            // A row of the lines is "| line | file | speaker | speed | Spanish | mark |": the file is the second cell, and only those rows have a file of the speech
+            // folder there. (The test was once that the row starts with "| speech/", which no row does, so every mark was lost on a re-render; V06.)
             var cells = raw.Split(" | ");
-            if (cells.Length < 6)
+            if (!raw.StartsWith("| ", StringComparison.Ordinal) || cells.Length < 6 || !cells[1].StartsWith(SpeechLines.FolderName + "/", StringComparison.Ordinal))
             {
                 continue;
             }
