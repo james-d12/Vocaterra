@@ -27,7 +27,7 @@ namespace Vocaterra.Game.Tests.Component;
 /// </summary>
 public sealed class SpeechUxFrontendTests
 {
-    private static readonly Lazy<PhraseSheet> Sheet = new(() => PhraseSheet.Load(TestGame.Bundle));
+    private static readonly Lazy<PhraseSheet> Sheet = new(() => TestGame.Data.Phrases);
 
     private sealed class RecordingPlayer : ILinePlayer
     {
@@ -83,7 +83,7 @@ public sealed class SpeechUxFrontendTests
     private static DialogueModel OpenPanel(out InputFocus focus)
     {
         focus = new InputFocus();
-        var dialogue = new DialogueModel(focus, "¡Hola! Soy la guía.", Sheet.Value);
+        var dialogue = new DialogueModel(focus, "¡Hola! Soy la guía.", RouteScene.Shipped, Sheet.Value);
         dialogue.Open(new NpcOpening("shopkeeper", "stall-need", ["¿Qué necesitas?"], true, [], false), "Tendero");
         return dialogue;
     }
@@ -183,12 +183,13 @@ public sealed class SpeechUxFrontendTests
 
         _ = dialogue.Complete(Applied(Spoken("quiero agua")));
 
-        Assert.Equal("Heard: «quiero agua» · Expected: «Quiero agua, por favor.»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: «quiero agua» · Expected: «Quiero agua, por favor.»", dialogue.Heard!.Text(RouteScene.Shipped.Locale));
+        Assert.Equal("Heard: «quiero agua» · Expected: «Quiero agua, por favor.»", dialogue.HeardText); // the console's "panel:" line (C04: it once printed the method)
         Assert.Equal("pedir-agua", dialogue.Heard.ExpectedId);
 
         // It stays through the next turn until a spoken one replaces it; a typed turn clears it (nothing was heard).
         _ = dialogue.Complete(Applied(Spoken("no gracias", intent: "deny", prompt: "stall-offer")));
-        Assert.Equal("Heard: «no gracias» · Expected: «No, gracias.»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: «no gracias» · Expected: «No, gracias.»", dialogue.Heard!.Text(RouteScene.Shipped.Locale));
         dialogue.BeginLine("Ayuda");
         _ = dialogue.Complete(Applied(Spoken("ayuda") with { Input = InputKind.Button }));
         Assert.Null(dialogue.Heard);
@@ -200,30 +201,30 @@ public sealed class SpeechUxFrontendTests
         var dialogue = OpenPanel(out _);
 
         _ = dialogue.Complete(Applied(Spoken("no gracia", intent: "unknown", communicated: false, uncertain: true, prompt: "stall-offer", repair: RepairKind.AskAgain)));
-        Assert.Equal("Heard: «no gracia» · Expected: «No, gracias.»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: «no gracia» · Expected: «No, gracias.»", dialogue.Heard!.Text(RouteScene.Shipped.Locale));
 
         _ = dialogue.Complete(Applied(Spoken(string.Empty, intent: "unknown", communicated: false, uncertain: true, confidence: 0.0, repair: RepairKind.AskAgain))); // only [unk]: speech that was no words
-        Assert.Equal("Heard: «…» · Expected: «Quiero agua, por favor.»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: «…» · Expected: «Quiero agua, por favor.»", dialogue.Heard!.Text(RouteScene.Shipped.Locale));
 
         _ = dialogue.Complete(Applied(Spoken(string.Empty, intent: "unknown", communicated: false, uncertain: true, confidence: 1.0, repair: RepairKind.AskAgain))); // silence
-        Assert.Equal("Heard: (nothing) · Expected: «Quiero agua, por favor.»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: (nothing) · Expected: «Quiero agua, por favor.»", dialogue.Heard!.Text(RouteScene.Shipped.Locale));
     }
 
     [Fact]
     public void AnOpenPromptWithSeveralPhrasesExpectsTheOneOfTheIntentThatMatched()
     {
         var focus = new InputFocus();
-        var dialogue = new DialogueModel(focus, "Hola.", Sheet.Value);
+        var dialogue = new DialogueModel(focus, "Hola.", RouteScene.Shipped, Sheet.Value);
         dialogue.Open(new NpcOpening("villager", "villager-open", ["Hola."], true, [], false), "Aldeano");
 
         _ = dialogue.Complete(Applied(Spoken("dónde está el río", intent: "ask_directions", prompt: "villager-open")));
-        Assert.Equal("Heard: «dónde está el río» · Expected: «¿Dónde está el río?»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: «dónde está el río» · Expected: «¿Dónde está el río?»", dialogue.Heard!.Text(RouteScene.Shipped.Locale));
 
         _ = dialogue.Complete(Applied(Spoken("buenos días", intent: "greet", prompt: "villager-open")));
-        Assert.Equal("Heard: «buenos días» · Expected: «Hola.»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: «buenos días» · Expected: «Hola.»", dialogue.Heard!.Text(RouteScene.Shipped.Locale));
 
         _ = dialogue.Complete(Applied(Spoken("gola", intent: "unknown", communicated: false, uncertain: true, prompt: "villager-open", repair: RepairKind.AskAgain)));
-        Assert.Equal("Heard: «gola» · Expected: «Hola.»", dialogue.Heard!.Text);
+        Assert.Equal("Heard: «gola» · Expected: «Hola.»", dialogue.Heard!.Text(RouteScene.Shipped.Locale));
     }
 
     [Fact]
@@ -233,11 +234,11 @@ public sealed class SpeechUxFrontendTests
             [(PanelKey.R, SpeechAction.Repeat), (PanelKey.S, SpeechAction.Slower), (PanelKey.H, SpeechAction.Help), (PanelKey.N, SpeechAction.DontKnow), (PanelKey.W, SpeechAction.Type), (PanelKey.Tab, SpeechAction.Type),
                 (PanelKey.D1, SpeechAction.Choice1), (PanelKey.D2, SpeechAction.Choice2), (PanelKey.D3, SpeechAction.Choice3)],
             Enum.GetValues<PanelKey>().Select(static k => (k, SpeechButtons.ForKey(k)!.Value)));
-        Assert.Equal(["Repetir", "Más despacio", "Ayuda", "No sé", "Escribir"], SpeechButtons.All.Select(static b => b.Label));
-        Assert.Equal(["[R] Repetir", "[S] Más despacio", "[H] Ayuda", "[N] No sé", "[W] Escribir"], SpeechButtons.All.Select(static b => b.Text));
+        Assert.Equal(["Repetir", "Más despacio", "Ayuda", "No sé", "Escribir"], SpeechButtons.For(RouteScene.Shipped.Words.Buttons).Select(static b => b.Label));
+        Assert.Equal(["[R] Repetir", "[S] Más despacio", "[H] Ayuda", "[N] No sé", "[W] Escribir"], SpeechButtons.For(RouteScene.Shipped.Words.Buttons).Select(static b => b.Text));
         Assert.Equal(
             [VoiceEventKind.Replay, VoiceEventKind.Slower, VoiceEventKind.Hint, VoiceEventKind.NoSe, VoiceEventKind.TypeFallback],
-            SpeechButtons.All.Select(static b => SpeechButtons.EventOf(b.Action)));
+            SpeechButtons.For(RouteScene.Shipped.Words.Buttons).Select(static b => SpeechButtons.EventOf(b.Action)));
         Assert.Equal(VoiceEventKind.Choice, SpeechButtons.EventOf(SpeechAction.Choice2));
         Assert.Equal([0, 1, 2], new[] { SpeechAction.Choice1, SpeechAction.Choice2, SpeechAction.Choice3 }.Select(static a => SpeechButtons.ChoiceIndex(a)!.Value));
         Assert.Null(SpeechButtons.ChoiceIndex(SpeechAction.Help));
@@ -253,7 +254,7 @@ public sealed class SpeechUxFrontendTests
             Assert.True(Session.StartWorker(loadSpeech: false).WaitUntilReady(30000));
             Session.Simulation.TeleportTo(NpcStandOff.Choose(Session.Scene.Grid, Session.Scene.Npc("shopkeeper").Feet, Session.Simulation.Player.FeetBlock)!.Value);
             var opening = Session.OpenTalk("shopkeeper");
-            Dialogue = new DialogueModel(new InputFocus(), Session.OpeningLine, Session.Phrases);
+            Dialogue = new DialogueModel(new InputFocus(), Session.OpeningLine, Session.Data, Session.Phrases);
             Dialogue.Open(opening, "Tendero");
             Player = new RecordingPlayer();
             Actions = new SpeechActionRunner(Session, Dialogue, Player, () => null);
@@ -383,7 +384,7 @@ public sealed class SpeechUxFrontendTests
         _ = dialogue.Complete(Applied(Spoken("x", intent: "unknown", communicated: false, uncertain: true, repair: RepairKind.OfferChoices, choices: ["agua por favor", "ayuda", "ayuda por favor"])));
         Assert.Equal(2, dialogue.Choices.Count);
 
-        var layout = new DialogueLayout(1280, 720, static t => t.Length * 8f, dialogue.Choices.Select(static c => c.Label).ToList(), typing: false);
+        var layout = new DialogueLayout(1280, 720, static t => t.Length * 8f, dialogue.Choices.Select(static c => c.Label).ToList(), SpeechButtons.For(RouteScene.Shipped.Words.Buttons), typing: false);
 
         foreach (var (action, box) in layout.Buttons.Concat(layout.Choices))
         {
@@ -405,15 +406,15 @@ public sealed class SpeechUxFrontendTests
     [Fact]
     public void TheTextBoxTakesRoomBelowTheButtonsOnlyWhileTyping()
     {
-        var typing = new DialogueLayout(1280, 720, static t => t.Length * 8f, [], typing: true);
-        var buttons = new DialogueLayout(1280, 720, static t => t.Length * 8f, [], typing: false);
+        var typing = new DialogueLayout(1280, 720, static t => t.Length * 8f, [], SpeechButtons.For(RouteScene.Shipped.Words.Buttons), typing: true);
+        var buttons = new DialogueLayout(1280, 720, static t => t.Length * 8f, [], SpeechButtons.For(RouteScene.Shipped.Words.Buttons), typing: false);
 
         Assert.NotNull(typing.InputBox);
         Assert.True(typing.InputBox!.Value.Y > typing.Buttons[0].Box.Bottom);
         Assert.True(typing.Buttons[0].Box.Y < buttons.Buttons[0].Box.Y); // the buttons moved up to make room
         Assert.True(typing.InputBox!.Value.Bottom <= typing.HintsY);
 
-        var small = new DialogueLayout(640, 480, static t => t.Length * 8f, ["a", "b", "c"], typing: true);
+        var small = new DialogueLayout(640, 480, static t => t.Length * 8f, ["a", "b", "c"], SpeechButtons.For(RouteScene.Shipped.Words.Buttons), typing: true);
         Assert.True(small.Panel.Y >= 0 && small.Panel.Bottom <= 480);
         Assert.True(small.LinesBottom > small.LinesTop); // still room for the conversation
     }
@@ -485,9 +486,9 @@ public sealed class SpeechUxFrontendTests
     public void TheMicCheckHearsHolaAndPassesAndLogsItAndANewTryAfterAFailedOneCanPassToo()
     {
         var log = new List<(VoiceEventKind Kind, string? Heard)>();
-        var check = new MicCheckModel((kind, heard) => log.Add((kind, heard)));
+        var check = new MicCheckModel((kind, heard) => log.Add((kind, heard)), RouteScene.Shipped.Locale, "hola");
         Assert.Equal(MicCheckPhase.Ready, check.Phase);
-        Assert.Equal("Say \"hola\"", MicCheckModel.Instruction);
+        Assert.Equal("Say \"hola\"", check.Instruction);
         Assert.Equal([MicCheckButton.Skip], check.Buttons);
 
         check.BeginListening();
@@ -529,7 +530,7 @@ public sealed class SpeechUxFrontendTests
         foreach (var phase in new[] { "ready", "listening", "thinking", "failed" })
         {
             var log = new List<VoiceEventKind>();
-            var check = new MicCheckModel((kind, _) => log.Add(kind));
+            var check = new MicCheckModel((kind, _) => log.Add(kind), RouteScene.Shipped.Locale, "hola");
             if (phase != "ready")
             {
                 check.BeginListening();
@@ -553,7 +554,7 @@ public sealed class SpeechUxFrontendTests
             Assert.Equal(1, log.Count(static k => k == VoiceEventKind.MicCheckSkipped));
         }
 
-        var silent = new MicCheckModel((_, _) => { });
+        var silent = new MicCheckModel((_, _) => { }, RouteScene.Shipped.Locale, "hola");
         silent.BeginListening();
         silent.EndListening();
         silent.HeardNothing();
@@ -564,11 +565,11 @@ public sealed class SpeechUxFrontendTests
     [Fact]
     public void TheMicCheckScreenFindsItsButtonsByClickAndItsMeterFollowsTheSquareRootOfTheLevel()
     {
-        var check = new MicCheckModel((_, _) => { });
+        var check = new MicCheckModel((_, _) => { }, RouteScene.Shipped.Locale, "hola");
         check.BeginListening();
         check.EndListening();
         check.Complete(new MicCheckResult("gola", false, 0.0625));
-        var layout = new MicCheckLayout(1280, 720, check.Buttons, static t => t.Length * 8f);
+        var layout = new MicCheckLayout(1280, 720, check.Buttons, static t => t.Length * 8f, RouteScene.Shipped.Locale);
 
         Assert.Equal(MicCheckButton.Retry, layout.ButtonAt(layout.Buttons[0].Box.X + 2, layout.Buttons[0].Box.Y + 2));
         Assert.Equal(MicCheckButton.Skip, layout.ButtonAt(layout.Buttons[1].Box.X + 2, layout.Buttons[1].Box.Y + 2));
@@ -663,9 +664,9 @@ public sealed class SpeechUxFrontendTests
         using var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
         Assert.True(session.StartWorker(loadSpeech: false).WaitUntilReady(30000));
         var look = new LookControl();
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases);
         var hooks = new ScenarioHooks(
-            npc => dialogue.Open(session.OpenTalk(npc), NpcNames.LabelOf(npc)),
+            npc => dialogue.Open(session.OpenTalk(npc), session.Data.Npcs.LabelOf(npc)),
             () =>
             {
                 dialogue.Close();
@@ -693,12 +694,10 @@ public sealed class SpeechUxFrontendTests
     [Fact]
     public void TheOldTabHoldToTalkHintIsReplacedByTheButtonKeysAndTheSpanishStringsAreListedForTheReview()
     {
-        Assert.DoesNotContain("Tab (mantener)", DialoguePanel.KeyHints, StringComparison.Ordinal);
-        Assert.Contains("Hold V or Space", DialoguePanel.ButtonHints, StringComparison.Ordinal);
-        Assert.Equal("¿Escribes?", DialogueModel.TypeOfferText);
-        Assert.Equal("(nothing)", HeardLine.NothingHeard);
-        Assert.Equal("Heard: ", HeardLine.HeardLabel);
-        Assert.Equal("Expected: ", HeardLine.ExpectedLabel);
-        Assert.Equal(["Continue", "Try again", "Skip"], new[] { MicCheckModel.ContinueLabel, MicCheckModel.RetryLabel, MicCheckModel.SkipLabel });
+        Assert.DoesNotContain("Tab (mantener)", DialoguePanel.KeyHints(RouteScene.Shipped.Locale), StringComparison.Ordinal);
+        Assert.Contains("Hold V or Space", DialoguePanel.ButtonHints(RouteScene.Shipped.Locale), StringComparison.Ordinal);
+        Assert.Equal("¿Escribes?", new DialogueModel(new InputFocus(), "Hola.", RouteScene.Shipped).TypeOfferText);
+        Assert.Equal("Heard: (nothing) · Expected: «Hola.»", new HeardLine(string.Empty, "Hola.", "hola").Text(RouteScene.Shipped.Locale));
+        Assert.Equal(["Continue", "Try again", "Skip"], new[] { MicCheckButton.Continue, MicCheckButton.Retry, MicCheckButton.Skip }.Select(static b => MicCheckModel.LabelOf(RouteScene.Shipped.Locale, b)));
     }
 }

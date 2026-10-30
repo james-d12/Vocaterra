@@ -28,7 +28,7 @@ public sealed class SaveGameTests
     private static string SaveOf(VoxelSession session, ulong seed = TestGame.Seed) => SaveGame.Save(session, Pristine(seed));
 
     private static VoxelSession LoadOf(string text, CreditRules? credit = null, bool bump = true) =>
-        SaveGame.Load(text, TestGame.Bundle, Pristine, TestGame.Nouns, credit: credit ?? CreditRules.FullTyped, bumpSession: bump);
+        SaveGame.Load(text, TestGame.Data, Pristine, credit: credit ?? CreditRules.FullTyped, bumpSession: bump);
 
     private static PhraseUse Use(string phrase, PhraseUseKind kind, long time) =>
         new(time * 60, time, phrase, kind, "shopkeeper", "stall-need", "quiero agua, por favor", null, InputKind.Spoken, true, SupportLevel.None, null);
@@ -62,7 +62,7 @@ public sealed class SaveGameTests
         Assert.Equal(session.CardedLemmas(), loaded.CardedLemmas());
         Assert.Equal(session.RiverPointedOut, loaded.RiverPointedOut);
         Assert.Equal(session.NextTurnId, loaded.NextTurnId);
-        foreach (var npc in NpcService.AgentIds)
+        foreach (var npc in TestGame.Data.Npcs.Ids)
         {
             Assert.Equal(session.Conversation.ContextOf(npc).AgentState, loaded.Conversation.ContextOf(npc).AgentState);
             Assert.Equal(session.Conversation.ContextOf(npc).Learner, loaded.Conversation.ContextOf(npc).Learner);
@@ -148,16 +148,16 @@ public sealed class SaveGameTests
         var text = SaveOf(TestGame.NewSession());
         var document = SaveGame.Parse(text);
 
-        var seed = Assert.Throws<SaveException>(() => SaveGame.Load(text, TestGame.Bundle, Pristine, TestGame.Nouns, requestedSeed: 7));
+        var seed = Assert.Throws<SaveException>(() => SaveGame.Load(text, TestGame.Data, Pristine, requestedSeed: 7));
         Assert.Contains("world seed 42", seed.Message, StringComparison.Ordinal);
         Assert.Contains("not 7", seed.Message, StringComparison.Ordinal);
 
-        var bundle = Assert.Throws<SaveException>(() => SaveGame.Load(SaveGame.Serialize(document with { BundleHash = new string('0', 64) }), TestGame.Bundle, Pristine, TestGame.Nouns));
+        var bundle = Assert.Throws<SaveException>(() => SaveGame.Load(SaveGame.Serialize(document with { BundleHash = new string('0', 64) }), TestGame.Data, Pristine));
         Assert.Contains("content bundle", bundle.Message, StringComparison.Ordinal);
 
-        var version = Assert.Throws<SaveException>(() => SaveGame.Parse(SaveGame.Serialize(document with { Version = 5 })));
-        Assert.Contains("version 5", version.Message, StringComparison.Ordinal);
-        Assert.Contains("versions 1 to 4", version.Message, StringComparison.Ordinal);
+        var version = Assert.Throws<SaveException>(() => SaveGame.Parse(SaveGame.Serialize(document with { Version = 6 })));
+        Assert.Contains("version 6", version.Message, StringComparison.Ordinal);
+        Assert.Contains("versions 1 to 5", version.Message, StringComparison.Ordinal);
 
         var format = Assert.Throws<SaveException>(() => SaveGame.Parse("{\"format\":\"something-else\",\"version\":1}"));
         Assert.Contains("not a vocaterra-save", format.Message, StringComparison.Ordinal);
@@ -170,10 +170,10 @@ public sealed class SaveGameTests
     {
         var document = SaveGame.Parse(SaveOf(TestGame.NewSession()));
 
-        var damaged = Assert.Throws<SaveException>(() => SaveGame.Restore(document with { StateDigest = new string('0', 64) }, TestGame.Bundle, Pristine(), TestGame.Nouns));
+        var damaged = Assert.Throws<SaveException>(() => SaveGame.Restore(document with { StateDigest = new string('0', 64) }, TestGame.Data, Pristine()));
         Assert.Contains("digest", damaged.Message, StringComparison.Ordinal);
 
-        var late = Assert.Throws<SaveException>(() => SaveGame.Restore(document with { StoredTime = document.StoredTime + 1 }, TestGame.Bundle, Pristine(), TestGame.Nouns));
+        var late = Assert.Throws<SaveException>(() => SaveGame.Restore(document with { StoredTime = document.StoredTime + 1 }, TestGame.Data, Pristine()));
         Assert.Contains("stored time", late.Message, StringComparison.Ordinal);
     }
 
@@ -274,7 +274,7 @@ public sealed class SaveGameTests
     [Fact]
     public void ObjectiveAndWordRestoresRefuseWhatIsNotInTheGame()
     {
-        var objective = Objective.Camp();
+        var objective = TestGame.Camp();
 
         Assert.Throws<ArgumentException>(() => objective.Restore([("nope", 1)]));
         Assert.Throws<ArgumentException>(() => objective.Restore([("wood", 1), ("wood", 2)]));

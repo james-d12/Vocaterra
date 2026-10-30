@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/controls.json",
+  "description": "The controls help, in its order. The keys and the text are the locale's (control.<id>.keys, .text). Loaded by TipBook (Vocaterra.Game.Core).",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "controls"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "enum": [
+        1
+      ]
+    },
+    "about": {
+      "type": "string"
+    },
+    "controls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

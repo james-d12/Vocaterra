@@ -22,8 +22,10 @@ public sealed class Scene
         SortedDictionary<string, BlockPos> points,
         int treeCount,
         int waterLevel,
-        int plantCount = 0)
+        int plantCount = 0,
+        IReadOnlyDictionary<string, string>? labels = null)
     {
+        Labels = labels ?? new Dictionary<string, string>(StringComparer.Ordinal);
         Name = name;
         Seed = seed;
         Grid = grid;
@@ -43,6 +45,7 @@ public sealed class Scene
         Spawn = source.Spawn;
         Npcs = source.Npcs;
         Points = source.Points;
+        Labels = source.Labels;
         TreeCount = source.TreeCount;
         WaterLevel = source.WaterLevel;
         PlantCount = source.PlantCount;
@@ -66,6 +69,13 @@ public sealed class Scene
     /// <summary>The named points, ordered by name (ordinal).</summary>
     public IReadOnlyDictionary<string, BlockPos> Points { get; }
 
+    /// <summary>The beacon's words for the named places, from the layout (<see cref="Layout.SceneLayout.Labels"/>).</summary>
+    public IReadOnlyDictionary<string, string> Labels { get; }
+
+    /// <summary>The word the beacon shows for a named place: its label (<c>river</c> shows <c>río</c>), or the place's own name when it has none.</summary>
+    /// <param name="pointName">The place.</param>
+    public string LabelOf(string pointName) => Labels.TryGetValue(pointName, out var label) ? label : pointName;
+
     /// <summary>How many trees the scatter planted (explicit tree props are not counted).</summary>
     public int TreeCount { get; }
 
@@ -76,8 +86,8 @@ public sealed class Scene
     public int WaterLevel { get; }
 
     /// <summary>
-    /// A copy with its own grid (<see cref="VoxelGrid.Clone"/>), so a run edits it apart from this scene. The spawn, the NPC placements and the
-    /// named points are read-only and shared.
+    /// A copy with its own grid (<see cref="VoxelGrid.Clone"/>), so a run edits it apart from this scene. The spawn, the NPC placements, the
+    /// named points and their labels are read-only and shared.
     /// </summary>
     internal Scene Clone() => new(this, Grid.Clone());
 

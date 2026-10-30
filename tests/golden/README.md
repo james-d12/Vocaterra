@@ -71,7 +71,8 @@ One JSON object per line (JSON Lines, UTF-8, LF). Property names are camelCase a
   `content/game-v1`, rendered with sample slots (`render`).
 
 The test recomputes every hash and fails on the first differences, naming the input, its source, the stage and the input text (up to 20).
-It needs no speech models and runs in about 10 seconds.
+It needs no speech models and runs in about 10 seconds. The verdicts stamp the bundle's content hash; it is masked before hashing (M54), so an
+edit of `content/game-v1` that changes no Spanish behaviour moves no hash.
 
 **Re-recording** is `VOCATERRA_RECORD_IDENTITY=1 dotnet test tests/Vocaterra.Nlp.Golden.Tests`. It is a separate variable from
 `VOCATERRA_RECORD_GOLDEN`, so re-recording the end-to-end goldens never touches the baseline.

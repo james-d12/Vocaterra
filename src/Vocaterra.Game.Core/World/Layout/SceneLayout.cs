@@ -103,6 +103,12 @@ public sealed class SceneLayout
     /// <summary>The undergrowth's parameters (S14).</summary>
     public UndergrowthSpec Undergrowth { get; }
 
+    /// <summary>
+    /// The beacon's words for the named places (CONTENT_PLAN C05): a site's, a point's or a named prop's <c>label</c> (<c>river</c> shows <c>río</c>). A place
+    /// with none shows its own name.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> Labels { get; init; } = new Dictionary<string, string>(StringComparer.Ordinal);
+
     /// <summary>The site called <paramref name="name"/>, or <see langword="null"/>.</summary>
     public SiteSpec? Site(string name)
     {

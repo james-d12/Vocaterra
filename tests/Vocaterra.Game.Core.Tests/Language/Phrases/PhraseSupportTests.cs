@@ -471,13 +471,13 @@ public sealed class PhraseSupportTests
     public void EveryAudioCueTheSupportCanQueueResolvesToAPreRenderedFileOfS9()
     {
         // The cues go to the line player by text: each text must be a speakable line of the bundle with its normal and its slow file in speech/.
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
         var index = new SpeechIndex(SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, sheet));
         var store = new Vocaterra.Nlp.Response.Speech.StaticLineStore(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
         var texts = new List<(string Speaker, string Text)> { ("guide", "el agua"), ("guide", "el pan") };
-        foreach (var id in PhraseIds.All.Where(PhraseIds.HasScaffold))
+        foreach (var id in PhraseIds.All.Where(TestGame.Data.Npcs.HasScaffold))
         {
-            var support = new PhraseSupport(sheet, new PhraseProgress(sheet), TestGame.Bundle);
+            var support = new PhraseSupport(sheet, new PhraseProgress(sheet, 1, TestGame.Data.Npcs.ScaffoldPhrases), TestGame.Bundle, TestGame.Data.Npcs);
             _ = support.Show("shopkeeper", Prompt(id));
             texts.AddRange(support.TakeCues().Select(static c => (c.Npc, c.Text)));
         }
@@ -504,7 +504,7 @@ public sealed class PhraseSupportTests
     {
         Assert.Equal("guide.review.phrase.pedir_agua", PhraseReviews.PoolOf("pedir-agua"));
         Assert.Equal("guide.review.phrase.donde_esta_el_rio", PhraseReviews.PoolOf("donde-esta-el-rio"));
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
         Assert.Equal("¿Qué necesitas?", PhraseReviews.Create("pedir-agua", sheet, TestGame.Bundle)?.Request);
         Assert.Equal("¿Quieres agua?", PhraseReviews.Create("no-gracias", sheet, TestGame.Bundle)?.Request);
         Assert.Equal("¿Qué buscas?", PhraseReviews.Create("donde-esta-el-rio", sheet, TestGame.Bundle)?.Request);

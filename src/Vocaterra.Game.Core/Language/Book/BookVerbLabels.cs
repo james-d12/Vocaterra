@@ -5,9 +5,9 @@ namespace Vocaterra.Game.Core.Language.Book;
 /// <summary>
 /// The plain-English label of a Spanish verb form (S20, the book's Verbs page): <c>quiero — I want</c>, <c>¿quieres? — do you want?</c>,
 /// <c>está — he/she/it is</c>. The English is a small table over the reading's person, number, tense and mood (the core's codes: person 1 to 3,
-/// number <c>sg</c> or <c>pl</c>, tense <c>pres</c>, <c>pret</c>, <c>impf</c>, <c>fut</c>, <c>cond</c>, mood <c>ind</c>, <c>subj</c>, <c>imp</c>), built from
-/// the verb's English gloss (<c>to want</c>) and its third person and past. <c>to be</c> is the one verb with its own forms (am, is, are, was, were).
-/// Plain values; no clock.
+/// number <c>sg</c> or <c>pl</c>, tense <c>pres</c>, <c>pret</c>, <c>impf</c>, <c>fut</c>, <c>cond</c>, mood <c>ind</c>, <c>subj</c>, <c>imp</c>), filled with
+/// the verb's forms the locale lists (<see cref="VerbGloss"/>: base, third person, past; CONTENT_PLAN C03, no form is built by a rule). A verb whose base is
+/// <c>be</c> has its own present and past (am, is, are, was, were). Plain values; no clock.
 /// </summary>
 public static class BookVerbLabels
 {
@@ -33,22 +33,20 @@ public static class BookVerbLabels
     /// The English of a finite form, or <see langword="null"/> when the reading is not one the table covers (an infinitive, a participle or an
     /// unknown tense): the caller shows the Spanish alone.
     /// </summary>
-    /// <param name="english">The gloss (<c>to want</c>), or <see langword="null"/> when the verb has none.</param>
-    /// <param name="third">The third person singular (<c>wants</c>), or <see langword="null"/> for the regular rule.</param>
-    /// <param name="past">The past (<c>wanted</c>), or <see langword="null"/> for the regular rule.</param>
+    /// <param name="gloss">The verb's forms, or <see langword="null"/> when the locale lists none.</param>
     /// <param name="person">The person.</param>
     /// <param name="number">The number.</param>
     /// <param name="tense">The tense.</param>
     /// <param name="mood">The mood.</param>
     /// <param name="question">Whether the form was used in a question.</param>
-    public static string? English(string? english, string? third, string? past, string? person, string? number, string? tense, string? mood, bool question)
+    public static string? English(VerbGloss? gloss, string? person, string? number, string? tense, string? mood, bool question)
     {
-        if (english is null || Subject(person, number) is not { } subject)
+        if (gloss is null || Subject(person, number) is not { } subject)
         {
             return null;
         }
 
-        var verb = new Conjugation(english, third, past);
+        var verb = new Conjugation(gloss);
         var singularThird = person == "3" && number == "sg";
         return (mood, tense) switch
         {
@@ -93,7 +91,7 @@ public static class BookVerbLabels
                 : spanish;
         }
 
-        var english = English(gloss?.English, gloss?.Third, gloss?.Past, person, number, tense, mood, question);
+        var english = English(gloss, person, number, tense, mood, question);
         return english is null ? spanish : spanish + Separator + english;
     }
 
@@ -108,16 +106,16 @@ public static class BookVerbLabels
         _ => $"let {subject} {verb.Base}",
     };
 
-    // The English forms of one verb: the base (the gloss without its "to"), the present and past, and the verb "to be", which has its own.
+    // The English forms of one verb, as the locale lists them: the base, the present and past, and the verb "to be", which has its own.
     private sealed class Conjugation
     {
-        public Conjugation(string english, string? third, string? past)
+        public Conjugation(VerbGloss gloss)
         {
-            // "to be" and its glosses that say what the verb is for (ser: "to be: what", estar: "to be: where or how") all conjugate as be.
-            IsBe = english is "to be" || english.StartsWith("to be:", StringComparison.Ordinal) || english.StartsWith("to be (", StringComparison.Ordinal);
-            Base = IsBe ? "be" : english.StartsWith("to ", StringComparison.Ordinal) ? english[3..] : english;
-            Third = third ?? (IsBe ? "is" : ThirdOf(Base));
-            Pst = past ?? (IsBe ? "was" : PastOf(Base));
+            // "to be" and its glosses that say what the verb is for (ser: "to be: what", estar: "to be: where or how") have the base "be".
+            IsBe = string.Equals(gloss.Base, "be", StringComparison.Ordinal);
+            Base = gloss.Base;
+            Third = gloss.Third;
+            Pst = gloss.Past;
         }
 
         public bool IsBe { get; }
@@ -142,35 +140,5 @@ public static class BookVerbLabels
         public string Past(string? person, string? number) => IsBe
             ? (person, number) is ("1" or "3", "sg") ? "was" : "were"
             : Pst;
-
-        // The regular third person of the first word: wants, goes to, asks for; a verb ending in s, x, z, ch, sh or o takes es.
-        private static string ThirdOf(string verb)
-        {
-            var (first, rest) = Split(verb);
-            var inflected = first.EndsWith('y') && first.Length > 1 && !"aeiou".Contains(first[^2])
-                ? first[..^1] + "ies"
-                : first.EndsWith('s') || first.EndsWith('x') || first.EndsWith('z') || first.EndsWith("ch", StringComparison.Ordinal) || first.EndsWith("sh", StringComparison.Ordinal) || first.EndsWith('o')
-                    ? first + "es"
-                    : first + "s";
-            return inflected + rest;
-        }
-
-        // The regular past of the first word: wanted, stayed; a verb ending in e takes d, a consonant and y becomes ied.
-        private static string PastOf(string verb)
-        {
-            var (first, rest) = Split(verb);
-            var inflected = first.EndsWith('e')
-                ? first + "d"
-                : first.EndsWith('y') && first.Length > 1 && !"aeiou".Contains(first[^2])
-                    ? first[..^1] + "ied"
-                    : first + "ed";
-            return inflected + rest;
-        }
-
-        private static (string Head, string Tail) Split(string verb)
-        {
-            var space = verb.IndexOf(' ', StringComparison.Ordinal);
-            return space < 0 ? (verb, string.Empty) : (verb[..space], verb[space..]);
-        }
     }
 }

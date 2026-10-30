@@ -1,0 +1,19 @@
+{
+  "$schema": "../../schema/locale.schema.json",
+  "about": "The catalogue nouns' support-language words (noun.<lemma>).",
+  "strings": {
+    "noun.agua": "water",
+    "noun.antorcha": "torch",
+    "noun.árbol": "tree",
+    "noun.botella": "bottle",
+    "noun.camino": "path",
+    "noun.casa": "house",
+    "noun.fruta": "fruit",
+    "noun.madera": "wood",
+    "noun.mesa": "workbench",
+    "noun.pan": "bread",
+    "noun.puente": "bridge",
+    "noun.río": "river",
+    "noun.tienda": "shop"
+  }
+}

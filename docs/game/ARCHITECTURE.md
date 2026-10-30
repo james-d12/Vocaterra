@@ -103,10 +103,14 @@ namespace (`src/Vocaterra.Game.Core/Language/Book/` is `Vocaterra.Game.Core.Lang
 **`src/Vocaterra.Game.Core`**, folders by system: no package, no engine type, no clock and no `System.Random` (its `ArchitectureRulesTests`).
 
 ```
-Event/            the game's events (WorldEvents, GameEvent) and EventPrinter (the console's event lines)
+Content/          GameData (every game file of the bundle, read once from its verified bytes), GameDataValidator (the checks between the files,
+                  CONTENT_PLAN C02), LocaleBundle and LocaleText (the learner's support language from content/locale, C03)
+Event/            the game's events (WorldEvents, GameEvent), EventPrinter (the console's event lines) and Trigger (what a tip, a lesson step
+                  or an objective waits for, C06)
 Input/            the keys without the engine (GameKey, IInputFrame, D-p2-1a), the command pattern (IGameCommand, DelegateCommand,
-                  GameCommands, KeyBinding, KeyBindings), InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits,
-                  TextEditKeys, the push-to-talk (PushToTalkSpeechCapture, ListenSession, ListenTarget), BookItemUse
+                  GameCommands, KeyBinding, KeyBindings, InputKeys: the commands' keys by name, which the locale's {key:…} spells),
+                  InputFocus, KeyRepeater, OpenKeySwallow, TextEntry, AccentShortcuts, TextEdits, TextEditKeys, the push-to-talk
+                  (PushToTalkSpeechCapture, ListenSession, ListenTarget), BookItemUse
 Items/            Inventory, ItemDefinition, ScriptItemNames, InventoryScreen and its panel (InventoryPanel)
   Crafting/       Recipe, RecipeBook and their records, CraftingRules, CraftingScreen, CraftingRow, RecipePanelModel, CraftingPanel
 Dialogue/         DialogueModel and its records, the speech buttons, TextWrap, the turn flow (TurnPump, SpeechActionRunner, SupportFrontend,
@@ -117,20 +121,21 @@ Language/         Book/ (the book's model, pages, tables, recordings, speakers, 
                   MicCheckScreen), Words/ (the noun catalogue, word progress, JournalRows, VerbReading, GreyscaleWorld)
 Mathematics/      Angles, WorldRng, PresentationRng
 Navigation/       Beacon, the walk's path search, BeaconDirector, PointLabels
-Npc/              NpcService, WorldFacts, the aim at an NPC, the guide's turns and events
+Npc/              NpcService, WorldFacts, the aim at an NPC, the guide's turns and events, the NPCs' data (NpcRoster) and HostEventTable
 Physics/          the player's body and its collision with the grid
 Reporting/        the F8 report (ReportPanel, ReportEntry, ReportWrap, ReportStateBuilder, BuildCommit), FrameStats, BusyFrameStats, the crash
                   report and its source (ICrashSource, CrashGameState, CrashSource)
 Save/             the save document, its migrations, SaveService and AutosaveController (its clock injected)
 Screens/          IScreen, ScreenStack (the top open screen takes the keys), ControlsHelp
 Scripted/         the scripts' steps (ScriptStep, VoxelStep and their kinds), VoxelScript, ScenarioScript, CheckScript, ScreenshotGate, ShotRequest
-Session/          VoxelSession, GuideSession, TurnWorker, the objective, PlaytestEnd, GuideApproach, SessionEnding, ObjectiveAnnouncer,
+Session/          VoxelSession, GuideSession, TurnWorker, the objectives (ObjectiveBook reads game/session.json and game/objectives/), PlaytestEnd,
+                  GuideApproach, SessionEnding, ObjectiveAnnouncer,
                   WordCardPresenter, PlaytestFlow
 Simulation/       VoxelSimulation (the fixed 60 Hz tick: gathering, placing, crafting) and its commands, TickAccumulator, TurnWatchdog, the
                   observer pattern (ITickObserver, DelegateTickObserver), LiveVoxelInput, LookControl, WorldStepper
 Sound/            the mixer, the cues and their mapping, the ambient beds, the footsteps, the NPC voice, SoundFrame, SoundTickObserver,
                   SoundSetup with its SoundOptions
-Tip/              the tips, EnglishText, ToastQueue
+Tip/              the tips (TipFeed, TipBook, TipSpec), the controls help's lines (ControlHelp), the objective line's pieces, ToastQueue
 Voxel/            the blocks, the chunks and the grid, the block ray and the line of sight
 World/            the built Scene; Layout/ (the layout file), Generation/ (the terrain and the scene builder)
 ```

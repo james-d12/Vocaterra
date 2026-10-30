@@ -1,0 +1,47 @@
+{
+  "$schema": "../../schema/host-events.schema.json",
+  "schemaVersion": 1,
+  "about": "What each NPC host event does in the world (S6; C08: it was a table in the code). The core's agents raise the events; an event not listed changes nothing. action is give_item (an item by its stable name) or point_at_noun (the beacon goes to the nearest block of a catalogue noun).",
+  "events": [
+    {
+      "npc": "shopkeeper",
+      "event": "stall.give_water",
+      "action": {
+        "kind": "give_item",
+        "item": "bottle"
+      }
+    },
+    {
+      "npc": "shopkeeper",
+      "event": "stall.give_bread",
+      "action": {
+        "kind": "give_item",
+        "item": "bread"
+      }
+    },
+    {
+      "npc": "villager",
+      "event": "villager.point",
+      "action": {
+        "kind": "point_at_noun",
+        "noun": "río"
+      }
+    },
+    {
+      "npc": "villager",
+      "event": "villager.give",
+      "action": {
+        "kind": "give_item",
+        "item": "bread"
+      }
+    },
+    {
+      "npc": "guide",
+      "event": "guide.give_water",
+      "action": {
+        "kind": "give_item",
+        "item": "water-bottle"
+      }
+    }
+  ]
+}

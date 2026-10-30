@@ -1,6 +1,8 @@
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
+using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Es;
 
 namespace Vocaterra.Game.Core.Tests.Language.Words;
@@ -8,7 +10,7 @@ namespace Vocaterra.Game.Core.Tests.Language.Words;
 // The game's reading of a used form (X03): an imperative reading that is the indicative present of its verb is that present, for the labels and the tables alike.
 public sealed class VerbReadingTests
 {
-    private static readonly Lazy<VerbGlosses> Glosses = new(() => VerbGlosses.Load(TestGame.Bundle));
+    private static readonly Lazy<VerbGlosses> Glosses = new(() => TestGame.Data.Glosses);
 
     [Theory]
     [InlineData("está", "estar", "2", "sg", "3", "sg")] // the core's tú imperative; estar's he/she/it present
@@ -39,7 +41,7 @@ public sealed class VerbReadingTests
         // "ven" is not a present of venir (vengo, vienes, viene...), so it stays the command the core read.
         var reading = VerbReading.Normalize("venir", "ven", "2", "sg", null, "imp", TestGame.Bundle.SpanishMorphology());
         Assert.Equal(("2", "sg", null, "imp"), reading);
-        Assert.Equal("ven — come!", BookVerbLabels.Label("ven", "venir", new VerbGloss("venir", "to come", null, null), "2", "sg", null, "imp", question: false));
+        Assert.Equal("ven — come!", BookVerbLabels.Label("ven", "venir", new VerbGloss("venir", "to come", "come", "comes", "came"), "2", "sg", null, "imp", question: false));
     }
 
     [Fact]

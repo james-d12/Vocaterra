@@ -20,7 +20,7 @@ namespace Vocaterra.Game.Core.Tests.Language.Book;
 // speak the heard-only phrases, no button on an unmet noun, the click, Enter and Shift+Enter, the mute, and the sound log's marks of the plays.
 public sealed class BookSpeechTests
 {
-    private static readonly Lazy<PhraseSheet> Sheet = new(() => PhraseSheet.Load(TestGame.Bundle));
+    private static readonly Lazy<PhraseSheet> Sheet = new(() => TestGame.Data.Phrases);
     private static readonly Lazy<IReadOnlyList<SpeechLine>> Lines = new(() => SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, Sheet.Value));
     private static readonly Lazy<string> Folder = new(() => Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
 
@@ -101,12 +101,12 @@ public sealed class BookSpeechTests
     public void AnUnmetNounHasNoButtonAndASeenOneHasItsCard()
     {
         var words = new WordProgress(TestGame.Nouns);
-        var none = BookPages.Nouns(words, [], Now, Definite, Sheet.Value, Committed());
+        var none = BookPages.Nouns(TestGame.Data.Locale, words, [], Now, Definite, Sheet.Value, TestGame.Data.Words.Unseen, Committed());
         Assert.All(none.Where(static l => l.Lemma is not null), static l => Assert.Null(l.Speak)); // ¿? rows: nothing is given away
-        Assert.Contains(none, static l => l.Text == JournalRows.UnseenLabel);
+        Assert.Contains(none, static l => l.Text == TestGame.Data.Words.Unseen);
 
         words.MarkHeard("madera");
-        var seen = BookPages.Nouns(words, [], Now, Definite, Sheet.Value, Committed());
+        var seen = BookPages.Nouns(TestGame.Data.Locale, words, [], Now, Definite, Sheet.Value, TestGame.Data.Words.Unseen, Committed());
         var row = seen.Single(static l => l.Lemma == "madera" && l.Speak is not null);
         Assert.Equal("card.madera", row.Speak);
         Assert.Equal(1, seen.Count(static l => l.Speak is not null)); // no other noun is seen
@@ -119,7 +119,7 @@ public sealed class BookSpeechTests
         record.Append(new InputEntry(1, 1, GuideSession.DefaultStartedAt + 1, InputSource.Voice, "fue el vaso", "guide", "guide-open", InputPlace.Dialogue, null, "ask_directions", true, false, [],
             [new GuideWord("vaso", new TextSpan(7, 4), "vaso", "noun", WordRole.Word, null, "sg", null, null, "m")]));
         var words = new WordProgress(TestGame.Nouns);
-        var lines = BookPages.Nouns(words, record.Nouns, Now, Definite, Sheet.Value, Committed());
+        var lines = BookPages.Nouns(TestGame.Data.Locale, words, record.Nouns, Now, Definite, Sheet.Value, TestGame.Data.Words.Unseen, Committed());
         Assert.Contains(lines, static l => l.Lemma == "vaso");
         Assert.All(lines, static l => Assert.Null(l.Speak));
     }
@@ -299,7 +299,7 @@ public sealed class BookSpeechTests
         var geometry = new BookGeometry(800, 600);
         var button = BookPractise.ButtonRect(geometry, geometry.ContentTop);
 
-        Assert.Equal("Practise again", BookPractise.Label);
+        Assert.Equal("Practise again", BookPractise.Label(TestGame.Data.Locale));
         Assert.True(button.X > geometry.ContentLeft + 200); // the heading keeps most of the row
         Assert.True(button.Right <= geometry.ContentRight && button.Bottom <= geometry.ContentTop + BookGeometry.LineHeight);
     }

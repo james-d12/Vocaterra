@@ -8,7 +8,7 @@ namespace Vocaterra.Game.UI.Hud;
 /// (<c>campamento 111 bloc…</c>). The label is now clamped inside the window, and while a talk is open it keeps clear of the panel, the cards and the bubble (the
 /// rectangles the conversation layout gives). Plain numbers, so a test places it with no window.
 /// </summary>
-public static class BeaconLabel
+public static class Called
 {
     /// <summary>The label's height.</summary>
     public const int Height = 22;

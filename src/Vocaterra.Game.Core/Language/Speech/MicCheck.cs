@@ -15,7 +15,6 @@ namespace Vocaterra.Game.Core.Language.Speech;
 public static class MicCheck
 {
     /// <summary>The word the player is asked to say.</summary>
-    public const string Word = "hola";
 
     /// <summary>The milliseconds of one window of the level (the meter and the clip's level).</summary>
     public const int WindowMilliseconds = 50;
@@ -26,23 +25,25 @@ public static class MicCheck
     /// </summary>
     /// <param name="recognizer">The word recognizer (Vosk), owned by the calling thread.</param>
     /// <param name="clip">The prepared clip, 16 kHz mono, or <see langword="null"/>.</param>
-    public static MicCheckResult Run(IWordRecognizer recognizer, PcmClip? clip)
+    /// <param name="word">The word the check asks for (the greeting, <c>hola</c>; <c>game/words.json</c>).</param>
+    public static MicCheckResult Run(IWordRecognizer recognizer, PcmClip? clip, string word)
     {
         ArgumentNullException.ThrowIfNull(recognizer);
+        ArgumentException.ThrowIfNullOrEmpty(word);
         if (clip is null)
         {
             return new MicCheckResult(string.Empty, false, 0);
         }
 
         var level = Level(clip);
-        var narrow = Clean(recognizer.Recognize(clip, RecognitionRequest.Constrained([Word], 1)).Transcript);
-        if (Says(narrow))
+        var narrow = Clean(recognizer.Recognize(clip, RecognitionRequest.Constrained([word], 1)).Transcript);
+        if (Says(narrow, word))
         {
             return new MicCheckResult(narrow, true, level);
         }
 
         var open = Clean(recognizer.Recognize(clip, RecognitionRequest.Open(1)).Transcript);
-        return new MicCheckResult(open, Says(open), level);
+        return new MicCheckResult(open, Says(open, word), level);
     }
 
     /// <summary>The loudest 50 ms window of the clip as an RMS level from 0 to 1 (full scale is 1).</summary>
@@ -79,6 +80,6 @@ public static class MicCheck
     private static string Clean(string transcript) =>
         string.Join(' ', transcript.Replace(GrammarBuilder.UnknownToken, " ", StringComparison.Ordinal).Split(' ', StringSplitOptions.RemoveEmptyEntries));
 
-    private static bool Says(string heard) =>
-        PhraseSheet.Plain(heard).Split(' ').Contains(Word, StringComparer.Ordinal);
+    private static bool Says(string heard, string word) =>
+        PhraseSheet.Plain(heard).Split(' ').Contains(word, StringComparer.Ordinal);
 }

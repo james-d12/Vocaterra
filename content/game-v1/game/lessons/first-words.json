@@ -1,0 +1,253 @@
+{
+  "$schema": "../../../schema/lesson.schema.json",
+  "schemaVersion": 1,
+  "id": "first-words",
+  "npc": "guide",
+  "autoStart": true,
+  "verbs": [
+    {
+      "lemma": "querer",
+      "person": "1",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "querer",
+      "person": "2",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "tener",
+      "person": "1",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "tener",
+      "person": "2",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "necesitar",
+      "person": "1",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "necesitar",
+      "person": "2",
+      "number": "sg",
+      "tense": "pres"
+    }
+  ],
+  "steps": [
+    {
+      "id": "u1-welcome",
+      "type": "explain"
+    },
+    {
+      "id": "u1-hello",
+      "type": "model",
+      "line": "guide.lesson.hello.1"
+    },
+    {
+      "id": "u1-say-hola",
+      "type": "repeat",
+      "phrase": "hola",
+      "prompt": "lesson-hello"
+    },
+    {
+      "id": "u1-name",
+      "type": "model",
+      "line": "guide.lesson.name.1"
+    },
+    {
+      "id": "u2-intro",
+      "type": "explain"
+    },
+    {
+      "id": "u2-ask-wood",
+      "type": "model",
+      "line": "guide.lesson.is_wood.1"
+    },
+    {
+      "id": "u2-yes",
+      "type": "repeat",
+      "phrase": "si",
+      "prompt": "lesson-yesno"
+    },
+    {
+      "id": "u2-no",
+      "type": "answer",
+      "phrase": "no",
+      "prompt": "lesson-yesno",
+      "line": "guide.lesson.is_water.1"
+    },
+    {
+      "id": "u3-intro",
+      "type": "explain"
+    },
+    {
+      "id": "u3-ask-1",
+      "type": "repeat",
+      "phrase": "que-es-esto",
+      "prompt": "lesson-what"
+    },
+    {
+      "id": "u3-is-1",
+      "type": "model",
+      "line": "guide.lesson.it_is.1"
+    },
+    {
+      "id": "u3-ask-2",
+      "type": "answer",
+      "phrase": "que-es-esto",
+      "prompt": "lesson-what",
+      "line": "guide.lesson.look.1"
+    },
+    {
+      "id": "u3-is-2",
+      "type": "model",
+      "line": "guide.lesson.it_is.2"
+    },
+    {
+      "id": "u3-ask-3",
+      "type": "answer",
+      "phrase": "que-es-esto",
+      "prompt": "lesson-what",
+      "line": "guide.lesson.look.1"
+    },
+    {
+      "id": "u3-is-3",
+      "type": "model",
+      "line": "guide.lesson.it_is.3"
+    },
+    {
+      "id": "u3-bottle",
+      "type": "model",
+      "line": "guide.lesson.it_is.4"
+    },
+    {
+      "id": "u4-intro",
+      "type": "explain"
+    },
+    {
+      "id": "u4-offer",
+      "type": "model",
+      "line": "guide.lesson.offer.1"
+    },
+    {
+      "id": "u4-yes",
+      "type": "repeat",
+      "phrase": "si-por-favor",
+      "prompt": "lesson-offer"
+    },
+    {
+      "id": "u4-take",
+      "type": "model",
+      "line": "guide.lesson.take.1"
+    },
+    {
+      "id": "u4-pick",
+      "type": "do",
+      "trigger": {
+        "event": "item_picked_up",
+        "detail": "fruta"
+      },
+      "point": "fruta"
+    },
+    {
+      "id": "u4-thanks",
+      "type": "answer",
+      "phrase": "gracias",
+      "prompt": "lesson-thanks",
+      "line": "guide.lesson.have.1"
+    },
+    {
+      "id": "u4-welcome",
+      "type": "model",
+      "line": "guide.lesson.welcome.1"
+    },
+    {
+      "id": "u4v-intro",
+      "type": "explain"
+    },
+    {
+      "id": "u4v-ask-want",
+      "type": "model",
+      "line": "guide.lesson.want.1"
+    },
+    {
+      "id": "u4v-say-want",
+      "type": "repeat",
+      "phrase": "quiero-madera",
+      "prompt": "lesson-want",
+      "person": "1sg"
+    },
+    {
+      "id": "u4v-ask-have",
+      "type": "answer",
+      "phrase": "tengo-fruta",
+      "prompt": "lesson-have",
+      "line": "guide.lesson.have_fruit.1",
+      "person": "1sg"
+    },
+    {
+      "id": "u4v-ask-need",
+      "type": "answer",
+      "phrase": "necesito-agua",
+      "prompt": "lesson-need",
+      "line": "guide.lesson.need.1",
+      "person": "1sg"
+    },
+    {
+      "id": "u5-intro",
+      "type": "explain"
+    },
+    {
+      "id": "u5-quiz",
+      "type": "answer",
+      "phrase": "no-se",
+      "prompt": "lesson-unstuck",
+      "line": "guide.review.ask.1"
+    },
+    {
+      "id": "u5-answer",
+      "type": "model",
+      "line": "guide.lesson.it_is.7"
+    },
+    {
+      "id": "u5-fast",
+      "type": "model",
+      "line": "guide.lesson.fast.1"
+    },
+    {
+      "id": "u5-again",
+      "type": "repeat",
+      "phrase": "otra-vez",
+      "prompt": "lesson-unstuck"
+    },
+    {
+      "id": "u5-slow",
+      "type": "repeat",
+      "phrase": "mas-despacio",
+      "prompt": "lesson-unstuck"
+    },
+    {
+      "id": "u6-task",
+      "type": "listen",
+      "line": "guide.lesson.task.1",
+      "correct": 0
+    },
+    {
+      "id": "u6-explain",
+      "type": "explain"
+    },
+    {
+      "id": "u6-recap",
+      "type": "recap"
+    }
+  ]
+}

@@ -18,7 +18,7 @@ public sealed class PhraseProgressTests
 
     private static readonly CreditRules Default = CreditRules.Default; // spoken full, typed half
 
-    private static PhraseProgress New(int session = 1) => new(PhraseSheet.Load(TestGame.Bundle), session);
+    private static PhraseProgress New(int session = 1) => new(RouteScene.DataOf(TestGame.Bundle).Phrases, session, TestGame.Data.Npcs.ScaffoldPhrases);
 
     private static PhraseUse Use(
         string phrase,
@@ -41,7 +41,7 @@ public sealed class PhraseProgressTests
         Assert.Equal(
             ["donde-esta-el-rio", "no-gracias", "pedir-agua", "si-por-favor"],
             progress.Records.Where(static r => r.Level == SupportLevel.EnglishAndCard).Select(static r => r.Id).Order(StringComparer.Ordinal));
-        Assert.All(progress.Records.Where(static r => !PhraseIds.HasScaffold(r.Id)), static r => Assert.Equal(SupportLevel.None, r.Level));
+        Assert.All(progress.Records.Where(r => !progress.HasScaffold(r.Id)), static r => Assert.Equal(SupportLevel.None, r.Level));
     }
 
     [Fact]

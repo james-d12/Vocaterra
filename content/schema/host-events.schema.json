@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/host-events.json",
+  "description": "What each NPC host event does in the world (C08). Loaded by HostEventTable (Vocaterra.Game.Core).",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "events"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "enum": [
+        1
+      ]
+    },
+    "about": {
+      "type": "string"
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "npc",
+          "event",
+          "action"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "npc": {
+            "type": "string",
+            "minLength": 1
+          },
+          "event": {
+            "type": "string",
+            "minLength": 1
+          },
+          "action": {
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "item"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "give_item"
+                    ]
+                  },
+                  "item": {
+                    "enum": [
+                      "wood",
+                      "torch",
+                      "berry",
+                      "bottle",
+                      "water-bottle",
+                      "bread",
+                      "book"
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "noun"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "point_at_noun"
+                    ]
+                  },
+                  "noun": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

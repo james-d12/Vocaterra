@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Es;
 
@@ -7,9 +8,14 @@ namespace Vocaterra.Host.Tests;
 internal static class GameContent
 {
     private static readonly Lazy<ContentBundle> LoadedBundle = new(() => SpanishContent.Load(BundleDirectory()));
+    private static readonly Lazy<GameData> LoadedData =
+        new(() => GameData.Load(Bundle, LocaleBundle.Load(LocaleBundle.DirectoryBeside(BundleDirectory())).Text(LocaleBundle.DefaultCode)));
 
     /// <summary>The bundle, loaded and validated by the core's loader.</summary>
     public static ContentBundle Bundle => LoadedBundle.Value;
+
+    /// <summary>The game's content of the bundle (every game file, loaded and checked once).</summary>
+    public static GameData Data => LoadedData.Value;
 
     /// <summary>The folder <c>content/game-v1</c> of the game, found by walking up from the test assembly.</summary>
     public static string BundleDirectory()

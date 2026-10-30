@@ -82,9 +82,9 @@ public sealed class MicCheckScreen : IScreen
                 break;
             case MicCheckPhase.Ready:
             case MicCheckPhase.Failed:
-                if (input.Pressed(GameKey.V) || input.Pressed(GameKey.Space))
+                if (input.Pressed(InputKeys.Of("listen")) || input.Pressed(InputKeys.Of("listenAlt")))
                 {
-                    BeginListening(input.Pressed(GameKey.V) ? GameKey.V : GameKey.Space);
+                    BeginListening(input.Pressed(InputKeys.Of("listen")) ? InputKeys.Of("listen") : InputKeys.Of("listenAlt"));
                 }
                 else if (input.Pressed(GameKey.Enter) && check.Phase == MicCheckPhase.Failed)
                 {
@@ -153,7 +153,7 @@ public sealed class MicCheckScreen : IScreen
             if (worker.CanHear)
             {
                 _sound.Scripted.Begin(); // the scripted check stands for a recording: beep, silent window, beep (S24)
-                _ = _session.SubmitHearSpeak(MicCheck.Word);
+                _ = _session.SubmitHearSpeak(_session.Data.Words.Greeting);
                 check.BeginScripted();
             }
             else
@@ -176,7 +176,7 @@ public sealed class MicCheckScreen : IScreen
         var worker = _session.Worker!;
         if (!worker.CanHear)
         {
-            check.Notice = worker.IsReady ? worker.Load?.Problem ?? "Speech is not available." : "Loading speech…";
+            check.Notice = worker.IsReady ? worker.Load?.Problem ?? _session.Locale.Ui("speechUnavailable") : _session.Locale.Ui("loadingSpeech");
             return;
         }
 

@@ -384,6 +384,19 @@ the owner-approved plan of 2026-10-23 (the flatten, then one bundle).
   a `verb` slot no game grammar names, so the generic recast answers; `quiero una azul espada` on `villager-open` is `word_order` but not
   communicated (`request_item` has no adjective slot).
 
+### 4.7 Content as data and the L1 locale layer (the C series; owner, 2026-10-29, D-game-21)
+
+The plan, the milestones C01 to C10 and their states are in `docs/game/CONTENT_PLAN.md` (section 4). The series runs on `feature/content`
+(made from `main` at `604903f`, after R16 phase 2 landed): every commit goes straight to it and is pushed there, never `main`, and the
+gate runs on it at the end of each milestone. On the owner's
+instruction one session (Opus 5.5) does every milestone itself, with no subagents. The findings of each milestone go into section 5.
+
+**Closed (owner, 2026-10-29: "work for content is done").**
+- C01 to C08 are done and gated on `feature/content`, and go to `main` by pull request #16.
+- C09 (items, blocks, sounds and signs as data) is assessed: sounds first.
+- C10, the authoring CLI (`new npc|objective|lesson`, `refs <id>`, `check`), is specified in `CONTENT_PLAN.md` section 3.8.
+- Neither C09 nor C10 is built; each becomes a milestone when the owner asks for it.
+
 ## 5. Findings log
 
 Facts that shape the plan. Each one names its source; the core's own findings stay in the core's plan.
@@ -1456,6 +1469,63 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     of three builds 3.5 to 4.0 s against a 3 s budget, about 0.6 s alone), because a run now starts by building the route for every seed at once. It moved unchanged to
     `SceneBuildTimeTests` in a serial `TimingCollection` that runs after the rest of Game.Core.Tests, with `ChunkIndexTests` (a 100 ms
     budget); the budgets are unchanged.
+
+- **The C series begins (2026-10-29, Opus 5.5; on `feature/content`, `docs/game/CONTENT_PLAN.md`, D-game-21).**
+  - The plan was checked against `main` at `604903f`, and its paths were moved onto R16's layout (section 2 of the plan).
+  - Baseline with the models at `604903f`: 5447 passed, 3 skipped, 0 failed. The per-project counts are Host 36, Game 529, Game.Core 1208,
+    Nlp 2452 (3 skipped), Nlp.Es 1129, Fuzzing 76 and Golden 17. The build has 0 warnings.
+  - Found while planning, and left for the series to fix:
+    - the guide is "Luna" in code and content, but "Rosa" in two comments (`PhraseReview.cs:31`, `LessonRunner.cs:444`);
+    - the scene is read twice: once hashed in the bundle, then again from disk by `SceneLayout.Load`, and `--scene` skips the check;
+    - a non-guide NPC's beacon label is its raw agent id ("shopkeeper"), not its label (`VoxelSession.cs:189`).
+  - The main checkout held 4.5 GB of stale `game/` and `nlp/` build output from before R01, and the merged worktree `game_refactor-work`
+    held 3.5 GB of `bin/` and `obj/`. Both were deleted to make room for the series' worktree; the free disk had fallen to 9.8 GB.
+
+- **C01 to C03: the content contract, one load and the locale bundle (2026-10-29, Opus 5.5; gated on `feature/content` at `9e7960d`).**
+  - **Gate:** 5482 passed, 3 skipped, 0 failed, with the models; the build has 0 warnings; format, content, grammar and both licence scans are
+    clean. That is 35 new tests: Game.Core 1208 to 1243, the rest unchanged.
+  - **Scripted runs.** After C01 and C02 all 16 runs are the same as the baseline once the hash is masked (`compare-runs.py` now masks it).
+    After C03 they differ only where expected: the new `locale:` line in `stdout.txt` and the `session_start` locale fields (all 16), and the
+    report's Locale row (r12).
+  - **Found:**
+    - The core's identity guard pinned game-v1's bytes, because the verdicts stamp the bundle's hash. It is fixed as core milestone M54.
+    - The core's manifest tests assumed game-v1 names no support language; fixed as M55.
+    - NJsonSchema ignores draft-07 `if`/`then`, so the schemas write those rules as `anyOf` with `not`.
+    - JsonSchema.Net 9.x has no licence expression, so the schema test uses NJsonSchema (MIT).
+    - The old `english.json` held one orphan gloss, "Necesitas una botella.".
+  - **Disk:** the stale `game/` and `nlp/` build output of the main checkout (4.5 GB from before R01) was deleted.
+
+- **C05, C06 and C08: the game's words, one trigger model and the NPCs as data (2026-10-29, Opus 5.5; gated on `feature/content` at `19a328e`).**
+  - **Gate:** 5520 passed, 3 skipped, 0 failed, with the models; the build has 0 warnings; format, content, grammar and both licence scans are
+    clean. That is 38 new tests, all in Game.Core (1243 to 1281).
+  - **Scripted runs.** After C05 all 16 runs are the same as after C03. After C06 they differ only by the new `torch_at_ring` lines in
+    `session.jsonl` and `stdout.txt` (r01: one, at the camp's ring; r10: two, the camp's and the player's).
+  - **Found:**
+    - The beacon on a non-guide NPC showed the raw agent id (`shopkeeper`); it now shows the NPC's label (`Tendero`).
+    - The four scaffolded phrases were wired into `PhraseProgress` itself; they now come from the NPCs' `focus`, so a test that builds a
+      progress passes them in.
+    - The NPCs' labels and names were not grammar-checked; they are now (4 strings, clean). C05's 26 words gave 5 capitalisation infos on
+      fragments, none an error.
+
+- **C07 and C04: the objectives as data, save v5, and the player's English in the locale (2026-10-29, Opus 5.5; gated on `feature/content` at `59b7f01`).**
+  - **Gate:** 5554 passed, 3 skipped, 0 failed, with the models; the build has 0 warnings; format, content, grammar and both licence scans are
+    clean. That is 34 new tests: Game.Core 1281 to 1314, Game 529 to 530.
+  - **C07.** `game/session.json` and `game/objectives/<id>.json` replace `Objective.Camp()` and the `SessionStage` rules. The HUD's line is the
+    first objective not done. Hooks name the code's behaviour (`guide-met`, `spare-torch`, `point-own-camp`; `lesson-begun`,
+    `scan-fire-ring`). Save v5 keys the steps by objective, and an older save's keys are mapped before the migration. `Fixtures/save-v4.json`
+    tests the out-of-order ending. The runs differ only by the saves' version and keys.
+  - **C04.** About 150 player strings moved to `locale/en/ui.json`, with `{npc:…}`, `{key:…}` (`InputKeys`, which `KeyBindings` reads) and
+    plurals. `NoLiteralTextTests` and the locale glyph test keep it that way.
+  - **Found:**
+    - The light-fire objective has to wait for `fire_lit`, not the torch at the ring, or the session-complete line would come before the
+      fire's.
+    - The tests made older saves by relabelling a new one, so the v4 key map leaves a key that has a dot.
+    - Three comments, not literals, held Spanish (`"Hola."`, `"¿En qué te ayudo?"`, `"Otra vez, por favor"`); the scan skips comments.
+    - The speech and microphone problem messages are made where no locale is at hand (the worker, the engine, the capture), and the English
+      verb labels are grammar rules. Both are open points on the scan's allowlist.
+    - The beacon now says "1 block", not "1 blocks".
+    - The scripted runs caught a console line that interpolated a property turned method (`{heard.Text}` printed `System.Func…`); it compiled
+      because a method group has a natural type. Fixed with `DialogueModel.HeardText`; the runs are then all the same as after C07.
 
 ## 6. Definition of done (every milestone)
 

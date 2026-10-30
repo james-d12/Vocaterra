@@ -156,7 +156,7 @@ public sealed class SpokenFrontendTests
         var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
         var focus = new InputFocus();
-        var dialogue = new DialogueModel(focus, session.OpeningLine);
+        var dialogue = new DialogueModel(focus, session.OpeningLine, session.Data);
         var pump = new TurnPump(session, dialogue, () => null);
         dialogue.Open();
 
@@ -189,7 +189,7 @@ public sealed class SpokenFrontendTests
     {
         var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data);
         var pump = new TurnPump(session, dialogue, () => null);
         dialogue.Open();
 
@@ -213,7 +213,7 @@ public sealed class SpokenFrontendTests
     [Fact]
     public void ClosingThePanelDropsTheListeningStateAndAScriptedSpeechRequest()
     {
-        var dialogue = new DialogueModel(new InputFocus(), "hola");
+        var dialogue = new DialogueModel(new InputFocus(), "hola", RouteScene.Shipped);
         dialogue.Open();
         dialogue.Listening = true;
         dialogue.RequestSpeech(TurnSource.Speak, "hola");

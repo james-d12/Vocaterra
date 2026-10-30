@@ -1,0 +1,12 @@
+{
+  "$schema": "../../../schema/npc.schema.json",
+  "schemaVersion": 1,
+  "id": "villager",
+  "label": "Aldeano",
+  "figure": "villager",
+  "focus": {
+    "villager-open": [
+      "donde-esta-el-rio"
+    ]
+  }
+}

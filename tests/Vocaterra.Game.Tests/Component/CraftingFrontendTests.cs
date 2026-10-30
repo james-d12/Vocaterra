@@ -21,14 +21,14 @@ public sealed class CraftingFrontendTests
         var rows = CraftingScreen.Rows(session.Simulation, book);
         Assert.Equal(book.Entries.Count, rows.Count);
         Assert.All(rows, static r => Assert.False(r.CanMake));
-        Assert.Equal("Missing material", rows[book.IndexOf("antorcha")].Status);
+        Assert.Equal("Missing material", rows[book.IndexOf("antorcha")].Status(RouteScene.Shipped.Locale));
 
         // The torch needs two wood and the workbench in reach: the session starts away from it.
         session.Simulation.GrantItems(ItemId.Wood, 2);
         rows = CraftingScreen.Rows(session.Simulation, book);
         var torch = rows[book.IndexOf("antorcha")];
         Assert.Equal(CraftResult.MissingStation, torch.Result);
-        Assert.Equal("Needs mesa", torch.Status);
+        Assert.Equal("Needs mesa", torch.Status(RouteScene.Shipped.Locale));
         Assert.Equal([2], torch.Have);
         Assert.True(torch.HasEnough(0));
     }

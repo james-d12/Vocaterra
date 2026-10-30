@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.UI.Common;
@@ -13,8 +14,9 @@ namespace Vocaterra.Game.UI.Dialogue;
 /// </summary>
 public sealed class TalkHintLayer : IFrameLayer
 {
-    /// <summary>The hint's text.</summary>
-    public const string Text = "E: talk";
+    /// <summary>The hint's text (<c>ui.talkHint</c>, C04).</summary>
+    /// <param name="ui">The support language.</param>
+    public static string Text(LocaleText ui) => (ui ?? throw new ArgumentNullException(nameof(ui))).Ui("talkHint");
 
     /// <inheritdoc />
     public void Draw(SpriteBatch spriteBatch, FrameView view)
@@ -25,12 +27,13 @@ public sealed class TalkHintLayer : IFrameLayer
         }
 
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var width = DrawHelpers.Width(font, Text);
+        var text = Text(view.Session.Locale);
+        var width = DrawHelpers.Width(font, text);
         var screen = view.ViewportWidth / 2;
         var box = new Rectangle((int)(screen - (width / 2)) - 8, (view.ViewportHeight / 2) + 26, (int)width + 16, 24);
         spriteBatch.Draw(view.Pixel, box, new Color(0, 0, 0, 175));
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, new Color(255, 214, 64));
-        DrawHelpers.Text(spriteBatch, font, Text, new Vector2(box.X + 8, box.Y + 3), Color.White);
+        DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.X + 8, box.Y + 3), Color.White);
     }
 }
 

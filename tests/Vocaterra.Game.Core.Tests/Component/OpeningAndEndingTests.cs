@@ -40,7 +40,7 @@ public sealed class OpeningAndEndingTests
     private static VoxelSession CompletedCamp()
     {
         var (session, _, _) = CampObjectiveTests.PlayCamp();
-        _ = session.HostEvent(Objective.WaterEvent);
+        _ = session.HostEvent(WorldEvents.BottleFilled);
         Assert.True(session.Objective.Complete);
         return session;
     }
@@ -50,12 +50,12 @@ public sealed class OpeningAndEndingTests
     {
         var session = TestGame.NewSessionWithShippedLessons();
 
-        Assert.Equal(SessionStage.FindGuide, session.Stage);
+        Assert.Equal("meet-guide", session.CurrentObjective?.Id);
         Assert.Equal("Go down the trail and find the guide", Hud(session));
-        Assert.Equal(ObjectivePieceKind.English, Assert.Single(session.ObjectiveHud()).Kind); // English only, in its own colour
+        Assert.Equal(ObjectivePieceKind.Support, Assert.Single(session.ObjectiveHud()).Kind); // English only, in its own colour
         Assert.False(session.GuideMet);
         Assert.InRange(session.Simulation.Player.FeetBlock.X, session.Scene.Point("camp.player").X - 6, session.Scene.Point("camp.player").X + 6); // the spawn is the player's camp, alone: no NPC within a long walk
-        Assert.All(NpcService.AgentIds, npc =>
+        Assert.All(TestGame.Data.Npcs.Ids, npc =>
         {
             var feet = session.Scene.Npc(npc).Feet;
             var me = session.Simulation.Player.FeetBlock;
@@ -82,13 +82,13 @@ public sealed class OpeningAndEndingTests
         var talked = TestGame.NewSessionWithShippedLessons();
         Stage.TeleportToNpc(talked, "guide");
         _ = talked.OpenTalk("guide");
-        Assert.Equal(SessionStage.Camp, talked.Stage);
+        Assert.Equal("camp", talked.CurrentObjective?.Id);
         Assert.StartsWith("Campamento (camp): madera (wood) 0/5", Hud(talked), StringComparison.Ordinal);
 
         var gathered = TestGame.NewSessionWithShippedLessons();
-        _ = gathered.Objective.RecordPickup(ItemId.Wood, 1);
+        _ = gathered.Objective.Record(WorldEvents.ItemPickedUp, "madera", 1);
         gathered.Step([]); // the first step of the checklist without ever meeting the guide: nothing is gated, and the line moves on
-        Assert.Equal(SessionStage.Camp, gathered.Stage);
+        Assert.Equal("camp", gathered.CurrentObjective?.Id);
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public sealed class OpeningAndEndingTests
     {
         var session = CompletedCamp();
 
-        Assert.Equal(SessionStage.LightFire, session.Stage);
+        Assert.Equal("light-fire", session.CurrentObjective?.Id);
         Assert.Equal("Go back up the trail and light your own fire", Hud(session));
         Assert.Equal(1, session.Simulation.Inventory.Count(ItemId.Torch)); // the guide's camp took the first torch (the checklist's); this one is for the player's own fire
         var world = session.Events.OfType<WorldEvent>().Select(static e => e.Name).ToList();
@@ -133,7 +133,7 @@ public sealed class OpeningAndEndingTests
 
         Assert.True(session.FireLit);
         Assert.True(session.SessionComplete);
-        Assert.Equal(SessionStage.Complete, session.Stage);
+        Assert.Null(session.CurrentObjective);
         Assert.Equal("Session complete: your fire is lit", Hud(session));
         Assert.Null(session.Pointer);
         var names = session.Events.OfType<WorldEvent>().Select(static e => e.Name).ToList();
@@ -141,7 +141,7 @@ public sealed class OpeningAndEndingTests
         Assert.Equal(1, names.Count(static n => n == WorldEvents.SessionComplete));
         Assert.True(names.IndexOf(WorldEvents.FireLit) < names.IndexOf(WorldEvents.SessionComplete));
         Assert.Equal("¡Muy bien! Ya tienes fuego.", session.ClosingLine);
-        Assert.Equal("Very good! Now you have a fire.", session.English.ForLine(session.ClosingLine));
+        Assert.Equal("Very good! Now you have a fire.", session.Locale.Line(session.ClosingLineId!));
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public sealed class OpeningAndEndingTests
     {
         var (session, _, _) = CampObjectiveTests.PlayCamp();
 
-        Assert.Equal(1, session.Objective.Step(Objective.TorchKey)!.Count);
+        Assert.Equal(1, session.Objective.Step("torch")!.Count);
         Assert.False(session.FireLit); // the torch at the guide's ring is the camp's, not the player's own fire
         Assert.False(session.SessionComplete);
     }
@@ -174,15 +174,15 @@ public sealed class OpeningAndEndingTests
 
         Assert.True(session.FireLit);
         Assert.False(session.SessionComplete); // the checklist is not done
-        Assert.Equal(SessionStage.FindGuide, session.Stage);
+        Assert.Equal("meet-guide", session.CurrentObjective?.Id);
 
-        _ = session.Objective.RecordPickup(ItemId.Wood, 5);
-        _ = session.Objective.RecordPickup(ItemId.Berry, 3);
-        _ = session.Objective.RecordTorchPlaced(atFireRing: true);
-        _ = session.HostEvent(Objective.WaterEvent);
+        _ = session.Objective.Record(WorldEvents.ItemPickedUp, "madera", 5);
+        _ = session.Objective.Record(WorldEvents.ItemPickedUp, "fruta", 3);
+        _ = session.Objective.Record(WorldEvents.TorchAtRing, "firering");
+        _ = session.HostEvent(WorldEvents.BottleFilled);
 
         Assert.True(session.SessionComplete);
-        Assert.Equal(SessionStage.Complete, session.Stage);
+        Assert.Null(session.CurrentObjective);
         Assert.Equal(0, session.Simulation.Inventory.Count(ItemId.Torch)); // the fire is lit already: no spare torch
         Assert.DoesNotContain(session.Events.OfType<WorldEvent>(), static e => e.Name == WorldEvents.SpareTorch);
     }
@@ -198,12 +198,12 @@ public sealed class OpeningAndEndingTests
 
         Assert.True(session.Simulation.GrantItems(ItemId.Torch, 1) > 0, "the bag is full");
 
-        _ = session.Objective.RecordPickup(ItemId.Wood, 5);
-        _ = session.Objective.RecordPickup(ItemId.Berry, 3);
-        _ = session.Objective.RecordTorchPlaced(atFireRing: true);
-        _ = session.HostEvent(Objective.WaterEvent);
+        _ = session.Objective.Record(WorldEvents.ItemPickedUp, "madera", 5);
+        _ = session.Objective.Record(WorldEvents.ItemPickedUp, "fruta", 3);
+        _ = session.Objective.Record(WorldEvents.TorchAtRing, "firering");
+        _ = session.HostEvent(WorldEvents.BottleFilled);
 
-        Assert.Equal(SessionStage.LightFire, session.Stage); // the objective line still sends them up; a torch is made from two wood at the workbench
+        Assert.Equal("light-fire", session.CurrentObjective?.Id); // the objective line still sends them up; a torch is made from two wood at the workbench
         Assert.Contains(session.Events.OfType<WorldEvent>(), static e => e is { Name: WorldEvents.SpareTorch, Detail: "bag full" });
         Assert.Empty(session.TakeHints()); // nothing was said about a torch that is not there
     }
@@ -216,11 +216,11 @@ public sealed class OpeningAndEndingTests
         session.Step([]);
         var saved = SaveGame.Save(session, TestGame.Route());
 
-        var loaded = SaveGame.Load(saved, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: false);
+        var loaded = SaveGame.Load(saved, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.True(loaded.FireLit);
         Assert.True(loaded.SessionComplete);
-        Assert.Equal(SessionStage.Complete, loaded.Stage);
+        Assert.Null(loaded.CurrentObjective);
         Assert.Equal(saved, SaveGame.Save(loaded, TestGame.Route()));
     }
 
@@ -230,9 +230,9 @@ public sealed class OpeningAndEndingTests
         var session = CompletedCamp();
         var saved = SaveGame.Save(session, TestGame.Route());
 
-        var loaded = SaveGame.Load(saved, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: false);
+        var loaded = SaveGame.Load(saved, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
-        Assert.Equal(SessionStage.LightFire, loaded.Stage);
+        Assert.Equal("light-fire", loaded.CurrentObjective?.Id);
         Assert.False(loaded.FireLit);
     }
 }

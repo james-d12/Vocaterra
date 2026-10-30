@@ -26,6 +26,7 @@ core's licence, D4 the OpenSubtitles terms, D5 the feed, D8 to D11 and D13 open 
 | D-game-18 | Sound | decided (owner, 2026-10-22): ambient, interaction and progress sounds; CC0 packs plus code-synthesized sounds; no music; ambient and effects duck under the voices and are silent while the microphone records | nothing |
 | D-game-19 | Verbs in the lessons | decided (owner, 2026-10-22): verbs early but gradual, across sessions (yo/tú in session 1, the other persons in session 2, ir a + infinitive and a few past forms in session 3), lessons replayable from the book; conjugation tables in the book | nothing |
 | D-game-20 | One licence for the whole repository | decided (owner, 2026-10-23): Apache-2.0 for the game as well as the core; one `LICENSE` and `NOTICE` at the root (R01) | nothing |
+| D-game-21 | Content as data and the L1 locale layer (the C series, `docs/game/CONTENT_PLAN.md`) | decided (owner, 2026-10-27 to 2026-10-29): English moves into a locale bundle `content/locale/` outside game-v1's hash (`en` only); content stays JSON with JSON Schema; objectives, NPCs and target-language words become data; the series runs after R16 phase 2, on `feature/content` | nothing |
 
 ## D-game-1: the game engine (prototype decided; final engine open)
 
@@ -236,6 +237,21 @@ owner chose **everything Apache-2.0**. The owner is the sole author, so the game
 Done in R01: the core's `LICENSE` and `NOTICE` moved to the root (NOTICE now names the whole project), the game's MIT `LICENSE` was
 removed, and the READMEs and `content/game-v1/ATTRIBUTION.md` say Apache-2.0. Third-party terms are unchanged: the Wiktionary lexicon
 stays CC BY-SA 4.0, assets stay CC0 only (D-game-5), and the models keep their own licences.
+
+## D-game-21: content as data and the L1 locale layer (decided)
+
+**Owner, 2026-10-27 to 2026-10-29.** The owner asked how `content/` could be made easier to manage, how the learner's native language could
+leave the code ("what if someone speaking French wanted to learn Spanish?"), and how objectives and NPCs could be built from data, as the
+ground for custom authoring tools. The answers, in `docs/game/CONTENT_PLAN.md`:
+- English moves into a locale layer; no second locale is added yet (2026-10-27).
+- Content stays JSON, with JSON Schema added (2026-10-27).
+- The locale is a bundle of its own, `content/locale/`, beside `content/game-v1` and outside its hash, so an L1 edit touches no save, fixture
+  or golden; game-v1's manifest names the default locale in `supportLanguage` (2026-10-28).
+- R16 phase 2 runs first, and the series starts on its layout (2026-10-28).
+- Proceed (2026-10-29): one session (Opus 5.5) does every milestone itself, with no subagents, on `feature/content`, made from `main` after
+  R16 phase 2 landed there.
+- Close (2026-10-29: "work for content is done"): C01 to C08 are done (pull request #16). C09 is assessed and C10, the authoring CLI the
+  request looked towards, is specified in `CONTENT_PLAN.md` section 3.8. Neither is built until the owner asks.
 
 ## Already decided
 

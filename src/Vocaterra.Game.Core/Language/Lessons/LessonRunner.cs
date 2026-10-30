@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Event;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
@@ -171,18 +172,18 @@ public sealed class LessonRunner
 
     private readonly GuideSession _session;
     private readonly LessonBook _book;
-    private readonly EnglishText _english;
+    private readonly LocaleText _locale;
     private readonly Dictionary<string, State> _states = new(StringComparer.Ordinal);
     private string? _activeId;
     private string? _replayId;
     private bool _engaged;
     private int _version;
 
-    internal LessonRunner(GuideSession session, LessonBook book, EnglishText english)
+    internal LessonRunner(GuideSession session, LessonBook book, LocaleText english)
     {
         _session = session;
         _book = book;
-        _english = english;
+        _locale = english;
         foreach (var lesson in book.Lessons)
         {
             _states[lesson.Id] = new State();
@@ -284,7 +285,7 @@ public sealed class LessonRunner
 
     /// <summary>The English objective line for a lesson practised again (S26): where to go and which lesson, or <see langword="null"/> when none is pending.</summary>
     public string? ReplayHud => _replayId is { } id && _book.Find(id) is { } lesson && _activeId is null
-        ? string.Create(CultureInfo.InvariantCulture, $"Practise again: talk to {_english.NpcName(lesson.Npc).ToLowerInvariant()} to start \u201c{lesson.Title}\u201d")
+        ? _locale.Ui("replayHud", ("npc", _locale.NpcName(lesson.Npc).ToLowerInvariant()), ("title", lesson.Title))
         : null;
 
     /// <summary>The NPC the step in progress is said at: the step's own, or its lesson's; <see langword="null"/> when no lesson is active.</summary>
@@ -409,7 +410,7 @@ public sealed class LessonRunner
             var state = _states[lesson.Id];
             var step = lesson.Steps[state.Step];
             var spanish = step.Line?.Text ?? (step.Phrase is { } phrase ? _session.Phrases.Find(phrase)?.Spanish : null);
-            var heading = _english.Ui(step.Type switch
+            var heading = _locale.Ui(step.Type switch
             {
                 LessonStepType.Explain => "stepExplain",
                 LessonStepType.Model => "stepModel",
@@ -520,7 +521,7 @@ public sealed class LessonRunner
         var step = lesson.Steps[state.Step];
         state.Helped = true;
         state.HelpUses++;
-        state.Hint = step.Help ?? _english.Ui("helpDefault");
+        state.Hint = step.Help ?? _locale.Ui("helpDefault");
         Emit(LessonEventKind.Help, lesson, state, step, null, null);
         if (step.Line is { } line)
         {
@@ -594,7 +595,7 @@ public sealed class LessonRunner
             else
             {
                 state.Picked = -1;
-                state.Hint = step.Retry ?? _english.Ui("retry");
+                state.Hint = step.Retry ?? _locale.Ui("retry");
             }
 
             Emit(LessonEventKind.Retry, lesson, state, step, null, $"pick {(option + 1).ToString(CultureInfo.InvariantCulture)}");
@@ -703,7 +704,7 @@ public sealed class LessonRunner
         {
             state.Helped = true;
             state.HelpUses++;
-            state.Hint = step.Help ?? _english.Ui("helpDefault");
+            state.Hint = step.Help ?? _locale.Ui("helpDefault");
             Emit(LessonEventKind.Help, lesson, state, step, null, turn.Intent);
             _version++;
         }
@@ -761,7 +762,7 @@ public sealed class LessonRunner
     }
 
     // The reason and the retry line when the answer is the step's phrase with the wrong person or tense of verb, else null. Person first, then tense.
-    private static (string Reason, string? Retry)? FormMiss(LessonStep step, GuideTurn turn)
+    private (string Reason, string? Retry)? FormMiss(LessonStep step, GuideTurn turn)
     {
         if (step.Person is { } person && WrongPerson(turn, person) is { } said)
         {
@@ -790,17 +791,9 @@ public sealed class LessonRunner
 
         var state = _states[lesson.Id];
         var step = lesson.Steps[state.Step];
-        if (step.Type != LessonStepType.Do || !string.Equals(step.Event, world.Name, StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        if (step.At is { } wantedNpc && world.Npc is not null && !string.Equals(world.Npc, wantedNpc, StringComparison.Ordinal))
-        {
-            return; // a do step that waits for the panel to open on an NPC (S26: the walk from the villager to the stall) ignores another NPC's
-        }
-
-        if (step.Detail is { } wanted && (world.Detail is null || !world.Detail.Contains(wanted, StringComparison.OrdinalIgnoreCase)))
+        // The step's trigger (C06): its event, and the NPC (S26: the walk from the villager to the stall ignores another NPC's panel) and the exact detail
+        // when it names them.
+        if (step.Type != LessonStepType.Do || step.Trigger is not { } trigger || !trigger.Matches(world))
         {
             return;
         }
@@ -954,20 +947,19 @@ public sealed class LessonRunner
             && !string.Equals(w.Mood, "inf", StringComparison.OrdinalIgnoreCase) && !string.Equals(w.Mood, "infinitive", StringComparison.OrdinalIgnoreCase)).ToList();
 
     // Whether the answer of an ir-a step is a plan said in the present with a future-time word (S27): "mañana voy al río", "mañana como pan". It is correct Spanish, so it is no miss.
-    private static bool PresentForPlan(LessonStep step, GuideTurn turn) =>
+    private bool PresentForPlan(LessonStep step, GuideTurn turn) =>
         string.Equals(step.Tense, TaughtVerbForm.NearFuture, StringComparison.Ordinal) && !turn.Errors.Any(static e => e.Tag.StartsWith("conj.", StringComparison.Ordinal))
         && turn.Words is { } words && PresentForPlan(turn, words, FiniteVerbs(words)) && !HasNearFuture(words, FiniteVerbs(words));
 
-    private static bool PresentForPlan(GuideTurn turn, IReadOnlyList<GuideWord> words, List<GuideWord> finite) =>
-        words.Any(static w => string.Equals(w.Text, "mañana", StringComparison.Ordinal)) && finite.Count > 0 && finite.Any(static w => string.Equals(w.Tense, "pres", StringComparison.OrdinalIgnoreCase))
+    private bool PresentForPlan(GuideTurn turn, IReadOnlyList<GuideWord> words, List<GuideWord> finite) =>
+        words.Any(w => _session.Data.Words.NearFuture.TimeWords.Contains(w.Text, StringComparer.Ordinal)) && finite.Count > 0 && finite.Any(static w => string.Equals(w.Tense, "pres", StringComparison.OrdinalIgnoreCase))
         && !finite.Any(static w => string.Equals(w.Tense, "pret", StringComparison.OrdinalIgnoreCase) || string.Equals(w.Tense, "impf", StringComparison.OrdinalIgnoreCase));
 
-    private static bool HasNearFuture(IReadOnlyList<GuideWord> words, List<GuideWord> finite)
+    private bool HasNearFuture(IReadOnlyList<GuideWord> words, List<GuideWord> finite)
     {
         for (var i = 0; i + 2 < words.Count; i++)
         {
-            if (string.Equals(words[i].Lemma, "ir", StringComparison.Ordinal) && finite.Contains(words[i]) && string.Equals(words[i + 1].Text, "a", StringComparison.Ordinal)
-                && string.Equals(words[i + 2].Pos, "verb", StringComparison.Ordinal) && (words[i + 2].Mood is "inf" or "infinitive" || words[i + 2].Person is not { Length: > 0 }))
+            if (IsNearFutureAt(words, finite, i))
             {
                 return true;
             }
@@ -976,9 +968,17 @@ public sealed class LessonRunner
         return false;
     }
 
+    // The near future at a word: a finite form of its verb (ir), then its joiner (a), then an infinitive (game/words.json, C05).
+    private bool IsNearFutureAt(IReadOnlyList<GuideWord> words, List<GuideWord> finite, int i)
+    {
+        var nearFuture = _session.Data.Words.NearFuture;
+        return string.Equals(words[i].Lemma, nearFuture.Verb, StringComparison.Ordinal) && finite.Contains(words[i]) && string.Equals(words[i + 1].Text, nearFuture.Joiner, StringComparison.Ordinal)
+            && string.Equals(words[i + 2].Pos, "verb", StringComparison.Ordinal) && (words[i + 2].Mood is "inf" or "infinitive" || words[i + 2].Person is not { Length: > 0 });
+    }
+
     // The tense (S27) of the answer's verb when it is not the expected one and the core found no error to flag, else null: the tense said (pres, pret, ...) or "none". The near future
     // (ir-a) is a finite form of ir, then "a", then an infinitive. A line with no finite verb is not judged. When the line has several verbs, one with the expected tense is enough.
-    private static string? WrongTense(GuideTurn turn, string wanted)
+    private string? WrongTense(GuideTurn turn, string wanted)
     {
         if (turn.Errors.Any(static e => e.Tag.StartsWith("conj.", StringComparison.Ordinal)) || turn.Words is not { } words)
         {
@@ -1001,8 +1001,7 @@ public sealed class LessonRunner
             var nearFuture = false;
             for (var i = 0; i + 2 < words.Count; i++)
             {
-                nearFuture |= string.Equals(words[i].Lemma, "ir", StringComparison.Ordinal) && finite.Contains(words[i]) && string.Equals(words[i + 1].Text, "a", StringComparison.Ordinal)
-                    && string.Equals(words[i + 2].Pos, "verb", StringComparison.Ordinal) && (words[i + 2].Mood is "inf" or "infinitive" || words[i + 2].Person is not { Length: > 0 });
+                nearFuture |= IsNearFutureAt(words, finite, i);
             }
 
             return nearFuture ? null : finite[0].Tense ?? "none";
@@ -1020,7 +1019,7 @@ public sealed class LessonRunner
             return;
         }
 
-        state.Hint = retry ?? step.Retry ?? _english.Ui("retry");
+        state.Hint = retry ?? step.Retry ?? _locale.Ui("retry");
         Emit(LessonEventKind.Retry, lesson, state, step, null, reason);
         _version++;
     }

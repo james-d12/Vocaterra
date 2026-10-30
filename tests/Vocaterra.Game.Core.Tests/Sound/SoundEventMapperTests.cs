@@ -15,12 +15,7 @@ namespace Vocaterra.Game.Core.Tests.Sound;
 /// <summary>The event-to-cue mapping of S24: what sounds for each thing that happens, and that nothing the learner does ever sounds punishing.</summary>
 public sealed class SoundEventMapperTests
 {
-    private static readonly Lazy<LessonBook> Book = new(() =>
-    {
-        var nouns = NounCatalog.Load(TestGame.Bundle);
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
-        return LessonBook.Load(TestGame.Bundle, sheet, SpeechLines.Enumerate(TestGame.Bundle, nouns, sheet));
-    });
+    private static readonly Lazy<LessonBook> Book = new(() => TestGame.Data.Lessons);
 
     private static readonly SoundEventMapper Mapper = new(Book.Value);
 

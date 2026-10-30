@@ -32,7 +32,7 @@ public sealed class AutosaveControllerTests : IDisposable
         autosave.Run(Due, events, atRest: true);
         Assert.True(File.Exists(autosave.Path));
         Assert.StartsWith($"autosave: {autosave.Path} written at ", Assert.Single(lines));
-        Assert.Equal(["Saved"], toasts);
+        Assert.Equal([AutosaveController.SavedToastId], toasts);
         Assert.Equal(Due, autosave.LastSavedTick);
     }
 

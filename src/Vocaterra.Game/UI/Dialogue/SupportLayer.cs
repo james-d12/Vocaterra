@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Words;
@@ -17,17 +18,13 @@ namespace Vocaterra.Game.UI.Dialogue;
 /// </summary>
 public sealed class SupportLayer : IFrameLayer
 {
-    /// <summary>The label on a support card.</summary>
-    public const string CardTag = "Puedes decir";
-
-    /// <summary>The text of the audio-only chip.</summary>
-    public const string ChipText = "[R] Escuchar la frase";
-
-    /// <summary>The heading over the key-word cards while they stand alone.</summary>
-    public const string KeyWordsHeading = "Palabras nuevas";
+    /// <summary>The text of the audio-only chip: its key, then the target language's words (<c>[R] Escuchar la frase</c>; <c>game/words.json</c>).</summary>
+    /// <param name="words">The game's target-language words.</param>
+    public static string ChipText(GameWords words) => "[R] " + words.Support.ListenChip;
 
     /// <summary>The note on a card at the second rung of the ladder: the English is one key away (S16, D-game-13).</summary>
-    public const string EnglishOnHelp = "H: English";
+    /// <param name="ui">The support language (<c>ui.supportOnHelp</c>, C04).</param>
+    public static string EnglishOnHelp(LocaleText ui) => (ui ?? throw new ArgumentNullException(nameof(ui))).Ui("supportOnHelp");
 
     private const int PhraseSize = 32;
     private static readonly Color Gold = new(255, 214, 64);
@@ -82,7 +79,7 @@ public sealed class SupportLayer : IFrameLayer
             var box = Rect(chip.Box);
             spriteBatch.Draw(view.Pixel, box, Back);
             DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, Gold);
-            DrawHelpers.Text(spriteBatch, small, ChipText, new Vector2(box.X + 10, box.Y + 6), Ink);
+            DrawHelpers.Text(spriteBatch, small, ChipText(view.Session.Data.Words), new Vector2(box.X + 10, box.Y + 6), Ink);
         }
     }
 
@@ -109,23 +106,23 @@ public sealed class SupportLayer : IFrameLayer
         DrawHelpers.Border(spriteBatch, view.Pixel, box, 2, CardBorder);
         var left = box.X + 12;
         var width = box.Width - 24;
-        DrawHelpers.Text(spriteBatch, small, CardTag, new Vector2(left, box.Y + 6), Gold);
+        DrawHelpers.Text(spriteBatch, small, view.Session.Data.Words.Support.CardTag, new Vector2(left, box.Y + 6), Gold);
         var slot = new Rectangle(box.Right - 62, box.Y + 6, 52, 22);
         spriteBatch.Draw(view.Pixel, slot, new Color(30, 30, 44));
         DrawHelpers.Border(spriteBatch, view.Pixel, slot, 1, Empty);
-        DrawHelpers.Text(spriteBatch, small, "audio", new Vector2(slot.X + 6, slot.Y + 3), Dim);
+        DrawHelpers.Text(spriteBatch, small, view.Session.Locale.Ui("audioSlot"), new Vector2(slot.X + 6, slot.Y + 3), Dim);
         var phraseFont = DrawHelpers.Width(large, card.Phrase) <= width ? large : small;
         DrawHelpers.Text(spriteBatch, phraseFont, DrawHelpers.Fit(phraseFont, card.Phrase, width), new Vector2(left, box.Y + 22), Ink);
         if (!card.EnglishShown)
         {
             // Rung 2 of the ladder (S16): the Spanish card and its audio, the English on the help key.
-            DrawHelpers.Text(spriteBatch, small, EnglishOnHelp, new Vector2(left, box.Bottom - 22), Dim); // it was the dim grey of the slot border, 2.7 to 1 (X08)
+            DrawHelpers.Text(spriteBatch, small, EnglishOnHelp(view.Session.Locale), new Vector2(left, box.Bottom - 22), Dim); // it was the dim grey of the slot border, 2.7 to 1 (X08)
             return;
         }
 
         var english = DialoguePanel.EnglishColor;
         // The meaning wraps (a narrow card takes two rows), and the explanation or the glosses take the rows that are left above the card's bottom edge (X08).
-        var meaning = TextWrap.Wrap(DialoguePanel.EnglishPrefix + card.Meaning, width, t => DrawHelpers.Width(small, t)).Take(2).ToList();
+        var meaning = TextWrap.Wrap(DialoguePanel.SupportPrefix(view.Session.Locale) + card.Meaning, width, t => DrawHelpers.Width(small, t)).Take(2).ToList();
         var y = box.Y + 58;
         foreach (var row in meaning)
         {
@@ -160,7 +157,7 @@ public sealed class SupportLayer : IFrameLayer
         if (alone)
         {
             // Before the question the heading is the card's own first line (S22: it used to be a separate strip over the row).
-            DrawHelpers.Text(spriteBatch, small, KeyWordsHeading, new Vector2(box.X + 14, box.Y + 6), Gold);
+            DrawHelpers.Text(spriteBatch, small, view.Session.Data.Words.Support.KeyWordsHeading, new Vector2(box.X + 14, box.Y + 6), Gold);
         }
 
         DrawHelpers.Text(spriteBatch, large, DrawHelpers.Fit(large, card.Phrase, box.Width - 28), new Vector2(box.X + 14, box.Y + (alone ? 24 : 6)), Ink);

@@ -71,22 +71,14 @@ public static class UncertaintyRule
 /// <param name="Unrecognized">Whether there was speech the recognizer could not make into words (in Constrained mode, speech outside the prompt's grammar comes back as <c>[unk]</c> only): the line then shows <c>«…»</c> instead of <c>nada</c>.</param>
 public sealed record HeardLine(string Heard, string? Expected, string? ExpectedId, bool Unrecognized = false)
 {
-    /// <summary>The label before the heard text.</summary>
-    public const string HeardLabel = "Heard: ";
-
-    /// <summary>The label before the expected phrase (S17b: English; the quoted Spanish inside stays as it is).</summary>
-    public const string ExpectedLabel = "Expected: ";
-
-    /// <summary>What the line says when the recognizer heard nothing (silence).</summary>
-    public const string NothingHeard = "(nothing)";
-
-    /// <summary>What the line shows inside the quotes when there was speech the recognizer could not make into words.</summary>
-    public const string SomethingHeard = "…";
-
     /// <summary>The line as the panel shows it: <c>Heard: «quiero agua» · Expected: «Quiero agua, por favor.»</c>.</summary>
-    public string Text => string.Create(
-        CultureInfo.InvariantCulture,
-        $"{HeardLabel}{(Heard.Length > 0 ? $"«{Heard}»" : Unrecognized ? $"«{SomethingHeard}»" : NothingHeard)}{(Expected is null ? string.Empty : $" · {ExpectedLabel}«{Expected}»")}");
+    /// <param name="ui">The support language (<c>ui.heard</c>, <c>ui.heardSomething</c>, <c>ui.heardNothing</c> and <c>ui.heardExpected</c>, C04).</param>
+    public string Text(Content.LocaleText ui)
+    {
+        ArgumentNullException.ThrowIfNull(ui);
+        var heard = Heard.Length > 0 ? ui.Ui("heard", ("heard", Heard)) : ui.Ui(Unrecognized ? "heardSomething" : "heardNothing");
+        return Expected is null ? heard : heard + ui.Ui("heardExpected", ("expected", Expected));
+    }
 
     /// <summary>
     /// The line for a turn, or <see langword="null"/> for a typed turn or a button (nothing was heard). The expected phrase is the sheet's:

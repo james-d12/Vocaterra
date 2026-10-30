@@ -2,6 +2,7 @@ using System.Globalization;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics.Camera;
@@ -89,7 +90,7 @@ public sealed class NpcLabelLayer : IFrameLayer
 
             var alpha = (float)Math.Clamp((FullDistance + FadeDistance - distance) / FadeDistance, 0.0, 1.0);
             var width = DrawHelpers.Width(font, figure.Label);
-            var placed = BeaconLabel.Clamp(new PixelBox((int)(point.X - (width / 2)) - 7, (int)point.Y - 12, (int)width + 14, 24), view.ViewportWidth, view.ViewportHeight);
+            var placed = Called.Clamp(new PixelBox((int)(point.X - (width / 2)) - 7, (int)point.Y - 12, (int)width + 14, 24), view.ViewportWidth, view.ViewportHeight);
             var box = new Rectangle(placed.X, placed.Y, placed.Width, placed.Height);
             spriteBatch.Draw(view.Pixel, box, new Color(0, 0, 0, 175) * alpha);
             DrawHelpers.Border(spriteBatch, view.Pixel, box, 1, new Color(255, 214, 64) * alpha);
@@ -113,10 +114,15 @@ public sealed class BeaconArrowLayer : IFrameLayer
     /// The beacon's label (S17b): the noun's Spanish label (<c>campamento</c>, a taught noun, so it stays Spanish) and the distance in the game's English unit,
     /// for example <c>campamento 74 blocks</c>.
     /// </summary>
+    /// <param name="ui">The support language (<c>ui.beaconDistance</c>, C04).</param>
     /// <param name="label">The beacon's label, or <see langword="null"/>.</param>
     /// <param name="distance">The distance in blocks, on the ground.</param>
-    public static string BeaconText(string? label, double distance) =>
-        string.Create(CultureInfo.InvariantCulture, $"{label ?? string.Empty}  {distance:0} blocks").Trim();
+    public static string BeaconText(LocaleText ui, string? label, double distance)
+    {
+        ArgumentNullException.ThrowIfNull(ui);
+        var blocks = (int)Math.Round(distance, MidpointRounding.AwayFromZero); // as the "0" format rounded it
+        return ui.Plural("ui.beaconDistance", blocks, ("label", label ?? string.Empty)).Trim();
+    }
 
     /// <summary>
     /// The beacon's arrow, label text and label box for a frame (S22), or <see langword="null"/> when the beacon has no target. The box is <see langword="null"/> while the
@@ -138,14 +144,14 @@ public sealed class BeaconArrowLayer : IFrameLayer
         var point = camera.Screen.Project(target.X + 0.5, target.Y + 4.0, target.Z + 0.5);
         var arrow = EdgeArrow.For(point, width, height, EdgeMargin);
         var distance = Math.Sqrt(Math.Pow(target.X + 0.5 - eye.X, 2) + Math.Pow(target.Z + 0.5 - eye.Z, 2));
-        var text = BeaconText(beacon.Label, distance);
+        var text = BeaconText(view.Session.Locale, beacon.Label, distance);
         if (arrow.OnScreen)
         {
             return (arrow, text, null);
         }
 
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        return (arrow, text, soft is null ? BeaconLabel.Place(width, height, arrow.X, arrow.Y, DrawHelpers.Width(font, text), avoid) : BeaconLabel.TryPlace(width, height, arrow.X, arrow.Y, DrawHelpers.Width(font, text), avoid, soft));
+        return (arrow, text, soft is null ? Called.Place(width, height, arrow.X, arrow.Y, DrawHelpers.Width(font, text), avoid) : Called.TryPlace(width, height, arrow.X, arrow.Y, DrawHelpers.Width(font, text), avoid, soft));
     }
 
     /// <inheritdoc />
@@ -178,7 +184,7 @@ public sealed class BeaconArrowLayer : IFrameLayer
         var box = new Rectangle(0, 0, 0, 0);
         if (view.Dialogue.IsOpen)
         {
-            if (ConversationFrame.For(view).BeaconLabel is not { } placed)
+            if (ConversationFrame.For(view).Called is not { } placed)
             {
                 return; // no free place for the label on this canvas (a tall lesson strip over the panel): the arrow stays, the label is left out (X08)
             }
@@ -192,13 +198,13 @@ public sealed class BeaconArrowLayer : IFrameLayer
 
         spriteBatch.Draw(pixel, box, new Color(0, 0, 0, 190));
         DrawHelpers.Border(spriteBatch, pixel, box, 1, Gold);
-        DrawHelpers.Outlined(spriteBatch, font, text, new Vector2(box.X + BeaconLabel.Padding, box.Y + 2), Color.White);
+        DrawHelpers.Outlined(spriteBatch, font, text, new Vector2(box.X + Called.Padding, box.Y + 2), Color.White);
     }
 
     private static void DrawLabel(SpriteBatch spriteBatch, Texture2D pixel, FontStashSharp.SpriteFontBase font, string text, Vector2 centre, int viewportWidth, int viewportHeight)
     {
         var width = DrawHelpers.Width(font, text);
-        var placed = BeaconLabel.Clamp(new PixelBox((int)(centre.X - (width / 2)) - 6, (int)centre.Y - 11, (int)width + 12, 22), viewportWidth, viewportHeight);
+        var placed = Called.Clamp(new PixelBox((int)(centre.X - (width / 2)) - 6, (int)centre.Y - 11, (int)width + 12, 22), viewportWidth, viewportHeight);
         var box = new Rectangle(placed.X, placed.Y, placed.Width, placed.Height);
         spriteBatch.Draw(pixel, box, new Color(0, 0, 0, 190));
         DrawHelpers.Border(spriteBatch, pixel, box, 1, Gold);

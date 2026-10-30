@@ -10,7 +10,7 @@ namespace Vocaterra.Game.Core.Tests.Language.Phrases;
 /// </summary>
 public sealed class PhraseSheetLookupTests
 {
-    private static PhraseSheet Sheet => PhraseSheet.Load(TestGame.Bundle);
+    private static PhraseSheet Sheet => RouteScene.DataOf(TestGame.Bundle).Phrases;
 
     [Fact]
     public void TheBundleHoldsTheFortySixPhrasesOfTheSheetInOrder()
@@ -110,9 +110,14 @@ public sealed class PhraseSheetLookupTests
     [Fact]
     public void AMalformedSheetIsRefusedWithAMessage()
     {
-        Assert.Throws<InvalidDataException>(() => PhraseSheet.Parse("{ \"schemaVersion\": 2, \"phrases\": [] }"));
-        Assert.Throws<InvalidDataException>(() => PhraseSheet.Parse("not json"));
+        var locale = TestGame.Locale.With(new Dictionary<string, string>(StringComparer.Ordinal) { ["phrase.a.meaning"] = "A", ["phrase.a.card"] = "A = A" });
+        Assert.Throws<InvalidDataException>(() => PhraseSheet.Parse("{ \"schemaVersion\": 2, \"phrases\": [] }", locale));
+        Assert.Throws<InvalidDataException>(() => PhraseSheet.Parse("not json", locale));
         Assert.Throws<InvalidDataException>(() => PhraseSheet.Parse(
-            "{ \"schemaVersion\": 1, \"phrases\": [ { \"id\": \"a\", \"says\": \"says\", \"spanish\": \"A\", \"english\": \"A\", \"card\": \"A = A\" }, { \"id\": \"a\", \"says\": \"says\", \"spanish\": \"A\", \"english\": \"A\", \"card\": \"A = A\" } ] }"));
+            "{ \"schemaVersion\": 1, \"phrases\": [ { \"id\": \"a\", \"says\": \"says\", \"spanish\": \"A\" }, { \"id\": \"a\", \"says\": \"says\", \"spanish\": \"A\" } ] }", locale));
+        var one = PhraseSheet.Parse("{ \"schemaVersion\": 1, \"phrases\": [ { \"id\": \"a\", \"says\": \"says\", \"spanish\": \"A\" } ] }", locale);
+        Assert.Equal(("A", "A = A"), (one.Rows[0].English, one.Rows[0].Card)); // the meaning and the card are the locale's (C03)
+        var noText = Assert.Throws<InvalidDataException>(() => PhraseSheet.Parse("{ \"schemaVersion\": 1, \"phrases\": [ { \"id\": \"b\", \"says\": \"says\", \"spanish\": \"B\" } ] }", locale));
+        Assert.Contains("phrase.b.meaning", noText.Message, StringComparison.Ordinal);
     }
 }

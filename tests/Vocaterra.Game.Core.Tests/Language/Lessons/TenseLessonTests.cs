@@ -141,7 +141,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         Assert.Equal(LessonId, session.Lessons.NewLesson!.Id);
         var piece = Assert.Single(session.ObjectiveHud());
         Assert.Equal("Session 3: go to the village and talk to the villager to start the lesson “Ayer y mañana”", piece.Text);
-        Assert.Equal(ObjectivePieceKind.English, piece.Kind);
+        Assert.Equal(ObjectivePieceKind.Support, piece.Kind);
         session.BeginPlaySession();
         var villager = session.Scene.Npc("villager").Feet;
         Assert.Equal(new GuideCell(villager.X, villager.Y, villager.Z), session.Pointer!.Target);
@@ -502,15 +502,15 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     {
         var morphology = TestGame.Bundle.SpanishMorphology();
 
-        Assert.Equal("voy a comer", new TaughtVerbForm("comer", "1", "sg", "ir-a").Text(morphology));
-        Assert.Equal("vamos a comer", new TaughtVerbForm("comer", "1", "pl", "ir-a").Text(morphology));
-        Assert.Equal("van a comer", new TaughtVerbForm("comer", "3", "pl", "ir-a").Text(morphology));
-        Assert.Equal("vas a hacer", new TaughtVerbForm("hacer", "2", "sg", "ir-a").Text(morphology));
-        Assert.Equal("voy a ir", new TaughtVerbForm("ir", "1", "sg", "ir-a").Text(morphology));
-        Assert.Equal("comí", new TaughtVerbForm("comer", "1", "sg", "pret").Text(morphology));
-        Assert.Equal("fuiste", new TaughtVerbForm("ir", "2", "sg", "pret").Text(morphology));
-        Assert.Equal("bebí", new TaughtVerbForm("beber", "1", "sg", "pret").Text(morphology));
-        Assert.Equal("voy", new TaughtVerbForm("ir", "1", "sg", "pres").Text(morphology));
+        Assert.Equal("voy a comer", new TaughtVerbForm("comer", "1", "sg", "ir-a").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("vamos a comer", new TaughtVerbForm("comer", "1", "pl", "ir-a").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("van a comer", new TaughtVerbForm("comer", "3", "pl", "ir-a").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("vas a hacer", new TaughtVerbForm("hacer", "2", "sg", "ir-a").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("voy a ir", new TaughtVerbForm("ir", "1", "sg", "ir-a").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("comí", new TaughtVerbForm("comer", "1", "sg", "pret").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("fuiste", new TaughtVerbForm("ir", "2", "sg", "pret").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("bebí", new TaughtVerbForm("beber", "1", "sg", "pret").Text(morphology, TestGame.Data.Words.NearFuture));
+        Assert.Equal("voy", new TaughtVerbForm("ir", "1", "sg", "pres").Text(morphology, TestGame.Data.Words.NearFuture));
     }
 
     [Fact]
@@ -560,7 +560,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
         CompletePersonasSilently(session);
         var text = SaveGame.Save(session, TestGame.Route());
 
-        var loaded = SaveGame.Load(text, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped);
+        var loaded = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
 
         Assert.Equal(3, loaded.PlaySession);
         Assert.Equal(LessonId, loaded.Lessons.NewLesson!.Id);
@@ -575,7 +575,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
 
         loaded.EndTalk();
         var half = SaveGame.Save(loaded, TestGame.Route());
-        var again = SaveGame.Load(half, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: false);
+        var again = SaveGame.Load(half, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, bumpSession: false);
 
         Assert.Equal(LessonStatus.InProgress, again.Lessons.StatusOf(LessonId));
         Assert.Equal(6, again.Lessons.OutcomesOf(LessonId).Count);
@@ -587,7 +587,7 @@ public sealed class TenseLessonTests(ITestOutputHelper output)
     [Fact]
     public void TheNewRowsAreInTheSheetAndTheNewLinesAreInTheSpeechList()
     {
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
         var added = new[]
         {
             "que-vas-a-comer", "voy-a-comer-pan", "que-vamos-a-comer", "vamos-a-comer-fruta", "que-comiste-ayer", "ayer-comi-fruta",

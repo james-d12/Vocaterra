@@ -44,7 +44,7 @@ public static class SessionStart
             Check: options.Check is { } kind ? CheckKinds.Of(kind) : null,
             Scripted: options.IsScreenshotRun,
             Playtest: options.Playtest);
-        log.SessionStart(session.PlaySession, session.WorldSeed, session.Bundle.ContentHash, session.StoredTime.UnixSeconds, profile);
+        log.SessionStart(session.PlaySession, session.WorldSeed, session.Bundle.ContentHash, session.StoredTime.UnixSeconds, profile, session.Locale.Code, session.Locale.BundleHash);
         console($"session log: {directory} ({SessionLog.SessionFileName}, {SessionLog.ReplayFileName})");
         if (session.Migration is { } migration)
         {
@@ -59,7 +59,7 @@ public static class SessionStart
         if (!options.NoAutosave)
         {
             var autosavePath = playtest.SavePath ?? Path.Combine(directory, AutosaveFiles.FileName);
-            autosave = new AutosaveController(new AutosavePolicy(session.Simulation.Tick, session.Events.Count), autosavePath, saves, console, toasts.Show, MonotonicClock.Milliseconds);
+            autosave = new AutosaveController(new AutosavePolicy(session.Simulation.Tick, session.Events.Count), autosavePath, saves, console, id => toasts.Show(session.Locale.Ui(id)), MonotonicClock.Milliseconds);
             console($"autosave: {autosavePath} (written on a lesson step, an objective step, a lesson's end, the session's end, a closed dialogue, and every {AutosavePolicy.IntervalSeconds / 60} minutes of play)");
         }
         else

@@ -24,7 +24,7 @@ public sealed class ConversationFrame
     public IReadOnlyList<string> BubbleRows { get; private init; } = [];
 
     /// <summary>The beacon's edge label while a talk is open (clear of the panel, the head and the bubble; the cards keep clear of it), or <see langword="null"/> when there is none.</summary>
-    public PixelBox? BeaconLabel { get; private init; }
+    public PixelBox? Called { get; private init; }
 
     /// <summary>The layout of the cards.</summary>
     public required ConversationLayout Layout { get; init; }
@@ -142,7 +142,7 @@ public sealed class ConversationFrame
             Bubble = bubble,
             BubbleRows = rows,
             Layout = layout,
-            BeaconLabel = beaconLabel,
+            Called = beaconLabel,
             NewWord = toast,
             Support = support,
             KeyWords = keys,

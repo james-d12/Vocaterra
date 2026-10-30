@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Graphics;
@@ -16,16 +17,20 @@ namespace Vocaterra.Game.UI.Report;
 public sealed class ReportLayer : IFrameLayer
 {
     /// <summary>The panel's title (English, D-game-13).</summary>
-    public const string Title = "Report a bug or a feature request";
+    /// <param name="ui">The support language (<c>ui.report*</c>, C04).</param>
+    public static string Title(LocaleText ui) => Ui(ui).Ui("reportTitle");
 
     /// <summary>The hints under the text box: the keys of the panel.</summary>
-    public const string HintsFirst = "Ctrl+Enter: save report   Esc: cancel   Tab: Bug / Feature request   Enter: new line";
+    /// <param name="ui">The support language.</param>
+    public static string HintsFirst(LocaleText ui) => Ui(ui).Ui("reportHintsFirst");
 
     /// <summary>The second hints line: the accents, as the dialogue's.</summary>
-    public const string HintsSecond = "Alt+vowel: á é í ó ú   Alt+N: ñ   Alt+/: ¿   Alt+1: ¡";
+    /// <param name="ui">The support language.</param>
+    public static string HintsSecond(LocaleText ui) => Ui(ui).Ui("reportHintsSecond");
 
     /// <summary>The text box's placeholder while it is empty.</summary>
-    public const string Placeholder = "Describe what happened, or what you would like. Spanish is fine too.";
+    /// <param name="ui">The support language.</param>
+    public static string Placeholder(LocaleText ui) => Ui(ui).Ui("reportPlaceholder");
 
     private static readonly Color Scrim = new(0, 0, 0, 90);
     private static readonly Color Background = new(16, 16, 24, 240);
@@ -51,22 +56,22 @@ public sealed class ReportLayer : IFrameLayer
 
         var pixel = view.Pixel;
         var font = view.Fonts.Get(FontProvider.NativeSize);
-        var layout = LayoutFor(view.ViewportWidth, view.ViewportHeight, font);
+        var layout = LayoutFor(view.ViewportWidth, view.ViewportHeight, font, view.Session.Locale);
         spriteBatch.Draw(pixel, new Rectangle(0, 0, view.ViewportWidth, view.ViewportHeight), Scrim);
         var box = ToRectangle(layout.Panel);
         DrawHelpers.RoundedPanel(spriteBatch, pixel, box, 9, Background, PanelEdge, 2);
         var left = box.Left + ReportLayout.Padding;
-        DrawHelpers.Text(spriteBatch, font, Title, new Vector2(left, layout.TitleY), NameColor);
+        DrawHelpers.Text(spriteBatch, font, Title(view.Session.Locale), new Vector2(left, layout.TitleY), NameColor);
 
         var mouse = view.Mouse;
-        DrawChoice(spriteBatch, view, font, layout.BugButton, ReportKinds.Label(ReportKind.Bug), panel.Kind == ReportKind.Bug, mouse);
-        DrawChoice(spriteBatch, view, font, layout.FeatureButton, ReportKinds.Label(ReportKind.Feature), panel.Kind == ReportKind.Feature, mouse);
+        DrawChoice(spriteBatch, view, font, layout.BugButton, view.Session.Locale.Ui("reportBug"), panel.Kind == ReportKind.Bug, mouse);
+        DrawChoice(spriteBatch, view, font, layout.FeatureButton, view.Session.Locale.Ui("reportFeature"), panel.Kind == ReportKind.Feature, mouse);
         DrawText(spriteBatch, view, font, panel, layout);
-        DrawButton(spriteBatch, view, font, layout.CancelButton, "Cancel", mouse, ButtonBack);
-        DrawButton(spriteBatch, view, font, layout.SaveButton, "Save report", mouse, ButtonBack);
+        DrawButton(spriteBatch, view, font, layout.CancelButton, view.Session.Locale.Ui("reportCancel"), mouse, ButtonBack);
+        DrawButton(spriteBatch, view, font, layout.SaveButton, view.Session.Locale.Ui("reportSave"), mouse, ButtonBack);
 
         var hintsLeft = left;
-        var firstRows = panel.Notice is { } notice
+        var firstRows = panel.Notice is { } noticeId && view.Session.Locale.Ui(noticeId) is { } notice
             ? NoticeRows(notice, layout, font)
             : layout.FirstRows;
         var noticeShown = panel.Notice is not null;
@@ -85,11 +90,14 @@ public sealed class ReportLayer : IFrameLayer
     /// <param name="viewportWidth">The canvas's width.</param>
     /// <param name="viewportHeight">The canvas's height.</param>
     /// <param name="font">The font the panel draws with.</param>
-    public static ReportLayout LayoutFor(int viewportWidth, int viewportHeight, FontStashSharp.SpriteFontBase font)
+    /// <param name="ui">The support language (the hints).</param>
+    public static ReportLayout LayoutFor(int viewportWidth, int viewportHeight, FontStashSharp.SpriteFontBase font, LocaleText ui)
     {
         ArgumentNullException.ThrowIfNull(font);
-        return new ReportLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), HintsFirst, HintsSecond);
+        return new ReportLayout(viewportWidth, viewportHeight, text => DrawHelpers.Width(font, text), HintsFirst(ui), HintsSecond(ui));
     }
+
+    private static LocaleText Ui(LocaleText ui) => ui ?? throw new ArgumentNullException(nameof(ui));
 
     // The notice wrapped into the rows the first hints line has (the buttons must not move when it comes and goes), the last row ending in an ellipsis when it is cut.
     private static List<string> NoticeRows(string notice, ReportLayout layout, FontStashSharp.SpriteFontBase font)
@@ -133,7 +141,7 @@ public sealed class ReportLayer : IFrameLayer
         var origin = new Vector2(box.Left + 8, box.Top + 8);
         if (text.Length == 0)
         {
-            var holder = TextWrap.Wrap(Placeholder, layout.InnerWidth, t => DrawHelpers.Width(font, t));
+            var holder = TextWrap.Wrap(Placeholder(view.Session.Locale), layout.InnerWidth, t => DrawHelpers.Width(font, t));
             for (var i = 0; i < holder.Count && i < layout.VisibleRows; i++)
             {
                 DrawHelpers.Text(spriteBatch, font, holder[i], origin + new Vector2(0, i * ReportLayout.LineHeight), PlaceholderColor);

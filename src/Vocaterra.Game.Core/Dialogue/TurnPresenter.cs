@@ -109,9 +109,9 @@ public sealed class TurnPresenter
             _voice.Say(turn.Npc, turn.GuideLines);
         }
 
-        if (_dialogue.Heard is { } heard && turn.Input == InputKind.Spoken)
+        if (_dialogue.HeardText is { } heard && turn.Input == InputKind.Spoken)
         {
-            _console($"  panel: {heard.Text}");
+            _console($"  panel: {heard}");
         }
 
         if (turn.Choices is { Count: > 0 })

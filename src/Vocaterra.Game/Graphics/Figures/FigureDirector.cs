@@ -27,9 +27,10 @@ public sealed class FigureDirector : ITickObserver
     /// <param name="sim">The simulation whose body is the player.</param>
     /// <param name="look">The player's look.</param>
     /// <param name="dialogue">The panel: the NPC it is open on is the one talking.</param>
-    public FigureDirector(Scene scene, VoxelSimulation sim, LookControl look, DialogueModel dialogue)
+    /// <param name="npcs">The NPCs' data (their labels and looks).</param>
+    public FigureDirector(Scene scene, VoxelSimulation sim, LookControl look, DialogueModel dialogue, NpcRoster npcs)
     {
-        Figures = NpcFigures.FromScene(scene);
+        Figures = NpcFigures.FromScene(scene, npcs);
         _sim = sim;
         _look = look;
         _dialogue = dialogue;

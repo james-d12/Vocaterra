@@ -52,8 +52,12 @@ public readonly record struct FigurePart(
 /// <param name="Label">The name shown over the head, in Spanish.</param>
 /// <param name="Feet">The block cell the figure's feet are in.</param>
 /// <param name="Yaw">The facing the scene gave it, in <see cref="Angles"/> steps (0 north, 1 024 east): where it stands when nobody is talking to it.</param>
-public sealed record NpcFigure(string Name, string Label, BlockPos Feet, int Yaw)
+/// <param name="Figure">The key of its look (<c>game/npcs/&lt;id&gt;.json</c>'s <c>figure</c>, C08), or <see langword="null"/> for its name.</param>
+public sealed record NpcFigure(string Name, string Label, BlockPos Feet, int Yaw, string? Figure = null)
 {
+    /// <summary>The key its colours, geometry and face are drawn by (<see cref="NpcFigures.PartsOf"/>).</summary>
+    public string Look => Figure ?? Name;
+
     /// <summary>The height of one figure pixel in blocks: the figure is 32 pixels (1.8 blocks) tall without its hat.</summary>
     public const float PixelInBlocks = 0.05625f;
 
@@ -92,11 +96,14 @@ public static class NpcFigures
     /// <summary>The name of the player's figure for <see cref="PartsOf"/> (the figure drawn over the shoulder).</summary>
     public const string PlayerName = "player";
 
-    /// <summary>The figures of a scene's NPCs, in the scene's order.</summary>
-    public static IReadOnlyList<NpcFigure> FromScene(Scene scene)
+    /// <summary>The figures of a scene's NPCs, in the scene's order, with their labels and looks from the NPC data (C08).</summary>
+    /// <param name="scene">The scene.</param>
+    /// <param name="npcs">The NPCs (<c>game/npcs/</c>).</param>
+    public static IReadOnlyList<NpcFigure> FromScene(Scene scene, NpcRoster npcs)
     {
         ArgumentNullException.ThrowIfNull(scene);
-        return scene.Npcs.Select(static n => new NpcFigure(n.Name, NpcNames.LabelOf(n.Name), n.Feet, n.Yaw)).ToList();
+        ArgumentNullException.ThrowIfNull(npcs);
+        return scene.Npcs.Select(n => new NpcFigure(n.Name, npcs.LabelOf(n.Name), n.Feet, n.Yaw, npcs.Find(n.Name)?.Figure)).ToList();
     }
 
     /// <summary>The parts of a figure by its scene name (or <see cref="PlayerName"/>); an unknown name gets a plain grey figure. The array is shared: do not change it.</summary>
@@ -120,7 +127,7 @@ public static class NpcFigures
         ArgumentNullException.ThrowIfNull(figure);
         var buffer = new MeshBuffer();
         var (x, y, z) = figure.FeetPosition;
-        FigureMesher.Append(buffer, PartsOf(figure.Name), FigurePose.Rest, x, y, z, figure.YawRadians, (1f, 1f, 1f));
+        FigureMesher.Append(buffer, PartsOf(figure.Look), FigurePose.Rest, x, y, z, figure.YawRadians, (1f, 1f, 1f));
         return buffer;
     }
 

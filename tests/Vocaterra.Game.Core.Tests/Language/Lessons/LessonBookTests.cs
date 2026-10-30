@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
@@ -22,7 +23,7 @@ public sealed class LessonBookTests
           { "id": "pick", "type": "listen", "line": "phrase.hola", "translation": "Hello.", "english": "What does she say?", "options": ["Hello", "Goodbye", "Thank you"], "correct": 0 },
           { "id": "say", "type": "repeat", "phrase": "hola", "prompt": "guide-open", "english": "Say it." },
           { "id": "reply", "type": "answer", "phrase": "gracias", "prompt": "guide-open", "line": "guide_offer_yes.1", "translation": "Of course! Here you are.", "english": "Thank her." },
-          { "id": "get", "type": "do", "event": "item_picked_up", "detail": "fruta", "english": "Pick a fruit." },
+          { "id": "get", "type": "do", "trigger": { "event": "item_picked_up", "detail": "fruta" }, "english": "Pick a fruit." },
           { "id": "sum", "type": "recap", "english": "Well done." } ] } ] }
         """;
 
@@ -34,7 +35,7 @@ public sealed class LessonBookTests
     [Fact]
     public void TheShippedLessonsAreTheGuidesFirstWordsPersonasInSessionTwoAndAyerYMananaInSessionThree()
     {
-        var book = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), TestGame.Speech);
+        var book = RouteScene.DataOf(TestGame.Bundle).Lessons;
 
         Assert.Equal(["first-words", "personas", "ayer-y-manana"], book.Lessons.Select(static l => l.Id));
         var lesson = book.Find("first-words")!;
@@ -50,7 +51,7 @@ public sealed class LessonBookTests
             ["hola", "si", "no", "que-es-esto", "si-por-favor", "gracias", "quiero-madera", "tengo-fruta", "necesito-agua", "no-se", "otra-vez", "mas-despacio"],
             lesson.TaughtPhrases);
         Assert.Equal(lesson.TaughtPhrases.Concat(book.Find("personas")!.TaughtPhrases).Concat(book.Find("ayer-y-manana")!.TaughtPhrases).Distinct(), book.TaughtPhrases); // quiero-madera is asked again at the start of Personas
-        Assert.All(lesson.TaughtPhrases, id => Assert.True(PhraseSheet.Load(TestGame.Bundle).Find(id)!.IsLearnerPhrase, id));
+        Assert.All(lesson.TaughtPhrases, id => Assert.True(RouteScene.DataOf(TestGame.Bundle).Phrases.Find(id)!.IsLearnerPhrase, id));
         foreach (var type in Enum.GetValues<LessonStepType>().Where(static t => t != LessonStepType.Recap))
         {
             Assert.Contains(lesson.Steps, s => s.Type == type); // built from the runner's step types: explain, model, listen, repeat, answer and do
@@ -64,12 +65,12 @@ public sealed class LessonBookTests
     [Fact]
     public void TheFirstUseOfAPhraseHasItsCardAndTheEnglishThinsAfterIt()
     {
-        var book = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), TestGame.Speech);
+        var book = RouteScene.DataOf(TestGame.Bundle).Lessons;
         var lesson = book.Find("first-words")!;
 
         // The first time a phrase is asked it is a repeat step (the card is up) unless an explain step has named it in English just before (the card is not
         // needed for a word the learner has just read); every later use is an answer step (no card), with fewer words of English. The same holds in Personas (S26).
-        var sheet = PhraseSheet.Load(TestGame.Bundle);
+        var sheet = RouteScene.DataOf(TestGame.Bundle).Phrases;
         foreach (var each in book.Lessons)
         {
             foreach (var phrase in each.TaughtPhrases)
@@ -96,9 +97,9 @@ public sealed class LessonBookTests
     [Fact]
     public void EveryLineOfEveryStepOfTheShippedLessonsHasItsFilesAndTheirEnglish()
     {
-        var book = LessonBook.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle), TestGame.Speech);
+        var book = RouteScene.DataOf(TestGame.Bundle).Lessons;
         var store = new Vocaterra.Nlp.Response.Speech.StaticLineStore(Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName));
-        var english = EnglishText.Load(TestGame.Bundle, PhraseSheet.Load(TestGame.Bundle));
+        var english = RouteScene.DataOf(TestGame.Bundle).Locale;
 
         foreach (var step in book.Lessons.SelectMany(static l => l.Steps))
         {
@@ -112,7 +113,7 @@ public sealed class LessonBookTests
                 }
 
                 Assert.False(string.IsNullOrWhiteSpace(step.Translation), step.Id);
-                Assert.Equal(step.Translation, english.ForLine(line.Text)); // the English under the line is the same in the file's lines and in the step
+                Assert.Equal(step.Translation, english.Line(line.LineId)); // the gloss under the line is the same in the locale's lines and in the step
             }
         }
     }
@@ -155,9 +156,11 @@ public sealed class LessonBookTests
     [InlineData("{ \"id\": \"s\", \"type\": \"model\", \"line\": \"phrase.hola\", \"english\": \"x\" }", "translation")]
     [InlineData("{ \"id\": \"s\", \"type\": \"listen\", \"line\": \"phrase.hola\", \"translation\": \"x\", \"english\": \"x\", \"options\": [\"a\", \"b\"], \"correct\": 2 }", "outside the options")]
     [InlineData("{ \"id\": \"s\", \"type\": \"listen\", \"line\": \"phrase.hola\", \"translation\": \"x\", \"english\": \"x\", \"options\": [\"a\"], \"correct\": 0 }", "two to four")]
-    [InlineData("{ \"id\": \"s\", \"type\": \"do\", \"event\": \"the_moon_landed\", \"english\": \"x\" }", "not a world event")]
+    [InlineData("{ \"id\": \"s\", \"type\": \"do\", \"trigger\": { \"event\": \"the_moon_landed\" }, \"english\": \"x\" }", "not an event the game raises")]
+    [InlineData("{ \"id\": \"s\", \"type\": \"do\", \"english\": \"x\" }", "no trigger")]
+    [InlineData("{ \"id\": \"s\", \"type\": \"do\", \"trigger\": { \"event\": \"talk_opened\", \"npc\": \"miller\" }, \"english\": \"x\" }", "is not one of the NPCs")]
     [InlineData("{ \"id\": \"s\", \"type\": \"explain\", \"english\": \"x\", \"attempts\": 9 }", "1 to 5")]
-    [InlineData("{ \"id\": \"s\", \"type\": \"explain\" }", "english")]
+    [InlineData("{ \"id\": \"s\", \"type\": \"explain\" }", "lesson.t.s.text")]
     [InlineData("{ \"id\": \"s\", \"type\": \"recap\", \"phrases\": [\"adios\"], \"english\": \"x\" }", "no repeat or answer step")]
     public void ALessonThatDoesNotHoldTogetherIsALoadError(string step, string problem)
     {
@@ -182,16 +185,16 @@ public sealed class LessonBookTests
     }
 
     [Fact]
-    public void TheLessonsAndTheEnglishAreHashedHostFilesOfTheBundle()
+    public void TheLessonsAreAHashedHostFileOfTheBundleAndTheirTextIsTheLocalesOutsideIt()
     {
         var bundle = TestGame.Bundle;
 
         Assert.True(bundle.TryReadHostFile(LessonBook.RelativePath, out _));
-        Assert.True(bundle.TryReadHostFile(EnglishText.RelativePath, out _));
         Assert.Contains(LessonBook.RelativePath, bundle.HostFilePaths);
-        Assert.Contains(EnglishText.RelativePath, bundle.HostFilePaths);
+        Assert.DoesNotContain("game/english.json", bundle.HostFilePaths); // the support language left the bundle (C03)
         var provenance = File.ReadAllText(Path.Combine(GameBundle.ResolveDirectory(), "provenance.json"));
         Assert.Contains("\"path\": \"game/lessons.json\", \"generatedBy\": \"hand-authored\"", provenance, StringComparison.Ordinal);
-        Assert.Contains("\"path\": \"game/english.json\", \"generatedBy\": \"hand-authored\"", provenance, StringComparison.Ordinal);
+        Assert.DoesNotContain("english", File.ReadAllText(Repo.Path("content", "game-v1", "game", "lessons.json")).Split('"').Where(static token => token is "english" or "title" or "translation" or "help" or "retry"));
+        Assert.Equal("First words with Luna", TestGame.Locale.Text(LessonBook.LessonId("first-words", "title")));
     }
 }
