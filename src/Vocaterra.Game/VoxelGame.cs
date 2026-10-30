@@ -203,7 +203,8 @@ public sealed class VoxelGame : Microsoft.Xna.Framework.Game
         _support = new SupportFrontend(session, _dialogue, _actions, Console.WriteLine);
         _events = new EventPrinter(session.Events, _support.LinesFor, Console.WriteLine);
         _beacon = new BeaconDirector(session, Console.WriteLine, Console.Error.WriteLine);
-        _lesson = new LessonFrontend(session, _dialogue, Console.WriteLine);
+        _lesson = new LessonFrontend(session, _dialogue, Console.WriteLine) { OnNote = _toasts.Show };
+        session.Deck.Enabled = !options.IsScreenshotRun && options.Script.Count == 0; // the guide offers the warm-up in play and the playtest; the scripted runs stay as recorded (X06)
         _ending.MarkSeen(session); // a game loaded after its ending does not play it again
         _micCheck = options.ShowsMicCheck ? new MicCheckModel(session.LogMicCheck, session.Locale, session.Data.Words.Greeting) : null;
         _playtest = options.Playtest;

@@ -51,7 +51,7 @@ public static class SessionSummary
     /// <summary>How many items the practise line names.</summary>
     public const int PractiseLimit = 2;
 
-    /// <summary>The summary's lines, in the card's order: lessons, new words, said without help, verb forms, practise next time, and the replay line.</summary>
+    /// <summary>The summary's lines, in the card's order: lessons, new words, said without help, reviewed, verb forms, practise next time, and the replay line.</summary>
     /// <param name="facts">What the summary is built from.</param>
     /// <param name="english">The game's English text.</param>
     public static IReadOnlyList<string> Lines(SummaryFacts facts, LocaleText english)
@@ -63,6 +63,7 @@ public static class SessionSummary
             LessonsLine(facts, english),
             WordsLine(facts, english),
             UnaidedLine(facts, english),
+            ReviewedLine(facts, english),
             FormsLine(facts, english),
             PractiseLine(facts, english),
             english.Ui("summaryReplay"),
@@ -110,6 +111,17 @@ public static class SessionSummary
             .Where(static u => u.Correct && u.Kind is PhraseUseKind.Unaided or PhraseUseKind.Transfer)
             .Select(u => SpanishOf(facts, u.PhraseId)).Distinct(StringComparer.Ordinal).ToList();
         return english.Ui("summaryUnaided", ("items", ListOrNone(said, english, ListLimit)));
+    }
+
+    // The phrases of earlier sessions the learner answered again this session (X06): in the warm-up and in the review steps of the lessons, in the order they were first reviewed.
+    private static string ReviewedLine(SummaryFacts facts, LocaleText english)
+    {
+        var reviewed = facts.Events.OfType<WorldEvent>()
+            .Where(static e => string.Equals(e.Name, WorldEvents.ReviewAnswered, StringComparison.Ordinal) && e.Detail is not null)
+            .Select(static e => e.Detail!.Split(',')[0])
+            .Select(id => SpanishOf(facts, id))
+            .Distinct(StringComparer.Ordinal).ToList();
+        return english.Ui("summaryReviewed", ("items", ListOrNone(reviewed, english, ListLimit)));
     }
 
     // The verb forms this session's lines used, with their tense and person (quiero (present, 1st singular)).

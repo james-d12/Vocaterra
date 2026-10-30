@@ -140,12 +140,18 @@ public sealed class BookSpeechControls
 
     /// <summary>
     /// Asks to practise a lesson again (S26): it starts when the learner talks to its NPC. Returns the lesson id when the lesson accepted, or <see langword="null"/> when
-    /// it was never completed, is unknown or another lesson is under way.
+    /// it was never completed, is unknown or another lesson is under way. <see cref="BookPractise.ReviewNow"/> asks for the review deck's warm-up instead (X06): it
+    /// starts at the guide, and is refused when nothing is due.
     /// </summary>
-    /// <param name="lessonId">The lesson's id.</param>
+    /// <param name="lessonId">The lesson's id, or <see cref="BookPractise.ReviewNow"/>.</param>
     public string? Practise(string lessonId)
     {
         ArgumentNullException.ThrowIfNull(lessonId);
+        if (string.Equals(lessonId, BookPractise.ReviewNow, StringComparison.Ordinal))
+        {
+            return _session.Deck.Request() ? lessonId : null;
+        }
+
         return _session.Lessons.RequestReplay(lessonId) ? lessonId : null;
     }
 
