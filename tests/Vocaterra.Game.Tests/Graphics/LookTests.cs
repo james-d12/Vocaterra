@@ -1,5 +1,4 @@
 using Vocaterra.Game.Core.Language.Words;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Graphics;
@@ -8,7 +7,6 @@ using Vocaterra.Game.Graphics.Sky;
 using Vocaterra.Game.Graphics.World;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.Tests.Graphics.World;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Graphics;
 
@@ -18,9 +16,6 @@ namespace Vocaterra.Game.Tests.Graphics;
 /// </summary>
 public sealed class LookTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
     private static ChunkMeshes Mesh(MapBlocks blocks, MeshOptions? options = null, ulong grey = 0) => ChunkMesher.Build(blocks, 0, 0, 0, grey, options);
 
     private static (int R, int G, int B, int A) Channels(uint colour) => ((int)(colour & 0xFF), (int)((colour >> 8) & 0xFF), (int)((colour >> 16) & 0xFF), (int)(colour >> 24));
@@ -673,8 +668,8 @@ public sealed class LookTests
     [Fact]
     public void WithGreyscaleEveryTreeKindIsGreyUntilArbolIsKnownAndPlantsAndSnowStayInColour()
     {
-        var words = new WordProgress(Nouns.Value);
-        var grey = WordColours.GreyKinds(Nouns.Value, words);
+        var words = new WordProgress(TestGame.Nouns);
+        var grey = WordColours.GreyKinds(TestGame.Nouns, words);
         foreach (var tree in new[] { BlockId.Trunk, BlockId.Leaves, BlockId.SpruceTrunk, BlockId.SpruceLeaves, BlockId.BirchTrunk, BlockId.BirchLeaves })
         {
             Assert.True(ChunkMesher.IsGrey(tree, grey), $"{tree} is grey while árbol is not known");
@@ -702,7 +697,7 @@ public sealed class LookTests
 
         // Once árbol is known all the trees regain colour together.
         words.Restore([new WordRecord("árbol", CreditUnits: WordProgress.UnitsToKnow, CorrectTurns: WordProgress.UsesToKnow)]);
-        var after = WordColours.GreyKinds(Nouns.Value, words);
+        var after = WordColours.GreyKinds(TestGame.Nouns, words);
         foreach (var tree in new[] { BlockId.Trunk, BlockId.Leaves, BlockId.SpruceTrunk, BlockId.SpruceLeaves, BlockId.BirchTrunk, BlockId.BirchLeaves })
         {
             Assert.False(ChunkMesher.IsGrey(tree, after));

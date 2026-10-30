@@ -1,19 +1,15 @@
 using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Input;
-using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Tests.Reporting;
 
 /// <summary>The crash handler's view of the game: its state row by row, and the last-chance save, refused while a dialogue is open.</summary>
 public sealed class CrashSourceTests : IDisposable
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
     private readonly string _folder = Path.Combine(Path.GetTempPath(), "vocaterra-crash-" + Path.GetRandomFileName());
 
     public void Dispose()
@@ -56,7 +52,7 @@ public sealed class CrashSourceTests : IDisposable
     private (CrashSource Crash, VoxelSession Session, DialogueModel Dialogue) Make()
     {
         Directory.CreateDirectory(_folder);
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases, session.Locale);
         var saves = new SaveService(session, () => RouteScene.Build(), () => new SaveSettings(new SoundVolumes()), _ => { });
         return (new CrashSource(_folder, "reports-here", session, dialogue, new ReportPanel(), autosave: null, saves), session, dialogue);

@@ -4,6 +4,7 @@ using CliProgram = Vocaterra.Nlp.Cli.Program;
 namespace Vocaterra.Nlp.Pipeline.Tests;
 
 /// <summary>Tests for the demo host, driven through <see cref="CliProgram.Run(string[], TextWriter, TextWriter)"/>.</summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public class CliTests
 {
     private static (int Code, string Output, string Error) Run(params string[] args)

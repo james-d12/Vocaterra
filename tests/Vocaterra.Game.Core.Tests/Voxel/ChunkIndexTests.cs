@@ -1,8 +1,13 @@
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 
 namespace Vocaterra.Game.Core.Tests.Voxel;
 
-/// <summary>What a chunk knows about itself so that a large world can skip it (S13): how many blocks it holds, which kinds, and whether it is empty.</summary>
+/// <summary>
+/// What a chunk knows about itself so that a large world can skip it (S13): how many blocks it holds, which kinds, and whether it is empty. In the
+/// timing collection: the cached digest's test has a 100 ms budget.
+/// </summary>
+[Collection(TimingCollection.Name)]
 public sealed class ChunkIndexTests
 {
     [Fact]

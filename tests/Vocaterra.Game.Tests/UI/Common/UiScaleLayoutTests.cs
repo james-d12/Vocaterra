@@ -4,11 +4,9 @@ using Vocaterra.Game.Core.Dialogue;
 using Vocaterra.Game.Core.Language.Book;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Lessons;
-using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Reporting;
 using Vocaterra.Game.Core.Save;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Game.Graphics.World;
@@ -42,11 +40,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
 
     private static float Large(string text) => text.Length * 14f;
 
-    private static readonly Lazy<LocaleText> English = new(() =>
-    {
-        var bundle = GameBundle.Load();
-        return RouteScene.DataOf(bundle).Locale;
-    });
+    private static readonly Lazy<LocaleText> English = new(() => TestGame.Data.Locale);
 
     /// <summary>Every window size and scale: the case's canvas is the window divided by the scale.</summary>
     public static TheoryData<int, int, int> Cases
@@ -206,7 +200,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     {
         // Every step of the shipped lessons, with its text from the locale (C03).
         var views = new List<LessonView>();
-        foreach (var lesson in RouteScene.DataOf(GameBundle.Load()).Lessons.Lessons)
+        foreach (var lesson in TestGame.Data.Lessons.Lessons)
         {
             foreach (var step in lesson.Steps)
             {
@@ -450,7 +444,7 @@ public sealed class UiScaleLayoutTests(ITestOutputHelper output)
     {
         var canvas = Canvas(windowWidth, windowHeight, scale);
         var window = Whole(canvas);
-        var bank = RouteScene.DataOf(GameBundle.Load()).Checks;
+        var bank = TestGame.Data.Checks;
         var panel = CheckCardLayout.PanelFor(canvas.Width, canvas.Height);
         Assert.True(Inside(panel, window));
         var side = CheckCardLayout.SideFor(panel);

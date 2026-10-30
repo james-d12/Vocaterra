@@ -1,16 +1,11 @@
-using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Save;
-using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Tests.Save;
 
 /// <summary>The game's saves: the fresh scene is built once for them all, and the file written is the capture of the session.</summary>
 public sealed class SaveServiceTests : IDisposable
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
     private readonly string _folder = Path.Combine(Path.GetTempPath(), "vocaterra-saves-" + Path.GetRandomFileName());
 
     public void Dispose()
@@ -24,7 +19,7 @@ public sealed class SaveServiceTests : IDisposable
     [Fact]
     public void TheFreshSceneIsBuiltOnceAndTheFileIsTheCaptureOfTheSession()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var builds = 0;
         var lines = new List<string>();
         var settings = new SaveSettings(new SoundVolumes(), 125);

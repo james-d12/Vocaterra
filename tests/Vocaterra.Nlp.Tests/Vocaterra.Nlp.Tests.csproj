@@ -59,6 +59,7 @@
     <Compile Include="../Vocaterra.Nlp.Es.Tests/Analysis/TestTokens.cs" Link="Shared/EsTestTokens.cs" />
     <Compile Include="../Shared/GameBundleLocator.cs" Link="Shared/GameBundleLocator.cs" />
     <Compile Include="../Shared/TempBundle.cs" Link="Shared/TempBundle.cs" />
+    <Compile Include="../Shared/TestSpeed.cs" Link="Shared/TestSpeed.cs" />
     <None Include="../../models/manifest.json" Link="models/manifest.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Content/Data/**/*" Link="Data/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

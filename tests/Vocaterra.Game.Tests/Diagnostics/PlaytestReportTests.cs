@@ -7,6 +7,7 @@ namespace Vocaterra.Game.Tests.Diagnostics;
 /// The report script (<c>scripts/playtest-report.sh</c>, S11) on committed fixture session folders: the summary's sections, the gate lines with
 /// their evidence, and a refusal of a folder with no session log. It runs bash and Python 3 (standard library); without them the tests do nothing.
 /// </summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public sealed class PlaytestReportTests
 {
     private static string Script => System.IO.Path.GetFullPath(Repo.Path("scripts", "playtest-report.sh"));

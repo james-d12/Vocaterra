@@ -4,7 +4,6 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Tests.TestSupport;
-using Vocaterra.Nlp.Content;
 using Xunit.Abstractions;
 
 namespace Vocaterra.Game.Core.Tests.Component;
@@ -17,9 +16,6 @@ namespace Vocaterra.Game.Core.Tests.Component;
 [Collection("speech models")]
 public sealed class SpokenRouteTests(ITestOutputHelper output)
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
     private sealed class WavCapture(short[] samples, int sampleRate) : ISpeechCapture
     {
         private bool _given;
@@ -48,7 +44,7 @@ public sealed class SpokenRouteTests(ITestOutputHelper output)
 
     private static VoxelSession AtTheGuide()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         Assert.True(session.StartWorker().WaitUntilReady(60000));
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("guide").Feet, session.Simulation.Player.FeetBlock)!.Value);
         _ = session.OpenTalk("guide");
@@ -73,6 +69,7 @@ public sealed class SpokenRouteTests(ITestOutputHelper output)
     }
 
     [ModelFact(needsKokoro: false)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TheRecordedHolaIsHeardAsHolaFromAWavFileThroughTheWorker()
     {
         using var session = AtTheGuide();
@@ -89,6 +86,7 @@ public sealed class SpokenRouteTests(ITestOutputHelper output)
     }
 
     [ModelFact(needsKokoro: false)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void TheRecordedHolaIsHeardAsHolaFromThePushToTalkPathThroughTheWorker()
     {
         var (samples, rate) = AudioClips.ReadWav(File.ReadAllBytes(HolaWav));

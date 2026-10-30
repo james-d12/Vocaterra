@@ -97,6 +97,7 @@ internal sealed class LintFixture : IDisposable
 }
 
 /// <summary>Tests of the content lint library: one fixture per check proving that it fires and that it does not fire.</summary>
+[Trait(TestSpeed.Trait, TestSpeed.Slow)]
 public class LintTests
 {
     private static readonly LintReport Sample = ContentLinter.Lint(TestSupport.Bundle, LintFixture.GateOptions);

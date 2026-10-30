@@ -20,6 +20,7 @@ public class TextGraderTests
     }
 
     [Fact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void EveryExampleOfEveryAllowedPromptGetsThePipelinesVerdict()
     {
         var checkedPairs = 0;

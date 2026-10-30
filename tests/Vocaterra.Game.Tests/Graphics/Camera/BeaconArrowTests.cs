@@ -2,8 +2,6 @@ using Vocaterra.Game.Core.Mathematics;
 using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
-using Vocaterra.Game.Core.World.Generation;
-using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Game.Graphics.Camera;
 using Vocaterra.Game.Graphics.World;
 
@@ -152,7 +150,7 @@ public sealed class BeaconArrowTests
     [Fact]
     public void TheBeaconCanBeSetOnANamedPointOfTheScene()
     {
-        var scene = SceneBuilder.Build(SceneLayout.Load(Repo.Path("content", "game-v1", "game", "scene.json")), 42);
+        var scene = RouteScene.Build();
         var beacon = new Beacon();
         Assert.True(beacon.SetPoint(scene, "river", scene.LabelOf("river"))); // the scene's label (C05; until then PointLabels)
         Assert.Equal(scene.Point("river"), beacon.Target);

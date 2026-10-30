@@ -11,6 +11,30 @@ serialises them machine-wide and caps their memory and CPU; see its header.
 memory is short, and runs it in a systemd user scope with a 6 GB memory cap, no swap and 10 of 16 cores. Exit status 137 means the cap
 killed the command. Use `-m:4` for builds and `-m:2` for tests.
 
+## test.sh
+
+Runs the test suite, or a tier of it, as the gate does (the build with `-m:4`, the tests with `-m:2`, both through `limited.sh`):
+
+- `fast` runs every test that is not marked slow (`--filter "Speed!=Slow"`): the step-by-step check. It leaves out the fuzz suite, the
+  model-gated tests, the world-generation tests, the full-bundle CLI and lint tests, the process-spawning tests and the few long single
+  tests, and names them at the end.
+- `full` runs the whole suite, as the merge gate and CI do: the check at a milestone and before a merge.
+- `project <name>` runs one test project in full (`project Vocaterra.Game.Core.Tests`, or a project's path).
+
+A test is marked slow with `[Trait(TestSpeed.Trait, TestSpeed.Slow)]` on its class or method (the constant is in `tests/Shared/TestSpeed.cs` for
+the core and `tests/Vocaterra.Game.Core.Tests/TestSupport/TestSpeed.cs` for the game). Options after the mode go to `dotnet test`: `--no-build`
+skips the build, and a `--filter` is combined with the fast tier's. Model-gated tests run when `VOCATERRA_MODELS_DIR` is set or the shared
+models folder exists. The TRX files go to `.claude/test-timings/<mode>-<stamp>/` (git-ignored), and the run ends with each assembly's wall time
+and counts.
+
+## test-timings.py
+
+`python3 -I scripts/test-timings.py RUN [BASE] [--top N]` reads the TRX files of a run (a folder, as `dotnet test --logger trx
+--results-directory RUN` or `test.sh` writes them) and prints each assembly's wall time and counts, the run's wall time (first start to last
+finish, so time spent queued in `limited.sh` is not counted), the N slowest tests and the N classes with the most test time. With `BASE` it
+also prints both runs' wall times and counts side by side, as [docs/TEST_PERFORMANCE_PLAN.md](../docs/TEST_PERFORMANCE_PLAN.md) reports
+each phase. `--top 0` prints the assemblies alone.
+
 ## content.sh
 
 Runs the language core's content tool on a game content bundle (default `content/game-v1`):

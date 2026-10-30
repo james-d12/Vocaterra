@@ -21,7 +21,6 @@ using Vocaterra.Game.Startup;
 using Vocaterra.Game.Tests.TestSupport;
 using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.Lesson;
-using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Tests.Component;
 
@@ -32,10 +31,6 @@ namespace Vocaterra.Game.Tests.Component;
 /// </summary>
 public sealed class LessonFrontendTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-
     private static readonly DateTimeOffset Stamp = DateTimeOffset.Parse("2026-10-22T09:30:00+01:00", System.Globalization.CultureInfo.InvariantCulture);
 
     private sealed class RecordingPlayer : ILinePlayer
@@ -54,7 +49,7 @@ public sealed class LessonFrontendTests
 
         public Harness(IReadOnlyList<ScriptStep> steps, LessonBook? lessons = null)
         {
-            Session = new VoxelSession(RouteScene.DataOf(Bundle.Value), 42, GuideSession.DefaultStartedAt, RouteScene.Build(), CreditRules.FullTyped, lessons ?? RouteScene.Sample(Bundle.Value, Nouns.Value));
+            Session = new VoxelSession(TestGame.Data, 42, GuideSession.DefaultStartedAt, RouteScene.Build(), CreditRules.FullTyped, lessons ?? RouteScene.Sample(TestGame.Bundle, TestGame.Nouns));
             Session.StartWorker(loadSpeech: false).WaitUntilReady(30000);
             Look = new LookControl();
             Look.Set(Session.Scene.Spawn.Yaw, 0);
@@ -156,7 +151,7 @@ public sealed class LessonFrontendTests
         return options;
     }
 
-    private static LocaleText English => RouteScene.DataOf(Bundle.Value).Locale;
+    private static LocaleText English => TestGame.Data.Locale;
 
     private static float Measure(string text) => text.Length * 8f;
 
@@ -196,7 +191,7 @@ public sealed class LessonFrontendTests
     [Fact]
     public void ALessonRunStepDoesTheWholeFirstWordsLessonWithTypedAnswersAndWalksToPickTheFruit()
     {
-        var shipped = RouteScene.DataOf(Bundle.Value).Lessons;
+        var shipped = TestGame.Data.Lessons;
         using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "first-words")], shipped);
 
         run.Go(60000);
@@ -215,7 +210,7 @@ public sealed class LessonFrontendTests
     [Fact]
     public void ALessonRunStepDoesPersonasFromTheVillagerToTheStallAndTheShopkeeper()
     {
-        var shipped = RouteScene.DataOf(Bundle.Value).Lessons;
+        var shipped = TestGame.Data.Lessons;
         using var run = new Harness([new(ScriptStepKind.LessonRun, Value: "personas")], shipped);
         run.Session.PlaySession = 2; // the lesson of the second session
 
@@ -233,9 +228,10 @@ public sealed class LessonFrontendTests
     }
 
     [Fact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void APractiseAgainStepStartsACompletedLessonAtItsNpcAndTheRunRunsItAgain()
     {
-        var shipped = RouteScene.DataOf(Bundle.Value).Lessons;
+        var shipped = TestGame.Data.Lessons;
         using var run = new Harness(
         [
             new(ScriptStepKind.LessonRun, Value: "first-words"),
@@ -255,7 +251,7 @@ public sealed class LessonFrontendTests
     [Fact]
     public void TheLessonStepsOfTheScriptSkipHelpPickAndContinueLikeTheButtons()
     {
-        var lessons = RouteScene.Lessons(LessonBookTestsRich, Bundle.Value);
+        var lessons = RouteScene.Lessons(LessonBookTestsRich, TestGame.Bundle);
         using var run = new Harness(
         [
             new(ScriptStepKind.LessonStart, Value: "rich"),
@@ -371,7 +367,7 @@ public sealed class LessonFrontendTests
 
     private static (VoxelSession Session, DialogueModel Dialogue, LessonFrontend Lesson, RecordingPlayer Player, SpeechActionRunner Actions) AtGuide(LessonBook? lessons = null)
     {
-        var session = new VoxelSession(RouteScene.DataOf(Bundle.Value), 42, GuideSession.DefaultStartedAt, RouteScene.Build(), CreditRules.FullTyped, lessons ?? RouteScene.Sample(Bundle.Value, Nouns.Value));
+        var session = new VoxelSession(TestGame.Data, 42, GuideSession.DefaultStartedAt, RouteScene.Build(), CreditRules.FullTyped, lessons ?? RouteScene.Sample(TestGame.Bundle, TestGame.Nouns));
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("guide").Feet, session.Simulation.Player.FeetBlock)!.Value);
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases, session.Locale);
         var player = new RecordingPlayer();
@@ -430,7 +426,7 @@ public sealed class LessonFrontendTests
     }
 
     private static LessonBook TestBook(string json) =>
-        RouteScene.Lessons(json, Bundle.Value);
+        RouteScene.Lessons(json, TestGame.Bundle);
 
     [Fact]
     public void ALessonThatStaysEngagedIsNotDrawnOverAnotherNpcsPanel()
@@ -494,7 +490,7 @@ public sealed class LessonFrontendTests
     [Fact]
     public void ATurnOnThePanelGetsItsPlainEnglishFeedbackAfterTheNpcsLines()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("shopkeeper").Feet, session.Simulation.Player.FeetBlock)!.Value);
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases, session.Locale);
         dialogue.Open(session.OpenTalk("shopkeeper"), "Tendero");
@@ -515,7 +511,7 @@ public sealed class LessonFrontendTests
     [Fact]
     public void ThePanelAddsNoEnglishFeedbackWithoutTheEnglishTextAndEnglishIsNeverWhatRepetirPlays()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
         session.Simulation.TeleportTo(NpcStandOff.Choose(session.Scene.Grid, session.Scene.Npc("shopkeeper").Feet, session.Simulation.Player.FeetBlock)!.Value);
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases);
         dialogue.Open(session.OpenTalk("shopkeeper"), "Tendero");
@@ -542,14 +538,14 @@ public sealed class LessonFrontendTests
 
         Assert.NotEmpty(cues);
         Assert.All(spoken, text => Assert.True(index.Find("guide", text) is not null, $"\"{text}\" is a Spanish line with a pre-rendered voice"));
-        var locale = RouteScene.LocaleOf(Bundle.Value);
+        var locale = RouteScene.LocaleOf(TestGame.Bundle);
         foreach (var id in locale.Ids.Where(static id => id.StartsWith("line.", StringComparison.Ordinal)))
         {
             Assert.Null(index.Find("guide", locale.Text(id))); // no gloss has a voice: only Spanish is spoken
         }
     }
 
-    private static SpeechIndex TestSpeechIndex() => new(SpeechLines.Enumerate(Bundle.Value, Nouns.Value, RouteScene.DataOf(Bundle.Value).Phrases));
+    private static SpeechIndex TestSpeechIndex() => new(SpeechLines.Enumerate(TestGame.Bundle, TestGame.Nouns, TestGame.Data.Phrases));
 
     // ---- Options, the log and the font.
 

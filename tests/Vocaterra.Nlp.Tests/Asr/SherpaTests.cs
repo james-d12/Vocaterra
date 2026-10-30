@@ -102,6 +102,7 @@ public class SherpaTests(ITestOutputHelper output)
     }
 
     [ParakeetModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ParakeetRecognizesSilenceDeterministically()
     {
         var store = ModelGate.Store!;
@@ -118,6 +119,7 @@ public class SherpaTests(ITestOutputHelper output)
     }
 
     [ParakeetModelFact]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void ParakeetFromStoreTranscribesTheSpanishSampleClipDeterministically()
     {
         var store = ModelGate.Store!;

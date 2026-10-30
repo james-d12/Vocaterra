@@ -15,7 +15,6 @@ using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI.Checks;
 using Vocaterra.Game.UI.Dialogue;
 using Vocaterra.Game.UI.Hud;
-using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Language.Intent;
 
@@ -28,9 +27,7 @@ namespace Vocaterra.Game.Tests.Component;
 /// </summary>
 public sealed class SpeechUxFrontendTests
 {
-    private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> Nouns = new(() => NounCatalog.Load(Bundle.Value));
-    private static readonly Lazy<PhraseSheet> Sheet = new(() => RouteScene.DataOf(Bundle.Value).Phrases);
+    private static readonly Lazy<PhraseSheet> Sheet = new(() => TestGame.Data.Phrases);
 
     private sealed class RecordingPlayer : ILinePlayer
     {
@@ -118,7 +115,7 @@ public sealed class SpeechUxFrontendTests
     [Fact]
     public void WhenTheWatchdogFiresThePanelOffersTypingWithTheEscribirButtonFocusedAndTheTimeoutIsLogged()
     {
-        var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
+        var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns);
         var dialogue = OpenPanel(out _);
         dialogue.BeginSpoken(); // a turn is out
 
@@ -253,7 +250,7 @@ public sealed class SpeechUxFrontendTests
     {
         public AtTheStall()
         {
-            Session = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
+            Session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
             Assert.True(Session.StartWorker(loadSpeech: false).WaitUntilReady(30000));
             Session.Simulation.TeleportTo(NpcStandOff.Choose(Session.Scene.Grid, Session.Scene.Npc("shopkeeper").Feet, Session.Simulation.Player.FeetBlock)!.Value);
             var opening = Session.OpenTalk("shopkeeper");
@@ -664,7 +661,7 @@ public sealed class SpeechUxFrontendTests
     [Fact]
     public void TheScriptedSpeakStepAsksThePanelToSendASpokenLineAndWaitsForTheTurn()
     {
-        using var session = RouteScene.NewSession(Bundle.Value, Nouns.Value, CreditRules.FullTyped);
+        using var session = RouteScene.NewSession(TestGame.Bundle, TestGame.Nouns, CreditRules.FullTyped);
         Assert.True(session.StartWorker(loadSpeech: false).WaitUntilReady(30000));
         var look = new LookControl();
         var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases);

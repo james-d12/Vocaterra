@@ -68,6 +68,7 @@ public class SynthesizerTests(ITestOutputHelper output)
     }
 
     [RequiresModelFact(KokoroSynthesizer.ModelDirectoryName)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void KokoroSpeaksSpanishDeterministicallyWithTheModelSampleRate()
     {
         var modelDir = RequiresModelFactAttribute.ModelPath(KokoroSynthesizer.ModelDirectoryName)!;
@@ -85,6 +86,7 @@ public class SynthesizerTests(ITestOutputHelper output)
     }
 
     [RequiresModelFact(KokoroSynthesizer.ModelDirectoryName)]
+    [Trait(TestSpeed.Trait, TestSpeed.Slow)]
     public void KokoroFromStoreSpeaksSpanishDeterministicallyWithTheSpanishVoices()
     {
         var store = CommittedStore();

@@ -7,8 +7,6 @@ using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Game.Core.World;
-using Vocaterra.Game.Core.World.Generation;
-using Vocaterra.Game.Core.World.Layout;
 using Vocaterra.Nlp.Content;
 
 namespace Vocaterra.Game.Core.Tests.TestSupport;
@@ -31,9 +29,11 @@ internal static class TestGame
     /// <summary>The game's content of the bundle (every game file, loaded and checked once).</summary>
     public static GameData Data => RouteScene.DataOf(Bundle);
 
-    /// <summary>The bundle's route scene built from a seed.</summary>
-    public static Scene Route(ulong seed = Seed) =>
-        SceneBuilder.Build(SceneLayout.Load(Path.Combine(GameBundle.ResolveDirectory(), "game", "scene.json")), seed);
+    /// <summary>The phrase sheet of the bundle.</summary>
+    public static PhraseSheet Phrases => Data.Phrases;
+
+    /// <summary>The bundle's route scene for a seed: a copy of the one built in this test process (<see cref="RouteScene.Build"/>), for the test to edit.</summary>
+    public static Scene Route(ulong seed = Seed) => RouteScene.Build(seed);
 
     /// <summary>
     /// A new session on the route for a seed, with the fixed start time. The guide has no lesson unless the test asks for one (S17: the shipped lesson starts by itself
@@ -50,7 +50,7 @@ internal static class TestGame
         new(Data, seed, GuideSession.DefaultStartedAt, Route(seed), credit ?? CreditRules.FullTyped);
 
     /// <summary>A book without lessons.</summary>
-    public static LessonBook NoLessons => Lessons("{ \"schemaVersion\": 1, \"lessons\": [] }");
+    public static LessonBook NoLessons => RouteScene.NoLessons(Bundle, Nouns);
 
     /// <summary>The two-step sample lesson of S16 (hola, gracias), which S17 retired from the bundle and the runner's tests keep: the same text, the same ids.</summary>
     public const string SampleLesson = """

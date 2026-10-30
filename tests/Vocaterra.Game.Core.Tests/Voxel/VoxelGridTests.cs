@@ -94,6 +94,38 @@ public sealed class VoxelGridTests
     }
 
     [Fact]
+    public void ACloneReadsLikeItsOriginalAndEditsApartFromIt()
+    {
+        var grid = new VoxelGrid(32, 32, 48);
+        grid.SetBlock(1, 2, 3, BlockId.Stone);
+        grid.SetBlock(20, 17, 40, BlockId.Water);
+        grid.FillColumn(9, 9, 0, 20, BlockId.Dirt);
+        var clone = grid.Clone(); // before any digest is cached
+        var digest = grid.ComputeDigestHex();
+        Assert.Equal(digest, clone.ComputeDigestHex());
+        Assert.Equal(grid.EditCount, clone.EditCount);
+        Assert.Equal(
+            grid.Chunks.Select(static c => (c.Coord, c.Version, c.NonAirCount, c.KindMask, c.ComputeDigestHex())),
+            clone.Chunks.Select(static c => (c.Coord, c.Version, c.NonAirCount, c.KindMask, c.ComputeDigestHex())));
+        Assert.All(grid.Chunks, (chunk, i) => Assert.NotSame(chunk, clone.Chunks[i]));
+        Assert.Equal(grid.BlocksOfKind(BlockId.Dirt), clone.BlocksOfKind(BlockId.Dirt));
+
+        // An edit of the clone leaves the original as it was, and the other way round; a clone of a grid with cached digests reads the same too.
+        Assert.True(clone.SetBlock(1, 2, 3, BlockId.Air));
+        Assert.True(clone.SetBlock(5, 5, 5, BlockId.Sand));
+        Assert.Equal(BlockId.Stone, grid.GetBlock(1, 2, 3));
+        Assert.Equal(BlockId.Air, grid.GetBlock(5, 5, 5));
+        Assert.Equal(digest, grid.ComputeDigestHex());
+        Assert.NotEqual(digest, clone.ComputeDigestHex());
+        var second = grid.Clone();
+        Assert.Equal(digest, second.ComputeDigestHex());
+        Assert.True(grid.SetBlock(31, 31, 47, BlockId.Stone));
+        Assert.Equal(digest, second.ComputeDigestHex());
+        Assert.Equal(BlockId.Air, second.GetBlock(31, 31, 47));
+        Assert.NotEqual(digest, grid.ComputeDigestHex());
+    }
+
+    [Fact]
     public void TheDigestDependsOnTheSizeAndOnTheBlockPositionNotJustTheCounts()
     {
         var a = new VoxelGrid(32, 32, 32);
