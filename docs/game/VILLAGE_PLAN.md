@@ -567,10 +567,10 @@ Today's gate demands A1 bundle-wide (section 2.5). The rule this plan proposes, 
 | V01 | NPC behaviour from data: prompts by state, the opening event, the voice and the key words in `game/npcs/<id>.json`; the speaker of a pool by NPC id; `--talk` from the roster | | M | Opus 5.5 xhigh | done 2026-10-30 (`0ad929d`) |
 | V02 | Host actions and the beacon by place: `give_item` with a count, `point_at_place`, `point_at_slot`, `beacon_reached`, a `do` step's `pointPlace` | V01 | M | Opus 5.5 xhigh | done 2026-10-30 (`d53b957`) |
 | V03 | Items and orders: the coin, the apple and the axe; `take_item` and `sell`; objectives with `session` and `deliverTo`; `order_delivered` | V02 | M | Opus 5.5 xhigh | done 2026-10-30 (`d53b957`) |
-| V04 | The village grows: the scene of 3.2 (radius 24, the bakery and oven, the smithy and forge, the well, the farmer's crate and orchard, the fisher's bank, the placements, the labels) | | S/M | Haiku 5.5 | planned |
-| V05 | Four figures and faces; the coin, apple and axe icons and held sprites | | S/M | Haiku 5.5 | planned |
-| V06 | The voice trial (the owner listens) and the voice from the NPC file | V01 | S | Haiku 5.5 and the owner | planned |
-| V07 | The check battery by lesson: `lesson` on the items; a battery takes the unlocked lessons' items | | S | Haiku 5.5 | planned |
+| V04 | The village grows: the scene of 3.2 (radius 24, the bakery and oven, the smithy and forge, the well, the farmer's crate and orchard, the fisher's bank, the placements, the labels) | | S/M | Opus 5.5 xhigh | done 2026-10-30 (`600b8d7`) |
+| V05 | Four figures and faces; the coin, apple and axe icons and held sprites | | S/M | Opus 5.5 xhigh | done 2026-10-30 (`600b8d7`) |
+| V06 | The voice trial (the owner listens) and the voice from the NPC file | V01 | S | Opus 5.5 xhigh | done 2026-10-30 (`600b8d7`) |
+| V07 | The check battery by lesson: `lesson` on the items; a battery takes the unlocked lessons' items | | S | Opus 5.5 xhigh | done 2026-10-30 (`600b8d7`) |
 | V08 | The A1/A2 gate of 3.9: `level` on the lessons, the validator's check, the gate's lint at A2 | | S | Haiku 5.5 | planned (phase B) |
 | V09 | Documents and runs: the counts in `README.md` and `PLAYTEST.md`, `SCRIPTED_RUNS.md` with two new runs (the bakery purchase, asking the way), `SPEECH_CHECKLIST.md`; once per phase | the phase's lessons | S | Haiku 5.5 | planned |
 | V10 | Session 4 "El pueblo": the fisher; places and directions; `ask_far`, `ask_availability`; the three times around the walk (`voy a la panadería`, `voy a comprar pan`, `fui a la panadería`; `state_action` gains `comprar` and the later markers); the order `fruit-for-mar`; the X06 review steps in `personas` and `ayer-y-manana` | V01, V02, V04, V05, V06, V07 | M | Sonnet 5.5 design and intents, Haiku 5.5 rows and WAVs | planned |

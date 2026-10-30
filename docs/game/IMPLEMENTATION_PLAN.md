@@ -1570,6 +1570,27 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - Section 6's S3 demo line was out of date: the game at seed 42 says "El río está allí, adelante, a la izquierda, a cincuenta y cuatro
       bloques." (a test now pins it; section 6 corrected).
     - The scripted runs are not in `dotnet test` and have no committed baselines; they gain `beacon_reached` and `place_asked` lines (V09).
+- **V04 to V07: the village, the figures, the voice trial and the battery by lesson (2026-10-30, Opus 5.5 xhigh; gated on `feature/village`
+  at `600b8d7`).**
+  - **Gate:** 5687 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean. Bundle
+    `f32a0284…`; world digest `6420e200…`, village digest `1a6c04b2…` (radius 24); seed-42 build about 0.6 s.
+  - **V04.** Radius 24; the bakery with its oven, the smithy with a lit forge, anvil and crates, the well, the farmer's apple crate, the
+    orchard (at x 19, not 17: a crown at 17 hung over the field's fence and failed the route test), the fisher's crates and lamp, paved
+    strips; labels `panadería`, `herrería`, `pozo`, `torre`, `campo`; stand points `npc.baker`, `npc.smith`, `npc.farmer`, `npc.fisher` (no
+    placements: the validator refuses an NPC that is not in the roster).
+  - **V05.** Four figures and faces (the baker a woman); the coin, apple and axe icons and held sprites.
+  - **V06.** `--trial <folder>` in the renderer; `docs/game/voice-trial/` (12 WAVs, 2.5 MB, `trial.json`, README); speaker indices ef_dora 28,
+    em_alex 29, ff_siwis 30, if_sara 35, im_nicola 36, pf_dora 42, pm_alex 43, pm_santa 44, em_santa 53. **`if_sara` is about three times
+    louder than the Spanish voices, with peaks near clipping** (for the owner's listening).
+  - **V07.** `lesson` on every check item; the battery asks the lessons with `Session <= max(PlaySession, coreSessions)`, `coreSessions: 3` in
+    `checks.json`, because the plain rule would have cut the pilot's pre- and post-check to 24 items and the recall to 27; a test pins the
+    31. Eight items belong to no lesson (the session-1 free run at the stall and the villager).
+  - **Found:**
+    - The well's water became the nearest water to the villager, so "¿Dónde está el río?" would have pointed at the well: a labelled place
+      made of its word's blocks now resolves only to blocks joined to its point (`NearestOfNounJoinedTo`).
+    - The renderer never kept the owner's marks in the speech checklist (no row starts with `| speech/`); fixed.
+    - The well's rim is two blocks high, so from eye height it reads as a stone cube and hides its water (the orchestrator's screenshot);
+      V10 lowers it.
 
 ## 6. Definition of done (every milestone)
 
