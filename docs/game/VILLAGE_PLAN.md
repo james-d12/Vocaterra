@@ -564,7 +564,7 @@ Today's gate demands A1 bundle-wide (section 2.5). The rule this plan proposes, 
 | ID | What | Depends on | Size | Model | Status |
 | --- | --- | --- | --- | --- | --- |
 | V00 | This plan; D-game-22 proposed; the row in `IMPLEMENTATION_PLAN.md` 4.8; revised the same day for the three times (section 2.9, the ladder in 3.5, V16, V17) | | | orchestrator | written 2026-10-30; answered the same day (D-game-22: phase A now) |
-| V01 | NPC behaviour from data: prompts by state, the opening event, the voice and the key words in `game/npcs/<id>.json`; the speaker of a pool by NPC id; `--talk` from the roster | | M | Sonnet 5.5 | planned |
+| V01 | NPC behaviour from data: prompts by state, the opening event, the voice and the key words in `game/npcs/<id>.json`; the speaker of a pool by NPC id; `--talk` from the roster | | M | Opus 5.5 xhigh | done 2026-10-30 (`0ad929d`) |
 | V02 | Host actions and the beacon by place: `give_item` with a count, `point_at_place`, `point_at_slot`, `beacon_reached`, a `do` step's `pointPlace` | V01 | M | Sonnet 5.5 | planned |
 | V03 | Items and orders: the coin, the apple and the axe; `take_item` and `sell`; objectives with `session` and `deliverTo`; `order_delivered` | V02 | M | Sonnet 5.5 | planned |
 | V04 | The village grows: the scene of 3.2 (radius 24, the bakery and oven, the smithy and forge, the well, the farmer's crate and orchard, the fisher's bank, the placements, the labels) | | S/M | Haiku 5.5 | planned |

@@ -1540,6 +1540,19 @@ Facts that shape the plan. Each one names its source; the core's own findings st
     - The beacon now says "1 block", not "1 blocks".
     - The scripted runs caught a console line that interpolated a property turned method (`{heard.Text}` printed `System.Func…`); it compiled
       because a method group has a natural type. Fixed with `DialogueModel.HeardText`; the runs are then all the same as after C07.
+- **V01: NPC behaviour from data (2026-10-30, Opus 5.5 xhigh; gated on `feature/village` at `0ad929d`).**
+  - **Gate:** 5591 passed, 3 skipped, 0 failed, with the models; 0 warnings; format, content, grammar and both licence scans clean (16 new
+    tests). Bundle `4b183de5…`; the goldens did not move; `prerender --check` renders nothing (430 files unchanged).
+  - **Built.** `game/npcs/<id>.json` schema 2: `prompts` by state, `opening` (`event`, `when`), `voice` (`speaker`, `name`, `speed`), `keyWords`
+    (out of `words.json`) and `poolPrefix` (default the id; the shopkeeper's pools are `shop_*`). `NpcService` takes prompts, the opening and
+    the warm-up from the roster; the shopkeeper's fail-forward and the guide's review and transfer offer stay by id. `SpeechSpeakers` and the
+    renderer's voices come from the NPC files; `--talk` is checked against the roster. The shopkeeper is "he" in the locale and the sheet.
+  - **Found:**
+    - The opening events are raised by the game into the agent and are not in `host-events.json`, so the validator checks them against the
+      agent's `onHostEvent` transitions instead.
+    - `PhraseSheet`'s guide-offer-as-stall-offer is now a rule: a prompt an NPC names that no row names takes the rows of the other NPC prompt
+      with the same answer set and allowed intents (exactly `guide-offer` to `stall-offer` today).
+    - The save keeps one `KeyWordsTaught` flag, so only the first NPC with key words shows the cards; a second needs a save field.
 
 ## 6. Definition of done (every milestone)
 
