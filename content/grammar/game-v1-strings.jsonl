@@ -173,6 +173,7 @@
 {"id":"dialogue:villager_point.2","text":"Está allí, mira.","kind":"npc"}
 {"id":"dialogue:villager_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:villager_thank.2","text":"¡Con gusto!","kind":"npc"}
+{"id":"dialogue:villager_unknown_place.1","text":"No sé dónde está.","kind":"npc"}
 {"id":"prompts:guide-offer","text":"¿Quieres agua?","kind":"npc"}
 {"id":"prompts:guide-open","text":"¡Hola! Soy la guía. ¿En qué te ayudo?","kind":"npc"}
 {"id":"prompts:guide-review","text":"¿Qué es esto?","kind":"npc"}

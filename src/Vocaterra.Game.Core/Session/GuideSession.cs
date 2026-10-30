@@ -8,12 +8,14 @@ using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Simulation;
 using Vocaterra.Game.Core.Tip;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Core.Determinism;
+using Vocaterra.Nlp.Core.Verdicts;
 using Vocaterra.Nlp.Es;
 using Vocaterra.Nlp.Language.Intent;
 using Vocaterra.Nlp.Language.Morphology;
@@ -23,10 +25,11 @@ namespace Vocaterra.Game.Core.Session;
 /// <summary>
 /// An arrow the guide put out: it points at a place until the player gets there or closes it.
 /// </summary>
-/// <param name="Place">The noun the player asked about (<c>árbol</c>).</param>
+/// <param name="Place">The word the arrow shows: the noun the player asked about (<c>árbol</c>), or the label of a place of the scene (<c>tienda</c>).</param>
 /// <param name="Target">The tile or block it points at.</param>
 /// <param name="Quiz">Whether it is the guide's review question: the front-end then hides the noun, which is the answer.</param>
-public sealed record PointerMarker(string Place, GuideCell Target, bool Quiz = false);
+/// <param name="Point">The scene's name of the place it points at (<c>stall</c>, VILLAGE_PLAN V02), which its arrival is logged with; <see langword="null"/> for an arrow on a noun's block.</param>
+public sealed record PointerMarker(string Place, GuideCell Target, bool Quiz = false, string? Point = null);
 
 /// <summary>
 /// The guide's review question in progress: she pointed at an example of a due word and asked what it is. The player's answer is graded
@@ -114,6 +117,7 @@ public abstract partial class GuideSession : IDisposable
     /// <param name="playSession">The number of this play session (1 for a new game; the saves of S10 will bump it on each load).</param>
     /// <param name="credit">The credit per kind of input and the gaps; <see cref="CreditRules.Default"/> (typed half, spoken full) when <see langword="null"/>.</param>
     /// <param name="lessons">The lessons to run instead of the bundle's <c>game/lessons.json</c> (the tests' own), or <see langword="null"/> for the bundle's.</param>
+    /// <param name="places">The places of the scene the NPCs' directions can name (VILLAGE_PLAN V02), or <see langword="null"/> for none.</param>
     protected GuideSession(
         GameData data,
         ulong worldSeed,
@@ -121,7 +125,8 @@ public abstract partial class GuideSession : IDisposable
         IGuideFacts liveFacts,
         int playSession,
         CreditRules? credit,
-        LessonBook? lessons = null)
+        LessonBook? lessons = null,
+        ScenePlaces? places = null)
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(liveFacts);
@@ -143,7 +148,7 @@ public abstract partial class GuideSession : IDisposable
         Deck = new ReviewDeck(this);
         Tips = new TipFeed(this, Data.Tips);
         _liveFacts = liveFacts;
-        _npcs = new NpcService(Data, liveFacts, worldSeed, new StoredTimestamp(startedAt));
+        _npcs = new NpcService(Data, liveFacts, worldSeed, new StoredTimestamp(startedAt), places);
     }
 
     /// <summary>Raised on the caller's thread after each finished turn is applied by <see cref="Collect"/>, once its events are in <see cref="Events"/> (the session log, S11).</summary>
@@ -619,6 +624,22 @@ public abstract partial class GuideSession : IDisposable
     {
     }
 
+    /// <summary>A lesson step sends the beacon to a named place of the scene (VILLAGE_PLAN V02, a <c>do</c> step with a <c>pointPlace</c>). The 3D scene does it.</summary>
+    internal virtual void LessonPointAtPlace(string npc, string place)
+    {
+    }
+
+    /// <summary>
+    /// The player reached a beacon the front-end placed itself (the start, <c>--beacon</c>; <see cref="BeaconDirector"/>): logged as
+    /// <see cref="WorldEvents.BeaconReached"/> with the point's name (VILLAGE_PLAN V02). The session logs the arrival at its own arrow itself.
+    /// </summary>
+    /// <param name="point">The scene's name of the point.</param>
+    public void NoteBeaconReached(string point)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(point);
+        Log(new WorldEvent(Tick, StoredTime.UnixSeconds, WorldEvents.BeaconReached, null, point));
+    }
+
     /// <summary>The player opened the panel on the guide, or began her lesson: the 3D scene notes that the guide has been met (S17).</summary>
     protected virtual void NoteGuideMet()
     {
@@ -745,7 +766,7 @@ public abstract partial class GuideSession : IDisposable
 
         if (opening.HostEvents.Count > 0)
         {
-            ApplyHostEvents(npc, opening.HostEvents, opening.FailForward ? "fail_forward" : "offer");
+            ApplyHostEvents(npc, opening.HostEvents, opening.FailForward ? "fail_forward" : "offer", SlotMap.Empty);
             if (opening.FailForward)
             {
                 Log(new PhraseUse(Tick, StoredTime.UnixSeconds, PhraseIds.RequestWater, PhraseUseKind.FailForward, npc, NpcService.StallNeedPrompt, string.Empty, "second visit"));
@@ -1106,7 +1127,8 @@ public abstract partial class GuideSession : IDisposable
     /// <param name="npc">The NPC's agent id.</param>
     /// <param name="hostEvents">The events, in the order they were raised.</param>
     /// <param name="how">How they came about: <c>request</c>, <c>offer</c> or <c>fail_forward</c> (for the log).</param>
-    protected virtual void ApplyHostEvents(string npc, IReadOnlyList<string> hostEvents, string how)
+    /// <param name="slots">The slots of the learner's line (VILLAGE_PLAN V02: the place a direction names, the number of items asked for); empty for an opening.</param>
+    protected virtual void ApplyHostEvents(string npc, IReadOnlyList<string> hostEvents, string how, IReadOnlyDictionary<string, string> slots)
     {
     }
 
@@ -1204,7 +1226,7 @@ public abstract partial class GuideSession : IDisposable
 
         if (turn.HostEvents.Count > 0)
         {
-            ApplyHostEvents(npc, turn.HostEvents, turn.FailForward ? "fail_forward" : "request");
+            ApplyHostEvents(npc, turn.HostEvents, turn.FailForward ? "fail_forward" : "request", turn.Slots);
         }
 
         if (!turn.Unsure && turn.Input == InputKind.Spoken)

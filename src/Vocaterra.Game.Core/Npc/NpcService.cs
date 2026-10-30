@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Nlp.Asr;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Audio;
@@ -103,7 +104,9 @@ public sealed class NpcCheckpoint
 /// and the session applies them on the game's thread. What this class does decide is the shopkeeper's fail-forward (rule 8, nothing is gated
 /// behind language): when the stall's exchange ends without a request (the repair ladder gives up, the learner has asked for help and then fails
 /// again, or four lines in a row were no request) or the player walks away and comes back, the shopkeeper still hands over the bottle with the
-/// core's own line, as a host turn (<c>shopkeeper.give</c>) that is in the replay record.
+/// core's own line, as a host turn (<c>shopkeeper.give</c>) that is in the replay record. And when an event asks for what the world of the turn cannot do
+/// (VILLAGE_PLAN V02: directions to a place the scene does not have), the NPC does not say the line of that action and answers it with a host turn
+/// (<c>&lt;npc&gt;.unknown_place</c>); the session then does nothing in the world for it.
 /// </para>
 /// <para>
 /// <b>Threads.</b> The turn worker is the only thread that calls <see cref="Say(string, GuideScene, StoredTimestamp, string)"/> and the
@@ -176,6 +179,8 @@ public sealed partial class NpcService
     private readonly RecipeBook _recipes;
     private readonly PhraseSheet _phrases;
     private readonly GameWords _words;
+    private readonly HostEventTable _hostEvents;
+    private readonly ScenePlaces _places;
     private readonly Dictionary<string, Agent> _agents = new(StringComparer.Ordinal);
     private readonly List<ReplayEntry> _records = [];
     private volatile SpokenUtteranceEvaluator? _spoken;
@@ -221,8 +226,9 @@ public sealed partial class NpcService
     /// <param name="facts">The world the guide speaks of.</param>
     /// <param name="worldSeed">The world seed, which seeds every random draw with the agent id and the interaction counter.</param>
     /// <param name="start">The stored time before the first turn.</param>
+    /// <param name="places">The places of the scene an NPC's directions can name (VILLAGE_PLAN V02), or <see langword="null"/> for none (a catalogue noun's block is still found).</param>
     /// <exception cref="ArgumentException">The bundle lacks an NPC's agent or a prompt its file names, or an NPC has no prompt for its agent's initial state.</exception>
-    public NpcService(GameData data, IGuideFacts facts, ulong worldSeed, StoredTimestamp start)
+    public NpcService(GameData data, IGuideFacts facts, ulong worldSeed, StoredTimestamp start, ScenePlaces? places = null)
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(facts);
@@ -235,6 +241,8 @@ public sealed partial class NpcService
         _typed = new TypedUtteranceEvaluator(bundle);
         _phrases = data.Phrases;
         _words = data.Words;
+        _hostEvents = data.HostEvents;
+        _places = places ?? ScenePlaces.None;
         AgentIds = data.Npcs.Ids;
         foreach (var npc in data.Npcs.All)
         {
@@ -646,6 +654,8 @@ public sealed partial class NpcService
         Note(agent, string.Empty, hostEvents);
         var holdsBottle = scene.Inventory is { } inventory
             && (inventory.Count(ItemId.Bottle) + inventory.Count(ItemId.WaterBottle)) > 0;
+        var followUp = new List<string>();
+        var unsaid = AnswerMisses(agent, result, verdict.Slots, scene, scene.Facts ?? _worldFacts, now, hostStateHash, hostEvents, followUp);
         string? feedback = null;
         var replies = new List<string>();
         foreach (var responseLine in result.Response.Lines)
@@ -659,13 +669,16 @@ public sealed partial class NpcService
             {
                 // The shopkeeper's line gives the bottle; the player has it already, so nothing is given and the line is not said.
             }
+            else if (unsaid.Any(pool => responseLine.LineId.StartsWith(pool + ".", StringComparison.Ordinal)))
+            {
+                // The line of an action the world cannot do (VILLAGE_PLAN V02: "Mira, está allí." for a place there is not); the NPC's answer to the miss follows.
+            }
             else
             {
                 replies.Add(responseLine.Text);
             }
         }
 
-        var followUp = new List<string>();
         var failForward = false;
 
         // The stall's fail-forward stays code, by id (CONTENT_PLAN 3.6): the bottle after four misses is a rule about this exchange, not data.
@@ -706,6 +719,55 @@ public sealed partial class NpcService
             uncertain,
             origin == LineOrigin.Choice);
     }
+
+    // The host events of a turn that the world of the turn cannot carry out (VILLAGE_PLAN V02: directions to a place the scene does not have, judged on the turn's
+    // own copy of the world, as the guide's answers are). Each is answered by the NPC as a host turn, <npc>.unknown_place, whose lines follow the turn's and whose
+    // host events join it; the line of the action that raised the missed event is not said. Returns the pools of those unsaid lines. An agent with no transition
+    // for the answer says its line as before.
+    private List<string> AnswerMisses(
+        Agent agent,
+        PipelineResult result,
+        IReadOnlyDictionary<string, string> slots,
+        GuideScene scene,
+        IGuideFacts facts,
+        StoredTimestamp now,
+        string hostStateHash,
+        List<string> hostEvents,
+        List<string> followUp)
+    {
+        var unsaid = new List<string>();
+        foreach (var action in result.Decision.Agent?.Actions ?? [])
+        {
+            if (action.HostEvent is not { } hostEvent || Miss(_hostEvents.Of(agent.Id, hostEvent), slots, scene, facts) is not { } miss)
+            {
+                continue;
+            }
+
+            var before = agent.Context;
+            var turn = _typed.Advance(NpcHostEvents.Of(agent.Id, miss), before);
+            if (turn is null)
+            {
+                continue;
+            }
+
+            Record(new ReplayEntry(null, HostTurnEnvelope.From(turn, before)));
+            agent.Context = before.Next(turn, now) with { HostStateHash = hostStateHash };
+            var events = HostEventsOf(turn.Agent.Actions);
+            Note(agent, NpcHostEvents.Of(agent.Id, miss), events);
+            followUp.AddRange(turn.Response.Lines.Select(static l => l.Text));
+            hostEvents.AddRange(events);
+            unsaid.Add(action.DialogueIntent); // a pool is its dialogue intent's (every agent of the bundle names them alike)
+        }
+
+        return unsaid;
+    }
+
+    // What the world of the turn cannot do of an action, as the host event its NPC answers (NpcHostEvents.UnknownPlace), or null when it can.
+    private string? Miss(NpcEffect effect, IReadOnlyDictionary<string, string> slots, GuideScene scene, IGuideFacts facts) => effect.Kind switch
+    {
+        NpcEffectKind.PointAtSlot when !slots.TryGetValue(effect.Slot, out var word) || _places.Resolve(word, scene.Player, facts) is null => NpcHostEvents.UnknownPlace,
+        _ => null,
+    };
 
     // The stall's fail-forward (rule 8). After a line at the stall that did not ask for anything (the repair ladder's next step, a help request, a
     // thanks), count it; when the exchange has run out of road the shopkeeper hands the bottle over with the core's own line, as a host turn.

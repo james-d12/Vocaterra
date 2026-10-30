@@ -4,6 +4,7 @@ using Vocaterra.Game.Core.Items;
 using Vocaterra.Game.Core.Items.Crafting;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Words;
+using Vocaterra.Game.Core.Navigation;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Physics;
 using Vocaterra.Game.Core.Save;
@@ -20,7 +21,8 @@ namespace Vocaterra.Game.Core.Session;
 /// the shopkeeper and the villager), the word counts, the arrow, the camp objective, the word cards and the turn worker around it (the shared part
 /// is <see cref="GuideSession"/>). The guide's facts are the blocks of the scene: the nearest block of a noun and its direction from where the
 /// player faces (<see cref="WorldFacts"/>). Since S6 the NPCs' host events act on this world (<see cref="NpcHostEvents"/>): the shopkeeper hands
-/// over the bottle, which the player fills at the river (the objective's water step), the villager points the beacon at the river.
+/// over the bottle, which the player fills at the river (the objective's water step), the villager points the beacon at the place the learner asked
+/// for (since VILLAGE_PLAN V02 through the scene's labels, <see cref="ScenePlaces"/>).
 /// </summary>
 /// <remarks>
 /// The front-end owns the clock and the input: it calls <see cref="Step"/> once per tick with the body's commands, and it reads the simulation,
@@ -60,9 +62,11 @@ public sealed class VoxelSession : GuideSession
             WorldFacts.Live(scene?.Grid ?? throw new ArgumentNullException(nameof(scene)), (data ?? throw new ArgumentNullException(nameof(data))).Nouns, data.Words.Directions),
             playSession: 1,
             credit,
-            lessons)
+            lessons,
+            ScenePlaces.Of(scene))
     {
         Scene = scene;
+        Places = ScenePlaces.Of(scene);
         Simulation = VoxelSimulation.Create(scene);
         foreach (var item in data.Objectives.Grants)
         {
@@ -78,6 +82,9 @@ public sealed class VoxelSession : GuideSession
 
     /// <summary>The built scene (the world the facts read).</summary>
     public Scene Scene { get; }
+
+    /// <summary>The places of the scene the NPCs' directions and the lessons name (VILLAGE_PLAN V02).</summary>
+    public ScenePlaces Places { get; }
 
     /// <summary>The 3D simulation: the body, the inventory, the tick counter and the events.</summary>
     public VoxelSimulation Simulation { get; }
@@ -223,6 +230,18 @@ public sealed class VoxelSession : GuideSession
     internal override void LessonPointAt(string npc, string noun) => PointAt(npc, noun);
 
     /// <inheritdoc />
+    internal override void LessonPointAtPlace(string npc, string place) => PointAtPlace(npc, place);
+
+    /// <summary>
+    /// The scene's name of the place an arrow a save kept points at (the save keeps its word and its block, VILLAGE_PLAN V02): a named place with that label on that
+    /// block, or an NPC standing there; <see langword="null"/> for an arrow on a noun's block.
+    /// </summary>
+    /// <param name="target">The arrow's block.</param>
+    /// <param name="label">The word it shows.</param>
+    internal string? PointNameAt(GuideCell target, string label) =>
+        Places.NameAt(target, label) ?? Scene.Npcs.FirstOrDefault(npc => npc.Feet == target.ToBlock() && string.Equals(Data.Npcs.Find(npc.Name)?.Called ?? npc.Name, label, StringComparison.Ordinal))?.Name;
+
+    /// <inheritdoc />
     internal override void LessonReplayAsked(string npc) => PointAtNpc(npc);
 
     /// <summary>What the load of a save made from another content bundle did (X01): what was kept and what was dropped. <see langword="null"/> for a new game and for a save of this very bundle.</summary>
@@ -250,7 +269,7 @@ public sealed class VoxelSession : GuideSession
 
         var feet = Scene.Npc(npc).Feet;
         var label = Data.Npcs.Find(npc)?.Called ?? npc; // C08: the NPC's name (Luna) or label (Tendero), from game/npcs/<id>.json
-        Pointer = new PointerMarker(label, new GuideCell(feet.X, feet.Y, feet.Z));
+        Pointer = new PointerMarker(label, new GuideCell(feet.X, feet.Y, feet.Z), Point: npc);
         LogWorld(WorldEvents.BeaconSet, npc, $"{label} at {feet.X},{feet.Y},{feet.Z}");
     }
 
@@ -290,8 +309,8 @@ public sealed class VoxelSession : GuideSession
 
     /// <summary>
     /// Advances the simulation one tick with the body's commands, then feeds the objective and the word cards from the tick's events, and takes
-    /// the arrow down when the player is within <see cref="ReachBlocks"/> of its target. The conversation does not run here (see
-    /// <see cref="GuideSession.Say"/>).
+    /// the arrow down when the player is within <see cref="ReachBlocks"/> of its target, which logs <see cref="WorldEvents.BeaconReached"/> with the
+    /// place's name (VILLAGE_PLAN V02; not for the guide's review question). The conversation does not run here (see <see cref="GuideSession.Say"/>).
     /// </summary>
     public void Step(IReadOnlyList<VoxelCommand> commands)
     {
@@ -354,8 +373,6 @@ public sealed class VoxelSession : GuideSession
             }
         }
 
-        _completed = FlushObjectives();
-
         if (Pointer is { } pointer)
         {
             const long Unit = VoxelPhysics.UnitsPerBlock;
@@ -364,8 +381,14 @@ public sealed class VoxelSession : GuideSession
             if (dx <= ReachBlocks * Unit && dz <= ReachBlocks * Unit)
             {
                 Pointer = null;
+                if (!pointer.Quiz)
+                {
+                    LogWorld(WorldEvents.BeaconReached, null, pointer.Point ?? pointer.Place); // before the objectives' flush, so a step waiting for it is done this tick
+                }
             }
         }
+
+        _completed = FlushObjectives();
     }
 
     /// <summary>
@@ -548,7 +571,7 @@ public sealed class VoxelSession : GuideSession
         }
 
         var label = Scene.LabelOf(PlayerFireRing);
-        Pointer = new PointerMarker(label, new GuideCell(ring.X, ring.Y, ring.Z));
+        Pointer = new PointerMarker(label, new GuideCell(ring.X, ring.Y, ring.Z), Point: PlayerFireRing);
         LogWorld(WorldEvents.BeaconSet, null, $"{label} at {ring.X},{ring.Y},{ring.Z}");
     }
 
@@ -582,7 +605,7 @@ public sealed class VoxelSession : GuideSession
     }
 
     /// <inheritdoc />
-    protected override void ApplyHostEvents(string npc, IReadOnlyList<string> hostEvents, string how)
+    protected override void ApplyHostEvents(string npc, IReadOnlyList<string> hostEvents, string how, IReadOnlyDictionary<string, string> slots)
     {
         foreach (var hostEvent in hostEvents)
         {
@@ -590,10 +613,16 @@ public sealed class VoxelSession : GuideSession
             switch (effect.Kind)
             {
                 case NpcEffectKind.GiveItem:
-                    Give(npc, effect.Item, how);
+                    Give(npc, effect.Item, effect.CountFor(slots), how);
                     break;
                 case NpcEffectKind.PointAtNoun:
                     PointAt(npc, effect.Noun);
+                    break;
+                case NpcEffectKind.PointAtPlace:
+                    PointAtPlace(npc, effect.Place);
+                    break;
+                case NpcEffectKind.PointAtSlot:
+                    PointAtSlot(npc, slots.TryGetValue(effect.Slot, out var word) ? word : null);
                     break;
                 default:
                     break;
@@ -601,25 +630,62 @@ public sealed class VoxelSession : GuideSession
         }
     }
 
-    // An NPC puts one item in the inventory (a pickup the player did not make: the word card shows the first time). The bottle is handed over once:
-    // a player who holds a bottle, empty or full, is not given a second one.
-    private void Give(string npc, ItemId item, string how)
+    // An NPC puts items in the inventory, all of them or none (a pickup the player did not make: the word card shows the first time). The bottle is handed over
+    // once, whatever the count: a player who holds a bottle, empty or full, is not given a second one.
+    private void Give(string npc, ItemId item, int count, string how)
     {
         if (item == ItemId.Bottle && Simulation.Inventory.Count(ItemId.Bottle) + Simulation.Inventory.Count(ItemId.WaterBottle) > 0)
         {
             return;
         }
 
-        if (Simulation.GrantItems(item, 1) > 0)
+        if (!Simulation.Inventory.CanAdd(item, count))
         {
-            return; // the inventory is full: nothing is lost, the NPC keeps it
+            return; // the inventory is full: nothing is lost, the NPC keeps them
         }
 
+        _ = Simulation.GrantItems(item, count);
         LearnItem(item);
+        _eventAmount = count; // an objective counting what was given counts every item, as a pickup's
         LogWorld(WorldEvents.ItemGiven, npc, $"{Nouns.ForItem(item)?.Lemma ?? ItemDefinition.Get(item).Name}, {how}");
+        _eventAmount = 1;
     }
 
-    // The beacon goes to the nearest block of a noun: the villager's answer to "¿dónde está el río?".
+    // The beacon goes to a named place of the scene (VILLAGE_PLAN V02): a host event's point_at_place, or a lesson's do step with a pointPlace. It shows the place's label.
+    private void PointAtPlace(string npc, string place)
+    {
+        if (Places.Point(place) is not { } point)
+        {
+            return; // the validator checks the places the data names against the scene
+        }
+
+        var label = Places.LabelOf(place);
+        Pointer = new PointerMarker(label, point, Point: place);
+        LogWorld(WorldEvents.BeaconSet, npc, $"{label} at {point.X},{point.Y},{point.Z}");
+    }
+
+    // The beacon goes to the place the learner asked for (VILLAGE_PLAN V02, point_at_slot): a label of the scene, else a catalogue noun's nearest block
+    // (ScenePlaces.Resolve). The answer is logged as place_asked; a place the NPC does not know points nowhere, and the NPC said so on the worker (unknown_place).
+    private void PointAtSlot(string npc, string? word)
+    {
+        var found = word is null ? null : Places.Resolve(word, Viewpoint, LiveFacts);
+        LogWorld(WorldEvents.PlaceAsked, npc, found?.Name ?? WorldEvents.UnknownPlace);
+        if (found is null)
+        {
+            return;
+        }
+
+        // The arrival names the place when the arrow stands on its point; the nearest block of the river or of a noun is named by the word, as a save would name it.
+        Pointer = new PointerMarker(found.Label, found.Cell, Point: Places.Point(found.Name) == found.Cell.ToBlock() ? found.Name : null);
+        if (string.Equals(found.Label, Data.Words.Noun("river"), StringComparison.Ordinal))
+        {
+            _riverPointed = true;
+        }
+
+        LogWorld(WorldEvents.BeaconSet, npc, $"{found.Label} at {found.Cell.X},{found.Cell.Y},{found.Cell.Z}");
+    }
+
+    // The beacon goes to the nearest block of a noun: the answer to "¿dónde está el río?" before V02, and a lesson's do step with a point.
     private void PointAt(string npc, string noun)
     {
         var found = LiveFacts.NearestOfNoun(Viewpoint, noun);

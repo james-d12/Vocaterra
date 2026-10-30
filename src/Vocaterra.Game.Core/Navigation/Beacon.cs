@@ -18,14 +18,21 @@ public sealed class Beacon
     /// <summary>The word shown with the beacon (the noun, <c>río</c>), or <see langword="null"/>.</summary>
     public string? Label { get; private set; }
 
+    /// <summary>The scene's name of the point the beacon stands on (<c>camp.guide</c>), or <see langword="null"/> when it was set on a block.</summary>
+    public string? Name { get; private set; }
+
     /// <summary>Whether a beacon is set.</summary>
     public bool IsSet => Target is not null;
 
     /// <summary>Puts the beacon on a block.</summary>
-    public void Set(BlockPos target, string? label = null)
+    /// <param name="target">The block.</param>
+    /// <param name="label">The word shown with it.</param>
+    /// <param name="name">The scene's name of the place, when the block is one (VILLAGE_PLAN V02: the arrival is logged with it).</param>
+    public void Set(BlockPos target, string? label = null, string? name = null)
     {
         Target = target;
         Label = label;
+        Name = name;
     }
 
     /// <summary>Puts the beacon on a named point of the scene (<c>river</c>, <c>stall</c>...).</summary>
@@ -38,7 +45,7 @@ public sealed class Beacon
             return false;
         }
 
-        Set(point, label ?? name);
+        Set(point, label ?? name, name);
         return true;
     }
 
@@ -47,6 +54,7 @@ public sealed class Beacon
     {
         Target = null;
         Label = null;
+        Name = null;
     }
 
     /// <summary>Clears the beacon when the player is within <see cref="ReachedDistance"/> of it (horizontally and a little vertically); returns whether it did.</summary>

@@ -120,7 +120,7 @@ Language/         Book/ (the book's model, pages, tables, recordings, speakers, 
                   Phrases/ (phrase progress, the support ladder, PhraseJournalRows), Speech/ (the evaluators, MicCheck, MicCheckModel,
                   MicCheckScreen), Words/ (the noun catalogue, word progress, JournalRows, VerbReading, GreyscaleWorld)
 Mathematics/      Angles, WorldRng, PresentationRng
-Navigation/       Beacon, the walk's path search, BeaconDirector, PointLabels
+Navigation/       Beacon, the walk's path search, BeaconDirector, PointLabels, ScenePlaces (the places a word names, VILLAGE_PLAN V02)
 Npc/              NpcService, WorldFacts, the aim at an NPC, the guide's turns and events, the NPCs' data (NpcRoster: since V01 also the prompt of
                   each state, the opening, the voice and the key words) and HostEventTable
 Physics/          the player's body and its collision with the grid
@@ -194,6 +194,18 @@ an NPC's prompt that no row names with the rows of another NPC's prompt that acc
 of another agent, a state its agent lacks, an opening event no state takes and a voice with no name. What the data cannot say stays code, by id: the
 shopkeeper's fail-forward and later visits, and the guide's review, transfer offer and world lines. Adding an NPC is `content/README.md`'s "Adding
 an NPC".
+
+**What the NPCs' host events do** (C08; `game/host-events.json` schema 2 since VILLAGE_PLAN V02). The core's agents raise opaque host events; `HostEventTable`
+gives each (NPC, event) an action and `VoxelSession.ApplyHostEvents` carries it out on the game's thread, with the slots of the learner's line: `give_item` (a
+count, or the number the learner said, `qty`, from 1 to 5; all of the items or none, the bottle once), `point_at_noun` (a noun's nearest block),
+`point_at_place` (a named place of the scene, through `Beacon`'s points) and `point_at_slot` (the place a slot names, resolved by `Navigation/ScenePlaces`: a
+label of the scene, the nearest of the points that share it, the nearest block of a place made of its word's blocks such as the river, else a catalogue noun's
+nearest block). What the world of a turn cannot do is decided on the worker, on the turn's own copy of the world, because only there may the NPC's
+conversation move: `NpcService` drops the line of the action that raised the event and raises `<npc>.unknown_place` to the agent as a host turn, whose
+lines follow the turn's and which is in the replay record (the shopkeeper's fail-forward is the model). The game's thread then logs `place_asked` and points
+nowhere. The arrival at an arrow is the world event `beacon_reached`, with the place's name (`PointerMarker.Point`): the session logs it when its `Step`
+takes the arrow down, and `BeaconDirector` for a beacon it placed itself (the start, `--beacon`); a save keeps the arrow's word and block, and the name is
+worked out again from the scene on load. A lesson's `do` step with a `pointPlace` points the beacon there and may wait for that arrival.
 
 How the guide's turn meets the host's duties (see `src/Vocaterra.Game/README.md` for the steps):
 

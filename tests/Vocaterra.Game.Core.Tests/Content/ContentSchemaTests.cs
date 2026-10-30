@@ -105,14 +105,40 @@ public sealed class ContentSchemaTests
     }
 
     [Fact]
+    public async Task AHostEventsFileOfSchemaTwoGivesACountAndPointsAtPlaces()
+    {
+        // V02: give_item takes a count (a number, or qty: the number the learner said), and the beacon goes to a place of the scene or to the place a slot names.
+        var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "host-events.schema.json"));
+        static string File(string action, string version = "2") =>
+            $$"""{ "schemaVersion": {{version}}, "events": [ { "npc": "villager", "event": "villager.do", "action": {{action}} } ] }""";
+        Assert.Empty(schema.Validate(File("""{ "kind": "give_item", "item": "bread", "count": 2 }""")));
+        Assert.Empty(schema.Validate(File("""{ "kind": "give_item", "item": "bread", "count": "qty" }""")));
+        Assert.Empty(schema.Validate(File("""{ "kind": "point_at_place", "place": "stall" }""")));
+        Assert.Empty(schema.Validate(File("""{ "kind": "point_at_slot", "slot": "place" }""")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "give_item", "item": "bread" }""", version: "1")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "give_item", "item": "bread", "count": 0 }""")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "give_item", "item": "bread", "count": "two" }""")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "point_at_place", "noun": "río" }""")));
+        Assert.NotEmpty(schema.Validate(File("""{ "kind": "point_at_slot" }""")));
+    }
+
+    [Fact]
+    public async Task ADoStepMayPointAtAPlaceOfTheScene()
+    {
+        var schema = await JsonSchema.FromFileAsync(Path.Combine(SchemaFolder, "lesson.schema.json"));
+        Assert.Empty(schema.Validate("""{ "schemaVersion": 1, "id": "a", "npc": "villager", "steps": [{ "id": "s", "type": "do", "pointPlace": "stall", "trigger": { "event": "beacon_reached", "detail": "stall" } }] }"""));
+        Assert.NotEmpty(schema.Validate("""{ "schemaVersion": 1, "id": "a", "npc": "villager", "steps": [{ "id": "s", "type": "do", "pointPlace": "", "trigger": { "event": "beacon_reached" } }] }"""));
+    }
+
+    [Fact]
     public void TheItemAndBlockNamesOfTheNounSchemaAreTheGamesTables()
     {
         // The schema lists the stable names for the editors' completion; the code's tables are the authority.
         var definitions = ReadJson(Path.Combine(SchemaFolder, "nouns.schema.json"))["definitions"]!;
         Assert.Equal(ItemDefinition.All.Select(static d => d.Name), Names(definitions["item"]!));
         Assert.Equal(BlockDefinition.All.Select(static d => d.Name), Names(definitions["block"]!));
-        var give = ReadJson(Path.Combine(SchemaFolder, "host-events.schema.json"))["properties"]!["events"]!["items"]!["properties"]!["action"]!["oneOf"]![0]!;
-        Assert.Equal(ItemDefinition.All.Select(static d => d.Name), Names(give["properties"]!["item"]!)); // C08: a host event gives an item by the same names
+        var hostEvents = ReadJson(Path.Combine(SchemaFolder, "host-events.schema.json"))["definitions"]!;
+        Assert.Equal(ItemDefinition.All.Select(static d => d.Name), Names(hostEvents["item"]!)); // C08: a host event gives an item by the same names
     }
 
     // Schemas written before the files that use them (none at present).

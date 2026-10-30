@@ -914,6 +914,10 @@ public sealed class LessonRunner
         {
             _session.LessonPointAt(lesson.NpcOf(step), noun); // a do step may send the beacon to what the learner is to pick up (S17)
         }
+        else if (step.PointPlace is { } place)
+        {
+            _session.LessonPointAtPlace(lesson.NpcOf(step), place); // or to a place of the scene, whose arrival (beacon_reached) the step may wait for (VILLAGE_PLAN V02)
+        }
 
         _version++;
         _session.RefreshLessonSupport();

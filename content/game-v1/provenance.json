@@ -491,6 +491,8 @@
     { "path": "speech/villager_thank.1.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_santa", "speaker": "53", "source": "villager_thank.1 (speed 0.8)" },
     { "path": "speech/villager_thank.1.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_santa", "speaker": "53", "source": "villager_thank.1 (speed 1.0)" },
     { "path": "speech/villager_thank.2.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_santa", "speaker": "53", "source": "villager_thank.2 (speed 0.8)" },
-    { "path": "speech/villager_thank.2.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_santa", "speaker": "53", "source": "villager_thank.2 (speed 1.0)" }
+    { "path": "speech/villager_thank.2.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_santa", "speaker": "53", "source": "villager_thank.2 (speed 1.0)" },
+    { "path": "speech/villager_unknown_place.1.slow.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_santa", "speaker": "53", "source": "villager_unknown_place.1 (speed 0.8)" },
+    { "path": "speech/villager_unknown_place.1.wav", "generatedBy": "model-output", "approvedBy": null, "approvedOn": null, "model": "kokoro-multi-lang-v1_0", "voice": "em_santa", "speaker": "53", "source": "villager_unknown_place.1 (speed 1.0)" }
   ]
 }

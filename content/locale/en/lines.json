@@ -169,6 +169,7 @@
     "line.villager_point.1": "Look, it is over there.",
     "line.villager_point.2": "It is over there, look.",
     "line.villager_thank.1": "You are welcome.",
-    "line.villager_thank.2": "My pleasure!"
+    "line.villager_thank.2": "My pleasure!",
+    "line.villager_unknown_place.1": "I don't know where it is."
   }
 }

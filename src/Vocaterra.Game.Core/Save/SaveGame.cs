@@ -345,7 +345,7 @@ public static class SaveGame
         session.RestoreCarded(document.Carded);
         session.KeyWordsTaught = document.KeyWordsTaught;
         session.RiverPointedState = document.RiverPointed;
-        session.RestorePointer(document.Pointer is { } pointer ? new PointerMarker(pointer.Place, pointer.Target) : null);
+        session.RestorePointer(document.Pointer is { } pointer ? new PointerMarker(pointer.Place, pointer.Target, Point: session.PointNameAt(pointer.Target, pointer.Place)) : null); // V02: the place's name is worked out again
         session.RestoreDeferredSkills(document.DeferredSkills.Select(static step => (step.Npc, step.Skill)));
         session.RestoreLastRepairs(document.LastRepairs.Select(static step => (step.Npc, step.Repair)));
         session.NextTurnId = document.NextTurnId;

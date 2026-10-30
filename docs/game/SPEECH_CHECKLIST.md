@@ -438,3 +438,5 @@ text changed is listed again without a mark. The files are Kokoro model output (
 | villager_thank.1 | speech/villager_thank.1.wav | villager | 1.0 | De nada. |  |
 | villager_thank.2 | speech/villager_thank.2.slow.wav | villager | 0.8 | ¡Con gusto! |  |
 | villager_thank.2 | speech/villager_thank.2.wav | villager | 1.0 | ¡Con gusto! |  |
+| villager_unknown_place.1 | speech/villager_unknown_place.1.slow.wav | villager | 0.8 | No sé dónde está. |  |
+| villager_unknown_place.1 | speech/villager_unknown_place.1.wav | villager | 1.0 | No sé dónde está. |  |

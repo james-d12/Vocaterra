@@ -29,7 +29,10 @@ namespace Vocaterra.Game.Core.Content;
 /// <item>the NPCs (C08, schema 2 since VILLAGE_PLAN V01): each is an agent of the bundle; its focus, its prompts by state and its review prompt are prompts of
 /// that agent, the states it names are the agent's, and its initial state has a prompt; its opening event is one a state of the agent takes; it has a voice
 /// with a name; its key words are catalogue nouns; no two share a pool prefix;</item>
-/// <item>the scene: every NPC it places is an agent the game drives, and every agent is placed once; every NPC a lesson is said or waits at is placed.</item>
+/// <item>the scene: every NPC it places is an agent the game drives, and every agent is placed once; every NPC a lesson is said or waits at is placed;</item>
+/// <item>the places (VILLAGE_PLAN V02): every place a host event (<c>point_at_place</c>) or a lesson's <c>do</c> step (<c>pointPlace</c>) sends the beacon to is a point
+/// of the scene, and an NPC whose directions name the place of the learner's line (<c>point_at_slot</c>) has an agent that can say it does not know one
+/// (<c>&lt;npc&gt;.unknown_place</c>).</item>
 /// </list>
 /// <para>Plain values, ordinal comparisons; the order of the problems is the order of the files above.</para>
 /// </remarks>
@@ -47,6 +50,7 @@ public static class GameDataValidator
         CheckScene(data, problems);
         CheckWords(data, problems);
         CheckNpcs(data, problems);
+        CheckPlaces(data, problems);
         CheckObjectives(data, problems);
         return problems;
     }
@@ -281,6 +285,37 @@ public static class GameDataValidator
             }
         }
     }
+
+    private static void CheckPlaces(GameData data, List<string> problems)
+    {
+        var places = data.Scene.PointNames.ToHashSet(StringComparer.Ordinal);
+        foreach (var (npc, hostEvent) in data.HostEvents.Mapped())
+        {
+            var effect = data.HostEvents.Of(npc, hostEvent);
+            if (effect.Kind == NpcEffectKind.PointAtPlace && !places.Contains(effect.Place))
+            {
+                problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' points at the place '{effect.Place}', which is not a point of the scene.");
+            }
+
+            if (effect.Kind == NpcEffectKind.PointAtSlot && data.Bundle.Agents.ContainsKey(npc) && !TakenBySomeState(data, npc, NpcHostEvents.Of(npc, NpcHostEvents.UnknownPlace)))
+            {
+                problems.Add($"{HostEventTable.RelativePath}: {npc}'s '{hostEvent}' points at the place the learner names, and no state of agents/{npc}.json takes '{NpcHostEvents.Of(npc, NpcHostEvents.UnknownPlace)}' to say it does not know one.");
+            }
+        }
+
+        foreach (var lesson in data.Lessons.Lessons)
+        {
+            foreach (var step in lesson.Steps.Where(step => step.PointPlace is { } place && !places.Contains(place)))
+            {
+                problems.Add($"{LessonBook.Folder}{lesson.Id}.json: the step '{step.Id}' points at the place '{step.PointPlace}', which is not a point of the scene.");
+            }
+        }
+    }
+
+    // Whether a state of the NPC's agent has a transition on the host event (onHostEvent).
+    private static bool TakenBySomeState(GameData data, string npc, string hostEvent) =>
+        data.Bundle.Agents.TryGetValue(npc, out var machine)
+        && machine.Definition.States.SelectMany(static state => state.Transitions).Any(t => string.Equals(t.OnHostEvent, hostEvent, StringComparison.Ordinal));
 
     // Schema 2 (VILLAGE_PLAN V01): what the NPC file says the NPC does. Before it, an NPC the code did not know waited on the villager's prompt and opened with his
     // greeting, with no error; now a missing or unknown prompt, an opening event no state takes and a voice with no name are problems.

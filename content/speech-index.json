@@ -4731,6 +4731,28 @@
       "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
       "Sha256": "0ee06d6e1412c4a8c3efc7d36a4179e6f2d52ce6dbb7b602ca17fad9a51247b3",
       "Bytes": 54044
+    },
+    "speech/villager_unknown_place.1.slow.wav": {
+      "Text": "No s\u00E9 d\u00F3nde est\u00E1.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "7e125d37b0a2bf3fac2c929cc2e2bd4a56639e9c515a39ad9ea809e1404fbe2e",
+      "Bytes": 83308
+    },
+    "speech/villager_unknown_place.1.wav": {
+      "Text": "No s\u00E9 d\u00F3nde est\u00E1.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "926fc98c88187d508f8a0add2dc291af1e5bf62b5124ea47cf4277577b5e4215",
+      "Bytes": 76844
     }
   }
 }

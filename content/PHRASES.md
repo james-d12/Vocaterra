@@ -129,7 +129,9 @@ reviewer reads every Spanish line the learner can hear (the content-trust gate c
   `De nada.` / `¡Con gusto!`, `¡Adiós! Hasta luego.` / `Hasta luego.`, `¡Hasta luego!` / `¡Nos vemos!`, and the two help lines
   (`Puedes decir: «Quiero agua, por favor».` and `Puedes decir: «Sí, por favor» o «No, gracias».`).
 - The villager: `¡Hola! ¿Qué buscas?`, `Mira, está allí.` / `Está allí, mira.`, `Aquí tienes.` / `Toma.` (a request at a house), `De nada.` /
-  `¡Con gusto!`, `¡Adiós! Hasta luego.` / `Hasta luego.`, and `Puedes preguntar: «¿Dónde está el río?».`
+  `¡Con gusto!`, `¡Adiós! Hasta luego.` / `Hasta luego.`, and `Puedes preguntar: «¿Dónde está el río?».`; since VILLAGE_PLAN V02 he points at the
+  place the learner names and, for a place the village does not have, says `No sé dónde está.` instead of `Mira, está allí.` (llm-opus
+  (provisional), 2026-10-30).
 - The guide's transfer offer at the camp: `¿Quieres agua?` (the transfer of `quieres-pan` to a different NPC), `¡Claro! Aquí tienes.` /
   `Toma.`, `Está bien.` / `Bueno.`, and the help line `Puedes decir: «Sí, por favor» o «No, gracias».`
 - Every NPC: `No te entendí. ¿Me lo dices otra vez?` / `Perdón, ¿qué dices?` when a line is not understood, and the help lines of the

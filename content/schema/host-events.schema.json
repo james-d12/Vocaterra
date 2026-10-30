@@ -1,20 +1,49 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "game/host-events.json",
-  "description": "What each NPC host event does in the world (C08). Loaded by HostEventTable (Vocaterra.Game.Core).",
+  "description": "What each NPC host event does in the world (C08; schema 2 since VILLAGE_PLAN V02: a count on give_item, point_at_place and point_at_slot). Loaded by HostEventTable (Vocaterra.Game.Core).",
   "type": "object",
   "required": [
     "schemaVersion",
     "events"
   ],
   "additionalProperties": false,
+  "definitions": {
+    "item": {
+      "enum": [
+        "wood",
+        "torch",
+        "berry",
+        "bottle",
+        "water-bottle",
+        "bread",
+        "book"
+      ],
+      "description": "An item by the name the save gives it (ItemDefinition)."
+    },
+    "count": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 99
+        },
+        {
+          "enum": [
+            "qty"
+          ]
+        }
+      ],
+      "description": "How many: a number (one when left out), or qty, the number the learner said (the verdict's qty slot: 1 when none, at most 5)."
+    }
+  },
   "properties": {
     "$schema": {
       "type": "string"
     },
     "schemaVersion": {
       "enum": [
-        1
+        2
       ]
     },
     "about": {
@@ -55,17 +84,13 @@
                     ]
                   },
                   "item": {
-                    "enum": [
-                      "wood",
-                      "torch",
-                      "berry",
-                      "bottle",
-                      "water-bottle",
-                      "bread",
-                      "book"
-                    ]
+                    "$ref": "#/definitions/item"
+                  },
+                  "count": {
+                    "$ref": "#/definitions/count"
                   }
-                }
+                },
+                "description": "The NPC puts items in the inventory, all of them or none (the bottle once, whatever the count)."
               },
               {
                 "type": "object",
@@ -84,7 +109,48 @@
                     "type": "string",
                     "minLength": 1
                   }
-                }
+                },
+                "description": "The beacon goes to the nearest block of a catalogue noun."
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "place"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "point_at_place"
+                    ]
+                  },
+                  "place": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "description": "The beacon goes to a named place of the scene: a site, a point or a named prop (stall, river)."
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "slot"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "point_at_slot"
+                    ]
+                  },
+                  "slot": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "description": "The beacon goes to the place the verdict's slot names (place): a label of the scene, else the nearest block of a catalogue noun; neither raises <npc>.unknown_place to the agent as a host turn."
               }
             ]
           }
