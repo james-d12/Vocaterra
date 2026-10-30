@@ -80,6 +80,26 @@
     "check.hear.que-comiste-ayer.option.2": "He asks what you are going to eat tomorrow.",
     "check.hear.que-comiste-ayer.option.3": "He says the bread is ready.",
     "check.say.voy-a-comer-pan.situation": "A villager asks what you are going to eat tomorrow. You will eat bread. Say so.",
-    "check.say.ayer-comi-fruta.situation": "A shopkeeper asks what you ate yesterday. You ate fruit. Say so."
+    "check.say.ayer-comi-fruta.situation": "A shopkeeper asks what you ate yesterday. You ate fruit. Say so.",
+    "check.hear.que-buscas.question": "A fisher says this to you. What does it mean?",
+    "check.hear.que-buscas.option.1": "He asks what you are looking for.",
+    "check.hear.que-buscas.option.2": "He asks what you need.",
+    "check.hear.que-buscas.option.3": "He says hello.",
+    "check.hear.esta-a-la-izquierda.question": "A fisher says this to you. What does it mean?",
+    "check.hear.esta-a-la-izquierda.option.1": "The bakery is left of the tower.",
+    "check.hear.esta-a-la-izquierda.option.2": "The bakery is right of the tower.",
+    "check.hear.esta-a-la-izquierda.option.3": "The bakery is next to the river.",
+    "check.hear.hay-tres-casas.question": "A fisher says this to you. What does it mean?",
+    "check.hear.hay-tres-casas.option.1": "A shop, a bakery and three houses.",
+    "check.hear.hay-tres-casas.option.2": "A shop, a bakery and two houses.",
+    "check.hear.hay-tres-casas.option.3": "There is no shop in the village.",
+    "check.hear.fuiste-a-la-panaderia.question": "A fisher says this to you. What does it mean?",
+    "check.hear.fuiste-a-la-panaderia.option.1": "He asks if you went to the bakery.",
+    "check.hear.fuiste-a-la-panaderia.option.2": "He asks if you are going to the bakery.",
+    "check.hear.fuiste-a-la-panaderia.option.3": "He says the bakery is near.",
+    "check.say.donde-esta-la-panaderia.situation": "A fisher asks what you are looking for. You are looking for the bakery. Ask him where it is.",
+    "check.say.esta-lejos.situation": "Someone has told you where the smithy is. Ask if it is far.",
+    "check.say.voy-a-comprar-pan.situation": "A fisher asks what you are going to do at the bakery. You are going to buy bread. Say so.",
+    "check.say.fui-a-la-panaderia.situation": "A fisher asks if you went to the bakery. You did. Say so."
   }
 }

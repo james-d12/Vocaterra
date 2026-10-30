@@ -19,6 +19,19 @@
 {"id":"dialogue:feedback.recast.conj.person.2","text":"Mira, ¿{verb:conj(2,sg,pres)} {qty:words(item)} {item:plural-if(qty)}? Se dice «{verb:conj(1,sg,pres)} {qty:words(item)} {item:plural-if(qty)}».","kind":"template"}
 {"id":"dialogue:feedback.slow_repeat.1","text":"Di «ayuda» y te ayudo.","kind":"npc"}
 {"id":"dialogue:feedback.slow_repeat.2","text":"Si necesitas ayuda, di «ayuda».","kind":"npc"}
+{"id":"dialogue:fisher_bye.1","text":"¡Adiós! Hasta luego.","kind":"npc"}
+{"id":"dialogue:fisher_bye.2","text":"Hasta luego.","kind":"npc"}
+{"id":"dialogue:fisher_delivered.1","text":"¡Gracias! Toma dos monedas.","kind":"npc"}
+{"id":"dialogue:fisher_far.1","text":"¿Lejos? ¿Qué buscas?","kind":"npc"}
+{"id":"dialogue:fisher_greet.1","text":"¿Qué buscas?","kind":"npc"}
+{"id":"dialogue:fisher_hello.1","text":"¡Hola!","kind":"npc"}
+{"id":"dialogue:fisher_help.1","text":"Puedes preguntar: «¿Dónde está la panadería?».","kind":"npc"}
+{"id":"dialogue:fisher_near.1","text":"No, está cerca.","kind":"npc"}
+{"id":"dialogue:fisher_point.1","text":"Mira, está allí.","kind":"npc"}
+{"id":"dialogue:fisher_point.2","text":"Está por allí, mira.","kind":"npc"}
+{"id":"dialogue:fisher_thank.1","text":"De nada.","kind":"npc"}
+{"id":"dialogue:fisher_thank.2","text":"¡Con gusto!","kind":"npc"}
+{"id":"dialogue:fisher_unknown_place.1","text":"No sé dónde está.","kind":"npc"}
 {"id":"dialogue:guide.craft.lack.many.1","text":"Te faltan {lack}.","kind":"template"}
 {"id":"dialogue:guide.craft.lack.one.1","text":"Te falta {lack}.","kind":"template"}
 {"id":"dialogue:guide.craft.none.1","text":"Eso no se puede hacer.","kind":"npc"}
@@ -43,6 +56,17 @@
 {"id":"dialogue:guide.identify.none.2","text":"Busca una cosa y pregunta otra vez.","kind":"npc"}
 {"id":"dialogue:guide.lesson.end.1","text":"¡Muy bien! Ya tienes fuego.","kind":"npc"}
 {"id":"dialogue:guide.lesson.fast.1","text":"Mira. La madera es para la antorcha.","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.end.1","text":"¡Muy bien! Ya conoces el pueblo.","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.going.1","text":"¿Adónde vas?","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.hay.1","text":"En el pueblo hay una tienda, una panadería y tres casas.","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.hungry.1","text":"Tengo hambre. ¿Tienes fruta?","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.left.1","text":"En el pueblo, mira la torre. La panadería está a la izquierda.","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.more.1","text":"¿Algo más?","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.near.1","text":"No, está cerca. La montaña está lejos.","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.plan.1","text":"¿Qué vas a hacer allí?","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.right.1","text":"Y la herrería está a la derecha.","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.well.1","text":"Sí, hay un pozo.","kind":"npc"}
+{"id":"dialogue:guide.lesson.fisher.went.1","text":"¿Fuiste a la panadería?","kind":"npc"}
 {"id":"dialogue:guide.lesson.have.1","text":"¡Muy bien! Tienes una fruta.","kind":"npc"}
 {"id":"dialogue:guide.lesson.have_fruit.1","text":"¿Tienes una fruta?","kind":"npc"}
 {"id":"dialogue:guide.lesson.hello.1","text":"¡Hola!","kind":"npc"}
@@ -79,6 +103,7 @@
 {"id":"dialogue:guide.lesson.villager.plan.1","text":"¿Qué vas a comer mañana?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.plan_we.1","text":"¿Qué vamos a comer?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.she.1","text":"Luna es la guía. Ella es mi amiga.","kind":"npc"}
+{"id":"dialogue:guide.lesson.villager.sign.1","text":"El letrero dice: tienda, río, montaña.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.they.1","text":"Ellos tienen pan.","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.want.1","text":"¿Qué quieres?","kind":"npc"}
 {"id":"dialogue:guide.lesson.villager.we.1","text":"¿Qué necesitamos?","kind":"npc"}
@@ -174,20 +199,27 @@
 {"id":"dialogue:villager_thank.1","text":"De nada.","kind":"npc"}
 {"id":"dialogue:villager_thank.2","text":"¡Con gusto!","kind":"npc"}
 {"id":"dialogue:villager_unknown_place.1","text":"No sé dónde está.","kind":"npc"}
+{"id":"prompts:fisher-open","text":"¿Qué buscas?","kind":"npc"}
 {"id":"prompts:guide-offer","text":"¿Quieres agua?","kind":"npc"}
 {"id":"prompts:guide-open","text":"¡Hola! Soy la guía. ¿En qué te ayudo?","kind":"npc"}
 {"id":"prompts:guide-review","text":"¿Qué es esto?","kind":"npc"}
 {"id":"prompts:lesson-ate","text":"¿Qué comiste ayer?","kind":"npc"}
 {"id":"prompts:lesson-bottle","text":"¿Tiene usted una botella?","kind":"npc"}
+{"id":"prompts:lesson-far","text":"Y la herrería está a la derecha.","kind":"npc"}
+{"id":"prompts:lesson-going","text":"¿Adónde vas?","kind":"npc"}
 {"id":"prompts:lesson-had","text":"¿Bebiste agua ayer?","kind":"npc"}
 {"id":"prompts:lesson-have","text":"¿Tienes una fruta?","kind":"npc"}
+{"id":"prompts:lesson-hay","text":"En el pueblo hay una tienda, una panadería y tres casas.","kind":"npc"}
 {"id":"prompts:lesson-hello","text":"¡Hola!","kind":"npc"}
 {"id":"prompts:lesson-name","text":"Me llamo Luna.","kind":"npc"}
 {"id":"prompts:lesson-need","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"prompts:lesson-offer","text":"¿Quieres fruta?","kind":"npc"}
+{"id":"prompts:lesson-place","text":"¿Algo más?","kind":"npc"}
 {"id":"prompts:lesson-plan","text":"¿Qué vas a comer mañana?","kind":"npc"}
+{"id":"prompts:lesson-plan-there","text":"¿Qué vas a hacer allí?","kind":"npc"}
 {"id":"prompts:lesson-plan-we","text":"¿Qué vamos a comer?","kind":"npc"}
 {"id":"prompts:lesson-she","text":"¿Qué quiere Luna?","kind":"npc"}
+{"id":"prompts:lesson-sign","text":"El letrero dice: tienda, río, montaña.","kind":"npc"}
 {"id":"prompts:lesson-task","text":"Necesitas madera y frutas.","kind":"npc"}
 {"id":"prompts:lesson-thanks","text":"¡Muy bien! Tienes una fruta.","kind":"npc"}
 {"id":"prompts:lesson-tomorrow","text":"¿Qué vas a hacer mañana?","kind":"npc"}
@@ -197,6 +229,7 @@
 {"id":"prompts:lesson-want","text":"¿Qué quieres?","kind":"npc"}
 {"id":"prompts:lesson-we","text":"¿Qué necesitamos?","kind":"npc"}
 {"id":"prompts:lesson-went","text":"¿Fuiste al río ayer?","kind":"npc"}
+{"id":"prompts:lesson-went-there","text":"¿Fuiste a la panadería?","kind":"npc"}
 {"id":"prompts:lesson-what","text":"Mira.","kind":"npc"}
 {"id":"prompts:lesson-yesno","text":"¿Es madera?","kind":"npc"}
 {"id":"prompts:stall-need","text":"¿Qué necesitas?","kind":"npc"}
@@ -236,6 +269,37 @@
 {"id":"answer-sets/lesson-bottle:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-bottle:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-bottle:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-far:far","text":"está lejos","kind":"learner"}
+{"id":"answer-sets/lesson-far:far.alias1","text":"está muy lejos","kind":"learner"}
+{"id":"answer-sets/lesson-far:far.alias2","text":"queda lejos","kind":"learner"}
+{"id":"answer-sets/lesson-far:far.alias3","text":"está cerca","kind":"learner"}
+{"id":"answer-sets/lesson-far:far.alias4","text":"está lejos la herrería","kind":"learner"}
+{"id":"answer-sets/lesson-far:far.alias5","text":"está lejos la panadería","kind":"learner"}
+{"id":"answer-sets/lesson-far:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-far:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-far:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-far:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-far:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-far:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-far:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-far:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-far:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-going:going","text":"voy a la panadería","kind":"learner"}
+{"id":"answer-sets/lesson-going:going.alias1","text":"yo voy a la panadería","kind":"learner"}
+{"id":"answer-sets/lesson-going:going.alias2","text":"hoy voy a la panadería","kind":"learner"}
+{"id":"answer-sets/lesson-going:going.alias3","text":"voy a la panadería hoy","kind":"learner"}
+{"id":"answer-sets/lesson-going:going.alias4","text":"voy a la herrería","kind":"learner"}
+{"id":"answer-sets/lesson-going:going.alias5","text":"voy a la tienda","kind":"learner"}
+{"id":"answer-sets/lesson-going:going.alias6","text":"voy al pueblo","kind":"learner"}
+{"id":"answer-sets/lesson-going:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-going:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-going:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-going:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-going:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-going:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-going:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-going:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-going:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-greet:hello","text":"hola","kind":"learner"}
 {"id":"answer-sets/lesson-greet:hello.alias1","text":"buen día","kind":"learner"}
 {"id":"answer-sets/lesson-greet:hello.alias2","text":"buenos días","kind":"learner"}
@@ -312,6 +376,19 @@
 {"id":"answer-sets/lesson-have:slower.alias5","text":"despacio","kind":"learner"}
 {"id":"answer-sets/lesson-have:slower.alias6","text":"más lento","kind":"learner"}
 {"id":"answer-sets/lesson-have:slower.alias7","text":"más lento por favor","kind":"learner"}
+{"id":"answer-sets/lesson-hay:well","text":"hay un pozo en el pueblo","kind":"learner"}
+{"id":"answer-sets/lesson-hay:well.alias1","text":"hay un pozo","kind":"learner"}
+{"id":"answer-sets/lesson-hay:well.alias2","text":"hay un pozo aquí","kind":"learner"}
+{"id":"answer-sets/lesson-hay:well.alias3","text":"hay pozo","kind":"learner"}
+{"id":"answer-sets/lesson-hay:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-hay:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-hay:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-hay:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-hay:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-hay:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-hay:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-hay:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-hay:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-need:need","text":"necesito agua","kind":"learner"}
 {"id":"answer-sets/lesson-need:need.alias1","text":"necesito agua por favor","kind":"learner"}
 {"id":"answer-sets/lesson-need:need.alias2","text":"yo necesito agua","kind":"learner"}
@@ -342,6 +419,23 @@
 {"id":"answer-sets/lesson-need:slower.alias5","text":"despacio","kind":"learner"}
 {"id":"answer-sets/lesson-need:slower.alias6","text":"más lento","kind":"learner"}
 {"id":"answer-sets/lesson-need:slower.alias7","text":"más lento por favor","kind":"learner"}
+{"id":"answer-sets/lesson-place:smithy","text":"dónde está la herrería","kind":"learner"}
+{"id":"answer-sets/lesson-place:smithy.alias1","text":"dónde está la herrería por favor","kind":"learner"}
+{"id":"answer-sets/lesson-place:smithy.alias2","text":"dónde queda la herrería","kind":"learner"}
+{"id":"answer-sets/lesson-place:smithy.alias3","text":"busco la herrería","kind":"learner"}
+{"id":"answer-sets/lesson-place:bakery","text":"dónde está la panadería","kind":"learner"}
+{"id":"answer-sets/lesson-place:bakery.alias1","text":"dónde está la panadería por favor","kind":"learner"}
+{"id":"answer-sets/lesson-place:bakery.alias2","text":"dónde queda la panadería","kind":"learner"}
+{"id":"answer-sets/lesson-place:bakery.alias3","text":"busco la panadería","kind":"learner"}
+{"id":"answer-sets/lesson-place:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-place:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-place:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-place:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-place:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-place:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-place:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-place:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-place:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-plan:plan","text":"voy a comer pan","kind":"learner"}
 {"id":"answer-sets/lesson-plan:plan.alias1","text":"mañana voy a comer pan","kind":"learner"}
 {"id":"answer-sets/lesson-plan:plan.alias2","text":"yo voy a comer pan","kind":"learner"}
@@ -360,6 +454,26 @@
 {"id":"answer-sets/lesson-plan:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-plan:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-plan:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:plan","text":"voy a comprar pan","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:plan.alias1","text":"yo voy a comprar pan","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:plan.alias2","text":"voy a comprar el pan","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:plan.alias3","text":"mañana voy a comprar pan","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:plan.alias4","text":"luego voy a comprar pan","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:plan.alias5","text":"voy a comprar pan mañana","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:plan.alias6","text":"la semana que viene voy a comprar pan","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:plan.alias7","text":"la próxima semana voy a comprar pan","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:plan.alias8","text":"luego compro pan","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:plan.alias9","text":"mañana compro pan","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:plan.alias10","text":"voy a comprar dos panes","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-plan-there:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-plan-we:plan","text":"vamos a comer fruta","kind":"learner"}
 {"id":"answer-sets/lesson-plan-we:plan.alias1","text":"nosotros vamos a comer fruta","kind":"learner"}
 {"id":"answer-sets/lesson-plan-we:plan.alias2","text":"mañana vamos a comer fruta","kind":"learner"}
@@ -549,6 +663,22 @@
 {"id":"answer-sets/lesson-went:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/lesson-went:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/lesson-went:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:went","text":"sí fui a la panadería","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:went.alias1","text":"fui a la panadería","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:went.alias2","text":"yo fui a la panadería","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:went.alias3","text":"sí yo fui a la panadería","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:went.alias4","text":"hoy fui a la panadería","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:went.alias5","text":"ayer fui a la panadería","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:went.alias6","text":"fui a la herrería","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/lesson-went-there:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/lesson-what:what","text":"qué es esto","kind":"learner"}
 {"id":"answer-sets/lesson-what:what.alias1","text":"qué es eso","kind":"learner"}
 {"id":"answer-sets/lesson-what:what.alias2","text":"cómo se llama esto","kind":"learner"}
@@ -670,6 +800,90 @@
 {"id":"answer-sets/places-basic:river","text":"río","kind":"learner"}
 {"id":"answer-sets/places-basic:river.alias1","text":"el río","kind":"learner"}
 {"id":"answer-sets/places-basic:river.alias2","text":"un río","kind":"learner"}
+{"id":"answer-sets/places-village:bakery","text":"dónde está la panadería","kind":"learner"}
+{"id":"answer-sets/places-village:bakery.alias1","text":"dónde está la panadería por favor","kind":"learner"}
+{"id":"answer-sets/places-village:bakery.alias2","text":"dónde queda la panadería","kind":"learner"}
+{"id":"answer-sets/places-village:bakery.alias3","text":"busco la panadería","kind":"learner"}
+{"id":"answer-sets/places-village:smithy","text":"dónde está la herrería","kind":"learner"}
+{"id":"answer-sets/places-village:smithy.alias1","text":"dónde está la herrería por favor","kind":"learner"}
+{"id":"answer-sets/places-village:smithy.alias2","text":"dónde queda la herrería","kind":"learner"}
+{"id":"answer-sets/places-village:smithy.alias3","text":"busco la herrería","kind":"learner"}
+{"id":"answer-sets/places-village:well","text":"dónde está el pozo","kind":"learner"}
+{"id":"answer-sets/places-village:well.alias1","text":"dónde está el pozo por favor","kind":"learner"}
+{"id":"answer-sets/places-village:well.alias2","text":"dónde queda el pozo","kind":"learner"}
+{"id":"answer-sets/places-village:well.alias3","text":"busco el pozo","kind":"learner"}
+{"id":"answer-sets/places-village:well.alias4","text":"hay un pozo","kind":"learner"}
+{"id":"answer-sets/places-village:well.alias5","text":"hay un pozo en el pueblo","kind":"learner"}
+{"id":"answer-sets/places-village:well.alias6","text":"hay un pozo aquí","kind":"learner"}
+{"id":"answer-sets/places-village:shop","text":"dónde está la tienda","kind":"learner"}
+{"id":"answer-sets/places-village:shop.alias1","text":"dónde está la tienda por favor","kind":"learner"}
+{"id":"answer-sets/places-village:shop.alias2","text":"dónde queda la tienda","kind":"learner"}
+{"id":"answer-sets/places-village:shop.alias3","text":"busco la tienda","kind":"learner"}
+{"id":"answer-sets/places-village:tower","text":"dónde está la torre","kind":"learner"}
+{"id":"answer-sets/places-village:tower.alias1","text":"dónde está la torre por favor","kind":"learner"}
+{"id":"answer-sets/places-village:tower.alias2","text":"dónde queda la torre","kind":"learner"}
+{"id":"answer-sets/places-village:tower.alias3","text":"busco la torre","kind":"learner"}
+{"id":"answer-sets/places-village:river","text":"dónde está el río","kind":"learner"}
+{"id":"answer-sets/places-village:river.alias1","text":"dónde está el río por favor","kind":"learner"}
+{"id":"answer-sets/places-village:river.alias2","text":"dónde queda el río","kind":"learner"}
+{"id":"answer-sets/places-village:river.alias3","text":"busco el río","kind":"learner"}
+{"id":"answer-sets/places-village:field","text":"dónde está el campo","kind":"learner"}
+{"id":"answer-sets/places-village:field.alias1","text":"dónde está el campo por favor","kind":"learner"}
+{"id":"answer-sets/places-village:field.alias2","text":"dónde queda el campo","kind":"learner"}
+{"id":"answer-sets/places-village:field.alias3","text":"busco el campo","kind":"learner"}
+{"id":"answer-sets/places-village:house","text":"dónde está la casa","kind":"learner"}
+{"id":"answer-sets/places-village:house.alias1","text":"dónde está la casa por favor","kind":"learner"}
+{"id":"answer-sets/places-village:house.alias2","text":"dónde queda la casa","kind":"learner"}
+{"id":"answer-sets/places-village:house.alias3","text":"busco la casa","kind":"learner"}
+{"id":"answer-sets/places-village:village","text":"dónde está el pueblo","kind":"learner"}
+{"id":"answer-sets/places-village:village.alias1","text":"dónde está el pueblo por favor","kind":"learner"}
+{"id":"answer-sets/places-village:village.alias2","text":"dónde queda el pueblo","kind":"learner"}
+{"id":"answer-sets/places-village:village.alias3","text":"busco el pueblo","kind":"learner"}
+{"id":"answer-sets/places-village:lake","text":"dónde está el lago","kind":"learner"}
+{"id":"answer-sets/places-village:lake.alias1","text":"dónde está el lago por favor","kind":"learner"}
+{"id":"answer-sets/places-village:lake.alias2","text":"dónde queda el lago","kind":"learner"}
+{"id":"answer-sets/places-village:lake.alias3","text":"busco el lago","kind":"learner"}
+{"id":"answer-sets/places-village:bridge","text":"dónde está el puente","kind":"learner"}
+{"id":"answer-sets/places-village:bridge.alias1","text":"dónde está el puente por favor","kind":"learner"}
+{"id":"answer-sets/places-village:bridge.alias2","text":"dónde queda el puente","kind":"learner"}
+{"id":"answer-sets/places-village:bridge.alias3","text":"busco el puente","kind":"learner"}
+{"id":"answer-sets/places-village:sign","text":"dónde está el letrero","kind":"learner"}
+{"id":"answer-sets/places-village:sign.alias1","text":"dónde está el letrero por favor","kind":"learner"}
+{"id":"answer-sets/places-village:sign.alias2","text":"dónde queda el letrero","kind":"learner"}
+{"id":"answer-sets/places-village:sign.alias3","text":"busco el letrero","kind":"learner"}
+{"id":"answer-sets/places-village:camp","text":"dónde está el campamento","kind":"learner"}
+{"id":"answer-sets/places-village:camp.alias1","text":"dónde está el campamento por favor","kind":"learner"}
+{"id":"answer-sets/places-village:camp.alias2","text":"dónde queda el campamento","kind":"learner"}
+{"id":"answer-sets/places-village:camp.alias3","text":"busco el campamento","kind":"learner"}
+{"id":"answer-sets/places-village:own-camp","text":"dónde está mi campamento","kind":"learner"}
+{"id":"answer-sets/places-village:own-camp.alias1","text":"dónde está mi campamento por favor","kind":"learner"}
+{"id":"answer-sets/places-village:own-camp.alias2","text":"dónde queda mi campamento","kind":"learner"}
+{"id":"answer-sets/places-village:own-camp.alias3","text":"busco mi campamento","kind":"learner"}
+{"id":"answer-sets/places-village:far","text":"está lejos","kind":"learner"}
+{"id":"answer-sets/places-village:far.alias1","text":"está muy lejos","kind":"learner"}
+{"id":"answer-sets/places-village:far.alias2","text":"queda lejos","kind":"learner"}
+{"id":"answer-sets/places-village:far.alias3","text":"está cerca","kind":"learner"}
+{"id":"answer-sets/places-village:far.alias4","text":"está lejos la panadería","kind":"learner"}
+{"id":"answer-sets/places-village:far.alias5","text":"está lejos la herrería","kind":"learner"}
+{"id":"answer-sets/places-village:hello","text":"hola","kind":"learner"}
+{"id":"answer-sets/places-village:hello.alias1","text":"buenos días","kind":"learner"}
+{"id":"answer-sets/places-village:hello.alias2","text":"buenas tardes","kind":"learner"}
+{"id":"answer-sets/places-village:hello.alias3","text":"buen día","kind":"learner"}
+{"id":"answer-sets/places-village:thanks","text":"gracias","kind":"learner"}
+{"id":"answer-sets/places-village:thanks.alias1","text":"muchas gracias","kind":"learner"}
+{"id":"answer-sets/places-village:bye","text":"adiós","kind":"learner"}
+{"id":"answer-sets/places-village:bye.alias1","text":"hasta luego","kind":"learner"}
+{"id":"answer-sets/places-village:bye.alias2","text":"nos vemos","kind":"learner"}
+{"id":"answer-sets/places-village:bye.alias3","text":"hasta mañana","kind":"learner"}
+{"id":"answer-sets/places-village:help","text":"ayuda","kind":"learner"}
+{"id":"answer-sets/places-village:help.alias1","text":"ayuda por favor","kind":"learner"}
+{"id":"answer-sets/places-village:help.alias2","text":"necesito ayuda","kind":"learner"}
+{"id":"answer-sets/places-village:help.alias3","text":"me ayudas","kind":"learner"}
+{"id":"answer-sets/places-village:help.alias4","text":"me puedes ayudar","kind":"learner"}
+{"id":"answer-sets/places-village:dont-know","text":"no sé","kind":"learner"}
+{"id":"answer-sets/places-village:dont-know.alias1","text":"no lo sé","kind":"learner"}
+{"id":"answer-sets/places-village:dont-know.alias2","text":"yo no sé","kind":"learner"}
+{"id":"answer-sets/places-village:dont-know.alias3","text":"no entiendo","kind":"learner"}
 {"id":"answer-sets/supplies:water","text":"quiero agua por favor","kind":"learner"}
 {"id":"answer-sets/supplies:water.alias1","text":"un agua por favor","kind":"learner"}
 {"id":"answer-sets/supplies:water.alias2","text":"quiero un agua","kind":"learner"}
@@ -736,6 +950,13 @@
 {"id":"answer-sets/yes-no:dont-know.alias1","text":"no lo sé","kind":"learner"}
 {"id":"answer-sets/yes-no:dont-know.alias2","text":"yo no sé","kind":"learner"}
 {"id":"answer-sets/yes-no:dont-know.alias3","text":"no entiendo","kind":"learner"}
+{"id":"intents:ask_availability.ex0","text":"hay un pozo en el pueblo","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex1","text":"hay un pozo","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex2","text":"hay un pozo aquí","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex3","text":"hay una pozo en el pueblo","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:ask_availability.ex4","text":"hay pan","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex5","text":"hay agua aquí","kind":"learner","errors":[]}
+{"id":"intents:ask_availability.ex6","text":"hay una tienda en el pueblo","kind":"learner","errors":[]}
 {"id":"intents:ask_craft.ex0","text":"cómo hago una antorcha","kind":"learner","errors":[]}
 {"id":"intents:ask_craft.ex1","text":"qué necesito para una antorcha","kind":"learner","errors":[]}
 {"id":"intents:ask_craft.ex2","text":"cómo se hace una antorcha","kind":"learner","errors":[]}
@@ -746,10 +967,29 @@
 {"id":"intents:ask_directions.ex2","text":"dónde queda el río","kind":"learner","errors":[]}
 {"id":"intents:ask_directions.ex3","text":"busco el río","kind":"learner","errors":[]}
 {"id":"intents:ask_directions.ex4","text":"dónde está la río","kind":"learner","errors":["gender.agree"]}
-{"id":"intents:ask_directions.ex5","text":"dónde está el árbol","kind":"learner","errors":[]}
-{"id":"intents:ask_directions.ex6","text":"dónde está la piedra","kind":"learner","errors":[]}
-{"id":"intents:ask_directions.ex7","text":"busco la hierba","kind":"learner","errors":[]}
-{"id":"intents:ask_directions.ex8","text":"quiero encontrar tierra","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex5","text":"dónde está la panadería","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex6","text":"dónde está la panadería, por favor","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex7","text":"dónde queda la panadería","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex8","text":"busco la panadería","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex9","text":"dónde está el panadería","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:ask_directions.ex10","text":"dónde está la herrería","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex11","text":"dónde está la herrería, por favor","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex12","text":"dónde queda la herrería","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex13","text":"busco la herrería","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex14","text":"dónde está el herrería","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:ask_directions.ex15","text":"dónde está el árbol","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex16","text":"dónde está la piedra","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex17","text":"busco la hierba","kind":"learner","errors":[]}
+{"id":"intents:ask_directions.ex18","text":"quiero encontrar tierra","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex0","text":"está lejos","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex1","text":"está muy lejos","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex2","text":"queda lejos","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex3","text":"está cerca","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex4","text":"está lejos la herrería","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex5","text":"está lejos el herrería","kind":"learner","errors":["gender.agree"]}
+{"id":"intents:ask_far.ex6","text":"está lejos la panadería","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex7","text":"está cerca el río","kind":"learner","errors":[]}
+{"id":"intents:ask_far.ex8","text":"queda muy cerca","kind":"learner","errors":[]}
 {"id":"intents:ask_find.ex0","text":"dónde hay arena","kind":"learner","errors":[]}
 {"id":"intents:ask_find.ex1","text":"dónde encuentro madera","kind":"learner","errors":[]}
 {"id":"intents:ask_find.ex2","text":"de dónde sale la madera","kind":"learner","errors":[]}
@@ -902,6 +1142,33 @@
 {"id":"intents:state_action.ex56","text":"voy a ir al río mañana","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex57","text":"mañana voy al río","kind":"learner","errors":[]}
 {"id":"intents:state_action.ex58","text":"mañana fui al río","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex59","text":"voy a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex60","text":"yo voy a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex61","text":"hoy voy a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex62","text":"voy a la panadería hoy","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex63","text":"voy a la herrería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex64","text":"yo vas a la panadería","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex65","text":"voy a comprar pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex66","text":"yo voy a comprar pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex67","text":"voy a comprar el pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex68","text":"mañana voy a comprar pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex69","text":"luego voy a comprar pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex70","text":"voy a comprar pan mañana","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex71","text":"la semana que viene voy a comprar pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex72","text":"la próxima semana voy a comprar pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex73","text":"luego compro pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex74","text":"mañana compro pan","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex75","text":"voy a compro pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex76","text":"mañana compré pan","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex77","text":"sí, fui a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex78","text":"fui a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex79","text":"yo fui a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex80","text":"hoy fui a la panadería","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex81","text":"ayer voy a la panadería","kind":"learner","errors":["conj.tense"]}
+{"id":"intents:state_action.ex82","text":"yo fuiste a la panadería","kind":"learner","errors":["conj.person"]}
+{"id":"intents:state_action.ex83","text":"compré dos panes","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex84","text":"voy a buscar madera","kind":"learner","errors":[]}
+{"id":"intents:state_action.ex85","text":"busqué madera","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex0","text":"tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex1","text":"sí, tengo una fruta","kind":"learner","errors":[]}
 {"id":"intents:state_have.ex2","text":"sí, yo tengo una fruta","kind":"learner","errors":[]}
@@ -1152,6 +1419,50 @@
 {"id":"PHRASES.md:voy-a-ir-al-rio.variant3","text":"mañana voy a ir a la tienda","kind":"learner"}
 {"id":"PHRASES.md:voy-a-ir-al-rio.variant4","text":"voy a ir al río mañana","kind":"learner"}
 {"id":"PHRASES.md:voy-a-ir-al-rio.error","text":"mañana fui al río","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:que-buscas.text","text":"¿Qué buscas?","kind":"npc"}
+{"id":"PHRASES.md:donde-esta-la-panaderia.text","text":"¿Dónde está la panadería?","kind":"learner"}
+{"id":"PHRASES.md:donde-esta-la-panaderia.variant1","text":"dónde está la panadería, por favor","kind":"learner"}
+{"id":"PHRASES.md:donde-esta-la-panaderia.variant2","text":"dónde queda la panadería","kind":"learner"}
+{"id":"PHRASES.md:donde-esta-la-panaderia.variant3","text":"busco la panadería","kind":"learner"}
+{"id":"PHRASES.md:donde-esta-la-panaderia.error","text":"dónde está el panadería","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:esta-a-la-izquierda.text","text":"En el pueblo, mira la torre. La panadería está a la izquierda.","kind":"npc"}
+{"id":"PHRASES.md:donde-esta-la-herreria.text","text":"¿Dónde está la herrería?","kind":"learner"}
+{"id":"PHRASES.md:donde-esta-la-herreria.variant1","text":"dónde está la herrería, por favor","kind":"learner"}
+{"id":"PHRASES.md:donde-esta-la-herreria.variant2","text":"dónde queda la herrería","kind":"learner"}
+{"id":"PHRASES.md:donde-esta-la-herreria.variant3","text":"busco la herrería","kind":"learner"}
+{"id":"PHRASES.md:donde-esta-la-herreria.error","text":"dónde está el herrería","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:esta-lejos.text","text":"¿Está lejos?","kind":"learner"}
+{"id":"PHRASES.md:esta-lejos.variant1","text":"está muy lejos","kind":"learner"}
+{"id":"PHRASES.md:esta-lejos.variant2","text":"queda lejos","kind":"learner"}
+{"id":"PHRASES.md:esta-lejos.variant3","text":"está lejos la herrería","kind":"learner"}
+{"id":"PHRASES.md:esta-lejos.error","text":"está lejos el herrería","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:esta-cerca.text","text":"No, está cerca. La montaña está lejos.","kind":"npc"}
+{"id":"PHRASES.md:hay-tres-casas.text","text":"En el pueblo hay una tienda, una panadería y tres casas.","kind":"npc"}
+{"id":"PHRASES.md:hay-un-pozo.text","text":"¿Hay un pozo en el pueblo?","kind":"learner"}
+{"id":"PHRASES.md:hay-un-pozo.variant1","text":"hay un pozo","kind":"learner"}
+{"id":"PHRASES.md:hay-un-pozo.variant2","text":"¿hay un pozo aquí?","kind":"learner"}
+{"id":"PHRASES.md:hay-un-pozo.error","text":"hay una pozo en el pueblo","kind":"learner","errors":["gender.agree"]}
+{"id":"PHRASES.md:adonde-vas.text","text":"¿Adónde vas?","kind":"npc"}
+{"id":"PHRASES.md:voy-a-la-panaderia.text","text":"Voy a la panadería.","kind":"learner"}
+{"id":"PHRASES.md:voy-a-la-panaderia.variant1","text":"yo voy a la panadería","kind":"learner"}
+{"id":"PHRASES.md:voy-a-la-panaderia.variant2","text":"hoy voy a la panadería","kind":"learner"}
+{"id":"PHRASES.md:voy-a-la-panaderia.variant3","text":"voy a la panadería hoy","kind":"learner"}
+{"id":"PHRASES.md:voy-a-la-panaderia.error","text":"yo vas a la panadería","kind":"learner","errors":["conj.person"]}
+{"id":"PHRASES.md:que-vas-a-hacer-alli.text","text":"¿Qué vas a hacer allí?","kind":"npc"}
+{"id":"PHRASES.md:voy-a-comprar-pan.text","text":"Voy a comprar pan.","kind":"learner"}
+{"id":"PHRASES.md:voy-a-comprar-pan.variant1","text":"yo voy a comprar pan","kind":"learner"}
+{"id":"PHRASES.md:voy-a-comprar-pan.variant2","text":"voy a comprar el pan","kind":"learner"}
+{"id":"PHRASES.md:voy-a-comprar-pan.variant3","text":"mañana voy a comprar pan","kind":"learner"}
+{"id":"PHRASES.md:voy-a-comprar-pan.variant4","text":"luego voy a comprar pan","kind":"learner"}
+{"id":"PHRASES.md:voy-a-comprar-pan.variant5","text":"voy a comprar pan mañana","kind":"learner"}
+{"id":"PHRASES.md:voy-a-comprar-pan.error","text":"voy a compro pan","kind":"learner","errors":["conj.tense"]}
+{"id":"PHRASES.md:el-letrero.text","text":"El letrero dice: tienda, río, montaña.","kind":"npc"}
+{"id":"PHRASES.md:fuiste-a-la-panaderia.text","text":"¿Fuiste a la panadería?","kind":"npc"}
+{"id":"PHRASES.md:fui-a-la-panaderia.text","text":"Sí, fui a la panadería.","kind":"learner"}
+{"id":"PHRASES.md:fui-a-la-panaderia.variant1","text":"fui a la panadería","kind":"learner"}
+{"id":"PHRASES.md:fui-a-la-panaderia.variant2","text":"yo fui a la panadería","kind":"learner"}
+{"id":"PHRASES.md:fui-a-la-panaderia.variant3","text":"hoy fui a la panadería","kind":"learner"}
+{"id":"PHRASES.md:fui-a-la-panaderia.error","text":"ayer voy a la panadería","kind":"learner","errors":["conj.tense"]}
 {"id":"checks.json:hear.que-necesitas","text":"¿Qué necesitas?","kind":"npc"}
 {"id":"checks.json:hear.quieres-pan","text":"¿Quieres pan?","kind":"npc"}
 {"id":"checks.json:hear.pedir-agua","text":"Quiero agua, por favor.","kind":"npc"}
@@ -1168,6 +1479,10 @@
 {"id":"checks.json:hear.que-quieren-ustedes","text":"¿Qué quieren ustedes?","kind":"npc"}
 {"id":"checks.json:hear.que-vas-a-comer","text":"¿Qué vas a comer mañana?","kind":"npc"}
 {"id":"checks.json:hear.que-comiste-ayer","text":"¿Qué comiste ayer?","kind":"npc"}
+{"id":"checks.json:hear.que-buscas","text":"¿Qué buscas?","kind":"npc"}
+{"id":"checks.json:hear.esta-a-la-izquierda","text":"En el pueblo, mira la torre. La panadería está a la izquierda.","kind":"npc"}
+{"id":"checks.json:hear.hay-tres-casas","text":"En el pueblo hay una tienda, una panadería y tres casas.","kind":"npc"}
+{"id":"checks.json:hear.fuiste-a-la-panaderia","text":"¿Fuiste a la panadería?","kind":"npc"}
 {"id":"words.json:directions.ahead","text":"adelante","kind":"npc"}
 {"id":"words.json:directions.behind","text":"detrás","kind":"npc"}
 {"id":"words.json:directions.left","text":"a la izquierda","kind":"npc"}
@@ -1194,6 +1509,9 @@
 {"id":"words.json:pronouns.1pl","text":"nosotros","kind":"npc"}
 {"id":"words.json:pronouns.3pl","text":"ustedes/ellos","kind":"npc"}
 {"id":"words.json:nearFuture.timeWords[0]","text":"mañana","kind":"npc"}
+{"id":"words.json:nearFuture.timeWords[1]","text":"luego","kind":"npc"}
+{"id":"words.json:nearFuture.timeWords[2]","text":"después","kind":"npc"}
+{"id":"words.json:nearFuture.timeWords[3]","text":"pasado mañana","kind":"npc"}
 {"id":"words.json:nouns.river","text":"río","kind":"npc"}
 {"id":"npcs/guide.json:label","text":"Guía","kind":"npc"}
 {"id":"npcs/guide.json:name","text":"Luna","kind":"npc"}
@@ -1201,6 +1519,8 @@
 {"id":"npcs/shopkeeper.json:keyWords[0]","text":"agua","kind":"npc"}
 {"id":"npcs/shopkeeper.json:keyWords[1]","text":"pan","kind":"npc"}
 {"id":"npcs/villager.json:label","text":"Aldeano","kind":"npc"}
+{"id":"npcs/fisher.json:label","text":"Pescador","kind":"npc"}
+{"id":"npcs/fisher.json:name","text":"Mar","kind":"npc"}
 {"id":"speech:card.agua","text":"el agua","kind":"npc"}
 {"id":"speech:card.antorcha","text":"la antorcha","kind":"npc"}
 {"id":"speech:card.arena","text":"la arena","kind":"npc"}

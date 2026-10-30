@@ -99,6 +99,24 @@
   ],
   "steps": [
     {
+      "id": "f0-review",
+      "type": "review",
+      "candidates": [
+        {
+          "phrase": "quiero-madera",
+          "line": "guide.lesson.villager.want.1"
+        },
+        {
+          "phrase": "necesitamos-agua",
+          "line": "guide.lesson.villager.we.1"
+        },
+        {
+          "phrase": "ella-quiere-fruta",
+          "line": "guide.lesson.villager.luna.1"
+        }
+      ]
+    },
+    {
       "id": "f0-intro",
       "type": "explain"
     },
@@ -148,6 +166,25 @@
         "npc": "shopkeeper"
       },
       "point": "tienda"
+    },
+    {
+      "id": "y0-review",
+      "type": "review",
+      "npc": "shopkeeper",
+      "candidates": [
+        {
+          "phrase": "necesito-pan",
+          "line": "guide.lesson.shop.need.1"
+        },
+        {
+          "phrase": "queremos-pan",
+          "line": "guide.lesson.shop.all.1"
+        },
+        {
+          "phrase": "tengo-botella",
+          "line": "guide.lesson.shop.bottle.1"
+        }
+      ]
     },
     {
       "id": "y0-intro",

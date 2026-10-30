@@ -1,0 +1,20 @@
+{
+  "$schema": "../../../schema/npc.schema.json",
+  "schemaVersion": 2,
+  "id": "fisher",
+  "label": "Pescador",
+  "name": "Mar",
+  "figure": "fisher",
+  "prompts": {
+    "idle": "fisher-open"
+  },
+  "opening": {
+    "event": "fisher.greet",
+    "when": "always"
+  },
+  "voice": {
+    "speaker": 53,
+    "name": "em_santa",
+    "speed": 0.9
+  }
+}

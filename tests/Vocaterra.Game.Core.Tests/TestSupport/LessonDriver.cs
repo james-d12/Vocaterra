@@ -45,6 +45,7 @@ internal static class LessonDriver
                 break;
             case LessonStepType.Repeat:
             case LessonStepType.Answer:
+            case LessonStepType.Review: // the step as resolved to the candidate it asks (X06): its phrase is the one asked
                 sent = LineFor(session, step);
                 turn = session.Say(sent);
                 shown = turn.GuideLines;
@@ -57,9 +58,11 @@ internal static class LessonDriver
                 break;
         }
 
+        // The step ends; a review step after it that has nothing due is skipped at once (X06), so its outcome may follow.
         var outcomes = runner.OutcomesOf(lessonId);
-        Assert.Equal(before + 1, outcomes.Count);
-        return new Done(step.Id, LessonStepTypes.Of(step.Type), sent, outcomes[^1].Outcome, shown, turn);
+        Assert.True(outcomes.Count > before, $"the step '{step.Id}' did not end");
+        Assert.All(outcomes.Skip(before + 1), static o => Assert.Equal(StepOutcome.Skipped, o.Outcome));
+        return new Done(step.Id, LessonStepTypes.Of(step.Type), sent, outcomes[before].Outcome, shown, turn);
     }
 
     /// <summary>Does every step until the lesson is completed (or a limit is reached) and returns each step as it went.</summary>

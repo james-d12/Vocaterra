@@ -151,9 +151,9 @@ public sealed class CheckFrontendTests
         screen.SkipRest();
 
         Assert.True(screen.IsDone);
-        Assert.Equal(31, screen.Results.Count);
-        Assert.Equal(31 - answered, screen.Results.Count(static r => r.Input == CheckInput.Skipped));
-        Assert.Equal(31, reported.Count);
+        Assert.Equal(Bank.Count, screen.Results.Count); // the whole bank: the pilot's 31 and El pueblo's 8 (V10)
+        Assert.Equal(Bank.Count - answered, screen.Results.Count(static r => r.Input == CheckInput.Skipped));
+        Assert.Equal(Bank.Count, reported.Count);
     }
 
     [Fact]
@@ -173,9 +173,9 @@ public sealed class CheckFrontendTests
             }
         }
 
-        Assert.Equal(31, screen.Results.Count);
+        Assert.Equal(Bank.Count, screen.Results.Count);
         Assert.Null(screen.Current);
-        Assert.Equal(31, screen.Index);
+        Assert.Equal(Bank.Count, screen.Index);
     }
 
     [Fact]

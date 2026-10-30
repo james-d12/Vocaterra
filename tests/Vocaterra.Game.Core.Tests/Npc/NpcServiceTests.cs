@@ -375,14 +375,18 @@ public sealed class NpcServiceTests
             Assert.Equal(NpcEffectKind.None, table.Of(npc, hostEvent).Kind);
         }
 
-        // C08: game/host-events.json gives the five actions the code's table gave.
-        Assert.Equal(5, table.Mapped().Count);
+        // C08: game/host-events.json gives the five actions the code's table gave; V10 adds the fisher's three (he points at a place or a thing asked for, and pays for
+        // the fruit).
+        Assert.Equal(8, table.Mapped().Count);
         Assert.Equal(NpcEffectKind.GiveItem, table.Of("shopkeeper", "stall.give_water").Kind);
         Assert.Equal(ItemId.Bottle, table.Of("shopkeeper", "stall.give_water").Item);
         Assert.Equal(ItemId.Bread, table.Of("shopkeeper", "stall.give_bread").Item);
         Assert.Equal(ItemId.Bread, table.Of("villager", "villager.give").Item);
         Assert.Equal(NpcEffect.PointAtSlotNamed("place"), table.Of("villager", "villager.point")); // V02: the place the learner names (it was point_at_noun río)
         Assert.Equal(ItemId.WaterBottle, table.Of("guide", "guide.give_water").Item);
+        Assert.Equal(NpcEffect.PointAtSlotNamed("place"), table.Of("fisher", "fisher.point"));
+        Assert.Equal(NpcEffect.PointAtSlotNamed("item"), table.Of("fisher", "fisher.show")); // ¿Hay un pozo?: the noun after hay
+        Assert.Equal(NpcEffect.Give(ItemId.Coin, 2), table.Of("fisher", "fisher.pay")); // the order fruit-for-mar's reward
     }
 
     [Fact]

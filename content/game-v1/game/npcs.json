@@ -5,6 +5,7 @@
   "npcs": [
     "guide",
     "shopkeeper",
-    "villager"
+    "villager",
+    "fisher"
   ]
 }

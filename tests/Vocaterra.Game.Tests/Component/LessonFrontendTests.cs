@@ -218,7 +218,7 @@ public sealed class LessonFrontendTests
 
         var done = run.Log.Where(static l => l.StartsWith("  event: lesson personas step ", StringComparison.Ordinal) && (l.EndsWith(" done", StringComparison.Ordinal) || l.Contains(" done (", StringComparison.Ordinal))).ToList();
         Assert.Equal(20, done.Count);
-        Assert.Contains("  event: lesson personas completed (done 20, skipped 0, moved on 0)", run.Log);
+        Assert.Contains("  event: lesson personas completed (done 20, skipped 2, moved on 0)", run.Log); // its two review steps (X06) have nothing due in a new game
         Assert.Equal(LessonStatus.Completed, run.Session.Lessons.StatusOf("personas"));
         Assert.Equal(["quiero-madera", "ella-quiere-fruta", "necesitamos-agua", "necesito-pan", "tengo-botella", "queremos-pan"], run.Session.Events.OfType<PhraseUse>().Select(static u => u.PhraseId));
         var opened = run.Session.Events.OfType<WorldEvent>().Where(static e => e.Name == WorldEvents.TalkOpened).Select(static e => e.Npc).ToList();

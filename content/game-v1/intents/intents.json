@@ -180,6 +180,17 @@
         {"text": "dónde queda el río", "errors": [], "prompt": "villager-open"},
         {"text": "busco el río", "errors": [], "prompt": "villager-open"},
         {"text": "dónde está la río", "errors": ["gender.agree"], "prompt": "villager-open"},
+        {"text": "dónde está la panadería", "errors": [], "prompt": "fisher-open"},
+        {"text": "dónde está la panadería, por favor", "errors": [], "prompt": "fisher-open"},
+        {"text": "dónde queda la panadería", "errors": [], "prompt": "fisher-open"},
+        {"text": "busco la panadería", "errors": [], "prompt": "fisher-open"},
+        {"text": "dónde está el panadería", "errors": ["gender.agree"], "prompt": "fisher-open"},
+        {"text": "dónde está la herrería", "errors": [], "prompt": "fisher-open"},
+        {"text": "dónde está la herrería, por favor", "errors": [], "prompt": "fisher-open"},
+        {"text": "dónde queda la herrería", "errors": [], "prompt": "fisher-open"},
+        {"text": "busco la herrería", "errors": [], "prompt": "fisher-open"},
+        {"text": "dónde está el herrería", "errors": ["gender.agree"], "prompt": "fisher-open"},
+        {"text": "dónde está la herrería", "errors": [], "prompt": "lesson-place"},
         "dónde está el árbol",
         "dónde está la piedra",
         "busco la hierba",
@@ -349,16 +360,21 @@
       "intentId": "state_action",
       "requiredSlots": [],
       "slotGrammars": [
-        "(mañana|ayer|hoy)? [VERB:ir] a [VERB:comer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy)?",
-        "(mañana|ayer|hoy)? [VERB:comer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy)?",
-        "(sí)? (mañana|ayer|hoy)? [VERB:beber] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy)?",
-        "(mañana|ayer|hoy)? [VERB:ir] a [VERB:ir] a [ART]? [NOUN:place] (mañana|ayer|hoy)?",
-        "(sí)? (mañana|ayer|hoy)? [VERB:ir] a [ART]? [NOUN:place] (mañana|ayer|hoy)?"
+        "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:ir] a [VERB:comer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
+        "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:comer] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
+        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:beber] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
+        "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:ir] a [VERB:ir] a [ART]? [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
+        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:ir] a [ART]? [NOUN:place] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
+        "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:ir] a [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
+        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:comprar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
+        "(mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:ir] a [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?",
+        "(sí)? (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])? [VERB:buscar] [ART]? [NUM:qty]? [NOUN:item] (mañana|ayer|hoy|luego|después|pasado mañana|la semana que viene|el próximo [NOUN])?"
       ],
       "keywordRules": [
         { "lemmas": ["ir"], "requiresSlots": [] },
         { "lemmas": ["comer"], "requiresSlots": ["item"], "slotFromNoun": "item" },
-        { "lemmas": ["beber"], "requiresSlots": ["item"], "slotFromNoun": "item" }
+        { "lemmas": ["beber"], "requiresSlots": ["item"], "slotFromNoun": "item" },
+        { "lemmas": ["comprar"], "requiresSlots": ["item"], "slotFromNoun": "item" }
       ],
       "examples": [
         {"text": "voy a comer pan", "errors": [], "prompt": "lesson-plan"},
@@ -419,7 +435,34 @@
         {"text": "mañana voy a ir a la tienda", "errors": [], "prompt": "lesson-tomorrow"},
         {"text": "voy a ir al río mañana", "errors": [], "prompt": "lesson-tomorrow"},
         {"text": "mañana voy al río", "errors": [], "prompt": "lesson-tomorrow"},
-        {"text": "mañana fui al río", "errors": ["conj.tense"], "prompt": "lesson-tomorrow"}
+        {"text": "mañana fui al río", "errors": ["conj.tense"], "prompt": "lesson-tomorrow"},
+        {"text": "voy a la panadería", "errors": [], "prompt": "lesson-going"},
+        {"text": "yo voy a la panadería", "errors": [], "prompt": "lesson-going"},
+        {"text": "hoy voy a la panadería", "errors": [], "prompt": "lesson-going"},
+        {"text": "voy a la panadería hoy", "errors": [], "prompt": "lesson-going"},
+        {"text": "voy a la herrería", "errors": [], "prompt": "lesson-going"},
+        {"text": "yo vas a la panadería", "errors": ["conj.person"], "prompt": "lesson-going"},
+        {"text": "voy a comprar pan", "errors": [], "prompt": "lesson-plan-there"},
+        {"text": "yo voy a comprar pan", "errors": [], "prompt": "lesson-plan-there"},
+        {"text": "voy a comprar el pan", "errors": [], "prompt": "lesson-plan-there"},
+        {"text": "mañana voy a comprar pan", "errors": [], "prompt": "lesson-plan-there"},
+        {"text": "luego voy a comprar pan", "errors": [], "prompt": "lesson-plan-there"},
+        {"text": "voy a comprar pan mañana", "errors": [], "prompt": "lesson-plan-there"},
+        {"text": "la semana que viene voy a comprar pan", "errors": [], "prompt": "lesson-plan-there"},
+        {"text": "la próxima semana voy a comprar pan", "errors": [], "prompt": "lesson-plan-there"},
+        {"text": "luego compro pan", "errors": [], "prompt": "lesson-plan-there"},
+        {"text": "mañana compro pan", "errors": [], "prompt": "lesson-plan-there"},
+        {"text": "voy a compro pan", "errors": ["conj.tense"], "prompt": "lesson-plan-there"},
+        {"text": "mañana compré pan", "errors": ["conj.tense"], "prompt": "lesson-plan-there"},
+        {"text": "sí, fui a la panadería", "errors": [], "prompt": "lesson-went-there"},
+        {"text": "fui a la panadería", "errors": [], "prompt": "lesson-went-there"},
+        {"text": "yo fui a la panadería", "errors": [], "prompt": "lesson-went-there"},
+        {"text": "hoy fui a la panadería", "errors": [], "prompt": "lesson-went-there"},
+        {"text": "ayer voy a la panadería", "errors": ["conj.tense"], "prompt": "lesson-went-there"},
+        {"text": "yo fuiste a la panadería", "errors": ["conj.person"], "prompt": "lesson-went-there"},
+        "compré dos panes",
+        "voy a buscar madera",
+        "busqué madera"
       ]
     },
     {
@@ -486,6 +529,47 @@
         {"text": "despacio, por favor", "errors": [], "prompt": "lesson-unstuck"},
         {"text": "más lento", "errors": [], "prompt": "lesson-unstuck"},
         {"text": "más lento, por favor", "errors": [], "prompt": "lesson-unstuck"}
+      ]
+    },
+    {
+      "intentId": "ask_far",
+      "requiredSlots": [],
+      "slotGrammars": [
+        "[VERB:estar] muy? (lejos|cerca)",
+        "[VERB:quedar] muy? (lejos|cerca)",
+        "[VERB:estar] muy? (lejos|cerca) [ART] [NOUN:place]"
+      ],
+      "keywordRules": [],
+      "examples": [
+        {"text": "está lejos", "errors": [], "prompt": "lesson-far"},
+        {"text": "está muy lejos", "errors": [], "prompt": "lesson-far"},
+        {"text": "queda lejos", "errors": [], "prompt": "lesson-far"},
+        {"text": "está cerca", "errors": [], "prompt": "lesson-far"},
+        {"text": "está lejos la herrería", "errors": [], "prompt": "lesson-far"},
+        {"text": "está lejos el herrería", "errors": ["gender.agree"], "prompt": "lesson-far"},
+        {"text": "está lejos la panadería", "errors": [], "prompt": "fisher-open"},
+        "está cerca el río",
+        "queda muy cerca"
+      ]
+    },
+    {
+      "intentId": "ask_availability",
+      "requiredSlots": ["item"],
+      "slotGrammars": [
+        "hay [ART]? [NUM:qty]? [NOUN:item] (en el pueblo|aquí)?"
+      ],
+      "keywordRules": [
+        { "lemmas": ["haber"], "requiresSlots": ["item"], "slotFromNoun": "item" }
+      ],
+      "examples": [
+        {"text": "hay un pozo en el pueblo", "errors": [], "prompt": "lesson-hay"},
+        {"text": "hay un pozo", "errors": [], "prompt": "lesson-hay"},
+        {"text": "hay un pozo aquí", "errors": [], "prompt": "lesson-hay"},
+        {"text": "hay una pozo en el pueblo", "errors": ["gender.agree"], "prompt": "lesson-hay"},
+        {"text": "hay un pozo", "errors": [], "prompt": "fisher-open"},
+        "hay pan",
+        "hay agua aquí",
+        "hay una tienda en el pueblo"
       ]
     }
   ]

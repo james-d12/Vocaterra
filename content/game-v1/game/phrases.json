@@ -48,6 +48,21 @@
     {"id": "bebiste-agua-ayer", "says": "hears", "spanish": "¿Bebiste agua ayer?", "intent": null, "prompt": "lesson-had", "variants": [], "audioLineIds": ["guide.lesson.shop.had.1"]},
     {"id": "ayer-bebi-agua", "says": "says", "spanish": "Ayer bebí agua.", "intent": "state_action", "prompt": "lesson-had", "variants": ["bebí agua", "sí, bebí agua", "sí, ayer bebí agua", "yo bebí agua", "bebí agua ayer"], "audioLineIds": []},
     {"id": "que-vas-a-hacer", "says": "hears", "spanish": "¿Qué vas a hacer mañana?", "intent": null, "prompt": "lesson-tomorrow", "variants": [], "audioLineIds": ["guide.lesson.shop.tomorrow.1"]},
-    {"id": "voy-a-ir-al-rio", "says": "says", "spanish": "Mañana voy a ir al río.", "intent": "state_action", "prompt": "lesson-tomorrow", "variants": ["voy a ir al río", "yo voy a ir al río", "mañana voy a ir a la tienda", "voy a ir al río mañana"], "audioLineIds": []}
+    {"id": "voy-a-ir-al-rio", "says": "says", "spanish": "Mañana voy a ir al río.", "intent": "state_action", "prompt": "lesson-tomorrow", "variants": ["voy a ir al río", "yo voy a ir al río", "mañana voy a ir a la tienda", "voy a ir al río mañana"], "audioLineIds": []},
+    {"id": "que-buscas", "says": "hears", "spanish": "¿Qué buscas?", "intent": null, "prompt": "fisher-open", "variants": [], "audioLineIds": ["fisher_greet.1"]},
+    {"id": "donde-esta-la-panaderia", "says": "says", "spanish": "¿Dónde está la panadería?", "intent": "ask_directions", "prompt": "fisher-open", "variants": ["dónde está la panadería, por favor", "dónde queda la panadería", "busco la panadería"], "audioLineIds": ["fisher_help.1"]},
+    {"id": "esta-a-la-izquierda", "says": "hears", "spanish": "En el pueblo, mira la torre. La panadería está a la izquierda.", "intent": null, "prompt": "lesson-place", "variants": [], "audioLineIds": ["guide.lesson.fisher.left.1"]},
+    {"id": "donde-esta-la-herreria", "says": "says", "spanish": "¿Dónde está la herrería?", "intent": "ask_directions", "prompt": "fisher-open", "variants": ["dónde está la herrería, por favor", "dónde queda la herrería", "busco la herrería"], "audioLineIds": []},
+    {"id": "esta-lejos", "says": "says", "spanish": "¿Está lejos?", "intent": "ask_far", "prompt": "lesson-far", "variants": ["está muy lejos", "queda lejos", "está lejos la herrería"], "audioLineIds": []},
+    {"id": "esta-cerca", "says": "hears", "spanish": "No, está cerca. La montaña está lejos.", "intent": null, "prompt": "lesson-far", "variants": [], "audioLineIds": ["guide.lesson.fisher.near.1"]},
+    {"id": "hay-tres-casas", "says": "hears", "spanish": "En el pueblo hay una tienda, una panadería y tres casas.", "intent": null, "prompt": "lesson-hay", "variants": [], "audioLineIds": ["guide.lesson.fisher.hay.1"]},
+    {"id": "hay-un-pozo", "says": "says", "spanish": "¿Hay un pozo en el pueblo?", "intent": "ask_availability", "prompt": "lesson-hay", "variants": ["hay un pozo", "¿hay un pozo aquí?"], "audioLineIds": []},
+    {"id": "adonde-vas", "says": "hears", "spanish": "¿Adónde vas?", "intent": null, "prompt": "lesson-going", "variants": [], "audioLineIds": ["guide.lesson.fisher.going.1"]},
+    {"id": "voy-a-la-panaderia", "says": "says", "spanish": "Voy a la panadería.", "intent": "state_action", "prompt": "lesson-going", "variants": ["yo voy a la panadería", "hoy voy a la panadería", "voy a la panadería hoy"], "audioLineIds": []},
+    {"id": "que-vas-a-hacer-alli", "says": "hears", "spanish": "¿Qué vas a hacer allí?", "intent": null, "prompt": "lesson-plan-there", "variants": [], "audioLineIds": ["guide.lesson.fisher.plan.1"]},
+    {"id": "voy-a-comprar-pan", "says": "says", "spanish": "Voy a comprar pan.", "intent": "state_action", "prompt": "lesson-plan-there", "variants": ["yo voy a comprar pan", "voy a comprar el pan", "mañana voy a comprar pan", "luego voy a comprar pan", "voy a comprar pan mañana"], "audioLineIds": []},
+    {"id": "el-letrero", "says": "hears", "spanish": "El letrero dice: tienda, río, montaña.", "intent": null, "prompt": "lesson-sign", "variants": [], "audioLineIds": ["guide.lesson.villager.sign.1"]},
+    {"id": "fuiste-a-la-panaderia", "says": "hears", "spanish": "¿Fuiste a la panadería?", "intent": null, "prompt": "lesson-went-there", "variants": [], "audioLineIds": ["guide.lesson.fisher.went.1"]},
+    {"id": "fui-a-la-panaderia", "says": "says", "spanish": "Sí, fui a la panadería.", "intent": "state_action", "prompt": "lesson-went-there", "variants": ["fui a la panadería", "yo fui a la panadería", "hoy fui a la panadería"], "audioLineIds": []}
   ]
 }

@@ -728,6 +728,292 @@
       "Sha256": "1dc78fb5214bfa0a4f1c904cd05dc9bee8413c35c209fa3a96c35fd48a1e3562",
       "Bytes": 112844
     },
+    "speech/fisher_bye.1.slow.wav": {
+      "Text": "\u00A1Adi\u00F3s! Hasta luego.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "0edd4cb33b998f188ff91d2012f54ce7357e2d2add139796f4907d614ec93817",
+      "Bytes": 117004
+    },
+    "speech/fisher_bye.1.wav": {
+      "Text": "\u00A1Adi\u00F3s! Hasta luego.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "b34b0fcbd7f0be9513211e32ce17150103bc230d329909bdb884f6e086a7895a",
+      "Bytes": 102594
+    },
+    "speech/fisher_bye.2.slow.wav": {
+      "Text": "Hasta luego.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "037ec5a3319a32a26e6fb322bf6b8b707e22183efef0ce3058cfe506a5fa4eb4",
+      "Bytes": 64584
+    },
+    "speech/fisher_bye.2.wav": {
+      "Text": "Hasta luego.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "06a749a228d1a827dda3e76259f8828dea3cb5cb9a87295d419e0a67cfac24f6",
+      "Bytes": 55794
+    },
+    "speech/fisher_delivered.1.slow.wav": {
+      "Text": "\u00A1Gracias! Toma dos monedas.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "810196ae9e65fd5ef59f7346dbfd18c34aa2eab2934c5d3a55ec30829558c52c",
+      "Bytes": 149596
+    },
+    "speech/fisher_delivered.1.wav": {
+      "Text": "\u00A1Gracias! Toma dos monedas.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "913f593eae85ee85a6158d236aaceb8e134c1d8648e23061e6e046c54512fd84",
+      "Bytes": 119012
+    },
+    "speech/fisher_far.1.slow.wav": {
+      "Text": "\u00BFLejos? \u00BFQu\u00E9 buscas?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "4521dbb3d50be0b55e1bf26c28e56e95611928da9ba39056fdb8df400bb92fea",
+      "Bytes": 119202
+    },
+    "speech/fisher_far.1.wav": {
+      "Text": "\u00BFLejos? \u00BFQu\u00E9 buscas?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "8d033e16ddfead13f2a3e972007d1be5d348da7a0e9d89fe075b3eedb6b7bcb8",
+      "Bytes": 108044
+    },
+    "speech/fisher_greet.1.slow.wav": {
+      "Text": "\u00BFQu\u00E9 buscas?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "b1ea0275bcc00576a979e9e186013ac5176ff9b80b111c5c6f90a9cfb46561f0",
+      "Bytes": 61602
+    },
+    "speech/fisher_greet.1.wav": {
+      "Text": "\u00BFQu\u00E9 buscas?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "d88d74a4377f16eed37e8d1f19c340af64f39e3713577b1e649e0a6db9fa0d65",
+      "Bytes": 61244
+    },
+    "speech/fisher_hello.1.slow.wav": {
+      "Text": "\u00A1Hola!",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "3ac735d6cd4567f3e63ae27b6ef1b2f47d0e5e2c8d3aacabbb7bf7505904b592",
+      "Bytes": 48044
+    },
+    "speech/fisher_hello.1.wav": {
+      "Text": "\u00A1Hola!",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "1597ea6f507732bb87334c546252f26c9aa319eb7ec398b56fb70bbd1b34b2cc",
+      "Bytes": 39644
+    },
+    "speech/fisher_help.1.slow.wav": {
+      "Text": "Puedes preguntar: \u00AB\u00BFD\u00F3nde est\u00E1 la panader\u00EDa?\u00BB.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "dd0954da144605de507311281626e87bd63f7243a8f3fa16a38e26942bce7779",
+      "Bytes": 164536
+    },
+    "speech/fisher_help.1.wav": {
+      "Text": "Puedes preguntar: \u00AB\u00BFD\u00F3nde est\u00E1 la panader\u00EDa?\u00BB.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "458a84254aef6dc4d9bd9cd93442694fb225e966a69dda12f09b6a53e174e4f4",
+      "Bytes": 123040
+    },
+    "speech/fisher_near.1.slow.wav": {
+      "Text": "No, est\u00E1 cerca.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "263785652d5416a3eb7b99323da876e8c274f2169b7904acafd0e88203307e01",
+      "Bytes": 80918
+    },
+    "speech/fisher_near.1.wav": {
+      "Text": "No, est\u00E1 cerca.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "a56411a9798ba4d94c9a7e780f9bb778191bb57a86cee38958314d6cd5757b31",
+      "Bytes": 74444
+    },
+    "speech/fisher_point.1.slow.wav": {
+      "Text": "Mira, est\u00E1 all\u00ED.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "b3cd8a3380e1fc07a0d294a1bf0fa47bcf5d41b9a97e54acff381574dc2ddb9e",
+      "Bytes": 79572
+    },
+    "speech/fisher_point.1.wav": {
+      "Text": "Mira, est\u00E1 all\u00ED.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "009a9e558fbb3d910a415628083e01d2dd9b25ae251cbddbdcaf35df855c70aa",
+      "Bytes": 74444
+    },
+    "speech/fisher_point.2.slow.wav": {
+      "Text": "Est\u00E1 por all\u00ED, mira.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "6c67b95b5b6516600b0ebc109cc4c2808292a2908be94ccd6e367c0cf635a3b0",
+      "Bytes": 88736
+    },
+    "speech/fisher_point.2.wav": {
+      "Text": "Est\u00E1 por all\u00ED, mira.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "5f9f5898ba3c0c36193b23ad0a2086c92d3784e37a1478de29b60d3be74adcc6",
+      "Bytes": 77286
+    },
+    "speech/fisher_thank.1.slow.wav": {
+      "Text": "De nada.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "15f56f206143c22c8d1540d4865b0812879d0913dabb9231f3295d48e1594699",
+      "Bytes": 64844
+    },
+    "speech/fisher_thank.1.wav": {
+      "Text": "De nada.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "6975984b6ea7e689555db80a50907291a83c29c8f6f14eb5794f7c105bf6af9f",
+      "Bytes": 50444
+    },
+    "speech/fisher_thank.2.slow.wav": {
+      "Text": "\u00A1Con gusto!",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "07bf1e137233942864f613b4b83c8417ba4a91fa1d970bb63f23ab8f99b4405d",
+      "Bytes": 73244
+    },
+    "speech/fisher_thank.2.wav": {
+      "Text": "\u00A1Con gusto!",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "72a4924f643f48f5e756dafb27fdbac359e7e5af4008bc9cda4eda304e589c21",
+      "Bytes": 58844
+    },
+    "speech/fisher_unknown_place.1.slow.wav": {
+      "Text": "No s\u00E9 d\u00F3nde est\u00E1.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "891c61c3ebf3356f41681536a81b132efea1065c7e3220ac21e753b7eab12bf9",
+      "Bytes": 94756
+    },
+    "speech/fisher_unknown_place.1.wav": {
+      "Text": "No s\u00E9 d\u00F3nde est\u00E1.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "72d04a8ee46a106f166f9c5051ad518ec05834ab5382833a61f6c792d7d6899f",
+      "Bytes": 84044
+    },
     "speech/guide.craft.none.1.slow.wav": {
       "Text": "Eso no se puede hacer.",
       "Speaker": "guide",
@@ -969,6 +1255,248 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "46cebcb0abbb57b25dab56fe7a613fdd17d09ecc48d7e7012bac3c79cbf8654a",
       "Bytes": 136844
+    },
+    "speech/guide.lesson.fisher.end.1.slow.wav": {
+      "Text": "\u00A1Muy bien! Ya conoces el pueblo.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "a3cfab29b6f018e3392c845af93573f5a72fdb56769aeeb7be09805c1dff29ba",
+      "Bytes": 167114
+    },
+    "speech/guide.lesson.fisher.end.1.wav": {
+      "Text": "\u00A1Muy bien! Ya conoces el pueblo.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "cc01bec2a070d1470d0e25f5faf86d538db5938f7da7dd30709ae5f72fe68aba",
+      "Bytes": 146444
+    },
+    "speech/guide.lesson.fisher.going.1.slow.wav": {
+      "Text": "\u00BFAd\u00F3nde vas?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "f8ed5eeb970b89cfe9fc2d7e6fe6a7a872e8571bbf094119c060c557d801e925",
+      "Bytes": 66234
+    },
+    "speech/guide.lesson.fisher.going.1.wav": {
+      "Text": "\u00BFAd\u00F3nde vas?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "fcd2f0ca17101bce1d9862439019ea27401af77e6b0c311b82d293234eedddec",
+      "Bytes": 63644
+    },
+    "speech/guide.lesson.fisher.hay.1.slow.wav": {
+      "Text": "En el pueblo hay una tienda, una panader\u00EDa y tres casas.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "91092e2078a03867bd8172cf77fb5554ae2d9e997512c7be66170e1cfc5cb28f",
+      "Bytes": 225994
+    },
+    "speech/guide.lesson.fisher.hay.1.wav": {
+      "Text": "En el pueblo hay una tienda, una panader\u00EDa y tres casas.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "9c6e75c3699b011d331b115fbef769d3fd5cd3d5b7a4714bd763d3f1a327f933",
+      "Bytes": 173244
+    },
+    "speech/guide.lesson.fisher.hungry.1.slow.wav": {
+      "Text": "Tengo hambre. \u00BFTienes fruta?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "76d43be874766ba21a5077dd19df6245dc886beca6e302b6b7807db7fff00f9b",
+      "Bytes": 147974
+    },
+    "speech/guide.lesson.fisher.hungry.1.wav": {
+      "Text": "Tengo hambre. \u00BFTienes fruta?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "a81312789e322e3fbb1f95177dc3ddf995103af43489c9cc9be5e50328c338c4",
+      "Bytes": 110476
+    },
+    "speech/guide.lesson.fisher.left.1.slow.wav": {
+      "Text": "En el pueblo, mira la torre. La panader\u00EDa est\u00E1 a la izquierda.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "05ba36ae6c25ffb72f8c3d5750787d89c1388c45769519464953c374914aeb76",
+      "Bytes": 246008
+    },
+    "speech/guide.lesson.fisher.left.1.wav": {
+      "Text": "En el pueblo, mira la torre. La panader\u00EDa est\u00E1 a la izquierda.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "82eab9c9e90383236d795e4575e4bdd6e426a78955f68381c448b273a5915e52",
+      "Bytes": 192764
+    },
+    "speech/guide.lesson.fisher.more.1.slow.wav": {
+      "Text": "\u00BFAlgo m\u00E1s?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "6b7ca5bb6e9bda1f9ee56253a8b0d3fb479a613a0511fd2d3b02ff9474dc6889",
+      "Bytes": 59280
+    },
+    "speech/guide.lesson.fisher.more.1.wav": {
+      "Text": "\u00BFAlgo m\u00E1s?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "a86408f2cc20f4fe2d4b843ab98bde89bf4a5f34b1eaf1cd3cc347509b32a899",
+      "Bytes": 52186
+    },
+    "speech/guide.lesson.fisher.near.1.slow.wav": {
+      "Text": "No, est\u00E1 cerca. La monta\u00F1a est\u00E1 lejos.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "cee93a2f376b294ba49dbffa3b15da0e88a4dd00ce382b530e8bc45e8d394469",
+      "Bytes": 191168
+    },
+    "speech/guide.lesson.fisher.near.1.wav": {
+      "Text": "No, est\u00E1 cerca. La monta\u00F1a est\u00E1 lejos.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "21bd9d741e5a80250f47e964d149b6c34e6926d6654f7e9ee18e6d3208c97c9e",
+      "Bytes": 167246
+    },
+    "speech/guide.lesson.fisher.plan.1.slow.wav": {
+      "Text": "\u00BFQu\u00E9 vas a hacer all\u00ED?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "67388d67fedd5cb5c28fcf01054b040ea351a0c4d644b5b86905d2764ab13d20",
+      "Bytes": 96976
+    },
+    "speech/guide.lesson.fisher.plan.1.wav": {
+      "Text": "\u00BFQu\u00E9 vas a hacer all\u00ED?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "5ac76c6da7faec506367ff4b4da7581c4f4ad605d13e081a822ba1b2121c870f",
+      "Bytes": 79160
+    },
+    "speech/guide.lesson.fisher.right.1.slow.wav": {
+      "Text": "Y la herrer\u00EDa est\u00E1 a la derecha.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "27baf0735d11fa9e905af70a2b41730ecfe323f20229cdfcc79787bd9b460c40",
+      "Bytes": 135756
+    },
+    "speech/guide.lesson.fisher.right.1.wav": {
+      "Text": "Y la herrer\u00EDa est\u00E1 a la derecha.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "23306215dd15eef4732c1f51bd533c50f3294211391f5ac043e0c0ca04826a0d",
+      "Bytes": 107244
+    },
+    "speech/guide.lesson.fisher.well.1.slow.wav": {
+      "Text": "S\u00ED, hay un pozo.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "b459676a9cb7417e81214d75f7a0688c9124b27b246a19177674bffee54714b4",
+      "Bytes": 81972
+    },
+    "speech/guide.lesson.fisher.well.1.wav": {
+      "Text": "S\u00ED, hay un pozo.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "db8ab74277b099c9c8f181a7e2e0a75dc33970e44b085c43e88bda2c2471df8d",
+      "Bytes": 74444
+    },
+    "speech/guide.lesson.fisher.went.1.slow.wav": {
+      "Text": "\u00BFFuiste a la panader\u00EDa?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "694e015050de8789288809c65de0e4dce07acbda55434ee2e3a7c1960b660de0",
+      "Bytes": 99004
+    },
+    "speech/guide.lesson.fisher.went.1.wav": {
+      "Text": "\u00BFFuiste a la panader\u00EDa?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "9703c0e3c2658241487556ed5d89e970bf13ba06effcdd749ae19dabcda1961f",
+      "Bytes": 87644
     },
     "speech/guide.lesson.have.1.slow.wav": {
       "Text": "\u00A1Muy bien! Tienes una fruta.",
@@ -1761,6 +2289,28 @@
       "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
       "Sha256": "b6b8f76d1b13cbddc2798368d76f14298439223a3a7b6f28b3e7260cf30b3559",
       "Bytes": 138044
+    },
+    "speech/guide.lesson.villager.sign.1.slow.wav": {
+      "Text": "El letrero dice: tienda, r\u00EDo, monta\u00F1a.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "0334979b0c925907bbadbb4efa632a2a9abdb3f75a6d5d2578dd1eac537f966f",
+      "Bytes": 153890
+    },
+    "speech/guide.lesson.villager.sign.1.wav": {
+      "Text": "El letrero dice: tienda, r\u00EDo, monta\u00F1a.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "866791b7017245d524885fd77f897f65b42d596cb46f6c9c8199c3607742e9ae",
+      "Bytes": 127648
     },
     "speech/guide.lesson.villager.they.1.slow.wav": {
       "Text": "Ellos tienen pan.",
@@ -3104,6 +3654,50 @@
       "Sha256": "7b843462b5cbd42dc4b8061d74275330cd6850657695f50c8270312579d50d8a",
       "Bytes": 74444
     },
+    "speech/phrase.donde-esta-la-herreria.slow.wav": {
+      "Text": "\u00BFD\u00F3nde est\u00E1 la herrer\u00EDa?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "8705d1d1fb5360941c8e95474ec19009148703078879b434ad533db1a11787f7",
+      "Bytes": 95244
+    },
+    "speech/phrase.donde-esta-la-herreria.wav": {
+      "Text": "\u00BFD\u00F3nde est\u00E1 la herrer\u00EDa?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "76571e8c78f565d67402c64f2d17bcdefc7dea280579a6bdc3e75174685f7203",
+      "Bytes": 80444
+    },
+    "speech/phrase.donde-esta-la-panaderia.slow.wav": {
+      "Text": "\u00BFD\u00F3nde est\u00E1 la panader\u00EDa?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "5c0f7e484d74e642cb6f102e9215b70e59e469688e31781da86f326ce153acaf",
+      "Bytes": 106052
+    },
+    "speech/phrase.donde-esta-la-panaderia.wav": {
+      "Text": "\u00BFD\u00F3nde est\u00E1 la panader\u00EDa?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "70d5df444fc30b44e234864db403becb623941a2ac4adcb083bb6293c25605d5",
+      "Bytes": 87644
+    },
     "speech/phrase.ella-quiere-fruta.slow.wav": {
       "Text": "Ella quiere fruta.",
       "Speaker": "guide",
@@ -3126,6 +3720,50 @@
       "Sha256": "5bab7a5ede1da9d792f3c15107a806537765a2a5f5d7252fa328235d2dd286df",
       "Bytes": 69644
     },
+    "speech/phrase.esta-lejos.slow.wav": {
+      "Text": "\u00BFEst\u00E1 lejos?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "830227a5b09e0bbfeb9aeb4ee88bb1c0b353a58148d6019a9015d2698bec1a97",
+      "Bytes": 70844
+    },
+    "speech/phrase.esta-lejos.wav": {
+      "Text": "\u00BFEst\u00E1 lejos?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "52d98d9fd4de78558f8f84748df5128b7849c6a2de75e4f634e4f17eb8cbdda3",
+      "Bytes": 56444
+    },
+    "speech/phrase.fui-a-la-panaderia.slow.wav": {
+      "Text": "S\u00ED, fui a la panader\u00EDa.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "e836ed47176a242456ff40bb2b4eca3e219bf033b017b8b351f8bf0f8c2cc504",
+      "Bytes": 87564
+    },
+    "speech/phrase.fui-a-la-panaderia.wav": {
+      "Text": "S\u00ED, fui a la panader\u00EDa.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "97b610120fef3a254218a0664de0a6e9e8071b1da9fd8b2d7a1811d7ad1a73df",
+      "Bytes": 74444
+    },
     "speech/phrase.gracias.slow.wav": {
       "Text": "Gracias.",
       "Speaker": "guide",
@@ -3147,6 +3785,28 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "bbd07e51ec9e851c8e216aa291d393aad0ee908be874213c06be3b02a6d5b342",
       "Bytes": 44444
+    },
+    "speech/phrase.hay-un-pozo.slow.wav": {
+      "Text": "\u00BFHay un pozo en el pueblo?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "73a3fffba24ef6860fa89e863b7c2a996e0b78e883c2f7f21458d712de7d47e9",
+      "Bytes": 95252
+    },
+    "speech/phrase.hay-un-pozo.wav": {
+      "Text": "\u00BFHay un pozo en el pueblo?",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "a1b85b96dfe8edf73c1fb2bb2db28fdf0eaec2fd9c16e31561dc0ae16ac1d3cc",
+      "Bytes": 84044
     },
     "speech/phrase.hola.slow.wav": {
       "Text": "Hola.",
@@ -3566,6 +4226,28 @@
       "Sha256": "50ae06d154e7d8f52008d3c833987085252777b580a1bff9d05bcc1bd062bb64",
       "Bytes": 67244
     },
+    "speech/phrase.voy-a-comprar-pan.slow.wav": {
+      "Text": "Voy a comprar pan.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "76c7d2f5c7b857f89cf9bf927102d8fbec50c63e418f61950f6be4ea703deced",
+      "Bytes": 92444
+    },
+    "speech/phrase.voy-a-comprar-pan.wav": {
+      "Text": "Voy a comprar pan.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "a925df403ce7a355dde45b6e88552ce98e072cbcd9eb583fa9551c3a9db1b73c",
+      "Bytes": 68444
+    },
     "speech/phrase.voy-a-ir-al-rio.slow.wav": {
       "Text": "Ma\u00F1ana voy a ir al r\u00EDo.",
       "Speaker": "guide",
@@ -3587,6 +4269,50 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "8abdc9f68323445accc97a5e903ebb700e751db3821f37169508436004dac012",
       "Bytes": 82330
+    },
+    "speech/phrase.voy-a-la-panaderia.slow.wav": {
+      "Text": "Voy a la panader\u00EDa.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "52d49c7be64338f006ff5892e4d8fa6f412fc63e2b3e6eec49a6282106acf194",
+      "Sha256": "a45283284753fc6ce9bdfadccb0b325b24c2a111e6d1c4b36f32d305eea5e03a",
+      "Bytes": 84664
+    },
+    "speech/phrase.voy-a-la-panaderia.wav": {
+      "Text": "Voy a la panader\u00EDa.",
+      "Speaker": "guide",
+      "SpeakerId": 28,
+      "Voice": "ef_dora",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
+      "Sha256": "5a6a69e59c6119b54eb87b9222c458d940a6c0be33fbf0b04ce4501444af8dca",
+      "Bytes": 72044
+    },
+    "speech/prompt.fisher-open.slow.wav": {
+      "Text": "\u00BFQu\u00E9 buscas?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "b1ea0275bcc00576a979e9e186013ac5176ff9b80b111c5c6f90a9cfb46561f0",
+      "Bytes": 61602
+    },
+    "speech/prompt.fisher-open.wav": {
+      "Text": "\u00BFQu\u00E9 buscas?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "d88d74a4377f16eed37e8d1f19c340af64f39e3713577b1e649e0a6db9fa0d65",
+      "Bytes": 61244
     },
     "speech/prompt.guide-offer.slow.wav": {
       "Text": "\u00BFQuieres agua?",
@@ -3698,6 +4424,50 @@
       "Sha256": "8405be2d9d92fcdd24e43c965d44ab8057da6579a13e549665d7b2b162309315",
       "Bytes": 85726
     },
+    "speech/prompt.lesson-far.slow.wav": {
+      "Text": "Y la herrer\u00EDa est\u00E1 a la derecha.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "27baf0735d11fa9e905af70a2b41730ecfe323f20229cdfcc79787bd9b460c40",
+      "Bytes": 135756
+    },
+    "speech/prompt.lesson-far.wav": {
+      "Text": "Y la herrer\u00EDa est\u00E1 a la derecha.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "23306215dd15eef4732c1f51bd533c50f3294211391f5ac043e0c0ca04826a0d",
+      "Bytes": 107244
+    },
+    "speech/prompt.lesson-going.slow.wav": {
+      "Text": "\u00BFAd\u00F3nde vas?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "f8ed5eeb970b89cfe9fc2d7e6fe6a7a872e8571bbf094119c060c557d801e925",
+      "Bytes": 66234
+    },
+    "speech/prompt.lesson-going.wav": {
+      "Text": "\u00BFAd\u00F3nde vas?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "fcd2f0ca17101bce1d9862439019ea27401af77e6b0c311b82d293234eedddec",
+      "Bytes": 63644
+    },
     "speech/prompt.lesson-had.slow.wav": {
       "Text": "\u00BFBebiste agua ayer?",
       "Speaker": "shopkeeper",
@@ -3741,6 +4511,28 @@
       "ModelHash": "0fd1711ee5844da8af63bd64e3e178b25ee689a18c8f91aeaffe92ec84df9059",
       "Sha256": "b4837868c88aee76a0426cae4630a9f19c2048d0b0a408a92376374bc2b1a02a",
       "Bytes": 60572
+    },
+    "speech/prompt.lesson-hay.slow.wav": {
+      "Text": "En el pueblo hay una tienda, una panader\u00EDa y tres casas.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "91092e2078a03867bd8172cf77fb5554ae2d9e997512c7be66170e1cfc5cb28f",
+      "Bytes": 225994
+    },
+    "speech/prompt.lesson-hay.wav": {
+      "Text": "En el pueblo hay una tienda, una panader\u00EDa y tres casas.",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "9c6e75c3699b011d331b115fbef769d3fd5cd3d5b7a4714bd763d3f1a327f933",
+      "Bytes": 173244
     },
     "speech/prompt.lesson-hello.slow.wav": {
       "Text": "\u00A1Hola!",
@@ -3830,6 +4622,50 @@
       "Sha256": "26430e1ce14307ae243bde5930c1bb123b407ff2994d152f4479b2bd603f4720",
       "Bytes": 57644
     },
+    "speech/prompt.lesson-place.slow.wav": {
+      "Text": "\u00BFAlgo m\u00E1s?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "6b7ca5bb6e9bda1f9ee56253a8b0d3fb479a613a0511fd2d3b02ff9474dc6889",
+      "Bytes": 59280
+    },
+    "speech/prompt.lesson-place.wav": {
+      "Text": "\u00BFAlgo m\u00E1s?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "a86408f2cc20f4fe2d4b843ab98bde89bf4a5f34b1eaf1cd3cc347509b32a899",
+      "Bytes": 52186
+    },
+    "speech/prompt.lesson-plan-there.slow.wav": {
+      "Text": "\u00BFQu\u00E9 vas a hacer all\u00ED?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "67388d67fedd5cb5c28fcf01054b040ea351a0c4d644b5b86905d2764ab13d20",
+      "Bytes": 96976
+    },
+    "speech/prompt.lesson-plan-there.wav": {
+      "Text": "\u00BFQu\u00E9 vas a hacer all\u00ED?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "5ac76c6da7faec506367ff4b4da7581c4f4ad605d13e081a822ba1b2121c870f",
+      "Bytes": 79160
+    },
     "speech/prompt.lesson-plan-we.slow.wav": {
       "Text": "\u00BFQu\u00E9 vamos a comer?",
       "Speaker": "villager",
@@ -3895,6 +4731,28 @@
       "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
       "Sha256": "92abe7947490286691ba2747fbe12eb0bb7f95a61067207da1d6670e70e385b8",
       "Bytes": 66044
+    },
+    "speech/prompt.lesson-sign.slow.wav": {
+      "Text": "El letrero dice: tienda, r\u00EDo, monta\u00F1a.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.8,
+      "Rate": 24000,
+      "ModelHash": "582bff1facec664e0c88b222b72770a195e06c2d9ca39c8596ff5e65a9fc4a13",
+      "Sha256": "0334979b0c925907bbadbb4efa632a2a9abdb3f75a6d5d2578dd1eac537f966f",
+      "Bytes": 153890
+    },
+    "speech/prompt.lesson-sign.wav": {
+      "Text": "El letrero dice: tienda, r\u00EDo, monta\u00F1a.",
+      "Speaker": "villager",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 1,
+      "Rate": 24000,
+      "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
+      "Sha256": "866791b7017245d524885fd77f897f65b42d596cb46f6c9c8199c3607742e9ae",
+      "Bytes": 127648
     },
     "speech/prompt.lesson-task.slow.wav": {
       "Text": "Necesitas madera y frutas.",
@@ -4071,6 +4929,28 @@
       "ModelHash": "8581115d4744484cf89c7a377258448bed464cd864e1f3015ee0e1d8decaaf6d",
       "Sha256": "89565c722550fa05ff5efe5922e2ded72a58485251c0bf42746091fef5643fee",
       "Bytes": 68444
+    },
+    "speech/prompt.lesson-went-there.slow.wav": {
+      "Text": "\u00BFFuiste a la panader\u00EDa?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.71999997,
+      "Rate": 24000,
+      "ModelHash": "138bcc1ebc8f35f5cc3a87b323fd34fa28f370b21b22b8cfff4de6c8a54b4ed0",
+      "Sha256": "694e015050de8789288809c65de0e4dce07acbda55434ee2e3a7c1960b660de0",
+      "Bytes": 99004
+    },
+    "speech/prompt.lesson-went-there.wav": {
+      "Text": "\u00BFFuiste a la panader\u00EDa?",
+      "Speaker": "fisher",
+      "SpeakerId": 53,
+      "Voice": "em_santa",
+      "Speed": 0.9,
+      "Rate": 24000,
+      "ModelHash": "9720752f80fcfe2c567aadf0dedc58b2a06843da8a593dd67e1ecda8bb06c60c",
+      "Sha256": "9703c0e3c2658241487556ed5d89e970bf13ba06effcdd749ae19dabcda1961f",
+      "Bytes": 87644
     },
     "speech/prompt.lesson-went.slow.wav": {
       "Text": "\u00BFFuiste al r\u00EDo ayer?",

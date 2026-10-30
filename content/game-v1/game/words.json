@@ -37,7 +37,10 @@
     "verb": "ir",
     "joiner": "a",
     "timeWords": [
-      "mañana"
+      "mañana",
+      "luego",
+      "después",
+      "pasado mañana"
     ]
   },
   "greeting": "hola",
