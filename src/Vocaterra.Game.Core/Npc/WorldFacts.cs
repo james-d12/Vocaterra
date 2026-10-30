@@ -40,18 +40,6 @@ public sealed class WorldFacts : IGuideFacts
     /// <summary>Half a block in units: the centre of a block is this far from its corner.</summary>
     public const int HalfBlock = UnitsPerBlock / 2;
 
-    /// <summary>The Spanish direction phrases (forward and back, left and right).</summary>
-    public const string Ahead = "adelante";
-
-    /// <summary>The phrase for a block behind the player.</summary>
-    public const string Behind = "detrás";
-
-    /// <summary>The phrase for a block to the player's left.</summary>
-    public const string Left = "a la izquierda";
-
-    /// <summary>The phrase for a block to the player's right.</summary>
-    public const string Right = "a la derecha";
-
     private readonly int _sizeX;
     private readonly int _sizeY;
     private readonly int _sizeZ;
@@ -61,14 +49,23 @@ public sealed class WorldFacts : IGuideFacts
     private readonly Func<int, int, int, BlockId> _blockAt;
     private readonly Func<int, int, int, ulong>? _chunkKinds;
     private readonly NounCatalog _nouns;
+    private readonly DirectionWords _directions;
 
     /// <summary>
     /// Creates the facts over any grid of the given size, read through <paramref name="blockAt"/> (a function of x, y and z). A search skips the
     /// 16 x 16 x 16 chunks that cannot hold the noun when <paramref name="chunkKinds"/> says which block kinds a chunk holds (one bit per kind, as
     /// <see cref="VoxelChunk.KindMask"/>); without it every block is read.
     /// </summary>
-    public WorldFacts(int sizeX, int sizeY, int sizeZ, Func<int, int, int, BlockId> blockAt, NounCatalog nouns, Func<int, int, int, ulong>? chunkKinds = null)
+    /// <param name="sizeX">The grid's width.</param>
+    /// <param name="sizeY">The grid's height.</param>
+    /// <param name="sizeZ">The grid's depth.</param>
+    /// <param name="blockAt">The block at a cell.</param>
+    /// <param name="nouns">The noun catalogue.</param>
+    /// <param name="directions">The direction phrases of the answers (<c>game/words.json</c>, C05).</param>
+    /// <param name="chunkKinds">The block kinds each chunk holds, or <see langword="null"/> to read every block.</param>
+    public WorldFacts(int sizeX, int sizeY, int sizeZ, Func<int, int, int, BlockId> blockAt, NounCatalog nouns, DirectionWords directions, Func<int, int, int, ulong>? chunkKinds = null)
     {
+        _directions = directions ?? throw new ArgumentNullException(nameof(directions));
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sizeX);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sizeY);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sizeZ);
@@ -81,10 +78,10 @@ public sealed class WorldFacts : IGuideFacts
     }
 
     /// <summary>The facts over the live grid: every call reads the grid as it is now (the simulation's own thread).</summary>
-    public static WorldFacts Live(VoxelGrid grid, NounCatalog nouns)
+    public static WorldFacts Live(VoxelGrid grid, NounCatalog nouns, DirectionWords directions)
     {
         ArgumentNullException.ThrowIfNull(grid);
-        return new WorldFacts(grid.SizeX, grid.SizeY, grid.SizeZ, grid.GetBlock, nouns, (cx, cy, cz) => grid.GetChunk(new VoxelChunkCoord(cx, cy, cz)).KindMask);
+        return new WorldFacts(grid.SizeX, grid.SizeY, grid.SizeZ, grid.GetBlock, nouns, directions, (cx, cy, cz) => grid.GetChunk(new VoxelChunkCoord(cx, cy, cz)).KindMask);
     }
 
     /// <summary>
@@ -92,7 +89,7 @@ public sealed class WorldFacts : IGuideFacts
     /// (a chunk of air costs nothing), with the block kinds each holds, so the copy is a few milliseconds and a search reads only the chunks that can
     /// hold the noun.
     /// </summary>
-    public static WorldFacts Snapshot(VoxelGrid grid, NounCatalog nouns)
+    public static WorldFacts Snapshot(VoxelGrid grid, NounCatalog nouns, DirectionWords directions)
     {
         ArgumentNullException.ThrowIfNull(grid);
         var chunksX = grid.ChunksX;
@@ -128,6 +125,7 @@ public sealed class WorldFacts : IGuideFacts
                 return chunk is null ? BlockId.Air : chunk[(((((y & (ChunkSize - 1)) << ChunkShift) + (z & (ChunkSize - 1))) << ChunkShift) + (x & (ChunkSize - 1)))];
             },
             nouns,
+            directions,
             (cx, cy, cz) => kinds[(((cy * chunksZ) + cz) * chunksX) + cx]);
     }
 
@@ -255,7 +253,7 @@ public sealed class WorldFacts : IGuideFacts
         return new GuideNearest(
             new GuideCell(bestX, bestY, bestZ),
             BlocksOf(bestDistance),
-            DirectionPhrase(forward, lateral),
+            DirectionPhrase(forward, lateral, _directions),
             bestDistance);
     }
 
@@ -309,8 +307,12 @@ public sealed class WorldFacts : IGuideFacts
     /// <paramref name="lateral"/> positive to the right. The leading component is always said; the other one is added (forward first) when
     /// it is at least two blocks and at least half the leading one. Both zero gives an empty string.
     /// </summary>
-    public static string DirectionPhrase(long forward, long lateral)
+    /// <param name="forward">The forward component, in units.</param>
+    /// <param name="lateral">The lateral component, in units.</param>
+    /// <param name="words">The direction phrases (<c>game/words.json</c>).</param>
+    public static string DirectionPhrase(long forward, long lateral, DirectionWords words)
     {
+        ArgumentNullException.ThrowIfNull(words);
         var absForward = Math.Abs(forward);
         var absLateral = Math.Abs(lateral);
         if (absForward == 0 && absLateral == 0)
@@ -321,15 +323,15 @@ public sealed class WorldFacts : IGuideFacts
         var forwardLeads = absForward >= absLateral;
         var lead = forwardLeads ? absForward : absLateral;
         var other = forwardLeads ? absLateral : absForward;
-        var leadPhrase = forwardLeads ? ForwardPhrase(forward) : LateralPhrase(lateral);
+        var leadPhrase = forwardLeads ? ForwardPhrase(forward, words) : LateralPhrase(lateral, words);
         if (other < 2 * UnitsPerBlock || other * 2 < lead)
         {
             return leadPhrase;
         }
 
         return forwardLeads
-            ? leadPhrase + ", " + LateralPhrase(lateral)
-            : ForwardPhrase(forward) + ", " + leadPhrase;
+            ? leadPhrase + ", " + LateralPhrase(lateral, words)
+            : ForwardPhrase(forward, words) + ", " + leadPhrase;
     }
 
     /// <summary>The distance in blocks: the squared distance in units rounded to the nearest whole block.</summary>
@@ -359,9 +361,9 @@ public sealed class WorldFacts : IGuideFacts
         return root;
     }
 
-    private static string ForwardPhrase(long forward) => forward < 0 ? Behind : Ahead;
+    private static string ForwardPhrase(long forward, DirectionWords words) => forward < 0 ? words.Behind : words.Ahead;
 
-    private static string LateralPhrase(long lateral) => lateral < 0 ? Left : Right;
+    private static string LateralPhrase(long lateral, DirectionWords words) => lateral < 0 ? words.Left : words.Right;
 }
 
 

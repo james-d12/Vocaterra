@@ -37,6 +37,11 @@ public static class ReportMarkdown
         builder.Append("## Game state\n\n| Item | Value |\n| --- | --- |\n");
         Row(builder, "Build commit", state.BuildCommit);
         Row(builder, "Bundle", $"{state.BundleId}, hash {state.BundleHash}");
+        if (state.Locale is { } locale)
+        {
+            Row(builder, "Locale", locale);
+        }
+
         Row(builder, "Seed", state.Seed.ToString(CultureInfo.InvariantCulture));
         Row(builder, "Position", string.Create(CultureInfo.InvariantCulture, $"column {state.X:0.0}, row {state.Z:0.0}, feet at height {state.FeetY:0.0} (blocks)"));
         Row(builder, "View", string.Create(CultureInfo.InvariantCulture, $"yaw {state.YawDegrees:0} degrees, pitch {state.PitchDegrees:0} degrees"));

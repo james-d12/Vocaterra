@@ -77,13 +77,15 @@ public readonly record struct DialogueLayout
     /// <param name="viewportHeight">The canvas's height.</param>
     /// <param name="measure">The width of a text in pixels, in the font the panel draws with.</param>
     /// <param name="choiceLabels">The labels of the offered choices (at most three are laid out).</param>
+    /// <param name="buttons">The fixed speech buttons with their labels (<see cref="DialogueModel.Buttons"/>, from <c>game/words.json</c>).</param>
     /// <param name="typing">Whether the text box is shown.</param>
     /// <param name="buttonText">The text drawn on each fixed button (S17: with its English while the learner is early); <see langword="null"/> for the Spanish label alone.</param>
     /// <param name="hints">The key hints line (it wraps to at most two rows, and a compact panel with no room gives it up); <see langword="null"/> for one row.</param>
-    public DialogueLayout(int viewportWidth, int viewportHeight, Func<string, float> measure, IReadOnlyList<string> choiceLabels, bool typing, Func<SpeechButton, string>? buttonText = null, string? hints = null)
+    public DialogueLayout(int viewportWidth, int viewportHeight, Func<string, float> measure, IReadOnlyList<string> choiceLabels, IReadOnlyList<SpeechButton> buttons, bool typing, Func<SpeechButton, string>? buttonText = null, string? hints = null)
     {
         ArgumentNullException.ThrowIfNull(measure);
         ArgumentNullException.ThrowIfNull(choiceLabels);
+        ArgumentNullException.ThrowIfNull(buttons);
         Panel = PanelBox(viewportWidth, viewportHeight);
         var compact = IsCompact(viewportHeight);
         var left = Panel.X + Padding;
@@ -98,7 +100,7 @@ public readonly record struct DialogueLayout
         {
             var showHints = pass == 0;
             ButtonsGlossed = pass < 2 && buttonText is not null;
-            var widths = SpeechButtons.All.Select(button => (int)Math.Ceiling(measure(pass < 2 ? buttonText?.Invoke(button) ?? button.Text : button.Text)) + (ButtonPadding * 2)).ToList();
+            var widths = buttons.Select(button => (int)Math.Ceiling(measure(pass < 2 ? buttonText?.Invoke(button) ?? button.Text : button.Text)) + (ButtonPadding * 2)).ToList();
             HasHints = showHints;
             var hintRows = hints is null ? [string.Empty] : HintRowsFor(hints, InnerWidth, measure);
             HintRows = showHints ? hintRows : [];
@@ -125,7 +127,7 @@ public readonly record struct DialogueLayout
             }
 
             var buttonsY = floor - ButtonHeight - ((rowCount - 1) * (ButtonHeight + rowGap));
-            var buttons = new List<(SpeechAction Action, PixelBox Box)>();
+            var placed = new List<(SpeechAction Action, PixelBox Box)>();
             x = left;
             var rowY = buttonsY;
             for (var i = 0; i < widths.Count; i++)
@@ -136,11 +138,11 @@ public readonly record struct DialogueLayout
                     x = left;
                 }
 
-                buttons.Add((SpeechButtons.All[i].Action, new PixelBox(x, rowY, Math.Min(widths[i], InnerWidth), ButtonHeight)));
+                placed.Add((buttons[i].Action, new PixelBox(x, rowY, Math.Min(widths[i], InnerWidth), ButtonHeight)));
                 x += widths[i] + Gap;
             }
 
-            Buttons = buttons;
+            Buttons = placed;
             var top = buttonsY;
             var choices = new List<(SpeechAction Action, PixelBox Box)>();
             if (choiceLabels.Count > 0)

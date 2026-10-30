@@ -6,6 +6,7 @@ using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Npc;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Core.Voxel;
 using Vocaterra.Nlp.Content;
 using Vocaterra.Nlp.Core.Verdicts;
@@ -21,8 +22,8 @@ public sealed class SoundEventMapperTests
     private static readonly Lazy<LessonBook> Book = new(() =>
     {
         var nouns = NounCatalog.Load(Bundle.Value);
-        var sheet = PhraseSheet.Load(Bundle.Value);
-        return LessonBook.Load(Bundle.Value, sheet, SpeechLines.Enumerate(Bundle.Value, nouns, sheet));
+        var sheet = RouteScene.DataOf(Bundle.Value).Phrases;
+        return RouteScene.DataOf(Bundle.Value).Lessons;
     });
 
     private static readonly SoundEventMapper Mapper = new(Book.Value);

@@ -249,7 +249,7 @@ public sealed class BookModel
         }
 
         _read = true;
-        foreach (var row in JournalRows.Build(_words))
+        foreach (var row in JournalRows.Build(_words, unseen: string.Empty)) // only which nouns were seen is read here, not their labels
         {
             if (row.Seen)
             {

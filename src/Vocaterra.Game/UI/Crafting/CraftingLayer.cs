@@ -15,11 +15,6 @@ namespace Vocaterra.Game.UI.Crafting;
 /// </summary>
 public sealed class CraftingLayer : IFrameLayer
 {
-    /// <summary>The title over the rows.</summary>
-    public const string Title = "Recipes";
-
-    /// <summary>The key hints under the rows.</summary>
-    public const string KeyHints = "C or Esc: close   click a row: make";
 
     private const int Icon = 32;
 
@@ -52,9 +47,10 @@ public sealed class CraftingLayer : IFrameLayer
         DrawHelpers.Border(spriteBatch, pixel, panel, 2, Gold);
 
         var left = layout.RowX;
-        DrawHelpers.Text(spriteBatch, font, Title, new Vector2(left, panel.Top + 10), Gold);
+        var ui = view.Session.Locale;
+        DrawHelpers.Text(spriteBatch, font, ui.Ui("craftingTitle"), new Vector2(left, panel.Top + 10), Gold);
         var made = rows.Count(static r => r.CanMake);
-        var summary = $"You can make: {made.ToString(CultureInfo.InvariantCulture)} of {rows.Count.ToString(CultureInfo.InvariantCulture)}";
+        var summary = ui.Ui("craftingCanMake", ("made", made.ToString(CultureInfo.InvariantCulture)), ("rows", rows.Count.ToString(CultureInfo.InvariantCulture)));
         DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - CraftingLayout.Padding - DrawHelpers.Width(font, summary), panel.Top + 10), Known);
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + 36, layout.RowWidth, 1), new Color(255, 214, 64, 120));
 
@@ -64,7 +60,7 @@ public sealed class CraftingLayer : IFrameLayer
             DrawRow(spriteBatch, view, font, layout, row, hovered == row.Index);
         }
 
-        DrawHelpers.Text(spriteBatch, font, KeyHints, new Vector2(left, panel.Bottom - 26), Hints);
+        DrawHelpers.Text(spriteBatch, font, ui.Ui("craftingHints"), new Vector2(left, panel.Bottom - 26), Hints);
     }
 
     private static void DrawRow(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, CraftingLayout layout, CraftingRow row, bool hovered)
@@ -95,9 +91,9 @@ public sealed class CraftingLayer : IFrameLayer
             x = DrawWord(spriteBatch, font, part.Noun.Lemma, wordX, middle, words.SaturationOf(part.Noun.Lemma), 0) + 14;
         }
 
-        var status = row.Status;
+        var status = row.Status(view.Session.Locale);
         var statusWidth = (int)DrawHelpers.Width(font, status);
-        var stationText = row.Recipe.Station is not null ? "Uses" : "By hand";
+        var stationText = view.Session.Locale.Ui(row.Recipe.Station is not null ? "craftingUses" : "craftingByHand");
         var stationWord = row.Recipe.Station?.Lemma;
         var stationWidth = (int)DrawHelpers.Width(font, stationText) + (stationWord is null ? 0 : 34 - (int)DrawHelpers.Width(font, stationText) + (int)DrawHelpers.Width(font, stationWord));
         if (CraftingLayout.StationX(layout.RowWidth, x - box.Left, stationWidth, statusWidth) is { } offset)

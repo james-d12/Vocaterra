@@ -19,11 +19,16 @@ public sealed record CraftingRow(int Index, RecipeEntry Recipe, IReadOnlyList<in
     /// The short status the row shows at its right edge: <c>Make</c> when it can be made, otherwise what is missing (<c>Missing material</c>,
     /// <c>Needs mesa</c>, <c>Inventory full</c>).
     /// </summary>
-    public string Status => Result switch
+    /// <param name="ui">The support language (<c>ui.craft*</c>, C04; the station's lemma stays the target language).</param>
+    public string Status(Content.LocaleText ui)
     {
-        CraftResult.Done => "Make",
-        CraftResult.MissingStation => "Needs " + (Recipe.Station?.Lemma ?? "a station"),
-        CraftResult.InventoryFull => "Inventory full",
-        _ => "Missing material",
-    };
+        ArgumentNullException.ThrowIfNull(ui);
+        return Result switch
+        {
+            CraftResult.Done => ui.Ui("craftMake"),
+            CraftResult.MissingStation => ui.Ui("craftNeeds", ("station", Recipe.Station?.Lemma ?? ui.Ui("craftNeedsStation"))),
+            CraftResult.InventoryFull => ui.Ui("craftFull"),
+            _ => ui.Ui("craftMissing"),
+        };
+    }
 }

@@ -32,7 +32,7 @@ public sealed class CrashSourceTests : IDisposable
         Assert.Equal(session.PlaySession, state.Session);
         Assert.Equal(0L, state.Tick);
         Assert.Equal(
-            ["Bundle", "Seed", "Position", "Objective", "Lesson", "Dialogue open", "Open panel", "Turns on the worker", "Last autosave tick"],
+            ["Bundle", "Locale", "Seed", "Position", "Objective", "Lesson", "Dialogue open", "Open panel", "Turns on the worker", "Last autosave tick"],
             state.Rows.Select(static r => r.Item));
         Assert.Equal("42", state.Rows.Single(static r => r.Item == "Seed").Value);
         Assert.Equal("off", state.Rows.Single(static r => r.Item == "Last autosave tick").Value);
@@ -57,7 +57,7 @@ public sealed class CrashSourceTests : IDisposable
     {
         Directory.CreateDirectory(_folder);
         var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases, session.English);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases, session.Locale);
         var saves = new SaveService(session, () => RouteScene.Build(), () => new SaveSettings(new SoundVolumes()), _ => { });
         return (new CrashSource(_folder, "reports-here", session, dialogue, new ReportPanel(), autosave: null, saves), session, dialogue);
     }

@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/tips.json",
+  "description": "The first-time tips: when each comes up and how long it waits. Their text is the locale's (tip.<id>). Loaded by TipBook (Vocaterra.Game.Core).",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "tips"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "enum": [
+        1
+      ]
+    },
+    "about": {
+      "type": "string"
+    },
+    "tips": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "trigger"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A stable id; the save keeps which tips were shown."
+          },
+          "trigger": {
+            "$ref": "#/definitions/trigger"
+          },
+          "delay": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 300,
+            "description": "Seconds of game time after the trigger before the tip may show."
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "trigger": {
+      "type": "object",
+      "required": [
+        "event"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "event": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The event waited for: a world event (WorldEvents), or for a tip start or aimed_npc."
+        },
+        "npc": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The NPC the event must be about (an agent id)."
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The detail the event must have, exactly (item_picked_up: the noun; torch_at_ring: the ring's name)."
+        }
+      },
+      "description": "What the step or tip waits for (CONTENT_PLAN C06)."
+    }
+  }
+}

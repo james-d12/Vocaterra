@@ -181,7 +181,7 @@ public sealed record DuePhrase(string PhraseId, long OverdueSeconds);
 /// step. <b>The English rung has no gap</b> (S16): a correct use at <see cref="SupportLevel.EnglishAndCard"/> counts whenever it comes, and is the first credited
 /// use, so the first gap runs from it. "No sé", a choice and a fail-forward step the level up one (to <see cref="SupportLevel.EnglishAndCard"/> at the most) and
 /// clear the credit toward the next step. Only the phrases that have a scaffold to show (<see cref="HasScaffold"/>) have a level to move; the others stay at
-/// <see cref="SupportLevel.None"/>. The scaffolded phrases are the four taught at the stall and the river (<see cref="PhraseIds.HasScaffold"/>) and, since S16, the
+/// <see cref="SupportLevel.None"/>. The scaffolded phrases are the four taught at the stall and the river (the NPCs' focus, <see cref="NpcRoster.ScaffoldPhrases"/>) and, since S16, the
 /// phrases the lessons of <c>game/lessons.json</c> teach (the <c>scaffolds</c> argument of the constructor).
 /// </para>
 /// </remarks>
@@ -195,7 +195,7 @@ public sealed class PhraseProgress
     /// <summary>Starts with nothing seen: each phrase with a scaffold at <see cref="SupportLevel.EnglishAndCard"/>, every other at <see cref="SupportLevel.None"/>.</summary>
     /// <param name="sheet">The phrase sheet whose rows are tracked (all of them, in the sheet's order).</param>
     /// <param name="session">The number of this play session.</param>
-    /// <param name="scaffolds">The phrases a lesson teaches, which have a scaffold to fade besides the four of <see cref="PhraseIds.HasScaffold"/>; <see langword="null"/> for none.</param>
+    /// <param name="scaffolds">The phrases with a scaffold to fade: the NPCs' focus phrases (<see cref="NpcRoster.ScaffoldPhrases"/>) and the phrases a lesson teaches; <see langword="null"/> for none.</param>
     public PhraseProgress(PhraseSheet sheet, int session = 1, IEnumerable<string>? scaffolds = null)
     {
         _sheet = sheet ?? throw new ArgumentNullException(nameof(sheet));
@@ -216,7 +216,7 @@ public sealed class PhraseProgress
 
     /// <summary>Whether a phrase has a scaffold to fade: one of the four taught at the stall and the river, or one a lesson teaches.</summary>
     /// <param name="id">The sheet's id.</param>
-    public bool HasScaffold(string id) => PhraseIds.HasScaffold(id) || _scaffolds.Contains(id);
+    public bool HasScaffold(string id) => _scaffolds.Contains(id);
 
     /// <summary>The number of the current play session (1 for a new game; the saves of S10 bump it on each load).</summary>
     public int Session { get; set; }
@@ -316,7 +316,7 @@ public sealed class PhraseProgress
     }
 
     /// <summary>
-    /// The phrases due for the guide's review at <paramref name="now"/>: a phrase with a scaffold to fade (<see cref="PhraseIds.HasScaffold"/>), a
+    /// The phrases due for the guide's review at <paramref name="now"/>: a phrase with a scaffold to fade (<see cref="HasScaffold"/>), a
     /// credited use, a level above <see cref="SupportLevel.None"/> (the help is not yet gone) and its gap passed or the play session changed. The most
     /// overdue comes first, then the sheet's order.
     /// </summary>

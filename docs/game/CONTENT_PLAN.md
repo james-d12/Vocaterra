@@ -5,13 +5,16 @@ A plan written on 2026-10-27, at the owner's request, and revised on 2026-10-28 
 - move the learner's native language (L1) out of the code and the target-language data, into locale data;
 - build objectives, NPCs and target-language words from content data, as the ground for custom authoring tools later.
 
-**Status:** proposed. Nothing in this plan is implemented, and the milestones are not yet in `IMPLEMENTATION_PLAN.md` or `DECISIONS.md`.
+**Status:** adopted on 2026-10-29 and done the same day on `feature/content`. C01 to C08 are done, C09 is assessed, and C10 (the authoring
+CLI) is specified in section 3.8 for later; the owner closed the series there (section 4). It is D-game-21 in `DECISIONS.md` and section
+4.7 of `IMPLEMENTATION_PLAN.md`.
 
 **The owner's answers:**
 - English moves into a locale layer, but no second locale is added yet (2026-10-27).
 - Content stays JSON, with JSON Schema added (2026-10-27).
 - The locale is a bundle of its own, `content/locale/`, beside `content/game-v1` and outside its hash (2026-10-28; section 3.1).
 - R16 phase 2 (`GAME_PROJECTS_LAYOUT.md`) runs first, and the series starts on its layout (2026-10-28; section 4).
+- Proceed (2026-10-29). One session (Opus 5.5) does all the work itself, with no subagents, in a worktree of `feature/content` made from `main`.
 
 **What the review changed (2026-10-28):**
 - The locale moved out of the hashed bundle, so an L1 edit no longer touches saves, fixtures or the core's suite. game-v1's
@@ -21,8 +24,16 @@ A plan written on 2026-10-27, at the owner's request, and revised on 2026-10-28 
 - The per-milestone checklist gained provenance, the grammar strings and a scripted-run compare with the bundle hash masked. Wrong
   facts, paths and line numbers were corrected.
 
-Paths are as of 2026-10-28, before R16 phase 2. R16 moves many of the files named here (its target tree is in
-`GAME_PROJECTS_LAYOUT.md`), so each milestone brief finds them again by symbol.
+**What the check against `main` changed (2026-10-29, at `604903f`, after R16 phase 2 landed by pull request #12):**
+- Every path is on R16's layout now. `Core` is `src/Vocaterra.Game.Core` and `Game` is `src/Vocaterra.Game`, and line numbers are as of `604903f`.
+- Many front-end files moved to Core: the dialogue model, the speech buttons, the book's pages and tables, the screens, the check
+  battery, the beacon and the point labels. Their literals therefore count as Core's.
+- The facts that had gone wrong were corrected: 15 of 175 dialogue variants have `{slots}` (not 35), and the speech-button labels live in
+  Core's `SpeechButtons`.
+- The JSON Schema library is NJsonSchema (MIT), not JsonSchema.Net. JsonSchema.Net 9.x ships without a licence expression, the case the
+  plan warned about (3.7).
+
+Each milestone finds a file again by its symbol when a path here has gone stale.
 
 ## 1. The request
 
@@ -56,25 +67,25 @@ Paths are as of 2026-10-28, before R16 phase 2. R16 moves many of the files name
 - **Seven separate loaders.** Each game file has its own hand-written `JsonDocument` loader, created at its own call site, and each does
   its own cross-checks. No single place loads and checks all of them.
 
-  | Loader | File | Created at |
+  | Loader (in Core) | File | Created at |
   | --- | --- | --- |
-  | `Language/Words/NounCatalog.cs` | `game/nouns.json` | `src/Vocaterra.Game/Program.cs:60` |
-  | `Items/RecipeBook.cs` | `game/recipes.json` | `VoxelSession.cs:59`, `NpcService.cs:230` (a fallback) |
-  | `Language/Phrases/PhraseSheet.cs` | `game/phrases.json` | `GuideSession.cs:139`, `NpcService.cs:232`, `CheckBank.cs:86` |
-  | `Tip/EnglishText.cs` | `game/english.json` | `GuideSession.cs:140` |
-  | `Language/Words/VerbGlosses.cs` | `game/glosses.json` | `GuideSession.cs:141` |
-  | `Language/Lessons/LessonBook.cs` | `game/lessons.json` | `GuideSession.cs:142` |
-  | `Language/Checks/CheckBank.cs` | `game/checks.json` | `Screens/CheckBattery.cs:131` |
+  | `Language/Words/NounCatalog.cs` | `game/nouns.json` | Game `Program.cs:62`, `tools/Vocaterra.SpeechRender/Program.cs:71` |
+  | `Items/Crafting/RecipeBook.cs` | `game/recipes.json` | Core `Session/VoxelSession.cs:60`, `Npc/NpcService.cs:231` (a fallback) |
+  | `Language/Phrases/PhraseSheet.cs` | `game/phrases.json` | Core `Session/GuideSession.cs:140`, `Npc/NpcService.cs:233`, `Language/Checks/CheckBank.cs:86`, SpeechRender `Program.cs:72` |
+  | `Tip/EnglishText.cs` | `game/english.json` | Core `Session/GuideSession.cs:141` |
+  | `Language/Words/VerbGlosses.cs` | `game/glosses.json` | Core `Session/GuideSession.cs:142` |
+  | `Language/Lessons/LessonBook.cs` | `game/lessons.json` | Core `Session/GuideSession.cs:143` |
+  | `Language/Checks/CheckBank.cs` | `game/checks.json` | Core `Language/Checks/CheckBattery.cs:118` |
 
 - **The scene is read twice.**
   - `scene.json` is in the manifest, so the bundle load checks its hash.
-  - The game then parses a second read from disk (`SceneLayout.Load`, `World/Layout/SceneLayout.cs:125`, via
-    `Utilities/SceneLocator.cs`), and `--scene` skips the check entirely.
+  - The game then parses a second read from disk (`SceneLayout.Load`, Core `World/Layout/SceneLayout.cs:122`, via Game
+    `Startup/SceneLocator.cs`), and `--scene` skips the check entirely.
   - The file is JSON with comments (32 `//` lines).
 - **The speech WAVs are read twice too.** They are hashed at load, then read again from disk by the core's `StaticLineStore`
   (`src/Vocaterra.Nlp/Response/Speech/StaticLineStore.cs`). That is core code and out of scope here.
 - **`GrammarStringsExtractor` bypasses the bundle.**
-  - It is handed the bundle, yet reads `english.json` and `checks.json` straight from disk (`Vocaterra.Host/GrammarStringsExtractor.cs:59-60`).
+  - It is handed the bundle, yet reads `english.json` and `checks.json` straight from disk (`src/Vocaterra.Host/GrammarStringsExtractor.cs:59-60`).
   - It also reads `content/PHRASES.md` and `content/speech-index.json`, which sit outside the bundle on purpose.
 - **Every edit costs several steps.** After any edit:
   - `content.sh hash`, adding provenance items for new files, then validate;
@@ -106,7 +117,8 @@ Paths are as of 2026-10-28, before R16 phase 2. R16 moves many of the files name
     - the gloss: `GuideSession.EnglishForNpcLine`, which falls back on the lessons' `TranslationOf`;
     - the dialogue panel and the ending overlay;
     - the voice: `SpeechLines`, `SpeechIndex`.
-  - Of the dialogue variants, 35 have `{slots}`. Two glosses belong to prompts, not dialogue lines, and some lines are built in code.
+  - Of the 175 dialogue variants (109 pools), 15 have `{slots}`. Two glosses belong to prompts, not dialogue lines, and some lines are
+    built in code.
 - **Inline English in other files:**
   - `lessons.json`: `title`, `english`, `summary`, `objective`, `translation`, `help`, `retry`, `personRetry`, `tenseRetry`,
     `presentNote`, `hud`, `options`. Some titles mix the two languages ("Personas: he, she, we, they").
@@ -114,31 +126,33 @@ Paths are as of 2026-10-28, before R16 phase 2. R16 moves many of the files name
   - `glosses.json`: `english`, `third`, `past`.
   - `checks.json`: `question`, `options[].label`, `situation`.
 
-**In code, about 130 player-facing English literals** (paths under `src/Vocaterra.Game` unless marked Core).
+**In code, about 130 player-facing English literals.** R16 moved many of them to Core with their models.
 
-| Area | Where |
+| Area | Where (Game is `src/Vocaterra.Game`, Core is `src/Vocaterra.Game.Core`) |
 | --- | --- |
-| HUD and toasts | `UI/HudLayers.cs`, `UI/VoxelTalkLayers.cs`, `UI/LoadingLayer.cs`, `UI/VoxelLayers.cs`, `Graphics/GreyscaleWorld.cs`, `Flow/ObjectiveAnnouncer.cs`, `VoxelGame.cs`, Core `Session/VoxelSession.cs` |
-| Dialogue panel | `UI/Dialogue/DialoguePanel.cs`, `Screens/DialogueScreen.cs`, `UI/DialogueModel.cs` |
-| Inventory, crafting, workbench | `UI/InventoryLayer.cs`, `UI/CraftingLayer.cs`, `UI/CraftingScreen.cs`, `UI/RecipePanelLayer.cs` |
-| Book and journal | `UI/Book/Book.cs`, `UI/Book/BookLayer.cs`, `UI/Book/BookPages.cs`, `UI/Book/BookPractise.cs`, `UI/Book/ConjugationTable.cs`, `UI/Journal.cs`, `UI/PhraseJournal.cs` |
-| Lessons, tips, controls | `UI/LessonStrip.cs`, `UI/English/TipLayer.cs`, `UI/English/ControlsLayer.cs` |
-| Checks, mic check, playtest | `UI/CheckLayer.cs`, `Screens/CheckBattery.cs`, `Sound/MicCheckModel.cs`, `UI/MicCheckLayer.cs`, `Screens/MicCheckScreen.cs`, `Flow/PlaytestFlow.cs` |
-| Report dialog | `UI/ReportLayer.cs`, `UI/ReportPanel.cs`, `Reporting/ReportScreen.cs`, Core `Reporting/ReportKind.cs` |
-| Core messages the player sees | Core `Session/TurnWorker.cs`, `Language/Speech/SpeechEngine.cs`, `Language/Lessons/LessonRunner.cs`, `Save/SaveMigration.cs`, `Input/PushToTalkSpeechCapture.cs` |
+| HUD and toasts | Game `UI/Hud/HudLayers.cs`, `UI/Hud/VoxelLayers.cs`, `UI/Hud/TipLayer.cs`, `UI/Dialogue/VoxelTalkLayers.cs`, `UI/Overlays/LoadingLayer.cs`, `VoxelGame.cs` (the window title); Core `Language/Words/GreyscaleWorld.cs`, `Session/ObjectiveAnnouncer.cs`, `Session/VoxelSession.cs` (`NeedBottleHint`) |
+| Dialogue panel | Game `UI/Dialogue/DialoguePanel.cs`; Core `Dialogue/DialogueScreen.cs`, `Dialogue/DialogueModel.cs`, `Dialogue/SpeechButtons.cs` |
+| Inventory, crafting, workbench | Game `UI/Inventory/InventoryLayer.cs`, `UI/Crafting/CraftingLayer.cs`, `UI/Crafting/RecipePanelLayer.cs`; Core `Items/Crafting/CraftingRow.cs` |
+| Book and journal | Game `UI/Book/BookLayer.cs`; Core `Language/Book/BookPages.cs`, `BookTabs.cs`, `BookVerbLabels.cs`, `ConjugationTable.cs`, `BookScreen.cs`, `Language/Words/JournalRows.cs`, `Language/Phrases/PhraseJournalRows.cs` |
+| Lessons, tips, controls | Game `UI/Lesson/LessonStripLayout.cs`, `UI/Overlays/ControlsLayer.cs`; Core `Language/Lessons/LessonActions.cs` (key labels), `Language/Lessons/LessonRunner.cs`, `Session/SessionSummary.cs` |
+| Checks, mic check, playtest | Game `UI/Checks/CheckLayer.cs`, `UI/Checks/MicCheckLayer.cs`; Core `Language/Checks/CheckBattery.cs`, `Language/Speech/MicCheckModel.cs`, `Language/Speech/MicCheckScreen.cs`, `Session/PlaytestFlow.cs`, `Session/PlaytestEnd.cs` |
+| Report dialog | Game `UI/Report/ReportLayer.cs`, `UI/Report/ReportScreen.cs`; Core `Reporting/ReportPanel.cs`, `Reporting/ReportKind.cs` |
+| Core messages the player sees | Core `Session/TurnWorker.cs`, `Language/Speech/SpeechEngine.cs`, `Save/SaveMigration.cs`, `Save/SaveGame.cs` (the strict-save refusal), `Input/PushToTalkSpeechCapture.cs` |
 
 **Logic that assumes English as L1:**
-- **Names:** `EnglishText`, the `UI/English/` folder, `DialoguePanel.EnglishPrefix`, `ObjectivePieceKind.English`, the JSON keys
-  `english`/`spanish`, and the required keys kept as C# lists (`EnglishText.UiKeys`, `OutcomeKeys`).
+- **Names:** `EnglishText` (Core `Tip/`), Game's `DialoguePanel.EnglishPrefix`, `ObjectivePieceKind.English`, the JSON keys
+  `english`/`spanish`, and the required keys kept as C# lists (`EnglishText.UiKeys`, `OutcomeKeys`). R16 removed the `UI/English/` folder.
 - **English grammar in code:**
-  - `UI/Book/BookVerbLabels.cs` builds English verb forms by rule (do/does, -s/-es/-ies, was/were, let's);
-  - `Language/Words/VerbGlosses.cs:72` requires every gloss to start with "to";
-  - English plurals are built in code (`BookPages.cs:392` "1 time"/"N times", `SaveMigration`).
+  - Core `Language/Book/BookVerbLabels.cs` builds English verb forms by rule (do/does, -s/-es/-ies, was/were, let's);
+  - Core `Language/Words/VerbGlosses.cs:72` requires every gloss to start with "to";
+  - English plurals are built in code (Core `Language/Book/BookPages.cs:334` "1 time"/"N times", `Save/SaveMigration.cs`).
 - **Key names in the text.**
   - The text says "Hold V", "W A S D", "Enter goes on, H helps", so it breaks when keys are remapped or on an AZERTY keyboard.
-  - No remapping exists yet. Keys are fixed in `Input/KeyBindings.cs`, `Screens/DialogueScreen.cs` and `Input/WorldInput.cs`, and their
-    labels are written out again in `LessonStrip.KeyLabel`, `PlaytestEnd.EndKeyName` and `english.json` `controls[].keys`.
-- **No settings file.** Settings live in the save (`SaveSettings`: sound, text scale).
+  - No remapping exists yet. R16 added Core's `Input/GameKey.cs` and Game's `Input/KeyMap.cs` (D-p2-1a), but the keys are still fixed in
+    Core `Input/KeyBindings.cs` and `Dialogue/DialogueScreen.cs` and in Game `Input/WorldInput.cs`.
+  - Their labels are written out again in Core `Language/Lessons/LessonActions.KeyLabel`, `Session/PlaytestEnd.EndKeyName`, the key
+    hints of Game's panels (`DialoguePanel`, `InventoryLayer`, `CraftingLayer`, `ReportLayer`), and `english.json` `controls[].keys`.
+- **No settings file.** Settings live in the save (`SaveSettings` in Core `Save/SaveDocument.cs`: sound, text scale).
 
 **The core and L1.**
 - The core produces no English text for the learner; `feedback/feedback-policy.json` maps error tags to feedback types only.
@@ -148,15 +162,16 @@ Paths are as of 2026-10-28, before R16 phase 2. R16 moves many of the files name
   a core item for a later, non-English locale, and out of scope here.
 
 **Rendering limits:**
-- One font with no fallback (`assets/fonts/pixel-operator/PixelOperator.ttf`, `UI/FontProvider.cs`), and its glyph coverage is
+- One font with no fallback (`assets/fonts/pixel-operator/PixelOperator.ttf`, Game `UI/Common/FontProvider.cs`), and its glyph coverage is
   unchecked. FontStashSharp can take fallback fonts.
-- Wrapping breaks only at ASCII spaces (`UI/DialogueModel.cs`), and `Graphics/DrawHelpers.cs` cuts text by character index.
-- Typing offers only the Spanish accents (`UI/TextEntry.cs`) and refuses characters outside the basic plane. Typing is in the target
+- Wrapping breaks only at ASCII spaces (Core `Dialogue/TextWrap.cs`), and Game `Graphics/DrawHelpers.cs` cuts text by character index.
+- Typing offers only the Spanish accents (Core `Input/TextEntry.cs`, `Input/AccentShortcuts.cs`) and refuses characters outside the basic plane. Typing is in the target
   language, so this is not an L1 limit.
 
-**Developer text stays English and is out of scope:** the command-line usage and errors (`Utilities/LaunchOptions.cs`), the host console
-(`Vocaterra.Host/Program.cs`, `VerdictReport.cs`), exceptions, logs, the session log, and the headings of the saved report file
-(`Core/Reporting/ReportMarkdown.cs`).
+**Developer text stays English and is out of scope:** the command-line usage and errors (Game `Startup/LaunchOptions.cs`), the host console
+(`src/Vocaterra.Host/Program.cs`, `VerdictReport.cs`), exceptions, logs, the console lines of the scripted runs, the session log, the debug
+overlay (Game `UI/Hud/VoxelDebugText.cs`), and the headings of the saved report and crash files (Core `Reporting/ReportMarkdown.cs`,
+`Reporting/CrashReport.cs`).
 
 ### 2.3 Spanish (target language) in code
 
@@ -164,20 +179,20 @@ CLAUDE.md says the game's words live in content. These do not:
 
 | What | Where |
 | --- | --- |
-| NPC labels | Core `Npc/NpcNames.cs:9-11` ("Guía", "Tendero", "Aldeano"; english.json `npcNames` holds the English roles under the same keys), `UI/Dialogue/DialoguePanel.cs:42`, `UI/DialogueModel.cs:110,187` |
-| The guide's name | "Luna" in code at Core `Session/VoxelSession.cs:188`, and in six content files (`lessons.json` 29 times, `english.json`, `phrases.json`, `checks.json`, `dialogue.json`, `prompts.json`); "Rosa" in comments at `Language/Phrases/PhraseReview.cs:31` and `Language/Lessons/LessonRunner.cs:444` |
-| UI labels | `UI/SpeechPanel.cs:79-91` (Repetir, Más despacio, Ayuda, No sé, Escribir), `UI/DialogueModel.cs:80`, `UI/SupportLayer.cs:20-26`, `UI/Journal.cs:27`, `Flow/BeaconDirector.cs:77` |
-| Place words | `UI/PointLabels.cs:13-25` (río, tienda, casa, campamento, mi campamento, cascada, puente, mesa, camino, lago, pueblo, fuego, letrero) |
-| Directions and joiners | Core `Npc/WorldFacts.cs:44-53,331`, `Npc/NpcService.Guide.cs:33` ("bloque"), `:206` (" y ") |
-| Pronouns | `UI/Book/ConjugationTable.cs:56-60`, `UI/Book/BookVerbLabels.cs:88` |
-| Grammar built in code | Core `Language/Words/WordProgress.cs:210` (the articles), Core `Language/Lessons/LessonBook.cs:160` and `UI/Book/ConjugationTable.cs:154,166` (the near future, "ir a"), Core `Npc/NpcHostEvents.cs` `PhraseIds.Hello = "hola"` |
-| Words in logic | Core `Session/GuideSession.cs:78,81` ("ayuda", "no sé"), `:264` (`KeyWords = ["agua","pan"]`), `:746` ("¿Quieres agua?"); `Language/Speech/MicCheck.cs:18` and `Npc/NpcService.cs:324` ("hola"); `Session/VoxelSession.cs:234,268,271,404,433,485` (río, agua, fuego, antorcha); `Npc/NpcHostEvents.cs:84,172` |
-| Spanish inside English hints | `UI/Dialogue/DialoguePanel.cs:21,30` and `UI/ReportLayer.cs:23` ("á é í ó ú ñ ¿ ¡"), `UI/CheckLayer.cs:42` ("(no sé)") |
-| Sign text | `Graphics/BlockArtVillage.cs:46-59,211-220` (a 3x5 pixel font with only the letters it needs, plus accent and tilde hacks), Core `World/Generation/SceneBuilder.cs:565-579`, `Voxel/BlockId.cs:148-160`, `Voxel/BlockDefinition.cs:85-89`. Each sign board is its own block kind with baked art, and block kinds are saved by name, so sign text as data needs a sign mechanism, not just a string table. |
+| NPC labels | Core `Npc/NpcNames.cs:9-11` ("Guía", "Tendero", "Aldeano"; english.json `npcNames` holds the English roles under the same keys), Core `Dialogue/DialogueModel.cs:62,139`, Game `UI/Dialogue/DialoguePanel.cs:44` (`Title`), Game `Graphics/Figures/NpcFigures.cs:99` (the labels over the heads) |
+| The guide's name | "Luna" in code at Core `Session/VoxelSession.cs:189`, and in six content files (`lessons.json` 29 times, `english.json`, `phrases.json`, `checks.json`, `dialogue.json`, `prompts.json`); "Rosa" in comments at Core `Language/Phrases/PhraseReview.cs:31` and `Language/Lessons/LessonRunner.cs:444` |
+| UI labels | Core `Dialogue/SpeechButtons.cs:10-22` (Repetir, Más despacio, Ayuda, No sé, Escribir), `Dialogue/DialogueModel.cs:32` ("¿Escribes?"), Game `UI/Dialogue/SupportLayer.cs:21-27` (Puedes decir, Escuchar la frase, Palabras nuevas), Core `Language/Words/JournalRows.cs:10` and `Navigation/BeaconDirector.cs:75` ("¿?") |
+| Place words | Core `Navigation/PointLabels.cs:13-25` (río, tienda, casa, campamento, mi campamento, cascada, puente, mesa, camino, lago, pueblo, fuego, letrero) |
+| Directions and joiners | Core `Npc/WorldFacts.cs:44-53`, `Npc/NpcService.Guide.cs:33` ("bloque"), `:206` (" y ") |
+| Pronouns | Core `Language/Book/ConjugationTable.cs:23-27`, `Language/Book/BookVerbLabels.cs` |
+| Grammar built in code | Core `Language/Words/WordProgress.cs:210` (the articles), Core `Language/Lessons/LessonBook.cs:160` and `Language/Book/ConjugationTable.cs:35,111` (the near future, "ir a"), Core `Npc/NpcHostEvents.cs:123` `PhraseIds.Hello = "hola"` |
+| Words in logic | Core `Session/GuideSession.cs:79,82` ("ayuda", "no sé"), `:265` (`KeyWords = ["agua","pan"]`), `:747` ("¿Quieres agua?"); `Language/Speech/MicCheck.cs:18` and `Npc/NpcService.cs:325` ("hola"); `Session/VoxelSession.cs:235,269,272,405,434,486` (río, agua, fuego, antorcha); `Npc/NpcHostEvents.cs:84,172` |
+| Spanish inside English hints | Game `UI/Dialogue/DialoguePanel.cs:23,32` and `UI/Report/ReportLayer.cs:25` ("á é í ó ú ñ ¿ ¡"), Game `UI/Checks/CheckLayer.cs:44` ("(no sé)") |
+| Sign text | Game `Graphics/Blocks/BlockArtVillage.cs` (`Glyph`, a 3x5 pixel font with only the letters it needs, plus accent and tilde hacks), Core `World/Generation/SceneBuilder.cs:556-580` (`BuildSignpost`), `Voxel/BlockId.cs:148-160`, `Voxel/BlockDefinition.cs:85-89`. Each sign board is its own block kind with baked art, and block kinds are saved by name, so sign text as data needs a sign mechanism, not just a string table. |
 
 ### 2.4 Game design hardcoded
 
-**The camp objective** (`Core/Session/Objective.cs`):
+**The camp objective** (Core `Session/Objective.cs`):
 - `Objective.Camp()` fixes the step keys (`wood`, `berry`, `torch`, `water`), the Spanish labels (madera, frutas, antorcha, agua), the
   targets (5, 3, 1, 1), the title `Campamento` and the event name `objective.water`.
 - Its triggers are C# methods fed by **simulation events** in `VoxelSession.Step`:
@@ -189,11 +204,11 @@ CLAUDE.md says the game's words live in content. These do not:
 - `EnglishText.Parse` calls `Objective.Camp()` to check the glosses.
 - **Saves.**
   - The save keeps the counts by step key (`ObjectiveSave(Key, Count)`), and `Objective.Restore` throws on an unknown key.
-  - The save format is **v4** (`Save/SaveGame.cs:41`). Format upgrades are written inline in `SaveGame`.
-  - `SaveMigration` handles a save from another bundle, and **drops** step keys it does not know (`SaveMigration.cs:222`).
+  - The save format is **v4** (Core `Save/SaveGame.cs:42`). Format upgrades are written inline in `SaveGame`.
+  - `SaveMigration` handles a save from another bundle, and **drops** step keys it does not know (Core `Save/SaveMigration.cs:222`).
 
 **The session flow is order-free, not a chain.**
-- `SessionStage` (FindGuide, Camp, LightFire, Complete; `Session/SessionStage.cs`) is worked out in `VoxelSession.Stage` from three flags:
+- `SessionStage` (FindGuide, Camp, LightFire, Complete; Core `Session/SessionStage.cs`) is worked out in `VoxelSession.Stage` from three flags:
   `Objective.Complete ? (_fireLit ? Complete : LightFire) : _guideMet ? Camp : FindGuide`. The flags are set like this:
   - `_guideMet`: talking to the guide, or any checklist progress;
   - `_fireLit`: a torch on the player's own fire ring (`firering.player`);
@@ -210,8 +225,8 @@ CLAUDE.md says the game's words live in content. These do not:
 - **The rest of the chain also hardcodes:**
   - the Book granted at the start, and the "start" tips;
   - the closing line: the first variant of `guide.lesson.end`, shown in the ending overlay, not spoken;
-  - the points `firering`, `firering.player` and `camp.guide` (`Flow/BeaconDirector.cs:17`), and the ambient fire bed
-    (`Sound/AmbientBeds.cs`);
+  - the points `firering`, `firering.player` and `camp.guide` (Core `Navigation/BeaconDirector.cs:15`), and the ambient fire bed
+    (Core `Sound/AmbientBeds.cs`);
   - the readers of the stage: `VoxelSession.ObjectiveHud` and `EnglishText.StageLine`.
 
 **Three trigger systems, each built its own way:**
@@ -221,7 +236,7 @@ CLAUDE.md says the game's words live in content. These do not:
 - **The objective** uses C# methods fed by simulation events.
 
 **What the events carry:**
-- **World events** (`Core/Event/WorldEvent.cs`: 21 names in `WorldEvents`) are `WorldEvent(Tick, Time, Name, Npc?, Detail?)`, with no
+- **World events** (Core `Event/WorldEvent.cs`: 21 names in `WorldEvents`) are `WorldEvent(Tick, Time, Name, Npc?, Detail?)`, with no
   position and no amount.
 - There is no world event for a placed block.
 - `item_picked_up` carries the noun lemma as its detail.
@@ -233,10 +248,11 @@ CLAUDE.md says the game's words live in content. These do not:
 - "At the ring" means within the 3×3 square around a ring stone (`VoxelSession.AtRing`). A scene with no named ring counts every ring.
 
 **NPCs:**
-- `Npc/NpcHostEvents.cs` holds:
+- Core `Npc/NpcHostEvents.cs` holds:
   - the host-event-to-effect table (give a bottle, a bread or water; point at "río");
   - in `PhraseIds`, the intent-to-phrase, focus, scaffold and phrase-to-home tables.
-- Agent and prompt ids are fixed in `Npc/NpcService.cs:116-158`, `Language/Speech/SpeechLines.cs:14-20` and `LaunchOptions.cs:26`.
+- Agent and prompt ids are fixed in Core `Npc/NpcService.cs:117-144`, Core `Language/Speech/SpeechLines.cs:14-20` and Game
+  `Startup/LaunchOptions.cs:29` (`TalkTargets`).
   Lessons check NPC ids against `NpcService.AgentIds`, and saves store them.
 - **The opening event is logic, not a field.** `NpcService.OpeningEvent` picks it from the visit count, the bottle-given and offered
   flags, the agent's state and whether the objective is complete. `PromptAfter` maps each state to a prompt.
@@ -248,9 +264,9 @@ CLAUDE.md says the game's words live in content. These do not:
     from its pool id's prefix (`SpeechSpeakers.OfPool`).
 - The core's `agents/*.json` hold only states, transitions and actions. The core's `effects/effects.json` maps intents to correctness
   curves, a different meaning from the game's "effect".
-- `Graphics/NpcFigures.cs` holds each figure's colours and geometry (apron, hat, long hair); the faces are pixel art in
-  `BlockArtVillage.cs`.
-- The phrase-to-pool table is fixed in `Language/Phrases/PhraseReview.cs`.
+- Game `Graphics/Figures/NpcFigures.cs` holds each figure's colours and geometry (apron, hat, long hair); the faces are pixel art in
+  Game `Graphics/Blocks/BlockArtVillage.cs`.
+- The phrase-to-pool table is fixed in Core `Language/Phrases/PhraseReview.cs`.
 - **Rules that are behaviour, not data:**
   - the shopkeeper gives up and hands over after 4 failed lines, or 2 after help;
   - the bottle is given once;
@@ -260,19 +276,19 @@ CLAUDE.md says the game's words live in content. These do not:
   - the guide is special-cased in the front end: `DialogueScreen`, `GuideGreeting`, `DialogueModel`, `TurnWorker`, `CheckGrader`.
 
 **Items, blocks and sounds:**
-- The `ItemId` enum and the `ItemDefinition` table (`Items/ItemDefinition.cs`, 7 rows):
+- The `ItemId` enum and the `ItemDefinition` table (Core `Items/ItemDefinition.cs`, 7 rows):
   - Saves store items and blocks by **enum name** (`CanonicalJson` writes enums as strings), so the names must stay stable.
   - The numbers are not saved. The comment in `ItemDefinition.cs` that says they are is out of date.
-- `Voxel/BlockDefinition.cs` (52 rows), and `Graphics/BlockAtlasLayout.cs` for the art.
-- `Sound/SoundCatalog.cs` (about 52 cues), footsteps per block (`Sound/Footsteps.cs`) and block materials (`SoundEventMapper`).
+- Core `Voxel/BlockDefinition.cs` (52 rows), and Game `Graphics/Blocks/BlockAtlasLayout.cs` for the art.
+- Core `Sound/SoundCatalog.cs` (about 52 cues), footsteps per block (Core `Sound/Footsteps.cs`) and block materials (`SoundEventMapper`).
 
 **Lessons:**
-- `LessonBook.cs:142` (`NearFuture = "ir-a"`) and `LessonBook.cs:160` build the near future.
-- `LessonRunner.cs` checks for "mañana" and the lemma "ir" + "a" (around `:962-1004`).
+- Core `Language/Lessons/LessonBook.cs:142` (`NearFuture = "ir-a"`) and `:160` build the near future.
+- Core `Language/Lessons/LessonRunner.cs` checks for "mañana" and the lemma "ir" + "a" (`:962-1004`).
 
 ### 2.5 Found along the way
 
-- **Bug:** a non-guide NPC's beacon label is its raw agent id ("shopkeeper"), not its label (`VoxelSession.cs:188`).
+- **Bug:** a non-guide NPC's beacon label is its raw agent id ("shopkeeper"), not its label (Core `Session/VoxelSession.cs:189`).
 - **Names:** the guide is "Luna" in code and content, but "Rosa" in two comments.
 - **Stale doc comments:** `SaveDocument.cs` says the format is v3, and `ItemDefinition.cs` says item numbers are saved.
 - **Stale fixture path:** the save fixture moved to `tests/Vocaterra.Game.Core.Tests/Fixtures/`. The old path was corrected on 2026-10-28
@@ -349,7 +365,7 @@ Examples:
 - **Choosing the locale:** `--locale <code>`. The default is game-v1's `supportLanguage` (`en`). Storing the choice (in `SaveSettings`,
   or in a settings file that does not exist yet) comes later.
 - **Verb forms:** L1 verb forms are listed in the locale (base, third, past). `BookVerbLabels`' English rules and the "to" check go.
-- **Rename:** `ObjectivePieceKind.English` becomes `Support`. R16 already removes the `UI/English/` folder.
+- **Rename:** `ObjectivePieceKind.English` becomes `Support`. R16 already removed the `UI/English/` folder.
 - **Tests:**
   - every id that content or code refers to exists in every shipped locale, and no locale has orphans;
   - every glyph of every locale's strings is in the font;
@@ -505,8 +521,10 @@ They are behaviour, and moving them would need a scripting layer, which this pla
     scene's `sites` and `points`.
   - `scene.json` has comments: the schema test reads it with comments skipped, and editors treat it as JSONC.
 - **Schemas serve editors; the loaders are the authority.** One test validates every file against its schema, with a library used only
-  by the test project. It is licence-scanned like any package (check any usage-fee terms too). The test keeps the schemas and the
-  loaders in step.
+  by the test project: NJsonSchema (MIT, with Newtonsoft.Json and Namotion.Reflection, both MIT), in `tests/Vocaterra.Game.Core.Tests`.
+  JsonSchema.Net was ruled out because 9.x has no licence expression (usage-fee terms). The licence scan takes a `--target`, and the gate
+  scans that test project as well as the core. The schemas are draft-07, which Rider, VS Code and NJsonSchema all read. The test keeps
+  the schemas and the loaders in step.
 - **Split the large files:** `game/lessons/<id>.json`, `game/objectives/<id>.json`, `game/npcs/<id>.json`, and the locale's
   `en/*.json`. Each new file in game-v1 gets a provenance item.
 - **`GameData.Load(bundle, locale)`.** (`GameContent` is already the name of a test helper in `tests/Vocaterra.Host.Tests`.)
@@ -542,23 +560,174 @@ The schemas, `GameData` and the validator are the contract any tool builds on.
 - **Later:** a GUI editor (objectives, NPCs, lessons), whose technology stays open. It reads and writes the same files through the same
   schemas.
 
+#### The authoring CLI (C10): the specification, for later
+
+Written on 2026-10-29, after C01 to C08, against the content as it is now. It is not built: the owner closed the series without it ("work
+for content is done", 2026-10-29). It is a milestone of its own when the owner asks for it, and it depends only on what C07 and C08 left.
+
+- **Why.** Adding an NPC, an objective or a lesson is now data alone, but it touches four to six files by hand: `content/README.md`'s
+  "Adding things" lists them. One missed step (an index entry, a locale string, a provenance item) fails the refresh, and renaming an id
+  means hunting for its uses. The CLI does the steps, and shows the uses.
+- **Where.**
+  - A console project of the game, `tools/Vocaterra.Authoring`, referencing `Vocaterra.Game.Core` and the Spanish pack, no engine.
+  - It runs through `scripts/content.sh author <command>` under `scripts/limited.sh`.
+  - It is the game's tool, beside the core's ContentBuilder, which plans no game content (ADR 0009). It never writes the core's files
+    (`agents/`, `prompts/`, `dialogue/`, `intents/`, `lexicon/`). When the core needs something first, it names it and stops.
+- **The contract.**
+  - It reads with `GameData.Load` and checks with `GameDataValidator`.
+  - It writes only the game's host files (`game-v1/game/`), the locale (`locale/en/`) and `provenance.json`.
+  - It edits text in place: an id appended to an index, a string added to a locale file at the end of its group. Every byte it does not
+    change stays as it is, and it refuses a file whose layout it cannot place an edit in.
+  - It never hashes. After a write it prints the next steps: `scripts/content.sh refresh`, the LanguageTool step when it wrote Spanish,
+    then the whole suite. (The refresh holds the hashing, and the sandbox refuses the word.)
+- **Commands.**
+
+  | Command | What it writes or does |
+  | --- | --- |
+  | `new npc <id> --label <Label> --role <English> [--name <Name>] [--figure <key>]` | `game/npcs/<id>.json` (no focus yet), the id at the end of `game/npcs.json` (the saves keep this order), `npc.<id>.role` in `locale/en/ui.json`, a provenance item. It refuses when `agents/<id>.json` is missing (the core's file comes first), and it reminds you to place the NPC in `game/scene.json` `npcs` (coordinates are a by-hand edit). |
+  | `new objective <id> (--title <Spanish> --gloss <English> \| --hud <English>) --step <id> --event <world event> [--detail <d>] [--noun <lemma>] [--target <n>]` | `game/objectives/<id>.json` with that one step; the id at the end of `game/session.json`'s `objectives`; `objective.<id>.title` for a checklist or `.hud` for a line. A checklist step needs `--noun`, a catalogue noun. Hooks are added by hand, from the list the validator knows. |
+  | `new lesson <id> --npc <npc> --title <English> --text <English> [--after <lesson>]` | `game/lessons/<id>.json` with one `explain` step; the id in `game/lessons.json`; `lesson.<id>.title`, `.text` and the step's text in `locale/en/lessons.json`; a provenance item. |
+  | `refs <id>` | Every use of an id, from the loaded model rather than a text search, as `file: where` lines. NPC: the scene, lessons, steps, triggers, tips, host events, objectives, `{npc:<id>}` in the locale. Phrase: the sheet, NPC focus, lesson steps and recaps, review lines. Noun: the catalogue, `words.json`, objective steps, host events, scene labels, `noun.<lemma>`. Objective or step: `session.json`, `alsoDoneBy`, and the save key `<objective>.<step>` (renaming it drops its count from older saves). Locale string: which content or code asks for it. Exit 0 when found, 1 when not. |
+  | `check` | `GameData.Load` and the validator, as the host's `--validate-content` does today, plus each game file against its schema. Exit 0 clean, 1 problems, 2 usage. Schema checks at run time put NJsonSchema (MIT) into a shipped tool, so the licence scan's `--target` covers the tool too. |
+
+- **Tests.**
+  - A test project runs each command on a copy of `content/` in a temporary folder.
+  - Each written file validates against its schema, `GameData.Load` accepts the result, and every byte the command did not mean to change
+    is unchanged.
+  - `refs` finds the shipped uses (`refs guide`, `refs fruta`, `refs camp.wood`).
+- **Out of scope.**
+  - The core's files: an agent and its prompts, dialogue lines and intents stay ContentBuilder's area and the core's formats.
+  - Speech: `scripts/prerender-speech.sh` stays its own step.
+  - The scene's coordinates.
+  - A GUI editor, which comes later and builds on the same contract.
+
 ## 4. Milestones
 
-Branch `C<nn>-<name>`, commit prefix `C<nn>:`, gated into a feature branch (`feature/content`), never `main`. The series starts after
-R16 phase 2 has landed (owner, 2026-10-28), from the branch R16 lands on. Each brief finds the files named here again on R16's layout.
+Every milestone's work is committed straight to `feature/content` with the prefix `C<nn>:`, and pushed often, never to `main` (the owner,
+2026-10-29: "make sure all work is to feature/content"; there are no `C<nn>-<name>` branches). R16 phase 2 landed on `main` by pull request
+#12 (2026-10-29), and `feature/content` starts from `main` at `604903f`. On the owner's instruction one session (Opus 5.5) does every
+milestone itself, with no subagents. At the end of each milestone the gate runs on `feature/content` itself
+(`GATE_TARGET=feature/content scripts/merge-gate.sh "C<nn>:feature/content"`, where the merge is a no-op), and its result goes into
+section 4's status column.
 
-| ID | What | Model | Depends |
+| ID | What | Depends | Status |
 | --- | --- | --- | --- |
-| C01 | Content contract: JSON Schemas for every game file and the locale format, `$schema` refs, the schema test (test-only library), `content/README.md`, `content.sh refresh`, the bundle hash masked in `scripts/compare-runs.py` | Haiku | R16 phase 2 |
-| C02 | `GameData` + `GameDataValidator`: one load of every host file (the scene from the verified bytes; `GrammarStringsExtractor` reads through it), the cross-checks moved there, host `--validate-content` | Sonnet | C01 |
-| C03 | The locale bundle (`content/locale/`, `en` only, its own manifest, checked at load, its hash in the log and the report); game-v1's `supportLanguage`; the turn path keeps line ids; `LocaleText` replaces `EnglishText`; glosses keyed by speech-line ids; the L1 fields leave lessons, phrases, glosses and checks; verb forms listed | Sonnet | C02 |
-| C04 | The English literals of Game and Game.Core into the locale (section 2.2); `{key:…}` from R16's `KeyBindings`, `{npc:…}`, plurals; the no-literal scan; the glyph test | Haiku | C03 |
-| C05 | Target-language words out of code (`game/words.json`, place labels into the scene; section 2.3); the grammar extractor reads them | Haiku | C03 |
-| C06 | One trigger model shared by tips and lesson `do` steps (exact `detail`, ready for objectives); the `torch_at_ring` world event; lessons split one file each | Haiku | C02 |
-| C07 | Objectives and the session from data (`game/objectives/`, `game/session.json`, named hooks); `Objective.Camp()` and the `SessionStage` logic retired; save v5 with the v4 keys mapped; a v4 fixture and the out-of-order test | Sonnet | C05, C06 |
-| C08 | NPC data (`npcs/*.json`: label, name, figure key, phrase tables), `host-events.json`, `NpcService.AgentIds` from data; `NpcNames`, the `NpcHostEvents` table and `PhraseReview`'s table retired; the beacon label fixed | Haiku | C05 |
-| C09 | Items, blocks, sounds and signs as data (assess first; parts may stay code). Enum names stay stable because saves store them; signs need a sign mechanism | proposed | C08 |
-| C10 | Authoring CLI: scaffold, references, check (the first custom tool) | proposed | C07, C08 |
+| C01 | Content contract: JSON Schemas for every game file and the locale format, `$schema` refs, the schema test (test-only library), `content/README.md`, `content.sh refresh`, the bundle hash masked in `scripts/compare-runs.py` | R16 phase 2 | done, gated with C02 and C03 (2026-10-29, `9e7960d`) |
+| C02 | `GameData` + `GameDataValidator`: one load of every host file (the scene from the verified bytes; `GrammarStringsExtractor` reads through it), the cross-checks moved there, host `--validate-content` | C01 | done, gated with C01 and C03 (2026-10-29, `9e7960d`) |
+| C03 | The locale bundle (`content/locale/`, `en` only, its own manifest, checked at load, its hash in the log and the report); game-v1's `supportLanguage`; the turn path keeps line ids; `LocaleText` replaces `EnglishText`; glosses keyed by speech-line ids; the L1 fields leave lessons, phrases, glosses and checks; verb forms listed | C02 | done, gated with C01 and C02 (2026-10-29, `9e7960d`) |
+| C04 | The English literals of Game and Game.Core into the locale (section 2.2); `{key:…}` from R16's `KeyBindings`, `{npc:…}`, plurals; the no-literal scan; the glyph test | C03 | done, gated with C07 (2026-10-29, `59b7f01`) |
+| C05 | Target-language words out of code (`game/words.json`, place labels into the scene; section 2.3); the grammar extractor reads them 
+| C06 | One trigger model shared by tips and lesson `do` steps (exact `detail`, ready for objectives); the `torch_at_ring` world event; lessons split one file each | C02 | done, gated with C05 and C08 (2026-10-29, `19a328e`) |
+| C07 | Objectives and the session from data (`game/objectives/`, `game/session.json`, named hooks); `Objective.Camp()` and the `SessionStage` logic retired; save v5 with the v4 keys mapped; a v4 fixture and the out-of-order test | C05, C06 | done, gated with C04 (2026-10-29, `59b7f01`) |
+| C08 | NPC data (`npcs/*.json`: label, name, figure key, phrase tables), `host-events.json`, `NpcService.AgentIds` from data; `NpcNames`, the `NpcHostEvents` table and `PhraseReview`'s table retired; the beacon label fixed | C05 | done, gated with C05 and C06 (2026-10-29, `19a328e`) |
+| C09 | Items, blocks, sounds and signs as data (assess first; parts may stay code). Enum names stay stable because saves store them; signs need a sign mechanism | C08 | assessed (2026-10-29), not built: the series closed |
+| C10 | Authoring CLI: scaffold, references, check (the first custom tool) | C07, C08 | specified (section 3.8, 2026-10-29), not built: the series closed |
+
+**The series is closed (owner, 2026-10-29: "work for content is done").**
+- C01 to C08 are done and gated, and go to `main` by pull request #16.
+- C09 is assessed: sounds first, items, blocks and signs left as they are. C10 is specified in section 3.8. Neither is built; each would be a
+  milestone of its own when the owner asks for it.
+- The open points of C04 stay open: the speech and microphone problem messages, and the English verb labels.
+
+**The order of the rest (2026-10-29).** C05, C06, C08 and C07, then C04 last: its `{npc:…}` placeholder is filled from C08's NPC data, and its
+no-literal scan is easiest once every other milestone has moved its strings.
+
+**What C01 to C03 did, and how it differs from section 3 (2026-10-29).**
+- **C01.** Draft-07 schemas for every game file and the locale format, in `content/schema/`. Each step type's required fields are written as
+  `anyOf` with `not`, because NJsonSchema does not apply `if`/`then`. The licence scan takes `--target`, and the gate scans
+  `tests/Vocaterra.Game.Core.Tests` too. `compare-runs.py` masks the bundles' hashes, the checkout's path and the lines `limited.sh` prints
+  while it waits.
+- **C02.** `GameData.Load` reads every game file once, from the verified bytes, scene included. `GameDataValidator` reports every problem
+  between files at once. The reference checks moved there from `EnglishText` and `CheckBank`; `LessonBook` keeps its own, because it resolves
+  them into its model. The grammar strings came out byte-identical.
+- **C03.** `content/locale/en` holds 815 strings in 10 files, keyed by id, with its own manifest, which `LocaleBundle` checks at load. A new
+  locale needs only its strings: the ids and the fallback are fixed.
+  - **Lines.** The data keys each gloss by speech-line id (`line.<lineId>`), so a Spanish edit keeps it. The panel still finds the line from
+    its text, through the bundle's own speech lines and without case, accents or punctuation. The turn records were not given line ids, which
+    3.2 asked for; the effect is the same, and a test checks that every NPC line has a gloss.
+  - **The rest.** The model types keep their `English` property names (`PhraseRow.English`, `LessonStep.English`); C04 may rename them.
+    `english.json` and `glosses.json` left game-v1, and `game/tips.json` and `game/controls.json` keep the tips' timing and the controls'
+    order. The orphan gloss "Necesitas una botella." was dropped.
+  - **Core.** Two core findings became core milestones: M54 (the identity guard masks the bundle's hash, which it had pinned) and M55 (the
+    manifest tests no longer assume that game-v1 names no support language).
+  - **Runs.** The scripted runs differ from the baseline only by the new `locale:` line in `stdout.txt`, the `locale` and `locale_bundle`
+    fields of `session_start`, and the report's Locale row.
+
+**What C05, C06 and C08 did, and how it differs from section 3 (2026-10-29).**
+- **C05.** `game/words.json` (`GameWords`) holds the target-language words the code held: the guide's directions, the block unit and the list
+  joiner, the speech buttons, the offer to type, the support headings, the unseen label, the conjugation tables' pronouns, the stall's key
+  words, the help and no-sé lines, the near future, the greeting and the river noun. The validator checks them against the catalogue, the
+  lexicon and the sheet, and the grammar check reads them (26 new strings). The articles are the lexicon's `art` readings. `PointLabels` is
+  gone: sites, points and named props carry a `label` in the scene. The runs did not change.
+- **C06.** `Trigger` (`Event/Trigger.cs`) is one matcher for the tips and the lessons' `do` steps, with an exact `detail`; `count` was not
+  added, since an objective step's `target` does the counting (C07). The session raises `torch_at_ring` with the ring's name. The lessons are
+  one file each under `game/lessons/`, listed in order by `game/lessons.json`. The runs differ only by the new `torch_at_ring` lines (r01 and
+  r10).
+- **C08.** `game/npcs.json` lists the NPCs in order, and `game/npcs/<id>.json` gives each one's label, name, figure key and `focus` (the
+  phrases each of its prompts practises). The home NPCs and the scaffolded phrases are derived from the focus. `game/host-events.json`
+  (`HostEventTable`) replaces the code's table; `NpcHostEvents` keeps only the event names the code waits for. The review placeholder lines are
+  each phrase row's `reviewLine`. The lesson loader checks its NPCs against the roster; the validator checks the roster against the agents and
+  the prompts, and the tips' and host events' NPCs against the roster. The beacon on an NPC shows the NPC's name or label (`Tendero`), where it
+  used to show the raw id. The NPCs' labels and names joined the grammar strings (4 new, all clean).
+
+**What C07 did, and how it differs from section 3 (2026-10-29).**
+- `game/session.json` orders `meet-guide`, `camp` and `light-fire`, and names the closing pool, the starting book and the beacon's start
+  (`camp.guide`). Each objective is `game/objectives/<id>.json`, read by `ObjectiveBook`. The camp's labels follow the rule in 3.5 and match
+  the old words.
+- **Triggers.** `light-fire` waits for `fire_lit`, not `torch_at_ring` with `firering.player`: the code still lights the fire and logs
+  `fire_lit`, and the session-complete line must follow it. `meet-guide` waits for `guide_met`; `alsoDoneBy: ["camp"]` completes it once the
+  checklist moves, and its `guide-met` hook logs `guide_met` then, as the code did.
+- **Hooks.** Completion hooks: `guide-met`, `spare-torch`, `point-own-camp`. Restore hooks: `lesson-begun` (the guide is met once a lesson was
+  begun) and `scan-fire-ring`. On load the completion hooks put their state back without acting.
+- **Logging.** Only a checklist logs `objective_step` and `objective_complete`. The other objectives complete silently: their events are
+  already in the log.
+- **Stage.** `SessionStage` and `Stage` are gone; `CurrentObjective` (the first not done, `null` when all are) picks the HUD line. The tests
+  of `OpeningAndEndingTests` keep every assertion, written against the objective's id.
+- **The locale.** `ui.objectiveFindGuide` and `ui.objectiveLightFire` became `objective.meet-guide.hud` and `objective.light-fire.hud`.
+- **Save v5.** Steps are keyed `<objective>.<step>`, and only steps without a restore hook are kept. A save older than v5 has its dotless keys
+  mapped to `camp.<step>` before the migration. `Fixtures/save-v4.json`, written by the C08 code (fire lit first, then wood 5 and fruit 2),
+  loads, keeps its counts across bundles, and still ends when the checklist is done. The test API changed too: `Objective.RecordPickup` and its
+  kind became `Objective.Record(event, detail, amount)`, and `HostEvent` takes a world event's name.
+- **Runs (C07 and C08 against C06).** The only differences are the saves: version 5 with `camp.*` keys (r01's autosave, r09's save), and the
+  stdout lines that report them, 20 bytes longer. C08 changed no run: none points the beacon at an NPC other than the guide.
+
+**What C04 did, and how it differs from section 3 (2026-10-29).**
+- **Moved to the locale.** About 150 of the player's English strings are now `ui.*` strings in `locale/en/ui.json`, each listed in
+  `LocaleText.UiKeys`, which the validator holds every locale to. They cover the dialogue panel, the HUD (the talk and playtest hints, the
+  tips' heading, the new-word card and toasts, the beacon's distance, the loading line, the save toasts), the inventory, the recipes and the
+  workbench, the book (its tabs, pages, journal rows and tense columns), the checks, the mic check, the report panel, the crafting rows, the
+  bottle hint and the playtest's thanks. The constants that held them became methods that take the locale.
+- **Placeholders.** `{npc:<id>}` is what the NPC is called, from C08's data; `GameData` gives the locale the shipped NPCs. Only the support
+  language's own text uses it (26 lesson strings, a tip, a check situation). A gloss of a Spanish line that says "Luna" keeps the name written
+  out, because the Spanish does. `{key:<command>}` comes from `InputKeys`, a table that `KeyBindings` and the push-to-talk keys now read, and is
+  spelled with `locale/en/keys.json`. The tips, the controls help, three lesson texts and the hints use it. A screen's own keys (the dialogue
+  panel's Enter and Tab, the lesson strip's letters) stay written out: those screens fix them.
+- **Plurals.** `LocaleText.Plural` picks `<id>.one` or `<id>.other`. The beacon now says "1 block".
+- **Tests.**
+  - `NoLiteralTextTests` scans the two projects. Its allowlist names each file of developer text with its reason, and a second test fails
+    an entry that is no longer needed.
+  - The font test reads every string of every locale, and checks the glyph list of `locales.json` (`¡`, `«` and `»` joined it).
+  - The validator refuses a `{npc:…}` or `{key:…}` that names nothing.
+- **Open points (left in code, on the allowlist):**
+  - the speech and microphone problem messages: they come from the turn worker, the speech engine and the capture, which have no locale;
+  - `BookVerbLabels`' English verb grammar (do/does, am/is/are, will, used to): rules over the listed forms, which a second locale needs
+    its own version of;
+  - the saved report's and crash file's headings, and the strict-save refusal on the console: these are developer text.
+- **Runs.** All 16 are the same as after C07, screenshots included. The first capture found one slip: the console's `panel:` line printed
+  the heard line's new `Text` method instead of calling it (a method group has a natural type, so it compiled); `DialogueModel.HeardText` fixed it.
+
+**C09: the assessment (2026-10-29; no code, it awaits the owner).**
+- **Sounds (32 cues in `SoundCatalog`).** This is the easiest and safest move: a `game/sounds.json` mapping each cue to a file, a volume and
+  a pan, checked against the files and the provenance. The cues stay an enum, because the code raises them. It is worth doing first: it lets
+  a sound be swapped without code.
+- **Items (8 in `ItemDefinition.All`).** The behaviour stays code: the bottle fills, the torch lights, the book opens. A data file could hold
+  only the stack limits and the icon keys, and `nouns.json` already ties each item to its noun. That is little gain for the risk to the saves,
+  which store the enum names, so it is not recommended now.
+- **Blocks (52 in `BlockDefinition`).** Hardness, drops and the atlas are tied to the meshing and to five `BlockArt*` painters in the game.
+  Data would need the art as data too (a texture atlas file), which is a project of its own. Not recommended before the art pipeline.
+- **Signs.** There is no sign block or text yet. That is a world feature first (a block, its text by id, target language or locale), then
+  data. It needs a design decision.
+- **Recommendation.** Do C09a, the sounds as data, alone; leave items and blocks in code; design signs separately.
 
 **Every content-moving milestone:**
 - runs `content.sh refresh` (hash, provenance, validate, lint, cefr-check, the game validator and the grammar check), then the whole
@@ -602,7 +771,5 @@ R16 phase 2 has landed (owner, 2026-10-28), from the branch R16 lands on. Each b
 - **Core items, out of scope.** Each becomes a core milestone if a locale or a fix needs it:
   - `StaticLineStore` reads the WAVs a second time;
   - `PredictedErrorVariants` assumes an English speaker. A non-English locale would make this one a core milestone.
-- **Decision record.** When the owner adopts this plan:
-  - add it as D-game-21 in `DECISIONS.md`, and as section 4.7 of `IMPLEMENTATION_PLAN.md`;
-  - record the "Luna"/"Rosa" mismatch, the scene's second read and the beacon-label bug in section 5;
-  - add a line to `CLAUDE.md`.
+- **Decision record (done, 2026-10-29).** The plan is D-game-21 in `DECISIONS.md` and section 4.7 of `IMPLEMENTATION_PLAN.md`. Section 5
+  there records the "Luna"/"Rosa" mismatch, the scene's second read and the beacon-label bug, and `CLAUDE.md` has a line for it.

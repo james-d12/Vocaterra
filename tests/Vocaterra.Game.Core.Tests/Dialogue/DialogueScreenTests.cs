@@ -62,7 +62,7 @@ public sealed class DialogueScreenTests
     private static (DialogueScreen Screen, DialogueModel Dialogue, VoxelSession Session, List<string> Lines) Make()
     {
         var session = RouteScene.NewSession(Bundle.Value, Nouns.Value);
-        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Phrases, session.English);
+        var dialogue = new DialogueModel(new InputFocus(), session.OpeningLine, session.Data, session.Phrases, session.Locale);
         var voice = new NpcVoice(Path.GetTempPath(), new SpeechIndex([]), new SilentOutput(), muted: true, _ => { });
         var lines = new List<string>();
         var sound = new SoundFrontend(new SoundMixer(new NullSoundOutput(), new SoundVolumes(), new PresentationRng(1)), new SoundEventMapper());

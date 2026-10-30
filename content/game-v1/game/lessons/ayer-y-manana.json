@@ -1,0 +1,231 @@
+{
+  "$schema": "../../../schema/lesson.schema.json",
+  "schemaVersion": 1,
+  "id": "ayer-y-manana",
+  "npc": "villager",
+  "autoStart": true,
+  "session": 3,
+  "verbs": [
+    {
+      "lemma": "ir",
+      "person": "1",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "ir",
+      "person": "2",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "ir",
+      "person": "3",
+      "number": "sg",
+      "tense": "pres"
+    },
+    {
+      "lemma": "ir",
+      "person": "3",
+      "number": "pl",
+      "tense": "pres"
+    },
+    {
+      "lemma": "comer",
+      "person": "1",
+      "number": "sg",
+      "tense": "ir-a"
+    },
+    {
+      "lemma": "comer",
+      "person": "2",
+      "number": "sg",
+      "tense": "ir-a"
+    },
+    {
+      "lemma": "comer",
+      "person": "1",
+      "number": "pl",
+      "tense": "ir-a"
+    },
+    {
+      "lemma": "comer",
+      "person": "3",
+      "number": "pl",
+      "tense": "ir-a"
+    },
+    {
+      "lemma": "ir",
+      "person": "1",
+      "number": "sg",
+      "tense": "ir-a"
+    },
+    {
+      "lemma": "comer",
+      "person": "1",
+      "number": "sg",
+      "tense": "pret"
+    },
+    {
+      "lemma": "comer",
+      "person": "2",
+      "number": "sg",
+      "tense": "pret"
+    },
+    {
+      "lemma": "ir",
+      "person": "1",
+      "number": "sg",
+      "tense": "pret"
+    },
+    {
+      "lemma": "ir",
+      "person": "2",
+      "number": "sg",
+      "tense": "pret"
+    },
+    {
+      "lemma": "beber",
+      "person": "1",
+      "number": "sg",
+      "tense": "pret"
+    },
+    {
+      "lemma": "beber",
+      "person": "2",
+      "number": "sg",
+      "tense": "pret"
+    }
+  ],
+  "steps": [
+    {
+      "id": "f0-intro",
+      "type": "explain"
+    },
+    {
+      "id": "f1-ir",
+      "type": "explain"
+    },
+    {
+      "id": "f1-you-go",
+      "type": "listen",
+      "line": "guide.lesson.villager.goes.1",
+      "correct": 0
+    },
+    {
+      "id": "f2-intro",
+      "type": "explain"
+    },
+    {
+      "id": "f2-ask",
+      "type": "answer",
+      "phrase": "voy-a-comer-pan",
+      "prompt": "lesson-plan",
+      "line": "guide.lesson.villager.plan.1",
+      "person": "1sg",
+      "tense": "ir-a"
+    },
+    {
+      "id": "f2-we",
+      "type": "answer",
+      "phrase": "vamos-a-comer-fruta",
+      "prompt": "lesson-plan-we",
+      "line": "guide.lesson.villager.plan_we.1",
+      "person": "1pl",
+      "tense": "ir-a"
+    },
+    {
+      "id": "f2-they",
+      "type": "listen",
+      "line": "guide.lesson.villager.eat.1",
+      "correct": 0
+    },
+    {
+      "id": "f3-walk",
+      "type": "do",
+      "trigger": {
+        "event": "talk_opened",
+        "npc": "shopkeeper"
+      },
+      "point": "tienda"
+    },
+    {
+      "id": "y0-intro",
+      "type": "explain",
+      "npc": "shopkeeper"
+    },
+    {
+      "id": "y1-model",
+      "type": "model",
+      "npc": "shopkeeper",
+      "line": "guide.lesson.shop.ayer.1"
+    },
+    {
+      "id": "y1-ate",
+      "type": "answer",
+      "npc": "shopkeeper",
+      "phrase": "ayer-comi-fruta",
+      "prompt": "lesson-ate",
+      "line": "guide.lesson.shop.ate.1",
+      "person": "1sg",
+      "tense": "pret"
+    },
+    {
+      "id": "y2-ask",
+      "type": "model",
+      "npc": "shopkeeper",
+      "line": "guide.lesson.shop.went.1"
+    },
+    {
+      "id": "y2-went",
+      "type": "repeat",
+      "npc": "shopkeeper",
+      "phrase": "ayer-fui-al-rio",
+      "prompt": "lesson-went",
+      "person": "1sg",
+      "tense": "pret"
+    },
+    {
+      "id": "y4-you",
+      "type": "listen",
+      "npc": "shopkeeper",
+      "line": "guide.lesson.shop.you.1",
+      "correct": 0
+    },
+    {
+      "id": "y3-had",
+      "type": "answer",
+      "npc": "shopkeeper",
+      "phrase": "ayer-bebi-agua",
+      "prompt": "lesson-had",
+      "line": "guide.lesson.shop.had.1",
+      "person": "1sg",
+      "tense": "pret"
+    },
+    {
+      "id": "y5-contrast",
+      "type": "explain",
+      "npc": "shopkeeper"
+    },
+    {
+      "id": "y6-tomorrow",
+      "type": "answer",
+      "npc": "shopkeeper",
+      "phrase": "voy-a-ir-al-rio",
+      "prompt": "lesson-tomorrow",
+      "line": "guide.lesson.shop.tomorrow.1",
+      "person": "1sg",
+      "tense": "ir-a"
+    },
+    {
+      "id": "y7-table",
+      "type": "explain",
+      "npc": "shopkeeper"
+    },
+    {
+      "id": "y8-recap",
+      "type": "recap",
+      "npc": "shopkeeper"
+    }
+  ]
+}

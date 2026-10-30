@@ -19,11 +19,11 @@ public class ManifestLanguageTests
     [Fact]
     public void WithoutALanguageTheHashIsExactlyTheOldCombineOfPathsAndHashes()
     {
+        // game-v1 names no target language; it names its support language (en, the game's C03), which the hash leaves out.
         var manifest = TestSupport.Bundle.Manifest;
         var parts = manifest.Files.SelectMany(file => new[] { file.Path, file.Sha256 }).ToArray();
 
         Assert.Null(manifest.Language);
-        Assert.Null(manifest.SupportLanguage);
         Assert.Equal(DeterministicHash.Combine(parts), manifest.BundleHash);
         Assert.Equal(manifest.BundleHash, ContentManifest.ComputeBundleHash(manifest.Files, null));
     }
@@ -55,7 +55,8 @@ public class ManifestLanguageTests
     public void TheSupportLanguageIsRecordedAndDoesNotChangeTheHash()
     {
         using var bundle = new TempBundle();
-        var plain = ContentManifest.Compute(bundle.Directory, language: "es");
+        // A support language the copied manifest names is kept by Compute, so the plain one is made without it.
+        var plain = ContentManifest.Compute(bundle.Directory, language: "es") with { SupportLanguage = null };
 
         var withSupport = ContentManifest.Compute(bundle.Directory, language: "es", supportLanguage: "en");
 
@@ -68,7 +69,7 @@ public class ManifestLanguageTests
     [Fact]
     public void TheLanguageFieldsRoundTripAndAreWrittenOnlyWhenPresent()
     {
-        var absent = TestSupport.Bundle.Manifest;
+        var absent = TestSupport.Bundle.Manifest with { SupportLanguage = null };
         var present = absent with { Language = "de-DE", SupportLanguage = "en", BundleHash = ContentManifest.ComputeBundleHash(absent.Files, "de-DE") };
 
         var absentJson = absent.ToJson();

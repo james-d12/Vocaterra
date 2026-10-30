@@ -93,7 +93,7 @@ public static class SceneBuilder
 
             var trees = PlantForest(seed);
             var plants = PlantUndergrowth(seed);
-            return new Scene(_layout.Name, seed, _grid, new SpawnPoint(spawnFeet, _layout.Spawn.Yaw, _layout.Spawn.Pitch), npcs, _points, trees, _layout.WaterLevel, plants);
+            return new Scene(_layout.Name, seed, _grid, new SpawnPoint(spawnFeet, _layout.Spawn.Yaw, _layout.Spawn.Pitch), npcs, _points, trees, _layout.WaterLevel, plants, _layout.Labels);
         }
 
         // ---------------------------------------------------------------- the ground

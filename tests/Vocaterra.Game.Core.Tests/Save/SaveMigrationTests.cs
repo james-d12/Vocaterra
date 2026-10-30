@@ -35,7 +35,7 @@ public sealed class SaveMigrationTests
     }
 
     private static VoxelSession Load(SaveDocument document, bool migrate, Func<ulong, Scene>? pristine = null, bool bump = false) =>
-        SaveGame.Load(SaveGame.Serialize(document), TestGame.Bundle, pristine ?? Pristine, TestGame.Nouns, credit: CreditRules.FullTyped, bumpSession: bump, migrate: migrate);
+        SaveGame.Load(SaveGame.Serialize(document), TestGame.Data, pristine ?? Pristine, credit: CreditRules.FullTyped, bumpSession: bump, migrate: migrate);
 
     private static SaveDocument FromOtherBundle(SaveDocument document) => document with { BundleHash = OtherBundle };
 
@@ -115,8 +115,8 @@ public sealed class SaveMigrationTests
         var document = CampDocument();
         var text = SaveGame.Serialize(document);
 
-        var strict = SaveGame.Load(text, TestGame.Bundle, Pristine, TestGame.Nouns, bumpSession: false);
-        var migrating = SaveGame.Load(text, TestGame.Bundle, Pristine, TestGame.Nouns, bumpSession: false, migrate: true);
+        var strict = SaveGame.Load(text, TestGame.Data, Pristine, bumpSession: false);
+        var migrating = SaveGame.Load(text, TestGame.Data, Pristine, bumpSession: false, migrate: true);
 
         Assert.Null(strict.Migration);
         Assert.Null(migrating.Migration);
@@ -147,7 +147,7 @@ public sealed class SaveMigrationTests
         Assert.True(report.Find(SaveMigration.WorldArea)!.Kept > 0);
         Assert.Empty(report.Find(SaveMigration.WorldArea)!.Dropped);
         Assert.Equal(document.StateDigest, loaded.Simulation.ComputeStateDigest());
-        Assert.Empty(VoxelGridDiff.Capture(loaded.Scene.Grid, SaveGame.Restore(document, TestGame.Bundle, Pristine(), TestGame.Nouns, bumpSession: false).Scene.Grid));
+        Assert.Empty(VoxelGridDiff.Capture(loaded.Scene.Grid, SaveGame.Restore(document, TestGame.Data, Pristine(), bumpSession: false).Scene.Grid));
     }
 
     [Fact]
@@ -302,14 +302,17 @@ public sealed class SaveMigrationTests
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
+    [InlineData(5)]
     public void EveryReadableVersionLoadsAcrossBundles(int version)
     {
         var document = CampDocument();
+        var steps = document.Objective.Select(static o => o with { Key = o.Key["camp.".Length..] }).ToArray(); // before version 5 the keys were the checklist's alone (C07)
         var older = version switch
         {
-            1 => document with { Version = 1, Lessons = null, Tips = null, Learner = null, BookGranted = false, Settings = null, World = null },
-            2 => document with { Version = 2, Settings = null, World = null, BookGranted = false },
-            3 => document with { Version = 3, Settings = null, World = null },
+            1 => document with { Version = 1, Lessons = null, Tips = null, Learner = null, BookGranted = false, Settings = null, World = null, Objective = steps },
+            2 => document with { Version = 2, Settings = null, World = null, BookGranted = false, Objective = steps },
+            3 => document with { Version = 3, Settings = null, World = null, Objective = steps },
+            4 => document with { Version = 4, Objective = steps },
             _ => document,
         };
         older = FromOtherBundle(older) with { Words = [.. document.Words, document.Words[0] with { Lemma = "gone-noun" }] };
@@ -329,11 +332,11 @@ public sealed class SaveMigrationTests
     {
         var text = File.ReadAllText(FixturePath("save-v1.json"));
 
-        var strict = SaveGame.Load(text, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped);
+        var strict = SaveGame.Load(text, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped);
         Assert.Null(strict.Migration);
 
         var other = SaveGame.Serialize(SaveGame.Parse(text) with { BundleHash = OtherBundle });
-        var loaded = SaveGame.Load(other, TestGame.Bundle, TestGame.Route, TestGame.Nouns, credit: CreditRules.FullTyped, migrate: true);
+        var loaded = SaveGame.Load(other, TestGame.Data, TestGame.Route, credit: CreditRules.FullTyped, migrate: true);
         Assert.NotNull(loaded.Migration);
         Assert.True(loaded.Migration!.WorldDigestMatched);
         Assert.Empty(loaded.Learner.History);
@@ -349,7 +352,7 @@ public sealed class SaveMigrationTests
 
         Assert.Equal(TestGame.Bundle.ContentHash, again.BundleHash);
         Assert.Equal(SaveGame.CurrentVersion, again.Version);
-        var reloaded = SaveGame.Load(SaveGame.Serialize(again), TestGame.Bundle, Pristine, TestGame.Nouns, bumpSession: false);
+        var reloaded = SaveGame.Load(SaveGame.Serialize(again), TestGame.Data, Pristine, bumpSession: false);
         Assert.Null(reloaded.Migration);
     }
 

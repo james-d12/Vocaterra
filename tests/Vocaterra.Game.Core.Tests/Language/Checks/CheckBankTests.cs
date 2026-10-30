@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
@@ -8,11 +9,9 @@ namespace Vocaterra.Game.Core.Tests.Language.Checks;
 /// <summary>The check battery's items (<c>game/checks.json</c>, S11): what is in the bundle, and that a bad item is refused when it is read.</summary>
 public sealed class CheckBankTests
 {
-    private static IReadOnlyList<CheckItem> Bank => CheckBank.Load(TestGame.Bundle);
+    private static IReadOnlyList<CheckItem> Bank => RouteScene.DataOf(TestGame.Bundle).Checks;
 
-    private static PhraseSheet Sheet => PhraseSheet.Load(TestGame.Bundle);
-
-    private static IReadOnlySet<string> Prompts => TestGame.Bundle.Prompts.Keys.ToHashSet(StringComparer.Ordinal);
+    private static PhraseSheet Sheet => RouteScene.DataOf(TestGame.Bundle).Phrases;
 
     // One comprehension item and one production item, valid on their own; the tests break one thing at a time.
     private const string Comprehension =
@@ -78,8 +77,7 @@ public sealed class CheckBankTests
     {
         var json = Battery(Comprehension.Replace("\"pedir-agua\"", "\"no-such-phrase\"", StringComparison.Ordinal));
 
-        var error = Assert.Throws<InvalidDataException>(() => CheckBank.Parse(json, Sheet, Prompts));
-        Assert.Contains("no-such-phrase", error.Message, StringComparison.Ordinal);
+        Assert.Contains(Problems(json), static p => p.Contains("no-such-phrase", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -87,7 +85,7 @@ public sealed class CheckBankTests
     {
         var json = Battery(Comprehension.Replace("\"correct\":0", "\"correct\":3", StringComparison.Ordinal));
 
-        Assert.Throws<InvalidDataException>(() => CheckBank.Parse(json, Sheet, Prompts));
+        Assert.Throws<InvalidDataException>(() => Parse(json));
     }
 
     [Fact]
@@ -95,7 +93,7 @@ public sealed class CheckBankTests
     {
         var json = Battery(Comprehension.Replace(",{\"label\":\"c\"}", string.Empty, StringComparison.Ordinal));
 
-        Assert.Throws<InvalidDataException>(() => CheckBank.Parse(json, Sheet, Prompts));
+        Assert.Throws<InvalidDataException>(() => Parse(json));
     }
 
     [Fact]
@@ -103,7 +101,7 @@ public sealed class CheckBankTests
     {
         var json = Battery(Production.Replace("\"stall-need\"", "\"no-such-prompt\"", StringComparison.Ordinal));
 
-        Assert.Throws<InvalidDataException>(() => CheckBank.Parse(json, Sheet, Prompts));
+        Assert.Contains(Problems(json), static p => p.Contains("no-such-prompt", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -111,7 +109,33 @@ public sealed class CheckBankTests
     {
         var json = Battery(Production.Replace("\"pedir-agua\"", "\"que-necesitas\"", StringComparison.Ordinal));
 
-        Assert.Throws<InvalidDataException>(() => CheckBank.Parse(json, Sheet, Prompts));
+        Assert.Contains(Problems(json), static p => p.Contains("a phrase the learner does not say", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void AComprehensionItemThatPlaysNoSpeechLineIsRefused()
+    {
+        var json = Battery(Comprehension.Replace("\"phrase.pedir-agua\"", "\"phrase.no-such-line\"", StringComparison.Ordinal));
+
+        Assert.Contains(Problems(json), static p => p.Contains("phrase.no-such-line", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void AValidBatteryHasNoProblemsWithTheBundle()
+    {
+        Assert.Empty(Problems(Battery(Comprehension, Production)));
+    }
+
+    // The references of the items are checked against the other files by the validator (CONTENT_PLAN C02), as the game's load does.
+    // The shipped battery's locale strings are orphans once a fixture replaces the battery, so those are left out.
+    private static IReadOnlyList<string> Problems(string json) =>
+        GameDataValidator.Validate(TestGame.Data.WithChecks(Parse(json))).Where(static p => !p.EndsWith("(an orphan).", StringComparison.Ordinal)).ToList();
+
+    // The fixtures keep their text inline; it is split into locale strings as the shipped battery's is (C03).
+    private static IReadOnlyList<CheckItem> Parse(string json)
+    {
+        var (file, strings) = LocaleFixture.SplitChecks(json);
+        return CheckBank.Parse(file, TestGame.Locale.With(strings));
     }
 
     [Fact]
@@ -119,21 +143,21 @@ public sealed class CheckBankTests
     {
         var json = Battery(Production, Production);
 
-        Assert.Throws<InvalidDataException>(() => CheckBank.Parse(json, Sheet, Prompts));
+        Assert.Throws<InvalidDataException>(() => Parse(json));
     }
 
     [Fact]
     public void AnEmptyBatteryAndAnUnknownSchemaAreRefused()
     {
-        Assert.Throws<InvalidDataException>(() => CheckBank.Parse("""{"schemaVersion":1,"items":[]}""", Sheet, Prompts));
-        Assert.Throws<InvalidDataException>(() => CheckBank.Parse("""{"schemaVersion":2,"items":[]}""", Sheet, Prompts));
-        Assert.Throws<InvalidDataException>(() => CheckBank.Parse("not json", Sheet, Prompts));
+        Assert.Throws<InvalidDataException>(() => Parse("""{"schemaVersion":1,"items":[]}"""));
+        Assert.Throws<InvalidDataException>(() => Parse("""{"schemaVersion":2,"items":[]}"""));
+        Assert.Throws<InvalidDataException>(() => CheckBank.Parse("not json", TestGame.Locale));
     }
 
     [Fact]
     public void AValidBatteryParses()
     {
-        var items = CheckBank.Parse(Battery(Comprehension, Production), Sheet, Prompts);
+        var items = Parse(Battery(Comprehension, Production));
 
         Assert.Equal(["hear.x", "say.x"], items.Select(static i => i.Id));
         Assert.Equal("Quiero agua, por favor.", items[0].Spanish);

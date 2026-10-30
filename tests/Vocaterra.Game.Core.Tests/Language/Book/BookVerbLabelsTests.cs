@@ -3,14 +3,15 @@ using Vocaterra.Game.Core.Language.Words;
 
 namespace Vocaterra.Game.Core.Tests.Language.Book;
 
-// The verb-form labels of the book's Verbs page (S20): the English of each reading from a small table over person, number, tense and mood.
+// The verb-form labels of the book's Verbs page (S20): the English of each reading from a small table over person, number, tense and mood, filled with the
+// forms the locale lists for the verb (C03: the gloss, the base, the third person and the past; no form is built by a rule).
 public sealed class BookVerbLabelsTests
 {
-    private static readonly VerbGloss Querer = new("querer", "to want", null, null);
-    private static readonly VerbGloss Ser = new("ser", "to be", null, null);
-    private static readonly VerbGloss Estar = new("estar", "to be", null, null);
-    private static readonly VerbGloss Tener = new("tener", "to have", "has", "had");
-    private static readonly VerbGloss Ir = new("ir", "to go", "goes", "went");
+    private static readonly VerbGloss Querer = new("querer", "to want", "want", "wants", "wanted");
+    private static readonly VerbGloss Ser = new("ser", "to be", "be", "is", "was");
+    private static readonly VerbGloss Estar = new("estar", "to be", "be", "is", "was");
+    private static readonly VerbGloss Tener = new("tener", "to have", "have", "has", "had");
+    private static readonly VerbGloss Ir = new("ir", "to go", "go", "goes", "went");
 
     private static string Label(string form, VerbGloss gloss, string person, string number, string tense, string mood, bool question = false) =>
         BookVerbLabels.Label(form, gloss.Lemma, gloss, person, number, tense, mood, question);
@@ -24,7 +25,7 @@ public sealed class BookVerbLabelsTests
     [InlineData("3", "pl", "they want")]
     public void ThePresentIndicativeGivesEachPersonAndNumber(string person, string number, string english)
     {
-        Assert.Equal(english, BookVerbLabels.English(Querer.English, Querer.Third, Querer.Past, person, number, "pres", "ind", question: false));
+        Assert.Equal(english, BookVerbLabels.English(Querer, person, number, "pres", "ind", question: false));
     }
 
     [Theory]
@@ -33,7 +34,7 @@ public sealed class BookVerbLabelsTests
     [InlineData("2", "pl", "you all wanted")]
     public void ThePreteriteGivesThePastOfTheVerb(string person, string number, string english)
     {
-        Assert.Equal(english, BookVerbLabels.English(Querer.English, Querer.Third, Querer.Past, person, number, "pret", "ind", question: false));
+        Assert.Equal(english, BookVerbLabels.English(Querer, person, number, "pret", "ind", question: false));
     }
 
     [Theory]
@@ -43,7 +44,7 @@ public sealed class BookVerbLabelsTests
     [InlineData("pres", "subj", "that I want")]
     public void TheOtherTensesAndTheSubjunctiveUseTheirOwnFrame(string tense, string mood, string english)
     {
-        Assert.Equal(english, BookVerbLabels.English(Querer.English, Querer.Third, Querer.Past, "1", "sg", tense, mood, question: false));
+        Assert.Equal(english, BookVerbLabels.English(Querer, "1", "sg", tense, mood, question: false));
     }
 
     [Theory]
@@ -52,7 +53,7 @@ public sealed class BookVerbLabelsTests
     [InlineData("1", "pl", "let's want")]
     public void TheImperativeGivesACommandForTheSecondPersonAndALetsForTheFirst(string person, string number, string english)
     {
-        Assert.Equal(english, BookVerbLabels.English(Querer.English, Querer.Third, Querer.Past, person, number, null, "imp", question: false));
+        Assert.Equal(english, BookVerbLabels.English(Querer, person, number, null, "imp", question: false));
     }
 
     [Fact]
@@ -88,13 +89,13 @@ public sealed class BookVerbLabelsTests
     [Fact]
     public void SerAndEstarGlossedByWhatTheyAreForStillConjugateAsToBe()
     {
-        var serWhat = new VerbGloss("ser", "to be: what", null, null);
-        var estarWhere = new VerbGloss("estar", "to be: where or how", null, null);
+        var serWhat = new VerbGloss("ser", "to be: what", "be", "is", "was");
+        var estarWhere = new VerbGloss("estar", "to be: where or how", "be", "is", "was");
         Assert.Equal("soy — I am", Label("soy", serWhat, "1", "sg", "pres", "ind"));
         Assert.Equal("está — he/she/it is", Label("está", estarWhere, "3", "sg", "pres", "ind"));
         Assert.Equal("fue — he/she/it was", Label("fue", serWhat, "3", "sg", "pret", "ind"));
-        Assert.Equal("I will be", BookVerbLabels.English(serWhat.English, null, null, "1", "sg", "fut", "ind", question: false));
-        Assert.Equal("that I be", BookVerbLabels.English(estarWhere.English, null, null, "1", "sg", "pres", "subj", question: false));
+        Assert.Equal("I will be", BookVerbLabels.English(serWhat, "1", "sg", "fut", "ind", question: false));
+        Assert.Equal("that I be", BookVerbLabels.English(estarWhere, "1", "sg", "pres", "subj", question: false));
         Assert.Equal("ser — to be: what", BookVerbLabels.Label("ser", "ser", serWhat, null, null, null, null, question: false));
         Assert.Equal("estar — to be: where or how", BookVerbLabels.Label("estar", "estar", estarWhere, null, null, null, null, question: false));
     }
@@ -102,7 +103,7 @@ public sealed class BookVerbLabelsTests
     [Fact]
     public void VamosOfAnotherVerbIsLeftAsTheCoreReadsIt()
     {
-        var comer = new VerbGloss("comer", "to eat", null, null);
+        var comer = new VerbGloss("comer", "to eat", "eat", "eats", "ate");
         Assert.Equal("vamos — let's eat", BookVerbLabels.Label("vamos", "comer", comer, "1", "pl", null, "imp", question: false));
     }
 
@@ -115,14 +116,16 @@ public sealed class BookVerbLabelsTests
     }
 
     [Theory]
-    [InlineData("to play", "plays", "played")]
-    [InlineData("to try", "tries", "tried")]
-    [InlineData("to pass", "passes", "passed")]
-    [InlineData("to live", "lives", "lived")]
-    public void TheRegularRulesGiveTheThirdPersonAndThePastOfAGlossWithNoOverride(string english, string third, string past)
+    [InlineData("necesitar", "to need", "need", "needs", "needed")]
+    [InlineData("ir", "to go", "go", "goes", "went")]
+    [InlineData("ser", "to be: what", "be", "is", "was")]
+    [InlineData("tener", "to have", "have", "has", "had")]
+    [InlineData("poder", "to be able to", "be able to", "is able to", "was able to")]
+    public void TheLocaleListsEveryVerbsFormsAsTheRuleGaveThemBeforeC03(string lemma, string gloss, string bare, string third, string past)
     {
-        Assert.Equal("he/she/it " + third, BookVerbLabels.English(english, null, null, "3", "sg", "pres", "ind", question: false));
-        Assert.Equal("he/she/it " + past, BookVerbLabels.English(english, null, null, "3", "sg", "pret", "ind", question: false));
+        // The forms the book used to build by rule (wants, tries, passes, lived) are listed in content/locale/en/verbs.json since C03, the same words.
+        Assert.Equal(new VerbGloss(lemma, gloss, bare, third, past), Vocaterra.Game.Core.Tests.TestSupport.TestGame.Data.Glosses.ForLemma(lemma));
+        Assert.Equal("he/she/it " + third, BookVerbLabels.English(Vocaterra.Game.Core.Tests.TestSupport.TestGame.Data.Glosses.ForLemma(lemma), "3", "sg", "pres", "ind", question: false));
     }
 
     [Fact]
@@ -131,7 +134,7 @@ public sealed class BookVerbLabelsTests
         Assert.Equal("querer — to want", BookVerbLabels.Label("querer", "querer", Querer, null, null, null, null, question: false));
         Assert.Equal("querido", BookVerbLabels.Label("querido", "querer", Querer, null, null, null, null, question: false));
         Assert.Equal("quiero", BookVerbLabels.Label("quiero", "querer", null, "1", "sg", "pres", "ind", question: false));
-        Assert.Null(BookVerbLabels.English("to want", null, null, "1", "sg", "fut", "subj", question: false));
+        Assert.Null(BookVerbLabels.English(Querer, "1", "sg", "fut", "subj", question: false));
         Assert.Null(BookVerbLabels.Subject(null, "sg"));
         Assert.Equal("I", BookVerbLabels.Subject("1", "sg"));
     }

@@ -3,6 +3,7 @@ using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Session;
 using Vocaterra.Game.Core.Sound;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Nlp.Core.Audio;
 using Vocaterra.Nlp.Response.Speech;
 
@@ -18,7 +19,7 @@ public sealed class NpcVoiceTests
     private static readonly Lazy<(string Speech, IReadOnlyList<SpeechLine> Lines)> Committed = new(() =>
     {
         var bundle = GameBundle.Load();
-        var lines = SpeechLines.Enumerate(bundle, NounCatalog.Load(bundle), PhraseSheet.Load(bundle));
+        var lines = SpeechLines.Enumerate(bundle, NounCatalog.Load(bundle), RouteScene.DataOf(bundle).Phrases);
         return (Path.Combine(GameBundle.ResolveDirectory(), SpeechLines.FolderName), lines);
     });
 

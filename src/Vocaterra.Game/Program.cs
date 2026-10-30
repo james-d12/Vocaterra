@@ -1,4 +1,5 @@
 using Vocaterra.Game;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Speech;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Reporting;
@@ -55,11 +56,20 @@ try
     var started = MonotonicClock.Milliseconds();
     var directory = GameBundle.ResolveDirectory(options.ContentDirectory);
     var bundle = GameBundle.Load(directory);
+    // Every game file is read once, from the bytes the bundle's load verified, and checked against the others (CONTENT_PLAN C02): the scene too,
+    // unless --scene names a file of its own, which is read from disk and skips the bundle's check.
+    var locales = LocaleBundle.Load(LocaleBundle.DirectoryBeside(directory));
+    var data = GameData.Load(bundle, locales.Text(LocaleBundle.ChooseCode(options.Locale, bundle)));
+    Console.WriteLine($"locale: {data.Locale.Code}, bundle {locales.BundleHash[..12]} ({string.Join(", ", locales.Locales.Select(static l => l.Code))} shipped)");
     var sceneStarted = MonotonicClock.Milliseconds();
     var layoutFile = SceneLocator.Resolve(options.SceneFile, directory);
-    var layout = SceneLayout.Load(layoutFile);
+    var layout = options.SceneFile is null ? data.Scene : SceneLayout.Load(layoutFile);
+    if (options.SceneFile is not null)
+    {
+        Console.WriteLine($"scene: {layoutFile} is read from disk (--scene); it skips the bundle's hash check");
+    }
+
     sceneLayout = layout;
-    var nouns = NounCatalog.Load(bundle);
     Func<ulong, Scene> buildFor = seed => SceneBuilder.Build(layout, seed);
     if (options.LoadPath is { } loadPath)
     {
@@ -68,7 +78,7 @@ try
         // A save of another bundle is refused in strict mode (--strict-save, and every --playtest: its recall check needs the frozen bundle, D-game-10); otherwise it is carried into this bundle (X01).
         SaveGame.Check(document, bundle, options.SeedGiven ? options.Seed : null, migrate: !options.StrictSave);
         scene = buildFor(document.WorldSeed);
-        session = SaveGame.Restore(document, bundle, scene, nouns, options.Credit, migrate: !options.StrictSave);
+        session = SaveGame.Restore(document, data, scene, options.Credit, migrate: !options.StrictSave);
         options = options with { Seed = document.WorldSeed };
         savedVolumes = document.Settings?.Sound.Clamped();
         savedTextScale = document.Settings?.Clamped().TextScale;
@@ -89,7 +99,7 @@ try
     else
     {
         scene = buildFor(options.Seed);
-        session = new VoxelSession(bundle, options.Seed, GuideSession.DefaultStartedAt, nouns, scene, options.Credit);
+        session = new VoxelSession(data, options.Seed, GuideSession.DefaultStartedAt, scene, options.Credit);
     }
 
     if (options.Session is { } playSession)
@@ -115,7 +125,7 @@ try
         Console.WriteLine("voice: muted (--mute)");
     }
 }
-catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundException or IOException or UnauthorizedAccessException or ContentValidationException or System.Text.Json.JsonException or InvalidDataException or SceneLayoutException or SaveException)
+catch (Exception ex) when (ex is DirectoryNotFoundException or FileNotFoundException or IOException or UnauthorizedAccessException or ContentValidationException or System.Text.Json.JsonException or InvalidDataException or SceneLayoutException or SaveException or ArgumentException)
 {
     Console.Error.WriteLine(ex.Message);
     return 1;

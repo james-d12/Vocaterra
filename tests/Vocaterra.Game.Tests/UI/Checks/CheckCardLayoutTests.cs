@@ -1,5 +1,6 @@
 using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.UI.Checks;
 using Vocaterra.Nlp.Content;
 using Xunit.Abstractions;
@@ -25,7 +26,7 @@ public sealed class CheckCardLayoutTests(ITestOutputHelper output)
     [Fact]
     public void EveryItemOfTheCheckBankFitsTheCardAtBothWindowSizes()
     {
-        var bank = CheckBank.Load(Bundle.Value);
+        var bank = RouteScene.DataOf(Bundle.Value).Checks;
         Assert.True(bank.Count >= 20);
         var rowsSeen = 0;
         foreach (var (width, height) in Sizes)
@@ -36,8 +37,8 @@ public sealed class CheckCardLayoutTests(ITestOutputHelper output)
             foreach (var item in bank)
             {
                 var layout = item.Kind == CheckItemKind.Comprehension
-                    ? CheckCardLayout.ForComprehension(panel, item.Question, CheckLayer.ComprehensionHint, item.Options.Select(static o => (o.Label, o.Icon is not null)).ToList(), Large, Small)
-                    : CheckCardLayout.ForProduction(panel, CheckLayer.ProductionPreface, item.Situation, CheckLayer.ProductionHint, Large, Small);
+                    ? CheckCardLayout.ForComprehension(panel, item.Question, CheckLayer.ComprehensionHint(RouteScene.Shipped.Locale), item.Options.Select(static o => (o.Label, o.Icon is not null)).ToList(), Large, Small)
+                    : CheckCardLayout.ForProduction(panel, CheckLayer.ProductionPreface(RouteScene.Shipped.Locale), item.Situation, CheckLayer.ProductionHint(RouteScene.Shipped.Locale), Large, Small);
                 var where = $"{width}x{height} {item.Id}";
                 Assert.All(layout.Preface, row => Assert.True(Small(row) <= inner, $"{where}: preface row '{row}' is wider than the card"));
                 Assert.All(layout.Heading, row => Assert.True(Large(row) <= inner, $"{where}: heading row '{row}' is wider than the card"));
@@ -73,7 +74,7 @@ public sealed class CheckCardLayoutTests(ITestOutputHelper output)
         const string Long = "The shopkeeper offers you bread. You don't want it. Say no politely.";
         Assert.True(Large(Long) > inner, "the stand-in font makes this line too long for one row");
 
-        var layout = CheckCardLayout.ForProduction(panel, CheckLayer.ProductionPreface, Long, CheckLayer.ProductionHint, Large, Small);
+        var layout = CheckCardLayout.ForProduction(panel, CheckLayer.ProductionPreface(RouteScene.Shipped.Locale), Long, CheckLayer.ProductionHint(RouteScene.Shipped.Locale), Large, Small);
 
         Assert.Equal(2, layout.Heading.Count);
         Assert.Equal(Long, string.Join(" ", layout.Heading)); // wrapped, nothing cut

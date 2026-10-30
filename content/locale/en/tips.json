@@ -1,0 +1,15 @@
+{
+  "$schema": "../../schema/locale.schema.json",
+  "about": "The first-time tips (tip.<id>); when each comes up is game data (content/game-v1/game/tips.json).",
+  "strings": {
+    "tip.look": "Move the mouse to look around. The valley below is where you are headed.",
+    "tip.walk": "Walk with W A S D. The trail starts beside your camp.",
+    "tip.jump": "Press Space to jump up a ledge or over a gap.",
+    "tip.note": "A note is pinned to your tent: “Welcome, traveler. My camp is down the trail, past the trees. Follow the camino (the trail) and come and say hello. {npc:guide}”",
+    "tip.gather": "Aim the dot in the middle of the screen at a tree trunk and hold the left mouse button to collect wood.",
+    "tip.pickup": "What you collect appears in the bar at the bottom. Press {key:inventory} to see everything you carry.",
+    "tip.npc": "Press {key:talk} to talk to someone. The English under the Spanish is there to help you.",
+    "tip.speak": "Hold {key:listen} (or {key:listenAlt}) to speak, or press W to type. Press H for help any time. Nothing here is a test: if you are not sure, press N for “I don't know”.",
+    "tip.objective": "The list at the top right shows what the camp needs. The English next to each word goes away once you know the word."
+  }
+}

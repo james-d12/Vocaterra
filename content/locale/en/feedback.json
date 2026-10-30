@@ -1,0 +1,29 @@
+{
+  "$schema": "../../schema/locale.schema.json",
+  "about": "The feedback after a turn: by outcome (feedback.outcome.<key>), by the core's error tag (feedback.error.<tag>), and the fallback.",
+  "strings": {
+    "feedback.outcome.understood": "Good. {npc} understood you.",
+    "feedback.outcome.understood_with_mistake": "{npc} understood you, but there was a small mistake. That is fine: keep going.",
+    "feedback.outcome.not_understood": "{npc} did not understand that. Try again, press H for help, or press W to type.",
+    "feedback.outcome.uncertain": "I could not hear that clearly. That is the microphone, not your Spanish. Try again, or press W to type.",
+    "feedback.outcome.dont_know": "That is fine. Not knowing is part of learning. Here is the phrase to say.",
+    "feedback.outcome.help": "Here is some help. Try the phrase on the card.",
+    "feedback.outcome.choice": "You picked one of the offered phrases. Next time, try saying it yourself.",
+    "feedback.outcome.fail_forward": "That is fine. The game carries on: you do not need to say it perfectly to continue.",
+    "feedback.outcome.pointed": "{npc} points to the {noun}, {blocks} blocks away. Follow the arrow.",
+    "feedback.error.vocab.wrong": "A different word fits here: “{expected}” instead of “{actual}”.",
+    "feedback.error.vocab.unknown": "The game does not know the word “{actual}”. Check the spelling, or try another word.",
+    "feedback.error.conj.person": "The verb ending must match who is speaking. Say “{expected}” instead of “{actual}”.",
+    "feedback.error.conj.tense": "The verb is in a different time (tense). Try “{expected}” instead of “{actual}”.",
+    "feedback.error.conj.irregular": "This verb is irregular, so it does not follow the usual pattern. Say “{expected}”, not “{actual}”.",
+    "feedback.error.gender.agree": "Spanish nouns are masculine or feminine, and the words next to them must match. Say “{expected}” instead of “{actual}”.",
+    "feedback.error.noun.number": "One or more than one? The noun and the words next to it must match. Say “{expected}” instead of “{actual}”.",
+    "feedback.error.ser_estar": "Spanish has two words for “to be”: ser and estar. Try “{expected}” instead of “{actual}”.",
+    "feedback.error.word_order": "The words go in a different order in Spanish. Try “{expected}” instead of “{actual}”.",
+    "feedback.error.pron.vowel": "A vowel sounded a little different. Spanish vowels are short and clear: a, e, i, o, u.",
+    "feedback.error.pron.r": "The Spanish “r” is a quick tap of the tongue, not the English “r”.",
+    "feedback.error.pron.silent_h": "The letter “h” is silent in Spanish. Do not pronounce it.",
+    "feedback.error.pron.stress": "The stress falls on a different part of the word. Listen again and copy the rhythm.",
+    "feedback.unknownError": "There was a small mistake in “{actual}”. Listen to the guide's version and try again."
+  }
+}

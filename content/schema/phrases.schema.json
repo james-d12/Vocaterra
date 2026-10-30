@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/phrases.json",
+  "description": "The phrase sheet: the phrases the learner says or hears, with their support card and recordings. content/PHRASES.md is the source of truth (D-game-10); PhraseSheetTests keeps the two in step. Loaded by PhraseSheet (Vocaterra.Game.Core). Each row's meaning and card are the locale's (phrase.<id>.meaning, .card, .explain) since C03.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "phrases"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "enum": [
+        1
+      ]
+    },
+    "source": {
+      "type": "string"
+    },
+    "phrases": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/phrase"
+      }
+    }
+  },
+  "definitions": {
+    "phrase": {
+      "type": "object",
+      "required": [
+        "id",
+        "says",
+        "spanish"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "description": "A stable id (pedir-agua); saves and lessons name it."
+        },
+        "says": {
+          "enum": [
+            "says",
+            "hears",
+            "both"
+          ],
+          "description": "Who says it: the learner (says), an NPC (hears) or both."
+        },
+        "spanish": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The phrase in the target language."
+        },
+        "intent": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The core intent the phrase expresses, or null for a phrase only heard."
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The bundle prompt the phrase belongs to."
+        },
+        "variants": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Other spellings the learner may say for the same row."
+        },
+        "audioLineIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "The speech lines that say the phrase."
+        },
+        "reviewLine": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The dialogue line the guide's review asks the phrase with when the bundle has no review pool for it (C08)."
+        }
+      }
+    }
+  }
+}

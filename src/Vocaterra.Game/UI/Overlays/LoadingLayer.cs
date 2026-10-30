@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Graphics;
 using Vocaterra.Game.UI.Common;
 
@@ -12,8 +13,9 @@ namespace Vocaterra.Game.UI.Overlays;
 /// </summary>
 public sealed class LoadingLayer : IFrameLayer
 {
-    /// <summary>The line shown while the models load.</summary>
-    public const string Text = "Loading speech…";
+    /// <summary>The line shown while the models load (<c>ui.loadingSpeech</c>, C04).</summary>
+    /// <param name="ui">The support language.</param>
+    public static string Text(LocaleText ui) => (ui ?? throw new ArgumentNullException(nameof(ui))).Ui("loadingSpeech");
 
     private static readonly Color Gold = new(255, 214, 64);
 

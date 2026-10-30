@@ -13,6 +13,8 @@
     <PackageReference Include="Vosk" />
     <!-- Kokoro (sherpa-onnx) needs its own libonnxruntime.so; this package's native copy would overwrite it (CR-021). -->
     <PackageReference Include="Microsoft.ML.OnnxRuntime" ExcludeAssets="native" />
+    <!-- The content schema test (Content/ContentSchemaTests.cs): JSON Schema draft-07 validation of content/game-v1 and content/locale. -->
+    <PackageReference Include="NJsonSchema" />
   </ItemGroup>
 
   <ItemGroup>

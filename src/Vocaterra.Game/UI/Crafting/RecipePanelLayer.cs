@@ -16,14 +16,6 @@ namespace Vocaterra.Game.UI.Crafting;
 /// </summary>
 public sealed class RecipePanelLayer : IFrameLayer
 {
-    /// <summary>The panel's title (English, D-game-13).</summary>
-    public const string Title = "Workbench";
-
-    /// <summary>The hint under the recipe when it can be made.</summary>
-    public const string ReadyHint = "E or C: make it";
-
-    /// <summary>The hint under the recipe when something is missing.</summary>
-    public const string MissingHint = "Collect what is missing";
 
     private long _tick = -1;
     private RecipePanelModel? _model;
@@ -72,7 +64,8 @@ public sealed class RecipePanelLayer : IFrameLayer
         var placed = HudLayout.RecipePanelBox(view.ViewportWidth, view.ViewportHeight, width, height, ObjectiveLayer.BottomOf(view)); // under the checklist, above the hotbar (X08)
         var panel = new Rectangle(placed.X, placed.Y, placed.Width, placed.Height);
         DrawHelpers.RoundedPanel(spriteBatch, pixel, panel, 8, Back, Edge, 2);
-        DrawHelpers.Text(spriteBatch, font, Title, new Vector2(panel.X + 16, panel.Y + 8), Warm);
+        var ui = view.Session.Locale;
+        DrawHelpers.Text(spriteBatch, font, ui.Ui("workbenchTitle"), new Vector2(panel.X + 16, panel.Y + 8), Warm);
 
         // The product: its icon in a framed slot, with the number one craft makes.
         var outputBox = new Rectangle(panel.X + ((panel.Width - Slot) / 2), panel.Y + 34, Slot, Slot);
@@ -100,7 +93,7 @@ public sealed class RecipePanelLayer : IFrameLayer
             DrawHelpers.Text(spriteBatch, font, text, new Vector2(box.X + ((Slot - textWidth) / 2), box.Bottom + 4), part.Enough ? Enough : Short);
         }
 
-        var hint = model.CanMake ? ReadyHint : MissingHint;
+        var hint = model.CanMake ? ui.Ui("workbenchReady") : ui.Ui("workbenchMissing");
         DrawHelpers.Text(spriteBatch, font, hint, new Vector2(panel.X + ((panel.Width - DrawHelpers.Width(font, hint)) / 2), panel.Bottom - 28), model.CanMake ? Enough : Soft);
     }
 

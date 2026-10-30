@@ -70,6 +70,7 @@ public sealed class CrashSource : ICrashSource
         }
 
         Row("Bundle", () => $"{_session.Bundle.Manifest.BundleId}, hash {_session.Bundle.ContentHash}");
+        Row("Locale", () => $"{_session.Locale.Code}, hash {_session.Locale.BundleHash}");
         Row("Seed", () => _session.WorldSeed.ToString(CultureInfo.InvariantCulture));
         Row("Position", () =>
         {

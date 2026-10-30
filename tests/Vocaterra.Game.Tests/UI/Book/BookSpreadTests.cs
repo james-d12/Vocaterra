@@ -99,7 +99,7 @@ public sealed class BookSpreadTests
         Assert.True(ribbons.Max(static r => r.Right) <= g.Panel.Right - BookGeometry.Padding);
 
         // "What I said" is the longest label; at the font's 16 px a character is under 9 px wide.
-        var longest = BookTabs.Labels.Max(static l => l.Length);
+        var longest = BookTabs.Labels(RouteScene.Shipped.Locale).Max(static l => l.Length);
         Assert.True((longest * 9) + 8 <= BookGeometry.TabWidth, $"{longest} characters in {BookGeometry.TabWidth} px");
     }
 
@@ -268,7 +268,7 @@ public sealed class BookSpreadTests
         var recordings = BookRecordings.None;
         Assert.Empty(BookPages.ListFor(session, BookPage.Verbs, recordings)); // no verbs met yet: an empty list, and the layer says so
 
-        var full = BookPages.Verbs(VerbsOfAFixedRecord(), VerbGlosses.Load(Bundle.Value), PhraseSheet.Load(Bundle.Value), Bundle.Value.SpanishMorphology());
+        var full = BookPages.Verbs(RouteScene.Shipped.Locale, VerbsOfAFixedRecord(), RouteScene.DataOf(Bundle.Value).Glosses, RouteScene.DataOf(Bundle.Value).Phrases, Bundle.Value.SpanishMorphology());
         var list = full.Where(static l => l.Verb is not null).ToList();
         Assert.Equal(["beber", "ir"], list.Select(static l => l.Verb));
         Assert.True(full.Count > list.Count, "the page's own lines (the forms and their last sentences) are still built, for the right page");

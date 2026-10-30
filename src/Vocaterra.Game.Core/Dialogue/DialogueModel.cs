@@ -1,4 +1,5 @@
 using System.Globalization;
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Input;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
@@ -24,12 +25,18 @@ public sealed class DialogueModel
     private readonly string _openingLine;
     private readonly HashSet<string> _opened = new(StringComparer.Ordinal);
     private readonly PhraseSheet? _phrases;
-    private readonly EnglishText? _english;
+    private readonly LocaleText? _locale;
+    private readonly GameWords _words;
+    private readonly NpcRoster _npcs;
+    private readonly LocaleText _ui;
     private readonly bool _showVerdictNotes;
     private int _cancelled;
 
-    /// <summary>The text of the hint line that offers typing (the watchdog, or two uncertain recognitions in a row).</summary>
-    public const string TypeOfferText = "¿Escribes?";
+    /// <summary>The text of the hint line that offers typing (the watchdog, or two uncertain recognitions in a row): <c>¿Escribes?</c> (<c>game/words.json</c>).</summary>
+    public string TypeOfferText => _words.TypeOffer;
+
+    /// <summary>The speech buttons, left to right, with the target language's labels (<c>game/words.json</c>).</summary>
+    public IReadOnlyList<SpeechButton> Buttons { get; }
 
     /// <summary>How many uncertain spoken lines in a row make the panel offer typing.</summary>
     public const int TypingOfferStreak = 2;
@@ -37,18 +44,25 @@ public sealed class DialogueModel
     /// <summary>Creates a closed panel.</summary>
     /// <param name="focus">Who has the keyboard; the model sets <see cref="InputFocus.TextEntryActive"/> while it is open.</param>
     /// <param name="openingLine">What the guide says the first time the panel opens (the prompt's text).</param>
+    /// <param name="data">The game's content: the target-language words the panel draws (the buttons' labels, the offer to type) and the NPCs' labels.</param>
     /// <param name="phrases">The phrase sheet, for the heard-versus-expected line and the labels of the offered choices; without it neither is shown.</param>
     /// <param name="english">The game's English text, for the plain-English feedback after a turn (S16); without it no feedback line is added.</param>
     /// <param name="showVerdictNotes">Whether each turn adds its verdict line (the core's summary, the confidence and the milliseconds, for example
     /// <c>greet, understood, 100 %, 3.5 ms</c>). A playtest hides it (S18); scripted and developer runs keep it.</param>
-    public DialogueModel(InputFocus focus, string openingLine, PhraseSheet? phrases = null, EnglishText? english = null, bool showVerdictNotes = true)
+    public DialogueModel(InputFocus focus, string openingLine, GameData data, PhraseSheet? phrases = null, LocaleText? english = null, bool showVerdictNotes = true)
     {
         ArgumentNullException.ThrowIfNull(focus);
         ArgumentNullException.ThrowIfNull(openingLine);
+        ArgumentNullException.ThrowIfNull(data);
+        _words = data.Words;
+        _npcs = data.Npcs;
+        _ui = data.Locale;
+        NpcName = _npcs.LabelOf(NpcService.GuideAgent);
+        Buttons = SpeechButtons.For(_words.Buttons);
         _focus = focus;
         _openingLine = openingLine;
         _phrases = phrases;
-        _english = english;
+        _locale = english;
         _showVerdictNotes = showVerdictNotes;
     }
 
@@ -59,7 +73,7 @@ public sealed class DialogueModel
     public string Npc { get; private set; } = NpcService.GuideAgent;
 
     /// <summary>The name of that NPC as the panel's title shows it (<c>Guía</c>, <c>Tendero</c>, <c>Aldeano</c>).</summary>
-    public string NpcName { get; private set; } = "Guía";
+    public string NpcName { get; private set; }
 
     /// <summary>The text box.</summary>
     public TextEntry Entry { get; } = new();
@@ -90,6 +104,9 @@ public sealed class DialogueModel
 
     /// <summary>The persistent <c>Heard: «…» · Expected: «…»</c> line of the last spoken turn, or <see langword="null"/> (no spoken turn yet at this NPC, or the last turn was typed).</summary>
     public HeardLine? Heard { get; private set; }
+
+    /// <summary>The heard line as the panel shows it, in the support language (<see cref="HeardLine.Text"/>), or <see langword="null"/>.</summary>
+    public string? HeardText => Heard?.Text(_ui);
 
     /// <summary>The choices the repair ladder offered with the last turn, as buttons; empty when none.</summary>
     public IReadOnlyList<ChoiceOption> Choices { get; private set; } = [];
@@ -136,7 +153,7 @@ public sealed class DialogueModel
             return;
         }
 
-        SwitchTo(NpcService.GuideAgent, "Guía");
+        SwitchTo(NpcService.GuideAgent, _npcs.LabelOf(NpcService.GuideAgent));
         IsOpen = true;
         Mode = PanelMode.Buttons;
         _focus.TextEntryActive = true;
@@ -450,7 +467,7 @@ public sealed class DialogueModel
         TypingOffered = false;
         if (applied.Turn is not { } turn)
         {
-            Add(DialogueSpeaker.Hint, applied.Outcome.Problem ?? "I couldn't check that line. Try again.");
+            Add(DialogueSpeaker.Hint, applied.Outcome.Problem ?? _ui.Ui("turnNotChecked"));
             return null;
         }
 
@@ -540,9 +557,9 @@ public sealed class DialogueModel
             }
         }
 
-        if (_english is not null)
+        if (_locale is not null)
         {
-            foreach (var line in _english.FeedbackFor(turn))
+            foreach (var line in _locale.FeedbackFor(turn))
             {
                 Add(DialogueSpeaker.English, line); // the plain-English feedback after the turn (S16, D-game-13)
             }

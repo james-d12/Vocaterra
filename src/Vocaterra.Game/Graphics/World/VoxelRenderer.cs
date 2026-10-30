@@ -411,7 +411,7 @@ public sealed class VoxelRenderer : IDisposable
             var (fx, fy, fz) = figure.FeetPosition;
             _figureBuffer.Clear();
             var warm = ArmLight.Warmth(Lights, fx, fy + 1f, fz, _dusk);
-            FigureMesher.Append(_figureBuffer, NpcFigures.PartsOf(figure.Name), FigureAnimation.For(figure, tick), fx, fy, fz, figure.FacingRadians, FigureLight(warm));
+            FigureMesher.Append(_figureBuffer, NpcFigures.PartsOf(figure.Look), FigureAnimation.For(figure, tick), fx, fy, fz, figure.FacingRadians, FigureLight(warm));
             DrawnFigureQuads += _figureBuffer.FaceCount;
             DrawDynamic(_figureBuffer);
         }

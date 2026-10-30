@@ -11,8 +11,8 @@ public static class PlaytestEnd
     /// <summary>The save the playtest writes into its session folder; the next-day recall loads it with <c>--load</c>.</summary>
     public const string SaveFileName = "playtest.save";
 
-    /// <summary>The key that ends the run (the facilitator's end key; the screen labels it).</summary>
-    public const string EndKeyName = "F10";
+    /// <summary>The key that ends the run (the facilitator's end key, <c>endRun</c> of <see cref="Input.InputKeys"/>; the screen labels it with <c>{key:endRun}</c>).</summary>
+    public static string EndKeyName => Input.InputKeys.Of("endRun").ToString();
 
     /// <summary>The save file of a session folder.</summary>
     /// <param name="sessionFolder">The folder the session log is written to.</param>

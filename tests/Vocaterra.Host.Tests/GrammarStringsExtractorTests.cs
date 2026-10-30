@@ -11,7 +11,7 @@ namespace Vocaterra.Host.Tests;
 public sealed class GrammarStringsExtractorTests
 {
     private static readonly Lazy<IReadOnlyList<GrammarStringLine>> Extracted =
-        new(() => GrammarStringsExtractor.Extract(GameContent.Bundle, GameContent.BundleDirectory()));
+        new(() => GrammarStringsExtractor.Extract(GameContent.Data, GameContent.BundleDirectory()));
 
     private static IReadOnlyList<GrammarStringLine> All => Extracted.Value;
 
@@ -58,7 +58,7 @@ public sealed class GrammarStringsExtractorTests
         Assert.Equal(ids.Count, ids.Distinct(StringComparer.Ordinal).Count());
         Assert.All(ids, static id => Assert.Matches("^[^:\\s]+:\\S+$", id));
 
-        var again = GrammarStringsExtractor.Extract(GameContent.Bundle, GameContent.BundleDirectory());
+        var again = GrammarStringsExtractor.Extract(GameContent.Data, GameContent.BundleDirectory());
         Assert.Equal(GrammarStringsExtractor.ToJsonl(All), GrammarStringsExtractor.ToJsonl(again));
     }
 
@@ -107,11 +107,14 @@ public sealed class GrammarStringsExtractorTests
             }
         }
 
-        // Each game file the strings come from has at least one line in the file.
-        foreach (var prefix in new[] { "english.json:", "checks.json:", "PHRASES.md:", "speech:" })
+        // Each game file the strings come from has at least one line in the file. The support language (the locale, C03) is not checked, so no
+        // english.json line is listed: its Spanish keys repeated the dialogue's and the prompts' texts.
+        foreach (var prefix in new[] { "checks.json:", "PHRASES.md:", "speech:" })
         {
             Assert.Contains(All, line => line.Id.StartsWith(prefix, StringComparison.Ordinal));
         }
+
+        Assert.DoesNotContain(All, static line => line.Id.StartsWith("english.json:", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -129,13 +132,14 @@ public sealed class GrammarStringsExtractorTests
     [Fact]
     public void EveryLessonLineIsADialogueLineSoItIsCheckedWithTheDialogue()
     {
-        // lessons.json names its spoken lines by dialogue id; their text is checked once, as the dialogue line (no second copy in the strings file).
+        // The lessons (one file each since C06, game/lessons/<id>.json) name their spoken lines by dialogue id; their text is checked once, as the dialogue
+        // line (no second copy in the strings file).
         var lineIds = GameContent.Bundle.Dialogue.Pools.Values.SelectMany(static pool => pool.Variants).Select(static variant => variant.LineId).ToHashSet(StringComparer.Ordinal);
-        using var lessons = JsonDocument.Parse(File.ReadAllText(Path.Combine(GameContent.BundleDirectory(), "game", "lessons.json"), Encoding.UTF8));
         var spoken = 0;
-        foreach (var lesson in lessons.RootElement.GetProperty("lessons").EnumerateArray())
+        foreach (var file in Directory.GetFiles(Path.Combine(GameContent.BundleDirectory(), "game", "lessons"), "*.json").Order(StringComparer.Ordinal))
         {
-            foreach (var step in lesson.GetProperty("steps").EnumerateArray())
+            using var lesson = JsonDocument.Parse(File.ReadAllText(file, Encoding.UTF8));
+            foreach (var step in lesson.RootElement.GetProperty("steps").EnumerateArray())
             {
                 if (step.TryGetProperty("line", out var line))
                 {
@@ -171,7 +175,7 @@ public sealed class GrammarStringsExtractorTests
         Assert.Equal("npc", byId["PHRASES.md:quieres-pan.text"].Kind);
         Assert.Equal("learner", byId["PHRASES.md:pedir-agua.text"].Kind);
         Assert.Equal("learner", byId["PHRASES.md:pedir-agua.variant1"].Kind);
-        Assert.Equal("npc", byId["english.json:lines[0]"].Kind);
+        Assert.Equal("npc", byId["checks.json:hear.que-necesitas"].Kind);
     }
 
     [Fact]
@@ -205,7 +209,7 @@ public sealed class GrammarStringsExtractorTests
     [Fact]
     public void ThePhraseSheetLinesAreTheRuntimePhrasesAndVariants()
     {
-        var runtime = PhraseSheet.Load(GameContent.Bundle);
+        var runtime = GameContent.Data.Phrases;
         var byId = All.ToDictionary(static line => line.Id, StringComparer.Ordinal);
         foreach (var row in runtime.Rows)
         {

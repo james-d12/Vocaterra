@@ -15,6 +15,9 @@ public sealed class AutosaveController
     private readonly Action<string> _toast;
     private readonly Func<double> _milliseconds;
 
+    /// <summary>The id of the toast an autosave shows (<c>ui.autosaved</c>; the host turns it into the support language's text, C04).</summary>
+    public const string SavedToastId = "autosaved";
+
     /// <summary>Creates the autosave of a run.</summary>
     /// <param name="policy">When a save is due.</param>
     /// <param name="path">The autosave file: the playtest's <c>playtest.save</c>, else <c>autosave.save</c> in the session folder.</param>
@@ -57,7 +60,7 @@ public sealed class AutosaveController
             var text = SaveGame.Serialize(document);
             SaveFile.Write(Path, text);
             _log($"autosave: {Path} written at {decision.Reason} (session {document.Session}, tick {document.Tick}, stored time {document.StoredTime}, world digest {document.StateDigest[..16]}, {System.Text.Encoding.UTF8.GetByteCount(text)} bytes, {_milliseconds() - started:0} ms)");
-            _toast("Saved");
+            _toast(SavedToastId);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
         {

@@ -1,0 +1,52 @@
+{
+  "$schema": "../../schema/words.schema.json",
+  "schemaVersion": 1,
+  "about": "The target-language words the game itself uses (CONTENT_PLAN C05): they were constants in the code. The guide's direction phrases, the unit and the list joiner of her answers, the speech buttons' labels, the panel's offer to type, the support cards' headings, the label of a thing not seen yet, the pronouns of the book's conjugation tables, the shopkeeper's key words, the help and no-sé lines, the near future (ir a + infinitive, and the time words that make a present a plan), the greeting (also the hello phrase's id), the letters the typing help lists and the nouns the world's logic is about. The grammar check reads them (the letters and the unseen label are not words). The place words of the beacon are the scene's labels (game/scene.json).",
+  "directions": {
+    "ahead": "adelante",
+    "behind": "detrás",
+    "left": "a la izquierda",
+    "right": "a la derecha"
+  },
+  "blockUnit": "bloque",
+  "listJoiner": "y",
+  "buttons": {
+    "repeat": "Repetir",
+    "slower": "Más despacio",
+    "help": "Ayuda",
+    "dontKnow": "No sé",
+    "type": "Escribir"
+  },
+  "typeOffer": "¿Escribes?",
+  "support": {
+    "cardTag": "Puedes decir",
+    "listenChip": "Escuchar la frase",
+    "keyWordsHeading": "Palabras nuevas"
+  },
+  "unseen": "¿?",
+  "pronouns": {
+    "1sg": "yo",
+    "2sg": "tú",
+    "3sg": "él/ella/usted",
+    "1pl": "nosotros",
+    "3pl": "ustedes/ellos"
+  },
+  "keyWords": [
+    "agua",
+    "pan"
+  ],
+  "helpLine": "ayuda",
+  "dontKnowLine": "no sé",
+  "nearFuture": {
+    "verb": "ir",
+    "joiner": "a",
+    "timeWords": [
+      "mañana"
+    ]
+  },
+  "greeting": "hola",
+  "letters": "á é í ó ú ñ ¿ ¡",
+  "nouns": {
+    "river": "río"
+  }
+}

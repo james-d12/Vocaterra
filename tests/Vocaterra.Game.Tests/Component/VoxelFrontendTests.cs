@@ -21,6 +21,8 @@ public sealed class VoxelFrontendTests
 
     private static Scene RouteScene(ulong seed = 42) => Vocaterra.Game.Core.Tests.TestSupport.RouteScene.Clearing(seed);
 
+    private static Vocaterra.Game.Core.Content.GameData Shipped => Vocaterra.Game.Core.Tests.TestSupport.RouteScene.Shipped;
+
     // ---- the look ----
 
     [Fact]
@@ -347,20 +349,21 @@ public sealed class VoxelFrontendTests
     [Fact]
     public void TheThreeNpcsAreDrawnWithDistinctColoursAndSpanishNames()
     {
-        var figures = NpcFigures.FromScene(RouteScene());
+        var figures = NpcFigures.FromScene(RouteScene(), Shipped.Npcs);
         Assert.Equal(["guide", "shopkeeper", "villager"], figures.Select(static f => f.Name).ToList());
         Assert.Equal(["Guía", "Tendero", "Aldeano"], figures.Select(static f => f.Label).ToList());
-        var bodies = figures.Select(static f => NpcFigures.PartsOf(f.Name)[2].Colour).ToList(); // the body is the third part
+        Assert.Equal(["guide", "shopkeeper", "villager"], figures.Select(static f => f.Look).ToList()); // C08: game/npcs/<id>.json's figure
+        var bodies = figures.Select(static f => NpcFigures.PartsOf(f.Look)[2].Colour).ToList(); // the body is the third part
         Assert.Equal(3, bodies.Distinct().Count());
-        var heads = figures.Select(static f => NpcFigures.PartsOf(f.Name).Last().Colour).ToList();
+        var heads = figures.Select(static f => NpcFigures.PartsOf(f.Look).Last().Colour).ToList();
         Assert.Equal(3, heads.Distinct().Count());
-        Assert.Equal("Otro", NpcNames.LabelOf("Otro"));
+        Assert.Equal("Otro", Shipped.Npcs.LabelOf("Otro"));
     }
 
     [Fact]
     public void AFigureStandsOnItsBlockIsAboutTheHeightOfThePlayerAndFacesItsYaw()
     {
-        foreach (var figure in NpcFigures.FromScene(RouteScene()))
+        foreach (var figure in NpcFigures.FromScene(RouteScene(), Shipped.Npcs))
         {
             var mesh = NpcFigures.Build(figure);
             Assert.True(mesh.FaceCount >= 60, "head, body, arms and legs have six faces each at least");

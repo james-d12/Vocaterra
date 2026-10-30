@@ -71,7 +71,7 @@ public sealed class SpokenModelTests(ITestOutputHelper output)
         Assert.NotNull(engine);
         var session = TestGame.NewSession();
         var counting = new CountingRecognizer(engine.Recognizer);
-        var guide = new NpcService(TestGame.Bundle, TestGame.FactsOf(session), TestGame.Nouns, TestGame.Seed, new StoredTimestamp(GuideSession.DefaultStartedAt));
+        var guide = new NpcService(TestGame.Data, TestGame.FactsOf(session), TestGame.Seed, new StoredTimestamp(GuideSession.DefaultStartedAt));
         guide.AttachSpeech(new SpokenUtteranceEvaluator(TestGame.Bundle, counting));
         var clip = engine.Synthesize(TreeQuestion, out var cached);
         output.WriteLine($"{TreeQuestion}: {clip.DurationSeconds:0.00} s, cached {cached}");

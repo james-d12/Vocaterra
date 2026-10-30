@@ -1,15 +1,16 @@
-using Vocaterra.Game.Core.Items;
+using Vocaterra.Game.Core.Event;
 
 namespace Vocaterra.Game.Core.Session;
 
 /// <summary>
-/// One step of the camp objective: its key, the word the checklist shows, how many it needs and how many the player has done.
+/// One step of an objective: its key, the word the checklist shows, the noun it is about, how many it needs and how many the player has done.
 /// </summary>
-/// <param name="Key">A stable key (<c>wood</c>, <c>berry</c>, <c>torch</c>, <c>water</c>), ordinal, never shown.</param>
+/// <param name="Key">The step's id inside its objective (<c>wood</c>, <c>berry</c>, <c>torch</c>, <c>water</c>), ordinal, never shown.</param>
 /// <param name="Label">The word the checklist shows (<c>madera</c>, <c>frutas</c>, <c>antorcha</c>, <c>agua</c>).</param>
+/// <param name="Noun">The catalogue noun the step is about (<c>madera</c>, <c>fruta</c>): its support-language word glosses the step until the noun is known. Empty for a step of an objective that is no checklist.</param>
 /// <param name="Target">How many make the step done (positive).</param>
 /// <param name="Count">How many the player has done so far (it may pass the target; the step shows the target at most).</param>
-public sealed record ObjectiveStep(string Key, string Label, int Target, int Count)
+public sealed record ObjectiveStep(string Key, string Label, string Noun, int Target, int Count)
 {
     /// <summary>Whether the step is done.</summary>
     public bool Done => Count >= Target;
@@ -22,47 +23,33 @@ public sealed record ObjectiveStep(string Key, string Label, int Target, int Cou
 }
 
 /// <summary>
-/// The camp objective of the prototype (<c>Campamento</c>): a checklist the player completes by gathering, by placing the torch at the fire
-/// ring and, later, by filling the bottle (the host event <see cref="WaterEvent"/>). Steps move only on host events and inventory events
-/// (pickups, the placed torch, a named host event), never on the learner's language (IMPLEMENTATION_PLAN rule 8). Plain values, no clock: the
-/// same events give the same checklist.
+/// One objective of the session, as <c>game/objectives/&lt;id&gt;.json</c> gives it (C07; before it the camp checklist was code): steps that count the world events
+/// their triggers match. A checklist (the camp, <c>Campamento</c>) shows its steps; the others show one line. Steps move only on world events (pickups, the placed
+/// torch, the filled bottle), never on the learner's language (IMPLEMENTATION_PLAN rule 8). Plain values, no clock: the same events give the same checklist.
 /// </summary>
 public sealed class Objective
 {
-    /// <summary>The checklist's title, shown before the steps.</summary>
-    public const string Title = "Campamento";
-
-    /// <summary>The host event that completes the water step. S6 raises it when the bottle is filled; nothing raises it yet.</summary>
-    public const string WaterEvent = "objective.water";
-
-    /// <summary>The key of the wood step.</summary>
-    public const string WoodKey = "wood";
-
-    /// <summary>The key of the berries step.</summary>
-    public const string BerryKey = "berry";
-
-    /// <summary>The key of the torch step (placed at the fire ring).</summary>
-    public const string TorchKey = "torch";
-
-    /// <summary>The key of the water step.</summary>
-    public const string WaterKey = "water";
-
     private readonly ObjectiveStep[] _steps;
 
-    private Objective(ObjectiveStep[] steps)
+    /// <summary>Creates the objective with nothing done.</summary>
+    /// <param name="spec">The objective's data.</param>
+    public Objective(ObjectiveSpec spec)
     {
-        _steps = steps;
+        Spec = spec ?? throw new ArgumentNullException(nameof(spec));
+        _steps = spec.Steps.Select(static s => new ObjectiveStep(s.Id, s.Label, s.Noun, s.Target, 0)).ToArray();
     }
 
-    /// <summary>The camp objective as the prototype gives it: five wood, three berries, one torch at the fire ring, one water.</summary>
-    public static Objective Camp() =>
-        new(
-        [
-            new ObjectiveStep(WoodKey, "madera", 5, 0),
-            new ObjectiveStep(BerryKey, "frutas", 3, 0),
-            new ObjectiveStep(TorchKey, "antorcha", 1, 0),
-            new ObjectiveStep(WaterKey, "agua", 1, 0),
-        ]);
+    /// <summary>The objective's data.</summary>
+    public ObjectiveSpec Spec { get; }
+
+    /// <summary>The objective's id (<c>camp</c>).</summary>
+    public string Id => Spec.Id;
+
+    /// <summary>The checklist's title, shown before the steps (<c>Campamento</c>); empty for an objective that is no checklist.</summary>
+    public string Title => Spec.Title ?? string.Empty;
+
+    /// <summary>Whether the HUD shows the objective as a checklist of its steps.</summary>
+    public bool IsChecklist => Spec.IsChecklist;
 
     /// <summary>The steps in checklist order.</summary>
     public IReadOnlyList<ObjectiveStep> Steps => _steps;
@@ -70,13 +57,17 @@ public sealed class Objective
     /// <summary>Whether every step is done.</summary>
     public bool Complete => _steps.All(static s => s.Done);
 
+    /// <summary>Whether any step has moved.</summary>
+    public bool Started => _steps.Any(static s => s.Count > 0);
+
     /// <summary>The checklist as one line: <c>Campamento: madera 5/5 · frutas 3/3 · antorcha 1/1 · agua 0/1</c>.</summary>
     public string Summary => Title + ": " + string.Join(" · ", _steps.Select(static s => s.Text));
 
     /// <summary>
-    /// Sets the count of each step by its key (S10: a save puts the checklist back). Each key must be a step of the checklist and appear once; the
-    /// steps not named keep their count.
+    /// Sets the count of each step by its key (S10: a save puts the checklist back). Each key must be a step of the objective and appear once; the steps not named
+    /// keep their count.
     /// </summary>
+    /// <param name="counts">The counts by step key.</param>
     /// <exception cref="ArgumentException">A key is not a step, or is given twice.</exception>
     public void Restore(IEnumerable<(string Key, int Count)> counts)
     {
@@ -88,7 +79,7 @@ public sealed class Objective
             var at = Array.FindIndex(_steps, s => string.Equals(s.Key, key, StringComparison.Ordinal));
             if (at < 0 || !seen.Add(key))
             {
-                throw new ArgumentException($"'{key}' is not a step of the checklist, or is given twice.", nameof(counts));
+                throw new ArgumentException($"'{key}' is not a step of the objective '{Id}', or is given twice.", nameof(counts));
             }
 
             _steps[at] = _steps[at] with { Count = count };
@@ -96,54 +87,56 @@ public sealed class Objective
     }
 
     /// <summary>The step with a key, or <see langword="null"/>.</summary>
+    /// <param name="key">The step's id.</param>
     public ObjectiveStep? Step(string key) => _steps.FirstOrDefault(s => string.Equals(s.Key, key, StringComparison.Ordinal));
 
-    /// <summary>
-    /// Counts items that entered the inventory by a pickup: wood and berries are steps of the checklist; other items do not move it.
-    /// </summary>
+    /// <summary>Counts a world event: every step whose trigger matches it moves by <paramref name="amount"/> (a pickup's items).</summary>
+    /// <param name="world">The world event.</param>
+    /// <param name="amount">How many the event counts for.</param>
     /// <returns>The steps this call completed (empty when none).</returns>
-    public IReadOnlyList<ObjectiveStep> RecordPickup(ItemId item, int count)
+    public IReadOnlyList<ObjectiveStep> Record(WorldEvent world, int amount = 1)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(count);
-        return item switch
-        {
-            ItemId.Wood => Advance(WoodKey, count),
-            ItemId.Berry => Advance(BerryKey, count),
-            _ => [],
-        };
-    }
-
-    /// <summary>
-    /// Counts a torch placed in the world: the torch step is done when the torch stands at the fire ring (the caller says whether the cell is
-    /// the ring's).
-    /// </summary>
-    /// <returns>The steps this call completed (empty when none).</returns>
-    public IReadOnlyList<ObjectiveStep> RecordTorchPlaced(bool atFireRing) => atFireRing ? Advance(TorchKey, 1) : [];
-
-    /// <summary>A named host event (for example <see cref="WaterEvent"/>). Unknown names change nothing.</summary>
-    /// <returns>The steps this call completed (empty when none).</returns>
-    public IReadOnlyList<ObjectiveStep> RecordHostEvent(string name)
-    {
-        ArgumentNullException.ThrowIfNull(name);
-        return string.Equals(name, WaterEvent, StringComparison.Ordinal) ? Advance(WaterKey, 1) : [];
-    }
-
-    // Adds to one step; returns the step as a list when this call moved it from open to done.
-    private IReadOnlyList<ObjectiveStep> Advance(string key, int by)
-    {
+        ArgumentNullException.ThrowIfNull(world);
+        ArgumentOutOfRangeException.ThrowIfNegative(amount);
+        var completed = new List<ObjectiveStep>();
         for (var i = 0; i < _steps.Length; i++)
         {
-            if (!string.Equals(_steps[i].Key, key, StringComparison.Ordinal))
+            if (!Spec.Steps[i].Trigger.Matches(world))
             {
                 continue;
             }
 
             var before = _steps[i];
-            var after = before.Advanced(by);
-            _steps[i] = after;
-            return before.Done || !after.Done ? [] : [after];
+            _steps[i] = before.Advanced(amount);
+            if (!before.Done && _steps[i].Done)
+            {
+                completed.Add(_steps[i]);
+            }
         }
 
-        return [];
+        return completed;
+    }
+
+    /// <summary>Counts a world event by its name and detail (an event that is not logged: a test, or the host's shortcut).</summary>
+    /// <param name="worldEvent">The event's name (<see cref="WorldEvents"/>).</param>
+    /// <param name="detail">Its detail (<c>madera</c>), or <see langword="null"/>.</param>
+    /// <param name="amount">How many the event counts for.</param>
+    /// <returns>The steps this call completed (empty when none).</returns>
+    public IReadOnlyList<ObjectiveStep> Record(string worldEvent, string? detail = null, int amount = 1) => Record(new WorldEvent(0, 0, worldEvent, null, detail), amount);
+
+    // Completes every step (an objective another one's progress completes, alsoDoneBy).
+    internal void Finish()
+    {
+        for (var i = 0; i < _steps.Length; i++)
+        {
+            _steps[i] = _steps[i] with { Count = Math.Max(_steps[i].Count, _steps[i].Target) };
+        }
+    }
+
+    // Sets one step's count (a restore hook).
+    internal void Set(string key, int count)
+    {
+        var at = Array.FindIndex(_steps, s => string.Equals(s.Key, key, StringComparison.Ordinal));
+        _steps[at] = _steps[at] with { Count = count };
     }
 }

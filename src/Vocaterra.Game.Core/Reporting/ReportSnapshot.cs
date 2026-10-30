@@ -33,6 +33,7 @@ public static class ReportBounds
 /// <param name="Greyscale">Whether the greyscale A/B switch is on.</param>
 /// <param name="Speech">The speech models' state (found, not loaded, off).</param>
 /// <param name="Microphone">The microphone's state (found, not found, not used).</param>
+/// <param name="Locale">The support-language locale and its bundle's hash (<c>en, hash ...</c>; CONTENT_PLAN C03), or <see langword="null"/> when not known.</param>
 public sealed record ReportGameState(
     string BuildCommit,
     string BundleId,
@@ -50,7 +51,8 @@ public sealed record ReportGameState(
     string Quality,
     bool Greyscale,
     string Speech,
-    string Microphone);
+    string Microphone,
+    string? Locale = null);
 
 /// <summary>
 /// One report, as the game has it when the player saves it (S21). The Markdown is built from this and nothing else.

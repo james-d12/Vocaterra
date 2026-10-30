@@ -1,0 +1,301 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "game/lessons/<id>.json",
+  "description": "One lesson (C06: one file each; game/lessons.json lists them in order): a list of steps of seven types, so a new lesson needs no code. Loaded by LessonBook (Vocaterra.Game.Core), which also checks the phrases, prompts, speech lines, NPCs and world events named here. The text is the locale's (lesson.<id>.*).",
+  "type": "object",
+  "required": [
+    "id",
+    "npc",
+    "steps"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "enum": [
+        1
+      ]
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "A stable id (first-words), the file's name; saves name it."
+    },
+    "npc": {
+      "$ref": "#/definitions/npc",
+      "description": "The NPC the lesson starts at."
+    },
+    "autoStart": {
+      "type": "boolean",
+      "description": "The lesson starts when the player first talks to its NPC."
+    },
+    "after": {
+      "type": "string",
+      "minLength": 1,
+      "description": "An earlier lesson of the file this one follows."
+    },
+    "session": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The play session it unlocks in (default 1); above 1 the locale needs its objective line (lesson.<id>.objective)."
+    },
+    "verbs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/verbForm"
+      },
+      "description": "The verb forms the lesson teaches (the book's tables)."
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/step"
+      }
+    }
+  },
+  "definitions": {
+    "npc": {
+      "type": "string",
+      "minLength": 1,
+      "description": "An NPC by its agent id (agents/<id>.json): guide, shopkeeper, villager."
+    },
+    "verbForm": {
+      "type": "object",
+      "required": [
+        "lemma",
+        "person",
+        "number",
+        "tense"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "lemma": {
+          "type": "string",
+          "minLength": 1
+        },
+        "person": {
+          "enum": [
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        "number": {
+          "enum": [
+            "sg",
+            "pl"
+          ]
+        },
+        "tense": {
+          "enum": [
+            "pres",
+            "pret",
+            "fut",
+            "ir-a"
+          ]
+        }
+      }
+    },
+    "step": {
+      "type": "object",
+      "required": [
+        "id",
+        "type"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique within the lesson; saves name it."
+        },
+        "type": {
+          "enum": [
+            "explain",
+            "model",
+            "listen",
+            "repeat",
+            "answer",
+            "do",
+            "recap"
+          ]
+        },
+        "attempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "How many tries before the step moves on (default 2)."
+        },
+        "npc": {
+          "$ref": "#/definitions/npc",
+          "description": "The NPC the step is said at, when the lesson moves from one NPC to another."
+        },
+        "line": {
+          "type": "string",
+          "minLength": 1,
+          "description": "model, listen, answer: a speech line id (phrase.hola, guide.lesson.hello.1)."
+        },
+        "correct": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3,
+          "description": "listen: the index of the right option (the options are the locale's lesson.<id>.<step>.option.<n>)."
+        },
+        "phrase": {
+          "type": "string",
+          "minLength": 1,
+          "description": "repeat, answer: a phrase-sheet row the learner says."
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "description": "repeat, answer: the bundle prompt the answer is evaluated at (default: the row's)."
+        },
+        "person": {
+          "type": "string",
+          "pattern": "^[123](sg|pl)$",
+          "description": "repeat, answer: the person of the verb the step expects (its retry line is the locale's lesson.<id>.<step>.personRetry)."
+        },
+        "tense": {
+          "enum": [
+            "pres",
+            "pret",
+            "ir-a"
+          ],
+          "description": "repeat, answer: the tense the step expects (its retry line is the locale's lesson.<id>.<step>.tenseRetry)."
+        },
+        "point": {
+          "type": "string",
+          "minLength": 1,
+          "description": "do: a noun the beacon points at when the step begins (the step's HUD line is the locale's lesson.<id>.<step>.hud)."
+        },
+        "phrases": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "recap: the phrases listed (default: every phrase the lesson teaches)."
+        },
+        "trigger": {
+          "$ref": "#/definitions/trigger",
+          "description": "do: the world event the step waits for, with the npc and the exact detail it must have (C06)."
+        }
+      },
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "type": {
+                  "not": {
+                    "enum": [
+                      "model",
+                      "listen",
+                      "answer"
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "required": [
+                "line"
+              ]
+            }
+          ]
+        },
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "type": {
+                  "not": {
+                    "enum": [
+                      "listen"
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "required": [
+                "correct"
+              ]
+            }
+          ]
+        },
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "type": {
+                  "not": {
+                    "enum": [
+                      "repeat",
+                      "answer"
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "required": [
+                "phrase"
+              ]
+            }
+          ]
+        },
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "type": {
+                  "not": {
+                    "enum": [
+                      "do"
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "required": [
+                "trigger"
+              ]
+            }
+          ]
+        }
+      ],
+      "$comment": "Each rule of allOf reads: when the type is one of these, these fields are required (an implication, written with anyOf and not so that every validator reads it)."
+    },
+    "trigger": {
+      "type": "object",
+      "required": [
+        "event"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "event": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The event waited for: a world event (WorldEvents), or for a tip start or aimed_npc."
+        },
+        "npc": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The NPC the event must be about (an agent id)."
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The detail the event must have, exactly (item_picked_up: the noun; torch_at_ring: the ring's name)."
+        }
+      },
+      "description": "What the step or tip waits for (CONTENT_PLAN C06)."
+    }
+  }
+}

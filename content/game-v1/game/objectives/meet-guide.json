@@ -1,0 +1,11 @@
+{
+  "$schema": "../../../schema/objective.schema.json",
+  "schemaVersion": 1,
+  "id": "meet-guide",
+  "about": "Before the guide is met the HUD sends the player down the trail (objective.meet-guide.hud). The guide is met when the panel opens on her, or once the camp checklist has moved (alsoDoneBy); a loaded game has met her if a lesson was begun.",
+  "steps": [
+    {"id": "met", "target": 1, "trigger": {"event": "guide_met"}, "restore": "lesson-begun"}
+  ],
+  "alsoDoneBy": ["camp"],
+  "onComplete": ["guide-met"]
+}

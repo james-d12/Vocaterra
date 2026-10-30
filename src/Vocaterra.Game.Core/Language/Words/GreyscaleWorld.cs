@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Tip;
 
 namespace Vocaterra.Game.Core.Language.Words;
@@ -10,6 +11,7 @@ namespace Vocaterra.Game.Core.Language.Words;
 /// </summary>
 public sealed class GreyscaleWorld
 {
+    private readonly LocaleText _ui;
     private readonly bool _enabled;
     private readonly NounCatalog _nouns;
     private readonly WordProgress _words;
@@ -26,13 +28,15 @@ public sealed class GreyscaleWorld
     /// <param name="words">The learner's progress, which the game changes.</param>
     /// <param name="toasts">Where the new-word toast goes.</param>
     /// <param name="setGreyKinds">Receives the grey set when it changes (the renderer's <c>VoxelRenderer.SetGreyKinds</c>).</param>
+    /// <param name="ui">The support language (the new-word toast, <c>ui.greyNewWord</c>, C04).</param>
     /// <param name="assumeKnown">Nouns counted as known from the start (<c>--assume-known</c>), or <see langword="null"/>.</param>
-    public GreyscaleWorld(bool enabled, NounCatalog nouns, WordProgress words, ToastQueue toasts, Action<ulong> setGreyKinds, IReadOnlyList<string>? assumeKnown = null)
+    public GreyscaleWorld(bool enabled, NounCatalog nouns, WordProgress words, ToastQueue toasts, Action<ulong> setGreyKinds, LocaleText ui, IReadOnlyList<string>? assumeKnown = null)
     {
         ArgumentNullException.ThrowIfNull(nouns);
         ArgumentNullException.ThrowIfNull(words);
         ArgumentNullException.ThrowIfNull(toasts);
         ArgumentNullException.ThrowIfNull(setGreyKinds);
+        _ui = ui ?? throw new ArgumentNullException(nameof(ui));
         _enabled = enabled;
         _nouns = nouns;
         _words = words;
@@ -79,7 +83,7 @@ public sealed class GreyscaleWorld
 
             if (_nouns.ForLemma(lemma) is { } noun)
             {
-                _toasts.Show($"New word: {noun.WithDefinite}!");
+                _toasts.Show(_ui.Ui("greyNewWord", ("word", noun.WithDefinite)));
             }
         }
     }

@@ -27,7 +27,8 @@ namespace Vocaterra.Nlp.Golden.Tests;
 /// <c>Data/identity/baseline.jsonl</c>. Any difference fails the test, naming the input, its source and the stage. The corpus and the baseline are data:
 /// the test never draws inputs, so no generator change can move them. Set <c>VOCATERRA_RECORD_IDENTITY=1</c> to rewrite the baseline; this is only for a
 /// deliberate Spanish behaviour change, in its own commit. Re-recording the end-to-end goldens never touches the baseline (they use a different variable).
-/// Phase A of the language-pack work (M32 to M35, M52, M53) must not re-record it. See <c>tests/golden/README.md</c>.
+/// Phase A of the language-pack work (M32 to M35, M52, M53) must not re-record it. The bundle's content hash, which the verdicts stamp, is masked
+/// before hashing (M54), so an edit of <c>content/game-v1</c> that changes no Spanish behaviour moves no hash. See <c>tests/golden/README.md</c>.
 /// </summary>
 public class SpanishIdentityTests
 {
@@ -40,6 +41,7 @@ public class SpanishIdentityTests
     private const string ScriptedModel = "scripted-identity";
     private const ulong ContextSeed = 20_261_026UL;
     private const long FixedTime = 1_792_000_000;
+    private const string BundleHashMask = "<bundle-hash>";
 
     private static readonly string[] StageOrder = ["normalize", "analyze", "match", "grade", "pipeline", "recast", "g2p"];
 
@@ -262,7 +264,9 @@ public class SpanishIdentityTests
     {
         try
         {
-            return (Digest(produce()), false);
+            // The verdicts carry the bundle's content hash in their version stamp. It is masked (M54): the guard freezes what Spanish does, not the
+            // bytes of content/game-v1, so a content edit that changes no behaviour (a game file's $schema, a moved English string) keeps every hash.
+            return (Digest(produce().Replace(Bundle.ContentHash, BundleHashMask, StringComparison.Ordinal)), false);
         }
         catch (Exception ex)
         {

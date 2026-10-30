@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vocaterra.Game.Core.Items;
@@ -13,14 +14,6 @@ namespace Vocaterra.Game.UI.Inventory;
 /// </summary>
 public sealed class InventoryLayer : IFrameLayer
 {
-    /// <summary>The title over the slots.</summary>
-    public const string Title = "Inventory";
-
-    /// <summary>The key hints when the full line does not fit the panel (X08).</summary>
-    public const string KeyHintsShort = "I or Esc: close   1 to 0 or wheel: choose   click: mine, place";
-
-    /// <summary>The key hints under the slots.</summary>
-    public const string KeyHints = "I or Esc: close   1 to 0 or wheel: choose   left click: mine   right click: place";
 
     private const int Icon = 32;
 
@@ -51,9 +44,10 @@ public sealed class InventoryLayer : IFrameLayer
 
         var left = panel.Left + InventoryLayout.Padding;
         var textWidth = panel.Width - (InventoryLayout.Padding * 2);
-        DrawHelpers.Text(spriteBatch, font, Title, new Vector2(left, panel.Top + 10), Gold);
+        var ui = view.Session.Locale;
+        DrawHelpers.Text(spriteBatch, font, ui.Ui("inventoryTitle"), new Vector2(left, panel.Top + 10), Gold);
         var used = view.Items.Slots.Count(static s => !s.IsEmpty);
-        var summary = $"Slots used: {used} of {Core.Items.Inventory.SlotCount}";
+        var summary = ui.Ui("inventoryUsed", ("used", used.ToString(CultureInfo.InvariantCulture)), ("slots", Core.Items.Inventory.SlotCount.ToString(CultureInfo.InvariantCulture)));
         DrawHelpers.Text(spriteBatch, font, summary, new Vector2(panel.Right - InventoryLayout.Padding - DrawHelpers.Width(font, summary), panel.Top + 10), Known);
         spriteBatch.Draw(pixel, new Rectangle(left, panel.Top + 36, textWidth, 1), new Color(255, 214, 64, 120));
 
@@ -63,7 +57,7 @@ public sealed class InventoryLayer : IFrameLayer
             DrawSlot(spriteBatch, view, font, new Rectangle(cell.X, cell.Y, cell.Width, cell.Height), view.Items.Slots[slot], layout.Compact);
         }
 
-        DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, DrawHelpers.Width(font, KeyHints) <= textWidth ? KeyHints : KeyHintsShort, textWidth), new Vector2(left, panel.Bottom - 26), Hints);
+        DrawHelpers.Text(spriteBatch, font, DrawHelpers.Fit(font, DrawHelpers.Width(font, ui.Ui("inventoryHints")) <= textWidth ? ui.Ui("inventoryHints") : ui.Ui("inventoryHintsShort"), textWidth), new Vector2(left, panel.Bottom - 26), Hints);
     }
 
     private static void DrawSlot(SpriteBatch spriteBatch, FrameView view, FontStashSharp.SpriteFontBase font, Rectangle box, ItemStack stack, bool compact)

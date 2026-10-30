@@ -2,6 +2,7 @@ using Vocaterra.Game.Core.Language.Checks;
 using Vocaterra.Game.Core.Language.Words;
 using Vocaterra.Game.Core.Scripted;
 using Vocaterra.Game.Core.Session;
+using Vocaterra.Game.Core.Tests.TestSupport;
 using Vocaterra.Game.Startup;
 using Vocaterra.Game.UI.Checks;
 using Vocaterra.Nlp.Content;
@@ -14,7 +15,7 @@ public sealed class CheckFrontendTests
 {
     private static readonly Lazy<ContentBundle> Bundle = new(() => GameBundle.Load());
 
-    private static IReadOnlyList<CheckItem> Bank => CheckBank.Load(Bundle.Value);
+    private static IReadOnlyList<CheckItem> Bank => RouteScene.DataOf(Bundle.Value).Checks;
 
     // The seeded plan of a kind (the order is the world seed's; the tests that need a particular first item use Ordered or ProductionFirst).
     private static IReadOnlyList<CheckPlanEntry> Plan(CheckKind kind = CheckKind.Pre) => CheckPlan.For(Bank, kind, 42);
@@ -279,8 +280,8 @@ public sealed class CheckFrontendTests
     [Fact]
     public void TheCheckLayerNamesEachKindOfBattery()
     {
-        Assert.Equal("Check: before the game", CheckLayer.TitleOf(CheckKind.Pre));
-        Assert.Equal("Check: after the game", CheckLayer.TitleOf(CheckKind.Post));
-        Assert.Equal("Check: recall", CheckLayer.TitleOf(CheckKind.Recall));
+        Assert.Equal("Check: before the game", CheckLayer.TitleOf(RouteScene.Shipped.Locale, CheckKind.Pre));
+        Assert.Equal("Check: after the game", CheckLayer.TitleOf(RouteScene.Shipped.Locale, CheckKind.Post));
+        Assert.Equal("Check: recall", CheckLayer.TitleOf(RouteScene.Shipped.Locale, CheckKind.Recall));
     }
 }

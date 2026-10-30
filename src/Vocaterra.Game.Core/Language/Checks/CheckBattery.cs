@@ -115,7 +115,7 @@ public sealed class CheckBattery : IScreen
         EndsRun = false;
         _framesLeft = 0;
         _playedAt = -1;
-        var plan = CheckPlan.For(CheckBank.Load(_session.Bundle), kind, _session.WorldSeed);
+        var plan = CheckPlan.For(_session.Data.Checks, kind, _session.WorldSeed);
         Screen = new CheckScreen(kind, plan, _milliseconds, result => _log()!.CheckResult(result, CheckKinds.Of(kind), _session.PlaySession, _session.Simulation.Tick));
         _log()!.CheckStart(CheckKinds.Of(kind), _session.PlaySession, plan.Count);
         _console($"check: {CheckKinds.Of(kind)}, {plan.Count} items");
@@ -152,7 +152,7 @@ public sealed class CheckBattery : IScreen
         }
         else
         {
-            Screen.Failed(applied.Outcome.Problem ?? "The answer was not graded.");
+            Screen.Failed(applied.Outcome.Problem ?? _session.Locale.Ui("checkNotGraded"));
         }
 
         return true;
@@ -332,7 +332,7 @@ public sealed class CheckBattery : IScreen
     private void SubmitSpoken(string text) => Submit(TurnSource.Speak, text, null, item => $"check: spoken \"{text}\" for {item}");
 
     // The "No sé" button of a production item: graded as dont_know, never a failure.
-    private void SubmitDontKnow() => Submit(TurnSource.Button, GuideSession.DontKnowLine, null, item => $"check: no sé for {item}");
+    private void SubmitDontKnow() => Submit(TurnSource.Button, _session.DontKnowLine, null, item => $"check: no sé for {item}");
 
     private void Submit(TurnSource source, string? text, PcmClip? clip, Func<string, string> line)
     {
@@ -356,7 +356,7 @@ public sealed class CheckBattery : IScreen
 
         if (!_session.Worker!.CanHear)
         {
-            check.Notice = _session.Worker.Load?.Problem ?? "The voice is not available: type your answer (W).";
+            check.Notice = _session.Worker.Load?.Problem ?? _session.Locale.Ui("checkVoiceOff");
             return;
         }
 

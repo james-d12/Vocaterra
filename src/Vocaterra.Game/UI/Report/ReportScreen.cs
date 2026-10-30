@@ -191,7 +191,7 @@ public sealed class ReportScreen
         }
 
         if (outcome == ReportOutcome.None && input.LeftClicked
-            && ReportLayer.LayoutFor(_canvas.Width, _canvas.Height, _font()).ButtonAt(input.MouseState.X, input.MouseState.Y) is { } button)
+            && ReportLayer.LayoutFor(_canvas.Width, _canvas.Height, _font(), _session.Locale).ButtonAt(input.MouseState.X, input.MouseState.Y) is { } button)
         {
             outcome = Panel.Click(button);
         }
@@ -256,13 +256,13 @@ public sealed class ReportScreen
             File.WriteAllText(markdownPath, ReportMarkdown.Build(report), new System.Text.UTF8Encoding(false));
             Panel.Hide();
             _picture = null;
-            _toasts.Show($"Report saved: {markdownPath}");
+            _toasts.Show(_session.Locale.Ui("reportSaved", ("path", markdownPath)));
             _sound.Queue(SoundCue.ReportSaved);
             _log($"report saved: {markdownPath} and {picture} ({ReportKinds.Word(kind)}, panel: {report.State.OpenPanel})");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException or NotSupportedException)
         {
-            _toasts.Show($"Report not saved: {ex.Message}");
+            _toasts.Show(_session.Locale.Ui("reportNotSaved", ("problem", ex.Message)));
             _error($"report not saved: {ex.Message}");
         }
     }

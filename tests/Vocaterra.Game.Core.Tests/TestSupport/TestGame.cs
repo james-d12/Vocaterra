@@ -1,3 +1,4 @@
+using Vocaterra.Game.Core.Content;
 using Vocaterra.Game.Core.Language.Lessons;
 using Vocaterra.Game.Core.Language.Phrases;
 using Vocaterra.Game.Core.Language.Speech;
@@ -19,13 +20,16 @@ internal static class TestGame
     public const ulong Seed = 42;
 
     private static readonly Lazy<ContentBundle> LoadedBundle = new(() => GameBundle.Load());
-    private static readonly Lazy<NounCatalog> LoadedNouns = new(() => NounCatalog.Load(Bundle));
+    private static readonly Lazy<NounCatalog> LoadedNouns = new(() => Data.Nouns);
 
     /// <summary>The bundle, loaded and validated by the core's loader.</summary>
     public static ContentBundle Bundle => LoadedBundle.Value;
 
     /// <summary>The noun catalogue of the bundle.</summary>
     public static NounCatalog Nouns => LoadedNouns.Value;
+
+    /// <summary>The game's content of the bundle (every game file, loaded and checked once).</summary>
+    public static GameData Data => RouteScene.DataOf(Bundle);
 
     /// <summary>The bundle's route scene built from a seed.</summary>
     public static Scene Route(ulong seed = Seed) =>
@@ -36,11 +40,14 @@ internal static class TestGame
     /// and takes the guide's conversation, which the tests of her ordinary conversation do not want); use <see cref="NewSessionWithShippedLessons"/> for the real one.
     /// </summary>
     public static VoxelSession NewSession(ulong seed = Seed, CreditRules? credit = null, LessonBook? lessons = null) =>
-        new(Bundle, seed, GuideSession.DefaultStartedAt, Nouns, Route(seed), credit ?? CreditRules.FullTyped, lessons ?? NoLessons);
+        new(Data, seed, GuideSession.DefaultStartedAt, Route(seed), credit ?? CreditRules.FullTyped, lessons ?? NoLessons);
+
+    /// <summary>The camp checklist of the shipped session, with nothing done (<c>game/objectives/camp.json</c>, C07).</summary>
+    public static Objective Camp() => new(Data.Objectives.Find("camp")!);
 
     /// <summary>A new session on the route with the lessons of the bundle (the guide's <c>first-words</c> lesson).</summary>
     public static VoxelSession NewSessionWithShippedLessons(ulong seed = Seed, CreditRules? credit = null) =>
-        new(Bundle, seed, GuideSession.DefaultStartedAt, Nouns, Route(seed), credit ?? CreditRules.FullTyped, LessonBook.Load(Bundle, PhraseSheet.Load(Bundle), Speech));
+        new(Data, seed, GuideSession.DefaultStartedAt, Route(seed), credit ?? CreditRules.FullTyped);
 
     /// <summary>A book without lessons.</summary>
     public static LessonBook NoLessons => Lessons("{ \"schemaVersion\": 1, \"lessons\": [] }");
@@ -54,13 +61,16 @@ internal static class TestGame
         """;
 
     /// <summary>The bundle's speakable lines (the lessons' lines are checked against them).</summary>
-    public static IReadOnlyList<SpeechLine> Speech => SpeechLines.Enumerate(Bundle, Nouns, PhraseSheet.Load(Bundle));
+    public static IReadOnlyList<SpeechLine> Speech => Data.Speech;
 
     /// <summary>Lessons from a file's text, checked against the bundle as the game checks its own.</summary>
-    public static LessonBook Lessons(string json) => LessonBook.Parse(json, PhraseSheet.Load(Bundle), Speech, Bundle.Prompts);
+    public static LessonBook Lessons(string json) => RouteScene.Lessons(json, Bundle);
+
+    /// <summary>The support language of the repository's locale bundle (its default locale), with the names its placeholders take (C04).</summary>
+    public static LocaleText Locale => Data.Locale; // with the names its {npc:…} and {key:…} take (C04)
 
     /// <summary>The live facts of a session's world (the blocks as they are now).</summary>
-    public static WorldFacts FactsOf(VoxelSession session) => WorldFacts.Live(session.Scene.Grid, Nouns);
+    public static WorldFacts FactsOf(VoxelSession session) => WorldFacts.Live(session.Scene.Grid, Nouns, TestGame.Data.Words.Directions);
 
     /// <summary>Where the player stands as the guide's facts need it (the block under the body, the exact centre and the facing).</summary>
     public static GuideViewpoint ViewpointOf(VoxelSession session)

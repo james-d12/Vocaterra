@@ -1,0 +1,16 @@
+{
+  "$schema": "../../../schema/npc.schema.json",
+  "schemaVersion": 1,
+  "id": "shopkeeper",
+  "label": "Tendero",
+  "figure": "shopkeeper",
+  "focus": {
+    "stall-need": [
+      "pedir-agua"
+    ],
+    "stall-offer": [
+      "si-por-favor",
+      "no-gracias"
+    ]
+  }
+}

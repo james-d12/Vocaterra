@@ -240,7 +240,7 @@ public sealed class GreyscaleTests
     {
         var words = new WordProgress(Nouns.Value);
         var calls = new List<ulong>();
-        var world = new GreyscaleWorld(true, Nouns.Value, words, new ToastQueue(), calls.Add);
+        var world = new GreyscaleWorld(true, Nouns.Value, words, new ToastQueue(), calls.Add, RouteScene.Shipped.Locale);
         world.Refresh();
 
         Assert.Single(calls);
@@ -259,7 +259,7 @@ public sealed class GreyscaleTests
         var words = new WordProgress(Nouns.Value);
         var toasts = new ToastQueue();
         var calls = new List<ulong>();
-        var world = new GreyscaleWorld(true, Nouns.Value, words, toasts, calls.Add);
+        var world = new GreyscaleWorld(true, Nouns.Value, words, toasts, calls.Add, RouteScene.Shipped.Locale);
         world.Refresh();
         Assert.Null(toasts.Current(0));
 
@@ -304,7 +304,7 @@ public sealed class GreyscaleTests
         var words = new WordProgress(Nouns.Value);
         var toasts = new ToastQueue();
         var calls = new List<ulong>();
-        var world = new GreyscaleWorld(false, Nouns.Value, words, toasts, calls.Add);
+        var world = new GreyscaleWorld(false, Nouns.Value, words, toasts, calls.Add, RouteScene.Shipped.Locale);
         world.Refresh();
         words.Restore([new WordRecord("agua", CreditUnits: WordProgress.UnitsToKnow)]);
         world.Refresh();
@@ -321,7 +321,7 @@ public sealed class GreyscaleTests
         var words = new WordProgress(Nouns.Value);
         var toasts = new ToastQueue();
         var calls = new List<ulong>();
-        var world = new GreyscaleWorld(true, Nouns.Value, words, toasts, calls.Add, ["agua"]);
+        var world = new GreyscaleWorld(true, Nouns.Value, words, toasts, calls.Add, RouteScene.Shipped.Locale, ["agua"]);
         world.Refresh();
 
         Assert.True(words.RecordOf("agua").Known);
